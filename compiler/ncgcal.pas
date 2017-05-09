@@ -128,12 +128,10 @@ implementation
 
     uses
       systems,
-      cutils,verbose,globals,
-      cpuinfo,
-      symconst,symbase,symtable,symtype,symsym,defutil,paramgr,
+      verbose,globals,
+      symconst,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
-      aasmbase,aasmtai,
-      nbas,nmem,nld,ncnv,nutils,
+      nld,ncnv,
       ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
       procinfo,

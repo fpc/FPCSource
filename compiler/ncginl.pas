@@ -69,13 +69,13 @@ interface
 implementation
 
     uses
-      globtype,systems,constexp,
-      cutils,verbose,globals,
-      symconst,symtype,symdef,defutil,symsym,
-      aasmbase,aasmtai,aasmdata,aasmcpu,parabase,
-      cgbase,pass_1,pass_2,
-      cpuinfo,cpubase,paramgr,procinfo,
-      nbas,ncon,ncal,ncnv,nld,ncgrtti,
+      globtype,constexp,
+      verbose,globals,
+      symconst,symtype,symdef,defutil,
+      aasmbase,aasmdata,
+      cgbase,pass_2,
+      cpubase,procinfo,
+      ncon,ncal,
       tgobj,ncgutil,
       cgutils,cgobj,hlcgobj
 {$ifndef cpu64bitalu}

@@ -80,7 +80,7 @@ Unit aopt;
       verbose,
       cpubase,
       cgbase,
-      aoptda,aoptcpu,aoptcpud;
+      aoptcpu;
 
     Constructor TAsmOptimizer.create(_AsmL: TAsmList);
       Begin

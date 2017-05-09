@@ -26,7 +26,7 @@ unit i_linux;
   interface
 
     uses
-       systems, rescmn;
+       systems;
 
     const
        system_i386_linux_info : tsysteminfo =

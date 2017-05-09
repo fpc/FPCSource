@@ -26,11 +26,11 @@ unit ncgutil;
 interface
 
     uses
-      node,cpuinfo,
+      node,
       globtype,
       cpubase,cgbase,parabase,cgutils,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symconst,symbase,symdef,symsym,symtype,symtable
+      symconst,symbase,symdef,symsym,symtype
 {$ifndef cpu64bitalu}
       ,cg64f32
 {$endif not cpu64bitalu}
@@ -104,14 +104,12 @@ interface
 implementation
 
   uses
-    version,
     cutils,cclasses,
-    globals,systems,verbose,export,
-    ppu,defutil,
-    procinfo,paramgr,fmodule,
+    globals,systems,verbose,
+    defutil,
+    procinfo,paramgr,
     dbgbase,
-    pass_1,pass_2,
-    nbas,ncon,nld,nmem,nutils,ngenutil,
+    nbas,ncon,nld,nmem,nutils,
     tgobj,cgobj,hlcgobj,hlcgcpu
 {$ifdef llvm}
     { override create_hlcodegen from hlcgcpu }

@@ -46,8 +46,8 @@ implementation
       globtype,
       systems,verbose,cutils,
       cpubase,cgbase,cgutils,cgobj,
-      symconst, symsym,symcpu,nld,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      symconst,symcpu,nld,
+      aasmtai,aasmdata,aasmcpu,
       cpupi;
 
     procedure tx8664callnode.do_syscall;

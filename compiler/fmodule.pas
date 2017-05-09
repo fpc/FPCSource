@@ -44,9 +44,9 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,fpkg,
-       symbase,symconst,symsym,
+       symbase,symsym,
        wpobase,
-       aasmbase,aasmtai,aasmdata;
+       aasmbase,aasmdata;
 
 
     const

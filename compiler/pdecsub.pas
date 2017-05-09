@@ -111,7 +111,7 @@ implementation
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
-       fmodule,node,htypechk,ncon,ppu,nld,
+       fmodule,node,htypechk,ncon,nld,
        objcutil,
        { parser }
        scanner,

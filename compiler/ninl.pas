@@ -26,7 +26,7 @@ unit ninl;
 interface
 
     uses
-       node,htypechk,cpuinfo,symtype;
+       node,htypechk,symtype;
 
     {$i compinnr.inc}
 
@@ -124,11 +124,11 @@ implementation
       verbose,globals,systems,constexp,
       globtype,cutils,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
+      cpuinfo,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       nobjc,objcdef,
-      cgbase,procinfo
-      ;
+      cgbase,procinfo;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
 

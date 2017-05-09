@@ -36,10 +36,8 @@ unit rgobj;
 
     uses
       cutils, cpubase,
-      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
-      cclasses,globtype,cgbase,cgutils,
-      cpuinfo
-      ;
+      aasmtai,aasmdata,aasmsym,aasmcpu,
+      cclasses,globtype,cgbase,cgutils;
 
     type
       {
@@ -292,7 +290,7 @@ unit rgobj;
   implementation
 
     uses
-       systems,fmodule,globals,
+       globals,
        verbose,tgobj,procinfo;
 
 

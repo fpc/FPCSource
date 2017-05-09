@@ -28,8 +28,7 @@ interface
     uses
       symtype,
       node,
-      globals,
-      cpuinfo;
+      globals;
 
     function new_dispose_statement(is_new:boolean) : tnode;
     function new_function : tnode;
@@ -46,8 +45,6 @@ interface
 implementation
 
     uses
-       { common }
-       cutils,
        { global }
        globtype,tokens,verbose,constexp,
        systems,
@@ -55,13 +52,10 @@ implementation
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,ngenutil,
+       ncal,nmem,ncnv,ninl,ncon,nld,nbas,ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,
-       { codegen }
-       cgbase
-       ;
+       pbase,pexpr;
 
 
     function new_dispose_statement(is_new:boolean) : tnode;

@@ -89,12 +89,10 @@ interface
 implementation
 
     uses
-      systems,
       verbose,
       symconst,symdef,defutil,
-      paramgr,
-      procinfo,pass_2,tgobj,
-      nbas,ncon,nflw,
+      pass_2,tgobj,
+      ncon,
       ncgutil,hlcgobj;
 
 

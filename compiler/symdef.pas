@@ -31,13 +31,11 @@ interface
        globtype,globals,tokens,constexp,
        { symtable }
        symconst,symbase,symtype,
-       { ppu }
-       ppu,
        { node }
        node,
        { aasm }
-       aasmbase,aasmtai,
-       cpubase,cpuinfo,
+       aasmtai,
+       cpuinfo,
        cgbase,
        parabase
        ;

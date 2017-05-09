@@ -31,7 +31,7 @@ interface
        symconst,symdef,symsym,
        script,gendef,
        cpubase,
-       import,export,link,comprsrc,cgobj,i_win;
+       import,export,link,comprsrc,i_win;
 
 
     const
@@ -96,7 +96,7 @@ implementation
   uses
     SysUtils,
     cfileutl,
-    cpuinfo,cgutils,dbgbase,
+    cgutils,dbgbase,
     owar,ogbase
 {$ifdef SUPPORT_OMF}
     ,ogomf

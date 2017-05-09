@@ -57,14 +57,10 @@ interface
 implementation
 
     uses
-       SysUtils,
-       globals,verbose,systems,fmodule,
+       globals,verbose,systems,
        node,
-       symbase,symtable,symconst,symtype,defcmp,defutil,
-       symcpu,
-       dbgbase,
-       wpobase
-       ;
+       symbase,symtable,symconst,symtype,symcpu,
+       defcmp;
 
 
 {*****************************************************************************

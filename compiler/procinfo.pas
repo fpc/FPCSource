@@ -29,14 +29,12 @@ unit procinfo;
       { common }
       cclasses,
       { global }
-      globtype,globals,verbose,
+      globtype,
       { symtable }
-      symconst,symtype,symdef,symsym,
+      symconst,symdef,symsym,
       { aasm }
-      cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata,
-      optutils
-      ;
+      cpubase,cgbase,cgutils,
+      aasmbase,aasmdata;
 
     const
       inherited_inlining_flags : tprocinfoflags =

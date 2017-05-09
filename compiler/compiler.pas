@@ -24,6 +24,9 @@ unit compiler;
 
 {$i fpcdefs.inc}
 
+{ some units are implicitly needed by the compiler }
+{$WARN 5023 off : Unit "$1" not used in $2}
+
 interface
 
 uses
@@ -44,7 +47,7 @@ uses
 {$ENDIF}
   verbose,comphook,systems,
   cutils,cfileutl,cclasses,globals,options,fmodule,parser,symtable,
-  assemble,link,dbgbase,import,export,tokens,pass_1,wpobase,wpo
+  assemble,link,dbgbase,import,export,tokens,wpo
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }

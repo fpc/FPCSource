@@ -78,14 +78,13 @@ implementation
     uses
       systems,
       globtype,globals,
-      cutils,verbose,
-      symconst,
+      verbose,
       defutil,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmdata,aasmcpu,
       symtype,symdef,symcpu,
       cgbase,pass_2,
-      cpuinfo,cpubase,paramgr,nutils,
-      nbas,ncon,ncal,ncnv,nld,ncgutil,
+      cpuinfo,cpubase,nutils,
+      ncal,ncgutil,
       tgobj,
       cga,cgutils,cgx86,cgobj,hlcgobj;
 

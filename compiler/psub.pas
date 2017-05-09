@@ -86,7 +86,7 @@ interface
     procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
 
     { parses only the body of a non nested routine; needs a correctly setup pd }
-    procedure read_proc_body(pd:tprocdef);inline;
+    procedure read_proc_body(pd:tprocdef);
 
     procedure import_external_proc(pd:tprocdef);
 
@@ -103,7 +103,7 @@ implementation
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,defcmp,symcreat,
        paramgr,
-       ppu,fmodule,
+       fmodule,
        { pass 1 }
        nutils,ngenutil,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
        pass_1,
@@ -116,9 +116,9 @@ implementation
 {$endif}
        { parser }
        scanner,gendef,
-       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,pgentype,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
-       tgobj,cgbase,cgobj,cgutils,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
 {$ifdef llvm}
       { override create_hlcodegen from hlcgcpu }
       hlcgllvm,
@@ -2001,7 +2001,6 @@ implementation
              (varspez=vs_value)) then
             include(current_procinfo.flags,pi_do_call);
       end;
-
 
 
     procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);

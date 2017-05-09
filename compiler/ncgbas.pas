@@ -71,11 +71,11 @@ interface
   implementation
 
     uses
-      globals,systems,
+      globals,
       cutils,verbose,
       aasmbase,aasmcpu,
-      symsym,symconst,symdef,defutil,
-      nflw,pass_2,ncgutil,
+      symsym,symconst,defutil,
+      pass_2,ncgutil,
       cgbase,cgobj,hlcgobj,
       procinfo,
       cpuinfo,

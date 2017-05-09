@@ -33,7 +33,7 @@ interface
       { symtable }
       symconst,symbase,
       { aasm }
-      aasmbase,ppu,cpuinfo
+      aasmbase,ppu
       ;
 
     type

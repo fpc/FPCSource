@@ -69,11 +69,9 @@ implementation
        { global }
        globals,tokens,verbose,constexp,
        systems,
-       { target }
-       paramgr,procinfo,
        { symtable }
        symconst,symsym,symtable,symcreat,
-       defutil,defcmp,objcdef,
+       defutil,defcmp,
 {$ifdef jvm}
        jvmdef,
 {$endif}
@@ -81,7 +79,7 @@ implementation
        fmodule,
        { pass 1 }
        node,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       nset,ncnv,ncon,nld,
        { parser }
        scanner,
        pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil

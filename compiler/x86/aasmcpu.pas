@@ -33,8 +33,7 @@ interface
       globtype,verbose,
       cpubase,
       cgbase,cgutils,
-      symtype,
-      aasmbase,aasmtai,aasmdata,aasmsym,
+      aasmbase,aasmtai,aasmsym,
       ogbase;
 
     const
@@ -427,9 +426,7 @@ implementation
        cutils,
        globals,
        systems,
-       procinfo,
        itcpugas,
-       symsym,
        cpuinfo;
 
 

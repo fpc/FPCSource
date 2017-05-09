@@ -579,9 +579,10 @@ implementation
       macutils,
 {$endif}
 {$ifdef mswindows}
-      windirs,
+      windirs;
+{$else}
+      ;
 {$endif}
-      comphook;
 
 {****************************************************************************
                                  TLinkStrMap

@@ -47,14 +47,14 @@ implementation
       sysutils,cutils,
       globals,verbose,systems,tokens,
       symbase,symsym,symtable,symcreat,defcmp,
-      node,nld,nmem,ncon,ncnv,ncal,
+      node,ncon,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu,
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu
 {$ifdef jvm}
-      pjvm,
-{$endif}
-      parabase
+      ,pjvm;
+{$else}
       ;
+{$endif}
 
     const
       { Please leave this here, this module should NOT use

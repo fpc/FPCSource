@@ -28,7 +28,7 @@ interface
     uses
        cclasses,constexp,
        node,globtype,globals,
-       aasmbase,aasmtai,aasmdata,ncon,nflw,symtype;
+       aasmbase,ncon,nflw,symtype;
 
     type
        TLabelType = (ltOrdinal, ltConstString);
@@ -130,12 +130,10 @@ interface
 implementation
 
     uses
-      systems,
       verbose,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
-      nadd,nbas,ncnv,nld,cgobj,cgbase,
-      widestr;
+      nadd,nbas,ncnv,nld,cgbase;
 
 
 {*****************************************************************************

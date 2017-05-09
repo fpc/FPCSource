@@ -252,9 +252,7 @@ Implementation
 {$endif memdebug}
       script,fmodule,verbose,
       cpuinfo,
-      aasmcpu,
-      owar,owomflib
-      ;
+      aasmcpu;
 
     var
       CAssembler : array[tasm] of TAssemblerClass;

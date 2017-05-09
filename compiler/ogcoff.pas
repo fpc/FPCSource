@@ -31,7 +31,7 @@ interface
        { target }
        systems,
        { assembler }
-       cpuinfo,cpubase,aasmbase,assemble,link,
+       aasmbase,assemble,
        { output }
        ogbase,
        owbase;
@@ -300,7 +300,8 @@ implementation
 {$endif win32}
        SysUtils,
        cutils,verbose,globals,
-       fmodule,aasmtai,aasmdata,
+       cpubase,cpuinfo,
+       fmodule,
        ogmap,
        owar,
        version

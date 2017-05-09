@@ -43,10 +43,9 @@ implementation
       globals,globtype,verbose,constexp,cpuinfo,
       systems,
       symconst,symtype,symsym,symdef,symcpu,symtable,
-      aasmtai,aasmdata,aasmcpu,
-      ncgutil,ncgrtti,fmodule,
-      node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
-      ;
+      aasmtai,aasmcpu,
+      fmodule,
+      node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl;
 
 
     procedure create_intern_symbols;

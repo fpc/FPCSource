@@ -31,7 +31,7 @@ unit cgx86;
        globtype,
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       cpubase,cpuinfo,rgobj,rgx86,rgcpu,
+       cpubase,cpuinfo,rgx86,
        symconst,symtype,symdef;
 
     type
@@ -189,9 +189,9 @@ unit cgx86;
 
     uses
        globals,verbose,systems,cutils,
-       defutil,paramgr,procinfo,
-       tgobj,ncgutil,
-       fmodule,symsym,symcpu;
+       symcpu,
+       paramgr,procinfo,
+       tgobj,ncgutil;
 
     function UseAVX: boolean;
       begin

@@ -36,10 +36,9 @@ unit optdeadstore;
 
     uses
       verbose,globtype,globals,
-      fmodule,
       procinfo,pass_1,
       nutils,
-      nbas,nld,nmem,nflw,nset,
+      nbas,nld,
       optbase,
       symsym,symconst;
 

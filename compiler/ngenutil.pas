@@ -133,10 +133,10 @@ implementation
 
     uses
       verbose,version,globals,cutils,constexp,
-      scanner,systems,procinfo,fmodule,pparautl,
+      systems,procinfo,fmodule,pparautl,
       aasmbase,aasmtai,aasmcnst,
-      symbase,symtable,defutil,symcreat,
-      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,ncgutil,
+      symbase,symtable,defutil,
+      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
       ppu,
       pass_1;
 

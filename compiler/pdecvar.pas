@@ -61,15 +61,12 @@ implementation
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmbase,aasmdata,
-       ncon,nmat,nadd,ncal,nset,ncnv,ninl,nld,nflw,nmem,nutils,
+       ncon,nset,ncnv,nld,nutils,
        { codegen }
-       ncgutil,ngenutil,
+       ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,
-       { link }
-       import
-       ;
+       pbase,pexpr,ptype,ptconst,pdecsub;
 
 
     function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;

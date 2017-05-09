@@ -26,7 +26,7 @@ unit nx86mat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,ncgmat;
 
     type
       tx86unaryminusnode = class(tcgunaryminusnode)
@@ -52,14 +52,14 @@ interface
 
     uses
       globtype,
-      systems,constexp,
+      constexp,
       cutils,verbose,globals,
       symconst,symdef,
       aasmbase,aasmtai,aasmdata,defutil,
       cgbase,pass_1,pass_2,
       ncon,
-      cpubase,procinfo,
-      cga,ncgutil,cgobj,hlcgobj,cgx86,cgutils;
+      cpubase,
+      cga,cgobj,hlcgobj,cgx86,cgutils;
 
 
 {*****************************************************************************

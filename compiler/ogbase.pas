@@ -679,7 +679,7 @@ implementation
 
     uses
       SysUtils,
-      globals,verbose,fmodule,ogmap;
+      globals,verbose,ogmap;
 
     const
       SectionDataMaxGrow = 4096;

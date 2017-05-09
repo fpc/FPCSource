@@ -112,7 +112,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,rgbase;
+      cutils,rgbase;
 
     const
     {$if defined(x86_64)}

@@ -35,9 +35,9 @@ implementation
     uses
        globtype,systems,globals,verbose,cutils,tokens,
        aasmbase,aasmtai,
-       procinfo,fmodule,
+       fmodule,
        scanner,pbase,pdecvar,
-       node,nbas,ngtcon,ngenutil,
+       node,ngtcon,
        symconst,symbase,symdef
        ;
 

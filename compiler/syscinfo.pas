@@ -26,7 +26,7 @@ unit syscinfo;
 interface
 
 uses
-  globtype, systems, tokens, symconst;
+  systems, tokens, symconst;
 
 type
   tsyscallinfo = record

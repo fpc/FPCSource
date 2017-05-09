@@ -552,7 +552,7 @@ implementation
 
     uses
        globals,systems,
-       verbose,paramgr,symtable,symsym,
+       verbose,paramgr,symsym,
        tgobj,cutils,procinfo;
 
 {*****************************************************************************

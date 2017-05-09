@@ -156,7 +156,7 @@ implementation
     uses
       cutils,verbose,globals,
       symconst,symdef,
-      defutil,defcmp,htypechk,
+      defutil,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
       cpubase,cgbase,procinfo,
       pass_1;

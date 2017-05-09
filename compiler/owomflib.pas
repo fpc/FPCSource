@@ -102,7 +102,6 @@ implementation
     uses
       SysUtils,
       cstreams,
-      globals,
       verbose,
       omfbase;
 

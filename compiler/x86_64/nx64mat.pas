@@ -26,7 +26,7 @@ unit nx64mat;
 interface
 
     uses
-      node,nmat,ncgmat,nx86mat;
+      node,nmat,nx86mat;
 
     type
       tx8664shlshrnode = class(tshlshrnode)
@@ -42,14 +42,11 @@ interface
 implementation
 
     uses
-      globtype,systems,constexp,
-      cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,defutil,
-      pass_1,pass_2,
+      globtype,constexp,
+      aasmdata,defutil,
+      pass_2,
       ncon,
-      cpubase,cpuinfo,
-      cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
-      ncgutil;
+      cgbase,cgutils,cgobj,hlcgobj;
 
 
 {*****************************************************************************

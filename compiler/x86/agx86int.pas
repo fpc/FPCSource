@@ -51,7 +51,7 @@ implementation
     uses
       SysUtils,
       cutils,globtype,globals,systems,cclasses,
-      verbose,finput,fmodule,script,cpuinfo,
+      verbose,script,cpuinfo,
       itx86int,
       cgbase
       ;

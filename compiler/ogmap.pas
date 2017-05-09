@@ -27,9 +27,9 @@ interface
 
     uses
        { common }
-       cclasses,globtype,systems,
+       globtype,
        { object writer }
-       aasmbase,ogbase
+       ogbase
        ;
 
     type
@@ -57,9 +57,7 @@ interface
 implementation
 
     uses
-      cutils,cfileutl,
-      globals,verbose;
-
+      cutils,cfileutl;
 
     const
       HexTbl : array[0..15] of char='0123456789abcdef';

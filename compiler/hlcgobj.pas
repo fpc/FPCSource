@@ -675,15 +675,15 @@ implementation
 
     uses
        globals,systems,
-       fmodule,export,
+       fmodule,
        verbose,defutil,paramgr,
        symtable,
        nbas,ncon,nld,ncgrtti,pass_2,
-       cpuinfo,cgobj,cutils,procinfo,
+       cgobj,cutils,procinfo,
 {$ifdef x86}
        cgx86,
 {$endif x86}
-       ncgutil,ngenutil;
+       ncgutil;
 
 
     procedure destroy_hlcodegen;

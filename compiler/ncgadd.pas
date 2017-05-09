@@ -72,11 +72,11 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
-      symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmdata,defutil,
-      procinfo,pass_2,tgobj,
-      nutils,ncon,nset,ncgutil,cgobj,cgutils,
+      verbose,globals,
+      symconst,symdef,
+      aasmbase,aasmdata,defutil,
+      pass_2,tgobj,
+      nutils,nset,ncgutil,cgobj,cgutils,
       hlcgobj
       ;
 

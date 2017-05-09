@@ -29,7 +29,7 @@ interface
     uses
        aasmbase,
        symtype,
-       node,ncon;
+       ncon;
 
     type
        tcgrealconstnode = class(trealconstnode)
@@ -73,10 +73,10 @@ implementation
       globtype,widestr,systems,
       verbose,globals,cutils,
       aasmcnst,
-      symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symdef,aasmtai,aasmdata,defutil,
       cpuinfo,cpubase,
-      cgbase,cgobj,cgutils,
-      ncgutil,hlcgobj,cclasses,tgobj
+      cgbase,cgutils,
+      hlcgobj,cclasses
       ;
 
 

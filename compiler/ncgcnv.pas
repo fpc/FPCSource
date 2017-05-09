@@ -71,14 +71,13 @@ interface
 
     uses
       cutils,verbose,globtype,globals,
-      aasmbase,aasmtai,aasmdata,aasmcpu,symconst,symdef,symtable,paramgr,
-      nutils,ncon,ncal,
+      aasmbase,aasmdata,symconst,symdef,symtable,
+      nutils,ncon,
       cpubase,systems,
-      procinfo,pass_2,
+      pass_2,
       cgbase,
       cgutils,cgobj,hlcgobj,
       fmodule,
-      ncgutil,
       tgobj
       ;
 

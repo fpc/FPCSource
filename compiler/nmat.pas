@@ -97,7 +97,7 @@ implementation
       systems,
       verbose,globals,cutils,
       globtype,constexp,
-      symconst,symtype,symdef,symtable,
+      symconst,symtype,symdef,
       defutil,
       htypechk,pass_1,
       cgbase,

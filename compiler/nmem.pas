@@ -154,8 +154,8 @@ implementation
     uses
       globtype,systems,constexp,
       cutils,verbose,globals,
-      symconst,symbase,defutil,defcmp,
-      nadd,nbas,nflw,ninl,nutils,objcutil,
+      symconst,defutil,defcmp,
+      nadd,nbas,nflw,nutils,objcutil,
       wpobase,
 {$ifdef i8086}
       cpuinfo,

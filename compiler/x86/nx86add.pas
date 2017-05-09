@@ -67,13 +67,13 @@ unit nx86add;
   implementation
 
     uses
-      globtype,globals,systems,
+      globtype,globals,
       verbose,cutils,
       cpuinfo,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmdata,aasmcpu,
       symconst,symdef,
       cgobj,hlcgobj,cgx86,cga,cgutils,
-      paramgr,tgobj,ncgutil,
+      tgobj,ncgutil,
       ncon,nset,ninl,
       defutil;
 

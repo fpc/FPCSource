@@ -26,9 +26,9 @@ unit nx86mem;
 interface
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
+      cgbase,cpubase,
       symtype,
-      node,nmem,ncgmem;
+      nmem,ncgmem;
 
     type
       tx86derefnode = class(tcgderefnode)
@@ -43,9 +43,9 @@ implementation
 
     uses
       cutils,verbose,
-      aasmtai,aasmdata,
+      aasmdata,
       cgutils,cgobj,
-      symconst,symdef,symcpu;
+      symconst,symcpu;
 
 {*****************************************************************************
                            TX86DEREFNODE

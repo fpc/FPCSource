@@ -91,8 +91,8 @@ implementation
 uses
   globtype,globals,systems,verbose,
   procinfo,
-  cpuinfo,cgbase,cgutils,
-  itcpugas,cgx86, symsym, cutils;
+  cgbase,cgutils,
+  itcpugas,cgx86, cutils;
 
 
 {*****************************************************************************

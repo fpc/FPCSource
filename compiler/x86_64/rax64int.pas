@@ -37,7 +37,7 @@ Unit rax64int;
   implementation
 
     uses
-      rabase,systems,rax86,aasmcpu;
+      rabase,systems;
 
 (*
     procedure tx8664intreader.handleopcode;

@@ -28,8 +28,7 @@ interface
 uses
   globtype,cclasses,
   symtype,
-  wpobase,
-  ppu;
+  wpobase;
 
 type
   pderefarray = ^tderefarray;

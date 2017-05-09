@@ -110,16 +110,15 @@ implementation
       cutils,cclasses,
       globtype,globals,verbose,constexp,
       systems,fmodule,
-      symsym,symtable,symcreat,defutil,
+      symsym,symtable,symcreat,
 {$ifdef cpuhighleveltarget}
       pparautl,
 {$endif cpuhighleveltarget}
       aasmtai,
       wpobase,
-      nobj,
       cgbase,parabase,paramgr,
 {$ifndef cpuhighleveltarget}
-      cgobj,cgcpu,hlcgobj,hlcgcpu,
+      hlcgobj,hlcgcpu,
 {$endif not cpuhighleveltarget}
       ncgrtti;
 

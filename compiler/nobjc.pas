@@ -57,14 +57,10 @@ var
 implementation
 
 uses
-  sysutils,
-  globtype,globals,cclasses,systems,
+  globtype,globals,
   verbose,pass_1,
-  defutil,
-  symtype,symtable,symdef,symconst,symsym,
-  paramgr,
-  nutils,
-  nbas,nld,ncnv,ncon,ncal,nmem,
+  symdef,symconst,
+  ncon,ncal,
   objcutil,
   cgbase;
 

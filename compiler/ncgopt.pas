@@ -38,12 +38,12 @@ implementation
 
 uses
   globtype,globals,
-  pass_1,defutil,htypechk,
-  symdef,paramgr,
-  aasmbase,aasmtai,aasmdata,
+  pass_1,defutil,
+  symdef,
+  aasmbase,aasmdata,
   ncnv, ncon, pass_2,
   cgbase, cpubase,
-  tgobj, cgobj, hlcgobj, cgutils,ncgutil;
+  tgobj, cgobj, hlcgobj, cgutils;
 
 
 {*****************************************************************************

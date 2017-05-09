@@ -28,9 +28,9 @@ unit agx86att;
 interface
 
     uses
-      cclasses,cpubase,systems,
-      globals,globtype,cgutils,
-      aasmbase,aasmtai,aasmdata,assemble,aggas;
+      cpubase,systems,
+      globtype,cgutils,
+      aasmtai,assemble,aggas;
 
     type
       Tx86ATTAssembler=class(TGNUassembler)

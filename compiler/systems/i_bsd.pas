@@ -30,7 +30,7 @@ unit i_bsd;
   interface
 
     uses
-       systems, rescmn;
+       systems;
 
     const
        res_macho_info : tresinfo =

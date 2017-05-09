@@ -367,7 +367,6 @@ Unit AoptObj;
       cutils,
       globals,
       verbose,
-      procinfo,
       aoptutils;
 
 

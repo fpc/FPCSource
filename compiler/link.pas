@@ -161,7 +161,7 @@ Implementation
       baseunix,
 {$endif hasUnix}
       script,globals,verbose,comphook,ppu,fpccrc,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmcpu,
       ogmap;
 
     var

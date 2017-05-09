@@ -28,9 +28,8 @@ unit rgx86;
   interface
 
     uses
-      cclasses,globtype,
-      cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
+      cpubase,cgbase,cgutils,
+      aasmtai,aasmdata,aasmsym,aasmcpu,
       rgobj;
 
     type
@@ -83,7 +82,6 @@ unit rgx86;
 implementation
 
     uses
-       systems,
        verbose;
 
     const

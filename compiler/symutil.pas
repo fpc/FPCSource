@@ -26,7 +26,7 @@ unit symutil;
 interface
 
     uses
-       symbase,symtype,symsym;
+       symbase,symsym;
 
     function is_funcret_sym(p:TSymEntry):boolean;
 
@@ -36,8 +36,7 @@ interface
 implementation
 
     uses
-       cclasses,
-       globtype,cpuinfo,procinfo,constexp,
+       globtype,cpuinfo,constexp,
        symconst,widestr;
 
 

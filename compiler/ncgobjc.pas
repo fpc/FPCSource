@@ -42,7 +42,7 @@ implementation
 
 uses
     globtype,cclasses,
-    aasmbase,aasmdata,aasmtai,
+    aasmbase,aasmdata,
     cgbase,cgutils,defutil,objcgutl,
     symconst,symsym,symdef,
     node,nld,ncon,

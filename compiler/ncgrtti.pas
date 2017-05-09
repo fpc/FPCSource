@@ -89,8 +89,7 @@ implementation
        symtable,
        aasmtai,aasmdata,
        defutil,
-       paramgr,
-       wpobase
+       paramgr
        ;
 
 

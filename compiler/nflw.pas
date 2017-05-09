@@ -244,7 +244,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symtable,paramgr,defcmp,defutil,htypechk,pass_1,
-      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,ninl,nset,ngenutil,
+      ncal,nadd,ncon,nmem,nld,ncnv,nbas,nutils,ninl,nset,ngenutil,
       pdecsub,
     {$ifdef state_tracking}
       nstate,

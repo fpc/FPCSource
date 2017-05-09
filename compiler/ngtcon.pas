@@ -147,14 +147,14 @@ uses
    systems,tokens,verbose,
    cutils,globals,widestr,scanner,
    symtable,
-   aasmcpu,defutil,defcmp,
+   defutil,defcmp,
    { pass 1 }
    htypechk,procinfo,
-   nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+   nmem,ncnv,ninl,ncon,nld,
    { parser specific stuff }
-   pbase,pexpr,pdecvar,
+   pbase,pexpr,
    { codegen }
-   cpuinfo,cgbase,dbgbase,
+   cpuinfo,cgbase,
    wpobase
    ;
 

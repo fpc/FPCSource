@@ -48,7 +48,6 @@ implementation
     aasmbase,aasmdata,aasmcnst,
     symtype,symconst,symsym,symdef,symbase,symtable,
     psub,pdecsub,
-    ncgutil,
     ppu,entfile,fpcp,
     export;
 

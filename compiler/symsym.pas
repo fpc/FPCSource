@@ -31,12 +31,10 @@ interface
        globtype,globals,widestr,constexp,
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
-       { ppu }
-       ppu,finput,
        cclasses,
        { aasm }
        aasmbase,
-       cpuinfo,cpubase,cgbase,cgutils,parabase
+       cpuinfo,cgbase,cgutils,parabase
        ;
 
     type
@@ -495,7 +493,7 @@ implementation
        { tree }
        node,
        { aasm }
-       aasmtai,aasmdata,
+       aasmdata,
        { codegen }
        paramgr,
        procinfo,

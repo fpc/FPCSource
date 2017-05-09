@@ -61,12 +61,14 @@ implementation
 {$ifdef EXTDEBUG}
      cutils,
 {$endif}
-     globtype,systems,verbose,
+     globtype,verbose,
      globals,
-     paramgr,
-     aasmtai,aasmdata,
-     cgbase,
-     nflw,cgobj;
+     aasmdata
+{$ifdef EXTDEBUG}
+     ,cgbase
+     ,aasmtai
+{$endif}
+     ;
 
 {*****************************************************************************
                               SecondPass

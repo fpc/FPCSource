@@ -40,17 +40,16 @@ implementation
 {$ELSE}
       fksysutl,
 {$ENDIF}
-      cutils,cclasses,
-      globtype,version,tokens,systems,globals,verbose,switches,globstat,
-      symbase,symtable,symdef,symsym,
+      cclasses,
+      globtype,tokens,systems,globals,verbose,switches,globstat,
+      symbase,symtable,symdef,
       finput,fmodule,fppu,
-      aasmbase,aasmtai,aasmdata,
-      cgbase,
+      aasmdata,
       script,gendef,
       comphook,
       scanner,scandir,
-      pbase,ptype,psystem,pmodules,psub,ncgrtti,htypechk,
-      cresstr,cpuinfo,procinfo;
+      pbase,psystem,pmodules,psub,ncgrtti,
+      cpuinfo,procinfo;
 
 
     procedure initparser;

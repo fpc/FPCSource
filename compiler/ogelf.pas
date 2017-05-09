@@ -31,7 +31,7 @@ interface
        { target }
        systems,
        { assembler }
-       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,assemble,
+       aasmbase,assemble,
        { ELF definitions }
        elfbase,
        { output }

@@ -56,9 +56,9 @@ implementation
        globals,tokens,verbose,widestr,constexp,
        systems,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symcpu,symtable,symcreat,defutil,
+       symconst,symbase,symtype,symcpu,symcreat,defutil,
        { pass 1 }
-       htypechk,ninl,ncon,nobj,ngenutil,
+       ninl,ncon,nobj,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,

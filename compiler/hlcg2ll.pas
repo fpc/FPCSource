@@ -34,10 +34,10 @@ unit hlcg2ll;
   interface
 
     uses
-       cclasses,globtype,constexp,
+       globtype,constexp,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       symconst,symtype,symdef,rgobj,
+       symconst,symtype,symdef,
        node,hlcgobj
        ;
 
@@ -329,9 +329,9 @@ unit hlcg2ll;
 implementation
 
     uses
-       globals,options,systems,
-       verbose,defutil,paramgr,symsym,
-       cgobj,tgobj,cutils,procinfo,
+       globals,systems,
+       verbose,defutil,
+       cgobj,tgobj,cutils,
        ncgutil;
 
   { thlcg2ll }

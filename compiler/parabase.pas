@@ -26,8 +26,8 @@ unit parabase;
 
     uses
        cclasses,globtype,
-       aasmbase,cpubase,cgbase,cgutils,
-       symtype, ppu;
+       cgbase,cgutils,
+       symtype;
 
     type
        TCGParaReference = record

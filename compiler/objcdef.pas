@@ -28,7 +28,6 @@ unit objcdef;
 interface
 
     uses
-      node,
       symtype;
 
     { The internals of Objective-C's @encode() functionality: encode a
@@ -55,7 +54,7 @@ implementation
   uses
     globtype,
     cutils,cclasses,
-    verbose,systems,
+    verbose,
     symtable,symconst,symsym,symdef,
     defutil,paramgr;
 

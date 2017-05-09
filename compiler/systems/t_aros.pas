@@ -27,7 +27,7 @@ unit t_aros;
 interface
 
     uses
-      rescmn, comprsrc, import, export,  link, ogbase;
+      rescmn, comprsrc, import, link, ogbase;
 
 
 type

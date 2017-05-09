@@ -130,15 +130,11 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symtable,symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symtable,symconst,symdef,aasmbase,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj,procinfo
-{$ifndef cpu64bitalu}
-      ,cg64f32
-{$endif not cpu64bitalu}
-      ;
+      tgobj,cgobj,cgutils,paramgr,hlcgobj;
 
 {*****************************************************************************
                           TCGUNARYMINUSNODE

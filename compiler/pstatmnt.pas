@@ -44,23 +44,20 @@ implementation
        globtype,globals,verbose,constexp,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmdata,
+       cpubase,aasmtai,aasmdata,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
-       paramgr,symutil,
+       paramgr,
        { pass 1 }
        pass_1,htypechk,
-       nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nutils,ngenutil,nbas,ncal,nmem,nset,ncnv,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,ptype,pexpr,
        { codegen }
        procinfo,cgbase,
        { assembler reader }
-       rabase,
-       { wide- and unicodestrings}
-       widestr
-       ;
+       rabase;
 
 
     function statement : tnode;forward;

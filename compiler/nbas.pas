@@ -27,8 +27,8 @@ interface
 
     uses
        globtype,
-       cpuinfo,cpubase,cgbase,cgutils,
-       aasmbase,aasmtai,aasmdata,aasmcpu,
+       cgbase,cgutils,
+       aasmtai,aasmdata,aasmcpu,
        node,
        symtype;
 
@@ -302,11 +302,10 @@ interface
 implementation
 
     uses
-      cutils,
       verbose,globals,systems,
       symconst,symdef,defutil,defcmp,
       pass_1,
-      nutils,nld,ncal,nflw,
+      nutils,nld,
       procinfo
       ;
 

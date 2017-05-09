@@ -27,9 +27,8 @@ interface
 
     uses
       globtype,widestr,constexp,
-      cclasses,
       node,
-      aasmbase,aasmtai,aasmdata,cpuinfo,globals,
+      aasmbase,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 
     type
@@ -192,7 +191,7 @@ implementation
       cutils,
       verbose,systems,sysutils,
       defcmp,defutil,procinfo,
-      cpubase,cgbase,
+      cgbase,
       nld;
 
     function genintconstnode(const v : TConstExprInt) : tordconstnode;

@@ -81,17 +81,23 @@ Unit Rax86int;
        cutils,
        { global }
        globals,verbose,
-       systems,cpuinfo,
+       systems,
        { aasm }
-       aasmtai,aasmdata,aasmcpu,
+       aasmdata,aasmcpu,
+{$ifdef i8086}
+       aasmtai,
+{$endif i8086}
        { symtable }
-       symconst,symbase,symtype,symsym,symdef,symtable,symcpu,
+       symconst,symbase,symtype,symsym,symdef,
+{$ifdef i8086}
+       symcpu,
+{$endif i8086}
        { parser }
        scanner,pbase,
        { register allocator }
-       rabase,rautils,itx86int,
+       rautils,itx86int,
        { codegen }
-       cgbase,cgobj,procinfo,paramgr
+       cgbase,procinfo,paramgr
        ;
 
     type

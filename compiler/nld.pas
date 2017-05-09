@@ -179,9 +179,9 @@ implementation
       verbose,globtype,globals,systems,constexp,
       symtable,
       defutil,defcmp,
-      htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
-      ncon,ninl,ncnv,nmem,ncal,nadd,nutils,
+      htypechk,pass_1,procinfo,paramgr,
+      ncon,ninl,ncnv,nmem,ncal,nutils,
       cgbase
       ;
 

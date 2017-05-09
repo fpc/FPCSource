@@ -27,7 +27,7 @@ unit ncgmem;
 interface
 
     uses
-      globtype,cgbase,cgutils,cpuinfo,cpubase,
+      globtype,cgbase,cgutils,cpubase,
       symtype,
       node,nmem;
 
@@ -87,14 +87,12 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,fmodule,
-      symconst,symbase,symdef,symsym,symcpu,symtable,defutil,paramgr,
-      aasmbase,aasmtai,aasmdata,
+      symconst,symbase,symdef,symsym,symtable,defutil,paramgr,
+      aasmbase,aasmdata,
       procinfo,pass_2,parabase,
-      pass_1,nld,ncon,nadd,ncnv,nutils,
+      ncon,nadd,nutils,
       cgobj,hlcgobj,
-      tgobj,ncgutil,objcgutl,
-      defcmp
-      ;
+      objcgutl;
 
 
 {*****************************************************************************

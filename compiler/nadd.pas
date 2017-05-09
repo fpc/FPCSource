@@ -127,7 +127,7 @@ implementation
       {$ifdef state_tracking}
       nstate,
       {$endif}
-      cpuinfo,procinfo;
+      cpuinfo;
 
 
 {*****************************************************************************

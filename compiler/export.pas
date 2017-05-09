@@ -29,7 +29,7 @@ uses
   cutils,cclasses,
   systems,
   symtype,symdef,symsym,
-  aasmbase,aasmdata;
+  aasmdata;
 
 type
    { export options }

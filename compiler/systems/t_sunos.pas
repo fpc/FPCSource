@@ -37,9 +37,8 @@ implementation
     sysutils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    symconst,script,
-    fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    cgobj,
+    script,
+    fmodule,
     import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase;
 
   type

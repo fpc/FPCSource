@@ -112,7 +112,7 @@ unit aoptbase;
   implementation
 
     uses
-      verbose,globtype,globals,aoptcpub;
+      verbose,globals,aoptcpub;
 
   constructor taoptbase.create;
     begin

@@ -69,9 +69,7 @@ uses
   symconst,symsym,symtable,defcmp,procinfo,
   { modules }
   fmodule,
-  { pass 1 }
-  htypechk,
-  node,nobj,nmem,
+  node,nobj,
   { parser }
   scanner,
   pbase,pexpr,pdecsub,ptype,psub;

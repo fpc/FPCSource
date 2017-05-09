@@ -140,7 +140,7 @@ implementation
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
-    nbas,nld,nmem,ngenutil,ncon,
+    nbas,nld,nmem,ncon,
     defcmp,
     paramgr;
 

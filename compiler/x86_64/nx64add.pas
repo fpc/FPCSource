@@ -38,8 +38,8 @@ interface
 
     uses
       globtype,globals,verbose,
-      aasmbase,aasmtai,aasmdata,
-      symdef,defutil,
+      aasmbase,aasmdata,
+      defutil,
       cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
       tgobj;
 

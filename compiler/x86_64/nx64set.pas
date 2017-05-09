@@ -27,7 +27,7 @@ interface
 
     uses
       globtype,
-      node,nset,pass_1,nx86set;
+      nset,nx86set;
 
     type
       tx8664casenode = class(tx86casenode)
@@ -41,13 +41,11 @@ implementation
     uses
       systems,
       verbose,globals,constexp,
-      symconst,symdef,defutil,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
-      cgbase,pass_2,
-      ncon,
-      cpubase,cpuinfo,procinfo,
-      cga,cgutils,cgobj,ncgutil,
-      cgx86;
+      defutil,
+      aasmbase,aasmtai,aasmdata,
+      cgbase,
+      cpubase,procinfo,
+      cga,cgutils,cgobj;
 
 
 {*****************************************************************************

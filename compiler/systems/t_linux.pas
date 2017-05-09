@@ -28,7 +28,7 @@ interface
 
   uses
     aasmdata,
-    symsym,symdef,ppu,
+    symsym,
     import,export,expunix,link;
 
   type
@@ -77,10 +77,10 @@ implementation
     SysUtils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    symconst,script,
+    script,
     fmodule,
     aasmbase,aasmtai,aasmcpu,cpubase,
-    cgbase,cgobj,cgutils,ogbase,ncgutil,
+    cgbase,ogbase,
     comprsrc,
     ogelf,owar,
     rescmn, i_linux

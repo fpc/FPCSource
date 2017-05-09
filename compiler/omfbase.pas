@@ -1115,10 +1115,9 @@ interface
 implementation
 
   uses
-    cutils,
-    globals,globtype,
-    verbose,
-    cpuinfo;
+    cutils,globtype,globals,
+    cpuinfo,
+    verbose;
 
   { TOmfOrderedNameCollection }
 

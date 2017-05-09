@@ -48,11 +48,11 @@ interface
 implementation
 
   uses
-    verbose,globtype,globals,cutils,constexp,
+    verbose,globtype,cutils,constexp,
     pass_1,pparautl,fmodule,
     aasmdata,
     nbas,ncon,nmem,nutils,
-    symbase,symconst,symtable,symsym,symcreat,objcutil,objcdef,defutil,
+    symbase,symconst,symtable,symsym,symcreat,objcutil,defutil,
     paramgr;
 
 

@@ -27,10 +27,10 @@ unit expunix;
 interface
 
 uses
-  cutils,cclasses,
+  cclasses,
   systems,
   export,
-  symtype,symdef,symsym,
+  symdef,symsym,
   aasmbase;
 
 type
@@ -55,15 +55,14 @@ implementation
 
 uses
   symconst,
-  globtype,globals,
-  aasmdata,aasmtai,aasmcpu,
+  globals,
+  aasmdata,aasmtai,
   fmodule,
   {$ifdef cpuhighleveltarget}
   symcreat,
   {$endif}
-  cgbase,cgutils,cpubase,cgobj,
-  cgcpu,hlcgobj,hlcgcpu,
-  ncgutil,
+  cgbase,
+  hlcgobj,hlcgcpu,
   verbose;
 
 

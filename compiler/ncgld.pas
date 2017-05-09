@@ -75,8 +75,8 @@ implementation
       aasmbase,
       cgbase,pass_2,
       procinfo,
-      cpubase,parabase,cpuinfo,
-      tgobj,ncgutil,
+      cpubase,parabase,
+      tgobj,
       cgobj,hlcgobj,
       ncgbas,ncgflw,
       wpobase;

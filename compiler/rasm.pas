@@ -29,8 +29,7 @@ unit rasm;
       cclasses,
       rabase,
       aasmbase,
-      aasmtai,aasmdata,
-      systems,
+      aasmdata,
       cpubase,
       cgbase;
 

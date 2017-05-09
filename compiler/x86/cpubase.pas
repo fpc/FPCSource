@@ -34,8 +34,7 @@ unit cpubase;
 interface
 
 uses
-  cutils,cclasses,
-  globtype,globals,
+  globals,
   cgbase
   ;
 
@@ -330,6 +329,7 @@ uses
 implementation
 
     uses
+      globtype,
       rgbase,verbose;
 
     const

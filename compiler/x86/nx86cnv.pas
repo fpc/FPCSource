@@ -26,7 +26,7 @@ unit nx86cnv;
 interface
 
     uses
-      node,ncgcnv,defutil,defcmp;
+      node,ncgcnv,defutil;
 
     type
        tx86typeconvnode = class(tcgtypeconvnode)
@@ -58,13 +58,14 @@ interface
 implementation
 
    uses
-      verbose,systems,globals,globtype,
+      verbose,globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,procinfo,pass_1,pass_2,
-      ncon,ncal,ncnv,
-      cpubase,cpuinfo,
-      cgutils,cgobj,hlcgobj,cgx86,ncgutil,
+      cgbase,cga,pass_1,pass_2,
+      cpuinfo,
+      ncnv,
+      cpubase,
+      cgutils,cgobj,hlcgobj,cgx86,
       tgobj;
 
 

@@ -53,14 +53,13 @@ unit optdfa;
   implementation
 
     uses
-      globtype,globals,
+      globtype,
       verbose,
-      cpuinfo,
       symconst,symdef,symsym,
       defutil,
       procinfo,
       nutils,htypechk,
-      nbas,nflw,ncon,ninl,ncal,nset,nld,nadd,
+      nbas,nflw,ncal,nset,nld,nadd,
       optbase;
 
 

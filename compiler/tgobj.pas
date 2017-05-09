@@ -32,11 +32,10 @@ unit tgobj;
   interface
 
     uses
-      cclasses,
       globals,globtype,
       symtype,
-      cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata;
+      cpubase,cgbase,cgutils,
+      aasmtai,aasmdata;
 
     type
       ptemprecord = ^ttemprecord;
@@ -135,10 +134,8 @@ implementation
 
     uses
        cutils,
-       systems,verbose,
-       procinfo,
-       symconst
-       ;
+       verbose,
+       procinfo;
 
 
     const

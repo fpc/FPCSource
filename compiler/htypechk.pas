@@ -26,7 +26,7 @@ unit htypechk;
 interface
 
     uses
-      cclasses,cmsgs,tokens,cpuinfo,
+      cclasses,cmsgs,tokens,
       node,globtype,
       symconst,symtype,symdef,symsym,symbase,
       pgentype;

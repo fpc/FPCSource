@@ -27,7 +27,7 @@ unit aoptcpu;
 
 interface
 
-uses cgbase, cpubase, aasmtai, aopt, aoptx86, aoptcpub;
+uses cpubase, aasmtai, aopt, aoptx86;
 
 type
   TCpuAsmOptimizer = class(TX86AsmOptimizer)
@@ -40,13 +40,8 @@ type
 implementation
 
 uses
-  globtype, globals,
-  cutils,
-  verbose,
-  cgutils,
-  aoptobj,aoptutils,
-  aasmbase, aasmdata, aasmcpu,
-  itcpugas;
+  globals,
+  aasmcpu;
 
     function TCpuAsmOptimizer.PrePeepHoleOptsCpu(var p : tai) : boolean;
       begin

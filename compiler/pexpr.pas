@@ -75,7 +75,7 @@ implementation
        { module }
        fmodule,ppu,
        { pass 1 }
-       pass_1,htypechk,
+       pass_1,
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,

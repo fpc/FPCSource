@@ -52,12 +52,12 @@ interface
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,
-    nbas,ncal,nmem,nutils,
-    symconst,symbase,symtable,symsym,symdef,
-    cgbase,cgobj,cgcpu,cgutils,tgobj,
+    globtype,globals,verbose,systems,
+    nbas,ncal,nutils,
+    symconst,symsym,symdef,
+    cgbase,cgobj,cgutils,tgobj,
     cpubase,htypechk,
-    parabase,paramgr,pdecsub,pass_1,pass_2,ncgutil,cga,
+    pass_1,pass_2,
     aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi;
 
   var

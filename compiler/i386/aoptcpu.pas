@@ -30,7 +30,7 @@ unit aoptcpu;
 
     uses
       cgbase,
-      cpubase, aoptobj, aoptcpub, aopt, aoptx86,
+      cpubase, aopt, aoptx86,
       Aasmbase,aasmtai,aasmdata;
 
     Type
@@ -52,8 +52,6 @@ unit aoptcpu;
 
     uses
       verbose,globtype,globals,
-      cutils,
-      aoptbase,
       cpuinfo,
       aasmcpu,
       aoptutils,

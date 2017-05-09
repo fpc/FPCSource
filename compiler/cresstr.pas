@@ -39,7 +39,7 @@ uses
    cutils,globtype,globals,systems,
    symbase,symconst,symtype,symdef,symsym,symtable,
    verbose,fmodule,ppu,
-   aasmbase,aasmtai,aasmdata,aasmcnst,
+   aasmtai,aasmdata,aasmcnst,
    aasmcpu;
 
     Type

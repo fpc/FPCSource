@@ -29,7 +29,7 @@ interface
       cclasses,
       systems,
       parabase,
-      symconst,symbase,symdef,symtype,symsym,symtable,
+      symconst,symbase,symdef,symtype,symsym,
       fmodule,
       aasmtai,aasmdata;
 

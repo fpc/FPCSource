@@ -61,14 +61,14 @@ Implementation
       globtype,verbose,
       systems,
       { aasm }
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,
       { parser }
       scanner,
       procinfo,
       itcpugas,
-      rabase,paramgr,
+      paramgr,
       cgbase
       ;
 

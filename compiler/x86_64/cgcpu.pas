@@ -28,9 +28,9 @@ unit cgcpu;
     uses
        cgbase,cgutils,cgobj,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       cpubase,cpuinfo,cpupara,parabase,
+       cpubase,parabase,
        symdef,
-       node,symconst,rgx86,procinfo;
+       symconst,rgx86,procinfo;
 
     type
       tcgx86_64 = class(tcgx86)
@@ -60,8 +60,8 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,cclasses,
-       symsym,symtable,defutil,paramgr,fmodule,cpupi,
-       rgobj,tgobj,rgcpu,ncgutil;
+       symtable,paramgr,cpupi,
+       rgcpu,ncgutil;
 
 
     procedure Tcgx86_64.init_register_allocators;
