@@ -466,7 +466,7 @@ function GetOSRelDate:Longint;
   both old 3.0.X definition and new definition using pcint type.
   Problem solved using a special type called
   FPSysCtlFirstArgType. }
-{$if defined(VER3_0_0) or defined(VER3_0_2)}
+{$ifdef VER3_0}
 type
   FPSysCtlFirstArgType = PChar;
 {$else}
