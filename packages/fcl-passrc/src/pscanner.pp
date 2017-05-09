@@ -39,8 +39,8 @@ const
   nLogIFNDefRejected = 1012;
   nLogIFAccepted = 1013;
   nLogIFRejected = 1014;
-  nLogIFOPTIgnored = 1015;
-  nLogIFIgnored = 1016;
+  nLogIFOptAccepted = 1015;
+  nLogIFOptRejected = 1016;
   nErrInvalidMode = 1017;
   nErrInvalidModeSwitch = 1018;
   nErrXExpectedButYFound = 1019;
@@ -67,8 +67,8 @@ resourcestring
   SLogIFNDefRejected = 'IFNDEF %s found, rejecting.';
   SLogIFAccepted = 'IF %s found, accepting.';
   SLogIFRejected = 'IF %s found, rejecting.';
-  SLogIFOPTIgnored = 'IFOPT %s found, ignoring (rejected).';
-  SLogIFIgnored = 'IF %s found, ignoring (rejected).';
+  SLogIFOptAccepted = 'IFOpt %s found, accepting.';
+  SLogIFOptRejected = 'IFOpt %s found, rejecting.';
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
   SErrUserDefined = 'User defined error: "%s"';
@@ -488,6 +488,7 @@ type
   TPScannerLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
   TPScannerLogEvent = (sleFile,sleLineNumber,sleConditionals);
   TPScannerLogEvents = Set of TPScannerLogEvent;
+  TPScannerDirectiveEvent = function(Sender: TObject; Directive, Param: String): boolean of object;
 
   TPascalScanner = class
   private
@@ -510,6 +511,7 @@ type
     FMacros,
     FDefines: TStrings;
     FMacrosOn: boolean;
+    FOnDirective: TPScannerDirectiveEvent;
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
     FOptions: TPOptions;
@@ -604,11 +606,12 @@ type
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
     property MacrosOn: boolean read FMacrosOn write FMacrosOn;
-    Property AllowedModeSwitches: TModeSwitches Read FAllowedModeSwitches Write SetAllowedModeSwitches;
-    Property ReadOnlyModeSwitches: TModeSwitches Read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
-    Property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
+    property OnDirective: TPScannerDirectiveEvent read FOnDirective write FOnDirective;
+    property AllowedModeSwitches: TModeSwitches Read FAllowedModeSwitches Write SetAllowedModeSwitches;
+    property ReadOnlyModeSwitches: TModeSwitches Read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
+    property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
     property Options : TPOptions Read FOptions Write SetOptions;
-    Property ForceCaret : Boolean Read FForceCaret;
+    property ForceCaret : Boolean Read FForceCaret;
     property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
     property ConditionEval: TCondDirectiveEvaluator read FConditionEval;
@@ -2667,9 +2670,9 @@ begin
       end;
     If LogEvent(sleConditionals) then
       if PPSkipMode=ppSkipElseBranch then
-        DoLog(mtInfo,nLogIFAccepted,sLogIFAccepted,[AParam])
+        DoLog(mtInfo,nLogIFOptAccepted,sLogIFOptAccepted,[AParam])
       else
-        DoLog(mtInfo,nLogIFRejected,sLogIFRejected,[AParam])
+        DoLog(mtInfo,nLogIFOptRejected,sLogIFOptRejected,[AParam])
     end;
 end;
 
@@ -2734,7 +2737,7 @@ begin
   Directive:=Copy(ADirectiveText,2,P-2); // 1 is $
   Param:=ADirectiveText;
   Delete(Param,1,P);
-  Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+  //Writeln('Directive: "',Directive,'", Param : "',Param,'"');
 
   Case UpperCase(Directive) of
   'IFDEF':
@@ -2753,6 +2756,10 @@ begin
     HandleENDIF(Param);
   else
     if PPIsSkipping then exit;
+
+    if Assigned(OnDirective) then
+      if not OnDirective(Self,Directive,Param) then exit;
+
     if (length(Directive)=2)
         and (Directive[1] in ['a'..'z','A'..'Z'])
         and (Directive[2] in ['-','+']) then
@@ -2776,8 +2783,6 @@ begin
       HandleError(Param);
     'UNDEF':
       HandleUnDefine(Param);
-    else
-      // ToDo: call hook
     end;
   end;
 end;
