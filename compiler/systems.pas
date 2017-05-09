@@ -466,7 +466,7 @@ function GetOSRelDate:Longint;
   both old 3.0.X definition and new definition using pcint type.
   Problem solved using a special type called
   FPSysCtlFirstArgType. }
-{$ifdef VER3_0}
+{$if defined(VER3_0_0) or defined(VER3_0_2)}
 type
   FPSysCtlFirstArgType = PChar;
 {$else}
@@ -491,7 +491,7 @@ Begin
         len    := 4;
         oerrno:= fpgeterrno;
         if (FPsysctl(FPSysCtlFirstArgType(@mib), 2, pchar(@v), @len, NIL, 0) = -1) Then
-           Begin
+             Begin
                 if (fpgeterrno = ESysENOMEM) Then
                         fpseterrno(oerrno);
                 GetOSRelDate:=0;
