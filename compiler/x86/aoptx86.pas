@@ -1868,6 +1868,7 @@ unit aoptx86;
                           taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                         end
                     end;
+{$ifndef i8086}
                   S_WL:
                     begin
                       if (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(p).oper[1]^.reg)) and
@@ -1898,6 +1899,7 @@ unit aoptx86;
                           taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ffff);
                         end;
                     end;
+{$endif i8086}
                   end
                 else if (taicpu(p).oper[0]^.typ = top_ref) then
                   begin
