@@ -48,8 +48,10 @@ const
   nErrDivByZero = 1021;
   nErrOperandAndOperatorMismatch = 1022;
   nErrUnknownDirective = 1023;
+  nLogMacroDefined = 1024; // FPC=3101
+  nLogMacroUnDefined = 1025; // FPC=3102
   // keep this last:
-  nUserDefined = 1023;
+  nUserDefined = 1026;
 
 // resourcestring patterns of messages
 resourcestring
@@ -76,6 +78,9 @@ resourcestring
   sErrRangeCheck = 'range check failed';
   sErrDivByZero = 'division by zero';
   sErrOperandAndOperatorMismatch = 'operand and operator mismatch';
+  sLogMacroDefined = 'Macro defined: %s';
+  sLogMacroUnDefined = 'Macro undefined: %s';
+  // keep this last
   sErrUnknownDirective = 'unknown directive "%s"';
 
 type
@@ -214,7 +219,7 @@ type
   TModeSwitch = (
     msNone,
     { generic }
-    msFpc, msObjfpc, msDelphi, msTP7, msMac, msIso, msExtpas, msGPC,
+    msFpc, msObjfpc, msDelphi, msDelphiUnicode, msTP7, msMac, msIso, msExtpas, msGPC,
     { more specific }
     msClass,               { delphi class model }
     msObjpas,              { load objpas unit }
@@ -492,6 +497,7 @@ type
 
   TPascalScanner = class
   private
+    FAllowedModes: TModeSwitches;
     FAllowedModeSwitches: TModeSwitches;
     FConditionEval: TCondDirectiveEvaluator;
     FCurrentModeSwitches: TModeSwitches;
@@ -543,6 +549,7 @@ type
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
   protected
     function FetchLine: boolean;
+    function GetMacroName(const Param: String): String;
     procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : String; SkipSourceInfo : Boolean = False);overload;
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
@@ -579,13 +586,13 @@ type
     procedure OpenFile(const AFilename: string);
     function FetchToken: TToken;
     function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
-    Procedure AddDefine(const aName: String);
-    Procedure RemoveDefine(const aName: String);
-    Procedure UnDefine(const aName: String); // check defines and macros
+    function AddDefine(const aName: String; Quiet: boolean = false): boolean;
+    function RemoveDefine(const aName: String; Quiet: boolean = false): boolean;
+    function UnDefine(const aName: String; Quiet: boolean = false): boolean; // check defines and macros
     function IsDefined(const aName: String): boolean; // check defines and macros
     function IfOpt(Letter: Char): boolean;
-    Procedure AddMacro(const aName, aValue: String);
-    Procedure RemoveMacro(const aName: String);
+    function AddMacro(const aName, aValue: String; Quiet: boolean = false): boolean;
+    function RemoveMacro(const aName: String; Quiet: boolean = false): boolean;
     Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
     Function SetForceCaret(AValue : Boolean) : Boolean;
@@ -743,7 +750,16 @@ const
   );
 
   SModeSwitchNames : array[TModeSwitch] of string[18] =
-  ( '', '','','','','','','', '',
+  ( '', // msNone
+    '', // Fpc,
+    '', // Objfpc,
+    '', // Delphi,
+    '', // DelphiUnicode,
+    '', // TP7,
+    '', // Mac,
+    '', // Iso,
+    '', // Extpas,
+    '', // GPC,
     { more specific }
     'CLASS',
     'OBJPAS',
@@ -2134,6 +2150,7 @@ begin
   FIncludeStack := TFPList.Create;
   FDefines := CS;
   FMacros:=CS;
+  FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
   FConditionEval:=TCondDirectiveEvaluator.Create;
@@ -2474,7 +2491,7 @@ begin
   Param := UpperCase(Param);
   Index:=Pos(':=',Param);
   If (Index=0) then
-    AddDefine(Param)
+    AddDefine(GetMacroName(Param))
   else
     begin
     MValue:=Trim(Param);
@@ -2491,7 +2508,7 @@ end;
 
 procedure TPascalScanner.HandleUnDefine(Param: String);
 begin
-  UnDefine(Param);
+  UnDefine(GetMacroName(Param));
 end;
 
 function TPascalScanner.HandleInclude(const Param: String): TToken;
@@ -2520,10 +2537,10 @@ end;
 
 procedure TPascalScanner.HandleMode(const Param: String);
 
-  procedure SetMode(const NeededModes, NewModeSwitches: TModeSwitches;
+  procedure SetMode(const LangMode: TModeSwitch; const NewModeSwitches: TModeSwitches;
     IsDelphi: boolean);
   begin
-    if not (NeededModes<=AllowedModeSwitches) then
+    if not (LangMode in AllowedModeSwitches) then
       Error(nErrInvalidMode,SErrInvalidMode,[Param]);
     CurrentModeSwitches:=(NewModeSwitches+ReadOnlyModeSwitches)*AllowedModeSwitches;
     if IsDelphi then
@@ -2538,26 +2555,24 @@ Var
 begin
   P:=UpperCase(Param);
   Case P of
-  'FPC':
-    SetMode([msFpc],FPCModeSwitches,false);
+  'FPC','DEFAULT':
+    SetMode(msFpc,FPCModeSwitches,false);
   'OBJFPC':
-    SetMode([msObjfpc],OBJFPCModeSwitches,true);
+    SetMode(msObjfpc,OBJFPCModeSwitches,true);
   'DELPHI':
-    SetMode([msDelphi],DelphiModeSwitches,true);
+    SetMode(msDelphi,DelphiModeSwitches,true);
   'DELPHIUNICODE':
-    SetMode([msDelphi,msDefaultUnicodestring],DelphiUnicodeModeSwitches,true);
+    SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true);
   'TP':
-    SetMode([msTP7],TPModeSwitches,false);
+    SetMode(msTP7,TPModeSwitches,false);
   'MACPAS':
-    SetMode([msMac],MacModeSwitches,false);
+    SetMode(msMac,MacModeSwitches,false);
   'ISO':
-    SetMode([msIso],ISOModeSwitches,false);
+    SetMode(msIso,ISOModeSwitches,false);
   'EXTENDED':
-    SetMode([msExtpas],ExtPasModeSwitches,false);
+    SetMode(msExtpas,ExtPasModeSwitches,false);
   'GPC':
-    SetMode([msGPC],GPCModeSwitches,false);
-  'DEFAULT':
-    SetMode([msFpc],FPCModeSwitches,false);
+    SetMode(msGPC,GPCModeSwitches,false);
   else
     Error(nErrInvalidMode,SErrInvalidMode,[Param])
   end;
@@ -3429,6 +3444,17 @@ begin
   end;
 end;
 
+function TPascalScanner.GetMacroName(const Param: String): String;
+var
+  p: Integer;
+begin
+  Result:=Param;
+  p:=1;
+  while (p<=length(Param)) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
+    inc(p);
+  SetLength(Result,p-1);
+end;
+
 procedure TPascalScanner.SetCurMsg(MsgType: TMessageType; MsgNumber: integer;
   const Fmt: String; Args: array of const);
 begin
@@ -3439,28 +3465,36 @@ begin
   CreateMsgArgs(FLastMsgArgs,Args);
 end;
 
-procedure TPascalScanner.AddDefine(const aName: String);
+function TPascalScanner.AddDefine(const aName: String; Quiet: boolean): boolean;
 
 begin
-  If FDefines.IndexOf(aName)=-1 then
-    FDefines.Add(aName);
+  If FDefines.IndexOf(aName)>=0 then exit(false);
+  Result:=true;
+  FDefines.Add(aName);
+  if (not Quiet) and LogEvent(sleConditionals) then
+    DoLog(mtInfo,nLogMacroDefined,sLogMacroDefined,[aName])
 end;
 
-procedure TPascalScanner.RemoveDefine(const aName: String);
+function TPascalScanner.RemoveDefine(const aName: String; Quiet: boolean
+  ): boolean;
 
 Var
   I : Integer;
 
 begin
   I:=FDefines.IndexOf(aName);
-  if (I<>-1) then
-    FDefines.Delete(I);
+  if (I<0) then exit(false);
+  Result:=true;
+  FDefines.Delete(I);
+  if (not Quiet) and LogEvent(sleConditionals) then
+    DoLog(mtInfo,nLogMacroUnDefined,sLogMacroUnDefined,[aName])
 end;
 
-procedure TPascalScanner.UnDefine(const aName: String);
+function TPascalScanner.UnDefine(const aName: String; Quiet: boolean): boolean;
 begin
-  RemoveDefine(aName);
-  RemoveMacro(aName);
+  // Important: always call both, do not use OR
+  Result:=RemoveDefine(aName,Quiet);
+  if RemoveMacro(aName,Quiet) then Result:=true;
 end;
 
 function TPascalScanner.IsDefined(const aName: String): boolean;
@@ -3475,7 +3509,8 @@ begin
     and IsDefined(LetterSwitchNames[Letter]);
 end;
 
-procedure TPascalScanner.AddMacro(const aName, aValue: String);
+function TPascalScanner.AddMacro(const aName, aValue: String; Quiet: boolean
+  ): boolean;
 var
   Index: Integer;
 begin
@@ -3483,17 +3518,27 @@ begin
   If (Index=-1) then
     FMacros.AddObject(aName,TMacroDef.Create(aName,aValue))
   else
+    begin
+    if TMacroDef(FMacros.Objects[Index]).Value=aValue then exit(false);
     TMacroDef(FMacros.Objects[Index]).Value:=aValue;
+    end;
+  Result:=true;
+  if (not Quiet) and LogEvent(sleConditionals) then
+    DoLog(mtInfo,nLogMacroDefined,sLogMacroDefined,[aName])
 end;
 
-procedure TPascalScanner.RemoveMacro(const aName: String);
+function TPascalScanner.RemoveMacro(const aName: String; Quiet: boolean
+  ): boolean;
 var
   Index: Integer;
 begin
   Index:=FMacros.IndexOf(aName);
-  if Index<0 then exit;
+  if Index<0 then exit(false);
+  Result:=true;
   TMacroDef(FMacros.Objects[Index]).Free;
   FMacros.Delete(Index);
+  if (not Quiet) and LogEvent(sleConditionals) then
+    DoLog(mtInfo,nLogMacroUnDefined,sLogMacroUnDefined,[aName])
 end;
 
 procedure TPascalScanner.SetCompilerMode(S: String);

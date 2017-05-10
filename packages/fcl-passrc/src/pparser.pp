@@ -888,7 +888,7 @@ begin
       on e: EScannerError do
         begin
         if po_KeepScannerError in Options then
-          raise e
+          raise
         else
           begin
           FLastMsgType := mtError;
