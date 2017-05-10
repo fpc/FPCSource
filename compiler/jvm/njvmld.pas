@@ -61,7 +61,7 @@ type
 implementation
 
 uses
-  verbose,globals,
+  verbose,globals,compinnr,
   nbas,nld,ncal,ncon,ninl,nmem,ncnv,nutils,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,

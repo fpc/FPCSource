@@ -43,7 +43,7 @@ interface
 implementation
 
 uses
-  verbose,
+  verbose,compinnr,
   ncon,ncnv,ninl,nld,
   defcmp,defutil,
   aasmtai,

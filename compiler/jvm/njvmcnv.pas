@@ -97,7 +97,7 @@ interface
 implementation
 
    uses
-      verbose,globals,globtype,constexp,cutils,
+      verbose,globals,globtype,constexp,cutils,compinnr,
       symbase,symconst,symdef,symsym,symcpu,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,

@@ -176,7 +176,7 @@ interface
 implementation
 
     uses
-      verbose,globtype,globals,systems,constexp,
+      verbose,globtype,globals,systems,constexp,compinnr,
       symtable,
       defutil,defcmp,
       cpuinfo,

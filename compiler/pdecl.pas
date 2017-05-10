@@ -54,7 +54,7 @@ implementation
        cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
-       systems,aasmdata,fmodule,
+       systems,aasmdata,fmodule,compinnr,
        { symtable }
        symconst,symbase,symtype,symcpu,symcreat,defutil,
        { pass 1 }

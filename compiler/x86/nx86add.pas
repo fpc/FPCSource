@@ -68,7 +68,7 @@ unit nx86add;
 
     uses
       globtype,globals,
-      verbose,cutils,
+      verbose,cutils,compinnr,
       cpuinfo,
       aasmbase,aasmdata,aasmcpu,
       symconst,symdef,

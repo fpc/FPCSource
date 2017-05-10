@@ -154,7 +154,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,globals,
+      cutils,verbose,globals,compinnr,
       symconst,symdef,
       defutil,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,

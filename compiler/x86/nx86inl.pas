@@ -78,7 +78,7 @@ implementation
     uses
       systems,
       globtype,globals,
-      verbose,
+      verbose,compinnr,
       defutil,
       aasmbase,aasmdata,aasmcpu,
       symtype,symdef,symcpu,

@@ -299,7 +299,7 @@ interface
 implementation
 
    uses
-      globtype,systems,constexp,
+      globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symcpu,symtable,
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,

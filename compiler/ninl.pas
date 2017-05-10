@@ -26,15 +26,12 @@ unit ninl;
 interface
 
     uses
-       node,htypechk,symtype;
-
-    {$i compinnr.inc}
-
+       node,htypechk,symtype,compinnr;
     type
        tinlinenode = class(tunarynode)
-          inlinenumber : byte;
-          constructor create(number : byte;is_const:boolean;l : tnode);virtual;
-          constructor createintern(number : byte;is_const:boolean;l : tnode);virtual;
+          inlinenumber : tinlinenumber;
+          constructor create(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
+          constructor createintern(number : tinlinenumber;is_const:boolean;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -116,7 +113,7 @@ interface
     var
        cinlinenode : tinlinenodeclass = tinlinenode;
 
-   function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
+   function geninlinenode(number : tinlinenumber;is_const:boolean;l : tnode) : tinlinenode;
 
 implementation
 
@@ -130,7 +127,7 @@ implementation
       nobjc,objcdef,
       cgbase,procinfo;
 
-   function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
+   function geninlinenode(number : tinlinenumber;is_const:boolean;l : tnode) : tinlinenode;
 
      begin
         geninlinenode:=cinlinenode.create(number,is_const,l);
@@ -140,7 +137,7 @@ implementation
                            TINLINENODE
 *****************************************************************************}
 
-    constructor tinlinenode.create(number : byte;is_const:boolean;l : tnode);
+    constructor tinlinenode.create(number : tinlinenumber;is_const:boolean;l : tnode);
 
       begin
          inherited create(inlinen,l);
@@ -150,7 +147,7 @@ implementation
       end;
 
 
-    constructor tinlinenode.createintern(number : byte; is_const : boolean;
+    constructor tinlinenode.createintern(number : tinlinenumber; is_const : boolean;
      l : tnode);
       begin
          create(number,is_const,l);
@@ -161,14 +158,14 @@ implementation
     constructor tinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        inlinenumber:=ppufile.getbyte;
+        inlinenumber:=tinlinenumber(ppufile.getlongint);
       end;
 
 
     procedure tinlinenode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putbyte(inlinenumber);
+        ppufile.putlongint(longint(inlinenumber));
       end;
 
 

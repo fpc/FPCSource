@@ -144,7 +144,7 @@ implementation
 
 uses
    SysUtils,
-   systems,tokens,verbose,
+   systems,tokens,verbose,compinnr,
    cutils,globals,widestr,scanner,
    symtable,
    defutil,defcmp,

@@ -53,7 +53,7 @@ interface
 
     uses
       systems,
-      cutils,verbose,constexp,globtype,
+      cutils,verbose,constexp,globtype,compinnr,
       symconst,symtable,symdef,symcpu,
       paramgr,procinfo,pass_1,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,

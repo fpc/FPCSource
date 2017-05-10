@@ -71,7 +71,7 @@ interface
 implementation
 
     uses
-      cutils,globals,verbose,globtype,constexp,fmodule,
+      cutils,globals,verbose,globtype,constexp,fmodule,compinnr,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symtype,symconst,symdef,symsym,symcpu,symtable,jvmdef,
       defutil,

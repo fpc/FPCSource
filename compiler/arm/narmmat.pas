@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      globtype,
+      globtype,compinnr,
       cutils,verbose,globals,constexp,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,

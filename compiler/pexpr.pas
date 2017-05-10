@@ -27,7 +27,7 @@ interface
 
     uses
       symtype,symdef,symbase,
-      node,ncal,
+      node,ncal,compinnr,
       tokens,globtype,globals,constexp,
       pgentype;
 
@@ -260,7 +260,7 @@ implementation
        end;
 
 
-     function statement_syssym(l : byte) : tnode;
+     function statement_syssym(l : tinlinenumber) : tnode;
       var
         p1,p2,paras  : tnode;
         err,

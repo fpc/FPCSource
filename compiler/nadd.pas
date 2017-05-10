@@ -118,7 +118,7 @@ implementation
 {$ELSE}
       fksysutl,
 {$ENDIF}
-      globtype,systems,constexp,
+      globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symcpu,symtable,defutil,defcmp,
       cgbase,
@@ -2802,7 +2802,7 @@ implementation
 
     function taddnode.try_fma(ld,rd : tdef) : tnode;
       var
-        inlinennr : Integer;
+        inlinennr : tinlinenumber;
       begin
         result:=nil;
         if (cs_opt_fastmath in current_settings.optimizerswitches) and

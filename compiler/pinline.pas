@@ -47,7 +47,7 @@ implementation
     uses
        { global }
        globtype,tokens,verbose,constexp,
-       systems,
+       systems,compinnr,
        { symtable }
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
@@ -632,7 +632,7 @@ implementation
       end;
 
 
-    function inline_copy_insert_delete(nr:byte;name:string) : tnode;
+    function inline_copy_insert_delete(nr:tinlinenumber;name:string) : tnode;
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }

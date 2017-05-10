@@ -95,7 +95,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,cutils,
+      verbose,globals,cutils,compinnr,
       globtype,constexp,
       symconst,symtype,symdef,
       defutil,

@@ -35,13 +35,13 @@ unit optloadmodifystore;
   implementation
 
     uses
-      globtype,verbose,nutils,
+      globtype,verbose,nutils,compinnr,
       defutil,defcmp,htypechk,pass_1,
       nadd,ncal,ncnv,ninl,nld;
 
     function try_opt_assignmentnode(assignmentnode: tassignmentnode): tnode;
       var
-        newinlinenodetype: byte;
+        newinlinenodetype: tinlinenumber;
       begin
         result:=nil;
         with assignmentnode do

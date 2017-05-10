@@ -311,7 +311,7 @@ implementation
       systems,
       verbose,globals,fmodule,
       aasmbase,aasmdata,
-      symconst,defutil,defcmp,
+      symconst,defutil,defcmp,compinnr,
       htypechk,pass_1,
       ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       pgenutil,
@@ -3751,8 +3751,8 @@ implementation
                 begin
                   { convert types to those of the prototype, this is required by functions like ror, rol, sar
                     some use however a dummy type (Typedfile) so this would break them }
-                  if not(tprocdef(procdefinition).extnumber in [in_Reset_TypedFile,in_Rewrite_TypedFile,
-                                                                in_reset_typedfile_name,in_rewrite_typedfile_name]) then
+                  if not(tinlinenumber(tprocdef(procdefinition).extnumber) in
+                       [in_Reset_TypedFile,in_Rewrite_TypedFile,in_reset_typedfile_name,in_rewrite_typedfile_name]) then
                     begin
                       { bind parasyms to the callparanodes and insert hidden parameters }
                       bind_parasym;
@@ -3765,17 +3765,17 @@ implementation
                   { ptr and settextbuf need two args }
                   if assigned(tcallparanode(left).right) then
                    begin
-                     hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,left);
+                     hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,left);
                      left:=nil;
                    end
                   else
                    begin
-                     hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,tcallparanode(left).left);
+                     hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,tcallparanode(left).left);
                      tcallparanode(left).left:=nil;
                    end;
                 end
                else
-                hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,nil);
+                hpt:=geninlinenode(tinlinenumber(tprocdef(procdefinition).extnumber),is_const,nil);
                result:=hpt;
                exit;
              end;

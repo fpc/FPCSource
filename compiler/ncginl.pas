@@ -70,7 +70,7 @@ implementation
 
     uses
       globtype,constexp,
-      verbose,globals,
+      verbose,globals,compinnr,
       symconst,symtype,symdef,defutil,
       aasmbase,aasmdata,
       cgbase,pass_2,

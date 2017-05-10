@@ -132,7 +132,7 @@ interface
 implementation
 
     uses
-      verbose,version,globals,cutils,constexp,
+      verbose,version,globals,cutils,constexp,compinnr,
       systems,procinfo,fmodule,pparautl,
       aasmbase,aasmtai,aasmcnst,
       symbase,symtable,defutil,

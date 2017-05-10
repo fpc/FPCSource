@@ -62,7 +62,7 @@ interface
 implementation
 
     uses
-      verbose,globals,globtype,constexp,cutils,
+      verbose,globals,globtype,constexp,cutils,compinnr,
       symconst,symtable,symsym,symcpu,defutil,
       cgutils,tgobj,procinfo,htypechk,
       cpubase,aasmbase,aasmdata,aasmcpu,

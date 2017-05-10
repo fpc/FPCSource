@@ -36,7 +36,7 @@ unit optloop;
   implementation
 
     uses
-      cutils,cclasses,
+      cutils,cclasses,compinnr,
       globtype,globals,constexp,
       verbose,
       symdef,symsym,

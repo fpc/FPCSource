@@ -48,7 +48,7 @@ unit optcse;
     uses
       globtype,globals,
       cutils,cclasses,
-      nutils,
+      nutils,compinnr,
       nbas,nld,ninl,ncal,nadd,nmem,
       pass_1,
       symconst,symdef,symsym,

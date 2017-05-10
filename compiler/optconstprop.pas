@@ -55,7 +55,7 @@ unit optconstprop;
   implementation
 
     uses
-      pass_1,procinfo,
+      pass_1,procinfo,compinnr,
       symsym, symconst,
       nutils, nbas, ncnv, nld, nflw, ncal, ninl;
 

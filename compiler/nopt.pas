@@ -87,7 +87,7 @@ var
 implementation
 
 uses cutils, systems,
-     htypechk, defutil, defcmp, globtype, globals, cpubase,
+     htypechk, defutil, defcmp, globtype, globals, cpubase, compinnr,
      ncnv, ncon, ncal, ninl, nld, nmem,
      verbose, symconst,symdef, cgbase, procinfo;
 

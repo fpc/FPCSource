@@ -47,7 +47,7 @@ implementation
     ninl,
     systems,
     globtype,globals,
-    cutils,verbose,
+    cutils,verbose,compinnr,
     constexp,
     symconst,
     defutil,
