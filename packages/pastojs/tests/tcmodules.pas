@@ -123,6 +123,8 @@ type
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
       ImplStatements: string = ''); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
+    procedure SetExpectedScannerError(Msg: string; MsgNumber: integer);
+    procedure SetExpectedParserError(Msg: string; MsgNumber: integer);
     procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
     procedure SetExpectedConverterError(Msg: string; MsgNumber: integer);
     function IsErrorExpected(E: Exception): boolean;
@@ -173,6 +175,8 @@ type
     Procedure TestEmptyUnitUseStrict;
     Procedure TestDottedUnitNames;
     Procedure TestDottedUnitExpr;
+    Procedure Test_ModeFPCFail;
+    Procedure Test_ModeSwitchCBlocksFail;
 
     // vars/const
     Procedure TestVarInt;
@@ -643,7 +647,7 @@ begin
       CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
       CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
-      CurEngine.Parser.Options:=CurEngine.Parser.Options+po_pas2js;
+      CurEngine.Parser.Options:=CurEngine.Parser.Options+po_pas2js+[po_KeepScannerError];
       if CompareText(CurUnitName,'System')=0 then
         CurEngine.Parser.ImplicitUses.Clear;
       CurEngine.Scanner.OpenFile(CurEngine.Filename);
@@ -651,10 +655,6 @@ begin
         CurEngine.Parser.NextToken;
         CurEngine.Parser.ParseUnit(CurEngine.FModule);
       except
-        on E: EParserError do
-          HandleParserError(E);
-        on E: EPasResolve do
-          HandlePasResolveError(E);
         on E: Exception do
           HandleException(E);
       end;
@@ -681,7 +681,7 @@ begin
   FScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
   FEngine:=AddModule(Filename);
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
-  Parser.Options:=Parser.Options+po_pas2js;
+  Parser.Options:=Parser.Options+po_pas2js+[po_KeepScannerError];
   FModule:=Nil;
   FConverter:=TPasToJSConverter.Create;
   FConverter.Options:=co_tcmodules;
@@ -754,12 +754,6 @@ begin
     StartParsing;
     Parser.ParseMain(FModule);
   except
-    on E: EParserError do
-      HandleParserError(E);
-    on E: EPasResolve do
-      HandlePasResolveError(E);
-    on E: EPas2JS do
-      HandlePas2JSError(E);
     on E: Exception do
       HandleException(E);
   end;
@@ -943,14 +937,6 @@ begin
   try
     FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   except
-    on E: EScannerError do
-      HandleScannerError(E);
-    on E: EParserError do
-      HandleParserError(E);
-    on E: EPasResolve do
-      HandlePasResolveError(E);
-    on E: EPas2JS do
-      HandlePas2JSError(E);
     on E: Exception do
       HandleException(E);
   end;
@@ -1221,6 +1207,22 @@ begin
   until false;
 end;
 
+procedure TCustomTestModule.SetExpectedScannerError(Msg: string;
+  MsgNumber: integer);
+begin
+  ExpectedErrorClass:=EScannerError;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
+procedure TCustomTestModule.SetExpectedParserError(Msg: string;
+  MsgNumber: integer);
+begin
+  ExpectedErrorClass:=EParserError;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
 procedure TCustomTestModule.SetExpectedPasResolverError(Msg: string;
   MsgNumber: integer);
 begin
@@ -1247,6 +1249,10 @@ begin
     MsgNumber:=EPas2JS(E).MsgNumber
   else if E is EPasResolve then
     MsgNumber:=EPasResolve(E).MsgNumber
+  else if E is EParserError then
+    MsgNumber:=Parser.LastMsgNumber
+  else if E is EScannerError then
+    MsgNumber:=Scanner.LastMsgNumber
   else
     MsgNumber:=0;
   Result:=(MsgNumber=ExpectedErrorNumber) and (E.Message=ExpectedErrorMsg);
@@ -1302,13 +1308,24 @@ end;
 
 procedure TCustomTestModule.HandleException(E: Exception);
 begin
-  if IsErrorExpected(E) then exit;
-  if not (E is EAssertionFailedError) then
+  if E is EScannerError then
+    HandleScannerError(EScannerError(E))
+  else if E is EParserError then
+    HandleParserError(EParserError(E))
+  else if E is EPasResolve then
+    HandlePasResolveError(EPasResolve(E))
+  else if E is EPas2JS then
+    HandlePas2JSError(EPas2JS(E))
+  else
     begin
-    WriteSources('',0,0);
-    writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+    if IsErrorExpected(E) then exit;
+    if not (E is EAssertionFailedError) then
+      begin
+      WriteSources('',0,0);
+      writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+      end;
+    RaiseException(E);
     end;
-  RaiseException(E);
 end;
 
 procedure TCustomTestModule.RaiseException(E: Exception);
@@ -1321,6 +1338,10 @@ begin
         MsgNumber:=EPas2JS(E).MsgNumber
       else if E is EPasResolve then
         MsgNumber:=EPasResolve(E).MsgNumber
+      else if E is EParserError then
+        MsgNumber:=Parser.LastMsgNumber
+      else if E is EScannerError then
+        MsgNumber:=Scanner.LastMsgNumber
       else
         MsgNumber:=0;
       AssertEquals('Expected error message ('+IntToStr(ExpectedErrorNumber)+')','{'+ExpectedErrorMsg+'}','{'+E.Message+'}');
@@ -1479,6 +1500,24 @@ begin
     'pas["NS2.SubNs2.Unit2"].DoIt();',
     '$mod.i = $mod.i;',
     '']) );
+end;
+
+procedure TTestModule.Test_ModeFPCFail;
+begin
+  StartProgram(false);
+  Add('{$mode FPC}');
+  Add('begin');
+  SetExpectedScannerError('Invalid mode: "FPC"',nErrInvalidMode);
+  ConvertProgram;
+end;
+
+procedure TTestModule.Test_ModeSwitchCBlocksFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch cblocks-}');
+  Add('begin');
+  SetExpectedScannerError('Invalid mode switch: "cblocks-"',nErrInvalidModeSwitch);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestVarInt;

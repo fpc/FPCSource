@@ -247,10 +247,12 @@ Works:
 - dotted unit names, namespaces
 
 ToDos:
-- $modeswitch -> define/undefine <modeswitch>
 - scanner: bark on unknown modeswitch
 - scanner: bark on disabling fixed modeswitch
-- $ifopt, $if option
+- scanner: bark on unknown mode
+- $hint
+- $note
+- $warn
 
 - constant evaluation
 - integer ranges
