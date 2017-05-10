@@ -180,7 +180,7 @@ var
     OOptions:=OOptions+maybequoted(s);
   end;
 
-  procedure AddDependencySearchPaths(APackageName: string);
+  procedure AddDependencySearchPaths(ADepDirList: TStrings; APackageName: string);
   var
     i: Integer;
     D: TFPDependency;
@@ -200,8 +200,8 @@ var
           begin
             if CheckUnitDir(D.PackageName, UnitDir) then
               begin
-                AddDependencySearchPaths(D.PackageName);
-                AddOption('-Fu'+UnitDir)
+                AddDependencySearchPaths(ADepDirList, D.PackageName);
+                ADepDirList.Add(UnitDir);
               end
             else
               Error(SErrMissingInstallPackage, [D.PackageName]);
@@ -221,6 +221,7 @@ Var
   FPMKUnitDepPackage: TFPPackage;
   P : TFPPackage;
   DepPackage: TFPPackage;
+  DepDirList: TStringList;
 begin
   P:=DeterminePackage;
   NeedFPMKUnitSource:=false;
@@ -246,57 +247,67 @@ begin
         Error(SErrMissingFPMake);
       AddOption('-n');
       AddOption('-dCOMPILED_BY_FPPKG');
-      for i:=0 to high(FPMKUnitDeps) do
-        begin
-          FPMKUnitDepAvailable := FPMKUnitDeps[i].available;
-          if FPMKUnitDepAvailable then
-            begin
-              // Do not try to use packages which are broken. This can happen when
-              // fixbroken is being called and one of the fpmkunit-dependencies itself
-              // is broken. In that case, build fpmake without the dependency.
-              // (Plugins are also fpmkunit-dependencies)
-              FPMKUnitDepPackage := PackageManager.FindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
-              if Assigned(FPMKUnitDepPackage) then
-                begin
-                  if PackageManager.PackageIsBroken(FPMKUnitDepPackage, nil) then
-                    FPMKUnitDepAvailable := False;
-                end;
-            end;
 
-          if FPMKUnitDepAvailable then
-            begin
-              if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
-                begin
-                  AddDependencySearchPaths(FPMKUnitDeps[i].package);
-                  AddOption('-Fu'+DepDir)
-                end
-              else
-                Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
-              if FPMKUnitDeps[i].def<>'' then
-                AddOption('-d'+FPMKUnitDeps[i].def);
-              if FPMKUnitDeps[i].PluginUnit<>'' then
-                AddOption('-Fa'+FPMKUnitDeps[i].PluginUnit);
-            end
-          else
-            begin
-              // If fpmkunit is not installed, we use the internal fpmkunit source
-              if FPMKUnitDeps[i].package='fpmkunit' then
-                begin
-                  NeedFPMKUnitSource:=true;
-                  AddOption('-Fu'+TempBuildDir);
-                end;
-              if FPMKUnitDeps[i].undef<>'' then
-                AddOption('-d'+FPMKUnitDeps[i].undef);
-            end;
-        end;
-      // Add RTL unit dir
-      if not CheckUnitDir('rtl',DepDir) then
-        Error(SErrMissingInstallPackage,['rtl']);
-      AddOption('-Fu'+DepDir);
+      DepDirList := TStringList.Create;
+      try
+        DepDirList.Sorted := True;
+        DepDirList.Duplicates := dupIgnore;
+        for i:=0 to high(FPMKUnitDeps) do
+          begin
+            FPMKUnitDepAvailable := FPMKUnitDeps[i].available;
+            if FPMKUnitDepAvailable then
+              begin
+                // Do not try to use packages which are broken. This can happen when
+                // fixbroken is being called and one of the fpmkunit-dependencies itself
+                // is broken. In that case, build fpmake without the dependency.
+                // (Plugins are also fpmkunit-dependencies)
+                FPMKUnitDepPackage := PackageManager.FindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
+                if Assigned(FPMKUnitDepPackage) then
+                  begin
+                    if PackageManager.PackageIsBroken(FPMKUnitDepPackage, nil) then
+                      FPMKUnitDepAvailable := False;
+                  end;
+              end;
+
+            if FPMKUnitDepAvailable then
+              begin
+                if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
+                  begin
+                    AddDependencySearchPaths(DepDirList, FPMKUnitDeps[i].package);
+                    DepDirList.Add(DepDir);
+                  end
+                else
+                  Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
+                if FPMKUnitDeps[i].def<>'' then
+                  AddOption('-d'+FPMKUnitDeps[i].def);
+                if FPMKUnitDeps[i].PluginUnit<>'' then
+                  AddOption('-Fa'+FPMKUnitDeps[i].PluginUnit);
+              end
+            else
+              begin
+                // If fpmkunit is not installed, we use the internal fpmkunit source
+                if FPMKUnitDeps[i].package='fpmkunit' then
+                  begin
+                    NeedFPMKUnitSource:=true;
+                    DepDirList.Add(TempBuildDir);
+                  end;
+                if FPMKUnitDeps[i].undef<>'' then
+                  AddOption('-d'+FPMKUnitDeps[i].undef);
+              end;
+          end;
+        // Add RTL unit dir
+        if not CheckUnitDir('rtl',DepDir) then
+          Error(SErrMissingInstallPackage,['rtl']);
+        DepDirList.Add(DepDir);
+        DepDirList.Add(TempBuildDir);
+        for i := 0 to DepDirList.Count -1 do
+          AddOption('-Fu'+DepDirList[i]);
+      finally
+        DepDirList.Free;
+      end;
       // Units in a directory for easy cleaning
       DeleteDir(TempBuildDir);
       ForceDirectories(TempBuildDir);
-      AddOption('-FU'+TempBuildDir);
       // Compile options
       //   -- default is to optimize, smartlink and strip to reduce
       //      the executable size (there can be 100's of fpmake's on a system)
