@@ -980,10 +980,36 @@ implementation
                            if is_array_constructor(def_from) then
                              begin
                                { array constructor -> dynamic array }
-                               if (tarraydef(def_from).elementdef=voidtype) or
-                                   (compare_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef,nothingn)>te_incompatible) then
+                               if is_void(tarraydef(def_from).elementdef) then
                                  begin
-                                   eq:=te_convert_l1;
+                                   { only needs to loose to [] -> open array }
+                                   eq:=te_convert_l2;
+                                   doconv:=tc_arrayconstructor_2_dynarray;
+                                 end
+                               else
+                                 begin
+                                   { this should loose to the array constructor -> open array conversions,
+                                     but it might happen that the end of the convert levels is reached :/ }
+                                   subeq:=compare_defs_ext(tarraydef(def_from).elementdef,
+                                                        tarraydef(def_to).elementdef,
+                                                        { reason for cdo_allow_variant: see webtbs/tw7070a and webtbs/tw7070b }
+                                                        arrayconstructorn,hct,hpd,[cdo_check_operator,cdo_allow_variant]);
+                                   if (subeq>=te_equal) then
+                                     begin
+                                       eq:=te_convert_l2;
+                                     end
+                                   else
+                                     { an array constructor is not a dynamic array, so
+                                       use a lower level of compatibility than that one of
+                                       of the elements }
+                                     if subeq>te_convert_l5 then
+                                      begin
+                                        eq:=pred(pred(subeq));
+                                      end
+                                    else if subeq>te_convert_l6 then
+                                      eq:=pred(subeq)
+                                    else
+                                      eq:=subeq;
                                    doconv:=tc_arrayconstructor_2_dynarray;
                                  end;
                              end
