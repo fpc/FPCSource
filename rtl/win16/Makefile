@@ -2596,15 +2596,20 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-prt0s$(OEXT) : prt0s.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0s$(OEXT) : prt0s.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0s$(OEXT) prt0s.asm
-prt0m$(OEXT) : prt0m.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0m$(OEXT) : prt0m.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0m$(OEXT) prt0m.asm
-prt0c$(OEXT) : prt0c.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0c$(OEXT) : prt0c.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0c$(OEXT) prt0c.asm
-prt0l$(OEXT) : prt0l.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0l$(OEXT) : prt0l.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0l$(OEXT) prt0l.asm
-prt0h$(OEXT) : prt0h.asm prt0comn.asm $(COMPILER_UNITTARGETDIR)
+prt0h$(OEXT) : prt0h.asm prt0comn.asm
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
 system$(PPUEXT) : system.pp $(SYSDEPS) wintypes.inc winprocsh.inc winprocs.inc \
 		  glbheap.inc glbheaph.inc locheap.inc locheaph.inc \

@@ -3682,32 +3682,40 @@ ifeq ($(ARCH),arm)
     ARMTHUMB=1
   endif
 endif
-prt0$(OEXT) : $(ARCH)/prt0.as $(COMPILER_UNITTARGETDIR)
+prt0$(OEXT) : $(ARCH)/prt0.as
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
-abitag$(OEXT) : $(ARCH)/abitag.as $(COMPILER_UNITTARGETDIR)
+abitag$(OEXT) : $(ARCH)/abitag.as
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)abitag$(OEXT) $(ARCH)/abitag.as
-dllprt0$(OEXT) : $(ARCH)/dllprt0.as $(COMPILER_UNITTARGETDIR)
+dllprt0$(OEXT) : $(ARCH)/dllprt0.as
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 endif
-gprt0$(OEXT) : $(ARCH)/gprt0.as $(COMPILER_UNITTARGETDIR)
+gprt0$(OEXT) : $(ARCH)/gprt0.as
 ifndef ARMTHUMB
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
 endif
-cprt0$(OEXT) : $(ARCH)/cprt0.as $(COMPILER_UNITTARGETDIR)
+cprt0$(OEXT) : $(ARCH)/cprt0.as
 ifndef ARMTHUMB
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
 endif
-cprt21$(OEXT) : $(ARCH)/cprt21.as $(COMPILER_UNITTARGETDIR)
+cprt21$(OEXT) : $(ARCH)/cprt21.as
 ifndef ARMTHUMB
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
 endif
-gprt21$(OEXT) : $(ARCH)/gprt21.as $(COMPILER_UNITTARGETDIR)
+gprt21$(OEXT) : $(ARCH)/gprt21.as
 ifndef ARMTHUMB
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
 endif
-ucprt0$(OEXT) : $(ARCH)/ucprt0.as $(COMPILER_UNITTARGETDIR)
+ucprt0$(OEXT) : $(ARCH)/ucprt0.as
 ifndef ARMTHUMB
+	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 endif
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
