@@ -3369,8 +3369,16 @@ begin
       end;
     exit;
     end;
-  Value:='';
-  Result:=false;
+  if (po_CheckCondFunction in Options) then
+    begin
+    Value:='';
+    Result:=false;
+    end
+  else
+    begin
+    Value:='0';
+    Result:=true;
+    end;
 end;
 
 procedure TPascalScanner.OnCondEvalLog(Sender: TCondDirectiveEvaluator;
