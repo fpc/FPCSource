@@ -2508,7 +2508,10 @@ end;
 
 procedure TPascalScanner.HandleError(Param: String);
 begin
-  Error(nUserDefined, SUserDefined,[Param])
+  if po_CheckCondFunction in Options then
+    Error(nUserDefined, SUserDefined,[Param])
+  else
+    DoLog(mtWarning,nUserDefined,SUserDefined+' error',[Param]);
 end;
 
 procedure TPascalScanner.HandleUnDefine(Param: String);
