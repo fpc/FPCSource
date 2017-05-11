@@ -3222,13 +3222,13 @@ begin
     ExpectIdentifier;
     Location:=CurTokenText;
     NextToken;
-    if CurToken=tkDot then
+    While CurToken=tkDot do
       begin
       ExpectIdentifier;
       Location:=Location+'.'+CurTokenText;
-      end
-    else
-      UnGetToken;
+      NextToken;
+      end;
+    UnGetToken;
     end
   else
     UngetToken;

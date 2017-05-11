@@ -33,6 +33,9 @@ Type
     Procedure TestSimpleVarInitialized;
     procedure TestSimpleVarInitializedDeprecated;
     procedure TestSimpleVarInitializedPlatform;
+    Procedure TestSimpleVarAbsolute;
+    Procedure TestSimpleVarAbsoluteDot;
+    Procedure TestSimpleVarAbsolute2Dots;
     Procedure TestVarProcedure;
     Procedure TestVarFunctionINitialized;
     Procedure TestVarProcedureDeprecated;
@@ -180,6 +183,27 @@ begin
   AssertVariableType('b');
   AssertNotNull(TheVar.expr);
   AssertExpression('Variable value',TheVar.expr,pekNumber,'123');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsolute;
+begin
+  ParseVar('q absolute v','');
+  AssertVariableType('q');
+  AssertEquals('correct absolute location','v',TheVar.AbsoluteLocation);
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsoluteDot;
+begin
+  ParseVar('q absolute v.w','');
+  AssertVariableType('q');
+  AssertEquals('correct absolute location','v.w',TheVar.AbsoluteLocation);
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsolute2Dots;
+begin
+  ParseVar('q absolute v.w.x','');
+  AssertVariableType('q');
+  AssertEquals('correct absolute location','v.w.x',TheVar.AbsoluteLocation);
 end;
 
 procedure TTestVarParser.TestVarProcedure;
