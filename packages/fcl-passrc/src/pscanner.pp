@@ -41,16 +41,18 @@ const
   nLogIFRejected = 1014;
   nLogIFOptAccepted = 1015;
   nLogIFOptRejected = 1016;
-  nErrInvalidMode = 1017;
-  nErrInvalidModeSwitch = 1018;
-  nErrXExpectedButYFound = 1019;
-  nErrRangeCheck = 1020;
-  nErrDivByZero = 1021;
-  nErrOperandAndOperatorMismatch = 1022;
-  nUserDefined = 1023;
-  nLogMacroDefined = 1024; // FPC=3101
-  nLogMacroUnDefined = 1025; // FPC=3102
-  nWarnIllegalCompilerDirectiveX = 1026;
+  nLogELSEIFAccepted = 1017;
+  nLogELSEIFRejected = 1018;
+  nErrInvalidMode = 1019;
+  nErrInvalidModeSwitch = 1020;
+  nErrXExpectedButYFound = 1021;
+  nErrRangeCheck = 1022;
+  nErrDivByZero = 1023;
+  nErrOperandAndOperatorMismatch = 1024;
+  nUserDefined = 1025;
+  nLogMacroDefined = 1026; // FPC=3101
+  nLogMacroUnDefined = 1027; // FPC=3102
+  nWarnIllegalCompilerDirectiveX = 1028;
 
 // resourcestring patterns of messages
 resourcestring
@@ -70,6 +72,8 @@ resourcestring
   SLogIFRejected = 'IF %s found, rejecting.';
   SLogIFOptAccepted = 'IFOpt %s found, accepting.';
   SLogIFOptRejected = 'IFOpt %s found, rejecting.';
+  SLogELSEIFAccepted = 'ELSEIF %s found, accepting.';
+  SLogELSEIFRejected = 'ELSEIF %s found, rejecting.';
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
   SErrXExpectedButYFound = '"%s" expected, but "%s" found';
@@ -561,6 +565,7 @@ type
     procedure HandleIFNDEF(const AParam: String);
     procedure HandleIFOPT(const AParam: String);
     procedure HandleIF(const AParam: String);
+    procedure HandleELSEIF(const AParam: String);
     procedure HandleELSE(const AParam: String);
     procedure HandleENDIF(const AParam: String);
     procedure HandleDefine(Param: String); virtual;
@@ -2638,7 +2643,7 @@ begin
       if PPSkipMode=ppSkipElseBranch then
         DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[AParam])
       else
-        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[AParam])
+        DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[AParam]);
     end;
 end;
 
@@ -2660,7 +2665,7 @@ begin
       if PPSkipMode=ppSkipElseBranch then
         DoLog(mtInfo,nLogIFNDefAccepted,sLogIFNDefAccepted,[AParam])
       else
-        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[AParam])
+        DoLog(mtInfo,nLogIFNDefRejected,sLogIFNDefRejected,[AParam]);
     end;
 end;
 
@@ -2686,7 +2691,7 @@ begin
       if PPSkipMode=ppSkipElseBranch then
         DoLog(mtInfo,nLogIFOptAccepted,sLogIFOptAccepted,[AParam])
       else
-        DoLog(mtInfo,nLogIFOptRejected,sLogIFOptRejected,[AParam])
+        DoLog(mtInfo,nLogIFOptRejected,sLogIFOptRejected,[AParam]);
     end;
 end;
 
@@ -2709,7 +2714,32 @@ begin
       if PPSkipMode=ppSkipElseBranch then
         DoLog(mtInfo,nLogIFAccepted,sLogIFAccepted,[AParam])
       else
-        DoLog(mtInfo,nLogIFRejected,sLogIFRejected,[AParam])
+        DoLog(mtInfo,nLogIFRejected,sLogIFRejected,[AParam]);
+    end;
+end;
+
+procedure TPascalScanner.HandleELSEIF(const AParam: String);
+begin
+  if PPSkipStackIndex = 0 then
+    Error(nErrInvalidPPElse,sErrInvalidPPElse);
+  if PPSkipMode = ppSkipIfBranch then
+    begin
+    if ConditionEval.Eval(AParam) then
+      begin
+      PPSkipMode := ppSkipElseBranch;
+      PPIsSkipping := false;
+      end
+    else
+      PPIsSkipping := true;
+    If LogEvent(sleConditionals) then
+      if PPSkipMode=ppSkipElseBranch then
+        DoLog(mtInfo,nLogELSEIFAccepted,sLogELSEIFAccepted,[AParam])
+      else
+        DoLog(mtInfo,nLogELSEIFRejected,sLogELSEIFRejected,[AParam]);
+    end
+  else if PPSkipMode=ppSkipElseBranch then
+    begin
+    PPIsSkipping := true;
     end;
 end;
 
@@ -2752,7 +2782,9 @@ begin
   Directive:=Copy(ADirectiveText,2,P-2); // 1 is $
   Param:=ADirectiveText;
   Delete(Param,1,P);
-  //Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+  {$IFDEF VerbosePasDirectiveEval}
+  Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+  {$ENDIF}
 
   Case UpperCase(Directive) of
   'IFDEF':
@@ -2763,6 +2795,8 @@ begin
      HandleIFOPT(Param);
   'IF':
      HandleIF(Param);
+  'ELSEIF':
+     HandleELSEIF(Param);
   'ELSE':
      HandleELSE(Param);
   'ENDIF':

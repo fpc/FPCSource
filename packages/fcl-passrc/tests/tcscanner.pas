@@ -238,6 +238,7 @@ type
     procedure TestIFGreaterEqualThan;
     procedure TestIFLesserThan;
     procedure TestIFLesserEqualThan;
+    procedure TestIFDefinedElseIf;
     Procedure TestModeSwitch;
   end;
 
@@ -1674,6 +1675,19 @@ begin
   FScanner.AddMacro('Version','30101');
   TestTokens([tkbegin,tkend,tkDot],
     '{$IF Version<=30101}begin{$ENDIF}end.',True,False);
+end;
+
+procedure TTestScanner.TestIFDefinedElseIf;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  FScanner.AddDefine('cpu32');
+  TestTokens([tkconst,tkIdentifier,tkEqual,tkString,tkSemicolon,tkbegin,tkend,tkDot],
+    'const platform = '+LineEnding
+    +'{$if defined(cpu32)} ''x86'''+LineEnding
+    +'{$elseif defined(cpu64)} ''x64'''+LineEnding
+    +'{$else} {$error unknown platform} {$endif};'+LineEnding
+    +'begin end.',True,False);
 end;
 
 procedure TTestScanner.TestModeSwitch;
