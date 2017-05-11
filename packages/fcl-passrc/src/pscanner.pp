@@ -2870,6 +2870,8 @@ var
   TokenStart: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
+
+
 begin
   result:=tkLineEnding;
   if TokenStr = nil then
@@ -3090,6 +3092,15 @@ begin
           SetLength(FCurTokenString, SectionLength);
           if SectionLength > 0 then
             Move(TokenStart^, FCurTokenString[1], SectionLength);
+          // Handle macro which is //
+          if FCurSourceFile is TMacroReader then
+            begin
+            // exhaust till eof of macro stream
+            Repeat
+              I:=Fetchtoken;
+            until (i<>tkLineEnding);
+            FetchLine;
+            end;
           Result := tkComment;
           end
         else if (po_CAssignments in options) then

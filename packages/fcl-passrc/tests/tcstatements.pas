@@ -118,6 +118,7 @@ Type
     Procedure TestGotoInIfThen;
     procedure AssignToAddress;
     procedure FinalizationNoSemicolon;
+    procedure MacroComment;
   end;
 
 
@@ -1715,6 +1716,17 @@ begin
   Source.Add('  writeln(''qqq'')');
   Source.Add('finalization');
   Source.Add('  writeln(''qqq'')');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.MacroComment;
+begin
+  AddStatements(['{$MACRO ON}',
+  '{$DEFINE func := //}',
+  '  calltest;',
+  '  func (''1'',''2'',''3'');',
+  'CallTest2;',
+  'end.']);
   ParseModule;
 end;
 
