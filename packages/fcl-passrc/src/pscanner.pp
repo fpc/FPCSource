@@ -47,11 +47,10 @@ const
   nErrRangeCheck = 1020;
   nErrDivByZero = 1021;
   nErrOperandAndOperatorMismatch = 1022;
-  nErrUnknownDirective = 1023;
+  nUserDefined = 1023;
   nLogMacroDefined = 1024; // FPC=3101
   nLogMacroUnDefined = 1025; // FPC=3102
-  // keep this last:
-  nUserDefined = 1026;
+  nWarnIllegalCompilerDirectiveX = 1026;
 
 // resourcestring patterns of messages
 resourcestring
@@ -73,15 +72,14 @@ resourcestring
   SLogIFOptRejected = 'IFOpt %s found, rejecting.';
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
-  SErrUserDefined = 'User defined error: "%s"';
   SErrXExpectedButYFound = '"%s" expected, but "%s" found';
   sErrRangeCheck = 'range check failed';
   sErrDivByZero = 'division by zero';
   sErrOperandAndOperatorMismatch = 'operand and operator mismatch';
+  SUserDefined = 'User defined: "%s"';
   sLogMacroDefined = 'Macro defined: %s';
   sLogMacroUnDefined = 'Macro undefined: %s';
-  // keep this last
-  sErrUnknownDirective = 'unknown directive "%s"';
+  sWarnIllegalCompilerDirectiveX = 'Illegal compiler directive "%s"';
 
 type
   TMessageType = (
@@ -477,7 +475,7 @@ type
     po_KeepClassForward,     // disabled: delete class fowards when there is a class declaration
     po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     po_SelfToken,            // Self is a token. For backward compatibility.
-    po_CheckModeswitches     // stop on unknown modeswitch
+    po_CheckModeSwitches    // stop on unknown modeswitch with an error
     );
   TPOptions = set of TPOption;
 
@@ -493,7 +491,8 @@ type
   TPScannerLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
   TPScannerLogEvent = (sleFile,sleLineNumber,sleConditionals);
   TPScannerLogEvents = Set of TPScannerLogEvent;
-  TPScannerDirectiveEvent = function(Sender: TObject; Directive, Param: String): boolean of object;
+  TPScannerDirectiveEvent = procedure(Sender: TObject; Directive, Param: String;
+    var Handled: boolean) of object;
 
   TPascalScanner = class
   private
@@ -2503,7 +2502,7 @@ end;
 
 procedure TPascalScanner.HandleError(Param: String);
 begin
-  Error(nUserDefined, SErrUserDefined,[Param])
+  Error(nUserDefined, SUserDefined,[Param])
 end;
 
 procedure TPascalScanner.HandleUnDefine(Param: String);
@@ -2596,7 +2595,7 @@ begin
   MS:=StrToModeSwitch(MSN);
   if (MS=msNone) or not (MS in AllowedModeSwitches) then
     begin
-    if po_CheckModeswitches in Options then
+    if po_CheckModeSwitches in Options then
       Error(nErrInvalidModeSwitch,SErrInvalidModeSwitch,[Param])
     else
       exit; // ignore
@@ -2743,6 +2742,7 @@ function TPascalScanner.HandleDirective(const ADirectiveText: String): TToken;
 Var
   Directive,Param : String;
   P : Integer;
+  Handled: Boolean;
 
 begin
   Result:=tkComment;
@@ -2772,33 +2772,49 @@ begin
   else
     if PPIsSkipping then exit;
 
-    if Assigned(OnDirective) then
-      if not OnDirective(Self,Directive,Param) then exit;
-
+    Handled:=false;
     if (length(Directive)=2)
         and (Directive[1] in ['a'..'z','A'..'Z'])
         and (Directive[2] in ['-','+']) then
       begin
+      Handled:=true;
       Result:=HandleLetterDirective(Directive[1],Directive[2]='+');
-      exit;
       end;
 
-    Case UpperCase(Directive) of
-    'I','INCLUDE':
-      Result:=HandleInclude(Param);
-    'MACRO':
-      HandleMacroDirective(Param);
-    'MODE':
-      HandleMode(Param);
-    'MODESWITCH':
-      HandleModeSwitch(Param);
-    'DEFINE':
-      HandleDefine(Param);
-    'ERROR':
-      HandleError(Param);
-    'UNDEF':
-      HandleUnDefine(Param);
-    end;
+    if not Handled then
+      begin
+      Handled:=true;
+      Case UpperCase(Directive) of
+        'I','INCLUDE':
+          Result:=HandleInclude(Param);
+        'MACRO':
+          HandleMacroDirective(Param);
+        'MODE':
+          HandleMode(Param);
+        'MODESWITCH':
+          HandleModeSwitch(Param);
+        'DEFINE':
+          HandleDefine(Param);
+        'ERROR':
+          HandleError(Param);
+        'WARNING':
+          DoLog(mtWarning,nUserDefined,SUserDefined,[Directive]);
+        'NOTE':
+          DoLog(mtNote,nUserDefined,SUserDefined,[Directive]);
+        'HINT':
+          DoLog(mtHint,nUserDefined,SUserDefined,[Directive]);
+        'UNDEF':
+          HandleUnDefine(Param);
+      else
+        Handled:=false;
+      end;
+      end;
+
+    if Assigned(OnDirective) then
+      OnDirective(Self,Directive,Param,Handled);
+    if (not Handled) then
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+        [Directive]);
   end;
 end;
 
@@ -2807,7 +2823,8 @@ begin
   Result:=tkComment;
   Letter:=upcase(Letter);
   if LetterSwitchNames[Letter]='' then
-    Error(nErrUnknownDirective,sErrUnknownDirective,[Letter]);
+    DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+      [Letter]);
   if Enable then
     AddDefine(LetterSwitchNames[Letter])
   else
