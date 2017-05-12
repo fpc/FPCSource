@@ -5293,10 +5293,12 @@ Type
 Var
   CurVisibility : TPasMemberVisibility;
   CurSection : TSectionType;
+  haveClass : Boolean;
 
 begin
   CurSection:=stNone;
   CurVisibility := visDefault;
+  HaveClass:=False;
   while (CurToken<>tkEnd) do
     begin
     case CurToken of
@@ -5311,7 +5313,8 @@ begin
           CurSection:=stNone
         else
           begin
-          SaveComments;
+          if not haveClass then
+            SaveComments;
           Case CurSection of
           stType:
             ParseClassLocalTypes(AType,CurVisibility);
@@ -5322,7 +5325,8 @@ begin
             begin
             if (AType.ObjKind in [okInterface,okDispInterface]) then
               ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowed);
-            ParseClassFields(AType,CurVisibility,false);
+            ParseClassFields(AType,CurVisibility,HaveClass);
+            HaveClass:=False;
             end;
           else
             Raise Exception.Create('Internal error 201704251415');
@@ -5331,37 +5335,27 @@ begin
       tkProcedure,tkFunction,tkConstructor,tkDestructor:
         begin
         curSection:=stNone;
-        SaveComments;
+        if not haveClass then
+          SaveComments;
         if (Curtoken in [tkConstructor,tkDestructor]) and (AType.ObjKind in [okInterface,okDispInterface,okRecordHelper]) then
           ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
-        ProcessMethod(AType,False,CurVisibility);
+        ProcessMethod(AType,HaveClass,CurVisibility);
+        haveClass:=False;
         end;
       tkclass:
         begin
+        SaveComments;
+        HaveClass:=True;
         curSection:=stNone;
-         SaveComments;
-         NextToken;
-         if CurToken in [tkConstructor,tkDestructor,tkProcedure,tkFunction] then
-           ProcessMethod(AType,True,CurVisibility)
-         else if CurToken = tkVar then
-           begin
-           ExpectToken(tkIdentifier);
-           ParseClassFields(AType,CurVisibility,true);
-           end
-         else if CurToken=tkProperty then
-           begin
-           ExpectToken(tkIdentifier);
-           AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,true));
-           end
-         else
-           ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError)
         end;
       tkProperty:
         begin
         curSection:=stNone;
-        SaveComments;
+        if not haveClass then
+          SaveComments;
         ExpectIdentifier;
-        AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,false));
+        AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,HaveClass));
+        HaveClass:=False;
         end
     else
       CheckToken(tkIdentifier);

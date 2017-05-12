@@ -85,6 +85,7 @@ type
     Procedure TestTwoVarFieldsB;
     procedure TestNoVarFields;
     procedure TestVarClassFunction;
+    procedure TestClassVarClassFunction;
     Procedure TestTwoFieldsVisibility;
     Procedure TestConstProtectedEnd;
     Procedure TestTypeProtectedEnd;
@@ -708,6 +709,19 @@ procedure TTestClassType.TestVarClassFunction;
 begin
   StartVisibility(visPublic);
   FDecl.Add('var');
+  AddMember('class Function b : integer');
+  ParseClass;
+  AssertEquals('member count',1,TheClass.members.Count);
+  AssertNotNull('Have function',Members[0]);
+  AssertMemberName('b',Members[0]);
+  AssertMemberType(TPasClassFunction,Members[0]);
+  AssertVisibility(visPublic,Members[0]);
+end;
+
+procedure TTestClassType.TestClassVarClassFunction;
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('class var');
   AddMember('class Function b : integer');
   ParseClass;
   AssertEquals('member count',1,TheClass.members.Count);
