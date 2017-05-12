@@ -3221,7 +3221,7 @@ begin
     '^':
       begin
       if ForceCaret or PPisSkipping or
-         (PreviousToken in [tkeof,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET,tkWhitespace]) then
+         (PreviousToken in [tkeof,tkTab,tkLineEnding,tkComment,tkIdentifier,tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCARET,tkWhitespace]) then
         begin
         Inc(TokenStr);
         Result := tkCaret;
