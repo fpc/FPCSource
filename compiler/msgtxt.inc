@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000333] of string[240]=(
+const msgtxt : array[0..000334] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000333,1..240] of char=(
+const msgtxt : array[0..000334,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -1772,79 +1772,80 @@ const msgtxt : array[0..000333,1..240] of char=(
   '3*2WI_Turn on/off the usage of import sections (Windows)',#010+
   '4*2WI_Turn on/off the usage of import sections (Windows)'#010+
   'A*2WI_Turn on/off the usage of import sections (Windows)'#010+
+  '8*2Wh_Use huge code for units (ignored for models with CODE in a uniqu'+
+  'e segment)'#010+
   '8*2Wm<x>_Set memory model'#010+
-  '8*3WmTiny_Tiny memory model'#010+
+  '8*3WmTiny_Tiny mem','ory model'#010+
   '8*3WmSmall_Small memory model (default)'#010+
-  '8*3WmMedium_Medium memory model',#010+
+  '8*3WmMedium_Medium memory model'#010+
   '8*3WmCompact_Compact memory model'#010+
   '8*3WmLarge_Large memory model'#010+
   '8*3WmHuge_Huge memory model'#010+
-  '3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
-  'n)'#010+
+  '3*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (D','ar'+
+  'win)'#010+
   '4*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
-  'p','*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Dar'+
-  'win)'#010+
+  'p*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
+  'n)'#010+
   'P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwi'+
   'n)'#010+
-  '3*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
-  '4*2WN_Do not generate rel','ocation code, needed for debugging (Windows'+
+  '3*2WN_Do not g','enerate relocation code, needed for debugging (Windows'+
   ')'#010+
+  '4*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
-  'A*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possib'+
-  'le values'#010+
-  'm*2Wp<x>_Specify the controller type; see fpc',' -i or fpc -iu for poss'+
+  'A*2Wp<x>_Specify the controller type; see fp','c -i or fpc -iu for poss'+
   'ible values'#010+
+  'm*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possib'+
+  'le values'#010+
   'V*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possib'+
   'le values'#010+
-  '3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)'#010+
-  '4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ...',' (iphonesim)'+
+  '3*2WP<x>_Minimum iOS deployment version: 3.0',', 5.0.1, ... (iphonesim)'+
   #010+
+  '4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)'#010+
   'a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)'#010+
   'A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)'#010+
-  '3*2WR_Generate relocation code (Windows)'#010+
+  '3*2WR_Generate',' relocation code (Windows)'#010+
   '4*2WR_Generate relocation code (Windows)'#010+
-  'A*2WR_Generat','e relocation code (Windows)'#010+
+  'A*2WR_Generate relocation code (Windows)'#010+
   '8*2Wt<x>_Set the target executable format'#010+
   '8*3Wtexe_Create a DOS .EXE file (default)'#010+
-  '8*3Wtcom_Create a DOS .COM file (requires tiny memory model)'#010+
+  '8*3Wtcom_Create a DOS .COM file (requires tiny ','memory model)'#010+
   'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
-  '**2WX_Enab','le executable stack (Linux)'#010+
+  '**2WX_Enable executable stack (Linux)'#010+
   '**1X_Executable options:'#010+
   '**2X9_Generate linkerscript for GNU Binutils ld older than version 2.1'+
   '9.1 (Linux)'#010+
-  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
-  'ux)'#010+
-  '**2Xd_Do not search default lib','rary path (sometimes required for cro'+
-  'ss-compiling when not using -XR)'#010+
+  '**2Xc_Pass --shared/-dyn','amic to the linker (BeOS, Darwin, FreeBSD, L'+
+  'inux)'#010+
+  '**2Xd_Do not search default library path (sometimes required for cross'+
+  '-compiling when not using -XR)'#010+
   '**2Xe_Use external linker'#010+
   '**2Xf_Substitute pthread library name for linking (BSD)'#010+
-  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
-  'to executable'#010+
-  '**2X','D_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xg_C','reate debuginfo in a separate file and add a debuglink sectio'+
+  'n to executable'#010+
+  '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2XLA_Define library substitutions for linking'#010+
-  '**2XLO_Define order of library linking'#010+
+  '**2XLO_Define order o','f library linking'#010+
   '**2XLD_Exclude default order of standard libraries'#010+
-  '**2Xm_Genera','te link map'#010+
+  '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
   '**2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)'+
   #010+
-  'F*2Xp<x>_First search for the compiler binary in the directory <x>'#010+
-  '**2XP<x>_Prepend t','he binutils names with the prefix <x>'#010+
+  'F*2X','p<x>_First search for the compiler binary in the directory <x>'#010+
+  '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
-  'ile, see the ld manual for more information) (BeOS, Linux)'#010+
+  'ile, see the ld manual for more information) (BeOS, Lin','ux)'#010+
   '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
-  ', Linux',', Mac OS, Solaris)'#010+
+  ', Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
-  '**2Xt_Link with static libraries (-static is passed to linker)'#010+
+  '**2Xt_Link with static librari','es (-static is passed to linker)'#010+
   '**2Xv_Generate table for Virtual Entry calls'#010+
-  '**2','XV_Use VLink as external linker       (default on Amiga, MorphOS)'+
-  #010+
+  '**2XV_Use VLink as external linker       (default on Amiga, MorphOS)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
-  '**1h_Shows this help without waiting'
+  '*','*1h_Shows this help without waiting'
 );

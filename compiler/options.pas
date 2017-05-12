@@ -2271,6 +2271,15 @@ begin
                         else
                           IllegalPara(opt);
                       end;
+{$if defined(i8086)}
+                    'h':
+                      begin
+                        if UnsetBool(More, j, opt, false) then
+                          exclude(init_settings.moduleswitches,cs_huge_code)
+                         else
+                          include(init_settings.moduleswitches,cs_huge_code);
+                      end;
+{$endif defined(i8086)}
                     'I':
                       begin
                         if target_info.system in systems_all_windows then

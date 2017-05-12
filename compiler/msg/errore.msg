@@ -4047,6 +4047,7 @@ p*2Wi_Use internal resources (Darwin)
 3*2WI_Turn on/off the usage of import sections (Windows)
 4*2WI_Turn on/off the usage of import sections (Windows)
 A*2WI_Turn on/off the usage of import sections (Windows)
+8*2Wh_Use huge code for units (ignored for models with CODE in a unique segment)
 8*2Wm<x>_Set memory model
 8*3WmTiny_Tiny memory model
 8*3WmSmall_Small memory model (default)
