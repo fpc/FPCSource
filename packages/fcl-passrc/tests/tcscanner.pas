@@ -1110,7 +1110,7 @@ end;
 procedure TTestScanner.TestOn;
 
 begin
-  TestToken(tkon,'on');
+  TestToken(tkIdentifier,'on');
 end;
 
 

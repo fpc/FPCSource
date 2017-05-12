@@ -120,6 +120,7 @@ Type
     procedure FinalizationNoSemicolon;
     procedure MacroComment;
     Procedure PLatformIdentifier;
+    Procedure Onidentifier;
   end;
 
 
@@ -1734,6 +1735,16 @@ end;
 procedure TTestStatementParser.PLatformIdentifier;
 begin
   AddStatements(['write(platform);']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.Onidentifier;
+begin
+  Source.Add('function TryOn(const on: boolean): boolean;');
+  Source.Add('  begin');
+  Source.Add('  end;');
+  Source.Add('  begin');
+  Source.Add('  end.');
   ParseModule;
 end;
 

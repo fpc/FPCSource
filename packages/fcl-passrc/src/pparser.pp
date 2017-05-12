@@ -4659,42 +4659,6 @@ begin
         end else
           ParseExcSyntaxError;
       end;
-    tkon:
-      begin
-        // in try except:
-        // on E: Exception do
-        // on Exception do
-        if CurBlock is TPasImplTryExcept then
-        begin
-          ExpectIdentifier;
-          El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
-          SrcPos:=Scanner.CurSourcePos;
-          Name:=CurTokenString;
-          NextToken;
-          //writeln('ON t=',Name,' Token=',CurTokenText);
-          if CurToken=tkColon then
-            begin
-            // the first expression was the variable name
-            NextToken;
-            TypeEl:=ParseSimpleType(El,SrcPos,'');
-            TPasImplExceptOn(El).TypeEl:=TypeEl;
-            TPasImplExceptOn(El).VarEl:=TPasVariable(CreateElement(TPasVariable,
-                                  Name,El,SrcPos));
-            TPasImplExceptOn(El).VarEl.VarType:=TypeEl;
-            TypeEl.AddRef;
-            end
-          else
-            begin
-            UngetToken;
-            TPasImplExceptOn(El).TypeEl:=ParseSimpleType(El,SrcPos,'');
-            end;
-          Engine.FinishScope(stExceptOnExpr,El);
-          CurBlock.AddElement(El);
-          CurBlock:=TPasImplExceptOn(El);
-          ExpectToken(tkDo);
-        end else
-          ParseExcSyntaxError;
-      end;
     tkraise:
       begin
       El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock));
@@ -4767,50 +4731,90 @@ begin
 // This should in fact not be checked here.
 //      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
 //        ParseExc;
-      left:=DoParseExpression(CurBlock);
-      case CurToken of
-        tkAssign,
-        tkAssignPlus,
-        tkAssignMinus,
-        tkAssignMul,
-        tkAssignDivision:
+      // On is usable as an identifier
+      if lowerCase(CurTokenText)='on' then
         begin
-          // assign statement
-          Ak:=TokenToAssignKind(CurToken);
-          NextToken;
-          right:=DoParseExpression(CurBlock); // this may solve TPasImplWhileDo.AddElement BUG
-          El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
-          left.Parent:=El;
-          right.Parent:=El;
-          TPasImplAssign(El).left:=Left;
-          TPasImplAssign(El).right:=Right;
-          TPasImplAssign(El).Kind:=ak;
+          // in try except:
+          // on E: Exception do
+          // on Exception do
+          if CurBlock is TPasImplTryExcept then
+          begin
+            ExpectIdentifier;
+            El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
+            SrcPos:=Scanner.CurSourcePos;
+            Name:=CurTokenString;
+            NextToken;
+            writeln('ON t=',Name,' Token=',CurTokenText);
+            if CurToken=tkColon then
+              begin
+              // the first expression was the variable name
+              NextToken;
+              TypeEl:=ParseSimpleType(El,SrcPos,'');
+              TPasImplExceptOn(El).TypeEl:=TypeEl;
+              TPasImplExceptOn(El).VarEl:=TPasVariable(CreateElement(TPasVariable,
+                                    Name,El,SrcPos));
+              TPasImplExceptOn(El).VarEl.VarType:=TypeEl;
+              TypeEl.AddRef;
+              end
+            else
+              begin
+              UngetToken;
+              TPasImplExceptOn(El).TypeEl:=ParseSimpleType(El,SrcPos,'');
+              end;
+            Engine.FinishScope(stExceptOnExpr,El);
+            CurBlock.AddElement(El);
+            CurBlock:=TPasImplExceptOn(El);
+            ExpectToken(tkDo);
+          end else
+            ParseExcSyntaxError;
+        end
+      else
+        begin
+        left:=DoParseExpression(CurBlock);
+        case CurToken of
+          tkAssign,
+          tkAssignPlus,
+          tkAssignMinus,
+          tkAssignMul,
+          tkAssignDivision:
+          begin
+            // assign statement
+            Ak:=TokenToAssignKind(CurToken);
+            NextToken;
+            right:=DoParseExpression(CurBlock); // this may solve TPasImplWhileDo.AddElement BUG
+            El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
+            left.Parent:=El;
+            right.Parent:=El;
+            TPasImplAssign(El).left:=Left;
+            TPasImplAssign(El).right:=Right;
+            TPasImplAssign(El).Kind:=ak;
+            CurBlock.AddElement(El);
+            CmdElem:=TPasImplAssign(El);
+            UngetToken;
+          end;
+          tkColon:
+          begin
+            if not (left is TPrimitiveExpr) then
+              ParseExcTokenError(TokenInfos[tkSemicolon]);
+            // label mark. todo: check mark identifier in the list of labels
+            El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock));
+            TPasImplLabelMark(El).LabelId:=TPrimitiveExpr(left).Value;
+            CurBlock.AddElement(El);
+            CmdElem:=TPasImplLabelMark(El);
+            left.Free;
+          end;
+        else
+          // simple statement (function call)
+          El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock));
+          TPasImplSimple(El).expr:=Left;
           CurBlock.AddElement(El);
-          CmdElem:=TPasImplAssign(El);
+          CmdElem:=TPasImplSimple(El);
           UngetToken;
         end;
-        tkColon:
-        begin
-          if not (left is TPrimitiveExpr) then
-            ParseExcTokenError(TokenInfos[tkSemicolon]);
-          // label mark. todo: check mark identifier in the list of labels
-          El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock));
-          TPasImplLabelMark(El).LabelId:=TPrimitiveExpr(left).Value;
-          CurBlock.AddElement(El);
-          CmdElem:=TPasImplLabelMark(El);
-          left.Free;
-        end;
-      else
-        // simple statement (function call)
-        El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock));
-        TPasImplSimple(El).expr:=Left;
-        CurBlock.AddElement(El);
-        CmdElem:=TPasImplSimple(El);
-        UngetToken;
-      end;
 
-      if not (CmdElem is TPasImplLabelMark) then
-        if NewImplElement=nil then NewImplElement:=CmdElem;
+        if not (CmdElem is TPasImplLabelMark) then
+          if NewImplElement=nil then NewImplElement:=CmdElem;
+        end;
       end;
     else
       ParseExcSyntaxError;
