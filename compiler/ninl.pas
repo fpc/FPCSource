@@ -3193,7 +3193,7 @@ implementation
                             begin
                               set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                               { these nodes shouldn't be created, when range checking is on }
-                              if [cs_check_range,cs_check_overflow]*current_settings.localswitches<>[] then
+                              if [cs_check_range,cs_check_overflow]*localswitches<>[] then
                                 internalerror(2017032701);
                               if inlinenumber in [in_sar_assign_x_y,in_shl_assign_x_y,in_shr_assign_x_y,in_rol_assign_x_y,in_ror_assign_x_y] then
                                 inserttypeconv(tcallparanode(left).left,sinttype)
@@ -4251,7 +4251,7 @@ implementation
 
          { range/overflow checking doesn't work properly }
          { with the inc/dec code that's generated (JM)   }
-         if ((current_settings.localswitches * [cs_check_overflow,cs_check_range] <> []) and
+         if ((localswitches * [cs_check_overflow,cs_check_range] <> []) and
            { No overflow check for pointer operations, because inc(pointer,-1) will always
              trigger an overflow. For uint32 it works because then the operation is done
              in 64bit. Range checking is not applicable to pointers either }
