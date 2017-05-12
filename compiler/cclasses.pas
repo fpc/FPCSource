@@ -470,6 +470,7 @@ type
          procedure writestr(const s:string); {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure readstream(f:TCStream;maxlen:longword);
          procedure writestream(f:TCStream);
+         function  equal(other:tdynamicarray):boolean;
          property  CurrBlockSize : longword read FCurrBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
          property  Pos : longword read FPosn;
@@ -2790,6 +2791,14 @@ end;
            hp:=hp^.Next;
          end;
       end;
+
+
+    function tdynamicarray.equal(other:tdynamicarray):boolean;
+      begin
+        result:=false;
+        { TODO }
+      end;
+
 
 {****************************************************************************
                                 thashset
