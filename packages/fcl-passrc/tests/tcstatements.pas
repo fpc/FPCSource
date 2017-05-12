@@ -119,6 +119,7 @@ Type
     procedure AssignToAddress;
     procedure FinalizationNoSemicolon;
     procedure MacroComment;
+    Procedure PLatformIdentifier;
   end;
 
 
@@ -1725,8 +1726,14 @@ begin
   '{$DEFINE func := //}',
   '  calltest;',
   '  func (''1'',''2'',''3'');',
-  'CallTest2;',
-  'end.']);
+  'CallTest2;'
+  ]);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.PLatformIdentifier;
+begin
+  AddStatements(['write(platform);']);
   ParseModule;
 end;
 
@@ -1740,8 +1747,7 @@ begin
   '  else',
   '    dosomething;',
   '  try_qword:',
-  '  dosomething;',
-  'end.']);
+  '  dosomething;']);
   ParseModule;
 end;
 

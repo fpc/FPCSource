@@ -336,7 +336,7 @@ type
     function ExpectIdentifier: String;
     Function CurTokenIsIdentifier(Const S : String) : Boolean;
     // Expression parsing
-    function isEndOfExp(AllowEqual : Boolean = False): Boolean;
+    function isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolean = True): Boolean;
     // Type declarations
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
@@ -1576,14 +1576,14 @@ begin
    ungettoken;
 end;
 
-function TPasParser.isEndOfExp(AllowEqual : Boolean = False):Boolean;
+function TPasParser.isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolean = True):Boolean;
 const
   EndExprToken = [
     tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon, tkComma, tkColon,
     tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto
   ];
 begin
-  Result:=(CurToken in EndExprToken) or IsCurTokenHint;
+  Result:=(CurToken in EndExprToken) or (CheckHints and IsCurTokenHint);
   if Not (Result or AllowEqual) then
     Result:=(Curtoken=tkEqual);
 end;
@@ -1597,21 +1597,25 @@ var
 
 begin
   Result:=nil;
-  if paramskind in [pekArrayParams, pekSet] then begin
+  if paramskind in [pekArrayParams, pekSet] then
+    begin
     if CurToken<>tkSquaredBraceOpen then
       ParseExc(nParserExpectTokenError,SParserExpectTokenError,['[']);
     PClose:=tkSquaredBraceClose;
-  end else begin
+    end
+  else
+    begin
     if CurToken<>tkBraceOpen then
       ParseExc(nParserExpectTokenError,SParserExpectTokenError,['(']);
     PClose:=tkBraceClose;
-  end;
+    end;
 
   params:=TParamsExpr(CreateElement(TParamsExpr,'',AParent));
   try
     params.Kind:=paramskind;
     NextToken;
-    if not isEndOfExp then begin
+    if not isEndOfExp(false,false) then
+      begin
       repeat
         p:=DoParseExpression(params);
         if not Assigned(p) then
@@ -1633,15 +1637,17 @@ begin
         if not (CurToken in [tkComma, PClose]) then
           ParseExc(nParserExpectTokenError,SParserExpectTokenError,[',']);
 
-        if CurToken = tkComma then begin
+        if CurToken = tkComma then
+          begin
           NextToken;
-          if CurToken = PClose then begin
+          if CurToken = PClose then
+            begin
             //ErrorExpected(parser, 'identifier');
             ParseExcSyntaxError;
+            end;
           end;
-        end;
       until CurToken=PClose;
-    end;
+      end;
     NextToken;
     Result:=params;
   finally
