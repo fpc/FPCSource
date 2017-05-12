@@ -138,6 +138,7 @@ type
     procedure TestChainedPointers;
     Procedure TestNilCaret;
     Procedure TestExpCaret;
+    Procedure TestArrayAccess;
   end;
 
 implementation
@@ -621,6 +622,14 @@ begin
   Source.Add('{$mode objfpc}');
   Source.Add('begin');
   Source.Add('A:=B^;');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestExpressions.TestArrayAccess;
+begin
+  Source.Add('begin');
+  Source.Add('DoSomething((pb + 10)[4]);');
   Source.Add('end.');
   ParseModule;
 end;
