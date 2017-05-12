@@ -38,6 +38,7 @@ type
     procedure TestPackageVariantPackage;
     procedure TestFPMakeCommandLikePackageVariants;
     procedure TestFpmakePluginDependencies;
+    procedure TestCleanupOfTemporaryBuildpath;
   end;
 
   { TFullFPCInstallationSetup }
@@ -336,6 +337,21 @@ begin
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'plugindependency', ['install'], 'Install dependency');
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'pluginpackage', ['install'], 'Install plugin');
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageusingplugin', ['install'], 'Install package that depends on plugin');
+end;
+
+procedure TFullFPCInstallationTests.TestCleanupOfTemporaryBuildpath;
+var
+  SR: TSearchRec;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('brokenpackage');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'brokenpackage', ['build'], 'Attempt to build brokenpackage', 1);
+
+  if FindFirst(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'brokenpackage'+PathDelim+AllFilesMask, faAnyFile, sr) = 0 then
+    begin
+      repeat
+      Check(not ((SR.Name<>'.') and (SR.Name<>'..') and (SR.Name<>'fpmake.pp') and (SR.Name<>'src')), 'Check for garbage-files after build ('+SR.Name+')');
+      until FindNext(SR) <> 0;
+    end;
 end;
 
 procedure TFullFPCInstallationTests.TestListPackages;

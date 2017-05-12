@@ -3436,6 +3436,7 @@ packages/fppkg/src/pkguninstalledsrcsrepo.pp svneol=native#text/plain
 packages/fppkg/src/pkgwget.pp svneol=native#text/plain
 packages/fppkg/tests/fppkg_tests.pp svneol=native#text/plain
 packages/fppkg/tests/fullfpcinstallationtests.pas svneol=native#text/plain
+packages/fppkg/tests/packages/base/brokenpackage/fpmake.pp svneol=native#text/pascal
 packages/fppkg/tests/packages/base/packagea/fpmake.pp svneol=native#text/plain
 packages/fppkg/tests/packages/base/packagea/src/PackageAUnitA.pas svneol=native#text/plain
 packages/fppkg/tests/packages/base/packageb/fpmake.pp svneol=native#text/plain

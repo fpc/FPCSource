@@ -308,29 +308,32 @@ begin
       // Units in a directory for easy cleaning
       DeleteDir(TempBuildDir);
       ForceDirectories(TempBuildDir);
-      // Compile options
-      //   -- default is to optimize, smartlink and strip to reduce
-      //      the executable size (there can be 100's of fpmake's on a system)
-      if llInfo in LogLevels then
-        AddOption('-vi');
-      AddOption('-O2');
-      AddOption('-XXs');
-      // Create fpmkunit.pp if needed
-      if NeedFPMKUnitSource then
-        begin
-          Log(llWarning,SLogUseInternalFpmkunit);
-          CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
-        end;
-      // Call compiler
-      If ExecuteProcess(PackageManager.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
-        begin
-          if not PackageManager.Options.CommandLineSection.RecoveryMode then
-            Error(SErrCompileFailureFPMakeTryRecovery)
-          else
-            Error(SErrCompileFailureFPMake);
-        end;
-      // Cleanup units
-      DeleteDir(TempBuildDir);
+      try
+        // Compile options
+        //   -- default is to optimize, smartlink and strip to reduce
+        //      the executable size (there can be 100's of fpmake's on a system)
+        if llInfo in LogLevels then
+          AddOption('-vi');
+        AddOption('-O2');
+        AddOption('-XXs');
+        // Create fpmkunit.pp if needed
+        if NeedFPMKUnitSource then
+          begin
+            Log(llWarning,SLogUseInternalFpmkunit);
+            CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
+          end;
+        // Call compiler
+        If ExecuteProcess(PackageManager.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
+          begin
+            if not PackageManager.Options.CommandLineSection.RecoveryMode then
+              Error(SErrCompileFailureFPMakeTryRecovery)
+            else
+              Error(SErrCompileFailureFPMake);
+          end;
+      finally
+        // Cleanup units
+        DeleteDir(TempBuildDir);
+      end;
     end
   else
     Log(llCommands,SLogNotCompilingFPMake);
