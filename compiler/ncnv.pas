@@ -3064,6 +3064,14 @@ implementation
                   checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
                     doremoveinttypeconvs(left,generrordef,not foundsint,s8inttype,u8inttype);
 {$endif defined(cpu8bitalu)}
+                  { the above simplification may have left a redundant equal
+                    typeconv (e.g. int32 to int32). If that's the case, we remove it }
+                  if equal_defs(left.resultdef,resultdef) then
+                    begin
+                      result:=left;
+                      left:=nil;
+                      exit;
+                    end;
                 end;
             end;
         end;
