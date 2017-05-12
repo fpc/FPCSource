@@ -239,6 +239,7 @@ type
     procedure TestIFLesserThan;
     procedure TestIFLesserEqualThan;
     procedure TestIFDefinedElseIf;
+    procedure TestIfError;
     Procedure TestModeSwitch;
   end;
 
@@ -1688,6 +1689,17 @@ begin
     +'{$elseif defined(cpu64)} ''x64'''+LineEnding
     +'{$else} {$error unknown platform} {$endif};'+LineEnding
     +'begin end.',True,False);
+end;
+
+procedure TTestScanner.TestIfError;
+begin
+  FScanner.SkipWhiteSpace:=True;
+  FScanner.SkipComments:=True;
+  TestTokens([tkprogram,tkIdentifier,tkSemicolon,tkbegin,tkend,tkDot],
+    'program Project1;'+LineEnding
+    +'begin'+LineEnding
+    +'{$if sizeof(integer) <> 4} {$error wrong sizeof(integer)} {$endif}'+LineEnding
+    +'end.',True,False);
 end;
 
 procedure TTestScanner.TestModeSwitch;
