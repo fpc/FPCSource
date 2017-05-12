@@ -2018,6 +2018,11 @@ begin
             NextToken;
             x:=CreateBinaryExpr(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
             end;
+          // for expressions like (PChar(a)+10)[0];
+          if (x<>Nil) and (CurToken=tkSquaredBraceOpen) then
+            begin
+            x:=ParseParams(x,pekArrayParams,False);
+            end;
           end
         else
           begin
