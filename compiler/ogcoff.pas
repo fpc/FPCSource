@@ -490,6 +490,7 @@ implementation
          select  : byte;
          empty   : array[0..2] of char;
        end;
+       pcoffsectionrec=^coffsectionrec;
        coffreloc=packed record
          address  : longword;
          sym      : longword;
@@ -820,6 +821,8 @@ const pemagic : array[0..3] of byte = (
           include(aoptions,oso_data);
         if (flags and (PE_SCN_LNK_REMOVE or PE_SCN_MEM_DISCARDABLE)=0) then
           include(aoptions,oso_load);
+        if flags and PE_SCN_LNK_COMDAT<>0 then
+          include(aoptions,oso_comdat);
         { read/write }
         if flags and PE_SCN_MEM_WRITE<>0 then
           include(aoptions,oso_write);
@@ -1800,11 +1803,13 @@ const pemagic : array[0..3] of byte = (
         strname   : string;
         auxrec    : array[0..sizeof(coffsymbol)-1] of byte;
         boauxrec  : array[0..sizeof(coffbigobjsymbol)-1] of byte;
+        secrec    : pcoffsectionrec;
         objsec    : TObjSection;
         secidx    : longint;
         symvalue  : longword;
         auxcount  : byte;
         symcls    : byte;
+        comdatsel : TObjSectionComdatSelection;
 
         { keeps string manipulations out of main routine }
         procedure UnsupportedSymbolType;
@@ -1935,6 +1940,63 @@ const pemagic : array[0..3] of byte = (
               end;
               FSymTbl^[symidx]:=objsym;
               { read aux records }
+
+              { handle COMDAT symbols }
+              if (symcls=COFF_SYM_LOCAL) and (auxcount=1) and (symvalue=0) and (oso_comdat in objsym.objsection.SecOptions) then
+                begin
+                  if bigobj then
+                    begin
+                      FCoffSyms.Read(boauxrec,sizeof(boauxrec));
+                      secrec:=pcoffsectionrec(@boauxrec[0]);
+                    end
+                  else
+                    begin
+                      FCoffSyms.Read(auxrec,sizeof(auxrec));
+                      secrec:=pcoffsectionrec(@auxrec);
+                    end;
+
+                  case secrec^.select of
+                    IMAGE_COMDAT_SELECT_NODUPLICATES:
+                      comdatsel:=oscs_none;
+                    IMAGE_COMDAT_SELECT_ANY:
+                      comdatsel:=oscs_any;
+                    IMAGE_COMDAT_SELECT_SAME_SIZE:
+                      comdatsel:=oscs_same_size;
+                    IMAGE_COMDAT_SELECT_EXACT_MATCH:
+                      comdatsel:=oscs_exact_match;
+                    IMAGE_COMDAT_SELECT_ASSOCIATIVE:
+                      comdatsel:=oscs_associative;
+                    IMAGE_COMDAT_SELECT_LARGEST:
+                      comdatsel:=oscs_largest;
+                    else begin
+                      comdatsel:=oscs_none;
+                      Message2(link_e_comdat_select_unsupported,inttostr(secrec^.select),objsym.objsection.name);
+                    end;
+                  end;
+
+                  if comdatsel in [oscs_associative,oscs_exact_match] then
+                    { only temporary }
+                    Comment(V_Error,'Associative or exact match COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
+                  else if (comdatsel=oscs_associative) and (secrec^.assoc=0) then
+                    Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
+                  else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
+                    Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
+                  else
+                    begin
+                      objsym.objsection.ComdatSelection:=comdatsel;
+
+                      if (secrec^.assoc<>0) and not assigned(objsym.objsection.AssociativeSection) then
+                        begin
+                          objsym.objsection.AssociativeSection:=GetSection(secrec^.assoc);
+                          if not assigned(objsym.objsection.AssociativeSection) then
+                            Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
+                        end;
+                    end;
+
+                  dec(auxcount);
+                  inc(symidx);
+                end;
+
               for i:=1 to auxcount do
                begin
                  if bigobj then

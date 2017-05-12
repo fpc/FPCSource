@@ -174,10 +174,27 @@ interface
        { Has relocations with explicit addends (ELF-specific) }
        oso_rela_relocs,
        { Supports bss-like allocation of data, even though it is written in file (i.e. also has oso_Data) }
-       oso_sparse_data
+       oso_sparse_data,
+       { Section to support the resolution of multiple symbols with the same name }
+       oso_comdat
      );
 
      TObjSectionOptions = set of TObjSectionOption;
+
+     TObjSectionComdatSelection = (
+       { Section is not a COMDAT section }
+       oscs_none,
+       { Select any of the symbols }
+       oscs_any,
+       { Select any symbol, but abort if they differ in size }
+       oscs_same_size,
+       { Select any symbol, but abort if they differ in size or content }
+       oscs_exact_match,
+       { Select the symbol only if the associated symbol is linked as well }
+       oscs_associative,
+       { Select the largest symbol }
+       oscs_largest
+     );
 
      TObjSectionGroup = class;
 
@@ -250,6 +267,7 @@ interface
      private
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
+       FComdatSelection : TObjSectionComdatSelection;
        FCachedFullName : pshortstring;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
        procedure SectionTooLargeError;
@@ -263,6 +281,8 @@ interface
        DataPos    : PUInt;
        MemPos     : qword;
        Group      : TObjSectionGroup;
+       AssociativeSection : TObjSection;
+       ComdatSelection : TObjSectionComdatSelection;
        DataAlignBytes : shortint;
        { Relocations (=references) to other sections }
        ObjRelocations : TFPObjectList;
@@ -2493,7 +2513,44 @@ implementation
                         exesym.State:=symstate_defined;
                       end
                     else
-                      Comment(V_Error,'Multiple defined symbol '+objsym.name);
+                      if (oso_comdat in exesym.ObjSymbol.objsection.SecOptions) and
+                         (oso_comdat in objsym.objsection.SecOptions) then
+                        begin
+                          if exesym.ObjSymbol.objsection.ComdatSelection=objsym.objsection.ComdatSelection then
+                            begin
+                              case objsym.objsection.ComdatSelection of
+                                oscs_none:
+                                  Message1(link_e_duplicate_symbol,objsym.name);
+                                oscs_any:
+                                  Message1(link_d_comdat_discard_any,objsym.name);
+                                oscs_same_size:
+                                  if exesym.ObjSymbol.size<>objsym.size then
+                                    Message1(link_e_comdat_size_differs,objsym.name)
+                                  else
+                                    Message1(link_d_comdat_discard_size,objsym.name);
+                                oscs_exact_match:
+                                  if (exesym.ObjSymbol.size<>objsym.size) and not exesym.ObjSymbol.objsection.Data.equal(objsym.objsection.Data) then
+                                    Message1(link_e_comdat_content_differs,objsym.name)
+                                  else
+                                    Message1(link_d_comdat_discard_content,objsym.name);
+                                oscs_associative:
+                                  { this is handled in a different way }
+                                  Message1(link_e_duplicate_symbol,objsym.name);
+                                oscs_largest:
+                                  if objsym.size>exesym.ObjSymbol.size then
+                                    begin
+                                      Message1(link_d_comdat_replace_size,objsym.name);
+                                      exesym.ObjSymbol.exesymbol:=nil;
+                                      exesym.ObjSymbol:=objsym;
+                                    end;
+                              end;
+                            end
+                          else
+                            Message1(link_e_comdat_selection_differs,objsym.name);
+                        end
+                      else
+                        { specific error if ComDat flags are different? }
+                        Message1(link_e_duplicate_symbol,objsym.name);
                   end;
                 AB_EXTERNAL :
                   begin

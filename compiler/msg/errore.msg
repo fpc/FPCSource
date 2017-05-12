@@ -2986,7 +2986,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Internal linker messages
 #
-# 09208 is the last used one
+# 09220 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -3016,6 +3016,36 @@ link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, b
 % directive (either in pascal's built-in inline assembler, or in an externally
 % linked assembly module).
 link_w_program_uses_checkpointer=09208_W_Program "$1" uses experimental CheckPointer option
+link_e_duplicate_symbol=09209_E_Multiple defined symbol "$1"
+% The specified symbol is already defined inside the whole collection of object files.
+link_e_comdat_select_unsupported=09210_E_COMDAT selection mode $1 not supported (section: "$1")
+% The specified COMDAT selection mode is not supported.
+link_e_comdat_associative_section_expected=09211_E_Associative section expected for COMDAT section "$1"
+% The specified COMDAT section is specified as expecting an associative section,
+% but none is specified.
+link_e_comdat_not_matching=09212_E_COMDAT section selection mode doesn't match for section "$1" and symbol "$2"
+% All COMDAT symbols/sections need to use the same selection mode.
+link_e_comdat_associative_section_not_found=09213_E_Associative COMDAT section for section "$1" not found
+% The COMDAT section expects an associative section, but it was not found inside the object file.
+link_d_comdat_discard_any=09214_D_Discarding duplicate symbol "$1" due to COMDAT selection mode
+% The COMDAT section specifies that any section with the same name might be selected and this
+% specific section was selected to be discarded.
+link_d_comdat_discard_size=09215_D_Discarding duplicate symbol "$1" with same size due to COMDAT selection mode
+% The COMDAT section specifies that any section with the same name and size might be selected
+% and this specific section was selected to be discarded.
+link_d_comdat_discard_content=09216_D_Discarding duplicate symbol "$1" with same content due to COMDAT selection mode
+% The COMDAT section specifies that any section with the same name and content might be selected
+% and this specific section was selected to be discarded.
+link_d_comdat_replace_size=09217_D_Replacing duplicate symbol "$1" with smaller size due to COMDAT selection mode
+% The COMDAT section specifies that the largest section with the same name should be selected
+% this specific section was larger than the previous largest one.
+link_e_comdat_size_differs=09218_E_Size of duplicate COMDAT symbol "$1" differs
+% The COMDAT section specifies that all sections with the same name need to have the same size,
+% but this section had a different size.
+link_e_comdat_content_differs=09219_E_Content of duplicate COMDAT symbol "$1" differs
+% The COMDAT section specifies that all sections with the same name need to have the same content,
+% but this section had a different size.
+link_e_comdat_selection_differs=09220_E_COMDAT selection mode for symbol "$1" differs
 %\end{description}
 # EndOfTeX
 
