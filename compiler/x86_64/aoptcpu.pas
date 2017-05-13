@@ -75,6 +75,9 @@ uses
               A_VMOVAPS,
               A_VMOVAPD:
                 result:=OptPass1VMOVAP(p);
+              A_MOVAPD,
+              A_MOVAPS:
+                result:=OptPass1MOVAP(p);
               A_VDIVSD,
               A_VDIVSS,
               A_VSUBSD,

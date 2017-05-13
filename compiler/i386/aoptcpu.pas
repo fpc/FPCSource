@@ -1263,6 +1263,10 @@ begin
                   A_VADDSS:
                     if OptPass1VOP(p) then
                       continue;
+                  A_MOVAPD,
+                  A_MOVAPS:
+                    if OptPass1MOVAP(p) then
+                      continue;
                 end;
             end; { if is_jmp }
           end;

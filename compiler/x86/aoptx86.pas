@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{$define DEBUG_AOPTCPU}
+{ $define DEBUG_AOPTCPU}
 
   interface
 
@@ -62,6 +62,7 @@ unit aoptx86;
         function OptPass1VOP(const p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
         function OptPass1Movx(var p : tai) : boolean;
+        function OptPass1MOVAP(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -914,6 +915,63 @@ unit aoptx86;
                 end;
           end;
       end;
+
+
+    function TX86AsmOptimizer.OptPass1MOVAP(var p : tai) : boolean;
+      var
+        TmpUsedRegs : TAllUsedRegs;
+        hp1,hp2 : tai;
+        alloc ,dealloc: tai_regalloc;
+      begin
+        result:=false;
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
+          GetNextInstruction(p, hp1) and
+          (hp1.typ = ait_instruction) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2,taicpu(p).opcode,[]) and
+          OpsEqual(taicpu(hp2).oper[1]^, taicpu(p).oper[0]^) and
+          MatchOpType(taicpu(hp2),top_reg,top_reg) and
+          MatchOperand(taicpu(hp2).oper[0]^,taicpu(p).oper[1]^) and
+          (((taicpu(p).opcode=A_MOVAPS) and
+            ((taicpu(hp1).opcode=A_ADDSS) or (taicpu(hp1).opcode=A_SUBSS) or
+             (taicpu(hp1).opcode=A_MULSS) or (taicpu(hp1).opcode=A_DIVSS))) or
+           ((taicpu(p).opcode=A_MOVAPD) and
+            ((taicpu(hp1).opcode=A_ADDSD) or (taicpu(hp1).opcode=A_SUBSD) or
+             (taicpu(hp1).opcode=A_MULSD) or (taicpu(hp1).opcode=A_DIVSD)))
+          ) then
+          { change
+                     movapX    reg,reg2
+                     addsX/subsX/... reg3, reg2
+                     movapX    reg2,reg
+            to
+                     addsX/subsX/... reg3,reg
+          }
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+            If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
+              begin
+                DebugMsg('Peephole Optimization MovapXOpMovapX2Op ('+
+                      std_op2str[taicpu(p).opcode]+' '+
+                      std_op2str[taicpu(hp1).opcode]+' '+
+                      std_op2str[taicpu(hp2).opcode]+')',p);
+                { we cannot eliminate the first move if
+                  the operations uses the same register for source and dest }
+                if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
+                  begin
+                    asml.remove(p);
+                    p.Free;
+                  end;
+                taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
+                asml.remove(hp2);
+                hp2.Free;
+                p:=hp1;
+                result:=true;
+              end;
+            ReleaseUsedRegs(TmpUsedRegs);
+          end
+        end;
 
 
     function TX86AsmOptimizer.OptPass1VMOVAP(var p : tai) : boolean;
