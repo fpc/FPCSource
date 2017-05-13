@@ -2337,7 +2337,7 @@ begin
          if first then
            begin
              write(space);
-             write('Management operator options: ');
+             write('Management operators: ');
              first:=false;
            end
          else
