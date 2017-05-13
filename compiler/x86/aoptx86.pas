@@ -1028,6 +1028,17 @@ unit aoptx86;
         GetNextIntruction_p : Boolean;
       begin
         Result:=false;
+        {  remove mov reg1,reg1? }
+        if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
+          begin
+            GetNextInstruction(p, hp1);
+            DebugMsg('PeepHole Optimization,Mov2Nop',p);
+            asml.remove(p);
+            p.free;
+            p:=hp1;
+            Result:=true;
+            exit;
+          end;
         GetNextIntruction_p:=GetNextInstruction(p, hp1);
         if GetNextIntruction_p and
           MatchInstruction(hp1,A_AND,[]) and
@@ -1081,6 +1092,7 @@ unit aoptx86;
                     asml.remove(hp1);
                     hp1.free;
                     ReleaseUsedRegs(TmpUsedRegs);
+                    Result:=true;
                     Exit;
                   end;
                 top_ref:
@@ -1099,6 +1111,7 @@ unit aoptx86;
                       asml.remove(hp1);
                       hp1.free;
                       ReleaseUsedRegs(TmpUsedRegs);
+                      Result:=true;
                       Exit;
                     end;
               end;
