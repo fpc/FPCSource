@@ -23,9 +23,13 @@ type
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
     { This must actually be bigger or equal to sizeof(TSignalSemaphore)
-      which seems to be 46 bytes on MorphOS and Amiga/m68k and
-      56 bytes on AROS/x86 ABIv0. }
+      which seems to be 46 bytes on MorphOS and Amiga/m68k,
+      56 bytes on AROS/x86 ABIv0 and 104 bytes on AROS x64}
+    {$ifdef CPU64}
+    semaphore: array[0..128] of byte;
+    {$else}
     semaphore: array[0..63] of byte;
+    {$endif}
   end;
 
 { BeginThread flags we support in AThreads }
