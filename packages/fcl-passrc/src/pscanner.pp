@@ -493,7 +493,7 @@ type
   { TPascalScanner }
 
   TPScannerLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
-  TPScannerLogEvent = (sleFile,sleLineNumber,sleConditionals);
+  TPScannerLogEvent = (sleFile,sleLineNumber,sleConditionals,sleDirective);
   TPScannerLogEvents = Set of TPScannerLogEvent;
   TPScannerDirectiveEvent = procedure(Sender: TObject; Directive, Param: String;
     var Handled: boolean) of object;
@@ -2849,8 +2849,9 @@ begin
     if Assigned(OnDirective) then
       OnDirective(Self,Directive,Param,Handled);
     if (not Handled) then
-      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
-        [Directive]);
+      if LogEvent(sleDirective) then
+        DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+          [Directive]);
   end;
 end;
 
