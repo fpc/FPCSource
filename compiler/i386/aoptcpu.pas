@@ -1267,6 +1267,12 @@ begin
                   A_MOVAPS:
                     if OptPass1MOVAP(p) then
                       continue;
+                  A_VMOVSD,
+                  A_VMOVSS,
+                  A_MOVSD,
+                  A_MOVSS:
+                    if OptPass1MOVXX(p) then
+                      continue;
                 end;
             end; { if is_jmp }
           end;

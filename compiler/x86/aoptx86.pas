@@ -63,6 +63,7 @@ unit aoptx86;
         function OptPass1MOV(var p : tai) : boolean;
         function OptPass1Movx(var p : tai) : boolean;
         function OptPass1MOVAP(var p : tai) : boolean;
+        function OptPass1MOVXX(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -1604,6 +1605,56 @@ unit aoptx86;
               end;
             ReleaseUsedRegs(TmpUsedRegs);
           end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1MOVXX(var p : tai) : boolean;
+      var
+        hp1 : tai;
+      begin
+        Result:=false;
+        if GetNextInstruction(p,hp1) and
+          MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) then
+          begin
+            if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
+               (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
+                {  movXX reg1, mem1     or     movXX mem1, reg1
+                   movXX mem2, reg2            movXX reg2, mem2}
+              begin
+                if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
+                  { movXX reg1, mem1     or     movXX mem1, reg1
+                    movXX mem2, reg1            movXX reg2, mem1}
+                  begin
+                    if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                      begin
+                        { Removes the second statement from
+                          movXX reg1, mem1/reg2
+                          movXX mem1/reg2, reg1
+                        }
+                        if taicpu(p).oper[0]^.typ=top_reg then
+                          AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
+                        { Removes the second statement from
+                          movXX mem1/reg1, reg2
+                          movXX reg2, mem1/reg1
+                        }
+                        if (taicpu(p).oper[1]^.typ=top_reg) and
+                          not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,UsedRegs)) then
+                          begin
+                            asml.remove(p);
+                            p.free;
+                            DebugMsg('PeepHole Optimization,MovXXMovXX2Nop 1',p);
+                            GetNextInstruction(hp1,p);
+                          end
+                        else
+                          DebugMsg('PeepHole Optimization,MovXXMovXX2MoVXX 1',p);
+                        asml.remove(hp1);
+                        hp1.free;
+                        Result:=true;
+                        exit;
+                      end
+                end;
+            end;
+        end;
       end;
 
 

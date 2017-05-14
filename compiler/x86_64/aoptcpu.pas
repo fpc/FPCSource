@@ -87,6 +87,11 @@ uses
               A_VADDSD,
               A_VADDSS:
                 result:=OptPass1VOP(p);
+              A_VMOVSD,
+              A_VMOVSS,
+              A_MOVSD,
+              A_MOVSS:
+                result:=OptPass1MOVXX(p);
             end;
           end;
         end;
