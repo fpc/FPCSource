@@ -45,7 +45,7 @@ implementation
       aasmtai,aasmdata,
       nflw,constexp,
       cgutils,cgobj,hlcgobj,
-      defutil;
+      defutil,cgcpu;
 
     procedure tcpucasenode.genlinearlist(hp : pcaselabel);
 
@@ -71,7 +71,7 @@ implementation
                else
                  begin
                    hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
-                   hlcg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
+                   tcg68k(cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,blocklabel(t^.blockid));
                  end;
                last:=t^._low;
              end
@@ -92,10 +92,10 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._low.svalue-last.svalue), hregister);
-                    hlcg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,elselabel);
+                    tcg68k(cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_lt, elselabel);
                   end;
                 hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, tcgint(t^._high.svalue-t^._low.svalue), hregister);
-                hlcg.a_jmp_flags(current_asmdata.CurrAsmList,F_LE,blocklabel(t^.blockid));
+                tcg68k(cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_le, blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;

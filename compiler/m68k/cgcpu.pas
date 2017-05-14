@@ -75,6 +75,7 @@ unit cgcpu;
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
         procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
+        procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); override;
 
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
@@ -106,8 +107,6 @@ unit cgcpu;
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
         procedure check_register_size(size:tcgsize;reg:tregister);
-     private
-        procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
      end;
 
      tcg64f68k = class(tcg64f32)
