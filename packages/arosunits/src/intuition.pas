@@ -1726,7 +1726,7 @@ type
   packet structure definitions are defined below.}
   PMsg = ^TMsg;
   TMsg = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
   end;
 
 { Class id strings for Intuition classes.
@@ -1777,7 +1777,7 @@ type
   // OM_NEW and OM_SET
   PopSet = ^TopSet;
   TopSet = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     ops_AttrList: PTagItem; // new attributes
     ops_GInfo: PGadgetInfo; // always there for gadgets, when SetGadgetAttrs() is used, but will be nil for OM_NEW
   end;
@@ -1786,7 +1786,7 @@ type
   PopGet = ^TopGet;
   TopGet = record
     MethodID,
-    opg_AttrID: LongWord;
+    opg_AttrID: PtrUInt;
     opg_Storage: Pointer;   // may be other types, but 'int' types are all LongWord
   end;
 
@@ -1794,14 +1794,14 @@ type
 
   PopAddTail = ^TopAddTail;
   TopAddTail = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     opat_List: PList;
   end;
 
   // OM_ADDMEMBER, OM_REMMEMBER
   PopMember = ^TopMember;
   TopMember = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     opam_Object: PObject_;
   end;
   TopAddMember = TopMember;
@@ -1810,7 +1810,7 @@ type
   // OM_NOTIFY, and OM_UPDATE
   PopUpdate = ^TopUpdate;
   TopUpdate = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     opu_AttrList: PTagItem; // new attributes
     opu_GInfo: PGadgetInfo; // non-nil when SetGadgetAttrs OR notification resulting from gadget input occurs.
     opu_Flags: LongWord;    // defined below (OPUF_*)
@@ -2046,7 +2046,7 @@ type
    have to test, if you were hit, no matter if you are disabled or not.}
   PgpHitTest = ^TgpHitTest;
   TgpHitTest = record
-    MethodID: LongWord;       // GM_HITEST or GM_HELPTEST
+    MethodID: PtrUInt;         // GM_HITEST or GM_HELPTEST
     gpht_GInfo: PGadgetInfo;
     gpht_Mouse: record         // These values are relative to the gadget select box for GM_HITTEST. For
       x: SmallInt;             // GM_HELPTEST they are relative to the bounding box (which is often
@@ -2063,7 +2063,7 @@ type
   // GM_RENDER   This method is invoked to draw the gadget into a rastport.
   PgpRender = ^TgpRender;
   TgpRender = record
-    MethodID: LongWord;       // GM_RENDER
+    MethodID: PtrUInt;        // GM_RENDER
     gpr_GInfo: PGadgetInfo;   // gadget context
     gpr_RPort: PRastPort;     // all ready for use
     gpr_Redraw: LongInt;      // might be a "highlight pass" (GREDRAW_*)
@@ -2083,7 +2083,7 @@ type
    same values, as defined below.}
   PgpInput = ^TgpInput;
   TgpInput = record
-    MethodID: LongWord;       // GM_GOACTIVE or GM_HANDLEINPUT
+    MethodID: PtrUInt;        // GM_GOACTIVE or GM_HANDLEINPUT
     gpi_GInfo: PGadgetInfo;   //  gadget context
     gpi_IEvent: PInputEvent;  // Pointer to the InputEvent that caused the method to be invoked.
     gpi_Termination: Pointer; { Pointer to a variable that is to be set by the gadget class, if
@@ -2113,7 +2113,7 @@ type
   // GM_GOINACTIVE see GM_GOACTIVE for explanation
   PgpGoInactive = ^TgpGoInactive;
   TgpGoInactive = record
-    MethodID: LongWord;         // GM_GOINACTIVE
+    MethodID: PtrUInt;         // GM_GOINACTIVE
     gpgi_GInfo: PGadgetInfo;
     gpgi_Abort: LongWord; { Boolean field to indicate, who wanted the gadget to go inactive. If
          this is 1 this method was sent, because intution wants the gadget to
@@ -2128,7 +2128,7 @@ type
     are not allowed to do any rendering operation during this method!}
   PgpLayout = ^TgpLayout;
   TgpLayout = record
-    MethodID: LongWord;       // GM_LAYOUT
+    MethodID: PtrUInt;       // GM_LAYOUT
     gpl_GInfo: PGadgetInfo;
     gpl_Initial: LongWord; {Boolean that indicated, if this method was invoked, when you are added
          to a window (True) or if it is called, because the window was resized
@@ -2140,7 +2140,7 @@ type
    before an object is created. This is AROS specific.}
   PgpDomain = ^TgpDomain;
   TgpDomain = record
-    MethodID: LongWord;      // GM_DOMAIN
+    MethodID: PtrUInt;       // GM_DOMAIN
     gpd_GInfo: PGadgetInfo;
     gpd_RPort: PRastPort;    // RastPort to calculate dimensions for.
     gpd_Which: LONG;         // what to calculate (GDOMAIN_*)
@@ -2269,7 +2269,7 @@ type
   // IM_FRAMEBOX
   PimpFrameBox = ^TimpFrameBox;
   TimpFrameBox = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     imp_ContentsBox: PIBox;   // input: relative box of contents
     imp_FrameBox: PIBox;      // output: rel. box of encl frame
     imp_DrInfo: PDrawInfo;    // may be nil
@@ -2295,7 +2295,7 @@ type
   // IM_DRAW, IM_DRAWFRAME
   PimpDraw = ^TimpDraw;
   TimpDraw = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     imp_RPort: PRastPort;
     imp_Offset: TimpPos;
     imp_State: LongWord;
@@ -2306,7 +2306,7 @@ type
   // IM_ERASE, IM_ERASEFRAME NOTE: This is a subset of TimpDraw
   PimpErase = ^TimpErase;
   TimpErase = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     imp_RPort: PRastPort;
     imp_Offset: TimpPos;
     imp_Dimensions: TimpSize; // // Only valid for IM_DRAWFRAME
@@ -2315,7 +2315,7 @@ type
   // IM_HITTEST, IM_HITFRAME
   PimpHitTest = ^TimpHitTest;
   TimpHitTest = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     imp_Point: TimpPos;
     imp_Dimensions: TimpSize; // only valid for IM_HITFRAME
   end;
@@ -2553,7 +2553,7 @@ const
 type
   PmdpGetDefSizeSysImage = ^TmdpGetDefSizeSysImage;
   TmdpGetDefSizeSysImage = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     mdp_TrueColor: ShortInt;
     mdp_Dri: PDrawInfo;
     mdp_ReferenceFont: PTextFont; // In:
@@ -2566,7 +2566,7 @@ type
 
   PmdpDrawSysImage = ^TmdpDrawSysImage;
   TmdpDrawSysImage = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     mdp_TrueColor: ShortInt;
     mdp_Dri: PDrawInfo;
     mdp_RPort: PRastPort;
@@ -2582,7 +2582,7 @@ type
 
   PmdpGetMenuSpaces = ^TmdpGetMenuSpaces;
   TmdpGetMenuSpaces = record
-    MethodID: LongInt;
+    MethodID: PtrUInt;
     mdp_TrueColor: ShortInt;
     mdp_InnerLeft: LongInt;      // Out
     mdp_InnerTop: LongInt;       // Out
@@ -2598,7 +2598,7 @@ type
 
   PmdpDrawBackground = ^TmdpDrawBackground;
   TmdpDrawBackground = record
-    MethodID: Longword;
+    MethodID: PtrUInt;
     mdp_TrueColor: ShortInt;
     mdp_RPort: PRastPort;
     mdp_X: LongInt;
@@ -2616,7 +2616,7 @@ type
 
   PmdpInitMenu = ^TmdpInitMenu;
   TmdpInitMenu = record
-    MethodID: LongInt;
+    MethodID: PtrUInt;
     mdp_TrueColor: SmallInt;
     mdp_RPort: PRastPort;
     mdp_Screen: PScreen;
@@ -2631,7 +2631,7 @@ type
 
   PmdpExitMenu = ^TmdpExitMenu;
   TmdpExitMenu = record
-    MethodID: LongInt;
+    MethodID: PtrUInt;
     mdp_TrueColor: ShortInt;
     mdp_UserBuffer: IPTR;
   end;
@@ -2694,14 +2694,14 @@ const
 type
   PmsGetRootBitMap = ^TmsGetRootBitMap;
   TmsGetRootBitMap = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     PixelFormat: LongWord;
     Store: ^PBitMap;
   end;
 
   PmsQuery3DSupport = ^TmsQuery3DSupport;
   TmsQuery3DSupport = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     PixelFormat: LongWord;
     Store: PLongWord;
   end;
@@ -2713,7 +2713,7 @@ const
 type
   PmsGetDefaultGammaTables = ^TmsGetDefaultGammaTables;
   TmsGetDefaultGammaTables = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     Red: PByte;         // Optional pointers to 256-byte arrays to fill in
     Green: PByte;
     Blue: PByte;
@@ -2721,14 +2721,14 @@ type
 
   PmsGetDefaultPixelFormat = ^TmsGetDefaultPixelFormat;
   TmsGetDefaultPixelFormat = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     Depth: LongWord;
     Store: PLongWord;
   end;
 
   PmsGetPointerBounds = ^TmsGetPointerBounds;
   TmsGetPointerBounds = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     PointerType: LongWord;
     Width: PLongWord;
     Height: PLongWord;
@@ -2756,7 +2756,7 @@ const
 type
   PsdpGetDefSizeSysImage = ^TsdpGetDefSizeSysImage;
   TsdpGetDefSizeSysImage = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     sdp_TrueColor: ShortInt;
     sdp_Dri: PDrawInfo;
     sdp_ReferenceFont: PTextFont; // In:
@@ -2770,7 +2770,7 @@ type
 
   PsdpDrawSysImage = ^TsdpDrawSysImage;
   TsdpDrawSysImage = record
-    MethodID: LongInt;
+    MethodID: PtrUInt;
     sdp_TrueColor: ShortInt;
     sdp_Dri: PDrawInfo;
     sdp_RPort: PRastPort;
@@ -2786,7 +2786,7 @@ type
 
   PsdpDrawScreenBar = ^TsdpDrawScreenBar;
   TsdpDrawScreenBar = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     sdp_TrueColor: ShortInt;
     sdp_Dri: PDrawInfo;
     sdp_Layer: PLayer;
@@ -2798,7 +2798,7 @@ type
 
   PsdpLayoutScreenGadgets = ^TsdpLayoutScreenGadgets;
   TsdpLayoutScreenGadgets = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     sdp_TrueColor: ShortInt;
     sdp_Dri: PDrawInfo;
     sdp_Layer: PLayer;
@@ -2809,7 +2809,7 @@ type
 
   PsdpInitScreen = ^TsdpInitScreen;
   TsdpInitScreen = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     sdp_TrueColor: ShortInt;
     sdp_Dri: PDrawInfo;
     sdp_Screen: PScreen;
@@ -2829,7 +2829,7 @@ type
 
   PsdpExitScreen = ^TsdpExitScreen;
   TsdpExitScreen = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     sdp_TrueColor: ShortInt;
     sdp_UserBuffer: IPTR;
   end;
@@ -2864,7 +2864,7 @@ const
 type
   PwdpGetDefSizeSysImage = ^TwdpGetDefSizeSysImage;
   TwdpGetDefSizeSysImage = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     wdp_TrueColor: ShortInt;
     wdp_Dri: PDrawInfo;
     wdp_ReferenceFont: PTextFont; // In:
@@ -2878,7 +2878,7 @@ type
 
   PwdpDrawSysImage = ^TwdpDrawSysImage;
   TwdpDrawSysImage = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     wdp_TrueColor: ShortInt;
     wdp_Dri: PDrawInfo;
     wdp_RPort: PRastPort;
@@ -2894,7 +2894,7 @@ type
 
   PwdpDrawWinBorder = ^TwdpDrawWinBorder;
   TwdpDrawWinBorder = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     wdp_TrueColor: ShortInt;
     wdp_Dri: PDrawInfo;
     wdp_Window: PWindow;
@@ -2905,7 +2905,7 @@ type
 
   PwdpLayoutBorderGadgets = ^TwdpLayoutBorderGadgets;
   TwdpLayoutBorderGadgets = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     wdp_TrueColor: ShortInt;
     wdp_Dri: PDrawInfo;
     wdp_Window: PWindow;
@@ -2917,7 +2917,7 @@ type
 
   PwdpDrawBorderPropBack = ^TwdpDrawBorderPropBack;
   TwdpDrawBorderPropBack = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     wdp_TrueColor: ShortInt;
     wdp_Dri: PDrawInfo;
     wdp_Window: PWindow;
@@ -2932,7 +2932,7 @@ type
 
   PwdpDrawBorderPropKnob = ^TwdpDrawBorderPropKnob;
   TwdpDrawBorderPropKnob = record
-    MethodID: LongWord;
+    MethodID: PtrUInt;
     wdp_TrueColor: ShortInt;
     wdp_Dri: PDrawInfo;
     wdp_Window: PWindow;
