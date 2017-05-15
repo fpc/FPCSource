@@ -39,7 +39,7 @@ unit cpunode;
 //       nppccon,
 //       nppcflw,
          n68kmem,
-//       n68kset,
+         n68kset,
          n68kinl,
 //       nppcopt,
        { this not really a node }
