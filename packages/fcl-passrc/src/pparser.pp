@@ -5014,7 +5014,7 @@ begin
             SrcPos:=Scanner.CurSourcePos;
             Name:=CurTokenString;
             NextToken;
-            writeln('ON t=',Name,' Token=',CurTokenText);
+            //writeln('ON t=',Name,' Token=',CurTokenText);
             if CurToken=tkColon then
               begin
               // the first expression was the variable name
