@@ -155,6 +155,8 @@ begin
   Add([
   'begin',
   '  vec:=TVector<double>.create;',
+  '  b:=a<b;',
+  '  t:=a<b.c<d,e.f>>;',
   '']);
   ParseModule;
 end;

@@ -1915,7 +1915,7 @@ begin
     //WriteSources(FileName,Row,Column);
     AssertEquals('ResolverEngine.LastSourcePos.Filename','afile.pp',FileName);
     AssertEquals('ResolverEngine.LastSourcePos.Row',4,Row);
-    AssertEquals('ResolverEngine.LastSourcePos.Column',20,Column);
+    AssertEquals('ResolverEngine.LastSourcePos.Column',19,Column);
     end;
 end;
 
@@ -4158,7 +4158,7 @@ begin
   'begin',
   '  DoIt(i);',
   '']);
-  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,15), afile.pp(2,15)',
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,14), afile.pp(2,14)',
     nCantDetermineWhichOverloadedFunctionToCall);
 end;
 

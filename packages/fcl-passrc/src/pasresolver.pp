@@ -8649,7 +8649,7 @@ begin
       begin
       // 'class of' of a not yet defined class
       Result:=CreateElement(TUnresolvedPendingRef,AName,LastElement,visDefault,
-                            CurrentParser.Scanner.CurSourcePos);
+                            CurrentParser.CurSourcePos);
       exit;
       end;
     RaiseIdentifierNotFound(20170216152722,AName,ErrorPosEl);
@@ -9464,7 +9464,7 @@ begin
   FLastMsg := SafeFormat(Fmt,Args);
   FLastElement := PosEl;
   if PosEl=nil then
-    FLastSourcePos:=CurrentParser.Scanner.CurSourcePos
+    FLastSourcePos:=CurrentParser.CurSourcePos
   else
     begin
     FLastSourcePos.FileName:=PosEl.SourceFilename;

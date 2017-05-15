@@ -164,8 +164,9 @@ type
     Property DocComment : String Read FDocComment Write FDocComment;
   end;
 
-  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,
-     pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp, pekInherited, pekSelf);
+  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst,
+     pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
+     pekInherited, pekSelf);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
@@ -256,7 +257,7 @@ type
   TParamsExpr = class(TPasExpr)
     Value     : TPasExpr;
     Params    : TPasExprArray;
-    {pekArrayParams, pekFuncParams, pekSet}
+    // Kind: pekArrayParams, pekFuncParams, pekSet
     constructor Create(AParent : TPasElement; AKind: TPasExprKind); overload;
     function GetDeclaration(full : Boolean) : string; override;
     destructor Destroy; override;
@@ -512,6 +513,23 @@ type
     Params: TFPList; // list of TPasType or TPasExpr
   end;
 
+  { TInlineTypeExpr }
+
+  TInlineTypeExpr = class(TPasExpr)
+  public
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : Boolean): string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  public
+    DestType: TPasType;
+  end;
+
+  { TInlineSpecializeExpr }
+
+  TInlineSpecializeExpr = class(TInlineTypeExpr)
+  end;
 
   { TPasRangeType }
 
@@ -1499,6 +1517,30 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release;
   El:=nil;
+end;
+
+{ TInlineTypeExpr }
+
+destructor TInlineTypeExpr.Destroy;
+begin
+  ReleaseAndNil(TPasElement(DestType));
+  inherited Destroy;
+end;
+
+function TInlineTypeExpr.ElementTypeName: string;
+begin
+  Result := DestType.ElementTypeName;
+end;
+
+function TInlineTypeExpr.GetDeclaration(full: Boolean): string;
+begin
+  Result:=DestType.GetDeclaration(full);
+end;
+
+procedure TInlineTypeExpr.ForEachCall(
+  const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
+begin
+  DestType.ForEachChildCall(aMethodCall,Arg,DestType,true);
 end;
 
 { TPasSpecializeType }
