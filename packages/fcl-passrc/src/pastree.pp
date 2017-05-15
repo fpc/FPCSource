@@ -457,19 +457,6 @@ type
     function ElementTypeName: string; override;
   end;
 
-  { TPasPointerType }
-
-  TPasPointerType = class(TPasType)
-  public
-    destructor Destroy; override;
-    function ElementTypeName: string; override;
-    function GetDeclaration(full : Boolean): string; override;
-    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
-      const Arg: Pointer); override;
-  public
-    DestType: TPasType;
-  end;
-
   { TPasAliasType }
 
   TPasAliasType = class(TPasType)
@@ -482,6 +469,19 @@ type
   public
     DestType: TPasType;
     Expr: TPasExpr;
+  end;
+
+  { TPasPointerType - todo: change it TPasAliasType }
+
+  TPasPointerType = class(TPasType)
+  public
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : Boolean): string; override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  public
+    DestType: TPasType;
   end;
 
   { TPasTypeAliasType }
@@ -497,6 +497,19 @@ type
   public
     function ElementTypeName: string; override;
     function GetDeclaration(full: boolean) : string; override;
+  end;
+
+  { TPasSpecializeType }
+
+  TPasSpecializeType = class(TPasAliasType)
+  public
+    constructor Create(const AName: string; AParent: TPasElement); override;
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full: boolean) : string; override;
+    procedure AddParam(El: TPasElement);
+  public
+    Params: TFPList; // list of TPasType or TPasExpr
   end;
 
 
@@ -1486,6 +1499,53 @@ begin
   El:=nil;
 end;
 
+{ TPasSpecializeType }
+
+constructor TPasSpecializeType.Create(const AName: string; AParent: TPasElement
+  );
+begin
+  inherited Create(AName, AParent);
+  Params:=TFPList.Create;
+end;
+
+destructor TPasSpecializeType.Destroy;
+var
+  i: Integer;
+begin
+  for i:=0 to Params.Count-1 do
+    TPasElement(Params[i]).Release;
+  FreeAndNil(Params);
+  inherited Destroy;
+end;
+
+function TPasSpecializeType.ElementTypeName: string;
+begin
+  Result:=SPasTreeSpecializedType;
+end;
+
+function TPasSpecializeType.GetDeclaration(full: boolean): string;
+var
+  i: Integer;
+begin
+  Result:='specialize '+DestType.Name+'<';
+  for i:=0 to Params.Count-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    Result:=Result+TPasElement(Params[i]).GetDeclaration(false);
+    end;
+  If Full then
+    begin
+    Result:=Name+' = '+Result;
+    ProcessHints(False,Result);
+    end;
+end;
+
+procedure TPasSpecializeType.AddParam(El: TPasElement);
+begin
+  Params.Add(El);
+end;
+
 { TInterfaceSection }
 
 function TInterfaceSection.ElementTypeName: string;
@@ -1796,16 +1856,16 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasModule(Modules[i]),true);
 end;
 
-function TPasResString.ElementTypeName: string; begin Result := SPasTreeResString end;
-function TPasType.ElementTypeName: string; begin Result := SPasTreeType end;
-function TPasPointerType.ElementTypeName: string; begin Result := SPasTreePointerType end;
-function TPasAliasType.ElementTypeName: string; begin Result := SPasTreeAliasType end;
-function TPasTypeAliasType.ElementTypeName: string; begin Result := SPasTreeTypeAliasType end;
-function TPasClassOfType.ElementTypeName: string; begin Result := SPasTreeClassOfType end;
-function TPasRangeType.ElementTypeName: string; begin Result := SPasTreeRangeType end;
-function TPasArrayType.ElementTypeName: string; begin Result := SPasTreeArrayType end;
-function TPasFileType.ElementTypeName: string; begin Result := SPasTreeFileType end;
-function TPasEnumValue.ElementTypeName: string; begin Result := SPasTreeEnumValue end;
+function TPasResString.ElementTypeName: string; begin Result := SPasTreeResString; end;
+function TPasType.ElementTypeName: string; begin Result := SPasTreeType; end;
+function TPasPointerType.ElementTypeName: string; begin Result := SPasTreePointerType; end;
+function TPasAliasType.ElementTypeName: string; begin Result := SPasTreeAliasType; end;
+function TPasTypeAliasType.ElementTypeName: string; begin Result := SPasTreeTypeAliasType; end;
+function TPasClassOfType.ElementTypeName: string; begin Result := SPasTreeClassOfType; end;
+function TPasRangeType.ElementTypeName: string; begin Result := SPasTreeRangeType; end;
+function TPasArrayType.ElementTypeName: string; begin Result := SPasTreeArrayType; end;
+function TPasFileType.ElementTypeName: string; begin Result := SPasTreeFileType; end;
+function TPasEnumValue.ElementTypeName: string; begin Result := SPasTreeEnumValue; end;
 
 procedure TPasEnumValue.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);

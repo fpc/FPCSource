@@ -404,6 +404,7 @@ function TTestEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
+  //writeln('TTestEngine.CreateElement ',AName,' ',AClass.ClassName);
   Result := AClass.Create(AName, AParent);
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
@@ -413,9 +414,12 @@ begin
 //    Writeln('Saving comment : ',CurrentParser.SavedComments);
     Result.DocComment:=CurrentParser.SavedComments;
     end;
-  If not Assigned(FList) then
-    FList:=TFPList.Create;
-  FList.Add(Result);
+  if AName<>'' then
+    begin
+    If not Assigned(FList) then
+      FList:=TFPList.Create;
+    FList.Add(Result);
+    end;
 end;
 
 function TTestEngine.FindElement(const AName: String): TPasElement;
@@ -431,7 +435,7 @@ begin
     While (Result=Nil) and (I>=0) do
       begin
       if CompareText(TPasElement(FList[I]).Name,AName)=0 then
-        Result:=TPasElement(Flist[i]);
+        Result:=TPasElement(FList[i]);
       Dec(i);
       end;
     end;

@@ -19,7 +19,8 @@ type
     FParent : String;
     FEnded,
     FStarted: Boolean;
-    procedure AssertSpecializedClass(C: TPasClassType);
+    procedure AssertGenericClass(C: TPasClassType);
+    procedure AssertSpecializedClass(C: TPasSpecializeType);
     function GetC(AIndex: Integer): TPasConst;
     function GetF1: TPasVariable;
     function GetM(AIndex : Integer): TPasElement;
@@ -29,7 +30,7 @@ type
     function GetP2: TPasProperty;
     function GetT(AIndex : Integer) : TPasType;
   protected
-    Procedure StartClass (AParent : String = 'TObject'; InterfaceList : String = '');
+    Procedure StartClass (AncestorName : String = 'TObject'; InterfaceList : String = '');
     Procedure StartExternalClass (AParent : String; AExternalName,AExternalNameSpace : String );
     Procedure StartClassHelper (ForType : String = 'TOriginal'; AParent : String = 'TObject');
     Procedure StartInterface (AParent : String = 'IInterface'; UUID : String = ''; Disp : Boolean = False);
@@ -247,22 +248,22 @@ begin
   Result:=TPasConst(Members[AIndex]);
 end;
 
-procedure TTestClassType.StartClass(AParent: String; InterfaceList: String);
+procedure TTestClassType.StartClass(AncestorName: String; InterfaceList: String);
 
 Var
   S : String;
 begin
   FStarted:=True;
   S:='TMyClass = Class';
-  if (AParent<>'') then
+  if (AncestorName<>'') then
     begin
-    S:=S+'('+AParent;
+    S:=S+'('+AncestorName;
     if (InterfaceList<>'') then
       S:=S+','+InterfaceList;
     S:=S+')';
     end;
   FDecl.Add(S);
-  FParent:=AParent;
+  FParent:=AncestorName;
 end;
 
 procedure TTestClassType.StartExternalClass(AParent: String; AExternalName,
@@ -378,13 +379,15 @@ begin
 end;
 
 procedure TTestClassType.DoParseClass(FromSpecial: Boolean);
+var
+  AncestorType: TPasType;
 begin
   EndClass;
   Add('Type');
   if AddComment then
     begin
     Add('// A comment');
-    engine.NeedComments:=True;
+    Engine.NeedComments:=True;
     end;
   Add('  '+TrimRight(FDecl.Text)+';');
   ParseDeclarations;
@@ -397,7 +400,14 @@ begin
      AssertNotNull('Have parent class',TheClass.AncestorType);
      if FromSpecial then
        begin
-       AssertEquals('Parent class',TPasClassType,TheClass.AncestorType.ClassType);
+       AncestorType:=TheClass.AncestorType;
+       if AncestorType is TPasSpecializeType then
+         begin
+         AncestorType:=TPasSpecializeType(AncestorType).DestType;
+         AssertEquals('Parent class',TPasUnresolvedTypeRef,AncestorType.ClassType);
+         end
+       else
+         AssertEquals('Parent class',TPasClassType,AncestorType.ClassType);
        end
      else
        begin
@@ -525,7 +535,7 @@ begin
   AssertEquals('Interface name','ISomethingElse',TPasUnresolvedTypeRef(TheClass.Interfaces[1]).Name);
 end;
 
-procedure TTestClassType.AssertSpecializedClass(C : TPasClassType);
+procedure TTestClassType.AssertGenericClass(C : TPasClassType);
 
 begin
   AssertEquals('Parent class name is empty','',C.Name);
@@ -537,26 +547,38 @@ begin
   AssertEquals('Have generic template types','Integer',TPasElement(C.GenericTemplateTypes[0]).Name);
 end;
 
+procedure TTestClassType.AssertSpecializedClass(C: TPasSpecializeType);
+begin
+  AssertEquals('Parent class name is empty','',C.Name);
+  AssertNotNull('Have dest type',C.DestType);
+  AssertEquals('Have dest type name','TMyList',C.DestType.Name);
+  AssertNotNull('Have param types',C.Params);
+  AssertEquals('Have one param type',1,C.Params.Count);
+  AssertNotNull('First Param ',C.Params[0]);
+  AssertEquals('First Param expr',TPrimitiveExpr,TObject(C.Params[0]).ClassType);
+  AssertEquals('Has specialize param integer','Integer',TPrimitiveExpr(C.Params[0]).Value);
+end;
+
 procedure TTestClassType.TestOneSpecializedClass;
 
 Var
-  C : TPasClassType;
+  C : TPasSpecializeType;
 
 begin
   StartClass('Specialize TMyList<Integer>','');
   DoParseClass(True);
-  C:=TPasClassType(TheClass.AncestorType);
+  C:=TPasSpecializeType(TheClass.AncestorType);
   AssertSpecializedClass(C);
 end;
 
 procedure TTestClassType.TestOneSpecializedClassInterface;
 Var
-  C : TPasClassType;
+  C : TPasSpecializeType;
 
 begin
   StartClass('Specialize TMyList<Integer>','ISomething');
   DoParseClass(True);
-  C:=TPasClassType(TheClass.AncestorType);
+  C:=TPasSpecializeType(TheClass.AncestorType);
   AssertSpecializedClass(C);
   AssertEquals('Have 1 interface',1,TheClass.Interfaces.Count);
   AssertNotNull('Correct class',TheClass.Interfaces[0]);

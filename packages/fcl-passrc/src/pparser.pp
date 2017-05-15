@@ -267,6 +267,8 @@ type
     procedure ParseClassMembers(AType: TPasClassType);
     procedure ProcessMethod(AType: TPasClassType; IsClass : Boolean; AVisibility : TPasMemberVisibility);
     procedure ReadGenericArguments(List : TFPList;Parent : TPasElement);
+    procedure ReadSpecializeArguments(Spec: TPasSpecializeType);
+    function ReadDottedIdentifier(Parent: TPasElement; out Expr: TPasExpr; NeedAsString: boolean): String;
     function CheckProcedureArgs(Parent: TPasElement;
       Args: TFPList; // list of TPasArgument
       Mandatory: Boolean): boolean;
@@ -340,6 +342,7 @@ type
     function ExprToText(Expr: TPasExpr): String;
     function ArrayExprToText(Expr: TPasExprArray): String;
     // Type declarations
+    function ResolveTypeReference(Name: string; Parent: TPasElement): TPasType;
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
     function ParseType(Parent: TPasElement; const NamePos: TPasSourcePos; const TypeName: String = ''; Full: Boolean = false; GenericArgs: TFPList = nil): TPasType;
@@ -348,13 +351,14 @@ type
     function ParseStringType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasAliasType;
     function ParseSimpleType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; IsFull : Boolean = False): TPasType;
     function ParseAliasType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasTypeAliasType;
+    function ParseTypeReference(Parent: TPasElement; NeedExpr: boolean; out Expr: TPasExpr): TPasType;
     function ParsePointerType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasPointerType;
     Function ParseArrayType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName : String; PackMode : TPackMode) : TPasArrayType;
     Function ParseFileType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName  : String) : TPasFileType;
     Function ParseRecordDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName : string; const Packmode : TPackMode = pmNone) : TPasRecordType;
     function ParseEnumType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String): TPasEnumType;
     function ParseSetType(Parent: TPasElement; Const NamePos: TPasSourcePos; const TypeName: String; AIsPacked : Boolean = False): TPasSetType;
-    function ParseSpecializeType(Parent: TPasElement; Const TypeName: String): TPasClassType;
+    function ParseSpecializeType(Parent: TPasElement; Const TypeName: String): TPasSpecializeType;
     Function ParseClassDecl(Parent: TPasElement; Const NamePos: TPasSourcePos; Const AClassName: String; AObjKind: TPasObjKind; PackMode : TPackMode= pmNone; GenericArgs: TFPList = nil): TPasType;
     Function ParseProperty(Parent : TPasElement; Const AName : String; AVisibility : TPasMemberVisibility; IsClassField: boolean) : TPasProperty;
     function ParseRangeType(AParent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; Full: Boolean = True): TPasRangeType;
@@ -1136,7 +1140,7 @@ begin
   try
     If (Result.Name='') then
       Result.Name:='string';
-    Result.Expr:=TPrimitiveExpr(CreateElement(TPrimitiveExpr,Result.Name,Result));
+    Result.Expr:=CreatePrimitiveExpr(Result,pekIdent,TypeName);
     NextToken;
     LengthAsText:='';
     if CurToken=tkSquaredBraceOpen then
@@ -1170,113 +1174,105 @@ Type
   TSimpleTypeKind = (stkAlias,stkString,stkRange,stkSpecialize);
 
 Var
-  Ref: TPasElement;
+  Ref: TPasType;
   K : TSimpleTypeKind;
   Name : String;
-  SS : Boolean;
-  CT : TPasClassType;
+  ST : TPasSpecializeType;
+  Expr: TPasExpr;
 
 begin
+  Result:=nil;
   Name := CurTokenString;
-  NextToken;
-  while CurToken=tkDot do
-    begin
-    ExpectIdentifier;
-    Name := Name+'.'+CurTokenString;
+  Expr:=nil;
+  Ref:=nil;
+  ST:=nil;
+  try
+    if IsFull then
+      Expr:=CreatePrimitiveExpr(Parent,pekIdent,Name);
     NextToken;
-    end;
-  // Current token is first token after identifier.
-  if IsFull then
-    begin
-    if (CurToken=tkSemicolon) or isCurTokenHint then // Type A = B;
-      K:=stkAlias
-    else if (CurToken=tkSquaredBraceOpen) then
+    while CurToken=tkDot do
+      begin
+      ExpectIdentifier;
+      Name := Name+'.'+CurTokenString;
+      if IsFull then
+        AddToBinaryExprChain(Expr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenString),eopSubIdent);
+      NextToken;
+      end;
+
+    // Current token is first token after identifier.
+    if IsFull and (CurToken=tkSemicolon) or isCurTokenHint then // Type A = B;
+      begin
+      K:=stkAlias;
+      UnGetToken; // ToDo: dotted identifier
+      end
+    else if IsFull and (CurToken=tkSquaredBraceOpen) then
       begin
       if LowerCase(Name)='string' then // Type A = String[12]; shortstring
         K:=stkString
       else
         ParseExcSyntaxError;
+      UnGetToken; // ToDo: dotted identifier
       end
-    else if (CurToken in [tkBraceOpen,tkDotDot]) then // Type A = B..C;
-      K:=stkRange
     else if (CurToken = tkLessThan) then // A = B<t>;
-      K:=stkSpecialize
+      begin
+      K:=stkSpecialize;
+      end
+    else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
+      begin
+      K:=stkRange;
+      UnGetToken; // ToDo: dotted identifier
+      end
     else
-      ParseExcTokenError(';');
-    UnGetToken;
-    end
-  else  if (CurToken = tkLessThan) then // A = B<t>;
-    begin
-    K:=stkSpecialize;
-    UnGetToken;
-    end
-  else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
-    begin
-    K:=stkRange;
-    UnGetToken;
-    end
-  else
-    begin
-    UnGetToken;
-    K:=stkAlias;
-    if (not (po_resolvestandardtypes in Options)) and (LowerCase(Name)='string') then
-      K:=stkString;
-    end;
-  Case K of
-    stkString:
       begin
-      Result:=ParseStringType(Parent,NamePos,TypeName);
+      if IsFull then
+        ParseExcTokenError(';');
+      K:=stkAlias;
+      if (not (po_resolvestandardtypes in Options)) and (LowerCase(Name)='string') then
+        K:=stkString;
+      UnGetToken; // ToDo: dotted identifier
       end;
-    stkSpecialize:
-      begin
-      CT := TPasClassType(CreateElement(TPasClassType, TypeName, Parent, Scanner.CurSourcePos));
-      try
-        CT.ObjKind := okSpecialize;
-        CT.AncestorType := TPasUnresolvedTypeRef.Create(Name,Parent);
-        CT.IsShortDefinition:=True;
-        ReadGenericArguments(CT.GenericTemplateTypes,CT);
-        Result:=CT;
-        CT:=Nil;
-      Finally
-        FreeAndNil(CT);
-      end;
-      end;
-    stkRange:
-      begin
-      UnGetToken;
-      Result:=ParseRangeType(Parent,NamePos,TypeName,False);
-      end;
-    stkAlias:
-      begin
-      Ref:=Nil;
-      SS:=(not (po_resolvestandardtypes in FOptions)) and isSimpleTypeToken(Name);
-      if not SS then
+
+    Case K of
+      stkString:
         begin
-        Ref:=Engine.FindElement(Name);
-        if Ref=nil then
-          begin
-          {$IFDEF VerbosePasResolver}
-          if po_resolvestandardtypes in FOptions then
-            begin
-            writeln('ERROR: TPasParser.ParseSimpleType resolver failed to raise an error');
-            ParseExcExpectedIdentifier;
-            end;
-          {$ENDIF}
-          end
-        else if not (Ref is TPasType) then
-          ParseExc(nParserExpectedTypeButGot,SParserExpectedTypeButGot,[Ref.ElementTypeName]);
+        FreeAndNil(Expr);
+        Result:=ParseStringType(Parent,NamePos,TypeName);
         end;
-      if (Ref=Nil) then
-        Ref:=TPasUnresolvedTypeRef(CreateElement(TPasUnresolvedTypeRef,Name,Parent))
-      else
-        Ref.AddRef;
-      if isFull then
+      stkSpecialize:
         begin
-        Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
-        TPasAliasType(Result).DestType:=Ref as TPasType;
-        end
-      else
-        Result:=Ref as TPasType
+        ST := TPasSpecializeType(CreateElement(TPasSpecializeType, TypeName, Parent, Scanner.CurSourcePos));
+        Ref:=ResolveTypeReference(Name,ST);
+        ReadSpecializeArguments(ST);
+        ST.Expr:=Expr;
+        ST.DestType:=Ref;
+        Result:=ST;
+        ST:=Nil;
+        end;
+      stkRange:
+        begin
+        FreeAndNil(Expr);
+        UnGetToken; // move to '='
+        Result:=ParseRangeType(Parent,NamePos,TypeName,False);
+        end;
+      stkAlias:
+        begin
+        Ref:=ResolveTypeReference(Name,Parent);
+        if isFull then
+          begin
+          Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
+          TPasAliasType(Result).DestType:=Ref;
+          TPasAliasType(Result).Expr:=Expr;
+          end
+        else
+          Result:=Ref;
+        end;
+    end;
+  finally
+    if Result=nil then
+      begin
+      Expr.Free;
+      ReleaseAndNil(TPasElement(Ref));
+      ST.Free;
       end;
   end;
 end;
@@ -1295,6 +1291,61 @@ begin
   finally
     if not ok then
       Result.Release;
+  end;
+end;
+
+function TPasParser.ParseTypeReference(Parent: TPasElement; NeedExpr: boolean;
+  out Expr: TPasExpr): TPasType;
+// returns either
+// a) TPasSpecializeType, Expr=nil
+// b) TPasUnresolvedTypeRef, Expr<>nil
+// c) TPasType, Expr<>nil
+var
+  Name: String;
+  IsSpecialize: Boolean;
+  ST: TPasSpecializeType;
+begin
+  Result:=nil;
+  Expr:=nil;
+  ST:=nil;
+  try
+    if not (msDelphi in CurrentModeswitches) and (CurToken=tkspecialize) then
+      begin
+      IsSpecialize:=true;
+      NextToken;
+      end
+    else
+      IsSpecialize:=false;
+    // read dotted identifier
+    CheckToken(tkIdentifier);
+    Name:=ReadDottedIdentifier(Parent,Expr,true);
+    // resolve type
+    Result:=ResolveTypeReference(Name,Parent);
+
+    if CurToken=tkLessThan then
+      begin
+      // specialize
+      ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',Parent));
+      ST.DestType:=Result;
+      Result:=nil;
+      ST.Expr:=Expr;
+      Expr:=nil;
+      // read nested specialize arguments
+      ReadSpecializeArguments(ST);
+      Result:=ST;
+      ST:=nil;
+      NextToken;
+      end
+    else if IsSpecialize then
+      CheckToken(tkLessThan)
+    else
+      begin
+      // simple type reference
+      if not NeedExpr then
+        ReleaseAndNil(TPasElement(Expr));
+      end;
+  finally
+    if ST<>nil then St.Release;
   end;
 end;
 
@@ -1647,6 +1698,38 @@ begin
     if i>0 then
       Result:=Result+',';
     Result:=Result+ExprToText(Expr[i]);
+    end;
+end;
+
+function TPasParser.ResolveTypeReference(Name: string; Parent: TPasElement): TPasType;
+var
+  SS: Boolean;
+  Ref: TPasElement;
+begin
+  Ref:=Nil;
+  SS:=(not (po_resolvestandardtypes in FOptions)) and isSimpleTypeToken(Name);
+  if not SS then
+    begin
+    Ref:=Engine.FindElement(Name);
+    if Ref=nil then
+      begin
+      {$IFDEF VerbosePasResolver}
+      if po_resolvestandardtypes in FOptions then
+        begin
+        writeln('ERROR: TPasParser.ParseSimpleType resolver failed to raise an error');
+        ParseExcExpectedIdentifier;
+        end;
+      {$ENDIF}
+      end
+    else if not (Ref is TPasType) then
+      ParseExc(nParserExpectedTypeButGot,SParserExpectedTypeButGot,[Ref.ElementTypeName]);
+    end;
+  if (Ref=Nil) then
+    Result:=TPasUnresolvedTypeRef(CreateElement(TPasUnresolvedTypeRef,Name,Parent))
+  else
+    begin
+    Ref.AddRef;
+    Result:=TPasType(Ref);
     end;
 end;
 
@@ -3158,6 +3241,101 @@ begin
   until CurToken = tkGreaterThan;
 end;
 
+procedure TPasParser.ReadSpecializeArguments(Spec: TPasSpecializeType);
+
+Var
+  Name : String;
+  Ref: TPasType;
+  IsNested: Boolean;
+  NestedSpec: TPasSpecializeType;
+  Expr: TPasExpr;
+
+begin
+  CheckToken(tkLessThan);
+  NextToken;
+  Expr:=nil;
+  Ref:=nil;
+  NestedSpec:=nil;
+  try
+    repeat
+      if not (msDelphi in CurrentModeswitches) and (CurToken=tkspecialize) then
+        begin
+        IsNested:=true;
+        NextToken;
+        end
+      else
+        IsNested:=false;
+      // read dotted identifier
+      CheckToken(tkIdentifier);
+      Expr:=nil;
+      Name:=ReadDottedIdentifier(Spec,Expr,true);
+
+      if CurToken=tkLessThan then
+        begin
+        // nested specialize
+        // resolve type
+        Ref:=ResolveTypeReference(Name,Spec);
+        // create nested specialize
+        NestedSpec:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',Spec));
+        NestedSpec.DestType:=Ref;
+        Ref:=nil;
+        NestedSpec.Expr:=Expr;
+        Expr:=nil;
+        // read nested specialize arguments
+        ReadSpecializeArguments(NestedSpec);
+        // add nested specialize
+        Spec.AddParam(NestedSpec);
+        NestedSpec:=nil;
+        NextToken;
+        end
+      else if IsNested then
+        CheckToken(tkLessThan)
+      else
+        begin
+        // simple type reference
+        Spec.AddParam(Expr);
+        Expr:=nil;
+        end;
+
+      if CurToken=tkComma then
+        begin
+        NextToken;
+        continue;
+        end
+      else if CurToken=tkGreaterThan then
+        break
+      else
+        ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
+          [TokenInfos[tkComma], TokenInfos[tkGreaterThan]]);
+    until false;
+  finally
+    Expr.Free;
+    if Ref<>nil then Ref.Release;
+    if NestedSpec<>nil then NestedSpec.Release;
+  end;
+end;
+
+function TPasParser.ReadDottedIdentifier(Parent: TPasElement; out
+  Expr: TPasExpr; NeedAsString: boolean): String;
+begin
+  Expr:=nil;
+  if NeedAsString then
+    Result := CurTokenString
+  else
+    Result:='';
+  CheckToken(tkIdentifier);
+  Expr:=CreatePrimitiveExpr(Parent,pekIdent,Result);
+  NextToken;
+  while CurToken=tkDot do
+    begin
+    ExpectIdentifier;
+    if NeedAsString then
+      Result := Result+'.'+CurTokenString;
+    AddToBinaryExprChain(Expr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenString),eopSubIdent);
+    NextToken;
+    end;
+end;
+
 // Starts after the type name
 function TPasParser.ParseRangeType(AParent: TPasElement;
   const NamePos: TPasSourcePos; const TypeName: String; Full: Boolean
@@ -3220,11 +3398,11 @@ begin
 end;
 
 function TPasParser.ParseSpecializeType(Parent: TPasElement;
-  const TypeName: String): TPasClassType;
+  const TypeName: String): TPasSpecializeType;
 
 begin
   NextToken;
-  Result:=ParseSimpleType(Parent,Scanner.CurSourcePos,TypeName) as TPasClassType;
+  Result:=ParseSimpleType(Parent,Scanner.CurSourcePos,TypeName) as TPasSpecializeType;
 end;
 
 function TPasParser.ParseProcedureType(Parent: TPasElement;
@@ -5438,14 +5616,11 @@ end;
 procedure TPasParser.DoParseClassType(AType: TPasClassType);
 
 var
-  Element : TPasElement;
   s: String;
-  CT : TPasClassType;
+  Expr: TPasExpr;
 
 begin
-  ct:=Nil;
-  // nettism/new delphi features
-  if (CurToken=tkIdentifier) and (Atype.ObjKind in [okClass,okGeneric]) then
+  if (CurToken=tkIdentifier) and (AType.ObjKind in [okClass,okGeneric]) then
     begin
     s := LowerCase(CurTokenString);
     if (s = 'sealed') or (s = 'abstract') then
@@ -5458,44 +5633,23 @@ begin
   AType.IsForward:=(CurToken=tkSemiColon);
   if (CurToken=tkBraceOpen) then
     begin
-    AType.AncestorType := ParseType(AType,Scanner.CurSourcePos);
+    // read ancestor and interfaces
     NextToken;
-    if curToken=tkLessthan then
-      CT := TPasClassType(CreateElement(TPasClassType, AType.AncestorType.Name, AType.Parent, Scanner.CurSourcePos));
-    UnGetToken ;
-    if Assigned(CT) then
-      try
-        CT.ObjKind := okSpecialize;
-        CT.AncestorType := TPasUnresolvedTypeRef.Create(AType.AncestorType.Name,AType.Parent);
-        CT.IsShortDefinition:=True;
-        ReadGenericArguments(CT.GenericTemplateTypes,CT);
-        AType.AncestorType.Release;
-        AType.AncestorType:=CT;
-        CT:=Nil;
-      Finally
-        FreeAndNil(CT);
-      end;
-    while True do
+    AType.AncestorType := ParseTypeReference(AType,false,Expr);
+    while CurToken=tkComma do
       begin
       NextToken;
-      if CurToken = tkBraceClose then
-        break  ;
-
-      UngetToken;
-      ExpectToken(tkComma);
-      Element:=ParseType(AType,Scanner.CurSourcePos,'',False); // search interface.
-      if assigned(element) then
-        AType.Interfaces.add(element);
+      AType.Interfaces.Add(ParseTypeReference(AType,false,Expr));
       end;
+    CheckToken(tkBraceClose);
     NextToken;
     AType.IsShortDefinition:=(CurToken=tkSemicolon);
     end;
   if (AType.ObjKind in [okClassHelper,okRecordHelper]) then
     begin
-    if (CurToken<>tkFor) then
-      ParseExcTokenError(TokenInfos[tkFor]);
-    AType.HelperForType:=ParseType(AType,Scanner.CurSourcePos);
+    CheckToken(tkfor);
     NextToken;
+    AType.HelperForType:=ParseTypeReference(AType,false,Expr);
     end;
   Engine.FinishScope(stAncestors,AType);
   if (AType.IsShortDefinition or AType.IsForward) then
