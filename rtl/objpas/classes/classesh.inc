@@ -2026,9 +2026,12 @@ type
   private
     FDPos: TPoint;
     FDSize: TPoint;
+    FDPPI: Integer;
     FOnCreate: TNotifyEvent;
     FOnDestroy: TNotifyEvent;
     FOldOrder : Boolean;
+    Procedure ReadP(Reader: TReader);
+    Procedure WriteP(Writer: TWriter);
     Procedure ReadT(Reader: TReader);
     Procedure WriteT(Writer: TWriter);
     Procedure ReadL(Reader: TReader);
@@ -2053,6 +2056,7 @@ type
     Procedure BeforeDestruction; override;
     property DesignOffset: TPoint read FDPos write FDPos;
     property DesignSize: TPoint read FDSize write FDSize;
+    property DesignPPI: Integer read FDPPI write FDPPI;
   published
     property OnCreate: TNotifyEvent read FOnCreate write FOnCreate;
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
