@@ -1433,7 +1433,12 @@ end;
 
 function StrToDateTimeDef(const S: ShortString; const Defvalue : TDateTime): TDateTime;
 begin
-  if not TryStrToDateTime(s,Result) Then
+  Result:=StrToDateTimeDef(S,DefValue,DefaultFormatSettings);
+end;
+
+function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime; const FormatSettings: TFormatSettings): TDateTime;
+begin
+  if not TryStrToDateTime(s,Result,FormatSettings) Then
     result:=defvalue;
 end;
 
