@@ -215,6 +215,15 @@ type
 
   TPasParser = class
   private
+    const FTokenRingSize = 32;
+    type
+      TTokenRec = record
+        Token: TToken;
+        AsString: String;
+        Comments: TStrings;
+      end;
+      PTokenRec = ^TTokenRec;
+  private
     FCurModule: TPasModule;
     FFileResolver: TBaseFileResolver;
     FImplicitUses: TStrings;
@@ -233,11 +242,10 @@ type
     FCurComments : TStrings;
     FSavedComments : String;
     // UngetToken support:
-    FTokenBuffer: array[0..1] of TToken;
-    FTokenStringBuffer: array[0..1] of String;
-    FCommentsBuffer: array[0..1] of TStrings;
-    FTokenBufferIndex: Integer; // current index in FTokenBuffer
-    FTokenBufferSize: Integer; // maximum valid index in FTokenBuffer
+    FTokenRing: array[0..FTokenRingSize-1] of TTokenRec;
+    FTokenRingCur: Integer; // index of current token in FTokenBuffer
+    FTokenRingStart: Integer; // first valid ring index in FTokenBuffer, if FTokenRingStart=FTokenRingEnd the ring is empty
+    FTokenRingEnd: Integer; // first invalid ring index in FTokenBuffer
     FDumpIndent : String;
     function CheckOverloadList(AList: TFPList; AName: String; out OldMember: TPasElement): TPasOverloadedProc;
     function DoCheckHint(Element: TPasElement): Boolean;
@@ -802,9 +810,8 @@ begin
   inherited Create;
   FScanner := AScanner;
   FFileResolver := AFileResolver;
+  FTokenRingCur:=High(FTokenRing);
   FEngine := AEngine;
-  FCommentsBuffer[0]:=TStringList.Create;
-  FCommentsBuffer[1]:=TStringList.Create;
   if Assigned(FEngine) then
     begin
     FEngine.CurrentParser:=Self;
@@ -816,6 +823,8 @@ begin
 end;
 
 destructor TPasParser.Destroy;
+var
+  i: Integer;
 begin
   if Assigned(FEngine) then
     begin
@@ -823,8 +832,8 @@ begin
     FEngine:=nil;
     end;
   FreeAndNil(FImplicitUses);
-  FreeAndNil(FCommentsBuffer[0]);
-  FreeAndNil(FCommentsBuffer[1]);
+  for i:=low(FTokenRing) to high(FTokenRing) do
+    FreeAndNil(FTokenRing[i].Comments);
   inherited Destroy;
 end;
 
@@ -859,37 +868,35 @@ end;
 procedure TPasParser.NextToken;
 
 Var
-  T : TStrings;
+  P: PTokenRec;
 begin
-  if FTokenBufferIndex < FTokenBufferSize then
-  begin
+  FTokenRingCur:=(FTokenRingCur+1) mod FTokenRingSize;
+  P:=@FTokenRing[FTokenRingCur];
+  if FTokenRingCur <> FTokenRingEnd then
+    begin
     // Get token from buffer
-    FCurToken := FTokenBuffer[FTokenBufferIndex];
-    FCurTokenString := FTokenStringBuffer[FTokenBufferIndex];
-    FCurComments:=FCommentsBuffer[FTokenBufferIndex];
-    Inc(FTokenBufferIndex);
-    //writeln('TPasParser.NextToken From Buf ',CurTokenText,' id=',FTokenBufferIndex);
-  end else
-  begin
-    { We have to fetch a new token. But first check, wether there is space left
-      in the token buffer.}
-    if FTokenBufferSize = 2 then
-      begin
-      FTokenBuffer[0] := FTokenBuffer[1];
-      FTokenStringBuffer[0] := FTokenStringBuffer[1];
-      T:=FCommentsBuffer[0];
-      FCommentsBuffer[0]:=FCommentsBuffer[1];
-      FCommentsBuffer[1]:=T;
-      Dec(FTokenBufferSize);
-      Dec(FTokenBufferIndex);
-      end;
+    //writeln('TPasParser.NextToken REUSE Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
+    FCurToken := P^.Token;
+    FCurTokenString := P^.AsString;
+    FCurComments := P^.Comments;
+    end
+  else
+    begin
     // Fetch new token
+    //writeln('TPasParser.NextToken FETCH Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
+    FTokenRingEnd:=(FTokenRingEnd+1) mod FTokenRingSize;
+    if FTokenRingStart=FTokenRingEnd then
+      FTokenRingStart:=(FTokenRingStart+1) mod FTokenRingSize;
     try
-      FCommentsBuffer[FTokenBufferSize].Clear;
+      if p^.Comments=nil then
+        p^.Comments:=TStringList.Create
+      else
+        p^.Comments.Clear;
+      FCurComments:=p^.Comments;
       repeat
         FCurToken := Scanner.FetchToken;
         if FCurToken=tkComment then
-          FCommentsBuffer[FTokenBufferSize].Add(Scanner.CurTokenString);
+          FCurComments.Add(Scanner.CurTokenString);
       until not (FCurToken in WhitespaceTokensToIgnore);
     except
       on e: EScannerError do
@@ -908,31 +915,37 @@ begin
           end;
         end;
     end;
+    p^.Token:=FCurToken;
     FCurTokenString := Scanner.CurTokenString;
-    FTokenBuffer[FTokenBufferSize] := FCurToken;
-    FTokenStringBuffer[FTokenBufferSize] := FCurTokenString;
-    FCurComments:=FCommentsBuffer[FTokenBufferSize];
-    Inc(FTokenBufferSize);
-    Inc(FTokenBufferIndex);
-  //  writeln('TPasParser.NextToken New ',CurTokenText,' id=',FTokenBufferIndex,' comments = ',FCurComments.text);
-  end;
+    p^.AsString:=FCurTokenString;
+    end;
+  //writeln('TPasParser.NextToken END Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
 end;
 
 procedure TPasParser.ChangeToken(tk: TToken);
+var
+  Cur, Last: PTokenRec;
+  IsLast: Boolean;
 begin
-  //writeln('TPasParser.ChangeToken FTokenBufferSize=',FTokenBufferSize,' FTokenBufferIndex=',FTokenBufferIndex);
-  if (CurToken=tkshr) and (tk=tkGreaterThan) and (FTokenBufferSize=2)
-      and (FTokenBufferIndex=2) then
+  //writeln('TPasParser.ChangeToken FTokenBufferSize=',FTokenRingStart,' FTokenBufferIndex=',FTokenRingCur);
+  IsLast:=((FTokenRingCur+1) mod FTokenRingSize)=FTokenRingEnd;
+  if (CurToken=tkshr) and (tk=tkGreaterThan) and IsLast then
     begin
-    // change current token '>>' into two '>'
-    FTokenBuffer[0]:=tkGreaterThan;
-    FTokenStringBuffer[0]:='>';
-    FTokenBuffer[1]:=tkGreaterThan;
-    FTokenStringBuffer[1]:='>';
-    FCommentsBuffer[0].Clear;
+    // change last token '>>' into two '>'
+    Cur:=@FTokenRing[FTokenRingCur];
+    Cur^.Token:=tkGreaterThan;
+    Cur^.AsString:='>';
+    Last:=@FTokenRing[FTokenRingEnd];
+    Last^.Token:=tkGreaterThan;
+    Last^.AsString:='>';
+    if Last^.Comments<>nil then
+      Last^.Comments.Clear;
+    FTokenRingEnd:=(FTokenRingEnd+1) mod FTokenRingSize;
+    if FTokenRingStart=FTokenRingEnd then
+      FTokenRingStart:=(FTokenRingStart+1) mod FTokenRingSize;
     FCurToken:=tkGreaterThan;
     FCurTokenString:='>';
-    FTokenBufferIndex:=1;
+    FCurComments := Cur^.Comments;
     end
   else
     CheckToken(tk);
@@ -940,23 +953,21 @@ end;
 
 procedure TPasParser.UngetToken;
 
+var
+  P: PTokenRec;
 begin
-  if FTokenBufferIndex = 0 then
-    ParseExc(nParserUngetTokenError,SParserUngetTokenError)
-  else begin
-    Dec(FTokenBufferIndex);
-    if FTokenBufferIndex>0 then
-    begin
-      FCurToken := FTokenBuffer[FTokenBufferIndex-1];
-      FCurTokenString := FTokenStringBuffer[FTokenBufferIndex-1];
-      FCurComments:=FCommentsBuffer[FTokenBufferIndex-1];
-    end else begin
-      FCurToken := tkWhitespace;
-      FCurTokenString := '';
-      FCurComments.Clear;
-    end;
-    //writeln('TPasParser.UngetToken ',CurTokenText,' id=',FTokenBufferIndex);
-  end;
+  //writeln('TPasParser.UngetToken START Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
+  if FTokenRingStart = FTokenRingEnd then
+    ParseExc(nParserUngetTokenError,SParserUngetTokenError);
+  if FTokenRingCur>0 then
+    dec(FTokenRingCur)
+  else
+    FTokenRingCur:=High(FTokenRing);
+  P:=@FTokenRing[FTokenRingCur];
+  FCurToken := P^.Token;
+  FCurTokenString := P^.AsString;
+  FCurComments := P^.Comments;
+  //writeln('TPasParser.UngetToken END Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
 end;
 
 procedure TPasParser.CheckToken(tk: TToken);
@@ -1899,16 +1910,18 @@ var
   Last,func, Expr: TPasExpr;
   prm     : TParamsExpr;
   b       : TBinaryExpr;
-  ok: Boolean;
+  ok, CanSpecialize: Boolean;
 
 begin
   Result:=nil;
+  CanSpecialize:=false;
   case CurToken of
     tkString:           Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
     tkChar:             Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenText);
     tkNumber:           Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin
+      CanSpecialize:=true;
       if CompareText(CurTokenText,'self')=0 then
         begin
         Last:=CreateSelfExpr(AParent);
@@ -1939,6 +1952,7 @@ begin
       end;
     tkself:
       begin
+      CanSpecialize:=true;
       Last:=CreateSelfExpr(AParent);
       HandleSelf(Last);
       end;
@@ -1982,7 +1996,7 @@ begin
         tkDot:
           begin
           NextToken;
-          if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are also identifiers
+          if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are sub identifiers as well
             begin
             expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
             AddToBinaryExprChain(Result,expr,eopSubIdent);
@@ -2003,17 +2017,22 @@ begin
             prm:=ParseParams(AParent,pekArrayParams);
           if not Assigned(prm) then Exit;
           AddParamsToBinaryExprChain(Result,prm);
+          CanSpecialize:=false;
           end;
         tkCaret:
           begin
           Result:=CreateUnaryExpr(AParent,Result,TokenToExprOp(CurToken));
           NextToken;
+          CanSpecialize:=false;
           end;
-        {tkLessThan:
-          begin
-          // could be an inline specialization (e.g. A<T>)
-            scanner.SetForceCaret();
-          end}
+        tkLessThan:
+          if not CanSpecialize then
+            break
+          else
+            begin
+            // could be an inline specialization (e.g. A<T>)
+            break;
+            end;
         else
           break;
         end;
@@ -2469,7 +2488,7 @@ begin
     tkLibrary:
       ParseLibrary(Module);
   else
-    ungettoken;
+    UngetToken;
     ParseProgram(Module,True);
   //    ParseExcTokenError('unit');
   end;
@@ -4515,6 +4534,7 @@ procedure TPasParser.ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
 
 Var
   LastToken : TToken;
+  p: PTokenRec;
 
   Function atEndofAsm : Boolean;
 
@@ -4525,9 +4545,11 @@ Var
 begin
   if po_asmwhole in Options then
     begin
-    FTokenBufferIndex:=1;
-    FTokenBufferSize:=1;
-    FCommentsBuffer[0].Clear;
+    FTokenRingCur:=0;
+    FTokenRingStart:=0;
+    FTokenRingEnd:=0;
+    p:=@FTokenRing[0];
+    p^.Comments.Clear;
     repeat
       Scanner.ReadNonPascalTillEndToken(true);
       case Scanner.CurToken of
@@ -4535,21 +4557,22 @@ begin
         AsmBlock.Tokens.Add(Scanner.CurTokenString);
       tkend:
         begin
-        FTokenBuffer[0] := tkend;
-        FTokenStringBuffer[0] := Scanner.CurTokenString;
+        p^.Token := tkend;
+        p^.AsString := Scanner.CurTokenString;
         break;
         end
       else
         begin
         // missing end
-        FTokenBuffer[0] := tkEOF;
-        FTokenStringBuffer[0] := '';
+        p^.Token := tkEOF;
+        p^.AsString := '';
+        break;
         end;
       end;
     until false;
-    FCurToken := FTokenBuffer[0];
-    FCurTokenString := FTokenStringBuffer[0];
-    FCurComments:=FCommentsBuffer[0];
+    FCurToken := p^.Token;
+    FCurTokenString := p^.AsString;
+    FCurComments := p^.Comments;
     CheckToken(tkend);
     end
   else
