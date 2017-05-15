@@ -1899,23 +1899,22 @@ var
   Last,func, Expr: TPasExpr;
   prm     : TParamsExpr;
   b       : TBinaryExpr;
-  optk    : TToken;
   ok: Boolean;
 
 begin
   Result:=nil;
   case CurToken of
     tkString:           Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenString);
-    tkChar:             Last:=CreatePrimitiveExpr(AParent,pekString, CurTokenText);
-    tkNumber:           Last:=CreatePrimitiveExpr(AParent,pekNumber, CurTokenString);
+    tkChar:             Last:=CreatePrimitiveExpr(AParent,pekString,CurTokenText);
+    tkNumber:           Last:=CreatePrimitiveExpr(AParent,pekNumber,CurTokenString);
     tkIdentifier:
       begin
       if CompareText(CurTokenText,'self')=0 then
         begin
         Last:=CreateSelfExpr(AParent);
-        HandleSelf(Last)
+        HandleSelf(Last);
         end
-      Else
+      else
         Last:=CreatePrimitiveExpr(AParent,pekIdent, CurTokenText)
       end;
     tkfalse, tktrue:    Last:=CreateBoolConstExpr(Aparent,pekBoolConst, CurToken=tktrue);
@@ -1978,59 +1977,49 @@ begin
   try
     if Last.Kind in [pekIdent,pekSelf,pekNil] then
       begin
-      while CurToken in [tkDot] do
-        begin
-        NextToken;
-        if CurToken in [tkIdentifier,tktrue,tkfalse] then // true and false are also identifiers
-          begin
-          expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
-          AddToBinaryExprChain(Result,expr,eopSubIdent);
-          func:=expr;
-          NextToken;
-          end
-        else
-          begin
-          UngetToken;
-          ParseExcExpectedIdentifier;
-          end;
-        end;
-       repeat
+      repeat
         case CurToken of
-          tkBraceOpen,tkSquaredBraceOpen:
+        tkDot:
+          begin
+          NextToken;
+          if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are also identifiers
             begin
-            if CurToken=tkBraceOpen then
-              prm:=ParseParams(AParent,pekFuncParams,isWriteOrStr(func))
-            else
-              prm:=ParseParams(AParent,pekArrayParams);
-            if not Assigned(prm) then Exit;
-            AddParamsToBinaryExprChain(Result,prm);
-            end;
-          tkCaret:
-            begin
-            Result:=CreateUnaryExpr(AParent,Result,TokenToExprOp(CurToken));
+            expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
+            AddToBinaryExprChain(Result,expr,eopSubIdent);
+            func:=expr;
             NextToken;
-            end;
+            end
           else
-            break;
+            begin
+            UngetToken;
+            ParseExcExpectedIdentifier;
+            end;
           end;
+        tkBraceOpen,tkSquaredBraceOpen:
+          begin
+          if CurToken=tkBraceOpen then
+            prm:=ParseParams(AParent,pekFuncParams,isWriteOrStr(func))
+          else
+            prm:=ParseParams(AParent,pekArrayParams);
+          if not Assigned(prm) then Exit;
+          AddParamsToBinaryExprChain(Result,prm);
+          end;
+        tkCaret:
+          begin
+          Result:=CreateUnaryExpr(AParent,Result,TokenToExprOp(CurToken));
+          NextToken;
+          end;
+        {tkLessThan:
+          begin
+          // could be an inline specialization (e.g. A<T>)
+            scanner.SetForceCaret();
+          end}
+        else
+          break;
+        end;
       until false;
       // Needed for TSDOBaseDataObjectClass(Self.ClassType).Create
-      if CurToken in [tkDot,tkas] then
-        begin
-        optk:=CurToken;
-        NextToken;
-        Expr:=ParseExpIdent(AParent);
-        if Expr=nil then
-          ParseExcExpectedIdentifier;
-        if optk=tkDot then
-          AddToBinaryExprChain(Result,Expr,TokenToExprOp(optk))
-        else
-          begin
-          // a as b
-          Result:=CreateBinaryExpr(AParent,Result,Expr,TokenToExprOp(tkas));
-          end;
       end;
-    end;
     ok:=true;
   finally
     if not ok then

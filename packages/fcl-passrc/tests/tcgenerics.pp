@@ -20,8 +20,9 @@ Type
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
     Procedure TestMethodImplementation;
-    Procedure TestInlineSpecializationInProcedure;
+    Procedure TestInlineSpecializationInArgument;
     Procedure TestSpecializeNested;
+    Procedure TestInlineSpecializeInStatement;
   end;
 
 implementation
@@ -103,7 +104,6 @@ begin
   AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
   AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
   AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
-
 end;
 
 procedure TTestGenerics.TestMethodImplementation;
@@ -125,7 +125,7 @@ begin
   ParseModule;
 end;
 
-procedure TTestGenerics.TestInlineSpecializationInProcedure;
+procedure TTestGenerics.TestInlineSpecializationInArgument;
 begin
   With source do
     begin
@@ -148,6 +148,15 @@ begin
     '  generic TSomeClass<A,B> = class(specialize TOther<A,specialize TAnother<B>>) end;',
     '']);
   ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestInlineSpecializeInStatement;
+begin
+  Add([
+  'begin',
+  '  vec:=TVector<double>.create;',
+  '']);
+  ParseModule;
 end;
 
 initialization
