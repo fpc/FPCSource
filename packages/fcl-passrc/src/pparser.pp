@@ -330,6 +330,7 @@ type
     Function CurComments : TStrings;
     Function SavedComments : String;
     procedure NextToken; // read next non whitespace, non space
+    procedure ChangeToken(tk: TToken);
     procedure UngetToken;
     procedure CheckToken(tk: TToken);
     procedure CheckTokens(tk: TTokens);
@@ -915,6 +916,26 @@ begin
     Inc(FTokenBufferIndex);
   //  writeln('TPasParser.NextToken New ',CurTokenText,' id=',FTokenBufferIndex,' comments = ',FCurComments.text);
   end;
+end;
+
+procedure TPasParser.ChangeToken(tk: TToken);
+begin
+  //writeln('TPasParser.ChangeToken FTokenBufferSize=',FTokenBufferSize,' FTokenBufferIndex=',FTokenBufferIndex);
+  if (CurToken=tkshr) and (tk=tkGreaterThan) and (FTokenBufferSize=2)
+      and (FTokenBufferIndex=2) then
+    begin
+    // change current token '>>' into two '>'
+    FTokenBuffer[0]:=tkGreaterThan;
+    FTokenStringBuffer[0]:='<';
+    FTokenBuffer[1]:=tkGreaterThan;
+    FTokenStringBuffer[1]:='<';
+    FCommentsBuffer[0].Clear;
+    FCurToken:=tkGreaterThan;
+    FCurTokenString:='<';
+    FTokenBufferIndex:=1;
+    end
+  else
+    CheckToken(tk);
 end;
 
 procedure TPasParser.UngetToken;
@@ -3301,6 +3322,11 @@ begin
         begin
         NextToken;
         continue;
+        end
+      else if CurToken=tkshr then
+        begin
+        ChangeToken(tkGreaterThan);
+        break;
         end
       else if CurToken=tkGreaterThan then
         break
