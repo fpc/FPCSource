@@ -926,12 +926,12 @@ begin
     begin
     // change current token '>>' into two '>'
     FTokenBuffer[0]:=tkGreaterThan;
-    FTokenStringBuffer[0]:='<';
+    FTokenStringBuffer[0]:='>';
     FTokenBuffer[1]:=tkGreaterThan;
-    FTokenStringBuffer[1]:='<';
+    FTokenStringBuffer[1]:='>';
     FCommentsBuffer[0].Clear;
     FCurToken:=tkGreaterThan;
-    FCurTokenString:='<';
+    FCurTokenString:='>';
     FTokenBufferIndex:=1;
     end
   else
