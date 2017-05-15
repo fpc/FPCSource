@@ -481,6 +481,7 @@ type
       const Arg: Pointer); override;
   public
     DestType: TPasType;
+    Expr: TPasExpr;
   end;
 
   { TPasTypeAliasType }
@@ -2227,8 +2228,8 @@ end;
 
 destructor TPasAliasType.Destroy;
 begin
-  if Assigned(DestType) then
-    DestType.Release;
+  ReleaseAndNil(TPasElement(DestType));
+  ReleaseAndNil(TPasElement(Expr));
   inherited Destroy;
 end;
 

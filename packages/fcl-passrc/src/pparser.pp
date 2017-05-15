@@ -337,6 +337,8 @@ type
     Function CurTokenIsIdentifier(Const S : String) : Boolean;
     // Expression parsing
     function isEndOfExp(AllowEqual : Boolean = False; CheckHints : Boolean = True): Boolean;
+    function ExprToText(Expr: TPasExpr): String;
+    function ArrayExprToText(Expr: TPasExprArray): String;
     // Type declarations
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     function ParseTypeDecl(Parent: TPasElement): TPasType;
@@ -1123,8 +1125,10 @@ function TPasParser.ParseStringType(Parent: TPasElement;
   const NamePos: TPasSourcePos; const TypeName: String): TPasAliasType;
 
 Var
-  S : String;
+  LengthAsText : String;
   ok: Boolean;
+  Params: TParamsExpr;
+  LengthExpr: TPasExpr;
 
 begin
   Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
@@ -1132,21 +1136,25 @@ begin
   try
     If (Result.Name='') then
       Result.Name:='string';
+    Result.Expr:=TPrimitiveExpr(CreateElement(TPrimitiveExpr,Result.Name,Result));
     NextToken;
+    LengthAsText:='';
     if CurToken=tkSquaredBraceOpen then
       begin
-      S:='';
+      Params:=TParamsExpr(CreateElement(TParamsExpr,'',Result));
+      Params.Value:=Result.Expr;
+      Result.Expr:=Params;
+      LengthAsText:='';
       NextToken;
-      While Not (Curtoken in [tkSquaredBraceClose,tkEOF]) do
-        begin
-        S:=S+CurTokenString;
-        NextToken;
-        end;
+      LengthExpr:=DoParseExpression(Result,nil,false);
+      Params.AddParam(LengthExpr);
+      CheckToken(tkSquaredBraceClose);
+      LengthAsText:=ExprToText(LengthExpr);
       end
     else
       UngetToken;
     Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Parent));
-    TPasStringType(Result.DestType).LengthExpr:=S;
+    TPasStringType(Result.DestType).LengthExpr:=LengthAsText;
     ok:=true;
   finally
     if not ok then
@@ -1586,6 +1594,60 @@ begin
   Result:=(CurToken in EndExprToken) or (CheckHints and IsCurTokenHint);
   if Not (Result or AllowEqual) then
     Result:=(Curtoken=tkEqual);
+end;
+
+function TPasParser.ExprToText(Expr: TPasExpr): String;
+var
+  C: TClass;
+begin
+  C:=Expr.ClassType;
+  if C=TPrimitiveExpr then
+    Result:=TPrimitiveExpr(Expr).Value
+  else if C=TSelfExpr then
+    Result:='self'
+  else if C=TBoolConstExpr then
+    Result:=BoolToStr(TBoolConstExpr(Expr).Value,'true','false')
+  else if C=TNilExpr then
+    Result:='nil'
+  else if C=TInheritedExpr then
+    Result:='inherited'
+  else if C=TUnaryExpr then
+    Result:=OpcodeStrings[TUnaryExpr(Expr).OpCode]+ExprToText(TUnaryExpr(Expr).Operand)
+  else if C=TBinaryExpr then
+    begin
+    Result:=ExprToText(TBinaryExpr(Expr).left);
+    if OpcodeStrings[TBinaryExpr(Expr).OpCode]<>'' then
+      Result:=Result+OpcodeStrings[TBinaryExpr(Expr).OpCode]
+    else
+      Result:=Result+' ';
+    Result:=Result+ExprToText(TBinaryExpr(Expr).right)
+    end
+  else if C=TParamsExpr then
+    begin
+    case TParamsExpr(Expr).Kind of
+      pekArrayParams: Result:=ExprToText(TParamsExpr(Expr).Value)
+        +'['+ArrayExprToText(TParamsExpr(Expr).Params)+']';
+      pekFuncParams: Result:=ExprToText(TParamsExpr(Expr).Value)
+        +'('+ArrayExprToText(TParamsExpr(Expr).Params)+')';
+      pekSet: Result:='['+ArrayExprToText(TParamsExpr(Expr).Params)+']';
+      else ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[ExprKindNames[TParamsExpr(Expr).Kind]]);
+    end;
+    end
+  else
+    ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,['TPasParser.ExprToText: '+Expr.ClassName]);
+end;
+
+function TPasParser.ArrayExprToText(Expr: TPasExprArray): String;
+var
+  i: Integer;
+begin
+  Result:='';
+  for i:=0 to length(Expr)-1 do
+    begin
+    if i>0 then
+      Result:=Result+',';
+    Result:=Result+ExprToText(Expr[i]);
+    end;
 end;
 
 function TPasParser.ParseParams(AParent: TPasElement; paramskind: TPasExprKind;

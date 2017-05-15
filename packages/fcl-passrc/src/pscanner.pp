@@ -1951,7 +1951,7 @@ Var
 
 begin
   If isEOF then
-    exit;
+    exit('');
   LPos:=FPos+1;
   Repeat
     Inc(FPos);
@@ -3356,7 +3356,7 @@ begin
         ['letter',Param]);
     Value:=CondDirectiveBool[IfOpt(Param[1])];
     exit(true);
-    end   ;
+    end;
   // last check user hook
   if Assigned(OnEvalFunction) then
     begin
