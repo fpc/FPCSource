@@ -635,9 +635,11 @@ type
     Members: TFPList;     // array of TPasVariable elements
     VariantEl: TPasElement; // TPasVariable or TPasType
     Variants: TFPList;	// array of TPasVariant elements, may be nil!
+    GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
     Function IsPacked: Boolean;
     Function IsBitPacked : Boolean;
     Function IsAdvancedRecord : Boolean;
+    Procedure SetGenericTemplates(AList : TFPList);
   end;
 
   TPasGenericTemplateType = Class(TPasType);
@@ -2416,12 +2418,17 @@ constructor TPasRecordType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Members := TFPList.Create;
+  GenericTemplateTypes:=TFPList.Create;
 end;
 
 destructor TPasRecordType.Destroy;
 var
   i: Integer;
 begin
+  for i := 0 to GenericTemplateTypes.Count - 1 do
+    TPasElement(GenericTemplateTypes[i]).Release;
+  FreeAndNil(GenericTemplateTypes);
+
   for i := 0 to Members.Count - 1 do
     TPasVariable(Members[i]).Release;
   FreeAndNil(Members);
@@ -3547,6 +3554,8 @@ begin
   if Variants<>nil then
     for i:=0 to Variants.Count-1 do
       ForEachChildCall(aMethodCall,Arg,TPasElement(Variants[i]),false);
+  for i:=0 to GenericTemplateTypes.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
 end;
 
 function TPasRecordType.IsPacked: Boolean;
@@ -3572,6 +3581,17 @@ begin
     Result:=TPasElement(Members[i]).InheritsFrom(TPasProcedureBase) or
             TPasElement(Members[i]).InheritsFrom(TPasProperty);
     Inc(I);
+    end;
+end;
+
+procedure TPasRecordType.SetGenericTemplates(AList: TFPList);
+var
+  I: Integer;
+begin
+  For I:=0 to AList.Count-1 do
+    begin
+    TPasElement(AList[i]).Parent:=Self;
+    GenericTemplateTypes.Add(AList[i]);
     end;
 end;
 

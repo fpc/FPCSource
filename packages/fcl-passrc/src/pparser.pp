@@ -2775,6 +2775,7 @@ var
   NamePos: TPasSourcePos;
   ok: Boolean;
   Proc: TPasProcedure;
+  RecordEl: TPasRecordType;
 
 begin
   CurBlock := declNone;
@@ -2982,7 +2983,20 @@ begin
                  Declarations.Declarations.Add(ClassEl);
                  Declarations.Classes.Add(ClassEl);
                  CheckHint(classel,True);
+                 Engine.FinishScope(stTypeDef,ClassEl);
                  end;
+              tkRecord:
+                begin
+                RecordEl := TPasRecordType(CreateElement(TPasRecordType,
+                  TypeName, Declarations, NamePos));
+                RecordEl.SetGenericTemplates(List);
+                NextToken;
+                ParseRecordFieldList(RecordEl,tkend,true);
+                Declarations.Declarations.Add(RecordEl);
+                Declarations.Classes.Add(RecordEl);
+                CheckHint(RecordEl,True);
+                Engine.FinishScope(stTypeDef,RecordEl);
+                end;
               tkArray:
                  begin
                  if List.Count<>1 then
@@ -2990,9 +3004,10 @@ begin
                  ArrEl:=TPasArrayType(ParseArrayType(Declarations,NamePos,TypeName,pmNone));
                  CheckHint(ArrEl,True);
                  ArrEl.ElType.Release;
-                 ArrEl.elType:=TPasGenericTemplateType(List[0]);
+                 ArrEl.ElType:=TPasGenericTemplateType(List[0]);
                  Declarations.Declarations.Add(ArrEl);
                  Declarations.Types.Add(ArrEl);
+                 Engine.FinishScope(stTypeDef,ArrEl);
                  end;
             else
               ParseExc(nParserGenericClassOrArray,SParserGenericClassOrArray);
