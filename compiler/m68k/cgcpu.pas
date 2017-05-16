@@ -1652,10 +1652,11 @@ unit cgcpu;
     procedure tcg68k.g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);
        var
          ai : taicpu;
-         hreg : tregister;
-         instr : taicpu;
          htrue: tasmlabel;
        begin
+          if isaddressregister(reg) then
+            internalerror(2017051701);
+
           if (f in FloatResFlags) then
             begin
               //list.concat(tai_comment.create(strpnew('flags2reg: float resflags')));
@@ -1667,26 +1668,21 @@ unit cgcpu;
               exit;
             end;
 
-          { move to a Dx register? }
-          if (isaddressregister(reg)) then
-            hreg:=getintregister(list,OS_INT)
-          else
-            hreg:=reg;
-
-          ai:=Taicpu.Op_reg(A_Sxx,S_B,hreg);
+          ai:=Taicpu.Op_reg(A_Sxx,S_B,reg);
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
 
           { Scc stores a complete byte of 1s, but the compiler expects only one
             bit set, so ensure this is the case }
-          list.concat(taicpu.op_const_reg(A_AND,S_L,1,hreg));
-
-          if hreg<>reg then
+          if not (current_settings.cputype in cpu_coldfire) then
             begin
-              instr:=taicpu.op_reg_reg(A_MOVE,S_L,hreg,reg);
-              add_move_instruction(instr);
-              list.concat(instr);
-            end;
+              if size in [OS_S8,OS_8] then
+                list.concat(taicpu.op_reg(A_NEG,S_B,reg))
+              else
+                list.concat(taicpu.op_const_reg(A_AND,TCgSize2OpSize[size],1,reg));
+            end
+          else
+            list.concat(taicpu.op_const_reg(A_AND,S_L,1,reg));
        end;
 
 
