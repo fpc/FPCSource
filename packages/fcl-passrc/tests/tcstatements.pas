@@ -120,6 +120,7 @@ Type
     procedure FinalizationNoSemicolon;
     procedure MacroComment;
     Procedure PLatformIdentifier;
+    Procedure PLatformIdentifier2;
     Procedure Onidentifier;
   end;
 
@@ -1735,6 +1736,12 @@ end;
 procedure TTestStatementParser.PLatformIdentifier;
 begin
   AddStatements(['write(platform);']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.PLatformIdentifier2;
+begin
+  AddStatements(['write(libs+platform);']);
   ParseModule;
 end;
 

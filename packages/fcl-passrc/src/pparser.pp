@@ -2317,7 +2317,7 @@ begin
         NextToken;
         end;
        //Writeln('Bin ',NotBinary ,' or EOE ',isEndOfExp, ' Ex ',Assigned(x),' stack ',ExpStack.Count);
-    until NotBinary or isEndOfExp(AllowEqual);
+    until NotBinary or isEndOfExp(AllowEqual, NotBinary);
 
     if not NotBinary then ParseExcExpectedIdentifier;
 
