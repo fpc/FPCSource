@@ -60,7 +60,7 @@ const
   TAG_MORE   = 2;
   TAG_SKIP   = 3;
 
-  TAG_USER   = 1 Shl 31;
+  TAG_USER   = DWord(1 Shl 31);
 
   TAGFILTER_AND = 0;
   TAGFILTER_NOT = 1;

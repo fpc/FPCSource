@@ -77,7 +77,7 @@ type
  PPTagItem = ^PTagItem;
 
 const
-  TAG_USER = 1 shl 31;  // differentiates user tags from system tags
+  TAG_USER = DWord(1 shl 31);  // differentiates user tags from system tags
 // END of part from utility move
 
 const
