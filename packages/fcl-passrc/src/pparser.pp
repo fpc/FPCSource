@@ -1659,6 +1659,10 @@ begin
       else
         ParseExc(nParserArrayTypeSyntaxError,SParserArrayTypeSyntaxError);
     end;
+    // TPasProcedureType parsing has eaten the semicolon;
+    // We know it was a local definition if the array def (result) is the parent
+    if (Result.ElType is TPasProcedureType) and (Result.ElType.Parent=Result) then
+      UnGetToken;
     ok:=true;
   finally
     if not ok then
