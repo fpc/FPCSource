@@ -348,7 +348,7 @@ Type
 
   TJSVariableStatement = Class(TJSUnary);
 
-  { TJSExpressionStatement - ? }
+  { TJSExpressionStatement - A; }
 
   TJSExpressionStatement = Class(TJSUnary);
 
