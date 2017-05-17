@@ -366,7 +366,11 @@ type
     Procedure TestClass_NestedSelf;
     Procedure TestClass_NestedClassSelf;
     Procedure TestClass_NestedCallInherited;
-    Procedure TestClass_TObjectFree; // ToDO
+    Procedure TestClass_TObjectFree;
+    Procedure TestClass_TObjectFreeNewInstance;
+    Procedure TestClass_TObjectFreeLowerCase;
+    Procedure TestClass_TObjectFreeFunctionFail;
+    Procedure TestClass_TObjectFreePropertyFail;
 
     // class of
     Procedure TestClassOf_Create;
@@ -5787,13 +5791,13 @@ begin
   Add('function GetRec(vB: integer = 0): TRecord;');
   Add('begin');
   Add('end;');
-  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('procedure DoIt(vG: integer; const vH: integer);');
   Add('begin');
   Add('end;');
   Add('begin');
-  Add('  doit(getrec.i,getrec.i,getrec.i);');
-  Add('  doit(getrec().i,getrec().i,getrec().i);');
-  Add('  doit(getrec(1).i,getrec(2).i,getrec(3).i);');
+  Add('  doit(getrec.i,getrec.i);');
+  Add('  doit(getrec().i,getrec().i);');
+  Add('  doit(getrec(1).i,getrec(2).i);');
   ConvertProgram;
   CheckSource('TestRecordElementFromFuncResult_AsParams',
     LinesToStr([ // statements
@@ -5811,37 +5815,13 @@ begin
     '  var Result = new $mod.TRecord();',
     '  return Result;',
     '};',
-    'this.DoIt = function (vG,vH,vI) {',
+    'this.DoIt = function (vG,vH) {',
     '};'
     ]),
     LinesToStr([
-    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i,{',
-    '  p: $mod.GetRec(0),',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});',
-    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i,{',
-    '  p: $mod.GetRec(0),',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});',
-    '$mod.DoIt($mod.GetRec(1).i,$mod.GetRec(2).i,{',
-    '  p: $mod.GetRec(3),',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});',
+    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i);',
+    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i);',
+    '$mod.DoIt($mod.GetRec(1).i,$mod.GetRec(2).i);',
     '']));
 end;
 
@@ -8196,8 +8176,6 @@ end;
 
 procedure TTestModule.TestClass_TObjectFree;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   'type',
@@ -8214,24 +8192,30 @@ begin
   '  o.free;',
   '  o.free();',
   '  l.free;',
+  '  l.free();',
   '  o.obj.free;',
   '  o.obj.free();',
+  '  with o do obj.free;',
+  '  with o do obj.free();',
   '  result.Free;',
   '  result.Free();',
   'end;',
   'var o: tobject;',
+  '  a: array of tobject;',
   'begin',
   '  o.free;',
   '  o.obj.free;',
+  '  a[1+2].free;',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_NestedCallInherited',
+  CheckSource('TestClass_TObjectFree',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Obj = null;',
     '  };',
     '  this.$final = function () {',
+    '    this.Obj = undefined;',
     '  };',
     '  this.Free = function () {',
     '  };',
@@ -8239,12 +8223,140 @@ begin
     'this.DoIt = function (o) {',
     '  var Result = null;',
     '  var l = null;',
+    '  o = rtl.freeLoc(o);',
+    '  o = rtl.freeLoc(o);',
+    '  l = rtl.freeLoc(l);',
+    '  l = rtl.freeLoc(l);',
+    '  rtl.free(o, "Obj");',
+    '  rtl.free(o, "Obj");',
+    '  var $with1 = o;',
+    '  rtl.free($with1, "Obj");',
+    '  var $with2 = o;',
+    '  rtl.free($with2, "Obj");',
+    '  Result = rtl.freeLoc(Result);',
+    '  Result = rtl.freeLoc(Result);',
     '  return Result;',
     '};',
     'this.o = null;',
+    'this.a = [];',
     '']),
     LinesToStr([ // $mod.$main
+    'rtl.free($mod, "o");',
+    'rtl.free($mod.o, "Obj");',
+    'rtl.free($mod.a, 1 + 2);',
     '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFreeNewInstance;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '    procedure Free;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'procedure tobject.free; begin end;',
+  'begin',
+  '  with tobject.create do free;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_TObjectFreeNewInstance',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '  this.Free = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.TObject.$create("Create");',
+    '$with1=rtl.freeLoc($with1);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFreeLowerCase;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    destructor Destroy;',
+  '    procedure Free;',
+  '  end;',
+  'destructor TObject.Destroy; begin end;',
+  'procedure tobject.free; begin end;',
+  'var o: tobject;',
+  'begin',
+  '  o.free;',
+  '']);
+  Converter.UseLowerCase:=true;
+  ConvertProgram;
+  CheckSource('TestClass_TObjectFreeLowerCase',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "tobject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  rtl.tObjectDestroy = "destroy";',
+    '  this.destroy = function () {',
+    '  };',
+    '  this.free = function () {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'rtl.free($mod, "o");',
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFreeFunctionFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Free;',
+  '    function GetObj: tobject; virtual; abstract;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'var o: tobject;',
+  'begin',
+  '  o.getobj.free;',
+  '']);
+  SetExpectedPasResolverError(sFreeNeedsVar,nFreeNeedsVar);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_TObjectFreePropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Free;',
+  '    FObj: TObject;',
+  '    property Obj: tobject read FObj write FObj;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'var o: tobject;',
+  'begin',
+  '  o.obj.free;',
+  '']);
+  SetExpectedPasResolverError(sFreeNeedsVar,nFreeNeedsVar);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClassOf_Create;
