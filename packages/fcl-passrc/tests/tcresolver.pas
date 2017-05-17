@@ -7957,16 +7957,17 @@ end;
 procedure TTestResolver.TestFunctionReturningArray;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TArrA = array[1..20] of longint;');
-  Add('  TArrB = array of TArrA;');
-  Add('function FuncC: TArrB;');
-  Add('begin');
-  Add('  SetLength(Result,3);');
-  Add('end;');
-  Add('begin');
-  Add('  FuncC[2,4]:=6;');
-  Add('  FuncC()[1,3]:=5;');
+  Add([
+  'type',
+  '  TArrA = array[1..20] of longint;',
+  '  TArrB = array of TArrA;',
+  'function FuncC: TArrB;',
+  'begin',
+  '  SetLength(Result,3);',
+  'end;',
+  'begin',
+  '  FuncC[2,4]:=6;',
+  '  FuncC()[1,3]:=5;']);
   ParseProgram;
 end;
 

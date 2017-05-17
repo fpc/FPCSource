@@ -770,7 +770,7 @@ type
   TPasWithExprScopeFlag = (
     wesfNeedTmpVar,
     wesfOnlyTypeMembers,
-    wesfConstParent
+    wesfConstParent // not writable
     );
   TPasWithExprScopeFlags = set of TPasWithExprScopeFlag;
 
@@ -1451,7 +1451,7 @@ type
     function GetNameExprValue(El: TPasExpr): string; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
     function GetNextDottedExpr(El: TPasExpr): TPasExpr;
     function GetPathStart(El: TPasExpr): TPasExpr;
-    function GetLastExprIdentifier(El: TPasExpr): TPasExpr;
+    function GetNewInstanceExpr(El: TPasExpr): TPasExpr;
     function ParentNeedsExprResult(El: TPasExpr): boolean;
     function GetReference_NewInstanceClass(Ref: TResolvedReference): TPasClassType;
     function IsDynArray(TypeEl: TPasType): boolean;
@@ -2714,6 +2714,8 @@ begin
 end;
 
 function TPasResolver.GetPathStart(El: TPasExpr): TPasExpr;
+// get leftmost name element (e.g. TPrimitiveExpr or TSelfExpr)
+// nil if not found
 var
   C: TClass;
 begin
@@ -2729,6 +2731,34 @@ begin
       begin
       if TBinaryExpr(El).OpCode=eopSubIdent then
         El:=TBinaryExpr(El).left
+      else
+        exit;
+      end
+    else if C=TParamsExpr then
+      El:=TParamsExpr(El).Value
+    else
+      exit;
+    end;
+end;
+
+function TPasResolver.GetNewInstanceExpr(El: TPasExpr): TPasExpr;
+// if the expression is a constructor newinstance call,
+// return the element referring the constructor
+// else nil
+var
+  C: TClass;
+begin
+  Result:=nil;
+  while El<>nil do
+    begin
+    if (El.CustomData is TResolvedReference)
+        and (rrfNewInstance in TResolvedReference(El.CustomData).Flags) then
+      exit(El);
+    C:=El.ClassType;
+    if C=TBinaryExpr then
+      begin
+      if TBinaryExpr(El).OpCode=eopSubIdent then
+        El:=TBinaryExpr(El).right
       else
         exit;
       end
@@ -4818,14 +4848,14 @@ begin
     WithExprScope.Index:=i;
     WithExprScope.Expr:=Expr;
     WithExprScope.Scope:=ExprScope;
-    if ExprResolved.IdentEl is TPasType then
-      Include(WithExprScope.flags,wesfNeedTmpVar);
+    if not (ExprResolved.IdentEl is TPasType) then
+      Include(WithExprScope.Flags,wesfNeedTmpVar);
     if OnlyTypeMembers then
-      Include(WithExprScope.flags,wesfOnlyTypeMembers);
+      Include(WithExprScope.Flags,wesfOnlyTypeMembers);
     if (not (rrfWritable in ExprResolved.Flags))
         and (ExprResolved.BaseType=btContext)
         and (ExprResolved.TypeEl.ClassType=TPasRecordType) then
-      Include(WithExprScope.flags,wesfConstParent);
+      Include(WithExprScope.Flags,wesfConstParent);
     WithScope.ExpressionScopes.Add(WithExprScope);
     PushScope(WithExprScope);
     end;
@@ -6826,11 +6856,17 @@ begin
       end
     else if TypeEl.ClassType=TPasArrayType then
       begin
+      if not (rrfReadable in ResolvedEl.Flags) then
+        RaiseMsg(20170517001140,nIllegalQualifier,sIllegalQualifier,['['],Params);
       ArrayEl:=TPasArrayType(TypeEl);
       ArgNo:=0;
       repeat
         if length(ArrayEl.Ranges)=0 then
-          inc(ArgNo) // dynamic/open array has one dimension
+          begin
+          inc(ArgNo); // dynamic/open array has one dimension
+          if IsDynArray(ArrayEl) then
+            Include(ResolvedEl.Flags,rrfWritable); // dynamic array elements are writable
+          end
         else
           inc(ArgNo,length(ArrayEl.Ranges)); // static array has several dimensions
         if ArgNo>length(Params.Params) then
@@ -11756,9 +11792,12 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
           begin
           // parameter less proc -> implicit call
           if ResolvedEl.IdentEl is TPasFunction then
+            begin
             // function => return result
             ComputeElement(TPasFunction(ResolvedEl.IdentEl).FuncType.ResultEl,
-              ResolvedEl,Flags+[rcType],StartEl)
+              ResolvedEl,Flags+[rcType],StartEl);
+            Exclude(ResolvedEl.Flags,rrfWritable);
+            end
           else if (ResolvedEl.IdentEl.ClassType=TPasConstructor)
               and (rrfNewInstance in Ref.Flags) then
             begin
@@ -12224,18 +12263,6 @@ begin
       exit;
     El:=TPasExpr(Parent);
   until false;
-end;
-
-function TPasResolver.GetLastExprIdentifier(El: TPasExpr): TPasExpr;
-begin
-  Result:=El;
-  while Result<>nil do
-    begin
-    if Result is TParamsExpr then
-      Result:=TParamsExpr(Result).Value
-    else if Result is TBinaryExpr then
-      Result:=TBinaryExpr(Result).right;
-    end;
 end;
 
 function TPasResolver.ParentNeedsExprResult(El: TPasExpr): boolean;
