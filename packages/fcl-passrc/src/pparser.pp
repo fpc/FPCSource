@@ -529,7 +529,7 @@ function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
 
 begin
-  Result:=ParseSource(AENgine,FPCCommandLine, OSTarget, CPUTarget,[]);
+  Result:=ParseSource(AEngine,FPCCommandLine, OSTarget, CPUTarget,[]);
 end;
 
 function ParseSource(AEngine: TPasTreeContainer;
@@ -537,9 +537,9 @@ function ParseSource(AEngine: TPasTreeContainer;
 
 begin
   if UseStreams then
-    Result:=ParseSource(AENgine,FPCCommandLine, OSTarget, CPUTarget,[poUseStreams])
+    Result:=ParseSource(AEngine,FPCCommandLine, OSTarget, CPUTarget,[poUseStreams])
   else
-    Result:=ParseSource(AENgine,FPCCommandLine, OSTarget, CPUTarget,[]);
+    Result:=ParseSource(AEngine,FPCCommandLine, OSTarget, CPUTarget,[]);
 end;
 
 function ParseSource(AEngine: TPasTreeContainer;
@@ -3730,7 +3730,7 @@ begin
       // Writeln(VarEl.Name, AVisibility);
       VarEl.VarType := VarType;
       //VarType.Parent := VarEl; // this is wrong for references
-      if (i>=OldListCount) then
+      if (i>OldListCount) then
         VarType.AddRef;
       end;
 
