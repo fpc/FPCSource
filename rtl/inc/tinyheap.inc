@@ -163,10 +163,13 @@
                    end
                  else
                    begin
-              if ReturnNilIfGrowHeapFails then
-                Result := nil
-              else
-                 HandleError(203);
+                     if ReturnNilIfGrowHeapFails then
+                       begin
+                         Result := nil;
+                         exit;
+                       end
+                     else
+                       HandleError(203);
                    end;
               end;
             result := @PTinyHeapMemBlockSize(HeapPtr)[1];
