@@ -2094,6 +2094,7 @@ begin
     {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}writeln('TPasElement.Destroy ',Name,':',ClassName);{$ENDIF}
     raise Exception.Create('');
     end;
+  FParent:=nil;
   inherited Destroy;
 end;
 

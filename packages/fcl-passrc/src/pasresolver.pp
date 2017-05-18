@@ -3497,8 +3497,10 @@ begin
     EnumScope:=TPasEnumTypeScope(El.CustomData);
     if EnumScope.CanonicalSet<>Parent then
       begin
-      ReleaseAndNil(TPasElement(EnumScope.CanonicalSet));
+      if EnumScope.CanonicalSet<>nil then
+        EnumScope.CanonicalSet.Release;
       EnumScope.CanonicalSet:=TPasSetType(Parent);
+      Parent.AddRef;
       end;
     end;
 end;
