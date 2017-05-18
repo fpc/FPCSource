@@ -10143,12 +10143,28 @@ begin
         PasExpr:=TPasElement(El.Expressions[i]);
         Expr:=ConvertElement(PasExpr,AContext);
 
-        // create unique local var name
         WithExprScope:=WithScope.ExpressionScopes[i] as TPas2JSWithExprScope;
-        WithExprScope.WithVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnWith]);
-        // create local "var $with1 = expr;"
-        V:=CreateVarStatement(WithExprScope.WithVarName,Expr,PasExpr);
-        AddToStatementList(FirstSt,LastSt,V,PasExpr);
+        if (Expr is TJSPrimaryExpressionIdent)
+            and IsValidJSIdentifier(TJSPrimaryExpressionIdent(Expr).Name) then
+          begin
+          // expression is already a local variable
+          WithExprScope.WithVarName:=String(TJSPrimaryExpressionIdent(Expr).Name);
+          Expr.Free;
+          end
+        else if Expr is TJSPrimaryExpressionThis then
+          begin
+          // expression is 'this'
+          WithExprScope.WithVarName:='this';
+          Expr.Free;
+          end
+        else
+          begin
+          // create unique local var name
+          WithExprScope.WithVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnWith]);
+          // create local "var $with1 = expr;"
+          V:=CreateVarStatement(WithExprScope.WithVarName,Expr,PasExpr);
+          AddToStatementList(FirstSt,LastSt,V,PasExpr);
+          end;
         end;
       if Assigned(El.Body) then
         begin
