@@ -1940,14 +1940,9 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
+        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true));
         addstatement(newstatement,temp2);
 
-        { one dimensional }
-        addstatement(newstatement,cassignmentnode.create(
-            ctemprefnode.create(temp2),
-            cordconstnode.create
-               (paracount,s32inttype,true)));
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
             ccallparanode.create(caddrnode.create_internal
