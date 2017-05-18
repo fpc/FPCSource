@@ -137,6 +137,15 @@ Works:
 - dotted unitnames
 
 ToDo:
+- range checking:
+  - nil,
+  - true, false
+  - integer ranges
+  - boolean ranges
+  - enum ranges
+  - char ranges
+  - +, -, *, div, mod, /, shl, shr, or, and, xor, not,
+  - ord(), low(), high(), pred(), succ(), length()
 - @@
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
@@ -267,6 +276,7 @@ const
   nSymbolXIsDeprecated = 3062;
   nSymbolXIsDeprecatedY = 3063;
   nRangeCheckError = 3064;
+  nHighRangeLimitLTLowRangeLimit = 3065;
 
 // resourcestring patterns of messages
 resourcestring
@@ -334,6 +344,7 @@ resourcestring
   sSymbolXIsDeprecated = 'Symbol "%s" is deprecated';
   sSymbolXIsDeprecatedY = 'Symbol "%s" is deprecated: %s';
   sRangeCheckError = 'Range check error';
+  sHighRangeLimitLTLowRangeLimit = 'High range limit < low range limit';
 
 type
   TResolverBaseType = (
@@ -566,6 +577,7 @@ type
     property PasElement: TPasElement read FPasElement write SetPasElement; // can be nil!
   end;
 
+type
   { TResolveData - base class for data stored in TPasElement.CustomData }
 
   TResolveData = Class(TPasElementBase)
@@ -882,6 +894,8 @@ type
     );
   TResolvedReferenceFlags = set of TResolvedReferenceFlag;
 
+type
+
   { TResolvedRefContext }
 
   TResolvedRefContext = Class
@@ -929,6 +943,7 @@ type
     );
   TPasResolverResultFlags = set of TPasResolverResultFlag;
 
+type
   { TPasResolverResult }
 
   TPasResolverResult = record
@@ -941,6 +956,87 @@ type
   end;
   PPasResolvedElement = ^TPasResolverResult;
 
+  { TResEvalValue }
+
+  TREVKind = (
+    revkNone,
+    revkCustom,
+    revkNil,
+    revkBool,
+    revkInt,
+    revkUInt,
+    revkExtended,
+    revkString,
+    revkUnicodeString,
+    revkEnum,
+    revkSet
+    );
+  TResEvalSimpleValue = record
+    case TREVKind of
+    revkBool: (Bool: boolean);
+    revkInt: (Int: int64);
+    revkUInt: (UInt: qword);
+    revkExtended: (Ext: extended);
+  end;
+
+  TResEvalValue = class(TResolveData)
+  public
+    Kind: TREVKind;
+    Value: TResEvalSimpleValue;
+    IdentEl: TPasElement;
+    Expr: TPasExpr;
+    function Clone: TResEvalValue; virtual;
+    function AsString: string; virtual;
+  end;
+  TResEvalValueClass = class of TResEvalValue;
+
+  { TResEvalString - Kind=revkComplex }
+
+  TResEvalString = class(TResEvalValue)
+  public
+    S: String;
+    function Clone: TResEvalValue; override;
+    function AsString: string; override;
+  end;
+
+  { TResEvalUTF16 - Kind=revkComplex }
+
+  TResEvalUTF16 = class(TResEvalValue)
+  public
+    S: UnicodeString;
+    function Clone: TResEvalValue; override;
+    function AsString: string; override;
+  end;
+
+  { TResEvalEnum - Kind=revkComplex, Value.Int, IdentEl is TPasEnumValue }
+
+  TResEvalEnum = class(TResEvalValue)
+  public
+    function AsString: string; override;
+  end;
+
+  TResEvalSetItem = record
+    RangeStart, RangeEnd: int64;// ToDo: qword
+  end;
+  TResEvalSetItems = array of TResEvalSetItem;
+
+  { TResEvalSet - Kind=revkComplex, IdentEl is TPasEnumType }
+
+  TResEvalSet = class(TResEvalValue)
+  public
+    Ranges: TResEvalSetItems;
+    function Clone: TResEvalValue; override;
+    function AsString: string; override;
+  end;
+
+  TResEvalFlag = (
+    refStore, // store result in CustomData
+    refConst, // computing a const, error is a value is not const
+    refSet  // computing a set, allow ranges
+    );
+  TResEvalFlags = set of TResEvalFlag;
+
+type
   TPasResolverComputeFlag = (
     rcSkipTypeAlias,
     rcSetReferenceFlags,  // set flags of references while computing type, used by Resolve* methods
@@ -1147,6 +1243,8 @@ type
     procedure FinishSetType(El: TPasSetType); virtual;
     procedure FinishSubElementType(Parent: TPasElement; El: TPasType); virtual;
     procedure FinishRangeType(El: TPasRangeType); virtual;
+    procedure FinishConstRangeExpr(Left, Right: TPasExpr;
+      out LeftResolved, RightResolved: TPasResolverResult);
     procedure FinishRecordType(El: TPasRecordType); virtual;
     procedure FinishClassType(El: TPasClassType); virtual;
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
@@ -1190,8 +1288,6 @@ type
     function CheckTypeCastClassInstanceToClass(
       const FromClassRes, ToClassRes: TPasResolverResult;
       ErrorEl: TPasElement): integer; virtual;
-    procedure CheckRangeExpr(Left, Right: TPasExpr;
-      out LeftResolved, RightResolved: TPasResolverResult);
     procedure CheckSetLitElCompatible(Left, Right: TPasExpr;
       const LHS, RHS: TPasResolverResult);
     function CheckIsOrdinal(const ResolvedEl: TPasResolverResult;
@@ -1206,6 +1302,9 @@ type
       MaxCount: integer; RaiseOnError: boolean): integer;
     function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
+  protected
+    function Eval(Expr: TPasExpr; Flags: TResEvalFlags; ErrorEl: TPasElement = nil): TResEvalValue;
+  protected
     // custom types (added by descendant resolvers)
     function CheckAssignCompatibilityCustom(
       const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
@@ -1362,6 +1461,7 @@ type
     procedure RaiseIdentifierNotFound(id: int64; Identifier: string; El: TPasElement);
     procedure RaiseXExpectedButYFound(id: int64; const X,Y: string; El: TPasElement);
     procedure RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
+    procedure RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
     procedure RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
       const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
     procedure RaiseIncompatibleType(id: int64; MsgNumber: integer;
@@ -1526,6 +1626,8 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
   BaseType: TResolverBaseType; TypeEl: TPasType; ExprEl: TPasExpr;
   Flags: TPasResolverResultFlags); overload;
 
+procedure ReleaseEvalValue(var Value: TResEvalValue);
+
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 function ChompDottedIdentifier(const Identifier: string): string;
 function FirstDottedIdentifier(const Identifier: string): string;
@@ -1537,6 +1639,7 @@ function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDot
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
 function dbgs(const Flags: TResolvedReferenceFlags): string; overload;
+function dbgs(const Flags: TResEvalFlags): string; overload;
 
 implementation
 
@@ -1790,6 +1893,14 @@ begin
   ResolvedType.Flags:=Flags;
 end;
 
+procedure ReleaseEvalValue(var Value: TResEvalValue);
+begin
+  if Value=nil then exit;
+  if Value.Element<>nil then exit;
+  Value.Free;
+  Value:=nil;
+end;
+
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 begin
   Result:=true;
@@ -1914,6 +2025,106 @@ begin
       Result:=Result+s;
       end;
   Result:='['+Result+']';
+end;
+
+function dbgs(const Flags: TResEvalFlags): string;
+var
+  s: string;
+  f: TResEvalFlag;
+begin
+  Result:='';
+  for f in Flags do
+    if f in Flags then
+      begin
+      if Result<>'' then Result:=Result+',';
+      str(f,s);
+      Result:=Result+s;
+      end;
+  Result:='['+Result+']';
+end;
+
+{ TResEvalEnum }
+
+function TResEvalEnum.AsString: string;
+begin
+  Result:=inherited AsString+'='+IdentEl.Name+'='+IntToStr(Value.Int);
+end;
+
+{ TResEvalSet }
+
+function TResEvalSet.Clone: TResEvalValue;
+var
+  RS: TResEvalSet;
+  i: Integer;
+begin
+  Result:=inherited Clone;
+  RS:=TResEvalSet(Result);
+  SetLength(RS.Ranges,length(Ranges));
+  for i:=0 to length(Ranges)-1 do
+    RS.Ranges[i]:=Ranges[i];
+end;
+
+function TResEvalSet.AsString: string;
+var
+  i: Integer;
+begin
+  Result:=inherited AsString+'[';
+  for i:=0 to length(Ranges)-1 do
+    begin
+    if i>0 then Result:=Result+',';
+    Result:=Result+IntToStr(Ranges[i].RangeStart);
+    if Ranges[i].RangeStart<>Ranges[i].RangeEnd then
+      Result:=Result+'..'+IntToStr(Ranges[i].RangeEnd);
+    end;
+  Result:=Result+']';
+end;
+
+{ TResEvalUTF16 }
+
+function TResEvalUTF16.Clone: TResEvalValue;
+begin
+  Result:=inherited Clone;
+  TResEvalUTF16(Result).S:=S;
+end;
+
+function TResEvalUTF16.AsString: string;
+begin
+  Result:=inherited AsString+'='''+String(S)+'''';
+end;
+
+{ TResEvalString }
+
+function TResEvalString.Clone: TResEvalValue;
+begin
+  Result:=inherited Clone;
+  TResEvalString(Result).S:=S;
+end;
+
+function TResEvalString.AsString: string;
+begin
+  Result:=inherited AsString+'='''+S+'''';
+end;
+
+{ TResEvalValue }
+
+function TResEvalValue.Clone: TResEvalValue;
+begin
+  Result:=TResEvalValueClass(ClassType).Create;
+  Result.Kind:=Kind;
+  Result.Value:=Value;
+  Result.IdentEl:=IdentEl;
+  Result.Expr:=Expr;
+end;
+
+function TResEvalValue.AsString: string;
+begin
+  str(Kind,Result);
+  case Kind of
+    revkBool: Result:=Result+'='+BoolToStr(Value.Bool,true);
+    revkInt: Result:=Result+'='+IntToStr(Value.Int);
+    revkUInt: Result:=Result+'='+IntToStr(Value.UInt);
+    revkExtended: Result:=Result+'='+FloatToStr(Value.Ext);
+  end;
 end;
 
 { TPasPropertyScope }
@@ -3454,7 +3665,7 @@ begin
     begin
     RangeExpr:=TPasRangeType(EnumType).RangeExpr;
     if RangeExpr.Parent=El then
-      CheckRangeExpr(RangeExpr.left,RangeExpr.right,StartResolved,EndResolved);
+      FinishConstRangeExpr(RangeExpr.left,RangeExpr.right,StartResolved,EndResolved);
     FinishSubElementType(El,EnumType);
     exit;
     end
@@ -3511,7 +3722,81 @@ var
 begin
   ResolveExpr(El.RangeExpr.left,rraRead);
   ResolveExpr(El.RangeExpr.right,rraRead);
-  CheckRangeExpr(El.RangeExpr.left,El.RangeExpr.right,StartResolved,EndResolved);
+  FinishConstRangeExpr(El.RangeExpr.left,El.RangeExpr.right,StartResolved,EndResolved);
+end;
+
+procedure TPasResolver.FinishConstRangeExpr(Left, Right: TPasExpr; out LeftResolved,
+  RightResolved: TPasResolverResult);
+{$IFDEF EnablePasResRangeCheck}
+var
+  LeftValue, RightValue: TResEvalValue;
+{$ENDIF}
+begin
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.FinishConstRangeExpr Left=',GetObjName(Left),' Right=',GetObjName(Right));
+  {$ENDIF}
+  // check type compatibility
+  ComputeElement(Left,LeftResolved,[rcSkipTypeAlias,rcConstant]);
+  ComputeElement(Right,RightResolved,[rcSkipTypeAlias,rcConstant]);
+  CheckSetLitElCompatible(Left,Right,LeftResolved,RightResolved);
+
+  {$IFDEF EnablePasResRangeCheck}
+  // check value
+  LeftValue:=nil;
+  RightValue:=nil;
+  try
+    LeftValue:=Eval(Left,[refStore,refConst]);
+    RightValue:=Eval(Right,[refStore,refConst]);
+    {$IFDEF VerbosePasResEval}
+    writeln('TPasResolver.FinishConstRangeExpr Left=',LeftValue.AsString,' Right=',RightValue.AsString);
+    {$ENDIF}
+    case LeftValue.Kind of
+    revkInt,revkUInt:
+      begin
+      if not (RightValue.Kind in [revkInt,revkUInt]) then
+        RaiseRangeCheck(20170518222812,Right);
+      if LeftValue.Kind=revkInt then
+        begin
+        if RightValue.Kind=revkInt then
+          begin
+          if LeftValue.Value.Int>RightValue.Value.Int then
+            RaiseMsg(20170518222939,nHighRangeLimitLTLowRangeLimit,
+              sHighRangeLimitLTLowRangeLimit,[],Right);
+          end
+        else
+          begin
+          if LeftValue.Value.Int>RightValue.Value.UInt then
+            RaiseMsg(20170519000235,nHighRangeLimitLTLowRangeLimit,
+              sHighRangeLimitLTLowRangeLimit,[],Right);
+          end;
+        end
+      else
+        begin
+        if RightValue.Kind=revkInt then
+          begin
+          if LeftValue.Value.UInt>RightValue.Value.Int then
+            RaiseMsg(20170519000238,nHighRangeLimitLTLowRangeLimit,
+              sHighRangeLimitLTLowRangeLimit,[],Right);
+          end
+        else
+          begin
+          if LeftValue.Value.UInt>RightValue.Value.UInt then
+            RaiseMsg(20170519000240,nHighRangeLimitLTLowRangeLimit,
+              sHighRangeLimitLTLowRangeLimit,[],Right);
+          end;
+        end;
+      end;
+    else
+      {$IFDEF EnablePasResRangeCheck}
+      writeln('TPasResolver.FinishConstRangeExpr Left=',GetObjName(Left),' LeftValue.Kind=',LeftValue.Kind);
+      RaiseNotYetImplemented(20170518221103,Left);
+      {$ENDIF}
+    end;
+  finally
+    ReleaseEvalValue(LeftValue);
+    ReleaseEvalValue(RightValue);
+  end;
+  {$ENDIF}
 end;
 
 procedure TPasResolver.FinishRecordType(El: TPasRecordType);
@@ -7127,14 +7412,6 @@ begin
   Result:=cIncompatible;
 end;
 
-procedure TPasResolver.CheckRangeExpr(Left, Right: TPasExpr; out LeftResolved,
-  RightResolved: TPasResolverResult);
-begin
-  ComputeElement(Left,LeftResolved,[rcSkipTypeAlias,rcConstant]);
-  ComputeElement(Right,RightResolved,[rcSkipTypeAlias,rcConstant]);
-  CheckSetLitElCompatible(Left,Right,LeftResolved,RightResolved);
-end;
-
 procedure TPasResolver.CheckSetLitElCompatible(Left, Right: TPasExpr;
   const LHS, RHS: TPasResolverResult);
 var
@@ -7426,6 +7703,198 @@ begin
     RaiseMsg(id,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
       [IntToStr(ArgNo),GetResolverResultDescription(ParamResolved,true),Expected],Param);
   Result:=cIncompatible;
+end;
+
+function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
+  ErrorEl: TPasElement): TResEvalValue;
+// Important: Caller must free result if (Result<>nil) and (Result.Element=nil)
+var
+  C: TClass;
+  Int: int64;
+  UInt: QWord;
+  Ext: Extended;
+  Code: integer;
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+begin
+  Result:=nil;
+  if Expr.CustomData is TResEvalValue then
+    begin
+    Result:=TResEvalValue(Expr.CustomData);
+    exit;
+    end;
+  if ErrorEl=nil then
+    ErrorEl:=Expr;
+  if (refStore in Flags) and (Expr.CustomData=nil) then
+    begin
+    Result:=Eval(Expr,Flags-[refStore],ErrorEl);
+    if Result.Element<>nil then
+      exit; // already stored
+    AddResolveData(Expr,Result,lkModule);
+    exit;
+    end;
+
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.Eval Expr=',GetObjName(Expr),' Flags=',dbgs(Flags));
+  {$ENDIF}
+  C:=Expr.ClassType;
+  if C=TPrimitiveExpr then
+    begin
+    case TPrimitiveExpr(Expr).Kind of
+      pekIdent:
+        begin
+        if not (Expr.CustomData is TResolvedReference) then
+          RaiseNotYetImplemented(20170518203134,Expr);
+        Ref:=TResolvedReference(Expr.CustomData);
+        Decl:=Ref.Declaration;
+        C:=Decl.ClassType;
+        if C=TPasConst then
+          begin
+          if (TPasConst(Decl).Expr<>nil)
+              and (TPasConst(Decl).IsConst or (TPasConst(Decl).VarType=nil)) then
+            begin
+            Result:=Eval(TPasConst(Decl).Expr,Flags,ErrorEl);
+            Result.IdentEl:=Decl;
+            exit;
+            end;
+          if refConst in Flags then
+            RaiseConstantExprExp(20170518214928,ErrorEl);
+          end
+        else if Decl is TPasType then
+          begin
+          Decl:=ResolveAliasType(TPasType(Decl));
+          C:=Decl.ClassType;
+          if C=TPasRangeType then
+            begin
+            if refSet in Flags then
+              begin
+              Result:=Eval(TPasRangeType(Decl).RangeExpr,Flags,ErrorEl);
+              Result.IdentEl:=Ref.Declaration;
+              exit;
+              end;
+            end;
+          end;
+        if refConst in Flags then
+          RaiseConstantExprExp(20170518213616,ErrorEl);
+        end;
+      pekNumber:
+        begin
+        // try int64
+        val(TPrimitiveExpr(Expr).Value,Int,Code);
+        if Code=0 then
+          begin
+          Result:=TResEvalValue.Create;
+          Result.Kind:=revkInt;
+          Result.Value.Int:=Int;
+          Result.Expr:=Expr;
+          exit;
+          end;
+        // try qword
+        val(TPrimitiveExpr(Expr).Value,UInt,Code);
+        if Code=0 then
+          begin
+          Result:=TResEvalValue.Create;
+          Result.Kind:=revkUInt;
+          Result.Value.UInt:=UInt;
+          Result.Expr:=Expr;
+          exit;
+          end;
+        // try extended
+        val(TPrimitiveExpr(Expr).Value,Ext,Code);
+        if Code=0 then
+          begin
+          Result:=TResEvalValue.Create;
+          Result.Kind:=revkExtended;
+          Result.Value.Ext:=Ext;
+          Result.Expr:=Expr;
+          exit;
+          end;
+        RaiseRangeCheck(20170518202252,Expr);
+        end;
+      pekString:
+        begin
+        Result:=TResEvalString.Create;
+        Result.Kind:=revkString;
+        Result.Expr:=Expr;
+        TResEvalString(Result).S:=TPrimitiveExpr(Expr).Value;
+        exit;
+        end;
+    else
+      RaiseNotYetImplemented(20170518200951,Expr);
+    end;
+    end
+  else if C=TNilExpr then
+    begin
+    Result:=TResEvalValue.Create;
+    Result.Kind:=revkNil;
+    Result.Expr:=Expr;
+    end
+  else if C=TBoolConstExpr then
+    begin
+    Result:=TResEvalValue.Create;
+    Result.Kind:=revkBool;
+    Result.Expr:=Expr;
+    Result.Value.Bool:=TBoolConstExpr(Expr).Value;
+    end
+  else if C=TUnaryExpr then
+    begin
+    Result:=Eval(TUnaryExpr(Expr).Operand,Flags,ErrorEl);
+    if Result=nil then exit;
+    case TUnaryExpr(Expr).OpCode of
+      eopAdd: ;
+      eopSubtract:
+        case Result.Kind of
+        revkInt:
+          begin
+          if Result.Value.Int=0 then exit;
+          if Result.Element<>nil then
+            Result:=Result.Clone;
+          Result.Value.Int:=-Result.Value.Int;
+          end;
+        revkUInt:
+          begin
+          if Result.Value.UInt=0 then exit;
+          if Result.Element<>nil then
+            Result:=Result.Clone;
+          Result.Value.UInt:=-Result.Value.UInt;
+          end
+        else
+          begin
+          if Result.Element=nil then
+            Result.Free;
+          RaiseNotYetImplemented(20170518230738,Expr);
+          end;
+        end;
+      eopNot:
+        case Result.Kind of
+        revkBool:
+          begin
+          if Result.Element<>nil then
+            Result:=Result.Clone;
+          Result.Value.Bool:=not Result.Value.Bool;
+          end
+        else
+          begin
+          if Result.Element=nil then
+            Result.Free;
+          RaiseNotYetImplemented(20170518232804,Expr);
+          end;
+        end;
+      eopAddress:
+        begin
+        if Result.Element=nil then
+          Result.Free;
+        // @ operator requires a compiler -> return nil
+        Result:=TResEvalString.Create;
+        Result.Kind:=revkNil;
+        Result.Expr:=Expr;
+        end
+      else
+        RaiseNotYetImplemented(20170518232823,Expr);
+      end;
+    end
+  else if refConst in Flags then
+    RaiseConstantExprExp(20170518213800,ErrorEl);
 end;
 
 function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
@@ -9598,6 +10067,11 @@ end;
 procedure TPasResolver.RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nConstantExpressionExpected,sConstantExpressionExpected,[],ErrorEl);
+end;
+
+procedure TPasResolver.RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
+begin
+  RaiseMsg(id,nRangeCheckError,sRangeCheckError,[],ErrorEl);
 end;
 
 procedure TPasResolver.RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
@@ -12615,7 +13089,7 @@ begin
       Result:=btQWord;
     if BaseTypes[Result]<>nil then exit;
     end;
-  RaiseMsg(20170420100336,nRangeCheckError,sRangeCheckError,[],ErrorEl);
+  RaiseRangeCheck(20170420100336,ErrorEl);
 end;
 
 function TPasResolver.GetCombinedChar(const Char1, Char2: TPasResolverResult;

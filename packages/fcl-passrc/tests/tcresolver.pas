@@ -185,6 +185,7 @@ type
     Procedure TestVarExternal;
     Procedure TestVarNoSemicolonBeginFail;
     Procedure TestIntegerRange;
+    Procedure TestIntegerRangeHighLowerLowFail;
 
     // strings
     Procedure TestChar_Ord;
@@ -2117,8 +2118,25 @@ begin
   Add('const');
   Add('  MinInt = -1;');
   Add('  MaxInt = +1;');
+  Add('type');
   Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestIntegerRangeHighLowerLowFail;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  MinInt = -1;');
+  Add('  MaxInt = +1;');
+  Add('type');
+  Add('  {#TMyInt}TMyInt = MaxInt..MinInt;');
+  Add('begin');
+  {$IFDEF EnablePasResRangeCheck}
+  CheckResolverException(sHighRangeLimitLTLowRangeLimit,
+    nHighRangeLimitLTLowRangeLimit);
+  {$ENDIF}
 end;
 
 procedure TTestResolver.TestChar_Ord;
