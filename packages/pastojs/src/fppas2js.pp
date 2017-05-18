@@ -249,7 +249,6 @@ Works:
 
 ToDos:
 - constant evaluation
-- integer ranges
 - static arrays
 - property index specifier
 - RTTI
@@ -296,6 +295,7 @@ Not in Version 1.0:
   - add Self only if needed
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
   - shortcut for test set is empty  a=[]  a<>[]
+  - put set literals into constants
   - use a number for small sets
   - nested procs without var, instead as "function name(){}"
   -O1 insert local/unit vars for global type references:
@@ -924,7 +924,6 @@ type
     function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
     function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
     function ComputeConstString(Expr: TPasExpr; StoreCustomData, NotEmpty: boolean): String; virtual;
-    function IsExternalBracketAccessor(El: TPasElement): boolean;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -936,6 +935,7 @@ type
       false): string; override;
     function HasTypeInfo(El: TPasType): boolean; override;
     function IsTObjectFreeMethod(El: TPasExpr): boolean; virtual;
+    function IsExternalBracketAccessor(El: TPasElement): boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -3008,16 +3008,6 @@ begin
   Result:=String(V.AsString);
 end;
 
-function TPas2JSResolver.IsExternalBracketAccessor(El: TPasElement): boolean;
-var
-  ExtName: String;
-begin
-  if (not (El is TPasProcedure)) or (TPasProcedure(El).LibrarySymbolName=nil) then
-    exit(false);
-  ExtName:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,false,false);
-  Result:=ExtName=ExtClassBracketAccessor;
-end;
-
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
   DataClass: TPas2JsElementDataClass): TPas2JsElementData;
 begin
@@ -3091,6 +3081,16 @@ begin
       or (TPasProcedure(Decl).ProcType.Args.Count>0) then
     exit;
   Result:=true;
+end;
+
+function TPas2JSResolver.IsExternalBracketAccessor(El: TPasElement): boolean;
+var
+  ExtName: String;
+begin
+  if (not (El is TPasProcedure)) or (TPasProcedure(El).LibrarySymbolName=nil) then
+    exit(false);
+  ExtName:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,false,false);
+  Result:=ExtName=ExtClassBracketAccessor;
 end;
 
 { TP2JConstExprData }
@@ -4453,8 +4453,7 @@ begin
         if ConversionError<>0 then
           DoError(20161024191248,nInvalidNumber,sInvalidNumber,[El.Value],El);
         L:=CreateLiteralNumber(El,Number);
-        if El.Value[1] in ['0'..'9'] then
-          L.Value.CustomValue:=TJSString(El.Value);
+        L.Value.CustomValue:=TJSString(El.Value);
         end;
       '$','&','%':
         begin
