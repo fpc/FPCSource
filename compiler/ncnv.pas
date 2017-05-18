@@ -1959,8 +1959,7 @@ implementation
           ));
         { add assignment statememnts }
         addstatement(newstatement,ctempdeletenode.create(temp2));
-        if assigned(assnode) then
-          addstatement(newstatement,assnode);
+        addstatement(newstatement,assnode);
         { the last statement should return the value as
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
