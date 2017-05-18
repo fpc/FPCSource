@@ -2601,6 +2601,7 @@ begin
       begin
       Module.PackageName := Engine.Package.Name;
       Engine.Package.Modules.Add(Module);
+      Module.AddRef;
       end;
     CheckHint(Module,True);
 //    ExpectToken(tkSemicolon);
