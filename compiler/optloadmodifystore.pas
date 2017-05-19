@@ -25,6 +25,10 @@ unit optloadmodifystore;
 
 {$i fpcdefs.inc}
 
+{$if defined(i386) or defined(x86_64)}
+  {$define enable_shl_shr_assign_x_y}
+{$endif}
+
   interface
 
     uses
@@ -37,7 +41,7 @@ unit optloadmodifystore;
     uses
       globtype,verbose,nutils,compinnr,
       defutil,defcmp,htypechk,pass_1,
-      nadd,ncal,ncnv,ninl,nld;
+      nadd,ncal,ncnv,ninl,nld,nmat;
 
     function try_opt_assignmentnode(assignmentnode: tassignmentnode): tnode;
       var
@@ -252,6 +256,86 @@ unit optloadmodifystore;
                 taddnode(ttypeconvnode(right).left).left:=nil;
                 exit;
               end;
+{$ifdef enable_shl_shr_assign_x_y}
+            { replace i:=i shl k by in_shl_assign_x_y(i,k)
+                      i:=i shr k by in_shr_assign_x_y(i,k)
+
+              this handles the case, where there are no implicit type conversions }
+            if (right.nodetype in [shln,shrn]) and
+              (tshlshrnode(right).left.isequal(left)) and
+              is_integer(tshlshrnode(right).left.resultdef) and
+              is_integer(tshlshrnode(right).right.resultdef) and
+{$if not defined(cpu64bitalu) and not defined(cpucg64shiftsupport)}
+              not(is_64bitint(tshlshrnode(right).left.resultdef)) and
+{$endif}
+              ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+              ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+              valid_for_var(tshlshrnode(right).left,false) and
+              not(might_have_sideeffects(tshlshrnode(right).left)) then
+              begin
+                case right.nodetype of
+                  shln:
+                    newinlinenodetype:=in_shl_assign_x_y;
+                  shrn:
+                    newinlinenodetype:=in_shr_assign_x_y;
+                  else
+                    internalerror(2017051201);
+                end;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ccallparanode.create(
+                  tshlshrnode(right).right,ccallparanode.create(tshlshrnode(right).left,nil)));
+                result.localswitches:=localswitches;
+                tshlshrnode(right).left:=nil;
+                tshlshrnode(right).right:=nil;
+                exit;
+              end;
+            { replace i:=i shl k by in_shl_assign_x_y(i,k)
+                      i:=i shr k by in_shr_assign_x_y(i,k)
+
+              this handles the case with two conversions (outer and inner):
+                   outer typeconv: right
+                          shl/shr: ttypeconvnode(right).left
+                   inner typeconv: tshlshrnode(ttypeconvnode(right).left).left
+                   right side 'i': ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left
+                   right side 'k': tshlshrnode(ttypeconvnode(right).left).right }
+            if (right.nodetype=typeconvn) and
+               (ttypeconvnode(right).convtype=tc_int_2_int) and
+               (ttypeconvnode(right).left.nodetype in [shln,shrn]) and
+               is_integer(ttypeconvnode(right).left.resultdef) and
+{$if not defined(cpu64bitalu) and not defined(cpucg64shiftsupport)}
+               not(is_64bitint(ttypeconvnode(right).left.resultdef)) and
+{$endif}
+               (right.resultdef.size<=ttypeconvnode(right).left.resultdef.size) and
+               (tshlshrnode(ttypeconvnode(right).left).left.nodetype=typeconvn) and
+               (ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).convtype=tc_int_2_int) and
+               are_equal_ints(right.resultdef,ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left.resultdef) and
+               ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left.isequal(left) and
+               is_integer(tshlshrnode(ttypeconvnode(right).left).left.resultdef) and
+               is_integer(tshlshrnode(ttypeconvnode(right).left).right.resultdef) and
+               is_integer(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left.resultdef) and
+               ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               valid_for_var(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left,false) and
+               not(might_have_sideeffects(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left)) then
+              begin
+                case ttypeconvnode(right).left.nodetype of
+                  shln:
+                    newinlinenodetype:=in_shl_assign_x_y;
+                  shrn:
+                    newinlinenodetype:=in_shr_assign_x_y;
+                  else
+                    internalerror(2017051201);
+                end;
+                inserttypeconv_internal(tshlshrnode(ttypeconvnode(right).left).right,left.resultdef);
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ccallparanode.create(
+                  tshlshrnode(ttypeconvnode(right).left).right,ccallparanode.create(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left,nil)));
+                result.localswitches:=localswitches;
+                ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left:=nil;
+                tshlshrnode(ttypeconvnode(right).left).right:=nil;
+                exit;
+              end;
+{$endif enable_shl_shr_assign_x_y}
             { replace i:=not i  by in_not_assign_x(i)
                       i:=-i     by in_neg_assign_x(i)
 
