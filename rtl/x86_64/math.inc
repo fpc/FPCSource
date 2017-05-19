@@ -356,16 +356,20 @@ const
 
 {$else FPC_HAS_TYPE_EXTENDED}
 
+    {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
       asm
         cvttsd2si   %xmm0,%rax;
       end;
+    {$endif FPC_SYSTEM_HAS_TRUNC}
 
+    {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
       asm
         cvtsd2si   %xmm0,%rax;
       end;
+    {$endif FPC_SYSTEM_HAS_ROUND}
 
 {$endif FPC_HAS_TYPE_EXTENDED}
