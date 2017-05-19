@@ -1,5 +1,6 @@
 unit System;
 
+
 interface
 
 { The heap for MSDOS is implemented
@@ -123,7 +124,6 @@ var
   __nearheap_start: pointer;public name '__nearheap_start';
   __nearheap_end: pointer;public name '__nearheap_end';
   dos_version:Word;public name 'dos_version';
-  envp:PPFarChar;public name '__fpc_envp';
   dos_env_count:smallint;public name '__dos_env_count';
   dos_argv0 : PFarChar;public name '__fpc_dos_argv0';
 
@@ -141,6 +141,74 @@ procedure InstallInterruptHandlers; external name 'FPC_INSTALL_INTERRUPT_HANDLER
 procedure RestoreInterruptHandlers; external name 'FPC_RESTORE_INTERRUPT_HANDLERS';
 
 function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
+
+
+var
+  test_fpu_jmpbuf : jmp_buf;
+
+Procedure InterceptInvalidInstruction;
+begin
+  longjmp(test_fpu_jmpbuf, 1);
+end;
+
+{ Use msdos int21 set/get Interrupt address
+  to check if coprocessor is present }
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+Procedure SysInitFPU;
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localfpucw: word;
+    prevInt06 : FarPointer;
+  begin
+    localfpucw:=Default8087CW;
+    asm
+      fninit
+      fldcw   localfpucw
+      fwait
+    end;
+    asm
+      push es
+      push ds
+      { Get previous interrupt 06 handler }
+      mov ax, $3506
+      int $21
+      mov word [prevInt06],bx
+      mov dx,es
+      mov word [prevInt06+2],dx
+      { Install local interrupt 06 handler }
+      mov dx, SEG InterceptInvalidInstruction
+      mov ds, dx
+      mov dx, Offset InterceptInvalidInstruction
+      mov ax, $2506
+      int $21
+      pop ds
+      pop es
+    end;
+    if setjmp(test_fpu_jmpbuf)=0 then
+      begin
+        asm
+          db $0f, $20, $c0 { mov eax,cr0 }
+          db $83, $c8, $20 { or $0x20,eax }
+          db $0f, $22, $c0 { mov cr0,eax }
+        end;
+        //writeln(stderr,'Change of cr0 succeeded');
+      end
+    else
+      begin
+        //writeln(stderr,'Change of cr0 failed');
+      end;
+    { Restore previous interrupt 06 handler }
+    asm
+      push es
+      mov bx,word [prevInt06]
+      mov dx,word [prevInt06+2]
+      mov es,dx
+      mov ax, $2506
+      int $21
+      pop es
+    end;
+  end;
 
 {$I system.inc}
 
@@ -186,6 +254,9 @@ end;
                               ParamStr/Randomize
 *****************************************************************************}
 
+var
+  internal_envp : PPFarChar = nil;
+
 procedure setup_environment;
 var
   env_count : smallint;
@@ -201,18 +272,18 @@ begin
         inc(cp); { skip to NUL }
       inc(cp); { skip to next character }
     end;
-  envp := getmem((env_count+1) * sizeof(PFarChar));
+  internal_envp := getmem((env_count+1) * sizeof(PFarChar));
   cp:=dos_env;
   env_count:=0;
   while cp^<>#0 do
     begin
-      envp[env_count] := cp;
+      internal_envp[env_count] := cp;
       inc(env_count);
       while (cp^ <> #0) do
         inc(cp); { skip to NUL }
       inc(cp); { skip to next character }
     end;
-  envp[env_count]:=nil;
+  internal_envp[env_count]:=nil;
   dos_env_count := env_count;
   if dos_version >= $300 then
     begin
@@ -223,6 +294,13 @@ begin
     end
   else
     dos_argv0 := nil;
+end;
+
+function envp:PPFarChar;public name '__fpc_envp';
+begin
+  if not assigned(internal_envp) then
+    setup_environment;
+  envp:=internal_envp;
 end;
 
 
@@ -429,12 +507,16 @@ end;
 
 function paramcount : longint;
 begin
+  if argv=nil then
+    setup_arguments;
   paramcount := argc - 1;
 end;
 
 
 function paramstr(l : longint) : string;
 begin
+  if argv=nil then
+    setup_arguments;
   if (l>=0) and (l+1<=argc) then
     paramstr:=strpas(argv[l])
   else
@@ -560,8 +642,8 @@ begin
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Setup environment and arguments }
-  Setup_Environment;
-  Setup_Arguments;
+  { Done on  request only Setup_Environment; }
+  { Done on request only Setup_Arguments; }
 {$ifndef RTLLITE}
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;

@@ -57,8 +57,10 @@ type
   PFarChar=^Char;far;
   PPFarChar=^PFarChar;
 var
-  envp:PPFarChar;external name '__fpc_envp';
   dos_env_count:smallint;external name '__dos_env_count';
+
+{ This is implemented inside system unit }
+function envp:PPFarChar;external name '__fpc_envp';
 
 
 {****************************************************************************

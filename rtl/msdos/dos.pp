@@ -755,6 +755,8 @@ end;
 procedure SwapVectors;
 begin
   SwapIntVec(0, SaveInt00);
+  SwapIntVec($10, SaveInt10);
+  SwapIntVec($75, SaveInt75);
 end;
 
 
