@@ -168,7 +168,7 @@ implementation
     aasmtai,aasmcpu,
     aasmllvm,llvmbase,tgllvm,
     symtable,symllvm,
-    paramgr,llvmpara,
+    paramgr,
     procinfo,cpuinfo,cgobj,cgllvm,cghlcpu,
     cgcpu,hlcgcpu;
 
