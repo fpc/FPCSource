@@ -69,8 +69,10 @@
 %endif
 
         extern __SaveInt00
+        extern __SaveInt10
+        extern __SaveInt75
 
-        extern FPC_HANDLEERROR
+        extern FPC_HANDLE_I8086_ERROR
 
 %ifdef __TINY__
         resb 0100h
@@ -276,6 +278,7 @@ error_msg:
         int 21h
 %endif
 
+        global FPC_INT00_HANDLER
 FPC_INT00_HANDLER:
         sub sp, 4  ; reserve space on the stack for the retf
 
@@ -298,7 +301,7 @@ FPC_INT00_HANDLER:
         ; check whether we're running on the same stack
         mov cx, ss
         cmp bp, cx
-        jne .call_previous_handler
+        jne .call_previous_handler00
 %endif
 
 %ifndef __FAR_CODE__
@@ -307,10 +310,10 @@ FPC_INT00_HANDLER:
         mov cx, [bp + 3*2 + 6]  ; get caller segment
         mov bp, cs
         cmp bp, cx
-        jne .call_previous_handler
+        jne .call_previous_handler00
 %endif
 
-        ; runerror 200
+        ; Call Fpc_Handle_I8086_Error, with err=0
         mov bp, sp
         mov cx, [bp + 3*2 + 4]  ; get caller offset
 %ifdef __FAR_CODE__
@@ -320,7 +323,7 @@ FPC_INT00_HANDLER:
         add sp, 2*2 + 4 + 6
         xor ax, ax
         push ax
-        mov ax, 200
+        mov ax, 0
         push ax
 %ifdef __FAR_CODE__
         push dx
@@ -328,16 +331,154 @@ FPC_INT00_HANDLER:
         push cx
         cld
 %ifdef __FAR_CODE__
-        jmp far FPC_HANDLEERROR
+        jmp far FPC_HANDLE_I8086_ERROR
 %else
-        jmp FPC_HANDLEERROR
+        jmp FPC_HANDLE_I8086_ERROR
 %endif
 
-.call_previous_handler:
+.call_previous_handler00:
         mov bp, sp
         mov cx, [__SaveInt00]
         mov [bp + 3*2], cx
         mov cx, [__SaveInt00+2]
+        mov [bp + 3*2 + 2], cx
+        pop bp
+        pop ds
+        pop cx
+        retf  ; jumps to the previous handler with all registers and stack intact
+
+        global FPC_INT10_HANDLER
+FPC_INT10_HANDLER:
+        sub sp, 4  ; reserve space on the stack for the retf
+
+        push cx
+        push ds
+        push bp
+
+        ; init ds
+%ifdef __TINY__
+        mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
+%else
+        mov bp, DGROUP
+%endif
+        mov ds, bp
+
+%ifdef __NEAR_DATA__
+        ; in memory models, where SS=DS, also
+        ; check whether we're running on the same stack
+        mov cx, ss
+        cmp bp, cx
+        jne .call_previous_handler10
+%endif
+
+%ifndef __FAR_CODE__
+        ; check whether we're coming from the same code segment
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6]  ; get caller segment
+        mov bp, cs
+        cmp bp, cx
+        jne .call_previous_handler10
+%endif
+
+        ; Call Fpc_Handle_I8086_Error, with err=$10
+        mov bp, sp
+        mov cx, [bp + 3*2 + 4]  ; get caller offset
+%ifdef __FAR_CODE__
+        mov dx, [bp + 3*2 + 6]  ; get caller segment
+%endif
+        pop bp
+        add sp, 2*2 + 4 + 6
+        xor ax, ax
+        push ax
+        mov ax, 10h
+        push ax
+%ifdef __FAR_CODE__
+        push dx
+%endif
+        push cx
+        cld
+%ifdef __FAR_CODE__
+        jmp far FPC_HANDLE_I8086_ERROR
+%else
+        jmp FPC_HANDLE_I8086_ERROR
+%endif
+
+.call_previous_handler10:
+        mov bp, sp
+        mov cx, [__SaveInt10]
+        mov [bp + 3*2], cx
+        mov cx, [__SaveInt10+2]
+        mov [bp + 3*2 + 2], cx
+        pop bp
+        pop ds
+        pop cx
+        retf  ; jumps to the previous handler with all registers and stack intact
+
+        global FPC_INT75_HANDLER
+FPC_INT75_HANDLER:
+        sub sp, 4  ; reserve space on the stack for the retf
+
+        push cx
+        push ds
+        push bp
+
+        ; init ds
+%ifdef __TINY__
+        mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
+%else
+        mov bp, DGROUP
+%endif
+        mov ds, bp
+
+%ifdef __NEAR_DATA__
+        ; in memory models, where SS=DS, also
+        ; check whether we're running on the same stack
+        mov cx, ss
+        cmp bp, cx
+        jne .call_previous_handler75
+%endif
+
+%ifndef __FAR_CODE__
+        ; check whether we're coming from the same code segment
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6]  ; get caller segment
+        mov bp, cs
+        cmp bp, cx
+        jne .call_previous_handler75
+%endif
+
+        ; Call Fpc_Handle_I8086_Error, with err=$75
+        mov bp, sp
+        mov cx, [bp + 3*2 + 4]  ; get caller offset
+%ifdef __FAR_CODE__
+        mov dx, [bp + 3*2 + 6]  ; get caller segment
+%endif
+        pop bp
+        add sp, 2*2 + 4 + 6
+        xor ax, ax
+        push ax
+        mov ax, 75h
+        push ax
+%ifdef __FAR_CODE__
+        push dx
+%endif
+        push cx
+        cld
+%ifdef __FAR_CODE__
+        jmp far FPC_HANDLE_I8086_ERROR
+%else
+        jmp FPC_HANDLE_I8086_ERROR
+%endif
+
+.call_previous_handler75:
+        mov bp, sp
+        mov cx, [__SaveInt75]
+        mov [bp + 3*2], cx
+        mov cx, [__SaveInt75+2]
         mov [bp + 3*2 + 2], cx
         pop bp
         pop ds
@@ -368,8 +509,45 @@ FPC_INSTALL_INTERRUPT_HANDLERS:
         pop ds
 %endif
         mov dx, FPC_INT00_HANDLER
+        pop ds
+        push ds
         mov ax, 2500h
         int 21h
+
+        ; save old int $10 handler
+        mov ax, 3510h
+        int 21h
+        mov [__SaveInt10], bx
+        mov bx, es
+        mov [__SaveInt10+2], bx
+
+        ; install the new int $10 handler
+%ifndef __TINY__
+        push cs
+        pop ds
+%endif
+        mov dx, FPC_INT10_HANDLER
+        mov ax, 2510h
+        int 21h
+        pop ds
+        push ds
+
+        ; save old int $75 handler
+        mov ax, 3575h
+        int 21h
+        mov [__SaveInt75], bx
+        mov bx, es
+        mov [__SaveInt75+2], bx
+
+        ; install the new int $75 handler
+%ifndef __TINY__
+        push cs
+        pop ds
+%endif
+        mov dx, FPC_INT75_HANDLER
+        mov ax, 2575h
+        int 21h
+
 
         pop ds
 %ifdef __FAR_CODE__
@@ -390,6 +568,14 @@ FPC_RESTORE_INTERRUPT_HANDLERS:
 
         mov ax, 2500h
         lds dx, [__SaveInt00]
+        int 21h
+
+        mov ax, 2510h
+        lds dx, [__SaveInt10]
+        int 21h
+
+        mov ax, 2575h
+        lds dx, [__SaveInt75]
         int 21h
 
         pop ds
@@ -446,12 +632,12 @@ FPC_INTR:
         mov bp, word [si + 8]
         mov di, word [si + 12]
         mov si, word [si + 10]
-        
+
         pop ds
         db 0CDh  ; opcode of INT xx
 int_number:
         db 255
-        
+
         pushf
         push ds
         push si
@@ -479,7 +665,7 @@ int_number:
         mov word [si + 14], ax
         pop ax
         mov word [si + 18], ax
-        
+
         pop ds
         pop bp
 %ifdef __FAR_CODE__
