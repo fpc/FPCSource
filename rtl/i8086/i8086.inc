@@ -797,8 +797,8 @@ asm
   mov cx, ds
   lds bx, [Target]  // Target
 {$endif FPC_X86_DATA_NEAR}
-  mov di, [Comperand]
-  mov si, [Comperand+2]
+  mov di, word [Comperand]
+  mov si, word [Comperand+2]
   pushf
   cli
   mov ax, [bx]
@@ -807,8 +807,8 @@ asm
   jne @@not_equal
   cmp dx, si
   jne @@not_equal
-  mov di, [NewValue]
-  mov si, [NewValue+2]
+  mov di, word [NewValue]
+  mov si, word [NewValue+2]
   mov [bx], di
   mov [bx+2], si
 @@not_equal:
@@ -1124,6 +1124,7 @@ procedure DetectFPU;
       Default8087CW:=$1332;
   end;
 
+{$ifndef FPC_SYSTEM_HAS_SYSINITFPU}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
   var
@@ -1138,6 +1139,7 @@ Procedure SysInitFPU;
     end;
   end;
 
+{$endif ndef FPC_SYSTEM_HAS_SYSINITFPU}
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;
