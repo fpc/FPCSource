@@ -3747,7 +3747,7 @@ S*2Aas_Assemble using GNU AS
 **2Cf<x>_Select fpu instruction set to use; see fpc -i or fpc -if for possible values
 **2CF<x>_Minimal floating point constant precision (default, 32, 64)
 **2Cg_Generate PIC code
-**2Ch<n>_<n> bytes heap (between 1023 and 67107840)
+**2Ch<n>[,m]_<n> bytes min heap size (between 1023 and 67107840) and optionally [m] max heap size
 **2Ci_IO-checking
 A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 **2Cn_Omit linking stage
