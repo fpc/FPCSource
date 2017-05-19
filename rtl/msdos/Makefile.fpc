@@ -9,7 +9,8 @@ units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 extpas rtlconst typinfo types \
       getopts fgl classes \
       msmouse ports  \
-      charset cpall ctypes
+      charset cpall ctypes \
+      fpwidestring character unicodedata unicodenumtable
 #      lnfodwrf
 #      cmem
 #      initc profile dxetype dxeload emu387 \
@@ -203,6 +204,19 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT) system$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 	$(EXECPPAS)
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
+
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
+
 
 #
 # Other system-dependent RTL Units
