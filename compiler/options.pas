@@ -1202,7 +1202,10 @@ begin
                       end;
                     'h' :
                       begin
-                         val(copy(more,j+1,length(more)-j),heapsize,code);
+                         l:=pos(',',copy(more,j+1,length(more)-j));
+                         if l=0 then
+                           l:=length(more)-j+1;
+                         val(copy(more,j+1,l-1),heapsize,code);
                          if (code<>0)
 {$ifdef AVR}
                          or (heapsize<32)
@@ -1210,7 +1213,18 @@ begin
                          or (heapsize<1024)
 {$endif AVR}
                          then
-                           IllegalPara(opt);
+                           IllegalPara(opt)
+                         else if l<=length(more)-j then
+                           begin
+                             val(copy(more,j+l+1,length(more)),maxheapsize,code);
+                             if code<>0 then
+                               IllegalPara(opt)
+                             else if (maxheapsize<heapsize) then
+                               begin
+                                 message(scan_w_heapmax_lessthan_heapmin);
+                                 maxheapsize:=heapsize;
+                               end;
+                           end;
                          break;
                       end;
                     'i' :
