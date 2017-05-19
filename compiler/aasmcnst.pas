@@ -268,6 +268,8 @@ type
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     procedure finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+
      { functionality of the above for vectorized dead strippable sections }
      procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
@@ -913,10 +915,6 @@ implementation
    procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      var
        prelist: tasmlist;
-       ptrdef : tdef;
-       symind : tasmsymbol;
-       indtcb : ttai_typedconstbuilder;
-       indsecname : tsymstr;
      begin
        if tcalo_apply_constalign in options then
          alignment:=const_align(alignment);
@@ -987,11 +985,19 @@ implementation
        fasmlist.concat(tai_symbol_end.Createname(sym.name));
        { free the temporary list }
        prelist.free;
+     end;
 
+
+   procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     var
+       ptrdef : tdef;
+       symind : tasmsymbol;
+       indtcb : ttai_typedconstbuilder;
+       indsecname : tsymstr;
+     begin
        if (tcalo_data_force_indirect in options) and
-           not fvectorized_finalize_called and
-           (sym.bind in [AB_GLOBAL,AB_COMMON]) and
-           (sym.typ=AT_DATA) then
+          (sym.bind in [AB_GLOBAL,AB_COMMON]) and
+          (sym.typ=AT_DATA) then
          begin
            ptrdef:=cpointerdef.getreusable(def);
            symind:=current_asmdata.DefineAsmSymbol(sym.name,AB_INDIRECT,AT_DATA,ptrdef);
@@ -1083,6 +1089,7 @@ implementation
        if not fasmlist_finalized then
          begin
            finalize_asmlist(sym,def,section,secname,alignment,foptions);
+           finalize_asmlist_add_indirect_sym(sym,def,section,secname,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
