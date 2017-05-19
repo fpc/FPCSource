@@ -28,11 +28,21 @@ interface
 
   uses
     cclasses,globtype,
+    fmodule,
     aasmdata,
     node,nbas,symtype,symsym,symconst,symdef;
 
 
   type
+    tinitfinalentry = record
+      initfunc : TSymStr;
+      finifunc : TSymStr;
+      initpd : tprocdef;
+      finipd : tprocdef;
+      module : tmodule;
+    end;
+    pinitfinalentry = ^tinitfinalentry;
+
     tnodeutils = class
       class function call_fail_node:tnode; virtual;
       class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
@@ -103,6 +113,9 @@ interface
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
+
+      class function get_init_final_list: tfplist;
+      class procedure release_init_final_list(list:tfplist);
      public
       class procedure InsertThreadvarTablesTable; virtual;
       class procedure InsertThreadvars; virtual;
@@ -133,7 +146,7 @@ implementation
 
     uses
       verbose,version,globals,cutils,constexp,compinnr,
-      systems,procinfo,fmodule,pparautl,
+      systems,procinfo,pparautl,
       aasmbase,aasmtai,aasmcnst,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
@@ -890,50 +903,127 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertInitFinalTable;
+  class function tnodeutils.get_init_final_list:tfplist;
+
+    procedure append_struct_inits(u:tmodule);
+      var
+        i : integer;
+        structlist : tfplist;
+        pd : tprocdef;
+        entry : pinitfinalentry;
+      begin
+        structlist:=tfplist.Create;
+        if assigned(u.globalsymtable) then
+          u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
+        u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
+        { write structures }
+        for i:=0 to structlist.Count-1 do
+        begin
+          new(entry);
+          entry^.module:=u;
+          pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
+          if assigned(pd) then
+            begin
+              entry^.initfunc:=pd.mangledname;
+              entry^.initpd:=pd;
+            end
+          else
+            begin
+              entry^.initfunc:='';
+              entry^.initpd:=nil;
+            end;
+          pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
+          if assigned(pd) then
+            begin
+              entry^.finifunc:=pd.mangledname;
+              entry^.finipd:=pd;
+            end
+          else
+            begin
+              entry^.finifunc:='';
+              entry^.finipd:=nil;
+            end;
+          if assigned(entry^.finipd) or assigned(entry^.initpd) then
+            result.add(entry)
+          else
+            { AddToStructInits only adds structs that have either a class constructor or destructor or both }
+            internalerror(2017051902);
+        end;
+        structlist.free;
+      end;
+
     var
       hp : tused_unit;
+      entry : pinitfinalentry;
+    begin
+      result:=tfplist.create;
+      hp:=tused_unit(usedunits.first);
+      while assigned(hp) do
+       begin
+         { insert class constructors/destructors of the unit }
+         if (hp.u.flags and uf_classinits) <> 0 then
+           append_struct_inits(hp.u);
+         if (hp.u.flags and (uf_init or uf_finalize))<>0 then
+           begin
+             new(entry);
+             entry^.module:=hp.u;
+             entry^.initpd:=nil;
+             entry^.finipd:=nil;
+             if (hp.u.flags and uf_init)<>0 then
+               entry^.initfunc:=make_mangledname('INIT$',hp.u.globalsymtable,'')
+             else
+               entry^.initfunc:='';
+             if (hp.u.flags and uf_finalize)<>0 then
+               entry^.finifunc:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'')
+             else
+               entry^.finifunc:='';
+             result.add(entry);
+           end;
+         hp:=tused_unit(hp.next);
+       end;
+
+      if (current_module.flags and uf_classinits) <> 0 then
+        append_struct_inits(current_module);
+      { Insert initialization/finalization of the program }
+      if (current_module.flags and (uf_init or uf_finalize))<>0 then
+        begin
+          new(entry);
+          entry^.module:=current_module;
+          entry^.initpd:=nil;
+          entry^.finipd:=nil;
+          if (current_module.flags and uf_init)<>0 then
+            entry^.initfunc:=make_mangledname('INIT$',current_module.localsymtable,'')
+          else
+            entry^.initfunc:='';
+          if (current_module.flags and uf_finalize)<>0 then
+            entry^.finifunc:=make_mangledname('FINALIZE$',current_module.localsymtable,'')
+          else
+            entry^.finifunc:='';
+          result.add(entry);
+        end;
+    end;
+
+
+  class procedure tnodeutils.release_init_final_list(list:tfplist);
+    var
+      i : longint;
+    begin
+      if not assigned(list) then
+        internalerror(2017051901);
+      for i:=0 to list.count-1 do
+        dispose(pinitfinalentry(list[i]));
+      list.free;
+    end;
+
+
+  class procedure tnodeutils.InsertInitFinalTable;
+    var
+      i : longint;
       unitinits : ttai_typedconstbuilder;
-      count : aint;
-      tablecountplaceholder: ttypedconstplaceholder;
       nameinit,namefini : TSymStr;
       tabledef: tdef;
-
-      procedure write_struct_inits(u: tmodule);
-        var
-          i: integer;
-          structlist: TFPList;
-          pd: tprocdef;
-        begin
-          structlist := TFPList.Create;
-          if assigned(u.globalsymtable) then
-            u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-          u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-          { write structures }
-          for i:=0 to structlist.Count-1 do
-          begin
-            pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
-            if assigned(pd) then
-              begin
-                unitinits.emit_procdef_const(pd);
-                if u<>current_module then
-                  current_module.addimportedsym(pd.procsym);
-              end
-            else
-              unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-            pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
-            if assigned(pd) then
-              begin
-                unitinits.emit_procdef_const(pd);
-                if u<>current_module then
-                  current_module.addimportedsym(pd.procsym);
-              end
-            else
-              unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-            inc(count);
-          end;
-          structlist.free;
-        end;
+      entries : tfplist;
+      entry : pinitfinalentry;
 
       procedure add_initfinal_import(symtable:tsymtable);
         var
@@ -979,72 +1069,65 @@ implementation
       unitinits.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[target_info.system]^.alignment.recordalignmin,
         targetinfos[target_info.system]^.alignment.maxCrecordalign);
-      { placeholder for tablecount }
-      tablecountplaceholder:=unitinits.emit_placeholder(aluuinttype);
+
+      entries:=get_init_final_list;
+      { tablecount }
+      unitinits.emit_ord_const(entries.count,aluuinttype);
       { initcount (initialised at run time }
       unitinits.emit_ord_const(0,aluuinttype);
-      count:=0;
-      hp:=tused_unit(usedunits.first);
-      while assigned(hp) do
-       begin
-         { insert class constructors/destructors of the unit }
-         if (hp.u.flags and uf_classinits) <> 0 then
-           write_struct_inits(hp.u);
-         { call the unit init code and make it external }
-         if (hp.u.flags and (uf_init or uf_finalize))<>0 then
-           begin
-             if count=high(aint) then
-               Message1(cg_f_max_units_reached,tostr(count));
-             nameinit:='';
-             namefini:='';
-             if (hp.u.flags and uf_init)<>0 then
-               begin
-                 nameinit:=make_mangledname('INIT$',hp.u.globalsymtable,'');
-                 unitinits.emit_tai(
-                   Tai_const.Createname(nameinit,AT_FUNCTION,0),
-                   voidcodepointertype);
-               end
-             else
-               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-             if (hp.u.flags and uf_finalize)<>0 then
-               begin
-                 namefini:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'');
-                 unitinits.emit_tai(
-                   Tai_const.Createname(namefini,AT_FUNCTION,0),
-                   voidcodepointertype)
-               end
-             else
-               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-             add_initfinal_import(hp.u.localsymtable);
-             inc(count);
-           end;
-         hp:=tused_unit(hp.next);
-       end;
-      { insert class constructors/destructor of the program }
-      if (current_module.flags and uf_classinits) <> 0 then
-        write_struct_inits(current_module);
-      { Insert initialization/finalization of the program }
-      if (current_module.flags and (uf_init or uf_finalize))<>0 then
-        begin
-          if (current_module.flags and uf_init)<>0 then
-            unitinits.emit_tai(
-              Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0),
-              voidcodepointertype)
-          else
-            unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-          if (current_module.flags and uf_finalize)<>0 then
-            unitinits.emit_tai(
-              Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0),
-              voidcodepointertype)
-          else
-            unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-          inc(count);
-        end;
-      { fill in tablecount }
-      tablecountplaceholder.replace(tai_const.Create_aint(count),aluuinttype);
-      tablecountplaceholder.free;
-      { Add to data segment }
 
+      for i:=0 to entries.count-1 do
+        begin
+          entry:=pinitfinalentry(entries[i]);
+          if assigned(entry^.initpd) or assigned(entry^.finipd) then
+            begin
+              if assigned(entry^.initpd) then
+                begin
+                  unitinits.emit_procdef_const(entry^.initpd);
+                  if entry^.module<>current_module then
+                    current_module.addimportedsym(entry^.initpd.procsym);
+                end
+              else
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+              if assigned(entry^.finipd) then
+                begin
+                  unitinits.emit_procdef_const(entry^.finipd);
+                  if entry^.module<>current_module then
+                    current_module.addimportedsym(entry^.finipd.procsym);
+                end
+              else
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+            end
+          else
+            begin
+              nameinit:='';
+              namefini:='';
+              if entry^.initfunc<>'' then
+                begin
+                  nameinit:=entry^.initfunc;
+                  unitinits.emit_tai(
+                    Tai_const.Createname(nameinit,AT_FUNCTION,0),
+                    voidcodepointertype);
+                end
+              else
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+              if entry^.finifunc<>'' then
+                begin
+                  namefini:=entry^.finifunc;
+                  unitinits.emit_tai(
+                    Tai_const.Createname(namefini,AT_FUNCTION,0),
+                    voidcodepointertype);
+                end
+              else
+                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+              if entry^.module<>current_module then
+                add_initfinal_import(entry^.module.localsymtable);
+            end;
+        end;
+
+      release_init_final_list(entries);
+
+      { Add to data segment }
       tabledef:=unitinits.end_anonymous_record;
       current_asmdata.asmlists[al_globals].concatlist(
         unitinits.get_final_asmlist(
