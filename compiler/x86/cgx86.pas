@@ -1991,7 +1991,8 @@ unit cgx86;
         dstsize: topsize;
         instr:Taicpu;
       begin
-        check_register_size(size,src);
+        if not(Op in [OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR]) then
+          check_register_size(size,src);
         check_register_size(size,dst);
         dstsize := tcgsize2opsize[size];
         if (op=OP_MUL) and not (cs_check_overflow in current_settings.localswitches) then
@@ -2011,7 +2012,7 @@ unit cgx86;
             begin
               { Use ecx to load the value, that allows better coalescing }
               getcpuregister(list,REGCX);
-              a_load_reg_reg(list,size,REGCX_Size,src,REGCX);
+              a_load_reg_reg(list,reg_cgsize(src),REGCX_Size,src,REGCX);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));
               ungetcpuregister(list,REGCX);
             end;
