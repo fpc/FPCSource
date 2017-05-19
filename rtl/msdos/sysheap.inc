@@ -32,7 +32,12 @@ begin
   regs.ax:=$4800;
   nb_para:=size div 16;
   if nb_para > $ffff then
-    result:=nil
+    begin
+{$ifdef DEBUG_TINY_HEAP}
+      writeln('SysOSAlloc size too big = ',size);
+{$endif}
+      result:=nil;
+    end
   else
     begin
       regs.bx:=nb_para;
@@ -42,8 +47,10 @@ begin
 {$ifdef DEBUG_TINY_HEAP}
           writeln('SysOSAlloc failed, err = ',regs.AX);
 {$endif}
-          GetInOutRes(regs.AX);
-  Result := nil;
+          { Do not set InOutRes if ReturnNilIfGrowHeapFails is set }
+          if not ReturnNilIfGrowHeapFails then
+            GetInOutRes(regs.AX);
+          Result := nil;
         end
       else
         begin
@@ -54,6 +61,9 @@ begin
         end;
     end;
 {$else not DATA_FAR}
+{$ifdef DEBUG_TINY_HEAP}
+    writeln('SysOSAlloc cannot be used in small data models');
+{$endif}
   Result := nil;
 {$endif not DATA_FAR}
 end;
