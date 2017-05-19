@@ -67,6 +67,8 @@ unit optloadmodifystore;
                   newinlinenodetype,false,ccallparanode.create(
                   tinlinenode(right).left,nil));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 tinlinenode(right).left:=nil;
                 exit;
               end;
@@ -107,6 +109,8 @@ unit optloadmodifystore;
                     newinlinenodetype,false,ccallparanode.create(
                     taddnode(right).right,ccallparanode.create(taddnode(right).left,nil)));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 taddnode(right).left:=nil;
                 taddnode(right).right:=nil;
                 exit;
@@ -162,6 +166,8 @@ unit optloadmodifystore;
                     newinlinenodetype,false,ccallparanode.create(
                     taddnode(ttypeconvnode(right).left).right,ccallparanode.create(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,nil)));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left:=nil;
                 taddnode(ttypeconvnode(right).left).right:=nil;
                 exit;
@@ -200,6 +206,8 @@ unit optloadmodifystore;
                     newinlinenodetype,false,ccallparanode.create(
                     taddnode(right).left,ccallparanode.create(taddnode(right).right,nil)));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 taddnode(right).right:=nil;
                 taddnode(right).left:=nil;
                 exit;
@@ -252,6 +260,8 @@ unit optloadmodifystore;
                     newinlinenodetype,false,ccallparanode.create(
                     taddnode(ttypeconvnode(right).left).left,ccallparanode.create(ttypeconvnode(taddnode(ttypeconvnode(right).left).right).left,nil)));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 ttypeconvnode(taddnode(ttypeconvnode(right).left).right).left:=nil;
                 taddnode(ttypeconvnode(right).left).left:=nil;
                 exit;
@@ -285,6 +295,8 @@ unit optloadmodifystore;
                   newinlinenodetype,false,ccallparanode.create(
                   tshlshrnode(right).right,ccallparanode.create(tshlshrnode(right).left,nil)));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 tshlshrnode(right).left:=nil;
                 tshlshrnode(right).right:=nil;
                 exit;
@@ -331,6 +343,8 @@ unit optloadmodifystore;
                   newinlinenodetype,false,ccallparanode.create(
                   tshlshrnode(ttypeconvnode(right).left).right,ccallparanode.create(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left,nil)));
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left:=nil;
                 tshlshrnode(ttypeconvnode(right).left).right:=nil;
                 exit;
@@ -355,6 +369,8 @@ unit optloadmodifystore;
                 result:=cinlinenode.createintern(
                   newinlinenodetype,false,tunarynode(right).left);
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 tunarynode(right).left:=nil;
                 exit;
               end;
@@ -388,6 +404,8 @@ unit optloadmodifystore;
                 result:=cinlinenode.createintern(
                   newinlinenodetype,false,ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left);
                 result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
                 ttypeconvnode(tunarynode(ttypeconvnode(right).left).left).left:=nil;
                 exit;
               end;
