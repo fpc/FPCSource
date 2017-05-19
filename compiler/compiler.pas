@@ -144,7 +144,7 @@ implementation
 uses
   aasmcpu;
 
-{$if defined(EXTDEBUG) or defined(MEMDEBUG)}
+{$if defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
 {$endif}
 
