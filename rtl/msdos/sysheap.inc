@@ -56,7 +56,7 @@ begin
         begin
           result:=ptr(regs.ax,0);
 {$ifdef DEBUG_TINY_HEAP}
-          writeln('SysOSAlloc returned= $',hexstr(seg(result),4),':$',hexstr(ofs(result),4));
+          writeln('SysOSAlloc returned= $',hexstr(seg(regs.ax),4),':$0');
 {$endif}
         end;
     end;
