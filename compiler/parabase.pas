@@ -26,6 +26,9 @@ unit parabase;
 
     uses
        cclasses,globtype,
+{$ifdef llvm}
+       aasmbase,
+{$endif}
        cgbase,cgutils,
        symtype;
 
