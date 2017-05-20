@@ -35,6 +35,7 @@ end;
 constructor TDataModule.CreateNew(AOwner: TComponent; CreateMode: Integer);
 begin
   inherited Create(AOwner);
+  FDPPI := 96;
   if Assigned(AddDataModule) and (CreateMode>=0) then
     AddDataModule(Self);
 end;
@@ -97,11 +98,13 @@ begin
             (FDSize.X<>Ancestor.FDSize.X) or
             (FDSize.Y<>Ancestor.FDSize.Y) or
             (FDPos.Y<>Ancestor.FDPos.Y) or
-            (FDPos.X<>Ancestor.FDPos.X);
+            (FDPos.X<>Ancestor.FDPos.X) or
+            (FDPPI<>Ancestor.FDPPI);
   Filer.DefineProperty('Height', @ReadH, @WriteH, HaveData);
   Filer.DefineProperty('HorizontalOffset', @ReadL, @WriteL, HaveData);
   Filer.DefineProperty('VerticalOffset', @ReadT,@WriteT, HaveData);
   Filer.DefineProperty('Width', @ReadW, @WriteW, HaveData);
+  Filer.DefineProperty('PPI', @ReadP, @WriteP, HaveData);
 end;
 
 procedure TDataModule.GetChildren(Proc: TGetChildProc; Root: TComponent);
@@ -123,6 +126,11 @@ begin
   Result:=Assigned(ApplicationHandleException);
   if Result then
     ApplicationHandleException(Self);
+end;
+
+Procedure TDataModule.ReadP(Reader: TReader);
+begin
+  FDPPI := Reader.ReadInteger;
 end;
 
 Procedure TDataModule.ReadState(Reader: TReader);
@@ -154,6 +162,11 @@ end;
 Procedure TDataModule.ReadW(Reader: TReader);
 begin
   FDSIze.X := Reader.ReadInteger;
+end;
+
+Procedure TDataModule.WriteP(Writer: TWriter);
+begin
+  Writer.WriteInteger(FDPPI);
 end;
 
 Procedure TDataModule.WriteW(Writer: TWriter);
