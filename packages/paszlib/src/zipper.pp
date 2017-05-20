@@ -522,7 +522,8 @@ Type
     FFileComment: String;
     FEntries    : TFullZipFileEntries;
     FFiles      : TStrings;
-    FUseUTF8: Boolean;
+    FUseUTF8    : Boolean;
+    FFlat       : Boolean;
     FZipStream  : TStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type; //Local header, before compressed file data
     LocalZip64Fld   : Zip64_Extended_Info_Field_Type; //header is in LocalZip64ExtHdr
@@ -583,6 +584,7 @@ Type
     Property Files : TStrings Read FFiles;
     Property Entries : TFullZipFileEntries Read FEntries;
     Property UseUTF8 : Boolean Read FUseUTF8 Write FUseUTF8;
+    Property Flat : Boolean Read FFlat Write FFlat; // enable flat extraction, like -j when using unzip
     Property Terminated : Boolean Read FTerminated;
   end;
 
@@ -2628,10 +2630,15 @@ Var
             U[i]:=DirectorySeparator;
       OutputFileName:=UTF8Encode(U);
       end;
-    if (Not IsCustomStream) and (FOutputPath<>'') then
+    if (Not IsCustomStream) then
       begin
-      // Do not use IncludeTrailingPathdelimiter
-      OutputFileName:=FOutputPath+OutputFileName;
+      if Flat then
+        OutputFileName:=ExtractFileName(OutputFileName);
+      if (FOutputPath<>'') then
+        begin
+        // Do not use IncludeTrailingPathdelimiter
+        OutputFileName:=FOutputPath+OutputFileName;
+        end;
       end;
   end;
 
@@ -2679,7 +2686,9 @@ Begin
       {$ENDIF}
       end
     else if Item.IsDirectory then
-      CreateDir(OutputFileName)
+      begin
+        if (NOT Flat) then CreateDir(OutputFileName);
+      end
     else
       begin
       try
