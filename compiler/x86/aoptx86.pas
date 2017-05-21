@@ -961,7 +961,7 @@ unit aoptx86;
                 DebugMsg('Peephole Optimization MovapXOpMovapX2Op ('+
                       std_op2str[taicpu(p).opcode]+' '+
                       std_op2str[taicpu(hp1).opcode]+' '+
-                      std_op2str[taicpu(hp2).opcode]+')',p);
+                      std_op2str[taicpu(hp2).opcode]+') done',p);
                 { we cannot eliminate the first move if
                   the operations uses the same register for source and dest }
                 if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
@@ -1096,7 +1096,7 @@ unit aoptx86;
         if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
           begin
             GetNextInstruction(p, hp1);
-            DebugMsg('PeepHole Optimization,Mov2Nop',p);
+            DebugMsg('PeepHole Optimization Mov2Nop done',p);
             asml.remove(p);
             p.free;
             p:=hp1;
@@ -1113,7 +1113,7 @@ unit aoptx86;
             S_L:
               if (taicpu(hp1).oper[0]^.val = $ffffffff) then
                 begin
-                  DebugMsg('PeepHole Optimization,MovAnd2Mov',p);
+                  DebugMsg('PeepHole Optimization MovAnd2Mov done',p);
                   asml.remove(hp1);
                   hp1.free;
                   Result:=true;
@@ -1151,8 +1151,10 @@ unit aoptx86;
 
                         mov %reg, y
                     }
+                    if taicpu(hp1).oper[1]^.typ=top_reg then
+                      AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
                     taicpu(p).loadOper(1,taicpu(hp1).oper[1]^);
-                    DebugMsg('PeepHole Optimization,MovMov2Mov 2',p);
+                    DebugMsg('PeepHole Optimization MovMov2Mov 2 done',p);
                     asml.remove(hp1);
                     hp1.free;
                     ReleaseUsedRegs(TmpUsedRegs);
@@ -1171,7 +1173,7 @@ unit aoptx86;
                            mov mem, %reg"
                       }
                       taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
-                      DebugMsg('PeepHole Optimization,MovMov2Mov 3',p);
+                      DebugMsg('PeepHole Optimization MovMov2Mov 3 done',p);
                       asml.remove(hp1);
                       hp1.free;
                       ReleaseUsedRegs(TmpUsedRegs);
@@ -1236,6 +1238,7 @@ unit aoptx86;
                       begin
                         taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
                         taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
+                        DebugMsg('PeepHole Optimization MovTestJxx2TestMov done',p);
                         asml.remove(p);
                         p.free;
                         p := hp1;
@@ -1257,6 +1260,7 @@ unit aoptx86;
                       begin
                         taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
                         taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
+                        DebugMsg('PeepHole Optimization MovTestJxx2ovTestJxx done',p);
                       end;
                   ReleaseUsedRegs(TmpUsedRegs);
                 end
@@ -1324,7 +1328,7 @@ unit aoptx86;
                       begin
                         if taicpu(p).oper[0]^.typ=top_reg then
                           AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,usedregs);
-                        DebugMsg('PeepHole Optimization,MovMov2Mov 1',p);
+                        DebugMsg('PeepHole Optimization MovMov2Mov 1',p);
                         asml.remove(hp1);
                         hp1.free;
                         Result:=true;
@@ -1355,7 +1359,7 @@ unit aoptx86;
                             taicpu(hp1).loadref(1,taicpu(hp1).oper[0]^.ref^);
                             taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
                             AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,UsedRegs);
-                            DebugMsg('Peephole MovMovCmp2MovCmp done',hp1);
+                            DebugMsg('Peephole Optimization MovMovCmp2MovCmp done',hp1);
                           end;
                         ReleaseUsedRegs(TmpUsedRegs);
                       end;
@@ -1365,7 +1369,7 @@ unit aoptx86;
                   begin
                     AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,UsedRegs);
                     taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
-                    DebugMsg('PeepHole Optimization,MovMov2MovMov1',p);
+                    DebugMsg('PeepHole Optimization MovMov2MovMov1 done',p);
                   end
                 else
                   begin
@@ -1387,7 +1391,7 @@ unit aoptx86;
                             mov reg2, mem2}
                         begin
                           AllocRegBetween(taicpu(hp2).oper[1]^.reg,p,hp2,usedregs);
-                          DebugMsg('PeepHole Optimization,MovMovMov2MovMov 1',p);
+                          DebugMsg('PeepHole Optimization MovMovMov2MovMov 1 done',p);
                           taicpu(p).loadoper(1,taicpu(hp2).oper[1]^);
                           taicpu(hp1).loadoper(0,taicpu(hp2).oper[1]^);
                           asml.remove(hp2);
@@ -1647,11 +1651,11 @@ unit aoptx86;
                           begin
                             asml.remove(p);
                             p.free;
-                            DebugMsg('PeepHole Optimization,MovXXMovXX2Nop 1',p);
+                            DebugMsg('PeepHole Optimization MovXXMovXX2Nop 1 done',p);
                             GetNextInstruction(hp1,p);
                           end
                         else
-                          DebugMsg('PeepHole Optimization,MovXXMovXX2MoVXX 1',p);
+                          DebugMsg('PeepHole Optimization MovXXMovXX2MoVXX 1 done',p);
                         asml.remove(hp1);
                         hp1.free;
                         Result:=true;
@@ -1685,6 +1689,7 @@ unit aoptx86;
               taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[0]^.reg;
             if (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) then
               taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
+            DebugMsg('PeepHole Optimization MovMovXX2MoVXX 1 done',p);
             asml.remove(p);
             p.free;
             p := hp1;
