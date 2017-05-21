@@ -4709,7 +4709,8 @@ implementation
            { don't create a temp. for the often seen case that p^ is passed to a var parameter }
            ((paracomplexity>1) and
             not((realtarget.nodetype=derefn) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) and
-            not((realtarget.nodetype=loadn) and tloadnode(realtarget).is_addr_param_load)
+            not((realtarget.nodetype=loadn) and tloadnode(realtarget).is_addr_param_load) and
+            not(realtarget.nodetype=realconstn)
            )
           );
 
