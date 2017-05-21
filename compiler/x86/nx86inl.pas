@@ -50,6 +50,7 @@ interface
           function first_popcnt: tnode; override;
           function first_fma: tnode; override;
           function first_frac_real : tnode; override;
+          function first_int_real : tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -71,6 +72,7 @@ interface
           procedure second_popcnt;override;
           procedure second_fma;override;
           procedure second_frac_real;override;
+          procedure second_int_real;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -286,6 +288,19 @@ implementation
            end
          else
            Result:=inherited first_frac_real;
+       end;
+
+
+     function tx86inlinenode.first_int_real : tnode;
+       begin
+         if (current_settings.fputype>=fpu_sse41) and
+           ((is_double(resultdef)) or (is_single(resultdef))) then
+           begin
+             expectloc:=LOC_MMREGISTER;
+             Result:=nil;
+           end
+         else
+           Result:=inherited first_int_real;
        end;
 
 
@@ -985,7 +1000,7 @@ implementation
             else
               begin
                 extrareg:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-               cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
+                cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar);
                 case tfloatdef(resultdef).floattype of
                   s32real:
                     begin
@@ -1004,6 +1019,44 @@ implementation
           end
         else
           internalerror(2017052101);
+      end;
+
+
+    procedure tx86inlinenode.second_int_real;
+      var
+        extrareg : TRegister;
+      begin
+        if use_vectorfpu(resultdef) then
+          begin
+            secondpass(left);
+            hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+            location_reset(location,LOC_MMREGISTER,left.location.size);
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            if UseAVX then
+              case tfloatdef(resultdef).floattype of
+                s32real:
+                  { using left.location.register here as 3rd parameter is crucial to break dependency chains }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSS,S_NO,3,left.location.register,left.location.register,location.register));
+                s64real:
+                  { using left.location.register here as 3rd parameter is crucial to break dependency chains }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VROUNDSD,S_NO,3,left.location.register,left.location.register,location.register));
+                else
+                  internalerror(2017052105);
+              end
+            else
+              begin
+                case tfloatdef(resultdef).floattype of
+                  s32real:
+                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_ROUNDSS,S_NO,3,left.location.register,location.register));
+                  s64real:
+                    current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg(A_ROUNDSD,S_NO,3,left.location.register,location.register));
+                  else
+                    internalerror(2017052106);
+                end;
+              end;
+          end
+        else
+          internalerror(2017052107);
       end;
 
 end.
