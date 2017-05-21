@@ -543,9 +543,12 @@ implementation
                case tfloatdef(resultdef).floattype of
                  s32real:
                    { we use S_NO instead of S_XMM here, regardless of the register size, as the size of the memory location is 32/64 bit }
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSS,S_NO,left.location.register,location.register,location.register));
+                   { using left.location.register here as 2nd parameter is crucial to break dependency chains }
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSS,S_NO,left.location.register,left.location.register,location.register));
                  s64real:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSD,S_NO,left.location.register,location.register,location.register));
+                   { we use S_NO instead of S_XMM here, regardless of the register size, as the size of the memory location is 32/64 bit }
+                   { using left.location.register here as 2nd parameter is crucial to break dependency chains }
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_VSQRTSD,S_NO,left.location.register,left.location.register,location.register));
                  else
                    internalerror(200510031);
                end
