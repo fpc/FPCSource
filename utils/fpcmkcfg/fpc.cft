@@ -145,16 +145,18 @@
 -FM%sharepath%/unicode/
 #endif
 
-# searchpath for units and other system dependent things
--Fu%basepath%/units/$fpctarget
--Fu%basepath%/units/$fpctarget/*
--Fu%basepath%/units/$fpctarget/rtl
-
+# Search for $fpctarget/$fpcsubarch-$fpcmemorymodel/ subdirectory first
+# for i8086 CPU
 #ifdef cpui8086
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/*
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/rtl
 #endif
+
+# searchpath for units and other system dependent things
+-Fu%basepath%/units/$fpctarget
+-Fu%basepath%/units/$fpctarget/*
+-Fu%basepath%/units/$fpctarget/rtl
 
 #IFDEF FPCAPACHE_1_3
 -Fu%basepath%/units/$fpctarget/httpd13/
