@@ -1006,9 +1006,9 @@ unit cgcpu;
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_ref(list,op,OS_32,tcgint(lo(value)),tempref);
+              cg.a_op_const_ref(list,op,OS_32,aint(lo(value)),tempref);
               inc(tempref.offset,4);
-              cg.a_op_const_ref(list,op,OS_32,tcgint(hi(value)),tempref);
+              cg.a_op_const_ref(list,op,OS_32,aint(hi(value)),tempref);
             end;
           OP_ADD, OP_SUB:
             begin
