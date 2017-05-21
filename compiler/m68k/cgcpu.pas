@@ -1079,7 +1079,7 @@ unit cgcpu;
 
     procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
       var
-        href : treference;
+        href, href2 : treference;
         freg : tregister;
       begin
         if current_settings.fputype = fpu_soft then
@@ -1101,12 +1101,25 @@ unit cgcpu;
         else
           if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
             begin
-              { fmove can't do <ea> -> <ea>, so move it to an fpreg first }
-              freg:=getfpuregister(list,size);
-              a_loadfpu_ref_reg(list,size,size,ref,freg);
+              //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara copy')));
+              cgpara.check_simple_location;
               reference_reset_base(href, NR_STACK_POINTER_REG, 0, cgpara.alignment, []);
               href.direction := dir_dec;
-              list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],freg,href));
+              case size of
+                OS_F64:
+                  begin
+                    href2:=ref;
+                    inc(href2.offset,8);
+                    fixref(list,href2,true);
+                    href2.direction := dir_dec;
+                    cg.a_load_ref_ref(list,OS_32,OS_32,href2,href);
+                    cg.a_load_ref_ref(list,OS_32,OS_32,href2,href);
+                  end;
+                OS_F32:
+                  cg.a_load_ref_ref(list,OS_32,OS_32,ref,href);
+                else
+                  internalerror(2017052110);
+              end;
             end
           else
             begin
