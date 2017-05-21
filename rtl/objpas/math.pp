@@ -745,7 +745,7 @@ function radtocycle(rad : float) : float;inline;
   end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-Function DegNormalize(deg : single) : single; 
+Function DegNormalize(deg : single) : single;
 
 begin
   Result:=Deg-Int(Deg/360)*360;
@@ -1056,30 +1056,25 @@ operator ** (bas,expo : int64) i: int64; inline;
 
 function ceil(x : float) : integer;
   begin
-    Ceil:=Trunc(x);
-    If Frac(x)>0 then
-      Ceil:=Ceil+1;
+    Result:=Trunc(x)+ord(Frac(x)>0);
   end;
+
 
 function ceil64(x: float): Int64;
   begin
-    Ceil64:=Trunc(x);
-    if Frac(x)>0 then
-      Ceil64:=Ceil64+1;
+    Result:=Trunc(x)+ord(Frac(x)>0);
   end;
+
 
 function floor(x : float) : integer;
   begin
-     Floor:=Trunc(x);
-     If Frac(x)<0 then
-       Floor := Floor-1;
+    Result:=Trunc(x)-ord(Frac(x)<0);
   end;
+
 
 function floor64(x: float): Int64;
   begin
-    Floor64:=Trunc(x);
-    if Frac(x)<0 then
-      Floor64:=Floor64-1;
+    Result:=Trunc(x)-ord(Frac(x)<0);
   end;
 
 
@@ -1105,7 +1100,7 @@ function ldexp(x : float;const p : Integer) : float;
   begin
      ldexp:=x*intpower(2.0,p);
   end;
-  
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function mean(const data : array of Single) : float;
 
