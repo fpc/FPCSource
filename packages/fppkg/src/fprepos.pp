@@ -339,6 +339,7 @@ ResourceString
   SErrMaxLevelExceeded     = 'Maximum number of dependency levels exceeded (%d) at package "%s".';
   SErrMirrorNotFound       = 'Mirror "%s" not found.';
   SRepoUnknown             = 'RepositoryUnknown';
+  SPackageUnknown          = 'unknown package';
 
 
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
@@ -728,7 +729,9 @@ end;
 
 Function TFPPackage.GetDebugName: string;
 begin
-  if Assigned(Repository) then
+  if not Assigned(Self) then
+    Result := SPackageUnknown
+  else if Assigned(Repository) then
     Result:=Repository.RepositoryName+'-'+Name
   else
     Result:=SRepoUnknown+'-'+Name;
