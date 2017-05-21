@@ -53,7 +53,7 @@ Unit raavrgas;
       { aasm }
       cpuinfo,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,
+      symconst,symbase,symtype,symsym,symtable,symdef,
       { parser }
       scanner,
       procinfo,
@@ -260,8 +260,10 @@ Unit raavrgas;
                   if hasdot and
                      (not oper.hastype) and
                      (oper.opr.localsym.typ=paravarsym) and
-                     ((tparavarsym(oper.opr.localsym).paraloc[calleeside].location^.loc<>LOC_REGISTER) or
-                      not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption)) then
+                     (not(po_assembler in current_procinfo.procdef.procoptions) or
+                      (tparavarsym(oper.opr.localsym).paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+                      (not is_implicit_pointer_object_type(oper.opr.localsym.vardef) and
+                       not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption))) then
                     Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
                 end;
