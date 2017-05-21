@@ -64,6 +64,7 @@ interface
           procedure second_popcnt; virtual;
           procedure second_seg; virtual; abstract;
           procedure second_fma; virtual;
+          procedure second_frac_real; virtual;
        end;
 
 implementation
@@ -134,6 +135,8 @@ implementation
               second_ln_real;
             in_cos_real:
                second_cos_real;
+            in_frac_real:
+              second_frac_real;
             in_prefetch_var:
               second_prefetch;
             in_assigned_x:
@@ -657,6 +660,11 @@ implementation
 
     procedure tcginlinenode.second_prefetch;
       begin
+      end;
+
+    procedure tcginlinenode.second_frac_real;
+      begin
+        internalerror(2017052104);
       end;
 
     procedure tcginlinenode.second_abs_long;
