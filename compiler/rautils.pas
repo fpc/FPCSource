@@ -94,6 +94,9 @@ type
     Function  SetupVar(const s:string;GetOffset : boolean): Boolean;
     Function  CheckOperand: boolean; virtual;
     Procedure InitRef;
+    Procedure InitRefConvertLocal;
+   protected
+    Procedure InitRefError;
   end;
   TCOperand = class of TOperand;
 
@@ -177,7 +180,7 @@ Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangle
 Function SearchType(const hs:string;var size:aint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:aint): boolean;
-
+Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 
 {---------------------------------------------------------------------
                   Instruction generation routines
@@ -1030,16 +1033,56 @@ Begin
         opr.ref_farproc_entry:=hsym_farprocentry;
       end;
     else
-      begin
-        Message(asmr_e_invalid_operand_type);
-        { Recover }
-        opr.typ:=OPR_REFERENCE;
-        opr.varsize:=0;
-        opr.constoffset:=0;
-        opr.ref_farproc_entry:=false;
-        Fillchar(opr.ref,sizeof(treference),0);
-      end;
-  end;
+      InitRefError;
+    end;
+end;
+
+procedure TOperand.InitRefConvertLocal;
+var
+  localvarsize,localconstoffset: asizeint;
+  localsym:tabstractnormalvarsym;
+  localsymofs:aint;
+  localindexreg:tregister;
+  localscale:byte;
+begin
+  if opr.typ=OPR_LOCAL then
+    begin
+      if AsmRegisterPara(opr.localsym) and
+         not opr.localgetoffset then
+        begin
+          localvarsize:=opr.localvarsize;
+          localconstoffset:=opr.localconstoffset;
+          localsym:=opr.localsym;
+          localsymofs:=opr.localsymofs;
+          localindexreg:=opr.localindexreg;
+          localscale:=opr.localscale;;
+          opr.typ:=OPR_REFERENCE;
+          hasvar:=false;
+          Fillchar(opr.ref,sizeof(treference),0);
+          opr.varsize:=localvarsize;
+          opr.constoffset:=localconstoffset;
+          opr.ref_farproc_entry:=false;
+          opr.ref.base:=tparavarsym(localsym).paraloc[calleeside].Location^.register;
+          opr.ref.offset:=localsymofs;
+          opr.ref.index:=localindexreg;
+          opr.ref.scalefactor:=localscale;
+        end
+      else
+        InitRefError;
+    end
+  else
+    InitRef;
+end;
+
+procedure TOperand.InitRefError;
+begin
+  Message(asmr_e_invalid_operand_type);
+  { Recover }
+  opr.typ:=OPR_REFERENCE;
+  opr.varsize:=0;
+  opr.constoffset:=0;
+  opr.ref_farproc_entry:=false;
+  Fillchar(opr.ref,sizeof(treference),0);
 end;
 
 Function TOperand.CheckOperand: boolean;
@@ -1275,6 +1318,15 @@ Begin
          end;
      end;
    end;
+end;
+
+
+function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
+begin
+  result:=
+    (po_assembler in current_procinfo.procdef.procoptions) and
+    (sym.typ=paravarsym) and
+    (tparavarsym(sym).paraloc[calleeside].Location^.Loc=LOC_REGISTER);
 end;
 
 

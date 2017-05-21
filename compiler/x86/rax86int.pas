@@ -229,24 +229,12 @@ Unit Rax86int;
 
 
     function tx86intreader.is_register(const s:string):boolean;
-      var
-        entry: TSymEntry;
       begin
         is_register:=false;
         actasmregister:=masm_regnum_search(lower(s));
         { don't acceps "flags" as register name in an instruction }
         if (getsupreg(actasmregister)=RS_DEFAULTFLAGS) and (getregtype(actasmregister)=getregtype(NR_DEFAULTFLAGS)) then
           actasmregister:=NR_NO;
-        if (actasmregister=NR_NO) and
-           (po_assembler in current_procinfo.procdef.procoptions) then
-          begin
-            entry:=current_procinfo.procdef.parast.Find(s);
-            if assigned(entry) and
-               (entry.typ=paravarsym) and
-               assigned(tparavarsym(entry).paraloc[calleeside].Location) and
-               (tparavarsym(entry).paraloc[calleeside].Location^.Loc=LOC_REGISTER) then
-              actasmregister:=tparavarsym(entry).paraloc[calleeside].Location^.register;
-          end;
         if actasmregister<>NR_NO then
           begin
             is_register:=true;
@@ -1320,9 +1308,10 @@ Unit Rax86int;
                    else
                     if oper.SetupVar(tempstr,GotOffset) then
                      begin
-                       { force OPR_LOCAL to be a reference }
-                       if oper.opr.typ=OPR_LOCAL then
-                         oper.opr.localforceref:=true
+                       { convert OPR_LOCAL register para into a reference base }
+                       if (oper.opr.typ=OPR_LOCAL) and
+                          AsmRegisterPara(oper.opr.localsym) then
+                         oper.InitRefConvertLocal
                        else
                          begin
 {$ifdef x86_64}
