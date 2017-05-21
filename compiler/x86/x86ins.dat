@@ -3364,19 +3364,19 @@ xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x17\110               SSE41,SM
 
 [ROUNDPS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x08\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDPD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x09\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0A\110\26            SSE41,SM2,SB,AR2
 
 [ROUNDSD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0B\110\26            SSE41,SM2,SB,AR2
 
 ;*******************************************************************************
@@ -4690,22 +4690,22 @@ xmmreg,xmmreg,mem32                  \333\362\370\1\x53\75\120            AVX,SA
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x53\75\120            AVX,SANDYBRIDGE
 
 [VROUNDPD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 ymmreg,ymmrm,imm8                    \361\362\364\372\1\x09\110\26        AVX,SANDYBRIDGE
 xmmreg,xmmrm,imm8                    \361\362\372\1\x09\110\26            AVX,SANDYBRIDGE
 
 [VROUNDPS]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Wop3)
 ymmreg,ymmrm,imm8                    \361\362\364\372\1\x08\110\26        AVX,SANDYBRIDGE
 xmmreg,xmmrm,imm8                    \361\362\372\1\x08\110\26            AVX,SANDYBRIDGE
 
 [VROUNDSD]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg,xmmreg,mem64,imm8             \361\362\372\1\x0B\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \361\362\372\1\x0B\75\120\27         AVX,SANDYBRIDGE
 
 [VROUNDSS]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4)
 xmmreg,xmmreg,mem32,imm8             \361\362\372\1\x0A\75\120\27         AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg,imm8            \361\362\372\1\x0A\75\120\27         AVX,SANDYBRIDGE
 
