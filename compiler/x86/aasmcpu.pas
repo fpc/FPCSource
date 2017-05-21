@@ -230,9 +230,10 @@ interface
         {read/write/read+write the entire flags/eflags/rflags register}
         Ch_RFlags, Ch_WFlags, Ch_RWFlags,
         Ch_FPU,
-        Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
-        Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
-        Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
+        Ch_Rop1, Ch_Wop1, Ch_RWop1, Ch_Mop1,
+        Ch_Rop2, Ch_Wop2, Ch_RWop2, Ch_Mop2,
+        Ch_Rop3, Ch_WOp3, Ch_RWOp3, Ch_Mop3,
+        Ch_Rop4, Ch_WOp4, Ch_RWOp4, Ch_Mop4,
         { instruction doesn't read it's input register, in case both parameters
           are the same register (e.g. xor eax,eax; sub eax,eax; sbb eax,eax (reads flags only), etc.) }
         Ch_NoReadIfEqualRegs,
@@ -328,6 +329,7 @@ interface
          constructor op_ref_reg_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2,_op3 : tregister);
          constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aint;_op2 : tregister;const _op3 : treference);
          constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
+         constructor op_const_reg_reg_reg(op : tasmop;_size : topsize;_op1 : aint;_op2, _op3, _op4 : tregister);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -1000,6 +1002,17 @@ implementation
         loadreg(0,_op1);
         loadreg(1,_op2);
         loadref(2,_op3);
+      end;
+
+    constructor taicpu.op_const_reg_reg_reg(op : tasmop; _size : topsize; _op1 : aint; _op2, _op3, _op4 : tregister);
+      begin
+        inherited create(op);
+        init(_size);
+        ops:=4;
+        loadconst(0,_op1);
+        loadreg(1,_op2);
+        loadreg(2,_op3);
+        loadreg(3,_op4);
       end;
 
 
@@ -3510,6 +3523,12 @@ implementation
                 operation_type_table^[opcode,2]:=operand_write;
               if [Ch_RWop3,Ch_Mop3]*Ch<>[] then
                 operation_type_table^[opcode,2]:=operand_readwrite;
+              if Ch_Rop4 in Ch then
+                operation_type_table^[opcode,3]:=operand_read;
+              if Ch_Wop4 in Ch then
+                operation_type_table^[opcode,3]:=operand_write;
+              if [Ch_RWop4,Ch_Mop4]*Ch<>[] then
+                operation_type_table^[opcode,3]:=operand_readwrite;
             end;
       end;
 

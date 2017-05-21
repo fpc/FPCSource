@@ -431,6 +431,11 @@ unit aoptx86;
                     RegReadByInstruction := true;
                     exit
                   end;
+                if ([Ch_RWOP4,Ch_ROP4,Ch_MOP4]*Ch<>[]) and reginop(reg,p.oper[3]^) then
+                  begin
+                    RegReadByInstruction := true;
+                    exit
+                  end;
               end;
           end;
       end;
