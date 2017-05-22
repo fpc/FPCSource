@@ -974,23 +974,27 @@ end;
                            Target Dependent
 ****************************************************************************}
 
+
 function SysErrorMessage(ErrorCode: Integer): String;
 const
   MaxMsgSize = Format_Message_Max_Width_Mask;
 var
-  MsgBuffer: pChar;
+  MsgBuffer: unicodestring;
+  len: longint;
 begin
-  GetMem(MsgBuffer, MaxMsgSize);
-  FillChar(MsgBuffer^, MaxMsgSize, #0);
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
-                 nil,
-                 ErrorCode,
-                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 MsgBuffer,                 { This function allocs the memory }
-                 MaxMsgSize,                           { Maximum message size }
-                 nil);
-  SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize);
+  SetLength(MsgBuffer, MaxMsgSize);
+  len := FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,
+                        nil,
+                        ErrorCode,
+                        MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                        PUnicodeChar(MsgBuffer),
+                        MaxMsgSize,
+                        nil);
+  // Remove trailing #13#10
+  if (len > 1) and (MsgBuffer[len - 1] = #13) and (MsgBuffer[len] = #10) then
+    Dec(len, 2);
+  SetLength(MsgBuffer, len);
+  Result := MsgBuffer;
 end;
 
 {****************************************************************************
