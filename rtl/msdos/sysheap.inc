@@ -20,10 +20,28 @@
                               Heap Management
 *****************************************************************************}
 
+{$ifdef DEBUG_TINY_HEAP}
+{ Internal structure used by MSDOS }
+type
+  MCB = packed record
+    sig : char;
+    psp : word;
+    paragraphs : word;
+    res : array [0..2] of char;
+    exename : array [0..7] of char;
+  end;
+  PMCB = ^MCB;
+{$endif def DEBUG_TINY_HEAP}
+
+
 function SysOSAlloc (size: ptruint): pointer;
 var
   regs : Registers;
   nb_para : longint;
+{$ifdef DEBUG_TINY_HEAP}
+  p : pmcb;
+  i : byte;
+{$endif def DEBUG_TINY_HEAP}
 begin
 {$ifdef DEBUG_TINY_HEAP}
   writeln('SysOSAlloc called size=',size);
@@ -56,7 +74,33 @@ begin
         begin
           result:=ptr(regs.ax,0);
 {$ifdef DEBUG_TINY_HEAP}
-          writeln('SysOSAlloc returned= $',hexstr(seg(regs.ax),4),':$0');
+          writeln('SysOSAlloc returned= $',hexstr(regs.ax,4),':$0');
+          p:=ptr(regs.ax-1,0);
+          writeln('Possibly prev MCB: at ',hexstr(p));
+          writeln('  sig=',p^.sig);
+          writeln('  psp=$',hexstr(p^.psp,4));
+          writeln('  paragraphs=',p^.paragraphs);
+          if (p^.exename[0]<>#0) then
+            begin
+              write('  name=');
+              for i:=0 to 7 do
+                if ord(p^.exename[i])>31 then
+                  write(p^.exename[i]);
+              writeln;
+            end;
+          p:=ptr(regs.ax+p^.paragraphs,0);
+          writeln('Possibly next MCB: at ',hexstr(p));
+          writeln('  sig=',p^.sig);
+          writeln('  psp=$',hexstr(p^.psp,4));
+          writeln('  paragraphs=',p^.paragraphs);
+          if (p^.exename[0]<>#0) then
+            begin
+              write('  name=');
+              for i:=0 to 7 do
+                if ord(p^.exename[i])>31 then
+                  write(p^.exename[i]);
+              writeln;
+            end;
 {$endif}
         end;
     end;
