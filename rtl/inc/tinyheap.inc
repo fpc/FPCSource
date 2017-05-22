@@ -157,6 +157,9 @@
                        end
                      else }
                        begin
+{$ifdef DEBUG_TINY_HEAP}
+                         Writeln('SysAlloc returned: ',HexStr(p));
+{$endif DEBUG_TINY_HEAP}
                          RegisterTinyHeapBlock(p,AllocSize);
                          { Recursive call }
                          SysGetMem:=SysGetMem(Size);
@@ -501,7 +504,7 @@
         FreeList := p;
       end;
 
-    procedure InternalTinyAlign(var AAddress: Pointer; ASize: PtrUInt);
+    procedure InternalTinyAlign(var AAddress: Pointer; var ASize: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif});
       var
         alignment_inc: smallint;
       begin
