@@ -61,7 +61,7 @@ type
     function FindRepository(ARepositoryName: string): TFPRepository;
     function RepositoryByName(ARepositoryName: string): TFPRepository;
 
-    function GetInstallRepository(APackage: TFPPackage): TFPRepository;
+    function GetInstallRepository(ASourcePackage: TFPPackage): TFPRepository;
     function PackageLocalArchive(APackage:TFPPackage): String;
     function PackageBuildPath(APackage:TFPPackage):String;
 
@@ -191,14 +191,6 @@ begin
       FOptions.LoadFromFile(cfgfile);
     end;
   FOptions.CommandLineSection.CompilerConfig:=FOptions.GlobalSection.CompilerConfig;
-  if FOptions.GlobalSection.InstallRepository <> '' then
-    FOptions.CommandLineSection.InstallRepository:=FOptions.GlobalSection.InstallRepository
-  else
-    begin
-      FirstRepoConf :=  FOptions.GetSectionByName('Repository');
-      if Assigned(FirstRepoConf) then
-        FOptions.CommandLineSection.InstallRepository := (FirstRepoConf as TFppkgRepositoryOptionSection).RepositoryName;
-    end;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     pkgglobals.Log(llDebug,SLogGeneratingGlobalConfig,[cfgfile])
@@ -559,22 +551,55 @@ begin
     Raise EPackage.CreateFmt(SErrMissingInstallRepo,[ARepositoryName]);
 end;
 
-function TpkgFPpkg.GetInstallRepository(APackage: TFPPackage): TFPRepository;
+function TpkgFPpkg.GetInstallRepository(ASourcePackage: TFPPackage): TFPRepository;
 var
-  InstRepositoryName: string;
-  Repo: TFPRepository;
+  SourceRepository: TFPRepository;
+  RepoName: string;
+  i: Integer;
 begin
-  Result := RepositoryByName(Options.CommandLineSection.InstallRepository);
-  if Assigned(APackage) and Assigned(APackage.Repository) and Assigned(APackage.Repository.DefaultPackagesStructure) then
+  // Determine the repository to install a package into. See the
+  // repositorylogics.dia file.
+  pkgglobals.Log(llDebug, SLogDetermineInstallRepo, [ASourcePackage.GetDebugName]);
+  RepoName := Options.CommandLineSection.InstallRepository;
+  if RepoName <> '' then
+    // If an install-repository is given on the command line, this overrides
+    // everything.
+    pkgglobals.Log(llDebug, SLogUseCommandLineRepo, [RepoName])
+  else
     begin
-      InstRepositoryName := APackage.Repository.DefaultPackagesStructure.InstallRepositoryName;
-      if (InstRepositoryName<>'') then
+      // The source-repository is already determined by the source-package, which
+      // is a member of the source-repository.
+      SourceRepository := ASourcePackage.Repository;
+      Assert(Assigned(SourceRepository));
+      Assert(SourceRepository.RepositoryType = fprtAvailable);
+
+      // For now, skip the check for original sources of already installed packages.
+
+      Assert(Assigned(SourceRepository.DefaultPackagesStructure));
+      RepoName := SourceRepository.DefaultPackagesStructure.InstallRepositoryName;
+      if RepoName<>'' then
+        pkgglobals.Log(llDebug, SLogUseSourceRepoInstRepo, [RepoName, SourceRepository.RepositoryName])
+      else
         begin
-          Repo := FindRepository(InstRepositoryName);
-          if Assigned(Repo) then
-            Result := Repo;
+          RepoName := Options.GlobalSection.InstallRepository;
+          if RepoName<>'' then
+            pkgglobals.Log(llDebug, SLogUseConfigurationRepo, [RepoName])
+          else
+            begin
+              for i := RepositoryList.Count-1 downto 0 do
+                begin
+                  if (RepositoryList[i] as TFPRepository).RepositoryType = fprtInstalled then
+                    begin
+                      Result := TFPRepository(RepositoryList[i]);
+                      pkgglobals.Log(llDebug, SLogUseLastRepo, [Result.RepositoryName]);
+                      Exit;
+                    end;
+                end;
+              raise EPackage.Create(SErrNoInstallRepoAvailable);
+            end;
         end;
     end;
+  Result := RepositoryByName(RepoName);
 end;
 
 function TpkgFPpkg.PackageLocalArchive(APackage: TFPPackage): String;

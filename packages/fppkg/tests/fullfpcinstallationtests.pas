@@ -8,6 +8,7 @@ uses
   Classes,
   SysUtils,
   fpcunit,
+  IniFiles,
   testdecorator,
   testregistry,
   CustApp,
@@ -39,6 +40,9 @@ type
     procedure TestFPMakeCommandLikePackageVariants;
     procedure TestFpmakePluginDependencies;
     procedure TestCleanupOfTemporaryBuildpath;
+    procedure TestDefaultInstallLocation;
+    procedure TestSourceRepositoryInstallLocation;
+    procedure TestConfiguredInstallLocation;
   end;
 
   { TFullFPCInstallationSetup }
@@ -352,6 +356,109 @@ begin
       Check(not ((SR.Name<>'.') and (SR.Name<>'..') and (SR.Name<>'fpmake.pp') and (SR.Name<>'src')), 'Check for garbage-files after build ('+SR.Name+')');
       until FindNext(SR) <> 0;
     end;
+end;
+
+procedure TFullFPCInstallationTests.TestDefaultInstallLocation;
+var
+  FPPKGFilename: String;
+  ConfigFile: TIniFile;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+
+  // Remove the installrepository setting from fppkg.cfg
+  FPPKGFilename := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'etc', 'fppkg.cfg']);
+  ConfigFile := TIniFile.Create(FPPKGFilename);
+  try
+    ConfigFile.DeleteKey('Defaults', 'InstallRepository');
+    ConfigFile.UpdateFile;
+  finally
+    ConfigFile.Free;
+  end;
+
+  // Should install into user
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'Install package A');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.o'])), 'PackageAUnitA.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'packagea.fpm'])), 'packagea.fpm not found');
+
+  // Command-line should override default, so install in fpc
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['install', '-i', 'fpc'], 'Install package B');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.o'])), 'PackageBUnitB.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'PackageB.fpm'])), 'PackageB.fpm not found');
+end;
+
+procedure TFullFPCInstallationTests.TestSourceRepositoryInstallLocation;
+var
+  LocalPackagesRepoCfgFilename: String;
+  ConfigFile: TIniFile;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+
+  // Remove the installrepository setting from fppkg.cfg
+  LocalPackagesRepoCfgFilename := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'config', 'conf.d', 'lazaruspackagesrepo.conf']);
+  ConfigFile := TIniFile.Create(LocalPackagesRepoCfgFilename);
+  try
+    ConfigFile.WriteString('UninstalledSourceRepository', 'Name', 'localpackages');
+    ConfigFile.WriteString('UninstalledSourceRepository', 'Description', 'Local packages');
+    ConfigFile.WriteString('UninstalledSourceRepository', 'Path', ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'packages']));
+    ConfigFile.WriteString('UninstalledSourceRepository', 'InstallRepository', 'fpc');
+    ConfigFile.UpdateFile;
+  finally
+    ConfigFile.Free;
+  end;
+
+  // Should install into fpc, as it is installed from the localpackages repository
+  // which has fpc as install-repository
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['install', 'packagea'], 'Install package A from source repository');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.o'])), 'PackageAUnitA.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'packagea.fpm'])), 'packagea.fpm not found');
+
+  // Command-line should override default, so install in user
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['install', '-i', 'user', 'packageb'], 'Install package B from user repository');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.o'])), 'PackageBUnitB.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'PackageB.fpm'])), 'PackageB.fpm not found');
+end;
+
+procedure TFullFPCInstallationTests.TestConfiguredInstallLocation;
+var
+  FPPKGFilename: String;
+  ConfigFile: TIniFile;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+
+  // Remove the installrepository setting from fppkg.cfg
+  FPPKGFilename := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'etc', 'fppkg.cfg']);
+  ConfigFile := TIniFile.Create(FPPKGFilename);
+  try
+    ConfigFile.WriteString('Defaults', 'InstallRepository', 'fpc');
+    ConfigFile.UpdateFile;
+  finally
+    ConfigFile.Free;
+  end;
+
+  // Should install into fpc
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'Install package A');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.o'])), 'PackageAUnitA.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'packagea.fpm'])), 'packagea.fpm not found');
+
+  // Command-line should override default, so install in user
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['install', '-i', 'user'], 'Install package B');
+
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.ppu'])), 'PackageBUnitB.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'PackageB','PackageBUnitB.o'])), 'PackageBUnitB.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'PackageB.fpm'])), 'PackageB.fpm not found');
 end;
 
 procedure TFullFPCInstallationTests.TestListPackages;

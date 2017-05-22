@@ -442,7 +442,7 @@ begin
   // manifest command does not use the --prefix and --baseinstalldir parameters.
   if (command<>'manifest') then
     begin
-      InstallRepo := PackageManager.RepositoryByName(PackageManager.Options.CommandLineSection.InstallRepository);
+      InstallRepo := PackageManager.GetInstallRepository(P);
 
       if not Assigned(InstallRepo.DefaultPackagesStructure) then
         begin

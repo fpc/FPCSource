@@ -62,6 +62,7 @@ Resourcestring
   SErrCannotModifyRepository = 'The repository of an TFPPackages-instance can not be changed.';
   SErrRepositoryNotAssigned  = 'Repository not assigned';
   SErrInstallationImpossible = 'It is not possible to install the package "%s" in repository "%s".';
+  SErrNoInstallRepoAvailable = 'There are no repositories configured to install packages into';
 
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
@@ -100,6 +101,11 @@ Resourcestring
   SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
   SLogFailedToCreateManifest = 'Failed to create manifest from fpmake.pp-file (%s) while scanning for available packages: %s';
   SLogUseInternalFpmkunit    = 'Fpmkunit not available, fallback to internal version.';
+  SLogDetermineInstallRepo   = 'Determine in which repository package "%s" has to be installed';
+  SLogUseCommandLineRepo     = 'Use repository "%s" provided on the command-line';
+  SLogUseSourceRepoInstRepo  = 'Use the installation repository "%s" which is coupled to the source repository "%s"';
+  SLogUseConfigurationRepo   = 'Use repository "%s" provided in the configuration files';
+  SLogUseLastRepo            = 'Use the last repository "%s"';
 
   SLogCfgHeader                      = 'Settings from configuration-files:';
   SLogCfgSectionHeader               = ' %s-section:';
