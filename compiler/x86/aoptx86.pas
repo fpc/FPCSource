@@ -1622,7 +1622,10 @@ unit aoptx86;
         hp1 : tai;
       begin
         Result:=false;
+        if taicpu(p).opercnt <> 2 then
+          exit;
         if GetNextInstruction(p,hp1) and
+          (taicpu(hp1).opercnt = 2) and
           MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) then
           begin
             if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
@@ -1651,8 +1654,8 @@ unit aoptx86;
                           begin
                             asml.remove(p);
                             p.free;
-                            DebugMsg('PeepHole Optimization MovXXMovXX2Nop 1 done',p);
                             GetNextInstruction(hp1,p);
+                            DebugMsg('PeepHole Optimization MovXXMovXX2Nop 1 done',p);
                           end
                         else
                           DebugMsg('PeepHole Optimization MovXXMovXX2MoVXX 1 done',p);
