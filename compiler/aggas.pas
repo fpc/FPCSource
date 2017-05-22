@@ -362,9 +362,16 @@ implementation
           (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
           secname:='.rodata';
 
-        { Use .rodata for Android }
-        if (target_info.system in systems_android) and (atype in [sec_rodata,sec_rodata_norel]) then
-          secname:='.rodata';
+        { Use .rodata and .data.rel.ro for Android with PIC }
+        if (target_info.system in systems_android) and (cs_create_pic in current_settings.moduleswitches) then
+          begin
+            case atype of
+              sec_rodata:
+                secname:='.data.rel.ro';
+              sec_rodata_norel:
+                secname:='.rodata';
+            end;
+          end;
 
         { section type user gives the user full controll on the section name }
         if atype=sec_user then
