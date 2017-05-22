@@ -167,6 +167,8 @@ Procedure SysInitFPU;
       fldcw   localfpucw
       fwait
     end;
+    if Test8087 < 2 then
+      exit;
     asm
       push es
       push ds
