@@ -322,7 +322,7 @@ end;
 
 procedure TFullFPCInstallationTests.SetUp;
 begin
-  RunTestCommandIndir(TFullFPCInstallationSetup.GetTestPath, 'rsync', ['-rtvu', '--delete', 'templates/fullfpc/', 'currenttest/'], 'sync template');
+  RunTestCommandIndir(TFullFPCInstallationSetup.GetTestPath, 'rsync', ['-rtv', '--delete', 'templates/fullfpc/', 'currenttest/'], 'sync template');
 end;
 
 procedure TFullFPCInstallationTests.TearDown;
