@@ -169,7 +169,8 @@ begin
     end;
   end;
   ec:=ReadProcessOutput(ppudumpprog, '-Fj' + LineEnding + un, s, err);
-  if Copy(s, 1, 1) <> '[' then begin
+  err:=Trim(err);
+  if (Copy(s, 1, 1) <> '[') and ((ec = 0) or (err = '')) then begin
     ec:=-1;
     err:='Output of ppudump is not in JSON format.' + LineEnding + 'Probably old version of ppudump has been used.';
   end;
