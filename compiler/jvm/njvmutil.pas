@@ -26,6 +26,7 @@ unit njvmutil;
 interface
 
   uses
+    cclasses,
     node,nbas,
     ngenutil,
     symtype,symconst,symsym,symdef;
@@ -43,7 +44,6 @@ interface
       class function  trashable_sym(p: tsym): boolean; override;
       class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
 
-      class procedure InsertInitFinalTable; override;
       class procedure InsertThreadvarTablesTable; override;
       class procedure InsertThreadvars; override;
       class procedure InsertWideInitsTablesTable; override;
@@ -53,6 +53,8 @@ interface
       class procedure InsertResStrTablesTable; override;
       class procedure InsertResStrInits; override;
       class procedure InsertMemorySizes; override;
+     protected
+       class procedure insert_init_final_table(entries:tfplist); override;
      strict protected
        class procedure add_main_procdef_paras(pd: tdef); override;
     end;
@@ -378,7 +380,7 @@ implementation
         inherited;
     end;
 
-  class procedure tjvmnodeutils.InsertInitFinalTable;
+  class procedure tjvmnodeutils.insert_init_final_table(entries:tfplist);
     var
       hp : tused_unit;
       unitinits : TAsmList;
@@ -386,6 +388,8 @@ implementation
       mainpsym: tsym;
       mainpd: tprocdef;
     begin
+      { JVM does not use the entries list }
+
       unitinits:=TAsmList.Create;
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do

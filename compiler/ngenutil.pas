@@ -109,10 +109,12 @@ interface
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
-      class procedure InsertInitFinalTable; virtual;
+      class procedure InsertInitFinalTable;;
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
+
+      class procedure insert_init_final_table(entries:tfplist); virtual;
 
       class function get_init_final_list: tfplist;
       class procedure release_init_final_list(list:tfplist);
@@ -1018,11 +1020,22 @@ implementation
 
   class procedure tnodeutils.InsertInitFinalTable;
     var
+      entries : tfplist;
+    begin
+      entries := get_init_final_list;
+
+      insert_init_final_table(entries);
+
+      release_init_final_list(entries);
+    end;
+
+
+  class procedure tnodeutils.insert_init_final_table(entries:tfplist);
+    var
       i : longint;
       unitinits : ttai_typedconstbuilder;
       nameinit,namefini : TSymStr;
       tabledef: tdef;
-      entries : tfplist;
       entry : pinitfinalentry;
 
       procedure add_initfinal_import(symtable:tsymtable);
@@ -1070,7 +1083,6 @@ implementation
         targetinfos[target_info.system]^.alignment.recordalignmin,
         targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
-      entries:=get_init_final_list;
       { tablecount }
       unitinits.emit_ord_const(entries.count,aluuinttype);
       { initcount (initialised at run time }
@@ -1124,8 +1136,6 @@ implementation
                 add_initfinal_import(entry^.module.localsymtable);
             end;
         end;
-
-      release_init_final_list(entries);
 
       { Add to data segment }
       tabledef:=unitinits.end_anonymous_record;

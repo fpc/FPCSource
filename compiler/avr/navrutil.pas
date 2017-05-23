@@ -26,6 +26,7 @@ unit navrutil;
 interface
 
   uses
+    cclasses,
     node,nbas,
     ngenutil,
     symtype,symconst,symsym,symdef;
@@ -33,14 +34,14 @@ interface
 
   type
     tavrnodeutils = class(tnodeutils)
-      class procedure InsertInitFinalTable; override;
+    protected
+      class procedure insert_init_final_table(entries:tfplist); override;
     end;
 
 implementation
 
     uses
       verbose,cutils,globtype,globals,constexp,fmodule,
-      cclasses,
       aasmdata,aasmtai,aasmcpu,aasmcnst,aasmbase,
       cpubase,
       symbase,symcpu,symtable,defutil,
@@ -51,11 +52,10 @@ implementation
       pass_1;
 
 
-  class procedure tavrnodeutils.InsertInitFinalTable;
+  class procedure tavrnodeutils.insert_init_final_table(entries:tfplist);
     var
       op : TAsmOp;
       initList, finalList, header: TAsmList;
-      entries : tfplist;
       entry : pinitfinalentry;
       i : longint;
     begin
@@ -67,7 +67,6 @@ implementation
       else
         op:=A_RCALL;
 
-      entries:=get_init_final_list;
       for i:=0 to entries.count-1 do
         begin
           entry:=pinitfinalentry(entries[i]);
@@ -76,7 +75,6 @@ implementation
           if entry^.initfunc<>'' then
             initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
         end;
-      release_init_final_list(entries);
 
       initList.Concat(taicpu.op_none(A_RET));
       finalList.Concat(taicpu.op_none(A_RET));
@@ -106,7 +104,7 @@ implementation
       initList.Free;
       finalList.Free;
 
-      inherited InsertInitFinalTable;
+      inherited insert_init_final_table(entries);
     end;
 
 begin
