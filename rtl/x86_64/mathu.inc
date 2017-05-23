@@ -100,6 +100,90 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
   end;
 
 
+{$define FPC_MATH_HAS_DIVMOD}
+{$asmmode intel}
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);assembler;
+asm
+{$ifdef WIN64}
+  mov eax, ecx
+  movzx ecx, dx
+  cdq
+  idiv ecx
+  mov [r8], ax
+  mov [r9], dx
+{$else WIN64}
+  mov eax, edi
+  movzx esi, si
+  mov rdi, rdx
+  cdq
+  idiv esi
+  mov [rdi], ax
+  mov [rcx], dx
+{$endif WIN64}
+end;
+
+
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);assembler;
+asm
+{$ifdef WIN64}
+  mov eax, ecx
+  movzx ecx, dx
+  cdq
+  idiv ecx
+  mov [r8], ax
+  mov [r9], dx
+{$else WIN64}
+  mov eax, edi
+  movzx esi, si
+  mov rdi, rdx
+  cdq
+  idiv esi
+  mov [rdi], ax
+  mov [rcx], dx
+{$endif WIN64}
+end;
+
+
+procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);assembler;
+asm
+{$ifdef WIN64}
+  mov eax, ecx
+  mov ecx, edx
+  xor edx, edx
+  div ecx
+  mov [r8], eax
+  mov [r9], edx
+{$else WIN64}
+  mov eax, edi
+  mov rdi, rdx
+  xor edx, edx
+  div esi
+  mov [rdi], eax
+  mov [rcx], edx
+{$endif WIN64}
+end;
+
+
+procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);assembler;
+asm
+{$ifdef WIN64}
+  mov eax, ecx
+  mov ecx, edx
+  cdq
+  idiv ecx
+  mov [r8], eax
+  mov [r9], edx
+{$else WIN64}
+  mov eax, edi
+  mov rdi, rdx
+  cdq
+  idiv esi
+  mov [rdi], eax
+  mov [rcx], edx
+{$endif WIN64}
+end;
+
+
 {$asmmode gas}
 function GetRoundMode: TFPURoundingMode;
 begin
