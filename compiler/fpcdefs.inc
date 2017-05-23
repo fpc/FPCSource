@@ -162,6 +162,7 @@
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
   {$define cpuflags}
+  {$define cpurox}
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
