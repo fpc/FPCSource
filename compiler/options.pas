@@ -3396,7 +3396,12 @@ begin
 
 { these cpus have an inline rol/ror implementaion }
 {$ifdef cpurox}
+{$ifdef m68k}
+  if CPUM68K_HAS_ROLROR in cpu_capabilities[init_settings.cputype] then
+    def_system_macro('FPC_HAS_INTERNAL_ROX');
+{$else}
   def_system_macro('FPC_HAS_INTERNAL_ROX');
+{$endif}
 {$endif}
 
 { these cpus have an inline sar implementaion }
