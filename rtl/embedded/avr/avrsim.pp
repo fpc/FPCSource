@@ -12,6 +12,7 @@ unit avrsim;
       OUTPUTREG   : byte absolute $20;
       EXITCODEREG : byte absolute $21;
       HALTREQUEST : byte absolute $22;
+      EXCEPTIONJMPZERO : boolean absolute 52;
 
     {$define DOCALL:=call}
     {$define DOJMP:=jmp}
@@ -72,6 +73,7 @@ unit avrsim;
 
 
 begin
+  EXCEPTIONJMPZERO:=true;
   OpenIO(Input, @WriteChar, @ReadChar, fmInput, nil);
   OpenIO(Output, @WriteChar, @ReadChar, fmOutput, nil);
   OpenIO(ErrOutput, @WriteChar, @ReadChar, fmOutput, nil);
