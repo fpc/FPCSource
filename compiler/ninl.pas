@@ -4660,6 +4660,7 @@ implementation
                  exit(cerrornode.create);
                end;
              insertblock:=internalstatements(insertstatement);
+             datatemp:=nil;
              if iscomparray then
                begin
                  datatemp:=ctempcreatenode.create_value(first,first.size,tt_normal,false,firstn);
