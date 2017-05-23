@@ -51,115 +51,32 @@ implementation
       pass_1;
 
 
-  procedure AddToStructInits(p:TObject;arg:pointer);
-    var
-      StructList: TFPList absolute arg;
-    begin
-      if (tdef(p).typ in [objectdef,recorddef]) and
-         not (df_generic in tdef(p).defoptions) then
-        begin
-          { first add the class... }
-          if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-            StructList.Add(p);
-          { ... and then also add all subclasses }
-          tabstractrecorddef(p).symtable.deflist.foreachcall(@AddToStructInits,arg);
-        end;
-    end;
-
-
   class procedure tavrnodeutils.InsertInitFinalTable;
     var
-      hp : tused_unit;
-      op: TAsmOp;
-      initCount, finalCount: longint;
-
-      procedure write_struct_inits(InitList, FinalizeList: TAsmList; u: tmodule);
-        var
-          i: integer;
-          structlist: TFPList;
-          pd: tprocdef;
-        begin
-          structlist := TFPList.Create;
-          if assigned(u.globalsymtable) then
-            u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-          u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-          { write structures }
-          for i:=0 to structlist.Count-1 do
-          begin
-            pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
-            if assigned(pd) then
-              begin
-                InitList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
-                inc(initCount);
-              end;
-
-            pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
-            if assigned(pd) then
-              begin
-                FinalizeList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
-                inc(finalCount);
-              end;
-          end;
-          structlist.free;
-        end;
-
-    var
+      op : TAsmOp;
       initList, finalList, header: TAsmList;
+      entries : tfplist;
+      entry : pinitfinalentry;
+      i : longint;
     begin
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
-
-      initCount:=0;
-      finalCount:=0;
 
       if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
         op:=A_CALL
       else
         op:=A_RCALL;
 
-      hp:=tused_unit(usedunits.first);
-      while assigned(hp) do
+      entries:=get_init_final_list;
+      for i:=0 to entries.count-1 do
         begin
-          if (hp.u.flags and uf_classinits) <> 0 then
-            write_struct_inits(initList, finalList, hp.u);
-
-          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
-            begin
-              if (hp.u.flags and uf_init)<>0 then
-                begin
-                  initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_DATA)));
-                  inc(initCount);
-                end;
-
-              if (hp.u.flags and uf_finalize)<>0 then
-                begin
-                  finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_DATA)));
-                  inc(finalCount);
-                end;
-            end;
-
-          hp:=tused_unit(hp.next);
+          entry:=pinitfinalentry(entries[i]);
+          if entry^.finifunc<>'' then
+            finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(entry^.finifunc,AT_FUNCTION)));
+          if entry^.initfunc<>'' then
+            initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(entry^.initfunc,AT_FUNCTION)));
         end;
-
-      { insert class constructors/destructor of the program }
-      if (current_module.flags and uf_classinits) <> 0 then
-        write_struct_inits(initList, finalList, current_module);
-
-      { Insert initialization/finalization of the program }
-      if (current_module.flags and (uf_init or uf_finalize))<>0 then
-        begin
-          if (current_module.flags and uf_init)<>0 then
-            begin
-              initList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('INIT$',current_module.localsymtable,''),AT_DATA)));
-              inc(initCount);
-            end;
-
-          if (current_module.flags and uf_finalize)<>0 then
-            begin
-              finalList.Concat(taicpu.op_sym(op,current_asmdata.RefAsmSymbol(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_DATA)));
-              inc(finalCount);
-            end;
-        end;
+      release_init_final_list(entries);
 
       initList.Concat(taicpu.op_none(A_RET));
       finalList.Concat(taicpu.op_none(A_RET));
