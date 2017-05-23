@@ -2268,14 +2268,14 @@ function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endi
   end;
 {$endif}
 
-function SwapEndian(const AValue: LongInt): LongInt;
+function SwapEndian(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
     Result := (Result shl 16) or (Result shr 16);
   end;
 
 {$ifndef cpujvm}
-function SwapEndian(const AValue: DWord): DWord;
+function SwapEndian(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
     Result := (Result shl 16) or (Result shr 16);
