@@ -2099,8 +2099,8 @@ function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
 begin
   Result:=AValue;
   If Result<AMin then
-    Result:=AMin
-  else if Result>AMax then
+    Result:=AMin;
+  if Result>AMax then
     Result:=AMax;
 end;
 
@@ -2109,8 +2109,8 @@ function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
 begin
   Result:=AValue;
   If Result<AMin then
-    Result:=AMin
-  else if Result>AMax then
+    Result:=AMin;
+  if Result>AMax then
     Result:=AMax;
 end;
 
@@ -2120,8 +2120,8 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
 begin
   Result:=AValue;
   If Result<AMin then
-    Result:=AMin
-  else if Result>AMax then
+    Result:=AMin;
+  if Result>AMax then
     Result:=AMax;
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
