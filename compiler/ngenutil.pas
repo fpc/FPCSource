@@ -109,7 +109,7 @@ interface
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
       class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
-      class procedure InsertInitFinalTable;;
+      class procedure InsertInitFinalTable;
      protected
       class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal); virtual;
       class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal); virtual;
