@@ -467,6 +467,138 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
     newp^.refcount:=1;
     newp^.high:=newhigh;
   end;
+
+procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;count : SizeInt;pti : pointer);compilerproc;
+  var
+    newhigh,
+    i : tdynarrayindex;
+    size : sizeint;
+    realp,
+    newp : pdynarray;
+    ti : pointer;
+    elesize : sizeint;
+    eletype,eletypemngd : pointer;
+  begin
+    if not assigned(data) or
+        (count=0) then
+      exit;
+
+    if assigned(p) then
+      realp:=pdynarray(p-sizeof(tdynarray))
+    else
+      realp:=nil;
+    newp:=realp;
+
+    { cap insert index }
+    if assigned(p) then
+      begin
+        if source<0 then
+          source:=0
+        else if source>realp^.high+1 then
+          source:=realp^.high+1;
+      end
+    else
+      source:=0;
+
+    { skip kind and name }
+{$ifdef VER3_0}
+    ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
+
+    elesize:=pdynarraytypedata(ti)^.elSize;
+    eletype:=pdynarraytypedata(ti)^.elType2^;
+    { only set if type needs initialization }
+    if assigned(pdynarraytypedata(ti)^.elType) then
+      eletypemngd:=pdynarraytypedata(ti)^.elType^
+    else
+      eletypemngd:=nil;
+
+    { determine new memory size }
+    if assigned(p) then
+      newhigh:=realp^.high+count
+    else
+      newhigh:=count-1;
+    size:=elesize*(newhigh+1)+sizeof(tdynarray);
+
+    if assigned(p) then
+      begin
+        if realp^.refcount<>1 then
+          begin
+            { make an unique copy }
+            getmem(newp,size);
+            fillchar(newp^,sizeof(tdynarray),0);
+
+            { copy leading elements }
+            if source>0 then
+              move(p^,(pointer(newp)+sizeof(tdynarray))^,source*elesize);
+            { insert new elements }
+            move(data^,(pointer(newp)+sizeof(tdynarray)+source*elesize)^,count*elesize);
+            { copy trailing elements }
+            if realp^.high-source+1>0 then
+              move((p+source*elesize)^,(pointer(newp)+sizeof(tdynarray)+(source+count)*elesize)^,(realp^.high-source+1)*elesize);
+
+            { increment ref. count of managed members }
+            if assigned(eletypemngd) then
+              for i:=0 to newhigh do
+                int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletypemngd);
+
+            { a declock(ref. count) isn't enough here }
+            { it could be that the in MT environments  }
+            { in the mean time the refcount was       }
+            { decremented                             }
+
+            { it is, because it doesn't really matter }
+            { if the array is now removed             }
+            fpc_dynarray_clear(p,pti);
+          end
+        else
+          begin
+            { resize the array }
+            reallocmem(realp,size);
+
+            { p might no longer be correct }
+            p:=pointer(realp)+sizeof(tdynarray);
+
+            { move the trailing part after the inserted data }
+            if source<=realp^.high then
+              move((p+source*elesize)^,(p+(source+count)*elesize)^,(realp^.high-source+1)*elesize);
+
+            { move the inserted data to the destination }
+            move(data^,(p+source*elesize)^,count*elesize);
+
+            { increase reference counts of inserted elements }
+            if assigned(eletypemngd) then
+              begin
+                for i:=source to source+count-1 do
+                  int_addref(p+i*elesize,eletypemngd);
+              end;
+
+            newp:=realp;
+          end;
+      end
+    else
+      begin
+        { allocate new array }
+        getmem(newp,size);
+        fillchar(newp^,sizeof(tdynarray),0);
+
+        { insert data }
+        move(data^,(pointer(newp)+sizeof(tdynarray))^,count*elesize);
+
+        { increase reference counts of inserted elements }
+        if assigned(eletypemngd) then
+          begin
+            for i:=0 to count-1 do
+              int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
+          end;
+      end;
+
+    p:=pointer(newp)+sizeof(tdynarray);
+    newp^.refcount:=1;
+    newp^.high:=newhigh;
+  end;
 {$endif VER3_0}
 
 

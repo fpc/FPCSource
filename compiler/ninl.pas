@@ -4608,12 +4608,27 @@ implementation
      function tinlinenode.handle_insert: tnode;
        var
          procname : String;
+         c : longint;
+         n,
+         newn,
+         datan,
+         datacountn,
+         firstn,
+         secondn : tnode;
          first,
          second : tdef;
+         isconstr,
+         iscomparray,
+         iscompelem : boolean;
+         datatemp : ttempcreatenode;
+         insertblock : tblocknode;
+         insertstatement : tstatementnode;
        begin
          { determine the correct function based on the second parameter }
-         first:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left.resultdef;
-         second:=tcallparanode(tcallparanode(left).right).left.resultdef;
+         firstn:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left;
+         first:=firstn.resultdef;
+         secondn:=tcallparanode(tcallparanode(left).right).left;
+         second:=secondn.resultdef;
          if is_shortstring(second) then
            begin
              if is_char(first) then
@@ -4627,6 +4642,69 @@ implementation
            procname:='fpc_widestr_insert'
          else if is_ansistring(second) then
            procname:='fpc_ansistr_insert'
+         else if is_dynamic_array(second) then
+           begin
+             { The first parameter needs to be
+               a) a dynamic array of the same type
+               b) a single element of the same type
+               c) a static array of the same type (not Delphi compatible)
+             }
+             isconstr:=is_array_constructor(first);
+             iscomparray:=(first.typ=arraydef) and equal_defs(tarraydef(first).elementdef,tarraydef(second).elementdef);
+             iscompelem:=compare_defs(first,tarraydef(second).elementdef,niln)<>te_incompatible;
+             if not iscomparray
+                 and not iscompelem
+                 and not isconstr then
+               begin
+                 CGMessagePos(fileinfo,type_e_array_required);
+                 exit(cerrornode.create);
+               end;
+             insertblock:=internalstatements(insertstatement);
+             if iscomparray then
+               begin
+                 datatemp:=ctempcreatenode.create_value(first,first.size,tt_normal,false,firstn);
+                 addstatement(insertstatement,datatemp);
+                 datan:=caddrnode.create_internal(cvecnode.create(ctemprefnode.create(datatemp),cordconstnode.create(0,sizesinttype,false)));
+                 datacountn:=cinlinenode.create(in_length_x,false,ctemprefnode.create(datatemp));
+               end
+             else if isconstr then
+               begin
+                 inserttypeconv(firstn,second);
+                 datatemp:=ctempcreatenode.create_value(second,second.size,tt_normal,false,firstn);
+                 addstatement(insertstatement,datatemp);
+                 datan:=caddrnode.create_internal(cvecnode.create(ctemprefnode.create(datatemp),cordconstnode.create(0,sizesinttype,false)));
+                 datacountn:=cinlinenode.create(in_length_x,false,ctemprefnode.create(datatemp));
+               end
+             else
+               begin
+                 if is_const(firstn) then
+                   begin
+                     datatemp:=ctempcreatenode.create_value(tarraydef(second).elementdef,tarraydef(second).elementdef.size,tt_normal,false,firstn);
+                     addstatement(insertstatement,datatemp);
+                     datan:=caddrnode.create_internal(ctemprefnode.create(datatemp));
+                   end
+                 else
+                   datan:=caddrnode.create_internal(ctypeconvnode.create_internal(firstn,tarraydef(second).elementdef));
+                 datacountn:=cordconstnode.create(1,sizesinttype,false);
+               end;
+             procname:='fpc_dynarray_insert';
+             { recreate the parameters as array pointer, source, data, count, typeinfo }
+             newn:=ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(second),initrtti,rdt_normal)),
+                     ccallparanode.create(datacountn,
+                       ccallparanode.create(datan,
+                         ccallparanode.create(tcallparanode(left).left,
+                           ccallparanode.create(ctypeconvnode.create_internal(secondn,voidpointertype),nil)))));
+             addstatement(insertstatement,ccallnode.createintern(procname,newn));
+             if assigned(datatemp) then
+               addstatement(insertstatement,ctempdeletenode.create(datatemp));
+             tcallparanode(tcallparanode(tcallparanode(left).right).right).left:=nil; // insert idx
+             tcallparanode(tcallparanode(left).right).left:=nil; // dyn array
+             tcallparanode(left).left:=nil; // insert element/array
+             left.free;
+             left:=nil;
+             result:=insertblock;
+             exit; { ! }
+           end
          else if second.typ=undefineddef then
            { just pick one }
            procname:='fpc_ansistr_insert'
