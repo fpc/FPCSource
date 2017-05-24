@@ -9090,7 +9090,7 @@ type
 
 // Menubar information
 type
-     tagMENUBARINFO = packed record
+     tagMENUBARINFO = record
        cbSize:DWORD;
        rcBar:Windows.RECT; // rect of bar, popup, item
        _hmenu:HMENU;       // real menu handle of bar, popup
