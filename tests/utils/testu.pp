@@ -49,6 +49,8 @@ type
 Const
   DoVerbose : boolean = false;
   DoSQL     : boolean = false;
+  MaxLogSize : LongInt = 50000;
+
 
 procedure TrimB(var s:string);
 procedure TrimE(var s:string);
@@ -320,7 +322,8 @@ begin
   While Not(EOF(F)) do
     begin
     ReadLn(F,S);
-    Result:=Result+S+LineEnding;
+    if length(Result)<MaxLogSize then
+      Result:=Result+S+LineEnding;
     end;
   Close(F);
 end;
