@@ -41,10 +41,6 @@ override CROSSOPT:=$(OPT)
 override OPT=
 endif
 
-ifndef BASEFPCDIR
-BASEFPCDIR=../..
-endif
-
 #############################
 # RTL
 #
@@ -77,7 +73,7 @@ rtl : rtl-stamp.$(FULL_TARGET)
 
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
-FPCUNITDIR=$(BASEFPCDIR)/packages/fcl-fpcunit/src
+FPCUNITDIR=$(FPCDIR)/packages/fcl-fpcunit/src
 
 fpcunit-stamp.$(FULL_TARGET):
 ifneq ($(OS_TARGET),msdos)
@@ -107,7 +103,7 @@ fpcunit : fpcunit-stamp.$(FULL_TARGET)
 
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
-PACKAGESDIR=$(BASEFPCDIR)/packages
+PACKAGESDIR=$(FPCDIR)/packages
 
 packages-stamp.$(FULL_TARGET):
 ifneq ($(inOS2),)
@@ -210,6 +206,7 @@ clean : cleanrtl cleanall cleanfpcunit cleanpackages
 
 distclean : clean distcleanrtl distcleanfpcunit distcleanpackages
 	-$(DELTREE) $(TEMPDIRS)
+	-$(DELTREE) $(BASEDIR)/units
 	-$(DEL) $(STAMPFILES)
 
 clean_ctest :

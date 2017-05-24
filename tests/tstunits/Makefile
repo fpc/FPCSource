@@ -1904,9 +1904,6 @@ ifdef CROSSCOMPILE
 override CROSSOPT:=$(OPT)
 override OPT=
 endif
-ifndef BASEFPCDIR
-BASEFPCDIR=../..
-endif
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 rtl-stamp.$(FULL_TARGET):
@@ -1925,7 +1922,7 @@ distcleanrtl: cleanrtl
 rtl : rtl-stamp.$(FULL_TARGET)
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
-FPCUNITDIR=$(BASEFPCDIR)/packages/fcl-fpcunit/src
+FPCUNITDIR=$(FPCDIR)/packages/fcl-fpcunit/src
 fpcunit-stamp.$(FULL_TARGET):
 ifneq ($(OS_TARGET),msdos)
 ifneq ($(CPU_TARGET),avr)
@@ -1945,7 +1942,7 @@ distcleanfpcunit: cleanfpcunit
 fpcunit : fpcunit-stamp.$(FULL_TARGET)
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
-PACKAGESDIR=$(BASEFPCDIR)/packages
+PACKAGESDIR=$(FPCDIR)/packages
 packages-stamp.$(FULL_TARGET):
 ifneq ($(inOS2),)
 	$(MAKE) -C ../../packages all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)"
@@ -2007,6 +2004,7 @@ TEMPDIRS=$(wildcard $(MAKEFILETARGETS) tmp)
 clean : cleanrtl cleanall cleanfpcunit cleanpackages
 distclean : clean distcleanrtl distcleanfpcunit distcleanpackages
 	-$(DELTREE) $(TEMPDIRS)
+	-$(DELTREE) $(BASEDIR)/units
 	-$(DEL) $(STAMPFILES)
 clean_ctest :
 	-$(DEL) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o
