@@ -347,8 +347,6 @@ begin
     ExecuteDosBox(DosBoxBinaryPath, DosBoxDir);
   finally
     ExitProc;
-    if use_temp_dir then
-      Cleanup(DosBoxDir);
   end;
 {$ifdef UseSignals}
   if SignalCalled then
@@ -358,5 +356,7 @@ begin
 {$endif def UseSignals}
   ExitProc;
   ExitCode:=ReadExitCode(DosBoxDir);
+  if use_temp_dir then
+    Cleanup(DosBoxDir);
   halt(ExitCode);
 end.
