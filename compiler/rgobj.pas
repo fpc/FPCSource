@@ -720,7 +720,7 @@ unit rgobj;
             begin
               { don't use sizeof(tmovelistheader), because that ignores alignment }
               getmem(movelist,ptruint(@movelist^.data)-ptruint(movelist)+60*sizeof(pointer));
-              movelist^.header.maxcount:=60;
+              movelist^.header.maxcount:=16;
               movelist^.header.count:=0;
               movelist^.header.sorted_until:=0;
             end
