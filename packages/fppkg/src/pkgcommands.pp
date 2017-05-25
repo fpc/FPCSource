@@ -421,7 +421,7 @@ begin
     begin
       ExecuteAction(PackageName,'build');
 
-      AvailPackage := PackageManager.FindPackage(PackageName, pkgpkAvailable);
+      AvailPackage := PackageManager.DetermineSourcePackage(PackageName);
       InstallRepo := PackageManager.GetInstallRepository(AvailPackage);
       case InstallRepo.DefaultPackagesStructure.IsInstallationNeeded(AvailPackage) of
         fpinInstallationNeeded:

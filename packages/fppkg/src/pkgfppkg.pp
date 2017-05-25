@@ -62,6 +62,7 @@ type
     function RepositoryByName(ARepositoryName: string): TFPRepository;
 
     function GetInstallRepository(ASourcePackage: TFPPackage): TFPRepository;
+    function DetermineSourcePackage(APackageName: String): TFPPackage;
     function PackageLocalArchive(APackage:TFPPackage): String;
     function PackageBuildPath(APackage:TFPPackage):String;
 
@@ -602,6 +603,11 @@ begin
   Result := RepositoryByName(RepoName);
 end;
 
+function TpkgFPpkg.DetermineSourcePackage(APackageName: String): TFPPackage;
+begin
+  Result := FindPackage(APackageName, pkgpkAvailable);
+end;
+
 function TpkgFPpkg.PackageLocalArchive(APackage: TFPPackage): String;
 begin
   if APackage.Name=CurrentDirPackageName then
@@ -618,7 +624,7 @@ var
   Repo, AvailableRepo: TFPRepository;
   AvailStruc: TFPOriginalSourcePackagesStructure;
 begin
-  for i := FRepositoryList.Count-1 downto 0 do
+  for i := 0 to FRepositoryList.Count-1 do
     begin
       Repo := FRepositoryList.Items[i] as TFPRepository;
       if Repo.RepositoryType = fprtInstalled then

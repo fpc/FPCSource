@@ -140,22 +140,8 @@ end;
 { TFPMakeCompiler }
 
 function TFPMakeCompiler.DeterminePackage: TFPPackage;
-var
-  PA, PI: TFPPackage;
 begin
-  PA:=PackageManager.FindPackage(PackageName, pkgpkAvailable);
-  PI:=PackageManager.FindPackage(PackageName, pkgpkInstalled);
-  if Assigned(PA) and Assigned(PI) then
-    begin
-    if PA.Version.CompareVersion(PI.Version) > 0 then
-      Result := PA
-    else
-      Result := PI;
-    end
-  else if Assigned(PI) then
-    Result := PI
-  else
-    Result := PA;
+  Result := PackageManager.DetermineSourcePackage(PackageName);
 
   if not Assigned(Result) then
     Raise EPackage.CreateFmt(SErrMissingPackage,[PackageName]);

@@ -43,6 +43,7 @@ type
     procedure TestDefaultInstallLocation;
     procedure TestSourceRepositoryInstallLocation;
     procedure TestConfiguredInstallLocation;
+    procedure TestInstallationLocationOriginalSource;
   end;
 
   { TFullFPCInstallationSetup }
@@ -341,6 +342,79 @@ begin
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'plugindependency', ['install'], 'Install dependency');
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'pluginpackage', ['install'], 'Install plugin');
   RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageusingplugin', ['install'], 'Install package that depends on plugin');
+end;
+
+procedure TFullFPCInstallationTests.TestInstallationLocationOriginalSource;
+var
+  SL: TStringList;
+  Checksum: Int64;
+  FPMFilename, S: string;
+
+  procedure CheckBrokenPackages(ExpectBrokenPackages: Boolean);
+  var
+    FPpkg: TpkgFPpkg;
+  begin
+    FPpkg := TpkgFPpkg.Create(nil);
+    try
+      FPpkg.InitializeGlobalOptions(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'etc','fppkg.cfg']));
+      FPpkg.Options.GlobalSection.Downloader := 'FPC';
+      FPpkg.InitializeCompilerOptions;
+
+      FPpkg.CompilerOptions.InitCompilerDefaults;
+      FPpkg.FpmakeCompilerOptions.InitCompilerDefaults;
+      FPpkg.CompilerOptions.CheckCompilerValues;
+      FPpkg.FpmakeCompilerOptions.CheckCompilerValues;
+      FPpkg.LoadLocalAvailableMirrors;
+
+      FPpkg.ScanAvailablePackages;
+      FPpkg.ScanPackages;
+
+      SL := TStringList.Create;
+      try
+        FPpkg.FindBrokenPackages(SL);
+        if ExpectBrokenPackages then
+          check(SL.Count>0, 'There should be broken packages')
+        else
+          check(SL.Count=0, 'There should not be any broken packages');
+      finally
+        SL.Free;
+      end;
+    finally
+      FPpkg.Free;
+    end;
+  end;
+
+begin
+  // Test whether a once installed package on a re-install is installed into the
+  // right (original) location.
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packageb');
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['install'], 'Install package A');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['install'], 'Install package B');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packageb', ['install', '-i', 'fpc'], 'Install package B');
+
+  CheckBrokenPackages(False);
+
+  // Break packageb on purpose, by changing the checksum of packagea
+  SL := TStringList.Create;
+  try
+    FPMFilename := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath, 'user', 'lib', 'fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst', TFullFPCInstallationSetup.GetTargetString, 'packagea.fpm']);
+    SL.LoadFromFile(FPMFilename);
+    Checksum := StrToInt64Def(SL.Values['Checksum'], -1);
+    Check(Checksum>-1, 'Determine checksum packagea');
+    SL.Values['Checksum'] := IntToStr(Checksum+1);
+    SL.SaveToFile(FPMFilename);
+  finally
+    SL.Free;
+  end;
+
+  CheckBrokenPackages(True);
+
+  S := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['fixbroken'], 'Fix broken packages');
+  Check(pos('broken',s) = 0, 'Fix broken command should not give any warning that packages are still broken');
+
+  CheckBrokenPackages(False);
 end;
 
 procedure TFullFPCInstallationTests.TestCleanupOfTemporaryBuildpath;
