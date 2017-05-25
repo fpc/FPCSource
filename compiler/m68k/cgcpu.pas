@@ -2168,7 +2168,7 @@ unit cgcpu;
                 begin
                   if (isaddressregister(reg)) then
                     internalerror(2015031502);
-                  //list.concat(tai_comment.create(strpnew('zero extend byte')));
+                  //list.concat(tai_comment.create(strpnew('zero extend word')));
                   list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
                 end;
             end;
