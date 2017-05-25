@@ -1622,11 +1622,11 @@ unit aoptx86;
         hp1 : tai;
       begin
         Result:=false;
-        if taicpu(p).opercnt <> 2 then
+        if taicpu(p).ops <> 2 then
           exit;
         if GetNextInstruction(p,hp1) and
-          (taicpu(hp1).opercnt = 2) and
-          MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) then
+          MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) and
+          (taicpu(hp1).ops = 2) then
           begin
             if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
                (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
