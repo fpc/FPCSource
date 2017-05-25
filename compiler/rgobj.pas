@@ -22,6 +22,7 @@
 {$i fpcdefs.inc}
 
 { $define DEBUG_REGALLOC}
+{ $define DEBUG_SPILLCOALESCE}
 
 {$ifdef DEBUG_REGALLOC}
 {$define EXTDEBUG}
@@ -129,6 +130,13 @@ unit rgobj;
       Pspill_temp_list=^Tspill_temp_list;
       Tspill_temp_list=array[tsuperregister] of Treference;
 
+      { used to store where a register is spilled and what interferences it has at the point of being spilled }
+      tspillinfo = record
+        spilllocation : treference;
+        spilled : boolean;
+        interferences : Tinterferencebitmap;
+      end;
+
       {#------------------------------------------------------------------
 
       This class implements the default register allocator. It is used by the
@@ -226,11 +234,17 @@ unit rgobj;
         active_moves,
         frozen_moves,
         coalesced_moves,
-        constrained_moves : Tlinkedlist;
+        constrained_moves,
+        { in this list we collect all moveins which should be disposed after register allocation finishes,
+          we still need the moves for spill coalesce for the whole register allocation process, so they cannot be
+          released as soon as they are frozen or whatever }
+        move_garbage : Tlinkedlist;
         extended_backwards,
         backwards_was_first : tbitset;
         has_usedmarks: boolean;
         has_directalloc: boolean;
+
+        spillinfo : array of tspillinfo;
 
         { Disposes of the reginfo array.}
         procedure dispose_reginfo;
@@ -242,6 +256,8 @@ unit rgobj;
         procedure colour_registers;
         procedure insert_regalloc_info(list:TAsmList;u:tsuperregister);
         procedure generate_interference_graph(list:TAsmList;headertai:tai);
+        { sort spilled nodes by increasing number of interferences }
+        procedure sort_spillednodes;
         { translates the registers in the given assembler list }
         procedure translate_registers(list:TAsmList);
         function  spill_registers(list:TAsmList;headertai:tai):boolean;virtual;
@@ -290,9 +306,9 @@ unit rgobj;
   implementation
 
     uses
-       globals,
-       verbose,tgobj,procinfo;
-
+      sysutils,
+      globals,
+      verbose,tgobj,procinfo;
 
     procedure sort_movelist(ml:Pmovelist);
 
@@ -423,6 +439,7 @@ unit rgobj;
          maxreginfo:=first_imaginary;
          maxreginfoinc:=16;
          worklist_moves:=Tlinkedlist.create;
+         move_garbage:=TLinkedList.Create;
          reginfo:=allocmem(first_imaginary*sizeof(treginfo));
          for i:=0 to first_imaginary-1 do
            begin
@@ -447,41 +464,46 @@ unit rgobj;
          selectstack.init;
       end;
 
-    destructor trgobj.destroy;
 
-    begin
-      spillednodes.done;
-      simplifyworklist.done;
-      freezeworklist.done;
-      spillworklist.done;
-      coalescednodes.done;
-      selectstack.done;
-      live_registers.done;
-      worklist_moves.free;
-      dispose_reginfo;
-      extended_backwards.free;
-      backwards_was_first.free;
-    end;
+    destructor trgobj.destroy;
+      begin
+        spillednodes.done;
+        simplifyworklist.done;
+        freezeworklist.done;
+        spillworklist.done;
+        coalescednodes.done;
+        selectstack.done;
+        live_registers.done;
+
+        move_garbage.free;
+        worklist_moves.free;
+
+        dispose_reginfo;
+        extended_backwards.free;
+        backwards_was_first.free;
+      end;
+
 
     procedure Trgobj.dispose_reginfo;
+      var
+        i : cardinal;
+        j : longint;
+      begin
+        if reginfo<>nil then
+          begin
+            for i:=0 to maxreg-1 do
+              with reginfo[i] do
+                begin
+                  if adjlist<>nil then
+                    dispose(adjlist,done);
+                  if movelist<>nil then
+                    dispose(movelist);
+                end;
+            freemem(reginfo);
+            reginfo:=nil;
+          end;
+      end;
 
-    var i:cardinal;
-
-    begin
-      if reginfo<>nil then
-        begin
-          for i:=0 to maxreg-1 do
-            with reginfo[i] do
-              begin
-                if adjlist<>nil then
-                  dispose(adjlist,done);
-                if movelist<>nil then
-                  dispose(movelist);
-              end;
-          freemem(reginfo);
-          reginfo:=nil;
-        end;
-    end;
 
     function trgobj.getnewreg(subreg:tsubregister):tsuperregister;
       var
@@ -578,6 +600,7 @@ unit rgobj;
       var
         spillingcounter:byte;
         endspill:boolean;
+        i : Longint;
       begin
         { Insert regalloc info for imaginary registers }
         insert_regalloc_info_all(list);
@@ -612,10 +635,16 @@ unit rgobj;
             end;
         until endspill;
         ibitmap.free;
+
         translate_registers(list);
-        { we need the translation table for debugging info and verbose assembler output (FK)
-          dispose_reginfo;
+
+        { we need the translation table for debugging info and verbose assembler output,
+          so not dispose them yet (FK)
         }
+
+        for i:=0 to High(spillinfo) do
+          spillinfo[i].interferences.Free;
+        spillinfo:=nil;
       end;
 
 
@@ -719,7 +748,7 @@ unit rgobj;
           if movelist=nil then
             begin
               { don't use sizeof(tmovelistheader), because that ignores alignment }
-              getmem(movelist,ptruint(@movelist^.data)-ptruint(movelist)+60*sizeof(pointer));
+              getmem(movelist,ptruint(@movelist^.data)-ptruint(movelist)+16*sizeof(pointer));
               movelist^.header.maxcount:=16;
               movelist^.header.count:=0;
               movelist^.header.sorted_until:=0;
@@ -925,6 +954,49 @@ unit rgobj;
             end;
         end;
     end;
+
+
+    { sort spilled nodes by increasing number of interferences }
+    procedure Trgobj.sort_spillednodes;
+      var
+        p,h,i,leni,lent:longword;
+        t:Tsuperregister;
+        adji,adjt:Psuperregisterworklist;
+      begin
+        with spillednodes do
+          begin
+            if length<2 then
+              exit;
+            p:=1;
+            while 2*p<length do
+              p:=2*p;
+            while p<>0 do
+              begin
+                for h:=p to length-1 do
+                  begin
+                    i:=h;
+                    t:=buf^[i];
+                    adjt:=reginfo[buf^[i]].adjlist;
+                    lent:=0;
+                    if adjt<>nil then
+                      lent:=adjt^.length;
+                    repeat
+                      adji:=reginfo[buf^[i-p]].adjlist;
+                      leni:=0;
+                      if adji<>nil then
+                        leni:=adji^.length;
+                      if leni<=lent then
+                        break;
+                      buf^[i]:=buf^[i-p];
+                      dec(i,p)
+                    until i<p;
+                    buf^[i]:=t;
+                  end;
+                p:=p shr 1;
+              end;
+          end;
+      end;
+
 
     procedure trgobj.make_work_list;
 
@@ -1505,25 +1577,26 @@ unit rgobj;
     end;
 
     procedure trgobj.epilogue_colouring;
-    var
-      i : cardinal;
     begin
-      worklist_moves.clear;
-      active_moves.destroy;
+      { remove all items from the worklists, but do not free them, they are still needed for spill coalesce }
+
+      move_garbage.concatList(worklist_moves);
+
+      move_garbage.concatList(active_moves);
+      active_moves.Free;
       active_moves:=nil;
-      frozen_moves.destroy;
+
+      move_garbage.concatList(frozen_moves);
+      frozen_moves.Free;
       frozen_moves:=nil;
-      coalesced_moves.destroy;
+
+      move_garbage.concatList(coalesced_moves);
+      coalesced_moves.Free;
       coalesced_moves:=nil;
-      constrained_moves.destroy;
+
+      move_garbage.concatList(constrained_moves);
+      constrained_moves.Free;
       constrained_moves:=nil;
-      for i:=0 to maxreg-1 do
-        with reginfo[i] do
-          if movelist<>nil then
-            begin
-              dispose(movelist);
-              movelist:=nil;
-            end;
     end;
 
 
@@ -1968,27 +2041,97 @@ unit rgobj;
         p,q : Tai;
         regs_to_spill_set:Tsuperregisterset;
         spill_temps : ^Tspill_temp_list;
-        supreg : tsuperregister;
+        supreg,x,y : tsuperregister;
         templist : TAsmList;
+        j : Longint;
+        getnewspillloc : Boolean;
       begin
         spill_registers:=false;
         live_registers.clear;
+        { spilling should start with the node with the highest number of interferences, so we can coalesce as
+          much as possible spilled nodes (coalesce in case of spilled node means they share the same memory location) }
+        sort_spillednodes;
         for i:=first_imaginary to maxreg-1 do
           exclude(reginfo[i].flags,ri_selected);
         spill_temps:=allocmem(sizeof(treference)*maxreg);
         supregset_reset(regs_to_spill_set,false,$ffff);
+
+{$ifdef DEBUG_SPILLCOALESCE}
+        writeln('trgobj.spill_registers: Got maxreg ',maxreg);
+        writeln('trgobj.spill_registers: Spilling ',spillednodes.length,' nodes');
+{$endif DEBUG_SPILLCOALESCE}
+        { after each round of spilling, more registers could be used due to allocations for spilling }
+        if Length(spillinfo)<maxreg then
+          begin
+            j:=Length(spillinfo);
+            SetLength(spillinfo,maxreg);
+            fillchar(spillinfo[j],sizeof(spillinfo[0])*(Length(spillinfo)-j),0);
+          end;
+
         { Allocate temps and insert in front of the list }
         templist:=TAsmList.create;
-        {Safe: this procedure is only called if there are spilled nodes.}
+        { Safe: this procedure is only called if there are spilled nodes. }
         with spillednodes do
-          for i:=0 to length-1 do
+          { the node with the highest interferences is the last one }
+          for i:=length-1 downto 0 do
             begin
               t:=buf^[i];
-              {Alternative representation.}
+
+{$ifdef DEBUG_SPILLCOALESCE}
+              writeln('trgobj.spill_registers: Spilling ',t);
+{$endif DEBUG_SPILLCOALESCE}
+
+              spillinfo[t].spilled:=true;
+              spillinfo[t].interferences:=Tinterferencebitmap.create;
+
+              { copy interferences }
+              for j:=0 to maxreg-1 do
+                spillinfo[t].interferences[0,j]:=ibitmap[t,j];
+
+              { Alternative representation. }
               supregset_include(regs_to_spill_set,t);
-              {Clear all interferences of the spilled register.}
+              { Clear all interferences of the spilled register. }
               clear_interferences(t);
-              get_spill_temp(templist,spill_temps,t);
+
+              getnewspillloc:=true;
+
+              { check if we can "coalesce" spilled nodes. To do so, it is required that they do not
+                interfere but are connected by a move instruction
+
+                doing so might save some mem->mem moves }
+              if (cs_opt_level3 in current_settings.optimizerswitches) and assigned(reginfo[t].movelist) then
+                for j:=0 to reginfo[t].movelist^.header.count-1 do
+                  begin
+                    x:=Tmoveins(reginfo[t].movelist^.data[j]).x;
+                    y:=Tmoveins(reginfo[t].movelist^.data[j]).y;
+                    if (x=t) and
+                      (spillinfo[y].spilled) and
+                      not(spillinfo[y].interferences[0,t]) then
+                      begin
+                        spill_temps^[t]:=spillinfo[y].spilllocation;
+{$ifdef DEBUG_SPILLCOALESCE}
+                        writeln('trgobj.spill_registers: Spill coalesce ',t,' to ',y);
+{$endif DEBUG_SPILLCOALESCE}
+                        getnewspillloc:=false;
+                        break;
+                      end
+                    else if (y=t) and
+                      (spillinfo[x].spilled) and
+                      not(spillinfo[x].interferences[0,t]) then
+                      begin
+{$ifdef DEBUG_SPILLCOALESCE}
+                        writeln('trgobj.spill_registers: Spill coalesce ',t,' to ',x);
+{$endif DEBUG_SPILLCOALESCE}
+                        spill_temps^[t]:=spillinfo[x].spilllocation;
+                        getnewspillloc:=false;
+                        break;
+                      end;
+                  end;
+
+              if getnewspillloc then
+                get_spill_temp(templist,spill_temps,t);
+
+              spillinfo[t].spilllocation:=spill_temps^[t];
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
