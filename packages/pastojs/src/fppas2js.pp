@@ -326,7 +326,7 @@ interface
 
 uses
   Classes, SysUtils, math, contnrs, jsbase, jstree, PasTree, PScanner,
-  PasResolver;
+  PasResolver, PasResolveEval;
 
 // message numbers
 const

@@ -24,8 +24,8 @@ unit tcmodules;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, contnrs, fppas2js,
-  pastree, PScanner, PasResolver, PParser, jstree, jswriter, jsbase;
+  Classes, SysUtils, fpcunit, testregistry, contnrs, fppas2js, pastree,
+  PScanner, PasResolver, PParser, PasResolveEval, jstree, jswriter, jsbase;
 
 const
   // default parser+scanner options
