@@ -178,7 +178,8 @@ const
   { 90 }  'Embedded-i8086',
   { 91 }  'AROS-arm',
   { 92 }  'WebAssembly-wasm',
-  { 93 }  'UEFI-i386'
+  { 93 }  'UEFI-i386',
+  { 94 }  'UEFI-x86-64'
   );
 
 const

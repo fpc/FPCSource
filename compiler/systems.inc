@@ -176,7 +176,8 @@
              system_i8086_embedded,     { 90 }
              system_arm_aros,           { 91 }
              system_wasm_wasm32,        { 92 }
-             system_i386_uefi           { 93 }
+             system_i386_uefi,          { 93 }
+             system_x86_64_uefi         { 94 }
        );
 
      type

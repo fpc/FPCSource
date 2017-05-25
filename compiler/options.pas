@@ -769,7 +769,6 @@ begin
   StopOptions(0);
 end;
 
-
 procedure Toption.IllegalPara(const opt:TCmdStr);
 begin
   Message1(option_illegal_para,opt);
@@ -2174,7 +2173,7 @@ begin
                             else
                               SetApptype(app_native);
                           end
-                        else if target_info.system in [system_i386_uefi] then
+                        else if target_info.system in [system_i386_uefi,system_x86_64_uefi] then
                           begin
                             SetApptype(app_efi_app);
                           end                          

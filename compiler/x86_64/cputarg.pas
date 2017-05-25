@@ -55,6 +55,10 @@ implementation
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
     {$endif}
+    {$ifndef NOTTARGETUEFI}
+      ,t_uefi
+    {$endif NOTTARGETUEFI}
+
 
 {**************************************
              Assemblers

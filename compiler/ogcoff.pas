@@ -2581,7 +2581,7 @@ const pemagic : array[0..3] of byte = (
             else
               if target_info.system in systems_wince then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
-              else if target_info.system in [system_i386_uefi] then
+              else if target_info.system in [system_i386_uefi,system_x86_64_uefi] then
                 begin
                   case apptype of
                     app_efi_app :
@@ -3272,7 +3272,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_x86_64_win64];
+            supported_targets : [system_x86_64_win64,system_x86_64_uefi];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';

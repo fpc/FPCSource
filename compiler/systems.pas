@@ -818,6 +818,10 @@ begin
     {$define default_target_set}
     default_target(system_i386_solaris);
    {$endif}
+   {$ifdef uefi}
+    default_target(system_i386_uefi);
+    {$define default_target_set}
+   {$endif}   
   {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
@@ -860,6 +864,10 @@ begin
    {$endif}
    {$ifdef darwin}
     default_target(system_x86_64_darwin);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef uefi}
+    default_target(system_x86_64_uefi);
     {$define default_target_set}
    {$endif}
   {$endif cpux86_64}

@@ -87,18 +87,14 @@ initialization
   RegisterLinker(ld_int_uefi,TInternalLinkerUEFI);
 {$ifdef i386}
   { UEFI }
-//  WriteLn('32 UEFI');
   RegisterImport(system_i386_uefi,TImportLibUEFI);
   RegisterExport(system_i386_uefi,TExportLibUEFI);
   RegisterTarget(system_i386_uefi_info);
 {$endif i386}
 {$ifdef x86_64}
-{ $ifdef UEFI64}
-  { UEFI }
-//  WriteLn('64 UEFI');
-  RegisterImport(system_x86_64_uefi64,TImportLibUEFI);
-  RegisterExport(system_x86_64_uefi64,TExportLibUEFI);
-  RegisterTarget(system_x64_uefi64_info);
-{ $endif}
+  { UEFI 64}
+  RegisterImport(system_x86_64_uefi,TImportLibUEFI);
+  RegisterExport(system_x86_64_uefi,TExportLibUEFI);
+  RegisterTarget(system_x86_64_uefi_info);
 {$endif x86_64}
 end.

@@ -99,18 +99,18 @@ unit i_uefi;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
           );
 
-(*       system_x64_uefi64_info : tsysteminfo =
+       system_x86_64_uefi_info : tsysteminfo =
           (
-            system       : system_x86_64_uefi64;
+            system       : system_x86_64_uefi;
             name         : 'UEFI for x86_64';
-            shortname    : 'uefi64';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_smartlink_library
+            shortname    : 'uefi';
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development,
-                            tf_dwarf_only_local_labels{,tf_pic_uses_got}];
+                            tf_dwarf_only_local_labels{,tf_pic_uses_got},tf_pic_default,tf_library_needs_pic];
             cpu          : cpu_x86_64;
             unit_env     : 'UEFIUNITS';
-            extradefines : 'UEFI64,FPC_OS_UNICODE';
+            extradefines : 'UEFI,FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
@@ -140,14 +140,14 @@ unit i_uefi;
             linkextern   : ld_none;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
               (
                 procalign       : 16;
                 loopalign       : 8;
-                jumpalign       : 0;
+                jumpalign       : 4;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;
@@ -163,26 +163,21 @@ unit i_uefi;
             stackalign   : 16;
             abi          : abi_default;
             { note: default LLVM stack alignment is 16 bytes for this target }
-            { TODO : check this... Took from Haiku, but should probably come from Windows ? }
-            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
-          );*)
+            { TODO : check this... Took from Win64 }
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
+          );
 
   implementation
   
 initialization
 {$ifdef CPUI386}
-//  WriteLn('CPUI386 defined');
   {$ifdef UEFI}
-//    WriteLn('UEFI defined');
     set_source_info(system_i386_uefi_info);
   {$endif UEFI}
 {$endif CPUI386}
 {$ifdef CPUX86_64}
-{ $ifdef x86_64}
-//  WriteLn('CPUX86_64 defined');
-  {$ifdef UEFI64}
-//    WriteLn('UEFI64 defined');
-    set_source_info(system_x64_uefi64_info);
+  {$ifdef UEFI}
+    set_source_info(system_x86_64_uefi_info);
   {$endif UEFI}
 {$endif CPUX86_64}
 

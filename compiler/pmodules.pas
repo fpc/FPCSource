@@ -1867,7 +1867,7 @@ type
       begin
          // Under UEFI, an application is technically a dll.
          // So, we build both programs and libraries as libraries
-         if target_info.system in [system_i386_uefi] then
+         if target_info.system in [system_i386_uefi,system_x86_64_uefi] then
            IsLibrary := true;
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
@@ -1915,7 +1915,7 @@ type
 
          if islibrary then
            begin
-              if target_info.system in [system_i386_uefi] then
+              if target_info.system in [system_i386_uefi,system_x86_64_uefi] then
                 begin
                   // For UEFI targets, every binaries are libraries.
                   // So, we treat 'program' as 'library' as well.
