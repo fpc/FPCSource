@@ -34,6 +34,7 @@ type
 
   TFPMakeRunner = Class(TFPMakeCompiler)
   Protected
+    function IncludeInstallationOptions: Boolean; virtual;
     Function RunFPMake(const Command:string):Integer;
   end;
 
@@ -57,15 +58,19 @@ type
   { TFPMakeRunnerInstall }
 
   TFPMakeRunnerInstall = Class(TFPMakeRunner)
+  protected
+    function IncludeInstallationOptions: Boolean; override;
   Public
-    Procedure Execute;override;
+    procedure Execute;override;
   end;
 
   { TFPMakeRunnerUnInstall }
 
   TFPMakeRunnerUnInstall = Class(TFPMakeRunner)
+  protected
+    function IncludeInstallationOptions: Boolean; override;
   Public
-    Procedure Execute;override;
+    procedure Execute;override;
   end;
 
   { TFPMakeRunnerClean }
@@ -342,6 +347,11 @@ end;
 
 { TFPMakeRunner }
 
+function TFPMakeRunner.IncludeInstallationOptions: Boolean;
+begin
+  Result := False;
+end;
+
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
   P : TFPPackage;
@@ -440,7 +450,7 @@ begin
   // While scanning a source-repository it could be necessary to create manifest
   // files. At this moment the InstallRepo could not be initialized yet. And the
   // manifest command does not use the --prefix and --baseinstalldir parameters.
-  if (command<>'manifest') then
+  if IncludeInstallationOptions then
     begin
       InstallRepo := PackageManager.GetInstallRepository(P);
 
@@ -449,8 +459,8 @@ begin
           Error(SErrIllConfRepository,[InstallRepo.RepositoryName]);
           Exit;
         end;
-      CondAddOption('--prefix',InstallRepo.DefaultPackagesStructure.GetPrefix);
       CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
+      CondAddOption('--prefix',InstallRepo.DefaultPackagesStructure.GetPrefix);
     end;
 
   for i := PackageManager.RepositoryList.Count-1 downto 0 do
@@ -494,12 +504,20 @@ begin
   RunFPMake('build');
 end;
 
+function TFPMakeRunnerInstall.IncludeInstallationOptions: Boolean;
+begin
+  Result := True;
+end;
 
 procedure TFPMakeRunnerInstall.Execute;
 begin
   RunFPMake('install');
 end;
 
+function TFPMakeRunnerUnInstall.IncludeInstallationOptions: Boolean;
+begin
+  Result := True;
+end;
 
 procedure TFPMakeRunnerUnInstall.Execute;
 begin
