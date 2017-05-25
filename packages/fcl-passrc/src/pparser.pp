@@ -337,6 +337,7 @@ type
     function CurTokenText: String;
     Function CurComments : TStrings;
     function CurSourcePos: TPasSourcePos;
+    function HasToken: boolean;
     Function SavedComments : String;
     procedure NextToken; // read next non whitespace, non space
     procedure ChangeToken(tk: TToken);
@@ -866,10 +867,23 @@ end;
 
 function TPasParser.CurSourcePos: TPasSourcePos;
 begin
-  if FTokenRingStart=FTokenRingEnd then
-    Result:=Default(TPasSourcePos)
+  if HasToken then
+    Result:=FTokenRing[FTokenRingCur].SourcePos
   else
-    Result:=FTokenRing[FTokenRingCur].SourcePos;
+    begin
+    if Scanner<>nil then
+      Result:=Scanner.CurSourcePos
+    else
+      Result:=Default(TPasSourcePos);
+    end;
+end;
+
+function TPasParser.HasToken: boolean;
+begin
+  if FTokenRingStart<FTokenRingEnd then
+    Result:=(FTokenRingCur>=FTokenRingStart) and (FTokenRingCur<FTokenRingEnd)
+  else
+    Result:=(FTokenRingCur>=FTokenRingStart) or (FTokenRingCur<FTokenRingEnd);
 end;
 
 function TPasParser.SavedComments: String;
@@ -1001,7 +1015,7 @@ begin
   if not (CurToken in tk) then
     begin
     {$IFDEF VerbosePasParser}
-    writeln('TPasParser.ParseExcTokenError String="',CurTokenString,'" Text="',CurTokenText,'" CurToken=',CurToken,' tk=',tk);
+    writeln('TPasParser.ParseExcTokenError String="',CurTokenString,'" Text="',CurTokenText,'" CurToken=',CurToken);
     {$ENDIF}
     S:='';
     For T in TToken do
@@ -1884,7 +1898,7 @@ end;
 
 function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
 
-  Function IsWriteOrstr(P : TPasExpr) : boolean;
+  Function IsWriteOrStr(P : TPasExpr) : boolean;
 
   Var
     N : String;
@@ -2030,6 +2044,7 @@ begin
       end;
     tkAt:
       begin
+      // is this still needed?
       // P:=@function;
       NextToken;
       if (length(CurTokenText)=0) or not (CurTokenText[1] in ['A'..'_']) then
@@ -2041,6 +2056,7 @@ begin
       end;
     tkCaret:
       begin
+      // is this still needed?
       // ^A..^_ characters. See #16341
       NextToken;
       if not (length(CurTokenText)=1) or not (CurTokenText[1] in ['A'..'_']) then
@@ -2086,7 +2102,7 @@ begin
       tkBraceOpen,tkSquaredBraceOpen:
         begin
         if CurToken=tkBraceOpen then
-          prm:=ParseParams(AParent,pekFuncParams,isWriteOrStr(func))
+          prm:=ParseParams(AParent,pekFuncParams,IsWriteOrStr(func))
         else
           prm:=ParseParams(AParent,pekArrayParams);
         if not Assigned(prm) then Exit;

@@ -49,7 +49,11 @@ unit PasUseAnalyzer;
 interface
 
 uses
-  Classes, SysUtils, AVL_Tree, PasResolver, PasTree, PScanner;
+  Classes, SysUtils, AVL_Tree, PasTree, PScanner,
+  {$IFDEF VerbosePasAnalyzer}
+  PasResolveEval
+  {$ENDIF}
+  PasResolver;
 
 const
   nPAUnitNotUsed = 5023;

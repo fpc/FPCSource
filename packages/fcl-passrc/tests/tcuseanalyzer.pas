@@ -9,9 +9,8 @@ unit tcuseanalyzer;
 interface
 
 uses
-  Classes, SysUtils, fpcunit,
-  PasTree, PScanner, PasResolver,
-  tcbaseparser, testregistry, strutils, tcresolver, PasUseAnalyzer;
+  Classes, SysUtils, fpcunit, PasTree, PScanner, PasResolver, tcbaseparser,
+  testregistry, strutils, tcresolver, PasUseAnalyzer, PasResolveEval;
 
 type
 
