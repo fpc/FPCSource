@@ -349,6 +349,7 @@ type
     Procedure TestClass;
     Procedure TestClassDefaultInheritance;
     Procedure TestClassTripleInheritance;
+    Procedure TestClassInheritanceCycleFail;
     Procedure TestClassForward;
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
@@ -4973,6 +4974,15 @@ begin
   Add('  {@V}v.{@OBJ_B}b:=3;');
   Add('  {@V}v.{@Obj_a}a:=4;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInheritanceCycleFail;
+begin
+  StartProgram(false);
+  Add([
+  'type A = class(A)',
+  'begin']);
+  CheckResolverException('Ancestor cycle detected',nAncestorCycleDetected);
 end;
 
 procedure TTestResolver.TestClassForward;

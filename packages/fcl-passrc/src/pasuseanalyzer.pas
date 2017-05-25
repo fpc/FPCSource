@@ -51,7 +51,7 @@ interface
 uses
   Classes, SysUtils, AVL_Tree, PasTree, PScanner,
   {$IFDEF VerbosePasAnalyzer}
-  PasResolveEval
+  PasResolveEval,
   {$ENDIF}
   PasResolver;
 

@@ -4289,6 +4289,8 @@ begin
     end
   else if AncestorType.ClassType<>TPasClassType then
     RaiseXExpectedButYFound(20170216151944,'class type',GetTypeDescription(AncestorType),aClass)
+  else if aClass=AncestorType then
+    RaiseMsg(20170525125854,nAncestorCycleDetected,sAncestorCycleDetected,[],aClass)
   else
     begin
     AncestorEl:=TPasClassType(AncestorType);
