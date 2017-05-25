@@ -154,7 +154,7 @@ interface
         {dragonfly} ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false),
         { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true , false, false),
         { wasm }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true),
-        { uefi }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false)
+        { uefi }    ( true,  false, false, false, true,  false, false, false, false, false, false, false, false, false,   false, false, false, false)
       );
 
     type
