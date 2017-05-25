@@ -34,12 +34,15 @@ interface
        private
           function getresflags(unsigned: boolean) : tresflags;
           function getfloatresflags: tresflags;
+          procedure second_mul64bit;
        protected
+          function use_generic_mul64bit: boolean; override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_addordinal;override;
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
+          procedure second_add64bit;override;
           procedure second_cmp64bit;override;
        end;
 
@@ -523,6 +526,96 @@ implementation
 {*****************************************************************************
                                 64-bit
 *****************************************************************************}
+
+    function t68kaddnode.use_generic_mul64bit: boolean;
+    begin
+      result:=(cs_check_overflow in current_settings.localswitches) or
+        (cs_opt_size in current_settings.optimizerswitches) or
+        not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]);
+    end;
+
+    procedure t68kaddnode.second_add64bit;
+    begin
+      if (nodetype=muln) then
+        second_mul64bit
+      else
+        inherited second_add64bit;
+    end;
+
+    procedure t68kaddnode.second_mul64bit;
+      var
+       list: TAsmList;
+       hreg1,hreg2,tmpreg: TRegister;
+      begin
+        list:=current_asmdata.CurrAsmList;
+        pass_left_right;
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
+
+        { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }
+        hreg1:=NR_NO;
+        hreg2:=NR_NO;
+        tmpreg:=NR_NO;
+        if (right.location.loc=LOC_CONSTANT) then
+          begin
+            //list.concat(tai_comment.create(strpnew('second_mul64bit: with const')));
+            { Omit zero terms, if any }
+            if hi(right.location.value64)<>0 then
+              begin
+                hreg2:=cg.getintregister(list,OS_INT);
+                cg.a_load_const_reg(list,OS_INT,longint(hi(right.location.value64)),hreg2);
+                list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reglo,hreg2));
+              end;
+            if lo(right.location.value64)<>0 then
+              begin
+                hreg1:=cg.getintregister(list,OS_INT);
+                tmpreg:=cg.getintregister(list,OS_INT);
+                cg.a_load_const_reg(list,OS_INT,longint(lo(right.location.value64)),hreg1);
+                cg.a_load_reg_reg(list,OS_INT,OS_INT,hreg1,tmpreg);
+                list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reghi,hreg1));
+              end;
+          end
+        else
+          begin
+            //list.concat(tai_comment.create(strpnew('second_mul64bit: no const')));
+            hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
+            tmpreg:=right.location.register64.reglo;
+            hreg1:=cg.getintregister(list,OS_INT);
+            hreg2:=cg.getintregister(list,OS_INT);
+            cg.a_load_reg_reg(list,OS_INT,OS_INT,right.location.register64.reglo,hreg1);
+            cg.a_load_reg_reg(list,OS_INT,OS_INT,right.location.register64.reghi,hreg2);
+            list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reghi,hreg1));
+            list.concat(taicpu.op_reg_reg(A_MULU,S_L,left.location.register64.reglo,hreg2));
+          end;
+
+        { At this point, tmpreg is either lo(right) or NR_NO if lo(left)*lo(right) is zero }
+        if (tmpreg=NR_NO) then
+          begin
+            if (hreg2<>NR_NO) then
+              begin
+                location.register64.reghi:=hreg2;
+                if (hreg1<>NR_NO) then
+                  list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg1,location.register64.reghi));
+              end
+            else if (hreg1<>NR_NO) then
+              location.register64.reghi:=hreg1
+            else
+              internalerror(2017052501);
+            location.register64.reglo:=cg.getintregister(list,OS_INT);
+            cg.a_load_const_reg(list,OS_INT,0,location.register64.reglo);
+          end
+        else
+          begin
+            location.register64.reghi:=cg.getintregister(list,OS_INT);
+            location.register64.reglo:=cg.getintregister(list,OS_INT);
+            cg.a_load_reg_reg(list,OS_INT,OS_INT,left.location.register64.reglo,location.register64.reglo);
+            list.concat(taicpu.op_reg_reg_reg(A_MULU,S_L,tmpreg,location.register64.reghi,location.register64.reglo));
+            if (hreg2<>NR_NO) then
+              list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg2,location.register64.reghi));
+            if (hreg1<>NR_NO) then
+              list.concat(taicpu.op_reg_reg(A_ADD,S_L,hreg1,location.register64.reghi));
+          end;
+      end;
 
     procedure t68kaddnode.second_cmp64bit;
       var
