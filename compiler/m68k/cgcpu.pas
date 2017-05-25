@@ -495,7 +495,7 @@ unit cgcpu;
            end;
 
          { deal with large offsets on non-020+ }
-         if current_settings.cputype<>cpu_MC68020 then
+         if not (current_settings.cputype in cpu_mc68020p) then
            begin
              if ((ref.index<>NR_NO) and not isvalue8bit(ref.offset)) or
                 ((ref.base<>NR_NO) and not isvalue16bit(ref.offset)) then
@@ -1193,7 +1193,7 @@ unit cgcpu;
                   end
                 else
                   begin
-                    if current_settings.cputype = cpu_mc68020 then
+                    if current_settings.cputype in cpu_mc68020p then
                       begin
                         { do the multiplication }
                         scratch_reg := force_to_dataregister(list, size, reg);
@@ -1405,8 +1405,7 @@ unit cgcpu;
           OP_MUL,
           OP_IMUL:
               begin
-                if (current_settings.cputype <> cpu_mc68020) and
-                   (not (current_settings.cputype in cpu_coldfire)) then
+                if not (CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) then
                   if op = OP_MUL then
                     call_rtl_mul_reg_reg(list,src,dst,'fpc_mul_dword')
                   else
@@ -1866,7 +1865,7 @@ unit cgcpu;
 
             if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
               begin
-                if current_settings.cputype=cpu_mc68020 then
+                if current_settings.cputype in cpu_mc68020p then
                   list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
                 else
                   begin
