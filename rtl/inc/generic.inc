@@ -1926,6 +1926,36 @@ end;
 
 {$endif not FPC_SYSTEM_HAS_ABS_LONGINT}
 
+{$if defined(CPUINT8)}
+{$ifndef FPC_SYSTEM_HAS_ODD_SHORTINT}
+function odd(l:shortint):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   odd:=boolean(l and 1);
+end;
+{$endif ndef FPC_SYSTEM_HAS_ODD_SHORTINT}
+{$ifndef FPC_SYSTEM_HAS_ODD_BYTE}
+function odd(l:byte):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   odd:=boolean(l and 1);
+end;
+{$endif ndef FPC_SYSTEM_HAS_ODD_BYTE}
+{$endif CPUINT8}
+
+{$if defined(CPUINT16) or defined(CPUINT8)}
+{$ifndef FPC_SYSTEM_HAS_ODD_SMALLINT}
+function odd(l:smallint):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   odd:=boolean(l and 1);
+end;
+{$endif ndef FPC_SYSTEM_HAS_ODD_SMALLINT}
+{$ifndef FPC_SYSTEM_HAS_ODD_WORD}
+function odd(l:word):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   odd:=boolean(l and 1);
+end;
+{$endif ndef FPC_SYSTEM_HAS_ODD_WORD}
+{$endif CPUINT16 or CPUINT8}
+
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
 function odd(l:longint):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
