@@ -37,6 +37,7 @@ interface
           procedure second_mul64bit;
        protected
           function use_generic_mul64bit: boolean; override;
+          function use_generic_mul32to64: boolean; override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_addordinal;override;
@@ -359,8 +360,13 @@ implementation
 *****************************************************************************}
 
     procedure t68kaddnode.second_addordinal;
+      const
+        mul_op_signed: array[boolean] of tasmop = ( A_MULU, A_MULS );
       var
         cgop    : topcg;
+        asmop   : tasmop;
+        list    : tasmlist;
+        href    : treference;
       begin
         { if we need to handle overflow checking, fall back to the generic cg }
         if (nodetype in [addn,subn,muln]) and
@@ -371,6 +377,8 @@ implementation
             inherited;
             exit;
           end;
+
+        list:=current_asmdata.CurrAsmList;
 
         case nodetype of
           addn: cgop:=OP_ADD;
@@ -398,6 +406,41 @@ implementation
 
         { initialize the result }
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+
+        { this is only true, if the CPU supports 32x32 -> 64 bit MUL, see the relevant method }
+        if (nodetype=muln) and is_64bit(resultdef) then
+          begin
+            list.concat(tai_comment.create(strpnew('second_addordinal: mul32to64bit')));
+
+            asmop:=mul_op_signed[cgop = OP_IMUL];
+            location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            cg.a_load_reg_reg(list,left.location.size,OS_INT,left.location.register,location.register64.reglo);
+
+            if not (right.location.size in [OS_S32, OS_32]) or
+               not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
+               ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
+            case right.location.loc of
+              LOC_REGISTER,
+              LOC_CREGISTER:
+                list.concat(taicpu.op_reg_reg_reg(asmop,S_L,right.location.register,location.register64.reghi,location.register64.reglo));
+              LOC_CONSTANT:
+                list.concat(taicpu.op_const_reg_reg(asmop,S_L,right.location.value,location.register64.reghi,location.register64.reglo));
+              LOC_REFERENCE,
+              LOC_CREFERENCE:
+                begin
+                  href:=right.location.reference;
+                  tcg68k(cg).fixref(list,href,false);
+                  list.concat(taicpu.op_ref_reg_reg(asmop,S_L,href,location.register64.reghi,location.register64.reglo));
+                 end;
+              else
+                internalerror(2017052601);
+            end;
+            exit;
+          end;
+
         location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
         cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
 
@@ -526,6 +569,11 @@ implementation
 {*****************************************************************************
                                 64-bit
 *****************************************************************************}
+
+    function t68kaddnode.use_generic_mul32to64: boolean;
+    begin
+      result:=not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]);
+    end;
 
     function t68kaddnode.use_generic_mul64bit: boolean;
     begin
