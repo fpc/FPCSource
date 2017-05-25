@@ -1889,6 +1889,30 @@ function fpc_mod_shortint(n,z : shortint) : shortint; [public,alias: 'FPC_MOD_SH
 
 {****************************************************************************}
 
+{$if defined(CPUINT8)}
+{$ifndef FPC_SYSTEM_HAS_ABS_SHORTINT}
+function abs(l:shortint):shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   if l<0 then
+     abs:=-l
+   else
+     abs:=l;
+end;
+{$endif not FPC_SYSTEM_HAS_ABS_SMALLINT}
+{$endif CPUINT8}
+
+{$if defined(CPUINT16) or defined(CPUINT8)}
+{$ifndef FPC_SYSTEM_HAS_ABS_SMALLINT}
+function abs(l:smallint):smallint;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   if l<0 then
+     abs:=-l
+   else
+     abs:=l;
+end;
+{$endif not FPC_SYSTEM_HAS_ABS_SMALLINT}
+{$endif CPUINT16 or CPUINT8}
+
 {$ifndef FPC_SYSTEM_HAS_ABS_LONGINT}
 { This is only needed to bootstrap on SPARC targets
   (MIPS and m68k too, but they have no releases, so bootstrapping is not an issue) }

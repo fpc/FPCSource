@@ -3378,6 +3378,12 @@ begin
   def_system_macro('FPC_VARIANTCOPY_FIXED');
   def_system_macro('FPC_DYNARRAYCOPY_FIXED');
 
+{$if defined(avr)}
+  def_system_macro('FPC_HAS_INTERNAL_ABS_SHORTINT');
+{$endif}
+{$if defined(i8086) or defined(avr)}
+  def_system_macro('FPC_HAS_INTERNAL_ABS_SMALLINT');
+{$endif i8086 or avr}
 { abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
 {$if defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}

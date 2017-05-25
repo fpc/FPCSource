@@ -847,6 +847,22 @@ Function  Random: extended;
 Procedure Randomize;
 {$endif FPC_HAS_FEATURE_RANDOM}
 
+{$if defined(CPUINT8)}
+  {$ifdef FPC_HAS_INTERNAL_ABS_SHORTINT}
+  {$define FPC_SYSTEM_HAS_ABS_SHORTINT}
+  Function abs(l:shortint):shortint;[internproc:fpc_in_abs_long];
+  {$else FPC_SYSTEM_HAS_ABS_SHORTINT}
+  Function abs(l:shortint):shortint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+  {$endif FPC_SYSTEM_HAS_ABS_SHORTINT}
+{$endif CPUINT8}
+{$if defined(CPUINT16) or defined(CPUINT8)}
+  {$ifdef FPC_HAS_INTERNAL_ABS_SMALLINT}
+  {$define FPC_SYSTEM_HAS_ABS_SMALLINT}
+  Function abs(l:smallint):smallint;[internproc:fpc_in_abs_long];
+  {$else FPC_HAS_INTERNAL_ABS_LONG}
+  Function abs(l:smallint):smallint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+  {$endif FPC_HAS_INTERNAL_ABS_LONG}
+{$endif CPUINT16 or CPUINT8}
 {$ifdef FPC_HAS_INTERNAL_ABS_LONG}
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
