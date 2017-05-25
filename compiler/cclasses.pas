@@ -378,6 +378,8 @@ type
           procedure insertListcopy(p : TLinkedList);
           { concats another List at the end and makes a copy }
           procedure concatListcopy(p : TLinkedList);
+          { removes all items from the list, the items are not freed }
+          procedure RemoveAll;
           property First:TLinkedListItem read FFirst;
           property Last:TLinkedListItem read FLast;
           property Count:Integer read FCount;
@@ -2353,6 +2355,14 @@ end;
             Concat(NewNode2);
            NewNode:=NewNode.Next;
          end;
+      end;
+
+
+    procedure TLinkedList.RemoveAll;
+      begin
+        FFirst:=nil;
+        FLast:=nil;
+        FCount:=0;
       end;
 
 
