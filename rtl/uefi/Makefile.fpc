@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=
 #units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
-units=system uuchar objpas iso7185 cpall buildrtl strings character fpwidestring heaptrc
+units=system uuchar objpas iso7185 cpall buildrtl strings character fpwidestring heaptrc lineinfo lnfodwrf
 implicitunits= \
       ctypes strings \
       heaptrc \
@@ -160,3 +160,9 @@ fpwidestring$(PPUEXT) : $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) $(SYSTEM
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp
+        
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/lineinfo.pp
+
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/lnfodwrf.pp
