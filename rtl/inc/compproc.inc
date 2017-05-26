@@ -592,10 +592,21 @@ function fpc_mod_shortint(n,z : shortint) : shortint; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MUL}
+{$ifdef VER3_0}
 function fpc_mul_integer(f1,f2 : integer;checkoverflow : boolean) : integer; compilerproc;
 function fpc_mul_word(f1,f2 : word;checkoverflow : boolean) : word; compilerproc;
 function fpc_mul_longint(f1,f2 : longint;checkoverflow : boolean) : longint; compilerproc;
 function fpc_mul_dword(f1,f2 : dword;checkoverflow : boolean) : dword; compilerproc;
+{$else VER3_0}
+function fpc_mul_integer(f1,f2 : integer) : integer; compilerproc;
+function fpc_mul_integer_checkoverflow(f1,f2 : integer) : integer; compilerproc;
+function fpc_mul_word(f1,f2 : word) : word; compilerproc;
+function fpc_mul_word_checkoverflow(f1,f2 : word) : word; compilerproc;
+function fpc_mul_longint(f1,f2 : longint) : longint; compilerproc;
+function fpc_mul_longint_checkoverflow(f1,f2 : longint) : longint; compilerproc;
+function fpc_mul_dword(f1,f2 : dword) : dword; compilerproc;
+function fpc_mul_dword_checkoverflow(f1,f2 : dword) : dword; compilerproc;
+{$endif VER3_0}
 {$endif FPC_INCLUDE_SOFTWARE_MUL}
 
 { from int64.inc }

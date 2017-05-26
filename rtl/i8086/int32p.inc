@@ -14,7 +14,7 @@
  **********************************************************************}
 
 {$define FPC_SYSTEM_HAS_MUL_DWORD}
-function fpc_mul_dword( f1, f2: dword; checkoverflow: boolean ): dword; [public,alias: 'FPC_MUL_DWORD']; compilerproc;
+function fpc_mul_dword( f1, f2: dword ): dword; [public,alias: 'FPC_MUL_DWORD']; compilerproc;
 begin
 { routine contributed by Max Nazhalov
 
@@ -33,8 +33,6 @@ begin
     mov     ax,word[f1+2]
     mov     di,word[f2]
     mov     si,word[f2+2]
-    cmp     checkoverflow,0
-    jne     @@checked
     mul     di
     xchg    ax,si
     mul     cx
@@ -42,34 +40,57 @@ begin
     mov     ax,di
     mul     cx
     add     dx,si
-    jmp     @@done
-@@checked:
+    mov     word[result],ax
+    mov     word[result+2],dx
+  end [ 'ax','cx','dx','si','di' ];
+end;
+
+
+function fpc_mul_dword_checkoverflow( f1, f2: dword ): dword; [public,alias: 'FPC_MUL_DWORD_CHECKOVERFLOW']; compilerproc;
+begin
+{ routine contributed by Max Nazhalov
+
+  32-bit multiplications summary:
+  f1 = A1*$10000+A0
+  f2 = B1*$10000+B0
+  (A1:A0*B1:B0) = (A1*B1)<<32 + (A1*B0)<<16 + (A0*B1)<<16 + (A0*B0)
+
+  A1*B1 [only needed for overflow checking; overflow if <>0]
+  A1*B0
+  A0*B1
+  A0:B0
+}
+  asm
+    mov     cx,word[f1]
+    mov     ax,word[f1+2]
+    mov     di,word[f2]
+    mov     si,word[f2+2]
     test    ax,ax
     jz      @@skip
     test    si,si
-    jnz     @@done
+    jnz     @@overflow
     mul     di
     test    dx,dx
-    jnz     @@done
+    jnz     @@overflow
 @@skip:
     xchg    ax,si
     mul     cx
     test    dx,dx
-    jnz     @@done
+    jnz     @@overflow
     add     si,ax
-    jc      @@done
+    jc      @@overflow
     mov     ax,di
     mul     cx
     add     dx,si
-    jc      @@done
+    jc      @@overflow
     // checked and succeed
-    mov     checkoverflow,0
-@@done:
     mov     word[result],ax
     mov     word[result+2],dx
+    jmp     @@done
+@@overflow:
+    call    FPC_OVERFLOW
+@@done:
   end [ 'ax','cx','dx','si','di' ];
-  if checkoverflow then
-    HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 end;
 
 

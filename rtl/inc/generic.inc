@@ -1327,6 +1327,8 @@ end;
 ****************************************************************************}
 {$ifdef FPC_INCLUDE_SOFTWARE_MUL}
 
+{$ifdef VER3_0}
+
 {$ifndef FPC_SYSTEM_HAS_MUL_INTEGER}
     function fpc_mul_integer(f1,f2 : integer;checkoverflow : boolean) : integer;[public,alias: 'FPC_MUL_INTEGER']; compilerproc;
       var
@@ -1494,6 +1496,215 @@ end;
           end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_DWORD}
+
+{$else VER3_0}
+
+{$ifndef FPC_SYSTEM_HAS_MUL_INTEGER}
+    function fpc_mul_integer(f1,f2 : integer) : integer;[public,alias: 'FPC_MUL_INTEGER']; compilerproc;
+      begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        { word(f1)*word(f2) is coded as a call to mulword }
+        fpc_mul_integer:=integer(word(f1)*word(f2));
+      end;
+
+    function fpc_mul_integer_checkoverflow(f1,f2 : integer) : integer;[public,alias: 'FPC_MUL_INTEGER_CHECKOVERFLOW']; compilerproc;
+      var
+        sign : boolean;
+        q1,q2,q3 : word;
+      begin
+        sign:=false;
+        if f1<0 then
+          begin
+            sign:=not(sign);
+            q1:=word(-f1);
+          end
+        else
+          q1:=f1;
+        if f2<0 then
+          begin
+            sign:=not(sign);
+            q2:=word(-f2);
+          end
+        else
+          q2:=f2;
+        { the q1*q2 is coded as call to mulword }
+        q3:=q1*q2;
+
+        if (q1 <> 0) and (q2 <>0) and
+          ((q1>q3) or (q2>q3) or
+          { the bit 63 can be only set if we have $8000 }
+          { and sign is true                            }
+          (q3 shr 15<>0) and
+           ((q3<>word(word(1) shl 15)) or not(sign))
+          ) then
+          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+
+        if sign then
+          fpc_mul_integer_checkoverflow:=-q3
+        else
+          fpc_mul_integer_checkoverflow:=q3;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_INTEGER}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_WORD}
+    function fpc_mul_word(f1,f2 : word) : word;[public,alias: 'FPC_MUL_WORD']; compilerproc;
+      var
+        _f1,bitpos : word;
+        b : byte;
+      begin
+        fpc_mul_word:=0;
+        bitpos:=1;
+
+        for b:=0 to 15 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_word;
+                fpc_mul_word:=fpc_mul_word+f1;
+              end;
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
+
+    function fpc_mul_word_checkoverflow(f1,f2 : word) : word;[public,alias: 'FPC_MUL_WORD_CHECKOVERFLOW']; compilerproc;
+      var
+        _f1,bitpos : word;
+        b : byte;
+        f1overflowed : boolean;
+      begin
+        fpc_mul_word_checkoverflow:=0;
+        bitpos:=1;
+        f1overflowed:=false;
+
+        for b:=0 to 15 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_word_checkoverflow;
+                fpc_mul_word_checkoverflow:=fpc_mul_word_checkoverflow+f1;
+
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if f1overflowed or ((_f1<>0) and (f1<>0) and
+                  ((_f1>fpc_mul_word_checkoverflow) or (f1>fpc_mul_word_checkoverflow))) then
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+              end;
+            { when bootstrapping, we forget about overflow checking for qword :) }
+            f1overflowed:=f1overflowed or ((f1 and (1 shl 15))<>0);
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_WORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_LONGINT}
+    function fpc_mul_longint(f1,f2 : longint) : longint;[public,alias: 'FPC_MUL_LONGINT']; compilerproc;
+      begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        { dword(f1)*dword(f2) is coded as a call to muldword }
+        fpc_mul_longint:=longint(dword(f1)*dword(f2));
+      end;
+
+    function fpc_mul_longint_checkoverflow(f1,f2 : longint) : longint;[public,alias: 'FPC_MUL_LONGINT_CHECKOVERFLOW']; compilerproc;
+      var
+        sign : boolean;
+        q1,q2,q3 : dword;
+      begin
+        sign:=false;
+        if f1<0 then
+          begin
+            sign:=not(sign);
+            q1:=dword(-f1);
+          end
+        else
+          q1:=f1;
+        if f2<0 then
+          begin
+            sign:=not(sign);
+            q2:=dword(-f2);
+          end
+        else
+          q2:=f2;
+        { the q1*q2 is coded as call to muldword }
+        q3:=q1*q2;
+
+        if (q1 <> 0) and (q2 <>0) and
+          ((q1>q3) or (q2>q3) or
+          { the bit 31 can be only set if we have $8000 0000 }
+          { and sign is true                                 }
+          (q3 shr 15<>0) and
+           ((q3<>dword(dword(1) shl 31)) or not(sign))
+          ) then
+          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+
+        if sign then
+          fpc_mul_longint_checkoverflow:=-q3
+        else
+          fpc_mul_longint_checkoverflow:=q3;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_INTEGER}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_DWORD}
+    function fpc_mul_dword(f1,f2 : dword) : dword;[public,alias: 'FPC_MUL_DWORD']; compilerproc;
+      var
+        _f1,bitpos : dword;
+        b : byte;
+      begin
+        fpc_mul_dword:=0;
+        bitpos:=1;
+
+        for b:=0 to 31 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_dword;
+                fpc_mul_dword:=fpc_mul_dword+f1;
+              end;
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
+
+    function fpc_mul_dword_checkoverflow(f1,f2 : dword) : dword;[public,alias: 'FPC_MUL_DWORD_CHECKOVERFLOW']; compilerproc;
+      var
+        _f1,bitpos : dword;
+        b : byte;
+        f1overflowed : boolean;
+      begin
+        fpc_mul_dword_checkoverflow:=0;
+        bitpos:=1;
+        f1overflowed:=false;
+
+        for b:=0 to 31 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_dword_checkoverflow;
+                fpc_mul_dword_checkoverflow:=fpc_mul_dword_checkoverflow+f1;
+
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if f1overflowed or ((_f1<>0) and (f1<>0) and
+                  ((_f1>fpc_mul_dword_checkoverflow) or (f1>fpc_mul_dword_checkoverflow))) then
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+              end;
+            { when bootstrapping, we forget about overflow checking for qword :) }
+            f1overflowed:=f1overflowed or ((f1 and (dword(1) shl 31))<>0);
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_DWORD}
+
+{$endif VER3_0}
 
 {$endif FPC_INCLUDE_SOFTWARE_MUL}
 

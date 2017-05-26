@@ -3362,10 +3362,11 @@ implementation
                        else
                          internalerror(2011022301);
                      end;
+                     if cs_check_overflow in current_settings.localswitches then
+                       procname:=procname+'_checkoverflow';
                      result := ccallnode.createintern(procname,
-                       ccallparanode.create(cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false),
                        ccallparanode.create(right,
-                       ccallparanode.create(left,nil))));
+                       ccallparanode.create(left,nil)));
                      left := nil;
                      right := nil;
                      firstpass(result);
