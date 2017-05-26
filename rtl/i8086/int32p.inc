@@ -37,7 +37,7 @@ begin
     xchg    ax,si
     mul     cx
     add     si,ax
-    mov     ax,di
+    xchg    ax,di  { 1 byte shorter than mov }
     mul     cx
     add     dx,si
     mov     word[result],ax
@@ -79,7 +79,7 @@ begin
     jnz     @@overflow
     add     si,ax
     jc      @@overflow
-    mov     ax,di
+    xchg    ax,di  { 1 byte shorter than mov }
     mul     cx
     add     dx,si
     jc      @@overflow
