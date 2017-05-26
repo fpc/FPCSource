@@ -544,20 +544,16 @@ unit cgcpu;
 
     procedure tcg68k.call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
       var
-        paraloc1,paraloc2,paraloc3 : tcgpara;
+        paraloc1,paraloc2: tcgpara;
         pd : tprocdef;
       begin
         pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
-        paraloc3.init;
         paramanager.getintparaloc(list,pd,1,paraloc1);
         paramanager.getintparaloc(list,pd,2,paraloc2);
-        paramanager.getintparaloc(list,pd,3,paraloc3);
-        a_load_const_cgpara(list,OS_8,0,paraloc3);
         a_load_const_cgpara(list,size,a,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg,paraloc1);
-        paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
 
@@ -565,7 +561,6 @@ unit cgcpu;
 
         cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg);
-        paraloc3.done;
         paraloc2.done;
         paraloc1.done;
       end;
@@ -573,20 +568,16 @@ unit cgcpu;
 
     procedure tcg68k.call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
       var
-        paraloc1,paraloc2,paraloc3 : tcgpara;
+        paraloc1,paraloc2: tcgpara;
         pd : tprocdef;
       begin
         pd:=search_system_proc(name);
         paraloc1.init;
         paraloc2.init;
-        paraloc3.init;
         paramanager.getintparaloc(list,pd,1,paraloc1);
         paramanager.getintparaloc(list,pd,2,paraloc2);
-        paramanager.getintparaloc(list,pd,3,paraloc3);
-        a_load_const_cgpara(list,OS_8,0,paraloc3);
         a_load_reg_cgpara(list,OS_32,reg1,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg2,paraloc1);
-        paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
 
@@ -594,7 +585,6 @@ unit cgcpu;
 
         cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg2);
-        paraloc3.done;
         paraloc2.done;
         paraloc1.done;
       end;
