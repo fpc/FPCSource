@@ -1993,6 +1993,24 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_ODD_QWORD}
 
+{$if defined(CPUINT8)}
+{$ifndef FPC_SYSTEM_HAS_SQR_SHORTINT}
+function sqr(l:shortint):shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   sqr:=l*l;
+end;
+{$endif ndef FPC_SYSTEM_HAS_SQR_SHORTINT}
+{$endif CPUINT8}
+
+{$if defined(CPUINT16) or defined(CPUINT8)}
+{$ifndef FPC_SYSTEM_HAS_SQR_SMALLINT}
+function sqr(l:smallint):smallint;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+   sqr:=l*l;
+end;
+{$endif ndef FPC_SYSTEM_HAS_SQR_SMALLINT}
+{$endif CPUINT16 or CPUINT8}
+
 {$ifndef FPC_SYSTEM_HAS_SQR_LONGINT}
 
 function sqr(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
