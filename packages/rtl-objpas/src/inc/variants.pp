@@ -3897,7 +3897,7 @@ begin
 
     index:=RequestedVarType-CMinVarType;
     if index>=L then
-      SetLength(customvarianttypes,L+1);
+      SetLength(customvarianttypes,index+1);
     if Assigned(customvarianttypes[index]) then
     begin
       if customvarianttypes[index]=InvalidCustomVariantType then
