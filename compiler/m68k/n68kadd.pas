@@ -38,6 +38,7 @@ interface
        protected
           function use_generic_mul64bit: boolean; override;
           function use_generic_mul32to64: boolean; override;
+          function use_mul_helper: boolean; override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_addordinal;override;
@@ -358,6 +359,11 @@ implementation
 {*****************************************************************************
                                 Ordinals
 *****************************************************************************}
+
+    function t68kaddnode.use_mul_helper: boolean;
+      begin
+        result:=(nodetype=muln) and not (CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]);
+      end;
 
     procedure t68kaddnode.second_addordinal;
       const
