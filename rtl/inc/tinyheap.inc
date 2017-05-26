@@ -577,7 +577,7 @@
                         p:=FreeList;
                         while p^.Next<>HeapPtr do
                           p:=p^.Next;
-                        PTinyHeapBlock(HeapPtr)^.Next:=AAddress;
+                        PTinyHeapBlock(p)^.Next:=AAddress;
                       end;
                   end
                 else
