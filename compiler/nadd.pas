@@ -73,6 +73,12 @@ interface
           { full 64 bit multiplies.                                }
           function use_generic_mul64bit: boolean; virtual;
 
+{$ifdef cpuneedsmulhelper}
+          { override to customize to decide if the code generator }
+          { can handle a given multiply node directly, or it needs helpers }
+          function use_mul_helper: boolean; virtual;
+{$endif cpuneedsmulhelper}
+
           { shall be overriden if the target cpu supports
             an fma instruction
           }
@@ -3159,6 +3165,16 @@ implementation
       end;
 
 
+{$ifdef cpuneedsmulhelper}
+    function taddnode.use_mul_helper: boolean;
+      begin
+        result:=(nodetype=muln) and
+                not(torddef(resultdef).ordtype in [u8bit,s8bit
+                {$if defined(cpu16bitalu) or defined(avr)},u16bit,s16bit{$endif}]);
+      end;
+{$endif cpuneedsmulhelper}
+
+
     function taddnode.pass_1 : tnode;
 
       function isconstsetfewelements(p : tnode) : boolean;
@@ -3345,8 +3361,7 @@ implementation
              else
                begin
 {$ifdef cpuneedsmulhelper}
-                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit
-                   {$if defined(cpu16bitalu) or defined(avr)},u16bit,s16bit{$endif}]) then
+                 if use_mul_helper then
                    begin
                      result := nil;
 
