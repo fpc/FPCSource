@@ -1098,7 +1098,7 @@ are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
 *}
 Procedure
  add64(
-     a0:bits32; a1:bits32; b0:bits32; b1:bits32; VAR z0Ptr:bits32; VAR z1Ptr:bits32 );
+     a0:bits32; a1:bits32; b0:bits32; b1:bits32; VAR z0Ptr:bits32; VAR z1Ptr:bits32 );{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Var
     z1: bits32;
 Begin
@@ -1179,7 +1179,7 @@ end;
 | are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
 *----------------------------------------------------------------------------*}
 
-procedure add128( a0, a1, b0, b1 : bits64; var z0Ptr, z1Ptr : bits64);inline;
+procedure add128( a0, a1, b0, b1 : bits64; var z0Ptr, z1Ptr : bits64);{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 var
     z1 : bits64;
 begin
@@ -1225,7 +1225,7 @@ Subtracts the 64-bit value formed by concatenating `b0' and `b1' from the
 *}
 Procedure
  sub64(
-     a0: bits32; a1 : bits32; b0 :bits32; b1: bits32; VAR z0Ptr:bits32; VAR z1Ptr: bits32 );
+     a0: bits32; a1 : bits32; b0 :bits32; b1: bits32; VAR z0Ptr:bits32; VAR z1Ptr: bits32 );{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Begin
     z1Ptr := a1 - b1;
     z0Ptr := a0 - b0 - bits32( a1 < b1 );
@@ -1317,6 +1317,16 @@ into two 32-bit pieces which are stored at the locations pointed to by
 `z0Ptr' and `z1Ptr'.
 -------------------------------------------------------------------------------
 *}
+{$IFDEF SOFTFPU_COMPILER_MUL32TO64}
+Procedure mul32To64( a:bits32; b:bits32; VAR z0Ptr: bits32; VAR z1Ptr :bits32 );{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
+var
+  tmp: qword;
+begin
+  tmp:=qword(a) * b;
+  z0ptr:=hi(tmp);
+  z1ptr:=lo(tmp);
+end;
+{$ELSE}
 Procedure mul32To64( a:bits32; b:bits32; VAR z0Ptr: bits32; VAR z1Ptr
 :bits32 );
 Var
@@ -1339,6 +1349,7 @@ Begin
     z1Ptr := z1;
     z0Ptr := z0;
 End;
+{$ENDIF}
 
 {*
 -------------------------------------------------------------------------------
@@ -1681,7 +1692,7 @@ than or equal to the 64-bit value formed by concatenating `b0' and `b1'.
 Otherwise, returns 0.
 -------------------------------------------------------------------------------
 *}
-Function le64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
+Function le64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Begin
 
     le64:= flag( a0 < b0 ) or flag( ( a0 = b0 ) and ( a1 <= b1 ) );
@@ -1695,7 +1706,7 @@ than the 64-bit value formed by concatenating `b0' and `b1'.  Otherwise,
 returns 0.
 -------------------------------------------------------------------------------
 *}
-Function lt64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
+Function lt64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;{$IFDEF SOFTFPU_INLINE}inline;{$ENDIF}
 Begin
     lt64 := flag( a0 < b0 ) or flag( ( a0 = b0 ) and ( a1 < b1 ) );
 End;
