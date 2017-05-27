@@ -34,6 +34,7 @@ interface
        private
           function getresflags(unsigned: boolean) : tresflags;
           function getfloatresflags: tresflags;
+          function inlineable_realconstnode(const n: tnode): boolean;
           procedure second_mul64bit;
        protected
           function use_generic_mul64bit: boolean; override;
@@ -145,6 +146,15 @@ implementation
       end;
 
 
+    function t68kaddnode.inlineable_realconstnode(const n: tnode): boolean;
+      begin
+        result:=(n.nodetype = realconstn) and
+            not ((trealconstnode(n).value_real=MathInf.Value) or
+                 (trealconstnode(n).value_real=MathNegInf.Value) or
+                 (trealconstnode(n).value_real=MathQNaN.value));
+      end;
+
+
 {*****************************************************************************
                                 AddFloat
 *****************************************************************************}
@@ -182,7 +192,7 @@ implementation
 
               { have left in the register, right can be a memory location }
               if not (current_settings.fputype = fpu_coldfire) and
-                 (left.nodetype = realconstn) then
+                 inlineable_realconstnode(left) then
                 begin
                   location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                   current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FMOVE,tcgsize2opsize[left.location.size],trealconstnode(left).value_real,location.register))
@@ -202,7 +212,7 @@ implementation
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       if not (current_settings.fputype = fpu_coldfire) and
-                         (right.nodetype = realconstn) then
+                         inlineable_realconstnode(right) then
                         current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(op,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,location.register))
                       else
                         begin
@@ -280,7 +290,7 @@ implementation
                         begin
                           hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
                           if not (current_settings.fputype = fpu_coldfire) and
-                             (right.nodetype = realconstn) then
+                             inlineable_realconstnode(right) then
                             current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FCMP,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,left.location.register))
                           else
                             begin
