@@ -64,6 +64,7 @@ unit aoptx86;
         function OptPass1Movx(var p : tai) : boolean;
         function OptPass1MOVAP(var p : tai) : boolean;
         function OptPass1MOVXX(var p : tai) : boolean;
+        function OptPass1OP(const p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -1064,6 +1065,15 @@ unit aoptx86;
         hp1 : tai;
       begin
         result:=false;
+        { replace
+            V<Op>X   %mreg1,%mreg2,%mreg3
+            VMovX    %mreg3,%mreg4
+            dealloc  %mreg3
+
+            by
+            V<Op>X   %mreg1,%mreg2,%mreg4
+          ?
+        }
         if GetNextInstruction(p,hp1) and
           { we mix single and double opperations here because we assume that the compiler
             generates vmovapd only after double operations and vmovaps only after single operations }
@@ -1077,6 +1087,7 @@ unit aoptx86;
              ) then
               begin
                 taicpu(p).loadoper(2,taicpu(hp1).oper[1]^);
+                DebugMsg('PeepHole Optimization VOpVmov2VOp done',p);
                 asml.Remove(hp1);
                 hp1.Free;
                 result:=true;
@@ -1667,6 +1678,45 @@ unit aoptx86;
                 end;
             end;
         end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1OP(const p : tai) : boolean;
+      var
+        TmpUsedRegs : TAllUsedRegs;
+        hp1 : tai;
+      begin
+        result:=false;
+        { replace
+            <Op>X    %mreg1,%mreg2  // Op in [ADD,MUL]
+            MovX     %mreg2,%mreg1
+            dealloc  %mreg2
+
+            by
+            <Op>X    %mreg2,%mreg1
+          ?
+        }
+        if GetNextInstruction(p,hp1) and
+          { we mix single and double opperations here because we assume that the compiler
+            generates vmovapd only after double operations and vmovaps only after single operations }
+          MatchInstruction(hp1,A_MOVAPD,A_MOVAPS,[S_NO]) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
+          MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
+          (taicpu(p).oper[0]^.typ=top_reg) then
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)
+             ) then
+              begin
+                taicpu(p).loadoper(0,taicpu(hp1).oper[0]^);
+                taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                DebugMsg('PeepHole Optimization OpMov2Op done',p);
+                asml.Remove(hp1);
+                hp1.Free;
+                result:=true;
+              end;
+          end;
       end;
 
 

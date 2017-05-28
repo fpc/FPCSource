@@ -1263,6 +1263,12 @@ begin
                   A_VADDSS:
                     if OptPass1VOP(p) then
                       continue;
+                  A_MULSD,
+                  A_MULSS,
+                  A_ADDSD,
+                  A_ADDSS:
+                    if OptPass1OP(p) then
+                      continue;
                   A_MOVAPD,
                   A_MOVAPS:
                     if OptPass1MOVAP(p) then
