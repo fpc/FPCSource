@@ -68,7 +68,7 @@ implementation
 
     procedure tcpuprocinfo.set_first_temp_offset;
       begin
-        if target_info.system=system_x86_64_win64 then
+        if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
           begin
             { Fixes the case when there are calls done by low-level means
               (cg.a_call_name) but no child callnode }
@@ -89,7 +89,7 @@ implementation
     procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
-        if target_info.system=system_x86_64_win64 then
+        if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
           para_stack_size:=0;
       end;
 
@@ -171,7 +171,7 @@ implementation
     function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
       begin
         result:=
-           ((target_info.system=system_x86_64_win64) and
+           ((target_info.system in [system_x86_64_win64,system_x86_64_uefi]) and
             not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
            (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
       end;

@@ -3428,7 +3428,9 @@ implementation
                            currabsreloc:=RELOC_ABSOLUTE
                          else
 {$endif i8086}
+							begin
                              currabsreloc:=RELOC_ABSOLUTE32;
+                            end;
 
                            if (currabsreloc in [RELOC_ABSOLUTE32{$ifdef i8086},RELOC_ABSOLUTE{$endif}]) and
                             (Assigned(oper[opidx]^.ref^.relsymbol)) then

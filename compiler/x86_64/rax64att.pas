@@ -74,7 +74,7 @@ Unit rax64att;
         i: TAsmSehDirective;
       begin
         result:=false;
-        if target_info.system<>system_x86_64_win64 then
+        if not(target_info.system in [system_x86_64_win64,system_x86_64_uefi]) then
           exit;
 
         for i:=low(TAsmSehDirective) to high(TAsmSehDirective) do

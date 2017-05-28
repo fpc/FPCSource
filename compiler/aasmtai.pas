@@ -1906,7 +1906,7 @@ implementation
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
-            if target_info.system=system_x86_64_win64 then
+            if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
               result:=sizeof(longint)
             else
               result:=sizeof(pint);

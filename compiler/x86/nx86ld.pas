@@ -59,7 +59,7 @@ implementation
         handled:=false;
         if (tf_section_threadvars in target_info.flags) then
           begin
-            if target_info.system in [system_i386_win32,system_x86_64_win64] then
+            if target_info.system in [system_i386_win32,system_x86_64_win64,system_x86_64_uefi] then
               begin
                 paraloc1.init;
                 pd:=search_system_proc('fpc_tls_add');

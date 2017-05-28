@@ -38,8 +38,8 @@ unit i_uefi;
             shortname    : 'uefi';
             flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_smartlink_library
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
-                            tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development,
-                            tf_dwarf_only_local_labels{,tf_pic_uses_got}];
+                            tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development//,
+                            {tf_dwarf_only_local_labels}{,tf_pic_uses_got}];
             cpu          : cpu_i386;
             unit_env     : 'UEFIUNITS';
             extradefines : 'UEFI,FPC_OS_UNICODE';
@@ -104,14 +104,14 @@ unit i_uefi;
             system       : system_x86_64_uefi;
             name         : 'UEFI for x86_64';
             shortname    : 'uefi';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses
-                            ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
-                            tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development,
-                            tf_dwarf_only_local_labels{,tf_pic_uses_got},tf_pic_default,tf_library_needs_pic];
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_smartlink_library
+                            ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},{tf_dwarf_relative_addresses,}
+                            tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development,{tf_no_pic_supported,}
+                            tf_dwarf_only_local_labels{,tf_pic_uses_got}{,tf_pic_default,tf_library_needs_pic}];
             cpu          : cpu_x86_64;
             unit_env     : 'UEFIUNITS';
             extradefines : 'UEFI,FPC_OS_UNICODE';
-            exeext       : '.exe';
+            exeext       : '.efi';
             defext       : '.def';
             scriptext    : '.bat';
             smartext     : '.sl';
@@ -140,7 +140,7 @@ unit i_uefi;
             linkextern   : ld_none;
             ar           : ar_gnu_ar;
             res          : res_gnu_windres;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_stabs;
             script       : script_dos;
             endian       : endian_little;
             alignment    :

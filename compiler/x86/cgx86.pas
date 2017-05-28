@@ -529,7 +529,7 @@ unit cgx86;
               end
             else
               { Always use RIP relative symbol addressing for Windows and Darwin targets. }
-              if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim])) and (ref.base<>NR_RIP) then
+              if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim,system_x86_64_uefi])) and (ref.base<>NR_RIP) then
                 begin
                   if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
                     begin

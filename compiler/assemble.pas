@@ -1899,7 +1899,7 @@ Implementation
                    aitconst_rva_symbol :
                      begin
                        { PE32+? }
-                       if target_info.system=system_x86_64_win64 then
+                       if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
                          ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
                        else
                          ObjData.writereloc(Tai_const(hp).symofs,sizeof(pint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);

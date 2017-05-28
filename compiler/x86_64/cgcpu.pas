@@ -158,7 +158,7 @@ unit cgcpu;
         i: longint;
       begin
         result:=0;
-        if (target_info.system<>system_x86_64_win64) or
+        if (not(target_info.system in [system_x86_64_win64,system_x86_64_uefi])) or
            (not uses_registers(R_MMREGISTER)) then
           exit;
         for i:=low(saved_mm_registers) to high(saved_mm_registers) do
@@ -397,7 +397,7 @@ unit cgcpu;
                 if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
               end
-            else if (target_info.system=system_x86_64_win64) then
+            else if (target_info.system in [system_x86_64_win64,system_x86_64_uefi]) then
               begin
                 { Comply with Win64 unwinding mechanism, which only recognizes
                   'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
@@ -516,7 +516,7 @@ unit cgcpu;
         if assigned(current_procinfo) then
           use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption)
         else
-          use_ms_abi:=target_info.system=system_x86_64_win64;
+          use_ms_abi:=target_info.system in [system_x86_64_win64,system_x86_64_uefi];
       end;
 
 

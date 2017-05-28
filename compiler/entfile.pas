@@ -872,7 +872,7 @@ var
   d : entryreal;
   hd : double;
 begin
-  if target_info.system=system_x86_64_win64 then
+  if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
     begin
       hd:=getrealsize(sizeof(hd));
       getreal:=hd;
@@ -1178,7 +1178,7 @@ procedure tentryfile.putreal(d:entryreal);
 var
   hd : double;
 begin
-  if target_info.system=system_x86_64_win64 then
+  if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
     begin
       hd:=d;
       putdata(hd,sizeof(hd));

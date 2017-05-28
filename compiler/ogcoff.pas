@@ -2184,7 +2184,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited create;
         win32:=awin32;
-        if target_info.system in [system_x86_64_win64] then
+        if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
           MaxMemPos:=$FFFFFFFF
         else
           if target_info.system in systems_wince then
@@ -2522,7 +2522,7 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
-            if target_info.system in [system_x86_64_win64] then
+            if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
               header.flag:=header.flag or PE_FILE_LARGE_ADDRESS_AWARE
             else
               header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
@@ -2717,7 +2717,7 @@ const pemagic : array[0..3] of byte = (
         objreloc:TObjRelocation;
         i,j:longint;
       begin
-        if target_info.system<>system_x86_64_win64 then
+        if not (target_info.system in [system_x86_64_win64,system_x86_64_uefi]) then
           exit;
         exesec:=FindExeSection('.pdata');
         if exesec=nil then
@@ -2778,11 +2778,11 @@ const pemagic : array[0..3] of byte = (
         begin
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
             idata4objsection.writezeros(sizeof(longint));
           { idata5 }
           idata5objsection.writezeros(sizeof(longint));
-          if target_info.system=system_x86_64_win64 then
+          if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
             idata5objsection.writezeros(sizeof(longint));
         end;
 
@@ -2809,14 +2809,14 @@ const pemagic : array[0..3] of byte = (
             if AOrdNr <= 0 then
               begin
                 objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
                   objsec.writezeros(sizeof(longint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=AOrdNr;
-                if target_info.system=system_x86_64_win64 then
+                if target_info.system in [system_x86_64_win64,system_x86_64_uefi] then
                   begin
                     objsec.write(ordint,sizeof(ordint));
                     ordint:=$80000000;
@@ -3117,14 +3117,14 @@ const pemagic : array[0..3] of byte = (
         result:=false;
         fillchar(sechdr,sizeof(sechdr),0);
 {$ifdef win32}
-        if (target_info.system=system_x86_64_win64) and
+        if (target_info.system in [system_x86_64_win64,system_x86_64_uefi]) and
           assigned(Wow64DisableWow64FsRedirection) then
           Wow64DisableWow64FsRedirection(p);
 {$endif win32}
         DLLReader:=TObjectReader.Create;
         DLLReader.OpenFile(dllname);
 {$ifdef win32}
-        if (target_info.system=system_x86_64_win64) and
+        if (target_info.system in [system_x86_64_win64,system_x86_64_uefi]) and
           assigned(Wow64RevertWow64FsRedirection) then
           Wow64RevertWow64FsRedirection(p);
 {$endif win32}
