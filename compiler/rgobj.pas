@@ -22,12 +22,11 @@
 {$i fpcdefs.inc}
 
 { $define DEBUG_REGALLOC}
-{$define DEBUG_SPILLCOALESCE}
+{ $define DEBUG_SPILLCOALESCE}
 { $define DEBUG_REGISTERLIFE}
 
 { Allow duplicate allocations, can be used to get the .s file written }
 { $define ALLOWDUPREG}
-
 
 
 {$ifdef DEBUG_REGALLOC}
@@ -2084,7 +2083,6 @@ unit rgobj;
               writeln('trgobj.spill_registers: Spilling ',t);
 {$endif DEBUG_SPILLCOALESCE}
 
-              spillinfo[t].spilled:=true;
               spillinfo[t].interferences:=Tinterferencebitmap.create;
 
               { copy interferences }
@@ -2133,6 +2131,13 @@ unit rgobj;
 
               if getnewspillloc then
                 get_spill_temp(templist,spill_temps,t);
+
+{$ifdef DEBUG_SPILLCOALESCE}
+              writeln('trgobj.spill_registers: Spill temp: ',getsupreg(spill_temps^[t].base),'+',spill_temps^[t].offset);
+{$endif DEBUG_SPILLCOALESCE}
+
+              { set spilled only as soon as a temp is assigned, else a mov iregX,iregX results in a spill coalesce with itself }
+              spillinfo[t].spilled:=true;
 
               spillinfo[t].spilllocation:=spill_temps^[t];
             end;
