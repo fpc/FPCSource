@@ -197,6 +197,7 @@ type
     { General info }
     procedure TestPostScriptName;
     procedure TestFamilyName;
+    procedure TestHumanFriendlyName;
   end;
 
 
@@ -210,6 +211,7 @@ type
     { General info }
     procedure TestPostScriptName;
     procedure TestFamilyName;
+    procedure TestHumanFriendlyName;
   end;
 
 
@@ -370,6 +372,7 @@ type
     { General info }
     procedure TestPostScriptName;
     procedure TestFamilyName;
+    procedure TestHumanFriendlyName;
   end;
 
 implementation
@@ -1181,6 +1184,11 @@ begin
   AssertEquals('Failed on 1', 'Liberation Sans', FI.FamilyName);
 end;
 
+procedure TTestLiberationFont.TestHumanFriendlyName;
+begin
+  AssertEquals('Failed on 1', 'Liberation Sans', FI.HumanFriendlyName);
+end;
+
 { TTestLiberationItalicFont }
 
 procedure TTestLiberationItalicFont.SetUp;
@@ -1206,6 +1214,11 @@ end;
 procedure TTestLiberationItalicFont.TestFamilyName;
 begin
   AssertEquals('Failed on 1', 'Liberation Sans', FI.FamilyName);
+end;
+
+procedure TTestLiberationItalicFont.TestHumanFriendlyName;
+begin
+  AssertEquals('Failed on 1', 'Liberation Sans Italic', FI.HumanFriendlyName);
 end;
 
 { TTestFreeSansFont }
@@ -1963,6 +1976,12 @@ procedure TTestFreeSansFont.TestFamilyName;
 begin
   AssertEquals('Failed on 1', 'FreeSans', FI.FamilyName);
 end;
+
+procedure TTestFreeSansFont.TestHumanFriendlyName;
+begin
+  AssertEquals('Failed on 1', 'FreeSans', FI.HumanFriendlyName);
+end;
+
 
 initialization
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestEmptyParseTTF{$ifdef fptest}.Suite{$endif});
