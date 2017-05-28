@@ -193,6 +193,10 @@ type
     { Utility functions }
     procedure TestGetGlyphIndex;
     procedure TestGetAdvanceWidth;
+
+    { General info }
+    procedure TestPostScriptName;
+    procedure TestFamilyName;
   end;
 
 
@@ -202,6 +206,10 @@ type
   published
     { PostScript data structure }
     procedure TestPostScript_ItalicAngle;
+
+    { General info }
+    procedure TestPostScriptName;
+    procedure TestFamilyName;
   end;
 
 
@@ -358,6 +366,10 @@ type
     procedure TestPostScript_maxMemType42;
     procedure TestPostScript_minMemType1;
     procedure TestPostScript_maxMemType1;
+
+    { General info }
+    procedure TestPostScriptName;
+    procedure TestFamilyName;
   end;
 
 implementation
@@ -1159,6 +1171,16 @@ begin
   AssertEquals('Failed on 12', 1139, FI.GetAdvanceWidth(20));  // '1'
 end;
 
+procedure TTestLiberationFont.TestPostScriptName;
+begin
+  AssertEquals('Failed on 1', 'LiberationSans', FI.PostScriptName);
+end;
+
+procedure TTestLiberationFont.TestFamilyName;
+begin
+  AssertEquals('Failed on 1', 'Liberation Sans', FI.FamilyName);
+end;
+
 { TTestLiberationItalicFont }
 
 procedure TTestLiberationItalicFont.SetUp;
@@ -1174,6 +1196,16 @@ procedure TTestLiberationItalicFont.TestPostScript_ItalicAngle;
 begin
   AssertEquals('Failed on 1', -12.0, FI.PostScript.ItalicAngle / 65536.0);
   AssertEquals('Failed on 2', -12.0, FI.ItalicAngle);
+end;
+
+procedure TTestLiberationItalicFont.TestPostScriptName;
+begin
+  AssertEquals('Failed on 1', 'LiberationSans-Italic', FI.PostScriptName);
+end;
+
+procedure TTestLiberationItalicFont.TestFamilyName;
+begin
+  AssertEquals('Failed on 1', 'Liberation Sans', FI.FamilyName);
 end;
 
 { TTestFreeSansFont }
@@ -1922,6 +1954,15 @@ begin
   AssertEquals('Failed on 1', 0, FI.PostScript.maxMemType1);
 end;
 
+procedure TTestFreeSansFont.TestPostScriptName;
+begin
+  AssertEquals('Failed on 1', 'FreeSans', FI.PostScriptName);
+end;
+
+procedure TTestFreeSansFont.TestFamilyName;
+begin
+  AssertEquals('Failed on 1', 'FreeSans', FI.FamilyName);
+end;
 
 initialization
   RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestEmptyParseTTF{$ifdef fptest}.Suite{$endif});
