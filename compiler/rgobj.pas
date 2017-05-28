@@ -22,14 +22,17 @@
 {$i fpcdefs.inc}
 
 { $define DEBUG_REGALLOC}
-{ $define DEBUG_SPILLCOALESCE}
+{$define DEBUG_SPILLCOALESCE}
+{ $define DEBUG_REGISTERLIFE}
+
+{ Allow duplicate allocations, can be used to get the .s file written }
+{ $define ALLOWDUPREG}
+
+
 
 {$ifdef DEBUG_REGALLOC}
 {$define EXTDEBUG}
 {$endif DEBUG_REGALLOC}
-
-{ Allow duplicate allocations, can be used to get the .s file written }
-{ $define ALLOWDUPREG}
 
 unit rgobj;
 
@@ -2105,10 +2108,10 @@ unit rgobj;
                     x:=Tmoveins(reginfo[t].movelist^.data[j]).x;
                     y:=Tmoveins(reginfo[t].movelist^.data[j]).y;
                     if (x=t) and
-                      (spillinfo[y].spilled) and
-                      not(spillinfo[y].interferences[0,t]) then
+                      (spillinfo[get_alias(y)].spilled) and
+                      not(spillinfo[get_alias(y)].interferences[0,t]) then
                       begin
-                        spill_temps^[t]:=spillinfo[y].spilllocation;
+                        spill_temps^[t]:=spillinfo[get_alias(y)].spilllocation;
 {$ifdef DEBUG_SPILLCOALESCE}
                         writeln('trgobj.spill_registers: Spill coalesce ',t,' to ',y);
 {$endif DEBUG_SPILLCOALESCE}
@@ -2116,13 +2119,13 @@ unit rgobj;
                         break;
                       end
                     else if (y=t) and
-                      (spillinfo[x].spilled) and
-                      not(spillinfo[x].interferences[0,t]) then
+                      (spillinfo[get_alias(x)].spilled) and
+                      not(spillinfo[get_alias(x)].interferences[0,t]) then
                       begin
 {$ifdef DEBUG_SPILLCOALESCE}
                         writeln('trgobj.spill_registers: Spill coalesce ',t,' to ',x);
 {$endif DEBUG_SPILLCOALESCE}
-                        spill_temps^[t]:=spillinfo[x].spilllocation;
+                        spill_temps^[t]:=spillinfo[get_alias(x)].spilllocation;
                         getnewspillloc:=false;
                         break;
                       end;
