@@ -1003,13 +1003,12 @@ implementation
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
-         distv,
+         distv,dist,
          lv,hv,
          max_label: tconstexprint;
          labelcnt : tcgint;
          max_linear_list : aint;
-         max_dist,
-         dist : aword;
+         max_dist : aword;
          oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
