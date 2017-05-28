@@ -13,7 +13,7 @@
 
  **********************************************************************}
 unit System;
- 
+
 interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
