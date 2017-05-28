@@ -60,7 +60,7 @@ interface
        end;
 
        tcgvecnode = class(tvecnode)
-         function get_mul_size : aint;
+         function get_mul_size : asizeint;
        private
          procedure rangecheck_array;
          procedure rangecheck_string;
@@ -73,7 +73,7 @@ interface
          }
          procedure update_reference_reg_mul(maybe_const_reg: tregister;regsize: tdef; l: aint);virtual;
          procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint);virtual;
-         procedure update_reference_offset(var ref: treference; index, mulsize: aint); virtual;
+         procedure update_reference_offset(var ref: treference; index, mulsize: ASizeInt); virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
          function valid_index_size(size: tcgsize): boolean;virtual;
@@ -607,7 +607,7 @@ implementation
                             TCGVECNODE
 *****************************************************************************}
 
-     function tcgvecnode.get_mul_size : aint;
+     function tcgvecnode.get_mul_size : asizeint;
        begin
          if nf_memindex in flags then
           get_mul_size:=1
@@ -732,7 +732,7 @@ implementation
        end;
 
 
-     procedure tcgvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
+     procedure tcgvecnode.update_reference_offset(var ref: treference; index, mulsize: ASizeInt);
        begin
          inc(ref.offset,index*mulsize);
        end;
@@ -849,7 +849,7 @@ implementation
          rightp      : pnode;
          newsize  : tcgsize;
          mulsize,
-         bytemulsize,
+         bytemulsize : ASizeInt;
          alignpow : aint;
          paraloc1,
          paraloc2 : tcgpara;
