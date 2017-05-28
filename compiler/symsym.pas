@@ -2231,7 +2231,7 @@ implementation
            toasm :
              asmname:=ppufile.getpshortstring;
            toaddr :
-             addroffset:=ppufile.getaword;
+             addroffset:=ppufile.getpuint;
          end;
          ppuload_platform(ppufile);
       end;
@@ -2247,7 +2247,7 @@ implementation
            toasm :
              ppufile.putstring(asmname^);
            toaddr :
-             ppufile.putaword(addroffset);
+             ppufile.putpuint(addroffset);
          end;
          writeentry(ppufile,ibabsolutevarsym);
       end;

@@ -268,6 +268,7 @@ type
     function  getqword:qword;
     function getaint:{$ifdef generic_cpu}int64{$else}aint{$endif};
     function getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$endif};
+    function getpuint:{$ifdef generic_cpu}qword{$else}puint{$endif};
     function getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
     function  getreal:entryreal;
     function  getrealsize(sizeofreal : longint):entryreal;
@@ -293,6 +294,7 @@ type
     procedure putqword(q:qword);
     procedure putaint(i:aint);
     procedure putasizeint(i:asizeint);
+    procedure putpuint(i:puint);
     procedure putaword(i:aword);
     procedure putreal(d:entryreal);
     procedure putstring(const s:string);
@@ -774,6 +776,38 @@ end;
 end;
 
 
+function tentryfile.getpuint:{$ifdef generic_cpu}qword{$else}puint{$endif};
+{$ifdef generic_cpu}
+var
+header : pentryheader;
+{$endif generic_cpu}
+begin
+{$ifdef generic_cpu}
+  header:=getheaderaddr;
+  if CpuAddrBitSize[tsystemcpu(header^.cpu)]=64 then
+    result:=getqword
+  else if CpuAddrBitSize[tsystemcpu(header^.cpu)]=32 then
+    result:=getdword
+  else if CpuAddrBitSize[tsystemcpu(header^.cpu)]=16 then
+    result:=getbyte
+  else
+    begin
+      error:=true;
+      result:=0;
+    end;
+{$else not generic_cpu}
+  case sizeof(puint) of
+    8: result:=getqword;
+    4: result:=getdword;
+    2: result:=getword;
+    1: result:=getbyte;
+  else
+    result:=0;
+  end;
+{$endif not generic_cpu}
+end;
+
+
 function tentryfile.getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
 {$ifdef generic_cpu}
 var
@@ -1165,6 +1199,12 @@ end;
 procedure tentryfile.putasizeint(i: asizeint);
 begin
   putdata(i,sizeof(asizeint));
+end;
+
+
+procedure tentryfile.putpuint(i : puint);
+begin
+  putdata(i,sizeof(puint));
 end;
 
 
