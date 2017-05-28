@@ -1,4 +1,4 @@
-These sets of unit tests requires four font files of specific versions
+These sets of unit tests requires 5 font files of specific versions
 each. Here is what the tests were designed against.
 
  Font File                  |  Size (bytes)   |  Version
@@ -6,6 +6,7 @@ each. Here is what the tests were designed against.
 DejaVuSans.ttf              |    622,280      |    2.30
 FreeSans.ttf                |  1,563,256      |  412.2268
 LiberationSans-Regular.ttf  |    350,200      |    2.00.1
+LiberationSans-Italic.ttf   |    355,608      |    2.00.1
 Ubuntu-R.ttf                |    353,824      |    0.80
 
 

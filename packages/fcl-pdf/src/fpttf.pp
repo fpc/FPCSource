@@ -49,6 +49,7 @@ type
     FFileInfo: TTFFileInfo;
     FOwner: TFPFontCacheList; // reference to FontCacheList that owns this instance
     FPostScriptName: string;
+    FHumanFriendlyName: string; // aka FullName
     procedure   DoLoadFileInfo;
     procedure   LoadFileInfo;
     procedure   BuildFontCacheItem;
@@ -59,6 +60,7 @@ type
     function    GetIsRegular: boolean;
     function    GetFamilyName: String;
     function    GetPostScriptName: string;
+    function    GetHumanFriendlyName: string;
     function    GetFileInfo: TTFFileInfo;
   public
     constructor Create(const AFilename: String);
@@ -70,6 +72,7 @@ type
     property    FileName: String read FFileName;
     property    FamilyName: String read GetFamilyName;
     property    PostScriptName: string read GetPostScriptName;
+    property    HumanFriendlyName: string read GetHumanFriendlyName;
     property    FontData: TTFFileInfo read GetFileInfo;
     { A bitmasked value describing the full font style }
     property    StyleFlags: TTrueTypeFontStyles read FStyleFlags;
@@ -203,6 +206,12 @@ begin
   Result := FPostScriptName;
 end;
 
+function TFPFontCacheItem.GetHumanFriendlyName: string;
+begin
+  DoLoadFileInfo;
+  Result := FHumanFriendlyName;
+end;
+
 function TFPFontCacheItem.GetFileInfo: TTFFileInfo;
 begin
   DoLoadFileInfo;
@@ -218,6 +227,7 @@ begin
   FFamilyName := FFileInfo.FamilyName;
   if Pos(s, FFamilyName) = 1 then
     Delete(s, 1, Length(FFamilyName));
+  FHumanFriendlyName := FFileInfo.HumanFriendlyName;
 
   FStyleFlags := [fsRegular];
 

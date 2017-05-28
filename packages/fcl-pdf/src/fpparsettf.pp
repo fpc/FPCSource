@@ -289,6 +289,7 @@ Type
     CharBase:  PTTFEncodingNames;
     PostScriptName: string;
     FamilyName: string;
+    HumanFriendlyName: string; // aka FullName
     destructor Destroy; override;
     { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
     function  GetGlyphIndex(AValue: word): word;
@@ -660,15 +661,23 @@ begin
       writeln('NameID = ', E[i].Info.NameID);
       writeln('Value = ', E[i].Value);
     {$ENDIF}
+
     if (PostScriptName='')
        and (E[i].Info.NameID=NameIDPostScriptName)
        and (E[i].Info.EncodingID=NameMSEncodingUGL) then
       PostScriptName:=E[i].Value;
+
     if (FamilyName = '')
         and (E[i].Info.NameID = NameIDFontFamily)
         and (E[i].Info.LanguageID = 1033)
         and (E[i].Info.EncodingID = 1) then
       FamilyName := E[i].Value;
+
+    if (HumanFriendlyName = '')
+        and (E[i].Info.NameID = NameIDFullFontName)
+        and (E[i].Info.LanguageID = 1033)
+        and (E[i].Info.EncodingID = 1) then
+      HumanFriendlyName := E[i].Value;
   end; { for i ... }
 end;
 

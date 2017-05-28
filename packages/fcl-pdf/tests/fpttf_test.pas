@@ -412,6 +412,8 @@ begin
   end;
 end;
 
+{ The fontlist file contains 3 font names, instead of the 5 that should
+  be available. This tests that we only load info of fonts that we need. }
 procedure TFPFontCacheListTest.TestLoadFromFile;
 const
   cFontListFile = 'fontlist.txt';
