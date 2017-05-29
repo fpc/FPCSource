@@ -305,8 +305,8 @@ const
 {$ifdef aarch64}   platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}      platform_select='';{$endif} {unknown :( }
 {$ifdef mips}
-  {$ifdef mipsel}  
-	           platform_select='-EL';
+  {$ifdef mipsel}
+                   platform_select='-EL';
   {$else}
                    platform_select='-EB';
   {$endif}
