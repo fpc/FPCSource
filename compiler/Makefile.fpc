@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -46,6 +46,9 @@ PPC_TARGET=powerpc64
 endif
 ifdef SPARC
 PPC_TARGET=sparc
+endif
+ifdef SPARC64
+PPC_TARGET=sparc64
 endif
 ifdef M68K
 PPC_TARGET=m68k
@@ -182,6 +185,9 @@ endif
 ifeq ($(CPC_TARGET),sparc)
 CPUSUF=sparc
 endif
+ifeq ($(CPC_TARGET),sparc64)
+CPUSUF=sparc64
+endif
 ifeq ($(CPC_TARGET),x86_64)
 CPUSUF=x64
 endif
@@ -281,7 +287,12 @@ endif
 
 # Sparc specific
 ifeq ($(PPC_TARGET),sparc)
-override LOCALOPT+=
+override LOCALOPT+=-Fusparcgen
+endif
+
+# Sparc specific
+ifeq ($(PPC_TARGET),sparc64)
+override LOCALOPT+=-Fusparcgen
 endif
 
 # ARM specific
@@ -411,7 +422,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 
@@ -773,7 +784,7 @@ ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 
-ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc),)
+ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64),)
   EXCLUDE_80BIT_TARGETS=1
 endif
 

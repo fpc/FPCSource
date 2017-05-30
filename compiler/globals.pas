@@ -449,6 +449,12 @@ interface
         asmcputype : cpu_none;
         fputype : fpu_hard;
   {$endif sparc}
+  {$ifdef sparc64}
+        cputype : cpu_SPARC_V9;
+        optimizecputype : cpu_SPARC_V9;
+        asmcputype : cpu_none;
+        fputype : fpu_hard;
+  {$endif sparc64}
   {$ifdef arm}
         cputype : cpu_armv4;
         optimizecputype : cpu_armv4;

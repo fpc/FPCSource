@@ -12,7 +12,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="ppcsparc"/>
+      <Title Value="ppcsparc64"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -34,7 +34,7 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="sparc\aasmcpu.pas"/>
+        <Filename Value="sparc64\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
     </Units>
@@ -43,12 +43,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="sparc\pp"/>
+      <Filename Value="sparc64\pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="sparc;sparcgen"/>
-      <OtherUnitFiles Value="sparc;sparcgen;systems"/>
-      <UnitOutputDirectory Value="sparc\lazbuild"/>
+      <IncludeFiles Value="sparc64;sparcgen"/>
+      <OtherUnitFiles Value="sparc64;sparcgen;systems"/>
+      <UnitOutputDirectory Value="sparc64\lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -67,7 +67,7 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-dsparc"/>
+      <CustomOptions Value="-dsparc64"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

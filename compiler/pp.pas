@@ -30,6 +30,7 @@ program pp;
   x86_64              generate a compiler for the AMD x86-64 architecture
   M68K                generate a compiler for the M68000
   SPARC               generate a compiler for SPARC
+  SPARC64             generate a compiler for SPARC64
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
   DEBUG               version with debug code is generated
@@ -104,6 +105,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif SPARC}
+{$ifdef SPARC64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif SPARC64}
 {$ifdef ARM}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}

@@ -102,7 +102,19 @@
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
+  {$define sparcgen}
 {$endif sparc}
+
+{$ifdef sparc64}
+  {$define cpu64bit}
+  {$define cpu64bitaddr}
+  {$define cpu64bitalu}
+  {$define cpuflags}
+  {$define cputargethasfixedstack}
+  {$define cpurefshaveindexreg}
+  {$define SUPPORT_SAFECALL}
+  {$define sparcgen}
+{$endif sparc64}
 
 {$ifdef powerpc}
   {$define cpu32bit}
