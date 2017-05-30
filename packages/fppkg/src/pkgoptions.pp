@@ -126,6 +126,8 @@ Type
     procedure SetPrefix(AValue: string);
     procedure SetRepositoryName(AValue: string);
     procedure SetPath(AValue: string);
+  protected
+    procedure SaveToStrings(AStrings: TStrings); override;
   public
     procedure AddKeyValue(const AKey, AValue: string); override;
     procedure LogValues(ALogLevel: TLogLevel); override;
@@ -202,6 +204,8 @@ Type
 
     procedure BindToCompilerOptions(ACompilerOptions: TCompilerOptions);
     procedure AddRepositoriesForCompilerSettings(ACompilerOptions: TCompilerOptions);
+    function AddRepositoryOptionSection(ASectionClass: TFppkgRepositoryOptionSectionClass): TFppkgRepositoryOptionSection;
+    function AddIncludeFilesOptionSection(AFileMask: string): TFppkgIncludeFilesOptionSection;
 
     property SectionList: TFppkgOptionSectionList read GetSectionList;
     property GlobalSection: TFppkgGLobalOptionSection read GetGlobalSection;
@@ -435,6 +439,18 @@ procedure TFppkgRepositoryOptionSection.SetPath(AValue: string);
 begin
   if FPath = AValue then Exit;
   FPath := fpmkunit.FixPath(AValue, True);
+end;
+
+procedure TFppkgRepositoryOptionSection.SaveToStrings(AStrings: TStrings);
+begin
+  inherited SaveToStrings(AStrings);
+  AStrings.Add('['+KeyRepositorySection+']');
+  AStrings.Add(KeyRepositoryName+'='+RepositoryName);
+  AStrings.Add(KeyRepositoryDescription+'='+Description);
+  AStrings.Add(KeyRepositoryPath+'='+FPath);
+  AStrings.Add(KeyRepositoryPrefix+'='+FPrefix);
+  if InstallRepositoryName<>'' then
+    AStrings.Add(KeyInstallRepositoryName+'='+InstallRepositoryName);
 end;
 
 procedure TFppkgRepositoryOptionSection.AddKeyValue(const AKey, AValue: string);
@@ -827,12 +843,24 @@ procedure TFppkgOptions.SaveToFile(const AFileName: string);
 var
   IniFile: TStringList;
   CurrentSection: TFppkgOptionSection;
+  GSection: TFppkgGlobalOptionSection;
+  i: Integer;
 begin
   IniFile:=TStringList.Create;
   try
-    // Only the Global-section is being written, with some default values
-    CurrentSection := GlobalSection;
-    CurrentSection.SaveToStrings(IniFile);
+    GSection := GlobalSection;
+    GSection.SaveToStrings(IniFile);
+
+    for i := 0 to SectionList.Count-1 do
+      begin
+        CurrentSection := SectionList[i];
+        if CurrentSection<>GSection then
+          begin
+            IniFile.Add('');
+            CurrentSection.SaveToStrings(IniFile);
+          end;
+      end;
+
     Inifile.SaveToFile(AFileName);
   finally
     Inifile.Free;
@@ -896,6 +924,18 @@ begin
       else
         CommandLineSection.InstallRepository:='local';
     end;
+end;
+
+function TFppkgOptions.AddRepositoryOptionSection(ASectionClass: TFppkgRepositoryOptionSectionClass): TFppkgRepositoryOptionSection;
+begin
+  Result := ASectionClass.Create(FOptionParser);
+  FSectionList.Add(Result);
+end;
+
+function TFppkgOptions.AddIncludeFilesOptionSection(AFileMask: string): TFppkgIncludeFilesOptionSection;
+begin
+  Result := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, AFileMask);
+  FSectionList.Add(Result);
 end;
 
 {*****************************************************************************
