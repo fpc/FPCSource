@@ -53,6 +53,7 @@ uses
                                   Registers
 *****************************************************************************}
 
+{$ifdef SPARC}
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rspnor.inc}-1;
@@ -89,7 +90,46 @@ uses
       regdwarf_table : array[tregisterindex] of ShortInt = (
         {$i rspdwrf.inc}
       );
+{$endif SPARC}
 
+{$ifdef SPARC64}
+    type
+      { Number of registers used for indexing in tables }
+      tregisterindex=0..{$i rsp64nor.inc}-1;
+      totherregisterset = set of tregisterindex;
+
+    const
+      { Available Superregisters }
+      {$i rsp64sup.inc}
+
+      { No Subregisters }
+      R_SUBWHOLE = R_SUBQ;
+
+      { Available Registers }
+      {$i rsp64con.inc}
+
+      first_int_imreg = $20;
+      first_fpu_imreg = $20;
+
+      { MM Super register first and last }
+      first_mm_supreg    = 0;
+      first_mm_imreg     = 1;
+
+{ TODO: Calculate bsstart}
+      regnumber_count_bsstart = 128;
+
+      regnumber_table : array[tregisterindex] of tregister = (
+        {$i rsp64num.inc}
+      );
+
+      regstabs_table : array[tregisterindex] of ShortInt = (
+        {$i rsp64stab.inc}
+      );
+
+      regdwarf_table : array[tregisterindex] of ShortInt = (
+        {$i rsp64dwrf.inc}
+      );
+{$endif SPARC64}
 
 {*****************************************************************************
                                 Conditions
@@ -298,6 +338,7 @@ implementation
     uses
       rgBase,verbose;
 
+{$ifdef SPARC}
     const
       std_regname_table : TRegNameTAble = (
         {$i rspstd.inc}
@@ -310,7 +351,22 @@ implementation
       std_regname_index : TRegisterIndexTable = (
         {$i rspsri.inc}
       );
+{$endif SPARC}
 
+{$ifdef SPARC64}
+    const
+      std_regname_table : TRegNameTAble = (
+        {$i rsp64std.inc}
+      );
+
+      regnumber_index : TRegisterIndexTable = (
+        {$i rsp64rni.inc}
+      );
+
+      std_regname_index : TRegisterIndexTable = (
+        {$i rsp64sri.inc}
+      );
+{$endif SPARC64}
 
 {*****************************************************************************
                                   Helpers
