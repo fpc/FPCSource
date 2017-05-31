@@ -543,10 +543,16 @@ regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
         cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmreg$(SRCEXEEXT)
 
-regdatsp : sparc/spreg.dat
+regdatsp : sparcgen/spreg.dat
             $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkspreg.pp
-        cd sparc && ..$(PATHSEP)utils$(PATHSEP)mkspreg$(SRCEXEEXT)
+        cd sparcgen && ..$(PATHSEP)utils$(PATHSEP)mkspreg$(SRCEXEEXT)
+		mv -f sparcgen/rsp*.inc sparc
 
+regdatsp64 : sparcgen/spreg.dat
+            $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkspreg.pp
+        cd sparcgen && ..$(PATHSEP)utils$(PATHSEP)mkspreg$(SRCEXEEXT) sparc64
+		mv -f sparcgen/rsp*.inc sparc64
+		
 regdatavr : avr/avrreg.dat
             $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkavrreg.pp
         cd avr && ..$(PATHSEP)utils$(PATHSEP)mkavrreg$(SRCEXEEXT)
@@ -559,7 +565,7 @@ regdatmips : mips/mipsreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkmpsreg.pp
         cd mips && ..$(PATHSEP)utils$(PATHSEP)mkmpsreg$(SRCEXEEXT)
 
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64
 
 # revision.inc rule
 revision.inc :
