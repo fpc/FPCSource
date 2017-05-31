@@ -304,6 +304,7 @@ var
 begin
   Result:=false;
   FpmkDir:=IncludeTrailingPathDelimiter(FPath)+'fpmkinst'+PathDelim+FCompilerOptions.CompilerTarget+PathDelim;
+  DirectoryExistsLog(FpmkDir);
   if FindFirst(IncludeTrailingPathDelimiter(FpmkDir)+'*'+FpmkExt,faDirectory,SR)=0 then
     begin
       log(llDebug,SLogFindInstalledPackages,[FpmkDir]);
@@ -319,6 +320,7 @@ begin
 
   // Search for non-fpmkunit packages
   UnitDir:=IncludeTrailingPathDelimiter(FPath)+'units'+PathDelim+FCompilerOptions.CompilerTarget+PathDelim;
+  DirectoryExistsLog(UnitDir);
   if FindFirst(IncludeTrailingPathDelimiter(UnitDir)+AllFiles,faDirectory,SR)=0 then
     begin
       log(llDebug,SLogFindInstalledPackages,[UnitDir]);
