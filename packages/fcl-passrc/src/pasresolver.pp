@@ -144,13 +144,15 @@ ToDo:
   - boolean ranges
   - enum ranges
   - char ranges
-  - +, -, *, div, mod, /, shl, shr, or, and, xor
+  - +, -, *, div, mod, /, shl, shr, or, and, xor, in, ^^, ><
+  - =, <>, <, <=, >, >=
   - ord(), low(), high(), pred(), succ(), length()
   - string[index]
   - arr[index]
   - call(param)
   - indexedprop[param]
   - a:=value
+  - set+set, set*set, set-set
 - @@
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
@@ -840,6 +842,8 @@ type
     Exp: TPasExpr; RaiseOnError: boolean): integer of object;
   TOnGetCallResult = procedure(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
     out ResolvedEl: TPasResolverResult) of object;
+  TOnEvalBIFunction = procedure(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
+    out Evaluated: TResEvalValue) of object;
   TOnFinishParamsExpr = procedure(Proc: TResElDataBuiltInProc;
     Params: TParamsExpr) of object;
 
@@ -857,6 +861,7 @@ type
     BuiltIn: TResolverBuiltInProc;
     GetCallCompatibility: TOnGetCallCompatibility;
     GetCallResult: TOnGetCallResult;
+    Eval: TOnEvalBIFunction;
     FinishParamsExpression: TOnFinishParamsExpr;
     Flags: TBuiltInProcFlags;
   end;
@@ -1101,6 +1106,8 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Length_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_Length_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out Evaluated: TResEvalValue); virtual;
     function BI_SetLength_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_SetLength_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
@@ -1208,6 +1215,7 @@ type
     function AddBuiltInProc(const aName: string; Signature: string;
       const GetCallCompatibility: TOnGetCallCompatibility;
       const GetCallResult: TOnGetCallResult;
+      const EvalConst: TOnEvalBIFunction = nil;
       const FinishParamsExpr: TOnFinishParamsExpr = nil;
       const BuiltIn: TResolverBuiltInProc = bfCustom;
       const Flags: TBuiltInProcFlags = []): TResElDataBuiltInProc;
@@ -1304,6 +1312,7 @@ type
       ErrorOnFalse: boolean; ErrorEl: TPasElement): boolean;
     function CheckAssignCompatibility(const LHS, RHS: TPasElement;
       RaiseOnIncompatible: boolean = true): integer;
+    procedure CheckAssignExprRange(const LeftResolved: TPasResolverResult; RHS: TPasExpr);
     function CheckAssignResCompatibility(const LHS, RHS: TPasResolverResult;
       ErrorEl: TPasElement; RaiseOnIncompatible: boolean): integer;
     function CheckEqualElCompatibility(Left, Right: TPasElement;
@@ -3359,6 +3368,7 @@ end;
 
 procedure TPasResolver.FinishConstRangeExpr(Left, Right: TPasExpr; out LeftResolved,
   RightResolved: TPasResolverResult);
+// for example Left..Right
 {$IFDEF EnablePasResRangeCheck}
 var
   RgValue: TResEvalValue;
@@ -3427,7 +3437,9 @@ procedure TPasResolver.FinishConstDef(El: TPasConst);
 begin
   ResolveExpr(El.Expr,rraRead);
   if El.VarType<>nil then
-    CheckAssignCompatibility(El,El.Expr,true);
+    CheckAssignCompatibility(El,El.Expr,true)
+  else
+    Eval(El.Expr,[refConst]);
 end;
 
 procedure TPasResolver.FinishProcedure(aProc: TPasProcedure);
@@ -4775,7 +4787,12 @@ begin
 
   case El.Kind of
   akDefault:
+    begin
     CheckAssignResCompatibility(LeftResolved,RightResolved,El.right,true);
+    {$IFDEF EnablePasResRangeCheck}
+    CheckAssignExprRange(LeftResolved,El.right);
+    {$ENDIF}
+    end;
   akAdd, akMinus,akMul,akDivision:
     begin
     if (El.Kind in [akAdd,akMinus,akMul]) and (LeftResolved.BaseType in btAllInteger) then
@@ -4816,6 +4833,8 @@ begin
       end
     else
       RaiseMsg(20170216152125,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
+    // store const expression result
+    Eval(El.right,[]);
     end;
   else
     RaiseNotYetImplemented(20160927143649,El,'AssignKind '+AssignKindNames[El.Kind]);
@@ -6167,6 +6186,8 @@ begin
               if not (RightResolved.BaseType in btAllInteger) then
                 RaiseXExpectedButYFound(20170216152600,'integer',BaseTypeNames[RightResolved.BaseType],Bin.right);
               SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,LeftResolved.TypeEl,Bin,[rrfReadable]);
+              if Bin.Parent is TPasRangeType then
+                ResolvedEl.TypeEl:=TPasRangeType(Bin.Parent);
               exit;
               end;
           eopAdd, eopSubtract,
@@ -7407,6 +7428,9 @@ function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
 // Important: Caller must free result if (Result<>nil) and (Result.Element=nil)
 //            use utility function ReleaseEvalValue(Result)
 begin
+  {$IFNDEF EnablePasResRangeCheck}
+  exit(nil);
+  {$ENDIF}
   Result:=fExprEvaluator.Eval(Expr,Flags);
   if Result=nil then exit;
 
@@ -7480,6 +7504,28 @@ begin
   if Params=nil then ;
   SetResolverIdentifier(ResolvedEl,BaseTypeLength,Proc.Proc,
     FBaseTypes[BaseTypeLength],[rrfReadable]);
+end;
+
+procedure TPasResolver.BI_Length_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out Evaluated: TResEvalValue);
+var
+  Value: TResEvalValue;
+begin
+  Evaluated:=nil;
+  Value:=Eval(Params.Params[0],[refAutoConst]);
+  if Value=nil then exit;
+  if Value.Kind=revkString then
+    begin
+    Evaluated:=TResEvalInt.Create;
+    TResEvalInt(Evaluated).Int:=length(TResEvalString(Value).S);
+    end
+  else if Value.Kind=revkUnicodeString then
+    begin
+    Evaluated:=TResEvalInt.Create;
+    TResEvalInt(Evaluated).Int:=length(TResEvalUTF16(Value).S);
+    end;
+  ReleaseEvalValue(Value);
+  if Proc=nil then ;
 end;
 
 function TPasResolver.BI_SetLength_OnGetCallCompatibility(
@@ -7985,7 +8031,7 @@ function TPasResolver.BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
       // floats supports value:Width:Precision
       Ok:=true
     else
-      // all other only support only Width
+      // all other only support value:Width
       Ok:=Index<2;
     if not Ok then
       begin
@@ -9109,82 +9155,91 @@ begin
     AddBaseType(BaseTypeNames[bt],bt);
   if bfLength in TheBaseProcs then
     AddBuiltInProc('Length','function Length(const String or Array): sizeint',
-        @BI_Length_OnGetCallCompatibility,@BI_Length_OnGetCallResult,nil,bfLength);
+        @BI_Length_OnGetCallCompatibility,@BI_Length_OnGetCallResult,
+        @BI_Length_OnEval,nil,bfLength);
   if bfSetLength in TheBaseProcs then
     AddBuiltInProc('SetLength','procedure SetLength(var String or Array; NewLength: sizeint)',
-        @BI_SetLength_OnGetCallCompatibility,nil,
+        @BI_SetLength_OnGetCallCompatibility,nil,nil,
         @BI_SetLength_OnFinishParamsExpr,bfSetLength,[bipfCanBeStatement]);
   if bfInclude in TheBaseProcs then
     AddBuiltInProc('Include','procedure Include(var Set of Enum; const Enum)',
-        @BI_InExclude_OnGetCallCompatibility,nil,
+        @BI_InExclude_OnGetCallCompatibility,nil,nil,
         @BI_InExclude_OnFinishParamsExpr,bfInclude,[bipfCanBeStatement]);
   if bfExclude in TheBaseProcs then
     AddBuiltInProc('Exclude','procedure Exclude(var Set of Enum; const Enum)',
-        @BI_InExclude_OnGetCallCompatibility,nil,
+        @BI_InExclude_OnGetCallCompatibility,nil,nil,
         @BI_InExclude_OnFinishParamsExpr,bfExclude,[bipfCanBeStatement]);
   if bfBreak in TheBaseProcs then
     AddBuiltInProc('Break','procedure Break',
-        @BI_Break_OnGetCallCompatibility,nil,nil,bfBreak,[bipfCanBeStatement]);
+        @BI_Break_OnGetCallCompatibility,nil,nil,nil,bfBreak,[bipfCanBeStatement]);
   if bfContinue in TheBaseProcs then
     AddBuiltInProc('Continue','procedure Continue',
-        @BI_Continue_OnGetCallCompatibility,nil,nil,bfContinue,[bipfCanBeStatement]);
+        @BI_Continue_OnGetCallCompatibility,nil,nil,nil,bfContinue,[bipfCanBeStatement]);
   if bfExit in TheBaseProcs then
     AddBuiltInProc('Exit','procedure Exit(result)',
-        @BI_Exit_OnGetCallCompatibility,nil,nil,bfExit,[bipfCanBeStatement]);
+        @BI_Exit_OnGetCallCompatibility,nil,nil,nil,bfExit,[bipfCanBeStatement]);
   if bfInc in TheBaseProcs then
     AddBuiltInProc('Inc','procedure Inc(var Integer; const Incr: Integer = 1)',
-        @BI_IncDec_OnGetCallCompatibility,nil,
+        @BI_IncDec_OnGetCallCompatibility,nil,nil,
         @BI_IncDec_OnFinishParamsExpr,bfInc,[bipfCanBeStatement]);
   if bfDec in TheBaseProcs then
     AddBuiltInProc('Dec','procedure Dec(var Integer; const Decr: Integer = 1)',
-        @BI_IncDec_OnGetCallCompatibility,nil,
+        @BI_IncDec_OnGetCallCompatibility,nil,nil,
         @BI_IncDec_OnFinishParamsExpr,bfDec,[bipfCanBeStatement]);
   if bfAssigned in TheBaseProcs then
     AddBuiltInProc('Assigned','function Assigned(const Pointer or Class or Class-of): boolean',
-        @BI_Assigned_OnGetCallCompatibility,@BI_Assigned_OnGetCallResult,nil,bfAssigned);
+        @BI_Assigned_OnGetCallCompatibility,@BI_Assigned_OnGetCallResult,
+        nil,nil,bfAssigned);
   if bfChr in TheBaseProcs then
     AddBuiltInProc('Chr','function Chr(const Integer): char',
-        @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,nil,bfChr);
+        @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,nil,nil,bfChr);
   if bfOrd in TheBaseProcs then
     AddBuiltInProc('Ord','function Ord(const Enum or Char): integer',
-        @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,nil,bfOrd);
+        @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,nil,nil,bfOrd);
   if bfLow in TheBaseProcs then
     AddBuiltInProc('Low','function Low(const array or ordinal): ordinal or integer',
-        @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,nil,bfLow);
+        @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,
+        nil,nil,bfLow);
   if bfHigh in TheBaseProcs then
     AddBuiltInProc('High','function High(const array or ordinal): ordinal or integer',
-        @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,nil,bfHigh);
+        @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,
+        nil,nil,bfHigh);
   if bfPred in TheBaseProcs then
     AddBuiltInProc('Pred','function Pred(const ordinal): ordinal',
-        @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,nil,bfPred);
+        @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,
+        nil,nil,bfPred);
   if bfSucc in TheBaseProcs then
     AddBuiltInProc('Succ','function Succ(const ordinal): ordinal',
-        @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,nil,bfSucc);
+        @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,
+        nil,nil,bfSucc);
   if bfStrProc in TheBaseProcs then
     AddBuiltInProc('Str','procedure Str(const var; var String)',
-        @BI_StrProc_OnGetCallCompatibility,nil,
+        @BI_StrProc_OnGetCallCompatibility,nil,nil,
         @BI_StrProc_OnFinishParamsExpr,bfStrProc,[bipfCanBeStatement]);
   if bfStrFunc in TheBaseProcs then
     AddBuiltInProc('Str','function Str(const var): String',
-        @BI_StrFunc_OnGetCallCompatibility,@BI_StrFunc_OnGetCallResult,nil,bfStrFunc);
+        @BI_StrFunc_OnGetCallCompatibility,@BI_StrFunc_OnGetCallResult,
+        nil,nil,bfStrFunc);
   if bfConcatArray in TheBaseProcs then
     AddBuiltInProc('Concat','function Concat(const Array1, Array2, ...): Array',
-        @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,nil,bfConcatArray);
+        @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,
+        nil,nil,bfConcatArray);
   if bfCopyArray in TheBaseProcs then
     AddBuiltInProc('Copy','function Copy(const Array; Start: integer = 0; Count: integer = all): Array',
-        @BI_CopyArray_OnGetCallCompatibility,@BI_CopyArray_OnGetCallResult,nil,bfCopyArray);
+        @BI_CopyArray_OnGetCallCompatibility,@BI_CopyArray_OnGetCallResult,
+        nil,nil,bfCopyArray);
   if bfInsertArray in TheBaseProcs then
     AddBuiltInProc('Insert','procedure Insert(const Element; var Array; Index: integer)',
-        @BI_InsertArray_OnGetCallCompatibility,nil,
+        @BI_InsertArray_OnGetCallCompatibility,nil,nil,
         @BI_InsertArray_OnFinishParamsExpr,bfInsertArray,[bipfCanBeStatement]);
   if bfDeleteArray in TheBaseProcs then
     AddBuiltInProc('Delete','procedure Delete(var Array; Start, Count: integer)',
-        @BI_DeleteArray_OnGetCallCompatibility,nil,
+        @BI_DeleteArray_OnGetCallCompatibility,nil,nil,
         @BI_DeleteArray_OnFinishParamsExpr,bfDeleteArray,[bipfCanBeStatement]);
   if bfTypeInfo in TheBaseProcs then
     AddBuiltInProc('TypeInfo','function TypeInfo(type or var identifier): Pointer',
         @BI_TypeInfo_OnGetCallCompatibility,@BI_TypeInfo_OnGetCallResult,
-        nil,bfTypeInfo);
+        nil,nil,bfTypeInfo);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType
@@ -9226,7 +9281,7 @@ end;
 
 function TPasResolver.AddBuiltInProc(const aName: string; Signature: string;
   const GetCallCompatibility: TOnGetCallCompatibility;
-  const GetCallResult: TOnGetCallResult;
+  const GetCallResult: TOnGetCallResult; const EvalConst: TOnEvalBIFunction;
   const FinishParamsExpr: TOnFinishParamsExpr;
   const BuiltIn: TResolverBuiltInProc; const Flags: TBuiltInProcFlags
   ): TResElDataBuiltInProc;
@@ -9240,6 +9295,7 @@ begin
   Result.BuiltIn:=BuiltIn;
   Result.GetCallCompatibility:=GetCallCompatibility;
   Result.GetCallResult:=GetCallResult;
+  Result.Eval:=EvalConst;
   Result.FinishParamsExpression:=FinishParamsExpr;
   Result.Flags:=Flags;
   AddResolveData(El,Result,lkBuiltIn);
@@ -10162,6 +10218,74 @@ begin
       Include(Flags,rcNoImplicitProcType);
   ComputeElement(RHS,RightResolved,Flags);
   Result:=CheckAssignResCompatibility(LeftResolved,RightResolved,RHS,RaiseOnIncompatible);
+  if RHS is TPasExpr then
+    begin
+    {$IFDEF EnablePasResRangeCheck}
+    CheckAssignExprRange(LeftResolved,TPasExpr(RHS));
+    {$ENDIF}
+    end;
+end;
+
+procedure TPasResolver.CheckAssignExprRange(
+  const LeftResolved: TPasResolverResult; RHS: TPasExpr);
+var
+  RValue: TResEvalValue;
+  MinVal, MaxVal: int64;
+  RgExpr: TBinaryExpr;
+begin
+  RValue:=Eval(RHS,[refAutoConst]);
+  if RValue=nil then
+    exit; // not a const expression
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.CheckAssignExprRange ',RValue.AsDebugString);
+  {$ENDIF}
+  try
+    if LeftResolved.TypeEl is TPasRangeType then
+      begin
+      RgExpr:=TPasRangeType(LeftResolved.TypeEl).RangeExpr;
+      fExprEvaluator.IsInRange(RHS,RgExpr,true);
+      end
+    else if (LeftResolved.BaseType in (btAllInteger-[btQWord]))
+        and GetIntegerRange(LeftResolved.BaseType,MinVal,MaxVal) then
+      case RValue.Kind of
+      revkInt:
+        if (MinVal>TResEvalInt(RValue).Int)
+            or (MaxVal<TResEvalInt(RValue).Int) then
+          fExprEvaluator.EmitRangeCheckConst(20170530093126,
+            IntToStr(TResEvalInt(RValue).Int),MinVal,MaxVal,RHS);
+      revkUInt:
+        if (TResEvalUInt(RValue).UInt>High(MaxPrecInt))
+            or (MinVal>MaxPrecInt(TResEvalUInt(RValue).UInt))
+            or (MaxVal<MaxPrecInt(TResEvalUInt(RValue).UInt)) then
+          fExprEvaluator.EmitRangeCheckConst(20170530093616,
+            IntToStr(TResEvalUInt(RValue).UInt),IntToStr(MinVal),IntToStr(MaxVal),RHS);
+      else
+        RaiseNotYetImplemented(20170530092731,RHS);
+      end
+    else if LeftResolved.BaseType=btQWord then
+      case RValue.Kind of
+      revkInt:
+        if (TResEvalInt(RValue).Int<0) then
+          fExprEvaluator.EmitRangeCheckConst(20170530094316,
+            IntToStr(TResEvalUInt(RValue).UInt),'0',IntToStr(High(QWord)),RHS);
+      revkUInt: ;
+      else
+        RaiseNotYetImplemented(20170530094311,RHS);
+      end
+    else if RValue.Kind=revkNil then
+      // simple type check is enough
+    else if RValue.Kind=revkBool then
+      // simple type check is enough
+    else
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.CheckAssignExprRange LeftResolved=',GetResolverResultDbg(LeftResolved));
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530095243,RHS);
+      end;
+  finally
+    ReleaseEvalValue(RValue);
+  end;
 end;
 
 function TPasResolver.CheckAssignResCompatibility(const LHS,

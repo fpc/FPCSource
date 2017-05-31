@@ -186,7 +186,11 @@ type
     Procedure TestVarNoSemicolonBeginFail;
     Procedure TestIntegerRange;
     Procedure TestIntegerRangeHighLowerLowFail;
-    Procedure TestAssignIntRangeFail; // ToDo
+    Procedure TestAssignIntRangeFail;
+    Procedure TestByteRangeFail;
+    Procedure TestCustomIntRangeFail;
+    Procedure TestConstIntOperators;
+    //Procedure TestConstBoolOperators; ToDo
 
     // strings
     Procedure TestChar_Ord;
@@ -198,6 +202,7 @@ type
     Procedure TestStringElement_AsVarArgFail;
     Procedure TestString_DoubleQuotesFail;
     Procedure TestString_ShortstringType;
+    //Procedure TestConstStringOperators; ToDo
 
     // enums
     Procedure TestEnums;
@@ -1156,7 +1161,7 @@ begin
   for i:=0 to MsgCount-1 do
     begin
     Item:=Msgs[i];
-    writeln('TCustomTestResolver.CheckResolverHint ',Item.MsgType,' ('+IntToStr(Item.MsgNumber),') {',Item.Msg,'}');
+    writeln('TCustomTestResolver.CheckResolverHint ',i,'/',MsgCount,' ',Item.MsgType,' ('+IntToStr(Item.MsgNumber),') {',Item.Msg,'}');
     end;
   str(MsgType,Expected);
   Fail('Missing '+Expected+' ('+IntToStr(MsgNumber)+') '+Msg);
@@ -2148,18 +2153,72 @@ end;
 
 procedure TTestResolver.TestAssignIntRangeFail;
 begin
-  // ToDo
   StartProgram(false);
   Add([
   'type TMyInt = 1..2;',
   'var i: TMyInt;',
   'begin',
   '  i:=3;']);
-  exit;
+  ParseProgram;
   {$IFDEF EnablePasResRangeCheck}
-  CheckResolverException(sHighRangeLimitLTLowRangeLimit,
-    nHighRangeLimitLTLowRangeLimit);
+  CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
+    'range check error while evaluating constants (3 must be between 1 and 2)');
+  CheckResolverUnexpectedHints;
   {$ENDIF}
+end;
+
+procedure TTestResolver.TestByteRangeFail;
+begin
+  StartProgram(false);
+  Add([
+  'var b:byte=300;',
+  'begin']);
+  ParseProgram;
+  {$IFDEF EnablePasResRangeCheck}
+  CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
+    'range check error while evaluating constants (300 must be between 0 and 255)');
+  CheckResolverUnexpectedHints;
+  {$ENDIF}
+end;
+
+procedure TTestResolver.TestCustomIntRangeFail;
+begin
+  StartProgram(false);
+  Add([
+  'const i:1..2 = 3;',
+  'begin']);
+  ParseProgram;
+  {$IFDEF EnablePasResRangeCheck}
+  CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
+    'range check error while evaluating constants (3 must be between 1 and 2)');
+  CheckResolverUnexpectedHints;
+  {$ENDIF}
+end;
+
+procedure TTestResolver.TestConstIntOperators;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a:byte=1+2;',
+  '  b:shortint=1-2;',
+  '  c:word=2*3;',
+  '  d:smallint=5 div 2;',
+  '  e:longword=5 mod 2;',
+  '  f:longint=5 shl 2;',
+  '  g:qword=5 shr 2;',
+  '  h:boolean=5=2;',
+  '  i:boolean=5<>2;',
+  //'  j:boolean=5<2;',
+  //'  k:boolean=5>2;',
+  //'  l:boolean=5<=2;',
+  //'  m:boolean=5>=2;',
+  //'  n:longword=5 and 2;',
+  //'  o:longword=5 or 2;',
+  //'  p:longword=5 xor 2;',
+  //'  q:longword=5 or not 2;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestChar_Ord;

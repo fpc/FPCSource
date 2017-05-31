@@ -1,13 +1,38 @@
+{
+    This file is part of the Free Component Library
+
+    Pascal source parser
+    Copyright (c) 2017 by Mattias Gaertner, mattias@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************
+
+Abstract:
+  Evaluation of Pascal constants.
+
+Works:
+  - Emitting range check warnings
+  - Error on overflow
+  - int/uint unary +, -
+  - int/uint binary: +, -
+}
 unit PasResolveEval;
 
 {$mode objfpc}{$H+}
 
 {$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
+{$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
 
 interface
 
 uses
-  PasTree, PScanner, sysutils;
+  Sysutils, Math, PasTree, PScanner;
 
 // message numbers
 const
@@ -79,6 +104,7 @@ const
   nRangeCheckEvaluatingConstantsVMinMax = 3066;
   nIllegalChar = 3067;
   nOverflowInArithmeticOperation = 3068;
+  nDivByZero = 3069;
 
 // resourcestring patterns of messages
 resourcestring
@@ -150,6 +176,7 @@ resourcestring
   sRangeCheckEvaluatingConstantsVMinMax = 'range check error while evaluating constants (%s must be between %s and %s)';
   sIllegalChar = 'Illegal character';
   sOverflowInArithmeticOperation = 'Overflow in arithmetic operation';
+  sDivByZero = 'Division by zero';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -168,13 +195,18 @@ type
   TResolveDataClass = class of TResolveData;
 
 type
+  MaxPrecInt = int64;
+  MaxPrecUInt = qword;
+  MaxPrecFloat = extended;
+
+type
   { TResEvalValue }
 
   TREVKind = (
     revkNone,
     revkCustom,
     revkNil,  // TResEvalValue
-    revkBool, // TResEvalInt
+    revkBool, // TResEvalBool
     revkInt,  // TResEvalInt
     revkUInt, // TResEvalUInt
     revkFloat, // TResEvalFloat
@@ -196,11 +228,21 @@ type
   end;
   TResEvalValueClass = class of TResEvalValue;
 
+  { TResEvalBool }
+
+  TResEvalBool = class(TResEvalValue)
+  public
+    B: boolean;
+    constructor Create; override;
+    function Clone: TResEvalValue; override;
+    function AsString: string; override;
+  end;
+
   { TResEvalInt }
 
   TResEvalInt = class(TResEvalValue)
   public
-    Int: NativeInt;
+    Int: MaxPrecInt;
     constructor Create; override;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
@@ -210,7 +252,7 @@ type
 
   TResEvalUInt = class(TResEvalValue)
   public
-    UInt: NativeUInt;
+    UInt: MaxPrecUInt;
     constructor Create; override;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
@@ -220,7 +262,7 @@ type
 
   TResEvalFloat = class(TResEvalValue)
   public
-    FloatValue: extended;
+    FloatValue: MaxPrecFloat;
     constructor Create; override;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
@@ -281,7 +323,7 @@ type
 
   TResEvalRangeUInt = class(TResEvalValue)
   public
-    RangeStart, RangeEnd: qword;
+    RangeStart, RangeEnd: MaxPrecUInt;
     constructor Create; override;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
@@ -342,13 +384,25 @@ type
     procedure RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
     procedure RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
     procedure RaiseOverflowArithmetic(id: int64; ErrorEl: TPasElement);
+    procedure RaiseDivByZero(id: int64; ErrorEl: TPasElement);
     function EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalBinaryExpr(Expr: TBinaryExpr; Flags: TResEvalFlags): TResEvalValue;
+    function EvalBinaryRangeExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinarySubExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryMulExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryDivExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryModExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryPowerExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryShiftExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryBoolOpExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
+    function EvalBinaryNEqualExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalArrayParams(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalFuncParams(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalSetParams(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
     function ExprStringToOrd(Value: TResEvalValue; PosEl: TPasElement): longword; virtual;
     function EvalPrimitiveExprString(Expr: TPrimitiveExpr): TResEvalValue; virtual;
+    function CreateResEvalInt(UInt: MaxPrecUInt): TResEvalValue; virtual;
   public
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags): TResEvalValue;
     function IsInRange(Expr, RangeExpr: TPasExpr; EmitHints: boolean): boolean;
@@ -357,10 +411,11 @@ type
     procedure EmitRangeCheckConst(id: int64; const aValue, MinVal, MaxVal: String;
       PosEl: TPasElement); virtual;
     procedure EmitRangeCheckConst(id: int64; const aValue: String;
-      MinVal, MaxVal: int64; PosEl: TPasElement);
+      MinVal, MaxVal: MaxPrecInt; PosEl: TPasElement);
     property OnLog: TPasResEvalLogHandler read FOnLog write FOnLog;
     property OnEvalIdentifier: TPasResEvalIdentHandler read FOnEvalIdentifier write FOnEvalIdentifier;
   end;
+  TResExprEvaluatorClass = class of TResExprEvaluator;
 
 procedure ReleaseEvalValue(var Value: TResEvalValue);
 
@@ -638,6 +693,25 @@ begin
     Result:=v.AsDebugString;
 end;
 
+{ TResEvalBool }
+
+constructor TResEvalBool.Create;
+begin
+  inherited Create;
+  Kind:=revkBool;
+end;
+
+function TResEvalBool.Clone: TResEvalValue;
+begin
+  Result:=inherited Clone;
+  TResEvalBool(Result).B:=B;
+end;
+
+function TResEvalBool.AsString: string;
+begin
+  if B then Result:='false' else Result:='true';
+end;
+
 { TResEvalRangeUInt }
 
 constructor TResEvalRangeUInt.Create;
@@ -710,6 +784,11 @@ begin
   RaiseMsg(id,nOverflowInArithmeticOperation,sOverflowInArithmeticOperation,[],ErrorEl);
 end;
 
+procedure TResExprEvaluator.RaiseDivByZero(id: int64; ErrorEl: TPasElement);
+begin
+  RaiseMsg(id,nDivByZero,sDivByZero,[],ErrorEl);
+end;
+
 function TResExprEvaluator.EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags
   ): TResEvalValue;
 begin
@@ -746,10 +825,7 @@ begin
         begin
         if Result.Element<>nil then
           Result:=Result.Clone;
-        if TResEvalInt(Result).Int=0 then
-          TResEvalInt(Result).Int:=1
-        else
-          TResEvalInt(Result).Int:=0;
+        TResEvalBool(Result).B:=not TResEvalBool(Result).B;
         end
       else
         begin
@@ -762,12 +838,12 @@ begin
       begin
       if Result.Element=nil then
         Result.Free;
-      // @ operator requires a compiler -> return nil
+      // @ operator requires a compiler (not just a resolver) -> return nil
       Result:=TResEvalValue.Create;
       Result.Kind:=revkNil;
       end
     else
-      RaiseNotYetImplemented(20170518232823,Expr);
+      RaiseNotYetImplemented(20170518232823,Expr,'operator='+OpcodeStrings[Expr.OpCode]);
     end;
 end;
 
@@ -775,9 +851,6 @@ function TResExprEvaluator.EvalBinaryExpr(Expr: TBinaryExpr;
   Flags: TResEvalFlags): TResEvalValue;
 var
   LeftValue, RightValue: TResEvalValue;
-  LeftInt, RightInt: LongWord;
-  Int: NativeInt;
-  UInt: NativeUInt;
 begin
   Result:=nil;
   LeftValue:=nil;
@@ -790,176 +863,707 @@ begin
     case Expr.Kind of
     pekRange:
       // leftvalue..rightvalue
-      case LeftValue.Kind of
-      revkInt:
-        if RightValue.Kind=revkInt then
-          begin
-          if TResEvalInt(LeftValue).Int>TResEvalInt(RightValue).Int then
-            RaiseMsg(20170518222939,nHighRangeLimitLTLowRangeLimit,
-              sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikInt;
-          TResEvalRangeInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
-          TResEvalRangeInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
-          exit;
-          end
-        else if RightValue.Kind=revkUInt then
-          begin
-          // Note: when FPC compares int64 with qword it converts the qword to an int64
-          if TResEvalUInt(RightValue).UInt<=NativeUInt(High(NativeInt)) then
-            begin
-            if TResEvalInt(LeftValue).Int>TResEvalUInt(RightValue).UInt then
-              RaiseMsg(20170519000235,nHighRangeLimitLTLowRangeLimit,
-                sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-            Result:=TResEvalRangeInt.Create;
-            TResEvalRangeInt(Result).ElKind:=revrikInt;
-            TResEvalRangeInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
-            TResEvalRangeInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
-            exit;
-            end
-          else if TResEvalInt(LeftValue).Int<0 then
-            RaiseRangeCheck(20170522151629,Expr.Right)
-          else if qword(TResEvalInt(LeftValue).Int)>TResEvalUInt(RightValue).UInt then
-            RaiseMsg(20170522151708,nHighRangeLimitLTLowRangeLimit,
-              sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-          Result:=TResEvalRangeUInt.Create;
-          TResEvalRangeUInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
-          TResEvalRangeUInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
-          exit;
-          end
-        else
-          RaiseRangeCheck(20170518222812,Expr.Right);
-      revkUInt:
-        if RightValue.Kind=revkInt then
-          begin
-          // Note: when FPC compares int64 with qword it converts the qword to an int64
-          if TResEvalUInt(LeftValue).UInt>NativeUInt(High(NativeInt)) then
-            begin
-            if TResEvalInt(RightValue).Int<0 then
-              RaiseRangeCheck(20170522152608,Expr.Right)
-            else if TResEvalUInt(LeftValue).UInt>qword(TResEvalInt(RightValue).Int) then
-              RaiseMsg(20170522152648,nHighRangeLimitLTLowRangeLimit,
-                sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-            Result:=TResEvalRangeUInt.Create;
-            TResEvalRangeUInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
-            TResEvalRangeUInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
-            exit;
-            end
-          else if TResEvalUInt(LeftValue).UInt>TResEvalInt(RightValue).Int then
-            RaiseMsg(20170522152804,nHighRangeLimitLTLowRangeLimit,
-              sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikInt;
-          TResEvalRangeInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
-          TResEvalRangeInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
-          exit;
-          end
-        else if RightValue.Kind=revkUInt then
-          begin
-          if TResEvalUInt(LeftValue).UInt>TResEvalUInt(RightValue).UInt then
-            RaiseMsg(20170519000240,nHighRangeLimitLTLowRangeLimit,
-              sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-          Result:=TResEvalRangeUInt.Create;
-          TResEvalRangeUInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
-          TResEvalRangeUInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
-          exit;
-          end
-        else
-          RaiseRangeCheck(20170522123106,Expr.Right);
-      revkEnum:
-        if (RightValue.Kind<>revkEnum) then
-          RaiseRangeCheck(20170522153003,Expr.Right)
-        else if (TResEvalEnum(LeftValue).IdentEl<>TResEvalEnum(RightValue).IdentEl) then
-          RaiseRangeCheck(20170522123241,Expr.Right)
-        else if TResEvalEnum(LeftValue).Index>TResEvalEnum(RightValue).Index then
-          RaiseMsg(20170522123320,nHighRangeLimitLTLowRangeLimit,
-            sHighRangeLimitLTLowRangeLimit,[],Expr.Right)
-        else
-          begin
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikEnum;
-          TResEvalRangeInt(Result).RangeStart:=TResEvalEnum(LeftValue).Index;
-          TResEvalRangeInt(Result).RangeEnd:=TResEvalEnum(RightValue).Index;
-          exit;
-          end;
-      revkString,revkUnicodeString:
-        begin
-        LeftInt:=ExprStringToOrd(LeftValue,Expr.left);
-        if RightValue.Kind in [revkString,revkUnicodeString] then
-          begin
-          RightInt:=ExprStringToOrd(RightValue,Expr.right);
-          if LeftInt>RightInt then
-            RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
-              sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikChar;
-          TResEvalRangeInt(Result).RangeStart:=LeftInt;
-          TResEvalRangeInt(Result).RangeEnd:=RightInt;
-          exit;
-          end
-        else
-          RaiseRangeCheck(20170522123106,Expr.Right);
-        end
-      else
-        {$IFDEF EnablePasResRangeCheck}
-        writeln('TPasResolver.Eval pekRange Left=',GetObjName(Expr.Left),' LeftValue.Kind=',LeftValue.Kind);
-        RaiseNotYetImplemented(20170518221103,Expr.Left);
-        {$ELSE}
-        exit(nil);
-        {$ENDIF}
-      end;
+      Result:=EvalBinaryRangeExpr(Expr,LeftValue,RightValue);
     pekBinary:
       case Expr.OpCode of
       eopAdd:
-        case LeftValue.Kind of
-        revkInt:
-          if RightValue.Kind=revkInt then
-            // int+int
-            try
-              {$Q+}
-              Int:=TResEvalInt(LeftValue).Int+TResEvalInt(RightValue).Int;
-              {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
-              Result:=TResEvalInt.Create;
-              TResEvalInt(Result).Int:=NativeInt(Int);
-            except
-              on E: EOverflow do
-                if (TResEvalInt(LeftValue).Int>0) and (TResEvalInt(RightValue).Int>0) then
-                  begin
-                  UInt:=NativeUInt(TResEvalInt(LeftValue).Int)+NativeUInt(TResEvalInt(RightValue).Int);
-                  Result:=TResEvalUInt.Create;
-                  TResEvalUInt(Result).UInt:=UInt;
-                  end
-                else
-                  RaiseOverflowArithmetic(20170525122256,Expr);
-            end
-          else
-            begin
-            {$IFDEF VerbosePasResolver}
-            writeln('TResExprEvaluator.EvalBinaryExpr add int+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
-            {$ENDIF}
-            RaiseNotYetImplemented(20170525115537,Expr);
-            end;
-        else
-          {$IFDEF VerbosePasResolver}
-          writeln('TResExprEvaluator.EvalBinaryExpr add ?+ Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
-          {$ENDIF}
-          RaiseNotYetImplemented(20170525115548,Expr);
-        end;
+        Result:=EvalBinaryAddExpr(Expr,LeftValue,RightValue);
+      eopSubtract:
+        Result:=EvalBinarySubExpr(Expr,LeftValue,RightValue);
+      eopMultiply:
+        Result:=EvalBinaryMulExpr(Expr,LeftValue,RightValue);
+      eopDiv:
+        Result:=EvalBinaryDivExpr(Expr,LeftValue,RightValue);
+      eopMod:
+        Result:=EvalBinaryModExpr(Expr,LeftValue,RightValue);
+      eopPower:
+        Result:=EvalBinaryPowerExpr(Expr,LeftValue,RightValue);
+      eopShl,eopShr:
+        Result:=EvalBinaryShiftExpr(Expr,LeftValue,RightValue);
+      eopAnd,eopOr,eopXor:
+        Result:=EvalBinaryBoolOpExpr(Expr,LeftValue,RightValue);
+      eopEqual,eopNotEqual:
+        Result:=EvalBinaryNEqualExpr(Expr,LeftValue,RightValue);
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryExpr Opcode=',OpcodeStrings[Expr.OpCode],' Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
         {$ENDIF}
-        RaiseNotYetImplemented(20170518232823,Expr);
+        RaiseNotYetImplemented(20170530100823,Expr);
       end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryExpr Kind=',Expr.Kind,' Opcode=',OpcodeStrings[Expr.OpCode]);
       {$ENDIF}
-      RaiseNotYetImplemented(20170518232823,Expr);
+      RaiseNotYetImplemented(20170530100827,Expr);
     end;
   finally
     ReleaseEvalValue(LeftValue);
     ReleaseEvalValue(RightValue);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryRangeExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+// LeftValue..RightValue
+var
+  LeftInt, RightInt: LongWord;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    if RightValue.Kind=revkInt then
+      begin
+      if TResEvalInt(LeftValue).Int>TResEvalInt(RightValue).Int then
+        RaiseMsg(20170518222939,nHighRangeLimitLTLowRangeLimit,
+          sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+      Result:=TResEvalRangeInt.Create;
+      TResEvalRangeInt(Result).ElKind:=revrikInt;
+      TResEvalRangeInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
+      TResEvalRangeInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
+      exit;
+      end
+    else if RightValue.Kind=revkUInt then
+      begin
+      // Note: when FPC compares int64 with qword it converts the qword to an int64
+      if TResEvalUInt(RightValue).UInt<=MaxPrecUInt(High(MaxPrecInt)) then
+        begin
+        if TResEvalInt(LeftValue).Int>TResEvalUInt(RightValue).UInt then
+          RaiseMsg(20170519000235,nHighRangeLimitLTLowRangeLimit,
+            sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+        Result:=TResEvalRangeInt.Create;
+        TResEvalRangeInt(Result).ElKind:=revrikInt;
+        TResEvalRangeInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
+        TResEvalRangeInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
+        exit;
+        end
+      else if TResEvalInt(LeftValue).Int<0 then
+        RaiseRangeCheck(20170522151629,Expr.Right)
+      else if MaxPrecUInt(TResEvalInt(LeftValue).Int)>TResEvalUInt(RightValue).UInt then
+        RaiseMsg(20170522151708,nHighRangeLimitLTLowRangeLimit,
+          sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+      Result:=TResEvalRangeUInt.Create;
+      TResEvalRangeUInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
+      TResEvalRangeUInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
+      exit;
+      end
+    else
+      RaiseRangeCheck(20170518222812,Expr.Right);
+  revkUInt:
+    if RightValue.Kind=revkInt then
+      begin
+      // Note: when FPC compares int64 with qword it converts the qword to an int64
+      if TResEvalUInt(LeftValue).UInt>MaxPrecUInt(High(MaxPrecInt)) then
+        begin
+        if TResEvalInt(RightValue).Int<0 then
+          RaiseRangeCheck(20170522152608,Expr.Right)
+        else if TResEvalUInt(LeftValue).UInt>MaxPrecUInt(TResEvalInt(RightValue).Int) then
+          RaiseMsg(20170522152648,nHighRangeLimitLTLowRangeLimit,
+            sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+        Result:=TResEvalRangeUInt.Create;
+        TResEvalRangeUInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
+        TResEvalRangeUInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
+        exit;
+        end
+      else if TResEvalUInt(LeftValue).UInt>TResEvalInt(RightValue).Int then
+        RaiseMsg(20170522152804,nHighRangeLimitLTLowRangeLimit,
+          sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+      Result:=TResEvalRangeInt.Create;
+      TResEvalRangeInt(Result).ElKind:=revrikInt;
+      TResEvalRangeInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
+      TResEvalRangeInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
+      exit;
+      end
+    else if RightValue.Kind=revkUInt then
+      begin
+      if TResEvalUInt(LeftValue).UInt>TResEvalUInt(RightValue).UInt then
+        RaiseMsg(20170519000240,nHighRangeLimitLTLowRangeLimit,
+          sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+      Result:=TResEvalRangeUInt.Create;
+      TResEvalRangeUInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
+      TResEvalRangeUInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
+      exit;
+      end
+    else
+      RaiseRangeCheck(20170522123106,Expr.Right);
+  revkEnum:
+    if (RightValue.Kind<>revkEnum) then
+      RaiseRangeCheck(20170522153003,Expr.Right)
+    else if (TResEvalEnum(LeftValue).IdentEl<>TResEvalEnum(RightValue).IdentEl) then
+      RaiseRangeCheck(20170522123241,Expr.Right)
+    else if TResEvalEnum(LeftValue).Index>TResEvalEnum(RightValue).Index then
+      RaiseMsg(20170522123320,nHighRangeLimitLTLowRangeLimit,
+        sHighRangeLimitLTLowRangeLimit,[],Expr.Right)
+    else
+      begin
+      Result:=TResEvalRangeInt.Create;
+      TResEvalRangeInt(Result).ElKind:=revrikEnum;
+      TResEvalRangeInt(Result).RangeStart:=TResEvalEnum(LeftValue).Index;
+      TResEvalRangeInt(Result).RangeEnd:=TResEvalEnum(RightValue).Index;
+      exit;
+      end;
+  revkString,revkUnicodeString:
+    begin
+    LeftInt:=ExprStringToOrd(LeftValue,Expr.left);
+    if RightValue.Kind in [revkString,revkUnicodeString] then
+      begin
+      RightInt:=ExprStringToOrd(RightValue,Expr.right);
+      if LeftInt>RightInt then
+        RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
+          sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+      Result:=TResEvalRangeInt.Create;
+      TResEvalRangeInt(Result).ElKind:=revrikChar;
+      TResEvalRangeInt(Result).RangeStart:=LeftInt;
+      TResEvalRangeInt(Result).RangeEnd:=RightInt;
+      exit;
+      end
+    else
+      RaiseRangeCheck(20170522123106,Expr.Right);
+    end
+  else
+    {$IFDEF EnablePasResRangeCheck}
+    writeln('TResExprEvaluator.EvalBinaryRangeExpr Left=',GetObjName(Expr.Left),' LeftValue.Kind=',LeftValue.Kind);
+    RaiseNotYetImplemented(20170518221103,Expr.Left);
+    {$ELSE}
+    exit(nil);
+    {$ENDIF}
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int+int
+      try
+        {$Q+}
+        Int:=TResEvalInt(LeftValue).Int + TResEvalInt(RightValue).Int;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        on E: EOverflow do
+          if (TResEvalInt(LeftValue).Int>0) and (TResEvalInt(RightValue).Int>0) then
+            begin
+            UInt:=MaxPrecUInt(TResEvalInt(LeftValue).Int)+MaxPrecUInt(TResEvalInt(RightValue).Int);
+            Result:=CreateResEvalInt(UInt);
+            end
+          else
+            RaiseOverflowArithmetic(20170525122256,Expr);
+      end
+    // ToDo: int+uint
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryAddExpr int+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170525115537,Expr);
+    end;
+  // ToDo: uint+int, uint+uint
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryAddExpr ?+ Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170525115548,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinarySubExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int-int
+      try
+        {$Q+}
+        Int:=TResEvalInt(LeftValue).Int - TResEvalInt(RightValue).Int;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        on E: EOverflow do
+          if (TResEvalInt(LeftValue).Int>0) and (TResEvalInt(RightValue).Int<0) then
+            begin
+            UInt:=MaxPrecUInt(TResEvalInt(LeftValue).Int)+MaxPrecUInt(-TResEvalInt(RightValue).Int);
+            Result:=CreateResEvalInt(UInt);
+            end
+          else
+            RaiseOverflowArithmetic(20170525230247,Expr);
+      end;
+    // ToDo: int-uint
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinarySubExpr sub int-? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170525230028,Expr);
+    end;
+  // ToDo: uint-int, uint-uint
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinarySubExpr sub ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170525225946,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryMulExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int*int
+      try
+        {$Q+}
+        Int:=TResEvalInt(LeftValue).Int * TResEvalInt(RightValue).Int;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        on E: EOverflow do
+          if (TResEvalInt(LeftValue).Int>0) and (TResEvalInt(RightValue).Int>0) then
+            try
+              // try uint*uint
+              {$Q+}
+              UInt:=MaxPrecUInt(TResEvalInt(LeftValue).Int) * MaxPrecUInt(TResEvalInt(RightValue).Int);
+              {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+              Result:=CreateResEvalInt(UInt);
+            except
+              on E: EOverflow do
+                RaiseOverflowArithmetic(20170530101616,Expr);
+            end
+          else
+            RaiseOverflowArithmetic(20170525230247,Expr);
+      end;
+    // ToDo: int*uint
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryMulExpr mul int*? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170525230028,Expr);
+    end;
+  // ToDo: uint*int, uint*uint
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryMulExpr mul ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170525225946,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryDivExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int div int
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20170530102619,Expr)
+      else
+        begin
+        Int:=TResEvalInt(LeftValue).Int div TResEvalInt(RightValue).Int;
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+        end;
+    revkUInt:
+      // int div uint
+      if TResEvalUInt(RightValue).UInt=0 then
+        RaiseDivByZero(20170530102745,Expr)
+      else
+        begin
+        if TResEvalUInt(RightValue).UInt>High(MaxPrecInt) then
+          Int:=0
+        else
+          Int:=TResEvalInt(LeftValue).Int div TResEvalUInt(RightValue).UInt;
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+        end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryDivExpr int div ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530102403,Expr);
+    end;
+  revkUInt:
+    case RightValue.Kind of
+    revkInt:
+      // uint div int
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20170530103026,Expr)
+      else if TResEvalUInt(LeftValue).UInt<=High(MaxPrecInt) then
+        begin
+        Int:=MaxPrecInt(TResEvalUInt(LeftValue).UInt) div TResEvalInt(RightValue).Int;
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+        end
+      else if TResEvalInt(RightValue).Int>0 then
+        begin
+        UInt:=TResEvalUInt(LeftValue).UInt div MaxPrecUInt(TResEvalInt(RightValue).Int);
+        Result:=CreateResEvalInt(UInt);
+        end
+      else
+        RaiseOverflowArithmetic(20170530104315,Expr);
+    revkUInt:
+      // uint div uint
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20170530103026,Expr)
+      else
+        begin
+        UInt:=TResEvalUInt(LeftValue).UInt div TResEvalUInt(RightValue).UInt;
+        Result:=CreateResEvalInt(UInt);
+        end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryDivExpr uint div ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530102403,Expr);
+    end;
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryDivExpr div ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170530102352,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryModExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int mod int
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20170530104638,Expr)
+      else
+        begin
+        Int:=TResEvalInt(LeftValue).Int mod TResEvalInt(RightValue).Int;
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+        end;
+    revkUInt:
+      // int mod uint
+      if TResEvalUInt(RightValue).UInt=0 then
+        RaiseDivByZero(20170530104758,Expr)
+      else
+        begin
+        if TResEvalInt(LeftValue).Int<0 then
+          UInt:=MaxPrecUInt(-TResEvalInt(LeftValue).Int) mod TResEvalUInt(RightValue).UInt
+        else
+          UInt:=MaxPrecUInt(TResEvalInt(LeftValue).Int) mod TResEvalUInt(RightValue).UInt;
+        Result:=CreateResEvalInt(UInt);
+        end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryModExpr int mod ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530110057,Expr);
+    end;
+  revkUInt:
+    case RightValue.Kind of
+    revkInt:
+      // uint mod int
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20170530110110,Expr)
+      else if TResEvalUInt(LeftValue).UInt<=High(MaxPrecInt) then
+        begin
+        Int:=MaxPrecInt(TResEvalUInt(LeftValue).UInt) mod TResEvalInt(RightValue).Int;
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+        end
+      else if TResEvalInt(RightValue).Int>0 then
+        begin
+        UInt:=TResEvalUInt(LeftValue).UInt mod MaxPrecUInt(TResEvalInt(RightValue).Int);
+        Result:=CreateResEvalInt(UInt);
+        end
+      else
+        RaiseOverflowArithmetic(20170530110602,Expr);
+    revkUInt:
+      // uint div uint
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20170530110609,Expr)
+      else
+        begin
+        UInt:=TResEvalUInt(LeftValue).UInt mod TResEvalUInt(RightValue).UInt;
+        Result:=CreateResEvalInt(UInt);
+        end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryModExpr uint mod ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530110633,Expr);
+    end;
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryModExpr mod ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170530110644,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryShiftExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+  ShiftLeft: Boolean;
+begin
+  ShiftLeft:=Expr.OpCode=eopShl;
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int shl int
+      begin
+      if (TResEvalInt(RightValue).Int<0) or (TResEvalInt(RightValue).Int>63) then
+        EmitRangeCheckConst(20170530203840,IntToStr(TResEvalInt(RightValue).Int),0,63,Expr);
+      if ShiftLeft then
+        Int:=TResEvalInt(LeftValue).Int shl byte(TResEvalInt(RightValue).Int)
+      else
+        Int:=TResEvalInt(LeftValue).Int shr byte(TResEvalInt(RightValue).Int);
+      Result:=TResEvalInt.Create;
+      TResEvalInt(Result).Int:=Int;
+      end;
+    revkUInt:
+      // int shl uint
+      begin
+      if (TResEvalUInt(RightValue).UInt>63) then
+        EmitRangeCheckConst(20170530203840,IntToStr(TResEvalUInt(RightValue).UInt),0,63,Expr);
+      if ShiftLeft then
+        Int:=TResEvalInt(LeftValue).Int shl byte(TResEvalUInt(RightValue).UInt)
+      else
+        Int:=TResEvalInt(LeftValue).Int shr byte(TResEvalUInt(RightValue).UInt);
+      Result:=TResEvalInt.Create;
+      TResEvalInt(Result).Int:=Int;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryModExpr int shl/shr ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530205332,Expr);
+    end;
+  revkUInt:
+    case RightValue.Kind of
+    revkInt:
+      // uint shl int
+      begin
+      if (TResEvalInt(RightValue).Int<0) or (TResEvalInt(RightValue).Int>63) then
+        EmitRangeCheckConst(20170530205414,IntToStr(TResEvalInt(RightValue).Int),0,63,Expr);
+      if ShiftLeft then
+        UInt:=TResEvalUInt(LeftValue).UInt shl byte(TResEvalInt(RightValue).Int)
+      else
+        UInt:=TResEvalUInt(LeftValue).UInt shr byte(TResEvalInt(RightValue).Int);
+      Result:=CreateResEvalInt(UInt);
+      end;
+    revkUInt:
+      // uint shl uint
+      begin
+      if (TResEvalUInt(RightValue).UInt>63) then
+        EmitRangeCheckConst(20170530205601,IntToStr(TResEvalUInt(RightValue).UInt),0,63,Expr);
+      if ShiftLeft then
+        UInt:=TResEvalUInt(LeftValue).UInt shl byte(TResEvalUInt(RightValue).UInt)
+      else
+        UInt:=TResEvalUInt(LeftValue).UInt shr byte(TResEvalUInt(RightValue).UInt);
+      Result:=CreateResEvalInt(UInt);
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryShiftExpr uint shl/shr ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530205640,Expr);
+    end;
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryShiftExpr shl/shr ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170530205646,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryBoolOpExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+// AND, OR, XOR
+begin
+  case LeftValue.Kind of
+  revkBool:
+    case RightValue.Kind of
+    revkBool:
+      begin
+      // logical and/or/xor
+      Result:=TResEvalBool.Create;
+      case Expr.OpCode of
+      eopAnd: TResEvalBool(Result).B:=TResEvalBool(LeftValue).B and TResEvalBool(RightValue).B;
+      eopOr: TResEvalBool(Result).B:=TResEvalBool(LeftValue).B or TResEvalBool(RightValue).B;
+      eopXor: TResEvalBool(Result).B:=TResEvalBool(LeftValue).B xor TResEvalBool(RightValue).B;
+      end;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryBoolOpExpr bool ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170531011502,Expr);
+    end;
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      begin
+      // bitwise and/or/xor
+      Result:=TResEvalInt.Create;
+      case Expr.OpCode of
+      eopAnd: TResEvalInt(Result).Int:=TResEvalInt(LeftValue).Int and TResEvalInt(RightValue).Int;
+      eopOr: TResEvalInt(Result).Int:=TResEvalInt(LeftValue).Int or TResEvalInt(RightValue).Int;
+      eopXor: TResEvalInt(Result).Int:=TResEvalInt(LeftValue).Int xor TResEvalInt(RightValue).Int;
+      end;
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryBoolOpExpr int ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530211140,Expr);
+    end;
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryBoolOpExpr ',Expr.OpCode,' ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170530205938,Expr);
+  end;
+end;
+
+function TResExprEvaluator.EvalBinaryNEqualExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+begin
+  Result:=TResEvalBool.Create;
+  case LeftValue.Kind of
+  revkBool:
+    case RightValue.Kind of
+    revkBool:
+      TResEvalBool(Result).B:=TResEvalBool(LeftValue).B=TResEvalBool(RightValue).B;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryNEqualExpr bool ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170531011937,Expr);
+    end;
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int=TResEvalInt(RightValue).Int;
+    revkUInt:
+      TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int=TResEvalUInt(RightValue).UInt;
+    revkFloat:
+      TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int=TResEvalFloat(RightValue).FloatValue;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryNEqualExpr bool ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170531012412,Expr);
+    end;
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryNEqualExpr ',Expr.OpCode,' ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170531011931,Expr);
+  end;
+  if Expr.OpCode=eopNotEqual then
+    TResEvalBool(Result).B:=not TResEvalBool(Result).B;
+end;
+
+function TResExprEvaluator.EvalBinaryPowerExpr(Expr: TBinaryExpr; LeftValue,
+  RightValue: TResEvalValue): TResEvalValue;
+var
+  Int: MaxPrecInt;
+begin
+  case LeftValue.Kind of
+  revkInt:
+    case RightValue.Kind of
+    revkInt:
+      // int^^int
+      try
+        {$Q+}{$R+}
+        Int:=trunc(Math.power(TResEvalInt(LeftValue).Int,TResEvalInt(RightValue).Int));
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        RaiseOverflowArithmetic(20170530210533,Expr);
+      end;
+    revkUInt:
+      // int^^uint
+      try
+        {$Q+}{$R+}
+        Int:=trunc(Math.power(TResEvalInt(LeftValue).Int,TResEvalUInt(RightValue).UInt));
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        RaiseOverflowArithmetic(20170530211028,Expr);
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryPowerExpr int ^^ ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530205640,Expr);
+    end;
+  revkUInt:
+    case RightValue.Kind of
+    revkInt:
+      // uint^^int
+      try
+        {$Q+}{$R+}
+        Int:=trunc(Math.power(TResEvalUInt(LeftValue).UInt,TResEvalInt(RightValue).Int));
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        RaiseOverflowArithmetic(20170530211102,Expr);
+      end;
+    revkUInt:
+      // uint^^uint
+      try
+        {$Q+}{$R+}
+        Int:=trunc(Math.power(TResEvalUInt(LeftValue).UInt,TResEvalUInt(RightValue).UInt));
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalInt.Create;
+        TResEvalInt(Result).Int:=Int;
+      except
+        RaiseOverflowArithmetic(20170530211121,Expr);
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryPowerExpr uint ^^ ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170530211140,Expr);
+    end;
+  else
+    {$IFDEF VerbosePasResolver}
+    writeln('TResExprEvaluator.EvalBinaryPowerExpr ^^ ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170530205938,Expr);
   end;
 end;
 
@@ -1205,14 +1809,28 @@ begin
   {$ENDIF}
 end;
 
+function TResExprEvaluator.CreateResEvalInt(UInt: MaxPrecUInt): TResEvalValue;
+begin
+  if UInt<=high(MaxPrecInt) then
+    begin
+    Result:=TResEvalInt.Create;
+    TResEvalInt(Result).Int:=MaxPrecInt(UInt);
+    end
+  else
+    begin
+    Result:=TResEvalUInt.Create;
+    TResEvalUInt(Result).UInt:=UInt;
+    end;
+end;
+
 function TResExprEvaluator.Eval(Expr: TPasExpr; Flags: TResEvalFlags
   ): TResEvalValue;
 var
   C: TClass;
   Code: integer;
-  Int: NativeInt;
-  UInt: NativeUInt;
-  Ext: Extended;
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
+  Flo: MaxPrecFloat;
 begin
   Result:=nil;
   if Expr.CustomData is TResEvalValue then
@@ -1238,7 +1856,7 @@ begin
         Result:=OnEvalIdentifier(Self,TPrimitiveExpr(Expr),Flags);
       pekNumber:
         begin
-        // try int64
+        // try MaxPrecInt
         val(TPrimitiveExpr(Expr).Value,Int,Code);
         if Code=0 then
           begin
@@ -1246,7 +1864,7 @@ begin
           TResEvalInt(Result).Int:=Int;
           exit;
           end;
-        // try qword
+        // try MaxPrecUInt
         val(TPrimitiveExpr(Expr).Value,UInt,Code);
         if Code=0 then
           begin
@@ -1255,11 +1873,11 @@ begin
           exit;
           end;
         // try float
-        val(TPrimitiveExpr(Expr).Value,Ext,Code);
+        val(TPrimitiveExpr(Expr).Value,Flo,Code);
         if Code=0 then
           begin
           Result:=TResEvalFloat.Create;
-          TResEvalFloat(Result).FloatValue:=Ext;
+          TResEvalFloat(Result).FloatValue:=Flo;
           exit;
           end;
         RaiseRangeCheck(20170518202252,Expr);
@@ -1280,12 +1898,8 @@ begin
     end
   else if C=TBoolConstExpr then
     begin
-    Result:=TResEvalInt.Create;
-    Result.Kind:=revkBool;
-    if TBoolConstExpr(Expr).Value then
-      TResEvalInt(Result).Int:=1
-    else
-      TResEvalInt(Result).Int:=0;
+    Result:=TResEvalBool.Create;
+    TResEvalBool(Result).B:=TBoolConstExpr(Expr).Value;
     end
   else if C=TUnaryExpr then
     Result:=EvalUnaryExpr(TUnaryExpr(Expr),Flags)
@@ -1377,9 +1991,9 @@ begin
           else if ExprValue.Kind=revkUInt then
             begin
             // uint in int..int
-            if (TResEvalUInt(ExprValue).UInt>NativeUInt(High(NativeInt)))
-                or (NativeInt(TResEvalUInt(ExprValue).UInt)<RgInt.RangeStart)
-                or (NativeInt(TResEvalUInt(ExprValue).UInt)>RgInt.RangeEnd) then
+            if (TResEvalUInt(ExprValue).UInt>MaxPrecUInt(High(MaxPrecInt)))
+                or (MaxPrecInt(TResEvalUInt(ExprValue).UInt)<RgInt.RangeStart)
+                or (MaxPrecInt(TResEvalUInt(ExprValue).UInt)>RgInt.RangeEnd) then
               begin
               if EmitHints then
                 EmitRangeCheckConst(20170522215852,ExprValue.AsString,
@@ -1422,8 +2036,8 @@ begin
         // int in uint..uint
         RgUInt:=TResEvalRangeUInt(RangeValue);
         if (TResEvalInt(ExprValue).Int<0)
-            or (NativeUInt(TResEvalInt(ExprValue).Int)<RgUInt.RangeStart)
-            or (NativeUInt(TResEvalInt(ExprValue).Int)>RgUInt.RangeEnd) then
+            or (MaxPrecUInt(TResEvalInt(ExprValue).Int)<RgUInt.RangeStart)
+            or (MaxPrecUInt(TResEvalInt(ExprValue).Int)>RgUInt.RangeEnd) then
           begin
           if EmitHints then
             EmitRangeCheckConst(20170522172250,ExprValue.AsString,
@@ -1495,7 +2109,7 @@ begin
 end;
 
 procedure TResExprEvaluator.EmitRangeCheckConst(id: int64;
-  const aValue: String; MinVal, MaxVal: int64; PosEl: TPasElement);
+  const aValue: String; MinVal, MaxVal: MaxPrecInt; PosEl: TPasElement);
 begin
   EmitRangeCheckConst(id,aValue,IntToStr(MinVal),IntToStr(MaxVal),PosEl);
 end;
@@ -1592,10 +2206,7 @@ end;
 
 function TResEvalInt.AsString: string;
 begin
-  case Kind of
-  revkBool: if Int=0 then Result:='false' else Result:='true';
-  revkInt: Result:=IntToStr(Int);
-  end;
+  Result:=IntToStr(Int);
 end;
 
 { TResEvalFloat }
