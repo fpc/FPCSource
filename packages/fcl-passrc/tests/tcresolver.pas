@@ -190,7 +190,8 @@ type
     Procedure TestByteRangeFail;
     Procedure TestCustomIntRangeFail;
     Procedure TestConstIntOperators;
-    //Procedure TestConstBoolOperators; ToDo
+    // ToDo: TestConstBitwiseOps  3 and not 2, 3 and not longword(2)
+    Procedure TestConstBoolOperators;
 
     // strings
     Procedure TestChar_Ord;
@@ -202,10 +203,11 @@ type
     Procedure TestStringElement_AsVarArgFail;
     Procedure TestString_DoubleQuotesFail;
     Procedure TestString_ShortstringType;
-    //Procedure TestConstStringOperators; ToDo
+    Procedure TestConstStringOperators;
 
     // enums
     Procedure TestEnums;
+    Procedure TestEnumRangeFail; // ToDo
     Procedure TestSets;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
@@ -220,6 +222,7 @@ type
     Procedure TestSetConstRange;
     Procedure TestSet_AnonymousEnumtype;
     Procedure TestSet_AnonymousEnumtypeName;
+    Procedure TestSet_Const; // ToDo
 
     // operators
     Procedure TestPrgAssignment;
@@ -2209,14 +2212,29 @@ begin
   '  g:qword=5 shr 2;',
   '  h:boolean=5=2;',
   '  i:boolean=5<>2;',
-  //'  j:boolean=5<2;',
-  //'  k:boolean=5>2;',
-  //'  l:boolean=5<=2;',
-  //'  m:boolean=5>=2;',
-  //'  n:longword=5 and 2;',
-  //'  o:longword=5 or 2;',
-  //'  p:longword=5 xor 2;',
-  //'  q:longword=5 or not 2;',
+  '  j:boolean=5<2;',
+  '  k:boolean=5>2;',
+  '  l:boolean=5<=2;',
+  '  m:boolean=5>=2;',
+  '  n:longword=5 and 2;',
+  '  o:longword=5 or 2;',
+  '  p:longword=5 xor 2;',
+  '  q:longword=5 or not 2;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestConstBoolOperators;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=true and false;',
+  '  b=true or false;',
+  '  c=true xor false;',
+  '  d=not b;',
+  '  e=a=b;',
+  '  f=a<>b;',
   'begin']);
   ParseProgram;
 end;
@@ -2326,6 +2344,16 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestConstStringOperators;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=''o''+''x'';',
+  'begin']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
@@ -2346,6 +2374,18 @@ begin
   Add('  if ord({@f}f)<>ord({@Red}Red) then ;');
   Add('  {@f}f:={@TFlag}TFlag.{@Red}Red;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestEnumRangeFail;
+begin
+  exit; // ToDo
+
+  StartProgram(false);
+  Add([
+  'type TFlag = (a,b,c);',
+  'const all = a..c;',
+  'begin']);
+  CheckParserException('aaa',123);
 end;
 
 procedure TTestResolver.TestSets;
@@ -2675,6 +2715,21 @@ begin
   Add('  i:=ord(high(f));');
   Add('  i:=ord(high(favorite));');
   Add('  f:=[green,favorite];');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestSet_Const;
+begin
+  exit; // ToDo
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFlag = (a,b,c,d,e,f);',
+  'const',
+  '  all = b..d;',
+  '  all = low(TFlag)..high(TFlag);',
+  'begin']);
   ParseProgram;
 end;
 
