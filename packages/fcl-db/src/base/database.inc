@@ -525,10 +525,12 @@ begin
     begin
     GetLoginParams(ADatabaseName, AUserName, APassword);
     if Assigned(FOnLogin) then
-      FOnLogin(Self, AUserName, APassword)
+      FOnLogin(Self, AUserName, APassword) // by value
     else if Assigned(LoginDialogExProc) then
-      LoginDialogExProc(ADatabaseName, AUserName, APassword, False);
-    SetLoginParams(ADatabaseName, AUserName, APassword);
+      begin
+      LoginDialogExProc(ADatabaseName, AUserName, APassword, False); // by reference
+      SetLoginParams(ADatabaseName, AUserName, APassword);
+      end;
     end;
 end;
 
@@ -572,7 +574,7 @@ begin
   if IsPublishedProp(Self,'UserName') then
     AUserName := GetStrProp(Self,'UserName');
   if IsPublishedProp(Self,'Password') then
-    APassword := 'Password';
+    APassword := GetStrProp(Self,'Password');
 end;
 
 procedure TCustomConnection.SetLoginParams(const ADatabaseName, AUserName, APassword: string);
