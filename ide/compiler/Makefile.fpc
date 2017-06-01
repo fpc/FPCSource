@@ -67,6 +67,14 @@ endif
 ifeq ($(PPC_TARGET),mipsel)
 override FPCOPT+= -Fu$(COMPILERDIR)/mips
 endif
+# sparc specific
+ifeq ($(PPC_TARGET),sparc)
+override FPCOPT+= -Fu$(COMPILERDIR)/sparcgen -Fi$(COMPILERDIR)/sparcgen
+endif
+# sparc64 specific
+ifeq ($(PPC_TARGET),sparc64)
+override FPCOPT+= -Fu$(COMPILERDIR)/sparcgen -Fi$(COMPILERDIR)/sparcgen
+endif
 
 
 [rules]
