@@ -202,6 +202,11 @@ begin
       P.Options.Add('-Fu../compiler/x86');
     if CompilerTarget in [powerpc, powerpc64] then
       P.Options.Add('-Fu../compiler/ppcgen');
+    if CompilerTarget in [sparc{, sparc64}] then
+      begin
+        P.Options.Add('-Fu../compiler/sparcgen');
+        P.Options.add('-Fi../compiler/sparcgen');
+      end;
     if CompilerTarget = x86_64 then
       P.Options.Add('-dNOOPT');
     if CompilerTarget = mipsel then
