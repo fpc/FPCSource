@@ -287,12 +287,12 @@ endif
 
 # Sparc specific
 ifeq ($(PPC_TARGET),sparc)
-override LOCALOPT+=-Fusparcgen
+override LOCALOPT+=-Fusparcgen -Fisparcgen
 endif
 
 # Sparc specific
 ifeq ($(PPC_TARGET),sparc64)
-override LOCALOPT+=-Fusparcgen
+override LOCALOPT+=-Fusparcgen -Fisparcgen
 endif
 
 # ARM specific
