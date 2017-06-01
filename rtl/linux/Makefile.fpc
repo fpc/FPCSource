@@ -163,6 +163,14 @@ ifeq ($(ARCH),sparc)
   ifeq ($(PIC_OPT),1)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
+  ASTARGET+=-32
+endif
+
+ifeq ($(ARCH),sparc64)
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+=-K PIC --defsym PIC=1
+  endif
+  ASTARGET+=-64
 endif
 
 ifeq ($(ARCH),arm)
