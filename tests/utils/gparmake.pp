@@ -131,7 +131,11 @@ Function ProcessArgs: longint;
             while not(eof(responsefile)) do
               begin
                 readln(responsefile,s);
-                AddFile(s);
+                { Avoid problem with GNU make version 4
+                  which adds lines containing
+                  make[X] Entering/leaving ... }
+                if not (copy(s,1,5)='make[') then
+                  AddFile(s);
               end;
             close(responsefile);
           end
