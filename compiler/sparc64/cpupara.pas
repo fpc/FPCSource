@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Calling conventions for the SPARC
+    Calling conventions for the SPARC64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

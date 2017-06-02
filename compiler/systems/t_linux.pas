@@ -209,6 +209,11 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
   const defdynlinker='/lib/ld.so.1';
 {$endif mips}
 
+{$ifdef sparc64}
+  const defdynlinker='/lib64/ld-linux.so.2';
+{$endif sparc64}
+
+
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
 begin
 {$ifdef powerpc64}
@@ -301,6 +306,7 @@ const
 {$ifdef powerpc}   platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
 {$ifdef POWERPC64} platform_select='';{$endif}
 {$ifdef sparc}     platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
+{$ifdef sparc64}     platform_select='-b elf64-sparc64 -m elf32_sparc64';{$endif}
 {$ifdef arm}       platform_select='';{$endif} {unknown :( }
 {$ifdef aarch64}   platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}      platform_select='';{$endif} {unknown :( }

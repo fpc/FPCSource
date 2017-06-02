@@ -38,7 +38,9 @@ interface
           procedure second_cmpfloat;override;
           procedure second_cmpboolean;override;
           procedure second_cmpsmallset;override;
+{$ifndef SPARC64}
           procedure second_cmp64bit;override;
+{$endif SPARC64}
           procedure second_cmpordinal;override;
           procedure second_addordinal;override;
        public
@@ -306,7 +308,7 @@ interface
         end;
       end;
 
-
+{$ifndef SPARC64}
     procedure tsparcaddnode.second_cmp64bit;
       var
         unsigned   : boolean;
@@ -414,6 +416,7 @@ interface
               InternalError(2014011001);
           end;
       end;
+{$endif SPARC64}
 
 
     procedure tsparcaddnode.second_cmpordinal;
@@ -443,8 +446,10 @@ interface
       var
         unsigned: boolean;
       begin
+{$ifndef SPARC64}
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
+
         if (nodetype=muln) and is_64bit(resultdef) then
           begin
             pass_left_right;
@@ -456,6 +461,7 @@ interface
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV,NR_Y,location.register64.reghi));
           end
         else
+{$endif SPARC64}
           inherited second_addordinal;
       end;
 

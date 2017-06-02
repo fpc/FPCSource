@@ -34,9 +34,11 @@ interface
       end;
 
       tSparcshlshrnode = class(tcgshlshrnode)
+{$ifndef SPARC64}
          procedure second_64bit;override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
+{$endif SPARC64}
       end;
 
       tSparcnotnode = class(tcgnotnode)
@@ -171,6 +173,7 @@ implementation
                              TSparcSHLRSHRNODE
 *****************************************************************************}
 
+{$ifndef SPARC64}
     function TSparcShlShrNode.first_shlshr64bitint:TNode;
       begin
         { 64bit without constants need a helper }
@@ -248,6 +251,7 @@ implementation
               end;
           end;
       end;
+{$endif SPARC64}
 
 
 {*****************************************************************************
@@ -271,10 +275,12 @@ implementation
               LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+{$ifndef SPARC64}
                   if is_64bit(left.resultdef) then
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ORcc,
                       left.location.register64.reglo,left.location.register64.reghi,NR_G0))
                   else
+{$endif SPARC64}
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;

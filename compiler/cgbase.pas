@@ -70,7 +70,7 @@ interface
          addr_full,
          addr_pic,
          addr_pic_no_got
-         {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS)}
+         {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS) or defined(SPARC64)}
          ,
          addr_low,         // bits 48-63
          addr_high,        // bits 32-47
@@ -84,7 +84,7 @@ interface
          addr_highera,     // bits 32-47, adjusted
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
-         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS}
+         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS or SPARC64}
          {$IFDEF MIPS}
          ,
          addr_pic_call16,  // like addr_pic, but generates call16 reloc instead of got16

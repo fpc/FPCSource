@@ -74,8 +74,11 @@ implementation
          //
          // v9 is required as the default since the RTL started using membar at 2.2.2.
          case current_settings.cputype of
+{$ifdef SPARC}
            cpu_SPARC_V7: Replace(result,'$ARCH','-Av7');
-           cpu_SPARC_V8: Replace(result,'$ARCH','-Av8')
+           cpu_SPARC_V8: Replace(result,'$ARCH','-Av8');
+{$endif SPARC}
+           cpu_SPARC_V9: Replace(result,'$ARCH','-Av7');
          else
            Replace(result,'$ARCH','-Av9')
          end

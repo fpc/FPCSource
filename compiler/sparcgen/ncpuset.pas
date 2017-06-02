@@ -79,9 +79,11 @@ unit ncpuset;
             if assigned(t^.less) then
               genitem(list,t^.less);
             { fill possible hole }
-            for i:=last.svalue+1 to t^._low.svalue-1 do
+            i:=last.svalue+1;
+            while i<=t^._low.svalue-1 do
               list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,elselabel));
-            for i:=t^._low.svalue to t^._high.svalue do
+            i:=t^._low.svalue;
+            while i<=t^._high.svalue do
               list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,blocklabel(t^.blockid)));
             last:=t^._high;
             if assigned(t^.greater) then

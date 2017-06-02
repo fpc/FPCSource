@@ -41,6 +41,15 @@ implementation
       cutils,verbose;
 
     const
+{$ifdef SPARC64}
+      gas_regname_table : array[tregisterindex] of string[7] = (
+        {$i rsp64std.inc}
+      );
+
+      gas_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i rsp64sri.inc}
+      );
+{$else SPARC64}
       gas_regname_table : array[tregisterindex] of string[7] = (
         {$i rspstd.inc}
       );
@@ -48,7 +57,7 @@ implementation
       gas_regname_index : array[tregisterindex] of tregisterindex = (
         {$i rspsri.inc}
       );
-
+{$endif SPARC64}
 
     function findreg_by_gasname(const s:string):tregisterindex;
       var

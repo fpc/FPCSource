@@ -27,7 +27,10 @@ interface
 
     uses
        globtype,parabase,
-       cgbase,cgutils,cgobj,cg64f32,
+       cgbase,cgutils,cgobj,
+{$ifndef SPARC64}
+       cg64f32,
+{$endif SPARC64}
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
@@ -92,6 +95,7 @@ interface
         use_unlimited_pic_mode : boolean;
       end;
 
+{$ifndef SPARC64}
       TCg64Sparc=class(tcg64f32)
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp;checkoverflow : boolean);
@@ -106,6 +110,7 @@ interface
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
+{$endif SPARC64}
 
     procedure create_codegen;
 
@@ -1129,7 +1134,7 @@ implementation
         countreg: TRegister;
         src, dst: TReference;
         lab: tasmlabel;
-        count, count2: aint;
+        count, count2: longint;
 
         function reference_is_reusable(const ref: treference): boolean;
           begin
@@ -1223,7 +1228,7 @@ implementation
         src, dst: TReference;
         tmpreg1,
         countreg: TRegister;
-        i : aint;
+        i : longint;
         lab: tasmlabel;
       begin
         if len>31 then
@@ -1276,6 +1281,7 @@ implementation
       end;
 
 
+{$ifndef SPARC64}
 {****************************************************************************
                                TCG64Sparc
 ****************************************************************************}
@@ -1434,6 +1440,7 @@ implementation
         list.concat(taicpu.op_reg_reg_reg(op1,regsrc2.reglo,regsrc1.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg_reg(op2,regsrc2.reghi,regsrc1.reghi,regdst.reghi));
       end;
+{$endif SPARC64}
 
 
     procedure create_codegen;
@@ -1443,7 +1450,9 @@ implementation
           TCgSparc(cg).use_unlimited_pic_mode:=true
         else
           TCgSparc(cg).use_unlimited_pic_mode:=false;
+{$ifndef SPARC64}
         cg64:=TCg64Sparc.Create;
+{$endif SPARC64}
       end;
 
 end.

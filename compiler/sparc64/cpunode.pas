@@ -1,7 +1,7 @@
-{
-    Copyright (c) 1998-2002 by Florian Klaempfl
+{******************************************************************************
+    Copyright (c) 2000 by Florian Klaempfl
 
-    Calling conventions for the SPARC
+    Includes the SPARC64 code generator
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,32 +16,26 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *****************************************************************************}
-unit cpupara;
 
-{$i fpcdefs.inc}
+ *****************************************************************************}
+unit CpuNode;
+
+{$I fpcdefs.inc}
 
 interface
-
-    uses
-      globtype,
-      cclasses,
-      aasmtai,aasmdata,
-      cpubase,cpuinfo,
-      sppara,
-      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
-
-    type
-      tcpuparamanager=class(TSparcParaManager)
-      end;
+{ This unit is used to define the specific CPU implementations. All needed
+actions are included in the INITALIZATION part of these units. This explains
+the behaviour of such a unit having just a USES clause! }
 
 implementation
 
-    uses
-      cutils,verbose,systems,
-      defutil,
-      cgobj;
+  uses
+    ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
+    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset,
+    { this not really a node }
+    rgcpu,
+    { symtable }
+    symcpu,
+    aasmdef;
 
-begin
-   ParaManager:=tcpuparamanager.create;
 end.
