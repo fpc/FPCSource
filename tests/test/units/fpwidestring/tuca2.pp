@@ -5,7 +5,10 @@ program tuca2;
     * CollationTest_NON_IGNORABLE_SHORT.txt
     * CollationTest_SHIFTED_SHORT.txt
   These files are in the zip archive at
-    http://www.unicode.org/Public/UCA/6.2.0/CollationAuxiliary.zip
+    http://www.unicode.org/Public/cldr/30/core.zip
+    in the "\common\uca" folder and named 
+      CollationTest_CLDR_NON_IGNORABLE_SHORT.txt and
+      CollationTest_CLDR_SHIFTED_SHORT.txt
 }
 
 {$mode objfpc}{$H+}

@@ -1,4 +1,4 @@
-{   Unicode tables unit.
+﻿{   Unicode tables unit.
 
     Copyright (c) 2013 by Inoussa OUEDRAOGO
 
@@ -83,16 +83,52 @@
 }
 
 unit unicodedata;
-{$mode delphi}
-{$H+}
-{$PACKENUM 1}
+{$IFDEF FPC}
+  {$mode delphi}
+  {$H+}
+  {$PACKENUM 1}
+  {$warn 4056 off}  //Conversion between ordinals and pointers is not portable
+  {$DEFINE HAS_PUSH}
+  {$DEFINE HAS_COMPARE_BYTE}
+  {$DEFINE INLINE_SUPPORT_PRIVATE_VARS}
+  {$DEFINE HAS_UNALIGNED}
+{$ENDIF FPC}
+
+{$IFNDEF FPC}
+  {$UNDEF HAS_COMPARE_BYTE}
+  {$UNDEF HAS_PUSH}
+  {$DEFINE ENDIAN_LITTLE}
+{$ENDIF !FPC}
+
 {$SCOPEDENUMS ON}
 {$pointermath on}
 {$define USE_INLINE}
-{$warn 4056 off}  //Conversion between ordinals and pointers is not portable
 { $define uni_debug}
 
 interface
+{$IFNDEF FPC}
+  type
+    UnicodeChar = WideChar;
+    PUnicodeChar = ^UnicodeChar;
+    SizeInt = NativeInt;
+    DWord = UInt32;
+    PDWord = ^DWord;
+    PtrInt = NativeInt;
+    PtrUInt = NativeUInt;
+{$ENDIF !FPC}
+
+{$IF not Declared(reCodesetConversion)}
+  const reCodesetConversion = reRangeError;
+{$IFEND reCodesetConversion}
+
+{$IF not Declared(DirectorySeparator)}
+  {$IFDEF MSWINDOWS}
+    const DirectorySeparator = '\';
+  {$ELSE}
+    const DirectorySeparator = '/';
+  {$ENDIF MSWINDOWS}
+
+{$IFEND DirectorySeparator}
 
 const
   MAX_WORD = High(Word);
@@ -149,11 +185,11 @@ type
 
   TUInt24Rec = packed record
   public
-  {$ifdef FPC_LITTLE_ENDIAN}
+  {$ifdef ENDIAN_LITTLE}
     byte0, byte1, byte2 : Byte;
-  {$else FPC_LITTLE_ENDIAN}
+  {$else ENDIAN_LITTLE}
     byte2, byte1, byte0 : Byte;
-  {$endif FPC_LITTLE_ENDIAN}
+  {$endif ENDIAN_LITTLE}
   public
     class operator Implicit(a : TUInt24Rec) : Cardinal;{$ifdef USE_INLINE}inline;{$ENDIF}
     class operator Implicit(a : TUInt24Rec) : LongInt;{$ifdef USE_INLINE}inline;{$ENDIF}
@@ -196,11 +232,11 @@ type
 
 const
   ZERO_UINT24 : UInt24 =
-  {$ifdef FPC_LITTLE_ENDIAN}
+  {$ifdef ENDIAN_LITTLE}
     (byte0 : 0; byte1 : 0; byte2 : 0;);
-  {$else FPC_LITTLE_ENDIAN}
+  {$else ENDIAN_LITTLE}
     (byte2 : 0; byte1 : 0; byte0 : 0;);
-  {$endif FPC_LITTLE_ENDIAN}
+  {$endif ENDIAN_LITTLE}
 
 type
   PUC_Prop = ^TUC_Prop;
@@ -324,13 +360,14 @@ type
     ucaIgnoreSP // This one is not implemented !
   );
 
-  TCollationName = string[128];
+  TCollationName = array[0..(128-1)] of Byte;
+  TCollationVersion = TCollationName;
 
   PUCA_DataBook = ^TUCA_DataBook;
   TUCA_DataBook = record
   public
     Base               : PUCA_DataBook;
-    Version            : TCollationName;
+    Version            : TCollationVersion;
     CollationName      : TCollationName;
     VariableWeight     : TUCA_VariableKind;
     Backwards          : array[0..3] of Boolean;
@@ -342,19 +379,64 @@ type
     Props              : PUCA_PropItemRec;
     VariableLowLimit   : Word;
     VariableHighLimit  : Word;
+    NoNormalization    : Boolean;
+    ComparisonStrength : Byte;
     Dynamic            : Boolean;
   public
     function IsVariable(const AWeight : PUCA_PropWeights) : Boolean; inline;
   end;
 
-  TCollationField = (BackWard, VariableLowLimit, VariableHighLimit);
+  TUnicodeStringArray = array of UnicodeString;
+  TCollationTableItem = record
+    Collation : PUCA_DataBook;
+    Aliases   : TUnicodeStringArray;
+  end;
+  PCollationTableItem = ^TCollationTableItem;
+
+  TCollationTableItemArray = array of TCollationTableItem;
+
+  { TCollationTable }
+
+  TCollationTable = record
+  private
+    FItems : TCollationTableItemArray;
+    FCount : Integer;
+  private
+    function GetCapacity : Integer;
+    function GetCount : Integer;
+    function GetItem(const AIndex : Integer) : PCollationTableItem;
+    procedure Grow();
+    procedure ClearItem(AItem : PCollationTableItem);
+    procedure AddAlias(
+      AItem  : PCollationTableItem;
+      AAlias : UnicodeString
+    );overload;
+  public
+    class function NormalizeName(AName : UnicodeString) : UnicodeString;static;
+    procedure Clear();
+    function IndexOf(AName : UnicodeString) : Integer;overload;
+    function IndexOf(ACollation : PUCA_DataBook) : Integer;overload;
+    function Find(AName : UnicodeString) : PCollationTableItem;overload;
+    function Find(ACollation : PUCA_DataBook) : PCollationTableItem;overload;
+    function Add(ACollation : PUCA_DataBook) : Integer;
+    function AddAlias(AName, AAlias : UnicodeString) : Boolean;overload;
+    function Remove(AIndex : Integer) : PUCA_DataBook;
+    property Item[const AIndex : Integer] : PCollationTableItem read GetItem;default;
+    property Count : Integer read GetCount;
+    property Capacity : Integer read GetCapacity;
+  end;
+
+  TCollationField = (
+    BackWard, VariableLowLimit, VariableHighLimit, Alternate, Normalization,
+    Strength
+  );
   TCollationFields = set of TCollationField;
 
 const
   ROOT_COLLATION_NAME = 'DUCET';
   ERROR_INVALID_CODEPOINT_SEQUENCE = 1;
 
-  procedure FromUCS4(const AValue : UCS4Char; var AHighS, ALowS : UnicodeChar);inline;
+  procedure FromUCS4(const AValue : UCS4Char; out AHighS, ALowS : UnicodeChar);
   function ToUCS4(const AHighS, ALowS : UnicodeChar) : UCS4Char;inline;
   function UnicodeIsSurrogatePair(
     const AHighSurrogate,
@@ -373,23 +455,25 @@ const
     out   AResultString          : UnicodeString
   ) : Integer;
 
-  function GetProps(const ACodePoint : Word) : PUC_Prop;overload;inline;
-  function GetProps(const AHighS, ALowS : UnicodeChar): PUC_Prop;overload;inline;
+  function GetProps(const ACodePoint : Word) : PUC_Prop;overload;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
+  function GetProps(const AHighS, ALowS : UnicodeChar): PUC_Prop;overload;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   function GetProps(const ACodePoint : Cardinal) : PUC_Prop;overload;inline;
-  function GetPropUCA(const AHighS, ALowS : UnicodeChar; const ABook : PUCA_DataBook): PUCA_PropItemRec; inline; overload;
-  function GetPropUCA(const AChar : UnicodeChar; const ABook : PUCA_DataBook) : PUCA_PropItemRec; inline; overload;
+  function GetPropUCA(const AHighS, ALowS : UnicodeChar; const ABook : PUCA_DataBook): PUCA_PropItemRec; overload;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
+  function GetPropUCA(const AChar : UnicodeChar; const ABook : PUCA_DataBook) : PUCA_PropItemRec; overload;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
 
 
   function NormalizeNFD(const AString : UnicodeString) : UnicodeString;inline;overload;
   function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;overload;
-  function DecomposeCanonical(const AString : UnicodeString) : UnicodeString;inline;overload;
-  function DecomposeCanonical(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;overload;
   procedure CanonicalOrder(var AString : UnicodeString);inline;overload;
   procedure CanonicalOrder(AStr : PUnicodeChar; const ALength : SizeInt);overload;
 
 type
   TUCASortKeyItem = Word;
   TUCASortKey = array of TUCASortKeyItem;
+  TCategoryMask = set of 0..31;
+const
+  DEFAULT_UCA_COMPARISON_STRENGTH = 3;
+
   function ComputeSortKey(
     const AString    : UnicodeString;
     const ACollation : PUCA_DataBook
@@ -413,37 +497,80 @@ type
           AStrB      : UnicodeString;
     const ACollation : PUCA_DataBook
   ) : Integer;inline;overload;
+  function FilterString(
+    const AStr          : PUnicodeChar;
+    const ALength       : SizeInt;
+    const AExcludedMask : TCategoryMask
+  ) : UnicodeString;overload;
+  function FilterString(
+    const AStr          : UnicodeString;
+    const AExcludedMask : TCategoryMask
+  ) : UnicodeString;overload;inline;
 
   function RegisterCollation(const ACollation : PUCA_DataBook) : Boolean;overload;
   function RegisterCollation(
-    const ADirectory,
-          ALanguage : string
+    const ACollation : PUCA_DataBook;
+    const AAliasList : array of UnicodeString
   ) : Boolean;overload;
-  function UnregisterCollation(const AName : ansistring): Boolean;
+  function RegisterCollation(
+     ADirectory, ALanguage : UnicodeString
+  ) : Boolean;overload;
+  function AddAliasCollation(
+    ACollation : PUCA_DataBook;
+    AALias     : UnicodeString
+  ) : Boolean;
+  function UnregisterCollation(AName : UnicodeString): Boolean;
   procedure UnregisterCollations(const AFreeDynamicCollations : Boolean);
-  function FindCollation(const AName : ansistring): PUCA_DataBook;overload;
+  function FindCollation(AName : UnicodeString): PUCA_DataBook;overload;
   function FindCollation(const AIndex : Integer): PUCA_DataBook;overload;
   function GetCollationCount() : Integer;
   procedure PrepareCollation(
           ACollation     : PUCA_DataBook;
-    const ABaseName      : ansistring;
+    const ABaseName      : UnicodeString;
     const AChangedFields : TCollationFields
   );
   function LoadCollation(
     const AData       : Pointer;
+    const ADataLength : Integer;
+    var   AAliases    : TUnicodeStringArray
+  ) : PUCA_DataBook;overload;
+  function LoadCollation(
+    const AData       : Pointer;
     const ADataLength : Integer
   ) : PUCA_DataBook;overload;
-  function LoadCollation(const AFileName : string) : PUCA_DataBook;overload;
+  function LoadCollation(
+    const AFileName : UnicodeString;
+    var   AAliases  : TUnicodeStringArray
+  ) : PUCA_DataBook;overload;
+  function LoadCollation(
+    const AFileName : UnicodeString
+  ) : PUCA_DataBook;overload;
   function LoadCollation(
     const ADirectory,
-          ALanguage : string
+          ALanguage : UnicodeString;
+    var   AAliases  : TUnicodeStringArray
+  ) : PUCA_DataBook;overload;
+  function LoadCollation(
+    const ADirectory,
+          ALanguage : UnicodeString
   ) : PUCA_DataBook;overload;
   procedure FreeCollation(AItem : PUCA_DataBook);
 
 type
+  TSetOfByte = set of Byte;
+
+  function BytesToString(
+    const ABytes       : array of Byte;
+    const AValideChars : TSetOfByte
+  ) : UnicodeString;
+  function BytesToName(
+    const ABytes : array of Byte
+  ) : UnicodeString;
+
+type
   TEndianKind = (Little, Big);
 const
-  ENDIAN_SUFFIX : array[TEndianKind] of string[2] = ('le','be');
+  ENDIAN_SUFFIX : array[TEndianKind] of UnicodeString = ('le','be');
 {$IFDEF ENDIAN_LITTLE}
   ENDIAN_NATIVE     = TEndianKind.Little;
   ENDIAN_NON_NATIVE = TEndianKind.Big;
@@ -463,20 +590,291 @@ uses
 type
 
   TCardinalRec = packed record
-  {$ifdef FPC_LITTLE_ENDIAN}
+  {$ifdef ENDIAN_LITTLE}
     byte0, byte1, byte2, byte3 : Byte;
-  {$else FPC_LITTLE_ENDIAN}
+  {$else ENDIAN_LITTLE}
     byte3, byte2, byte1, byte0 : Byte;
-  {$endif FPC_LITTLE_ENDIAN}
+  {$endif ENDIAN_LITTLE}
   end;
 
   TWordRec = packed record
-  {$ifdef FPC_LITTLE_ENDIAN}
+  {$ifdef ENDIAN_LITTLE}
     byte0, byte1 : Byte;
-  {$else FPC_LITTLE_ENDIAN}
+  {$else ENDIAN_LITTLE}
     byte1, byte0 : Byte;
-  {$endif FPC_LITTLE_ENDIAN}
+  {$endif ENDIAN_LITTLE}
   end;
+
+const
+  BYTES_OF_VALID_NAME_CHARS : set of Byte = [
+    Ord('a')..Ord('z'), Ord('A')..Ord('Z'), Ord('-'),Ord('_')
+  ];
+
+function BytesToString(
+  const ABytes       : array of Byte;
+  const AValideChars : TSetOfByte
+) : UnicodeString;
+var
+  c, i, rl : Integer;
+  pr : PWord;
+begin
+  rl := 0;
+  c := Length(ABytes);
+  if (c > 0) then begin
+    for i := 0 to c-1 do begin
+      if not(ABytes[i] in AValideChars) then
+        break;
+      rl := rl+1;
+    end;
+  end;
+  SetLength(Result,rl);
+  if (rl > 0) then begin
+    pr := PWord(@Result[1]);
+    for i := 0 to rl-1 do begin
+      pr^ := ABytes[i];
+      Inc(pr);
+    end;
+  end;
+end;
+
+function BytesToName(
+  const ABytes : array of Byte
+) : UnicodeString;
+begin
+  Result := BytesToString(ABytes,BYTES_OF_VALID_NAME_CHARS);
+end;
+
+{ TCollationTable }
+
+function TCollationTable.GetCapacity : Integer;
+begin
+  Result := Length(FItems);
+end;
+
+function TCollationTable.GetCount : Integer;
+begin
+  if (FCount < 0) or (Length(FItems) < 1) or (FCount > Length(FItems)) then
+    FCount := 0;
+  Result := FCount;
+end;
+
+function TCollationTable.GetItem(const AIndex : Integer) : PCollationTableItem;
+begin
+  if (AIndex < 0) or (AIndex >= Count) then
+    Error(reRangeError);
+  Result := @FItems[AIndex];
+end;
+
+procedure TCollationTable.Grow();
+var
+  c0, c1 : Integer;
+begin
+  c0 := Length(FItems);
+  if (c0 < 1) then begin
+    c0 := 1;
+    if (FCount < 0) then
+      FCount := 0;
+  end;
+  c1 := 2*c0;
+  c0 := Length(FItems);
+  SetLength(FItems,c1);
+  FillChar(FItems[c0],((c1-c0)*SizeOf(TCollationTableItem)),#0);
+end;
+
+procedure TCollationTable.ClearItem(AItem : PCollationTableItem);
+begin
+  if (AItem = nil) then
+    exit;
+  AItem^.Collation := nil;
+  SetLength(AItem^.Aliases,0);
+end;
+
+procedure TCollationTable.AddAlias(
+  AItem  : PCollationTableItem;
+  AAlias : UnicodeString
+);
+var
+  n : UnicodeString;
+  c, i : Integer;
+begin
+  n := NormalizeName(AAlias);
+  if (n = '') then
+    exit;
+  c := Length(AItem^.Aliases);
+  if (c > 0) then begin
+    for i := 0 to c-1 do begin
+      if (AItem^.Aliases[i] = n) then
+        exit;
+    end;
+  end;
+  SetLength(AItem^.Aliases,(c+1));
+  AItem^.Aliases[c] := n;
+end;
+
+class function TCollationTable.NormalizeName(
+  AName : UnicodeString
+) : UnicodeString;
+var
+  r : UnicodeString;
+  c, i, rl : Integer;
+  cx : Word;
+begin
+  c := Length(AName);
+  rl := 0;
+  SetLength(r,c);
+  for i := 1 to c do begin
+    case Ord(AName[i]) of
+      Ord('a')..Ord('z') : cx := Ord(AName[i]);
+      Ord('A')..Ord('Z') : cx := Ord(AName[i])+(Ord('a')-Ord('A'));
+      Ord('0')..Ord('9'),
+      Ord('-'), Ord('_') : cx := Ord(AName[i]);
+      else
+        cx := 0;
+    end;
+    if (cx > 0) then begin
+      rl := rl+1;
+      r[rl] := UnicodeChar(cx);
+    end;
+  end;
+  SetLength(r,rl);
+  Result := r;
+end;
+
+procedure TCollationTable.Clear();
+var
+  p : PCollationTableItem;
+  i : Integer;
+begin
+  if (Count < 1) then
+    exit;
+  p := @FItems[0];
+  for i := 0 to Count-1 do begin;
+    ClearItem(p);
+    Inc(p);
+  end;
+  FCount := 0;
+end;
+
+function TCollationTable.IndexOf(AName : UnicodeString) : Integer;
+var
+  c, i, k : Integer;
+  p : PCollationTableItem;
+  n : UnicodeString;
+begin
+  c := Count;
+  if (c > 0) then begin
+    // Names
+    n := NormalizeName(AName);
+    p := @FItems[0];
+    for i := 0 to c-1 do begin
+      if (Length(p^.Aliases) > 0) and (p^.Aliases[0] = n) then
+        exit(i);
+      Inc(p);
+    end;
+    // Aliases
+    p := @FItems[0];
+    for i := 0 to c-1 do begin
+      if (Length(p^.Aliases) > 1) then begin
+        for k := 1 to Length(p^.Aliases)-1 do begin
+          if (p^.Aliases[k] = n) then
+            exit(i);
+        end;
+      end;
+      Inc(p);
+    end;
+  end;
+  Result := -1;
+end;
+
+function TCollationTable.IndexOf(ACollation : PUCA_DataBook) : Integer;
+var
+  c, i : Integer;
+  p : PCollationTableItem;
+begin
+  c := Count;
+  if (c > 0) then begin
+    p := @FItems[0];
+    for i := 0 to c-1 do begin
+      if (p^.Collation = ACollation) then
+        exit(i);
+      Inc(p);
+    end;
+  end;
+  Result := -1;
+end;
+
+function TCollationTable.Find(AName : UnicodeString) : PCollationTableItem;
+var
+  i : Integer;
+begin
+  i := IndexOf(AName);
+  if (i >= 0) then
+    Result := @FItems[i]
+  else
+    Result := nil;
+end;
+
+function TCollationTable.Find(ACollation : PUCA_DataBook) : PCollationTableItem;
+var
+  i : Integer;
+begin
+  i := IndexOf(ACollation);
+  if (i >= 0) then
+    Result := @FItems[i]
+  else
+    Result := nil;
+end;
+
+function TCollationTable.Add(ACollation : PUCA_DataBook) : Integer;
+var
+  c : Integer;
+  p : PCollationTableItem;
+begin
+  Result := IndexOf(ACollation);
+  if (Result < 0) then begin
+    c := Count;
+    if (c >= Capacity) then
+      Grow();
+    p := @FItems[c];
+    p^.Collation := ACollation;
+    SetLength(p^.Aliases,1);
+    p^.Aliases[0] := NormalizeName(BytesToName(ACollation^.CollationName));
+    FCount := FCount+1;
+    Result := c;
+  end;
+end;
+
+function TCollationTable.AddAlias(AName, AAlias : UnicodeString) : Boolean;
+var
+  p : PCollationTableItem;
+begin
+  p := Find(AName);
+  Result := (p <> nil);
+  if Result then
+    AddAlias(p,AAlias);
+end;
+
+function TCollationTable.Remove(AIndex : Integer) : PUCA_DataBook;
+var
+  p, q : PCollationTableItem;
+  c, i : Integer;
+begin
+  if (AIndex < 0) or (AIndex >= Count) then
+    Error(reRangeError);
+  p := @FItems[AIndex];
+  Result := p^.Collation;
+  ClearItem(p);
+  c := Count;
+  if (AIndex < (c-1)) then begin
+    for i := AIndex+1 to c-1 do begin
+      q := p;
+      Inc(p);
+      Move(p^,q^,SizeOf(TCollationTableItem));
+    end;
+    FillChar(p^,SizeOf(TCollationTableItem),#0);
+  end;
+  FCount := FCount-1;
+end;
 
 { TUInt24Rec }
 
@@ -672,45 +1070,89 @@ begin
     AData := AData and ( not ( 1 shl ( ABit mod 8 ) ) );
 end;
 
+{$IFNDEF HAS_COMPARE_BYTE}
+function  CompareByte(const A, B; ALength : SizeInt):SizeInt;
 var
-  CollationTable : array of PUCA_DataBook;
-function IndexOfCollation(const AName : string) : Integer;
-var
-  i, c : Integer;
-  p : Pointer;
+  pa, pb : PByte;
+  i : Integer;
 begin
-  c := Length(AName);
-  p := @AName[1];
-  for i := 0 to Length(CollationTable) - 1 do begin
-    if (Length(CollationTable[i]^.CollationName) = c) and
-       (CompareByte((CollationTable[i]^.CollationName[1]),p^,c)=0)
-    then
+  if (ALength < 1) then
+    exit(0);
+  pa := PByte(@A);
+  pb := PByte(@B);
+  if (pa = pb) then
+    exit(0);
+  for i := 1 to ALength do begin
+    if (pa^ <> pb^) then
       exit(i);
+    pa := pa+1;
+    pb := pb+1;
   end;
+  Result := 0;
+end;
+{$ENDIF HAS_COMPARE_BYTE}
+
+function IndexInArrayDWord(const ABuffer : array of DWord; AItem : DWord) : SizeInt;
+var
+  c, i : Integer;
+  p : PDWord;
+begin
   Result := -1;
+  c := Length(ABuffer);
+  if (c < 1) then
+    exit;
+  p := @ABuffer[Low(ABuffer)];
+  for i := 1 to c do begin
+    if (p^ = AItem) then begin
+      Result := i-1;
+      break;
+    end;
+    p := p+1;
+  end;
+end;
+
+var
+  CollationTable : TCollationTable;
+function IndexOfCollation(AName : UnicodeString) : Integer;
+begin
+  Result := CollationTable.IndexOf(AName);
 end;
 
 function RegisterCollation(const ACollation : PUCA_DataBook) : Boolean;
+begin
+  Result := RegisterCollation(ACollation,[]);
+end;
+
+function RegisterCollation(
+  const ACollation : PUCA_DataBook;
+  const AAliasList : array of UnicodeString
+) : Boolean;
 var
   i : Integer;
+  p : PCollationTableItem;
 begin
-  Result := (IndexOfCollation(ACollation^.CollationName) = -1);
+  Result := (CollationTable.IndexOf(BytesToName(ACollation^.CollationName)) = -1);
   if Result then begin
-    i := Length(CollationTable);
-    SetLength(CollationTable,(i+1));
-    CollationTable[i] := ACollation;
+    i := CollationTable.Add(ACollation);
+    if (Length(AAliasList) > 0) then begin
+      p := CollationTable[i];
+      for i := Low(AAliasList) to High(AAliasList) do
+        CollationTable.AddAlias(p,AAliasList[i]);
+    end;
   end;
 end;
 
-function RegisterCollation(const ADirectory, ALanguage : string) : Boolean;
+function RegisterCollation(ADirectory, ALanguage : UnicodeString) : Boolean;
 var
   cl : PUCA_DataBook;
+  al : TUnicodeStringArray;
 begin
-  cl := LoadCollation(ADirectory,ALanguage);
+  al := nil;
+  cl := LoadCollation(ADirectory,ALanguage,al);
   if (cl = nil) then
     exit(False);
   try
-    Result := RegisterCollation(cl);
+    Result := RegisterCollation(cl,al);
   except
     FreeCollation(cl);
     raise;
@@ -719,71 +1161,85 @@ begin
     FreeCollation(cl);
 end;
 
-function UnregisterCollation(const AName : ansistring): Boolean;
+function AddAliasCollation(
+  ACollation : PUCA_DataBook;
+  AALias     : UnicodeString
+) : Boolean;
 var
-  i, c : Integer;
+  p : PCollationTableItem;
 begin
-  i := IndexOfCollation(AName);
-  Result := (i >= 0);
-  if Result then begin
-    c := Length(CollationTable);
-    if (c = 1) then begin
-      SetLength(CollationTable,0);
-    end else begin
-      CollationTable[i] := CollationTable[c-1];
-      SetLength(CollationTable,(c-1));
+  Result := False;
+  if (ACollation <> nil) then begin
+    p := CollationTable.Find(ACollation);
+    if (p <> nil) then begin
+      CollationTable.AddAlias(p,AALias);
+      Result := True;
     end;
   end;
+end;
+
+function UnregisterCollation(AName : UnicodeString): Boolean;
+var
+  i : Integer;
+begin
+  i := CollationTable.IndexOf(AName);
+  Result := (i >= 0);
+  if Result then
+    CollationTable.Remove(i);
 end;
 
 procedure UnregisterCollations(const AFreeDynamicCollations : Boolean);
 var
   i : Integer;
-  cl : PUCA_DataBook;
+  p : PCollationTableItem;
 begin
   if AFreeDynamicCollations then begin
-    for i := Low(CollationTable) to High(CollationTable) do begin
-      if CollationTable[i].Dynamic then begin
-        cl := CollationTable[i];
-        CollationTable[i] := nil;
-        FreeCollation(cl);
+    for i := 0 to CollationTable.Count-1 do begin
+      p := CollationTable[i];
+      if p^.Collation.Dynamic then begin
+        FreeCollation(p^.Collation);
+        p^.Collation := nil;
       end;
     end;
   end;
-  SetLength(CollationTable,0);
+  CollationTable.Clear();
 end;
 
-function FindCollation(const AName : ansistring): PUCA_DataBook;overload;
+function FindCollation(AName : UnicodeString): PUCA_DataBook;overload;
 var
-  i : Integer;
+  p : PCollationTableItem;
 begin
-  i := IndexOfCollation(AName);
-  if (i = -1) then
-    Result := nil
+  p := CollationTable.Find(AName);
+  if (p <> nil) then
+    Result := p^.Collation
   else
-    Result := CollationTable[i];
+    Result := nil;
 end;
 
 function GetCollationCount() : Integer;
 begin
-  Result := Length(CollationTable);
+  Result := CollationTable.Count;
 end;
 
 function FindCollation(const AIndex : Integer): PUCA_DataBook;overload;
+var
+  p : PCollationTableItem;
 begin
-  if (AIndex < 0) or (AIndex >= Length(CollationTable)) then
-    Result := nil
+  p := CollationTable[AIndex];
+  if (p <> nil) then
+    Result := p^.Collation
   else
-    Result := CollationTable[AIndex];
+    Result := nil;
 end;
+
 
 procedure PrepareCollation(
         ACollation     : PUCA_DataBook;
-  const ABaseName      : ansistring;
+  const ABaseName      : UnicodeString;
   const AChangedFields : TCollationFields
 );
 var
-  s : ansistring;
+  s : UnicodeString;
   p, base : PUCA_DataBook;
 begin
   if (ABaseName <> '') then
@@ -801,13 +1257,20 @@ begin
     p^.VariableLowLimit := base^.VariableLowLimit;
   if not(TCollationField.VariableHighLimit in AChangedFields) then
     p^.VariableLowLimit := base^.VariableHighLimit;
+  if not(TCollationField.Alternate in AChangedFields) then
+    p^.VariableWeight := base^.VariableWeight;
+  if not(TCollationField.Normalization in AChangedFields) then
+    p^.NoNormalization := base^.NoNormalization;
+  if not(TCollationField.Strength in AChangedFields) then
+    p^.ComparisonStrength := base^.ComparisonStrength;
 end;
 
 type
   TSerializedCollationHeader = packed record
     Base               : TCollationName;
-    Version            : TCollationName;
+    Version            : TCollationVersion;
     CollationName      : TCollationName;
+    CollationAliases   : TCollationName; // ";" separated
     VariableWeight     : Byte;
     Backwards          : Byte;
     BMP_Table1Length   : DWord;
@@ -817,6 +1280,8 @@ type
     PropCount          : DWord;
     VariableLowLimit   : Word;
     VariableHighLimit  : Word;
+    NoNormalization    : Byte;
+    Strength           : Byte;
     ChangedFields      : Byte;
   end;
   PSerializedCollationHeader = ^TSerializedCollationHeader;
@@ -841,9 +1306,43 @@ begin
   FreeMem(AItem,(SizeOf(TUCA_DataBook)+SizeOf(TSerializedCollationHeader)));
 end;
 
+function ParseAliases(AStr : UnicodeString) : TUnicodeStringArray;
+var
+  r : TUnicodeStringArray;
+  c, k, i : Integer;
+  s : UnicodeString;
+begin
+  SetLength(r,0);
+  c := Length(AStr);
+  k := 1;
+  for i := 1 to c do begin
+    if (AStr[i] <> ';') then begin
+      k := i;
+      break;
+    end;
+  end;
+
+  s := '';
+  for i := 1 to c do begin
+    if (AStr[i] = ';') then begin
+      s := Copy(AStr,k,(i-k));
+    end else if (i = c) then begin
+      s := Copy(AStr,k,(i+1-k));
+    end;
+    if (s <> '') then begin
+      SetLength(r,(Length(r)+1));
+      r[High(r)] := s;
+      s := '';
+      k := i+1;
+    end;
+  end;
+  Result := r;
+end;
+
 function LoadCollation(
   const AData       : Pointer;
-  const ADataLength : Integer
+  const ADataLength : Integer;
+  var   AAliases    : TUnicodeStringArray
 ) : PUCA_DataBook;
 var
   dataPointer : PByte;
@@ -864,9 +1363,11 @@ var
   h : PSerializedCollationHeader;
   cfs : TCollationFields;
   i : Integer;
-  baseName : TCollationName;
+  baseName, s : UnicodeString;
 begin
+  Result := nil;
   readedLength := 0;
+  AAliases := nil;
   dataPointer := AData;
   r := AllocMem((SizeOf(TUCA_DataBook)+SizeOf(TSerializedCollationHeader)));
   try
@@ -881,47 +1382,53 @@ begin
     r^.Backwards[2] := IsBitON(h^.Backwards,2);
     r^.Backwards[3] := IsBitON(h^.Backwards,3);
     if (h^.BMP_Table1Length > 0) then begin
-      r^.BMP_Table1 := GetMem(h^.BMP_Table1Length);
+      r^.BMP_Table1 := GetMemory(h^.BMP_Table1Length);
         if not ReadBuffer(r^.BMP_Table1,h^.BMP_Table1Length) then
           exit;
     end;
     if (h^.BMP_Table2Length > 0) then begin
-      r^.BMP_Table2 := GetMem(h^.BMP_Table2Length);
+      r^.BMP_Table2 := GetMemory(h^.BMP_Table2Length);
         if not ReadBuffer(r^.BMP_Table2,h^.BMP_Table2Length) then
           exit;
     end;
     if (h^.OBMP_Table1Length > 0) then begin
-      r^.OBMP_Table1 := GetMem(h^.OBMP_Table1Length);
+      r^.OBMP_Table1 := GetMemory(h^.OBMP_Table1Length);
         if not ReadBuffer(r^.OBMP_Table1,h^.OBMP_Table1Length) then
           exit;
     end;
     if (h^.OBMP_Table2Length > 0) then begin
-      r^.OBMP_Table2 := GetMem(h^.OBMP_Table2Length);
+      r^.OBMP_Table2 := GetMemory(h^.OBMP_Table2Length);
         if not ReadBuffer(r^.OBMP_Table2,h^.OBMP_Table2Length) then
           exit;
     end;
     r^.PropCount := h^.PropCount;
     if (h^.PropCount > 0) then begin
-      r^.Props := GetMem(h^.PropCount);
+      r^.Props := GetMemory(h^.PropCount);
         if not ReadBuffer(r^.Props,h^.PropCount) then
           exit;
     end;
     r^.VariableLowLimit := h^.VariableLowLimit;
     r^.VariableHighLimit := h^.VariableHighLimit;
+    r^.NoNormalization := (h^.NoNormalization <> 0);
+    r^.ComparisonStrength := h^.Strength;
 
     cfs := [];
     for i := Ord(Low(TCollationField)) to Ord(High(TCollationField)) do begin
       if IsBitON(h^.ChangedFields,i) then
         cfs := cfs + [TCollationField(i)];
     end;
-    if (h^.Base <> '') then
-      baseName := h^.Base
-    else if (h^.CollationName <> ROOT_COLLATION_NAME) then
-      baseName := ROOT_COLLATION_NAME
-    else
-      baseName := '';
+    baseName := BytesToName(h^.Base);
+    if (baseName = '') then begin
+      if (BytesToName(h^.CollationName) <> ROOT_COLLATION_NAME) then
+        baseName := ROOT_COLLATION_NAME
+      else
+        baseName := '';
+    end;
     if (baseName <> '') then
       PrepareCollation(r,baseName,cfs);
+    s := BytesToString(h^.CollationAliases,(BYTES_OF_VALID_NAME_CHARS+[Ord(';')]));
+    if (s <> '') then
+      AAliases := ParseAliases(s);
     r^.Dynamic := True;
     Result := r;
   except
@@ -930,8 +1437,32 @@ begin
   end;
 end;
 
-{$PUSH}
-function LoadCollation(const AFileName : string) : PUCA_DataBook;
+function LoadCollation(
+  const AData       : Pointer;
+  const ADataLength : Integer
+) : PUCA_DataBook;
+var
+  al : TUnicodeStringArray;
+begin
+  al := nil;
+  Result := LoadCollation(AData,ADataLength,al);
+end;
+
+{$IFDEF HAS_PUSH}
+  {$PUSH}
+{$ENDIF HAS_PUSH}
+
+{$IFNDEF HAS_PUSH}
+  {$IFOPT I+}
+    {$DEFINE I_PLUS}
+  {$ELSE}
+    {$UNDEF I_PLUS}
+  {$ENDIF}
+{$ENDIF HAS_PUSH}
+function LoadCollation(
+  const AFileName : UnicodeString;
+  var   AAliases  : TUnicodeStringArray
+) : PUCA_DataBook;
 const
   BLOCK_SIZE = 16*1024;
 var
@@ -952,7 +1483,7 @@ begin
     locSize := FileSize(f);
     if (locSize < SizeOf(TSerializedCollationHeader)) then
       exit;
-    locBuffer := GetMem(locSize);
+    locBuffer := GetMemory(locSize);
     try
       locBlockSize := BLOCK_SIZE;
       locReaded := 0;
@@ -964,19 +1495,41 @@ begin
           exit;
         locReaded := locReaded + c;
       end;
-      Result := LoadCollation(locBuffer,locSize);
+      Result := LoadCollation(locBuffer,locSize,AAliases);
     finally
-      FreeMem(locBuffer,locSize);
+      FreeMemory(locBuffer);
     end;
   finally
     Close(f);
   end;
 end;
-{$POP}
 
-function LoadCollation(const ADirectory, ALanguage : string) : PUCA_DataBook;
+function LoadCollation(
+  const AFileName : UnicodeString
+) : PUCA_DataBook;
 var
-  fileName : string;
+  al : TUnicodeStringArray;
+begin
+  al := nil;
+  Result := LoadCollation(AFileName,al);
+end;
+
+{$IFDEF HAS_PUSH}
+  {$POP}
+{$ELSE}
+  {$IFDEF I_PLUS}
+    {$I+}
+  {$ELSE}
+    {$I-}
+  {$ENDIF}
+{$ENDIF HAS_PUSH}
+function LoadCollation(
+  const ADirectory,
+        ALanguage : UnicodeString;
+  var   AAliases  : TUnicodeStringArray
+) : PUCA_DataBook;
+var
+  fileName : UnicodeString;
 begin
   fileName := ADirectory;
   if (fileName <> '') then begin
@@ -984,7 +1537,18 @@ begin
       fileName := fileName + DirectorySeparator;
   end;
   fileName := fileName + 'collation_' + ALanguage + '_' + ENDIAN_SUFFIX[ENDIAN_NATIVE] + '.bco';
-  Result := LoadCollation(fileName);
+  Result := LoadCollation(fileName,AAliases);
+end;
+
+function LoadCollation(
+  const ADirectory,
+        ALanguage : UnicodeString
+) : PUCA_DataBook;
+var
+  al : TUnicodeStringArray;
+begin
+  al := nil;
+  Result := LoadCollation(ADirectory,ALanguage,al);
 end;
 
 {$INCLUDE unicodedata.inc}
@@ -995,7 +1559,7 @@ end;
   {$INCLUDE unicodedata_be.inc}
 {$ENDIF ENDIAN_BIG}
 
-procedure FromUCS4(const AValue : UCS4Char; var AHighS, ALowS : UnicodeChar);inline;
+procedure FromUCS4(const AValue : UCS4Char; out AHighS, ALowS : UnicodeChar);
 begin
   AHighS := UnicodeChar((AValue - $10000) shr 10 + $d800);
   ALowS := UnicodeChar((AValue - $10000) and $3ff + $dc00);
@@ -1033,7 +1597,7 @@ begin
             (Word(AValue) <= LOW_SURROGATE_END);
 end;
 
-function GetProps(const ACodePoint : Word) : PUC_Prop;overload;inline;
+function GetProps(const ACodePoint : Word) : PUC_Prop;overload;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
 begin
   Result:=
     @UC_PROP_ARRAY[
@@ -1050,7 +1614,7 @@ begin
      ];}
 end;
 
-function GetProps(const AHighS, ALowS : UnicodeChar): PUC_Prop;overload;inline;
+function GetProps(const AHighS, ALowS : UnicodeChar): PUC_Prop;overload;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
 begin
   Result:=
     @UC_PROP_ARRAY[
@@ -1266,13 +1830,13 @@ var
     locStackIdx := locStackIdx + kc;
   end;
 
-  procedure AddResult(const AChar : Cardinal);inline;
+  procedure AddResult(const AChar : Cardinal);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Inc(ResultIdx);
     ResultBuffer[ResultIdx] := AChar;
   end;
 
-  function PopStack() : Cardinal;inline;
+  function PopStack() : Cardinal;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := locStack[locStackIdx];
     Dec(locStackIdx);
@@ -1425,12 +1989,13 @@ begin
   end;
 end;
 
-function DecomposeCanonical(const AString : UnicodeString) : UnicodeString;
+//Canonical Decomposition
+function NormalizeNFD(const AString : UnicodeString) : UnicodeString;
 begin
-  Result := DecomposeCanonical(@AString[1],Length(AString));
+  Result := NormalizeNFD(@AString[1],Length(AString));
 end;
 
-function DecomposeCanonical(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
+function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
 const MAX_EXPAND = 3;
 var
   i, c, kc, k : SizeInt;
@@ -1508,20 +2073,6 @@ begin
     SetLength(Result,i);
     CanonicalOrder(@Result[1],Length(Result));
   end;
-end;
-
-function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
-begin
-  if (ALength < 1) then
-    exit('');
-  Result := DecomposeCanonical(AStr,ALength);
-  CanonicalOrder(@Result[1],Length(Result));
-end;
-
-//Canonical Decomposition + _ordering_
-function NormalizeNFD(const AString : UnicodeString) : UnicodeString;
-begin
-  Result := NormalizeNFD(@AString[1],Length(AString));
 end;
 
 { TUCA_PropItemContextTreeNodeRec }
@@ -1682,14 +2233,16 @@ function TUCA_PropItemRec.GetCodePoint() : UInt24;
 begin
   if HasCodePoint() then begin
     if Contextual then
-      Result := Unaligned(
+      Result := {$IFDEF HAS_UNALIGNED}Unaligned{$ENDIF}(
                   PUInt24(
                     PtrUInt(@Self) + Self.GetSelfOnlySize()- SizeOf(UInt24) -
                     Cardinal(GetContext()^.Size)
                   )^
                 )
     else
-      Result := Unaligned(PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize() - SizeOf(UInt24))^)
+      Result := {$IFDEF HAS_UNALIGNED}Unaligned{$ENDIF}(
+                  PUInt24(PtrUInt(@Self) + Self.GetSelfOnlySize() - SizeOf(UInt24))^
+                )
   end else begin
   {$ifdef uni_debug}
     raise EUnicodeException.Create('TUCA_PropItemRec.GetCodePoint : "No code point available."');
@@ -1723,17 +2276,17 @@ begin
   c := WeightLength;
   p := PByte(PtrUInt(@Self) + SizeOf(TUCA_PropItemRec));
   pd := ADest;
-  pd^.Weights[0] := Unaligned(PWord(p)^);
+  pd^.Weights[0] := {$IFDEF HAS_UNALIGNED}Unaligned{$ENDIF}(PWord(p)^);
   p := p + 2;
   if not IsWeightCompress_1() then begin
-    pd^.Weights[1] := Unaligned(PWord(p)^);
+    pd^.Weights[1] := {$IFDEF HAS_UNALIGNED}Unaligned{$ENDIF}(PWord(p)^);
     p := p + 2;
   end else begin
     pd^.Weights[1] := p^;
     p := p + 1;
   end;
   if not IsWeightCompress_2() then begin
-    pd^.Weights[2] := Unaligned(PWord(p)^);
+    pd^.Weights[2] := {$IFDEF HAS_UNALIGNED}Unaligned{$ENDIF}(PWord(p)^);
     p := p + 2;
   end else begin
     pd^.Weights[2] := p^;
@@ -1788,10 +2341,16 @@ var
 begin
   if (ABook^.BMP_Table2 = nil) then
     exit(nil);
-  i := ABook^.BMP_Table2[
+  i := PUInt24(
+         PtrUInt(ABook^.BMP_Table2) +
+         ( ((ABook^.BMP_Table1[Hi(Word(AChar))] * 256) + Lo(Word(AChar))) *
+           SizeOf(UInt24)
+         )
+       )^;
+  {i := ABook^.BMP_Table2[
          (ABook^.BMP_Table1[Hi(Word(AChar))] * 256) +
          Lo(Word(AChar))
-       ];
+       ];}
   if (i > 0) then
     Result:= PUCA_PropItemRec(PtrUInt(ABook^.Props) + i - 1)
   else
@@ -1804,10 +2363,17 @@ var
 begin
   if (ABook^.OBMP_Table2 = nil) then
     exit(nil);
-  i := ABook^.OBMP_Table2[
+  i := PUInt24(
+         PtrUInt(ABook^.OBMP_Table2) +
+         ( (ABook^.OBMP_Table1[Word(AHighS)-HIGH_SURROGATE_BEGIN] * HIGH_SURROGATE_COUNT) +
+           Word(ALowS) - LOW_SURROGATE_BEGIN
+         ) *
+         SizeOf(UInt24)
+       )^;
+  {i := ABook^.OBMP_Table2[
          (ABook^.OBMP_Table1[Word(AHighS)-HIGH_SURROGATE_BEGIN] * HIGH_SURROGATE_COUNT) +
          Word(ALowS) - LOW_SURROGATE_BEGIN
-       ];
+       ]; }
   if (i > 0) then
     Result:= PUCA_PropItemRec(PtrUInt(ABook^.Props) + i - 1)
   else
@@ -1859,6 +2425,11 @@ begin
   if (c = 0) then
     exit(nil);
   levelCount := Length(ACEList[0].Weights);
+  if (ACollation^.ComparisonStrength > 0) and
+     (ACollation^.ComparisonStrength < levelCount)
+  then begin
+    levelCount := ACollation^.ComparisonStrength;
+  end;
   SetLength(r,(levelCount*c + levelCount));
   ral := 0;
   for i := 0 to levelCount - 1 do begin
@@ -1899,6 +2470,11 @@ begin
   if (c = 0) then
     exit(nil);
   levelCount := Length(ACEList[0].Weights);
+  if (ACollation^.ComparisonStrength > 0) and
+     (ACollation^.ComparisonStrength < levelCount)
+  then begin
+    levelCount := ACollation^.ComparisonStrength;
+  end;
   SetLength(r,(levelCount*c + levelCount));
   ral := 0;
   for i := 0 to levelCount - 1 do begin
@@ -1940,8 +2516,14 @@ begin
   if (c = 0) then
     exit(nil);
   levelCount := Length(ACEList[0].Weights);
+  if (ACollation^.ComparisonStrength > 0) and
+     (ACollation^.ComparisonStrength < levelCount)
+  then begin
+    levelCount := ACollation^.ComparisonStrength;
+  end;
   SetLength(r,(levelCount*c + levelCount));
   ral := 0;
+  variableState := False;
   for i := 0 to levelCount - 1 do begin
     if not ACollation^.Backwards[i] then begin
       variableState := False;
@@ -2040,7 +2622,7 @@ var
   ral {used length of "r"}: Integer;
   rl  {capacity of "r"} : Integer;
 
-  procedure GrowKey(const AMinGrow : Integer = 0);inline;
+  procedure GrowKey(const AMinGrow : Integer = 0);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if (rl < AMinGrow) then
       rl := rl + AMinGrow
@@ -2052,6 +2634,7 @@ var
 var
   i : Integer;
   s : UnicodeString;
+  psBase : PUnicodeChar;
   ps : PUnicodeChar;
   cp : Cardinal;
   cl : PUCA_DataBook;
@@ -2098,7 +2681,7 @@ var
     LastKeyOwner.Length := k;
   end;
 
-  procedure AddWeights(AItem : PUCA_PropItemRec);inline;
+  procedure AddWeights(AItem : PUCA_PropItemRec);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     SaveKeyOwner();
     if ((ral + AItem^.WeightLength) > rl) then
@@ -2107,7 +2690,7 @@ var
     ral := ral + AItem^.WeightLength;
   end;
 
-  procedure AddContextWeights(AItem : PUCA_PropItemContextRec);inline;
+  procedure AddContextWeights(AItem : PUCA_PropItemContextRec);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if ((ral + AItem^.WeightCount) > rl) then
       GrowKey(AItem^.WeightCount);
@@ -2115,7 +2698,7 @@ var
     ral := ral + AItem^.WeightCount;
   end;
 
-  procedure AddComputedWeights(ACodePoint : Cardinal);inline;
+  procedure AddComputedWeights(ACodePoint : Cardinal);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     SaveKeyOwner();
     if ((ral + 2) > rl) then
@@ -2124,7 +2707,7 @@ var
     ral := ral + 2;
   end;
 
-  procedure RecordDeletion();inline;
+  procedure RecordDeletion();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if pp^.IsValid() and pp^.IsDeleted() (*pp^.GetWeightLength() = 0*) then begin
       if (suppressState.cl = nil) or
@@ -2136,7 +2719,7 @@ var
     end;
   end;
 
-  procedure RecordStep();inline;
+  procedure RecordStep();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Inc(locHistoryTop);
     locHistory[locHistoryTop].i := i;
@@ -2148,22 +2731,22 @@ var
     RecordDeletion();
   end;
 
-  procedure ClearHistory();inline;
+  procedure ClearHistory();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     locHistoryTop := -1;
   end;
 
-  function HasHistory() : Boolean;inline;
+  function HasHistory() : Boolean;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := (locHistoryTop >= 0);
   end;
 
-  function GetHistoryLength() : Integer;inline;
+  function GetHistoryLength() : Integer;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := (locHistoryTop + 1);
   end;
 
-  procedure GoBack();inline;
+  procedure GoBack();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Assert(locHistoryTop >= 0);
     i := locHistory[locHistoryTop].i;
@@ -2172,7 +2755,7 @@ var
     pp := locHistory[locHistoryTop].pp;
     ppLevel := locHistory[locHistoryTop].ppLevel;
     removedCharIndexLength := locHistory[locHistoryTop].removedCharIndexLength;
-    ps := @s[i];
+    ps := psBase + i;
     Dec(locHistoryTop);
   end;
 
@@ -2190,7 +2773,7 @@ var
     if (k > c) then
       exit(False);
     if (removedCharIndexLength>0) and
-       (IndexDWord(removedCharIndex[0],removedCharIndexLength,k) >= 0)
+       (IndexInArrayDWord(removedCharIndex,k) >= 0)
     then begin
       exit(False);
     end;
@@ -2198,7 +2781,7 @@ var
        ( (k = (i+2)) and UnicodeIsHighSurrogate(s[i]) )
     then
       lastUnblockedNonstarterCCC := 0;}
-    pk := @s[k];
+    pk := psBase + k-1;
     if UnicodeIsHighSurrogate(pk^) then begin
       if (k = c) then
         exit(False);
@@ -2215,13 +2798,13 @@ var
     Result := True;
   end;
 
-  procedure RemoveChar(APos : Integer);inline;
+  procedure RemoveChar(APos : Integer);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if (removedCharIndexLength >= Length(removedCharIndex)) then
       SetLength(removedCharIndex,(2*removedCharIndexLength + 2));
     removedCharIndex[removedCharIndexLength] := APos;
     Inc(removedCharIndexLength);
-    if UnicodeIsHighSurrogate(s[APos]) and (APos < c) and UnicodeIsLowSurrogate(s[APos+1]) then begin
+    if UnicodeIsHighSurrogate(psBase[APos]) and (APos < c) and UnicodeIsLowSurrogate(psBase[APos+1]) then begin
       if (removedCharIndexLength >= Length(removedCharIndex)) then
           SetLength(removedCharIndex,(2*removedCharIndexLength + 2));
         removedCharIndex[removedCharIndexLength] := APos+1;
@@ -2229,7 +2812,7 @@ var
     end;
   end;
 
-  procedure Inc_I();inline;
+  procedure Inc_I();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if (removedCharIndexLength = 0) then begin
       Inc(i);
@@ -2239,7 +2822,7 @@ var
     while True do begin
       Inc(i);
       Inc(ps);
-      if (IndexDWord(removedCharIndex[0],removedCharIndexLength,i) = -1) then
+      if (IndexInArrayDWord(removedCharIndex,i) = -1) then
         Break;
     end;
   end;
@@ -2247,7 +2830,7 @@ var
 var
   surrogateState : Boolean;
 
-  function MoveToNextChar() : Boolean;inline;
+  function MoveToNextChar() : Boolean;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := True;
     if UnicodeIsHighSurrogate(ps[0]) then begin
@@ -2266,7 +2849,7 @@ var
     end;
   end;
 
-  procedure ClearPP(const AClearSuppressInfo : Boolean = True);inline;
+  procedure ClearPP(const AClearSuppressInfo : Boolean = True);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     cl := nil;
     pp := nil;
@@ -2305,7 +2888,7 @@ var
     Result := (pp <> nil);
   end;
 
-  procedure AddWeightsAndClear();inline;
+  procedure AddWeightsAndClear();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   var
     ctxNode : PUCA_PropItemContextTreeNodeRec;
   begin
@@ -2398,7 +2981,7 @@ var
 
   function TryPermutation() : Boolean;
   var
-    kk : Integer;
+    kk, kkidx : Integer;
     b : Boolean;
     puk : PUC_Prop;
     ppk : PUCA_PropItemRec;
@@ -2413,11 +2996,12 @@ var
     else
       kk := i + 1;
     while IsUnblockedNonstarter(kk) do begin
-      b := UnicodeIsHighSurrogate(s[kk]) and (kk<c) and UnicodeIsLowSurrogate(s[kk+1]);
+      kkidx := kk-1;
+      b := UnicodeIsHighSurrogate(psBase[kkidx]) and (kk<c) and UnicodeIsLowSurrogate(psBase[kkidx+1]);
       if b then
-        ppk := FindChild(ToUCS4(s[kk],s[kk+1]),pp)
+        ppk := FindChild(ToUCS4(psBase[kkidx],psBase[kkidx+1]),pp)
       else
-        ppk := FindChild(Word(s[kk]),pp);
+        ppk := FindChild(Word(psBase[kkidx]),pp);
       if (ppk <> nil) then begin
         pp := ppk;
         RemoveChar(kk);
@@ -2433,7 +3017,7 @@ var
     end;
   end;
 
-  procedure AdvanceCharPos();inline;
+  procedure AdvanceCharPos();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if UnicodeIsHighSurrogate(ps[0]) and (i<c) and UnicodeIsLowSurrogate(ps[1]) then begin
       Inc(i);
@@ -2450,17 +3034,23 @@ var
 begin
   if (ALength = 0) then
     exit(nil);
-  c := ALength;
-  s := NormalizeNFD(AStr,c);
-  c := Length(s);
+  s := '';
+  if ACollation^.NoNormalization then begin
+    psBase := AStr;
+    c := ALength;
+  end else begin
+    s := NormalizeNFD(AStr,ALength);
+    c := Length(s);
+    psBase := @s[1];
+  end;
   rl := 3*c;
   SetLength(r,rl);
   ral := 0;
-  ps := @s[1];
+  ps := psBase;
   ClearPP();
   locHistoryTop := -1;
   removedCharIndexLength := 0;
-  FillByte(suppressState,SizeOf(suppressState),0);
+  FillChar(suppressState,SizeOf(suppressState),#0);
   LastKeyOwner.Length := 0;
   i := 1;
   while (i <= c) and MoveToNextChar() do begin
@@ -2685,7 +3275,7 @@ begin
   ClearPP(AContext);
   AContext^.locHistoryTop := -1;
   AContext^.removedCharIndexLength := 0;
-  FillByte(AContext^.suppressState,SizeOf(AContext^.suppressState),0);
+  FillChar(AContext^.suppressState,SizeOf(AContext^.suppressState),#0);
   AContext^.LastKeyOwner.Length := 0;
   AContext^.i := 1;
   AContext^.Finished := False;
@@ -2950,13 +3540,72 @@ begin
             );
 end;
 
+function FilterString(
+  const AStr          : PUnicodeChar;
+  const ALength       : SizeInt;
+  const AExcludedMask : TCategoryMask
+) : UnicodeString;
+var
+  i, c : SizeInt;
+  pp, pr : PUnicodeChar;
+  pu : PUC_Prop;
+  locIsSurrogate : Boolean;
+begin
+  c := ALength;
+  SetLength(Result,(2*c));
+  if (c > 0) then begin
+    pp := AStr;
+    pr := @Result[1];
+    i := 1;
+    while (i <= c) do begin
+      pu := GetProps(Word(pp^));
+      locIsSurrogate := (pu^.Category = UGC_Surrogate);
+      if locIsSurrogate then begin
+        if (i = c) then
+          Break;
+        if not UnicodeIsSurrogatePair(pp[0],pp[1]) then begin
+          Inc(pp);
+          Inc(i);
+          Continue;
+        end;
+        pu := GetProps(pp[0],pp[1]);
+      end;
+      if not(pu^.Category in AExcludedMask) then begin
+        pr^ := pp^;
+        Inc(pr);
+        if locIsSurrogate then begin
+          Inc(pp);
+          Inc(pr);
+          Inc(i);
+          pr^ := pp^;
+        end;
+      end;
+      Inc(pp);
+      Inc(i);
+    end;
+    i := ((PtrUInt(pr) - PtrUInt(@Result[1])) div SizeOf(UnicodeChar));
+    SetLength(Result,i);
+  end;
+end;
+
+function FilterString(
+  const AStr          : UnicodeString;
+  const AExcludedMask : TCategoryMask
+) : UnicodeString;
+begin
+  if (AStr = '') then
+    Result := ''
+  else
+    Result := FilterString(@AStr[1],Length(AStr),AExcludedMask);
+end;
+
 function ComputeRawSortKeyNextItem(
   const AContext : PComputeKeyContext
 ) : Boolean;
 var
   ctx : PComputeKeyContext;
 
-  procedure GrowKey(const AMinGrow : Integer = 0);inline;
+  procedure GrowKey(const AMinGrow : Integer = 0);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if (ctx^.rl < AMinGrow) then
       ctx^.rl := ctx^.rl + AMinGrow
@@ -2986,7 +3635,7 @@ var
     ctx^.LastKeyOwner.Length := k;
   end;
 
-  procedure AddWeights(AItem : PUCA_PropItemRec);inline;
+  procedure AddWeights(AItem : PUCA_PropItemRec);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     SaveKeyOwner();
     if ((ctx^.ral + AItem^.WeightLength) > ctx^.rl) then
@@ -2995,7 +3644,7 @@ var
     ctx^.ral := ctx^.ral + AItem^.WeightLength;
   end;
 
-  procedure AddContextWeights(AItem : PUCA_PropItemContextRec);inline;
+  procedure AddContextWeights(AItem : PUCA_PropItemContextRec);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if ((ctx^.ral + AItem^.WeightCount) > ctx^.rl) then
       GrowKey(AItem^.WeightCount);
@@ -3003,7 +3652,7 @@ var
     ctx^.ral := ctx^.ral + AItem^.WeightCount;
   end;
 
-  procedure AddComputedWeights(ACodePoint : Cardinal);inline;
+  procedure AddComputedWeights(ACodePoint : Cardinal);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     SaveKeyOwner();
     if ((ctx^.ral + 2) > ctx^.rl) then
@@ -3012,7 +3661,7 @@ var
     ctx^.ral := ctx^.ral + 2;
   end;
 
-  procedure RecordDeletion();inline;
+  procedure RecordDeletion();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if ctx^.pp^.IsValid() and ctx^.pp^.IsDeleted() (*pp^.GetWeightLength() = 0*) then begin
       if (ctx^.suppressState.cl = nil) or
@@ -3024,7 +3673,7 @@ var
     end;
   end;
 
-  procedure RecordStep();inline;
+  procedure RecordStep();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Inc(ctx^.locHistoryTop);
     ctx^.locHistory[ctx^.locHistoryTop].i := ctx^.i;
@@ -3036,22 +3685,22 @@ var
     RecordDeletion();
   end;
 
-  procedure ClearHistory();inline;
+  procedure ClearHistory();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     ctx^.locHistoryTop := -1;
   end;
 
-  function HasHistory() : Boolean;inline;
+  function HasHistory() : Boolean;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := (ctx^.locHistoryTop >= 0);
   end;
 
-  function GetHistoryLength() : Integer;inline;
+  function GetHistoryLength() : Integer;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := (ctx^.locHistoryTop + 1);
   end;
 
-  procedure GoBack();inline;
+  procedure GoBack();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Assert(ctx^.locHistoryTop >= 0);
     ctx^.i := ctx^.locHistory[ctx^.locHistoryTop].i;
@@ -3074,7 +3723,7 @@ var
     if (k > ctx^.c) then
       exit(False);
     if (ctx^.removedCharIndexLength>0) and
-       (IndexDWord(ctx^.removedCharIndex[0],ctx^.removedCharIndexLength,k) >= 0)
+       (IndexInArrayDWord(ctx^.removedCharIndex,k) >= 0)
     then begin
       exit(False);
     end;
@@ -3099,7 +3748,7 @@ var
     Result := True;
   end;
 
-  procedure RemoveChar(APos : Integer);inline;
+  procedure RemoveChar(APos : Integer);{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if (ctx^.removedCharIndexLength >= Length(ctx^.removedCharIndex)) then
       SetLength(ctx^.removedCharIndex,(2*ctx^.removedCharIndexLength + 2));
@@ -3113,7 +3762,7 @@ var
     end;
   end;
 
-  procedure Inc_I();inline;
+  procedure Inc_I();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if (ctx^.removedCharIndexLength = 0) then begin
       Inc(ctx^.i);
@@ -3123,12 +3772,12 @@ var
     while True do begin
       Inc(ctx^.i);
       Inc(ctx^.ps);
-      if (IndexDWord(ctx^.removedCharIndex[0],ctx^.removedCharIndexLength,ctx^.i) = -1) then
+      if (IndexInArrayDWord(ctx^.removedCharIndex,ctx^.i) = -1) then
         Break;
     end;
   end;
 
-  function MoveToNextChar() : Boolean;inline;
+  function MoveToNextChar() : Boolean;{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     Result := True;
     if UnicodeIsHighSurrogate(ctx^.ps[0]) then begin
@@ -3175,7 +3824,7 @@ var
     Result := (ctx^.pp <> nil);
   end;
 
-  procedure AddWeightsAndClear();inline;
+  procedure AddWeightsAndClear();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   var
     ctxNode : PUCA_PropItemContextTreeNodeRec;
   begin
@@ -3308,7 +3957,7 @@ var
     end;
   end;
 
-  procedure AdvanceCharPos();inline;
+  procedure AdvanceCharPos();{$IFDEF INLINE_SUPPORT_PRIVATE_VARS}inline;{$ENDIF}
   begin
     if UnicodeIsHighSurrogate(ctx^.ps[0]) and (ctx^.i<ctx^.c) and UnicodeIsLowSurrogate(ctx^.ps[1]) then begin
       Inc(ctx^.i);
@@ -3391,7 +4040,7 @@ begin
         if TryPermutation() and ctx^.pp^.IsValid() then begin
           if (ctx^.suppressState.CharCount = 0) then begin
             AddWeightsAndClear();
-            ok := True;
+            //ok := True;
             exit(True);// Continue;
           end;
           while True do begin

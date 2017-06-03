@@ -27,7 +27,7 @@
 
 unit cldrxml;
 
-{$mode objfpc}{$H+}
+{$mode delphi}{$H+}
 {$TypedAddress on}
 interface
 
@@ -161,11 +161,9 @@ const
   //s_DEFAULT    = 'default';
   s_EXTEND = 'extend';
   s_HEX       = 'hex';
-  s_IMPORT = 'import';
   s_POSITION = 'position';
   s_RESET = 'reset';
   s_RULES = 'rules';
-  s_SOURCE = 'source';
   //s_STANDART = 'standard';
   s_TYPE     = 'type';
 
@@ -534,7 +532,7 @@ function ParseDeletion(
 ) : Integer;
 var
   r : array of TReorderUnit;
-  c, i : Integer;
+  c : Integer;
   uset : TUnicodeSet;
   it : TUnicodeSet.TIterator;
   p : PReorderUnit;
@@ -553,14 +551,12 @@ begin
     end;
     SetLength(r,c);
     p := @r[0];
-    i := 0;
     it.Reset();
     while it.MoveNext() do begin
       p^.Clear();
       p^.WeigthKind := TReorderWeigthKind.Deletion;
       p^.Characters := Copy(it.GetCurrent());
       Inc(p);
-      Inc(i);
     end;
     ASequence^.Clear();
     ASequence^.Elements := r;
@@ -569,6 +565,7 @@ begin
     uset.Free();
   end;
   r := nil;
+  Result := c;
 end;
 
 procedure ParseCollationItemXML(
@@ -589,7 +586,7 @@ begin
   AItem.Base := EvaluateXPathStr('base',ACollationNode);
   AItem.Backwards := (EvaluateXPathStr('settings/@backwards',ACollationNode) = 'on');
   if AItem.Backwards then
-    AItem.ChangedFields := AItem.ChangedFields + [TCollationField.BackWard];
+    AItem.ChangedFields := AItem.ChangedFields + [TCollationField.BackWards];
   AItem.Rules := nil;
   if (AMode = TCldrParserMode.FullParsing) then begin
     SetLength(statementList,15);
@@ -628,35 +625,262 @@ begin
   end;
 end;
 
-procedure ParseImports(ACollationNode : TDOMElement; AItem : TCldrCollationItem);
+function NextPart(
+  const ABuffer    : string;
+  const AStartPos  : Integer;
+  const ASeparator : Char;
+    out ANextStart : Integer
+) : string;
 var
-  locList : TXPathVariable;
-  i : Integer;
-  nd, locAtt : TDOMNode;
-  locSource, locType : string;
+  c, sp, i : Integer;
 begin
-  locList := EvaluateXPathExpression(s_IMPORT,ACollationNode);
-  try
-    if not locList.InheritsFrom(TXPathNodeSetVariable) then
-      exit;
-    for i := 0 to locList.AsNodeSet.Count-1 do begin
-      nd := TDOMNode(locList.AsNodeSet[i]);
-      if (nd.Attributes <> nil) then begin
-        locSource := '';
-        locType := '';
-        locAtt := nd.Attributes.GetNamedItem(s_SOURCE);
-        if (locAtt <> nil) then
-          locSource := locAtt.NodeValue;
-        locAtt := nd.Attributes.GetNamedItem(s_TYPE);
-        if (locAtt <> nil) then
-          locType := locAtt.NodeValue;
-      end;
-      if (locType <> '') then
-        AItem.Imports.Add(locSource,locType);
-    end;
-  finally
-    locList.Free();
+  c := Length(ABuffer);
+  if (c < 1) or (AStartPos > c) then begin
+    ANextStart := c+1;
+    Result := '';
+    exit;
   end;
+  if (AStartPos > 0) then
+    sp := AStartPos
+  else
+    sp := 1;
+  i := sp;
+  while (i <= c) do begin
+    if (ABuffer[i] = ASeparator) then
+      break;
+    i := i+1;
+  end;
+  Result := Copy(ABuffer,sp,(i-sp));
+  if (i <= c) then
+    i := i+1;
+  ANextStart := i;
+end;
+
+procedure HandleSetting_Import(
+  AItem    : TCldrCollationItem;
+  ASetting : PSettingRec
+);
+var
+  buffer, lang, col, s : UTF8String;
+  i, ns : Integer;
+begin
+  if (Length(ASetting^.Values) <> 1) then begin
+    buffer := '';
+    if (Length(ASetting^.Values) > 0) then begin
+      for i := 0 to Length(ASetting^.Values)-1 do
+        buffer := Format('%s + "%s"',[ASetting^.Values[i]]);
+    end;
+    raise Exception.CreateFmt(sInvalidImportStatement,[buffer]);
+  end;
+  buffer := ASetting^.Values[0];
+  lang := NextPart(buffer,1,'-',ns);
+  i := ns;
+  col := '';
+  s := NextPart(buffer,i,'-',ns);
+  if (s <> '') then begin
+    if (s <> 'u') then
+      raise Exception.CreateFmt(sInvalidImportStatement,[buffer]);
+    i := ns;
+    s := NextPart(buffer,i,'-',ns);
+    if (s <> 'co') then
+      raise Exception.CreateFmt(sInvalidImportStatement,[buffer]);
+    s := Trim(Copy(buffer,ns,(Length(buffer)-ns+1)));
+    if (s = '') then
+      raise Exception.CreateFmt(sInvalidImportStatement,[buffer]);
+    col := s;
+  end;
+  if (col = '') then
+    col := COLLATION_ITEM_DEFAULT;
+  if (LowerCase(lang) = 'und') then
+    lang := 'root';
+  AItem.Imports.Add(lang,col);
+  ASetting^.Understood := True;
+end;
+
+procedure HandleSetting_Backwards(
+  AItem    : TCldrCollationItem;
+  ASetting : PSettingRec
+);
+var
+  buffer : UTF8String;
+  i : Integer;
+begin
+  if (Length(ASetting^.Values) <> 1) then begin
+    buffer := '';
+    if (Length(ASetting^.Values) > 0) then begin
+      for i := 0 to Length(ASetting^.Values)-1 do
+        buffer := Format('%s + "%s"',[ASetting^.Values[i]]);
+    end;
+    raise Exception.CreateFmt(sInvalidBackwardsStatement,[buffer]);
+  end;
+  if (ASetting^.Values[0] = '2') then
+    AItem.Backwards := True
+  else
+    raise Exception.CreateFmt(
+                      sInvalidSettingValue,
+                      [SETTING_OPTION_STRINGS[ASetting^.OptionValue],ASetting^.Values[0]]
+                    );
+  AItem.ChangedFields := AItem.ChangedFields+[TCollationField.BackWards];
+  ASetting^.Understood := True;
+end;
+
+procedure HandleSetting_Alternate(
+  AItem    : TCldrCollationItem;
+  ASetting : PSettingRec
+);
+var
+  buffer : UTF8String;
+  i : Integer;
+begin
+  if (Length(ASetting^.Values) <> 1) then begin
+    buffer := '';
+    if (Length(ASetting^.Values) > 0) then begin
+      for i := 0 to Length(ASetting^.Values)-1 do
+        buffer := Format('%s + "%s"',[ASetting^.Values[i]]);
+    end;
+    raise Exception.CreateFmt(sInvalidAlternateStatement,[buffer]);
+  end;
+  buffer := UTF8String(LowerCase(UnicodeString(ASetting^.Values[0])));
+  if (buffer = 'non-ignorable') then
+    AItem.VariableWeight := ucaNonIgnorable
+  else if (buffer = 'shifted') then
+    AItem.VariableWeight := ucaShifted
+  else
+    raise Exception.CreateFmt(
+                      sInvalidSettingValue,
+                      [SETTING_OPTION_STRINGS[ASetting^.OptionValue],ASetting^.Values[0]]
+                    );
+  AItem.ChangedFields := AItem.ChangedFields+[TCollationField.Alternate];
+  ASetting^.Understood := True;
+end;
+
+procedure HandleSetting_Normalization(
+  AItem    : TCldrCollationItem;
+  ASetting : PSettingRec
+);
+var
+  buffer : UTF8String;
+  i : Integer;
+begin
+  if (Length(ASetting^.Values) <> 1) then begin
+    buffer := '';
+    if (Length(ASetting^.Values) > 0) then begin
+      for i := 0 to Length(ASetting^.Values)-1 do
+        buffer := Format('%s + "%s"',[ASetting^.Values[i]]);
+    end;
+    raise Exception.CreateFmt(sInvalidNormalizationStatement,[buffer]);
+  end;
+  buffer := UTF8String(LowerCase(UnicodeString(ASetting^.Values[0])));
+  if (buffer = 'off') then
+    AItem.Normalization := False
+  else if (buffer = 'on') then
+    AItem.Normalization := True
+  else
+    raise Exception.CreateFmt(
+                      sInvalidSettingValue,
+                      [SETTING_OPTION_STRINGS[ASetting^.OptionValue],ASetting^.Values[0]]
+                    );
+  AItem.ChangedFields := AItem.ChangedFields+[TCollationField.Normalization];
+  ASetting^.Understood := True;
+end;
+
+procedure HandleSetting_Strength(
+  AItem    : TCldrCollationItem;
+  ASetting : PSettingRec
+);
+var
+  buffer : UTF8String;
+  i : Integer;
+begin
+  if (Length(ASetting^.Values) <> 1) then begin
+    buffer := '';
+    if (Length(ASetting^.Values) > 0) then begin
+      for i := 0 to Length(ASetting^.Values)-1 do
+        buffer := Format('%s + "%s"',[ASetting^.Values[i]]);
+    end;
+    raise Exception.CreateFmt(sInvalidStrengthStatement,[buffer]);
+  end;
+  buffer := UTF8String(LowerCase(UnicodeString(ASetting^.Values[0])));
+  if (buffer = '1') then
+    AItem.Strength := TComparisonStrength.Primary
+  else if (buffer = '2') then
+    AItem.Strength := TComparisonStrength.Secondary
+  else if (buffer = '3') then
+    AItem.Strength := TComparisonStrength.Tertiary
+  else if (buffer = '4') then
+    AItem.Strength := TComparisonStrength.Quaternary
+  else if (buffer = 'i') then
+    AItem.Strength := TComparisonStrength.Identity
+  else
+    raise Exception.CreateFmt(
+                      sInvalidSettingValue,
+                      [SETTING_OPTION_STRINGS[ASetting^.OptionValue],ASetting^.Values[0]]
+                    );
+  AItem.ChangedFields := AItem.ChangedFields+[TCollationField.Strength];
+  ASetting^.Understood := True;
+end;
+
+procedure HandleSetting_EMPTY_PROC(
+  AItem    : TCldrCollationItem;
+  ASetting : PSettingRec
+);
+begin
+  //
+end;
+
+type
+  TSettingHandlerProc = procedure (
+                          AItem    : TCldrCollationItem;
+                          ASetting : PSettingRec
+                        );
+const
+  SETTING_HANDLERS : array[TSettingOption] of TSettingHandlerProc =(
+    HandleSetting_EMPTY_PROC, HandleSetting_Strength,      HandleSetting_Alternate,
+  //Unknown,                  Strength,                    Alternate,
+    HandleSetting_Backwards,  HandleSetting_Normalization, HandleSetting_EMPTY_PROC,
+  //Backwards,                Normalization,               CaseLevel,
+    HandleSetting_EMPTY_PROC, HandleSetting_EMPTY_PROC,    HandleSetting_EMPTY_PROC,
+  //CaseFirst,                HiraganaQ,                   NumericOrdering,
+    HandleSetting_EMPTY_PROC, HandleSetting_EMPTY_PROC,    HandleSetting_Import,
+  //Reorder,                  MaxVariable                  Import
+    HandleSetting_EMPTY_PROC,
+  //SuppressContractions has a special handling see Process_SuppressContractions
+    HandleSetting_EMPTY_PROC
+  //Optimize
+  );
+procedure HandleSettings(AItem : TCldrCollationItem);
+var
+  i, c : Integer;
+  p : PSettingRec;
+begin
+  c := Length(AItem.Settings);
+  if (c < 1) then
+    exit;
+  p := @AItem.Settings[0];
+  for i := 0 to c-1 do begin
+    SETTING_HANDLERS[p^.OptionValue](AItem,p);
+    Inc(p);
+  end;
+end;
+
+function Process_SuppressContractions(
+  ASetting   : PSettingRec;
+  AStatement : PReorderSequence
+) : Boolean;
+var
+  buffer : UTF8String;
+  i : Integer;
+begin
+  if (Length(ASetting^.Values) <> 1) then begin
+    buffer := '';
+    if (Length(ASetting^.Values) > 0) then begin
+      for i := 0 to Length(ASetting^.Values)-1 do
+        buffer := Format('%s + "%s"',[ASetting^.Values[i]]);
+    end;
+    raise Exception.CreateFmt(sInvalidSuppressContractionsStatement,[buffer]);
+  end;
+  Result := (ParseDeletion(DOMString(ASetting^.Values[0]),AStatement) > 0);
+  ASetting.Understood := Result;
 end;
 
 procedure ParseCollationItem2(
@@ -665,38 +889,40 @@ procedure ParseCollationItem2(
   AMode          : TCldrParserMode
 );
 var
-  n : TDOMNode;
-  rulesElement : TDOMCDATASection;
-  i, c, nextPos : Integer;
   statementList : TReorderSequenceArray;
   sal : Integer;//statement actual length
   statement : PReorderSequence;
+
+  procedure AddStatementToArray();
+  begin
+    Inc(statement);
+    Inc(sal);
+    if (sal >= Length(statementList)) then begin
+      SetLength(statementList,(sal*2));
+      statement := @statementList[(sal-1)];
+    end;
+  end;
+
+var
+  n : TDOMNode;
+  rulesElement : TDOMCDATASection;
+  i, c, nextPos : Integer;
+  parsedStatement : TParsedStatement;
   s : DOMString;
   u8 : UTF8String;
   buffer : PAnsiChar;
   lineCount : Integer;
+  settingArray : TSettingRecArray;
 begin
   AItem.TypeName := ACollationNode.GetAttribute(s_TYPE);
   AItem.Alt := ACollationNode.GetAttribute(s_ALT);
-  AItem.Base := EvaluateXPathStr('base',ACollationNode);
-  AItem.Backwards := (EvaluateXPathStr('settings/@backwards',ACollationNode) = 'on');
-  if AItem.Backwards then
-    AItem.ChangedFields := AItem.ChangedFields + [TCollationField.BackWard];
-  ParseImports(ACollationNode,AItem);
+  AItem.Settings := nil;
   AItem.Rules := nil;
+  AItem.Mode := AMode;
   if (AMode = TCldrParserMode.FullParsing) then begin
     SetLength(statementList,15);
     sal := 0;
     statement := @statementList[0];
-    s := EvaluateXPathStr('suppress_contractions',ACollationNode);
-    if (s <> '') then begin
-      if (ParseDeletion(s,statement) > 0) then begin
-        Inc(sal);
-        Inc(statement);
-      end else begin
-        statement^.Clear();
-      end;
-    end;
     n := ACollationNode.FindNode(s_CR);
     if (n <> nil) then begin
       n := (n as TDOMElement).FirstChild;
@@ -708,18 +934,29 @@ begin
       nextPos := 0;
       i := 0;
       lineCount := 0;
+      Clear(parsedStatement);
+      settingArray := AItem.Settings;
       while (i < c) do begin
         statement^.Clear();
-        if not ParseStatement(buffer,i,c,statement,nextPos,lineCount) then
+        if not ParseStatement(buffer,i,c,@parsedStatement,nextPos,lineCount) then
           Break;
-        i := nextPos;
-        Inc(statement);
-        Inc(sal);
-        if (sal >= Length(statementList)) then begin
-          SetLength(statementList,(sal*2));
-          statement := @statementList[(sal-1)];
+        if (parsedStatement.Kind = TStatementKind.Sequence) then begin
+          statement^.Assign(@parsedStatement.ReorderSequence);
+          AddStatementToArray();
+        end else if (parsedStatement.Kind = TStatementKind.Setting) then begin
+          if (parsedStatement.Setting.OptionValue = TSettingOption.SuppressContractions) then begin
+            if Process_SuppressContractions(@parsedStatement.Setting,statement) then
+              AddStatementToArray()
+            else
+              statement^.Clear();
+          end;
+          AddItem(settingArray,@parsedStatement.Setting);
         end;
+        i := nextPos;
       end;
+      AItem.Settings := settingArray;
+      if (Length(AItem.Settings) > 0) then
+        HandleSettings(AItem);
     end;
     SetLength(statementList,sal);
     AItem.Rules := statementList;
@@ -796,14 +1033,15 @@ var
   n : TDOMNode;
   collationsElement : TDOMElement;
   i, c : Integer;
-  item : TCldrCollationItem;
+  item, tempItem : TCldrCollationItem;
   nl : TDOMNodeList;
+  isnew : boolean;
 begin
   n := ADoc.DocumentElement.FindNode(s_COLLATIONS);
   if (n = nil) then
     raise Exception.Create(sCollationsNodeNotFound);
   collationsElement := n as TDOMElement;
-  ACollation.Clear();
+  //ACollation.Clear();
   ACollation.Mode := AMode;
   ACollation.Language := EvaluateXPathStr('identity/language/@type',ADoc.DocumentElement);
   ACollation.Version := EvaluateXPathStr('identity/version/@number',ADoc.DocumentElement);
@@ -811,20 +1049,32 @@ begin
   if collationsElement.HasChildNodes() then begin
     nl := collationsElement.ChildNodes;
     c := nl.Count;
-    item := nil;
+    tempItem := TCldrCollationItem.Create();
     try
-      for i := 0 to c - 1 do begin
-        n := nl[i];
-        if (n.NodeName = s_COLLATION) then begin
-          item := TCldrCollationItem.Create();
-          ParseCollationItem2((n as TDOMElement),item,AMode);
-          ACollation.Add(item);
-          item := nil;
-        end
+      item := nil;
+      try
+        for i := 0 to c - 1 do begin
+          n := nl[i];
+          if (n.NodeName = s_COLLATION) then begin
+            tempItem.Clear();
+            ParseCollationItem2((n as TDOMElement),tempItem,TCldrParserMode.HeaderParsing);
+            item := ACollation.Find(tempItem.TypeName);
+            isnew := (item = nil);
+            if isnew then
+              item := TCldrCollationItem.Create();
+            if isnew or (item.Mode < AMode) then
+              ParseCollationItem2((n as TDOMElement),item,AMode);
+            if isnew then
+              ACollation.Add(item);
+            item := nil;
+          end
+        end;
+      except
+        FreeAndNil(item);
+        raise;
       end;
-    except
-      FreeAndNil(item);
-      raise;
+    finally
+      tempItem.Free();
     end;
   end;
 end;
@@ -848,13 +1098,12 @@ begin
   end
 end;
 
-function ReadXMLFile(f: TStream) : TXMLDocument;
+function ReadXMLFile(f: TStream) : TXMLDocument;overload;
 var
   src : TXMLInputSource;
   parser: TDOMParser;
 begin
   src := TXMLInputSource.Create(f);
-  Result := TXMLDocument.Create;
   parser := TDOMParser.Create();
   try
     parser.Options.IgnoreComments := True;
@@ -865,7 +1114,7 @@ begin
   end;
 end;
 
-function ReadXMLFile(const AFilename: String) : TXMLDocument;
+function ReadXMLFile(const AFilename: String) : TXMLDocument;overload;
 var
   FileStream: TStream;
 begin
@@ -1066,7 +1315,7 @@ begin
   if (APath = '') then
     s := ''
   else
-    s := IncludeLeadingPathDelimiter(APath);
+    s := IncludeTrailingPathDelimiter(APath);
   if (s <> FPath) then
     FPath := s;
 end;
@@ -1092,7 +1341,7 @@ var
 begin
   locFileName := BuildFileName(ALanguage);
   CheckFile(locFileName);
-  ACollation.Clear();
+  //ACollation.Clear();
   ParseCollationDocument2(locFileName,ACollation,AMode);
 end;
 
@@ -1106,7 +1355,7 @@ var
 begin
   locFileName := BuildFileName(ALanguage);
   CheckFile(locFileName);
-  AType.Clear();
+  //AType.Clear();
   ParseCollationDocument2(locFileName,AType,ATypeName);
 end;
 
