@@ -27,12 +27,13 @@ type
   private
     FResolution : longword;
     FAntiAliased : boolean;
-    FLastText : TStringBitmaps;
+    FLastText : TBaseStringBitmaps;
     FIndex, FFontID : integer;
     FFace : PFT_Face;
     FAngle : real;
     procedure ClearLastText;
   protected
+    procedure DrawLastText (atX,atY:integer);
     procedure DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
     procedure DrawCharBW (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
     procedure SetName (AValue:string); override;
@@ -47,7 +48,12 @@ type
     procedure DoGetTextSize (text:string; var w,h:integer); override;
     function DoGetTextHeight (text:string) : integer; override;
     function DoGetTextWidth (text:string) : integer; override;
+    procedure DoDrawText (atx,aty:integer; atext: unicodestring); override;
+    procedure DoGetTextSize (text:unicodestring; var w,h:integer); override;
+    function DoGetTextHeight (text:unicodestring) : integer; override;
+    function DoGetTextWidth (text: unicodestring) : integer; override;
     procedure GetText (aText:string);
+    procedure GetText (aText:unicodestring);
     procedure GetFace;
   public
     constructor create; override;
@@ -180,6 +186,36 @@ begin
     result := right - left;
 end;
 
+procedure TFreeTypeFont.DoGetTextSize (text:unicodestring; var w,h:integer);
+var r : TRect;
+begin
+  GetText (text);
+  FLastText.GetBoundRect (r);
+  with r do
+    begin
+    w := right - left;
+    h := top - bottom;
+    end;
+end;
+
+function TFreeTypeFont.DoGetTextHeight (text:unicodestring) : integer;
+var r : TRect;
+begin
+  GetText (text);
+  FLastText.GetBoundRect (r);
+  with r do
+    result := top - bottom;
+end;
+
+function TFreeTypeFont.DoGetTextWidth (text:unicodestring) : integer;
+var r : TRect;
+begin
+  GetText (text);
+  FLastText.GetBoundRect (r);
+  with r do
+    result := right - left;
+end;
+
 procedure TFreeTypeFont.SetFlags (index:integer; AValue:boolean);
 begin
   if not (index in [5,6]) then   // bold,italic
@@ -213,7 +249,7 @@ var b : boolean;
 begin
   if assigned (FLastText) then
     begin
-    if CompareStr(FLastText.Text,aText) <> 0 then
+    if FLastText.InheritsFrom(TUnicodeStringBitmaps) or  (CompareStr(TStringBitMaps(FLastText).Text,aText) <> 0) then
       begin
       FLastText.Free;
       b := true;
@@ -240,10 +276,57 @@ begin
     end;
 end;
 
-procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:string);
-var r : integer;
+procedure TFreeTypeFont.GetText (aText:Unicodestring);
+var b : boolean;
+begin
+  if assigned (FLastText) then
+    begin
+    if FLastText.InheritsFrom(TStringBitmaps) or  (TUnicodeStringBitMaps(FLastText).Text<>aText) then
+      begin
+      FLastText.Free;
+      b := true;
+      end
+    else
+      begin
+      if FAntiAliased then
+        b := (FLastText.mode <> bt256Gray)
+      else
+        b := (FLastText.mode <> btBlackWhite);
+      if b then
+        FLastText.Free;
+      end;
+    end
+  else
+    b := true;
+  if b then
+    begin
+    FontMgr.Resolution := FResolution;
+    if FAntiAliased then
+      FLastText := FontMgr.GetStringGray (FFontId, aText, Size, Angle)
+    else
+      FLastText := FontMgr.GetString (FFontId, aText, Size, Angle);
+    end;
+end;
+
+procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:unicodestring);
+
 begin
   GetText (atext);
+  DrawLastText(atX,atY);
+end;
+
+procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:string);
+
+begin
+  GetText (atext);
+  DrawLastText(atX,atY);
+end;
+
+procedure TFreeTypeFont.DrawLastText (atX,atY:integer);
+
+var r : integer;
+
+begin
   with FLastText do
     for r := 0 to count-1 do
       with Bitmaps[r]^ do
