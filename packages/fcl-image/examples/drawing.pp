@@ -1,9 +1,7 @@
 {$mode objfpc}{$h+}
 program Drawing;
 
-uses cwstring,classes, sysutils,
-     FPImage, FPCanvas, FPImgCanv, ftFont,
-     FPWritePNG, FPReadPNG;
+uses cwstring,classes, sysutils, FPImage, FPCanvas, FPImgCanv, FPWritePNG, FPReadPNG;
 
 const
   MyColor : TFPColor = (Red: $7FFF; Green: $0000; Blue: $FFFF; Alpha: alphaOpaque);
@@ -15,10 +13,8 @@ var
   ci,image : TFPCustomImage;
   writer : TFPCustomImageWriter;
   reader : TFPCustomImageReader;
-  f : TFreeTypeFont;
 
 begin
-  f:=Nil;
   image := TFPMemoryImage.Create (100,100);
   ci := TFPMemoryImage.Create (20,20);
   Canvas := TFPImageCanvas.Create (image);
@@ -81,7 +77,6 @@ begin
       writeln ('Saving to "DrawTest.png" for inspection !');
      image.SaveToFile ('DrawTest.png', writer);
   finally
-    F.Free;
     Canvas.Free;
     ci.free;
     image.Free;
