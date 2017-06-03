@@ -365,6 +365,12 @@ ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
 CPU_UNITS=cpu
 endif
+ifeq ($(ARCH),sparc)
+  override FPCOPT+=-Fisparcgen
+endif
+ifeq ($(ARCH),sparc64)
+  override FPCOPT+=-Fisparcgen
+endif
 SYSTEMUNIT=system
 ifdef RELEASE
 override FPCOPT+=-Ur
@@ -3663,6 +3669,7 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSNRINC=$(ARCH)/sysnr.inc
 ifneq ($(findstring -Cg ,$(COMPILER)),)
   PIC_OPT=1
 endif
@@ -3700,12 +3707,14 @@ ifeq ($(ARCH),sparc)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
   ASTARGET+=-32
+  SYSNRINC=sparcgen/sysnr.inc
 endif
 ifeq ($(ARCH),sparc64)
   ifeq ($(PIC_OPT),1)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
   ASTARGET+=-64
+  SYSNRINC=sparcgen/sysnr.inc
 endif
 ifeq ($(ARCH),arm)
   ifeq ($(SUBARCH),armv6m)
@@ -3749,19 +3758,19 @@ ifndef ARMTHUMB
 	$(MAKE) $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 endif
-si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
+si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_prc.pp
-si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
+si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c21g.pp
-si_c21$(PPUEXT) : si_c21.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
+si_c21$(PPUEXT) : si_c21.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c21.pp
-si_c$(PPUEXT) : si_c.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
+si_c$(PPUEXT) : si_c.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c.pp
-si_dll$(PPUEXT) : si_dll.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
+si_dll$(PPUEXT) : si_dll.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_dll.pp
-si_uc$(PPUEXT) : si_uc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT)
+si_uc$(PPUEXT) : si_uc.pp si_intf.inc $(SYSNRINC)  $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_uc.pp
-si_g$(PPUEXT) : si_g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
+si_g$(PPUEXT) : si_g.pp si_intf.inc $(SYSNRINC) $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_g.pp
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
@@ -3777,7 +3786,7 @@ unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/tex
 		 unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) unixutil$(PPUEXT) \
 		 unxfunc.inc
 	$(COMPILER) $(UNIXINC)/unix.pp
-syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(ARCH)/syscallh.inc $(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
+syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(ARCH)/syscallh.inc $(SYSNRINC)  $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/syscall.pp
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixutil.pp
@@ -3785,7 +3794,7 @@ unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SY
 	$(COMPILER) $(UNIXINC)/unixtype.pp
 baseunix$(PPUEXT) : unixtype$(PPUEXT) errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   $(UNIXINC)/bunxh.inc \
-  bunxsysc.inc $(ARCH)/syscallh.inc $(ARCH)/sysnr.inc \
+  bunxsysc.inc $(ARCH)/syscallh.inc $(SYSNRINC)  \
   ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/baseunix.pp
