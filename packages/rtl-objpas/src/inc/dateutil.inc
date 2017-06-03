@@ -2153,7 +2153,8 @@ begin
   year := (100*b) + d - 4800 + ( m div 10 );
   result := TryEncodeDate ( Year, Month, Day, ADateTime );
   if Result then
-    ADateTime:=IncMilliSecond(IncHour(ADateTime,-12),MillisecondOfTheDay(Abs(Frac(aValue))));
+//    ADateTime:=IncMilliSecond(IncHour(ADateTime,-12),MillisecondOfTheDay(Abs(Frac(aValue))));
+    ADateTime:=ADateTime+frac(AValue-0.5);
 end;
 
 Function DateTimeToModifiedJulianDate(const AValue: TDateTime): Double;
