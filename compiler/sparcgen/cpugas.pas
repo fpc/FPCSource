@@ -78,7 +78,7 @@ implementation
            cpu_SPARC_V7: Replace(result,'$ARCH','-Av7');
            cpu_SPARC_V8: Replace(result,'$ARCH','-Av8');
 {$endif SPARC}
-           cpu_SPARC_V9: Replace(result,'$ARCH','-Av7');
+           cpu_SPARC_V9: Replace(result,'$ARCH','-Av9');
          else
            Replace(result,'$ARCH','-Av9')
          end
