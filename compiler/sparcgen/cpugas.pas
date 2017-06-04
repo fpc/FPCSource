@@ -251,7 +251,42 @@ implementation
            dollarsign: '$';
          );
 
+      as_sparc64_as_info : tasminfo =
+         (
+           id     : as_gas;
+           idtxt  : 'AS';
+           asmbin : 'as';
+{$ifdef FPC_SPARC_V8_ONLY}
+           asmcmd : '$PIC -o $OBJ $EXTRAOPT $ASM';
+{$else}
+           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
+{$endif}
+           supported_targets : [system_sparc64_linux];
+           flags : [af_needar,af_smartlink_sections];
+           labelprefix : '.L';
+           comment : '# ';
+           dollarsign: '$';
+         );
+
+      as_sparc64_gas_info : tasminfo =
+         (
+           id     : as_ggas;
+           idtxt  : 'GAS';
+           asmbin : 'gas';
+           asmcmd : '$ARCH $PIC -o $OBJ $EXTRAOPT $ASM';
+           supported_targets : [system_sparc64_linux];
+           flags : [af_needar,af_smartlink_sections];
+           labelprefix : '.L';
+           comment : '# ';
+           dollarsign: '$';
+         );
+
 begin
+{$ifdef SPARC}
   RegisterAssembler(as_SPARC_as_info,TGasSPARC);
   RegisterAssembler(as_SPARC_gas_info,TGasSPARC);
+{$else SPARC}
+  RegisterAssembler(as_SPARC64_as_info,TGasSPARC);
+  RegisterAssembler(as_SPARC64_gas_info,TGasSPARC);
+{$endif SPARC}
 end.

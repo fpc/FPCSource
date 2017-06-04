@@ -1829,6 +1829,11 @@ initialization
   RegisterExport(system_SPARC_linux,texportliblinux);
   RegisterTarget(system_SPARC_linux_info);
 {$endif SPARC}
+{$ifdef SPARC64}
+  RegisterImport(system_SPARC64_linux,timportliblinux);
+  RegisterExport(system_SPARC64_linux,texportliblinux);
+  RegisterTarget(system_SPARC64_linux_info);
+{$endif SPARC64}
 {$ifdef ARM}
   RegisterImport(system_arm_linux,timportliblinux);
   RegisterExport(system_arm_linux,texportliblinux);

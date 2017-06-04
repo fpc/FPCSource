@@ -51,7 +51,8 @@
              cpu_jvm,                      { 14 }
              cpu_i8086,                    { 15 }
              cpu_aarch64,                  { 16 }
-             cpu_wasm                      { 17 }
+             cpu_wasm,                     { 17 }
+             cpu_sparc64                   { 18 }
        );
 
        tasmmode= (asmmode_none
@@ -175,7 +176,8 @@
              system_i8086_win16,        { 89 }
              system_i8086_embedded,     { 90 }
              system_arm_aros,           { 91 }
-             system_wasm_wasm32         { 92 }
+             system_wasm_wasm32,        { 92 }
+             system_sparc64_linux       { 93 }
        );
 
      type

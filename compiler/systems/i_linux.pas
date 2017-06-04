@@ -491,6 +491,73 @@ unit i_linux;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
           );
 
+       system_sparc64_linux_info : tsysteminfo =
+          (
+            system       : system_SPARC64_Linux;
+            name         : 'Linux for SPARC64';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_smartlink_sections,
+                            tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_pic_uses_got,
+                            tf_requires_proper_alignment,tf_safecall_exceptions, tf_safecall_clearstack,
+                            tf_has_winlike_resources];
+            cpu          : cpu_SPARC64;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_linux;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 8;
+                jumpalign       : 0;
+                constalignmin   : 4;
+                constalignmax   : 16;
+                varalignmin     : 4;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 92;
+            stacksize    : 16*1024*1024;
+            stackalign   : 16;
+            abi : abi_default;
+            llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+          );
+
 {$ifdef FPC_ARMHF}
        system_arm_linux_info : tsysteminfo =
           (
@@ -988,6 +1055,11 @@ initialization
     set_source_info(system_sparc_linux_info);
   {$endif linux}
 {$endif CPUSPARC}
+{$ifdef CPUSPARC64}
+  {$ifdef linux}
+    set_source_info(system_sparc64_linux_info);
+  {$endif linux}
+{$endif CPUSPARC64}
 {$ifdef CPUPOWERPC32}
   {$ifdef linux}
     set_source_info(system_powerpc_linux_info);

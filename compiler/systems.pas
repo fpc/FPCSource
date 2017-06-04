@@ -229,7 +229,7 @@ interface
        systems_wince = [system_arm_wince,system_i386_wince];
        systems_android = [system_arm_android, system_i386_android, system_mipsel_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
-                       system_arm_linux,system_sparc_linux,system_m68k_linux,
+                       system_arm_linux,system_sparc_linux,system_sparc64_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_aarch64_linux];
        systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_i386_freebsd,
@@ -390,7 +390,7 @@ interface
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
-             'aarch64', 'wasm');
+             'aarch64', 'wasm', 'sparc64');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -937,6 +937,20 @@ begin
     {$endif ndef default_target_set}
   {$endif cpusparc}
 {$endif sparc}
+
+{$ifdef sparc64}
+  {$ifdef cpusparc64}
+    default_target(source_info.system);
+  {$else cpusparc64}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_sparc64_solaris);
+   {$endif}
+    {$ifndef default_target_set}
+    default_target(system_sparc64_linux);
+    {$endif ndef default_target_set}
+  {$endif cpusparc64}
+{$endif sparc64}
 
 {$ifdef arm}
   {$ifdef cpuarm}
