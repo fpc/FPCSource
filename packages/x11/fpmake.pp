@@ -27,6 +27,10 @@ begin
 
     T:=P.Targets.AddUnit('cursorfont.pp');
     T:=P.Targets.AddUnit('keysym.pp');
+    T:=P.Targets.AddUnit('deckeysym.pp');
+    T:=P.Targets.AddUnit('hpkeysym.pp');
+    T:=P.Targets.AddUnit('sunkeysym.pp');
+    T:=P.Targets.AddUnit('xf86keysym.pp');
     T:=P.Targets.AddUnit('xatom.pp');
     T:=P.Targets.AddUnit('xcms.pp');
       with T.Dependencies do
