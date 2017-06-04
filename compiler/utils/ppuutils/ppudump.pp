@@ -79,7 +79,8 @@ const
     { 14 } 'jvm',
     { 15 } 'i8086',
     { 16 } 'aarch64',
-    { 17 } 'wasm'
+    { 17 } 'wasm',
+    { 18 } 'sparc64'
     );
 
 { List of all supported system-cpu couples }
@@ -177,7 +178,8 @@ const
   { 89 }  'Win16',
   { 90 }  'Embedded-i8086',
   { 91 }  'AROS-arm',
-  { 92 }  'WebAssembly-wasm'
+  { 92 }  'WebAssembly-wasm',
+  { 93 }  'Linux-sparc64'
   );
 
 const

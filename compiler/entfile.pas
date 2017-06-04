@@ -152,7 +152,8 @@ const
     { 14 } 32 {'jvm'},
     { 15 } 16 {'i8086'},
     { 16 } 64 {'aarch64'},
-    { 17 } 32 {'wasm'}
+    { 17 } 32 {'wasm'},
+    { 18 } 64 {'sparc64'}
     );
   CpuAluBitSize : array[tsystemcpu] of longint =
     (
@@ -173,7 +174,8 @@ const
     { 14 } 64 {'jvm'},
     { 15 } 16 {'i8086'},
     { 16 } 64 {'aarch64'},
-    { 17 } 64 {'wasm'}
+    { 17 } 64 {'wasm'},
+    { 18 } 64 {'sparc64'}
     );
 {$endif generic_cpu}
 
