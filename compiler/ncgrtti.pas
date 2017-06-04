@@ -184,7 +184,7 @@ implementation
         def : tprocdef;
         para : tparavarsym;
       begin
-        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
@@ -220,7 +220,7 @@ implementation
 
                       def.init_paraloc_info(callerside);
 
-                      tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+                      tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
                         targetinfos[target_info.system]^.alignment.recordalignmin,
                         targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
@@ -235,7 +235,7 @@ implementation
                         begin
                           para:=tparavarsym(def.paras[k]);
 
-                          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+                          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
                             targetinfos[target_info.system]^.alignment.recordalignmin,
                             targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
@@ -350,13 +350,13 @@ implementation
         locs:=paramanager.cgparalocs_to_rttiparalocs(para^.location);
         if length(locs)>high(byte) then
           internalerror(2017010601);
-        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         tcb.emit_ord_const(length(locs),u8inttype);
         for i:=low(locs) to high(locs) do
           begin
-            tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+            tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
             tcb.emit_ord_const(locs[i].loctype,u8inttype);
@@ -712,7 +712,7 @@ implementation
         end;
 
       begin
-        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PtrInt)),
+        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         tcb.emit_ord_const(published_properties_count(st),u16inttype);
@@ -733,7 +733,7 @@ implementation
                   alignment), but it starts aligned }
                 tcb.begin_anonymous_record(
                   propdefname,
-                  1,min(reqalign,SizeOf(PtrInt)),
+                  1,min(reqalign,SizeOf(PInt)),
                   targetinfos[target_info.system]^.alignment.recordalignmin,
                   targetinfos[target_info.system]^.alignment.maxCrecordalign);
                 if ppo_indexed in tpropertysym(sym).propoptions then
@@ -1013,7 +1013,7 @@ implementation
                tcb.emit_ord_const(otUByte,u8inttype);
            end;
            tcb.end_anonymous_record;
-           tcb.begin_anonymous_record('',defaultpacking,reqalign,
+           tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_ref],defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
            write_rtti_reference(tcb,def.elementdef,rt);
@@ -1106,7 +1106,7 @@ implementation
         begin
           write_header(tcb,def,tkClassRef);
           tcb.begin_anonymous_record(
-            '',
+            internaltypeprefixName[itp_rtti_ref],
             defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
@@ -1118,7 +1118,7 @@ implementation
         begin
           write_header(tcb,def,tkPointer);
           tcb.begin_anonymous_record(
-            '',
+            internaltypeprefixName[itp_rtti_ref],
             defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
@@ -1168,7 +1168,7 @@ implementation
 
             current_asmdata.AsmLists[al_rtti].concatList(
               tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,
-              sizeof(pint)));
+              sizeof(PInt)));
             tcb.free;
           end;
 
@@ -1235,7 +1235,7 @@ implementation
                    { every parameter is expected to start aligned }
                    tcb.begin_anonymous_record(
                      internaltypeprefixName[itp_rtti_proc_param]+tostr(length(parasym.realname)),
-                     defaultpacking,min(reqalign,SizeOf(PtrInt)),
+                     defaultpacking,min(reqalign,SizeOf(PInt)),
                      targetinfos[target_info.system]^.alignment.recordalignmin,
                      targetinfos[target_info.system]^.alignment.maxCrecordalign);
                    { write flags for current parameter }
@@ -1626,7 +1626,7 @@ implementation
           { now emit the data: first the mode }
           tcb.emit_tai(Tai_const.create_32bit(longint(mode)),u32inttype);
           { align }
-          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
+          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           if mode=lookup then
@@ -1653,7 +1653,7 @@ implementation
           else
             begin
               tcb.emit_ord_const(sym_count,u32inttype);
-              tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
+              tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
                 targetinfos[target_info.system]^.alignment.recordalignmin,
                 targetinfos[target_info.system]^.alignment.maxCrecordalign);
               for i:=0 to sym_count-1 do
@@ -1676,7 +1676,7 @@ implementation
             rttilab:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA_NOINDIRECT,tabledef);
             current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
               rttilab,tabledef,sec_rodata,
-              rttilab.name,sizeof(pint)));
+              rttilab.name,sizeof(PInt)));
             tcb.free;
 
             current_module.add_public_asmsym(rttilab);
@@ -1697,12 +1697,12 @@ implementation
           { write rtti data }
           tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
           { begin of Tstring_to_ord }
-          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
+          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           tcb.emit_ord_const(syms.count,s32inttype);
           { begin of "data" array in Tstring_to_ord }
-          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(pointer)),
+          tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[target_info.system]^.alignment.recordalignmin,
             targetinfos[target_info.system]^.alignment.maxCrecordalign);
           for i:=0 to syms.count-1 do
@@ -1723,7 +1723,7 @@ implementation
           rttilab:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA_NOINDIRECT,tabledef);
           current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
             rttilab,tabledef,sec_rodata,
-            rttilab.name,sizeof(pint)));
+            rttilab.name,sizeof(PInt)));
           tcb.free;
 
           current_module.add_public_asmsym(rttilab);
@@ -1909,7 +1909,7 @@ implementation
       begin
         if tf_requires_proper_alignment in target_info.flags then
           begin
-            reqalign:=min(sizeof(qword),target_info.alignment.maxCrecordalign);
+            reqalign:=min(sizeof(QWord),target_info.alignment.maxCrecordalign);
             defaultpacking:=C_alignment;
           end
         else
