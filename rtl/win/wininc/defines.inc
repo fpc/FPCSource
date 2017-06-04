@@ -6209,6 +6209,19 @@ const
   GIDC_ARRIVAL             = 1;
   GIDC_REMOVAL             = 2;
 //#endif /* _WIN32_WINNT >= 0x0501 */
+
+
+//
+// map types for the MapVirtualKey and MapVirtualKeyEx functions
+//
+  MAPVK_VK_TO_VSC     = 0;
+  MAPVK_VSC_TO_VK     = 1;
+  MAPVK_VK_TO_CHAR    = 2;
+  MAPVK_VSC_TO_VK_EX  = 3;
+//#if(WINVER >= 0x0600)
+  MAPVK_VK_TO_VSC_EX  = 4;
+//#endif /* WINVER >= 0x0600 */
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
