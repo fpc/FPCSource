@@ -81,10 +81,16 @@ unit ncpuset;
             { fill possible hole }
             i:=last.svalue+1;
             while i<=t^._low.svalue-1 do
-              list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,elselabel));
+              begin
+                list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,elselabel));
+                inc(i);
+              end;
             i:=t^._low.svalue;
             while i<=t^._high.svalue do
-              list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,blocklabel(t^.blockid)));
+              begin
+                list.concat(Tai_const.Create_rel_sym(aitconst_ptr,base,blocklabel(t^.blockid)));
+                inc(i);
+              end;
             last:=t^._high;
             if assigned(t^.greater) then
               genitem(list,t^.greater);
