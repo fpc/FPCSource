@@ -5,11 +5,11 @@ interface
 uses
   { cyrillic code pages }
   cp1251,cp855,cp866,cp8859_5,
-  { greek code page }
-  cp1253,
+  { greek code pages }
+  cp1253,cp737,cp869,
   { other code pages }
-  cp8859_1,cp850,cp437,cp1252,cp646,
-  cp874, cp856,
+  cp8859_1,cp850,cp437,cp1252,cp646,cp775,
+  cp874,cp856,cp857,cp860,cp861,cp862,cp863,cp864,cp865,
 {$ifndef cpu16}
   { these are too big for a 16-bit CPU }
   {  cp932,cp936,cp949,cp950, -> to rtl-unicode}
