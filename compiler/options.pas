@@ -3488,9 +3488,17 @@ begin
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 {$endif}
 {$ifdef sparc}
+  def_system_macro('CPUSPARCGEN');
   def_system_macro('CPUSPARC');
   def_system_macro('CPUSPARC32');
   def_system_macro('CPU32');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif}
+{$ifdef sparc64}
+  def_system_macro('CPUSPARCGEN');
+  def_system_macro('CPUSPARC64');
+  def_system_macro('CPU64');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif}
