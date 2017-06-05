@@ -313,6 +313,10 @@ implementation
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif sparc}
+{$ifdef sparc64}
+        create_fpu_types;
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif sparc64}
 {$ifdef m68k}
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
@@ -391,7 +395,7 @@ implementation
         else
         *)
 {$endif cpufpemu}
-        if init_settings.fputype <> fpu_none then
+        if init_settings.fputype<>fpu_none then
           begin
             addtype('Single',s32floattype);
             addtype('Double',s64floattype);
