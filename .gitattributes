@@ -9939,6 +9939,10 @@ rtl/sparc/setjumph.inc svneol=native#text/plain
 rtl/sparc/sparc.inc svneol=native#text/plain
 rtl/sparc/strings.inc svneol=native#text/plain
 rtl/sparc/stringss.inc svneol=native#text/plain
+rtl/sparc64/int64p.inc svneol=native#text/plain
+rtl/sparc64/makefile.cpu svneol=native#text/plain
+rtl/sparc64/math.inc svneol=native#text/plain
+rtl/sparc64/set.inc svneol=native#text/plain
 rtl/symbian/Makefile svneol=native#text/plain
 rtl/symbian/Makefile.fpc svneol=native#text/plain
 rtl/symbian/bindings/pbeexe.cpp -text
