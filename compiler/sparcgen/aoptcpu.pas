@@ -112,7 +112,8 @@ unit aoptcpu;
         A_NOP,
         A_FCMPs,A_FCMPd,A_FCMPq,A_CMP,
         A_BA,A_Bxx,A_FBA,A_FBxx,
-        A_STB,A_STH,A_ST,A_STF,A_STDF:
+        A_STB,A_STH,A_ST,A_STF,A_STDF,
+        A_STX:
           exit;
       end;
 
