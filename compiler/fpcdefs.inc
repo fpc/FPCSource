@@ -103,6 +103,10 @@
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define sparcgen}
+
+  { the official name of the 32 Bit SPARC port is still "sparc" but
+    using the sparc32 define makes things more clear }
+  {$define sparc32}
 {$endif sparc}
 
 {$ifdef sparc64}
