@@ -9358,6 +9358,7 @@ rtl/linux/sparc/sighndh.inc svneol=native#text/plain
 rtl/linux/sparc/stat.inc svneol=native#text/plain
 rtl/linux/sparc/syscall.inc svneol=native#text/plain
 rtl/linux/sparc/syscallh.inc svneol=native#text/plain
+rtl/linux/sparc64/stat.inc svneol=native#text/plain
 rtl/linux/sparcgen/sysnr.inc svneol=native#text/plain
 rtl/linux/suuid.inc svneol=native#text/plain
 rtl/linux/sysnr-gen.inc svneol=native#text/plain
