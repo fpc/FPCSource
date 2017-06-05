@@ -10000,6 +10000,7 @@ rtl/ucmaps/cp1255.txt svneol=native#text/plain
 rtl/ucmaps/cp1256.txt svneol=native#text/plain
 rtl/ucmaps/cp1257.txt svneol=native#text/plain
 rtl/ucmaps/cp1258.txt svneol=native#text/plain
+rtl/ucmaps/cp3021.txt svneol=native#text/plain
 rtl/ucmaps/cp437.txt svneol=native#text/plain
 rtl/ucmaps/cp737.txt svneol=native#text/plain
 rtl/ucmaps/cp775.txt svneol=native#text/plain
