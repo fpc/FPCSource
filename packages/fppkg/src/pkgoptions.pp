@@ -39,6 +39,9 @@ Type
     FOptionParser: TTemplateParser;
     FName: string;
   protected
+    class function GetKey: string; virtual;
+    procedure AddKeyValueToStrings(AStrings: TStrings; AKey, AValue: string); overload;
+    procedure AddKeyValueToStrings(AStrings: TStrings; AKey: string; AValue: Integer); overload;
     property OptionParser: TTemplateParser read FOptionParser;
   public
     constructor Create(AnOptionParser: TTemplateParser); virtual;
@@ -128,6 +131,7 @@ Type
     procedure SetPath(AValue: string);
   protected
     procedure SaveToStrings(AStrings: TStrings); override;
+    class function GetKey: string; override;
   public
     procedure AddKeyValue(const AKey, AValue: string); override;
     procedure LogValues(ALogLevel: TLogLevel); override;
@@ -153,9 +157,12 @@ Type
 
     procedure IncludeFile(AFileName: string);
     procedure IncludeFileMask(AFileNameMask: string);
+  protected
+    class function GetKey: string; override;
   public
     constructor Create(AnOptionParser: TTemplateParser; AnOptions: TFppkgOptions; ACurrentDir: string);
     destructor Destroy; override;
+    procedure SaveToStrings(AStrings: TStrings); override;
     procedure AddKeyValue(const AKey, AValue: string); override;
     procedure LogValues(ALogLevel: TLogLevel); override;
     function AllowDuplicate: Boolean; override;
@@ -285,8 +292,6 @@ Const
   KeyDeprGlobalSection     = 'Defaults';
   KeyGlobalSection         = 'Global';
   KeyRepositorySection     = 'Repository';
-  KeySrcRepositorySection  = 'UninstalledSourceRepository';
-  KeyUninstalledRepository = 'UninstalledRepository';
   KeyIncludeFilesSection   = 'IncludeFiles';
   KeyRemoteMirrorsURL      = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
@@ -358,6 +363,17 @@ begin
     end
   else
     log(llWarning, SLogIncludeFileMaskDoesNotExist, [FileDir, AFileNameMask]);
+end;
+
+class function TFppkgIncludeFilesOptionSection.GetKey: string;
+begin
+  Result := KeyIncludeFilesSection;
+end;
+
+procedure TFppkgIncludeFilesOptionSection.SaveToStrings(AStrings: TStrings);
+begin
+  AStrings.Add('['+KeyIncludeFilesSection+']');
+  AddKeyValueToStrings(AStrings, KeyIncludeFileMask, FCurrentDir);
 end;
 
 constructor TFppkgIncludeFilesOptionSection.Create(AnOptionParser: TTemplateParser;
@@ -444,13 +460,16 @@ end;
 procedure TFppkgRepositoryOptionSection.SaveToStrings(AStrings: TStrings);
 begin
   inherited SaveToStrings(AStrings);
-  AStrings.Add('['+KeyRepositorySection+']');
-  AStrings.Add(KeyRepositoryName+'='+RepositoryName);
-  AStrings.Add(KeyRepositoryDescription+'='+Description);
-  AStrings.Add(KeyRepositoryPath+'='+FPath);
-  AStrings.Add(KeyRepositoryPrefix+'='+FPrefix);
-  if InstallRepositoryName<>'' then
-    AStrings.Add(KeyInstallRepositoryName+'='+InstallRepositoryName);
+  AddKeyValueToStrings(AStrings, KeyRepositoryName, RepositoryName);
+  AddKeyValueToStrings(AStrings, KeyRepositoryDescription, Description);
+  AddKeyValueToStrings(AStrings, KeyRepositoryPath, FPath);
+  AddKeyValueToStrings(AStrings, KeyRepositoryPrefix, FPrefix);
+  AddKeyValueToStrings(AStrings, KeyInstallRepositoryName, InstallRepositoryName);
+end;
+
+class function TFppkgRepositoryOptionSection.GetKey: string;
+begin
+  Result := KeyRepositorySection;
 end;
 
 procedure TFppkgRepositoryOptionSection.AddKeyValue(const AKey, AValue: string);
@@ -499,6 +518,23 @@ end;
 
 { TFppkgOptionSection }
 
+class function TFppkgOptionSection.GetKey: string;
+begin
+  Result := '';
+end;
+
+procedure TFppkgOptionSection.AddKeyValueToStrings(AStrings: TStrings; AKey, AValue: string);
+begin
+  if AValue<>'' then
+    AStrings.Add(AKey+'='+AValue);
+end;
+
+procedure TFppkgOptionSection.AddKeyValueToStrings(AStrings: TStrings; AKey: string; AValue: Integer);
+begin
+  if AValue<>-1 then
+    AStrings.Add(AKey+'='+IntToStr(AValue));
+end;
+
 constructor TFppkgOptionSection.Create(AnOptionParser: TTemplateParser);
 begin
   FOptionParser:=AnOptionParser;
@@ -511,7 +547,7 @@ end;
 
 procedure TFppkgOptionSection.SaveToStrings(AStrings: TStrings);
 begin
-  // Do nothing
+  AStrings.Add('['+GetKey+']');
 end;
 
 procedure TFppkgOptionSection.LogValues(ALogLevel: TLogLevel);
@@ -697,16 +733,17 @@ end;
 procedure TFppkgGlobalOptionSection.SaveToStrings(AStrings: TStrings);
 begin
   AStrings.Add('['+KeyGlobalSection+']');
-  AStrings.Add(KeyConfigVersion+'='+IntToStr(CurrentConfigVersion));
-  AStrings.Add(KeyBuildDir+'='+BuildDir);
-  AStrings.Add(KeyDownloader+'='+Downloader);
-  AStrings.Add(KeyCompilerConfig+'='+CompilerConfig);
-  AStrings.Add(KeyFPMakeCompilerConfig+'='+FPMakeCompilerConfig);
-  AStrings.Add(KeyCompilerConfigDir+'='+CompilerConfigDir);
-  AStrings.Add(KeyRemoteMirrorsURL+'='+RemoteMirrorsURL);
-  AStrings.Add(KeyRemoteRepository+'='+RemoteRepository);
-  AStrings.Add(KeyLocalRepository+'='+LocalRepository);
-  AStrings.Add(KeyArchivesDir+'='+ArchivesDir);
+  AddKeyValueToStrings(AStrings, KeyConfigVersion, CurrentConfigVersion);
+  AddKeyValueToStrings(AStrings, KeyBuildDir, BuildDir);
+  AddKeyValueToStrings(AStrings, KeyDownloader, Downloader);
+  AddKeyValueToStrings(AStrings, KeyCompilerConfig, CompilerConfig);
+  AddKeyValueToStrings(AStrings, KeyFPMakeCompilerConfig, FPMakeCompilerConfig);
+  AddKeyValueToStrings(AStrings, KeyCompilerConfigDir, CompilerConfigDir);
+  AddKeyValueToStrings(AStrings, KeyRemoteMirrorsURL, RemoteMirrorsURL);
+  AddKeyValueToStrings(AStrings, KeyRemoteRepository, RemoteRepository);
+  AddKeyValueToStrings(AStrings, KeyLocalRepository, LocalRepository);
+  AddKeyValueToStrings(AStrings, KeyArchivesDir, ArchivesDir);
+  AddKeyValueToStrings(AStrings, KeyCustomFPMakeOptions, CustomFPMakeOptions);
 end;
 
 procedure TFppkgGlobalOptionSection.LogValues(ALogLevel: TLogLevel);
@@ -811,13 +848,13 @@ begin
                   CurrentSection := GetGlobalSection
                 else
                   begin
-                    if SameText(s, KeyRepositorySection) then
+                    if SameText(s, TFppkgRepositoryOptionSection.GetKey) then
                       CurrentSection := TFppkgRepositoryOptionSection.Create(FOptionParser)
-                    else if SameText(s, KeySrcRepositorySection) then
+                    else if SameText(s, TFppkgUninstalledSourceRepositoryOptionSection.GetKey) then
                       CurrentSection := TFppkgUninstalledSourceRepositoryOptionSection.Create(FOptionParser)
-                    else if SameText(s, KeyIncludeFilesSection) then
+                    else if SameText(s, TFppkgIncludeFilesOptionSection.GetKey) then
                       CurrentSection := TFppkgIncludeFilesOptionSection.Create(FOptionParser, Self, ExtractFileDir(AFileName))
-                    else if SameText(s, KeyUninstalledRepository) then
+                    else if SameText(s, TFppkgUninstalledRepositoryOptionSection.GetKey) then
                       CurrentSection := TFppkgUninstalledRepositoryOptionSection.Create(FOptionParser)
                     else
                       CurrentSection := TFppkgCustomOptionSection.Create(FOptionParser);

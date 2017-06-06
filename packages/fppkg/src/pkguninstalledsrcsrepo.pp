@@ -22,6 +22,8 @@ type
   { TFppkgUninstalledSourceRepositoryOptionSection }
 
   TFppkgUninstalledSourceRepositoryOptionSection = class(TFppkgRepositoryOptionSection)
+  protected
+    class function GetKey: string; override;
   public
     function GetRepositoryType: TFPRepositoryType; override;
   end;
@@ -43,10 +45,13 @@ type
   TFppkgUninstalledRepositoryOptionSection = class(TFppkgRepositoryOptionSection)
   private
     FSourceRepositoryName: string;
+  protected
+    class function GetKey: string; override;
   public
     procedure AddKeyValue(const AKey, AValue: string); override;
     procedure LogValues(ALogLevel: TLogLevel); override;
     function GetRepositoryType: TFPRepositoryType; override;
+    procedure SaveToStrings(AStrings: TStrings); override;
     property SourceRepositoryName: string read FSourceRepositoryName write FSourceRepositoryName;
   end;
 
@@ -72,8 +77,10 @@ implementation
 
 const
   KeySourceRepository  = 'SourceRepository';
-
   SLogSourceRepository = '  SourceRepository:%s';
+  KeySrcRepositorySection = 'UninstalledSourceRepository';
+  KeyUninstalledRepository = 'UninstalledRepository';
+  KeyRepositorySection = 'Repository';
 
 { TFPUninstalledSourcesPackagesStructure }
 
@@ -151,6 +158,11 @@ end;
 
 { TFppkgUninstalledRepositoryOptionSection }
 
+class function TFppkgUninstalledRepositoryOptionSection.GetKey: string;
+begin
+  Result := KeyUninstalledRepository;
+end;
+
 procedure TFppkgUninstalledRepositoryOptionSection.AddKeyValue(const AKey, AValue: string);
 begin
    if SameText(AKey,KeySourceRepository) then
@@ -170,7 +182,19 @@ begin
   Result := fprtInstalled;
 end;
 
+procedure TFppkgUninstalledRepositoryOptionSection.SaveToStrings(AStrings: TStrings);
+begin
+  inherited SaveToStrings(AStrings);
+   if SourceRepositoryName<>'' then
+     AStrings.Add(KeySourceRepository+'='+SourceRepositoryName);
+end;
+
 { TFppkgUninstalledSourceRepositoryOptionSection }
+
+class function TFppkgUninstalledSourceRepositoryOptionSection.GetKey: string;
+begin
+  Result := KeySrcRepositorySection;
+end;
 
 function TFppkgUninstalledSourceRepositoryOptionSection.GetRepositoryType: TFPRepositoryType;
 begin
