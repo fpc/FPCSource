@@ -220,6 +220,20 @@ implementation
             while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
+{$ifdef SPARC64}
+                { Floats are passed in int registers }
+                if paracgsize=OS_F32 then
+                  begin
+                    paraloc^.size:=OS_32;
+                    paraloc^.def:=u32inttype;
+                  end
+                else if paracgsize=OS_F64 then
+                  begin
+                    paraloc^.size:=OS_64;
+                    paraloc^.def:=u64inttype;
+                  end
+                else
+{$else SPARC64}
                 { Floats are passed in int registers,
                   We can allocate at maximum 32 bits per register }
                 if paracgsize in [OS_64,OS_S64,OS_F32,OS_F64] then
@@ -228,6 +242,7 @@ implementation
                     paraloc^.def:=u32inttype;
                   end
                 else
+{$endif SPARC64}
                   begin
                     paraloc^.size:=paracgsize;
                     paraloc^.def:=paradef;
