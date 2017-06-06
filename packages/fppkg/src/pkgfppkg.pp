@@ -354,6 +354,16 @@ begin
       begin
       // We should only check for dependencies in this repository, or repositories
       // with a lower priority.
+
+      // This behaviour seems obsolete. The idea behind it was that each repository
+      // should be useable, only using other repositories with a lower priority.
+      // In practice this does not work, you have to consider the installation
+      // as a whole, using all repositories. One specific user might not be able
+      // to 'fix' the global fpc-repository, and so end up with broken packages
+      // which he/she can not fix. Or packages may be forced to be installed in
+      // a specific repository.
+      // The functionality is kept for now, maybe there is a need for it in the
+      // future... But for now, ARepository will be always nil.
       ThisRepositoryIndex := -1;
       for i := RepositoryList.Count -1 downto 0 do
         begin

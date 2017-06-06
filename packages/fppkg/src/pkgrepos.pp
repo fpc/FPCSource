@@ -198,7 +198,7 @@ procedure ListPackages(const ShowGlobalAndLocal: boolean);
     if Assigned(APackage) then
       begin
         PackageVersion := APackage.Version.AsString;
-        if CheckIsBroken and APackage.IsPackageBroken then
+        if CheckIsBroken and GFPpkg.PackageIsBroken(APackage, nil) then
           PackageVersion := PackageVersion + ' (B)';
       end
     else
