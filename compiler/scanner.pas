@@ -143,9 +143,6 @@ interface
           preproc_pattern : string;
           preproc_token   : ttoken;
 
-          { true, if we are parsing preprocessor expressions }
-          in_preproc_comp_expr : boolean;
-
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
         { File buffer things }
@@ -2120,12 +2117,10 @@ type
         end;
 
      begin
-       current_scanner.in_preproc_comp_expr:=true;
        current_scanner.skipspace;
        { start preproc expression scanner }
        current_scanner.preproc_token:=current_scanner.readpreproc;
        preproc_comp_expr:=preproc_sub_expr(opcompare,true);
-       current_scanner.in_preproc_comp_expr:=false;
      end;
 
     function boolean_compile_time_expr(var valuedescr: string): Boolean;
