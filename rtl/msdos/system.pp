@@ -179,7 +179,13 @@ Procedure SysInitFPU;
       mov dx,es
       mov word [prevInt06+2],dx
       { Install local interrupt 06 handler }
+{$ifdef FPC_MM_TINY}
+      { Do not use SEG here, as this introduces a relocation that
+        is incompatible with COM executable generation }
+      mov dx, cs
+{$else FPC_MM_TINY}
       mov dx, SEG InterceptInvalidInstruction
+{$endif FPC_MM_TINY}
       mov ds, dx
       mov dx, Offset InterceptInvalidInstruction
       mov ax, $2506
