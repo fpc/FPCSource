@@ -4,7 +4,7 @@ interface
 
 uses
   { cyrillic code pages }
-  cp1251,cp855,cp866,cp8859_5,cp3021,
+  cp1251,cp855,cp866,cp8859_5,cp3021,cpkoi8_r,cpkoi8_u,
   { greek code pages }
   cp1253,cp737,cp869,cp8859_7,
   { other code pages }
