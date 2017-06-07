@@ -22,7 +22,7 @@ const
     all labels are stored in lowercase and each record has a 
     hash value for the fast search. hash value was get using 
     SysUtils.HashName() function }
-  CodePageHashes: array[0..415] of TCodePageHashEntry = (
+  CodePageHashes: array[0..419] of TCodePageHashEntry = (
     (hash: $00000310; cp: 28591; name: 'l1'),
     (hash: $00000320; cp: 28592; name: 'l2'),
     (hash: $00000330; cp: 28593; name: 'l3'),
@@ -82,6 +82,7 @@ const
     (hash: $0053B800; cp: 850; name: 'cp850'),
     (hash: $0053B820; cp: 852; name: 'cp852'),
     (hash: $0053B850; cp: 855; name: 'cp855'),
+    (hash: $0053B860; cp: 856; name: 'cp856'),
     (hash: $0053B870; cp: 857; name: 'cp857'),
     (hash: $0053B880; cp: 858; name: 'cp858'),
     (hash: $0053B900; cp: 860; name: 'cp860'),
@@ -388,7 +389,10 @@ const
     (hash: $0BBD45B0; cp: 28599; name: 'iso_8859-9'),
     (hash: $0BD42480; cp: 28603; name: 'iso-8859-13'),
     (hash: $0BD424A0; cp: 874; name: 'iso-8859-11'),
+    (hash: $0BD424B0; cp: 28600; name: 'iso-8859-10'),
+    (hash: $0BD424D0; cp: 28606; name: 'iso-8859-16'),
     (hash: $0BD424E0; cp: 28605; name: 'iso-8859-15'),
+    (hash: $0BD424F0; cp: 28604; name: 'iso-8859-14'),
     (hash: $0BD456E0; cp: 28605; name: 'iso_8859-15'),
     (hash: $0C112E30; cp: 1142; name: 'ebcdic-dk-277+euro'),
     (hash: $0C2E2E50; cp: 1147; name: 'ebcdic-fr-297+euro'),
@@ -450,7 +454,7 @@ const
   { this array contains only one name for one codepage. 
     it is stored in codepage order and is used to search
     a codepage name by codepage number }
-  CodePageNames: array[0..149] of TCodePageEntry = (
+  CodePageNames: array[0..154] of TCodePageEntry = (
     (cp: 37; name: 'ibm037'),
     (cp: 437; name: 'ibm437'),
     (cp: 500; name: 'IBM500'),
@@ -461,6 +465,7 @@ const
     (cp: 850; name: 'ibm850'),
     (cp: 852; name: 'ibm852'),
     (cp: 855; name: 'IBM855'),
+    (cp: 856; name: 'cp856'),
     (cp: 857; name: 'ibm857'),
     (cp: 858; name: 'ibm00858'),
     (cp: 860; name: 'IBM860'),
@@ -568,8 +573,12 @@ const
     (cp: 28597; name: 'iso-8859-7'),
     (cp: 28598; name: 'iso-8859-8'),
     (cp: 28599; name: 'iso-8859-9'),
+    (cp: 28600; name: 'iso-8859-10'),
+    (cp: 28601; name: 'iso-8859-11'),
     (cp: 28603; name: 'iso-8859-13'),
+    (cp: 28604; name: 'iso-8859-14'),
     (cp: 28605; name: 'iso-8859-15'),
+    (cp: 28606; name: 'iso-8859-16'),
     (cp: 29001; name: 'x-Europa'),
     (cp: 38598; name: 'iso-8859-8-i'),
     (cp: 50220; name: 'iso-2022-jp'),
