@@ -459,7 +459,9 @@ implementation
       { codegen }
       procinfo,
       { ppu }
-      entfile
+      entfile,
+      { parser }
+      scanner
       ;
 
 
@@ -2795,6 +2797,12 @@ implementation
        var
          owner: tsymtable;
        begin
+         { for symbols used in preprocessor expressions, we don't want to
+           increase references count (for smaller final binaries) }
+         if not assigned(current_scanner) then
+           internalerror(2017050601);
+         if current_scanner.in_preproc_comp_expr then
+           exit;
          { symbol uses count }
          sym.IncRefCount;
          owner:=sym.owner;
