@@ -8596,6 +8596,7 @@ rtl/charmaps/cp1255.pas svneol=native#text/pascal
 rtl/charmaps/cp1256.pas svneol=native#text/pascal
 rtl/charmaps/cp1257.pas svneol=native#text/pascal
 rtl/charmaps/cp1258.pas svneol=native#text/pascal
+rtl/charmaps/cp3021.pas svneol=native#text/pascal
 rtl/charmaps/cp437.pas svneol=native#text/pascal
 rtl/charmaps/cp646.pas svneol=native#text/pascal
 rtl/charmaps/cp737.pas svneol=native#text/pascal

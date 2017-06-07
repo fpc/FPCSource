@@ -22,7 +22,7 @@ const
     all labels are stored in lowercase and each record has a 
     hash value for the fast search. hash value was get using 
     SysUtils.HashName() function }
-  CodePageHashes: array[0..419] of TCodePageHashEntry = (
+  CodePageHashes: array[0..421] of TCodePageHashEntry = (
     (hash: $00000310; cp: 28591; name: 'l1'),
     (hash: $00000320; cp: 28592; name: 'l2'),
     (hash: $00000330; cp: 28593; name: 'l3'),
@@ -32,6 +32,7 @@ const
     (hash: $00000530; cp: 20127; name: 'us'),
     (hash: $00003670; cp: 437; name: '437'),
     (hash: $000046B0; cp: 936; name: 'gbk'),
+    (hash: $00004DB0; cp: 3021; name: 'mik'),
     (hash: $00005390; cp: 20866; name: 'koi'),
     (hash: $00005760; cp: 20105; name: 'irv'),
     (hash: $0004DA50; cp: 950; name: 'big5'),
@@ -237,6 +238,7 @@ const
     (hash: $05343560; cp: 1026; name: 'cp1026'),
     (hash: $05345860; cp: 1256; name: 'cp1256'),
     (hash: $0535A1D0; cp: 28595; name: 'csisolatincyrillic'),
+    (hash: $05363510; cp: 3021; name: 'cp3021'),
     (hash: $053CB220; cp: 20866; name: 'koi8-r'),
     (hash: $053CB250; cp: 21866; name: 'koi8-u'),
     (hash: $054368A0; cp: 10079; name: 'x-mac-icelandic'),
@@ -454,7 +456,7 @@ const
   { this array contains only one name for one codepage. 
     it is stored in codepage order and is used to search
     a codepage name by codepage number }
-  CodePageNames: array[0..154] of TCodePageEntry = (
+  CodePageNames: array[0..155] of TCodePageEntry = (
     (cp: 37; name: 'ibm037'),
     (cp: 437; name: 'ibm437'),
     (cp: 500; name: 'IBM500'),
@@ -507,6 +509,7 @@ const
     (cp: 1257; name: 'windows-1257'),
     (cp: 1258; name: 'windows-1258'),
     (cp: 1361; name: 'Johab'),
+    (cp: 3021; name: 'MIK'),
     (cp: 10000; name: 'macintosh'),
     (cp: 10001; name: 'x-mac-japanese'),
     (cp: 10002; name: 'x-mac-chinesetrad'),
