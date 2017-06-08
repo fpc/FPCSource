@@ -16,6 +16,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 65001
+
 #
 # Константы записываются в следyющем виде:
 # <part>_<type>_<txtidentifier>

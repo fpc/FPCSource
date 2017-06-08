@@ -13,6 +13,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 850
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
