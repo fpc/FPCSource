@@ -39,18 +39,7 @@ uses
 {$if defined(unix) and (FPC_FULLVERSION>20700)}
   { system code page stuff for unix }
   unixcp,
-  { we also need unit fpwidestring for the codepage-aware messages support, but
-    unfortunately, pulling this unit in, causes regressions in the following
-    tests:
-
-    test/packages/bzip2/tbzip2streamtest
-    test/units/system/tres
-    test/units/system/tres2
-    test/units/system/tres3
-    test/units/system/tres4
-
-    this needs to be resolved first, before this unit is included. }
-//  fpwidestring,
+  fpwidestring,
 {$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,math,
