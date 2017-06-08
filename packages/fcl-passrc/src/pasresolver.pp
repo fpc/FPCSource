@@ -2781,6 +2781,7 @@ begin
       end
     else if (C=TPasClassType)
         or (C=TPasClassOfType)
+        or (C=TPasRecordType)
         or (C=TPasEnumType)
         or (C=TPasProcedureType)
         or (C=TPasFunctionType)
@@ -5460,6 +5461,7 @@ begin
       C:=TypeEl.ClassType;
       if (C=TPasClassType)
           or (C=TPasClassOfType)
+          or (C=TPasRecordType)
           or (C=TPasEnumType)
           or (C=TPasSetType)
           or (C=TPasPointerType)
@@ -11956,6 +11958,17 @@ begin
         begin
         if IsBaseType(FromResolved.TypeEl,btPointer) then
           Result:=cExact; // untyped pointer to class-of
+        end;
+      end
+    else if C=TPasRecordType then
+      begin
+      if FromResolved.BaseType=btContext then
+        begin
+        if FromResolved.TypeEl.ClassType=TPasRecordType then
+          begin
+          // typecast record to record
+          Result:=cExact;
+          end;
         end;
       end
     else if C=TPasEnumType then

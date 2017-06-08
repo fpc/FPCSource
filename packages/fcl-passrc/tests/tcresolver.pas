@@ -353,6 +353,7 @@ type
     Procedure TestRecord_WriteConstParam_WithFail;
     Procedure TestRecord_WriteNestedConstParamFail;
     Procedure TestRecord_WriteNestedConstParamWithFail;
+    Procedure TestRecord_TypeCast;
 
     // class
     Procedure TestClass;
@@ -5061,6 +5062,27 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestRecord_TypeCast;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TAnimal = record',
+  '    Size: longint;',
+  '  end;',
+  '  TBird = record',
+  '    Length: longint;',
+  '  end;',
+  'var',
+  '  a: TAnimal;',
+  '  b: TBird;',
+  'begin',
+  '  b:=TBird(a);',
+  '  TAnimal(b).Size:=TBird(a).Length;',
+  '  ']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass;
