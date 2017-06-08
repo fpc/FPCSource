@@ -1,3 +1,4 @@
+const msgtxt_codepage=20127;
 {$ifdef Delphi}
 const msgtxt : array[0..000334] of string[240]=(
 {$else Delphi}
