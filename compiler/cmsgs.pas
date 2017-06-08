@@ -53,19 +53,19 @@ type
     msgidx      : array[1..maxmsgidxparts] of PArrayOfPChar;
     msgidxmax   : array[1..maxmsgidxparts] of longint;
     msgstates   : array[1..maxmsgidxparts] of PArrayOfState;
+    msgcodepage : TSystemCodePage;
     { set if changes with $WARN need to be cleared at next module change }
     has_local_changes : boolean;
     constructor Init(n:longint;const idxmax:array of longint);
     destructor  Done;
-    function  LoadIntern(p:pointer;n:longint):boolean;
+    function  LoadIntern(p:pointer;n:longint;cp:TSystemCodePage):boolean;
     function  LoadExtern(const fn:string):boolean;
     procedure ClearIdx;
     procedure ResetStates;
     procedure CreateIdx;
-    function  GetPChar(nr:longint):pchar;
     { function  ClearVerbosity(nr:longint):boolean; not used anymore }
     function  SetVerbosity(nr:longint;newstate:tmsgstate):boolean;
-    function  Get(nr:longint;const args:array of TMsgStr):ansistring;
+    function  Get(nr:longint;const args:array of TMsgStr):TMsgStr;
   end;
 
 { this will read a line until #10 or #0 and also increase p }
@@ -79,7 +79,7 @@ uses
   cutils;
 
 
-function MsgReplace(const s:TMsgStr;const args:array of TMsgStr):ansistring;
+function MsgReplace(const s:TMsgStr;const args:array of TMsgStr):TMsgStr;
 var
   last,
   i  : longint;
@@ -117,6 +117,7 @@ begin
   has_local_changes:=false;
   msgsize:=0;
   msgparts:=n;
+  msgcodepage:=CP_ACP;
   if n<>high(idxmax)+1 then
    fail;
   for i:=1 to n do
@@ -154,8 +155,9 @@ begin
 end;
 
 
-function TMessage.LoadIntern(p:pointer;n:longint):boolean;
+function TMessage.LoadIntern(p:pointer;n:longint;cp:TSystemCodePage):boolean;
 begin
+  msgcodepage:=cp;
   msgtxt:=pchar(p);
   msgsize:=n;
   msgallocsize:=0;
@@ -185,6 +187,7 @@ var
 
 begin
   LoadExtern:=false;
+  msgcodepage:=CP_ACP;
   getmem(buf,bufsize);
   { Read the message file }
   assign(f,fn);
@@ -240,6 +243,10 @@ begin
             end
            else
             err('no = found');
+         end
+        else if (Length(s)>11) and (Copy(s,1,11)='# CodePage ') then
+         begin
+           msgcodepage:=StrToInt(Copy(s,12,Length(s)-11));
          end;
       end;
    end;
@@ -398,15 +405,6 @@ begin
 end;
 
 
-function TMessage.GetPChar(nr:longint):pchar;
-begin
-  if (nr div 1000 < msgparts) and
-     (nr mod 1000 <  msgidxmax[nr div 1000]) then
-    GetPChar:=msgidx[nr div 1000]^[nr mod 1000]
-  else
-    GetPChar:='';
-end;
-
 function TMessage.SetVerbosity(nr:longint;newstate:tmsgstate):boolean;
 var
   i: longint;
@@ -438,9 +436,10 @@ begin
 end;
 }
 
-function TMessage.Get(nr:longint;const args:array of TMsgStr):ansistring;
+function TMessage.Get(nr:longint;const args:array of TMsgStr):TMsgStr;
 var
   hp : pchar;
+  s: TMsgStr;
 begin
   if (nr div 1000 < msgparts) and
      (nr mod 1000 <  msgidxmax[nr div 1000]) then
@@ -450,7 +449,14 @@ begin
   if hp=nil then
     Get:='msg nr '+tostr(nr)
   else
-    Get:=MsgReplace(system.strpas(hp),args);
+    begin
+      s:=sysutils.StrPas(hp);
+{$ifdef cpawaremessages}
+      SetCodePage(RawByteString(s),msgcodepage,False);
+      SetCodePage(RawByteString(s),CP_ACP,True);
+{$endif cpawaremessages}
+      Get:=MsgReplace(s,args);
+    end;
 end;
 
 procedure TMessage.ResetStates;

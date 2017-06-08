@@ -188,11 +188,13 @@ end;
 
 procedure Toption.WriteLogo;
 var
+  msg : TMsgStr;
   p : pchar;
 begin
   if not LogoWritten then
     begin
-      p:=MessagePchar(option_logo);
+      msg:=MessageStr(option_logo);
+      p:=pchar(msg);
       while assigned(p) do
         Comment(V_Normal,GetMsgLine(p));
       LogoWritten:= true;
@@ -202,6 +204,7 @@ end;
 
 procedure Toption.WriteInfo (More: string);
 var
+  msg_str: TMsgStr;
   p : pchar;
   hs,hs1,hs3,s : TCmdStr;
   J: longint;
@@ -548,7 +551,8 @@ const
 begin
   if More = '' then
    begin
-    p:=MessagePchar(option_info);
+    msg_str:=MessageStr(option_info);
+    p:=pchar(msg_str);
     while assigned(p) do
      begin
       s:=GetMsgLine(p);
@@ -626,6 +630,7 @@ var
   HelpLine,
   s     : string;
   p     : pchar;
+  msg_str: TMsgStr;
 begin
   WriteLogo;
   Lines:=4;
@@ -634,7 +639,8 @@ begin
   else
    Message1(option_usage,FixFileName(system.paramstr(0)));
   lastident:=0;
-  p:=MessagePChar(option_help_pages);
+  msg_str:=MessageStr(option_help_pages);
+  p:=pchar(msg_str);
   while assigned(p) do
    begin
    { get a line and reset }

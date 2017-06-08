@@ -91,7 +91,7 @@ interface
     procedure GenerateError;
     procedure Internalerror(i:longint);{$ifndef VER2_6}noreturn;{$endif VER2_6}
     procedure Comment(l:longint;s:ansistring);
-    function  MessagePchar(w:longint):pchar;
+    function  MessageStr(w:longint):TMsgStr;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
     procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
@@ -404,7 +404,7 @@ implementation
         { reload the internal messages if not already loaded }
 {$ifndef EXTERN_MSG}
         if not msg^.msgintern then
-         msg^.LoadIntern(@msgtxt,msgtxtsize);
+         msg^.LoadIntern(@msgtxt,msgtxtsize,msgtxt_codepage);
 {$endif}
         if not msg^.LoadExtern(fn) then
          begin
@@ -412,7 +412,7 @@ implementation
            writeln('Fatal: Cannot find error message file.');
            halt(3);
 {$else}
-           msg^.LoadIntern(@msgtxt,msgtxtsize);
+           msg^.LoadIntern(@msgtxt,msgtxtsize,msgtxt_codepage);
 {$endif}
          end;
         { reload the prefixes using the new messages }
@@ -756,10 +756,10 @@ implementation
       end;
 
 
-    function  MessagePchar(w:longint):pchar;
+    function  MessageStr(w:longint):TMsgStr;
       begin
         MaybeLoadMessageFile;
-        MessagePchar:=msg^.GetPchar(w)
+        MessageStr:=msg^.Get(w,[]);
       end;
 
 
@@ -987,7 +987,7 @@ implementation
            halt(3);
          end;
 {$ifndef EXTERN_MSG}
-        msg^.LoadIntern(@msgtxt,msgtxtsize);
+        msg^.LoadIntern(@msgtxt,msgtxtsize,msgtxt_codepage);
 {$else EXTERN_MSG}
         LoadMsgFile(exepath+'errore.msg');
 {$endif EXTERN_MSG}

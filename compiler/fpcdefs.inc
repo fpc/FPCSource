@@ -19,6 +19,14 @@
   exceptions in the constructors }
 {$IMPLICITEXCEPTIONS OFF}
 
+{ This define enables codepage-aware compiler messages handling. Turning it on
+  forces code page conversion from the codepage, specified in the .msg file to
+  CP_ACP, before printing the message to the console. Enable this for host
+  platforms, that have code page conversion support in their RTL. }
+{$if defined(win32) or defined(win64)}
+  {$define cpawaremessages}
+{$endif}
+
 { Inline small functions, but not when EXTDEBUG is used }
 {$ifndef EXTDEBUG}
   {$define USEINLINE}
