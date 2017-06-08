@@ -39,6 +39,7 @@ uses
 {$if defined(unix) and (FPC_FULLVERSION>20700)}
   { system code page stuff for unix }
   unixcp,
+  fpwidestring,
 {$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,math,

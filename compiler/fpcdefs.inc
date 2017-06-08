@@ -23,7 +23,7 @@
   forces code page conversion from the codepage, specified in the .msg file to
   CP_ACP, before printing the message to the console. Enable this for host
   platforms, that have code page conversion support in their RTL. }
-{$if defined(win32) or defined(win64)}
+{$if defined(win32) or defined(win64) or defined(unix)}
   {$define cpawaremessages}
 {$endif}
 
