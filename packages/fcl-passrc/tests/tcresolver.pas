@@ -186,6 +186,7 @@ type
     Procedure TestVarNoSemicolonBeginFail;
     Procedure TestIntegerRange;
     Procedure TestIntegerRangeHighLowerLowFail;
+    Procedure TestIntegerRangeLowHigh;
     Procedure TestAssignIntRangeFail;
     Procedure TestByteRangeFail;
     Procedure TestCustomIntRangeFail;
@@ -2034,6 +2035,7 @@ begin
   Add('  c1 = 3');
   Add('  c2: longint=c1;'); // defined in system.pp
   Add('begin');
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestDuplicateVar;
@@ -2052,6 +2054,7 @@ begin
   Add('var a: longint = {@c}c;');
   Add('begin');
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestVarOfVarFail;
@@ -2154,6 +2157,21 @@ begin
   {$ENDIF}
 end;
 
+procedure TTestResolver.TestIntegerRangeLowHigh;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  MinInt = -1;',
+  '  MaxInt = +10;',
+  'type',
+  '  {#TMyInt}TMyInt = MinInt..MaxInt;',
+  'const a = low(TMyInt)+High(TMyInt);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestAssignIntRangeFail;
 begin
   StartProgram(false);
@@ -2202,6 +2220,8 @@ procedure TTestResolver.TestConstIntOperators;
 begin
   StartProgram(false);
   Add([
+  'type',
+  '  integer = longint;',
   'const',
   '  a:byte=1+2;',
   '  b:shortint=1-2;',
@@ -2219,9 +2239,12 @@ begin
   '  n:longword=5 and 2;',
   '  o:longword=5 or 2;',
   '  p:longword=5 xor 2;',
-  '  q:longword=5 or not 2;',
+  '  q:longword=not (5 or not 2);',
+  '  r=low(word)+high(int64);',
+  '  s=low(longint)+high(integer);',
   'begin']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestConstBoolOperators;
@@ -2235,8 +2258,11 @@ begin
   '  d=not b;',
   '  e=a=b;',
   '  f=a<>b;',
+  '  g=low(boolean) or high(boolean);',
+  '  h=succ(false) or pred(true);',
   'begin']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestChar_Ord;
@@ -2352,6 +2378,7 @@ begin
   '  a=''o''+''x'';',
   'begin']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestEnums;
@@ -2665,6 +2692,7 @@ begin
   '  s:=teAny+teRedBlue+[e];',
   '']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestSet_AnonymousEnumtype;
@@ -2720,17 +2748,18 @@ end;
 
 procedure TTestResolver.TestSet_Const;
 begin
-  exit; // ToDo
-
   StartProgram(false);
   Add([
   'type',
   '  TFlag = (a,b,c,d,e,f);',
   'const',
-  '  all = b..d;',
-  '  all = low(TFlag)..high(TFlag);',
+  '  ab = [a..b];',
+  //'  notc = [a..b,d..e,f];',
+  //'  all = [low(TFlag)..high(TFlag)];',
+  //'  notaf = [succ(low(TFlag))..pred(high(TFlag))];',
   'begin']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestPrgAssignment;
@@ -6799,6 +6828,7 @@ begin
   Add('  with TObject do if ci=25 then;');
   Add('  with Cla do if ci=26 then;');
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_PublishedClassVarFail;
@@ -8356,6 +8386,7 @@ begin
   'begin',
   '']);
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestArray_AssignNilToStaticArrayFail1;
@@ -8567,6 +8598,7 @@ begin
   Add('end;');
   Add('begin');
   ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestArray_ConstOpenArrayWriteFail;

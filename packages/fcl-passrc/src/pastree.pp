@@ -603,7 +603,7 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
-    Values: TFPList;      // List of TPasEnumValue objects
+    Values: TFPList;      // List of TPasEnumValue
   end;
 
   { TPasSetType }

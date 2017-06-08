@@ -19,8 +19,40 @@ Abstract:
 Works:
   - Emitting range check warnings
   - Error on overflow
-  - int/uint unary +, -
-  - int/uint binary: +, -
+  - bool: not, =, <>, and, or, xor, low(), high()
+  - int/uint
+    - unary +, -
+    - binary: +, -, *, div, mod, ^^, =, <>, <, >, <=, >=, and, or, xor, not
+  - string: +
+  - float:
+  - enum/set
+
+ToDo:
+  - enable eval via option, default off
+  - bool:
+    - low(), high(), pred(), succ(), ord()
+  - int
+    - typecast
+    - low(), high(), pred(), succ()
+  - string:
+    - =, <>, <, >, <=, >=
+    - string encoding
+    - s[]
+    - length(string)
+    - chr(), ord(), low(), high(), pred(), succ()
+    - #65
+    - #$DC00
+  - float
+    - typecast float
+    - /
+    - +, -, *, div, mod, ^^, =, <>, <, >, <=, >=, and, or, xor, not
+  - enum
+    - low(), high(), pred(), succ(), ord(), typecast
+  - sets
+    - [a,b,c..d]
+    - +, -, *, =, <>, <=, >=, in, ><
+  - arrays
+    - length(), low(), high()
 }
 unit PasResolveEval;
 
@@ -198,6 +230,10 @@ type
   MaxPrecInt = int64;
   MaxPrecUInt = qword;
   MaxPrecFloat = extended;
+const
+  // Note: when FPC compares int64 with qword it converts the qword to an int64,
+  //       possibly resulting in a range check error -> using a qword const instead
+  HighIntAsUInt = MaxPrecUInt(High(MaxPrecInt));
 
 type
   { TResEvalValue }
@@ -222,6 +258,7 @@ type
   public
     Kind: TREVKind;
     IdentEl: TPasElement;
+    constructor CreateKind(const aKind: TREVKind);
     function Clone: TResEvalValue; virtual;
     function AsDebugString: string; virtual;
     function AsString: string; virtual;
@@ -234,6 +271,7 @@ type
   public
     B: boolean;
     constructor Create; override;
+    constructor CreateValue(const aValue: boolean);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -244,6 +282,7 @@ type
   public
     Int: MaxPrecInt;
     constructor Create; override;
+    constructor CreateValue(const aValue: MaxPrecInt);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -254,6 +293,7 @@ type
   public
     UInt: MaxPrecUInt;
     constructor Create; override;
+    constructor CreateValue(const aValue: MaxPrecUInt);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -264,6 +304,7 @@ type
   public
     FloatValue: MaxPrecFloat;
     constructor Create; override;
+    constructor CreateValue(const aValue: MaxPrecFloat);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -274,6 +315,7 @@ type
   public
     S: RawByteString;
     constructor Create; override;
+    constructor CreateValue(const aValue: RawByteString);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -284,6 +326,7 @@ type
   public
     S: UnicodeString;
     constructor Create; override;
+    constructor CreateValue(const aValue: UnicodeString);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -294,6 +337,7 @@ type
   public
     Index: integer;
     constructor Create; override;
+    constructor CreateValue(const aValue: integer; aIdentEl: TPasEnumValue);
     function Clone: TResEvalValue; override;
     function AsDebugString: string; override;
     function AsString: string; override;
@@ -312,11 +356,13 @@ type
         );
   public
     ElKind: TRgIntElKind;
-    RangeStart, RangeEnd: int64;
+    RangeStart, RangeEnd: MaxPrecInt;
     constructor Create; override;
+    constructor CreateValue(const aElKind: TRgIntElKind;
+      const aRangeStart, aRangeEnd: MaxPrecInt);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
-    function ElementAsString(El: int64): string;
+    function ElementAsString(El: MaxPrecInt): string;
   end;
 
   { TResEvalRangeUInt }
@@ -325,6 +371,7 @@ type
   public
     RangeStart, RangeEnd: MaxPrecUInt;
     constructor Create; override;
+    constructor CreateValue(const aRangeStart, aRangeEnd: MaxPrecUInt);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
   end;
@@ -341,7 +388,7 @@ type
         revsikWChar
         );
       TItem = record
-        RangeStart, RangeEnd: int64;
+        RangeStart, RangeEnd: MaxPrecInt;
       end;
       TItems = array of TItem;
   public
@@ -350,7 +397,7 @@ type
     constructor Create; override;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
-    function ElementAsString(El: int64): string;
+    function ElementAsString(El: MaxPrecInt): string;
   end;
 
   TResEvalFlag = (
@@ -367,12 +414,15 @@ type
     const Fmt: String; Args: Array of const; PosEl: TPasElement) of object;
   TPasResEvalIdentHandler = function(Sender: TResExprEvaluator;
     Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue of object;
+  TPasResEvalParamsHandler = function(Sender: TResExprEvaluator;
+    Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue of object;
 
   { TResExprEvaluator }
 
   TResExprEvaluator = class
   private
     FOnEvalIdentifier: TPasResEvalIdentHandler;
+    FOnEvalParams: TPasResEvalParamsHandler;
     FOnLog: TPasResEvalLogHandler;
   protected
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
@@ -415,6 +465,7 @@ type
       MinVal, MaxVal: MaxPrecInt; PosEl: TPasElement);
     property OnLog: TPasResEvalLogHandler read FOnLog write FOnLog;
     property OnEvalIdentifier: TPasResEvalIdentHandler read FOnEvalIdentifier write FOnEvalIdentifier;
+    property OnEvalParams: TPasResEvalParamsHandler read FOnEvalParams write FOnEvalParams;
   end;
   TResExprEvaluatorClass = class of TResExprEvaluator;
 
@@ -702,6 +753,12 @@ begin
   Kind:=revkBool;
 end;
 
+constructor TResEvalBool.CreateValue(const aValue: boolean);
+begin
+  Create;
+  B:=aValue;
+end;
+
 function TResEvalBool.Clone: TResEvalValue;
 begin
   Result:=inherited Clone;
@@ -719,6 +776,14 @@ constructor TResEvalRangeUInt.Create;
 begin
   inherited Create;
   Kind:=revkRangeInt;
+end;
+
+constructor TResEvalRangeUInt.CreateValue(const aRangeStart,
+  aRangeEnd: MaxPrecUInt);
+begin
+  Create;
+  RangeStart:=aRangeStart;
+  RangeEnd:=aRangeEnd;
 end;
 
 function TResEvalRangeUInt.Clone: TResEvalValue;
@@ -852,8 +917,7 @@ begin
       if Result.Element=nil then
         Result.Free;
       // @ operator requires a compiler (not just a resolver) -> return nil
-      Result:=TResEvalValue.Create;
-      Result.Kind:=revkNil;
+      Result:=TResEvalValue.CreateKind(revkNil);
       end
     else
       RaiseNotYetImplemented(20170518232823,Expr,'operator='+OpcodeStrings[Expr.OpCode]);
@@ -936,24 +1000,20 @@ begin
       if TResEvalInt(LeftValue).Int>TResEvalInt(RightValue).Int then
         RaiseMsg(20170518222939,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.Create;
-      TResEvalRangeInt(Result).ElKind:=revrikInt;
-      TResEvalRangeInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
-      TResEvalRangeInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
+      Result:=TResEvalRangeInt.CreateValue(revrikInt,
+                        TResEvalInt(LeftValue).Int,TResEvalInt(RightValue).Int);
       exit;
       end
     else if RightValue.Kind=revkUInt then
       begin
       // Note: when FPC compares int64 with qword it converts the qword to an int64
-      if TResEvalUInt(RightValue).UInt<=MaxPrecUInt(High(MaxPrecInt)) then
+      if TResEvalUInt(RightValue).UInt<=HighIntAsUInt then
         begin
         if TResEvalInt(LeftValue).Int>TResEvalUInt(RightValue).UInt then
           RaiseMsg(20170519000235,nHighRangeLimitLTLowRangeLimit,
             sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-        Result:=TResEvalRangeInt.Create;
-        TResEvalRangeInt(Result).ElKind:=revrikInt;
-        TResEvalRangeInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
-        TResEvalRangeInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
+        Result:=TResEvalRangeInt.CreateValue(revrikInt,
+           TResEvalInt(LeftValue).Int,MaxPrecInt(TResEvalUInt(RightValue).UInt));
         exit;
         end
       else if TResEvalInt(LeftValue).Int<0 then
@@ -961,9 +1021,8 @@ begin
       else if MaxPrecUInt(TResEvalInt(LeftValue).Int)>TResEvalUInt(RightValue).UInt then
         RaiseMsg(20170522151708,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeUInt.Create;
-      TResEvalRangeUInt(Result).RangeStart:=TResEvalInt(LeftValue).Int;
-      TResEvalRangeUInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
+      Result:=TResEvalRangeUInt.CreateValue(MaxPrecUInt(TResEvalInt(LeftValue).Int),
+         TResEvalUInt(RightValue).UInt);
       exit;
       end
     else
@@ -972,25 +1031,22 @@ begin
     if RightValue.Kind=revkInt then
       begin
       // Note: when FPC compares int64 with qword it converts the qword to an int64
-      if TResEvalUInt(LeftValue).UInt>MaxPrecUInt(High(MaxPrecInt)) then
+      if TResEvalUInt(LeftValue).UInt>HighIntAsUInt then
         begin
         if TResEvalInt(RightValue).Int<0 then
           RaiseRangeCheck(20170522152608,Expr.Right)
         else if TResEvalUInt(LeftValue).UInt>MaxPrecUInt(TResEvalInt(RightValue).Int) then
           RaiseMsg(20170522152648,nHighRangeLimitLTLowRangeLimit,
             sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-        Result:=TResEvalRangeUInt.Create;
-        TResEvalRangeUInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
-        TResEvalRangeUInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
+        Result:=TResEvalRangeUInt.CreateValue(TResEvalUInt(LeftValue).UInt,
+          MaxPrecUInt(TResEvalInt(RightValue).Int));
         exit;
         end
       else if TResEvalUInt(LeftValue).UInt>TResEvalInt(RightValue).Int then
         RaiseMsg(20170522152804,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.Create;
-      TResEvalRangeInt(Result).ElKind:=revrikInt;
-      TResEvalRangeInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
-      TResEvalRangeInt(Result).RangeEnd:=TResEvalInt(RightValue).Int;
+      Result:=TResEvalRangeInt.CreateValue(revrikInt,
+        MaxPrecInt(TResEvalUInt(LeftValue).UInt),TResEvalInt(RightValue).Int);
       exit;
       end
     else if RightValue.Kind=revkUInt then
@@ -998,9 +1054,8 @@ begin
       if TResEvalUInt(LeftValue).UInt>TResEvalUInt(RightValue).UInt then
         RaiseMsg(20170519000240,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeUInt.Create;
-      TResEvalRangeUInt(Result).RangeStart:=TResEvalUInt(LeftValue).UInt;
-      TResEvalRangeUInt(Result).RangeEnd:=TResEvalUInt(RightValue).UInt;
+      Result:=TResEvalRangeUInt.CreateValue(TResEvalUInt(LeftValue).UInt,
+        TResEvalUInt(RightValue).UInt);
       exit;
       end
     else
@@ -1015,10 +1070,8 @@ begin
         sHighRangeLimitLTLowRangeLimit,[],Expr.Right)
     else
       begin
-      Result:=TResEvalRangeInt.Create;
-      TResEvalRangeInt(Result).ElKind:=revrikEnum;
-      TResEvalRangeInt(Result).RangeStart:=TResEvalEnum(LeftValue).Index;
-      TResEvalRangeInt(Result).RangeEnd:=TResEvalEnum(RightValue).Index;
+      Result:=TResEvalRangeInt.CreateValue(revrikEnum,
+        TResEvalEnum(LeftValue).Index,TResEvalEnum(RightValue).Index);
       exit;
       end;
   revkString,revkUnicodeString:
@@ -1030,10 +1083,7 @@ begin
       if LeftInt>RightInt then
         RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.Create;
-      TResEvalRangeInt(Result).ElKind:=revrikChar;
-      TResEvalRangeInt(Result).RangeStart:=LeftInt;
-      TResEvalRangeInt(Result).RangeEnd:=RightInt;
+      Result:=TResEvalRangeInt.CreateValue(revrikChar,LeftInt,RightInt);
       exit;
       end
     else
@@ -1052,7 +1102,7 @@ end;
 function TResExprEvaluator.EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue,
   RightValue: TResEvalValue): TResEvalValue;
 
-  procedure IntAddUInt(i: MaxPrecInt; u: MaxPrecUInt);
+  procedure IntAddUInt(const i: MaxPrecInt; const u: MaxPrecUInt);
   var
     Int: MaxPrecInt;
     UInt: MaxPrecUInt;
@@ -1062,11 +1112,10 @@ function TResExprEvaluator.EvalBinaryAddExpr(Expr: TBinaryExpr; LeftValue,
       UInt:=MaxPrecUInt(i)+u;
       Result:=CreateResEvalInt(UInt);
       end
-    else if u<=High(MaxPrecInt) then
+    else if u<=HighIntAsUInt then
       begin
       Int:=i + MaxPrecInt(u);
-      Result:=TResEvalInt.Create;
-      TResEvalInt(Result).Int:=Int;
+      Result:=TResEvalInt.CreateValue(Int);
       end
     else
       RaiseRangeCheck(20170601140523,Expr);
@@ -1094,8 +1143,7 @@ begin
         else
           begin
           Int:=TResEvalInt(LeftValue).Int + TResEvalInt(RightValue).Int;
-          Result:=TResEvalInt.Create;
-          TResEvalInt(Result).Int:=Int;
+          Result:=TResEvalInt.CreateValue(Int);
           end;
       revkUInt:
         IntAddUInt(TResEvalInt(LeftValue).Int,TResEvalUInt(RightValue).UInt);
@@ -1112,8 +1160,7 @@ begin
       revkUInt:
         begin
         UInt:=TResEvalUInt(LeftValue).UInt+TResEvalUInt(RightValue).UInt;
-        Result:=TResEvalUInt.Create;
-        TResEvalUInt(Result).UInt:=UInt;
+        Result:=TResEvalUInt.CreateValue(UInt);
         end
       else
         {$IFDEF VerbosePasResolver}
@@ -1199,8 +1246,7 @@ begin
         {$Q+}
         Int:=TResEvalInt(LeftValue).Int - TResEvalInt(RightValue).Int;
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
       except
         on E: EOverflow do
           if (TResEvalInt(LeftValue).Int>0) and (TResEvalInt(RightValue).Int<0) then
@@ -1243,8 +1289,7 @@ begin
         {$Q+}
         Int:=TResEvalInt(LeftValue).Int * TResEvalInt(RightValue).Int;
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
       except
         on E: EOverflow do
           if (TResEvalInt(LeftValue).Int>0) and (TResEvalInt(RightValue).Int>0) then
@@ -1294,8 +1339,7 @@ begin
       else
         begin
         Int:=TResEvalInt(LeftValue).Int div TResEvalInt(RightValue).Int;
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
         end;
     revkUInt:
       // int div uint
@@ -1303,12 +1347,11 @@ begin
         RaiseDivByZero(20170530102745,Expr)
       else
         begin
-        if TResEvalUInt(RightValue).UInt>High(MaxPrecInt) then
+        if TResEvalUInt(RightValue).UInt>HighIntAsUInt then
           Int:=0
         else
           Int:=TResEvalInt(LeftValue).Int div TResEvalUInt(RightValue).UInt;
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
         end;
     else
       {$IFDEF VerbosePasResolver}
@@ -1322,11 +1365,10 @@ begin
       // uint div int
       if TResEvalInt(RightValue).Int=0 then
         RaiseDivByZero(20170530103026,Expr)
-      else if TResEvalUInt(LeftValue).UInt<=High(MaxPrecInt) then
+      else if TResEvalUInt(LeftValue).UInt<=HighIntAsUInt then
         begin
         Int:=MaxPrecInt(TResEvalUInt(LeftValue).UInt) div TResEvalInt(RightValue).Int;
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
         end
       else if TResEvalInt(RightValue).Int>0 then
         begin
@@ -1375,8 +1417,7 @@ begin
       else
         begin
         Int:=TResEvalInt(LeftValue).Int mod TResEvalInt(RightValue).Int;
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
         end;
     revkUInt:
       // int mod uint
@@ -1402,11 +1443,10 @@ begin
       // uint mod int
       if TResEvalInt(RightValue).Int=0 then
         RaiseDivByZero(20170530110110,Expr)
-      else if TResEvalUInt(LeftValue).UInt<=High(MaxPrecInt) then
+      else if TResEvalUInt(LeftValue).UInt<=HighIntAsUInt then
         begin
         Int:=MaxPrecInt(TResEvalUInt(LeftValue).UInt) mod TResEvalInt(RightValue).Int;
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
         end
       else if TResEvalInt(RightValue).Int>0 then
         begin
@@ -1459,8 +1499,7 @@ begin
         Int:=TResEvalInt(LeftValue).Int shl byte(TResEvalInt(RightValue).Int)
       else
         Int:=TResEvalInt(LeftValue).Int shr byte(TResEvalInt(RightValue).Int);
-      Result:=TResEvalInt.Create;
-      TResEvalInt(Result).Int:=Int;
+      Result:=TResEvalInt.CreateValue(Int);
       end;
     revkUInt:
       // int shl uint
@@ -1471,8 +1510,7 @@ begin
         Int:=TResEvalInt(LeftValue).Int shl byte(TResEvalUInt(RightValue).UInt)
       else
         Int:=TResEvalInt(LeftValue).Int shr byte(TResEvalUInt(RightValue).UInt);
-      Result:=TResEvalInt.Create;
-      TResEvalInt(Result).Int:=Int;
+      Result:=TResEvalInt.CreateValue(Int);
       end;
     else
       {$IFDEF VerbosePasResolver}
@@ -1627,7 +1665,7 @@ begin
       UInt:=TResEvalUInt(LeftValue).UInt;
       case RightValue.Kind of
       revkInt:
-        TResEvalBool(Result).B:=(UInt<=High(MaxPrecInt))
+        TResEvalBool(Result).B:=(UInt<=HighIntAsUInt)
                                and (MaxPrecInt(UInt)=TResEvalInt(RightValue).Int);
       revkUInt:
         TResEvalBool(Result).B:=UInt=TResEvalUInt(RightValue).UInt;
@@ -1840,8 +1878,7 @@ begin
         Int:=trunc(Math.power(TResEvalInt(LeftValue).Int,TResEvalInt(RightValue).Int));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
       except
         RaiseOverflowArithmetic(20170530210533,Expr);
       end;
@@ -1852,8 +1889,7 @@ begin
         Int:=trunc(Math.power(TResEvalInt(LeftValue).Int,TResEvalUInt(RightValue).UInt));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
       except
         RaiseOverflowArithmetic(20170530211028,Expr);
       end;
@@ -1872,8 +1908,7 @@ begin
         Int:=trunc(Math.power(TResEvalUInt(LeftValue).UInt,TResEvalInt(RightValue).Int));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
       except
         RaiseOverflowArithmetic(20170530211102,Expr);
       end;
@@ -1884,8 +1919,7 @@ begin
         Int:=trunc(Math.power(TResEvalUInt(LeftValue).UInt,TResEvalUInt(RightValue).UInt));
         {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
         {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
-        Result:=TResEvalInt.Create;
-        TResEvalInt(Result).Int:=Int;
+        Result:=TResEvalInt.CreateValue(Int);
       except
         RaiseOverflowArithmetic(20170530211121,Expr);
       end;
@@ -1921,7 +1955,8 @@ begin
   {$IFDEF VerbosePasResEval}
   writeln('TResExprEvaluator.EvalFuncParams ');
   {$ENDIF}
-  if refConst in Flags then
+  Result:=OnEvalParams(Self,Expr,Flags);
+  if (refConst in Flags) and (Result=nil) then
     RaiseConstantExprExp(20170522173150,Expr);
 end;
 
@@ -1934,8 +1969,7 @@ begin
   {$ENDIF}
   if length(Expr.Params)=0 then
     begin
-    Result:=TResEvalValue.Create;
-    Result.Kind:=revkSetEmpty;
+    Result:=TResEvalValue.CreateKind(revkSetEmpty);
     exit;
     end;
   if refConst in Flags then
@@ -2147,16 +2181,10 @@ end;
 
 function TResExprEvaluator.CreateResEvalInt(UInt: MaxPrecUInt): TResEvalValue;
 begin
-  if UInt<=high(MaxPrecInt) then
-    begin
-    Result:=TResEvalInt.Create;
-    TResEvalInt(Result).Int:=MaxPrecInt(UInt);
-    end
+  if UInt<=HighIntAsUInt then
+    Result:=TResEvalInt.CreateValue(MaxPrecInt(UInt))
   else
-    begin
-    Result:=TResEvalUInt.Create;
-    TResEvalUInt(Result).UInt:=UInt;
-    end;
+    Result:=TResEvalUInt.CreateValue(UInt);
 end;
 
 function TResExprEvaluator.Eval(Expr: TPasExpr; Flags: TResEvalFlags
@@ -2196,24 +2224,21 @@ begin
         val(TPrimitiveExpr(Expr).Value,Int,Code);
         if Code=0 then
           begin
-          Result:=TResEvalInt.Create;
-          TResEvalInt(Result).Int:=Int;
+          Result:=TResEvalInt.CreateValue(Int);
           exit;
           end;
         // try MaxPrecUInt
         val(TPrimitiveExpr(Expr).Value,UInt,Code);
         if Code=0 then
           begin
-          Result:=TResEvalUInt.Create;
-          TResEvalUInt(Result).UInt:=UInt;
+          Result:=TResEvalUInt.CreateValue(UInt);
           exit;
           end;
         // try float
         val(TPrimitiveExpr(Expr).Value,Flo,Code);
         if Code=0 then
           begin
-          Result:=TResEvalFloat.Create;
-          TResEvalFloat(Result).FloatValue:=Flo;
+          Result:=TResEvalFloat.CreateValue(Flo);
           exit;
           end;
         RaiseRangeCheck(20170518202252,Expr);
@@ -2228,15 +2253,9 @@ begin
     end;
     end
   else if C=TNilExpr then
-    begin
-    Result:=TResEvalValue.Create;
-    Result.Kind:=revkNil;
-    end
+    Result:=TResEvalValue.CreateKind(revkNil)
   else if C=TBoolConstExpr then
-    begin
-    Result:=TResEvalBool.Create;
-    TResEvalBool(Result).B:=TBoolConstExpr(Expr).Value;
-    end
+    Result:=TResEvalBool.CreateValue(TBoolConstExpr(Expr).Value)
   else if C=TUnaryExpr then
     Result:=EvalUnaryExpr(TUnaryExpr(Expr),Flags)
   else if C=TBinaryExpr then
@@ -2327,7 +2346,7 @@ begin
           else if ExprValue.Kind=revkUInt then
             begin
             // uint in int..int
-            if (TResEvalUInt(ExprValue).UInt>MaxPrecUInt(High(MaxPrecInt)))
+            if (TResEvalUInt(ExprValue).UInt>HighIntAsUInt)
                 or (MaxPrecInt(TResEvalUInt(ExprValue).UInt)<RgInt.RangeStart)
                 or (MaxPrecInt(TResEvalUInt(ExprValue).UInt)>RgInt.RangeEnd) then
               begin
@@ -2483,6 +2502,12 @@ end;
 
 { TResEvalValue }
 
+constructor TResEvalValue.CreateKind(const aKind: TREVKind);
+begin
+  Create;
+  Kind:=aKind;
+end;
+
 function TResEvalValue.Clone: TResEvalValue;
 begin
   Result:=TResEvalValueClass(ClassType).Create;
@@ -2515,6 +2540,12 @@ begin
   Kind:=revkUInt;
 end;
 
+constructor TResEvalUInt.CreateValue(const aValue: MaxPrecUInt);
+begin
+  Create;
+  UInt:=aValue;
+end;
+
 function TResEvalUInt.Clone: TResEvalValue;
 begin
   Result:=inherited Clone;
@@ -2532,6 +2563,12 @@ constructor TResEvalInt.Create;
 begin
   inherited Create;
   Kind:=revkInt;
+end;
+
+constructor TResEvalInt.CreateValue(const aValue: MaxPrecInt);
+begin
+  Create;
+  Int:=aValue;
 end;
 
 function TResEvalInt.Clone: TResEvalValue;
@@ -2553,6 +2590,12 @@ begin
   Kind:=revkFloat;
 end;
 
+constructor TResEvalFloat.CreateValue(const aValue: MaxPrecFloat);
+begin
+  Create;
+  FloatValue:=aValue;
+end;
+
 function TResEvalFloat.Clone: TResEvalValue;
 begin
   Result:=inherited Clone;
@@ -2570,6 +2613,12 @@ constructor TResEvalString.Create;
 begin
   inherited Create;
   Kind:=revkString;
+end;
+
+constructor TResEvalString.CreateValue(const aValue: RawByteString);
+begin
+  Create;
+  S:=aValue;
 end;
 
 function TResEvalString.Clone: TResEvalValue;
@@ -2591,6 +2640,12 @@ begin
   Kind:=revkUnicodeString;
 end;
 
+constructor TResEvalUTF16.CreateValue(const aValue: UnicodeString);
+begin
+  Create;
+  S:=aValue;
+end;
+
 function TResEvalUTF16.Clone: TResEvalValue;
 begin
   Result:=inherited Clone;
@@ -2608,6 +2663,14 @@ constructor TResEvalEnum.Create;
 begin
   inherited Create;
   Kind:=revkEnum;
+end;
+
+constructor TResEvalEnum.CreateValue(const aValue: integer;
+  aIdentEl: TPasEnumValue);
+begin
+  Create;
+  Index:=aValue;
+  IdentEl:=aIdentEl;
 end;
 
 function TResEvalEnum.Clone: TResEvalValue;
@@ -2635,6 +2698,15 @@ begin
   Kind:=revkRangeInt;
 end;
 
+constructor TResEvalRangeInt.CreateValue(const aElKind: TRgIntElKind;
+  const aRangeStart, aRangeEnd: MaxPrecInt);
+begin
+  Create;
+  ElKind:=aElKind;
+  RangeStart:=aRangeStart;
+  RangeEnd:=aRangeEnd;
+end;
+
 function TResEvalRangeInt.Clone: TResEvalValue;
 begin
   Result:=inherited Clone;
@@ -2648,7 +2720,7 @@ begin
   Result:=ElementAsString(RangeStart)+'..'+ElementAsString(RangeEnd);
 end;
 
-function TResEvalRangeInt.ElementAsString(El: int64): string;
+function TResEvalRangeInt.ElementAsString(El: MaxPrecInt): string;
 begin
   case ElKind of
     revrikBool: if El=0 then Result:='false' else Result:='true';
@@ -2698,7 +2770,7 @@ begin
   Result:=Result+']';
 end;
 
-function TResEvalSetInt.ElementAsString(El: int64): string;
+function TResEvalSetInt.ElementAsString(El: MaxPrecInt): string;
 begin
   case ElKind of
     revsikEnum: Result:=TPasEnumValue(TPasEnumType(IdentEl).Values[El]).Name;

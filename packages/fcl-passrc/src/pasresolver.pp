@@ -1088,9 +1088,11 @@ type
     fExprEvaluator: TResExprEvaluator;
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: int64;
       MsgType: TMessageType; MsgNumber: integer; const Fmt: String;
-      Args: array of const; PosEl: TPasElement);
+      Args: array of const; PosEl: TPasElement); virtual;
     function OnExprEvalIdentifier(Sender: TResExprEvaluator;
-      Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue;
+      Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
+    function OnExprEvalParams(Sender: TResExprEvaluator;
+      Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
   protected
     // custom types (added by descendant resolvers)
@@ -1142,10 +1144,14 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_LowHigh_OnGetCallResult(Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_LowHigh_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out Evaluated: TResEvalValue); virtual;
     function BI_PredSucc_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_PredSucc_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_PredSucc_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out Evaluated: TResEvalValue); virtual;
     function BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; ArgNo: integer;
       RaiseOnError: boolean): integer;
@@ -7377,26 +7383,11 @@ begin
             TResEvalRangeInt(Result).RangeEnd:=$ffff;
           end;
         btAnsiChar:
-          begin
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikChar;
-          TResEvalRangeInt(Result).RangeStart:=0;
-          TResEvalRangeInt(Result).RangeEnd:=$ff
-          end;
+          Result:=TResEvalRangeInt.CreateValue(revrikChar,0,$ff);
         btWideChar:
-          begin
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikChar;
-          TResEvalRangeInt(Result).RangeStart:=0;
-          TResEvalRangeInt(Result).RangeEnd:=$ffff;
-          end;
+          Result:=TResEvalRangeInt.CreateValue(revrikChar,0,$ffff);
         btBoolean,btByteBool,btWordBool,btQWordBool:
-          begin
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revrikBool;
-          TResEvalRangeInt(Result).RangeStart:=0;
-          TResEvalRangeInt(Result).RangeEnd:=1;
-          end;
+          Result:=TResEvalRangeInt.CreateValue(revrikBool,0,1);
         btByte,
         btShortInt,
         btWord,
@@ -7421,6 +7412,41 @@ begin
     end;
   if refConst in Flags then
     RaiseConstantExprExp(20170518213616,Expr);
+end;
+
+function TPasResolver.OnExprEvalParams(Sender: TResExprEvaluator;
+  Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
+var
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+  C: TClass;
+  BuiltInProc: TResElDataBuiltInProc;
+begin
+  Result:=nil;
+  if Params.Value.CustomData is TResolvedReference then
+    begin
+    Ref:=TResolvedReference(Params.Value.CustomData);
+    Decl:=Ref.Declaration;
+    if Decl is TPasType then
+      Decl:=ResolveAliasType(TPasType(Decl));
+    C:=Decl.ClassType;
+
+    if C=TPasUnresolvedSymbolRef then
+      begin
+      if Decl.CustomData is TResElDataBuiltInProc then
+        begin
+        BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
+        {$IFDEF VerbosePas2JS}
+        writeln('TPasResolver.OnExprEvalParams BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
+        {$ENDIF}
+        case BuiltInProc.BuiltIn of
+          bfLength: BI_Length_OnEval(BuiltInProc,Params,Result);
+          bfLow,bfHigh: BI_LowHigh_OnEval(BuiltInProc,Params,Result);
+        end;
+        end;
+      end;
+    end;
+  if Flags=[] then ;
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
@@ -7983,6 +8009,223 @@ begin
   ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable]+[rrfReadable];
 end;
 
+procedure TPasResolver.BI_LowHigh_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out Evaluated: TResEvalValue);
+var
+  Param: TPasExpr;
+  ResolvedEl: TPasResolverResult;
+
+  procedure EvalRange(RangeExpr: TPasExpr);
+  var
+    Range: TResEvalValue;
+    EnumType: TPasEnumType;
+  begin
+    Range:=Eval(RangeExpr,[refConst]);
+    if Range=nil then
+      RaiseNotYetImplemented(20170601191258,RangeExpr);
+    case Range.Kind of
+    revkRangeInt:
+      case TResEvalRangeInt(Range).ElKind of
+        revrikBool:
+          if Proc.BuiltIn=bfLow then
+            Evaluated:=TResEvalBool.CreateValue(low(Boolean))
+          else
+            Evaluated:=TResEvalBool.CreateValue(high(Boolean));
+        revrikEnum:
+          begin
+          EnumType:=TResEvalRangeInt(Range).IdentEl as TPasEnumType;
+          if Proc.BuiltIn=bfLow then
+            Evaluated:=TResEvalEnum.CreateValue(
+              TResEvalRangeInt(Range).RangeStart,TPasEnumValue(EnumType.Values[0]))
+          else
+            Evaluated:=TResEvalEnum.CreateValue(
+              TResEvalRangeInt(Range).RangeEnd,
+              TPasEnumValue(EnumType.Values[EnumType.Values.Count-1]));
+          end;
+        revrikInt:
+          if Proc.BuiltIn=bfLow then
+            Evaluated:=TResEvalInt.CreateValue(TResEvalRangeInt(Range).RangeStart)
+          else
+            Evaluated:=TResEvalInt.CreateValue(TResEvalRangeInt(Range).RangeEnd);
+        revrikChar:
+          if Proc.BuiltIn=bfLow then
+            Evaluated:=TResEvalString.CreateValue(chr(TResEvalRangeInt(Range).RangeStart))
+          else if TResEvalRangeInt(Range).RangeEnd<256 then
+            Evaluated:=TResEvalString.CreateValue(chr(TResEvalRangeInt(Range).RangeEnd))
+          else
+            Evaluated:=TResEvalUTF16.CreateValue(widechar(TResEvalRangeInt(Range).RangeEnd));
+      else
+        RaiseNotYetImplemented(20170601195240,Param);
+      end;
+    revkRangeUInt:
+      if Proc.BuiltIn=bfLow then
+        Evaluated:=TResEvalUInt.CreateValue(TResEvalRangeUInt(Range).RangeStart)
+      else
+        Evaluated:=TResEvalUInt.CreateValue(TResEvalRangeUInt(Range).RangeEnd);
+    else
+      RaiseNotYetImplemented(20170601195336,Params);
+    end;
+  end;
+
+var
+  TypeEl: TPasType;
+  ArrayEl: TPasArrayType;
+  Value: TResEvalValue;
+  EnumType: TPasEnumType;
+  aSet: TResEvalSetInt;
+  Int: MaxPrecInt;
+  bt: TResolverBaseType;
+  MinInt, MaxInt: int64;
+begin
+  Evaluated:=nil;
+  Param:=Params.Params[0];
+  ComputeElement(Param,ResolvedEl,[]);
+  TypeEl:=ResolvedEl.TypeEl;
+  if ResolvedEl.BaseType=btContext then
+    begin
+    if TypeEl.ClassType=TPasArrayType then
+      begin
+      // array: result is first dimension
+      ArrayEl:=TPasArrayType(TypeEl);
+      if length(ArrayEl.Ranges)=0 then
+        begin
+        // dyn or open array
+        if Proc.BuiltIn=bfLow then
+          Evaluated:=TResEvalInt.CreateValue(0)
+        else if (ResolvedEl.IdentEl is TPasVariable)
+            and (TPasVariable(ResolvedEl.IdentEl).Expr is TPasExpr) then
+          begin
+          RaiseNotYetImplemented(20170601191003,Params);
+          end
+        else
+          exit;
+        end
+      else
+        begin
+        // static array
+        EvalRange(ArrayEl.Ranges[0]);
+        end;
+      end
+    else if TypeEl.ClassType=TPasSetType then
+      begin
+      TypeEl:=TPasSetType(TypeEl).EnumType;
+      if TypeEl.ClassType=TPasEnumType then
+        begin
+        EnumType:=TPasEnumType(TPasSetType(TypeEl).EnumType);
+        if Proc.BuiltIn=bfLow then
+          Evaluated:=TResEvalEnum.CreateValue(0,TPasEnumValue(EnumType.Values[0]))
+        else
+          Evaluated:=TResEvalEnum.CreateValue(EnumType.Values.Count-1,
+            TPasEnumValue(EnumType.Values[EnumType.Values.Count-1]));
+        end
+      else
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.BI_LowHigh_OnEval ',GetResolverResultDbg(ResolvedEl),' TypeEl=',TypeEl.ClassName);
+        {$ENDIF}
+        RaiseNotYetImplemented(20170601203026,Params);
+        end;
+      end;
+    end
+  else if ResolvedEl.BaseType=btSet then
+    begin
+    Value:=Eval(Param,[refAutoConst]);
+    if Value=nil then exit;
+    case Value.Kind of
+    revkSetOfInt:
+      begin
+      aSet:=TResEvalSetInt(Value);
+      if length(aSet.Ranges)=0 then
+        RaiseXExpectedButYFound(20170601201637,'ordinal value',Value.AsString,Param);
+      if Proc.BuiltIn=bfLow then
+        Int:=aSet.Ranges[0].RangeStart
+      else
+        Int:=aSet.Ranges[length(aSet.Ranges)-1].RangeEnd;
+      case aSet.ElKind of
+        revsikEnum:
+          begin
+          EnumType:=aSet.IdentEl as TPasEnumType;
+          Evaluated:=TResEvalEnum.CreateValue(Int,TPasEnumValue(EnumType.Values[Int]));
+          end;
+        revsikInt:
+          Evaluated:=TResEvalInt.CreateValue(Int);
+        revsikChar:
+          if Int<256 then
+            Evaluated:=TResEvalString.CreateValue(chr(Int))
+          else
+            Evaluated:=TResEvalUTF16.CreateValue(widechar(Int));
+        revsikWChar:
+          Evaluated:=TResEvalUTF16.CreateValue(widechar(Int));
+      end;
+      end;
+    else
+      RaiseXExpectedButYFound(20170601201237,'ordinal value',Value.AsString,Param);
+    end;
+    end
+  else if (TypeEl is TPasUnresolvedSymbolRef)
+      and (TypeEl.CustomData is TResElDataBaseType) then
+    begin
+    // low,high(base type)
+    bt:=TResElDataBaseType(TypeEl.CustomData).BaseType;
+    bt:=GetActualBaseType(bt);
+    if bt in btAllBooleans then
+      Evaluated:=TResEvalBool.CreateValue(Proc.BuiltIn=bfHigh)
+    else if bt=btQWord then
+      begin
+      if Proc.BuiltIn=bfLow then
+        Evaluated:=TResEvalInt.CreateValue(0)
+      else
+        Evaluated:=TResEvalUInt.CreateValue(High(QWord));
+      end
+    else if (bt in (btAllInteger-[btQWord])) and GetIntegerRange(bt,MinInt,MaxInt) then
+      begin
+      if Proc.BuiltIn=bfLow then
+        Evaluated:=TResEvalInt.CreateValue(MinInt)
+      else
+        Evaluated:=TResEvalInt.CreateValue(MaxInt);
+      end
+    else if bt in [btChar,btAnsiChar] then
+      begin
+      if Proc.BuiltIn=bfLow then
+        Evaluated:=TResEvalString.CreateValue(#0)
+      else
+        Evaluated:=TResEvalString.CreateValue(#255);
+      end
+    else if bt=btWideChar then
+      begin
+      if Proc.BuiltIn=bfLow then
+        Evaluated:=TResEvalUTF16.CreateValue(#0)
+      else
+        Evaluated:=TResEvalUTF16.CreateValue(#$ffff);
+      end
+    else
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.BI_LowHigh_OnEval ',GetResolverResultDbg(ResolvedEl));
+      {$ENDIF}
+      RaiseNotYetImplemented(20170602070738,Params);
+      end;
+    end
+  else if ResolvedEl.TypeEl is TPasRangeType then
+    begin
+    // e.g. type t = 2..10;
+    EvalRange(TPasRangeType(TypeEl).RangeExpr);
+    end
+  else
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.BI_LowHigh_OnEval ',GetResolverResultDbg(ResolvedEl));
+    {$ENDIF}
+    RaiseNotYetImplemented(20170601202353,Params);
+    end;
+  {$IFDEF VerbosePasResEval}
+  if Evaluated=nil then
+    writeln('TPasResolver.BI_LowHigh_OnEval ResolvedEl=',GetResolverResultDbg(ResolvedEl),' Evaluated NO SET')
+  else
+    writeln('TPasResolver.BI_LowHigh_OnEval ResolvedEl=',GetResolverResultDbg(ResolvedEl),' Evaluated=',Evaluated.AsDebugString);
+  {$ENDIF}
+end;
+
 function TPasResolver.BI_PredSucc_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 // check params of built in proc 'Pred' or 'Succ'
@@ -8012,6 +8255,12 @@ procedure TPasResolver.BI_PredSucc_OnGetCallResult(Proc: TResElDataBuiltInProc;
 begin
   ComputeElement(Params.Params[0],ResolvedEl,[]);
   ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable];
+end;
+
+procedure TPasResolver.BI_PredSucc_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out Evaluated: TResEvalValue);
+begin
+
 end;
 
 function TPasResolver.BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
@@ -8450,6 +8699,7 @@ begin
   fExprEvaluator:=TResExprEvaluator.Create;
   fExprEvaluator.OnLog:=@OnExprEvalLog;
   fExprEvaluator.OnEvalIdentifier:=@OnExprEvalIdentifier;
+  fExprEvaluator.OnEvalParams:=@OnExprEvalParams;
   PushScope(FDefaultScope);
 end;
 
@@ -9199,11 +9449,11 @@ begin
   if bfLow in TheBaseProcs then
     AddBuiltInProc('Low','function Low(const array or ordinal): ordinal or integer',
         @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,
-        nil,nil,bfLow);
+        @BI_LowHigh_OnEval,nil,bfLow);
   if bfHigh in TheBaseProcs then
     AddBuiltInProc('High','function High(const array or ordinal): ordinal or integer',
         @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,
-        nil,nil,bfHigh);
+        @BI_LowHigh_OnEval,nil,bfHigh);
   if bfPred in TheBaseProcs then
     AddBuiltInProc('Pred','function Pred(const ordinal): ordinal',
         @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,
