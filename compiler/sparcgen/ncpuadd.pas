@@ -56,7 +56,7 @@ interface
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
       cgbase,cgcpu,cgutils,
-      cpupara,
+      cpupara,cgsparc,
       ncon,nset,nadd,
       hlcgobj, ncgutil,cgobj;
 
@@ -264,7 +264,7 @@ interface
         force_reg_left_right(true,true);
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
@@ -338,8 +338,8 @@ interface
 
           if (rs.location.loc=LOC_CONSTANT) then
             begin
-              tcgsparc(cg).handle_reg_const_reg(list,A_SUBcc,lreg.reglo,lo(rs.location.value64),NR_G0);
-              tcgsparc(cg).handle_reg_const_reg(list,A_SUBXcc,lreg.reghi,hi(rs.location.value64),NR_G0);
+              tcgsparcgen(cg).handle_reg_const_reg(list,A_SUBcc,lreg.reglo,lo(rs.location.value64),NR_G0);
+              tcgsparcgen(cg).handle_reg_const_reg(list,A_SUBXcc,lreg.reghi,hi(rs.location.value64),NR_G0);
             end
           else
             begin
@@ -365,7 +365,7 @@ interface
                 if hi(right.location.value64)<>0 then
                   begin
                     hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reghi,hi(right.location.value64),hreg1);
+                    tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reghi,hi(right.location.value64),hreg1);
                   end
                 else
                   hreg1:=left.location.register64.reghi;
@@ -373,7 +373,7 @@ interface
                 if lo(right.location.value64)<>0 then
                   begin
                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reglo,lo(right.location.value64),hreg2);
+                    tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_XOR,left.location.register64.reglo,lo(right.location.value64),hreg2);
                   end
                 else
                   hreg2:=left.location.register64.reglo;
@@ -430,7 +430,7 @@ interface
                   not(is_signed(right.resultdef));
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparcgen(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
