@@ -877,6 +877,7 @@ type
     procedure RenameSubOverloads(Declarations: TFPList);
     procedure PushOverloadScope(Scope: TPasIdentifierScope);
     procedure PopOverloadScope;
+    procedure AddType(El: TPasType); override;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
       Access: TResolvedRefAccess); override;
@@ -1812,6 +1813,13 @@ end;
 procedure TPas2JSResolver.PopOverloadScope;
 begin
   FOverloadScopes.Delete(FOverloadScopes.Count-1);
+end;
+
+procedure TPas2JSResolver.AddType(El: TPasType);
+begin
+  inherited AddType(El);
+  if TopScope is TPasClassScope then
+    RaiseNotYetImplemented(20170608232534,El,'nested types');
 end;
 
 procedure TPas2JSResolver.ResolveImplAsm(El: TPasImplAsmStatement);

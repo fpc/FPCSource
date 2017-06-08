@@ -386,6 +386,9 @@ type
     Procedure TestClassOf_TypeCast;
     Procedure TestClassOf_ImplicitFunctionCall;
 
+    // nested class
+    Procedure TestNestedClass_Fail;
+
     // external class
     Procedure TestExternalClass_Var;
     //ToDo Procedure TestExternalClass_Const;
@@ -8904,6 +8907,20 @@ begin
     '$mod.TObject.Now();',
     '$mod.vI = $mod.TObject.Now();',
     '']));
+end;
+
+procedure TTestModule.TestNestedClass_Fail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    type TNested = longint;',
+  '  end;',
+  'begin']);
+  SetExpectedPasResolverError('not yet implemented: TNested:TPasAliasType [20170608232534] nested types',
+    nNotYetImplemented);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestExternalClass_Var;
