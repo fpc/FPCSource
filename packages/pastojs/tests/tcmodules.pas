@@ -323,6 +323,7 @@ type
     Procedure TestRecordElementFromFuncResult_AsParams;
     Procedure TestRecordElementFromWith_AsParams;
     Procedure TestRecord_Equal;
+    Procedure TestRecord_TypeCastJSValueToRecord;
     // ToDo: const record
 
     // classes
@@ -5933,6 +5934,39 @@ begin
     LinesToStr([
     '$mod.b = $mod.r.$equal($mod.s);',
     '$mod.b = !$mod.r.$equal($mod.s);',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_TypeCastJSValueToRecord;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRecord = record');
+  Add('    i: longint;');
+  Add('  end;');
+  Add('var');
+  Add('  Jv: jsvalue;');
+  Add('  Rec: trecord;');
+  Add('begin');
+  Add('  rec:=trecord(jv);');
+  ConvertProgram;
+  CheckSource('TestRecord_TypeCastJSValueToRecord',
+    LinesToStr([ // statements
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.Jv = undefined;',
+    'this.Rec = new $mod.TRecord();'
+    ]),
+    LinesToStr([
+    '$mod.Rec = new $mod.TRecord(rtl.getObject($mod.Jv));',
     '']));
 end;
 

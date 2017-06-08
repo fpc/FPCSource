@@ -248,6 +248,7 @@ Works:
 - dotted unit names, namespaces
 
 ToDos:
+- change some == into ===
 - constant evaluation
 - static arrays
 - property index specifier
@@ -257,6 +258,7 @@ ToDos:
     - defaultvalue
   - type alias type
   - documentation
+- sourcemaps
 - move local types to unit scope
 - local var absolute
 - FuncName:= (instead of Result:=)
@@ -5449,6 +5451,7 @@ begin
       TargetProcType:=TPasProcedure(Decl).ProcType
     else if (C=TPasClassType)
         or (C=TPasClassOfType)
+        or (C=TPasRecordType)
         or (C=TPasEnumType)
         or (C=TPasArrayType) then
       begin
@@ -5465,7 +5468,8 @@ begin
         if JSBaseType=pbtJSValue then
           begin
           if (C=TPasClassType)
-              or (C=TPasClassOfType) then
+              or (C=TPasClassOfType)
+              or (C=TPasRecordType) then
             begin
             // TObject(jsvalue)  ->  rtl.getObject(jsvalue)
             Call:=CreateCallExpression(El);
