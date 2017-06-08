@@ -15,6 +15,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 850
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -2494,7 +2497,7 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Fun
 % Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
 % To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
 % or replace the function call by alternative code
-cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) für das aktuelle Zielsystem erreicht
+cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) fÅr das aktuelle Zielsystem erreicht
 % Depending of target architecture, the number of units is limited. This limit
 % has been reached. A unit counts only if it contains initialization or finalization count.
 %
@@ -3496,8 +3499,8 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Die Sammlung der "symbol livene
 % actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1" fÅr die Gesamtprogramm-Optimierung kann nicht erzeugt werden
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
-%
 %\end{description}
+%
 # EndOfTeX
 
 #
@@ -3854,7 +3857,7 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 **2Mmacpas_KompatibilitÑts-Modus fÅr MacIntosh Pascal-Dialekte
 **2Miso_ISO 7185 Modus
 **2Mextendedpascal_ISO 10206 Modus
-**2Mdelphiunicode_KompatibilitÑts-Modus fÅr  Delphi 2009 und spÑter
+**2Mdelphiunicode_KompatibilitÑts-Modus fÅr Delphi 2009 und spÑter
 **1n_Standard-Konfigurationsdatei ignorieren
 **1o<x>_Die erzeugte, ausfÅhrbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
