@@ -2760,6 +2760,7 @@ implementation
            storedpattern: string;
            callflags: tcallnodeflags;
            t : ttoken;
+           wasgenericdummy,
            allowspecialize,
            isspecialize,
            unit_found : boolean;
@@ -2891,6 +2892,40 @@ implementation
                      end;
                  end;
 
+               wasgenericdummy:=false;
+               if assigned(srsym) and
+                   (sp_generic_dummy in srsym.symoptions) and
+                   (
+                     (
+                       (m_delphi in current_settings.modeswitches) and
+                       not (token in [_LT, _LSHARPBRACKET]) and
+                       (srsym.typ=typesym) and
+                       (ttypesym(srsym).typedef.typ=undefineddef)
+                     )
+                     or
+                     (
+                       not (m_delphi in current_settings.modeswitches) and
+                       not isspecialize and
+                       (
+                         not parse_generic or
+                         not (
+                           assigned(current_structdef) and
+                           assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
+                         )
+                       )
+                     )
+                   ) then
+                 begin
+                   srsym:=resolve_generic_dummysym(srsym.name);
+                   if assigned(srsym) then
+                     srsymtable:=srsym.owner
+                   else
+                     begin
+                       srsymtable:=nil;
+                       wasgenericdummy:=true;
+                     end;
+                 end;
+
                { check hints, but only if it isn't a potential generic symbol;
                  that is checked in sub_expr if it isn't a generic }
                if assigned(srsym) and
@@ -2943,7 +2978,10 @@ implementation
                      end
                    else
                      begin
-                       identifier_not_found(orgstoredpattern,tokenpos);
+                       if wasgenericdummy then
+                         messagepos(tokenpos,parser_e_no_generics_as_types)
+                       else
+                         identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
                        srsymtable:=nil;
                      end;

@@ -12,7 +12,7 @@ type
   end;
 	    
 var
-  b : Testclass.TList;
+  b : specialize Testclass<LongInt>.TList;
 	      
 	    
 implementation
