@@ -633,9 +633,12 @@ implementation
                     if not (m_delphi in current_settings.modeswitches) then
                       Message1(sym_e_duplicate_id,genorgtypename)
                     else
-                      { we need to find this symbol even if it's a variable or
-                        something else when doing an inline specialization }
-                      Include(sym.symoptions,sp_generic_dummy);
+                      begin
+                        { we need to find this symbol even if it's a variable or
+                          something else when doing an inline specialization }
+                        Include(sym.symoptions,sp_generic_dummy);
+                        add_generic_dummysym(sym);
+                      end;
                 end
               else
                 begin
@@ -724,7 +727,11 @@ implementation
                         current_module.checkforwarddefs.add(hdef);
                     end;
                   if not assigned(hdef.typesym) then
-                    hdef.typesym:=newtype;
+                    begin
+                      hdef.typesym:=newtype;
+                      if sp_generic_dummy in newtype.symoptions then
+                        add_generic_dummysym(newtype);
+                    end;
                 end;
               { in non-Delphi modes we need a reference to the generic def
                 without the generic suffix, so it can be found easily when
