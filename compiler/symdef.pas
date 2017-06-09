@@ -1488,42 +1488,8 @@ implementation
               end
             else
               begin
-                if addgenerics and
-                    (sp_generic_dummy in sym.symoptions)
-                    then
-                  begin
-                    { did we already search for a generic with that name? }
-                    list:=tfpobjectlist(current_module.genericdummysyms.find(sym.name));
-                    if not assigned(list) then
-                      begin
-                        list:=tfpobjectlist.create(true);
-                        current_module.genericdummysyms.add(sym.name,list);
-                      end;
-                    { is the dummy sym still "dummy"? }
-                    if (sym.typ=typesym) and
-                        (
-                          { dummy sym defined in mode Delphi }
-                          (ttypesym(sym).typedef.typ=undefineddef) or
-                          { dummy sym defined in non-Delphi mode }
-                          (tstoreddef(ttypesym(sym).typedef).is_generic)
-                        ) then
-                      begin
-                        { do we have a non-generic type of the same name
-                          available? }
-                        if not searchsym_with_flags(sym.name,srsym,srsymtable,[ssf_no_addsymref]) then
-                          srsym:=nil;
-                      end
-                    else
-                      { dummy symbol is already not so dummy anymore }
-                      srsym:=nil;
-                    if assigned(srsym) then
-                      begin
-                        entry:=tgenericdummyentry.create;
-                        entry.resolvedsym:=srsym;
-                        entry.dummysym:=sym;
-                        list.add(entry);
-                      end;
-                  end;
+                if addgenerics then
+                  add_generic_dummysym(sym);
                 { add nested helpers as well }
                 if (def.typ in [recorddef,objectdef]) and
                     (sto_has_helper in tabstractrecorddef(def).symtable.tableoptions) then

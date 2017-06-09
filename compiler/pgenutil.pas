@@ -49,6 +49,7 @@ uses
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
     function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
+    procedure add_generic_dummysym(sym:tsym);
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
 
@@ -1499,6 +1500,50 @@ uses
             end;
         nongeneric:=name;
         count:=0;
+      end;
+
+
+    procedure add_generic_dummysym(sym:tsym);
+      var
+        list: TFPObjectList;
+        srsym : tsym;
+        srsymtable : tsymtable;
+        entry : tgenericdummyentry;
+      begin
+        if sp_generic_dummy in sym.symoptions then
+          begin
+            { did we already search for a generic with that name? }
+            list:=tfpobjectlist(current_module.genericdummysyms.find(sym.name));
+            if not assigned(list) then
+              begin
+                list:=tfpobjectlist.create(true);
+                current_module.genericdummysyms.add(sym.name,list);
+              end;
+            { is the dummy sym still "dummy"? }
+            if (sym.typ=typesym) and
+                (
+                  { dummy sym defined in mode Delphi }
+                  (ttypesym(sym).typedef.typ=undefineddef) or
+                  { dummy sym defined in non-Delphi mode }
+                  (tstoreddef(ttypesym(sym).typedef).is_generic)
+                ) then
+              begin
+                { do we have a non-generic type of the same name
+                  available? }
+                if not searchsym_with_flags(sym.name,srsym,srsymtable,[ssf_no_addsymref]) then
+                  srsym:=nil;
+              end
+            else
+              { dummy symbol is already not so dummy anymore }
+              srsym:=nil;
+            if assigned(srsym) then
+              begin
+                entry:=tgenericdummyentry.create;
+                entry.resolvedsym:=srsym;
+                entry.dummysym:=sym;
+                list.add(entry);
+              end;
+          end;
       end;
 
 
