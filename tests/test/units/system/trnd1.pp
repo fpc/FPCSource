@@ -19,7 +19,7 @@ begin
       upperlimit:=1 shl i;
       setlength(a,upperlimit);
       for j:=0 to upperlimit-1 do
-        a[j]:=random(1 shl lg2upperlimit)+ 1);
+        a[j]:=random((1 shl lg2upperlimit)+ 1);
       FillChar(histogram,sizeof(histogram),0);
       for j:=0 to upperlimit-1 do
         inc(histogram[a[j]]);
