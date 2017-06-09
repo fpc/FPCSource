@@ -321,10 +321,23 @@ implementation
     procedure t68kaddnode.second_cmpsmallset;
      var
        tmpreg : tregister;
+       opsize: topsize;
+       cmpsize : tcgsize;
      begin
        pass_left_right;
 
        location_reset(location,LOC_FLAGS,OS_NO);
+
+       cmpsize:=def_cgsize(left.resultdef);
+       opsize:=tcgsize2opsize[cmpsize];
+
+       { Coldfire supports byte/word compares only starting with ISA_B,
+         See remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
+       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
+         begin
+           cmpsize:=OS_32;
+           opsize:=S_L;
+         end;
 
        if (not(nf_swapped in flags) and
            (nodetype = lten)) or
@@ -334,17 +347,17 @@ implementation
 
        { Try to keep right as a constant }
        if right.location.loc<>LOC_CONSTANT then
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
-       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),true);
+       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cmpsize),true);
 
        case nodetype of
          equaln,
          unequaln:
            begin
              if right.location.loc=LOC_CONSTANT then
-               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,right.location.value,left.location.register))
+               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,right.location.value,left.location.register))
              else
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register,left.location.register));
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,right.location.register,left.location.register));
              if nodetype=equaln then
                location.resflags:=F_E
              else
@@ -355,9 +368,9 @@ implementation
            begin
              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
              if right.location.loc=LOC_CONSTANT then
-               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
-             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
-             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,right.location.register));
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cmpsize),false);
+             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,cmpsize,left.location.register,right.location.register,tmpreg);
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,tmpreg,right.location.register));
              location.resflags:=F_E;
            end;
          else
