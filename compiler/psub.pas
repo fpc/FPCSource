@@ -1877,10 +1877,12 @@ implementation
          entryswitches:=current_settings.localswitches;
 
          recordtokens:=procdef.is_generic or
-                         (
-                           assigned(current_procinfo.procdef.struct) and
-                           (df_generic in current_procinfo.procdef.struct.defoptions)
-                         );
+                       (
+                         assigned(procdef.struct) and
+                         (df_generic in procdef.struct.defoptions) and
+                         assigned(procdef.owner) and
+                         (procdef.owner.defowner=procdef.struct)
+                       );
 
          if recordtokens then
            begin
@@ -2094,6 +2096,10 @@ implementation
             (
               not assigned(current_procinfo.procdef.struct) or
               not (df_specialization in current_procinfo.procdef.struct.defoptions)
+              or not (
+                assigned(current_procinfo.procdef.owner) and
+                (current_procinfo.procdef.owner.defowner=current_procinfo.procdef.struct)
+              )
             ) then
           consume(_SEMICOLON);
 
