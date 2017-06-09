@@ -10,7 +10,7 @@ var
   a : array of word;
   i,j : longint;
   upperlimit : longint;
-  histogram : array[0.. 1 shl lg2upperlimit] of longint;
+  histogram : array[0..high(word)] of longint;
   entropy : double;
 begin
   randomize;
@@ -19,7 +19,7 @@ begin
       upperlimit:=1 shl i;
       setlength(a,upperlimit);
       for j:=0 to upperlimit-1 do
-        a[j]:=random((1 shl lg2upperlimit)+ 1);
+        a[j]:=random(high(word)+1);
       FillChar(histogram,sizeof(histogram),0);
       for j:=0 to upperlimit-1 do
         inc(histogram[a[j]]);
