@@ -1,16 +1,21 @@
+{**********************************************************************************************
+  Please modify this test only if you know exactly what you are doing
+ **********************************************************************************************}
 uses
   math;
 const
 {$if defined(CPU8) or defined(CPU16)}
   lg2upperlimit = 14;
+  upperrandomlimit= high(word) div 8;
 {$else}
   lg2upperlimit = 22;
+  upperrandomlimit= high(word);
 {$endif}
 var
   a : array of word;
   i,j : longint;
   upperlimit : longint;
-  histogram : array[0..high(word)] of longint;
+  histogram : array[0..upperrandomlimit] of longint;
   entropy : double;
 begin
   randomize;
@@ -19,7 +24,7 @@ begin
       upperlimit:=1 shl i;
       setlength(a,upperlimit);
       for j:=0 to upperlimit-1 do
-        a[j]:=random(high(word)+1);
+        a[j]:=random(upperrandomlimit+1);
       FillChar(histogram,sizeof(histogram),0);
       for j:=0 to upperlimit-1 do
         inc(histogram[a[j]]);
