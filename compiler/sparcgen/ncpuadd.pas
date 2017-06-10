@@ -38,9 +38,8 @@ interface
           procedure second_cmpfloat;override;
           procedure second_cmpboolean;override;
           procedure second_cmpsmallset;override;
-{$ifndef SPARC64}
           procedure second_cmp64bit;override;
-{$endif SPARC64}
+          procedure second_add64bit;override;
           procedure second_cmpordinal;override;
           procedure second_addordinal;override;
        public
@@ -55,10 +54,10 @@ interface
       cutils,verbose,
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
-      cgbase,cgcpu,cgutils,
-      cpupara,cgsparc,
+      cgbase,cgsparc,cgcpu,cgutils,
+      cpupara,
       ncon,nset,nadd,
-      hlcgobj, ncgutil,cgobj;
+      hlcgobj,ncgutil,cgobj;
 
 {*****************************************************************************
                                TSparcAddNode
@@ -308,8 +307,23 @@ interface
         end;
       end;
 
-{$ifndef SPARC64}
+
+    procedure tsparcaddnode.second_add64bit;
+      begin
+{$ifdef SPARC64}
+        second_addordinal;
+{$else SPARC64}
+        inherited second_add64bit;
+{$endif SPARC64}
+      end;
+
+
     procedure tsparcaddnode.second_cmp64bit;
+{$ifdef SPARC64}
+      begin
+        second_cmpordinal;
+      end;
+{$else SPARC64}
       var
         unsigned   : boolean;
         hreg1,hreg2: tregister;
@@ -438,7 +452,6 @@ interface
         location.resflags:=getresflags(unsigned);
       end;
 
-
     const
       multops: array[boolean] of TAsmOp = (A_SMUL, A_UMUL);
 
@@ -446,7 +459,6 @@ interface
       var
         unsigned: boolean;
       begin
-{$ifndef SPARC64}
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
@@ -455,13 +467,17 @@ interface
             pass_left_right;
             force_reg_left_right(true,false);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+{$ifdef SPARC64}
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],left.location.register,right.location.register,location.register));
+{$else SPARC64}
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],left.location.register,right.location.register,location.register64.reglo));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV,NR_Y,location.register64.reghi));
+{$endif SPARC64}
           end
         else
-{$endif SPARC64}
           inherited second_addordinal;
       end;
 
