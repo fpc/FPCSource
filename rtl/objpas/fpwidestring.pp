@@ -680,7 +680,7 @@ end;
 
 function StrLCompAnsiString(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 begin
-  if (current_Collation.DataPtr=nil) then
+  if (current_Collation=nil) then
     exit(OldManager.StrLCompAnsiStringProc(s1,s2,MaxLen));
   if (MaxLen=0) then
     exit(0);
@@ -691,7 +691,7 @@ function CompareStrAnsiString(const S1, S2: ansistring): PtrInt;
 var
   l1, l2 : PtrInt;
 begin
-  if (current_Collation.DataPtr=nil) then
+  if (current_Collation=nil) then
     exit(OldManager.CompareStrAnsiStringProc(s1,s2));
   if (Pointer(S1)=Pointer(S2)) then
     exit(0);
@@ -720,7 +720,7 @@ function StrCompAnsiString(S1, S2: PChar): PtrInt;
 var
   l1,l2 : PtrInt;
 begin
-  if (current_Collation.DataPtr=nil) then
+  if (current_Collation=nil) then
     exit(OldManager.StrCompAnsiStringProc(s1,s2));
   l1:=strlen(S1);
   l2:=strlen(S2);
