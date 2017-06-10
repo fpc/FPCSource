@@ -155,10 +155,16 @@ Interface
          if is_register(actasmpattern) then
            exit;
          actrel:=addr_no;
-         if (actasmpattern='%HI') then
+         if actasmpattern='%HI' then
            actrel:=addr_high
-         else if (actasmpattern='%LO')then
+         else if actasmpattern='%LO' then
            actrel:=addr_low
+{$ifdef SPARC64}
+         else if actasmpattern='%GDOP_HIX2' then
+           actrel:=addr_gdop_hix22
+         else if actasmpattern='%GDOP_LOX2' then
+           actrel:=addr_gdop_lox22
+{$endif SPARC64}
          else
            Message(asmr_e_invalid_register);
          if (actrel<>addr_no) then

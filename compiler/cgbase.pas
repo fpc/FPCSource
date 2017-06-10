@@ -110,6 +110,10 @@ interface
          ,addr_gotpage
          ,addr_gotpageoffset
          {$ENDIF AARCH64}
+         {$ifdef SPARC64}
+         ,addr_gdop_hix22
+         ,addr_gdop_lox22
+         {$endif SPARC64}
          );
 
 

@@ -675,6 +675,7 @@ compiler/sparc/rspstab.inc svneol=native#text/plain
 compiler/sparc/rspstd.inc svneol=native#text/plain
 compiler/sparc/rspsup.inc svneol=native#text/plain
 compiler/sparc64/cgcpu.pas svneol=native#text/pascal
+compiler/sparc64/cpugas.pas svneol=native#text/pascal
 compiler/sparc64/cpuinfo.pas svneol=native#text/plain
 compiler/sparc64/cpunode.pas svneol=native#text/plain
 compiler/sparc64/cpupara.pas svneol=native#text/plain
