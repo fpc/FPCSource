@@ -91,7 +91,7 @@ interface
     function get_segment_base_address(d : word) : longint;
     function set_segment_base_address(d : word;s : longint) : boolean;
     function set_segment_limit(d : word;s : longint) : boolean;
-    function set_descriptor_access_right(d : word;w : word) : longint;
+    function set_descriptor_access_right(d : word;w : word) : boolean;
     function create_code_segment_alias_descriptor(seg : word) : word;
     function get_linear_addr(phys_addr : longint;size : longint) : longint;
     function free_linear_addr_mapping(linear_addr: dword): boolean;
@@ -987,7 +987,7 @@ interface
          end;
       end;
 
-    function set_descriptor_access_right(d : word;w : word) : longint;
+    function set_descriptor_access_right(d : word;w : word) : boolean;
 
       begin
          asm
@@ -998,7 +998,7 @@ interface
             int $0x31
             pushf
             call test_int31
-            movw %ax,__RESULT
+            movb %ax,__RESULT
             popl %ebx
          end;
       end;
