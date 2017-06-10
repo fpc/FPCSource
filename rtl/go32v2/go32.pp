@@ -12,7 +12,7 @@
 
  **********************************************************************}
 
-unit go32;
+unit go32fix;
 
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
 
@@ -89,16 +89,16 @@ interface
     function segment_to_descriptor(seg : word) : word;
     function get_next_selector_increment_value : word;
     function get_segment_base_address(d : word) : longint;
-    function set_segment_base_address(d : word;s : longint) : boolean;
-    function set_segment_limit(d : word;s : longint) : boolean;
+    function set_segment_base_address(d : word;s : dword) : boolean;
+    function set_segment_limit(d : word;s : dword): boolean;
     function set_descriptor_access_right(d : word;w : word) : boolean;
     function create_code_segment_alias_descriptor(seg : word) : word;
-    function get_linear_addr(phys_addr : longint;size : longint) : longint;
+    function get_linear_addr(phys_addr : dword;size : longint) : dword;
     function free_linear_addr_mapping(linear_addr: dword): boolean;
-    function get_segment_limit(d : word) : longint;
+    function get_segment_limit(d : word) : dword;
     function get_descriptor_access_right(d : word) : longint;
     function get_page_size:longint;
-    function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
+    function map_device_in_memory_block(handle,offset,pagecount,device:dword):boolean;
     function get_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
     function set_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
     function realintr(intnr : word;var regs : trealregs) : boolean;
@@ -969,7 +969,7 @@ interface
          unlock_code:=unlock_linear_region(linearaddr,size);
       end;
 
-    function set_segment_base_address(d : word;s : longint) : boolean;
+    function set_segment_base_address(d : word;s : dword) : boolean;
 
       begin
          asm
@@ -998,12 +998,12 @@ interface
             int $0x31
             pushf
             call test_int31
-            movb %ax,__RESULT
+            movb %al,__RESULT
             popl %ebx
          end;
       end;
 
-    function set_segment_limit(d : word;s : longint) : boolean;
+    function set_segment_limit(d : word;s : dword) : boolean;
 
       begin
          asm
@@ -1033,7 +1033,7 @@ interface
             movl %eax,__RESULT
          end;
       end;
-    function get_segment_limit(d : word) : longint;
+    function get_segment_limit(d : word) : dword;
 
       begin
          asm
@@ -1076,7 +1076,7 @@ interface
          end;
       end;
 
-    function get_linear_addr(phys_addr : longint;size : longint) : longint;
+    function get_linear_addr(phys_addr : dword;size : longint) : dword;
 
       begin
          asm
@@ -1143,7 +1143,7 @@ interface
          get_run_mode:=_run_mode;
       end;
 
-    function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
+    function map_device_in_memory_block(handle,offset,pagecount,device:dword):boolean;
       begin
          asm
            pushl %ebx
