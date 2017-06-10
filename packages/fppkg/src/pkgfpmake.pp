@@ -26,7 +26,7 @@ type
   protected
     function DeterminePackage: TFPPackage;
   Public
-    Procedure Execute;override;
+    function Execute: Boolean; override;
   end;
 
 
@@ -43,7 +43,7 @@ type
 
   TFPMakeRunnerCompile = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
 
@@ -51,7 +51,7 @@ type
 
   TFPMakeRunnerBuild = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
 
@@ -61,7 +61,7 @@ type
   protected
     function IncludeInstallationOptions: Boolean; override;
   Public
-    procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerUnInstall }
@@ -70,28 +70,28 @@ type
   protected
     function IncludeInstallationOptions: Boolean; override;
   Public
-    procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerClean }
 
   TFPMakeRunnerClean = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerManifest }
 
   TFPMakeRunnerManifest = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerArchive }
 
   TFPMakeRunnerArchive = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
    TMyMemoryStream=class(TMemoryStream)
@@ -147,7 +147,7 @@ begin
     Raise EPackage.CreateFmt(SErrMissingPackage,[PackageName]);
 end;
 
-Procedure TFPMakeCompiler.Execute;
+function TFPMakeCompiler.Execute: Boolean;
 var
   OOptions : string;
 
@@ -214,6 +214,7 @@ Var
   DepPackage: TFPPackage;
   DepDirList: TStringList;
 begin
+  Result := True;
   P:=DeterminePackage;
   NeedFPMKUnitSource:=false;
   OOptions:='';
@@ -386,6 +387,7 @@ Var
   end;
 
 begin
+  Result := -1;
   OOptions:='';
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
@@ -401,10 +403,14 @@ begin
       if (command<>'archive') and (command<>'manifest') and
          (not(PackageManager.CompilerOptions.CompilerOS in P.OSes) or
           not(PackageManager.CompilerOptions.CompilerCPU in P.CPUs)) then
-        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,PackageManager.CompilerOptions.CompilerOS)]);
+        begin
+          Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,PackageManager.CompilerOptions.CompilerOS)]);
+          Exit;
+        end;
     end;
   { Maybe compile fpmake executable? }
-  ExecuteAction(PackageName,'compilefpmake');
+  if not ExecuteAction(PackageName,'compilefpmake') then
+    Exit;
   { Create options }
   if llDebug in LogLevels then
     AddOption('--debug')
@@ -479,15 +485,15 @@ begin
 end;
 
 
-procedure TFPMakeRunnerCompile.Execute;
+function TFPMakeRunnerCompile.Execute: Boolean;
 begin
-  RunFPMake('compile');
+  Result := RunFPMake('compile') = 0;
 end;
 
 
-procedure TFPMakeRunnerBuild.Execute;
+function TFPMakeRunnerBuild.Execute: Boolean;
 begin
-  RunFPMake('build');
+  Result := RunFPMake('build') = 0;
 end;
 
 function TFPMakeRunnerInstall.IncludeInstallationOptions: Boolean;
@@ -495,9 +501,9 @@ begin
   Result := True;
 end;
 
-procedure TFPMakeRunnerInstall.Execute;
+function TFPMakeRunnerInstall.Execute: Boolean;
 begin
-  RunFPMake('install');
+  Result := RunFPMake('install') = 0;
 end;
 
 function TFPMakeRunnerUnInstall.IncludeInstallationOptions: Boolean;
@@ -505,25 +511,25 @@ begin
   Result := True;
 end;
 
-procedure TFPMakeRunnerUnInstall.Execute;
+function TFPMakeRunnerUnInstall.Execute: Boolean;
 begin
-  RunFPMake('uninstall');
+  Result := RunFPMake('uninstall') = 0;
 end;
 
 
-procedure TFPMakeRunnerClean.Execute;
+function TFPMakeRunnerClean.Execute: Boolean;
 begin
-  RunFPMake('clean');
+  Result := RunFPMake('clean') = 0;
 end;
 
 
-procedure TFPMakeRunnerManifest.Execute;
+function TFPMakeRunnerManifest.Execute: Boolean;
 begin
-  RunFPMake('manifest');
+  Result := RunFPMake('manifest') = 0;
 end;
 
 
-procedure TFPMakeRunnerArchive.Execute;
+function TFPMakeRunnerArchive.Execute: Boolean;
 var
   StoredLocalPrefix: string;
   StoredGlobalPrefix: string;
@@ -534,7 +540,7 @@ begin
   PackageManager.CompilerOptions.GlobalPrefix := '';
   PackageManager.CompilerOptions.LocalPrefix := '';
   try
-    RunFPMake('archive');
+    Result := RunFPMake('archive') = 0;
   finally
     PackageManager.CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
     PackageManager.CompilerOptions.LocalPrefix := StoredLocalPrefix;

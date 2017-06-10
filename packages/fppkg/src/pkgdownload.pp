@@ -30,7 +30,7 @@ Type
 
   TDownloadPackage = Class(TPackagehandler)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
 procedure RegisterDownloader(const AName:string;Downloaderclass:TBaseDownloaderClass);
@@ -159,12 +159,13 @@ end;
 
 { TDownloadPackage }
 
-procedure TDownloadPackage.Execute;
+function TDownloadPackage.Execute: Boolean;
 var
   DownloaderClass : TBaseDownloaderClass;
   P : TFPPackage;
   RemoteArchive: string;
 begin
+  Result := False;
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
   DownloaderClass:=GetDownloader(PackageManager.Options.GlobalSection.Downloader);
   if Assigned(DownloaderClass) then
@@ -182,6 +183,7 @@ begin
                 ForceDirectories(PackageManager.Options.GlobalSection.ArchivesDir);
 
               Download(RemoteArchive,PackageManager.PackageLocalArchive(P));
+              Result := True;
             end
           else
             Error(SErrDownloadPackageFailed);
