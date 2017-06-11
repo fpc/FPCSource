@@ -231,6 +231,7 @@
              ,as_m68k_vasm
              ,as_m68k_as_aout
              ,as_wasm_binaryen
+             ,as_powerpc_gas_legacy    { for systems with very old GAS versions only, which don't support eg. named sections }
        );
 
        tlink = (ld_none,

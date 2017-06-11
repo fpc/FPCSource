@@ -29,7 +29,7 @@ unit agppcgas;
 {$i fpcdefs.inc}
 
   interface
-  
+
     uses
        systems,aasmbase,
        aasmtai,aasmdata,
@@ -161,7 +161,7 @@ unit agppcgas;
              end;
 {$ifdef cpu64bitaddr}
            if (refaddr=addr_pic) and
-	      (target_info.system=system_powerpc64_linux) then
+              (target_info.system=system_powerpc64_linux) then
              s := s + '@got';
 {$endif cpu64bitaddr}
 
@@ -642,6 +642,23 @@ unit agppcgas;
          dollarsign: '$';
        );
 
+    as_ppc_gas_legacy_info : tasminfo =
+       (
+         id     : as_powerpc_gas_legacy;
+
+         idtxt  : 'AS-LEGACY';
+         asmbin : 'as';
+{$ifdef cpu64bitaddr}
+         asmcmd : '-a64 $ENDIAN -o $OBJ $EXTRAOPT $ASM';
+{$else cpu64bitaddr}
+         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ARCH $ASM';
+{$endif cpu64bitaddr}
+         supported_targets : [system_powerpc_morphos];
+         flags : [af_needar];
+         labelprefix : '.L';
+         comment : '# ';
+         dollarsign: '$';
+       );
 
     as_ppc_gas_darwin_powerpc_info : tasminfo =
        (
@@ -704,6 +721,7 @@ unit agppcgas;
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_legacy_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
   RegisterAssembler(as_ppc_aix_powerpc_info,TPPCAIXAssembler);
   RegisterAssembler(as_ppc_gas_aix_powerpc_info,TPPCAIXAssembler);
