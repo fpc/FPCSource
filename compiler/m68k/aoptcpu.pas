@@ -135,7 +135,6 @@ unit aoptcpu;
     var
       next, next2: tai;
       opstr: string[15];
-      TmpUsedRegs : TAllUsedRegs;
     begin
       result:=false;
 
@@ -146,11 +145,8 @@ unit aoptcpu;
          (taicpu(p).oper[1]^.typ = top_reg) and
          MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[0]^) then
         begin
-          CopyUsedRegs(TmpUsedRegs);
-          UpdateUsedRegs(TmpUsedRegs, tai(next));
-
           if not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next).oper[1]^)) and
-             not(RegUsedAfterInstruction(taicpu(next).oper[0]^.reg,next,TmpUsedRegs)) then
+             RegEndOfLife(taicpu(next).oper[0]^.reg, taicpu(next)) then
             begin
               opstr:=opname(p);
               case taicpu(p).oper[0]^.typ of
@@ -199,7 +195,6 @@ unit aoptcpu;
                   end;
               end;
             end;
-          ReleaseUsedRegs(TmpUsedRegs);
           exit;
         end;
 
@@ -221,30 +216,27 @@ unit aoptcpu;
           opstr:=opname(p);
 
           if not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next2).oper[1]^)) and
-             not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next).oper[0]^)) then
+             not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(next).oper[0]^)) and
+             RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(next2)) then
             begin
-              CopyUsedRegs(TmpUsedRegs);
-              UpdateUsedRegs(TmpUsedRegs, tai(next));
-              UpdateUsedRegs(TmpUsedRegs, tai(next2));
-              if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,next2,TmpUsedRegs)) then
+              {  move %reg0, %tmpreg
+                 op   ???, %tmpreg
+                 move %tmpreg, %reg0
+                 to:
+                 op   ???, %reg0 }
+              if MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[taicpu(next).ops-1]^) then
                 begin
-                  {  move %reg0, %tmpreg
-                     op   ???, %tmpreg
-                     move %tmpreg, %reg0
-                     to:
-                     op   ???, %reg0 }
-                  if MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[taicpu(next).ops-1]^) then
-                    begin
-                      DebugMsg('Optimizer: '+opstr+' + OP + '+opstr+' to OP #1',next);
-                      taicpu(next).loadOper(taicpu(next).ops-1,taicpu(p).oper[0]^);
-                      asml.remove(p);
-                      asml.remove(next2);
-                      p.free;
-                      next2.free;
-                      result:=true;
-                    end;
+                  {
+                  Disabled, because it breaks some tests... :( (KB)
+                  DebugMsg('Optimizer: '+opstr+' + OP + '+opstr+' to OP #1',next);
+                  taicpu(next).loadOper(taicpu(next).ops-1,taicpu(p).oper[0]^);
+                  asml.remove(p);
+                  asml.remove(next2);
+                  p.free;
+                  next2.free;
+                  result:=true;
+                  }
                 end;
-              ReleaseUsedRegs(TmpUsedRegs);
             end;
         end;
     end;
