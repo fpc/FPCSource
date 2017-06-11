@@ -56,6 +56,7 @@ Type
     paratargetasm     : tasm;
     paratargetdbg     : tdbg;
     LinkTypeSetExplicitly : boolean;
+    LinkerSetExplicitly : boolean;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -2597,6 +2598,7 @@ begin
                             include(init_settings.globalswitches,cs_link_vlink);
                             include(init_settings.globalswitches,cs_link_extern);
                           end;
+                        LinkerSetExplicitly:=true;
                       end;
                     'X' :
                       begin
@@ -3150,8 +3152,9 @@ begin
 
 {$if defined(atari) or defined(hasamiga)}
    { enable vlink as default linker on Atari, Amiga, and MorphOS, but not for cross compilers (for now) }
-   if target_info.system in [system_m68k_amiga,system_m68k_atari,
-                             system_powerpc_amiga,system_powerpc_morphos] then
+   if (target_info.system in [system_m68k_amiga,system_m68k_atari,
+                              system_powerpc_amiga,system_powerpc_morphos]) and
+      not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
 end;
@@ -3236,6 +3239,7 @@ begin
   paratargetasm:=as_none;
   paratargetdbg:=dbg_none;
   LinkTypeSetExplicitly:=false;
+  LinkerSetExplicitly:=false;
 end;
 
 
