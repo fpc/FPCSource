@@ -188,7 +188,7 @@ unit agppcgas;
         end;
       getreferencestring:=s;
     end;
-    
+
 
     function getopstr_jmp(asminfo: pasminfo; const o:toper) : string;
     var
@@ -510,7 +510,7 @@ unit agppcgas;
                          if tai_align_abstract(hp).aligntype > max_alignment[cur_sectype] then
                            begin 
                              max_alignment[cur_sectype]:=tai_align_abstract(hp).aligntype;
-			     current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Alignment put to '+tostr(tai_align_abstract(hp).aligntype))),hp);
+                             current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Alignment put to '+tostr(tai_align_abstract(hp).aligntype))),hp);
                            end;
                        end;
                      ait_section :
@@ -519,7 +519,7 @@ unit agppcgas;
                          if tai_section(hp).secalign > max_alignment[cur_sectype] then
                            begin
                              max_alignment[cur_sectype]:=tai_section(hp).secalign;
-			     current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Section '
+                             current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Section '
                                +sectionname(tai_section(hp).sectype,'',secorder_default)+' alignment put to '+tostr(tai_section(hp).secalign))),hp);
                            end;
                        end;
