@@ -503,6 +503,25 @@ begin
     for i:=0 to SourceCount-1 do
       Arr.Add(SourceFiles[i]);
 
+    // "sourcesContent" - array of source content: null or source as string
+    // only needed if there is a source
+    i:=SourceCount-1;
+    while i>=0 do
+      if SourceContents[i]='' then
+        dec(i)
+      else
+        begin
+        // there is a source -> add array
+        Arr:=TJSONArray.Create;
+        Obj.Add('sourcesContent',Arr);
+        for i:=0 to SourceCount-1 do
+          if SourceContents[i]='' then
+            Arr.Add('null')
+          else
+            Arr.Add(SourceContents[i]);
+        break;
+        end;
+
     // "names" - array of names
     Arr:=TJSONArray.Create;
     Obj.Add('names',Arr);
