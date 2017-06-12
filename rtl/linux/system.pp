@@ -63,6 +63,10 @@ const
 {$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$define fpc_softfpu_implementation}
+{$if defined(CPUM68K)}
+{$define softfpu_compiler_mul32to64}
+{$define softfpu_inline}
+{$endif}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
 
