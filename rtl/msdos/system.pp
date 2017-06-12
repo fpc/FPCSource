@@ -156,11 +156,20 @@ end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
+
+  const
+    CR0_NE = $20;
+    CR0_NOT_NE = $FFFF - CR0_NE;
   var
     { these locals are so we don't have to hack pic code in the assembler }
     localfpucw: word;
     prevInt06 : FarPointer;
+    _newcr0_lw : word;
+    restore_old_int10 : boolean;
+
+
   begin
+    restore_old_int10:=false;
     localfpucw:=Default8087CW;
     asm
       fninit
@@ -168,54 +177,84 @@ Procedure SysInitFPU;
       fwait
     end;
     if Test8087 < 2 then
-      exit;
-    asm
-      push es
-      push ds
-      { Get previous interrupt 06 handler }
-      mov ax, $3506
-      int $21
-      mov word [prevInt06],bx
-      mov dx,es
-      mov word [prevInt06+2],dx
-      { Install local interrupt 06 handler }
-{$ifdef FPC_MM_TINY}
-      { Do not use SEG here, as this introduces a relocation that
-        is incompatible with COM executable generation }
-      mov dx, cs
-{$else FPC_MM_TINY}
-      mov dx, SEG InterceptInvalidInstruction
-{$endif FPC_MM_TINY}
-      mov ds, dx
-      mov dx, Offset InterceptInvalidInstruction
-      mov ax, $2506
-      int $21
-      pop ds
-      pop es
-    end;
-    if setjmp(test_fpu_jmpbuf)=0 then
       begin
-        asm
-          db $0f, $20, $c0 { mov eax,cr0 }
-          db $83, $c8, $20 { or $0x20,eax }
-          db $0f, $22, $c0 { mov cr0,eax }
-        end;
-        //writeln(stderr,'Change of cr0 succeeded');
+        restore_old_int10:=true;
       end
     else
       begin
-        //writeln(stderr,'Change of cr0 failed');
+        asm
+          push es
+          push ds
+          { Get previous interrupt 06 handler }
+          mov ax, $3506
+          int $21
+          mov word [prevInt06],bx
+          mov dx,es
+          mov word [prevInt06+2],dx
+          { Install local interrupt 06 handler }
+    {$ifdef FPC_MM_TINY}
+          { Do not use SEG here, as this introduces a relocation that
+            is incompatible with COM executable generation }
+          mov dx, cs
+    {$else FPC_MM_TINY}
+          mov dx, SEG InterceptInvalidInstruction
+    {$endif FPC_MM_TINY}
+          mov ds, dx
+          mov dx, Offset InterceptInvalidInstruction
+          mov ax, $2506
+          int $21
+          pop ds
+          pop es
+        end;
+        if setjmp(test_fpu_jmpbuf)=0 then
+          begin
+            asm
+              db $0f, $20, $c0 { mov eax,cr0 }
+              { Reset CR0  Numeric Error bit,
+                to trigger IRQ13 - interrupt $75,
+                and thus avoid the generation of a $10 trap
+                which iterferes with video interrupt handler }
+              and ax,CR0_NOT_NE
+              db $0f, $22, $c0 { mov cr0,eax }
+            end;
+            //writeln(stderr,'Change of cr0 succeeded');
+            // Test that NE bit is indeed reset
+            asm
+              db $0f, $20, $c0 { mov eax,cr0 }
+              mov _newcr0_lw, ax
+            end;
+            if (_newcr0_lw and CR0_NE) = 0 then
+              restore_old_int10:=true;
+
+          end
+        else
+          begin
+            //writeln(stderr,'Change of cr0 failed');
+          end;
+        { Restore previous interrupt 06 handler }
+        asm
+          push es
+          mov bx,word [prevInt06]
+          mov dx,word [prevInt06+2]
+          mov es,dx
+          mov ax, $2506
+          int $21
+          pop es
+        end;
       end;
-    { Restore previous interrupt 06 handler }
-    asm
-      push es
-      mov bx,word [prevInt06]
-      mov dx,word [prevInt06+2]
-      mov es,dx
-      mov ax, $2506
-      int $21
-      pop es
-    end;
+      { Special handler of interrupt $10
+        not needed anymore
+        Restore previous interrupt $10 handler }
+      if restore_old_int10 then
+        asm
+          push es
+          mov bx,word [SaveInt10]
+          mov dx,word [SaveInt10+2]
+          mov es,dx
+          mov ax, $2506
+          int $21
+          pop es
+        end;
   end;
 
 {$I system.inc}
