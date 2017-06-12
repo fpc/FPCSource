@@ -97,6 +97,8 @@ implementation
 {$if defined(cpum68k) and defined(fpusoft)}
 
 {$define fpc_softfpu_implementation}
+{$define softfpu_compiler_mul32to64}
+{$define softfpu_inline}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
 
