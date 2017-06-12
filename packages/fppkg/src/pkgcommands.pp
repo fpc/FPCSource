@@ -543,6 +543,7 @@ var
   ManifestPackages : TFPPackages;
   X : TFPXMLRepositoryHandler;
   L : TStringList;
+  s : string;
   status : string;
 begin
   Result := False;
@@ -610,7 +611,7 @@ begin
                 end
               else
                 begin
-                  if PackageManager.PackageIsBroken(InstalledP, nil) then
+                  if PackageManager.PackageIsBroken(InstalledP, s, nil) then
                     begin
                       status:='Broken, recompiling';
                       L.Add(D.PackageName);
@@ -661,6 +662,7 @@ var
   i : integer;
   SL : TStringList;
   BreakLoop : Boolean;
+  Reason: string;
 begin
   Result := False;
   SL:=TStringList.Create;
@@ -676,10 +678,10 @@ begin
           Exit;
         if not ExecuteAction(SL[i],'install-req') then
           Exit;
-        if PackageManager.PackageIsBroken(PackageManager.PackageByName(SL[i], pkgpkInstalled), nil) then
+        if PackageManager.PackageIsBroken(PackageManager.PackageByName(SL[i], pkgpkInstalled), Reason, nil) then
           begin
             BreakLoop := true;
-            pkgglobals.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i]]);
+            pkgglobals.Log(llWarning, SWarnBrokenAfterReinstall, [SL[i], Reason]);
           end;
       end;
   until BreakLoop;

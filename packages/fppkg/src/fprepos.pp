@@ -819,8 +819,10 @@ begin
 end;
 
 function TFPRepository.PackageIsBroken(APackage: TFPPackage): Boolean;
+var
+  s: string;
 begin
-  Result := GFPpkg.PackageIsBroken(APackage, Self);
+  Result := GFPpkg.PackageIsBroken(APackage, s, Self);
 end;
 
 constructor TFPRepository.Create(AOwner: TComponent);

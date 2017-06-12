@@ -52,7 +52,7 @@ type
     procedure ScanAvailablePackages;
     procedure ScanPackages;
 
-    function PackageIsBroken(APackage: TFPPackage; ARepository: TFPRepository): Boolean;
+    function PackageIsBroken(APackage: TFPPackage; out Reason: string; ARepository: TFPRepository): Boolean;
 
     function FPMakeRepoFindPackage(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
     function FindPackage(APackageName: string; APackageKind: TpkgPackageKind): TFPPackage;
@@ -320,7 +320,7 @@ begin
   ScanAvailablePackages;
 end;
 
-function TpkgFPpkg.PackageIsBroken(APackage: TFPPackage; ARepository: TFPRepository): Boolean;
+function TpkgFPpkg.PackageIsBroken(APackage: TFPPackage; out Reason: string; ARepository: TFPRepository): Boolean;
 var
   j, i, ThisRepositoryIndex: Integer;
   Dependency: TFPDependency;
@@ -329,10 +329,9 @@ var
   HashPtr: PtrInt;
 begin
   result:=false;
-
+  Reason := '';
   if Assigned(APackage.Repository) and (APackage.Repository.RepositoryType <> fprtInstalled) then
     begin
-    Result := False;
     Exit;
     end;
 
@@ -390,10 +389,11 @@ begin
 
             if assigned(DepPackage) then
               begin
-                if PackageIsBroken(DepPackage, ARepository) then
+                if PackageIsBroken(DepPackage, Reason, ARepository) then
                   begin
                     log(llInfo,SLogPackageDepBroken,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
                     result:=true;
+                    Reason := Format(SInfoPackageDepBroken, [Dependency.PackageName, Repository.RepositoryName]);
                     FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
                     exit;
                   end;
@@ -401,6 +401,7 @@ begin
                   begin
                     log(llInfo,SLogPackageChecksumChanged,[APackage.Name,APackage.Repository.RepositoryName,Dependency.PackageName,Repository.RepositoryName]);
                     result:=true;
+                    Reason := Format(SInfoPackageChecksumChanged, [Dependency.PackageName, Repository.RepositoryName]);
                     FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
                     exit;
                   end;
@@ -409,6 +410,7 @@ begin
               begin
                 log(llInfo,SDbgObsoleteDependency,[APackage.Name,Dependency.PackageName]);
                 result:=true;
+                Reason :=Format(SInfoObsoleteDependency, [Dependency.PackageName]);
                 FBrokenPackagesDictionary.Add(APackage.Name, Pointer(1));
                 exit;
               end;
@@ -699,6 +701,7 @@ function TpkgFPpkg.FindBrokenPackages(SL: TStrings): Boolean;
 var
   i,j,k : integer;
   P : TFPPackage;
+  s : string;
   Repo: TFPRepository;
 begin
   SL.Clear;
@@ -712,7 +715,7 @@ begin
             for j := 0 to Repo.PackageCount-1 do
               begin
                 P := Repo.Packages[j];
-                if (P = FindPackage(P.Name, pkgpkInstalled)) and PackageIsBroken(P, nil) then
+                if (P = FindPackage(P.Name, pkgpkInstalled)) and PackageIsBroken(P, s, nil) then
                   begin
                     if P.IsFPMakeAddIn then
                       // Make sure that FPMakeAddIn's are fixed first, so

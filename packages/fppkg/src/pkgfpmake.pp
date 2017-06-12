@@ -213,6 +213,7 @@ Var
   P : TFPPackage;
   DepPackage: TFPPackage;
   DepDirList: TStringList;
+  Reason: string;
 begin
   Result := True;
   P:=DeterminePackage;
@@ -256,7 +257,7 @@ begin
                 FPMKUnitDepPackage := PackageManager.FindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
                 if Assigned(FPMKUnitDepPackage) then
                   begin
-                    if PackageManager.PackageIsBroken(FPMKUnitDepPackage, nil) then
+                    if PackageManager.PackageIsBroken(FPMKUnitDepPackage, Reason, nil) then
                       FPMKUnitDepAvailable := False;
                   end;
               end;

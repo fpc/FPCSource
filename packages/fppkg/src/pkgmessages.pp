@@ -162,12 +162,16 @@ Resourcestring
   SDbgForcePackageInstall    = 'Installation of package "%s" forced';
   SDbgPackageInstallRequired = 'Installation of package "%s" required for repository "%s"';
 
-  SWarnBrokenAfterReinstall  = 'Package %s is still broken, even after re-installation.';
+  SWarnBrokenAfterReinstall  = 'Package %s is still broken, even after re-installation. (%s)';
 
   SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
   SProgrInstallDependencies  = 'Install dependencies';
   SProgrDependenciesInstalled= 'Dependencies installed';
   SProgrDownloadPackage      = 'Downloading package %s version %s';
+
+  SInfoPackageDepBroken      = 'dependency %s in the %s repository is broken';
+  SInfoPackageChecksumChanged= 'dependency %s in the %s repository is modified';
+  SInfoObsoleteDependency    = 'depends on package %s which is not installed anymore';
 
 implementation
 

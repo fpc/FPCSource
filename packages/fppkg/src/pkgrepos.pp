@@ -194,11 +194,12 @@ procedure ListPackages(const ShowGlobalAndLocal: boolean);
   procedure AddPackageToLine(APackage: TFPPackage; CheckIsBroken: Boolean; var Line: string);
   var
     PackageVersion: string;
+    s: string;
   begin
     if Assigned(APackage) then
       begin
         PackageVersion := APackage.Version.AsString;
-        if CheckIsBroken and GFPpkg.PackageIsBroken(APackage, nil) then
+        if CheckIsBroken and GFPpkg.PackageIsBroken(APackage, s, nil) then
           PackageVersion := PackageVersion + ' (B)';
       end
     else
