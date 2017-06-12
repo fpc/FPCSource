@@ -516,7 +516,7 @@ begin
         Obj.Add('sourcesContent',Arr);
         for i:=0 to SourceCount-1 do
           if SourceContents[i]='' then
-            Arr.Add('null')
+            Arr.Add(TJSONNull.Create)
           else
             Arr.Add(SourceContents[i]);
         break;
