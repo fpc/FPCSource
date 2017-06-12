@@ -1,32 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <General>
+      <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
+      <UseAppBundle Value="False"/>
     </General>
-    <VersionInfo>
-      <Language Value=""/>
-      <CharSet Value=""/>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestStatementWriter"/>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -34,260 +23,84 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="13">
       <Unit0>
         <Filename Value="testjs.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testjs"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
-        <CursorPos X="48" Y="3"/>
-        <UsageCount Value="201"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcscanner.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcscanner"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
-        <CursorPos X="17" Y="22"/>
-        <UsageCount Value="201"/>
       </Unit1>
       <Unit2>
         <Filename Value="../src/jsbase.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jsbase"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="12"/>
-        <UsageCount Value="200"/>
       </Unit2>
       <Unit3>
         <Filename Value="../src/jsparser.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jsparser"/>
-        <EditorIndex Value="3"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="67"/>
-        <CursorPos X="14" Y="85"/>
-        <UsageCount Value="201"/>
-        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="../src/jsscanner.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="JSScanner"/>
-        <EditorIndex Value="6"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="342"/>
-        <CursorPos X="76" Y="345"/>
-        <UsageCount Value="201"/>
-        <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="../src/jstree.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jstree"/>
-        <EditorIndex Value="5"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="739"/>
-        <CursorPos X="3" Y="757"/>
-        <UsageCount Value="200"/>
-        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="tcparser.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcparser"/>
-        <EditorIndex Value="4"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1878"/>
-        <CursorPos X="3" Y="1883"/>
-        <UsageCount Value="201"/>
-        <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="../src/jswriter.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jswriter"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="8"/>
-        <CursorPos X="28" Y="15"/>
-        <UsageCount Value="202"/>
-        <Loaded Value="True"/>
       </Unit7>
       <Unit8>
         <Filename Value="tctextwriter.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tctextwriter"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="4"/>
-        <CursorPos X="15" Y="22"/>
-        <UsageCount Value="201"/>
       </Unit8>
       <Unit9>
-        <Filename Value="../../../../../projects/lazarus/components/fpcunit/console/consoletestrunner.pas"/>
-        <UnitName Value="consoletestrunner"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="157"/>
-        <CursorPos X="1" Y="175"/>
-        <UsageCount Value="4"/>
+        <Filename Value="tcwriter.pp"/>
+        <IsPartOfProject Value="True"/>
       </Unit9>
       <Unit10>
-        <Filename Value="tcwriter.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tcwriter"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="2"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="668"/>
-        <CursorPos X="45" Y="698"/>
-        <UsageCount Value="220"/>
-        <Loaded Value="True"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="../../../../released/packages/fcl-json/src/fpjson.pp"/>
-        <UnitName Value="fpjson"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="558"/>
-        <CursorPos X="21" Y="580"/>
-        <UsageCount Value="61"/>
-      </Unit11>
-      <Unit12>
         <Filename Value="../src/jstoken.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="jstoken"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
-        <CursorPos X="18" Y="8"/>
-        <UsageCount Value="200"/>
-        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="tcsrcmap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCSrcMap"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../src/jssrcmap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="JSSrcMap"/>
       </Unit12>
-      <Unit13>
-        <Filename Value="../../../../released/packages/fcl-fpcunit/src/testregistry.pp"/>
-        <UnitName Value="testregistry"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="106"/>
-        <CursorPos X="22" Y="108"/>
-        <UsageCount Value="13"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="../../../rtl/tests/punit.pp"/>
-        <UnitName Value="punit"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="405"/>
-        <CursorPos X="41" Y="415"/>
-        <UsageCount Value="18"/>
-      </Unit14>
-      <Unit15>
-        <Filename Value="../../../../released/rtl/inc/mathh.inc"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="60"/>
-        <CursorPos X="14" Y="78"/>
-        <UsageCount Value="13"/>
-      </Unit15>
     </Units>
-    <JumpHistory Count="6" HistoryIndex="5">
-      <Position1>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position1>
-      <Position2>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1732" Column="55" TopLine="1713"/>
-      </Position2>
-      <Position3>
-        <Filename Value="tcparser.pp"/>
-        <Caret Line="1883" Column="3" TopLine="1878"/>
-      </Position3>
-      <Position4>
-        <Filename Value="tcwriter.pp"/>
-        <Caret Line="66" Column="43" TopLine="51"/>
-      </Position4>
-      <Position5>
-        <Filename Value="tcwriter.pp"/>
-        <Caret Line="76" Column="43" TopLine="48"/>
-      </Position5>
-      <Position6>
-        <Filename Value="tcwriter.pp"/>
-        <Caret Line="251" Column="31" TopLine="232"/>
-      </Position6>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="/home/michael/source/fcl-js/;..;../src"/>
+      <OtherUnitFiles Value="../src"/>
     </SearchPaths>
     <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
       <Optimizations>
         <OptimizationLevel Value="0"/>
       </Optimizations>
     </CodeGeneration>
-    <Linking>
-      <Debugging>
-        <UseHeaptrc Value="True"/>
-      </Debugging>
-    </Linking>
-    <Other>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="7">
-      <Item1>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsGlobal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="../jsscanner.pp"/>
-        <Line Value="717"/>
-      </Item1>
-      <Item2>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="tcparser.pp"/>
-        <Line Value="2086"/>
-      </Item2>
-      <Item3>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="tcparser.pp"/>
-        <Line Value="2566"/>
-      </Item3>
-      <Item4>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="../src/jsparser.pp"/>
-        <Line Value="845"/>
-      </Item4>
-      <Item5>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="../src/jsparser.pp"/>
-        <Line Value="754"/>
-      </Item5>
-      <Item6>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="../src/jsparser.pp"/>
-        <Line Value="1287"/>
-      </Item6>
-      <Item7>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="tcparser.pp"/>
-        <Line Value="2253"/>
-      </Item7>
-    </BreakPoints>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>
@@ -300,5 +113,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
