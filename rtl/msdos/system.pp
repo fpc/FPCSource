@@ -251,7 +251,7 @@ Procedure SysInitFPU;
           mov bx,word [SaveInt10]
           mov dx,word [SaveInt10+2]
           mov es,dx
-          mov ax, $2506
+          mov ax, $2510
           int $21
           pop es
         end;
