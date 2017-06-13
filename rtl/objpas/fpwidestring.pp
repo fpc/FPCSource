@@ -254,7 +254,7 @@ begin
   if (cp=CP_UTF8) then
     begin
       destLen:=UnicodeToUtf8(nil,High(SizeUInt),source,len);
-      SetLength(dest,destLen);
+      SetLength(dest,destLen-1);
       UnicodeToUtf8(@dest[1],destLen,source,len);
       SetCodePage(dest,cp,False);
       exit;
