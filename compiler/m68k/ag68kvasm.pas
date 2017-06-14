@@ -68,9 +68,11 @@ unit ag68kvasm;
         case atype of
           sec_code, sec_fpc, sec_init, sec_fini:
             result:='acrx';
-          sec_data:
+          { map sec_rodata as read-write, otherwise the linker (vlink) complains if it
+            has to write into the relocations in a rodata section. (KB) }
+          sec_data, sec_rodata:
             result:='adrw';
-          sec_rodata, sec_rodata_norel:
+          sec_rodata_norel:
             result:='adr';
           sec_bss, sec_threadvar:
             result:='aurw';
