@@ -432,9 +432,13 @@ begin
 
   new(Anchor);
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
-
-  if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
   Rslt.FindHandle := Anchor;
+
+  if MatchFirst(pchar(tmpStr),Anchor)<>0 then
+    begin
+      InternalFindClose(Rslt.FindHandle);
+      exit;
+    end;
 
   with Anchor^.ap_Info do begin
     Name := fib_FileName;
@@ -442,7 +446,11 @@ begin
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
-    if not validDate then exit;
+    if not validDate then 
+      begin
+        InternalFindClose(Rslt.FindHandle);
+        exit;
+      end;
 
     { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
     Rslt.Attr := 128;
@@ -487,10 +495,10 @@ end;
 
 Procedure InternalFindClose(var Handle: Pointer);
 var
-  Anchor: PAnchorPath;
+  Anchor: PAnchorPath absolute Handle;
 begin
-  Anchor:=PAnchorPath(Handle);
-  if not assigned(Anchor) then exit;
+  if not assigned(Anchor) then
+    exit;
   MatchEnd(Anchor);
   Dispose(Anchor);
   Handle:=nil;
