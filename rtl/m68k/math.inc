@@ -14,20 +14,8 @@
 
 {$ifdef FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
 function fpc_longword_to_double(i: longword): double; compilerproc;
-var
-  l : longint;
 begin
-{$ifopt R+}
-{$define HAS_OPTR}
-{$endif}
-{$r-}
-  l:=longint(i);
-{$ifdef HAS_OPTR}
-{$r+}
-{$endif}
-  if l>=0 then
-    fpc_longword_to_double:=double(l)
-  else
-    fpc_longword_to_double:=-double(abs(l));
+  qword(result):=(qword(1075) shl 52) + i;
+  result:=result - (qword(1) shl 52);
 end;
 {$endif FPC_INCLUDE_SOFTWARE_LONGWORD_TO_DOUBLE}
