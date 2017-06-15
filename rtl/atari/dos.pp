@@ -216,6 +216,7 @@ begin
   if dosResult < 0 then
     begin
       Error2DosError(dosResult);
+      FindClose(f);
       exit;
     end;
 
