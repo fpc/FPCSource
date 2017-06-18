@@ -305,6 +305,10 @@ uses
       }
       std_param_align = 4;  { for 32-bit version only }
 
+{$ifdef SPARC64}
+      STACK_BIAS = 2047;
+{$endif SPARC64}
+
 
 {*****************************************************************************
                             CPU Dependent Constants

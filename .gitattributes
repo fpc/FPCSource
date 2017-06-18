@@ -689,6 +689,7 @@ compiler/sparc64/rsp64sri.inc svneol=native#text/pascal
 compiler/sparc64/rsp64stab.inc svneol=native#text/pascal
 compiler/sparc64/rsp64std.inc svneol=native#text/pascal
 compiler/sparc64/rsp64sup.inc svneol=native#text/pascal
+compiler/sparc64/tgcpu.pas svneol=native#text/plain
 compiler/sparcgen/aasmcpu.pas svneol=native#text/plain
 compiler/sparcgen/aoptcpu.pas svneol=native#text/plain
 compiler/sparcgen/aoptcpub.pas svneol=native#text/plain

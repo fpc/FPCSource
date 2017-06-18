@@ -32,12 +32,17 @@ interface
     globtype,
     aasmdata,
     symdef,
-    hlcg2ll;
+    hlcg2ll,
+    cgutils,
+    tgobj;
 
   type
     thlcgcpu = class(thlcg2ll)
      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
+{$ifdef SPARC64}
+     procedure temp_to_ref(p: ptemprecord; out ref: treference);override;
+{$endif SPARC64}
     end;
 
   procedure create_hlcodegen;
@@ -49,7 +54,7 @@ implementation
     aasmbase,aasmtai,aasmcpu,
     parabase,
     symconst,symtype,symsym,
-    cgbase,cgutils,cgobj,hlcgobj,cpubase,cgcpu;
+    cgbase,cgobj,hlcgobj,cpubase,cgcpu;
 
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
@@ -131,6 +136,15 @@ implementation
       list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));
       list.concat(taicpu.op_reg_reg(A_MOV,NR_G1,NR_O7));
     end;
+
+
+{$ifdef SPARC64}
+  procedure thlcgcpu.temp_to_ref(p : ptemprecord; out ref : treference);
+    begin
+      inherited;
+      inc(ref.offset,STACK_BIAS);
+    end;
+{$endif SPARC64}
 
 
   procedure create_hlcodegen;

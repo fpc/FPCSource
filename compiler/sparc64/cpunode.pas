@@ -34,6 +34,8 @@ implementation
     ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset,
     { this not really a node }
     rgcpu,
+    { this neither }
+    tgcpu,
     { symtable }
     symcpu,
     aasmdef;

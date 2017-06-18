@@ -251,11 +251,18 @@ implementation
                 if vo_is_funcret in hp.varoptions then
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
+{$ifdef SPARC64}
+                    paraloc^.reference.offset:=128;
+{$else SPARC64}
+                    paraloc^.reference.offset:=64;
+{$endif SPARC64}
                     if side=callerside then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    paraloc^.reference.offset:=64;
+{$ifdef SPARC64}
+                    inc(paraloc^.reference.offset,STACK_BIAS);
+{$endif SPARC64}
                   end
                 { In case of po_delphi_nested_cc, the parent frame pointer
                   is always passed on the stack. }
@@ -270,12 +277,14 @@ implementation
                 else
                   begin
                     paraloc^.loc:=LOC_REFERENCE;
+                    paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
                     if side=callerside then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
                     else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
-
+{$ifdef SPARC64}
+                    inc(paraloc^.reference.offset,STACK_BIAS);
+{$endif SPARC64}
                     if (target_info.endian=endian_big) and
                        (paralen<tcgsize2size[OS_INT]) and
                        (paradef.typ<>recorddef) then
