@@ -202,7 +202,7 @@ begin
       P.Options.Add('-Fu../compiler/x86');
     if CompilerTarget in [powerpc, powerpc64] then
       P.Options.Add('-Fu../compiler/ppcgen');
-    if CompilerTarget in [sparc{, sparc64}] then
+    if CompilerTarget in [sparc, sparc64] then
       begin
         P.Options.Add('-Fu../compiler/sparcgen');
         P.Options.add('-Fi../compiler/sparcgen');
