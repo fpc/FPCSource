@@ -49,6 +49,9 @@ endif
 ifeq ($(CPU_TARGET),sparc)
 PPSUF=sparc
 endif
+ifeq ($(CPU_TARGET),sparc64)
+PPSUF=sparc64
+endif
 ifeq ($(CPU_TARGET),powerpc)
 PPSUF=ppc
 endif
