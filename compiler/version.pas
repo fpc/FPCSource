@@ -59,6 +59,9 @@ interface
 {$ifdef cpusparc}
         source_cpu_string = 'sparc';
 {$endif cpusparc}
+{$ifdef cpusparc64}
+        source_cpu_string = 'sparc64';
+{$endif cpusparc64}
 {$ifdef cpuarm}
         source_cpu_string = 'arm';
 {$endif cpuarm}
