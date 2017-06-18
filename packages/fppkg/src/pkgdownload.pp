@@ -148,7 +148,7 @@ begin
   P:=URI.Protocol;
   If CompareText(P,'ftp')=0 then
     FTPDownload(URL,Dest)
-  else if CompareText(P,'http')=0 then
+  else if (CompareText(P,'http')=0) or (CompareText(P,'https')=0) then
     HTTPDownload(URL,Dest)
   else if CompareText(P,'file')=0 then
     FileDownload(URL,Dest)
