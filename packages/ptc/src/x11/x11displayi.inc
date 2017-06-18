@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2015-2017 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -452,11 +452,23 @@ var
   uni: Integer;
   key: TPTCKeyEvent;
   buf: array [1..16] of Char;
+  lslen: cint;
+  status: TStatus;
+  eaten_by_im: Boolean = False;
 begin
-  sym := XLookupKeySym(@e, 0);
+  if Assigned(FXIM) and Assigned(FXIC) and (Self is TX11WindowDisplay) then
+  begin
+    eaten_by_im := XFilterEvent(@e, TX11WindowDisplay(Self).FWindow);
+  end;
   XLookupString(@e, @buf, SizeOf(buf), @sym_modded, nil);
+  if (e._type = KeyPress) and Assigned(FXIM) and Assigned(FXIC) then
+  begin
+    lslen := XmbLookupString(FXIC, @e, @buf, SizeOf(buf), @sym_modded, @status);
+//    Writeln(lslen, ' ', status, ' ', buf[1], ' ', XKeysymToString(sym_modded));
+  end;
+  sym := XLookupKeySym(@e, 0);
 //  Writeln('sym_modded = ', sym_modded);
-  uni := X11ConvertKeySymToUnicode(sym_modded);
+//  Writeln(HexStr(e.state, 8));
   modkeys := [];
   if (e.state and Mod1Mask) <> 0 then
     Include(modkeys, pmkAlt);
@@ -464,10 +476,42 @@ begin
     Include(modkeys, pmkShift);
   if (e.state and ControlMask) <> 0 then
     Include(modkeys, pmkControl);
+  if (e.state and LockMask) <> 0 then
+    Include(modkeys, pmkCapsLockActive);
+  if (e.state and Mod2Mask) <> 0 then
+    Include(modkeys, pmkNumLockActive);
+  if X11IsDeadKey(sym_modded) then
+    Include(modkeys, pmkDeadKey);
   if e._type = KeyPress then
-    press := True
+  begin
+    press := True;
+    uni := X11ConvertKeySymToUnicode(sym_modded);
+  end
   else
+  begin
     press := False;
+    uni := -1;
+  end;
+  if (sym_modded = XK_KP_Insert) or
+     (sym_modded = XK_KP_Delete) or
+     (sym_modded = XK_KP_Home) or
+     (sym_modded = XK_KP_End) or
+     (sym_modded = XK_KP_Prior) or
+     (sym_modded = XK_KP_Next) or
+     (sym_modded = XK_KP_Begin) or
+     (sym_modded = XK_KP_Left) or
+     (sym_modded = XK_KP_Right) or
+     (sym_modded = XK_KP_Up) or
+     (sym_modded = XK_KP_Down) or
+     (sym_modded = XK_KP_Divide) or
+     (sym_modded = XK_KP_Multiply) or
+     (sym_modded = XK_KP_Subtract) or
+     (sym_modded = XK_KP_Add) or
+     (sym_modded = XK_KP_Enter) or
+     (sym_modded = XK_KP_Decimal) or
+     ((sym_modded >= XK_KP_0) and (sym_modded <= XK_KP_9)) or
+     (sym_modded = XK_Num_Lock) then
+    Include(modkeys, pmkNumPadKey);
 
   // XK_ISO_Left_Tab is Shift-Tab
   if sym_modded = XK_ISO_Left_Tab then
@@ -496,9 +540,10 @@ begin
     0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, modkeys, press);
     $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, modkeys, press);
     else
-      key := TPTCKeyEvent.Create;
+      key := TPTCKeyEvent.Create(PTCKEY_UNDEFINED, uni, modkeys, press);
   end;
-  FEventQueue.AddEvent(key);
+  if (not eaten_by_im) or (pmkDeadKey in modkeys) then
+    FEventQueue.AddEvent(key);
 end;
 
 function TX11Display.GetInterceptClose: Boolean;
@@ -517,6 +562,11 @@ end;
 procedure TX11Display.InternalResize(AWidth, AHeight: Integer);
 begin
   raise TPTCError.Create('Console not in windowed mode');
+end;
+
+function TX11Display.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  Result := False;
 end;
 
 procedure TX11Display.OpenGL_SwapBuffers;

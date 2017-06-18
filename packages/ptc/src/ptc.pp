@@ -69,7 +69,7 @@ uses
 {$ENDIF FPDOC}
 
 const
-  PTCPAS_VERSION = 'PTCPas 0.99.14.1';
+  PTCPAS_VERSION = 'PTCPas 0.99.15';
 
 type
   PUint8  = ^Uint8;
@@ -117,7 +117,7 @@ implementation
 
 {$IFDEF GO32V2}
 uses
-  textfx2, vesa, vga, cga, timeunit, crt, go32fix, mouse33h;
+  textfx2, vesa, vga, cga, timeunit, crt, go32, mouse33h;
 {$ENDIF GO32V2}
 
 {$IF defined(WIN32) OR defined(WIN64)}
@@ -150,6 +150,9 @@ uses
     {$IFDEF ENABLE_X11_EXTENSION_GLX}
     , glx
     {$ENDIF ENABLE_X11_EXTENSION_GLX}
+    {$IFDEF ENABLE_X11_EXTENSION_XINPUT2}
+    , XI2, XInput2
+    {$ENDIF ENABLE_X11_EXTENSION_XINPUT2}
   {$ENDIF X11}
   {$IFDEF COCOA}
     , CocoaAll

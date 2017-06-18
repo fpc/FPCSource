@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2007, 2009-2011  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009-2011, 2016  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -34,11 +34,37 @@ type
 {todo  TPTCMouseCursor = (PTCMouseCursorDefault,
                      PTCMouseCursorAlwaysVisible,
                      PTCMouseCursorAlwaysInvisible);}
-  TPTCMouseButton = (PTCMouseButton1, { left mouse button }
-                     PTCMouseButton2, { right mouse button }
-                     PTCMouseButton3, { middle mouse button }
-                     PTCMouseButton4,
-                     PTCMouseButton5);
+  TPTCMouseButton = (PTCMouseButton1,  { left mouse button }
+                     PTCMouseButton2,  { right mouse button }
+                     PTCMouseButton3,  { middle mouse button }
+                     PTCMouseButton4,  { mouse wheel rotated forward (scroll up) }
+                     PTCMouseButton5,  { mouse wheel rotated backward (scroll down) }
+                     PTCMouseButton6,  { mouse horizontal scroll wheel rotated left }
+                     PTCMouseButton7,  { mouse horizontal scroll wheel rotated right }
+                     PTCMouseButton8,  { "back" button ("X button 1") }
+                     PTCMouseButton9,  { "forward" button ("X button 2") }
+                     PTCMouseButton10,
+                     PTCMouseButton11,
+                     PTCMouseButton12,
+                     PTCMouseButton13,
+                     PTCMouseButton14,
+                     PTCMouseButton15,
+                     PTCMouseButton16,
+                     PTCMouseButton17,
+                     PTCMouseButton18,
+                     PTCMouseButton19,
+                     PTCMouseButton20,
+                     PTCMouseButton21,
+                     PTCMouseButton22,
+                     PTCMouseButton23,
+                     PTCMouseButton24,
+                     PTCMouseButton25,
+                     PTCMouseButton26,
+                     PTCMouseButton27,
+                     PTCMouseButton28,
+                     PTCMouseButton29,
+                     PTCMouseButton30,
+                     PTCMouseButton31);
   TPTCMouseButtonState = set of TPTCMouseButton;
   IPTCMouseEvent = interface(IPTCEvent)
     ['{4D093608-6F27-4578-B41E-3492A4C7FEED}']

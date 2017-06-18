@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2016 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ type
 
     procedure UpdateCursor;
     procedure UpdateMouseGrab;
+    function UpdateRelativeMouseMode: Boolean;
 
     function CreateDisplay: TX11Display; { Factory method }
 
@@ -116,6 +117,8 @@ type
 
     function NextEvent(out AEvent: IPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
     function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): IPTCEvent; override;
+
+    function MoveMouseTo(X, Y: Integer): Boolean; override;
 
     procedure OpenGL_SwapBuffers; override;
     procedure OpenGL_SetSwapInterval(AInterval: Integer); override;

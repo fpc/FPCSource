@@ -79,9 +79,9 @@ begin
       if active = False then
       begin
         if FConsole.FGrabMouse and (not FFullscreen) then
-	begin
-	  FConsole.FWindow.ConfineCursor(False);
-	end;
+        begin
+          FConsole.FWindow.ConfineCursor(False);
+        end;
 
         { deactivate }
         Deactivate;
@@ -103,19 +103,19 @@ begin
         begin
           { check show command is not minimize }
           if placement.showCmd <> SW_SHOWMINIMIZED then
-	  begin
+          begin
             {hide cursor}
             FConsole.FWin32Cursor.Hide;
-	  end;
+          end;
         end;
 
-	if FConsole.FGrabMouse and (not FFullscreen) then
-	begin
+        if FConsole.FGrabMouse and (not FFullscreen) then
+        begin
           if placement.showCmd <> SW_SHOWMINIMIZED then
-	  begin
+          begin
             FConsole.FWindow.ConfineCursor(True);
-	  end;
-	end;
+          end;
+        end;
 
         { activate }
         Activate;
@@ -130,13 +130,13 @@ begin
       if not FCursor then
       begin
         if FFullscreen or (LOWORD(lParam) = HTCLIENT) then
-	begin
+        begin
           { hide cursor }
           SetCursor(0);
 
           { handled }
           Result := 1;
-	end;
+        end;
       end;
     end;
     WM_PALETTECHANGED:

@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2007, 2009-2013, 2016  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -225,7 +225,7 @@ begin
   FKeyboard := TWin32Keyboard.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue);
   FMouse := TWin32Mouse.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue, FFullScreen, AWidth, AHeight);
   if FFullscreen then
-    FMouse.SetWindowArea(0, 0, AWidth, AHeight);
+    FMouse.SetWindowArea(0, 0, AWidth - 1, AHeight - 1);
   if not FFullscreen and FResizable then
     FResize := TWin32Resize.Create(FWindow.Handle, FWindow.Thread, FEventQueue);
 
@@ -730,7 +730,7 @@ begin
     LOG('using WGL_EXT_swap_control');
     LOG('wglSwapIntervalEXT(' + IntToStr(AInterval) + ')');
     if not wglSwapIntervalEXT(AInterval) then
-	  LOG('wglSwapIntervalEXT failed');
+      LOG('wglSwapIntervalEXT failed');
   end
   else
     LOG('no supported extensions found for setting the swap interval');
@@ -759,6 +759,12 @@ begin
   FInterceptClose := AInterceptClose;
   if Assigned(FWindow) then
     FWindow.InterceptClose := AInterceptClose;
+end;
+
+function TGDIConsole.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  CheckOpen('TGDIConsole.MoveMouseTo');
+  Result := FMouse.MoveMouseTo(X, Y);
 end;
 
 procedure TGDIConsole.CheckOpen(const AMessage: String);

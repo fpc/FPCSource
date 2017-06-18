@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009, 2010, 2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009, 2010, 2012, 2017  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -104,7 +104,10 @@ begin
   if result = 0 then
   begin
     { call original window procedure }
-    Result := CallWindowProc(WNDPROC(lookup^.wndproc), hwnd, msg, wParam, lParam);
+    if IsWindowUnicode(hwnd) then
+      Result := CallWindowProcW(WNDPROC(lookup^.wndproc), hwnd, msg, wParam, lParam)
+    else
+      Result := CallWindowProcA(WNDPROC(lookup^.wndproc), hwnd, msg, wParam, lParam);
   end;
 
   { leave monitor }
@@ -189,7 +192,10 @@ begin
 {$ENDIF}
 
     { set window procedure to hook procedure }
-    SetWindowLongPtr(AWindow, GWLP_WNDPROC, PtrInt(@TWin32Hook_hook));
+    if IsWindowUnicode(AWindow) then
+      SetWindowLongPtrW(AWindow, GWLP_WNDPROC, PtrInt(@TWin32Hook_hook))
+    else
+      SetWindowLongPtrA(AWindow, GWLP_WNDPROC, PtrInt(@TWin32Hook_hook));
   end;
 
   { leave monitor }
@@ -236,7 +242,10 @@ begin
       if TWin32Hook_m_registry[index].count = 0 then
       begin
         { restore original window procedure }
-        SetWindowLongPtr(AWindow, GWLP_WNDPROC, TWin32Hook_m_registry[i].wndproc);
+        if IsWindowUnicode(AWindow) then
+          SetWindowLongPtrW(AWindow, GWLP_WNDPROC, TWin32Hook_m_registry[i].wndproc)
+        else
+          SetWindowLongPtrA(AWindow, GWLP_WNDPROC, TWin32Hook_m_registry[i].wndproc);
 
         { remove this lookup (quite inefficient for high count...) }
         for i := index to TWin32Hook_Count - 2 do

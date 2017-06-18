@@ -160,13 +160,13 @@ begin
     Flags := Flags or PFD_DOUBLEBUFFER_DONTCARE
   else
     if AOpenGLAttributes.DoubleBuffer then
-	  Flags := Flags or PFD_DOUBLEBUFFER;
+      Flags := Flags or PFD_DOUBLEBUFFER;
 
   if AOpenGLAttributes.StereoDontCare then
     Flags := Flags or PFD_STEREO_DONTCARE
   else
     if AOpenGLAttributes.Stereo then
-	  Flags := Flags or PFD_STEREO;
+      Flags := Flags or PFD_STEREO;
 
   FillChar(FPixelFormatDescriptor, SizeOf(FPixelFormatDescriptor), 0);
   FPixelFormatDescriptor.nSize := SizeOf(FPixelFormatDescriptor);

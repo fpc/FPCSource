@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2016, 2017 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -39,10 +39,13 @@ type
                    PTC_X11_TRY_XF86VIDMODE,
                    PTC_X11_TRY_XRANDR,
                    PTC_X11_TRY_XSHM,
+                   PTC_X11_TRY_XINPUT2,
+                   PTC_X11_TRY_XIM,
                    PTC_X11_DITHER,
                    PTC_X11_FULLSCREEN_CURSOR_VISIBLE,
                    PTC_X11_WINDOWED_CURSOR_INVISIBLE,
                    PTC_X11_GRAB_MOUSE,
+                   PTC_X11_RELATIVE_MOUSE_MODE,
                    PTC_X11_INTERCEPT_WINDOW_CLOSE,
                    PTC_X11_RESIZABLE_WINDOW,
                    PTC_X11_USE_OPENGL);
@@ -73,6 +76,9 @@ type
 
     FFunctionKeys: PInteger;
     FNormalKeys: PInteger;
+
+    FXIM: PXIM;
+    FXIC: PXIC;
 
     function GetInterceptClose: Boolean;
     procedure SetInterceptClose(AInterceptClose: Boolean);
@@ -148,6 +154,8 @@ type
     { mouse grab control }
     procedure SetMouseGrab(AGrabMouse: Boolean); virtual; abstract;
 
+    function SetRelativeMouseMode(ARelativeMouseMode: Boolean): Boolean; virtual; abstract;
+
     { Data access }
     function Clip: IPTCArea;
 
@@ -175,6 +183,8 @@ type
     property Pitch: Integer read GetPitch;
     property Area: IPTCArea read GetArea;
     property Format: IPTCFormat read GetFormat;
+
+    function MoveMouseTo(X, Y: Integer): Boolean; virtual;
 
     procedure OpenGL_SwapBuffers; virtual;
     procedure OpenGL_SetSwapInterval(AInterval: Integer); virtual;

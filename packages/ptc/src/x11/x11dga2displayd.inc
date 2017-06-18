@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2012, 2016 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -78,6 +78,7 @@ type
     function IsOpen: Boolean; override;
     procedure SetCursor(visible: Boolean); override;
     procedure SetMouseGrab(AGrabMouse: Boolean); override;
+    function SetRelativeMouseMode(ARelativeMouseMode: Boolean): Boolean; override;
   end;
 
 {$ENDIF ENABLE_X11_EXTENSION_XF86DGA2}

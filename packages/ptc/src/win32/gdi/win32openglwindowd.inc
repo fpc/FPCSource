@@ -33,9 +33,9 @@ type
   TWin32OpenGLWindow = class(TWin32Window)
   private
     FPixelFormatDescriptor: PIXELFORMATDESCRIPTOR;
-	FChosenPixelFormatDescriptor: PIXELFORMATDESCRIPTOR;
+    FChosenPixelFormatDescriptor: PIXELFORMATDESCRIPTOR;
 
-	procedure SetOpenGLAttributes(const AOpenGLAttributes: IPTCOpenGLAttributes);
+    procedure SetOpenGLAttributes(const AOpenGLAttributes: IPTCOpenGLAttributes);
     function EnumerateAllPixelFormats(hdc: HDC): Boolean;
     function SetupOpenGLPixelFormat(hdc: HDC): Boolean;
     procedure LogPixelFormatDescriptor(const pfd: PIXELFORMATDESCRIPTOR);
