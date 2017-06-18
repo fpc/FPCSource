@@ -50,7 +50,7 @@ var
 implementation
 
 uses
-  go32fix;
+  go32;
 
 procedure InitMouse;
 

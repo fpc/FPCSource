@@ -66,7 +66,7 @@ procedure fakemode_load(src: PByte; wvr: Boolean);
 implementation
 
 uses
-  go32fix;
+  go32;
 
 var
   RealRegs: TRealRegs;
