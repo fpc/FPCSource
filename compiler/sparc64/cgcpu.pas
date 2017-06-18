@@ -148,14 +148,12 @@ interface
             if (aint(a) and aint($3ff))<>0 then
               list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
           end
-{
         else if (a>=-$80000000) and (a<=-1) then
           begin
-            list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg));
+            list.concat(taicpu.op_const_reg(A_SETHI,(not(aint(a)) shr 10) and $3fffff,reg));
             if (aint(a) and aint($3ff))<>0 then
-              list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
-          end;
-}
+              list.concat(taicpu.op_reg_const_reg(A_XOR,reg,aint(a) and aint($3ff),reg));
+          end
         else
           begin
             hreg:=getintregister(list,OS_64);
@@ -178,6 +176,7 @@ interface
           TCgSparc64(cg).use_unlimited_pic_mode:=true
         else
           TCgSparc64(cg).use_unlimited_pic_mode:=false;
+        cg128:=tcg128.create;
       end;
 
 end.
