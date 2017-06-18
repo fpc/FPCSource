@@ -22,6 +22,7 @@ Procedure TFPHTTPDownloader.HTTPDownload(Const URL : String; Dest : TStream);
 begin
   With TFPHTTPClient.Create(Nil) do
     try
+      AllowRedirect := True;
       Get(URL,Dest);
       Dest.Position:=0;
     finally
