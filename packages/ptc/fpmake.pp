@@ -57,7 +57,6 @@ begin
 
   T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
 
-  T:=P.Targets.AddUnit('go32fix.pp',[go32v2]);
   T:=P.Targets.AddUnit('mouse33h.pp',[go32v2]);
   T:=P.Targets.AddUnit('textfx2.pp',[go32v2]);
   T:=P.Targets.AddUnit('cga.pp',[go32v2]);
