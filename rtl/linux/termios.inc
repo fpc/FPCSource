@@ -796,7 +796,7 @@ Const
 
 {$endif cpui386}
 
-{$ifdef cpusparc}
+{$if defined(cpusparc) or defined(cpusparc64)}
   TCGETA = $40125401;
   TCSETA = $80125402;
   TCSETAW = $80125403;
@@ -1021,8 +1021,7 @@ Const
    TCIFLUSH  = 0;
    TCOFLUSH  = 1;
    TCIOFLUSH = 2;
-
-{$endif cpusparc}
+{$endif  defined(cpusparc) or defined(cpusparc64)}
 
 {$ifdef cpux86_64}
   TCGETS =              $5401;

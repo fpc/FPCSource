@@ -381,3 +381,10 @@ Const
       syscall_nr_preadv2           = 358;
       syscall_nr_pwritev2          = 359;
       syscall_nr_statx             = 360;
+
+
+
+      { aliases, not sure if they are correct (FPK) }
+      syscall_nr_pread64           = 67;
+      syscall_nr_pwrite64          = 68;
+
