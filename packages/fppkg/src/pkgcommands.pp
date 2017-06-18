@@ -255,13 +255,13 @@ begin
      (PackageManager.Options.GlobalSection.RemoteRepository='auto') then
     begin
       Log(llCommands,SLogDownloading,[PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile]);
-      DownloadFile(PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile, PackageManager);
+      Result := DownloadFile(PackageManager.Options.GlobalSection.RemoteMirrorsURL,PackageManager.Options.GlobalSection.LocalMirrorsFile, PackageManager);
       PackageManager.LoadLocalAvailableMirrors;
     end;
   // Download packages.xml
   PackagesURL:=PackageManager.GetRemoteRepositoryURL(PackagesFileName);
   Log(llCommands,SLogDownloading,[PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile]);
-  DownloadFile(PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile,PackageManager);
+  Result := Result and DownloadFile(PackagesURL,PackageManager.Options.GlobalSection.LocalPackagesFile,PackageManager);
   // Read the repository again
   PackageManager.ScanAvailablePackages;
   // no need to log errors again
