@@ -724,8 +724,11 @@ implementation
                   inc(a,32-tcgsize2size[size]*8);
                   src:=dst;
                 end
+{$ifndef SPARC64}
               else if not (size in [OS_32,OS_S32]) then
-                InternalError(2013070303);
+                InternalError(2013070303)
+{$endif SPARC64}
+                ;
             end;
         end;
         if setflags then
