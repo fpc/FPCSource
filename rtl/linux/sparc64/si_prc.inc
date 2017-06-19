@@ -19,9 +19,6 @@
 var
   dlexitproc : pointer;
 
-const
-  BIAS = 2047;
-
 function fpc_getgot : pointer; [external name 'FPC_GETGOT'];
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
@@ -35,7 +32,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     nop
 {$endif FPC_PIC}
     { extract argc }
-    ldx	[%sp+BIAS+22*8], %o2
+    ldx	[%sp+STACK_BIAS+22*8], %o2
 {$ifdef FPC_PIC}
 {$else FPC_PIC}
     sethi	%hi(operatingsystem_parameter_argc),%o1
@@ -45,7 +42,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     { extract argv }
 {$ifdef FPC_PIC}
 {$else FPC_PIC}
-    add	%sp, BIAS+23*8, %o0
+    add	%sp, STACK_BIAS+23*8, %o0
     sethi	%hi(operatingsystem_parameter_argv),%o1
     or	%o1,%lo(operatingsystem_parameter_argv),%o1
 {$endif FPC_PIC}
@@ -53,7 +50,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 
     { envp=argv+(argc+1)*8 }
     inc     %o2
-    sllx     %o2, 8, %o2
+    sllx     %o2, 3, %o2
     add	%o2, %o0, %o2
 {$ifdef FPC_PIC}
 {$else FPC_PIC}
