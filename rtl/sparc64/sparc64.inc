@@ -83,8 +83,8 @@ function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;nos
     be      .Lframezero
     nop
     { flush register windows, so they are stored in the stack }
-    ta      3
-    ld [%o0+60],%o0
+    flushw
+    ldx [%o0+STACK_BIAS+120],%o0
     { check if new %o0 register is zero }
     subcc   %o0,0,%o0
     be      .Lframezero
@@ -103,8 +103,8 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;no
     be      .Lframezero
     nop
     { flush register windows, so they are stored in the stack }
-    ta      3
-    ld [%o0+56],%o0
+    flushw
+    ldx [%o0+STACK_BIAS+112],%o0
 .Lframezero:
   end;
 
