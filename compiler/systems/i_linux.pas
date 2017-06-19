@@ -544,7 +544,7 @@ unit i_linux;
                 constalignmin   : 4;
                 constalignmax   : 16;
                 varalignmin     : 4;
-                varalignmax     : 8;
+                varalignmax     : 16;
                 localalignmin   : 4;
                 localalignmax   : 16;
                 recordalignmin  : 0;
