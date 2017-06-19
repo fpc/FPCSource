@@ -9,7 +9,7 @@ Resourcestring
   SError                     = 'Error: ';
   SWarning                   = 'Warning: ';
   SDebug                     = 'Debug: ';
-  SProgres                   = 'Progres: ';
+  SProgress                  = 'Progress: ';
   SInfo                      = 'Info: ';
   SCommand                   = 'Command: ';
 
