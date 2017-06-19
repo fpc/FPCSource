@@ -28,14 +28,18 @@ type
 
   PixelCanvasException = class (TFPCanvasException);
 
+  { TFPPixelCanvas }
+
   TFPPixelCanvas = class (TFPCustomCanvas)
   private
     FHashWidth : word;
     FRelativeBI : boolean;
   protected
+    procedure DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect); override;
     function DoCreateDefaultFont : TFPCustomFont; override;
     function DoCreateDefaultPen : TFPCustomPen; override;
     function DoCreateDefaultBrush : TFPCustomBrush; override;
+    procedure DoDraw(x, y: integer; const image: TFPCustomImage); override;
     procedure DoTextOut (x,y:integer;text:string); override;
     procedure DoGetTextSize (text:string; var w,h:integer); override;
     function  DoGetTextHeight (text:string) : integer; override;
@@ -73,10 +77,24 @@ begin
   raise PixelCanvasException.Create(sErrNotAvailable);
 end;
 
-constructor TFPPixelCanvas.Create;
+constructor TFPPixelCanvas.create;
 begin
   inherited;
   FHashWidth := DefaultHashWidth;
+end;
+
+procedure TFPPixelCanvas.DoCopyRect(x, y: integer; canvas: TFPCustomCanvas; const SourceRect: TRect);
+Var
+  W,H,XS1,XS2,YS1,YS2 : Integer;
+
+begin
+  XS1:=SourceRect.Left;
+  XS2:=SourceRect.Right;
+  YS1:=SourceRect.Top;
+  YS2:=SourceRect.Bottom;
+  For H:=0 to YS2-YS1 do
+    For W:=0 to XS2-XS1 do
+      Colors[x+h,y+h]:=Canvas.Colors[XS1+W,YS1+H];
 end;
 
 function TFPPixelCanvas.DoCreateDefaultFont : TFPCustomFont;
@@ -106,6 +124,17 @@ function TFPPixelCanvas.DoCreateDefaultBrush : TFPCustomBrush;
 begin
   result := TFPEmptyBrush.Create;
   result.Style := bsSolid;
+end;
+
+procedure TFPPixelCanvas.DoDraw(x, y: integer; const image: TFPCustomImage);
+
+Var
+  W,h : Integer;
+
+begin
+  For H:=0 to Image.Height-1 do
+    For W:=0 to Image.Width-1 do
+      Colors[x+w,y+h]:=Image.Colors[W,H];
 end;
 
 procedure TFPPixelCanvas.DoTextOut (x,y:integer;text:string);
@@ -364,5 +393,6 @@ begin
       DrawPatternLine (self, x1,y1, x2,y2, PenPatterns[Pen.Style]);
   end;
 end;
+
 
 end.

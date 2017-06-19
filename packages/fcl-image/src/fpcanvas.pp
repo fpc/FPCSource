@@ -278,6 +278,10 @@ type
     procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
     function  DoGetTextHeight (text:string) : integer; virtual; abstract;
     function  DoGetTextWidth (text:string) : integer; virtual; abstract;
+    procedure DoTextOut (x,y:integer;text:unicodestring); virtual; 
+    procedure DoGetTextSize (text:unicodestring; var w,h:integer); virtual; 
+    function  DoGetTextHeight (text:unicodestring) : integer; virtual; 
+    function  DoGetTextWidth (text:unicodestring) : integer; virtual; 
     procedure DoRectangle (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleFill (Const Bounds:TRect); virtual; abstract;
     procedure DoRectangleAndFill (Const Bounds:TRect); virtual;
@@ -317,6 +321,13 @@ type
     function TextExtent(const Text: string): TSize; virtual;
     function TextHeight(const Text: string): Integer; virtual;
     function TextWidth(const Text: string): Integer; virtual;
+    procedure TextOut (x,y:integer;text:unicodestring); virtual;
+    procedure GetTextSize (text:unicodestring; var w,h:integer);
+    function GetTextHeight (text:unicodestring) : integer;
+    function GetTextWidth (text:unicodestring) : integer;
+    function TextExtent(const Text: unicodestring): TSize; virtual;
+    function TextHeight(const Text: unicodestring): Integer; virtual;
+    function TextWidth(const Text: unicodestring): Integer; virtual;
     // using pen and brush
     procedure Arc(ALeft, ATop, ARight, ABottom, Angle16Deg, Angle16DegLength: Integer); virtual;
     procedure Arc(ALeft, ATop, ARight, ABottom, SX, SY, EX, EY: Integer); virtual;
@@ -374,11 +385,19 @@ type
     procedure GetTextSize (text:string; var w,h:integer);
     function GetTextHeight (text:string) : integer;
     function GetTextWidth (text:string) : integer;
+    procedure DrawText (x,y:integer; text:unicodestring);
+    procedure GetTextSize (text: unicodestring; var w,h:integer);
+    function GetTextHeight (text: unicodestring) : integer;
+    function GetTextWidth (text: unicodestring) : integer;
   protected
     procedure DoDrawText (x,y:integer; text:string); virtual; abstract;
     procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
     function DoGetTextHeight (text:string) : integer; virtual; abstract;
     function DoGetTextWidth (text:string) : integer; virtual; abstract;
+    procedure DoDrawText (x,y:integer; text:unicodestring); virtual;
+    procedure DoGetTextSize (text: unicodestring; var w,h:integer); virtual; 
+    function DoGetTextHeight (text: unicodestring) : integer; virtual; 
+    function DoGetTextWidth (text: unicodestring) : integer; virtual; 
   end;
 
   TFPEmptyFont = class (TFPCustomFont)
