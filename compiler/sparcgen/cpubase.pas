@@ -64,7 +64,7 @@ uses
       {$i rspsup.inc}
 
       { No Subregisters }
-      R_SUBWHOLE = R_SUBD;
+      R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
       {$i rspcon.inc}
@@ -103,7 +103,7 @@ uses
       {$i rsp64sup.inc}
 
       { No Subregisters }
-      R_SUBWHOLE = R_SUBQ;
+      R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
       {$i rsp64con.inc}
@@ -429,9 +429,11 @@ implementation
             end;
           else
             begin
+{$ifdef SPARC32}
               if s in [OS_64,OS_S64] then
                 cgsize2subreg:=R_SUBQ
               else
+{$endif SPARC32}
                 cgsize2subreg:=R_SUBWHOLE;
             end;
         end;
