@@ -533,7 +533,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_unix;
             endian       : endian_big;
             alignment    :
