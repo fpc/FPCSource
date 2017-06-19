@@ -23,15 +23,25 @@ uses
   SysUtils, jstoken, jsbase, jstree;
 
 Type
+  TTextWriter = class;
+
+  TTextWriterWriting = procedure(Sender: TTextWriter) of object;
 
   { TTextWriter }
 
   TTextWriter = Class(TObject)
+  private
+    FCurElement: TJSElement;
+    FCurLine: integer;
+    FCurColumn: integer;
+    FOnWriting: TTextWriterWriting;
   protected
     Function DoWrite(Const S : AnsiString) : Integer; virtual; abstract;
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
+    Procedure Writing; // called before adding new characters
   Public
     // All functions return the number of bytes copied to output stream.
+    constructor Create;
     Function Write(Const S : UnicodeString) : Integer;
     Function Write(Const S : AnsiString) : Integer;
     Function WriteLn(Const S : AnsiString) : Integer;
@@ -39,6 +49,10 @@ Type
     Function WriteLn(Const Fmt : AnsiString; Args : Array of const) : Integer;
     Function Write(Const Args : Array of const) : Integer;
     Function WriteLn(Const Args : Array of const) : Integer;
+    Property CurLine: integer read FCurLine write FCurLine;
+    Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
+    Property CurElement: TJSElement read FCurElement write FCurElement;
+    Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
   end;
 
   { TFileWriter }
@@ -105,14 +119,14 @@ Type
   TJSWriter = Class
   private
     FCurIndent : Integer;
-    FLinePos : Integer;
-    FIndentSize: Byte;
-    FIndentChar : Char;
-    FOptions: TWriteOptions;
-    FWriter: TTextWriter;
     FFreeWriter : Boolean;
+    FIndentChar : Char;
+    FIndentSize: Byte;
+    FLinePos : Integer;
+    FOptions: TWriteOptions;
     FSkipCurlyBrackets : Boolean;
     FSkipRoundBrackets : Boolean;
+    FWriter: TTextWriter;
     function GetUseUTF8: Boolean;
     procedure SetOptions(AValue: TWriteOptions);
   Protected
@@ -254,7 +268,7 @@ begin
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
     begin
-    DesLen:=Round(FCapacity*1.25);
+    DesLen:=(FCapacity*5) div 4;
     if DesLen>MinLen then
       MinLen:=DesLen;
     Capacity:=MinLen;
@@ -274,7 +288,7 @@ begin
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
     begin
-    DesLen:=Round(FCapacity*1.25);
+    DesLen:=(FCapacity*5) div 4;
     if DesLen>MinLen then
       MinLen:=DesLen;
     Capacity:=MinLen;
@@ -285,6 +299,7 @@ end;
 
 Constructor TBufferWriter.Create(Const ACapacity: Cardinal);
 begin
+  inherited Create;
   Capacity:=ACapacity;
 end;
 
@@ -673,7 +688,9 @@ begin
   if El is TJSPrimaryExpressionThis then
     Write('this')
   else if El is TJSPrimaryExpressionIdent then
-    Write(TJSPrimaryExpressionIdent(El).Name);
+    Write(TJSPrimaryExpressionIdent(El).Name)
+  else
+    Error(SErrUnknownJSClass,[El.ClassName]);
 end;
 
 procedure TJSWriter.WriteArrayLiteral(El: TJSArrayLiteral);
@@ -777,6 +794,7 @@ procedure TJSWriter.WriteMemberExpression(El: TJSMemberExpression);
 
 var
   MExpr: TJSElement;
+  Args: TJSArguments;
 begin
   if El is TJSNewMemberExpression then
     Write('new ');
@@ -809,8 +827,12 @@ begin
     end
   else if (El is TJSNewMemberExpression) then
     begin
-    if (Assigned(TJSNewMemberExpression(El).Args)) then
-      WriteArrayLiteral(TJSNewMemberExpression(El).Args)
+    Args:=TJSNewMemberExpression(El).Args;
+    if Assigned(Args) then
+      begin
+      Writer.CurElement:=Args;
+      WriteArrayLiteral(Args);
+      end
     else
       Write('()');
     end;
@@ -821,7 +843,10 @@ procedure TJSWriter.WriteCallExpression(El: TJSCallExpression);
 begin
   WriteJS(El.Expr);
   if Assigned(El.Args) then
-    WriteArrayLiteral(El.Args)
+    begin
+    Writer.CurElement:=El.Args;
+    WriteArrayLiteral(El.Args);
+    end
   else
     Write('()');
 end;
@@ -1219,23 +1244,23 @@ Var
   TN : TJSString;
 
 begin
-  TN:=EL.TargetName;
+  TN:=El.TargetName;
   if (El is TJSForStatement) then
     WriteForStatement(TJSForStatement(El))
   else if (El is TJSSwitchStatement) then
     WriteSwitchStatement(TJSSwitchStatement(El))
   else if (El is TJSForInStatement) then
     WriteForInStatement(TJSForInStatement(El))
-  else if EL is TJSWhileStatement then
+  else if El is TJSWhileStatement then
     WriteWhileStatement(TJSWhileStatement(El))
-  else if (EL is TJSContinueStatement) then
+  else if (El is TJSContinueStatement) then
     begin
     if (TN<>'') then
       Write('continue '+TN)
     else
       Write('continue');
     end
-  else if (EL is TJSBreakStatement) then
+  else if (El is TJSBreakStatement) then
     begin
    if (TN<>'') then
       Write('break '+TN)
@@ -1243,7 +1268,7 @@ begin
       Write('break');
     end
   else
-    Error('Unknown target statement class: "%s"',[EL.ClassName])
+    Error('Unknown target statement class: "%s"',[El.ClassName])
 end;
 
 procedure TJSWriter.WriteReturnStatement(El: TJSReturnStatement);
@@ -1384,6 +1409,8 @@ begin
 end;
 
 procedure TJSWriter.WriteJS(El: TJSElement);
+var
+  LastWritingEl: TJSElement;
 begin
 {$IFDEF DEBUGJSWRITER}
   if (EL<>Nil) then
@@ -1391,6 +1418,8 @@ begin
   else
     system.Writeln('WriteJS : El = Nil');
 {$ENDIF}
+  LastWritingEl:=Writer.CurElement;
+  Writer.CurElement:=El;
   if (El is TJSEmptyBlockStatement ) then
     WriteEmptyBlockStatement(TJSEmptyBlockStatement(El))
   else if (El is TJSEmptyStatement) then
@@ -1449,6 +1478,7 @@ begin
     Error(SErrUnknownJSClass,[El.ClassName]);
 //  Write('/* '+El.ClassName+' */');
   FSkipCurlyBrackets:=False;
+  Writer.CurElement:=LastWritingEl;
 end;
 
 { TFileWriter }
@@ -1467,6 +1497,7 @@ end;
 
 Constructor TFileWriter.Create(Const AFileNAme: String);
 begin
+  inherited Create;
   FFileName:=AFileName;
   Assign(FFile,AFileName);
   Rewrite(FFile);
@@ -1490,33 +1521,103 @@ end;
 
 { TTextWriter }
 
-Function TTextWriter.Write(Const S: UnicodeString) : Integer;
+procedure TTextWriter.Writing;
 begin
+  if Assigned(OnWriting) then
+    OnWriting(Self);
+end;
+
+constructor TTextWriter.Create;
+begin
+  FCurLine:=1;
+  FCurColumn:=1;
+end;
+
+function TTextWriter.Write(const S: UnicodeString): Integer;
+var
+  p: PWideChar;
+  c: WideChar;
+begin
+  if S='' then exit;
+  Writing;
   Result:=DoWrite(S);
+  p:=PWideChar(S);
+  repeat
+    c:=p^;
+    case c of
+    #0:
+      if p-PWideChar(S)=length(S)*2 then
+        break
+      else
+        inc(FCurColumn);
+    #10,#13:
+      begin
+      FCurColumn:=1;
+      inc(FCurLine);
+      inc(p);
+      if (p^ in [#10,#13]) and (c<>p^) then inc(p);
+      continue;
+      end;
+    else
+      // ignore low/high surrogate, CurColumn is char index, not codepoint
+      inc(FCurColumn);
+    end;
+    inc(p);
+  until false;
 end;
 
-Function TTextWriter.Write(Const S: AnsiString) : integer;
+function TTextWriter.Write(const S: AnsiString): Integer;
+var
+  p: PChar;
+  c: Char;
 begin
+  if S='' then exit;
+  Writing;
   Result:=DoWrite(S);
+  p:=PChar(S);
+  repeat
+    c:=p^;
+    case c of
+    #0:
+      if p-PChar(S)=length(S) then
+        break
+      else
+        inc(FCurColumn);
+    #10,#13:
+      begin
+      FCurColumn:=1;
+      inc(FCurLine);
+      inc(p);
+      if (p^ in [#10,#13]) and (c<>p^) then inc(p);
+      continue;
+      end;
+    else
+      // ignore UTF-8 multibyte chars, CurColumn is char index, not codepoint
+      inc(FCurColumn);
+    end;
+    inc(p);
+  until false;
 end;
 
-Function TTextWriter.WriteLn(Const S: AnsiString) : Integer;
+function TTextWriter.WriteLn(const S: AnsiString): Integer;
 begin
-  Result:=DoWrite(S)+DoWrite(sLineBreak);
+  Result:=Write(S)+Write(sLineBreak);
 end;
 
-Function TTextWriter.Write(Const Fmt: AnsiString; Args: Array of const) : Integer;
+function TTextWriter.Write(const Fmt: AnsiString;
+  Args: array of const): Integer;
 
 begin
-  Result:=DoWrite(Format(Fmt,Args));
+  Result:=Write(Format(Fmt,Args));
 end;
 
-Function TTextWriter.WriteLn(Const Fmt: AnsiString; Args: Array of const) : integer;
+function TTextWriter.WriteLn(const Fmt: AnsiString;
+  Args: array of const): Integer;
 begin
   Result:=WriteLn(Format(Fmt,Args));
 end;
 
-Function TTextWriter.Write(Const Args: Array of const) : Integer;
+function TTextWriter.Write(const Args: array of const): Integer;
 
 Var
   I : Integer;
@@ -1552,11 +1653,11 @@ begin
     if (U<>'') then
       Result:=Result+Write(u)
     else if (S<>'') then
-      Result:=Result+write(s);
+      Result:=Result+Write(s);
     end;
 end;
 
-Function TTextWriter.WriteLn(Const Args: Array of const) : integer;
+function TTextWriter.WriteLn(const Args: array of const): Integer;
 begin
   Result:=Write(Args)+Writeln('');
 end;

@@ -292,6 +292,7 @@ type
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
+    Procedure TestArray_SetLengthOutArg;
     Procedure TestArray_SetLengthProperty;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_Concat;
@@ -357,6 +358,7 @@ type
     Procedure TestClass_NestedSelf;
     Procedure TestClass_NestedClassSelf;
     Procedure TestClass_NestedCallInherited;
+    Procedure TestClass_TObjectFree; // ToDO
 
     // class of
     Procedure TestClassOf_Create;
@@ -1680,16 +1682,27 @@ end;
 procedure TTestModule.TestIncDec;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  Bar: longint;');
-  Add('begin');
-  Add('  inc(bar);');
-  Add('  inc(bar,2);');
-  Add('  dec(bar);');
-  Add('  dec(bar,3);');
+  Add([
+  'procedure DoIt(var i: longint);',
+  'begin',
+  '  inc(i);',
+  '  inc(i,2);',
+  'end;',
+  'var',
+  '  Bar: longint;',
+  'begin',
+  '  inc(bar);',
+  '  inc(bar,2);',
+  '  dec(bar);',
+  '  dec(bar,3);',
+  '']);
   ConvertProgram;
   CheckSource('TestIncDec',
     LinesToStr([ // statements
+    'this.DoIt = function (i) {',
+    '  i.set(i.get()+1);',
+    '  i.set(i.get()+2);',
+    '};',
     'this.Bar = 0;'
     ]),
     LinesToStr([ // this.$main
@@ -2237,11 +2250,8 @@ begin
   Add('  now();');
   Add('  uNit2.now;');
   Add('  uNit2.now();');
-  Add('  test1.now;');
-  Add('  test1.now();');
   Add('  doit;');
   Add('  uNit2.doit;');
-  Add('  test1.doit;');
   ConvertUnit;
   CheckSource('TestProcedureExternalOtherUnit',
     LinesToStr([
@@ -2251,12 +2261,9 @@ begin
     'Date.now();',
     'Date.now();',
     'Date.now();',
-    'Date.now();',
-    'Date.now();',
     'pas.unit2.DoIt();',
     'pas.unit2.DoIt();',
-    'pas.unit2.DoIt();'
-    ]));
+    '']));
 end;
 
 procedure TTestModule.TestProc_Asm;
@@ -3573,10 +3580,10 @@ begin
   Add('begin');
   Add('  d:=nan;');
   Add('  d:=uNit2.nan;');
-  Add('  d:=test1.nan;');
+  Add('  d:=test1.d;');
   Add('  i:=iv;');
   Add('  i:=uNit2.iv;');
-  Add('  i:=test1.iv;');
+  Add('  i:=test1.i;');
   ConvertUnit;
   CheckSource('TestVarExternalOtherUnit',
     LinesToStr([
@@ -3585,10 +3592,10 @@ begin
     LinesToStr([ // this.$init
     '$impl.d = Global.NaN;',
     '$impl.d = Global.NaN;',
-    '$impl.d = Global.NaN;',
+    '$impl.d = $impl.d;',
     '$i = pas.unit2.iV;',
     '$i = pas.unit2.iV;',
-    '$i = pas.unit2.iV;',
+    '$i = $i;',
     '']),
     LinesToStr([ // implementation
     '$impl.d = 0.0;',
@@ -3843,16 +3850,25 @@ end;
 procedure TTestModule.TestString_SetLength;
 begin
   StartProgram(false);
-  Add('var s: string;');
-  Add('begin');
-  Add('  SetLength(s,3);');
+  Add([
+  'procedure DoIt(var s: string);',
+  'begin',
+  '  SetLength(s,2);',
+  'end;',
+  'var s: string;',
+  'begin',
+  '  SetLength(s,3);',
+  '']);
   ConvertProgram;
   CheckSource('TestString_SetLength',
     LinesToStr([ // statements
-    'this.s = "";'
-    ]),
+    'this.DoIt = function (s) {',
+    '  s.set(rtl.strSetLength(s.get(), 2));',
+    '};',
+    'this.s = "";',
+    '']),
     LinesToStr([ // this.$main
-    '$mod.s.length = 3;'
+    '$mod.s = rtl.strSetLength($mod.s, 3);'
     ]));
 end;
 
@@ -4937,6 +4953,28 @@ begin
     '$mod.e = $mod.TEnum.blue;',
     '$mod.i = $mod.a[$mod.TEnum.red]+2;',
     '$mod.a[$mod.e] = $mod.a[$mod.e];',
+    '']));
+end;
+
+procedure TTestModule.TestArray_SetLengthOutArg;
+begin
+  StartProgram(false);
+  Add([
+  'type TArrInt = array of longint;',
+  'procedure DoIt(out a: TArrInt);',
+  'begin',
+  '  SetLength(a,2);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_SetLengthOutArg',
+    LinesToStr([ // statements
+    'this.DoIt = function (a) {',
+    '  a.set(rtl.arraySetLength(a.get(), 2, 0));',
+    '};',
+    '']),
+    LinesToStr([
     '']));
 end;
 
@@ -8021,6 +8059,59 @@ begin
     '    return Result;',
     '  };',
     '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFree;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Obj: tobject;',
+  '    procedure Free;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'function DoIt(o: tobject): tobject;',
+  'var l: tobject;',
+  'begin',
+  '  o.free;',
+  '  o.free();',
+  '  l.free;',
+  '  o.obj.free;',
+  '  o.obj.free();',
+  '  result.Free;',
+  '  result.Free();',
+  'end;',
+  'var o: tobject;',
+  'begin',
+  '  o.free;',
+  '  o.obj.free;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_NestedCallInherited',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Obj = null;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Free = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (o) {',
+    '  var Result = null;',
+    '  var l = null;',
+    '  return Result;',
+    '};',
+    'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
     '']));
