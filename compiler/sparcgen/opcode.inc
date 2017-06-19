@@ -74,4 +74,8 @@ A_FNEGd,
 A_FNEGq,
 { Memory barrier instructions }
 A_STBAR,
-A_MEMBAR
+A_MEMBAR,
+
+{ SPARC v9 }
+A_FLUSHW
+

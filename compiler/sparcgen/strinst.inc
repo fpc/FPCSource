@@ -70,4 +70,7 @@
           'fnegd','fnegq',
           { memory barrier instructions }
           'stbar',
-          'membar'
+          'membar',
+
+          { SPARC v9 }
+          'flushw'
