@@ -1608,7 +1608,7 @@ implementation
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
-       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,const_align(sizeof(pointer)));
+       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,const_align(voidpointertype.alignment));
      end;
 
 
@@ -1664,7 +1664,7 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(sizeof(pint)));
+       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(voidpointertype.alignment));
      end;
 
 
