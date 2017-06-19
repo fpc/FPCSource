@@ -138,7 +138,7 @@ interface
       begin
         { we don't use the set instruction here because it could be evalutated to two
           instructions which would cause problems with the delay slot (FK) }
-        if (a=0) then
+        if a=0 then
           list.concat(taicpu.op_reg(A_CLR,reg))
         else if (a>=simm13lo) and (a<=simm13hi) then
           list.concat(taicpu.op_const_reg(A_MOV,a,reg))
@@ -148,11 +148,11 @@ interface
             if (aint(a) and aint($3ff))<>0 then
               list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
           end
-        else if (a>=-$80000000) and (a<=-1) then
+        else if (a>=-4294967296) and (a<=-1) then
           begin
             list.concat(taicpu.op_const_reg(A_SETHI,(not(aint(a)) shr 10) and $3fffff,reg));
-            if (aint(a) and aint($3ff))<>0 then
-              list.concat(taicpu.op_reg_const_reg(A_XOR,reg,aint(a) and aint($3ff),reg));
+            if (aint(a) and aint($3ff)) or aint($1c00)<>0 then
+              list.concat(taicpu.op_reg_const_reg(A_XOR,reg,(aint(a) and aint($3ff)) or aint($1c00),reg));
           end
         else
           begin
