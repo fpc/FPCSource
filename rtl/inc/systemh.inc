@@ -698,6 +698,9 @@ const
   Test68000 : byte = 0;      { Must be determined at startup for both }
   Test68881 : byte = 0;
 {$endif cpum68k}
+{$ifdef cpusparc64}
+  STACK_BIAS = 2047;
+{$endif cpusparc64}
 
 { max level in dumping on error }
   Max_Frame_Dump : Word = 8;
