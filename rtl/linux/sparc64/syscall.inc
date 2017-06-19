@@ -27,7 +27,7 @@ function Fpfork : pid_t;  [public, alias : 'FPC_SYSC_FORK'];assembler;
 asm
         mov     2,%g1
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -54,7 +54,7 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
 asm
         mov     %i0,%g1
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -73,7 +73,7 @@ asm
         mov     %i0,%g1
         mov     %i1,%o0
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -93,7 +93,7 @@ asm
         mov     %i1,%o0
         mov     %i2,%o1
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -114,7 +114,7 @@ asm
         mov     %i2,%o1
         mov     %i3,%o2
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -136,7 +136,7 @@ asm
         mov     %i3,%o2
         mov     %i4,%o3
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -159,7 +159,7 @@ asm
         mov     %i4,%o3
         mov     %i5,%o4
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
@@ -180,10 +180,10 @@ asm
         mov     %i2,%o1
         mov     %i3,%o2
         mov     %i4,%o3
-        ld      [%i6+92],%o5
+        ld      [%i6+STACK_BIAS+176],%o5
         mov     %i5,%o4
         ta      0x6d
-        bcc     .LSyscOK
+        bcc     %xcc,.LSyscOK
         nop
         call    SetErrno
         nop
