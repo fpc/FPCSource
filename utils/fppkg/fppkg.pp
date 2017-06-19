@@ -24,6 +24,7 @@ uses
 {$if (defined(unix) and not defined(android)) or defined(windows)}
   ,pkgwget
   ,pkglnet
+  ,pkgfphttp
 {$endif}
   ;
 
