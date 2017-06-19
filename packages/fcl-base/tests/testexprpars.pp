@@ -20,7 +20,7 @@ unit testexprpars;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,fpexprpars;
+  Classes, SysUtils, fpcunit, testutils, testregistry, math, fpexprpars;
 
 type
 
@@ -31,6 +31,7 @@ type
     FP : TFPExpressionScanner;
     FInvalidString : String;
     procedure DoInvalidNumber(AString: String);
+    procedure TestIdentifier(const ASource, ATokenName: string);
     procedure TestInvalidNumber;
   protected
     procedure SetUp; override; 
@@ -46,6 +47,7 @@ type
     Procedure TestInvalidCharacter;
     Procedure TestUnterminatedString;
     Procedure TestQuotesInString;
+    Procedure TestIdentifiers;
   end;
 
   { TMyFPExpressionParser }
@@ -412,6 +414,27 @@ type
     Procedure TestAsString;
   end;
 
+  { TTestPowerNode }
+
+  TTestPowerNode = Class(TTestBaseParser)
+  Private
+    FN : TFPPowerOperation;
+    FE : TFPExpressionParser;
+  Protected
+    Procedure Setup; override;
+    Procedure TearDown; override;
+    procedure Calc(AExpr: String; Expected: Double = NaN);
+  Published
+    Procedure TestCreateInteger;
+    Procedure TestCreateFloat;
+    Procedure TestCreateDateTime;
+    Procedure TestCreateString;
+    Procedure TestCreateBoolean;
+    Procedure TestDestroy;
+    Procedure TestAsString;
+    Procedure TestCalc;
+  end;
+
   { TTestDivideNode }
 
   TTestDivideNode = Class(TTestBaseParser)
@@ -701,6 +724,12 @@ type
   TTestParserVariables = Class(TTestExpressionParser)
   private
     FAsWrongType : TResultType;
+    FEventName: String;
+    FBoolValue : Boolean;
+    FTest33 : TFPExprIdentifierDef;
+    procedure DoGetBooleanVar(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+    procedure DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+    procedure DoTestVariable33;
     procedure TestAccess(Skip: TResultType);
   Protected
     procedure AddVariabletwice;
@@ -741,6 +770,10 @@ type
     procedure TestVariable28;
     procedure TestVariable29;
     procedure TestVariable30;
+    procedure TestVariable31;
+    procedure TestVariable32;
+    procedure TestVariable33;
+    procedure TestVariable34;
   end;
 
   { TTestParserFunctions }
@@ -782,6 +815,45 @@ type
     procedure TestFunction29;
   end;
 
+  { TAggregateNode }
+
+  TAggregateNode = Class(TFPExprNode)
+  Public
+    InitCount : Integer;
+    UpdateCount : Integer;
+    Class Function IsAggregate: Boolean; override;
+    Function NodeType: TResultType; override;
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+    procedure GetNodeValue(var Result: TFPExpressionResult); override;
+  end;
+
+  { TTestParserAggregate }
+
+  TTestParserAggregate = Class(TTestExpressionParser)
+  private
+    FVarValue : Integer;
+    FLeft : TAggregateNode;
+    FRight : TAggregateNode;
+    FFunction : TFPExprIdentifierDef;
+    FFunction2 : TFPExprIdentifierDef;
+  Protected
+    Procedure Setup; override;
+    Procedure TearDown; override;
+  public
+    procedure GetVar(var Result: TFPExpressionResult; ConstRef AName: ShortString);
+  Published
+    Procedure TestIsAggregate;
+    Procedure TestHasAggregate;
+    Procedure TestBinaryAggregate;
+    Procedure TestUnaryAggregate;
+    Procedure TestCountAggregate;
+    Procedure TestSumAggregate;
+    Procedure TestSumAggregate2;
+    Procedure TestAvgAggregate;
+    Procedure TestAvgAggregate2;
+    Procedure TestAvgAggregate3;
+  end;
   { TTestBuiltinsManager }
 
   TTestBuiltinsManager = Class(TTestExpressionParser)
@@ -804,8 +876,11 @@ type
 
   TTestBuiltins = Class(TTestExpressionParser)
   private
+    FValue : Integer;
     FM : TExprBuiltInManager;
     FExpr : String;
+    procedure DoAverage(Var Result : TFPExpressionResult; ConstRef AName : ShortString);
+    procedure DoSeries(var Result: TFPExpressionResult; ConstRef AName: ShortString);
   Protected
     procedure Setup; override;
     procedure Teardown; override;
@@ -817,6 +892,8 @@ type
     procedure AssertExpression(Const AExpression : String; Const AResult : TExprFloat);
     procedure AssertExpression(Const AExpression : String; Const AResult : Boolean);
     procedure AssertDateTimeExpression(Const AExpression : String; Const AResult : TDateTime);
+    procedure AssertAggregateExpression(Const AExpression : String; AResult : Int64; AUpdateCount : integer);
+    procedure AssertAggregateExpression(Const AExpression : String; AResult : TExprFloat; AUpdateCount : integer);
   Published
     procedure TestRegister;
     Procedure TestVariablepi;
@@ -883,11 +960,336 @@ type
     Procedure TestFunctionstrtotimedef;
     Procedure TestFunctionstrtodatetime;
     Procedure TestFunctionstrtodatetimedef;
+    Procedure TestFunctionAggregateSum;
+    Procedure TestFunctionAggregateCount;
+    Procedure TestFunctionAggregateAvg;
+    Procedure TestFunctionAggregateMin;
+    Procedure TestFunctionAggregateMax;
   end;
 
 implementation
 
 uses typinfo;
+
+{ TTestParserAggregate }
+
+procedure TTestParserAggregate.Setup;
+begin
+  inherited Setup;
+  FVarValue:=0;
+  FFunction:=TFPExprIdentifierDef.Create(Nil);
+  FFunction.Name:='Count';
+  FFunction2:=TFPExprIdentifierDef.Create(Nil);
+  FFunction2.Name:='MyVar';
+  FFunction2.ResultType:=rtInteger;
+  FFunction2.IdentifierType:=itVariable;
+  FFunction2.OnGetVariableValue:=@GetVar;
+  FLeft:=TAggregateNode.Create;
+  FRight:=TAggregateNode.Create;
+end;
+
+procedure TTestParserAggregate.TearDown;
+begin
+  FreeAndNil(FFunction);
+  FreeAndNil(FLeft);
+  FreeAndNil(FRight);
+  inherited TearDown;
+end;
+
+procedure TTestParserAggregate.GetVar(var Result: TFPExpressionResult; ConstRef
+  AName: ShortString);
+begin
+  Result.ResultType:=FFunction2.ResultType;
+  Case Result.ResultType of
+    rtInteger : Result.ResInteger:=FVarValue;
+    rtFloat : Result.ResFloat:=FVarValue / 2;
+  end;
+end;
+
+procedure TTestParserAggregate.TestIsAggregate;
+begin
+  AssertEquals('ExprNode',False,TFPExprNode.IsAggregate);
+  AssertEquals('TAggregateExpr',True,TAggregateExpr.IsAggregate);
+  AssertEquals('TAggregateExpr',False,TFPBinaryOperation.IsAggregate);
+end;
+
+procedure TTestParserAggregate.TestHasAggregate;
+
+Var
+  N :  TFPExprNode;
+
+begin
+  N:=TFPExprNode.Create;
+  try
+    AssertEquals('ExprNode',False,N.HasAggregate);
+  finally
+    N.Free;
+  end;
+  N:=TAggregateExpr.Create;
+  try
+    AssertEquals('ExprNode',True,N.HasAggregate);
+  finally
+    N.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestBinaryAggregate;
+
+Var
+  B :  TFPBinaryOperation;
+
+begin
+  B:=TFPBinaryOperation.Create(Fleft,TFPConstExpression.CreateInteger(1));
+  try
+    FLeft:=Nil;
+    AssertEquals('Binary',True,B.HasAggregate);
+  finally
+    B.Free;
+  end;
+  B:=TFPBinaryOperation.Create(TFPConstExpression.CreateInteger(1),FRight);
+  try
+    FRight:=Nil;
+    AssertEquals('Binary',True,B.HasAggregate);
+  finally
+    B.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestUnaryAggregate;
+Var
+  B : TFPUnaryOperator;
+
+begin
+  B:=TFPUnaryOperator.Create(Fleft);
+  try
+    FLeft:=Nil;
+    AssertEquals('Unary',True,B.HasAggregate);
+  finally
+    B.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestCountAggregate;
+
+Var
+  C : TAggregateCount;
+  I : Integer;
+  R : TFPExpressionResult;
+
+begin
+  FFunction.ResultType:=rtInteger;
+  FFunction.ParameterTypes:='';
+  C:=TAggregateCount.CreateFunction(FFunction,Nil);
+  try
+    C.Check;
+    C.InitAggregate;
+    For I:=1 to 11 do
+      C.UpdateAggregate;
+    C.GetNodeValue(R);
+    AssertEquals('Correct type',rtInteger,R.ResultType);
+    AssertEquals('Correct value',11,R.ResInteger);
+  finally
+    C.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestSumAggregate;
+
+Var
+  C : TAggregateSum;
+  V : TFPExprVariable;
+  I : Integer;
+  R : TFPExpressionResult;
+  A : TExprArgumentArray;
+
+begin
+  FFunction.ResultType:=rtInteger;
+  FFunction.ParameterTypes:='I';
+  FFunction.Name:='SUM';
+  FFunction2.ResultType:=rtInteger;
+  C:=Nil;
+  V:=TFPExprVariable.CreateIdentifier(FFunction2);
+  try
+    SetLength(A,1);
+    A[0]:=V;
+    C:=TAggregateSum.CreateFunction(FFunction,A);
+    C.Check;
+    C.InitAggregate;
+    For I:=1 to 10 do
+      begin
+      FVarValue:=I;
+      C.UpdateAggregate;
+      end;
+    C.GetNodeValue(R);
+    AssertEquals('Correct type',rtInteger,R.ResultType);
+    AssertEquals('Correct value',55,R.ResInteger);
+  finally
+    C.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestSumAggregate2;
+Var
+  C : TAggregateSum;
+  V : TFPExprVariable;
+  I : Integer;
+  R : TFPExpressionResult;
+  A : TExprArgumentArray;
+
+begin
+  FFunction.ResultType:=rtFloat;
+  FFunction.ParameterTypes:='F';
+  FFunction.Name:='SUM';
+  FFunction2.ResultType:=rtFloat;
+  C:=Nil;
+  V:=TFPExprVariable.CreateIdentifier(FFunction2);
+  try
+    SetLength(A,1);
+    A[0]:=V;
+    C:=TAggregateSum.CreateFunction(FFunction,A);
+    C.Check;
+    C.InitAggregate;
+    For I:=1 to 10 do
+      begin
+      FVarValue:=I;
+      C.UpdateAggregate;
+      end;
+    C.GetNodeValue(R);
+    AssertEquals('Correct type',rtFloat,R.ResultType);
+    AssertEquals('Correct value',55/2,R.ResFloat,0.1);
+  finally
+    C.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestAvgAggregate;
+
+Var
+  C : TAggregateAvg;
+  V : TFPExprVariable;
+  I : Integer;
+  R : TFPExpressionResult;
+  A : TExprArgumentArray;
+
+begin
+  FFunction.ResultType:=rtInteger;
+  FFunction.ParameterTypes:='F';
+  FFunction.Name:='AVG';
+  FFunction2.ResultType:=rtInteger;
+  C:=Nil;
+  V:=TFPExprVariable.CreateIdentifier(FFunction2);
+  try
+    SetLength(A,1);
+    A[0]:=V;
+    C:=TAggregateAvg.CreateFunction(FFunction,A);
+    C.Check;
+    C.InitAggregate;
+    For I:=1 to 10 do
+      begin
+      FVarValue:=I;
+      C.UpdateAggregate;
+      end;
+    C.GetNodeValue(R);
+    AssertEquals('Correct type',rtFloat,R.ResultType);
+    AssertEquals('Correct value',5.5,R.ResFloat,0.1);
+  finally
+    C.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestAvgAggregate2;
+
+Var
+  C : TAggregateAvg;
+  V : TFPExprVariable;
+  I : Integer;
+  R : TFPExpressionResult;
+  A : TExprArgumentArray;
+
+begin
+  FFunction.ResultType:=rtInteger;
+  FFunction.ParameterTypes:='F';
+  FFunction.Name:='AVG';
+  FFunction2.ResultType:=rtFloat;
+  C:=Nil;
+  V:=TFPExprVariable.CreateIdentifier(FFunction2);
+  try
+    SetLength(A,1);
+    A[0]:=V;
+    C:=TAggregateAvg.CreateFunction(FFunction,A);
+    C.Check;
+    C.InitAggregate;
+    For I:=1 to 10 do
+      begin
+      FVarValue:=I;
+      C.UpdateAggregate;
+      end;
+    C.GetNodeValue(R);
+    AssertEquals('Correct type',rtFloat,R.ResultType);
+    AssertEquals('Correct value',5.5/2,R.ResFloat,0.1);
+  finally
+    C.Free;
+  end;
+end;
+
+procedure TTestParserAggregate.TestAvgAggregate3;
+Var
+  C : TAggregateAvg;
+  V : TFPExprVariable;
+  I : Integer;
+  R : TFPExpressionResult;
+  A : TExprArgumentArray;
+
+begin
+  FFunction.ResultType:=rtInteger;
+  FFunction.ParameterTypes:='F';
+  FFunction.Name:='AVG';
+  FFunction2.ResultType:=rtFloat;
+  C:=Nil;
+  V:=TFPExprVariable.CreateIdentifier(FFunction2);
+  try
+    SetLength(A,1);
+    A[0]:=V;
+    C:=TAggregateAvg.CreateFunction(FFunction,A);
+    C.Check;
+    C.InitAggregate;
+    C.GetNodeValue(R);
+    AssertEquals('Correct type',rtFloat,R.ResultType);
+    AssertEquals('Correct value',0.0,R.ResFloat,0.1);
+  finally
+    C.Free;
+  end;
+end;
+
+{ TAggregateNode }
+
+class function TAggregateNode.IsAggregate: Boolean;
+begin
+  Result:=True
+end;
+
+function TAggregateNode.NodeType: TResultType;
+begin
+  Result:=rtInteger;
+end;
+
+procedure TAggregateNode.InitAggregate;
+begin
+  inherited InitAggregate;
+  inc(InitCount)
+end;
+
+procedure TAggregateNode.UpdateAggregate;
+begin
+  inherited UpdateAggregate;
+  inc(UpdateCount);
+end;
+
+procedure TAggregateNode.GetNodeValue(var Result: TFPExpressionResult);
+begin
+  Result.ResultType:=rtInteger;
+  Result.ResInteger:=updateCount;
+end;
 
 procedure TTestExpressionScanner.TestCreate;
 begin
@@ -921,7 +1323,7 @@ Const
     = ('+','-','<','>','=','/',
        '*','(',')','<=','>=',
        '<>','1','''abc''','abc',',','and',
-       'or','xor','true','false','not','if','case','');
+       'or','xor','true','false','not','if','case','^','');
 
 var
   t : TTokenType;
@@ -941,28 +1343,27 @@ procedure TTestExpressionScanner.DoInvalidNumber(AString : String);
 
 begin
   FInvalidString:=AString;
-  AssertException('Invalid number "'+AString+'"',EExprScanner,@TestInvalidNumber);
+  AssertException('Invalid number "'+AString+'" ',EExprScanner,@TestInvalidNumber);
 end;
 
 procedure TTestExpressionScanner.TestNumber;
 begin
-  TestString('123',ttNumber);
+  {TestString('123',ttNumber);
   TestString('123.4',ttNumber);
   TestString('123.E4',ttNumber);
   TestString('1.E4',ttNumber);
   TestString('1e-2',ttNumber);
   DoInvalidNumber('1..1');
+}
   DoInvalidNumber('1.E--1');
-  DoInvalidNumber('.E-1');
+//  DoInvalidNumber('.E-1');
 end;
 
 procedure TTestExpressionScanner.TestInvalidCharacter;
 begin
   DoInvalidNumber('~');
-  DoInvalidNumber('^');
   DoInvalidNumber('#');
   DoInvalidNumber('$');
-  DoInvalidNumber('^');
 end;
 
 procedure TTestExpressionScanner.TestUnterminatedString;
@@ -975,6 +1376,27 @@ begin
   TestString('''That''''s it''',ttString);
   TestString('''''''s it''',ttString);
   TestString('''s it''''''',ttString);
+end;
+
+procedure TTestExpressionScanner.TestIdentifier(Const ASource,ATokenName : string);
+
+begin
+  FP.Source:=ASource;
+  AssertEquals('Token type',ttIdentifier,FP.GetToken);
+  AssertEquals('Token name',ATokenName,FP.Token);
+end;
+
+procedure TTestExpressionScanner.TestIdentifiers;
+begin
+  TestIdentifier('a','a');
+  TestIdentifier(' a','a');
+  TestIdentifier('a ','a');
+  TestIdentifier('a^b','a');
+  TestIdentifier('a-b','a');
+  TestIdentifier('a.b','a.b');
+  TestIdentifier('"a b"','a b');
+  TestIdentifier('c."a b"','c.a b');
+  TestIdentifier('c."ab"','c.ab');
 end;
 
 procedure TTestExpressionScanner.SetUp; 
@@ -1118,15 +1540,16 @@ end;
 procedure TTestConstExprNode.TestCreateFloat;
 
 Var
-  S : String;
+  F : Double;
+  C : Integer;
 
 begin
   FN:=TFPConstExpression.CreateFloat(2.34);
   AssertEquals('Correct type',rtFloat,FN.NodeType);
   AssertEquals('Correct result',2.34,FN.ConstValue.ResFloat);
   AssertEquals('Correct result',2.34,FN.NodeValue.ResFloat);
-  Str(TExprFLoat(2.34),S);
-  AssertEquals('AsString ok',S,FN.AsString);
+  Val(FN.AsString,F,C);
+  AssertEquals('AsString ok',2.34,F,0.001);
 end;
 
 procedure TTestConstExprNode.TestCreateBoolean;
@@ -2023,6 +2446,130 @@ procedure TTestMultiplyNode.TestAsString;
 begin
   FN:=TFPMultiplyOperation.Create(CreateIntNode(1),CreateIntNode(2));
   AssertEquals('Asstring works ok','1 * 2',FN.AsString);
+end;
+
+
+{ TTestPowerNode }
+
+procedure TTestPowerNode.TearDown;
+begin
+  FreeAndNil(FN);
+  inherited TearDown;
+end;
+
+procedure TTestPowerNode.Setup;
+begin
+  inherited ;
+  FE:=TFpExpressionParser.Create(Nil);
+  FE.Builtins := [bcMath];
+end;
+
+procedure TTestPowerNode.Calc(AExpr: String; Expected: Double =NaN);
+const
+  EPS = 1e-9;
+var
+  res: TFpExpressionResult;
+  x: Double;
+begin
+  FE.Expression := AExpr;
+  res:=FE.Evaluate;
+  x:= ArgToFloat(res);
+  if not IsNaN(Expected) then 
+    AssertEquals('Expression '+AExpr+' result',Expected,X,Eps);
+end;
+
+procedure TTestPowerNode.TestCalc;
+
+begin
+  Calc('2^2', Power(2, 2));
+  Calc('2^-2', Power(2, -2));
+  Calc('2^(-2)', Power(2, -2));
+  Calc('sqrt(3)^2', Power(sqrt(3), 2));
+  Calc('-sqrt(3)^2', -Power(sqrt(3), 2));
+  Calc('-2^2', -Power(2, 2));
+  Calc('(-2.0)^2', Power(-2.0, 2));
+  Calc('(-2.0)^-2', Power(-2.0, -2));
+  // Odd integer exponent
+  Calc('2^3', Power(2, 3));
+  Calc('-2^3', -Power(2, 3));
+  Calc('-2^-3', -Power(2, -3));
+  Calc('-2^(-3)', -Power(2, -3));
+  Calc('(-2.0)^3', Power(-2.0, 3));
+  Calc('(-2.0)^-3', Power(-2.0, -3));
+  // Fractional exponent
+  Calc('10^2.5', power(10, 2.5));
+  Calc('10^-2.5', Power(10, -2.5));
+  // Expressions
+  Calc('(1+1)^3', Power(1+1, 3));
+  Calc('1+2^3', 1 + Power(2, 3));
+  calc('2^3+1', Power(2, 3) + 1);
+  Calc('2^3*2', Power(2, 3) * 2);
+  Calc('2^3*-2', Power(2, 3) * -2);
+  Calc('2^(1+1)', Power(2, 1+1));
+  Calc('2^-(1+1)', Power(2, -(1+1)));
+  WriteLn;
+  // Special cases
+  Calc('0^0', power(0, 0));
+  calc('0^1', power(0, 1));
+  Calc('0^2.5', Power(0, 2.5));
+  calc('2.5^0', power(2.5, 0));
+  calc('2^3^4', 2417851639229258349412352);  // according to Wolfram Alpha, 2^(3^4)
+
+  // These expressions should throw expections
+
+  //Calc('(-10)^2.5', NaN);  // base must be positive in case of fractional exponent
+  //Calc('0^-2', NaN);       // is 1/0^2 = 1/0
+end;
+
+procedure TTestPowerNode.TestCreateInteger;
+begin
+  FN:=TFPPowerOperation.Create(CreateIntNode(4),CreateIntNode(2));
+  AssertEquals('Power has correct type',rtfloat,FN.NodeType);
+  AssertEquals('Power has correct result',16.0,FN.NodeValue.ResFloat);
+end;
+
+procedure TTestPowerNode.TestCreateFloat;
+begin
+  FN:=TFPPowerOperation.Create(CreateFloatNode(2.0),CreateFloatNode(3.0));
+  AssertEquals('Power has correct type',rtFloat,FN.NodeType);
+  AssertEquals('Power has correct result',8.0,FN.NodeValue.ResFloat);
+end;
+
+procedure TTestPowerNode.TestCreateDateTime;
+
+Var
+  D,T : TDateTime;
+
+begin
+  D:=Date;
+  T:=Time;
+  FN:=TFPPowerOperation.Create(CreateDateTimeNode(D+T),CreateDateTimeNode(T));
+  AssertNodeNotOK('No datetime Power',FN);
+end;
+
+procedure TTestPowerNode.TestCreateString;
+begin
+  FN:=TFPPowerOperation.Create(CreateStringNode('alo'),CreateStringNode('ha'));
+  AssertNodeNotOK('No string Power',FN);
+end;
+
+procedure TTestPowerNode.TestCreateBoolean;
+begin
+  FN:=TFPPowerOperation.Create(CreateBoolNode(True),CreateBoolNode(False));
+  AssertNodeNotOK('No boolean Power',FN);
+end;
+
+procedure TTestPowerNode.TestDestroy;
+begin
+  FN:=TFPPowerOperation.Create(TMyDestroyNode.CreateTest(Self),TMyDestroyNode.CreateTest(Self));
+  FreeAndNil(FN);
+  AssertEquals('Destroy called for left and right nodes',2,self.FDestroyCalled)
+end;
+
+procedure TTestPowerNode.TestAsString;
+begin
+  FN:=TFPPowerOperation.Create(CreateIntNode(1),CreateIntNode(2));
+  AssertEquals('Asstring works ok','1^2',FN.AsString);
 end;
 
 
@@ -4196,6 +4743,114 @@ begin
   AssertEquals('Correct value',False,I.AsBoolean);
 end;
 
+procedure TTestParserVariables.DoGetBooleanVar(var Res: TFPExpressionResult;
+  ConstRef AName: ShortString);
+
+begin
+  FEventName:=AName;
+  Res.ResBoolean:=FBoolValue;
+end;
+
+procedure TTestParserVariables.TestVariable31;
+
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVar);
+  AssertEquals('Correct name','a',i.Name);
+  AssertEquals('Correct type',Ord(rtBoolean),Ord(i.ResultType));
+  AssertSame(TMethod(I.OnGetVariableValue).Code,TMethod(@DoGetBooleanVar).Code);
+  FBoolValue:=True;
+  FEventName:='';
+  AssertEquals('Correct value 1',True,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FEventName);
+  FBoolValue:=False;
+  FEventName:='';
+  AssertEquals('Correct value 2',False,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FEventName);
+end;
+
+Var
+  FVarCallBackName:String;
+  FVarBoolValue : Boolean;
+
+procedure DoGetBooleanVar2(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+
+begin
+  FVarCallBackName:=AName;
+  Res.ResBoolean:=FVarBoolValue;
+end;
+
+procedure TTestParserVariables.DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+
+begin
+  FEventName:=AName;
+  Res.ResultType:=rtInteger;
+  Res.ResInteger:=33;
+end;
+
+procedure TTestParserVariables.TestVariable32;
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVar2);
+  AssertEquals('Correct name','a',i.Name);
+  AssertEquals('Correct type',Ord(rtBoolean),Ord(i.ResultType));
+  AssertSame(I.OnGetVariableValueCallBack,@DoGetBooleanVar2);
+  FVarBoolValue:=True;
+  FVarCallBackName:='';
+  AssertEquals('Correct value 1',True,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FVarCallBackName);
+  FVarBoolValue:=False;
+  FVarCallBackName:='';
+  AssertEquals('Correct value 2',False,I.AsBoolean);
+  AssertEquals('Correct name passed','a',FVarCallBackName);
+end;
+
+procedure TTestParserVariables.DoTestVariable33;
+
+Var
+  B : Boolean;
+
+begin
+  B:=FTest33.AsBoolean;
+end;
+
+procedure TTestParserVariables.TestVariable33;
+
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVarWrong);
+  FTest33:=I;
+  AssertException('Changing type results in exception',EExprParser,@DoTestVariable33);
+  AssertEquals('Type is unchanged',Ord(rtBoolean),Ord(i.ResultType));
+end;
+
+
+procedure DoGetBooleanVar2Wrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
+
+begin
+  FVarCallBackName:=AName;
+  Res.ResultType:=rtInteger;
+  Res.ResInteger:=34;
+end;
+
+procedure TTestParserVariables.TestVariable34;
+
+Var
+  I : TFPExprIdentifierDef;
+
+begin
+  I:=FP.Identifiers.AddVariable('a',rtBoolean,@DoGetBooleanVar2Wrong);
+  FTest33:=I;
+  AssertException('Changing type results in exception',EExprParser,@DoTestVariable33);
+  AssertEquals('Type is unchanged',Ord(rtBoolean),Ord(i.ResultType));
+end;
+
 
 
 Procedure EchoDate(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
@@ -4937,6 +5592,7 @@ procedure TTestBuiltins.Setup;
 begin
   inherited Setup;
   FM:=TExprBuiltInManager.Create(Nil);
+  FValue:=0;
 end;
 
 procedure TTestBuiltins.Teardown;
@@ -4945,7 +5601,7 @@ begin
   inherited Teardown;
 end;
 
-procedure TTestBuiltins.SetExpression(Const AExpression : String);
+procedure TTestBuiltins.SetExpression(const AExpression: String);
 
 Var
   Msg : String;
@@ -5030,11 +5686,41 @@ begin
   AssertDatetimeResult(AResult);
 end;
 
+procedure TTestBuiltins.AssertAggregateExpression(const AExpression: String;
+  AResult: Int64; AUpdateCount: integer);
+begin
+  FP.BuiltIns:=AllBuiltIns;
+  SetExpression(AExpression);
+  AssertEquals('Has aggregate',True,FP.ExprNode.HasAggregate);
+  FP.InitAggregate;
+  While AUpdateCount>0 do
+    begin
+    FP.UpdateAggregate;
+    Dec(AUpdateCount);
+    end;
+  AssertResult(AResult);
+end;
+
+procedure TTestBuiltins.AssertAggregateExpression(const AExpression: String;
+  AResult: TExprFloat; AUpdateCount: integer);
+begin
+  FP.BuiltIns:=AllBuiltIns;
+  SetExpression(AExpression);
+  AssertEquals('Has aggregate',True,FP.ExprNode.HasAggregate);
+  FP.InitAggregate;
+  While AUpdateCount>0 do
+    begin
+    FP.UpdateAggregate;
+    Dec(AUpdateCount);
+    end;
+  AssertResult(AResult);
+end;
+
 procedure TTestBuiltins.TestRegister;
 
 begin
   RegisterStdBuiltins(FM);
-  AssertEquals('Correct number of identifiers',64,FM.IdentifierCount);
+  AssertEquals('Correct number of identifiers',69,FM.IdentifierCount);
   Assertvariable('pi',rtFloat);
   AssertFunction('cos','F','F',bcMath);
   AssertFunction('sin','F','F',bcMath);
@@ -5099,6 +5785,11 @@ begin
   AssertFunction('strtotimedef','D','SD',bcConversion);
   AssertFunction('strtodatetime','D','S',bcConversion);
   AssertFunction('strtodatetimedef','D','SD',bcConversion);
+  AssertFunction('sum','F','F',bcAggregate);
+  AssertFunction('count','I','',bcAggregate);
+  AssertFunction('avg','F','F',bcAggregate);
+  AssertFunction('min','F','F',bcAggregate);
+  AssertFunction('max','F','F',bcAggregate);
 end;
 
 procedure TTestBuiltins.TestVariablepi;
@@ -5549,6 +6240,59 @@ begin
   AssertExpression('StrToDateTimeDef('''+S+''',S)',T);
 end;
 
+procedure TTestBuiltins.TestFunctionAggregateSum;
+begin
+  FP.Identifiers.AddIntegerVariable('S',2);
+  AssertAggregateExpression('sum(S)',10.0,5);
+end;
+
+procedure TTestBuiltins.TestFunctionAggregateCount;
+begin
+  AssertAggregateExpression('count',5,5);
+end;
+
+
+procedure TTestBuiltins.DoAverage(var Result: TFPExpressionResult; ConstRef
+  AName: ShortString);
+
+begin
+  Inc(FValue);
+  Result.ResInteger:=FValue;
+  Result.ResultType:=rtInteger;
+end;
+
+procedure TTestBuiltins.DoSeries(var Result: TFPExpressionResult; ConstRef
+  AName: ShortString);
+
+Const
+  Values : Array[1..10] of double =
+  (1.3,1.8,1.1,9.9,1.4,2.4,5.8,6.5,7.8,8.1);
+
+
+begin
+  Inc(FValue);
+  Result.ResFloat:=Values[FValue];
+  Result.ResultType:=rtFloat;
+end;
+
+procedure TTestBuiltins.TestFunctionAggregateAvg;
+begin
+  FP.Identifiers.AddVariable('S',rtInteger,@DoAverage);
+  AssertAggregateExpression('avg(S)',5.5,10);
+end;
+
+procedure TTestBuiltins.TestFunctionAggregateMin;
+begin
+  FP.Identifiers.AddVariable('S',rtFloat,@DoSeries);
+  AssertAggregateExpression('Min(S)',1.1,10);
+end;
+
+procedure TTestBuiltins.TestFunctionAggregateMax;
+begin
+  FP.Identifiers.AddVariable('S',rtFloat,@DoSeries);
+  AssertAggregateExpression('Max(S)',9.9,10);
+end;
+
 { TTestNotNode }
 
 procedure TTestNotNode.TearDown;
@@ -5989,12 +6733,13 @@ initialization
                  TTestLessThanNode,TTestLessThanEqualNode,
                  TTestLargerThanNode,TTestLargerThanEqualNode,
                  TTestAddNode,TTestSubtractNode,
-                 TTestMultiplyNode,TTestDivideNode,
+                 TTestMultiplyNode,TTestDivideNode,TTestPowerNode,
                  TTestIntToFloatNode,TTestIntToDateTimeNode,
                  TTestFloatToDateTimeNode,
                  TTestParserExpressions, TTestParserBooleanOperations,
                  TTestParserOperands, TTestParserTypeMatch,
                  TTestParserVariables,TTestParserFunctions,
+                 TTestParserAggregate,
                  TTestBuiltinsManager,TTestBuiltins]);
 end.
 

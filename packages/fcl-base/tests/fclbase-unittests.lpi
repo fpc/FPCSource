@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -6,7 +6,6 @@
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
-        <UseDefaultCompilerOptions Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
@@ -31,35 +30,35 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--suite=TTestParserVariables.TestVariable31"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="fclbase-unittests.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="fclbase_unittests"/>
       </Unit0>
       <Unit1>
         <Filename Value="tchashlist.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tchashlist"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="testexprpars.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="project1"/>
+      <Filename Value="fclbase-unittests"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

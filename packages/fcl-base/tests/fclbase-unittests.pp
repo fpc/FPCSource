@@ -10,6 +10,8 @@ var
   Application: TTestRunner;
 
 begin
+  DefaultFormat:=fPlain;
+  DefaultRunAllTests:=True;
   Application := TTestRunner.Create(nil);
   Application.Initialize;
   Application.Title := 'FCL-Base unittests';
