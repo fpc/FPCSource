@@ -5,7 +5,7 @@ unit tcgenerics;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pastree, testregistry, pscanner, pparser, tctypeparser;
+  Classes, SysUtils, fpcunit, pastree, testregistry, pscanner, tctypeparser;
 
 Type
 
@@ -14,27 +14,53 @@ Type
   TTestGenerics = Class(TBaseTestTypeParser)
   Published
     Procedure TestObjectGenerics;
+    Procedure TestRecordGenerics;
+    Procedure TestArrayGenerics;
     Procedure TestSpecializationDelphi;
     Procedure TestDeclarationDelphi;
     Procedure TestDeclarationDelphiSpecialize;
     Procedure TestMethodImplementation;
-    Procedure TestInlineSpecializationInProcedure;
+    Procedure TestInlineSpecializationInArgument;
+    Procedure TestSpecializeNested;
+    Procedure TestInlineSpecializeInStatement;
   end;
 
 implementation
 
 procedure TTestGenerics.TestObjectGenerics;
 begin
-  Source.Add('Type');
-  Source.Add('Generic TSomeClass<T> = Object');
-  Source.Add('  b : T;');
-  Source.Add('end;');
+  Add([
+    'Type',
+    'Generic TSomeClass<T> = Object',
+    '  b : T;',
+    'end;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestRecordGenerics;
+begin
+  Add([
+    'Type',
+    '  Generic TSome<T> = Record',
+    '    b : T;',
+    '  end;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestArrayGenerics;
+begin
+  Add([
+    'Type',
+    '  Generic TSome<T> = array of T;',
+    '']);
   ParseDeclarations;
 end;
 
 procedure TTestGenerics.TestSpecializationDelphi;
 begin
-  ParseType('TFPGList<integer>',TPasClassType,'');
+  ParseType('TFPGList<integer>',TPasSpecializeType,'');
 end;
 
 procedure TTestGenerics.TestDeclarationDelphi;
@@ -78,7 +104,6 @@ begin
   AssertEquals('2 template types',2,T.GenericTemplateTypes.Count);
   AssertSame('Parent 0 is class',T,TPasElement(T.GenericTemplateTypes[0]).Parent);
   AssertSame('Parent 1 is class',T,TPasElement(T.GenericTemplateTypes[1]).Parent);
-
 end;
 
 procedure TTestGenerics.TestMethodImplementation;
@@ -100,7 +125,7 @@ begin
   ParseModule;
 end;
 
-procedure TTestGenerics.TestInlineSpecializationInProcedure;
+procedure TTestGenerics.TestInlineSpecializationInArgument;
 begin
   With source do
     begin
@@ -113,6 +138,26 @@ begin
     Add('  end;');
     Add('implementation');
     end;
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestSpecializeNested;
+begin
+  Add([
+    'Type',
+    '  generic TSomeClass<A,B> = class(specialize TOther<A,specialize TAnother<B>>) end;',
+    '']);
+  ParseDeclarations;
+end;
+
+procedure TTestGenerics.TestInlineSpecializeInStatement;
+begin
+  Add([
+  'begin',
+  '  vec:=TVector<double>.create;',
+  '  b:=a<b;',
+  '  t:=a<b.c<d,e.f>>;',
+  '']);
   ParseModule;
 end;
 

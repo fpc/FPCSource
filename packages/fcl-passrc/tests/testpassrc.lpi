@@ -27,7 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestGenerics.TestInlineSpecializationInProcedure"/>
+        <CommandLineParams Value="--suite=TTestExpressions.TestArrayAccess"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">

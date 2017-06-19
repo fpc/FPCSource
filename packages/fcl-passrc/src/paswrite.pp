@@ -190,7 +190,7 @@ begin
         begin
         if i > 0 then
           wrt(', ');
-        wrt(ASection.UsesClause[i].Identifier);
+        wrt(ASection.UsesClause[i].Name);
         if ASection.UsesClause[i].InFilename is TPrimitiveExpr then
           wrt(' in '''+TPrimitiveExpr(ASection.UsesClause[i].InFilename).Value+'''');
         end

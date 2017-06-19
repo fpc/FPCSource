@@ -136,8 +136,11 @@ type
     procedure TestTypeCast2;
     Procedure TestCreate;
     procedure TestChainedPointers;
+    procedure TestChainedPointers2;
+    procedure TestChainedPointers3;
     Procedure TestNilCaret;
     Procedure TestExpCaret;
+    Procedure TestArrayAccess;
   end;
 
 implementation
@@ -607,6 +610,34 @@ begin
   ParseModule;
 end;
 
+procedure TTestExpressions.TestChainedPointers2;
+begin
+  Source.Add('program afile;');
+  Source.Add('procedure test;');
+  Source.Add('begin');
+  Source.Add('ResourcePool.Shared^.Register(TypeOf(tTexture), @LoadTexture)^.Tag(GLResourceTag)');
+  Source.Add(' ^.Register(TypeOf(tShader), @LoadShader)^.Tag(GLResourceTag)//space - works');
+  Source.Add('^.Register(TypeOf(ShaderProgram), @LoadShaderProgram)^.Tag(GLResourceTag);//without space - does not work');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestExpressions.TestChainedPointers3;
+begin
+  Source.Add('program afile;');
+  Source.Add('procedure test;');
+  Source.Add('begin');
+  Source.Add('ResourcePool.Shared^.Register(TypeOf(tTexture), @LoadTexture)^.Tag(GLResourceTag)');
+  Source.Add(' ^.Register(TypeOf(tShader), @LoadShader)^.Tag(GLResourceTag)//space - works');
+  Source.Add(#9'^.Register(TypeOf(ShaderProgram), @LoadShaderProgram)^.Tag(GLResourceTag);// tab - does not work');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
 procedure TTestExpressions.TestNilCaret;
 begin
   Source.Add('{$mode objfpc}');
@@ -621,6 +652,14 @@ begin
   Source.Add('{$mode objfpc}');
   Source.Add('begin');
   Source.Add('A:=B^;');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestExpressions.TestArrayAccess;
+begin
+  Source.Add('begin');
+  Source.Add('DoSomething((pb + 10)[4]);');
   Source.Add('end.');
   ParseModule;
 end;

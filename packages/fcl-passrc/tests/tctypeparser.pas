@@ -113,8 +113,12 @@ type
     procedure TestStaticArrayPlatform;
     Procedure TestStaticArrayPacked;
     Procedure TestStaticArrayTypedIndex;
+    Procedure TestStaticArrayOfMethod;
+    procedure TestStaticArrayOfProcedure;
     Procedure TestDynamicArray;
     Procedure TestDynamicArrayComment;
+    procedure TestDynamicArrayOfMethod;
+    procedure TestDynamicArrayOfProcedure;
     Procedure TestGenericArray;
     Procedure TestSimpleEnumerated;
     Procedure TestSimpleEnumeratedComment;
@@ -2914,6 +2918,30 @@ procedure TTestTypeParser.TestStaticArrayTypedIndex;
 begin
   DoParseArray('array [Boolean] of integer','',Nil);
   AssertEquals('Array type','Boolean',TPasArrayType(TheType).IndexRange);
+end;
+
+procedure TTestTypeParser.TestStaticArrayOfMethod;
+begin
+  DoParseArray('array[0..127] of procedure of object','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestStaticArrayOfProcedure;
+begin
+  DoParseArray('array[0..127] of procedure','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestDynamicArrayOfMethod;
+begin
+  DoParseArray('array of procedure of object','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestDynamicArrayOfProcedure;
+begin
+  DoParseArray('array of procedure ','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
 end;
 
 procedure TTestTypeParser.TestDynamicArray;

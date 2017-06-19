@@ -246,6 +246,11 @@ Works:
   - use 0o for octal literals
 
 ToDos:
+- $modeswitch -> define/undefine <modeswitch>
+- scanner: bark on unknown modeswitch
+- scanner: bark on disabling fixed modeswitch
+- $ifopt, $if option
+
 - constant evaluation
 - integer ranges
 - static arrays
@@ -260,9 +265,6 @@ ToDos:
 - local var absolute
 - make -Jirtl.js default for -Jc and -Tnodejs, needs #IFDEF in cfg
 - FuncName:= (instead of Result:=)
-- $modeswitch -> define <modeswitch>
-- scanner: define list of allowed modeswitches
-- $modeswitch- -> turn off
 - check memleaks
 - @@ compare method in delphi mode
 - make records more lightweight
@@ -779,8 +781,27 @@ type
 //------------------------------------------------------------------------------
 // TPas2JSResolver
 const
-  msAllPas2jsModeSwitches = [msDelphi,msFpc,msObjfpc,
-    msExternalClass,msHintDirective,msNestedComment];
+  msAllPas2jsModeSwitchesReadOnly = [
+    msClass,
+    msResult,
+    msRepeatForward,
+    // ToDo: msPointer2Procedure,
+    // ToDo: msAutoDeref,
+    msInitFinal,
+    msOut,
+    msDefaultPara,
+    // ToDo: msDuplicateNames
+    msProperty,
+    // ToDo: msDefaultInline
+    msExcept,
+    // ToDo: msAdvancedRecords
+    msDefaultUnicodestring,
+    msCBlocks
+    ];
+  msAllPas2jsModeSwitches = msAllPas2jsModeSwitchesReadOnly+[
+    msDelphi,msObjfpc,
+    msHintDirective,msNestedComment,
+    msExternalClass];
 
   btAllJSBaseTypes = [
     btChar,

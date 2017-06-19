@@ -118,6 +118,10 @@ Type
     Procedure TestGotoInIfThen;
     procedure AssignToAddress;
     procedure FinalizationNoSemicolon;
+    procedure MacroComment;
+    Procedure PLatformIdentifier;
+    Procedure PLatformIdentifier2;
+    Procedure Onidentifier;
   end;
 
 
@@ -1718,6 +1722,39 @@ begin
   ParseModule;
 end;
 
+procedure TTestStatementParser.MacroComment;
+begin
+  AddStatements(['{$MACRO ON}',
+  '{$DEFINE func := //}',
+  '  calltest;',
+  '  func (''1'',''2'',''3'');',
+  'CallTest2;'
+  ]);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.PLatformIdentifier;
+begin
+  AddStatements(['write(platform);']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.PLatformIdentifier2;
+begin
+  AddStatements(['write(libs+platform);']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.Onidentifier;
+begin
+  Source.Add('function TryOn(const on: boolean): boolean;');
+  Source.Add('  begin');
+  Source.Add('  end;');
+  Source.Add('  begin');
+  Source.Add('  end.');
+  ParseModule;
+end;
+
 Procedure TTestStatementParser.TestGotoInIfThen;
 
 begin
@@ -1728,8 +1765,7 @@ begin
   '  else',
   '    dosomething;',
   '  try_qword:',
-  '  dosomething;',
-  'end.']);
+  '  dosomething;']);
   ParseModule;
 end;
 
