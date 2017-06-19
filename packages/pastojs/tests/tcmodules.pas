@@ -24,8 +24,8 @@ unit tcmodules;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, contnrs, fppas2js,
-  pastree, PScanner, PasResolver, PParser, jstree, jswriter, jsbase;
+  Classes, SysUtils, fpcunit, testregistry, contnrs, fppas2js, pastree,
+  PScanner, PasResolver, PParser, PasResolveEval, jstree, jswriter, jsbase;
 
 const
   // default parser+scanner options
@@ -96,6 +96,7 @@ type
     function GetModuleCount: integer;
     function GetModules(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
+    function FindUnit(const aUnitName: String): TPasModule;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -114,14 +115,16 @@ type
     procedure AddSystemUnit; virtual;
     procedure StartProgram(NeedSystemUnit: boolean); virtual;
     procedure StartUnit(NeedSystemUnit: boolean); virtual;
-    Procedure ConvertModule; virtual;
-    Procedure ConvertProgram; virtual;
-    Procedure ConvertUnit; virtual;
+    procedure ConvertModule; virtual;
+    procedure ConvertProgram; virtual;
+    procedure ConvertUnit; virtual;
     procedure CheckDottedIdentifier(Msg: string; El: TJSElement; DottedName: string);
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
       ImplStatements: string = ''); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
+    procedure SetExpectedScannerError(Msg: string; MsgNumber: integer);
+    procedure SetExpectedParserError(Msg: string; MsgNumber: integer);
     procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
     procedure SetExpectedConverterError(Msg: string; MsgNumber: integer);
     function IsErrorExpected(E: Exception): boolean;
@@ -132,6 +135,7 @@ type
     procedure HandleException(E: Exception);
     procedure RaiseException(E: Exception);
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
+    function GetDefaultNamespace: string;
     property PasProgram: TPasProgram Read FPasProgram;
     property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
     property ModuleCount: integer read GetModuleCount;
@@ -169,6 +173,10 @@ type
     Procedure TestEmptyProgramUseStrict;
     Procedure TestEmptyUnit;
     Procedure TestEmptyUnitUseStrict;
+    Procedure TestDottedUnitNames;
+    Procedure TestDottedUnitExpr;
+    Procedure Test_ModeFPCFail;
+    Procedure Test_ModeSwitchCBlocksFail;
 
     // vars/const
     Procedure TestVarInt;
@@ -315,6 +323,7 @@ type
     Procedure TestRecordElementFromFuncResult_AsParams;
     Procedure TestRecordElementFromWith_AsParams;
     Procedure TestRecord_Equal;
+    Procedure TestRecord_TypeCastJSValueToRecord;
     // ToDo: const record
 
     // classes
@@ -358,7 +367,11 @@ type
     Procedure TestClass_NestedSelf;
     Procedure TestClass_NestedClassSelf;
     Procedure TestClass_NestedCallInherited;
-    Procedure TestClass_TObjectFree; // ToDO
+    Procedure TestClass_TObjectFree;
+    Procedure TestClass_TObjectFreeNewInstance;
+    Procedure TestClass_TObjectFreeLowerCase;
+    Procedure TestClass_TObjectFreeFunctionFail;
+    Procedure TestClass_TObjectFreePropertyFail;
 
     // class of
     Procedure TestClassOf_Create;
@@ -372,6 +385,9 @@ type
     Procedure TestClassOf_ClassMethodSelf;
     Procedure TestClassOf_TypeCast;
     Procedure TestClassOf_ImplicitFunctionCall;
+
+    // nested class
+    Procedure TestNestedClass_Fail;
 
     // external class
     Procedure TestExternalClass_Var;
@@ -595,31 +611,51 @@ end;
 function TCustomTestModule.OnPasResolverFindUnit(const aUnitName: String
   ): TPasModule;
 var
+  DefNamespace: String;
+begin
+  //writeln('TTestModule.OnPasResolverFindUnit START Unit="',aUnitName,'"');
+  if (Pos('.',aUnitName)<1) then
+    begin
+    DefNamespace:=GetDefaultNamespace;
+    if DefNamespace<>'' then
+      begin
+      Result:=FindUnit(DefNamespace+'.'+aUnitName);
+      if Result<>nil then exit;
+      end;
+    end;
+  Result:=FindUnit(aUnitName);
+  if Result<>nil then exit;
+  writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
+  Fail('can''t find unit "'+aUnitName+'"');
+end;
+
+function TCustomTestModule.FindUnit(const aUnitName: String): TPasModule;
+var
   i: Integer;
   CurEngine: TTestEnginePasResolver;
   CurUnitName: String;
 begin
-  //writeln('TTestModule.OnPasResolverFindUnit START Unit="',aUnitName,'"');
+  //writeln('TTestModule.FindUnit START Unit="',aUnitName,'"');
   Result:=nil;
   for i:=0 to ModuleCount-1 do
     begin
     CurEngine:=Modules[i];
     CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
-    //writeln('TTestModule.OnPasResolverFindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
+    //writeln('TTestModule.FindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
     if CompareText(aUnitName,CurUnitName)=0 then
       begin
       Result:=CurEngine.Module;
       if Result<>nil then exit;
-      //writeln('TTestModule.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
+      //writeln('TTestModule.FindUnit PARSING unit "',CurEngine.Filename,'"');
       FileResolver.FindSourceFile(aUnitName);
 
       CurEngine.Resolver:=TStreamResolver.Create;
       CurEngine.Resolver.OwnsStreams:=True;
-      //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
+      //writeln('TTestModule.FindUnit SOURCE=',CurEngine.Source);
       CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
       CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
-      CurEngine.Parser.Options:=CurEngine.Parser.Options+po_pas2js;
+      CurEngine.Parser.Options:=CurEngine.Parser.Options+po_pas2js+[po_KeepScannerError];
       if CompareText(CurUnitName,'System')=0 then
         CurEngine.Parser.ImplicitUses.Clear;
       CurEngine.Scanner.OpenFile(CurEngine.Filename);
@@ -627,20 +663,14 @@ begin
         CurEngine.Parser.NextToken;
         CurEngine.Parser.ParseUnit(CurEngine.FModule);
       except
-        on E: EParserError do
-          HandleParserError(E);
-        on E: EPasResolve do
-          HandlePasResolveError(E);
         on E: Exception do
           HandleException(E);
       end;
-      //writeln('TTestModule.OnPasResolverFindUnit END ',CurUnitName);
+      //writeln('TTestModule.FindUnit END ',CurUnitName);
       Result:=CurEngine.Module;
       exit;
       end;
     end;
-  writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  Fail('can''t find unit "'+aUnitName+'"');
 end;
 
 procedure TCustomTestModule.SetUp;
@@ -659,7 +689,7 @@ begin
   FScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
   FEngine:=AddModule(Filename);
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
-  Parser.Options:=Parser.Options+po_pas2js;
+  Parser.Options:=Parser.Options+po_pas2js+[po_KeepScannerError];
   FModule:=Nil;
   FConverter:=TPasToJSConverter.Create;
   FConverter.Options:=co_tcmodules;
@@ -732,12 +762,6 @@ begin
     StartParsing;
     Parser.ParseMain(FModule);
   except
-    on E: EParserError do
-      HandleParserError(E);
-    on E: EPasResolve do
-      HandlePasResolveError(E);
-    on E: EPas2JS do
-      HandlePas2JSError(E);
     on E: Exception do
       HandleException(E);
   end;
@@ -846,7 +870,7 @@ begin
     AddSystemUnit
   else
     Parser.ImplicitUses.Clear;
-  Add('program test1;');
+  Add('program '+ExtractFileUnitName(Filename)+';');
   Add('');
 end;
 
@@ -921,14 +945,6 @@ begin
   try
     FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
   except
-    on E: EScannerError do
-      HandleScannerError(E);
-    on E: EParserError do
-      HandleParserError(E);
-    on E: EPasResolve do
-      HandlePasResolveError(E);
-    on E: EPas2JS do
-      HandlePas2JSError(E);
     on E: Exception do
       HandleException(E);
   end;
@@ -1199,6 +1215,22 @@ begin
   until false;
 end;
 
+procedure TCustomTestModule.SetExpectedScannerError(Msg: string;
+  MsgNumber: integer);
+begin
+  ExpectedErrorClass:=EScannerError;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
+procedure TCustomTestModule.SetExpectedParserError(Msg: string;
+  MsgNumber: integer);
+begin
+  ExpectedErrorClass:=EParserError;
+  ExpectedErrorMsg:=Msg;
+  ExpectedErrorNumber:=MsgNumber;
+end;
+
 procedure TCustomTestModule.SetExpectedPasResolverError(Msg: string;
   MsgNumber: integer);
 begin
@@ -1225,6 +1257,10 @@ begin
     MsgNumber:=EPas2JS(E).MsgNumber
   else if E is EPasResolve then
     MsgNumber:=EPasResolve(E).MsgNumber
+  else if E is EParserError then
+    MsgNumber:=Parser.LastMsgNumber
+  else if E is EScannerError then
+    MsgNumber:=Scanner.LastMsgNumber
   else
     MsgNumber:=0;
   Result:=(MsgNumber=ExpectedErrorNumber) and (E.Message=ExpectedErrorMsg);
@@ -1280,13 +1316,24 @@ end;
 
 procedure TCustomTestModule.HandleException(E: Exception);
 begin
-  if IsErrorExpected(E) then exit;
-  if not (E is EAssertionFailedError) then
+  if E is EScannerError then
+    HandleScannerError(EScannerError(E))
+  else if E is EParserError then
+    HandleParserError(EParserError(E))
+  else if E is EPasResolve then
+    HandlePasResolveError(EPasResolve(E))
+  else if E is EPas2JS then
+    HandlePas2JSError(EPas2JS(E))
+  else
     begin
-    WriteSources('',0,0);
-    writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+    if IsErrorExpected(E) then exit;
+    if not (E is EAssertionFailedError) then
+      begin
+      WriteSources('',0,0);
+      writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
+      end;
+    RaiseException(E);
     end;
-  RaiseException(E);
 end;
 
 procedure TCustomTestModule.RaiseException(E: Exception);
@@ -1299,6 +1346,10 @@ begin
         MsgNumber:=EPas2JS(E).MsgNumber
       else if E is EPasResolve then
         MsgNumber:=EPasResolve(E).MsgNumber
+      else if E is EParserError then
+        MsgNumber:=Parser.LastMsgNumber
+      else if E is EScannerError then
+        MsgNumber:=Scanner.LastMsgNumber
       else
         MsgNumber:=0;
       AssertEquals('Expected error message ('+IntToStr(ExpectedErrorNumber)+')','{'+ExpectedErrorMsg+'}','{'+E.Message+'}');
@@ -1345,6 +1396,17 @@ begin
     end;
 end;
 
+function TCustomTestModule.GetDefaultNamespace: string;
+var
+  C: TClass;
+begin
+  Result:='';
+  if FModule=nil then exit;
+  C:=FModule.ClassType;
+  if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
+    Result:=Engine.DefaultNameSpace;
+end;
+
 { TTestModule }
 
 procedure TTestModule.TestEmptyProgram;
@@ -1388,6 +1450,82 @@ begin
     ''
     ]),
     '');
+end;
+
+procedure TTestModule.TestDottedUnitNames;
+begin
+  AddModuleWithIntfImplSrc('NS1.Unit2.pas',
+    LinesToStr([
+    'var iV: longint;'
+    ]),
+    '');
+
+  FFilename:='ns1.test1.pp';
+  StartProgram(true);
+  Add('uses unIt2;');
+  Add('implementation');
+  Add('var');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=iv;');
+  Add('  i:=uNit2.iv;');
+  Add('  i:=Ns1.TEst1.i;');
+  ConvertProgram;
+  CheckSource('TestDottedUnitNames',
+    LinesToStr([
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$init
+    '$mod.i = pas["NS1.Unit2"].iV;',
+    '$mod.i = pas["NS1.Unit2"].iV;',
+    '$mod.i = $mod.i;',
+    '']) );
+end;
+
+procedure TTestModule.TestDottedUnitExpr;
+begin
+  AddModuleWithIntfImplSrc('NS2.SubNs2.Unit2.pas',
+    LinesToStr([
+    'procedure DoIt;'
+    ]),
+    'procedure DoIt; begin end;');
+
+  FFilename:='Ns1.SubNs1.Test1.pp';
+  StartProgram(true);
+  Add('uses Ns2.sUbnS2.unIt2;');
+  Add('implementation');
+  Add('var');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  ns2.subns2.unit2.doit;');
+  Add('  i:=Ns1.SubNS1.TEst1.i;');
+  ConvertProgram;
+  CheckSource('TestDottedUnitExpr',
+    LinesToStr([
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // this.$init
+    'pas["NS2.SubNs2.Unit2"].DoIt();',
+    '$mod.i = $mod.i;',
+    '']) );
+end;
+
+procedure TTestModule.Test_ModeFPCFail;
+begin
+  StartProgram(false);
+  Add('{$mode FPC}');
+  Add('begin');
+  SetExpectedScannerError('Invalid mode: "FPC"',nErrInvalidMode);
+  ConvertProgram;
+end;
+
+procedure TTestModule.Test_ModeSwitchCBlocksFail;
+begin
+  StartProgram(false);
+  Add('{$modeswitch cblocks-}');
+  Add('begin');
+  SetExpectedScannerError('Invalid mode switch: "cblocks-"',nErrInvalidModeSwitch);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestVarInt;
@@ -5657,13 +5795,13 @@ begin
   Add('function GetRec(vB: integer = 0): TRecord;');
   Add('begin');
   Add('end;');
-  Add('procedure DoIt(vG: integer; const vH: integer; var vI: integer);');
+  Add('procedure DoIt(vG: integer; const vH: integer);');
   Add('begin');
   Add('end;');
   Add('begin');
-  Add('  doit(getrec.i,getrec.i,getrec.i);');
-  Add('  doit(getrec().i,getrec().i,getrec().i);');
-  Add('  doit(getrec(1).i,getrec(2).i,getrec(3).i);');
+  Add('  doit(getrec.i,getrec.i);');
+  Add('  doit(getrec().i,getrec().i);');
+  Add('  doit(getrec(1).i,getrec(2).i);');
   ConvertProgram;
   CheckSource('TestRecordElementFromFuncResult_AsParams',
     LinesToStr([ // statements
@@ -5681,37 +5819,13 @@ begin
     '  var Result = new $mod.TRecord();',
     '  return Result;',
     '};',
-    'this.DoIt = function (vG,vH,vI) {',
+    'this.DoIt = function (vG,vH) {',
     '};'
     ]),
     LinesToStr([
-    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i,{',
-    '  p: $mod.GetRec(0),',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});',
-    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i,{',
-    '  p: $mod.GetRec(0),',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});',
-    '$mod.DoIt($mod.GetRec(1).i,$mod.GetRec(2).i,{',
-    '  p: $mod.GetRec(3),',
-    '  get: function () {',
-    '      return this.p.i;',
-    '    },',
-    '  set: function (v) {',
-    '      this.p.i = v;',
-    '    }',
-    '});',
+    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i);',
+    '$mod.DoIt($mod.GetRec(0).i,$mod.GetRec(0).i);',
+    '$mod.DoIt($mod.GetRec(1).i,$mod.GetRec(2).i);',
     '']));
 end;
 
@@ -5823,6 +5937,39 @@ begin
     LinesToStr([
     '$mod.b = $mod.r.$equal($mod.s);',
     '$mod.b = !$mod.r.$equal($mod.s);',
+    '']));
+end;
+
+procedure TTestModule.TestRecord_TypeCastJSValueToRecord;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TRecord = record');
+  Add('    i: longint;');
+  Add('  end;');
+  Add('var');
+  Add('  Jv: jsvalue;');
+  Add('  Rec: trecord;');
+  Add('begin');
+  Add('  rec:=trecord(jv);');
+  ConvertProgram;
+  CheckSource('TestRecord_TypeCastJSValueToRecord',
+    LinesToStr([ // statements
+    'this.TRecord = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.i == b.i;',
+    '  };',
+    '};',
+    'this.Jv = undefined;',
+    'this.Rec = new $mod.TRecord();'
+    ]),
+    LinesToStr([
+    '$mod.Rec = new $mod.TRecord(rtl.getObject($mod.Jv));',
     '']));
 end;
 
@@ -7802,18 +7949,16 @@ begin
     '    if (5 == this.cI) ;',
     '    if (this.cI == 6) ;',
     '    if (7 == this.cI) ;',
-    '    var $with1 = this;',
-    '    if ($with1.cI == 11) ;',
-    '    if (12 == $with1.cI) ;',
+    '    if (this.cI == 11) ;',
+    '    if (12 == this.cI) ;',
     '  };',
     '  this.DoMore = function () {',
     '    if (this.cI == 8) ;',
     '    if (this.cI == 9) ;',
     '    if (10 == this.cI) ;',
     '    if (11 == this.cI) ;',
-    '    var $with1 = this;',
-    '    if ($with1.cI == 13) ;',
-    '    if (14 == $with1.cI) ;',
+    '    if (this.cI == 13) ;',
+    '    if (14 == this.cI) ;',
     '  };',
     '});',
     'this.Obj = null;',
@@ -8066,8 +8211,6 @@ end;
 
 procedure TTestModule.TestClass_TObjectFree;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   'type',
@@ -8084,24 +8227,30 @@ begin
   '  o.free;',
   '  o.free();',
   '  l.free;',
+  '  l.free();',
   '  o.obj.free;',
   '  o.obj.free();',
+  '  with o do obj.free;',
+  '  with o do obj.free();',
   '  result.Free;',
   '  result.Free();',
   'end;',
   'var o: tobject;',
+  '  a: array of tobject;',
   'begin',
   '  o.free;',
   '  o.obj.free;',
+  '  a[1+2].free;',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_NestedCallInherited',
+  CheckSource('TestClass_TObjectFree',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Obj = null;',
     '  };',
     '  this.$final = function () {',
+    '    this.Obj = undefined;',
     '  };',
     '  this.Free = function () {',
     '  };',
@@ -8109,12 +8258,138 @@ begin
     'this.DoIt = function (o) {',
     '  var Result = null;',
     '  var l = null;',
+    '  o = rtl.freeLoc(o);',
+    '  o = rtl.freeLoc(o);',
+    '  l = rtl.freeLoc(l);',
+    '  l = rtl.freeLoc(l);',
+    '  rtl.free(o, "Obj");',
+    '  rtl.free(o, "Obj");',
+    '  rtl.free(o, "Obj");',
+    '  rtl.free(o, "Obj");',
+    '  Result = rtl.freeLoc(Result);',
+    '  Result = rtl.freeLoc(Result);',
     '  return Result;',
     '};',
     'this.o = null;',
+    'this.a = [];',
     '']),
     LinesToStr([ // $mod.$main
+    'rtl.free($mod, "o");',
+    'rtl.free($mod.o, "Obj");',
+    'rtl.free($mod.a, 1 + 2);',
     '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFreeNewInstance;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '    procedure Free;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'procedure tobject.free; begin end;',
+  'begin',
+  '  with tobject.create do free;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_TObjectFreeNewInstance',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '  };',
+    '  this.Free = function () {',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $with1 = $mod.TObject.$create("Create");',
+    '$with1=rtl.freeLoc($with1);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFreeLowerCase;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    destructor Destroy;',
+  '    procedure Free;',
+  '  end;',
+  'destructor TObject.Destroy; begin end;',
+  'procedure tobject.free; begin end;',
+  'var o: tobject;',
+  'begin',
+  '  o.free;',
+  '']);
+  Converter.UseLowerCase:=true;
+  ConvertProgram;
+  CheckSource('TestClass_TObjectFreeLowerCase',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "tobject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  rtl.tObjectDestroy = "destroy";',
+    '  this.destroy = function () {',
+    '  };',
+    '  this.free = function () {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'rtl.free($mod, "o");',
+    '']));
+end;
+
+procedure TTestModule.TestClass_TObjectFreeFunctionFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Free;',
+  '    function GetObj: tobject; virtual; abstract;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'var o: tobject;',
+  'begin',
+  '  o.getobj.free;',
+  '']);
+  SetExpectedPasResolverError(sFreeNeedsVar,nFreeNeedsVar);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_TObjectFreePropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Free;',
+  '    FObj: TObject;',
+  '    property Obj: tobject read FObj write FObj;',
+  '  end;',
+  'procedure tobject.free;',
+  'begin',
+  'end;',
+  'var o: tobject;',
+  'begin',
+  '  o.obj.free;',
+  '']);
+  SetExpectedPasResolverError(sFreeNeedsVar,nFreeNeedsVar);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClassOf_Create;
@@ -8634,6 +8909,20 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestNestedClass_Fail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    type TNested = longint;',
+  '  end;',
+  'begin']);
+  SetExpectedPasResolverError('not yet implemented: TNested:TPasAliasType [20170608232534] nested types',
+    nNotYetImplemented);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestExternalClass_Var;
 begin
   StartProgram(false);
@@ -9118,7 +9407,7 @@ begin
   Add('  a:=test1.texta.new();');
   Add('  a:=test1.texta.new(3);');
   ConvertProgram;
-  CheckSource('TestExternalClass_ObjectCreate',
+  CheckSource('TestExternalClass_New',
     LinesToStr([ // statements
     'this.A = null;',
     '']),
@@ -9126,10 +9415,9 @@ begin
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA(1,2);',
-    'var $with1 = ExtA;',
-    '$mod.A = new $with1();',
-    '$mod.A = new $with1();',
-    '$mod.A = new $with1(2,2);',
+    '$mod.A = new ExtA();',
+    '$mod.A = new ExtA();',
+    '$mod.A = new ExtA(2,2);',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA();',
     '$mod.A = new ExtA(3,2);',
