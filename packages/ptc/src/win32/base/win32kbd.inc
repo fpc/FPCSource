@@ -223,6 +223,18 @@ begin
       KeyCode := PTCKEY_COMMA;
     if wParam = VK_OEM_PERIOD then
       KeyCode := PTCKEY_PERIOD;
+    if wParam = VK_OEM_PLUS then
+      KeyCode := PTCKEY_EQUALS;
+    if wParam = VK_OEM_4 then
+      KeyCode := PTCKEY_OPENBRACKET;
+    if wParam = VK_OEM_6 then
+      KeyCode := PTCKEY_CLOSEBRACKET;
+    if wParam = VK_OEM_5 then
+      KeyCode := PTCKEY_BACKSLASH;
+    if wParam = VK_OEM_1 then
+      KeyCode := PTCKEY_SEMICOLON;
+    if wParam = VK_OEM_2 then
+      KeyCode := PTCKEY_SLASH;
 
     { handle key repeat count }
     for i := 1 to lParam and $FFFF do

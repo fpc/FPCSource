@@ -419,6 +419,10 @@ begin
                         KeyBufAdd(#0#78)
                       else if KeyMode = kmGO32 then
                         KeyBufAdd(#0#144);
+                    PTCKEY_CLEAR,
+                    PTCKEY_NUMPAD5:
+                      if KeyMode in [kmGO32, kmFPWINCRT] then
+                        KeyBufAdd(#0#143);
                   end;
                 end
                 else
@@ -493,6 +497,9 @@ begin
                       PTCKEY_END:       KeyBufAdd(#0#79);
                       PTCKEY_PAGEUP:    KeyBufAdd(#0#73);
                       PTCKEY_PAGEDOWN:  KeyBufAdd(#0#81);
+                      PTCKEY_CLEAR:
+                        if KeyMode in [kmGO32, kmFPWINCRT] then
+                          KeyBufAdd(#0#76);
                       else
                         if (KeyEv.Unicode >= 32) and (KeyEv.Unicode <= 127) then
                           KeyBufAdd(Chr(KeyEv.Unicode));
