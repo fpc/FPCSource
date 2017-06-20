@@ -12,16 +12,18 @@
    then focusing back to it with a mouse click.
  - new key modifiers added for distinguishing between left and right shift,
    control and alt, the status of num lock, caps lock and scroll lock and for
-   distinguishing numpad keys and dead keys. All of them are implemented as
-   elements in the ModifierKeys set, which was added to IPTCKeyEvent. They can
-   be checked, for example, with:
+   distinguishing right keys (e.g. right shift, right alt, right ctrl),
+   numpad keys and dead keys. All of them are implemented as elements in the
+   ModifierKeys set, which was added to IPTCKeyEvent. They can be checked,
+   for example, with:
      if pmkNumLockActive in key_event.ModifierKeys then
        ...
    The following modifiers are available:
      pmkAlt, pmkShift, pmkControl, pmkLeftAlt, pmkRightAlt, pmkLeftShift,
      pmkRightShift, pmkLeftControl, pmkRightControl, pmkNumLockActive,
      pmkNumLockPressed, pmkCapsLockActive, pmkCapsLockPressed,
-     pmkScrollLockActive, pmkScrollLockPressed, pmkNumPadKey, pmkDeadKey
+     pmkScrollLockActive, pmkScrollLockPressed, pmkRightKey, pmkNumPadKey,
+     pmkDeadKey
  - there is now a MoveMouseTo method, added to the console. It can be used to
    warp the mouse cursor to a different location.
  - added support for a relative mouse mode. It supports continuous mouse
@@ -43,6 +45,20 @@
      PTCMouseButton9  - "forward" button ("X button 2")
    The remaining mouse buttons are hardware specific and will vary, depending
    on the actual mouse (provided it has that many buttons at all).
+ - ptccrt now supports several keyboard input modes, which can be set by
+   changing the new global variable KeyMode. The following values are supported:
+     kmTP7      - behaves like Turbo Pascal 7's CRT unit under DOS. This is the
+                  default value. Previous versions of ptccrt always behaved this
+                  way. Since TP7's CRT unit doesn't support the Enhanced
+                  Keyboard, several keys (e.g. F11 and F12) and key combinations
+                  are intentionally not recognized for compatibility reasons.
+     kmGO32     - behaves like Free Pascal's CRT unit under DOS (GO32V2). It has
+                  Enhanced Keyboard support.
+     kmFPWINCRT - behaves like Free Pascal's CRT unit under Windows. Similar to
+                  kmGO32, but emulates several incompatibilities that the
+                  Windows CRT unit has with the GO32V2 CRT unit. Not all of them
+                  are emulated though, since some of them can be considered
+                  bugs.
  - ptcgraph now has a global string variable WindowTitle, which allows you to
    set the window title, before calling InitGraph
  - ptcgraph was extended to also support resolutions, different than the ones,

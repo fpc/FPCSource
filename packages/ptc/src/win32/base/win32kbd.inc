@@ -82,8 +82,10 @@ var
   TranslatedCharacters, TranslatedWideCharacters: Integer;
   WideStr: WideString;
   KeyCode: Integer;
+  ScanCodeB: Byte;
   ExtendedKey, DeadKey: Boolean;
   ModifierKeys: TPTCModifierKeys;
+  tmpUINT: UINT;
 begin
   Result := 0;
   { check enabled flag }
@@ -94,6 +96,7 @@ begin
   if (message = WM_KEYDOWN) or (message = WM_KEYUP) or (message = WM_SYSKEYDOWN) or (message = WM_SYSKEYUP) then
   begin
     press := (message = WM_KEYDOWN) or (message = WM_SYSKEYDOWN);
+    ScanCodeB := Byte(lParam shr 16);
     ExtendedKey := (lParam and (1 shl 24)) <> 0;
 
     ModifierKeys := [];
@@ -187,6 +190,24 @@ begin
       if ExtendedKey then
         Include(ModifierKeys, pmkNumPadKey);
     end;
+    if wParam = VK_SHIFT then
+    begin
+      tmpUINT := MapVirtualKey(ScanCodeB, MAPVK_VSC_TO_VK_EX);
+      if tmpUINT <> 0 then
+      begin
+        { Windows NT 4.0/2000+ }
+        if tmpUINT = VK_RSHIFT then
+          Include(ModifierKeys, pmkRightKey);
+      end
+      else
+      begin
+        { Windows 98 }
+        if ScanCodeB = 54 then
+          Include(ModifierKeys, pmkRightKey);
+      end;
+    end;
+    if ExtendedKey and (wParam in [VK_MENU,VK_CONTROL]) then
+      Include(ModifierKeys, pmkRightKey);
     if not ExtendedKey and
       (wParam in [VK_LEFT,VK_RIGHT,VK_UP,VK_DOWN,VK_INSERT,VK_DELETE,
                   VK_HOME,VK_END,VK_PRIOR,VK_NEXT]) then

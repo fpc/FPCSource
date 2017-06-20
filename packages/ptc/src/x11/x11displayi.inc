@@ -410,6 +410,7 @@ begin
   FNormalKeys[$FF and XK_semicolon] := Integer(PTCKEY_SEMICOLON);
   FNormalKeys[$FF and XK_equal] := Integer(PTCKEY_EQUALS);
   FNormalKeys[$FF and XK_grave] := Integer(PTCKEY_BACKQUOTE);
+  FNormalKeys[$FF and XK_apostrophe] := Integer(PTCKEY_QUOTE);
 
   FNormalKeys[$FF and XK_bracketleft] := Integer(PTCKEY_OPENBRACKET);
   FNormalKeys[$FF and XK_backslash] := Integer(PTCKEY_BACKSLASH);
@@ -492,6 +493,11 @@ begin
     press := False;
     uni := -1;
   end;
+  if (sym_modded = XK_Shift_R) or
+     (sym_modded = XK_Control_R) or
+     (sym_modded = XK_Meta_R) or
+     (sym_modded = XK_Alt_R) then
+    Include(modkeys, pmkRightKey);
   if (sym_modded = XK_KP_Insert) or
      (sym_modded = XK_KP_Delete) or
      (sym_modded = XK_KP_Home) or

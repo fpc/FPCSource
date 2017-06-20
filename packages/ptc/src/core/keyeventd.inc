@@ -36,7 +36,7 @@ type
     pmkNumLockActive, pmkNumLockPressed,
     pmkCapsLockActive, pmkCapsLockPressed,
     pmkScrollLockActive, pmkScrollLockPressed,
-    pmkNumPadKey,pmkDeadKey);
+    pmkRightKey, pmkNumPadKey, pmkDeadKey);
   TPTCModifierKeys = set of TPTCModifierKey;
   IPTCKeyEvent = interface(IPTCEvent)
     ['{9BD1CD41-1DF6-4392-99DC-885EADB6D85A}']
