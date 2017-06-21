@@ -444,6 +444,14 @@ begin
   Result:=0;
 end;
 
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
+begin
+   if Handle <> INVALID_HANDLE_VALUE then
+    begin
+    Windows.FindClose(Handle);
+    Handle:=INVALID_HANDLE_VALUE;
+    end;
+end;
 
 Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 begin
@@ -460,6 +468,8 @@ begin
    end;
   { Find file with correct attribute }
   Result:=FindMatch(Rslt,Name);
+  if (Result<>0) then
+    InternalFindClose(Rslt.FindHandle,Rslt.FindData);
 end;
 
 Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
@@ -471,11 +481,6 @@ begin
 end;
 
 
-Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
-begin
-   if Handle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(Handle);
-end;
 
 
 Function FileGetDate (Handle : THandle) : Longint;
