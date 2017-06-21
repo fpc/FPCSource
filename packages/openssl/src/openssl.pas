@@ -207,7 +207,8 @@ type
     aux: pointer;  // ^X509_CERT_AUX
   end;
   pX509 = ^X509;
-
+  PPX509 = ^PX509;
+  
   DSA = record
 	pad: integer;
 	version: integer;
@@ -252,6 +253,7 @@ type
   PPRSA = ^PRSA;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
+  PCallbackCb = SslPtr;
   PFunction = procedure;
   DES_cblock = array[0..7] of Byte;
   PDES_cblock = ^DES_cblock;
@@ -567,7 +569,9 @@ const
   SSL_ERROR_ZERO_RETURN = 6;
   SSL_ERROR_WANT_CONNECT = 7;
   SSL_ERROR_WANT_ACCEPT = 8;
-  
+  SSL_ERROR_WANT_CHANNEL_ID_LOOKUP = 9;
+  SSL_ERROR_PENDING_SESSION = 11;
+
   SSL_CTRL_NEED_TMP_RSA = 1;
   SSL_CTRL_SET_TMP_RSA = 2;
   SSL_CTRL_SET_TMP_DH = 3;
@@ -640,7 +644,36 @@ const
   SSL_CTRL_TLS_EXT_SEND_HEARTBEAT             = 85;
   SSL_CTRL_GET_TLS_EXT_HEARTBEAT_PENDING      = 86;
   SSL_CTRL_SET_TLS_EXT_HEARTBEAT_NO_REQUESTS  = 87;
-  // Some missing values ?
+  SSL_CTRL_CHAIN                              = 88;
+  SSL_CTRL_CHAIN_CERT                         = 89;
+  SSL_CTRL_GET_CURVES                         = 90;
+  SSL_CTRL_SET_CURVES                         = 91;
+  SSL_CTRL_SET_CURVES_LIST                    = 92;
+  SSL_CTRL_GET_SHARED_CURVE                   = 93;
+  SSL_CTRL_SET_ECDH_AUTO                      = 94;
+  SSL_CTRL_SET_SIGALGS                        = 97;
+  SSL_CTRL_SET_SIGALGS_LIST                   = 98;
+  SSL_CTRL_CERT_FLAGS                         = 99;
+  SSL_CTRL_CLEAR_CERT_FLAGS                   = 100;
+  SSL_CTRL_SET_CLIENT_SIGALGS                 = 101;
+  SSL_CTRL_SET_CLIENT_SIGALGS_LIST            = 102;
+  SSL_CTRL_GET_CLIENT_CERT_TYPES              = 103;
+  SSL_CTRL_SET_CLIENT_CERT_TYPES              = 104;
+  SSL_CTRL_BUILD_CERT_CHAIN                   = 105;
+  SSL_CTRL_SET_VERIFY_CERT_STORE              = 106;
+  SSL_CTRL_SET_CHAIN_CERT_STORE               = 107;
+  SSL_CTRL_GET_PEER_SIGNATURE_NID             = 108;
+  SSL_CTRL_GET_SERVER_TMP_KEY                 = 109;
+  SSL_CTRL_GET_RAW_CIPHERLIST                 = 110;
+  SSL_CTRL_GET_EC_POINT_FORMATS               = 111;
+  SSL_CTRL_GET_TLSA_RECORD                    = 112;
+  SSL_CTRL_SET_TLSA_RECORD                    = 113;
+  SSL_CTRL_PULL_TLSA_RECORD                   = 114;
+  SSL_CTRL_GET_CHAIN_CERTS                    = 115;
+  SSL_CTRL_SELECT_CURRENT_CERT                = 116;
+  SSL_CTRL_CHANNEL_ID                         = 117;
+  SSL_CTRL_GET_CHANNEL_ID                     = 118;
+  SSL_CTRL_SET_CHANNEL_ID                     = 119;
 
 
   DTLS_CTRL_GET_TIMEOUT	           = 73;
@@ -649,13 +682,56 @@ const
   SSL_CTRL_GET_RI_SUPPORT	   = 76;
   SSL_CTRL_CLEAR_OPTIONS	   = 77;
   SSL_CTRL_CLEAR_MODE		   = 78;
-  
-  TLSEXT_NAMETYPE_host_name        = 0;
 
-  SSL_MODE_ENABLE_PARTIAL_WRITE = 1;
-  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 2;
-  SSL_MODE_AUTO_RETRY = 4;
-  SSL_MODE_NO_AUTO_CHAIN = 8;
+  TLSEXT_TYPE_server_name = 0;
+  TLSEXT_TYPE_max_fragment_length = 1;
+  TLSEXT_TYPE_client_certificate_url = 2;
+  TLSEXT_TYPE_trusted_ca_keys = 3;
+  TLSEXT_TYPE_truncated_hmac = 4;
+  TLSEXT_TYPE_status_request = 5;
+  TLSEXT_TYPE_user_mapping = 6;
+  TLSEXT_TYPE_client_authz = 7;
+  TLSEXT_TYPE_server_authz = 8;
+  TLSEXT_TYPE_cert_type = 9;
+  TLSEXT_TYPE_elliptic_curves = 10;
+  TLSEXT_TYPE_ec_point_formats = 11;
+  TLSEXT_TYPE_srp = 12;
+  TLSEXT_TYPE_signature_algorithms = 13;
+  TLSEXT_TYPE_use_srtp = 14;
+  TLSEXT_TYPE_heartbeat = 15;
+  TLSEXT_TYPE_session_ticket = 35;
+  TLSEXT_TYPE_renegotiate = $ff01;
+  TLSEXT_TYPE_next_proto_neg = 13172;
+  TLSEXT_NAMETYPE_host_name = 0;
+  TLSEXT_STATUSTYPE_ocsp = 1;
+  TLSEXT_ECPOINTFORMAT_first = 0;
+  TLSEXT_ECPOINTFORMAT_uncompressed = 0;
+  TLSEXT_ECPOINTFORMAT_ansiX962_compressed_prime = 1;
+  TLSEXT_ECPOINTFORMAT_ansiX962_compressed_char2 = 2;
+  TLSEXT_ECPOINTFORMAT_last = 2;
+  TLSEXT_signature_anonymous = 0;
+  TLSEXT_signature_rsa = 1;
+  TLSEXT_signature_dsa = 2;
+  TLSEXT_signature_ecdsa = 3;
+  TLSEXT_hash_none = 0;
+  TLSEXT_hash_md5 = 1;
+  TLSEXT_hash_sha1 = 2;
+  TLSEXT_hash_sha224 = 3;
+  TLSEXT_hash_sha256 = 4;
+  TLSEXT_hash_sha384 = 5;
+  TLSEXT_hash_sha512 = 6;
+  TLSEXT_MAXLEN_host_name = 255;
+
+  SSL_TLSEXT_ERR_OK = 0;
+  SSL_TLSEXT_ERR_ALERT_WARNING = 1;
+  SSL_TLSEXT_ERR_ALERT_FATAL = 2;
+  SSL_TLSEXT_ERR_NOACK = 3;
+
+  SSL_MODE_ENABLE_PARTIAL_WRITE                 = $00000001;
+  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER           = $00000002;
+  SSL_MODE_AUTO_RETRY                           = $00000004;
+  SSL_MODE_NO_AUTO_CHAIN                        = $00000008;
+  SSL_MODE_RELEASE_BUFFERS                      = $00000010;
 
   SSL_OP_MICROSOFT_SESS_ID_BUG                  = $00000001;
   SSL_OP_NETSCAPE_CHALLENGE_BUG                 = $00000002;
@@ -664,6 +740,7 @@ const
   SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG            = $00000010;
   SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER             = $00000020;
   SSL_OP_MSIE_SSLV2_RSA_PADDING                 = $00000040;
+  SSL_OP_SAFARI_ECDHE_ECDSA_BUG                 = $00000040;
   SSL_OP_SSLEAY_080_CLIENT_DH_BUG               = $00000080;
   SSL_OP_TLS_D5_BUG                             = $00000100;
   SSL_OP_TLS_BLOCK_PADDING_BUG                  = $00000200;
@@ -692,6 +769,12 @@ const
 
   SSL_VERIFY_NONE = $00;
   SSL_VERIFY_PEER = $01;
+
+  SSL_CERT_FLAG_TLS_STRICT                      = $00000001;
+
+  // Used in SSL_set_shutdown()/SSL_get_shutdown();
+  SSL_SENT_SHUTDOWN = 1;
+  SSL_RECEIVED_SHUTDOWN = 2;
 
   OPENSSL_DES_DECRYPT = 0;
   OPENSSL_DES_ENCRYPT = 1;
@@ -863,8 +946,16 @@ const
 //DES modes
   DES_ENCRYPT = 1;
   DES_DECRYPT = 0;
-  
-  
+
+// Error codes for ECDH Function
+  ECDH_F_ECDH_COMPUTE_KEY = 100;
+  ECDH_F_ECDH_DATA_NEW_METHOD = 101;
+
+// Error codes for ECDH Reason
+  ECDH_R_NO_PRIVATE_VALUE = 100;
+  ECDH_R_POINT_ARITHMETIC_FAILURE = 101;
+  ECDH_R_KDF_FAILED = 102;
+
 var
   SSLLibHandle: TLibHandle = 0;
   SSLUtilHandle: TLibHandle = 0;
@@ -925,6 +1016,9 @@ var
   function SSLCipherGetName(c: SslPtr): String;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
   function SSLGetVerifyResult(ssl: PSSL):cLong;
+  function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): string;
+  procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
+  function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
 
 // libeay.dll
   procedure ERR_load_crypto_strings;
@@ -939,6 +1033,7 @@ var
   function X509print(b: PBIO; a: PX509): cInt;
   function X509SetVersion(x: PX509; version: cInt): cInt;
   function X509SetPubkey(x: PX509; pkey: PEVP_PKEY): cInt;
+  function X509GetPubkey(x: PX509): PEVP_PKEY;
   function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
   function X509NameAddEntryByTxt(name: PX509_NAME; field: string; _type: cInt;
     bytes: string; len, loc, _set: cInt): cInt;
@@ -1102,7 +1197,8 @@ var
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
                u: pointer): integer;	
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
-
+  function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
+  
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
@@ -1319,6 +1415,9 @@ type
   TSSLCipherGetName = function(c: Sslptr):PChar; cdecl;
   TSSLCipherGetBits = function(c: SslPtr; alg_bits: PcInt):cInt; cdecl;
   TSSLGetVerifyResult = function(ssl: PSSL):cInt; cdecl;
+  TSSLGetServername = function(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): PChar; cdecl;
+  TSSLCtxCallbackCtrl = procedure(ctx: PSSL_CTX; _type: cInt; cb: PCallbackCb); cdecl;
+  TSSLSetSslCtx = function(ssl: PSSL; ctx: PSSL_CTX): PSSL; cdecl;
 
 // libeay.dll
   TERR_load_crypto_strings = procedure; cdecl;
@@ -1332,6 +1431,7 @@ type
   TX509print = function(b: PBIO; a: PX509): cInt; cdecl;
   TX509SetVersion = function(x: PX509; version: cInt): cInt; cdecl;
   TX509SetPubkey = function(x: PX509; pkey: PEVP_PKEY): cInt; cdecl;
+  TX509GetPubkey = function(x: PX509): PEVP_PKEY; cdecl;
   TX509SetIssuerName = function(x: PX509; name: PX509_NAME): cInt; cdecl;
   TX509NameAddEntryByTxt = function(name: PX509_NAME; field: PChar; _type: cInt;
     bytes: PChar; len, loc, _set: cInt): cInt; cdecl;
@@ -1480,6 +1580,7 @@ type
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
                u: pointer): integer; cdecl;	
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
+  TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
 
   // BIO Functions
 
@@ -1533,6 +1634,9 @@ var
   _SSLCipherGetName: TSSLCipherGetName = nil;
   _SSLCipherGetBits: TSSLCipherGetBits = nil;
   _SSLGetVerifyResult: TSSLGetVerifyResult = nil;
+  _SSLGetServername: TSSLGetServername = nil;
+  _SslCtxCallbackCtrl: TSSLCtxCallbackCtrl = nil;
+  _SslSetSslCtx: TSSLSetSslCtx = nil;
 
 // libeay.dll
   _ERR_load_crypto_strings: TERR_load_crypto_strings = nil;
@@ -1546,6 +1650,7 @@ var
   _X509print: TX509print = nil;
   _X509SetVersion: TX509SetVersion = nil;
   _X509SetPubkey: TX509SetPubkey = nil;
+  _X509GetPubkey: TX509GetPubkey = nil;
   _X509SetIssuerName: TX509SetIssuerName = nil;
   _X509NameAddEntryByTxt: TX509NameAddEntryByTxt = nil;
   _X509Sign: TX509Sign = nil;
@@ -1698,7 +1803,7 @@ var
   _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil; 
   _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
   _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
-
+  _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
@@ -2135,6 +2240,27 @@ begin
     Result := X509_V_ERR_APPLICATION_VERIFICATION;
 end;
 
+function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): string;
+begin
+  if InitSSLInterface and Assigned(_SSLGetServername) then
+    result := PChar(_SSLGetServername(ssl, _type))
+  else
+    result := '';
+end;
+
+procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
+begin
+  if InitSSLInterface and Assigned(_SslCtxCallbackCtrl) then
+    _SslCtxCallbackCtrl(ssl, _type, cb);
+end;
+
+function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
+begin
+  if InitSSLInterface and Assigned(_SslSetSslCtx) then
+    result := _SslSetSslCtx(ssl, ctx)
+  else
+    result := nil;
+end;
 
 // libeay.dll
 function SSLeayversion(t: cInt): string;
@@ -2365,6 +2491,15 @@ begin
   else
     Result := 0;
 end;
+
+function X509GetPubkey(x: PX509): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_X509GetPubkey) then
+    Result := _X509GetPubkey(x)
+  else
+   Result := 0;
+end;
+
 
 function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
 begin
@@ -3163,6 +3298,15 @@ Begin
     Result := -1;
 end; 
 
+function PEM_read_bio_X509(bp: pBIO;  x: ppx509; cb: Ppem_password_cb; u: pointer): px509;
+begin
+  if InitSSLInterface and Assigned(_PEM_read_bio_X509) then
+    Result := _PEM_read_bio_X509(bp, x, cb, u)
+  else
+    Result := nil;
+end;
+
+
 // BIO Functions
 
 function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
@@ -3860,6 +4004,9 @@ begin
   _SslCipherGetName := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_name');
   _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits');
   _SslGetVerifyResult := GetProcAddr(SSLLibHandle, 'SSL_get_verify_result');
+  _SslGetServername := GetProcAddr(SSLLibHandle, 'SSL_get_servername');
+  _SslCtxCallbackCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_callback_ctrl');
+  _SslSetSslCtx := GetProcAddr(SSLLibHandle, 'SSL_set_SSL_CTX');
 end;
 
 Procedure LoadUtilEntryPoints;
@@ -3876,6 +4023,7 @@ begin
   _X509print := GetProcAddr(SSLUtilHandle, 'X509_print');
   _X509SetVersion := GetProcAddr(SSLUtilHandle, 'X509_set_version');
   _X509SetPubkey := GetProcAddr(SSLUtilHandle, 'X509_set_pubkey');
+  _X509GetPubkey := GetProcAddr(SSLUtilHandle, 'X509_get_pubkey');
   _X509SetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_set_issuer_name');
   _X509NameAddEntryByTxt := GetProcAddr(SSLUtilHandle, 'X509_NAME_add_entry_by_txt');
   _X509Sign := GetProcAddr(SSLUtilHandle, 'X509_sign');
@@ -4005,6 +4153,8 @@ begin
   _PEM_read_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PUBKEY');
   _PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey');
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
+  _PEM_read_bio_X509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
+  
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
@@ -4136,7 +4286,9 @@ begin
   _SslCipherGetName := nil;
   _SslCipherGetBits := nil;
   _SslGetVerifyResult := nil;
-
+  _SslGetServername := nil;
+  _SslCtxCallbackCtrl := nil;
+  _SslSetSslCtx := nil;
   _PKCS7_ISSUER_AND_SERIAL_new:=nil;
   _PKCS7_ISSUER_AND_SERIAL_free:=nil;
   _PKCS7_ISSUER_AND_SERIAL_digest:=nil;
@@ -4236,6 +4388,7 @@ begin
   _X509print := nil;
   _X509SetVersion := nil;
   _X509SetPubkey := nil;
+  _X509GetPubkey := nil;
   _X509SetIssuerName := nil;
   _X509NameAddEntryByTxt := nil;
   _X509Sign := nil;
@@ -4359,10 +4512,10 @@ begin
   // PEM
 
   _PEM_read_bio_PrivateKey := nil;
-      _PEM_read_bio_PrivateKey := nil;
+  _PEM_read_bio_PrivateKey := nil;
   _PEM_read_bio_PUBKEY := nil;
-      _PEM_write_bio_PrivateKey := nil;
-      _PEM_write_bio_PUBKEY := nil;
+  _PEM_write_bio_PrivateKey := nil;
+  _PEM_read_bio_X509 := nil;
 
   // BIO
 
