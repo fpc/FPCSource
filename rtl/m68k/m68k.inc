@@ -29,36 +29,6 @@
 {****************************************************************************}
 
 
-{               68881/2 FPCR Encodings
-   Rounding Mode                 Rounding Precision
-    (RND Field)        Encoding    (PREC Field)
- To Nearest (RN)         0 0        Extend (X)
- To Zero (RZ)            0 1        Single (S)
- To Minus Infinity (RM)  1 0        Double (D)
- To Plus Infinity (RP)   1 1        Undefined
-}
-
-{ 68881/2 FPCR layout }
-{ Exception Enable Byte: }
-{ 15 - BSUN  - Branch/Set on Unordered }
-{ 14 - SNAN  - Signal Not A Number }
-{ 13 - OPERR - Operand Error }
-{ 12 - OVFL  - Overflow }
-{ 11 - UNFL  - Underflow }
-{ 10 - DZ    - Divide by Zero }
-{ 09 - INEX2 - Inexact Operation }
-{ 08 - INEX1 - Inexact Decimal Input }
-{ Mode Control Byte: }
-{ 07 - PREC  - Rounding Precision }
-{ 06 - PREC  - Rounding Precision }
-{ 05 - RND   - Rounding Mode }
-{ 04 - RND   - Rounding Mode }
-{ 03 - 0     - Reserved, Set to zero }
-{ 02 - 0     - Reserved, Set to zero }
-{ 01 - 0     - Reserved, Set to zero }
-{ 00 - 0     - Reserved, Set to zero }
-
-
 {$IFDEF FPU68881}
 {$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
 procedure SysResetFPU; assembler;
@@ -369,44 +339,102 @@ end;
 
 {$IFNDEF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
 function InterLockedDecrement (var Target: longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  (a0), d0
+    @loop:
+    move.l  d0, d1
+    subq.l  #1, d1
+    cas.l   d0, d1, (a0)
+    bne @loop
+    move.l  d1, d0
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Dec(Target);
     Result := Target;
   end;
+{$ENDIF}
 
 
 function InterLockedIncrement (var Target: longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  (a0), d0
+    @loop:
+    move.l  d0, d1
+    addq.l  #1, d1
+    cas.l   d0, d1, (a0)
+    bne @loop
+    move.l  d1, d0
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Inc(Target);
     Result := Target;
   end;
-
+{$ENDIF}
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  Source, d1
+    move.l  (a0), d0
+    @loop:
+    cas.l   d0, d1, (a0)
+    bne @loop
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Result := Target;
     Target := Source;
   end;
+{$ENDIF}
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  Source, a1
+    move.l  (a0), d0
+    @loop:
+    move.l  a1, d1
+    add.l   d0, d1
+    cas.l   d0, d1, (a0)
+    bne @loop
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Result := Target;
     Target := Target + Source;
   end;
+{$ENDIF}
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    // Target = a0, NewValue = d0, Comperand = d1
+    exg.l   d0, d1
+    cas.l   d0, d1, (a0)
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Result := Target;
     if Target = Comperand then
       Target := NewValue;
   end;
+{$ENDIF}
 {$ENDIF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
 
 {$ifndef FPC_SYSTEM_HAS_TEST68K}
