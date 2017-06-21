@@ -1,3 +1,107 @@
+0.99.15
+ - dead key support under Windows and X11 (via XIM)
+ - more character scripts (Latin 2, Latin 3, Latin 4, Latin 9, Katakana,
+   Arabic, Greek with diacritics, Technical, Special, Publishing, APL, Hebrew,
+   Thai, Currency signs - Korean Won sign and Euro sign) are now recognized and
+   converted to Unicode in the X11 console. Previously only Latin 1, Greek
+   without diacritics and Cyrillic were supported, but even they didn't work in
+   recent ptcpas versions, due to regressions, which are now fixed as well.
+ - use an alternative method (via GetKeyState) for obtaining the Alt, Shift and
+   Control key modifier status under Windows; This eliminates a problem, where
+   the alt key appears "stuck", after alt-tabbing away from the application,
+   then focusing back to it with a mouse click.
+ - new key modifiers added for distinguishing between left and right shift,
+   control and alt, the status of num lock, caps lock and scroll lock and for
+   distinguishing right keys (e.g. right shift, right alt, right ctrl),
+   numpad keys and dead keys. All of them are implemented as elements in the
+   ModifierKeys set, which was added to IPTCKeyEvent. They can be checked,
+   for example, with:
+     if pmkNumLockActive in key_event.ModifierKeys then
+       ...
+   The following modifiers are available:
+     pmkAlt, pmkShift, pmkControl, pmkLeftAlt, pmkRightAlt, pmkLeftShift,
+     pmkRightShift, pmkLeftControl, pmkRightControl, pmkNumLockActive,
+     pmkNumLockPressed, pmkCapsLockActive, pmkCapsLockPressed,
+     pmkScrollLockActive, pmkScrollLockPressed, pmkRightKey, pmkNumPadKey,
+     pmkDeadKey
+ - there is now a MoveMouseTo method, added to the console. It can be used to
+   warp the mouse cursor to a different location.
+ - added support for a relative mouse mode. It supports continuous mouse
+   motion, not limited within the boundaries of the current window. It is
+   usually used with an invisible cursor. It is activated with the
+   'relative mouse on' console option, and turned off with the option
+   'relative mouse off'.
+ - the number of mouse buttons supported has been increased to 31. There is now
+   support for a horizontal and a vertical mouse wheel, which are treated as
+   buttons. Overall, this is the default button arrangement:
+     PTCMouseButton1  - left mouse button
+     PTCMouseButton2  - right mouse button
+     PTCMouseButton3  - middle mouse button
+     PTCMouseButton4  - mouse wheel rotated forward (scroll up)
+     PTCMouseButton5  - mouse wheel rotated backward (scroll down)
+     PTCMouseButton6  - mouse horizontal scroll wheel rotated left
+     PTCMouseButton7  - mouse horizontal scroll wheel rotated right
+     PTCMouseButton8  - "back" button ("X button 1")
+     PTCMouseButton9  - "forward" button ("X button 2")
+   The remaining mouse buttons are hardware specific and will vary, depending
+   on the actual mouse (provided it has that many buttons at all).
+ - ptccrt now supports several keyboard input modes, which can be set by
+   changing the new global variable KeyMode. The following values are supported:
+     kmTP7      - behaves like Turbo Pascal 7's CRT unit under DOS. This is the
+                  default value. Previous versions of ptccrt always behaved this
+                  way. Since TP7's CRT unit doesn't support the Enhanced
+                  Keyboard, several keys (e.g. F11 and F12) and key combinations
+                  are intentionally not recognized for compatibility reasons.
+     kmGO32     - behaves like Free Pascal's CRT unit under DOS (GO32V2). It has
+                  Enhanced Keyboard support.
+     kmFPWINCRT - behaves like Free Pascal's CRT unit under Windows. Similar to
+                  kmGO32, but emulates several incompatibilities that the
+                  Windows CRT unit has with the GO32V2 CRT unit. Not all of them
+                  are emulated though, since some of them can be considered
+                  bugs.
+ - ptcgraph now has a global string variable WindowTitle, which allows you to
+   set the window title, before calling InitGraph
+ - ptcgraph was extended to also support resolutions, different than the ones,
+   defined by VESA. This means that you can now use ptcgraph with resolutions,
+   higher than 1280x1024 and widescreen (e.g. 16:9 or 16:10) aspect ratios, as
+   long as they are supported by the display. For this, you need to call
+   QueryAdapterInfo and walk through the linked list of modes, to choose a
+   mode, then pass its DriverNumber and ModeNumber to InitGraph. Here's an
+   example:
+
+uses
+  ptcgraph, ptccrt;
+var
+  m: PModeInfo;
+  gd, gm: Integer;
+begin
+  Writeln('List of all modes:');
+  m := QueryAdapterInfo;
+  while m <> nil do
+  begin
+    Writeln(m^.MaxX+1, ' x ', m^.MaxY+1, ' x ', m^.MaxColor);
+    m := m^.next;
+  end;
+
+  Writeln('Now let''s find 1920x1080 with 16-bit colour...');
+  m := QueryAdapterInfo;
+  while m <> nil do
+  begin
+    if (m^.MaxX = (1920-1)) and (m^.MaxY = (1080-1)) and (m^.MaxColor = 65536) then
+    begin
+      InitGraph(m^.DriverNumber, m^.ModeNumber, '');
+      SetColor($FFFF);
+      OutTextXY(0, 0, 'Hurrah! Full HD 1920x1080 mode is available!');
+      ReadKey;
+      CloseGraph;
+      Halt;
+    end;
+    m := m^.next;
+  end;
+
+  Writeln('Mode not found in list!');
+end.
+
 0.99.14.1
  - fixed X11 middle and right mouse button mapping. Previously, the right mouse
    button and the middle mouse button were swapped, compared to Windows and DOS

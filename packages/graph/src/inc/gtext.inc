@@ -492,7 +492,7 @@ end;
                                   PutPixel(xpos+k,j+y,CurrentColor)
                                 else if DrawTextBackground then
                                   PutPixel(xpos+k,j+y,CurrentBkColor);
-                                fontbitmapbyte:=fontbitmapbyte shl 1;
+                                fontbitmapbyte:=byte(fontbitmapbyte shl 1);
                               end;
                           end;
                       end
@@ -521,7 +521,7 @@ end;
                                     end;
                                   Inc(k);
                                   Inc(cnt2,charsize);
-                                  fontbitmapbyte:=fontbitmapbyte shl 1;
+                                  fontbitmapbyte:=byte(fontbitmapbyte shl 1);
                                 end;
                            end;
                           Inc(j);
@@ -552,7 +552,7 @@ end;
                              PutPixel(xpos+j,ypos-k,CurrentColor)
                            else if DrawTextBackground then
                              PutPixel(xpos+j,ypos-k,CurrentBkColor);
-                           fontbitmapbyte:=fontbitmapbyte shl 1;
+                           fontbitmapbyte:=byte(fontbitmapbyte shl 1);
                          end;
                      end;
                  end
@@ -581,7 +581,7 @@ end;
                                end;
                              Inc(k);
                              Inc(cnt2,charsize);
-                             fontbitmapbyte:=fontbitmapbyte shl 1;
+                             fontbitmapbyte:=byte(fontbitmapbyte shl 1);
                            end;
                       end;
                      Inc(j);

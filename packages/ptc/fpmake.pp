@@ -57,7 +57,6 @@ begin
 
   T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
 
-  T:=P.Targets.AddUnit('go32fix.pp',[go32v2]);
   T:=P.Targets.AddUnit('mouse33h.pp',[go32v2]);
   T:=P.Targets.AddUnit('textfx2.pp',[go32v2]);
   T:=P.Targets.AddUnit('cga.pp',[go32v2]);
@@ -186,7 +185,6 @@ begin
       AddInclude('vgaconsoled.inc', [go32v2]);
       AddInclude('vgaconsolei.inc', [go32v2]);
       AddUnit('p_gx',[Wince]);
-      AddUnit('go32fix',[go32v2]);
       AddUnit('mouse33h',[go32v2]);
       AddUnit('textfx2',[go32v2]);
       AddUnit('cga',[go32v2]);

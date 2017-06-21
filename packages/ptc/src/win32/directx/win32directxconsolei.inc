@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013, 2016  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 {$MACRO ON}
@@ -991,7 +991,7 @@ begin
   FKeyboard := TWin32Keyboard.Create(FWindow.handle, FWindow.thread, False, FEventQueue);
   FMouse := TWin32Mouse.Create(FWindow.handle, FWindow.thread, False, FEventQueue, FPrimary.Fullscreen, FPrimary.width, FPrimary.height);
   if FPrimary.Fullscreen then
-    FMouse.SetWindowArea(0, 0, FDisplay.Mode.Width, FDisplay.Mode.Height);
+    FMouse.SetWindowArea(0, 0, FDisplay.Mode.Width - 1, FDisplay.Mode.Height - 1);
   if not FPrimary.Fullscreen then
     FResize := TWin32Resize.Create(FWindow.handle, FWindow.thread, FEventQueue);
   FWindow.update;
@@ -1241,6 +1241,12 @@ begin
   FInterceptClose := AInterceptClose;
   if Assigned(FWindow) then
     FWindow.InterceptClose := AInterceptClose;
+end;
+
+function TDirectXConsole.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  CHECK_OPEN('TDirectXConsole.MoveMouseTo');
+  Result := FMouse.MoveMouseTo(X, Y);
 end;
 
 {$IFDEF DEBUG}

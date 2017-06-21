@@ -120,6 +120,7 @@ const
   FullscreenGraph: Boolean = False;
 
 var
+  WindowTitle: AnsiString;
   PTCWrapperObject: TPTCWrapperThread;
 
 {******************************************************************************}
@@ -128,6 +129,8 @@ var
 
 const
   InternalDriverName = 'PTCPas';
+  FirstNonStandardModeNumber = $200;
+  NonStandardModeNumberMaxLimit = $7FFF;
 
 var
   Has320x200: Boolean;
@@ -617,7 +620,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 16 colours');
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat8, Pages);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat8, Pages);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -642,7 +645,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 256 colours');
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat8, Pages);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat8, Pages);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -657,7 +660,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 4 colours, palette ' + strf(CGAPalette));
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat8, 1);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat8, 1);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -672,7 +675,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 2 colours');
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat8, Pages);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat8, Pages);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -687,7 +690,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 2 colours');
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat8, Pages);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat8, Pages);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -702,7 +705,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 32768 colours');
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat15, Pages);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat15, Pages);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -715,7 +718,7 @@ begin
   LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 65536 colours');
 {$ENDIF logging}
   { open the console }
-  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat16, Pages);
+  ptc_InternalOpen(WindowTitle, XResolution, YResolution, PTCFormat16, Pages);
   PTCWidth := XResolution;
   PTCHeight := YResolution;
   CurrentActivePage := 0;
@@ -867,6 +870,26 @@ end;
 procedure ptc_Init1280x1024x64k;
 begin
   ptc_InitMode64k(1280, 1024, 2);
+end;
+
+procedure ptc_InitNonStandard16;
+begin
+  ptc_InitMode16(MaxX + 1, MaxY + 1, 2);
+end;
+
+procedure ptc_InitNonStandard256;
+begin
+  ptc_InitMode256(MaxX + 1, MaxY + 1, 2);
+end;
+
+procedure ptc_InitNonStandard32k;
+begin
+  ptc_InitMode32k(MaxX + 1, MaxY + 1, 2);
+end;
+
+procedure ptc_InitNonStandard64k;
+begin
+  ptc_InitMode64k(MaxX + 1, MaxY + 1, 2);
 end;
 
 procedure ptc_SetVisualPage(page: word);
@@ -1409,8 +1432,64 @@ end;
       ContainsAtLeast := False;
     end;
 
+    function IsNonStandardResolution(AWidth, AHeight: Integer): Boolean;
+    begin
+      IsNonStandardResolution :=
+            not ((AWidth =  320) and (AHeight =  200))
+        and not ((AWidth =  640) and (AHeight =  200))
+        and not ((AWidth =  640) and (AHeight =  350))
+        and not ((AWidth =  640) and (AHeight =  400))
+        and not ((AWidth =  640) and (AHeight =  480))
+        and not ((AWidth =  720) and (AHeight =  348))
+        and not ((AWidth =  800) and (AHeight =  600))
+        and not ((AWidth = 1024) and (AHeight =  768))
+        and not ((AWidth = 1280) and (AHeight = 1024));
+    end;
+
+    function CompareModes(AMode1, AMode2: IPTCMode): Boolean;
+    begin
+      if AMode1.Width <> AMode2.Width then
+        CompareModes := AMode1.Width < AMode2.Width
+      else if AMode1.Height <> AMode2.Height then
+        CompareModes := AMode1.Height < AMode2.Height
+      else if AMode1.Format.Bits <> AMode2.Format.Bits then
+        CompareModes := AMode1.Format.Bits < AMode2.Format.Bits
+      else
+        CompareModes := PtrUInt(AMode1) < PtrUInt(AMode2);
+    end;
+
+    procedure SortModes(l,r: longint);
+      var
+         i,j: longint;
+         x,y: IPTCMode;
+      begin
+         i:=l;
+         j:=r;
+         x:=PTCModeList[(l+r) div 2];
+         repeat
+           while CompareModes(PTCModeList[i], x) do
+            inc(i);
+           while CompareModes(x, PTCModeList[j]) do
+            dec(j);
+           if not(i>j) then
+             begin
+                y:=PTCModeList[i];
+                PTCModeList[i]:=PTCModeList[j];
+                PTCModeList[j]:=y;
+                inc(i);
+                j:=j-1;
+             end;
+         until i>j;
+         if l<j then
+           SortModes(l,j);
+         if i<r then
+           SortModes(i,r);
+      end;
+
    var
     graphmode:Tmodeinfo;
+    I: Integer;
+    NextNonStandardModeNumber: SmallInt;
    begin
      QueryAdapterInfo := ModeList;
      { If the mode listing already exists... }
@@ -1419,7 +1498,8 @@ end;
      if assigned(ModeList) then
        exit;
 
-     PTCModeList := PTCWrapperObject.Modes;
+     PTCModeList := Copy(PTCWrapperObject.Modes);
+     SortModes(Low(PTCModeList), High(PTCModeList));
 
      Has320x200 := ContainsExactResolution(320, 200);
      Has320x240 := ContainsExactResolution(320, 240);
@@ -2567,9 +2647,147 @@ end;
        end;
        AddMode(graphmode);
      end;
+
+     { finally, add all the non-standard (i.e. not VESA or classic PC) modes }
+     NextNonStandardModeNumber := FirstNonStandardModeNumber;
+     for I := Low(PTCModeList) to High(PTCModeList) do
+       with PTCModeList[I] do
+         if IsNonStandardResolution(Width, Height) and
+            ((I = Low(PTCModeList)) or ((Width <> PTCModeList[I-1].Width) or (Height <> PTCModeList[I-1].Height))) then
+         begin
+           InitMode(graphmode);
+           with graphmode do
+           begin
+             ModeNumber := NextNonStandardModeNumber;
+             DriverNumber := VESA;
+             HardwarePages := 1;
+             WriteStr(ModeName, Width, ' x ', Height, ' VESA');
+             MaxColor := 16;
+             DirectColor := FALSE;
+             PaletteSize := MaxColor;
+             MaxX := Width - 1;
+             MaxY := Height - 1;
+             InitMode       := @ptc_InitNonStandard16;
+             DirectPutPixel := @ptc_DirectPixelProc_8bpp;
+             PutPixel       := @ptc_PutPixelProc_8bpp;
+             GetPixel       := @ptc_GetPixelProc_8bpp;
+             SetRGBPalette  := @ptc_SetRGBPaletteProc;
+             GetRGBPalette  := @ptc_GetRGBPaletteProc;
+
+             HLine          := @ptc_HLineProc_8bpp;
+             VLine          := @ptc_VLineProc_8bpp;
+
+             SetVisualPage  := @ptc_SetVisualPage;
+             SetActivePage  := @ptc_SetActivePage;
+
+             XAspect := 10000;
+             YAspect := 10000;
+           end;
+           AddMode(graphmode);
+           Inc(NextNonStandardModeNumber);
+           if NextNonStandardModeNumber > NonStandardModeNumberMaxLimit then
+             break;
+
+           InitMode(graphmode);
+           with graphmode do
+           begin
+             ModeNumber := NextNonStandardModeNumber;
+             DriverNumber := VESA;
+             HardwarePages := 1;
+             WriteStr(ModeName, Width, ' x ', Height, ' VESA');
+             MaxColor := 256;
+             DirectColor := FALSE;
+             PaletteSize := MaxColor;
+             MaxX := Width - 1;
+             MaxY := Height - 1;
+             InitMode       := @ptc_InitNonStandard256;
+             DirectPutPixel := @ptc_DirectPixelProc_8bpp;
+             PutPixel       := @ptc_PutPixelProc_8bpp;
+             GetPixel       := @ptc_GetPixelProc_8bpp;
+             SetRGBPalette  := @ptc_SetRGBPaletteProc;
+             GetRGBPalette  := @ptc_GetRGBPaletteProc;
+             //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
+
+             HLine          := @ptc_HLineProc_8bpp;
+             VLine          := @ptc_VLineProc_8bpp;
+
+             SetVisualPage  := @ptc_SetVisualPage;
+             SetActivePage  := @ptc_SetActivePage;
+
+             XAspect := 10000;
+             YAspect := 10000;
+           end;
+           AddMode(graphmode);
+           Inc(NextNonStandardModeNumber);
+           if NextNonStandardModeNumber > NonStandardModeNumberMaxLimit then
+             break;
+
+           InitMode(graphmode);
+           with graphmode do
+           begin
+             ModeNumber := NextNonStandardModeNumber;
+             DriverNumber := VESA;
+             HardwarePages := 1;
+             WriteStr(ModeName, Width, ' x ', Height, ' VESA');
+             MaxColor := 32768;
+             DirectColor := TRUE;
+             PaletteSize := MaxColor;
+             MaxX := Width - 1;
+             MaxY := Height - 1;
+             InitMode       := @ptc_InitNonStandard32k;
+             DirectPutPixel := @ptc_DirectPixelProc_16bpp;
+             PutPixel       := @ptc_PutPixelProc_16bpp;
+             GetPixel       := @ptc_GetPixelProc_16bpp;
+             SetRGBPalette  := @ptc_SetRGBPaletteProc;
+             GetRGBPalette  := @ptc_GetRGBPaletteProc;
+             HLine          := @ptc_HLineProc_16bpp;
+             VLine          := @ptc_VLineProc_16bpp;
+             SetVisualPage  := @ptc_SetVisualPage;
+             SetActivePage  := @ptc_SetActivePage;
+
+             XAspect := 10000;
+             YAspect := 10000;
+           end;
+           AddMode(graphmode);
+           Inc(NextNonStandardModeNumber);
+           if NextNonStandardModeNumber > NonStandardModeNumberMaxLimit then
+             break;
+
+           InitMode(graphmode);
+           with graphmode do
+           begin
+             ModeNumber := NextNonStandardModeNumber;
+             DriverNumber := VESA;
+             HardwarePages := 1;
+             WriteStr(ModeName, Width, ' x ', Height, ' VESA');
+             MaxColor := 65536;
+             DirectColor := TRUE;
+             PaletteSize := MaxColor;
+             MaxX := Width - 1;
+             MaxY := Height - 1;
+             InitMode       := @ptc_InitNonStandard64k;
+             DirectPutPixel := @ptc_DirectPixelProc_16bpp;
+             PutPixel       := @ptc_PutPixelProc_16bpp;
+             GetPixel       := @ptc_GetPixelProc_16bpp;
+             SetRGBPalette  := @ptc_SetRGBPaletteProc;
+             GetRGBPalette  := @ptc_GetRGBPaletteProc;
+             HLine          := @ptc_HLineProc_16bpp;
+             VLine          := @ptc_VLineProc_16bpp;
+             SetVisualPage  := @ptc_SetVisualPage;
+             SetActivePage  := @ptc_SetActivePage;
+
+             XAspect := 10000;
+             YAspect := 10000;
+           end;
+           AddMode(graphmode);
+           Inc(NextNonStandardModeNumber);
+           if NextNonStandardModeNumber > NonStandardModeNumberMaxLimit then
+             break;
+         end;
   end;
 
 initialization
+  WindowTitle := ParamStr(0);
   PTCFormat8 := TPTCFormatFactory.CreateNew(8);
   PTCFormat15 := TPTCFormatFactory.CreateNew(16, $7C00, $03E0, $001F);
   PTCFormat16 := TPTCFormatFactory.CreateNew(16, $F800, $07E0, $001F);
