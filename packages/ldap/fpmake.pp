@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
     P.Author := 'Library: Howard Chu, Pierangelo Masarati and Kurt Zeilenga, header: Ivo Steinmann';
     P.License := 'Library: OpenLDAP Public License (3 clause BSD like), header: LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';

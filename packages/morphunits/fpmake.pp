@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
 
     P.Author := 'Karoly Balogh';
     P.License := 'LGPL with modification';

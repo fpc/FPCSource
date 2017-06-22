@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
     P.OSes := [win32, wince];
 
     P.Author := 'FreePascal development team';

@@ -35,7 +35,7 @@ begin
     P.OSes:=AllOSes-[embedded,msdos];
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/paradox', ParadoxOSes);

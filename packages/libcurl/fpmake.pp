@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
 
     P.Author := 'Library: Daniel Stenberg, header: Free Pascal development team';
     P.License := 'Library: MIT, header: LGPL with modification, ';

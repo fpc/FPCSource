@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-objpas');
     P.Author := 'Michael van Canneyt';

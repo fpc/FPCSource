@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.04rc1';
     P.OSes:=AllUnixOSes+[Win32,Win64]+[MorphOS]-[Android];
 
     P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
