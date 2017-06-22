@@ -417,9 +417,9 @@ procedure TTestParser.TestErrors;
 
 begin
 
+  DoTestError('1Tru');
   DoTestError('a');
   DoTestError('"b');
-  DoTestError('1Tru');
 
   DoTestError('b"');
   DoTestError('{"a" : }');

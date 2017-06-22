@@ -347,8 +347,10 @@ begin
                   Inc(TokenStr);
                 break;
               end;
-            else
-              break;
+          else
+            if not (TokenStr[0] in [#0,'}',']',',',#9,' ']) then
+               Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
+            break;
           end;
         end;
         SectionLength := TokenStr - TokenStart;
