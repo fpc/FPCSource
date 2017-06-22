@@ -343,10 +343,10 @@ unit cpupara;
                   begin
                     paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                    { M68K is a big-endian target }
-                    if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
-                      inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                   end;
+                { M68K is a big-endian target }
+                if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
+                  inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                 inc(cur_stack_offset,align(paralen,target_info.stackalign));
                 paralen := 0;
 
