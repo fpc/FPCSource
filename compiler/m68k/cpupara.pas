@@ -491,6 +491,8 @@ unit cpupara;
                               paraloc^.reference.offset:=cur_stack_offset;
                               if side=calleeside then
                                 inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                              if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
+                                inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                               cur_stack_offset:=align(cur_stack_offset+paralen,varalign);
                             end
                           else
