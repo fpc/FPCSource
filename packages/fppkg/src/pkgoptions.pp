@@ -275,7 +275,7 @@ uses
   pkgmessages;
 
 Const
-  DefaultMirrorsURL  = 'http://www.freepascal.org/repository/'+MirrorsFileName;
+  DefaultMirrorsURL  = 'https://www.freepascal.org/repository/'+MirrorsFileName;
 {$ifdef localrepository}
   DefaultRemoteRepository = 'file://'+{$I %HOME%}+'/repository/';
 {$else}
