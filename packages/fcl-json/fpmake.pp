@@ -47,6 +47,14 @@ begin
       begin
       AddUnit('fpjson');
       AddUnit('jsonscanner');
+      AddUnit('jsonreader');
+      end;
+    T:=P.Targets.AddUnit('jsonreader.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      AddUnit('jsonscanner');
       end;
         
     T:=P.Targets.AddUnit('jsonscanner.pp');
