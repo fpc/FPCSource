@@ -682,8 +682,8 @@ begin
   BuildDir:='{LocalRepository}build'+PathDelim;
   ArchivesDir:='{LocalRepository}archives'+PathDelim;
   CompilerConfigDir:='{LocalRepository}config'+PathDelim;
-{$if defined(unix) or defined(windows)}
-  Downloader:='lnet';
+{$if (defined(unix) and not defined(android)) or defined(windows)}
+  Downloader:='FPC';
 {$else}
   Downloader:='base';
 {$endif}
