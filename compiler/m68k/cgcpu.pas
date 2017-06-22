@@ -372,6 +372,7 @@ unit cgcpu;
 
       var
         len : tcgint;
+        ofs : tcgint;
         href : treference;
       begin
         { cgpara.size=OS_NO requires a copy on the stack }
@@ -384,7 +385,10 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,cgpara.location^.reference.offset,cgpara.alignment,[]);
+                ofs:=0;
+                if cgpara.intsize<target_info.stackalign then
+                  ofs:=target_info.stackalign-cgpara.intsize;
+                reference_reset_base(href,NR_STACK_POINTER_REG,ofs,cgpara.alignment,[]);
                 g_concatcopy(list,r,href,cgpara.intsize);
               end
             else

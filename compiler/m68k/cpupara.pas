@@ -531,8 +531,8 @@ unit cpupara;
                                   varalign:=used_align(size_2_align(l),paraalign,paraalign);
                                   paraloc^.reference.offset:=cur_stack_offset;
                                   { M68K is a big-endian target }
-                                  if (paralen<tcgsize2size[OS_INT]) then
-                                    inc(paraloc^.reference.offset,4-paralen);
+                                  if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
+                                    inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                                   if side=calleeside then
                                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
                                   cur_stack_offset:=align(cur_stack_offset+l,varalign);
