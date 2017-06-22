@@ -620,12 +620,12 @@ implementation
         case flag of
           uf_init :
             begin
-              result:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit'),potype_unitinit,st);
+              result:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit$'),potype_unitinit,st);
               result.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
             end;
           uf_finalize :
             begin
-              result:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit'),potype_unitfinalize,st);
+              result:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit$'),potype_unitfinalize,st);
               result.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               if (not current_module.is_unit) then
                 result.procdef.aliasnames.insert('PASCALFINALIZE');
@@ -952,7 +952,7 @@ type
                internalerror(200212285);
 
              { Compile the unit }
-             init_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,current_module.localsymtable);
+             init_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'init$'),potype_unitinit,current_module.localsymtable);
              init_procinfo.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
              init_procinfo.parse_body;
              { save file pos for debuginfo }
@@ -1084,7 +1084,7 @@ type
          if not current_module.interface_only and (token=_FINALIZATION) then
            begin
               { Compile the finalize }
-              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
+              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize$'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               finalize_procinfo.parse_body;
            end
@@ -2150,7 +2150,7 @@ type
          if token=_FINALIZATION then
            begin
               { Parse the finalize }
-              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
+              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize$'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               finalize_procinfo.procdef.aliasnames.insert('PASCALFINALIZE');
               finalize_procinfo.parse_body;
