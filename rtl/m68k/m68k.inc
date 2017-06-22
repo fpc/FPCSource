@@ -54,11 +54,13 @@ procedure fpc_cpuinit;
       SysInitFPU;
   end;
 
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame : pointer; assembler;nostackframe;
   asm
     move.l fp,d0
   end;
+{$endif not INTERNAL_BACKTRACE}
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}

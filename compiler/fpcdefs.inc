@@ -194,6 +194,7 @@
   {$define cpuneedsdivhelper}
   {$define cpu_uses_separate_address_registers}
   {$define SUPPORT_SAFECALL}
+  {$define SUPPORT_GET_FRAME}
 {$endif m68k}
 
 {$ifdef avr}
