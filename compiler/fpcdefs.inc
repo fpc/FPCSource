@@ -193,6 +193,7 @@
   {$define cpuneedsmulhelper}
   {$define cpuneedsdivhelper}
   {$define cpu_uses_separate_address_registers}
+  {$define SUPPORT_SAFECALL}
 {$endif m68k}
 
 {$ifdef avr}

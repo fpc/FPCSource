@@ -84,6 +84,7 @@ Const
      pocall_internproc,
      pocall_register,
      pocall_stdcall,
+     pocall_safecall,
      { the difference to stdcall is only the name mangling }
      pocall_cdecl,
      { the difference to stdcall is only the name mangling }
