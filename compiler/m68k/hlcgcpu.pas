@@ -43,6 +43,8 @@ interface
       procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
       procedure a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference); override;
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+
+      procedure gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);override;
     end;
 
   procedure create_hlcodegen;
@@ -55,7 +57,8 @@ implementation
     aasmtai, aasmcpu,
     defutil,
     hlcgobj,
-    cpuinfo, cgobj, cpubase, cgcpu;
+    cpuinfo, cgobj, cpubase, cgcpu,
+    parabase, procinfo;
 
 
 
@@ -238,6 +241,26 @@ implementation
         list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
 
       List.concat(Tai_symbol_end.Createname(labelname));
+    end;
+
+
+  procedure thlcgcpu.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
+    var
+      cgpara: tcgpara;
+    begin
+      inherited;
+
+      { Kludge:
+        GCC (and SVR4 in general maybe?) requires a pointer
+        result on the A0 register, as well as D0. So when we
+        have a result in A0, also copy it to D0. See the decision
+        making code in tcpuparamanager.get_funcretloc (KB) }
+      cgpara:=current_procinfo.procdef.funcretloc[calleeside];
+      if ((cgpara.location^.loc = LOC_REGISTER) and
+          (isaddressregister(cgpara.location^.register))) then
+        begin
+          cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_RETURN_ADDRESS_REG,NR_FUNCTION_RESULT_REG);
+        end;
     end;
 
 

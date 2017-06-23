@@ -1876,11 +1876,11 @@ unit cgcpu;
                     { point to nowhere!                                   }
 
                     { Instead of doing a slow copy of the return address while trying    }
-                    { to feed it to the RTS instruction, load the PC to A0 (scratch reg) }
-                    { then free up the stack allocated for paras, then use a JMP (A0) to }
+                    { to feed it to the RTS instruction, load the PC to A1 (scratch reg) }
+                    { then free up the stack allocated for paras, then use a JMP (A1) to }
                     { return to the caller with the paras freed. (KB) }
 
-                    hregister:=NR_A0;
+                    hregister:=NR_A1;
                     cg.a_reg_alloc(list,hregister);
                     reference_reset_base(ref,NR_STACK_POINTER_REG,0,4,[]);
                     list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));

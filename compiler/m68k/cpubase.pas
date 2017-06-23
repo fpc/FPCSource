@@ -279,8 +279,8 @@ unit cpubase;
 { TODO: FIX ME!!! pic offset reg conflicts with frame pointer?}
       NR_PIC_OFFSET_REG = NR_A5;
       { Return address for DWARF }
-{ TODO: just a guess!}
       NR_RETURN_ADDRESS_REG = NR_A0;
+      RS_RETURN_ADDRESS_REG = RS_A0;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_D0;
       RS_FUNCTION_RETURN_REG = RS_D0;

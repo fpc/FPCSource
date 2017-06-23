@@ -168,8 +168,9 @@ unit cpupara;
 
     function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
-        paraloc : pcgparalocation;
+        paraloc    : pcgparalocation;
         retcgsize  : tcgsize;
+        retregtype : tregistertype;
       begin
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
@@ -223,10 +224,39 @@ unit cpupara;
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.size:=retcgsize;
                paraloc^.def:=result.def;
-               if side=callerside then
-                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+
+               { GCC (and SVR4 in general maybe?) requires a pointer result on the A0
+                 register, as well as D0. So we init the result to be A0, then copy
+                 it also to D0 in hlcg.gen_load_loc_function_result. This is not pretty,
+                 but we don't really have an architecture for funcretlocs in two
+                 separate locations.
+
+                 We also have to figure out a better switch for this, because this is
+                 now compiler and platform specific... (KB) }
+
+               if (tprocdef(p).proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                  (target_info.system in [system_m68k_linux]) and
+                  assigned(result.def) and
+                  (result.def.typ in [stringdef,pointerdef,classrefdef,objectdef,
+                                      procvardef,procdef,arraydef,formaldef]) then
+                 retregtype:=R_ADDRESSREGISTER
                else
-                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                 retregtype:=R_INTREGISTER;
+
+               if retregtype = R_ADDRESSREGISTER then
+                 begin
+                   if side=callerside then
+                     paraloc^.register:=newreg(R_ADDRESSREGISTER,RS_RETURN_ADDRESS_REG,cgsize2subreg(R_ADDRESSREGISTER,retcgsize))
+                   else
+                     paraloc^.register:=newreg(R_ADDRESSREGISTER,RS_RETURN_ADDRESS_REG,cgsize2subreg(R_ADDRESSREGISTER,retcgsize));
+                 end
+               else
+                 begin
+                   if side=callerside then
+                     paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+                   else
+                     paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                 end;
              end;
           end;
       end;
