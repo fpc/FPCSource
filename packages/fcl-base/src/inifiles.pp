@@ -227,7 +227,7 @@ type
     procedure ReadSection(const Section: string; Strings: TStrings); override;
     procedure ReadSectionRaw(const Section: string; Strings: TStrings);
     procedure ReadSections(Strings: TStrings); override;
-    procedure ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = []); overload; override;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = [svoIncludeInvalid]); overload; override;
     procedure EraseSection(const Section: string); override;
     procedure DeleteKey(const Section, Ident: String); override;
     procedure UpdateFile; override;
@@ -896,7 +896,7 @@ end;
 procedure TCustomIniFile.ReadSectionValues(const Section: string;
   Strings: TStrings);
 begin
-  ReadSectionValues(Section,Strings,[]);
+  ReadSectionValues(Section,Strings,[svoIncludeInvalid]);
 end;
 
 { TIniFile }
@@ -1177,7 +1177,7 @@ begin
   end;
 end;
 
-procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = []);
+procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = [svoIncludeInvalid]);
 var
   oSection: TIniFileSection;
   s: string;
