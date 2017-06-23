@@ -220,7 +220,7 @@ unit i_linux;
                 localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
+                recordalignmax  : 2;
                 maxCrecordalign : 2
               );
             first_parm_offset : 8;
