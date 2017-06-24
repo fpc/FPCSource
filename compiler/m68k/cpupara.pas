@@ -357,15 +357,29 @@ unit cpupara;
             while (paralen > 0) do
               begin
                 paraloc:=hp.paraloc[side].add_location;
-
-                paraloc^.loc:=LOC_REFERENCE;
                 paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+
                 if (not (cs_fp_emulation in current_settings.moduleswitches)) and
                    (paradef.typ=floatdef) then
                   paraloc^.size:=int_float_cgsize(paralen)
                 else
                   paraloc^.size:=int_cgsize(paralen);
 
+                { various m68k based C ABIs used in the Unix world use a register to
+                  return a struct by address. we will probably need some kind of a
+                  switch to support these various ABIs when generating cdecl calls (KB) }
+                if ((vo_is_funcret in hp.varoptions) and
+                    (tprocdef(p).proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                    (target_info.system in [system_m68k_linux]) and
+                    (tprocdef(p).returndef.typ = recorddef)) then
+                  begin
+                    paraloc^.loc:=LOC_REGISTER;
+                    paraloc^.register:=NR_M68K_STRUCT_RESULT_REG;
+                    paralen:=0;
+                    continue;
+                  end;
+
+                paraloc^.loc:=LOC_REFERENCE;
                 paraloc^.reference.offset:=cur_stack_offset;
                 if (side = callerside) then
                   paraloc^.reference.index:=NR_STACK_POINTER_REG

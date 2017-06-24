@@ -303,6 +303,14 @@ unit cpubase;
       {# Floating point results will be placed into this register }
       NR_FPU_RESULT_REG = NR_FP0;
 
+      {# This is m68k C ABI specific. Some ABIs expect the address of the
+         return struct result value in this register. Note that it could be
+         either A0 or A1, so later it must be decided on target/ABI specific
+         basis. We start with A1 now, because that's what Linux/m68k does
+         currently. (KB) }
+      RS_M68K_STRUCT_RESULT_REG: tsuperregister = RS_A1;
+      NR_M68K_STRUCT_RESULT_REG: tregister = NR_A1;
+
       NR_DEFAULTFLAGS = NR_SR;
       RS_DEFAULTFLAGS = RS_SR;
 
