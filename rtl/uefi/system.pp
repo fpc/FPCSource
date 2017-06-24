@@ -13,7 +13,7 @@
 
  **********************************************************************}
 unit System;
-
+ 
 interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
@@ -491,7 +491,7 @@ end;
 
 function EFI_MAIN( imageHandle: EFI_HANDLE; systemTable : PEFI_SYSTEM_TABLE): EFI_STATUS; cdecl; [public, alias: 'EFI_MAIN'];
 begin
- try
+ //try
   SysTable := systemTable^;
 
   SysTable.ConOut^.OutputString(SysTable.ConOut, 'EFI_MAIN start' + #13#10);
@@ -535,10 +535,13 @@ begin
   SysTable.ConOut^.OutputString(SysTable.ConOut, #13#10);
 
   PascalMain;
-  WriteLn('End of EFI_MAIN');
- except
-   WriteLn('Exception in EFI_MAIN');
- end;
+  WriteLn('End of EFI_MAIN...');
+ //except
+//   Result := EFI_INVALID_PARAMETER;
+//   WriteLn('Exception in EFI_MAIN');
+ //end;
+ Result := EFI_SUCCESS;
+ SysTable.ConOut^.OutputString(SysTable.ConOut, 'EFI_MAIN real end' + #13#10);
 end;
 {*****************************************************************************
                          System Dependent Exit code
