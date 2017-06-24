@@ -790,11 +790,15 @@ type
 
 function aligntoptr(p : pointer) : pointer;inline;
    begin
+{$ifdef m68k}
+     result:=AlignTypeData(p);
+{$else m68k}
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
      result:=align(p,sizeof(p));
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
      result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+{$endif m68k}
    end;
 
 
@@ -1007,14 +1011,13 @@ end;
 
 
 Function AlignTypeData(p : Pointer) : Pointer;
-{$push}
 {$packrecords c}
   type
     TAlignCheck = record
       b : byte;
       q : qword;
     end;
-{$pop}
+{$packrecords default}
 begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
 {$ifdef VER3_0}
