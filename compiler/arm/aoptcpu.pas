@@ -654,6 +654,9 @@ Implementation
             if MatchInstruction(p, [A_ADC,A_ADD,A_BIC,A_SUB,A_MUL,A_MVN,A_MOV,A_ORR,A_EOR,A_AND,
                                  A_RSB,A_RSC,A_SBC,A_MLA], [C_None], [PF_None]) and
               GetNextInstruction(p, hp1) and
+              { mlas is only allowed in arm mode }
+              ((taicpu(p).opcode<>A_MLA) or
+               (current_settings.instructionset<>is_thumb)) and
               MatchInstruction(hp1, A_CMP, [C_None], [PF_None]) and
               (taicpu(hp1).oper[1]^.typ = top_const) and
               (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
