@@ -387,10 +387,10 @@ unit cpupara;
                   begin
                     paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                    { M68K is a big-endian target }
+                    if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
+                      inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                   end;
-                { M68K is a big-endian target }
-                if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
-                  inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                 inc(cur_stack_offset,align(paralen,target_info.stackalign));
                 paralen := 0;
 
@@ -535,8 +535,6 @@ unit cpupara;
                               paraloc^.reference.offset:=cur_stack_offset;
                               if side=calleeside then
                                 inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                              if (paralen<target_info.stackalign) then
-                                inc(paraloc^.reference.offset,varalign-paralen);
                               cur_stack_offset:=align(cur_stack_offset+paralen,varalign);
                             end
                           else
@@ -577,8 +575,8 @@ unit cpupara;
                                   varalign:=used_align(size_2_align(l),paraalign,paraalign);
                                   paraloc^.reference.offset:=cur_stack_offset;
                                   { M68K is a big-endian target }
-                                  if (l<target_info.stackalign) then
-                                    inc(paraloc^.reference.offset,varalign-l);
+                                  if (paralen<tcgsize2size[OS_INT]) then
+                                    inc(paraloc^.reference.offset,4-paralen);
                                   if side=calleeside then
                                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
                                   cur_stack_offset:=align(cur_stack_offset+l,varalign);
