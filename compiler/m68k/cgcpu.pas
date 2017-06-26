@@ -385,7 +385,7 @@ unit cgcpu;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
                 reference_reset_base(href,NR_STACK_POINTER_REG,0,cgpara.alignment,[]);
-                g_concatcopy(list,r,href,len);
+                g_concatcopy(list,r,href,cgpara.intsize);
               end
             else
               begin
