@@ -207,6 +207,9 @@ unit PasResolver;
 {$mode objfpc}{$H+}
 {$inline on}
 
+{$IFOPT Q+}{$DEFINE OverflowCheckOn}{$ENDIF}
+{$IFOPT R+}{$DEFINE RangeCheckOn}{$ENDIF}
+
 interface
 
 uses
@@ -360,14 +363,6 @@ const
     'set',
     'range..'
     );
-
-const
-  MinSafeIntCurrency = -922337203685477;
-  MaxSafeIntCurrency =  922337203685477;
-  MinSafeIntSingle = -16777216;
-  MaxSafeIntSingle =  16777216;
-  MinSafeIntDouble = -$10000000000000;
-  MaxSafeIntDouble =   $fffffffffffff;
 
 type
   TResolverBuiltInProc = (
@@ -1093,6 +1088,7 @@ type
       Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function OnExprEvalParams(Sender: TResExprEvaluator;
       Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
+    function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
   protected
     // custom types (added by descendant resolvers)
@@ -1140,6 +1136,8 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Ord_OnGetCallResult(Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_Ord_OnEval(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; out Evaluated: TResEvalValue); virtual;
     function BI_LowHigh_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_LowHigh_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -7333,22 +7331,56 @@ var
   Decl: TPasElement;
   C: TClass;
   BaseTypeData: TResElDataBaseType;
+  ResolvedType: TPasResolverResult;
 begin
   Result:=nil;
   if not (Expr.CustomData is TResolvedReference) then
     RaiseNotYetImplemented(20170518203134,Expr);
   Ref:=TResolvedReference(Expr.CustomData);
   Decl:=Ref.Declaration;
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.OnExprEvalIdentifier Value=',Expr.Value,' Decl=',GetObjName(Decl));
+  {$ENDIF}
   C:=Decl.ClassType;
   if C=TPasConst then
     begin
     if (TPasConst(Decl).Expr<>nil)
         and (TPasConst(Decl).IsConst or (TPasConst(Decl).VarType=nil)) then
       begin
-      Result:=fExprEvaluator.Eval(TPasConst(Decl).Expr,Flags);
+      if TPasConst(Decl).VarType<>nil then
+        begin
+        // typed const
+        ComputeElement(TPasConst(Decl).VarType,ResolvedType,[rcType]);
+        end
+      else
+        ResolvedType.BaseType:=btNone;
+      Result:=fExprEvaluator.Eval(TPasConst(Decl).Expr,Flags+[refConst]);
       if Result<>nil then
         begin
+        if (Result.Element<>nil) and (Result.Element<>TPasConst(Decl).Expr) then
+          Result:=Result.Clone;
         Result.IdentEl:=Decl;
+        if TPasConst(Decl).VarType<>nil then
+          begin
+          // typed const
+          if Result.Kind=revkInt then
+            case ResolvedType.BaseType of
+            btByte: TResEvalInt(Result).Typed:=reitByte;
+            btShortInt: TResEvalInt(Result).Typed:=reitShortInt;
+            btWord: TResEvalInt(Result).Typed:=reitWord;
+            btSmallInt: TResEvalInt(Result).Typed:=reitSmallInt;
+            btUIntSingle: TResEvalInt(Result).Typed:=reitUIntSingle;
+            btIntSingle: TResEvalInt(Result).Typed:=reitIntSingle;
+            btLongWord: TResEvalInt(Result).Typed:=reitLongWord;
+            btLongint: TResEvalInt(Result).Typed:=reitLongInt;
+            btUIntDouble: TResEvalInt(Result).Typed:=reitUIntDouble;
+            btIntDouble: TResEvalInt(Result).Typed:=reitIntDouble;
+            btInt64: TResEvalInt(Result).Typed:=reitNone; // default
+            else
+              ReleaseEvalValue(Result);
+              RaiseNotYetImplemented(20170624181050,TPasConst(Decl).VarType);
+            end;
+          end;
         exit;
         end;
       end;
@@ -7423,6 +7455,7 @@ var
   Decl: TPasElement;
   C: TClass;
   BuiltInProc: TResElDataBuiltInProc;
+  bt: TResolverBaseType;
 begin
   Result:=nil;
   if Params.Value.CustomData is TResolvedReference then
@@ -7438,17 +7471,135 @@ begin
       if Decl.CustomData is TResElDataBuiltInProc then
         begin
         BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
-        {$IFDEF VerbosePas2JS}
+        {$IFDEF VerbosePasResEval}
         writeln('TPasResolver.OnExprEvalParams BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         {$ENDIF}
         case BuiltInProc.BuiltIn of
           bfLength: BI_Length_OnEval(BuiltInProc,Params,Result);
+          bfOrd: BI_Ord_OnEval(BuiltInProc,Params,Result);
           bfLow,bfHigh: BI_LowHigh_OnEval(BuiltInProc,Params,Result);
+          bfPred,bfSucc: BI_PredSucc_OnEval(BuiltInProc,Params,Result);
+        else
+          {$IFDEF VerbosePasResEval}
+          writeln('TPasResolver.OnExprEvalParams BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
+          {$ENDIF}
+          RaiseNotYetImplemented(20170624192324,Params);
         end;
+        {$IFDEF VerbosePasResEval}
+        if Result<>nil then
+          writeln('TPasResolver.OnExprEvalParams BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn],' Result=',Result.AsString)
+        else
+          writeln('TPasResolver.OnExprEvalParams BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn],' Result=nil');
+        {$ENDIF}
+        exit;
+        end
+      else if Decl.CustomData is TResElDataBaseType then
+        begin
+        // typecast to basetype
+        bt:=TResElDataBaseType(Decl.CustomData).BaseType;
+        Result:=EvalBaseTypeCast(Params,bt);
         end;
+      {$IFDEF VerbosePasResEval}
+      writeln('TPasResolver.OnExprEvalParams BuiltInProc ',Decl.Name,' ',GetObjName(Decl.CustomData));
+      {$ENDIF}
       end;
     end;
   if Flags=[] then ;
+end;
+
+function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
+  bt: TResolverBaseType): TResEvalvalue;
+var
+  Value: TResEvalValue;
+  Int: MaxPrecInt;
+  MinIntVal, MaxIntVal: int64;
+begin
+  Result:=nil;
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.EvalBaseTypeCast bt=',bt);
+  {$ENDIF}
+  Value:=Eval(Params.Params[0],[refAutoConst]);
+  if Value=nil then exit;
+  try
+    case Value.Kind of
+    revkInt:
+      begin
+      Int:=TResEvalInt(Value).Int;
+      if bt=btQWord then
+        begin
+        // int to qword
+        if (Int<0) then
+          fExprEvaluator.EmitRangeCheckConst(20170624195049,
+            Value.AsString,'0',IntToStr(High(qword)),Params);
+        {$R-}
+        Result:=TResEvalUInt.CreateValue(MaxPrecUInt(Int));
+        {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
+        end
+      else if bt in (btAllInteger-[btQWord]) then
+        begin
+        // int to int
+        GetIntegerRange(bt,MinIntVal,MaxIntVal);
+        if (Int<MinIntVal) or (Int>MaxIntVal) then
+          begin
+          fExprEvaluator.EmitRangeCheckConst(20170624194534,
+            Value.AsString,MinIntVal,MaxIntVal,Params);
+          {$R-}
+          case bt of
+            btByte: Result:=TResEvalInt.CreateValue(byte(Int),reitByte);
+            btShortInt: Result:=TResEvalInt.CreateValue(shortint(Int),reitShortInt);// ToDo: negative
+            btWord: Result:=TResEvalInt.CreateValue(word(Int),reitWord);
+            btSmallInt: Result:=TResEvalInt.CreateValue(smallint(Int),reitSmallInt);// ToDo: negative
+            btUIntSingle: Result:=TResEvalInt.CreateValue(Int and MaskUIntSingle,reitUIntSingle);// ToDo: negative
+            btIntSingle: Result:=TResEvalInt.CreateValue(Int and MaskUIntSingle,reitIntSingle);// ToDo: negative
+            btLongWord: Result:=TResEvalInt.CreateValue(longword(Int),reitLongWord);
+            btLongint: Result:=TResEvalInt.CreateValue(longint(Int),reitLongInt);// ToDo: negative
+            btUIntDouble: Result:=TResEvalInt.CreateValue(Int and MaskUIntDouble,reitUIntDouble);// ToDo: negative
+            btIntDouble: Result:=TResEvalInt.CreateValue(Int and MaskUIntDouble,reitIntDouble);// ToDo: negative
+            btInt64: Result:=TResEvalInt.CreateValue(Int);
+          else
+            RaiseNotYetImplemented(20170624200109,Params);
+          end;
+          {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
+          end
+        else
+          begin
+          {$R-}
+          case bt of
+            btByte: Result:=TResEvalInt.CreateValue(Int,reitByte);
+            btShortInt: Result:=TResEvalInt.CreateValue(Int,reitShortInt);
+            btWord: Result:=TResEvalInt.CreateValue(Int,reitWord);
+            btSmallInt: Result:=TResEvalInt.CreateValue(Int,reitSmallInt);
+            btUIntSingle: Result:=TResEvalInt.CreateValue(Int,reitUIntSingle);
+            btIntSingle: Result:=TResEvalInt.CreateValue(Int,reitIntSingle);
+            btLongWord: Result:=TResEvalInt.CreateValue(Int,reitLongWord);
+            btLongint: Result:=TResEvalInt.CreateValue(Int,reitLongInt);
+            btUIntDouble: Result:=TResEvalInt.CreateValue(Int,reitUIntDouble);
+            btIntDouble: Result:=TResEvalInt.CreateValue(Int,reitIntDouble);
+            btInt64: Result:=TResEvalInt.CreateValue(Int);
+          else
+            RaiseNotYetImplemented(20170624200109,Params);
+          end;
+          {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
+          end;
+        exit;
+        end
+      else
+        begin
+        {$IFDEF VerbosePasResEval}
+        writeln('TPasResolver.OnExprEvalParams typecast int to ',bt);
+        {$ENDIF}
+        RaiseNotYetImplemented(20170624194308,Params);
+        end;
+      end;
+    else
+      {$IFDEF VerbosePasResEval}
+      writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170624193436,Params);
+    end;
+  finally
+    ReleaseEvalValue(Value);
+  end;
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
@@ -7461,6 +7612,9 @@ begin
   {$ENDIF}
   Result:=fExprEvaluator.Eval(Expr,Flags);
   if Result=nil then exit;
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.Eval Result=',Result.AsString);
+  {$ENDIF}
 
   if Store
       and (Expr.CustomData=nil)
@@ -7913,13 +8067,13 @@ begin
     exit(cIncompatible);
   Params:=TParamsExpr(Expr);
 
-  // first param: enum or char
+  // first param: bool, enum or char
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
   if rrfReadable in ParamResolved.Flags then
     begin
-    if ParamResolved.BaseType=btChar then
+    if ParamResolved.BaseType in (btAllBooleans+btAllChars) then
       Result:=cExact
     else if (ParamResolved.BaseType=btContext) and (ParamResolved.TypeEl is TPasEnumType) then
       Result:=cExact;
@@ -7933,7 +8087,25 @@ end;
 procedure TPasResolver.BI_Ord_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 begin
-  SetResolverIdentifier(ResolvedEl,btSmallInt,Proc.Proc,FBaseTypes[btSmallInt],[rrfReadable]);
+  SetResolverIdentifier(ResolvedEl,btLongint,Proc.Proc,FBaseTypes[btLongint],[rrfReadable]);
+end;
+
+procedure TPasResolver.BI_Ord_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out Evaluated: TResEvalValue);
+var
+  Param: TPasExpr;
+  Value: TResEvalValue;
+begin
+  Evaluated:=nil;
+  Param:=Params.Params[0];
+  Value:=Eval(Param,[]);
+  if Value=nil then exit;
+  try
+    Evaluated:=fExprEvaluator.OrdValue(Value,Params);
+  finally
+    if Evaluated=nil then
+      ReleaseEvalValue(Value);
+  end;
 end;
 
 function TPasResolver.BI_LowHigh_OnGetCallCompatibility(
@@ -8261,8 +8433,22 @@ end;
 
 procedure TPasResolver.BI_PredSucc_OnEval(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out Evaluated: TResEvalValue);
+var
+  Param: TPasExpr;
 begin
-
+  //writeln('TPasResolver.BI_PredSucc_OnEval START');
+  Evaluated:=nil;
+  Param:=Params.Params[0];
+  Evaluated:=Eval(Param,[]);
+  //writeln('TPasResolver.BI_PredSucc_OnEval Param=',Evaluated<>nil);
+  if Evaluated=nil then exit;
+  //writeln('TPasResolver.BI_PredSucc_OnEval Param=',Evaluated.AsString);
+  if Evaluated.Element<>nil then
+    Evaluated:=Evaluated.Clone;
+  if Proc.BuiltIn=bfPred then
+    fExprEvaluator.PredValue(Evaluated,Params)
+  else
+    fExprEvaluator.SuccValue(Evaluated,Params);
 end;
 
 function TPasResolver.BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
@@ -9447,7 +9633,8 @@ begin
         @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,nil,nil,bfChr);
   if bfOrd in TheBaseProcs then
     AddBuiltInProc('Ord','function Ord(const Enum or Char): integer',
-        @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,nil,nil,bfOrd);
+        @BI_Ord_OnGetCallCompatibility,@BI_Ord_OnGetCallResult,
+        @BI_Ord_OnEval,nil,bfOrd);
   if bfLow in TheBaseProcs then
     AddBuiltInProc('Low','function Low(const array or ordinal): ordinal or integer',
         @BI_LowHigh_OnGetCallCompatibility,@BI_LowHigh_OnGetCallResult,
@@ -9459,11 +9646,11 @@ begin
   if bfPred in TheBaseProcs then
     AddBuiltInProc('Pred','function Pred(const ordinal): ordinal',
         @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,
-        nil,nil,bfPred);
+        @BI_PredSucc_OnEval,nil,bfPred);
   if bfSucc in TheBaseProcs then
     AddBuiltInProc('Succ','function Succ(const ordinal): ordinal',
         @BI_PredSucc_OnGetCallCompatibility,@BI_PredSucc_OnGetCallResult,
-        nil,nil,bfSucc);
+        @BI_PredSucc_OnEval,nil,bfSucc);
   if bfStrProc in TheBaseProcs then
     AddBuiltInProc('Str','procedure Str(const var; var String)',
         @BI_StrProc_OnGetCallCompatibility,nil,nil,

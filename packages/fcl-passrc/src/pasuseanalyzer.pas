@@ -50,10 +50,7 @@ interface
 
 uses
   Classes, SysUtils, AVL_Tree, PasTree, PScanner,
-  {$IFDEF VerbosePasAnalyzer}
-  PasResolveEval,
-  {$ENDIF}
-  PasResolver;
+  PasResolver, PasResolveEval;
 
 const
   nPAUnitNotUsed = 5023;

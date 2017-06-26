@@ -191,7 +191,7 @@ type
     Procedure TestByteRangeFail;
     Procedure TestCustomIntRangeFail;
     Procedure TestConstIntOperators;
-    // ToDo: TestConstBitwiseOps  3 and not 2, 3 and not longword(2)
+    Procedure TestConstBitwiseOps;
     Procedure TestConstBoolOperators;
 
     // strings
@@ -2243,6 +2243,25 @@ begin
   '  q:longword=not (5 or not 2);',
   '  r=low(word)+high(int64);',
   '  s=low(longint)+high(integer);',
+  '  t=succ(2)+pred(2);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestConstBitwiseOps;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=3;',
+  '  b=not a;',
+  '  c=not word(a);',
+  '  d=1 shl 2;',
+  '  e=13 shr 1;',
+  '  f=13 and 5;',
+  '  g=10 or 5;',
+  '  h=5 xor 7;',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -2261,6 +2280,7 @@ begin
   '  f=a<>b;',
   '  g=low(boolean) or high(boolean);',
   '  h=succ(false) or pred(true);',
+  '  i=ord(false)+ord(true);',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
