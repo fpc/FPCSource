@@ -45,7 +45,8 @@ type
 
   TSourceMapSrc = class
   public
-    Filename: string;
+    Filename: string; // as added by AddMapping
+    TranslatedFilename: string; // same as Filename, can be altered, written to JSON
     Source: String;
   end;
 
@@ -82,8 +83,10 @@ type
     function GetItems(Index: integer): TSourceMapSegment;
     function GetSourceContents(Index: integer): String;
     function GetSourceFiles(Index: integer): String;
+    function GetSourceTranslatedFiles(Index: integer): String;
     procedure SetGeneratedFilename(const AValue: string);
     procedure SetSourceContents(Index: integer; const AValue: String);
+    procedure SetSourceTranslatedFiles(Index: integer; const AValue: String);
   public
     constructor Create(const aGeneratedFilename: string);
     destructor Destroy; override;
@@ -105,11 +108,13 @@ type
     property GeneratedFilename: string read FGeneratedFilename write SetGeneratedFilename;
     function IndexOfName(const Name: string; AddIfNotExists: boolean = false): integer;
     function IndexOfSourceFile(const SrcFile: string; AddIfNotExists: boolean = false): integer;
-    function Count: integer;
+    function Count: integer; // segments
     property Items[Index: integer]: TSourceMapSegment read GetItems; default; // segments
     function SourceCount: integer;
     property SourceRoot: string read FSourceRoot write FSourceRoot;
     property SourceFiles[Index: integer]: String read GetSourceFiles;
+    property SourceTranslatedFiles[Index: integer]: String read GetSourceTranslatedFiles
+      write SetSourceTranslatedFiles;
     property SourceContents[Index: integer]: String read GetSourceContents write SetSourceContents;
     function NameCount: integer;
     property Names[Index: integer]: string read GetNames;
@@ -264,6 +269,12 @@ begin
   TSourceMapSrc(FSources[Index]).Source:=AValue;
 end;
 
+procedure TSourceMap.SetSourceTranslatedFiles(Index: integer;
+  const AValue: String);
+begin
+  TSourceMapSrc(FSources[Index]).TranslatedFilename:=AValue;
+end;
+
 function TSourceMap.GetItems(Index: integer): TSourceMapSegment;
 begin
   Result:=TSourceMapSegment(FItems[Index]);
@@ -282,6 +293,11 @@ end;
 function TSourceMap.GetSourceFiles(Index: integer): String;
 begin
   Result:=TSourceMapSrc(FSources[Index]).Filename;
+end;
+
+function TSourceMap.GetSourceTranslatedFiles(Index: integer): String;
+begin
+  Result:=TSourceMapSrc(FSources[Index]).TranslatedFilename;
 end;
 
 constructor TSourceMap.Create(const aGeneratedFilename: string);
@@ -474,6 +490,7 @@ begin
   end;
 end;
 
+
 function TSourceMap.ToJSON: TJSONObject;
 var
   Obj: TJSONObject;
@@ -501,7 +518,7 @@ begin
     Arr:=TJSONArray.Create;
     Obj.Add('sources',Arr);
     for i:=0 to SourceCount-1 do
-      Arr.Add(SourceFiles[i]);
+      Arr.Add(SourceTranslatedFiles[i]);
 
     // "sourcesContent" - array of source content: null or source as string
     // only needed if there is a source
@@ -597,6 +614,7 @@ begin
   if (Result>=0) or not AddIfNotExists then exit;
   Src:=TSourceMapSrc.Create;
   Src.Filename:=SrcFile;
+  Src.TranslatedFilename:=SrcFile;
   Result:=FSources.Count;
   FSources.Add(Src);
   FSourceToIndex.Add(SrcFile,Result);
