@@ -343,11 +343,11 @@ unit cgcpu;
         begin
           if not assigned(paraloc) then
             exit;
-{ TODO: FIX ME!!! this also triggers location bug }
-          {if (paraloc^.loc<>LOC_REFERENCE) or
+
+          if (paraloc^.loc<>LOC_REFERENCE) or
              (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
              (tcgsize2size[paraloc^.size]>sizeof(tcgint)) then
-            internalerror(200501162);}
+            internalerror(200501162);
 
           { Pushes are needed in reverse order, add the size of the
             current location to the offset where to load from. This
