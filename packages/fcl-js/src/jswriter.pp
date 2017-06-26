@@ -38,7 +38,7 @@ Type
   protected
     Function DoWrite(Const S : AnsiString) : Integer; virtual; abstract;
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
-    Procedure Writing; // called before adding new characters
+    Procedure Writing; virtual; // called before adding new characters
   Public
     // All functions return the number of bytes copied to output stream.
     constructor Create;
@@ -268,7 +268,7 @@ begin
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
     begin
-    DesLen:=(FCapacity*5) div 4;
+    DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
       MinLen:=DesLen;
     Capacity:=MinLen;
@@ -288,7 +288,7 @@ begin
   MinLen:=Result+FBufPos;
   If (MinLen>Capacity) then
     begin
-    DesLen:=(FCapacity*5) div 4;
+    DesLen:=(FCapacity*3) div 2;
     if DesLen>MinLen then
       MinLen:=DesLen;
     Capacity:=MinLen;
