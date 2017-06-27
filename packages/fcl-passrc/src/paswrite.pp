@@ -215,6 +215,7 @@ procedure TPasWriter.WriteClass(AClass: TPasClassType);
 var
   i: Integer;
   Member: TPasElement;
+  InterfacesListPrefix: string;
   LastVisibility, CurVisibility: TPasMemberVisibility;
 begin
   PrepareDeclSection('type');
@@ -227,7 +228,19 @@ begin
     okInterface: wrt('interface');
   end;
   if Assigned(AClass.AncestorType) then
-    wrtln('(' + AClass.AncestorType.Name + ')')
+    wrt('(' + AClass.AncestorType.Name);
+  if AClass.Interfaces.Count > 0 then
+  begin
+    if Assigned(AClass.AncestorType) then
+      InterfacesListPrefix:=', '
+    else
+      InterfacesListPrefix:='(';
+    wrt(InterfacesListPrefix + TPasType(AClass.Interfaces[0]).Name);
+    for i := 1 to AClass.Interfaces.Count - 1 do
+      wrt(', ' + TPasType(AClass.Interfaces[i]).Name);
+  end;
+  if Assigned(AClass.AncestorType) or (AClass.Interfaces.Count > 0) then
+    wrtln(')')
   else
     wrtln;
   IncIndent;
