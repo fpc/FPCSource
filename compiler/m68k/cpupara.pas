@@ -50,6 +50,7 @@ unit cpupara;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption:tproccalloption):tcpuregisterset;override;
+          function get_para_align(calloption : tproccalloption):byte;override;
          private
           function parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
           function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -92,6 +93,11 @@ unit cpupara;
       begin
         { fp0 and fp1 are considered volatile }
         Result:=VOLATILE_FPUREGISTERS;
+      end;
+
+    function tcpuparamanager.get_para_align(calloption : tproccalloption):byte;
+      begin
+        result:=target_info.stackalign;
       end;
 
     function tcpuparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
@@ -286,9 +292,14 @@ unit cpupara;
         paradef      : tdef;
         i            : longint;
         firstparaloc : boolean;
+        paraalign    : shortint;
 
       begin
         result:=0;
+        if paras.count=0 then
+          exit;
+
+        paraalign:=get_para_align(p.proccalloption);
 
         for i:=0 to paras.count-1 do
           begin
@@ -339,7 +350,7 @@ unit cpupara;
                   end;
               end;
 
-            hp.paraloc[side].alignment:=target_info.stackalign;  //std_param_align;
+            hp.paraloc[side].alignment:=paraalign;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].def:=paradef;
@@ -387,10 +398,10 @@ unit cpupara;
                   begin
                     paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                    { M68K is a big-endian target }
-                    if (paralen<target_info.stackalign{tcgsize2size[OS_INT]}) then
-                      inc(paraloc^.reference.offset,target_info.stackalign-paralen);
                   end;
+                { M68K is a big-endian target }
+                if (paralen<paraalign) then
+                  inc(paraloc^.reference.offset,paraalign-paralen);
                 inc(cur_stack_offset,align(paralen,target_info.stackalign));
                 paralen := 0;
 
@@ -421,12 +432,13 @@ unit cpupara;
         rt: tregistertype;
       begin
         result:=0;
+        if paras.count=0 then
+          exit;
+
         parareg:=0;
         addrparareg:=0;
         floatparareg:=0;
 
-        if paras.count=0 then
-          exit;
         paraalign:=get_para_align(p.proccalloption);
 
         { clean up here so we can later detect properly if a parameter has been
@@ -533,6 +545,8 @@ unit cpupara;
                                 paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                               varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
                               paraloc^.reference.offset:=cur_stack_offset;
+                              if (paralen<paraalign) then
+                                inc(paraloc^.reference.offset,paraalign-paralen);
                               if side=calleeside then
                                 inc(paraloc^.reference.offset,target_info.first_parm_offset);
                               cur_stack_offset:=align(cur_stack_offset+paralen,varalign);
@@ -575,8 +589,8 @@ unit cpupara;
                                   varalign:=used_align(size_2_align(l),paraalign,paraalign);
                                   paraloc^.reference.offset:=cur_stack_offset;
                                   { M68K is a big-endian target }
-                                  if (paralen<tcgsize2size[OS_INT]) then
-                                    inc(paraloc^.reference.offset,4-paralen);
+                                  if (paralen<paraalign) then
+                                    inc(paraloc^.reference.offset,paraalign-paralen);
                                   if side=calleeside then
                                     inc(paraloc^.reference.offset,target_info.first_parm_offset);
                                   cur_stack_offset:=align(cur_stack_offset+l,varalign);
