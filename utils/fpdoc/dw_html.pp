@@ -219,7 +219,7 @@ type
     procedure AppendProcDecl(CodeEl, TableEl: TDOMElement; Element: TPasProcedureBase);
     procedure AppendProcArgsSection(Parent: TDOMNode; Element: TPasProcedureType; SkipResult : Boolean = False);
     function AppendRecordType(CodeEl, TableEl: TDOMElement; Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
-    procedure CreateMemberDeclarations(AParent: TPasElement; Members: TFPList; TableEl : TDOmelement);
+    procedure CreateMemberDeclarations(AParent: TPasElement; Members: TFPList; TableEl: TDOmelement; AddEnd: Boolean);
 
     procedure AppendTitle(const AText: DOMString; Hints : TPasMemberHints = []);
     procedure AppendMenuBar(ASubpageIndex: Integer);
@@ -1959,7 +1959,7 @@ begin
     Inc(i);
     end;
   if isExtended then
-    CreateMemberDeclarations(Element,Element.Members,TableEl)
+    CreateMemberDeclarations(Element,Element.Members,TableEl,False)
   else
     for i := 0 to Element.Members.Count - 1 do
       begin
@@ -3154,11 +3154,10 @@ begin
     (Copy(AMember.Name, 1, 2) = 'On');
 end;
 
-procedure THTMLWriter.CreateMemberDeclarations(AParent : TPasElement; Members : TFPList; TableEl : TDOmelement);
+procedure THTMLWriter.CreateMemberDeclarations(AParent : TPasElement; Members : TFPList; TableEl : TDOmelement; AddEnd : Boolean);
 
 var
-  TREl, TDEl, CodeEl: TDOMElement;
-  DocNode: TDocNode;
+  TREl, CodeEl: TDOMElement;
   Member: TPasElement;
   MVisibility,
   CurVisibility: TPasMemberVisibility;
@@ -3291,6 +3290,12 @@ begin
     end;
     CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
   end;
+  AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
+  If AddEnd then
+    begin
+    AppendKw(CodeEl, 'end');
+    AppendSym(CodeEl, ';');
+    end;
 end;
 
 procedure THTMLWriter.CreateClassPageBody(AClass: TPasClassType;
@@ -3405,12 +3410,8 @@ var
         AppendSym(CodeEl, ')');
         end;
     end;
-    CreateMemberDeclarations(AClass, AClass.Members,TableEl);
+    CreateMemberDeclarations(AClass, AClass.Members,TableEl, not AClass.IsShortDefinition);
 
-    AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
-    if not AClass.IsShortDefinition then
-      AppendKw(CodeEl, 'end');
-    AppendSym(CodeEl, ';');
 
 
     AppendText(CreateH2(BodyElement), SDocInheritance);
