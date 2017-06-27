@@ -131,6 +131,8 @@ begin
     WriteModule(TPasModule(AElement))
   else if AElement.InheritsFrom(TPasSection) then
     WriteSection(TPasSection(AElement))
+  else if AElement.ClassType = TPasProperty then
+    WriteProperty(TPasProperty(AElement))
   else if AElement.InheritsFrom(TPasVariable) then
     WriteVariable(TPasVariable(AElement))
   else if AElement.InheritsFrom(TPasType) then
@@ -139,8 +141,6 @@ begin
     WriteProcDecl(TPasProcedure(AElement))
   else if AElement.InheritsFrom(TPasProcedureImpl) then
     WriteProcImpl(TPasProcedureImpl(AElement))
-  else if AElement.ClassType = TPasProperty then
-    WriteProperty(TPasProperty(AElement))
   else
     raise Exception.Create('Writing not implemented for ' +
       AElement.ElementTypeName + ' nodes');
