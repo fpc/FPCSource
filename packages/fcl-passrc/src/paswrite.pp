@@ -333,8 +333,8 @@ begin
   if AProc.IsStatic then
     wrt(' static;');
 
-
-  // !!!: Not handled: Message, calling conventions
+  if AProc.CallingConvention<>ccDefault then
+    wrt(' '+cCallingConventions[AProc.CallingConvention]+';');
 
   wrtln;
 end;
