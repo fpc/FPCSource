@@ -87,24 +87,15 @@ implementation
             exit;
           end
         else
-          { other integers are supposed to be 32 bit }
           begin
-            if is_signed(left.resultdef) then
-              inserttypeconv(left,s32inttype)
-            else
-              { the fpu always considers 32-bit values as signed
-                therefore we need to call the helper in case of
-                a cardinal value.
-              }
+            { The FPU can load any size int, but only signed. Therefore, we convert
+              16 and 8 bit unsigned to 32bit signed, the rest we can load directly,
+              and we have a special codepath for 32bit unsigned in second pass (KB) }
+            if not (is_32bitint(left.resultdef) or is_signed(left.resultdef)) then
               begin
-                 fname := 'fpc_longword_to_double';
-                 result := ccallnode.createintern(fname,ccallparanode.create(
-                    left,nil));
-                 left:=nil;
-                 firstpass(result);
-                 exit;
+                inserttypeconv(left,s32inttype);
+                firstpass(left);
               end;
-            firstpass(left);
           end;
         result := nil;
         location.loc:=LOC_FPUREGISTER;
@@ -120,7 +111,9 @@ implementation
     procedure tm68ktypeconvnode.second_int_to_real;
 
       var
+        l: tasmlabel;
         ref: treference;
+        tempref: treference;
         leftreg: tregister;
         signed : boolean;
         opsize : tcgsize;
@@ -131,13 +124,42 @@ implementation
         { has to be handled by a helper }
         if is_64bitint(left.resultdef) then
           internalerror(200110011);
-        { has to be handled by a helper }
-        if not signed then
-           internalerror(2002081404);
 
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,opsize);
+
+        if not signed then
+          begin
+            // current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('typeconvnode second_int_to_real cardinal')));
+
+            { the idea behind this code is based on the cardinal to double code in the PPC and x86 CG (KB) }
+            tg.GetTemp(current_asmdata.CurrAsmList,sizeof(double),sizeof(double),tt_normal,tempref);
+            hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u32inttype,$43300000,tempref);
+            inc(tempref.offset,sizeof(aint));
+            hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,u32inttype,left.location,tempref);
+            dec(tempref.offset,sizeof(aint));
+            current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,S_FD,tempref,location.register));
+
+            if current_settings.fputype in [fpu_coldfire] then
+              begin
+                current_asmdata.getglobaldatalabel(l);
+                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(sizeof(pint)));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($59800000));
+                reference_reset_symbol(ref,l,0,4,[]);
+                tcg68k(cg).fixref(current_asmdata.CurrAsmList,ref,true);
+                current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FSUB,S_FS,ref,location.register));
+              end
+            else
+              { using single here for (1 shl 52) is safe, the optimizer would simplify it anyway }
+              current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FSUB,S_FS,(1 shl 52),location.register));
+
+            tg.UnGetTemp(current_asmdata.CurrAsmList,tempref);
+            exit;
+          end;
+
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,osuinttype,false);
+
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
