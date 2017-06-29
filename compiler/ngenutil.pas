@@ -328,11 +328,8 @@ implementation
             which might contain record with management operators }
           ((tsym(p).typ = staticvarsym) and
            (
-            (tabstractvarsym(p).vardef is trecorddef) or
-            (
-             (tabstractvarsym(p).vardef is tobjectdef) and
-             (tobjectdef(tabstractvarsym(p).vardef).objecttype = odt_object)
-            )
+             is_record(tabstractvarsym(p).vardef) or
+             is_object(tabstractvarsym(p).vardef)
            )
           )
          ) and
