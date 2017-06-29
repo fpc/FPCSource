@@ -243,6 +243,11 @@ begin
     wrtln(')')
   else
     wrtln;
+
+  if AClass.ObjKind = okInterface then
+    if Assigned(AClass.GUIDExpr) then
+      wrtln('['+AClass.InterfaceGUID+']');
+
   IncIndent;
   LastVisibility := visDefault;
   for i := 0 to AClass.Members.Count - 1 do
