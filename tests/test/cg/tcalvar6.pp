@@ -30,9 +30,9 @@ program tcalvar6;
   {$define tp}
 {$endif}
 
-{ On linux/i386 and linux/x86-64 afecall is the same as cdecl, so it does not       }
-{ support all parameter types.                                      }
-{$if ((defined(linux) or defined(android)) and (defined(cpui386) or defined(cpux86_64)))}
+{ On linux/i386 and linux/x86-64 safecall is the same as cdecl, so it does not }
+{ support all parameter types.                                                 }
+{$if ((defined(linux) or defined(android)) and (defined(cpui386) or defined(cpux86_64) or defined(cpum68k)))}
   {$define safecall_is_cdecl}
 {$endif}
 
