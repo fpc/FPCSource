@@ -1833,10 +1833,7 @@ unit cgcpu;
           to '060, so the two move branch here was dropped. (KB) }
         if not nostackframe then
           begin
-            { size can't be negative }
             localsize:=align(localsize,4);
-            if (localsize < 0) then
-              internalerror(2006122601);
 
             if (localsize > high(smallint)) then
               begin
