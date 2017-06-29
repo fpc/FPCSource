@@ -141,6 +141,8 @@ begin
     WriteProcDecl(TPasProcedure(AElement))
   else if AElement.InheritsFrom(TPasProcedureImpl) then
     WriteProcImpl(TPasProcedureImpl(AElement))
+  else if AElement.InheritsFrom(TPasImplCommand) or AElement.InheritsFrom(TPasImplCommands) then
+    WriteImplElement(TPasImplElement(AElement),false)
   else
     raise Exception.Create('Writing not implemented for ' +
       AElement.ElementTypeName + ' nodes');
