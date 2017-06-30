@@ -1345,7 +1345,6 @@ implementation
                else
                  begin
                    vs.register_sym;
-                   symtablestack.top.insert(vs);
                    if isgeneric then
                      begin
                        { ensure correct error position }
@@ -1353,7 +1352,9 @@ implementation
                        current_filepos:=tmp_filepos;
                        symtablestack.top.insert(vs);
                        current_filepos:=old_current_filepos;
-                     end;
+                     end
+                   else
+                     symtablestack.top.insert(vs);
                  end;
              until not try_to_consume(_COMMA);
 
