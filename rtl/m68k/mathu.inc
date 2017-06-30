@@ -66,16 +66,19 @@ const
   FPU68K_PREC_SINGLE      = 1 shl FPU68K_PREC_MASK_SHIFT;
   FPU68K_PREC_DOUBLE      = 2 shl FPU68K_PREC_MASK_SHIFT;
 
+const
+  FPU68K_EXCEPT_MASK_SHIFT = 8;
+  FPU68K_EXCEPT_MASK       = 255 shl FPU68K_EXCEPT_MASK_SHIFT;
 
-function GetFPCR: DWord; assembler; nostackframe;
-asm
-  fmove.l fpcr,d0
-end;
+  FPU68K_EXCEPT_INEX1      = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 0);
+  FPU68K_EXCEPT_INEX2      = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 1);
+  FPU68K_EXCEPT_DZ         = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 2);
+  FPU68K_EXCEPT_UNFL       = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 3);
+  FPU68K_EXCEPT_OVFL       = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 4);
+  FPU68K_EXCEPT_OPERR      = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 5);
+  FPU68K_EXCEPT_SNAN       = 1 shl (FPU68K_EXCEPT_MASK_SHIFT + 6);
+  FPU68K_EXCEPT_BSUN       = 1 shl (FPU68K_EXCEPT_MASK_SHIFt + 7);
 
-function SetFPCR(x: DWord): DWord; assembler; nostackframe;
-asm
-  fmove.l x, fpcr
-end;
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
@@ -83,8 +86,28 @@ begin
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+const
+  FPCToFPUExceptionFlags: array[TFPUException] of DWord =
+      ( FPU68K_EXCEPT_OPERR, 0, FPU68K_EXCEPT_DZ, FPU68K_EXCEPT_OVFL, FPU68K_EXCEPT_UNFL, FPU68K_EXCEPT_INEX2 );
+  FPUToFPCExceptionFlags: array[0..7] of TFPUExceptionMask =
+      ( [], [exPrecision], [exZeroDivide], [exUnderflow], [exOverflow], [exInvalidOp], [], [] );
+var
+  oldMode, Mode: DWord;
+  e: TFPUException;
+  i: longint;
 begin
-  result:=softfloat_exception_mask;
+  result:=[];
+
+  oldMode:=(GetFPCR and FPU68K_EXCEPT_MASK) shr FPU68K_EXCEPT_MASK_SHIFT;
+  for i:=low(FPUToFPCExceptionFlags) to high(FPUToFPCExceptionFlags) do
+    if ((1 shl i) and oldMode) > 0 then
+      result:=result+FPUToFPCExceptionFlags[i];
+
+  mode:=0;
+  for e in Mask do
+    mode:=mode or FPCToFPUExceptionFlags[e];
+
+  SetFPCR((GetFPCR and not FPU68K_EXCEPT_MASK) or (mode shl FPU68K_EXCEPT_MASK_SHIFT));
   softfloat_exception_mask:=mask;
 end;
 
@@ -120,9 +143,10 @@ end;
 
 procedure ClearExceptions(RaisePending: Boolean);
 begin
+  SetFPCR(GetFPCR and not FPU68K_EXCEPT_MASK);
+  SetFPSR(0);
   softfloat_exception_flags:=[];
 end;
-
 {$else}
 
 function GetExceptionMask: TFPUExceptionMask;

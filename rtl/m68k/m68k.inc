@@ -29,23 +29,49 @@
 {****************************************************************************}
 
 
-{$IFDEF FPU68881}
-{$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU; assembler;
+{$IF DEFINED(FPU68881) OR DEFINED(FPUCOLDFIRE)}
+function GetFPCR: DWord; assembler; nostackframe;
 asm
-  clr.l    d0
-  fmove.l  d0,fpcr
+  fmove.l fpcr,d0
+end;
+
+function GetFPSR: DWord; assembler; nostackframe;
+asm
+  fmove.l fpsr, d0
+end;
+
+procedure SetFPCR(x: DWord); assembler; nostackframe;
+asm
+  fmove.l x, fpcr
+end;
+
+procedure SetFPSR(x: DWord); assembler; nostackframe;
+asm
+  fmove.l x, fpsr
+end;
+
+{$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;
+begin
+  SetFPCR(Default68KFPCR);
+  SetFPSR(0);
 end;
 
 {$DEFINE FPC_SYSTEM_HAS_SYSINITFPU}
-procedure SysInitFPU; assembler;
-asm
-  clr.l   d0
-  // FIX ME:
-  // move.w 0,d0 // enable a sane set of exception flags here
-  fmove.l d0,fpcr
+procedure SysInitFPU;
+begin
 end;
-{$ENDIF}
+
+procedure fpc_cpuinit;
+  begin
+    if IsLibrary then
+      begin
+        Default68kFPCR:=GetFPCR;
+      end;
+    SysResetFPU;
+  end;
+
+{$ELSE}
 
 procedure fpc_cpuinit;
   begin
@@ -53,6 +79,8 @@ procedure fpc_cpuinit;
     if (not IsLibrary) then
       SysInitFPU;
   end;
+
+{$ENDIF}
 
 {$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}

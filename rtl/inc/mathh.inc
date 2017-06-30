@@ -32,6 +32,22 @@
     function GetSSECSR : dword; deprecated 'Renamed to GetMXCSR';
 {$endif}
 
+{$if defined(cpum68k)}
+{$if defined(fpu68881) or defined(fpucoldfire)}
+    const
+    {$ifdef FPC_68K_SYSTEM_HAS_FPU_EXCEPTIONS}
+       Default68KFPCR: DWord = $3400; { Enable OVFL, OPERR and DZ, round to nearest, default precision }
+    {$else}
+       Default68KFPCR: DWord = 0;
+    {$endif}
+
+    procedure SetFPCR(x: DWord);
+    procedure SetFPSR(x: DWord);
+    function GetFPCR: DWord;
+    function GetFPSR: DWord;
+{$endif}
+{$endif}
+
   type
     TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
     TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
