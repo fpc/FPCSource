@@ -1105,25 +1105,29 @@ Type
   TPasImplElement = class(TPasElement)
   end;
 
+  { TPasImplCommandBase }
+
+  TPasImplCommandBase = class(TPasImplElement)
+  public
+    SemicolonAtEOL: boolean;
+    constructor Create(const AName: string; AParent: TPasElement); override;
+  end;
+
   { TPasImplCommand - currently used as empty statement, e.g. if then else ; }
 
-  TPasImplCommand = class(TPasImplElement)
-  public
-    constructor Create(const AName: string; AParent: TPasElement); override;
+  TPasImplCommand = class(TPasImplCommandBase)
   public
     Command: string; // never set by TPasParser
-    SemicolonAtEOL: boolean;
   end;
 
   { TPasImplCommands - used by mkxmlrpc, not used by pparser }
 
-  TPasImplCommands = class(TPasImplElement)
+  TPasImplCommands = class(TPasImplCommandBase)
   public
     constructor Create(const AName: string; AParent: TPasElement); override;
     destructor Destroy; override;
   public
     Commands: TStrings;
-    SemicolonAtEOL: boolean;
   end;
 
   { TPasLabels }
@@ -1524,9 +1528,9 @@ begin
   El:=nil;
 end;
 
-{ TPasImplCommand }
+{ TPasImplCommandBase }
 
-constructor TPasImplCommand.Create(const AName: string; AParent: TPasElement);
+constructor TPasImplCommandBase.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   SemicolonAtEOL := true;
@@ -2939,7 +2943,6 @@ constructor TPasImplCommands.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Commands := TStringList.Create;
-  SemicolonAtEOL := true;
 end;
 
 destructor TPasImplCommands.Destroy;
