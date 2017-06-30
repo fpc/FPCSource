@@ -458,8 +458,13 @@ begin
   for i := 0 to ABlock.Elements.Count - 1 do
   begin
     WriteImplElement(TPasImplElement(ABlock.Elements[i]), False);
-    if TPasImplElement(ABlock.Elements[i]).ClassType = TPasImplCommand then
-      wrtln(';');
+    if (TPasImplElement(ABlock.Elements[i]).ClassType = TPasImplCommand) then
+    begin
+      if TPasImplCommand(ABlock.Elements[i]).SemicolonAtEOL then
+        wrtln(';')
+      else
+        wrtln;
+    end;
   end;
 end;
 

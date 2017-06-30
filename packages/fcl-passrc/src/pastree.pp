@@ -1109,7 +1109,10 @@ Type
 
   TPasImplCommand = class(TPasImplElement)
   public
+    constructor Create(const AName: string; AParent: TPasElement); override;
+  public
     Command: string; // never set by TPasParser
+    SemicolonAtEOL: boolean;
   end;
 
   { TPasImplCommands - used by mkxmlrpc, not used by pparser }
@@ -1519,6 +1522,14 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release;
   El:=nil;
+end;
+
+{ TPasImplCommand }
+
+constructor TPasImplCommand.Create(const AName: string; AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  SemicolonAtEOL := true;
 end;
 
 { TInlineTypeExpr }
