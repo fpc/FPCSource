@@ -516,7 +516,10 @@ begin
       if (Length(s) >= 2) and (s[1] = '/') and (s[2] = '/') then
         wrtln(s)
       else
-        wrtln(s + ';');
+        if ACommands.SemicolonAtEOL then
+          wrtln(s + ';')
+        else
+          wrtln(s);
   end;
 end;
 

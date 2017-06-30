@@ -1120,6 +1120,7 @@ Type
     destructor Destroy; override;
   public
     Commands: TStrings;
+    SemicolonAtEOL: boolean;
   end;
 
   { TPasLabels }
@@ -2927,6 +2928,7 @@ constructor TPasImplCommands.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   Commands := TStringList.Create;
+  SemicolonAtEOL := true;
 end;
 
 destructor TPasImplCommands.Destroy;
