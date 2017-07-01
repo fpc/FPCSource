@@ -475,26 +475,34 @@ begin
     WriteImplCommand(TPasImplCommand(AElement))
   else if AElement.ClassType = TPasImplCommands then
   begin
-    DecIndent;
     if AAutoInsertBeginEnd then
+    begin
+      DecIndent;
       wrtln('begin');
-    IncIndent;
+      IncIndent;
+    end;
     WriteImplCommands(TPasImplCommands(AElement));
-    DecIndent;
     if AAutoInsertBeginEnd then
+    begin
+      DecIndent;
       wrtln('end;');
-    IncIndent;
+      IncIndent;
+    end;
   end else if AElement.ClassType = TPasImplBlock then
   begin
-    DecIndent;
     if AAutoInsertBeginEnd then
+    begin
+      DecIndent;
       wrtln('begin');
-    IncIndent;
+      IncIndent;
+    end;
     WriteImplBlock(TPasImplBlock(AElement));
-    DecIndent;
     if AAutoInsertBeginEnd then
+    begin
+      DecIndent;
       wrtln('end;');
-    IncIndent;
+      IncIndent;
+    end;
   end else if AElement.ClassType = TPasImplIfElse then
     WriteImplIfElse(TPasImplIfElse(AElement))
   else if AElement.ClassType = TPasImplForLoop then
