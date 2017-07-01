@@ -303,6 +303,8 @@ begin
         case Access of
           argConst: wrt('const ');
           argVar: wrt('var ');
+          argOut: wrt('out ');
+          argConstRef: wrt('constref ');
         end;
         wrt(Name);
         if Assigned(ArgType) then
@@ -369,6 +371,8 @@ begin
         case Access of
           argConst: wrt('const ');
           argVar: wrt('var ');
+          argOut: wrt('out ');
+          argConstRef: wrt('constref ');
         end;
         wrt(Name);
         if Assigned(ArgType) then
