@@ -2742,7 +2742,8 @@ function TPasProcedureType.CreateArgument(const AName,
 begin
   Result := TPasArgument.Create(AName, Self);
   Args.Add(Result);
-  Result.ArgType := TPasUnresolvedTypeRef.Create(AUnresolvedTypeName, Result);
+  if AUnresolvedTypeName<>'' then
+    Result.ArgType := TPasUnresolvedTypeRef.Create(AUnresolvedTypeName, Result);
 end;
 
 procedure TPasProcedureType.ForEachCall(const aMethodCall: TOnForEachPasElement;
