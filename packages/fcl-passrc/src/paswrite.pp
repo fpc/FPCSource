@@ -177,6 +177,20 @@ begin
     WriteSection(AModule.ImplementationSection);
   end;
   wrtln;
+  if Assigned(AModule.InitializationSection) then
+  begin
+    wrtln('initialization');
+    IncIndent;
+    WriteImplBlock(AModule.InitializationSection);
+    DecIndent;
+  end;
+  if Assigned(AModule.FinalizationSection) then
+  begin
+    wrtln('finalization');
+    IncIndent;
+    WriteImplBlock(AModule.FinalizationSection);
+    DecIndent;
+  end;
   wrtln('end.');
 end;
 
