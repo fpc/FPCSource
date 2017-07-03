@@ -163,6 +163,11 @@ end;
 procedure TPasWriter.WriteModule(AModule: TPasModule);
 begin
   wrtln('unit ' + AModule.Name + ';');
+  if Assigned(AModule.GlobalDirectivesSection) then
+  begin
+    wrtln;
+    WriteImplElement(AModule.GlobalDirectivesSection,false);
+  end;
   wrtln;
   wrtln('interface');
   wrtln;

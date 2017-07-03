@@ -371,6 +371,7 @@ type
     function ElementTypeName: string; override;
   end;
 
+  TPasImplCommandBase = class;
   TInitializationSection = class;
   TFinalizationSection = class;
 
@@ -384,6 +385,7 @@ type
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
+    GlobalDirectivesSection: TPasImplCommandBase; // not used by pparser
     InterfaceSection: TInterfaceSection;
     ImplementationSection: TImplementationSection;
     InitializationSection: TInitializationSection; // in TPasProgram the begin..end.
@@ -2306,6 +2308,8 @@ end;
 
 destructor TPasModule.Destroy;
 begin
+  {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy global directives');{$ENDIF}
+  ReleaseAndNil(TPasElement(GlobalDirectivesSection));
   {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy interface');{$ENDIF}
   ReleaseAndNil(TPasElement(InterfaceSection));
   {$IFDEF VerbosePasTreeMem}writeln('TPasModule.Destroy implementation');{$ENDIF}
