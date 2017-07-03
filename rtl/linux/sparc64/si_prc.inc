@@ -38,7 +38,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     sethi	%hi(operatingsystem_parameter_argc),%o1
     or	%o1,%lo(operatingsystem_parameter_argc),%o1
 {$endif FPC_PIC}
-    stx	%o2, [%o1]
+    st	%o2, [%o1]
     { extract argv }
 {$ifdef FPC_PIC}
 {$else FPC_PIC}
