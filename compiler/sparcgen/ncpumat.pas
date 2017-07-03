@@ -66,6 +66,170 @@ implementation
                              TSparcMODDIVNODE
 *****************************************************************************}
 
+{$ifdef sparc64}
+    procedure tSparcmoddivnode.pass_generate_code;
+      const
+                    { 64 bit   signed  overflow }
+        divops: array[boolean, boolean, boolean] of tasmop =
+          (((A_UDIV,A_UDIVcc),(A_SDIV,A_SDIVcc)),
+           ((A_UDIVX,A_NOP),(A_SDIVX,A_NOP))
+          );
+      var
+         power      : longint;
+         op         : tasmop;
+         tmpreg,
+         numerator,
+         divider,
+         resultreg  : tregister;
+         overflowlabel : tasmlabel;
+         ai : taicpu;
+      begin
+         secondpass(left);
+         secondpass(right);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+         location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+
+         { put numerator in register }
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+         numerator := left.location.register;
+         resultreg := location.register;
+
+         if is_64bitint(resultdef) then
+           begin
+             if (nodetype = divn) and
+                (right.nodetype = ordconstn) and
+                ispowerof2(tordconstnode(right).value.svalue,power) and
+                (not (cs_check_overflow in current_settings.localswitches)) then
+               begin
+                 if is_signed(left.resultdef) Then
+                   begin
+                     tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,63,numerator,tmpreg);
+                     { if signed, tmpreg=right value-1, otherwise 0 }
+                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
+                     { add to the left value }
+                     cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
+                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
+                   end
+                 else
+                   cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
+               end
+             else
+               begin
+                 { load divider in a register if necessary }
+                 divider:=NR_NO;
+                 if (right.location.loc<>LOC_CONSTANT) or
+                    (right.location.value<simm13lo) or
+                    (right.location.value>simm13hi) then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+                       right.resultdef,right.resultdef,true);
+                     divider:=right.location.register;
+                   end;
+
+                 op := divops[true, is_signed(right.resultdef),
+                              cs_check_overflow in current_settings.localswitches];
+                 if (divider<>NR_NO) then
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg))
+                 else
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(op,numerator,right.location.value,resultreg));
+
+                 if (nodetype = modn) then
+                   begin
+                     current_asmdata.getjumplabel(overflowlabel);
+                     ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
+                     ai.delayslot_annulled:=true;
+                     current_asmdata.CurrAsmList.concat(ai);
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
+                     cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                     if (divider<>NR_NO) then
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULX,resultreg,divider,resultreg))
+                     else
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_MULX,resultreg,right.location.value,resultreg));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
+                   end;
+               end;
+           end
+         else
+           begin
+             if (nodetype = divn) and
+                (right.nodetype = ordconstn) and
+                ispowerof2(tordconstnode(right).value.svalue,power) and
+                (not (cs_check_overflow in current_settings.localswitches)) then
+               begin
+                 if is_signed(left.resultdef) Then
+                   begin
+                     tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
+                     { if signed, tmpreg=right value-1, otherwise 0 }
+                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value.svalue-1,tmpreg);
+                     { add to the left value }
+                     cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
+                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
+                   end
+                 else
+                   cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
+               end
+             else
+               begin
+                 { load divider in a register if necessary }
+                 divider:=NR_NO;
+                 if (right.location.loc<>LOC_CONSTANT) or
+                    (right.location.value<simm13lo) or
+                    (right.location.value>simm13hi) then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,
+                       right.resultdef,right.resultdef,true);
+                     divider:=right.location.register;
+                   end;
+
+                 { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
+                 { And on Sparc, the only way to catch a div-by-0 is by checking  }
+                 { the overflow flag (JM)                                       }
+
+                 { Fill %y with the -1 or 0 depending on the highest bit }
+                 if is_signed(left.resultdef) then
+                   begin
+                     tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_Y));
+                   end
+                 else
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,NR_G0,NR_Y));
+                 { wait 3 instructions slots before we can read %y }
+                 current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+
+                 op := divops[false, is_signed(right.resultdef),
+                              cs_check_overflow in current_settings.localswitches];
+                 if (divider<>NR_NO) then
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg))
+                 else
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(op,numerator,right.location.value,resultreg));
+
+                 if (nodetype = modn) then
+                   begin
+                     current_asmdata.getjumplabel(overflowlabel);
+                     ai:=taicpu.op_cond_sym(A_Bxx,C_VS,overflowlabel);
+                     ai.delayslot_annulled:=true;
+                     current_asmdata.CurrAsmList.concat(ai);
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
+                     cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                     if (divider<>NR_NO) then
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg))
+                     else
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SMUL,resultreg,right.location.value,resultreg));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
+                   end;
+               end;
+           end;
+        { set result location }
+        location.loc:=LOC_REGISTER;
+        location.register:=resultreg;
+        cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
+      end;
+{$else sparc64}
     procedure tSparcmoddivnode.pass_generate_code;
       const
                     { signed   overflow }
@@ -167,7 +331,7 @@ implementation
         location.register:=resultreg;
         cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
       end;
-
+{$endif sparc64}
 
 {*****************************************************************************
                              TSparcSHLRSHRNODE
@@ -283,7 +447,7 @@ implementation
 {$endif SPARC64}
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags:=F_E;
+                  location.resflags.Init(NR_ICC,F_E);
                end;
               else
                 internalerror(2003042401);
