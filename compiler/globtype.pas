@@ -390,7 +390,7 @@ interface
        tmodeswitch = (m_none,
          { generic }
          m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas,
-         {$ifdef fpc_mode}m_gpc,{$endif}
+         {$ifdef gpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }
@@ -580,7 +580,7 @@ interface
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
          '','','','','','','',
-         {$ifdef fpc_mode}'',{$endif}
+         {$ifdef gpc_mode}'',{$endif}
          { more specific }
          'CLASS',
          'OBJPAS',
