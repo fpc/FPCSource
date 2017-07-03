@@ -60,6 +60,7 @@ uses
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint);
+         constructor op_reg_sym(op : tasmop;_op1 : Tregister;_op2 : tasmsymbol);
          procedure loadbool(opidx:longint;_b:boolean);
          { register allocation }
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
@@ -220,6 +221,16 @@ implementation
          is_jmp:=op in [A_BA,A_Bxx];
          ops:=1;
          loadsymbol(0,_op1,0);
+      end;
+
+
+    constructor taicpu.op_reg_sym(op : tasmop;_op1:Tregister;_op2 : tasmsymbol);
+      begin
+         inherited create(op);
+         is_jmp:=op in [A_BA,A_Bxx];
+         ops:=2;
+         loadreg(0,_op1);
+         loadsymbol(1,_op2,0);
       end;
 
 
