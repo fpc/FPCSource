@@ -128,36 +128,127 @@ asm
 end;
 
 
-
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure FillChar(var x; count : longint; value : byte); assembler;
+procedure FillChar(var x; count : longint; value : byte); assembler; register; nostackframe;
 asm
-  move.l x, a0          { destination                   }
-  move.b value, d1      { fill data                     }
-  move.l count, d0      { number of bytes to fill       }
-  ble    @LMEMSET5      { anything to fill at all?      }
+  { a0 is x, d0 is count, d1 is value }
+  tst.l    d0             { anything to fill at all?      }
+  ble      @Lquit
+  cmp.l    #32,d0         { limits were tested against real hardware on various CPU }
+  blt      @LfillByte
+  cmp.l    #128,d0        { limits were tested against real hardware on various CPU }
+  blt      @LfillWord
+  bra      @LfillDWord
+
+{$ifndef CPUM68K_HAS_DBRA}
+@LfillByte:
+{$endif}
+@LfillByteLoop:
+  move.b   d1,(a0)+
 {$ifdef CPUM68K_HAS_DBRA}
-{ FIXME: Any reason why not always just use DBRA mode on
-         CPUs which support it? (KB)
-         - DBRA does only 16-bit decrements, so handling more than 65535 bytes
-         requires additional code anyway (Sergei) }
-  cmpi.l #65535, d0     { check, if this is a word move }
-  ble    @LMEMSET3      { use fast dbra mode            }
-{$endif CPUM68K_HAS_DBRA}
-  bra    @LMEMSET2
-@LMEMSET1:
-  move.b d1,(a0)+
-@LMEMSET2:
-  subq.l #1,d0
-  bpl @LMEMSET1
-  bra @LMEMSET5         { finished slow mode , exit     }
+@LfillByte:
+  dbra     d0,@LfillByteLoop
+{$else}
+  subq.l   #1,d0
+  bne      @LfillByteLoop
+{$endif}
+  rts
+
+@LfillWord:
+  move.l   d2,-(sp)
+  move.l   a0,d2
+  btst     #0,d2
+  beq      @Leven
+  subq.l   #1,d0
+  move.b   d1,(a0)+
+@Leven:
+  move.b   d1,d2  // copy value to upper byte
+{$ifdef CPUCOLDFIRE}
+  lsl.l    #8,d1
+{$else}
+  lsl.w    #8,d1
+{$endif}
+  move.b   d2,d1
+  move.l   d0,d2  // adjust d0 for leftover copy
+  bclr     #0,d2
+  sub.l    d2,d0
+  lsr.l    #1,d2
 {$ifdef CPUM68K_HAS_DBRA}
-@LMEMSET4:              { fast loop mode section 68010+ }
-  move.b d1,(a0)+
-@LMEMSET3:
-  dbra d0,@LMEMSET4
-{$endif CPUM68K_HAS_DBRA}
-@LMEMSET5:
+  subq.l   #1,d2
+{$endif}
+@LfillWordLoop:
+  move.w   d1,(a0)+
+{$ifdef CPUM68K_HAS_DBRA}
+  dbra     d2,@LFillWordLoop
+{$else}
+  subq.l   #1,d2
+  bne      @LfillWordLoop
+{$endif}
+  move.l   (sp)+,d2
+  tst.l    d0
+  bne      @LfillByte
+  rts
+
+@LfillDWord:
+  move.l   d2,-(sp)
+  move.b   d1,d2  // copy value to upper bytes
+{$ifdef CPUCOLDFIRE}
+  lsl.l    #8,d1
+{$else}
+  lsl.w    #8,d1
+{$endif}
+  move.b   d2,d1
+  move.w   d1,d2
+  swap     d1
+  move.w   d2,d1
+
+  move.l   a0,d2  // do initial byte and word fill, if the address is unaligned
+  btst     #0,d2
+  beq      @Ldeven
+  subq.l   #1,d0
+  move.b   d1,(a0)+
+@Ldeven:
+  move.l   a0,d2
+  btst     #1,d2
+  beq      @Ldquad
+  subq.l   #2,d0
+  move.w   d1,(a0)+
+@Ldquad:
+  move.l   d0,d2  // adjust d0 for leftover copy
+{$ifdef CPU_COLDFIRE}
+  and.l    #$fffffffc,d2
+{$else}
+  and.b    #$fc,d2
+{$endif}
+  sub.l    d2,d0
+  lsr.l    #2,d2
+  bra      @LfillLongLoopStart
+
+@LfillLongLoop:
+  move.l   d1,(a0)+
+  move.l   d1,(a0)+
+  move.l   d1,(a0)+
+  move.l   d1,(a0)+
+  subq.l   #4,d2
+@LfillLongLoopStart:
+  cmp.l    #4,d2
+  bgt      @LfillLongLoop
+
+{$ifdef CPUM68K_HAS_DBRA}
+  subq.l   #1,d2
+{$endif}
+@LfillDWordLoop:
+  move.l   d1,(a0)+
+{$ifdef CPUM68K_HAS_DBRA}
+  dbra     d2,@LFillDWordLoop
+{$else}
+  subq.l   #1,d2
+  bne      @LfillDWordLoop
+{$endif}
+  move.l   (sp)+,d2
+  tst.l    d0
+  bne      @LfillByte
+@Lquit:
 end;
 
 
