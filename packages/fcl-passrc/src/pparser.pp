@@ -2511,6 +2511,7 @@ begin
       else
         begin
         Result:=TPasOverloadedProc(CreateElement(TPasOverloadedProc, AName, OldMember.Parent));
+        OldMember.Parent:=Result;
         Result.Visibility:=OldMember.Visibility;
         Result.Overloads.Add(OldMember);
         Result.SourceFilename:=OldMember.SourceFilename;
