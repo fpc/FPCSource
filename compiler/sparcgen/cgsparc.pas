@@ -284,7 +284,7 @@ implementation
       begin
         inherited init_register_allocators;
 
-        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBD,
+        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,
              RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7,
              RS_I0,RS_I1,RS_I2,RS_I3,RS_I4,RS_I5],
