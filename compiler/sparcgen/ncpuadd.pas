@@ -31,7 +31,7 @@ interface
     type
        tsparcaddnode = class(tcgaddnode)
        private
-          function  GetResFlags(unsigned:Boolean):TResFlags;
+          function  GetResFlags(unsigned,use64bit:Boolean):TResFlags;
           function  GetFPUResFlags:TResFlags;
        protected
           procedure second_addfloat;override;
@@ -63,39 +63,47 @@ interface
                                TSparcAddNode
 *****************************************************************************}
 
-    function TSparcAddNode.GetResFlags(unsigned:Boolean):TResFlags;
+    function TSparcAddNode.GetResFlags(unsigned,use64bit:Boolean):TResFlags;
+      var
+        flagreg : TRegister;
       begin
+{$ifdef SPARC64}
+        if use64bit then
+          flagreg:=NR_XCC
+        else
+{$endif SPARC64}
+          flagreg:=NR_ICC;
         case NodeType of
           equaln:
-            GetResFlags:=F_E;
+            GetResFlags.Init(flagreg,F_E);
           unequaln:
-            GetResFlags:=F_NE;
+            GetResFlags.Init(flagreg,F_NE);
           else
             if not(unsigned) then
               begin
                 if nf_swapped in flags then
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_G;
+                      GetResFlags.Init(flagreg,F_G);
                     lten:
-                      GetResFlags:=F_GE;
+                      GetResFlags.Init(flagreg,F_GE);
                     gtn:
-                      GetResFlags:=F_L;
+                      GetResFlags.Init(flagreg,F_L);
                     gten:
-                      GetResFlags:=F_LE;
+                      GetResFlags.Init(flagreg,F_LE);
                     else
                       internalerror(2014082010);
                   end
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_L;
+                      GetResFlags.Init(flagreg,F_L);
                     lten:
-                      GetResFlags:=F_LE;
+                      GetResFlags.Init(flagreg,F_LE);
                     gtn:
-                      GetResFlags:=F_G;
+                      GetResFlags.Init(flagreg,F_G);
                     gten:
-                      GetResFlags:=F_GE;
+                      GetResFlags.Init(flagreg,F_GE);
                     else
                       internalerror(2014082011);
                   end;
@@ -105,26 +113,26 @@ interface
                 if nf_swapped in Flags then
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_A;
+                      GetResFlags.Init(flagreg,F_A);
                     lten:
-                      GetResFlags:=F_AE;
+                      GetResFlags.Init(flagreg,F_AE);
                     gtn:
-                      GetResFlags:=F_B;
+                      GetResFlags.Init(flagreg,F_B);
                     gten:
-                      GetResFlags:=F_BE;
+                      GetResFlags.Init(flagreg,F_BE);
                     else
                       internalerror(2014082012);
                   end
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_B;
+                      GetResFlags.Init(flagreg,F_B);
                     lten:
-                      GetResFlags:=F_BE;
+                      GetResFlags.Init(flagreg,F_BE);
                     gtn:
-                      GetResFlags:=F_A;
+                      GetResFlags.Init(flagreg,F_A);
                     gten:
-                      GetResFlags:=F_AE;
+                      GetResFlags.Init(flagreg,F_AE);
                     else
                       internalerror(2014082013);
                   end;
@@ -137,34 +145,34 @@ interface
       begin
         case NodeType of
           equaln:
-            result:=F_FE;
+            result.Init(NR_FCC0,F_FE);
           unequaln:
-            result:=F_FNE;
+            result.Init(NR_FCC0,F_FNE);
           else
             begin
               if nf_swapped in Flags then
                 case NodeType of
                   ltn:
-                    result:=F_FG;
+                    result.Init(NR_FCC0,F_FG);
                   lten:
-                    result:=F_FGE;
+                    result.Init(NR_FCC0,F_FGE);
                   gtn:
-                    result:=F_FL;
+                    result.Init(NR_FCC0,F_FL);
                   gten:
-                    result:=F_FLE;
+                    result.Init(NR_FCC0,F_FLE);
                   else
                     internalerror(2014082014);
                 end
               else
                 case NodeType of
                   ltn:
-                    result:=F_FL;
+                    result.Init(NR_FCC0,F_FL);
                   lten:
-                    result:=F_FLE;
+                    result.Init(NR_FCC0,F_FLE);
                   gtn:
-                    result:=F_FG;
+                    result.Init(NR_FCC0,F_FG);
                   gten:
-                    result:=F_FGE;
+                    result.Init(NR_FCC0,F_FGE);
                   else
                     internalerror(2014082015);
                 end;
@@ -268,7 +276,7 @@ interface
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+        location.resflags:=getresflags(true,is_64bit(right.resultdef));
       end;
 
 
@@ -287,7 +295,7 @@ interface
           unequaln:
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
-              location.resflags:=getresflags(true);
+              location.resflags:=getresflags(true,is_64bit(right.resultdef));
             end;
           lten,
           gten:
@@ -300,7 +308,7 @@ interface
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,left.location.register,right.location.register,tmpreg));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,tmpreg,right.location.register,NR_G0));
-              location.resflags:=F_E;
+              location.resflags.Init(NR_ICC,F_E);
             end;
           else
             internalerror(2012042701);
@@ -373,7 +381,7 @@ interface
 
         if (nodetype in [equaln,unequaln]) then
           begin
-            location.resflags:=getresflags(unsigned);
+            location.resflags:=getresflags(unsigned,false);
             if (right.location.loc=LOC_CONSTANT) then
               begin
                 if hi(right.location.value64)<>0 then
@@ -417,13 +425,13 @@ interface
             if (nodetype in [ltn,gten]) then
               begin
                 emit_compare(current_asmdata.CurrAsmList,left,right);
-                location.resflags:=getresflags(unsigned);
+                location.resflags:=getresflags(unsigned,false);
               end
             else if (nodetype in [lten,gtn]) then
               begin
                 emit_compare(current_asmdata.CurrAsmList,right,left);
                 toggleflag(nf_swapped);
-                location.resflags:=getresflags(unsigned);
+                location.resflags:=getresflags(unsigned,false);
                 toggleflag(nf_swapped);
               end
             else
@@ -449,7 +457,7 @@ interface
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(unsigned);
+        location.resflags:=getresflags(unsigned,is_64bit(right.resultdef));
       end;
 
     const

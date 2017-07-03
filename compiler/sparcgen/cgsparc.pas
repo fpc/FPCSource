@@ -741,7 +741,7 @@ implementation
                   list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
                   list.concat(taicpu.op_reg_reg(A_CMP,NR_G0,tmpreg1));
                   ovloc.loc:=LOC_FLAGS;
-                  ovloc.resflags:=F_NE;
+                  ovloc.resflags.Init(NR_ICC,F_NE);
                 end;
               OP_IMUL:
                 begin
@@ -751,7 +751,7 @@ implementation
                   list.concat(taicpu.op_reg_const_reg(A_SRA,dst,31,tmpreg2));
                   list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
                   ovloc.loc:=LOC_FLAGS;
-                  ovloc.resflags:=F_NE;
+                  ovloc.resflags.Init(NR_ICC,F_NE);
                 end;
             end;
           end
@@ -776,7 +776,7 @@ implementation
                   list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
                   list.concat(taicpu.op_reg_reg(A_CMP,NR_G0,tmpreg1));
                   ovloc.loc:=LOC_FLAGS;
-                  ovloc.resflags:=F_NE;
+                  ovloc.resflags.Init(NR_ICC,F_NE);
                 end;
               OP_IMUL:
                 begin
@@ -786,7 +786,7 @@ implementation
                   list.concat(taicpu.op_reg_const_reg(A_SRL,dst,31,tmpreg2));
                   list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
                   ovloc.loc:=LOC_FLAGS;
-                  ovloc.resflags:=F_NE;
+                  ovloc.resflags.Init(NR_ICC,F_NE);
                 end;
             end;
           end
@@ -847,7 +847,18 @@ implementation
       var
         ai : taicpu;
       begin
-        ai:=Taicpu.op_sym(A_Bxx,l);
+        case f.FlagReg of
+{$ifdef SPARC64}
+          NR_XCC:
+            ai:=Taicpu.op_reg_sym(A_Bxx,f.FlagReg,l);
+{$endif SPARC64}
+          NR_ICC:
+            ai:=Taicpu.op_sym(A_Bxx,l);
+          NR_FCC0:
+            ai:=Taicpu.op_sym(A_FBxx,l);
+          NR_FCC1,NR_FCC2,NR_FCC3:
+            ai:=Taicpu.op_reg_sym(A_FBxx,f.FlagReg,l);
+        end;
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
         { Delay slot }
@@ -858,18 +869,31 @@ implementation
     procedure TCGSparcGen.g_flags2reg(list:TAsmList;Size:TCgSize;const f:tresflags;reg:TRegister);
       var
         hl : tasmlabel;
+        ai : taicpu;
       begin
-        if (f in [F_B]) then
+        if (f.FlagReg=NR_ICC) and (f.Flags in [F_B]) then
           list.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,reg))
-        else if (f in [F_AE]) then
+        else if (f.FlagReg=NR_ICC) and (f.Flags in [F_AE]) then
           list.concat(taicpu.op_reg_const_reg(A_SUBX,NR_G0,-1,reg))
         else
           begin
-            current_asmdata.getjumplabel(hl);
-            a_load_const_reg(list,size,1,reg);
-            a_jmp_flags(list,f,hl);
-            a_load_const_reg(list,size,0,reg);
-            a_label(list,hl);
+            if current_settings.cputype in [cpu_SPARC_V9] then
+              begin
+                ai:=Taicpu.op_reg_const_reg(A_MOVcc,f.FlagReg,0,reg);
+                ai.SetCondition(inverse_cond(flags_to_cond(f)));
+                list.Concat(ai);
+                ai:=Taicpu.op_reg_const_reg(A_MOVcc,f.FlagReg,1,reg);
+                ai.SetCondition(flags_to_cond(f));
+                list.Concat(ai);
+              end
+            else
+              begin
+                current_asmdata.getjumplabel(hl);
+                a_load_const_reg(list,size,1,reg);
+                a_jmp_flags(list,f,hl);
+                a_load_const_reg(list,size,0,reg);
+                a_label(list,hl);
+              end;
           end;
       end;
 

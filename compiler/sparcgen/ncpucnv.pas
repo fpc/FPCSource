@@ -142,6 +142,7 @@ implementation
         href : treference;
         hregister : tregister;
         l1,l2 : tasmlabel;
+        TempFlags : TResFlags;
 
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
@@ -167,7 +168,8 @@ implementation
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
 
             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_GE,l2);
+            TempFlags.Init(NR_ICC,F_GE);
+            cg.a_jmp_flags(current_asmdata.CurrAsmList,TempFlags,l2);
 
             case tfloatdef(resultdef).floattype of
                { converting dword to s64real first and cut off at the end avoids precision loss }

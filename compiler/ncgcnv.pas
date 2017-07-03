@@ -217,6 +217,9 @@ interface
         resflags.reg1:=NR_NO;
         resflags.reg2:=NR_NO;
         resflags.cond:=OC_NONE;
+{$elseif defined(sparcgen)}
+        { Load left node into flag F_NE/F_E }
+        resflags.Init(NR_ICC,F_NE);
 {$else}
         { Load left node into flag F_NE/F_E }
         resflags:=F_NE;

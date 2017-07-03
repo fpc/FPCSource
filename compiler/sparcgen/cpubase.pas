@@ -23,6 +23,8 @@ unit cpubase;
 
 {$i fpcdefs.inc}
 
+{$ModeSwitch advancedrecords}
+
 interface
 
 uses
@@ -167,26 +169,32 @@ uses
 *****************************************************************************}
 
     type
-      TResFlags=(
-        { Integer results }
-        F_E,  {Equal}
-        F_NE, {Not Equal}
-        F_G,  {Greater}
-        F_L,  {Less}
-        F_GE, {Greater or Equal}
-        F_LE, {Less or Equal}
-        F_A,  {Above}
-        F_AE, {Above or Equal, synonym: Carry Clear}
-        F_B,  {Below, synonym: Carry Set}
-        F_BE, {Below or Equal}
-        { Floating point results }
-        F_FE,  {Equal}
-        F_FNE, {Not Equal}
-        F_FG,  {Greater}
-        F_FL,  {Less}
-        F_FGE, {Greater or Equal}
-        F_FLE  {Less or Equal}
-      );
+        TSparcFlags = (
+          { Integer results }
+          F_E,  {Equal}
+          F_NE, {Not Equal}
+          F_G,  {Greater}
+          F_L,  {Less}
+          F_GE, {Greater or Equal}
+          F_LE, {Less or Equal}
+          F_A,  {Above}
+          F_AE, {Above or Equal, synonym: Carry Clear}
+          F_B,  {Below, synonym: Carry Set}
+          F_BE, {Below or Equal}
+          { Floating point results }
+          F_FE,  {Equal}
+          F_FNE, {Not Equal}
+          F_FG,  {Greater}
+          F_FL,  {Less}
+          F_FGE, {Greater or Equal}
+          F_FLE  {Less or Equal}
+          );
+      TResFlags = record
+        { either icc or xcc (64 bit }
+        FlagReg : TRegister;
+        Flags : TSparcFlags;
+        procedure Init(r : TRegister;f : TSparcFlags);
+      end;
 
 {*****************************************************************************
                                 Operand Sizes
@@ -211,8 +219,6 @@ uses
       maxfpuvarregs = 1;
       fpuvarregs : Array [1..maxfpuvarregs] of TsuperRegister =
                 (RS_F2);
-
-
 
 {*****************************************************************************
                           Default generic sizes
@@ -395,21 +401,21 @@ implementation
 
     procedure inverse_flags(var f: TResFlags);
       const
-        inv_flags: array[TResFlags] of TResFlags =
+        inv_flags: array[TSparcFlags] of TSparcFlags =
           (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_BE,F_B,F_AE,F_A,
            F_FNE,F_FE,F_FLE,F_FGE,F_FL,F_FG);
       begin
-        f:=inv_flags[f];
+        f.Flags:=inv_flags[f.Flags];
       end;
 
 
    function flags_to_cond(const f:TResFlags):TAsmCond;
       const
-        flags_2_cond:array[TResFlags] of TAsmCond=
+        flags_2_cond:array[TSparcFlags] of TAsmCond=
           (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_A,C_AE,C_B,C_BE,
            C_FE,C_FNE,C_FG,C_FL,C_FGE,C_FLE);
       begin
-        result:=flags_2_cond[f];
+        result:=flags_2_cond[f.Flags];
       end;
 
 
@@ -516,16 +522,25 @@ implementation
         result := inverse[c];
       end;
 
+
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
       end;
+
 
     function dwarf_reg(r:tregister):shortint;
       begin
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
+      end;
+
+
+    procedure TResFlags.Init(r : TRegister; f : TSparcFlags);
+      begin
+        FlagReg:=r;
+        Flags:=f;
       end;
 
 end.
