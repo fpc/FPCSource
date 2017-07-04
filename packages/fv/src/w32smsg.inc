@@ -145,7 +145,7 @@ begin
   EnterCriticalSection(ChangeSystemEvents);
   SystemEvent:=PendingSystemHead^;
   inc(PendingSystemHead);
-  if longint(PendingSystemHead)=longint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
+  if ptrint(PendingSystemHead)=ptrint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
    PendingSystemHead:=@PendingSystemEvent;
   dec(PendingSystemEvents);
   LastSystemEvent:=SystemEvent;
