@@ -160,6 +160,9 @@ begin
 {$ifdef powerpc}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/powerpc-linux-gnu',true);
 {$endif powerpc}
+{$ifdef m68k}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/m68k-linux-gnu',true);
+{$endif m68k}
     end;
 end;
 
