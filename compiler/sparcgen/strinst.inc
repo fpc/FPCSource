@@ -11,7 +11,7 @@
           'cbccc',
           'flush',
           'ldsb','ldsh','ldstub',
-          'ldub','lduh','ld','ldd','ld','ldfsr','ldd','ldc','ldcsr','lddc','ldx',
+          'ldub','lduh','ld','ldd','ld','ldfsr','ldd','ldc','ldcsr','lddc','ldx','lduw','ldsw',
           'ldsba','ldsha','lduba','lduha','lda','ldda',
           'ldstuba',
           'mulscc',

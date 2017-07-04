@@ -459,15 +459,18 @@ implementation
                  Op:=A_LDSH;{Load Signed Halfword}
                OS_16:
                  Op:=A_LDUH;{Load Unsigned Halfword}
-               OS_S32,
-               OS_32:
-                 Op:=A_LD;{Load Word}
 {$ifdef SPARC64}
+               OS_S32:
+                 Op:=A_LDSW;{Load Signed Word}
+               OS_32:
+                 Op:=A_LDUW;{Load Unsigned Word}
                OS_64,
                OS_S64:
                  Op:=A_LDX;
 {$else SPARC64}
-
+               OS_S32,
+               OS_32:
+                 Op:=A_LD;{Load Word}
                OS_S64,
                OS_64:
                  Op:=A_LDD;{Load a Long Word}
