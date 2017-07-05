@@ -8,6 +8,9 @@ interface
   but it uses default SysGetMem names }
 
 {$define HAS_MEMORYMANAGER}
+{ define TEST_FPU_INT10 to force keeping local int10,
+  for testing purpose only }
+
 
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
 {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
@@ -80,6 +83,9 @@ var
   SaveInt00: FarPointer;public name '__SaveInt00';
   SaveInt10: FarPointer;public name '__SaveInt10';
   SaveInt75: FarPointer;public name '__SaveInt75';
+  fpu_status: word;public name '__fpu_status';
+  fpu_control: word;public name '__fpu_control';
+
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -245,6 +251,7 @@ Procedure SysInitFPU;
       { Special handler of interrupt $10
         not needed anymore
         Restore previous interrupt $10 handler }
+      {$ifndef TEST_FPU_INT10}
       if restore_old_int10 then
         asm
           push es
@@ -255,6 +262,7 @@ Procedure SysInitFPU;
           int $21
           pop es
         end;
+      {$endif ndef TEST_FPU_INT10}
   end;
 
 {$I system.inc}
