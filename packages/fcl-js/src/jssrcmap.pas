@@ -22,13 +22,14 @@ unit JSSrcMap;
 interface
 
 uses
-  Classes, SysUtils, contnrs, fpjson;
+  Classes, SysUtils, contnrs, fpjson, jsonparser, jsonscanner;
 
 const
   Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   DefaultSrcMapHeader = ')]}'+LineEnding;
 
 type
+  EJSSourceMap = class(Exception);
 
   { TSourceMapSegment }
 
@@ -50,6 +51,16 @@ type
     Source: String;
   end;
 
+  TSourceMapOption = (
+    smoAddMonotonous, // true = AddMapping GeneratedLine/Col must be behind last add, false = check all adds for duplicate
+    smoAutoLineStart, // automatically add a first column mapping, repeating last mapping
+    smoSafetyHeader // add ')]}'
+    );
+  TSourceMapOptions = set of TSourceMapOption;
+const
+  DefaultSourceMapOptions = [smoAddMonotonous,smoSafetyHeader];
+type
+
   { TSourceMap }
 
   TSourceMap = class
@@ -69,12 +80,11 @@ type
         function FindValue(const Value: String): integer;
       end;
   private
-    FAddMonotonous: boolean;
-    FHeader: String;
     FGeneratedFilename: string;
     FNames: TStrings; // in adding order
     FNameToIndex: TStringToIndex; // name to index in FNames
     FItems: TFPList; // TSourceMapSegment, in adding order
+    FOptions: TSourceMapOptions;
     FSourceRoot: string;
     FSources: TFPList; // list of TSourceMapSrc, in adding order
     FSourceToIndex: TStringToIndex; // srcfile to index in FSources
@@ -98,13 +108,15 @@ type
       SrcLine: integer = 1; // 1-based
       SrcCol: integer = 0; // 0-based
       const Name: String = ''): TSourceMapSegment; virtual;
-    property AddMonotonous: boolean read FAddMonotonous
-      write FAddMonotonous default true;// true = AddMapping GeneratedLine/Col must be behind last add, false = check all adds for duplicate
     function CreateMappings: String; virtual;
+    procedure ParseMappings(const Mapping: String); virtual;
     function ToJSON: TJSONObject; virtual;
-    procedure SaveToStream(aStream: TStream); virtual;
-    procedure SaveToFile(Filename: string); virtual;
     function ToString: string; override;
+    procedure LoadFromJSON(Obj: TJSONObject); virtual;
+    procedure SaveToStream(aStream: TStream); virtual;
+    procedure LoadFromStream(aStream: TStream); virtual;
+    procedure SaveToFile(Filename: string); virtual;
+    procedure LoadFromFile(Filename: string); virtual;
     property GeneratedFilename: string read FGeneratedFilename write SetGeneratedFilename;
     function IndexOfName(const Name: string; AddIfNotExists: boolean = false): integer;
     function IndexOfSourceFile(const SrcFile: string; AddIfNotExists: boolean = false): integer;
@@ -119,7 +131,7 @@ type
     function NameCount: integer;
     property Names[Index: integer]: string read GetNames;
     property Version: integer read FVersion; // 3
-    property Header: String read FHeader write FHeader; // DefaultSrcMapHeader
+    property Options: TSourceMapOptions read FOptions write FOptions;
   end;
 
 function EncodeBase64VLQ(i: NativeInt): String; // base64 Variable Length Quantity
@@ -302,14 +314,13 @@ end;
 
 constructor TSourceMap.Create(const aGeneratedFilename: string);
 begin
+  FOptions:=DefaultSourceMapOptions;
   FVersion:=3;
   FNames:=TStringList.Create;
   FNameToIndex:=TStringToIndex.Create;
   FItems:=TFPList.Create;
   FSources:=TFPList.Create;
   FSourceToIndex:=TStringToIndex.Create;
-  FAddMonotonous:=true;
-  FHeader:=DefaultSrcMapHeader;
   GeneratedFilename:=aGeneratedFilename;
 end;
 
@@ -328,6 +339,7 @@ procedure TSourceMap.Clear;
 var
   i: Integer;
 begin
+  FGeneratedFilename:='';
   FSourceToIndex.Clear;
   for i:=0 to FSources.Count-1 do
     TObject(FSources[i]).Free;
@@ -337,6 +349,7 @@ begin
   FItems.Clear;
   FNameToIndex.Clear;
   FNames.Clear;
+  FSourceRoot:='';
 end;
 
 function TSourceMap.AddMapping(GeneratedLine: integer; GeneratedCol: integer;
@@ -345,7 +358,7 @@ function TSourceMap.AddMapping(GeneratedLine: integer; GeneratedCol: integer;
 
   procedure RaiseInvalid(Msg: string);
   begin
-    raise Exception.CreateFmt('%s (GeneratedLine=%d GeneratedCol=%d SrcFile="%s" SrcLine=%d SrcCol=%d Name="%s")',
+    raise EJSSourceMap.CreateFmt('%s (GeneratedLine=%d GeneratedCol=%d SrcFile="%s" SrcLine=%d SrcCol=%d Name="%s")',
       [Msg,GeneratedLine,GeneratedCol,SourceFile,SrcLine,SrcCol,Name]);
   end;
 
@@ -378,7 +391,7 @@ begin
 
   // check if generated line/col already exists
   NodeCnt:=Count;
-  if AddMonotonous then
+  if smoAddMonotonous in FOptions then
     begin
     if NodeCnt>0 then
       begin
@@ -447,9 +460,27 @@ begin
       if LastGeneratedLine<Item.GeneratedLine then
         begin
         // new line
-        LastGeneratedColumn:=0;
+        //LastGeneratedColumn:=0;
         for j:=LastGeneratedLine+1 to Item.GeneratedLine do
+          begin
           ms.WriteByte(ord(';'));
+          if (smoAutoLineStart in FOptions)
+              and ((j<Item.GeneratedLine) or (Item.GeneratedColumn>0)) then
+            begin
+            // repeat mapping at start of line
+            // column 0
+            Add(ms,EncodeBase64VLQ(0-LastGeneratedColumn));
+            LastGeneratedColumn:=0;
+            // same src file index
+            Add(ms,EncodeBase64VLQ(0));
+            // same src line
+            Add(ms,EncodeBase64VLQ(0));
+            // same src column
+            Add(ms,EncodeBase64VLQ(0));
+            if j=Item.GeneratedLine then
+              ms.WriteByte(ord(','));
+            end;
+          end;
         LastGeneratedLine:=Item.GeneratedLine;
         end
       else if i>0 then
@@ -461,6 +492,7 @@ begin
         ms.WriteByte(ord(','));
         end;
       // column diff
+      //writeln('TSourceMap.CreateMappings Seg=',i,' Gen:Line=',LastGeneratedLine,',Col=',Item.GeneratedColumn,' Src:File=',Item.SrcFileIndex,',Line=',Item.SrcLine,',Col=',Item.SrcColumn,' Name=',Item.NameIndex);
       Add(ms,EncodeBase64VLQ(Item.GeneratedColumn-LastGeneratedColumn));
       LastGeneratedColumn:=Item.GeneratedColumn;
 
@@ -490,6 +522,108 @@ begin
   end;
 end;
 
+procedure TSourceMap.ParseMappings(const Mapping: String);
+const
+  MaxInt = High(integer) div 2;
+var
+  p: PChar;
+  GeneratedLine, LastColumn, Column, LastSrcFileIndex, LastSrcLine,
+    LastSrcColumn, LastNameIndex, SrcFileIndex, SrcLine, SrcColumn,
+    NameIndex: Integer;
+  ColDiff, SrcFileIndexDiff, SrcLineDiff, SrcColumnDiff,
+    NameIndexDiff: NativeInt;
+  Segment: TSourceMapSegment;
+begin
+  if Mapping='' then exit;
+  p:=PChar(Mapping);
+  GeneratedLine:=1;
+  LastColumn:=0;
+  LastSrcFileIndex:=0;
+  LastSrcLine:=0;
+  LastSrcColumn:=0;
+  LastNameIndex:=0;
+  while p^<>#0 do
+    begin
+    case p^ of
+    #0:
+      if p-PChar(Mapping)=length(Mapping) then
+        exit
+      else
+        raise EJSSourceMap.CreateFmt('unexpected #0 at %d',[PtrUInt(p-PChar(Mapping))]);
+    ',':
+      begin
+      // next segment
+      inc(p);
+      end;
+    ';':
+      begin
+      // next line
+      inc(GeneratedLine);
+      inc(p);
+      end;
+    else
+      begin
+      ColDiff:=DecodeBase64VLQ(p);
+      if (ColDiff>MaxInt) or (ColDiff<-MaxInt) then
+        raise EJSSourceMap.CreateFmt('column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+      Column:=LastColumn+integer(ColDiff);
+      if (Column>MaxInt) or (Column<-MaxInt) then
+        raise EJSSourceMap.CreateFmt('column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+      LastColumn:=Column;
+
+      Segment:=TSourceMapSegment.Create;
+      Segment.Index:=FItems.Count;
+      FItems.Add(Segment);
+      Segment.GeneratedLine:=GeneratedLine;
+      Segment.GeneratedColumn:=Column;
+      Segment.SrcFileIndex:=-1;
+      Segment.NameIndex:=-1;
+      if not (p^ in [',',';',#0]) then
+        begin
+        // src file index
+        SrcFileIndexDiff:=DecodeBase64VLQ(p);
+        if (SrcFileIndexDiff>MaxInt) or (SrcFileIndexDiff<-MaxInt) then
+          raise EJSSourceMap.CreateFmt('src file index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        SrcFileIndex:=LastSrcFileIndex+integer(SrcFileIndexDiff);
+        if (SrcFileIndex<0) or (SrcFileIndex>=SourceCount) then
+          raise EJSSourceMap.CreateFmt('src file index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        LastSrcFileIndex:=SrcFileIndex;
+        Segment.SrcFileIndex:=SrcFileIndex;
+        // src line
+        SrcLineDiff:=DecodeBase64VLQ(p);
+        if (SrcLineDiff>MaxInt) or (SrcLineDiff<-MaxInt) then
+          raise EJSSourceMap.CreateFmt('src line out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        SrcLine:=LastSrcLine+integer(SrcLineDiff);
+        if (SrcLine>MaxInt) or (SrcLine<-MaxInt) then
+          raise EJSSourceMap.CreateFmt('src line out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        LastSrcLine:=SrcLine;
+        Segment.SrcLine:=SrcLine+1; // lines are stored 0-based
+        // src column
+        SrcColumnDiff:=DecodeBase64VLQ(p);
+        if (SrcColumnDiff>MaxInt) or (SrcColumnDiff<-MaxInt) then
+          raise EJSSourceMap.CreateFmt('src column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        SrcColumn:=LastSrcColumn+integer(SrcColumnDiff);
+        if (SrcColumn>MaxInt) or (SrcColumn<-MaxInt) then
+          raise EJSSourceMap.CreateFmt('src column out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+        LastSrcColumn:=SrcColumn;
+        Segment.SrcColumn:=SrcColumn;
+        if not (p^ in [',',';',#0]) then
+          begin
+          // name index
+          NameIndexDiff:=DecodeBase64VLQ(p);
+          if (NameIndexDiff>MaxInt) or (NameIndexDiff<-MaxInt) then
+            raise EJSSourceMap.CreateFmt('name index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          NameIndex:=LastNameIndex+integer(NameIndexDiff);
+          if (NameIndex<0) or (NameIndex>=NameCount) then
+            raise EJSSourceMap.CreateFmt('name index out of range at %d',[PtrUInt(p-PChar(Mapping))]);
+          LastNameIndex:=NameIndex;
+          Segment.NameIndex:=NameIndex;
+          end;
+        end;
+      end;
+    end;
+    end;
+end;
 
 function TSourceMap.ToJSON: TJSONObject;
 var
@@ -555,17 +689,127 @@ begin
   end;
 end;
 
+function TSourceMap.ToString: string;
+var
+  Obj: TJSONObject;
+begin
+  Obj:=ToJSON;
+  try
+    if smoSafetyHeader in Options then
+      Result:=DefaultSrcMapHeader+Obj.AsJSON
+    else
+      Result:=Obj.AsJSON;
+  finally
+    Obj.Free;
+  end;
+end;
+
+procedure TSourceMap.LoadFromJSON(Obj: TJSONObject);
+var
+  aVersion, i, j: integer;
+  Arr: TJSONArray;
+  Data: TJSONData;
+  aFilename, aName: String;
+  aMappings: String;
+begin
+  // Note: does not support sections yet
+  Clear;
+
+  // "version" - integer
+  aVersion:=Obj.Get('version',0);
+  if aVersion<>Version then
+    raise EJSSourceMap.CreateFmt('unsupported version %d',[aVersion]);
+
+  // "file" - GeneratedFilename
+  GeneratedFilename:=String(Obj.Get('file',''));
+
+  // "sourceRoot" - SourceRoot
+  SourceRoot:=Obj.Get('sourceRoot','');
+
+  // "sources" - array of filenames
+  Arr:=nil;
+  if not Obj.Find('sources',Arr) then
+    raise EJSSourceMap.Create('missing sources array');
+  for i:=0 to Arr.Count-1 do
+    begin
+    Data:=Arr[i];
+    if not (Data is TJSONString) then
+      raise EJSSourceMap.CreateFmt('sources must string, but found %s',[Data.ClassName]);
+    aFilename:=String(TJSONString(Data).AsString);
+    j:=IndexOfSourceFile(aFilename,true);
+    if j<>i then
+      raise EJSSourceMap.CreateFmt('duplicate source file "%s" at %d',[aFilename,i]);
+    end;
+
+  // optional: "sourcesContent" - array of sources
+  Arr:=nil;
+  if Obj.Find('sourcesContent',Arr) then
+    begin
+    if Arr.Count<>SourceCount then
+      raise EJSSourceMap.CreateFmt('number of elements in sources %d mismatch sourcesContent %d',[SourceCount,Arr.Count]);
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if (Data is TJSONString) then
+        SourceContents[i]:=String(TJSONString(Data).AsString)
+      else if Data is TJSONNull then
+      else
+        raise EJSSourceMap.CreateFmt('sourcesContent[%d] must be string',[i]);
+      end;
+    end;
+
+  // optional: "names" - array of strings
+  Arr:=nil;
+  if Obj.Find('names',Arr) then
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONString) then
+        raise EJSSourceMap.CreateFmt('names must string, but found %s',[Data.ClassName]);
+      aName:=String(TJSONString(Data).AsString);
+      j:=IndexOfName(aName,true);
+      if j<>i then
+        raise EJSSourceMap.CreateFmt('duplicate name "%s" at %d',[aName,i]);
+      end;
+
+  // "mappings" - string
+  aMappings:=Obj.Get('mappings','');
+  ParseMappings(aMappings);
+end;
+
 procedure TSourceMap.SaveToStream(aStream: TStream);
 var
   Obj: TJSONObject;
 begin
   Obj:=ToJSON;
   try
-    if Header<>'' then
-      aStream.Write(Header[1],length(Header));
+    if smoSafetyHeader in Options then
+      aStream.Write(DefaultSrcMapHeader[1],length(DefaultSrcMapHeader));
     Obj.DumpJSON(aStream);
   finally
     Obj.Free;
+  end;
+end;
+
+procedure TSourceMap.LoadFromStream(aStream: TStream);
+var
+  s: string;
+  P: TJSONParser;
+  Data: TJSONData;
+begin
+  SetLength(s,aStream.Size-aStream.Position);
+  if s<>'' then
+    aStream.Read(s[1],length(s));
+  if LeftStr(s,3)=')]}' then
+    Delete(s,1,3);
+  P:=TJSONParser.Create(s,[joUTF8]);
+  try
+    Data:=P.Parse;
+    if not (Data is TJSONObject) then
+      raise EJSSourceMap.Create('source map must be a JSON object');
+    LoadFromJSON(TJSONObject(Data));
+  finally
+    P.Free;
   end;
 end;
 
@@ -583,15 +827,17 @@ begin
   end;
 end;
 
-function TSourceMap.ToString: string;
+procedure TSourceMap.LoadFromFile(Filename: string);
 var
-  Obj: TJSONObject;
+  TheStream: TMemoryStream;
 begin
-  Obj:=ToJSON;
+  TheStream:=TMemoryStream.Create;
   try
-    Result:=Header+Obj.AsJSON;
+    TheStream.LoadFromFile(Filename);
+    TheStream.Position:=0;
+    LoadFromStream(TheStream);
   finally
-    Obj.Free;
+    TheStream.Free;
   end;
 end;
 

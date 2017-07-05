@@ -38,6 +38,7 @@ Type
   protected
     Function DoWrite(Const S : AnsiString) : Integer; virtual; abstract;
     Function DoWrite(Const S : UnicodeString) : Integer; virtual; abstract;
+    procedure SetCurElement(const AValue: TJSElement); virtual;
     Procedure Writing; virtual; // called before adding new characters
   Public
     // All functions return the number of bytes copied to output stream.
@@ -51,7 +52,7 @@ Type
     Function WriteLn(Const Args : Array of const) : Integer;
     Property CurLine: integer read FCurLine write FCurLine;
     Property CurColumn: integer read FCurColumn write FCurColumn;// char index, not codepoint
-    Property CurElement: TJSElement read FCurElement write FCurElement;
+    Property CurElement: TJSElement read FCurElement write SetCurElement;
     Property OnWriting: TTextWriterWriting read FOnWriting write FOnWriting;
   end;
 
@@ -1520,6 +1521,11 @@ begin
 end;
 
 { TTextWriter }
+
+procedure TTextWriter.SetCurElement(const AValue: TJSElement);
+begin
+  FCurElement:=AValue;
+end;
 
 procedure TTextWriter.Writing;
 begin
