@@ -249,13 +249,13 @@ end;
 }
 
 
-{$ifdef cpusparc}
+{$if defined(cpusparc) or defined(cpusparc64)}
 procedure Fprt_sigreturn_stub;assembler;nostackframe;
 asm
   mov syscall_nr_rt_sigreturn,%g1
   ta  0x10
 end;
-{$endif cpusparc}
+{$endif cpusparc or cpusparc64}
 
 {$if defined(cpui386) or defined(cpuarm) or defined(cpux86_64)}
   {$define NEED_USER_TRAMPOLINE}
@@ -335,7 +335,7 @@ function Fpsigaction(sig: cint; new_action, old_action: psigactionrec): cint; [p
   If OldAct is non-nil the previous action is saved there.
 }
 begin
-{$ifdef cpusparc}
+{$if defined(cpusparc) or defined(cpusparc64) }
   { Sparc has an extra stub parameter }
   Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(ptruint(@Fprt_sigreturn_stub)-8),TSysParam(8));
 {$else cpusparc}
