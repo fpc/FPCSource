@@ -1818,7 +1818,7 @@ end;
 procedure TPas2JSResolver.AddType(El: TPasType);
 begin
   inherited AddType(El);
-  if TopScope is TPasClassScope then
+  if (El.Name<>'') and (TopScope is TPasClassScope) then
     RaiseNotYetImplemented(20170608232534,El,'nested types');
 end;
 

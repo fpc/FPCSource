@@ -341,7 +341,7 @@ type
     Procedure TestClass_CallClassMethod;
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
-    Procedure TestClass_Property_Index;
+    Procedure TestClass_Property_Indexed;
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
     Procedure TestClass_PropertyOverride;
@@ -6828,7 +6828,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestClass_Property_Index;
+procedure TTestModule.TestClass_Property_Indexed;
 begin
   StartProgram(false);
   Add('type');
@@ -6858,7 +6858,7 @@ begin
   Add('begin');
   Add('  obj.Items[11]:=obj.Items[12];');
   ConvertProgram;
-  CheckSource('TestClass_Property_Index',
+  CheckSource('TestClass_Property_Indexed',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
