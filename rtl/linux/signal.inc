@@ -20,14 +20,14 @@
 
 Const
   { For sending a signal }
-{$ifdef CPUSPARC}
+{$if defined(CPUSPARC) or defined(CPUSPARC64)}
   SA_SIGINFO   = $200;
   SA_NOMASK    = $20;
 
   SIG_BLOCK   = 1;
   SIG_UNBLOCK = 2;
   SIG_SETMASK = 4;
-{$else CPUSPARC}
+{$else : not (CPUSPARC or CPUSPARC64)}
 {$ifdef CPUMIPS}
   SA_NOCLDSTOP = 1;
   SA_NOCLDWAIT = $10000;
@@ -53,7 +53,7 @@ Const
   SA_NOMASK    = SA_NODEFER;
   SA_ONESHOT   = SA_RESETHAND;
 
-{$endif CPUSPARC}
+{$endif not (CPUSPARC or CPUSPARC64) }
 
   SIG_DFL = 0 ;
   SIG_IGN = 1 ;
