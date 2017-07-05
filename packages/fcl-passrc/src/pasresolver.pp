@@ -8106,6 +8106,7 @@ begin
     if Evaluated=nil then
       ReleaseEvalValue(Value);
   end;
+  if Proc=nil then ;
 end;
 
 function TPasResolver.BI_LowHigh_OnGetCallCompatibility(
