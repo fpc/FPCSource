@@ -2407,19 +2407,22 @@ end;
 procedure TTestModule.TestProc_Asm;
 begin
   StartProgram(false);
-  Add('function DoIt: longint;');
-  Add('begin;');
-  Add('  asm');
-  Add('  { a:{ b:{}, c:[]}, d:''1'' };');
-  Add('  end;');
-  Add('end;');
-  Add('begin');
+  Add([
+  'function DoIt: longint;',
+  'begin;',
+  '  asm',
+  '  { a:{ b:{}, c:[]}, d:''1'' };',
+  '  end;',
+  '  asm console.log(); end;',
+  'end;',
+  'begin']);
   ConvertProgram;
   CheckSource('TestProcedureAsm',
     LinesToStr([ // statements
     'this.DoIt = function () {',
     '  var Result = 0;',
     '  { a:{ b:{}, c:[]}, d:''1'' };',
+    '  console.log();',
     '  return Result;',
     '};'
     ]),

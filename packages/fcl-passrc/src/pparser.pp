@@ -4655,7 +4655,7 @@ begin
     repeat
       Scanner.ReadNonPascalTillEndToken(true);
       case Scanner.CurToken of
-      tkLineEnding:
+      tkLineEnding,tkWhitespace:
         AsmBlock.Tokens.Add(Scanner.CurTokenString);
       tkend:
         begin
@@ -4687,7 +4687,6 @@ begin
       NextToken;
       end;
     end;
-  // NextToken; // Eat end.
   // Do not consume end. Current token will normally be end;
 end;
 

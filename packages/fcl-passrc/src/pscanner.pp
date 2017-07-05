@@ -2325,6 +2325,14 @@ begin
             begin
             // 'end' found
             Add;
+            if FCurTokenString<>'' then
+              begin
+              // return characters in front of 'end'
+              Result:=tkWhitespace;
+              FCurToken:=Result;
+              exit;
+              end;
+            // return 'end'
             Result := tkend;
             SetLength(FCurTokenString, 3);
             Move(TokenStr^, FCurTokenString[1], 3);
