@@ -253,7 +253,11 @@ end;
 procedure Fprt_sigreturn_stub;assembler;nostackframe;
 asm
   mov syscall_nr_rt_sigreturn,%g1
+  {$ifdef cpusparc}
   ta  0x10
+  {$else}
+  ta 0x6d
+  {$endif}
 end;
 {$endif cpusparc or cpusparc64}
 
