@@ -76,6 +76,9 @@ interface
         procedure a_jmp_always(List:TAsmList;l:TAsmLabel);override;
         procedure a_jmp_name(list : TAsmList;const s : string);override;
         procedure a_jmp_cond(list:TAsmList;cond:TOpCmp;l:tasmlabel);{ override;}
+{$ifdef SPARC64}
+        procedure a_jmp_cond64(list:TAsmList;cond:TOpCmp;l:tasmlabel);{ override;}
+{$endif SPARC64}
         procedure a_jmp_flags(list:TAsmList;const f:TResFlags;l:tasmlabel);override;
         procedure g_flags2reg(list:TAsmList;Size:TCgSize;const f:tresflags;reg:TRegister);override;
         procedure g_overflowCheck(List:TAsmList;const Loc:TLocation;def:TDef);override;
@@ -807,14 +810,26 @@ implementation
           list.concat(taicpu.op_reg_reg_reg(A_SUBcc,reg,NR_G0,NR_G0))
         else
           handle_reg_const_reg(list,A_SUBcc,reg,a,NR_G0);
-        a_jmp_cond(list,cmp_op,l);
+{$ifdef SPARC64}
+        if size in [OS_64,OS_S64] then
+          a_jmp_cond64(list,cmp_op,l)
+        else
+{$else SPARC64}
+          a_jmp_cond(list,cmp_op,l);
+{$endif SPARC64}
       end;
 
 
     procedure TCGSparcGen.a_cmp_reg_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;reg1,reg2:tregister;l:tasmlabel);
       begin
         list.concat(taicpu.op_reg_reg_reg(A_SUBcc,reg2,reg1,NR_G0));
-        a_jmp_cond(list,cmp_op,l);
+{$ifdef SPARC64}
+        if size in [OS_64,OS_S64] then
+          a_jmp_cond64(list,cmp_op,l)
+        else
+{$else SPARC64}
+          a_jmp_cond(list,cmp_op,l);
+{$endif SPARC64}
       end;
 
 
@@ -844,6 +859,20 @@ implementation
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
+
+
+{$ifdef SPARC64}
+    procedure TCGSparcGen.a_jmp_cond64(list : TAsmList; cond : TOpCmp; l : tasmlabel);
+      var
+        ai:TAiCpu;
+      begin
+        ai:=TAiCpu.Op_reg_sym(A_Bxx,NR_XCC,l);
+        ai.SetCondition(TOpCmp2AsmCond[cond]);
+        list.Concat(ai);
+        { Delay slot }
+        list.Concat(TAiCpu.Op_none(A_NOP));
+      end;
+{$endif SPARC64}
 
 
     procedure TCGSparcGen.a_jmp_flags(list:TAsmList;const f:TResFlags;l:tasmlabel);
@@ -1142,7 +1171,11 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,4,src.base));
                 list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,4,dst.base));
                 list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
+{$ifdef SPARC64}
+                a_jmp_cond64(list,OC_NE,lab);
+{$else SPARC64}
                 a_jmp_cond(list,OC_NE,lab);
+{$endif SPARC64}
                 len := len mod 4;
               end;
             { unrolled loop }
@@ -1219,7 +1252,11 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,1,src.base));
                 list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,1,dst.base));
                 list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
+{$ifdef SPARC64}
+                a_jmp_cond64(list,OC_NE,lab);
+{$else SPARC64}
                 a_jmp_cond(list,OC_NE,lab);
+{$endif SPARC64}
               end
             else
               begin
