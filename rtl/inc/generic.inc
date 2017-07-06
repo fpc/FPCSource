@@ -603,6 +603,7 @@ begin
   pdest:=@buf2;
   if (len>4*sizeof(ptruint)-11)
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    and ((PtrUInt(pdest) and (sizeof(PtrUInt)-1))=(PtrUInt(psrc) and (sizeof(PtrUInt)-1)))
     and (((PtrUInt(pdest) and 3) or (PtrUInt(psrc) and 3))=0)
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     then
