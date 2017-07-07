@@ -28,9 +28,7 @@ interface
     uses
        globtype,parabase,
        cgbase,cgutils,cgobj,
-{$ifndef SPARC64}
        cg64f32,
-{$endif SPARC64}
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,

@@ -113,7 +113,7 @@ implementation
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
-          { load vmt}
+          { load vmt }
           reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
           { jmp to method }
