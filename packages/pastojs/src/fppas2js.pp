@@ -8814,15 +8814,24 @@ function TPasToJSConverter.ConvertAsmStatement(El: TPasImplAsmStatement;
 var
   s: String;
   L: TJSLiteral;
+  AsmLines: TStrings;
+  Line, Col, StartLine: integer;
 begin
   if AContext=nil then ;
-  s:=Trim(El.Tokens.Text);
+  AsmLines:=El.Tokens;
+  s:=Trim(AsmLines.Text);
   if (s<>'') and (s[length(s)]=';') then
     Delete(s,length(s),1);
   if s='' then
     Result:=TJSEmptyStatement(CreateElement(TJSEmptyStatement,El))
   else begin
-    L:=TJSLiteral(CreateElement(TJSLiteral,El));
+    StartLine:=0;
+    while (StartLine<AsmLines.Count) and (Trim(AsmLines[StartLine])='') do
+      inc(StartLine);
+    TPasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
+    if StartLine>0 then
+      Col:=1;
+    L:=TJSLiteral.Create(Line+StartLine,Col,El.SourceFilename);
     L.Value.CustomValue:=TJSString(s);
     Result:=L;
   end;
