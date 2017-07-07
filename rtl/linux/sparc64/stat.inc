@@ -19,20 +19,22 @@
   { do NOT declare this record as packed, because it needs to be aligned }
   { to its largest member (i.e., 8 bytes), and declaring it as packed    }
   { disables that                                                        }
+  { extracted from "/usr/sparc64-linux-gnu/include/bits/stat.h"  line 38 }
   Stat = record  // No unix typing because of differences
     st_dev    : culong;
+    __pad1    : cushort; 
     st_ino    : culong;
-    st_nlink  : culong;
-
     st_mode   : cuint;
+    st_nlink  : cuint;
+
     st_uid    : cuint;
     st_gid    : cuint;
-    __pad0    : cuint;
 
     st_rdev   : culong;
-    st_size   : clong;
-    st_blksize: clong;
-    st_blocks : clong;
+    __pad2    : cushort;
+    st_size   : clonglong;
+    st_blksize: culong;
+    st_blocks : culong;
 
     st_atime  : culong;
     st_atime_nsec : culong;
