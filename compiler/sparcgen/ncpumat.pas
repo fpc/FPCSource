@@ -31,7 +31,9 @@ interface
     type
       tSparcmoddivnode = class(tmoddivnode)
         procedure pass_generate_code;override;
+{$ifdef SPARC64}
         function use_moddiv64bitint_helper : boolean; override;
+{$endif SPARC64}
       end;
 
       tSparcshlshrnode = class(tcgshlshrnode)
