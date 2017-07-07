@@ -30,7 +30,8 @@ interface
 
     type
       tSparcmoddivnode = class(tmoddivnode)
-         procedure pass_generate_code;override;
+        procedure pass_generate_code;override;
+        function use_moddiv64bitint_helper : boolean; override;
       end;
 
       tSparcshlshrnode = class(tcgshlshrnode)
@@ -67,6 +68,14 @@ implementation
 *****************************************************************************}
 
 {$ifdef sparc64}
+    function tSparcmoddivnode.use_moddiv64bitint_helper: boolean;
+      begin
+        { sparc64 has no overflow checked 64 bit div }
+        result:=(is_64bitint(left.resultdef) or is_64bitint(right.resultdef)) and
+          (cs_check_overflow in current_settings.localswitches);
+      end;
+
+
     procedure tSparcmoddivnode.pass_generate_code;
       const
                     { 64 bit   signed  overflow }
