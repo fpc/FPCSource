@@ -45,12 +45,14 @@ interface
        public
           function pass_1: tnode; override;
           function use_generic_mul32to64: boolean; override;
+          function use_generic_mul64bit : boolean; override;
        end;
 
   implementation
 
     uses
       systems,
+      globals,globtype,
       cutils,verbose,
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
@@ -477,7 +479,7 @@ interface
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef SPARC64}
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],left.location.register,right.location.register,location.register));
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_MULX,left.location.register,right.location.register,location.register));
 {$else SPARC64}
             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -493,6 +495,16 @@ interface
     function tsparcaddnode.use_generic_mul32to64: boolean;
       begin
         result:=false;
+      end;
+
+
+    function tsparcaddnode.use_generic_mul64bit: boolean;
+      begin
+{$ifdef SPARC64}
+        result:=(cs_check_overflow in current_settings.localswitches);
+{$else SPARC64}
+        result:=inherited;
+{$endif SPARC64}
       end;
 
 
