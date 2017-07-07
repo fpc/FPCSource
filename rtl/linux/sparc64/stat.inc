@@ -12,6 +12,8 @@
 
  **********************************************************************}
 
+{$PACKRECORDS C}
+
 {$IFNDEF FPC_USE_LIBC}
 
   { do NOT declare this record as packed, because it needs to be aligned }
@@ -42,8 +44,6 @@
   end;
 
 {$ELSE FPC_USE_LIBC}
-
-{$PACKRECORDS C}
 
   Stat = record
     st_dev    : cULongLong;
