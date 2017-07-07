@@ -175,7 +175,7 @@ Type
     Property Value : TJSValue Read FValue Write FValue;
   end;
 
-  { TJSRegularExpressionLiteral }
+  { TJSRegularExpressionLiteral - /Pattern/PatternFlags }
 
   TJSRegularExpressionLiteral = Class(TJSElement)
   private
@@ -227,7 +227,7 @@ Type
     Property Elements[AIndex : Integer] : TJSArrayLiteralElement Read GetE ; default;
   end;
 
-  { TJSArrayLiteral }
+  { TJSArrayLiteral - [element1,...] }
 
   TJSArrayLiteral = Class(TJSElement)
   private
@@ -272,7 +272,7 @@ Type
     Property Elements : TJSObjectLiteralElements Read FElements;
   end;
 
-  { TJSArguments }
+  { TJSArguments - (element1,...) }
 
   TJSArguments = Class(TJSArrayLiteral);
 
