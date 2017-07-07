@@ -1933,7 +1933,7 @@ begin
     //WriteSources(FileName,Row,Column);
     AssertEquals('ResolverEngine.LastSourcePos.Filename','afile.pp',FileName);
     AssertEquals('ResolverEngine.LastSourcePos.Row',4,Row);
-    AssertEquals('ResolverEngine.LastSourcePos.Column',19,Column);
+    AssertEquals('ResolverEngine.LastSourcePos.Column',20,Column);
     end;
 end;
 
@@ -4143,7 +4143,7 @@ begin
   '  if unit1.j1=0 then ;',
   '  if unitdots.unit1.j1=0 then ;',
   '']);
-  CheckResolverException('Duplicate identifier "unitdots.unit1" at unitdots.main1.pas(2,13)',
+  CheckResolverException('Duplicate identifier "unitdots.unit1" at unitdots.main1.pas(2,14)',
     nDuplicateIdentifier);
 end;
 
@@ -4363,7 +4363,7 @@ begin
   'begin',
   '  DoIt(i);',
   '']);
-  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,14), afile.pp(2,14)',
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,15), afile.pp(2,15)',
     nCantDetermineWhichOverloadedFunctionToCall);
 end;
 
@@ -6681,7 +6681,7 @@ begin
   Add('    Some: longint;');
   Add('  end;');
   Add('begin');
-  CheckResolverException('Duplicate identifier "Some" at afile.pp(5,8)',nDuplicateIdentifier);
+  CheckResolverException('Duplicate identifier "Some" at afile.pp(5,9)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestClass_ReintroducePrivateVar;

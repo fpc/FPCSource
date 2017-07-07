@@ -8011,7 +8011,7 @@ begin
   'end',
   'begin',
   '']);
-  SetExpectedPasResolverError('Duplicate identifier "Self" at test1.pp(5,23)',nDuplicateIdentifier);
+  SetExpectedPasResolverError('Duplicate identifier "Self" at test1.pp(5,24)',nDuplicateIdentifier);
   ConvertProgram;
 end;
 
@@ -8991,7 +8991,7 @@ begin
   Add('    Id: longint;');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Duplicate identifier "Id" at test1.pp(6,6)',nDuplicateIdentifier);
+  SetExpectedPasResolverError('Duplicate identifier "Id" at test1.pp(6,7)',nDuplicateIdentifier);
   ConvertProgram;
 end;
 
@@ -12742,7 +12742,7 @@ begin
   Add('    procedure Proc(Sender: tobject); virtual; abstract;');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Duplicate identifier "Proc" at test1.pp(6,18)',
+  SetExpectedPasResolverError('Duplicate identifier "Proc" at test1.pp(6,19)',
     nDuplicateIdentifier);
   ConvertProgram;
 end;

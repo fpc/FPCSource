@@ -3329,9 +3329,9 @@ end;
 function TPascalScanner.GetCurColumn: Integer;
 begin
   If (TokenStr<>Nil) then
-    Result := TokenStr - PChar(CurLine)
+    Result := TokenStr - PChar(CurLine) + 1
   else
-    Result := 0;
+    Result := 1;
 end;
 
 function TPascalScanner.OnCondEvalFunction(Sender: TCondDirectiveEvaluator;
