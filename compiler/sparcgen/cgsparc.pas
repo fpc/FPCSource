@@ -695,6 +695,10 @@ implementation
                 list.concat(taicpu.op_reg_const_reg(A_SRA,dst,32-(tcgsize2size[size]*8),dst));
                 src2:=dst;
               end
+{$ifdef SPARC64}
+            { allow 64 bit sar on sparc64 without ie }
+            else if size in [OS_64,OS_S64] then
+{$endif SPARC64}
             else if not (size in [OS_32,OS_S32]) then
               InternalError(2013070306);
           end;
@@ -814,9 +818,8 @@ implementation
         if size in [OS_64,OS_S64] then
           a_jmp_cond64(list,cmp_op,l)
         else
-{$else SPARC64}
-          a_jmp_cond(list,cmp_op,l);
 {$endif SPARC64}
+          a_jmp_cond(list,cmp_op,l);
       end;
 
 
@@ -827,9 +830,8 @@ implementation
         if size in [OS_64,OS_S64] then
           a_jmp_cond64(list,cmp_op,l)
         else
-{$else SPARC64}
-          a_jmp_cond(list,cmp_op,l);
 {$endif SPARC64}
+          a_jmp_cond(list,cmp_op,l);
       end;
 
 
