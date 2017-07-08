@@ -27,7 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestExpressions.TestArrayAccess"/>
+        <CommandLineParams Value="--suite=TestHelperOnLiteral"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">

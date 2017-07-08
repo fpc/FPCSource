@@ -76,6 +76,7 @@ const
   nParserExpectedTypeButGot = 2049;
   nParserPropertyArgumentsCanNotHaveDefaultValues = 2050;
   nParserExpectedExternalClassName = 2051;
+  nParserNoConstRangeAllowed = 2052;
 
 // resourcestring patterns of messages
 resourcestring
@@ -130,6 +131,7 @@ resourcestring
   SParserExpectedTypeButGot = 'Expected type, but got %s';
   SParserPropertyArgumentsCanNotHaveDefaultValues = 'Property arguments can not have default values';
   SParserExpectedExternalClassName = 'Expected external class name';
+  SParserNoConstRangeAllowed = 'Const ranges are not allowed';
 
 type
   TPasScopeType = (
@@ -3339,6 +3341,8 @@ begin
     ExpectToken(tkEqual);
     NextToken;
     Result.Expr:=DoParseConstValueExpression(Result);
+    if (Result.VarType=Nil) and (Result.Expr.Kind=pekRange) then
+      ParseExc(nParserNoConstRangeAllowed, SParserNoConstRangeAllowed );
     UngetToken;
     CheckHint(Result,True);
     ok:=true;
