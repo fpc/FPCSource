@@ -149,6 +149,7 @@ Type
     FSource: String;
   Public
     Constructor Create(ALine,AColumn : Integer; Const ASource : String = ''); virtual;
+    Procedure AssignPosition(El: TJSElement); virtual;
     Property Source : String Read FSource Write FSource;
     Property Line : Integer Read FLine Write FLine;
     Property Column : Integer Read FColumn Write FColumn;
@@ -247,7 +248,7 @@ Type
     FName: TJSString;
   Public
     Destructor Destroy; override;
-    Property Expr : TJSelement Read FExpr Write FExpr;
+    Property Expr : TJSElement Read FExpr Write FExpr;
     Property Name : TJSString Read FName Write FName;
   end;
 
@@ -1508,6 +1509,13 @@ begin
   FLine:=ALine;
   FColumn:=AColumn;
   FSource:=ASource;
+end;
+
+procedure TJSElement.AssignPosition(El: TJSElement);
+begin
+  Source:=El.Source;
+  Line:=El.Line;
+  Column:=El.Column;
 end;
 
 { TJSRegularExpressionLiteral }

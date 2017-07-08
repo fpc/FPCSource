@@ -366,8 +366,10 @@ var
   NodeCnt, i: Integer;
   OtherNode: TSourceMapSegment;
 begin
-  //writeln('TSourceMap.AddMapping Gen:Line=',GeneratedLine,',Col=',GeneratedCol,
-  //  ' Src:File=',ExtractFileName(SourceFile),',Line=',SrcLine,',Col=',SrcCol,' Name=',Name);
+  {$IFDEF VerboseSrcMap}
+  writeln('TSourceMap.AddMapping Gen:Line=',GeneratedLine,',Col=',GeneratedCol,
+    ' Src:File=',ExtractFileName(SourceFile),',Line=',SrcLine,',Col=',SrcCol,' Name=',Name);
+  {$ENDIF}
   if GeneratedLine<1 then
     RaiseInvalid('invalid GeneratedLine');
   if GeneratedCol<0 then
