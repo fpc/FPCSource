@@ -46,7 +46,8 @@ Function AnsiMatchStr(const AText: string; const AValues: array of string): Bool
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 Function MatchStr(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
 Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
-
+Operator in (const AText: string; const AValues: array of string):Boolean;inline;
+Operator in (const AText: UnicodeString; const AValues: array of UnicodeString):Boolean;inline;
 { ---------------------------------------------------------------------
     Miscellaneous
   ---------------------------------------------------------------------}
@@ -998,6 +999,17 @@ begin
        exit(i);                                 // make sure it is the first val.
 end;
 
+
+Operator in (const AText:string;const AValues: array of string):Boolean;
+begin
+  Result := AnsiIndexStr(AText,AValues) <>-1;   
+end;
+
+
+Operator in (const AText:UnicodeString;const AValues: array of UnicodeString):Boolean;
+begin
+  Result := IndexStr(AText,AValues) <> -1;
+end;
 { ---------------------------------------------------------------------
     Playthingies
   ---------------------------------------------------------------------}
