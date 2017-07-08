@@ -3869,7 +3869,7 @@ begin
     if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,
-         system_m68k_amiga,system_m68k_atari,system_m68k_linux,
+         system_m68k_amiga,system_m68k_atari,
          system_arm_nds,system_arm_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
@@ -4020,7 +4020,16 @@ begin
 {$endif mipsel}
 {$ifdef m68k}
   if init_settings.cputype in cpu_coldfire then
-    def_system_macro('CPUCOLDFIRE');
+    def_system_macro('CPUCOLDFIRE')
+  else
+    if (target_info.system in [system_m68k_linux,system_m68k_netbsd]) and
+       not (option.FPUSetExplicitly) then
+      begin
+        { enable HW FPU for UNIX by default, but only for
+          original 68k, not Coldfire }
+        exclude(init_settings.moduleswitches,cs_fp_emulation);
+        init_settings.fputype:=fpu_68881;
+      end;
 {$endif m68k}
 
   { now we can define cpu and fpu type }
