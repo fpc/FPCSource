@@ -215,7 +215,7 @@ asm
   move.w   d1,(a0)+
 @Ldquad:
   move.l   d0,d2  // adjust d0 for leftover copy
-{$ifdef CPU_COLDFIRE}
+{$ifdef CPUCOLDFIRE}
   and.l    #$fffffffc,d2
 {$else}
   and.b    #$fc,d2
