@@ -30,5 +30,14 @@ type
 {$undef MUTEXTYPENAME}
 {$macro off}
 
+  {$define HAS_ENTRYINFORMATION_OS}
+  TEntryInformationOS = record
+    argc: longint;
+    argv: ppchar;
+    envp: ppchar;
+    stkptr: pointer;
+    stklen: sizeuint;
+    haltproc: procedure(e:longint);cdecl;
+  end;
 
 

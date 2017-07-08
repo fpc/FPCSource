@@ -33,6 +33,15 @@ Unit System;
 
 {$I sysunixh.inc}
 
+{$if defined(VER3_0) and defined(CPUXXX)}
+{$define FPC_BOOTSTRAP_INDIRECT_ENTRY}
+const
+  { this constant only exists during bootstrapping of the RTL with FPC 3.0.x,
+    so that the whole condition doesn't need to be repeated in si_intf }
+  indirect_bootstrap = true;
+{$endif defined(VER3_0) and defined(CPUXXX)}
+
+
 function get_cmdline:Pchar; deprecated 'use paramstr' ;
 property cmdline:Pchar read get_cmdline;
 
@@ -59,6 +68,10 @@ var
 
 const 
   calculated_cmdline:Pchar=nil;
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
@@ -91,14 +104,65 @@ const
 {$endif android}
 
 {*****************************************************************************
-                       Misc. System Dependent Functions
+                       Indirect Entry Point
 *****************************************************************************}
+
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+var
+  initialstkptr : Pointer;
+
+procedure OsSetupEntryInformation(constref info: TEntryInformation);
+begin
+  argc := info.OS.argc;
+  argv := info.OS.argv;
+  envp := info.OS.envp;
+  initialstkptr := info.OS.stkptr;
+  initialstklen := info.OS.stklen;
+end;
+
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  SetupEntryInformation(info);
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+
+{$else}
+var
+{$ifndef FPC_BOOTSTRAP_INDIRECT_ENTRY}
+  initialstkptr : Pointer;external name '__stkptr';
+{$else FPC_BOOTSTRAP_INDIRECT_ENTRY}
+  initialstkptr : Pointer; public name '__stkptr';
+  operatingsystem_parameter_envp : Pointer; public name 'operatingsystem_parameter_envp';
+  operatingsystem_parameter_argc : LongInt; public name 'operatingsystem_parameter_argc';
+  operatingsystem_parameter_argv : Pointer; public name 'operatingsystem_parameter_argv';
+
+
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  initialstkptr := info.OS.stkptr;
+  operatingsystem_parameter_envp := info.OS.envp;
+  operatingsystem_parameter_argc := info.OS.argc;
+  operatingsystem_parameter_argv := info.OS.argv;
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);
+{$endif cpui386}
+  info.PascalMain();
+end;
+{$endif FPC_BOOTSTRAP_INDIRECT_ENTRY}
 
 {$if defined(CPUARM) and defined(FPC_ABI_EABI)}
 procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
 {$else}
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 {$endif}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+
+{*****************************************************************************
+                       Misc. System Dependent Functions
+*****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
 function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
@@ -106,7 +170,11 @@ function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external 
 
 procedure System_exit;
 begin
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  EntryInformation.OS.haltproc(ExitCode);
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   haltproc(ExitCode);
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 End;
 
 
@@ -351,8 +419,6 @@ begin
     result := stklen;
 end;
 
-var
-  initialstkptr : Pointer;external name '__stkptr';
 begin
 {$if defined(i386) and not defined(FPC_USE_LIBC)}
   InitSyscallIntf;
