@@ -78,8 +78,16 @@ var
 
 implementation
 
+{$define FPC_SYSTEM_HAS_STACKTOP}
+
 {$I system.inc}
 {$I osdebug.inc}
+
+function StackTop: pointer;
+begin
+  StackTop:=PETask(FindTask(nil)^.tc_ETask)^.PPCSPUpper;
+end;
+
 
 {$IFDEF MOSFPC_FILEDEBUG}
 {$WARNING Compiling with file debug enabled!}
@@ -245,7 +253,7 @@ end;
 begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := StackTop - StackLength;
 { OS specific startup }
   MOS_ambMsg:=nil;
   ASYS_origDir:=0;
