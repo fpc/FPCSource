@@ -1047,12 +1047,14 @@ function fpc_pchar_length(p:pchar):sizeint;assembler;[public,alias:'FPC_PCHAR_LE
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
   { all abi's I know use r1 as stack pointer }
   mr r3, r1
 end;
+{$endif INTERNAL_BACKTRACE}
 
 {NOTE: On MACOS, 68000 code might call powerpc code, through the MixedMode manager,
 (even in the OS in system 9). The pointer to the switching stack frame is then

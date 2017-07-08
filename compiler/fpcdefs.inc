@@ -137,6 +137,7 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
+  {$define SUPPORT_GET_FRAME}
 {$endif powerpc}
 
 {$ifdef powerpc64}
