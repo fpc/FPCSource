@@ -33,13 +33,13 @@ Unit System;
 
 {$I sysunixh.inc}
 
-{$if defined(VER3_0) and defined(CPUXXX)}
+{$if defined(VER3_0) and defined(CPUX86_64)}
 {$define FPC_BOOTSTRAP_INDIRECT_ENTRY}
 const
   { this constant only exists during bootstrapping of the RTL with FPC 3.0.x,
     so that the whole condition doesn't need to be repeated in si_intf }
   indirect_bootstrap = true;
-{$endif defined(VER3_0) and defined(CPUXXX)}
+{$endif defined(VER3_0) and defined(CPUX86_64)}
 
 
 function get_cmdline:Pchar; deprecated 'use paramstr' ;
