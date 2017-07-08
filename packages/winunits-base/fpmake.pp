@@ -52,6 +52,7 @@ begin
           AddUnit('shfolder');
           AddUnit('richedit');
           AddUnit('imagehlp');
+          AddUnit('winhttp');
 	  AddUnit('wininet');
           AddUnit('uxtheme');
           AddInclude('tmschema.inc');
@@ -88,6 +89,7 @@ begin
     T:=P.Targets.AddImplicitUnit('winver.pp');
     T:=P.Targets.AddImplicitUnit('wininet.pp');
     T:=P.Targets.AddImplicitUnit('imagehlp.pp');
+    T:=P.Targets.AddImplicitUnit('winhttp.pp');
     T:=P.Targets.AddImplicitUnit('commdlg.pp');
     T:=P.Targets.AddImplicitUnit('wininet.pp');
     T:=P.Targets.AddImplicitUnit('uxtheme.pp');
