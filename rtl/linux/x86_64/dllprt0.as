@@ -44,23 +44,45 @@ FPC_SHARED_LIB_START:
 	.globl _startlib
 	.type _startlib,@function
 _startlib:
-	pushq	 %rbx
-        movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rbx
-        movq     %rdi,(%rbx)
-        movq     operatingsystem_parameter_argv@GOTPCREL(%rip),%rbx
-	movq     %rsi,(%rbx)          /* argv starts just at the current stack top.  */
-        movq     operatingsystem_parameter_envp@GOTPCREL(%rip),%rbx
-        movq     %rdx,(%rbx)
+        movq    entryinfo@GOTPCREL(%rip),%r10 /* load address of entryinfo variable */
 
-        movq    operatingsystem_islibrary@GOTPCREL(%rip),%rbx
-        movb    $1,(%rbx)
+        movq    %rdi,56(%r10)
+        movq    %rsi,64(%r10)   /* argv starts just at the current stack top */
+        movq    %rdx,72(%r10)
 
         /* Save initial stackpointer */
-        movq    __stkptr@GOTPCREL(%rip),%rbx
-        movq    %rsp,(%rbx)
+        movq    %rsp,80(%r10)
 
-        call    PASCALMAIN@PLT
-	popq	%rbx
+        /* store stack length */
+        movq    __stklen@GOTPCREL(%rip),%rax
+        movq    %rax,88(%r10)
+
+        /* store pointer to _haltproc */
+        movq    _haltproc@GOTPCREL(%rip),%rax
+        movq    %rax,96(%r10)
+
+        /* populate the table pointers */
+        movq    INITFINAL@GOTPCREL(%rip),%rax
+        movq    %rax,(%r10)
+        movq    FPC_THREADVARTABLES@GOTPCREL(%rip),%rax
+        movq    %rax,8(%r10)
+        movq    FPC_RESOURCESTRINGTABLES@GOTPCREL(%rip),%rax
+        movq    %rax,16(%r10)
+        movq    FPC_RESSTRINITTABLES@GOTPCREL(%rip),%rax
+        movq    %rax,24(%r10)
+        movq    FPC_RESLOCATION@GOTPCREL(%rip),%rax
+        movq    %rax,32(%r10)
+        movq    PASCALMAIN@GOTPCREL(%rip),%rax
+        movq    %rax,40(%r10)
+        /* valgrind_used can stay 0 */
+
+        /* setup argument for FPC_SysEntry */
+        movq    %r10,%rdi
+
+        movq    operatingsystem_islibrary@GOTPCREL(%rip),%r10
+        movb    $1,(%r10)
+
+        call    FPC_SysEntry@PLT
 	ret
 
 /* this routine is only called when the halt() routine of the RTL embedded in
@@ -83,11 +105,38 @@ __data_start:
         data_start = __data_start
 
 .bss
-        .comm __stkptr,8
+/* the entry information looks like this:
 
-        .comm operatingsystem_parameter_envp,8
-        .comm operatingsystem_parameter_argc,8
-        .comm operatingsystem_parameter_argv,8
+  TEntryInformation = record
+    InitFinalTable : Pointer;           // offset 0
+    ThreadvarTablesTable : Pointer;     // offset 8
+    ResourceStringTables : Pointer;     // offset 16
+    ResStrInitTables : Pointer;         // offset 24
+    ResLocation : Pointer;              // offset 32
+    PascalMain : Procedure;             // offset 40
+    valgrind_used : boolean;            // offset 48
+    OS : TEntryInformationOS;           // offset 56
+  end;
+
+  with TEntryInformationOS being
+
+  TEntryInformationOS = record
+    argc: longint;                         // offset 56
+    argv: ppchar;                          // offset 64
+    envp: ppchar;                          // offset 72
+    stkptr: pointer;                       // offset 80
+    stklen: sizeuint;                      // offset 88
+    haltproc: procedure(e:longint);cdecl;  // offset 96
+  end;
+
+  The size of TEntryInformationOS including padding is 5 * sizeof(Pointer) = 40
+
+  The size of TEntryInformation including padding without OS is 8 * sizeof(Pointer) = 64
+
+  Thus the total size of TEntryInformation including padding is 104
+
+*/
+        .comm entryinfo,104
 
 
 /* We need this stuff to make gdb behave itself, otherwise

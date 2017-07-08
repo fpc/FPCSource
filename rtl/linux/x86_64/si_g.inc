@@ -55,6 +55,8 @@ procedure gmon_mcleanup; external name '_mcleanup';
 
 procedure main_stub; forward;
 
+procedure _FPC_libc_haltproc(e:longint); forward;
+
 procedure ini_dummy;
   begin
   end;
@@ -63,7 +65,7 @@ procedure ini_dummy;
                           C library start/halt
  ******************************************************************************}
 
-procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
+ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
   asm
     { Clear the frame pointer.  The ABI suggests this be done, to mark
      the outermost frame obviously.  }
@@ -88,6 +90,16 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     popq %rsi               { Pop the argument count.  }
     movq %rsp, %rdx         { argv starts just at the current stack top.  }
 
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+    movq SysInitEntryInformation@GOTPCREL(%rip),%rcx
+
+    movl %rsi,TEntryInformation.OS.argc(%rcx)
+    movq %rsp,TEntryInformation.OS.argv(%rcx)
+    movq %rsp,(%rax)
+    leaq 8(,%rsi,8),%rax
+    addq %rsp,%rax
+    movq %rax,TEntryInformation.OS.envp(%rcx)
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     movq operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
     movq %rsi,(%rax)
     movq operatingsystem_parameter_argv@GOTPCREL(%rip),%rax
@@ -96,6 +108,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     addq %rsp,%rax
     movq operatingsystem_parameter_envp@GOTPCREL(%rip),%rcx
     movq %rax,(%rcx)
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
     { Align the stack to a 16 byte boundary to follow the ABI.  }
     andq  $0xfffffffffffffff0, %rsp
@@ -154,6 +167,24 @@ procedure main_stub; assembler; nostackframe;
 
     movq    gmon_mcleanup@GOTPCREL(%rip),%rdi
     call    libc_atexit@PLT
+
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+    movq    SysInitEntryInformation@GOTPCREL(%rip),%rdi
+
+    { Save initial stackpointer }
+    movq    %rsp,TEntryInformation.OS.stkptr(%rdi)
+
+    { store stack length }
+    movq    StackLength@GOTPCREL(%rip),%rax
+    movq    %rax,TEntryInformation.OS.stklen(%rdi)
+
+    { store pointer to haltproc }
+    movq    _FPC_libc_haltproc@GOTPCREL(%rip),%rax
+    movq    %rax,TEntryInformation.OS.haltproc(%rdi)
+
+    xorq    %rbp,%rbp
+    call    SysEntry@PLT
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     { Save initial stackpointer }
     movq    initialstkptr@GOTPCREL(%rip),%rax
     movq    %rsp,(%rax)
@@ -161,6 +192,7 @@ procedure main_stub; assembler; nostackframe;
     { start the program }
     xorq    %rbp,%rbp
     call    PASCALMAIN@PLT
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     hlt
   end;
 

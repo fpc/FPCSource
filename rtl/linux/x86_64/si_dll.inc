@@ -14,13 +14,25 @@
 
 {$asmmode gas}
 
+procedure _FPC_shared_lib_haltproc(e:longint); cdecl; forward;
+
 procedure _FPC_shared_lib_start(argc:dword; argv,envp:pointer); cdecl; public name 'FPC_SHARED_LIB_START'; public name '_start';
 begin
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  SysInitEntryInformation.OS.argc:=argc;
+  SysInitEntryInformation.OS.argv:=argv;
+  SysInitEntryInformation.OS.envp:=envp;
+  SysInitEntryInformation.OS.stkptr:=get_frame;
+  SysInitEntryInformation.OS.stklen:=StackLength;
+  SysInitEntryInformation.OS.haltproc:=@_FPC_shared_lib_haltproc;
+  SysEntry(SysInitEntryInformation);
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   operatingsystem_parameter_argc:=argc;
   operatingsystem_parameter_argv:=argv;
   operatingsystem_parameter_envp:=envp;
   InitialStkPtr:=get_frame;
   PASCALMAIN;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 end;
 
 { this routine is only called when the halt() routine of the RTL embedded in

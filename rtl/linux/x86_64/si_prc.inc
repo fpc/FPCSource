@@ -42,8 +42,37 @@
 var
   dlexitproc: pointer;
 
+procedure _FPC_proc_haltproc(e: longint); forward;
+
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
   asm
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+    movq     SysInitEntryInformation@GOTPCREL(%rip),%r10          { load address of SysInitEntryInformation variable }
+
+    popq     %rsi                                  { Pop the argument count.  }
+    movq     %rsi,TEntryInformation.OS.argc(%r10)
+    movq     %rsp,TEntryInformation.OS.argv(%r10)                           { argv starts just at the current stack top.  }
+    leaq     8(,%rsi,8),%rax
+    addq     %rsp,%rax
+    movq     %rax,TEntryInformation.OS.envp(%r10)
+    andq     $0xfffffffffffffff0,%rsp                             { Align the stack to a 16 byte boundary to follow the ABI.  }
+
+    { Save initial stackpointer }
+    movq    %rsp,TEntryInformation.OS.stkptr(%r10)
+
+    { store stack length }
+    movq    StackLength@GOTPCREL(%rip),%rax
+    movq    %rax,TEntryInformation.OS.stklen(%r10)
+
+    { store pointer to haltproc }
+    movq    _FPC_proc_haltproc@GOTPCREL(%rip),%rax
+    movq    %rax,TEntryInformation.OS.haltproc(%r10)
+
+    movq    %r10,%rdi
+
+    xorq    %rbp, %rbp
+    call    SysEntry
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     popq     %rsi                                  { Pop the argument count.  }
     movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
     movq     %rsi,(%rax)
@@ -61,6 +90,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 
     xorq    %rbp, %rbp
     call    PASCALMAIN
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   end;
 
 procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynamic_start';
