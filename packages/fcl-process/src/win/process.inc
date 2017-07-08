@@ -68,7 +68,7 @@ begin
     begin
     Result:=CREATE_UNICODE_ENVIRONMENT;
     if poNoConsole in Options then
-      Result:=Result or Detached_Process;
+      Result:=Result or CREATE_NO_WINDOW;
     if poNewConsole in Options then
       Result:=Result or Create_new_console;
     if poNewProcessGroup in Options then
