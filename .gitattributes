@@ -7045,6 +7045,7 @@ packages/pthreads/Makefile.fpc svneol=native#text/plain
 packages/pthreads/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/pthreads/fpmake.pp svneol=native#text/plain
 packages/pthreads/src/pthraix.inc svneol=native#text/plain
+packages/pthreads/src/pthrandroid.inc svneol=native#text/plain
 packages/pthreads/src/pthrbeos.inc svneol=native#text/plain
 packages/pthreads/src/pthrbsd.inc svneol=native#text/plain
 packages/pthreads/src/pthreads.pp svneol=native#text/plain
