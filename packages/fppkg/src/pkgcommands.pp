@@ -166,32 +166,32 @@ begin
     Error(SErrNoPackageSpecified);
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
 
-  log(llProgres,SLogPackageInfoName,[P.Name]);
+  log(llProgress,SLogPackageInfoName,[P.Name]);
   S := P.Email;
   if S <> '' then
     S := '<' + S +'>';
-  log(llProgres,SLogPackageInfoAuthor,[P.Author, S]);
-  log(llProgres,SLogPackageInfoVersion,[P.Version.AsString]);
-  log(llProgres,SLogPackageInfoCategory,[P.Category]);
-  log(llProgres,SLogPackageInfoWebsite,[P.HomepageURL]);
-  log(llProgres,SLogPackageInfoLicense,[P.License]);
+  log(llProgress,SLogPackageInfoAuthor,[P.Author, S]);
+  log(llProgress,SLogPackageInfoVersion,[P.Version.AsString]);
+  log(llProgress,SLogPackageInfoCategory,[P.Category]);
+  log(llProgress,SLogPackageInfoWebsite,[P.HomepageURL]);
+  log(llProgress,SLogPackageInfoLicense,[P.License]);
 
-  log(llProgres,SLogPackageInfoOSes,[OSesToString(P.OSes)]);
-  log(llProgres,SLogPackageInfoCPUs,[CPUSToString(P.CPUs)]);
+  log(llProgress,SLogPackageInfoOSes,[OSesToString(P.OSes)]);
+  log(llProgress,SLogPackageInfoCPUs,[CPUSToString(P.CPUs)]);
 
-  log(llProgres,SLogPackageInfoDescription1);
-  log(llProgres,SLogPackageInfoDescription2,[P.Description]);
+  log(llProgress,SLogPackageInfoDescription1);
+  log(llProgress,SLogPackageInfoDescription2,[P.Description]);
 
   if P.Dependencies.Count>0 then
     begin
-      log(llProgres,SLogPackageInfoDependencies1,[]);
+      log(llProgress,SLogPackageInfoDependencies1,[]);
       for I := 0 to P.Dependencies.Count-1 do
         begin
           if not P.Dependencies[I].MinVersion.Empty then
             S := '('+P.Dependencies[I].MinVersion.AsString+')'
           else
             S := '';
-          log(llProgres,SLogPackageInfoDependencies2,[P.Dependencies[I].PackageName,S]);
+          log(llProgress,SLogPackageInfoDependencies2,[P.Dependencies[I].PackageName,S]);
         end;
     end;
 end;
@@ -227,9 +227,9 @@ end;
 function TCommandListSettings.Execute: Boolean;
 begin
   Result := True;
-  PackageManager.Options.LogValues(llProgres);
-  PackageManager.CompilerOptions.LogValues(llProgres,'');
-  PackageManager.FPMakeCompilerOptions.LogValues(llProgres,'fpmake-building ');
+  PackageManager.Options.LogValues(llProgress);
+  PackageManager.CompilerOptions.LogValues(llProgress,'');
+  PackageManager.FPMakeCompilerOptions.LogValues(llProgress,'fpmake-building ');
 end;
 
 
@@ -639,7 +639,7 @@ begin
   if L.Count > 0 then
     begin
       if DependenciesDepth=0 then
-        pkgglobals.Log(llProgres,SProgrInstallDependencies);
+        pkgglobals.Log(llProgress,SProgrInstallDependencies);
       inc(DependenciesDepth);
 
       for i:=0 to L.Count-1 do
@@ -648,7 +648,7 @@ begin
 
       dec(DependenciesDepth);
       if DependenciesDepth=0 then
-        pkgglobals.Log(llProgres,SProgrDependenciesInstalled);
+        pkgglobals.Log(llProgress,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
   if assigned(ManifestPackages) then
@@ -671,7 +671,7 @@ begin
     PackageManager.FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
-    pkgglobals.Log(llProgres,SProgrReinstallDependent);
+    pkgglobals.Log(llProgress,SProgrReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         if not ExecuteAction(SL[i],'build') then

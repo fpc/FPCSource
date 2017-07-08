@@ -179,7 +179,7 @@ var
 
         if ch in [#10, #13] then
         begin
-          log(llProgres,sLine);
+          log(llProgress,sLine);
           sLine := '';
           BuffPos := ConsoleOutput.Position;
         end

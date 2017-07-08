@@ -57,13 +57,13 @@ Const
   );
 
 Type
-  TLogLevel = (llError,llWarning,llInfo,llCommands,llDebug,llProgres);
+  TLogLevel = (llError,llWarning,llInfo,llCommands,llDebug,llProgress);
   TLogLevels = Set of TLogLevel;
   TLogProc = procedure(Level:TLogLevel;Const Msg: String);
 
 const
-  DefaultLogLevels = [llError,llWarning, llProgres];
-  AllLogLevels = [llError,llWarning,llCommands,llInfo,llProgres];
+  DefaultLogLevels = [llError,llWarning, llProgress];
+  AllLogLevels = [llError,llWarning,llCommands,llInfo,llProgress];
 
 type
   EPackagerError = class(Exception);

@@ -185,7 +185,7 @@ begin
           if RemoteArchive <> '' then
             begin
               Log(llCommands,SLogDownloading,[RemoteArchive,PackageManager.PackageLocalArchive(P)]);
-              pkgglobals.log(llProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
+              pkgglobals.log(llProgress,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
 
               // Force the existing of the archives-directory if it is being used
               if (P.Name<>CurrentDirPackageName) and (P.Name<>CmdLinePackageName) then
