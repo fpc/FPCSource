@@ -804,12 +804,6 @@ type
 {$if defined(ELF32) or defined(ELF64) or defined(BEOS)}
 
 {$ifdef FIND_BASEADDR_ELF}
-{$ifndef SOLARIS}
-  { Solaris has envp variable in system unit interface,
-    so we directly use system envp variable in that case }
-var
-  envp : ppchar external name 'operatingsystem_parameter_envp';
-{$endif not SOLARIS}
 var
   LocalJmpBuf : Jmp_Buf;  
 procedure LocalError;
