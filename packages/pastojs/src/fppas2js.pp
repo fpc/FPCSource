@@ -7429,13 +7429,14 @@ Var
   E : TJSElement;
   SLFirst, SLLast: TJSStatementList;
   P: TPasElement;
-  IsProcBody, IsFunction, IsAssembler: boolean;
+  IsProcBody, IsFunction, IsAssembler, HasResult: boolean;
   I : Integer;
   PasProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ProcBody: TPasImplBlock;
+  ResultEl: TPasResultElement;
 
-  Procedure Add(NewEl: TJSElement);
+  Procedure Add(NewEl: TJSElement; PosEl: TPasElement);
   begin
     if AContext is TObjectContext then
       begin
@@ -7443,7 +7444,7 @@ Var
       end
     else
       begin
-      AddToStatementList(SLFirst,SLLast,NewEl,El);
+      AddToStatementList(SLFirst,SLLast,NewEl,PosEl);
       ConvertDeclarations:=SLFirst;
       end;
   end;
@@ -7453,15 +7454,15 @@ Var
     VarSt: TJSVariableStatement;
     PasFun: TPasFunction;
     FunType: TPasFunctionType;
-    ResultEl: TPasResultElement;
   begin
     PasFun:=El.Parent as TPasFunction;
     FunType:=PasFun.FuncType;
     ResultEl:=FunType.ResultEl;
 
     // add 'var result=initvalue'
-    VarSt:=CreateVarStatement(ResolverResultVar,CreateValInit(ResultEl.ResultType,nil,El,aContext),El);
-    Add(VarSt);
+    VarSt:=CreateVarStatement(ResolverResultVar,
+      CreateValInit(ResultEl.ResultType,nil,El,aContext),ResultEl);
+    Add(VarSt,ResultEl);
     Result:=SLFirst;
   end;
 
@@ -7471,7 +7472,7 @@ Var
   begin
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
     RetSt.Expr:=CreatePrimitiveDotExpr(ResolverResultVar);
-    Add(RetSt);
+    Add(RetSt,ResultEl);
   end;
 
 begin
@@ -7486,13 +7487,15 @@ begin
     TProcedureBody = class(TPasDeclarations)
   }
 
-  SLFirst:=nil;
-  SLLast:=nil;
   IsProcBody:=(El is TProcedureBody) and (TProcedureBody(El).Body<>nil);
   IsFunction:=IsProcBody and (El.Parent is TPasFunction);
   IsAssembler:=IsProcBody and (TProcedureBody(El).Body is TPasImplAsmStatement);
+  HasResult:=IsFunction and not IsAssembler;
+  SLFirst:=nil;
+  SLLast:=nil;
+  ResultEl:=nil;
 
-  if IsFunction and not IsAssembler then
+  if HasResult then
     AddFunctionResultInit;
 
   For I:=0 to El.Declarations.Count-1 do
@@ -7524,7 +7527,7 @@ begin
       end
     else
       RaiseNotSupported(P as TPasElement,AContext,20161024191434);
-    Add(E);
+    Add(E,P);
     end;
 
   if IsProcBody then
@@ -7532,12 +7535,12 @@ begin
     ProcBody:=TProcedureBody(El).Body;
     if (ProcBody.Elements.Count>0) or IsAssembler then
       begin
-      E:=ConvertElement(TProcedureBody(El).Body,aContext);
-      Add(E);
+      E:=ConvertElement(ProcBody,aContext);
+      Add(E,ProcBody);
       end;
     end;
 
-  if IsFunction and not IsAssembler then
+  if HasResult then
     AddFunctionResultReturn;
 end;
 
