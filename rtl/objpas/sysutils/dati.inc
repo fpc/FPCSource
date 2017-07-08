@@ -368,11 +368,11 @@ end;
 
 var
    df:string;
-   d,m,y,ly:word;
+   d,m,y,ly:integer;
    n,i:longint;
    c:word;
    dp,mp,yp,which : Byte;
-   s1:string[4];
+   s1:string;
    values:array[0..3] of longint;
    LocalTime:tsystemtime;
    YearMoreThenTwoDigits : boolean;
@@ -446,6 +446,7 @@ begin
          // Check if the year has more then two digits (if n=yp, then we are evaluating the year.)
         if (n=yp) and (length(s1)>2) then YearMoreThenTwoDigits := True;
         val(s1, values[n], c);
+//        Writeln(s1,'->',values[n]);
         if c<>0 then
           begin
             FixErrorMsg(SInvalidDateFormat,s);
@@ -467,6 +468,12 @@ begin
   // Fill in values.
   getLocalTime(LocalTime);
   ly := LocalTime.Year;
+  for I:=1 to 3 do
+    if values[i]>high(Word) then
+      begin
+      errormsg:='Invalid date';
+      exit;
+      end;
   If N=3 then
    begin
      y:=values[yp];
@@ -500,6 +507,7 @@ begin
     if (defs.TwoDigitYearCenturyWindow > 0) and (Y < ly) then
       Inc(Y, 100);
     end;
+
   if not TryEncodeDate(y, m, d, result) then
     errormsg:='Invalid date';
 end;
