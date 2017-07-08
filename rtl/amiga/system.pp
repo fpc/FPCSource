@@ -302,7 +302,7 @@ end;
 begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := StackTop - StackLength;
 { OS specific startup }
   AOS_wbMsg:=nil;
   ASYS_origDir:=0;
