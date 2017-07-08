@@ -2074,7 +2074,7 @@ begin
   func:=Last;
   
   if Last.Kind<>pekSet then NextToken;
-  if not (Last.Kind in [pekIdent,pekSelf,pekNil]) then
+  if not (Last.Kind in [pekNumber,pekString,pekSet,pekIdent,pekSelf,pekNil]) then
     exit;
 
   ok:=false;

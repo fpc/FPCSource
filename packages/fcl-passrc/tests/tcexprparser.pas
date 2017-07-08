@@ -141,6 +141,7 @@ type
     Procedure TestNilCaret;
     Procedure TestExpCaret;
     Procedure TestArrayAccess;
+    Procedure TestHelperOnLiteral;
   end;
 
 implementation
@@ -660,6 +661,14 @@ procedure TTestExpressions.TestArrayAccess;
 begin
   Source.Add('begin');
   Source.Add('DoSomething((pb + 10)[4]);');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestExpressions.TestHelperOnLiteral;
+begin
+  Source.Add('begin');
+  Source.Add('writeln(''10''.toint);');
   Source.Add('end.');
   ParseModule;
 end;
