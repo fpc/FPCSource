@@ -511,11 +511,11 @@ MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 
 $(GPARMAKE): utils/gparmake.pp $(CREATELST)
 	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
-	$(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
+	$(FPC) -FE. utils/gparmake.pp $(OPT)
 
 $(CREATELST): utils/createlst.pp
 	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
-	$(FPC) $(FPCOPT) -FE. utils/createlst.pp $(OPT)
+	$(FPC) -FE. utils/createlst.pp $(OPT)
 
 # Can't have testprep as prerequisite, because that is a phony target and
 # phony targets are always remade. Since the makefile will be reparsed
