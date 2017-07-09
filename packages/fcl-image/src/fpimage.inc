@@ -124,7 +124,6 @@ begin
             try
               if CheckContents (str) then
                 try
-                  str.Position := startPos;
                   FStream := str;
                   FImage := self;
                   InternalRead (str, self);

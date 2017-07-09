@@ -473,17 +473,23 @@ begin
 end;
 
 function TFPReaderGif.InternalCheck(Stream: TStream): boolean;
+
 var
   OldPos: Int64;
+  n: Int64;
+  
 begin
+  Result:=False;
+  if Stream = nil then
+    exit;
+  OldPos:=Stream.Position;
   try
-    OldPos:=Stream.Position;
-    Stream.Read(FHeader,SizeOf(FHeader));
-    Result:=(FHeader.Signature = 'GIF') and
-            ((FHeader.Version = '87a') or (FHeader.Version = '89a'));
-    Stream.Position:=OldPos;
-  except
-    Result:=False;
+    n := SizeOf(FHeader);
+    Result:=(Stream.Read(FHeader,n)=n)
+            and (FHeader.Signature = 'GIF') 
+            and ((FHeader.Version = '87a') or (FHeader.Version = '89a'));
+  finally
+    Stream.Position := OldPos;
   end;
 end;
 

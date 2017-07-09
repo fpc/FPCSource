@@ -805,6 +805,7 @@ begin
     raise PNGImageException.Create('Critical chunk '+chunk.readtype+' not recognized');
 end;
 
+// NOTE: It is assumed that signature and IDHDR chunk already have been read.
 procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
 begin
   {$ifdef FPC_Debug_Image}
@@ -872,33 +873,34 @@ begin
   Result.Y := Height;
 end;
 
+// NOTE: Stream does not rewind here!
 function  TFPReaderPNG.InternalCheck (Str:TStream) : boolean;
 var SigCheck : array[0..7] of byte;
     r : integer;
 begin
-  try
-    // Check Signature
-    Str.Read(SigCheck, SizeOf(SigCheck));
-    for r := 0 to 7 do
+  Result:=False;
+  if Str=Nil then 
+    exit;
+  // Check Signature
+  if Str.Read(SigCheck, SizeOf(SigCheck)) <> SizeOf(SigCheck) then
+    Exit;
+  for r := 0 to 7 do
     begin
-      If SigCheck[r] <> Signature[r] then
-        Exit(false);
+    If SigCheck[r] <> Signature[r] then
+      Exit;
     end;
-    // Check IHDR
-    ReadChunk;
-    move (chunk.data^, FHeader, sizeof(Header));
-    with header do
-      begin
-      {$IFDEF ENDIAN_LITTLE}
-      Width := swap(width);
-      height := swap (height);
-      {$ENDIF}
-      result := (width > 0) and (height > 0) and (compression = 0)
-                and (filter = 0) and (Interlace in [0,1]);
-      end;
-  except
-    result := false;
-  end;
+  // Check IHDR
+  ReadChunk;
+  move (chunk.data^, FHeader, sizeof(Header));
+  with header do
+    begin
+    {$IFDEF ENDIAN_LITTLE}
+    Width := swap(width);
+    height := swap (height);
+    {$ENDIF}
+    result :=(width > 0) and (height > 0) and (compression = 0)
+              and (filter = 0) and (Interlace in [0,1]);
+    end;
 end;
 
 initialization

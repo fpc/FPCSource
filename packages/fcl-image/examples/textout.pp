@@ -3,7 +3,7 @@
 program textout;
 
 uses
-  cwstring,classes, sysutils, FPImage, FPCanvas, FPImgCanv, ftFont, FPWritePNG, freetype;
+  {$IFDEF UNIX}cwstring, {$ENDIF} classes, sysutils, FPImage, FPCanvas, FPImgCanv, ftFont, FPWritePNG, freetype;
 
 const
   MyColor : TFPColor = (Red: $7FFF; Green: $0000; Blue: $FFFF; Alpha: alphaOpaque);
