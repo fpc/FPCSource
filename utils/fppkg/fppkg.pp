@@ -288,6 +288,7 @@ var
   SL     : TStringList;
   Repo: TFPRepository;
   InstPackages: TFPCurrentDirectoryPackagesStructure;
+  ArchivePackages: TFPArchiveFilenamePackagesStructure;
 begin
   OldCurrDir:=GetCurrentDir;
   Try
@@ -386,6 +387,18 @@ begin
           begin
             if sametext(ExtractFileExt(ParaPackages[i]),'.zip') and FileExists(ParaPackages[i]) then
               begin
+                Repo := TFPRepository.Create(GFPpkg);
+                GFPpkg.RepositoryList.Add(Repo);
+                Repo.RepositoryType := fprtAvailable;
+                Repo.RepositoryName := 'ArchiveFile';
+                Repo.Description := 'Package in archive-file';
+                ArchivePackages := TFPArchiveFilenamePackagesStructure.Create(GFPpkg);
+                ArchivePackages.InitializeWithOptions(nil, GFPpkg.Options, GFPpkg.CompilerOptions);
+                ArchivePackages.ArchiveFileName := ParaPackages[i];
+                ArchivePackages.AddPackagesToRepository(Repo);
+                Repo.DefaultPackagesStructure := ArchivePackages;
+
+                pkgglobals.Log(llDebug,SLogCommandLineAction,['['+CmdLinePackageName+']',ParaAction]);
                 pkghandler.ExecuteAction(CmdLinePackageName,ParaAction,GFPpkg);
               end
             else

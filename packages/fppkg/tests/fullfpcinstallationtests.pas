@@ -50,6 +50,7 @@ type
     procedure TestUninstalledRepository;
     procedure TestBrokenPackagesBetweenRepos;
     procedure TestPackageDependenciesBetweenRepos;
+    procedure TestBuildOfArchiveFile;
   end;
 
   { TFullFPCInstallationSetup }
@@ -580,6 +581,27 @@ begin
 
   s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath, ['list', '-l'], 'List all packages, none should be broken');
   Check(pos('(B)',s) = 0, 'There are no broken packages, fppkg should report so.');
+end;
+
+procedure TFullFPCInstallationTests.TestBuildOfArchiveFile;
+var
+  ArchiveFileName, s: String;
+begin
+  TFullFPCInstallationSetup.SyncPackageIntoCurrentTest('packagea');
+  // Build and install package
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath + 'packagea', ['archive'], 'Create archive for PackageA');
+  ArchiveFileName := ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestBasePackagesPath, 'packagea', 'packagea-1.2.3.source.zip']);
+  Check(FileExists(ArchiveFileName), 'Archive packagea-1.2.3.source.zip does exist');
+
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['build', ArchiveFileName], 'Build packagea-1.2.3.source.zip');
+  RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['install', ArchiveFileName], 'install packagea-1.2.3.source.zip');
+
+  // Test installation
+  s := RunFppkgIndir(TFullFPCInstallationSetup.GetCurrentTestPath, ['list'], 'list packages');
+  Check(pos('packagea', s) > 0, 'Just installed PackageA is not in package-list');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.ppu'])), 'PackageAUnitA.ppu not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'units',TFullFPCInstallationSetup.GetTargetString,'packagea','PackageAUnitA.o'])), 'PackageAUnitA.o not found');
+  Check(FileExists(ConcatPaths([TFullFPCInstallationSetup.GetCurrentTestPath,'user','lib','fpc', TFullFPCInstallationSetup.GetCompilerVersion, 'fpmkinst',TFullFPCInstallationSetup.GetTargetString,'packagea.fpm'])), 'PackageAUnitA.fpm not found');
 end;
 
 procedure TFullFPCInstallationTests.TestCleanupOfTemporaryBuildpath;

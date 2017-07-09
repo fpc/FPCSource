@@ -62,6 +62,17 @@ type
     function GetBuildPathDirectory(APackage: TFPPackage): string; override;
   end;
 
+  { TFPArchiveFilenamePackagesStructure }
+
+  TFPArchiveFilenamePackagesStructure = class(TFPCustomPackagesStructure)
+  private
+    FArchiveFileName: string;
+  public
+    function AddPackagesToRepository(ARepository: TFPRepository): Boolean; override;
+    function UnzipBeforeUse: Boolean; override;
+    property ArchiveFileName: string read FArchiveFileName write FArchiveFileName;
+  end;
+
   { TFPOriginalSourcePackagesStructure }
 
   TFPOriginalSourcePackagesStructure = class(TFPCustomPackagesStructure)
@@ -94,6 +105,23 @@ uses
   pkgmessages,
   pkgrepos,
   pkgglobals;
+
+{ TFPArchiveFilenamePackagesStructure }
+
+function TFPArchiveFilenamePackagesStructure.AddPackagesToRepository(ARepository: TFPRepository): Boolean;
+var
+  Package: TFPPackage;
+begin
+  Result := True;
+  Package := ARepository.AddPackage(CmdLinePackageName);
+  Package.LocalFileName := FArchiveFileName;
+  Package.PackagesStructure := Self;
+end;
+
+function TFPArchiveFilenamePackagesStructure.UnzipBeforeUse: Boolean;
+begin
+  Result := True;
+end;
 
 { TFPCustomFileSystemPackagesStructure }
 
