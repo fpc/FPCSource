@@ -892,6 +892,8 @@ implementation
             ai:=Taicpu.op_sym(A_FBxx,l);
           NR_FCC1,NR_FCC2,NR_FCC3:
             ai:=Taicpu.op_reg_sym(A_FBxx,f.FlagReg,l);
+          else
+            Internalerror(2017070901);
         end;
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
