@@ -904,7 +904,7 @@ begin
     begin
     // Get token from buffer
     //writeln('TPasParser.NextToken REUSE Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
-    FCurToken := P^.Token;
+    FCurToken := Scanner.CheckToken(P^.Token,P^.AsString);
     FCurTokenString := P^.AsString;
     end
   else
@@ -2893,6 +2893,10 @@ begin
   CurBlock := declNone;
   while True do
   begin
+    if CurBlock=DeclNone then
+      Scanner.SetTokenOption(toOperatorToken)
+    else
+      Scanner.UnSetTokenOption(toOperatorToken);
     NextToken;
   //  writeln('TPasParser.ParseSection Token=',CurTokenString,' ',CurToken, ' ',scanner.CurFilename);
     case CurToken of
@@ -2974,7 +2978,6 @@ begin
         end;
       tkIdentifier:
         begin
-          Scanner.PushNonToken(tkOperator);
           SaveComments;
           case CurBlock of
             declConst:
@@ -3072,7 +3075,6 @@ begin
           else
             ParseExcSyntaxError;
           end;
-        Scanner.PopNonToken(tkOperator);
         end;
       tkGeneric:
         begin
@@ -5454,7 +5456,7 @@ begin
         if isClass then
           ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError);
         isClass:=True;
-        Scanner.PopNonToken(tkOperator);
+        Scanner.SetTokenOption(toOperatorToken);
         end;
       tkProperty:
         begin
@@ -5522,7 +5524,7 @@ begin
     If CurToken<>tkClass then
       begin
       isClass:=False;
-      Scanner.PushNonToken(tkOperator);
+      Scanner.UnSetTokenOption(toOperatorToken);
       end;
     if CurToken<>AEndToken then
       NextToken;

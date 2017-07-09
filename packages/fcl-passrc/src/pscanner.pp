@@ -265,7 +265,7 @@ type
   );
   TModeSwitches = Set of TModeSwitch;
 
-  TTokenOption = (toForceCaret,toOperatorIdentifier);
+  TTokenOption = (toForceCaret,toOperatorToken);
   TTokenOptions = Set of TTokenOption;
 
 
@@ -508,7 +508,6 @@ type
     FAllowedModeSwitches: TModeSwitches;
     FConditionEval: TCondDirectiveEvaluator;
     FCurrentModeSwitches: TModeSwitches;
-    FForceCaret: Boolean;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
     FLastMsgNumber: integer;
@@ -535,6 +534,7 @@ type
     FReadOnlyModeSwitches: TModeSwitches;
     FSkipComments: Boolean;
     FSkipWhiteSpace: Boolean;
+    FTokenOptions: TTokenOptions;
     TokenStr: PChar;
     FIncludeStack: TFPList;
 
@@ -545,6 +545,7 @@ type
     PPSkipModeStack: array[0..255] of TPascalScannerPPSkipMode;
     PPIsSkippingStack: array[0..255] of Boolean;
     function GetCurColumn: Integer;
+    function GetForceCaret: Boolean;
     function OnCondEvalFunction(Sender: TCondDirectiveEvaluator; Name,
       Param: String; out Value: string): boolean;
     procedure OnCondEvalLog(Sender: TCondDirectiveEvaluator;
@@ -593,8 +594,11 @@ type
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
-    Procedure PushNonToken(aToken : TToken);
-    Procedure PopNonToken(aToken : TToken);
+    Procedure SetNonToken(aToken : TToken);
+    Procedure UnsetNonToken(aToken : TToken);
+    Procedure SetTokenOption(aOption : TTokenoption);
+    Procedure UnSetTokenOption(aOption : TTokenoption);
+    Function CheckToken(aToken : TToken; const ATokenString : String) : TToken;
     function FetchToken: TToken;
     function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
     function AddDefine(const aName: String; Quiet: boolean = false): boolean;
@@ -620,6 +624,7 @@ type
     property CurTokenString: string read FCurTokenString;
     Property PreviousToken : TToken Read FPreviousToken;
     Property NonTokens : TTokens Read FNonTokens;
+    Property TokenOptions : TTokenOptions Read FTokenOptions Write FTokenOptions;
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
     property MacrosOn: boolean read FMacrosOn write FMacrosOn;
@@ -628,7 +633,7 @@ type
     property ReadOnlyModeSwitches: TModeSwitches Read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
     property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
     property Options : TPOptions Read FOptions Write SetOptions;
-    property ForceCaret : Boolean Read FForceCaret;
+    property ForceCaret : Boolean Read GetForceCaret;
     property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
     property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
     property ConditionEval: TCondDirectiveEvaluator read FConditionEval;
@@ -2218,14 +2223,32 @@ begin
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(AFilename));
 end;
 
-procedure TPascalScanner.PushNonToken(aToken: TToken);
+procedure TPascalScanner.SetNonToken(aToken: TToken);
 begin
-  Include(FNonTokens,AToken);
+  Include(FNonTokens,aToken);
 end;
 
-procedure TPascalScanner.PopNonToken(aToken: TToken);
+procedure TPascalScanner.UnsetNonToken(aToken: TToken);
 begin
-  Exclude(FNonTokens,AToken);
+  Exclude(FNonTokens,aToken);
+end;
+
+procedure TPascalScanner.SetTokenOption(aOption: TTokenoption);
+begin
+  Include(FTokenOptions,aOption);
+end;
+
+procedure TPascalScanner.UnSetTokenOption(aOption: TTokenoption);
+begin
+  Exclude(FTokenOptions,aOption);
+end;
+
+function TPascalScanner.CheckToken(aToken: TToken; const ATokenString: String): TToken;
+begin
+  Result:=atoken;
+  if (aToken=tkIdentifier) and (CompareText(aTokenString,'operator')=0) then
+    if (toOperatorToken in TokenOptions) then
+      Result:=tkoperator;
 end;
 
 function TPascalScanner.FetchToken: TToken;
@@ -2275,6 +2298,17 @@ begin
       if not (FSkipComments or PPIsSkipping) then
         Break;
       end;
+    tkOperator:
+      begin
+      if Not (toOperatorToken in FTokenOptions) then
+        begin
+        FCurToken:=tkIdentifier;
+        Result:=FCurToken;
+        end;
+      if not (FSkipComments or PPIsSkipping) then
+        Break;
+      end;
+
     else
       if not PPIsSkipping then
         break;
@@ -3353,6 +3387,11 @@ begin
     Result := 1;
 end;
 
+function TPascalScanner.GetForceCaret: Boolean;
+begin
+  Result:=toForceCaret in FTokenOptions;
+end;
+
 function TPascalScanner.OnCondEvalFunction(Sender: TCondDirectiveEvaluator;
   Name, Param: String; out Value: string): boolean;
 begin
@@ -3661,7 +3700,10 @@ end;
 function TPascalScanner.SetForceCaret(AValue: Boolean): Boolean;
 
 begin
-  FForceCaret:=AValue;
+  if aValue then
+    Include(FTokenOptions,toForceCaret)
+  else
+    Exclude(FTokenOptions,toForceCaret)
 end;
 
 
