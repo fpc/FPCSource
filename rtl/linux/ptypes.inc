@@ -30,7 +30,7 @@ and all three 32-bit systems returned completely identical types too
 introduction)
 }
 
-{$if defined(CPUMIPS) or defined(cpuaarch64)}
+{$if defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}
 {$define USE_PTHREAD_SIZEOF}
 {$if defined(cpuaarch64)}
 const
@@ -164,7 +164,11 @@ Type
 
   timeval     = record
                  tv_sec:time_t;
+{$ifdef CPUSPARC64}
+                 tv_usec:cint;
+{$else CPUSPARC64}
                  tv_usec:clong;
+{$endif CPUSPARC64}
                 end;
   ptimeval    = ^timeval;
   TTimeVal    = timeval;
