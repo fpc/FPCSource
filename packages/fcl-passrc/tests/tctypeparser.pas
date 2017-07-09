@@ -270,6 +270,8 @@ type
     Procedure TestFieldAndProperty;
     Procedure TestFieldAndClassMethod;
     Procedure TestFieldAndClassOperator;
+    Procedure TestFieldAndClassVar;
+    Procedure TestFieldAndVar;
     Procedure TestNested;
     Procedure TestNestedDeprecated;
     Procedure TestNestedPlatform;
@@ -2051,6 +2053,20 @@ begin
   AssertTrue('Method 2 hints match',[]=P.Hints);
   // Standard type
   AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndClassVar;
+begin
+  TestFields(['x : integer;','class var y : integer;'],'',False);
+  AssertField1([]);
+  AssertTrue('Second field is class var',vmClass in Field2.VarModifiers);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndVar;
+begin
+  TestFields(['x : integer;','var y : integer;'],'',False);
+  AssertField1([]);
+  AssertTrue('Second field is regular var',not (vmClass in Field2.VarModifiers));
 end;
 
 procedure TTestRecordTypeParser.TestNested;

@@ -77,6 +77,7 @@ const
   nParserPropertyArgumentsCanNotHaveDefaultValues = 2050;
   nParserExpectedExternalClassName = 2051;
   nParserNoConstRangeAllowed = 2052;
+  nErrRecordVariablesNotAllowed = 2053;
 
 // resourcestring patterns of messages
 resourcestring
@@ -115,6 +116,7 @@ resourcestring
   SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
   SErrRecordConstantsNotAllowed = 'Record constants not allowed at this location.';
+  SErrRecordVariablesNotAllowed = 'Record variables not allowed at this location.';
   SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
   SErrRecordPropertiesNotAllowed = 'Record properties not allowed at this location.';
   SErrRecordVisibilityNotAllowed = 'Record visibilities not allowed at this location.';
@@ -5448,6 +5450,21 @@ begin
         Cons:=ParseConstDecl(ARec);
         Cons.Visibility:=v;
         ARec.members.Add(Cons);
+        end;
+      tkVar:
+        begin
+        if Not AllowMethods then
+          ParseExc(nErrRecordVariablesNotAllowed,SErrRecordVariablesNotAllowed);
+        ExpectToken(tkIdentifier);
+        OldCount:=ARec.Members.Count;
+        ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
+        for i:=OldCount to ARec.Members.Count-1 do
+          begin
+          if isClass then
+            With TPasVariable(ARec.Members[i]) do
+              VarModifiers:=VarModifiers + [vmClass];
+          Engine.FinishScope(stDeclaration,TPasVariable(ARec.Members[i]));
+          end;
         end;
       tkClass:
         begin
