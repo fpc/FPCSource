@@ -307,7 +307,10 @@ Var
 begin
   Result := False;
   if PackageName='' then
-    Error(SErrNoPackageSpecified);
+    begin
+      Error(SErrNoPackageSpecified);
+      Exit;
+    end;
   P:=PackageManager.PackageByName(PackageName, pkgpkAvailable);
   BuildDir:=PackageManager.PackageBuildPath(P);
   ArchiveFile:=PackageManager.PackageLocalArchive(P);
