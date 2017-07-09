@@ -90,7 +90,8 @@ TYPE
    TFlock   = flock;
    pFlock   = ^flock;
 
-   TFDSet    = array[0..(FD_MAXFDSET div 32)-1] of Cardinal;
+   TFDSetEl  = Cardinal;
+   TFDSet    = array[0..(FD_MAXFDSET div 32)-1] of TFDSetEl;
    pFDSet    = ^TFDSet;
 
    timezone = packed record

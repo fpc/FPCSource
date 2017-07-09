@@ -200,8 +200,9 @@ type
    TTms      = tms;
    PTms      = ^tms;
 
- TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of cuLong;
- pFDSet    = ^TFDSet;
+  TFDSetEl  = cuLong;
+  TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of TFDSetEl;
+  pFDSet    = ^TFDSet;
 
   timezone = record
     tz_minuteswest,tz_dsttime:cint;

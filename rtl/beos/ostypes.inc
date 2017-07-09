@@ -220,7 +220,8 @@ TYPE
  TTms= tms;
  pTms= ^tms;
 
- TFDSet    = ARRAY[0..(FD_MAXFDSET div 32)-1] of Cardinal;
+ TFDSetEl  = Cardinal; 
+ TFDSet    = ARRAY[0..(FD_MAXFDSET div 32)-1] of TFDSetEl;
  pFDSet    = ^TFDSet;
 
 {***********************************************************************}
