@@ -57,7 +57,7 @@
   {$define NO_SYSCALL_IPC}
 {$endif}
 
- {$ifdef CPUARM}
+{$ifdef CPUARM}
 {$define WAIT4}
 {$endif CPUARM}
 
