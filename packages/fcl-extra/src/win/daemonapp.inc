@@ -576,7 +576,6 @@ begin
     Application.Log(etError,Format(SErrNoDaemonDefForStatus,[Name]));
     Exit;
     end;
-  DD.LogStatusReport:=True;
   If DD.LogStatusReport then
     With FDaemon do
       begin
