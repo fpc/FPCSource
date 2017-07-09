@@ -265,6 +265,10 @@ type
   );
   TModeSwitches = Set of TModeSwitch;
 
+  TTokenOption = (toForceCaret,toOperatorIdentifier);
+  TTokenOptions = Set of TTokenOption;
+
+
   { TMacroDef }
 
   TMacroDef = Class(TObject)
@@ -520,6 +524,7 @@ type
     FMacros,
     FDefines: TStrings;
     FMacrosOn: boolean;
+    FNonTokens: TTokens;
     FOnDirective: TPScannerDirectiveEvent;
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
@@ -588,6 +593,8 @@ type
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
+    Procedure PushNonToken(aToken : TToken);
+    Procedure PopNonToken(aToken : TToken);
     function FetchToken: TToken;
     function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
     function AddDefine(const aName: String; Quiet: boolean = false): boolean;
@@ -600,7 +607,6 @@ type
     Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
     Function SetForceCaret(AValue : Boolean) : Boolean;
-
     property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
     property CurFilename: string read FCurFilename;
@@ -613,7 +619,7 @@ type
     property CurToken: TToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
     Property PreviousToken : TToken Read FPreviousToken;
-
+    Property NonTokens : TTokens Read FNonTokens;
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
     property MacrosOn: boolean read FMacrosOn write FMacrosOn;
@@ -2212,6 +2218,16 @@ begin
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(AFilename));
 end;
 
+procedure TPascalScanner.PushNonToken(aToken: TToken);
+begin
+  Include(FNonTokens,AToken);
+end;
+
+procedure TPascalScanner.PopNonToken(aToken: TToken);
+begin
+  Exclude(FNonTokens,AToken);
+end;
+
 function TPascalScanner.FetchToken: TToken;
 var
   IncludeStackItem: TIncludeStackItem;
@@ -3296,14 +3312,17 @@ begin
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
-        for i := tkAbsolute to tkXOR do
-          if CompareText(CurTokenString, TokenInfos[i]) = 0 then
+        Result:=tkIdentifier;
+        i:=tkAbsolute;
+        While (I<=tkXor) and (Result=tkIdentifier) do
           begin
-            Result := i;
-            FCurToken := Result;
-            exit;
+          if (CompareText(CurTokenString, TokenInfos[i])=0) then
+            Result:=I;
+          I:=succ(i);
           end;
-        Result := tkIdentifier;
+        if (Result<>tkIdentifier) and (Result in FNonTokens) then
+          Result:=tkIdentifier;
+        FCurToken := Result;
         if MacrosOn then
           begin
           Index:=FMacros.IndexOf(CurtokenString);
@@ -3507,6 +3526,7 @@ begin
   FCurrentModeSwitches:=FCurrentModeSwitches+FReadOnlyModeSwitches;
 end;
 
+
 function TPascalScanner.FetchLine: boolean;
 begin
   if CurSourceFile.IsEOF then
@@ -3641,7 +3661,6 @@ end;
 function TPascalScanner.SetForceCaret(AValue: Boolean): Boolean;
 
 begin
-  Result:=FForceCaret;
   FForceCaret:=AValue;
 end;
 

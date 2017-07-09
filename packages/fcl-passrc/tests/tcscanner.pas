@@ -241,6 +241,7 @@ type
     procedure TestIFDefinedElseIf;
     procedure TestIfError;
     Procedure TestModeSwitch;
+    Procedure TestOperatorIdentifier;
   end;
 
 implementation
@@ -1723,6 +1724,12 @@ begin
         else
           AssertFalse(SModeSwitchNames[M]+C+' removes '+GetEnumName(TypeInfo(TModeSwitch),Ord(M)),M in Scanner.CurrentModeSwitches);
         end;
+end;
+
+procedure TTestScanner.TestOperatorIdentifier;
+begin
+  Scanner.PushNonToken(tkoperator);
+  TestToken(tkidentifier,'operator',True);
 end;
 
 initialization

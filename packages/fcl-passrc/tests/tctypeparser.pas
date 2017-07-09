@@ -330,6 +330,7 @@ type
     Procedure TestVariantNestedVariantBothDeprecated;
     Procedure TestVariantNestedVariantBothDeprecatedDeprecated;
     Procedure TestVariantNestedVariantBothDeprecatedPlatform;
+    Procedure TestOperatorField;
   end;
 
   { TTestProcedureTypeParser }
@@ -2383,6 +2384,12 @@ end;
 procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantBothDeprecated('platform');
+end;
+
+procedure TTestRecordTypeParser.TestOperatorField;
+begin
+  TestFields(['operator : integer;'],'',False);
+  AssertEquals('Field 1 name','operator',Field1.Name);
 end;
 
 { TBaseTestTypeParser }

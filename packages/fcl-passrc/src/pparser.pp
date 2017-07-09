@@ -2974,6 +2974,7 @@ begin
         end;
       tkIdentifier:
         begin
+          Scanner.PushNonToken(tkOperator);
           SaveComments;
           case CurBlock of
             declConst:
@@ -3071,6 +3072,7 @@ begin
           else
             ParseExcSyntaxError;
           end;
+        Scanner.PopNonToken(tkOperator);
         end;
       tkGeneric:
         begin
@@ -5452,6 +5454,7 @@ begin
         if isClass then
           ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError);
         isClass:=True;
+        Scanner.PopNonToken(tkOperator);
         end;
       tkProperty:
         begin
@@ -5517,7 +5520,10 @@ begin
       ParseExc(nParserTypeSyntaxError,SParserTypeSyntaxError);
     end;
     If CurToken<>tkClass then
+      begin
       isClass:=False;
+      Scanner.PushNonToken(tkOperator);
+      end;
     if CurToken<>AEndToken then
       NextToken;
     end;
