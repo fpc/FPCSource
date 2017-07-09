@@ -188,14 +188,21 @@ function TDaemonController.ReportStatus: Boolean;
 
 Var
   S : String;
+  doLog : Boolean;
 
 begin
   S:='';
+  DoLog:=True;
   If Assigned(FDaemon) then
     With FDaemon do
+      begin
       S:=Format(SDaemonStatus,[Definition.DisplayName,
                                CurrentStatusNames[Status]]);
-  Application.Log(etInfo,S);
+      if Assigned(Definition) then
+        doLog:=Definition.LogStatusReport;
+      end;  
+  if DoLog then    
+    Application.Log(etInfo,S);
 end;
 
 { ---------------------------------------------------------------------

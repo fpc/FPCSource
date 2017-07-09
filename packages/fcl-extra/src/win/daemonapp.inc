@@ -577,9 +577,7 @@ begin
     Exit;
     end;
   DD.LogStatusReport:=True;
-{$ifndef svcdebug}
   If DD.LogStatusReport then
-{$endif svcdebug}
     With FDaemon do
       begin
       S:=Format(SDaemonStatus,[Definition.DisplayName, CurrentStatusNames[Status]]);
@@ -618,6 +616,7 @@ end;
   ---------------------------------------------------------------------}
 
 Procedure SysInitDaemonApp;
+
 
 begin
 end;
