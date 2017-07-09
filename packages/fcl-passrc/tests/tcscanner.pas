@@ -1119,6 +1119,7 @@ end;
 procedure TTestScanner.TestOperator;
 
 begin
+  Scanner.SetTokenOption(toOperatorToken);
   TestToken(tkoperator,'operator');
 end;
 
@@ -1728,7 +1729,7 @@ end;
 
 procedure TTestScanner.TestOperatorIdentifier;
 begin
-  Scanner.PushNonToken(tkoperator);
+  Scanner.SetNonToken(tkoperator);
   TestToken(tkidentifier,'operator',True);
 end;
 

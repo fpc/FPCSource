@@ -27,7 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestRecordTypeParser.TestOperatorField"/>
+        <CommandLineParams Value="--suite=TTestProcedureFunction.TestOperatorTokens"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
