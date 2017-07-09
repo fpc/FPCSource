@@ -264,6 +264,8 @@ unit cgobj;
           procedure a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
           procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
+          procedure a_loadfpu_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, fpureg: tregister); virtual;
+
           { vector register move instructions }
           procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
@@ -1158,6 +1160,8 @@ implementation
                    a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
                  R_MMREGISTER:
                    a_loadmm_intreg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+                 R_FPUREGISTER:
+                   a_loadfpu_intreg_reg(list,paraloc.size,regsize,paraloc.register,reg);
                  else
                    internalerror(2009112422);
                end;
@@ -1686,6 +1690,21 @@ implementation
           else
             internalerror(200402201);
         end;
+      end;
+
+
+    procedure tcg.a_loadfpu_intreg_reg(list : TAsmList; fromsize,tosize : tcgsize; intreg,fpureg : tregister);
+      var
+        tmpref: treference;
+      begin
+        if not(tcgsize2size[fromsize] in [4,8]) or
+           not(tcgsize2size[tosize] in [4,8]) or
+           (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+          internalerror(2017070902);
+        tg.gettemp(list,tcgsize2size[fromsize],tcgsize2size[fromsize],tt_normal,tmpref);
+        a_load_reg_ref(list,fromsize,fromsize,intreg,tmpref);
+        a_loadfpu_ref_reg(list,tosize,tosize,tmpref,fpureg);
+        tg.ungettemp(list,tmpref);
       end;
 
 
