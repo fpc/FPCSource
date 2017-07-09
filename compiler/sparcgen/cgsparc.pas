@@ -637,8 +637,8 @@ implementation
         overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
       begin
         if (op in overflowops) and
-           (size in [OS_8,OS_S8,OS_16,OS_S16]) then
-          a_load_reg_reg(list,OS_32,size,dst,dst);
+           (size in [OS_8,OS_S8,OS_16,OS_S16{$ifdef SPARC64},OS_32,OS_S32{$endif SPARC64}]) then
+          a_load_reg_reg(list,OS_INT,size,dst,dst);
       end;
 
 
