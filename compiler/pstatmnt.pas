@@ -375,11 +375,14 @@ implementation
              loopvarsym:=nil;
 
              { variable must be an ordinal, int64 is not allowed for 32bit targets }
-             if not(is_ordinal(hloopvar.resultdef))
+             if (
+                 not(is_ordinal(hloopvar.resultdef))
     {$ifndef cpu64bitaddr}
-                or is_64bitint(hloopvar.resultdef)
+                 or is_64bitint(hloopvar.resultdef)
     {$endif not cpu64bitaddr}
-                then
+               ) and
+               (hloopvar.resultdef.typ<>undefineddef)
+               then
                MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
 
              hp:=hloopvar;
