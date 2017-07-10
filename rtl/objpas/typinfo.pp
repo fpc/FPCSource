@@ -748,6 +748,9 @@ procedure SetDynArrayProp(Instance: TObject; PropInfo: PPropInfo; const Value: P
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
 function GetEnumNameCount(enum1: PTypeInfo): SizeInt;
+procedure AddEnumElementAliases(aTypeInfo: PTypeInfo; const aNames: array of string; aStartValue: Integer = 0);
+procedure RemoveEnumElementAliases(aTypeInfo: PTypeInfo);
+function GetEnumeratedAliasValue(aTypeInfo: PTypeInfo; const aName: string): Integer;
 
 function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
@@ -877,6 +880,8 @@ begin
          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
          Inc(Count);
        end;
+     if Result=-1 then
+       Result:=GetEnumeratedAliasValue(TypeInfo,Name);
    end;
 end;
 
@@ -2920,5 +2925,144 @@ function TPropInfo.GetNext: PPropInfo;
 begin
   Result := PPropInfo(aligntoptr(Tail));
 end;
+
+type
+  TElementAlias = record
+    Ordinal : Integer;
+    Alias : string;
+  end;
+  TElementAliasArray = Array of TElementAlias;
+  PElementAliasArray = ^TElementAliasArray;
+
+  TEnumeratedAliases = record
+    TypeInfo: PTypeInfo;
+    Aliases: TElementAliasArray;
+  end;
+  TEnumeratedAliasesArray = Array of TEnumeratedAliases;
+
+Var
+  EnumeratedAliases : TEnumeratedAliasesArray;
+
+Function IndexOfEnumeratedAliases(aTypeInfo : PTypeInfo) : integer;
+
+begin
+  Result:=Length(EnumeratedAliases)-1;
+  while (Result>=0) and (EnumeratedAliases[Result].TypeInfo<>aTypeInfo) do
+    Dec(Result);
+end;
+
+Function GetEnumeratedAliases(aTypeInfo : PTypeInfo) : PElementAliasArray;
+
+Var
+  I : integer;
+
+begin
+  I:=IndexOfEnumeratedAliases(aTypeInfo);
+  if I=-1 then
+    Result:=Nil
+  else
+    Result:=@EnumeratedAliases[i].Aliases
+end;
+
+Function AddEnumeratedAliases(aTypeInfo : PTypeInfo) : PElementAliasArray;
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(EnumeratedAliases);
+  SetLength(EnumeratedAliases,L+1);
+  EnumeratedAliases[L].TypeInfo:=aTypeInfo;
+  Result:=@EnumeratedAliases[L].Aliases;
+end;
+
+procedure RemoveEnumElementAliases(aTypeInfo: PTypeInfo);
+
+Var
+  I,L : integer;
+  A : TEnumeratedAliases;
+
+begin
+  I:=IndexOfEnumeratedAliases(aTypeInfo);
+  if I=-1 then
+    exit;
+  A:=EnumeratedAliases[i];
+  A.Aliases:=Nil;
+  A.TypeInfo:=Nil;
+  L:=Length(EnumeratedAliases)-1;
+  EnumeratedAliases[i]:=EnumeratedAliases[L];
+  EnumeratedAliases[L]:=A;
+  SetLength(EnumeratedAliases,L);
+end;
+
+Resourcestring
+  SErrNotAnEnumerated = 'Type information points to non-enumerated type';
+  SErrInvalidEnumeratedCount = 'Invalid number of enumerated values';
+  SErrDuplicateEnumerated = 'Duplicate alias for enumerated value';
+
+procedure AddEnumElementAliases(aTypeInfo: PTypeInfo; const aNames: array of string; aStartValue: Integer = 0);
+
+var
+  Aliases: PElementAliasArray;
+  A : TElementAliasArray;
+  L, I, J : Integer;
+  N : String;
+  PT : PTypeData;
+
+
+begin
+  if (aTypeInfo^.Kind<>tkEnumeration) then
+    raise EArgumentException.Create(SErrNotAnEnumerated);
+  PT:=GetTypeData(aTypeInfo);
+  if (High(aNames)=-1) or ((aStartValue+High(aNames))> PT^.MaxValue) then
+    raise EArgumentException.Create(SErrInvalidEnumeratedCount);
+  Aliases:=GetEnumeratedAliases(aTypeInfo);
+  if (Aliases=Nil) then
+    Aliases:=AddEnumeratedAliases(aTypeInfo);
+  A:=Aliases^;
+  I:=0;
+  L:=Length(a);
+  SetLength(a,L+High(aNames)+1);
+  try
+    for N in aNames do
+      begin
+      for J:=0 to (L+I)-1 do
+        if SameText(N,A[J].Alias) then
+          raise EArgumentException.Create(SErrDuplicateEnumerated);
+      with A[L+I] do
+        begin
+        Ordinal:=aStartValue+I;
+        alias:=N;
+        end;
+      Inc(I);
+      end;
+  finally
+    // In case of exception, we need to correct the length.
+    if Length(A)<>I+L then
+      SetLength(A,I+L);
+    Aliases^:=A;
+  end;
+end;
+
+function GetEnumeratedAliasValue(aTypeInfo: PTypeInfo; const aName: string): Integer;
+
+var
+  I : Integer;
+  Aliases: PElementAliasArray;
+
+begin
+  Result:=-1;
+  Aliases:=GetEnumeratedAliases(aTypeInfo);
+  if (Aliases=Nil) then
+    Exit;
+  I:=Length(Aliases^)-1;
+  While (Result=-1) and (I>=0) do
+    begin
+    if SameText(Aliases^[I].Alias, aName) then
+      Result:=Aliases^[I].Ordinal;
+    Dec(I);
+    end;
+end;
+
 
 end.
