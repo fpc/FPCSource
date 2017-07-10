@@ -1071,6 +1071,11 @@ implementation
               l:=int64(tarraydef(def).lowrange);
               h:=int64(tarraydef(def).highrange);
             end;
+          undefineddef:
+            begin
+              l:=torddef(sizesinttype).low;
+              h:=torddef(sizesinttype).high;
+            end;
           else
             internalerror(200611054);
         end;
