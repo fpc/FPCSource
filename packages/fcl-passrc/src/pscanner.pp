@@ -610,7 +610,7 @@ type
     function RemoveMacro(const aName: String; Quiet: boolean = false): boolean;
     Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
-    Function SetForceCaret(AValue : Boolean) : Boolean;
+    Function SetForceCaret(AValue : Boolean) : Boolean; // returns old state
     property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
     property CurFilename: string read FCurFilename;
@@ -3700,6 +3700,7 @@ end;
 function TPascalScanner.SetForceCaret(AValue: Boolean): Boolean;
 
 begin
+  Result:=toForceCaret in FTokenOptions;
   if aValue then
     Include(FTokenOptions,toForceCaret)
   else
