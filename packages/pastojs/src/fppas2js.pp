@@ -248,7 +248,6 @@ Works:
 - dotted unit names, namespaces
 
 ToDos:
-- change some == into ===
 - constant evaluation
 - static arrays
 - property index specifier
@@ -258,9 +257,8 @@ ToDos:
     - defaultvalue
   - type alias type
   - documentation
-- sourcemaps
 - move local types to unit scope
-- local var absolute
+- var absolute
 - FuncName:= (instead of Result:=)
 - check memleaks
 - @@ compare method in delphi mode
@@ -3993,8 +3991,8 @@ Const
    Nil, // And
    Nil, // Or
    Nil, // XOr
-   TJSEqualityExpressionEQ,
-   TJSEqualityExpressionNE,
+   TJSEqualityExpressionSEQ,
+   TJSEqualityExpressionSNE,
    TJSRelationalExpressionLT,
    TJSRelationalExpressionGT,
    TJSRelationalExpressionLE,
@@ -4320,6 +4318,19 @@ begin
         B:=nil;
         exit;
         end;
+      end
+    else if AContext.Resolver.IsJSBaseType(LeftResolved,pbtJSValue)
+        or AContext.Resolver.IsJSBaseType(RightResolved,pbtJSValue) then
+      begin
+        // convert "jsvalue = something" to "jsvalue == something" (not strict)
+        // Note: default "=" is converted to "===" (strict equal)
+        if El.OpCode=eopEqual then
+          Result:=TJSEqualityExpressionEQ(CreateElement(TJSEqualityExpressionEQ,El))
+        else
+          Result:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
+        TJSBinaryExpression(Result).A:=A; A:=nil;
+        TJSBinaryExpression(Result).B:=B; B:=nil;
+        exit;
       end;
     end;
 end;
@@ -6375,7 +6386,7 @@ end;
 function TPasToJSConverter.ConvertBuiltIn_Assigned(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 var
-  NE: TJSEqualityExpressionNE;
+  NE: TJSEqualityExpressionSNE;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
   C: TClass;
@@ -6392,10 +6403,10 @@ begin
   {$ENDIF}
   if ParamResolved.BaseType=btPointer then
     begin
-    // convert Assigned(value)  ->  value!=null
+    // convert Assigned(value)  ->  value!==null
     Result:=ConvertElement(Param,AContext);
     // Note: convert Param first, it may raise an exception
-    NE:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
+    NE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,El));
     NE.A:=Result;
     NE.B:=CreateLiteralNull(El);
     Result:=NE;
@@ -6407,10 +6418,10 @@ begin
         or (C=TPasClassOfType)
         or C.InheritsFrom(TPasProcedureType) then
       begin
-      // convert Assigned(value)  ->  value!=null
+      // convert Assigned(value)  ->  value!==null
       Result:=ConvertElement(Param,AContext);
       // Note: convert Param first, it may raise an exception
-      NE:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
+      NE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,El));
       NE.A:=Result;
       NE.B:=CreateLiteralNull(El);
       Result:=NE;
@@ -8687,7 +8698,7 @@ var
   JSAndExpr: TJSLogicalAndExpression;
   JSLEExpr: TJSRelationalExpressionLE;
   JSGEExpr: TJSRelationalExpressionGE;
-  JSEQExpr: TJSEqualityExpressionEQ;
+  JSEQExpr: TJSEqualityExpressionSEQ;
 begin
   Result:=nil;
   if UseSwitchStatement then
@@ -8770,7 +8781,7 @@ begin
           else
             begin
             // value -> create (tmp==Expr)
-            JSEQExpr:=TJSEqualityExpressionEQ(CreateElement(TJSEqualityExpressionEQ,Expr));
+            JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
             JSExpr:=JSEQExpr;
             JSEQExpr.A:=CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext);
             JSEQExpr.B:=ConvertExpression(Expr,AContext);
@@ -10819,6 +10830,8 @@ end;
 
 function TPasToJSConverter.CreateCmpArrayWithNil(El: TPasElement;
   JSArray: TJSElement; OpCode: TExprOpCode): TJSElement;
+// convert "array = nil" to "rtl.length(array) > 0"
+// convert "array <> nil" to "rtl.length(array) === 0"
 var
   Call: TJSCallExpression;
   BinExpr: TJSBinaryExpression;
@@ -10829,7 +10842,7 @@ begin
   Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
   Call.AddArg(JSArray);
   if OpCode=eopEqual then
-    BinExpr:=TJSEqualityExpressionEQ(CreateElement(TJSEqualityExpressionEQ,El))
+    BinExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,El))
   else
     BinExpr:=TJSRelationalExpressionGT(CreateElement(TJSRelationalExpressionGT,El));
   BinExpr.A:=Call;
@@ -11824,7 +11837,7 @@ const
     i: Integer;
     PasVar: TPasVariable;
     FDS: TJSFunctionDeclarationStatement;
-    EqExpr: TJSEqualityExpressionEQ;
+    EqExpr: TJSEqualityExpressionSEQ;
     LastAndExpr: TJSLogicalAndExpression;
     VarType: TPasType;
     Call: TJSCallExpression;
@@ -11885,7 +11898,7 @@ const
       else
         begin
         // default: use simple equal "=="
-        EqExpr:=TJSEqualityExpressionEQ(CreateElement(TJSEqualityExpressionEQ,PasVar));
+        EqExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,PasVar));
         Add_AndExpr_ToReturnSt(RetSt,PasVar,LastAndExpr,EqExpr);
         EqExpr.A:=CreateMemberExpression(['this',VarName]);
         EqExpr.B:=CreateMemberExpression([EqualParamName,VarName]);

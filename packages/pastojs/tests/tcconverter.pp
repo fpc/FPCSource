@@ -1036,13 +1036,13 @@ end;
 Procedure TTestExpressionConverter.TestBinaryEqual;
 Var
   B : TBinaryExpr;
-  E : TJSEqualityExpressionEq;
+  E : TJSEqualityExpressionSEQ;
 
 begin
   B:=TBinaryExpr.Create(Nil,pekBinary,eopEqual);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
-  E:=TJSEqualityExpressionEq(TestBinaryExpression(B,TJSEqualityExpressionEq));
+  E:=TJSEqualityExpressionSEQ(TestBinaryExpression(B,TJSEqualityExpressionSEQ));
   AssertLiteral('Correct left literal for equal',E.A,13);
   AssertLiteral('Correct right literal for equal',E.B,3);
 end;
@@ -1050,13 +1050,13 @@ end;
 Procedure TTestExpressionConverter.TestBinaryNotEqual;
 Var
   B : TBinaryExpr;
-  E : TJSEqualityExpressionNE;
+  E : TJSEqualityExpressionSNE;
 
 begin
   B:=TBinaryExpr.Create(Nil,pekBinary,eopNotEqual);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
-  E:=TJSEqualityExpressionNE(TestBinaryExpression(B,TJSEqualityExpressionNE));
+  E:=TJSEqualityExpressionSNE(TestBinaryExpression(B,TJSEqualityExpressionSNE));
   AssertLiteral('Correct left literal for not equal',E.A,13);
   AssertLiteral('Correct right literal for not equal',E.B,3);
 end;

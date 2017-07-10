@@ -372,7 +372,7 @@ begin
     '    this.a = 0;',
     '  };',
     '  this.$equal = function (b) {',
-    '    return this.a == b.a;',
+    '    return this.a === b.a;',
     '  };',
     '};',
     'this.r = new $mod.TRec();',
