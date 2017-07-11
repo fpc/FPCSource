@@ -699,9 +699,10 @@ end;
 procedure TList<T>.SetItem(AIndex: SizeInt; const AValue: T);
 begin
   if (AIndex < 0) or (AIndex >= Count) then
-    raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
-
+    raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);   
+  Notify(FItems[AIndex], cnRemoved);
   FItems[AIndex] := AValue;
+  Notify(AValue, cnAdded);
 end;
 
 function TList<T>.GetEnumerator: TEnumerator;
