@@ -170,7 +170,7 @@ type
     Procedure TestAliasTypeNotFoundPosition;
     Procedure TestTypeAliasType; // ToDo
 
-    // var, const
+    // vars, const
     Procedure TestVarLongint;
     Procedure TestVarInteger;
     Procedure TestConstInteger;
@@ -184,15 +184,21 @@ type
     Procedure TestArgWrongExprFail;
     Procedure TestVarExternal;
     Procedure TestVarNoSemicolonBeginFail;
+    Procedure TestConstIntOperators;
+    Procedure TestConstBitwiseOps;
+    Procedure TestIntegerTypeCast;
+    Procedure TestConstBoolOperators;
+    Procedure TestBoolTypeCast;
+    Procedure TestConstFloatOperators;
+    Procedure TestFloatTypeCast;
+
+    // integer range
     Procedure TestIntegerRange;
     Procedure TestIntegerRangeHighLowerLowFail;
     Procedure TestIntegerRangeLowHigh;
     Procedure TestAssignIntRangeFail;
     Procedure TestByteRangeFail;
     Procedure TestCustomIntRangeFail;
-    Procedure TestConstIntOperators;
-    Procedure TestConstBitwiseOps;
-    Procedure TestConstBoolOperators;
 
     // strings
     Procedure TestChar_Ord;
@@ -2131,6 +2137,137 @@ begin
     nParserExpectTokenError);
 end;
 
+procedure TTestResolver.TestConstIntOperators;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  'const',
+  '  a:byte=1+2;',
+  '  b:shortint=1-2;',
+  '  c:word=2*3;',
+  '  d:smallint=5 div 2;',
+  '  e:longword=5 mod 2;',
+  '  f:longint=5 shl 2;',
+  '  g:qword=5 shr 2;',
+  '  h:boolean=5=2;',
+  '  i:boolean=5<>2;',
+  '  j:boolean=5<2;',
+  '  k:boolean=5>2;',
+  '  l:boolean=5<=2;',
+  '  m:boolean=5>=2;',
+  '  n:longword=5 and 2;',
+  '  o:longword=5 or 2;',
+  '  p:longword=5 xor 2;',
+  '  q:longword=not (5 or not 2);',
+  '  r=low(word)+high(int64);',
+  '  s=low(longint)+high(integer);',
+  '  t=succ(2)+pred(2);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestConstBitwiseOps;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=3;',
+  '  b=not a;',
+  '  c=not word(a);',
+  '  d=1 shl 2;',
+  '  e=13 shr 1;',
+  '  f=13 and 5;',
+  '  g=10 or 5;',
+  '  h=5 xor 7;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestIntegerTypeCast;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=longint(-11);',
+  '  b=not shortint(-12);',
+  '  c=word(-2);',
+  '  d=word(longword(-3));',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestConstBoolOperators;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=true and false;',
+  '  b=true or false;',
+  '  c=true xor false;',
+  '  d=not b;',
+  '  e=a=b;',
+  '  f=a<>b;',
+  '  g=low(boolean) or high(boolean);',
+  '  h=succ(false) or pred(true);',
+  '  i=ord(false)+ord(true);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestBoolTypeCast;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  a: boolean = boolean(0);');
+  Add('  b: boolean = boolean(1);');
+  Add('begin');
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestConstFloatOperators;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=4/2 + 6.1/3 + 8.1/4.1 + 10/5.1;',
+  '  b=(1.1+1) + (2.1+3.1) + (4+5.1);',
+  '  c=(1.1-1) + (2.1-3.1) + (4-5.1);',
+  '  d=4*2 + 6.1*3 + 8.1*4.1 + 10*5.1;',
+  '  e=a=b;',
+  '  f=a<>b;',
+  '  g=a>b;',
+  '  h=a>=b;',
+  '  i=a<b;',
+  '  j=a<=b;',
+  '  k=(1.1<1) or (2.1<3.1) or (4<5.1);',
+  '  l=(1.1=1) or (2.1=3.1) or (4=5.1);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestFloatTypeCast;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=-123456890123456789012345;',
+  '  b: double=-123456890123456789012345;',
+  '  c=single(double(-123456890123456789012345));',
+  '  d=single(-1);',
+  '  e=single(word(-1));',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestIntegerRange;
 begin
   StartProgram(false);
@@ -2215,75 +2352,6 @@ begin
     'range check error while evaluating constants (3 must be between 1 and 2)');
   CheckResolverUnexpectedHints;
   {$ENDIF}
-end;
-
-procedure TTestResolver.TestConstIntOperators;
-begin
-  StartProgram(false);
-  Add([
-  'type',
-  '  integer = longint;',
-  'const',
-  '  a:byte=1+2;',
-  '  b:shortint=1-2;',
-  '  c:word=2*3;',
-  '  d:smallint=5 div 2;',
-  '  e:longword=5 mod 2;',
-  '  f:longint=5 shl 2;',
-  '  g:qword=5 shr 2;',
-  '  h:boolean=5=2;',
-  '  i:boolean=5<>2;',
-  '  j:boolean=5<2;',
-  '  k:boolean=5>2;',
-  '  l:boolean=5<=2;',
-  '  m:boolean=5>=2;',
-  '  n:longword=5 and 2;',
-  '  o:longword=5 or 2;',
-  '  p:longword=5 xor 2;',
-  '  q:longword=not (5 or not 2);',
-  '  r=low(word)+high(int64);',
-  '  s=low(longint)+high(integer);',
-  '  t=succ(2)+pred(2);',
-  'begin']);
-  ParseProgram;
-  CheckResolverUnexpectedHints;
-end;
-
-procedure TTestResolver.TestConstBitwiseOps;
-begin
-  StartProgram(false);
-  Add([
-  'const',
-  '  a=3;',
-  '  b=not a;',
-  '  c=not word(a);',
-  '  d=1 shl 2;',
-  '  e=13 shr 1;',
-  '  f=13 and 5;',
-  '  g=10 or 5;',
-  '  h=5 xor 7;',
-  'begin']);
-  ParseProgram;
-  CheckResolverUnexpectedHints;
-end;
-
-procedure TTestResolver.TestConstBoolOperators;
-begin
-  StartProgram(false);
-  Add([
-  'const',
-  '  a=true and false;',
-  '  b=true or false;',
-  '  c=true xor false;',
-  '  d=not b;',
-  '  e=a=b;',
-  '  f=a<>b;',
-  '  g=low(boolean) or high(boolean);',
-  '  h=succ(false) or pred(true);',
-  '  i=ord(false)+ord(true);',
-  'begin']);
-  ParseProgram;
-  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestChar_Ord;
@@ -2396,7 +2464,16 @@ begin
   StartProgram(false);
   Add([
   'const',
-  '  a=''o''+''x'';',
+  '  a=''o''+''x''+''''+''ab'';',
+  '  b=#65#66;',
+  '  c=a=b;',
+  '  d=a<>b;',
+  '  e=a<b;',
+  '  f=a<=b;',
+  '  g=a>b;',
+  '  h=a>=b;',
+  '  i=a[1];',
+  '  j=length(a);',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;

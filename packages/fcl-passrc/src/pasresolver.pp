@@ -5769,7 +5769,7 @@ begin
     end
   else if (C=TSelfExpr) or ((C=TPrimitiveExpr) and (TPrimitiveExpr(Expr).Kind=pekIdent)) then
     // ok
-  else if (Access=rraRead)
+  else if (Access in [rraRead,rraParamToUnknownProc])
       and ((C=TPrimitiveExpr)
         or (C=TNilExpr)
         or (C=TBoolConstExpr)) then
@@ -7513,6 +7513,7 @@ var
   Value: TResEvalValue;
   Int: MaxPrecInt;
   MinIntVal, MaxIntVal: int64;
+  Flo: MaxPrecFloat;
 begin
   Result:=nil;
   {$IFDEF VerbosePasResEval}
@@ -7528,9 +7529,6 @@ begin
       if bt=btQWord then
         begin
         // int to qword
-        if (Int<0) then
-          fExprEvaluator.EmitRangeCheckConst(20170624195049,
-            Value.AsString,'0',IntToStr(High(qword)),Params);
         {$R-}
         Result:=TResEvalUInt.CreateValue(MaxPrecUInt(Int));
         {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
@@ -7541,21 +7539,21 @@ begin
         GetIntegerRange(bt,MinIntVal,MaxIntVal);
         if (Int<MinIntVal) or (Int>MaxIntVal) then
           begin
-          fExprEvaluator.EmitRangeCheckConst(20170624194534,
-            Value.AsString,MinIntVal,MaxIntVal,Params);
           {$R-}
           case bt of
             btByte: Result:=TResEvalInt.CreateValue(byte(Int),reitByte);
-            btShortInt: Result:=TResEvalInt.CreateValue(shortint(Int),reitShortInt);// ToDo: negative
+            btShortInt: Result:=TResEvalInt.CreateValue(shortint(Int),reitShortInt);
             btWord: Result:=TResEvalInt.CreateValue(word(Int),reitWord);
-            btSmallInt: Result:=TResEvalInt.CreateValue(smallint(Int),reitSmallInt);// ToDo: negative
-            btUIntSingle: Result:=TResEvalInt.CreateValue(Int and MaskUIntSingle,reitUIntSingle);// ToDo: negative
-            btIntSingle: Result:=TResEvalInt.CreateValue(Int and MaskUIntSingle,reitIntSingle);// ToDo: negative
+            btSmallInt: Result:=TResEvalInt.CreateValue(smallint(Int),reitSmallInt);
             btLongWord: Result:=TResEvalInt.CreateValue(longword(Int),reitLongWord);
-            btLongint: Result:=TResEvalInt.CreateValue(longint(Int),reitLongInt);// ToDo: negative
-            btUIntDouble: Result:=TResEvalInt.CreateValue(Int and MaskUIntDouble,reitUIntDouble);// ToDo: negative
-            btIntDouble: Result:=TResEvalInt.CreateValue(Int and MaskUIntDouble,reitIntDouble);// ToDo: negative
+            btLongint: Result:=TResEvalInt.CreateValue(longint(Int),reitLongInt);
             btInt64: Result:=TResEvalInt.CreateValue(Int);
+            btUIntSingle,
+            btIntSingle,
+            btUIntDouble,
+            btIntDouble:
+              fExprEvaluator.EmitRangeCheckConst(20170624194534,
+                Value.AsString,MinIntVal,MaxIntVal,Params,mtError);
           else
             RaiseNotYetImplemented(20170624200109,Params);
           end;
@@ -7583,6 +7581,26 @@ begin
           end;
         exit;
         end
+      else if bt=btboolean then
+        case Int of
+        0: Result:=TResEvalBool.CreateValue(false);
+        1: Result:=TResEvalBool.CreateValue(true);
+        else
+          fExprEvaluator.EmitRangeCheckConst(20170710203254,
+            Value.AsString,0,1,Params,mtError);
+        end
+      else if bt=btSingle then
+        try
+          Result:=TResEvalFloat.CreateValue(Single(Int))
+        except
+          RaiseMsg(20170711002015,nRangeCheckError,sRangeCheckError,[],Params);
+        end
+      else if bt=btDouble then
+        try
+          Result:=TResEvalFloat.CreateValue(Double(Int))
+        except
+          RaiseMsg(20170711002016,nRangeCheckError,sRangeCheckError,[],Params);
+        end
       else
         begin
         {$IFDEF VerbosePasResEval}
@@ -7591,6 +7609,66 @@ begin
         RaiseNotYetImplemented(20170624194308,Params);
         end;
       end;
+    revkFloat:
+      begin
+      Flo:=TResEvalFloat(Value).FloatValue;
+      if bt in (btAllInteger-[btQWord]) then
+        begin
+        // float to int
+        GetIntegerRange(bt,MinIntVal,MaxIntVal);
+        if (Flo<MinIntVal) or (Flo>MaxIntVal) then
+          fExprEvaluator.EmitRangeCheckConst(20170711001228,
+            Value.AsString,MinIntVal,MaxIntVal,Params,mtError);
+        {$R-}
+        try
+          Int:=Round(Flo);
+        except
+          RaiseMsg(20170711002218,nRangeCheckError,sRangeCheckError,[],Params);
+        end;
+        case bt of
+          btByte: Result:=TResEvalInt.CreateValue(Int,reitByte);
+          btShortInt: Result:=TResEvalInt.CreateValue(Int,reitShortInt);
+          btWord: Result:=TResEvalInt.CreateValue(Int,reitWord);
+          btSmallInt: Result:=TResEvalInt.CreateValue(Int,reitSmallInt);
+          btUIntSingle: Result:=TResEvalInt.CreateValue(Int,reitUIntSingle);
+          btIntSingle: Result:=TResEvalInt.CreateValue(Int,reitIntSingle);
+          btLongWord: Result:=TResEvalInt.CreateValue(Int,reitLongWord);
+          btLongint: Result:=TResEvalInt.CreateValue(Int,reitLongInt);
+          btUIntDouble: Result:=TResEvalInt.CreateValue(Int,reitUIntDouble);
+          btIntDouble: Result:=TResEvalInt.CreateValue(Int,reitIntDouble);
+          btInt64: Result:=TResEvalInt.CreateValue(Int);
+        else
+          RaiseNotYetImplemented(20170711001513,Params);
+        end;
+        {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
+        exit;
+        end
+      else if bt=btSingle then
+        begin
+        // float to single
+        try
+          Result:=TResEvalFloat.CreateValue(single(Flo));
+        except
+          RaiseMsg(20170711002315,nRangeCheckError,sRangeCheckError,[],Params);
+        end;
+        end
+      else if bt=btDouble then
+        begin
+        // float to double
+        try
+          Result:=TResEvalFloat.CreateValue(double(Flo));
+        except
+          RaiseMsg(20170711002327,nRangeCheckError,sRangeCheckError,[],Params);
+        end;
+        end
+      else
+        begin
+        {$IFDEF VerbosePasResEval}
+        writeln('TPasResolver.OnExprEvalParams typecast float to ',bt);
+        {$ENDIF}
+        RaiseNotYetImplemented(20170711002542,Params);
+        end;
+      end
     else
       {$IFDEF VerbosePasResEval}
       writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
@@ -7613,7 +7691,7 @@ begin
   Result:=fExprEvaluator.Eval(Expr,Flags);
   if Result=nil then exit;
   {$IFDEF VerbosePasResEval}
-  writeln('TPasResolver.Eval Result=',Result.AsString);
+  writeln('TPasResolver.Eval Result=',Result.AsDebugString);
   {$ENDIF}
 
   if Store
@@ -10716,6 +10794,9 @@ begin
       // simple type check is enough
     else if RValue.Kind=revkBool then
       // simple type check is enough
+    else if LeftResolved.BaseType in [btSingle,btDouble] then
+      // simple type check is enough
+      // ToDo: check if precision loss
     else
       begin
       {$IFDEF VerbosePasResolver}

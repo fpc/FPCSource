@@ -267,7 +267,6 @@ ToDos:
 - pointer of record
 - nested types in class
 - asm: pas() - useful for overloads and protect an identifier from optimization
-- source maps
 - ifthen
 - stdcall of methods: pass original 'this' as first parameter
 
