@@ -9,6 +9,8 @@ uses
 
 const
   use_temp_dir : boolean = true;
+  need_cwsdpmi : boolean = false;
+  cwsdpmi_file : string = '';
   hide_execution : boolean = true;
   do_exit : boolean = true;
   verbose : boolean = false;
@@ -232,6 +234,7 @@ begin
   DeleteIfExists(ADosBoxDir + 'dosbox.conf');
   DeleteIfExists(ADosBoxDir + 'EXITCODE.TXT');
   DeleteIfExists(ADosBoxDir + 'EXITCODE.EXE');
+  DeleteIfExists(ADosBoxDir + 'CWSDPMI.EXE');
   DeleteIfExists(ADosBoxDir + 'TEST.EXE');
   RmDir(ADosBoxDir);
 end;
@@ -297,6 +300,12 @@ begin
       verbose:=true;
       Writeln('verbose set to true');
     end;
+  if (GetEnvironmentVariable('DOSBOX_NEEDS_CWSDPMI')<>'') or
+     (GetEnvironmentVariable('TEST_OS_TARGET')='go32v2') then
+    begin
+      need_cwsdpmi:=true;
+      Writeln('need_cwsdpmi set to true');
+    end;
   if GetEnvironmentVariable('DOSBOX_TIMEOUT')<>'' then
     begin
       dosbox_timeout:=StrToInt(GetEnvironmentVariable('DOSBOX_TIMEOUT'));
@@ -344,6 +353,14 @@ begin
     GenerateDosBoxConf(DosBoxDir);
     CopyFile(ExtractFilePath(ParamStr(0)) + 'exitcode.exe', DosBoxDir + 'EXITCODE.EXE');
     CopyFile(ParamStr(1), DosBoxDir + 'TEST.EXE');
+    if need_cwsdpmi then
+      begin
+        cwsdpmi_file:=FileSearch('cwsdpmi.exe',GetEnvironmentVariable('PATH'));
+        if cwsdpmi_file<>'' then
+          CopyFile(cwsdpmi_file, DosBoxDir + 'CWSDPMI.EXE')
+        else if verbose then
+          writeln('cwsdpmi executable missing');
+      end;
     ExecuteDosBox(DosBoxBinaryPath, DosBoxDir);
   finally
     ExitProc;
