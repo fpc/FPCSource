@@ -831,6 +831,11 @@ begin
                   //printattributes(chld,'');
                   checkattributes(chld,'HREF',localname,filelist);
                 end;
+              if s='SCRIPT' then
+                begin
+                  //printattributes(chld,'');
+                  checkattributes(chld,'SRC',localname,filelist);
+                end;
              if s='IMG'then
                begin
                   //printattributes(chld,'');
