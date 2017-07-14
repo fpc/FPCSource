@@ -8383,7 +8383,7 @@ var
   ArrayEl: TPasArrayType;
   Value: TResEvalValue;
   EnumType: TPasEnumType;
-  aSet: TResEvalSetInt;
+  aSet: TResEvalSet;
   Int: MaxPrecInt;
   bt: TResolverBaseType;
   MinInt, MaxInt: int64;
@@ -8454,7 +8454,7 @@ begin
     case Value.Kind of
     revkSetOfInt:
       begin
-      aSet:=TResEvalSetInt(Value);
+      aSet:=TResEvalSet(Value);
       if length(aSet.Ranges)=0 then
         RaiseXExpectedButYFound(20170601201637,'ordinal value',Value.AsString,Param);
       if Proc.BuiltIn=bfLow then

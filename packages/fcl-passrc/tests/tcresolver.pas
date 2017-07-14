@@ -201,6 +201,7 @@ type
     Procedure TestByteRangeFail;
     Procedure TestCustomIntRangeFail;
     Procedure TestIntSet_Const;
+    Procedure TestIntSet_ConstDuplicateElement;
 
     // strings
     Procedure TestChar_Ord;
@@ -2403,6 +2404,18 @@ begin
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestIntSet_ConstDuplicateElement;
+begin
+  {$IFDEF EnablePasResRangeCheck}
+  StartProgram(false);
+  Add([
+  'const',
+  '  s1 = [1,1..2];',
+  'begin']);
+  CheckResolverException(sRangeCheckInSetConstructor,nRangeCheckInSetConstructor);
+  {$ENDIF}
 end;
 
 procedure TTestResolver.TestChar_Ord;

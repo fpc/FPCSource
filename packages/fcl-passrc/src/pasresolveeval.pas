@@ -44,10 +44,9 @@ Works:
 - set of enum, set of char, set of bool, set of int
   - [a,b,c..d]
   - +, -, *, ><, =, <>, >=, <=, in
+  - error on duplicate in const set
 
 ToDo:
-- sets
-  - error on duplicate
 - arrays
   - length(), low(), high(), []
 }
@@ -134,6 +133,7 @@ const
   nIllegalChar = 3067;
   nOverflowInArithmeticOperation = 3068;
   nDivByZero = 3069;
+  nRangeCheckInSetConstructor = 3070;
 
 // resourcestring patterns of messages
 resourcestring
@@ -206,6 +206,7 @@ resourcestring
   sIllegalChar = 'Illegal character';
   sOverflowInArithmeticOperation = 'Overflow in arithmetic operation';
   sDivByZero = 'Division by zero';
+  sRangeCheckInSetConstructor = 'range check error in set constructor or duplicate set element';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -405,9 +406,9 @@ type
     function AsString: string; override;
   end;
 
-  { TResEvalSetInt - Kind=revkSetOfInt }
+  { TResEvalSet - Kind=revkSetOfInt }
 
-  TResEvalSetInt = class(TResEvalValue)
+  TResEvalSet = class(TResEvalValue)
   public
     const MaxCount = $ffff;
     type
@@ -419,12 +420,13 @@ type
     ElKind: TRESetElKind;
     Ranges: TItems; // disjunct, sorted ascending
     constructor Create; override;
-    constructor CreateEmpty(aSet: TResEvalSetInt);
+    constructor CreateEmpty(aSet: TResEvalSet);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
     function ElementAsString(El: MaxPrecInt): string;
     function Add(RangeStart, RangeEnd: MaxPrecInt): boolean; // false if duplicate ignored
     function IndexOfRange(Index: MaxPrecInt; FindInsertPos: boolean = false): integer;
+    function Intersects(RangeStart, RangeEnd: MaxPrecInt): integer; // returns index of first intersecting range
     procedure ConsistencyCheck;
   end;
 
@@ -482,7 +484,7 @@ type
     function EvalBinarySymmetricaldifferenceExpr(Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
     function EvalParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalArrayParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
-    function EvalSetParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalSetInt;
+    function EvalSetParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalSet;
     function ExprStringToOrd(Value: TResEvalValue; PosEl: TPasElement): longword; virtual;
     function EvalPrimitiveExprString(Expr: TPrimitiveExpr): TResEvalValue; virtual;
     procedure PredBool(Value: TResEvalBool; ErrorEl: TPasElement);
@@ -1205,7 +1207,7 @@ var
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
   LeftCP, RightCP: TSystemCodePage;
-  LeftSet, RightSet: TResEvalSetInt;
+  LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
   Result:=nil;
@@ -1330,8 +1332,8 @@ begin
       revkSetOfInt:
         begin
         // union
-        LeftSet:=TResEvalSetInt(LeftValue);
-        RightSet:=TResEvalSetInt(RightValue);
+        LeftSet:=TResEvalSet(LeftValue);
+        RightSet:=TResEvalSet(RightValue);
         if LeftSet.ElKind=revskNone then
           Result:=RightSet.Clone
         else if RightSet.ElKind=revskNone then
@@ -1341,8 +1343,14 @@ begin
           Result:=RightSet.Clone;
           // add elements of left
           for i:=0 to length(LeftSet.Ranges)-1 do
-            for Int:=LeftSet.Ranges[i].RangeStart to LeftSet.Ranges[i].RangeEnd do
-              TResEvalSetInt(Result).Add(Int,Int);
+            begin
+            Int:=LeftSet.Ranges[i].RangeStart;
+            while Int<=LeftSet.Ranges[i].RangeEnd do
+              begin
+              TResEvalSet(Result).Add(Int,Int);
+              inc(Int);
+              end;
+            end;
           end;
         end;
       else
@@ -1371,7 +1379,7 @@ var
   Int: MaxPrecInt;
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
-  LeftSet, RightSet: TResEvalSetInt;
+  LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
   Result:=nil;
@@ -1519,18 +1527,24 @@ begin
     revkSetOfInt:
       begin
       // difference
-      LeftSet:=TResEvalSetInt(LeftValue);
-      RightSet:=TResEvalSetInt(RightValue);
+      LeftSet:=TResEvalSet(LeftValue);
+      RightSet:=TResEvalSet(RightValue);
       if LeftSet.ElKind=revskNone then
-        Result:=TResEvalSetInt.CreateEmpty(RightSet)
+        Result:=TResEvalSet.CreateEmpty(RightSet)
       else
         begin
-        Result:=TResEvalSetInt.CreateEmpty(LeftSet);
+        Result:=TResEvalSet.CreateEmpty(LeftSet);
         // add elements, which exists only in LeftSet
         for i:=0 to length(LeftSet.Ranges)-1 do
-          for Int:=LeftSet.Ranges[i].RangeStart to LeftSet.Ranges[i].RangeEnd do
+          begin
+          Int:=LeftSet.Ranges[i].RangeStart;
+          while Int<=LeftSet.Ranges[i].RangeEnd do
+            begin
             if RightSet.IndexOfRange(Int)<0 then
-              TResEvalSetInt(Result).Add(Int,Int);
+              TResEvalSet(Result).Add(Int,Int);
+            inc(Int);
+            end;
+          end;
         end;
       end;
     else
@@ -1553,7 +1567,7 @@ var
   Int: MaxPrecInt;
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
-  LeftSet, RightSet: TResEvalSetInt;
+  LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
   Result:=nil;
@@ -1712,18 +1726,24 @@ begin
     revkSetOfInt:
       begin
       // intersect
-      LeftSet:=TResEvalSetInt(LeftValue);
-      RightSet:=TResEvalSetInt(RightValue);
+      LeftSet:=TResEvalSet(LeftValue);
+      RightSet:=TResEvalSet(RightValue);
       if LeftSet.ElKind=revskNone then
-        Result:=TResEvalSetInt.CreateEmpty(RightSet)
+        Result:=TResEvalSet.CreateEmpty(RightSet)
       else
         begin
-        Result:=TResEvalSetInt.CreateEmpty(LeftSet);
+        Result:=TResEvalSet.CreateEmpty(LeftSet);
         // add elements, which exists in both
         for i:=0 to length(LeftSet.Ranges)-1 do
-          for Int:=LeftSet.Ranges[i].RangeStart to LeftSet.Ranges[i].RangeEnd do
+          begin
+          Int:=LeftSet.Ranges[i].RangeStart;
+          while Int<=LeftSet.Ranges[i].RangeEnd do
+            begin
             if RightSet.IndexOfRange(Int)>=0 then
-              TResEvalSetInt(Result).Add(Int,Int);
+              TResEvalSet(Result).Add(Int,Int);
+            inc(Int);
+            end;
+          end;
         end;
       end;
     else
@@ -2162,7 +2182,7 @@ function TResExprEvaluator.EvalBinaryNEqualExpr(Expr: TBinaryExpr; LeftValue,
   RightValue: TResEvalValue): TResEvalValue;
 var
   UInt: MaxPrecUInt;
-  LeftSet, RightSet: TResEvalSetInt;
+  LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
   Result:=TResEvalBool.Create;
@@ -2267,8 +2287,8 @@ begin
       case RightValue.Kind of
       revkSetOfInt:
         begin
-        LeftSet:=TResEvalSetInt(LeftValue);
-        RightSet:=TResEvalSetInt(RightValue);
+        LeftSet:=TResEvalSet(LeftValue);
+        RightSet:=TResEvalSet(RightValue);
         if LeftSet.ElKind=revskNone then
           TResEvalBool(Result).B:=length(RightSet.Ranges)=0
         else if RightSet.ElKind=revskNone then
@@ -2330,7 +2350,7 @@ function TResExprEvaluator.EvalBinaryLessGreaterExpr(Expr: TBinaryExpr;
   end;
 
 var
-  LeftSet, RightSet: TResEvalSetInt;
+  LeftSet, RightSet: TResEvalSet;
   i: Integer;
   Int: MaxPrecInt;
 begin
@@ -2510,32 +2530,44 @@ begin
       case RightValue.Kind of
       revkSetOfInt:
         begin
-        LeftSet:=TResEvalSetInt(LeftValue);
-        RightSet:=TResEvalSetInt(RightValue);
+        LeftSet:=TResEvalSet(LeftValue);
+        RightSet:=TResEvalSet(RightValue);
         case Expr.OpCode of
         eopGreaterThanEqual:
           begin
           // >=  ->  true if all elements of RightSet are in LeftSet
           TResEvalBool(Result).B:=true;
           for i:=0 to length(RightSet.Ranges)-1 do
-            for Int:=RightSet.Ranges[i].RangeStart to RightSet.Ranges[i].RangeEnd do
+            begin
+            Int:=RightSet.Ranges[i].RangeStart;
+            while Int<=RightSet.Ranges[i].RangeEnd do
+              begin
               if LeftSet.IndexOfRange(Int)<0 then
                 begin
                 TResEvalBool(Result).B:=false;
                 break;
                 end;
+              inc(Int);
+              end;
+            end;
           end;
         eopLessthanEqual:
           begin
           // <=  ->  true if all elements of LeftSet are in RightSet
           TResEvalBool(Result).B:=true;
           for i:=0 to length(LeftSet.Ranges)-1 do
-            for Int:=LeftSet.Ranges[i].RangeStart to LeftSet.Ranges[i].RangeEnd do
+            begin
+            Int:=LeftSet.Ranges[i].RangeStart;
+            while Int<=LeftSet.Ranges[i].RangeEnd do
+              begin
               if RightSet.IndexOfRange(Int)<0 then
                 begin
                 TResEvalBool(Result).B:=false;
                 break;
                 end;
+              inc(Int);
+              end;
+            end;
           end
         else
           {$IFDEF VerbosePasResolver}
@@ -2570,14 +2602,14 @@ end;
 function TResExprEvaluator.EvalBinaryInExpr(Expr: TBinaryExpr; LeftValue,
   RightValue: TResEvalValue): TResEvalValue;
 var
-  RightSet: TResEvalSetInt;
+  RightSet: TResEvalSet;
   Int: MaxPrecInt;
 begin
   Result:=nil;
   case RightValue.Kind of
   revkSetOfInt:
     begin
-    RightSet:=TResEvalSetInt(RightValue);
+    RightSet:=TResEvalSet(RightValue);
     case LeftValue.Kind of
     revkBool:
       Int:=ord(TResEvalBool(LeftValue).B);
@@ -2622,7 +2654,7 @@ end;
 function TResExprEvaluator.EvalBinarySymmetricaldifferenceExpr(
   Expr: TBinaryExpr; LeftValue, RightValue: TResEvalValue): TResEvalValue;
 var
-  LeftSet, RightSet: TResEvalSetInt;
+  LeftSet, RightSet: TResEvalSet;
   i: Integer;
   Int: MaxPrecInt;
 begin
@@ -2632,22 +2664,34 @@ begin
     revkSetOfInt:
       begin
       // sym diff
-      LeftSet:=TResEvalSetInt(LeftValue);
-      RightSet:=TResEvalSetInt(RightValue);
+      LeftSet:=TResEvalSet(LeftValue);
+      RightSet:=TResEvalSet(RightValue);
       // elements, which exists in either, but not both
       if LeftSet.ElKind=revskNone then
         Result:=RightSet.Clone
       else
         begin
-        Result:=TResEvalSetInt.CreateEmpty(LeftSet);
+        Result:=TResEvalSet.CreateEmpty(LeftSet);
         for i:=0 to length(LeftSet.Ranges)-1 do
-          for Int:=LeftSet.Ranges[i].RangeStart to LeftSet.Ranges[i].RangeEnd do
+          begin
+          Int:=LeftSet.Ranges[i].RangeStart;
+          while Int<=LeftSet.Ranges[i].RangeEnd do
+            begin
             if RightSet.IndexOfRange(Int)<0 then
-              TResEvalSetInt(Result).Add(Int,Int);
+              TResEvalSet(Result).Add(Int,Int);
+            inc(Int);
+            end;
+          end;
         for i:=0 to length(RightSet.Ranges)-1 do
-          for Int:=RightSet.Ranges[i].RangeStart to RightSet.Ranges[i].RangeEnd do
+          begin
+          Int:=RightSet.Ranges[i].RangeStart;
+          while Int<=RightSet.Ranges[i].RangeEnd do
+            begin
             if LeftSet.IndexOfRange(Int)<0 then
-              TResEvalSetInt(Result).Add(Int,Int);
+              TResEvalSet(Result).Add(Int,Int);
+            inc(Int);
+            end;
+          end;
         end;
       end
     else
@@ -2752,19 +2796,20 @@ begin
 end;
 
 function TResExprEvaluator.EvalSetParamsExpr(Expr: TParamsExpr;
-  Flags: TResEvalFlags): TResEvalSetInt;
+  Flags: TResEvalFlags): TResEvalSet;
 var
   i: Integer;
   RangeStart, RangeEnd: MaxPrecInt;
   Value: TResEvalValue;
-  ok: Boolean;
+  ok, OnlyConstElements: Boolean;
   El: TPasExpr;
 begin
   {$IFDEF VerbosePasResEval}
   writeln('TResExprEvaluator.EvalSetParamsExpr length(Expr.Params)=',length(Expr.Params));
   {$ENDIF}
-  Result:=TResEvalSetInt.Create;
+  Result:=TResEvalSet.Create;
   Value:=nil;
+  OnlyConstElements:=true;
   ok:=false;
   try
     for i:=0 to length(Expr.Params)-1 do
@@ -2777,9 +2822,12 @@ begin
       if Value=nil then
         begin
         // element is not a const -> the set is not a const
-        exit;
+        OnlyConstElements:=false;
+        continue;
         end;
-      writeln('TResExprEvaluator.EvalSetParamsExpr ',i,' of ',length(Expr.Params),' Value=',Value.AsDebugString);
+      {$IFDEF VerbosePasResEval}
+      //writeln('TResExprEvaluator.EvalSetParamsExpr ',i,' of ',length(Expr.Params),' Value=',Value.AsDebugString);
+      {$ENDIF}
       case Value.Kind of
       revkBool:
         begin
@@ -2881,9 +2929,17 @@ begin
         RaiseNotYetImplemented(20170713143422,El);
       end;
 
+      if Result.Intersects(RangeStart,RangeEnd)>=0 then
+        begin
+        {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
+        writeln('TResExprEvaluator.EvalSetParamsExpr Value=',Value.AsDebugString,' Range=',RangeStart,'..',RangeEnd,' Result=',Result.AsDebugString);
+        {$ENDIF}
+        RaiseMsg(20170714141326,nRangeCheckInSetConstructor,
+          sRangeCheckInSetConstructor,[],El);
+        end;
       Result.Add(RangeStart,RangeEnd);
       end;
-    ok:=true;
+    ok:=OnlyConstElements;
   finally
     ReleaseEvalValue(Value);
     if not ok then
@@ -4104,34 +4160,34 @@ begin
   end;
 end;
 
-{ TResEvalSetInt }
+{ TResEvalSet }
 
-constructor TResEvalSetInt.Create;
+constructor TResEvalSet.Create;
 begin
   inherited Create;
   Kind:=revkSetOfInt;
 end;
 
-constructor TResEvalSetInt.CreateEmpty(aSet: TResEvalSetInt);
+constructor TResEvalSet.CreateEmpty(aSet: TResEvalSet);
 begin
   ElKind:=aSet.ElKind;
   IdentEl:=aSet.IdentEl;
 end;
 
-function TResEvalSetInt.Clone: TResEvalValue;
+function TResEvalSet.Clone: TResEvalValue;
 var
-  RS: TResEvalSetInt;
+  RS: TResEvalSet;
   i: Integer;
 begin
   Result:=inherited Clone;
-  TResEvalSetInt(Result).ElKind:=ElKind;
-  RS:=TResEvalSetInt(Result);
+  TResEvalSet(Result).ElKind:=ElKind;
+  RS:=TResEvalSet(Result);
   SetLength(RS.Ranges,length(Ranges));
   for i:=0 to length(Ranges)-1 do
     RS.Ranges[i]:=Ranges[i];
 end;
 
-function TResEvalSetInt.AsString: string;
+function TResEvalSet.AsString: string;
 var
   i: Integer;
 begin
@@ -4146,7 +4202,7 @@ begin
   Result:=Result+']';
 end;
 
-function TResEvalSetInt.ElementAsString(El: MaxPrecInt): string;
+function TResEvalSet.ElementAsString(El: MaxPrecInt): string;
 begin
   case ElKind of
     revskEnum: Result:=TPasEnumValue(TPasEnumType(IdentEl).Values[El]).Name;
@@ -4164,7 +4220,7 @@ begin
   end;
 end;
 
-function TResEvalSetInt.Add(RangeStart, RangeEnd: MaxPrecInt): boolean;
+function TResEvalSet.Add(RangeStart, RangeEnd: MaxPrecInt): boolean;
 var
   StartIndex, l, EndIndex: Integer;
   Item: TItem;
@@ -4275,7 +4331,7 @@ begin
   {$ENDIF}
 end;
 
-function TResEvalSetInt.IndexOfRange(Index: MaxPrecInt; FindInsertPos: boolean
+function TResEvalSet.IndexOfRange(Index: MaxPrecInt; FindInsertPos: boolean
   ): integer;
 var
   l, r, m: Integer;
@@ -4303,7 +4359,18 @@ begin
     exit(m);
 end;
 
-procedure TResEvalSetInt.ConsistencyCheck;
+function TResEvalSet.Intersects(RangeStart, RangeEnd: MaxPrecInt): integer;
+var
+  Index: Integer;
+begin
+  Index:=IndexOfRange(RangeStart,true);
+  if (Index=length(Ranges)) or (Ranges[Index].RangeStart>RangeEnd) then
+    Result:=-1
+  else
+    Result:=Index;
+end;
+
+procedure TResEvalSet.ConsistencyCheck;
 
   procedure E(Msg: string);
   begin
