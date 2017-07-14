@@ -191,6 +191,7 @@ type
     Procedure TestBoolTypeCast;
     Procedure TestConstFloatOperators;
     Procedure TestFloatTypeCast;
+    Procedure TestBoolSet_Const;
 
     // integer range
     Procedure TestIntegerRange;
@@ -199,6 +200,7 @@ type
     Procedure TestAssignIntRangeFail;
     Procedure TestByteRangeFail;
     Procedure TestCustomIntRangeFail;
+    Procedure TestIntSet_Const;
 
     // strings
     Procedure TestChar_Ord;
@@ -211,10 +213,12 @@ type
     Procedure TestString_DoubleQuotesFail;
     Procedure TestString_ShortstringType;
     Procedure TestConstStringOperators;
+    Procedure TestConstUnicodeStringOperators;
+    Procedure TestCharSet_Const;
 
     // enums
     Procedure TestEnums;
-    Procedure TestEnumRangeFail; // ToDo
+    Procedure TestEnumRangeFail;
     Procedure TestSets;
     Procedure TestSetOperators;
     Procedure TestEnumParams;
@@ -226,10 +230,11 @@ type
     Procedure TestEnum_EqualNilFail;
     Procedure TestEnum_CastIntegerToEnum;
     Procedure TestEnum_Str;
-    Procedure TestSetConstRange;
-    Procedure TestSet_AnonymousEnumtype;
-    Procedure TestSet_AnonymousEnumtypeName;
-    Procedure TestSet_Const; // ToDo
+    Procedure TestConstEnumOperators;
+    Procedure TestEnumSetConstRange;
+    Procedure TestEnumSet_AnonymousEnumtype;
+    Procedure TestEnumSet_AnonymousEnumtypeName;
+    Procedure TestEnumSet_Const;
 
     // operators
     Procedure TestPrgAssignment;
@@ -547,7 +552,6 @@ type
 
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
-    Procedure TestArrayEnumRange_OutOfRange;
     Procedure TestArrayCharRange_OutOfRange;
 
     // procedure types
@@ -2268,6 +2272,28 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestBoolSet_Const;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  s1 = [true];',
+  '  s2 = [false,true];',
+  '  s3 = [false..true];',
+  '  s7 = [true]*s2;',
+  '  s8 = s2-s1;',
+  '  s9 = s1+s2;',
+  '  s10 = s1><s2;',
+  '  s11 = s2=s3;',
+  '  s12 = s2<>s3;',
+  '  s13 = s2<=s3;',
+  '  s14 = s2>=s3;',
+  '  s15 = true in s2;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestIntegerRange;
 begin
   StartProgram(false);
@@ -2352,6 +2378,31 @@ begin
     'range check error while evaluating constants (3 must be between 1 and 2)');
   CheckResolverUnexpectedHints;
   {$ENDIF}
+end;
+
+procedure TTestResolver.TestIntSet_Const;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  s1 = [1];',
+  '  s2 = [1,2];',
+  '  s3 = [1..3];',
+  '  s4 = [1..2,4..5,6];',
+  '  s5 = [low(shortint)..high(shortint)];',
+  '  s6 = [succ(low(shortint))..pred(high(shortint))];',
+  '  s7 = [1..3]*[2..4];',
+  '  s8 = [1..5]-[2,5];',
+  '  s9 = [1,3..4]+[2,5];',
+  '  s10 = [1..3]><[2..5];',
+  '  s11 = s2=s3;',
+  '  s12 = s2<>s3;',
+  '  s13 = s2<=s3;',
+  '  s14 = s2>=s3;',
+  '  s15 = 1 in s2;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestChar_Ord;
@@ -2474,6 +2525,63 @@ begin
   '  h=a>=b;',
   '  i=a[1];',
   '  j=length(a);',
+  '  k=chr(97);',
+  '  l=ord(a[1]);',
+  '  m=low(char)+high(char);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestConstUnicodeStringOperators;
+begin
+  ResolverEngine.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=''大''+''学'';',
+  '  b=#22823+#23398;',
+  '  c=a=b;',
+  '  d=a<>b;',
+  '  e=a<b;',
+  '  f=a<=b;',
+  '  g=a>b;',
+  '  h=a>=b;',
+  '  i=b[1];',
+  '  j=length(b);',
+  '  k=chr(22823);',
+  '  l=ord(b[1]);',
+  '  m=low(widechar)+high(widechar);',
+  '  n=#65#22823;',
+  '  ascii=#65;',
+  '  o=ascii+b;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestCharSet_Const;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  s1 = [''a''];',
+  '  s2 = [''a'',''b''];',
+  '  s3 = [''a''..''c''];',
+  '  s4 = [''a''..''b'',''d''..''e'',''f''];',
+  '  s5 = [low(Char)..high(Char)];',
+  '  s6 = [succ(low(Char))..pred(high(Char))];',
+  '  s7 = [''a''..''c'']*[''b''..''d''];',
+  '  s8 = [''a''..''e'']-[''b'',''e''];',
+  '  s9 = [''a'',''c''..''d'']+[''b'',''e''];',
+  '  s10 = [''a''..''c'']><[''b''..''e''];',
+  '  s11 = [''a'',''b'']=[''a''..''b''];',
+  '  s12 = [''a'',''b'']<>[''a''..''b''];',
+  '  s13 = [''a'',''b'']<=[''a''..''b''];',
+  '  s14 = [''a'',''b'']>=[''a''..''b''];',
+  '  s15 = ''a'' in [''a'',''b''];',
+  '  s16 = [#0..#127,#22823..#23398];',
+  '  s17 = #22823 in s16;',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -2503,14 +2611,12 @@ end;
 
 procedure TTestResolver.TestEnumRangeFail;
 begin
-  exit; // ToDo
-
   StartProgram(false);
   Add([
   'type TFlag = (a,b,c);',
   'const all = a..c;',
   'begin']);
-  CheckParserException('aaa',123);
+  CheckParserException('Const ranges are not allowed',nParserNoConstRangeAllowed);
 end;
 
 procedure TTestResolver.TestSets;
@@ -2766,7 +2872,24 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestSetConstRange;
+procedure TTestResolver.TestConstEnumOperators;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,blue,green);',
+  'const',
+  '  a=ord(red);',
+  '  b=succ(low(TEnum));',
+  '  c=pred(high(TEnum));',
+  '  d=TEnum(0);',
+  '  e=TEnum(2);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestEnumSetConstRange;
 begin
   StartProgram(false);
   Add([
@@ -2793,7 +2916,7 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
-procedure TTestResolver.TestSet_AnonymousEnumtype;
+procedure TTestResolver.TestEnumSet_AnonymousEnumtype;
 begin
   StartProgram(false);
   Add('type');
@@ -2818,7 +2941,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestSet_AnonymousEnumtypeName;
+procedure TTestResolver.TestEnumSet_AnonymousEnumtypeName;
 begin
   ResolverEngine.AnonymousElTypePostfix:='$enum';
   StartProgram(false);
@@ -2844,17 +2967,28 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestSet_Const;
+procedure TTestResolver.TestEnumSet_Const;
 begin
   StartProgram(false);
   Add([
   'type',
   '  TFlag = (a,b,c,d,e,f);',
   'const',
-  '  ab = [a..b];',
-  //'  notc = [a..b,d..e,f];',
-  //'  all = [low(TFlag)..high(TFlag)];',
-  //'  notaf = [succ(low(TFlag))..pred(high(TFlag))];',
+  '  s1 = [a];',
+  '  s2 = [a,b];',
+  '  s3 = [a..c];',
+  '  s4 = [a..b,d..e,f];',
+  '  s5 = [low(TFlag)..high(TFlag)];',
+  '  s6 = [succ(low(TFlag))..pred(high(TFlag))];',
+  '  s7 = [a..c]*[b..d];',
+  '  s8 = [a..e]-[b,e];',
+  '  s9 = [a,c..d]+[b,e];',
+  '  s10 = [a..c]><[b..e];',
+  '  s11 = [a,b]=[a..b];',
+  '  s12 = [a,b]<>[a..b];',
+  '  s13 = [a,b]<=[a..b];',
+  '  s14 = [a,b]>=[a..b];',
+  '  s15 = a in [a,b];',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -8741,23 +8875,10 @@ begin
   '  a[0]:=3;',
   '']);
   ParseProgram;
+  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (0 must be between 1 and 2)');
-  CheckResolverUnexpectedHints;
-end;
-
-procedure TTestResolver.TestArrayEnumRange_OutOfRange;
-begin
-  StartProgram(false);
-  Add([
-  'type',
-  '  TEnum = (red,blue);',
-  '  TArr = array[TEnum] of longint;',
-  'var a: TArr;',
-  'begin',
-  '  a[red]:=3;',
-  '']);
-  ParseProgram;
+  {$ENDIF}
   CheckResolverUnexpectedHints;
 end;
 
@@ -8771,8 +8892,10 @@ begin
   '  a[''0'']:=3;',
   '']);
   ParseProgram;
+  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (''0'' must be between ''a'' and ''b'')');
+  {$ENDIF}
   CheckResolverUnexpectedHints;
 end;
 

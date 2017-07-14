@@ -2691,6 +2691,7 @@ var
   bt: TPas2jsBaseType;
 begin
   inherited;
+  ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   FExternalNames:=TFPHashList.Create;
   StoreSrcColumns:=true;
   Options:=Options+DefaultPasResolverOptions;
