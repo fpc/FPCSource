@@ -47,6 +47,7 @@ Works:
   - error on duplicate in const set
 
 ToDo:
+- set of 1..7
 - arrays
   - length(), low(), high(), []
 }
@@ -375,7 +376,7 @@ type
 
   TRESetElKind = (
     revskNone,
-    revskEnum, // IdentEl is TPasEnumType
+    revskEnum, // ElType is TPasEnumType
     revskInt,
     revskChar,
     revskBool
@@ -387,11 +388,13 @@ type
   public
     ElKind: TRESetElKind;
     RangeStart, RangeEnd: MaxPrecInt;
+    ElType: TPasType; // revskEnum: TPasEnumType
     constructor Create; override;
-    constructor CreateValue(const aElKind: TRESetElKind;
+    constructor CreateValue(const aElKind: TRESetElKind; aElType: TPasType;
       const aRangeStart, aRangeEnd: MaxPrecInt);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
+    function AsDebugString: string; override;
     function ElementAsString(El: MaxPrecInt): string;
   end;
 
@@ -419,6 +422,7 @@ type
   public
     ElKind: TRESetElKind;
     Ranges: TItems; // disjunct, sorted ascending
+    ElType: TPasType; // revskEnum: TPasEnumType
     constructor Create; override;
     constructor CreateEmpty(aSet: TResEvalSet);
     function Clone: TResEvalValue; override;
@@ -504,6 +508,10 @@ type
     constructor Create;
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags): TResEvalValue;
     function IsInRange(Expr, RangeExpr: TPasExpr; EmitHints: boolean): boolean;
+    function IsInRange(Value: TResEvalValue; ValueExpr: TPasExpr;
+      RangeValue: TResEvalValue; RangeExpr: TPasExpr; EmitHints: boolean): boolean;
+    function IsSetCompatible(Value: TResEvalValue; ValueExpr: TPasExpr;
+      RangeValue: TResEvalValue; EmitHints: boolean): boolean;
     function IsConst(Expr: TPasExpr): boolean;
     function IsSimpleExpr(Expr: TPasExpr): boolean; // true = no need to store result
     procedure EmitRangeCheckConst(id: int64; const aValue, MinVal, MaxVal: String;
@@ -1070,7 +1078,7 @@ begin
       if LeftInt>RightInt then
         RaiseMsg(20170714133540,nHighRangeLimitLTLowRangeLimit,
            sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.CreateValue(revskBool,LeftInt,RightInt);
+      Result:=TResEvalRangeInt.CreateValue(revskBool,nil,LeftInt,RightInt);
       exit;
       end;
   revkInt:
@@ -1081,7 +1089,7 @@ begin
       if LeftInt>RightInt then
         RaiseMsg(20170518222939,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.CreateValue(revskInt,LeftInt,RightInt);
+      Result:=TResEvalRangeInt.CreateValue(revskInt,nil,LeftInt,RightInt);
       exit;
       end
     else if RightValue.Kind=revkUInt then
@@ -1092,7 +1100,7 @@ begin
         if TResEvalInt(LeftValue).Int>TResEvalUInt(RightValue).UInt then
           RaiseMsg(20170519000235,nHighRangeLimitLTLowRangeLimit,
             sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-        Result:=TResEvalRangeInt.CreateValue(revskInt,
+        Result:=TResEvalRangeInt.CreateValue(revskInt,nil,
            TResEvalInt(LeftValue).Int,MaxPrecInt(TResEvalUInt(RightValue).UInt));
         exit;
         end
@@ -1125,7 +1133,7 @@ begin
       else if TResEvalUInt(LeftValue).UInt>TResEvalInt(RightValue).Int then
         RaiseMsg(20170522152804,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.CreateValue(revskInt,
+      Result:=TResEvalRangeInt.CreateValue(revskInt,nil,
         MaxPrecInt(TResEvalUInt(LeftValue).UInt),TResEvalInt(RightValue).Int);
       exit;
       end
@@ -1151,8 +1159,8 @@ begin
     else
       begin
       Result:=TResEvalRangeInt.CreateValue(revskEnum,
+        TResEvalEnum(LeftValue).IdentEl.Parent as TPasEnumType,
         TResEvalEnum(LeftValue).Index,TResEvalEnum(RightValue).Index);
-      Result.IdentEl:=LeftValue.IdentEl.Parent as TPasEnumType;
       exit;
       end;
   revkString,revkUnicodeString:
@@ -1164,7 +1172,7 @@ begin
       if LeftInt>RightInt then
         RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
-      Result:=TResEvalRangeInt.CreateValue(revskChar,LeftInt,RightInt);
+      Result:=TResEvalRangeInt.CreateValue(revskChar,nil,LeftInt,RightInt);
       exit;
       end
     else
@@ -2733,6 +2741,7 @@ var
   Param0: TPasExpr;
   MaxIndex: Integer;
 begin
+  Result:=nil;
   ArrayValue:=Eval(Expr.Value,Flags);
   if ArrayValue=nil then
     begin
@@ -2887,11 +2896,11 @@ begin
         if Result.ElKind=revskNone then
           begin
           Result.ElKind:=revskEnum;
-          Result.IdentEl:=Value.IdentEl.Parent;
+          Result.ElType:=Value.IdentEl.Parent as TPasEnumType;
           end
         else if Result.ElKind<>revskEnum then
           RaiseNotYetImplemented(20170713143559,El)
-        else if Result.IdentEl<>Value.IdentEl.Parent then
+        else if Result.ElType<>Value.IdentEl.Parent then
           RaiseNotYetImplemented(20170713201021,El);
         RangeStart:=TResEvalEnum(Value).Index;
         RangeEnd:=RangeStart;
@@ -2902,7 +2911,7 @@ begin
           begin
           Result.ElKind:=TResEvalRangeInt(Value).ElKind;
           if Result.ElKind=revskEnum then
-            Result.IdentEl:=Value.IdentEl;
+            Result.ElType:=TResEvalRangeInt(Value).ElType;
           end
         else if Result.ElKind<>TResEvalRangeInt(Value).ElKind then
           RaiseNotYetImplemented(20170714101910,El);
@@ -3261,7 +3270,10 @@ begin
     begin
     case TPrimitiveExpr(Expr).Kind of
       pekIdent:
+        begin
         Result:=OnEvalIdentifier(Self,TPrimitiveExpr(Expr),Flags);
+        writeln('TResExprEvaluator.Eval primitiv result=',Result<>nil,' ',dbgs(Result));
+        end;
       pekNumber:
         begin
         // try MaxPrecInt
@@ -3295,6 +3307,7 @@ begin
     else
       RaiseNotYetImplemented(20170518200951,Expr);
     end;
+    writeln('TResExprEvaluator.Eval primitiv end result=',Result<>nil,' ',dbgs(Result));
     end
   else if C=TNilExpr then
     Result:=TResEvalValue.CreateKind(revkNil)
@@ -3308,158 +3321,235 @@ begin
     Result:=EvalParamsExpr(TParamsExpr(Expr),Flags)
   else if refConst in Flags then
     RaiseConstantExprExp(20170518213800,Expr);
+  writeln('TResExprEvaluator.Eval END result=',Result<>nil,' ',dbgs(Result));
 end;
 
 function TResExprEvaluator.IsInRange(Expr, RangeExpr: TPasExpr;
   EmitHints: boolean): boolean;
 var
-  ExprValue, RangeValue: TResEvalValue;
+  Value, RangeValue: TResEvalValue;
+begin
+  Value:=Eval(Expr,[refAutoConst]);
+  if Value=nil then
+    exit(true); // a variable -> ok
+  RangeValue:=nil;
+  try
+    RangeValue:=Eval(RangeExpr,[]);
+    if RangeValue=nil then
+      RaiseNotYetImplemented(20170522171226,RangeExpr);
+    Result:=IsInRange(Value,Expr,RangeValue,RangeExpr,EmitHints);
+  finally
+    ReleaseEvalValue(Value);
+    ReleaseEvalValue(RangeValue);
+  end;
+end;
+
+function TResExprEvaluator.IsInRange(Value: TResEvalValue; ValueExpr: TPasExpr;
+  RangeValue: TResEvalValue; RangeExpr: TPasExpr; EmitHints: boolean): boolean;
+var
   RgInt: TResEvalRangeInt;
   RgUInt: TResEvalRangeUInt;
   CharIndex: LongWord;
 begin
   Result:=false;
-  ExprValue:=Eval(Expr,[refAutoConst]);
-  if ExprValue=nil then
-    exit(true); // a variable -> ok
-  RangeValue:=nil;
-  try
-    RangeValue:=Eval(RangeExpr,[]);
-    {$IFDEF VerbosePasResEval}
-    //writeln('TResExprEvaluator.IsInRange ExprValue=',dbgs(ExprValue),' RangeValue=',dbgs(RangeValue));
-    {$ENDIF}
-    if RangeValue=nil then
-      RaiseNotYetImplemented(20170522171226,RangeExpr);
-    case RangeValue.Kind of
-    revkRangeInt:
-      begin
-      RgInt:=TResEvalRangeInt(RangeValue);
-      case RgInt.ElKind of
-        revskBool:
-          if ExprValue.Kind=revkBool then
-            exit(true)
-          else
-            RaiseNotYetImplemented(20170522220104,Expr);
-        revskEnum:
+  {$IFDEF VerbosePasResEval}
+  //writeln('TResExprEvaluator.IsInRange ExprValue=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
+  {$ENDIF}
+  case RangeValue.Kind of
+  revkRangeInt:
+    begin
+    RgInt:=TResEvalRangeInt(RangeValue);
+    case RgInt.ElKind of
+      revskBool:
+        if Value.Kind=revkBool then
+          exit(true)
+        else
+          RaiseNotYetImplemented(20170522220104,ValueExpr);
+      revskEnum:
+        begin
+        if Value.Kind<>revkEnum then
+          RaiseInternalError(20170522172754)
+        else if TResEvalEnum(Value).IdentEl<>RgInt.ElType then
+          RaiseInternalError(20170522174028)
+        else if (TResEvalEnum(Value).Index<RgInt.RangeStart)
+            or (TResEvalEnum(Value).Index>RgInt.RangeEnd) then
           begin
-          if ExprValue.Kind<>revkEnum then
-            RaiseInternalError(20170522172754)
-          else if ExprValue.IdentEl<>RgInt.IdentEl then
-            RaiseInternalError(20170522174028)
-          else if (TResEvalEnum(ExprValue).Index<RgInt.RangeStart)
-              or (TResEvalEnum(ExprValue).Index>RgInt.RangeEnd) then
+          if EmitHints then
+            EmitRangeCheckConst(20170522174406,Value.AsString,
+              RgInt.ElementAsString(RgInt.RangeStart),
+              RgInt.ElementAsString(RgInt.RangeEnd),
+              ValueExpr);
+          exit(false);
+          end
+        else
+          exit(true);
+        end;
+      revskInt: // int..int
+        if Value.Kind=revkInt then
+          begin
+          // int in int..int
+          if (TResEvalInt(Value).Int<RgInt.RangeStart)
+              or (TResEvalInt(Value).Int>RgInt.RangeEnd) then
             begin
             if EmitHints then
-              EmitRangeCheckConst(20170522174406,ExprValue.AsString,
+              EmitRangeCheckConst(20170522174958,Value.AsString,
                 RgInt.ElementAsString(RgInt.RangeStart),
                 RgInt.ElementAsString(RgInt.RangeEnd),
-                Expr);
+                ValueExpr);
             exit(false);
             end
           else
             exit(true);
+          end
+        else if Value.Kind=revkUInt then
+          begin
+          // uint in int..int
+          if (TResEvalUInt(Value).UInt>HighIntAsUInt)
+              or (MaxPrecInt(TResEvalUInt(Value).UInt)<RgInt.RangeStart)
+              or (MaxPrecInt(TResEvalUInt(Value).UInt)>RgInt.RangeEnd) then
+            begin
+            if EmitHints then
+              EmitRangeCheckConst(20170522215852,Value.AsString,
+                RgInt.ElementAsString(RgInt.RangeStart),
+                RgInt.ElementAsString(RgInt.RangeEnd),
+                ValueExpr);
+            exit(false);
+            end
+          else
+            exit(true);
+          end
+        else
+          begin
+          {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
+          writeln('TResExprEvaluator.IsInRange Kind=',Value.Kind,' ',Value.AsDebugString);
+          {$ENDIF}
+          RaiseNotYetImplemented(20170522215906,ValueExpr);
           end;
-        revskInt: // int..int
-          if ExprValue.Kind=revkInt then
+      revskChar:
+        if Value.Kind in [revkString,revkUnicodeString] then
+          begin
+          // string in char..char
+          CharIndex:=ExprStringToOrd(Value,ValueExpr);
+          if (CharIndex<RgInt.RangeStart) or (CharIndex>RgInt.RangeEnd) then
             begin
-            // int in int..int
-            if (TResEvalInt(ExprValue).Int<RgInt.RangeStart)
-                or (TResEvalInt(ExprValue).Int>RgInt.RangeEnd) then
-              begin
-              if EmitHints then
-                EmitRangeCheckConst(20170522174958,ExprValue.AsString,
-                  RgInt.ElementAsString(RgInt.RangeStart),
-                  RgInt.ElementAsString(RgInt.RangeEnd),
-                  Expr);
-              exit(false);
-              end
-            else
-              exit(true);
-            end
-          else if ExprValue.Kind=revkUInt then
-            begin
-            // uint in int..int
-            if (TResEvalUInt(ExprValue).UInt>HighIntAsUInt)
-                or (MaxPrecInt(TResEvalUInt(ExprValue).UInt)<RgInt.RangeStart)
-                or (MaxPrecInt(TResEvalUInt(ExprValue).UInt)>RgInt.RangeEnd) then
-              begin
-              if EmitHints then
-                EmitRangeCheckConst(20170522215852,ExprValue.AsString,
-                  RgInt.ElementAsString(RgInt.RangeStart),
-                  RgInt.ElementAsString(RgInt.RangeEnd),
-                  Expr);
-              exit(false);
-              end
-            else
-              exit(true);
+            if EmitHints then
+              EmitRangeCheckConst(20170522221709,Value.AsString,
+                RgInt.ElementAsString(RgInt.RangeStart),
+                RgInt.ElementAsString(RgInt.RangeEnd),
+                ValueExpr);
+            exit(false);
             end
           else
-            RaiseNotYetImplemented(20170522215906,Expr);
-        revskChar:
-          if ExprValue.Kind in [revkString,revkUnicodeString] then
-            begin
-            // string in char..char
-            CharIndex:=ExprStringToOrd(ExprValue,Expr);
-            if (CharIndex<RgInt.RangeStart) or (CharIndex>RgInt.RangeEnd) then
-              begin
-              if EmitHints then
-                EmitRangeCheckConst(20170522221709,ExprValue.AsString,
-                  RgInt.ElementAsString(RgInt.RangeStart),
-                  RgInt.ElementAsString(RgInt.RangeEnd),
-                  Expr);
-              exit(false);
-              end
-            else
-              exit(true);
-            end
-          else
-            RaiseNotYetImplemented(20170522220210,Expr);
-      else
-        RaiseInternalError(20170522172630);
-      end;
-      end;
-    revkRangeUInt:
-      if ExprValue.Kind=revkInt then
-        begin
-        // int in uint..uint
-        RgUInt:=TResEvalRangeUInt(RangeValue);
-        if (TResEvalInt(ExprValue).Int<0)
-            or (MaxPrecUInt(TResEvalInt(ExprValue).Int)<RgUInt.RangeStart)
-            or (MaxPrecUInt(TResEvalInt(ExprValue).Int)>RgUInt.RangeEnd) then
-          begin
-          if EmitHints then
-            EmitRangeCheckConst(20170522172250,ExprValue.AsString,
-              IntToStr(RgUInt.RangeStart),
-              IntToStr(RgUInt.RangeEnd),Expr);
-          exit(false);
+            exit(true);
           end
         else
-          exit(true);
-        end
-      else if ExprValue.Kind=revkUInt then
-        begin
-        // uint in uint..uint
-        RgUInt:=TResEvalRangeUInt(RangeValue);
-        if (TResEvalUInt(ExprValue).UInt<RgUInt.RangeStart)
-            or (TResEvalUInt(ExprValue).UInt>RgUInt.RangeEnd) then
-          begin
-          if EmitHints then
-            EmitRangeCheckConst(20170522172544,IntToStr(TResEvalUInt(ExprValue).UInt),
-              IntToStr(RgUInt.RangeStart),
-              IntToStr(RgUInt.RangeEnd),Expr);
-          exit(false);
-          end
-        else
-          exit(true);
-        end
-      else
-        RaiseNotYetImplemented(20170522171551,Expr);
+          RaiseNotYetImplemented(20170522220210,ValueExpr);
     else
-      RaiseNotYetImplemented(20170522171307,RangeExpr);
+      RaiseInternalError(20170522172630);
     end;
-  finally
-    ReleaseEvalValue(ExprValue);
-    ReleaseEvalValue(RangeValue);
+    end;
+  revkRangeUInt:
+    if Value.Kind=revkInt then
+      begin
+      // int in uint..uint
+      RgUInt:=TResEvalRangeUInt(RangeValue);
+      if (TResEvalInt(Value).Int<0)
+          or (MaxPrecUInt(TResEvalInt(Value).Int)<RgUInt.RangeStart)
+          or (MaxPrecUInt(TResEvalInt(Value).Int)>RgUInt.RangeEnd) then
+        begin
+        if EmitHints then
+          EmitRangeCheckConst(20170522172250,Value.AsString,
+            IntToStr(RgUInt.RangeStart),
+            IntToStr(RgUInt.RangeEnd),ValueExpr);
+        exit(false);
+        end
+      else
+        exit(true);
+      end
+    else if Value.Kind=revkUInt then
+      begin
+      // uint in uint..uint
+      RgUInt:=TResEvalRangeUInt(RangeValue);
+      if (TResEvalUInt(Value).UInt<RgUInt.RangeStart)
+          or (TResEvalUInt(Value).UInt>RgUInt.RangeEnd) then
+        begin
+        if EmitHints then
+          EmitRangeCheckConst(20170522172544,IntToStr(TResEvalUInt(Value).UInt),
+            IntToStr(RgUInt.RangeStart),
+            IntToStr(RgUInt.RangeEnd),ValueExpr);
+        exit(false);
+        end
+      else
+        exit(true);
+      end
+    else
+      RaiseNotYetImplemented(20170522171551,ValueExpr);
+  else
+    RaiseNotYetImplemented(20170522171307,RangeExpr);
+  end;
+end;
+
+function TResExprEvaluator.IsSetCompatible(Value: TResEvalValue;
+  ValueExpr: TPasExpr; RangeValue: TResEvalValue; EmitHints: boolean): boolean;
+// checks if Value fits into a set of RangeValue
+var
+  RightSet: TResEvalSet;
+  LeftRange: TResEvalRangeInt;
+  MinVal, MaxVal: MaxPrecInt;
+begin
+  Result:=true;
+  case Value.Kind of
+  revkSetOfInt:
+    begin
+    RightSet:=TResEvalSet(Value);
+    if RightSet.ElKind=revskNone then
+      exit(true); // empty set always fits
+    case RangeValue.Kind of
+    revkRangeInt:
+      begin
+      LeftRange:=TResEvalRangeInt(RangeValue);
+      if (LeftRange.ElKind<>RightSet.ElKind)
+          or (LeftRange.ElType<>RightSet.ElType) then
+        begin
+        {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
+        writeln('TResExprEvaluator.IsSetCompatible Value=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
+        {$ENDIF}
+        RaiseNotYetImplemented(20170714201425,ValueExpr);
+        end;
+      if length(RightSet.Ranges)=0 then
+        exit(true); // empty typed set fits
+      MinVal:=RightSet.Ranges[0].RangeStart;
+      MaxVal:=RightSet.Ranges[length(RightSet.Ranges)-1].RangeEnd;
+      {$IFDEF VerbosePasResEval}
+      writeln('TResExprEvaluator.IsSetCompatible Value=',dbgs(Value),' MinVal=',MinVal,' MaxVal=',MaxVal,' RangeValue=',dbgs(RangeValue));
+      {$ENDIF}
+      if (MinVal<LeftRange.RangeStart) then
+        if EmitHints then
+          EmitRangeCheckConst(20170714202813,RightSet.ElementAsString(MinVal),
+            LeftRange.ElementAsString(LeftRange.RangeStart),
+            LeftRange.ElementAsString(LeftRange.RangeEnd),ValueExpr,mtError)
+        else
+          exit(false);
+      if (MaxVal>LeftRange.RangeEnd) then
+        if EmitHints then
+          EmitRangeCheckConst(20170714203134,RightSet.ElementAsString(MaxVal),
+            LeftRange.ElementAsString(LeftRange.RangeStart),
+            LeftRange.ElementAsString(LeftRange.RangeEnd),ValueExpr,mtError)
+        else
+          exit(false);
+      end;
+    else
+      {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
+      writeln('TResExprEvaluator.IsSetCompatible Value=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
+      {$ENDIF}
+      RaiseNotYetImplemented(20170714201121,ValueExpr);
+    end;
+    end
+  else
+    {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
+    writeln('TResExprEvaluator.IsSetCompatible Value=',Value.Kind,' ',dbgs(RangeValue));
+    {$ENDIF}
+    RaiseNotYetImplemented(20170714195815,ValueExpr);
   end;
 end;
 
@@ -4117,10 +4207,11 @@ begin
 end;
 
 constructor TResEvalRangeInt.CreateValue(const aElKind: TRESetElKind;
-  const aRangeStart, aRangeEnd: MaxPrecInt);
+  aElType: TPasType; const aRangeStart, aRangeEnd: MaxPrecInt);
 begin
   Create;
   ElKind:=aElKind;
+  ElType:=aElType;
   RangeStart:=aRangeStart;
   RangeEnd:=aRangeEnd;
 end;
@@ -4138,16 +4229,29 @@ begin
   Result:=ElementAsString(RangeStart)+'..'+ElementAsString(RangeEnd);
 end;
 
+function TResEvalRangeInt.AsDebugString: string;
+var
+  s: string;
+begin
+  str(Kind,Result);
+  str(ElKind,s);
+  Result:=Result+'/'+s+':'+GetObjName(ElType)+'='+AsString;
+end;
+
 function TResEvalRangeInt.ElementAsString(El: MaxPrecInt): string;
 var
   EnumValue: TPasEnumValue;
   EnumType: TPasEnumType;
 begin
   case ElKind of
-    revskBool: if El=0 then Result:='false' else Result:='true';
+    revskBool:
+      if El=0 then
+        Result:='false'
+      else
+        Result:='true';
     revskEnum:
       begin
-      EnumType:=IdentEl as TPasEnumType;
+      EnumType:=ElType as TPasEnumType;
       EnumValue:=TPasEnumValue(EnumType.Values[El]);
       Result:=EnumValue.Name;
       end;
@@ -4170,8 +4274,10 @@ end;
 
 constructor TResEvalSet.CreateEmpty(aSet: TResEvalSet);
 begin
-  ElKind:=aSet.ElKind;
+  Create;
   IdentEl:=aSet.IdentEl;
+  ElKind:=aSet.ElKind;
+  ElType:=aSet.ElType;
 end;
 
 function TResEvalSet.Clone: TResEvalValue;
@@ -4180,8 +4286,9 @@ var
   i: Integer;
 begin
   Result:=inherited Clone;
-  TResEvalSet(Result).ElKind:=ElKind;
   RS:=TResEvalSet(Result);
+  RS.ElKind:=ElKind;
+  RS.ElType:=ElType;
   SetLength(RS.Ranges,length(Ranges));
   for i:=0 to length(Ranges)-1 do
     RS.Ranges[i]:=Ranges[i];
@@ -4203,9 +4310,22 @@ begin
 end;
 
 function TResEvalSet.ElementAsString(El: MaxPrecInt): string;
+var
+  EnumType: TPasEnumType;
+  EnumValue: TPasEnumValue;
 begin
   case ElKind of
-    revskEnum: Result:=TPasEnumValue(TPasEnumType(IdentEl).Values[El]).Name;
+    revskEnum:
+      begin
+      {$IFDEF VerbosePasResEval}
+      if not (ElType is TPasEnumType) then
+        writeln('TResEvalSet.ElementAsString ',ElKind,' expected TPasEnumType, but got ',GetObjName(ElType));
+      {$ENDIF}
+      EnumType:=ElType as TPasEnumType;
+      //writeln('TResEvalSet.ElementAsString EnumType=',GetObjName(EnumType),' Values.Count=',EnumType.Values.Count,' El=',El);
+      EnumValue:=TPasEnumValue(EnumType.Values[El]);
+      Result:=EnumValue.Name;
+      end;
     revskInt: Result:=IntToStr(El);
     revskChar:
       if El<=$ff then
@@ -4221,6 +4341,29 @@ begin
 end;
 
 function TResEvalSet.Add(RangeStart, RangeEnd: MaxPrecInt): boolean;
+
+  {$IF FPC_FULLVERSION<30101}
+  procedure Insert(const Item: TItem; var Items: TItems; Index: integer);
+  var
+    i: Integer;
+  begin
+    Setlength(Items,length(Items)+1);
+    for i:=length(Items)-1 downto Index+1 do
+      Items[i]:=Items[i-1];
+    Items[Index]:=Item;
+  end;
+
+  procedure Delete(var Items: TItems; Start, Size: integer);
+  var
+    i: Integer;
+  begin
+    if Size=0 then exit;
+    for i:=Start+Size to length(Items)-1 do
+      Items[i-Size]:=Items[i];
+    Setlength(Items,length(Items)-Size);
+  end;
+  {$ENDIF}
+
 var
   StartIndex, l, EndIndex: Integer;
   Item: TItem;

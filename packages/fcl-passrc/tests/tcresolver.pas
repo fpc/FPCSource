@@ -2666,7 +2666,7 @@ begin
   Add('  {@MyInts}MyInts:=[1,2..3];');
   Add('  {@MyBools}MyBools:=[false];');
   Add('  {@MyBools}MyBools:=[false,true];');
-  Add('  {@MyBools}MyBools:=[true..false];');
+  Add('  {@MyBools}MyBools:=[false..true];');
   ParseProgram;
 end;
 

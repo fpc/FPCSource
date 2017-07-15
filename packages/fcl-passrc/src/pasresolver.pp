@@ -7435,11 +7435,11 @@ begin
             TResEvalRangeInt(Result).RangeEnd:=$ffff;
           end;
         btAnsiChar:
-          Result:=TResEvalRangeInt.CreateValue(revskChar,0,$ff);
+          Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
         btWideChar:
-          Result:=TResEvalRangeInt.CreateValue(revskChar,0,$ffff);
+          Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
         btBoolean,btByteBool,btWordBool,btQWordBool:
-          Result:=TResEvalRangeInt.CreateValue(revskBool,0,1);
+          Result:=TResEvalRangeInt.CreateValue(revskBool,nil,0,1);
         btByte,
         btShortInt,
         btWord,
@@ -7463,6 +7463,9 @@ begin
         end;
       end;
     end;
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags);
+  {$ENDIF}
   if refConst in Flags then
     RaiseConstantExprExp(20170518213616,Expr);
 end;
@@ -10822,10 +10825,15 @@ end;
 
 procedure TPasResolver.CheckAssignExprRange(
   const LeftResolved: TPasResolverResult; RHS: TPasExpr);
+// check if RHS fits into range LeftResolved
 var
-  RValue: TResEvalValue;
+  RValue, RangeValue: TResEvalValue;
   MinVal, MaxVal: int64;
-  RgExpr: TBinaryExpr;
+  RangeExpr: TBinaryExpr;
+  Int: MaxPrecInt;
+  C: TClass;
+  EnumType: TPasEnumType;
+  bt: TResolverBaseType;
 begin
   {$IFNDEF EnablePasResRangeCheck}
   exit;
@@ -10834,13 +10842,58 @@ begin
   if RValue=nil then
     exit; // not a const expression
   {$IFDEF VerbosePasResEval}
-  writeln('TPasResolver.CheckAssignExprRange ',RValue.AsDebugString);
+  writeln('TPasResolver.CheckAssignExprRange Left=',GetResolverResultDbg(LeftResolved),' RValue=',RValue.AsDebugString);
   {$ENDIF}
+  RangeValue:=nil;
   try
-    if LeftResolved.TypeEl is TPasRangeType then
+    if LeftResolved.BaseType=btSet then
       begin
-      RgExpr:=TPasRangeType(LeftResolved.TypeEl).RangeExpr;
-      fExprEvaluator.IsInRange(RHS,RgExpr,true);
+      // assign to a set
+      C:=LeftResolved.TypeEl.ClassType;
+      if C=TPasRangeType then
+        begin
+        RangeExpr:=TPasRangeType(LeftResolved.TypeEl).RangeExpr;
+        RangeValue:=Eval(RangeExpr,[],false);
+        end
+      else if C=TPasEnumType then
+        begin
+        EnumType:=TPasEnumType(LeftResolved.TypeEl);
+        RangeValue:=TResEvalRangeInt.CreateValue(revskEnum,EnumType,
+          0,EnumType.Values.Count-1);
+        end
+      else if C=TPasUnresolvedSymbolRef then
+        begin
+        // set of basetype
+        if LeftResolved.TypeEl.CustomData is TResElDataBaseType then
+          begin
+          bt:=GetActualBaseType(TResElDataBaseType(LeftResolved.TypeEl.CustomData).BaseType);
+          if (bt in (btAllInteger-[btQWord]))
+              and GetIntegerRange(bt,MinVal,MaxVal) then
+            RangeValue:=TResEvalRangeInt.CreateValue(revskInt,nil,MinVal,MaxVal)
+          else if bt=btBoolean then
+            RangeValue:=TResEvalRangeInt.CreateValue(revskBool,nil,0,1)
+          else if bt=btAnsiChar then
+            RangeValue:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff)
+          else if bt=btWideChar then
+            RangeValue:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff)
+          else
+            RaiseNotYetImplemented(20170714205110,RHS);
+          end
+        else
+          RaiseNotYetImplemented(20170714204803,RHS);
+        end
+      else
+        RaiseNotYetImplemented(20170714193100,RHS);
+      fExprEvaluator.IsSetCompatible(RValue,RHS,RangeValue,true);
+      end
+    else if LeftResolved.TypeEl is TPasRangeType then
+      begin
+      RangeExpr:=TPasRangeType(LeftResolved.TypeEl).RangeExpr;
+      RangeValue:=Eval(RangeExpr,[],false);
+      if LeftResolved.BaseType=btSet then
+        fExprEvaluator.IsSetCompatible(RValue,RHS,RangeValue,true)
+      else
+        fExprEvaluator.IsInRange(RValue,RHS,RangeValue,RangeExpr,true);
       end
     else if (LeftResolved.BaseType in (btAllInteger-[btQWord]))
         and GetIntegerRange(LeftResolved.BaseType,MinVal,MaxVal) then
@@ -10869,13 +10922,40 @@ begin
       else
         RaiseNotYetImplemented(20170530094311,RHS);
       end
-    else if RValue.Kind=revkNil then
-      // simple type check is enough
-    else if RValue.Kind=revkBool then
+    else if RValue.Kind in [revkNil,revkBool] then
       // simple type check is enough
     else if LeftResolved.BaseType in [btSingle,btDouble] then
       // simple type check is enough
-      // ToDo: check if precision loss
+      // ToDo: warn if precision loss
+    else if LeftResolved.BaseType in btAllChars then
+      begin
+      case RValue.Kind of
+      revkString:
+        if length(TResEvalString(RValue).S)<>1 then
+          RaiseXExpectedButYFound(20170714171352,'char','string',RHS)
+        else
+          Int:=ord(TResEvalString(RValue).S[1]);
+      revkUnicodeString:
+        if length(TResEvalUTF16(RValue).S)<>1 then
+          RaiseXExpectedButYFound(20170714171534,'char','string',RHS)
+        else
+          Int:=ord(TResEvalUTF16(RValue).S[1]);
+      else
+        RaiseNotYetImplemented(20170714171218,RHS);
+      end;
+      case GetActualBaseType(LeftResolved.BaseType) of
+      btAnsiChar: MaxVal:=$ff;
+      btWideChar: MaxVal:=$ffff;
+      end;
+      if (Int>MaxVal) then
+        fExprEvaluator.EmitRangeCheckConst(20170714171911,
+          '#'+IntToStr(Int),'#0','#'+IntToStr(MaxVal),RHS);
+      end
+    else if LeftResolved.BaseType in btAllStrings then
+      // simple type check is enough
+      // ToDo: warn if unicode to non-utf8
+    else if LeftResolved.BaseType=btContext then
+      // simple type check is enough
     else
       begin
       {$IFDEF VerbosePasResolver}
@@ -10885,6 +10965,7 @@ begin
       end;
   finally
     ReleaseEvalValue(RValue);
+    ReleaseEvalValue(RangeValue);
   end;
 end;
 
