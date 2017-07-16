@@ -80,7 +80,7 @@ implementation
 
     procedure tSparcmoddivnode.pass_generate_code;
       const
-                    { 64 bit   signed  overflow }
+        { 64 bit   signed  overflow }
         divops: array[boolean, boolean, boolean] of tasmop =
           (((A_UDIV,A_UDIVcc),(A_SDIV,A_SDIVcc)),
            ((A_UDIVX,A_NOP),(A_SDIVX,A_NOP))
@@ -105,7 +105,7 @@ implementation
          numerator := left.location.register;
          resultreg := location.register;
 
-         if is_64bitint(resultdef) then
+         if is_64bit(resultdef) then
            begin
              if (nodetype = divn) and
                 (right.nodetype = ordconstn) and
