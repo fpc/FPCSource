@@ -262,8 +262,12 @@ interface
           op:=A_FCMPs;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
              left.location.register,right.location.register));
+
+{$ifdef SPARC32}
         { Delay slot (can only contain integer operation) }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+        if current_settings.cputype in [cpu_SPARC_V7,cpu_SPARC_V8] then
+          current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+{$endif SPARC32}
       end;
 
 
