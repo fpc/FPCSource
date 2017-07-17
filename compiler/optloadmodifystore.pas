@@ -28,6 +28,12 @@ unit optloadmodifystore;
 {$if defined(i386) or defined(x86_64) or defined(m68k)}
   {$define enable_shl_shr_assign_x_y}
 {$endif}
+{$if defined(i386) or defined(x86_64)}
+  {$define enable_sar_assign_x_y}
+{$endif}
+{$if defined(i386) or defined(x86_64)}
+  {$define enable_rox_assign_x_y}
+{$endif}
 
   interface
 
@@ -40,8 +46,9 @@ unit optloadmodifystore;
 
     uses
       globtype,verbose,nutils,compinnr,
-      defutil,defcmp,htypechk,pass_1,
-      nadd,ncal,ncnv,ninl,nld,nmat;
+      defutil,defcmp,htypechk,pass_1,constexp,
+      nadd,ncal,ncon,ncnv,ninl,nld,nmat,
+      symdef;
 
     function try_opt_assignmentnode(assignmentnode: tassignmentnode): tnode;
       var
@@ -350,6 +357,51 @@ unit optloadmodifystore;
                 exit;
               end;
 {$endif enable_shl_shr_assign_x_y}
+{$if defined(enable_sar_assign_x_y) or defined(enable_rox_assign_x_y)}
+            { replace i:=sar(i) by in_sar_assign_x_y(i,1)
+                      i:=rol(i) by in_rol_assign_x_y(i,1)
+                      i:=ror(i) by in_ror_assign_x_y(i,1)
+
+              this handles the case, where there are no implicit type conversions }
+            if (right.nodetype=inlinen) and
+               (tinlinenode(right).inlinenumber in [
+{$ifdef enable_sar_assign_x_y}
+                   in_sar_x{$ifdef enable_rox_assign_x_y},{$endif}
+{$endif enable_sar_assign_x_y}
+{$ifdef enable_rox_assign_x_y}
+                   in_rol_x,in_ror_x
+{$endif enable_rox_assign_x_y}
+                 ]) and
+               (tinlinenode(right).left.isequal(left)) and
+               is_integer(tinlinenode(right).left.resultdef) and
+{$if not defined(cpu64bitalu) and not defined(cpucg64shiftsupport)}
+               not(is_64bitint(tinlinenode(right).left.resultdef)) and
+{$endif}
+               ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               valid_for_var(tinlinenode(right).left,false) and
+               not(might_have_sideeffects(tinlinenode(right).left)) then
+              begin
+                case tinlinenode(right).inlinenumber of
+                  in_sar_x:
+                    newinlinenodetype:=in_sar_assign_x_y;
+                  in_rol_x:
+                    newinlinenodetype:=in_rol_assign_x_y;
+                  in_ror_x:
+                    newinlinenodetype:=in_ror_assign_x_y;
+                  else
+                    internalerror(2017071701);
+                end;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ccallparanode.create(
+                  cordconstnode.create(1,u8inttype,false),ccallparanode.create(tinlinenode(right).left,nil)));
+                result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
+                tinlinenode(right).left:=nil;
+                exit;
+              end;
+{$endif enable_sar_assign_x_y or enable_rox_assign_x_y}
             { replace i:=not i  by in_not_assign_x(i)
                       i:=-i     by in_neg_assign_x(i)
 
