@@ -9743,6 +9743,7 @@ rtl/objpas/sysutils/filutil.inc svneol=native#text/plain
 rtl/objpas/sysutils/filutilh.inc svneol=native#text/plain
 rtl/objpas/sysutils/fina.inc svneol=native#text/plain
 rtl/objpas/sysutils/finah.inc svneol=native#text/plain
+rtl/objpas/sysutils/fmtflt.inc svneol=native#text/plain
 rtl/objpas/sysutils/intfh.inc svneol=native#text/plain
 rtl/objpas/sysutils/osutil.inc svneol=native#text/plain
 rtl/objpas/sysutils/osutilsh.inc svneol=native#text/plain

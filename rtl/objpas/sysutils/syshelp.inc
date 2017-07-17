@@ -1507,6 +1507,7 @@ end;
 {$define FLOATTYPE:=Single}
 {$define TFloatRec:=TSingleRec}
 {$i syshelpf.inc}
+{$UNDEF TFloatRec}
 {$ENDIF FPC_HAS_TYPE_SINGLE}
 
 { ---------------------------------------------------------------------
@@ -1517,6 +1518,7 @@ end;
 {$define FLOATTYPE:=Double}
 {$define TFloatRec:=TDoubleRec}
 {$i syshelpf.inc}
+{$UNDEF TFloatRec}
 {$ENDIF FPC_HAS_TYPE_DOUBLE}
 
 { ---------------------------------------------------------------------
@@ -1528,6 +1530,7 @@ end;
 {$define FLOATTYPE:=Extended}
 {$define TFloatRec:=TExtended80Rec}
 {$i syshelpf.inc}
+{$UNDEF TFloatRec}
 {$ENDIF FPC_HAS_TYPE_EXTENDED}
 
 { ---------------------------------------------------------------------
