@@ -57,7 +57,7 @@ interface
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
       cgbase,cgsparc,cgcpu,cgutils,
-      cpupara,
+      cpuinfo,cpupara,
       ncon,nset,nadd,
       hlcgobj,ncgutil,cgobj;
 
