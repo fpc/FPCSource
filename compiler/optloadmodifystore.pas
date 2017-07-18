@@ -401,6 +401,58 @@ unit optloadmodifystore;
                 tinlinenode(right).left:=nil;
                 exit;
               end;
+            { replace i:=sar(i) by in_sar_assign_x_y(i,1)
+                      i:=rol(i) by in_rol_assign_x_y(i,1)
+                      i:=ror(i) by in_ror_assign_x_y(i,1)
+
+              this handles the case with type conversions:
+                   outer typeconv: right
+          sar/rol/ror inline node: ttypeconvnode(right).left
+                   inner typeconv: tinlinenode(ttypeconvnode(right).left).left
+                   right side 'i': ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left }
+            if (right.nodetype=typeconvn) and
+               (ttypeconvnode(right).convtype=tc_int_2_int) and
+               (ttypeconvnode(right).left.nodetype=inlinen) and
+               (tinlinenode(ttypeconvnode(right).left).inlinenumber in [
+{$ifdef enable_sar_assign_x_y}
+                   in_sar_x{$ifdef enable_rox_assign_x_y},{$endif}
+{$endif enable_sar_assign_x_y}
+{$ifdef enable_rox_assign_x_y}
+                   in_rol_x,in_ror_x
+{$endif enable_rox_assign_x_y}
+                 ]) and
+               is_integer(ttypeconvnode(right).left.resultdef) and
+               (right.resultdef.size=ttypeconvnode(right).left.resultdef.size) and
+               (tinlinenode(ttypeconvnode(right).left).left.nodetype=typeconvn) and
+               (ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).convtype=tc_int_2_int) and
+               are_equal_ints(right.resultdef,ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left.resultdef) and
+               ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left.isequal(left) and
+               is_integer(ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left.resultdef) and
+               ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               valid_for_var(ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left,false) and
+               not(might_have_sideeffects(ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left)) then
+              begin
+                case tinlinenode(ttypeconvnode(right).left).inlinenumber of
+                  in_sar_x:
+                    newinlinenodetype:=in_sar_assign_x_y;
+                  in_rol_x:
+                    newinlinenodetype:=in_rol_assign_x_y;
+                  in_ror_x:
+                    newinlinenodetype:=in_ror_assign_x_y;
+                  else
+                    internalerror(2017071801);
+                end;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ccallparanode.create(
+                  cordconstnode.create(1,u8inttype,false),ccallparanode.create(
+                  ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left,nil)));
+                result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
+                ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left:=nil;
+                exit;
+              end;
 {$endif enable_sar_assign_x_y or enable_rox_assign_x_y}
             { replace i:=not i  by in_not_assign_x(i)
                       i:=-i     by in_neg_assign_x(i)
