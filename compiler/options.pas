@@ -691,6 +691,9 @@ begin
 {$ifdef sparc}
       'S',
 {$endif}
+{$ifdef sparc64}
+      's',
+{$endif}
 {$ifdef avr}
       'V',
 {$endif}
