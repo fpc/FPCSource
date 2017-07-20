@@ -453,6 +453,52 @@ unit optloadmodifystore;
                 ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left:=nil;
                 exit;
               end;
+            { replace i:=sar(i,k) by in_sar_assign_x_y(i,k)
+                      i:=rol(i,k) by in_rol_assign_x_y(i,k)
+                      i:=ror(i,k) by in_ror_assign_x_y(i,k)
+
+              this handles the case, where there are no implicit type conversions }
+            if (right.nodetype=inlinen) and
+               (tinlinenode(right).inlinenumber in [
+{$ifdef enable_sar_assign_x_y}
+                   in_sar_x_y{$ifdef enable_rox_assign_x_y},{$endif}
+{$endif enable_sar_assign_x_y}
+{$ifdef enable_rox_assign_x_y}
+                   in_rol_x_y,in_ror_x_y
+{$endif enable_rox_assign_x_y}
+                 ]) and
+               (tinlinenode(right).left.nodetype=callparan) and
+               tcallparanode(tcallparanode(tinlinenode(right).left).right).left.isequal(left) and
+               is_integer(tcallparanode(tcallparanode(tinlinenode(right).left).right).left.resultdef) and
+{$if not defined(cpu64bitalu) and not defined(cpucg64shiftsupport)}
+               not(is_64bitint(tcallparanode(tcallparanode(tinlinenode(right).left).right).left.resultdef)) and
+{$endif}
+               ((localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               ((right.localswitches*[cs_check_overflow,cs_check_range])=[]) and
+               valid_for_var(tcallparanode(tcallparanode(tinlinenode(right).left).right).left,false) and
+               not(might_have_sideeffects(tcallparanode(tcallparanode(tinlinenode(right).left).right).left)) then
+              begin
+                case tinlinenode(right).inlinenumber of
+                  in_sar_x_y:
+                    newinlinenodetype:=in_sar_assign_x_y;
+                  in_rol_x_y:
+                    newinlinenodetype:=in_rol_assign_x_y;
+                  in_ror_x_y:
+                    newinlinenodetype:=in_ror_assign_x_y;
+                  else
+                    internalerror(2017071701);
+                end;
+                result:=cinlinenode.createintern(
+                  newinlinenodetype,false,ccallparanode.create(
+                  tcallparanode(tinlinenode(right).left).left,
+                  ccallparanode.create(tcallparanode(tcallparanode(tinlinenode(right).left).right).left,nil)));
+                result.localswitches:=localswitches;
+                result.fileinfo:=fileinfo;
+                result.verbosity:=verbosity;
+                tcallparanode(tinlinenode(right).left).left:=nil;
+                tcallparanode(tcallparanode(tinlinenode(right).left).right).left:=nil;
+                exit;
+              end;
 {$endif enable_sar_assign_x_y or enable_rox_assign_x_y}
             { replace i:=not i  by in_not_assign_x(i)
                       i:=-i     by in_neg_assign_x(i)
