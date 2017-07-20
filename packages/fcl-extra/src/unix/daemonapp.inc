@@ -218,14 +218,22 @@ end;
 
 Procedure SysInitDaemonApp;
 
-Var
-  old,new : SigactionRec;
+  Procedure installhandler(aSig : Longint);
+
+  Var
+    old,new : SigactionRec;
+
+  begin
+    FillChar(New,SizeOf(Sigactionrec),#0);
+    FillChar(Old,SizeOf(Sigactionrec),#0);
+    New.sa_handler:=@DoShutDown;
+    fpSigaction(aSig,@New,@Old);
+  end;
 
 begin
-  New.sa_handler:=@DoShutDown;
-  fpSigaction(SIGQUIT,@New,@Old);
-  fpSigaction(SIGTERM,@New,@Old);
-  fpSigaction(SIGINT,@New,@Old);
+  InstallHandler(SIGQUIT);
+  InstallHandler(SIGTERM);
+  InstallHandler(SIGINT);
 end;
 
 
