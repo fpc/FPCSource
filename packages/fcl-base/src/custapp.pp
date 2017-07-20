@@ -430,6 +430,7 @@ Var
 begin
   SetLength(Result,ParamCount);
   Cnt:=0;
+  I:=-1;
   Repeat
     I:=FindOptionIndex(C,B,I);
     If I<>-1 then
