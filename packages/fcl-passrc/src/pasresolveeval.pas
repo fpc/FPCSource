@@ -362,13 +362,16 @@ type
     function AsString: string; override;
   end;
 
-  { TResEvalEnum - Kind=revkEnum, Value.Int, IdentEl is TPasEnumValue }
+  { TResEvalEnum - Kind=revkEnum, Value.Int }
 
   TResEvalEnum = class(TResEvalValue)
   public
-    Index: integer;
+    Index: integer; // Beware: might be outside TPasEnumType
+    ElType: TPasEnumType; // TPasEnumType
     constructor Create; override;
     constructor CreateValue(const aValue: integer; aIdentEl: TPasEnumValue);
+    function GetEnumValue: TPasEnumValue;
+    function GetEnumName: String;
     function Clone: TResEvalValue; override;
     function AsDebugString: string; override;
     function AsString: string; override;
@@ -522,6 +525,7 @@ type
     function OrdValue(Value: TResEvalValue; ErrorEl: TPasElement): TResEvalInt; virtual;
     procedure PredValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     procedure SuccValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
+    function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
       Flags: TResEvalFlags): TResEvalEnum; virtual;
     function GetCodePage(const s: RawByteString): TSystemCodePage;
@@ -3321,7 +3325,7 @@ begin
     Result:=EvalParamsExpr(TParamsExpr(Expr),Flags)
   else if refConst in Flags then
     RaiseConstantExprExp(20170518213800,Expr);
-  writeln('TResExprEvaluator.Eval END result=',Result<>nil,' ',dbgs(Result));
+  writeln('TResExprEvaluator.Eval END ',Expr.ClassName,' result=',Result<>nil,' ',dbgs(Result));
 end;
 
 function TResExprEvaluator.IsInRange(Expr, RangeExpr: TPasExpr;
@@ -3705,12 +3709,118 @@ begin
   end;
 end;
 
+function TResExprEvaluator.EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags
+  ): TResEvalValue;
+var
+  AllConst: Boolean;
+
+  function EvalFormat(Expr: TPasExpr; MinVal, MaxVal: MaxPrecInt): MaxPrecInt;
+  var
+    Value: TResEvalValue;
+  begin
+    Value:=Eval(Expr,Flags);
+    if Value=nil then
+      begin
+      AllConst:=false;
+      exit(-1);
+      end;
+    if Value.Kind<>revkInt then
+      RaiseNotYetImplemented(20170717144010,Expr);
+    Result:=TResEvalInt(Value).Int;
+    if (Result<MinVal) or (Result>MaxVal) then
+      EmitRangeCheckConst(20170717144609,IntToStr(Result),MinVal,MaxVal,Expr,mtError);
+  end;
+
+var
+  i: Integer;
+  Param: TPasExpr;
+  S, ValStr: String;
+  Value: TResEvalValue;
+  Format1, Format2: MaxPrecInt;
+begin
+  Result:=nil;
+  Value:=nil;
+  AllConst:=true;
+  S:='';
+  for i:=0 to length(Params.Params)-1 do
+    begin
+    Param:=Params.Params[i];
+    {$IFDEF VerbosePasResEval}
+    writeln('TPasResolver.BI_StrFunc_OnEval i=',i,' of ',length(Params.Params),' Param=',GetObjName(Param));
+    {$ENDIF}
+    Value:=Eval(Param,Flags);
+    if Value=nil then
+      begin
+      AllConst:=false;
+      continue;
+      end;
+    Format1:=-1;
+    Format2:=-1;
+    try
+      ValStr:='';
+      if Param.format1<>nil then
+        begin
+        Format1:=EvalFormat(Param.format1,1,255);
+        if Format1<0 then
+          continue;
+        if Param.format2<>nil then
+          begin
+          Format2:=EvalFormat(Param.format2,0,255);
+          if Format2<0 then
+            continue;
+          end;
+        end;
+      case Value.Kind of
+      revkBool:
+        if Format1<0 then
+          str(TResEvalBool(Value).B,ValStr)
+        else
+          str(TResEvalBool(Value).B:Format1,ValStr);
+      revkInt:
+        if Format1<0 then
+          str(TResEvalInt(Value).Int,ValStr)
+        else
+          str(TResEvalInt(Value).Int:Format1,ValStr);
+      revkUInt:
+        if Format1<0 then
+          str(TResEvalUInt(Value).UInt,ValStr)
+        else
+          str(TResEvalUInt(Value).UInt:Format1,ValStr);
+      revkFloat:
+        if Format1<0 then
+          str(TResEvalFloat(Value).FloatValue,ValStr)
+        else if Format2<0 then
+          str(TResEvalFloat(Value).FloatValue:Format1,ValStr)
+        else
+          str(TResEvalFloat(Value).FloatValue:Format1:Format2,ValStr);
+      revkEnum:
+        begin
+        ValStr:=TResEvalEnum(Value).AsString;
+        if Format1>0 then
+          ValStr:=Space(Format1)+ValStr;
+        end;
+      else
+        AllConst:=false;
+        continue;
+      end;
+    finally
+      ReleaseEvalValue(Value);
+      ReleaseEvalValue(Value);
+      ReleaseEvalValue(Value);
+    end;
+    S:=S+ValStr;
+  end;
+  if AllConst then
+    Result:=TResEvalString.CreateValue(S);
+end;
+
 function TResExprEvaluator.EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
   Flags: TResEvalFlags): TResEvalEnum;
 var
   Value: TResEvalValue;
   MaxIndex, Index: Integer;
 begin
+  Result:=nil;
   Value:=Eval(Expr,Flags);
   if Value=nil then exit;
   try
@@ -4179,6 +4289,26 @@ begin
   Create;
   Index:=aValue;
   IdentEl:=aIdentEl;
+  ElType:=IdentEl.Parent as TPasEnumType;
+end;
+
+function TResEvalEnum.GetEnumValue: TPasEnumValue;
+begin
+  Result:=nil;
+  if ElType<>nil then
+    if (Index>=0) and (Index<ElType.Values.Count) then
+      Result:=TObject(ElType.Values[Index]) as TPasEnumValue;
+end;
+
+function TResEvalEnum.GetEnumName: String;
+var
+  V: TPasEnumValue;
+begin
+  V:=GetEnumValue;
+  if V<>nil then
+    Result:=V.Name
+  else
+    Result:='';
 end;
 
 function TResEvalEnum.Clone: TResEvalValue;
@@ -4190,12 +4320,19 @@ end;
 function TResEvalEnum.AsDebugString: string;
 begin
   str(Kind,Result);
-  Result:=Result+'='+IdentEl.Name+'='+IntToStr(Index);
+  Result:=Result+'='+AsString+'='+IntToStr(Index);
 end;
 
 function TResEvalEnum.AsString: string;
 begin
-  Result:=IdentEl.Name;
+  if IdentEl<>nil then
+    begin
+    Result:=IdentEl.Name;
+    if Result<>'' then exit;
+    end;
+  Result:=GetEnumName;
+  if Result<>'' then exit;
+  Result:=ElType.Name+'('+IntToStr(Index)+')';
 end;
 
 { TResEvalRangeInt }
@@ -4252,8 +4389,13 @@ begin
     revskEnum:
       begin
       EnumType:=ElType as TPasEnumType;
-      EnumValue:=TPasEnumValue(EnumType.Values[El]);
-      Result:=EnumValue.Name;
+      if (El>=0) and (El<EnumType.Values.Count) then
+        begin
+        EnumValue:=TPasEnumValue(EnumType.Values[El]);
+        Result:=EnumValue.Name;
+        end
+      else
+        Result:=ElType.Name+'('+IntToStr(El)+')';
       end;
     revskInt: Result:=IntToStr(El);
     revskChar:
@@ -4323,8 +4465,13 @@ begin
       {$ENDIF}
       EnumType:=ElType as TPasEnumType;
       //writeln('TResEvalSet.ElementAsString EnumType=',GetObjName(EnumType),' Values.Count=',EnumType.Values.Count,' El=',El);
-      EnumValue:=TPasEnumValue(EnumType.Values[El]);
-      Result:=EnumValue.Name;
+      if (El>=0) and (El<EnumType.Values.Count) then
+        begin
+        EnumValue:=TPasEnumValue(EnumType.Values[El]);
+        Result:=EnumValue.Name;
+        end
+      else
+        Result:=ElType.Name+'('+IntToStr(El)+')';
       end;
     revskInt: Result:=IntToStr(El);
     revskChar:

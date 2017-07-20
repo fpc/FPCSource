@@ -1165,6 +1165,8 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_StrFunc_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_StrFunc_OnEval({%H-}Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
     function BI_ConcatArray_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_ConcatArray_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
@@ -7505,6 +7507,7 @@ begin
             bfOrd: BI_Ord_OnEval(BuiltInProc,Params,Flags,Result);
             bfLow,bfHigh: BI_LowHigh_OnEval(BuiltInProc,Params,Flags,Result);
             bfPred,bfSucc: BI_PredSucc_OnEval(BuiltInProc,Params,Flags,Result);
+            bfStrFunc: BI_StrFunc_OnEval(BuiltInProc,Params,Flags,Result);
           else
             {$IFDEF VerbosePasResEval}
             writeln('TPasResolver.OnExprEvalParams Unhandled BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
@@ -8759,6 +8762,12 @@ begin
   SetResolverIdentifier(ResolvedEl,btString,Proc.Proc,FBaseTypes[btString],[rrfReadable]);
 end;
 
+procedure TPasResolver.BI_StrFunc_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+begin
+  Evaluated:=fExprEvaluator.EvalStrFunc(Params,Flags);
+end;
+
 function TPasResolver.BI_ConcatArray_OnGetCallCompatibility(
   Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
 var
@@ -9810,7 +9819,7 @@ begin
   if bfStrFunc in TheBaseProcs then
     AddBuiltInProc('Str','function Str(const var): String',
         @BI_StrFunc_OnGetCallCompatibility,@BI_StrFunc_OnGetCallResult,
-        nil,nil,bfStrFunc);
+        @BI_StrFunc_OnEval,nil,bfStrFunc);
   if bfConcatArray in TheBaseProcs then
     AddBuiltInProc('Concat','function Concat(const Array1, Array2, ...): Array',
         @BI_ConcatArray_OnGetCallCompatibility,@BI_ConcatArray_OnGetCallResult,
