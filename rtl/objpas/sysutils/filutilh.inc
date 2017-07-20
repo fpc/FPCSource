@@ -57,6 +57,10 @@ Type
 {$ifdef USEFINDDATA}
     FindData : TFindData;
 {$endif}
+  private
+    function GetTimeStamp: TDateTime;
+  public
+    property TimeStamp: TDateTime read GetTimeStamp;
   end;
 
   TRawbyteSearchRec = Record
@@ -72,6 +76,10 @@ Type
 {$IFDEF USEFINDDATA}
     FindData : TFindData;
 {$ENDIF}
+  private
+    function GetTimeStamp: TDateTime;
+  public
+    property TimeStamp: TDateTime read GetTimeStamp;
   end;
 
 {$IFDEF FPC_UNICODE_RTL}

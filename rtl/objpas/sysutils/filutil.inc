@@ -542,3 +542,18 @@ begin
   InternalFindClose(f.FindHandle{$ifdef USEFINDDATA},f.FindData{$endif});
 end;
 
+{ TUnicodeSearchRec }
+
+function TUnicodeSearchRec.GetTimeStamp: TDateTime;
+begin
+  Result := FileDateToDateTime(Time);
+end;
+
+{ TRawbyteSearchRec }
+
+function TRawbyteSearchRec.GetTimeStamp: TDateTime;
+begin
+  Result := FileDateToDateTime(Time);
+end;
+
+
