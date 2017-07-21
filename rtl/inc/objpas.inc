@@ -1044,7 +1044,10 @@
       begin
          _Release:=interlockeddecrement(frefcount);
          if _Release=0 then
-           self.destroy;
+           begin
+           if interlockedincrement(fdestroycount)=1 then
+             self.destroy;
+           end;
       end;
 
     procedure TInterfacedObject.AfterConstruction;
