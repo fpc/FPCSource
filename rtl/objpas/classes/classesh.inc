@@ -1028,7 +1028,7 @@ type
   public
     constructor Create(const ABytes: TBytes); override; overload;
     constructor Create(const AString: string = ''); overload;
-    constructor Create(const AString: RawByteString); overload;
+    constructor CreateRaw(const AString: RawByteString); overload;
     constructor Create(const AString: string; AEncoding: TEncoding; AOwnsEncoding: Boolean = True); overload;
     constructor Create(const AString: string; ACodePage: Integer); overload;
     // UnicodeString versions

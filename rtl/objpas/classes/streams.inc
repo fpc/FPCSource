@@ -824,7 +824,7 @@ begin
   FOwnsEncoding:=False;
 end;
 
-constructor TStringStream.Create(const AString: RawByteString);
+constructor TStringStream.CreateRaw(const AString: RawByteString);
 
 var
   CP: TSystemCodePage;
