@@ -38,6 +38,7 @@ interface
       TCGSparc64=class(TCGSparcGen)
        procedure a_load_reg_reg(list : TAsmList; fromsize,tosize : tcgsize; reg1,reg2 : tregister);override;
        procedure a_load_ref_reg_unaligned(list : TAsmList; fromsize,tosize : tcgsize; const ref : treference; register : tregister);override;
+       procedure a_load_reg_ref_unaligned(list : TAsmList; fromsize,tosize : tcgsize; register : tregister; const ref : treference);override;
        procedure a_load_const_reg(list : TAsmList; size : TCGSize; a : tcgint; reg : TRegister);override;
       end;
 
@@ -126,6 +127,33 @@ interface
             a_load_ref_reg(list,OS_32,OS_32,href,hreg2);
             a_op_const_reg_reg(list,OP_SHL,OS_64,32,hreg1,register);
             a_op_reg_reg_reg(list,OP_OR,OS_64,hreg2,register,register);
+          end
+       else
+         inherited;
+      end;
+
+
+    procedure TCGSparc64.a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
+      var
+        href: treference;
+        hreg1: tregister;
+      begin
+        if fromsize in [OS_64,OS_S64] then
+          begin
+            { split into two 32 bit stores }
+            href:=ref;
+            if not(TCGSparc64(cg).IsSimpleRef(href)) then
+              begin
+                hreg1:=getintregister(list,OS_ADDR);
+                a_loadaddr_ref_reg(list,href,hreg1);
+                reference_reset_base(href,hreg1,0,href.alignment,href.volatility);
+              end;
+            inc(href.offset,4);
+            a_load_reg_ref(list,OS_32,OS_32,register,href);
+            hreg1:=getintregister(list,OS_32);
+            a_op_const_reg_reg(list,OP_SHR,OS_64,32,register,hreg1);
+            dec(href.offset,4);
+            a_load_reg_ref(list,OS_32,OS_32,hreg1,href);
           end
        else
          inherited;
