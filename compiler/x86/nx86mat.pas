@@ -510,6 +510,14 @@ interface
                   end;
               end;
           end
+        { unsigned modulus by a power-of-2 constant? }
+        else if (nodetype=modn) and (right.nodetype=ordconstn) and
+                ispowerof2(tordconstnode(right).value,power) and
+                not(is_signed(left.resultdef)) then
+          begin
+            emit_const_reg(A_AND,opsize,(aint(1) shl power)-1,hreg1);
+            location.register:=hreg1;
+          end
         else
           begin
             {Bring denominator to a register.}
