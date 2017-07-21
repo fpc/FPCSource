@@ -59,7 +59,7 @@
           'cmp',
           'dec','deccc',
           'inc','inccc',
-          'mov','mov',
+          'mov','mov','movrz','movrlez','movrlz','movrnz','movrgz','movrgez',
           'neg',
           'not',
           'set',

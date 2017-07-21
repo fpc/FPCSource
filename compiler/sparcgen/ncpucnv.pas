@@ -61,7 +61,7 @@ implementation
       cgbase,cgutils,pass_1,pass_2,
       ncon,ncal,procinfo,
       ncgutil,
-      cpubase,aasmcpu,
+      cpuinfo,cpubase,aasmcpu,
       tgobj,cgobj,
       hlcgobj;
 
@@ -298,11 +298,30 @@ implementation
                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
                 end;
               hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
-              if is_pasbool(resultdef) then
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,hreg1))
+{$ifdef cpu64bitalu}
+              { there are no ADDC/SUBC instructions working on xcc, i.e. the 64 bit flags }
+              if left.location.size in [OS_64,OS_S64] then
+                begin
+                  if current_settings.cputype in [cpu_SPARC_V9] then
+                    begin
+                      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const_reg(A_MOVRZ,hreg2,0,hreg1));
+                      if is_pasbool(resultdef) then
+                        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const_reg(A_MOVRNZ,hreg2,1,hreg1))
+                      else
+                        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const_reg(A_MOVRNZ,hreg2,-1,hreg1));
+                    end
+                  else
+                    Internalerror(2017072101);
+                end
               else
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBX,NR_G0,NR_G0,hreg1));
+{$endif cpu64bitalu}
+                begin
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
+                  if is_pasbool(resultdef) then
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADDX,NR_G0,NR_G0,hreg1))
+                  else
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBX,NR_G0,NR_G0,hreg1));
+                end;
             end;
           LOC_FLAGS :
             begin
@@ -330,20 +349,20 @@ implementation
             internalerror(10062);
         end;
 {$ifndef cpu64bitalu}
-         if (location.size in [OS_64,OS_S64]) then
-           begin
-             location.register64.reglo:=hreg1;
-             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-             if (is_cbool(resultdef)) then
-               { reglo is either 0 or -1 -> reghi has to become the same }
-               cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
-             else
-               { unsigned }
-               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
-           end
-         else
+        if (location.size in [OS_64,OS_S64]) then
+          begin
+            location.register64.reglo:=hreg1;
+            location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            if (is_cbool(resultdef)) then
+              { reglo is either 0 or -1 -> reghi has to become the same }
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+            else
+              { unsigned }
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+          end
+        else
 {$endif not cpu64bitalu}
-           location.register:=hreg1;
+          location.register:=hreg1;
       end;
 
 
