@@ -89,3 +89,8 @@
   {$define generic_linux_syscalls}
   {$undef usestime}
 {$endif cpuaarch64}
+
+{$ifdef cpusparc64}
+  {$define FPC_USEGETTIMEOFDAY}
+{$endif cpusparc64}
+
