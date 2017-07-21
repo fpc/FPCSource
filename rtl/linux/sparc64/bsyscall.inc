@@ -12,7 +12,6 @@
 
  **********************************************************************}
 
-
 {$define FPC_BASEUNIX_HAS_FPPIPE}
 Function fppipe(var fildes : tfildes):cint;assembler;
 {
@@ -21,15 +20,15 @@ Function fppipe(var fildes : tfildes):cint;assembler;
 }
 asm
         mov     42,%g1
-        mov     %i0,%o0        
-        ta      0x10
-        bcc     .LSyscOK
+        mov     %i0,%o0
+        ta      0x6d
+        bcc     %xcc,.LSyscOK
         nop
         call    fpseterrno
         nop
-        mov     -1,%i0
-        b	.Lend
-        nop
+        b       .Lend
+        { use delay slot }
+        mov     -1,%o0
 .LSyscOK:
         st      %o0,[%i0]
         st      %o1,[%i0+4]
