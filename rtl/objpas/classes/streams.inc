@@ -796,95 +796,138 @@ begin
     end;
 end;
 
+
 {****************************************************************************}
 {*                             TStringStream                                *}
 {****************************************************************************}
 
-function TStringStream.GetSize: Int64;
+function TStringStream.GetDataString: string;
 begin
-  Result:=Length(FDataString);
+  Result:=FEncoding.GetAnsiString(Bytes,0,Size);
 end;
 
-function TStringStream.GetPosition: Int64;
+function TStringStream.GetUnicodeDataString: String;
 begin
-  Result:=FPosition;
+  Result:=FEncoding.GetString(Bytes, 0, Size);
 end;
-
-procedure TStringStream.SetSize(NewSize: Longint);
-
-begin
- Setlength(FDataString,NewSize);
- If FPosition>NewSize then FPosition:=NewSize;
-end;
-
 
 constructor TStringStream.Create(const AString: string = '');
 
 begin
-  Inherited create;
-  FDataString:=AString;
-  UniqueString(FDataString);
+  Create(AString,TEncoding.Default, False);
 end;
 
+constructor TStringStream.Create(const ABytes: TBytes);
+begin
+  inherited Create(ABytes);
+  FEncoding:=TEncoding.Default;
+  FOwnsEncoding:=False;
+end;
 
-function TStringStream.Read(var Buffer; Count: Longint): Longint;
+constructor TStringStream.Create(const AString: RawByteString);
+
+var
+  CP: TSystemCodePage;
 
 begin
-  Result:=Length(FDataString)-FPosition;
-  If Result>Count then Result:=Count;
-  // This supposes FDataString to be of type AnsiString !
-  if Result>0 then
-   begin
-   Move (Pchar(FDataString)[FPosition],Buffer,Result);
-   FPosition:=FPosition+Result;
-   end;
+  CP:=StringCodePage(AString);
+  if (CP=CP_ACP) or (CP=TEncoding.Default.CodePage) then
+    begin
+    FEncoding:=TEncoding.Default;
+    FOwnsEncoding:=False;
+    end
+  else
+    begin
+    FEncoding:=TEncoding.GetEncoding(CP);
+    FOwnsEncoding:=True;
+    end;
+  inherited Create(BytesOf(AString));
+end;
+
+constructor TStringStream.Create(const AString: string; AEncoding: TEncoding; AOwnsEncoding: Boolean);
+begin
+  FOwnsEncoding:=AOwnsEncoding and not TEncoding.IsStandardEncoding(AEncoding);
+  FEncoding:=AEncoding;
+  Inherited Create(AEncoding.GetAnsiBytes(AString));
+end;
+
+constructor TStringStream.Create(const AString: string; ACodePage: Integer);
+begin
+  Create(AString,TEncoding.GetEncoding(ACodePage),true);
+end;
+
+constructor TStringStream.Create(const AString: UnicodeString);
+begin
+  Create(AString,TEncoding.Unicode,false);
+end;
+
+constructor TStringStream.Create(const AString: UnicodeString; AEncoding: TEncoding; AOwnsEncoding: Boolean);
+begin
+  FOwnsEncoding:=AOwnsEncoding and not TEncoding.IsStandardEncoding(AEncoding);
+  FEncoding:=AEncoding;
+  Inherited Create(AEncoding.GetBytes(AString));
+end;
+
+constructor TStringStream.Create(const AString: UnicodeString; ACodePage: Integer);
+
+begin
+  Create(AString,TEncoding.GetEncoding(ACodePage),true);
 end;
 
 
 function TStringStream.ReadString(Count: Longint): string;
 
-Var NewLen : Longint;
+begin
+  Result:=ReadAnsiString(Count);
+end;
+
+function TStringStream.ReadUnicodeString(Count: Longint): UnicodeString;
+
+Var
+  NewLen,SLen : Longint;
 
 begin
-  NewLen:=Length(FDataString)-FPosition;
+  NewLen:=Size-FPosition;
   If NewLen>Count then NewLen:=Count;
-  SetLength(Result,NewLen);
-  Read (Pointer(Result)^,NewLen);
+  Result:=FEncoding.GetString(FBytes,FPosition,NewLen);
 end;
-
-
-function TStringStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-begin
-  Case Origin of
-    soFromBeginning : FPosition:=Offset;
-    soFromEnd       : FPosition:=Length(FDataString)+Offset;
-    soFromCurrent   : FPosition:=FPosition+Offset;
-  end;
-  If FPosition>Length(FDataString) then
-    FPosition:=Length(FDataString)
-  else If FPosition<0 then
-    FPosition:=0;
-  Result:=FPosition;
-end;
-
-
-function TStringStream.Write(const Buffer; Count: Longint): Longint;
-
-begin
-  Result:=Count;
-  if FPosition+Count>Size then
-    SetSize(FPosition+Count);
-  // This supposes that FDataString is of type AnsiString)
-  Move (Buffer,PChar(FDataString)[Fposition],Count);
-  FPosition:=FPosition+Count;
-end;
-
 
 procedure TStringStream.WriteString(const AString: string);
 
 begin
-  Write (PChar(Astring)[0],Length(AString));
+  WriteAnsiString(AString);
+end;
+
+procedure TStringStream.WriteUnicodeString(const AString: UnicodeString);
+Var
+  B: TBytes;
+
+begin
+  B:=FEncoding.GetBytes(AString);
+  if Length(B)>0 then
+    WriteBuffer(B[0],Length(Bytes));
+end;
+
+function TStringStream.ReadAnsiString(Count: Longint): AnsiString;
+
+Var
+  NewLen : Longint;
+
+begin
+  NewLen:=Size-FPosition;
+  If NewLen>Count then NewLen:=Count;
+  Result:=FEncoding.GetAnsiString(FBytes,FPosition,NewLen);
+end;
+
+procedure TStringStream.WriteAnsiString(const AString: AnsiString);
+
+Var
+  B: TBytes;
+
+begin
+  B:=FEncoding.GetAnsiBytes(AString);
+  if Length(B)>0 then
+    WriteBuffer(B[0],Length(B));
 end;
 
 

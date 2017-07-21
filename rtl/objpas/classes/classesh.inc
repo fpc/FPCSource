@@ -1012,28 +1012,39 @@ type
   protected
     function Realloc(var NewCapacity: PtrInt): Pointer; override;
   public
-    constructor Create(const ABytes: TBytes); overload;
+    constructor Create(const ABytes: TBytes); virtual; overload;
     property Bytes: TBytes read FBytes;
   end;
 
 { TStringStream }
 
-  TStringStream = class(TStream)
+  TStringStream = class(TBytesStream)
   private
-    FDataString: string;
-    FPosition: Integer;
+    FEncoding: TEncoding;
+    FOwnsEncoding : Boolean;
+    function GetDataString: string;
+    function GetUnicodeDataString: String;
   protected
-    Function GetSize : Int64; Override;
-    function GetPosition: Int64; Override;
-    procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const AString: string = '');
-    function Read(var Buffer; Count: Longint): Longint; override;
+    constructor Create(const ABytes: TBytes); override; overload;
+    constructor Create(const AString: string = ''); overload;
+    constructor Create(const AString: RawByteString); overload;
+    constructor Create(const AString: string; AEncoding: TEncoding; AOwnsEncoding: Boolean = True); overload;
+    constructor Create(const AString: string; ACodePage: Integer); overload;
+    // UnicodeString versions
+    constructor Create(const AString: UnicodeString); overload;
+    constructor Create(const AString: UnicodeString; AEncoding: TEncoding; AOwnsEncoding: Boolean = True); overload;
+    constructor Create(const AString: UnicodeString; ACodePage: Integer); overload;
+    function ReadUnicodeString(Count: Longint): UnicodeString;
+    procedure WriteUnicodeString(const AString: UnicodeString);
+    function ReadAnsiString(Count: Longint): AnsiString;
+    procedure WriteAnsiString(const AString: AnsiString);
     function ReadString(Count: Longint): string;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
     procedure WriteString(const AString: string);
-    property DataString: string read FDataString;
+    property DataString: string read GetDataString;
+    Property UnicodeDataString : String Read GetUnicodeDataString;
+    Property OwnsEncoding : Boolean Read FOwnsEncoding;
+    Property Encoding : TEncoding Read FEncoding;
   end;
 
 { TResourceStream }
