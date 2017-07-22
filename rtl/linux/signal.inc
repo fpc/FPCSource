@@ -59,7 +59,7 @@ Const
   SIG_IGN = 1 ;
   SIG_ERR = -1 ;
 
-{$ifdef CPUSPARC}
+{$if defined(CPUSPARC) or defined(CPUSPARC64)}
   SIGHUP     = 1;
   SIGINT     = 2;
   SIGQUIT    = 3;
@@ -94,7 +94,7 @@ Const
   SIGPWR     = SIGLOST;
   SIGUSR1    = 30;
   SIGUSR2    = 31;
-{$else cpusparc}
+{$else defined(CPUSPARC) or defined(CPUSPARC64)}
   SIGHUP     = 1;
   SIGINT     = 2;
   SIGQUIT    = 3;
@@ -151,7 +151,7 @@ Const
   SIGPWR     = 30;
   SIGUNUSED  = 31;
 {$endif not CPUMIPS}
-{$endif cpusparc}
+{$endif defined(CPUSPARC) or defined(CPUSPARC64)}
 
 { si_code field values for tsiginfo.si_code when si_signo = SIGFPE }
 const
