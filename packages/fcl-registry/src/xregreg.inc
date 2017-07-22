@@ -124,7 +124,7 @@ Var
   DataType : TDataType;
 begin
   Result:=BufSize;
-  If TXmlregistry(FSysData).GetValueData(Name,DataType,Buffer^,Result) then
+  If TXmlregistry(FSysData).GetValueDataUnicode(Name,DataType,Buffer^,Result) then
     begin
     Case DataType of
       dtUnknown : RegData:=rdUnknown;
@@ -144,7 +144,7 @@ Var
   Info : TDataInfo;
 
 begin
-  Result := TXmlRegistry(FSysData).GetValueInfo(ValueName,Info);
+  Result := TXmlRegistry(FSysData).GetValueInfo(ValueName,Info,True);
   If Not Result then
     With Value do
       begin
@@ -270,7 +270,7 @@ begin
     rdInteger               : DataType := dtDword;
     rdBinary                : DataType := dtBinary;
   end;
-  Result:=TXMLRegistry(FSysData).SetValueData(Name,DataType,Buffer^,BufSize);
+  Result:=TXMLRegistry(FSysData).SetValueDataUnicode(Name,DataType,Buffer^,BufSize);
 end;
 
 procedure TRegistry.RenameValue(const OldName, NewName: string);

@@ -383,30 +383,31 @@ function TRegistry.ReadString(const Name: string): string;
 Var
   Info : TRegDataInfo;
   ReadDataSize: Integer;
+  u: UnicodeString;
 
 begin
+  Result:='';
   GetDataInfo(Name,Info);
   if info.datasize>0 then
+  begin
+    if Not (Info.RegData in [rdString,rdExpandString]) then
+      Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
+    if Odd(Info.DataSize) then
+      SetLength(u,round((Info.DataSize+1)/SizeOf(UnicodeChar)))
+    else
+      SetLength(u,round(Info.DataSize/SizeOf(UnicodeChar)));
+    ReadDataSize := GetData(Name,@u[1],Info.DataSize,Info.RegData);
+    if ReadDataSize > 0 then
     begin
-     If Not (Info.RegData in [rdString,rdExpandString]) then
-       Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
-     SetLength(Result,Info.DataSize);
-     ReadDataSize := GetData(Name,PChar(Result),Info.DataSize,Info.RegData);
-     if ReadDataSize > 0 then
-     begin
-       // If the data has the REG_SZ, REG_MULTI_SZ or REG_EXPAND_SZ type,
-       // the size includes any terminating null character or characters
-       // unless the data was stored without them! (RegQueryValueEx @ MSDN)
-       if StringSizeIncludesNull then
-         if Result[ReadDataSize] = #0 then
-           Dec(ReadDataSize);
-       SetLength(Result, ReadDataSize);
-     end
-     else
-       Result := '';
-   end
-  else
-    result:='';
+      // If the data has the REG_SZ, REG_MULTI_SZ or REG_EXPAND_SZ type,
+      // the size includes any terminating null character or characters
+      // unless the data was stored without them! (RegQueryValueEx @ MSDN)
+      if StringSizeIncludesNull and
+         (u[Length(u)] = WideChar(0)) then
+        SetLength(u,Length(u)-1);
+      Result:=UTF8Encode(u);
+    end;
+  end;
 end;
 
 function TRegistry.ReadTime(const Name: string): TDateTime;
@@ -449,9 +450,12 @@ begin
 end;
 
 procedure TRegistry.WriteExpandString(const Name, Value: string);
+var
+  u: UnicodeString;
 
 begin
-  PutData(Name, PChar(Value), Length(Value),rdExpandString);
+  u:=UTF8Decode(Value);
+  PutData(Name, PWideChar(u), ByteLength(u), rdExpandString);
 end;
 
 procedure TRegistry.WriteFloat(const Name: string; Value: Double);
@@ -465,9 +469,12 @@ begin
 end;
 
 procedure TRegistry.WriteString(const Name, Value: string);
+var
+  u: UnicodeString;
 
 begin
-  PutData(Name, PChar(Value), Length(Value), rdString);
+  u:=UTF8Decode(Value);
+  PutData(Name, PWideChar(u), ByteLength(u), rdString);
 end;
 
 procedure TRegistry.MoveKey(const OldName, NewName: string; Delete: Boolean);

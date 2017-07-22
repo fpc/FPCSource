@@ -39,6 +39,8 @@ Type
     FCurrentKey : String;
     Procedure SetFileName(Value : String);
   Protected
+    function DoGetValueData(Name: String; out DataType: TDataType; Var Data; Var DataSize: Integer; IsUnicode: Boolean): Boolean; virtual;
+    function DoSetValueData(Name: String; DataType: TDataType; const Data; DataSize: Integer; IsUnicode: Boolean): Boolean; virtual;
     Procedure LoadFromStream(S : TStream);
     Function  NormalizeKey(KeyPath : String) : String;
     Procedure CreateEmptyDoc;
@@ -61,7 +63,7 @@ Type
     Function  CreateKey(KeyPath : String) : Boolean;
     Function  GetValueSize(Name : String) : Integer;
     Function  GetValueType(Name : String) : TDataType;
-    Function  GetValueInfo(Name : String; Out Info : TDataInfo) : Boolean;
+    Function  GetValueInfo(Name : String; Out Info : TDataInfo; AsUnicode : Boolean = False) : Boolean;
     Function  GetKeyInfo(Out Info : TKeyInfo) : Boolean;
     Function  EnumSubKeys(List : TStrings) : Integer;
     Function  EnumValues(List : TStrings) : Integer;
@@ -73,6 +75,9 @@ Type
     Procedure Load;
     Function GetValueData(Name : String; Out DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
     Function SetValueData(Name : String; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
+    // These interpret the Data buffer as unicode data
+    Function GetValueDataUnicode(Name : String; Out DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
+    Function SetValueDataUnicode(Name : String; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
     Property FileName : String Read FFileName Write SetFileName;
     Property RootKey : String Read FRootKey Write SetRootkey;
     Property AutoFlush : Boolean Read FAutoFlush Write FAutoFlush;
@@ -285,7 +290,7 @@ begin
   MaybeFlush;
 end;
 
-Function TXmlRegistry.GetValueData(Name : String; Out DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
+Function TXmlRegistry.DoGetValueData(Name : String; Out DataType : TDataType; Var Data; Var DataSize : Integer; IsUnicode : Boolean) : Boolean;
 
 Type
   PCardinal = ^Cardinal;
@@ -295,6 +300,7 @@ Var
   DataNode : TDomNode;
   BL,ND,NS : Integer;
   S : UTF8String;
+  U : UnicodeString;
   HasData: Boolean;
   D : DWord;
   
@@ -321,11 +327,22 @@ begin
         dtString : // DataNode is optional
                    if HasData then
                      begin
-                     S:=UTF8Encode(DataNode.NodeValue); // Convert to ansistring
-                     NS:=Length(S);
-                     Result:=(DataSize>=NS);
-                     if Result then
-                       Move(S[1],Data,NS);
+                     if not IsUnicode then
+                       begin
+                       S:=UTF8Encode(DataNode.NodeValue); // Convert to ansistring
+                       NS:=Length(S);
+                       Result:=(DataSize>=NS);
+                       if Result then
+                         Move(S[1],Data,NS);
+                       end
+                     else
+                       begin
+                       U:=DataNode.NodeValue;
+                       NS:=Length(U)*SizeOf(UnicodeChar);
+                       Result:=(DataSize>=NS);
+                       if Result then
+                         Move(U[1],Data,NS);
+                       end
                      end;
 
         dtBinary : // DataNode is optional
@@ -345,7 +362,7 @@ begin
     end;
 end;
 
-Function TXmlRegistry.SetValueData(Name : String; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
+Function TXmlRegistry.DoSetValueData(Name : String; DataType : TDataType; Const Data; DataSize : Integer; IsUnicode : Boolean) : Boolean;
 
 Type
   PCardinal = ^Cardinal;
@@ -353,7 +370,8 @@ Type
 Var
   Node  : TDomElement;
   DataNode : TDomNode;
-  SW : Widestring;
+  SW : UnicodeString;
+
 begin
   Node:=FindValueKey(Name);
   If Node=Nil then
@@ -367,7 +385,10 @@ begin
     Case DataType of
       dtDWORD : SW:=IntToStr(PCardinal(@Data)^);
       dtString : begin
-                   SW:=WideString(PAnsiChar(@Data));
+                 if IsUnicode then
+                   SW:=UnicodeString(PUnicodeChar(@Data))
+                 else
+                   SW:=UnicodeString(PAnsiChar(@Data));
                    //S:=UTF8Encode(SW);
                  end;
       dtBinary : SW:=BufToHex(Data,DataSize);
@@ -391,6 +412,28 @@ begin
     FDirty:=True;
     MaybeFlush;
     end;
+end;
+
+Function TXmlRegistry.SetValueData(Name : String; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
+
+begin
+  Result:=DoSetValueData(Name,DataType,Data,DataSize,False);
+end;
+
+Function TXmlRegistry.GetValueData(Name : String; Out DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
+
+begin
+  Result:=DoGetValueData(Name,DataType,Data,DataSize,False);
+end;
+
+function TXmlRegistry.GetValueDataUnicode(Name: String; out DataType: TDataType; Var Data; Var DataSize: Integer): Boolean;
+begin
+  Result:=DoGetValueData(Name,DataType,Data,DataSize,True);
+end;
+
+function TXmlRegistry.SetValueDataUnicode(Name: String; DataType: TDataType; const Data; DataSize: Integer): Boolean;
+begin
+  Result:=DoSetValueData(Name,DataType,Data,DataSize,True)
 end;
 
 Function TXmlRegistry.FindSubKey (S : String; N : TDomElement) : TDomElement;
@@ -607,7 +650,7 @@ begin
     Result:=dtUnknown;
 end;
 
-Function TXMLRegistry.GetValueInfo(Name : String; Out Info : TDataInfo) : Boolean;
+function TXmlRegistry.GetValueInfo(Name: String; out Info: TDataInfo; AsUnicode: Boolean): Boolean;
 
 Var
   N  : TDomElement;
@@ -620,10 +663,17 @@ begin
   If Result then
     begin
     DN:=N.FirstChild;
-    if Assigned(DN) and (DN.NodeType=TEXT_NODE) then begin
-      S := UTF8Encode(DN.NodeValue);
-      L:=Length(S);
-    end else
+    if Assigned(DN) and (DN.NodeType=TEXT_NODE) then
+      begin
+      if AsUnicode then
+        L:=Length(DN.NodeValue)*SizeOf(UnicodeChar)
+      else
+        begin
+        S := UTF8Encode(DN.NodeValue);
+        L:=Length(S);
+        end
+      end
+    else
       L:=0;
     With Info do
       begin
