@@ -223,6 +223,11 @@ function AsTag(Value: Boolean): PtrUInt; overload; inline;
 function AsTag(Value: LongInt): PtrUInt; overload; inline;
 function AsTag(Value: LongWord): PtrUInt; overload; inline;
 
+// Hook and Dispatcher Helper
+{ This procedure is used to pop Dispatcher arguments from the EmulHandle }
+procedure DISPATCHERARG(var cl; var obj; var msg);
+function HookEntry: PtrUInt;
+
 implementation
 
 function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
@@ -284,6 +289,38 @@ end;
 function AsTag(Value: LongWord): PtrUInt; inline;
 begin
   AsTag := PtrUInt(Value);
+end;
+
+{ This procedure is used to pop Dispatcher arguments from the EmulHandle }
+procedure DISPATCHERARG(var cl; var obj; var msg);
+begin
+  with GetEmulHandle^ do
+  begin
+    PtrUInt(cl) := reg[regA0];
+    PtrUInt(obj) := reg[regA2];
+    PtrUInt(msg) := reg[regA1];
+  end;
+end;
+{
+// assembler implementation, kept for reference
+asm
+  lwz r6,32(r2) // REG_a0
+  stw r6,(r3)   // cl
+  lwz r6,40(r2) // REG_a2
+  stw r6,(r4)   // obj
+  lwz r6,36(r2) // REG_a1
+  stw r6,(r5)   // msg
+end;}
+
+type
+  THookSubEntryFunc = function(a, b, c: Pointer): PtrUInt;
+
+function HookEntry: PtrUInt;
+var
+  hook: PHook;
+begin
+  hook := REG_A0;
+  HookEntry := THookSubEntryFunc(hook^.h_SubEntry)(hook, REG_A2, REG_A1);
 end;
 
 begin

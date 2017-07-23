@@ -19,7 +19,7 @@
 
  **********************************************************************}
 {$PACKRECORDS 2}
-
+{$INLINE ON}
 unit intuition;
 
 interface
@@ -3646,6 +3646,13 @@ function ScreenbarControl(const Tags: array of PtrUInt): LongWord; inline;
 { Helper calls }
 function InitIntuitionLibrary : boolean;
 
+function DoMethodA(Obj: PObject_; Msg: Pointer): PtrUInt;
+function DoMethod(obj: PObject_; const Msg: array of PtrUInt): PtrUInt; inline;
+
+function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Message: Pointer): PtrUInt; inline;
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Msg: array of PtrUInt): PtrUInt;
+
+function DoSuperNew(Cl: PIClass; Obj: PObject_; const Tags: array of PtrUInt): PtrUInt;
 
 implementation
 
@@ -3798,6 +3805,93 @@ function SUBNUM(N: Word): Word;
 begin
   SUBNUM := (N shr 11) and $1f
 end;
+
+function DoMethodA(Obj: PObject_; Msg: Pointer): PtrUInt;
+var
+  Hook: PHook;
+begin
+  Hook := @THook(OCLASS(P_Object(Obj))^.cl_Dispatcher);
+  with GetEmulHandle^ do
+  begin
+    reg[regA0] := PtrUInt(Hook);
+    reg[regA1] := PtrUInt(Msg);
+    reg[regA2] := PtrUInt(Obj);
+    { This is magic, but it essentially calls the class Dispatcher Hook entry point }
+    DoMethodA := EmulCallDirect68k(hook^.h_Entry);
+  end;
+end;
+{
+// the old assembler implementation which trashes r31, kept for reference
+asm
+  mflr r31
+
+  lwz r9,-4(r3)
+  stw r9,32(r2)
+  stw r4,36(r2)
+  stw r3,40(r2)
+
+  lwz r11,104(r2)
+  lwz r3,8(r9)
+  mtlr r11
+  blrl
+
+  mtlr r31
+end ['R31'];
+}
+
+function DoMethod(obj: PObject_; const Msg: array of PtrUInt): PtrUInt; inline;
+begin
+  DoMethod := DoMethodA(obj, @Msg);
+end;
+
+function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Message: Pointer): PtrUInt; inline;
+var
+  Hook: PHook;
+begin
+  Hook := @PIClass(Cl)^.cl_Super^.cl_Dispatcher;
+  with GetEmulHandle^ do
+  begin
+    reg[regA0] := LongWord(Hook);
+    reg[regA1] := LongWord(Message);
+    reg[regA2] := LongWord(Obj);
+    { This is magic, but it calls the superclass Dispatcher hook entry point }
+    DoSuperMethodA := EmulCallDirect68k(hook^.h_Entry);
+  end;
+end;
+{
+// the old assembler implementation which trashes r31, kept for reference
+asm
+  mflr r31
+
+  lwz r9,24(r3)
+  stw r9,32(r2)
+  stw r5,36(r2)
+  stw r4,40(r2)
+
+  lwz r11,104(r2)
+  lwz r3,8(r9)
+  mtlr r11
+  blrl
+
+  mtlr r31
+end ['R31'];
+}
+
+function DoSuperMethod(Cl: PIClass; Obj: PObject_; const Msg: array of PtrUInt): PtrUInt;
+begin
+  DoSuperMethod:=DoSuperMethodA(Cl, obj, @msg);
+end;
+
+function DoSuperNew(Cl: PIClass; Obj: PObject_; const Tags: array of PtrUInt): PtrUInt;
+var
+  OpSet: TopSet;
+begin
+  OpSet.MethodID := OM_NEW;
+  OpSet.ops_AttrList := @Tags;
+  OpSet.ops_GInfo := nil;
+  DoSuperNew := DoSuperMethodA(Cl, Obj, @OpSet);
+end;
+
 
 const
   { Change VERSION and LIBVERSION to proper values }

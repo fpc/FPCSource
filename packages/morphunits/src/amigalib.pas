@@ -16,15 +16,16 @@
 
  **********************************************************************}
 {$INLINE ON}
-unit amigalib;
+unit amigalib
+  deprecated 'Unit will be removed. Functions are moved to intuition, utility unit.';
 
 interface
 
-function DoMethod(obj : longword; const msg : array of LongWord): longword;
-function DoMethod(obj : pointer; const msg : array of LongWord): longword;
+function DoMethod(obj : longword; const msg : array of LongWord): longword; inline;
+function DoMethod(obj : pointer; const msg : array of LongWord): longword; inline;
 function DoMethodA(obj : longword; msg1 : Pointer): longword; inline;
 
-function DoSuperMethod(class_: longword; obj : longword; const msg : array of LongWord): longword;
+function DoSuperMethod(class_: longword; obj : longword; const msg : array of LongWord): longword; inline;
 function DoSuperMethodA(class_: longword; obj : longword; msg1 : Pointer): longword; inline;
 function DoSuperMethodA(class_: pointer; obj : pointer; msg1 : Pointer): longword; inline;
 
@@ -33,118 +34,57 @@ function DoSuperNew(class_: pointer; obj: pointer; const tags: array of LongWord
 { This procedure is used to pop Dispatcher arguments from the EmulHandle }
 procedure DISPATCHERARG(var cl; var obj; var msg);
 
-function HookEntry: longword;
+function HookEntry: PtrUInt;
 
 implementation
 
-uses exec, intuition, utility;
+uses
+  exec, intuition, utility;
 
-
-function DoMethodA(obj : longword; msg1 : Pointer): longword;
-var
-  hook: PHook;
-begin
-  hook:=@THook(OCLASS(p_Object(obj))^.cl_Dispatcher);
-  with GetEmulHandle^ do
-    begin
-      reg[regA0]:=longword(hook);
-      reg[regA1]:=longword(msg1);
-      reg[regA2]:=obj;
-
-      { This is magic, but it essentially calls the class Dispatcher Hook entry point }
-      DoMethodA:=EmulCallDirect68k(hook^.h_Entry);
-    end;
-end;
-{
-// the old assembler implementation which trashes r31, kept for reference
-asm
-  mflr r31
-
-  lwz r9,-4(r3)
-  stw r9,32(r2)
-  stw r4,36(r2)
-  stw r3,40(r2)
-
-  lwz r11,104(r2)
-  lwz r3,8(r9)
-  mtlr r11
-  blrl
-
-  mtlr r31
-end ['R31'];
-}
 function DoMethod(obj : longword; const msg : array of LongWord): longword; inline;
 begin
-  DoMethod:=DoMethodA(obj, @msg);
+  DoMethod := Intuition.DoMethod(PObject_(Obj), Msg);
 end;
 
 function DoMethod(obj : pointer; const msg : array of LongWord): longword; inline;
 begin
-  DoMethod:=DoMethodA(DWord(obj), @msg);
+  DoMethod := Intuition.DoMethod(PObject_(Obj), Msg);
+end;
+
+function DoMethodA(obj : longword; msg1 : Pointer): longword; inline;
+begin
+  DoMethodA := Intuition.DoMethodA(PObject_(Obj), msg1);
+end;
+
+function DoSuperMethod(class_: longword; obj : longword; const msg : array of LongWord): longword; inline;
+begin
+  DoSuperMethod := Intuition.DoSuperMethod(PIClass(Class_), PObject_(Obj), Msg);
 end;
 
 function DoSuperMethodA(class_: longword; obj : longword; msg1 : Pointer): longword; inline;
-var
-  hook: PHook;
 begin
-  hook:=@PIClass(class_)^.cl_Super^.cl_Dispatcher;
-  with GetEmulHandle^ do
-    begin
-      reg[regA0]:=longword(hook);
-      reg[regA1]:=longword(msg1);
-      reg[regA2]:=obj;
-
-      { This is magic, but it calls the superclass Dispatcher hook entry point }
-      DoSuperMethodA:=EmulCallDirect68k(hook^.h_Entry);
-    end;
+  DoSuperMethodA := Intuition.DoSuperMethodA(PIClass(class_), PObject_(obj), msg1);
 end;
-{
-// the old assembler implementation which trashes r31, kept for reference
-asm
-  mflr r31
-
-  lwz r9,24(r3)
-  stw r9,32(r2)
-  stw r5,36(r2)
-  stw r4,40(r2)
-
-  lwz r11,104(r2)
-  lwz r3,8(r9)
-  mtlr r11
-  blrl
-
-  mtlr r31
-end ['R31'];
-}
 
 function DoSuperMethodA(class_: pointer; obj : pointer; msg1 : Pointer): longword; inline;
 begin
-  DoSuperMethodA:=DoSuperMethodA(DWord(class_),DWord(obj),msg1);
-end;
-
-function DoSuperMethod(class_: longword; obj : longword; const msg : array of LongWord): longword;
-begin
-  DoSuperMethod:=DoSuperMethodA(class_, obj, @msg);
+  DoSuperMethodA := Intuition.DoSuperMethodA(PIClass(class_), PObject_(Obj), Msg1);
 end;
 
 function DoSuperNew(class_: pointer; obj: pointer; const tags: array of LongWord): longword;
-var opSet: topSet;
 begin
-  opSet.MethodID := OM_NEW;
-  opSet.ops_AttrList := @tags;
-  opSet.ops_GInfo := nil;
-  DoSuperNew:=DoSuperMethodA(class_,obj,@opset);
+  DoSuperNew := Intuition.DoSuperNew(PIClass(class_), PObject_(Obj), Tags);
 end;
 
 { This procedure is used to pop Dispatcher arguments from the EmulHandle }
 procedure DISPATCHERARG(var cl; var obj; var msg);
 begin
   with GetEmulHandle^ do
-    begin
-      DWord(cl):=reg[regA0];
-      DWord(obj):=reg[regA2];
-      DWord(msg):=reg[regA1];
-    end;
+  begin
+    PtrUInt(cl) := reg[regA0];
+    PtrUInt(obj) := reg[regA2];
+    PtrUInt(msg) := reg[regA1];
+  end;
 end;
 {
 // assembler implementation, kept for reference
@@ -158,14 +98,14 @@ asm
 end;}
 
 type
-  THookSubEntryFunc = function(a, b, c: Pointer): longword;
+  THookSubEntryFunc = function(a, b, c: Pointer): PtrUInt;
 
-function HookEntry: longword;
+function HookEntry: PtrUInt;
 var
   hook: PHook;
 begin
-  hook:=REG_A0;
-  HookEntry:=THookSubEntryFunc(hook^.h_SubEntry)(hook, REG_A2, REG_A1);
+  hook := REG_A0;
+  HookEntry := THookSubEntryFunc(hook^.h_SubEntry)(hook, REG_A2, REG_A1);
 end;
 
 end.
