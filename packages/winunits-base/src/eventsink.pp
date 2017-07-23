@@ -169,9 +169,11 @@ procedure TAbstractEventSink.Disconnect;
 begin
  if Assigned(FDispatch) then begin
   // Unhook the sink from the automation server
+  Self._addRef;
   InterfaceDisconnect(FDispatch, FDispIntfIID, FConnection);
   FDispatch := nil;
   FConnection := 0;
+  self._Release;
  end;
 end;
 
