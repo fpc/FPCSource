@@ -2450,9 +2450,6 @@ TYPE
 
          LPCREBARBANDINFOA    = ^REBARBANDINFOA;
 
-// #define REBARBANDINFOA_V3_SIZE CCSIZEOF_STRUCT(REBARBANDINFOA, wID)
-// #define REBARBANDINFOW_V3_SIZE CCSIZEOF_STRUCT(REBARBANDINFOW, wID)
-
          tagREBARBANDINFOW    = Record
                                  cbSize       : UINT;
                                  fMask        : UINT;
@@ -2489,12 +2486,17 @@ TYPE
 
          LPCREBARBANDINFOW    = {const} ^REBARBANDINFOW;
 
+Const
+         REBARBANDINFOA_V3_SIZE = SIZEOF(REBARBANDINFOA);
+         REBARBANDINFOW_V3_SIZE = SIZEOF(REBARBANDINFOW);
+
+Type
+
 {$IFDEF UNICODE}
          REBARBANDINFO       = REBARBANDINFOW;
          LPREBARBANDINFO     = LPREBARBANDINFOW;
          LPCREBARBANDINFO    = LPCREBARBANDINFOW;
 
-//         REBARBANDINFO_V3_SIZE          = REBARBANDINFOW_V3_SIZE;
 {$ELSE}
 
          REBARBANDINFO       = REBARBANDINFOA;
@@ -2504,10 +2506,16 @@ TYPE
          TRebarBandInfo      = REBARBANDINFO;
          PRebarBandInfo      = ^LPREBARBANDINFO;
 
-//         REBARBANDINFO_V3_SIZE          = REBARBANDINFOA_V3_SIZE;
+
 {$ENDIF}
 
 CONST
+         {$IFDEF UNICODE}
+         REBARBANDINFO_V3_SIZE          = REBARBANDINFOW_V3_SIZE;
+         {$ELSE}
+         REBARBANDINFO_V3_SIZE          = REBARBANDINFOA_V3_SIZE;
+         {$ENDIF}
+
          RB_INSERTBANDA                 = (WM_USER +  1);
          RB_DELETEBAND                  = (WM_USER +  2);
          RB_GETBARINFO                  = (WM_USER +  3);
