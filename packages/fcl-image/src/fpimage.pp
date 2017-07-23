@@ -314,7 +314,8 @@ type
     StrNoCorrectReaderFound,
     StrReadWithError,
     StrWriteWithError,
-    StrNoPaletteAvailable
+    StrNoPaletteAvailable,
+    StrInvalidHTMLColor
     );
 
 const
@@ -335,7 +336,8 @@ const
      'Can''t determine image type of stream',
      'Error while reading stream: %s',
      'Error while writing stream: %s',
-     'No palette available'
+     'No palette available',
+     'Invalid HTML color : %s'
      );
 
 {$i fpcolors.inc}
@@ -553,6 +555,11 @@ Pass FreeImg=true to call Img.Free }
 function GetMinimumFPCompactImg(Img: TFPCustomImage; FreeImg: boolean;
 FuzzyDepth: word = 4): TFPCustomImage;
 
+{ HTML Color support. RRGGBB or color name. Only W3 color names s are supported}
+
+function TryHtmlToFPColor(const S: String; out FPColor: TFPColor): Boolean;
+function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; Def: TFPColor): TFPColor;
+function HtmlToFpColor(const S: String): TFPColor;
 
 
 implementation
@@ -644,6 +651,121 @@ begin
     end;
 end;
 {$endif}
+
+type
+  THtmlColorName = (
+    hcnWhite, hcnSilver, hcnGray, hcnBlack,
+    hcnRed, hcnMaroon, hcnYellow, hcnOlive,
+    hcnLime, hcnGreen, hcnAqua, hcnTeal, hcnBlue,
+    hcnNavy, hcnFuchsia, hcnPurple);
+
+const
+  HtmlColorNameToFPColorMap: array[THtmlColorName] of TFPColor = (
+    (red: $ff; green: $ff; blue: $ff; alpha: alphaOpaque), //hcnWhite
+    (red: $c0; green: $c0; blue: $c0; alpha: alphaOpaque), //hcnSilver
+    (red: $80; green: $80; blue: $80; alpha: alphaOpaque), //hcnGray
+    (red: $00; green: $00; blue: $00; alpha: alphaOpaque), //hcnBlack
+    (red: $ff; green: $00; blue: $00; alpha: alphaOpaque), //hcnRed
+    (red: $80; green: $00; blue: $00; alpha: alphaOpaque), //hcnMaroon
+    (red: $ff; green: $ff; blue: $00; alpha: alphaOpaque), //hcnYellow
+    (red: $80; green: $80; blue: $00; alpha: alphaOpaque), //hcnOlive
+    (red: $00; green: $ff; blue: $00; alpha: alphaOpaque), //hcnLime
+    (red: $00; green: $80; blue: $00; alpha: alphaOpaque), //hcnGreen
+    (red: $00; green: $ff; blue: $ff; alpha: alphaOpaque), //hcnAqua
+    (red: $00; green: $80; blue: $80; alpha: alphaOpaque), //hcnTeal
+    (red: $00; green: $00; blue: $ff; alpha: alphaOpaque), //hcnBlue
+    (red: $00; green: $00; blue: $80; alpha: alphaOpaque), //hcnNavy
+    (red: $ff; green: $00; blue: $ff; alpha: alphaOpaque), //hcnFuchsia
+    (red: $80; green: $00; blue: $80; alpha: alphaOpaque)  //hcnPurple
+  );
+
+function TryStrToHtmlColorName(const S: String; out AName: THtmlColorName): Boolean;
+begin
+   Result := True;
+   case LowerCase(S) of
+     'white'  : AName := hcnWhite;
+     'silver' : AName := hcnSilver;
+     'gray'   : AName := hcnGray;
+     'black'  : AName := hcnBlack;
+     'red'    : AName := hcnRed;
+     'maroon' : AName := hcnMaroon;
+     'yellow' : AName := hcnYellow;
+     'olive'  : AName := hcnOlive;
+     'lime'   : AName := hcnLime;
+     'green'  : AName := hcnGreen;
+     'aqua'   : AName := hcnAqua;
+     'teal'   : AName := hcnTeal;
+     'blue'   : AName := hcnBlue;
+     'navy'   : AName := hcnNavy;
+     'fuchsia': AName := hcnFuchsia;
+     'purple' : AName := hcnPurple;
+  else
+    Result := False;
+  end;
+end;
+
+{ Try to translate HTML color code into TFPColor
+  Supports following formats
+    '#rgb'
+    '#rrggbb'
+    W3C Html color name
+}
+function TryHtmlToFPColor(const S: String; out FPColor: TFPColor): Boolean;
+
+  function TryHexStrToWord(const Hex: String; out W: Word): Boolean;
+  var
+    Code: Integer;
+  begin
+    Val('$'+Hex, W, Code);
+    Result := (Code = 0);
+    if not Result then W := 0;
+  end;
+
+var
+  AName: THtmlColorName;
+begin
+  Result := False;
+  FPColor.red := 0;
+  FPColor.green := 0;
+  FPColor.blue := 0;
+  FPColor.alpha := alphaOpaque;
+  if (Length(S) = 0) then
+    Exit;
+  if (S[1] = '#') then
+  begin
+    if Length(S) = 4 then
+    begin  // #rgb
+      Result := (TryHexstrToWord(S[2]+S[2], FPColor.red) and
+                 TryHexstrToWord(S[3]+S[3], FPColor.green) and
+                 TryHexstrToWord(S[4]+S[4], FPColor.blue));
+    end
+    else if Length(S) = 7 then
+    begin  // #rrggbb
+      Result := (TryHexstrToWord(S[2]+S[3], FPColor.red) and
+                 TryHexstrToWord(S[4]+S[5], FPColor.green) and
+                 TryHexstrToWord(S[6]+S[7], FPColor.blue));
+    end;
+  end
+  else
+  begin
+    Result := TryStrToHtmlColorName(S, AName);
+    if Result then
+      FPColor := HtmlColorNameToFPColorMap[AName];
+  end;
+end;
+
+function HtmlToFPColorDef(const S: String; out FPColor: TFpColor; Def: TFPColor): TFPColor;
+begin
+  if not TryHtmlToFPColor(S, Result) then
+    Result := Def;
+end;
+
+function HtmlToFpColor(const S: String): TFPColor;
+begin
+  if not TryHtmlToFpColor(S, Result) then
+    raise EConvertError.CreateFmt(ErrorText[StrInvalidHTMLColor], [S]);
+end;
+
 
 initialization
   ImageHandlers := TImageHandlersManager.Create;
