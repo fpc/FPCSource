@@ -10,7 +10,7 @@ uses
 
 Type
 
-  TDataType = (dtUnknown,dtDWORD,dtString,dtBinary);
+  TDataType = (dtUnknown,dtDWORD,dtString,dtBinary,dtStrings);
   TDataInfo = record
     DataType : TDataType;
     DataSize : Integer;
@@ -345,7 +345,8 @@ begin
                        end
                      end;
 
-        dtBinary : // DataNode is optional
+        dtBinary,
+        dtStrings : // DataNode is optional
                    if HasData then
                      begin
                      BL:=Length(DataNode.NodeValue);
@@ -392,6 +393,7 @@ begin
                    //S:=UTF8Encode(SW);
                  end;
       dtBinary : SW:=BufToHex(Data,DataSize);
+      dtStrings : SW:=BufToHex(Data,DataSize);
     else
       sw:='';
     end;
@@ -682,6 +684,7 @@ begin
         dtUnknown : DataSize:=0;
         dtDword   : Datasize:=SizeOf(Cardinal);
         dtString  : DataSize:=L;
+        dtStrings,
         dtBinary  : DataSize:=L div 2;
       end;
       end;

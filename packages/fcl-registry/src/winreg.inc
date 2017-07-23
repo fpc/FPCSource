@@ -1,3 +1,8 @@
+Const
+  RegDataWords : Array [TRegDataType] of DWORD
+               = (REG_NONE,REG_SZ,REG_EXPAND_SZ,REG_BINARY,REG_DWORD,REG_DWORD_BIG_ENDIAN,
+                  REG_LINK,REG_MULTI_SZ,REG_RESOURCE_LIST,REG_FULL_RESOURCE_DESCRIPTOR,REG_RESOURCE_REQUIREMENTS_LIST);
+
 type
   TWinRegData = record
     RootKeyOwned: Boolean;
@@ -91,16 +96,9 @@ begin
     Result:=-1
   else
     begin
-    If (RD=REG_SZ) then
-      RegData:=rdString
-    else if (RD=REG_EXPAND_SZ) then
-      Regdata:=rdExpandString
-    else if (RD=REG_DWORD) then
-      RegData:=rdInteger
-    else if (RD=REG_BINARY) then
-      RegData:=rdBinary
-    else
-      RegData:=rdUnknown;
+    RegData:=High(TRegDataType);
+    While (RegData>rdUnknown) and (RD<>RegDataWords[RegData]) do
+      RegData:=Pred(RegData);
     Result:=BufSize;
     end;
 end;
@@ -109,6 +107,7 @@ function TRegistry.GetDataInfo(const ValueName: String; out Value: TRegDataInfo)
 
 Var
   u: UnicodeString;
+  RD : DWord;
 
 begin
   u:=UTF8Decode(ValueName);
@@ -116,6 +115,13 @@ begin
     begin
     FLastError:=RegQueryValueExW(fCurrentKey,PWideChar(u),Nil,lpdword(@RegData),Nil,lpdword(@DataSize));
     Result:=FLastError=ERROR_SUCCESS;
+    if Result then
+      begin
+      RD:=DWord(RegData);
+      RegData:=High(TRegDataType);
+      While (RegData>rdUnknown) and (RD<>RegDataWords[RegData]) do
+         RegData:=Pred(RegData);
+      end;
     end;
   If Not Result Then
     begin
@@ -403,21 +409,19 @@ begin
   end;
 end;
 
+
 Function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
   BufSize: Integer; RegData: TRegDataType) : Boolean;
+
 
 Var
   u: UnicodeString;
   RegDataType: DWORD;
+  B : Pchar;
+  S : String;
 
 begin
-  Case RegData of
-    rdUnknown      : RegDataType:=REG_NONE;
-    rdString       : RegDataType:=REG_SZ;
-    rdExpandString : RegDataType:=REG_EXPAND_SZ;
-    rdInteger      : RegDataType:=REG_DWORD;
-    rdBinary       : RegDataType:=REG_BINARY;
-  end;
+  RegDataType:=RegDataWords[RegData];
   u:=UTF8Decode(Name);
   FLastError:=RegSetValueExW(fCurrentKey,PWideChar(u),0,RegDataType,Buffer,BufSize);
   Result:=FLastError=ERROR_SUCCESS;
