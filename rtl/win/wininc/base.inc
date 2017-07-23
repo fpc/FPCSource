@@ -83,7 +83,9 @@
 
 
      INT_PTR = PtrInt;
+     PINT_PTR = ^INT_PTR;
      UINT_PTR = PtrUInt;
+     PUINT_PTR = ^UINT_PTR;
      LONG_PTR = PtrInt;
      ULONG_PTR = PtrUInt;
      DWORD_PTR   = ULONG_PTR;
