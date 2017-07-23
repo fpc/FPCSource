@@ -1441,7 +1441,7 @@ begin
    begin
      if p<>nil then
       begin
-        MemoryManager.FreeMem(p);
+        SysFreeMem(p);
         p := nil;
       end;
    end
@@ -1449,7 +1449,7 @@ begin
    { Allocate a new block? }
    if p=nil then
     begin
-      p := MemoryManager.GetMem(size);
+      p := SysGetMem(size);
     end
   else
    begin
@@ -1475,7 +1475,7 @@ begin
       minsize:=oldsize;
       if newsize < minsize then
         minsize := newsize;
-      p2 := MemoryManager.GetMem(newsize);
+      p2 := SysGetMem(newsize);
       if p2<>nil then
         Move(p^,p2^,minsize);
       MemoryManager.FreeMem(p);
