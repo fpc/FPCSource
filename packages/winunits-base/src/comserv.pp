@@ -135,12 +135,12 @@ begin
   WriteLn('DllGetClassObject called: ', GUIDToString(rclsid), ' ', GUIDToString(riid));
 {$endif}
 
-  factory := ComClassManager.GetFactoryFromClassID(rclsid);
+  factory := ComClassManager.GetFactoryFromClassID(rclsid^);
   if factory = nil then
     Result := CLASS_E_CLASSNOTAVAILABLE
   else
   begin
-    if factory.GetInterface(riid,ppv) then
+    if factory.GetInterface(riid^,ppv) then
       Result := S_OK
     else
       Result := CLASS_E_CLASSNOTAVAILABLE;
