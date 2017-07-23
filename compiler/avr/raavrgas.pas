@@ -71,14 +71,11 @@ Unit raavrgas;
         end;
 
       const
-        extraregs : array[0..8] of treg2str = (
-          (name: 'X'; reg : NR_R26),
+        extraregs : array[0..5] of treg2str = (
           (name: 'XL'; reg : NR_R26),
           (name: 'XH'; reg : NR_R27),
-          (name: 'Y'; reg : NR_R28),
           (name: 'YL'; reg : NR_R28),
           (name: 'YH'; reg : NR_R29),
-          (name: 'Z'; reg : NR_R30),
           (name: 'ZL'; reg : NR_R30),
           (name: 'ZH'; reg : NR_R31)
         );
