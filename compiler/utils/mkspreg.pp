@@ -189,7 +189,7 @@ begin
             cpustr:=readstr;
           end
         else
-          cpustr:='';		
+          cpustr:='';
         { Create register number }
         if supregs[regcount][1]<>'$' then
           begin
@@ -197,18 +197,18 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-		
+
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
             writeln('Line: "',s,'"');
             halt(1);
           end;
-		if (cpustr<>'SPARC64') or sparc64 then
-		  begin
+        if (cpustr<>'SPARC64') or sparc64 then
+          begin
             numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
             inc(regcount);
-		  end;
+          end;
         if regcount>max_regcount then
           begin
             writeln('Error: Too much registers, please increase maxregcount in source');
