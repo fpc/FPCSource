@@ -1321,6 +1321,17 @@ function BitMask(no :shortint): longint;
 function IsListEmpty( list : pList): boolean;
 function IsMsgPortEmpty( mp : pMsgPort): boolean;
 
+procedure BeginIO(IORequest: PIORequest);
+function CreateExtIO(Port: PMsgPort; Size: LongInt): PIORequest;
+procedure DeleteExtIO(IOReq: PIORequest);
+function CreateStdIO(Port: PMsgPort): PIOStdReq;
+procedure DeleteStdIO(IOReq: PIOStdReq);
+function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+procedure DeletePort(Port: PMsgPort);
+function CreateTask(Name: STRPTR; Pri: LongInt; InitPC: Pointer; StackSize: LongWord): PTask;
+procedure DeleteTask(Task: PTask);
+procedure NewList(List: PList);
+
 IMPLEMENTATION
 
 function BitMask(no :shortint): longint; inline;
@@ -1389,5 +1400,159 @@ function RawDoFmt(const formatString : String;const dataStream : POINTER; putChP
 BEGIN
     RawDoFmt := RawDoFmt(PChar(RawByteString(formatString)),dataStream,putChProc,putChData);
 END;
+
+
+procedure BeginIO(IORequest: PIORequest);
+begin
+  asm
+    move.l  a6,-(a7)
+    move.l  ioRequest,a1    ; get IO Request
+    move.l  20(a1),a6      ; extract Device ptr
+    jsr     -30(a6)        ; call BEGINIO directly
+    move.l  (a7)+,a6
+  end;
+end;
+
+function CreateExtIO(Port: PMsgPort; Size: LongInt): PIORequest;
+var
+   IOReq: PIORequest;
+begin
+  IOReq := nil;
+  if port <> nil then
+  begin
+    IOReq := ExecAllocMem(Size, MEMF_CLEAR or MEMF_PUBLIC);
+    if IOReq <> nil then
+    begin
+      IOReq^.io_Message.mn_Node.ln_Type := NT_REPLYMSG;
+      IOReq^.io_Message.mn_Length := Size;
+      IOReq^.io_Message.mn_ReplyPort := Port;
+    end;
+  end;
+  CreateExtIO := IOReq;
+end;
+
+
+procedure DeleteExtIO(IOReq: PIORequest);
+begin
+  if IOReq <> nil then
+  begin
+    IOReq^.io_Message.mn_Node.ln_Type := $FF;
+    IOReq^.io_Message.mn_ReplyPort := PMsgPort(-1);
+    IOReq^.io_Device := PDevice(-1);
+    ExecFreeMem(IOReq, IOReq^.io_Message.mn_Length);
+  end
+end;
+
+
+function CreateStdIO(Port: PMsgPort): PIOStdReq;
+begin
+  CreateStdIO := PIOStdReq(CreateExtIO(Port, SizeOf(TIOStdReq)))
+end;
+
+
+procedure DeleteStdIO(IOReq: PIOStdReq);
+begin
+  DeleteExtIO(PIORequest(IOReq))
+end;
+
+
+function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+var
+  SigBit: Byte;
+  Port: PMsgPort;
+begin
+  SigBit := AllocSignal(-1);
+  if SigBit = -1 then
+  begin
+    CreatePort := nil;
+    Exit;
+  end;
+  Port := ExecAllocmem(SizeOf(TMsgPort), MEMF_CLEAR or MEMF_PUBLIC);
+  if Port = nil then
+  begin
+    FreeSignal(SigBit);
+    CreatePort := nil;
+    Exit;
+  end;
+  with Port^ do
+  begin
+    if Assigned(Name) then
+      mp_Node.ln_Name := Name
+    else
+      mp_Node.ln_Name := nil;
+    mp_Node.ln_Pri := Pri;
+    mp_Node.ln_Type := NT_MsgPort;
+    mp_Flags := PA_Signal;
+    mp_SigBit := SigBit;
+    mp_SigTask := FindTask(nil);
+  end;
+  if Assigned(Name) then
+    AddPort(Port)
+  else
+    NewList(Addr(Port^.mp_MsgList));
+  CreatePort := Port;
+end;
+
+procedure DeletePort(Port: PMsgPort);
+begin
+  if Port <> nil then
+  begin
+    if Port^.mp_Node.ln_Name <> nil then
+      RemPort(port);
+    Port^.mp_Node.ln_Type := $FF;
+    Port^.mp_MsgList.lh_Head := PNode(-1);
+    FreeSignal(Port^.mp_SigBit);
+    ExecFreeMem(Port, SizeOf(TMsgPort));
+  end;
+end;
+
+function CreateTask(Name: STRPTR; Pri: LongInt; InitPC: Pointer; StackSize: LongWord): PTask;
+var
+  Memlist: PMemList;
+  Task: PTask;
+  TotalSize: LongInt;
+begin
+  task := nil;
+  StackSize := (StackSize + 3) and not 3;
+  TotalSize := SizeOf(TMemList) + SizeOf(TTask) + StackSize;
+
+  Memlist := ExecAllocMem(TotalSize, MEMF_PUBLIC + MEMF_CLEAR);
+  if MemList <> nil then
+  begin
+    MemList^.ml_NumEntries := 1;
+    MemList^.ml_ME[0].me_Un.meu_Addr := Pointer(MemList + 1);
+    MemList^.ml_ME[0].me_Length := TotalSize - SizeOf(TMemList);
+
+    Task := PTask(MemList + SizeOf(TMemList) + StackSize);
+    Task^.tc_Node.ln_Pri := Pri;
+    Task^.tc_Node.ln_Type := NT_TASK;
+    Task^.tc_Node.ln_Name := Name;
+    Task^.tc_SPLower := Pointer(MemList + SizeOf(TMemList));
+    Task^.tc_SPUpper := Pointer(Task^.tc_SPLower + StackSize);
+    Task^.tc_SPReg := Task^.tc_SPUpper;
+
+    NewList(@Task^.tc_MemEntry);
+    AddTail(@Task^.tc_MemEntry,@MemList^.ml_Node);
+
+    AddTask(Task, InitPC, nil)
+  end;
+  CreateTask := Task;
+end;
+
+procedure DeleteTask (task: pTask);
+begin
+    RemTask(task)
+end;
+
+
+procedure NewList (list: pList);
+begin
+    with list^ do
+    begin
+        lh_Head     := pNode(@lh_Tail);
+        lh_Tail     := NIL;
+        lh_TailPred := pNode(@lh_Head)
+    end
+end;
 
 END. (* UNIT EXEC *)

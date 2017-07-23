@@ -4227,6 +4227,13 @@ PROCEDURE SetDefaultPubScreen(const name : string);
 FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
+function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
+function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg : APTR): PtrUInt;
+
+function DoMethod(Obj: PObject_; Params: array of PtrUInt): LongWord; inline;
+
 IMPLEMENTATION
 
 function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
@@ -4411,6 +4418,48 @@ end;
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 begin
       UnlockPubScreen(PChar(RawByteString(name)),screen);
+end;
+
+
+function DoMethodA(Obj: PObject_; Msg: APTR): PtrUInt;
+begin
+  if Assigned(Obj) then
+  begin
+    DoMethodA := CallHookPkt(@THook(OCLASS(Obj)^.cl_Dispatcher), Obj, Msg);
+  end
+  else
+    DoMethodA := 0;
+end;
+
+function DoMethod(Obj: PObject_; Params: array of PtrUInt): PtrUInt;
+begin
+  DoMethod := DoMethodA(Obj, @Params);
+end;
+
+function DoSuperMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+begin
+  if Assigned(Obj) and Assigned(Cl) then
+    DoSuperMethodA := CallHookPkt(@Cl^.cl_Super^.cl_Dispatcher, Obj, Msg)
+  else
+    DoSuperMethodA := 0;
+end;
+
+function CoerceMethodA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+begin
+  if Assigned(Cl) and Assigned(Obj) then
+    CoerceMethodA := CallHookPkt(@Cl^.cl_Dispatcher, Obj, Msg)
+  else
+    CoerceMethodA := 0;
+end;
+
+function SetSuperAttrsA(Cl: PIClass; Obj: PObject_; Msg: APTR): PtrUInt;
+var
+  arr: array[0..2] of PtrUInt;
+begin
+  arr[0] := OM_SET;
+  arr[1] := PtrUInt(Msg);
+  arr[2] := 0;
+  SetSuperAttrsA := DoSuperMethodA(Cl, Obj, @arr);
 end;
 
 initialization
