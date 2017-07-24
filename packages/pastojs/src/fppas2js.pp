@@ -9570,6 +9570,7 @@ var
   Flags: Integer;
   GetterPas, StoredPas, SetterPas: TPasElement;
   ResultTypeInfo: TJSElement;
+  VarType: TPasType;
 begin
   Result:=nil;
   OptionsEl:=nil;
@@ -9596,7 +9597,8 @@ begin
     Call.AddArg(CreateLiteralNumber(Prop,Flags));
 
     // add resulttype
-    ResultTypeInfo:=CreateTypeInfoRef(Prop.VarType,AContext,Prop);
+    VarType:=AContext.Resolver.GetPasPropertyType(Prop);
+    ResultTypeInfo:=CreateTypeInfoRef(VarType,AContext,Prop);
     if ResultTypeInfo<>nil then
       Call.AddArg(ResultTypeInfo)
     else
