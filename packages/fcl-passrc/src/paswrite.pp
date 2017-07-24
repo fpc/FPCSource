@@ -154,6 +154,8 @@ begin
     wrt(AType.Name)
   else if AType.ClassType = TPasClassType then
     WriteClass(TPasClassType(AType))
+  else if AType.ClassType = TPasEnumType then
+    wrtln(TPasEnumType(AType).GetDeclaration(true) + ';')
   else
     raise Exception.Create('Writing not implemented for ' +
       AType.ElementTypeName + ' nodes');
