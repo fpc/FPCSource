@@ -148,6 +148,11 @@ interface
 implementation
 
     uses
+{$ifdef MIPS}
+      { we need taicpu definition to add .set nomips16 pseudo-instruction
+        before any procedure/function reference }
+      aasmcpu,
+{$endif}
       SysUtils,cutils,cfileutl,
       globals,globtype,verbose,constexp,
       defutil, cgutils, parabase,
@@ -1814,6 +1819,11 @@ implementation
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),sizeof(pint),secorder_begin);
         if not(target_info.system in systems_darwin) then
           current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+{$ifdef MIPS}
+       { at least mipsel needs an explicit '.set nomips16' before any reference to
+         procedure/function, see bug report 32138 }
+        current_asmdata.asmlists[al_start].concat(Taicpu.op_none(A_P_SET_NOMIPS16));
+{$endif MIPS}
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
