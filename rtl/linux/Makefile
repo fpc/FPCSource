@@ -3710,6 +3710,7 @@ ifeq ($(ARCH),sparc)
   endif
   ASTARGET+=-32
   SYSNRINC=sparcgen/sysnr.inc
+  ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),sparc64)
   ifeq ($(PIC_OPT),1)
@@ -3717,6 +3718,7 @@ ifeq ($(ARCH),sparc64)
   endif
   ASTARGET+=-64
   SYSNRINC=sparcgen/sysnr.inc
+  ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),arm)
   ifeq ($(SUBARCH),armv6m)
