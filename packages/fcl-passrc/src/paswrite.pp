@@ -150,7 +150,8 @@ end;
 
 procedure TPasWriter.WriteType(AType: TPasType);
 begin
-  PrepareDeclSection('type');
+  if AType.Parent is TPasSection  then
+    PrepareDeclSection('type');
   if AType.ClassType = TPasUnresolvedTypeRef then
     wrt(AType.Name)
   else if AType.ClassType = TPasClassType then
