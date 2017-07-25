@@ -3,9 +3,6 @@ program muihelloworld;
 // Example Source for MUIHelper, Simple Window and Button
 
 uses
-  {$if defined(MorphOS) or defined(Amiga)}
-  amigalib,
-  {$endif}
   Exec, Utility, intuition, AmigaDos, mui, muihelper;
 
 procedure StartMe;

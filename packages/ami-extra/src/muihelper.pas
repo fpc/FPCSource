@@ -24,9 +24,6 @@ unit muihelper;
 interface
 
 uses
-  {$if defined(MorphOS) or defined(Amiga68k)}
-  amigalib,
-  {$endif}
   exec, intuition, mui, amigados, utility;
 
 type
@@ -370,11 +367,7 @@ implementation
 {$define SetHook}
 procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
 begin
-  {$if defined(VER3_0)}
-  Hook.h_Entry := @HookEntry; { is defined in AmigaLib unit now }
-  {$else}
-  Hook.h_Entry := @HookEntryPas; { is defined in AmigaLib unit now }
-  {$endif}
+  Hook.h_Entry := @HookEntryPas; { is defined in Utility unit now }
   Hook.h_SubEntry := Func;
   Hook.h_Data := Data;
 end;
@@ -405,7 +398,7 @@ procedure MH_SetHook(var Hook: THook; Func: THookFunc; Data: Pointer);
 { This is MorphOS magic. Basically, CallHookPkt is designed to enter 68k code
   (remember, MorphOS is 68k AmigaOS binary compatible!) so this TRAP just
   redirects that call back to native PPC code. HookEntry is defined in
-  AmigaLib unit }
+  Utility unit }
 const
   HOOKENTRY_TRAP: TEmulLibEntry = ( Trap: TRAP_LIB; Extension: 0; Func: @HookEntry );
 begin
