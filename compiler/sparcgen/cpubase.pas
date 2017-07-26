@@ -92,6 +92,10 @@ uses
       regdwarf_table : array[tregisterindex] of ShortInt = (
         {$i rspdwrf.inc}
       );
+
+      { Aliases for full register LoadStore instructions }
+      A_ST_R = A_ST;
+      A_LD_R = A_LD;
 {$endif SPARC}
 
 {$ifdef SPARC64}
@@ -131,6 +135,9 @@ uses
       regdwarf_table : array[tregisterindex] of ShortInt = (
         {$i rsp64dwrf.inc}
       );
+      { Aliases for full register LoadStore instructions }
+      A_ST_R = A_STX;
+      A_LD_R = A_LDX;
 {$endif SPARC64}
 
 {*****************************************************************************
