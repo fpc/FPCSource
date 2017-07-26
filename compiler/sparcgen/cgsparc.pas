@@ -220,7 +220,7 @@ implementation
                 href.base:=current_procinfo.got;
                 href.refaddr:=addr_pic;
               end;
-            list.concat(taicpu.op_ref_reg(A_LD,href,hreg));
+            list.concat(taicpu.op_ref_reg(A_LD_R,href,hreg));
             ref.symbol:=nil;
             { hreg now holds symbol address. Add remaining members. }
             if (ref.offset>=simm13lo) and (ref.offset<=simm13hi-sizeof(pint)) then
@@ -545,7 +545,7 @@ implementation
                 href.refaddr:=addr_pic;            { should it be done THAT way?? }
               end;
             { load contents of GOT slot }
-            list.concat(taicpu.op_ref_reg(A_LD,href,r));
+            list.concat(taicpu.op_ref_reg(A_LD_R,href,r));
             { add original base/index, if any }
             if (ref.base<>NR_NO) then
               list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref.base,r));
