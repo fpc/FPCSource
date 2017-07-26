@@ -274,7 +274,7 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=taicpu.op_ref_reg(A_LD,ref,r);
+            result:=taicpu.op_ref_reg(A_LD_R,ref,r);
           R_FPUREGISTER :
             begin
               case getsubreg(r) of
@@ -296,7 +296,7 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_ST,r,ref);
+            result:=taicpu.op_reg_ref(A_ST_R,r,ref);
           R_FPUREGISTER :
             begin
               case getsubreg(r) of
