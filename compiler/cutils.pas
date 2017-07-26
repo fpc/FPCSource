@@ -108,6 +108,10 @@ interface
     }
     function ispowerof2(value : int64;out power : longint) : boolean;
     function ispowerof2(const value : Tconstexprint;out power : longint) : boolean;
+    {# Returns true if abs(value) is a power of 2, the actual
+       exponent value is returned in power.
+    }
+    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
     function nextpowerof2(value : int64; out power: longint) : int64;
 {$ifdef VER2_6}  { only 2.7.1+ has a popcnt function in the system unit }
     function PopCnt(AValue : Byte): Byte;
@@ -924,6 +928,17 @@ implementation
             result:=true;
             power:=63;
           end
+        else
+          result:=false;
+      end;
+
+
+    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
+      begin
+        if ispowerof2(value,power) then
+          result:=true
+        else if value.signed and (value.svalue<0) and (value.svalue<>low(int64)) and ispowerof2(-value.svalue,power) then
+          result:=true
         else
           result:=false;
       end;
