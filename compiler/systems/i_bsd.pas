@@ -456,7 +456,8 @@ unit i_bsd;
             system       : system_m68k_NetBSD;
             name         : 'NetBSD for m68k';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,tf_requires_proper_alignment,
+                            tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -504,8 +505,8 @@ unit i_bsd;
                 localalignmin   : 0;
                 localalignmax   : 1;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
+                recordalignmax  : 4;
+                maxCrecordalign : 8
               );
             first_parm_offset : 8;
             stacksize   : 262144;
