@@ -239,9 +239,18 @@ end;
 procedure TPasWriter.WriteClass(AClass: TPasClassType);
 var
   i: Integer;
-  Member: TPasElement;
+  Member, LastMember: TPasElement;
   InterfacesListPrefix: string;
   LastVisibility, CurVisibility: TPasMemberVisibility;
+
+  function ForceVisibility: boolean;
+  begin
+    Result := (LastMember <> nil) and
+      // variables can't be declared directly after methods nor properties
+      // (visibility section or var keyword is required)
+      (Member is TPasVariable) and not (LastMember is TPasVariable);
+  end;
+
 begin
   PrepareDeclSection('type');
   wrt(AClass.Name + ' = ');
@@ -275,11 +284,12 @@ begin
 
   IncIndent;
   LastVisibility := visDefault;
+  LastMember := nil;
   for i := 0 to AClass.Members.Count - 1 do
   begin
     Member := TPasElement(AClass.Members[i]);
     CurVisibility := Member.Visibility;
-    if CurVisibility <> LastVisibility then
+    if (CurVisibility <> LastVisibility) or ForceVisibility then
     begin
       DecIndent;
       case CurVisibility of
@@ -293,6 +303,7 @@ begin
       LastVisibility := CurVisibility;
     end;
     WriteElement(Member);
+    LastMember := Member;
   end;
   DecIndent;
   wrtln('end;');
