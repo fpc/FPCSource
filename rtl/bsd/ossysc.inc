@@ -61,7 +61,11 @@ end;
 {$else}
   // generic versions.
 function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
-
+{$ifdef cpum68k}
+begin
+  Fplseek:=do_syscall64(syscall_nr_lseek,TSysParam(fd),0,hi(offset),lo(offset),whence);
+end;
+{$else}
 {
 this one is special for the return value being 64-bit..
 hi/lo offset not yet tested.
@@ -74,9 +78,13 @@ begin
   {$ifdef CPU64}
     Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,TSysParam(fd),0,Offset,whence);
   {$else}
-    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,lo(Offset),{0} hi(offset),Whence);
+    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,
+       {$ifdef ENDIAN_BIG}hi(offset),lo(offset){$endif}
+       {$ifdef ENDIAN_LITTLE}lo(Offset),hi(offset){$endif},
+       Whence);
   {$endif}
 end;
+{$endif}
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 
