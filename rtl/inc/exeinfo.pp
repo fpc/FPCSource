@@ -103,9 +103,17 @@ uses
 
 {$else windows}
 
+{$ifdef morphos}
+  procedure startsymbol; external name '_start';
+{$endif}
+
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
+{$ifdef morphos}
+      baseaddr:= @startsymbol;
+{$else}
       baseaddr:= nil;
+{$endif}
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
       filename:=ParamStr(0);
 {$else FPC_HAS_FEATURE_COMMANDARGS}
