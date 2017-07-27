@@ -136,9 +136,9 @@ implementation
                         { no jumps, but more operations }
                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                         emit_reg_reg(A_MOV,S_W,hreg1,hreg2);
-                        {If the left value is signed, hreg2=$ffff, otherwise 0.}
+                        {If the left value is negative, hreg2=$ffff, otherwise 0.}
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,hreg2);
-                        {If signed, hreg2=right value-1, otherwise 0.}
+                        {If negative, hreg2=right value-1, otherwise 0.}
                         emit_const_reg(A_AND,S_W,tordconstnode(right).value.svalue-1,hreg2);
                         { add to the left value }
                         emit_reg_reg(A_ADD,S_W,hreg2,hreg1);
