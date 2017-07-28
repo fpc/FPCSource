@@ -191,6 +191,7 @@ type
     Procedure TestLocalConst;
     Procedure TestVarExternal;
     Procedure TestVarExternalOtherUnit;
+    Procedure TestVarAbsoluteFail;
 
     // numbers
     Procedure TestDouble;
@@ -3741,6 +3742,18 @@ begin
     LinesToStr([ // implementation
     '$impl.d = 0.0;',
     '']) );
+end;
+
+procedure TTestModule.TestVarAbsoluteFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  a: longint;',
+  '  b: longword absolute a;',
+  'begin']);
+  SetExpectedPasResolverError('Invalid variable modifier "absolute"',nInvalidVariableModifier);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestDouble;

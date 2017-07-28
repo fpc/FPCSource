@@ -248,6 +248,7 @@ Works:
 - dotted unit names, namespaces
 
 ToDos:
+- ignore attributes
 - constant evaluation
 - static arrays
 - property index specifier
@@ -1988,6 +1989,11 @@ var
   ParentC: TClass;
 begin
   inherited FinishVariable(El);
+
+  if El.AbsoluteLocation<>'' then
+    RaiseMsg(20170728133340,nInvalidVariableModifier,
+      sInvalidVariableModifier,['absolute'],El);
+
   ParentC:=El.Parent.ClassType;
   if (ParentC=TPasClassType) then
     begin
