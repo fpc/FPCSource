@@ -216,6 +216,7 @@ type
     Procedure TestConstStringOperators;
     Procedure TestConstUnicodeStringOperators;
     Procedure TestCharSet_Const;
+    Procedure TestCharAssignStringFail;
 
     // enums
     Procedure TestEnums;
@@ -248,6 +249,7 @@ type
     Procedure TestIntegerOperators;
     Procedure TestBooleanOperators;
     Procedure TestStringOperators;
+    Procedure TestWideCharOperators;
     Procedure TestFloatOperators;
     Procedure TestCAssignments;
     Procedure TestTypeCastBaseTypes;
@@ -2600,6 +2602,19 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestCharAssignStringFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  c: char;',
+  '  s: string;',
+  'begin',
+  '  c:=s;']);
+  CheckResolverException('Incompatible types: got "String" expected "Char"',
+    nIncompatibleTypesGotExpected);
+end;
+
 procedure TTestResolver.TestEnums;
 begin
   StartProgram(false);
@@ -3271,6 +3286,7 @@ begin
   Add('var');
   Add('  i,j:string;');
   Add('  k:char;');
+  Add('  w:widechar;');
   Add('begin');
   Add('  i:='''';');
   Add('  i:=''''+'''';');
@@ -3278,8 +3294,30 @@ begin
   Add('  i:=''''+k;');
   Add('  i:=''a''+j;');
   Add('  i:=''abc''+j;');
-  Add('  k:=j;');
+  Add('  k:=#65;');
+  Add('  k:=#$42;');
   Add('  k:=''a'';');
+  Add('  k:='''''''';');
+  Add('  k:=j[1];');
+  Add('  w:=k;');
+  Add('  w:=#66;');
+  Add('  w:=#6666;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestWideCharOperators;
+begin
+  ResolverEngine.BaseTypeChar:=btWideChar;
+  ResolverEngine.BaseTypeString:=btUnicodeString;
+  StartProgram(false);
+  Add('var');
+  Add('  k:char;');
+  Add('  w:widechar;');
+  Add('begin');
+  Add('  w:=k;');
+  Add('  w:=#66;');
+  Add('  w:=#6666;');
+  Add('  w:=''ä'';');
   ParseProgram;
 end;
 
@@ -3367,7 +3405,7 @@ begin
   Add('  d: double;');
   Add('  b: boolean;');
   Add('  c: char;');
-  Add('  s: char;');
+  Add('  s: string;');
   Add('begin');
   Add('  d:=double({#a_read}i);');
   Add('  i:=shortint({#b_read}i);');

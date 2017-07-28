@@ -1074,7 +1074,7 @@ type
     procedure CombineArrayLitElTypes(Left, Right: TPasExpr;
       var LHS: TPasResolverResult; const RHS: TPasResolverResult);
     procedure ConvertRangeToFirstValue(var ResolvedEl: TPasResolverResult);
-    function IsCharLiteral(const Value: string): boolean; virtual;
+    function IsCharLiteral(const Value: string; ErrorPos: TPasElement): TResolverBaseType; virtual;
     function CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc; Expr: TPasExpr;
       MinCount: integer; RaiseOnError: boolean): boolean;
     function CheckBuiltInMaxParamCount(Proc: TResElDataBuiltInProc; Params: TParamsExpr;
@@ -3327,7 +3327,7 @@ begin
     if EnumType.CustomData is TResElDataBaseType then
       begin
       BaseTypeData:=TResElDataBaseType(EnumType.CustomData);
-      if BaseTypeData.BaseType in [btChar,btBoolean] then
+      if BaseTypeData.BaseType in (btAllChars+[btBoolean]) then
         exit;
       RaiseXExpectedButYFound(20170216151553,'char or boolean',EnumType.ElementTypeName,EnumType);
       end;
@@ -6268,11 +6268,11 @@ begin
       if (RightResolved.BaseType in btAllStringAndChars) then
         case Bin.OpCode of
         eopNone:
-          if (Bin.Kind=pekRange) and (LeftResolved.BaseType in [btChar]) then
+          if (Bin.Kind=pekRange) and (LeftResolved.BaseType in btAllChars) then
             begin
-            if RightResolved.BaseType<>btChar then
+            if not (RightResolved.BaseType in btAllChars) then
               RaiseXExpectedButYFound(20170216152603,'char',BaseTypeNames[RightResolved.BaseType],Bin.right);
-            SetResolverValueExpr(ResolvedEl,btRange,FBaseTypes[btChar],Bin,[rrfReadable]);
+            SetResolverValueExpr(ResolvedEl,btRange,FBaseTypes[LeftResolved.BaseType],Bin,[rrfReadable]);
             ResolvedEl.SubType:=LeftResolved.BaseType;
             exit;
             end;
@@ -6364,8 +6364,9 @@ begin
           exit;
           end;
         end
-      else if (RightResolved.BaseType=btSet) and (RightResolved.SubType=btChar)
-          and (LeftResolved.BaseType=btChar) then
+      else if (RightResolved.BaseType=btSet)
+          and (RightResolved.SubType in btAllChars)
+          and (LeftResolved.BaseType in btAllChars) then
         begin
         case Bin.OpCode of
         eopIn:
@@ -6443,13 +6444,13 @@ begin
       if (rrfReadable in LeftResolved.Flags)
       and (rrfReadable in RightResolved.Flags) then
         begin
-        if LeftResolved.BaseType in (btAllInteger+[btChar]) then
+        if LeftResolved.BaseType in (btAllInteger+btAllChars) then
           begin
           if (RightResolved.BaseType<>btSet) then
             RaiseXExpectedButYFound(20170216152607,'set of '+BaseTypeNames[LeftResolved.BaseType],LeftResolved.TypeEl.ElementTypeName,Bin.right);
-          if LeftResolved.BaseType=btChar then
+          if LeftResolved.BaseType in btAllChars then
             begin
-            if RightResolved.SubType<>btChar then
+            if not (RightResolved.SubType in btAllChars) then
               RaiseXExpectedButYFound(20170216152609,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.right);
             end
           else if not (RightResolved.SubType in btAllInteger) then
@@ -7269,22 +7270,79 @@ begin
   ResolvedEl.SubType:=btNone;
 end;
 
-function TPasResolver.IsCharLiteral(const Value: string): boolean;
+function TPasResolver.IsCharLiteral(const Value: string; ErrorPos: TPasElement
+  ): TResolverBaseType;
+// returns true if Value is a Pascal char literal
+// btChar: #65, #$50, ^G, 'a'
+// btWideChar: #10000, 'ä'
 var
   p: PChar;
+  i: SizeInt;
+  base: Integer;
 begin
-  Result:=false;
+  Result:=btNone;
+  //writeln('TPasResolver.IsCharLiteral ',BaseTypeChar,' "',Value,'" l=',length(Value));
   p:=PChar(Value);
-  if (p^='''') then
+  case p^ of
+  '''':
     begin
     inc(p);
-    if p^ in [#32..#196] then
-      begin
-      inc(p);
-      if p^='''' then
-        exit(true);
-      end;
+    case p^ of
+    '''':
+      if (p[1]='''') and (p[2]='''') and (p[3]=#0) then
+        Result:=btChar;
+    #32..#38,#40..#191:
+      if (p[1]='''') and (p[2]=#0) then
+        Result:=btChar;
+    #192..#255:
+      if BaseTypeChar=btWideChar then
+        begin
+        // default char is widechar: UTF-8 'ä' is a widechar
+        i:=Utf8CodePointLen(p,4,false);
+        //writeln('TPasResolver.IsCharLiteral "',Value,'" ',length(Value),' i=',i);
+        if i<2 then
+          exit;
+        inc(p,i);
+        if (p^='''') and (p[1]=#0) then
+          // single UTF-8 codepoint
+          Result:=btWideChar;
+        end;
     end;
+    end;
+  '#':
+    begin
+    inc(p);
+    case p^ of
+    '$': begin base:=16; inc(p); end;
+    '&': begin base:=8; inc(p); end;
+    '%': begin base:=2; inc(p); end;
+    '0'..'9': base:=10;
+    else RaiseNotYetImplemented(20170728142709,ErrorPos);
+    end;
+    i:=0;
+    repeat
+      case p^ of
+      '0'..'9': i:=i*base+ord(p^)-ord('0');
+      'A'..'Z': i:=i*base+ord(p^)-ord('A')+10;
+      'a'..'z': i:=i*base+ord(p^)-ord('a')+10;
+      else
+        break;
+      end;
+      inc(p);
+    until false;
+    if p^=#0 then
+      if i<256 then
+        Result:=btChar
+      else
+        Result:=btWideChar;
+    end;
+  '^':
+    begin
+    inc(p);
+    if (p^ in ['a'..'z','A'..'Z']) and (p[1]=#0) then
+      exit(btChar);
+    end;
+  end;
 end;
 
 function TPasResolver.CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc;
@@ -7431,7 +7489,7 @@ begin
           Result:=TResEvalRangeInt.Create;
           TResEvalRangeInt(Result).ElKind:=revskChar;
           TResEvalRangeInt(Result).RangeStart:=0;
-          if BaseTypeChar=btChar then
+          if BaseTypeChar in [btChar,btAnsiChar] then
             TResEvalRangeInt(Result).RangeEnd:=$ff
           else
             TResEvalRangeInt(Result).RangeEnd:=$ffff;
@@ -8163,7 +8221,8 @@ end;
 procedure TPasResolver.BI_Chr_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 begin
-  SetResolverIdentifier(ResolvedEl,btChar,Proc.Proc,FBaseTypes[btChar],[rrfReadable]);
+  SetResolverIdentifier(ResolvedEl,BaseTypeChar,Proc.Proc,
+    FBaseTypes[BaseTypeChar],[rrfReadable]);
 end;
 
 procedure TPasResolver.BI_Chr_OnEval(Proc: TResElDataBuiltInProc;
@@ -11022,8 +11081,8 @@ begin
     else if (LBT in btAllBooleans)
         and (RBT in btAllBooleans) then
       Result:=cCompatible
-    else if (LBT in btAllStringAndChars)
-        and (RBT in btAllStringAndChars) then
+    else if (LBT in btAllChars)
+        and (RBT in btAllChars) then
       case LBT of
       btAnsiChar:
         Result:=cLossyConversion;
@@ -11032,6 +11091,12 @@ begin
           Result:=cCompatible
         else
           Result:=cLossyConversion;
+      else
+        RaiseNotYetImplemented(20170728132440,ErrorEl,BaseTypeNames[LBT]);
+      end
+    else if (LBT in btAllStrings)
+        and (RBT in btAllStringAndChars) then
+      case LBT of
       btAnsiString:
         if RBT in [btAnsiChar,btShortString,btRawByteString] then
           Result:=cCompatible
@@ -11158,7 +11223,7 @@ begin
       begin
       if RHS.TypeEl=nil then
         Result:=cExact // empty set
-      else if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+[btChar])) then
+      else if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+btAllChars)) then
         Result:=cExact
       else if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
           or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
@@ -11414,7 +11479,7 @@ begin
         exit(cExact); // empty set
       if LHS.TypeEl=RHS.TypeEl then
         exit(cExact);
-      if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+[btChar])) then
+      if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+btAllChars)) then
         exit(cExact);
       if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
           or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
@@ -12696,6 +12761,7 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
 var
   DeclEl: TPasElement;
   ElClass: TClass;
+  bt: TResolverBaseType;
 begin
   if StartEl=nil then StartEl:=El;
   ResolvedEl:=Default(TPasResolverResult);
@@ -12725,8 +12791,13 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.ComputeElement pekString Value="',TPrimitiveExpr(El).Value,'"');
         {$ENDIF}
-        if IsCharLiteral(TPrimitiveExpr(El).Value) then
-          SetResolverValueExpr(ResolvedEl,btChar,FBaseTypes[btChar],TPrimitiveExpr(El),[rrfReadable])
+        bt:=IsCharLiteral(TPrimitiveExpr(El).Value,El);
+        if bt in btAllChars then
+          begin
+          if bt=BaseTypeChar then
+            bt:=btChar;
+          SetResolverValueExpr(ResolvedEl,bt,FBaseTypes[bt],TPrimitiveExpr(El),[rrfReadable]);
+          end
         else
           SetResolverValueExpr(ResolvedEl,btString,FBaseTypes[btString],TPrimitiveExpr(El),[rrfReadable]);
         end;
