@@ -81,7 +81,7 @@ function DllCanUnloadNow: HResult; stdcall;
 
 //S_OK - The object was retrieved successfully.
 //CLASS_E_CLASSNOTAVAILABLE - The DLL does not support the class (object definition).
-function DllGetClassObject(const rclsid: REFIID {should be REFCLSID}; const riid: REFIID; out ppv: Pointer): HResult; stdcall;
+function DllGetClassObject(constref rclsid: REFIID {should be REFCLSID}; constref riid: REFIID; out ppv: Pointer): HResult; stdcall;
 
 //S_OK - The registry entries were created successfully.
 //SELFREG_E_TYPELIB - The server was unable to complete the registration of all the type libraries used by its classes.
@@ -127,7 +127,7 @@ end;
     return hRes;
 *)
 
-function DllGetClassObject(const rclsid: REFIID {should be REFCLSID}; const riid: REFIID; out ppv: Pointer): HResult; stdcall;
+function DllGetClassObject(constref rclsid: REFIID {should be REFCLSID}; constref riid: REFIID; out ppv: Pointer): HResult; stdcall;
 var
   factory: TComObjectFactory;
 begin
@@ -135,12 +135,12 @@ begin
   WriteLn('DllGetClassObject called: ', GUIDToString(rclsid), ' ', GUIDToString(riid));
 {$endif}
 
-  factory := ComClassManager.GetFactoryFromClassID(rclsid^);
+  factory := ComClassManager.GetFactoryFromClassID(rclsid);
   if factory = nil then
     Result := CLASS_E_CLASSNOTAVAILABLE
   else
   begin
-    if factory.GetInterface(riid^,ppv) then
+    if factory.GetInterface(riid,ppv) then
       Result := S_OK
     else
       Result := CLASS_E_CLASSNOTAVAILABLE;

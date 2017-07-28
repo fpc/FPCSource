@@ -2674,7 +2674,7 @@ Const External_Library = 'shell32';
 
   function RestartDialog(hwnd:HWND; lpPrompt:lpcwstr; dwReturn:DWord):Longint;StdCall;external External_library name 'RestartDialog';
   function RestartDialogEx(hwnd:HWND; lpPrompt:lpcwstr; dwReturn:DWord; dwReasonCode:DWord):Longint;StdCall;external External_library name 'RestartDialogEx';
-  function SHCoCreateInstance(pszCLSID:lpcwstr; pclsid:PCLSID; pUnkOuter:IUnknown; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCoCreateInstance';
+  function SHCoCreateInstance(pszCLSID:lpcwstr; pclsid:PCLSID; pUnkOuter:IUnknown; constref riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCoCreateInstance';
 //  function CallCPLEntry16(hinst:HINSTANCE; lpfnEntry:TFARPROC16; hwndCPL:HWND; msg:UINT; lParam1:lparam; lParam2:lparam):LRESULT;StdCall;external External_library name 'CallCPLEntry16';
   function SHCreateStdEnumFmtEtc(cfmt:UINT; afmt:array of TFORMATETC; var ppenumFormatEtc:IEnumFORMATETC):HRESULT;StdCall;external External_library name 'SHCreateStdEnumFmtEtc';
   function SHDoDragDrop(hwnd:HWND; pdata:IDataObject; pdsrc:IDropSource; dwEffect:DWord; pdwEffect:PDWORD):HRESULT;StdCall;external External_library name 'SHDoDragDrop';
@@ -2788,7 +2788,7 @@ Const External_Library = 'shell32';
   function SHCreateShellFolderViewEx(pcsfv:LPCSFV; out ppsv:IShellView):HRESULT;StdCall;external External_library name 'SHCreateShellFolderViewEx';
   procedure SHGetSetSettings(lpss:LPSHELLSTATE; dwMask:DWord; bSet:BOOL);StdCall;external External_library name 'SHGetSetSettings';
   procedure SHGetSettings(lpsfs:LPSHELLFLAGSTATE; dwMask:DWord);StdCall;external External_library name 'SHGetSettings';
-  function SHBindToParent(pidl:LPCITEMIDLIST; riid:TREFIID; ppv:Ppointer; var ppidlLast:LPCITEMIDLIST):HRESULT;StdCall;external External_library name 'SHBindToParent';
+  function SHBindToParent(pidl:LPCITEMIDLIST; constref riid:TREFIID; ppv:Ppointer; var ppidlLast:LPCITEMIDLIST):HRESULT;StdCall;external External_library name 'SHBindToParent';
   function SHParseDisplayName(pszName:PCWSTR; pbc:IBindCtx; var ppidl:LPITEMIDLIST; sfgaoIn:TSFGAOF; psfgaoOut:PSFGAOF):HRESULT;StdCall;external External_library name 'SHParseDisplayName';
   function SHPathPrepareForWriteA(hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteA';
   function SHPathPrepareForWriteW(hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcwstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteW';
@@ -2803,12 +2803,12 @@ Const External_Library = 'shell32';
   function SHPropStgWriteMultiple(pps:IPropertyStorage; puCodePage:PUINT; cpspec:ULONG; rgpspec:array of TPROPSPEC; rgvar:array of TPROPVARIANT; 
              propidNameFirst:TPROPID):HRESULT;StdCall;external External_library name 'SHPropStgWriteMultiple';
 }
-  function SHCreateFileExtractIconA(pszFile:lpcstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
-  function SHCreateFileExtractIconW(pszFile:lpcwstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconW';
+  function SHCreateFileExtractIconA(pszFile:lpcstr; dwFileAttributes:DWord; constref riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
+  function SHCreateFileExtractIconW(pszFile:lpcwstr; dwFileAttributes:DWord; constref riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconW';
   {$ifdef Unicode}
-  function SHCreateFileExtractIcon (pszFile:lpcwstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconW';
+  function SHCreateFileExtractIcon (pszFile:lpcwstr; dwFileAttributes:DWord; constref riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconW';
   {$else}
-  function SHCreateFileExtractIcon (pszFile:lpcstr; dwFileAttributes:DWord; riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
+  function SHCreateFileExtractIcon (pszFile:lpcstr; dwFileAttributes:DWord; constref riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
   {$endif}
   function SHLimitInputEdit(hwndEdit:HWND; psf:IShellFolder):HRESULT;StdCall;external External_library name 'SHLimitInputEdit';
   function SHMultiFileProperties(pdtobj:IDataObject; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHMultiFileProperties';

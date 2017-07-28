@@ -109,7 +109,7 @@ const
   LIFF_FORCE_TEXT_FILTER_FALLBACK            = 3;
   {$EXTERNALSYM LIFF_FORCE_TEXT_FILTER_FALLBACK}
 
-function LoadIFilterEx(pwcsPath: PWCHAR; dwFlags: DWORD; const riid: REFIID; out ppIUnk: IUnknown): HRESULT; stdcall;
+function LoadIFilterEx(pwcsPath: PWCHAR; dwFlags: DWORD; constref riid: REFIID; out ppIUnk: IUnknown): HRESULT; stdcall;
 {$EXTERNALSYM LoadIFilterEx}
 
 function BindIFilterFromStorage(pStg: IStorage; pUnkOuter: IUnknown; out ppIUnk: IFilter): HRESULT; stdcall;
@@ -414,7 +414,7 @@ function CIMakeICommand(out ppCommand: ICommand; cScope: ULONG; aDepths: LPDWORD
 //
 
 function CICreateCommand(out ppCommand: IUnknown; pUnkOuter: IUnknown;
-  const riid: REFIID; pwcsCatalog, pwcsMachine: PWCHAR): HRESULT; stdcall;
+  constref riid: REFIID; pwcsCatalog, pwcsMachine: PWCHAR): HRESULT; stdcall;
 {$EXTERNALSYM CICreateCommand}
 
 type

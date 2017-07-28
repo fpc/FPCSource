@@ -4588,8 +4588,8 @@ type
 {$endif wince}
 
   type
-    REFIID = ^TIID;
-    TREFIID = ^TIID;
+    REFIID = TIID;
+    TREFIID = TIID;
 
 {$ifndef wince}
   function SetErrorInfo(dwReserved:ULONG;errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'SetErrorInfo';

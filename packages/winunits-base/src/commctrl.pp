@@ -750,7 +750,7 @@ CONST
          ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
 
 
-function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
+function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;constref riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
 function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:ISTREAM):HRESULT; stdcall; external commctrldll name 'ImageList_WriteEx';
 {$ENDIF}
 
