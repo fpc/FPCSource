@@ -138,6 +138,10 @@ uses
   {$endif}
 {$endif}
 
+{$if defined(morphos)}
+  {$define ELF32}
+{$endif}
+
 {$if defined(win32) or defined(wince)}
   {$define PE32}
 {$endif}
