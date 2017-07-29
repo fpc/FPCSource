@@ -84,7 +84,6 @@ var
   SaveInt10: FarPointer;public name '__SaveInt10';
   SaveInt75: FarPointer;public name '__SaveInt75';
   fpu_status: word;public name '__fpu_status';
-  fpu_control: word;public name '__fpu_control';
 
 
   AllFilesMask: string [3];
@@ -182,7 +181,7 @@ Procedure SysInitFPU;
       fldcw   localfpucw
       fwait
     end;
-    if Test8087 < 2 then
+    if Test8087 < 3 then { i8087/i80287 do not have "native" exception mode (CR0:NE) }
       begin
         restore_old_int10:=true;
       end
@@ -239,13 +238,11 @@ Procedure SysInitFPU;
           end;
         { Restore previous interrupt 06 handler }
         asm
-          push es
-          mov bx,word [prevInt06]
-          mov dx,word [prevInt06+2]
-          mov es,dx
+          push ds
           mov ax, $2506
+          lds dx,[prevInt06]
           int $21
-          pop es
+          pop ds
         end;
       end;
       { Special handler of interrupt $10
@@ -254,13 +251,11 @@ Procedure SysInitFPU;
       {$ifndef TEST_FPU_INT10}
       if restore_old_int10 then
         asm
-          push es
-          mov bx,word [SaveInt10]
-          mov dx,word [SaveInt10+2]
-          mov es,dx
+          push ds
           mov ax, $2510
+          lds dx,[SaveInt10]
           int $21
-          pop es
+          pop ds
         end;
       {$endif ndef TEST_FPU_INT10}
   end;
