@@ -424,12 +424,12 @@ interface
                     if tordconstnode(right).value=2 then
                       begin
                         {If the left value is negative, hreg2=(right value-1)=1, otherwise 0.}
-                        emit_const_reg(A_SHR,opsize,resultdef.size*8-1,hreg2);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-1,hreg2);
                       end
                     else
                       begin
                         {If the left value is negative, hreg2=$ffffffff, otherwise 0.}
-                        emit_const_reg(A_SAR,opsize,resultdef.size*8-1,hreg2);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg2);
                         {If negative, hreg2=right value-1, otherwise 0.}
                         { (don't use emit_const_reg, because if value>high(longint)
                            then it must first be loaded into a register) }
@@ -438,10 +438,10 @@ interface
                     { add to the left value }
                     emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
                     { do the shift }
-                    emit_const_reg(A_SAR,opsize,power,hreg1);
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,power,hreg1);
                   end
                 else
-                  emit_const_reg(A_SHR,opsize,power,hreg1);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,power,hreg1);
                 location.register:=hreg1;
               end
             else
