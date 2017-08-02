@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <General>
       <Flags>
         <SaveOnlyProjectUnits Value="True"/>
@@ -19,9 +19,6 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -37,12 +34,10 @@
       <Unit0>
         <Filename Value="pas2js.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="pas2js"/>
       </Unit0>
       <Unit1>
         <Filename Value="fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fppas2js"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -55,12 +50,6 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

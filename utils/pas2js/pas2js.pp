@@ -18,21 +18,9 @@
 program pas2js;
 
 uses
-  sysutils, classes, pparser, fppas2js, pastree, jstree, jswriter;
+  sysutils, classes, pparser, fppas2js, pastree, jstree, jswriter, pasresolver;
 
 Type
-
-  { TContainer }
-
-  TContainer = Class(TPasTreeContainer)
-
-  public
-    function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement; AVisibility: TPasMemberVisibility;
-      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
-      overload; override;
-    function FindElement(const AName: String): TPasElement; override;
-  end;
 
   { TConvertPascal }
 
@@ -40,57 +28,40 @@ Type
      Procedure ConvertSource(ASource, ADest : String);
   end;
 
-{ TContainer }
-
-function TContainer.CreateElement(AClass: TPTreeElement; const AName: String;
-  AParent: TPasElement; AVisibility: TPasMemberVisibility;
-  const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
-begin
-  Result:=AClass.Create(AName,AParent);
-end;
-
-function TContainer.FindElement(const AName: String): TPasElement;
-begin
-  Result:=Nil;
-end;
 
 { TConvertPascal }
 
 Procedure TConvertPascal.ConvertSource(ASource, ADest: String);
 
 Var
-  p : TPasParser;
-  C : TPAsTreeContainer;
+  C : TPas2JSResolver;
   M : TPasModule;
   CV : TPasToJSConverter;
   JS : TJSElement;
   W : TJSWriter;
 
 begin
-  C:=TContainer.Create;
+  W:=nil;
+  M:=Nil;
+  CV:=Nil;
+  C:=TPas2JSResolver.Create;
   try
-    M:=ParseSource(C,ASource,'','',True);
-    try
-      CV:=TPasToJSConverter.Create;
-      try
-        JS:=CV.ConvertElement(M);
-        If JS=nil then
-          Writeln('No result');
-      finally
-        CV.Free;
-      end;
+    M:=ParseSource(C,ASource,'','',[poUseStreams]);
+    CV:=TPasToJSConverter.Create;
+    JS:=CV.ConvertPasElement(M,C);
+    If JS=nil then
+      Writeln('No result')
+    else
+      begin
       W:=TJSWriter.Create(ADest);
-      try
-        W.Options:=[woUseUTF8,woCompactArrayLiterals,woCompactObjectLiterals,woCompactArguments];
-        W.IndentSize:=2;
-        W.WriteJS(JS);
-      finally
-        W.Free;
-      end;
-    finally
-      M.Free;
-    end;
+      W.Options:=[woUseUTF8,woCompactArrayLiterals,woCompactObjectLiterals,woCompactArguments];
+      W.IndentSize:=2;
+      W.WriteJS(JS);
+      end
   finally
+    W.Free;
+    CV.Free;
+    M.Free;
     C.Free;
   end;
 
