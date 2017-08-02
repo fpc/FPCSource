@@ -164,7 +164,6 @@ unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixcp.pp
-	$(COMPILER) $(UNIXINC)/unixtype.pp
 
 #
 # TP7 Compatible RTL Units
