@@ -33,6 +33,7 @@ const
 
 type
   TFormat = (fPlain, fLatex, fXML, fPlainNoTiming);
+  TRunMode = (rmUnknown,rmList,rmSuite,rmAll);
 
 var
   DefaultFormat : TFormat = fXML;
@@ -48,7 +49,18 @@ type
     FStyleSheet: string;
     FLongOpts: TStrings;
     FFormatParam: TFormat;
+    FSkipTiming : Boolean;
+    FSParse: Boolean;
+    FSkipAddressInfo : Boolean;
+    FSuite: String;
+    FRunMode : TRunMode;
   protected
+    Class function StrToFormat(S: String): TFormat;
+    function DefaultsFileName: String;
+    procedure RunSuite; virtual;
+    procedure ShowTestList; virtual;
+    procedure ReadDefaults; virtual;
+    procedure Usage; virtual;
     property FileName: string read FFileName write FFileName;
     property LongOpts: TStrings read FLongOpts write FLongOpts;
     property ShowProgress: boolean read FShowProgress write FShowProgress;
@@ -59,7 +71,7 @@ type
     function GetShortOpts: string; virtual;
     procedure AppendLongOpts; virtual;
     procedure WriteCustomHelp; virtual;
-    procedure ParseOptions; virtual;
+    function ParseOptions: Boolean; virtual;
     procedure ExtendXmlDocument(Doc: TXMLDocument); virtual;
     function GetResultsWriter: TCustomResultsWriter; virtual;
   public
@@ -69,7 +81,7 @@ type
 
 implementation
 
-uses testdecorator;
+uses inifiles, testdecorator;
 
 const
   ShortOpts = 'alhp';
@@ -77,15 +89,31 @@ const
      ('all', 'list', 'progress', 'help', 'skiptiming',
       'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses');
 
+Type
+  TTestDecoratorClass = Class of TTestDecorator;
+
+  { TDecoratorTestSuite }
+
+  TDecoratorTestSuite = Class(TTestSuite)
+  public
+    Destructor Destroy; override;
+  end;
+
   { TProgressWriter }
-type
+
   TProgressWriter= class(TNoRefCountObject, ITestListener)
   private
-    FSuccess: boolean;
+    FTotal : Integer;
+    FFailed: Integer;
+    FIgnored : Integer;
+    FErrors : Integer;
+    FQuiet : Boolean;
+    FSuccess : Boolean;
     procedure WriteChar(c: char);
   public
+    Constructor Create(AQuiet : Boolean);
     destructor Destroy; override;
-
+    Function GetExitCode : Integer;
     { ITestListener interface requirements }
     procedure AddFailure(ATest: TTest; AFailure: TTestFailure);
     procedure AddError(ATest: TTest; AError: TTestFailure);
@@ -93,13 +121,28 @@ type
     procedure EndTest(ATest: TTest);
     procedure StartTestSuite(ATestSuite: TTestSuite);
     procedure EndTestSuite(ATestSuite: TTestSuite);
+    Property Total : Integer Read FTotal;
+    Property Failed : Integer Read FFailed;
+    Property Errors : Integer Read FErrors;
+    Property Ignored : Integer Read FIgnored;
+    Property Quiet : Boolean Read FQuiet;
   end;
+
+{ ---------------------------------------------------------------------
+  TProgressWriter
+  ---------------------------------------------------------------------}
 
 procedure TProgressWriter.WriteChar(c: char);
 begin
   write(c);
   // flush output, so that we see the char immediately, even it is written to file
   Flush(output);
+end;
+
+constructor TProgressWriter.Create(AQuiet: Boolean);
+
+begin
+  FQuiet:=AQuiet;
 end;
 
 destructor TProgressWriter.Destroy;
@@ -109,16 +152,31 @@ begin
   inherited Destroy;
 end;
 
+function TProgressWriter.GetExitCode: Integer;
+
+begin
+  Result:=Ord(Failed<>0); // Bit 0 indicates fails
+  if Errors<>0 then
+    Result:=Result or 2;  // Bit 1 indicates errors.
+end;
+
 procedure TProgressWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
 begin
-  FSuccess := false;
-  writechar('F');
+  FSuccess:=False;
+  If AFailure.IsIgnoredTest then
+    Inc(FIgnored)
+  else
+    Inc(FFailed);
+  If Not Quiet then
+    writechar('F');
 end;
 
 procedure TProgressWriter.AddError(ATest: TTest; AError: TTestFailure);
 begin
-  FSuccess := false;
-  writechar('E');
+  FSuccess:=False;
+  Inc(FErrors);
+  if not Quiet then
+    writechar('E');
 end;
 
 procedure TProgressWriter.StartTest(ATest: TTest);
@@ -128,7 +186,7 @@ end;
 
 procedure TProgressWriter.EndTest(ATest: TTest);
 begin
-  if FSuccess then
+  if FSuccess and not Quiet then
     writechar('.');
 end;
 
@@ -142,43 +200,87 @@ begin
   // do nothing
 end;
 
+{ ---------------------------------------------------------------------
+  TDecoratorTestSuite
+  ---------------------------------------------------------------------}
+
+destructor TDecoratorTestSuite.Destroy;
+
+begin
+  OwnsTests:=False;
+  inherited Destroy;
+end;
+
+{ ---------------------------------------------------------------------
+  TTestRunner
+  ---------------------------------------------------------------------}
+
+constructor TTestRunner.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FLongOpts := TStringList.Create;
+  AppendLongOpts;
+  StopOnException:=True;
+end;
+
+destructor TTestRunner.Destroy;
+begin
+  FLongOpts.Free;
+  inherited Destroy;
+end;
+
+class function TTestRunner.StrToFormat(S: String): TFormat;
+
+begin
+  Case lowercase(S) of
+    'latex': Result:=fLatex;
+    'plain': Result:=fPlain;
+    'plainnotiming': Result:=fPlainNoTiming;
+    'xml': Result:=fXML;
+  else
+    Raise EConvertError.CreateFmt('Not a valid output format : "%s"',[S]);
+  end;
+end;
+
 function TTestRunner.GetResultsWriter: TCustomResultsWriter;
 begin
   case FormatParam of
     fLatex:         Result := TLatexResultsWriter.Create(nil);
     fPlain:         Result := TPlainResultsWriter.Create(nil);
+    fPlainNotiming: Result := TPlainResultsWriter.Create(nil);
   else
     begin
       Result := TXmlResultsWriter.Create(nil);
       ExtendXmlDocument(TXMLResultsWriter(Result).Document);
     end;
   end;
-  Result.SkipTiming:=HasOption('skiptiming');
-  Result.Sparse:=HasOption('sparse');
-  Result.SkipAddressInfo:=HasOption('no-addresses');
+  Result.SkipTiming:=FSkipTiming or (formatParam=fPlainNoTiming);
+  Result.Sparse:=FSparse;
+  Result.SkipAddressInfo:=FSkipAddressInfo;
 end;
 
 procedure TTestRunner.DoTestRun(ATest: TTest);
+
 var
   ResultsWriter: TCustomResultsWriter;
   ProgressWriter: TProgressWriter;
   TestResult: TTestResult;
+
 begin
-  ResultsWriter := GetResultsWriter;
-  ResultsWriter.Filename := FileName;
+  ProgressWriter:=Nil;
+  ResultsWriter:=Nil;
   TestResult := TTestResult.Create;
   try
-    if ShowProgress then
-    begin
-      ProgressWriter := TProgressWriter.Create;
-      TestResult.AddListener(ProgressWriter);
-    end
-    else
-      ProgressWriter := nil;
+    ProgressWriter:=TProgressWriter.Create(Not ShowProgress);
+    TestResult.AddListener(ProgressWriter);
+    ResultsWriter:=GetResultsWriter;
+    ResultsWriter.Filename := FileName;
     TestResult.AddListener(ResultsWriter);
     ATest.Run(TestResult);
     ResultsWriter.WriteResult(TestResult);
   finally
+    if Assigned(ProgressWriter) then
+      ExitCode:=ProgressWriter.GetExitCode;
     TestResult.Free;
     ResultsWriter.Free;
     ProgressWriter.Free;
@@ -203,17 +305,18 @@ begin
   // no custom help options in base class;
 end;
 
-procedure TTestRunner.ParseOptions;
+procedure TTestRunner.Usage;
+
 begin
-  if HasOption('h', 'help') or ((ParamCount = 0) and not DefaultRunAllTests) then
-  begin
     writeln(Title);
     writeln(Version);
     writeln;
     writeln('Usage: ');
-    writeln('  --format=latex            output as latex source (only list implemented)');
-    writeln('  --format=plain            output as plain ASCII source');
-    writeln('  --format=xml              output as XML source (default)');
+    writeln('  --format=FMT        Select output format. FMT is one of:');
+    writeln('    latex            output as latex');
+    writeln('    plain            output as plain ASCII source');
+    writeln('    plainnotiming    output as plain ASCII source, skip timings');
+    writeln('    xml              output as XML source (default)');
     writeln('  --skiptiming              Do not output timings (useful for diffs of testruns)');
     writeln('  --sparse                  Produce Less output (errors/failures only)');
     writeln('  --no-addresses            Do not display address info');
@@ -226,35 +329,98 @@ begin
     writeln('  --suite=MyTestSuiteName   run single test suite class');
     WriteCustomHelp;
     writeln;
-    writeln('The results can be redirected to an xml file,');
+    Writeln('Defaults for long options will be read from ini file ',DefaultsFileName);
+    writeln('The results can be redirected to a file,');
     writeln('for example: ', ParamStr(0),' --all > results.xml');
-  end;
+end;
 
+Function TTestRunner.DefaultsFileName : String;
+
+begin
+  Result:=GetEnvironmentVariable('FPCUNITCONFIG');
+  if (Result='') then
+    Result:=Location+'testdefaults.ini';
+end;
+
+procedure TTestRunner.ReadDefaults;
+
+Const
+  S = 'defaults';
+
+Var
+  Ini : TMemIniFile;
+  FN,F : String;
+
+begin
+  FN:=DefaultsFileName;
+  if FileExists(FN) then
+    begin
+    Ini:=TMemIniFile.Create(FN);
+    try
+      F:=Ini.ReadString(S,'format','');
+      if (F<>'') then
+        FormatParam:=StrToFormat(F);
+      FileName:=Ini.ReadString(S,'file',FileName);
+      StyleSheet:=Ini.ReadString(S,'stylesheet',StyleSheet);
+      ShowProgress:=Ini.ReadBool(S,'progress',ShowProgress);
+      FSkipTiming:=Ini.ReadBool(S,'skiptiming',FSKipTiming);
+      FSparse:=Ini.ReadBool(S,'sparse',FSparse);
+      FSkipAddressInfo:=Ini.ReadBool(S,'no-addresses',FSkipAddressInfo);
+      // Determine runmode
+      FSuite:=Ini.ReadString(S,'suite','');
+      if (FSuite<>'') then
+        FRunMode:=rmSuite
+      else if Ini.ReadBool(S,'all', false) then
+        FRunMode:=rmAll
+      else if Ini.ReadBool(S,'list',False) then
+        FRunMode:=rmList;
+    finally
+      Ini.Free;
+    end;
+    end;
+end;
+
+Function TTestRunner.ParseOptions : Boolean;
+
+begin
+  Result:=True;
+  if HasOption('h', 'help') or ((ParamCount = 0) and not DefaultRunAllTests) then
+    begin
+    Usage;
+    Exit(False);
+    end;
   //get the format parameter
-  FormatParam := DefaultFormat;
   if HasOption('format') then
-  begin
-    if CompareText(GetOptionValue('format'),'latex')=0 then
-      FormatParam := fLatex
-    else if CompareText(GetOptionValue('format'),'plain')=0 then
-      FormatParam := fPlain
-    else if CompareText(GetOptionValue('format'),'plainnotiming')=0 then
-      FormatParam := fPlainNoTiming
-    else if CompareText(GetOptionValue('format'),'xml')=0 then
-      FormatParam := fXML;
-  end;
-
-  ShowProgress := HasOption('p', 'progress');
-
+    FormatParam:=StrToFormat(GetOptionValue('format'));
   if HasOption('file') then
-    FileName := GetOptionValue('file');
+    FileName:=GetOptionValue('file');
   if HasOption('stylesheet') then
-    StyleSheet := GetOptionValue('stylesheet');
+    StyleSheet:=GetOptionValue('stylesheet');
+  if HasOption('p', 'progress') then
+    ShowProgress:=True;
+  if HasOption('skiptiming') then
+    FSkipTiming:=True;
+  if HasOption('sparse') then
+    FSparse:=True;
+  If HasOption('no-addresses') then
+    FSkipAddressInfo:=True;
+  // Determine runmode
+  if HasOption('suite') then
+    begin
+    FSuite:=GetOptionValue('suite');
+    FRunMode:=rmSuite;
+    end
+  else If HasOption('a','all') then
+    FRunMode:=rmAll
+  else if HasOption('l','list') then
+    FRunMode:=rmList;
 end;
 
 procedure TTestRunner.ExtendXmlDocument(Doc: TXMLDocument);
+
 var
   n: TDOMElement;
+
 begin
   if StyleSheet<>'' then begin
     Doc.StylesheetType := 'text/xsl';
@@ -265,105 +431,87 @@ begin
   Doc.FirstChild.AppendChild(n);
 end;
 
-constructor TTestRunner.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FLongOpts := TStringList.Create;
-  AppendLongOpts;
-end;
 
-destructor TTestRunner.Destroy;
-begin
-  FLongOpts.Free;
-  inherited Destroy;
-end;
-
-Type
-  TTestDecoratorClass = Class of TTestDecorator;
-
-  { TDecoratorTestSuite }
-
-  TDecoratorTestSuite = Class(TTestSuite)
-  public
-    Destructor Destroy; override;
-  end;
-
-
-{ TDecoratorTestSuite }
-
-destructor TDecoratorTestSuite.Destroy;
-
-begin
-  OwnsTests:=False;
-  inherited Destroy;
-end;
-
-procedure TTestRunner.DoRun;
-
+procedure TTestRunner.RunSuite;
 
 var
   I,P : integer;
   S,TN : string;
   TS : TDecoratorTestSuite;
   T : TTest;
-  
+
 begin
+  S := FSuite;
+  if S = '' then
+    for I := 0 to GetTestRegistry.ChildTestCount - 1 do
+      writeln(GetTestRegistry[i].TestName)
+  else
+    begin
+      TS:=TDecoratorTestSuite.Create('SuiteList');
+      try
+      while Not(S = '') Do
+        begin
+        P:=Pos(',',S);
+        If P=0 then
+          P:=Length(S)+1;
+        TN:=Copy(S,1,P-1);
+        Delete(S,1,P);
+        if (TN<>'') then
+          begin
+          T:=GetTestRegistry.FindTest(TN);
+          if Assigned(T) then
+            TS.AddTest(T);
+          end;
+        end;
+        if (TS.CountTestCases>1) then
+          DoTestRun(TS)
+        else if TS.CountTestCases=1 then
+          DoTestRun(TS[0])
+        else
+          Writeln('No tests selected.');
+      finally
+        TS.Free;
+      end;
+    end;
+end;
+
+procedure TTestRunner.ShowTestList;
+
+begin
+  case FormatParam of
+    fLatex:         Write(GetSuiteAsLatex(GetTestRegistry));
+    fPlain:         Write(GetSuiteAsPlain(GetTestRegistry));
+    fPlainNoTiming: Write(GetSuiteAsPlain(GetTestRegistry));
+  else
+    Write(GetSuiteAsXml(GetTestRegistry));
+  end
+end;
+
+procedure TTestRunner.DoRun;
+
+var
+  S : string;
+
+begin
+  Terminate;
+  FormatParam := DefaultFormat;
   S := CheckOptions(GetShortOpts, LongOpts);
   if (S <> '') then
+    begin
     Writeln(S);
-
-  ParseOptions;
-
-  //get a list of all registed tests
-  if HasOption('l', 'list') then
-    case FormatParam of
-      fLatex:         Write(GetSuiteAsLatex(GetTestRegistry));
-      fPlain:         Write(GetSuiteAsPlain(GetTestRegistry));
-      fPlainNoTiming: Write(GetSuiteAsPlain(GetTestRegistry));
-    else
-      Write(GetSuiteAsXml(GetTestRegistry));
+    Exit;
     end;
-
-  //run the tests
-  if HasOption('suite') then
-  begin
-    S := '';
-    S := GetOptionValue('suite');
-    if S = '' then
-      for I := 0 to GetTestRegistry.ChildTestCount - 1 do
-        writeln(GetTestRegistry[i].TestName)
-    else
-      begin
-        TS:=TDecoratorTestSuite.Create('SuiteList');
-        try
-        while Not(S = '') Do
-          begin
-          P:=Pos(',',S);
-          If P=0 then
-            P:=Length(S)+1;
-          TN:=Copy(S,1,P-1);
-          Delete(S,1,P);
-          if (TN<>'') then
-            begin
-            T:=GetTestRegistry.FindTest(TN);
-            if Assigned(T) then
-              TS.AddTest(T);
-            end;
-          end;
-          if (TS.CountTestCases>1) then
-            DoTestRun(TS)
-          else if TS.CountTestCases=1 then
-            DoTestRun(TS[0])
-          else
-            Writeln('No tests selected.');  
-        finally
-          TS.Free;
-        end;
-      end;
-  end
-  else if HasOption('a', 'all') or (DefaultRunAllTests and Not HasOption('l','list')) then
-    DoTestRun(GetTestRegistry) ;
-  Terminate;
+  ReadDefaults;
+  if Not ParseOptions then
+    exit;
+  //get a list of all registed tests
+  Case FRunMode of
+    rmList: ShowTestList;
+    rmSuite: RunSuite;
+    rmAll: DoTestRun(GetTestRegistry);
+  else
+    Usage
+  end;
 end;
 
 end.
