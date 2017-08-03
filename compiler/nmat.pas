@@ -519,7 +519,7 @@ implementation
                         { the divide helper                               }
                         exit
                     else
-                      shiftval:=31;
+                      shiftval:=left.resultdef.size*8-1;
 
                     result:=internalstatements(statements);
                     temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
