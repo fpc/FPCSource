@@ -237,6 +237,7 @@ type
     Procedure TestEnumSet_AnonymousEnumtype;
     Procedure TestEnumSet_AnonymousEnumtypeName;
     Procedure TestEnumSet_Const;
+    Procedure TestSet_IntRange_Const;
 
     // operators
     Procedure TestPrgAssignment;
@@ -552,6 +553,7 @@ type
     Procedure TestArray_TypeCastWrongElTypeFail;
     Procedure TestArray_ConstDynArrayWrite;
     Procedure TestArray_ConstOpenArrayWriteFail;
+    Procedure TestArray_Static_Const;
 
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
@@ -3017,6 +3019,21 @@ begin
   '  s13 = [a,b]<=[a..b];',
   '  s14 = [a,b]>=[a..b];',
   '  s15 = a in [a,b];',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestSet_IntRange_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TIntRg = 2..6;',
+  '  TSevenSet = set of TIntRg;',
+  'const',
+  '  a: TSevenSet = [2..3,5]+[4];',
+  '  b = low(TIntRg)+high(TIntRg);',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -8914,6 +8931,22 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException('Variable identifier expected',nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestArray_Static_Const;
+begin
+  {$IFDEF EnablePasResRangeCheck}
+  StartProgram(false);
+  Add([
+  'type',
+  '  TIntArr = array[1..3] of longint;',
+  'const',
+  '  a = low(TIntArr)+high(TIntArr);',
+  '  b: array[1..3] of longint = (10,11,12);',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+  {$ENDIF}
 end;
 
 procedure TTestResolver.TestArrayIntRange_OutOfRange;

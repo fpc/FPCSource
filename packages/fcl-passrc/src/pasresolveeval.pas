@@ -47,9 +47,15 @@ Works:
   - error on duplicate in const set
 
 ToDo:
-- set of 1..7
 - arrays
-  - length(), low(), high(), []
+  - length(), [], [a..b], [a,b], +
+  - array of int
+  - of char
+  - of enum
+  - of bool
+  - of record
+  - of string
+- enum ranges: type f=(a,b,c,d); g=b..c;
 }
 unit PasResolveEval;
 
@@ -303,6 +309,33 @@ const
   reitAllSigned = [reitNone,reitShortInt,reitSmallInt,reitIntSingle,reitLongInt,reitIntDouble];
   reitAllUnsigned = [reitByte,reitWord,reitUIntSingle,reitLongWord,reitUIntDouble];
 
+  reitLow: array[TResEvalTypedInt] of MaxPrecInt = (
+    low(MaxPrecInt), // reitNone,
+    low(Byte), // reitByte,
+    low(ShortInt), // reitShortInt,
+    low(Word), // reitWord,
+    low(SmallInt), // reitSmallInt,
+    0, // reitUIntSingle,
+    MinSafeIntSingle, // reitIntSingle,
+    low(LongWord), // reitLongWord,
+    low(LongInt), // reitLongInt,
+    0, // reitUIntDouble,
+    MinSafeIntDouble // reitIntDouble)
+    );
+  reitHigh: array[TResEvalTypedInt] of MaxPrecInt = (
+    high(MaxPrecInt), // reitNone,
+    high(Byte), // reitByte,
+    high(ShortInt), // reitShortInt,
+    high(Word), // reitWord,
+    high(SmallInt), // reitSmallInt,
+    MaxSafeIntSingle, // reitUIntSingle,
+    MaxSafeIntSingle, // reitIntSingle,
+    high(LongWord), // reitLongWord,
+    high(LongInt), // reitLongInt,
+    MaxSafeIntDouble, // reitUIntDouble,
+    MaxSafeIntDouble // reitIntDouble)
+    );
+
 type
   { TResEvalInt }
 
@@ -338,6 +371,7 @@ type
     constructor CreateValue(const aValue: MaxPrecFloat);
     function Clone: TResEvalValue; override;
     function AsString: string; override;
+    function IsInt(out Int: MaxPrecInt): boolean;
   end;
 
   { TResEvalString - Kind=revkString }
@@ -492,6 +526,8 @@ type
     function EvalParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalArrayParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalValue;
     function EvalSetParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags): TResEvalSet;
+    function EvalSetExpr(Expr: TPasExpr; ExprArray: TPasExprArray; Flags: TResEvalFlags): TResEvalSet;
+    function EvalArrayValuesExpr(Expr: TArrayValues; Flags: TResEvalFlags): TResEvalSet;
     function ExprStringToOrd(Value: TResEvalValue; PosEl: TPasElement): longword; virtual;
     function EvalPrimitiveExprString(Expr: TPrimitiveExpr): TResEvalValue; virtual;
     procedure PredBool(Value: TResEvalBool; ErrorEl: TPasElement);
@@ -904,32 +940,65 @@ end;
 
 function TResExprEvaluator.EvalUnaryExpr(Expr: TUnaryExpr; Flags: TResEvalFlags
   ): TResEvalValue;
+var
+  Int: MaxPrecInt;
+  UInt: MaxPrecUInt;
 begin
   Result:=Eval(Expr.Operand,Flags);
   if Result=nil then exit;
+  {$IFDEF VerbosePasResEval}
+  writeln('TResExprEvaluator.EvalUnaryExpr ',OpcodeStrings[Expr.OpCode],' Value=',Result.AsDebugString);
+  {$ENDIF}
   case Expr.OpCode of
     eopAdd: ;
     eopSubtract:
       case Result.Kind of
       revkInt:
         begin
-        if TResEvalInt(Result).Int=0 then exit;
+        Int:=TResEvalInt(Result).Int;
+        if Int=0 then exit;
         if Result.Element<>nil then
           Result:=Result.Clone;
-        if TResEvalInt(Result).Int=0 then exit;
-        if not (TResEvalInt(Result).Typed in reitAllSigned) then
+        if (TResEvalInt(Result).Typed in reitAllSigned) then
           begin
-          // switch to untyped
+          if Int=reitLow[TResEvalInt(Result).Typed] then
+            begin
+            // need higher precision
+            if TResEvalInt(Result).Typed<>reitNone then
+              // unsigned -> switch to untyped
+              TResEvalInt(Result).Typed:=reitNone
+            else
+              begin
+              // switch to float
+              ReleaseEvalValue(Result);
+              Result:=TResEvalFloat.CreateValue(-MaxPrecFloat(low(MaxPrecInt)));
+              exit;
+              end;
+            end;
+          end
+        else
+          begin
+          // unsigned -> switch to untyped
           TResEvalInt(Result).Typed:=reitNone;
-          end;
-        TResEvalInt(Result).Int:=-TResEvalInt(Result).Int
+          end ;
+        // negate
+        TResEvalInt(Result).Int:=-Int;
         end;
       revkUInt:
         begin
-        if TResEvalUInt(Result).UInt=0 then exit;
-        if Result.Element<>nil then
-          Result:=Result.Clone;
-        TResEvalUInt(Result).UInt:=-TResEvalUInt(Result).UInt;
+        UInt:=TResEvalUInt(Result).UInt;
+        if UInt=0 then exit;
+        if UInt<=High(MaxPrecInt) then
+          begin
+          ReleaseEvalValue(Result);
+          Result:=TResEvalInt.CreateValue(-MaxPrecInt(UInt));
+          end
+        else
+          begin
+          // switch to float
+          ReleaseEvalValue(Result);
+          Result:=TResEvalFloat.CreateValue(-MaxPrecFloat(UInt));
+          end;
         end;
       revkFloat:
         begin
@@ -2810,6 +2879,15 @@ end;
 
 function TResExprEvaluator.EvalSetParamsExpr(Expr: TParamsExpr;
   Flags: TResEvalFlags): TResEvalSet;
+begin
+  {$IFDEF VerbosePasResEval}
+  writeln('TResExprEvaluator.EvalSetParamsExpr length(Expr.Params)=',length(Expr.Params));
+  {$ENDIF}
+  Result:=EvalSetExpr(Expr,Expr.Params,Flags);
+end;
+
+function TResExprEvaluator.EvalSetExpr(Expr: TPasExpr;
+  ExprArray: TPasExprArray; Flags: TResEvalFlags): TResEvalSet;
 var
   i: Integer;
   RangeStart, RangeEnd: MaxPrecInt;
@@ -2818,18 +2896,18 @@ var
   El: TPasExpr;
 begin
   {$IFDEF VerbosePasResEval}
-  writeln('TResExprEvaluator.EvalSetParamsExpr length(Expr.Params)=',length(Expr.Params));
+  writeln('TResExprEvaluator.EvalSetExpr Expr=',GetObjName(Expr),' length(ExprArray)=',length(ExprArray));
   {$ENDIF}
   Result:=TResEvalSet.Create;
   Value:=nil;
   OnlyConstElements:=true;
   ok:=false;
   try
-    for i:=0 to length(Expr.Params)-1 do
+    for i:=0 to length(ExprArray)-1 do
       begin
-      El:=Expr.Params[i];
+      El:=ExprArray[i];
       {$IFDEF VerbosePasResEval}
-      writeln('TResExprEvaluator.EvalSetParamsExpr ',i,' of ',length(Expr.Params),' El=',GetObjName(El));
+      writeln('TResExprEvaluator.EvalSetExpr ',i,' of ',length(ExprArray),' El=',GetObjName(El));
       {$ENDIF}
       Value:=Eval(El,Flags);
       if Value=nil then
@@ -2839,7 +2917,7 @@ begin
         continue;
         end;
       {$IFDEF VerbosePasResEval}
-      //writeln('TResExprEvaluator.EvalSetParamsExpr ',i,' of ',length(Expr.Params),' Value=',Value.AsDebugString);
+      //writeln('TResExprEvaluator.EvalSetExpr ',i,' of ',length(ExprArray),' Value=',Value.AsDebugString);
       {$ENDIF}
       case Value.Kind of
       revkBool:
@@ -2904,7 +2982,7 @@ begin
           end
         else if Result.ElKind<>revskEnum then
           RaiseNotYetImplemented(20170713143559,El)
-        else if Result.ElType<>Value.IdentEl.Parent then
+        else if Result.ElType<>TResEvalEnum(Value).ElType then
           RaiseNotYetImplemented(20170713201021,El);
         RangeStart:=TResEvalEnum(Value).Index;
         RangeEnd:=RangeStart;
@@ -2937,7 +3015,7 @@ begin
         end
       else
         {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
-        writeln('TResExprEvaluator.EvalSetParamsExpr Result.ElKind=',Result.ElKind,' Value.Kind=',Value.Kind);
+        writeln('TResExprEvaluator.EvalSetExpr Result.ElKind=',Result.ElKind,' Value.Kind=',Value.Kind);
         {$ENDIF}
         RaiseNotYetImplemented(20170713143422,El);
       end;
@@ -2945,7 +3023,7 @@ begin
       if Result.Intersects(RangeStart,RangeEnd)>=0 then
         begin
         {$IF defined(VerbosePasResEval) or defined(VerbosePasResolver)}
-        writeln('TResExprEvaluator.EvalSetParamsExpr Value=',Value.AsDebugString,' Range=',RangeStart,'..',RangeEnd,' Result=',Result.AsDebugString);
+        writeln('TResExprEvaluator.EvalSetExpr Value=',Value.AsDebugString,' Range=',RangeStart,'..',RangeEnd,' Result=',Result.AsDebugString);
         {$ENDIF}
         RaiseMsg(20170714141326,nRangeCheckInSetConstructor,
           sRangeCheckInSetConstructor,[],El);
@@ -2958,6 +3036,15 @@ begin
     if not ok then
       ReleaseEvalValue(TResEvalValue(Result));
   end;
+end;
+
+function TResExprEvaluator.EvalArrayValuesExpr(Expr: TArrayValues;
+  Flags: TResEvalFlags): TResEvalSet;
+begin
+  {$IFDEF VerbosePasResEval}
+  writeln('TResExprEvaluator.EvalArrayValuesExpr length(Expr.Values)=',length(Expr.Values));
+  {$ENDIF}
+  Result:=EvalSetExpr(Expr,Expr.Values,Flags);
 end;
 
 function TResExprEvaluator.EvalBinaryPowerExpr(Expr: TBinaryExpr; LeftValue,
@@ -3276,7 +3363,7 @@ begin
       pekIdent:
         begin
         Result:=OnEvalIdentifier(Self,TPrimitiveExpr(Expr),Flags);
-        writeln('TResExprEvaluator.Eval primitiv result=',Result<>nil,' ',dbgs(Result));
+        //writeln('TResExprEvaluator.Eval primitiv result=',Result<>nil,' ',dbgs(Result));
         end;
       pekNumber:
         begin
@@ -3284,6 +3371,11 @@ begin
         val(TPrimitiveExpr(Expr).Value,Int,Code);
         if Code=0 then
           begin
+          {$IFDEF VerbosePasResEval}
+          writeln('TResExprEvaluator.Eval Int=',Int,' Value="',TPrimitiveExpr(Expr).Value,'"');
+          {$ENDIF}
+          if (Int<0) and (Pos('-',TPrimitiveExpr(Expr).Value)<1) then
+            RaiseInternalError(20170802141254,'bug in FPC str()');
           Result:=TResEvalInt.CreateValue(Int);
           exit;
           end;
@@ -3292,6 +3384,9 @@ begin
         if Code=0 then
           begin
           Result:=TResEvalUInt.CreateValue(UInt);
+          {$IFDEF VerbosePasResEval}
+          writeln('TResExprEvaluator.Eval UInt=',UInt,' Value="',TPrimitiveExpr(Expr).Value,'"');
+          {$ENDIF}
           exit;
           end;
         // try float
@@ -3299,6 +3394,9 @@ begin
         if Code=0 then
           begin
           Result:=TResEvalFloat.CreateValue(Flo);
+          {$IFDEF VerbosePasResEval}
+          writeln('TResExprEvaluator.Eval Float=',Flo,' Value="',TPrimitiveExpr(Expr).Value,'"');
+          {$ENDIF}
           exit;
           end;
         RaiseRangeCheck(20170518202252,Expr);
@@ -3323,6 +3421,8 @@ begin
     Result:=EvalBinaryExpr(TBinaryExpr(Expr),Flags)
   else if C=TParamsExpr then
     Result:=EvalParamsExpr(TParamsExpr(Expr),Flags)
+  else if C=TArrayValues then
+    Result:=EvalArrayValuesExpr(TArrayValues(Expr),Flags)
   else if refConst in Flags then
     RaiseConstantExprExp(20170518213800,Expr);
   writeln('TResExprEvaluator.Eval END ',Expr.ClassName,' result=',Result<>nil,' ',dbgs(Result));
@@ -4223,6 +4323,16 @@ end;
 function TResEvalFloat.AsString: string;
 begin
   str(FloatValue,Result);
+end;
+
+function TResEvalFloat.IsInt(out Int: MaxPrecInt): boolean;
+begin
+  Int:=0;
+  if Frac(FloatValue)<>0 then exit(false);
+  if FloatValue<MaxPrecFloat(low(MaxPrecInt)) then exit(false);
+  if FloatValue>MaxPrecFloat(high(MaxPrecInt)) then exit(false);
+  Int:=Trunc(FloatValue);
+  Result:=true;
 end;
 
 { TResEvalString }
