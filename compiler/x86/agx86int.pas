@@ -62,6 +62,39 @@ implementation
     const
       line_length = 70;
 
+      wasm_cpu_name : array[tcputype] of string = (
+{$if defined(x86_64)}
+        'IA64',        // cpu_none,
+        '686',         // cpu_athlon64,
+        '686',        // cpu_core_i,
+        '686',        // cpu_core_avx,
+        '686'         // cpu_core_avx2
+{$elseif defined(i386)}
+        'IA64',     // cpu_none,
+        '386',      // cpu_386,
+        '486',      // cpu_486,
+        '586',  // cpu_Pentium,
+        '686',       // cpu_Pentium2,
+        '686',       // cpu_Pentium3,
+        '686',       // cpu_Pentium4,
+        '686',       // cpu_PentiumM,
+        '686',     // cpu_core_i,
+        '686',     // cpu_core_avx,
+        '686'      // cpu_core_avx2
+{$elseif defined(i8086)}
+        'IA64',    // cpu_none
+        '8086',    // cpu_8086
+        '186',     // cpu_186
+        '286',     // cpu_286
+        '386',     // cpu_386
+        '486',     // cpu_486
+        '586', // cpu_Pentium
+        '686',      // cpu_Pentium2
+        '686',      // cpu_Pentium3
+        '686',      // cpu_Pentium4
+        '686'       // cpu_PentiumM
+{$endif}
+      );
       secnames : array[TAsmSectiontype] of string[4] = ('','',
         'CODE','DATA','DATA','DATA','BSS','TLS',
         '','','','','','',
@@ -461,6 +494,7 @@ implementation
       prefix,
       suffix   : string;
       hp       : tai;
+      cpu: tcputype;
       counter,
       lines,
       InlineLevel : longint;
@@ -832,7 +866,13 @@ implementation
                       lasTSecType:=tai_section(hp.next).sectype;
                     hp:=tai(hp.next);
                   end;
-                 writer.AsmWriteLn(#9'.386p');
+                 if (asminfo^.id = as_i386_wasm) then
+                   begin
+                     writer.AsmWriteLn(#9'.686p');
+                     writer.AsmWriteLn(#9'.mmx');
+                   end
+                 else
+                   writer.AsmWriteLn(#9'.386p');
 {$ifdef i8086}
                  writer.AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
                  writer.AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
@@ -859,17 +899,42 @@ implementation
              begin
                case tai_directive(hp).directive of
                  asd_nasm_import :
-                   writer.AsmWrite('import ');
+                   begin
+                     writer.AsmWrite('import ');
+                     writer.AsmWrite(tai_directive(hp).name);
+                     writer.AsmLn;
+                   end;
                  asd_extern :
-                   writer.AsmWrite('EXTRN ');
+                   begin
+                     writer.AsmWrite('EXTRN ');
+                     writer.AsmWrite(tai_directive(hp).name);
+                     writer.AsmLn;
+                   end;
                  asd_cpu :
-                   { TODO: implement this properly for TASM/MASM/WASM (.686p, etc.) }
-                   writer.AsmWrite(asminfo^.comment+' CPU ');
+                   begin
+                     if (asminfo^.id = as_i386_wasm) then
+                       begin
+                         writer.AsmWrite('.');
+                         for cpu:=low(tcputype) to high(tcputype) do
+                           begin
+                             if tai_directive(hp).name=CPUTypeStr[CPU] then
+                               begin
+                                 writer.AsmWriteLn(wasm_cpu_name[cpu]);
+                                 break;
+                               end;
+                           end;
+                       end
+                     else
+                       begin
+                         { TODO: implement this properly for TASM/MASM/WASM (.686p, etc.) }
+                         writer.AsmWrite(asminfo^.comment+' CPU ');
+                         writer.AsmWrite(tai_directive(hp).name);
+                         writer.AsmLn;
+                       end;
+                   end
                  else
                    internalerror(200509192);
                end;
-               writer.AsmWrite(tai_directive(hp).name);
-               writer.AsmLn;
              end;
            ait_seh_directive :
              { Ignore for now };
@@ -936,7 +1001,13 @@ implementation
 {$endif}
       if asminfo^.id<>as_x86_64_masm then
         begin
-          writer.AsmWriteLn(#9'.386p');
+          if (asminfo^.id = as_i386_wasm) then
+            begin
+              writer.AsmWriteLn(#9'.686p');
+              writer.AsmWriteLn(#9'.mmx');
+            end
+          else
+            writer.AsmWriteLn(#9'.386p');
           { masm 6.11 does not seem to like LOCALS PM }
           if (asminfo^.id = as_i386_tasm) then
             begin
