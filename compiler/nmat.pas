@@ -531,8 +531,8 @@ implementation
                      left));
                     left:=nil;
 
-                    { masknode is (sar(temp,shiftval) and (tordconstnode(right).value-1))
-                      for tordconstnode(right).value=2, masknode is simply (temp shr shiftval)}
+                    { masknode is (sar(temp,shiftval) and ((1 shl power)-1))
+                      for power=1 (i.e. division by 2), masknode is simply (temp shr shiftval)}
                     if power=1 then
                       masknode:=
                         cshlshrnode.create(shrn,
@@ -546,7 +546,7 @@ implementation
                             ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
                             ccallparanode.create(ctemprefnode.create(temp),nil))
                           ),
-                          cordconstnode.create(tordconstnode(right).value-1,
+                          cordconstnode.create(tcgint((qword(1) shl power)-1),
                             right.resultdef,false)
                         );
 
