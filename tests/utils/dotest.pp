@@ -1844,7 +1844,7 @@ end;
 
 procedure RunTest;
 var
-  PPDir,LibraryName,LogSuffix : string;
+  PPDir,LibraryName,LogSuffix,PPPrefix : string;
   Res : boolean;
 begin
   Res:=GetConfig(PPFile[current],Config);
@@ -1875,6 +1875,12 @@ begin
       if PPDir<>'' then
         begin
 {$ifndef MACOS}
+          { handle paths that are parallel to the tests directory (let's hope
+            that noone uses ../../ -.- ) }
+          { ToDo: check relative paths on MACOS }
+          PPPrefix:=Copy(PPDir,1,3);
+          if (PPPrefix='../') or (PPPrefix='..\') then
+            PPDir:='root/'+Copy(PPDir,4);
           TestOutputDir:=OutputDir+'/'+PPDir;
           if UniqueSuffix<>'' then
             TestOutputDir:=TestOutputDir+'/'+UniqueSuffix;
