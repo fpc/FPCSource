@@ -62,14 +62,11 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp
+        $(COMPILER) -Us -Sg system.pp -Fi../win
 
 #
 # Unit specific rules
 #
-
-system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp -Fi../win
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 

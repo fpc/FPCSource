@@ -2579,8 +2579,6 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 system$(PPUEXT) : system.pp $(SYSDEPS)
-	$(COMPILER) -Us -Sg system.pp
-system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp -Fi../win
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
