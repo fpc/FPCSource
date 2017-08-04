@@ -503,7 +503,7 @@ implementation
           { for 64 bit, we leave the optimization to the cg }
             (not is_signed(resultdef)) then
 {$else cpu64bitalu}
-           (((nodetype=divn) and is_64bit(resultdef)) or
+           (((nodetype=divn) and is_oversizedord(resultdef)) or
             (nodetype=modn) or
             not is_signed(resultdef)) then
 {$endif cpu64bitalu}
