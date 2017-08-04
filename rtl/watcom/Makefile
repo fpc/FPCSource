@@ -3127,7 +3127,7 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 prt0$(OEXT) : prt0.as
-	wasm prt0.as -bt=dos -5s -fp5 -ms -zq
+	wasm prt0.as -fo=prt0$(OEXT) -bt=dos -5s -fp5 -ms -zq
 	$(COPY) prt0$(OEXT) $(UNITTARGETDIRPREFIX)prt0$(OEXT)
 system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp
