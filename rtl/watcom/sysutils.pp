@@ -36,6 +36,8 @@ uses
 { OS has an ansistring/single byte environment variable API }
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
+{$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -382,11 +384,11 @@ begin
 end;
 
 
-Procedure InternalFindClose(var Handle: Pointer);
+Procedure InternalFindClose(var Handle: longint);
 var
   Sr: PSearchRec;
 begin
-  Sr := PSearchRec(Handle);
+  Sr := PSearchRec(PtrUint(Handle));
   if Sr <> nil then
     begin
       //!! Dispose(Sr);
@@ -507,7 +509,7 @@ var
   OldSystemFileName, NewSystemFileName: RawByteString;
 begin
   OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
-  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewFile);
+  NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
   StringToTB(OldSystemFileName + #0 + NewSystemFileName);
   Regs.Edx := tb_offset;
   Regs.Ds := tb_segment;
@@ -645,10 +647,6 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
-begin
-end;
-
 
 {****************************************************************************
                               Locale Functions
@@ -779,11 +777,10 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
-
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
 var
   e : EOSError;
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
 
 begin
   dos.exec(path,comline);
@@ -802,11 +799,11 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
   I: integer;
 
 begin
