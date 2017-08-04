@@ -493,6 +493,7 @@ implementation
         power,shiftval : longint;
         statements : tstatementnode;
         temp,resulttemp : ttempcreatenode;
+        masknode : tnode;
       begin
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
@@ -530,18 +531,30 @@ implementation
                      left));
                     left:=nil;
 
+                    { masknode is (sar(temp,shiftval) and (tordconstnode(right).value-1))
+                      for tordconstnode(right).value=2, masknode is simply (temp shr shiftval)}
+                    if power=1 then
+                      masknode:=
+                        cshlshrnode.create(shrn,
+                          ctemprefnode.create(temp),
+                          cordconstnode.create(shiftval,u8inttype,false)
+                        )
+                    else
+                      masknode:=
+                        caddnode.create(andn,
+                          cinlinenode.create(in_sar_x_y,false,
+                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
+                            ccallparanode.create(ctemprefnode.create(temp),nil))
+                          ),
+                          cordconstnode.create(tordconstnode(right).value-1,
+                            right.resultdef,false)
+                        );
+
                     addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
                       cinlinenode.create(in_sar_x_y,false,
                         ccallparanode.create(cordconstnode.create(power,u8inttype,false),
                         ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp),
-                          caddnode.create(andn,
-                            cinlinenode.create(in_sar_x_y,false,
-                              ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
-                              ccallparanode.create(ctemprefnode.create(temp),nil))
-                            ),
-                            cordconstnode.create(tordconstnode(right).value-1,
-                              right.resultdef,false)
-                          )),nil
+                          masknode),nil
                         ))))
                     );
                     addstatement(statements,ctempdeletenode.create(temp));
