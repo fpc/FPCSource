@@ -177,7 +177,7 @@ end;
 
 const StackErr : boolean = false;
 
-procedure int_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK']; compilerproc;
+procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK']; compilerproc;
 {
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve all registers
@@ -392,7 +392,7 @@ begin
   ConsolePrintf (#13'Calling do_exit'#13#10);
   {$endif}
   SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
-  do_exit;                       { calls finalize units }
+  internal_do_exit;              { calls finalize units }
   if assigned (SetThreadDataAreaPtr) then
     SetThreadDataAreaPtr (oldPtr);
   _SetThreadGroupID (oldTG);
