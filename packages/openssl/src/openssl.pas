@@ -986,6 +986,7 @@ var
   function SslMethodTLSV1_1:PSSL_METHOD;
   function SslMethodTLSV1_2:PSSL_METHOD;
   function SslMethodV23:PSSL_METHOD;
+  function SslTLSMethod:PSSL_METHOD;
   function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
   function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
 //  function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt;
@@ -1388,6 +1389,7 @@ type
   TSslMethodTLSV1_1 = function:PSSL_METHOD; cdecl;
   TSslMethodTLSV1_2 = function:PSSL_METHOD; cdecl;
   TSslMethodV23 = function:PSSL_METHOD; cdecl;
+  TSslTLSMethod = function:PSSL_METHOD; cdecl;
   TSslCtxUsePrivateKey = function(ctx: PSSL_CTX; pkey: sslptr):cInt; cdecl;
   TSslCtxUsePrivateKeyASN1 = function(pk: cInt; ctx: PSSL_CTX; d: sslptr; len: cInt):cInt; cdecl;
   TSslCtxUsePrivateKeyFile = function(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt; cdecl;
@@ -1607,6 +1609,7 @@ var
   _SslMethodTLSV1_1: TSslMethodTLSV1_1 = nil;
   _SslMethodTLSV1_2: TSslMethodTLSV1_2 = nil;
   _SslMethodV23: TSslMethodV23 = nil;
+  _SslTLSMethod: TSslTLSMethod = nil;
   _SslCtxUsePrivateKey: TSslCtxUsePrivateKey = nil;
   _SslCtxUsePrivateKeyASN1: TSslCtxUsePrivateKeyASN1 = nil;
   _SslCtxUsePrivateKeyFile: TSslCtxUsePrivateKeyFile = nil;
@@ -2024,6 +2027,14 @@ function SslMethodV23:PSSL_METHOD;
 begin
   if InitSSLInterface and Assigned(_SslMethodV23) then
     Result := _SslMethodV23
+  else
+    Result := nil;
+end;
+
+function SslTLSMethod:PSSL_METHOD;
+begin
+  if InitSSLInterface and Assigned(_SslTLSMethod) then
+    Result := _SslTLSMethod
   else
     Result := nil;
 end;
@@ -3975,6 +3986,7 @@ begin
   _SslMethodTLSV1_1 := GetProcAddr(SSLLibHandle, 'TLSv1_1_method');
   _SslMethodTLSV1_2 := GetProcAddr(SSLLibHandle, 'TLSv1_2_method');
   _SslMethodV23 := GetProcAddr(SSLLibHandle, 'SSLv23_method');
+  _SslTLSMethod := GetProcAddr(SSLLibHandle, 'TLS_method');
   _SslCtxUsePrivateKey := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey');
   _SslCtxUsePrivateKeyASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey_ASN1');
   //use SSL_CTX_use_RSAPrivateKey_file instead SSL_CTX_use_PrivateKey_file,
@@ -4259,6 +4271,7 @@ begin
   _SslMethodTLSV1_1 := nil;
   _SslMethodTLSV1_2 := nil;
   _SslMethodV23 := nil;
+  _SslTLSMethod := nil;
   _SslCtxUsePrivateKey := nil;
   _SslCtxUsePrivateKeyASN1 := nil;
   _SslCtxUsePrivateKeyFile := nil;
