@@ -48,6 +48,7 @@ const
  maxExitCode = 255;
  MaxPathLen = 256;
  AllFilesMask = '*';
+ SharedSuffix = 'nlm';
 
 CONST
   { Default filehandles }
