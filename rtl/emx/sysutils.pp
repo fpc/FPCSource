@@ -475,7 +475,7 @@ asm
  xor eax, 112
  jz @FOpenDefSharing
  cmp eax, 64
- jbe FOpen1
+ jbe @FOpen1
 @FOpenDefSharing:
  or ecx, 64
 @FOpen1:
