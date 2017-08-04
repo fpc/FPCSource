@@ -37,7 +37,7 @@
              cpu_no,                       { 0 }
              cpu_i386,                     { 1 }
              cpu_m68k,                     { 2 }
-             cpu_alpha,                    { 3 }
+             obsolete_cpu_alpha,           { 3 }
              cpu_powerpc,                  { 4 }
              cpu_sparc,                    { 5 }
              cpu_vm,                       { 6 }
@@ -96,7 +96,7 @@
              system_m68k_Mac,           { 9 }
              system_m68k_linux,         { 10 }
              system_m68k_PalmOS,        { 11 }
-             system_alpha_linux,        { 12 }
+             obsolete_system_alpha_linux,{ 12 }
              system_powerpc_linux,      { 13 }
              system_powerpc_macos,      { 14 }
              system_i386_solaris,       { 15 }
@@ -134,7 +134,7 @@
              system_arm_nds,            { 47 }
              system_i386_embedded,      { 48 }
              system_m68k_embedded,      { 49 }
-             system_alpha_embedded,     { 50 }
+             obsolete_system_alpha_embedded,{ 50 }
              system_powerpc_embedded,   { 51 }
              system_sparc_embedded,     { 52 }
              system_vm_embedded,        { 53 }
