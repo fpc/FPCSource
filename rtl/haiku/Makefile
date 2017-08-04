@@ -3412,10 +3412,10 @@ dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(INC) -Fu$(INC) $(UNIXINC)/dos.pp
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    objpas$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) # beos$(PPUEXT)
+		    objpas$(PPUEXT) sysconst$(PPUEXT) # beos$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(UNIXINC) $(UNIXINC)/sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) $(OBJPASDIR)/typinfo$(PPUEXT) types$(PPUEXT) $(OBJPASDIR)/rtlconsts$(PPUEXT) 
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) types$(PPUEXT) rtlconsts$(PPUEXT) 
 	$(COMPILER) -Fi$(OBJPASDIR) -Fi$(OBJPASDIR)/classes classes.pp
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
