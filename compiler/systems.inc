@@ -41,7 +41,7 @@
              cpu_powerpc,                  { 4 }
              cpu_sparc,                    { 5 }
              cpu_vm,                       { 6 }
-             cpu_iA64,                     { 7 }
+             obsolete_cpu_ia64,            { 7 }
              cpu_x86_64,                   { 8 }
              cpu_mipseb,                   { 9 }
              cpu_arm,                      { 10 }
@@ -123,7 +123,7 @@
              system_powerpc_Amiga,      { 36 }
              system_x86_64_win64,       { 37 }
              system_arm_wince,          { 38 }
-             system_ia64_win64,         { 39 }
+             obsolete_system_ia64_win64,{ 39 }
              system_i386_wince,         { 40 }
              system_x86_6432_linux,     { 41 }
              system_arm_gba,            { 42 }
@@ -138,7 +138,7 @@
              system_powerpc_embedded,   { 51 }
              system_sparc_embedded,     { 52 }
              system_vm_embedded,        { 53 }
-             system_iA64_embedded,      { 54 }
+             obsolete_system_ia64_embedded,{ 54 }
              system_x86_64_embedded,    { 55 }
              system_mips_embedded,      { 56 }
              system_arm_embedded,       { 57 }
