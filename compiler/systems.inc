@@ -40,7 +40,7 @@
              obsolete_cpu_alpha,           { 3 }
              cpu_powerpc,                  { 4 }
              cpu_sparc,                    { 5 }
-             cpu_vm,                       { 6 }
+             obsolete_cpu_vm,              { 6 }
              obsolete_cpu_ia64,            { 7 }
              cpu_x86_64,                   { 8 }
              cpu_mipseb,                   { 9 }
@@ -137,7 +137,7 @@
              obsolete_system_alpha_embedded,{ 50 }
              system_powerpc_embedded,   { 51 }
              system_sparc_embedded,     { 52 }
-             system_vm_embedded,        { 53 }
+             obsolete_system_vm_embedded,{ 53 }
              obsolete_system_ia64_embedded,{ 54 }
              system_x86_64_embedded,    { 55 }
              system_mips_embedded,      { 56 }
