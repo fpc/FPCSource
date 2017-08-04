@@ -58,10 +58,10 @@ type
   TValue = object
   private
     FData: TValueData;
-    function GetTypeDataProp: PTypeData;
-    function GetTypeInfo: PTypeInfo;
-    function GetTypeKind: TTypeKind;
-    function GetIsEmpty: boolean;
+    function GetTypeDataProp: PTypeData; inline;
+    function GetTypeInfo: PTypeInfo; inline;
+    function GetTypeKind: TTypeKind; inline;
+    function GetIsEmpty: boolean; inline;
   public
     class function Empty: TValue;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
@@ -78,7 +78,7 @@ type
     function AsCurrency: Currency;
     function AsInteger: Integer;
     function ToString: string;
-    function IsType(ATypeInfo: PTypeInfo): boolean;
+    function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
