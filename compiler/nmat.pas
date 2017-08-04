@@ -582,28 +582,33 @@ implementation
                 addstatement(statements,resulttemp);
                 addstatement(statements,temp);
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp),left));
-                { sign:=sar(left,sizeof(left)*8-1); }
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
-                  cinlinenode.create(in_sar_x_y,false,
-                    ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
-                    ccallparanode.create(ctemprefnode.create(temp),nil)
-                  )
-                )));
+                { mask:=sar(left,sizeof(left)*8-1) and ((1 shl power)-1); }
+                if power=1 then
+                  masknode:=
+                    cshlshrnode.create(shrn,
+                      ctemprefnode.create(temp),
+                      cordconstnode.create(shiftval,u8inttype,false)
+                    )
+                else
+                  masknode:=
+                    caddnode.create(andn,
+                      cinlinenode.create(in_sar_x_y,false,
+                        ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false),
+                        ccallparanode.create(ctemprefnode.create(temp),nil))
+                      ),
+                      cordconstnode.create(tcgint((qword(1) shl power)-1),
+                        right.resultdef,false)
+                    );
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),masknode));
 
-                { result:=((((left xor sign)-sign) and right) xor sign)-sign; }
+                { result:=((left+mask) and right)-mask; }
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp),
                   caddnode.create(subn,
-                    caddnode.create(xorn,
-                      caddnode.create(andn,
-                        right,
-                        caddnode.create(subn,
-                          caddnode.create(xorn,
-                            ctemprefnode.create(resulttemp),
-                            ctemprefnode.create(temp)),
-                          ctemprefnode.create(resulttemp))
-                        ),
-                      ctemprefnode.create(resulttemp)
-                    ),
+                    caddnode.create(andn,
+                      right,
+                      caddnode.create(addn,
+                        ctemprefnode.create(temp),
+                        ctemprefnode.create(resulttemp))),
                   ctemprefnode.create(resulttemp))
                 ));
 
