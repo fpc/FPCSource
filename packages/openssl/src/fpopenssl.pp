@@ -182,7 +182,13 @@ Var
 begin
   C := nil;
   Case AType of
-    stAny:  C := SslCtxNew(SslMethodV23);
+    stAny:
+      begin
+        if Assigned(SslTLSMethod) then
+          C := SslCtxNew(SslTLSMethod)
+        else
+          C := SslCtxNew(SslMethodV23);
+      end;
     stSSLv2: C := SslCtxNew(SslMethodV2);
     stSSLv3: C := SslCtxNew(SslMethodV3);
     stTLSv1: C := SslCtxNew(SslMethodTLSV1);
