@@ -221,7 +221,8 @@ end;
 function TSSLSocketHandler.Connect: Boolean;
 begin
   Result:=Inherited Connect;
-  if Result and InitContext(False) then
+  Result := Result and InitContext(False);
+  if Result then
     begin
     Result:=CheckSSL(FSSL.SetFD(FSocket.Handle));
     if Result then
