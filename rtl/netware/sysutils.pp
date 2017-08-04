@@ -36,6 +36,8 @@ uses DOS;
 { OS has an ansistring/single byte environment variable API }
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
+{$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
+
 TYPE
   TNetwareFindData =
   RECORD
@@ -174,6 +176,19 @@ begin
    FileTruncate:=(_chsize(Handle,Size) = 0);
 end;
 
+Function FileAge (Const FileName : RawByteString): Longint;
+var Handle: longint;
+begin
+  Handle := FileOpen(FileName, 0);
+  if Handle <> -1 then
+   begin
+     result := FileGetDate(Handle);
+     FileClose(Handle);
+   end
+  else
+   result := -1;
+end;
+
 Function FileLock (Handle,FOffset,FLen : Longint) : Longint;
 begin
   FileLock := _lock (Handle,FOffset,FLen);
@@ -223,9 +238,49 @@ begin
   FileExists:=(_stat(pchar(SystemFileName),Info) = 0);
 end;
 
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Var
+  Dir : RawByteString;
+  drive : byte;
+  FADir, StoredIORes : longint;
+begin
+  Dir:=Directory;
+  if (length(dir)=2) and (dir[2]=':') and
+     ((dir[1] in ['A'..'Z']) or (dir[1] in ['a'..'z'])) then
+    begin
+      { We want to test GetCurDir }
+      if dir[1] in ['A'..'Z'] then
+        drive:=ord(dir[1])-ord('A')+1
+      else
+        drive:=ord(dir[1])-ord('a')+1;
+{$push}
+{$I-}
+      StoredIORes:=InOutRes;
+      InOutRes:=0;
+      GetDir(drive,dir);
+      if InOutRes <> 0 then
+        begin
+          InOutRes:=StoredIORes;
+          result:=false;
+          exit;
+        end;
+    end;
+{$pop}
+  if (Length (Dir) > 1) and
+    (Dir [Length (Dir)] in AllowDirectorySeparators) and
+(* Do not remove '\' after ':' (root directory of a drive)
+   or in '\\' (invalid path, possibly broken UNC path). *)
+     not (Dir [Length (Dir) - 1] in (AllowDriveSeparators + AllowDirectorySeparators)) then
+    dir:=copy(dir,1,length(dir)-1);
+(* FileGetAttr returns -1 on error *)
+  FADir := FileGetAttr (Dir);
+  Result := (FADir <> -1) and
+            ((FADir and faDirectory) = faDirectory);
+end;
 
 
-PROCEDURE find_setfields (VAR f : TsearchRec; VAR Name : RawByteString);
+
+PROCEDURE find_setfields (VAR f : TAbstractSearchRec; VAR Name : RawByteString);
 VAR T : Dos.DateTime;
 BEGIN
   WITH F DO
@@ -254,7 +309,7 @@ var
 begin
   IF path = '' then
     exit (18);
-  SystemEncodedPath := ToSingleByteEncodedFileName (Path);
+  SystemEncodedPath := ToSingleByteFileSystemEncodedFileName(Path);
   Rslt.FindData.DirP := _opendir (pchar(SystemEncodedPath));
   IF Rslt.FindData.DirP = NIL THEN
     exit (18);
@@ -292,11 +347,11 @@ Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
   IF FindData.Magic = $AD01 THEN
   BEGIN
-    IF F.FindData.DirP <> NIL THEN
-      _closedir (F.FindData.DirP);
-    F.FindData.Magic := 0;
-    F.FindData.DirP := NIL;
-    F.FindData.EntryP := NIL;
+    IF FindData.DirP <> NIL THEN
+      _closedir (FindData.DirP);
+    FindData.Magic := 0;
+    FindData.DirP := NIL;
+    FindData.EntryP := NIL;
   END;
 end;
 
@@ -537,11 +592,12 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 
+
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
 var
   e : EOSError;
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
 
 begin
   dos.exec(path,comline);
@@ -560,11 +616,11 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
   I: integer;
 
 begin
