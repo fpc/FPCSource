@@ -21,6 +21,7 @@ INTERFACE
 {$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
 
+{$define FPC_ANSI_TEXTFILEREC}
 { include system-independent routine headers }
 
 {$include systemh.inc}
