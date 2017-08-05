@@ -499,14 +499,14 @@ asm
         andl    $3,%ecx
         subl    %ecx,%eax       { Subtract from number of bytes to go }
         orl     %ecx,%ecx
-        rep
+        repe
         cmpsb                   { The actual 32-bit Aligning }
         jne     .LCmpbyte3
         movl    %eax,%ecx       { bytes to do, divide by 4 }
         andl    $3,%eax         { remainder }
         shrl    $2,%ecx         {  The actual division }
         orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp }
-        rep
+        repe
         cmpsl
         je      .LCmpbyte2      { All equal? then to the left over bytes }
         movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise }
@@ -515,7 +515,7 @@ asm
 .LCmpbyte2:
         movl    %eax,%ecx       { bytes still to (re)scan }
         orl     %eax,%eax       { prevent disaster in case %eax=0 }
-        rep
+        repe
         cmpsb
 .LCmpbyte3:
         movzbl  -1(%esi),%ecx
@@ -583,7 +583,7 @@ asm
         andl    $1,%edx         { %edx is 1 if array not 2-aligned, 0 otherwise}
         shrl    $2,%ecx         { divide bytes to go by 4, DWords to go}
         orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp}
-        rep                     { Compare entire DWords}
+        repe                    { Compare entire DWords}
         cmpsl
         je      .LCmpword2a     { All equal? then to the left over bytes}
         movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
@@ -599,7 +599,7 @@ asm
 .LCmpword2:
         movl    %eax,%ecx       {words still to (re)scan}
         orl     %eax,%eax       {prevent disaster in case %eax=0}
-        rep
+        repe
         cmpsw
 .LCmpword3:
         movzwl  -2(%esi),%ecx
@@ -658,7 +658,7 @@ asm
         movl    %eax,%edi
         movl    %edx,%esi
         xorl    %eax,%eax
-        rep                     { Compare entire DWords}
+        repe                     { Compare entire DWords}
         cmpsl
         movl    -4(%edi),%edi        // Compare failing (or equal) position
         subl    -4(%esi),%edi        // calculate end result.
@@ -860,14 +860,14 @@ asm
         andl    $3,%ecx
         subl    %ecx,%eax
         orl     %ecx,%ecx
-        rep
+        repe
         cmpsb
         jne     .LStrCmp3
         movl    %eax,%ecx
         andl    $3,%eax
         shrl    $2,%ecx
         orl     %ecx,%ecx
-        rep
+        repe
         cmpsl
         je      .LStrCmp2
         movl    $4,%eax
@@ -876,7 +876,7 @@ asm
 .LStrCmp2:
         movl    %eax,%ecx
         orl     %eax,%eax
-        rep
+        repe
         cmpsb
         je      .LStrCmp4
 .LStrCmp3:
