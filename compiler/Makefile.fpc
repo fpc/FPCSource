@@ -349,6 +349,11 @@ ifeq ($(OS_TARGET),win16)
 NoNativeBinaries=1
 endif
 
+# Allow install for jvm 
+ifeq ($(NoNativeBinaries),1)
+override EXEEXT=$(SRCEXEEXT)
+endif
+
 [rules]
 #####################################################################
 # Setup Targets
