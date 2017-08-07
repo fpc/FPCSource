@@ -6,9 +6,10 @@
 main=rtl
 
 [target]
-units=system uuchar objpas macpas iso7185 extpas buildrtl
-implicitunits=ctypes strings \
-      symbian
+# macpas and iso7185 units rely on sysutils unit, not yet handled here
+# extpas unit relies on dos unit, not yet handled
+units=system uuchar objpas buildrtl
+implicitunits=ctypes strings symbian
 
 [require]
 nortl=y
@@ -28,6 +29,7 @@ sourcedir=$(INC) $(PROCINC) $(COMMON)
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+UNIXINC=$(RTL)/unix
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 SYMBIANINC=./symbianinc
@@ -73,8 +75,16 @@ uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
-macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+#sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+#                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) \
+#                    linux$(PPUEXT)
+#        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) macpas$(PPUEXT)
+#math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#        $(COMPILER) $(OBJPASDIR)/math.pp
+
+#macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
+#        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) # macpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(INC) -I$(SYMBIANINC) -I$(UIQINC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
