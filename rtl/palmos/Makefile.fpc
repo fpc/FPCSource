@@ -7,23 +7,26 @@ main=rtl
 
 [target]
 loaders= prt0
-units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 extpas strings \
-      lnfodwrf lineinfo heaptrc \
-      windows messages dynlibs \
-      dos objects \
-      rtlconsts sysconst sysutils \
-      typinfo types fgl classes fmtbcd \
-      strutils convutils math dateutils \
-      varutils variants \
-      matrix ucomplex \
-      charset cpall getopts winsock sockets
+units=$(SYSTEMUNIT) uuchar objpas iso7185 strings \
+       ctypes \
+       charset cpall \
+       sysconst
+#units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 extpas strings \
+#      lnfodwrf lineinfo heaptrc \
+#      windows messages dynlibs \
+#      dos objects \
+#      rtlconsts sysconst sysutils \
+#      typinfo types fgl classes fmtbcd \
+#      strutils convutils math dateutils \
+#      varutils variants \
+#      matrix ucomplex \
+#      charset cpall getopts winsock sockets
 # initc cmem signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut
-implicitunits=exeinfo \
-      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
+implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
       cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
       cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
@@ -43,7 +46,7 @@ target=palmos
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(RTL)/palmos
-sourcedir=$(INC) $(PROCINC) $(COMMON)
+sourcedir=$(INC) $(PROCINC) $(COMMON) $(OBJPAS)
 
 
 [prerules]
@@ -115,6 +118,29 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
 
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+
+#extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#        $(COMPILER) $(INC)/extpas.pp
+
+types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/types.pp
+
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
 #
 # System Dependent Units
 #
@@ -147,31 +173,31 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 # Libs
 #####################################################################
 
-staticlib:
-	make clean
-	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
+#staticlib:
+#	make clean
+#	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
 
-sharedlib:
-	make clean
-	make all
-	$(PPUMOVE) -o fpc $(SHAREDLIBFILES)
+#sharedlib:
+#	make clean
+#	make all
+#	$(PPUMOVE) -o fpc $(SHAREDLIBFILES)
 
-staticlibinstall: staticlib
-	$(MKDIR) $(STATIC_LIBINSTALLDIR)
-	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+#staticlibinstall: staticlib
+#	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+#	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+#	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+#	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
 
-sharedlibinstall: sharedlib
-	$(MKDIR) $(SHARED_LIBINSTALLDIR)
-	$(MKDIR) $(SHARED_UNITINSTALLDIR)
-	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
-	ldconfig
+#sharedlibinstall: sharedlib
+#	$(MKDIR) $(SHARED_LIBINSTALLDIR)
+#	$(MKDIR) $(SHARED_UNITINSTALLDIR)
+#	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+#	$(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
+#	ldconfig
 
-libinstall: staticlibinstall sharedlibinstall
-
-libsclean : clean
-	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+#libinstall: staticlibinstall sharedlibinstall
+#
+#libsclean : clean
+#	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 
