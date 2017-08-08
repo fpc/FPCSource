@@ -60,7 +60,7 @@ const
 
 { List of all supported cpus }
 const
-  CpuTxt : array[tsystemcpu] of string[9]=
+  CpuTxt : array[tsystemcpu] of string[16]=
     (
     {  0 } 'none',
     {  1 } 'i386',
@@ -85,7 +85,7 @@ const
 
 { List of all supported system-cpu couples }
 const
-  Targets : array[tsystem] of string[18]=(
+  Targets : array[tsystem] of string[26]=(
   { 0 }   'none',
   { 1 }   'GO32V1 (obsolete)',
   { 2 }   'GO32V2',
