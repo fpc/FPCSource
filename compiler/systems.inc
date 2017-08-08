@@ -104,7 +104,7 @@
              system_i386_netbsd,        { 17 }
              system_m68k_netbsd,        { 18 }
              system_i386_Netware,       { 19 }
-             system_i386_qnx,           { 20 }
+             obsolete_system_i386_qnx,  { 20 }
              system_i386_wdosx,         { 21 }
              system_sparc_solaris,      { 22 }
              system_sparc_linux,        { 23 }
