@@ -22,9 +22,18 @@ interface
 {Link the startup code.}
 {$l prt1.o}
 
+{$define FPC_SYSTEM_HAS_SYSDLH}
+
 {$I systemh.inc}
 
 const
+(* Are file sizes > 2 GB (64-bit) supported on the current system? *)
+  FSApi64: boolean = false;
+(* Is full Unicode support provided by the underlying OS/2 version available *)
+(* and successfully initialized (otherwise dummy routines need to be used).  *)
+  UniAPI: boolean = false;
+  DosCallsHandle: THandle = THandle (-1);
+
  LineEnding = #13#10;
 { LFNSupport is defined separately below!!! }
  DirectorySeparator = '\';
@@ -115,6 +124,34 @@ procedure SetDefaultOS2FileType (FType: ShortString);
 
 procedure SetDefaultOS2Creator (Creator: ShortString);
 
+(* Support for tracking I/O errors returned by OS/2 API calls - emulation *)
+(* of GetLastError / fpGetError functionality used e.g. in Sysutils.      *)
+type
+  TOSErrorWatch = procedure (Error: cardinal);
+
+procedure NoErrorTracking (Error: cardinal);
+
+(* This shall be invoked whenever a non-zero error is returned by OS/2 APIs *)
+(* used in the RTL. Direct OS/2 API calls in user programs are not covered! *)
+const
+  OSErrorWatch: TOSErrorWatch = @NoErrorTracking;
+
+type
+  TDosOpenL = function (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                                 EA: pointer): cardinal; cdecl;
+
+  TDosSetFilePtrL = function (Handle: THandle; Pos: int64; Method: cardinal;
+                                        var PosActual: int64): cardinal; cdecl;
+
+  TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
+
+
+var
+  Sys_DosOpenL: TDosOpenL;
+  Sys_DosSetFilePtrL: TDosSetFilePtrL;
+  Sys_DosSetFileSizeL: TDosSetFileSizeL;
 
 
 implementation
@@ -439,6 +476,10 @@ begin
   DefaultCreator := Creator;
 end;
 
+(* The default handler does not store the OS/2 API error codes. *)
+procedure NoErrorTracking (Error: cardinal);
+begin
+end;
 
 function GetFileHandleCount: longint;
 var L1: longint;
