@@ -1,6 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team.
+    Copyright (c) 2017 by Free Pascal development team
+
+    OS specific headers
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -10,12 +12,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$define palmos}
-{$undef atari}
-{$undef go32v2}
-{$undef os2}
-{$undef linux}
-{$undef win32}
-{$undef amiga}
-{$undef macos}
 
+{Platform specific information}
+type
+{$ifdef CPU64}
+  THandle = Int64;
+{$else CPU64}
+  THandle = Longint;
+{$endif CPU64}
+  TThreadID = THandle;
+
+  PRTLCriticalSection = ^TRTLCriticalSection;
+  TRTLCriticalSection = record
+   Locked: boolean
+  end;

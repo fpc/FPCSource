@@ -1,5 +1,4 @@
 {
-
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
@@ -13,89 +12,114 @@
 
  **********************************************************************}
 
-{$define PALMOS}
-{$ASMMODE DIRECT}
 unit System;
 
-{$I os.inc}
+interface
 
-  Interface
+{$DEFINE FPC_ANSI_TEXTFILEREC}
+
+{$i systemh.inc}
 
 {Platform specific information}
 const
- LineEnding = #10;
- LFNSupport = false;
- DirectorySeparator = '/';
- DriveSeparator = ':';
- ExtensionSeparator = '.';
- PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
- FileNameCaseSensitive = false;
- FileNameCasePreserving = true;
- CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
- maxExitCode = 255; {$ERROR TODO: CONFIRM THIS}
- MaxPathLen = 256;
- AllFilesMask = '*';
+    LineEnding = #10;
+    LFNSupport = false;
+    DirectorySeparator = '/';
+    DriveSeparator = ':';
+    ExtensionSeparator = '.';
+    PathSeparator = ';';
+    AllowDirectorySeparators : set of char = ['\','/'];
+    AllowDriveSeparators : set of char = [':'];
+    FileNameCaseSensitive = false;
+    FileNameCasePreserving = true;
+    CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
+    maxExitCode = 255; {.$ERROR TODO: CONFIRM THIS}
+    MaxPathLen = 256;
+    AllFilesMask = '*';
 
-    Type
-       { type and constant declartions doesn't hurt }
-       LongInt  = $80000000..$7fffffff;
-       Integer  = -32768..32767;
-       ShortInt = -128..127;
-       Byte     = 0..255;
-       Word     = 0..65535;
+    sLineBreak = LineEnding;
+    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
-       { !!!!
-       DWord    = Cardinal;
-       LongWord = Cardinal;
-       }
+const
+    UnusedHandle    = $ffff;
+    StdInputHandle  = 0;
+    StdOutputHandle = 1;
+    StdErrorHandle  = $ffff;
 
-       { The Cardinal data type isn't currently implemented for the m68k }
-       DWord    = LongInt;
-       LongWord = LongInt;
+var
+    args: PChar;
+    argc: LongInt;
+    argv: PPChar;
+    envp: PPChar;
 
-       { Zero - terminated strings }
-       PChar    = ^Char;
-       PPChar   = ^PChar;
 
-       { procedure type }
-       TProcedure = Procedure;
+{$if defined(FPUSOFT)}
 
-    const
-       { max. values for longint and int }
-       MaxLongint = High(LongInt);
-       MaxInt = High(Integer);
+    {$define fpc_softfpu_interface}
+    {$i softfpu.pp}
+    {$undef fpc_softfpu_interface}
 
-       { Must be determined at startup for both }
-       Test68000 : byte = 0;
-       Test68881 : byte = 0;
+{$endif defined(FPUSOFT)}
 
-    { Palm specific data types }
-    type
-       Ptr    = ^Char;
 
     var
-       ExitCode : DWord;
        { this variables are passed to PilotMain by the PalmOS }
        cmd : Word;
-       cmdPBP : Ptr;
+       cmdPBP : PChar; // Ptr;
        launchFlags : Word;
 
   implementation
 
+{$if defined(FPUSOFT)}
+
+    {$define fpc_softfpu_implementation}
+    {$define softfpu_compiler_mul32to64}
+    {$define softfpu_inline}
+    {$i softfpu.pp}
+    {$undef fpc_softfpu_implementation}
+
+    { we get these functions and types from the softfpu code }
+    {$define FPC_SYSTEM_HAS_float64}
+    {$define FPC_SYSTEM_HAS_float32}
+    {$define FPC_SYSTEM_HAS_flag}
+    {$define FPC_SYSTEM_HAS_extractFloat64Frac0}
+    {$define FPC_SYSTEM_HAS_extractFloat64Frac1}
+    {$define FPC_SYSTEM_HAS_extractFloat64Exp}
+    {$define FPC_SYSTEM_HAS_extractFloat64Sign}
+    {$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
+    {$define FPC_SYSTEM_HAS_extractFloat32Exp}
+    {$define FPC_SYSTEM_HAS_extractFloat32Sign}
+
+{$endif defined(FPUSOFT)}
+
+{$i system.inc}
+{$i syspara.inc}
+
     { mimic the C start code }
-    function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;
+    function PilotMain(_cmd : Word;_cmdPBP : PChar;{Ptr;}_launchFlags : Word) : DWord;cdecl;public;
 
       begin
          cmd:=_cmd;
          cmdPBP:=_cmdPBP;
          launchFlags:=_launchFlags;
-         asm
-            bsr PASCALMAIN
-         end;
+//         asm
+//            bsr PASCALMAIN
+//         end;
          PilotMain:=ExitCode;
       end;
+
+  procedure SysInitParamsAndEnv;
+  begin
+    {$WARNING: make sure argv/argc will be correct here}
+    GenerateArgs;
+  end;
+
+  procedure randomize;
+  begin
+    {$WARNING: randseed initial value is zero!}
+    randseed:=0;
+  end;
+
 
 {*****************************************************************************
                          System Dependent Exit code
@@ -106,7 +130,21 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
- GetProcessID := 1;
+  GetProcessID := 1;
+end;
+
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -115,6 +153,17 @@ begin
 end;
 
 begin
-   StackLength := CheckInitialStkLen (InitialStkLen);
-   ExitCode:=0;
+  StackLength := CheckInitialStkLen (InitialStkLen);
+{ Initialize ExitProc }
+  ExitProc:=Nil;
+{ Setup heap }
+  InitHeap;
+  SysInitExceptions;
+  InitUnicodeStringManager;
+{ Setup stdin, stdout and stderr }
+  SysInitStdIO;
+{ Reset IO Error }
+  InOutRes:=0;
+{ Setup command line arguments }
+  SysInitParamsAndEnv;
 end.

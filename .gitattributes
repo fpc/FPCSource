@@ -9908,11 +9908,15 @@ rtl/palmos/m68k/crt0.o -text
 rtl/palmos/m68k/gdbstub.o -text
 rtl/palmos/m68k/libcrt.a -text
 rtl/palmos/m68k/prt0.as svneol=native#text/plain
-rtl/palmos/os.inc svneol=native#text/plain
 rtl/palmos/pilot.pp svneol=native#text/plain
 rtl/palmos/readme -text
 rtl/palmos/rtldefs.inc svneol=native#text/plain
-rtl/palmos/syspalm.pp svneol=native#text/plain
+rtl/palmos/sysdir.inc svneol=native#text/plain
+rtl/palmos/sysfile.inc svneol=native#text/plain
+rtl/palmos/sysheap.inc svneol=native#text/plain
+rtl/palmos/sysos.inc svneol=native#text/plain
+rtl/palmos/sysosh.inc svneol=native#text/plain
+rtl/palmos/syspara.inc svneol=native#text/plain
 rtl/palmos/system.pp svneol=native#text/plain
 rtl/palmos/systraps.pp svneol=native#text/plain
 rtl/powerpc/int64p.inc svneol=native#text/plain
