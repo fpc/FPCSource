@@ -65,7 +65,7 @@ interface
       const
         MachineArgNewOld: array[boolean] of string = ('-march=','-m');
       begin
-        result:=MachineArgNewOld[target_info.system in [system_m68k_amiga]]+GasCpuTypeStr[current_settings.cputype];
+        result:=MachineArgNewOld[target_info.system in [system_m68k_amiga,system_m68k_palmos]]+GasCpuTypeStr[current_settings.cputype];
       end;
 
  {****************************************************************************}
