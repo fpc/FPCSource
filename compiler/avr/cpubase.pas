@@ -158,7 +158,7 @@ unit cpubase;
 
     type
       TResFlags = (F_NotPossible,F_CC,F_CS,F_EQ,F_GE,F_LO,F_LT,
-        F_NE,F_SH,F_VC,F_VS);
+        F_NE,F_SH,F_VC,F_VS,F_PL,F_MI);
 
 {*****************************************************************************
                                 Operands
@@ -376,7 +376,7 @@ unit cpubase;
       const
         inv_flags: array[TResFlags] of TResFlags =
           (F_NotPossible,F_CS,F_CC,F_NE,F_LT,F_SH,F_GE,
-           F_NE,F_LO,F_VS,F_VC);
+           F_NE,F_LO,F_VS,F_VC,F_MI,F_PL);
       begin
         f:=inv_flags[f];
       end;
@@ -384,9 +384,9 @@ unit cpubase;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
-        flag_2_cond: array[F_CC..F_VS] of TAsmCond =
+        flag_2_cond: array[F_CC..F_MI] of TAsmCond =
           (C_CC,C_CS,C_EQ,C_GE,C_LO,C_LT,
-           C_NE,C_SH,C_VC,C_VS);
+           C_NE,C_SH,C_VC,C_VS,C_PL,C_MI);
       begin
         if f=F_NotPossible then
           internalerror(2011022101);
