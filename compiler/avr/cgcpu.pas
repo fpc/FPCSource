@@ -767,6 +767,7 @@ unit cgcpu;
 
       var
         curvalue : byte;
+        l1: TAsmLabel;
 
        begin
          optimize_op_const(size,op,a);
@@ -831,7 +832,29 @@ unit cgcpu;
              end;
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
-               if a*tcgsize2size[size]<=8 then
+               if (op=OP_SAR) and (a>=(tcgsize2size[size]*8-1)) then
+                 begin
+                   current_asmdata.getjumplabel(l1);
+                   list.concat(taicpu.op_reg(A_TST,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
+                   a_load_const_reg(list,OS_8,0,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1));
+                   a_jmp_flags(list,F_PL,l1);
+                   list.concat(taicpu.op_reg(A_DEC,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
+                   cg.a_label(list,l1);
+                   for i:=2 to tcgsize2size[size] do
+                     a_load_reg_reg(list,OS_8,OS_8,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1),GetOffsetReg64(reg,reghi,tcgsize2size[size]-i));
+                 end
+               else if (op=OP_SHR) and (a=(tcgsize2size[size]*8-1)) then
+                 begin
+                   current_asmdata.getjumplabel(l1);
+                   list.concat(taicpu.op_reg(A_TST,GetOffsetReg64(reg,reghi,tcgsize2size[size]-1)));
+                   a_load_const_reg(list,OS_8,0,GetOffsetReg64(reg,reghi,0));
+                   a_jmp_flags(list,F_PL,l1);
+                   list.concat(taicpu.op_reg(A_INC,GetOffsetReg64(reg,reghi,0)));
+                   cg.a_label(list,l1);
+                   for i:=1 to tcgsize2size[size]-1 do
+                     a_load_const_reg(list,OS_8,0,GetOffsetReg64(reg,reghi,i));
+                 end
+               else if a*tcgsize2size[size]<=8 then
                  begin
                    for j:=1 to a do
                      begin
