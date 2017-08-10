@@ -262,7 +262,7 @@ interface
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
-			  system_x86_64_solaris];
+                          system_x86_64_solaris];
 
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
@@ -294,10 +294,10 @@ interface
 
        { all OS/2 targets }
        systems_os2 = [system_i386_OS2,system_i386_emx];
-       
+
        { AROS systems }
        systems_aros = [system_i386_aros,system_x86_64_aros,system_arm_aros];
-       
+
        { all amiga like systems }
        systems_amigalike = [system_m68k_amiga,system_powerpc_morphos,system_powerpc_amiga]+systems_aros;
 
