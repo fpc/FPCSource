@@ -195,7 +195,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
           fillchar(newp^,size,0);
 {$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
           { call int_InitializeArray for management operators }
-          if assigned(eletypemngd) and (PByte(eletype)^ in [tkRecord, tkObject]) then
+          if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
             int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
           updatep := true;
@@ -272,7 +272,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                            (dims[0]-realp^.high-1)*elesize,0);
 {$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
                          { call int_InitializeArray for management operators }
-                         if assigned(eletypemngd) and (PByte(eletype)^ in [tkRecord, tkObject]) then
+                         if assigned(eletypemngd) and (PTypeKind(eletype)^ in [tkRecord, tkObject]) then
                            int_InitializeArray(pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1),
                              eletype, dims[0]-realp^.high-1);
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}

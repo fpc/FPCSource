@@ -14,8 +14,6 @@
 
 { Run-Time type information routines }
 
-{ the tk* constants are now declared in system.inc }
-
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   {$define USE_PACKED}
 {$endif}
@@ -175,7 +173,7 @@ begin
 function RTTISize(typeInfo: Pointer): SizeInt;
 begin
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
-  case PByte(typeinfo)^ of
+  case PTypeKind(typeinfo)^ of
     tkAString,tkWString,tkUString,
     tkInterface,tkDynarray:
       result:=sizeof(Pointer);
@@ -272,7 +270,7 @@ end;
 
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
-  case PByte(TypeInfo)^ of
+  case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray,
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
@@ -314,7 +312,7 @@ end;
 
 Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
 begin
-  case PByte(TypeInfo)^ of
+  case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring :
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
@@ -363,7 +361,7 @@ end;
 
 Procedure fpc_Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];  compilerproc;
 begin
-  case PByte(TypeInfo)^ of
+  case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring :
       fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
@@ -424,7 +422,7 @@ var
   info: pointer;
 begin
   result:=sizeof(pointer);
-  case PByte(TypeInfo)^ of
+  case PTypeKind(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring:
       fpc_AnsiStr_Assign(PPointer(Dest)^,PPointer(Src)^);

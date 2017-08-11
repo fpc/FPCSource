@@ -38,14 +38,45 @@ unit typinfo;
 { for Delphi compatibility }
 {$packset 1}
 {$endif}
-       // if you change one of the following enumeration types
-       // you have also to change the compiler in an appropriate way !
-       TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,
-                   tkSet,tkMethod,tkSString,tkLString,tkAString,
-                   tkWString,tkVariant,tkArray,tkRecord,tkInterface,
-                   tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
-                   tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
-                   tkHelper,tkFile,tkClassRef,tkPointer);
+
+       { this alias and the following constant aliases are for backwards
+         compatibility before TTypeKind was moved to System unit }
+       TTypeKind = System.TTypeKind;
+
+    const
+
+       tkUnknown = System.tkUnknown;
+       tkInteger = System.tkInteger;
+       tkChar = System.tkChar;
+       tkEnumeration = System.tkEnumeration;
+       tkFloat = System.tkFloat;
+       tkSet = System.tkSet;
+       tkMethod = System.tkMethod;
+       tkSString = System.tkSString;
+       tkLString = System.tkLString;
+       tkAString = System.tkAString;
+       tkWString = System.tkWString;
+       tkVariant = System.tkVariant;
+       tkArray = System.tkArray;
+       tkRecord = System.tkRecord;
+       tkInterface = System.tkInterface;
+       tkClass = System.tkClass;
+       tkObject = System.tkObject;
+       tkWChar = System.tkWChar;
+       tkBool = System.tkBool;
+       tkInt64 = System.tkInt64;
+       tkQWord = System.tkQWord;
+       tkDynArray = System.tkDynArray;
+       tkInterfaceRaw = System.tkInterfaceRaw;
+       tkProcVar = System.tkProcVar;
+       tkUString = System.tkUString;
+       tkUChar = System.tkUChar;
+       tkHelper = System.tkHelper;
+       tkFile = System.tkFile;
+       tkClassRef = System.tkClassRef;
+       tkPointer = System.tkPointer;
+
+    type
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong,otSQWord,otUQWord);
 

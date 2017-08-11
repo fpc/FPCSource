@@ -514,7 +514,7 @@ type
 
   Penum_typeinfo=^Tenum_typeinfo;
   Tenum_typeinfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-    kind:byte; { always tkEnumeration }
+    kind:TTypeKind; { always tkEnumeration }
     num_chars:byte;
     chars:array[0..0] of char; { variable length with size of num_chars }
   end;
@@ -524,7 +524,7 @@ type
   Penum_typedata=^Tenum_typedata;
   Tenum_typedata={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     ordtype:byte;
-    case byte of
+    case TTypeKind of
       tkInteger,tkChar,tkEnumeration,tkBool,tkWChar,tkSet: (
         MinValue,MaxValue : Longint;
         case byte of

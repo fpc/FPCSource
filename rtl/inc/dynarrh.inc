@@ -22,7 +22,7 @@ type
   pdynarraytypeinfo = ^tdynarraytypeinfo;
   ppdynarraytypeinfo = ^pdynarraytypeinfo;
   tdynarraytypeinfo = packed record
-    kind : byte;
+    kind : TTypeKind;
     namelen : byte;
     { here the chars follow, we've to skip them }
     elesize : sizeint;
