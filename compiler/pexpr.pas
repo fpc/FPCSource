@@ -472,9 +472,10 @@ implementation
             end;
 
           in_typeinfo_x,
-          in_objc_encode_x :
+          in_objc_encode_x,
+          in_gettypekind_x:
             begin
-              if (l=in_typeinfo_x) or
+              if (l in [in_typeinfo_x,in_gettypekind_x]) or
                  (m_objectivec1 in current_settings.modeswitches) then
                 begin
                   consume(_LKLAMMER);
@@ -493,7 +494,7 @@ implementation
                   begin
                     ttypenode(p1).allowed:=true;
                     { allow helpers for TypeInfo }
-                    if l=in_typeinfo_x then
+                    if l in [in_typeinfo_x,in_gettypekind_x] then
                       ttypenode(p1).helperallowed:=true;
                   end;
     {              else

@@ -106,6 +106,7 @@ implementation
         systemunit.insert(csyssym.create('SetString',in_setstring_x_y_z));
         systemunit.insert(csyssym.create('Insert',in_insert_x_y_z));
         systemunit.insert(csyssym.create('Delete',in_delete_x_y_z));
+        systemunit.insert(csyssym.create('GetTypeKind',in_gettypekind_x));
         systemunit.insert(cconstsym.create_ord('False',constord,0,pasbool8type));
         systemunit.insert(cconstsym.create_ord('True',constord,1,pasbool8type));
       end;
@@ -679,6 +680,7 @@ implementation
         loadtype('methodpointer',methodpointertype);
         loadtype('nestedprocpointer',nestedprocpointertype);
         loadtype('HRESULT',hresultdef);
+        loadtype('TTYPEKIND',typekindtype);
         set_default_int_types;
         set_default_ptr_types;
         set_current_module(oldcurrentmodule);

@@ -112,6 +112,7 @@ type
      in_ror_assign_x_y    = 93,
      in_neg_assign_x      = 94,
      in_not_assign_x      = 95,
+     in_gettypekind_x     = 96,
 
 { Internal constant functions }
      in_const_sqr        = 100,

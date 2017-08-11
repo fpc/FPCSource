@@ -3028,6 +3028,17 @@ implementation
                    resultdef:=voidpointertype;
                 end;
 
+              in_gettypekind_x:
+                begin
+                  if target_info.system in systems_managed_vm then
+                    message(parser_e_feature_unsupported_for_vm);
+                  if (left.resultdef.typ=enumdef) and
+                     (tenumdef(left.resultdef).has_jumps) then
+                    CGMessage(type_e_no_type_info);
+                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=typekindtype;
+                end;
+
               in_assigned_x:
                 begin
                   { the parser has already made sure the expression is valid }
@@ -3594,6 +3605,7 @@ implementation
          hp: tnode;
          shiftconst: longint;
          objdef: tobjectdef;
+         sym : tsym;
 
       begin
          result:=nil;
@@ -3679,6 +3691,16 @@ implementation
               result:=caddrnode.create_internal(
                 crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal)
               );
+            end;
+
+          in_gettypekind_x:
+            begin
+              sym:=tenumdef(typekindtype).int2enumsym(get_typekind(left.resultdef));
+              if not assigned(sym) then
+                internalerror(2017081101);
+              if sym.typ<>enumsym then
+                internalerror(2017081102);
+              result:=genenumnode(tenumsym(sym));
             end;
 
           in_assigned_x:
