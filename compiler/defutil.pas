@@ -341,6 +341,9 @@ interface
     { returns true if def is a C "block" }
     function is_block(def: tdef): boolean;
 
+    { returns the TTypeKind value of the def }
+    function get_typekind(def: tdef): byte;
+
 implementation
 
     uses
@@ -1455,6 +1458,106 @@ implementation
     function is_block(def: tdef): boolean;
       begin
         result:=(def.typ=procvardef) and (po_is_block in tprocvardef(def).procoptions)
+      end;
+
+
+    function get_typekind(def:tdef):byte;
+      begin
+        case def.typ of
+          arraydef:
+            if ado_IsDynamicArray in tarraydef(def).arrayoptions then
+              result:=tkDynArray
+            else
+              result:=tkArray;
+          recorddef:
+            result:=tkRecord;
+          pointerdef:
+            result:=tkPointer;
+          orddef:
+            case torddef(def).ordtype of
+              u8bit,
+              u16bit,
+              u32bit,
+              s8bit,
+              s16bit,
+              s32bit:
+                result:=tkInteger;
+              u64bit:
+                result:=tkQWord;
+              s64bit:
+                result:=tkInt64;
+              pasbool8,
+              pasbool16,
+              pasbool32,
+              pasbool64,
+              bool8bit,
+              bool16bit,
+              bool32bit,
+              bool64bit:
+                result:=tkBool;
+              uchar:
+                result:=tkChar;
+              uwidechar:
+                result:=tkWChar;
+              scurrency:
+                result:=tkFloat;
+              else
+                result:=tkUnknown;
+            end;
+          stringdef:
+            case tstringdef(def).stringtype of
+              st_shortstring:
+                result:=tkSString;
+              st_longstring:
+                result:=tkLString;
+              st_ansistring:
+                result:=tkAString;
+              st_widestring:
+                result:=tkWString;
+              st_unicodestring:
+                result:=tkUString;
+              else
+                result:=tkUnknown;
+            end;
+          enumdef:
+            result:=tkEnumeration;
+          objectdef:
+            case tobjectdef(def).objecttype of
+              odt_class,
+              odt_javaclass:
+                result:=tkClass;
+              odt_object:
+                result:=tkObject;
+              odt_interfacecom,
+              odt_dispinterface,
+              odt_interfacejava:
+                result:=tkInterface;
+              odt_interfacecorba:
+                result:=tkInterfaceCorba;
+              odt_helper:
+                result:=tkHelper;
+              else
+                result:=tkUnknown;
+            end;
+          { currently tkFile is not used }
+          {filedef:
+            result:=tkFile;}
+          setdef:
+            result:=tkSet;
+          procvardef:
+            if tprocvardef(def).is_methodpointer then
+              result:=tkMethod
+            else
+              result:=tkProcVar;
+          floatdef:
+            result:=tkFloat;
+          classrefdef:
+            result:=tkClassRef;
+          variantdef:
+            result:=tkVariant;
+          else
+            result:=tkUnknown;
+        end;
       end;
 
 end.
