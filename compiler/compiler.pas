@@ -124,9 +124,9 @@ uses
 {$ifdef wii}
   ,i_wii
 {$endif wii}
-{$ifdef win32}
+{$ifdef windows}
   ,i_win
-{$endif win32}
+{$endif windows}
 {$ifdef symbian}
   ,i_symbian
 {$endif symbian}
