@@ -343,7 +343,7 @@ function __SrmPrimeWakeupHandler(portId: UInt16; minBytes: UInt16): Err; syscall
 function SerialMgrInstall: Err;
 begin
  asm
-  move.l #$sysSerialInstall,D2;
+  move.l #sysSerialInstall,D2;
  end;
  SerialMgrInstall := __SerialMgrInstall;
 end;
@@ -351,7 +351,7 @@ end;
 function SrmOpen(port, baud: UInt32; var newPortIdP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialOpen,D2;
+  move.l #sysSerialOpen,D2;
  end;
  SrmOpen := __SrmOpen(port, baud, newPortIdP);
 end;
@@ -359,7 +359,7 @@ end;
 function SrmExtOpen(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialOpenV4,D2;
+  move.l #sysSerialOpenV4,D2;
  end;
  SrmExtOpen := __SrmExtOpen(port, configP, configSize, newPortIdP);
 end;
@@ -367,14 +367,14 @@ end;
 function SrmExtOpenBackground(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialOpenBkgndV4,D2;
+  move.l #sysSerialOpenBkgndV4,D2;
  end;
  SrmExtOpenBackground := __SrmExtOpenBackground(port, configP, configSize, newPortIdP);
 end;
 function SrmOpenBackground(port, baud: UInt32; var newPortIdP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialOpenBkgnd,D2;
+  move.l #sysSerialOpenBkgnd,D2;
  end;
  SrmOpenBackground := __SrmOpenBackground(port, baud, newPortIdP);
 end;
@@ -382,7 +382,7 @@ end;
 function SrmClose(portId: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialClose,D2;
+  move.l #sysSerialClose,D2;
  end;
  SrmClose := __SrmClose(portId);
 end;
@@ -390,7 +390,7 @@ end;
 function SrmSleep: Err;
 begin
  asm
-  move.l #$sysSerialSleep,D2;
+  move.l #sysSerialSleep,D2;
  end;
  SrmSleep := __SrmSleep;
 end;
@@ -398,7 +398,7 @@ end;
 function SrmWake: Err;
 begin
  asm
-  move.l #$sysSerialWake,D2;
+  move.l #sysSerialWake,D2;
  end;
  SrmWake := __SrmWake;
 end;
@@ -406,7 +406,7 @@ end;
 function SrmGetDeviceCount(var numOfDevicesP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialGetDeviceCount,D2;
+  move.l #sysSerialGetDeviceCount,D2;
  end;
  SrmGetDeviceCount := __SrmGetDeviceCount(numOfDevicesP);
 end;
@@ -414,7 +414,7 @@ end;
 function SrmGetDeviceInfo(deviceID: UInt32; var deviceInfoP: DeviceInfoType): Err;
 begin
  asm
-  move.l #$sysSerialGetDeviceInfo,D2;
+  move.l #sysSerialGetDeviceInfo,D2;
  end;
  SrmGetDeviceInfo := __SrmGetDeviceInfo(deviceID, deviceInfoP);
 end;
@@ -422,7 +422,7 @@ end;
 function SrmGetStatus(portId: UInt16; var statusFieldP: UInt32; var lineErrsP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialGetStatus,D2;
+  move.l #sysSerialGetStatus,D2;
  end;
  SrmGetStatus := __SrmGetStatus(portId, statusFieldP, lineErrsP);
 end;
@@ -430,7 +430,7 @@ end;
 function SrmClearErr(portId: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialClearErr,D2;
+  move.l #sysSerialClearErr,D2;
  end;
  SrmClearErr := __SrmClearErr(portId);
 end;
@@ -438,7 +438,7 @@ end;
 function SrmControl(portId, op: UInt16; valueP: Pointer; var valueLenP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialControl,D2;
+  move.l #sysSerialControl,D2;
  end;
  SrmControl := __SrmControl(portId, op, valueP, valueLenP);
 end;
@@ -446,7 +446,7 @@ end;
 function SrmCustomControl(portId, opCode: UInt16; creator: UInt32; valueP: Pointer; var valueLenP: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialCustomControl,D2;
+  move.l #sysSerialCustomControl,D2;
  end;
  SrmCustomControl := __SrmCustomControl(portId, opCode, creator, valueP, valueLenP);
 end;
@@ -454,7 +454,7 @@ end;
 function SrmSend(portId: UInt16; const bufP: Pointer; count: UInt32; var errP: Err): UInt32;
 begin
  asm
-  move.l #$sysSerialSend,D2;
+  move.l #sysSerialSend,D2;
  end;
  SrmSend := __SrmSend(portId, bufP, count, errP);
 end;
@@ -462,7 +462,7 @@ end;
 function SrmSendWait(portId: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialSendWait,D2;
+  move.l #sysSerialSendWait,D2;
  end;
  SrmSendwait := __SrmSendwait(portId);
 end;
@@ -470,7 +470,7 @@ end;
 function SrmSendCheck(portId: UInt16; var numBytesP: UInt32): Err;
 begin
  asm
-  move.l #$sysSerialSendCheck,D2;
+  move.l #sysSerialSendCheck,D2;
  end;
  SrmSendCheck := __SrmSendCheck(portId, numBytesP);
 end;
@@ -478,7 +478,7 @@ end;
 function SrmSendFlush(portId: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialSendFlush,D2;
+  move.l #sysSerialSendFlush,D2;
  end;
  SrmSendFlush := __SrmSendFlush(portId);
 end;
@@ -486,7 +486,7 @@ end;
 function SrmReceive(portId: UInt16; rcvBufP: Pointer; count: UInt32; timeout: Int32; var errP: Err): UInt32;
 begin
  asm
-  move.l #$sysSerialReceive,D2;
+  move.l #sysSerialReceive,D2;
  end;
  SrmReceive := __SrmReceive(portId, rcvBufP, count, timeout, errP);
 end;
@@ -494,7 +494,7 @@ end;
 function SrmReceiveWait(portId: UInt16; bytes: UInt32; timeout: Int32): Err;
 begin
  asm
-  move.l #$sysSerialReceiveWait,D2;
+  move.l #sysSerialReceiveWait,D2;
  end;
  SrmReceiveWait := __SrmReceiveWait(portId, bytes, timeout);
 end;
@@ -502,7 +502,7 @@ end;
 function SrmReceiveCheck(portId: UInt16; var numBytesP: UInt32): Err;
 begin
  asm
-  move.l #$sysSerialReceiveCheck,D2;
+  move.l #sysSerialReceiveCheck,D2;
  end;
  SrmReceiveCheck := __SrmReceiveCheck(portId, numBytesP);
 end;
@@ -510,7 +510,7 @@ end;
 function SrmReceiveFlush(portId: UInt16; timeout: Int32): Err;
 begin
  asm
-  move.l #$sysSerialReceiveFlush,D2;
+  move.l #sysSerialReceiveFlush,D2;
  end;
  SrmReceiveFlush := __SrmReceiveFlush(portId, timeout);
 end;
@@ -518,7 +518,7 @@ end;
 function SrmSetReceiveBuffer(portId: UInt16; bufP: Pointer; bufSize: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialSetRcvBuffer,D2;
+  move.l #sysSerialSetRcvBuffer,D2;
  end;
  SrmSetReceiveBuffer := __SrmSetReceiveBuffer(portId, bufP, bufSize);
 end;
@@ -526,7 +526,7 @@ end;
 function SrmReceiveWindowOpen(portId: UInt16; var bufPP: UInt8Ptr; var sizeP: UInt32): Err;
 begin
  asm
-  move.l #$sysSerialRcvWindowOpen,D2;
+  move.l #sysSerialRcvWindowOpen,D2;
  end;
  SrmReceiveWindowOpen := __SrmReceiveWindowOpen(portId, bufPP, sizeP);
 end;
@@ -534,7 +534,7 @@ end;
 function SrmReceiveWindowClose(portId: UInt16; bytesPulled: UInt32): Err;
 begin
  asm
-  move.l #$sysSerialRcvWindowClose,D2;
+  move.l #sysSerialRcvWindowClose,D2;
  end;
  SrmReceiveWindowClose := __SrmReceiveWindowClose(portId, bytesPulled);
 end;
@@ -542,7 +542,7 @@ end;
 function SrmSetWakeupHandler(portId: UInt16; procP: WakeupHandlerProcPtr; refCon: UInt32): Err;
 begin
  asm
-  move.l #$sysSerialSetWakeupHandler,D2;
+  move.l #sysSerialSetWakeupHandler,D2;
  end;
  SrmSetWakeupHandler := __SrmSetWakeupHandler(portId, procP, refcon);
 end;
@@ -550,7 +550,7 @@ end;
 function SrmPrimeWakeupHandler(portId: UInt16; minBytes: UInt16): Err;
 begin
  asm
-  move.l #$sysSerialPrimeWakeupHandler,D2;
+  move.l #sysSerialPrimeWakeupHandler,D2;
  end;
  SrmPrimeWakeupHandler := __SrmPrimeWakeupHandler(portId, minBytes);
 end;

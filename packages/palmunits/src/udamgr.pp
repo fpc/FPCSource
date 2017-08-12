@@ -173,7 +173,7 @@ function __UDAMemoryReaderNew(var bufferP: UInt8; bufferSizeInBytes: UDABufferSi
 function UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr;
 begin
  asm
-  move.l #$sysUdaExchangeReaderNew, D2;
+  move.l #sysUdaExchangeReaderNew, D2;
  end;
  UDAExchangeReaderNew := __UDAExchangeReaderNew(socket);
 end;
@@ -181,7 +181,7 @@ end;
 function UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr;
 begin
  asm
-  move.l #$sysUdaExchangeWriterNew, D2;
+  move.l #sysUdaExchangeWriterNew, D2;
  end;
  UDAExchangeWriterNew := __UDAExchangeWriterNew(socket, bufferSize);
 end;
@@ -189,7 +189,7 @@ end;
 function UDAMemoryReaderNew(var bufferP: UInt8; bufferSizeInBytes: UDABufferSize): UDAReaderPtr;
 begin
  asm
-  move.l #$sysUdaMemoryReaderNew, D2;
+  move.l #sysUdaMemoryReaderNew, D2;
  end;
  UDAMemoryReaderNew := __UDAMemoryReaderNew(bufferP, bufferSizeInBytes);
 end;

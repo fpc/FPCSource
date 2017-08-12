@@ -469,7 +469,7 @@ function __VFSFileDBGetRecord(ref: FileRef; recIndex: UInt16; var recHP: MemHand
 function VFSInit: Err;
 begin
  asm
-  move.l #$vfsTrapInit, D2;
+  move.l #vfsTrapInit, D2;
  end;
  VFSInit := __VFSInit;
 end;
@@ -478,7 +478,7 @@ function VFSCustomControl(fsCreator, apiCreator: UInt32; apiSelector: UInt16;
                           valueP: Pointer; var valueLenP: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapCustomControl, D2;
+  move.l #vfsTrapCustomControl, D2;
  end;
  VFSCustomControl := __VFSCustomControl(fsCreator, apiCreator, apiSelector, valueP, valueLenP);
 end;
@@ -486,7 +486,7 @@ end;
 function VFSFileCreate(volRefNum: UInt16; const pathNameP: PChar): Err;
 begin
  asm
-  move.l #$vfsTrapFileCreate, D2;
+  move.l #vfsTrapFileCreate, D2;
  end;
  VFSFileCreate := __VFSFileCreate(volRefNum, pathNameP);
 end;
@@ -494,7 +494,7 @@ end;
 function VFSFileOpen(volRefNum: UInt16; const pathNameP: PChar; openMode: UInt16; var fileRefP: FileRef): Err;
 begin
  asm
-  move.l #$vfsTrapFileOpen, D2;
+  move.l #vfsTrapFileOpen, D2;
  end;
  VFSFileOpen := __VFSFileOpen(volRefNum, pathNameP, openMode, fileRefP);
 end;
@@ -502,7 +502,7 @@ end;
 function VFSFileClose(fileRef: FileRef): Err;
 begin
  asm
-  move.l #$vfsTrapFileClose, D2;
+  move.l #vfsTrapFileClose, D2;
  end;
  VFSFileClose := __VFSFileClose(fileRef);
 end;
@@ -511,7 +511,7 @@ function VFSFileReadData(fileRef: FileRef; numBytes: UInt32; bufBaseP: Pointer;
                          offset: UInt32; var numBytesReadP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileReadData, D2;
+  move.l #vfsTrapFileReadData, D2;
  end;
  VFSFileReadData := __VFSFileReadData(fileRef, numBytes, bufBaseP, offset, numBytesReadP);
 end;
@@ -519,7 +519,7 @@ end;
 function VFSFileRead(fileRef: FileRef; numBytes: UInt32; bufP: Pointer; var numBytesReadP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileRead, D2;
+  move.l #vfsTrapFileRead, D2;
  end;
  VFSFileRead := __VFSFileRead(fileRef, numBytes, bufP, numBytesReadP);
 end;
@@ -527,7 +527,7 @@ end;
 function VFSFileWrite(fileRef: FileRef; numBytes: UInt32; const dataP: Pointer; var numBytesWrittenP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileWrite, D2;
+  move.l #vfsTrapFileWrite, D2;
  end;
  VFSFileWrite := __VFSFileWrite(fileRef, numBytes, dataP, numBytesWrittenP);
 end;
@@ -535,7 +535,7 @@ end;
 function VFSFileDelete(volRefNum: UInt16; const pathNameP: PChar): Err;
 begin
  asm
-  move.l #$vfsTrapFileDelete, D2;
+  move.l #vfsTrapFileDelete, D2;
  end;
  VFSFileDelete := __VFSFileDelete(volRefNum, pathNameP);
 end;
@@ -543,7 +543,7 @@ end;
 function VFSFileRename(volRefNum: UInt16; const pathNameP, newNameP: PChar): Err;
 begin
  asm
-  move.l #$vfsTrapFileRename, D2;
+  move.l #vfsTrapFileRename, D2;
  end;
  VFSFileRename := __VFSFileRename(volRefNum, pathNameP, newNameP);
 end;
@@ -551,7 +551,7 @@ end;
 function VFSFileSeek(fileRef: FileRef; origin: FileOrigin; offset: Int32): Err;
 begin
  asm
-  move.l #$vfsTrapFileSeek, D2;
+  move.l #vfsTrapFileSeek, D2;
  end;
  VFSFileSeek := __VFSFileSeek(fileRef, origin, offset);
 end;
@@ -559,7 +559,7 @@ end;
 function VFSFileEOF(fileRef: FileRef): Err;
 begin
  asm
-  move.l #$vfsTrapFileEOF, D2;
+  move.l #vfsTrapFileEOF, D2;
  end;
  VFSFileEOF := __VFSFileEOF(fileRef);
 end;
@@ -567,7 +567,7 @@ end;
 function VFSFileTell(fileRef: FileRef; var filePosP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileTell, D2;
+  move.l #vfsTrapFileTell, D2;
  end;
  VFSFileTell := __VFSFileTell(fileRef, filePosP);
 end;
@@ -575,7 +575,7 @@ end;
 function VFSFileSize(fileRef: FileRef; var fileSizeP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileSize, D2;
+  move.l #vfsTrapFileSize, D2;
  end;
  VFSFileSize := __VFSFileSize(fileRef, fileSizeP);
 end;
@@ -583,7 +583,7 @@ end;
 function VFSFileResize(fileRef: FileRef; newSize: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileResize, D2;
+  move.l #vfsTrapFileResize, D2;
  end;
  VFSFileResize := __VFSFileResize(fileRef, newSize);
 end;
@@ -591,7 +591,7 @@ end;
 function VFSFileGetAttributes(fileRef: FileRef; var attributesP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileGetAttributes, D2;
+  move.l #vfsTrapFileGetAttributes, D2;
  end;
  VFSFileGetAttributes := __VFSFileGetAttributes(fileRef, attributesP);
 end;
@@ -599,7 +599,7 @@ end;
 function VFSFileSetAttributes(fileRef: FileRef; attributes: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileSetAttributes, D2;
+  move.l #vfsTrapFileSetAttributes, D2;
  end;
  VFSFileSetAttributes := __VFSFileSetAttributes(fileRef, attributes);
 end;
@@ -607,7 +607,7 @@ end;
 function VFSFileGetDate(fileRef: FileRef; whichDate: UInt16; var dateP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileGetDate, D2;
+  move.l #vfsTrapFileGetDate, D2;
  end;
  VFSFileGetDate := __VFSFileGetDate(fileRef, whichDate, dateP);
 end;
@@ -615,7 +615,7 @@ end;
 function VFSFileSetDate(fileRef: FileRef; whichDate: UInt16; date: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileSetDate, D2;
+  move.l #vfsTrapFileSetDate, D2;
  end;
  VFSFileSetDate := __VFSFileSetDate(fileRef, whichDate, date);
 end;
@@ -623,7 +623,7 @@ end;
 function VFSDirCreate(volRefNum: UInt16; const dirNameP: PChar): Err;
 begin
  asm
-  move.l #$vfsTrapDirCreate, D2;
+  move.l #vfsTrapDirCreate, D2;
  end;
  VFSDirCreate := __VFSDirCreate(volRefNum, dirNameP);
 end;
@@ -631,7 +631,7 @@ end;
 function VFSDirEntryEnumerate(dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err;
 begin
  asm
-  move.l #$vfsTrapDirEntryEnumerate, D2;
+  move.l #vfsTrapDirEntryEnumerate, D2;
  end;
  VFSDirEntryEnumerate := __VFSDirEntryEnumerate(dirRef, dirEntryIteratorP, infoP);
 end;
@@ -640,7 +640,7 @@ function VFSGetDefaultDirectory(volRefNum: UInt16; const fileTypeStr: PChar;
                                 pathStr: PChar; var bufLenP: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapGetDefaultDirectory, D2;
+  move.l #vfsTrapGetDefaultDirectory, D2;
  end;
  VFSGetDefaultDirectory := __VFSGetDefaultDirectory(volRefNum, fileTypeStr, pathStr, bufLenP);
 end;
@@ -649,7 +649,7 @@ function VFSRegisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32
                                      const pathStr: PChar): Err;
 begin
  asm
-  move.l #$vfsTrapRegisterDefaultDirectory, D2;
+  move.l #vfsTrapRegisterDefaultDirectory, D2;
  end;
  VFSRegisterDefaultDirectory := __VFSRegisterDefaultDirectory(fileTypeStr, mediaType, pathStr);
 end;
@@ -657,7 +657,7 @@ end;
 function VFSUnregisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapUnregisterDefaultDirectory, D2;
+  move.l #vfsTrapUnregisterDefaultDirectory, D2;
  end;
  VFSUnregisterDefaultDirectory := __VFSUnregisterDefaultDirectory(fileTypeStr, mediaType);
 end;
@@ -665,7 +665,7 @@ end;
 function VFSVolumeFormat(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeFormat, D2;
+  move.l #vfsTrapVolumeFormat, D2;
  end;
  VFSVolumeFormat := __VFSVolumeFormat(flags, fsLibRefNum, vfsMountParamP);
 end;
@@ -673,7 +673,7 @@ end;
 function VFSVolumeMount(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeMount, D2;
+  move.l #vfsTrapVolumeMount, D2;
  end;
  VFSVolumeMount := __VFSVolumeMount(flags, fsLibRefNum, vfsMountParamP);
 end;
@@ -681,7 +681,7 @@ end;
 function VFSVolumeUnmount(volRefNum: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeUnmount, D2;
+  move.l #vfsTrapVolumeUnmount, D2;
  end;
  VFSVolumeUnmount := __VFSVolumeUnmount(volRefNum);
 end;
@@ -689,7 +689,7 @@ end;
 function VFSVolumeEnumerate(var volRefNumP: UInt16; var volIteratorP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeEnumerate, D2;
+  move.l #vfsTrapVolumeEnumerate, D2;
  end;
  VFSVolumeEnumerate := __VFSVolumeEnumerate(volRefNumP, volIteratorP);
 end;
@@ -697,7 +697,7 @@ end;
 function VFSVolumeInfo(volRefNum: UInt16; var volInfoP: VolumeInfoType): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeInfo, D2;
+  move.l #vfsTrapVolumeInfo, D2;
  end;
  VFSVolumeInfo := __VFSVolumeInfo(volRefNum, volInfoP);
 end;
@@ -705,7 +705,7 @@ end;
 function VFSVolumeGetLabel(volRefNum: UInt16; labelP: PChar; bufLen: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeGetLabel, D2;
+  move.l #vfsTrapVolumeGetLabel, D2;
  end;
  VFSVolumeGetLabel := __VFSVolumeGetLabel(volRefNum, labelP, bufLen);
 end;
@@ -713,7 +713,7 @@ end;
 function VFSVolumeSetLabel(volRefNum: UInt16; const labelP: PChar): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeSetLabel, D2;
+  move.l #vfsTrapVolumeSetLabel, D2;
  end;
  VFSVolumeSetLabel := __VFSVolumeSetLabel(volRefNum, labelP);
 end;
@@ -721,7 +721,7 @@ end;
 function VFSVolumeSize(volRefNum: UInt16; var volumeUsedP, volumeTotalP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapVolumeSize, D2;
+  move.l #vfsTrapVolumeSize, D2;
  end;
  VFSVolumeSize := __VFSVolumeSize(volRefNum, volumeUsedP, volumeTotalP);
 end;
@@ -729,7 +729,7 @@ end;
 function VFSInstallFSLib(creator: UInt32; var fsLibRefNumP: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapInstallFSLib, D2;
+  move.l #vfsTrapInstallFSLib, D2;
  end;
  VFSInstallFSLib := __VFSInstallFSLib(creator, fsLibRefNumP);
 end;
@@ -737,7 +737,7 @@ end;
 function VFSRemoveFSLib(fsLibRefNum: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapRemoveFSLib, D2;
+  move.l #vfsTrapRemoveFSLib, D2;
  end;
  VFSRemoveFSLib := __VFSRemoveFSLib(fsLibRefNum);
 end;
@@ -746,7 +746,7 @@ function VFSImportDatabaseFromFile(volRefNum: UInt16; const pathNameP: PChar;
                                    var cardNoP: UInt16; var dbIDP: LocalID): Err;
 begin
  asm
-  move.l #$vfsTrapImportDatabaseFromFile, D2;
+  move.l #vfsTrapImportDatabaseFromFile, D2;
  end;
  VFSImportDatabaseFromFile := __VFSImportDatabaseFromFile(volRefNum, pathNameP, cardNoP, dbIDP);
 end;
@@ -756,7 +756,7 @@ function VFSImportDatabaseFromFileCustom(volRefNum: UInt16; const pathNameP: PCh
                                          importProcP: VFSImportProcPtr; userDataP: Pointer): Err;
 begin
  asm
-  move.l #$vfsTrapImportDatabaseFromFileCustom, D2;
+  move.l #vfsTrapImportDatabaseFromFileCustom, D2;
  end;
  VFSImportDatabaseFromFileCustom := __VFSImportDatabaseFromFileCustom(volRefNum, pathNameP,
                                     cardNoP, dbIDP, importProcP, userDataP);
@@ -766,7 +766,7 @@ function VFSExportDatabaseToFile(volRefNum: UInt16; const pathNameP: PChar;
                                  cardNo: UInt16; dbID: LocalID): Err;
 begin
  asm
-  move.l #$vfsTrapExportDatabaseToFile, D2;
+  move.l #vfsTrapExportDatabaseToFile, D2;
  end;
  VFSExportDatabaseToFile := __VFSExportDatabaseToFile(volRefNum, pathNameP, cardNo, dbID);
 end;
@@ -776,7 +776,7 @@ function VFSExportDatabaseToFileCustom(volRefNum: UInt16; const pathNameP: PChar
                                        exportProcP: VFSExportProcPtr; userDataP: Pointer): Err;
 begin
  asm
-  move.l #$vfsTrapExportDatabaseToFileCustom, D2;
+  move.l #vfsTrapExportDatabaseToFileCustom, D2;
  end;
  VFSExportDatabaseToFileCustom := __VFSExportDatabaseToFileCustom(volRefNum, pathNameP,
                                   cardNo, dbID, exportProcP, userDataP);
@@ -785,7 +785,7 @@ end;
 function VFSFileDBGetResource(ref: FileRef; type_: DmResType; resID: DmResID; var resHP: MemHandle): Err;
 begin
  asm
-  move.l #$vfsTrapFileDBGetResource, D2;
+  move.l #vfsTrapFileDBGetResource, D2;
  end;
  VFSFileDBGetResource := __VFSFileDBGetResource(ref, type_, resID, resHP);
 end;
@@ -796,7 +796,7 @@ function VFSFileDBInfo(ref: FileRef; nameP: PChar; var attributesP, versionP: UI
                        var numRecordsP: UInt16): Err;
 begin
  asm
-  move.l #$vfsTrapFileDBInfo, D2;
+  move.l #vfsTrapFileDBInfo, D2;
  end;
  VFSFileDBInfo := __VFSFileDBInfo(ref, nameP, attributesP, versionP, crDateP, modDateP,
                   bckUpDateP, modNumP, appInfoHP, sortInfoHP, typeP, creatorP, numRecordsP);
@@ -806,7 +806,7 @@ function VFSFileDBGetRecord(ref: FileRef; recIndex: UInt16; var recHP: MemHandle
                             var recAttrP: UInt8; var uniqueIDP: UInt32): Err;
 begin
  asm
-  move.l #$vfsTrapFileDBGetRecord, D2;
+  move.l #vfsTrapFileDBGetRecord, D2;
  end;
  VFSFileDBGetRecord := __VFSFileDBGetRecord(ref, recIndex, recHP, recAttrP, uniqueIDP);
 end;

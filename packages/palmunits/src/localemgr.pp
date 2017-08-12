@@ -209,10 +209,11 @@ function __LmLocaleToIndex(var iLocale: LmLocaleType; var oLocaleIndex: UInt16):
 function __LmGetLocaleSetting(iLocaleIndex: UInt16; iChoice: LmLocaleSettingChoice;
                               oValue: Pointer; iValueSize: UInt16): Err;  syscall sysTrapLmDispatch;
 
+{$WARNING d2 register is trashed!}
 function LmGetNumLocales: UInt16; // syscall sysTrapLmDispatch, lmGetNumLocales_;
 begin
  asm
-  move.l #$lmGetNumLocales_, d2;
+  move.l #lmGetNumLocales_, d2
  end;
  LmGetNumLocales := __LmGetNumLocales;
 end;
@@ -220,7 +221,7 @@ end;
 function LmLocaleToIndex({const} var iLocale: LmLocaleType; var oLocaleIndex: UInt16): Err; // syscall sysTrapLmDispatch, lmLocaleToIndex_;
 begin
  asm
-  MOVE.L #$lmLocaleToIndex_, d2;
+  move.l #lmLocaleToIndex_, d2
  end;
  LmLocaleToIndex := __LmLocaleToIndex(iLocale, oLocaleIndex);
 end;
@@ -229,7 +230,7 @@ function LmGetLocaleSetting(iLocaleIndex: UInt16; iChoice: LmLocaleSettingChoice
                             oValue: Pointer; iValueSize: UInt16): Err; // syscall sysTrapLmDispatch, lmGetLocaleSetting_;
 begin
  asm
-  MOVE.L #$lmGetLocaleSetting_, d2;
+  move.l #lmGetLocaleSetting_, d2
  end;
  LmGetLocaleSetting := __LmGetLocaleSetting(iLocaleIndex, iChoice, oValue, iValueSize);
 end;

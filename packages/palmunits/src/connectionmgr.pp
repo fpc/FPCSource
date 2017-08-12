@@ -475,7 +475,7 @@ function __CncProfileCloseDB: Err; syscall sysTrapCncMgrDispatch;
 function CncProfileSettingGet(profileId: CncProfileID; paramId: UInt16; paramBufferP: Pointer; var ioParamSizeP: UInt16): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileSettingGet, D2
+  move.l #sysTrapCncMgrProfileSettingGet, D2
  end;
  CncProfileSettingGet := __CncProfileSettingGet(profileId, paramId, paramBufferP, ioParamSizeP);
 end;
@@ -483,7 +483,7 @@ end;
 function CncProfileSettingSet(iProfileId: CncProfileID; paramId: UInt16; const paramBufferP: Pointer; paramSize: UInt16): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileSettingSet, D2
+  move.l #sysTrapCncMgrProfileSettingSet, D2
  end;
  CncProfileSettingSet := __CncProfileSettingSet(iProfileId, paramId, paramBufferP, paramSize);
 end;
@@ -491,7 +491,7 @@ end;
 function CncProfileSetCurrent(profileId: CncProfileID): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileSetCurrent, D2
+  move.l #sysTrapCncMgrProfileSetCurrent, D2
  end;
  CncProfileSetCurrent := __CncProfileSetCurrent(profileId);
 end;
@@ -499,7 +499,7 @@ end;
 function CncProfileGetCurrent(var profileIdP: CncProfileID): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileGetCurrent, D2;
+  move.l #sysTrapCncMgrProfileGetCurrent, D2;
  end;
  CncProfileGetCurrent := __CncProfileGetCurrent(profileIdP);
 end;
@@ -507,7 +507,7 @@ end;
 function CncProfileGetIDFromName(const profileNameP: PChar; var profileIdP: CncProfileID): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileGetIDFromName, D2;
+  move.l #sysTrapCncMgrProfileGetIDFromName, D2;
  end;
  CncProfileGetIDFromName := __CncProfileGetIDFromName(profileNameP, profileIdP);
 end;
@@ -515,7 +515,7 @@ end;
 function CncProfileCreate(var profileIdP: CncProfileID): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileCreate, D2;
+  move.l #sysTrapCncMgrProfileCreate, D2;
  end;
  CncProfileCreate := __CncProfileCreate(profileIdP);
 end;
@@ -523,7 +523,7 @@ end;
 function CncProfileDelete(profileId: CncProfileID): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileDelete, D2;
+  move.l #sysTrapCncMgrProfileDelete, D2;
  end;
  CncProfileDelete := __CncProfileDelete(profileId);
 end;
@@ -531,7 +531,7 @@ end;
 function CncProfileGetIDFromIndex(index: UInt16; var profileIdP: CncProfileID): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileGetIDFromIndex, D2;
+  move.l #sysTrapCncMgrProfileGetIDFromIndex, D2;
  end;
  CncProfileGetIDFromIndex := __CncProfileGetIDFromIndex(index, profileIdP);
 end;
@@ -539,7 +539,7 @@ end;
 function CncProfileGetIndex(profileId: CncProfileID; var indexP: UInt16): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileGetIndex, D2;
+  move.l #sysTrapCncMgrProfileGetIndex, D2;
  end;
  CncProfileGetIndex := __CncProfileGetIndex(profileID, indexP);
 end;
@@ -547,7 +547,7 @@ end;
 function CncProfileCount(var profilesCountP: UInt16): Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileCount, D2
+  move.l #sysTrapCncMgrProfileCount, D2
  end;
  CncProfileCount := __CncProfileCount(profilesCountP);
 end;
@@ -555,7 +555,7 @@ end;
 function CncProfileOpenDB: Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileOpenDB, D2;
+  move.l #sysTrapCncMgrProfileOpenDB, D2;
  end;
  CncProfileOpenDB := __CncProfileOpenDB;
 end;
@@ -563,7 +563,7 @@ end;
 function CncProfileCloseDB: Err;
 begin
  asm
-  move.l #$sysTrapCncMgrProfileCloseDB, D2;
+  move.l #sysTrapCncMgrProfileCloseDB, D2;
  end;
  CnCProfileCloseDB := __CncProfileCloseDB;
 end;

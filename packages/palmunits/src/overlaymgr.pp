@@ -205,7 +205,7 @@ function OmLocaleToOverlayDBName(const baseDBName: PChar; var targetLocale: LmLo
                                  overlayDBName: PChar): Err;
 begin
  asm
-  move.l #$omLocaleToOverlayDBName_,D2;
+  move.l #omLocaleToOverlayDBName_,D2;
  end;
  OmLocaleToOverlayDBName := __OmLocaleToOverlayDBName(baseDBName, targetLocale, overlayDBName);
 end;
@@ -213,7 +213,7 @@ end;
 function OmOverlayDBNameToLocale(const overlayDBName: PChar; var overlayLocale: LmLocaleType): Err;
 begin
  asm
-  move.l #$omOverlayDBNameToLocale_,D2;
+  move.l #omOverlayDBNameToLocale_,D2;
  end;
  OmOverlayDBNameToLocale := __OmOverlayDBNameToLocale(overlayDBName, overlayLocale);
 end;
@@ -221,7 +221,7 @@ end;
 procedure OmGetCurrentLocale(var currentLocale: LmLocaleType);
 begin
  asm
-  move.l #$omGetCurrentLocale_,D2;
+  move.l #omGetCurrentLocale_,D2;
  end;
  __OmGetCurrentLocale(currentLocale);
 end;
@@ -229,7 +229,7 @@ end;
 function OmGetIndexedLocale(localeIndex: UInt16; var theLocale: LmLocaleType): Err;
 begin
  asm
-  move.l #$omGetIndexedLocale_,D2;
+  move.l #omGetIndexedLocale_,D2;
  end;
  OmGetIndexedLocale := __OmGetIndexedLocale(localeIndex, theLocale);
 end;
@@ -237,7 +237,7 @@ end;
 procedure OmGetSystemLocale(var systemLocale: LmLocaleType);
 begin
  asm
-  move.l #$omGetSystemLocale_,D2;
+  move.l #omGetSystemLocale_,D2;
  end;
  __OmGetSystemLocale(systemLocale);
 end;
@@ -245,7 +245,7 @@ end;
 function OmSetSystemLocale(var systemLocale: LmLocaleType): Err;
 begin
  asm
-  move.l #$omSetSystemLocale_,D2;
+  move.l #omSetSystemLocale_,D2;
  end;
  OmSetSystemLocale := __OmSetSystemLocale(systemLocale);
 end;
@@ -253,7 +253,7 @@ end;
 function OmGetRoutineAddress(inSelector: OmSelector): Pointer;
 begin
  asm
-  move.l #$omGetRoutineAddress_,D2;
+  move.l #omGetRoutineAddress_,D2;
  end;
  OmGetRoutineAddress := __OmGetRoutineAddress(inSelector);
 end;
@@ -261,7 +261,7 @@ end;
 function OmGetNextSystemLocale(iNewSearch: Boolean; var ioStateInfoP: OmSearchStateType; var oLocaleP: LmLocaleType): Err;
 begin
  asm
-  move.l #$omGetNextSystemLocale_,D2;
+  move.l #omGetNextSystemLocale_,D2;
  end;
  OmGetNextSystemLocale := __OmGetNextSystemLocale(iNewSearch, ioStateInfoP, oLocaleP);
 end;

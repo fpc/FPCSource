@@ -423,7 +423,7 @@ function __TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
 function TxtByteAttr(inByte: UInt8): UInt8;
 begin
  asm
-  move.l #$intlTxtByteAttr, D2;
+  move.l #intlTxtByteAttr, D2;
  end;
  TxtByteAttr := TxtByteAttr(inByte);
 end;
@@ -431,7 +431,7 @@ end;
 function TxtCharAttr(inChar: WChar): UInt16;
 begin
  asm
-  move.l #$intlTxtCharAttr, D2;
+  move.l #intlTxtCharAttr, D2;
  end;
  TxtCharAttr := __TxtCharAttr(inChar);
 end;
@@ -439,7 +439,7 @@ end;
 function TxtCharXAttr(inChar: WChar): UInt16;
 begin
  asm
-  move.l #$intlTxtCharXAttr, D2;
+  move.l #intlTxtCharXAttr, D2;
  end;
  TxtCharXAttr := __TxtCharXAttr(inChar);
 end;
@@ -447,7 +447,7 @@ end;
 function TxtCharSize(inChar: WChar): UInt16;
 begin
  asm
-  move.l #$intlTxtCharSize, D2;
+  move.l #intlTxtCharSize, D2;
  end;
  TxtCharSize := TxtCharSize(inChar);
 end;
@@ -455,7 +455,7 @@ end;
 function TxtCharWidth(inChar: WChar): Int16;
 begin
  asm
-  move.l #$intlTxtCharWidth, D2;
+  move.l #intlTxtCharWidth, D2;
  end;
  TxtCharWidth := TxtCharWidth(inChar);
 end;
@@ -463,7 +463,7 @@ end;
 function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
 begin
  asm
-  move.l #$intlTxtGetPreviousChar, D2;
+  move.l #intlTxtGetPreviousChar, D2;
  end;
  TxtGetPreviousChar := __TxtGetPreviousChar(inText, inOffset, outChar);
 end;
@@ -471,7 +471,7 @@ end;
 function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
 begin
  asm
-  move.l #$intlTxtGetNextChar, D2;
+  move.l #intlTxtGetNextChar, D2;
  end;
  TxtGetNextChar := __TxtGetNextChar(inText, inOffset, outChar);
 end;
@@ -479,7 +479,7 @@ end;
 function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar;
 begin
  asm
-  move.l #$intlTxtGetChar, D2;
+  move.l #intlTxtGetChar, D2;
  end;
  TxtGetChar := __TxtGetChar(inText, inOffset);
 end;
@@ -487,7 +487,7 @@ end;
 function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16;
 begin
  asm
-  move.l #$intlTxtSetNextChar, D2;
+  move.l #intlTxtSetNextChar, D2;
  end;
  TxtSetNextChar := __TxtSetNextChar(ioText, inOffset, inChar);
 end;
@@ -495,7 +495,7 @@ end;
 function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16;
 begin
  asm
-  move.l #$intlTxtReplaceStr, D2;
+  move.l #intlTxtReplaceStr, D2;
  end;
  TxtReplaceStr := __TxtReplaceStr(ioStr, inMaxLen, inParamStr, inParamNum);
 end;
@@ -503,7 +503,7 @@ end;
 function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar;
 begin
  asm
-  move.l #$intlTxtParamString, D2;
+  move.l #intlTxtParamString, D2;
  end;
  TxtParamString := __TxtParamString(inTemplate, param0, param1, param2, param3);
 end;
@@ -511,7 +511,7 @@ end;
 function TxtCharBounds(const inText: PChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar;
 begin
  asm
-  move.l #$intlTxtCharBounds, D2;
+  move.l #intlTxtCharBounds, D2;
  end;
  TxtCharBounds := TxtCharBounds(inText, inOffset, outStart, outEnd);
 end;
@@ -519,7 +519,7 @@ end;
 function TxtGetTruncationOffset(const inText: PChar; inOffset: UInt32): UInt32;
 begin
  asm
-  move.l #$intlTxtGetTruncationOffset, D2;
+  move.l #intlTxtGetTruncationOffset, D2;
  end;
  TxtGetTruncationOffset := __TxtGetTruncationOffset(inText, inOffset);
 end;
@@ -528,7 +528,7 @@ function TxtFindString(const inSourceStr, inTargetStr: PChar;
                        var outPos: UInt32; var outLength: UInt16): Boolean;
 begin
  asm
-  move.l #$intlTxtFindString, D2;
+  move.l #intlTxtFindString, D2;
  end;
  TxtFindString := TxtFindString(inSourceStr, inTargetStr, outPos, outLength);
 end;
@@ -537,7 +537,7 @@ function TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
                        var outStart, outEnd: UInt32): Boolean;
 begin
  asm
-  move.l #$intlTxtWordBounds, D2;
+  move.l #intlTxtWordBounds, D2;
  end;
  TxtWordBounds := __TxtWordBounds(inText, inLength, inOffset, outStart, outEnd);
 end;
@@ -545,7 +545,7 @@ end;
 function TxtGetWordWrapOffset(const iTextP: PChar; iOffset: UInt32): UInt32;
 begin
  asm
-  move.l #$intlTxtGetWordWrapOffset, D2;
+  move.l #intlTxtGetWordWrapOffset, D2;
  end;
  TxtGetWordWrapOffset := __TxtGetWordWrapOffset(iTextP, iOffset);
 end;
@@ -553,7 +553,7 @@ end;
 function TxtCharEncoding(inChar: WChar): CharEncodingType;
 begin
  asm
-  move.l #$intlTxtCharEncoding, D2;
+  move.l #intlTxtCharEncoding, D2;
  end;
  TxtCharEncoding := __TxtCharEncoding(inChar);
 end;
@@ -561,7 +561,7 @@ end;
 function TxtStrEncoding(const inStr: PChar): CharEncodingType;
 begin
  asm
-  move.l #$intlTxtStrEncoding, D2;
+  move.l #intlTxtStrEncoding, D2;
  end;
  TxtStrEncoding := __TxtStrEncoding(inStr);
 end;
@@ -569,7 +569,7 @@ end;
 function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType;
 begin
  asm
-  move.l #$intlTxtMaxEncoding, D2;
+  move.l #intlTxtMaxEncoding, D2;
  end;
  TxtMaxEncoding := __TxtMaxEncoding(a, b);
 end;
@@ -577,7 +577,7 @@ end;
 function TxtEncodingName(inEncoding: CharEncodingType): PChar;
 begin
  asm
-  move.l #$intlTxtEncodingName, D2;
+  move.l #intlTxtEncodingName, D2;
  end;
  TxtEncodingName := __TxtEncodingName(inEncoding);
 end;
@@ -585,7 +585,7 @@ end;
 function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType;
 begin
  asm
-  move.l #$intlTxtNameToEncoding, D2;
+  move.l #intlTxtNameToEncoding, D2;
  end;
  TxtNameToEncoding := __TxtNameToEncoding(iEncodingName);
 end;
@@ -594,7 +594,7 @@ function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstTex
                           var ioDstLength: UInt16; inOp: TranslitOpType): Err;
 begin
  asm
-  move.l #$intlTxtTransliterate, D2;
+  move.l #intlTxtTransliterate, D2;
  end;
  TxtTransliterate := __TxtTransliterate(inSrcText, inSrcLength, outDstText, ioDstLength, inOp);
 end;
@@ -605,7 +605,7 @@ function TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStat
          const substitutionStr: PChar; substitutionLen: UInt16): Err;
 begin
  asm
-  move.l #$intlTxtConvertEncoding, D2;
+  move.l #intlTxtConvertEncoding, D2;
  end;
  TxtConvertEncoding := __TxtConvertEncoding(newConversion, ioStateP, srcTextP, ioSrcBytes,
                                             srcEncoding, dstTextP, ioDstBytes, dstEncoding,
@@ -615,7 +615,7 @@ end;
 function TxtCharIsValid(inChar: WChar): Boolean;
 begin
  asm
-  move.l #$intlTxtCharIsValid, D2;
+  move.l #intlTxtCharIsValid, D2;
  end;
  TxtCharIsValid := __TxtCharIsValid(inChar);
 end;
@@ -624,7 +624,7 @@ function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt
                             const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
 begin
  asm
-  move.l #$intlTxtCaselessCompare, D2;
+  move.l #intlTxtCaselessCompare, D2;
  end;
  TxtCaselessCompare := __TxtCaselessCompare(s1, s1Len, s1MatchLen, s2, s2Len, s2MatchLen);
 end;
@@ -633,7 +633,7 @@ function TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
                     const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
 begin
  asm
-  move.l #$intlTxtCompare, D2;
+  move.l #intlTxtCompare, D2;
  end;
  TxtCompare := __TxtCompare(s1, s1Len, s1MatchLen, s2, s2Len, s2MatchLen);
 end;

@@ -102,7 +102,7 @@ function __TsmSetFepMode(nullParam: Pointer; inNewMode: TsmFepModeType): TsmFepM
 function TsmGetFepMode(nullParam: Pointer): TsmFepModeType;
 begin
  asm
-  move.l #$tsmGetFepMode_, D2;
+  move.l #tsmGetFepMode_, D2;
  end;
  TsmGetFepMode := __TsmGetFepMode(nullParam);
 end;
@@ -110,7 +110,7 @@ end;
 function TsmSetFepMode(nullParam: Pointer; inNewMode: TsmFepModeType): TsmFepModeType;
 begin
  asm
-  move.l #$tsmSetFepMode_, D2;
+  move.l #tsmSetFepMode_, D2;
  end;
  TsmSetFepMode := __TsmSetFepMode(nullParam, inNewMode);
 end;

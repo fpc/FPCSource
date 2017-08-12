@@ -117,7 +117,7 @@ function __IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Er
 function IntlGetRoutineAddress(inSelector: IntlSelector): Pointer;
 begin
  asm
-  move.l #$intlIntlGetRoutineAddress, D2;
+  move.l #intlIntlGetRoutineAddress, D2;
  end;
  IntlGetRoutineAddress := __IntlGetRoutineAddress(inSelector);
 end;
@@ -125,7 +125,7 @@ end;
 function IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Err;
 begin
  asm
-  move.l #$intlIntlSetRoutineAddress, D2;
+  move.l #intlIntlSetRoutineAddress, D2;
  end;
  IntlSetRoutineAddress := __IntlSetRoutineAddress(iSelector, iProcPtr);
 end;
