@@ -788,6 +788,7 @@ interface
                    1:writer.AsmWriteLn(#9'align 0');
                    2:writer.AsmWriteLn(#9'align 1');
                    4:writer.AsmWriteLn(#9'align 2');
+                   8:writer.AsmWriteln(#9'align 3');
                    otherwise internalerror(2002110302);
                  end;
               end;
