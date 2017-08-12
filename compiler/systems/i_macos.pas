@@ -78,11 +78,11 @@ unit i_macos;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 8;
-                localalignmax   : 8;
+                localalignmin   : 0;
+                localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
-                maxCrecordalign : 16
+                maxCrecordalign : 4
               );
             first_parm_offset : 8;
             stacksize    : 262144;
