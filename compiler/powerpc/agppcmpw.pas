@@ -275,9 +275,7 @@ interface
                 internalerror(2011122701);
               hs:=o.ref^.symbol.name;
               ReplaceForbiddenChars(hs);
-              if o.ref^.symbol.bind=AB_EXTERNAL then
-                hs:=hs+'[TC]';
-              hs:=hs+'(RTOC)';
+              hs:=hs+'[TC](RTOC)';
               getopstr:=hs;
             end
           else
