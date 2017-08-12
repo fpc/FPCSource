@@ -91,7 +91,7 @@ begin
   specialize TestTypeKind<Double>(tkFloat);
   specialize TestTypeKind<Extended>(tkFloat);
   specialize TestTypeKind<Currency>(tkFloat);
-{$if not (defined(CPUI386) or defined(CPUX86_64)) or (defined(WIN64) and sizeof(Extended) = sizeof(Double))}
+{$ifdef FPC_COMP_IS_INT64}
   specialize TestTypeKind<Comp>(tkInt64);
 {$else}
   specialize TestTypeKind<Comp>(tkFloat);
