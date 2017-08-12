@@ -22,9 +22,9 @@
 {$mode objfpc}
 {$modeswitch advancedrecords}
 
-{ At least 2.4.0 is required }
-{$if defined(VER1) or defined(VER2_0) or defined(VER2_2) }
-  {$fatal You need at least FPC 2.4.0 to build this version of FPC}
+{ At least 3.0.0 is required }
+{$if defined(VER1) or defined(VER2_0) or defined(VER2_2) or defined(VER2_4) or defined(VER2_6) }
+  {$fatal You need at least FPC 3.0.0 to build this version of FPC}
 {$endif}
 
 { Using inlining for small system functions/wrappers }
