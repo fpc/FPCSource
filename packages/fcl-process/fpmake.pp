@@ -25,7 +25,7 @@ begin
     P.Description := 'Process (execution) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.Options.Add('-S2h');
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

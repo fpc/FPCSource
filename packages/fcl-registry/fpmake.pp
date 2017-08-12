@@ -27,7 +27,7 @@ begin
     P.Email := '';
     P.Description := 'Windows registry + emulation parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos,win16];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macos,palmos];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
