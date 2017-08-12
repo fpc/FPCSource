@@ -78,7 +78,11 @@ begin
   specialize TestTypeKind<IDispatch>(tkInterface);
   specialize TestTypeKind<ShortString>(tkSString);
   specialize TestTypeKind<AnsiString>(tkAString);
+{$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  specialize TestTypeKind<WideString>(tkUString);
+{$else}
   specialize TestTypeKind<WideString>(tkWString);
+{$endif}
   specialize TestTypeKind<UnicodeString>(tkUString);
   specialize TestTypeKind<AnsiChar>(tkChar);
   specialize TestTypeKind<WideChar>(tkWChar);
@@ -87,7 +91,11 @@ begin
   specialize TestTypeKind<Double>(tkFloat);
   specialize TestTypeKind<Extended>(tkFloat);
   specialize TestTypeKind<Currency>(tkFloat);
+{$if not (defined(CPUI386) or defined(CPUX86_64)) or (defined(WIN64) and sizeof(Extended) = sizeof(Double))}
   specialize TestTypeKind<Comp>(tkInt64);
+{$else}
+  specialize TestTypeKind<Comp>(tkFloat);
+{$endif}
   specialize TestTypeKind<TSet>(tkSet);
   specialize TestTypeKind<Variant>(tkVariant);
   {specialize TestTypeKind<file>(tkFile);
