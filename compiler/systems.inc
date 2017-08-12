@@ -109,7 +109,7 @@
              system_sparc_solaris,      { 22 }
              system_sparc_linux,        { 23 }
              system_i386_openbsd,       { 24 }
-             system_m68k_openbsd,       { 25 }
+             obsolete_system_m68k_openbsd,{ 25 }
              system_x86_64_linux,       { 26 }
              system_powerpc_darwin,     { 27 }
              system_i386_EMX,           { 28 }
