@@ -1099,7 +1099,7 @@ interface
         replaced: boolean;
 
       begin
-        if tasmsymbol(p).bind=AB_EXTERNAL then
+        if tasmsymbol(p).bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
           begin
             //Writeln('ZZZ ',p.name,' ',p.classname,' ',Ord(tasmsymbol(p).typ));
             s:= p.name;
