@@ -53,7 +53,7 @@ function IsDirectory (var spec: FSSpec): Boolean;
 
 function PathArgToFSSpec(s: string; var spec: FSSpec): Integer;
 
-function PathArgToFullPath(s: string; var fullpath: AnsiString): Integer;
+function PathArgToFullPath(s: string; var fullpath: RawByteString): Integer;
 
 {Gives the volume name (with appended colon) for a given volume reference number.}
 function GetVolumeName(vRefNum: Integer; var volName: String): OSErr;
