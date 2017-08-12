@@ -41,12 +41,13 @@ type
   SignedByte = shortint;
   SignedBytePtr = ^SignedByte;
 
-  SInt8                               = -128..127;
-  SInt16                              = INTEGER;
+  SInt8                               = ShortInt; //-128..127;
+  SInt16                              = SmallInt; // INTEGER;
   SInt32                              = LONGINT;
-  UInt8                               = 0..255;
-  UInt16                              = WORD;
-  UInt32                              = LONGWORD;
+  // Overlapping types are now declared in the System unit (KB)
+  //UInt8                               = 0..255;
+  //UInt16                              = WORD;
+  //UInt32                              = LONGWORD;
 
   IntegerPtr              = ^INTEGER;
   LongIntPtr              = ^LONGINT;

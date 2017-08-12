@@ -65,8 +65,10 @@ end;
 
 procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
 var
-  s1,s2: AnsiString;
+  s1,s2: RawByteString;
 begin
+  s1:=''; { to fix warnings }
+  s2:='';
   {$ifdef MACOS_USE_STDCLIB}
   InOutRes:= PathArgToFullPath(p1, s1);
   if InOutRes <> 0 then
@@ -216,7 +218,7 @@ var
   fh: Longint;
 
   oflags : longint;
-  fullPath: AnsiString;
+  fullPath: RawByteString;
 
   finderInfo: FInfo;
 
@@ -307,7 +309,9 @@ begin
   Errno2InOutRes;
   if fh <> -1 then
     begin
-      if FileRec(f).mode in [fmoutput, fminout, fmappend] then
+      if (FileRec(f).mode = fmOutput) or
+         (FileRec(f).mode = fmInout) or
+         (FileRec(f).mode = fmAppend) then
         begin
           {Change of filetype and creator is always done when a file is opened
           for some kind of writing. This ensures overwritten Darwin files will
