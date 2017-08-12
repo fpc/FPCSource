@@ -98,6 +98,16 @@ implementation
               else
                 internalerror(2005010403);
             end;
+          system_m68k_palmos:
+            begin
+              if po_syscall in tprocdef(procdefinition).procoptions then
+                begin
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_W,tprocdef(procdefinition).import_nr,NR_D0));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,tprocdef(procdefinition).extnumber));
+                end
+              else
+                internalerror(2017081201);
+            end;
           else
             internalerror(2004042901);
         end;
