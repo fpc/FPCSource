@@ -108,130 +108,22 @@ const
   expSlotEnumerate_     = 10;
   expCardGetSerialPort_ = 11;
   expMaxSelector        = expCardGetSerialPort_;
-function ExpInit: Err;
-function ExpSlotDriverInstall(dbCreator: UInt32; var slotLibRefNumP: UInt16): Err;
-function ExpSlotDriverRemove(slotLibRefNum: UInt16): Err;
-function ExpSlotLibFind(slotRefNum: UInt16; var slotLibRefNum: UInt16): Err;
-function ExpSlotRegister(slotLibRefNum: UInt16; var slotRefNum: UInt16): Err;
-function ExpSlotUnregister(slotRefNum: UInt16): Err;
-function ExpCardInserted(slotRefNum: UInt16): Err;
-function ExpCardRemoved(slotRefNum: UInt16): Err;
-function ExpCardPresent(slotRefNum: UInt16): Err;
-function ExpCardInfo(slotRefNum: UInt16; var infoP: ExpCardInfoType): Err;
-function ExpSlotEnumerate(var slotRefNumP: UInt16; var slotIteratorP: UInt32): Err;
-function ExpCardGetSerialPort(slotRefNum: UInt16; var portP: UInt32): Err;
+
+function ExpInit: Err; syscall sysTrapExpansionMgr, expInit_;
+function ExpSlotDriverInstall(dbCreator: UInt32; var slotLibRefNumP: UInt16): Err; syscall sysTrapExpansionMgr, expSlotDriverInstall_;
+function ExpSlotDriverRemove(slotLibRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expSlotDriverRemove_;
+function ExpSlotLibFind(slotRefNum: UInt16; var slotLibRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expSlotLibFind_;
+function ExpSlotRegister(slotLibRefNum: UInt16; var slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expSlotRegister_;
+function ExpSlotUnregister(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expSlotUnregister_;
+function ExpCardInserted(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expCardInserted_;
+function ExpCardRemoved(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expCardRemoved_;
+function ExpCardPresent(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr, expCardPresent_;
+function ExpCardInfo(slotRefNum: UInt16; var infoP: ExpCardInfoType): Err; syscall sysTrapExpansionMgr, expCardInfo_;
+function ExpSlotEnumerate(var slotRefNumP: UInt16; var slotIteratorP: UInt32): Err; syscall sysTrapExpansionMgr, expSlotEnumerate_;
+function ExpCardGetSerialPort(slotRefNum: UInt16; var portP: UInt32): Err; syscall sysTrapExpansionMgr, expCardGetSerialPort_;
+
 
 implementation
-(**)
-function __ExpInit: Err; syscall sysTrapExpansionMgr;
-function __ExpSlotDriverInstall(dbCreator: UInt32; var slotLibRefNumP: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpSlotDriverRemove(slotLibRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpSlotLibFind(slotRefNum: UInt16; var slotLibRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpSlotRegister(slotLibRefNum: UInt16; var slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpSlotUnregister(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpCardInserted(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpCardRemoved(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpCardPresent(slotRefNum: UInt16): Err; syscall sysTrapExpansionMgr;
-function __ExpCardInfo(slotRefNum: UInt16; var infoP: ExpCardInfoType): Err; syscall sysTrapExpansionMgr;
-function __ExpSlotEnumerate(var slotRefNumP: UInt16; var slotIteratorP: UInt32): Err; syscall sysTrapExpansionMgr;
-function __ExpCardGetSerialPort(slotRefNum: UInt16; var portP: UInt32): Err; syscall sysTrapExpansionMgr;
-(**)
-
-function ExpInit: Err;
-begin
- asm
-  move.l #expInit_,D2;
- end;
- ExpInit := __ExpInit;
-end;
-
-function ExpSlotDriverInstall(dbCreator: UInt32; var slotLibRefNumP: UInt16): Err;
-begin
- asm
-  move.l #expSlotDriverInstall_,D2;
- end;
- ExpSlotDriverInstall := __ExpSlotDriverInstall(dbCreator, slotLibRefNumP);
-end;
-
-function ExpSlotDriverRemove(slotLibRefNum: UInt16): Err;
-begin
- asm
-  move.l #expSlotDriverRemove_,D2;
- end;
- ExpSlotDriverRemove := __ExpSlotDriverRemove(slotLibRefNum);
-end;
-
-function ExpSlotLibFind(slotRefNum: UInt16; var slotLibRefNum: UInt16): Err;
-begin
- asm
-  move.l #expSlotLibFind_,D2;
- end;
- ExpSlotLibFind := __ExpSlotLibFind(slotRefNum, slotLibRefNum);
-end;
-
-function ExpSlotRegister(slotLibRefNum: UInt16; var slotRefNum: UInt16): Err;
-begin
- asm
-  move.l #expSlotRegister_,D2;
- end;
- ExpSlotRegister := __ExpSlotRegister(slotLibRefNum, slotRefNum);
-end;
-
-function ExpSlotUnregister(slotRefNum: UInt16): Err;
-begin
- asm
-  move.l #expSlotUnregister_,D2;
- end;
- ExpSlotUnregister := __ExpSlotUnregister(slotRefNum);
-end;
-
-function ExpCardInserted(slotRefNum: UInt16): Err;
-begin
- asm
-  move.l #expCardInserted_,D2;
- end;
- ExpCardInserted := __ExpCardInserted(slotRefNum);
-end;
-
-function ExpCardRemoved(slotRefNum: UInt16): Err;
-begin
- asm
-  move.l #expCardRemoved_,D2;
- end;
- ExpCardRemoved := __ExpCardRemoved(slotRefNum);
-end;
-
-function ExpCardPresent(slotRefNum: UInt16): Err;
-begin
- asm
-  move.l #expCardPresent_,D2;
- end;
- ExpCardPresent := __ExpCardPresent(slotRefNum);
-end;
-
-function ExpCardInfo(slotRefNum: UInt16; var infoP: ExpCardInfoType): Err;
-begin
- asm
-  move.l #expCardInfo_,D2;
- end;
- ExpCardInfo := __ExpCardInfo(slotRefNum, infoP);
-end;
-
-function ExpSlotEnumerate(var slotRefNumP: UInt16; var slotIteratorP: UInt32): Err;
-begin
- asm
-  move.l #expSlotEnumerate_,D2;
- end;
- ExpSlotEnumerate := __ExpSlotEnumerate(slotRefNumP, slotIteratorP);
-end;
-
-function ExpCardGetSerialPort(slotRefNum: UInt16; var portP: UInt32): Err;
-begin
- asm
-  move.l #expCardGetSerialPort_,D2;
- end;
- ExpCardGetSerialPort := __ExpCardGetSerialPort(slotRefNum, portP);
-end;
 
 
 end.

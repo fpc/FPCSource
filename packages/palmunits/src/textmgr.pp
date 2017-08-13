@@ -195,44 +195,44 @@ function TxtNextCharSize(const inText: PChar; inOffset: UInt32): UInt16;
 
 // Return back byte attribute (first, last, single, middle) for <inByte>.
 
-function TxtByteAttr(inByte: UInt8): UInt8;
+function TxtByteAttr(inByte: UInt8): UInt8; syscall sysTrapIntlDispatch, intlTxtByteAttr;
 
 // Return back the standard attribute bits for <inChar>.
 
-function TxtCharAttr(inChar: WChar): UInt16;
+function TxtCharAttr(inChar: WChar): UInt16; syscall sysTrapIntlDispatch, intlTxtCharAttr;
 
 // Return back the extended attribute bits for <inChar>.
 
-function TxtCharXAttr(inChar: WChar): UInt16;
+function TxtCharXAttr(inChar: WChar): UInt16; syscall sysTrapIntlDispatch, intlTxtCharXAttr;
 
 // Return the size (in bytes) of the character <inChar>. This represents
 // how many bytes would be required to store the character in a string.
 
-function TxtCharSize(inChar: WChar): UInt16;
+function TxtCharSize(inChar: WChar): UInt16; syscall sysTrapIntlDispatch, intlTxtCharSize;
 
 // Return the width (in pixels) of the character <inChar>. You should
 // use FntWCharWidth or FntGlueWCharWidth instead of this routine.
 
-function TxtCharWidth(inChar: WChar): Int16;
+function TxtCharWidth(inChar: WChar): Int16; syscall sysTrapIntlDispatch, intlTxtCharWidth;
 
 // Load the character before offset <inOffset> in the <inText> text. Return
 // back the size of the character.
 
-function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
+function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch, intlTxtGetPreviousChar;
 
 // Load the character at offset <inOffset> in the <inText> text. Return
 // back the size of the character.
 
-function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
+function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch, intlTxtGetNextChar;
 
 // Return the character at offset <inOffset> in the <inText> text.
 
-function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar;
+function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar; syscall sysTrapIntlDispatch, intlTxtGetChar;
 
 // Set the character at offset <inOffset> in the <inText> text, and
 // return back the size of the character.
 
-function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16;
+function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16; syscall sysTrapIntlDispatch, intlTxtSetNextChar;
 
 // Replace the substring "^X" (where X is 0..9, as specified by <inParamNum>)
 // with the string <inParamStr>. If <inParamStr> is NULL then don't modify <ioStr>.
@@ -240,31 +240,31 @@ function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16;
 // excluding the terminating null. Return back the number of occurances of
 // the substring found in <ioStr>.
 
-function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16;
+function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16; syscall sysTrapIntlDispatch, intlTxtReplaceStr;
 
 // Allocate a handle containing the result of substituting param0...param3
 // for ^0...^3 in <inTemplate>, and return the locked result. If a parameter
 // is NULL, replace the corresponding substring in the template with "".
 
-function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar;
+function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar; syscall sysTrapIntlDispatch, intlTxtParamString;
 
 // Return the bounds of the character at <inOffset> in the <inText>
 // text, via the <outStart> & <outEnd> offsets, and also return the
 // actual value of character at or following <inOffset>.
 
-function TxtCharBounds(const inText: PChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar;
+function TxtCharBounds(const inText: PChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar; syscall sysTrapIntlDispatch, intlTxtCharBounds;
 
 // Return the appropriate byte position for truncating <inText> such that it is
 // at most <inOffset> bytes long.
 
-function TxtGetTruncationOffset(const inText: PChar; inOffset: UInt32): UInt32;
+function TxtGetTruncationOffset(const inText: PChar; inOffset: UInt32): UInt32; syscall sysTrapIntlDispatch, intlTxtGetTruncationOffset;
 
 // Search for <inTargetStr> in <inSourceStr>. If found return true and pass back
 // the found position (byte offset) in <outPos>, and the length of the matched
 // text in <outLength>.
 
 function TxtFindString(const inSourceStr, inTargetStr: PChar;
-                       var outPos: UInt32; var outLength: UInt16): Boolean;
+                       var outPos: UInt32; var outLength: UInt16): Boolean; syscall sysTrapIntlDispatch, intlTxtFindString;
 
 // Find the bounds of the word that contains the character at <inOffset>.
 // Return the offsets in <*outStart> and <*outEnd>. Return true if the
@@ -272,39 +272,39 @@ function TxtFindString(const inSourceStr, inTargetStr: PChar;
 // in word not equal to space or punct).
 
 function TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
-                       var outStart, outEnd: UInt32): Boolean;
+                       var outStart, outEnd: UInt32): Boolean; syscall sysTrapIntlDispatch, intlTxtWordBounds;
 
 // Return the offset of the first break position (for text wrapping) that
 // occurs at or before <iOffset> in <iTextP>. Note that this routine will
 // also add trailing spaces and a trailing linefeed to the break position,
 // thus the result could be greater than <iOffset>.
 
-function TxtGetWordWrapOffset(const iTextP: PChar; iOffset: UInt32): UInt32;
+function TxtGetWordWrapOffset(const iTextP: PChar; iOffset: UInt32): UInt32; syscall sysTrapIntlDispatch, intlTxtGetWordWrapOffset;
 
 // Return the minimum (lowest) encoding required for <inChar>. If we
 // don't know about the character, return encoding_Unknown.
 
-function TxtCharEncoding(inChar: WChar): CharEncodingType;
+function TxtCharEncoding(inChar: WChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtCharEncoding;
 
 // Return the minimum (lowest) encoding required to represent <inStr>.
 // This is the maximum encoding of any character in the string, where
 // highest is unknown, and lowest is ascii.
 
-function TxtStrEncoding(const inStr: PChar): CharEncodingType;
+function TxtStrEncoding(const inStr: PChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtStrEncoding;
 
 // Return the higher (max) encoding of <a> and <b>.
 
-function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType;
+function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtMaxEncoding;
 
 // Return a pointer to the 'standard' name for <inEncoding>. If the
 // encoding is unknown, return a pointer to an empty string.
 
-function TxtEncodingName(inEncoding: CharEncodingType): PChar;
+function TxtEncodingName(inEncoding: CharEncodingType): PChar; syscall sysTrapIntlDispatch, intlTxtEncodingName;
 
 // Map from a character set name <iEncodingName> to a CharEncodingType.
 // If the character set name is unknown, return charEncodingUnknown.
 
-function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType;
+function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType; syscall sysTrapIntlDispatch, intlTxtNameToEncoding;
 
 // Transliterate <inSrcLength> bytes of text found in <inSrcText>, based
 // on the requested <inOp> operation. Place the results in <outDstText>,
@@ -317,7 +317,7 @@ function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType;
 // buffer in order to perform the operation.
 
 function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstText: PChar;
-                          var ioDstLength: UInt16; inOp: TranslitOpType): Err;
+                          var ioDstLength: UInt16; inOp: TranslitOpType): Err; syscall sysTrapIntlDispatch, intlTxtTransliterate;
 
 // Convert <*ioSrcBytes> of text from <srcTextP> between the <srcEncoding>
 // and <dstEncoding> character encodings. If <dstTextP> is not NULL, write
@@ -353,12 +353,12 @@ function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstTex
 function TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStateType;
          const srcTextP: PChar; var ioSrcBytes: UInt16; srcEncoding: CharEncodingType;
          dstTextP: PChar; var ioDstBytes: UInt16; dstEncoding: CharEncodingType;
-         const substitutionStr: PChar; substitutionLen: UInt16): Err;
+         const substitutionStr: PChar; substitutionLen: UInt16): Err; syscall sysTrapIntlDispatch, intlTxtConvertEncoding;
 
 // Return true if <inChar> is a valid (drawable) character. Note that we'll
 // return false if it is a virtual character code.
 
-function TxtCharIsValid(inChar: WChar): Boolean;
+function TxtCharIsValid(inChar: WChar): Boolean; syscall sysTrapIntlDispatch, intlTxtCharIsValid;
 
 // Compare the first <s1Len> bytes of <s1> with the first <s2Len> bytes
 // of <s2>. Return the results of the comparison: < 0 if <s1> sorts before
@@ -369,7 +369,7 @@ function TxtCharIsValid(inChar: WChar): Boolean;
 // thus case, character size, etc. don't matter.
 
 function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
+                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch, intlTxtCaselessCompare;
 
 // Compare the first <s1Len> bytes of <s1> with the first <s2Len> bytes
 // of <s2>. Return the results of the comparison: < 0 if <s1> sorts before
@@ -378,265 +378,12 @@ function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt
 // (either one of which can be NULL if the match length is not needed).
 
 function TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
+                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch, intlTxtCompare;
 
 implementation
 
 uses Chars, SysEvent;
 
-function __TxtByteAttr(inByte: UInt8): UInt8; syscall sysTrapIntlDispatch;
-function __TxtCharAttr(inChar: WChar): UInt16; syscall sysTrapIntlDispatch;
-function __TxtCharXAttr(inChar: WChar): UInt16; syscall sysTrapIntlDispatch;
-function __TxtCharSize(inChar: WChar): UInt16; syscall sysTrapIntlDispatch;
-function __TxtCharWidth(inChar: WChar): Int16; syscall sysTrapIntlDispatch;
-function __TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch;
-function __TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; syscall sysTrapIntlDispatch;
-function __TxtGetChar(const inText: PChar; inOffset: UInt32): WChar; syscall sysTrapIntlDispatch;
-function __TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16; syscall sysTrapIntlDispatch;
-function __TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16; syscall sysTrapIntlDispatch;
-function __TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar; syscall sysTrapIntlDispatch;
-function __TxtCharBounds(const inText: PChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar; syscall sysTrapIntlDispatch;
-function __TxtGetTruncationOffset(const inText: PChar; inOffset: UInt32): UInt32; syscall sysTrapIntlDispatch;
-function __TxtFindString(const inSourceStr, inTargetStr: PChar;
-                       var outPos: UInt32; var outLength: UInt16): Boolean; syscall sysTrapIntlDispatch;
-function __TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
-                       var outStart, outEnd: UInt32): Boolean; syscall sysTrapIntlDispatch;
-function __TxtGetWordWrapOffset(const iTextP: PChar; iOffset: UInt32): UInt32; syscall sysTrapIntlDispatch;
-function __TxtCharEncoding(inChar: WChar): CharEncodingType; syscall sysTrapIntlDispatch;
-function __TxtStrEncoding(const inStr: PChar): CharEncodingType; syscall sysTrapIntlDispatch;
-function __TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType; syscall sysTrapIntlDispatch;
-function __TxtEncodingName(inEncoding: CharEncodingType): PChar; syscall sysTrapIntlDispatch;
-function __TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType; syscall sysTrapIntlDispatch;
-function __TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstText: PChar;
-                          var ioDstLength: UInt16; inOp: TranslitOpType): Err; syscall sysTrapIntlDispatch;
-function __TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStateType;
-         const srcTextP: PChar; var ioSrcBytes: UInt16; srcEncoding: CharEncodingType;
-         dstTextP: PChar; var ioDstBytes: UInt16; dstEncoding: CharEncodingType;
-         const substitutionStr: PChar; substitutionLen: UInt16): Err; syscall sysTrapIntlDispatch;
-function __TxtCharIsValid(inChar: WChar): Boolean; syscall sysTrapIntlDispatch;
-
-function __TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch;
-function __TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch;
-
-function TxtByteAttr(inByte: UInt8): UInt8;
-begin
- asm
-  move.l #intlTxtByteAttr, D2;
- end;
- TxtByteAttr := TxtByteAttr(inByte);
-end;
-
-function TxtCharAttr(inChar: WChar): UInt16;
-begin
- asm
-  move.l #intlTxtCharAttr, D2;
- end;
- TxtCharAttr := __TxtCharAttr(inChar);
-end;
-
-function TxtCharXAttr(inChar: WChar): UInt16;
-begin
- asm
-  move.l #intlTxtCharXAttr, D2;
- end;
- TxtCharXAttr := __TxtCharXAttr(inChar);
-end;
-
-function TxtCharSize(inChar: WChar): UInt16;
-begin
- asm
-  move.l #intlTxtCharSize, D2;
- end;
- TxtCharSize := TxtCharSize(inChar);
-end;
-
-function TxtCharWidth(inChar: WChar): Int16;
-begin
- asm
-  move.l #intlTxtCharWidth, D2;
- end;
- TxtCharWidth := TxtCharWidth(inChar);
-end;
-
-function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
-begin
- asm
-  move.l #intlTxtGetPreviousChar, D2;
- end;
- TxtGetPreviousChar := __TxtGetPreviousChar(inText, inOffset, outChar);
-end;
-
-function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
-begin
- asm
-  move.l #intlTxtGetNextChar, D2;
- end;
- TxtGetNextChar := __TxtGetNextChar(inText, inOffset, outChar);
-end;
-
-function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar;
-begin
- asm
-  move.l #intlTxtGetChar, D2;
- end;
- TxtGetChar := __TxtGetChar(inText, inOffset);
-end;
-
-function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16;
-begin
- asm
-  move.l #intlTxtSetNextChar, D2;
- end;
- TxtSetNextChar := __TxtSetNextChar(ioText, inOffset, inChar);
-end;
-
-function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16;
-begin
- asm
-  move.l #intlTxtReplaceStr, D2;
- end;
- TxtReplaceStr := __TxtReplaceStr(ioStr, inMaxLen, inParamStr, inParamNum);
-end;
-
-function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar;
-begin
- asm
-  move.l #intlTxtParamString, D2;
- end;
- TxtParamString := __TxtParamString(inTemplate, param0, param1, param2, param3);
-end;
-
-function TxtCharBounds(const inText: PChar; inOffset: UInt32; var outStart: UInt32; var outEnd: UInt32): WChar;
-begin
- asm
-  move.l #intlTxtCharBounds, D2;
- end;
- TxtCharBounds := TxtCharBounds(inText, inOffset, outStart, outEnd);
-end;
-
-function TxtGetTruncationOffset(const inText: PChar; inOffset: UInt32): UInt32;
-begin
- asm
-  move.l #intlTxtGetTruncationOffset, D2;
- end;
- TxtGetTruncationOffset := __TxtGetTruncationOffset(inText, inOffset);
-end;
-
-function TxtFindString(const inSourceStr, inTargetStr: PChar;
-                       var outPos: UInt32; var outLength: UInt16): Boolean;
-begin
- asm
-  move.l #intlTxtFindString, D2;
- end;
- TxtFindString := TxtFindString(inSourceStr, inTargetStr, outPos, outLength);
-end;
-
-function TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
-                       var outStart, outEnd: UInt32): Boolean;
-begin
- asm
-  move.l #intlTxtWordBounds, D2;
- end;
- TxtWordBounds := __TxtWordBounds(inText, inLength, inOffset, outStart, outEnd);
-end;
-
-function TxtGetWordWrapOffset(const iTextP: PChar; iOffset: UInt32): UInt32;
-begin
- asm
-  move.l #intlTxtGetWordWrapOffset, D2;
- end;
- TxtGetWordWrapOffset := __TxtGetWordWrapOffset(iTextP, iOffset);
-end;
-
-function TxtCharEncoding(inChar: WChar): CharEncodingType;
-begin
- asm
-  move.l #intlTxtCharEncoding, D2;
- end;
- TxtCharEncoding := __TxtCharEncoding(inChar);
-end;
-
-function TxtStrEncoding(const inStr: PChar): CharEncodingType;
-begin
- asm
-  move.l #intlTxtStrEncoding, D2;
- end;
- TxtStrEncoding := __TxtStrEncoding(inStr);
-end;
-
-function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType;
-begin
- asm
-  move.l #intlTxtMaxEncoding, D2;
- end;
- TxtMaxEncoding := __TxtMaxEncoding(a, b);
-end;
-
-function TxtEncodingName(inEncoding: CharEncodingType): PChar;
-begin
- asm
-  move.l #intlTxtEncodingName, D2;
- end;
- TxtEncodingName := __TxtEncodingName(inEncoding);
-end;
-
-function TxtNameToEncoding(const iEncodingName: PChar): CharEncodingType;
-begin
- asm
-  move.l #intlTxtNameToEncoding, D2;
- end;
- TxtNameToEncoding := __TxtNameToEncoding(iEncodingName);
-end;
-
-function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstText: PChar;
-                          var ioDstLength: UInt16; inOp: TranslitOpType): Err;
-begin
- asm
-  move.l #intlTxtTransliterate, D2;
- end;
- TxtTransliterate := __TxtTransliterate(inSrcText, inSrcLength, outDstText, ioDstLength, inOp);
-end;
-
-function TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStateType;
-         const srcTextP: PChar; var ioSrcBytes: UInt16; srcEncoding: CharEncodingType;
-         dstTextP: PChar; var ioDstBytes: UInt16; dstEncoding: CharEncodingType;
-         const substitutionStr: PChar; substitutionLen: UInt16): Err;
-begin
- asm
-  move.l #intlTxtConvertEncoding, D2;
- end;
- TxtConvertEncoding := __TxtConvertEncoding(newConversion, ioStateP, srcTextP, ioSrcBytes,
-                                            srcEncoding, dstTextP, ioDstBytes, dstEncoding,
-                                            substitutionStr, substitutionLen);
-end;
-
-function TxtCharIsValid(inChar: WChar): Boolean;
-begin
- asm
-  move.l #intlTxtCharIsValid, D2;
- end;
- TxtCharIsValid := __TxtCharIsValid(inChar);
-end;
-
-function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
-begin
- asm
-  move.l #intlTxtCaselessCompare, D2;
- end;
- TxtCaselessCompare := __TxtCaselessCompare(s1, s1Len, s1MatchLen, s2, s2Len, s2MatchLen);
-end;
-
-function TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
-begin
- asm
-  move.l #intlTxtCompare, D2;
- end;
- TxtCompare := __TxtCompare(s1, s1Len, s1MatchLen, s2, s2Len, s2MatchLen);
-end;
 
 function TxtCharIsSpace(ch: WChar): Boolean;
 begin
