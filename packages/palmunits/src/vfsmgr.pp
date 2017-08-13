@@ -303,512 +303,109 @@ type
 
   VFSExportProcPtr = function(totalBytes, offset: UInt32; userDataP: Pointer): Err;
 
-function VFSInit: Err;
+function VFSInit: Err; syscall sysTrapVFSMgr, vfsTrapInit;
 
 // if you pass NULL for fsCreator, VFS will iterate through
 // all installed filesystems until it finds one that does not return an error.
 function VFSCustomControl(fsCreator, apiCreator: UInt32; apiSelector: UInt16;
-                          valueP: Pointer; var valueLenP: UInt16): Err;
+                          valueP: Pointer; var valueLenP: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapCustomControl;
 
-function VFSFileCreate(volRefNum: UInt16; const pathNameP: PChar): Err;
+function VFSFileCreate(volRefNum: UInt16; const pathNameP: PChar): Err; syscall sysTrapVFSMgr, vfsTrapFileCreate;
 
-function VFSFileOpen(volRefNum: UInt16; const pathNameP: PChar; openMode: UInt16; var fileRefP: FileRef): Err;
+function VFSFileOpen(volRefNum: UInt16; const pathNameP: PChar; openMode: UInt16; var fileRefP: FileRef): Err; syscall sysTrapVFSMgr, vfsTrapFileOpen;
 
-function VFSFileClose(fileRef: FileRef): Err;
+function VFSFileClose(fileRef: FileRef): Err; syscall sysTrapVFSMgr, vfsTrapFileClose;
 
 function VFSFileReadData(fileRef: FileRef; numBytes: UInt32; bufBaseP: Pointer;
-                         offset: UInt32; var numBytesReadP: UInt32): Err;
+                         offset: UInt32; var numBytesReadP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileReadData;
 
-function VFSFileRead(fileRef: FileRef; numBytes: UInt32; bufP: Pointer; var numBytesReadP: UInt32): Err;
+function VFSFileRead(fileRef: FileRef; numBytes: UInt32; bufP: Pointer; var numBytesReadP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileRead;
 
-function VFSFileWrite(fileRef: FileRef; numBytes: UInt32; const dataP: Pointer; var numBytesWrittenP: UInt32): Err;
+function VFSFileWrite(fileRef: FileRef; numBytes: UInt32; const dataP: Pointer; var numBytesWrittenP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileWrite;
 
 // some file routines work on directories
-function VFSFileDelete(volRefNum: UInt16; const pathNameP: PChar): Err;
+function VFSFileDelete(volRefNum: UInt16; const pathNameP: PChar): Err; syscall sysTrapVFSMgr, vfsTrapFileDelete;
 
-function VFSFileRename(volRefNum: UInt16; const pathNameP, newNameP: PChar): Err;
+function VFSFileRename(volRefNum: UInt16; const pathNameP, newNameP: PChar): Err; syscall sysTrapVFSMgr, vfsTrapFileRename;
 
-function VFSFileSeek(fileRef: FileRef; origin: FileOrigin; offset: Int32): Err;
+function VFSFileSeek(fileRef: FileRef; origin: FileOrigin; offset: Int32): Err; syscall sysTrapVFSMgr, vfsTrapFileSeek;
 
-function VFSFileEOF(fileRef: FileRef): Err;
+function VFSFileEOF(fileRef: FileRef): Err; syscall sysTrapVFSMgr, vfsTrapFileEOF;
 
-function VFSFileTell(fileRef: FileRef; var filePosP: UInt32): Err;
+function VFSFileTell(fileRef: FileRef; var filePosP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileTell;
 
-function VFSFileSize(fileRef: FileRef; var fileSizeP: UInt32): Err;
+function VFSFileSize(fileRef: FileRef; var fileSizeP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileSize;
 
-function VFSFileResize(fileRef: FileRef; newSize: UInt32): Err;
+function VFSFileResize(fileRef: FileRef; newSize: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileResize;
 
-function VFSFileGetAttributes(fileRef: FileRef; var attributesP: UInt32): Err;
+function VFSFileGetAttributes(fileRef: FileRef; var attributesP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileGetAttributes;
 
-function VFSFileSetAttributes(fileRef: FileRef; attributes: UInt32): Err;
+function VFSFileSetAttributes(fileRef: FileRef; attributes: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileSetAttributes;
 
-function VFSFileGetDate(fileRef: FileRef; whichDate: UInt16; var dateP: UInt32): Err;
+function VFSFileGetDate(fileRef: FileRef; whichDate: UInt16; var dateP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileGetDate;
 
-function VFSFileSetDate(fileRef: FileRef; whichDate: UInt16; date: UInt32): Err;
+function VFSFileSetDate(fileRef: FileRef; whichDate: UInt16; date: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileSetDate;
 
 
-function VFSDirCreate(volRefNum: UInt16; const dirNameP: PChar): Err;
+function VFSDirCreate(volRefNum: UInt16; const dirNameP: PChar): Err; syscall sysTrapVFSMgr, vfsTrapDirCreate;
 
-function VFSDirEntryEnumerate(dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err;
+function VFSDirEntryEnumerate(dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err; syscall sysTrapVFSMgr, vfsTrapDirEntryEnumerate;
 
 
 function VFSGetDefaultDirectory(volRefNum: UInt16; const fileTypeStr: PChar;
-                                pathStr: PChar; var bufLenP: UInt16): Err;
+                                pathStr: PChar; var bufLenP: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapGetDefaultDirectory;
 
 function VFSRegisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32;
-                                     const pathStr: PChar): Err;
+                                     const pathStr: PChar): Err; syscall sysTrapVFSMgr, vfsTrapRegisterDefaultDirectory;
 
-function VFSUnregisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32): Err;
+function VFSUnregisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapUnregisterDefaultDirectory;
 
 
-function VFSVolumeFormat(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err;
+function VFSVolumeFormat(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err; syscall sysTrapVFSMgr, vfsTrapVolumeFormat;
 
-function VFSVolumeMount(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err;
+function VFSVolumeMount(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err; syscall sysTrapVFSMgr, vfsTrapVolumeMount;
 
-function VFSVolumeUnmount(volRefNum: UInt16): Err;
+function VFSVolumeUnmount(volRefNum: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapVolumeUnmount;
 
-function VFSVolumeEnumerate(var volRefNumP: UInt16; var volIteratorP: UInt32): Err;
+function VFSVolumeEnumerate(var volRefNumP: UInt16; var volIteratorP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapVolumeEnumerate;
 
-function VFSVolumeInfo(volRefNum: UInt16; var volInfoP: VolumeInfoType): Err;
+function VFSVolumeInfo(volRefNum: UInt16; var volInfoP: VolumeInfoType): Err; syscall sysTrapVFSMgr, vfsTrapVolumeInfo;
 
-function VFSVolumeGetLabel(volRefNum: UInt16; labelP: PChar; bufLen: UInt16): Err;
+function VFSVolumeGetLabel(volRefNum: UInt16; labelP: PChar; bufLen: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapVolumeGetLabel;
 
-function VFSVolumeSetLabel(volRefNum: UInt16; const labelP: PChar): Err;
+function VFSVolumeSetLabel(volRefNum: UInt16; const labelP: PChar): Err; syscall sysTrapVFSMgr, vfsTrapVolumeSetLabel;
 
-function VFSVolumeSize(volRefNum: UInt16; var volumeUsedP, volumeTotalP: UInt32): Err;
+function VFSVolumeSize(volRefNum: UInt16; var volumeUsedP, volumeTotalP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapVolumeSize;
 
-function VFSInstallFSLib(creator: UInt32; var fsLibRefNumP: UInt16): Err;
+function VFSInstallFSLib(creator: UInt32; var fsLibRefNumP: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapInstallFSLib;
 
-function VFSRemoveFSLib(fsLibRefNum: UInt16): Err;
+function VFSRemoveFSLib(fsLibRefNum: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapRemoveFSLib;
 
 function VFSImportDatabaseFromFile(volRefNum: UInt16; const pathNameP: PChar;
-                                   var cardNoP: UInt16; var dbIDP: LocalID): Err;
+                                   var cardNoP: UInt16; var dbIDP: LocalID): Err; syscall sysTrapVFSMgr, vfsTrapImportDatabaseFromFile;
 
 function VFSImportDatabaseFromFileCustom(volRefNum: UInt16; const pathNameP: PChar;
                                          var cardNoP: UInt16; var dbIDP: LocalID;
-                                         importProcP: VFSImportProcPtr; userDataP: Pointer): Err;
+                                         importProcP: VFSImportProcPtr; userDataP: Pointer): Err; syscall sysTrapVFSMgr, vfsTrapImportDatabaseFromFileCustom;
 
 function VFSExportDatabaseToFile(volRefNum: UInt16; const pathNameP: PChar;
-                                 cardNo: UInt16; dbID: LocalID): Err;
+                                 cardNo: UInt16; dbID: LocalID): Err; syscall sysTrapVFSMgr, vfsTrapExportDatabaseToFile;
 
 function VFSExportDatabaseToFileCustom(volRefNum: UInt16; const pathNameP: PChar;
                                        cardNo: UInt16; dbID: LocalID;
-                                       exportProcP: VFSExportProcPtr; userDataP: Pointer): Err;
+                                       exportProcP: VFSExportProcPtr; userDataP: Pointer): Err; syscall sysTrapVFSMgr, vfsTrapExportDatabaseToFileCustom;
 
-function VFSFileDBGetResource(ref: FileRef; type_: DmResType; resID: DmResID; var resHP: MemHandle): Err;
+function VFSFileDBGetResource(ref: FileRef; type_: DmResType; resID: DmResID; var resHP: MemHandle): Err; syscall sysTrapVFSMgr, vfsTrapFileDBGetResource;
 
 function VFSFileDBInfo(ref: FileRef; nameP: PChar; var attributesP, versionP: UInt16;
                        var crDateP, modDateP, bckUpDateP, modNumP: UInt32;
                        var appInfoHP, sortInfoHP: MemHandle; var typeP, creatorP: UInt32;
-                       var numRecordsP: UInt16): Err;
+                       var numRecordsP: UInt16): Err; syscall sysTrapVFSMgr, vfsTrapFileDBInfo;
 
 function VFSFileDBGetRecord(ref: FileRef; recIndex: UInt16; var recHP: MemHandle;
-                            var recAttrP: UInt8; var uniqueIDP: UInt32): Err;
+                            var recAttrP: UInt8; var uniqueIDP: UInt32): Err; syscall sysTrapVFSMgr, vfsTrapFileDBGetRecord;
+
 
 implementation
-
-(**)
-function __VFSInit: Err; syscall sysTrapVFSMgr;
-function __VFSCustomControl(fsCreator, apiCreator: UInt32; apiSelector: UInt16;
-                          valueP: Pointer; var valueLenP: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSFileCreate(volRefNum: UInt16; const pathNameP: PChar): Err; syscall sysTrapVFSMgr;
-function __VFSFileOpen(volRefNum: UInt16; const pathNameP: PChar; openMode: UInt16; var fileRefP: FileRef): Err; syscall sysTrapVFSMgr;
-function __VFSFileClose(fileRef: FileRef): Err; syscall sysTrapVFSMgr;
-function __VFSFileReadData(fileRef: FileRef; numBytes: UInt32; bufBaseP: Pointer;
-                         offset: UInt32; var numBytesReadP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileRead(fileRef: FileRef; numBytes: UInt32; bufP: Pointer; var numBytesReadP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileWrite(fileRef: FileRef; numBytes: UInt32; const dataP: Pointer; var numBytesWrittenP: UInt32): Err; syscall sysTrapVFSMgr;
-// some file routines work on directories
-function __VFSFileDelete(volRefNum: UInt16; const pathNameP: PChar): Err; syscall sysTrapVFSMgr;
-function __VFSFileRename(volRefNum: UInt16; const pathNameP, newNameP: PChar): Err; syscall sysTrapVFSMgr;
-function __VFSFileSeek(fileRef: FileRef; origin: FileOrigin; offset: Int32): Err; syscall sysTrapVFSMgr;
-function __VFSFileEOF(fileRef: FileRef): Err; syscall sysTrapVFSMgr;
-function __VFSFileTell(fileRef: FileRef; var filePosP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileSize(fileRef: FileRef; var fileSizeP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileResize(fileRef: FileRef; newSize: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileGetAttributes(fileRef: FileRef; var attributesP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileSetAttributes(fileRef: FileRef; attributes: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileGetDate(fileRef: FileRef; whichDate: UInt16; var dateP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSFileSetDate(fileRef: FileRef; whichDate: UInt16; date: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSDirCreate(volRefNum: UInt16; const dirNameP: PChar): Err; syscall sysTrapVFSMgr;
-function __VFSDirEntryEnumerate(dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err; syscall sysTrapVFSMgr;
-function __VFSGetDefaultDirectory(volRefNum: UInt16; const fileTypeStr: PChar;
-                                pathStr: PChar; var bufLenP: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSRegisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32;
-                                     const pathStr: PChar): Err; syscall sysTrapVFSMgr;
-function __VFSUnregisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeFormat(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeMount(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeUnmount(volRefNum: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeEnumerate(var volRefNumP: UInt16; var volIteratorP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeInfo(volRefNum: UInt16; var volInfoP: VolumeInfoType): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeGetLabel(volRefNum: UInt16; labelP: PChar; bufLen: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeSetLabel(volRefNum: UInt16; const labelP: PChar): Err; syscall sysTrapVFSMgr;
-function __VFSVolumeSize(volRefNum: UInt16; var volumeUsedP, volumeTotalP: UInt32): Err; syscall sysTrapVFSMgr;
-function __VFSInstallFSLib(creator: UInt32; var fsLibRefNumP: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSRemoveFSLib(fsLibRefNum: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSImportDatabaseFromFile(volRefNum: UInt16; const pathNameP: PChar;
-                                   var cardNoP: UInt16; var dbIDP: LocalID): Err; syscall sysTrapVFSMgr;
-function __VFSImportDatabaseFromFileCustom(volRefNum: UInt16; const pathNameP: PChar;
-                                         var cardNoP: UInt16; var dbIDP: LocalID;
-                                         importProcP: VFSImportProcPtr; userDataP: Pointer): Err; syscall sysTrapVFSMgr;
-function __VFSExportDatabaseToFile(volRefNum: UInt16; const pathNameP: PChar;
-                                 cardNo: UInt16; dbID: LocalID): Err; syscall sysTrapVFSMgr;
-function __VFSExportDatabaseToFileCustom(volRefNum: UInt16; const pathNameP: PChar;
-                                       cardNo: UInt16; dbID: LocalID;
-                                       exportProcP: VFSExportProcPtr; userDataP: Pointer): Err; syscall sysTrapVFSMgr;
-function __VFSFileDBGetResource(ref: FileRef; type_: DmResType; resID: DmResID; var resHP: MemHandle): Err; syscall sysTrapVFSMgr;
-function __VFSFileDBInfo(ref: FileRef; nameP: PChar; var attributesP, versionP: UInt16;
-                       var crDateP, modDateP, bckUpDateP, modNumP: UInt32;
-                       var appInfoHP, sortInfoHP: MemHandle; var typeP, creatorP: UInt32;
-                       var numRecordsP: UInt16): Err; syscall sysTrapVFSMgr;
-function __VFSFileDBGetRecord(ref: FileRef; recIndex: UInt16; var recHP: MemHandle;
-                            var recAttrP: UInt8; var uniqueIDP: UInt32): Err; syscall sysTrapVFSMgr;
-(**)
-
-function VFSInit: Err;
-begin
- asm
-  move.l #vfsTrapInit, D2;
- end;
- VFSInit := __VFSInit;
-end;
-
-function VFSCustomControl(fsCreator, apiCreator: UInt32; apiSelector: UInt16;
-                          valueP: Pointer; var valueLenP: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapCustomControl, D2;
- end;
- VFSCustomControl := __VFSCustomControl(fsCreator, apiCreator, apiSelector, valueP, valueLenP);
-end;
-
-function VFSFileCreate(volRefNum: UInt16; const pathNameP: PChar): Err;
-begin
- asm
-  move.l #vfsTrapFileCreate, D2;
- end;
- VFSFileCreate := __VFSFileCreate(volRefNum, pathNameP);
-end;
-
-function VFSFileOpen(volRefNum: UInt16; const pathNameP: PChar; openMode: UInt16; var fileRefP: FileRef): Err;
-begin
- asm
-  move.l #vfsTrapFileOpen, D2;
- end;
- VFSFileOpen := __VFSFileOpen(volRefNum, pathNameP, openMode, fileRefP);
-end;
-
-function VFSFileClose(fileRef: FileRef): Err;
-begin
- asm
-  move.l #vfsTrapFileClose, D2;
- end;
- VFSFileClose := __VFSFileClose(fileRef);
-end;
-
-function VFSFileReadData(fileRef: FileRef; numBytes: UInt32; bufBaseP: Pointer;
-                         offset: UInt32; var numBytesReadP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileReadData, D2;
- end;
- VFSFileReadData := __VFSFileReadData(fileRef, numBytes, bufBaseP, offset, numBytesReadP);
-end;
-
-function VFSFileRead(fileRef: FileRef; numBytes: UInt32; bufP: Pointer; var numBytesReadP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileRead, D2;
- end;
- VFSFileRead := __VFSFileRead(fileRef, numBytes, bufP, numBytesReadP);
-end;
-
-function VFSFileWrite(fileRef: FileRef; numBytes: UInt32; const dataP: Pointer; var numBytesWrittenP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileWrite, D2;
- end;
- VFSFileWrite := __VFSFileWrite(fileRef, numBytes, dataP, numBytesWrittenP);
-end;
-
-function VFSFileDelete(volRefNum: UInt16; const pathNameP: PChar): Err;
-begin
- asm
-  move.l #vfsTrapFileDelete, D2;
- end;
- VFSFileDelete := __VFSFileDelete(volRefNum, pathNameP);
-end;
-
-function VFSFileRename(volRefNum: UInt16; const pathNameP, newNameP: PChar): Err;
-begin
- asm
-  move.l #vfsTrapFileRename, D2;
- end;
- VFSFileRename := __VFSFileRename(volRefNum, pathNameP, newNameP);
-end;
-
-function VFSFileSeek(fileRef: FileRef; origin: FileOrigin; offset: Int32): Err;
-begin
- asm
-  move.l #vfsTrapFileSeek, D2;
- end;
- VFSFileSeek := __VFSFileSeek(fileRef, origin, offset);
-end;
-
-function VFSFileEOF(fileRef: FileRef): Err;
-begin
- asm
-  move.l #vfsTrapFileEOF, D2;
- end;
- VFSFileEOF := __VFSFileEOF(fileRef);
-end;
-
-function VFSFileTell(fileRef: FileRef; var filePosP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileTell, D2;
- end;
- VFSFileTell := __VFSFileTell(fileRef, filePosP);
-end;
-
-function VFSFileSize(fileRef: FileRef; var fileSizeP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileSize, D2;
- end;
- VFSFileSize := __VFSFileSize(fileRef, fileSizeP);
-end;
-
-function VFSFileResize(fileRef: FileRef; newSize: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileResize, D2;
- end;
- VFSFileResize := __VFSFileResize(fileRef, newSize);
-end;
-
-function VFSFileGetAttributes(fileRef: FileRef; var attributesP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileGetAttributes, D2;
- end;
- VFSFileGetAttributes := __VFSFileGetAttributes(fileRef, attributesP);
-end;
-
-function VFSFileSetAttributes(fileRef: FileRef; attributes: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileSetAttributes, D2;
- end;
- VFSFileSetAttributes := __VFSFileSetAttributes(fileRef, attributes);
-end;
-
-function VFSFileGetDate(fileRef: FileRef; whichDate: UInt16; var dateP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileGetDate, D2;
- end;
- VFSFileGetDate := __VFSFileGetDate(fileRef, whichDate, dateP);
-end;
-
-function VFSFileSetDate(fileRef: FileRef; whichDate: UInt16; date: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileSetDate, D2;
- end;
- VFSFileSetDate := __VFSFileSetDate(fileRef, whichDate, date);
-end;
-
-function VFSDirCreate(volRefNum: UInt16; const dirNameP: PChar): Err;
-begin
- asm
-  move.l #vfsTrapDirCreate, D2;
- end;
- VFSDirCreate := __VFSDirCreate(volRefNum, dirNameP);
-end;
-
-function VFSDirEntryEnumerate(dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err;
-begin
- asm
-  move.l #vfsTrapDirEntryEnumerate, D2;
- end;
- VFSDirEntryEnumerate := __VFSDirEntryEnumerate(dirRef, dirEntryIteratorP, infoP);
-end;
-
-function VFSGetDefaultDirectory(volRefNum: UInt16; const fileTypeStr: PChar;
-                                pathStr: PChar; var bufLenP: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapGetDefaultDirectory, D2;
- end;
- VFSGetDefaultDirectory := __VFSGetDefaultDirectory(volRefNum, fileTypeStr, pathStr, bufLenP);
-end;
-
-function VFSRegisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32;
-                                     const pathStr: PChar): Err;
-begin
- asm
-  move.l #vfsTrapRegisterDefaultDirectory, D2;
- end;
- VFSRegisterDefaultDirectory := __VFSRegisterDefaultDirectory(fileTypeStr, mediaType, pathStr);
-end;
-
-function VFSUnregisterDefaultDirectory(const fileTypeStr: PChar; mediaType: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapUnregisterDefaultDirectory, D2;
- end;
- VFSUnregisterDefaultDirectory := __VFSUnregisterDefaultDirectory(fileTypeStr, mediaType);
-end;
-
-function VFSVolumeFormat(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err;
-begin
- asm
-  move.l #vfsTrapVolumeFormat, D2;
- end;
- VFSVolumeFormat := __VFSVolumeFormat(flags, fsLibRefNum, vfsMountParamP);
-end;
-
-function VFSVolumeMount(flags: UInt8; fsLibRefNum: UInt16; vfsMountParamP: VFSAnyMountParamPtr): Err;
-begin
- asm
-  move.l #vfsTrapVolumeMount, D2;
- end;
- VFSVolumeMount := __VFSVolumeMount(flags, fsLibRefNum, vfsMountParamP);
-end;
-
-function VFSVolumeUnmount(volRefNum: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapVolumeUnmount, D2;
- end;
- VFSVolumeUnmount := __VFSVolumeUnmount(volRefNum);
-end;
-
-function VFSVolumeEnumerate(var volRefNumP: UInt16; var volIteratorP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapVolumeEnumerate, D2;
- end;
- VFSVolumeEnumerate := __VFSVolumeEnumerate(volRefNumP, volIteratorP);
-end;
-
-function VFSVolumeInfo(volRefNum: UInt16; var volInfoP: VolumeInfoType): Err;
-begin
- asm
-  move.l #vfsTrapVolumeInfo, D2;
- end;
- VFSVolumeInfo := __VFSVolumeInfo(volRefNum, volInfoP);
-end;
-
-function VFSVolumeGetLabel(volRefNum: UInt16; labelP: PChar; bufLen: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapVolumeGetLabel, D2;
- end;
- VFSVolumeGetLabel := __VFSVolumeGetLabel(volRefNum, labelP, bufLen);
-end;
-
-function VFSVolumeSetLabel(volRefNum: UInt16; const labelP: PChar): Err;
-begin
- asm
-  move.l #vfsTrapVolumeSetLabel, D2;
- end;
- VFSVolumeSetLabel := __VFSVolumeSetLabel(volRefNum, labelP);
-end;
-
-function VFSVolumeSize(volRefNum: UInt16; var volumeUsedP, volumeTotalP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapVolumeSize, D2;
- end;
- VFSVolumeSize := __VFSVolumeSize(volRefNum, volumeUsedP, volumeTotalP);
-end;
-
-function VFSInstallFSLib(creator: UInt32; var fsLibRefNumP: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapInstallFSLib, D2;
- end;
- VFSInstallFSLib := __VFSInstallFSLib(creator, fsLibRefNumP);
-end;
-
-function VFSRemoveFSLib(fsLibRefNum: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapRemoveFSLib, D2;
- end;
- VFSRemoveFSLib := __VFSRemoveFSLib(fsLibRefNum);
-end;
-
-function VFSImportDatabaseFromFile(volRefNum: UInt16; const pathNameP: PChar;
-                                   var cardNoP: UInt16; var dbIDP: LocalID): Err;
-begin
- asm
-  move.l #vfsTrapImportDatabaseFromFile, D2;
- end;
- VFSImportDatabaseFromFile := __VFSImportDatabaseFromFile(volRefNum, pathNameP, cardNoP, dbIDP);
-end;
-
-function VFSImportDatabaseFromFileCustom(volRefNum: UInt16; const pathNameP: PChar;
-                                         var cardNoP: UInt16; var dbIDP: LocalID;
-                                         importProcP: VFSImportProcPtr; userDataP: Pointer): Err;
-begin
- asm
-  move.l #vfsTrapImportDatabaseFromFileCustom, D2;
- end;
- VFSImportDatabaseFromFileCustom := __VFSImportDatabaseFromFileCustom(volRefNum, pathNameP,
-                                    cardNoP, dbIDP, importProcP, userDataP);
-end;
-
-function VFSExportDatabaseToFile(volRefNum: UInt16; const pathNameP: PChar;
-                                 cardNo: UInt16; dbID: LocalID): Err;
-begin
- asm
-  move.l #vfsTrapExportDatabaseToFile, D2;
- end;
- VFSExportDatabaseToFile := __VFSExportDatabaseToFile(volRefNum, pathNameP, cardNo, dbID);
-end;
-
-function VFSExportDatabaseToFileCustom(volRefNum: UInt16; const pathNameP: PChar;
-                                       cardNo: UInt16; dbID: LocalID;
-                                       exportProcP: VFSExportProcPtr; userDataP: Pointer): Err;
-begin
- asm
-  move.l #vfsTrapExportDatabaseToFileCustom, D2;
- end;
- VFSExportDatabaseToFileCustom := __VFSExportDatabaseToFileCustom(volRefNum, pathNameP,
-                                  cardNo, dbID, exportProcP, userDataP);
-end;
-
-function VFSFileDBGetResource(ref: FileRef; type_: DmResType; resID: DmResID; var resHP: MemHandle): Err;
-begin
- asm
-  move.l #vfsTrapFileDBGetResource, D2;
- end;
- VFSFileDBGetResource := __VFSFileDBGetResource(ref, type_, resID, resHP);
-end;
-
-function VFSFileDBInfo(ref: FileRef; nameP: PChar; var attributesP, versionP: UInt16;
-                       var crDateP, modDateP, bckUpDateP, modNumP: UInt32;
-                       var appInfoHP, sortInfoHP: MemHandle; var typeP, creatorP: UInt32;
-                       var numRecordsP: UInt16): Err;
-begin
- asm
-  move.l #vfsTrapFileDBInfo, D2;
- end;
- VFSFileDBInfo := __VFSFileDBInfo(ref, nameP, attributesP, versionP, crDateP, modDateP,
-                  bckUpDateP, modNumP, appInfoHP, sortInfoHP, typeP, creatorP, numRecordsP);
-end;
-
-function VFSFileDBGetRecord(ref: FileRef; recIndex: UInt16; var recHP: MemHandle;
-                            var recAttrP: UInt8; var uniqueIDP: UInt32): Err;
-begin
- asm
-  move.l #vfsTrapFileDBGetRecord, D2;
- end;
- VFSFileDBGetRecord := __VFSFileDBGetRecord(ref, recIndex, recHP, recAttrP, uniqueIDP);
-end;
 
 end.

@@ -290,15 +290,15 @@ const
                 // Note: FlpBase10Info returns the actual sign bit in *signP (1 if negative)
                 // Note: FlpBase10Info reports that zero is "negative".
                 //          A workaround is to check (*signP && *mantissaP) instead of just *signP.
-function FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err;
+function FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err; syscall sysTrapFlpDispatch, sysFloatBase10Info;
 
-function FlpFToA(a: FlpDouble; s: PChar): Err;
+function FlpFToA(a: FlpDouble; s: PChar): Err; syscall sysTrapFlpDispatch, sysFloatFToA;
 
-function FlpAToF(const s: PChar): FlpDouble;
+function FlpAToF(const s: PChar): FlpDouble; syscall sysTrapFlpDispatch, sysFloatAToF;
 
-function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble;
+function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble; syscall sysTrapFlpDispatch, sysFloatCorrectedAdd;
 
-function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: Int16): FlpDouble;
+function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: Int16): FlpDouble; syscall sysTrapFlpDispatch, sysFloatCorrectedSub;
 
 // These next three functions correspond to the previous three above.
 // The signatures are different, but in fact with CodeWarrior for Palm OS
@@ -323,13 +323,13 @@ function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: I
 //
 // See the SDK's SampleCalc example for further discussion.
 
-procedure FlpBufferAToF(var result: FlpDouble; const s: PChar);
+procedure FlpBufferAToF(var result: FlpDouble; const s: PChar); syscall sysTrapFlpDispatch, sysFloatAToF;
 
-procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
+procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); syscall sysTrapFlpDispatch, sysFloatCorrectedAdd;
 
-procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
+procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); syscall sysTrapFlpDispatch, sysFloatCorrectedSub;
 
-function FlpVersion: UInt32;
+function FlpVersion: UInt32; syscall sysTrapFlpDispatch, sysFloatVersion;
 
 //procedure FlpSelectorErrPrv(flpSelector: UInt16); // used only by NewFloatDispatch.c
 
@@ -360,15 +360,15 @@ function FlpVersion: UInt32;
  *      flpToNearest, flpTowardZero, flpUpward, or flpDownward
  *)
 
-function _fp_round(Value: Int32): Int32;
+function _fp_round(Value: Int32): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_fp_round;
 
 (*
  * Constants passed to _fp_set_fpscr and received from _fp_get_fpscr are:
  *      flpInvalid, flpOverflow, flpUnderflow, flpDivByZero, or flpInexact
  *)
 
-function _fp_get_fpscr: Int32;
-procedure _fp_set_fpscr(Value: Int32);
+function _fp_get_fpscr: Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_fp_get_fpscr;
+procedure _fp_set_fpscr(Value: Int32); syscall sysTrapFlpEmDispatch, sysFloatEm_fp_set_fpscr;
 
 (*
  * The shorthand here can be determined from the context:
@@ -382,33 +382,33 @@ procedure _fp_set_fpscr(Value: Int32);
  *      XtoY--> map of type X to a value of type Y
  *)
 
-function _f_utof(Value: UInt32): FlpFloat;
-function _f_itof(Value: Int32): FlpFloat;
+function _f_utof(Value: UInt32): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_utof;
+function _f_itof(Value: Int32): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_itof;
 //!!!function _f_ulltof(Value: sfpe_unsigned_long_long): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ulltof;
 //!!!function _f_lltof(Value: sfpe_long_long): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_lltof;
 
-function _d_utod(Value: UInt32): FlpDouble;
-function _d_itod(Value: Int32): FlpDouble;
+function _d_utod(Value: UInt32): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_utod;
+function _d_itod(Value: Int32): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_itod;
 //!!!function _d_ulltod(Value: sfpe_unsigned_long_long): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_ulltod;
 //!!!function _d_lltod(Value: sfpe_long_long): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_lltod;
 
-function _f_ftod(Value: FlpFloat): FlpDouble;
-function _d_dtof(Value: FlpDouble): FlpFloat;
+function _f_ftod(Value: FlpFloat): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftod;
+function _d_dtof(Value: FlpDouble): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtof;
 
 //!!!function _f_ftoq(Value: FlpFloat): FlpLongDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoq;
-function _f_qtof(var Value: FlpLongDouble): FlpFloat;
+function _f_qtof(var Value: FlpLongDouble): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_qtof;
 
 //!!!function _d_dtoq(Value: FlpDouble): FlpLongDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoq;
 //!!!function _d_qtod(var Value: FlpLongDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_qtod;
 
-function _f_ftou(Value: FlpFloat): UInt32;
-function _f_ftoi(Value: FlpFloat): Int32;
+function _f_ftou(Value: FlpFloat): UInt32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftou;
+function _f_ftoi(Value: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoi;
 
 //!!!function _f_ftoull(Value: FlpFloat): sfpe_unsigned_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoull;
 //!!!function _f_ftoll(Value: FlpFloat): sfpe_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoll;
 
-function _d_dtou(Value: FlpDouble): UInt32;
-function _d_dtoi(Value: FlpDouble): Int32;
+function _d_dtou(Value: FlpDouble): UInt32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtou;
+function _d_dtoi(Value: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoi;
 
 //!!!function _d_dtoull(Value: FlpDouble): sfpe_unsigned_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoull;
 //!!!function _d_dtoll(Value: FlpDouble): sfpe_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoll;
@@ -436,505 +436,41 @@ function _d_dtoi(Value: FlpDouble): Int32;
  *      or  --> ordered with (i.e. less than, equal to, or greater than)
  *)
 
-function _f_cmp(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_cmpe(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_feq(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_fne(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_flt(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_fle(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_fgt(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_fge(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_fun(Left: FlpFloat; Right: FlpFloat): Int32;
-function _f_for(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_cmp(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_cmp;
+function _f_cmpe(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_cmpe;
+function _f_feq(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_feq;
+function _f_fne(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_fne;
+function _f_flt(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_flt;
+function _f_fle(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_fle;
+function _f_fgt(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_fgt;
+function _f_fge(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_fge;
+function _f_fun(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_fun;
+function _f_for(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_f_for;
 
-function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_feq(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_fne(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_flt(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_fle(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_fgt(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_fge(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_fun(Left: FlpDouble; Right: FlpDouble): Int32;
-function _d_for(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_cmp;
+function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_cmpe;
+function _d_feq(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_feq;
+function _d_fne(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_fne;
+function _d_flt(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_flt;
+function _d_fle(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_fle;
+function _d_fgt(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_fgt;
+function _d_fge(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_fge;
+function _d_fun(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_fun;
+function _d_for(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch, sysFloatEm_d_for;
 
-function _f_neg(Value: FlpFloat): FlpFloat;
-function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-function _f_mul(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-function _f_sub(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-function _f_div(Left: FlpFloat; Right: FlpFloat): FlpFloat;
+function _f_neg(Value: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_neg;
+function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_add;
+function _f_mul(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_mul;
+function _f_sub(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_sub;
+function _f_div(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_div;
 
-function _d_neg(Value: FlpDouble): FlpDouble;
-function _d_add(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-function _d_mul(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-function _d_sub(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-function _d_div(Left: FlpDouble; Right: FlpDouble): FlpDouble;
+function _d_neg(Value: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_neg;
+function _d_add(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_add;
+function _d_mul(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_mul;
+function _d_sub(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_sub;
+function _d_div(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_div;
+
 
 implementation
-
-function __FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err; syscall sysTrapFlpDispatch;
-function __FlpFToA(a: FlpDouble; s: PChar): Err; syscall sysTrapFlpDispatch;
-function __FlpAToF(const s: PChar): FlpDouble; syscall sysTrapFlpDispatch;
-function __FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble; syscall sysTrapFlpDispatch;
-function __FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: Int16): FlpDouble; syscall sysTrapFlpDispatch;
-
-procedure __FlpBufferAToF(var result: FlpDouble; const s: PChar); syscall sysTrapFlpDispatch;
-procedure __FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); syscall sysTrapFlpDispatch;
-procedure __FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); syscall sysTrapFlpDispatch;
-function __FlpVersion: UInt32; syscall sysTrapFlpDispatch;
-
-function ___fp_round(Value: Int32): Int32; syscall sysTrapFlpEmDispatch;
-function ___fp_get_fpscr: Int32; syscall sysTrapFlpEmDispatch;
-procedure ___fp_set_fpscr(Value: Int32); syscall sysTrapFlpEmDispatch;
-function ___f_utof(Value: UInt32): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___f_itof(Value: Int32): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___d_utod(Value: UInt32): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___d_itod(Value: Int32): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___f_ftod(Value: FlpFloat): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___d_dtof(Value: FlpDouble): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___f_qtof(var Value: FlpLongDouble): FlpFloat; syscall sysTrapFlpEmDispatch;
-
-function ___f_ftou(Value: FlpFloat): UInt32; syscall sysTrapFlpEmDispatch;
-function ___f_ftoi(Value: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-
-function ___d_dtou(Value: FlpDouble): UInt32; syscall sysTrapFlpEmDispatch;
-function ___d_dtoi(Value: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-
-
-function FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err;
-begin
- asm
-  move.l #sysFloatBase10Info, D2;
- end;
- FlpBase10Info := __FlpBase10Info(a, mantissaP, exponentP, signP);
-end;
-
-function FlpFToA(a: FlpDouble; s: PChar): Err;
-begin
- asm
-  move.l #sysFloatFToA, D2;
- end;
- FlpFToA := __FlpFToA(a, s);
-end;
-
-function FlpAToF(const s: PChar): FlpDouble;
-begin
- asm
-  move.l #sysFloatAToF, D2
- end;
- FlpAToF := __FlpAToF(s);
-end;
-
-function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble;
-begin
- asm
-  move.l #sysFloatCorrectedAdd, D2
- end;
- FlpCorrectedAdd := __FlpCorrectedAdd(firstOperand, secondOperand, howAccurate);
-end;
-
-function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: Int16): FlpDouble;
-begin
- asm
-  move.l #sysFloatCorrectedSub, D2;
- end;
- FlpCorrectedSub := __FlpCorrectedSub(firstOperand, secondOperand, howAccurate);
-end;
-
-procedure FlpBufferAToF(var result: FlpDouble; const s: PChar);
-begin
- asm
-  move.l #sysFloatAToF, D2;
- end;
- __FlpBufferAToF(result, s);
-end;
-
-procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
-begin
- asm
-  move.l #sysFloatCorrectedAdd, D2;
- end;
- __FlpBufferCorrectedAdd(result, firstOperand, secondOperand, howAccurate);
-end;
-
-procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
-begin
- asm
-  move.l #sysFloatCorrectedSub, D2
- end;
- __FlpBufferCorrectedSub(result, firstOperand, secondOperand, howAccurate);
-end;
-
-function FlpVersion: UInt32;
-begin
- asm
-  move.l #sysFloatVersion, D2;
- end;
- FlpVersion := __FlpVersion;
-end;
-
-function _fp_round(Value: Int32): Int32;
-begin
- asm
-  move.l #sysFloatEm_fp_round, D2;
- end;
- _fp_round := ___fp_round(Value);
-end;
-
-function _fp_get_fpscr: Int32;
-begin
- asm
-  move.l #sysFloatEm_fp_get_fpscr, D2;
- end;
- _fp_get_fpscr := ___fp_get_fpscr;
-end;
-
-procedure _fp_set_fpscr(Value: Int32);
-begin
- asm
-  move.l #sysFloatEm_fp_set_fpscr, D2;
- end;
- ___fp_set_fpscr(Value);
-end;
-
-function _f_utof(Value: UInt32): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_utof, D2;
- end;
- _f_utof := ___f_utof(Value);
-end;
-
-function _f_itof(Value: Int32): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_itof, D2;
- end;
- _f_itof := ___f_itof(Value);
-end;
-
-function _d_utod(Value: UInt32): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_utod, D2;
- end;
- _d_utod := ___d_utod(Value);
-end;
-
-function _d_itod(Value: Int32): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_itod, D2;
- end;
- _d_itod := ___d_itod(Value);
-end;
-
-function _f_ftod(Value: FlpFloat): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_f_ftod, D2;
- end;
- _f_ftod := ___f_ftod(Value);
-end;
-
-function _d_dtof(Value: FlpDouble): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_d_dtof, D2;
- end;
- _d_dtof := ___d_dtof(Value);
-end;
-
-function _f_qtof(var Value: FlpLongDouble): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_qtof, D2;
- end;
- _f_qtof := ___f_qtof(Value);
-end;
-
-function _f_ftou(Value: FlpFloat): UInt32;
-begin
- asm
-  move.l #sysFloatEm_f_ftou, D2;
- end;
- _f_ftou := ___f_ftou(Value);
-end;
-
-function _f_ftoi(Value: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_ftoi, D2;
- end;
- _f_ftoi := ___f_ftoi(Value);
-end;
-
-function _d_dtou(Value: FlpDouble): UInt32;
-begin
- asm
-  move.l #sysFloatEm_d_dtou, D2;
- end;
- _d_dtou := ___d_dtou(Value);
-end;
-
-function _d_dtoi(Value: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_dtoi, D2;
- end;
- _d_dtoi := ___d_dtoi(Value);
-end;
-
-function ___f_cmp(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_cmpe(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_feq(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_fne(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_flt(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_fle(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_fgt(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_fge(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_fun(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-function ___f_for(Left: FlpFloat; Right: FlpFloat): Int32; syscall sysTrapFlpEmDispatch;
-
-function ___d_cmp(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_feq(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_fne(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_flt(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_fle(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_fgt(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_fge(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_fun(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-function ___d_for(Left: FlpDouble; Right: FlpDouble): Int32; syscall sysTrapFlpEmDispatch;
-
-function ___f_neg(Value: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___f_mul(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___f_sub(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch;
-function ___f_div(Left: FlpFloat; Right: FlpFloat): FlpFloat; syscall sysTrapFlpEmDispatch;
-
-function ___d_neg(Value: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___d_add(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___d_mul(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___d_sub(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch;
-function ___d_div(Left: FlpDouble; Right: FlpDouble): FlpDouble; syscall sysTrapFlpEmDispatch;
-
-
-function _f_cmp(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_cmp , D2
- end;
- _f_cmp := ___f_cmp(Left, Right);
-end;
-function _f_cmpe(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_cmpe , D2
- end;
- _f_cmpe := ___f_cmpe(Left, Right);
-end;
-function _f_feq(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_feq , D2
- end;
- _f_feq := ___f_feq(Left, Right);
-end;
-function _f_fne(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_fne , D2
- end;
- _f_fne := ___f_fne(Left, Right);
-end;
-function _f_flt(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_flt, D2;
- end;
- _f_flt := ___f_flt(Left, Right);
-end;
-function _f_fle(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_fle, D2;
- end;
- _f_fle := ___f_fle(Left, Right);
-end;
-function _f_fgt(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_fgt, D2;
- end;
- _f_fgt := ___f_fgt(Left, Right);
-end;
-function _f_fge(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_fge, D2;
- end;
- _f_fge := ___f_fge(Left, Right);
-end;
-function _f_fun(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_fun, D2;
- end;
- _f_fun := ___f_fun(Left, Right);
-end;
-function _f_for(Left: FlpFloat; Right: FlpFloat): Int32;
-begin
- asm
-  move.l #sysFloatEm_f_for, D2
- end;
- _f_for := ___f_for(Left, Right);
-end;
-function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_cmp, D2
- end;
- _d_cmp := ___d_cmp(Left, Right);
-end;
-function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_cmpe, D2;
- end;
- _d_cmpe := ___d_cmpe(Left, Right);
-end;
-function _d_feq(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_feq, D2;
- end;
- _d_feq := ___d_feq(Left, Right);
-end;
-function _d_fne(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_fne, D2;
- end;
- _d_fne := ___d_fne(Left, Right);
-end;
-function _d_flt(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_flt, D2;
- end;
- _d_flt := ___d_flt(Left, Right);
-end;
-function _d_fle(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_fle, D2
- end;
- _d_fle := ___d_fle(Left, Right);
-end;
-function _d_fgt(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_fgt, D2;
- end;
- _d_fgt := ___d_fgt(Left, Right);
-end;
-function _d_fge(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_fge, D2;
- end;
- _d_fge := ___d_fge(Left, Right);
-end;
-
-function _d_fun(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_fun, D2
- end;
- _d_fun := ___d_fun(Left, Right);
-end;
-
-function _d_for(Left: FlpDouble; Right: FlpDouble): Int32;
-begin
- asm
-  move.l #sysFloatEm_d_for, D2
- end;
- _d_for := ___d_for(Left, Right);
-end;
-function _f_neg(Value: FlpFloat): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_neg, D2;
- end;
- _f_neg := ___f_neg(Value);
-end;
-function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_add, D2;
- end;
- _f_add := ___f_add(Left, Right);
-end;
-function _f_mul(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_mul, D2;
- end;
- _f_mul := ___f_mul(Left, Right);
-end;
-function _f_sub(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_sub, D2;
- end;
- _f_sub := ___f_sub(Left, Right);
-end;
-function _f_div(Left: FlpFloat; Right: FlpFloat): FlpFloat;
-begin
- asm
-  move.l #sysFloatEm_f_div, D2
- end;
- _f_div := ___f_div(Left, Right);
-end;
-function _d_neg(Value: FlpDouble): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_neg, D2;
- end;
- _d_neg := ___d_neg(Value);
-end;
-
-function _d_add(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_add, D2;
- end;
- _d_add := ___d_add(Left, Right);
-end;
-
-function _d_mul(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_mul, D2;
- end;
- _d_mul := ___d_mul(Left, Right);
-end;
-
-function _d_sub(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_sub, D2;
- end;
- _d_sub := ___d_sub(Left, Right);
-end;
-
-function _d_div(Left: FlpDouble; Right: FlpDouble): FlpDouble;
-begin
- asm
-  move.l #sysFloatEm_d_div, D2;
- end;
- _d_div := ___d_div(Left, Right);
-end;
 
 end.
