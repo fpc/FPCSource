@@ -2183,8 +2183,18 @@ begin
   if target_info.system = system_m68k_palmos then
     begin
       v:=get_intconst;
-      tprocdef(pd).import_nr:=longint(v.svalue);
-      tprocdef(pd).extnumber:=15;
+      tprocdef(pd).extnumber:=longint(v.svalue);
+      if ((v<0) or (v>high(word))) then
+        message(parser_e_range_check_error);
+
+      if try_to_consume(_COMMA) then
+        begin
+          v:=get_intconst;
+          if ((v<0) or (v>high(word))) then
+            message(parser_e_range_check_error);
+          tprocdef(pd).import_nr:=longint(v.svalue);
+          include(pd.procoptions,po_syscall_has_importnr);
+        end;
       exit;
     end;
 

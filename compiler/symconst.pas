@@ -355,6 +355,8 @@ type
     po_syscall_basereg,
     { Used to record the fact that a symbol is associated to this syscall }
     po_syscall_has_libsym,
+    { Syscall uses the import Nr. }
+    po_syscall_has_importnr,
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
