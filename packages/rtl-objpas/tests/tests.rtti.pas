@@ -95,9 +95,11 @@ type
     s: string;
   end;
 
+{$ifdef fpc}
   TManagedRecOp = record
     class operator AddRef(var a: TManagedRecOp);
   end;
+{$endif}
 
   TNonManagedRec = record
     i: Integer;
@@ -132,9 +134,11 @@ type
 
 {$POP}
 
+{$ifdef fpc}
 class operator TManagedRecOp.AddRef(var  a: TManagedRecOp);
 begin
 end;
+{$endif}
 
 { TTestValueClass }
 
@@ -745,7 +749,9 @@ begin
   CheckEquals(true, IsManaged(TypeInfo(TArrayOfString)),
     'IsManaged for tkArray (with managed ElType)');
   CheckEquals(true, IsManaged(TypeInfo(TManagedRec)), 'IsManaged for tkRecord');
+  {$ifdef fpc}
   CheckEquals(true, IsManaged(TypeInfo(TManagedRecOp)), 'IsManaged for tkRecord');
+  {$endif}
   CheckEquals(true, IsManaged(TypeInfo(IInterface)), 'IsManaged for tkInterface');
   CheckEquals(true, IsManaged(TypeInfo(TManagedObj)), 'IsManaged for tkObject');
   {$ifdef fpc}
