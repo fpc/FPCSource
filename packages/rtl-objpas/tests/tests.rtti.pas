@@ -776,7 +776,12 @@ begin
   CheckEquals(false, IsManaged(TypeInfo(TTestEnum)), 'IsManaged for tkEnumeration');
   CheckEquals(false, IsManaged(TypeInfo(Single)), 'IsManaged for tkFloat');
   CheckEquals(false, IsManaged(TypeInfo(TTestSet)), 'IsManaged for tkSet');
+  {$ifdef fpc}
   CheckEquals(false, IsManaged(TypeInfo(TTestMethod)), 'IsManaged for tkMethod');
+  {$else}
+  { for some reason Delphi considers method pointers to be managed :/ }
+  CheckEquals(true, IsManaged(TypeInfo(TTestMethod)), 'IsManaged for tkMethod');
+  {$endif}
   CheckEquals(false, IsManaged(TypeInfo(TArrayOfByte)),
     'IsManaged for tkArray (with non managed ElType)');
   CheckEquals(false, IsManaged(TypeInfo(TArrayOfNonManagedRec)),
