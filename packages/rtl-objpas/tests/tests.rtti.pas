@@ -126,6 +126,7 @@ type
   TArrayOfNonManagedRec = array[0..0] of TNonManagedRec;
   TArrayOfByte = array[0..0] of byte;
 
+{$ifdef fpc}
 {$PUSH}
 {$INTERFACES CORBA}
 
@@ -133,6 +134,7 @@ type
   end;
 
 {$POP}
+{$endif}
 
 {$ifdef fpc}
 class operator TManagedRecOp.AddRef(var  a: TManagedRecOp);
@@ -778,7 +780,9 @@ begin
   CheckEquals(false, IsManaged(TypeInfo(Boolean)), 'IsManaged for tkBool');
   CheckEquals(false, IsManaged(TypeInfo(Int64)), 'IsManaged for tkInt64');
   CheckEquals(false, IsManaged(TypeInfo(UInt64)), 'IsManaged for tkQWord');
+  {$ifdef fpc}
   CheckEquals(false, IsManaged(TypeInfo(ICORBATest)), 'IsManaged for tkInterfaceRaw');
+  {$endif}
   CheckEquals(false, IsManaged(TypeInfo(TTestProc)), 'IsManaged for tkProcVar');
   CheckEquals(false, IsManaged(TypeInfo(TTestHelper)), 'IsManaged for tkHelper');
   CheckEquals(false, IsManaged(TypeInfo(file)), 'IsManaged for tkFile');
