@@ -785,7 +785,9 @@ begin
   {$endif}
   CheckEquals(false, IsManaged(TypeInfo(TTestProc)), 'IsManaged for tkProcVar');
   CheckEquals(false, IsManaged(TypeInfo(TTestHelper)), 'IsManaged for tkHelper');
+  {$ifdef fpc}
   CheckEquals(false, IsManaged(TypeInfo(file)), 'IsManaged for tkFile');
+  {$endif}
   CheckEquals(false, IsManaged(TypeInfo(TClass)), 'IsManaged for tkClassRef');
   CheckEquals(false, IsManaged(TypeInfo(Pointer)), 'IsManaged for tkPointer');
   CheckEquals(false, IsManaged(nil), 'IsManaged for nil');
