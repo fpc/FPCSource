@@ -55,6 +55,7 @@ implementation
 
 type
 
+  {$M+}
   TGetClassProperties = class
   private
     FPubPropRO: integer;
@@ -65,9 +66,11 @@ type
     property PubPropSetRO: integer read FPubPropRO;
     property PubPropSetRW: integer read FPubPropRW write FPubPropRW;
   end;
+  {$M-}
 
   { TTestValueClass }
 
+  {$M+}
   TTestValueClass = class
   private
     FAInteger: integer;
@@ -90,6 +93,7 @@ type
     property AGetShortString: ShortString read GetAShortString;
     property AWriteOnly: integer write SetWriteOnly;
   end;
+  {$M-}
 
   TManagedRec = record
     s: string;
