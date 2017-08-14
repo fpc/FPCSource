@@ -481,6 +481,7 @@ begin
     tkSString  : result.FData.FValueData := TValueDataIntImpl.Create(@PShortString(ABuffer)^[1],Length(PShortString(ABuffer)^));
     tkAString  : result.FData.FValueData := TValueDataIntImpl.Create(@PAnsiString(ABuffer)^[1],length(PAnsiString(ABuffer)^));
     tkClass    : result.FData.FAsObject := PPointer(ABuffer)^;
+    tkClassRef : result.FData.FAsClass := PClass(ABuffer)^;
     tkInt64    : result.FData.FAsSInt64 := PInt64(ABuffer)^;
     tkQWord    : result.FData.FAsUInt64 := PQWord(ABuffer)^;
     tkInteger  : begin
@@ -592,7 +593,7 @@ end;
 
 function TValue.IsClass: boolean;
 begin
-  result := false;
+  result := Kind = tkClassRef;
 end;
 
 function TValue.AsClass: TClass;
