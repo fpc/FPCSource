@@ -485,7 +485,7 @@ begin
       AProperty := ARttiType.GetProperty('astring');
 
       s := 'ipse lorem or something like that';
-      TValue.Make(@s, TypeInfo(s), AValue);
+      TValue.Make(@s, TypeInfo(string), AValue);
       AProperty.SetValue(ATestClass, AValue);
       CheckEquals(ATestClass.AString, s);
       s := 'Another string';
@@ -515,7 +515,7 @@ begin
       AProperty := ARttiType.GetProperty('aInteger');
 
       i := -43573;
-      TValue.Make(@i, TypeInfo(i), AValue);
+      TValue.Make(@i, TypeInfo(Integer), AValue);
       AProperty.SetValue(ATestClass, AValue);
       CheckEquals(ATestClass.AInteger, i);
       i := 1;
@@ -545,12 +545,12 @@ begin
       AProperty := ARttiType.GetProperty('aboolean');
 
       b := true;
-      TValue.Make(@b, TypeInfo(b), AValue);
+      TValue.Make(@b, TypeInfo(Boolean), AValue);
       AProperty.SetValue(ATestClass, AValue);
       CheckEquals(ATestClass.ABoolean, b);
       b := false;
       CheckEquals(ATestClass.ABoolean, true);
-      TValue.Make(@b, TypeInfo(b), AValue);
+      TValue.Make(@b, TypeInfo(Boolean), AValue);
       AProperty.SetValue(ATestClass, AValue);
       CheckEquals(ATestClass.ABoolean, false);
     finally
@@ -579,14 +579,14 @@ begin
       AProperty := ARttiType.GetProperty('aShortString');
 
       s := 'ipse lorem or something like that';
-      TValue.Make(@s, TypeInfo(s), AValue);
+      TValue.Make(@s, TypeInfo(String), AValue);
       AProperty.SetValue(ATestClass, AValue);
       CheckEquals(ATestClass.AShortString, s);
       s := 'Another string';
       CheckEquals(ATestClass.AShortString, 'ipse lorem or something like that');
 
       ss := 'Hello World';
-      TValue.Make(@ss, TypeInfo(ss), AValue);
+      TValue.Make(@ss, TypeInfo(ShortString), AValue);
       AProperty.SetValue(ATestClass, AValue);
       CheckEquals(ATestClass.AShortString, ss);
       ss := 'Foobar';
