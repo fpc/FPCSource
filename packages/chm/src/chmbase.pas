@@ -125,7 +125,7 @@ const
   function WriteCompressedInteger(Buffer: Pointer; ANumber: DWord): DWord;
   
   // stupid needed function
-  function ChmCompareText(S1, S2: String): Integer; inline;
+  function ChmCompareText(const S1, S2: String): Integer; inline;
 
 
 implementation
@@ -137,18 +137,20 @@ var
   Sanity: Integer = 0;
 begin
   try
-  temp := Stream.ReadByte;
-  while temp >= $80 do begin
-    total := total shl 7;
-    total := total + temp and $7f;
     temp := Stream.ReadByte;
-    Inc(Sanity);
-    if Sanity > 8 then begin
-      Result := 0;
-      Exit;
+    while temp >= $80 do
+    begin
+      total := total shl 7;
+      total := total + temp and $7f;
+      temp := Stream.ReadByte;
+      Inc(Sanity);
+      if Sanity > 8 then
+      begin
+        Result := 0;
+        Exit;
+      end;
     end;
-  end;
-  Result := (total shl 7) + temp;
+    Result := (total shl 7) + temp;
   except
     Result := 0;
   end;
@@ -200,7 +202,7 @@ begin
   {$endif}
 end;
 
-function ChmCompareText(S1, S2: String): Integer; inline;
+function ChmCompareText(const S1, S2: String): Integer;
 begin
   // for our purposes the CompareText function will not work.
   Result := CompareStr(LowerCase(S1), Lowercase(S2));
