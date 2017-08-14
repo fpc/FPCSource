@@ -695,7 +695,11 @@ begin
   LContext := TRttiContext.Create;
 
   LType := LContext.GetType(TypeInfo(integer));
+{$ifdef fpc}
   CheckEquals(LType.Name, 'LongInt');
+{$else}
+  CheckEquals(LType.Name, 'Integer');
+{$endif}
 
   LContext.Free;
 end;
