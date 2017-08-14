@@ -55,7 +55,7 @@ type
 
   { TValue }
 
-  TValue = object
+  TValue = record
   private
     FData: TValueData;
     function GetTypeDataProp: PTypeData; inline;
@@ -63,8 +63,8 @@ type
     function GetTypeKind: TTypeKind; inline;
     function GetIsEmpty: boolean; inline;
   public
-    class function Empty: TValue;
-    class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
+    class function Empty: TValue; static;
+    class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
     function IsArray: boolean;
     function AsString: string;
     function AsExtended: Extended;
