@@ -3968,9 +3968,9 @@ A*2Tsymbian_Symbian
 A*2Twince_Windows CE
 J*2Tandroid_Android
 J*2Tjava_Java
+m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
-M*2Tandroid_Android
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
 P*2Taix_AIX
