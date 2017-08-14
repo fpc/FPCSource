@@ -84,7 +84,7 @@ type
     function AsBoolean: boolean;
     function AsCurrency: Currency;
     function AsInteger: Integer;
-    function ToString: string;
+    function ToString: String;
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
     property Kind: TTypeKind read GetTypeKind;
@@ -625,7 +625,7 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
-function TValue.AsOrdinal: int64;
+function TValue.AsOrdinal: Int64;
 begin
   if IsOrdinal then
     case TypeData^.OrdType of
