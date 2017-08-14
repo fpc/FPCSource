@@ -508,7 +508,10 @@ begin
     tkFloat    : begin
                    case GetTypeData(ATypeInfo)^.FloatType of
                      ftCurr   : result.FData.FAsCurr := PCurrency(ABuffer)^;
+                     ftSingle : result.FData.FAsSingle := PSingle(ABuffer)^;
                      ftDouble : result.FData.FAsDouble := PDouble(ABuffer)^;
+                     ftExtended: result.FData.FAsExtended := PExtended(ABuffer)^;
+                     ftComp   : result.FData.FAsComp := PComp(ABuffer)^;
                    end;
                  end;
   else
@@ -563,6 +566,7 @@ begin
   if Kind = tkFloat then
     begin
     case TypeData^.FloatType of
+      ftSingle   : result := FData.FAsSingle;
       ftDouble   : result := FData.FAsDouble;
       ftExtended : result := FData.FAsExtended;
     else
