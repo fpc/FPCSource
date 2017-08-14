@@ -606,7 +606,7 @@ end;
 
 function TValue.IsOrdinal: boolean;
 begin
-  result := Kind in [tkInteger, tkInt64, tkBool];
+  result := Kind in [tkInteger, tkInt64, tkQWord, tkBool];
 end;
 
 function TValue.AsBoolean: boolean;
