@@ -1688,9 +1688,9 @@ const msgtxt : array[0..000334,1..240] of char=(
   'A*2Twince_Windows CE'#010+
   'J*2Tandroid_Android'#010+
   'J*2Tjava_Java'#010+
+  'm*2Tandroid_Android'#010+
   'm*2Tembedded_Embedded'#010+
   'm*2Tlinux_Linux'#010+
-  'M*2Tandroid_Android'#010+
   'M*','2Tembedded_Embedded'#010+
   'M*2Tlinux_Linux'#010+
   'P*2Taix_AIX'#010+
