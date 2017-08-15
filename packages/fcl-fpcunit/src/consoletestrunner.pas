@@ -497,6 +497,8 @@ var
 begin
   Terminate;
   FormatParam := DefaultFormat;
+  If DefaultRunAllTests then
+    FRunMode:=rmAll;
   S := CheckOptions(GetShortOpts, LongOpts);
   if (S <> '') then
     begin
