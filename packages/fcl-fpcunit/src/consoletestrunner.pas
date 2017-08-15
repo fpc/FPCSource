@@ -384,7 +384,7 @@ Function TTestRunner.ParseOptions : Boolean;
 
 begin
   Result:=True;
-  if HasOption('h', 'help') or ((ParamCount = 0) and not DefaultRunAllTests) then
+  if HasOption('h', 'help') or ((ParamCount = 0) and (FRunMode<>rmAll)) then
     begin
     Usage;
     Exit(False);
