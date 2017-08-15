@@ -38,7 +38,7 @@ begin
   	allocatedPointer);
   	
   case status of
-  	EFI_SUCCESS : sysTable.ConOut^.OutputString(sysTable.ConOut, 'Success' + #13#10);
+  	EFI_SUCCESS : sysTable.ConOut^.OutputString(sysTable.ConOut, 'Success in SysOSAlloc...' + #13#10);
   	EFI_OUT_OF_RESOURCES : sysTable.ConOut^.OutputString(sysTable.ConOut, 'OutOfResources' + #13#10);
   	EFI_INVALID_PARAMETER : sysTable.ConOut^.OutputString(sysTable.ConOut, 'InvalidParameter' + #13#10);
   	EFI_NOT_FOUND : sysTable.ConOut^.OutputString(sysTable.ConOut, 'NotFound' + #13#10);  	
@@ -52,6 +52,7 @@ end;
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
+  sysTable.ConOut^.OutputString(sysTable.ConOut, '... in sysOSFree...' + #13#10);
   // if heap isn't set, then nothing was allocated
 //  if SysHeap &lt;&gt; 0 then
 //    RtlFreeHeap(SysHeap, 0, p);
