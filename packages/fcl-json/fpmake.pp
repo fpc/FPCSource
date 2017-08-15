@@ -76,10 +76,19 @@ begin
       AddUnit('jsonparser');
       end;
 
+    T:=P.Targets.AddUnit('jsonini.pp');
+    T.ResourceStrings:=true;
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      AddUnit('jsonparser');
+     end;
+
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('confdemo.pp');
     T:=P.Targets.AddExampleProgram('parsedemo.pp');
     T:=P.Targets.AddExampleProgram('simpledemo.pp');
+    T:=P.Targets.AddExampleProgram('ini2json.pp');
 
     // simpledemo.lpi
     // confdemo.lpi
