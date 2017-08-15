@@ -77,7 +77,6 @@ begin
       end;
 
     T:=P.Targets.AddUnit('jsonini.pp');
-    T.ResourceStrings:=true;
     with T.Dependencies do
       begin
       AddUnit('fpjson');
