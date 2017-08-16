@@ -5591,7 +5591,8 @@ begin
       // e.g. Name()[] or Name[][]
       ResolveExpr(SubParams,rraRead);
       ComputeElement(SubParams,ResolvedEl,[rcSkipTypeAlias,rcNoImplicitProc,rcSetReferenceFlags]);
-      CreateReference(ResolvedEl.TypeEl,Value,Access);
+      if Value.CustomData=nil then
+        CreateReference(ResolvedEl.TypeEl,Value,Access);
       end
     else
       RaiseNotYetImplemented(20161010194925,Value);
@@ -9988,7 +9989,7 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
     writeln('  RefEl.CustomData=',GetObjName(RefEl.CustomData));
     if RefEl.CustomData is TResolvedReference then
       begin
-        FormerDeclEl:=TResolvedReference(RefEl.CustomData).Declaration;
+      FormerDeclEl:=TResolvedReference(RefEl.CustomData).Declaration;
       writeln('  TResolvedReference(RefEl.CustomData).Declaration=',GetObjName(FormerDeclEl),
        ' IsSame=',FormerDeclEl=DeclEl);
       end;
