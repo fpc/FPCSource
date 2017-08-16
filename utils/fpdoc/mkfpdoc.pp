@@ -277,11 +277,14 @@ begin
           ParseSource(Engine,Cmd+' '+Arg, Options.OSTarget, Options.CPUTarget);
           end;
       except
-        on e: EParserError do
+        on E: EParserError do
           If Options.StopOnParseError then
             Raise
           else
-            DoLog('%s(%d,%d): %s',[e.Filename, e.Row, e.Column, e.Message]);
+            begin
+            DoLog('Error: %s(%d,%d): %s',[E.Filename, E.Row, E.Column, E.Message]);
+            DoLog('Ignoring error, continuing with next unit (if any).');
+            end;
       end;
     if Not ParseOnly then
       begin
