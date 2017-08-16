@@ -2899,6 +2899,7 @@ begin
   writeln('TResExprEvaluator.EvalSetExpr Expr=',GetObjName(Expr),' length(ExprArray)=',length(ExprArray));
   {$ENDIF}
   Result:=TResEvalSet.Create;
+  if Expr=nil then ;
   Value:=nil;
   OnlyConstElements:=true;
   ok:=false;
@@ -3375,9 +3376,12 @@ begin
           writeln('TResExprEvaluator.Eval Int=',Int,' Value="',TPrimitiveExpr(Expr).Value,'"');
           {$ENDIF}
           if (Int<0) and (Pos('-',TPrimitiveExpr(Expr).Value)<1) then
-            RaiseInternalError(20170802141254,'bug in FPC str()');
-          Result:=TResEvalInt.CreateValue(Int);
-          exit;
+            // FPC str() converts $8000000000000000 to a negative int64 -> ignore
+          else
+            begin
+            Result:=TResEvalInt.CreateValue(Int);
+            exit;
+            end;
           end;
         // try MaxPrecUInt
         val(TPrimitiveExpr(Expr).Value,UInt,Code);
