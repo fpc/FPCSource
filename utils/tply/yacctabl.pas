@@ -70,13 +70,13 @@ max_rules          =  max_nts+1;  (* number of rules (300+1)                    
 max_types          =  100;  (* number of type tags                         *)
 max_prec           =   50;  (* maximum precedence level                    *)
 {$IFDEF Windows}
-max_states         =  800;  (* number of LR(0) states                      *)
+max_states         = 3000;  (* number of LR(0) states                      *)
 {$ELSE}
-max_states         = 1200;  (* number of LR(0) states                      *)
+max_states         = 3000;  (* number of LR(0) states                      *)
 {$ENDIF}
-max_items          = 9600;  (* number of items                             *)
-max_trans          = 9600;  (* number of transitions                       *)
-max_redns          = 1200;  (* number of reductions                        *)
+max_items          = 40000;  (* number of items                             *)
+max_trans          = 40000;  (* number of transitions                       *)
+max_redns          =  9600;  (* number of reductions                        *)
 {$ENDIF}
 
 {$IFDEF MsDos}
@@ -84,7 +84,7 @@ max_rule_len       =   64;  (* maximum length of rules                     *)
 max_set_items      =   64;  (* maximum number of items in an item set      *)
 {$ELSE}
 max_rule_len       =   64;  (* maximum length of rules                     *)
-max_set_items      =   96;  (* maximum number of items in an item set      *)
+max_set_items      = 9600;  (* maximum number of items in an item set      *)
 {$ENDIF}
 
 var
