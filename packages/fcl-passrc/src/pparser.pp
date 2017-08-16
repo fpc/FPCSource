@@ -2895,7 +2895,7 @@ begin
   CurBlock := declNone;
   while True do
   begin
-    if CurBlock=DeclNone then
+    if CurBlock in [DeclNone,declConst] then
       Scanner.SetTokenOption(toOperatorToken)
     else
       Scanner.UnSetTokenOption(toOperatorToken);
@@ -3874,13 +3874,21 @@ end;
 
 procedure TPasParser.DoLog(MsgType: TMessageType; MsgNumber: integer;
   const Fmt: String; Args: array of const; SkipSourceInfo: Boolean);
+
+Var
+  Msg : String;
+
 begin
   SetLastMsg(MsgType,MsgNumber,Fmt,Args);
   If Assigned(FOnLog) then
+    begin
+    Msg:=MessageTypeNames[MsgType]+': ';
     if SkipSourceInfo or not assigned(scanner) then
-      FOnLog(Self,FLastMsg)
+      Msg:=Msg+FLastMsg
     else
-      FOnLog(Self,Format('%s(%d) : %s',[Scanner.CurFilename,Scanner.CurRow,FLastMsg]));
+      Msg:=Msg+Format('%s(%d,%d) : %s',[Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn,FLastMsg]);
+    FOnLog(Self,Msg);
+    end;
 end;
 
 procedure TPasParser.ParseInlineVarDecl(Parent: TPasElement; List: TFPList;

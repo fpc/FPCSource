@@ -843,6 +843,11 @@ const
 const
   AllLanguageModes = [msFPC,msObjFPC,msDelphi,msTP7,msMac,msISO,msExtPas];
 
+Const
+  MessageTypeNames : Array[TMessageType] of string = (
+    'Fatal','Error','Warning','Note','Hint','Info','Debug'
+  );
+
 const
   // all mode switches supported by FPC
   msAllFPCModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
@@ -2403,14 +2408,14 @@ end;
 procedure TPascalScanner.Error(MsgNumber: integer; const Msg: string);
 begin
   SetCurMsg(mtError,MsgNumber,Msg,[]);
-  raise EScannerError.Create(FLastMsg);
+  raise EScannerError.CreateFmt('Error: %s(%d,%d) : %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
 end;
 
 procedure TPascalScanner.Error(MsgNumber: integer; const Fmt: string;
   Args: array of const);
 begin
   SetCurMsg(mtError,MsgNumber,Fmt,Args);
-  raise EScannerError.Create(FLastMsg);
+  raise EScannerError.CreateFmt('Error: %s(%d,%d) : %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
 end;
 
 function TPascalScanner.DoFetchTextToken:TToken;
@@ -3531,13 +3536,21 @@ end;
 
 procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
   const Fmt: String; Args: array of const; SkipSourceInfo: Boolean);
+
+Var
+  Msg : String;
+
 begin
   SetCurMsg(MsgType,MsgNumber,Fmt,Args);
   If Assigned(FOnLog) then
+    begin
+    Msg:=MessageTypeNames[MsgType]+': ';
     if SkipSourceInfo then
-      FOnLog(Self,FLastMsg)
+      Msg:=Msg+FLastMsg
     else
-      FOnLog(Self,Format('%s(%d) : %s',[FCurFileName,FCurRow,FLastMsg]));
+      Msg:=Msg+Format('%s(%d,%d) : %s',[FCurFileName,CurRow,CurColumn,FLastMsg]);
+    FOnLog(Self,Msg);
+    end;
 end;
 
 procedure TPascalScanner.SetOptions(AValue: TPOptions);
