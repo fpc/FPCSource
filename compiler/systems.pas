@@ -385,7 +385,8 @@ interface
                              + [system_i386_GO32V2]
                              + [system_i386_os2]
                              + [system_i386_beos,system_i386_haiku]
-                             + [system_powerpc_morphos];
+                             + [system_powerpc_morphos] 
+                             + [system_i386_uefi];
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',

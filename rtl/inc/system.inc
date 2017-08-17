@@ -1207,11 +1207,14 @@ var
   pcaddr : codepointer;
 begin
   errorcode:=w;
+  {$ifndef UEFI}
+  // TODO : some work required here to support this under UEFI
   pcaddr:=get_pc_addr;
   bp:=get_frame;
   get_caller_stackinfo(bp,pcaddr);
   erroraddr:=pcaddr;
   errorbase:=bp;
+  {$endif}
   Halt(errorcode);
 end;
 

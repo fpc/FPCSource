@@ -63,6 +63,39 @@ const
 {$else EXTRA}
   tracesize = 8;
 {$endif EXTRA}
+
+{$ifdef UEFI}
+  { install heaptrc memorymanager }
+  useheaptrace : boolean=true;
+  { less checking }
+  quicktrace : boolean=false;
+  { calls halt() on error by default !! }
+  HaltOnError : boolean = true;
+  { Halt on exit if any memory was not freed }
+  HaltOnNotReleased : boolean = false;
+
+  { set this to true if you suspect that memory
+    is freed several times }
+{$ifdef EXTRA}
+  keepreleased : boolean=true;
+{$else EXTRA}
+  keepreleased : boolean=false;
+{$endif EXTRA}
+  { add a small footprint at the end of memory blocks, this
+    can check for memory overwrites at the end of a block }
+  add_tail : boolean = true;
+  tail_size : longint = sizeof(ptruint);
+
+  { put crc in sig
+    this allows to test for writing into that part }
+  usecrc : boolean = true;
+
+  printleakedblock: boolean = false;
+  printfaultyblock: boolean = false;
+  maxprintedblocklength: integer = 128;
+
+  GlobalSkipIfNoLeaks : Boolean = False;
+{$else}
   { install heaptrc memorymanager }
   useheaptrace : boolean=true;
   { less checking }
@@ -93,6 +126,7 @@ const
   maxprintedblocklength: integer = 128;
 
   GlobalSkipIfNoLeaks : Boolean = False;
+{$endif}
 
 implementation
 
@@ -975,6 +1009,16 @@ function TlsGetValue(dwTlsIndex : DWord) : pointer;
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TlsGetValue';
 {$endif}
 
+{$ifdef UEFI}
+// Same as Windows as it is the same file format...
+var
+   sdata : ptruint; external name '__data_start__';
+   edata : ptruint; external name '__data_end__';
+   sbss : ptruint; external name '__bss_start__';
+   ebss : ptruint; external name '__bss_end__';
+
+{$endif}
+
 {$ifdef BEOS}
 const
   B_ERROR = -1;
@@ -1009,6 +1053,20 @@ begin
     ptext:=@ownfile
   else
     ptext:=textoutput;
+
+{$ifdef UEFI}
+  // Same as Windows as it is the same file format...
+  // Good enough until proven totally wrong.
+  // Incomplete for sure...
+  { inside stack ? }
+  if (ptruint(p)>ptruint(get_frame)) and
+     (p<StackTop) then
+    exit;
+  { inside data, rdata ... bss }
+  if (ptruint(p)>=ptruint(@sdata)) and (ptruint(p)<ptruint(@ebss)) then
+    exit;
+
+{$endif}
 
 {$ifdef go32v2}
   if ptruint(p)<$1000 then
@@ -1147,7 +1205,14 @@ begin
          halt(1);
       end;
    end;
-  writeln(ptext^,'pointer $',hexstr(p),' does not point to valid memory block');
+
+  //Debugger('heaptrc : Here...');
+  // Maybe error here...
+  // probably ptext^...
+  //writeln(ptext^,'pointer $',hexstr(p),' does not point to valid memory block');
+  // TODO : test with a WideString...
+  //debugger('pointer $' + hexstr(p) + ' does not point to valid memory block');
+  //Debugger('After the supposed crash...');
   dump_stack(ptext^,1);
   runerror(204);
 end;
@@ -1632,6 +1697,14 @@ var
   s,s2   : string;
   err : word;
 begin
+  {$ifdef UEFI}
+  // Avoid GetEnv in case it cause the problem when initializing heaptrc unit
+  keepreleased:=true;
+  useheaptrace:=false;
+  haltonerror:=true;
+  HaltOnNotReleased :=true;
+  GlobalSkipIfNoLeaks :=true;
+  {$else}
   s:=Getenv('HEAPTRC');
   if pos('keepreleased',s)>0 then
    keepreleased:=true;
@@ -1668,6 +1741,7 @@ begin
       j:=length(outputstr)+1;
      delete(outputstr,j,255);
    end;
+  {$endif}
 end;
 
 
