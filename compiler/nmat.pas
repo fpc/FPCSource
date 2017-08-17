@@ -574,7 +574,7 @@ implementation
                   exit;
 
                 shiftval:=left.resultdef.size*8-1;
-                dec(tordconstnode(right).value.uvalue);
+                tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
 
                 result:=internalstatements(statements);
                 temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
@@ -618,7 +618,7 @@ implementation
               end
             else
               begin
-                dec(tordconstnode(right).value.uvalue);
+                tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
                 result := caddnode.create(andn,left,right);
               end;
             { left and right are reused }
