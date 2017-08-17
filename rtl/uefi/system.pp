@@ -16,7 +16,10 @@ unit System;
  
 interface
 
+{ $define USE_NOTHREADMANAGER}
 {$define DISABLE_NO_THREAD_MANAGER}
+
+{ $define FPC_HEAPTRC_EXTRA}
  
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -61,14 +64,69 @@ const
 
 { Basic EFI definitions }
 
-{$IFDEF FPC}
-{$PACKRECORDS C}
-{$ENDIF}
 
     const
       EFI_SYSTEM_TABLE_SIGNATURE = $5453595320494249;
       EFI_RUNTIME_SERVICES_SIGNATURE = $56524553544e5552;
       EFI_BOOT_SERVICES_SIGNATURE = $56524553544f4f42;
+
+type
+  { }
+  { A GUID }
+  { }
+// Still does not understand why it does not correspond yet...
+(*    EFI_GUID = packed record
+        Data1 : UINT32;
+        Data2 : UINT16;
+        Data3 : UINT16;
+        Data4 : array[0..7] of UINT8;
+      end;
+*)
+// Until then, we use this definition under Freepascal.
+// Don't forget to reverse data in integer definition (to take endianess into account)
+    EFI_GUID = packed record
+        Data : array[0..15] of UINT8;
+      end;
+
+
+{$IFDEF FPC}
+{$PACKRECORDS C}
+{$ENDIF}
+
+const
+// Many attends at understanding the binary representation of a GUID.
+
+// Image handle
+//#define LOADED_IMAGE_PROTOCOL      \
+//    { 0x5B1B31A1, 0x9562, 0x11d2, {0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B} }
+
+// UEFI.inc : EFI_LOADED_IMAGE_PROTOCOL_UUID equ 0A1h,31h,1bh,5bh,62h,95h,0d2h,11h,8Eh,3Fh,0h,0A0h,0C9h,69h,72h,3Bh
+
+//      LOADED_IMAGE_PROTOCOL : EFI_GUID = (Data1:$5B1BB31A1; Data2:$9562; 
+//      	Data3:$11D2; Data4: ($8E, $3F, $00, $A0, $C9, $69, $72, $3B));
+
+//      LOADED_IMAGE_PROTOCOL : EFI_GUID = (Data1:$A1311B5B; Data2:$6295; 
+//      	Data3:$D211; Data4: ($8E, $3F, $00, $A0, $C9, $69, $72, $3B));
+
+// Good definition !
+      LOADED_IMAGE_PROTOCOL : EFI_GUID = (Data: ( $A1, $31, $1B, $5B, $62, $95, 
+      	$D2, $11, $8E, $3F, $00, $A0, $C9, $69, $72, $3B));
+
+//#define EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID \
+//  {0x387477c2,0x69c7,0x11d2,0x8e,0x39,0x00,0xa0,0xc9,0x69,0x72,0x3b}
+//	EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID : EFI_GUID = (Data1:$387477c2; 
+//		Data2: $69C7; Data3: $11D2; Data4: ($8E, $39, $00, $A0, $C9, $69, $72, $3B));
+
+	// reversed
+//	EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID : EFI_GUID = (Data1:$c2777438; 
+//		Data2: $C769; Data3: $D211; Data4: ($8E, $39, $00, $A0, $C9, $69, $72, $3B));
+
+//	EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID : EFI_GUID = 
+//		(Data: ($c2, $77, $74, $38, $C7, $69, $D2, $11, $8E, $39, $00, $A0, $C9, $69, $72, $3B));
+
+// Good definition !
+	EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID : EFI_GUID = 
+		(Data: ( $38, $74, $77, $c2, $69, $C7, $11, $D2, $8E, $39, $00, $A0, $C9, $69, $72, $3B));
 
 	const
 	  EFI_SUCCESS = 0;
@@ -79,9 +137,9 @@ const
 	  EFI_NOT_FOUND = 14;
 	  
 type
-  EFI_HANDLE = Cardinal;
+  EFI_HANDLE = NativeUInt;
   EFI_EVENT = pointer;
-  EFI_STATUS = Cardinal;
+  EFI_STATUS = NativeUInt;
 
     type
       EFI_INPUT_KEY = record
@@ -92,8 +150,23 @@ type
 Type
     PCHAR16  = ^WideChar;
     PEFI_INPUT_KEY  = ^EFI_INPUT_KEY;
+    // According to http://vzimmer.blogspot.fr/2015/08/efi-byte-code.html,
+    // their size should follow the pointer size.
+    // UINTN mean Unsigned natural integer
+    // INTN mean Signed natural integer
+    // TODO : 64 bits
     UINTN = Cardinal;
     PUINTN  = ^UINTN;
+    
+    EFI_MEMORY_TYPE = (EfiReservedMemoryType,EfiLoaderCode,EfiLoaderData,
+      EfiBootServicesCode,EfiBootServicesData,
+      EfiRuntimeServicesCode,EfiRuntimeServicesData,
+      EfiConventionalMemory,EfiUnusableMemory,
+      EfiACPIReclaimMemory,EfiACPIMemoryNVS,
+      EfiMemoryMappedIO,EfiMemoryMappedIOPortSpace,
+      EfiPalCode,EfiMaxMemoryType);
+
+type
     P_SIMPLE_TEXT_OUTPUT_INTERFACE = ^_SIMPLE_TEXT_OUTPUT_INTERFACE;
     P_SIMPLE_INPUT_INTERFACE  = ^_SIMPLE_INPUT_INTERFACE;
 
@@ -202,14 +275,6 @@ Type
   {When returning to ConventialMemory always make it WB,SR,SW }
   {When getting the memory map, or on RT for runtime types }
 
-    EFI_MEMORY_TYPE = (EfiReservedMemoryType,EfiLoaderCode,EfiLoaderData,
-      EfiBootServicesCode,EfiBootServicesData,
-      EfiRuntimeServicesCode,EfiRuntimeServicesData,
-      EfiConventionalMemory,EfiUnusableMemory,
-      EfiACPIReclaimMemory,EfiACPIMemoryNVS,
-      EfiMemoryMappedIO,EfiMemoryMappedIOPortSpace,
-      EfiPalCode,EfiMaxMemoryType);
-
 	type
 	  EFI_PHYSICAL_ADDRESS = UINT64;
 	
@@ -233,15 +298,15 @@ Type
       EFI_INSTALL_PROTOCOL_INTERFACE = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_REINSTALL_PROTOCOL_INTERFACE = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_UNINSTALL_PROTOCOL_INTERFACE = function ((* TODO *)):EFI_STATUS;cdecl;
-      EFI_HANDLE_PROTOCOL = function ((* TODO *)):EFI_STATUS;cdecl;
-      EFI_REGISTER_PROTOCOL_NOTIFY = function ((* TODO *)):EFI_STATUS;cdecl;
+      EFI_HANDLE_PROTOCOL = function (Handle : EFI_HANDLE; var Protocol : EFI_GUID; var _Interface : pointer):EFI_STATUS;cdecl;
+      EFI_REGISTER_PROTOCOL_NOTIFY = function ((* TODOhand *)):EFI_STATUS;cdecl;
       EFI_LOCATE_HANDLE = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_LOCATE_DEVICE_PATH = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_INSTALL_CONFIGURATION_TABLE = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_IMAGE_LOAD = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_IMAGE_START = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_EXIT = function ((* TODO *)):EFI_STATUS;cdecl;
-      EFI_IMAGE_UNLOAD = function ((* TODO *)):EFI_STATUS;cdecl;
+      EFI_IMAGE_UNLOAD = function (ImageHandle : EFI_HANDLE):EFI_STATUS;cdecl;
       EFI_EXIT_BOOT_SERVICES = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_GET_NEXT_MONOTONIC_COUNT = function ((* TODO *)):EFI_STATUS;cdecl;
       EFI_STALL = function (Microseconds : UINT32):EFI_STATUS;cdecl;
@@ -281,7 +346,7 @@ Type
           ReinstallProtocolInterface : EFI_REINSTALL_PROTOCOL_INTERFACE;
           UninstallProtocolInterface : EFI_UNINSTALL_PROTOCOL_INTERFACE;
           HandleProtocol : EFI_HANDLE_PROTOCOL;
-          PCHandleProtocol : EFI_HANDLE_PROTOCOL;
+          PCHandleProtocol : EFI_HANDLE_PROTOCOL; // Reserved acording to http://wiki.phoenix.com/wiki/index.php/EFI_BOOT_SERVICES
           RegisterProtocolNotify : EFI_REGISTER_PROTOCOL_NOTIFY;
           LocateHandle : EFI_LOCATE_HANDLE;
           LocateDevicePath : EFI_LOCATE_DEVICE_PATH;
@@ -330,6 +395,66 @@ type
       EFI_SYSTEM_TABLE = _EFI_SYSTEM_TABLE;
       PEFI_SYSTEM_TABLE = ^EFI_SYSTEM_TABLE;
 
+
+    const
+      EFI_IMAGE_INFORMATION_REVISION = $1000;      
+
+    { Source location of image }
+    { Images load options }
+    { Location of where image was loaded }
+    { If the driver image supports a dynamic unload request }
+
+  {++
+  
+  Copyright (c) 1998  Intel Corporation
+  
+  Module Name:
+  
+      devpath.h
+  
+  Abstract:
+  
+      Defines for parsing the EFI Device Path structures
+  
+  
+  
+  Revision History
+  
+  -- }
+  { }
+  { Device Path structures - Section C }
+  { }
+
+  type
+    _EFI_DEVICE_PATH = record
+        _Type : UINT8;
+        SubType : UINT8;
+        Length : array[0..1] of UINT8;
+      end;
+    EFI_DEVICE_PATH = _EFI_DEVICE_PATH;
+
+    type
+      EFI_LOADED_IMAGE = record
+          Revision : UINT32;
+          ParentHandle : EFI_HANDLE;
+          SystemTable : ^_EFI_SYSTEM_TABLE;
+          DeviceHandle : EFI_HANDLE;
+          FilePath : ^EFI_DEVICE_PATH;
+          Reserved : pointer;
+          LoadOptionsSize : UINT32;
+          LoadOptions : pointer;
+          ImageBase : pointer;
+          ImageSize : UINT64;
+          ImageCodeType : EFI_MEMORY_TYPE;
+          ImageDataType : EFI_MEMORY_TYPE;
+          Unload : EFI_IMAGE_UNLOAD;
+        end;
+        PEFI_LOADED_IMAGE = ^EFI_LOADED_IMAGE;
+
+{$IFDEF FPC}
+{$PACKRECORDS DEFAULT}
+{$ENDIF}
+
 procedure Check(systemTable : EFI_SYSTEM_TABLE; status : EFI_STATUS);
 procedure Check(status : EFI_STATUS);
 
@@ -350,6 +475,9 @@ var
 procedure Init(systemTable : EFI_SYSTEM_TABLE);
 
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
+
+procedure Debugger(s : WideString);
+procedure Debugger();
 
 implementation
 
@@ -377,9 +505,9 @@ end;
 
 procedure Check(systemTable : EFI_SYSTEM_TABLE; status : EFI_STATUS);
 var
-  msg : string;
+  msg : WideString;
 begin
-  msg := 'Error';
+  msg := 'Default error';
   
   case status of
   	EFI_SUCCESS:
@@ -443,13 +571,21 @@ begin
   	  end;
   	else
   	  begin
-  	  	// Error
-  	    msg := 'Error';
+  	    if (status > MaxInt) and (status <= High(Cardinal)) then
+  	    begin
+  	      msg := 'Very high error number : suspicious...';
+  	    end
+  	    else
+  	    begin
+  	  	  // Error
+  	      msg := 'Error not handled in Check';
+  	    end;
   	  end;
   end;
 
-  WriteLn('');
-  WriteLn(msg);
+  Debugger('');
+  Debugger(msg);
+  Debugger('End of Check');
 end;
 
 procedure Init(systemTable : EFI_SYSTEM_TABLE);
@@ -462,15 +598,15 @@ begin
   SysTable := systemTable;
   
   { Setup heap }
-  myheapsize:=4096*100;// $ 20000;
-  myheaprealsize:=4096*100;// $ 20000;
+  myheapsize:=4096*1000;// $ 20000;
+  myheaprealsize:=4096*1000;// $ 20000;
   heapstart:=nil;
   heapstartpointer := nil;
-  heapstartpointer := SysOSAlloc(4096*100);
+  heapstartpointer := SysOSAlloc(4096*1000);
   if heapstartpointer <> nil then
   begin
     SysTable.ConOut^.OutputString(SysTable.ConOut, 'heapStartPointer initialization' + #13#10);
-    FillChar(heapstartpointer^, 4096*100, #0);
+    FillChar(heapstartpointer^, 4096*1000, #0);
   end
   else
   begin
@@ -489,13 +625,35 @@ begin
   SysTable.ConOut^.OutputString(SysTable.ConOut, #13#10);
 end;
 
+procedure Debugger();
+begin
+  {$ifdef UEFI}
+  SysTable.ConOut^.OutputString(SysTable.ConOut, PChar16('Debugger call : ' + #13#10));
+  {$endif}
+end;
+
+procedure Debugger(s : WideString);
+begin
+  {$ifdef UEFI}
+  SysTable.ConOut^.OutputString(SysTable.ConOut, PChar16('Debugger call : ' + s + #13#10));
+  {$endif}
+end;
+
+var
+  s : WideString;
+  s1 : string;
+
 function EFI_MAIN( imageHandle: EFI_HANDLE; systemTable : PEFI_SYSTEM_TABLE): EFI_STATUS; cdecl; [public, alias: 'EFI_MAIN'];
+var
+  CurrentImage : EFI_LOADED_IMAGE;
+  pCurrentImage : PEFI_LOADED_IMAGE;
+  HandleProtocolResult : EFI_STATUS = 0;
+  myImageHandle : Cardinal;
 begin
  //try
   SysTable := systemTable^;
 
   SysTable.ConOut^.OutputString(SysTable.ConOut, 'EFI_MAIN start' + #13#10);
-
 
   StackLength := CheckInitialStkLen ($1000000); 
   StackBottom := StackTop - StackLength; 
@@ -507,15 +665,20 @@ begin
   heapstartpointer := nil;
   heapstartpointer := SysOSAlloc(4096*100);
   FillChar(heapstartpointer^, myheaprealsize, #0);
+
+  SysTable.ConOut^.OutputString(SysTable.ConOut, 'just before InitHeap' + #13#10);
+
   InitHeap;
+
+  SysTable.ConOut^.OutputString(SysTable.ConOut, 'just after InitHeap' + #13#10);
 
   DefaultSystemCodePage := CP_UTF16;
   DefaultRTLFileSystemCodePage := CP_UTF16;
   DefaultFileSystemCodePage := CP_UTF16;
   SetMultiByteConversionCodePage(CP_UTF16);
 
-  WriteLn('start');
-
+  Debugger('start');
+  
   if heapstartpointer <> nil then
   begin
     SysTable.ConOut^.OutputString(SysTable.ConOut, 'heapStartPointer initialization' + #13#10);
@@ -531,8 +694,57 @@ begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
+  Debugger('before InitSystemThreads');
+  InitSystemThreads;
 
   SysTable.ConOut^.OutputString(SysTable.ConOut, #13#10);
+
+  myImageHandle := imageHandle;
+  Debugger('After afectation');
+  s1 := HexStr(myImageHandle, 8) + #13#10 + #0#0;
+  Debugger('After HexStr 1');
+  
+  Debugger(s1);
+    
+  pCurrentImage := @CurrentImage;
+  HandleProtocolResult :=
+    SysTable.BootServices^.HandleProtocol(imageHandle, LOADED_IMAGE_PROTOCOL,
+    //SysTable.BootServices^.HandleProtocol(imageHandle, EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID,
+  	pCurrentImage);
+  if pCurrentImage = nil then
+  begin
+    Debugger('pCurrentImage == nil');
+  end
+  else
+  begin
+    Debugger('pCurrentImage <> nil');
+  end;
+  if pCurrentImage^.Revision = EFI_IMAGE_INFORMATION_REVISION then
+  begin
+    Debugger('Revision OK');
+    // Print loaded address
+    Debugger('Loaded address : ');
+    Debugger(HexStr(PEFI_LOADED_IMAGE(pCurrentImage^.ImageBase)));
+    Debugger('Size : ');
+    Debugger(HexStr(PEFI_LOADED_IMAGE(pCurrentImage^.ImageSize)));
+  end
+  else
+    Debugger('Bas revision number');
+  begin
+    
+  end;
+  Check(HandleProtocolResult);
+  s := HexStr(HandleProtocolResult, 8);	
+  Debugger('After HexStr 2');
+  Debugger(s);
+  if HandleProtocolResult = EFI_SUCCESS then
+  begin
+    Debugger('Success in HandleProtocol');
+  end
+  else
+  begin
+    Debugger('Error in HandleProtocol');
+  end;
 
   PascalMain;
   WriteLn('End of EFI_MAIN...');
