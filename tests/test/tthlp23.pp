@@ -1,5 +1,3 @@
-{ %NORUN }
-
 { type helpers in mode ObjFPC can also be used in place of record and class
   helpers }
 
