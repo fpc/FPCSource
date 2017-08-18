@@ -907,7 +907,10 @@ implementation
                   { for record and type helpers only static class methods are
                     allowed }
                   if is_objectpascal_helper(astruct) and
-                     (tobjectdef(astruct).extendeddef.typ<>objectdef) and
+                     (
+                       (tobjectdef(astruct).extendeddef.typ<>objectdef) or
+                       (tobjectdef(tobjectdef(astruct).extendeddef).objecttype<>odt_class)
+                     ) and
                      is_classdef and not (po_staticmethod in result.procoptions) then
                     MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
