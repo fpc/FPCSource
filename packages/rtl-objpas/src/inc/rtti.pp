@@ -72,14 +72,14 @@ type
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
-    function IsArray: boolean;
+    function IsArray: boolean; inline;
     function AsString: string;
     function AsExtended: Extended;
-    function IsClass: boolean;
+    function IsClass: boolean; inline;
     function AsClass: TClass;
-    function IsObject: boolean;
+    function IsObject: boolean; inline;
     function AsObject: TObject;
-    function IsOrdinal: boolean;
+    function IsOrdinal: boolean; inline;
     function AsOrdinal: Int64;
     function AsBoolean: boolean;
     function AsCurrency: Currency;
