@@ -701,8 +701,12 @@ implementation
 
       procedure validate_extendeddef_typehelper(var def:tdef);
         begin
-          if def.typ in [undefineddef,procvardef,procdef,objectdef,recorddef,
-              filedef,classrefdef,abstractdef,forwarddef,formaldef] then
+          if (def.typ in [undefineddef,procvardef,procdef,
+              filedef,classrefdef,abstractdef,forwarddef,formaldef]) or
+              (
+                (def.typ=objectdef) and
+                (tobjectdef(def).objecttype<>odt_class)
+              ) then
             begin
               Message1(type_e_type_not_allowed_for_type_helper,def.typename);
               def:=generrordef;
@@ -791,9 +795,12 @@ implementation
               ht_type:
                 begin
                   validate_extendeddef_typehelper(hdef);
-                  { a type helper must extend the same type as the
-                    parent helper }
-                  check_inheritance_record_type_helper(hdef);
+                  if is_class(hdef) then
+                    check_inheritance_class_helper(hdef)
+                  else
+                    { a type helper must extend the same type as the
+                      parent helper }
+                    check_inheritance_record_type_helper(hdef);
                 end;
             end;
           end;
