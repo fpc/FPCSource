@@ -721,6 +721,20 @@ implementation
             end;
         end;
 
+      procedure check_inheritance_class_helper(var def:tdef);
+        begin
+          if (def.typ<>errordef) and assigned(current_objectdef.childof) then
+            begin
+              if not is_class(current_objectdef.childof.extendeddef) then
+                Internalerror(2011021101);
+              if not def_is_related(def,current_objectdef.childof.extendeddef) then
+                begin
+                  Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
+                  def:=generrordef;
+                end;
+            end;
+        end;
+
       var
         hdef: tdef;
       begin
@@ -753,13 +767,7 @@ implementation
                   begin
                     { a class helper must extend the same class or a subclass
                       of the class extended by the parent class helper }
-                    if assigned(current_objectdef.childof) then
-                      begin
-                        if not is_class(current_objectdef.childof.extendeddef) then
-                          Internalerror(2011021101);
-                        if not def_is_related(hdef,current_objectdef.childof.extendeddef) then
-                          Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
-                      end;
+                    check_inheritance_class_helper(hdef);
                   end;
               ht_record:
                 if (hdef.typ=objectdef) or
