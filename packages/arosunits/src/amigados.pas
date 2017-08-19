@@ -2395,7 +2395,7 @@ function SetVar(const Name: STRPTR; Buffer: PChar; Size: LongInt; Flags: LongInt
 function GetVar(const Name: STRPTR; Buffer: STRPTR; Size: LongInt; Flags: LongInt): LongInt; syscall AOS_DOSBase 151;
 function DeleteVar(const Name: STRPTR; Flags: LongWord): LongInt; syscall AOS_DOSBase 152;
 function FindVar(const Name: STRPTR; Type_: LongWord): PLocalVar; syscall AOS_DOSBase 153;
-function DosGetLocalizedString(StringNum: LongInt): STRPTR; syscall AOS_DOSBase 154;
+function CliInit(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 154;
 function CliInitNewcli(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 155;
 function CliInitRun(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 156;
 function WriteChars(const Buf: STRPTR; BufLen: LongWord): LongInt; syscall AOS_DOSBase 157;
