@@ -405,7 +405,7 @@ unit aoptcpu;
 
               A_ADD,A_ADDcc,A_ADDX,
               A_SUB,A_SUBcc,A_SUBX,
-              A_SRA,
+              A_SRA,A_SRAX,A_MULX,
               A_ANDcc,A_OR,A_ORcc,A_XOR,A_XORcc:
                 TryRemoveMov(p,A_MOV);
 
