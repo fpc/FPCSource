@@ -545,6 +545,7 @@ begin
     tkAString  : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkClass    : result.FData.FAsObject := PPointer(ABuffer)^;
     tkClassRef : result.FData.FAsClass := PClass(ABuffer)^;
+    tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkInt64    : result.FData.FAsSInt64 := PInt64(ABuffer)^;
     tkQWord    : result.FData.FAsUInt64 := PQWord(ABuffer)^;
     tkInteger  : begin
