@@ -1052,7 +1052,7 @@ implementation
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                  if assigned(location^.next) then
-                   internalerror(2010052906);
+                   internalerror(2017073001);
                  reference_reset_base(ref,voidstackpointertype,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
