@@ -273,10 +273,14 @@ type
 
   TValueDataIntImpl = class(TInterfacedObject, IValueData)
   private
-    FDataSize: integer;
-    FBuffer: pointer;
+    FBuffer: Pointer;
+    FDataSize: SizeInt;
+    FTypeInfo: PTypeInfo;
+    FIsCopy: Boolean;
+    FUseAddRef: Boolean;
   public
-    constructor Create(ACopyFromBuffer: Pointer; ALen: integer);
+    constructor CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean);
+    constructor CreateRef(AData: Pointer; ATypeInfo: PTypeInfo; AAddRef: Boolean);
     destructor Destroy; override;
     procedure ExtractRawData(ABuffer: pointer);
     procedure ExtractRawDataNoCopy(ABuffer: pointer);
@@ -417,31 +421,71 @@ end;
 
 { TValueDataIntImpl }
 
-constructor TValueDataIntImpl.create(ACopyFromBuffer: Pointer; ALen: integer);
+procedure IntFinalize(APointer, ATypeInfo: Pointer);
+  external name 'FPC_FINALIZE';
+procedure IntAddRef(APointer, ATypeInfo: Pointer);
+  external name 'FPC_ADDREF';
+
+constructor TValueDataIntImpl.CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean);
 begin
+  FTypeInfo := ATypeInfo;
   FDataSize:=ALen;
   if ALen>0 then
     begin
       Getmem(FBuffer,FDataSize);
       system.move(ACopyFromBuffer^,FBuffer^,FDataSize);
     end;
+  FIsCopy := True;
+  FUseAddRef := AAddRef;
+  if AAddRef and (ALen > 0) then
+    IntAddRef(FBuffer, FTypeInfo);
+end;
+
+constructor TValueDataIntImpl.CreateRef(AData: Pointer; ATypeInfo: PTypeInfo; AAddRef: Boolean);
+begin
+  FTypeInfo := ATypeInfo;
+  FDataSize := SizeOf(Pointer);
+  FBuffer := PPointer(AData)^;
+  FIsCopy := False;
+  FUseAddRef := AAddRef;
+  if AAddRef then
+    IntAddRef(@FBuffer, FTypeInfo);
 end;
 
 destructor TValueDataIntImpl.Destroy;
 begin
-  if assigned(FBuffer) then
-    Freemem(FBuffer);
+  if Assigned(FBuffer) then begin
+    if FUseAddRef then
+      if FIsCopy then
+        IntFinalize(FBuffer, FTypeInfo)
+      else
+        IntFinalize(@FBuffer, FTypeInfo);
+    if FIsCopy then
+      Freemem(FBuffer);
+  end;
   inherited Destroy;
 end;
 
 procedure TValueDataIntImpl.ExtractRawData(ABuffer: pointer);
 begin
-  system.move(FBuffer^,ABuffer^,FDataSize);
+  if FDataSize = 0 then
+    Exit;
+  if FIsCopy then
+    System.Move(FBuffer^, ABuffer^, FDataSize)
+  else
+    System.Move(FBuffer{!}, ABuffer^, FDataSize);
+  if FUseAddRef then
+    IntAddRef(ABuffer, FTypeInfo);
 end;
 
 procedure TValueDataIntImpl.ExtractRawDataNoCopy(ABuffer: pointer);
 begin
-  system.move(FBuffer^,ABuffer^,FDataSize);
+  if FDataSize = 0 then
+    Exit;
+  if FIsCopy then
+    system.move(FBuffer^, ABuffer^, FDataSize)
+  else
+    System.Move(FBuffer{!}, ABuffer^, FDataSize);
 end;
 
 function TValueDataIntImpl.GetDataSize: integer;
@@ -451,7 +495,10 @@ end;
 
 function TValueDataIntImpl.GetReferenceToRawData: pointer;
 begin
-  result := FBuffer;
+  if FIsCopy then
+    result := FBuffer
+  else
+    result := @FBuffer;
 end;
 
 { TRttiFloatType }
@@ -478,8 +525,8 @@ type
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   case ATypeInfo^.Kind of
-    tkSString  : result.FData.FValueData := TValueDataIntImpl.Create(@PShortString(ABuffer)^[1],Length(PShortString(ABuffer)^));
-    tkAString  : result.FData.FValueData := TValueDataIntImpl.Create(@PAnsiString(ABuffer)^[1],length(PAnsiString(ABuffer)^));
+    tkSString  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Length(PShortString(ABuffer)^) + 1, ATypeInfo, True);
+    tkAString  : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkClass    : result.FData.FAsObject := PPointer(ABuffer)^;
     tkClassRef : result.FData.FAsClass := PClass(ABuffer)^;
     tkInt64    : result.FData.FAsSInt64 := PInt64(ABuffer)^;
@@ -551,11 +598,10 @@ var
   s: string;
 begin
   case Kind of
-    tkSString,
-    tkAString   : begin
-                    setlength(s,FData.FValueData.GetDataSize);
-                    system.move(FData.FValueData.GetReferenceToRawData^,s[1],FData.FValueData.GetDataSize);
-                  end;
+    tkSString:
+      s := PShortString(FData.FValueData.GetReferenceToRawData)^;
+    tkAString:
+      s := PAnsiString(FData.FValueData.GetReferenceToRawData)^;
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
   end;
