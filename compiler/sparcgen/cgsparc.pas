@@ -339,7 +339,10 @@ implementation
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
-                  a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
+                  { concatcopy should choose the best way to copy the data }
+                  g_concatcopy(list,href,href2,tcgsize2size[hloc^.size]);
+
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER :
                 a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
@@ -1047,6 +1050,7 @@ implementation
       var
         hr : treference;
       begin
+{$ifdef SPARC}
         if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
           begin
             reference_reset(hr,sizeof(pint),[]);
@@ -1068,6 +1072,7 @@ implementation
               end;
           end
         else
+{$endif SPARC}
           begin
             if nostackframe then
               begin
