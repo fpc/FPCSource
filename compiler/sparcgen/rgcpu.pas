@@ -196,7 +196,7 @@ implementation
         else if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
           begin
             if (regtype=R_INTREGISTER) then
-              instr.opcode:=A_ST
+              instr.opcode:=A_ST_R
             else if (getsubreg(instr.oper[1]^.reg)=R_SUBFS) then
               instr.opcode:=A_STF
             else
