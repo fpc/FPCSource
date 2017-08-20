@@ -1131,8 +1131,13 @@ implementation
                           a_load_reg_ref(list,paraloc.size,OS_16,hreg,ref);
                         end
                       else
-                        { little endian not implemented yet }
-                        Internalerror(2017081301);
+                        begin
+                          a_load_reg_ref(list,paraloc.size,OS_16,hreg,ref);
+                          href:=ref;
+                          inc(href.offset,2);
+                          a_op_const_reg_reg(list,OP_SHR,cgsize,16,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
+                        end
                     end;
                   5:
                     begin
@@ -1145,8 +1150,13 @@ implementation
                           a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
                         end
                       else
-                        { little endian not implemented yet }
-                        Internalerror(2017081302);
+                       begin
+                          a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
+                          href:=ref;
+                          inc(href.offset,4);
+                          a_op_const_reg_reg(list,OP_SHR,cgsize,32,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
+                        end
                     end;
                   6:
                     begin
@@ -1159,8 +1169,13 @@ implementation
                           a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
                         end
                       else
-                        { little endian not implemented yet }
-                        Internalerror(2017081303);
+                       begin
+                          a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
+                          href:=ref;
+                          inc(href.offset,4);
+                          a_op_const_reg_reg(list,OP_SHR,cgsize,32,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_16,hreg,href);
+                        end
                     end;
                   7:
                     begin
@@ -1179,8 +1194,18 @@ implementation
                           a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
                         end
                       else
-                        { little endian not implemented yet }
-                        Internalerror(2017081304);
+                       begin
+                          a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
+
+                          href:=ref;
+                          inc(href.offset,4);
+                          a_op_const_reg_reg(list,OP_SHR,cgsize,32,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_16,hreg,href);
+
+                          inc(href.offset,4);
+                          a_op_const_reg_reg(list,OP_SHR,cgsize,16,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
+                        end
                     end;
                   else
                     { other sizes not allowed }
