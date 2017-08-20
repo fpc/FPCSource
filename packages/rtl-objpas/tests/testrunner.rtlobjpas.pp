@@ -1,9 +1,11 @@
+{ %CONFIGFILE=fpcunit-console-defaults.ini testdefaults.ini }
+
 program testrunner.rtlobjpas;
 
 {$mode objfpc}{$H+}
 
 uses
-  simpletestrunner,
+  consoletestrunner,
   tests.rtti;
 
 var
