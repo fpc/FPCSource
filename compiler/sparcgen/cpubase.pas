@@ -457,7 +457,7 @@ implementation
       begin
         case getregtype(reg) of
           R_INTREGISTER :
-            result:=OS_32;
+            result:=OS_INT;
           R_FPUREGISTER :
             begin
               if getsubreg(reg)=R_SUBFD then
