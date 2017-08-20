@@ -832,7 +832,7 @@ end;
 function TValue.AsInterface: IInterface;
 begin
   if Kind <> tkInterface then
-    EInvalidCast.Create(SErrInvalidTypecast);
+    raise EInvalidCast.Create(SErrInvalidTypecast);
   Result := PInterface(FData.FValueData.GetReferenceToRawData)^;
 end;
 
