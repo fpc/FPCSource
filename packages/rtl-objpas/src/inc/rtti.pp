@@ -746,7 +746,7 @@ end;
 
 function TValue.AsObject: TObject;
 begin
-  if IsObject then
+  if IsObject or (IsClass and not Assigned(FData.FAsObject)) then
     result := TObject(FData.FAsObject)
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
@@ -759,7 +759,7 @@ end;
 
 function TValue.IsClass: boolean;
 begin
-  result := Kind = tkClassRef;
+  result := (Kind = tkClassRef) or ((Kind = tkClass) and not Assigned(FData.FAsObject));
 end;
 
 function TValue.AsClass: TClass;
@@ -772,7 +772,8 @@ end;
 
 function TValue.IsOrdinal: boolean;
 begin
-  result := Kind in [tkInteger, tkInt64, tkQWord, tkBool];
+  result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool]) or
+            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
 end;
 
 function TValue.AsBoolean: boolean;
@@ -795,16 +796,19 @@ end;
 function TValue.AsOrdinal: Int64;
 begin
   if IsOrdinal then
-    case TypeData^.OrdType of
-      otSByte:  Result := FData.FAsSByte;
-      otUByte:  Result := FData.FAsUByte;
-      otSWord:  Result := FData.FAsSWord;
-      otUWord:  Result := FData.FAsUWord;
-      otSLong:  Result := FData.FAsSLong;
-      otULong:  Result := FData.FAsULong;
-      otSQWord: Result := FData.FAsSInt64;
-      otUQWord: Result := FData.FAsUInt64;
-    end
+    if Kind in [tkClass, tkClassRef, tkInterfaceRaw] then
+      Result := 0
+    else
+      case TypeData^.OrdType of
+        otSByte:  Result := FData.FAsSByte;
+        otUByte:  Result := FData.FAsUByte;
+        otSWord:  Result := FData.FAsSWord;
+        otUWord:  Result := FData.FAsUWord;
+        otSLong:  Result := FData.FAsSLong;
+        otULong:  Result := FData.FAsULong;
+        otSQWord: Result := FData.FAsSInt64;
+        otUQWord: Result := FData.FAsUInt64;
+      end
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
@@ -836,9 +840,12 @@ end;
 
 function TValue.AsInterface: IInterface;
 begin
-  if Kind <> tkInterface then
+  if Kind = tkInterface then
+    Result := PInterface(FData.FValueData.GetReferenceToRawData)^
+  else if (Kind in [tkClass, tkClassRef]) and not Assigned(FData.FAsPointer) then
+    Result := Nil
+  else
     raise EInvalidCast.Create(SErrInvalidTypecast);
-  Result := PInterface(FData.FValueData.GetReferenceToRawData)^;
 end;
 
 function TValue.ToString: String;
