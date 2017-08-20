@@ -41,6 +41,8 @@ type
     Category      : string;
     Note          : string;
     Files         : string;
+    ConfigFileSrc : string;
+    ConfigFileDst : string;
     WpoParas      : string;
     WpoPasses     : longint;
     DelFiles      : string;
@@ -284,6 +286,25 @@ begin
               else
                if GetEntry('FILES') then
                 r.Files:=res
+              else
+                if GetEntry('CONFIGFILE') then
+                  begin
+                    l:=Pos(' ',res);
+                    if l>0 then
+                      begin
+                        r.ConfigFileSrc:=Copy(res,1,l-1);
+                        r.ConfigFileDst:=Copy(res,l+1,Length(res)-l+1);
+                        if r.ConfigFileSrc='' then
+                          Verbose(V_Error,'Config file source is empty');
+                        if r.ConfigFileDst='' then
+                          Verbose(V_Error,'Config file destination is empty');
+                      end
+                    else
+                      begin
+                        r.ConfigFileSrc:=res;
+                        r.ConfigFileDst:=res;
+                      end;
+                  end
               else
                 if GetEntry('WPOPARAS') then
                  r.wpoparas:=res
