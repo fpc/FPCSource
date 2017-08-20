@@ -1050,7 +1050,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                         begin
                           if target_info.endian=endian_big then
                             setval:=swapendian(cardinal(setval));
-                          ftcb.emit_tai(tai_const.create_32bit(setval),def);
+                          ftcb.emit_tai(tai_const.create_32bit(longint(setval)),def);
                         end;
                       else
                         internalerror(2015112207);
