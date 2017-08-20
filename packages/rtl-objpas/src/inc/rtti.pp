@@ -703,7 +703,9 @@ end;
 
 function TValue.GetIsEmpty: boolean;
 begin
-  result := (FData.FTypeInfo=nil);
+  result := (FData.FTypeInfo=nil) or
+            ((Kind in [tkSString, tkObject, tkRecord, tkArray]) and not Assigned(FData.FValueData)) or
+            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
 end;
 
 function TValue.IsArray: boolean;
