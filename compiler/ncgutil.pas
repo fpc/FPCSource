@@ -676,6 +676,7 @@ implementation
         href      : treference;
         sizeleft  : aint;
         tempref   : treference;
+        loadsize  : tcgint;
 {$ifdef mips}
         //tmpreg   : tregister;
 {$endif mips}
@@ -717,9 +718,18 @@ implementation
                         end
                       else
                         begin
-                          cg.a_load_cgparaloc_ref(list,paraloc^,href,tcgsize2size[paraloc^.size],destloc.reference.alignment);
-                          inc(href.offset,TCGSize2Size[paraloc^.size]);
-                          dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                          { the min(...) call ensures that we do not store more than place is left as
+                             paraloc^.size could be bigger than destloc.size of a parameter occupies a full register
+                             and as on big endian system the parameters might be left aligned, we have to work
+                             with the full register size for paraloc^.size }
+                          if tcgsize2size[destloc.size]<>0 then
+                            loadsize:=min(min(tcgsize2size[paraloc^.size],tcgsize2size[destloc.size]),sizeleft)
+                          else
+                            loadsize:=min(tcgsize2size[paraloc^.size],sizeleft);
+
+                          cg.a_load_cgparaloc_ref(list,paraloc^,href,loadsize,destloc.reference.alignment);
+                          inc(href.offset,loadsize);
+                          dec(sizeleft,loadsize);
                         end;
                       unget_para(paraloc^);
                       paraloc:=paraloc^.next;
