@@ -74,10 +74,7 @@ interface
                  list.concat(taicpu.op_reg_const_reg(A_SRLX,reg2,32,reg2));
                end;
              OS_S32 :
-               begin
-                 list.concat(taicpu.op_reg_const_reg(A_SLLX,reg1,32,reg2));
-                 list.concat(taicpu.op_reg_const_reg(A_SRAX,reg2,32,reg2));
-               end;
+               list.concat(taicpu.op_reg_reg_reg(A_SRA,reg1,NR_G0,reg2));
              OS_64,
              OS_S64 :
                begin
