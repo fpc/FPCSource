@@ -2720,6 +2720,92 @@ packages/fcl-registry/tests/regtestframework.pp -text
 packages/fcl-registry/tests/tcxmlreg.pp svneol=native#text/plain
 packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
 packages/fcl-registry/tests/tregistry2.pp svneol=native#text/plain
+packages/fcl-report/Makefile svneol=native#text/plain
+packages/fcl-report/Makefile.fpc svneol=native#text/plain
+packages/fcl-report/demos/company-logo.png -text svneol=unset#image/png
+packages/fcl-report/demos/compiling.txt svneol=native#text/plain
+packages/fcl-report/demos/countries.inc svneol=native#text/plain
+packages/fcl-report/demos/countries.json svneol=native#text/plain
+packages/fcl-report/demos/demos.inc svneol=native#text/plain
+packages/fcl-report/demos/fcldemo.lpi svneol=native#text/plain
+packages/fcl-report/demos/fcldemo.pp svneol=native#text/plain
+packages/fcl-report/demos/fonts/LiberationSans-Bold.ttf -text
+packages/fcl-report/demos/fonts/LiberationSans-BoldItalic.ttf -text
+packages/fcl-report/demos/fonts/LiberationSans-Italic.ttf -text
+packages/fcl-report/demos/fonts/LiberationSans-Regular.ttf -text
+packages/fcl-report/demos/fonts/LiberationSerif-Bold.ttf -text
+packages/fcl-report/demos/fonts/LiberationSerif-BoldItalic.ttf -text
+packages/fcl-report/demos/fonts/LiberationSerif-Italic.ttf -text
+packages/fcl-report/demos/fonts/LiberationSerif-Regular.ttf -text
+packages/fcl-report/demos/pictures/man01.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/man02.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/man03.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/man04.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/man05.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/woman01.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/woman02.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/woman03.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/woman04.png -text svneol=unset#image/png
+packages/fcl-report/demos/pictures/woman05.png -text svneol=unset#image/png
+packages/fcl-report/demos/polygon/frmmain.lfm svneol=native#text/plain
+packages/fcl-report/demos/polygon/frmmain.pas svneol=native#text/plain
+packages/fcl-report/demos/polygon/reportpolygon.pas svneol=native#text/plain
+packages/fcl-report/demos/polygon/testpolygon.ico -text
+packages/fcl-report/demos/polygon/testpolygon.lpi svneol=native#text/plain
+packages/fcl-report/demos/polygon/testpolygon.lpr svneol=native#text/plain
+packages/fcl-report/demos/polygon/testpolygon.res -text
+packages/fcl-report/demos/regreports.pp svneol=native#text/plain
+packages/fcl-report/demos/rptcolumns.pp svneol=native#text/plain
+packages/fcl-report/demos/rptcontnr.pp svneol=native#text/plain
+packages/fcl-report/demos/rptdataset.pp svneol=native#text/plain
+packages/fcl-report/demos/rptexpressions.pp svneol=native#text/plain
+packages/fcl-report/demos/rptframes.pp svneol=native#text/plain
+packages/fcl-report/demos/rptgrouping.pp svneol=native#text/plain
+packages/fcl-report/demos/rptimages.pp svneol=native#text/plain
+packages/fcl-report/demos/rptjson.pp svneol=native#text/plain
+packages/fcl-report/demos/rptmasterdetail.pp svneol=native#text/plain
+packages/fcl-report/demos/rptmasterdetaildataset.pp svneol=native#text/plain
+packages/fcl-report/demos/rptshapes.pp svneol=native#text/plain
+packages/fcl-report/demos/rptsimplelist.pp svneol=native#text/plain
+packages/fcl-report/demos/rptttf.pp svneol=native#text/plain
+packages/fcl-report/demos/test.dbf -text
+packages/fcl-report/demos/test.dbt -text
+packages/fcl-report/demos/udapp.pp svneol=native#text/plain
+packages/fcl-report/demos/webdemo.lpi svneol=native#text/plain
+packages/fcl-report/demos/webdemo.pp svneol=native#text/plain
+packages/fcl-report/demos/wmreports.pp svneol=native#text/plain
+packages/fcl-report/fpmake.pp svneol=native#text/plain
+packages/fcl-report/src/fpextfuncs.pp svneol=native#text/plain
+packages/fcl-report/src/fpjsonreport.pp svneol=native#text/plain
+packages/fcl-report/src/fprepexprpars.pp svneol=native#text/plain
+packages/fcl-report/src/fpreport.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportcanvashelper.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportcheckbox.inc svneol=native#text/plain
+packages/fcl-report/src/fpreportcontnr.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportdb.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportdom.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportfpimageexport.pp svneol=native#text/plain
+packages/fcl-report/src/fpreporthtmlexport.pp svneol=native#text/plain
+packages/fcl-report/src/fpreporthtmlparser.pp svneol=native#text/plain
+packages/fcl-report/src/fpreporthtmlutil.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportjson.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportpdfexport.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportstreamer.pp svneol=native#text/plain
+packages/fcl-report/test/fonts/LiberationSerif-Regular.ttf -text
+packages/fcl-report/test/fonts/calibri.ttf -text
+packages/fcl-report/test/fonts/calibrib.ttf -text
+packages/fcl-report/test/fonts/calibrii.ttf -text
+packages/fcl-report/test/fonts/calibriz.ttf -text
+packages/fcl-report/test/guitestfpreport.lpi svneol=native#text/plain
+packages/fcl-report/test/guitestfpreport.lpr svneol=native#text/plain
+packages/fcl-report/test/regtests.pp svneol=native#text/plain
+packages/fcl-report/test/tcbasereport.pp svneol=native#text/plain
+packages/fcl-report/test/tchtmlparser.pas svneol=native#text/plain
+packages/fcl-report/test/tcreportdom.pp svneol=native#text/plain
+packages/fcl-report/test/tcreportstreamer.pp svneol=native#text/plain
+packages/fcl-report/test/testfpreport.lpi svneol=native#text/plain
+packages/fcl-report/test/testfpreport.lpr svneol=native#text/plain
+packages/fcl-report/todo.txt svneol=native#text/plain
 packages/fcl-res/Makefile svneol=native#text/plain
 packages/fcl-res/Makefile.fpc svneol=native#text/plain
 packages/fcl-res/Makefile.fpc.fpcmake svneol=native#text/plain

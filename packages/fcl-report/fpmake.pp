@@ -1,0 +1,120 @@
+{$ifndef ALLPACKAGES}
+{$mode objfpc}{$H+}
+program fpmake;
+
+uses fpmkunit;
+
+Var
+  T : TTarget;
+  P : TPackage;
+begin
+  With Installer do
+    begin
+{$endif ALLPACKAGES}
+
+    P:=AddPackage('fcl-report');
+    P.ShortName:='fpreport';
+{$ifdef ALLPACKAGES}
+    P.Directory:=ADirectory;
+{$endif ALLPACKAGES}
+    P.Version:='3.1.1';
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-image');
+    P.Dependencies.Add('fcl-xml');
+    P.Dependencies.Add('fcl-pdf');
+    P.Dependencies.Add('fcl-json');
+    P.Author := 'Michael Van Canneyt';
+    P.License := 'LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'GUI-independent Reporting Engine';
+    P.NeedLibC:= false;
+    P.OSes:=[linux, win32, darwin, freebsd];
+    P.SourcePath.Add('src');
+{$IFDEF VER2_6}    
+    T:=P.Targets.AddUnit('fprepexprpars.pp');
+    T.ResourceStrings := True;
+{$ENDIF}
+    T:=P.Targets.AddUnit('fpreportstreamer.pp');
+    T.ResourceStrings := True;
+    
+    T:=P.Targets.AddUnit('fpreporthtmlparser.pp');
+   
+    T:=P.Targets.AddUnit('fpreport.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreportstreamer');
+      AddUnit('fpreporthtmlparser');
+      end;
+      
+    T:=P.Targets.AddUnit('fpjsonreport.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+      
+    T:=P.Targets.AddUnit('fpreportjson.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreportstreamer');
+      AddUnit('fpreport');
+      end;
+    {  
+    T:=P.Targets.AddUnit('fpreportdom.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreportstreamer');
+      AddUnit('fpreport');
+      end;
+    }
+    T:=P.Targets.AddUnit('fpreportdb.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+
+    T:=P.Targets.AddUnit('fpextfuncs.pp');
+    with T.Dependencies do
+      AddUnit('fpreport');
+
+    T:=P.Targets.AddUnit('fpreportcontnr.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+
+    T:=P.Targets.AddUnit('fpreportcanvashelper.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+      
+    T:=P.Targets.AddUnit('fpreporthtmlutil.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+
+    T:=P.Targets.AddUnit('fpreportpdfexport.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+
+    T:=P.Targets.AddUnit('fpreporthtmlexport.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpreporthtmlutil');
+      end;
+
+    T:=P.Targets.AddUnit('fpreportfpimageexport.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpreporthtmlutil');
+      end;
+{$ifndef ALLPACKAGES}
+    Run;
+    end;
+end.
+{$endif ALLPACKAGES}

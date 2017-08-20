@@ -764,3 +764,9 @@ begin
   with Installer do
 {$include libgc/fpmake.pp}
 end;
+
+procedure add_fcl_report(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-report/fpmake.pp}
+end;
