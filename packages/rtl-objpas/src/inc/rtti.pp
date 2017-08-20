@@ -85,6 +85,8 @@ type
     function AsBoolean: boolean;
     function AsCurrency: Currency;
     function AsInteger: Integer;
+    function AsInt64: Int64;
+    function AsUInt64: QWord;
     function AsInterface: IInterface;
     function ToString: String;
     function GetArrayLength: SizeInt;
@@ -836,6 +838,36 @@ begin
     end
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsInt64: Int64;
+begin
+  if Kind in [tkInteger, tkInt64, tkQWord] then
+    case TypeData^.OrdType of
+      otSByte:  Result := FData.FAsSByte;
+      otUByte:  Result := FData.FAsUByte;
+      otSWord:  Result := FData.FAsSWord;
+      otUWord:  Result := FData.FAsUWord;
+      otSLong:  Result := FData.FAsSLong;
+      otULong:  Result := FData.FAsULong;
+      otSQWord: Result := FData.FAsSInt64;
+      otUQWord: Result := FData.FAsUInt64;
+    end;
+end;
+
+function TValue.AsUInt64: QWord;
+begin
+  if Kind in [tkInteger, tkInt64, tkQWord] then
+    case TypeData^.OrdType of
+      otSByte:  Result := FData.FAsSByte;
+      otUByte:  Result := FData.FAsUByte;
+      otSWord:  Result := FData.FAsSWord;
+      otUWord:  Result := FData.FAsUWord;
+      otSLong:  Result := FData.FAsSLong;
+      otULong:  Result := FData.FAsULong;
+      otSQWord: Result := FData.FAsSInt64;
+      otUQWord: Result := FData.FAsUInt64;
+    end;
 end;
 
 function TValue.AsInterface: IInterface;
