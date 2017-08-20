@@ -84,7 +84,11 @@ DELFILES...........List of files (separated by spaces) to be deleted after
                    the test. Files will be deleted only if TEST_DELTEMP is
                    set. If no extension is specified for a file, the dotest
                    program will try to delete executable and shared library
-                   of that name, using appropriate exe and dll extensions.
+                   of that name, using appropriate exe and dll extensions
+CONFIGFILE         Specifies a file in ./config that is to be copied to the
+                   test. If two names are given the first is the source filename
+				   and the second is the destination filename. If only one is
+				   given than it acts both as source and destination filename.
 GRAPH..............Requires graph unit
 FAIL...............Compilation must fail
 RECOMPILE..........After compiling a test, recompile the test for a second
