@@ -52,6 +52,7 @@ type
     procedure TestMakeArrayDynamic;
     procedure TestMakeArrayStatic;
 
+    procedure TestDataSize;
     procedure TestReferenceRawData;
 
     procedure TestIsManaged;
@@ -913,6 +914,150 @@ begin
   TValue.Make(@arrstat, TypeInfo(TArrStat), value);
   Check(value.GetReferenceToRawData <> @arrstat, 'Reference to static array is equal');
   Check(PLongInt(value.GetReferenceToRawData)^ = PLongInt(@arrstat)^, 'Reference to static array data differs');
+end;
+
+procedure TTestCase1.TestDataSize;
+type
+  TEnum = (eOne, eTwo, eThree);
+  TSet = set of TEnum;
+  TTestRecord = record
+    Value1: LongInt;
+    Value2: Pointer;
+  end;
+  TObjProc = procedure of object;
+  TArrDyn = array of LongInt;
+  TArrStatic = array[0..3] of LongInt;
+var
+  u8: UInt8;
+  u16: UInt16;
+  u32: UInt32;
+  u64: UInt64;
+  s8: Int8;
+  s16: Int16;
+  s32: Int32;
+  s64: Int64;
+  f32: Single;
+  f64: Double;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  f80: Extended;
+{$endif}
+  fco: Comp;
+  fcu: Currency;
+  ss: ShortString;
+  sa: AnsiString;
+  su: UnicodeString;
+  sw: WideString;
+  o: TObject;
+  c: TClass;
+  i: IInterface;
+  ad: TArrDyn;
+  _as: TArrStatic;
+  b8: Boolean;
+{$ifdef fpc}
+  b16: Boolean16;
+  b32: Boolean32;
+  b64: Boolean64;
+{$endif}
+  bl8: ByteBool;
+  bl16: WordBool;
+  bl32: LongBool;
+{$ifdef fpc}
+  bl64: QWordBool;
+{$endif}
+  e: TEnum;
+  s: TSet;
+  t: TTestRecord;
+  p: Pointer;
+  proc: TProcedure;
+  method: TObjProc;
+
+  value: TValue;
+begin
+  TValue.Make(@u8, TypeInfo(UInt8), value);
+  CheckEquals(1, value.DataSize);
+  TValue.Make(@u16, TypeInfo(UInt16), value);
+  CheckEquals(2, value.DataSize);
+  TValue.Make(@u32, TypeInfo(UInt32), value);
+  CheckEquals(4, value.DataSize);
+  TValue.Make(@u64, TypeInfo(UInt64), value);
+  CheckEquals(8, value.DataSize);
+  TValue.Make(@s8, TypeInfo(Int8), value);
+  CheckEquals(1, value.DataSize);
+  TValue.Make(@s16, TypeInfo(Int16), value);
+  CheckEquals(2, value.DataSize);
+  TValue.Make(@s32, TypeInfo(Int32), value);
+  CheckEquals(4, value.DataSize);
+  TValue.Make(@s64, TypeInfo(Int64), value);
+  CheckEquals(8, value.DataSize);
+  TValue.Make(@b8, TypeInfo(Boolean), value);
+  CheckEquals(1, value.DataSize);
+{$ifdef fpc}
+  TValue.Make(@b16, TypeInfo(Boolean16), value);
+  CheckEquals(2, value.DataSize);
+  TValue.Make(@b32, TypeInfo(Boolean32), value);
+  CheckEquals(4, value.DataSize);
+  TValue.Make(@b64, TypeInfo(Boolean64), value);
+  CheckEquals(8, value.DataSize);
+{$endif}
+  TValue.Make(@bl8, TypeInfo(ByteBool), value);
+  CheckEquals(1, value.DataSize);
+  TValue.Make(@bl16, TypeInfo(WordBool), value);
+  CheckEquals(2, value.DataSize);
+  TValue.Make(@bl32, TypeInfo(LongBool), value);
+  CheckEquals(4, value.DataSize);
+{$ifdef fpc}
+  TValue.Make(@bl64, TypeInfo(QWordBool), value);
+  CheckEquals(8, value.DataSize);
+{$endif}
+  TValue.Make(@f32, TypeInfo(Single), value);
+  CheckEquals(4, value.DataSize);
+  TValue.Make(@f64, TypeInfo(Double), value);
+  CheckEquals(8, value.DataSize);
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  TValue.Make(@f80, TypeInfo(Extended), value);
+  CheckEquals(10, value.DataSize);
+{$endif}
+  TValue.Make(@fcu, TypeInfo(Currency), value);
+  CheckEquals(SizeOf(Currency), value.DataSize);
+  TValue.Make(@fco, TypeInfo(Comp), value);
+  CheckEquals(SizeOf(Comp), value.DataSize);
+  ss := '';
+  TValue.Make(@ss, TypeInfo(ShortString), value);
+  CheckEquals(254, value.DataSize);
+  TValue.Make(@sa, TypeInfo(AnsiString), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
+  TValue.Make(@sw, TypeInfo(WideString), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
+  TValue.Make(@su, TypeInfo(UnicodeString), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
+  o := TTestValueClass.Create;
+  TValue.Make(@o, TypeInfo(TObject), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
+  o.Free;
+  c := TObject;
+  TValue.Make(@c, TypeInfo(TClass), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
+  TValue.Make(@i, TypeInfo(IInterface), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
+  TValue.Make(@t, TypeInfo(TTestRecord), value);
+  CheckEquals(SizeOf(TTestRecord), value.DataSize);
+  proc := Nil;
+  TValue.Make(@proc, TypeInfo(TProcedure), value);
+  CheckEquals(SizeOf(TProcedure), value.DataSize);
+  {method := Nil;
+  TValue.Make(@method, TypeInfo(TObjProc), value);
+  CheckEquals(SizeOf(TObjProc), value.DataSize);}
+  TValue.Make(@_as, TypeInfo(TArrStatic), value);
+  CheckEquals(SizeOf(TArrStatic), value.DataSize);
+  TValue.Make(@ad, TypeInfo(TArrDyn), value);
+  CheckEquals(SizeOf(TArrDyn), value.DataSize);
+  {TValue.Make(@e, TypeInfo(TEnum), value);
+  CheckEquals(SizeOf(TEnum), value.DataSize);
+  TValue.Make(@s, TypeInfo(TSet), value);
+  CheckEquals(SizeOf(TSet), value.DataSize);}
+  p := Nil;
+  TValue.Make(@p, TypeInfo(Pointer), value);
+  CheckEquals(SizeOf(Pointer), value.DataSize);
 end;
 
 procedure TTestCase1.TestIsManaged;
