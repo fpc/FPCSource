@@ -33,7 +33,7 @@ type
   ['{1338B2F3-2C21-4798-A641-CA2BC5BF2396}']
     procedure ExtractRawData(ABuffer: pointer);
     procedure ExtractRawDataNoCopy(ABuffer: pointer);
-    function GetDataSize: integer;
+    function GetDataSize: SizeInt;
     function GetReferenceToRawData: pointer;
   end;
 
@@ -284,7 +284,7 @@ type
     destructor Destroy; override;
     procedure ExtractRawData(ABuffer: pointer);
     procedure ExtractRawDataNoCopy(ABuffer: pointer);
-    function GetDataSize: integer;
+    function GetDataSize: SizeInt;
     function GetReferenceToRawData: pointer;
   end;
 
@@ -488,7 +488,7 @@ begin
     System.Move(FBuffer{!}, ABuffer^, FDataSize);
 end;
 
-function TValueDataIntImpl.GetDataSize: integer;
+function TValueDataIntImpl.GetDataSize: SizeInt;
 begin
   result := FDataSize;
 end;
