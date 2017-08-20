@@ -546,6 +546,8 @@ type
   PQWordBool = ^QWordBool;
 begin
   result.FData.FTypeInfo:=ATypeInfo;
+  { resets the whole variant part; FValueData is already Nil }
+  Result.FData.FAsUInt64 := 0;
   case ATypeInfo^.Kind of
     tkSString  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Length(PShortString(ABuffer)^) + 1, ATypeInfo, True);
     tkWString,
