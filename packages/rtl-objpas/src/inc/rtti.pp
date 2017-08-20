@@ -87,6 +87,9 @@ type
     function AsInteger: Integer;
     function AsInterface: IInterface;
     function ToString: String;
+    function GetArrayLength: SizeInt;
+    function GetArrayElement(AIndex: SizeInt): TValue;
+    procedure SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
     function GetReferenceToRawData: Pointer;
@@ -442,6 +445,8 @@ procedure IntFinalize(APointer, ATypeInfo: Pointer);
   external name 'FPC_FINALIZE';
 procedure IntAddRef(APointer, ATypeInfo: Pointer);
   external name 'FPC_ADDREF';
+function IntCopy(ASource, ADest, ATypeInfo: Pointer): SizeInt;
+  external name 'FPC_COPY';
 
 constructor TValueDataIntImpl.CreateCopy(ACopyFromBuffer: Pointer; ALen: SizeInt; ATypeInfo: PTypeInfo; AAddRef: Boolean);
 begin
@@ -832,6 +837,66 @@ begin
   else
     result := '';
   end;
+end;
+
+function TValue.GetArrayLength: SizeInt;
+begin
+  if not IsArray then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  if Kind = tkDynArray then
+    Result := DynArraySize(PPointer(FData.FValueData.GetReferenceToRawData)^)
+  else
+    Result := TypeData^.ArrayData.ElCount;
+end;
+
+function TValue.GetArrayElement(AIndex: SizeInt): TValue;
+var
+  data: Pointer;
+  eltype: PTypeInfo;
+  td: PTypeData;
+begin
+  if not IsArray then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  if Kind = tkDynArray then begin
+    data := DynArrayIndex(PPointer(FData.FValueData.GetReferenceToRawData)^, [AIndex], FData.FTypeInfo);
+    eltype := TypeData^.elType2;
+  end else begin
+    td := TypeData;
+    eltype := td^.ArrayData.ElType;
+    data := PByte(FData.FValueData.GetReferenceToRawData) + AIndex * (td^.ArrayData.Size div td^.ArrayData.ElCount);
+  end;
+  { MakeWithoutCopy? }
+  Make(data, eltype, Result);
+end;
+
+procedure TValue.SetArrayElement(AIndex: SizeInt; constref AValue: TValue);
+var
+  data: Pointer;
+  eltype: PTypeInfo;
+  td, tdv: PTypeData;
+begin
+  if not IsArray then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  if Kind = tkDynArray then begin
+    data := DynArrayIndex(PPointer(FData.FValueData.GetReferenceToRawData)^, [AIndex], FData.FTypeInfo);
+    eltype := TypeData^.elType2;
+  end else begin
+    td := TypeData;
+    eltype := td^.ArrayData.ElType;
+    data := PByte(FData.FValueData.GetReferenceToRawData) + AIndex * (td^.ArrayData.Size div td^.ArrayData.ElCount);
+  end;
+  { maybe we'll later on allow some typecasts, but for now be restrictive }
+  if eltype^.Kind <> AValue.Kind then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  td := GetTypeData(eltype);
+  tdv := AValue.TypeData;
+  if ((eltype^.Kind in [tkInteger, tkBool, tkEnumeration, tkSet]) and (td^.OrdType <> tdv^.OrdType)) or
+      ((eltype^.Kind = tkFloat) and (td^.FloatType <> tdv^.FloatType)) then
+    raise EInvalidCast.Create(SErrInvalidTypecast);
+  if Assigned(AValue.FData.FValueData) and (eltype^.Kind <> tkSString) then
+    IntCopy(AValue.FData.FValueData.GetReferenceToRawData, data, eltype)
+  else
+    Move(AValue.GetReferenceToRawData^, data^, AValue.DataSize);
 end;
 
 function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
