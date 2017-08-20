@@ -547,6 +547,7 @@ type
   PBoolean64 = ^Boolean64;
   PByteBool = ^ByteBool;
   PQWordBool = ^QWordBool;
+  PMethod = ^TMethod;
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   { resets the whole variant part; FValueData is already Nil }
@@ -568,6 +569,8 @@ begin
     tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkInt64    : result.FData.FAsSInt64 := PInt64(ABuffer)^;
     tkQWord    : result.FData.FAsUInt64 := PQWord(ABuffer)^;
+    tkProcVar  : result.FData.FAsMethod.Code := PCodePointer(ABuffer)^;
+    tkMethod   : result.FData.FAsMethod := PMethod(ABuffer)^;
     tkInteger  : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
                      otSByte: result.FData.FAsSByte := PShortInt(ABuffer)^;
