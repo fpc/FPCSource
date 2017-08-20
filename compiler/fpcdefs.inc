@@ -109,6 +109,7 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
+  {$define cpudelayslot}
   {$define SUPPORT_SAFECALL}
   {$define sparcgen}
 
@@ -124,6 +125,7 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
+  {$define cpudelayslot}
   {$define SUPPORT_SAFECALL}
   {$define sparcgen}
 {$endif sparc64}
@@ -238,6 +240,7 @@
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
+  {$define cpudelayslot}
   {$define SUPPORT_GET_FRAME}
   {$define SUPPORT_SAFECALL}
 {$endif mips}

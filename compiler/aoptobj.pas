@@ -1049,9 +1049,9 @@ Unit AoptObj;
         Repeat
           While Assigned(StartPai) And
                 ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
-{$if defined(MIPS) or defined(SPARCGEN)}
+{$ifdef cpudelayslot}
                 ((startpai.typ=ait_instruction) and (taicpu(startpai).opcode=A_NOP)) or
-{$endif MIPS or SPARC}
+{$endif cpudelayslot}
                  ((StartPai.typ = ait_label) and
                   Not(Tai_Label(StartPai).labsym.Is_Used))) Do
             StartPai := Tai(StartPai.Next);
@@ -1398,10 +1398,10 @@ Unit AoptObj;
                                     no-line-info-start/end etc }
                                   if hp1.typ<>ait_marker then
                                     begin
-{$if defined(SPARC) or defined(MIPS) }
+{$ifdef cpudelayslot}
                                       if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
                                         RemoveDelaySlot(hp1);
-{$endif SPARC or MIPS }
+{$endif cpudelayslot}
                                       asml.remove(hp1);
                                       hp1.free;
                                       stoploop:=false;
@@ -1421,9 +1421,9 @@ Unit AoptObj;
                                 (p<>blockstart) then
                               begin
                                 tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol).decrefs;
-{$if defined(SPARC) or defined(MIPS)}
+{$ifdef cpudelayslot}
                                 RemoveDelaySlot(p);
-{$endif SPARC or MIPS}
+{$endif cpudelayslot}
                                 hp2:=tai(hp1.next);
                                 asml.remove(p);
                                 p.free;
@@ -1468,9 +1468,9 @@ Unit AoptObj;
 
                                          taicpu(p).oper[0]^.ref^.symbol.increfs;
                                         }
-{$if defined(SPARC) or defined(MIPS)}
+{$ifdef cpudelayslot}
                                         RemoveDelaySlot(hp1);
-{$endif SPARC or MIPS}
+{$endif cpudelayslot}
                                         asml.remove(hp1);
                                         hp1.free;
                                         stoploop:=false;
