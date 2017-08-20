@@ -281,6 +281,45 @@ unit aoptcpu;
                     TryRemoveMov(p,A_MOV);
                 end;
 
+{$ifdef SPARC64}
+              A_SLLX:
+                begin
+                  { if this is sign/zero extension... }
+                  if (taicpu(p).oper[1]^.typ=top_const) and
+                    GetNextInstruction(p,next) and
+                    (MatchInstruction(next,A_SRLX) or MatchInstruction(next,A_SRAX)) and
+                    IsSameReg(taicpu(p),taicpu(next)) and
+                    (taicpu(next).oper[1]^.typ=top_const) and
+                    (taicpu(next).oper[1]^.val=taicpu(p).oper[1]^.val) and
+                    (taicpu(next).oper[1]^.val=32) and
+                    { ...followed by 32-bit store (possibly with PIC simplification, etc. in between) }
+                    GetNextInstructionUsingReg(next,next2,taicpu(p).oper[2]^.reg) and
+                    MatchInstruction(next2,A_ST) and
+                    (taicpu(next2).oper[0]^.typ=top_reg) and
+                    (taicpu(next2).oper[0]^.reg=taicpu(p).oper[2]^.reg) and
+                    { the initial register may not be reused }
+                    (not RegUsedBetween(taicpu(p).oper[0]^.reg,next,next2)) then
+                    begin
+                      CopyUsedRegs(TmpUsedRegs);
+                      UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                      UpdateUsedRegs(TmpUsedRegs, tai(next.next));
+                      if not RegUsedAfterInstruction(taicpu(p).oper[2]^.reg,next2,TmpUsedRegs) then
+                        begin
+                          taicpu(next2).loadreg(0,taicpu(p).oper[0]^.reg);
+                          DebugMsg('Peephole SLLXSRxXST2ST done',next2);
+                          asml.remove(p);
+                          asml.remove(next);
+                          p.free;
+                          next.free;
+                          p:=next2;
+                        end;
+                      ReleaseUsedRegs(TmpUsedRegs);
+                    end
+                  else
+                    TryRemoveMov(p,A_MOV);
+                end;
+{$endif SPARC64}
+
               A_SRL:
                 begin
                   { happens with a_load_const_ref(...,0), where %g0 is used instead of 0 }
