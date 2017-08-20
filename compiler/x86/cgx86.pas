@@ -952,6 +952,11 @@ unit cgx86;
       begin
         tmpref:=ref;
         make_simple_ref(list,tmpref);
+        if TCGSize2Size[fromsize]>TCGSize2Size[tosize] then
+          begin
+            fromsize:=tosize;
+            reg:=makeregsize(list,reg,fromsize);
+          end;
         check_register_size(fromsize,reg);
         sizes2load(fromsize,tosize,op,s);
         case s of
