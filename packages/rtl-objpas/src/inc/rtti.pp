@@ -88,6 +88,7 @@ type
     function ToString: String;
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
+    function GetReferenceToRawData: Pointer;
     property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
@@ -823,6 +824,144 @@ begin
     AResult := AsOrdinal;
 end;
 
+function TValue.GetReferenceToRawData: Pointer;
+begin
+  if IsEmpty then
+    Result := Nil
+  else if Assigned(FData.FValueData) then
+    Result := FData.FValueData.GetReferenceToRawData
+  else begin
+    Result := Nil;
+    case Kind of
+      tkInteger,
+      tkEnumeration,
+      tkSet,
+      tkInt64,
+      tkQWord,
+      tkBool:
+        case TypeData^.OrdType of
+          otSByte:
+            Result := @FData.FAsSByte;
+          otUByte:
+            Result := @FData.FAsUByte;
+          otSWord:
+            Result := @FData.FAsSWord;
+          otUWord:
+            Result := @FData.FAsUWord;
+          otSLong:
+            Result := @FData.FAsSLong;
+          otULong:
+            Result := @FData.FAsULong;
+          otSQWord:
+            Result := @FData.FAsSInt64;
+          otUQWord:
+            Result := @FData.FAsUInt64;
+        end;
+      tkChar:
+        Result := @FData.FAsUByte;
+      tkFloat:
+        case TypeData^.FloatType of
+          ftSingle:
+            Result := @FData.FAsSingle;
+          ftDouble:
+            Result := @FData.FAsDouble;
+          ftExtended:
+            Result := @FData.FAsExtended;
+          ftComp:
+            Result := @FData.FAsComp;
+          ftCurr:
+            Result := @FData.FAsCurr;
+        end;
+      tkMethod:
+        Result := @FData.FAsMethod;
+      tkClass:
+        Result := @FData.FAsObject;
+      tkWChar:
+        Result := @FData.FAsUWord;
+      tkInterfaceRaw:
+        Result := @FData.FAsPointer;
+      tkProcVar:
+        Result := @FData.FAsMethod.Code;
+      tkUChar:
+        Result := @FData.FAsUWord;
+      tkFile:
+        Result := @FData.FAsPointer;
+      tkClassRef:
+        Result := @FData.FAsClass;
+      tkPointer:
+        Result := @FData.FAsPointer;
+      tkVariant,
+      tkDynArray,
+      tkArray,
+      tkObject,
+      tkRecord,
+      tkInterface,
+      tkSString,
+      tkLString,
+      tkAString,
+      tkUString,
+      tkWString:
+        Assert(false, 'Managed/complex type not handled through IValueData');
+    end;
+  end;
+end;
+
+class operator TValue.:=(const AValue: String): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: LongInt): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Single): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Double): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+class operator TValue.:=(AValue: Extended): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+{$endif}
+
+class operator TValue.:=(AValue: Currency): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Int64): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: QWord): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: TObject): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: TClass): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(AValue: Boolean): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
 
 { TRttiStringType }
 
