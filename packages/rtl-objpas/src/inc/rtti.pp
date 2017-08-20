@@ -548,6 +548,8 @@ begin
   result.FData.FTypeInfo:=ATypeInfo;
   case ATypeInfo^.Kind of
     tkSString  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Length(PShortString(ABuffer)^) + 1, ATypeInfo, True);
+    tkWString,
+    tkUString,
     tkAString  : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkDynArray : result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkArray    : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.ArrayData.Size, ATypeInfo, False);
