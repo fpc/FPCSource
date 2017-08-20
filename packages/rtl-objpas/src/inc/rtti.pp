@@ -712,18 +712,18 @@ begin
 end;
 
 function TValue.AsString: string;
-var
-  s: string;
 begin
-  case Kind of
-    tkSString:
-      s := PShortString(FData.FValueData.GetReferenceToRawData)^;
-    tkAString:
-      s := PAnsiString(FData.FValueData.GetReferenceToRawData)^;
+  if (Kind in [tkSString, tkAString, tkUString, tkWString]) and not Assigned(FData.FValueData) then
+    Result := ''
   else
-    raise EInvalidCast.Create(SErrInvalidTypecast);
-  end;
-  result := s;
+    case Kind of
+      tkSString:
+        Result := PShortString(FData.FValueData.GetReferenceToRawData)^;
+      tkAString:
+        Result := PAnsiString(FData.FValueData.GetReferenceToRawData)^;
+    else
+      raise EInvalidCast.Create(SErrInvalidTypecast);
+    end;
 end;
 
 function TValue.AsExtended: Extended;
