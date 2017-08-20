@@ -89,6 +89,19 @@ type
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
     function GetReferenceToRawData: Pointer;
+    class operator := (const AValue: String): TValue; inline;
+    class operator := (AValue: LongInt): TValue; inline;
+    class operator := (AValue: Single): TValue; inline;
+    class operator := (AValue: Double): TValue; inline;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+    class operator := (AValue: Extended): TValue; inline;
+{$endif}
+    class operator := (AValue: Currency): TValue; inline;
+    class operator := (AValue: Int64): TValue; inline;
+    class operator := (AValue: QWord): TValue; inline;
+    class operator := (AValue: TObject): TValue; inline;
+    class operator := (AValue: TClass): TValue; inline;
+    class operator := (AValue: Boolean): TValue; inline;
     property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
