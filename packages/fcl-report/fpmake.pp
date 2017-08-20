@@ -23,6 +23,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-pdf');
     P.Dependencies.Add('fcl-json');
+    P.Dependencies.Add('fcl-db');
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
