@@ -571,6 +571,7 @@ begin
     tkQWord    : result.FData.FAsUInt64 := PQWord(ABuffer)^;
     tkProcVar  : result.FData.FAsMethod.Code := PCodePointer(ABuffer)^;
     tkMethod   : result.FData.FAsMethod := PMethod(ABuffer)^;
+    tkPointer  : result.FData.FAsPointer := PPointer(ABuffer)^;
     tkInteger  : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
                      otSByte: result.FData.FAsSByte := PShortInt(ABuffer)^;
