@@ -535,6 +535,7 @@ end;
 class function TValue.Empty: TValue;
 begin
   result.FData.FTypeInfo := nil;
+  result.FData.FAsUInt64 := 0;
 end;
 
 class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
