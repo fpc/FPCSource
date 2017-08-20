@@ -46,8 +46,10 @@ implementation
 
     procedure tsparccallnode.extra_post_call_code;
       begin
+{$ifndef SPARC64}
         if paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
           current_asmdata.CurrAsmList.concat(taicpu.op_const(A_UNIMP,procdefinition.returndef.size and $3fffff));
+{$endif SPARC64}
       end;
 
 
