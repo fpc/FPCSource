@@ -109,11 +109,15 @@ unit ncpuset;
           end;
         current_asmdata.getjumplabel(table);
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+{$ifdef SPARC64}
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,3,hregister,indexreg);
+{$else SPARC64}
         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,hregister,indexreg);
+{$endif SPARC64}
         { create reference }
         current_asmdata.getjumplabel(base);
         cg.a_label(current_asmdata.CurrAsmList,base);
-        reference_reset_symbol(href,table,(-aint(min_))*4,sizeof(pint),[]);
+        reference_reset_symbol(href,table,(-aint(min_))*sizeof(pint),sizeof(pint),[]);
         href.relsymbol:=base;
         { Generate the following code:
           .Lbase:
@@ -133,6 +137,7 @@ unit ncpuset;
         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_SETHI,href,basereg));
         href.refaddr:=addr_low;
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref_reg(A_OR,basereg,href,basereg));
+
         { add index }
         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,indexreg,basereg);
 
@@ -143,10 +148,13 @@ unit ncpuset;
         href.index:=jmpreg;
         href.refaddr:=addr_full;
         current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JMP,href));
+
         { Delay slot }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_O7);
+
         { generate jump table }
+        current_asmdata.CurrAsmList.Concat(tai_align.Create(sizeof(pint)));
         cg.a_label(current_asmdata.CurrAsmList,table);
         genitem(current_asmdata.CurrAsmList,hp);
       end;
