@@ -614,7 +614,7 @@ function TValue.GetDataSize: SizeInt;
 begin
   if IsEmpty then
     Result := 0
-  else if Assigned(FData.FValueData) then
+  else if Assigned(FData.FValueData) and (Kind <> tkSString) then
     Result := FData.FValueData.GetDataSize
   else begin
     Result := 0;
@@ -660,7 +660,8 @@ begin
         { ? }
         Result := SizeOf(TMethod);
       tkSString:
-        Result := SizeOf(ShortString);
+        { ShortString can hold max. 254 characters as [0] is Length and [255] is #0 }
+        Result := SizeOf(ShortString) - 2;
       tkVariant:
         Result := SizeOf(Variant);
       tkProcVar:
