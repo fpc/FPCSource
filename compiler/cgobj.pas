@@ -1091,57 +1091,129 @@ implementation
         hreg : tregister;
         cgsize: tcgsize;
       begin
-         case paraloc.loc of
-           LOC_REGISTER :
-             begin
-               hreg:=paraloc.register;
-               cgsize:=paraloc.size;
-               if paraloc.shiftval>0 then
-                 a_op_const_reg_reg(list,OP_SHL,OS_INT,paraloc.shiftval,paraloc.register,paraloc.register)
-               { in case the original size was 3 or 5/6/7 bytes, the value was
-                 shifted to the top of the to 4 resp. 8 byte register on the
-                 caller side and needs to be stored with those bytes at the
-                 start of the reference -> don't shift right }
-               else if (paraloc.shiftval<0) and
-                       ((-paraloc.shiftval) in [1,2,4]) then
-                 begin
-                   a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
-                   { convert to a register of 1/2/4 bytes in size, since the
-                     original register had to be made larger to be able to hold
-                     the shifted value }
-                   cgsize:=int_cgsize(tcgsize2size[OS_INT]-(-paraloc.shiftval div 8));
-                   hreg:=getintregister(list,cgsize);
-                   a_load_reg_reg(list,OS_INT,cgsize,paraloc.register,hreg);
-                 end;
-               a_load_reg_ref(list,paraloc.size,cgsize,hreg,ref);
-             end;
-           LOC_MMREGISTER :
-             begin
-               case paraloc.size of
-                 OS_F32,
-                 OS_F64,
-                 OS_F128:
-                   a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
-                 OS_M8..OS_M128,
-                 OS_MS8..OS_MS128:
-                   a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,nil);
-                 else
-                   internalerror(2010053102);
-               end;
-             end;
-           LOC_FPUREGISTER :
-             a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
-           LOC_REFERENCE :
-             begin
-               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align,[]);
-               { use concatcopy, because it can also be a float which fails when
-                 load_ref_ref is used. Don't copy data when the references are equal }
-               if not((href.base=ref.base) and (href.offset=ref.offset)) then
-                 g_concatcopy(list,href,ref,sizeleft);
-             end;
-           else
-             internalerror(2002081302);
-         end;
+        case paraloc.loc of
+          LOC_REGISTER :
+            begin
+              hreg:=paraloc.register;
+              cgsize:=paraloc.size;
+              if paraloc.shiftval>0 then
+                a_op_const_reg_reg(list,OP_SHL,OS_INT,paraloc.shiftval,paraloc.register,paraloc.register)
+              { in case the original size was 3 or 5/6/7 bytes, the value was
+                shifted to the top of the to 4 resp. 8 byte register on the
+                caller side and needs to be stored with those bytes at the
+                start of the reference -> don't shift right }
+              else if (paraloc.shiftval<0) and
+                      ((-paraloc.shiftval) in [8,16,32]) then
+                begin
+                  a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
+                  { convert to a register of 1/2/4 bytes in size, since the
+                    original register had to be made larger to be able to hold
+                    the shifted value }
+                  cgsize:=int_cgsize(tcgsize2size[OS_INT]-(-paraloc.shiftval div 8));
+                  hreg:=getintregister(list,cgsize);
+                  a_load_reg_reg(list,OS_INT,cgsize,paraloc.register,hreg);
+                end;
+              { use the exact size to avoid overwriting of adjacent data }
+              if tcgsize2size[cgsize]<=sizeleft then
+                a_load_reg_ref(list,paraloc.size,cgsize,hreg,ref)
+              else
+                case sizeleft of
+                  1,2,4,8:
+                    a_load_reg_ref(list,paraloc.size,int_cgsize(sizeleft),hreg,ref);
+                  3:
+                    begin
+                      if target_info.endian=endian_big then
+                        begin
+                          href:=ref;
+                          inc(href.offset,2);
+                          a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
+                          a_op_const_reg_reg(list,OP_SHR,OS_INT,8,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_16,hreg,ref);
+                        end
+                      else
+                        { little endian not implemented yet }
+                        Internalerror(2017081301);
+                    end;
+                  5:
+                    begin
+                      if target_info.endian=endian_big then
+                        begin
+                          href:=ref;
+                          inc(href.offset,4);
+                          a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
+                          a_op_const_reg_reg(list,OP_SHR,OS_INT,8,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
+                        end
+                      else
+                        { little endian not implemented yet }
+                        Internalerror(2017081302);
+                    end;
+                  6:
+                    begin
+                      if target_info.endian=endian_big then
+                        begin
+                          href:=ref;
+                          inc(href.offset,4);
+                          a_load_reg_ref(list,paraloc.size,OS_16,hreg,href);
+                          a_op_const_reg_reg(list,OP_SHR,OS_INT,16,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
+                        end
+                      else
+                        { little endian not implemented yet }
+                        Internalerror(2017081303);
+                    end;
+                  7:
+                    begin
+                      if target_info.endian=endian_big then
+                        begin
+                          href:=ref;
+                          inc(href.offset,6);
+                          a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
+
+                          a_op_const_reg_reg(list,OP_SHR,OS_INT,8,hreg,hreg);
+                          href:=ref;
+                          inc(href.offset,4);
+                          a_load_reg_ref(list,paraloc.size,OS_16,hreg,href);
+
+                          a_op_const_reg_reg(list,OP_SHR,OS_INT,16,hreg,hreg);
+                          a_load_reg_ref(list,paraloc.size,OS_32,hreg,ref);
+                        end
+                      else
+                        { little endian not implemented yet }
+                        Internalerror(2017081304);
+                    end;
+                  else
+                    { other sizes not allowed }
+                    Internalerror(2017080901);
+                end;
+            end;
+          LOC_MMREGISTER :
+            begin
+              case paraloc.size of
+                OS_F32,
+                OS_F64,
+                OS_F128:
+                  a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
+                OS_M8..OS_M128,
+                OS_MS8..OS_MS128:
+                  a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,nil);
+                else
+                  internalerror(2010053102);
+              end;
+            end;
+          LOC_FPUREGISTER :
+            a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+          LOC_REFERENCE :
+            begin
+              reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align,[]);
+              { use concatcopy, because it can also be a float which fails when
+                load_ref_ref is used. Don't copy data when the references are equal }
+              if not((href.base=ref.base) and (href.offset=ref.offset)) then
+                g_concatcopy(list,href,ref,sizeleft);
+            end;
+          else
+            internalerror(2002081302);
+        end;
       end;
 
 
