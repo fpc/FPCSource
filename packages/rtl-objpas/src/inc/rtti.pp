@@ -65,6 +65,7 @@ type
   TValue = record
   private
     FData: TValueData;
+    function GetDataSize: SizeInt;
     function GetTypeDataProp: PTypeData; inline;
     function GetTypeInfo: PTypeInfo; inline;
     function GetTypeKind: TTypeKind; inline;
@@ -87,6 +88,7 @@ type
     function ToString: String;
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
+    property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
     property TypeInfo: PTypeInfo read GetTypeInfo;
@@ -571,6 +573,89 @@ end;
 function TValue.GetTypeDataProp: PTypeData;
 begin
   result := GetTypeData(FData.FTypeInfo);
+end;
+
+function TValue.GetDataSize: SizeInt;
+begin
+  if IsEmpty then
+    Result := 0
+  else if Assigned(FData.FValueData) then
+    Result := FData.FValueData.GetDataSize
+  else begin
+    Result := 0;
+    case Kind of
+      tkEnumeration,
+      tkBool,
+      tkInt64,
+      tkQWord,
+      tkInteger:
+        case TypeData^.OrdType of
+          otSByte,
+          otUByte:
+            Result := SizeOf(Byte);
+          otSWord,
+          otUWord:
+            Result := SizeOf(Word);
+          otSLong,
+          otULong:
+            Result := SizeOf(LongWord);
+          otSQWord,
+          otUQWord:
+            Result := SizeOf(QWord);
+        end;
+      tkChar:
+        Result := SizeOf(AnsiChar);
+      tkFloat:
+        case TypeData^.FloatType of
+          ftSingle:
+            Result := SizeOf(Single);
+          ftDouble:
+            Result := SizeOf(Double);
+          ftExtended:
+            Result := SizeOf(Extended);
+          ftComp:
+            Result := SizeOf(Comp);
+          ftCurr:
+            Result := SizeOf(Currency);
+        end;
+      tkSet:
+        { ToDo }
+        Result := 0;
+      tkMethod:
+        { ? }
+        Result := SizeOf(TMethod);
+      tkSString:
+        Result := SizeOf(ShortString);
+      tkVariant:
+        Result := SizeOf(Variant);
+      tkProcVar:
+        Result := SizeOf(CodePointer);
+      tkWChar:
+        Result := SizeOf(WideChar);
+      tkUChar:
+        Result := SizeOf(UnicodeChar);
+      tkFile:
+        { ToDo }
+        Result := SizeOf(TTextRec);
+      tkClass,
+      tkHelper,
+      tkClassRef,
+      tkPointer:
+        Result := SizeOf(Pointer);
+      tkUnknown,
+      tkLString,
+      tkAString,
+      tkWString,
+      tkUString,
+      tkObject,
+      tkArray,
+      tkRecord,
+      tkInterface,
+      tkDynArray,
+      tkInterfaceRaw:
+        Assert(False);
+    end;
+  end;
 end;
 
 function TValue.GetTypeInfo: PTypeInfo;
