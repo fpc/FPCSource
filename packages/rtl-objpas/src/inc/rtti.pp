@@ -557,6 +557,7 @@ begin
     tkRecord   : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Result.TypeData^.RecSize, ATypeInfo, False);
     tkClass    : result.FData.FAsObject := PPointer(ABuffer)^;
     tkClassRef : result.FData.FAsClass := PClass(ABuffer)^;
+    tkInterfaceRaw : result.FData.FAsPointer := PPointer(ABuffer)^;
     tkInterface: result.FData.FValueData := TValueDataIntImpl.CreateRef(ABuffer, ATypeInfo, True);
     tkInt64    : result.FData.FAsSInt64 := PInt64(ABuffer)^;
     tkQWord    : result.FData.FAsUInt64 := PQWord(ABuffer)^;
