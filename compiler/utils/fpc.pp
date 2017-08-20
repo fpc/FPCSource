@@ -146,11 +146,15 @@ program fpc;
 {$ifdef aarch64}
      ppcbin:='ppca64';
      processorname:='aarch64';
-{$endif arm}
+{$endif aarch64}
 {$ifdef sparc}
      ppcbin:='ppcsparc';
      processorname:='sparc';
 {$endif sparc}
+{$ifdef sparc64}
+     ppcbin:='ppcsparc64';
+     processorname:='sparc64';
+{$endif sparc64}
 {$ifdef x86_64}
      ppcbin:='ppcx64';
      processorname:='x86_64';
