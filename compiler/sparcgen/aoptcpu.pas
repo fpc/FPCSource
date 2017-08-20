@@ -25,6 +25,8 @@ unit aoptcpu;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_AOPTCPU}
+
   Interface
 
     uses
@@ -40,6 +42,7 @@ unit aoptcpu;
           var AllUsedRegs: TAllUsedRegs): Boolean;
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
         function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
+        procedure DebugMsg(const s : string;p : tai);
       End;
 
   Implementation
@@ -153,6 +156,18 @@ unit aoptcpu;
     end;
 
 
+{$ifdef DEBUG_AOPTCPU}
+  procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);
+    begin
+      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+    end;
+{$else DEBUG_AOPTCPU}
+  procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);inline;
+    begin
+    end;
+{$endif DEBUG_AOPTCPU}
+
+
   function TCpuAsmOptimizer.TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
     var
       next,hp1: tai;
@@ -211,6 +226,7 @@ unit aoptcpu;
 
               { finally get rid of the mov }
               taicpu(p).loadreg(2,taicpu(next).oper[1]^.reg);
+              DebugMsg('Peephole OpMov2Op done',p);
               asml.remove(next);
               next.free;
             end;
@@ -252,6 +268,7 @@ unit aoptcpu;
                       if not RegUsedAfterInstruction(taicpu(p).oper[2]^.reg,next2,TmpUsedRegs) then
                         begin
                           taicpu(next2).loadreg(0,taicpu(p).oper[0]^.reg);
+                          DebugMsg('Peephole SLLSRxSTH2STH done',next2);
                           asml.remove(p);
                           asml.remove(next);
                           p.free;
