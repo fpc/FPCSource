@@ -79,12 +79,10 @@ begin
       AddUnit('fpreport');
 
     T:=P.Targets.AddUnit('fpreportcontnr.pp');
-    T.ResourceStrings := True;
     with T.Dependencies do
       AddUnit('fpreport');
 
     T:=P.Targets.AddUnit('fpreportcanvashelper.pp');
-    T.ResourceStrings := True;
     with T.Dependencies do
       AddUnit('fpreport');
       
@@ -94,12 +92,10 @@ begin
       AddUnit('fpreport');
 
     T:=P.Targets.AddUnit('fpreportpdfexport.pp');
-    T.ResourceStrings := True;
     with T.Dependencies do
       AddUnit('fpreport');
 
     T:=P.Targets.AddUnit('fpreporthtmlexport.pp');
-    T.ResourceStrings := True;
     with T.Dependencies do
       begin
       AddUnit('fpreport');
@@ -107,7 +103,6 @@ begin
       end;
 
     T:=P.Targets.AddUnit('fpreportfpimageexport.pp');
-    T.ResourceStrings := True;
     with T.Dependencies do
       begin
       AddUnit('fpreport');
