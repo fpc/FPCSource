@@ -85,6 +85,7 @@ type
     function AsBoolean: boolean;
     function AsCurrency: Currency;
     function AsInteger: Integer;
+    function AsInterface: IInterface;
     function ToString: String;
     function IsType(ATypeInfo: PTypeInfo): boolean; inline;
     function TryAsOrdinal(out AResult: int64): boolean;
@@ -812,6 +813,13 @@ begin
     end
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.AsInterface: IInterface;
+begin
+  if Kind <> tkInterface then
+    EInvalidCast.Create(SErrInvalidTypecast);
+  Result := PInterface(FData.FValueData.GetReferenceToRawData)^;
 end;
 
 function TValue.ToString: String;
