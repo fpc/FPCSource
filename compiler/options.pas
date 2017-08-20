@@ -3423,11 +3423,8 @@ begin
 {$endif}
 {$endif}
 
-{ these cpus have an inline sar implementaion }
 { currently, all supported CPUs have an internal sar implementation }
-{ $if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(sparc) or defined(mips)}
   def_system_macro('FPC_HAS_INTERNAL_SAR');
-{ $endif}
 
 {$ifdef powerpc64}
   def_system_macro('FPC_HAS_LWSYNC');
