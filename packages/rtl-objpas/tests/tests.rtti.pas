@@ -44,9 +44,15 @@ type
     procedure TestPropSetValueShortString;
 
     procedure TestGetValueStringCastError;
-    procedure TestMakeObject;
     procedure TestGetIsReadable;
     procedure TestIsWritable;
+
+    procedure TestMakeNil;
+    procedure TestMakeObject;
+    procedure TestMakeArrayDynamic;
+    procedure TestMakeArrayStatic;
+
+    procedure TestReferenceRawData;
 
     procedure TestIsManaged;
   end;
@@ -226,6 +232,50 @@ begin
   end;
 end;
 
+procedure TTestCase1.TestMakeNil;
+var
+  value: TValue;
+begin
+  TValue.Make(Nil, TypeInfo(TObject), value);
+  CheckTrue(value.IsEmpty);
+  CheckTrue(value.IsObject);
+  CheckTrue(value.IsClass);
+  CheckTrue(value.IsOrdinal);
+  CheckFalse(value.IsArray);
+  CheckTrue(value.AsObject=Nil);
+  CheckTrue(value.AsClass=Nil);
+  CheckTrue(value.AsInterface=Nil);
+  CheckEquals(0, value.AsOrdinal);
+
+  TValue.Make(Nil, TypeInfo(TClass), value);
+  CheckTrue(value.IsEmpty);
+  CheckTrue(value.IsClass);
+  CheckTrue(value.IsOrdinal);
+  CheckFalse(value.IsArray);
+  CheckTrue(value.AsObject=Nil);
+  CheckTrue(value.AsClass=Nil);
+  CheckTrue(value.AsInterface=Nil);
+  CheckEquals(0, value.AsOrdinal);
+
+  TValue.Make(Nil, TypeInfo(LongInt), value);
+  CheckTrue(value.IsOrdinal);
+  CheckFalse(value.IsEmpty);
+  CheckFalse(value.IsClass);
+  CheckFalse(value.IsObject);
+  CheckFalse(value.IsArray);
+  CheckEquals(0, value.AsOrdinal);
+  CheckEquals(0, value.AsInteger);
+  CheckEquals(0, value.AsInt64);
+  CheckEquals(0, value.AsUInt64);
+
+  TValue.Make(Nil, TypeInfo(String), value);
+  CheckFalse(value.IsEmpty);
+  CheckFalse(value.IsObject);
+  CheckFalse(value.IsClass);
+  CheckFalse(value.IsArray);
+  CheckEquals('', value.AsString);
+end;
+
 procedure TTestCase1.TestMakeObject;
 var
   AValue: TValue;
@@ -239,6 +289,65 @@ begin
   Check(AValue.AsObject=ATestClass);
   CheckEquals(TTestValueClass(AValue.AsObject).AInteger, 54329);
   ATestClass.Free;
+end;
+
+procedure TTestCase1.TestMakeArrayDynamic;
+type
+  TArrDyn = array of LongInt;
+var
+  arr: TArrDyn;
+  value: TValue;
+begin
+  SetLength(arr, 2);
+  arr[0] := 42;
+  arr[1] := 21;
+  TValue.Make(@arr, TypeInfo(TArrDyn), value);
+  CheckEquals(value.IsArray, True);
+  CheckEquals(value.IsObject, False);
+  CheckEquals(value.IsOrdinal, False);
+  CheckEquals(value.IsClass, False);
+  CheckEquals(value.GetArrayLength, 2);
+  CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+  CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+  value.SetArrayElement(0, 84);
+  CheckEquals(arr[0], 84);
+end;
+
+procedure TTestCase1.TestMakeArrayStatic;
+type
+  TArrStat = array[0..1] of LongInt;
+  TArrStat2D = array[0..1, 0..1] of LongInt;
+var
+  arr: TArrStat;
+  arr2D: TArrStat2D;
+  value: TValue;
+begin
+  arr[0] := 42;
+  arr[1] := 21;
+  TValue.Make(@arr, TypeInfo(TArrStat), value);
+  CheckEquals(value.IsArray, True);
+  CheckEquals(value.IsObject, False);
+  CheckEquals(value.IsOrdinal, False);
+  CheckEquals(value.IsClass, False);
+  CheckEquals(value.GetArrayLength, 2);
+  CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+  CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+  value.SetArrayElement(0, 84);
+  { since this is a static array the original array isn't touched! }
+  CheckEquals(arr[0], 42);
+
+  arr2D[0, 0] := 42;
+  arr2D[0, 1] := 21;
+  arr2D[1, 0] := 84;
+  arr2D[1, 1] := 63;
+
+  TValue.Make(@arr2D, TypeInfo(TArrStat2D), value);
+  CheckEquals(value.IsArray, True);
+  CheckEquals(value.GetArrayLength, 4);
+  CheckEquals(value.GetArrayElement(0).AsInteger, 42);
+  CheckEquals(value.GetArrayElement(1).AsInteger, 21);
+  CheckEquals(value.GetArrayElement(2).AsInteger, 84);
+  CheckEquals(value.GetArrayElement(3).AsInteger, 63);
 end;
 
 procedure TTestCase1.TestGetIsReadable;
@@ -747,6 +856,63 @@ begin
   end;
 
   LContext.Free;
+end;
+
+procedure TTestCase1.TestReferenceRawData;
+type
+  TTest = record
+    a: LongInt;
+    b: String;
+  end;
+  PTest = ^TTest;
+
+  TArrDyn = array of LongInt;
+
+  TArrStat = array[0..2] of LongInt;
+
+var
+  value: TValue;
+  str: String;
+  intf: IInterface;
+  i: LongInt;
+  test: TTest;
+  arrdyn: TArrDyn;
+  arrstat: TArrStat;
+begin
+  str := 'Hello World';
+  UniqueString(str);
+  TValue.Make(@str, TypeInfo(String), value);
+  Check(PPointer(value.GetReferenceToRawData)^ = Pointer(str), 'Reference to string data differs');
+
+  intf := TInterfacedObject.Create;
+  TValue.Make(@intf, TypeInfo(IInterface), value);
+  Check(PPointer(value.GetReferenceToRawData)^ = Pointer(intf), 'Reference to interface data differs');
+
+  i := 42;
+  TValue.Make(@i, TypeInfo(LongInt), value);
+  Check(value.GetReferenceToRawData <> @i, 'Reference to longint is equal');
+  Check(PLongInt(value.GetReferenceToRawData)^ = PLongInt(@i)^, 'Reference to longint data differs');
+
+  test.a := 42;
+  test.b := 'Hello World';
+  TValue.Make(@test, TypeInfo(TTest), value);
+  Check(value.GetReferenceToRawData <> @test, 'Reference to record is equal');
+  Check(PTest(value.GetReferenceToRawData)^.a = PTest(@test)^.a, 'Reference to record data a differs');
+  Check(PTest(value.GetReferenceToRawData)^.b = PTest(@test)^.b, 'Reference to record data b differs');
+
+  SetLength(arrdyn, 3);
+  arrdyn[0] := 42;
+  arrdyn[1] := 23;
+  arrdyn[2] := 49;
+  TValue.Make(@arrdyn, TypeInfo(TArrDyn), value);
+  Check(PPointer(value.GetReferenceToRawData)^ = Pointer(arrdyn), 'Reference to dynamic array data differs');
+
+  arrstat[0] := 42;
+  arrstat[1] := 23;
+  arrstat[2] := 49;
+  TValue.Make(@arrstat, TypeInfo(TArrStat), value);
+  Check(value.GetReferenceToRawData <> @arrstat, 'Reference to static array is equal');
+  Check(PLongInt(value.GetReferenceToRawData)^ = PLongInt(@arrstat)^, 'Reference to static array data differs');
 end;
 
 procedure TTestCase1.TestIsManaged;
