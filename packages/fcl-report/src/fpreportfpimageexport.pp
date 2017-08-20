@@ -857,8 +857,8 @@ var
   ImageFiles : TStringList;
   D : String;
 begin
-  HTMLOptions:=[hoEnabled,hoTOCPage,hoFramePage,hoExternalJS];
-  BaseFileName:='mydemo/image.png';
+//  HTMLOptions:=[hoEnabled,hoTOCPage,hoFramePage,hoExternalJS];
+//  BaseFileName:='mydemo/image.png';
   D:=ExtractFilePath(BaseFileName);
   if (D<>'') and not DirectoryExists(D) then
     If not ForceDirectories(D) then
