@@ -1202,7 +1202,7 @@ implementation
                           a_op_const_reg_reg(list,OP_SHR,cgsize,32,hreg,hreg);
                           a_load_reg_ref(list,paraloc.size,OS_16,hreg,href);
 
-                          inc(href.offset,4);
+                          inc(href.offset,2);
                           a_op_const_reg_reg(list,OP_SHR,cgsize,16,hreg,hreg);
                           a_load_reg_ref(list,paraloc.size,OS_8,hreg,href);
                         end
