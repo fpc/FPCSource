@@ -221,7 +221,10 @@ unit mmx;
 
     procedure emms;assembler;
       asm
-         emms
+        { emms instruction not supported by older GNU as version,
+          like 2.6 used by EMX target }
+        // emms
+        .byte 0x0f, 0x77
       end;
 
 
