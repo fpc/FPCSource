@@ -45,8 +45,10 @@ function cpuid_support : boolean;assembler;nostackframe;
 
 {$ifndef FPC_PIC}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
+{$ifndef OLD_ASSEMBLER}
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
+{$endif not OLD_ASSEMBLER}
 {$endif FPC_SYSTEM_HAS_MOVE}
 {$endif FPC_PIC}
 
@@ -1325,7 +1327,16 @@ Procedure SysResetFPU;
         localmxcsr:=DefaultMXCSR;
         asm
           { setup sse exceptions }
+        {$ifndef OLD_ASSEMBLER}
           ldmxcsr localmxcsr
+        {$else OLD_ASSEMBLER}
+          mov     localmxcsr,%eax
+          subl    $4,%esp
+          mov     %eax,(%esp)
+          //ldmxcsr (%esp)
+          .byte   0x0f,0xae,0x14,0x24
+          addl    $4,%esp
+        {$endif OLD_ASSEMBLER}
         end;
       end;
   end;
@@ -1353,7 +1364,11 @@ procedure fpc_cpucodeinit;
               { force an sse exception if no sse is supported, the exception handler sets
                 os_supports_sse to false then }
               { don't change this instruction, the code above depends on its size }
+            {$ifdef OLD_ASSEMBLER}
+              .byte  0x0f,0x28,0f7
+            {$else}
               movaps %xmm7, %xmm6
+            {$endif not EMX}
             end;
             sse_check:=false;
             has_sse_support:=os_supports_sse;
