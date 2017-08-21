@@ -367,7 +367,7 @@ begin
     gotoXY(1,1);
 end;
 
-procedure gotoXY(x,y:byte);
+procedure gotoXY(x,y:tcrtcoord);
 
 {Positions the cursor on (x,y) relative to the window origin.}
 
@@ -383,7 +383,7 @@ begin
     setcursor(y+hi(windmin)-1,x+lo(windmin)-1);
 end;
 
-function whereX:byte;
+function whereX:tcrtcoord;
 
 {Returns the x position of the cursor.}
 
@@ -394,7 +394,7 @@ begin
     whereX:=x-lo(windmin)+1;
 end;
 
-function whereY:byte;
+function whereY:tcrtcoord;
 
 {Returns the y position of the cursor.}
 
