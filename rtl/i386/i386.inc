@@ -1365,7 +1365,7 @@ procedure fpc_cpucodeinit;
                 os_supports_sse to false then }
               { don't change this instruction, the code above depends on its size }
             {$ifdef OLD_ASSEMBLER}
-              .byte  0x0f,0x28,0f7
+              .byte  0x0f,0x28,0xf7
             {$else}
               movaps %xmm7, %xmm6
             {$endif not EMX}
