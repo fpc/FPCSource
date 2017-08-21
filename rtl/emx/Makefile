@@ -351,262 +351,262 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-aros)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),arm-aros)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i8086-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),aarch64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),aarch64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),wasm-wasm)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos unicodedata unicodenumtable character sysutils classes fgl math typinfo charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs types rtlconst sysconst ctypes
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
@@ -3149,6 +3149,8 @@ doscalls$(PPUEXT) : $(OS2INC)/doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEX
 	$(COMPILER) $<
 viocalls$(PPUEXT) : $(OS2INC)/viocalls.pas $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
+so32dll$(PPUEXT) : $(OS2INC)/so32dll.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 kbdcalls$(PPUEXT) : $(OS2INC)/kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 moucalls$(PPUEXT) : $(OS2INC)/moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
@@ -3188,33 +3190,46 @@ dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	$(COMPILER) -Fi$(INC) $<
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 classes$(PPUEXT) : $(OS2INC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
 		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) \
 		   objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/classes $(OS2INC)/classes.pp
+	$(COMPILER) -Fi$(OBJPASDIR)/classes $<
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/math.pp
+	$(COMPILER) $<
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconst$(PPUEXT)
-	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
+	$(COMPILER) -Sg $<
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/fgl.pp
+	$(COMPILER) $<
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $<
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/sysconst.pp
+	$(COMPILER) $<
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
-	$(COMPILER) $(INC)/macpas.pp $(REDIR)
+	$(COMPILER) $<
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -Sg $(INC)/heaptrc.pp
+	$(COMPILER) -Sg $<
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
-	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+	$(COMPILER) -Fi$(RTL)/charmaps $<
 ctypes$(PPUEXT) : $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+character$(PPUEXT): $(OBJPASDIR)/character.pas unicodedata$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
