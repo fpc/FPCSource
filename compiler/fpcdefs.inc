@@ -66,6 +66,7 @@
   {$define cpuneedsdivhelper}
   {$define VOLATILE_ES}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucg64shiftsupport}
 {$endif i8086}
 
 {$ifdef i386}
