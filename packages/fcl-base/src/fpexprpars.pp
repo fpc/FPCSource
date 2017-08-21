@@ -3853,6 +3853,11 @@ begin
   Result.resDateTime:=StrToDateTimeDef(Args[0].resString,Args[1].resDateTime);
 end;
 
+procedure BuiltInFormatFloat(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
+begin
+  result.ResString := FormatFloat(Args[0].resString, Args[1].ResFloat);
+end;
+
 Procedure BuiltInBoolToStr(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 
 begin
@@ -4008,6 +4013,7 @@ begin
       AddFunction(bcConversion,'strtotimedef','D','SD',@BuiltInStrToTimeDef);
       AddFunction(bcConversion,'strtodatetime','D','S',@BuiltInStrToDateTime);
       AddFunction(bcConversion,'strtodatetimedef','D','SD',@BuiltInStrToDateTimeDef);
+      AddFunction(bcConversion,'formatfloat','S','SF',@BuiltInFormatFloat);
       end;
     if bcAggregate in Categories then
       begin
