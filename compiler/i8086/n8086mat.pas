@@ -103,6 +103,7 @@ implementation
         e : smallint;
         d,l,r,s,m,a,n,t : word;
         m_low,m_high,j,k : dword;
+        invertsign: Boolean;
       begin
         secondpass(left);
         if codegenerror then
@@ -121,13 +122,14 @@ implementation
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
           begin
-            if ispowerof2(tordconstnode(right).value.svalue,power) then
+            if isabspowerof2(tordconstnode(right).value,power) then
               begin
                 { for signed numbers, the numerator must be adjusted before the
                   shift instruction, but not wih unsigned numbers! Otherwise,
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
                 if is_signed(left.resultdef) Then
                   begin
+                    invertsign:=tordconstnode(right).value<0;
                     if (current_settings.optimizecputype > cpu_386) and
                        not(cs_opt_size in current_settings.optimizerswitches) then
                       { use a sequence without jumps, saw this in
@@ -136,17 +138,17 @@ implementation
                         { no jumps, but more operations }
                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                         emit_reg_reg(A_MOV,S_W,hreg1,hreg2);
-                        if tordconstnode(right).value=2 then
+                        if power=1 then
                           begin
-                            {If the left value is negative, hreg2=(right value-1)=1, otherwise 0.}
+                            {If the left value is negative, hreg2=(1 shl power)-1=1, otherwise 0.}
                             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,15,hreg2);
                           end
                         else
                           begin
                             {If the left value is negative, hreg2=$ffff, otherwise 0.}
                             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,hreg2);
-                            {If negative, hreg2=right value-1, otherwise 0.}
-                            emit_const_reg(A_AND,S_W,tordconstnode(right).value.svalue-1,hreg2);
+                            {If negative, hreg2=(1 shl power)-1, otherwise 0.}
+                            emit_const_reg(A_AND,S_W,(aint(1) shl power)-1,hreg2);
                           end;
                         { add to the left value }
                         emit_reg_reg(A_ADD,S_W,hreg2,hreg1);
@@ -162,10 +164,12 @@ implementation
                         if power=1 then
                           emit_reg(A_INC,S_W,hreg1)
                         else
-                          emit_const_reg(A_ADD,S_W,tordconstnode(right).value.svalue-1,hreg1);
+                          emit_const_reg(A_ADD,S_W,(aint(1) shl power)-1,hreg1);
                         cg.a_label(current_asmdata.CurrAsmList,hl);
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,power,hreg1);
-                      end
+                      end;
+                    if invertsign then
+                      emit_reg(A_NEG,S_W,hreg1);
                   end
                 else
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,power,hreg1);
