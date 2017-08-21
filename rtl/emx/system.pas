@@ -156,6 +156,9 @@ var
 
 implementation
 
+{ EMX cross-assembler is way too old to support 64bit opcodes }
+{$define OLD_ASSEMBLER}
+
 {$I system.inc}
 
 var
