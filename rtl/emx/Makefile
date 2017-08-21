@@ -3130,34 +3130,62 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 %$(OEXT) : %.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)$*$(OEXT) $*.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pas $(SYSDEPS)
-	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pas
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) -Us -Sg $<
+uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+	$(COMPILER) -Fi$(OBJPASDIR) $<
+iso7185$(PPUEXT): $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+extpas$(PPUEXT): $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) -Fi$(INC) $<
 ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 doscalls$(PPUEXT) : $(OS2INC)/doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+viocalls$(PPUEXT) : $(OS2INC)/viocalls.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 kbdcalls$(PPUEXT) : $(OS2INC)/kbdcalls.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 moucalls$(PPUEXT) : $(OS2INC)/moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 moncalls$(PPUEXT) : $(OS2INC)/moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 os2def$(PPUEXT) : $(OS2INC)/os2def.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 doscall2$(PPUEXT) : $(OS2INC)/doscall2.pas doscalls$(PPUEXT) os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmwin$(PPUEXT) : $(OS2INC)/pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmbitmap$(PPUEXT) : $(OS2INC)/pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmgpi$(PPUEXT) : $(OS2INC)/pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmstddlg$(PPUEXT) : $(OS2INC)/pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmhelp$(PPUEXT) : $(OS2INC)/pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmdev$(PPUEXT) : $(OS2INC)/pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmspl$(PPUEXT) : $(OS2INC)/pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmshl$(PPUEXT) : $(OS2INC)/pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmwp$(PPUEXT) : $(OS2INC)/pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmwsock$(PPUEXT) : $(OS2INC)/pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 pmbidi$(PPUEXT) : $(OS2INC)/pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) -Fi$(INC) $<
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) -Fi$(INC) $<
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
