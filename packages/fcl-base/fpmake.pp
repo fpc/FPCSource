@@ -97,7 +97,7 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fptemplate.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,EMX,nativent]);
+    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,nativent]);
     T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
     T:=P.Targets.AddUnit('whtml.pp');
@@ -125,7 +125,7 @@ begin
     T:=P.Targets.addUnit('advancedipc.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.addUnit('advancedsingleinstance.pas');
-      T.ResourceStrings:=true;	  
+      T.ResourceStrings:=true;	
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources
