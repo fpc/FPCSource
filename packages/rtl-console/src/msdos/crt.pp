@@ -460,6 +460,8 @@ begin
         { and interrupts are always disabled at this point when    }
         { running a program inside gdb(pas). Web bug 1345 (JM)     }
         sti
+        mov     es,ax
+        push    ax
         mov     ax, $40
         mov     es, ax
         mov     di, $6c
@@ -474,6 +476,8 @@ LInitDel1:
 
         mov     word ptr [DelayCnt], ax
         mov     word ptr [DelayCnt + 2], dx
+        pop     ax
+        mov     ax,es
   end ['AX','BX','DX', 'DI'];
   DelayCnt := -DelayCnt div $55;
 end;
@@ -483,6 +487,8 @@ procedure Delay(MS: Word);assembler;
 label
   LDelay1, LDelay2;
 asm
+        mov     es,ax
+        push    ax
         mov     ax, $40
         mov     es, ax
         xor     di, di
@@ -498,6 +504,8 @@ LDelay1:
         call    DelayLoop
         loop    LDelay1
 LDelay2:
+        pop     ax
+        mov     ax,es
 end;
 
 
