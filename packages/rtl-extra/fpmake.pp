@@ -26,7 +26,7 @@ Const
   ObjectsOSes   = [atari,emx,gba,go32v2,macos,msdos,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
-  SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,wince,win32,win64];
+  SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,emx,wince,win32,win64];
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd,dragonfly];
   Socklibc  = unixlikes-socksyscall;
   gpmOSes = [Linux,Android];
