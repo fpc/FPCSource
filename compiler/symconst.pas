@@ -889,6 +889,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
      default_class_type=odt_javaclass;
 {$endif not jvm}
 
+     objecttypes_with_helpers=[odt_class];
+
 { !! Be sure to keep these in sync with ones in rtl/inc/varianth.inc }
       varempty = 0;
       varnull = 1;

@@ -705,7 +705,7 @@ implementation
               filedef,classrefdef,abstractdef,forwarddef,formaldef]) or
               (
                 (def.typ=objectdef) and
-                (tobjectdef(def).objecttype<>odt_class)
+                not (tobjectdef(def).objecttype in objecttypes_with_helpers)
               ) then
             begin
               Message1(type_e_type_not_allowed_for_type_helper,def.typename);
@@ -729,7 +729,8 @@ implementation
         begin
           if (def.typ<>errordef) and assigned(current_objectdef.childof) then
             begin
-              if not is_class(current_objectdef.childof.extendeddef) then
+              if (current_objectdef.childof.extendeddef.typ<>objectdef) or
+                 not (tobjectdef(current_objectdef.childof.extendeddef).objecttype in objecttypes_with_helpers) then
                 Internalerror(2011021101);
               if not def_is_related(def,current_objectdef.childof.extendeddef) then
                 begin
@@ -795,7 +796,8 @@ implementation
               ht_type:
                 begin
                   validate_extendeddef_typehelper(hdef);
-                  if is_class(hdef) then
+                  if (hdef.typ=objectdef) and
+                      (tobjectdef(hdef).objecttype in objecttypes_with_helpers) then
                     check_inheritance_class_helper(hdef)
                   else
                     { a type helper must extend the same type as the

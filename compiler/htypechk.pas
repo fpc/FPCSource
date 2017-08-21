@@ -2197,7 +2197,12 @@ implementation
         while assigned(structdef) do
          begin
            { first search in helpers for this type }
-           if (is_class(structdef) or is_record(structdef))
+           if ((structdef.typ=recorddef) or
+                 (
+                   (structdef.typ=objectdef) and
+                   (tobjectdef(structdef).objecttype in objecttypes_with_helpers)
+                 )
+               )
                and searchhelpers then
              begin
                if search_last_objectpascal_helper(structdef,nil,helperdef) then
@@ -2235,7 +2240,13 @@ implementation
                  break;
              end;
            if is_objectpascal_helper(structdef) and
-              (tobjectdef(structdef).extendeddef.typ in [recorddef,objectdef]) then
+              (
+                (tobjectdef(structdef).extendeddef.typ=recorddef) or
+                (
+                  (tobjectdef(structdef).extendeddef.typ=objectdef) and
+                  (tobjectdef(tobjectdef(structdef).extendeddef).objecttype in objecttypes_with_helpers)
+                )
+              ) then
              begin
                { remember the first extendeddef of the hierarchy }
                if not assigned(extendeddef) then

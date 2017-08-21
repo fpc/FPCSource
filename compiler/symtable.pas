@@ -3473,7 +3473,7 @@ implementation
               begin
                 { search for a class helper method first if this is an Object
                   Pascal class and we haven't yet found a helper symbol }
-                if is_class(classh) and
+                if (classh.objecttype in objecttypes_with_helpers) and
                     (ssf_search_helper in flags) then
                   begin
                     result:=search_objectpascal_helper(classh,contextclassh,s,srsym,srsymtable);
