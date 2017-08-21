@@ -385,7 +385,7 @@ interface
         opsize:topsize;
         e, sm: aint;
         d,m: aword;
-        m_add: boolean;
+        m_add, invertsign: boolean;
         s: byte;
       begin
         secondpass(left);
@@ -409,36 +409,39 @@ interface
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
           begin
-            if ispowerof2(int64(tordconstnode(right).value),power) then
+            if isabspowerof2(int64(tordconstnode(right).value),power) then
               begin
                 { for signed numbers, the numerator must be adjusted before the
                   shift instruction, but not wih unsigned numbers! Otherwise,
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
                 if is_signed(left.resultdef) Then
                   begin
+                    invertsign:=tordconstnode(right).value<0;
                     { use a sequence without jumps, saw this in
                       comp.compilers (JM) }
                     { no jumps, but more operations }
                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
-                    if tordconstnode(right).value=2 then
+                    if power=1 then
                       begin
-                        {If the left value is negative, hreg2=(right value-1)=1, otherwise 0.}
+                        {If the left value is negative, hreg2=(1 shl power)-1=1, otherwise 0.}
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,resultdef.size*8-1,hreg2);
                       end
                     else
                       begin
                         {If the left value is negative, hreg2=$ffffffff, otherwise 0.}
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,resultdef.size*8-1,hreg2);
-                        {If negative, hreg2=right value-1, otherwise 0.}
+                        {If negative, hreg2=(1 shl power)-1, otherwise 0.}
                         { (don't use emit_const_reg, because if value>high(longint)
                            then it must first be loaded into a register) }
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,tordconstnode(right).value-1,hreg2);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,(aint(1) shl power)-1,hreg2);
                       end;
                     { add to the left value }
                     emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
                     { do the shift }
                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,cgsize,power,hreg1);
+                    if invertsign then
+                      emit_reg(A_NEG,opsize,hreg1);
                   end
                 else
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,cgsize,power,hreg1);
