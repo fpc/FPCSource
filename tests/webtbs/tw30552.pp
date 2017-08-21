@@ -2,7 +2,7 @@
 { %OPT=-Cg }
 { This test uncovered code generation bug on MIPS when addressing a large global record
   in position-independent way, but of course it cannot hurt to test other CPUs. }
-unit Test;
+unit tw30552;
 
 interface
 
