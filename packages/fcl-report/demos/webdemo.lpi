@@ -23,13 +23,10 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="fclfpreport"/>
-      </Item1>
-      <Item2>
         <PackageName Value="FCL"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
