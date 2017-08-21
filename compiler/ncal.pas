@@ -3831,7 +3831,10 @@ implementation
                 method via its type is not possible (always must be called via
                 the actual instance) }
               if (methodpointer.nodetype=typen) and
-                 (is_interface(methodpointer.resultdef) or
+                 ((
+                   is_interface(methodpointer.resultdef) and not
+                   is_objectpascal_helper(tdef(procdefinition.owner.defowner))
+                  ) or
                   is_objc_protocol_or_category(methodpointer.resultdef)) then
                 CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
 
