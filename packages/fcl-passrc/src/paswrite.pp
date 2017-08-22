@@ -35,6 +35,7 @@ type
     procedure IncDeclSectionLevel;
     procedure DecDeclSectionLevel;
     procedure PrepareDeclSection(const ADeclSection: string);
+    procedure PrepareDeclSectionInStruct(const ADeclSection: string);
   public
     constructor Create(AStream: TStream);
     destructor Destroy; override;
@@ -283,6 +284,7 @@ begin
       wrtln('['+AClass.InterfaceGUID+']');
 
   IncIndent;
+  IncDeclSectionLevel;
   LastVisibility := visDefault;
   LastMember := nil;
   for i := 0 to AClass.Members.Count - 1 do
@@ -301,20 +303,31 @@ begin
       end;
       IncIndent;
       LastVisibility := CurVisibility;
+      CurDeclSection := '';
     end;
     WriteElement(Member);
     LastMember := Member;
   end;
+  DecDeclSectionLevel;
   DecIndent;
   wrtln('end;');
   wrtln;
 end;
 
 procedure TPasWriter.WriteVariable(AVar: TPasVariable);
+var
+  LParentIsClassOrRecord: boolean;
 begin
-  if (AVar.Parent.ClassType <> TPasClassType) and
-    (AVar.Parent.ClassType <> TPasRecordType) then
-    PrepareDeclSection('var');
+  LParentIsClassOrRecord:= (AVar.Parent.ClassType = TPasClassType) or
+    (AVar.Parent.ClassType = TPasRecordType);
+  if not LParentIsClassOrRecord then
+    PrepareDeclSection('var')
+  // handle variables in classes/records
+  else if vmClass in AVar.VarModifiers then
+    PrepareDeclSectionInStruct('class var')
+  else if CurDeclSection<>'' then
+    PrepareDeclSectionInStruct('var');
+
   wrt(AVar.Name + ': ');
   WriteType(AVar.VarType);
   wrtln(';');
@@ -682,6 +695,19 @@ begin
   end;
 end;
 
+procedure TPasWriter.PrepareDeclSectionInStruct(const ADeclSection: string);
+begin
+  if ADeclSection <> CurDeclSection then
+  begin
+    if ADeclSection <> '' then
+    begin
+      DecIndent;
+      wrtln(ADeclSection);
+      IncIndent;
+    end;
+    CurDeclSection := ADeclSection;
+  end;
+end;
 
 procedure WritePasFile(AElement: TPasElement; const AFilename: string);
 var
