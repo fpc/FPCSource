@@ -3324,6 +3324,7 @@ end;
 
 procedure TTestResolver.TestWideCharOperators;
 begin
+  ResolverEngine.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   ResolverEngine.BaseTypeChar:=btWideChar;
   ResolverEngine.BaseTypeString:=btUnicodeString;
   StartProgram(false);

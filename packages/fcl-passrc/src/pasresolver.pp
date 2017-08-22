@@ -7484,6 +7484,13 @@ begin
         exit;
         end;
       end
+    else if C=TPasEnumType then
+      begin
+      Result:=TResEvalRangeInt.CreateValue(revskEnum,TPasEnumType(Decl),
+                                           0,TPasEnumType(Decl).Values.Count-1);
+      Result.IdentEl:=Decl;
+      exit;
+      end
     else if C=TPasUnresolvedSymbolRef then
       begin
       if (Decl.CustomData is TResElDataBaseType) then
@@ -7567,11 +7574,15 @@ begin
           {$ENDIF}
           case BuiltInProc.BuiltIn of
             bfLength: BI_Length_OnEval(BuiltInProc,Params,Flags,Result);
+            bfAssigned: Result:=nil;
             bfChr: BI_Chr_OnEval(BuiltInProc,Params,Flags,Result);
             bfOrd: BI_Ord_OnEval(BuiltInProc,Params,Flags,Result);
             bfLow,bfHigh: BI_LowHigh_OnEval(BuiltInProc,Params,Flags,Result);
             bfPred,bfSucc: BI_PredSucc_OnEval(BuiltInProc,Params,Flags,Result);
             bfStrFunc: BI_StrFunc_OnEval(BuiltInProc,Params,Flags,Result);
+            bfConcatArray: Result:=nil;
+            bfCopyArray: Result:=nil;
+            bfTypeInfo: Result:=nil;
           else
             {$IFDEF VerbosePasResEval}
             writeln('TPasResolver.OnExprEvalParams Unhandled BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
@@ -8410,7 +8421,7 @@ var
       case TResEvalRangeInt(Range).ElKind of
         revskEnum:
           begin
-          EnumType:=TResEvalRangeInt(Range).IdentEl as TPasEnumType;
+          EnumType:=TResEvalRangeInt(Range).ElType as TPasEnumType;
           if Proc.BuiltIn=bfLow then
             Evaluated:=TResEvalEnum.CreateValue(
               TResEvalRangeInt(Range).RangeStart,TPasEnumValue(EnumType.Values[0]))
@@ -10908,6 +10919,7 @@ var
   C: TClass;
   EnumType: TPasEnumType;
   bt: TResolverBaseType;
+  w: WideChar;
 begin
   {$IFNDEF EnablePasResRangeCheck}
   exit;
@@ -11021,7 +11033,12 @@ begin
       case RValue.Kind of
       revkString:
         if length(TResEvalString(RValue).S)<>1 then
-          RaiseXExpectedButYFound(20170714171352,'char','string',RHS)
+          begin
+          if fExprEvaluator.GetWideChar(TResEvalString(RValue).S,w) then
+            Int:=ord(w)
+          else
+            RaiseXExpectedButYFound(20170714171352,'char','string',RHS);
+          end
         else
           Int:=ord(TResEvalString(RValue).S[1]);
       revkUnicodeString:

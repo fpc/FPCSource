@@ -45,17 +45,17 @@ Works:
   - [a,b,c..d]
   - +, -, *, ><, =, <>, >=, <=, in
   - error on duplicate in const set
+- arrays
+  - length()
+  - array of int, charm enum, bool
 
 ToDo:
 - arrays
-  - length(), [], [a..b], [a,b], +
-  - array of int
-  - of char
-  - of enum
-  - of bool
-  - of record
-  - of string
-- enum ranges: type f=(a,b,c,d); g=b..c;
+  - [], [a..b], [a,b], +
+  - array of record
+  - array of string
+  - error on: array[1..2] of longint = (1,2,3);
+- anonymous enum range: type f=(a,b,c,d); g=b..c;
 }
 unit PasResolveEval;
 
@@ -566,6 +566,7 @@ type
       Flags: TResEvalFlags): TResEvalEnum; virtual;
     function GetCodePage(const s: RawByteString): TSystemCodePage;
     function GetUnicodeStr(const s: RawByteString; ErrorEl: TPasElement): UnicodeString;
+    function GetWideChar(const s: RawByteString; out w: WideChar): boolean;
     property OnLog: TPasResEvalLogHandler read FOnLog write FOnLog;
     property OnEvalIdentifier: TPasResEvalIdentHandler read FOnEvalIdentifier write FOnEvalIdentifier;
     property OnEvalParams: TPasResEvalParamsHandler read FOnEvalParams write FOnEvalParams;
@@ -1071,6 +1072,11 @@ var
   LeftValue, RightValue: TResEvalValue;
 begin
   Result:=nil;
+  if (Expr.Kind=pekBinary) and (Expr.OpCode=eopSubIdent) then
+    begin
+    Result:=Eval(Expr.right,Flags);
+    exit;
+    end;
   LeftValue:=nil;
   RightValue:=nil;
   try
@@ -1224,15 +1230,20 @@ begin
   revkEnum:
     if (RightValue.Kind<>revkEnum) then
       RaiseRangeCheck(20170522153003,Expr.Right)
-    else if (TResEvalEnum(LeftValue).IdentEl.Parent<>TResEvalEnum(RightValue).IdentEl.Parent) then
+    else if (TResEvalEnum(LeftValue).ElType<>TResEvalEnum(RightValue).ElType) then
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryRangeExpr LeftValue=',dbgs(LeftValue),',',GetObjName(TResEvalEnum(LeftValue).ElType),' RightValue=',dbgs(RightValue),',',GetObjName(TResEvalEnum(RightValue).ElType));
+      {$ENDIF}
       RaiseRangeCheck(20170522123241,Expr.Right) // mismatch enumtype
+      end
     else if TResEvalEnum(LeftValue).Index>TResEvalEnum(RightValue).Index then
       RaiseMsg(20170522123320,nHighRangeLimitLTLowRangeLimit,
         sHighRangeLimitLTLowRangeLimit,[],Expr.Right)
     else
       begin
       Result:=TResEvalRangeInt.CreateValue(revskEnum,
-        TResEvalEnum(LeftValue).IdentEl.Parent as TPasEnumType,
+        TResEvalEnum(LeftValue).ElType as TPasEnumType,
         TResEvalEnum(LeftValue).Index,TResEvalEnum(RightValue).Index);
       exit;
       end;
@@ -2959,7 +2970,11 @@ begin
         else if Result.ElKind<>revskChar then
           RaiseNotYetImplemented(20170713201456,El);
         if length(TResEvalString(Value).S)<>1 then
-          RaiseMsg(20170713144513,nXExpectedButYFound,sXExpectedButYFound,['char','string'],El);
+          begin
+          // set of string (not of char)
+          ReleaseEvalValue(TResEvalValue(Result));
+          exit;
+          end;
         RangeStart:=ord(TResEvalString(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
@@ -2970,7 +2985,11 @@ begin
         else if Result.ElKind<>revskChar then
           RaiseNotYetImplemented(20170713201516,El);
         if length(TResEvalUTF16(Value).S)<>1 then
-          RaiseMsg(20170713144508,nXExpectedButYFound,sXExpectedButYFound,['char','string'],El);
+          begin
+          // set of string (not of char)
+          ReleaseEvalValue(TResEvalValue(Result));
+          exit;
+          end;
         RangeStart:=ord(TResEvalUTF16(Value).S[1]);
         RangeEnd:=RangeStart;
         end;
@@ -3052,6 +3071,7 @@ function TResExprEvaluator.EvalBinaryPowerExpr(Expr: TBinaryExpr; LeftValue,
   RightValue: TResEvalValue): TResEvalValue;
 var
   Int: MaxPrecInt;
+  Flo: MaxPrecFloat;
 begin
   Result:=nil;
   case LeftValue.Kind of
@@ -3078,6 +3098,17 @@ begin
         Result:=TResEvalInt.CreateValue(Int);
       except
         RaiseOverflowArithmetic(20170530211028,Expr);
+      end;
+    revkFloat:
+      // int^^float
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalInt(LeftValue).Int,TResEvalFloat(RightValue).FloatValue);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20170816154223,Expr);
       end;
     else
       {$IFDEF VerbosePasResolver}
@@ -3109,17 +3140,64 @@ begin
       except
         RaiseOverflowArithmetic(20170530211121,Expr);
       end;
+    revkFloat:
+      // uint^^float
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalUInt(LeftValue).UInt,TResEvalFloat(RightValue).FloatValue);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20170816154241,Expr);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryPowerExpr uint ^^ ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
       {$ENDIF}
       RaiseNotYetImplemented(20170530211140,Expr);
     end;
+  revkFloat:
+    case RightValue.Kind of
+    revkInt:
+      // float ^^ int
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalInt(RightValue).Int);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20170816153950,Expr);
+      end;
+    revkUInt:
+      // float ^^ uint
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalUInt(RightValue).UInt);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20170816154012,Expr);
+      end;
+    revkFloat:
+      // float ^^ float
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalFloat(RightValue).FloatValue);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20170816154012,Expr);
+      end;
+    end
   else
     {$IFDEF VerbosePasResolver}
     writeln('TResExprEvaluator.EvalBinaryPowerExpr ^^ ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
     {$ENDIF}
-    RaiseNotYetImplemented(20170530205938,Expr);
+    RaiseNotYetImplemented(20170816153813,Expr);
   end;
 end;
 
@@ -3477,7 +3555,7 @@ begin
         begin
         if Value.Kind<>revkEnum then
           RaiseInternalError(20170522172754)
-        else if TResEvalEnum(Value).IdentEl<>RgInt.ElType then
+        else if TResEvalEnum(Value).ElType<>RgInt.ElType then
           RaiseInternalError(20170522174028)
         else if (TResEvalEnum(Value).Index<RgInt.RangeStart)
             or (TResEvalEnum(Value).Index>RgInt.RangeEnd) then
@@ -4001,6 +4079,31 @@ begin
     Result:=UnicodeString(s);
 end;
 
+function TResExprEvaluator.GetWideChar(const s: RawByteString; out w: WideChar
+  ): boolean;
+var
+  CP: TSystemCodePage;
+  u: UnicodeString;
+begin
+  w:=#0;
+  Result:=false;
+  if s='' then exit;
+  CP:=GetCodePage(s);
+  if CP=CP_UTF8 then
+    begin
+    if length(s)>4 then exit;
+    u:=UTF8Decode(s);
+    if length(u)<>1 then exit;
+    w:=u[1];
+    Result:=true;
+    end
+  else if length(s)=1 then
+    begin
+    w:=s[1];
+    Result:=true;
+    end;
+end;
+
 procedure TResExprEvaluator.PredBool(Value: TResEvalBool; ErrorEl: TPasElement);
 begin
   if Value.B=false then
@@ -4124,11 +4227,11 @@ end;
 
 procedure TResExprEvaluator.PredEnum(Value: TResEvalEnum; ErrorEl: TPasElement);
 var
-  EnumValue: TPasEnumValue;
   EnumType: TPasEnumType;
 begin
-  EnumValue:=Value.IdentEl as TPasEnumValue;
-  EnumType:=EnumValue.Parent as TPasEnumType;
+  EnumType:=Value.ElType as TPasEnumType;
+  if EnumType=nil then
+    RaiseInternalError(20170821174038,dbgs(Value));
   if Value.Index<=0 then
     begin
     EmitRangeCheckConst(20170624144332,Value.AsString,
@@ -4143,11 +4246,11 @@ end;
 
 procedure TResExprEvaluator.SuccEnum(Value: TResEvalEnum; ErrorEl: TPasElement);
 var
-  EnumValue: TPasEnumValue;
   EnumType: TPasEnumType;
 begin
-  EnumValue:=Value.IdentEl as TPasEnumValue;
-  EnumType:=EnumValue.Parent as TPasEnumType;
+  EnumType:=Value.ElType as TPasEnumType;
+  if EnumType=nil then
+    RaiseInternalError(20170821174058,dbgs(Value));
   if Value.Index>=EnumType.Values.Count-1 then
     begin
     EmitRangeCheckConst(20170624145013,Value.AsString,
@@ -4404,6 +4507,8 @@ begin
   Index:=aValue;
   IdentEl:=aIdentEl;
   ElType:=IdentEl.Parent as TPasEnumType;
+  if ElType=nil then
+    raise Exception.Create('');
 end;
 
 function TResEvalEnum.GetEnumValue: TPasEnumValue;
@@ -4429,6 +4534,7 @@ function TResEvalEnum.Clone: TResEvalValue;
 begin
   Result:=inherited Clone;
   TResEvalEnum(Result).Index:=Index;
+  TResEvalEnum(Result).ElType:=ElType;
 end;
 
 function TResEvalEnum.AsDebugString: string;
