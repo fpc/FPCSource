@@ -1084,6 +1084,7 @@ Type
     ProcType: TPasProcedureType;
     Locals: TFPList;
     Body: TPasImplBlock;
+    IsClassMethod: boolean;
   end;
 
   { TPasConstructorImpl - used by mkxmlrpc, not by pparser }

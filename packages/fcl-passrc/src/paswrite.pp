@@ -387,6 +387,8 @@ var
   i: Integer;
 begin
   PrepareDeclSection('');
+  if AProc.IsClassMethod then
+    wrt('class ');
   wrt(AProc.TypeName + ' ');
 
   if AProc.Parent.ClassType = TPasClassType then
