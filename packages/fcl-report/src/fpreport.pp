@@ -9511,6 +9511,7 @@ initialization
 
 finalization
   DoneReporting;
+  uBandFactory.Free;
   uElementFactory.Free;
   EM.Free;
 
