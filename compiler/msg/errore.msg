@@ -3955,6 +3955,8 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux
+6*2Tnetbsd_NetBSD
+6*2Tmacos_Mac OS
 6*2Tpalmos_PalmOS
 8*2Tmsdos_MS-DOS (and compatible)
 a*2Tdarwin_Darwin/iOS
