@@ -92,9 +92,9 @@ unit i_macos;
           );
 
      const
-       system_m68k_mac_info : tsysteminfo =
+       system_m68k_macos_info : tsysteminfo =
           (
-            system       : system_m68k_mac;
+            system       : system_m68k_macos;
             name         : 'Mac OS for m68k';
             shortname    : 'MacOS';
             flags        : [tf_p_ext_support,tf_files_case_aware];
@@ -165,7 +165,7 @@ initialization
 {$endif cpupowerpc}
 {$ifdef cpum68k}
   {$ifdef macos}
-    set_source_info(system_m68k_mac_info);
+    set_source_info(system_m68k_macos_info);
   {$endif macos}
 {$endif cpum68k}
 end.

@@ -289,7 +289,7 @@ interface
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 
        { all classic Mac OS targets }
-       systems_macos = [system_m68k_Mac,system_powerpc_Macos];
+       systems_macos = [system_m68k_macos,system_powerpc_macos];
 
        { all OS/2 targets }
        systems_os2 = [system_i386_OS2,system_i386_emx];

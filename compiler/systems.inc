@@ -93,7 +93,7 @@
              system_i386_freebsd,       { 6 }
              system_m68k_Amiga,         { 7 }
              system_m68k_Atari,         { 8 }
-             system_m68k_Mac,           { 9 }
+             system_m68k_macos,         { 9 }
              system_m68k_linux,         { 10 }
              system_m68k_PalmOS,        { 11 }
              obsolete_system_alpha_linux,{ 12 }
