@@ -27,6 +27,8 @@ unit System;
 
   interface
 
+{$define FPC_HAS_ANSI_TEXTFILEREC}
+
     {$I systemh.inc}
 
 {Platform specific information}

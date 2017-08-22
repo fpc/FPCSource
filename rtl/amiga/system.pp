@@ -21,6 +21,7 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
+{$define FPC_HAS_ANSI_TEXTFILEREC}
 
 {$I systemh.inc}
 {$I osdebugh.inc}

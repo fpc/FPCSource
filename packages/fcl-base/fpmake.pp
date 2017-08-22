@@ -97,7 +97,7 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fptemplate.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,nativent]);
+    T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,nativent,atari]);
     T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
     T:=P.Targets.AddUnit('whtml.pp');
@@ -122,10 +122,10 @@ begin
       AddUnit('csvreadwrite');
       AddUnit('contnrs');
       end;
-    T:=P.Targets.addUnit('advancedipc.pp');
+    T:=P.Targets.addUnit('advancedipc.pp',AllOSes-[atari]);
       T.ResourceStrings:=true;
-    T:=P.Targets.addUnit('advancedsingleinstance.pas');
-      T.ResourceStrings:=true;	
+    T:=P.Targets.addUnit('advancedsingleinstance.pas',AllOSes-[atari]);
+      T.ResourceStrings:=true;
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources
