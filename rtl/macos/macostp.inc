@@ -1039,7 +1039,8 @@ external 'InterfaceLib';
 {************** from Quickdraw ***************}
 
 TYPE
-  Bits16                = ARRAY [0..15] OF INTEGER;
+  { this was called 'Bits16', but that conflicts with softfpu internal types on m68k (KB) }
+  MacBits16                = ARRAY [0..15] OF INTEGER;
 
   PatternPtr = ^Pattern;
   Pattern = RECORD
@@ -1057,8 +1058,8 @@ TYPE
 
   CursorPtr = ^Cursor;
   Cursor = RECORD
-    data:          Bits16;
-    mask:          Bits16;
+    data:          MacBits16;
+    mask:          MacBits16;
     hotSpot:        Point;
   END;
   CursPtr = ^Cursor;
