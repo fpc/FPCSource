@@ -702,7 +702,10 @@ implementation
         hreg: tregister;
       begin
         if tcgsize2Size[fromsize]>=tcgsize2Size[tosize] then
-          fromsize:=tosize
+          begin
+            fromsize:=tosize;
+            reg:=makeregsize(list,reg,fromsize);
+          end
         { have a 32 bit register but need a 64 bit one? }
         else if tosize in [OS_64,OS_S64] then
           begin
