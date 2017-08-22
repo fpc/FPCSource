@@ -26,10 +26,18 @@ asm
 {$endif}
 
   // Save nonvolatile registers
+{$ifdef ver3_0}
+{$if defined(amiga)}
+  movem.l d2/d3/d4/d5/d6/d7/a2/a3/a4/a6,12(a0)    { amiga uses a5 as fp }
+{$else}
+  movem.l d2/d3/d4/d5/d6/d7/a2/a3/a4/a5,12(a0)
+{$endif}
+{$else}
 {$if defined(amiga)}
   movem.l d2-d7/a2-a4/a6,12(a0)    { amiga uses a5 as fp }
 {$else}
   movem.l d2-d7/a2-a5,12(a0)
+{$endif}
 {$endif}
 
 {$if defined(fpu68881)}
@@ -82,10 +90,18 @@ asm
   move.l 8(a0),-(sp)
 
   // Restore registers
+{$ifdef ver3_0}
+{$if defined(amiga)}
+  movem.l 12(a0),d2/d3/d4/d5/d6/d7/a2/a3/a4/a6    { amiga uses a5 as fp }
+{$else}
+  movem.l 12(a0),d2/d3/d4/d5/d6/d7/a2/a3/a4/a5
+{$endif}
+{$else}
 {$if defined(amiga)}
   movem.l 12(a0),d2-d7/a2-a4/a6    { amiga uses a5 as fp }
 {$else}
   movem.l 12(a0),d2-d7/a2-a5
+{$endif}
 {$endif}
 
 {$if defined(fpu68881)}

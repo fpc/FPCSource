@@ -131,6 +131,12 @@ end;
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 procedure FillChar(var x; count : longint; value : byte); assembler; register; nostackframe;
 asm
+{$ifdef VER3_0}
+  move.l   x,a0
+  move.l   count,d0
+  clr.l    d1
+  move.b   value,d1
+{$endif VER3_0}
   { a0 is x, d0 is count, d1 is value }
   tst.l    d0             { anything to fill at all?      }
   ble      @Lquit
