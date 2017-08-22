@@ -91,6 +91,70 @@ unit i_macos;
             llvmdatalayout : 'todo';
           );
 
+     const
+       system_m68k_mac_info : tsysteminfo =
+          (
+            system       : system_m68k_mac;
+            name         : 'Mac OS for m68k';
+            shortname    : 'MacOS';
+            flags        : [tf_p_ext_support,tf_files_case_aware];
+            cpu          : cpu_m68k;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '';
+            scriptext    : '';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : 'Lib';
+            staticlibext : 'Lib';
+            staticlibprefix : '';
+            sharedlibprefix : '';
+            sharedClibext : 'Lib';
+            staticClibext : 'Lib';
+            staticClibprefix : '';
+            sharedClibprefix : '';
+            importlibprefix : 'imp';
+            importlibext : 'Lib';
+            Cprefix      : '';
+            newline      : #13;
+            dirsep       : ':';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_none;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_mpw;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 2
+              );
+            first_parm_offset : 8;
+            stacksize    : 32768;
+            stackalign   : 2;
+            abi : abi_default;
+            llvmdatalayout : 'todo';
+          );
+
   implementation
 
 initialization
@@ -99,4 +163,9 @@ initialization
     set_source_info(system_powerpc_macos_info);
   {$endif macos}
 {$endif cpupowerpc}
+{$ifdef cpum68k}
+  {$ifdef macos}
+    set_source_info(system_m68k_mac_info);
+  {$endif macos}
+{$endif cpum68k}
 end.

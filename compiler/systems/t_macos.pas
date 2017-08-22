@@ -244,8 +244,8 @@ end;
 
 initialization
 {$ifdef m68k}
-  RegisterTarget(system_m68k_macos_info);
-  RegisterImport(system_m68k_macos,timportlibmacos);
+  RegisterTarget(system_m68k_mac_info);
+  RegisterImport(system_m68k_mac,timportlibmacos);
 {$endif m68k}
 {$ifdef powerpc}
   RegisterLinker(ld_mpw,TLinkerMPW);
