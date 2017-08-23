@@ -474,6 +474,8 @@ procedure TPasWriter.WriteProperty(AProp: TPasProperty);
 var
   i: Integer;
 begin
+  if AProp.IsClass then
+    wrt('class ');
   wrt('property ' + AProp.Name);
   if AProp.Args.Count > 0 then
   begin
