@@ -765,6 +765,12 @@ begin
 {$include libgc/fpmake.pp}
 end;
 
+procedure add_libfontconfig(const ADirectory: string);
+begin
+  with Installer do
+{$include libfontconfig/fpmake.pp}
+end;
+
 procedure add_fcl_report(const ADirectory: string);
 begin
   with Installer do

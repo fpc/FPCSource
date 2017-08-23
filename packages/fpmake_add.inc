@@ -134,5 +134,6 @@
   add_odata(ADirectory+IncludeTrailingPathDelimiter('odata'));
   add_pastojs(ADirectory+IncludeTrailingPathDelimiter('pastojs'));
   add_libgc(ADirectory+IncludeTrailingPathDelimiter('libgc'));
+  add_libfontconfig(ADirectory+IncludeTrailingPathDelimiter('libfontconfig'));
   add_fcl_report(ADirectory+IncludeTrailingPathDelimiter('fcl-report'));
   
