@@ -249,7 +249,7 @@ var
     Result := (LastMember <> nil) and
       // variables can't be declared directly after methods nor properties
       // (visibility section or var keyword is required)
-      (Member is TPasVariable) and not (LastMember is TPasVariable);
+      ((Member is TPasVariable) and not (Member is TPasProperty)) and not (LastMember is TPasVariable);
   end;
 
 begin
