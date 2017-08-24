@@ -6,7 +6,7 @@ unit buildfclxml;
     uses
       htmldefs, sax, xmlutils, dom, sax_html, dom_html, xmlcfg, xmlread,
       xmlstreaming, xmlwrite, xhtml, htmwrite, xpath, htmlelements, htmlwriter,
-      xmlconf, sax_xml, xmliconv;
+      xmlconf, sax_xml;
 
   implementation
 
