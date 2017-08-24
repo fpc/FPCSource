@@ -2614,6 +2614,7 @@ end;
 function TFPReportBandFactory.RegisterPageClass(aClass: TFPReportCustomPageClass
   ): TFPReportCustomPageClass;
 begin
+  Result := nil;  // TODO: Why is this a function if no Result is ever returned?
   If Not AClass.InheritsFrom(TFPReportCustomPage) then
     raise EReportError.CreateFmt(SErrPageClassMustDescendFrom, [
       TFPReportCustomPageClass.ClassName]);
@@ -2663,13 +2664,9 @@ begin
     FList.Delete(i);
 end;
 
-function TFPReportExportManager.ConfigExporter(AExporter: TFPReportExporter
-  ): Boolean;
-
+function TFPReportExportManager.ConfigExporter(AExporter: TFPReportExporter): Boolean;
 Var
   H : TFPReportExporterConfigHandler;
-  I : Integer;
-
 begin
   H:=ExporterConfigHandler(TFPReportExporterClass(AExporter.ClassType));
   if (H=Nil) then
@@ -6024,9 +6021,6 @@ end;
 procedure TFPReportCustomPage.ReadElement(AReader: TFPReportStreamer);
 var
   E: TObject;
-  N : String;
-  D : TFPReportDataItem;
-
 begin
   inherited ReadElement(AReader);
   E := AReader.FindChild('Margins');
