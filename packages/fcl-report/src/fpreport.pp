@@ -594,10 +594,7 @@ type
   end;
 
 
-  // Anything that must be drawn as part of the report descends from this.
-
-  { TFPReportElement }
-
+  { Anything that must be drawn as part of the report descends from this. }
   TFPReportElement = class(TFPReportComponent)
   private
     FFrame: TFPReportFrame;
@@ -639,6 +636,8 @@ type
     procedure RecalcLayout; virtual; abstract;
     property  StretchMode: TFPReportStretchMode read FStretchMode write FStretchMode default smDontStretch;
     property  OnBeforePrint: TFPReportBeforePrintEvent read FOnBeforePrint write FOnBeforePrint;
+    property Page: TFPReportCustomPage read GetReportPage;
+    property Band: TFPReportCustomBand read GetReportBand;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -659,12 +658,8 @@ type
     property Frame: TFPReportFrame read FFrame write SetFrame;
     property Visible: boolean read FVisible write SetVisible;
     property VisibleExpr: String read FVisibleExpr write SetVisibleExpr;
-    property Page: TFPReportCustomPage read GetReportPage;
-    property Band: TFPReportCustomBand read GetReportBand;
   end;
 
-
-  { TFPReportElementWithChildren }
 
   TFPReportElementWithChildren = class(TFPReportElement)
   private
@@ -744,9 +739,6 @@ type
     That means that top/left equals top/left margin
      Width/Height is equals to page height/width minus margins
      Page orientation is taken into consideration. }
-
-  { TFPReportCustomPage }
-
   TFPReportCustomPage = class(TFPReportElementWithChildren)
   private
     FData: TFPReportData;
@@ -773,11 +765,9 @@ type
     procedure SetColumnLayout(AValue: TFPReportColumnLayout);
     procedure SetColumnCount(AValue: Byte);
     procedure SetColumnGap(AValue: TFPReportUnits);
+  protected
     function GetReportPage: TFPReportCustomPage; override;
     function GetReportBand: TFPReportCustomBand; override;
-    property Band;
-    property Page;
-  protected
     Procedure SaveDataToNames; override;
     Procedure RestoreDataFromNames; override;
     procedure RemoveChild(const AChild: TFPReportElement); override;
@@ -792,7 +782,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    Function  PageIndex : Integer;
+    Function    PageIndex : Integer;
     procedure   Assign(Source: TPersistent); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
     function    FindBand(ABand: TFPReportBandClass): TFPReportCustomBand;
@@ -824,8 +814,6 @@ type
   end;
 
 
-  { TFPReportCustomBand }
-
   TFPReportCustomBand = class(TFPReportElementWithChildren)
   private
     FChildBand: TFPReportChildBand;
@@ -833,7 +821,6 @@ type
     FVisibleOnPage: TFPReportVisibleOnPage;
     FFont: TFPReportFont;
     function    GetFont: TFPReportFont;
-    function    GetReportPage: TFPReportCustomPage; override;
     function    IsStringValueZero(const AValue: string): boolean;
     procedure   SetChildBand(AValue: TFPReportChildBand);
     procedure   ApplyStretchMode;
@@ -841,6 +828,7 @@ type
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
+    function    GetReportPage: TFPReportCustomPage; override;
     function    GetReportBandName: string; virtual;
     function    GetData: TFPReportData; virtual;
     procedure   SetDataFromName(AName : String); virtual;
