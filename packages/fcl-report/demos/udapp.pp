@@ -331,8 +331,7 @@ begin
   Writeln('');
   Writeln('Known demos for this binary: ');
   ListReports(True);
-  Free;
-  Halt(Ord(Msg<>''));
+  ExitCode:=Ord(Msg<>'')
 end;
 
 procedure TReportDemoApplication.ListReports(AWithIndentation: boolean);
@@ -421,7 +420,11 @@ begin
   OnGetApplicationName:=@GetReportAppName;
   S:=CheckOptions('lj::hf:r:d:',['list','json::','help','format:','runtime:','demo:']);
   if (S<>'') or HasOption('h','help') then
+  begin
     Usage(S);
+    Terminate;
+    exit;
+  end;
   if HasOption('l','list') then
     begin
     ListReports;
