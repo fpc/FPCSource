@@ -553,6 +553,10 @@ begin
           AutoClose(TagName);
           namePush(TagName);
           DoStartElement('', TagName, '', Attr);
+          if not (efSubelementContent in HTMLElementProps[FStack[FNesting-1]].Flags) then begin
+            DoEndElement('', TagName, '');
+            NamePop;
+          end;
           if FStack[FNesting-1] in [etScript,etStyle] then
           begin
             NewContext := scScript;
@@ -668,6 +672,7 @@ begin
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntTag;
   NodeInfo.DOMNode := Element;
+  NodeInfo.Closed := false;
   if IsFragmentMode then
   begin
     if not FragmentRootSet then
