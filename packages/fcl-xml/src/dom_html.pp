@@ -665,7 +665,7 @@ type
     function HashForName(const aName: DOMString): PHashItem;
 
     // Helper functions (not in DOM standard):
-    function CreateElement(const tagName: DOMString): THTMLElement;
+    function CreateElement(const tagName: DOMString; UseSpecificClass : Boolean = True): THTMLElement;
     function CreateSubElement: THTMLElement;
     function CreateSupElement: THTMLElement;
     function CreateSpanElement: THTMLElement;
@@ -697,8 +697,9 @@ type
     function CreateHtmlElement: THTMLHtmlElement;
     function CreateHeadElement: THTMLHeadElement;
     function CreateLinkElement: THTMLLinkElement;
-{    function CreateTitleElement: THTMLTitleElement;
+    function CreateTitleElement: THTMLTitleElement;
     function CreateMetaElement: THTMLMetaElement;
+{
     function CreateBaseElement: THTMLBaseElement;
     function CreateIsIndexElement: THTMLIsIndexElement;
     function CreateStyleElement: THTMLStyleElement;}
@@ -1248,10 +1249,71 @@ begin
   Result := TByNameNodeList.Create(Self, ElementName);
 end;
 
-function THTMLDocument.CreateElement(const tagName: DOMString): THTMLElement;
+function THTMLDocument.CreateElement(const tagName: DOMString; UseSpecificClass : Boolean = True): THTMLElement;
+
+var
+  elClass: TDOMElementClass;
 begin
-  Result := THTMLElement.Create(Self);
-  Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(tagName), Length(tagName));
+  elClass:=THTMLElement;
+  if UseSpecificClass then
+    case UpperCase(tagName) of
+    'HTML'               : elClass:= THTMLHtmlElement;
+    'HEAD'               : elClass:= THTMLHeadElement;
+    'BODY'               : elClass:= THTMLBodyElement;
+    'P'                  : elClass:= THTMLParagraphElement;
+    'LINK'               : elClass:= THTMLLinkElement;
+    'TITLE'              : elClass:= THTMLTitleElement;
+    'META'               : elClass:= THTMLMetaElement;
+    'BASE'               : elClass:= THTMLBaseElement;
+    'ISINDEX'            : elClass:= THTMLIsIndexElement;
+    'STYLE'              : elClass:= THTMLStyleElement;
+    'FORM'               : elClass:= THTMLFormElement;
+    'SELECT'             : elClass:= THTMLSelectElement;
+    'OPTGROUP'           : elClass:= THTMLOptGroupElement;
+    'OPTION'             : elClass:= THTMLOptionElement;
+    'INPUT'              : elClass:= THTMLInputElement;
+    'TEXTAREA'           : elClass:= THTMLTextAreaElement;
+    'BUTTON'             : elClass:= THTMLButtonElement;
+    'LABEL'              : elClass:= THTMLLabelElement;
+    'FIELDSET'           : elClass:= THTMLFieldSetElement;
+    'LEGEND'             : elClass:= THTMLLegendElement;
+    'UL'                 : elClass:= THTMLUListElement;
+    'OL'                 : elClass:= THTMLOListElement;
+    'DL'                 : elClass:= THTMLDListElement;
+    'DIRECTORY'          : elClass:= THTMLDirectoryElement;
+    'MENU'               : elClass:= THTMLMenuElement;
+    'LI'                 : elClass:= THTMLLIElement;
+    'DIV'                : elClass:= THTMLDivElement;
+    'H1','H2','H3','H4','H5',
+    'H6','H7','H8','H9'  : elClass:= THTMLHeadingElement;
+    'QUOTE'              : elClass:= THTMLQuoteElement;
+    'PRE'                : elClass:= THTMLPreElement;
+    'BR'                 : elClass:= THTMLBRElement;
+    'BASEFONT'           : elClass:= THTMLBaseFontElement;
+    'FONT'               : elClass:= THTMLFontElement;
+    'HR'                 : elClass:= THTMLHRElement;
+    'MOD'                : elClass:= THTMLModElement;
+    'A'                  : elClass:= THTMLAnchorElement;
+    'IMG'                : elClass:= THTMLImageElement;
+    'OBJECT'             : elClass:= THTMLObjectElement;
+    'PARAM'              : elClass:= THTMLParamElement;
+    'APPLET'             : elClass:= THTMLAppletElement;
+    'MAP'                : elClass:= THTMLMapElement;
+    'AREA'               : elClass:= THTMLAreaElement;
+    'SCRIPT'             : elClass:= THTMLScriptElement;
+    'TABLE'              : elClass:= THTMLTableElement;
+    'CAPTION'            : elClass:= THTMLTableCaptionElement;
+    //'TABLECOL'           : elClass:= THTMLTableColElement;
+    'THEAD','TBODY',
+    'TFOOT'              : elClass:= THTMLTableSectionElement;
+    'TR'                 : elClass:= THTMLTableRowElement;
+    'TD','TH'            : elClass:= THTMLTableCellElement;
+    'FRAMESET'           : elClass:= THTMLFrameSetElement;
+    'FRAME'              : elClass:= THTMLFrameElement;
+    'IFRAME'             : elClass:= THTMLIFrameElement;
+    end;
+  Result := THTMLElement(elClass.Create(Self));
+  Result.FNSI.QName:=HashForName(tagName);
 end;
 
 function THTMLDocument.HashForName(const aName: DOMString): PHashItem;
@@ -1304,6 +1366,18 @@ function THTMLDocument.CreateLinkElement: THTMLLinkElement;
 begin
   Result := THTMLLinkElement.Create(Self);
   Result.FNSI.QName := HashForName('a');
+end;
+
+function THTMLDocument.CreateTitleElement: THTMLTitleElement;
+begin
+  Result := THTMLTitleElement.Create(Self);
+  Result.FNSI.QName := HashForName('title');
+end;
+
+function THTMLDocument.CreateMetaElement: THTMLMetaElement;
+begin
+  Result := THTMLMetaElement.Create(Self);
+  Result.FNSI.QName := HashForName('meta');
 end;
 
 function THTMLDocument.CreateBodyElement: THTMLBodyElement;
