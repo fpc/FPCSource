@@ -1110,6 +1110,8 @@ implementation
                     original register had to be made larger to be able to hold
                     the shifted value }
                   cgsize:=int_cgsize(tcgsize2size[OS_INT]-(-paraloc.shiftval div 8));
+                  if cgsize=OS_NO then
+                    cgsize:=OS_INT;
                   hreg:=getintregister(list,cgsize);
                   a_load_reg_reg(list,OS_INT,cgsize,paraloc.register,hreg);
                 end;
