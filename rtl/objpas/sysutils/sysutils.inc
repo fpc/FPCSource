@@ -709,16 +709,16 @@ var
   mode : DWord;
 
 begin
-    mode:=SetErrorMode(ErrorMode);
-    try
-      System.SafeLoadLibrary(FileName);
-    finally
-      SetErrorMode(mode);
-    end;
+  mode:=SetErrorMode(ErrorMode);
+  try
+    Result:=System.SafeLoadLibrary(FileName);
+  finally
+    SetErrorMode(mode);
+  end;
 end;
 {$else}
 begin
-  System.SafeLoadLibrary(FileName);
+  Result:=System.SafeLoadLibrary(FileName);
 end;
 {$endif}
 
