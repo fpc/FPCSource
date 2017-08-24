@@ -702,44 +702,25 @@ begin
 end;
 
 
-function SafeLoadLibrary(const FileName: AnsiString;
-  ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
-{$if defined(cpui386) or defined(cpux86_64)}
-  var
-    mode : DWord;
-    fpucw : Word;
-    ssecw : DWord;
-{$endif}
-  begin
+function SafeLoadLibrary(const FileName: AnsiString; ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
+
 {$if defined(win64) or defined(win32)}
+var
+  mode : DWord;
+
+begin
     mode:=SetErrorMode(ErrorMode);
-{$endif}
     try
-{$if defined(cpui386) or defined(cpux86_64)}
-      fpucw:=Get8087CW;
-{$ifdef cpui386}
-      if has_sse_support then
-{$endif cpui386}
-        ssecw:=GetMXCSR;
-{$endif}
-{$if defined(windows) or defined(win32)}
-      Result:=LoadLibraryA(PChar(Filename));
-{$else}
-      Result:=0;
-{$endif}
-      finally
-{$if defined(cpui386) or defined(cpux86_64)}
-      Set8087CW(fpucw);
-{$ifdef cpui386}
-      if has_sse_support then
-{$endif cpui386}
-        SetMXCSR(ssecw);
-{$endif}
-{$if defined(win64) or defined(win32)}
+      System.SafeLoadLibrary(FileName);
+    finally
       SetErrorMode(mode);
-{$endif}
     end;
-  end;
+end;
+{$else}
+begin
+  System.SafeLoadLibrary(FileName);
+end;
+{$endif}
 
 function GetModuleName(Module: HMODULE): string;
 {$ifdef MSWINDOWS}
