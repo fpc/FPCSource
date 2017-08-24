@@ -1,9 +1,7 @@
 program fcldemo;
 
 uses
-  udapp, regreports, rptcolumns, rptdataset, rptexpressions, rptframes,
-  rptgrouping, rptimages, rptmasterdetail, rptmasterdetaildataset, rptshapes,
-  rptsimplelist, rptttf;
+  udapp, fpextfuncs, regreports;
 
 Var
   Application : TReportDemoApplication;
@@ -14,5 +12,3 @@ begin
   Application.Run;
   Application.Free;
 end.
-                   s
-
