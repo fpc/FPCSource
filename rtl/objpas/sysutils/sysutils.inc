@@ -718,7 +718,11 @@ begin
 end;
 {$else}
 begin
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
   Result:=System.SafeLoadLibrary(FileName);
+{$else}
+  Result:=HModule(nil);
+{$endif not FPC_HAS_FEATURE_DYNLIBS}
 end;
 {$endif}
 
