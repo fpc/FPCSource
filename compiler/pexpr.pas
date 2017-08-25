@@ -3355,6 +3355,7 @@ implementation
          filepos    : tfileposinfo;
          callflags  : tcallnodeflags;
          idstr      : tidstring;
+         useself,
          dopostfix,
          again,
          updatefpos,
@@ -3513,6 +3514,7 @@ implementation
                        case srsym.typ of
                          procsym:
                            begin
+                             useself:=false;
                              if is_objectpascal_helper(current_structdef) then
                                begin
                                  { for a helper load the procdef either from the
@@ -3526,18 +3528,31 @@ implementation
                                        assigned(tobjectdef(current_structdef).childof) then
                                      hdef:=tobjectdef(current_structdef).childof
                                    else
-                                     hdef:=tobjectdef(srsym.Owner.defowner).extendeddef
+                                     begin
+                                       hdef:=tobjectdef(srsym.Owner.defowner).extendeddef;
+                                       useself:=true;
+                                     end
                                  else
-                                   hdef:=tdef(srsym.Owner.defowner);
+                                   begin
+                                     hdef:=tdef(srsym.Owner.defowner);
+                                     useself:=true;
+                                   end;
                                end
                              else
                                hdef:=hclassdef;
                              if (po_classmethod in current_procinfo.procdef.procoptions) or
                                 (po_staticmethod in current_procinfo.procdef.procoptions) then
                                hdef:=cclassrefdef.create(hdef);
-                             p1:=ctypenode.create(hdef);
-                             { we need to allow helpers here }
-                             ttypenode(p1).helperallowed:=true;
+                             if useself then
+                               begin
+                                 p1:=ctypeconvnode.create_internal(load_self_node,hdef);
+                               end
+                             else
+                               begin
+                                 p1:=ctypenode.create(hdef);
+                                 { we need to allow helpers here }
+                                 ttypenode(p1).helperallowed:=true;
+                               end;
                            end;
                          propertysym:
                            ;
