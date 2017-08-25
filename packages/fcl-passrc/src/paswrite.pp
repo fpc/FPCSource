@@ -49,6 +49,7 @@ type
     procedure WriteSection(ASection: TPasSection);
     procedure WriteClass(AClass: TPasClassType);
     procedure WriteVariable(AVar: TPasVariable);
+    procedure WriteProcType(AProc: TPasProcedureType);
     procedure WriteProcDecl(AProc: TPasProcedure);
     procedure WriteProcImpl(AProc: TPasProcedureImpl);
     procedure WriteProperty(AProp: TPasProperty);
@@ -159,6 +160,8 @@ begin
     WriteClass(TPasClassType(AType))
   else if AType.ClassType = TPasEnumType then
     wrtln(TPasEnumType(AType).GetDeclaration(true) + ';')
+  else if AType is TPasProcedureType then
+    WriteProcType(TPasProcedureType(AType))
   else
     raise Exception.Create('Writing not implemented for ' +
       AType.ElementTypeName + ' nodes');
@@ -330,6 +333,14 @@ begin
 
   wrt(AVar.Name + ': ');
   WriteType(AVar.VarType);
+  wrtln(';');
+end;
+
+procedure TPasWriter.WriteProcType(AProc: TPasProcedureType);
+begin
+  wrt(TPasProcedureType(AProc).GetDeclaration(true));
+  if TPasProcedureType(AProc).CallingConvention<>ccDefault then
+    wrt('; '+cCallingConventions[TPasProcedureType(AProc).CallingConvention]);
   wrtln(';');
 end;
 
