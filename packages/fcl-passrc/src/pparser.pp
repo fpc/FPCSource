@@ -5727,17 +5727,19 @@ end;
 procedure TPasParser.ParseClassMembers(AType: TPasClassType);
 
 Type
-  TSectionType = (stNone,stConst,stType,stVar);
+  TSectionType = (stNone,stConst,stType,stVar,stClassVar);
 
 Var
   CurVisibility : TPasMemberVisibility;
   CurSection : TSectionType;
   haveClass : Boolean;
+  LastToken: TToken;
 
 begin
   CurSection:=stNone;
   CurVisibility := visDefault;
   HaveClass:=False;
+  LastToken:=CurToken;
   while (CurToken<>tkEnd) do
     begin
     case CurToken of
@@ -5746,7 +5748,10 @@ begin
       tkConst:
         CurSection:=stConst;
       tkVar:
-        CurSection:=stVar;
+        if LastToken=tkClass then
+          CurSection:=stClassVar
+        else
+          CurSection:=stVar;
       tkIdentifier:
         if CheckVisibility(CurtokenString,CurVisibility) then
           CurSection:=stNone
@@ -5760,11 +5765,12 @@ begin
           stConst :
             ParseClassLocalConsts(AType,CurVisibility);
           stNone,
-          stvar:
+          stVar,
+          stClassVar:
             begin
             if (AType.ObjKind in [okInterface,okDispInterface]) then
               ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowed);
-            ParseClassFields(AType,CurVisibility,HaveClass);
+            ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
             HaveClass:=False;
             end;
           else
@@ -5799,6 +5805,7 @@ begin
     else
       CheckToken(tkIdentifier);
     end;
+    LastToken:=CurToken;
     NextToken;
     end;
 end;
