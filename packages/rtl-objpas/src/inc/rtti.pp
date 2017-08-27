@@ -115,6 +115,8 @@ type
     property IsEmpty: boolean read GetIsEmpty;
   end;
 
+  TValueArray = specialize TArray<TValue>;
+
   { TRttiContext }
 
   TRttiContext = record
