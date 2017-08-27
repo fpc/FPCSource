@@ -553,6 +553,9 @@ type
   PByteBool = ^ByteBool;
   PQWordBool = ^QWordBool;
   PMethod = ^TMethod;
+var
+  td: PTypeData;
+  size: SizeInt;
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   { resets the whole variant part; FValueData is already Nil }
@@ -582,6 +585,41 @@ begin
     tkProcVar  : result.FData.FAsMethod.Code := PCodePointer(ABuffer)^;
     tkMethod   : result.FData.FAsMethod := PMethod(ABuffer)^;
     tkPointer  : result.FData.FAsPointer := PPointer(ABuffer)^;
+    tkSet      : begin
+                   td := GetTypeData(ATypeInfo);
+                   case td^.OrdType of
+                     otUByte: begin
+                       { this can either really be 1 Byte or a set > 32-bit, so
+                         check the underlying type }
+                       if not (td^.CompType^.Kind in [tkInteger,tkEnumeration]) then
+                         raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
+                       td := GetTypeData(td^.CompType);
+                       { ToDo: what about PACKSETS? }
+                       size := td^.MaxValue div 8;
+                       case size of
+                         0, 1:
+                           Result.FData.FAsUByte := PByte(ABuffer)^;
+                         { these two cases shouldn't happen, but better safe than sorry... }
+                         2:
+                           Result.FData.FAsUWord := PWord(ABuffer)^;
+                         3, 4:
+                           Result.FData.FAsULong := PLongWord(ABuffer)^;
+                         { maybe we should also allow storage as otUQWord? }
+                         5..8:
+                           Result.FData.FAsUInt64 := PQWord(ABuffer)^;
+                         else
+                           Result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, size, ATypeInfo, False);
+                       end;
+                     end;
+                     otUWord:
+                       Result.FData.FAsUWord := PWord(ABuffer)^;
+                     otULong:
+                       Result.FData.FAsULong := PLongWord(ABuffer)^;
+                     else
+                       { ehm... Panic? }
+                       raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
+                   end;
+                 end;
     tkEnumeration,
     tkInteger  : begin
                    case GetTypeData(ATypeInfo)^.OrdType of
@@ -626,6 +664,8 @@ begin
 end;
 
 function TValue.GetDataSize: SizeInt;
+var
+  td: PTypeData;
 begin
   if Assigned(FData.FValueData) and (Kind <> tkSString) then
     Result := FData.FValueData.GetDataSize
@@ -667,8 +707,26 @@ begin
             Result := SizeOf(Currency);
         end;
       tkSet:
-        { ToDo }
-        Result := 0;
+        case TypeData^.OrdType of
+          otUByte: begin
+            td := GetTypeData(TypeData^.CompType);
+            Result := td^.MaxValue div 8;
+            case Result of
+              0:
+                Result := SizeOf(Byte);
+              3:
+                Result := SizeOf(LongWord);
+              5..7:
+                Result := SizeOf(QWord);
+            end;
+          end;
+          otUWord:
+            Result := SizeOf(Word);
+          otULong:
+            Result := SizeOf(LongWord);
+          else
+            Result := 0;
+        end;
       tkMethod:
         { ? }
         Result := SizeOf(TMethod);
@@ -981,6 +1039,8 @@ begin
 end;
 
 function TValue.GetReferenceToRawData: Pointer;
+var
+  td: PTypeData;
 begin
   if IsEmpty then
     Result := Nil
@@ -991,7 +1051,6 @@ begin
     case Kind of
       tkInteger,
       tkEnumeration,
-      tkSet,
       tkInt64,
       tkQWord,
       tkBool:
@@ -1013,6 +1072,32 @@ begin
           otUQWord:
             Result := @FData.FAsUInt64;
         end;
+      tkSet: begin
+        case TypeData^.OrdType of
+          otUByte: begin
+            td := GetTypeData(TypeData^.CompType);
+            case td^.MaxValue div 8 of
+              0, 1:
+                Result := @FData.FAsUByte;
+              2:
+                Result := @FData.FAsUWord;
+              3, 4:
+                Result := @FData.FAsULong;
+              5..8:
+                Result := @FData.FAsUInt64;
+              else
+                { this should have gone through FAsValueData :/ }
+                Result := Nil;
+            end;
+          end;
+          otUWord:
+            Result := @FData.FAsUWord;
+          otULong:
+            Result := @FData.FAsULong;
+          else
+            Result := Nil;
+        end;
+      end;
       tkChar:
         Result := @FData.FAsUByte;
       tkFloat:
