@@ -537,7 +537,12 @@ end;
 class function TValue.Empty: TValue;
 begin
   result.FData.FTypeInfo := nil;
-  result.FData.FAsUInt64 := 0;
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  Result.FData.FAsMethod.Code := Nil;
+  Result.FData.FAsMethod.Data := Nil;
+{$else}
+  Result.FData.FAsUInt64 := 0;
+{$endif}
 end;
 
 class procedure TValue.Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue);
@@ -551,7 +556,12 @@ type
 begin
   result.FData.FTypeInfo:=ATypeInfo;
   { resets the whole variant part; FValueData is already Nil }
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  Result.FData.FAsMethod.Code := Nil;
+  Result.FData.FAsMethod.Data := Nil;
+{$else}
   Result.FData.FAsUInt64 := 0;
+{$endif}
   if not Assigned(ABuffer) then
     Exit;
   case ATypeInfo^.Kind of
