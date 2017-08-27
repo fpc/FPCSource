@@ -565,7 +565,7 @@ begin
 {$else}
   Result.FData.FAsUInt64 := 0;
 {$endif}
-  if not Assigned(ABuffer) then
+  if not Assigned(ABuffer) or not Assigned(ATypeInfo) then
     Exit;
   case ATypeInfo^.Kind of
     tkSString  : result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, Length(PShortString(ABuffer)^) + 1, ATypeInfo, True);
@@ -774,7 +774,10 @@ end;
 
 function TValue.GetTypeKind: TTypeKind;
 begin
-  result := FData.FTypeInfo^.Kind;
+  if not Assigned(FData.FTypeInfo) then
+    Result := tkUnknown
+  else
+    result := FData.FTypeInfo^.Kind;
 end;
 
 function TValue.GetIsEmpty: boolean;
@@ -830,12 +833,12 @@ end;
 
 function TValue.IsObject: boolean;
 begin
-  result := fdata.FTypeInfo^.Kind = tkClass;
+  result := (Kind = tkClass) or ((Kind = tkUnknown) and not Assigned(FData.FAsObject));
 end;
 
 function TValue.IsClass: boolean;
 begin
-  result := (Kind = tkClassRef) or ((Kind = tkClass) and not Assigned(FData.FAsObject));
+  result := (Kind = tkClassRef) or ((Kind in [tkClass,tkUnknown]) and not Assigned(FData.FAsObject));
 end;
 
 function TValue.AsClass: TClass;
@@ -849,7 +852,7 @@ end;
 function TValue.IsOrdinal: boolean;
 begin
   result := (Kind in [tkInteger, tkInt64, tkQWord, tkBool]) or
-            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw]) and not Assigned(FData.FAsPointer));
+            ((Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown]) and not Assigned(FData.FAsPointer));
 end;
 
 function TValue.AsBoolean: boolean;
@@ -872,7 +875,7 @@ end;
 function TValue.AsOrdinal: Int64;
 begin
   if IsOrdinal then
-    if Kind in [tkClass, tkClassRef, tkInterfaceRaw] then
+    if Kind in [tkClass, tkClassRef, tkInterfaceRaw, tkUnknown] then
       Result := 0
     else
       case TypeData^.OrdType of
@@ -948,7 +951,7 @@ function TValue.AsInterface: IInterface;
 begin
   if Kind = tkInterface then
     Result := PInterface(FData.FValueData.GetReferenceToRawData)^
-  else if (Kind in [tkClass, tkClassRef]) and not Assigned(FData.FAsPointer) then
+  else if (Kind in [tkClass, tkClassRef, tkUnknown]) and not Assigned(FData.FAsPointer) then
     Result := Nil
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
