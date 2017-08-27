@@ -769,7 +769,6 @@ begin
             Result := 0;
         end;
       tkMethod:
-        { ? }
         Result := SizeOf(TMethod);
       tkSString:
         { ShortString can hold max. 254 characters as [0] is Length and [255] is #0 }
