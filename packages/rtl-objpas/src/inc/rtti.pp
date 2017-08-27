@@ -259,6 +259,10 @@ type
     property Visibility: TMemberVisibility read GetVisibility;
   end;
 
+  EInsufficientRtti = class(Exception);
+  EInvocationError = class(Exception);
+  ENonPublicType = class(Exception);
+
 function IsManaged(TypeInfo: PTypeInfo): boolean;
 
 implementation
