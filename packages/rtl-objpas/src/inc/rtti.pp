@@ -690,6 +690,7 @@ begin
       tkClass,
       tkHelper,
       tkClassRef,
+      tkInterfaceRaw,
       tkPointer:
         Result := SizeOf(Pointer);
       tkUnknown,
@@ -701,8 +702,7 @@ begin
       tkArray,
       tkRecord,
       tkInterface,
-      tkDynArray,
-      tkInterfaceRaw:
+      tkDynArray:
         Assert(False);
     end;
   end;
