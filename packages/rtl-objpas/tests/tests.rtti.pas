@@ -248,25 +248,15 @@ var
   value: TValue;
 begin
   TValue.Make(Nil, Nil, value);
-  Writeln('Kind');
   CheckTrue(value.Kind = tkUnknown);
-  Writeln('IsEmpty');
   CheckTrue(value.IsEmpty);
-  Writeln('IsObject');
   CheckTrue(value.IsObject);
-  Writeln('IsClass');
   CheckTrue(value.IsClass);
-  Writeln('IsOrdinal');
   CheckTrue(value.IsOrdinal);
-  Writeln('IsArray');
   CheckFalse(value.IsArray);
-  Writeln('AsObject');
   CheckTrue(value.AsObject = Nil);
-  Writeln('AsClass');
   CheckTrue(value.AsClass = Nil);
-  Writeln('AsInterface');
   CheckTrue(value.AsInterface = Nil);
-  Writeln('AsOrdinal');
   CheckEquals(0, value.AsOrdinal);
 
   TValue.Make(Nil, TypeInfo(TObject), value);
