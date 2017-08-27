@@ -1032,17 +1032,17 @@ begin
   proc := Nil;
   TValue.Make(@proc, TypeInfo(TTestProc), value);
   CheckEquals(SizeOf(TTestProc), value.DataSize, 'Size of TTestProc differs');
-  {method := Nil;
+  method := Nil;
   TValue.Make(@method, TypeInfo(TTestMethod), value);
-  CheckEquals(SizeOf(TTestMethod), value.DataSize, 'Size of TTestMethod differs');}
+  CheckEquals(SizeOf(TTestMethod), value.DataSize, 'Size of TTestMethod differs');
   TValue.Make(@_as, TypeInfo(TArrayOfLongintStatic), value);
   CheckEquals(SizeOf(TArrayOfLongintStatic), value.DataSize, 'Size of TArrayOfLongintStatic differs');
   TValue.Make(@ad, TypeInfo(TArrayOfLongintDyn), value);
   CheckEquals(SizeOf(TArrayOfLongintDyn), value.DataSize, 'Size of TArrayOfLongintDyn differs');
-  {TValue.Make(@e, TypeInfo(TTestEnum), value);
+  TValue.Make(@e, TypeInfo(TTestEnum), value);
   CheckEquals(SizeOf(TTestEnum), value.DataSize, 'Size of TTestEnum differs');
   TValue.Make(@s, TypeInfo(TTestSet), value);
-  CheckEquals(SizeOf(TTestSet), value.DataSize, 'Size of TTestSet differs');}
+  CheckEquals(SizeOf(TTestSet), value.DataSize, 'Size of TTestSet differs');
   p := Nil;
   TValue.Make(@p, TypeInfo(Pointer), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of Pointer differs');
@@ -1118,16 +1118,16 @@ begin
   CheckEquals(SizeOf(TTestRecord), value.DataSize, 'Size of TTestRecord differs');
   TValue.Make(Nil, TypeInfo(TTestProc), value);
   CheckEquals(SizeOf(TTestProc), value.DataSize, 'Size of TTestProc differs');
-  {TValue.Make(Nil, TypeInfo(TTestMethod), value);
-  CheckEquals(SizeOf(TTestMethod), value.DataSize, 'Size of TTestMethod differs');}
+  TValue.Make(Nil, TypeInfo(TTestMethod), value);
+  CheckEquals(SizeOf(TTestMethod), value.DataSize, 'Size of TTestMethod differs');
   TValue.Make(Nil, TypeInfo(TArrayOfLongintStatic), value);
   CheckEquals(SizeOf(TArrayOfLongintStatic), value.DataSize, 'Size of TArrayOfLongintStatic differs');
   TValue.Make(Nil, TypeInfo(TArrayOfLongintDyn), value);
   CheckEquals(SizeOf(TArrayOfLongintDyn), value.DataSize, 'Size of TArrayOfLongintDyn differs');
-  {TValue.Make(Nil, TypeInfo(TTestEnum), value);
+  TValue.Make(Nil, TypeInfo(TTestEnum), value);
   CheckEquals(SizeOf(TTestEnum), value.DataSize, 'Size of TTestEnum differs');
   TValue.Make(Nil, TypeInfo(TTestSet), value);
-  CheckEquals(SizeOf(TTestSet), value.DataSize, 'Size of TTestSet differs');}
+  CheckEquals(SizeOf(TTestSet), value.DataSize, 'Size of TTestSet differs');
   TValue.Make(Nil, TypeInfo(Pointer), value);
   CheckEquals(SizeOf(Pointer), value.DataSize, 'Size of Pointer differs');
 end;
