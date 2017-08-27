@@ -626,9 +626,7 @@ end;
 
 function TValue.GetDataSize: SizeInt;
 begin
-  if IsEmpty then
-    Result := 0
-  else if Assigned(FData.FValueData) and (Kind <> tkSString) then
+  if Assigned(FData.FValueData) and (Kind <> tkSString) then
     Result := FData.FValueData.GetDataSize
   else begin
     Result := 0;
@@ -687,22 +685,24 @@ begin
       tkFile:
         { ToDo }
         Result := SizeOf(TTextRec);
+      tkAString,
+      tkWString,
+      tkUString,
+      tkInterface,
+      tkDynArray,
       tkClass,
       tkHelper,
       tkClassRef,
       tkInterfaceRaw,
       tkPointer:
         Result := SizeOf(Pointer);
-      tkUnknown,
-      tkLString,
-      tkAString,
-      tkWString,
-      tkUString,
       tkObject,
-      tkArray,
-      tkRecord,
-      tkInterface,
-      tkDynArray:
+      tkRecord:
+        Result := TypeData^.RecSize;
+      tkArray:
+        Result := TypeData^.ArrayData.Size;
+      tkUnknown,
+      tkLString:
         Assert(False);
     end;
   end;
