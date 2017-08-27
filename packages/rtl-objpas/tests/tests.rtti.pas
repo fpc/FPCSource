@@ -55,6 +55,7 @@ type
     procedure TestDataSize;
     procedure TestDataSizeEmpty;
     procedure TestReferenceRawData;
+    procedure TestReferenceRawDataEmpty;
 
     procedure TestIsManaged;
   end;
@@ -924,6 +925,36 @@ begin
   TValue.Make(@arrstat, TypeInfo(TArrayOfLongintStatic), value);
   Check(value.GetReferenceToRawData <> @arrstat, 'Reference to static array is equal');
   Check(PLongInt(value.GetReferenceToRawData)^ = PLongInt(@arrstat)^, 'Reference to static array data differs');
+end;
+
+procedure TTestCase1.TestReferenceRawDataEmpty;
+var
+  value: TValue;
+begin
+  TValue.Make(Nil, TypeInfo(String), value);
+  Check(Assigned(value.GetReferenceToRawData()), 'Reference to empty String is not assigned');
+  Check(not Assigned(PPointer(value.GetReferenceToRawData)^), 'Empty String data is assigned');
+
+  TValue.Make(Nil, TypeInfo(IInterface), value);
+  Check(Assigned(value.GetReferenceToRawData()), 'Reference to empty interface is not assigned');
+  Check(not Assigned(PPointer(value.GetReferenceToRawData)^), 'Empty interface data is assigned');
+
+  TValue.Make(Nil, TypeInfo(LongInt), value);
+  Check(Assigned(value.GetReferenceToRawData()), 'Reference to empty LongInt is not assigned');
+  Check(PLongInt(value.GetReferenceToRawData)^ = 0, 'Empty longint data is not 0');
+
+  TValue.Make(Nil, TypeInfo(TTestRecord), value);
+  Check(Assigned(value.GetReferenceToRawData()), 'Reference to empty record is not assigned');
+  Check(PTestRecord(value.GetReferenceToRawData)^.value1 = 0, 'Empty record data value1 is not 0');
+  Check(PTestRecord(value.GetReferenceToRawData)^.value2 = '', 'Empty record data value2 is not empty');
+
+  TValue.Make(Nil, TypeInfo(TArrayOfLongintDyn), value);
+  Check(Assigned(value.GetReferenceToRawData()), 'Reference to empty dynamic array is not assigned');
+  Check(not Assigned(PPointer(value.GetReferenceToRawData)^), 'Empty dynamic array data is assigned');
+
+  TValue.Make(Nil, TypeInfo(TArrayOfLongintStatic), value);
+  Check(Assigned(value.GetReferenceToRawData()), 'Reference to empty static array is not assigned');
+  Check(PLongInt(value.GetReferenceToRawData)^ = 0, 'Empty static array data is not 0');
 end;
 
 procedure TTestCase1.TestDataSize;
