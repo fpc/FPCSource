@@ -17,6 +17,22 @@ unit Rtti experimental;
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
 
+{ Note: since the Lazarus IDE is not yet capable of correctly handling generic
+  functions it is best to define a InLazIDE define inside the IDE that disables
+  the generic code for CodeTools. To do this do this:
+
+  - go to Tools -> Codetools Defines Editor
+  - go to Edit -> Insert Node Below -> Define Recurse
+  - enter the following values:
+      Name: InLazIDE
+      Description: Define InLazIDE everywhere
+      Variable: InLazIDE
+      Value from text: 1
+}
+{$ifdef InLazIDE}
+{$define NoGenericMethods}
+{$endif}
+
 interface
 
 uses
@@ -73,7 +89,9 @@ type
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
+{$ifndef NoGenericMethods}
     generic class function From<T>(constref aValue: T): TValue; static; inline;
+{$endif}
     function IsArray: boolean; inline;
     function AsString: string;
     function AsExtended: Extended;
@@ -699,10 +717,12 @@ begin
   end;
 end;
 
+{$ifndef NoGenericMethods}
 generic class function TValue.From<T>(constref aValue: T): TValue;
 begin
   TValue.Make(@aValue, System.TypeInfo(T), Result);
 end;
+{$endif}
 
 function TValue.GetTypeDataProp: PTypeData;
 begin
