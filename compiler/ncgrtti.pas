@@ -1241,7 +1241,10 @@ implementation
                    { write flags for current parameter }
                    write_param_flag(tcb,parasym);
                    { write param type }
-                   write_rtti_reference(tcb,parasym.vardef,fullrtti);
+                   if is_open_array(parasym.vardef) then
+                     write_rtti_reference(tcb,tarraydef(parasym.vardef).elementdef,fullrtti)
+                   else
+                     write_rtti_reference(tcb,parasym.vardef,fullrtti);
                    { write name of current parameter }
                    tcb.emit_shortstring_const(parasym.realname);
                    tcb.end_anonymous_record;
@@ -1286,7 +1289,12 @@ implementation
                { write params typeinfo }
                for i:=0 to def.paras.count-1 do
                  if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
-                   write_rtti_reference(tcb,tparavarsym(def.paras[i]).vardef,fullrtti);
+                   begin
+                     if is_open_array(tparavarsym(def.paras[i]).vardef) then
+                       write_rtti_reference(tcb,tarraydef(tparavarsym(def.paras[i]).vardef).elementdef,fullrtti)
+                     else
+                       write_rtti_reference(tcb,tparavarsym(def.paras[i]).vardef,fullrtti);
+                   end;
                tcb.end_anonymous_record;
             end
           else
