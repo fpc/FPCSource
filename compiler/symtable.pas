@@ -3135,7 +3135,12 @@ implementation
                    (
                      not(srsym.typ in [unitsym,namespacesym]) or
                      srsymtable.iscurrentunit or
-                     (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid))
+                     (assigned(current_specializedef)and(current_specializedef.genericdef.owner.moduleid=srsymtable.moduleid)) or
+                     (
+                       assigned(current_procinfo) and
+                       (df_specialization in current_procinfo.procdef.defoptions) and
+                       (current_procinfo.procdef.genericdef.owner.moduleid=srsymtable.moduleid)
+                     )
                    ) and
                    (not (ssf_search_option in flags) or (option in srsym.symoptions))then
                   begin
