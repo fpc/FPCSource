@@ -73,6 +73,7 @@ type
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
+    generic class function From<T>(constref aValue: T): TValue; static; inline;
     function IsArray: boolean; inline;
     function AsString: string;
     function AsExtended: Extended;
@@ -698,6 +699,10 @@ begin
   end;
 end;
 
+generic class function TValue.From<T>(constref aValue: T): TValue;
+begin
+  TValue.Make(@aValue, System.TypeInfo(T), Result);
+end;
 
 function TValue.GetTypeDataProp: PTypeData;
 begin
