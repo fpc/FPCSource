@@ -350,6 +350,12 @@ begin
 {$include libcurl/fpmake.pp}
 end;
 
+procedure add_libffi(const ADirectory: string);
+begin
+  with Installer do
+{$include libffi/fpmake.pp}
+end;
+
 procedure add_libgbafpc(const ADirectory: string);
 begin
   with Installer do
