@@ -284,7 +284,56 @@ type
   EInvocationError = class(Exception);
   ENonPublicType = class(Exception);
 
+  TFunctionCallParameter = record
+    Value: TValue;
+    ParamFlags: TParamFlags;
+    ParaLocs: PParameterLocations;
+  end;
+  TFunctionCallParameterArray = specialize TArray<TFunctionCallParameter>;
+
+  TFunctionCallFlag = (
+    fcfStatic
+  );
+  TFunctionCallFlags = set of TFunctionCallFlag;
+
+  TFunctionCallCallback = Pointer;
+
+  TFunctionCallProc = procedure(const aArgs: TValueArray; out aResult: TValue; aContext: Pointer);
+  TFunctionCallMethod = procedure(const aArgs: TValueArray; out aResult: TValue; aContext: Pointer) of object;
+
+  TFunctionCallManager = record
+    Invoke: procedure(CodeAddress: CodePointer; const Args: TFunctionCallParameterArray; CallingConvention: TCallConv;
+              ResultType: PTypeInfo; out ResultValue: TValue; Flags: TFunctionCallFlags);
+    CreateCallbackProc: function(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+    CreateCallbackMethod: function(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+    FreeCallback: procedure(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
+  end;
+  TFunctionCallManagerArray = array[TCallConv] of TFunctionCallManager;
+
+  TCallConvSet = set of TCallConv;
+
+procedure SetFunctionCallManager(aCallConv: TCallConv; constref aFuncCallMgr: TFunctionCallManager; out aOldFuncCallMgr: TFunctionCallManager);
+procedure SetFunctionCallManager(aCallConv: TCallConv; constref aFuncCallMgr: TFunctionCallManager);
+procedure SetFunctionCallManager(aCallConvs: TCallConvSet; constref aFuncCallMgr: TFunctionCallManager; out aOldFuncCallMgrs: TFunctionCallManagerArray);
+procedure SetFunctionCallManager(aCallConvs: TCallConvSet; constref aFuncCallMgr: TFunctionCallManager);
+procedure SetFunctionCallManagers(aCallConvs: TCallConvSet; constref aFuncCallMgrs: TFunctionCallManagerArray; out aOldFuncCallMgrs: TFunctionCallManagerArray);
+procedure SetFunctionCallManagers(aCallConvs: TCallConvSet; constref aFuncCallMgrs: TFunctionCallManagerArray);
+procedure SetFunctionCallManagers(constref aFuncCallMgrs: TFunctionCallManagerArray; out aOldFuncCallMgrs: TFunctionCallManagerArray);
+procedure SetFunctionCallManagers(constref aFuncCallMgrs: TFunctionCallManagerArray);
+procedure GetFunctionCallManager(aCallConv: TCallConv; out aFuncCallMgr: TFunctionCallManager);
+procedure GetFunctionCallManagers(aCallConvs: TCallConvSet; out aFuncCallMgrs: TFunctionCallManagerArray);
+procedure GetFunctionCallManagers(out aFuncCallMgrs: TFunctionCallManagerArray);
+
 function IsManaged(TypeInfo: PTypeInfo): boolean;
+
+{ these resource strings are needed by units implementing function call managers }
+resourcestring
+  SErrInvokeNotImplemented = 'Invoke functionality is not implemented';
+  SErrInvokeFailed = 'Invoke call failed';
+  SErrCallbackNotImplented = 'Callback functionality is not implemented';
+  SErrCallConvNotSupported = 'Calling convention not supported: %s';
+  SErrTypeKindNotSupported = 'Type kind is not supported: %s';
+  SErrCallbackHandlerNil = 'Callback handler is Nil';
 
 implementation
 
@@ -345,6 +394,133 @@ resourcestring
 var
   PoolRefCount : integer;
   GRttiPool    : TRttiPool;
+  FuncCallMgr: TFunctionCallManagerArray;
+
+procedure NoInvoke(aCodeAddress: CodePointer; const aArgs: TFunctionCallParameterArray; aCallConv: TCallConv;
+            aResultType: PTypeInfo; out aResultValue: TValue; aFlags: TFunctionCallFlags);
+begin
+  raise ENotImplemented.Create(SErrInvokeNotImplemented);
+end;
+
+function NoCreateCallbackProc(aFunc: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := Nil;
+  raise ENotImplemented.Create(SErrCallbackNotImplented);
+end;
+
+function NoCreateCallbackMethod(aFunc: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  Result := Nil;
+  raise ENotImplemented.Create(SErrCallbackNotImplented);
+end;
+
+procedure NoFreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
+begin
+  raise ENotImplemented.Create(SErrCallbackNotImplented);
+end;
+
+const
+  NoFunctionCallManager: TFunctionCallManager = (
+    Invoke: @NoInvoke;
+    CreateCallbackProc: @NoCreateCallbackProc;
+    CreateCallbackMethod: @NoCreateCallbackMethod;
+    FreeCallback: @NoFreeCallback
+  );
+
+procedure SetFunctionCallManager(aCallConv: TCallConv; constref aFuncCallMgr: TFunctionCallManager;
+  out aOldFuncCallMgr: TFunctionCallManager);
+begin
+  aOldFuncCallMgr := FuncCallMgr[aCallConv];
+  FuncCallMgr[aCallConv] := aFuncCallMgr;
+end;
+
+procedure SetFunctionCallManager(aCallConv: TCallConv; constref aFuncCallMgr: TFunctionCallManager);
+var
+  dummy: TFunctionCallManager;
+begin
+  SetFunctionCallManager(aCallConv, aFuncCallMgr, dummy);
+end;
+
+procedure SetFunctionCallManager(aCallConvs: TCallConvSet; constref aFuncCallMgr: TFunctionCallManager;
+  out aOldFuncCallMgrs: TFunctionCallManagerArray);
+var
+  cc: TCallConv;
+begin
+  for cc := Low(TCallConv) to High(TCallConv) do
+    if cc in aCallConvs then begin
+      aOldFuncCallMgrs[cc] := FuncCallMgr[cc];
+      FuncCallMgr[cc] := aFuncCallMgr;
+    end else
+      aOldFuncCallMgrs[cc] := Default(TFunctionCallManager);
+end;
+
+procedure SetFunctionCallManager(aCallConvs: TCallConvSet; constref aFuncCallMgr: TFunctionCallManager);
+var
+  dummy: TFunctionCallManagerArray;
+begin
+  SetFunctionCallManager(aCallConvs, aFuncCallMgr, dummy);
+end;
+
+procedure SetFunctionCallManagers(aCallConvs: TCallConvSet; constref aFuncCallMgrs: TFunctionCallManagerArray; out aOldFuncCallMgrs: TFunctionCallManagerArray);
+var
+  cc: TCallConv;
+begin
+  for cc := Low(TCallConv) to High(TCallConv) do
+    if cc in aCallConvs then begin
+      aOldFuncCallMgrs[cc] := FuncCallMgr[cc];
+      FuncCallMgr[cc] := aFuncCallMgrs[cc];
+    end else
+      aOldFuncCallMgrs[cc] := Default(TFunctionCallManager);
+end;
+
+procedure SetFunctionCallManagers(aCallConvs: TCallConvSet; constref aFuncCallMgrs: TFunctionCallManagerArray);
+var
+  dummy: TFunctionCallManagerArray;
+begin
+  SetFunctionCallManagers(aCallConvs, aFuncCallMgrs, dummy);
+end;
+
+procedure SetFunctionCallManagers(constref aFuncCallMgrs: TFunctionCallManagerArray; out aOldFuncCallMgrs: TFunctionCallManagerArray);
+begin
+  aOldFuncCallMgrs := FuncCallMgr;
+  FuncCallMgr := aFuncCallMgrs;
+end;
+
+procedure SetFunctionCallManagers(constref aFuncCallMgrs: TFunctionCallManagerArray);
+var
+  dummy: TFunctionCallManagerArray;
+begin
+  SetFunctionCallManagers(aFuncCallMgrs, dummy);
+end;
+
+procedure GetFunctionCallManager(aCallConv: TCallConv; out aFuncCallMgr: TFunctionCallManager);
+begin
+  aFuncCallMgr := FuncCallMgr[aCallConv];
+end;
+
+procedure GetFunctionCallManagers(aCallConvs: TCallConvSet; out aFuncCallMgrs: TFunctionCallManagerArray);
+var
+  cc: TCallConv;
+begin
+  for cc := Low(TCallConv) to High(TCallConv) do
+    if cc in aCallConvs then
+      aFuncCallMgrs[cc] := FuncCallMgr[cc]
+    else
+      aFuncCallMgrs[cc] := Default(TFunctionCallManager);
+end;
+
+procedure GetFunctionCallManagers(out aFuncCallMgrs: TFunctionCallManagerArray);
+begin
+  aFuncCallMgrs := FuncCallMgr;
+end;
+
+procedure InitDefaultFunctionCallManager;
+var
+  cc: TCallConv;
+begin
+  for cc := Low(TCallConv) to High(TCallConv) do
+    FuncCallMgr[cc] := NoFunctionCallManager;
+end;
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
 begin
@@ -1720,5 +1896,6 @@ end;}
 
 initialization
   PoolRefCount := 0;
+  InitDefaultFunctionCallManager;
 end.
 
