@@ -93,7 +93,9 @@ type
     generic class function From<T>(constref aValue: T): TValue; static; inline;
 {$endif}
     function IsArray: boolean; inline;
-    function AsString: string;
+    function AsString: string; inline;
+    function AsUnicodeString: UnicodeString;
+    function AsAnsiString: AnsiString;
     function AsExtended: Extended;
     function IsClass: boolean; inline;
     function AsClass: TClass;
@@ -835,14 +837,45 @@ end;
 
 function TValue.AsString: string;
 begin
+  if System.GetTypeKind(String) = tkUString then
+    Result := String(AsUnicodeString)
+  else
+    Result := String(AsAnsiString);
+end;
+
+function TValue.AsUnicodeString: UnicodeString;
+begin
   if (Kind in [tkSString, tkAString, tkUString, tkWString]) and not Assigned(FData.FValueData) then
     Result := ''
   else
     case Kind of
       tkSString:
-        Result := PShortString(FData.FValueData.GetReferenceToRawData)^;
+        Result := UnicodeString(PShortString(FData.FValueData.GetReferenceToRawData)^);
       tkAString:
-        Result := PAnsiString(FData.FValueData.GetReferenceToRawData)^;
+        Result := UnicodeString(PAnsiString(FData.FValueData.GetReferenceToRawData)^);
+      tkWString:
+        Result := UnicodeString(PWideString(FData.FValueData.GetReferenceToRawData)^);
+      tkUString:
+        Result := UnicodeString(PUnicodeString(FData.FValueData.GetReferenceToRawData)^);
+    else
+      raise EInvalidCast.Create(SErrInvalidTypecast);
+    end;
+end;
+
+function TValue.AsAnsiString: AnsiString;
+begin
+  if (Kind in [tkSString, tkAString, tkUString, tkWString]) and not Assigned(FData.FValueData) then
+    Result := ''
+  else
+    case Kind of
+      tkSString:
+        Result := AnsiString(PShortString(FData.FValueData.GetReferenceToRawData)^);
+      tkAString:
+        Result := AnsiString(PAnsiString(FData.FValueData.GetReferenceToRawData)^);
+      tkWString:
+        Result := AnsiString(PWideString(FData.FValueData.GetReferenceToRawData)^);
+      tkUString:
+        Result := AnsiString(PUnicodeString(FData.FValueData.GetReferenceToRawData)^);
     else
       raise EInvalidCast.Create(SErrInvalidTypecast);
     end;
