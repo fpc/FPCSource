@@ -324,6 +324,13 @@ procedure GetFunctionCallManager(aCallConv: TCallConv; out aFuncCallMgr: TFuncti
 procedure GetFunctionCallManagers(aCallConvs: TCallConvSet; out aFuncCallMgrs: TFunctionCallManagerArray);
 procedure GetFunctionCallManagers(out aFuncCallMgrs: TFunctionCallManagerArray);
 
+function Invoke(aCodeAddress: CodePointer; const aArgs: TValueArray; aCallConv: TCallConv;
+  aResultType: PTypeInfo; aIsStatic: Boolean; aIsConstructor: Boolean): TValue;
+
+function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+procedure FreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
+
 function IsManaged(TypeInfo: PTypeInfo): boolean;
 
 { these resource strings are needed by units implementing function call managers }
@@ -520,6 +527,65 @@ var
 begin
   for cc := Low(TCallConv) to High(TCallConv) do
     FuncCallMgr[cc] := NoFunctionCallManager;
+end;
+
+function Invoke(aCodeAddress: CodePointer; const aArgs: TValueArray;
+  aCallConv: TCallConv; aResultType: PTypeInfo; aIsStatic: Boolean;
+  aIsConstructor: Boolean): TValue;
+var
+  funcargs: TFunctionCallParameterArray;
+  i: LongInt;
+  flags: TFunctionCallFlags;
+begin
+  { sanity check }
+  if not Assigned(FuncCallMgr[aCallConv].Invoke) then
+    raise ENotImplemented.Create(SErrInvokeNotImplemented);
+
+  { ToDo: handle IsConstructor }
+  if aIsConstructor then
+    raise ENotImplemented.Create(SErrInvokeNotImplemented);
+
+  { ToDo: what exactly is the purpose of IsStatic? }
+  flags := [];
+  if aIsStatic then
+    Include(flags, fcfStatic);
+
+  SetLength(funcargs, Length(aArgs));
+  for i := Low(aArgs) to High(aArgs) do begin
+    funcargs[i - Low(aArgs) + Low(funcargs)].Value := aArgs[i];
+    funcargs[i - Low(aArgs) + Low(funcargs)].ParamFlags := [];
+    funcargs[i - Low(aArgs) + Low(funcargs)].ParaLocs := Nil;
+  end;
+
+  FuncCallMgr[aCallConv].Invoke(aCodeAddress, funcargs, aCallConv, aResultType, Result, flags);
+end;
+
+function CreateCallbackProc(aHandler: TFunctionCallProc; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  if not Assigned(FuncCallMgr[aCallConv].CreateCallbackProc) then
+    raise ENotImplemented.Create(SErrCallbackNotImplented);
+
+  if not Assigned(aHandler) then
+    raise EArgumentNilException.Create(SErrCallbackHandlerNil);
+
+  Result := FuncCallMgr[aCallConv].CreateCallbackProc(aHandler, aCallConv, aArgs, aResultType, aFlags, aContext);
+end;
+
+function CreateCallbackMethod(aHandler: TFunctionCallMethod; aCallConv: TCallConv; aArgs: array of PTypeInfo; aResultType: PTypeInfo; aFlags: TFunctionCallFlags; aContext: Pointer): TFunctionCallCallback;
+begin
+  if not Assigned(FuncCallMgr[aCallConv].CreateCallbackMethod) then
+    raise ENotImplemented.Create(SErrCallbackNotImplented);
+
+  if not Assigned(aHandler) then
+    raise EArgumentNilException.Create(SErrCallbackHandlerNil);
+
+  Result := FuncCallMgr[aCallConv].CreateCallbackMethod(aHandler, aCallConv, aArgs, aResultType, aFlags, aContext);
+end;
+
+procedure FreeCallback(aCallback: TFunctionCallCallback; aCallConv: TCallConv);
+begin
+  if Assigned(FuncCallMgr[aCallConv].FreeCallback) then
+    FuncCallMgr[aCallConv].FreeCallback(aCallback, aCallConv);
 end;
 
 function IsManaged(TypeInfo: PTypeInfo): boolean;
