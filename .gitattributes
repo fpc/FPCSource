@@ -5179,6 +5179,7 @@ packages/libffi/Makefile svneol=native#text/plain
 packages/libffi/Makefile.fpc svneol=native#text/plain
 packages/libffi/examples/simple.pp svneol=native#text/pascal
 packages/libffi/fpmake.pp svneol=native#text/pascal
+packages/libffi/src/ffi.manager.pp svneol=native#text/pascal
 packages/libffi/src/ffi.pp svneol=native#text/pascal
 packages/libfontconfig/Makefile svneol=native#text/plain
 packages/libfontconfig/Makefile.fpc svneol=native#text/plain

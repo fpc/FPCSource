@@ -25,11 +25,14 @@ begin
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := [linux];
     P.CPUs := [x86_64];
+    P.Dependencies.Add('rtl-objpas');
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('ffi.pp');
+    T:=P.Targets.AddUnit('ffi.manager.pp');
+    T.Dependencies.Add('ffi');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple.pp');
