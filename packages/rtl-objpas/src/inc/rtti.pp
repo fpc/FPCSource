@@ -653,10 +653,7 @@ begin
                          check the underlying type }
                        if not (td^.CompType^.Kind in [tkInteger,tkEnumeration]) then
                          raise Exception.CreateFmt(SErrUnableToGetValueForType,[ATypeInfo^.Name]);
-                       td := GetTypeData(td^.CompType);
-                       { ToDo: what about PACKSETS? }
-                       size := td^.MaxValue div 8;
-                       case size of
+                       case td^.SetSize of
                          0, 1:
                            Result.FData.FAsUByte := PByte(ABuffer)^;
                          { these two cases shouldn't happen, but better safe than sorry... }
@@ -668,7 +665,7 @@ begin
                          5..8:
                            Result.FData.FAsUInt64 := PQWord(ABuffer)^;
                          else
-                           Result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, size, ATypeInfo, False);
+                           Result.FData.FValueData := TValueDataIntImpl.CreateCopy(ABuffer, td^.SetSize, ATypeInfo, False);
                        end;
                      end;
                      otUWord:
@@ -730,8 +727,6 @@ begin
 end;
 
 function TValue.GetDataSize: SizeInt;
-var
-  td: PTypeData;
 begin
   if Assigned(FData.FValueData) and (Kind <> tkSString) then
     Result := FData.FValueData.GetDataSize
@@ -773,26 +768,7 @@ begin
             Result := SizeOf(Currency);
         end;
       tkSet:
-        case TypeData^.OrdType of
-          otUByte: begin
-            td := GetTypeData(TypeData^.CompType);
-            Result := td^.MaxValue div 8;
-            case Result of
-              0:
-                Result := SizeOf(Byte);
-              3:
-                Result := SizeOf(LongWord);
-              5..7:
-                Result := SizeOf(QWord);
-            end;
-          end;
-          otUWord:
-            Result := SizeOf(Word);
-          otULong:
-            Result := SizeOf(LongWord);
-          else
-            Result := 0;
-        end;
+        Result := TypeData^.SetSize;
       tkMethod:
         Result := SizeOf(TMethod);
       tkSString:
@@ -1107,8 +1083,6 @@ begin
 end;
 
 function TValue.GetReferenceToRawData: Pointer;
-var
-  td: PTypeData;
 begin
   if IsEmpty then
     Result := Nil
@@ -1143,9 +1117,8 @@ begin
       tkSet: begin
         case TypeData^.OrdType of
           otUByte: begin
-            td := GetTypeData(TypeData^.CompType);
-            case td^.MaxValue div 8 of
-              0, 1:
+            case TypeData^.SetSize of
+              1:
                 Result := @FData.FAsUByte;
               2:
                 Result := @FData.FAsUWord;
