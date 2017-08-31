@@ -1251,9 +1251,11 @@ end;
 function TCustomTestModule.IsErrorExpected(E: Exception): boolean;
 var
   MsgNumber: Integer;
+  Msg: String;
 begin
   Result:=false;
   if (ExpectedErrorClass=nil) or (ExpectedErrorClass<>E.ClassType) then exit;
+  Msg:=E.Message;
   if E is EPas2JS then
     MsgNumber:=EPas2JS(E).MsgNumber
   else if E is EPasResolve then
@@ -1261,10 +1263,13 @@ begin
   else if E is EParserError then
     MsgNumber:=Parser.LastMsgNumber
   else if E is EScannerError then
-    MsgNumber:=Scanner.LastMsgNumber
+    begin
+    MsgNumber:=Scanner.LastMsgNumber;
+    Msg:=Scanner.LastMsg;
+    end
   else
     MsgNumber:=0;
-  Result:=(MsgNumber=ExpectedErrorNumber) and (E.Message=ExpectedErrorMsg);
+  Result:=(MsgNumber=ExpectedErrorNumber) and (Msg=ExpectedErrorMsg);
   if Result then
     SkipTests:=true;
 end;
