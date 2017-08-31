@@ -2408,14 +2408,14 @@ end;
 procedure TPascalScanner.Error(MsgNumber: integer; const Msg: string);
 begin
   SetCurMsg(mtError,MsgNumber,Msg,[]);
-  raise EScannerError.CreateFmt('Error: %s(%d,%d) : %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
+  raise EScannerError.CreateFmt('%s(%d,%d) Error: %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
 end;
 
 procedure TPascalScanner.Error(MsgNumber: integer; const Fmt: string;
   Args: array of const);
 begin
   SetCurMsg(mtError,MsgNumber,Fmt,Args);
-  raise EScannerError.CreateFmt('Error: %s(%d,%d) : %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
+  raise EScannerError.CreateFmt('%s(%d,%d) Error: %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
 end;
 
 function TPascalScanner.DoFetchTextToken:TToken;
