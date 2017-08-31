@@ -998,7 +998,7 @@ implementation
         begin
            write_header(tcb,def,tkSet);
            tcb.begin_anonymous_record(
-             internaltypeprefixName[itp_1byte],
+             internaltypeprefixName[itp_rtti_set],
              defaultpacking,reqalign,
              targetinfos[target_info.system]^.alignment.recordalignmin,
              targetinfos[target_info.system]^.alignment.maxCrecordalign);
@@ -1012,6 +1012,7 @@ implementation
              else
                tcb.emit_ord_const(otUByte,u8inttype);
            end;
+           tcb.emit_ord_const(def.size,sizesinttype);
            tcb.end_anonymous_record;
            tcb.begin_anonymous_record(internaltypeprefixName[itp_rtti_ref],defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin,

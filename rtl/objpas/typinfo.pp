@@ -504,7 +504,12 @@ unit typinfo;
                     (MinQWordValue, MaxQWordValue: QWord);
 {$endif VER3_0}
                   tkSet:
-                    (CompTypeRef : TypeInfoPtr)
+                    (
+{$ifndef VER3_0}
+                     SetSize : SizeInt;
+{$endif VER3_0}
+                     CompTypeRef : TypeInfoPtr
+                    )
               );
 {$ifndef FPUNONE}
             tkFloat:
