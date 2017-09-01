@@ -456,6 +456,8 @@ type
   { TPasType }
 
   TPasType = class(TPasElement)
+  Protected
+    Function FixTypeDecl(aDecl: String) : String;
   public
     function ElementTypeName: string; override;
   end;
@@ -1921,6 +1923,15 @@ begin
 end;
 
 function TPasResString.ElementTypeName: string; begin Result := SPasTreeResString; end;
+
+function TPasType.FixTypeDecl(aDecl: String): String;
+begin
+  Result:=aDecl;
+  if (Name<>'') then
+    Result:=Name+' = '+Result;
+  ProcessHints(false,Result);
+end;
+
 function TPasType.ElementTypeName: string; begin Result := SPasTreeType; end;
 function TPasPointerType.ElementTypeName: string; begin Result := SPasTreePointerType; end;
 function TPasAliasType.ElementTypeName: string; begin Result := SPasTreeAliasType; end;
@@ -3311,10 +3322,7 @@ function TPasAliasType.GetDeclaration(full: Boolean): string;
 begin
   Result:=DestType.Name;
   If Full then
-    begin
-    Result:=Name+' = '+Result;
-    ProcessHints(False,Result);
-    end;
+    Result:=FixTypeDecl(Result);
 end;
 
 procedure TPasAliasType.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -3328,20 +3336,14 @@ function TPasClassOfType.GetDeclaration (full : boolean) : string;
 begin
   Result:='Class of '+DestType.Name;
   If Full then
-    begin
-    Result:=Name+' = '+Result;
-    ProcessHints(False,Result);
-    end;
+    Result:=FixTypeDecl(Result);
 end;
 
 function TPasRangeType.GetDeclaration (full : boolean) : string;
 begin
   Result:=RangeStart+'..'+RangeEnd;
   If Full then
-    begin
-    Result:=Name+' = '+Result;
-    ProcessHints(False,Result);
-    end;
+    Result:=FixTypeDecl(Result);
 end;
 
 procedure TPasRangeType.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -3380,10 +3382,7 @@ begin
   else
     Result:=Result+'const';
   If Full Then
-    begin
-    Result:=Name+' = '+Result;
-    ProcessHints(False,Result);
-    end;
+    Result:=FixTypeDecl(Result);
 end;
 
 procedure TPasArrayType.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -3418,10 +3417,7 @@ begin
   If Assigned(Eltype) then
     Result:=Result+' of '+ElType.Name;
   If Full Then
-    begin
-    Result:=Name+' = '+Result;
-    ProcessHints(False,Result);
-    end;
+    Result:=FixTypeDecl(Result);
 end;
 
 procedure TPasFileType.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -3462,7 +3458,7 @@ Var
 begin
   S:=TStringList.Create;
   Try
-    If Full then
+    If Full and (Name<>'') then
       S.Add(Name+' = (')
     else
       S.Add('(');
@@ -3496,7 +3492,7 @@ begin
     begin
     S:=TStringList.Create;
     Try
-      If Full then
+      If Full and (Name<>'') then
         S.Add(Name+'= Set of (')
       else
         S.Add('Set of (');
@@ -3586,6 +3582,7 @@ function TPasRecordType.GetDeclaration (full : boolean) : string;
 Var
   S : TStringList;
   temp : string;
+  i : integer;
 
 begin
   S:=TStringList.Create;
@@ -3596,13 +3593,14 @@ begin
         Temp:='bitpacked '+Temp
       else
         Temp:='packed '+Temp;
-    If Full then
+    If Full and (Name<>'') then
       Temp:=Name+' = '+Temp;
     S.Add(Temp);
     GetMembers(S);
     S.Add('end');
     Result:=S.Text;
-    ProcessHints(False, Result);
+    if Full then
+      ProcessHints(False, Result);
   finally
     S.free;
   end;
@@ -4117,7 +4115,7 @@ begin
       Result:=ArgType.Name
     else
       Result:=ArgType.GetDeclaration(False);
-    If Full then
+    If Full and (Name<>'') then
       Result:=Name+': '+Result;
     end
   else If Full then
@@ -4573,10 +4571,15 @@ end;
 
 function TUnaryExpr.GetDeclaration(full: Boolean): string;
 
+Const
+  WordOpcodes = [eopDiv,eopMod,eopshr,eopshl,eopNot,eopAnd,eopOr,eopXor];
+
 begin
   Result:=OpCodeStrings[Opcode];
+  if OpCode in WordOpCodes  then
+    Result:=Result+' ';
   If Assigned(Operand) then
-    Result:=Result+Operand.GetDeclaration(Full);
+    Result:=Result+' '+Operand.GetDeclaration(Full);
 end;
 
 constructor TUnaryExpr.Create(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode);
@@ -4639,7 +4642,7 @@ begin
   If Assigned(Right) then
   begin
     op := Right.GetDeclaration(Full);
-    if (OpLevel(Right) < 5) and (OpLevel(Right) >= OpLevel(Self)) then
+    if OpLevel(Left) < OpLevel(Self) then
       Result := Result + '(' + op + ')'
     else
       Result := Result + op;
@@ -4701,6 +4704,8 @@ begin
     Result := '[' + Result + ']'
   else
     Result := '(' + Result + ')';
+  if full and Assigned(Value) then
+    Result:=Value.GetDeclaration(True)+Result;
 end;
 
 procedure TParamsExpr.AddParam(xp:TPasExpr);
