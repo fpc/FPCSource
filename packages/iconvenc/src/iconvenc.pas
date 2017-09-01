@@ -72,7 +72,7 @@ function iconv_close (__cd: iconv_t): cint; cdecl; external libiconvname name ic
 var
   IconvLibFound: boolean = False;
 
-function Iconvert(s: string; var res: string; FromEncoding, ToEncoding: string): cint;
+function Iconvert(s: string; var res: string; const  FromEncoding, ToEncoding: string): cint;
 function InitIconv(var error: string): boolean;
 
 implementation
