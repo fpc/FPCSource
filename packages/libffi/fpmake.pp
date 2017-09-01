@@ -32,7 +32,7 @@ begin
 
     T:=P.Targets.AddUnit('ffi.pp');
     T:=P.Targets.AddUnit('ffi.manager.pp');
-    T.Dependencies.Add('ffi');
+    T.Dependencies.AddUnit('ffi');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('simple.pp');
