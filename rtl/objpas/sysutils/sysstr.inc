@@ -1134,6 +1134,7 @@ Begin
   P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
+  s:=Trim(s);
   try
     case ValueType of
       fvCurrency:
