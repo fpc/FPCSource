@@ -123,6 +123,7 @@ Works:
   - as function result
   - as parameter
   - Delphi without @
+  - @@ operator
   - FPC equal and not equal
   - "is nested"
   - bark on arguments access mismatch
@@ -150,7 +151,6 @@ Works:
   - a:=value
 
 ToDo:
-- @@
 - range checking:
   - arr[index]
   - indexedprop[param]
