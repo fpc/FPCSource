@@ -25,7 +25,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.3';
+    P.Version:='3.0.4';
 
     P.OSes:=[win32,win64,wince,os2,emx,go32v2];
 

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.0.4';
     P.OSes:=[Win32,Win64,Linux];
 
     P.Author := 'Michael van Canneyt';

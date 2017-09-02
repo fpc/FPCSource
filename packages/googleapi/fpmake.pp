@@ -34,7 +34,7 @@ begin
     if Defaults.CPU = powerpc then
       P.OSes := P.OSes - [amiga];
     P.Directory:=ADirectory;
-    P.Version:='3.0.3';
+    P.Version:='3.0.4';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('rtl-objpas');
