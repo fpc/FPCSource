@@ -3807,6 +3807,12 @@ begin
           end;
         end;
       end;
+    eopMemAddress:
+      begin
+      // @@ProcVar -> ProcVar
+      Result:=ConvertElement(El.Operand,AContext);
+      exit;
+      end;
   end;
   if U=nil then
     NotSupported;

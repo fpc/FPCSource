@@ -430,6 +430,7 @@ type
     Procedure TestProcType;
     Procedure TestProcType_FunctionFPC;
     Procedure TestProcType_FunctionDelphi;
+    Procedure TestProcType_ProcedureDelphi;
     Procedure TestProcType_AsParam;
     Procedure TestProcType_MethodFPC;
     Procedure TestProcType_MethodDelphi;
@@ -10332,6 +10333,84 @@ begin
     '$mod.DoIt($mod.vP(1));',
     '$mod.DoIt($mod.vP(1));',
     '$mod.DoIt($mod.vP(2));',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_ProcedureDelphi;
+begin
+  StartProgram(false);
+  Add('{$mode Delphi}');
+  Add('type');
+  Add('  TProc = procedure;');
+  Add('procedure DoIt;');
+  Add('begin end;');
+  Add('var');
+  Add('  b: boolean;');
+  Add('  vP, vQ: tproc;');
+  Add('begin');
+  Add('  vp:=nil;');
+  Add('  vp:=vp;');
+  Add('  vp:=vq;');
+  Add('  vp:=@doit;'); // ok in fpc and delphi, Note that in Delphi type of @F is Pointer, while in FPC it is the proc type
+  Add('  vp:=doit;'); // illegal in fpc, ok in delphi
+  //Add('  vp:=@doit;'); // illegal in fpc, ok in delphi (because Delphi treats @F as Pointer), not supported by resolver
+  Add('  vp;'); // ok in fpc and delphi
+  Add('  vp();');
+
+  // equal
+  //Add('  b:=vp=nil;'); // ok in fpc, illegal in delphi
+  Add('  b:=@@vp=nil;'); // ok in fpc delphi mode, ok in delphi
+  //Add('  b:=nil=vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=nil=@@vp;'); // ok in fpc delphi mode, ok in delphi
+  Add('  b:=@@vp=@@vq;'); // ok in fpc delphi mode, ok in Delphi
+  //Add('  b:=vp=vq;'); // in fpc compare proctypes, in delphi compare results
+  //Add('  b:=vp=@doit;'); // ok in fpc, illegal in delphi
+  Add('  b:=@@vp=@doit;'); // ok in fpc delphi mode, ok in delphi
+  //Add('  b:=@doit=vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=@doit=@@vp;'); // ok in fpc delphi mode, ok in delphi
+
+  // unequal
+  //Add('  b:=vp<>nil;'); // ok in fpc, illegal in delphi
+  Add('  b:=@@vp<>nil;'); // ok in fpc mode delphi, ok in delphi
+  //Add('  b:=nil<>vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=nil<>@@vp;'); // ok in fpc mode delphi, ok in delphi
+  //Add('  b:=vp<>vq;'); // in fpc compare proctypes, in delphi compare results
+  Add('  b:=@@vp<>@@vq;'); // ok in fpc mode delphi, ok in delphi
+  //Add('  b:=vp<>@doit;'); // ok in fpc, illegal in delphi
+  Add('  b:=@@vp<>@doit;'); // ok in fpc mode delphi, illegal in delphi
+  //Add('  b:=@doit<>vp;'); // ok in fpc, illegal in delphi
+  Add('  b:=@doit<>@@vp;'); // ok in fpc mode delphi, illegal in delphi
+
+  Add('  b:=Assigned(vp);');
+
+  ConvertProgram;
+  CheckSource('TestProcType_ProcedureDelphi',
+    LinesToStr([ // statements
+    'this.DoIt = function() {',
+    '};',
+    'this.b = false;',
+    'this.vP = null;',
+    'this.vQ = null;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.vP = null;',
+    '$mod.vP = $mod.vP;',
+    '$mod.vP = $mod.vQ;',
+    '$mod.vP = $mod.DoIt;',
+    '$mod.vP = $mod.DoIt;',
+    '$mod.vP();',
+    '$mod.vP();',
+    '$mod.b = $mod.vP === null;',
+    '$mod.b = null === $mod.vP;',
+    '$mod.b = rtl.eqCallback($mod.vP, $mod.vQ);',
+    '$mod.b = rtl.eqCallback($mod.vP, $mod.DoIt);',
+    '$mod.b = rtl.eqCallback($mod.DoIt, $mod.vP);',
+    '$mod.b = $mod.vP !== null;',
+    '$mod.b = null !== $mod.vP;',
+    '$mod.b = !rtl.eqCallback($mod.vP, $mod.vQ);',
+    '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
+    '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
+    '$mod.b = $mod.vP !== null;',
     '']));
 end;
 
