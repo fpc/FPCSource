@@ -32,8 +32,6 @@ uses
 
 type
 
-  { TFPReportExportPDF }
-
   TFPReportExportPDF = class(TFPReportExporter)
   private
     FCurrentPage: TPDFPage;
@@ -43,7 +41,7 @@ type
     FDocument: TPDFDocument;
     FAutoSave: boolean;
   protected
-    procedure RenderElement(pg: TPDFPage; ABand: TFPReportCustomBand; el: TFPReportElement); virtual;
+    procedure   RenderElement(pg: TPDFPage; ABand: TFPReportCustomBand; el: TFPReportElement); virtual;
     Procedure   RenderImage(aRect : TFPReportRect; var AImage: TFPCustomImage) ; override;
     procedure   DoExecute(const ARTObjects: TFPList); override;
     procedure   SetupPDFDocument; virtual;
@@ -65,7 +63,7 @@ type
     Class Function Name : String; override;
     Class Function Description : String; override;
     Class Function DefaultExtension: String; override;
-    Procedure SetFileName(const aFileName: String); override;
+    Procedure   SetFileName(const aFileName: String); override;
     function    FindFontIndex(const ADoc: TPDFDocument; const AFontName: string): integer;
     procedure   SaveToFile;
     property    Document: TPDFDocument read FDocument;
