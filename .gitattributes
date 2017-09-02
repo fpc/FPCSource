@@ -2770,8 +2770,6 @@ packages/fcl-report/demos/rptmasterdetaildataset.pp svneol=native#text/plain
 packages/fcl-report/demos/rptshapes.pp svneol=native#text/plain
 packages/fcl-report/demos/rptsimplelist.pp svneol=native#text/plain
 packages/fcl-report/demos/rptttf.pp svneol=native#text/plain
-packages/fcl-report/demos/test.dbf -text
-packages/fcl-report/demos/test.dbt -text
 packages/fcl-report/demos/udapp.pp svneol=native#text/plain
 packages/fcl-report/demos/webdemo.lpi svneol=native#text/plain
 packages/fcl-report/demos/webdemo.pp svneol=native#text/plain
