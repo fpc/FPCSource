@@ -294,6 +294,8 @@
             VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
        end;
 
+       { TInterfacedObject }
+
        TInterfacedObject = class(TObject,IUnknown)
        protected
           frefcount : longint;
@@ -303,6 +305,7 @@
           function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
           function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
         public
+          destructor destroy; override;
           procedure AfterConstruction;override;
           procedure BeforeDestruction;override;
           class function NewInstance : TObject;override;
