@@ -126,13 +126,15 @@ var
   fields: TDbfFieldDefs;
   lDataSet : TDBF;
 begin
+  if FileExists('test.dbf') then
+  begin
+    DeleteFile('test.dbf');
+    DeleteFile('test.dbt');
+  end;
+
   lDataSet := TDBF.Create(Self);
   lDataSet.TableName := 'test.dbf';
-  Dataset:=lDataset;
-  lReportData.DataSet:= DataSet;
 
-  if FileExists('test.dbf') then
-    exit;
   // If you wanted to create a new DBF table
   fields := TDbfFieldDefs.Create(nil);
   fields.Add('Name', ftString, 50);
@@ -140,6 +142,7 @@ begin
   fields.Add('Age', ftInteger);
   fields.Add('Photo', ftBlob);
   lDataSet.CreateTableEx(fields); // <== Now we have an empty db table
+  fields.Free;
 
   lDataSet.Open;
 
@@ -178,7 +181,8 @@ begin
   TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('../common/pictures/man05.png'));
   lDataSet.Post;
 
-  fields.Free;
+  Dataset := lDataset;
+  lReportData.DataSet := DataSet;
 end;
 
 constructor TDatasetDemo.Create(AOwner : TComponent);
