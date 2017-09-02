@@ -2858,7 +2858,7 @@ begin
   Add('  e:=tmyenum(1);');
   Add('  e:=tmyenum(i);');
   Add('  s:=str(e);');
-  Add('  str(e,s)');
+  Add('  str(e,s);');
   Add('  s:=str(e:3);');
   ConvertProgram;
   CheckSource('TestEnumNumber',
