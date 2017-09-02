@@ -4009,6 +4009,7 @@ Const
    Nil, // Symmetrical diff
    Nil, // Address,
    Nil, // Deref
+   Nil, // MemAddress
    Nil  // SubIndent,
   );
 
