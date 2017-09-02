@@ -4762,7 +4762,9 @@ var
     if (CurBlock.Elements.Count>0) and not (GetPrevToken in [tkSemicolon,tkColon])
         and (CurBlock.ClassType<>TPasImplIfElse) then
       begin
+      {$IFDEF VerbosePasParser}
       writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',GetPrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
+      {$ENDIF}
       ParseExcTokenError('Semicolon');
       end;
   end;

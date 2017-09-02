@@ -2321,10 +2321,8 @@ begin
   Add('type');
   Add('  {#TMyInt}TMyInt = MaxInt..MinInt;');
   Add('begin');
-  {$IFDEF EnablePasResRangeCheck}
   CheckResolverException(sHighRangeLimitLTLowRangeLimit,
     nHighRangeLimitLTLowRangeLimit);
-  {$ENDIF}
 end;
 
 procedure TTestResolver.TestIntegerRangeLowHigh;
@@ -2351,11 +2349,9 @@ begin
   'begin',
   '  i:=3;']);
   ParseProgram;
-  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (3 must be between 1 and 2)');
   CheckResolverUnexpectedHints;
-  {$ENDIF}
 end;
 
 procedure TTestResolver.TestByteRangeFail;
@@ -2365,11 +2361,9 @@ begin
   'var b:byte=300;',
   'begin']);
   ParseProgram;
-  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (300 must be between 0 and 255)');
   CheckResolverUnexpectedHints;
-  {$ENDIF}
 end;
 
 procedure TTestResolver.TestCustomIntRangeFail;
@@ -2379,11 +2373,9 @@ begin
   'const i:1..2 = 3;',
   'begin']);
   ParseProgram;
-  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (3 must be between 1 and 2)');
   CheckResolverUnexpectedHints;
-  {$ENDIF}
 end;
 
 procedure TTestResolver.TestIntSet_Const;
@@ -2413,14 +2405,12 @@ end;
 
 procedure TTestResolver.TestIntSet_ConstDuplicateElement;
 begin
-  {$IFDEF EnablePasResRangeCheck}
   StartProgram(false);
   Add([
   'const',
   '  s1 = [1,1..2];',
   'begin']);
   CheckResolverException(sRangeCheckInSetConstructor,nRangeCheckInSetConstructor);
-  {$ENDIF}
 end;
 
 procedure TTestResolver.TestChar_Ord;
@@ -8937,7 +8927,6 @@ end;
 
 procedure TTestResolver.TestArray_Static_Const;
 begin
-  {$IFDEF EnablePasResRangeCheck}
   StartProgram(false);
   Add([
   'type',
@@ -8948,7 +8937,6 @@ begin
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
-  {$ENDIF}
 end;
 
 procedure TTestResolver.TestArrayIntRange_OutOfRange;
@@ -8961,10 +8949,8 @@ begin
   '  a[0]:=3;',
   '']);
   ParseProgram;
-  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (0 must be between 1 and 2)');
-  {$ENDIF}
   CheckResolverUnexpectedHints;
 end;
 
@@ -8978,10 +8964,8 @@ begin
   '  a[''0'']:=3;',
   '']);
   ParseProgram;
-  {$IFDEF EnablePasResRangeCheck}
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
     'range check error while evaluating constants (''0'' must be between ''a'' and ''b'')');
-  {$ENDIF}
   CheckResolverUnexpectedHints;
 end;
 

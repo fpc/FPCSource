@@ -1265,11 +1265,9 @@ begin
       RaiseRangeCheck(20170522123106,Expr.Right);
     end
   else
-    {$IFDEF EnablePasResRangeCheck}
+    {$IFDEF VerbosePasResolver}
     writeln('TResExprEvaluator.EvalBinaryRangeExpr Left=',GetObjName(Expr.Left),' LeftValue.Kind=',LeftValue.Kind);
     RaiseNotYetImplemented(20170518221103,Expr.Left);
-    {$ELSE}
-    exit(nil);
     {$ENDIF}
   end;
 end;
@@ -3417,10 +3415,6 @@ var
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
 begin
-  {$IFNDEF EnablePasResRangeCheck}
-  writeln('TResExprEvaluator.Eval Expr=',GetObjName(Expr),' Flags=',dbgs(Flags));
-  RaiseInternalError(20170712103904);
-  {$ENDIF}
   Result:=nil;
   if Expr.CustomData is TResEvalValue then
     begin
@@ -3493,7 +3487,9 @@ begin
     else
       RaiseNotYetImplemented(20170518200951,Expr);
     end;
+    {$IFDEF VerbosePasResEval}
     writeln('TResExprEvaluator.Eval primitiv end result=',Result<>nil,' ',dbgs(Result));
+    {$ENDIF}
     end
   else if C=TNilExpr then
     Result:=TResEvalValue.CreateKind(revkNil)
@@ -3509,7 +3505,9 @@ begin
     Result:=EvalArrayValuesExpr(TArrayValues(Expr),Flags)
   else if refConst in Flags then
     RaiseConstantExprExp(20170518213800,Expr);
+  {$IFDEF VerbosePasResEval}
   writeln('TResExprEvaluator.Eval END ',Expr.ClassName,' result=',Result<>nil,' ',dbgs(Result));
+  {$ENDIF}
 end;
 
 function TResExprEvaluator.IsInRange(Expr, RangeExpr: TPasExpr;

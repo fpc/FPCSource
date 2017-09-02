@@ -3387,10 +3387,8 @@ end;
 procedure TPasResolver.FinishConstRangeExpr(Left, Right: TPasExpr; out LeftResolved,
   RightResolved: TPasResolverResult);
 // for example Left..Right
-{$IFDEF EnablePasResRangeCheck}
 var
   RgValue: TResEvalValue;
-{$ENDIF}
 begin
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.FinishConstRangeExpr Left=',GetObjName(Left),' Right=',GetObjName(Right));
@@ -3400,10 +3398,8 @@ begin
   ComputeElement(Right,RightResolved,[rcSkipTypeAlias,rcConstant]);
   CheckSetLitElCompatible(Left,Right,LeftResolved,RightResolved);
 
-  {$IFDEF EnablePasResRangeCheck}
   RgValue:=Eval(Left.Parent as TBinaryExpr,[refConst]);
   ReleaseEvalValue(RgValue);
-  {$ENDIF}
 end;
 
 procedure TPasResolver.FinishRecordType(El: TPasRecordType);
@@ -3457,9 +3453,7 @@ begin
   if El.VarType<>nil then
     CheckAssignCompatibility(El,El.Expr,true)
   else
-    {$IFDEF EnablePasResRangeCheck}
     Eval(El.Expr,[refConst])
-    {$ENDIF} ;
 end;
 
 procedure TPasResolver.FinishProcedure(aProc: TPasProcedure);
@@ -4809,9 +4803,7 @@ begin
   akDefault:
     begin
     CheckAssignResCompatibility(LeftResolved,RightResolved,El.right,true);
-    {$IFDEF EnablePasResRangeCheck}
     CheckAssignExprRange(LeftResolved,El.right);
-    {$ENDIF}
     end;
   akAdd, akMinus,akMul,akDivision:
     begin
@@ -4854,9 +4846,7 @@ begin
     else
       RaiseMsg(20170216152125,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
     // store const expression result
-    {$IFDEF EnablePasResRangeCheck}
     Eval(El.right,[]);
-    {$ENDIF}
     end;
   else
     RaiseNotYetImplemented(20160927143649,El,'AssignKind '+AssignKindNames[El.Kind]);
@@ -7798,9 +7788,6 @@ function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
 // Important: Caller must free result if (Result<>nil) and (Result.Element=nil)
 //            use utility function ReleaseEvalValue(Result)
 begin
-  {$IFNDEF EnablePasResRangeCheck}
-  exit(nil);
-  {$ENDIF}
   Result:=fExprEvaluator.Eval(Expr,Flags);
   if Result=nil then exit;
   {$IFDEF VerbosePasResEval}
@@ -10587,9 +10574,7 @@ var
   NextType: TPasType;
   RangeExpr: TPasExpr;
   TypeFits: Boolean;
-  {$IFDEF EnablePasResRangeCheck}
   ParamValue: TResEvalValue;
-  {$ENDIF}
 begin
   ArgNo:=0;
   repeat
@@ -10602,7 +10587,6 @@ begin
         exit(CheckRaiseTypeArgNo(20170216152417,ArgNo,Param,ParamResolved,'integer',RaiseOnError));
       if EmitHints then
         begin
-        {$IFDEF EnablePasResRangeCheck}
         ParamValue:=Eval(Param,[refAutoConst]);
         if ParamValue<>nil then
           try // has const value -> check range
@@ -10614,7 +10598,6 @@ begin
           finally
             ReleaseEvalValue(ParamValue);
           end;
-        {$ENDIF}
         end;
       end
     else
@@ -10654,10 +10637,8 @@ begin
           RaiseIncompatibleTypeRes(20170216152422,nIncompatibleTypeArgNo,
             [IntToStr(ArgNo)],ParamResolved,RangeResolved,Param);
           end;
-        {$IFDEF EnablePasResRangeCheck}
         if EmitHints then
           fExprEvaluator.IsInRange(Param,RangeExpr,true);
-        {$ENDIF}
         end;
       end;
     if ArgNo=length(Params.Params) then exit(cExact);
@@ -10910,11 +10891,7 @@ begin
   ComputeElement(RHS,RightResolved,Flags);
   Result:=CheckAssignResCompatibility(LeftResolved,RightResolved,RHS,RaiseOnIncompatible);
   if RHS is TPasExpr then
-    begin
-    {$IFDEF EnablePasResRangeCheck}
     CheckAssignExprRange(LeftResolved,TPasExpr(RHS));
-    {$ENDIF}
-    end;
 end;
 
 procedure TPasResolver.CheckAssignExprRange(
@@ -10930,9 +10907,6 @@ var
   bt: TResolverBaseType;
   w: WideChar;
 begin
-  {$IFNDEF EnablePasResRangeCheck}
-  exit;
-  {$ENDIF}
   RValue:=Eval(RHS,[refAutoConst]);
   if RValue=nil then
     exit; // not a const expression
@@ -13457,9 +13431,7 @@ function TPasResolver.GetRangeLength(const RangeResolved: TPasResolverResult
   ): MaxPrecInt;
 var
   TypeEl: TPasType;
-  {$IFDEF EnablePasResRangeCheck}
   Value: TResEvalValue;
-  {$ENDIF}
 begin
   Result:=0;
   if RangeResolved.BaseType=btContext then
@@ -13476,7 +13448,6 @@ begin
     end
   else if RangeResolved.ExprEl<>nil then
     begin
-    {$IFDEF EnablePasResRangeCheck}
     Value:=Eval(RangeResolved.ExprEl,[]);
     if Value=nil then
       RaiseMsg(20170729094135,nIncompatibleTypesGotExpected,
@@ -13494,9 +13465,6 @@ begin
     finally
       ReleaseEvalValue(Value);
     end;
-    {$ELSE}
-    Result:=2;
-    {$ENDIF}
     end
   else if RangeResolved.BaseType in btAllBooleans then
     Result:=2;
