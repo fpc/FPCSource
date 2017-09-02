@@ -150,35 +150,35 @@ begin
   lDataSet.FieldByName('Name').AsString := 'Kimi Raikkonen';
   lDataSet.FieldByName('Address').AsString := 'kimi@nospam.net';
   lDataSet.FieldByName('Age').AsInteger := 35;
-  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('../common/pictures/man01.png'));
+  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('pictures/man01.png'));
   lDataSet.Post;
 
   lDataSet.Insert;
   lDataSet.FieldByName('Name').AsString := 'Michael Schumacher';
   lDataSet.FieldByName('Address').AsString := 'michael@schumacher.org';
   lDataSet.FieldByName('Age').AsInteger := 28;
-  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('../common/pictures/man02.png'));
+  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('pictures/man02.png'));
   lDataSet.Post;
 
   lDataSet.Insert;
   lDataSet.FieldByName('Name').AsString := 'Alain Prost';
   lDataSet.FieldByName('Address').AsString := 'alain@prost.com';
   lDataSet.FieldByName('Age').AsInteger := 64;
-  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('../common/pictures/man03.png'));
+  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('pictures/man03.png'));
   lDataSet.Post;
 
   lDataSet.Insert;
   lDataSet.FieldByName('Name').AsString := 'Jenson Button';
   lDataSet.FieldByName('Address').AsString := 'jenson@button.info';
   lDataSet.FieldByName('Age').AsInteger := 50;
-  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('../common/pictures/man04.png'));
+  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('pictures/man04.png'));
   lDataSet.Post;
 
   lDataSet.Insert;
   lDataSet.FieldByName('Name').AsString := 'Fernando Allonso';
   lDataSet.FieldByName('Address').AsString := 'fernando@allonso-team.net';
   lDataSet.FieldByName('Age').AsInteger := 47;
-  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('../common/pictures/man05.png'));
+  TBlobField(lDataSet.FieldByName('Photo')).LoadFromFile(ExpandFileName('pictures/man05.png'));
   lDataSet.Post;
 
   Dataset := lDataset;
