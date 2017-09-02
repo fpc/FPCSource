@@ -44,6 +44,7 @@ Type
     Procedure TestAssignmentMinus;
     Procedure TestAssignmentMul;
     Procedure TestAssignmentDivision;
+    Procedure TestAssignmentMissingSemicolonError;
     Procedure TestCall;
     Procedure TestCallComment;
     Procedure TestCallQualified;
@@ -119,9 +120,9 @@ Type
     procedure AssignToAddress;
     procedure FinalizationNoSemicolon;
     procedure MacroComment;
-    Procedure PLatformIdentifier;
-    Procedure PLatformIdentifier2;
-    Procedure Onidentifier;
+    Procedure PlatformIdentifier;
+    Procedure PlatformIdentifier2;
+    Procedure OnIdentifier;
   end;
 
 
@@ -351,6 +352,12 @@ begin
   AssertEquals('Division assignment',akDivision,A.Kind);
   AssertExpression('Right side is constant',A.Right,pekNumber,'1');
   AssertExpression('Left side is variable',A.Left,pekIdent,'a');
+end;
+
+procedure TTestStatementParser.TestAssignmentMissingSemicolonError;
+begin
+  DeclareVar('integer');
+  ExpectParserError('Semicolon expected, but "a" found',['a:=1','a:=2']);
 end;
 
 procedure TTestStatementParser.TestCall;
@@ -1702,7 +1709,7 @@ begin
   ParseModule;
 end;
 
-Procedure TTestStatementParser.AssignToAddress;
+procedure TTestStatementParser.AssignToAddress;
 
 begin
   AddStatements(['@Proc:=Nil']);
@@ -1718,7 +1725,7 @@ begin
   Source.Add('initialization');
   Source.Add('  writeln(''qqq'')');
   Source.Add('finalization');
-  Source.Add('  writeln(''qqq'')');
+  Source.Add('  write(''rrr'')');
   ParseModule;
 end;
 
@@ -1733,19 +1740,19 @@ begin
   ParseModule;
 end;
 
-procedure TTestStatementParser.PLatformIdentifier;
+procedure TTestStatementParser.PlatformIdentifier;
 begin
   AddStatements(['write(platform);']);
   ParseModule;
 end;
 
-procedure TTestStatementParser.PLatformIdentifier2;
+procedure TTestStatementParser.PlatformIdentifier2;
 begin
   AddStatements(['write(libs+platform);']);
   ParseModule;
 end;
 
-procedure TTestStatementParser.Onidentifier;
+procedure TTestStatementParser.OnIdentifier;
 begin
   Source.Add('function TryOn(const on: boolean): boolean;');
   Source.Add('  begin');
@@ -1755,7 +1762,7 @@ begin
   ParseModule;
 end;
 
-Procedure TTestStatementParser.TestGotoInIfThen;
+procedure TTestStatementParser.TestGotoInIfThen;
 
 begin
   AddStatements(['if expr then',

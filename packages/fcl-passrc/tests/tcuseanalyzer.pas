@@ -580,7 +580,7 @@ begin
   Add('  {#i_used}i: TArrayInt;');
   Add('begin');
   Add('  a[b]:=c[d];');
-  Add('  SetLength(e,f)');
+  Add('  SetLength(e,f);');
   Add('  if low(g)=high(h)+length(i) then');
   Add('end;');
   Add('begin');

@@ -3783,13 +3783,13 @@ begin
   Add('    {@v1}v1:={@e1}e;');
   Add('  finally');
   Add('    {@v1}v1:={@e1}e;');
-  Add('  end');
+  Add('  end;');
   Add('  try');
   Add('    {@v1}v1:={@e1}e;');
   Add('  except');
   Add('    {@v1}v1:={@e1}e;');
   Add('    raise;');
-  Add('  end');
+  Add('  end;');
   Add('  try');
   Add('    {@v1}v1:={@e1}e;');
   Add('  except');
@@ -3799,7 +3799,7 @@ begin
   Add('      raise {@e3}e;');
   Add('    else');
   Add('      {@v1}v1:={@e1}e;');
-  Add('  end');
+  Add('  end;');
   ParseProgram;
 end;
 
@@ -4665,8 +4665,8 @@ begin
   Add('  {#A}{=TA}A: TClassA;');
   Add('  {#B}{=TB}B: TClassB;');
   Add('begin');
-  Add('  {@DoA}DoIt({@A}A)');
-  Add('  {@DoB}DoIt({@B}B)');
+  Add('  {@DoA}DoIt({@A}A);');
+  Add('  {@DoB}DoIt({@B}B);');
   ParseProgram;
 end;
 
@@ -4689,9 +4689,9 @@ begin
   Add('  {#B}{=TB}B: TClassB;');
   Add('  {#C}{=TC}C: TClassC;');
   Add('begin');
-  Add('  {@DoA}DoIt({@A}A)');
-  Add('  {@DoB}DoIt({@B}B)');
-  Add('  {@DoB}DoIt({@C}C)');
+  Add('  {@DoA}DoIt({@A}A);');
+  Add('  {@DoB}DoIt({@B}B);');
+  Add('  {@DoB}DoIt({@C}C);');
   ParseProgram;
 end;
 
@@ -4714,9 +4714,9 @@ begin
   Add('  {#B}{=TB}B: TClassB;');
   Add('  {#C}{=TC}C: TClassC;');
   Add('begin');
-  Add('  {@DoA}DoIt({@A}A)');
-  Add('  {@DoA}DoIt({@B}B)');
-  Add('  {@DoC}DoIt({@C}C)');
+  Add('  {@DoA}DoIt({@A}A);');
+  Add('  {@DoA}DoIt({@B}B);');
+  Add('  {@DoC}DoIt({@C}C);');
   ParseProgram;
 end;
 
@@ -9077,7 +9077,7 @@ begin
   Add('end;');
   Add('var o: TObject;');
   Add('begin');
-  Add('  o.OnClick:=@o.Notify');
+  Add('  o.OnClick:=@o.Notify;');
   Add('  o.OnClick(nil);');
   Add('  o.OnClick(o);');
   Add('  o.SetOnClick(@o.Notify);');
@@ -9804,7 +9804,7 @@ begin
   Add('procedure TControl.Click(Sender: TObject);');
   Add('begin');
   Add('  if Assigned(OnClick) then ;');
-  Add('  OnClick:=@Click');
+  Add('  OnClick:=@Click;');
   Add('  OnClick(Sender);');
   Add('  Self.OnClick(Sender);');
   Add('  with Self do OnClick(Sender);');
@@ -9956,7 +9956,7 @@ begin
   Add('  p:=a;');
   Add('  p:=Pointer(f);');
   Add('  p:=@DoIt;');
-  Add('  p:=Pointer(@DoIt)');
+  Add('  p:=Pointer(@DoIt);');
   Add('  obj:=TObject(p);');
   Add('  cl:=TClass(p);');
   Add('  a:=TArrInt(p);');

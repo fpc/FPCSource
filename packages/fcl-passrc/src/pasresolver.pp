@@ -1325,6 +1325,8 @@ type
     function CheckAssignCompatibility(const LHS, RHS: TPasElement;
       RaiseOnIncompatible: boolean = true): integer;
     procedure CheckAssignExprRange(const LeftResolved: TPasResolverResult; RHS: TPasExpr);
+    procedure CheckAssignExprRangeToCustom(const LeftResolved: TPasResolverResult;
+      RValue: TResEvalValue; RHS: TPasExpr); virtual;
     function CheckAssignResCompatibility(const LHS, RHS: TPasResolverResult;
       ErrorEl: TPasElement; RaiseOnIncompatible: boolean): integer;
     function CheckEqualElCompatibility(Left, Right: TPasElement;
@@ -10939,7 +10941,9 @@ begin
   {$ENDIF}
   RangeValue:=nil;
   try
-    if LeftResolved.BaseType=btSet then
+    if LeftResolved.BaseType=btCustom then
+      CheckAssignExprRangeToCustom(LeftResolved,RValue,RHS)
+    else if LeftResolved.BaseType=btSet then
       begin
       // assign to a set
       C:=LeftResolved.TypeEl.ClassType;
@@ -11011,7 +11015,9 @@ begin
           end
         else
           begin
-          writeln('AAA1 TPasResolver.CheckAssignExprRange ',Frac(TResEvalFloat(RValue).FloatValue),' ',TResEvalFloat(RValue).FloatValue<MaxPrecFloat(low(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue>MaxPrecFloat(high(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue,' ',high(MaxPrecInt));
+          {$IFDEF VerbosePasResEval}
+          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalFloat(RValue).FloatValue),' ',TResEvalFloat(RValue).FloatValue<MaxPrecFloat(low(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue>MaxPrecFloat(high(MaxPrecInt)),' ',TResEvalFloat(RValue).FloatValue,' ',high(MaxPrecInt));
+          {$ENDIF}
           RaiseRangeCheck(20170802133750,RHS);
           end;
       else
@@ -11080,6 +11086,14 @@ begin
     ReleaseEvalValue(RValue);
     ReleaseEvalValue(RangeValue);
   end;
+end;
+
+procedure TPasResolver.CheckAssignExprRangeToCustom(
+  const LeftResolved: TPasResolverResult; RValue: TResEvalValue; RHS: TPasExpr);
+begin
+  if LeftResolved.BaseType<>btCustom then exit;
+  if RValue=nil then exit;
+  if RHS=nil then ;
 end;
 
 function TPasResolver.CheckAssignResCompatibility(const LHS,
