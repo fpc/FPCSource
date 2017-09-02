@@ -150,13 +150,13 @@ Works:
   - a:=value
 
 ToDo:
+- @@
 - range checking:
   - arr[index]
   - indexedprop[param]
   - case-of unique
   - defaultvalue
   - stored
-- @@
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
 - classes - TPasClassType
@@ -10762,7 +10762,14 @@ begin
     end;
   ProcArgs1:=Proc1.Args;
   ProcArgs2:=Proc2.Args;
-  if ProcArgs1.Count<>ProcArgs2.Count then exit;
+  if ProcArgs1.Count<>ProcArgs2.Count then
+    begin
+    if RaiseOnIncompatible then
+      RaiseMsg(20170902142829,nIncompatibleTypesGotParametersExpected,
+        sIncompatibleTypesGotParametersExpected,
+        [IntToStr(ProcArgs1.Count),IntToStr(ProcArgs2.Count)],ErrorEl);
+    exit;
+    end;
   for i:=0 to ProcArgs1.Count-1 do
     begin
     {$IFDEF VerbosePasResolver}
@@ -11279,7 +11286,7 @@ begin
         // for example  ProcVar:=Proc
         if CheckProcTypeCompatibility(TPasProcedureType(LHS.TypeEl),
             TPasProcedure(RHS.IdentEl).ProcType,true,ErrorEl,RaiseOnIncompatible) then
-          Result:=cExact;
+          exit(cExact);
         end;
       end
     else if LBT=btPointer then
@@ -11413,7 +11420,7 @@ begin
   if RErrorEl=nil then RErrorEl:=LErrorEl;
   // check if the RHS is type compatible to LHS
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.CheckEqualCompatibility LHS=',GetResolverResultDbg(LHS),' RHS=',GetResolverResultDbg(RHS));
+  writeln('TPasResolver.CheckEqualResCompatibility LHS=',GetResolverResultDbg(LHS),' RHS=',GetResolverResultDbg(RHS));
   {$ENDIF}
   if not (rrfReadable in LHS.Flags) then
     begin
@@ -12880,7 +12887,7 @@ begin
     ComputeBinaryExpr(TBinaryExpr(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TUnaryExpr then
     begin
-    if TUnaryExpr(El).OpCode=eopAddress then
+    if TUnaryExpr(El).OpCode in [eopAddress,eopMemAddress] then
       ComputeElement(TUnaryExpr(El).Operand,ResolvedEl,Flags+[rcNoImplicitProc],StartEl)
     else
       ComputeElement(TUnaryExpr(El).Operand,ResolvedEl,Flags,StartEl);
@@ -12906,6 +12913,13 @@ begin
           end
         else
           RaiseMsg(20170216152535,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TUnaryExpr(El).OpCode]],El);
+      eopMemAddress:
+        begin
+        if (ResolvedEl.BaseType=btContext) and (ResolvedEl.TypeEl is TPasProcedureType) then
+          exit
+        else
+          RaiseMsg(20170902145547,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TUnaryExpr(El).OpCode]],El);
+        end;
     end;
     RaiseNotYetImplemented(20160926142426,El);
     end

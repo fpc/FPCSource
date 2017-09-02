@@ -141,6 +141,7 @@ const
   nOverflowInArithmeticOperation = 3068;
   nDivByZero = 3069;
   nRangeCheckInSetConstructor = 3070;
+  nIncompatibleTypesGotParametersExpected = 3071;
 
 // resourcestring patterns of messages
 resourcestring
@@ -214,6 +215,7 @@ resourcestring
   sOverflowInArithmeticOperation = 'Overflow in arithmetic operation';
   sDivByZero = 'Division by zero';
   sRangeCheckInSetConstructor = 'range check error in set constructor or duplicate set element';
+  sIncompatibleTypesGotParametersExpected = 'Incompatible types, got %s parameters, expected %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

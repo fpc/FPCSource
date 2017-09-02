@@ -175,7 +175,7 @@ type
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
-                 eopAddress, eopDeref, // Pointers
+                 eopAddress, eopDeref, eopMemAddress, // Pointers
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
 
   { TPasExpr }
@@ -1481,7 +1481,7 @@ const
         '=','<>',
         '<','>','<=','>=',
         'in','is','as','><',
-        '@','^',
+        '@','^','@@',
         '.');
 
 
@@ -3582,8 +3582,6 @@ function TPasRecordType.GetDeclaration (full : boolean) : string;
 Var
   S : TStringList;
   temp : string;
-  i : integer;
-
 begin
   S:=TStringList.Create;
   Try

@@ -1877,6 +1877,7 @@ begin
     tkEqual                 : Result:=eopEqual;
     tkGreaterThan           : Result:=eopGreaterThan;
     tkAt                    : Result:=eopAddress;
+    tkAtAt                  : Result:=eopMemAddress;
     tkNotEqual              : Result:=eopNotEqual;
     tkLessEqualThan         : Result:=eopLessthanEqual;
     tkGreaterEqualThan      : Result:=eopGreaterThanEqual;
@@ -2046,18 +2047,6 @@ begin
       Last:=CreateSelfExpr(AParent);
       HandleSelf(Last);
       end;
-    tkAt:
-      begin
-      // is this still needed?
-      // P:=@function;
-      NextToken;
-      if (length(CurTokenText)=0) or not (CurTokenText[1] in ['A'..'_']) then
-        begin
-        UngetToken;
-        ParseExcExpectedIdentifier;
-        end;
-      Last:=CreatePrimitiveExpr(AParent,pekString, '@'+CurTokenText);
-      end;
     tkCaret:
       begin
       // is this still needed?
@@ -2155,7 +2144,7 @@ begin
   case t of
   //  tkDot:
   //    Result:=5;
-    tknot,tkAt:
+    tknot,tkAt,tkAtAt:
       Result:=4;
     tkMul, tkDivision, tkdiv, tkmod, tkand, tkShl,tkShr, tkas, tkPower :
       Result:=3;
@@ -2180,7 +2169,7 @@ var
   NotBinary : Boolean;
 
 const
-  PrefixSym = [tkPlus, tkMinus, tknot, tkAt]; // + - not @
+  PrefixSym = [tkPlus, tkMinus, tknot, tkAt, tkAtAt]; // + - not @
   BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod,  tkDotDot,
                tkand, tkShl,tkShr, tkas, tkPower,
                tkPlus, tkMinus, tkor, tkxor, tkSymmetricalDifference,
@@ -4659,7 +4648,7 @@ Var
   Function atEndOfAsm : Boolean;
 
   begin
-    Result:=(CurToken=tkEnd) and (LastToken<>tkAt);
+    Result:=(CurToken=tkEnd) and not (LastToken in [tkAt,tkAtAt]);
   end;
 
 begin
@@ -5137,11 +5126,12 @@ begin
       end;
     tkEOF:
       CheckToken(tkend);
-    tkAt,tkBraceOpen,tkIdentifier,tkNumber,tkSquaredBraceOpen,tkMinus,tkPlus,tkinherited:
+    tkAt,tkAtAt,tkBraceOpen,tkIdentifier,tkNumber,tkSquaredBraceOpen,tkMinus,tkPlus,tkinherited:
       begin
-// This should in fact not be checked here.
-//      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
-//        ParseExc;
+      // Do not check this here:
+      //      if (CurToken=tkAt) and not (msDelphi in CurrentModeswitches) then
+      //        ParseExc;
+
       // On is usable as an identifier
       if lowerCase(CurTokenText)='on' then
         begin

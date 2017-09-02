@@ -138,6 +138,7 @@ type
     tkAssignMinus,           // -=
     tkAssignMul,             // *=
     tkAssignDivision,        // /=
+    tkAtAt,                  // @@
     // Reserved words
     tkabsolute,
     tkand,
@@ -685,6 +686,7 @@ const
     '-=',
     '*=',
     '/=',
+    '@@',
     // Reserved words
     'absolute',
     'and',
@@ -3268,6 +3270,11 @@ begin
       begin
         Inc(TokenStr);
         Result := tkAt;
+        if TokenStr^='@' then
+          begin
+          Inc(TokenStr);
+          Result:=tkAtAt;
+          end;
       end;
     '[':
       begin
