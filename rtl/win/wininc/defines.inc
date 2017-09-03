@@ -2309,6 +2309,7 @@
      SC_MANAGER_MODIFY_BOOT_CONFIG = 32;
   { PostMessage  }
      HWND_BROADCAST = HWND($FFFF);
+     WND_MESSAGE = HWND(-3);
 
   { PrepareTape  }
 
