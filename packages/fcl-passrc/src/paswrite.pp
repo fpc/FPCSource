@@ -34,7 +34,8 @@ type
                       woNoExternalFunc,   // Do not declare external functions as external.
                       woAddLineNumber,    // Prefix line with generated line numbers in comment
                       woAddSourceLineNumber,    // Prefix line with original source line numbers (when available) in comment
-                      woForwardClasses    // Add forward definitions for all classes
+                      woForwardClasses,   // Add forward definitions for all classes
+                      woForceOverload     // Force 'overload;' on overloads that are not marked as such.
                       );
   TPasWriterOptions = Set of TPasWriterOption;
 
@@ -430,7 +431,7 @@ Var
 begin
   if Not Assigned(aSection.Classes) or (aSection.Classes.Count=0) then
     exit;
-  PrepareDeclSection('Type');
+  PrepareDeclSection('type');
   For I:=0 to aSection.Classes.Count-1 do
     begin
     CN:=TPasElement(aSection.Classes[i]).Name;
@@ -521,7 +522,9 @@ Var
   Procedure AddUnit(Const aName : String; AUnitFile : TPasExpr);
   begin
     if c > 0 then
-      Add(', ');
+      Add(', ')
+    else
+      Add('uses ');
     Add(AName);
     if (AUnitFile<>Nil) then
       Add(' in '+GetExpr(AUnitFile));
@@ -536,14 +539,12 @@ begin
   C:=0;
   if ASection.UsesList.Count>0 then
     begin
-    Add('uses ');
     For I:=1 to WordCount(ExtraUnits,UnitSeps) do
       begin
       u:=Trim(ExtractWord(1,ExtraUnits,UnitSeps));
       if (U<>'') then
-        AddUnit(U,Nil)
+        AddUnit(U,Nil);
       end;
-
     if length(ASection.UsesClause)=ASection.UsesList.Count then
       begin
       for i := 0 to length(ASection.UsesClause)-1 do
@@ -722,7 +723,11 @@ Var
 
 begin
   For I:=0 to aProc.Overloads.Count-1 do
+    begin
+    if HasOption(woForceOverload) then
+      TPasProcedure(aProc.Overloads[i]).AddModifier(pmOverload);
     WriteProcDecl(TPasElement(aProc.Overloads[i]) as TPasProcedure,ForceBody,NamePrefix);
+    end;
 end;
 
 procedure TPasWriter.WriteAliasType(AType: TPasAliasType);
@@ -776,6 +781,8 @@ begin
   IsImpl:=AProc.Parent is TPasSection;
   if IsImpl then
     PrepareDeclSection('');
+  if Not IsImpl then
+    IsImpl:=FInImplementation;
   Add(AProc.TypeName + ' ' + NamePrefix+AProc.Name);
   if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
     AddProcArgs(AProc.ProcType.Args) ;
@@ -1244,6 +1251,8 @@ procedure TPasWriter.DecDeclSectionLevel;
 var
   El: PDeclSectionStackElement;
 begin
+  if DeclSectionStack.Count=0 then
+    raise EPasWriter.Create('Internal section indent error');
   El := PDeclSectionStackElement(DeclSectionStack[DeclSectionStack.Count - 1]);
   DeclSectionStack.Delete(DeclSectionStack.Count - 1);
   CurDeclSection := El^.LastDeclSection;
@@ -1253,10 +1262,12 @@ end;
 
 procedure TPasWriter.PrepareDeclSection(const ADeclSection: string);
 begin
-  if ADeclSection <> CurDeclSection then
+  if Not SameText(ADeclSection,CurDeclSection) then
   begin
     if CurDeclsection <> '' then
+      begin
       DecIndent;
+      end;
     if ADeclSection <> '' then
     begin
       AddLn(ADeclSection);
@@ -1267,8 +1278,9 @@ begin
 end;
 
 procedure TPasWriter.PrepareDeclSectionInStruct(const ADeclSection: string);
+
 begin
-  if ADeclSection <> CurDeclSection then
+  if Not SameText(ADeclSection,CurDeclSection) then
   begin
     if ADeclSection <> '' then
     begin
@@ -1335,8 +1347,20 @@ begin
 end;
 
 procedure TPasWriter.ResetIndent;
+
+Var
+  I : integer;
+  E : PDeclSectionStackElement;
+
 begin
+  CurDeclSection:='';
   Indent:='';
+  For I:=DeclSectionStack.Count-1 downto 0 do
+    begin
+    E:=PDeclSectionStackElement(DeclSectionStack[i]);
+    Dispose(E);
+    end;
+  DeclSectionStack.Clear;
 end;
 
 procedure WritePasFile(AElement: TPasElement; const AFilename: string);
