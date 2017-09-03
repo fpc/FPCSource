@@ -83,7 +83,7 @@ const
     function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
     function  FpExecv  (path : pchar; argv : ppchar): cint; cdecl; external clib name 'execv';
     function  FpWaitpid (pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';
-    Function  FpWait       (var stat_loc : cInt): TPid; cdecl; external clib name 'waitpid';
+    Function  FpWait       (var stat_loc : cInt): TPid; cdecl; external clib name 'wait';
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
     Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external clib name 'kill';
     function  FpUname   (var name: utsname): cint; cdecl; external clib name 'uname';
