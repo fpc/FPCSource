@@ -467,7 +467,7 @@ endif
 endif
 BuildOnlyBaseCPUs=jvm
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba msdos $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1
