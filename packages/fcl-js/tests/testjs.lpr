@@ -14,6 +14,8 @@ var
 
 {$IFDEF WINDOWS}{$R testjs.rc}{$ENDIF}
 
+{$R *.res}
+
 begin
   DefaultFormat:=fplain;
   DefaultRunAllTests:=True;
