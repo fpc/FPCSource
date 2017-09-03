@@ -498,8 +498,12 @@ implementation
                   message(parser_e_no_property_found_to_override);
                 end;
            end;
+         { ignore is_publishable for interfaces (related to $M+ directive).
+           $M has effect on visibility of default section for classes. 
+           Interface has always only public section (fix for problem in tb0631.pp) }
          if ((p.visibility=vis_published) or is_dispinterface(astruct)) and
-            (not(p.propdef.is_publishable) or (sp_static in p.symoptions)) then
+            ((not(p.propdef.is_publishable) and not is_interface(astruct)) or
+             (sp_static in p.symoptions)) then
            begin
              Message(parser_e_cant_publish_that_property);
              p.visibility:=vis_public;
