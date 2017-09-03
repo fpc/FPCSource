@@ -53,7 +53,7 @@ function FreeResource(hResData:HGLOBAL):WINBOOL; external 'kernel32' name 'FreeR
 function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockResource';
 {$ifdef Unknown_functions}
 { WARNING: function not found !!}
-function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
+function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external 'kernel32' name 'WinMain';
 {$endif Unknown_functions}
 function FreeLibrary(hLibModule:HINST):WINBOOL; external 'kernel32' name 'FreeLibrary';
 procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external 'kernel32' name 'FreeLibraryAndExitThread';
@@ -1292,6 +1292,28 @@ function GET_DEVICE_CHANGE_WPARAM(wParam: WPARAM): WORD; inline;
 function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD; inline;
 //#endif /* (_WIN32_WINNT >= 0x0601) */
 
+function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE; 
+  function CONSOLE_REAL_INPUT_HANDLE : HANDLE; 
+  function GetConsoleScreenBufferInfoEx(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfoEx:PCONSOLE_SCREEN_BUFFER_INFOEX):BOOL;stdcall;external 'kernel32' name 'GetConsoleScreenBufferInfoEx';
+  function SetConsoleScreenBufferInfoEx(hConsoleOutput:HANDLE; lpConsoleScreenBufferInfoEx:PCONSOLE_SCREEN_BUFFER_INFOEX):BOOL;stdcall;external 'kernel32' name 'SetConsoleScreenBufferInfoEx';
+ // function GetLargestConsoleWindowSize(hConsoleOutput:HANDLE):COORD;stdcall;external 'kernel32' name 'GetLargestConsoleWindowSize';
+  function GetCurrentConsoleFont(hConsoleOutput:HANDLE; bMaximumWindow:BOOL; lpConsoleCurrentFont:PCONSOLE_FONT_INFO):BOOL;stdcall;external 'kernel32' name 'GetCurrentConsoleFont';
+  function GetCurrentConsoleFontEx(hConsoleOutput:HANDLE; bMaximumWindow:BOOL; lpConsoleCurrentFontEx:PCONSOLE_FONT_INFOEX):BOOL;stdcall;external 'kernel32' name 'GetCurrentConsoleFontEx';
+  function SetCurrentConsoleFontEx(hConsoleOutput:HANDLE; bMaximumWindow:BOOL; lpConsoleCurrentFontEx:PCONSOLE_FONT_INFOEX):BOOL;stdcall;external 'kernel32' name 'SetCurrentConsoleFontEx';
+  function GetConsoleHistoryInfo(lpConsoleHistoryInfo:PCONSOLE_HISTORY_INFO):BOOL;stdcall;external 'kernel32' name 'GetConsoleHistoryInfo';
+  function SetConsoleHistoryInfo(lpConsoleHistoryInfo:PCONSOLE_HISTORY_INFO):BOOL;stdcall;external 'kernel32' name 'SetConsoleHistoryInfo';
+  function GetConsoleFontSize(hConsoleOutput:HANDLE; nFont:DWORD):COORD;stdcall;external 'kernel32' name 'GetConsoleFontSize';
+  function GetConsoleSelectionInfo(lpConsoleSelectionInfo:PCONSOLE_SELECTION_INFO):BOOL;stdcall;external 'kernel32' name 'GetConsoleSelectionInfo';
+  function AttachConsole(dwProcessId:DWORD):BOOL;stdcall;external 'kernel32' name 'AttachConsole';
+  function ATTACH_PARENT_PROCESS : DWORD;    
+
+
+  function GetConsoleDisplayMode(lpModeFlags:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetConsoleDisplayMode';
+  function SetConsoleDisplayMode(hConsoleOutput:HANDLE; dwFlags:DWORD; lpNewScreenBufferDimensions:PCOORD):BOOL;stdcall;external 'kernel32' name 'SetConsoleDisplayMode';
+  function GetConsoleWindow:HWND;stdcall;external 'kernel32' name 'GetConsoleWindow';
+  function GetConsoleProcessList(lpdwProcessList:LPDWORD; dwProcessCount:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleProcessList';
+  
+
 {$endif read_interface}
 
 
@@ -2433,6 +2455,21 @@ end;
 function GET_DEVICE_CHANGE_LPARAM(lParam: LPARAM): WORD;
 begin
   GET_DEVICE_CHANGE_LPARAM:=LOWORD(lParam);
+end;
+
+function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE; 
+begin
+  CONSOLE_REAL_OUTPUT_HANDLE:=HANDLE(-(2));
+end;
+
+function CONSOLE_REAL_INPUT_HANDLE : HANDLE;
+begin
+  CONSOLE_REAL_INPUT_HANDLE:=HANDLE(-(3));
+end;
+
+function ATTACH_PARENT_PROCESS : DWORD;
+begin
+  ATTACH_PARENT_PROCESS:=DWORD(-(1));
 end;
 
 {$endif read_implementation}

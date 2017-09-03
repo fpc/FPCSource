@@ -482,7 +482,17 @@ function OpenWaitableTimerA(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerNam
 function FindFirstFileExA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExA';
 // winver>$0600
 function FindFirstFileTransactedA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedA';
-
+// Wincon.h
+function WriteConsoleInputA(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):BOOL;stdcall;external 'kernel32' name 'WriteConsoleInputA';
+function ScrollConsoleScreenBufferA(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; lpFill:PCHAR_INFO):BOOL;stdcall;external 'kernel32' name 'ScrollConsoleScreenBufferA';
+function GetConsoleOriginalTitleA(lpConsoleTitle:LPSTR; nSize:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleOriginalTitleA';
+function AddConsoleAliasA(Source:LPSTR; Target:LPSTR; ExeName:LPSTR):BOOL;stdcall;external 'kernel32' name 'AddConsoleAliasA';
+function GetConsoleAliasA(Source:LPSTR; TargetBuffer:LPSTR; TargetBufferLength:DWORD; ExeName:LPSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasA';
+function GetConsoleAliasesLengthA(ExeName:LPSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesLengthA';
+function GetConsoleAliasExesLengthA:DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesLengthA';
+function GetConsoleAliasesA(AliasBuffer:LPSTR; AliasBufferLength:DWORD; ExeName:LPSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesA';
+function GetConsoleAliasExesA(ExeNameBuffer:LPSTR; ExeNameBufferLength:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesA';
+  
 {$endif read_interface}
 
 

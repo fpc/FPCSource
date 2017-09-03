@@ -484,6 +484,18 @@ function FindFirstFileExW(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;
 function FindFirstFileTransactedW(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedW';
 function CopyFileExW(lpExistingFileName,lpNewFileName : LPCWSTR;lpProgressRoutine:LPPROGRESS_ROUTINE;lpdata:Pointer;pbcancel:LPBOOL;dwCopyFlags:DWord):DWord; stdcall; external 'kernel32' name 'CopyFileExW';
 
+
+function PeekConsoleInputW(hConsoleInput:HANDLE; lpBuffer:PINPUT_RECORD; nLength:DWORD; lpNumberOfEventsRead:LPDWORD):BOOL;stdcall;external 'kernel32' name 'PeekConsoleInputW';
+function WriteConsoleInputW(hConsoleInput:HANDLE; var lpBuffer:INPUT_RECORD; nLength:DWORD; lpNumberOfEventsWritten:LPDWORD):BOOL;stdcall;external 'kernel32' name 'WriteConsoleInputW';
+function ScrollConsoleScreenBufferW(hConsoleOutput:HANDLE; var lpScrollRectangle:SMALL_RECT; var lpClipRectangle:SMALL_RECT; dwDestinationOrigin:COORD; lpFill:PCHAR_INFO):BOOL;stdcall;external 'kernel32' name 'ScrollConsoleScreenBufferW';
+function GetConsoleOriginalTitleW(lpConsoleTitle:LPWSTR; nSize:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleOriginalTitleW';
+function AddConsoleAliasW(Source:LPWSTR; Target:LPWSTR; ExeName:LPWSTR):BOOL;stdcall;external 'kernel32' name 'AddConsoleAliasW';
+function GetConsoleAliasW(Source:LPWSTR; TargetBuffer:LPWSTR; TargetBufferLength:DWORD; ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasW';
+function GetConsoleAliasesLengthW(ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesLengthW';
+function GetConsoleAliasExesLengthW:DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesLengthW';
+function GetConsoleAliasesW(AliasBuffer:LPWSTR; AliasBufferLength:DWORD; ExeName:LPWSTR):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasesW';
+function GetConsoleAliasExesW(ExeNameBuffer:LPWSTR; ExeNameBufferLength:DWORD):DWORD;stdcall;external 'kernel32' name 'GetConsoleAliasExesW';
+
 {$endif read_interface}
 
 
