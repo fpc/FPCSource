@@ -37,6 +37,9 @@ uses
 {$DEFINE HAS_GETTICKCOUNT64}
 {$DEFINE OS_FILESETDATEBYNAME}
 
+// this target has an fileflush implementation, don't include dummy
+{$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
+
 { used OS file system APIs use unicodestring }
 {$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }
@@ -282,6 +285,11 @@ const
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
 
+
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= FlushFileBuffers(Handle);
+end;
 
 Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 begin

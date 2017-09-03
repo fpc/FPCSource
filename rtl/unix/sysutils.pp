@@ -38,6 +38,9 @@ interface
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT64}
 
+// this target has an fileflush implementation, don't include dummy
+{$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
+
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }
@@ -484,6 +487,10 @@ begin
   FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= fpfsync(handle)=0;
+end;
 
 Function FileCreate (Const FileName : RawByteString) : Longint;
 

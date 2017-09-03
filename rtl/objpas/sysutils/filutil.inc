@@ -557,3 +557,9 @@ begin
 end;
 
 
+{$ifndef SYSUTILS_HAS_FILEFLUSH_IMPL}
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= False;
+end;
+{$endif}
