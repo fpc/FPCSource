@@ -25,7 +25,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--input=&quot;$HOME/source/pas2js/src/rtl/web.pas -S2h&quot; --no-externalclass --no-implementation --no-externalvar --no-externalfunction -x jstypes -o web.pp"/>
+        <CommandLineParams Value="-i 'tf.pp -Sd' -o tf2.pp"/>
       </local>
     </RunParams>
     <Units Count="1">

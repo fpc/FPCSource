@@ -896,8 +896,8 @@ begin
     Add(AProc.Parent.Name + '.');
   Add(AProc.Name);
   if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
-    AddProcArgs(AProc.ProcType.Args)
-    if Assigned(AProc.ProcType) and
+    AddProcArgs(AProc.ProcType.Args);
+  if Assigned(AProc.ProcType) and
     (AProc.ProcType.ClassType = TPasFunctionType) then
   begin
     Add(': ');
@@ -907,11 +907,11 @@ begin
   IncDeclSectionLevel;
   for i := 0 to AProc.Locals.Count - 1 do
     begin
-    E:=TPasElement(AProc.Locals[i])
-    if TPasElement(AProc.Locals[i]).InheritsFrom(TPasProcedureImpl) then
+    E:=TPasElement(AProc.Locals[i]);
+    if E.InheritsFrom(TPasProcedureImpl) then
       begin
       IncIndent;
-      if (i = 0) or not P.InheritsFrom(TPasProcedureImpl) then
+      if (i = 0) or not PE.InheritsFrom(TPasProcedureImpl) then
         Addln;
       end;
     WriteElement(E);
