@@ -542,3 +542,9 @@ begin
   InternalFindClose(f.FindHandle{$ifdef USEFINDDATA},f.FindData{$endif});
 end;
 
+{$ifndef SYSUTILS_HAS_FILEFLUSH_IMPL}
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= False;
+end;
+{$endif}
