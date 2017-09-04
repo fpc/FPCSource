@@ -247,7 +247,7 @@ begin
       FileResolver := TFileResolver.Create;
       FileResolver.UseStreams:=True;
       Scanner := TPascalScanner.Create(FileResolver);
-      Scanner.Options:=[po_AsmWhole];
+      Scanner.Options:=[po_keepclassforward,po_AsmWhole];
       SCanner.LogEvents:=SE.ScannerLogEvents;
       SCanner.OnLog:=SE.Onlog;
       Scanner.AddDefine('FPK');
@@ -316,7 +316,7 @@ begin
         raise Exception.Create(SErrNoSourceGiven);
       FileResolver.AddIncludePath(ExtractFilePath(InputFileName));
       Scanner.OpenFile(InputFilename);
-      Parser.Options:=Parser.Options+[po_AsmWhole];
+      Parser.Options:=Parser.Options+[po_AsmWhole,po_KeepClassForward];
       Parser.ParseMain(Result);
     finally
       Parser.Free;

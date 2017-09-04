@@ -555,8 +555,11 @@ begin
       for i := 0 to ASection.UsesList.Count - 1 do
         if AllowUnit(TPasElement(ASection.UsesList[i]).Name) then
           AddUnit(TPasElement(ASection.UsesList[i]).Name,Nil);
-    AddLn(';');
-    AddLn;
+    if C>0 then
+      begin
+      AddLn(';');
+      AddLn;
+      end;
     end;
 end;
 
@@ -607,6 +610,8 @@ begin
     okRecordHelper: Add('record helper');
     okClassHelper: Add('class helper');
   end;
+  if AClass.IsForward then
+    exit;
   if (AClass.ObjKind=okClass) and (ACLass.ExternalName<>'') and NotOption(woNoExternalClass) then
     Add(' external name ''%s'' ',[AClass.ExternalName]);
   if Assigned(AClass.AncestorType) then
