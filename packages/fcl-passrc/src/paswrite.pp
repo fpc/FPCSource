@@ -103,6 +103,7 @@ type
     procedure WriteProcType(AProc: TPasProcedureType);  virtual;
     procedure WriteProcDecl(AProc: TPasProcedure; ForceBody: Boolean = False; NamePrefix : String = ''); virtual;
     procedure WriteProcImpl(AProc: TProcedureBody; IsAsm : Boolean = false); virtual;
+    procedure WriteProcImpl(AProc: TPasProcedureImpl);
     procedure WriteProperty(AProp: TPasProperty); virtual;
     procedure WriteImplBlock(ABlock: TPasImplBlock);  virtual;
     procedure WriteImplElement(AElement: TPasImplElement; AAutoInsertBeginEnd: Boolean); virtual;
@@ -237,6 +238,8 @@ begin
     WriteType(TPasType(AElement))
   else if AElement.InheritsFrom(TPasOverloadedProc) then
     WriteOverloadedProc(TPasOverloadedProc(AElement))
+  else if AElement.InheritsFrom(TPasProcedureImpl) then // This one must come before TProcedureBody/TPasProcedure
+    WriteProcImpl(TPasProcedureImpl(AElement))
   else if AElement.InheritsFrom(TPasProcedure) then
     WriteProcDecl(TPasProcedure(AElement))
   else if AElement.InheritsFrom(TProcedureBody) then
@@ -874,6 +877,56 @@ begin
         Add(' = ' + A.Value);
       end;
   Add(')');
+end;
+
+// For backwards compatibility
+
+procedure TPasWriter.WriteProcImpl(AProc: TPasProcedureImpl);
+
+var
+  i: Integer;
+  E,PE  :TPasElement;
+
+begin
+  PrepareDeclSection('');
+  if AProc.IsClassMethod then
+    Add('class ');
+  Add(AProc.TypeName + ' ');
+  if AProc.Parent.ClassType = TPasClassType then
+    Add(AProc.Parent.Name + '.');
+  Add(AProc.Name);
+  if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
+    AddProcArgs(AProc.ProcType.Args)
+    if Assigned(AProc.ProcType) and
+    (AProc.ProcType.ClassType = TPasFunctionType) then
+  begin
+    Add(': ');
+    WriteElement(TPasFunctionType(AProc.ProcType).ResultEl.ResultType);
+  end;
+  AddLn(';');
+  IncDeclSectionLevel;
+  for i := 0 to AProc.Locals.Count - 1 do
+    begin
+    E:=TPasElement(AProc.Locals[i])
+    if TPasElement(AProc.Locals[i]).InheritsFrom(TPasProcedureImpl) then
+      begin
+      IncIndent;
+      if (i = 0) or not P.InheritsFrom(TPasProcedureImpl) then
+        Addln;
+      end;
+    WriteElement(E);
+    if E.InheritsFrom(TPasProcedureImpl) then
+      DecIndent;
+    PE:=E;
+    end;
+  DecDeclSectionLevel;
+  AddLn('begin');
+  IncIndent;
+  if Assigned(AProc.Body) then
+    WriteImplBlock(AProc.Body);
+  DecIndent;
+  AddLn('end;');
+  AddLn;
 end;
 
 procedure TPasWriter.WriteProcImpl(AProc: TProcedureBody; IsAsm : Boolean = false);
