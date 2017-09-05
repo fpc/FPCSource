@@ -57,10 +57,10 @@ type
     CurDeclSection: string;
     DeclSectionStack: TList;
     FInImplementation : Boolean;
-    procedure PrepareDeclSectionInStruct(const ADeclSection: string);
     procedure SetForwardClasses(AValue: TStrings);
     procedure SetIndentSize(AValue: Integer);
   protected
+    procedure PrepareDeclSectionInStruct(const ADeclSection: string);
     procedure MaybeSetLineElement(AElement: TPasElement);
     function GetExpr(E: TPasExpr): String; virtual;
     Function HasOption(aOption : TPasWriterOption) : Boolean; inline;
@@ -83,6 +83,7 @@ type
     constructor Create(AStream: TStream); virtual;
     destructor Destroy; override;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
+    procedure WriteEnumType(AType: TPasEnumType);
     procedure WriteElement(AElement: TPasElement);virtual;
     procedure WriteType(AType: TPasType; Full : Boolean = True);virtual;
     procedure WriteProgram(aModule : TPasProgram); virtual;
@@ -250,6 +251,12 @@ begin
     raise EPasWriter.CreateFmt('Writing not implemented for %s nodes',[AElement.ElementTypeName]);
 end;
 
+procedure TPasWriter.WriteEnumType(AType: TPasEnumType);
+
+begin
+  Add(Atype.GetDeclaration(true));
+end;
+
 procedure TPasWriter.WriteType(AType: TPasType; Full : Boolean = True);
 
 begin
@@ -261,7 +268,7 @@ begin
   else if AType.ClassType.InheritsFrom(TPasClassType) then
     WriteClass(TPasClassType(AType))
   else if AType.ClassType = TPasEnumType then
-    AddLn(TPasEnumType(AType).GetDeclaration(true) + ';')
+    WriteEnumType(TPasEnumType(AType))
   else if AType is TPasProcedureType then
     WriteProcType(TPasProcedureType(AType))
   else if AType is TPasArrayType then
@@ -901,7 +908,7 @@ begin
     (AProc.ProcType.ClassType = TPasFunctionType) then
   begin
     Add(': ');
-    WriteElement(TPasFunctionType(AProc.ProcType).ResultEl.ResultType);
+    WriteType(TPasFunctionType(AProc.ProcType).ResultEl.ResultType,False);
   end;
   AddLn(';');
   IncDeclSectionLevel;
