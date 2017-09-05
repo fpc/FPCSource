@@ -828,7 +828,7 @@ begin
   if AProc.IsOverload then
     Add(' overload;');
   if AProc.CallingConvention<>ccDefault then
-    Add(' '+cCallingConventions[AProc.CallingConvention]);
+    Add(' '+cCallingConventions[AProc.CallingConvention]+';');
   If Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName) then
     begin
     if AProc.Parent is TPasClassType then
