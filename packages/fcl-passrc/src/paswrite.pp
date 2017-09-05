@@ -83,7 +83,7 @@ type
     constructor Create(AStream: TStream); virtual;
     destructor Destroy; override;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
-    procedure WriteEnumType(AType: TPasEnumType);
+    procedure WriteEnumType(AType: TPasEnumType); virtual;
     procedure WriteElement(AElement: TPasElement);virtual;
     procedure WriteType(AType: TPasType; Full : Boolean = True);virtual;
     procedure WriteProgram(aModule : TPasProgram); virtual;
@@ -104,7 +104,7 @@ type
     procedure WriteProcType(AProc: TPasProcedureType);  virtual;
     procedure WriteProcDecl(AProc: TPasProcedure; ForceBody: Boolean = False; NamePrefix : String = ''); virtual;
     procedure WriteProcImpl(AProc: TProcedureBody; IsAsm : Boolean = false); virtual;
-    procedure WriteProcImpl(AProc: TPasProcedureImpl);
+    procedure WriteProcImpl(AProc: TPasProcedureImpl); virtual;
     procedure WriteProperty(AProp: TPasProperty); virtual;
     procedure WriteImplBlock(ABlock: TPasImplBlock);  virtual;
     procedure WriteImplElement(AElement: TPasImplElement; AAutoInsertBeginEnd: Boolean); virtual;
