@@ -1175,6 +1175,8 @@ type
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
     Function TransformModuleName(El: TPasModule; AddModulesPrefix: boolean; AContext : TConvertContext) : String; virtual;
     Function IsPreservedWord(const aName: string): boolean; virtual;
+    Function GetTypeInfoName(El: TPasType; AContext: TConvertContext;
+      ErrorEl: TPasElement): String; virtual;
     // Never create an element manually, always use the below functions
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
@@ -1243,6 +1245,8 @@ type
     Function CreateRTTIClassField(V: TPasVariable; AContext: TConvertContext): TJSElement; virtual;
     Function CreateRTTIClassMethod(Proc: TPasProcedure; AContext: TConvertContext): TJSElement; virtual;
     Function CreateRTTIClassProperty(Prop: TPasProperty; AContext: TConvertContext): TJSElement; virtual;
+    Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext;
+      var First, Last: TJSStatementList); virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -9224,131 +9228,41 @@ end;
 function TPasToJSConverter.CreateTypeInfoRef(El: TPasType;
   AContext: TConvertContext; ErrorEl: TPasElement): TJSElement;
 var
-  C: TClass;
   aName, aModName: String;
-  bt: TResolverBaseType;
-  jbt: TPas2jsBaseType;
-  Parent: TPasElement;
+  CurEl: TPasElement;
   aModule: TPasModule;
   Bracket: TJSBracketMemberExpression;
 begin
-  El:=AContext.Resolver.ResolveAliasType(El);
-  if El=nil then
-    RaiseInconsistency(20170409172756);
-  if El=AContext.PasElement then
+  aName:=GetTypeInfoName(El,AContext,ErrorEl);
+  if aName=FBuiltInNames[pbivnRTTILocal] then
+    Result:=CreatePrimitiveDotExpr(aName)
+  else if LeftStr(aName,length(FBuiltInNames[pbivnRTL])+1)=FBuiltInNames[pbivnRTL]+'.' then
+    Result:=CreatePrimitiveDotExpr(aName)
+  else
     begin
-    // refering itself
-    if El is TPasClassType then
+    CurEl:=El;
+    while CurEl<>nil do
       begin
-      // use this
-      Result:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTTILocal]);
-      exit;
-      end
-    else
-      RaiseNotSupported(ErrorEl,AContext,20170409195518,'cannot typeinfo itself');
-    end;
-  if El.Name='' then
-    DoError(20170421145257,nTypeXCannotBePublished,sTypeXCannotBePublished,
-      ['typeinfo of anonymous '+El.ElementTypeName],ErrorEl);
-
-  C:=El.ClassType;
-  if C=TPasUnresolvedSymbolRef then
-    begin
-    if El.CustomData is TResElDataBaseType then
-      begin
-      bt:=TResElDataBaseType(El.CustomData).BaseType;
-      case bt of
-      btShortInt,btByte,
-      btSmallInt,btWord,
-      btLongint,btLongWord,
-      btIntDouble,btUIntDouble,
-      btString,btChar,
-      btDouble,
-      btBoolean,
-      btPointer:
+      if CurEl is TPasSection then
         begin
-        // create rtl.basename
-        Result:=CreateMemberExpression([FBuiltInNames[pbivnRTL],lowercase(
-         AContext.Resolver.BaseTypeNames[bt])]);
+        aModule:=CurEl.Parent as TPasModule;
+        aModName:=AContext.GetLocalName(aModule);
+        if aModName='' then
+          aModName:=TransformModuleName(aModule,true,AContext);
+        Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+        Bracket.MExpr:=CreateMemberExpression([aModName,FBuiltInNames[pbivnRTTI]]);
+        Bracket.Name:=CreateLiteralString(El,aName);
+        Result:=Bracket;
         exit;
         end;
-      btCustom:
-        if El.CustomData is TResElDataPas2JSBaseType then
-          begin
-          jbt:=TResElDataPas2JSBaseType(El.CustomData).JSBaseType;
-          case jbt of
-          pbtJSValue:
-            begin
-            // create rtl.basename
-            Result:=CreateMemberExpression([FBuiltInNames[pbivnRTL],lowercase(Pas2jsBaseTypeNames[jbt])]);
-            exit;
-            end;
-          else
-            {$IFDEF VerbosePas2JS}
-            writeln('TPasToJSConverter.CreateTypeInfoRef [20170409174539] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' jbt=',Pas2jsBaseTypeNames[jbt]);
-            {$ENDIF}
-          end;
-          end
-        else
-          begin
-          {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateTypeInfoRef [20170409174645] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',AContext.Resolver.BaseTypeNames[bt]);
-          {$ENDIF}
-          end
-      else
-        {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.CreateTypeInfoRef [20170409173746] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',AContext.Resolver.BaseTypeNames[bt]);
-        {$ENDIF}
+      CurEl:=CurEl.Parent;
       end;
-      end
-    else
-      begin
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.CreateTypeInfoRef [20170409173729] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData));
-      {$ENDIF}
-      end;
-    end
-  else if (C=TPasEnumType)
-      or (C=TPasSetType)
-      or (C=TPasClassType)
-      or (C=TPasClassOfType)
-      or (C=TPasArrayType)
-      or (C=TPasProcedureType)
-      or (C=TPasFunctionType)
-      or (C=TPasPointerType)
-      // ToDo or (C=TPasTypeAliasType)
-      or (C=TPasRecordType)
-      // ToDo or (C=TPasRangeType)
-      then
-    begin
-    // user type  ->  module.$rtti[typename]
-    aName:=TransformVariableName(El,AContext);
-    if aName='' then
-      DoError(20170411230435,nPasElementNotSupported,sPasElementNotSupported,
-        ['typeinfo of anonymous '+El.ElementTypeName+' not supported'],ErrorEl);
-    Parent:=El.Parent;
-    while Parent.ClassType=TPasClassType do
-      begin
-      aName:=TransformVariableName(Parent,AContext)+'.'+aName;
-      Parent:=Parent.Parent;
-      end;
-    if Parent is TPasSection then
-      begin
-      aModule:=Parent.Parent as TPasModule;
-      aModName:=AContext.GetLocalName(aModule);
-      if aModName='' then
-        aModName:=TransformModuleName(aModule,true,AContext);
-      Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-      Bracket.MExpr:=CreateMemberExpression([aModName,FBuiltInNames[pbivnRTTI]]);
-      Bracket.Name:=CreateLiteralString(El,aName);
-      Result:=Bracket;
-      exit;
-      end;
+    // not supported
+    aName:=El.Name;
+    if aName='' then aName:=El.ClassName;
+    DoError(20170905152041,nTypeXCannotBePublished,sTypeXCannotBePublished,
+      [aName],ErrorEl);
     end;
-  aName:=El.Name;
-  if aName='' then aName:=El.ClassName;
-  DoError(20170409173329,nTypeXCannotBePublished,sTypeXCannotBePublished,
-    [aName],ErrorEl);
 end;
 
 function TPasToJSConverter.CreateRTTIArgList(Parent: TPasElement;
@@ -9418,7 +9332,7 @@ end;
 function TPasToJSConverter.CreateRTTINewType(El: TPasType;
   const CallFuncName: string; IsForward: boolean; AContext: TConvertContext;
   out ObjLit: TJSObjectLiteral): TJSCallExpression;
-// module.$rtti.$TiSomething("name",{})
+// module.$rtti.$Something("name",{})
 var
   RttiPath, TypeName: String;
   Call: TJSCallExpression;
@@ -9436,10 +9350,10 @@ begin
 
   Call:=CreateCallExpression(El);
   try
-    // module.$rtti.$ProcVar
+    // module.$rtti.$Something
     Call.Expr:=CreateMemberExpression([RttiPath,FBuiltInNames[pbivnRTTI],CallFuncName]);
     // add param "typename"
-    TypeName:=TransformVariableName(El,AContext);
+    TypeName:=GetTypeInfoName(El,AContext,El);
     Call.AddArg(CreateLiteralString(El,TypeName));
     if not IsForward then
       begin
@@ -9674,6 +9588,24 @@ begin
     if Result=nil then
       Call.Free;
   end;
+end;
+
+procedure TPasToJSConverter.CreateRTTIAnonymous(El: TPasType;
+  AContext: TConvertContext; var First, Last: TJSStatementList);
+// if El has any anonymous types, create the RTTI
+var
+  C: TClass;
+  JS: TJSElement;
+begin
+  if El.Name<>'' then
+    RaiseNotSupported(El,AContext,20170905162324,'inconsistency');
+
+  C:=El.ClassType;
+  if C=TPasArrayType then
+    begin
+    JS:=ConvertArrayType(TPasArrayType(El),AContext);
+    AddToStatementList(First,Last,JS,El);
+    end;
 end;
 
 function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;
@@ -11950,19 +11882,23 @@ const
       end;
   end;
 
-  procedure AddRTTIFields(Args: TJSArguments);
+  procedure AddRTTIFields(Args: TJSArguments; var First, Last: TJSStatementList);
   var
     i: Integer;
     PasVar: TPasVariable;
+    VarType: TPasType;
   begin
     for i:=0 to El.Members.Count-1 do
       begin
       PasVar:=TPasVariable(El.Members[i]);
       if not IsElementUsed(PasVar) then continue;
+      VarType:=PasVar.VarType;
+      if VarType.Name='' then
+        CreateRTTIAnonymous(VarType,AContext,First,Last);
       // add quoted "fieldname"
       Args.AddElement(CreateLiteralString(PasVar,TransformVariableName(PasVar,AContext)));
       // add typeinfo ref
-      Args.AddElement(CreateTypeInfoRef(PasVar.VarType,AContext,PasVar));
+      Args.AddElement(CreateTypeInfoRef(VarType,AContext,PasVar));
       end;
   end;
 
@@ -11970,16 +11906,18 @@ var
   AssignSt: TJSSimpleAssignStatement;
   FDS: TJSFunctionDeclarationStatement;
   FD: TJSFuncDef;
-  BodyFirst, BodyLast, List: TJSStatementList;
+  BodyFirst, BodyLast, ListFirst, ListLast: TJSStatementList;
   FuncContext: TFunctionContext;
   ObjLit: TJSObjectLiteral;
   ObjEl: TJSObjectLiteralElement;
   IfSt: TJSIfStatement;
-  Call: TJSCallExpression;
+  Call, Call2: TJSCallExpression;
   ok: Boolean;
 begin
   Result:=nil;
   FuncContext:=nil;
+  ListFirst:=nil;
+  ListLast:=nil;
   ok:=false;
   try
     FDS:=CreateFunction(El);
@@ -12033,12 +11971,10 @@ begin
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170412120012);
 
-      List:=TJSStatementList(CreateElement(TJSStatementList,El));
-      List.A:=Result;
-      Result:=List;
+      AddToStatementList(ListFirst,ListLast,Result,El);
+      Result:=nil;
       // module.$rtti.$Record("typename",{});
       Call:=CreateRTTINewType(El,FBuiltInNames[pbifnRTTINewRecord],false,AContext,ObjLit);
-      List.B:=Call;
       if ObjLit=nil then
         RaiseInconsistency(20170412124804);
       if El.Members.Count>0 then
@@ -12046,17 +11982,23 @@ begin
         // module.$rtti.$Record("typename",{}).addFields(
         //  "fieldname1",type1,"fieldname2",type2,...
         //  );
-        Call:=CreateCallExpression(El);
-        Call.Expr:=CreateDotExpression(El,List.B,
+        Call2:=CreateCallExpression(El);
+        Call2.Expr:=CreateDotExpression(El,Call,
           CreatePrimitiveDotExpr(FBuiltInNames[pbifnRTTIAddFields]));
-        List.B:=Call;
-        AddRTTIFields(Call.Args);
+        Call:=Call2;
+        AddRTTIFields(Call.Args,ListFirst,ListLast);
         end;
+      AddToStatementList(ListFirst,ListLast,Call,El);
+      Result:=ListFirst;
+      ListFirst:=nil;
+      ListLast:=nil;
       end;
-    ok:=true;;
+    ok:=true;
   finally
     FuncContext.Free;
-    if not ok then
+    if ListFirst<>nil then
+      FreeAndNil(ListFirst)
+    else if not ok then
       FreeAndNil(Result);
   end;
 end;
@@ -12250,6 +12192,153 @@ begin
     end;
 
   Result:=false;
+end;
+
+function TPasToJSConverter.GetTypeInfoName(El: TPasType;
+  AContext: TConvertContext; ErrorEl: TPasElement): String;
+var
+  C: TClass;
+  bt: TResolverBaseType;
+  jbt: TPas2jsBaseType;
+  CurEl: TPasElement;
+  aName: String;
+begin
+  Result:='';
+  El:=AContext.Resolver.ResolveAliasType(El);
+  if El=nil then
+    RaiseInconsistency(20170409172756);
+  if El=AContext.PasElement then
+    begin
+    // referring to itself
+    if El is TPasClassType then
+      begin
+      // use this
+      Result:=FBuiltInNames[pbivnRTTILocal];
+      exit;
+      end
+    else
+      RaiseNotSupported(ErrorEl,AContext,20170905150746,'cannot typeinfo itself');
+    end;
+  C:=El.ClassType;
+  if C=TPasUnresolvedSymbolRef then
+    begin
+    if El.Name='' then
+      DoError(20170905150752,nTypeXCannotBePublished,sTypeXCannotBePublished,
+        ['typeinfo of anonymous '+El.ElementTypeName],ErrorEl);
+    if El.CustomData is TResElDataBaseType then
+      begin
+      bt:=TResElDataBaseType(El.CustomData).BaseType;
+      case bt of
+      btShortInt,btByte,
+      btSmallInt,btWord,
+      btLongint,btLongWord,
+      btIntDouble,btUIntDouble,
+      btString,btChar,
+      btDouble,
+      btBoolean,
+      btPointer:
+        begin
+        // create rtl.basename
+        Result:=FBuiltInNames[pbivnRTL]+'.'+lowercase(AContext.Resolver.BaseTypeNames[bt]);
+        exit;
+        end;
+      btCustom:
+        if El.CustomData is TResElDataPas2JSBaseType then
+          begin
+          jbt:=TResElDataPas2JSBaseType(El.CustomData).JSBaseType;
+          case jbt of
+          pbtJSValue:
+            begin
+            // create rtl.basename
+            Result:=FBuiltInNames[pbivnRTL]+'.'+lowercase(Pas2jsBaseTypeNames[jbt]);
+            exit;
+            end;
+          else
+            {$IFDEF VerbosePas2JS}
+            writeln('TPasToJSConverter.CreateTypeInfoRef [20170905150833] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' jbt=',Pas2jsBaseTypeNames[jbt]);
+            {$ENDIF}
+          end;
+          end
+        else
+          begin
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.CreateTypeInfoRef [20170905150840] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',AContext.Resolver.BaseTypeNames[bt]);
+          {$ENDIF}
+          end
+      else
+        {$IFDEF VerbosePas2JS}
+        writeln('TPasToJSConverter.CreateTypeInfoRef [20170905150842] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData),' bt=',AContext.Resolver.BaseTypeNames[bt]);
+        {$ENDIF}
+      end;
+      end
+    else
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.CreateTypeInfoRef [20170905150844] El=',GetObjName(El),' El.CustomData=',GetObjName(El.CustomData));
+      {$ENDIF}
+      end;
+    end
+  else if (C=TPasEnumType)
+      or (C=TPasSetType)
+      or (C=TPasClassType)
+      or (C=TPasClassOfType)
+      or (C=TPasArrayType)
+      or (C=TPasProcedureType)
+      or (C=TPasFunctionType)
+      or (C=TPasPointerType)
+      // ToDo or (C=TPasTypeAliasType)
+      or (C=TPasRecordType)
+      // ToDo or (C=TPasRangeType)
+      then
+    begin
+    // user type  ->  module.$rtti[typename]
+    // Notes:
+    // a nested type gets the parent types prepended: classnameA.ElName
+    // an anonymous type gets for each level '$a' prepended
+    // an anonymous type of a variable/argument gets the variable name prepended
+    CurEl:=El;
+    repeat
+      if CurEl.Name<>'' then
+        begin
+        aName:=TransformVariableName(CurEl,AContext);
+        if aName='' then
+          RaiseNotSupported(CurEl,AContext,20170905144902,'name conversion failed');
+        Result:=aName+Result;
+        end
+      else
+        begin
+        // anonymous type -> prepend '$a'
+        // for example:
+        //   "var AnArray: array of array of char;" becomes AnArray$a$a
+        Result:=FBuiltInNames[pbitnAnonymousPostfix]+Result;
+        end;
+      CurEl:=CurEl.Parent;
+      if CurEl=nil then
+        break;
+      C:=CurEl.ClassType;
+      if (C=TPasClassType)
+          or (C=TPasRecordType) then
+        // nested
+        Result:='.'+Result
+      else if C.InheritsFrom(TPasType)
+          or (C=TPasVariable)
+          or (C=TPasConst)
+          or (C=TPasArgument)
+          or (C=TPasProperty) then
+        begin
+        // for example: var a: array of longint;
+        end
+      else
+        break;
+    until false;
+
+    if CurEl is TPasSection then
+      exit;
+    end;
+  aName:=El.Name;
+  if aName='' then aName:=El.ClassName;
+  DoError(20170409173329,nTypeXCannotBePublished,sTypeXCannotBePublished,
+    [aName],ErrorEl);
 end;
 
 function TPasToJSConverter.ConvertPasElement(El: TPasElement;

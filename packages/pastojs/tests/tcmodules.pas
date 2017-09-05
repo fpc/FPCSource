@@ -500,6 +500,7 @@ type
     Procedure TestRTTI_ClassForward;
     Procedure TestRTTI_ClassOf;
     Procedure TestRTTI_Record;
+    Procedure TestRTTI_RecordAnonymousArray;
     Procedure TestRTTI_LocalTypes;
     Procedure TestRTTI_TypeInfo_BaseTypes;
     Procedure TestRTTI_TypeInfo_LocalFail;
@@ -13378,6 +13379,48 @@ begin
     '$mod.p = $mod.$rtti["TPoint"];',
     '$mod.p = $mod.$rtti["TPoint"];',
     '$mod.p = rtl.longint;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_RecordAnonymousArray;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TFloatRec = record');
+  Add('    d: array of char;');
+  // Add('    i: array of array of longint;');
+  Add('  end;');
+  Add('var p: pointer;');
+  Add('  r: tfloatrec;');
+  Add('begin');
+  Add('  p:=typeinfo(tfloatrec);');
+  Add('  p:=typeinfo(r);');
+  Add('  p:=typeinfo(r.d);');
+  ConvertProgram;
+  CheckSource('TestRTTI_Record',
+    LinesToStr([ // statements
+    'this.TFloatRec = function (s) {',
+    '  if (s) {',
+    '    this.d = s.d;',
+    '  } else {',
+    '    this.d = [];',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.d === b.d;',
+    '  };',
+    '};',
+    '$mod.$rtti.$DynArray("TFloatRec.d$a", {',
+    '  eltype: rtl.char',
+    '});',
+    '$mod.$rtti.$Record("TFloatRec", {}).addFields("d", $mod.$rtti["TFloatRec.d$a"]);',
+    'this.p = null;',
+    'this.r = new $mod.TFloatRec();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TFloatRec"];',
+    '$mod.p = $mod.$rtti["TFloatRec"];',
+    '$mod.p = $mod.$rtti["TFloatRec.d$a"];',
     '']));
 end;
 
