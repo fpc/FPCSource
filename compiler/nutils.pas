@@ -156,7 +156,7 @@ implementation
     uses
       cutils,verbose,globals,compinnr,
       symconst,symdef,
-      defutil,
+      defcmp,defutil,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
       cpubase,cgbase,procinfo,
       pass_1;
@@ -779,9 +779,10 @@ implementation
               typeconvn:
                 begin
                   { may be more complex in some cases }
-                  if not(ttypeconvnode(p).retains_value_location) then
+                  if not(ttypeconvnode(p).retains_value_location) and
+                    not((ttypeconvnode(p).convtype=tc_pointer_2_array) and (ttypeconvnode(p).left.expectloc in [LOC_CREGISTER,LOC_REGISTER,LOC_CONSTANT])) then
                     inc(result);
-                  if (result = NODE_COMPLEXITY_INF) then
+                  if result = NODE_COMPLEXITY_INF then
                     exit;
                   p := tunarynode(p).left;
                 end;
