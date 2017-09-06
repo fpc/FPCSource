@@ -12,6 +12,7 @@ Type
   { TGenerateReportModule }
 
   TGenerateReportModule = class(TCustomHTTPModule)
+  Private
   Public
     Procedure HandleRequest(ARequest: TRequest; AResponse: TResponse); override;
   end;
@@ -32,14 +33,54 @@ Type
 
 implementation
 
-uses udapp;
+uses udapp, fpmimetypes;
+
+Var Counter : Integer;
 
 { TViewReportModule }
 
 procedure TViewReportModule.HandleRequest(ARequest: TRequest;
   AResponse: TResponse);
 
+Const
+  LFN = '/tmp/request.log';
+
+Var
+  FN,TFN : String;
+
 begin
+  FN:=ARequest.PathInfo;
+  if (FN<>'') and (FN[1]='/') then
+    Delete(FN,1,1);
+  Delete(FN,1,Pos('/',FN)); // Strip /View
+  TFN:=GetTempDir+FN;
+  With TStringList.Create do
+    try
+      if FileExists(LFN) then
+        LoadFromFile(LFN);
+      Add(FN+'='+TFN);
+      SaveToFile(LFN);
+    finally
+      Free;
+    end;
+  If FileExists(TFN) then
+    begin
+    AResponse.ContentStream:=TFileStream.Create(GetTempDir+FN,fmOpenRead or fmShareDenyWrite);
+    AResponse.FreeContentStream:=True;
+    case lowercase(extractfileext(FN)) of
+      '.png': AResponse.ContentType:='image/png';
+      '.pdf' : AResponse.ContentType:='application/pdf';
+      '.html' : AResponse.ContentType:='text/html';
+    end;
+
+    end
+  else
+    begin
+    AResponse.Code:=404;
+    AResponse.CodeText:='Not found';
+    AResponse.Content:='File '+FN+' not found';
+    AResponse.SendResponse;
+    end;
 end;
 
 { TGenerateReportModule }
@@ -47,10 +88,10 @@ end;
 procedure TGenerateReportModule.HandleRequest(ARequest: TRequest;
   AResponse: TResponse);
 Var
-  F,D : String;
-  FRPT : TReportDemoApp;
+  F,D,FN,RFN : String;
   Fmt : TRenderFormat;
   FRunner : TReportRunner;
+  RC  : TFPReportExporterClass;
 
 begin
   D:=ARequest.ContentFields.Values['demo'];
@@ -65,8 +106,17 @@ begin
   FRunner:=TReportRunner.Create(Self);
   FRunner.ReportApp:=TReportDemoApplication.GetReportClass(D).Create(Self);
   FRunner.ReportApp.rpt:=TFPReport.Create(FRunner.ReportApp);
-  FRunner.Format:=Fmt;
+  FRunner.Format:=Fmt ;
+  FRunner.location:=ExtractFilePath(ParamStr(0));
+  RC:=TReportDemoApplication.GetRenderClass(Fmt);
+  Inc(Counter);
+  FN:=D+IntToStr(Counter);
+  FN:=FN+PathDelim+FN+RC.DefaultExtension;
+  if RC.MultiFile then
+    FN:=ChangeFileExt(FN,'01'+ExtractFileExt(FN));
+  FRunner.BaseOutputFileName:=GetTempDir+FN;
   FRunner.Execute;
+  AResponse.SendRedirect('../View/'+FN);
 end;
 
 { TPageReportModule }
@@ -78,6 +128,7 @@ Var
   L,RL : TStrings;
   I : Integer;
   F : TRenderFormat;
+  RC : TFPReportExporterClass;
 
 begin
   RL:=Nil;
@@ -99,8 +150,11 @@ begin
     L.Add('Format: ');
     L.Add('<SELECT NAME="format">');
     for F in TRenderFormat do
-      if TReportDemoApplication.GetRenderClass(F)<>Nil then
-      L.Add('<OPTION>'+TReportDemoApplication.FormatName(F)+'</option>');
+      begin
+      RC:=TReportDemoApplication.GetRenderClass(F);
+      if (RC<>Nil) and (RC.DefaultExtension<>'') then
+        L.Add('<OPTION>'+TReportDemoApplication.FormatName(F)+'</option>');
+      end;
     L.Add('</SELECT>');
     L.Add('</p>');
     L.Add('<INPUT TYPE="Submit" Value="Generate"/>');
