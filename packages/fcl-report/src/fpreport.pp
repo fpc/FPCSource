@@ -251,6 +251,7 @@ type
     // DefaultExtension should return non-empty if output is file based.
     // Must contain .
     Class Function DefaultExtension : String; virtual;
+    Class Function MultiFile : Boolean; virtual;
     Function ShowConfig : Boolean;
   Published
     Property AutoRun : Boolean Read FAutoRun Write FAutoRun;
@@ -8805,6 +8806,11 @@ end;
 class function TFPReportExporter.DefaultExtension: String;
 begin
   Result:='';
+end;
+
+class function TFPReportExporter.MultiFile: Boolean;
+begin
+  Result:=False;
 end;
 
 function TFPReportExporter.ShowConfig: Boolean;

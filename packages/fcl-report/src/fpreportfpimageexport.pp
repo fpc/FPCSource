@@ -124,6 +124,7 @@ type
     Class Function Name : String; override;
     Class Function Description : String; override;
     Class Function DefaultExtension: String; override;
+    Class Function MultiFile: Boolean; override;
     Procedure GenerateHTML(ImageFiles : TStrings);
     Procedure SetFileName(const aFileName: String); override;
     function GetFont(const AFontName: String): TFPCustomFont;
@@ -563,6 +564,11 @@ end;
 class function TFPReportExportfpImage.DefaultExtension: String;
 begin
   Result:='.png';
+end;
+
+class function TFPReportExportfpImage.MultiFile: Boolean;
+begin
+  Result:=True
 end;
 
 function TFPReportExportfpImage.SetupHTMLPageRender(const APage: TFPReportPage): THTMLElement;
