@@ -1,7 +1,8 @@
 unit wmreports;
 
-{$mode objfpc}{$H+}
-
+{$mode objfpc}
+{$H+}
+{$I demos.inc}
 interface
 
 uses
@@ -33,7 +34,20 @@ Type
 
 implementation
 
-uses udapp, fpmimetypes;
+
+uses
+  udapp,
+  {$IFDEF ExportFPImage}
+  fpreportfpimageexport,
+  {$ENDIF}
+  {$IFDEF ExportHTML}
+  fpreporthtmlexport,
+  {$ENDIF}
+  {$IFDEF ExportPDF}
+  fppdf,
+  fpreportpdfexport,
+  {$ENDIF}
+  fpmimetypes;
 
 Var Counter : Integer;
 
@@ -83,12 +97,131 @@ begin
     end;
 end;
 
+Type
+  { TReportConfigurator }
+
+  TReportConfigurator = Class
+  Private
+    FStartFileName: String;
+    FVars: TStrings;
+    Function GetVar(S : String) : String;
+    Function GetBool(S : String) : Boolean;
+{$IFDEF ExportHTML}
+    procedure ConfigHTMLExporter(Exporter: TFPReportExportHTML);
+{$ENDIF}
+{$IFDEF ExportFPImage}
+    procedure ConfigImageExporter(Exporter: TFPReportExportFPImage);
+{$ENDIF}
+{$IFDEF ExportPDF}
+    procedure ConfigPDFExporter(Exporter: TFPReportExportPDF);
+{$ENDIF}
+  Public
+    Constructor Create(AVar : TStrings);
+    Procedure ConfigReport(Sender : TObject; Exporter : TFPReportExporter);
+    Property StartFileName : String Read FStartFileName Write FStartFileName;
+  end;
+
+{ TReportConfigurator }
+
+constructor TReportConfigurator.Create(AVar: TStrings);
+begin
+  FVars:=AVar;
+end;
+
+procedure TReportConfigurator.ConfigReport(Sender: TObject; Exporter: TFPReportExporter);
+begin
+  {$IFDEF ExportHTML}
+  if (Exporter is TFPReportExportHTML) then
+    ConfigHTMLExporter(Exporter as TFPReportExportHTML);
+  {$ENDIF}
+  {$IFDEF ExportFPImage}
+  if (Exporter is TFPReportExportFPImage) then
+    ConfigImageExporter(Exporter as TFPReportExportfpImage);
+  {$ENDIF}
+  {$IFDEF ExportPDF}
+  if (Exporter is TFPReportExportPDF) then
+    ConfigPDFExporter(Exporter as TFPReportExportPDF);
+  {$ENDIF}
+end;
+
+{$IFDEF ExportHTML}
+
+function TReportConfigurator.GetVar(S: String): String;
+begin
+  Result:=FVars.Values[S];
+end;
+
+function TReportConfigurator.GetBool(S: String): Boolean;
+
+Var
+  v : String;
+
+begin
+  v:=LowerCase(GetVar(S));
+  Result:=(v<>'') and ((v='1') or (v='t') or (v='true') or (v='y') or (v='yes'));
+end;
+
+procedure TReportConfigurator.ConfigHTMLExporter(Exporter : TFPReportExportHTML);
+
+begin
+  Exporter.Options:=[heoTOCPage];
+  StartFileName:='index.html'
+end;
+{$ENDIF}
+
+{$IFDEF ExportFPImage}
+procedure TReportConfigurator.ConfigImageExporter(Exporter : TFPReportExportFPImage);
+
+begin
+  Exporter.HTMLOptions:=[hoEnabled,hoTOCPage];
+  StartFileName:='index.html'
+end;
+{$ENDIF}
+
+{$IFDEF ExportPDF}
+procedure TReportConfigurator.ConfigPDFExporter(Exporter: TFPReportExportPDF);
+
+Const
+  Prefix = 'pdf.';
+
+Var
+  O : TPDFOptions;
+
+  Procedure MaybeAdd(aVar : String; aOption: TPDFOption);
+
+  begin
+    If GetBool(Prefix+aVar) then
+      Include(O,aOption);
+  end;
+
+begin
+  Exporter.AutoSave:=True;
+  O:=[];
+  MaybeAdd('pagelayout',poOutLine);
+  MaybeAdd('compresstext',poCompressText);
+  MaybeAdd('compressfonts',poCompressFonts);
+  MaybeAdd('compressimages',poCompressImages);
+  MaybeAdd('userawjpeg',poUseRawJPEG);
+  MaybeAdd('noembeddedfonts',poNoEmbeddedFonts);
+  MaybeAdd('pageoriginattop',poPageOriginAtTop);
+  MaybeAdd('pageoriginattop',poSubsetFont);
+  Exporter.Options:=O;
+  Case GetVar(Prefix+'pagelayout') of
+    'two':   Exporter.PageLayout:=lTwo;
+    'continuous' : Exporter.PageLayout:=lContinuous;
+  else
+    Exporter.PageLayout:=lSingle;
+  end;
+end;
+{$ENDIF}
+
 { TGenerateReportModule }
 
 procedure TGenerateReportModule.HandleRequest(ARequest: TRequest;
   AResponse: TResponse);
 Var
-  F,D,FN,RFN : String;
+  F,D,FN : String;
+  Conf : TReportConfigurator;
   Fmt : TRenderFormat;
   FRunner : TReportRunner;
   RC  : TFPReportExporterClass;
@@ -104,6 +237,7 @@ begin
   if (fmt=rfDefault) then
     Raise Exception.CreateFmt('Invalid or empty format name : "%s"',[F]);
   FRunner:=TReportRunner.Create(Self);
+  FRunner.Location:=ExtractFilePath(ParamStr(0));;
   FRunner.ReportApp:=TReportDemoApplication.GetReportClass(D).Create(Self);
   FRunner.ReportApp.rpt:=TFPReport.Create(FRunner.ReportApp);
   FRunner.Format:=Fmt ;
@@ -112,10 +246,17 @@ begin
   Inc(Counter);
   FN:=D+IntToStr(Counter);
   FN:=FN+PathDelim+FN+RC.DefaultExtension;
-  if RC.MultiFile then
-    FN:=ChangeFileExt(FN,'01'+ExtractFileExt(FN));
   FRunner.BaseOutputFileName:=GetTempDir+FN;
-  FRunner.Execute;
+  Conf:= TReportConfigurator.Create(ARequest.ContentFields);
+  Try
+    FRunner.OnInitExporter:=@Conf.ConfigReport;
+    FRunner.Execute;
+    Writeln('Conf.StartFileName : ',Conf.StartFileName);
+    if (Conf.StartFileName<>'') then
+      FN:=ExtractFilePath(FN)+Conf.StartFileName;
+  Finally
+    Conf.Free;
+  end;
   AResponse.SendRedirect('../View/'+FN);
 end;
 

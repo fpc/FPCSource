@@ -61,22 +61,24 @@ Type
   { TReportDemoApplication }
 
   { TReportRunner }
+  TExporterEvent = Procedure(Sender :TObject; Exporter : TFPReportExporter) of object;
 
   TReportRunner = Class (TComponent)
   private
     FBaseOutputFileName: String;
     FDesignFileName: String;
     FLocation: String;
-  Public
     FCreateJSON: Boolean;
+    FOnInitExporter: TExporterEvent;
     FReportApp : TReportDemoApp;
     FExporter : TFPReportExporter;
     FFormat : TRenderFormat;
     FRunFileName: String;
-    Function  CreateReportExport : TFPReportExporter;
-    procedure DoCreateJSON(const AFileName: String; RunTime: Boolean);
-    procedure ExportReport;
-    procedure RunReport(AFileName: string);
+  Protected
+    Function  CreateReportExport : TFPReportExporter; virtual;
+    procedure DoCreateJSON(const AFileName: String; RunTime: Boolean); virtual;
+    procedure ExportReport; virtual;
+    procedure RunReport(AFileName: string); virtual;
   Public
     destructor destroy; override;
     Procedure Execute;
@@ -88,6 +90,7 @@ Type
     Property Exporter : TFPReportExporter Read FExporter;
     Property Location : String Read FLocation Write FLocation;
     Property BaseOutputFileName : String Read FBaseOutputFileName Write FBaseOutputFileName;
+    Property OnInitExporter : TExporterEvent Read FOnInitExporter Write FOnInitExporter;
    end;
 
   TReportDemoApplication = class(TCustomApplication)
@@ -131,7 +134,8 @@ end;
 
 procedure TReportDemoApp.CreateReportDesign;
 begin
-  // Do nothing
+  if PaperManager.PaperCount=0 then
+    PaperManager.RegisterStandardSizes;
 end;
 
 
@@ -210,6 +214,7 @@ begin
 end;
 
 procedure TReportRunner.Execute;
+
 begin
   FReportApp.InitialiseData;
   FReportApp.CreateReportDesign;
@@ -286,6 +291,8 @@ procedure TReportRunner.ExportReport;
 begin
   FExporter:=CreateReportExport;
   try
+    If Assigned(FOnInitExporter) then
+      FOnInitExporter(Self,Exporter);
     {$IFDEF ExportLCL}
     If FExporter is TFPreportPreviewExport then
       Application.Initialize;
@@ -294,7 +301,11 @@ begin
     If FExporter is TFPreportPreviewExport then
       fpgApplication.Initialize;
     {$ENDIF}
-
+    if (BaseOutputFileName<>'') and (FExporter.DefaultExtension<>'') then
+      begin
+      ForceDirectories(ExtractFilePath(BaseOutputFileName));
+      FExporter.SetFileName(BaseOutputFileName);
+      end;
     FReportApp.rpt.RenderReport(FExporter);
   finally
     FreeAndNil(FExporter);
