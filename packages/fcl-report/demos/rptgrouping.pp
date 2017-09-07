@@ -100,7 +100,7 @@ var
   Memo: TFPReportMemo;
   PageFooter: TFPReportPageFooterBand;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 3 - Grouping';
 

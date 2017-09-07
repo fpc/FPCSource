@@ -74,7 +74,8 @@ var
   Image: TFPReportImage;
   Checkbox: TFPReportCheckbox;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
+
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 7 - Images and Checkboxes';
 

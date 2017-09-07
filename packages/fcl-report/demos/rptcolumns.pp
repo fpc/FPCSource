@@ -101,7 +101,7 @@ var
   DataFooter: TFPReportDataFooterBand;
   ChildBand: TFPReportChildBand;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 9 - Multi Columns';
 

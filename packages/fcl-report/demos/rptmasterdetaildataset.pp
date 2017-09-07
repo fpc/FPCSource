@@ -60,7 +60,7 @@ var
   DataHeader: TFPReportDataHeaderBand;
   BudgetDataHeader: TFPReportDataHeaderBand;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 11 - Master/Detail using datasets';
   p := TFPReportPage.Create(rpt);

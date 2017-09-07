@@ -54,7 +54,7 @@ var
   PageFooter: TFPReportPageFooterBand;
 
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 12 - JSON Data';
 

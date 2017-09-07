@@ -87,7 +87,7 @@ var
   Poly : TReportPolygon;
 {$ENDIF}
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 6 - Shapes';
 

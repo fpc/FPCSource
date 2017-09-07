@@ -96,7 +96,7 @@ var
   PageFooter: TFPReportPageFooterBand;
   DataHeader: TFPReportDataHeaderBand;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
 
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 2 - Expression Evaluation';

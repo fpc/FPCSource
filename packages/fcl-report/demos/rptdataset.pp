@@ -45,7 +45,8 @@ var
   Image: TFPReportImage;
   PageFooter: TFPReportPageFooterBand;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
+
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 8 - Datasets';
 
@@ -126,6 +127,7 @@ var
   fields: TDbfFieldDefs;
   lDataSet : TDBF;
 begin
+
   if FileExists('test.dbf') then
   begin
     DeleteFile('test.dbf');

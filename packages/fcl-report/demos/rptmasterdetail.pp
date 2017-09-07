@@ -171,7 +171,7 @@ var
   Detail2DataBand: TFPReportDataBand;
   Memo: TFPReportMemo;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 10 - Master/Detail using userdata';
 

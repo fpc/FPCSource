@@ -99,7 +99,8 @@ var
   ReportSummary: TFPReportSummaryBand;
   PageHeader: TFPReportPageHeaderBand;
 begin
-  PaperManager.RegisterStandardSizes;
+  Inherited;
+
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 4 - Frames and Fonts';
 

@@ -89,9 +89,9 @@ var
   PageFooter: TFPReportPageFooterBand;
   SummaryBand: TFPReportSummaryBand;
 begin
+  Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 1 - Simple Listing';
-  PaperManager.RegisterStandardSizes;
 
   p := TFPReportPage.Create(rpt);
   p.Orientation := poPortrait;
