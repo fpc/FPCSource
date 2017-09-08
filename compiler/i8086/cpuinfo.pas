@@ -157,6 +157,27 @@ Const
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
 
+type
+   tcpuflags =
+      (CPUX86_HAS_CMOV,
+       CPUX86_HAS_SSEUNIT
+      );
+
+ const
+   cpu_capabilities : array[tcputype] of set of tcpuflags = (
+     { cpu_none      } [],
+     { cpu_8086      } [],
+     { cpu_186       } [],
+     { cpu_286       } [],
+     { cpu_386       } [],
+     { cpu_486       } [],
+     { cpu_Pentium   } [],
+     { cpu_Pentium2  } [CPUX86_HAS_CMOV],
+     { cpu_Pentium3  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_Pentium4  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_PentiumM  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT]
+   );
+
    x86_near_code_models = [mm_tiny,mm_small,mm_compact];
    x86_far_code_models = [mm_medium,mm_large,mm_huge];
    x86_near_data_models = [mm_tiny,mm_small,mm_medium];
