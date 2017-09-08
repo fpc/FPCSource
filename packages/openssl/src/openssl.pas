@@ -377,6 +377,11 @@ type
     end;
   PEVP_MD_CTX = ^EVP_MD_CTX;
 
+  EVP_PKEY_CTX = record
+  end;
+  PEVP_PKEY_CTX = ^EVP_PKEY_CTX;
+  PPEVP_PKEY_CTX = ^PEVP_PKEY_CTX;
+
   PEVP_CIPHER_CTX = ^EVP_CIPHER_CTX;
 
   PASN1_TYPE = Pointer;
@@ -1127,6 +1132,9 @@ var
   function d2i_RSAPrivateKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
   function i2d_RSAPrivateKey(arsa: PRSA; pp: PPByte): cint;
 
+  function d2i_PubKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+  function d2i_AutoPrivateKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+
   // ERR Functions
 
   function Err_Error_String(e: cInt; buf: PChar): PChar;
@@ -1153,6 +1161,7 @@ var
   Function EVP_camellia_128_cbc : PEVP_CIPHER;
   Function EVP_camellia_192_cbc : PEVP_CIPHER;
   Function EVP_camellia_256_cbc : PEVP_CIPHER;
+  function EVP_sha256: PEVP_CIPHER;
 
   procedure OpenSSL_add_all_algorithms;
   procedure OpenSSL_add_all_ciphers;
@@ -1187,6 +1196,18 @@ var
   function EVP_DecryptUpdate(ctx: PEVP_CIPHER_CTX; out_data: PByte;
            outl: pcint; const in_: PByte; inl: cint): cint;
   function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint;
+  //
+  function EVP_MD_CTX_new: PEVP_MD_CTX;
+  function EVP_MD_CTX_create: PEVP_MD_CTX;
+  procedure EVP_MD_CTX_destroy(ctx: PEVP_MD_CTX);
+  procedure EVP_MD_CTX_free(ctx: PEVP_MD_CTX);
+  function EVP_DigestSignInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+  function EVP_DigestSignUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+  function EVP_DigestSignFinal(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+  function EVP_DigestVerifyInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+  function EVP_DigestVerifyUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+  function EVP_DigestVerifyFinal(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
+  //function
   //
   // PEM Functions - pem.h
   //
@@ -1522,6 +1543,7 @@ type
   Ti2d_RSAPublicKey = function (arsa: PRSA; pp: PPByte): cint; cdecl;
   Td2i_RSAPrivateKey = function (arsa: PPRSA; pp: PPByte; len: cint): PRSA; cdecl;
   Ti2d_RSAPrivateKey = function (arsa: PRSA; pp: PPByte): cint; cdecl;
+  Td2i_Key = function (a: PPEVP_PKEY; pp: PPByte; len: clong): PRSA; cdecl;
 
   // ERR Functions
 
@@ -1570,7 +1592,12 @@ type
   TEVP_DecryptUpdate = function(ctx: PEVP_CIPHER_CTX; out_data: PByte;
            outl: pcint; const in_: PByte; inl: cint): cint; cdecl;
   TEVP_DecryptFinal = function(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint; cdecl;
-
+  //
+  TEVP_MD_CTX_new = function(): PEVP_MD_CTX; cdecl;
+  TEVP_MD_CTX_free = procedure(ctx: PEVP_MD_CTX); cdecl;
+  TEVP_DigestSignVerifyInit = function(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+  TEVP_DigestSignFinal = function(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+  TEVP_DigestVerifyFinal = function(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
   // PEM functions
 
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
@@ -1705,6 +1732,7 @@ var
   _EVP_camellia_128_cbc : TEVP_CIPHERFunction = nil;
   _EVP_camellia_192_cbc : TEVP_CIPHERFunction = nil;
   _EVP_camellia_256_cbc : TEVP_CIPHERFunction = nil;
+  _EVP_sha256 : TEVP_CIPHERFunction = nil;
 
   // 3DES functions
   _DESsetoddparity: TDESsetoddparity = nil;
@@ -1758,7 +1786,8 @@ var
   _i2d_RSAPublicKey: Ti2d_RSAPublicKey = nil;
   _d2i_RSAPrivateKey: Td2i_RSAPrivateKey = nil;
   _i2d_RSAPrivateKey: Ti2d_RSAPrivateKey = nil;
-
+  _d2i_PubKey: Td2i_Key = nil;
+  _d2i_AutoPrivateKey: Td2i_Key = nil;
   // ERR Functions
 
   _Err_Error_String: TErr_Error_String = nil;
@@ -1799,7 +1828,13 @@ var
   _EVP_DecryptInit: TEVP_DecryptInit = nil;
   _EVP_DecryptUpdate: TEVP_DecryptUpdate = nil;
   _EVP_DecryptFinal: TEVP_DecryptFinal = nil;
-
+  //
+  _EVP_MD_CTX_new : TEVP_MD_CTX_new = nil;
+  _EVP_MD_CTX_free : TEVP_MD_CTX_free = nil;
+  _EVP_DigestSignInit: TEVP_DigestSignVerifyInit = nil;
+  _EVP_DigestSignFinal: TEVP_DigestSignFinal = nil;
+  _EVP_DigestVerifyInit: TEVP_DigestSignVerifyInit = nil;
+  _EVP_DigestVerifyFinal: TEVP_DigestVerifyFinal = nil;
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
   	   
@@ -2939,6 +2974,22 @@ begin
     Result := -1;
 end;
 
+function d2i_PubKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_d2i_PubKey) then
+    Result := _d2i_PubKey(a, pp, len)
+  else
+    Result := nil;
+end;
+
+function d2i_AutoPrivateKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_d2i_AutoPrivateKey) then
+    Result := _d2i_AutoPrivateKey(a, pp, len)
+  else
+    Result := nil;
+end;
+
 // ERR Functions
 
 function Err_Error_String(e: cInt; buf: PChar): PChar;
@@ -3096,6 +3147,15 @@ begin
   else
     Result := Nil;
 end;
+
+function EVP_sha256: PEVP_CIPHER;
+begin
+  if InitSSLInterface and Assigned(_EVP_sha256) then
+    Result := _EVP_sha256()
+  else
+    Result := Nil;
+end;
+
 
 procedure OpenSSL_add_all_algorithms;
 begin
@@ -3267,6 +3327,75 @@ function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cin
 begin
   if InitSSLInterface and Assigned(_EVP_DecryptFinal) then
     Result := _EVP_DecryptFinal(ctx, outm, outlen)
+  else
+    Result := -1;
+end;
+
+function EVP_MD_CTX_new: PEVP_MD_CTX;
+begin
+  if InitSSLInterface and Assigned(_EVP_MD_CTX_new) then
+    Result := _EVP_MD_CTX_new
+  else
+    Result := Nil;
+end;
+
+function EVP_MD_CTX_create: PEVP_MD_CTX;
+begin
+  if InitSSLInterface and Assigned(_EVP_MD_CTX_new) then
+    Result := _EVP_MD_CTX_new
+  else
+    Result := Nil;
+end;
+
+procedure EVP_MD_CTX_destroy(ctx: PEVP_MD_CTX);
+begin
+  EVP_MD_CTX_free(ctx);
+end;
+
+procedure EVP_MD_CTX_free(ctx: PEVP_MD_CTX);
+begin
+  if InitSSLInterface and Assigned(_EVP_MD_CTX_free) then
+    _EVP_MD_CTX_free(ctx)
+end;
+
+function EVP_DigestSignInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestSignInit) then
+    Result := _EVP_DigestSignInit(ctx, pctx, evptype, e, pkey)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestSignUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+begin
+  Result := EVP_DigestUpdate(ctx, data, cnt);
+end;
+
+function EVP_DigestSignFinal(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestSignFinal) then
+    Result := _EVP_DigestSignFinal(ctx, sigret, siglen)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestVerifyInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestVerifyInit) then
+    Result := _EVP_DigestVerifyInit(ctx, pctx, evptype, e, pkey)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestVerifyUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+begin
+  Result := EVP_DigestUpdate(ctx, data, cnt);
+end;
+
+function EVP_DigestVerifyFinal(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestVerifyFinal) then
+    Result := _EVP_DigestVerifyFinal(ctx, sig, siglen)
   else
     Result := -1;
 end;
@@ -4087,6 +4216,14 @@ begin
   _EVP_camellia_128_cbc := GetProcAddr(SSLUtilHandle, 'EVP_camellia_128_cbc');
   _EVP_camellia_192_cbc := GetProcAddr(SSLUtilHandle, 'EVP_camellia_192_cbc');
   _EVP_camellia_256_cbc := GetProcAddr(SSLUtilHandle, 'EVP_camellia_256_cbc');
+  _EVP_sha256 := GetProcAddr(SSLUtilHandle, 'EVP_sha256');
+
+  _EVP_MD_CTX_new := GetProcAddr(SSLUtilHandle, 'EVP_MD_CTX_new');
+  _EVP_MD_CTX_free := GetProcAddr(SSLUtilHandle, 'EVP_MD_CTX_free');
+  _EVP_DigestSignInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestSignInit');
+  _EVP_DigestSignFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestSignFinal');
+  _EVP_DigestVerifyInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyInit');
+  _EVP_DigestVerifyFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyFinal');
    // 3DES functions
   _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'des_set_odd_parity');
   _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'des_set_key_checked');
@@ -4135,6 +4272,8 @@ begin
   _i2d_RSAPublicKey := GetProcAddr(SSLUtilHandle, 'i2d_RSAPublicKey');
   _d2i_RSAPrivateKey := GetProcAddr(SSLUtilHandle, 'd2i_RSAPrivateKey');
   _i2d_RSAPrivateKey := GetProcAddr(SSLUtilHandle, 'i2d_RSAPrivateKey');
+  _d2i_PubKey := GetProcAddr(SSLUtilHandle, 'd2i_PUBKEY');
+  _d2i_AutoPrivateKey := GetProcAddr(SSLUtilHandle, 'd2i_AutoPrivateKey');
    // ERR Functions
   _ERR_error_string := GetProcAddr(SSLUtilHandle, 'ERR_error_string');
    // EVP Functions
@@ -4487,6 +4626,8 @@ begin
   _i2d_RSAPublicKey := nil;
   _d2i_RSAPrivateKey := nil;
   _i2d_RSAPrivateKey := nil;
+  _d2i_PubKey := nil;
+  _d2i_AutoPrivateKey := nil;
 
   // ERR Functions
   _ERR_error_string := nil;
@@ -4521,6 +4662,15 @@ begin
   _EVP_DecryptInit := nil;
   _EVP_DecryptUpdate := nil;
   _EVP_DecryptFinal := nil;
+  //
+  _EVP_sha256 := nil;
+
+  _EVP_MD_CTX_new := nil;
+  _EVP_MD_CTX_free := nil;
+  _EVP_DigestSignInit := nil;
+  _EVP_DigestSignFinal := nil;
+  _EVP_DigestVerifyInit := nil;
+  _EVP_DigestVerifyFinal := nil;
 
   // PEM
 
