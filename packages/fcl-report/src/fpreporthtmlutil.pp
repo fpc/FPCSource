@@ -227,7 +227,7 @@ function GetColorComponent(Var AColor: UInt32): Word; inline;
 
 begin
   Result:=(AColor and $FF);
-  Result:=Result or (Result shl 8)
+  Result:=Result or (Result shl 8);
   AColor:=(AColor shr 8);
 end;
 
@@ -250,7 +250,7 @@ end;
 
 Function RGBTripleToColor(AColor : TFPColor) : UINT32;
 
-  Function BS(C : Word; Sh : Byte) : UINT;
+  Function BS(C : Word; Sh : Byte) : UINT32;
   begin
     Result:=C shr 8;
     If (Sh<>0) then
