@@ -198,6 +198,7 @@ Type
 Function Coalesce(S1,S2 : String) : String;
 Function GetColorComponent(Var AColor: UInt32): Word; inline;
 Function ColorToRGBTriple(const AColor: UInt32): TFPColor;
+Function RGBTripleToColor(AColor : TFPColor) : UINT32;
 
 Const
   cInchToMM = 25.4;
@@ -225,8 +226,9 @@ uses htmwrite;
 function GetColorComponent(Var AColor: UInt32): Word; inline;
 
 begin
-  Result:=AColor and $FF;
-  AColor:=AColor shr 8;
+  Result:=(AColor and $FF);
+  Result:=Result or (Result shl 8)
+  AColor:=(AColor shr 8);
 end;
 
 
@@ -244,6 +246,19 @@ begin
     Red   := GetColorComponent(C);
     Alpha := GetColorComponent(C);
     end
+end;
+
+Function RGBTripleToColor(AColor : TFPColor) : UINT32;
+
+  Function BS(C : Word; Sh : Byte) : UINT;
+  begin
+    Result:=C shr 8;
+    If (Sh<>0) then
+      Result:=Result shl SH
+  end;
+
+begin
+  Result:=BS(AColor.blue,0) or BS(AColor.Green,8) or BS(AColor.Red,16) or BS(AColor.alpha,24);
 end;
 
 Function Coalesce(S1,S2 : String) : String;

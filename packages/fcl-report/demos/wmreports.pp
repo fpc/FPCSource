@@ -3,10 +3,18 @@ unit wmreports;
 {$mode objfpc}
 {$H+}
 {$I demos.inc}
+
+{$IFDEF ExportHTML}
+{$DEFINE HTMLHELPERS}
+{$ENDIF}
+{$IFDEF ExportFPIMAGE}
+{$DEFINE HTMLHELPERS}
+{$ENDIF}
+
 interface
 
 uses
-  Classes, SysUtils, httpdefs, fphttp, fpweb, fpreport;
+  Classes, SysUtils, httpdefs, fphttp, fpweb, fpreport, httproute;
 
 Type
 
@@ -20,7 +28,22 @@ Type
 
   { TPageReportModule }
 
-  TPageReportModule = class(TCustomHTTPModule)
+  TPageReportModule = class(TCustomHTTPModule,IRouteInterface)
+  private
+    prefix: string;
+    L : TStrings;
+    procedure AddCb(const N, aLabel: String);
+    procedure AddColor(const N, aLabel: String);
+    procedure AddCombo(const N, aLabel: String; AValues: array of String);
+    procedure AddConfigureFramePage;
+    procedure AddConfigurePageNavigator;
+    procedure AddConfigureTOCPage;
+    procedure AddEdit(const N, aLabel: String);
+    procedure AddNumber(const N, aLabel: String);
+    Procedure AddPDFOptions;
+    Procedure AddHTMLOptions;
+    Procedure AddFPImageOptions;
+    procedure AddStyleEmbedding;
   Public
     Procedure HandleRequest(ARequest: TRequest; AResponse: TResponse); override;
   end;
@@ -37,6 +60,9 @@ implementation
 
 uses
   udapp,
+  {$IFDEF HTMLHELPERS}
+  fpreporthtmlutil, fpimage,
+  {$ENDIF}
   {$IFDEF ExportFPImage}
   fpreportfpimageexport,
   {$ENDIF}
@@ -48,6 +74,37 @@ uses
   fpreportpdfexport,
   {$ENDIF}
   fpmimetypes;
+
+Type
+  { TReportConfigurator }
+
+  TReportConfigurator = Class
+  Private
+    FStartFileName: String;
+    FVars: TStrings;
+    Function GetVar(S : String; ADefault : String = '') : String;
+    Function GetBoolean(S : String) : Boolean;
+    Function GetInteger(S : String; aDefault: integer) : Integer;
+  {$IFDEF HTMLHELPERS}
+    Procedure ConfigureTOCPage(Prefix : String; aTOCPage : TTOCPageOptions);
+    Procedure ConfigureFramePage(Prefix : String; aFramePage : TFramePageOptions);
+    Procedure ConfigurePageNavigator(Prefix : String; aPageNavigator : TPageNavigatorOptions);
+  {$ENDIF}
+  {$IFDEF ExportHTML}
+    procedure ConfigHTMLExporter(Exporter: TFPReportExportHTML);
+  {$ENDIF}
+  {$IFDEF ExportFPImage}
+    procedure ConfigImageExporter(Exporter: TFPReportExportFPImage);
+  {$ENDIF}
+  {$IFDEF ExportPDF}
+    procedure ConfigPDFExporter(Exporter: TFPReportExportPDF);
+  {$ENDIF}
+  Public
+    Constructor Create(AVar : TStrings);
+    Procedure ConfigReport(Sender : TObject; Exporter : TFPReportExporter);
+    Property StartFileName : String Read FStartFileName Write FStartFileName;
+  end;
+
 
 Var Counter : Integer;
 
@@ -86,7 +143,6 @@ begin
       '.pdf' : AResponse.ContentType:='application/pdf';
       '.html' : AResponse.ContentType:='text/html';
     end;
-
     end
   else
     begin
@@ -96,30 +152,6 @@ begin
     AResponse.SendResponse;
     end;
 end;
-
-Type
-  { TReportConfigurator }
-
-  TReportConfigurator = Class
-  Private
-    FStartFileName: String;
-    FVars: TStrings;
-    Function GetVar(S : String) : String;
-    Function GetBool(S : String) : Boolean;
-{$IFDEF ExportHTML}
-    procedure ConfigHTMLExporter(Exporter: TFPReportExportHTML);
-{$ENDIF}
-{$IFDEF ExportFPImage}
-    procedure ConfigImageExporter(Exporter: TFPReportExportFPImage);
-{$ENDIF}
-{$IFDEF ExportPDF}
-    procedure ConfigPDFExporter(Exporter: TFPReportExportPDF);
-{$ENDIF}
-  Public
-    Constructor Create(AVar : TStrings);
-    Procedure ConfigReport(Sender : TObject; Exporter : TFPReportExporter);
-    Property StartFileName : String Read FStartFileName Write FStartFileName;
-  end;
 
 { TReportConfigurator }
 
@@ -144,14 +176,21 @@ begin
   {$ENDIF}
 end;
 
-{$IFDEF ExportHTML}
 
-function TReportConfigurator.GetVar(S: String): String;
+function TReportConfigurator.GetVar(S: String; ADefault: String): String;
 begin
   Result:=FVars.Values[S];
+  if (Result='') and (FVars.IndexOfName(S)=-1) then
+    Result:=ADefault;
 end;
 
-function TReportConfigurator.GetBool(S: String): Boolean;
+function TReportConfigurator.GetInteger(S: String; aDefault: integer): Integer;
+begin
+  Result:=StrToIntDef(GetVar(S),aDefault);
+end;
+
+
+function TReportConfigurator.GetBoolean(S: String): Boolean;
 
 Var
   v : String;
@@ -161,20 +200,176 @@ begin
   Result:=(v<>'') and ((v='1') or (v='t') or (v='true') or (v='y') or (v='yes'));
 end;
 
-procedure TReportConfigurator.ConfigHTMLExporter(Exporter : TFPReportExportHTML);
+{$IFDEF HTMLHELPERS}
+procedure TReportConfigurator.ConfigureTOCPage(Prefix: String; aTOCPage: TTOCPageOptions);
+begin
+  With aTOCPage do
+    begin
+    // We don't allow this Property FileName : string read FFileName write FFileName;
+    CSSFileName:=GetVar(Prefix+'toccssfilename',CSSFileName);
+    OddPageStyle:=GetVar(Prefix+'oddpagestyle',OddPageStyle);
+    EvenPageStyle:=GetVar(Prefix+'evenpagestyle',EvenPageStyle);
+    SkipStyling:=GetBoolean(Prefix+'skipstyling');
+    end;
+end;
+
+procedure TReportConfigurator.ConfigureFramePage(Prefix: String; aFramePage: TFramePageOptions);
+begin
+  With aFramePage do
+    begin
+    // We do not allow setting Frame page filename.
+    // Frame page CSS filename. If empty, no <link> is added. Relative to CSSDir
+    CSSFileName:=GetVar(Prefix+'framecssfilename',CSSFileName);
+    TOCZoneSize:=GetInteger(Prefix+'toczonesize',TOCZoneSize);
+    Case lowerCase(prefix+'toczoneposition') of
+      'right': TOCZonePosition:=tpRight;
+      'top' : TOCZonePosition:=tpTop;
+      'bottom': TOCZonePosition:=tpBottom;
+    else
+      TOCZonePosition:=tpLeft;
+    end;
+    end;
+end;
+
+Function RGBTripleToColor(AColor : TFPColor) : Cardinal;
+
+  Function BS(C : Word; Sh : Byte) : Cardinal;
+  begin
+    Result:=C shr 8;
+    If (Sh<>0) then
+      Result:=Result shl SH
+  end;
 
 begin
-  Exporter.Options:=[heoTOCPage];
-  StartFileName:='index.html'
+  Result:=BS(AColor.blue,0) or BS(AColor.Green,8) or BS(AColor.Red,16) or BS(AColor.alpha,24);
+end;
+
+
+procedure TReportConfigurator.ConfigurePageNavigator(Prefix: String; aPageNavigator: TPageNavigatorOptions);
+
+Var
+  NP : TNavigatorPositions;
+  NO : THTMLNavigatorOptions;
+  S: String;
+
+
+  Procedure MaybeAdd(aVar : String; aOption: TNavigatorPosition);
+
+  begin
+    If GetBoolean(Prefix+'nav'+aVar) then
+      Include(NP,aOption);
+  end;
+
+  Procedure MaybeAdd(aVar : String; aOption: THTMLNavigatorOption);
+
+  begin
+    If GetBoolean(Prefix+aVar) then
+      Include(NO,aOption);
+  end;
+
+begin
+  NP:=[];
+  MaybeAdd('topnavigator',npTop);
+  MaybeAdd('leftnavigator',npLeft);
+  MaybeAdd('rightnavigator',npRight);
+  MaybeAdd('bottomnavigator',npBottom);
+  NO:=[];
+  MaybeAdd('firstlast',hnoFirstLast);
+  MaybeAdd('alwaysfirstlast',hnoAlwaysFirstLast);
+  MaybeAdd('pageno',hnoPageNo);
+  MaybeAdd('image',hnoImage);
+  MaybeAdd('skipstyling',hnoSkipStyling);
+  MaybeAdd('usepagenofm',hnoUsePageNOfM);
+  MaybeAdd('pagenoedit',hnoPageNoEdit);
+  With APageNavigator do
+    begin
+    if (NP<>[]) then
+      Positions:=NP;
+    if (NO<>[]) then
+      Options:=NO;
+    FixedWidth:=GetInteger(Prefix+'navigatorfixedwidth',FixedWidth);
+    FixedHeight:=GetInteger(Prefix+'navigatorfixedheight',FixedHeight);
+    FixedMargin:=GetInteger(Prefix+'navigatorfixedmargin',FixedMargin);
+    S:=GetVar(Prefix+'navigatorbgcolor');
+    if (S<>'') then
+      ActiveBGColor:= RGBTripleToColor(HtmlToFpColor(S));
+    S:=GetVar(Prefix+'navigatorinactivebgcolor');
+    if (S<>'') then
+      InActiveBGColor:= RGBTripleToColor(HtmlToFpColor(S));
+    end;
+end;
+{$ENDIF}
+
+{$IFDEF ExportHTML}
+procedure TReportConfigurator.ConfigHTMLExporter(Exporter : TFPReportExportHTML);
+
+Const
+  Prefix = 'html.';
+
+Var
+  O : THTMLExportOptions;
+
+  Procedure MaybeAdd(aVar : String; aOption: THTMLExportOption);
+
+  begin
+    If GetBoolean(Prefix+aVar) then
+      Include(O,aOption);
+  end;
+
+begin
+  O:=[heoTOCPage];
+  MaybeAdd('fixedpositioning',heoFixedPositioning);
+  MaybeAdd('inlineimage',heoInlineImage);
+  MaybeAdd('useimgtag',heoUseIMGtag);
+  MaybeAdd('tocpageframe',heoTOCPageFrame);
+  MaybeAdd('memoasis',heoMemoAsIs);
+  MaybeAdd('externaljs',heoExternalJS);
+  Exporter.Options:=O;
+  Exporter.DPI:=GetInteger(Prefix+'DPI',Exporter.DPI);
+  Exporter.SequenceFormat:=GetVar(Prefix+'sequence',Exporter.SequenceFormat);
+  Case LowerCase(GetVar(Prefix+'styleembedding')) of
+    'styletag' : Exporter.StyleEmbedding:=seStyleTag;
+    'cssfile'  : Exporter.StyleEmbedding:=seCSSFile;
+  else
+    Exporter.StyleEmbedding:=seInline;
+  end;
+  Exporter.FixedOffset.Top:=GetInteger('offsettop',Exporter.FixedOffset.Top);
+  Exporter.FixedOffset.Left:=GetInteger('offsetleft',Exporter.FixedOffset.Left);
+  ConfigureTOCPage(Prefix,Exporter.TOCPage);
+  ConfigureFramePage(Prefix,Exporter.FramePage);
+  ConfigurePageNavigator(Prefix,Exporter.PageNavigator);
+  StartFileName:='index.html';
 end;
 {$ENDIF}
 
 {$IFDEF ExportFPImage}
 procedure TReportConfigurator.ConfigImageExporter(Exporter : TFPReportExportFPImage);
 
+Const
+  Prefix = 'image.';
+
+Var
+  HO : THTMLOptions;
+
 begin
-  Exporter.HTMLOptions:=[hoEnabled,hoTOCPage];
-  StartFileName:='index.html'
+  HO:=[hoEnabled,hoTOCPage];
+  if GetBoolean(Prefix+'useframes') then
+    Include(HO,hoFramePage);
+  if GetBoolean(Prefix+'externaljs') then
+    Include(HO,hoExternalJS);
+  Exporter.HTMLOptions:=HO;
+  Exporter.DPI:=GetInteger(Prefix+'DPI',Exporter.DPI);
+  Exporter.SequenceFormat:=GetVar(Prefix+'sequence',Exporter.SequenceFormat);
+  Case LowerCase(GetVar(Prefix+'styleembedding')) of
+    'styletag' : Exporter.StyleEmbedding:=seStyleTag;
+    'cssfile'  : Exporter.StyleEmbedding:=seCSSFile;
+  else
+    Exporter.StyleEmbedding:=seInline;
+  end;
+  ConfigureTOCPage(Prefix,Exporter.TOCPage);
+  ConfigureFramePage(Prefix,Exporter.FramePage);
+  ConfigurePageNavigator(Prefix,Exporter.PageNavigator);
+  StartFileName:='index.html';
 end;
 {$ENDIF}
 
@@ -190,7 +385,7 @@ Var
   Procedure MaybeAdd(aVar : String; aOption: TPDFOption);
 
   begin
-    If GetBool(Prefix+aVar) then
+    If GetBoolean(Prefix+aVar) then
       Include(O,aOption);
   end;
 
@@ -204,7 +399,7 @@ begin
   MaybeAdd('userawjpeg',poUseRawJPEG);
   MaybeAdd('noembeddedfonts',poNoEmbeddedFonts);
   MaybeAdd('pageoriginattop',poPageOriginAtTop);
-  MaybeAdd('pageoriginattop',poSubsetFont);
+  MaybeAdd('subsetfont',poSubsetFont);
   Exporter.Options:=O;
   Case GetVar(Prefix+'pagelayout') of
     'two':   Exporter.PageLayout:=lTwo;
@@ -251,7 +446,6 @@ begin
   Try
     FRunner.OnInitExporter:=@Conf.ConfigReport;
     FRunner.Execute;
-    Writeln('Conf.StartFileName : ',Conf.StartFileName);
     if (Conf.StartFileName<>'') then
       FN:=ExtractFilePath(FN)+Conf.StartFileName;
   Finally
@@ -262,14 +456,184 @@ end;
 
 { TPageReportModule }
 
+procedure TPageReportModule.AddCb(Const N,aLabel: String);
+
+begin
+  L.Add(Format('<INPUT TYPE="CHECKBOX" id="CB%s" name="%s" value="1">%s<BR>',[Prefix+N,Prefix+N,aLabel]));
+end;
+
+procedure TPageReportModule.AddCombo(Const N,aLabel: String; AValues : Array of String);
+
+Var
+  I : Integer;
+
+begin
+  L.Add(aLabel+':&nbsp;&nbsp;');
+  L.Add(Format('<SELECT ID="CBX%s" NAME="%s">',[Prefix+N,Prefix+N]));
+  I:=0;
+  While I<Length(AValues)-1 do
+    begin
+    L.Add(Format('<OPTION value="%s">%s</option>',[AValues[i],AValues[i+1]]));
+    Inc(I,2);
+    end;
+  L.Add('</SELECT>');
+  L.Add('<BR>');
+end;
+
+procedure TPageReportModule.AddNumber(Const N,aLabel: String);
+
+begin
+  L.Add(aLabel+':&nbsp;&nbsp;');
+  L.Add(Format('<INPUT TYPE="NUMBER" id="NE%s" name="%s"><BR>',[Prefix+N,Prefix+N]));
+end;
+
+procedure TPageReportModule.AddColor(Const N,aLabel: String);
+
+begin
+  L.Add(aLabel+':&nbsp;&nbsp;');
+  L.Add(Format('<INPUT TYPE="Color" id="NC%s" name="%s"><BR>',[Prefix+N,Prefix+N]));
+end;
+
+procedure TPageReportModule.AddPDFOptions;
+begin
+  L.Add('<H1>PDF options</H1>');
+  prefix:='pdf.';
+  AddCB('pagelayout','Create outLine');
+  AddCB('compresstext','Compress text');
+  AddCB('compressfonts','Compress fonts');
+  AddCB('compressimages','Compress images');
+  AddCB('userawjpeg','use raw JPEG');
+  AddCB('noembeddedfonts','Do not embed fonts');
+  AddCB('pageoriginattop','Page origin at top');
+  AddCB('subsetfont','Embed only used subset of font');
+  L.Add('Page layout:<p>');
+  AddCombo('pagelayout','Page layout',['single','Single page','two','Two pages','continuous','Continuous layout']);
+end;
+
+procedure TPageReportModule.AddStyleEmbedding;
+
+begin
+  AddCombo('styleembedding','Style embedding',[
+    'inline','Inline, in HTML element',
+    'styletag','In separate style tag',
+    'cssfile','In separate CSS file'
+  ]);
+end;
+
+procedure TPageReportModule.AddHTMLOptions;
+begin
+  L.Add('<H1>HTML options</H1>');
+  prefix:='html.';
+  L.Add('<TABLE BORDER="1">');
+  L.Add('<TR><TD valign="top">');
+  L.Add('<H2>General options</H2>');
+  AddCB('fixedpositioning','Use fixed positioning');
+  AddCB('inlineimage','Use inline images');
+  AddCB('useimgtag','Use IMG tag');
+  AddCB('tocpageframe','Create TOC Frame');
+  AddCB('memoasis','Insert memos as-is (let browser handle layout)');
+  AddCB('externaljs','Use external file for JS');
+  AddNumber('DPI','DPI (resolution)');
+  AddEdit('sequence','Sequence format');
+  AddStyleEmbedding;
+  AddNumber('offsettop','Fixed positioning, offset from top');
+  AddNumber('offsetleft','Fixed positioning, offset from left');
+  AddConfigureTOCPage;
+  AddConfigureFramePage;
+  L.Add('</TD><TD valign="top">');
+  AddConfigurePageNavigator;
+  L.Add('</TD></TR>');
+  L.Add('</TABLE>');
+end;
+
+procedure TPageReportModule.AddFPImageOptions;
+
+begin
+  Prefix:='image.';
+  L.Add('<H1>Image options</H1>');
+  L.Add('<TABLE BORDER="1">');
+  L.Add('<TR><TD valign="top">');
+  L.Add('<H2>General options</H2>');
+  AddCB('useframes','Use frames');
+  AddCB('externaljs','Use external Javascript file');
+  AddNumber('DPI','Image DPI');
+  AddEdit('sequence','Page number sequence format');
+  AddStyleEmbedding;
+  AddConfigureTOCPage;
+  AddConfigureFramePage;
+  L.Add('</TD><TD valign="top">');
+  AddConfigurePageNavigator;
+  L.Add('</TD></TR>');
+  L.Add('</TABLE>');
+end;
+
+procedure TPageReportModule.AddEdit(Const N,aLabel: String);
+
+begin
+  L.Add(aLabel+':&nbsp;&nbsp;');
+  L.Add(Format('<INPUT TYPE="EDIT" id="NE%s" name="%s"><BR>',[Prefix+N,Prefix+N]));
+end;
+
+procedure TPageReportModule.AddConfigureTOCPage;
+
+begin
+  L.Add('<H2>TOC Page options:</H2>');
+  AddEdit('toccssfilename','CSS file name');
+  AddEdit('oddpagestyle','Odd page style elements');
+  AddEdit('evenpagestyle','Even page style elements');
+  AddCB('skipstyling','Skip Styling');
+end;
+
+procedure TPageReportModule.AddConfigureFramePage;
+
+begin
+  L.Add('<H2>Frame options:</H2>');
+  AddEdit('framecssfilename','CSS file name');
+  AddNumber('toczonesize','TOC Zone size (percentage)');
+  AddCombo('toczoneposition','Position of TOC zone',[
+  'left','Left',
+  'right', 'Right',
+  'top' , 'Top',
+  'bottom', 'Bottom'
+  ])
+end;
+
+procedure TPageReportModule.AddConfigurePageNavigator;
+
+begin
+//  L.Add('<DIV>');
+  L.Add('<H2>Navigator</H2>');
+  L.Add('<H3>Navigator positions:</H3>');
+  AddCB('topnavigator','Top');
+  AddCB('leftnavigator','Left');
+  AddCB('rightnavigator','Right');
+  AddCB('bottomnavigator','Bottom');
+  L.Add('<H3>Navigator options:</H3>');
+  AddCB('firstlast','Add First/Last buttons');
+  AddCB('alwaysfirstlast','Always add First/Last buttons');
+  AddCB('pageno','Add page number');
+  AddCB('image','Use images (Not yet implemented)');
+  AddCB('skipstyling','Skip all styling');
+  AddCB('usepagenofm','Use Page N/M display');
+  AddCB('pagenoedit','Allow page number editing');
+  L.Add('<H3>Width/Color:</H3>');
+  AddNumber('navigatorfixedwidth','Fixed width');
+  AddNumber('navigatorfixedheight','Fixed height');
+  AddNumber('navigatorfixedmargin','Fixed margin');
+  AddColor('navigatorbgcolor','Active link color');
+  AddColor('navigatorinactivebgcolor','Inactive link color');
+//  L.Add('</DIV>');
+end;
+
 procedure TPageReportModule.HandleRequest(ARequest: TRequest;
   AResponse: TResponse);
 
 Var
-  L,RL : TStrings;
+  RL : TStrings;
   I : Integer;
   F : TRenderFormat;
   RC : TFPReportExporterClass;
+  A : String;
 
 begin
   RL:=Nil;
@@ -279,7 +643,10 @@ begin
     L.Add('<HTML><HEAD><TITLE>FPReport web demo</TITLE></HEAD>');
     L.Add('<BODY>');
     L.Add('<H1>Select report and output type</H1>');
-    L.Add('<FORM ACTION="../Generate" METHOD=POST>');
+    A:='/Generate';
+    if Pos('/path',lowerCase(ARequest.PathInfo))<>0 then
+      A:='..'+A;
+    L.Add(Format('<FORM ACTION="%s" METHOD=POST>',[A]));
     L.Add('Report: ');
     L.Add('<SELECT NAME="demo">');
     //
@@ -299,6 +666,16 @@ begin
     L.Add('</SELECT>');
     L.Add('</p>');
     L.Add('<INPUT TYPE="Submit" Value="Generate"/>');
+    L.Add('<HR>');
+    AddPDFOptions;
+    L.Add('<INPUT TYPE="Submit" Value="Generate"/>');
+    L.Add('<HR>');
+    AddHTMLOptions;
+    L.Add('<INPUT TYPE="Submit" Value="Generate"/>');
+    L.Add('<HR>');
+    AddFPImageOptions;
+    // Finish it off
+    L.Add('<INPUT TYPE="Submit" Value="Generate"/>');
     L.Add('</FORM>');
     L.Add('</BODY>');
     L.Add('</HTML>');
@@ -308,9 +685,23 @@ begin
   end;
 end;
 
+procedure ShowPage(ARequest : TRequest; AResponse : TResponse);
+
+begin
+  With TPageReportModule.CreateNew(Nil,0) do
+    try
+      HandleRequest(ARequest,AResponse);
+      if Not AResponse.ContentSent then
+        AResponse.SendContent;
+    finally
+      Free;
+    end;
+end;
+
 initialization
   TPageReportModule.RegisterModule('Page',True);
   TGenerateReportModule.RegisterModule('Generate',True);
   TViewReportModule.RegisterModule('View',True);
+  HTTPRouter.RegisterRoute('/*',@ShowPage,true);
 end.
 
