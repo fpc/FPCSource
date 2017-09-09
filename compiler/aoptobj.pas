@@ -375,9 +375,14 @@ Unit AoptObj;
 {$if defined(MIPS)}
         { MIPS branches can have 1,2 or 3 operands, target label is the last one. }
         result:=ai.oper[ai.ops-1];
+{$elseif defined(SPARC64)}
+        if ai.ops=2 then
+          result:=ai.oper[1]
+        else
+          result:=ai.oper[0];
 {$else MIPS}
         result:=ai.oper[0];
-{$endif MIPS}
+{$endif}
       end;
 
 
