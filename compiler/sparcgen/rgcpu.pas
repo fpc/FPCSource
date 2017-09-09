@@ -104,6 +104,7 @@ implementation
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
+{$ifdef SPARC}
             reference_reset(tmpref,sizeof(pint),[]);
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_high;
@@ -111,6 +112,16 @@ implementation
 
             tmpref.refaddr:=addr_low;
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
+{$else SPARC}
+            if (spilltemp.offset>=-4294967296) and (spilltemp.offset<=-1) then
+              begin
+                helplist.concat(taicpu.op_const_reg(A_SETHI,(not(aint(spilltemp.offset)) shr 10) and $3fffff,hreg));
+                if (aint(spilltemp.offset) and aint($3ff)) or aint($1c00)<>0 then
+                  helplist.concat(taicpu.op_reg_const_reg(A_XOR,hreg,(aint(spilltemp.offset) and aint($3ff)) or aint($1c00),hreg));
+              end
+            else
+              Internalerror(2017090901);
+{$endif SPARC}
 
             reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
             tmpref.index:=spilltemp.base;
@@ -140,6 +151,7 @@ implementation
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
+{$ifdef SPARC}
             reference_reset(tmpref,sizeof(aint),[]);
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_high;
@@ -147,6 +159,16 @@ implementation
 
             tmpref.refaddr:=addr_low;
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
+{$else SPARC}
+            if (spilltemp.offset>=-4294967296) and (spilltemp.offset<=-1) then
+              begin
+                helplist.concat(taicpu.op_const_reg(A_SETHI,(not(aint(spilltemp.offset)) shr 10) and $3fffff,hreg));
+                if (aint(spilltemp.offset) and aint($3ff)) or aint($1c00)<>0 then
+                  helplist.concat(taicpu.op_reg_const_reg(A_XOR,hreg,(aint(spilltemp.offset) and aint($3ff)) or aint($1c00),hreg));
+              end
+            else
+              Internalerror(2017090901);
+{$endif SPARC}
 
             reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
             tmpref.index:=spilltemp.base;
