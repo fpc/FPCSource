@@ -1324,8 +1324,6 @@ type
     // Convert declarations
     Function ConvertElement(El : TPasElement; AContext: TConvertContext) : TJSElement; virtual;
     Function ConvertProperty(El: TPasProperty; AContext: TConvertContext ): TJSElement; virtual;
-    Function ConvertCommand(El: TPasImplCommand; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertCommands(El: TPasImplCommands; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertConst(El: TPasConst; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertDeclarations(El: TPasDeclarations; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertExportSymbol(El: TPasExportSymbol; AContext: TConvertContext): TJSElement; virtual;
@@ -7578,6 +7576,8 @@ Var
       begin
       // NewEl is already added
       end
+    else if AContext.IsGlobal and (AContext.JSElement is TJSSourceElements) then
+      AddToSourceElements(TJSSourceElements(AContext.JSElement),NewEl)
     else
       begin
       AddToStatementList(SLFirst,SLLast,NewEl,PosEl);
@@ -9014,8 +9014,10 @@ begin
 
     // create implementation declarations
     ImplDecl:=ConvertDeclarations(El.ImplementationSection,ImplContext);
-    if ImplDecl=nil then
-      exit;
+    if ImplDecl<>nil then
+      RaiseInconsistency(20170910175032); // elements should have been added directly
+    if Src.Statements[Src.Statements.Count-1].Node=ImplVarSt then
+      exit; // no implementation
     // add impl declarations
     AddToSourceElements(Src,ImplDecl);
     Result:=FunDecl;
@@ -9915,15 +9917,6 @@ begin
     AssignContext.RightSide.Free;
     AssignContext.Free;
   end;
-end;
-
-function TPasToJSConverter.ConvertCommand(El: TPasImplCommand;
-  AContext: TConvertContext): TJSElement;
-
-begin
-  RaiseNotSupported(El,AContext,20161024192705);
-  Result:=Nil;
-  // ToDo: TPasImplCommand = class(TPasImplElement)
 end;
 
 function TPasToJSConverter.ConvertIfStatement(El: TPasImplIfElse;
@@ -11632,15 +11625,6 @@ begin
 }
 end;
 
-function TPasToJSConverter.ConvertCommands(El: TPasImplCommands;
-  AContext: TConvertContext): TJSElement;
-
-begin
-  RaiseNotSupported(El,AContext,20161024192806);
-  Result:=Nil;
-  // ToDo: TPasImplCommands = class(TPasImplElement)
-end;
-
 function TPasToJSConverter.ConvertConst(El: TPasConst; AContext: TConvertContext
   ): TJSElement;
 // Important: returns nil if const was added to higher context
@@ -11726,10 +11710,6 @@ begin
     Result:=ConvertExportSymbol(TPasExportSymbol(El),AContext)
   else if (C=TPasLabels) then
     Result:=ConvertLabels(TPasLabels(El),AContext)
-  else if (C=TPasImplCommand) then
-    Result:=ConvertCommand(TPasImplCommand(El),AContext)
-  else if (C=TPasImplCommands) then
-    Result:=ConvertCommands(TPasImplCommands(El),AContext)
   else if (C=TPasImplLabelMark) then
     Result:=ConvertLabelMark(TPasImplLabelMark(El),AContext)
   else if C.InheritsFrom(TPasExpr) then

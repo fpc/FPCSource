@@ -247,6 +247,7 @@ type
     Procedure TestProc_OverloadUnit;
     Procedure TestProc_OverloadNested;
     Procedure TestProc_Varargs;
+    Procedure TestProc_ConstOrder;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -2784,6 +2785,36 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestProc_ConstOrder;
+begin
+  StartProgram(false);
+  Add([
+  'const A = 3;',
+  'const B = A+1;',
+  'procedure DoIt;',
+  'const C = A+1;',
+  'const D = B+1;',
+  'const E = D+C+B+A;',
+  'begin',
+  'end;',
+  'begin'
+  ]);
+  ConvertProgram;
+  CheckSource('TestProc_ConstOrder',
+    LinesToStr([ // statements
+    'this.A = 3;',
+    'this.B = $mod.A + 1;',
+    'var C = $mod.A + 1;',
+    'var D = $mod.B + 1;',
+    'var E = ((D + C) + $mod.B) + $mod.A;',
+    'this.DoIt = function () {',
+    '};',
+    '']),
+    LinesToStr([
+    ''
+    ]));
+end;
+
 procedure TTestModule.TestEnum_Name;
 begin
   StartProgram(false);
@@ -4488,9 +4519,9 @@ begin
     '']),
     '', // this.$init
     LinesToStr([ // implementation
-    'var cLoc = 3;',
     '$impl.cImpl = 2;',
     '$impl.vImpl = 0;',
+    'var cLoc = 3;',
     '$impl.DoIt = function () {',
     '  var vLoc = 0;',
     '};',
