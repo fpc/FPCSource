@@ -18,6 +18,8 @@ uses
 
 type
 
+  { TMasterDetailDatasetDemo }
+
   TMasterDetailDatasetDemo = class(TReportDemoApp)
   private
     IBConnection1: TIBConnection;
@@ -35,6 +37,7 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -338,6 +341,11 @@ begin
   FreeAndNil(SQLTransaction1);
   FreeAndNil(IBConnection1);
   inherited Destroy;
+end;
+
+class function TMasterDetailDatasetDemo.Description: string;
+begin
+  Result:='Demo for support of master-detail relations with datasets';
 end;
 
 

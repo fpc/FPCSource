@@ -14,6 +14,9 @@ uses
   udapp;
 
 type
+
+  { TDatasetDemo }
+
   TDatasetDemo = class(TReportDemoApp)
   private
     lReportData: TFPReportDatasetData;
@@ -23,6 +26,7 @@ type
     procedure   InitialiseData; override;
   public
     constructor Create(AOwner : TComponent); override;
+    Class function Description : string; override;
     destructor  Destroy; override;
   end;
 
@@ -191,6 +195,11 @@ constructor TDatasetDemo.Create(AOwner : TComponent);
 begin
   Inherited;
   lReportData := TFPReportDatasetData.Create(nil);
+end;
+
+class function TDatasetDemo.Description: string;
+begin
+  Result:='Demo showing dataset support';
 end;
 
 destructor TDatasetDemo.Destroy;

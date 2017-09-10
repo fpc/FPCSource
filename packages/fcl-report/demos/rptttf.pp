@@ -15,6 +15,9 @@ uses
   udapp;
 
 type
+
+  { TTTFDemo }
+
   TTTFDemo = class(TReportDemoApp)
   private
     lReportData: TFPReportUserData;
@@ -29,6 +32,7 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -229,6 +233,11 @@ begin
   FreeAndNil(lReportData);
   FreeAndNil(sl);
   inherited Destroy;
+end;
+
+class function TTTFDemo.Description: string;
+begin
+  Result:='Demo showing TrueType Font support';
 end;
 
 end.

@@ -53,6 +53,7 @@ Type
     procedure InitialiseData; virtual;
     procedure CreateReportDesign; virtual;
   public
+    Class Function Description : string; virtual;
 //    procedure DoCreateJSON(const AFileName: String; RunTime: Boolean=False);
     Property rpt : TFPReport read Frpt Write FRpt;
   end;
@@ -113,7 +114,12 @@ Type
     Class Function FormatName(F : TRenderFormat) : String;
   end;
 
+    { TReportDef }
 
+  TReportDef = Class
+    ReportClass: TReportDemoAppClass;
+    Constructor create(AClass : TReportDemoAppClass);
+  end;
 
 implementation
 
@@ -136,6 +142,11 @@ procedure TReportDemoApp.CreateReportDesign;
 begin
   if PaperManager.PaperCount=0 then
     PaperManager.RegisterStandardSizes;
+end;
+
+class function TReportDemoApp.Description: string;
+begin
+  Result:='';
 end;
 
 
@@ -359,13 +370,7 @@ begin
     end;
 end;
 
-Type
-  { TReportDef }
 
-  TReportDef = Class
-    ReportClass: TReportDemoAppClass;
-    Constructor create(AClass : TReportDemoAppClass);
-  end;
 
 { TReportDef }
 

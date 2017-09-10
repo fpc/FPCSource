@@ -14,6 +14,8 @@ uses
 
 type
 
+  { TColumnsDemo }
+
   TColumnsDemo = class(TReportDemoApp)
   private
     FDataPage1: TFPReportUserData;
@@ -32,6 +34,7 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -361,6 +364,11 @@ begin
   FreeAndNil(FStringListPage1);
   FreeAndNil(FStringListPage2);
   inherited Destroy;
+end;
+
+class function TColumnsDemo.Description: string;
+begin
+  Result:='Demo showing support for multiple columns';
 end;
 
 procedure TColumnsDemo.GetReportDataPage2Names(Sender: TObject; List: TStrings);

@@ -14,6 +14,8 @@ uses
 
 type
 
+  { TJSONDemo }
+
   TJSONDemo = class(TReportDemoApp)
   private
     FReportData : TFPReportJSONData;
@@ -25,6 +27,7 @@ type
   public
     constructor Create(AOWner :TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -185,6 +188,11 @@ destructor TJSONDemo.Destroy;
 begin
   FreeAndNil(FReportData);
   inherited Destroy;
+end;
+
+class function TJSONDemo.Description: string;
+begin
+  Result:='Demo of native JSON data support';
 end;
 
 end.

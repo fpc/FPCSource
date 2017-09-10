@@ -13,6 +13,8 @@ uses
 
 type
 
+  { TGroupingDemo }
+
   TGroupingDemo = class(TReportDemoApp)
   private
     lReportData: TFPReportUserData;
@@ -29,6 +31,7 @@ type
   public
     constructor Create(AOWner :TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -258,6 +261,11 @@ begin
   FreeAndNil(lReportData);
   FreeAndNil(sl);
   inherited Destroy;
+end;
+
+class function TGroupingDemo.Description: string;
+begin
+  Result:='Demo showing grouping';
 end;
 
 end.

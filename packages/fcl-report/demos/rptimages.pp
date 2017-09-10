@@ -12,6 +12,9 @@ uses
   udapp;
 
 type
+
+  { TImagesDemo }
+
   TImagesDemo = class(TReportDemoApp)
   private
     lReportData: TFPReportUserData;
@@ -24,6 +27,7 @@ type
   public
     constructor Create(AOWner : TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
     procedure GetReportDataNames(Sender: TObject; List: TStrings);
   end;
 
@@ -232,6 +236,11 @@ begin
   FreeAndNil(lReportData);
   FreeAndNil(sl);
   inherited Destroy;
+end;
+
+class function TImagesDemo.Description: string;
+begin
+  Result:='Demo showing image support';
 end;
 
 procedure TImagesDemo.GetReportDataNames(Sender: TObject; List: TStrings);

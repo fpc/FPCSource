@@ -13,6 +13,9 @@ uses
   udapp;
 
 type
+
+  { TMasterDetailDemo }
+
   TMasterDetailDemo = class(TReportDemoApp)
   private
     FMasterData: TFPReportUserData;
@@ -41,6 +44,7 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -313,6 +317,11 @@ begin
   FreeAndNil(FDetailData);
   FreeAndNil(FDetail2Data);
   inherited Destroy;
+end;
+
+class function TMasterDetailDemo.Description: string;
+begin
+  Result:='Demo of Master/Detail data loop support';
 end;
 
 

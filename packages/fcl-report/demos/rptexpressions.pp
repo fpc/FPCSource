@@ -30,6 +30,7 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor  Destroy; override;
+    Class function Description : string; override;
   end;
 
 
@@ -251,6 +252,11 @@ begin
   FreeAndNil(FReportData);
   FreeAndNil(sl);
   inherited Destroy;
+end;
+
+class function TExpressionsDemo.Description: string;
+begin
+  Result:='Demo with expressions in Memos';
 end;
 
 
