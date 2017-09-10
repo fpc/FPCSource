@@ -172,7 +172,7 @@ begin
     Delete(FN,1,1);
   Delete(FN,1,Pos('/',FN)); // Strip /View
   TFN:=GetTempDir+FN;
-  With TStringList.Create do
+{  With TStringList.Create do
     try
       if FileExists(LFN) then
         LoadFromFile(LFN);
@@ -180,7 +180,7 @@ begin
       SaveToFile(LFN);
     finally
       Free;
-    end;
+    end;}
   If FileExists(TFN) then
     begin
     AResponse.ContentStream:=TFileStream.Create(GetTempDir+FN,fmOpenRead or fmShareDenyWrite);
@@ -474,7 +474,7 @@ begin
     flds:=ARequest.QueryFields
   else
     flds:=ARequest.ContentFields;
-  flds.SaveToFile('/tmp/vars.txt');
+//  flds.SaveToFile('/tmp/vars.txt');
   D:=Flds.Values['demo'];
   if (D='') or (TReportDemoApplication.GetReportClass(D)=Nil) then
     Raise Exception.CreateFmt('Invalid or empty demo name : "%s"',[D]);
