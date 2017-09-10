@@ -3401,9 +3401,9 @@ begin
 {$endif i8086 or avr}
 { abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$if defined(i386) or defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
+{$if defined(i8086) or defined(i386) or defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
-{$endif i386 or x86_64 or powerpc64 or aarch64}
+{$endif i8086 or i386 or x86_64 or powerpc64 or aarch64}
 
   def_system_macro('FPC_HAS_MANAGEMENT_OPERATORS');
   def_system_macro('FPC_HAS_UNICODESTRING');
