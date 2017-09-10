@@ -1371,7 +1371,7 @@ type
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
-    function GetRangeLength(const RangeResolved: TPasResolverResult): MaxPrecInt;
+    function GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
     function HasTypeInfo(El: TPasType): boolean; virtual;
@@ -12001,6 +12001,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
   begin
     if length(ArrType.Ranges)=0 then
       begin
+      // dynamic array
       if (Values.ExprEl<>nil) then
         begin
         Expr:=Values.ExprEl;
@@ -12026,11 +12027,14 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       end
     else
       begin
+      // static array
       Range:=ArrType.Ranges[RangeIndex];
-      ComputeElement(Range,RangeResolved,[rcConstant]);
-      Count:=GetRangeLength(RangeResolved);
+      Count:=GetRangeLength(Range);
       if Count=0 then
+        begin
+        ComputeElement(Range,RangeResolved,[rcConstant]);
         RaiseNotYetImplemented(20170222232409,Values.ExprEl,'range '+GetResolverResultDbg(RangeResolved));
+        end;
       IsLastRange:=RangeIndex+1=length(ArrType.Ranges);
       end;
 
@@ -13380,50 +13384,25 @@ begin
   Result:=(El.Args.Count>0) and (TPasArgument(El.Args[0]).ValueExpr=nil);
 end;
 
-function TPasResolver.GetRangeLength(const RangeResolved: TPasResolverResult
-  ): MaxPrecInt;
+function TPasResolver.GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
 var
-  TypeEl: TPasType;
-  Value: TResEvalValue;
+  Range: TResEvalValue;
 begin
   Result:=0;
-  if RangeResolved.BaseType=btContext then
-    begin
-    if RangeResolved.IdentEl is TPasType then
-      begin
-      TypeEl:=ResolveAliasType(TPasType(RangeResolved.IdentEl));
-      if TypeEl<>nil then
-        begin
-        if TypeEl.ClassType=TPasEnumType then
-          Result:=TPasEnumType(TypeEl).Values.Count;
-        end;
-      end;
-    end
-  else if RangeResolved.ExprEl<>nil then
-    begin
-    Value:=Eval(RangeResolved.ExprEl,[]);
-    if Value=nil then
-      RaiseMsg(20170729094135,nIncompatibleTypesGotExpected,
-        sIncompatibleTypesGotExpected,
-        [GetResolverResultDescription(RangeResolved),'range'],RangeResolved.ExprEl);
-    try
-      case Value.Kind of
-        revkRangeInt:
-          Result:=TResEvalRangeInt(Value).RangeEnd-TResEvalRangeInt(Value).RangeStart+1;
-      else
-        RaiseMsg(20170729093823,nIncompatibleTypesGotExpected,
-          sIncompatibleTypesGotExpected,
-          [GetResolverResultDescription(RangeResolved),'range'],RangeResolved.ExprEl);
-      end;
-    finally
-      ReleaseEvalValue(Value);
-    end;
-    end
-  else if RangeResolved.BaseType in btAllBooleans then
-    Result:=2;
+  Range:=Eval(RangeExpr,[refConst]);
+  if Range=nil then
+    RaiseNotYetImplemented(20170910210416,RangeExpr);
+  case Range.Kind of
+  revkRangeInt:
+    Result:=TResEvalRangeInt(Range).RangeEnd-TResEvalRangeInt(Range).RangeStart+1;
+  revkRangeUInt:
+    Result:=TResEvalRangeUInt(Range).RangeEnd-TResEvalRangeUInt(Range).RangeStart+1;
+  else
+    RaiseNotYetImplemented(20170910210554,RangeExpr);
+  end;
   {$IFDEF VerbosePasResolver}
   //if Result=0 then
-    writeln('TPasResolver.GetRangeLength ',GetResolverResultDbg(RangeResolved),' Result=',Result);
+    writeln('TPasResolver.GetRangeLength Result=',Result);
   {$ENDIF}
 end;
 
