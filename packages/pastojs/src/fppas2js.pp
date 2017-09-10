@@ -1277,6 +1277,7 @@ type
     Function ConvertCaseOfStatement(El: TPasImplCaseOf; AContext: TConvertContext): TJSElement;
     Function ConvertAsmStatement(El: TPasImplAsmStatement; AContext: TConvertContext): TJSElement;
     // Expressions
+    Function ConvertConstValue(Value: TResEvalValue; AContext: TConvertContext; El: TPasElement): TJSElement; virtual;
     Function ConvertArrayValues(El: TArrayValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertInheritedExpression(El: TInheritedExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertNilExpr(El: TNilExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -5081,6 +5082,9 @@ var
     JSAdd: TJSAdditiveExpression;
     LowRg: TResEvalValue;
     JSUnaryPlus: TJSUnaryPlusExpression;
+    w: WideChar;
+    Call: TJSCallExpression;
+    JS: TJSString;
   begin
     Arg:=nil;
     B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
@@ -5156,8 +5160,42 @@ var
               Int:=TResEvalEnum(LowRg).Index;
             revkInt:
               Int:=TResEvalInt(LowRg).Int;
-            // revkString
-            // revkUnicodeString
+            revkString:
+              begin
+              if length(TResEvalString(LowRg).S)<>1 then
+                begin
+                if ArgContext.Resolver.ExprEvaluator.GetWideChar(TResEvalString(LowRg).S,w) then
+                  Int:=ord(w)
+                else
+                  ArgContext.Resolver.RaiseXExpectedButYFound(20170910213203,'char','string',Param);
+                end
+              else
+                Int:=ord(TResEvalString(LowRg).S[1]);
+              if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstString) then
+                begin
+                // convert char literal to int
+                if TJSLiteral(Arg).Value.CustomValue<>'' then
+                  JS:=TJSLiteral(Arg).Value.CustomValue
+                else
+                  JS:=TJSLiteral(Arg).Value.AsString;
+                if length(JS)=0 then
+                  RaiseNotSupported(Param,ArgContext,20170910215152);
+                TJSLiteral(Arg).Value.AsNumber:=ord(JS[1]);
+                end
+              else
+                begin
+                // convert char to int  ->  Arg.charCodeAt(0)
+                Call:=CreateCallExpression(Param);
+                Call.Expr:=CreateDotExpression(Param,Arg,CreatePrimitiveDotExpr('charCodeAt'));
+                Arg:=Call;
+                Call.Args.AddElement(CreateLiteralNumber(Param,0));
+                end;
+              end;
+            revkUnicodeString:
+              if length(TResEvalUTF16(LowRg).S)<>1 then
+                ArgContext.Resolver.RaiseXExpectedButYFound(20170910213247,'char','string',Param)
+              else
+                Int:=ord(TResEvalUTF16(LowRg).S[1]);
             else
               ReleaseEvalValue(LowRg);
               RaiseNotSupported(Param,ArgContext,20170910170446);
@@ -6764,18 +6802,11 @@ begin
           Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],true,El);
           if Value=nil then
             RaiseNotSupported(El,AContext,20170910160817);
-          case Value.Kind of
-          revkBool:
-            Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
-          revkEnum:
-            Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
-          revkInt:
-            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
-          else
+          try
+            Result:=ConvertConstValue(Value,AContext,Param);
+          finally
             ReleaseEvalValue(Value);
-            RaiseNotSupported(El,AContext,20170222231008);
           end;
-          ReleaseEvalValue(Value);
           exit;
           end;
         end;
@@ -6877,18 +6908,11 @@ begin
           Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],false,El);
           if Value=nil then
             RaiseNotSupported(El,AContext,20170910161555);
-          case Value.Kind of
-          revkBool:
-            Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
-          revkEnum:
-            Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
-          revkInt:
-            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
-          else
+          try
+            Result:=ConvertConstValue(Value,AContext,Param);
+          finally
             ReleaseEvalValue(Value);
-            RaiseNotSupported(El,AContext,20170910161553);
           end;
-          ReleaseEvalValue(Value);
           exit;
           end;
         end;
@@ -9016,6 +9040,28 @@ begin
   end;
 end;
 
+function TPasToJSConverter.ConvertConstValue(Value: TResEvalValue;
+  AContext: TConvertContext; El: TPasElement): TJSElement;
+begin
+  Result:=nil;
+  if Value=nil then
+    RaiseNotSupported(El,AContext,20170910211948);
+  case Value.Kind of
+  revkBool:
+    Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
+  revkEnum:
+    Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
+  revkInt:
+    Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+  revkString:
+    Result:=CreateLiteralString(El,TResEvalString(Value).S);
+  revkUnicodeString:
+    Result:=CreateLiteralJSString(El,TResEvalUTF16(Value).S);
+  else
+    RaiseNotSupported(El,AContext,20170910211951);
+  end;
+end;
+
 function TPasToJSConverter.CreateImplementationSection(El: TPasModule;
   AContext: TConvertContext
   ): TJSFunctionDeclarationStatement;
@@ -10884,10 +10930,12 @@ begin
           begin
           Range:=CurArrayType.Ranges[i];
           // compute size of this dimension
-          AContext.Resolver.ComputeElement(Range,RangeResolved,[rcConstant]);
-          DimSize:=AContext.Resolver.GetRangeLength(RangeResolved);
+          DimSize:=AContext.Resolver.GetRangeLength(Range);
           if DimSize=0 then
-            RaiseNotSupported(Range,AContext,20170223113318);
+            begin
+            AContext.Resolver.ComputeElement(Range,RangeResolved,[rcConstant]);
+            RaiseNotSupported(Range,AContext,20170223113318,GetResolverResultDbg(RangeResolved));
+            end;
           Lit:=CreateLiteralNumber(El,DimSize);
           DimArray.Elements.AddElement.Expr:=Lit;
           end;

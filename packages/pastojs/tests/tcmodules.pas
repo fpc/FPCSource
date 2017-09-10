@@ -298,6 +298,7 @@ type
     Procedure TestArray_DynMultiDimensional;
     Procedure TestArray_StaticInt;
     Procedure TestArray_StaticBool;
+    Procedure TestArray_StaticChar;
     Procedure TestArray_StaticMultiDim; // ToDo
     Procedure TestArrayOfRecord;
     // ToDo: Procedure TestArrayOfSet;
@@ -4963,6 +4964,54 @@ begin
     '$mod.Arr2[0] = true;',
     '$mod.Arr2[0] = $mod.Arr2[0] && $mod.Arr2[1-$mod.b];',
     '$mod.Arr2[1-$mod.b] = false;',
+    '']));
+end;
+
+procedure TTestModule.TestArray_StaticChar;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TChars = array[char] of char;');
+  Add('  TChars2 = array[''a''..''z''] of char;');
+  Add('var');
+  Add('  Arr: TChars;');
+  Add('  Arr2: TChars2;');
+  Add('  c: char;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  c:=low(arr);');
+  Add('  c:=high(arr);');
+  Add('  arr[''B'']:=''a'';');
+  Add('  arr[''D'']:=arr[c];');
+  Add('  arr[c]:=arr[''d''];');
+  Add('  arr[arr[c]]:=arr[high(arr)];');
+  Add('  b:=arr[low(arr)]=arr[''e''];');
+  Add('  c:=low(arr2);');
+  Add('  c:=high(arr2);');
+  Add('  arr2[''b'']:=''f'';');
+  Add('  arr2[''a'']:=arr2[c];');
+  Add('  arr2[c]:=arr2[''g''];');
+  ConvertProgram;
+  CheckSource('TestArray_StaticChar',
+    LinesToStr([ // statements
+    'this.Arr = rtl.arrayNewMultiDim([65536], "");',
+    'this.Arr2 = rtl.arrayNewMultiDim([26], "");',
+    'this.c = "";',
+    'this.b = false;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.c = "\x00";',
+    '$mod.c = "'#$EF#$BF#$BF'";',
+    '$mod.Arr[66] = "a";',
+    '$mod.Arr[68] = $mod.Arr[$mod.c.charCodeAt(0)];',
+    '$mod.Arr[$mod.c.charCodeAt(0)] = $mod.Arr[100];',
+    '$mod.Arr[$mod.Arr[$mod.c.charCodeAt(0)].charCodeAt(0)] = $mod.Arr[65535];',
+    '$mod.b = $mod.Arr[0] === $mod.Arr[101];',
+    '$mod.c = "a";',
+    '$mod.c = "z";',
+    '$mod.Arr2[1] = "f";',
+    '$mod.Arr2[0] = $mod.Arr2[$mod.c.charCodeAt(0) - 97];',
+    '$mod.Arr2[$mod.c.charCodeAt(0) - 97] = $mod.Arr2[6];',
     '']));
 end;
 
