@@ -5078,8 +5078,9 @@ var
     Ranges: TPasExprArray;
     Int: MaxPrecInt;
     Param: TPasExpr;
-    ArgAdjusted: TJSAdditiveExpression;
-    Value: TResEvalValue;
+    JSAdd: TJSAdditiveExpression;
+    LowRg: TResEvalValue;
+    JSUnaryPlus: TJSUnaryPlusExpression;
   begin
     Arg:=nil;
     B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
@@ -5106,20 +5107,59 @@ var
           if i<=length(Ranges) then
             begin
             // static array
-            Value:=ArgContext.Resolver.EvalRangeLimit(Ranges[i-1],[refConst],true,El);
-            if Value=nil then
+            LowRg:=ArgContext.Resolver.EvalRangeLimit(Ranges[i-1],[refConst],true,El);
+            if LowRg=nil then
               RaiseNotSupported(Param,ArgContext,20170910163341);
-            case Value.Kind of
+            Int:=0;
+            case LowRg.Kind of
             revkBool:
-              Int:=ord(TResEvalBool(Value).B);
+              if TResEvalBool(LowRg).B=false then
+                begin
+                // array starts at 'false'
+                if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstBoolean) then
+                  begin
+                  // convert Pascal boolean literal to JS number
+                  if TJSLiteral(Arg).Value.AsBoolean then
+                    TJSLiteral(Arg).Value.AsNumber:=1
+                  else
+                    TJSLiteral(Arg).Value.AsNumber:=0;
+                  end
+                else
+                  begin
+                  // -> convert bool to int with unary plus:  +bool
+                  JSUnaryPlus:=TJSUnaryPlusExpression(CreateElement(TJSUnaryPlusExpression,Param));
+                  JSUnaryPlus.A:=Arg;
+                  Arg:=JSUnaryPlus;
+                  end;
+                end
+              else
+                begin
+                // array starts at 'true'
+                if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstBoolean) then
+                  begin
+                  if TJSLiteral(Arg).Value.AsBoolean then
+                    TJSLiteral(Arg).Value.AsNumber:=0
+                  else
+                    ArgContext.Resolver.ExprEvaluator.EmitRangeCheckConst(
+                      20170910203312,'false','true','true',Param,mtError);
+                  end
+                else
+                  begin
+                  // convert bool to int with offset: 1-bool
+                  JSAdd:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
+                  JSAdd.A:=CreateLiteralNumber(Param,1);
+                  JSAdd.B:=Arg;
+                  Arg:=JSAdd;
+                  end;
+                end;
             revkEnum:
-              Int:=TResEvalEnum(Value).Index;
+              Int:=TResEvalEnum(LowRg).Index;
             revkInt:
-              Int:=TResEvalInt(Value).Int;
+              Int:=TResEvalInt(LowRg).Int;
             // revkString
             // revkUnicodeString
             else
-              ReleaseEvalValue(Value);
+              ReleaseEvalValue(LowRg);
               RaiseNotSupported(Param,ArgContext,20170910170446);
             end;
             if Int<>0 then
@@ -5133,22 +5173,22 @@ var
                 if Int>0 then
                   begin
                   // Arg-Offset
-                  ArgAdjusted:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
-                  ArgAdjusted.A:=Arg;
-                  ArgAdjusted.B:=CreateLiteralNumber(Param,Int);
-                  Arg:=ArgAdjusted;
+                  JSAdd:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
+                  JSAdd.A:=Arg;
+                  JSAdd.B:=CreateLiteralNumber(Param,Int);
+                  Arg:=JSAdd;
                   end
                 else
                   begin
                   // Arg+Offset
-                  ArgAdjusted:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,Param));
-                  ArgAdjusted.A:=Arg;
-                  ArgAdjusted.B:=CreateLiteralNumber(Param,-Int);
-                  Arg:=ArgAdjusted;
+                  JSAdd:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,Param));
+                  JSAdd.A:=Arg;
+                  JSAdd.B:=CreateLiteralNumber(Param,-Int);
+                  Arg:=JSAdd;
                   end;
                 end;
               end;
-            ReleaseEvalValue(Value);
+            ReleaseEvalValue(LowRg);
             end;
 
           if B.Name<>nil then

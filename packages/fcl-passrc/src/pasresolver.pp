@@ -7533,7 +7533,7 @@ begin
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags);
   {$ENDIF}
-  if refConst in Flags then
+  if (Result=nil) and (refConst in Flags) then
     RaiseConstantExprExp(20170518213616,Expr);
 end;
 
@@ -13465,9 +13465,9 @@ begin
           Result:=TResEvalUTF16.CreateValue(widechar(TResEvalRangeInt(Range).RangeEnd));
       revskBool:
         if EvalLow then
-          Result:=TResEvalBool.CreateValue(low(Boolean))
+          Result:=TResEvalBool.CreateValue(TResEvalRangeInt(Range).RangeStart<>0)
         else
-          Result:=TResEvalBool.CreateValue(high(Boolean));
+          Result:=TResEvalBool.CreateValue(TResEvalRangeInt(Range).RangeEnd<>0);
     else
       RaiseNotYetImplemented(20170601195240,ErrorEl);
     end;

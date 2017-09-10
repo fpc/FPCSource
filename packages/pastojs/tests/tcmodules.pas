@@ -297,6 +297,7 @@ type
     Procedure TestArray_Dynamic_Nil;
     Procedure TestArray_DynMultiDimensional;
     Procedure TestArray_StaticInt;
+    Procedure TestArray_StaticBool;
     Procedure TestArray_StaticMultiDim; // ToDo
     Procedure TestArrayOfRecord;
     // ToDo: Procedure TestArrayOfSet;
@@ -4916,6 +4917,52 @@ begin
     '$mod.i = 2;',
     '$mod.i = 4;',
     '$mod.b = $mod.Arr[0] === $mod.Arr[1];',
+    '']));
+end;
+
+procedure TTestModule.TestArray_StaticBool;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TBools = array[boolean] of boolean;');
+  Add('  TBool2 = array[true..true] of boolean;');
+  Add('var');
+  Add('  Arr: TBools;');
+  Add('  Arr2: TBool2;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  b:=low(arr);');
+  Add('  b:=high(arr);');
+  Add('  arr[true]:=false;');
+  Add('  arr[false]:=arr[b] or arr[true];');
+  Add('  arr[b]:=true;');
+  Add('  arr[arr[b]]:=arr[high(arr)];');
+  Add('  b:=arr[false]=arr[true];');
+  Add('  b:=low(arr2);');
+  Add('  b:=high(arr2);');
+  Add('  arr2[true]:=true;');
+  Add('  arr2[true]:=arr2[true] and arr2[b];');
+  Add('  arr2[b]:=false;');
+  ConvertProgram;
+  CheckSource('TestArray_StaticBool',
+    LinesToStr([ // statements
+    'this.Arr = rtl.arrayNewMultiDim([2],false);',
+    'this.Arr2 = rtl.arrayNewMultiDim([1],false);',
+    'this.b = false;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.b = false;',
+    '$mod.b = true;',
+    '$mod.Arr[1] = false;',
+    '$mod.Arr[0] = $mod.Arr[+$mod.b] || $mod.Arr[1];',
+    '$mod.Arr[+$mod.b] = true;',
+    '$mod.Arr[+$mod.Arr[+$mod.b]] = $mod.Arr[1];',
+    '$mod.b = $mod.Arr[0] === $mod.Arr[1];',
+    '$mod.b = true;',
+    '$mod.b = true;',
+    '$mod.Arr2[0] = true;',
+    '$mod.Arr2[0] = $mod.Arr2[0] && $mod.Arr2[1-$mod.b];',
+    '$mod.Arr2[1-$mod.b] = false;',
     '']));
 end;
 
