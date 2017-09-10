@@ -66,9 +66,7 @@ interface
 
           procedure second_prefetch;override;
 
-{$ifndef i8086}
           procedure second_abs_long;override;
-{$endif not i8086}
           procedure second_popcnt;override;
           procedure second_fma;override;
           procedure second_frac_real;override;
@@ -653,14 +651,13 @@ implementation
        end;
 
 
-{$ifndef i8086}
     procedure tx86inlinenode.second_abs_long;
       var
         hregister : tregister;
         opsize : tcgsize;
         hp : taicpu;
       begin
-{$ifdef i386}
+{$if defined(i8086) or defined(i386)}
         if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
@@ -668,13 +665,13 @@ implementation
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
             location:=left.location;
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-            emit_reg_reg(A_MOV,S_L,left.location.register,location.register);
-            emit_const_reg(A_SAR,tcgsize2opsize[opsize],31,left.location.register);
-            emit_reg_reg(A_XOR,S_L,left.location.register,location.register);
-            emit_reg_reg(A_SUB,S_L,left.location.register,location.register);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,tcgsize2size[opsize]*8-1,left.location.register);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,opsize,left.location.register,location.register);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,left.location.register,location.register);
           end
         else
-{$endif i386}
+{$endif i8086 or i386}
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
@@ -690,7 +687,6 @@ implementation
             current_asmdata.CurrAsmList.concat(hp);
           end;
       end;
-{$endif not i8086}
 
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
