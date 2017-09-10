@@ -39,6 +39,7 @@ interface
          procedure second_get_frame;override;
          function first_IncDec: tnode;override;
          procedure second_incdec;override;
+         procedure second_abs_long;override;
        end;
 
 implementation
@@ -247,6 +248,29 @@ implementation
            end
          else
            inherited second_incdec;
+       end;
+
+
+     procedure ti8086inlinenode.second_abs_long;
+       var
+         opsize: TCgSize;
+       begin
+         opsize:=def_cgsize(left.resultdef);
+         if opsize in [OS_32,OS_S32] then
+           begin
+            secondpass(left);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+            location:=left.location;
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,location.register);
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_16,15,GetNextReg(left.location.register));
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(left.location.register),location.register);
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(left.location.register),GetNextReg(location.register));
+            emit_reg_reg(A_SUB,S_W,GetNextReg(left.location.register),location.register);
+            emit_reg_reg(A_SBB,S_W,GetNextReg(left.location.register),GetNextReg(location.register));
+           end
+         else
+           inherited second_abs_long;
        end;
 
 begin
