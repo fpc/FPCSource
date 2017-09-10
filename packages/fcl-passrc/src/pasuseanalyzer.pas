@@ -1713,20 +1713,28 @@ var
   Usage: TPAElement;
   ProcScope: TPasProcedureScope;
   PosEl: TPasElement;
+  DeclProc: TPasProcedure;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitProcedureHints ',GetElModName(El));
   {$ENDIF}
   ProcScope:=El.CustomData as TPasProcedureScope;
-  if (ProcScope.DeclarationProc=nil) and (FindNode(El)=nil) then
+  if ProcScope.DeclarationProc=nil then
+    DeclProc:=El
+  else
+    DeclProc:=ProcScope.DeclarationProc;
+  if FindNode(DeclProc)=nil then
     begin
     // procedure never used
-    if El.Visibility in [visPrivate,visStrictPrivate] then
-      EmitMessage(20170312093348,mtHint,nPAPrivateMethodIsNeverUsed,
-        sPAPrivateMethodIsNeverUsed,[El.FullName],El)
-    else
-      EmitMessage(20170312093418,mtHint,nPALocalXYNotUsed,
-        sPALocalXYNotUsed,[El.ElementTypeName,El.Name],El);
+    if ProcScope.DeclarationProc=nil then
+      begin
+      if El.Visibility in [visPrivate,visStrictPrivate] then
+        EmitMessage(20170312093348,mtHint,nPAPrivateMethodIsNeverUsed,
+          sPAPrivateMethodIsNeverUsed,[El.FullName],El)
+      else
+        EmitMessage(20170312093418,mtHint,nPALocalXYNotUsed,
+          sPALocalXYNotUsed,[El.ElementTypeName,El.Name],El);
+      end;
     exit;
     end;
 

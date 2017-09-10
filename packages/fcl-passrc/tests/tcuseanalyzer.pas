@@ -94,6 +94,8 @@ type
     procedure TestM_Hint_PrivatePropertyNeverUsed;
     procedure TestM_Hint_LocalClassInProgramNotUsed;
     procedure TestM_Hint_LocalMethodInProgramNotUsed;
+    procedure TestM_Hint_LocalVarOfNotUsedProc;
+    procedure TestM_Hint_LocalVarOfNotUsedMethod;
     procedure TestM_Hint_AssemblerParameterIgnored;
     procedure TestM_Hint_AssemblerDelphiParameterIgnored;
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet;
@@ -1251,6 +1253,41 @@ begin
   Add('  if m=nil then ;');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local constructor "Create" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_LocalVarOfNotUsedProc;
+begin
+  StartProgram(true,[]);
+  Add('type');
+  Add('procedure DoIt;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('end;');
+  Add('begin');
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local procedure "DoIt" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_LocalVarOfNotUsedMethod;
+begin
+  StartProgram(true,[supTObject]);
+  Add('type');
+  Add('  TMobile = class');
+  Add('  private');
+  Add('    procedure DoIt;');
+  Add('  end;');
+  Add('procedure TMobile.DoIt;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('end;');
+  Add('var');
+  Add('  m: TMobile;');
+  Add('begin');
+  Add('  if m=nil then ;');
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPAPrivateMethodIsNeverUsed,'Private method "TMobile.DoIt" is never used');
   CheckUseAnalyzerUnexpectedHints;
 end;
 
