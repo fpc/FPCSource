@@ -172,6 +172,7 @@ Works:
   - mode delphi: functype=funcresulttype
   - nested functions
   - reference to
+  - @@ compare method in delphi mode
 - class-of
   - assign :=   nil, var
   - call class method
@@ -251,6 +252,17 @@ ToDos:
 - ignore attributes
 - constant evaluation
 - static arrays
+  - error on "arr:=nil"
+  - error on "if arr=nil then"
+  - error on "if Assigned(arr) then"
+  - error on "setlength(arr,2)"
+  - a[int]
+  - a[boolean]
+  - a[enum]
+  - a[char]
+  - a[][]
+  - const
+  - RTTI
 - property index specifier
 - RTTI
   - stored false/true
@@ -262,7 +274,6 @@ ToDos:
 - var absolute
 - FuncName:= (instead of Result:=)
 - check memleaks
-- @@ compare method in delphi mode
 - make records more lightweight
 - enumeration  for..in..do
 - pointer of record
@@ -5066,7 +5077,13 @@ var
     i, ArgNo: Integer;
     Arg: TJSElement;
     OldAccess: TCtxAccess;
+    Ranges: TPasExprArray;
+    Int: MaxPrecInt;
+    Param: TPasExpr;
+    ArgAdjusted: TJSAdditiveExpression;
+    Value: TResEvalValue;
   begin
+    Arg:=nil;
     B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
     try
       // add read accessor
@@ -5079,19 +5096,72 @@ var
       ArgNo:=0;
       repeat
         // Note: dynamic array has length(ArrayEl.Ranges)=0
-        for i:=1 to Max(length(ArrayEl.Ranges),1) do
+        Ranges:=ArrayEl.Ranges;
+        for i:=1 to Max(length(Ranges),1) do
           begin
           // add parameter
+          Param:=El.Params[ArgNo];
           ArgContext.Access:=caRead;
-          Arg:=ConvertElement(El.Params[ArgNo],ArgContext);
+          Arg:=ConvertElement(Param,ArgContext);
           ArgContext.Access:=OldAccess;
+
+          if i<=length(Ranges) then
+            begin
+            // static array
+            Value:=ArgContext.Resolver.EvalRangeLimit(Ranges[i-1],[refConst],true,El);
+            if Value=nil then
+              RaiseNotSupported(Param,ArgContext,20170910163341);
+            case Value.Kind of
+            revkBool:
+              Int:=ord(TResEvalBool(Value).B);
+            revkEnum:
+              Int:=TResEvalEnum(Value).Index;
+            revkInt:
+              Int:=TResEvalInt(Value).Int;
+            // revkString
+            // revkUnicodeString
+            else
+              ReleaseEvalValue(Value);
+              RaiseNotSupported(Param,ArgContext,20170910170446);
+            end;
+            if Int<>0 then
+              begin
+              if (Arg is TJSLiteral) and (TJSLiteral(Arg).Value.ValueType=jstNumber) then
+                // parameter is single number -> simply subtract the offset
+                TJSLiteral(Arg).Value.AsNumber:=TJSLiteral(Arg).Value.AsNumber-Int
+              else
+                begin
+                // parameter is an expression -> add offset
+                if Int>0 then
+                  begin
+                  // Arg-Offset
+                  ArgAdjusted:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
+                  ArgAdjusted.A:=Arg;
+                  ArgAdjusted.B:=CreateLiteralNumber(Param,Int);
+                  Arg:=ArgAdjusted;
+                  end
+                else
+                  begin
+                  // Arg+Offset
+                  ArgAdjusted:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,Param));
+                  ArgAdjusted.A:=Arg;
+                  ArgAdjusted.B:=CreateLiteralNumber(Param,-Int);
+                  Arg:=ArgAdjusted;
+                  end;
+                end;
+              end;
+            ReleaseEvalValue(Value);
+            end;
+
           if B.Name<>nil then
             begin
+            // nested [][]
             Sub:=B;
             B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
             B.MExpr:=Sub;
             end;
           B.Name:=Arg;
+          Arg:=nil;
           inc(ArgNo);
           if ArgNo>length(El.Params) then
             RaiseInconsistency(20170206180553);
@@ -5104,7 +5174,10 @@ var
       Result:=B;
     finally
       if Result=nil then
+        begin
+        Arg.Free;
         B.Free;
+        end;
     end;
   end;
 
@@ -5389,9 +5462,11 @@ begin
   writeln('TPasToJSConverter.ConvertArrayParams Value=',GetResolverResultDbg(ResolvedEl));
   {$ENDIF}
   if ResolvedEl.BaseType in btAllJSStrings then
+    // astring[]
     ConvertStringBracket
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
+    // aproperty[]
     ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
   else if ResolvedEl.BaseType=btContext then
     begin
@@ -5401,18 +5476,21 @@ begin
       aClass:=TPasClassType(TypeEl);
       ClassScope:=aClass.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty<>nil then
+        // anObject[]
         ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty)
       else
         RaiseInconsistency(20170206180448);
       end
     else if TypeEl.ClassType=TPasClassOfType then
       begin
+      // aClass[]
       ClassScope:=TPasClassOfType(TypeEl).DestType.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty=nil then
         RaiseInconsistency(20170206180503);
       ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty);
       end
     else if TypeEl.ClassType=TPasArrayType then
+      // anArray[]
       ConvertArray(TPasArrayType(TypeEl))
     else
       RaiseNotSupported(El,AContext,20170206181220,GetResolverResultDbg(ResolvedEl));
@@ -6603,10 +6681,11 @@ function TPasToJSConverter.ConvertBuiltIn_Low(El: TParamsExpr;
   end;
 
 var
-  ResolvedEl, RangeResolved: TPasResolverResult;
+  ResolvedEl: TPasResolverResult;
   Param: TPasExpr;
   TypeEl: TPasType;
   Ranges: TPasExprArray;
+  Value: TResEvalValue;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -6634,29 +6713,33 @@ begin
       else if TypeEl.ClassType=TPasArrayType then
         begin
         Ranges:=TPasArrayType(TypeEl).Ranges;
+        writeln('TPasToJSConverter.ConvertBuiltIn_Low AAA1');
         if length(Ranges)=0 then
           begin
+          // dynamic array starts at 0
           Result:=CreateLiteralNumber(El,0);
           exit;
           end
-        else if length(Ranges)=1 then
+        else
           begin
-          AContext.Resolver.ComputeElement(Ranges[0],RangeResolved,[rcConstant]);
-          if RangeResolved.BaseType=btContext then
-            begin
-            if RangeResolved.IdentEl is TPasEnumType then
-              begin
-              CreateEnumValue(TPasEnumType(RangeResolved.IdentEl));
-              exit;
-              end;
-            end
-          else if RangeResolved.BaseType=btBoolean then
-            begin
-            Result:=CreateLiteralBoolean(El,LowJSBoolean);
-            exit;
-            end;
+          // static array
+          Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],true,El);
+          if Value=nil then
+            RaiseNotSupported(El,AContext,20170910160817);
+          case Value.Kind of
+          revkBool:
+            Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
+          revkEnum:
+            Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
+          revkInt:
+            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+          else
+            ReleaseEvalValue(Value);
+            RaiseNotSupported(El,AContext,20170222231008);
           end;
-        RaiseNotSupported(El,AContext,20170222231008);
+          ReleaseEvalValue(Value);
+          exit;
+          end;
         end;
       end;
     btChar,
@@ -6702,12 +6785,13 @@ function TPasToJSConverter.ConvertBuiltIn_High(El: TParamsExpr;
   end;
 
 var
-  ResolvedEl, RangeResolved: TPasResolverResult;
-  Param, Range: TPasExpr;
+  ResolvedEl: TPasResolverResult;
+  Param: TPasExpr;
   TypeEl: TPasType;
   MinusExpr: TJSAdditiveExpressionMinus;
   Call: TJSCallExpression;
-  aMinValue, aMaxValue: int64;
+  Value: TResEvalValue;
+  Ranges: TPasExprArray;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -6734,7 +6818,8 @@ begin
         end
       else if TypeEl.ClassType=TPasArrayType then
         begin
-        if length(TPasArrayType(TypeEl).Ranges)=0 then
+        Ranges:=TPasArrayType(TypeEl).Ranges;
+        if length(Ranges)=0 then
           begin
           // dynamic array -> rtl.length(Param)-1
           Result:=ConvertElement(Param,AContext);
@@ -6748,32 +6833,26 @@ begin
           Result:=MinusExpr;
           exit;
           end
-        else if length(TPasArrayType(TypeEl).Ranges)=1 then
+        else
           begin
           // static array
-          Range:=TPasArrayType(TypeEl).Ranges[0];
-          AContext.Resolver.ComputeElement(Range,RangeResolved,[rcConstant]);
-          if RangeResolved.BaseType=btContext then
-            begin
-            if RangeResolved.IdentEl is TPasEnumType then
-              begin
-              CreateEnumValue(TPasEnumType(RangeResolved.IdentEl));
-              exit;
-              end;
-            end
-          else if RangeResolved.BaseType=btBoolean then
-            begin
-            Result:=CreateLiteralBoolean(Param,HighJSBoolean);
-            exit;
-            end
-          else if RangeResolved.BaseType in btAllJSInteger then
-            begin
-            ComputeRange(RangeResolved,AContext,aMinValue,aMaxValue,Range);
-            Result:=CreateLiteralNumber(Param,aMaxValue);
-            exit;
-            end;
+          Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],false,El);
+          if Value=nil then
+            RaiseNotSupported(El,AContext,20170910161555);
+          case Value.Kind of
+          revkBool:
+            Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
+          revkEnum:
+            Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
+          revkInt:
+            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+          else
+            ReleaseEvalValue(Value);
+            RaiseNotSupported(El,AContext,20170910161553);
           end;
-        RaiseNotSupported(El,AContext,20170222231101);
+          ReleaseEvalValue(Value);
+          exit;
+          end;
         end;
       end;
     btBoolean:

@@ -295,6 +295,8 @@ type
     Procedure TestArray_Dynamic;
     Procedure TestArray_Dynamic_Nil;
     Procedure TestArray_DynMultiDimensional;
+    Procedure TestArray_StaticInt;
+    Procedure TestArray_StaticMultiDim; // ToDo
     Procedure TestArrayOfRecord;
     // ToDo: Procedure TestArrayOfSet;
     Procedure TestArray_AsParams;
@@ -4851,6 +4853,91 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_StaticInt;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array[2..4] of longint;');
+  Add('var');
+  Add('  Arr: TArrayInt;');
+  Add('  i: longint;');
+  Add('  b: boolean;');
+  Add('begin');
+  Add('  arr[2]:=4;');
+  Add('  arr[3]:=arr[2]+arr[3];');
+  Add('  arr[i]:=5;');
+  Add('  arr[arr[i]]:=arr[high(arr)];');
+  Add('  i:=low(arr);');
+  Add('  i:=high(arr);');
+  Add('  b:=arr[2]=arr[3];');
+  ConvertProgram;
+  CheckSource('TestArray_StaticInt',
+    LinesToStr([ // statements
+    'this.Arr = rtl.arrayNewMultiDim([3],0);',
+    'this.i = 0;',
+    'this.b = false;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.Arr[0] = 4;',
+    '$mod.Arr[1] = $mod.Arr[0] + $mod.Arr[1];',
+    '$mod.Arr[$mod.i-2] = 5;',
+    '$mod.Arr[$mod.Arr[$mod.i-2]-2] = $mod.Arr[2];',
+    '$mod.i = 2;',
+    '$mod.i = 4;',
+    '$mod.b = $mod.Arr[0] === $mod.Arr[1];',
+    '']));
+end;
+
+procedure TTestModule.TestArray_StaticMultiDim;
+begin
+  exit;
+  StartProgram(false);
+  Add('type');
+  Add('  TArrayInt = array[1..3] of longint;');
+  Add('  TArrayArrayInt = array[5..6] of TArrayInt;');
+  Add('var');
+  Add('  Arr: TArrayInt;');
+  Add('  Arr2: TArrayArrayInt;');
+  Add('  i: longint;');
+  Add('begin');
+  Add('  i:=low(arr);');
+  Add('  i:=low(arr2);');
+  Add('  i:=low(arr2[5]);');
+  Add('  i:=high(arr);');
+  Add('  i:=high(arr2);');
+  Add('  i:=high(arr2[6]);');
+  Add('  arr2[3]:=arr;');
+  Add('  arr2[4][5]:=i;');
+  Add('  i:=arr2[6][7];');
+  Add('  arr2[8,9]:=i;');
+  Add('  i:=arr2[10,11];');
+  Add('  SetLength(arr2,14);');
+  Add('  SetLength(arr2[15],16);');
+  ConvertProgram;
+  CheckSource('TestArray_StaticMultiDim',
+    LinesToStr([ // statements
+    'this.Arr = [];',
+    'this.Arr2 = [];',
+    'this.i = 0;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.Arr2 = [];',
+    'if (rtl.length($mod.Arr2) === 0) ;',
+    'if (rtl.length($mod.Arr2) === 0) ;',
+    '$mod.i = 0;',
+    '$mod.i = 0;',
+    '$mod.i = rtl.length($mod.Arr2) - 1;',
+    '$mod.i = rtl.length($mod.Arr2[2]) - 1;',
+    '$mod.Arr2[3] = $mod.Arr;',
+    '$mod.Arr2[4][5] = $mod.i;',
+    '$mod.i = $mod.Arr2[6][7];',
+    '$mod.Arr2[8][9] = $mod.i;',
+    '$mod.i = $mod.Arr2[10][11];',
+    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, 14, []);',
+    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 16, 0);',
+    '']));
+end;
+
 procedure TTestModule.TestArrayOfRecord;
 begin
   StartProgram(false);
@@ -5092,7 +5179,7 @@ begin
   Add('begin');
   Add('  e:=low(a);');
   Add('  e:=high(a);');
-  Add('  i:=a[red]+length(a);');
+  Add('  i:=a[red];');
   Add('  a[e]:=a[e];');
   ConvertProgram;
   CheckSource('TestArrayEnumTypeRange',
@@ -5112,7 +5199,7 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.e = $mod.TEnum.red;',
     '$mod.e = $mod.TEnum.blue;',
-    '$mod.i = $mod.a[$mod.TEnum.red]+2;',
+    '$mod.i = $mod.a[$mod.TEnum.red];',
     '$mod.a[$mod.e] = $mod.a[$mod.e];',
     '']));
 end;
