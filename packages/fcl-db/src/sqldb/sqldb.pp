@@ -1403,7 +1403,7 @@ function TSQLConnection.GetConnectionCharSet: string;
 begin
   // default implementation returns user supplied FCharSet
   // (can be overriden by descendants, which are able retrieve current connection charset using client API)
-  Result := FCharSet;
+  Result := LowerCase(FCharSet);
 end;
 
 function TSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;

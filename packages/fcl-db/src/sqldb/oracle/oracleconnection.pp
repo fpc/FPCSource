@@ -383,19 +383,24 @@ var
   ConnectString : string;
   TempServiceContext : POCISvcCtx;
   IsConnected : boolean;
+  CharSetId: ub2;
 begin
 {$IfDef LinkDynamically}
   InitialiseOCI;
 {$EndIf}
 
   inherited DoInternalConnect;
-  //todo: get rid of FUserMem, as it isn't used
+  //ToDo: get rid of FUserMem, as it isn't used
   FUserMem := nil;
   IsConnected := false;
 
   try
+    case GetConnectionCharSet of
+      'utf8': CharSetId := 873;
+      else    CharSetId := 0; // if it is 0, the NLS_LANG and NLS_NCHAR environment variables are used
+    end;
     // Create environment handle
-    if OCIEnvCreate(FOciEnvironment,OCI_DEFAULT,nil,nil,nil,nil,0,FUserMem) <> OCI_SUCCESS then
+    if OCIEnvNlsCreate(FOciEnvironment,OCI_DEFAULT,nil,nil,nil,nil,0,FUserMem,CharSetId,CharSetId) <> OCI_SUCCESS then
       DatabaseError(SErrEnvCreateFailed,self);
     // Create error handle
     if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
@@ -405,10 +410,10 @@ begin
       DatabaseError(SErrHandleAllocFailed,self);
 
     // Initialize server handle
-    if hostname='' then
-      connectstring := databasename
+    if HostName='' then
+      ConnectString := DatabaseName
     else
-      connectstring := '//'+hostname+'/'+databasename;
+      ConnectString := '//'+HostName+'/'+DatabaseName;
     if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
       HandleError();
 
@@ -453,7 +458,7 @@ begin
     if not IsConnected then
     begin
       if assigned(FOciServer) then
-      OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
+        OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
       if assigned(FOciError) then
         OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
       if assigned(FOciEnvironment) then
@@ -1120,7 +1125,7 @@ end;
 procedure TOracleConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var LobLocator: pointer;
     LobCharSetForm: ub1;
-    LobLength: ub4;
+    LobLength, LobSize: ub4;
 begin
   LobLocator := (cursor as TOracleCursor).FieldBuffers[FieldDef.FieldNo-1].Buffer;
   //if OCILobLocatorIsInit(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @is_init) = OCI_ERROR then
@@ -1130,10 +1135,24 @@ begin
     HandleError;
   if OCILobCharSetForm(FOciEnvironment, FOciError, LobLocator, @LobCharSetForm) = OCI_ERROR then
     HandleError;
+  // Adjust initial buffer size (in bytes), while LobLength can be in characters
+  case LobCharSetForm of
+    0: ;            // BLOB
+    SQLCS_IMPLICIT, // CLOB
+    SQLCS_NCHAR:    // NCLOB
+      LobLength := LobLength*4;
+  end;
   ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, LobLength);
-  ABlobBuf^.BlobBuffer^.Size := LobLength;
-  if (LobLength > 0) and (OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @LobLength, 1, ABlobBuf^.BlobBuffer^.Buffer, LobLength, nil, nil, 0, LobCharSetForm) = OCI_ERROR) then
+  LobSize := 0;
+  // For CLOBs and NCLOBs the total amount of data which should be readed is on input in characters, but on output is in bytes if client character set is varying-width
+  // The application must call OCILobRead() (in streamed mode) over and over again to read more pieces of the LOB until the OCI_NEED_DATA error code is not returned.
+  // If the LOB is a BLOB, the csid and csfrm parameters are ignored.
+  if (LobLength > 0) and (OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @LobSize, 1, ABlobBuf^.BlobBuffer^.Buffer, LobLength, nil, nil, 0, LobCharSetForm) = OCI_ERROR) then
     HandleError;
+  // Shrink initial buffer if needed (we assume that LobSize is in bytes, what is true for CLOB,NCLOB if client character set is varying-width, but if client character set is fixed-width then it is in characters)
+  if LobSize <> LobLength then
+    ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, LobSize);
+  ABlobBuf^.BlobBuffer^.Size := LobSize;
 end;
 
 procedure TOracleConnection.FreeFldBuffers(cursor: TSQLCursor);
