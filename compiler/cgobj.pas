@@ -89,6 +89,17 @@ unit cgobj;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+          {# returns the next virtual register }
+          function GetNextReg(const r: TRegister): TRegister;virtual;abstract;
+{$endif cpu8bitalu or cpu16bitalu}
+{$ifdef cpu8bitalu}
+          {# returns the register with the offset of ofs of a continuous set of register starting with r }
+          function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;virtual;abstract;
+          {# returns the register with the offset of ofs of a continuous set of register starting with r and being continued with rhi }
+          function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;virtual;abstract;
+{$endif cpu8bitalu}
+
           procedure add_reg_instruction(instr:Tai;r:tregister);virtual;
           procedure add_move_instruction(instr:Taicpu);virtual;
 

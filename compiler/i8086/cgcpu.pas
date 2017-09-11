@@ -42,6 +42,7 @@ unit cgcpu;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
+        function GetNextReg(const r: TRegister): TRegister;override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_name_far(list : TAsmList;const s : string; weak: boolean);
@@ -176,6 +177,18 @@ unit cgcpu;
           else
             internalerror(2013030201);
         end;
+      end;
+
+
+    function tcg8086.GetNextReg(const r: TRegister): TRegister;
+      begin
+        if getsupreg(r)<first_int_imreg then
+          internalerror(2013051401);
+        if getregtype(r)<>R_INTREGISTER then
+          internalerror(2017091101);
+        if getsubreg(r)<>R_SUBW then
+          internalerror(2017091102);
+        result:=TRegister(longint(r)+1);
       end;
 
 
@@ -2794,11 +2807,11 @@ unit cgcpu;
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(op1,S_W,tempref,reg.reglo));
             inc(tempref.offset,2);
-            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,GetNextReg(reg.reglo)));
+            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,cg.GetNextReg(reg.reglo)));
             inc(tempref.offset,2);
             list.concat(taicpu.op_ref_reg(op2,S_W,tempref,reg.reghi));
             inc(tempref.offset,2);
-            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,GetNextReg(reg.reghi)));
+            list.concat(taicpu.op_ref_reg(op2,S_W,tempref,cg.GetNextReg(reg.reghi)));
             if op in [OP_ADD,OP_SUB] then
               cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
@@ -2858,11 +2871,11 @@ unit cgcpu;
                 cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg_ref(op1,S_W,reg.reglo,tempref));
               inc(tempref.offset,2);
-              list.concat(taicpu.op_reg_ref(op2,S_W,GetNextReg(reg.reglo),tempref));
+              list.concat(taicpu.op_reg_ref(op2,S_W,cg.GetNextReg(reg.reglo),tempref));
               inc(tempref.offset,2);
               list.concat(taicpu.op_reg_ref(op2,S_W,reg.reghi,tempref));
               inc(tempref.offset,2);
-              list.concat(taicpu.op_reg_ref(op2,S_W,GetNextReg(reg.reghi),tempref));
+              list.concat(taicpu.op_reg_ref(op2,S_W,cg.GetNextReg(reg.reghi),tempref));
               if op in [OP_ADD,OP_SUB] then
                 cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
@@ -2882,12 +2895,12 @@ unit cgcpu;
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
               cg.a_op_reg_reg(list,OP_NOT,OS_32,regdst.reghi,regdst.reghi);
-              list.concat(taicpu.op_reg(A_NOT,S_W,GetNextReg(regdst.reglo)));
+              list.concat(taicpu.op_reg(A_NOT,S_W,cg.GetNextReg(regdst.reglo)));
               cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg(A_NEG,S_W,regdst.reglo));
-              list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,GetNextReg(regdst.reglo)));
+              list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,cg.GetNextReg(regdst.reglo)));
               list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,regdst.reghi));
-              list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,GetNextReg(regdst.reghi)));
+              list.concat(taicpu.op_const_reg(A_SBB,S_W,-1,cg.GetNextReg(regdst.reghi)));
               cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               exit;
             end;
@@ -2918,17 +2931,17 @@ unit cgcpu;
                   begin
                     cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                     list.concat(taicpu.op_const_reg(A_SHL,S_W,1,regdst.reglo));
-                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(regdst.reglo)));
+                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(regdst.reglo)));
                     list.concat(taicpu.op_const_reg(A_RCL,S_W,1,regdst.reghi));
-                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(regdst.reghi)));
+                    list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(regdst.reghi)));
                     cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                   end;
                 OP_SHR,OP_SAR:
                   begin
                     cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                    cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(regdst.reghi));
+                    cg.a_op_const_reg(list,op,OS_16,1,cg.GetNextReg(regdst.reghi));
                     list.concat(taicpu.op_const_reg(A_RCR,S_W,1,regdst.reghi));
-                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(regdst.reglo)));
+                    list.concat(taicpu.op_const_reg(A_RCR,S_W,1,cg.GetNextReg(regdst.reglo)));
                     list.concat(taicpu.op_const_reg(A_RCR,S_W,1,regdst.reglo));
                     cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                   end;
@@ -2946,9 +2959,9 @@ unit cgcpu;
         if op in [OP_ADD,OP_SUB] then
           cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(op1,S_W,regsrc.reglo,regdst.reglo));
-        list.concat(taicpu.op_reg_reg(op2,S_W,GetNextReg(regsrc.reglo),GetNextReg(regdst.reglo)));
+        list.concat(taicpu.op_reg_reg(op2,S_W,cg.GetNextReg(regsrc.reglo),cg.GetNextReg(regdst.reglo)));
         list.concat(taicpu.op_reg_reg(op2,S_W,regsrc.reghi,regdst.reghi));
-        list.concat(taicpu.op_reg_reg(op2,S_W,GetNextReg(regsrc.reghi),GetNextReg(regdst.reghi)));
+        list.concat(taicpu.op_reg_reg(op2,S_W,cg.GetNextReg(regsrc.reghi),cg.GetNextReg(regdst.reghi)));
         if op in [OP_ADD,OP_SUB] then
           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
@@ -2972,31 +2985,31 @@ unit cgcpu;
               if (value and $ffffffffffff) = 0 then
                 begin
                   { use a_op_const_reg to allow the use of inc/dec }
-                  cg.a_op_const_reg(list,op,OS_16,aint((value shr 48) and $ffff),GetNextReg(reg.reghi));
+                  cg.a_op_const_reg(list,op,OS_16,aint((value shr 48) and $ffff),cg.GetNextReg(reg.reghi));
                 end
               // can't use a_op_const_ref because this may use dec/inc
               else if (value and $ffffffff) = 0 then
                 begin
                   cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 32) and $ffff),reg.reghi));
-                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),cg.GetNextReg(reg.reghi)));
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end
               else if (value and $ffff) = 0 then
                 begin
                   cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                  list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 16) and $ffff),GetNextReg(reg.reglo)));
+                  list.concat(taicpu.op_const_reg(op1,S_W,aint((value shr 16) and $ffff),cg.GetNextReg(reg.reglo)));
                   list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 32) and $ffff),reg.reghi));
-                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),cg.GetNextReg(reg.reghi)));
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end
               else
                 begin
                   cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(op1,S_W,aint(value and $ffff),reg.reglo));
-                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 16) and $ffff),GetNextReg(reg.reglo)));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 16) and $ffff),cg.GetNextReg(reg.reglo)));
                   list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 32) and $ffff),reg.reghi));
-                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),GetNextReg(reg.reghi)));
+                  list.concat(taicpu.op_const_reg(op2,S_W,aint((value shr 48) and $ffff),cg.GetNextReg(reg.reghi)));
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
             end;
@@ -3012,17 +3025,17 @@ unit cgcpu;
                       begin
                         cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg.reglo));
-                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reglo)));
+                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(reg.reglo)));
                         list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
-                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                        list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(reg.reghi)));
                         cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_SHR,OP_SAR:
                       begin
                         cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                        cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(reg.reghi));
+                        cg.a_op_const_reg(list,op,OS_16,1,cg.GetNextReg(reg.reghi));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reghi));
-                        list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                        list.concat(taicpu.op_const_reg(A_RCR,S_W,1,cg.GetNextReg(reg.reglo)));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                         cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
@@ -3038,17 +3051,17 @@ unit cgcpu;
                         begin
                           cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg.reglo));
-                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
-                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(reg.reghi)));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SHR,OP_SAR:
                         begin
                           cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                          cg.a_op_const_reg(list,op,OS_16,1,GetNextReg(reg.reghi));
+                          cg.a_op_const_reg(list,op,OS_16,1,cg.GetNextReg(reg.reghi));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reghi));
-                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,cg.GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
@@ -3063,24 +3076,24 @@ unit cgcpu;
                     case op of
                       OP_SHL:
                         begin
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reghi));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reghi);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,cg.GetNextReg(reg.reglo));
                           cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
                         end;
                       OP_SHR:
                         begin
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
-                          cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reghi),cg.GetNextReg(reg.reghi));
                         end;
                       OP_SAR:
                         begin
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
-                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,cg.GetNextReg(reg.reghi));
                         end;
                     end;
                     if value=17 then
@@ -3088,16 +3101,16 @@ unit cgcpu;
                         OP_SHL:
                           begin
                             cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                            list.concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg.reglo)));
+                            list.concat(taicpu.op_const_reg(A_SHL,S_W,1,cg.GetNextReg(reg.reglo)));
                             list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
-                            list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                            list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(reg.reghi)));
                             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                         OP_SHR,OP_SAR:
                           begin
                             cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                             cg.a_op_const_reg(list,op,OS_16,1,reg.reghi);
-                            list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                            list.concat(taicpu.op_const_reg(A_RCR,S_W,1,cg.GetNextReg(reg.reglo)));
                             list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
@@ -3108,24 +3121,24 @@ unit cgcpu;
                     case op of
                       OP_SHL:
                         begin
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reghi));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reghi);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,cg.GetNextReg(reg.reglo));
                           cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
                         end;
                       OP_SHR:
                         begin
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
-                          cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reghi),cg.GetNextReg(reg.reghi));
                         end;
                       OP_SAR:
                         begin
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reglo);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reglo));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
-                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reglo);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,cg.GetNextReg(reg.reghi));
                         end;
                     end;
                     cg.getcpuregister(list,NR_CX);
@@ -3136,16 +3149,16 @@ unit cgcpu;
                       OP_SHL:
                         begin
                           cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
-                          list.concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_SHL,S_W,1,cg.GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCL,S_W,1,reg.reghi));
-                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg.reghi)));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_W,1,cg.GetNextReg(reg.reghi)));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
                       OP_SHR,OP_SAR:
                         begin
                           cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                           cg.a_op_const_reg(list,op,OS_16,1,reg.reghi);
-                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg.reglo)));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_W,1,cg.GetNextReg(reg.reglo)));
                           list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg.reglo));
                           cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                         end;
@@ -3161,53 +3174,53 @@ unit cgcpu;
                       begin
                         cg.a_op_const_reg_reg(list,OP_SHL,OS_32,value-32,reg.reglo,reg.reghi);
                         cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
-                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reglo));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reglo),cg.GetNextReg(reg.reglo));
                       end;
                     OP_SHR:
                       begin
                         cg.a_op_const_reg_reg(list,OP_SHR,OS_32,value-32,reg.reghi,reg.reglo);
                         cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reghi,reg.reghi);
-                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reghi),cg.GetNextReg(reg.reghi));
                       end;
                     OP_SAR:
                       begin
                         cg.a_op_const_reg_reg(list,OP_SAR,OS_32,value-32,reg.reghi,reg.reglo);
-                        cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-32),GetNextReg(reg.reglo),reg.reghi);
-                        cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,GetNextReg(reg.reghi));
+                        cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-32),cg.GetNextReg(reg.reglo),reg.reghi);
+                        cg.a_load_reg_reg(list,OS_16,OS_16,reg.reghi,cg.GetNextReg(reg.reghi));
                       end;
                   end;
                 48..63:
                   case op of
                     OP_SHL:
                       begin
-                        cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,GetNextReg(reg.reghi));
+                        cg.a_load_reg_reg(list,OS_16,OS_16,reg.reglo,cg.GetNextReg(reg.reghi));
                         cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reglo,reg.reglo);
-                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reglo));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reglo),cg.GetNextReg(reg.reglo));
                         cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reghi,reg.reghi);
-                        cg.a_op_const_reg(list,OP_SHL,OS_16,value-48,GetNextReg(reg.reghi));
+                        cg.a_op_const_reg(list,OP_SHL,OS_16,value-48,cg.GetNextReg(reg.reghi));
                       end;
                     OP_SHR:
                       begin
-                        cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reglo);
-                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reghi));
+                        cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reglo);
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reghi),cg.GetNextReg(reg.reghi));
                         cg.a_op_reg_reg(list,OP_XOR,OS_16,reg.reghi,reg.reghi);
-                        cg.a_op_reg_reg(list,OP_XOR,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reglo));
+                        cg.a_op_reg_reg(list,OP_XOR,OS_16,cg.GetNextReg(reg.reglo),cg.GetNextReg(reg.reglo));
                         cg.a_op_const_reg(list,OP_SHR,OS_16,value-48,reg.reglo);
                       end;
                     OP_SAR:
                       if value=63 then
                         begin
-                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,GetNextReg(reg.reghi));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reghi);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),GetNextReg(reg.reglo));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reghi),reg.reglo);
+                          cg.a_op_const_reg(list,OP_SAR,OS_16,15,cg.GetNextReg(reg.reghi));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),cg.GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reghi),reg.reglo);
                         end
                       else
                         begin
-                          cg.a_op_const_reg_reg(list,OP_SAR,OS_16,value-48,GetNextReg(reg.reghi),reg.reglo);
-                          cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-48),reg.reglo,GetNextReg(reg.reglo));
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),reg.reghi);
-                          cg.a_load_reg_reg(list,OS_16,OS_16,GetNextReg(reg.reglo),GetNextReg(reg.reghi));
+                          cg.a_op_const_reg_reg(list,OP_SAR,OS_16,value-48,cg.GetNextReg(reg.reghi),reg.reglo);
+                          cg.a_op_const_reg_reg(list,OP_SAR,OS_16,15-(value-48),reg.reglo,cg.GetNextReg(reg.reglo));
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),reg.reghi);
+                          cg.a_load_reg_reg(list,OS_16,OS_16,cg.GetNextReg(reg.reglo),cg.GetNextReg(reg.reghi));
                         end;
                   end;
               end;

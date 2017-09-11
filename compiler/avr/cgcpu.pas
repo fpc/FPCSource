@@ -47,6 +47,11 @@ unit cgcpu;
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function getaddressregister(list:TAsmList):TRegister;override;
 
+        function GetHigh(const r : TRegister) : TRegister;inline;
+        function GetNextReg(const r: TRegister): TRegister;override;
+        function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;override;
+        function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;override;
+
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
@@ -199,6 +204,33 @@ unit cgcpu;
     function tcgavr.getaddressregister(list: TAsmList): TRegister;
       begin
        Result:=getintregister(list,OS_ADDR);
+      end;
+
+
+    function tcgavr.GetHigh(const r : TRegister) : TRegister;
+      begin
+        result:=GetNextReg(r);
+      end;
+
+
+    function tcgavr.GetNextReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)+1);
+      end;
+
+
+    function tcgavr.GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;
+      begin
+        result:=TRegister(longint(r)+ofs);
+      end;
+
+
+    function tcgavr.GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;
+      begin
+        if ofs>3 then
+          result:=TRegister(longint(rhi)+ofs-4)
+        else
+          result:=TRegister(longint(r)+ofs);
       end;
 
 

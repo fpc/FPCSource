@@ -140,7 +140,7 @@ implementation
                  begin
                    hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
-                   location.reference.segment := GetNextReg(left.location.register);
+                   location.reference.segment := cg.GetNextReg(left.location.register);
                  end;
                LOC_CREFERENCE,
                LOC_REFERENCE:

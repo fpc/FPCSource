@@ -593,42 +593,42 @@ interface
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reghi));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reghi));
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reglo));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reglo));
                     end
                   else
                   if tempinfo^.location.size in [OS_32,OS_S32] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
                     end
                   else
 {$elseif defined(cpu8bitalu)}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reghi));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(tempinfo^.location.register64.reghi)));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(GetNextReg(tempinfo^.location.register64.reghi))));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reghi));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reghi)));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reghi))));
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register64.reglo));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(tempinfo^.location.register64.reglo)));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(GetNextReg(tempinfo^.location.register64.reglo))));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register64.reglo));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reglo)));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register64.reglo))));
                     end
                   else
                   if tempinfo^.location.size in [OS_32,OS_S32] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(tempinfo^.location.register)));
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(GetNextReg(GetNextReg(tempinfo^.location.register))));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register)));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(tempinfo^.location.register))));
                     end
                   else
                   if tempinfo^.location.size in [OS_16,OS_S16] then
                     begin
                       cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
-                      cg.a_reg_sync(current_asmdata.CurrAsmList,GetNextReg(tempinfo^.location.register));
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,cg.GetNextReg(tempinfo^.location.register));
                     end
                   else
 {$endif}

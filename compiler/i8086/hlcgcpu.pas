@@ -294,7 +294,7 @@ implementation
           x86pt_far,
           x86pt_huge:
             if reg<>NR_NO then
-              ref.segment:=GetNextReg(reg);
+              ref.segment:=cg.GetNextReg(reg);
         end;
     end;
 
@@ -345,7 +345,7 @@ implementation
           if loc.registerhi<>tregister(0) then
             cg.a_load_reg_ref(list,OS_16,OS_16,loc.registerhi,tmpref)
           else
-            cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(loc.register),tmpref);
+            cg.a_load_reg_ref(list,OS_16,OS_16,cg.GetNextReg(loc.register),tmpref);
         end
       else
         inherited a_load_loc_ref(list, fromsize, tosize, loc, ref);
@@ -372,9 +372,9 @@ implementation
           if ref.segment<>NR_NO then
             begin
               if is_segment_reg(ref.segment) then
-                list.concat(Taicpu.op_reg_reg(A_MOV,S_W,ref.segment,GetNextReg(r)))
+                list.concat(Taicpu.op_reg_reg(A_MOV,S_W,ref.segment,cg.GetNextReg(r)))
               else
-                cg.a_load_reg_reg(list,OS_16,OS_16,ref.segment,GetNextReg(r));
+                cg.a_load_reg_reg(list,OS_16,OS_16,ref.segment,cg.GetNextReg(r));
             end
           { references relative to a symbol use the segment of the symbol,
             which can be obtained by the SEG directive }
@@ -382,10 +382,10 @@ implementation
             begin
               reference_reset_symbol(segref,ref.symbol,0,ref.alignment,ref.volatility);
               segref.refaddr:=addr_seg;
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,GetNextReg(r));
+              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,cg.GetNextReg(r));
             end
           else if ref.base=NR_BP then
-            list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(r)))
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,cg.GetNextReg(r)))
           else
             internalerror(2014032801);
         end;
@@ -702,7 +702,7 @@ implementation
           if l.registerhi<>tregister(0) then
             cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref)
           else
-            cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(l.register),tmpref);
+            cg.a_load_reg_ref(list,OS_16,OS_16,cg.GetNextReg(l.register),tmpref);
 
           location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
           l.reference:=r;

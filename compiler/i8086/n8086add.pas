@@ -291,15 +291,15 @@ interface
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
               cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               emit_reg_reg(op1,S_W,left.location.register64.reglo,r);
-              emit_reg_reg(op2,S_W,GetNextReg(left.location.register64.reglo),GetNextReg(r));
+              emit_reg_reg(op2,S_W,cg.GetNextReg(left.location.register64.reglo),cg.GetNextReg(r));
               emit_reg_reg(A_MOV,S_W,r,left.location.register64.reglo);
-              emit_reg_reg(A_MOV,S_W,GetNextReg(r),GetNextReg(left.location.register64.reglo));
+              emit_reg_reg(A_MOV,S_W,cg.GetNextReg(r),cg.GetNextReg(left.location.register64.reglo));
               cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
               emit_reg_reg(op2,S_W,left.location.register64.reghi,r);
-              emit_reg_reg(op2,S_W,GetNextReg(left.location.register64.reghi),GetNextReg(r));
+              emit_reg_reg(op2,S_W,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(r));
               emit_reg_reg(A_MOV,S_W,r,left.location.register64.reghi);
-              emit_reg_reg(A_MOV,S_W,GetNextReg(r),GetNextReg(left.location.register64.reghi));
+              emit_reg_reg(A_MOV,S_W,cg.GetNextReg(r),cg.GetNextReg(left.location.register64.reghi));
             end
            else
             begin
@@ -468,7 +468,7 @@ interface
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                    left.location.register,right.location.register,location.register);
                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                   GetNextReg(pointernode.location.register),GetNextReg(location.register));
+                   cg.GetNextReg(pointernode.location.register),cg.GetNextReg(location.register));
               end
             else
               begin
@@ -478,7 +478,7 @@ interface
                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                        right.location.value,left.location.register,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(left.location.register),GetNextReg(location.register));
+                       cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
                   end
                 else
                   begin
@@ -489,7 +489,7 @@ interface
                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                       left.location.register,tmpreg,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(tmpreg),GetNextReg(location.register));
+                       cg.GetNextReg(tmpreg),cg.GetNextReg(location.register));
                   end;
               end;
           end
@@ -507,7 +507,7 @@ interface
                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                         right.location.register,left.location.register,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(pointernode.location.register),GetNextReg(location.register));
+                       cg.GetNextReg(pointernode.location.register),cg.GetNextReg(location.register));
                   end
                 else
                   begin
@@ -515,7 +515,7 @@ interface
                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                        right.location.value,left.location.register,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(left.location.register),GetNextReg(location.register));
+                       cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
                   end;
               end
             else
@@ -527,7 +527,7 @@ interface
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                   right.location.register,tmpreg,location.register);
                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                   GetNextReg(tmpreg),GetNextReg(location.register));
+                   cg.GetNextReg(tmpreg),cg.GetNextReg(location.register));
               end;
           end;
       end;
@@ -696,11 +696,11 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reghi),GetNextReg(left.location.register64.reghi));
+           emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reghi),cg.GetNextReg(left.location.register64.reghi));
            firstjmp64bitcmp;
            emit_reg_reg(A_CMP,S_W,right.location.register64.reghi,left.location.register64.reghi);
            middlejmp64bitcmp;
-           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reglo),GetNextReg(left.location.register64.reglo));
+           emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reglo),cg.GetNextReg(left.location.register64.reglo));
            middlejmp64bitcmp;
            emit_reg_reg(A_CMP,S_W,right.location.register64.reglo,left.location.register64.reglo);
            lastjmp64bitcmp;
@@ -710,11 +710,11 @@ interface
            case right.location.loc of
              LOC_CREGISTER :
                begin
-                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reghi),GetNextReg(left.location.register64.reghi));
+                 emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reghi),cg.GetNextReg(left.location.register64.reghi));
                  firstjmp64bitcmp;
                  emit_reg_reg(A_CMP,S_W,right.location.register64.reghi,left.location.register64.reghi);
                  middlejmp64bitcmp;
-                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reglo),GetNextReg(left.location.register64.reglo));
+                 emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reglo),cg.GetNextReg(left.location.register64.reglo));
                  middlejmp64bitcmp;
                  emit_reg_reg(A_CMP,S_W,right.location.register64.reglo,left.location.register64.reglo);
                  lastjmp64bitcmp;
@@ -725,13 +725,13 @@ interface
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
                  inc(href.offset,6);
-                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register64.reghi));
+                 emit_ref_reg(A_CMP,S_W,href,cg.GetNextReg(left.location.register64.reghi));
                  firstjmp64bitcmp;
                  dec(href.offset,2);
                  emit_ref_reg(A_CMP,S_W,href,left.location.register64.reghi);
                  middlejmp64bitcmp;
                  dec(href.offset,2);
-                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register64.reglo));
+                 emit_ref_reg(A_CMP,S_W,href,cg.GetNextReg(left.location.register64.reglo));
                  middlejmp64bitcmp;
                  emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register64.reglo);
                  lastjmp64bitcmp;
@@ -740,11 +740,11 @@ interface
                end;
              LOC_CONSTANT :
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 48) and $FFFF),GetNextReg(left.location.register64.reghi)));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 48) and $FFFF),cg.GetNextReg(left.location.register64.reghi)));
                  firstjmp64bitcmp;
                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 32) and $FFFF),left.location.register64.reghi));
                  middlejmp64bitcmp;
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 16) and $FFFF),GetNextReg(left.location.register64.reglo)));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 16) and $FFFF),cg.GetNextReg(left.location.register64.reglo)));
                  middlejmp64bitcmp;
                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value64 and $FFFF),left.location.register64.reglo));
                  lastjmp64bitcmp;
@@ -872,7 +872,7 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register),GetNextReg(left.location.register));
+           emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register),cg.GetNextReg(left.location.register));
            firstjmp32bitcmp;
            emit_reg_reg(A_CMP,S_W,right.location.register,left.location.register);
            secondjmp32bitcmp;
@@ -882,7 +882,7 @@ interface
            case right.location.loc of
              LOC_CREGISTER :
                begin
-                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register),GetNextReg(left.location.register));
+                 emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register),cg.GetNextReg(left.location.register));
                  firstjmp32bitcmp;
                  emit_reg_reg(A_CMP,S_W,right.location.register,left.location.register);
                  secondjmp32bitcmp;
@@ -893,7 +893,7 @@ interface
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
                  inc(href.offset,2);
-                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register));
+                 emit_ref_reg(A_CMP,S_W,href,cg.GetNextReg(left.location.register));
                  firstjmp32bitcmp;
                  dec(href.offset,2);
                  emit_ref_reg(A_CMP,S_W,href,left.location.register);
@@ -905,12 +905,12 @@ interface
                begin
                  if (right.location.value=0) and (nodetype in [equaln,unequaln]) and (left.location.loc=LOC_REGISTER) then
                    begin
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_W,GetNextReg(left.location.register),left.location.register));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register),left.location.register));
                      secondjmp32bitcmp;
                    end
                  else
                    begin
-                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),cg.GetNextReg(left.location.register)));
                      firstjmp32bitcmp;
                      current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
                      secondjmp32bitcmp;
@@ -1054,7 +1054,7 @@ interface
         {Allocate an imaginary 32-bit register, which consists of a pair of
          16-bit registers and store DX:AX into it}
         location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,GetNextReg(location.register));
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,cg.GetNextReg(location.register));
         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register);
       end

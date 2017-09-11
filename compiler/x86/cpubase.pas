@@ -316,9 +316,6 @@ uses
     function segment_regs_equal(r1,r2:tregister):boolean;
 
 {$ifdef i8086}
-    { returns the next virtual register }
-    function GetNextReg(const r : TRegister) : TRegister;
-
     { return whether we need to add an extra FWAIT instruction before the given
       instruction, when we're targeting the i8087. This includes almost all x87
       instructions, but certain ones, which always have or have not a built in
@@ -643,17 +640,6 @@ implementation
 
 
 {$ifdef i8086}
-    function GetNextReg(const r: TRegister): TRegister;
-      begin
-        if getsupreg(r)<first_int_imreg then
-          internalerror(2013051401);
-        if getregtype(r)<>R_INTREGISTER then
-          internalerror(2017091101);
-        if getsubreg(r)<>R_SUBW then
-          internalerror(2017091102);
-        result:=TRegister(longint(r)+1);
-      end;
-
     function requires_fwait_on_8087(op: TAsmOp): boolean;
       begin
         case op of

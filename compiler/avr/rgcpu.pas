@@ -102,7 +102,7 @@ unit rgcpu;
             helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
             helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
             helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
+            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,cg.GetNextReg(spilltemp.base)));
 
             reference_reset_base(tmpref,NR_R26,0,1,[]);
             helpins:=spilling_create_load(tmpref,tempreg);
@@ -128,7 +128,7 @@ unit rgcpu;
             helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
             helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
             helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
+            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,cg.GetNextReg(spilltemp.base)));
 
             reference_reset_base(tmpref,NR_R26,0,1,[]);
             helplist.concat(spilling_create_store(tempreg,tmpref));

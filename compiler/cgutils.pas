@@ -210,7 +210,8 @@ implementation
 
 uses
   systems,
-  verbose;
+  verbose,
+  cgobj;
 
 {****************************************************************************
                                   TReference
@@ -332,13 +333,13 @@ uses
                   result:='??:'+std_regname(locreg.registerhi)
                           +':??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(locreg.registerhi))+':'+std_regname(locreg.registerhi)
-                          +':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(cg.GetNextReg(locreg.registerhi))+':'+std_regname(locreg.registerhi)
+                          +':'+std_regname(cg.GetNextReg(locreg.register))+':'+std_regname(locreg.register);
               OS_32,OS_S32:
                 if getsupreg(locreg.register)<first_int_imreg then
                   result:='??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(locreg.register))
+                  result:=std_regname(cg.GetNextReg(locreg.register))
                           +':'+std_regname(locreg.register);
 {$elseif defined(cpu8bitalu)}
               OS_64,OS_S64:
@@ -346,26 +347,26 @@ uses
                   result:='??:??:??:'+std_regname(locreg.registerhi)
                           +':??:??:??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.registerhi))))
-                          +':'+std_regname(GetNextReg(GetNextReg(locreg.registerhi)))
-                          +':'+std_regname(GetNextReg(locreg.registerhi))
+                  result:=std_regname(cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(locreg.registerhi))))
+                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(locreg.registerhi)))
+                          +':'+std_regname(cg.GetNextReg(locreg.registerhi))
                           +':'+std_regname(locreg.registerhi)
-                          +':'+std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.register))))
-                          +':'+std_regname(GetNextReg(GetNextReg(locreg.register)))
-                          +':'+std_regname(GetNextReg(locreg.register))
+                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(locreg.register))))
+                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(locreg.register)))
+                          +':'+std_regname(cg.GetNextReg(locreg.register))
                           +':'+std_regname(locreg.register);
               OS_32,OS_S32:
                 if getsupreg(locreg.register)<first_int_imreg then
                   result:='??:??:??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.register))))
-                          +':'+std_regname(GetNextReg(GetNextReg(locreg.register)))
-                          +':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(cg.GetNextReg(cg.GetNextReg(cg.GetNextReg(locreg.register))))
+                          +':'+std_regname(cg.GetNextReg(cg.GetNextReg(locreg.register)))
+                          +':'+std_regname(cg.GetNextReg(locreg.register))+':'+std_regname(locreg.register);
               OS_16,OS_S16:
                 if getsupreg(locreg.register)<first_int_imreg then
                   result:='??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(cg.GetNextReg(locreg.register))+':'+std_regname(locreg.register);
 {$endif}
               else
                 result:=std_regname(locreg.register);

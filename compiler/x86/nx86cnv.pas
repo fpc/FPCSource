@@ -163,13 +163,13 @@ implementation
                  begin
                    hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.register64.reglo,hregister);
-                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reglo),hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,cg.GetNextReg(left.location.register64.reglo),hregister);
                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register64.reghi,hregister);
-                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,GetNextReg(left.location.register64.reghi),hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,cg.GetNextReg(left.location.register64.reghi),hregister);
                  end
                 else
                   if left.location.size in [OS_32,OS_S32] then
-                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register,GetNextReg(left.location.register))
+                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.register,cg.GetNextReg(left.location.register))
                 else
 {$endif}
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
@@ -332,13 +332,13 @@ implementation
     {$elseif defined(cpu32bitalu)}
                     emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
     {$elseif defined(cpu16bitalu)}
-                    emit_const_reg(A_BT,S_W,15,GetNextReg(left.location.register64.reghi));
+                    emit_const_reg(A_BT,S_W,15,cg.GetNextReg(left.location.register64.reghi));
     {$endif}
                   end
                 else
                   begin
     {$ifdef i8086}
-                    emit_const_reg(A_TEST,S_W,aint($8000),GetNextReg(left.location.register64.reghi));
+                    emit_const_reg(A_TEST,S_W,aint($8000),cg.GetNextReg(left.location.register64.reghi));
     {$else i8086}
                     internalerror(2013052510);
     {$endif i8086}
