@@ -714,8 +714,8 @@ function StrPCopy (Dest: PRegExprChar; const Source: RegExprString): PRegExprCha
   i, Len : PtrInt;
  begin
   Len := length (Source); //###0.932
-  for i := 1 to Len do
-   Dest [i - 1] := Source [i];
+  if Len>0 then
+   move(Source[1],Dest[0],Len*sizeof(ReChar));
   Dest [Len] := #0;
   Result := Dest;
  end; { of function StrPCopy
@@ -724,8 +724,8 @@ function StrPCopy (Dest: PRegExprChar; const Source: RegExprString): PRegExprCha
 function StrLCopy (Dest, Source: PRegExprChar; MaxLen: PtrUInt): PRegExprChar;
  var i: PtrInt;
  begin
-  for i := 0 to MaxLen - 1 do
-   Dest [i] := Source [i];
+   if MaxLen>0 then
+     move(Source[0],Dest[0],MaxLen*sizeof(ReChar));
   Result := Dest;
  end; { of function StrLCopy
 --------------------------------------------------------------}
