@@ -22,7 +22,7 @@ uses
   ctypes;
 
 Const
-{$ifdef darwin}
+{$ifndef darwin}
   DefaultLibName = 'libfontconfig.so';
 {$else}  
   DefaultLibName = 'libfontconfig.dylib';
