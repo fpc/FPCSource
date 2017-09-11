@@ -62,6 +62,8 @@ Type
     Procedure HandleRequest(ARequest: TRequest; AResponse: TResponse); override;
   end;
 
+  procedure ShowPage(ARequest : TRequest; AResponse : TResponse);
+
 implementation
 
 
@@ -752,11 +754,5 @@ begin
 end;
 
 
-initialization
-  TPageReportModule.RegisterModule('Page',True);
-  TGenerateReportModule.RegisterModule('Generate',True);
-  TViewReportModule.RegisterModule('View',True);
-  TReportListModule.RegisterModule('ReportList',True);
-  HTTPRouter.RegisterRoute('/*',@ShowPage,true);
 end.
 
