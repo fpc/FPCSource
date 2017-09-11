@@ -647,6 +647,10 @@ implementation
       begin
         if getsupreg(r)<first_int_imreg then
           internalerror(2013051401);
+        if getregtype(r)<>R_INTREGISTER then
+          internalerror(2017091101);
+        if getsubreg(r)<>R_SUBW then
+          internalerror(2017091102);
         result:=TRegister(longint(r)+1);
       end;
 
