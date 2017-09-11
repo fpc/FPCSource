@@ -326,572 +326,148 @@ var
 
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function declocked(var l : longint) : boolean;assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function declocked(var l : longint) : boolean;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
 .Ldeclocked1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
+  ld [%o0],%g4
+  sub %g4,1,%g1
+  cas [%o0],%g4,%g1
+  cmp %g4,%g1
   bne .Ldeclocked1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
   sub %g1,1,%g1
-  st %g1,[%i0]
-
-  subcc %g1,1,%g0
-  addx %g0,%g0,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  sub %g1,1,%g1
-  st %g1,[%o0]
-
-  subcc %g1,1,%g0
-  addx %g0,%g0,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+  movrz %g1,1,%o0
+  movrnz %g1,0,%o0
 end;
 
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure inclocked(var l : longint);assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+procedure inclocked(var l : longint);assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
 .Linclocked1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
+  ld [%o0],%g4
+  add %g4,1,%g1
+  cas [%o0],%g4,%g1
+  cmp %g4,%g1
   bne .Linclocked1
   nop
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  add %g1,1,%g1
-  st %g1,[%i0]
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  add %g1,1,%g1
-  st %g1,[%o0]
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
 end;
 
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterLockedDecrement (var Target: longint) : longint;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
 .LInterLockedDecrement1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
+  ld [%o0],%g4
+  sub %g4,1,%g1
+  cas [%o0],%g4,%g1
+  cmp %g4,%g1
   bne .LInterLockedDecrement1
   nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  sub %g1,1,%g1
-  st %g1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  sub %g1,1,%g1
-  st %g1,[%o0]
-
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+  sub %g1,1,%o0
 end;
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+
+function InterLockedIncrement (var Target: longint) : longint;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
 .LInterLockedIncrement1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
+  ld [%o0],%g4
+  add %g4,1,%g1
+  cas [%o0],%g4,%g1
+  cmp %g4,%g1
   bne .LInterLockedIncrement1
   nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  add %g1,1,%g1
-  st %g1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  add %g1,1,%g1
-  st %g1,[%o0]
-
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+  add %g1,1,%o0
 end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterLockedExchange (var Target: longint;Source : longint) : longint;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
 .LInterLockedExchange1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
+  mov %o1,%g1
+  ld [%o0],%g4
+  cas [%o0],%g4,%g1
+  cmp %g4,%g1
   bne .LInterLockedExchange1
   nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  st %i1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  st %o1,[%o0]
-
   mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
 end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
 .LInterLockedExchangeAdd1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
+  ld [%o0],%g4
+  add %g4,%o1,%g1
+  cas [%o0],%g4,%g1
+  cmp %g4,%g1
   bne .LInterLockedExchangeAdd1
   nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  add %g1,%i1,%i1
-  st %i1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  add %g1,%o1,%o1
-  st %o1,[%o0]
-
   mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
 end;
 
 
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{ input:  address of target in o0, newvalue in o1, comparand in o2 }
-{ output: value stored in target before entry of the function      }
-{ side-effect: NewValue stored in target if (target = comparand)   }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
-.LInterlockedCompareExchange1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
-  bne .LInterlockedCompareExchange1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  cmp %g1,%i2
-  bne  .LInterlockedCompareExchange2
-  nop
-  st %i1,[%i0]
-.LInterlockedCompareExchange2:
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  cmp %g1,%o2
-  bne  .LInterlockedCompareExchange2
-  nop
-  st %o1,[%o0]
-.LInterlockedCompareExchange2:
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
-end;
-
-function InterLockedDecrement64(var Target: Int64) : Int64; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
-asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
-.LInterLockedDecrement1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
-  bne .LInterLockedDecrement1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  sub %g1,1,%g1
-  st %g1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  sub %g1,1,%g1
-  st %g1,[%o0]
-
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
-end;
-
-function InterLockedIncrement64(var Target: Int64) : Int64; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
-asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
-  nop
-{$endif FPC_PIC}
-.LInterLockedIncrement1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
-  bne .LInterLockedIncrement1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  add %g1,1,%g1
-  st %g1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  add %g1,1,%g1
-  st %g1,[%o0]
-
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+  cas [%o0],%o2,%o1
+  mov %o1,%o0
 end;
 
 
-function InterLockedExchange64(var Target: Int64;Source : Int64) : Int64; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterLockedDecrement64(var Target: Int64) : Int64;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
+.LInterLockedDecrement641:
+  ldx [%o0],%g4
+  sub %g4,1,%g1
+  casx [%o0],%g4,%g1
+  cmp %g4,%g1
+  bne %xcc,.LInterLockedDecrement641
   nop
-{$endif FPC_PIC}
-.LInterLockedExchange1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
-  bne .LInterLockedExchange1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  st %i1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  st %o1,[%o0]
-
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+  sub %g1,1,%o0
 end;
 
 
-function InterLockedExchangeAdd64(var Target: Int64;Source : Int64) : Int64; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterLockedIncrement64(var Target: Int64) : Int64;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
+.LInterLockedIncrement641:
+  ldx [%o0],%g4
+  add %g4,1,%g1
+  casx [%o0],%g4,%g1
+  cmp %g4,%g1
+  bne %xcc,.LInterLockedIncrement641
   nop
-{$endif FPC_PIC}
-.LInterLockedExchangeAdd1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
-  bne .LInterLockedExchangeAdd1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  add %g1,%i1,%i1
-  st %i1,[%i0]
-
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  add %g1,%o1,%o1
-  st %o1,[%o0]
-
-  mov %g1,%o0
-{$endif FPC_PIC}
-
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+  add %g1,1,%o0
 end;
 
 
-function InterlockedCompareExchange64(var Target: Int64; NewValue: Int64; Comperand: Int64): Int64; assembler;
-{$ifndef FPC_PIC}nostackframe;{$endif}
+function InterLockedExchange64(var Target: Int64;Source : Int64) : Int64;assembler;nostackframe;
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-{ input:  address of target in o0, newvalue in o1, comparand in o2 }
-{ output: value stored in target before entry of the function      }
-{ side-effect: NewValue stored in target if (target = comparand)   }
-{$ifdef FPC_PIC}
-  sethi %hi(_GLOBAL_OFFSET_TABLE_ -8),%l7
-  or %l7,%lo(_GLOBAL_OFFSET_TABLE_ -4),%l7
-  call get_got
+.LInterLockedExchange641:
+  mov %o1,%g1
+  ldx [%o0],%g4
+  casx [%o0],%g4,%g1
+  cmp %g4,%g1
+  bne %xcc,.LInterLockedExchange641
   nop
-{$endif FPC_PIC}
-.LInterlockedCompareExchange1:
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  ldstub [%g1],%g1
-  cmp %g1,0
-  bne .LInterlockedCompareExchange1
-  nop
-
-{$ifdef FPC_PIC}
-  ld [%i0],%g1
-  cmp %g1,%i2
-  bne  .LInterlockedCompareExchange2
-  nop
-  st %i1,[%i0]
-.LInterlockedCompareExchange2:
-  mov %g1,%i0
-{$else not FPC_PIC}
-  ld [%o0],%g1
-  cmp %g1,%o2
-  bne  .LInterlockedCompareExchange2
-  nop
-  st %o1,[%o0]
-.LInterlockedCompareExchange2:
   mov %g1,%o0
-{$endif FPC_PIC}
+end;
 
-  { unlock }
-  sethi %hi(fpc_system_lock), %g1
-  or %g1,%lo(fpc_system_lock), %g1
-{$ifdef FPC_PIC}
-  ld [%g1+%l7],%g1
-{$endif FPC_PIC}
-  stb %g0,[%g1]
+
+function InterLockedExchangeAdd64(var Target: Int64;Source : Int64) : Int64;assembler;nostackframe;
+asm
+.LInterLockedExchangeAdd641:
+  ldx [%o0],%g4
+  add %g4,%o1,%g1
+  casx [%o0],%g4,%g1
+  cmp %g4,%g1
+  bne %xcc,.LInterLockedExchangeAdd641
+  nop
+  mov %g1,%o0
+end;
+
+
+function InterlockedCompareExchange64(var Target: Int64; NewValue: Int64; Comperand: Int64): Int64;assembler;nostackframe;
+asm
+  casx [%o0],%o2,%o1
+  mov %o1,%o0
 end;
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
