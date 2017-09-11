@@ -277,6 +277,8 @@ begin
     WriteRecordType(TPasRecordType(AType))
   else if AType is TPasAliasType then
     WriteAliasType(TPasAliasType(AType))
+  else if AType is TPasPointerType then
+    Add(AType.GetDeclaration(true))
   else
     raise EPasWriter.Create('Writing not implemented for ' +
       AType.ElementTypeName + ' nodes');
