@@ -277,8 +277,6 @@ begin
     WriteRecordType(TPasRecordType(AType))
   else if AType is TPasAliasType then
     WriteAliasType(TPasAliasType(AType))
-  else if AType is TPasProcedureType then
-    WriteProcType(TPasProcedureType(AType))
   else
     raise EPasWriter.Create('Writing not implemented for ' +
       AType.ElementTypeName + ' nodes');
