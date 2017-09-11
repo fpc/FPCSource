@@ -40,7 +40,7 @@ A_UNIMP,
 A_WRASR,A_WRY,A_WRPSR,A_WRWIM,A_WRTBR,
 A_XNOR,A_XNORcc,
 A_XOR,A_XORcc,
-          {Floating-point instructions}
+{Floating-point instructions}
 A_FiTOs,A_FiTOd,A_FiTOq,
 A_FsTOi,A_FdTOi,A_FqTOi,
 A_FsTOd,A_FsTOq,
@@ -55,7 +55,7 @@ A_FdMULq,A_FsMULd,
 A_FDIVs,A_FDIVd,A_FDIVq,
 A_FCMPs,A_FCMPd,A_FCMPq,
 A_FCPop1,A_CPop2,
-          {Synthetic instructions}
+{Synthetic instructions}
 A_btst,A_bset,A_bclr,A_btog,
 A_clr,A_clrb,A_clrh,
 A_cmp,
@@ -78,5 +78,9 @@ A_STBAR,
 A_MEMBAR,
 
 { SPARC v9 }
-A_FLUSHW
+A_FLUSHW,
+A_CAS,
+A_CASA,
+A_CASX,
+A_CASXA
 

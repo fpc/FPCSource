@@ -74,4 +74,9 @@
           'membar',
 
           { SPARC v9 }
-          'flushw'
+          'flushw',
+          'cas',
+          'casa',
+          'casx',
+          'casxa'
+
