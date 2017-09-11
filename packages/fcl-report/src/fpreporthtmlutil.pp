@@ -196,8 +196,8 @@ Type
   end;
 
 Function Coalesce(S1,S2 : String) : String;
-Function GetColorComponent(Var AColor: UInt32): Word; inline;
-Function ColorToRGBTriple(const AColor: UInt32): TFPColor;
+Function GetColorComponent(Var AColor: UInt32; Full : Boolean = true): Word; inline;
+Function ColorToRGBTriple(const AColor: UInt32; Full : Boolean = true): TFPColor;
 Function RGBTripleToColor(AColor : TFPColor) : UINT32;
 
 Const
@@ -223,16 +223,17 @@ uses htmwrite;
 
 { Auxiliary functions }
 
-function GetColorComponent(Var AColor: UInt32): Word; inline;
+function GetColorComponent(Var AColor: UInt32; Full : Boolean): Word; inline;
 
 begin
   Result:=(AColor and $FF);
-  Result:=Result or (Result shl 8);
+  if Full then
+    Result:=Result or (Result shl 8);
   AColor:=(AColor shr 8);
 end;
 
 
-function ColorToRGBTriple(const AColor: UInt32): TFPColor;
+function ColorToRGBTriple(const AColor: UInt32; Full : Boolean = True): TFPColor;
 
 Var
   C : UInt32;
@@ -241,10 +242,10 @@ begin
   C:=AColor;
   with Result do
     begin
-    Blue  := GetColorComponent(C);
-    Green := GetColorComponent(C);
-    Red   := GetColorComponent(C);
-    Alpha := GetColorComponent(C);
+    Blue  := GetColorComponent(C,Full);
+    Green := GetColorComponent(C,Full);
+    Red   := GetColorComponent(C,Full);
+    Alpha := GetColorComponent(C,Full);
     end
 end;
 
@@ -505,7 +506,7 @@ class function TGenerateHTMLContext.ColorToRGBString(AColor: TFPReportColor;
 Var
   S : TFPColor;
 begin
-  S:=ColorToRGBTriple(aColor);
+  S:=ColorToRGBTriple(aColor,False);
   if AColor=clNone then
     exit;
   if UseHex then
