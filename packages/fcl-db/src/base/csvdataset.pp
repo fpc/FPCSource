@@ -183,6 +183,7 @@ Var
 
 begin
   FParser:=TCSVParser.Create;
+  FParser.Assign(FOptions);
   FParser.SetSource(Stream);
   FCurrentRow:=0;
   ReadNextRow;
