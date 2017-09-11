@@ -611,10 +611,71 @@ implementation
     {$endif}
 
     function tcg.getintregister(list:TAsmList;size:Tcgsize):Tregister;
+{$ifdef cpu8bitalu}
+      var
+        tmp1,tmp2,tmp3 : TRegister;
+{$endif cpu8bitalu}
       begin
         if not assigned(rg[R_INTREGISTER]) then
           internalerror(200312122);
+{$if defined(cpu8bitalu)}
+        case size of
+          OS_8,OS_S8:
+            Result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(R_INTREGISTER,size));
+          OS_16,OS_S16:
+            begin
+              Result:=getintregister(list, OS_8);
+              { ensure that the high register can be retrieved by
+                GetNextReg
+              }
+              if getintregister(list, OS_8)<>GetNextReg(Result) then
+                internalerror(2011021331);
+            end;
+          OS_32,OS_S32:
+            begin
+              Result:=getintregister(list, OS_8);
+              tmp1:=getintregister(list, OS_8);
+              { ensure that the high register can be retrieved by
+                GetNextReg
+              }
+              if tmp1<>GetNextReg(Result) then
+                internalerror(2011021332);
+              tmp2:=getintregister(list, OS_8);
+              { ensure that the upper register can be retrieved by
+                GetNextReg
+              }
+              if tmp2<>GetNextReg(tmp1) then
+                internalerror(2011021333);
+              tmp3:=getintregister(list, OS_8);
+              { ensure that the upper register can be retrieved by
+                GetNextReg
+              }
+              if tmp3<>GetNextReg(tmp2) then
+                internalerror(2011021334);
+            end;
+          else
+            internalerror(2011021330);
+        end;
+{$elseif defined(cpu16bitalu)}
+        case size of
+          OS_8, OS_S8,
+          OS_16, OS_S16:
+            Result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(R_INTREGISTER,size));
+          OS_32, OS_S32:
+            begin
+              Result:=getintregister(list, OS_16);
+              { ensure that the high register can be retrieved by
+                GetNextReg
+              }
+              if getintregister(list, OS_16)<>GetNextReg(Result) then
+                internalerror(2013030202);
+            end;
+          else
+            internalerror(2013030201);
+        end;
+{$elseif defined(cpu32bitalu) or defined(cpu64bitalu)}
         result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(R_INTREGISTER,size));
+{$endif}
       end;
 
 

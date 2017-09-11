@@ -41,7 +41,6 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
-        function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function GetNextReg(const r: TRegister): TRegister;override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
@@ -156,27 +155,6 @@ unit cgcpu;
               include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
           end;
         inherited do_register_allocation(list,headertai);
-      end;
-
-
-    function tcg8086.getintregister(list: TAsmList; size: Tcgsize): Tregister;
-      begin
-        case size of
-          OS_8, OS_S8,
-          OS_16, OS_S16:
-            Result := inherited getintregister(list, size);
-          OS_32, OS_S32:
-            begin
-              Result:=inherited getintregister(list, OS_16);
-              { ensure that the high register can be retrieved by
-                GetNextReg
-              }
-              if inherited getintregister(list, OS_16)<>GetNextReg(Result) then
-                internalerror(2013030202);
-            end;
-          else
-            internalerror(2013030201);
-        end;
       end;
 
 

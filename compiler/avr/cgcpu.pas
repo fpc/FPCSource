@@ -44,7 +44,6 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function getaddressregister(list:TAsmList):TRegister;override;
 
         function GetHigh(const r : TRegister) : TRegister;inline;
@@ -154,50 +153,6 @@ unit cgcpu;
         rg[R_INTREGISTER].free;
         // rg[R_ADDRESSREGISTER].free;
         inherited done_register_allocators;
-      end;
-
-
-    function tcgavr.getintregister(list: TAsmList; size: Tcgsize): Tregister;
-      var
-        tmp1,tmp2,tmp3 : TRegister;
-      begin
-        case size of
-          OS_8,OS_S8:
-            Result:=inherited getintregister(list, size);
-          OS_16,OS_S16:
-            begin
-              Result:=inherited getintregister(list, OS_8);
-              { ensure that the high register can be retrieved by
-                GetNextReg
-              }
-              if inherited getintregister(list, OS_8)<>GetNextReg(Result) then
-                internalerror(2011021331);
-            end;
-          OS_32,OS_S32:
-            begin
-              Result:=inherited getintregister(list, OS_8);
-              tmp1:=inherited getintregister(list, OS_8);
-              { ensure that the high register can be retrieved by
-                GetNextReg
-              }
-              if tmp1<>GetNextReg(Result) then
-                internalerror(2011021332);
-              tmp2:=inherited getintregister(list, OS_8);
-              { ensure that the upper register can be retrieved by
-                GetNextReg
-              }
-              if tmp2<>GetNextReg(tmp1) then
-                internalerror(2011021333);
-              tmp3:=inherited getintregister(list, OS_8);
-              { ensure that the upper register can be retrieved by
-                GetNextReg
-              }
-              if tmp3<>GetNextReg(tmp2) then
-                internalerror(2011021334);
-            end;
-          else
-            internalerror(2011021330);
-        end;
       end;
 
 
