@@ -60,6 +60,9 @@ unit cgobj;
           executionweight : longint;
           alignment : talignment;
           rg        : array[tregistertype] of trgobj;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+          has_next_reg: bitpacked array[TSuperRegister] of boolean;
+{$endif cpu8bitalu or cpu16bitalu}
        {$ifdef flowgraph}
           aktflownode:word;
        {$endif}
@@ -584,6 +587,9 @@ implementation
 
     procedure tcg.init_register_allocators;
       begin
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        fillchar(has_next_reg,sizeof(has_next_reg),0);
+{$endif cpu8bitalu or cpu16bitalu}
         fillchar(rg,sizeof(rg),0);
         add_reg_instruction_hook:=@add_reg_instruction;
         executionweight:=1;
@@ -595,6 +601,9 @@ implementation
         { Safety }
         fillchar(rg,sizeof(rg),0);
         add_reg_instruction_hook:=nil;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        fillchar(has_next_reg,sizeof(has_next_reg),0);
+{$endif cpu8bitalu or cpu16bitalu}
       end;
 
     {$ifdef flowgraph}
@@ -625,6 +634,7 @@ implementation
           OS_16,OS_S16:
             begin
               Result:=getintregister(list, OS_8);
+              has_next_reg[getsupreg(Result)]:=true;
               { ensure that the high register can be retrieved by
                 GetNextReg
               }
@@ -634,13 +644,16 @@ implementation
           OS_32,OS_S32:
             begin
               Result:=getintregister(list, OS_8);
+              has_next_reg[getsupreg(Result)]:=true;
               tmp1:=getintregister(list, OS_8);
+              has_next_reg[getsupreg(tmp1)]:=true;
               { ensure that the high register can be retrieved by
                 GetNextReg
               }
               if tmp1<>GetNextReg(Result) then
                 internalerror(2011021332);
               tmp2:=getintregister(list, OS_8);
+              has_next_reg[getsupreg(tmp2)]:=true;
               { ensure that the upper register can be retrieved by
                 GetNextReg
               }
@@ -664,6 +677,7 @@ implementation
           OS_32, OS_S32:
             begin
               Result:=getintregister(list, OS_16);
+              has_next_reg[getsupreg(Result)]:=true;
               { ensure that the high register can be retrieved by
                 GetNextReg
               }
@@ -723,6 +737,8 @@ implementation
           internalerror(2017091101);
         if getsubreg(r)<>R_SUBWHOLE then
           internalerror(2017091102);
+        if not has_next_reg[getsupreg(r)] then
+          internalerror(2017091103);
         result:=TRegister(longint(r)+1);
       end;
 {$endif cpu8bitalu or cpu16bitalu}
