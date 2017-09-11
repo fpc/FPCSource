@@ -41,8 +41,6 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
-        function GetNextReg(const r: TRegister): TRegister;override;
-
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_name_far(list : TAsmList;const s : string; weak: boolean);
         procedure a_call_name_static(list : TAsmList;const s : string);override;
@@ -155,18 +153,6 @@ unit cgcpu;
               include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
           end;
         inherited do_register_allocation(list,headertai);
-      end;
-
-
-    function tcg8086.GetNextReg(const r: TRegister): TRegister;
-      begin
-        if getsupreg(r)<first_int_imreg then
-          internalerror(2013051401);
-        if getregtype(r)<>R_INTREGISTER then
-          internalerror(2017091101);
-        if getsubreg(r)<>R_SUBW then
-          internalerror(2017091102);
-        result:=TRegister(longint(r)+1);
       end;
 
 

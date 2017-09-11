@@ -47,7 +47,6 @@ unit cgcpu;
         function getaddressregister(list:TAsmList):TRegister;override;
 
         function GetHigh(const r : TRegister) : TRegister;inline;
-        function GetNextReg(const r: TRegister): TRegister;override;
         function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;override;
         function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;override;
 
@@ -165,12 +164,6 @@ unit cgcpu;
     function tcgavr.GetHigh(const r : TRegister) : TRegister;
       begin
         result:=GetNextReg(r);
-      end;
-
-
-    function tcgavr.GetNextReg(const r: TRegister): TRegister;
-      begin
-        result:=TRegister(longint(r)+1);
       end;
 
 

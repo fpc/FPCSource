@@ -91,7 +91,7 @@ unit cgobj;
 
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
           {# returns the next virtual register }
-          function GetNextReg(const r: TRegister): TRegister;virtual;abstract;
+          function GetNextReg(const r: TRegister): TRegister;virtual;
 {$endif cpu8bitalu or cpu16bitalu}
 {$ifdef cpu8bitalu}
           {# returns the register with the offset of ofs of a continuous set of register starting with r }
@@ -712,6 +712,20 @@ implementation
       begin
         result:=rg[R_TEMPREGISTER].getregister(list,R_SUBWHOLE);
       end;
+
+
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+    function tcg.GetNextReg(const r: TRegister): TRegister;
+      begin
+        if getsupreg(r)<first_int_imreg then
+          internalerror(2013051401);
+        if getregtype(r)<>R_INTREGISTER then
+          internalerror(2017091101);
+        if getsubreg(r)<>R_SUBWHOLE then
+          internalerror(2017091102);
+        result:=TRegister(longint(r)+1);
+      end;
+{$endif cpu8bitalu or cpu16bitalu}
 
 
     function Tcg.makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
