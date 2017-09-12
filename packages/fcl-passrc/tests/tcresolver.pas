@@ -8420,7 +8420,7 @@ begin
   Add('  c: TArrC;');
   Add('begin');
   Add('  a[1]:=1;');
-  Add('  if a[2]=length(a) then ;');
+  Add('  if a[2]=low(a) then ;');
   Add('  b[''x'']:=true;');
   Add('  if b[''y''] then ;');
   Add('  c[3,''f'']:=1;');
@@ -8615,7 +8615,6 @@ begin
   Add('begin');
   Add('  e:=low(a);');
   Add('  e:=high(a);');
-  Add('  i:=length(a);');
   Add('  i:=a[red];');
   Add('  a[e]:=a[e];');
   ParseProgram;
