@@ -4084,6 +4084,7 @@ begin
   Add('  b:= c < s[1];');
   Add('  b:= c <= s[1];');
   Add('  s[1] := c;');
+  Add('  s[2+3] := c;');
   ConvertProgram;
   CheckSource('TestString_CharAt',
     LinesToStr([ // statements
@@ -4100,6 +4101,7 @@ begin
     '$mod.b = $mod.c < $mod.s.charAt(1 - 1);',
     '$mod.b = $mod.c <= $mod.s.charAt(1 - 1);',
     '$mod.s = rtl.setCharAt($mod.s, 1, $mod.c);',
+    '$mod.s = rtl.setCharAt($mod.s, 2 + 3, $mod.c);',
     '']));
 end;
 

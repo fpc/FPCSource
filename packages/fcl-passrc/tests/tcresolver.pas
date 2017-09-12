@@ -2461,6 +2461,7 @@ begin
   Add('  c:=s[6];');
   Add('  s[7]:=c;');
   Add('  s[8]:=''a'';');
+  Add('  s[9+1]:=''b'';');
   ParseProgram;
 end;
 

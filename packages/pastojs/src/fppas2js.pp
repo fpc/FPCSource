@@ -4089,7 +4089,12 @@ begin
   end;
 
   if AContext.Access<>caRead then
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.ConvertBinaryExpression OpCode=',El.OpCode,' AContext.Access=',AContext.Access);
+    {$ENDIF}
     DoError(20170209152633,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El);
+    end;
 
   Call:=nil;
   A:=ConvertElement(El.left,AContext);
@@ -5030,9 +5035,9 @@ var
         Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
         // first param  s
         Elements.AddElement.Expr:=ConvertElement(El.Value,AContext);
-        AContext.Access:=OldAccess;
         // second param  index
         Elements.AddElement.Expr:=ConvertElement(Param,ArgContext);
+        AContext.Access:=OldAccess;
         // third param  value
         Elements.AddElement.Expr:=AssignContext.RightSide;
         AssignContext.RightSide:=nil;
