@@ -383,6 +383,7 @@ var
   P : PChar;
   c: AnsiChar;
 begin
+  result:='';
   l:=Length(S);
   If (l=0) then Exit;
   SetLength(Result,l*3);
