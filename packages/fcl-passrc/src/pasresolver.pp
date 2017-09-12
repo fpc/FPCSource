@@ -11950,7 +11950,11 @@ begin
         end;
       end;
     end
-  else if RTypeEl.ClassType=TPasEnumType then
+  else if LTypeEl.ClassType=TPasRecordType then
+    begin
+    // records of different type
+    end
+  else if LTypeEl.ClassType=TPasEnumType then
     begin
     // enums of different type
     end
