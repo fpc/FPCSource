@@ -204,7 +204,7 @@ resourcestring
   sFoundCallCandidateX = 'Found call candidate %s';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
-  sSymbolXIsNotImplemented = 'Symbol "%s" is implemented';
+  sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';
   sSymbolXBelongsToALibrary = 'Symbol "%s" belongs to a library';
   sSymbolXIsDeprecated = 'Symbol "%s" is deprecated';
   sSymbolXIsDeprecatedY = 'Symbol "%s" is deprecated: %s';
