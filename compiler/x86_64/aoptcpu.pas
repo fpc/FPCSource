@@ -97,6 +97,8 @@ uses
               A_MOVSD,
               A_MOVSS:
                 result:=OptPass1MOVXX(p);
+              A_LEA:
+                result:=OptPass1LEA(p);
             end;
           end;
         end;

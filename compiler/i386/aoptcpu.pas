@@ -54,7 +54,7 @@ unit aoptcpu;
       aasmcpu,
       aoptutils,
       procinfo,
-      cgutils,cgx86,
+      cgutils,
       { units we should get rid off: }
       symsym,symconst;
 
@@ -860,97 +860,8 @@ begin
                       continue;
                   A_LEA:
                     begin
-                      {removes seg register prefixes from LEA operations, as they
-                      don't do anything}
-                      taicpu(p).oper[0]^.ref^.Segment := NR_NO;
-                      {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
-                      if (taicpu(p).oper[0]^.ref^.base <> NR_NO) and
-                         (getsupreg(taicpu(p).oper[0]^.ref^.base) in [RS_EAX..RS_ESP]) and
-                         (taicpu(p).oper[0]^.ref^.index = NR_NO) and
-                         (not(Assigned(taicpu(p).oper[0]^.ref^.Symbol))) then
-                        begin
-                          if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
-                             (taicpu(p).oper[0]^.ref^.offset = 0) then
-                            begin
-                              hp1 := taicpu.op_reg_reg(A_MOV, S_L,taicpu(p).oper[0]^.ref^.base,
-                                taicpu(p).oper[1]^.reg);
-                              InsertLLItem(p.previous,p.next, hp1);
-                              p.free;
-                              p := hp1;
-                              continue;
-                            end
-                          else if (taicpu(p).oper[0]^.ref^.offset = 0) then
-                            begin
-                              hp1 := tai(p.Next);
-                              asml.remove(p);
-                              p.free;
-                              p := hp1;
-                              continue;
-                            end
-                          { continue to use lea to adjust the stack pointer,
-                            it is the recommended way, but only if not optimizing for size }
-                          else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
-                            (cs_opt_size in current_settings.optimizerswitches) then
-                            with taicpu(p).oper[0]^.ref^ do
-                              if (base = taicpu(p).oper[1]^.reg) then
-                                begin
-                                  l := offset;
-                                  if (l=1) and UseIncDec then
-                                    begin
-                                      taicpu(p).opcode := A_INC;
-                                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                                      taicpu(p).ops := 1
-                                    end
-                                  else if (l=-1) and UseIncDec then
-                                    begin
-                                      taicpu(p).opcode := A_DEC;
-                                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                                      taicpu(p).ops := 1;
-                                    end
-                                  else
-                                    begin
-                                      if (l<0) and (l<>-2147483648) then
-                                        begin
-                                          taicpu(p).opcode := A_SUB;
-                                          taicpu(p).loadConst(0,-l);
-                                        end
-                                      else
-                                        begin
-                                          taicpu(p).opcode := A_ADD;
-                                          taicpu(p).loadConst(0,l);
-                                        end;
-                                    end;
-                                end;
-                        end
-(*
-                      This is unsafe, lea doesn't modify the flags but "add"
-                      does. This breaks webtbs/tw15694.pp. The above
-                      transformations are also unsafe, but they don't seem to
-                      be triggered by code that FPC generators (or that at
-                      least does not occur in the tests...). This needs to be
-                      fixed by checking for the liveness of the flags register.
-
-                      else if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) then
-                        begin
-                          hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.index,
-                            taicpu(p).oper[0]^.ref^.base);
-                          InsertLLItem(asml,p.previous,p.next, hp1);
-                          DebugMsg('Peephole Lea2AddBase done',hp1);
-                          p.free;
-                          p:=hp1;
-                          continue;
-                        end
-                      else if MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) then
-                        begin
-                          hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.base,
-                            taicpu(p).oper[0]^.ref^.index);
-                          InsertLLItem(asml,p.previous,p.next,hp1);
-                          DebugMsg('Peephole Lea2AddIndex done',hp1);
-                          p.free;
-                          p:=hp1;
-                          continue;
-                        end
-*)
+                      if OptPass1LEA(p) then
+                        continue;
                     end;
 
                   A_MOV:

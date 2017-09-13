@@ -65,6 +65,7 @@ unit aoptx86;
         function OptPass1MOVAP(var p : tai) : boolean;
         function OptPass1MOVXX(var p : tai) : boolean;
         function OptPass1OP(const p : tai) : boolean;
+        function OptPass1LEA(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -101,6 +102,7 @@ unit aoptx86;
       aasmbase,
       aoptutils,
       symconst,symsym,
+      cgx86,
       itcpugas;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
@@ -1706,8 +1708,7 @@ unit aoptx86;
           begin
             CopyUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)
-             ) then
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
               begin
                 taicpu(p).loadoper(0,taicpu(hp1).oper[0]^);
                 taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
@@ -1716,7 +1717,139 @@ unit aoptx86;
                 hp1.Free;
                 result:=true;
               end;
+            ReleaseUsedRegs(TmpUsedRegs);
           end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1LEA(var p : tai) : boolean;
+      var
+        hp1 : tai;
+        l : ASizeInt;
+        TmpUsedRegs : TAllUsedRegs;
+      begin
+        Result:=false;
+        { removes seg register prefixes from LEA operations, as they
+          don't do anything}
+        taicpu(p).oper[0]^.ref^.Segment:=NR_NO;
+        { changes "lea (%reg1), %reg2" into "mov %reg1, %reg2" }
+        if (taicpu(p).oper[0]^.ref^.base <> NR_NO) and
+           (taicpu(p).oper[0]^.ref^.index = NR_NO) and
+           { do not mess with leas acessing the stack pointer }
+           (taicpu(p).oper[1]^.reg <> NR_STACK_POINTER_REG) and
+           (not(Assigned(taicpu(p).oper[0]^.ref^.Symbol))) then
+          begin
+            if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
+               (taicpu(p).oper[0]^.ref^.offset = 0) then
+              begin
+                hp1:=taicpu.op_reg_reg(A_MOV,taicpu(p).opsize,taicpu(p).oper[0]^.ref^.base,
+                  taicpu(p).oper[1]^.reg);
+                InsertLLItem(p.previous,p.next, hp1);
+                DebugMsg('PeepHole Optimization Lea2Mov done',hp1);
+                p.free;
+                p:=hp1;
+                Result:=true;
+                exit;
+              end
+            else if (taicpu(p).oper[0]^.ref^.offset = 0) then
+              begin
+                hp1:=taicpu(p.Next);
+                DebugMsg('PeepHole Optimization Lea2Nop done',p);
+                asml.remove(p);
+                p.free;
+                p:=hp1;
+                Result:=true;
+                exit;
+              end
+            { continue to use lea to adjust the stack pointer,
+              it is the recommended way, but only if not optimizing for size }
+            else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
+              (cs_opt_size in current_settings.optimizerswitches) then
+              with taicpu(p).oper[0]^.ref^ do
+                if (base = taicpu(p).oper[1]^.reg) then
+                  begin
+                    l:=offset;
+                    if (l=1) and UseIncDec then
+                      begin
+                        taicpu(p).opcode:=A_INC;
+                        taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                        taicpu(p).ops:=1;
+                        DebugMsg('PeepHole Optimization Lea2Inc done',p);
+                      end
+                    else if (l=-1) and UseIncDec then
+                      begin
+                        taicpu(p).opcode:=A_DEC;
+                        taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                        taicpu(p).ops:=1;
+                        DebugMsg('PeepHole Optimization Lea2Dec done',p);
+                      end
+                    else
+                      begin
+                        if (l<0) and (l<>-2147483648) then
+                          begin
+                            taicpu(p).opcode:=A_SUB;
+                            taicpu(p).loadConst(0,-l);
+                            DebugMsg('PeepHole Optimization Lea2Sub done',p);
+                          end
+                        else
+                          begin
+                            taicpu(p).opcode:=A_ADD;
+                            taicpu(p).loadConst(0,l);
+                            DebugMsg('PeepHole Optimization Lea2Add done',p);
+                          end;
+                      end;
+                    Result:=true;
+                    exit;
+                  end;
+          end;
+        if GetNextInstruction(p,hp1) and
+          MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
+          MatchOpType(Taicpu(hp1),top_reg,top_reg) and
+          (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) then
+          begin
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+            if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+              begin
+                taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
+                DebugMsg('PeepHole Optimization LeaMov2Lea done',p);
+                asml.Remove(hp1);
+                hp1.Free;
+                result:=true;
+              end;
+            ReleaseUsedRegs(TmpUsedRegs);
+          end;
+
+(*
+        This is unsafe, lea doesn't modify the flags but "add"
+        does. This breaks webtbs/tw15694.pp. The above
+        transformations are also unsafe, but they don't seem to
+        be triggered by code that FPC generators (or that at
+        least does not occur in the tests...). This needs to be
+        fixed by checking for the liveness of the flags register.
+
+        else if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) then
+          begin
+            hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.index,
+              taicpu(p).oper[0]^.ref^.base);
+            InsertLLItem(asml,p.previous,p.next, hp1);
+            DebugMsg('Peephole Lea2AddBase done',hp1);
+            p.free;
+            p:=hp1;
+            continue;
+          end
+        else if MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) then
+          begin
+            hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.base,
+              taicpu(p).oper[0]^.ref^.index);
+            InsertLLItem(asml,p.previous,p.next,hp1);
+            DebugMsg('Peephole Lea2AddIndex done',hp1);
+            p.free;
+            p:=hp1;
+            continue;
+          end
+*)
       end;
 
 
