@@ -4595,7 +4595,8 @@ var
   Arg: TPasArgument;
   ParamContext: TParamContext;
   ResolvedEl: TPasResolverResult;
-  ProcType: TPasProcedureType;
+  ProcType, TargetProcType: TPasProcedureType;
+  ArrLit: TJSArrayLiteral;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -4621,7 +4622,20 @@ begin
   if [rrfNewInstance,rrfFreeInstance]*Ref.Flags<>[] then
     begin
     // call constructor, destructor
-    Result:=CreateFreeOrNewInstanceExpr(Ref,AContext);
+    Call:=CreateFreeOrNewInstanceExpr(Ref,AContext);
+    Result:=Call;
+    if Decl is TPasProcedure then
+      begin
+      TargetProcType:=TPasProcedure(Decl).ProcType;
+      if TargetProcType.Args.Count>0 then
+        begin
+        // add default parameters:
+        // insert array parameter [], e.g. this.TObject.$create("create",[])
+        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
+        Call.Args.Elements.AddElement.Expr:=ArrLit;
+        end;
+      end;
     exit;
     end;
 
@@ -5651,6 +5665,7 @@ begin
         end
       else if Decl.CustomData is TResElDataBaseType then
         begin
+        // typecast to base type
         Result:=ConvertTypeCastToBaseType(El,AContext,TResElDataBaseType(Decl.CustomData));
         exit;
         end
@@ -6794,7 +6809,6 @@ begin
       else if TypeEl.ClassType=TPasArrayType then
         begin
         Ranges:=TPasArrayType(TypeEl).Ranges;
-        writeln('TPasToJSConverter.ConvertBuiltIn_Low AAA1');
         if length(Ranges)=0 then
           begin
           // dynamic array starts at 0

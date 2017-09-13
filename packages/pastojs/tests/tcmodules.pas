@@ -335,6 +335,7 @@ type
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
     Procedure TestClass_TObjectConstructorWithParams;
+    Procedure TestClass_TObjectConstructorWithDefaultParam;
     Procedure TestClass_Var;
     Procedure TestClass_Method;
     Procedure TestClass_Implementation;
@@ -6278,6 +6279,49 @@ begin
     ]),
     LinesToStr([ // $mod.$main
     '$mod.Obj = $mod.TObject.$create("Create",[3]);'
+    ]));
+end;
+
+procedure TTestModule.TestClass_TObjectConstructorWithDefaultParam;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  public');
+  Add('    constructor Create;');
+  Add('  end;');
+  Add('  TTest = class(TObject)');
+  Add('  public');
+  Add('    constructor Create(const Par: longint = 1);');
+  Add('  end;');
+  Add('constructor tobject.create;');
+  Add('begin end;');
+  Add('constructor ttest.create(const par: longint);');
+  Add('begin end;');
+  Add('var t: ttest;');
+  Add('begin');
+  Add('  t:=ttest.create;');
+  Add('  t:=ttest.create(2);');
+  ConvertProgram;
+  CheckSource('TestClass_TObjectConstructorWithDefaultParam',
+    LinesToStr([ // statements
+    'rtl.createClass($mod,"TObject",null,function(){',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function(){',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TTest", $mod.TObject, function () {',
+    '  this.Create$1 = function (Par) {',
+    '  };',
+    '});',
+    'this.t = null;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.t = $mod.TTest.$create("Create$1", [1]);',
+    '$mod.t = $mod.TTest.$create("Create$1", [2]);'
     ]));
 end;
 
