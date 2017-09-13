@@ -404,6 +404,7 @@ interface
           { for Object Pascal helpers }
           extendeddef   : tdef;
           extendeddefderef: tderef;
+          helpertype : thelpertype;
           { for Objective-C: protocols and classes can have the same name there }
           objextname     : pshortstring;
           { to be able to have a variable vmt position }
@@ -6553,6 +6554,7 @@ implementation
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjecttyp(ppufile.getbyte);
+         helpertype:=thelpertype(ppufile.getbyte);
          objextname:=ppufile.getpshortstring;
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
@@ -6757,6 +6759,7 @@ implementation
          ppufile.do_indirect_crc:=true;
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(objecttype));
+         ppufile.putbyte(byte(helpertype));
          if assigned(objextname) then
            ppufile.putstring(objextname^)
          else

@@ -1381,6 +1381,7 @@ implementation
 
             { create new class }
             current_structdef:=cobjectdef.create(objecttype,n,nil,true);
+            tobjectdef(current_structdef).helpertype:=helpertype;
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }

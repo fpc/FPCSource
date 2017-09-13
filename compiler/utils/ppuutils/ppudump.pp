@@ -2899,6 +2899,7 @@ procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
 
 { type tobjecttyp is in symconst unit }
 { type tvarianttype is in symconst unit }
+{ type thelpertype is in symconst unit }
 var
   b : byte;
   l,j,tokenbufsize : longint;
@@ -3381,6 +3382,15 @@ begin
                  objdef.ObjType:=otInterface;
                odt_helper:
                  objdef.ObjType:=otHelper;
+             end;
+             b:=getbyte;
+             write  ([space,'      Helper Type : ']);
+             case thelpertype(b) of
+               ht_none   : writeln('none');
+               ht_class  : writeln('class helper');
+               ht_record : writeln('record helper');
+               ht_type   : writeln('type helper');
+               else        WriteWarning('Invalid helper type: ' + IntToStr(b));
              end;
              writeln([space,'    External name : ',getstring]);
              objdef.Size:=getasizeint;
