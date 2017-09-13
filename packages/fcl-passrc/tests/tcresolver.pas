@@ -524,6 +524,7 @@ type
     // arrays
     Procedure TestDynArrayOfLongint;
     Procedure TestStaticArray;
+    Procedure TestStaticArrayOfChar;
     Procedure TestArrayOfArray;
     Procedure TestArrayOfArray_NameAnonymous;
     Procedure TestFunctionReturningArray;
@@ -8415,6 +8416,8 @@ begin
   Add('  TArrA = array[1..2] of longint;');
   Add('  TArrB = array[char] of boolean;');
   Add('  TArrC = array[byte,''a''..''z''] of longint;');
+  Add('const');
+  Add('  ArrA: TArrA = (3,4);');
   Add('var');
   Add('  a: TArrA;');
   Add('  b: TArrB;');
@@ -8426,6 +8429,24 @@ begin
   Add('  if b[''y''] then ;');
   Add('  c[3,''f'']:=1;');
   Add('  if c[4,''g'']=a[1] then ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestStaticArrayOfChar;
+begin
+  ResolverEngine.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
+  StartProgram(false);
+  Add('type');
+  Add('  TArrA = array[1..3] of char;');
+  Add('const');
+  Add('  A: TArrA = (''p'',''a'',''b'');');
+  Add('  B: TArrA = ''pas'';');
+  Add('  Three = length(TArrA);');
+  Add('  C: array[1..Three] of char = ''pas'';');
+  Add('  D = ''pp'';');
+  Add('  E: array[length(D)..Three] of char = D;');
+  Add('  F: array[1..2] of widechar = ''äö'';');
+  Add('begin');
   ParseProgram;
 end;
 
