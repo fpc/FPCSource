@@ -766,15 +766,6 @@ type
   end;
   TPas2JsElementDataClass = class of TPas2JsElementData;
 
-  { TP2JConstExprData - CustomData of a const TPasExpr }
-
-  TP2JConstExprData = Class(TPas2JsElementData)
-  public
-    // Element is TPasExpr
-    Value: TJSValue;
-    destructor Destroy; override;
-  end;
-
   TPas2JSClassScope = class(TPasClassScope)
   public
     NewInstanceFunction: TPasClassFunction;
@@ -934,7 +925,7 @@ type
     property JSBaseTypes[aBaseType: TPas2jsBaseType]: TPasUnresolvedSymbolRef read GetJSBaseTypes;
     // compute literals and constants
     function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
-    function ComputeConst(Expr: TPasExpr; StoreCustomData: boolean): TJSValue; virtual;
+    function ResolverToJSValue(Value: TResEvalValue; ErrorEl: TPasElement): TJSValue; virtual;
     function ComputeConstString(Expr: TPasExpr; StoreCustomData, NotEmpty: boolean): String; virtual;
     procedure CheckAssignExprRangeToCustom(
       const LeftResolved: TPasResolverResult; RValue: TResEvalValue;
@@ -1212,7 +1203,7 @@ type
     Function CreateUsesList(UsesSection: TPasSection; AContext : TConvertContext): TJSArrayLiteral;
     Procedure AddToStatementList(var First, Last: TJSStatementList;
       Add: TJSElement; Src: TPasElement);
-    Function CreateValInit(PasType: TPasType; Expr: TPasElement; El: TPasElement;
+    Function CreateValInit(PasType: TPasType; Expr: TPasExpr; El: TPasElement;
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateVarInit(El: TPasVariable; AContext: TConvertContext): TJSElement; virtual;
     Function CreateVarStatement(const aName: String; Init: TJSElement;
@@ -1228,7 +1219,7 @@ type
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
     Function CreateRecordInit(aRecord: TPasRecordType; Expr: TPasElement;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
-    Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasElement;
+    Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasExpr;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateCmpArrayWithNil(El: TPasElement; JSArray: TJSElement;
       OpCode: TExprOpCode): TJSElement; virtual;
@@ -2976,67 +2967,50 @@ begin
   {$ENDIF}
 end;
 
-function TPas2JSResolver.ComputeConst(Expr: TPasExpr; StoreCustomData: boolean
-  ): TJSValue;
-var
-  Prim: TPrimitiveExpr;
-  V: TJSValue;
-  ConstData: TP2JConstExprData;
+function TPas2JSResolver.ResolverToJSValue(Value: TResEvalValue;
+  ErrorEl: TPasElement): TJSValue;
 begin
   Result:=nil;
-  if Expr=nil then
-    RaiseInternalError(20170215123600);
-  if StoreCustomData and (Expr.CustomData is TPasElementBase) then
-    begin
-    ConstData:=TP2JConstExprData(GetElementData(
-                           TPasElementBase(Expr.CustomData),TP2JConstExprData));
-    if ConstData<>nil then
-      begin
-      // use stored result
-      Result:=ConstData.Value;
-      exit;
-      end;
-    end;
-
-  V:=nil;
-  try
-    if Expr.ClassType=TPrimitiveExpr then
-      begin
-      Prim:=TPrimitiveExpr(Expr);
-      if Prim.Kind=pekString then
-        V:=TJSValue.Create(ExtractPasStringLiteral(Prim,Prim.Value))
-      else
-        RaiseNotYetImplemented(20170215124733,Prim);
-      end
-    else
-      RaiseNotYetImplemented(20170215124746,Expr);
-    Result:=V;
-
-    if StoreCustomData then
-      begin
-      // store result
-      ConstData:=TP2JConstExprData(CreateElementData(TP2JConstExprData,Expr));
-      ConstData.Value:=V;
-      end;
-  finally
-    if Result=nil then
-      V.Free;
+  if Value=nil then exit;
+  case Value.Kind of
+  revkBool: Result:=TJSValue.Create(TResEvalBool(Value).B);
+  revkInt: Result:=TJSValue.Create(TJSNumber(TResEvalInt(Value).Int));
+  revkUInt: Result:=TJSValue.Create(TJSNumber(TResEvalUInt(Value).UInt));
+  revkFloat: Result:=TJSValue.Create(TJSNumber(TResEvalFloat(Value).FloatValue));
+  revkString: Result:=TJSValue.Create(TJSString(
+    ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,ErrorEl)));
+  revkUnicodeString: Result:=TJSValue.Create(TJSString(TResEvalUTF16(Value).S));
+  else
+    {$IFDEF VerbosePas2JS}
+    writeln('TPas2JSResolver.ResolverToJSValue ',Value.AsDebugString);
+    {$ENDIF}
+    RaiseNotYetImplemented(20170914092413,ErrorEl,'');
   end;
 end;
 
 function TPas2JSResolver.ComputeConstString(Expr: TPasExpr; StoreCustomData,
   NotEmpty: boolean): String;
 var
-  V: TJSValue;
+  Value: TResEvalValue;
 begin
-  V:=ComputeConst(Expr,StoreCustomData);
-  if V.ValueType<>jsbase.jstString then
-    RaiseNotYetImplemented(20170320220728,Expr,'expected string constant');
-  if V.ValueType<>jstString then
-    RaiseMsg(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',JSTypeCaptions[V.ValueType]],Expr);
-  if NotEmpty and (V.AsString='') then
+  Result:='';
+  if Expr=nil then
+    RaiseInternalError(20170215123600);
+  Value:=Eval(Expr,[refAutoConst],StoreCustomData);
+  try
+    case Value.Kind of
+    revkString: Result:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,Expr);
+    revkUnicodeString: Result:=UTF8Encode(TResEvalUTF16(Value).S);
+    else
+      str(Value.Kind,Result);
+      RaiseMsg(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',Result],Expr);
+    end;
+  finally
+    ReleaseEvalValue(Value);
+  end;
+
+  if NotEmpty and (Result='') then
     RaiseMsg(20170321085318,nExpectedXButFoundY,sExpectedXButFoundY,['string literal','empty'],Expr);
-  Result:=String(V.AsString);
 end;
 
 procedure TPas2JSResolver.CheckAssignExprRangeToCustom(
@@ -3148,14 +3122,6 @@ begin
     exit(false);
   ExtName:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,false,false);
   Result:=ExtName=ExtClassBracketAccessor;
-end;
-
-{ TP2JConstExprData }
-
-destructor TP2JConstExprData.Destroy;
-begin
-  FreeAndNil(Value);
-  inherited Destroy;
 end;
 
 { TParamContext }
@@ -10594,7 +10560,7 @@ begin
     end;
 end;
 
-function TPasToJSConverter.CreateValInit(PasType: TPasType; Expr: TPasElement;
+function TPasToJSConverter.CreateValInit(PasType: TPasType; Expr: TPasExpr;
   El: TPasElement; AContext: TConvertContext): TJSElement;
 var
   T: TPasType;
@@ -10889,7 +10855,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
-  Expr: TPasElement; El: TPasElement; AContext: TConvertContext): TJSElement;
+  Expr: TPasExpr; El: TPasElement; AContext: TConvertContext): TJSElement;
 var
   Call: TJSCallExpression;
   DimArray, ArrLit: TJSArrayLiteral;
@@ -10900,6 +10866,7 @@ var
   CurArrayType: TPasArrayType;
   DefaultValue: TJSElement;
   ArrayValues: TPasExprArray;
+  US: TJSString;
 begin
   if Assigned(Expr) then
     begin
@@ -10915,6 +10882,12 @@ begin
         ArrayValues:=TArrayValues(ExprResolved.ExprEl).Values;
         for i:=0 to length(ArrayValues)-1 do
           ArrLit.Elements.AddElement.Expr:=ConvertElement(ArrayValues[i],AContext);
+        end
+      else if ExprResolved.BaseType in btAllStringAndChars then
+        begin
+        US:=TJSString(AContext.Resolver.ComputeConstString(Expr,false,true));
+        for i:=1 to length(US) do
+          ArrLit.Elements.AddElement.Expr:=CreateLiteralJSString(Expr,US[i]);
         end
       else
         RaiseNotSupported(Expr,AContext,20170223133034);

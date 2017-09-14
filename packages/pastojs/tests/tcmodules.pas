@@ -4896,6 +4896,7 @@ begin
   Add('  TArrayInt = array[2..4] of longint;');
   Add('var');
   Add('  Arr: TArrayInt;');
+  Add('  Arr2: TArrayInt = (5,6,7);');
   Add('  i: longint;');
   Add('  b: boolean;');
   Add('begin');
@@ -4910,6 +4911,7 @@ begin
   CheckSource('TestArray_StaticInt',
     LinesToStr([ // statements
     'this.Arr = rtl.arrayNewMultiDim([3],0);',
+    'this.Arr2 = [5, 6, 7];',
     'this.i = 0;',
     'this.b = false;'
     ]),
@@ -4933,6 +4935,7 @@ begin
   Add('var');
   Add('  Arr: TBools;');
   Add('  Arr2: TBool2;');
+  Add('  Arr3: TBools = (true,false);');
   Add('  b: boolean;');
   Add('begin');
   Add('  b:=low(arr);');
@@ -4952,6 +4955,7 @@ begin
     LinesToStr([ // statements
     'this.Arr = rtl.arrayNewMultiDim([2],false);',
     'this.Arr2 = rtl.arrayNewMultiDim([1],false);',
+    'this.Arr3 = [true, false];',
     'this.b = false;'
     ]),
     LinesToStr([ // $mod.$main
@@ -4979,6 +4983,8 @@ begin
   Add('var');
   Add('  Arr: TChars;');
   Add('  Arr2: TChars2;');
+  Add('  Arr3: array[2..4] of char = (''p'',''a'',''s'');');
+  Add('  Arr4: array[11..13] of char = ''pas'';');
   Add('  c: char;');
   Add('  b: boolean;');
   Add('begin');
@@ -4999,6 +5005,8 @@ begin
     LinesToStr([ // statements
     'this.Arr = rtl.arrayNewMultiDim([65536], "");',
     'this.Arr2 = rtl.arrayNewMultiDim([26], "");',
+    'this.Arr3 = ["p", "a", "s"];',
+    'this.Arr4 = ["p", "a", "s"];',
     'this.c = "";',
     'this.b = false;',
     '']),
