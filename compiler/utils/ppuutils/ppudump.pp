@@ -3252,14 +3252,14 @@ begin
              readcommondef('Procedural type (ProcVar) definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions, TPpuProcDef(def));
              writeln([space,'   Symtable level :',ppufile.getbyte]);
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
+               readderef('');
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
              { parast }
              readsymtable('parast',TPpuProcDef(def));
              delete(space,1,4);
-             if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
-               readderef('');
            end;
 
          ibshortstringdef :
@@ -3336,8 +3336,6 @@ begin
                  writeln([space,'      PaddingSize : ',getword]);
                  readmanagementoperatoroptions(space);
                end;
-             if not EndOfEntry then
-               HasMoreInfos;
              {read the record definitions and symbols}
              if not(df_copied_def in current_defoptions) then
                begin
@@ -3346,6 +3344,8 @@ begin
                  readsymtable('fields',TPpuRecordDef(def));
                  Delete(space,1,4);
                end;
+             if not EndOfEntry then
+               HasMoreInfos;
            end;
 
          ibobjectdef :
@@ -3741,6 +3741,8 @@ begin
            if not silent then
              ReadLinkContainer('Link framework: ');
 
+         ibjvmnamespace:
+            Writeln('JVM name space: '+getString);
          ibmainname:
            if not silent then
              Writeln(['Specified main program symbol name: ',getstring]);
