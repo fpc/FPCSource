@@ -1095,8 +1095,6 @@ type
     function OnExprEvalParams(Sender: TResExprEvaluator;
       Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
-    function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
-    function Eval(const Value: TPasResolverResult; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
   protected
     // custom types (added by descendant resolvers)
     function CheckAssignCompatibilityCustom(
@@ -1283,6 +1281,8 @@ type
     // find value and type of an element
     procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
+    function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
+    function Eval(const Value: TPasResolverResult; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
     // checking compatibilility
     function IsSameType(TypeA, TypeB: TPasType; ResolveAlias: boolean = false): boolean; // check if it is exactly the same
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
@@ -7788,39 +7788,6 @@ begin
   end;
 end;
 
-function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
-  Store: boolean): TResEvalValue;
-// Important: Caller must free result with ReleaseEvalValue(Result)
-begin
-  Result:=fExprEvaluator.Eval(Expr,Flags);
-  if Result=nil then exit;
-  {$IFDEF VerbosePasResEval}
-  writeln('TPasResolver.Eval Result=',Result.AsDebugString);
-  {$ENDIF}
-
-  if Store
-      and (Expr.CustomData=nil)
-      and (Result.Element=nil)
-      and (not fExprEvaluator.IsSimpleExpr(Expr)) then
-    AddResolveData(Expr,Result,lkModule);
-end;
-
-function TPasResolver.Eval(const Value: TPasResolverResult;
-  Flags: TResEvalFlags; Store: boolean): TResEvalValue;
-var
-  Expr: TPasExpr;
-begin
-  Result:=nil;
-  if Value.ExprEl<>nil then
-    Result:=Eval(Value.ExprEl,Flags,Store)
-  else if Value.IdentEl is TPasVariable then
-    begin
-    Expr:=TPasVariable(Value.IdentEl).Expr;
-    if Expr=nil then exit;
-    Result:=Eval(Expr,Flags,Store)
-    end;
-end;
-
 function TPasResolver.CheckAssignCompatibilityCustom(const LHS,
   RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean;
   var Handled: boolean): integer;
@@ -12202,6 +12169,14 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
         exit;
         end;
       end
+    else if Values.BaseType=btSet then
+      begin
+      // common mistake: const requires () instead of []
+      if RaiseOnIncompatible then
+        RaiseMsg(20170913181208,nXExpectedButYFound,sXExpectedButYFound,
+          ['(','['],ErrorEl);
+      exit;
+      end
     else
       begin
       // single value
@@ -12222,8 +12197,13 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       if (Count>1) then
         begin
         if RaiseOnIncompatible then
+          begin
+          {$IFDEF VerbosePasResolver}
+          writeln('CheckRange Values=',GetResolverResultDbg(Values));
+          {$ENDIF}
           RaiseMsg(20170913103143,nExpectXArrayElementsButFoundY,sExpectXArrayElementsButFoundY,
             [IntToStr(Count),'1'],ErrorEl);
+          end;
         exit;
         end;
       // check element type
@@ -13186,6 +13166,39 @@ begin
     end
   else
     RaiseNotYetImplemented(20160922163705,El);
+end;
+
+function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;
+  Store: boolean): TResEvalValue;
+// Important: Caller must free result with ReleaseEvalValue(Result)
+begin
+  Result:=fExprEvaluator.Eval(Expr,Flags);
+  if Result=nil then exit;
+  {$IFDEF VerbosePasResEval}
+  writeln('TPasResolver.Eval Result=',Result.AsDebugString);
+  {$ENDIF}
+
+  if Store
+      and (Expr.CustomData=nil)
+      and (Result.Element=nil)
+      and (not fExprEvaluator.IsSimpleExpr(Expr)) then
+    AddResolveData(Expr,Result,lkModule);
+end;
+
+function TPasResolver.Eval(const Value: TPasResolverResult;
+  Flags: TResEvalFlags; Store: boolean): TResEvalValue;
+var
+  Expr: TPasExpr;
+begin
+  Result:=nil;
+  if Value.ExprEl<>nil then
+    Result:=Eval(Value.ExprEl,Flags,Store)
+  else if Value.IdentEl is TPasVariable then
+    begin
+    Expr:=TPasVariable(Value.IdentEl).Expr;
+    if Expr=nil then exit;
+    Result:=Eval(Expr,Flags,Store)
+    end;
 end;
 
 function TPasResolver.IsSameType(TypeA, TypeB: TPasType; ResolveAlias: boolean

@@ -566,7 +566,9 @@ type
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function EnumTypeCast(EnumType: TPasEnumType; Expr: TPasExpr;
       Flags: TResEvalFlags): TResEvalEnum; virtual;
+    function CheckValidUTF8(const s: RawByteString; ErrorEl: TPasElement): boolean;
     function GetCodePage(const s: RawByteString): TSystemCodePage;
+    function GetUTF8Str(const s: RawByteString; ErrorEl: TPasElement): String;
     function GetUnicodeStr(const s: RawByteString; ErrorEl: TPasElement): UnicodeString;
     function GetWideChar(const s: RawByteString; out w: WideChar): boolean;
     property OnLog: TPasResEvalLogHandler read FOnLog write FOnLog;
@@ -4032,6 +4034,27 @@ begin
   end;
 end;
 
+function TResExprEvaluator.CheckValidUTF8(const s: RawByteString;
+  ErrorEl: TPasElement): boolean;
+var
+  p, EndP: PChar;
+  l: SizeInt;
+begin
+  p:=PChar(s);
+  EndP:=p+length(s);
+  while p<EndP do
+    begin
+    l:=Utf8CodePointLen(p,EndP-p,false);
+    if l<=0 then
+      if ErrorEl<>nil then
+        RaiseMsg(20170711211841,nIllegalChar,sIllegalChar,[],ErrorEl)
+      else
+        exit(false);
+    inc(p,l);
+    end;
+  Result:=true;
+end;
+
 function TResExprEvaluator.GetCodePage(const s: RawByteString): TSystemCodePage;
 begin
   if s='' then exit(DefaultStringCodePage);
@@ -4048,30 +4071,35 @@ begin
     end;
 end;
 
-function TResExprEvaluator.GetUnicodeStr(const s: RawByteString;
-  ErrorEl: TPasElement): UnicodeString;
+function TResExprEvaluator.GetUTF8Str(const s: RawByteString;
+  ErrorEl: TPasElement): String;
 var
   CP: TSystemCodePage;
-  p, EndP: PChar;
-  l: SizeInt;
 begin
   if s='' then exit('');
   CP:=GetCodePage(s);
   if CP=CP_UTF8 then
     begin
     if ErrorEl<>nil then
-      begin
-      // check if valid UTF8
-      p:=PChar(s);
-      EndP:=p+length(s);
-      while p<EndP do
-        begin
-        l:=Utf8CodePointLen(p,EndP-p,false);
-        if l<=0 then
-          RaiseMsg(20170711211841,nIllegalChar,sIllegalChar,[],ErrorEl);
-        inc(p,l);
-        end;
-      end;
+      CheckValidUTF8(s,ErrorEl);
+    Result:=s;
+    end
+  else
+    // use default conversion
+    Result:=UTF8Encode(UnicodeString(s));
+end;
+
+function TResExprEvaluator.GetUnicodeStr(const s: RawByteString;
+  ErrorEl: TPasElement): UnicodeString;
+var
+  CP: TSystemCodePage;
+begin
+  if s='' then exit('');
+  CP:=GetCodePage(s);
+  if CP=CP_UTF8 then
+    begin
+    if ErrorEl<>nil then
+      CheckValidUTF8(s,ErrorEl);
     Result:=UTF8Decode(s);
     end
   else
