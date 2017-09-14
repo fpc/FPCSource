@@ -357,17 +357,38 @@ function GetCompilerParameters(const SrcFilename, OutputDirectory,
     /usr/bin/instantfpc -MObjFpc -Sh ./envvars.pas param1
   The shebang compile parameters: -MObjFpc -Sh
 }
+
+  procedure InterpretParam(p : String);
+  begin
+    if (Copy(p,1,1)='-') and (copy(p,1,2)<>'--') then
+      AddParam(P,Result);
+  end;
+
 var
   p: String;
-  i : integer;
+  i,j : integer;
 begin
   Result:=GetEnvironmentVariable('INSTANTFPCOPTIONS');
   I:=1;
   While (I<=ParamCount) and (Copy(ParamStr(i),1,1)='-') do
     begin
     p:=ParamStr(i);
-    if (Copy(p,1,1)='-') and (copy(p,1,2)<>'--') then
-      AddParam(P,Result);
+    if (I<>1) then
+      begin
+      InterpretParam(p);
+      end
+    else
+      begin
+      // The linux kernel passes all arguments in the shebang line as 1 argument.
+      // We must parse and split it ourselves.
+      Repeat
+        J:=Pos(' ',P);
+        if (J=0) then
+          J:=Length(P)+1;
+        InterpretParam(Copy(P,1,J-1));
+        Delete(P,1,J);
+      Until (P='');
+      end;
     inc(I);
     end;
   if OutputDirectory<>'' then
