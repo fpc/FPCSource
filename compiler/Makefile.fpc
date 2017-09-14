@@ -925,8 +925,9 @@ rtlppulogs : $(RTLPPULOGLIST)
 vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 
-%.log-ppu : %.ppu ./utils/ppudump$(EXEEXT)
-	.$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+# Use installed ppudump
+%.log-ppu : %.ppu
+	ppudump -VA -M $< > $@
 
 
 ./utils/ppudump$(EXEEXT):
