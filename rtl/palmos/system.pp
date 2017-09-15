@@ -16,9 +16,11 @@ unit System;
 
 interface
 
+{$DEFINE HAS_MEMORYMANAGER}
 {$DEFINE FPC_ANSI_TEXTFILEREC}
 
 {$i systemh.inc}
+{$i tnyheaph.inc}
 
 {Platform specific information}
 const
@@ -62,12 +64,6 @@ var
 {$endif defined(FPUSOFT)}
 
 
-    var
-       { this variables are passed to PilotMain by the PalmOS }
-       cmd : Word;
-       cmdPBP : PChar; // Ptr;
-       launchFlags : Word;
-
   implementation
 
 {$if defined(FPUSOFT)}
@@ -93,20 +89,11 @@ var
 {$endif defined(FPUSOFT)}
 
 {$i system.inc}
+{$i tinyheap.inc}
 {$i syspara.inc}
 
-    { mimic the C start code }
-    function PilotMain(_cmd : Word;_cmdPBP : PChar;{Ptr;}_launchFlags : Word) : DWord;cdecl;public;
-
-      begin
-         cmd:=_cmd;
-         cmdPBP:=_cmdPBP;
-         launchFlags:=_launchFlags;
-//         asm
-//            bsr PASCALMAIN
-//         end;
-         PilotMain:=ExitCode;
-      end;
+  var
+    palmAppInfo: SysAppInfoPtr; external name '__appInfo';
 
   procedure SysInitParamsAndEnv;
   begin
@@ -124,8 +111,11 @@ var
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
-Procedure system_exit;
+procedure haltproc(e:longint);cdecl; external name 'haltproc';
+
+procedure system_exit;
 begin
+  haltproc(ExitCode);
 end;
 
 function GetProcessID: SizeUInt;
@@ -153,11 +143,16 @@ begin
 end;
 
 begin
-  StackLength := CheckInitialStkLen (InitialStkLen);
+  { we don't support anything but normal startup now }
+  { FIXME: lets figure it out how various startup modes }
+  { can coexist with the system unit infrastructure (KB) }
+  if not (palmAppInfo^.cmd = sysAppLaunchCmdNormalLaunch) then
+    halt(0);
+
+  StackLength := CheckInitialStkLen(InitialStkLen);
 { Initialize ExitProc }
   ExitProc:=Nil;
-{ Setup heap }
-  InitHeap;
+
   SysInitExceptions;
   InitUnicodeStringManager;
 { Setup stdin, stdout and stderr }
