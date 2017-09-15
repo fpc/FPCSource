@@ -115,12 +115,14 @@ implementation
 
          { target specific stuff }
          case target_info.system of
+           system_arm_aros,
+           system_arm_palmos,
+           system_m68k_amiga,
            system_m68k_atari,
+           system_m68k_palmos,
+           system_i386_aros,
            system_powerpc_amiga,
            system_powerpc_morphos,
-           system_m68k_amiga,
-           system_arm_aros,
-           system_i386_aros,
            system_x86_64_aros:
              include(supported_calling_conventions,pocall_syscall);
 {$ifdef i8086}
