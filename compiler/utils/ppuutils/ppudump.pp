@@ -1721,7 +1721,7 @@ begin
         end;
       writeln;
 
-      len:=ppufile.getasizeint;
+      len:=ppufile.getlongint;
       if len>0 then
         begin
           space:='    '+space;
