@@ -1,8 +1,8 @@
 {
     Copyright (c) 2001-2002 by Peter Vreman
 
-    This unit implements support import,export,link routines
-    for the (i386) Amiga target
+    This unit implements support import, export, link routines
+    for the PalmOS target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -209,10 +209,12 @@ end;
 initialization
 {$ifdef m68k}
   RegisterTarget(system_m68k_palmos_info);
+  RegisterLinker(ld_palmos,TLinkerPalmOS);
   RegisterRes(res_m68k_palmos_info,TResourceFile);
 {$endif m68k}
 {$ifdef arm}
   RegisterTarget(system_arm_palmos_info);
+  RegisterLinker(ld_palmos,TLinkerPalmOS);
   RegisterRes(res_arm_palmos_info,TResourceFile);
 {$endif arm}
 end.
