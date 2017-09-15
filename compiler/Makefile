@@ -4333,7 +4333,7 @@ PPUDIR=$(COMPILER_UNITTARGETDIR)
 ALLPPUDIR=$(CPU_TARGET)/units/*
 PPULIST=$(wildcard $(PPUDIR)/*.ppu)
 PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
-RTLPPUDIR=../rtl/units/$(FULL_TARGET)
+RTLPPUDIR=../rtl/units/$(TARGETSUFFIX)
 RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
 RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
 .PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs testppudump
@@ -4348,6 +4348,8 @@ vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 ppuinfo :
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
+	echo RTLPPUDIR is "$(RTLPPUDIR)"
+	echo RTLPPU list is "$(RTLPPULIST)"
 cleanppulogs :
 	-$(RMPROG) $(PPULOGLIST)
 cleanrtlppulogs :
