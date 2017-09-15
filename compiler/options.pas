@@ -3145,6 +3145,7 @@ begin
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
          f_variants,f_objects,f_commandargs,
          f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
+    system_arm_palmos,
     system_m68k_palmos:
       target_unsup_features:=[f_threading];
     else
