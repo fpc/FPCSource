@@ -39,6 +39,7 @@ TESTCOMPILER:=$(FPC) $(TESTOPT)
 ifdef CROSSCOMPILE
 override CROSSOPT:=$(OPT)
 override OPT=
+override BUILDFULLNATIVE=
 endif
 
 #############################
