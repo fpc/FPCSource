@@ -10017,6 +10017,7 @@ rtl/palmos/palmos.inc svneol=native#text/plain
 rtl/palmos/pilot.pp svneol=native#text/plain
 rtl/palmos/readme -text
 rtl/palmos/rtldefs.inc svneol=native#text/plain
+rtl/palmos/si_prc.pp svneol=native#text/plain
 rtl/palmos/sysdir.inc svneol=native#text/plain
 rtl/palmos/sysfile.inc svneol=native#text/plain
 rtl/palmos/sysheap.inc svneol=native#text/plain
