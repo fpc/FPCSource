@@ -3455,7 +3455,7 @@ implementation
                       allowed }
                     if is_objectpascal_helper(current_structdef) and
                         (m_delphi in current_settings.modeswitches) and
-                        is_record(tobjectdef(current_structdef).extendeddef) then
+                        (tobjectdef(current_structdef).helpertype=ht_record) then
                       Message(parser_e_inherited_not_in_record);
                     if (current_structdef.typ=objectdef) then
                       begin
