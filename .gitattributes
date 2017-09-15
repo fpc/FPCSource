@@ -13469,6 +13469,7 @@ tests/test/tthlp21.pp svneol=native#text/pascal
 tests/test/tthlp22.pp svneol=native#text/pascal
 tests/test/tthlp23.pp svneol=native#text/pascal
 tests/test/tthlp24.pp svneol=native#text/pascal
+tests/test/tthlp25.pp svneol=native#text/pascal
 tests/test/tthlp3.pp svneol=native#text/pascal
 tests/test/tthlp4.pp svneol=native#text/pascal
 tests/test/tthlp5.pp svneol=native#text/pascal

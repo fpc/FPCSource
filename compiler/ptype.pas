@@ -1890,8 +1890,7 @@ implementation
                   _HELPER:
                     begin
                       if hadtypetoken and
-                         { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
-                         ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) then
+                         (m_type_helpers in current_settings.modeswitches) then
                         begin
                           { reset hadtypetoken, so that calling code knows that it should not be handled
                             as a "unique" type }

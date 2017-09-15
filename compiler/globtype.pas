@@ -425,8 +425,8 @@ interface
                                   fields in Java) }
          m_default_unicodestring, { makes the default string type in $h+ mode unicodestring rather than
                                     ansistring; similarly, char becomes unicodechar rather than ansichar }
-         m_type_helpers,        { allows the declaration of "type helper" (non-Delphi) or "record helper"
-                                  (Delphi) for primitive types }
+         m_type_helpers,        { allows the declaration of "type helper" for all supported types
+                                  (primitive types, records, classes, interfaces) }
          m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
          m_isolike_io,          { I/O as it required by an ISO compatible compiler }
          m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
