@@ -83,6 +83,7 @@ interface
 
    type
       Handle = ^Pointer;
+      Ptr = Pointer;
       UInt = word;
       OsType = UInt;
 
