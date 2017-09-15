@@ -2103,6 +2103,7 @@ procedure pd_syscall(pd:tabstractprocdef);
         syscall: psyscallinfo;
       begin
         case target_info.system of
+          system_arm_palmos,
           system_m68k_palmos,
           system_m68k_atari,
           system_m68k_amiga,
@@ -2180,7 +2181,7 @@ begin
 {$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
   include_po_syscall;
 
-  if target_info.system = system_m68k_palmos then
+  if target_info.system in [system_arm_palmos, system_m68k_palmos] then
     begin
       v:=get_intconst;
       tprocdef(pd).extnumber:=longint(v.svalue);
