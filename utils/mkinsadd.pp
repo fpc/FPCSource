@@ -3,9 +3,9 @@
     This file is part of Free Pascal build tools
     Copyright (c) 2014-2015 by Tomas Hajny, member of the FPC core team.
 
-    This program takes processes one or more listing files created with
-    fpmake (e.g. using 'fpmake pkglist --target=<FPC_target> -zp units-'
-    for unit packages or without the '-zp <prefix>' for utils), compares
+    This program processes one or more listing files created with fpmake
+    (e.g. using 'fpmake pkglist --target=<FPC_target> -zp units-' for
+    unit packages or without the '-zp <prefix>' for utils), compares
     them to the text-mode installer configuration file install.dat and
     creates file install.add which provides information about packages
     missing in install.dat in a form allowing copy&paste of individual
