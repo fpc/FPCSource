@@ -34,9 +34,10 @@ interface
     private
        Function  WriteResponseFile : Boolean;
     public
-       constructor Create;override;
-       procedure SetDefaultInfo;override;
-       function  MakeExecutable:boolean;override;
+       constructor Create; override;
+       procedure SetDefaultInfo; override;
+       procedure InitSysInitUnitName; override;
+       function  MakeExecutable:boolean; override;
     end;
 
 
@@ -65,9 +66,20 @@ procedure TLinkerPalmOS.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ldpalm $OPT $STRIP -N -dy -T $SCRIPT -o $EXE @$RES';
-     ExeCmd[2]:='build-prc $EXE.prc "$APPNAME" $APPID $EXE *.bin';
+     //ExeCmd[1]:='ldpalm $OPT $STRIP -N -dy -T $SCRIPT -o $EXE @$RES';
+
+     { This is based on my successful experiment with prc-tools remix.
+       Anyone who has more insight into this Palm magic, feel free to fix. (KB) }
+     ExeCmd[1]:='ld $OPT $STRIP --no-check-sections -N -dy -o $EXE $RES';
+     ExeCmd[2]:='obj-res $EXE';
+     ExeCmd[3]:='build-prc $EXE.prc "$APPNAME" $APPID $EXE *.$EXE.grc';
    end;
+end;
+
+
+procedure TLinkerPalmOS.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
 end;
 
 
@@ -94,13 +106,18 @@ begin
   HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath.Str);
+     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
 
-  { add objectfiles, start with crt0 always  }
-  { using crt0, we should stick C compatible }
-  LinkRes.AddFileName(FindObjectFile('crt0','',false));
+  LinkRes.Add('INPUT (');
+  { add objectfiles, start with prt0 always }
+  if not (target_info.system in systems_internal_sysinit) then
+    begin
+      { add objectfiles, start with crt0 always  }
+      { using crt0, we should stick C compatible }
+      LinkRes.AddFileName(FindObjectFile('crt0','',false));
+    end;
 
   { main objectfiles }
   while not ObjectFiles.Empty do
@@ -109,21 +126,22 @@ begin
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
+  LinkRes.Add(')');
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-     LinkRes.Add('-(');
+     LinkRes.Add('GROUP(');
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(s)
       end;
-     LinkRes.Add('-)');
+     LinkRes.Add(')');
    end;
 
   { currently the PalmOS target must be linked always against the C lib }
-  LinkRes.Add('-lcrt');
+  {LinkRes.Add('-lcrt');}
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
@@ -180,16 +198,18 @@ begin
   for i:=1 to 2 do
    begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+     binstr:=FindUtil(utilsprefix+BinStr);
      if binstr<>'' then
       begin
         Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',MaybeQuoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);
-        Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
+//        Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
         Replace(cmdstr,'$APPNAME',palmos_applicationname);
         Replace(cmdstr,'$APPID',palmos_applicationid);
-        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+
+        success:=DoExec(binstr,cmdstr,(i=1),false);
         if not success then
          break;
       end;
