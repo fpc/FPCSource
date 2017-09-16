@@ -75,9 +75,11 @@ procedure fpc_cpuinit;
 
 procedure fpc_cpuinit;
   begin
+{$IFNDEF FPUNONE}
     SysResetFPU;
     if (not IsLibrary) then
       SysInitFPU;
+{$ENDIF}
   end;
 
 {$ENDIF}

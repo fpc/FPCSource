@@ -218,10 +218,10 @@ Type
   { m68k int64 shl/shr uses soft helper for non constant values }
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
-  {$define SUPPORT_SINGLE}
-  {$define SUPPORT_DOUBLE}
-
   {$ifndef FPUNONE}
+    {$define SUPPORT_SINGLE}
+    {$define SUPPORT_DOUBLE}
+
     ValReal = Real;
   {$endif}
 

@@ -117,7 +117,8 @@ Const
      'cfv4e'
    );
 
-   fputypestr : array[tfputype] of string[8] = ('',
+   fputypestr : array[tfputype] of string[8] = (
+     'NONE',
      'SOFT',
      'LIBGCC',
      '68881',
