@@ -21,13 +21,17 @@
 
   const
     baseFDataSize = 8;             // must be > 0
+{$IFDEF FPUNONE}
+    maxLoadingFactor = 1;
+{$ELSE}
     maxLoadingFactor = 1.0;
+{$ENDIF}
 
   {
     THash should have the class functions
       hash(a: TKey, n: SizeUInt): SizeUInt;
-      	      return uniformly distributed i value in range <0,n-1> base only on arguments,
-	      n will be always power of 2
+              return uniformly distributed i value in range <0,n-1> base only on arguments,
+              n will be always power of 2
       equal(const AKey1, AKey2: TKey): Boolean;            [when STL_INTERFACE_EXT is defined]
               return the boolean test for equality of the two keys.  Typically this is operator=,
               but it doesn't have to be (e.g. case-insensitive string comparison)
