@@ -112,8 +112,8 @@ type
  * New Floating point manager types (public)
  ***********************************************************************)
 
-  FlpFloat = Single; //Int32;
-  FlpDouble = Double; //_sfpe_64_bits;
+  FlpFloat = {$IFDEF FPUNONE}Int32{$ELSE}Single{$ENDIF}; //Int32;
+  FlpDouble ={$IFDEF FPUNONE}Int64{$ELSE}Double{$ENDIF}; //_sfpe_64_bits;
   FlpLongDouble = _sfpe_64_bits;
 
 (*
