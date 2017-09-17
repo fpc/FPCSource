@@ -226,6 +226,7 @@ type
         AsString: String;
         Comments: TStrings;
         SourcePos: TPasSourcePos;
+        TokenPos: TPasSourcePos;
       end;
       PTokenRec = ^TTokenRec;
   private
@@ -340,6 +341,7 @@ type
     function CurTokenName: String;
     function CurTokenText: String;
     Function CurComments : TStrings;
+    function CurTokenPos: TPasSourcePos;
     function CurSourcePos: TPasSourcePos;
     function HasToken: boolean;
     Function SavedComments : String;
@@ -870,6 +872,16 @@ begin
     Result:=FTokenRing[FTokenRingCur].Comments;
 end;
 
+function TPasParser.CurTokenPos: TPasSourcePos;
+begin
+  if HasToken then
+    Result:=FTokenRing[FTokenRingCur].TokenPos
+  else if Scanner<>nil then
+    Result:=Scanner.CurTokenPos
+  else
+    Result:=Default(TPasSourcePos);
+end;
+
 function TPasParser.CurSourcePos: TPasSourcePos;
 begin
   if HasToken then
@@ -945,6 +957,7 @@ begin
     FCurTokenString := Scanner.CurTokenString;
     p^.AsString:=FCurTokenString;
     p^.SourcePos:=Scanner.CurSourcePos;
+    p^.TokenPos:=Scanner.CurTokenPos;
     end;
   //writeln('TPasParser.NextToken END Start=',FTokenRingStart,' Cur=',FTokenRingCur,' End=',FTokenRingEnd,' Cur=',CurTokenString);
 end;
@@ -968,7 +981,9 @@ begin
     if Last^.Comments<>nil then
       Last^.Comments.Clear;
     Last^.SourcePos:=Cur^.SourcePos;
-    inc(Last^.SourcePos.Column);
+    dec(Cur^.SourcePos.Column);
+    Last^.TokenPos:=Cur^.TokenPos;
+    inc(Last^.TokenPos.Column);
     FTokenRingEnd:=(FTokenRingEnd+1) mod FTokenRingSize;
     if FTokenRingStart=FTokenRingEnd then
       FTokenRingStart:=(FTokenRingStart+1) mod FTokenRingSize;
@@ -2012,6 +2027,7 @@ var
   aName: String;
   ISE: TInlineSpecializeExpr;
   ST: TPasSpecializeType;
+  SrcPos: TPasSourcePos;
 
 begin
   Result:=nil;
@@ -2122,13 +2138,15 @@ begin
         CanSpecialize:=false;
         end;
       tkLessThan:
+        begin
+        SrcPos:=CurTokenPos;
         if (not CanSpecialize) or not IsSpecialize then
           break
         else
           begin
           // an inline specialization (e.g. A<B,C>)
-          ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent));
-          ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',ISE));
+          ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent,SrcPos));
+          ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',ISE,SrcPos));
           ISE.DestType:=ST;
           ReadSpecializeArguments(ST);
           ST.DestType:=ResolveTypeReference(aName,ST);
@@ -2138,6 +2156,7 @@ begin
           CanSpecialize:=false;
           NextToken;
           end;
+        end
       else
         break;
       end;
@@ -2289,8 +2308,8 @@ begin
           // for expressions like (ppdouble)^^;
           while (x<>Nil) and (CurToken=tkCaret) do
             begin
-            NextToken;
             x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
+            NextToken;
             end;
           // for expressions like (TObject(m)).Free;
           if (x<>Nil) and (CurToken=tkDot) then
@@ -2607,7 +2626,7 @@ var
   AUnitName: String;
   StartPos: TPasSourcePos;
 begin
-  StartPos:=Scanner.CurTokenPos;
+  StartPos:=CurTokenPos;
   Module := nil;
   AUnitName := ExpectIdentifier;
   NextToken;
@@ -2649,7 +2668,7 @@ Var
   StartPos: TPasSourcePos;
 
 begin
-  StartPos:=Scanner.CurTokenPos;
+  StartPos:=CurTokenPos;
   if SkipHeader then
     N:=ChangeFileExt(Scanner.CurFilename,'')
   else
@@ -2710,7 +2729,7 @@ Var
   StartPos: TPasSourcePos;
 
 begin
-  StartPos:=Scanner.CurTokenPos;
+  StartPos:=CurTokenPos;
   N:=ExpectIdentifier;
   NextToken;
   while CurToken = tkDot do
@@ -2783,7 +2802,7 @@ var
   Section: TInitializationSection;
   SubBlock: TPasImplElement;
 begin
-  Section := TInitializationSection(CreateElement(TInitializationSection, '', CurModule,Scanner.CurTokenPos));
+  Section := TInitializationSection(CreateElement(TInitializationSection, '', CurModule,CurTokenPos));
   CurModule.InitializationSection := Section;
   repeat
     NextToken;
@@ -4803,7 +4822,7 @@ begin
     tkasm:
       begin
       CheckSemicolon;
-      El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock,Scanner.CurTokenPos));
+      El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock,CurTokenPos));
       ParseAsmBlock(TPasImplAsmStatement(El));
       CurBlock.AddElement(El);
       if NewImplElement=nil then NewImplElement:=CurBlock;
@@ -4813,19 +4832,19 @@ begin
     tkbegin:
       begin
       CheckSemicolon;
-      El:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock,Scanner.CurTokenPos));
+      El:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplBeginBlock(El));
       end;
     tkrepeat:
       begin
       CheckSemicolon;
-      El:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock,Scanner.CurTokenPos));
+      El:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplRepeatUntil(El));
       end;
     tkIf:
       begin
         CheckSemicolon;
-        SrcPos:=Scanner.CurTokenPos;
+        SrcPos:=CurTokenPos;
         NextToken;
         Left:=DoParseExpression(CurBlock);
         UngetToken;
@@ -4842,7 +4861,7 @@ begin
         if TPasImplIfElse(CurBlock).IfBranch=nil then
         begin
           // empty then statement  e.g. if condition then else
-          El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,Scanner.CurTokenPos));
+          El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,CurTokenPos));
           CurBlock.AddElement(El);
         end;
         if TPasImplIfElse(CurBlock).ElseBranch<>nil then
@@ -4889,7 +4908,7 @@ begin
       end else if (CurBlock is TPasImplTryExcept) then
       begin
         CloseBlock;
-        El:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock,Scanner.CurTokenPos));
+        El:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock,CurTokenPos));
         TPasImplTry(CurBlock).ElseBranch:=TPasImplTryExceptElse(El);
         CurBlock:=TPasImplTryExceptElse(El);
       end else
@@ -4898,7 +4917,7 @@ begin
       begin
         // while Condition do
         CheckSemicolon;
-        SrcPos:=Scanner.CurTokenPos;
+        SrcPos:=CurTokenPos;
         NextToken;
         left:=DoParseExpression(CurBlock);
         UngetToken;
@@ -4920,7 +4939,7 @@ begin
         // for VarName := StartValue to EndValue do
         // for VarName in Expression do
         CheckSemicolon;
-        El:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock,Scanner.CurTokenPos));
+        El:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock,CurTokenPos));
         ok:=false;
         Try
           ExpectIdentifier;
@@ -4977,7 +4996,7 @@ begin
         // with Expr do
         // with Expr, Expr do
         CheckSemicolon;
-        SrcPos:=Scanner.CurTokenPos;
+        SrcPos:=CurTokenPos;
         NextToken;
         Left:=DoParseExpression(CurBlock);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
@@ -4998,7 +5017,7 @@ begin
     tkcase:
       begin
         CheckSemicolon;
-        SrcPos:=Scanner.CurTokenPos;
+        SrcPos:=CurTokenPos;
         NextToken;
         Left:=DoParseExpression(CurBlock);
         UngetToken;
@@ -5021,7 +5040,7 @@ begin
           tkelse:
             begin
               // create case-else block
-              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,Scanner.CurTokenPos));
+              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,CurTokenPos));
               TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(El);
               CreateBlock(TPasImplCaseElse(El));
               break;
@@ -5031,14 +5050,14 @@ begin
             if (curToken=tkIdentifier) and (LowerCase(CurtokenString)='otherwise') then
               begin
               // create case-else block
-              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,Scanner.CurTokenPos));
+              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,CurTokenPos));
               TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(El);
               CreateBlock(TPasImplCaseElse(El));
               break;
               end
             else
               repeat
-                SrcPos:=Scanner.CurTokenPos;
+                SrcPos:=CurTokenPos;
                 Left:=DoParseExpression(CurBlock);
                 //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
                 if CurBlock is TPasImplCaseStatement then
@@ -5078,7 +5097,7 @@ begin
     tktry:
       begin
       CheckSemicolon;
-      El:=TPasImplTry(CreateElement(TPasImplTry,'',CurBlock,Scanner.CurTokenPos));
+      El:=TPasImplTry(CreateElement(TPasImplTry,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplTry(El));
       end;
     tkfinally:
@@ -5090,7 +5109,7 @@ begin
         end;
         if CurBlock is TPasImplTry then
         begin
-          El:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',CurBlock,Scanner.CurTokenPos));
+          El:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',CurBlock,CurTokenPos));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryFinally(El);
           CurBlock:=TPasImplTryFinally(El);
         end else
@@ -5106,7 +5125,7 @@ begin
         if CurBlock is TPasImplTry then
         begin
           //writeln(i,'EXCEPT');
-          El:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock,Scanner.CurTokenPos));
+          El:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock,CurTokenPos));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(El);
           CurBlock:=TPasImplTryExcept(El);
         end else
@@ -5115,7 +5134,7 @@ begin
     tkraise:
       begin
       CheckSemicolon;
-      El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock,Scanner.CurTokenPos));
+      El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock,CurTokenPos));
       CreateBlock(TPasImplRaise(El));
       NextToken;
       If Curtoken in [tkElse,tkEnd,tkSemicolon] then
@@ -5199,7 +5218,7 @@ begin
           // on Exception do
           if CurBlock is TPasImplTryExcept then
           begin
-            SrcPos:=Scanner.CurTokenPos;
+            SrcPos:=CurTokenPos;
             ExpectIdentifier;
             El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock,SrcPos));
             SrcPos:=CurSourcePos;
@@ -5231,7 +5250,7 @@ begin
         end
       else
         begin
-        SrcPos:=Scanner.CurTokenPos;
+        SrcPos:=CurTokenPos;
         left:=DoParseExpression(CurBlock);
         case CurToken of
           tkAssign,
@@ -6023,7 +6042,7 @@ end;
 function TPasParser.CreatePrimitiveExpr(AParent: TPasElement;
   AKind: TPasExprKind; const AValue: String): TPrimitiveExpr;
 begin
-  Result:=TPrimitiveExpr(CreateElement(TPrimitiveExpr,'',AParent));
+  Result:=TPrimitiveExpr(CreateElement(TPrimitiveExpr,'',AParent,CurTokenPos));
   Result.Kind:=AKind;
   Result.Value:=AValue;
 end;
@@ -6031,7 +6050,7 @@ end;
 function TPasParser.CreateBoolConstExpr(AParent: TPasElement;
   AKind: TPasExprKind; const ABoolValue: Boolean): TBoolConstExpr;
 begin
-  Result:=TBoolConstExpr(CreateElement(TBoolConstExpr,'',AParent));
+  Result:=TBoolConstExpr(CreateElement(TBoolConstExpr,'',AParent,CurTokenPos));
   Result.Kind:=AKind;
   Result.Value:=ABoolValue;
 end;
@@ -6167,7 +6186,7 @@ end;
 function TPasParser.CreateUnaryExpr(AParent: TPasElement; AOperand: TPasExpr;
   AOpCode: TExprOpCode): TUnaryExpr;
 begin
-  Result:=TUnaryExpr(CreateElement(TUnaryExpr,'',AParent));
+  Result:=TUnaryExpr(CreateElement(TUnaryExpr,'',AParent,CurTokenPos));
   Result.Kind:=pekUnary;
   Result.Operand:=AOperand;
   Result.Operand.Parent:=Result;
@@ -6191,19 +6210,19 @@ end;
 
 function TPasParser.CreateInheritedExpr(AParent: TPasElement): TInheritedExpr;
 begin
-  Result:=TInheritedExpr(CreateElement(TInheritedExpr,'',AParent));
+  Result:=TInheritedExpr(CreateElement(TInheritedExpr,'',AParent,CurTokenPos));
   Result.Kind:=pekInherited;
 end;
 
 function TPasParser.CreateSelfExpr(AParent: TPasElement): TSelfExpr;
 begin
-  Result:=TSelfExpr(CreateElement(TSelfExpr,'Self',AParent));
+  Result:=TSelfExpr(CreateElement(TSelfExpr,'Self',AParent,CurTokenPos));
   Result.Kind:=pekSelf;
 end;
 
 function TPasParser.CreateNilExpr(AParent: TPasElement): TNilExpr;
 begin
-  Result:=TNilExpr(CreateElement(TNilExpr,'nil',AParent));
+  Result:=TNilExpr(CreateElement(TNilExpr,'nil',AParent,CurTokenPos));
   Result.Kind:=pekNil;
 end;
 

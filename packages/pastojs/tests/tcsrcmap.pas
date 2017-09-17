@@ -226,9 +226,9 @@ begin
   'var i: longint;',
   'begin',
   '  if true then',
-  '    i:=3',
+  '    i:=1234 + 2222',
   '  else',
-  '    i:=5;',
+  '    i:=3456;',
   '']);
   ConvertProgram;
   CheckSrcMap('TestEmptyProgram');
