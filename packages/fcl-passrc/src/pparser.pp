@@ -874,13 +874,10 @@ function TPasParser.CurSourcePos: TPasSourcePos;
 begin
   if HasToken then
     Result:=FTokenRing[FTokenRingCur].SourcePos
+  else if Scanner<>nil then
+    Result:=Scanner.CurSourcePos
   else
-    begin
-    if Scanner<>nil then
-      Result:=Scanner.CurSourcePos
-    else
-      Result:=Default(TPasSourcePos);
-    end;
+    Result:=Default(TPasSourcePos);
 end;
 
 function TPasParser.HasToken: boolean;
@@ -2608,7 +2605,9 @@ end;
 procedure TPasParser.ParseUnit(var Module: TPasModule);
 var
   AUnitName: String;
+  StartPos: TPasSourcePos;
 begin
+  StartPos:=Scanner.CurTokenPos;
   Module := nil;
   AUnitName := ExpectIdentifier;
   NextToken;
@@ -2619,8 +2618,7 @@ begin
     NextToken;
     end;
   UngetToken;
-  Module := TPasModule(CreateElement(TPasModule, AUnitName,
-    Engine.Package));
+  Module := TPasModule(CreateElement(TPasModule, AUnitName, Engine.Package, StartPos));
   FCurModule:=Module;
   try
     if Assigned(Engine.Package) then
@@ -2648,8 +2646,10 @@ Var
   PP : TPasProgram;
   Section : TProgramSection;
   N : String;
+  StartPos: TPasSourcePos;
 
 begin
+  StartPos:=Scanner.CurTokenPos;
   if SkipHeader then
     N:=ChangeFileExt(Scanner.CurFilename,'')
   else
@@ -2665,7 +2665,7 @@ begin
     UngetToken;
     end;
   Module := nil;
-  PP:=TPasProgram(CreateElement(TPasProgram, N, Engine.Package));
+  PP:=TPasProgram(CreateElement(TPasProgram, N, Engine.Package, StartPos));
   Module :=PP;
   FCurModule:=Module;
   try
@@ -2707,8 +2707,10 @@ Var
   PP : TPasLibrary;
   Section : TLibrarySection;
   N: String;
+  StartPos: TPasSourcePos;
 
 begin
+  StartPos:=Scanner.CurTokenPos;
   N:=ExpectIdentifier;
   NextToken;
   while CurToken = tkDot do
@@ -2719,7 +2721,7 @@ begin
     end;
   UngetToken;
   Module := nil;
-  PP:=TPasLibrary(CreateElement(TPasLibrary, N, Engine.Package));
+  PP:=TPasLibrary(CreateElement(TPasLibrary, N, Engine.Package, StartPos));
   Module :=PP;
   FCurModule:=Module;
   try
@@ -2781,7 +2783,7 @@ var
   Section: TInitializationSection;
   SubBlock: TPasImplElement;
 begin
-  Section := TInitializationSection(CreateElement(TInitializationSection, '', CurModule));
+  Section := TInitializationSection(CreateElement(TInitializationSection, '', CurModule,Scanner.CurTokenPos));
   CurModule.InitializationSection := Section;
   repeat
     NextToken;
