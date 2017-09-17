@@ -35,9 +35,9 @@ type
 
   TSourceMapSegment = class
   public
-    Index: integer; // index in FNodes
-    GeneratedLine: integer;
-    GeneratedColumn: integer;
+    Index: integer; // index in Items
+    GeneratedLine: integer; // 1-based
+    GeneratedColumn: integer; // 0-based
     SrcFileIndex: integer; // index in FSources
     SrcLine: integer;
     SrcColumn: integer;
@@ -54,7 +54,7 @@ type
   TSourceMapOption = (
     smoAddMonotonous, // true = AddMapping GeneratedLine/Col must be behind last add, false = check all adds for duplicate
     smoAutoLineStart, // automatically add a first column mapping, repeating last mapping
-    smoSafetyHeader // add ')]}'
+    smoSafetyHeader // insert ')]}' at start
     );
   TSourceMapOptions = set of TSourceMapOption;
 const
@@ -85,6 +85,7 @@ type
     FNameToIndex: TStringToIndex; // name to index in FNames
     FItems: TFPList; // TSourceMapSegment, in adding order
     FOptions: TSourceMapOptions;
+    FSorted: boolean;
     FSourceRoot: string;
     FSources: TFPList; // list of TSourceMapSrc, in adding order
     FSourceToIndex: TStringToIndex; // srcfile to index in FSources
@@ -95,8 +96,10 @@ type
     function GetSourceFiles(Index: integer): String;
     function GetSourceTranslatedFiles(Index: integer): String;
     procedure SetGeneratedFilename(const AValue: string);
+    procedure SetSorted(const AValue: boolean);
     procedure SetSourceContents(Index: integer; const AValue: String);
     procedure SetSourceTranslatedFiles(Index: integer; const AValue: String);
+    procedure Sort;
   public
     constructor Create(const aGeneratedFilename: string);
     destructor Destroy; override;
@@ -120,6 +123,7 @@ type
     property GeneratedFilename: string read FGeneratedFilename write SetGeneratedFilename;
     function IndexOfName(const Name: string; AddIfNotExists: boolean = false): integer;
     function IndexOfSourceFile(const SrcFile: string; AddIfNotExists: boolean = false): integer;
+    function IndexOfSegmentAt(GeneratedLine, GeneratedCol: integer): integer;
     function Count: integer; // segments
     property Items[Index: integer]: TSourceMapSegment read GetItems; default; // segments
     function SourceCount: integer;
@@ -132,11 +136,14 @@ type
     property Names[Index: integer]: string read GetNames;
     property Version: integer read FVersion; // 3
     property Options: TSourceMapOptions read FOptions write FOptions;
+    property Sorted: boolean read FSorted write SetSorted; // Segments are sorted for GeneratedLine/Col
   end;
 
 function EncodeBase64VLQ(i: NativeInt): String; // base64 Variable Length Quantity
 function DecodeBase64VLQ(const s: string): NativeInt; // base64 Variable Length Quantity
 function DecodeBase64VLQ(var p: PChar): NativeInt; // base64 Variable Length Quantity
+
+function CompareSegmentWithGeneratedLineCol(Item1, Item2: Pointer): Integer;
 
 implementation
 
@@ -236,6 +243,28 @@ begin
     Result:=Result shr 1;
 end;
 
+function CompareSegmentWithGeneratedLineCol(Item1, Item2: Pointer): Integer;
+var
+  Seg1: TSourceMapSegment absolute Item1;
+  Seg2: TSourceMapSegment absolute Item2;
+begin
+  if Seg1.GeneratedLine<Seg2.GeneratedLine then
+    Result:=-1
+  else if Seg1.GeneratedLine>Seg2.GeneratedLine then
+    Result:=1
+  else if Seg1.GeneratedColumn<Seg2.GeneratedColumn then
+    Result:=-1
+  else if Seg1.GeneratedColumn>Seg2.GeneratedColumn then
+    Result:=1
+  // compare Index to keep adding order
+  else if Seg1.Index<Seg2.Index then
+    Result:=-1
+  else if Seg1.Index>Seg2.Index then
+    Result:=1
+  else
+    Result:=0;
+end;
+
 { TSourceMap.TStringToIndex }
 
 constructor TSourceMap.TStringToIndex.Create;
@@ -276,6 +305,15 @@ begin
   FGeneratedFilename:=AValue;
 end;
 
+procedure TSourceMap.SetSorted(const AValue: boolean);
+begin
+  if FSorted=AValue then Exit;
+  if AValue then
+    Sort
+  else
+    FSorted:=false;
+end;
+
 procedure TSourceMap.SetSourceContents(Index: integer; const AValue: String);
 begin
   TSourceMapSrc(FSources[Index]).Source:=AValue;
@@ -285,6 +323,17 @@ procedure TSourceMap.SetSourceTranslatedFiles(Index: integer;
   const AValue: String);
 begin
   TSourceMapSrc(FSources[Index]).TranslatedFilename:=AValue;
+end;
+
+procedure TSourceMap.Sort;
+var
+  i: Integer;
+begin
+  if FSorted then exit;
+  FItems.Sort(@CompareSegmentWithGeneratedLineCol);
+  for i:=0 to Count-1 do
+    Items[i].Index:=i;
+  FSorted:=true;
 end;
 
 function TSourceMap.GetItems(Index: integer): TSourceMapSegment;
@@ -322,6 +371,7 @@ begin
   FSources:=TFPList.Create;
   FSourceToIndex:=TStringToIndex.Create;
   GeneratedFilename:=aGeneratedFilename;
+  FSorted:=true;
 end;
 
 destructor TSourceMap.Destroy;
@@ -350,6 +400,7 @@ begin
   FNameToIndex.Clear;
   FNames.Clear;
   FSourceRoot:='';
+  FSorted:=true;
 end;
 
 function TSourceMap.AddMapping(GeneratedLine: integer; GeneratedCol: integer;
@@ -363,7 +414,7 @@ function TSourceMap.AddMapping(GeneratedLine: integer; GeneratedCol: integer;
   end;
 
 var
-  NodeCnt, i: Integer;
+  NodeCnt: Integer;
   OtherNode: TSourceMapSegment;
 begin
   {$IFDEF VerboseSrcMap}
@@ -393,27 +444,19 @@ begin
       RaiseInvalid('invalid SrcCol');
     end;
 
-  // check if generated line/col already exists
+  // Note: same line/col is allowed
   NodeCnt:=Count;
-  if smoAddMonotonous in FOptions then
+  if (NodeCnt>0) then
     begin
-    if NodeCnt>0 then
+    OtherNode:=Items[NodeCnt-1];
+    if (OtherNode.GeneratedLine>GeneratedLine)
+        or ((OtherNode.GeneratedLine=GeneratedLine)
+          and (OtherNode.GeneratedColumn>GeneratedCol)) then
       begin
-      OtherNode:=Items[NodeCnt-1];
-      if (OtherNode.GeneratedLine>GeneratedLine)
-          or ((OtherNode.GeneratedLine=GeneratedLine)
-            and (OtherNode.GeneratedColumn>GeneratedCol)) then
-        RaiseInvalid('GeneratedLine/Col not monotonous');
-      // Note: same line/col is allowed
-      end;
-    end
-  else
-    begin
-    for i:=0 to NodeCnt-1 do
-      begin
-      OtherNode:=Items[i];
-      if (OtherNode.GeneratedLine=GeneratedLine) and (OtherNode.GeneratedColumn=GeneratedCol) then
-        RaiseInvalid('duplicate GeneratedLine/Col');
+      if smoAddMonotonous in FOptions then
+        RaiseInvalid('GeneratedLine/Col not monotonous')
+      else
+        FSorted:=false;
       end;
     end;
 
@@ -868,6 +911,54 @@ begin
   Result:=FSources.Count;
   FSources.Add(Src);
   FSourceToIndex.Add(SrcFile,Result);
+end;
+
+function TSourceMap.IndexOfSegmentAt(GeneratedLine, GeneratedCol: integer
+  ): integer;
+var
+  l, r, m: Integer;
+  aSeg: TSourceMapSegment;
+begin
+  Sort;
+  l:=0;
+  r:=Count-1;
+  aSeg:=nil;
+  while l<=r do
+    begin
+    m:=(l+r) div 2;
+    aSeg:=Items[m];
+    if aSeg.GeneratedLine<GeneratedLine then
+      l:=m+1
+    else if aSeg.GeneratedLine>GeneratedLine then
+      r:=m-1
+    else if aSeg.GeneratedColumn<GeneratedCol then
+      l:=m+1
+    else if aSeg.GeneratedColumn>GeneratedCol then
+      r:=m-1
+    else
+      begin
+      // exact match found
+      Result:=m;
+      // -> return the leftmost exact match
+      while Result>0 do
+        begin
+        aSeg:=Items[Result-1];
+        if (aSeg.GeneratedLine<>GeneratedLine)
+            or (aSeg.GeneratedColumn<>GeneratedCol) then
+          exit;
+        dec(Result);
+        end;
+      exit;
+      end;
+    end;
+  // no exact match found
+  if aSeg=nil then
+    exit(-1);
+  // return the next lower. Note: there may be no such segment
+  if (aSeg.GeneratedLine>GeneratedLine)
+      or ((aSeg.GeneratedLine=GeneratedLine) and (aSeg.GeneratedColumn>GeneratedCol)) then
+    dec(m);
+  Result:=m;
 end;
 
 function TSourceMap.Count: integer;
