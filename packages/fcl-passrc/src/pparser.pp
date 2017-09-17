@@ -4803,7 +4803,7 @@ begin
     tkasm:
       begin
       CheckSemicolon;
-      El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock));
+      El:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock,Scanner.CurTokenPos));
       ParseAsmBlock(TPasImplAsmStatement(El));
       CurBlock.AddElement(El);
       if NewImplElement=nil then NewImplElement:=CurBlock;
@@ -4813,13 +4813,13 @@ begin
     tkbegin:
       begin
       CheckSemicolon;
-      El:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock));
+      El:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock,Scanner.CurTokenPos));
       CreateBlock(TPasImplBeginBlock(El));
       end;
     tkrepeat:
       begin
       CheckSemicolon;
-      El:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock));
+      El:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil,'',CurBlock,Scanner.CurTokenPos));
       CreateBlock(TPasImplRepeatUntil(El));
       end;
     tkIf:
@@ -4841,8 +4841,9 @@ begin
       begin
         if TPasImplIfElse(CurBlock).IfBranch=nil then
         begin
-        El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock));
-        CurBlock.AddElement(El);
+          // empty then statement  e.g. if condition then else
+          El:=TPasImplCommand(CreateElement(TPasImplCommand,'', CurBlock,Scanner.CurTokenPos));
+          CurBlock.AddElement(El);
         end;
         if TPasImplIfElse(CurBlock).ElseBranch<>nil then
         begin
@@ -4888,7 +4889,7 @@ begin
       end else if (CurBlock is TPasImplTryExcept) then
       begin
         CloseBlock;
-        El:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock));
+        El:=TPasImplTryExceptElse(CreateElement(TPasImplTryExceptElse,'',CurBlock,Scanner.CurTokenPos));
         TPasImplTry(CurBlock).ElseBranch:=TPasImplTryExceptElse(El);
         CurBlock:=TPasImplTryExceptElse(El);
       end else
@@ -4897,11 +4898,12 @@ begin
       begin
         // while Condition do
         CheckSemicolon;
+        SrcPos:=Scanner.CurTokenPos;
         NextToken;
         left:=DoParseExpression(CurBlock);
         UngetToken;
         //WriteLn(i,'WHILE Condition="',Condition,'" Token=',CurTokenText);
-        El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock));
+        El:=TPasImplWhileDo(CreateElement(TPasImplWhileDo,'',CurBlock,SrcPos));
         TPasImplWhileDo(El).ConditionExpr:=left;
         CreateBlock(TPasImplWhileDo(El));
         ExpectToken(tkdo);
@@ -4918,7 +4920,7 @@ begin
         // for VarName := StartValue to EndValue do
         // for VarName in Expression do
         CheckSemicolon;
-        El:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock));
+        El:=TPasImplForLoop(CreateElement(TPasImplForLoop,'',CurBlock,Scanner.CurTokenPos));
         ok:=false;
         Try
           ExpectIdentifier;
@@ -4975,7 +4977,7 @@ begin
         // with Expr do
         // with Expr, Expr do
         CheckSemicolon;
-        SrcPos:=CurSourcePos;
+        SrcPos:=Scanner.CurTokenPos;
         NextToken;
         Left:=DoParseExpression(CurBlock);
         //writeln(i,'WITH Expr="',Expr,'" Token=',CurTokenText);
@@ -4996,12 +4998,13 @@ begin
     tkcase:
       begin
         CheckSemicolon;
+        SrcPos:=Scanner.CurTokenPos;
         NextToken;
         Left:=DoParseExpression(CurBlock);
         UngetToken;
         //writeln(i,'CASE OF Expr="',Expr,'" Token=',CurTokenText);
         ExpectToken(tkof);
-        El:=TPasImplCaseOf(CreateElement(TPasImplCaseOf,'',CurBlock));
+        El:=TPasImplCaseOf(CreateElement(TPasImplCaseOf,'',CurBlock,SrcPos));
         TPasImplCaseOf(El).CaseExpr:=Left;
         Left.Parent:=El;
         CreateBlock(TPasImplCaseOf(El));
@@ -5018,7 +5021,7 @@ begin
           tkelse:
             begin
               // create case-else block
-              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock));
+              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,Scanner.CurTokenPos));
               TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(El);
               CreateBlock(TPasImplCaseElse(El));
               break;
@@ -5028,20 +5031,21 @@ begin
             if (curToken=tkIdentifier) and (LowerCase(CurtokenString)='otherwise') then
               begin
               // create case-else block
-              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock));
+              El:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock,Scanner.CurTokenPos));
               TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(El);
               CreateBlock(TPasImplCaseElse(El));
               break;
               end
             else
               repeat
+                SrcPos:=Scanner.CurTokenPos;
                 Left:=DoParseExpression(CurBlock);
                 //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
                 if CurBlock is TPasImplCaseStatement then
                   TPasImplCaseStatement(CurBlock).Expressions.Add(Left)
                 else
                   begin
-                  El:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock));
+                  El:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock,SrcPos));
                   TPasImplCaseStatement(El).AddExpression(Left);
                   CurBlock.AddElement(El);
                   CurBlock:=TPasImplCaseStatement(El);
@@ -5074,7 +5078,7 @@ begin
     tktry:
       begin
       CheckSemicolon;
-      El:=TPasImplTry(CreateElement(TPasImplTry,'',CurBlock));
+      El:=TPasImplTry(CreateElement(TPasImplTry,'',CurBlock,Scanner.CurTokenPos));
       CreateBlock(TPasImplTry(El));
       end;
     tkfinally:
@@ -5086,7 +5090,7 @@ begin
         end;
         if CurBlock is TPasImplTry then
         begin
-          El:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',CurBlock));
+          El:=TPasImplTryFinally(CreateElement(TPasImplTryFinally,'',CurBlock,Scanner.CurTokenPos));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryFinally(El);
           CurBlock:=TPasImplTryFinally(El);
         end else
@@ -5102,7 +5106,7 @@ begin
         if CurBlock is TPasImplTry then
         begin
           //writeln(i,'EXCEPT');
-          El:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock));
+          El:=TPasImplTryExcept(CreateElement(TPasImplTryExcept,'',CurBlock,Scanner.CurTokenPos));
           TPasImplTry(CurBlock).FinallyExcept:=TPasImplTryExcept(El);
           CurBlock:=TPasImplTryExcept(El);
         end else
@@ -5111,7 +5115,7 @@ begin
     tkraise:
       begin
       CheckSemicolon;
-      El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock));
+      El:=TPasImplRaise(CreateElement(TPasImplRaise,'',CurBlock,Scanner.CurTokenPos));
       CreateBlock(TPasImplRaise(El));
       NextToken;
       If Curtoken in [tkElse,tkEnd,tkSemicolon] then
@@ -5195,8 +5199,9 @@ begin
           // on Exception do
           if CurBlock is TPasImplTryExcept then
           begin
+            SrcPos:=Scanner.CurTokenPos;
             ExpectIdentifier;
-            El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock));
+            El:=TPasImplExceptOn(CreateElement(TPasImplExceptOn,'',CurBlock,SrcPos));
             SrcPos:=CurSourcePos;
             Name:=CurTokenString;
             NextToken;
@@ -5226,6 +5231,7 @@ begin
         end
       else
         begin
+        SrcPos:=Scanner.CurTokenPos;
         left:=DoParseExpression(CurBlock);
         case CurToken of
           tkAssign,
@@ -5238,7 +5244,7 @@ begin
             Ak:=TokenToAssignKind(CurToken);
             NextToken;
             right:=DoParseExpression(CurBlock); // this may solve TPasImplWhileDo.AddElement BUG
-            El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock));
+            El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock,SrcPos));
             left.Parent:=El;
             right.Parent:=El;
             TPasImplAssign(El).left:=Left;
@@ -5251,7 +5257,7 @@ begin
             if not (left is TPrimitiveExpr) then
               ParseExcTokenError(TokenInfos[tkSemicolon]);
             // label mark. todo: check mark identifier in the list of labels
-            El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock));
+            El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock,SrcPos));
             TPasImplLabelMark(El).LabelId:=TPrimitiveExpr(left).Value;
             CurBlock.AddElement(El);
             CmdElem:=TPasImplLabelMark(El);
@@ -5259,7 +5265,7 @@ begin
           end;
         else
           // simple statement (function call)
-          El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock));
+          El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock,SrcPos));
           TPasImplSimple(El).expr:=Left;
           AddStatement(El);
         end;
