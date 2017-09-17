@@ -33,6 +33,7 @@ begin
     P.Options.Add('-S2h');
 
     T:=P.Targets.AddUnit('fppas2js.pp');
+    T:=P.Targets.AddUnit('fppjssrcmap.pp');
 {$ifndef ALLPACKAGES}
     Run;
     end;

@@ -17,7 +17,7 @@ program testpas2js;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations;
+  Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations, tcsrcmap;
 
 type
 

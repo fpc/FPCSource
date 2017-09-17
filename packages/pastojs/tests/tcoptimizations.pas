@@ -738,7 +738,7 @@ begin
   Add('begin');
   Add('  j:=3;');
   ConvertProgram;
-  ActualSrc:=JSToStr(JSModule);
+  ActualSrc:=ConvertJSModuleToString(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system", "unit2"], function () {',
     '  var $mod = this;',
@@ -762,7 +762,7 @@ begin
   Add('procedure DoPrivate; begin end;');
   Add('begin');
   ConvertProgram;
-  ActualSrc:=JSToStr(JSModule);
+  ActualSrc:=ConvertJSModuleToString(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',
@@ -796,7 +796,7 @@ begin
   Add('begin');
   Add('  C.PublicA:=nil;');
   ConvertProgram;
-  ActualSrc:=JSToStr(JSModule);
+  ActualSrc:=ConvertJSModuleToString(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',
@@ -841,7 +841,7 @@ begin
   Add('  A:=nil;');
   Add('  p:=typeinfo(B);');
   ConvertProgram;
-  ActualSrc:=JSToStr(JSModule);
+  ActualSrc:=ConvertJSModuleToString(JSModule);
   ExpectedSrc:=LinesToStr([
     'rtl.module("program", ["system"], function () {',
     '  var $mod = this;',

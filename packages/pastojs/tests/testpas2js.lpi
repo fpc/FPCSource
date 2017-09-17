@@ -31,7 +31,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="7">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
@@ -43,6 +43,7 @@
       <Unit2>
         <Filename Value="../src/fppas2js.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="FPPas2Js"/>
       </Unit2>
       <Unit3>
         <Filename Value="tcmodules.pas"/>
@@ -52,6 +53,15 @@
         <Filename Value="tcoptimizations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="tcsrcmap.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../src/fppjssrcmap.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="FPPJsSrcMap"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

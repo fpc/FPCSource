@@ -128,7 +128,7 @@ Works:
   - procedure delete(var array,const start,count)
   - const c: dynarray = (a,b,...)
 - static arrays
-  - range: enumtype
+  - range: enumtype, boolean, int, char, custom int
   - init as arr = rtl.arrayNewMultiDim([dim1,dim2,...],value)
   - init with expression
   - length(1-dim array)
@@ -250,18 +250,13 @@ Works:
 
 ToDos:
 - ignore attributes
-- constant evaluation
 - static arrays
   - error on "arr:=nil"
-  - error on "if arr=nil then"
-  - error on "if Assigned(arr) then"
   - error on "setlength(arr,2)"
-  - a[int]
-  - a[boolean]
-  - a[enum]
-  - a[char]
+  - error on "insert(arr,2)"
+  - error on "delete(arr,2)"
   - a[][]
-  - const
+  - a[] of record
   - RTTI
 - property index specifier
 - RTTI
@@ -325,10 +320,10 @@ Not in Version 1.0:
 - inline
 - anonymous functions
 
-Compile flags for debugging: -d<x>
+Debugging this unit: -d<x>
    VerbosePas2JS
 *)
-unit fppas2js;
+unit FPPas2Js;
 
 {$mode objfpc}{$H+}
 {$inline on}
@@ -342,7 +337,7 @@ uses
 // message numbers
 const
   nPasElementNotSupported = 4001;
-  nIdentifierNotFound = 4002;
+  nNotSupportedX = 4002;
   nUnaryOpcodeNotSupported = 4003;
   nBinaryOpcodeNotSupported = 4004;
   nInvalidNumber = 4005;
@@ -362,13 +357,12 @@ const
   nNewInstanceFunctionMustNotHaveOverloadAtX = 4019;
   nBracketAccessorOfExternalClassMustHaveOneParameter = 4020;
   nTypeXCannotBePublished = 4021;
-  nNotSupportedX = 4022;
-  nNestedInheritedNeedsParameters = 4023;
-  nFreeNeedsVar = 4024;
+  nNestedInheritedNeedsParameters = 4022;
+  nFreeNeedsVar = 4023;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
-  sIdentifierNotFound = 'Identifier not found "%s"';
+  sNotSupportedX = 'Not supported: %s';
   sUnaryOpcodeNotSupported = 'Unary OpCode not yet supported "%s"';
   sBinaryOpcodeNotSupported = 'Binary OpCode not yet supported "%s"';
   sInvalidNumber = 'Invalid number "%s"';
@@ -388,7 +382,6 @@ resourcestring
   sNewInstanceFunctionMustNotHaveOverloadAtX = 'NewInstance function must not have overload at %s';
   sBracketAccessorOfExternalClassMustHaveOneParameter = 'Bracket accessor of external class must have one parameter';
   sTypeXCannotBePublished = 'Type "%s" cannot be published';
-  sNotSupportedX = 'Not supported: %s';
   sNestedInheritedNeedsParameters = 'nested inherited needs parameters';
   sFreeNeedsVar = 'Free needs a variable';
 

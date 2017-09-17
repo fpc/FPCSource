@@ -24,8 +24,10 @@ unit tcmodules;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, contnrs, fppas2js, pastree,
-  PScanner, PasResolver, PParser, PasResolveEval, jstree, jswriter, jsbase;
+  Classes, SysUtils, fpcunit, testregistry, contnrs,
+  jstree, jswriter, jsbase,
+  PasTree, PScanner, PasResolver, PParser, PasResolveEval,
+  FPPas2Js;
 
 const
   // default parser+scanner options
@@ -118,6 +120,7 @@ type
     procedure ConvertModule; virtual;
     procedure ConvertProgram; virtual;
     procedure ConvertUnit; virtual;
+    function ConvertJSModuleToString(El: TJSElement): string; virtual;
     procedure CheckDottedIdentifier(Msg: string; El: TJSElement; DottedName: string);
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
@@ -564,6 +567,7 @@ var
   aWriter: TBufferWriter;
   aJSWriter: TJSWriter;
 begin
+  aJSWriter:=nil;
   aWriter:=TBufferWriter.Create(1000);
   try
     aJSWriter:=TJSWriter.Create(aWriter);
@@ -571,6 +575,7 @@ begin
     aJSWriter.WriteJS(El);
     Result:=aWriter.AsAnsistring;
   finally
+    aJSWriter.Free;
     aWriter.Free;
   end;
 end;
@@ -962,7 +967,7 @@ begin
     Fail('Missing '+ExpectedErrorClass.ClassName+' error {'+ExpectedErrorMsg+'} ('+IntToStr(ExpectedErrorNumber)+')');
 
   FJSSource:=TStringList.Create;
-  FJSSource.Text:=JSToStr(JSModule);
+  FJSSource.Text:=ConvertJSModuleToString(JSModule);
   {$IFDEF VerbosePas2JS}
   writeln('TTestModule.ConvertModule JS:');
   write(FJSSource.Text);
@@ -1052,6 +1057,11 @@ begin
   Add('end.');
   ParseUnit;
   ConvertModule;
+end;
+
+function TCustomTestModule.ConvertJSModuleToString(El: TJSElement): string;
+begin
+  Result:=tcmodules.JSToStr(El);
 end;
 
 procedure TCustomTestModule.CheckDottedIdentifier(Msg: string; El: TJSElement;
@@ -1601,7 +1611,7 @@ procedure TTestModule.TestBaseTypeSingleFail;
 begin
   StartProgram(false);
   Add('var s: single;');
-  SetExpectedPasResolverError('identifier not found "single"',nIdentifierNotFound);
+  SetExpectedPasResolverError('identifier not found "single"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
@@ -1609,7 +1619,7 @@ procedure TTestModule.TestBaseTypeExtendedFail;
 begin
   StartProgram(false);
   Add('var e: extended;');
-  SetExpectedPasResolverError('identifier not found "extended"',nIdentifierNotFound);
+  SetExpectedPasResolverError('identifier not found "extended"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
@@ -4163,7 +4173,7 @@ procedure TTestModule.TestBaseType_AnsiStringFail;
 begin
   StartProgram(false);
   Add('var s: AnsiString');
-  SetExpectedPasResolverError('identifier not found "AnsiString"',nIdentifierNotFound);
+  SetExpectedPasResolverError('identifier not found "AnsiString"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
@@ -4171,7 +4181,7 @@ procedure TTestModule.TestBaseType_UnicodeStringFail;
 begin
   StartProgram(false);
   Add('var s: UnicodeString');
-  SetExpectedPasResolverError('identifier not found "UnicodeString"',nIdentifierNotFound);
+  SetExpectedPasResolverError('identifier not found "UnicodeString"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
@@ -4179,7 +4189,7 @@ procedure TTestModule.TestBaseType_ShortStringFail;
 begin
   StartProgram(false);
   Add('var s: ShortString');
-  SetExpectedPasResolverError('identifier not found "ShortString"',nIdentifierNotFound);
+  SetExpectedPasResolverError('identifier not found "ShortString"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
@@ -4187,7 +4197,7 @@ procedure TTestModule.TestBaseType_RawByteStringFail;
 begin
   StartProgram(false);
   Add('var s: RawByteString');
-  SetExpectedPasResolverError('identifier not found "RawByteString"',nIdentifierNotFound);
+  SetExpectedPasResolverError('identifier not found "RawByteString"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
