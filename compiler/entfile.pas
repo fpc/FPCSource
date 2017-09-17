@@ -271,6 +271,7 @@ type
     function getaint:{$ifdef generic_cpu}int64{$else}aint{$endif};
     function getasizeint:{$ifdef generic_cpu}int64{$else}asizeint{$endif};
     function getpuint:{$ifdef generic_cpu}qword{$else}puint{$endif};
+    function getptruint:{$ifdef generic_cpu}qword{$else}TConstPtrUInt{$endif};
     function getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
     function  getreal:entryreal;
     function  getrealsize(sizeofreal : longint):entryreal;
@@ -297,6 +298,7 @@ type
     procedure putaint(i:aint);
     procedure putasizeint(i:asizeint);
     procedure putpuint(i:puint);
+    procedure putptruint(v:TConstPtrUInt);
     procedure putaword(i:aword);
     procedure putreal(d:entryreal);
     procedure putstring(const s:string);
@@ -759,7 +761,15 @@ begin
   else if CpuAddrBitSize[tsystemcpu(header^.cpu)]=32 then
     result:=getlongint
   else if CpuAddrBitSize[tsystemcpu(header^.cpu)]=16 then
-    result:=smallint(getword)
+    begin
+      { result:=smallint(getword);
+        would have been logical, but it contradicts
+	definition of asizeint in globtype unit,
+	which uses 32-bit lngint type even for 16-bit
+	address size, to be able to cope with
+	I8086 seg:ofs huge addresses }
+      result:=getlongint;
+    end
   else
     begin
       error:=true;
@@ -791,7 +801,7 @@ begin
   else if CpuAddrBitSize[tsystemcpu(header^.cpu)]=32 then
     result:=getdword
   else if CpuAddrBitSize[tsystemcpu(header^.cpu)]=16 then
-    result:=getbyte
+    result:=getword
   else
     begin
       error:=true;
@@ -806,6 +816,27 @@ begin
   else
     result:=0;
   end;
+{$endif not generic_cpu}
+end;
+
+
+function tentryfile.getptruint:{$ifdef generic_cpu}qword{$else}TConstPtrUInt{$endif};
+{$ifdef generic_cpu}
+var
+header : pentryheader;
+{$endif generic_cpu}
+begin
+{$ifdef generic_cpu}
+  header:=getheaderaddr;
+  if CpuAddrBitSize[tsystemcpu(header^.cpu)]=64 then
+    result:=getqword
+  else result:=getdword;
+{$else not generic_cpu}
+  {$if sizeof(TConstPtrUInt)=8}
+  result:=tconstptruint(getint64);
+  {$else}
+  result:=TConstPtrUInt(getlongint);
+  {$endif}
 {$endif not generic_cpu}
 end;
 
@@ -1208,6 +1239,17 @@ procedure tentryfile.putpuint(i : puint);
 begin
   putdata(i,sizeof(puint));
 end;
+
+procedure tentryfile.putptruint(v:TConstPtrUInt);
+begin
+  {$if sizeof(TConstPtrUInt)=8}
+  putint64(int64(v));
+  {$else}
+  putlongint(longint(v));
+  {$endif}
+end;
+
+
 
 
 procedure tentryfile.putaword(i:aword);

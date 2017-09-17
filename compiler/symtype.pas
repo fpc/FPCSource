@@ -193,14 +193,12 @@ interface
          procedure checkerror;
          procedure getguid(var g: tguid);
          function  getexprint:Tconstexprint;
-         function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
          procedure getderef(var d:tderef);
          function  getpropaccesslist:tpropaccesslist;
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
          procedure putexprint(const v:tconstexprint);
-         procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(const d:tderef);
          procedure putpropaccesslist(p:tpropaccesslist);
@@ -897,16 +895,6 @@ implementation
     end;
 
 
-    function tcompilerppufile.getPtrUInt:TConstPtrUInt;
-      begin
-        {$if sizeof(TConstPtrUInt)=8}
-          result:=tconstptruint(getint64);
-        {$else}
-          result:=TConstPtrUInt(getlongint);
-        {$endif}
-      end;
-
-
     procedure tcompilerppufile.getposinfo(var p:tfileposinfo);
       var
         info : byte;
@@ -1096,16 +1084,6 @@ implementation
       putbyte(byte(v.signed));
       putint64(v.svalue);
     end;
-
-
-    procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
-      begin
-        {$if sizeof(TConstPtrUInt)=8}
-          putint64(int64(v));
-        {$else}
-          putlongint(longint(v));
-        {$endif}
-      end;
 
 
     procedure tcompilerppufile.putderef(const d:tderef);
