@@ -2565,7 +2565,7 @@ begin
                    write  ([space,'  PointerType : ']);
                    readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctInt;
-                   constdef.VInt:=getaint;
+                   constdef.VInt:=getptruint;
                    writeln([space,'        Value : ',constdef.VInt])
                  end;
                conststring,
