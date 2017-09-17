@@ -1100,9 +1100,9 @@ begin
         Writeln('}');
         end;
     end;
-  Writer.CurElement:=El;
   if HasBFalse then
     begin
+    Writer.CurElement:=El.BFalse;
     if not HasBTrue then
       begin
       if C then
@@ -1114,7 +1114,9 @@ begin
       Write(' ');
     Write('else ');
     WriteJS(El.BFalse)
-    end;
+    end
+  else
+    Writer.CurElement:=El;
 end;
 
 procedure TJSWriter.WriteForInStatement(El: TJSForInStatement);
