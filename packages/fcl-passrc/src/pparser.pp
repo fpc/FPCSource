@@ -4825,10 +4825,11 @@ begin
     tkIf:
       begin
         CheckSemicolon;
+        SrcPos:=Scanner.CurTokenPos;
         NextToken;
         Left:=DoParseExpression(CurBlock);
         UngetToken;
-        El:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock));
+        El:=TPasImplIfElse(CreateElement(TPasImplIfElse,'',CurBlock,SrcPos));
         TPasImplIfElse(El).ConditionExpr:=Left;
         Left.Parent:=El;
         //WriteLn(i,'IF Condition="',Condition,'" Token=',CurTokenText);
