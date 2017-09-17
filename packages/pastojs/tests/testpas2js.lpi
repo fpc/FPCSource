@@ -58,7 +58,7 @@
         <IsPartOfProject Value="True"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../src/fppjssrcmap.pas"/>
+        <Filename Value="../src/fppjssrcmap.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPPJsSrcMap"/>
       </Unit6>
