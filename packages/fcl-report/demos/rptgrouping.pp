@@ -41,7 +41,8 @@ uses
   fpReportStreamer,
   fpTTF,
   fpJSON,
-  jsonparser;
+  jsonparser,
+  fpexprpars;
 
 { TGroupingDemo }
 
@@ -102,11 +103,13 @@ var
   GroupHeader: TFPReportGroupHeaderBand;
   Memo: TFPReportMemo;
   PageFooter: TFPReportPageFooterBand;
+  GroupFooter: TFPReportGroupFooterBand;
 begin
   Inherited;
   rpt.Author := 'Graeme Geldenhuys';
   rpt.Title := 'FPReport Demo 3 - Grouping';
 
+  {*** page ***}
   p :=  TFPReportPage.Create(rpt);
   p.Orientation := poPortrait;
   p.PageSize.PaperName := 'A4';
@@ -118,20 +121,33 @@ begin
   p.Data := lReportData;
   p.Font.Name := 'LiberationSans';
 
+
+  {*** title ***}
   TitleBand := TFPReportTitleBand.Create(p);
   TitleBand.Layout.Height := 40;
-  {$ifdef ColorBands}
+  {$IFDEF ColorBands}
   TitleBand.Frame.Shape := fsRectangle;
   TitleBand.Frame.BackgroundColor := clReportTitleSummary;
-  {$endif}
+  {$ENDIF}
 
   Memo := TFPReportMemo.Create(TitleBand);
-  Memo.Layout.Left := 35;
+  Memo.Layout.Left := 0;
   Memo.Layout.Top := 20;
-  Memo.Layout.Width := 80;
+  Memo.Layout.Width := p.PageSize.Width - p.Margins.Left - p.Margins.Right;
   Memo.Layout.Height := 10;
+  Memo.TextAlignment.Horizontal := taCentered;
   Memo.Text := 'COUNTRY AND POPULATION AS OF 2014';
 
+  Memo := TFPReportMemo.Create(TitleBand);
+  Memo.Layout.Left := 0;
+  Memo.Layout.Top := 25;
+  Memo.Layout.Width := p.PageSize.Width - p.Margins.Left - p.Margins.Right;
+  Memo.Layout.Height := 10;
+  Memo.TextAlignment.Horizontal := taCentered;
+  Memo.Text := '(Total [formatfloat(''#,##0.0'',sum_population_in_M / 1000)] B)';
+
+
+  {*** group header ***}
   GroupHeader := TFPReportGroupHeaderBand.Create(p);
   GroupHeader.Layout.Height := 15;
   GroupHeader.GroupCondition := 'copy(country,1,1)';
@@ -141,14 +157,50 @@ begin
   {$endif}
 
   Memo := TFPReportMemo.Create(GroupHeader);
-  Memo.Layout.Left := 0;
-  Memo.Layout.Top := 5;
+  Memo.Layout.Left := 5;
+  Memo.Layout.Top := 3;
   Memo.Layout.Width := 10;
   Memo.Layout.Height := 8;
   Memo.UseParentFont := False;
   Memo.Text := '[copy(country,1,1)]';
   Memo.Font.Size := 16;
 
+  Memo := TFPReportMemo.Create(GroupHeader);
+  Memo.Layout.Left := 25;
+  Memo.Layout.Top := 3;
+  Memo.Layout.Width := 100;
+  Memo.Layout.Height := 8;
+  Memo.UseParentFont := False;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := '[formatfloat(''#,##0.0'', grp_sum_population_in_M)] M - [formatfloat(''#0.0'', grp_sum_population / sum_population * 100)] % ';
+  Memo.Font.Size := 16;
+
+  Memo := TFPReportMemo.Create(GroupHeader);
+  Memo.Layout.Left := 105;
+  Memo.Layout.Top := 11;
+  Memo.Layout.Width := 20;
+  Memo.Layout.Height := 4;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := 'Group %';
+
+  Memo := TFPReportMemo.Create(GroupHeader);
+  Memo.Layout.Left := 130;
+  Memo.Layout.Top := 11;
+  Memo.Layout.Width := 15;
+  Memo.Layout.Height := 4;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := 'Total %';
+
+
+  {*** variables ***}
+  rpt.Variables.AddExprVariable('population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat);
+  rpt.Variables.AddExprVariable('grp_sum_population', 'sum(StrToFloat(population))', rtFloat, rtGroup, GroupHeader);
+  rpt.Variables.AddExprVariable('grp_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, rtGroup, GroupHeader);
+  rpt.Variables.AddExprVariable('sum_population', 'sum(StrToFloat(population))', rtFloat);
+  rpt.Variables.AddExprVariable('sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat);
+
+
+  {*** detail ***}
   DataBand := TFPReportDataBand.Create(p);
   DataBand.Layout.Height := 8;
   {$ifdef ColorBands}
@@ -160,22 +212,23 @@ begin
   Memo := TFPReportMemo.Create(DataBand);
   Memo.Layout.Left := 15;
   Memo.Layout.Top := 2;
-  Memo.Layout.Width := 50;
+  Memo.Layout.Width := 45;
   Memo.Layout.Height := 5;
   Memo.Text := '[country]';
 
   Memo := TFPReportMemo.Create(DataBand);
-  Memo.Layout.Left := 70;
+  Memo.Layout.Left := 55;
   Memo.Layout.Top := 2;
-  Memo.Layout.Width := 30;
+  Memo.Layout.Width := 25;
   Memo.Layout.Height := 5;
-  Memo.Text := '[formatfloat(''#,##0'', StrToFloat(population))]';
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := '[formatfloat(''#,##0.0'', population_in_M)] M';
   //Memo.VisibleExpr := 'StrToFloat(''[population]'') > 50000000';
 
   Memo := TFPReportMemo.Create(DataBand);
-  Memo.Layout.Left := 105;
+  Memo.Layout.Left := 85;
   Memo.Layout.Top := 2;
-  Memo.Layout.Width := 50;
+  Memo.Layout.Width := 20;
   Memo.Layout.Height := 5;
   Memo.Text := '> Germany';
   Memo.UseParentFont := false;
@@ -183,16 +236,52 @@ begin
   Memo.VisibleExpr := 'StrToFloat(population) > 80890000';
 
   Memo := TFPReportMemo.Create(DataBand);
-  Memo.Layout.Left := 105;
+  Memo.Layout.Left := 85;
   Memo.Layout.Top := 2;
-  Memo.Layout.Width := 50;
+  Memo.Layout.Width := 20;
   Memo.Layout.Height := 5;
   Memo.Text := '< Germany';
   Memo.UseParentFont := false;
   Memo.Font.Color := clRed;
   Memo.VisibleExpr := 'StrToFloat(population) < 80890000';
 
+  Memo := TFPReportMemo.Create(DataBand);
+  Memo.Layout.Left := 110;
+  Memo.Layout.Top := 2;
+  Memo.Layout.Width := 15;
+  Memo.Layout.Height := 5;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := '[formatfloat(''#,##0.0'',StrToFloat(population)/grp_sum_population*100)] %';
 
+  Memo := TFPReportMemo.Create(DataBand);
+  Memo.Layout.Left := 130;
+  Memo.Layout.Top := 2;
+  Memo.Layout.Width := 15;
+  Memo.Layout.Height := 5;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := '[formatfloat(''#,##0.0'',StrToFloat(population)/sum_population*100)] %';
+
+  {*** group footer ***}
+  GroupFooter := TFPReportGroupFooterBand.Create(p);
+  GroupFooter.Layout.Height := 15;
+  GroupFooter.GroupHeader := GroupHeader;
+  {$ifdef ColorBands}
+  GroupFooter.Frame.Shape := fsRectangle;
+  GroupFooter.Frame.BackgroundColor := clGroupHeaderFooter;
+  {$endif}
+
+  Memo := TFPReportMemo.Create(GroupFooter);
+  Memo.Layout.Left := 25;
+  Memo.Layout.Top := 5;
+  Memo.Layout.Width := 100;
+  Memo.Layout.Height := 8;
+  Memo.UseParentFont := False;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := '[formatfloat(''#,##0'', grp_sum_population)] - [formatfloat(''#0.0'', grp_sum_population / sum_population * 100)] % ';
+  Memo.Font.Size := 16;
+
+
+  {*** page footer ***}
   PageFooter := TFPReportPageFooterBand.Create(p);
   PageFooter.Layout.Height := 20;
   {$ifdef ColorBands}
@@ -201,13 +290,23 @@ begin
   {$endif}
 
   Memo := TFPReportMemo.Create(PageFooter);
-  Memo.Layout.Left := 130;
+  Memo.Layout.Left := 100;
   Memo.Layout.Top := 13;
-  Memo.Layout.Width := 20;
+  Memo.Layout.Width := 50;
   Memo.Layout.Height := 5;
-  Memo.Text := 'Page [PageNo]';
+  Memo.Text := 'Page [PageNo] of [PAGECOUNT]';
   Memo.TextAlignment.Vertical := tlCenter;
   Memo.TextAlignment.Horizontal := taRightJustified;
+
+  Memo := TFPReportMemo.Create(PageFooter);
+  Memo.Layout.Left := 25;
+  Memo.Layout.Top := 5;
+  Memo.Layout.Width := 100;
+  Memo.Layout.Height := 8;
+  Memo.UseParentFont := False;
+  Memo.TextAlignment.Horizontal := taRightJustified;
+  Memo.Text := '[formatfloat(''#,##0'', sum_population)]';
+  Memo.Font.Size := 16;
 end;
 
 procedure TGroupingDemo.LoadDesignFromFile(const AFilename: string);
