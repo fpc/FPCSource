@@ -14,7 +14,7 @@ unit wmreports;
 interface
 
 uses
-  Classes, SysUtils, httpdefs, fphttp, fpweb, fpreport, httproute;
+  Classes, SysUtils, httpdefs, fphttp, fpreport, httproute;
 
 Type
 
@@ -123,7 +123,7 @@ Var Counter : Integer;
 procedure TReportListModule.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
-  O,RO : TJSONObject;
+  O : TJSONObject;
   A : TJSONArray;
   L : TStrings;
   I : integer;
@@ -162,9 +162,6 @@ end;
 procedure TViewReportModule.HandleRequest(ARequest: TRequest;
   AResponse: TResponse);
 
-Const
-  LFN = '/tmp/request.log';
-
 Var
   FN,TFN : String;
 
@@ -174,15 +171,6 @@ begin
     Delete(FN,1,1);
   Delete(FN,1,Pos('/',FN)); // Strip /View
   TFN:=GetTempDir+FN;
-{  With TStringList.Create do
-    try
-      if FileExists(LFN) then
-        LoadFromFile(LFN);
-      Add(FN+'='+TFN);
-      SaveToFile(LFN);
-    finally
-      Free;
-    end;}
   If FileExists(TFN) then
     begin
     AResponse.ContentStream:=TFileStream.Create(GetTempDir+FN,fmOpenRead or fmShareDenyWrite);
