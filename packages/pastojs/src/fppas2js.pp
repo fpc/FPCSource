@@ -8618,12 +8618,12 @@ begin
   AssignSt:=nil;
   if AContext.IsGlobal then
     begin
-    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ImplProc));
     Result:=AssignSt;
-    AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext);
+    AssignSt.LHS:=CreateSubDeclNameExpr(ImplProc,El.Name,AContext);
     end;
 
-  FS:=CreateFunction(El,ImplProc.Body<>nil);
+  FS:=CreateFunction(ImplProc,ImplProc.Body<>nil);
   FD:=FS.AFunction;
   if AssignSt<>nil then
     AssignSt.Expr:=FS
@@ -8656,7 +8656,7 @@ begin
           // has nested procs -> add "var self = this;"
           FuncContext.AddLocalVar(FBuiltInNames[pbivnSelf],FuncContext.ThisPas);
           SelfSt:=CreateVarStatement(FBuiltInNames[pbivnSelf],
-                                        CreatePrimitiveDotExpr('this'),El);
+                                        CreatePrimitiveDotExpr('this'),ImplProc);
           AddBodyStatement(SelfSt,BodyPas);
           if ImplProcScope.SelfArg<>nil then
             begin

@@ -235,8 +235,7 @@ begin
   '  if true then',
   '    i:=1234 + 2222',
   '  else',
-  '    i:=3456;',
-  '']);
+  '    i:=3456;']);
   ConvertProgram;
   CheckSrcMap('TestIf');
 end;
@@ -256,8 +255,7 @@ begin
   '  else',
   '    begin',
   '    E:=''inactive'';',
-  '    end;',
-  '']);
+  '    end;']);
   ConvertProgram;
   CheckSrcMap('TestIfBegin');
 end;
@@ -269,8 +267,7 @@ begin
   'var Runner, i: longint;',
   'begin',
   '  for Runner := 1000 + 2000 to 3000 do',
-  '    inc(i);',
-  '']);
+  '    inc(i);']);
   ConvertProgram;
   CheckSrcMap('TestEmptyProgram');
 end;
@@ -279,17 +276,18 @@ procedure TTestSrcMap.TestFunction;
 begin
   StartProgram(false);
   Add([
+  'function DoIt(i: longint): longint; forward;',
+  'const p = 3;',
   'function DoIt(i: longint): longint;',
   'var Runner, j: longint;',
   'begin',
   '  j:=0;',
-  '  for Runner := 1 to j do',
+  '  for Runner := p to j do',
   '    inc(j);',
   '  Result:=j;',
   'end;',
   'begin',
-  '  DoIt(2);',
-  '']);
+  '  DoIt(2);']);
   ConvertProgram;
   CheckSrcMap('TestFunction');
 end;
