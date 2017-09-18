@@ -3678,6 +3678,7 @@ new features, etc.):
 #    P = PowerPC targets
 #    p = PowerPC64 targets
 #    S = Sparc targets
+#    s = Sparc64 targets
 #    V = AVR
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
@@ -3959,7 +3960,6 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tmacos_Mac OS
 6*2Tpalmos_PalmOS
 8*2Tmsdos_MS-DOS (and compatible)
-a*2Tdarwin_Darwin/iOS
 A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
@@ -3968,6 +3968,8 @@ A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
+a*2Tdarwin_Darwin/iOS
+a*2Tlinux_Linux
 J*2Tandroid_Android
 J*2Tjava_Java
 m*2Tandroid_Android
@@ -3988,6 +3990,7 @@ p*2Tdarwin_Darwin/Mac OS X
 p*2Tlinux_Linux
 S*2Tsolaris_Solaris
 S*2Tlinux_Linux
+s*2Tlinux_Linux
 V*2Tembedded_Embedded
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
