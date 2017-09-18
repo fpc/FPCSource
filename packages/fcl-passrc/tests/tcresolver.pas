@@ -6954,7 +6954,7 @@ begin
   Add('    Some: longint;');
   Add('  end;');
   Add('begin');
-  CheckResolverException('Duplicate identifier "Some" at afile.pp(5,9)',nDuplicateIdentifier);
+  CheckResolverException('Duplicate identifier "Some" at afile.pp(5,5)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestClass_ReintroducePrivateVar;

@@ -299,7 +299,8 @@ type
     function CreateElement(AClass: TPTreeElement; const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility; const ASrcPos: TPasSourcePos): TPasElement;overload;
     function CreatePrimitiveExpr(AParent: TPasElement; AKind: TPasExprKind; const AValue: String): TPrimitiveExpr;
     function CreateBoolConstExpr(AParent: TPasElement; AKind: TPasExprKind; const ABoolValue : Boolean): TBoolConstExpr;
-    function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode): TBinaryExpr;
+    function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode): TBinaryExpr; overload;
+    function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos): TBinaryExpr; overload;
     procedure AddToBinaryExprChain(var ChainFirst: TPasExpr;
       Element: TPasExpr; AOpCode: TExprOpCode);
     procedure AddParamsToBinaryExprChain(var ChainFirst: TPasExpr;
@@ -307,7 +308,8 @@ type
     {$IFDEF VerbosePasParser}
     procedure WriteBinaryExprChain(Prefix: string; First, Last: TPasExpr);
     {$ENDIF}
-    function CreateUnaryExpr(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode): TUnaryExpr;
+    function CreateUnaryExpr(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode): TUnaryExpr; overload;
+    function CreateUnaryExpr(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos): TUnaryExpr; overload;
     function CreateArrayValues(AParent : TPasElement): TArrayValues;
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
              UseParentAsResultParent: Boolean; const NamePos: TPasSourcePos): TPasFunctionType;
@@ -2190,14 +2192,20 @@ begin
 end;
 
 function TPasParser.DoParseExpression(AParent : TPaselement;InitExpr: TPasExpr; AllowEqual : Boolean = True): TPasExpr;
+type
+  TOpStackItem = record
+    Token: TToken;
+    SrcPos: TPasSourcePos;
+  end;
+
 var
-  expstack  : TFPList;
-  opstack   : array of TToken;
-  opstackTop: integer;
-  pcount    : Integer;
+  ExpStack  : TFPList;
+  OpStack   : array of TOpStackItem;
+  OpStackTop: integer;
+  PrefixCnt : Integer;
   x         : TPasExpr;
   i         : Integer;
-  tempop    : TToken;
+  TempOp    : TToken;
   NotBinary : Boolean;
 
 const
@@ -2210,31 +2218,38 @@ const
 
   function PopExp: TPasExpr; inline;
   begin
-    if expstack.Count>0 then begin
-      Result:=TPasExpr(expstack[expstack.Count-1]);
-      expstack.Delete(expstack.Count-1);
+    if ExpStack.Count>0 then begin
+      Result:=TPasExpr(ExpStack[ExpStack.Count-1]);
+      ExpStack.Delete(ExpStack.Count-1);
     end else
       Result:=nil;
   end;
 
-  procedure PushOper(token: TToken); inline;
+  procedure PushOper(Token: TToken);
   begin
-    inc(opstackTop);
-    if opstackTop=length(opstack) then
-      SetLength(opstack,length(opstack)*2+4);
-    opstack[opstackTop]:=token;
+    inc(OpStackTop);
+    if OpStackTop=length(OpStack) then
+      SetLength(OpStack,length(OpStack)*2+4);
+    OpStack[OpStackTop].Token:=Token;
+    OpStack[OpStackTop].SrcPos:=CurTokenPos;
   end;
 
   function PeekOper: TToken; inline;
   begin
-    if opstackTop>=0 then Result:=opstack[opstackTop]
+    if OpStackTop>=0 then Result:=OpStack[OpStackTop].Token
     else Result:=tkEOF;
   end;
 
-  function PopOper: TToken; inline;
+  function PopOper(out SrcPos: TPasSourcePos): TToken;
   begin
     Result:=PeekOper;
-    if Result<>tkEOF then dec(opstackTop);
+    if Result=tkEOF then
+      SrcPos:=DefPasSourcePos
+    else
+      begin
+      SrcPos:=OpStack[OpStackTop].SrcPos;
+      dec(OpStackTop);
+      end;
   end;
 
   procedure PopAndPushOperator;
@@ -2243,22 +2258,24 @@ const
     xright  : TPasExpr;
     xleft   : TPasExpr;
     bin     : TBinaryExpr;
+    SrcPos: TPasSourcePos;
   begin
-    t:=PopOper;
+    t:=PopOper(SrcPos);
     xright:=PopExp;
     xleft:=PopExp;
     if t=tkDotDot then
       begin
-      bin:=CreateBinaryExpr(AParent,xleft,xright,eopNone);
+      bin:=CreateBinaryExpr(AParent,xleft,xright,eopNone,SrcPos);
       bin.Kind:=pekRange;
       end
     else
-      bin:=CreateBinaryExpr(AParent,xleft,xright,TokenToExprOp(t));
-    expstack.Add(bin);
+      bin:=CreateBinaryExpr(AParent,xleft,xright,TokenToExprOp(t),SrcPos);
+    ExpStack.Add(bin);
   end;
 
 Var
   AllowedBinaryOps : Set of TToken;
+  SrcPos: TPasSourcePos;
 
 begin
   AllowedBinaryOps:=BinaryOP;
@@ -2266,13 +2283,13 @@ begin
     Exclude(AllowedBinaryOps,tkEqual);
   //DumpCurToken('Entry',iaIndent);
   Result:=nil;
-  expstack := TFPList.Create;
-  SetLength(opstack,4);
-  opstackTop:=-1;
+  ExpStack := TFPList.Create;
+  SetLength(OpStack,4);
+  OpStackTop:=-1;
   try
     repeat
       NotBinary:=True;
-      pcount:=0;
+      PrefixCnt:=0;
       if not Assigned(InitExpr) then
         begin
         // the first part of the expression has been parsed externally.
@@ -2291,7 +2308,7 @@ begin
         while CurToken in PrefixSym do
           begin
           PushOper(CurToken);
-          inc(pcount);
+          inc(PrefixCnt);
           NextToken;
           end;
 
@@ -2311,6 +2328,7 @@ begin
             x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
             NextToken;
             end;
+          // ToDo: move dot below []
           // for expressions like (TObject(m)).Free;
           if (x<>Nil) and (CurToken=tkDot) then
             begin
@@ -2329,34 +2347,35 @@ begin
           end;
         if not Assigned(x) then
           ParseExcSyntaxError;
-        expstack.Add(x);
+        ExpStack.Add(x);
 
-        for i:=1 to pcount do
+        for i:=1 to PrefixCnt do
           begin
-          tempop:=PopOper;
-          x:=popexp;
-          if (tempop=tkMinus) and (x.Kind=pekRange) then
+          TempOp:=PopOper(SrcPos);
+          x:=PopExp;
+          if (TempOp=tkMinus) and (x.Kind=pekRange) then
             begin
-            TBinaryExpr(x).Left:=CreateUnaryExpr(x, TBinaryExpr(x).left, eopSubtract);
-            expstack.Add(x);
+            TBinaryExpr(x).Left:=CreateUnaryExpr(x, TBinaryExpr(x).left,
+                                                 eopSubtract, SrcPos);
+            ExpStack.Add(x);
             end
           else
-            expstack.Add(CreateUnaryExpr(AParent, x, TokenToExprOp(tempop) ));
+            ExpStack.Add(CreateUnaryExpr(AParent, x, TokenToExprOp(TempOp), SrcPos));
           end;
         end
       else
         begin
-        expstack.Add(InitExpr);
+        ExpStack.Add(InitExpr);
         InitExpr:=nil;
         end;
       if (CurToken in AllowedBinaryOPs) then
         begin
         // Adjusting order of the operations
         NotBinary:=False;
-        tempop:=PeekOper;
-        while (opstackTop>=0) and (OpLevel(tempop)>=OpLevel(CurToken)) do begin
+        TempOp:=PeekOper;
+        while (OpStackTop>=0) and (OpLevel(TempOp)>=OpLevel(CurToken)) do begin
           PopAndPushOperator;
-          tempop:=PeekOper;
+          TempOp:=PeekOper;
         end;
         PushOper(CurToken);
         NextToken;
@@ -2366,14 +2385,14 @@ begin
 
     if not NotBinary then ParseExcExpectedIdentifier;
 
-    while opstackTop>=0 do PopAndPushOperator;
+    while OpStackTop>=0 do PopAndPushOperator;
 
-    // only 1 expression should be on the stack, at the end of the correct expression
-    if expstack.Count<>1 then
+    // only 1 expression should be on the OpStack, at the end of the correct expression
+    if ExpStack.Count<>1 then
       ParseExcSyntaxError;
-    if expstack.Count=1 then
+    if ExpStack.Count=1 then
       begin
-      Result:=TPasExpr(expstack[0]);
+      Result:=TPasExpr(ExpStack[0]);
       Result.Parent:=AParent;
       end;
 
@@ -2384,11 +2403,11 @@ begin
       DumpCurtoken('Exiting (Result: "'+Result.GetDeclaration(true)+'") ',iaUndent);}
     if not Assigned(Result) then begin
       // expression error!
-      for i:=0 to expstack.Count-1 do
-        TPasExpr(expstack[i]).Release;
+      for i:=0 to ExpStack.Count-1 do
+        TPasExpr(ExpStack[i]).Release;
     end;
-    SetLength(opstack,0);
-    expstack.Free;
+    SetLength(OpStack,0);
+    ExpStack.Free;
   end;
 end;
 
@@ -6037,7 +6056,10 @@ function TPasParser.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASrcPos: TPasSourcePos): TPasElement;
 begin
-  Result := Engine.CreateElement(AClass, AName, AParent, AVisibility, ASrcPos);
+  if (ASrcPos.Row=0) and (ASrcPos.FileName='') then
+    Result := Engine.CreateElement(AClass, AName, AParent, AVisibility, CurSourcePos)
+  else
+    Result := Engine.CreateElement(AClass, AName, AParent, AVisibility, ASrcPos);
 end;
 
 function TPasParser.CreatePrimitiveExpr(AParent: TPasElement;
@@ -6059,7 +6081,14 @@ end;
 function TPasParser.CreateBinaryExpr(AParent: TPasElement; xleft,
   xright: TPasExpr; AOpCode: TExprOpCode): TBinaryExpr;
 begin
-  Result:=TBinaryExpr(CreateElement(TBinaryExpr,'',AParent));
+  Result:=CreateBinaryExpr(AParent,xleft,xright,AOpCode,CurSourcePos);
+end;
+
+function TPasParser.CreateBinaryExpr(AParent: TPasElement; xleft,
+  xright: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos
+  ): TBinaryExpr;
+begin
+  Result:=TBinaryExpr(CreateElement(TBinaryExpr,'',AParent,ASrcPos));
   Result.OpCode:=AOpCode;
   Result.Kind:=pekBinary;
   if xleft<>nil then
@@ -6187,7 +6216,13 @@ end;
 function TPasParser.CreateUnaryExpr(AParent: TPasElement; AOperand: TPasExpr;
   AOpCode: TExprOpCode): TUnaryExpr;
 begin
-  Result:=TUnaryExpr(CreateElement(TUnaryExpr,'',AParent,CurTokenPos));
+  Result:=CreateUnaryExpr(AParent,AOperand,AOpCode,CurTokenPos);
+end;
+
+function TPasParser.CreateUnaryExpr(AParent: TPasElement; AOperand: TPasExpr;
+  AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos): TUnaryExpr;
+begin
+  Result:=TUnaryExpr(CreateElement(TUnaryExpr,'',AParent,ASrcPos));
   Result.Kind:=pekUnary;
   Result.Operand:=AOperand;
   Result.Operand.Parent:=Result;

@@ -56,6 +56,7 @@ type
     procedure TestEmptyProgram;
     procedure TestEmptyUnit;
     procedure TestIf;
+    procedure TestFor;
   end;
 
 implementation
@@ -91,13 +92,14 @@ begin
 end;
 
 procedure TCustomTestSrcMap.CheckSrcMap(const aTitle: string);
+{$IFDEF VerbosePas2JS}
 var
   i: Integer;
+{$ENDIF}
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TCustomTestSrcMap.CheckSrcMap ',aTitle);
-  {$ENDIF}
-  for i:=0 to SrcMap.Count-1 do
+  {for i:=0 to SrcMap.Count-1 do
     begin
     write('TCustomTestSrcMap.CheckSrcMap i=',i,' Gen=',
       SrcMap[i].GeneratedLine,',',SrcMap[i].GeneratedColumn);
@@ -105,10 +107,12 @@ begin
     if SrcMap[i].SrcFileIndex>0 then
       write(SrcMap.SourceFiles[SrcMap[i].SrcFileIndex],',');
     writeln(SrcMap[i].SrcLine,',',SrcMap[i].SrcColumn);
-    end;
+    end;}
   for i:=1 to JSSource.Count do
     WriteSrcMapLine(i);
+  writeln('......012345678901234567890123456789012345678901234567890123456789');
   WriteSources(Filename,1,1);
+  {$ENDIF}
 end;
 
 procedure TCustomTestSrcMap.WriteSrcMapLine(GeneratedLine: integer);
@@ -229,6 +233,19 @@ begin
   '    i:=1234 + 2222',
   '  else',
   '    i:=3456;',
+  '']);
+  ConvertProgram;
+  CheckSrcMap('TestEmptyProgram');
+end;
+
+procedure TTestSrcMap.TestFor;
+begin
+  StartProgram(false);
+  Add([
+  'var Runner, i: longint;',
+  'begin',
+  '  for Runner := 1000 + 2000 to 3000 do',
+  '    inc(i);',
   '']);
   ConvertProgram;
   CheckSrcMap('TestEmptyProgram');

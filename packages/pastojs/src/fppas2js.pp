@@ -1119,8 +1119,8 @@ type
         ForLoop: TPasImplForLoop;
         LoopVar: TPasElement;
         FoundLoop: boolean;
-        LoopVarWrite: boolean; // true if first acces of LoopVar after loop is a write
-        LoopVarRead: boolean; // true if first acces of LoopVar after loop is a read
+        LoopVarWrite: boolean; // true if first access of LoopVar after loop is a write
+        LoopVarRead: boolean; // true if first access of LoopVar after loop is a read
       end;
       PForLoopFindData = ^TForLoopFindData;
     procedure ForLoop_OnProcBodyElement(El: TPasElement; arg: pointer);

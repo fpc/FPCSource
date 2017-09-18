@@ -9289,7 +9289,7 @@ begin
   Add('    Id: longint;');
   Add('  end;');
   Add('begin');
-  SetExpectedPasResolverError('Duplicate identifier "Id" at test1.pp(6,7)',nDuplicateIdentifier);
+  SetExpectedPasResolverError('Duplicate identifier "Id" at test1.pp(6,5)',nDuplicateIdentifier);
   ConvertProgram;
 end;
 

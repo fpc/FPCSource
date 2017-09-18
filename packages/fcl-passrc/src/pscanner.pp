@@ -493,6 +493,8 @@ type
     FileName: String;
     Row, Column: Cardinal;
   end;
+const
+  DefPasSourcePos: TPasSourcePos = (Filename:''; Row:0; Column:0);
 
 type
   { TPascalScanner }
