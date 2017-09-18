@@ -1571,6 +1571,7 @@ var
   first  : boolean;
   copy_size, min_size, tokenbufsize : longint;
   tokenbuf : pbyte;
+  tbi : longint;
 //  idtoken,
   token : ttoken;
 //  state : tmsgstate;
@@ -1584,26 +1585,29 @@ var
     var
       b,b2 : byte;
     begin
-      b:=tokenbuf[i];
-      inc(i);
+      b:=tokenbuf[tbi];
+      inc(tbi);
       if (b and $80)<>0 then
         begin
-          b2:=tokenbuf[i];
-          inc(i);
+          b2:=tokenbuf[tbi];
+          inc(tbi);
           result:=ttoken(((b and $7f) shl 8) or b2);
         end
       else
         result:=ttoken(b);
     end;
-
   function gettokenbufdword : dword;
   var
     var32 : dword;
   begin
-    var32:=pdword(@tokenbuf[i])^;
-    inc(i,sizeof(dword));
+    var32:=unaligned(pdword(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(dword));
     if ppufile.change_endian then
       var32:=swapendian(var32);
+{$ifdef FPC_BIG_ENDIAN}
+    { Tokens seems to be swapped to little endian in compiler code }
+    var32:=swapendian(var32);
+{$endif}
     result:=var32;
   end;
 
@@ -1611,10 +1615,14 @@ var
   var
     var16 : word;
   begin
-    var16:=pword(@tokenbuf[i])^;
-    inc(i,sizeof(word));
+    var16:=unaligned(pword(@tokenbuf[tbi])^);
+    inc(tbi,sizeof(word));
     if ppufile.change_endian then
       var16:=swapendian(var16);
+{$ifdef FPC_BIG_ENDIAN}
+    { Tokens seems to be swapped to little endian in compiler code }
+    var16:=swapendian(var16);
+{$endif}
     result:=var16;
   end;
 
@@ -1628,26 +1636,38 @@ var
   begin
     if CpuAddrBitSize[cpu]=64 then
       begin
-        var64:=pint64(@tokenbuf[i])^;
-        inc(i,sizeof(int64));
+        var64:=unaligned(pint64(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(int64));
         if ppufile.change_endian then
           var64:=swapendian(var64);
+{$ifdef FPC_BIG_ENDIAN}
+        { Tokens seems to be swapped to little endian in compiler code }
+        var64:=swapendian(var64);
+{$endif}
         result:=var64;
       end
     else if CpuAddrBitSize[cpu]=32 then
       begin
-        var32:=plongint(@tokenbuf[i])^;
-        inc(i,sizeof(longint));
+        var32:=unaligned(plongint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(longint));
         if ppufile.change_endian then
           var32:=swapendian(var32);
+{$ifdef FPC_BIG_ENDIAN}
+        { Tokens seems to be swapped to little endian in compiler code }
+        var32:=swapendian(var32);
+{$endif}
         result:=var32;
       end
     else if CpuAddrBitSize[cpu]=16 then
       begin
-        var16:=psmallint(@tokenbuf[i])^;
-        inc(i,sizeof(smallint));
+        var16:=unaligned(psmallint(@tokenbuf[tbi])^);
+        inc(tbi,sizeof(smallint));
         if ppufile.change_endian then
           var16:=swapendian(var16);
+{$ifdef FPC_BIG_ENDIAN}
+        { Tokens seems to be swapped to little endian in compiler code }
+        var16:=swapendian(var16);
+{$endif}
         result:=var16;
       end
     else
@@ -1755,9 +1775,9 @@ begin
       writeln([space,' Tokenbuffer size : ',tokenbufsize]);
       tokenbuf:=allocmem(tokenbufsize);
       ppufile.getdata(tokenbuf^,tokenbufsize);
-      i:=0;
+      tbi:=0;
       write([space,' Tokens: ']);
-      while i<tokenbufsize do
+      while tbi<tokenbufsize do
         begin
           token:=readtoken;
           if token<>_GENERICSPECIALTOKEN then
@@ -1778,44 +1798,44 @@ begin
               begin
                 len:=gettokenbufsizeint;
                 setlength(wstring,len);
-                move(tokenbuf[i],wstring[1],len*2);
+                move(tokenbuf[tbi],wstring[1],len*2);
                 write([' ',wstring]);
-                inc(i,len*2);
+                inc(tbi,len*2);
               end;
             _CSTRING:
               begin
                 len:=gettokenbufsizeint;
                 setlength(astring,len);
-                move(tokenbuf[i],astring[1],len);
+                move(tokenbuf[tbi],astring[1],len);
                 write([' ',astring]);
-                inc(i,len);
+                inc(tbi,len);
               end;
             _CCHAR,
             _INTCONST,
             _REALNUMBER :
               begin
-                write([' ',pshortstring(@tokenbuf[i])^]);
-                inc(i,tokenbuf[i]+1);
+                write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+                inc(tbi,tokenbuf[tbi]+1);
               end;
             _ID :
               begin
-                write([' ',pshortstring(@tokenbuf[i])^]);
-                inc(i,tokenbuf[i]+1);
+                write([' ',unaligned(pshortstring(@tokenbuf[tbi])^)]);
+                inc(tbi,tokenbuf[tbi]+1);
               end;
             _GENERICSPECIALTOKEN:
               begin
                 { Short version of column change,
                   byte or $80 used }
-                if (tokenbuf[i] and $80)<>0 then
+                if (tokenbuf[tbi] and $80)<>0 then
                   begin
-                    write(['Col: ',tokenbuf[i] and $7f]);
-                    inc(i);
+                    write(['Col: ',tokenbuf[tbi] and $7f]);
+                    inc(tbi);
                   end
                 else
-                  case tspecialgenerictoken(tokenbuf[i]) of
+                  case tspecialgenerictoken(tokenbuf[tbi]) of
                     ST_LOADSETTINGS:
                       begin
-                        inc(i);
+                        inc(tbi);
                         write('Settings');
                         { This does not load pmessage pointer }
                         new_settings.pmessage:=nil;
@@ -1827,42 +1847,42 @@ begin
                           min_size:=copy_size
                         else
                           min_size:= sizeof(tsettings)-sizeof(pointer);
-                        move(tokenbuf[i],new_settings, min_size);
-                        inc(i,copy_size);
+                        move(tokenbuf[tbi],new_settings, min_size);
+                        inc(tbi,copy_size);
                       end;
                     ST_LOADMESSAGES:
                       begin
-                        inc(i);
+                        inc(tbi);
                         write('Messages:');
-                        mesgnb:=tokenbuf[i];
-                        inc(i);
+                        mesgnb:=tokenbuf[tbi];
+                        inc(tbi);
                         for nb:=1 to mesgnb do
                           begin
                             {msgvalue:=}gettokenbufsizeint;
-                            inc(i,sizeof(sizeint));
+                            inc(tbi,sizeof(sizeint));
                             //state:=tmsgstate(gettokenbufsizeint);
                           end;
                       end;
                     ST_LINE:
                       begin
-                        inc(i);
+                        inc(tbi);
                         write(['Line: ',gettokenbufdword]);
                       end;
                     ST_COLUMN:
                       begin
-                        inc(i);
+                        inc(tbi);
                         write(['Col: ',gettokenbufword]);
                       end;
                     ST_FILEINDEX:
                       begin
-                        inc(i);
+                        inc(tbi);
                         write(['File: ',gettokenbufword]);
                       end;
                   end;
               end;
           end;
 
-          if i<tokenbufsize then
+          if tbi<tokenbufsize then
             write(',');
         end;
       writeln;
