@@ -5366,11 +5366,10 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: 
     if Parent is TImplementationSection then
     begin
       NextToken;
-      While CurToken in [tkDot,tkLessThan] do
-        begin
+      repeat
         if CurToken=tkDot then
           Result:=Result+'.'+ExpectIdentifier
-        else
+        else if CurToken=tkLessThan then
           begin // <> can be ignored, we read the list but discard its content
           UnGetToken;
           L:=TFPList.Create;
@@ -5381,9 +5380,11 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: 
               TPasElement(L[i]).Release;
             L.Free;
           end;
-          end;
+          end
+        else
+          break;
         NextToken;
-        end;
+      until false;
       UngetToken;
     end;
   end;
@@ -5418,7 +5419,7 @@ begin
       Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result))
     else
       begin
-      Result.ProcType := CreateFunctionType('', 'Result', Result, True, CurSourcePos);
+      Result.ProcType := CreateFunctionType('', 'Result', Result, True, CurTokenPos);
       if (ProcType in [ptOperator, ptClassOperator]) then
         begin
         TPasOperator(Result).TokenBased:=IsTokenBased;
