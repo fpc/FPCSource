@@ -1850,7 +1850,7 @@ begin
     PClose:=tkBraceClose;
     end;
 
-  params:=TParamsExpr(CreateElement(TParamsExpr,'',AParent));
+  params:=TParamsExpr(CreateElement(TParamsExpr,'',AParent,CurTokenPos));
   try
     params.Kind:=paramskind;
     NextToken;
@@ -2061,7 +2061,8 @@ begin
       NextToken;
       if (CurToken=tkIdentifier) then
         begin
-        b:=CreateBinaryExpr(AParent,Last, DoParseExpression(AParent), eopNone);
+        SrcPos:=CurTokenPos;
+        b:=CreateBinaryExpr(AParent,Last, DoParseExpression(AParent), eopNone,SrcPos);
         if not Assigned(b.right) then
           begin
           b.Release;
@@ -2328,17 +2329,16 @@ begin
             x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
             NextToken;
             end;
-          // ToDo: move dot below []
+          // for expressions like (PChar(a)+10)[0];
+          if (x<>Nil) and (CurToken=tkSquaredBraceOpen) then
+            begin
+            x:=ParseParams(x,pekArrayParams,False);
+            end;
           // for expressions like (TObject(m)).Free;
           if (x<>Nil) and (CurToken=tkDot) then
             begin
             NextToken;
             x:=CreateBinaryExpr(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
-            end;
-          // for expressions like (PChar(a)+10)[0];
-          if (x<>Nil) and (CurToken=tkSquaredBraceOpen) then
-            begin
-            x:=ParseParams(x,pekArrayParams,False);
             end;
           end
         else

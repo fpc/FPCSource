@@ -4740,7 +4740,7 @@ begin
   else
     Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
   if Result=nil then
-    Result:=CreatePrimitiveDotExpr(Name);
+    Result:=CreatePrimitiveDotExpr(Name,El);
 
   if ImplicitCall then
     begin
@@ -5733,6 +5733,8 @@ begin
     AContext.Access:=caRead;
     if Call.Expr=nil then
       Call.Expr:=ConvertElement(El.Value,AContext);
+    //if Call.Expr is TPrimitiveExpr then
+    //  writeln('TPasToJSConverter.ConvertFuncParams ',TPrimitiveExpr(Call.Expr).GetDeclaration(true));
     if Call.Args=nil then
       begin
       // append ()

@@ -56,7 +56,10 @@ type
     procedure TestEmptyProgram;
     procedure TestEmptyUnit;
     procedure TestIf;
+    procedure TestIfBegin;
     procedure TestFor;
+    procedure TestFunction;
+    procedure Test;
   end;
 
 implementation
@@ -235,7 +238,28 @@ begin
   '    i:=3456;',
   '']);
   ConvertProgram;
-  CheckSrcMap('TestEmptyProgram');
+  CheckSrcMap('TestIf');
+end;
+
+procedure TTestSrcMap.TestIfBegin;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  E, P: String;',
+  'begin',
+  '  E:=''bla'';',
+  '  if E=P then',
+  '    begin',
+  '    E:=''active'';',
+  '    end',
+  '  else',
+  '    begin',
+  '    E:=''inactive'';',
+  '    end;',
+  '']);
+  ConvertProgram;
+  CheckSrcMap('TestIfBegin');
 end;
 
 procedure TTestSrcMap.TestFor;
@@ -249,6 +273,30 @@ begin
   '']);
   ConvertProgram;
   CheckSrcMap('TestEmptyProgram');
+end;
+
+procedure TTestSrcMap.TestFunction;
+begin
+  StartProgram(false);
+  Add([
+  'function DoIt(i: longint): longint;',
+  'var Runner, j: longint;',
+  'begin',
+  '  j:=0;',
+  '  for Runner := 1 to j do',
+  '    inc(j);',
+  '  Result:=j;',
+  'end;',
+  'begin',
+  '  DoIt(2);',
+  '']);
+  ConvertProgram;
+  CheckSrcMap('TestFunction');
+end;
+
+procedure TTestSrcMap.Test;
+begin
+
 end;
 
 Initialization
