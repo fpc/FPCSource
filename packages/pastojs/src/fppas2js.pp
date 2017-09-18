@@ -1134,7 +1134,7 @@ type
     FTargetProcessor: TPasToJsProcessor;
     Function CreatePrimitiveDotExpr(AName: string; Src: TPasElement = nil): TJSElement;
     Function CreateSubDeclNameExpr(El: TPasElement; const Name: string;
-      AContext: TConvertContext): TJSElement;
+      AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
     Function CreateIdentifierExpr(El: TPasElement; AContext: TConvertContext): TJSElement;
     Function CreateIdentifierExpr(AName: string; El: TPasElement; AContext: TConvertContext): TJSElement;
     Function CreateSwitchStatement(El: TPasImplCaseOf; AContext: TConvertContext): TJSElement;
@@ -4445,16 +4445,18 @@ begin
 end;
 
 function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
-  const Name: string; AContext: TConvertContext): TJSElement;
+  const Name: string; AContext: TConvertContext; PosEl: TPasElement
+  ): TJSElement;
 var
   CurName, ParentName: String;
 begin
+  if PosEl=nil then PosEl:=El;
   CurName:=TransformVariableName(El,Name,AContext);
   ParentName:=AContext.GetLocalName(El.Parent);
   if ParentName='' then
     ParentName:='this';
   CurName:=ParentName+'.'+CurName;
-  Result:=CreatePrimitiveDotExpr(CurName,El);
+  Result:=CreatePrimitiveDotExpr(CurName,PosEl);
 end;
 
 function TPasToJSConverter.ConvertPrimitiveExpression(El: TPrimitiveExpr;
@@ -8620,7 +8622,7 @@ begin
     begin
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ImplProc));
     Result:=AssignSt;
-    AssignSt.LHS:=CreateSubDeclNameExpr(ImplProc,El.Name,AContext);
+    AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext,ImplProc);
     end;
 
   FS:=CreateFunction(ImplProc,ImplProc.Body<>nil);
