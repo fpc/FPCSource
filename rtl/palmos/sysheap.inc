@@ -20,10 +20,13 @@
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
+  SysOSAlloc:=MemPtrNew(size);
 end;
 
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
+  if (p <> nil) then
+    MemPtrFree(p);
 end;

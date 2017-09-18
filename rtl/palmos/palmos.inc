@@ -65,4 +65,11 @@ const
 
 procedure SndPlaySystemSound(beepID: Word); syscall sysTrapSndPlaySystemSound;
 
+const
+  sysTrapMemChunkFree = $A012;
+  sysTrapMemPtrNew = $A013;
+
+function MemPtrNew(size: UInt32): MemPtr; syscall sysTrapMemPtrNew;
+function MemPtrFree(chunkDataP: MemPtr): Err; syscall sysTrapMemChunkFree;
+
 {$PACKRECORDS DEFAULT}
