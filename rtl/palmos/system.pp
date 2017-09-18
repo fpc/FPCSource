@@ -154,7 +154,9 @@ begin
   ExitProc:=Nil;
 
   SysInitExceptions;
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
