@@ -3762,7 +3762,8 @@ begin
     VarEl:=nil;
     Repeat
       // create the TPasVariable here, so that SourceLineNumber is correct
-      VarEl:=TPasVariable(CreateElement(TPasVariable,CurTokenString,Parent,AVisibility));
+      VarEl:=TPasVariable(CreateElement(TPasVariable,CurTokenString,Parent,
+                                        AVisibility,CurTokenPos));
       VarList.Add(VarEl);
       NextToken;
       if Not (CurToken in [tkComma,tkColon]) then
