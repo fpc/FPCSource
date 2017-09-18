@@ -10172,7 +10172,7 @@ begin
     ForSt:=TJSForStatement(CreateElement(TJSForStatement,El));
     List.B:=ForSt;
     // add "LoopVar=<StartExpr>;"
-    SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.StartExpr));
+    SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.VariableName));
     ForSt.Init:=SimpleAss;
     if AContext.Resolver<>nil then
       begin
@@ -10185,17 +10185,17 @@ begin
     SimpleAss.Expr:=ConvertElement(El.StartExpr,AContext);
     // add "LoopVar<=$loopend"
     if El.Down then
-      BinExp:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,El.EndExpr))
+      BinExp:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,El.VariableName))
     else
-      BinExp:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,El.EndExpr));
+      BinExp:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,El.VariableName));
     ForSt.Cond:=BinExp;
     BinExp.A:=ConvertElement(El.VariableName,AContext);
     BinExp.B:=CreateIdentifierExpr(CurLoopEndVarName,El.EndExpr,AContext);
     // add "LoopVar++"
     if El.Down then
-      Incr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El))
+      Incr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El.VariableName))
     else
-      Incr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
+      Incr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El.VariableName));
     ForSt.Incr:=Incr;
     Incr.A:=ConvertElement(El.VariableName,AContext);
     // add body
@@ -10210,17 +10210,17 @@ begin
       AddToStatementList(List,ListEnd,IfSt,El);
       // add "LoopVar>$loopend"
       if El.Down then
-        GTExpr:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El))
+        GTExpr:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El.VariableName))
       else
-        GTExpr:=TJSRelationalExpressionGT(CreateElement(TJSRelationalExpressionGT,El));
+        GTExpr:=TJSRelationalExpressionGT(CreateElement(TJSRelationalExpressionGT,El.VariableName));
       IfSt.Cond:=GTExpr;
       GTExpr.A:=ConvertElement(El.VariableName,AContext);
       GTExpr.B:=CreateIdentifierExpr(CurLoopEndVarName,El.EndExpr,AContext);
       // add "LoopVar--"
       if El.Down then
-        Decr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El))
+        Decr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El.VariableName))
       else
-        Decr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El));
+        Decr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El.VariableName));
       IfSt.BTrue:=Decr;
       Decr.A:=ConvertElement(El.VariableName,AContext);
       end;
