@@ -16,7 +16,9 @@ units=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) \
       charset cpall character unixcp getopts \
       errors dl dynlibs \
       types sysconst fpwidestring \
-      cthreads classes fgl rtlconsts dos cwstring fpcylix
+      cthreads classes fgl rtlconsts dos cwstring fpcylix \
+      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
+
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
@@ -468,3 +470,19 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) fpcylix.pp
+
+softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/softfpu.pp
+
+sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/sfpux80.pp
+
+sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/sfpu128.pp
+
+ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/ufloatx80.pp
+
+ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/ufloat128.pp
+
