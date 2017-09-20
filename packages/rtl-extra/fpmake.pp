@@ -12,7 +12,7 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
 
-  ClocaleOSes   = UnixLikes -[beos,android];
+  ClocaleOSes   = UnixLikes -[android];
   CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
 
   IPCOSes       = UnixLikes-[aix,android,beos,haiku];
@@ -23,7 +23,7 @@ Const
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   MatrixOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
-  ObjectsOSes   = [atari,emx,gba,go32v2,macos,msdos,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
+  ObjectsOSes   = [atari,emx,gba,go32v2,macos,msdos,nds,netware,netwlibc,os2,symbian,wii,win32,win64,wince]+UnixLikes+AllAmigaLikeOSes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
   SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,emx,wince,win32,win64];
