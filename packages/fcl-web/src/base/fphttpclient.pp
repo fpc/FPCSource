@@ -1391,7 +1391,11 @@ begin
         FOnPassword(Self,RR);
       end
     else
+      begin
       RR:=AllowRedirect and IsRedirect(FResponseStatusCode) and (L<>'');
+      if RR and Assigned(FRequestBody) and (FRequestBody.Size>0) then
+        FRequestBody.Position:=0;
+      end;
   until Terminated or not RR ;
 end;
 
