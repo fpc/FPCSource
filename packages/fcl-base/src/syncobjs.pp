@@ -189,7 +189,11 @@ begin
 {$IFDEF OS2}
     FLastError := PLocalEventRec (Handle)^.FLastError;
 {$ELSE OS2}
+  {$if defined(getlastoserror)}
     FLastError := GetLastOSError;
+  {$else}
+    FLastError:=-1;
+  {$endif}
 {$ENDIF OS2}
 end;
 
