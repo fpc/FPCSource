@@ -9,7 +9,7 @@ uses fpmkunit;
 procedure add_dblib(const ADirectory: string);
 
 Const
-  DBLibOSes         = [linux,freebsd,netbsd,openbsd,solaris,win32,win64,haiku,android,dragonfly];
+  DBLibOSes         = [linux,freebsd,netbsd,openbsd,solaris,win32,win64,haiku,android,dragonfly,beos];
 
 Var
   P : TPackage;
