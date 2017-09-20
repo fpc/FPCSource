@@ -208,9 +208,12 @@ end;
 { ---------------------------------------------------------------------
   Global initialization/Finalization
   ---------------------------------------------------------------------}
-
+ 
+{$ifdef BeOS}
+Procedure DoShutDown(Sig : Longint; SigContext: PSigContextRec; uContext : Pvregs);cdecl;
+{$else}
 Procedure DoShutDown(Sig : Longint; Info : PSigInfo; Context : PSigContext); cdecl;
-
+{$endif}
 begin
   Application.StopDaemons(True);
   Application.Terminate;
