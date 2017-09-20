@@ -1494,9 +1494,9 @@ type
     Procedure HandleHeaderBands; virtual;
     Procedure HandleFooterBands; virtual;
     procedure HandleDatabands; virtual;
-    procedure HandleGroups; virtual;
+    procedure HandleGroupBands; virtual;
     procedure HandleLastGroupFooters; virtual;
-    procedure HandleReportSummaries; virtual;
+    procedure HandleReportSummaryBands; virtual;
     procedure HandleGroupHeader(aBand: TFPReportCustomGroupHeaderBand); virtual;
     procedure HandleGroupFooter(aBand: TFPReportCustomGroupFooterBand); virtual;
     function NoSpaceRemaining: boolean;virtual;
@@ -9726,7 +9726,7 @@ begin
   end;
 end;
 
-procedure TFPReportLayouter.HandleGroups;
+procedure TFPReportLayouter.HandleGroupBands;
 
 Var
   I, lHighestGroupWithChange: Integer;
@@ -9929,7 +9929,7 @@ begin
       Report.Variables.BuildAggregates;
     CheckNewOrOverFlow(True);
     if FHasGroups then
-      HandleGroups;
+      HandleGroupBands;
     { handle overflow possibly caused by Group Band just processed. }
     if FOverflowed then
       Continue;
@@ -9996,7 +9996,7 @@ begin
   FLastDsgnDataBand := nil;
 end;
 
-Procedure TFPReportLayouter.HandleReportSummaries;
+procedure TFPReportLayouter.HandleReportSummaryBands;
 
 Var
   I : integer;
@@ -10091,7 +10091,7 @@ begin
       if Assigned(lPageData) then
         RunDataLoop(lPageIdx,lPageData);
       if FHasReportSummaryBand then
-        HandleReportSummaries;
+        HandleReportSummaryBands;
       end;
     SetPageCount(RTObjects.Count);
     end;
