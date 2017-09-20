@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 cprt0 func dllprt
 units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
 #      beos \
-      errors dos dl \
+      errors dos dl cthreads \
       sysconst sysutils \
       types charset cpall typinfo classes fgl math \
       cpu mmx getopts heaptrc lineinfo lnfodwrf \
@@ -265,6 +265,8 @@ variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varut
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
+
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 
 
 

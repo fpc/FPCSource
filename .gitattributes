@@ -8674,6 +8674,7 @@ rtl/beos/osdefs.inc svneol=native#text/plain
 rtl/beos/osmacro.inc svneol=native#text/plain
 rtl/beos/ossysc.inc svneol=native#text/plain
 rtl/beos/ostypes.inc svneol=native#text/plain
+rtl/beos/pthread.inc svneol=native#text/plain
 rtl/beos/ptypes.inc svneol=native#text/plain
 rtl/beos/rtldefs.inc svneol=native#text/plain
 rtl/beos/settimeo.inc svneol=native#text/plain
