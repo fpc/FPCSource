@@ -51,7 +51,7 @@ Works:
 
 ToDo:
 - arrays
-  - [], [a..b], [a,b], +
+  - [], [a..b], multi dim [a,b], concat with +
   - array of record
   - array of string
   - error on: array[1..2] of longint = (1,2,3);

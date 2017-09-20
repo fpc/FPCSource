@@ -92,6 +92,8 @@ begin
 end;
 
 procedure TPas2JSMapper.SetCurElement(const AValue: TJSElement);
+var
+  C: TClass;
 begin
   {$IFDEF VerboseSrcMap}
   system.write('TPas2JSWriter.SetCurElement ',CurLine,',',CurColumn);
@@ -101,6 +103,12 @@ begin
     system.writeln(' NIL');
   {$ENDIF}
   inherited SetCurElement(AValue);
+  C:=AValue.ClassType;
+  if (C=TJSStatementList)
+      or (C=TJSEmptyBlockStatement)
+      or (C=TJSEmptyStatement) then
+    exit; // do not switch position on brackets
+
   if (AValue<>nil) and (AValue.Source<>'') then
     begin
     if (FSrcFilename<>AValue.Source)

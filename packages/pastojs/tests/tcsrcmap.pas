@@ -59,7 +59,8 @@ type
     procedure TestIfBegin;
     procedure TestFor;
     procedure TestFunction;
-    procedure Test;
+    procedure TestExternalObjCall;
+    procedure TestBracketAccessor;
   end;
 
 implementation
@@ -120,89 +121,12 @@ end;
 
 procedure TCustomTestSrcMap.WriteSrcMapLine(GeneratedLine: integer);
 var
-  JS, Origins, Addition: String;
-  GeneratedCol: integer; // 0-based
-  i, diff, GenColStep: Integer;
-  aSeg: TSourceMapSegment;
+  JS, Origins: String;
 begin
   JS:=JSSource[GeneratedLine-1];
-  Origins:='';
-  GeneratedCol:=0;// 0-based
-  i:=SrcMap.IndexOfSegmentAt(GeneratedLine,GeneratedCol);
-  aSeg:=nil;
-  if i<0 then
-    begin
-    // no segment at line start
-    i:=0;
-    if (i=SrcMap.Count) then
-      aSeg:=nil
-    else
-      aSeg:=SrcMap[i];
-    if (aSeg=nil) or (aSeg.GeneratedLine>GeneratedLine) then
-      begin
-      // no segment in line
-      for i:=1 to length(JS) do Origins:=Origins+'?';
-      writeln(JS);
-      writeln(Origins);
-      exit;
-      end
-    else
-      begin
-      // show "?" til start of first segment
-      for i:=1 to aSeg.GeneratedColumn do Origins:=Origins+'?';
-      end;
-    end
-  else
-    aSeg:=SrcMap[i];
-
-  repeat
-    Addition:='';
-    if (aSeg.GeneratedLine=GeneratedLine) and (aSeg.GeneratedColumn=GeneratedCol) then
-      begin
-      // segment starts here  -> write "|line,col"
-      Addition:='|'+IntToStr(aSeg.SrcLine)+','+IntToStr(aSeg.SrcColumn);
-      Origins:=Origins+Addition;
-      end;
-    inc(i);
-    // skip segments at same GeneratedLine/Col
-    while (i<SrcMap.Count) do
-      begin
-      aSeg:=SrcMap[i];
-      if (aSeg.GeneratedLine=GeneratedLine) and (aSeg.GeneratedColumn=GeneratedCol) then
-        inc(i)
-      else
-        break;
-      end;
-    if (i=SrcMap.Count) then
-      aSeg:=nil
-    else
-      aSeg:=SrcMap[i];
-    if (aSeg=nil) or (aSeg.GeneratedLine>GeneratedLine) then
-      begin
-      // in the last segment
-      while length(Origins)<length(JS) do
-        Origins:=Origins+'.';
-      writeln(JS);
-      writeln(Origins);
-      exit;
-      end;
-    // there is another segment in this line
-    // -> align JS and Origins
-    GenColStep:=aSeg.GeneratedColumn-GeneratedCol;
-    diff:=GenColStep-length(Addition);
-    if diff<0 then
-      // for example:
-      //  JS:       if(~~e)~~~{
-      //  Origins:  |12,3|12,5|12,7
-      Insert(StringOfChar('~',-diff),JS,length(Origins)-length(Addition)+1+GenColStep)
-    else
-      while diff>0 do
-        begin
-        Origins:=Origins+'.';
-        dec(diff);
-        end;
-    GeneratedCol:=aSeg.GeneratedColumn;
-  until false;
+  DebugSrcMapLine(GeneratedLine,JS,SrcMap,Origins);
+  writeln(JS);
+  writeln(Origins);
 end;
 
 { TTestSrcMap }
@@ -292,9 +216,48 @@ begin
   CheckSrcMap('TestFunction');
 end;
 
-procedure TTestSrcMap.Test;
+procedure TTestSrcMap.TestExternalObjCall;
 begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSConsole = class external name ''Console''',
+  '  Public',
+  '    procedure log(Obj1 : JSValue); varargs;',
+  '  end;',
+  'var console : TJSConsole; external name ''window.console'';',
+  '  xhrstatus: longint;',
+  'begin',
+  '  console.log(''state'');',
+  '  if xhrstatus=200 then',
+  '    begin',
+  '      xhrstatus:=3;',
+  '      xhrstatus:=4;',
+  '    end;']);
+  ConvertProgram;
+  CheckSrcMap('TestExternalObjCall');
+end;
 
+procedure TTestSrcMap.TestBracketAccessor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '  private',
+  '    function GetProperties(Name: String): JSValue; external name ''[]'';',
+  '  Public',
+  '    property Properties[Name: string]: JSValue read GetProperties;',
+  '  end;',
+  'var Obj : TJSObject;',
+  '  j: JSValue;',
+  'begin',
+  '  j:=Obj.Properties[''state''];',
+  '  ']);
+  ConvertProgram;
+  CheckSrcMap('TestExternalObjCall');
 end;
 
 Initialization
