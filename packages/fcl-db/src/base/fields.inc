@@ -2071,11 +2071,10 @@ begin
   If (AValue='') then
     Clear
   else  
-    try
-      f := StrToFloat(AValue);
-      SetAsFloat(f);
-    except
+    begin
+    If not TryStrToFloat(AValue,F) then
       DatabaseErrorFmt(SNotAFloat, [AValue]);
+    SetAsFloat(f);
     end;
 end;
 
