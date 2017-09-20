@@ -22,6 +22,7 @@ uses
 {$ENDIF}
   rptjson,
   rptcontnr,
+  rptnestedgroups,
   udapp
   ;
 
@@ -55,6 +56,7 @@ begin
   R('jsondata',TJSONDemo);
   R('collectiondata',TCollectionDemo);
   R('objectlistdata',TObjectListDemo);
+  R('nestedgroups',TNestedGroupsDemo);
 end;
 
 initialization
