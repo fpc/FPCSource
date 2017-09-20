@@ -145,6 +145,9 @@ function DecodeBase64VLQ(var p: PChar): NativeInt; // base64 Variable Length Qua
 
 function CompareSegmentWithGeneratedLineCol(Item1, Item2: Pointer): Integer;
 
+procedure DebugSrcMapLine(GeneratedLine: integer; var GeneratedLineSrc: String;
+  SrcMap: TSourceMap; out InfoLine: String);
+
 implementation
 
 function EncodeBase64VLQ(i: NativeInt): String;
@@ -265,6 +268,112 @@ begin
     Result:=0;
 end;
 
+procedure DebugSrcMapLine(GeneratedLine: integer; var GeneratedLineSrc: String;
+  SrcMap: TSourceMap; out InfoLine: String);
+var
+  JS, Origins, Addition: String;
+  GeneratedCol: integer; // 0-based
+  i, diff, GenColStep, LastSrcFile, LastSrcLine: Integer;
+  aSeg: TSourceMapSegment;
+begin
+  InfoLine:='';
+  JS:=GeneratedLineSrc;
+  Origins:='';
+  GeneratedCol:=0;// 0-based
+  LastSrcFile:=0;
+  LastSrcLine:=-1;
+  i:=SrcMap.IndexOfSegmentAt(GeneratedLine,GeneratedCol);
+  aSeg:=nil;
+  if i<0 then
+    begin
+    // no segment at line start
+    i:=0;
+    if (i=SrcMap.Count) then
+      aSeg:=nil
+    else
+      aSeg:=SrcMap[i];
+    if (aSeg=nil) or (aSeg.GeneratedLine>GeneratedLine) then
+      begin
+      // no segment in line
+      for i:=1 to length(JS) do Origins:=Origins+'?';
+      GeneratedLineSrc:=JS;
+      InfoLine:=Origins;
+      exit;
+      end
+    else
+      begin
+      // show "?" til start of first segment
+      for i:=1 to aSeg.GeneratedColumn do Origins:=Origins+'?';
+      end;
+    end
+  else
+    begin
+    aSeg:=SrcMap[i];
+    if i>0 then
+      LastSrcFile:=SrcMap[i-1].SrcFileIndex;
+    end;
+
+  repeat
+    Addition:='';
+    if (aSeg.GeneratedLine=GeneratedLine) and (aSeg.GeneratedColumn=GeneratedCol) then
+      begin
+      // segment starts here  -> write "|line,col"
+      Addition:='|';
+      if LastSrcFile<>aSeg.SrcFileIndex then
+        begin
+        Addition:=Addition+ExtractFileName(SrcMap.SourceFiles[aSeg.SrcFileIndex])+',';
+        LastSrcFile:=aSeg.SrcFileIndex;
+        end;
+      if LastSrcLine<>aSeg.SrcLine then
+        begin
+        Addition:=Addition+IntToStr(aSeg.SrcLine)+',';
+        LastSrcLine:=aSeg.SrcLine;
+        end;
+      Addition:=Addition+IntToStr(aSeg.SrcColumn);
+      Origins:=Origins+Addition;
+      end;
+    inc(i);
+    // skip segments at same GeneratedLine/Col
+    while (i<SrcMap.Count) do
+      begin
+      aSeg:=SrcMap[i];
+      if (aSeg.GeneratedLine=GeneratedLine) and (aSeg.GeneratedColumn=GeneratedCol) then
+        inc(i)
+      else
+        break;
+      end;
+    if (i=SrcMap.Count) then
+      aSeg:=nil
+    else
+      aSeg:=SrcMap[i];
+    if (aSeg=nil) or (aSeg.GeneratedLine>GeneratedLine) then
+      begin
+      // in the last segment
+      while length(Origins)<length(JS) do
+        Origins:=Origins+'.';
+      GeneratedLineSrc:=JS;
+      InfoLine:=Origins;
+      exit;
+      end;
+    // there is another segment in this line
+    // -> align JS and Origins
+    GenColStep:=aSeg.GeneratedColumn-GeneratedCol;
+    diff:=GenColStep-length(Addition);
+    if diff<0 then
+      // for example:
+      //  JS:       if(~~e)~~~{
+      //  Origins:  |12,3|12,5|12,7
+      Insert(StringOfChar('~',-diff),JS,length(Origins)-length(Addition)+1+GenColStep)
+    else
+      while diff>0 do
+        begin
+        Origins:=Origins+'.';
+        dec(diff);
+        end;
+    GeneratedCol:=aSeg.GeneratedColumn;
+  until false;
+end;
+
 { TSourceMap.TStringToIndex }
 
 constructor TSourceMap.TStringToIndex.Create;
@@ -294,7 +403,7 @@ function TSourceMap.TStringToIndex.FindValue(const Value: String
   ): integer;
 begin
   // Note: nil=0 means not found in TFPHashList
-  Result:=integer({%H-}PtrInt(FItems.Find(Value)))-1;
+  Result:=integer({%H-}PtrInt(FItems.Find(Value))){%H-}-1;
 end;
 
 { TSourceMap }
