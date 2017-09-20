@@ -5143,14 +5143,14 @@
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none,ot_none);
     code    : #2#15#0#128;
-    flags   : if_286
+    flags   : if_286 or if_prot
   ),
   (
     opcode  : A_SLDT;
     ops     : 1;
     optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none,ot_none);
     code    : #208#2#15#0#128;
-    flags   : if_286
+    flags   : if_286 or if_prot
   ),
   (
     opcode  : A_SMI;
@@ -5353,28 +5353,28 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #2#15#5;
-    flags   : if_p6 or if_amd
+    flags   : if_p6 or if_prot or if_amd
   ),
   (
     opcode  : A_SYSENTER;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #2#15#52;
-    flags   : if_p6
+    flags   : if_p6 or if_prot
   ),
   (
     opcode  : A_SYSEXIT;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #2#15#53;
-    flags   : if_p6 or if_priv
+    flags   : if_p6 or if_prot or if_priv
   ),
   (
     opcode  : A_SYSRET;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #2#15#7;
-    flags   : if_p6 or if_priv or if_amd
+    flags   : if_p6 or if_prot or if_priv or if_amd
   ),
   (
     opcode  : A_TEST;
@@ -12605,28 +12605,28 @@
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_rm_gpr or ot_bits32,ot_none);
     code    : #242#249#1#242#61#80;
-    flags   : if_bmi1
+    flags   : if_bmi1 or if_prot
   ),
   (
     opcode  : A_ANDN;
     ops     : 3;
     optypes : (ot_reg64,ot_reg64,ot_rm_gpr or ot_bits64,ot_none);
     code    : #242#243#249#1#242#61#80;
-    flags   : if_bmi1 or if_x86_64
+    flags   : if_bmi1 or if_prot or if_x86_64
   ),
   (
     opcode  : A_BEXTR;
     ops     : 3;
     optypes : (ot_reg32,ot_rm_gpr or ot_bits32,ot_reg32,ot_none);
     code    : #242#249#1#247#62#72;
-    flags   : if_bmi1
+    flags   : if_bmi1 or if_prot
   ),
   (
     opcode  : A_BEXTR;
     ops     : 3;
     optypes : (ot_reg64,ot_rm_gpr or ot_bits64,ot_reg64,ot_none);
     code    : #242#243#249#1#247#62#72;
-    flags   : if_bmi1 or if_x86_64
+    flags   : if_bmi1 or if_prot or if_x86_64
   ),
   (
     opcode  : A_TZCNT;
@@ -12640,56 +12640,56 @@
     ops     : 3;
     optypes : (ot_reg32,ot_rm_gpr or ot_bits32,ot_immediate or ot_bits8,ot_none);
     code    : #220#242#250#1#240#72#22;
-    flags   : if_bmi2
+    flags   : if_bmi2 or if_prot
   ),
   (
     opcode  : A_RORX;
     ops     : 3;
     optypes : (ot_reg64,ot_rm_gpr or ot_bits64,ot_immediate or ot_bits8,ot_none);
     code    : #220#242#243#250#1#240#72#22;
-    flags   : if_bmi2 or if_x86_64
+    flags   : if_bmi2 or if_prot or if_x86_64
   ),
   (
     opcode  : A_SARX;
     ops     : 3;
     optypes : (ot_reg32,ot_rm_gpr or ot_bits32,ot_reg32,ot_none);
     code    : #219#242#249#1#247#62#72;
-    flags   : if_bmi2
+    flags   : if_bmi2 or if_prot
   ),
   (
     opcode  : A_SARX;
     ops     : 3;
     optypes : (ot_reg64,ot_rm_gpr or ot_bits64,ot_reg64,ot_none);
     code    : #219#242#243#249#1#247#62#72;
-    flags   : if_bmi2 or if_x86_64
+    flags   : if_bmi2 or if_prot or if_x86_64
   ),
   (
     opcode  : A_SHLX;
     ops     : 3;
     optypes : (ot_reg32,ot_rm_gpr or ot_bits32,ot_reg32,ot_none);
     code    : #241#242#249#1#247#62#72;
-    flags   : if_bmi2
+    flags   : if_bmi2 or if_prot
   ),
   (
     opcode  : A_SHLX;
     ops     : 3;
     optypes : (ot_reg64,ot_rm_gpr or ot_bits64,ot_reg64,ot_none);
     code    : #241#242#243#249#1#247#62#72;
-    flags   : if_bmi2 or if_x86_64
+    flags   : if_bmi2 or if_prot or if_x86_64
   ),
   (
     opcode  : A_SHRX;
     ops     : 3;
     optypes : (ot_reg32,ot_rm_gpr or ot_bits32,ot_reg32,ot_none);
     code    : #220#242#249#1#247#62#72;
-    flags   : if_bmi2
+    flags   : if_bmi2 or if_prot
   ),
   (
     opcode  : A_SHRX;
     ops     : 3;
     optypes : (ot_reg64,ot_rm_gpr or ot_bits64,ot_reg64,ot_none);
     code    : #220#242#243#249#1#247#62#72;
-    flags   : if_bmi2 or if_x86_64
+    flags   : if_bmi2 or if_prot or if_x86_64
   ),
   (
     opcode  : A_VBROADCASTI128;
