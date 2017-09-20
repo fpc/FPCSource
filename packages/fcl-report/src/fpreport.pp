@@ -6582,7 +6582,7 @@ begin
   if UsePageCountMarker then
     Result.ResString := cPageCountMarker
   else
-    Result.ResString := IntToStr(FPageCount);
+    Result.ResInteger := FPageCount;
 end;
 
 
