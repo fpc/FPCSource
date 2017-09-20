@@ -1692,6 +1692,10 @@ type
   private
     FInitialSuspended: boolean;
 {$endif}
+{$ifdef beos}
+    FSem : pointer;
+    FSuspendedExternal: boolean;
+{$endif}
   public
     constructor Create(CreateSuspended: Boolean;
                        const StackSize: SizeUInt = DefaultStackSize);
