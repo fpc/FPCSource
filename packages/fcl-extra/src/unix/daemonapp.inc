@@ -209,7 +209,7 @@ end;
   Global initialization/Finalization
   ---------------------------------------------------------------------}
  
-{$ifdef BeOS}
+{$if defined(BeOS) and not defined(Haiku)}
 Procedure DoShutDown(Sig : Longint; SigContext: PSigContextRec; uContext : Pvregs);cdecl;
 {$else}
 Procedure DoShutDown(Sig : Longint; Info : PSigInfo; Context : PSigContext); cdecl;
