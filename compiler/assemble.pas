@@ -250,6 +250,12 @@ Implementation
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+      sfpux80,
+{$endif}
+{$endif}
       script,fmodule,verbose,
       cpuinfo,
       aasmcpu;
@@ -1045,6 +1051,10 @@ Implementation
         ccomp: comp;
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended: extended;
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+	eextended: floatx80;
+{$endif}
 {$endif cpuextended}
       begin
         if do_line then
@@ -1087,6 +1097,19 @@ Implementation
               eextended:=extended(tai_realconst(hp).value.s80val);
               pdata:=@eextended;
             end;
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+          aitrealconst_s80bit:
+            begin
+	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                eextended:=float64_to_floatx80(float64(double(tai_realconst(hp).value.s80val)))
+	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+	        eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
+	      else
+	        internalerror(2017091901);
+              pdata:=@eextended;
+            end;
+{$endif}
 {$endif cpuextended}
           aitrealconst_s64comp:
             begin
@@ -1780,6 +1803,8 @@ Implementation
         ddouble : double;
         {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended : extended;
+	{$else}
+	eextended : floatx80;
         {$endif}
         ccomp : comp;
         tmp    : word;
@@ -1850,6 +1875,19 @@ Implementation
                        eextended:=extended(tai_realconst(hp).value.s80val);
                        pdata:=@eextended;
                      end;
+         {$else}
+         {$ifdef FPC_SOFT_FPUX80}
+                   aitrealconst_s80bit:
+                     begin
+		       if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                         eextended:=float64_to_floatx80(float64(double(tai_realconst(hp).value.s80val)))
+		       else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+			 eextended:=float32_to_floatx80(float32(single(tai_realconst(hp).value.s80val)))
+		       else
+			 internalerror(2017091901);
+                       pdata:=@eextended;
+                     end;
+	 {$endif}
          {$endif cpuextended}
                    aitrealconst_s64comp:
                      begin
