@@ -287,12 +287,106 @@ interface
     type
       TOperandOrder = (op_intel,op_att);
 
+      {Instruction flags }
+      tinsflag = (
+        { please keep these in order and in sync with IF_SMASK }
+        IF_SM,                  { size match first two operands  }
+        IF_SM2,
+        IF_SB,                  { unsized operands can't be non-byte  }
+        IF_SW,                  { unsized operands can't be non-word  }
+        IF_SD,                  { unsized operands can't be nondword  }
+
+        { unsized argument spec }
+        { please keep these in order and in sync with IF_ARMASK }
+        IF_AR0,                 { SB, SW, SD applies to argument 0  }
+        IF_AR1,                 { SB, SW, SD applies to argument 1  }
+        IF_AR2,                 { SB, SW, SD applies to argument 2  }
+
+        IF_PRIV,                { it's a privileged instruction  }
+        IF_SMM,                 { it's only valid in SMM  }
+        IF_PROT,                { it's protected mode only  }
+        IF_NOX86_64,            { removed instruction in x86_64  }
+        IF_UNDOC,               { it's an undocumented instruction  }
+        IF_FPU,                 { it's an FPU instruction  }
+        IF_MMX,                 { it's an MMX instruction  }
+        { it's a 3DNow! instruction  }
+        IF_3DNOW,
+        { it's a SSE (KNI, MMX2) instruction  }
+        IF_SSE,
+        { SSE2 instructions  }
+        IF_SSE2,
+        { SSE3 instructions  }
+        IF_SSE3,
+        { SSE64 instructions  }
+        IF_SSE64,
+        { SVM instructions  }
+        IF_SVM,
+        { SSE4 instructions  }
+        IF_SSE4,
+        IF_SSSE3,
+        IF_SSE41,
+        IF_SSE42,
+        IF_AVX,
+        IF_AVX2,
+        IF_BMI1,
+        IF_BMI2,
+        IF_16BITONLY,
+        IF_FMA,
+        IF_FMA4,
+        IF_TSX,
+        IF_RAND,
+        IF_XSAVE,
+        IF_PREFETCHWT1,
+
+        { mask for processor level }
+        { please keep these in order and in sync with IF_PLEVEL }
+        IF_8086,                { 8086 instruction  }
+        IF_186,                 { 186+ instruction  }
+        IF_286,                 { 286+ instruction  }
+        IF_386,                 { 386+ instruction  }
+        IF_486,                 { 486+ instruction  }
+        IF_PENT,                { Pentium instruction  }
+        IF_P6,                  { P6 instruction  }
+        IF_KATMAI,              { Katmai instructions  }
+        IF_WILLAMETTE,          { Willamette instructions }
+        IF_PRESCOTT,            { Prescott instructions }
+        IF_X86_64,
+        IF_SANDYBRIDGE,         { Sandybridge-specific instruction }
+        IF_NEC,                 { NEC V20/V30 instruction }
+
+        { the following are not strictly part of the processor level, because
+          they are never used standalone, but always in combination with a
+          separate processor level flag. Therefore, they use bits outside of
+          IF_PLEVEL, otherwise they would mess up the processor level they're
+          used in combination with.
+          The following combinations are currently used:
+          [IF_AMD, IF_P6],
+          [IF_CYRIX, IF_486],
+          [IF_CYRIX, IF_PENT],
+          [IF_CYRIX, IF_P6] }
+        IF_CYRIX,               { Cyrix, Centaur or VIA-specific instruction }
+        IF_AMD,                 { AMD-specific instruction  }
+
+        { added flags }
+        IF_PRE,                 { it's a prefix instruction }
+        IF_PASS2,               { if the instruction can change in a second pass }
+        IF_IMM4,                { immediate operand is a nibble (must be in range [0..15]) }
+        IF_IMM3                 { immediate operand is a triad (must be in range [0..7]) }
+      );
+      tinsflags=set of tinsflag;
+
+    const
+      IF_SMASK=[IF_SM,IF_SM2,IF_SB,IF_SW,IF_SD];
+      IF_ARMASK=[IF_AR0,IF_AR1,IF_AR2];  { mask for unsized argument spec  }
+      IF_PLEVEL=[IF_8086..IF_NEC]; { mask for processor level }
+
+    type
       tinsentry=packed record
         opcode  : tasmop;
         ops     : byte;
         optypes : array[0..max_operands-1] of longint;
         code    : array[0..maxinfolen] of char;
-        flags   : int64;
+        flags   : tinsflags;
       end;
       pinsentry=^tinsentry;
 
@@ -472,96 +566,6 @@ implementation
 {*****************************************************************************
                               Instruction table
 *****************************************************************************}
-
-    const
-     {Instruction flags }
-       IF_NONE   = $00000000;
-       IF_SM     = $00000001;  { size match first two operands  }
-       IF_SM2    = $00000002;
-       IF_SB     = $00000004;  { unsized operands can't be non-byte  }
-       IF_SW     = $00000008;  { unsized operands can't be non-word  }
-       IF_SD     = $00000010;  { unsized operands can't be nondword  }
-       IF_SMASK  = $0000001f;
-       IF_AR0    = $00000020;  { SB, SW, SD applies to argument 0  }
-       IF_AR1    = $00000040;  { SB, SW, SD applies to argument 1  }
-       IF_AR2    = $00000060;  { SB, SW, SD applies to argument 2  }
-       IF_ARMASK = $00000060;  { mask for unsized argument spec  }
-       IF_ARSHIFT = 5;         { LSB of IF_ARMASK }
-       IF_PRIV   = $00000100;  { it's a privileged instruction  }
-       IF_SMM    = $00000200;  { it's only valid in SMM  }
-       IF_PROT   = $00000400;  { it's protected mode only  }
-       IF_NOX86_64 = $00000800;  { removed instruction in x86_64  }
-       IF_UNDOC  = $00001000;  { it's an undocumented instruction  }
-       IF_FPU    = $00002000;  { it's an FPU instruction  }
-       IF_MMX    = $00004000;  { it's an MMX instruction  }
-       { it's a 3DNow! instruction  }
-       IF_3DNOW  = $00008000;
-       { it's a SSE (KNI, MMX2) instruction  }
-       IF_SSE    = $00010000;
-       { SSE2 instructions  }
-       IF_SSE2   = $00020000;
-       { SSE3 instructions  }
-       IF_SSE3   = $00040000;
-       { SSE64 instructions  }
-       IF_SSE64  = $00080000;
-       { the mask for processor types  }
-       {IF_PMASK  = longint($FF000000);}
-       { the mask for disassembly "prefer"  }
-       {IF_PFMASK = longint($F001FF00);}
-       { SVM instructions  }
-       IF_SVM    = $00100000;
-       { SSE4 instructions  }
-       IF_SSE4   = $00200000;
-       { TODO: These flags were added to make x86ins.dat more readable.
-         Values must be reassigned to make any other use of them. }
-       IF_SSSE3  = $00200000;
-       IF_SSE41  = $00200000;
-       IF_SSE42  = $00200000;
-       IF_AVX    = $00200000;
-       IF_AVX2   = $00200000;
-       IF_BMI1   = $00200000;
-       IF_BMI2   = $00200000;
-       IF_16BITONLY = $00200000;
-       IF_FMA    = $00200000;
-       IF_FMA4   = $00200000;
-       IF_TSX    = $00200000;
-       IF_RAND   = $00200000;
-       IF_XSAVE  = $00200000;
-       IF_PREFETCHWT1 = $00200000;
-
-       IF_PLEVEL = $0F000000;  { mask for processor level }
-       IF_8086   = $00000000;  { 8086 instruction  }
-       IF_186    = $01000000;  { 186+ instruction  }
-       IF_286    = $02000000;  { 286+ instruction  }
-       IF_386    = $03000000;  { 386+ instruction  }
-       IF_486    = $04000000;  { 486+ instruction  }
-       IF_PENT   = $05000000;  { Pentium instruction  }
-       IF_P6     = $06000000;  { P6 instruction  }
-       IF_KATMAI = $07000000;  { Katmai instructions  }
-       IF_WILLAMETTE = $08000000; { Willamette instructions }
-       IF_PRESCOTT   = $09000000; { Prescott instructions }
-       IF_X86_64 = $0a000000;
-       IF_SANDYBRIDGE = $0e000000; { Sandybridge-specific instruction }
-       IF_NEC    = $0f000000;  { NEC V20/V30 instruction }
-
-       { the following are not strictly part of the processor level, because
-         they are never used standalone, but always in combination with a
-         separate processor level flag. Therefore, they use bits outside of
-         IF_PLEVEL, otherwise they would mess up the processor level they're
-         used in combination with.
-         The following combinations are currently used:
-         IF_AMD or IF_P6,
-         IF_CYRIX or IF_486,
-         IF_CYRIX or IF_PENT,
-         IF_CYRIX or IF_P6 }
-       IF_CYRIX  = $10000000;  { Cyrix, Centaur or VIA-specific instruction }
-       IF_AMD    = $20000000;  { AMD-specific instruction  }
-
-       { added flags }
-       IF_PRE    = $40000000;  { it's a prefix instruction }
-       IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
-       IF_IMM4   = $100000000; { immediate operand is a nibble (must be in range [0..15]) }
-       IF_IMM3   = $200000000; { immediate operand is a triad (must be in range [0..7]) }
 
      type
        TInsTabCache=array[TasmOp] of longint;
@@ -1466,7 +1470,7 @@ implementation
         insot,
         currot,
         i,j,asize,oprs : longint;
-        insflags:cardinal;
+        insflags:tinsflags;
         siz : array[0..max_operands-1] of longint;
       begin
         result:=false;
@@ -1482,7 +1486,7 @@ implementation
             JNcc short +3
             JMP near target }
         if (p^.opcode=A_Jcc) and (current_settings.cputype<cpu_386) and
-          ((p^.flags and IF_386)<>0) then
+          (IF_386 in p^.flags) then
           exit;
 {$endif i8086}
 
@@ -1506,24 +1510,31 @@ implementation
 
         { Check operand sizes }
         insflags:=p^.flags;
-        if insflags and IF_SMASK<>0 then
+        if (insflags*IF_SMASK)<>[] then
           begin
             { as default an untyped size can get all the sizes, this is different
               from nasm, but else we need to do a lot checking which opcodes want
               size or not with the automatic size generation }
             asize:=-1;
-            if (insflags and IF_SB)<>0 then
+            if IF_SB in insflags then
               asize:=OT_BITS8
-            else if (insflags and IF_SW)<>0 then
+            else if IF_SW in insflags then
               asize:=OT_BITS16
-            else if (insflags and IF_SD)<>0 then
+            else if IF_SD in insflags then
               asize:=OT_BITS32;
-            if (insflags and IF_ARMASK)<>0 then
+            if insflags*IF_ARMASK<>[] then
              begin
                siz[0]:=-1;
                siz[1]:=-1;
                siz[2]:=-1;
-               siz[((insflags and IF_ARMASK) shr IF_ARSHIFT)-1]:=asize;
+               if IF_AR0 in insflags then
+                 siz[0]:=asize
+               else if IF_AR1 in insflags then
+                 siz[1]:=asize
+               else if IF_AR2 in insflags then
+                 siz[2]:=asize
+               else
+                 internalerror(2017092101);
              end
             else
              begin
@@ -1532,9 +1543,9 @@ implementation
                siz[2]:=asize;
              end;
 
-            if (insflags and (IF_SM or IF_SM2))<>0 then
+            if insflags*[IF_SM,IF_SM2]<>[] then
              begin
-               if (insflags and IF_SM2)<>0 then
+               if IF_SM2 in insflags then
                 oprs:=2
                else
                 oprs:=p^.ops;
@@ -1614,7 +1625,7 @@ implementation
       begin
         { we are here in a second pass, check if the instruction can be optimized }
         if assigned(InsEntry) and
-           ((InsEntry^.flags and IF_PASS2)<>0) then
+           (IF_PASS2 in InsEntry^.flags) then
          begin
            InsEntry:=nil;
            InsSize:=0;
@@ -1636,7 +1647,7 @@ implementation
         result:=false;
       { Things which may only be done once, not when a second pass is done to
         optimize }
-        if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
+        if (Insentry=nil) or (IF_PASS2 in InsEntry^.flags) then
          begin
            current_filepos:=fileinfo;
            { We need intel style operands }
@@ -1694,21 +1705,21 @@ implementation
            if segprefix<>NR_NO then
             inc(InsSize);
            { Fix opsize if size if forced }
-           if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
+           if insentry^.flags*[IF_SB,IF_SW,IF_SD]<>[] then
              begin
-               if (insentry^.flags and IF_ARMASK)=0 then
+               if insentry^.flags*IF_ARMASK=[] then
                  begin
-                   if (insentry^.flags and IF_SB)<>0 then
+                   if IF_SB in insentry^.flags then
                      begin
                        if opsize=S_NO then
                          opsize:=S_B;
                      end
-                   else if (insentry^.flags and IF_SW)<>0 then
+                   else if IF_SW in insentry^.flags then
                      begin
                        if opsize=S_NO then
                          opsize:=S_W;
                      end
-                   else if (insentry^.flags and IF_SD)<>0 then
+                   else if IF_SD in insentry^.flags then
                      begin
                        if opsize=S_NO then
                          opsize:=S_L;
@@ -2821,42 +2832,57 @@ implementation
 {$ifdef i8086}
         if objdata.CPUType<>cpu_none then
           begin
-            case insentry^.flags and IF_PLEVEL of
-              IF_8086:
-                ;
-              IF_186:
+            if IF_8086 in insentry^.flags then
+            else if IF_186 in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_186 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_286:
+              end
+            else if IF_286 in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_286 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_386:
+              end
+            else if IF_386 in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_386 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_486:
+              end
+            else if IF_486 in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_486 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_PENT:
+              end
+            else if IF_PENT in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_Pentium then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_P6:
+              end
+            else if IF_P6 in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_Pentium2 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_KATMAI:
+              end
+            else if IF_KATMAI in insentry^.flags then
+              begin
                 if objdata.CPUType<cpu_Pentium3 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_WILLAMETTE,
-              IF_PRESCOTT:
+              end
+            else if insentry^.flags*[IF_WILLAMETTE,IF_PRESCOTT]<>[] then
+              begin
                 if objdata.CPUType<cpu_Pentium4 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
-              IF_NEC:
+              end
+            else if IF_NEC in insentry^.flags then
+              begin
+                { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
                 if objdata.CPUType>=cpu_386 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              { todo: handle these properly }
-              IF_SANDYBRIDGE:
-                ;
-            end;
+              end
+            else if IF_SANDYBRIDGE in insentry^.flags then
+              begin
+                { todo: handle these properly }
+              end;
           end;
 {$endif i8086}
 
@@ -3073,12 +3099,12 @@ implementation
             &24,&25,&26,&27 :
               begin
                 getvalsym(c-&24);
-                if (insentry^.flags and IF_IMM3)<>0 then
+                if IF_IMM3 in insentry^.flags then
                   begin
                     if (currval<0) or (currval>7) then
                       Message2(asmw_e_value_exceeds_bounds,'unsigned triad',tostr(currval));
                   end
-                else if (insentry^.flags and IF_IMM4)<>0 then
+                else if IF_IMM4 in insentry^.flags then
                   begin
                     if (currval<0) or (currval>15) then
                       Message2(asmw_e_value_exceeds_bounds,'unsigned nibble',tostr(currval));

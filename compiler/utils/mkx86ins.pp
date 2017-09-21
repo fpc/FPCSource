@@ -423,6 +423,8 @@ begin
         while not(s[i] in [' ',#9,#13,#10]) and (i<=length(s)) do
           begin
              hs:=readstr;
+             if hs='none' then
+               break;
              if x86_64 then
                begin
                  { x86_64 }
@@ -444,7 +446,7 @@ begin
              if hs<>'ND' then
               begin
                 if flags<>'' then
-                 flags:=flags+' or ';
+                 flags:=flags+',';
                 flags:=flags+'if_'+lower(hs);
               end;
              if (s[i]=',') and (i<=length(s)) then
@@ -467,7 +469,7 @@ begin
             writeln(insfile,'    ops     : ',ops,';');
             writeln(insfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],',',optypes[4],');');
             writeln(insfile,'    code    : ',codes,';');
-            writeln(insfile,'    flags   : ',flags);
+            writeln(insfile,'    flags   : [',flags,']');
             write(insfile,'  )');
             inc(insns);
           end;
