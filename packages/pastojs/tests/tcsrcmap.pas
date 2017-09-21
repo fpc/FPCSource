@@ -41,7 +41,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     function ConvertJSModuleToString(El: TJSElement): string; override;
-    procedure CheckSrcMap(const aTitle: string); virtual;
+    procedure CheckSrcMap(const aTitle: string; const JSLines: array of string); virtual;
     procedure WriteSrcMapLine(GeneratedLine: integer);
   public
     property Pas2JSMapper: TPas2JSMapper read FPas2JSMapper; // fills SrcMap
@@ -95,11 +95,67 @@ begin
   Result:=Pas2JSMapper.AsAnsistring;
 end;
 
-procedure TCustomTestSrcMap.CheckSrcMap(const aTitle: string);
-{$IFDEF VerbosePas2JS}
+procedure TCustomTestSrcMap.CheckSrcMap(const aTitle: string;
+  const JSLines: array of string);
+type
+  TMarker = record
+    Name: string;
+    PasLine: integer; // 1-based
+    PasColMin,PasColMax: integer; // 0-based
+  end;
+  PMarker = ^TMarker;
 var
-  i: Integer;
-{$ENDIF}
+  Markers: array of TMarker;
+  PasSrc: TStringList;
+
+  function IndexOfMarker(const aName: String): integer;
+  var
+    i: Integer;
+  begin
+    for i:=0 to length(Markers)-1 do
+      if CompareText(Markers[i].Name,aName)=0 then
+        exit(i);
+    Result:=-1;
+  end;
+
+  procedure AddMarker(const aName: String; PasLine, PasColMin, PasColMax: integer);
+  var
+    i, l: Integer;
+    p: PMarker;
+  begin
+    if IndexOfMarker(aName)>0 then
+      begin
+      writeln('AddMarker duplicate marker "',aName,'"');
+      for i:=1 to PasLine do
+        writeln(PasSrc[i-1]);
+      Fail('duplicate marker "'+aName+'"');
+      end;
+    l:=length(Markers);
+    SetLength(Markers,l+1);
+    p:=@Markers[l];
+    p^.Name:=aName;
+    p^.PasLine:=PasLine;
+    p^.PasColMin:=PasColMin;
+    p^.PasColMax:=PasColMax;
+  end;
+
+  procedure JSMarkerError(Line, Col: integer; Msg: string);
+  var
+    i: Integer;
+  begin
+    for i:=0 to Line-1 do
+      writeln(JSSource[i]);
+    for i:=1 to Col do write('-');
+    writeln('^');
+    Fail(Msg+' at '+IntToStr(Line)+','+IntToStr(Col));
+  end;
+
+var
+  i, j, ColMin, ColMax: integer;
+  Line, aName, SegFile, ActLine: String;
+  p, StartP, ActP: PChar;
+  m: PMarker;
+  aSeg: TSourceMapSegment;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TCustomTestSrcMap.CheckSrcMap ',aTitle);
@@ -114,9 +170,113 @@ begin
     end;}
   for i:=1 to JSSource.Count do
     WriteSrcMapLine(i);
-  writeln('......012345678901234567890123456789012345678901234567890123456789');
   WriteSources(Filename,1,1);
+  writeln('......012345678901234567890123456789012345678901234567890123456789');
   {$ENDIF}
+  if Low(JSLines)<>0 then
+    {%H-}Fail('inconsistency');
+  AssertEquals('expected JavaScript lines',High(JSLines)+1,JSSource.Count);
+
+  // collect markers in Pascal
+  PasSrc:=TStringList.Create;
+  try
+    PasSrc.Text:=Engine.Source;
+    for i:=1 to PasSrc.Count do
+      begin
+      Line:=PasSrc[i-1];
+      p:=PChar(Line);
+      repeat
+        case p^ of
+        #0: break;
+        '(':
+          if (p[1]='*') and (p[2] in ['a'..'z','A'..'Z','_']) then
+            begin
+            ColMin:=p-PChar(Line);
+            inc(p,2);
+            StartP:=p;
+            while p^ in ['a'..'z','A'..'Z','0'..'9','_'] do inc(p);
+            aName:=copy(Line,StartP-PChar(Line)+1,p-StartP);
+            if (p^<>'*') or (p[1]<>')') then
+              begin
+              for j:=1 to i do
+                writeln(PasSrc[j-1]);
+              Fail('missing closing bracket of Pascal marker at '+IntToStr(i)+','+IntToStr(p-PChar(Line)));
+              end;
+            inc(p,2);
+            ColMax:=p-PChar(Line);
+            AddMarker(aName,i,ColMin,ColMax);
+            continue;
+            end;
+        end;
+        inc(p);
+      until false;
+      end;
+
+    // check JavaScript markers
+    for i:=1 to JSSource.Count do
+      begin
+      ActLine:=JSSource[i-1];
+      if i>High(JSLines)+1 then
+        begin
+        writeln('TCustomTestSrcMap.CheckSrcMap unexpected JS line ',i,': ',ActLine);
+        Fail('created JS has more lines than expected JS');
+        end;
+      ActP:=PChar(ActLine);
+      Line:=JSLines[i-1];
+      p:=PChar(Line);
+      repeat
+        case p^ of
+        #0: break;
+        '(':
+          if (p[1]='*') and (p[2] in ['a'..'z','A'..'Z','_']) then
+            begin
+            ColMin:=ActP-PChar(ActLine);
+            inc(p,2);
+            StartP:=p;
+            while p^ in ['a'..'z','A'..'Z','0'..'9','_'] do inc(p);
+            aName:=copy(Line,StartP-PChar(Line)+1,p-StartP);
+            if (p^<>'*') or (p[1]<>')') then
+              begin
+              for j:=1 to i do
+                writeln(JSSource[j-1]);
+              Fail('missing closing bracket of JS marker at '+IntToStr(i)+','+IntToStr(ColMin));
+              end;
+            inc(p,2);
+            j:=IndexOfMarker(aName);
+            if j<0 then
+              JSMarkerError(i,ColMin,'JS marker "'+aName+'" not found in Pascal');
+            m:=@Markers[j];
+            j:=SrcMap.IndexOfSegmentAt(i,ColMin);
+            if j<0 then
+              JSMarkerError(i,ColMin,'JS marker "'+aName+'" has no segment in SrcMap');
+            aSeg:=SrcMap[j];
+            SegFile:=SrcMap.SourceFiles[aSeg.SrcFileIndex];
+            if SegFile<>Filename then
+              JSMarkerError(i,ColMin,'JS marker "'+aName+'" maps to file "'+SegFile+'" instead of "'+Filename+'"');
+            if aSeg.SrcLine<>m^.PasLine then
+              JSMarkerError(i,ColMin,'JS marker "'+aName+'" maps to Pascal line "'+IntToStr(aSeg.SrcLine)+'" instead of "'+IntToStr(m^.PasLine)+'"');
+            if (aSeg.SrcColumn<m^.PasColMin) or (aSeg.SrcColumn>m^.PasColMax) then
+              JSMarkerError(i,ColMin,'JS marker "'+aName+'" maps to Pascal col "'+IntToStr(aSeg.SrcColumn)+'" instead of "'+IntToStr(m^.PasColMin)+'-'+IntToStr(m^.PasColMax)+'"');
+            continue;
+            end;
+        end;
+        if p^<>ActP^ then
+          begin
+          writeln('JavaScript: ');
+          for j:=0 to i-1 do
+            writeln(JSSource[j]);
+          for j:=1 to P-PChar(Line) do write('-');
+          writeln('^');
+          writeln('Expected JS:<',Line,'>');
+          AssertEquals('Expected JavaScript differs',p^,ActP^);
+          end;
+        inc(p);
+        inc(ActP);
+      until false;
+      end;
+  finally
+    PasSrc.Free;
+  end;
 end;
 
 procedure TCustomTestSrcMap.WriteSrcMapLine(GeneratedLine: integer);
@@ -134,9 +294,14 @@ end;
 procedure TTestSrcMap.TestEmptyProgram;
 begin
   StartProgram(false);
-  Add('begin');
+  Add('(*b*)begin');
   ConvertProgram;
-  CheckSrcMap('TestEmptyProgram');
+  CheckSrcMap('TestEmptyProgram',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '(*b*)  $mod.$main = function () {',
+  '  };',
+  '});']);
 end;
 
 procedure TTestSrcMap.TestEmptyUnit;
@@ -147,21 +312,33 @@ begin
   'implementation'
   ]);
   ConvertUnit;
-  CheckSrcMap('TestEmptyUnit');
+  CheckSrcMap('TestEmptyUnit',[
+  'rtl.module("Test1", [], function () {',
+  '  var $mod = this;',
+  '});']);
 end;
 
 procedure TTestSrcMap.TestIf;
 begin
   StartProgram(false);
   Add([
-  'var i: longint;',
+  'var (*i*)i: longint;',
   'begin',
   '  if true then',
-  '    i:=1234 + 2222',
+  '    (*a*)i:=(*b*)1234 (*c*)+ (*d*)2222',
   '  else',
   '    i:=3456;']);
   ConvertProgram;
-  CheckSrcMap('TestIf');
+  CheckSrcMap('TestIf',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '  this.(*i*)i = 0;',
+  '  $mod.$main = function () {',
+  '    if (true) {',
+  '      (*a*)$mod.i = (*b*)1234 (*c*)+ (*d*)2222}',
+  '     else $mod.i = 3456;',
+  '  };',
+  '});']);
 end;
 
 procedure TTestSrcMap.TestIfBegin;
@@ -169,19 +346,32 @@ begin
   StartProgram(false);
   Add([
   'var',
-  '  E, P: String;',
+  '  (*E*)E, (*P*)P: String;',
   'begin',
-  '  E:=''bla'';',
-  '  if E=P then',
+  '  (*E2*)E:=(*bla*)''bla'';',
+  '  (*if1*)if E=P then',
   '    begin',
-  '    E:=''active'';',
+  '    (*then*)E:=''active'';',
   '    end',
   '  else',
   '    begin',
-  '    E:=''inactive'';',
+  '    (*else*)E:=''inactive'';',
   '    end;']);
   ConvertProgram;
-  CheckSrcMap('TestIfBegin');
+  CheckSrcMap('TestIfBegin',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '  this.(*E*)E = "";',
+  '  this.(*P*)P = "";',
+  '  $mod.$main = function () {',
+  '(*E2*)    $mod.E = (*bla*)"bla";(*bla*)',
+  '    (*if1*)if ($mod.E === $mod.P) {(*if1*)',
+  '(*then*)      $mod.E = "active";',
+  '    } else {',
+  '(*else*)      $mod.E = "inactive";',
+  '    };',
+  '  };',
+  '});']);
 end;
 
 procedure TTestSrcMap.TestFor;
@@ -190,10 +380,21 @@ begin
   Add([
   'var Runner, i: longint;',
   'begin',
-  '  for Runner := 1000 + 2000 to 3000 do',
-  '    inc(i);']);
+  '  (*for*)for (*r*)Runner := (*start*)1000 + 2000 to (*end*)3000 do',
+  '    (*inc*)inc(i);']);
   ConvertProgram;
-  CheckSrcMap('TestEmptyProgram');
+  CheckSrcMap('TestFor',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '  this.Runner = 0;',
+  '  this.i = 0;',
+  '  $mod.$main = function () {',
+  '(*for*)    var $loopend1 = (*end*)3000;',
+  '(*for*)    for ((*r*)$mod.Runner = (*start*)1000 + 2000; (*r*)$mod.Runner <= (*end*)$loopend1; (*r*)$mod.Runner++)(*for*) $mod.i (*inc*)+= 1;',
+  '(*for*)    if ($mod.Runner > $loopend1) $mod.Runner--;(*for*)',
+  '  };',
+  '});'
+  ]);
 end;
 
 procedure TTestSrcMap.TestFunction;
@@ -202,18 +403,36 @@ begin
   Add([
   'function DoIt(i: longint): longint; forward;',
   'const p = 3;',
-  'function DoIt(i: longint): longint;',
+  'function (*ResultInit*)DoIt(*DoIt*)(i: longint): longint;',
   'var Runner, j: longint;',
   'begin',
   '  j:=0;',
-  '  for Runner := p to j do',
-  '    inc(j);',
+  '  (*for*)for (*r*)Runner := (*start*)p to (*end*)j do',
+  '    (*inc*)inc(j);',
   '  Result:=j;',
   'end;',
   'begin',
-  '  DoIt(2);']);
+  '  (*CallDoIt*)DoIt(2);']);
   ConvertProgram;
-  CheckSrcMap('TestFunction');
+  CheckSrcMap('TestFunction',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '  this.p = 3;',
+  '(*DoIt*)  this.DoIt = function (i) {',
+  '(*ResultInit*)    var Result = 0;',
+  '    var Runner = 0;',
+  '    var j = 0;',
+  '    j = 0;',
+  '    var $loopend1 = j;',
+  '    for (Runner = $mod.p; Runner <= $loopend1; Runner++) j += 1;',
+  '    Result = j;',
+  '    return Result;',
+  '  };',
+  '  $mod.$main = function () {',
+  '(*CallDoIt*)    $mod.DoIt(2);',
+  '  };',
+  '});'
+  ]);
 end;
 
 procedure TTestSrcMap.TestExternalObjCall;
@@ -229,14 +448,26 @@ begin
   'var console : TJSConsole; external name ''window.console'';',
   '  xhrstatus: longint;',
   'begin',
-  '  console.log(''state'');',
+  '  (*w*)console(*log*).log     (''state'');',
   '  if xhrstatus=200 then',
   '    begin',
   '      xhrstatus:=3;',
   '      xhrstatus:=4;',
   '    end;']);
   ConvertProgram;
-  CheckSrcMap('TestExternalObjCall');
+  CheckSrcMap('TestExternalObjCall',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '  this.xhrstatus = 0;',
+  '  $mod.$main = function () {',
+  '    (*w*)window.console(*log*).log("state");',
+  '    if ($mod.xhrstatus === 200) {',
+  '      $mod.xhrstatus = 3;',
+  '      $mod.xhrstatus = 4;',
+  '    };',
+  '  };',
+  '});'
+  ]);
 end;
 
 procedure TTestSrcMap.TestBracketAccessor;
@@ -254,10 +485,18 @@ begin
   'var Obj : TJSObject;',
   '  j: JSValue;',
   'begin',
-  '  j:=Obj.Properties[''state''];',
+  '  (*j*)j:=(*Obj*)Obj.Properties[(*bracket*)''state''];',
   '  ']);
   ConvertProgram;
-  CheckSrcMap('TestExternalObjCall');
+  CheckSrcMap('TestExternalObjCall',[
+  'rtl.module("program", [], function () {',
+  '  var $mod = this;',
+  '  this.Obj = null;',
+  '  this.j = undefined;',
+  '  $mod.$main = function () {',
+  '(*j*)    $mod.j = (*Obj*)$mod.Obj(*bracket*)["state"];',
+  '  };',
+  '});']);
 end;
 
 Initialization
