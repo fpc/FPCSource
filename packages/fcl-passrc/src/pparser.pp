@@ -302,7 +302,7 @@ type
     function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode): TBinaryExpr; overload;
     function CreateBinaryExpr(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos): TBinaryExpr; overload;
     procedure AddToBinaryExprChain(var ChainFirst: TPasExpr;
-      Element: TPasExpr; AOpCode: TExprOpCode);
+      Element: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos);
     procedure AddParamsToBinaryExprChain(var ChainFirst: TPasExpr;
       Params: TParamsExpr);
     {$IFDEF VerbosePasParser}
@@ -1270,6 +1270,7 @@ Var
   Name : String;
   ST : TPasSpecializeType;
   Expr: TPasExpr;
+  SrcPos: TPasSourcePos;
 
 begin
   Result:=nil;
@@ -1283,10 +1284,12 @@ begin
     NextToken;
     while CurToken=tkDot do
       begin
+      SrcPos:=CurTokenPos;
       ExpectIdentifier;
       Name := Name+'.'+CurTokenString;
       if IsFull then
-        AddToBinaryExprChain(Expr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenString),eopSubIdent);
+        AddToBinaryExprChain(Expr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenString),
+                             eopSubIdent,SrcPos);
       NextToken;
       end;
 
@@ -1294,7 +1297,7 @@ begin
     if IsFull and (CurToken=tkSemicolon) or isCurTokenHint then // Type A = B;
       begin
       K:=stkAlias;
-      UnGetToken; // ToDo: dotted identifier
+      UnGetToken;
       end
     else if IsFull and (CurToken=tkSquaredBraceOpen) then
       begin
@@ -1302,7 +1305,7 @@ begin
         K:=stkString
       else
         ParseExcSyntaxError;
-      UnGetToken; // ToDo: dotted identifier
+      UnGetToken;
       end
     else if (CurToken = tkLessThan) then // A = B<t>;
       begin
@@ -1311,7 +1314,7 @@ begin
     else if (CurToken in [tkBraceOpen,tkDotDot]) then // A: B..C;
       begin
       K:=stkRange;
-      UnGetToken; // ToDo: dotted identifier
+      UnGetToken;
       end
     else
       begin
@@ -1320,7 +1323,7 @@ begin
       K:=stkAlias;
       if (not (po_resolvestandardtypes in Options)) and (LowerCase(Name)='string') then
         K:=stkString;
-      UnGetToken; // ToDo: dotted identifier
+      UnGetToken;
       end;
 
     Case K of
@@ -1331,7 +1334,7 @@ begin
         end;
       stkSpecialize:
         begin
-        ST := TPasSpecializeType(CreateElement(TPasSpecializeType, TypeName, Parent, CurSourcePos));
+        ST := TPasSpecializeType(CreateElement(TPasSpecializeType, TypeName, Parent, CurTokenPos));
         Ref:=ResolveTypeReference(Name,ST);
         ReadSpecializeArguments(ST);
         ST.Expr:=Expr;
@@ -2029,7 +2032,7 @@ var
   aName: String;
   ISE: TInlineSpecializeExpr;
   ST: TPasSpecializeType;
-  SrcPos: TPasSourcePos;
+  SrcPos, ScrPos: TPasSourcePos;
 
 begin
   Result:=nil;
@@ -2109,12 +2112,13 @@ begin
       case CurToken of
       tkDot:
         begin
+        ScrPos:=CurTokenPos;
         NextToken;
         if CurToken in [tkIdentifier,tktrue,tkfalse,tkself] then // true and false are sub identifiers as well
           begin
           aName:=aName+'.'+CurTokenString;
           expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
-          AddToBinaryExprChain(Result,expr,eopSubIdent);
+          AddToBinaryExprChain(Result,expr,eopSubIdent,ScrPos);
           func:=expr;
           NextToken;
           end
@@ -3314,7 +3318,7 @@ var
   NameExpr: TPasExpr;
   InFileExpr: TPrimitiveExpr;
   FreeExpr: Boolean;
-  NamePos: TPasSourcePos;
+  NamePos, SrcPos: TPasSourcePos;
 begin
   CheckImplicitUsedUnits(ASection);
 
@@ -3330,10 +3334,12 @@ begin
       NextToken;
       while CurToken = tkDot do
       begin
+        SrcPos:=CurTokenPos;
         ExpectIdentifier;
         aName:=CurTokenString;
         AUnitName := AUnitName + '.' + aName;
-        AddToBinaryExprChain(NameExpr,CreatePrimitiveExpr(ASection,pekString,aName),eopSubIdent);
+        AddToBinaryExprChain(NameExpr,
+              CreatePrimitiveExpr(ASection,pekString,aName),eopSubIdent,SrcPos);
         NextToken;
       end;
       if (CurToken=tkin) then
@@ -3522,6 +3528,8 @@ end;
 
 function TPasParser.ReadDottedIdentifier(Parent: TPasElement; out
   Expr: TPasExpr; NeedAsString: boolean): String;
+var
+  SrcPos: TPasSourcePos;
 begin
   Expr:=nil;
   if NeedAsString then
@@ -3533,10 +3541,12 @@ begin
   NextToken;
   while CurToken=tkDot do
     begin
+    SrcPos:=CurTokenPos;
     ExpectIdentifier;
     if NeedAsString then
       Result := Result+'.'+CurTokenString;
-    AddToBinaryExprChain(Expr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenString),eopSubIdent);
+    AddToBinaryExprChain(Expr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenString),
+                         eopSubIdent,SrcPos);
     NextToken;
     end;
 end;
@@ -4501,6 +4511,7 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
   var
     Params: TParamsExpr;
     Param: TPasExpr;
+    SrcPos: TPasSourcePos;
   begin
     ExpectIdentifier;
     Result := CurTokenString;
@@ -4510,9 +4521,11 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
     repeat
       NextToken;
       if CurToken <> tkDot then break;
+      SrcPos:=CurTokenPos;
       ExpectIdentifier;
       Result := Result + '.' + CurTokenString;
-      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
+      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),
+        eopSubIdent,SrcPos);
     until false;
 
     // read optional array index
@@ -4545,9 +4558,11 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
         UngetToken;
         break;
         end;
+      SrcPos:=CurTokenPos;
       ExpectIdentifier;
       Result := Result + '.' + CurTokenString;
-      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),eopSubIdent);
+      AddToBinaryExprChain(Expr,CreatePrimitiveExpr(aParent,pekIdent,CurTokenString),
+                           eopSubIdent,SrcPos);
     until false;
   end;
 
@@ -4980,9 +4995,10 @@ begin
                 end;
               tkDot:
                 begin
+                SrcPos:=CurTokenPos;
                 ExpectIdentifier;
                 AddToBinaryExprChain(Left,
-                  CreatePrimitiveExpr(El,pekIdent,CurTokenString), eopSubIdent);
+                  CreatePrimitiveExpr(El,pekIdent,CurTokenString), eopSubIdent,SrcPos);
                 TPasImplForLoop(El).VariableName:=Left;
                 end;
             else
@@ -6105,7 +6121,7 @@ begin
 end;
 
 procedure TPasParser.AddToBinaryExprChain(var ChainFirst: TPasExpr;
-  Element: TPasExpr; AOpCode: TExprOpCode);
+  Element: TPasExpr; AOpCode: TExprOpCode; const ASrcPos: TPasSourcePos);
 begin
   if Element=nil then
     exit
@@ -6117,7 +6133,7 @@ begin
   else
     begin
     // create new binary, old becomes left, Element right
-    ChainFirst:=CreateBinaryExpr(ChainFirst.Parent,ChainFirst,Element,AOpCode);
+    ChainFirst:=CreateBinaryExpr(ChainFirst.Parent,ChainFirst,Element,AOpCode,ASrcPos);
     end;
 end;
 
