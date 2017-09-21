@@ -211,7 +211,7 @@ type
     Procedure TestString_CharAt;
     Procedure TestStr;
     Procedure TestBaseType_AnsiStringFail;
-    Procedure TestBaseType_UnicodeStringFail;
+    Procedure TestBaseType_WideStringFail;
     Procedure TestBaseType_ShortStringFail;
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
@@ -4177,11 +4177,11 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestBaseType_UnicodeStringFail;
+procedure TTestModule.TestBaseType_WideStringFail;
 begin
   StartProgram(false);
-  Add('var s: UnicodeString');
-  SetExpectedPasResolverError('identifier not found "UnicodeString"',PasResolveEval.nIdentifierNotFound);
+  Add('var s: WideString');
+  SetExpectedPasResolverError('identifier not found "WideString"',PasResolveEval.nIdentifierNotFound);
   ConvertProgram;
 end;
 
@@ -12748,7 +12748,7 @@ begin
   Add([
   'type',
   '  uni = string;',
-  '  WideChar = char;',
+  '  WChar = char;',
   'procedure DoIt(s: string); begin end;',
   'procedure DoIt(v: jsvalue); begin end;',
   'var',
@@ -12784,7 +12784,7 @@ begin
   Add([
   'type',
   '  uni = string;',
-  '  WideChar = char;',
+  '  WChar = char;',
   'procedure DoIt(c: char); begin end;',
   'procedure DoIt(v: jsvalue); begin end;',
   'var',

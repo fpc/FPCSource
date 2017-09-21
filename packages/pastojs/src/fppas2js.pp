@@ -805,7 +805,9 @@ const
 
   btAllJSBaseTypes = [
     btChar,
+    btWideChar,
     btString,
+    btUnicodeString,
     btDouble,
     btBoolean,
     btByteBool,
