@@ -280,7 +280,9 @@
 {$endif}
 
 {$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
+{$ifndef FPC_SOFT_FPUX80}
 {$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
+{$endif}
 {$endif}
 
 { llvm backends partially use other backends for parameter info calculation,
