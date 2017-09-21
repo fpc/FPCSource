@@ -3579,7 +3579,7 @@ begin
     LinesToStr([
     'if ($mod.c.charCodeAt() in $mod.LowChars) ;',
     'if (97 in $mod.LowChars) ;',
-    'if ($mod.s.charCodeAt(1 - 1) in $mod.LowChars) ;',
+    'if ($mod.s.charCodeAt(0) in $mod.LowChars) ;',
     'if ($mod.c.charCodeAt() in $mod.Chars) ;',
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',

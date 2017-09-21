@@ -36,9 +36,7 @@ Working:
 - Hint: 'Function result does not seem to be set'
 
 ToDo:
-- record members
-- class members
-- Improve Call Override: e.g. A.Proc, mark only overrides of descendants of A
+- Add test: Call Override: e.g. A.Proc, mark only overrides of descendants of A
 - TPasArgument: compute the effective Access
 - calls: use the effective Access of arguments
 }
@@ -1179,9 +1177,10 @@ begin
   for i:=0 to ProcType.Args.Count-1 do
     begin
     Arg:=TPasArgument(ProcType.Args[i]);
-    // Note: argument are marked when used in code
-    // mark argument type
+    // Note: arguments are marked when used in code
+    // mark argument type and default value
     UseType(Arg.ArgType,paumElement);
+    UseExpr(Arg.ValueExpr);
     end;
   if ProcType is TPasFunctionType then
     UseType(TPasFunctionType(ProcType).ResultEl.ResultType,paumElement);

@@ -30,7 +30,6 @@ uses
 
 type
 
-
   { TCustomTestOptimizations }
 
   TCustomTestOptimizations = class(TCustomTestModule)
@@ -78,6 +77,7 @@ type
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
     procedure TestWPO_ProgramPublicDeclaration;
+    procedure TestWPO_ConstructorDefaultValueConst;
     procedure TestWPO_RTTI_PublishedField;
     procedure TestWPO_RTTI_TypeInfo;
   end;
@@ -774,6 +774,56 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_ProgramPublicDeclaration',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_ConstructorDefaultValueConst;
+var
+  ActualSrc, ExpectedSrc: String;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(true);
+  Add([
+  'const gcBlack = 0;',
+  'type',
+  '  TColor = longint;',
+  '  TObject = class',
+  '  private',
+  '    FColor: TColor;',
+  '  public',
+  '    property Color: TColor read FColor write FColor;',
+  '    constructor Create(const AColor: TColor = gcBlack);',
+  '  end;',
+  'constructor TObject.Create(const AColor: TColor = gcBlack);',
+  'begin',
+  '  FColor := AColor;',
+  'end;',
+  'var T: TObject;',
+  'begin',
+  '  T := TObject.Create;',
+  '']);
+  ConvertProgram;
+  ActualSrc:=ConvertJSModuleToString(JSModule);
+  ExpectedSrc:=LinesToStr([
+  'rtl.module("program",["system"],function () {',
+  '  var $mod = this;',
+  '  this.gcBlack = 0;',
+  '  rtl.createClass($mod,"TObject",null,function () {',
+  '    this.$init = function () {',
+  '      this.FColor = 0;',
+  '    };',
+  '    this.$final = function () {',
+  '    };',
+  '    this.Create = function (AColor) {',
+  '      this.FColor = AColor;',
+  '    };',
+  '  });',
+  '  this.T = null;',
+  '  $mod.$main = function () {',
+  '    $mod.T = $mod.TObject.$create("Create",[$mod.gcBlack]);',
+  '  };',
+  '});',
+  '']);
+  CheckDiff('TestWPO_ConstructorDefaultValueConst',ExpectedSrc,ActualSrc);
 end;
 
 procedure TTestOptimizations.TestWPO_RTTI_PublishedField;
