@@ -1804,7 +1804,9 @@ Implementation
         {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
         eextended : extended;
 	{$else}
+        {$ifdef FPC_SOFT_FPUX80}
 	eextended : floatx80;
+        {$endif}
         {$endif}
         ccomp : comp;
         tmp    : word;
