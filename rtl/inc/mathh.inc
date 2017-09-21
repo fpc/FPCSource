@@ -135,7 +135,7 @@ procedure float_raise(i: TFPUExceptionMask);
       TFloatSpecial = (fsZero,fsNZero,fsDenormal,fsNDenormal,fsPositive,fsNegative,
                        fsInf,fsNInf,fsNaN,fsInvalidOp);
 
-{$ifdef SUPPORT_EXTENDED}
+{$if defined(SUPPORT_EXTENDED) or defined(FPC_SOFT_FPUX80)}
       TExtended80Rec = packed record
       private
         function GetExp : QWord;
@@ -158,9 +158,13 @@ procedure float_raise(i: TFPUExceptionMask);
 {$else ENDIAN_LITTLE}
           2: (_Exp: Word; Frac : QWord);
 {$endif ENDIAN_LITTLE}
+{$ifdef SUPPORT_EXTENDED}
           3: (Value: Extended);
+{$else}
+          3: (Value: array[0..9] of Byte);
+{$endif}
       end;
-{$endif SUPPORT_EXTENDED}
+{$endif SUPPORT_EXTENDED or FPC_SOFT_FPUX80}
 
 {$ifdef SUPPORT_DOUBLE}
       TDoubleRec = packed record
