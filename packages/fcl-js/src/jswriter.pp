@@ -1453,6 +1453,8 @@ begin
 end;
 
 procedure TJSWriter.WriteJS(El: TJSElement);
+var
+  C: TClass;
 begin
 {$IFDEF DEBUGJSWRITER}
   if (El<>Nil) then
@@ -1461,57 +1463,58 @@ begin
     system.Writeln('WriteJS : El = Nil');
 {$ENDIF}
   Writer.CurElement:=El;
-  if (El is TJSEmptyBlockStatement ) then
+  C:=El.ClassType;
+  if (C=TJSEmptyBlockStatement ) then
     WriteEmptyBlockStatement(TJSEmptyBlockStatement(El))
-  else if (El is TJSEmptyStatement) then
+  else if (C=TJSEmptyStatement) then
     WriteEmptyStatement(TJSEmptyStatement(El))
-  else if (El is TJSLiteral) then
+  else if (C=TJSLiteral) then
     WriteLiteral(TJSLiteral(El))
-  else if (El is TJSPrimaryExpression) then
+  else if C.InheritsFrom(TJSPrimaryExpression) then
     WritePrimaryExpression(TJSPrimaryExpression(El))
-  else if (El is TJSArrayLiteral) then
+  else if C.InheritsFrom(TJSArrayLiteral) then
     WriteArrayLiteral(TJSArrayLiteral(El))
-  else if (El is TJSObjectLiteral) then
+  else if (C=TJSObjectLiteral) then
     WriteObjectLiteral(TJSObjectLiteral(El))
-  else if (El is TJSMemberExpression) then
+  else if C.InheritsFrom(TJSMemberExpression) then
     WriteMemberExpression(TJSMemberExpression(El))
-  else if (El is TJSRegularExpressionLiteral) then
+  else if (C=TJSRegularExpressionLiteral) then
     WriteRegularExpressionLiteral(TJSRegularExpressionLiteral(El))
-  else if (El is TJSCallExpression) then
+  else if (C=TJSCallExpression) then
     WriteCallExpression(TJSCallExpression(El))
-  else if (El is TJSLabeledStatement) then // Before unary
+  else if (C=TJSLabeledStatement) then // Before unary
     WriteLabeledStatement(TJSLabeledStatement(El))
-  else if (El is TJSFunctionBody) then // Before unary
+  else if (C=TJSFunctionBody) then // Before unary
     WriteFunctionBody(TJSFunctionBody(El))
-  else if (El is TJSVariableStatement) then // Before unary
+  else if (C=TJSVariableStatement) then // Before unary
     WriteVariableStatement(TJSVariableStatement(El))
-  else if (El is TJSUNary) then
+  else if C.InheritsFrom(TJSUnary) then
     WriteUnary(TJSUnary(El))
-  else if (El is TJSVariableDeclarationList) then
+  else if (C=TJSVariableDeclarationList) then
     WriteVarDeclarationList(TJSVariableDeclarationList(El)) // Must be before binary
-  else if (El is TJSStatementList) then
+  else if (C=TJSStatementList) then
     WriteStatementList(TJSStatementList(El)) // Must be before binary
-  else if (El is TJSWithStatement) then
+  else if (C=TJSWithStatement) then
     WriteWithStatement(TJSWithStatement(El)) // Must be before binary
-  else if (El is TJSBinary) then
+  else if C.InheritsFrom(TJSBinary) then
     WriteBinary(TJSBinary(El))
-  else if (El is TJSConditionalExpression) then
+  else if (C=TJSConditionalExpression) then
     WriteConditionalExpression(TJSConditionalExpression(El))
-  else if (El is TJSAssignStatement) then
+  else if C.InheritsFrom(TJSAssignStatement) then
     WriteAssignStatement(TJSAssignStatement(El))
-  else if (El is TJSVarDeclaration) then
+  else if (C=TJSVarDeclaration) then
     WriteVarDeclaration(TJSVarDeclaration(El))
-  else if (El is TJSIfStatement) then
+  else if (C=TJSIfStatement) then
     WriteIfStatement(TJSIfStatement(El))
-  else if (El is TJSTargetStatement) then
+  else if C.InheritsFrom(TJSTargetStatement) then
     WriteTargetStatement(TJSTargetStatement(El))
-  else if (El is TJSReturnStatement) then
+  else if (C=TJSReturnStatement) then
     WriteReturnStatement(TJSReturnStatement(El))
-  else if (El is TJSTryStatement) then
+  else if C.InheritsFrom(TJSTryStatement) then
     WriteTryStatement(TJSTryStatement(El))
-  else if (El is TJSFunctionDeclarationStatement) then
+  else if (C=TJSFunctionDeclarationStatement) then
     WriteFunctionDeclarationStatement(TJSFunctionDeclarationStatement(El))
-  else if (El is TJSSourceElements) then
+  else if (C=TJSSourceElements) then
     WriteSourceElements(TJSSourceElements(El))
   else if El=Nil then
     Error(SErrNilNode)
