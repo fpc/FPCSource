@@ -4981,16 +4981,44 @@ var
       exit(TResolvedReference(Value.CustomData));
   end;
 
+  function ConvertIndexMinus1(Param: TPasExpr): TJSElement;
+  var
+    NeedMinus1: Boolean;
+    JSVal: TJSValue;
+    MinusJS: TJSAdditiveExpressionMinus;
+  begin
+    Result:=ConvertElement(Param,ArgContext);
+    NeedMinus1:=true;
+    if (Result is TJSLiteral) then
+      begin
+      JSVal:=TJSLiteral(Result).Value;
+      if (JSVal.ValueType=jstNumber) then
+        begin
+        // simply subtract 1 from constant
+        JSVal.AsNumber:=JSVal.AsNumber-1;
+        NeedMinus1:=false;
+        end;
+      end;
+    if NeedMinus1 then
+      begin
+      // index-1
+      MinusJS:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
+      MinusJS.A:=Result;
+      MinusJS.B:=CreateLiteralNumber(Param,1);
+      Result:=MinusJS;
+      end;
+  end;
+
   procedure ConvertStringBracket;
   var
     Call: TJSCallExpression;
     Param: TPasExpr;
-    Expr: TJSAdditiveExpressionMinus;
     DotExpr: TJSDotMemberExpression;
     AssignContext: TAssignContext;
     Elements: TJSArrayLiteralElements;
     AssignSt: TJSSimpleAssignStatement;
     OldAccess: TCtxAccess;
+    IndexExpr: TJSElement;
   begin
     Param:=El.Params[0];
     case AContext.Access of
@@ -5011,8 +5039,9 @@ var
         Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
         // first param  s
         Elements.AddElement.Expr:=ConvertElement(El.Value,AContext);
-        // second param  index
-        Elements.AddElement.Expr:=ConvertElement(Param,ArgContext);
+        // second param  index-1
+        IndexExpr:=ConvertIndexMinus1(Param);
+        Elements.AddElement.Expr:=IndexExpr;
         AContext.Access:=OldAccess;
         // third param  value
         Elements.AddElement.Expr:=AssignContext.RightSide;
@@ -5036,10 +5065,8 @@ var
         DotExpr.Name:='charAt';
 
         // add parameter "index-1"
-        Expr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
-        Elements.AddElement.Expr:=Expr;
-        Expr.A:=ConvertElement(Param,ArgContext);
-        Expr.B:=CreateLiteralNumber(Param,1);
+        IndexExpr:=ConvertIndexMinus1(Param);
+        Elements.AddElement.Expr:=IndexExpr;
         Result:=Call;
       finally
         if Result=nil then

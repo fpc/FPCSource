@@ -4092,7 +4092,7 @@ begin
   Add('  b:= c <> s[1];');
   Add('  b:= c > s[1];');
   Add('  b:= c >= s[1];');
-  Add('  b:= c < s[1];');
+  Add('  b:= c < s[2];');
   Add('  b:= c <= s[1];');
   Add('  s[1] := c;');
   Add('  s[2+3] := c;');
@@ -4104,15 +4104,15 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // this.$main
-    '$mod.b = $mod.s.charAt(1-1) === $mod.c;',
-    '$mod.b = $mod.c === $mod.s.charAt(1 - 1);',
-    '$mod.b = $mod.c !== $mod.s.charAt(1 - 1);',
-    '$mod.b = $mod.c > $mod.s.charAt(1 - 1);',
-    '$mod.b = $mod.c >= $mod.s.charAt(1 - 1);',
-    '$mod.b = $mod.c < $mod.s.charAt(1 - 1);',
-    '$mod.b = $mod.c <= $mod.s.charAt(1 - 1);',
-    '$mod.s = rtl.setCharAt($mod.s, 1, $mod.c);',
-    '$mod.s = rtl.setCharAt($mod.s, 2 + 3, $mod.c);',
+    '$mod.b = $mod.s.charAt(0) === $mod.c;',
+    '$mod.b = $mod.c === $mod.s.charAt(0);',
+    '$mod.b = $mod.c !== $mod.s.charAt(0);',
+    '$mod.b = $mod.c > $mod.s.charAt(0);',
+    '$mod.b = $mod.c >= $mod.s.charAt(0);',
+    '$mod.b = $mod.c < $mod.s.charAt(1);',
+    '$mod.b = $mod.c <= $mod.s.charAt(0);',
+    '$mod.s = rtl.setCharAt($mod.s, 0, $mod.c);',
+    '$mod.s = rtl.setCharAt($mod.s, (2 + 3) - 1, $mod.c);',
     '']));
 end;
 
