@@ -95,12 +95,13 @@ type
     FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
-    function GetModuleCount: integer;
-    function GetModules(Index: integer): TTestEnginePasResolver;
+    function GetResolverCount: integer;
+    function GetResolvers(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
     function FindUnit(const aUnitName: String): TPasModule;
   protected
     procedure SetUp; override;
+    function CreateConverter: TPasToJSConverter; virtual;
     procedure TearDown; override;
     Procedure Add(Line: string); virtual;
     Procedure Add(const Lines: array of string);
@@ -126,6 +127,7 @@ type
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
       ImplStatements: string = ''); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
+    procedure CheckUnit(Filename, ExpectedSrc: string); virtual;
     procedure SetExpectedScannerError(Msg: string; MsgNumber: integer);
     procedure SetExpectedParserError(Msg: string; MsgNumber: integer);
     procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
@@ -138,10 +140,12 @@ type
     procedure HandleException(E: Exception);
     procedure RaiseException(E: Exception);
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
+    function IndexOfResolver(const Filename: string): integer;
+    function GetResolver(const Filename: string): TTestEnginePasResolver;
     function GetDefaultNamespace: string;
     property PasProgram: TPasProgram Read FPasProgram;
-    property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
-    property ModuleCount: integer read GetModuleCount;
+    property Resolvers[Index: integer]: TTestEnginePasResolver read GetResolvers;
+    property ResolverCount: integer read GetResolverCount;
     property Engine: TTestEnginePasResolver read FEngine;
     property Filename: string read FFilename;
     Property Module: TPasModule Read FModule;
@@ -171,12 +175,13 @@ type
 
   TTestModule = class(TCustomTestModule)
   Published
-    // modules
+    // Resolvers
     Procedure TestEmptyProgram;
     Procedure TestEmptyProgramUseStrict;
     Procedure TestEmptyUnit;
     Procedure TestEmptyUnitUseStrict;
     Procedure TestDottedUnitNames;
+    Procedure TestDottedUnitNameImpl;
     Procedure TestDottedUnitExpr;
     Procedure Test_ModeFPCFail;
     Procedure Test_ModeSwitchCBlocksFail;
@@ -611,12 +616,12 @@ end;
 
 { TCustomTestModule }
 
-function TCustomTestModule.GetModuleCount: integer;
+function TCustomTestModule.GetResolverCount: integer;
 begin
   Result:=FModules.Count;
 end;
 
-function TCustomTestModule.GetModules(Index: integer
+function TCustomTestModule.GetResolvers(Index: integer
   ): TTestEnginePasResolver;
 begin
   Result:=TTestEnginePasResolver(FModules[Index]);
@@ -651,11 +656,11 @@ var
 begin
   //writeln('TTestModule.FindUnit START Unit="',aUnitName,'"');
   Result:=nil;
-  for i:=0 to ModuleCount-1 do
+  for i:=0 to ResolverCount-1 do
     begin
-    CurEngine:=Modules[i];
+    CurEngine:=Resolvers[i];
     CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
-    //writeln('TTestModule.FindUnit Checking ',i,'/',ModuleCount,' ',CurEngine.Filename,' ',CurUnitName);
+    //writeln('TTestModule.FindUnit Checking ',i,'/',ResolverCount,' ',CurEngine.Filename,' ',CurUnitName);
     if CompareText(aUnitName,CurUnitName)=0 then
       begin
       Result:=CurEngine.Module;
@@ -705,10 +710,15 @@ begin
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
   Parser.Options:=Parser.Options+po_pas2js+[po_KeepScannerError];
   FModule:=Nil;
-  FConverter:=TPasToJSConverter.Create;
-  FConverter.Options:=co_tcmodules;
+  FConverter:=CreateConverter;
 
   FExpectedErrorClass:=nil;
+end;
+
+function TCustomTestModule.CreateConverter: TPasToJSConverter;
+begin
+  Result:=TPasToJSConverter.Create;
+  Result.Options:=co_tcmodules;
 end;
 
 procedure TCustomTestModule.TearDown;
@@ -819,9 +829,9 @@ function TCustomTestModule.FindModuleWithFilename(aFilename: string
 var
   i: Integer;
 begin
-  for i:=0 to ModuleCount-1 do
-    if CompareText(Modules[i].Filename,aFilename)=0 then
-      exit(Modules[i]);
+  for i:=0 to ResolverCount-1 do
+    if CompareText(Resolvers[i].Filename,aFilename)=0 then
+      exit(Resolvers[i]);
   Result:=nil;
 end;
 
@@ -1168,7 +1178,7 @@ var
         else
           inc(p);
       end;
-      if p<=ExpectedP then begin
+      if (p<=ExpectedP) and (p^<>#0) then begin
         writeln('= ',ExpLine);
       end else begin
         // diff line
@@ -1186,6 +1196,12 @@ var
         break;
       end;
     until p^=#0;
+
+    writeln('DiffFound Actual:-----------------------');
+    writeln(Actual);
+    writeln('DiffFound Expected:---------------------');
+    writeln(Expected);
+    writeln('DiffFound ------------------------------');
     Fail('diff found, but lines are the same, internal error');
   end;
 
@@ -1232,6 +1248,39 @@ begin
       inc(ActualP);
     end;
   until false;
+end;
+
+procedure TCustomTestModule.CheckUnit(Filename, ExpectedSrc: string);
+var
+  aResolver: TTestEnginePasResolver;
+  aConverter: TPasToJSConverter;
+  aJSModule: TJSSourceElements;
+  ActualSrc: String;
+begin
+  aResolver:=GetResolver(Filename);
+  AssertNotNull('missing resolver of unit '+Filename,aResolver);
+  {$IFDEF VerbosePas2JS}
+  writeln('CheckUnit '+Filename+' converting ...');
+  {$ENDIF}
+  aConverter:=CreateConverter;
+  try
+    try
+      aJSModule:=aConverter.ConvertPasElement(aResolver.Module,aResolver) as TJSSourceElements;
+    except
+      on E: Exception do
+        HandleException(E);
+    end;
+    ActualSrc:=ConvertJSModuleToString(aJSModule);
+    {$IFDEF VerbosePas2JS}
+    writeln('TTestModule.CheckUnit ',Filename,' Pas:');
+    write(aResolver.Source);
+    writeln('TTestModule.CheckUnit ',Filename,' JS:');
+    write(ActualSrc);
+    {$ENDIF}
+    CheckDiff('Converted unit: "'+ChangeFileExt(Filename,'.js')+'"',ExpectedSrc,ActualSrc);
+  finally
+    aConverter.Free;
+  end;
 end;
 
 procedure TCustomTestModule.SetExpectedScannerError(Msg: string;
@@ -1396,9 +1445,9 @@ var
   aModule: TTestEnginePasResolver;
 begin
   writeln('TCustomTestModule.WriteSources File="',aFilename,'" Row=',aRow,' Col=',aCol);
-  for i:=0 to ModuleCount-1 do
+  for i:=0 to ResolverCount-1 do
     begin
-    aModule:=Modules[i];
+    aModule:=Resolvers[i];
     SrcLines:=TStringList.Create;
     try
       SrcLines.Text:=aModule.Source;
@@ -1418,6 +1467,25 @@ begin
       SrcLines.Free;
     end;
     end;
+end;
+
+function TCustomTestModule.IndexOfResolver(const Filename: string): integer;
+var
+  i: Integer;
+begin
+  for i:=0 to ResolverCount-1 do
+    if Filename=Resolvers[i].Filename then exit(i);
+  Result:=-1;
+end;
+
+function TCustomTestModule.GetResolver(const Filename: string
+  ): TTestEnginePasResolver;
+var
+  i: Integer;
+begin
+  i:=IndexOfResolver(Filename);
+  if i<0 then exit(nil);
+  Result:=Resolvers[i];
 end;
 
 function TCustomTestModule.GetDefaultNamespace: string;
@@ -1504,6 +1572,57 @@ begin
     '$mod.i = pas["NS1.Unit2"].iV;',
     '$mod.i = $mod.i;',
     '']) );
+end;
+
+procedure TTestModule.TestDottedUnitNameImpl;
+begin
+  AddModuleWithIntfImplSrc('TEST.UnitA.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class end;',
+    '  TTestA = class',
+    '  end;'
+    ]),
+    LinesToStr(['uses TEST.UnitB;'])
+    );
+  AddModuleWithIntfImplSrc('TEST.UnitB.pas',
+    LinesToStr([
+    'uses TEST.UnitA;',
+    'type TTestB = class(TTestA);'
+    ]),
+    ''
+    );
+  StartProgram(true);
+  Add('uses TEST.UnitA;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestDottedUnitNameImpl',
+    LinesToStr([
+    '']),
+    LinesToStr([ // this.$init
+    '']) );
+  CheckUnit('TEST.UnitA.pas',
+    LinesToStr([
+    'rtl.module("TEST.UnitA", ["system"], function () {',
+    '  var $mod = this;',
+    '  rtl.createClass($mod, "TObject", null, function () {',
+    '    this.$init = function () {',
+    '    };',
+    '    this.$final = function () {',
+    '    };',
+    '  });',
+    '  rtl.createClass($mod, "TTestA", $mod.TObject, function () {',
+    '  });',
+    '}, ["TEST.UnitB"]);'
+    ]));
+  CheckUnit('TEST.UnitB.pas',
+    LinesToStr([
+    'rtl.module("TEST.UnitB", ["system","TEST.UnitA"], function () {',
+    '  var $mod = this;',
+    '  rtl.createClass($mod, "TTestB", pas["TEST.UnitA"].TTestA, function () {',
+    '  });',
+    '});'
+    ]));
 end;
 
 procedure TTestModule.TestDottedUnitExpr;
@@ -2863,8 +2982,10 @@ begin
   Add('var');
   Add('  e: TMyEnum;');
   Add('  f: TMyEnum = Green;');
+  Add('  i: longint;');
   Add('begin');
   Add('  e:=green;');
+  //Add('  i:=longint(e);');
   ConvertProgram;
   CheckSource('TestEnumNumber',
     LinesToStr([ // statements
@@ -2875,10 +2996,12 @@ begin
     '  Green:1',
     '  };',
     'this.e = 0;',
-    'this.f = 1;'
+    'this.f = 1;',
+    'this.i = 0;'
     ]),
     LinesToStr([
     '$mod.e=1;'
+    //'$mod.i=$mod.e;'
     ]));
 end;
 

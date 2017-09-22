@@ -96,7 +96,7 @@ var
   C: TClass;
 begin
   {$IFDEF VerboseSrcMap}
-  system.write('TPas2JSWriter.SetCurElement ',CurLine,',',CurColumn);
+  system.write('TPas2JSMapper.SetCurElement ',CurLine,',',CurColumn);
   if AValue<>nil then
     system.writeln(' ',AValue.ClassName,' src=',ExtractFileName(AValue.Source),' ',AValue.Line,',',AValue.Column)
   else
@@ -142,7 +142,7 @@ begin
     exit; // built-in element -> do not add a mapping
 
   FNeedMapping:=false;
-  //system.writeln('TPas2JSWriter.Writing Generated.Line=',CurLine,',Col=',CurColumn-1,
+  //system.writeln('TPas2JSMapper.Writing Generated.Line=',CurLine,',Col=',CurColumn-1,
   //  ' Orig:',ExtractFileName(FSrcFilename),',Line=',FSrcLine,',Col=',FSrcColumn-1);
 
   SrcMap.AddMapping(CurLine,Max(0,CurColumn-1),
@@ -167,7 +167,7 @@ begin
           inc(p);
         inc(Line);
         // add a mapping for each line
-        //system.writeln('TPas2JSWriter.Writing Generated.Line=',CurLine+Line,',Col=',0,
+        //system.writeln('TPas2JSMapper.Writing Generated.Line=',CurLine+Line,',Col=',0,
         //  ' Orig:',ExtractFileName(FSrcFilename),',Line=',FSrcLine+Line,',Col=',0);
         SrcMap.AddMapping(CurLine+Line,0,
           FSrcFilename,FSrcLine+Line,0);
