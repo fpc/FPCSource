@@ -28,8 +28,8 @@ type
    TRect=Types.TRect;
    TSmallPoint=Types.TSmallPoint;
 
-{$ifndef windows}
-   HMODULE = ptrint; // hmodule is handle on windows. Pointer eq.
+{$ifndef FPC_HAS_FEATURE_DYNLIBS}
+   HMODULE = ptrint; 
 {$else}
    HModule = System.HModule;
 {$endif}
