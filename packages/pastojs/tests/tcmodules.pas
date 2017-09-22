@@ -4253,6 +4253,8 @@ begin
   Add('  str(d,s);');
   Add('  str(i:3,s);');
   Add('  str(d:3:2,s);');
+  Add('  Str(12.456:12:1,s);');
+  Add('  Str(12.456:12,s);');
   Add('  s:=str(b);');
   Add('  s:=str(i);');
   Add('  s:=str(d);');
@@ -4275,15 +4277,17 @@ begin
     LinesToStr([ // this.$main
     '$mod.s = ""+$mod.b;',
     '$mod.s = ""+$mod.i;',
-    '$mod.s = ""+$mod.d;',
+    '$mod.s = rtl.floatToStr($mod.d);',
     '$mod.s = rtl.spaceLeft(""+$mod.i,3);',
-    '$mod.s = rtl.spaceLeft($mod.d.toFixed(2),3);',
+    '$mod.s = rtl.floatToStr($mod.d,3,2);',
+    '$mod.s = rtl.floatToStr(12.456,12,1);',
+    '$mod.s = rtl.floatToStr(12.456,12);',
     '$mod.s = ""+$mod.b;',
     '$mod.s = ""+$mod.i;',
-    '$mod.s = ""+$mod.d;',
+    '$mod.s = rtl.floatToStr($mod.d);',
     '$mod.s = (""+$mod.i)+$mod.i;',
     '$mod.s = rtl.spaceLeft(""+$mod.i,3);',
-    '$mod.s = rtl.spaceLeft($mod.d.toFixed(2),3);',
+    '$mod.s = rtl.floatToStr($mod.d,3,2);',
     '$mod.s = rtl.spaceLeft("" + $mod.i, 4) + $mod.i;',
     '$mod.s = ("" + $mod.i) + rtl.spaceLeft("" + $mod.i, 5);',
     '$mod.s = rtl.spaceLeft("" + $mod.i, 4) + rtl.spaceLeft("" + $mod.i, 5);',

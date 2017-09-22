@@ -406,6 +406,7 @@ type
     pbifnGetObject,
     pbifnIs,
     pbifnIsExt,
+    pbifnFloatToStr,
     pbifnFreeLocalVar,
     pbifnFreeVar,
     pbifnProcType_Create,
@@ -506,6 +507,7 @@ const
     'getObject', // rtl.getObject
     'is', // rtl.is
     'isExt', // rtl.isExt
+    'floatToStr', // rtl.floatToStr
     'freeLoc', // rtl.freeLoc
     'free', // rtl.free
     'createCallback', // rtl.createCallback
@@ -7010,7 +7012,7 @@ end;
 function TPasToJSConverter.ConvertBuiltIn_StrProc(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // convert 'str(value,aString)' to 'aString = <string>'
-// for the conversion see ConvertBuiltInStrFunc
+// for the conversion see ConvertBuiltInStrParam
 var
   AssignContext: TAssignContext;
   StrVar: TPasExpr;
@@ -7086,6 +7088,7 @@ var
   Call: TJSCallExpression;
   PlusEl: TJSAdditiveExpressionPlus;
   Bracket: TJSBracketMemberExpression;
+
   procedure PrependStrLit;
   begin
     PlusEl:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
@@ -7109,18 +7112,17 @@ begin
       end
     else if ResolvedEl.BaseType in btAllJSFloats then
       begin
-      NeedStrLit:=true;
-      Add:=ConvertElement(El,AContext);
+      // convert to rtl.floatToStr(El,width,precision)
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnFloatToStr]]);
+      Call.AddArg(ConvertElement(El,AContext));
+      if El.format1<>nil then
+        Call.AddArg(ConvertElement(El.format1,AContext));
       if El.format2<>nil then
-        begin
-        // precision -> rtl El.toFixed(precision);
-        NeedStrLit:=false;
-        Call:=CreateCallExpression(El);
-        Call.Expr:=CreateDotExpression(El,Add,CreatePrimitiveDotExpr('toFixed',El));
         Call.AddArg(ConvertElement(El.format2,AContext));
-        Add:=Call;
-        Call:=nil;
-        end;
+      Result:=Call;
+      Call:=nil;
+      exit;
       end
     else if IsStrFunc and (ResolvedEl.BaseType in btAllJSStringAndChars) then
       Add:=ConvertElement(El,AContext)
