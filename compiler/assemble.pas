@@ -1068,6 +1068,18 @@ Implementation
               { can't write full 80 bit floating point constants yet on non-x86 }
               aitrealconst_s80bit:
                 writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
+{$else}
+{$ifdef FPC_SOFT_FPUX80}
+             aitrealconst_s80bit:
+	    begin
+	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s80val))
+	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
+	      else
+		internalerror(2017091901);
+	    end;
+{$endif}
 {$endif cpuextended}
               aitrealconst_s64comp:
                 writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s64compval));
