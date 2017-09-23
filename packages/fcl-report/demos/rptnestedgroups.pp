@@ -121,7 +121,7 @@ end;
 
 procedure TNestedGroupsDemo.CreateReportDesign;
 var
-  p: TFPReportPage;
+  Page: TFPReportPage;
   TitleBand: TFPReportTitleBand;
   DataBand: TFPReportDataBand;
   GroupHeader, GroupHeader1Region,
@@ -141,23 +141,23 @@ begin
   {***   page   ***}
   {****************}
 
-  p :=  TFPReportPage.Create(rpt);
-  p.Orientation := poPortrait;
-  p.PageSize.PaperName := 'A4';
+  Page :=  TFPReportPage.Create(rpt);
+  Page.Orientation := poPortrait;
+  Page.PageSize.PaperName := 'A4';
   { page margins }
-  p.Margins.Left := 25;
-  p.Margins.Top := 20;
-  p.Margins.Right := 10;
-  p.Margins.Bottom := 20;
-  p.Data := FReportData;
-  p.Font.Name := 'LiberationSans';
+  Page.Margins.Left := 25;
+  Page.Margins.Top := 20;
+  Page.Margins.Right := 10;
+  Page.Margins.Bottom := 20;
+  Page.Data := FReportData;
+  Page.Font.Name := 'LiberationSans';
 
 
   {*****************}
   {***   title   ***}
   {*****************}
 
-  TitleBand := TFPReportTitleBand.Create(p);
+  TitleBand := TFPReportTitleBand.Create(Page);
   TitleBand.Layout.Height := 40;
   TitleBand.Frame.Shape := fsRectangle;
   TitleBand.Frame.BackgroundColor := clReportTitleSummary;
@@ -165,7 +165,7 @@ begin
   Memo := TFPReportMemo.Create(TitleBand);
   Memo.Layout.Left := 0;
   Memo.Layout.Top := 10;
-  Memo.Layout.Width := p.PageSize.Width - p.Margins.Left - p.Margins.Right;
+  Memo.Layout.Width := Page.PageSize.Width - Page.Margins.Left - Page.Margins.Right;
   Memo.Layout.Height := 16;
   Memo.TextAlignment.Horizontal := taCentered;
   Memo.UseParentFont := False;
@@ -175,7 +175,7 @@ begin
   Memo := TFPReportMemo.Create(TitleBand);
   Memo.Layout.Left := 0;
   Memo.Layout.Top := 18;
-  Memo.Layout.Width := p.PageSize.Width - p.Margins.Left - p.Margins.Right;
+  Memo.Layout.Width := Page.PageSize.Width - Page.Margins.Left - Page.Margins.Right;
   Memo.Layout.Height := 10;
   Memo.TextAlignment.Horizontal := taCentered;
   Memo.UseParentFont := False;
@@ -189,11 +189,14 @@ begin
 
   {*** group header 1 region ***}
 
-  GroupHeader1Region := TFPReportGroupHeaderBand.Create(p);
+  GroupHeader1Region := TFPReportGroupHeaderBand.Create(Page);
   GroupHeader1Region.Layout.Height := 15;
   GroupHeader1Region.GroupCondition := 'region';
   GroupHeader1Region.Frame.Shape := fsRectangle;
   GroupHeader1Region.Frame.BackgroundColor := clGroupHeaderFooter;
+  GroupHeader1Region.StartOnNewPage := True;
+  GroupHeader1Region.ReprintHeader := True;
+  GroupHeader1Region.VisibleExpr := 'not InRepeatedGroupHeader';
 
   Memo := TFPReportMemo.Create(GroupHeader1Region);
   Memo.Layout.Left := 3;
@@ -214,45 +217,64 @@ begin
   Memo.Font.Size := 10;
   Memo.TextAlignment.Vertical := tlBottom;
   Memo.TextAlignment.Horizontal := taRightJustified;
-  Memo.Text := '[formatfloat(''#0.0'', grp1region_sum_population / total_sum_population * 100)] % in world';
+  Memo.Text := '[formatfloat(''#0.0'', grp1region_sum_population / total_sum_population * 100)] % in World';
 
-  ChildBand := TFPReportChildBand.Create(p);
-  ChildBand.Layout.Height := 2;
+
+  ChildBand := TFPReportChildBand.Create(Page);
+  ChildBand.Layout.Height := 7;
+  ChildBand.VisibleExpr := 'InRepeatedGroupHeader';
+  ChildBand.Frame.Shape := fsRectangle;
+  ChildBand.Frame.BackgroundColor := clGroupHeaderFooter;
   GroupHeader1Region.ChildBand := ChildBand;
+
+  Memo := TFPReportMemo.Create(ChildBand);
+  Memo.Layout.Left := 3;
+  Memo.Layout.Top := 1;
+  Memo.Layout.Width := 170;
+  Memo.Layout.Height := 4;
+  Memo.Text := 'Region: [region]';
+
+
+  ChildBand := TFPReportChildBand.Create(Page);
+  ChildBand.Layout.Height := 2;
+  GroupHeader1Region.ChildBand.ChildBand := ChildBand;
 
   Shape := TFPReportShape.Create(ChildBand);
   Shape.Color := clGroupHeaderFooter;
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   {*** group header 2 subregion ***}
 
-  GroupHeader2Subregion := TFPReportGroupHeaderBand.Create(p);
+  GroupHeader2Subregion := TFPReportGroupHeaderBand.Create(Page);
   GroupHeader2Subregion.Layout.Height := 15;
   GroupHeader2Subregion.GroupCondition := 'subregion';
   GroupHeader2Subregion.Frame.Shape := fsRectangle;
   GroupHeader2Subregion.Frame.BackgroundColor := clGroupHeaderFooter2;
   GroupHeader2Subregion.GroupHeader := GroupHeader1Region;
+  GroupHeader2Subregion.StartOnNewPage := True;
+  GroupHeader2Subregion.ReprintHeader := True;
+  GroupHeader2Subregion.VisibleExpr := 'not InRepeatedGroupHeader';
 
   Shape := TFPReportShape.Create(GroupHeader2Subregion);
   Shape.Color := clGroupHeaderFooter;
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupHeader2Subregion.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   Shape := TFPReportShape.Create(GroupHeader2Subregion);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 3;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupHeader2Subregion.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -275,10 +297,14 @@ begin
   Memo.Font.Size := 10;
   Memo.TextAlignment.Vertical := tlBottom;
   Memo.TextAlignment.Horizontal := taRightJustified;
-  Memo.Text := '[formatfloat(''#0.0'', grp2subregion_sum_population / grp1region_sum_population * 100)] % in [region] - [formatfloat(''#0.0'', grp2subregion_sum_population / total_sum_population * 100)] % in world';
+  Memo.Text := '[formatfloat(''#0.0'', grp2subregion_sum_population / grp1region_sum_population * 100)] % in [region] - [formatfloat(''#0.0'', grp2subregion_sum_population / total_sum_population * 100)] % in World';
 
-  ChildBand := TFPReportChildBand.Create(p);
-  ChildBand.Layout.Height := 2;
+
+  ChildBand := TFPReportChildBand.Create(Page);
+  ChildBand.Layout.Height := 7;
+  ChildBand.VisibleExpr := 'InRepeatedGroupHeader';
+  ChildBand.Frame.Shape := fsRectangle;
+  ChildBand.Frame.BackgroundColor := clGroupHeaderFooter2;
   GroupHeader2Subregion.ChildBand := ChildBand;
 
   Shape := TFPReportShape.Create(ChildBand);
@@ -286,43 +312,75 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   Shape := TFPReportShape.Create(ChildBand);
-  Shape.Color := clGroupHeaderFooter2;
+  Shape.Color := clNone;
+  Shape.Layout.Left := 3;
+  Shape.Layout.Top := 0;
+  Shape.Layout.Width := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
+  Shape.Frame.Shape := fsRectangle;
+  Shape.Frame.BackgroundColor := clWhite;
+
+  Memo := TFPReportMemo.Create(ChildBand);
+  Memo.Layout.Left := 7;
+  Memo.Layout.Top := 1;
+  Memo.Layout.Width := 170;
+  Memo.Layout.Height := 4;
+  Memo.Text := 'Subregion: [subregion]';
+
+
+  ChildBand := TFPReportChildBand.Create(Page);
+  ChildBand.Layout.Height := 2;
+  GroupHeader2Subregion.ChildBand.ChildBand := ChildBand;
+
+  Shape := TFPReportShape.Create(ChildBand);
+  Shape.Color := clGroupHeaderFooter;
+  Shape.Layout.Left := 0;
+  Shape.Layout.Top := 0;
+  Shape.Layout.Width := 3;
+  Shape.Layout.Height := ChildBand.Layout.Height;
+  Shape.Frame.Shape := fsRectangle;
+  Shape.Frame.BackgroundColor := clGroupHeaderFooter;
+
+  Shape := TFPReportShape.Create(ChildBand);
+  Shape.Color := clNone;
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
   {*** group header 3 initial ***}
 
-  GroupHeader3Initial := TFPReportGroupHeaderBand.Create(p);
+  GroupHeader3Initial := TFPReportGroupHeaderBand.Create(Page);
   GroupHeader3Initial.Layout.Height := 15;
   GroupHeader3Initial.GroupCondition := 'copy(country,1,1)';
   GroupHeader3Initial.Frame.Shape := fsRectangle;
   GroupHeader3Initial.Frame.BackgroundColor := clGroupHeaderFooter3;
   GroupHeader3Initial.GroupHeader := GroupHeader2Subregion;
+  GroupHeader3Initial.ReprintHeader := True;
+  GroupHeader3Initial.VisibleExpr := 'not InRepeatedGroupHeader';
 
   Shape := TFPReportShape.Create(GroupHeader3Initial);
   Shape.Color := clGroupHeaderFooter;
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupHeader3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   Shape := TFPReportShape.Create(GroupHeader3Initial);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 3;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupHeader3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -331,16 +389,16 @@ begin
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupHeader3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
   Shape := TFPReportShape.Create(GroupHeader3Initial);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 8;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupHeader3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -363,7 +421,7 @@ begin
   Memo.Font.Size := 10;
   Memo.TextAlignment.Vertical := tlBottom;
   Memo.TextAlignment.Horizontal := taRightJustified;
-  Memo.Text := '[formatfloat(''#0.0'', grp3initial_sum_population / grp2subregion_sum_population * 100)] % in [subregion] - [formatfloat(''#0.0'', grp3initial_sum_population / grp1region_sum_population * 100)] % in [region] - [formatfloat(''#0.0'', grp3initial_sum_population / total_sum_population * 100)] % in world';
+  Memo.Text := '[formatfloat(''#0.0'', grp3initial_sum_population / grp2subregion_sum_population * 100)] % in [subregion] - [formatfloat(''#0.0'', grp3initial_sum_population / grp1region_sum_population * 100)] % in [region] - [formatfloat(''#0.0'', grp3initial_sum_population / total_sum_population * 100)] % in World';
 
   Memo := TFPReportMemo.Create(GroupHeader3Initial);
   Memo.Layout.Left := 90;
@@ -395,10 +453,14 @@ begin
   Memo.Layout.Width := 20;
   Memo.Layout.Height := 4;
   Memo.TextAlignment.Horizontal := taRightJustified;
-  Memo.Text := 'Total %';
+  Memo.Text := 'World %';
 
-  ChildBand := TFPReportChildBand.Create(p);
-  ChildBand.Layout.Height := 2;
+
+  ChildBand := TFPReportChildBand.Create(Page);
+  ChildBand.Layout.Height := 7;
+  ChildBand.VisibleExpr := 'InRepeatedGroupHeader';
+  ChildBand.Frame.Shape := fsRectangle;
+  ChildBand.Frame.BackgroundColor := clGroupHeaderFooter3;
   GroupHeader3Initial.ChildBand := ChildBand;
 
   Shape := TFPReportShape.Create(ChildBand);
@@ -406,7 +468,55 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
+  Shape.Frame.Shape := fsRectangle;
+  Shape.Frame.BackgroundColor := clGroupHeaderFooter;
+
+  Shape := TFPReportShape.Create(ChildBand);
+  Shape.Color := clNone;
+  Shape.Layout.Left := 3;
+  Shape.Layout.Top := 0;
+  Shape.Layout.Width := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
+  Shape.Frame.Shape := fsRectangle;
+  Shape.Frame.BackgroundColor := clWhite;
+
+  Shape := TFPReportShape.Create(ChildBand);
+  Shape.Color := clGroupHeaderFooter2;
+  Shape.Layout.Left := 5;
+  Shape.Layout.Top := 0;
+  Shape.Layout.Width := 3;
+  Shape.Layout.Height := ChildBand.Layout.Height;
+  Shape.Frame.Shape := fsRectangle;
+  Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
+
+  Shape := TFPReportShape.Create(ChildBand);
+  Shape.Color := clNone;
+  Shape.Layout.Left := 8;
+  Shape.Layout.Top := 0;
+  Shape.Layout.Width := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
+  Shape.Frame.Shape := fsRectangle;
+  Shape.Frame.BackgroundColor := clWhite;
+
+  Memo := TFPReportMemo.Create(ChildBand);
+  Memo.Layout.Left := 12;
+  Memo.Layout.Top := 1;
+  Memo.Layout.Width := 170;
+  Memo.Layout.Height := 4;
+  Memo.Text := '[copy(country,1,1)]';
+
+
+  ChildBand := TFPReportChildBand.Create(Page);
+  ChildBand.Layout.Height := 2;
+  GroupHeader3Initial.ChildBand.ChildBand := ChildBand;
+
+  Shape := TFPReportShape.Create(ChildBand);
+  Shape.Color := clGroupHeaderFooter;
+  Shape.Layout.Left := 0;
+  Shape.Layout.Top := 0;
+  Shape.Layout.Width := 3;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
@@ -415,7 +525,7 @@ begin
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
@@ -424,7 +534,7 @@ begin
   Shape.Layout.Left := 10;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter3;
 
@@ -445,7 +555,7 @@ begin
   {***  detail  ***}
   {****************}
 
-  DataBand := TFPReportDataBand.Create(p);
+  DataBand := TFPReportDataBand.Create(Page);
   DataBand.Layout.Height := 8;
   DataBand.Frame.Shape := fsRectangle;
   DataBand.Frame.BackgroundColor := clDataBand;
@@ -456,16 +566,16 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 8;
+  Shape.Layout.Height := DataBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   Shape := TFPReportShape.Create(DataBand);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 3;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 8;
+  Shape.Layout.Height := DataBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -474,16 +584,16 @@ begin
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 8;
+  Shape.Layout.Height := DataBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
   Shape := TFPReportShape.Create(DataBand);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 8;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 8;
+  Shape.Layout.Height := DataBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -492,16 +602,16 @@ begin
   Shape.Layout.Left := 10;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 8;
+  Shape.Layout.Height := DataBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter3;
 
   Shape := TFPReportShape.Create(DataBand);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 13;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 8;
+  Shape.Layout.Height := DataBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -580,7 +690,7 @@ begin
 
   {*** group footer 3 initial ***}
 
-  GroupFooter3Initial := TFPReportGroupFooterBand.Create(p);
+  GroupFooter3Initial := TFPReportGroupFooterBand.Create(Page);
   GroupFooter3Initial.Layout.Height := 2;
   GroupFooter3Initial.GroupHeader := GroupHeader3Initial;
 
@@ -589,7 +699,7 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := GroupFooter3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
@@ -598,7 +708,7 @@ begin
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := GroupFooter3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
@@ -607,11 +717,11 @@ begin
   Shape.Layout.Left := 10;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := GroupFooter3Initial.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter3;
 
-  ChildBand := TFPReportChildBand.Create(p);
+  ChildBand := TFPReportChildBand.Create(Page);
   ChildBand.Layout.Height := 15;
   ChildBand.Frame.Shape := fsRectangle;
   ChildBand.Frame.BackgroundColor := clGroupHeaderFooter3;
@@ -622,16 +732,16 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   Shape := TFPReportShape.Create(ChildBand);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 3;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -640,16 +750,16 @@ begin
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
   Shape := TFPReportShape.Create(ChildBand);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 8;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -661,10 +771,10 @@ begin
   Memo.UseParentFont := False;
   Memo.Font.Size := 16;
   Memo.TextAlignment.Vertical := tlBottom;
-  //Memo.Text := 'Population [copy(country,1,1)]: [formatfloat(''#,##0'', grp3_sum_population)]';
-  Memo.Text := 'Population: [formatfloat(''#,##0'', grp3initial_sum_population)]';
+  Memo.Text := 'Population [copy(country,1,1)]: [formatfloat(''#,##0'', grp3initial_sum_population)]';
+  //Memo.Text := 'Population: [formatfloat(''#,##0'', grp3initial_sum_population)]';
 
-  ChildBand := TFPReportChildBand.Create(p);
+  ChildBand := TFPReportChildBand.Create(Page);
   ChildBand.Layout.Height := 2;
   GroupFooter3Initial.ChildBand.ChildBand := ChildBand;
 
@@ -673,40 +783,22 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
-
-  Shape := TFPReportShape.Create(ChildBand);
-  Shape.Color := clWhite;
-  Shape.Layout.Left := 3;
-  Shape.Layout.Top := 0;
-  Shape.Layout.Width := 2;
-  Shape.Layout.Height := 2;
-  Shape.Frame.Shape := fsRectangle;
-  Shape.Frame.BackgroundColor := clWhite;
 
   Shape := TFPReportShape.Create(ChildBand);
   Shape.Color := clGroupHeaderFooter2;
   Shape.Layout.Left := 5;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter2;
 
-  Shape := TFPReportShape.Create(ChildBand);
-  Shape.Color := clWhite;
-  Shape.Layout.Left := 8;
-  Shape.Layout.Top := 0;
-  Shape.Layout.Width := 2;
-  Shape.Layout.Height := 2;
-  Shape.Frame.Shape := fsRectangle;
-  Shape.Frame.BackgroundColor := clWhite;
-
   {*** group footer 2 subregion ***}
 
-  GroupFooter2SubRegion := TFPReportGroupFooterBand.Create(p);
+  GroupFooter2SubRegion := TFPReportGroupFooterBand.Create(Page);
   GroupFooter2SubRegion.Layout.Height := 15;
   GroupFooter2SubRegion.GroupHeader := GroupHeader2Subregion;
   GroupFooter2SubRegion.Frame.Shape := fsRectangle;
@@ -717,16 +809,16 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupFooter2SubRegion.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   Shape := TFPReportShape.Create(GroupFooter2SubRegion);
-  Shape.Color := clWhite;
+  Shape.Color := clNone;
   Shape.Layout.Left := 3;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 2;
-  Shape.Layout.Height := 15;
+  Shape.Layout.Height := GroupFooter2SubRegion.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clWhite;
 
@@ -738,10 +830,10 @@ begin
   Memo.UseParentFont := False;
   Memo.Font.Size := 16;
   Memo.TextAlignment.Vertical := tlBottom;
-  //Memo.Text := 'Population [subregion]: [formatfloat(''#,##0'', grp2_sum_population)]';
-  Memo.Text := 'Population: [formatfloat(''#,##0'', grp2subregion_sum_population)]';
+  Memo.Text := 'Population [subregion]: [formatfloat(''#,##0'', grp2subregion_sum_population)]';
+  //Memo.Text := 'Population: [formatfloat(''#,##0'', grp2subregion_sum_population)]';
 
-  ChildBand := TFPReportChildBand.Create(p);
+  ChildBand := TFPReportChildBand.Create(Page);
   ChildBand.Layout.Height := 2;
   GroupFooter2SubRegion.ChildBand := ChildBand;
 
@@ -750,13 +842,13 @@ begin
   Shape.Layout.Left := 0;
   Shape.Layout.Top := 0;
   Shape.Layout.Width := 3;
-  Shape.Layout.Height := 2;
+  Shape.Layout.Height := ChildBand.Layout.Height;
   Shape.Frame.Shape := fsRectangle;
   Shape.Frame.BackgroundColor := clGroupHeaderFooter;
 
   {*** group footer 1 region ***}
 
-  GroupFooter1Region := TFPReportGroupFooterBand.Create(p);
+  GroupFooter1Region := TFPReportGroupFooterBand.Create(Page);
   GroupFooter1Region.Layout.Height := 15;
   GroupFooter1Region.GroupHeader := GroupHeader1Region;
   GroupFooter1Region.Frame.Shape := fsRectangle;
@@ -770,10 +862,10 @@ begin
   Memo.UseParentFont := False;
   Memo.Font.Size := 16;
   Memo.TextAlignment.Vertical := tlBottom;
-  //Memo.Text := 'Population [region]: [formatfloat(''#,##0'', grp_sum_population)]';
-  Memo.Text := 'Population: [formatfloat(''#,##0'', grp1region_sum_population)]';
+  Memo.Text := 'Population [region]: [formatfloat(''#,##0'', grp1region_sum_population)]';
+  //Memo.Text := 'Population: [formatfloat(''#,##0'', grp1region_sum_population)]';
 
-  ChildBand := TFPReportChildBand.Create(p);
+  ChildBand := TFPReportChildBand.Create(Page);
   ChildBand.Layout.Height := 2;
   GroupFooter1Region.ChildBand := ChildBand;
 
@@ -782,7 +874,7 @@ begin
   {*** page footer ***}
   {*******************}
 
-  PageFooter := TFPReportPageFooterBand.Create(p);
+  PageFooter := TFPReportPageFooterBand.Create(Page);
   PageFooter.Layout.Height := 20;
   PageFooter.Frame.Shape := fsRectangle;
   PageFooter.Frame.BackgroundColor := clPageHeaderFooter;
@@ -799,11 +891,11 @@ begin
   Memo := TFPReportMemo.Create(PageFooter);
   Memo.Layout.Left := 0;
   Memo.Layout.Top := 5;
-  Memo.Layout.Width := p.PageSize.Width - p.Margins.Left - p.Margins.Right;
+  Memo.Layout.Width := Page.PageSize.Width - Page.Margins.Left - Page.Margins.Right;
   Memo.Layout.Height := 8;
   Memo.UseParentFont := False;
   Memo.TextAlignment.Horizontal := taCentered;
-  Memo.Text := 'world population: [formatfloat(''#,##0'', total_sum_population)]';
+  Memo.Text := 'Population World: [formatfloat(''#,##0'', total_sum_population)]';
   Memo.Font.Size := 16;
 end;
 
