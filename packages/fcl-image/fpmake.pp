@@ -32,7 +32,6 @@ begin
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
-
     T:=P.Targets.AddUnit('bmpcomn.pp');
       with T.Dependencies do
         begin
@@ -265,10 +264,19 @@ begin
     T:=P.Targets.AddUnit('fpimggauss.pp');
     With T.Dependencies do
       AddUnit('fpimage');
+    T:=P.Targets.AddUnit('fpbarcode.pp');
+    T:=P.Targets.AddUnit('fpimgbarcode.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpimage');
+      AddUnit('fpcanvas');
+      Addunit('fpimgcmn');
+      end;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
     T:=P.Targets.AddExampleProgram('imgconv.pp');
+    T:=P.Targets.AddExampleProgram('createbarcode.lpr');
 
 {$ifndef ALLPACKAGES}
     Run;
