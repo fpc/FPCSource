@@ -31,6 +31,7 @@ Type
   TFPDrawBarCode = Class
   private
     FCanvas: TFPCustomCanvas;
+    FClipping: Boolean;
     FEncoding: TBarcodeEncoding;
     FImage: TFPCustomImage;
     FRect: TRect;
@@ -71,6 +72,8 @@ Type
     Property Encoding : TBarcodeEncoding Read FEncoding Write SetEncoding;
     // Text to draw.
     Property Text : String Read FText Write FText;
+    // If true, the barcode will be clipped if it falls outside rect.
+    Property Clipping : Boolean Read FClipping Write FClipping;
   end;
 
 Function DrawBarCode(Img : TFPCustomImage; S : String; E : TBarcodeEncoding; aWidth : Integer = 1; AWeight : Double = 2.0) : Boolean;
@@ -191,9 +194,8 @@ Function TFPDrawBarCode.Draw : Boolean;
 
 Var
   Cnv : TFPCustomCanvas;
-  i: integer;
+  I,L,MaxWidth, W, H : integer;
   xOffset: integer;
-  w, h: integer;
   BarRect : TRect;
   BP : TBarParams;
   Data : TBarTypeArray;
@@ -210,7 +212,10 @@ begin
   Cnv.Brush.Style:=bsSolid;
   Cnv.FillRect(Rect);
   Cnv.Pen.Width := 1;
-  for i:=0 to Length(Data)-1 do
+  I:=0;
+  L:=Length(Data);
+  MaxWidth:=Rect.Right-Rect.Left;
+  While (I<L) and (Not Clipping or (XOffset<MaxWidth))  do
     begin
     BP:=BarTypeToBarParams(Data[i]);
     case BP.c of
@@ -226,8 +231,10 @@ begin
     BarRect.Top:=Rect.Top;
     BarRect.Bottom:=Rect.Top+H;
     BarRect.Right:=BarRect.Left + W-1;
-    Cnv.FillRect(BarRect);
+    if (Not Clipping or (BarRect.Right<=MaxWidth)) then
+      Cnv.FillRect(BarRect);
     xOffset:=xOffset + W;
+    Inc(I);
     end;
 end;
 
