@@ -23,6 +23,7 @@ uses
   rptjson,
   rptcontnr,
   rptnestedgroups,
+  rptBarcode,
   udapp
   ;
 
@@ -57,6 +58,7 @@ begin
   R('collectiondata',TCollectionDemo);
   R('objectlistdata',TObjectListDemo);
   R('nestedgroups',TNestedGroupsDemo);
+  R('barcode',TBarcodeDemo);
 end;
 
 initialization

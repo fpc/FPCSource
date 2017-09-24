@@ -2767,6 +2767,7 @@ packages/fcl-report/demos/polygon/testpolygon.lpi svneol=native#text/plain
 packages/fcl-report/demos/polygon/testpolygon.lpr svneol=native#text/plain
 packages/fcl-report/demos/polygon/testpolygon.res -text
 packages/fcl-report/demos/regreports.pp svneol=native#text/plain
+packages/fcl-report/demos/rptbarcode.pp svneol=native#text/plain
 packages/fcl-report/demos/rptcolumns.pp svneol=native#text/plain
 packages/fcl-report/demos/rptcontnr.pp svneol=native#text/plain
 packages/fcl-report/demos/rptdataset.pp svneol=native#text/plain
@@ -2790,6 +2791,7 @@ packages/fcl-report/src/fpextfuncs.pp svneol=native#text/plain
 packages/fcl-report/src/fpjsonreport.pp svneol=native#text/plain
 packages/fcl-report/src/fprepexprpars.pp svneol=native#text/plain
 packages/fcl-report/src/fpreport.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportbarcode.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportcanvashelper.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportcheckbox.inc svneol=native#text/plain
 packages/fcl-report/src/fpreportcontnr.pp svneol=native#text/plain

@@ -32,10 +32,10 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-d simplelist -f fpimage"/>
+        <CommandLineParams Value="-d barcode -f fpimage"/>
       </local>
     </RunParams>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="fcldemo.pp"/>
         <IsPartOfProject Value="True"/>
@@ -100,6 +100,10 @@
         <Filename Value="rptnestedgroups.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="rptbarcode.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

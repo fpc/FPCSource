@@ -1,7 +1,7 @@
 program fcldemo;
 
 uses
-  udapp, fpextfuncs, regreports;
+  udapp, fpextfuncs, regreports, fpreportbarcode;
 
 Var
   Application : TReportDemoApplication;
