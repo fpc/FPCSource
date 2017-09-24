@@ -762,7 +762,8 @@ begin
     lPt.Y := ABand.RTLayout.Top + el.RTLayout.Top + el.RTLayout.Height;
     RenderFrame(pg, ABand, el.Frame, lPt, el.RTLayout.Width, el.RTLayout.Height);
     C.Left:=aband.RTLayout.Left;
-    C.Top:=aband.RTLayout.Top;
+    // Compensate for add of height which RenderUnknownElement will do
+    C.Top:=aband.RTLayout.Top + el.RTLayout.Height;
     RenderUnknownElement(C,El,72);
     end;
 end;
