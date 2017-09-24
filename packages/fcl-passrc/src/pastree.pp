@@ -852,7 +852,7 @@ type
 
   TPasConst = class(TPasVariable)
   public
-    IsConst: boolean; // e.g. $WritableConst off
+    IsConst: boolean; // true iff untyped const or typed with $WritableConst off
     function ElementTypeName: string; override;
   end;
 

@@ -182,6 +182,7 @@ type
     Procedure TestTypedConstWrongExprFail;
     Procedure TestVarWrongExprFail;
     Procedure TestArgWrongExprFail;
+    Procedure TestTypedConstInConstExprFail;
     Procedure TestVarExternal;
     Procedure TestVarNoSemicolonBeginFail;
     Procedure TestConstIntOperators;
@@ -502,6 +503,7 @@ type
     Procedure TestPropertyStoredAccessorProcNotFunc;
     Procedure TestPropertyStoredAccessorFuncWrongResult;
     Procedure TestPropertyStoredAccessorFuncWrongArgCount;
+    Procedure TestPropertyDefaultValue;
     Procedure TestPropertyAssign;
     Procedure TestPropertyAssignReadOnlyFail;
     Procedure TestProperty_PassAsParam;
@@ -542,13 +544,17 @@ type
     Procedure TestArray_DynArrayConst;
     Procedure TestArray_AssignNilToStaticArrayFail1;
     Procedure TestArray_SetLengthProperty;
+    Procedure TestStaticArray_SetlengthFail;
     Procedure TestArray_PassArrayElementToVarParam;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_OpenArrayOfString_IntFail;
     Procedure TestArray_OpenArrayOverride;
     Procedure TestArray_CopyConcat;
+    Procedure TestStaticArray_CopyConcat;// ToDo
     Procedure TestArray_CopyMismatchFail;
     Procedure TestArray_InsertDelete;
+    Procedure TestStaticArray_InsertFail;
+    Procedure TestStaticArray_DeleteFail;
     Procedure TestArray_InsertItemMismatchFail;
     Procedure TestArray_TypeCast;
     Procedure TestArray_TypeCastWrongElTypeFail;
@@ -2125,6 +2131,16 @@ begin
   Add('begin');
   CheckResolverException('Incompatible types: got "Longint" expected "String"',
     nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestTypedConstInConstExprFail;
+begin
+  StartProgram(false);
+  Add('const');
+  Add('  a: longint = 3;');
+  Add('  b: longint = a;');
+  Add('begin');
+  CheckResolverException('Constant expression expected',nConstantExpressionExpected);
 end;
 
 procedure TTestResolver.TestVarExternal;
@@ -7967,6 +7983,7 @@ end;
 procedure TTestResolver.TestPropertyStoredAccessor;
 begin
   StartProgram(false);
+  Add('const StoreB = true;');
   Add('type');
   Add('  TObject = class');
   Add('    FBird: longint;');
@@ -7974,6 +7991,8 @@ begin
   Add('    function IsBirdStored: boolean; virtual; abstract;');
   Add('    property Bird: longint read FBird stored VStored;');
   Add('    property B: longint read FBird stored IsBirdStored;');
+  Add('    property Eagle: longint read FBird stored StoreB;');
+  Add('    property Hawk: longint read FBird stored false;');
   Add('  end;');
   Add('begin');
   ParseProgram;
@@ -8032,6 +8051,31 @@ begin
   Add('begin');
   CheckResolverException('Wrong number of parameters specified for call to "GetB"',
     nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestPropertyDefaultValue;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  CB = true or false;',
+  '  CI = 1+2;',
+  'type',
+  '  TEnum = (red, blue);',
+  '  TObject = class',
+  '    FB: boolean;',
+  '    property B1: boolean read FB default true;',
+  '    property B2: boolean read FB default CB;',
+  '    property B3: boolean read FB default afile.cb;',
+  '    FI: longint;',
+  '    property I1: longint read FI default 2;',
+  '    property I2: longint read FI default CI;',
+  '    FE: TEnum;',
+  '    property E1: TEnum read FE default red;',
+  '    property E2: TEnum read FE default TEnum.blue;',
+  '  end;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestPropertyArgs1;
@@ -8755,6 +8799,17 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestStaticArray_SetlengthFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TArrInt = array[1..3] of longint;');
+  Add('var a: TArrInt;');
+  Add('begin');
+  Add('  SetLength(a,2);');
+  CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
+end;
+
 procedure TTestResolver.TestArray_PassArrayElementToVarParam;
 begin
   StartProgram(false);
@@ -8838,6 +8893,29 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestStaticArray_CopyConcat;
+begin
+  exit;
+  //ResolverEngine.Options:=ResolverEngine.Options+[proStaticArrayCopy,proStaticArrayConcat];
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrayInt = array of integer;');
+  Add('  TThreeInts = array[1..3] of integer;');
+  Add('function Get(A: TThreeInts): TThreeInts; begin end;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  A: TArrayInt;');
+  Add('  S: TThreeInts;');
+  Add('begin');
+  Add('  A:=Copy(S);');
+  Add('  A:=Copy(S,1);');
+  Add('  A:=Copy(S,2,3);');
+  Add('  A:=Copy(Get(S),2,3);');
+  Add('  A:=Concat(S,Get(S));');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestArray_CopyMismatchFail;
 begin
   StartProgram(false);
@@ -8869,6 +8947,34 @@ begin
   Add('  Delete({#b1_var}A,{#b2_read}i+3,{#b3_read}i+4);');
   ParseProgram;
   CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestStaticArray_InsertFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrayInt = array[1..3] of integer;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  A: TArrayInt;');
+  Add('begin');
+  Add('  Insert(1,A,i);');
+  CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestStaticArray_DeleteFail;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TArrayInt = array[1..3] of integer;');
+  Add('var');
+  Add('  i: integer;');
+  Add('  A: TArrayInt;');
+  Add('begin');
+  Add('  Delete(A,i,1);');
+  CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestArray_InsertItemMismatchFail;

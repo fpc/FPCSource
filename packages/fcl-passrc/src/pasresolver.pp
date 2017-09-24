@@ -884,6 +884,8 @@ type
     proClassOfIs, // class-of supports is and as operator
     proExtClassInstanceNoTypeMembers, // class members of external class cannot be accessed by instance
     proOpenAsDynArrays, // open arrays work like dynamic arrays
+    //ToDo: proStaticArrayCopy, // copy works with static arrays, returning a dynamic array
+    //ToDo: proStaticArrayConcat, // concat works with static arrays, returning a dynamic array
     proProcTypeWithoutIsNested, // proc types can use nested procs without 'is nested'
     proMethodAddrAsPointer  // can assign @method to a pointer
     );
@@ -1351,7 +1353,7 @@ type
     function GetPasPropertyAncestor(El: TPasProperty; WithRedeclarations: boolean = false): TPasProperty;
     function GetPasPropertyGetter(El: TPasProperty): TPasElement;
     function GetPasPropertySetter(El: TPasProperty): TPasElement;
-    function GetPasPropertyStored(El: TPasProperty): TPasElement;
+    function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
     function GetLoop(El: TPasElement): TPasImplElement;
     function ResolveAliasType(aType: TPasType): TPasType;
@@ -4061,8 +4063,82 @@ var
       end;
   end;
 
+  procedure CheckStoredAccessor(Expr: TPasExpr);
+  var
+    ResolvedEl: TPasResolverResult;
+    Value: TResEvalValue;
+    Proc: TPasProcedure;
+    ResultType, TypeEl: TPasType;
+    aVar: TPasVariable;
+    IdentEl: TPasElement;
+  begin
+    ResolveExpr(Expr,rraRead);
+    ComputeElement(Expr,ResolvedEl,[rcNoImplicitProc]);
+    IdentEl:=ResolvedEl.IdentEl;
+    if IdentEl is TPasProcedure then
+      begin
+      // function
+      Proc:=TPasProcedure(IdentEl);
+      // check if member
+      if not (Expr is TPrimitiveExpr) then
+        RaiseXExpectedButYFound(20170923202002,'member function','foreign '+Proc.ElementTypeName,Expr);
+      if Proc.ClassType<>TPasFunction then
+        RaiseXExpectedButYFound(20170216151925,'function',Proc.ElementTypeName,Expr);
+      // check function result type
+      ResultType:=TPasFunction(Proc).FuncType.ResultEl.ResultType;
+      if not IsBaseType(ResultType,btBoolean,true) then
+        RaiseXExpectedButYFound(20170923200836,'function: boolean',
+          'function:'+GetTypeDescription(ResultType),PropEl.StoredAccessor);
+      // check arg count
+      if Proc.ProcType.Args.Count<>0 then
+        RaiseMsg(20170923200840,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
+          [Proc.Name],Expr);
+      exit;
+      end;
+    if (IdentEl<>nil)
+        and ((IdentEl.ClassType=TPasVariable)
+          or ((IdentEl.ClassType=TPasConst) and not TPasConst(IdentEl).IsConst))
+        then
+      begin
+      // field
+      aVar:=TPasVariable(IdentEl);
+      // check if member
+      if not (Expr is TPrimitiveExpr) then
+        RaiseXExpectedButYFound(20170923202003,'member variable','foreign '+aVar.ElementTypeName,Expr);
+      if PropEl.IndexExpr<>nil then
+        RaiseNotYetImplemented(20170409214006,PropEl.StoredAccessor,'stored with index');
+      // check type boolean
+      TypeEl:=aVar.VarType;
+      TypeEl:=ResolveAliasType(TypeEl);
+      if not IsBaseType(TypeEl,btBoolean,true) then
+        RaiseIncompatibleType(20170409214300,nIncompatibleTypesGotExpected,
+          [],TypeEl,BaseTypes[btBoolean],Expr);
+      // check class var
+      if (vmClass in PropEl.VarModifiers)<>(vmClass in aVar.VarModifiers) then
+        if vmClass in PropEl.VarModifiers then
+          RaiseXExpectedButYFound(20170409214351,'class var','var',Expr)
+        else
+          RaiseXExpectedButYFound(20170409214359,'var','class var',Expr);
+      exit;
+      end;
+    if (ResolvedEl.BaseType=btBoolean) and (ResolvedEl.ExprEl<>nil) then
+      begin
+      // try evaluating const boolean
+      Value:=Eval(Expr,[refConst]);
+      if Value<>nil then
+        try
+          if Value.Kind<>revkBool then
+            RaiseXExpectedButYFound(20170923200256,'boolean',GetResolverResultDescription(ResolvedEl),Expr);
+          exit;
+        finally
+          ReleaseEvalValue(Value);
+        end;
+      end;
+    RaiseXExpectedButYFound(20170923194234,'identifier',GetResolverResultDescription(ResolvedEl),Expr);
+  end;
+
 var
-  ResultType, TypeEl: TPasType;
+  ResultType: TPasType;
   CurClassType: TPasClassType;
   AccEl: TPasElement;
   Proc: TPasProcedure;
@@ -4204,41 +4280,7 @@ begin
   if PropEl.StoredAccessor<>nil then
     begin
     // check compatibility
-    AccEl:=GetAccessor(PropEl.StoredAccessor);
-    if (AccEl.ClassType=TPasVariable) or (AccEl.ClassType=TPasConst) then
-      begin
-      if PropEl.IndexExpr<>nil then
-        RaiseNotYetImplemented(20170409214006,PropEl.StoredAccessor,'stored with index');
-      TypeEl:=TPasVariable(AccEl).VarType;
-      // ToDo: TypeEl=nil  TPasConst false/true
-      TypeEl:=ResolveAliasType(TypeEl);
-      if not IsBaseType(TypeEl,btBoolean,true) then
-        RaiseIncompatibleType(20170409214300,nIncompatibleTypesGotExpected,
-          [],TypeEl,BaseTypes[btBoolean],PropEl.StoredAccessor);
-      if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
-        if vmClass in PropEl.VarModifiers then
-          RaiseXExpectedButYFound(20170409214351,'class var','var',PropEl.StoredAccessor)
-        else
-          RaiseXExpectedButYFound(20170409214359,'var','class var',PropEl.StoredAccessor);
-      end
-    else if AccEl is TPasProcedure then
-      begin
-      // check function
-      Proc:=TPasProcedure(AccEl);
-      if Proc.ClassType<>TPasFunction then
-        RaiseXExpectedButYFound(20170216151925,'function',Proc.ElementTypeName,PropEl.StoredAccessor);
-      // check function result type
-      ResultType:=TPasFunction(Proc).FuncType.ResultEl.ResultType;
-      if not IsBaseType(ResultType,btBoolean,true) then
-        RaiseXExpectedButYFound(20170216151929,'function: boolean',
-          'function:'+GetTypeDescription(ResultType),PropEl.StoredAccessor);
-      // check arg count
-      if Proc.ProcType.Args.Count<>0 then
-        RaiseMsg(20170216151932,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
-          [Proc.Name],PropEl.StoredAccessor);
-      end
-    else
-      RaiseXExpectedButYFound(20170216151935,'function: boolean',AccEl.ElementTypeName,PropEl.StoredAccessor);
+    CheckStoredAccessor(PropEl.StoredAccessor);
     end;
   if PropEl.DefaultExpr<>nil then
     begin
@@ -8860,9 +8902,11 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
   if (rrfReadable in ParamResolved.Flags)
-      and (ParamResolved.BaseType=btContext)
-      and IsDynArray(ParamResolved.TypeEl) then
-    Result:=cExact;
+      and (ParamResolved.BaseType=btContext) then
+    begin
+    if IsDynArray(ParamResolved.TypeEl) then
+      Result:=cExact;
+    end;
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20170329153951,1,Param,ParamResolved,'dynamic array',RaiseOnError));
   if length(Params.Params)=1 then
@@ -11755,18 +11799,15 @@ begin
     end;
 end;
 
-function TPasResolver.GetPasPropertyStored(El: TPasProperty): TPasElement;
-// search the member variable or setter procedure of a property
-var
-  DeclEl: TPasElement;
+function TPasResolver.GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
+// search the stored expression of a property
 begin
   Result:=nil;
   while El<>nil do
     begin
     if El.StoredAccessor<>nil then
       begin
-      DeclEl:=(El.StoredAccessor.CustomData as TResolvedReference).Declaration;
-      Result:=DeclEl;
+      Result:=El.StoredAccessor;
       exit;
       end;
     El:=GetPasPropertyAncestor(El);

@@ -3393,7 +3393,10 @@ begin
         Ungettoken; // Range type stops on token after last range token}
       end
     else
+      begin
       UngetToken;
+      Result.IsConst:=true;
+      end;
     ExpectToken(tkEqual);
     NextToken;
     Result.Expr:=DoParseConstValueExpression(Result);
@@ -4621,9 +4624,15 @@ begin
       begin
       NextToken;
       if CurToken = tkTrue then
-        Result.StoredAccessorName := 'True'
+        begin
+        Result.StoredAccessorName := 'True';
+        Result.StoredAccessor := CreateBoolConstExpr(Result,pekBoolConst,true);
+        end
       else if CurToken = tkFalse then
-        Result.StoredAccessorName := 'False'
+        begin
+        Result.StoredAccessorName := 'False';
+        Result.StoredAccessor := CreateBoolConstExpr(Result,pekBoolConst,false);
+        end
       else if CurToken = tkIdentifier then
         begin
         UngetToken;
