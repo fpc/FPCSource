@@ -502,6 +502,7 @@ type
     Procedure TestRTTI_PublishedClassPropertyFail;
     Procedure TestRTTI_PublishedClassFieldFail;
     Procedure TestRTTI_PublishedFieldExternalFail;
+    Procedure TestRTTI_StoredModifier;
     Procedure TestRTTI_Class_Field;
     Procedure TestRTTI_Class_Method;
     Procedure TestRTTI_Class_MethodArgFlags;
@@ -13310,6 +13311,67 @@ begin
   SetExpectedPasResolverError(sPublishedNameMustMatchExternal,
     nPublishedNameMustMatchExternal);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestRTTI_StoredModifier;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'const',
+  '  ConstB = true;',
+  'type',
+  '  TObject = class',
+  '  private',
+  '    FB: boolean;',
+  //'    FI: longint;',
+  '    function IsBStored: boolean; virtual; abstract;',
+  '  published',
+  '    property BoolA: boolean read FB stored true;',
+  '    property BoolB: boolean read FB stored false;',
+  '    property BoolC: boolean read FB stored FB;',
+  '    property BoolD: boolean read FB stored ConstB;',
+  '    property BoolE: boolean read FB stored IsBStored;',
+  '  end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_StoredModifier',
+    LinesToStr([ // statements
+    'this.ConstB = true;',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FB = false;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("BoolA", 0, rtl.boolean, "FB", "");',
+    '  $r.addProperty("BoolB", 4, rtl.boolean, "FB", "");',
+    '  $r.addProperty(',
+    '    "BoolC",',
+    '    8,',
+    '    rtl.boolean,',
+    '    "FB",',
+    '    "",',
+    '    {',
+    '      stored: "FB"',
+    '    }',
+    '  );',
+    '  $r.addProperty("BoolD", 0, rtl.boolean, "FB", "");',
+    '  $r.addProperty(',
+    '    "BoolE",',
+    '    12,',
+    '    rtl.boolean,',
+    '    "FB",',
+    '    "",',
+    '    {',
+    '      stored: "IsBStored"',
+    '    }',
+    '  );',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
 end;
 
 procedure TTestModule.TestRTTI_Class_Field;

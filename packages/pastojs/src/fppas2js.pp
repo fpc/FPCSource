@@ -251,10 +251,6 @@ Works:
 ToDos:
 - ignore attributes
 - static arrays
-  - error on "arr:=nil"
-  - error on "setlength(arr,2)"
-  - error on "insert(arr,2)"
-  - error on "delete(arr,2)"
   - a[][]
   - a[] of record
   - RTTI
@@ -280,16 +276,11 @@ ToDos:
 Not in Version 1.0:
 - write, writeln
 - arrays
-  - static array: non 0 start index, length
-  - array of static array: setlength
-  - array range char, char range, integer range, enum range
   - array of const
-  - TestArray_DynArrayConst: Chars: array of char = ''aoc'';
 - sets
   - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()
 - record const
-- class: property modifier index
 - enums with custom values
 - library
 - option typecast checking
@@ -1347,10 +1338,13 @@ type
       pfStatic = 1;
       pfVarargs = 2;
       pfExternal = 4;
-      // TPropertyFlag
-      pfGetFunction = 1;
-      pfSetProcedure = 2;
-      pfStoredFunction = 4;
+      // PropertyFlag
+      pfGetFunction = 1; // getter is a function
+      pfSetProcedure = 2; // setter is a function
+      pfStoredTrue = 0; // stored true, always
+      pfStoredFalse = 4; // stored false, never
+      pfStoredField = 8; // stored field, field name is in Stored
+      pfStoredFunction = 12; // stored function, function name is in Stored
     type
       TMethodKind = (
         mkProcedure, // 0  default
@@ -9708,9 +9702,12 @@ var
 var
   PropName: String;
   Flags: Integer;
-  GetterPas, StoredPas, SetterPas: TPasElement;
+  GetterPas, SetterPas, DeclEl: TPasElement;
   ResultTypeInfo: TJSElement;
   VarType: TPasType;
+  StoredExpr: TPasExpr;
+  StoredResolved: TPasResolverResult;
+  StoredValue: TResEvalValue;
 begin
   Result:=nil;
   OptionsEl:=nil;
@@ -9731,9 +9728,39 @@ begin
     SetterPas:=AContext.Resolver.GetPasPropertySetter(Prop);
     if SetterPas is TPasProcedure then
       inc(Flags,pfSetProcedure);
-    StoredPas:=AContext.Resolver.GetPasPropertyStored(Prop);
-    if StoredPas is TPasProcedure then
-      inc(Flags,pfStoredFunction);
+
+    StoredExpr:=AContext.Resolver.GetPasPropertyStoredExpr(Prop);
+    if StoredExpr<>nil then
+      begin
+      AContext.Resolver.ComputeElement(StoredExpr,StoredResolved,[rcNoImplicitProc]);
+      if StoredResolved.IdentEl is TPasProcedure then
+        // stored <function>
+        inc(Flags,pfStoredFunction)
+      else
+        begin
+        if (StoredResolved.BaseType=btBoolean) and (StoredResolved.ExprEl<>nil) then
+          begin
+          // try evaluating const boolean
+          StoredValue:=AContext.Resolver.Eval(StoredExpr,[]);
+          if StoredValue<>nil then
+            try
+              // stored <const bool>
+              if StoredValue.Kind<>revkBool then
+                RaiseInconsistency(20170924082845);
+              StoredExpr:=nil;
+              if TResEvalBool(StoredValue).B then
+                inc(Flags,pfStoredTrue)
+              else
+                inc(Flags,pfStoredFalse);
+            finally
+              ReleaseEvalValue(StoredValue);
+            end;
+          end;
+        if StoredExpr<>nil then
+          // stored <field>
+          inc(Flags,pfStoredField);
+        end;
+      end;
     Call.AddArg(CreateLiteralNumber(Prop,Flags));
 
     // add resulttype
@@ -9748,18 +9775,21 @@ begin
     if GetterPas=nil then
       Call.AddArg(CreateLiteralString(Prop,''))
     else
-      Call.AddArg(CreateLiteralString(GetterPas,GetAccessorName(GetterPas)));
+      Call.AddArg(CreateLiteralString(Prop,GetAccessorName(GetterPas)));
 
     // add "setter"
     if SetterPas=nil then
       Call.AddArg(CreateLiteralString(Prop,''))
     else
-      Call.AddArg(CreateLiteralString(SetterPas,GetAccessorName(SetterPas)));
+      Call.AddArg(CreateLiteralString(Prop,GetAccessorName(SetterPas)));
 
     // add option "stored"
-    if StoredPas<>nil then
+    if StoredExpr<>nil then
+      begin
+      DeclEl:=(StoredExpr.CustomData as TResolvedReference).Declaration;
       AddOption(FBuiltInNames[pbivnRTTIPropStored],
-        CreateLiteralString(StoredPas,GetAccessorName(StoredPas)));
+        CreateLiteralString(Prop,GetAccessorName(DeclEl)));
+      end;
 
     // add option defaultvalue
     // ToDo
