@@ -1891,6 +1891,7 @@ type
     procedure   UnRegisterEditorClass(const AElementName: string; AEditorClass: TFPReportElementEditorClass);
     procedure   UnRegisterEditorClass(AReportElementClass: TFPReportElementClass; AEditorClass: TFPReportElementEditorClass);
     procedure   RegisterClass(const AElementName: string; AReportElementClass: TFPReportElementClass);
+    procedure   RemoveClass(const AElementName: string);
     function    CreateInstance(const AElementName: string; AOwner: TComponent): TFPReportElement; overload;
     Function    FindEditorClassForInstance(AInstance : TFPReportElement) : TFPReportElementEditorClass;
     Function    FindEditorClassForInstance(AClass : TFPReportElementClass) : TFPReportElementEditorClass ;
@@ -9004,6 +9005,16 @@ begin
   I:=IndexOfElementName(AElementName);
   if I<>-1 then exit;
   FList.Add(TFPReportClassMapping.Create(AElementName, AReportElementClass));
+end;
+
+procedure TFPReportElementFactory.RemoveClass(const AElementName: string);
+
+var
+  i: integer;
+begin
+  I:=IndexOfElementName(AElementName);
+  if I<>-1 then
+    FList.Delete(I);
 end;
 
 function TFPReportElementFactory.CreateInstance(const AElementName: string; AOwner: TComponent): TFPReportElement;
