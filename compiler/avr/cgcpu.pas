@@ -266,7 +266,9 @@ unit cgcpu;
                   begin
                     load_para_loc(r,hp);
                     hp:=hp^.Next;
-                    r:=GetNextReg(r);
+                    { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                    if i<tcgsize2size[cgpara.Size] then
+                      r:=GetNextReg(r);
                   end
                 else
                   begin
@@ -481,9 +483,24 @@ unit cgcpu;
          l1,l2 : tasmlabel;
          pd : tprocdef;
 
-       procedure NextSrcDst;
+      { NextRegDst* is sometimes called before the register usage and sometimes afterwards }
+       procedure NextSrcDstPreInc;
          begin
            if i=5 then
+             begin
+               dst:=dsthi;
+               src:=srchi;
+             end
+           else
+             begin
+               dst:=GetNextReg(dst);
+               src:=GetNextReg(src);
+             end;
+         end;
+
+       procedure NextSrcDstPostInc;
+         begin
+           if i=4 then
              begin
                dst:=dsthi;
                src:=srchi;
@@ -498,7 +515,7 @@ unit cgcpu;
        { iterates TmpReg through all registers of dst }
        procedure NextTmp;
          begin
-           if i=5 then
+           if i=4 then
              tmpreg:=dsthi
            else
              tmpreg:=GetNextReg(tmpreg);
@@ -513,7 +530,7 @@ unit cgcpu;
                  begin
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       NextSrcDst;
+                       NextSrcDstPreInc;
                        list.concat(taicpu.op_reg_reg(A_ADC,dst,src));
                      end;
                  end;
@@ -526,7 +543,7 @@ unit cgcpu;
                  begin
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       NextSrcDst;
+                       NextSrcDstPreInc;
                        list.concat(taicpu.op_reg_reg(A_SBC,dst,src));
                      end;
                  end;
@@ -551,14 +568,18 @@ unit cgcpu;
                    for i:=2 to tcgsize2size[size] do
                      begin
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
-                       NextTmp;
+                       { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                       if i<tcgsize2size[size] then
+                         NextTmp;
                      end;
                    list.concat(taicpu.op_reg(A_NEG,dst));
                    tmpreg:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
                        list.concat(taicpu.op_reg_const(A_SBCI,tmpreg,-1));
-                       NextTmp;
+                       { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                       if i<tcgsize2size[size] then
+                         NextTmp;
                    end;
                  end;
              end;
@@ -570,7 +591,9 @@ unit cgcpu;
                    if src<>dst then
                      a_load_reg_reg(list,OS_8,OS_8,src,dst);
                    list.concat(taicpu.op_reg(A_COM,dst));
-                   NextSrcDst;
+                   { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                   if i<tcgsize2size[size] then
+                     NextSrcDstPostInc;
                  end;
              end;
 
@@ -719,7 +742,9 @@ unit cgcpu;
                 for i:=1 to tcgsize2size[size] do
                   begin
                     list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
-                    NextSrcDst;
+                    { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                    if i<tcgsize2size[size] then
+                      NextSrcDstPostInc;
                   end;
              end;
            else
@@ -737,9 +762,19 @@ unit cgcpu;
          tmpreg : tregister;
          tmpreg64 : tregister64;
 
-      procedure NextReg;
+      { NextReg* is sometimes called before the register usage and sometimes afterwards }
+      procedure NextRegPreInc;
         begin
           if i=5 then
+            reg:=reghi
+          else
+            reg:=GetNextReg(reg);
+        end;
+
+
+      procedure NextRegPostInc;
+        begin
+          if i=4 then
             reg:=reghi
           else
             reg:=GetNextReg(reg);
@@ -769,7 +804,9 @@ unit cgcpu;
                  begin
                    if ((qword(a) and mask) shr shift)<>0 then
                      list.concat(taicpu.op_reg_const(A_ORI,reg,(qword(a) and mask) shr shift));
-                   NextReg;
+                   { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                   if i<tcgsize2size[size] then
+                     NextRegPostInc;
                    mask:=mask shl 8;
                    inc(shift,8);
                  end;
@@ -782,7 +819,9 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_reg(A_MOV,reg,NR_R1))
                    else
                      list.concat(taicpu.op_reg_const(A_ANDI,reg,(qword(a) and mask) shr shift));
-                   NextReg;
+                   { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                   if i<tcgsize2size[size] then
+                     NextRegPostInc;
                    mask:=mask shl 8;
                    inc(shift,8);
                  end;
@@ -797,7 +836,7 @@ unit cgcpu;
                  begin
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       NextReg;
+                       NextRegPreInc;
                        mask:=mask shl 8;
                        inc(shift,8);
                        curvalue:=(qword(a) and mask) shr shift;
@@ -914,7 +953,7 @@ unit cgcpu;
                  begin
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       NextReg;
+                       NextRegPreInc;
                        mask:=mask shl 8;
                        inc(shift,8);
                        curvalue:=(qword(a) and mask) shr shift;
@@ -988,7 +1027,9 @@ unit cgcpu;
 
              mask:=mask shl 8;
              inc(shift,8);
-             reg:=GetNextReg(reg);
+             { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+             if i<tcgsize2size[size] then
+               reg:=GetNextReg(reg);
            end;
        end;
 
@@ -1288,7 +1329,9 @@ unit cgcpu;
                  if QuickRef then
                    inc(href.offset);
 
-                 reg:=GetNextReg(reg);
+                 { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                 if i<tcgsize2size[fromsize] then
+                   reg:=GetNextReg(reg);
                end;
            end;
 
@@ -1442,7 +1485,9 @@ unit cgcpu;
                  if QuickRef then
                    inc(href.offset);
 
-                 reg:=GetNextReg(reg);
+                 { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                 if i<tcgsize2size[fromsize] then
+                   reg:=GetNextReg(reg);
                end;
            end;
 
@@ -1542,8 +1587,12 @@ unit cgcpu;
              for i:=1 to tcgsize2size[fromsize] do
                begin
                  emit_mov(list,reg2,reg1);
-                 reg1:=GetNextReg(reg1);
-                 reg2:=GetNextReg(reg2);
+                 { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                 if i<tcgsize2size[fromsize] then
+                   begin
+                     reg1:=GetNextReg(reg1);
+                     reg2:=GetNextReg(reg2);
+                   end;
                end;
            end;
        end;
@@ -2168,7 +2217,7 @@ unit cgcpu;
             if not(SrcQuickRef) then
               begin
                 ungetcpuregister(list,srcref.base);
-                ungetcpuregister(list,GetNextReg(srcref.base));
+                ungetcpuregister(list,TRegister(ord(srcref.base)+1));
               end;
           end;
       end;

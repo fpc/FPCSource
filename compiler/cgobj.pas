@@ -731,14 +731,20 @@ implementation
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
     function tcg.GetNextReg(const r: TRegister): TRegister;
       begin
+{$ifndef AVR}
+        { the AVR code generator depends on the fact that it can do GetNextReg also on physical registers }
         if getsupreg(r)<first_int_imreg then
           internalerror(2013051401);
+        if not has_next_reg[getsupreg(r)] then
+          internalerror(2017091103);
+{$else AVR}
+        if (getsupreg(r)>=first_int_imreg) and not(has_next_reg[getsupreg(r)]) then
+          internalerror(2017091103);
+{$endif AVR}
         if getregtype(r)<>R_INTREGISTER then
           internalerror(2017091101);
         if getsubreg(r)<>R_SUBWHOLE then
           internalerror(2017091102);
-        if not has_next_reg[getsupreg(r)] then
-          internalerror(2017091103);
         result:=TRegister(longint(r)+1);
       end;
 {$endif cpu8bitalu or cpu16bitalu}
