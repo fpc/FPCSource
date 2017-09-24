@@ -557,7 +557,7 @@ const
     'reftype',
     'flags',
     'procsig',
-    'defaultvalue',
+    'Default',
     'stored',
     'comptype',
     'Self',
@@ -9707,7 +9707,7 @@ var
   VarType: TPasType;
   StoredExpr: TPasExpr;
   StoredResolved: TPasResolverResult;
-  StoredValue: TResEvalValue;
+  StoredValue, Value: TResEvalValue;
 begin
   Result:=nil;
   OptionsEl:=nil;
@@ -9791,8 +9791,17 @@ begin
         CreateLiteralString(Prop,GetAccessorName(DeclEl)));
       end;
 
-    // add option defaultvalue
-    // ToDo
+    // add option "defaultvalue"
+    if Prop.DefaultExpr<>nil then
+      begin
+      Value:=AContext.Resolver.Eval(Prop.DefaultExpr,[refConst],false);
+      try
+        AddOption(FBuiltInNames[pbivnRTTIPropDefault],
+          ConvertConstValue(Value,AContext,Prop));
+      finally
+        ReleaseEvalValue(Value);
+      end;
+      end;
 
     // add option Index
     // ToDo
@@ -9909,8 +9918,6 @@ begin
     RaiseNotSupported(El.ImplementsFunc,AContext,20170215102923,'property implements function');
   if El.DispIDExpr<>nil then
     RaiseNotSupported(El.DispIDExpr,AContext,20170215103029,'property dispid expression');
-  if El.DefaultExpr<>nil then
-    RaiseNotSupported(El.DefaultExpr,AContext,20170215103129,'property default modifier');
   // does not need any declaration. Access is redirected to getter/setter.
 end;
 
