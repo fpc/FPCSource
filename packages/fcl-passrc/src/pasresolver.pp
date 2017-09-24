@@ -158,13 +158,11 @@ ToDo:
   - indexedprop[param]
   - case-of unique
   - defaultvalue
-  - stored
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
 - classes - TPasClassType
    - nested var, const
    - nested types
-- check if constant is longint or int64
 - for..in..do
 - records - TPasRecordType,
    - const  TRecordValues
@@ -4012,7 +4010,33 @@ var
       RaiseNotYetImplemented(20160922163436,Expr);
   end;
 
-  procedure CheckArgs(Proc: TPasProcedure; ErrorEl: TPasElement);
+  procedure CheckIndexArg(ArgNo: integer; const IndexResolved: TPasResolverResult;
+    ProcArg: TPasArgument; ErrorEl: TPasElement);
+  var
+    ProcArgResolved: TPasResolverResult;
+  begin
+    // check access: const, ...
+    if not (ProcArg.Access in [argDefault,argConst]) then
+      RaiseMsg(20170924202437,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+        [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
+         AccessDescriptions[argConst]],ErrorEl);
+    // check argument type
+    if ProcArg.ArgType=nil then
+      RaiseMsg(20170924202531,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+        [IntToStr(ArgNo),'untyped',GetTypeDescription(IndexResolved)],ErrorEl)
+    else
+      begin
+      if CheckParamCompatibility(PropEl.IndexExpr,ProcArg,ArgNo,true)=cIncompatible then
+        begin
+        ComputeElement(ProcArg.ArgType,ProcArgResolved,[rcType]);
+        RaiseIncompatibleTypeRes(20170924203829,nIncompatibleTypeArgNo,
+          [IntToStr(ArgNo)],ProcArgResolved,IndexResolved,ErrorEl);
+        end;
+      end;
+  end;
+
+  procedure CheckArgs(Proc: TPasProcedure; const IndexVal: TResEvalValue;
+    const IndexResolved: TPasResolverResult; ErrorEl: TPasElement);
   var
     ArgNo: Integer;
     PropArg, ProcArg: TPasArgument;
@@ -4034,7 +4058,7 @@ var
           [IntToStr(ArgNo),AccessDescriptions[ProcArg.Access],
            AccessDescriptions[PropArg.Access]],ErrorEl);
 
-      // check typed
+      // check argument type
       if PropArg.ArgType=nil then
         begin
         if ProcArg.ArgType<>nil then
@@ -4061,9 +4085,19 @@ var
             [IntToStr(ArgNo)],ProcArgResolved.TypeEl,PropArgResolved.TypeEl,ErrorEl);
         end;
       end;
+
+    if IndexVal<>nil then
+      begin
+      if ArgNo>=Proc.ProcType.Args.Count then
+        RaiseMsg(20170924202334,nWrongNumberOfParametersForCallTo,
+          sWrongNumberOfParametersForCallTo,[Proc.Name],ErrorEl);
+      ProcArg:=TPasArgument(Proc.ProcType.Args[ArgNo]);
+      CheckIndexArg(ArgNo,IndexResolved,ProcArg,ErrorEl);
+      end;
   end;
 
-  procedure CheckStoredAccessor(Expr: TPasExpr);
+  procedure CheckStoredAccessor(Expr: TPasExpr; const IndexVal: TResEvalValue;
+    const IndexResolved: TPasResolverResult);
   var
     ResolvedEl: TPasResolverResult;
     Value: TResEvalValue;
@@ -4071,6 +4105,8 @@ var
     ResultType, TypeEl: TPasType;
     aVar: TPasVariable;
     IdentEl: TPasElement;
+    ExpArgCnt: Integer;
+    ProcArg: TPasArgument;
   begin
     ResolveExpr(Expr,rraRead);
     ComputeElement(Expr,ResolvedEl,[rcNoImplicitProc]);
@@ -4090,12 +4126,22 @@ var
         RaiseXExpectedButYFound(20170923200836,'function: boolean',
           'function:'+GetTypeDescription(ResultType),PropEl.StoredAccessor);
       // check arg count
-      if Proc.ProcType.Args.Count<>0 then
+      ExpArgCnt:=0;
+      if IndexVal<>nil then
+        inc(ExpArgCnt);
+      if Proc.ProcType.Args.Count<>ExpArgCnt then
         RaiseMsg(20170923200840,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
           [Proc.Name],Expr);
+      if IndexVal<>nil then
+        begin
+        // check arg type
+        ProcArg:=TPasArgument(Proc.ProcType.Args[0]);
+        CheckIndexArg(1,IndexResolved,ProcArg,Expr);
+        end;
       exit;
       end;
-    if (IdentEl<>nil)
+    if (IndexVal=nil)
+        and (IdentEl<>nil)
         and ((IdentEl.ClassType=TPasVariable)
           or ((IdentEl.ClassType=TPasConst) and not TPasConst(IdentEl).IsConst))
         then
@@ -4143,9 +4189,10 @@ var
   AccEl: TPasElement;
   Proc: TPasProcedure;
   Arg: TPasArgument;
-  PropArgCount: Integer;
-  PropTypeResolved, DefaultResolved: TPasResolverResult;
+  PropArgCount, NeedArgCnt: Integer;
+  PropTypeResolved, DefaultResolved, IndexResolved: TPasResolverResult;
   m: TVariableModifier;
+  IndexVal: TResEvalValue;
 begin
   CheckTopScope(TPasPropertyScope);
   PopScope;
@@ -4160,147 +4207,175 @@ begin
   CurClassType:=PropEl.Parent as TPasClassType;
   ClassScope:=CurClassType.CustomData as TPasClassScope;
   GetPropType;
-  if PropEl.IndexExpr<>nil then
-    begin
-    ResolveExpr(PropEl.IndexExpr,rraRead);
-    RaiseNotYetImplemented(20160922163439,PropEl.IndexExpr);
-    end;
-  if PropEl.ReadAccessor<>nil then
-    begin
-    // check compatibility
-    AccEl:=GetAccessor(PropEl.ReadAccessor);
-    if (AccEl.ClassType=TPasVariable) or (AccEl.ClassType=TPasConst) then
+  IndexVal:=nil;
+  try
+    if PropEl.IndexExpr<>nil then
       begin
-      if PropEl.Args.Count>0 then
-        RaiseXExpectedButYFound(20170216151823,'function',AccEl.ElementTypeName,PropEl.ReadAccessor);
-      if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
-        RaiseIncompatibleType(20170216151826,nIncompatibleTypesGotExpected,
-          [],PropType,TPasVariable(AccEl).VarType,PropEl.ReadAccessor);
-      if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
-        if vmClass in PropEl.VarModifiers then
-          RaiseXExpectedButYFound(20170216151828,'class var','var',PropEl.ReadAccessor)
-        else
-          RaiseXExpectedButYFound(20170216151831,'var','class var',PropEl.ReadAccessor);
-      end
-    else if AccEl is TPasProcedure then
-      begin
-      // check function
-      Proc:=TPasProcedure(AccEl);
-      if (vmClass in PropEl.VarModifiers) then
-        begin
-        if Proc.ClassType<>TPasClassFunction then
-          RaiseXExpectedButYFound(20170216151834,'class function',Proc.ElementTypeName,PropEl.ReadAccessor);
-        if Proc.IsStatic=(proClassPropertyNonStatic in Options) then
-          if Proc.IsStatic then
-            RaiseMsg(20170216151837,nClassPropertyAccessorMustNotBeStatic,sClassPropertyAccessorMustNotBeStatic,[],PropEl.ReadAccessor)
-          else
-            RaiseMsg(20170216151839,nClassPropertyAccessorMustBeStatic,sClassPropertyAccessorMustBeStatic,[],PropEl.ReadAccessor);
-        end
+      // index specifier -> check if simple value
+      ResolveExpr(PropEl.IndexExpr,rraRead);
+      ComputeElement(PropEl.IndexExpr,IndexResolved,[rcConstant]);
+      IndexVal:=Eval(PropEl.IndexExpr,[refConst]);
+      case IndexVal.Kind of
+      revkBool,
+      revkInt, revkUInt,
+      revkFloat,
+      revkString, revkUnicodeString,
+      revkEnum: ; // ok
       else
-        begin
-        if Proc.ClassType<>TPasFunction then
-          RaiseXExpectedButYFound(20170216151842,'function',Proc.ElementTypeName,PropEl.ReadAccessor);
-        end;
-      // check function result type
-      ResultType:=TPasFunction(Proc).FuncType.ResultEl.ResultType;
-      if not IsSameType(ResultType,PropType,true) then
-        RaiseXExpectedButYFound(20170216151844,'function result '+GetTypeDescription(PropType,true),
-          GetTypeDescription(ResultType,true),PropEl.ReadAccessor);
-      // check args
-      CheckArgs(Proc,PropEl.ReadAccessor);
-      if Proc.ProcType.Args.Count<>PropEl.Args.Count then
-        RaiseMsg(20170216151847,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
-          [Proc.Name],PropEl.ReadAccessor);
-      end
-    else
-      RaiseXExpectedButYFound(20170216151850,'variable',AccEl.ElementTypeName,PropEl.ReadAccessor);
-    end;
-  if PropEl.WriteAccessor<>nil then
-    begin
-    // check compatibility
-    AccEl:=GetAccessor(PropEl.WriteAccessor);
-    if AccEl.ClassType=TPasVariable then
+        RaiseXExpectedButYFound(20170924202837,'ordinal',GetTypeDescription(IndexResolved),PropEl.IndexExpr);
+      end;
+      end;
+
+    if PropEl.ReadAccessor<>nil then
       begin
-      if PropEl.Args.Count>0 then
-        RaiseXExpectedButYFound(20170216151852,'procedure',AccEl.ElementTypeName,PropEl.WriteAccessor);
-      if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
-        RaiseIncompatibleType(20170216151855,nIncompatibleTypesGotExpected,
-          [],PropType,TPasVariable(AccEl).VarType,PropEl.WriteAccessor);
-      if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
-        if vmClass in PropEl.VarModifiers then
-          RaiseXExpectedButYFound(20170216151858,'class var','var',PropEl.WriteAccessor)
-        else
-          RaiseXExpectedButYFound(20170216151900,'var','class var',PropEl.WriteAccessor);
-      end
-    else if AccEl is TPasProcedure then
-      begin
-      // check procedure
-      Proc:=TPasProcedure(AccEl);
-      if (vmClass in PropEl.VarModifiers) then
+      // check compatibility
+      AccEl:=GetAccessor(PropEl.ReadAccessor);
+      if (AccEl.ClassType=TPasVariable) or (AccEl.ClassType=TPasConst) then
         begin
-        if Proc.ClassType<>TPasClassProcedure then
-          RaiseXExpectedButYFound(20170216151903,'class procedure',Proc.ElementTypeName,PropEl.WriteAccessor);
+        if (PropEl.Args.Count>0) or (IndexVal<>nil) then
+          RaiseXExpectedButYFound(20170216151823,'function',AccEl.ElementTypeName,PropEl.ReadAccessor);
+        if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
+          RaiseIncompatibleType(20170216151826,nIncompatibleTypesGotExpected,
+            [],PropType,TPasVariable(AccEl).VarType,PropEl.ReadAccessor);
+        if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
+          if vmClass in PropEl.VarModifiers then
+            RaiseXExpectedButYFound(20170216151828,'class var','var',PropEl.ReadAccessor)
+          else
+            RaiseXExpectedButYFound(20170216151831,'var','class var',PropEl.ReadAccessor);
+        end
+      else if AccEl is TPasProcedure then
+        begin
+        // check function
+        Proc:=TPasProcedure(AccEl);
+        if (vmClass in PropEl.VarModifiers) then
+          begin
+          if Proc.ClassType<>TPasClassFunction then
+            RaiseXExpectedButYFound(20170216151834,'class function',Proc.ElementTypeName,PropEl.ReadAccessor);
           if Proc.IsStatic=(proClassPropertyNonStatic in Options) then
             if Proc.IsStatic then
-              RaiseMsg(20170216151905,nClassPropertyAccessorMustNotBeStatic,sClassPropertyAccessorMustNotBeStatic,[],PropEl.WriteAccessor)
+              RaiseMsg(20170216151837,nClassPropertyAccessorMustNotBeStatic,sClassPropertyAccessorMustNotBeStatic,[],PropEl.ReadAccessor)
             else
-              RaiseMsg(20170216151906,nClassPropertyAccessorMustBeStatic,sClassPropertyAccessorMustBeStatic,[],PropEl.WriteAccessor);
+              RaiseMsg(20170216151839,nClassPropertyAccessorMustBeStatic,sClassPropertyAccessorMustBeStatic,[],PropEl.ReadAccessor);
+          end
+        else
+          begin
+          if Proc.ClassType<>TPasFunction then
+            RaiseXExpectedButYFound(20170216151842,'function',Proc.ElementTypeName,PropEl.ReadAccessor);
+          end;
+        // check function result type
+        ResultType:=TPasFunction(Proc).FuncType.ResultEl.ResultType;
+        if not IsSameType(ResultType,PropType,true) then
+          RaiseXExpectedButYFound(20170216151844,'function result '+GetTypeDescription(PropType,true),
+            GetTypeDescription(ResultType,true),PropEl.ReadAccessor);
+        // check args
+        CheckArgs(Proc,IndexVal,IndexResolved,PropEl.ReadAccessor);
+        NeedArgCnt:=PropEl.Args.Count;
+        if IndexVal<>nil then
+          inc(NeedArgCnt);
+        if Proc.ProcType.Args.Count<>NeedArgCnt then
+          RaiseMsg(20170216151847,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
+            [Proc.Name],PropEl.ReadAccessor);
+        end
+      else if IndexVal<>nil then
+        RaiseXExpectedButYFound(20170216151849,'function',AccEl.ElementTypeName,PropEl.ReadAccessor)
+      else
+        RaiseXExpectedButYFound(20170216151850,'variable',AccEl.ElementTypeName,PropEl.ReadAccessor);
+      end;
+
+    if PropEl.WriteAccessor<>nil then
+      begin
+      // check compatibility
+      AccEl:=GetAccessor(PropEl.WriteAccessor);
+      if (AccEl.ClassType=TPasVariable)
+          or ((AccEl.ClassType=TPasConst) and (not TPasConst(AccEl).IsConst)) then
+        begin
+        if (PropEl.Args.Count>0) or (IndexVal<>nil) then
+          RaiseXExpectedButYFound(20170216151852,'procedure',AccEl.ElementTypeName,PropEl.WriteAccessor);
+        if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
+          RaiseIncompatibleType(20170216151855,nIncompatibleTypesGotExpected,
+            [],PropType,TPasVariable(AccEl).VarType,PropEl.WriteAccessor);
+        if (vmClass in PropEl.VarModifiers)<>(vmClass in TPasVariable(AccEl).VarModifiers) then
+          if vmClass in PropEl.VarModifiers then
+            RaiseXExpectedButYFound(20170216151858,'class var','var',PropEl.WriteAccessor)
+          else
+            RaiseXExpectedButYFound(20170216151900,'var','class var',PropEl.WriteAccessor);
+        end
+      else if AccEl is TPasProcedure then
+        begin
+        // check procedure
+        Proc:=TPasProcedure(AccEl);
+        if (vmClass in PropEl.VarModifiers) then
+          begin
+          if Proc.ClassType<>TPasClassProcedure then
+            RaiseXExpectedButYFound(20170216151903,'class procedure',Proc.ElementTypeName,PropEl.WriteAccessor);
+            if Proc.IsStatic=(proClassPropertyNonStatic in Options) then
+              if Proc.IsStatic then
+                RaiseMsg(20170216151905,nClassPropertyAccessorMustNotBeStatic,sClassPropertyAccessorMustNotBeStatic,[],PropEl.WriteAccessor)
+              else
+                RaiseMsg(20170216151906,nClassPropertyAccessorMustBeStatic,sClassPropertyAccessorMustBeStatic,[],PropEl.WriteAccessor);
+          end
+        else
+          begin
+          if Proc.ClassType<>TPasProcedure then
+            RaiseXExpectedButYFound(20170216151910,'procedure',Proc.ElementTypeName,PropEl.WriteAccessor);
+          end;
+        // check args
+        CheckArgs(Proc,IndexVal,IndexResolved,PropEl.ReadAccessor);
+        // check write arg
+        PropArgCount:=PropEl.Args.Count;
+        if IndexVal<>nil then
+          inc(PropArgCount);
+        if Proc.ProcType.Args.Count<>PropArgCount+1 then
+          RaiseMsg(20170216151913,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
+            [Proc.Name],PropEl.WriteAccessor);
+        Arg:=TPasArgument(Proc.ProcType.Args[PropArgCount]);
+        if not (Arg.Access in [argDefault,argConst]) then
+          RaiseMsg(20170216151917,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
+            [IntToStr(PropArgCount+1),AccessDescriptions[Arg.Access],
+             AccessDescriptions[argConst]],PropEl.WriteAccessor);
+        if not IsSameType(Arg.ArgType,PropType,true) then
+          RaiseIncompatibleType(20170216151919,nIncompatibleTypeArgNo,
+            [IntToStr(PropArgCount+1)],Arg.ArgType,PropType,PropEl.WriteAccessor);
         end
       else
-        begin
-        if Proc.ClassType<>TPasProcedure then
-          RaiseXExpectedButYFound(20170216151910,'procedure',Proc.ElementTypeName,PropEl.WriteAccessor);
-        end;
-      // check args
-      CheckArgs(Proc,PropEl.ReadAccessor);
-      // ToDo: check index arg
-      // check write arg
-      PropArgCount:=PropEl.Args.Count;
-      if Proc.ProcType.Args.Count<>PropArgCount+1 then
-        RaiseMsg(20170216151913,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
-          [Proc.Name],PropEl.WriteAccessor);
-      Arg:=TPasArgument(Proc.ProcType.Args[PropArgCount]);
-      if not (Arg.Access in [argDefault,argConst]) then
-        RaiseMsg(20170216151917,nIncompatibleTypeArgNo,sIncompatibleTypeArgNo,
-          [IntToStr(PropArgCount+1),AccessDescriptions[Arg.Access],
-           AccessDescriptions[argConst]],PropEl.WriteAccessor);
-      if not IsSameType(Arg.ArgType,PropType,true) then
-        RaiseIncompatibleType(20170216151919,nIncompatibleTypeArgNo,
-          [IntToStr(PropArgCount+1)],Arg.ArgType,PropType,PropEl.WriteAccessor);
-      end
-    else
-      RaiseXExpectedButYFound(20170216151921,'variable',AccEl.ElementTypeName,PropEl.WriteAccessor);
-    end;
-  if PropEl.ImplementsFunc<>nil then
-    begin
-    ResolveExpr(PropEl.ImplementsFunc,rraRead);
-    // ToDo: check compatibility
-    RaiseNotYetImplemented(20170409213850,PropEl.ImplementsFunc);
-    end;
-  if PropEl.StoredAccessor<>nil then
-    begin
-    // check compatibility
-    CheckStoredAccessor(PropEl.StoredAccessor);
-    end;
-  if PropEl.DefaultExpr<>nil then
-    begin
-    // check compatibility with type
-    ResolveExpr(PropEl.DefaultExpr,rraRead);
-    ComputeElement(PropEl.DefaultExpr,DefaultResolved,[rcConstant]);
-    ComputeElement(PropType,PropTypeResolved,[rcType]);
-    PropTypeResolved.IdentEl:=PropEl;
-    PropTypeResolved.Flags:=[rrfReadable];
-    CheckEqualResCompatibility(PropTypeResolved,DefaultResolved,PropEl.DefaultExpr,true);
-    end;
-  if PropEl.IsDefault then
-    begin
-    // set default array property
-    if (ClassScope.DefaultProperty<>nil)
-        and (ClassScope.DefaultProperty.Parent=PropEl.Parent) then
-      RaiseMsg(20170216151938,nOnlyOneDefaultPropertyIsAllowed,sOnlyOneDefaultPropertyIsAllowed,[],PropEl);
-    ClassScope.DefaultProperty:=PropEl;
-    end;
-  EmitTypeHints(PropEl,PropEl.VarType);
+        RaiseXExpectedButYFound(20170216151921,'variable',AccEl.ElementTypeName,PropEl.WriteAccessor);
+      end;
+
+    if PropEl.ImplementsFunc<>nil then
+      begin
+      ResolveExpr(PropEl.ImplementsFunc,rraRead);
+      // ToDo: check compatibility
+      RaiseNotYetImplemented(20170409213850,PropEl.ImplementsFunc);
+      end;
+
+    if PropEl.StoredAccessor<>nil then
+      begin
+      // check compatibility
+      CheckStoredAccessor(PropEl.StoredAccessor,IndexVal,IndexResolved);
+      end;
+
+    if PropEl.DefaultExpr<>nil then
+      begin
+      // check compatibility with type
+      ResolveExpr(PropEl.DefaultExpr,rraRead);
+      ComputeElement(PropEl.DefaultExpr,DefaultResolved,[rcConstant]);
+      ComputeElement(PropType,PropTypeResolved,[rcType]);
+      PropTypeResolved.IdentEl:=PropEl;
+      PropTypeResolved.Flags:=[rrfReadable];
+      CheckEqualResCompatibility(PropTypeResolved,DefaultResolved,PropEl.DefaultExpr,true);
+      end;
+    if PropEl.IsDefault then
+      begin
+      // set default array property
+      if (ClassScope.DefaultProperty<>nil)
+          and (ClassScope.DefaultProperty.Parent=PropEl.Parent) then
+        RaiseMsg(20170216151938,nOnlyOneDefaultPropertyIsAllowed,sOnlyOneDefaultPropertyIsAllowed,[],PropEl);
+      ClassScope.DefaultProperty:=PropEl;
+      end;
+    EmitTypeHints(PropEl,PropEl.VarType);
+  finally
+    ReleaseEvalValue(IndexVal);
+  end;
 end;
 
 procedure TPasResolver.FinishArgument(El: TPasArgument);

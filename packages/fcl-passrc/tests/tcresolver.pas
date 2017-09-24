@@ -489,7 +489,6 @@ type
     Procedure TestPropertyReadAccessorFuncWrongResult;
     Procedure TestPropertyReadAccessorFuncWrongArgCount;
     Procedure TestPropertyReadAccessorFunc;
-    // ToDo: read accessor allow ancestor of field
     Procedure TestPropertyWriteAccessorVarWrongType;
     Procedure TestPropertyWriteAccessorFuncNotProc;
     Procedure TestPropertyWriteAccessorProcWrongArgCount;
@@ -503,6 +502,10 @@ type
     Procedure TestPropertyStoredAccessorProcNotFunc;
     Procedure TestPropertyStoredAccessorFuncWrongResult;
     Procedure TestPropertyStoredAccessorFuncWrongArgCount;
+    Procedure TestPropertyIndexSpec;
+    Procedure TestPropertyIndexSpec_ReadAccessorVarFail;
+    Procedure TestPropertyIndexSpec_ReadAccessorWrongArgCount;
+    Procedure TestPropertyIndexSpec_ReadAccessorWrongIndexArgType;
     Procedure TestPropertyDefaultValue;
     Procedure TestPropertyAssign;
     Procedure TestPropertyAssignReadOnlyFail;
@@ -8051,6 +8054,77 @@ begin
   Add('begin');
   CheckResolverException('Wrong number of parameters specified for call to "GetB"',
     nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestPropertyIndexSpec;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  CB = true or false;',
+  '  CI = 1+2;',
+  'type',
+  '  TEnum = (red, blue);',
+  '  TObject = class',
+  '    function GetIntBool(Index: longint): boolean; virtual; abstract;',
+  '    procedure SetIntBool(Index: longint; b: boolean); virtual; abstract;',
+  '    function GetBoolBool(Index: boolean): boolean; virtual; abstract;',
+  '    procedure SetBoolBool(Index: boolean; b: boolean); virtual; abstract;',
+  '    function GetEnumBool(Index: TEnum): boolean; virtual; abstract;',
+  '    procedure SetEnumBool(Index: TEnum; b: boolean); virtual; abstract;',
+  '    function GetStrIntBool(A: String; I: longint): boolean; virtual; abstract;',
+  '    procedure SetStrIntBool(A: String; I: longint; b: boolean); virtual; abstract;',
+  '    property B1: boolean index 1 read GetIntBool write SetIntBool stored GetIntBool;',
+  '    property B2: boolean index CI read GetIntBool write SetIntBool stored GetIntBool;',
+  '    property B3: boolean index false read GetBoolBool write SetBoolBool stored GetBoolBool;',
+  '    property B4: boolean index CB read GetBoolBool write SetBoolBool stored GetBoolBool;',
+  '    property B5: boolean index red read GetEnumBool write SetEnumBool stored GetEnumBool;',
+  '    property B6: boolean index TEnum.blue read GetEnumBool write SetEnumBool stored GetEnumBool;',
+  '    property I1[A: String]: boolean index 2 read GetStrIntBool write SetStrIntBool;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPropertyIndexSpec_ReadAccessorVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    FB: boolean;',
+  '    property B: boolean index 1 read FB;',
+  '  end;',
+  'begin']);
+  CheckResolverException('function expected, but variable found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestPropertyIndexSpec_ReadAccessorWrongArgCount;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetB: boolean; virtual; abstract;',
+  '    property B: boolean index 1 read GetB;',
+  '  end;',
+  'begin']);
+  CheckResolverException('Wrong number of parameters specified for call to "GetB"',
+    nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestPropertyIndexSpec_ReadAccessorWrongIndexArgType;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetB(S: string): boolean; virtual; abstract;',
+  '    property B: boolean index 1 read GetB;',
+  '  end;',
+  'begin']);
+  CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "String"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestPropertyDefaultValue;
