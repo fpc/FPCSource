@@ -493,7 +493,7 @@ implementation
       s,
       prefix,
       suffix   : string;
-      hp       : tai;
+      hp,nhp   : tai;
       cpu: tcputype;
       counter,
       lines,
@@ -738,12 +738,26 @@ implementation
              begin
                if tai_symbol(hp).has_value then
                  internalerror(2009090802);
+               { wasm is case insensitive, we nned to use only uppercase version 
+                 if both a lowercase and an uppercase version are provided }
+               if (asminfo^.id = as_i386_wasm) then
+                 begin
+                   nhp:=tai(hp.next);
+                   while assigned(nhp) and (nhp.typ in [ait_function_name,ait_force_line]) do
+                     nhp:=tai(nhp.next);
+                   if assigned(nhp) and (tai(nhp).typ=ait_symbol) and
+                      (lower(tai_symbol(nhp).sym.name)=tai_symbol(hp).sym.name) then
+                     begin
+                       writer.AsmWriteln(asminfo^.comment+' '+tai_symbol(hp).sym.name+' removed');
+                       hp:=tai(nhp);
+                     end;
+                 end;
                if tai_symbol(hp).is_global then
                  writer.AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
                writer.AsmWrite(tai_symbol(hp).sym.name);
                if assigned(hp.next) and not(tai(hp.next).typ in
                   [ait_const,ait_realconst,ait_string]) then
-                writer.AsmWriteLn(':')
+                 writer.AsmWriteLn(':');
              end;
            ait_symbol_end :
              begin
@@ -869,7 +883,7 @@ implementation
                  if (asminfo^.id = as_i386_wasm) then
                    begin
                      writer.AsmWriteLn(#9'.686p');
-                     writer.AsmWriteLn(#9'.mmx');
+                     writer.AsmWriteLn(#9'.xmm');
                    end
                  else
                    writer.AsmWriteLn(#9'.386p');
@@ -1004,7 +1018,7 @@ implementation
           if (asminfo^.id = as_i386_wasm) then
             begin
               writer.AsmWriteLn(#9'.686p');
-              writer.AsmWriteLn(#9'.mmx');
+              writer.AsmWriteLn(#9'.xmm');
             end
           else
             writer.AsmWriteLn(#9'.386p');
