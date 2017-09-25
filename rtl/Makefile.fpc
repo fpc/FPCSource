@@ -46,6 +46,7 @@ dirs_msdos=msdos
 dirs_aros=aros
 dirs_atari=atari
 dirs_win16=win16
+dirs_watcom=watcom
 
 [install]
 fpcpackage=y
