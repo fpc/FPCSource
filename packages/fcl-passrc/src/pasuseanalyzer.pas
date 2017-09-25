@@ -1452,8 +1452,8 @@ begin
       UseExpr(Prop.IndexExpr);
       // ToDo: Prop.ImplementsFunc
       // ToDo: Prop.DispIDExpr
-      // ToDo: Prop.StoredAccessor;
-      // ToDo: Prop.DefaultExpr;
+      UseExpr(Prop.StoredAccessor);
+      UseExpr(Prop.DefaultExpr);
       end;
     end
   else

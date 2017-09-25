@@ -8131,11 +8131,14 @@ procedure TTestResolver.TestPropertyDefaultValue;
 begin
   StartProgram(false);
   Add([
+  'type',
+  '  TEnum = (red, blue);',
+  '  TSet = set of TEnum;',
   'const',
   '  CB = true or false;',
   '  CI = 1+2;',
+  '  CS = [red,blue];',
   'type',
-  '  TEnum = (red, blue);',
   '  TObject = class',
   '    FB: boolean;',
   '    property B1: boolean read FB default true;',
@@ -8147,6 +8150,11 @@ begin
   '    FE: TEnum;',
   '    property E1: TEnum read FE default red;',
   '    property E2: TEnum read FE default TEnum.blue;',
+  '    FSet: TSet;',
+  '    property Set1: TSet read FSet default [];',
+  '    property Set2: TSet read FSet default [red];',
+  '    property Set3: TSet read FSet default [red,blue];',
+  '    property Set4: TSet read FSet default CS;',
   '  end;',
   'begin']);
   ParseProgram;
