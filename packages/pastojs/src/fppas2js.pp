@@ -241,6 +241,8 @@ Works:
     - typeinfo(class) -> class.$rtti
   - WPO skip not used typeinfo
   - open array param
+  - property stored modifier
+  - property default value
 - pointer
   - compare with and assign nil
 - ECMAScript6:
@@ -256,9 +258,7 @@ ToDos:
   - RTTI
 - property index specifier
 - RTTI
-  - stored false/true
   - class property
-    - defaultvalue
   - type alias type
   - documentation
 - move local types to unit scope
@@ -9703,11 +9703,11 @@ var
   PropName: String;
   Flags: Integer;
   GetterPas, SetterPas, DeclEl: TPasElement;
-  ResultTypeInfo: TJSElement;
+  ResultTypeInfo, DefValue: TJSElement;
   VarType: TPasType;
   StoredExpr: TPasExpr;
-  StoredResolved: TPasResolverResult;
-  StoredValue, Value: TResEvalValue;
+  StoredResolved, VarTypeResolved: TPasResolverResult;
+  StoredValue, PasValue: TResEvalValue;
 begin
   Result:=nil;
   OptionsEl:=nil;
@@ -9763,8 +9763,9 @@ begin
       end;
     Call.AddArg(CreateLiteralNumber(Prop,Flags));
 
-    // add resulttype
+    // add type
     VarType:=AContext.Resolver.GetPasPropertyType(Prop);
+    AContext.Resolver.ComputeElement(VarType,VarTypeResolved,[rcType]);
     ResultTypeInfo:=CreateTypeInfoRef(VarType,AContext,Prop);
     if ResultTypeInfo<>nil then
       Call.AddArg(ResultTypeInfo)
@@ -9794,17 +9795,20 @@ begin
     // add option "defaultvalue"
     if Prop.DefaultExpr<>nil then
       begin
-      Value:=AContext.Resolver.Eval(Prop.DefaultExpr,[refConst],false);
+      PasValue:=AContext.Resolver.Eval(Prop.DefaultExpr,[refConst],false);
       try
-        AddOption(FBuiltInNames[pbivnRTTIPropDefault],
-          ConvertConstValue(Value,AContext,Prop));
+        DefValue:=nil;
+        if VarTypeResolved.BaseType=btSet then
+          begin
+          DefValue:=CreateValInit(VarType,Prop.DefaultExpr,Prop.DefaultExpr,AContext);
+          end;
+        if DefValue=nil then
+          DefValue:=ConvertConstValue(PasValue,AContext,Prop);
+        AddOption(FBuiltInNames[pbivnRTTIPropDefault],DefValue);
       finally
-        ReleaseEvalValue(Value);
+        ReleaseEvalValue(PasValue);
       end;
       end;
-
-    // add option Index
-    // ToDo
 
     Result:=Call;
   finally
@@ -9919,6 +9923,7 @@ begin
   if El.DispIDExpr<>nil then
     RaiseNotSupported(El.DispIDExpr,AContext,20170215103029,'property dispid expression');
   // does not need any declaration. Access is redirected to getter/setter.
+  // RTTI is created in CreateRTTIClassProperty
 end;
 
 function TPasToJSConverter.ConvertExportSymbol(El: TPasExportSymbol;

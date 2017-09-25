@@ -323,9 +323,6 @@ type
     Procedure TestArray_DynArrayConst;
     Procedure TestExternalClass_TypeCastArrayToExternalArray;
     Procedure TestExternalClass_TypeCastArrayFromExternalArray;
-    // ToDo: static array const
-    // ToDo: SetLength(array of static array)
-    // ToDo: SetLength(dim1,dim2)
 
     // record
     Procedure TestRecord_Var;
@@ -504,6 +501,7 @@ type
     Procedure TestRTTI_PublishedFieldExternalFail;
     Procedure TestRTTI_StoredModifier;
     Procedure TestRTTI_DefaultValue;
+    Procedure TestRTTI_DefaultValueSet;
     Procedure TestRTTI_Class_Field;
     Procedure TestRTTI_Class_Method;
     Procedure TestRTTI_Class_MethodArgFlags;
@@ -13377,13 +13375,15 @@ end;
 
 procedure TTestModule.TestRTTI_DefaultValue;
 begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
   Add([
+  'type',
+  '  TEnum = (red, blue);',
   'const',
   '  CB = true or false;',
   '  CI = 1+2;',
   'type',
-  '  TEnum = (red, blue);',
   '  TObject = class',
   '    FB: boolean;',
   '    FI: longint;',
@@ -13401,14 +13401,19 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_DefaultValue',
     LinesToStr([ // statements
-    'this.CB = true || false;',
-    'this.CI = 1 + 2;',
     'this.TEnum = {',
     '  "0": "red",',
     '  red: 0,',
     '  "1": "blue",',
     '  blue: 1',
     '};',
+    '$mod.$rtti.$Enum("TEnum", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  enumtype: this.TEnum',
+    '});',
+    'this.CB = true || false;',
+    'this.CI = 1 + 2;',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FB = false;',
@@ -13486,6 +13491,98 @@ begin
     '    "",',
     '    {',
     '      Default: $mod.TEnum.blue',
+    '    }',
+    '  );',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_DefaultValueSet;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red, blue);',
+  '  TSet = set of TEnum;',
+  'const',
+  '  CSet = [red,blue];',
+  'type',
+  '  TObject = class',
+  '    FSet: TSet;',
+  '  published',
+  '    property Set1: TSet read FSet default [];',
+  '    property Set2: TSet read FSet default [red];',
+  '    property Set3: TSet read FSet default [red,blue];',
+  '    property Set4: TSet read FSet default CSet;',
+  '  end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_DefaultValueSet',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    '$mod.$rtti.$Enum("TEnum", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  enumtype: this.TEnum',
+    '});',
+    '$mod.$rtti.$Set("TSet", {',
+    '  comptype: $mod.$rtti["TEnum"]',
+    '});',
+    'this.CSet = rtl.createSet($mod.TEnum.red, $mod.TEnum.blue);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FSet = {};',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FSet = undefined;',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty(',
+    '    "Set1",',
+    '    0,',
+    '    $mod.$rtti["TSet"],',
+    '    "FSet",',
+    '    "",',
+    '    {',
+    '      Default: {}',
+    '    }',
+    '  );',
+    '  $r.addProperty(',
+    '    "Set2",',
+    '    0,',
+    '    $mod.$rtti["TSet"],',
+    '    "FSet",',
+    '    "",',
+    '    {',
+    '      Default: rtl.createSet($mod.TEnum.red)',
+    '    }',
+    '  );',
+    '  $r.addProperty(',
+    '    "Set3",',
+    '    0,',
+    '    $mod.$rtti["TSet"],',
+    '    "FSet",',
+    '    "",',
+    '    {',
+    '      Default: rtl.createSet($mod.TEnum.red, $mod.TEnum.blue)',
+    '    }',
+    '  );',
+    '  $r.addProperty(',
+    '    "Set4",',
+    '    0,',
+    '    $mod.$rtti["TSet"],',
+    '    "FSet",',
+    '    "",',
+    '    {',
+    '      Default: $mod.CSet',
     '    }',
     '  );',
     '});',
