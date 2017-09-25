@@ -410,8 +410,9 @@ type
     pbifnRTTIAddProperty,//   "   "
     pbifnRTTINewClass,// typeinfo creator of tkClass $Class
     pbifnRTTINewClassRef,// typeinfo of tkClassRef $ClassRef
-    pbifnRTTINewEnum,// typeinfo of tkEnumeration $Enum
     pbifnRTTINewDynArray,// typeinfo of tkDynArray $DynArray
+    pbifnRTTINewEnum,// typeinfo of tkEnumeration $Enum
+    pbifnRTTINewInt,// typeinfo of tkInt $Int
     pbifnRTTINewMethodVar,// typeinfo of tkMethod $MethodVar
     pbifnRTTINewPointer,// typeinfo of tkPointer $Pointer
     pbifnRTTINewProcSig,// rtl.newTIProcSig
@@ -451,6 +452,7 @@ type
     pbivnRTTIEnum_EnumType,
     pbivnRTTIInt_MaxValue,
     pbivnRTTIInt_MinValue,
+    pbivnRTTIInt_OrdType,
     pbivnRTTILocal, // $r
     pbivnRTTIMethodKind, // tTypeInfoMethodVar has methodkind
     pbivnRTTIPointer_RefType,
@@ -511,8 +513,9 @@ const
     'addProperty',
     '$Class',
     '$ClassRef',
-    '$Enum',
     '$DynArray',
+    '$Enum',
+    '$Int',
     '$MethodVar',
     '$Pointer',
     'newTIProcSig',
@@ -552,6 +555,7 @@ const
     'enumtype',
     'maxvalue',
     'minvalue',
+    'ordtype',
     '$r',
     'methodkind',
     'reftype',
@@ -1279,8 +1283,7 @@ type
     Function ConvertBuiltIn_Assigned(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Chr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Ord(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertBuiltIn_Low(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertBuiltIn_High(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_LowHigh(El: TParamsExpr; AContext: TConvertContext; IsLow: boolean): TJSElement; virtual;
     Function ConvertBuiltIn_Pred(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Succ(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_StrProc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -1323,6 +1326,7 @@ type
     Function ConvertClassOfType(El: TPasClassOfType; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertEnumType(El: TPasEnumType; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSetType(El: TPasSetType; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertRangeType(El: TPasRangeType; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertPointerType(El: TPasPointerType; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertProcedureType(El: TPasProcedureType; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertArrayType(El: TPasArrayType; AContext: TConvertContext): TJSElement; virtual;
@@ -1347,13 +1351,24 @@ type
       pfStoredFunction = 12; // stored function, function name is in Stored
     type
       TMethodKind = (
-        mkProcedure, // 0  default
-        mkFunction,  // 1
-        mkConstructor,  // 2
-        mkDestructor,   // 3
-        mkClassProcedure,  // 4
-        mkClassFunction  // 5
+        mkProcedure,      // 0  default
+        mkFunction,       // 1
+        mkConstructor,    // 2
+        mkDestructor,     // 3
+        mkClassProcedure, // 4
+        mkClassFunction   // 5
         );
+      TOrdType  = (
+        otSByte,      // 0
+        otUByte,      // 1
+        otSWord,      // 2
+        otUWord,      // 3
+        otSLong,      // 4
+        otULong,      // 5
+        otSIntDouble, // 6 NativeInt
+        otUIntDouble  // 7 NativeUInt
+        );
+    Function GetOrdType(MinValue, MaxValue: MaxPrecInt; ErrorEl: TPasElement): TOrdType; virtual;
   Public
     Constructor Create;
     destructor Destroy; override;
@@ -5633,8 +5648,8 @@ begin
           bfAssigned: Result:=ConvertBuiltIn_Assigned(El,AContext);
           bfChr: Result:=ConvertBuiltIn_Chr(El,AContext);
           bfOrd: Result:=ConvertBuiltIn_Ord(El,AContext);
-          bfLow: Result:=ConvertBuiltIn_Low(El,AContext);
-          bfHigh: Result:=ConvertBuiltIn_High(El,AContext);
+          bfLow: Result:=ConvertBuiltIn_LowHigh(El,AContext,true);
+          bfHigh: Result:=ConvertBuiltIn_LowHigh(El,AContext,false);
           bfPred: Result:=ConvertBuiltIn_Pred(El,AContext);
           bfSucc: Result:=ConvertBuiltIn_Succ(El,AContext);
           bfStrProc: Result:=ConvertBuiltIn_StrProc(El,AContext);
@@ -6753,18 +6768,26 @@ begin
     AContext.Resolver.GetResolverResultDescription(ParamResolved)],Param);
 end;
 
-function TPasToJSConverter.ConvertBuiltIn_Low(El: TParamsExpr;
-  AContext: TConvertContext): TJSElement;
+function TPasToJSConverter.ConvertBuiltIn_LowHigh(El: TParamsExpr;
+  AContext: TConvertContext; IsLow: boolean): TJSElement;
 // low(enumtype) -> first enumvalue
+// high(enumtype) -> last enumvalue
 // low(set var) -> first enumvalue
+// high(set var) -> last enumvalue
 // low(settype) -> first enumvalue
+// high(settype) -> last enumvalue
 // low(array var) -> first index
+// high(dynamic array) -> array.length-1
+// high(static array) -> last index
 
   procedure CreateEnumValue(TypeEl: TPasEnumType);
   var
     EnumValue: TPasEnumValue;
   begin
-    EnumValue:=TPasEnumValue(TypeEl.Values[0]);
+    if IsLow then
+      EnumValue:=TPasEnumValue(TypeEl.Values[0])
+    else
+      EnumValue:=TPasEnumValue(TypeEl.Values[TypeEl.Values.Count-1]);
     Result:=CreateReferencePathExpr(EnumValue,AContext);
   end;
 
@@ -6774,6 +6797,8 @@ var
   TypeEl: TPasType;
   Ranges: TPasExprArray;
   Value: TResEvalValue;
+  Call: TJSCallExpression;
+  MinusExpr: TJSAdditiveExpressionMinus;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -6801,37 +6826,101 @@ begin
       else if TypeEl.ClassType=TPasArrayType then
         begin
         Ranges:=TPasArrayType(TypeEl).Ranges;
-        if length(Ranges)=0 then
+        if IsLow then
           begin
-          // dynamic array starts at 0
-          Result:=CreateLiteralNumber(El,0);
-          exit;
+          // low(arr)
+          if length(Ranges)=0 then
+            begin
+            // dynamic array starts at 0
+            Result:=CreateLiteralNumber(El,0);
+            exit;
+            end
+          else
+            begin
+            // static array
+            Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],true,El);
+            if Value=nil then
+              RaiseNotSupported(El,AContext,20170910160817);
+            try
+              Result:=ConvertConstValue(Value,AContext,Param);
+            finally
+              ReleaseEvalValue(Value);
+            end;
+            exit;
+            end;
           end
         else
           begin
-          // static array
-          Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],true,El);
-          if Value=nil then
-            RaiseNotSupported(El,AContext,20170910160817);
-          try
-            Result:=ConvertConstValue(Value,AContext,Param);
-          finally
-            ReleaseEvalValue(Value);
-          end;
-          exit;
+          // high(arr)
+          if length(Ranges)=0 then
+            begin
+            // dynamic array -> rtl.length(Param)-1
+            Result:=ConvertElement(Param,AContext);
+            // Note: convert Param first, it may raise an exception
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
+            Call.AddArg(Result);
+            MinusExpr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El));
+            MinusExpr.A:=Call;
+            MinusExpr.B:=CreateLiteralNumber(El,1);
+            Result:=MinusExpr;
+            exit;
+            end
+          else
+            begin
+            // static array
+            Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],false,El);
+            if Value=nil then
+              RaiseNotSupported(El,AContext,20170910161555);
+            try
+              Result:=ConvertConstValue(Value,AContext,Param);
+            finally
+              ReleaseEvalValue(Value);
+            end;
+            exit;
+            end;
           end;
         end;
       end;
-    btChar,
-    btAnsiChar,
-    btWideChar:
+    btBoolean,btByteBool,btWordBool,btLongBool:
       begin
-      Result:=CreateLiteralJSString(El,#0);
+      if IsLow then
+        Result:=CreateLiteralBoolean(El,LowJSBoolean)
+      else
+        Result:=CreateLiteralBoolean(El,HighJSBoolean);
       exit;
       end;
-    btBoolean:
+    btChar,
+    btWideChar:
       begin
-      Result:=CreateLiteralBoolean(El,LowJSBoolean);
+      if IsLow then
+        Result:=CreateLiteralJSString(El,#0)
+      else
+        Result:=CreateLiteralJSString(El,#$ffff);
+      exit;
+      end;
+    btByte..btInt64:
+      begin
+      TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedEl.TypeEl);
+      if TypeEl.ClassType=TPasRangeType then
+        begin
+        Value:=AContext.Resolver.EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,
+                                                [refConst],IsLow,El);
+        try
+          case Value.Kind of
+          revkInt:
+            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+          revkUInt:
+            Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
+          else
+            RaiseNotSupported(El,AContext,20170925214317);
+          end;
+        finally
+          ReleaseEvalValue(Value);
+        end;
+        end
+      else
+        RaiseNotSupported(El,AContext,20170925214351);
       exit;
       end;
     btSet:
@@ -6845,105 +6934,6 @@ begin
       end;
   end;
   DoError(20170210110717,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',
-    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
-end;
-
-function TPasToJSConverter.ConvertBuiltIn_High(El: TParamsExpr;
-  AContext: TConvertContext): TJSElement;
-// high(enumtype) -> last enumvalue
-// high(set var) -> last enumvalue
-// high(settype) -> last enumvalue
-// high(dynamic array) -> array.length-1
-// high(static array) -> last index
-
-  procedure CreateEnumValue(TypeEl: TPasEnumType);
-  var
-    EnumValue: TPasEnumValue;
-  begin
-    EnumValue:=TPasEnumValue(TypeEl.Values[TypeEl.Values.Count-1]);
-    Result:=CreateReferencePathExpr(EnumValue,AContext);
-  end;
-
-var
-  ResolvedEl: TPasResolverResult;
-  Param: TPasExpr;
-  TypeEl: TPasType;
-  MinusExpr: TJSAdditiveExpressionMinus;
-  Call: TJSCallExpression;
-  Value: TResEvalValue;
-  Ranges: TPasExprArray;
-begin
-  Result:=nil;
-  if AContext.Resolver=nil then
-    RaiseInconsistency(20170210120653);
-  Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
-  case ResolvedEl.BaseType of
-    btContext:
-      begin
-      TypeEl:=ResolvedEl.TypeEl;
-      if TypeEl.ClassType=TPasEnumType then
-        begin
-        CreateEnumValue(TPasEnumType(TypeEl));
-        exit;
-        end
-      else if (TypeEl.ClassType=TPasSetType) then
-        begin
-        if TPasSetType(TypeEl).EnumType<>nil then
-          begin
-          TypeEl:=TPasSetType(TypeEl).EnumType;
-          CreateEnumValue(TPasEnumType(TypeEl));
-          exit;
-          end;
-        end
-      else if TypeEl.ClassType=TPasArrayType then
-        begin
-        Ranges:=TPasArrayType(TypeEl).Ranges;
-        if length(Ranges)=0 then
-          begin
-          // dynamic array -> rtl.length(Param)-1
-          Result:=ConvertElement(Param,AContext);
-          // Note: convert Param first, it may raise an exception
-          Call:=CreateCallExpression(El);
-          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
-          Call.AddArg(Result);
-          MinusExpr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El));
-          MinusExpr.A:=Call;
-          MinusExpr.B:=CreateLiteralNumber(El,1);
-          Result:=MinusExpr;
-          exit;
-          end
-        else
-          begin
-          // static array
-          Value:=AContext.Resolver.EvalRangeLimit(Ranges[0],[refConst],false,El);
-          if Value=nil then
-            RaiseNotSupported(El,AContext,20170910161555);
-          try
-            Result:=ConvertConstValue(Value,AContext,Param);
-          finally
-            ReleaseEvalValue(Value);
-          end;
-          exit;
-          end;
-        end;
-      end;
-    btBoolean:
-      begin
-      Result:=CreateLiteralBoolean(Param,HighJSBoolean);
-      exit;
-      end;
-    btSet:
-      begin
-      TypeEl:=ResolvedEl.TypeEl;
-      if TypeEl.ClassType=TPasEnumType then
-        begin
-        CreateEnumValue(TPasEnumType(TypeEl));
-        exit;
-        end;
-      end;
-  end;
-  DoError(20170210114139,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
@@ -7485,27 +7475,29 @@ function TPasToJSConverter.CreateTypeDecl(El: TPasType;
   AContext: TConvertContext): TJSElement;
 
 var
-  ElClass: TClass;
+  C: TClass;
 begin
   Result:=Nil;
-  ElClass:=El.ClassType;
-  if ElClass=TPasClassType then
+  C:=El.ClassType;
+  if C=TPasClassType then
     Result := ConvertClassType(TPasClassType(El), AContext)
-  else if (ElClass=TPasClassOfType) then
+  else if (C=TPasClassOfType) then
     Result := ConvertClassOfType(TPasClassOfType(El), AContext)
-  else if ElClass=TPasRecordType then
+  else if C=TPasRecordType then
     Result := ConvertRecordType(TPasRecordType(El), AContext)
-  else if ElClass=TPasEnumType then
+  else if C=TPasEnumType then
     Result := ConvertEnumType(TPasEnumType(El), AContext)
-  else if (ElClass=TPasSetType) then
+  else if (C=TPasSetType) then
     Result := ConvertSetType(TPasSetType(El), AContext)
-  else if (ElClass=TPasAliasType) then
-  else if (ElClass=TPasPointerType) then
+  else if (C=TPasRangeType) then
+    Result:=ConvertRangeType(TPasRangeType(El),AContext)
+  else if (C=TPasAliasType) then
+  else if (C=TPasPointerType) then
     Result:=ConvertPointerType(TPasPointerType(El),AContext)
-  else if (ElClass=TPasProcedureType)
-       or (ElClass=TPasFunctionType) then
+  else if (C=TPasProcedureType)
+       or (C=TPasFunctionType) then
     Result:=ConvertProcedureType(TPasProcedureType(El),AContext)
-  else if (ElClass=TPasArrayType) then
+  else if (C=TPasArrayType) then
     Result:=ConvertArrayType(TPasArrayType(El),AContext)
   else
     begin
@@ -8247,6 +8239,7 @@ var
   Call: TJSCallExpression;
   List: TJSStatementList;
   ok: Boolean;
+  OrdType: TOrdType;
 begin
   Result:=nil;
   for i:=0 to El.Values.Count-1 do
@@ -8302,6 +8295,7 @@ begin
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
       List.A:=Result;
       Result:=List;
+      OrdType:=GetOrdType(0,El.Values.Count-1,El);
       // module.$rtti.$TIEnum("TMyEnum",{...});
       Call:=CreateRTTINewType(El,FBuiltInNames[pbifnRTTINewEnum],false,AContext,TIObj);
       List.B:=Call;
@@ -8313,6 +8307,10 @@ begin
       TIProp:=TIObj.Elements.AddElement;
       TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MaxValue]);
       TIProp.Expr:=CreateLiteralNumber(El,El.Values.Count-1);
+      // add  ordtype: number
+      TIProp:=TIObj.Elements.AddElement;
+      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_OrdType]);
+      TIProp.Expr:=CreateLiteralNumber(El,ord(OrdType));
       // add  enumtype: this.TypeName
       TIProp:=TIObj.Elements.AddElement;
       TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIEnum_EnumType]);
@@ -8353,6 +8351,67 @@ begin
     Prop.Expr:=CreateTypeInfoRef(El.EnumType,AContext,El);
     Result:=Call;
   finally
+    if Result=nil then
+      Call.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertRangeType(El: TPasRangeType;
+  AContext: TConvertContext): TJSElement;
+// create
+//   module.$rtti.$Int("name",{
+//       minvalue: <number>,
+//       maxvalue: <number>,
+//       ordtype: <number>
+//     })
+var
+  TIObj: TJSObjectLiteral;
+  Call: TJSCallExpression;
+  MinVal, MaxVal: TResEvalValue;
+  MinInt, MaxInt: MaxPrecInt;
+  OrdType: TOrdType;
+  TIProp: TJSObjectLiteralElement;
+begin
+  Result:=nil;
+  if not HasTypeInfo(El,AContext) then exit;
+
+  // module.$rtti.$Int("name",{...})
+  MinVal:=nil;
+  MaxVal:=nil;
+  Call:=nil;
+  try
+    MinVal:=AContext.Resolver.EvalRangeLimit(El.RangeExpr,[refConst],true,El);
+    MaxVal:=AContext.Resolver.EvalRangeLimit(El.RangeExpr,[refConst],false,El);
+    if MinVal.Kind=revkInt then
+      begin
+      MinInt:=TresEvalInt(MinVal).Int;
+      MaxInt:=TresEvalInt(MaxVal).Int;
+      OrdType:=GetOrdType(MinInt,MaxInt,El);
+      Call:=CreateRTTINewType(El,FBuiltInNames[pbifnRTTINewInt],false,AContext,TIObj);
+      // add  minvalue: number
+      TIProp:=TIObj.Elements.AddElement;
+      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MinValue]);
+      TIProp.Expr:=CreateLiteralNumber(El,MinInt);
+      // add  maxvalue: number
+      TIProp:=TIObj.Elements.AddElement;
+      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MaxValue]);
+      TIProp.Expr:=CreateLiteralNumber(El,MaxInt);
+      // add  ordtype: number
+      TIProp:=TIObj.Elements.AddElement;
+      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_OrdType]);
+      TIProp.Expr:=CreateLiteralNumber(El,ord(OrdType));
+      end
+    else
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.ConvertRangeType type: ',MinVal.AsDebugString,'..',MaxVal.AsDebugString);
+      {$ENDIF}
+      RaiseNotSupported(El,AContext,20170925201628);
+      end;
+    Result:=Call;
+  finally
+    ReleaseEvalValue(MinVal);
+    ReleaseEvalValue(MaxVal);
     if Result=nil then
       Call.Free;
   end;
@@ -8544,6 +8603,43 @@ begin
     if Result=nil then
       Call.Free;
   end;
+end;
+
+function TPasToJSConverter.GetOrdType(MinValue, MaxValue: MaxPrecInt;
+  ErrorEl: TPasElement): TOrdType;
+var
+  V: MaxPrecInt;
+begin
+  if MinValue<0 then
+    begin
+    if MaxValue<-(MinValue+1) then
+      V:=-(MinValue+1)
+    else
+      V:=MaxValue;
+    if V<$8f then
+      Result:=otSByte
+    else if V<$8fff then
+      Result:=otSWord
+    else if V<$8fffffff then
+      Result:=otSLong
+    else if V<=MaxSafeIntDouble then
+      Result:=otSIntDouble
+    else
+      DoError(20170925200802,nRangeCheckError,sRangeCheckError,[],ErrorEl);
+    end
+  else
+    begin
+    if MaxValue<$ff then
+      Result:=otUByte
+    else if MaxValue<$ffff then
+      Result:=otUWord
+    else if MaxValue<$ffffffff then
+      Result:=otULong
+    else if MaxValue<=MaxSafeIntDouble then
+      Result:=otUIntDouble
+    else
+      DoError(20170925201002,nRangeCheckError,sRangeCheckError,[],ErrorEl);
+    end;
 end;
 
 procedure TPasToJSConverter.ForLoop_OnProcBodyElement(El: TPasElement;
@@ -10642,6 +10738,7 @@ var
   bt: TResolverBaseType;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
+  ResolvedEl: TPasResolverResult;
 begin
   T:=PasType;
   if AContext.Resolver<>nil then
@@ -10674,9 +10771,27 @@ begin
   else if C=TPasRecordType then
     Result:=CreateRecordInit(TPasRecordType(T),Expr,El,AContext)
   else if Assigned(Expr) then
+    // if there is an expression then simply convert the it
     Result:=ConvertElement(Expr,AContext)
   else if C=TPasSetType then
+    // a "set" without initial value
     Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El))
+  else if (C=TPasRangeType) and (AContext.Resolver<>nil) then
+    // a custom range without initial value
+    begin
+    AContext.Resolver.ComputeElement(PasType,ResolvedEl,[rcType]);
+    if ResolvedEl.BaseType in btAllInteger then
+      Result:=CreateLiteralNumber(El,0)
+    else if ResolvedEl.BaseType in btAllStringAndChars then
+      Result:=CreateLiteralJSString(El,'')
+    else
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.CreateValInit ',GetResolverResultDbg(ResolvedEl));
+      {$ENDIF}
+      RaiseNotSupported(El,AContext,20170925203052);
+      end;
+    end
   else
     begin
     // always init with a default value to create a typed variable (faster and more readable)
@@ -12506,7 +12621,7 @@ begin
       or (C=TPasPointerType)
       // ToDo or (C=TPasTypeAliasType)
       or (C=TPasRecordType)
-      // ToDo or (C=TPasRangeType)
+      or (C=TPasRangeType)
       then
     begin
     // user type  ->  module.$rtti[typename]
