@@ -1319,7 +1319,7 @@ implementation
     function is_big_untyped_addrnode(p: tnode): boolean;
       begin
         is_big_untyped_addrnode:=(p.nodetype=addrn) and
-	  not (nf_typedaddr in p.flags) and (taddrnode(p).left.resultdef.size > 1);
+          not (nf_typedaddr in p.flags) and (taddrnode(p).left.resultdef.size > 1);
       end;
 
 end.
