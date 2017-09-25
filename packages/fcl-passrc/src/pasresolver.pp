@@ -243,7 +243,7 @@ type
     btDouble,      // double  5.0E-324..1.7E308, digits 15-16, bytes 8
     btExtended,    // extended  platform, double or 1.9E-4932..1.1E4932, digits 19-20, bytes 10
     btCExtended,   // cextended
-    btCurrency,    // as int64, but least 4 digits are the decimals (*10000), bytes 8
+    btCurrency,    // as int64 div 10000, float, not ordinal
     btBoolean,     // boolean
     btByteBool,    // bytebool  true=not zero
     btWordBool,    // wordbool  true=not zero
@@ -261,7 +261,7 @@ type
     btIntDouble,   // integer range of double  53bit
     btQWord,       // qword   0..18446744073709551615, bytes 8
     btInt64,       // int64   -9223372036854775808..9223372036854775807, bytes 8
-    btComp,        // as Int64 but not ordinal
+    btComp,        // as Int64, not ordinal
     btPointer,     // pointer
     btFile,        // file
     btText,        // text
@@ -1384,6 +1384,7 @@ type
     procedure GetIntegerProps(bt: TResolverBaseType; out Precision: word; out Signed: boolean);
     function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64): boolean;
     function GetIntegerBaseType(Precision: word; Signed: boolean; ErrorEl: TPasElement): TResolverBaseType;
+    function GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt): TResolverBaseType;
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
   public
@@ -13001,9 +13002,9 @@ begin
         ComputeIdentifier(TPrimitiveExpr(El));
         end;
       pekNumber:
-        // ToDo: check if btByte, btSmallInt, btSingle, ...
         if Pos('.',TPrimitiveExpr(El).Value)>0 then
-          SetResolverValueExpr(ResolvedEl,btDouble,FBaseTypes[btDouble],TPrimitiveExpr(El),[rrfReadable])
+          SetResolverValueExpr(ResolvedEl,BaseTypeExtended,FBaseTypes[BaseTypeExtended],
+                               TPrimitiveExpr(El),[rrfReadable])
         else
           SetResolverValueExpr(ResolvedEl,btLongint,FBaseTypes[btLongint],TPrimitiveExpr(El),[rrfReadable]);
       pekString:
@@ -13861,6 +13862,50 @@ begin
     if BaseTypes[Result]<>nil then exit;
     end;
   RaiseRangeCheck(20170420100336,ErrorEl);
+end;
+
+function TPasResolver.GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt
+  ): TResolverBaseType;
+var
+  V: MaxPrecInt;
+begin
+  if MinVal>MaxVal then
+    MinVal:=MaxVal;
+  if MinVal<0 then
+    begin
+    if MaxVal>-(MinVal+1) then
+      V:=MaxVal
+    else
+      V:=-(MinVal+1);
+    if V<=high(ShortInt) then
+      Result:=btShortInt
+    else if V<=high(SmallInt) then
+      Result:=btSmallInt
+    else if (BaseTypes[btIntSingle]<>nil) and (V<MaxSafeIntSingle) then
+      Result:=btIntSingle
+    else if V<=High(Longint) then
+      Result:=btLongint
+    else if (BaseTypes[btIntDouble]<>nil) and (V<MaxSafeIntDouble) then
+      Result:=btIntDouble
+    else
+      Result:=btInt64;
+    end
+  else
+    begin
+    V:=MaxVal;
+    if V<=high(Byte) then
+      Result:=btByte
+    else if V<=high(Word) then
+      Result:=btWord
+    else if (BaseTypes[btUIntSingle]<>nil) and (V<MaxSafeIntSingle) then
+      Result:=btUIntSingle
+    else if V<=High(LongWord) then
+      Result:=btLongWord
+    else if (BaseTypes[btUIntDouble]<>nil) and (V<MaxSafeIntDouble) then
+      Result:=btUIntDouble
+    else
+      Result:=btInt64;
+    end;
 end;
 
 function TPasResolver.GetCombinedChar(const Char1, Char2: TPasResolverResult;

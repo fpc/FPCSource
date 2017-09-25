@@ -663,6 +663,7 @@ begin
   else if C=TPasEnumType then
   else if C=TPasSetType then
     UsePublished(TPasSetType(El).EnumType)
+  else if C=TPasRangeType then
   else if C=TPasArrayType then
     begin
     UsePublished(TPasArrayType(El).ElType);
@@ -699,7 +700,12 @@ begin
       UsePublished(TPasFunctionType(El).ResultEl.ResultType);
     end
   else
+    begin
+    {$IFDEF VerbosePasAnalyzer}
+    writeln('TPasAnalyzer.UsePublished ',GetObjName(El));
+    {$ENDIF}
     RaiseNotSupported(20170414153904,El);
+    end;
 end;
 
 procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
@@ -1452,8 +1458,7 @@ begin
       UseExpr(Prop.IndexExpr);
       // ToDo: Prop.ImplementsFunc
       // ToDo: Prop.DispIDExpr
-      UseExpr(Prop.StoredAccessor);
-      UseExpr(Prop.DefaultExpr);
+      // see UsePublished: Prop.StoredAccessor, Prop.DefaultExpr
       end;
     end
   else

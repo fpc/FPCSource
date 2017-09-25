@@ -57,6 +57,7 @@ type
     procedure TestM_RepeatUntilStatement;
     procedure TestM_TryFinallyStatement;
     procedure TestM_TypeAlias;
+    procedure TestM_RangeType;
     procedure TestM_Unary;
     procedure TestM_Const;
     procedure TestM_Record;
@@ -497,6 +498,25 @@ begin
   Add('  {#c_notused}c: integer;');
   Add('begin');
   Add('  a:=b;');
+  Add('end;');
+  Add('begin');
+  Add('  DoIt;');
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_RangeType;
+begin
+  StartProgram(false);
+  Add('procedure {#DoIt_used}DoIt;');
+  Add('const');
+  Add('  {#neg1_used}Neg1 = -1;');
+  Add('  {#pos1_used}Pos1 = +1;');
+  Add('type');
+  Add('  {#trg_used}TRg = Neg1..Pos1;');
+  Add('var');
+  Add('  {#a_used}a: trg;');
+  Add('begin');
+  Add('  a:=0;');
   Add('end;');
   Add('begin');
   Add('  DoIt;');
