@@ -2746,7 +2746,7 @@ begin
                  Writeln(['Assembler name : ',getstring]);
                toaddr :
                  begin
-                   Write(['Address : ',getaword]);
+                   Write(['Address : ',getpuint]);
                    if tsystemcpu(ppufile.header.common.cpu)=cpu_i386 then
                      Write([' (Far: ',getbyte<>0,')']);
                    if tsystemcpu(ppufile.header.common.cpu)=cpu_i8086 then
