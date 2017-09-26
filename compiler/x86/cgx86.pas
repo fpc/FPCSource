@@ -2436,7 +2436,7 @@ unit cgx86;
 {$else x86_64}
         ((current_settings.fputype>=fpu_sse)
 {$endif x86_64}
-          or (CPUX86_HAS_SSEUNIT in cpu_capabilities[current_settings.cputype])) and
+          or (CPUX86_HAS_SSE2 in cpu_capabilities[current_settings.cputype])) and
          ((len=8) or (len=16) or (len=24) or (len=32) or (len=40) or (len=48)) then
          cm:=copy_mm
       else
