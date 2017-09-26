@@ -93,7 +93,8 @@ procedure ini_dummy;
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     movq SysInitEntryInformation@GOTPCREL(%rip),%rcx
 
-    movl %rsi,TEntryInformation.OS.argc(%rcx)
+    { argc is longint in EntryInformation, thus use %edi register }
+    movl %esi,TEntryInformation.OS.argc(%rcx)
     movq %rsp,TEntryInformation.OS.argv(%rcx)
     movq %rsp,(%rax)
     leaq 8(,%rsi,8),%rax
