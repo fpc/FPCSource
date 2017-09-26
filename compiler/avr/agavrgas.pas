@@ -104,7 +104,7 @@ unit agavrgas;
                     NR_R30:
                       s:=s+'Z';
                     else
-                      s:=gas_regname(base);
+                      s:=s+gas_regname(base);
                   end;
                   if addressmode=AM_POSTINCREMENT then
                     s:=s+'+';
@@ -112,7 +112,7 @@ unit agavrgas;
                   if offset>0 then
                     s:=s+'+'+tostr(offset)
                   else if offset<0 then
-                    s:=s+tostr(offset)
+                    s:=s+tostr(offset);
                 end
               else if assigned(symbol) or (offset<>0) then
                 begin
@@ -157,9 +157,8 @@ unit agavrgas;
                 begin
                   hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
                   if o.ref^.offset>0 then
-                   hs:=hs+'+'+tostr(o.ref^.offset)
-                  else
-                   if o.ref^.offset<0 then
+                    hs:=hs+'+'+tostr(o.ref^.offset)
+                  else if o.ref^.offset<0 then
                     hs:=hs+tostr(o.ref^.offset);
                   getopstr:=hs;
                 end

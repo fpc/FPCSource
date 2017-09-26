@@ -514,9 +514,19 @@ Unit raavrgas;
                   oper.opr.typ:=OPR_REFERENCE;
 
                   reference_reset_base(oper.opr.ref,tempreg,0,1,[]);
-                  oper.opr.ref.addressmode:=AM_POSTINCREMENT;
 
-                  consume(AS_PLUS);
+                  { add a constant expression? }
+                  if actasmtoken=AS_PLUS then
+                    begin
+                      consume(AS_PLUS);
+                      if actasmtoken in [AS_INTNUM,AS_ID] then
+                        begin
+                          l:=BuildConstExpression(true,false);
+                          inc(oper.opr.ref.offset,l);
+                        end
+                      else
+                        oper.opr.ref.addressmode:=AM_POSTINCREMENT;
+                    end;
                 end
               else if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                 Begin
