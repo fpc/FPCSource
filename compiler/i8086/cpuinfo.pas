@@ -160,7 +160,8 @@ Const
 type
    tcpuflags =
       (CPUX86_HAS_CMOV,
-       CPUX86_HAS_SSEUNIT
+       CPUX86_HAS_SSEUNIT,
+       CPUX86_HAS_SSE2
       );
 
  const
@@ -174,8 +175,8 @@ type
      { cpu_Pentium   } [],
      { cpu_Pentium2  } [CPUX86_HAS_CMOV],
      { cpu_Pentium3  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
-     { cpu_Pentium4  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
-     { cpu_PentiumM  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT]
+     { cpu_Pentium4  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
+     { cpu_PentiumM  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2]
    );
 
    x86_near_code_models = [mm_tiny,mm_small,mm_compact];
