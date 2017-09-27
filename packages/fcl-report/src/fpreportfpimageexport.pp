@@ -249,8 +249,16 @@ begin
   FreeAndNil(FCanvas);
   FreeAndNil(FHelper);
   FreeAndNil(FImage);
-  FImageWidth := mmToPixels(APage.PageSize.Width);
-  FImageHeight := mmToPixels(APage.PageSize.Height);
+  if APage.Orientation = poLandscape then
+  begin
+    FImageWidth := mmToPixels(APage.PageSize.Height);
+    FImageHeight := mmToPixels(APage.PageSize.Width);
+  end
+  else
+  begin
+    FImageWidth := mmToPixels(APage.PageSize.Width);
+    FImageHeight := mmToPixels(APage.PageSize.Height);
+  end;
   FImage:=CreateImage(FImageWidth,FImageHeight);
   FCanvas:=CreateCanvas(FImage);
   FHelper:=TFPReportCanvasHelper.Create(FCanvas,DPI);
