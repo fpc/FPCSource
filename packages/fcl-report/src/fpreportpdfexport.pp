@@ -717,12 +717,13 @@ begin
     end;  { case PaperName }
     pg.UnitOfMeasure := uomMillimeters; { report measurements are always in millimeter units }
 
+    // This must appear before configuring the pg.Matrix
+    if rpage.Orientation = poLandscape then
+      pg.Orientation := ppoLandscape;
+
     // Convert from the Cartesian coordinate system to the Screen coordinate system
     pg.Matrix.SetYScalation(-1);
     pg.Matrix.SetYTranslation(pg.GetPaperHeight);
-
-    if rpage.Orientation = poLandscape then
-      pg.Orientation := ppoLandscape;
 
     for b := 0 to (rpage.BandCount - 1) do
       begin
