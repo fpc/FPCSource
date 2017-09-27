@@ -437,6 +437,9 @@ type
     Procedure TestExternalClass_BracketAccessor_MultiType;
     Procedure TestExternalClass_BracketAccessor_Index;
 
+    // class interfaces
+    Procedure TestClassInterface_Ignore;
+
     // proc types
     Procedure TestProcType;
     Procedure TestProcType_FunctionFPC;
@@ -3031,8 +3034,10 @@ begin
   Add('  s:=str(e);');
   Add('  str(e,s);');
   Add('  s:=str(e:3);');
+  Add('  e:=TMyEnum(i);');
+  Add('  i:=longint(e);');
   ConvertProgram;
-  CheckSource('TestEnumNumber',
+  CheckSource('TestEnum_Functions',
     LinesToStr([ // statements
     'this.TMyEnum = {',
     '  "0":"Red",',
@@ -3061,6 +3066,8 @@ begin
     '$mod.s = $mod.TMyEnum[$mod.e];',
     '$mod.s = $mod.TMyEnum[$mod.e];',
     '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3);',
+    '$mod.e=$mod.i;',
+    '$mod.i=$mod.e;',
     '']));
 end;
 
@@ -10539,6 +10546,58 @@ begin
     '$mod.v = $mod.Arr[$mod.i];',
     '$mod.Arr[Math.floor($mod.v)] = $mod.Arr[$mod.IntArr[0]];',
     '$mod.Arr[$mod.IntArr[1]] = $mod.Arr[$mod.IntArr[2]];',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_Ignore;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  TGUID = record end;',
+  '  IUnknown = interface;',
+  '  IUnknown = interface',
+  '    [''{00000000-0000-0000-C000-000000000046}'']',
+  '    function QueryInterface(const iid : tguid;out obj) : longint;',
+  '    function _AddRef : longint; cdecl;',
+  '    function _Release : longint; stdcall;',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  TObject = class',
+  '    ClassName: string;',
+  '  end;',
+  '  TInterfacedObject = class(TObject,IUnknown)',
+  '    RefCount : longint;',
+  '  end;',
+  'var i: TInterfacedObject;',
+  'begin',
+  '  i.ClassName:=''a'';',
+  '  i.RefCount:=3;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Ignore',
+    LinesToStr([ // statements
+    'this.TGUID = function (s) {',
+    '};',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.ClassName = "";',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TInterfacedObject", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.RefCount = 0;',
+    '  };',
+    '});',
+    'this.i = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.i.ClassName = "a";',
+    '$mod.i.RefCount = 3;',
     '']));
 end;
 

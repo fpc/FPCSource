@@ -798,7 +798,8 @@ const
   msAllPas2jsModeSwitches = msAllPas2jsModeSwitchesReadOnly+[
     msDelphi,msObjfpc,
     msHintDirective,msNestedComment,
-    msExternalClass];
+    msExternalClass,
+    msIgnoreInterfaces];
 
   btAllJSBaseTypes = [
     btChar,
@@ -1789,6 +1790,8 @@ begin
       begin
       ClassEl:=TPasClassType(El);
       if ClassEl.IsForward then continue;
+      if ClassEl.ObjKind=okInterface then
+        exit;
       ClassScope:=El.CustomData as TPas2JSClassScope;
       OldScopeCount:=FOverloadScopes.Count;
 
@@ -6048,6 +6051,15 @@ begin
       Result:=CondExpr;
       exit;
       end
+    else if ParamResolved.BaseType=btContext then
+      begin
+      if ParamResolved.TypeEl.ClassType=TPasEnumType then
+        begin
+        // e.g. longint(TEnum) -> value
+        Result:=ConvertElement(Param,AContext);
+        exit;
+        end;
+      end
     else if IsParamPas2JSBaseType then
       begin
       if JSBaseType=pbtJSValue then
@@ -7950,6 +7962,10 @@ var
   AssignSt: TJSSimpleAssignStatement;
 begin
   Result:=nil;
+  if El.ObjKind=okInterface then
+    exit;
+  if El.ObjKind<>okClass then
+    RaiseNotSupported(El,AContext,20170927183645);
   if El.IsForward then
     begin
     Result:=ConvertClassForwardType(El,AContext);
