@@ -2215,6 +2215,9 @@ implementation
 
 
    procedure tstoreddef.register_def;
+     var
+       gst : tgetsymtable;
+       st : tsymtable;
      begin
        if registered then
          exit;
@@ -2222,6 +2225,12 @@ implementation
        if assigned(current_module) then
          begin
            exclude(defoptions,df_not_registered_no_free);
+           for gst:=low(tgetsymtable) to high(tgetsymtable) do
+             begin
+               st:=getsymtable(gst);
+               if assigned(st) then
+                 tstoredsymtable(st).register_children;
+             end;
            if defid<defid_not_registered then
              defid:=deflist_index
            else
