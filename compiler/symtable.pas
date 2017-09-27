@@ -42,6 +42,8 @@ interface
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure check_forward(sym:TObject;arg:pointer);
           procedure check_block_valid(def: TObject;arg:pointer);
+          procedure register_defs(def:tobject;arg:pointer);
+          procedure register_syms(sym:tobject;arg:pointer);
           procedure labeldefined(sym:TObject;arg:pointer);
           procedure varsymbolused(sym:TObject;arg:pointer);
           procedure TestPrivate(sym:TObject;arg:pointer);
@@ -70,6 +72,7 @@ interface
           procedure checklabels;
           function  needs_init_final : boolean;
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
+          procedure register_children;
        end;
 
 {$ifdef llvm}
@@ -872,6 +875,18 @@ implementation
       end;
 
 
+    procedure tstoredsymtable.register_syms(sym:tobject;arg:pointer);
+      begin
+        tsym(sym).register_sym;
+      end;
+
+
+    procedure tstoredsymtable.register_defs(def:tobject;arg:pointer);
+      begin
+        tdef(def).register_def;
+      end;
+
+
     procedure TStoredSymtable.labeldefined(sym:TObject;arg:pointer);
       begin
         if (tsym(sym).typ=labelsym) and
@@ -1008,6 +1023,13 @@ implementation
         if (tsym(sym).typ=propertysym) and
            (ppo_defaultproperty in tpropertysym(sym).propoptions) then
           ppointer(arg)^:=sym;
+     end;
+
+
+   procedure tstoredsymtable.register_children;
+     begin
+       SymList.ForEachCall(@register_syms,nil);
+       DefList.ForEachCall(@register_defs,nil);
      end;
 
 
