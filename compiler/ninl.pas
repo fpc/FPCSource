@@ -4638,6 +4638,8 @@ implementation
            if tf_winlikewidestring in target_info.flags then
              write_system_parameter_lists('fpc_widestr_insert');
            write_system_parameter_lists('fpc_ansistr_insert');
+           MessagePos1(fileinfo,sym_e_param_list,'Insert(Dynamic Array;var Dynamic Array;'+sinttype.typename+');');
+           MessagePos1(fileinfo,sym_e_param_list,'Insert(Element;var Dynamic Array;'+sinttype.typename+');');
          end;
 
        var
