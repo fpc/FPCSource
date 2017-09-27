@@ -49,7 +49,7 @@ interface
                      TDef
 ************************************************}
 
-      tgeTSymtable = (gs_none,gs_record,gs_local,gs_para);
+      tgetsymtable = (gs_none,gs_record,gs_local,gs_para);
 
       tdef = class(TDefEntry)
         protected
@@ -84,7 +84,7 @@ interface
          function  structalignment:shortint;virtual;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
-         function  geTSymtable(t:tgeTSymtable):TSymtable;virtual;
+         function  getsymtable(t:tgetsymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
@@ -362,7 +362,7 @@ implementation
       end;
 
 
-    function tdef.geTSymtable(t:tgeTSymtable):TSymtable;
+    function tdef.getsymtable(t:tgetsymtable):TSymtable;
       begin
         result:=nil;
       end;
