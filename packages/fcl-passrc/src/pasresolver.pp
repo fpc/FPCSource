@@ -1387,6 +1387,7 @@ type
     function GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt): TResolverBaseType;
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
+    function IsElementSkipped(El: TPasElement): boolean; virtual;
   public
     // options
     property Options: TPasResolverOptions read FOptions write FOptions;
@@ -3457,7 +3458,10 @@ procedure TPasResolver.FinishConstDef(El: TPasConst);
 begin
   ResolveExpr(El.Expr,rraRead);
   if El.VarType<>nil then
-    CheckAssignCompatibility(El,El.Expr,true)
+    begin
+    CheckAssignCompatibility(El,El.Expr,true);
+    EmitTypeHints(El,El.VarType);
+    end
   else
     Eval(El.Expr,[refConst])
 end;
@@ -3609,6 +3613,9 @@ begin
 
     if not IsValidIdent(ProcName) then
       RaiseNotYetImplemented(20160922163407,El);
+
+    if El is TPasFunctionType then
+      EmitTypeHints(TPasFunctionType(El).ResultEl,TPasFunctionType(El).ResultEl.ResultType);
 
     if Proc.LibraryExpr<>nil then
       ResolveExpr(Proc.LibraryExpr,rraRead);
@@ -4405,7 +4412,12 @@ begin
   if aClass.IsForward then
     exit;
   if aClass.ObjKind<>okClass then
+    begin
+    if (aClass.ObjKind=okInterface)
+        and (msIgnoreInterfaces in CurrentParser.CurrentModeswitches) then
+      exit;
     RaiseNotYetImplemented(20161010174638,aClass,'Kind='+ObjKindNames[aClass.ObjKind]);
+    end;
 
   IsSealed:=false;
   for i:=0 to aClass.Modifiers.Count-1 do
@@ -4443,7 +4455,10 @@ begin
   else
     begin
     AncestorEl:=TPasClassType(AncestorType);
-    EmitTypeHints(aClass,AncestorEl);
+    if AncestorEl.ObjKind<>okClass then
+      AncestorEl:=nil
+    else
+      EmitTypeHints(aClass,AncestorEl);
     end;
 
   AncestorClassScope:=nil;
@@ -4502,6 +4517,8 @@ begin
   CanonicalSelf.Visibility:=visStrictPrivate;
   CanonicalSelf.SourceFilename:=aClass.SourceFilename;
   CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
+
+  // ToDo: interfaces
 end;
 
 procedure TPasResolver.FinishPropertyParamAccess(Params: TParamsExpr;
@@ -4542,6 +4559,8 @@ end;
 
 function TPasResolver.EmitElementHints(PosEl, El: TPasElement): boolean;
 begin
+  if IsElementSkipped(El) then
+    RaiseMsg(20170927160030,nNotYetImplemented,sNotYetImplemented,[GetObjName(El)],PosEl);
   if El.Hints=[] then exit(false);
   Result:=true;
   if hDeprecated in El.Hints then
@@ -5923,6 +5942,7 @@ var
   Proc: TPasProcedure;
   aClassType: TPasClassType;
 begin
+  if IsElementSkipped(El) then exit;
   if El is TPasDeclarations then
     begin
     for i:=0 to TPasDeclarations(El).Declarations.Count-1 do
@@ -9262,6 +9282,8 @@ begin
   if FRootElement=nil then
     FRootElement:=Result as TPasModule;
 
+  if IsElementSkipped(El) then exit;
+
   // create scope
   if (AClass=TPasVariable)
       or (AClass=TPasConst) then
@@ -9797,6 +9819,7 @@ end;
 
 procedure TPasResolver.FinishScope(ScopeType: TPasScopeType; El: TPasElement);
 begin
+  if IsElementSkipped(El) then exit;
   case ScopeType of
   stModule: FinishModule(El as TPasModule);
   stUsesClause: FinishUsesClause;
@@ -11654,11 +11677,15 @@ end;
 
 function TPasResolver.ResolvedElIsClassInstance(
   const ResolvedEl: TPasResolverResult): boolean;
+var
+  TypeEl: TPasType;
 begin
   Result:=false;
   if ResolvedEl.BaseType<>btContext then exit;
-  if ResolvedEl.TypeEl=nil then exit;
-  if ResolvedEl.TypeEl.ClassType<>TPasClassType then exit;
+  TypeEl:=ResolvedEl.TypeEl;
+  if TypeEl=nil then exit;
+  if TypeEl.ClassType<>TPasClassType then exit;
+  if TPasClassType(TypeEl).ObjKind<>okClass then exit;
   if (ResolvedEl.IdentEl is TPasVariable)
       or (ResolvedEl.IdentEl.ClassType=TPasArgument)
       or (ResolvedEl.IdentEl.ClassType=TPasResultElement) then
@@ -12571,7 +12598,13 @@ begin
           if FromResolved.BaseType in btAllInteger then
             Result:=cCompatible
           else if FromResolved.BaseType in btAllBooleans then
-            Result:=cCompatible;
+            Result:=cCompatible
+          else if FromResolved.BaseType=btContext then
+            begin
+            if FromResolved.TypeEl.ClassType=TPasEnumType then
+              // e.g. longint(TEnum)
+              Result:=cCompatible;
+            end;
           end
         else if ToTypeBaseType in btAllFloats then
           begin
@@ -13985,6 +14018,25 @@ begin
     Result:=btChar
   else if Result=BaseTypeString then
     Result:=btString;
+end;
+
+function TPasResolver.IsElementSkipped(El: TPasElement): boolean;
+var
+  C: TClass;
+  aClass: TPasClassType;
+begin
+  while El<>nil do
+    begin
+    C:=El.ClassType;
+    if C.ClassType=TPasClassType then
+      begin
+      aClass:=TPasClassType(El);
+      if aClass.ObjKind=okInterface then
+        exit(true);
+      end;
+    El:=El.Parent;
+    end;
+  Result:=false;
 end;
 
 function TPasResolver.CheckSrcIsADstType(const ResolvedSrcType,

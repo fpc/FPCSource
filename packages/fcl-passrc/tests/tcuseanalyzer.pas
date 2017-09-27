@@ -72,6 +72,7 @@ type
     procedure TestM_Class_PropertyOverride;
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
+    procedure TestM_ClassInterface_Ignore;
     procedure TestM_TryExceptStatement;
 
     // single module hints
@@ -825,6 +826,35 @@ begin
   Add('begin');
   Add('  o.DoA;');
   Add('  o:=TMobile.Create;'); // use TMobile after o.DoA
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_ClassInterface_Ignore;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  TGUID = record end;',
+  '  IUnknown = interface;',
+  '  IUnknown = interface',
+  '    [''{00000000-0000-0000-C000-000000000046}'']',
+  '    function QueryInterface(const iid : tguid;out obj) : longint;',
+  '    function _AddRef : longint; cdecl;',
+  '    function _Release : longint; stdcall;',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  TObject = class',
+  '    ClassName: string;',
+  '  end;',
+  '  TInterfacedObject = class(TObject,IUnknown)',
+  '    RefCount : longint;',
+  '  end;',
+  'var i: TInterfacedObject;',
+  'begin',
+  '  i.ClassName:=''a'';',
+  '  i.RefCount:=3;',
+  '']);
   AnalyzeProgram;
 end;
 

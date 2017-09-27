@@ -1287,6 +1287,9 @@ var
   ClassScope: TPasClassScope;
   Ref: TResolvedReference;
 begin
+  if El.ObjKind=okInterface then
+    exit;
+
   FirstTime:=true;
   case Mode of
   paumAllExports: exit;

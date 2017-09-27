@@ -520,6 +520,12 @@ type
     Procedure TestDefaultProperty;
     Procedure TestMissingDefaultProperty;
 
+    // class interfaces
+    Procedure TestIgnoreInterfaces;
+    Procedure TestInterfaceVarFail;
+    Procedure TestInterfaceArgFail;
+    Procedure TestInterfaceFunctionResultFail;
+
     // with
     Procedure TestWithBlock1;
     Procedure TestWithBlock2;
@@ -738,9 +744,9 @@ begin
       aRow:=E.Row;
       aCol:=E.Column;
       WriteSources(aFilename,aRow,aCol);
-      writeln('ERROR: TTestResolver.ParseProgram Parser: '+E.ClassName+':'+E.Message
-        +' Scanner at'
-        +' at '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')'
+      writeln('ERROR: TTestResolver.ParseProgram Parser: '+E.ClassName+':'+E.Message,
+        ' Scanner at'
+        +' '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+')'
         +' Line="'+Scanner.CurLine+'"');
       Fail(E.Message);
       end;
@@ -2636,6 +2642,7 @@ begin
   Add('var');
   Add('  {#f}{=TFlag}f: TFlag;');
   Add('  {#v}{=TFlag}v: TFlag = Green;');
+  Add('  {#i}i: longint;');
   Add('begin');
   Add('  {@f}f:={@Red}Red;');
   Add('  {@f}f:={@v}v;');
@@ -2648,6 +2655,8 @@ begin
   Add('  if {@f}f<>{@v}v then ;');
   Add('  if ord({@f}f)<>ord({@Red}Red) then ;');
   Add('  {@f}f:={@TFlag}TFlag.{@Red}Red;');
+  Add('  {@f}f:={@TFlag}TFlag({@i}i);');
+  Add('  {@i}i:=longint({@f}f);');
   ParseProgram;
 end;
 
@@ -8334,6 +8343,77 @@ begin
   Add('  if o[5]=6 then;');
   CheckResolverException('illegal qualifier "["',
     nIllegalQualifier);
+end;
+
+procedure TTestResolver.TestIgnoreInterfaces;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  TGUID = record end;',
+  '  IUnknown = interface;',
+  '  IUnknown = interface',
+  '    [''{00000000-0000-0000-C000-000000000046}'']',
+  '    function QueryInterface(const iid : tguid;out obj) : longint;',
+  '    function _AddRef : longint; cdecl;',
+  '    function _Release : longint; stdcall;',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  TObject = class',
+  '    ClassName: string;',
+  '  end;',
+  '  TInterfacedObject = class(TObject,IUnknown)',
+  '    RefCount : longint;',
+  '  end;',
+  'var i: TInterfacedObject;',
+  'begin',
+  '  i.ClassName:=''a'';',
+  '  i.RefCount:=3;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestInterfaceVarFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  'var i: IUnknown;',
+  'begin',
+  '']);
+  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
+end;
+
+procedure TTestResolver.TestInterfaceArgFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  'procedure DoIt(i: IUnknown); begin end;',
+  'begin',
+  '']);
+  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
+end;
+
+procedure TTestResolver.TestInterfaceFunctionResultFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  'function DoIt: IUnknown; begin end;',
+  'begin',
+  '']);
+  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
 end;
 
 procedure TTestResolver.TestPropertyAssign;
