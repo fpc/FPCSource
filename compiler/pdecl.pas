@@ -743,6 +743,10 @@ implementation
                   of the defs in the def list of the module}
                 ttypesym(sym).typedef:=hdef;
               newtype.typedef:=hdef;
+              { ensure that the type is registered when no specialization is
+                currently done }
+              if current_scanner.replay_stack_depth=0 then
+                hdef.register_def;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in current_settings.moduleswitches) and
                  assigned(hdef) and
