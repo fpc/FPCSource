@@ -4628,6 +4628,18 @@ implementation
        end;
 
      function tinlinenode.handle_insert: tnode;
+
+       procedure do_error;
+         begin
+           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Insert');
+           write_system_parameter_lists('fpc_shortstr_insert');
+           write_system_parameter_lists('fpc_shortstr_insert_char');
+           write_system_parameter_lists('fpc_unicodestr_insert');
+           if tf_winlikewidestring in target_info.flags then
+             write_system_parameter_lists('fpc_widestr_insert');
+           write_system_parameter_lists('fpc_ansistr_insert');
+         end;
+
        var
          procname : String;
          c : longint;
@@ -4646,6 +4658,14 @@ implementation
          insertblock : tblocknode;
          insertstatement : tstatementnode;
        begin
+         if not assigned(left) or
+             not assigned(tcallparanode(left).right) or
+             not assigned(tcallparanode(tcallparanode(left).right).right) or
+             assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
+           begin
+             do_error;
+             exit(cerrornode.create);
+           end;
          { determine the correct function based on the second parameter }
          firstn:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left;
          first:=firstn.resultdef;
@@ -4733,13 +4753,7 @@ implementation
            procname:='fpc_ansistr_insert'
          else
            begin
-             CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Insert');
-             write_system_parameter_lists('fpc_shortstr_insert');
-             write_system_parameter_lists('fpc_shortstr_insert_char');
-             write_system_parameter_lists('fpc_unicodestr_insert');
-             if tf_winlikewidestring in target_info.flags then
-               write_system_parameter_lists('fpc_widestr_insert');
-             write_system_parameter_lists('fpc_ansistr_insert');
+             do_error;
              exit(cerrornode.create);
            end;
          result:=ccallnode.createintern(procname,left);
@@ -4747,12 +4761,32 @@ implementation
        end;
 
      function tinlinenode.handle_delete: tnode;
+
+       procedure do_error;
+         begin
+           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
+           write_system_parameter_lists('fpc_shortstr_delete');
+           write_system_parameter_lists('fpc_unicodestr_delete');
+           if tf_winlikewidestring in target_info.flags then
+             write_system_parameter_lists('fpc_widestr_delete');
+           write_system_parameter_lists('fpc_ansistr_delete');
+           MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
+         end;
+
        var
          procname : String;
          first : tdef;
          firstn,
          newn : tnode;
        begin
+         if not assigned(left) or
+             not assigned(tcallparanode(left).right) or
+             not assigned(tcallparanode(tcallparanode(left).right).right) or
+             assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
+           begin
+             do_error;
+             exit(cerrornode.create);
+           end;
          { determine the correct function based on the first parameter }
          firstn:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left;
          first:=firstn.resultdef;
@@ -4784,13 +4818,7 @@ implementation
            procname:='fpc_ansistr_delete'
          else
            begin
-             CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
-             write_system_parameter_lists('fpc_shortstr_delete');
-             write_system_parameter_lists('fpc_unicodestr_delete');
-             if tf_winlikewidestring in target_info.flags then
-               write_system_parameter_lists('fpc_widestr_delete');
-             write_system_parameter_lists('fpc_ansistr_delete');
-             MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
+             do_error;
              exit(cerrornode.create);
            end;
          result:=ccallnode.createintern(procname,left);
