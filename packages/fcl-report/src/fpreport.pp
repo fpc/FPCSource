@@ -844,7 +844,7 @@ type
     FUseParentFont: boolean;
     FVisibleOnPage: TFPReportVisibleOnPage;
     FFont: TFPReportFont;
-    FIsOverlowed: Boolean;
+    FIsOverflowed: Boolean;
     function    GetFont: TFPReportFont;
     function    IsStringValueZero(const AValue: string): boolean;
     procedure   SetChildBand(AValue: TFPReportChildBand);
@@ -9685,7 +9685,7 @@ begin
     if lGrp.ReprintedHeader and
     ( not lGrp.GroupChanged or
     lGrp.FNeedsReprintedHeader) and
-    ( not lGrp.GroupFooter.FIsOverlowed or
+    ( not lGrp.GroupFooter.FIsOverflowed or
       lGrp.OverflowedFooterNeedsReprintedHeader ) then
     begin
       Report.FRTInRepeatedGroupHeader := True;
@@ -10569,7 +10569,7 @@ var
         //writeln('   part move to next page');
       end;
       { set state variable }
-      aBand.FIsOverlowed := True;
+      aBand.FIsOverflowed := True;
       { do not handle overflowe in CheckNewOrOverFlow }
       FOverflowed := False;
     end;
@@ -10662,7 +10662,7 @@ begin
     (lHandledBands.Count > 0) then
       TFPReportCustomGroupHeaderBand(aBand).StoreRTBands(lHandledBands);
 
-    aBand.FIsOverlowed := False;
+    aBand.FIsOverflowed := False;
     Report.FRTIsOverflowed := False;
     aBand.AfterPrintWithChilds;
   finally
