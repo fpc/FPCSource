@@ -169,6 +169,7 @@ type
     Procedure TestFunctionAlias;
     Procedure TestOperatorTokens;
     procedure TestOperatorNames;
+    Procedure TestAssignOperatorAfterObject;
     Procedure TestFunctionNoResult;
   end;
 
@@ -1289,6 +1290,24 @@ begin
       else
         AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
       end;
+end;
+
+procedure TTestProcedureFunction.TestAssignOperatorAfterObject;
+begin
+  Add('unit afile;');
+  Add('{$mode delphi}');
+  Add('interface');
+  Add('type');
+  Add('  TA =object');
+  Add('      data:integer;');
+  Add('      function transpose:integer;');
+  Add('  end;');
+  Add('');
+  Add('operator := (const v:Tvector2_single) result:Tvector2_double;');
+  Add('implementation');
+  EndSource;
+  Parser.Options:=[po_delphi];
+  ParseModule;
 end;
 
 procedure TTestProcedureFunction.TestFunctionNoResult;

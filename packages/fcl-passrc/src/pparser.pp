@@ -2943,7 +2943,7 @@ begin
   CurBlock := declNone;
   while True do
   begin
-    if CurBlock in [DeclNone,declConst] then
+    if CurBlock in [DeclNone,declConst,declType] then
       Scanner.SetTokenOption(toOperatorToken)
     else
       Scanner.UnSetTokenOption(toOperatorToken);
@@ -3028,6 +3028,7 @@ begin
         end;
       tkIdentifier:
         begin
+          Scanner.UnSetTokenOption(toOperatorToken);
           SaveComments;
           case CurBlock of
             declConst:
