@@ -505,6 +505,7 @@ type
   TPScannerLogEvents = Set of TPScannerLogEvent;
   TPScannerDirectiveEvent = procedure(Sender: TObject; Directive, Param: String;
     var Handled: boolean) of object;
+  TPScannerFormatPathEvent = function(const aPath: string): string of object;
 
   TPascalScanner = class
   private
@@ -532,6 +533,7 @@ type
     FOnDirective: TPScannerDirectiveEvent;
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
+    FOnFormatPath: TPScannerFormatPathEvent;
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
@@ -598,7 +600,8 @@ type
   public
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
-    procedure OpenFile(const AFilename: string);
+    procedure OpenFile(AFilename: string);
+    function FormatPath(const aFilename: string): string; virtual;
     Procedure SetNonToken(aToken : TToken);
     Procedure UnsetNonToken(aToken : TToken);
     Procedure SetTokenOption(aOption : TTokenoption);
@@ -635,13 +638,14 @@ type
     property Macros: TStrings read FMacros;
     property MacrosOn: boolean read FMacrosOn write FMacrosOn;
     property OnDirective: TPScannerDirectiveEvent read FOnDirective write FOnDirective;
-    property AllowedModeSwitches: TModeSwitches Read FAllowedModeSwitches Write SetAllowedModeSwitches;
-    property ReadOnlyModeSwitches: TModeSwitches Read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
-    property CurrentModeSwitches: TModeSwitches Read FCurrentModeSwitches Write SetCurrentModeSwitches;
-    property Options : TPOptions Read FOptions Write SetOptions;
-    property ForceCaret : Boolean Read GetForceCaret;
-    property LogEvents : TPScannerLogEvents Read FLogEvents Write FLogEvents;
-    property OnLog : TPScannerLogHandler Read FOnLog Write FOnLog;
+    property AllowedModeSwitches: TModeSwitches read FAllowedModeSwitches Write SetAllowedModeSwitches;
+    property ReadOnlyModeSwitches: TModeSwitches read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
+    property CurrentModeSwitches: TModeSwitches read FCurrentModeSwitches Write SetCurrentModeSwitches;
+    property Options : TPOptions read FOptions write SetOptions;
+    property ForceCaret : Boolean read GetForceCaret;
+    property LogEvents : TPScannerLogEvents read FLogEvents write FLogEvents;
+    property OnLog : TPScannerLogHandler read FOnLog write FOnLog;
+    property OnFormatPath: TPScannerFormatPathEvent read FOnFormatPath write FOnFormatPath;
     property ConditionEval: TCondDirectiveEvaluator read FConditionEval;
     property OnEvalVariable: TCEEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
     property OnEvalFunction: TCEEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
@@ -2226,14 +2230,22 @@ begin
   FCurtokenString:=AValue;
 end;
 
-procedure TPascalScanner.OpenFile(const AFilename: string);
+procedure TPascalScanner.OpenFile(AFilename: string);
 begin
   Clearfiles;
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
-  if LogEvent(sleFile) then
-    DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[AFileName],True);
   FCurFilename := AFilename;
-  FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(AFilename));
+  FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
+  if LogEvent(sleFile) then
+    DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
+end;
+
+function TPascalScanner.FormatPath(const aFilename: string): string;
+begin
+  if Assigned(OnFormatPath) then
+    Result:=OnFormatPath(aFilename)
+  else
+    Result:=aFilename;
 end;
 
 procedure TPascalScanner.SetNonToken(aToken: TToken);
@@ -2416,14 +2428,16 @@ end;
 procedure TPascalScanner.Error(MsgNumber: integer; const Msg: string);
 begin
   SetCurMsg(mtError,MsgNumber,Msg,[]);
-  raise EScannerError.CreateFmt('%s(%d,%d) Error: %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
+  raise EScannerError.CreateFmt('%s(%d,%d) Error: %s',
+    [FormatPath(CurFilename),CurRow,CurColumn,FLastMsg]);
 end;
 
 procedure TPascalScanner.Error(MsgNumber: integer; const Fmt: string;
   Args: array of const);
 begin
   SetCurMsg(mtError,MsgNumber,Fmt,Args);
-  raise EScannerError.CreateFmt('%s(%d,%d) Error: %s',[CurFilename,CurRow,CurColumn,FLastMsg]);
+  raise EScannerError.CreateFmt('%s(%d,%d) Error: %s',
+    [FormatPath(CurFilename),CurRow,CurColumn,FLastMsg]);
 end;
 
 function TPascalScanner.DoFetchTextToken:TToken;
@@ -2532,7 +2546,7 @@ begin
   if FCurSourceFile is TFileLineReader then
     FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
   If LogEvent(sleFile) then
-    DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FCurFileName],True);
+    DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(FCurFileName)],True);
 end;
 
 function TPascalScanner.HandleMacro(AIndex : integer) : TToken;
@@ -3564,7 +3578,7 @@ begin
     if SkipSourceInfo then
       Msg:=Msg+FLastMsg
     else
-      Msg:=Msg+Format('%s(%d,%d) : %s',[FCurFileName,CurRow,CurColumn,FLastMsg]);
+      Msg:=Msg+Format('%s(%d,%d) : %s',[FormatPath(FCurFileName),CurRow,CurColumn,FLastMsg]);
     FOnLog(Self,Msg);
     end;
 end;

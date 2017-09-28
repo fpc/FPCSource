@@ -1252,7 +1252,8 @@ type
     // log and messages
     class procedure UnmangleSourceLineNumber(LineNumber: integer;
       out Line, Column: integer);
-    class function GetElementSourcePosStr(El: TPasElement): string;
+    class function GetDbgSourcePosStr(El: TPasElement): string;
+    function GetElementSourcePosStr(El: TPasElement): string;
     procedure SetLastMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
       Const Fmt : String; Args : Array of const; PosEl: TPasElement);
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
@@ -9869,13 +9870,25 @@ begin
   end;
 end;
 
-class function TPasResolver.GetElementSourcePosStr(El: TPasElement): string;
+class function TPasResolver.GetDbgSourcePosStr(El: TPasElement): string;
 var
   Line, Column: integer;
 begin
   if El=nil then exit('nil');
   UnmangleSourceLineNumber(El.SourceLinenumber,Line,Column);
   Result:=El.SourceFilename+'('+IntToStr(Line);
+  if Column>0 then
+    Result:=Result+','+IntToStr(Column);
+  Result:=Result+')';
+end;
+
+function TPasResolver.GetElementSourcePosStr(El: TPasElement): string;
+var
+  Line, Column: integer;
+begin
+  if El=nil then exit('nil');
+  UnmangleSourceLineNumber(El.SourceLinenumber,Line,Column);
+  Result:=CurrentParser.Scanner.FormatPath(El.SourceFilename)+'('+IntToStr(Line);
   if Column>0 then
     Result:=Result+','+IntToStr(Column);
   Result:=Result+')';
