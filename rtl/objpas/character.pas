@@ -114,7 +114,7 @@ type
     class function IsLetterOrDigit(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLetterOrDigit(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static; inline;
     
-    class function IsLower(AChar : UnicodeChar) : Boolean; overload; static; inline; inline;
+    class function IsLower(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLower(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static; inline;
 
     class function IsNumber(AChar : UnicodeChar) : Boolean; overload; static; inline;
