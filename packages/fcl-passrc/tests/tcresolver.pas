@@ -399,6 +399,7 @@ type
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
     Procedure TestClass_MethodOverloadAncestor;
     Procedure TestClass_MethodOverloadArrayOfTClass;
+    Procedure TestClass_ConstructorOverride;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
@@ -5940,6 +5941,31 @@ begin
   '  o.{@D}Builder(''fourth'');',
   '  o.{@E}Builder();',
   '  o.{@E}Builder;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_ConstructorOverride;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(o: tobject); virtual;',
+  '  end;',
+  '  TBird = class',
+  '    constructor Create(o: tobject); override;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '    constructor Create(o: tobject); override;',
+  '  end;',
+  'constructor tobject.Create(o: tobject); begin end;',
+  'constructor tbird.Create(o: tobject); begin end;',
+  'constructor teagle.Create(o: tobject); begin end;',
+  'var o: TEagle;',
+  'begin',
+  '  o:=TEagle.Create(nil);',
+  '  o:=TEagle.Create(o);',
   '']);
   ParseProgram;
 end;

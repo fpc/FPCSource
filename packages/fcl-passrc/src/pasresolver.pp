@@ -1375,6 +1375,7 @@ type
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
+    function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
@@ -2744,8 +2745,7 @@ begin
         end;
 
       // check if previous found proc is override of found proc
-      if (PrevProc.IsOverride)
-          and (TPasProcedureScope(PrevProc.CustomData).OverriddenProc=Proc) then
+      if IsProcOverride(Proc,PrevProc) then
         begin
         // previous found proc is override of found proc -> skip
         exit;
@@ -13687,6 +13687,22 @@ end;
 function TPasResolver.ProcNeedsParams(El: TPasProcedureType): boolean;
 begin
   Result:=(El.Args.Count>0) and (TPasArgument(El.Args[0]).ValueExpr=nil);
+end;
+
+function TPasResolver.IsProcOverride(AncestorProc, DescendantProc: TPasProcedure
+  ): boolean;
+var
+  Proc, OverriddenProc: TPasProcedure;
+begin
+  Result:=false;
+  Proc:=DescendantProc;
+  if not Proc.IsOverride then exit;
+  if not AncestorProc.IsOverride and not AncestorProc.IsVirtual then exit;
+  repeat
+    OverriddenProc:=TPasProcedureScope(Proc.CustomData).OverriddenProc;
+    if AncestorProc=OverriddenProc then exit(true);
+    Proc:=OverriddenProc;
+  until Proc=nil;
 end;
 
 function TPasResolver.GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
