@@ -8697,6 +8697,8 @@ begin
   Add('  b[1,2]:=5;');
   Add('  if b[2,1]=b[0,1] then ;');
   Add('  c[3][4]:=c[5,6];');
+  Add('  Setlength(c[3],7);');
+  Add('  Setlength(c,8,9);');
   ParseProgram;
 end;
 

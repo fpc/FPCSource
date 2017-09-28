@@ -8050,7 +8050,10 @@ function TPasResolver.BI_SetLength_OnGetCallCompatibility(
 var
   Params: TParamsExpr;
   Param: TPasExpr;
-  ParamResolved: TPasResolverResult;
+  ParamResolved, DimResolved: TPasResolverResult;
+  ArgNo: Integer;
+  DynArr: TPasArrayType;
+  ElType: TPasType;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,2,RaiseOnError) then
     exit(cIncompatible);
@@ -8060,6 +8063,7 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   Result:=cIncompatible;
+  DynArr:=nil;
   if ResolvedElCanBeVarParam(ParamResolved) then
     begin
     if ParamResolved.BaseType in btAllStrings then
@@ -8067,7 +8071,10 @@ begin
     else if ParamResolved.BaseType=btContext then
       begin
       if IsDynArray(ParamResolved.TypeEl) then
+        begin
         Result:=cExact;
+        DynArr:=ParamResolved.TypeEl as TPasArrayType;
+        end;
       end;
     end;
   if Result=cIncompatible then
@@ -8075,17 +8082,25 @@ begin
       'string or dynamic array variable',RaiseOnError));
 
   // second param: new length
-  Param:=Params.Params[1];
-  ComputeElement(Param,ParamResolved,[]);
-  Result:=cIncompatible;
-  if (rrfReadable in ParamResolved.Flags)
-      and (ParamResolved.BaseType in btAllInteger) then
-    Result:=cExact;
-  if Result=cIncompatible then
-    exit(CheckRaiseTypeArgNo(20170329160338,2,Param,ParamResolved,
-      'integer',RaiseOnError));
+  ArgNo:=2;
+  repeat
+    Param:=Params.Params[ArgNo-1];
+    ComputeElement(Param,DimResolved,[]);
+    Result:=cIncompatible;
+    if (rrfReadable in DimResolved.Flags)
+        and (DimResolved.BaseType in btAllInteger) then
+      Result:=cExact;
+    if Result=cIncompatible then
+      exit(CheckRaiseTypeArgNo(20170329160338,ArgNo,Param,DimResolved,
+        'integer',RaiseOnError));
+    if (DynArr=nil) or (ArgNo=length(Params.Params)) then break;
+    ElType:=ResolveAliasType(DynArr.ElType);
+    if not IsDynArray(ElType) then break;
+    DynArr:=ElType as TPasArrayType;
+    inc(ArgNo);
+  until false;
 
-  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,ArgNo,RaiseOnError);
 end;
 
 procedure TPasResolver.BI_SetLength_OnFinishParamsExpr(
