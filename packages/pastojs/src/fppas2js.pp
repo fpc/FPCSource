@@ -113,7 +113,7 @@ Works:
 - dynamic arrays
   - arrays can be null
   - init as "arr = []"  so typeof works
-  - SetLength(arr,len) becomes  arr = SetLength(arr,len,defaultvalue)
+  - SetLength(arr,dim1,...) becomes  arr = rtl.arraySetLength(arr,defaultvalue,dim1,dim2,...)
   - length(), low(), high(), assigned(), concat()
   - assign nil -> []  so typeof works
   - read, write element arr[index]
@@ -129,7 +129,7 @@ Works:
   - const c: dynarray = (a,b,...)
 - static arrays
   - range: enumtype, boolean, int, char, custom int
-  - init as arr = rtl.arrayNewMultiDim([dim1,dim2,...],value)
+  - init as arr = rtl.arraySetLength(null,value,dim1,dim2,...)
   - init with expression
   - length(1-dim array)
   - low(1-dim array), high(1-dim array)
@@ -384,7 +384,6 @@ type
     pbifnArray_Concat,
     pbifnArray_Copy,
     pbifnArray_Length,
-    pbifnArray_NewMultiDim,
     pbifnArray_SetLength,
     pbifnAs,
     pbifnAsExt,
@@ -487,7 +486,6 @@ const
     'arrayConcat', // rtl.arrayConcat
     'arrayCopy', // rtl.arrayCopy
     'length', // rtl.length
-    'arrayNewMultiDim', // rtl.arrayNewMultiDim
     'arraySetLength', // rtl.arraySetLength
     'as', // rtl.as
     'asExt', // rtl.asExt
@@ -539,7 +537,7 @@ const
     'symDiffSet', // rtl.symDiffSet >< (symmetrical difference)
     'unionSet', // rtl.unionSet +
     'spaceLeft', // rtl.spaceLeft
-    'strSetLength', // rtl.
+    'strSetLength', // rtl.strSetLength
     '$init',
     '$e',
     '$impl',
@@ -6376,6 +6374,7 @@ var
   ValInit: TJSElement;
   AssignContext: TAssignContext;
   ElType: TPasType;
+  i: Integer;
 begin
   Result:=nil;
   Param0:=El.Params[0];
@@ -6387,13 +6386,13 @@ begin
   {$ENDIF}
   if ResolvedParam0.TypeEl is TPasArrayType then
     begin
-    // SetLength(AnArray,newlength)
+    // SetLength(AnArray,dim1,dim2,...)
     ArrayType:=TPasArrayType(ResolvedParam0.TypeEl);
     {$IFDEF VerbosePasResolver}
     writeln('TPasToJSConverter.ConvertBuiltInSetLength array');
     {$ENDIF}
 
-    // ->  AnArray = rtl.setArrayLength(AnArray,newlength,initvalue)
+    // ->  AnArray = rtl.setArrayLength(AnArray,defaultvalue,dim1,dim2,...)
     AssignContext:=TAssignContext.Create(El,nil,AContext);
     try
       AContext.Resolver.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
@@ -6406,15 +6405,21 @@ begin
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_SetLength]]);
       // 1st param: AnArray
       Call.AddArg(ConvertElement(Param0,AContext));
-      // 2nd param: newlength
-      Call.AddArg(ConvertElement(El.Params[1],AContext));
-      // 3rd param: default value
+      // 2nd param: default value
+      for i:=3 to length(El.Params) do
+        begin
+        ElType:=AContext.Resolver.ResolveAliasType(ArrayType.ElType);
+        ArrayType:=ElType as TPasArrayType;
+        end;
       ElType:=AContext.Resolver.ResolveAliasType(ArrayType.ElType);
       if ElType.ClassType=TPasRecordType then
         ValInit:=CreateReferencePathExpr(ElType,AContext)
       else
         ValInit:=CreateValInit(ElType,nil,Param0,AContext);
       Call.AddArg(ValInit);
+      // add params: dim1, dim2, ...
+      for i:=1 to length(El.Params)-1 do
+        Call.AddArg(ConvertElement(El.Params[i],AContext));
 
       // create left side:  array =
       Result:=CreateAssignStatement(Param0,AssignContext);
@@ -11063,7 +11068,7 @@ function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
   Expr: TPasExpr; El: TPasElement; AContext: TConvertContext): TJSElement;
 var
   Call: TJSCallExpression;
-  DimArray, ArrLit: TJSArrayLiteral;
+  ArrLit: TJSArrayLiteral;
   i, DimSize: Integer;
   RangeResolved, ElTypeResolved, ExprResolved: TPasResolverResult;
   Range: TPasExpr;
@@ -11072,6 +11077,7 @@ var
   DefaultValue: TJSElement;
   ArrayValues: TPasExprArray;
   US: TJSString;
+  DimLits: TObjectList;
 begin
   if Assigned(Expr) then
     begin
@@ -11110,16 +11116,18 @@ begin
   else
     begin
     // static array
-    // create "rtl.arrayNewMultiDim([dim1,dim2,...],defaultvalue)"
+    // create "rtl.arraySetLength(null,defaultvalue,dim1,dim2,...)"
     if AContext.Resolver=nil then
       RaiseNotSupported(El,AContext,20170223113050,'');
     Result:=nil;
+    DimLits:=TObjectList.Create(true);
     try
       Call:=CreateCallExpression(El);
-      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_NewMultiDim]]);
-      // add parameter [dim1,dim2,...]
-      DimArray:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-      Call.AddArg(DimArray);
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_SetLength]]);
+      // add parameter null
+      Call.AddArg(CreateLiteralNull(El));
+
+      // create parameters dim1,dim2,...
       CurArrayType:=ArrayType;
       while true do
         begin
@@ -11134,7 +11142,7 @@ begin
             RaiseNotSupported(Range,AContext,20170223113318,GetResolverResultDbg(RangeResolved));
             end;
           Lit:=CreateLiteralNumber(El,DimSize);
-          DimArray.Elements.AddElement.Expr:=Lit;
+          DimLits.Add(Lit);
           end;
         AContext.Resolver.ComputeElement(CurArrayType.ElType,ElTypeResolved,[rcType]);
         if (ElTypeResolved.TypeEl is TPasArrayType) then
@@ -11153,8 +11161,15 @@ begin
       DefaultValue:=CreateValInit(ElTypeResolved.TypeEl,nil,El,AContext);
       Call.AddArg(DefaultValue);
 
+      // add parameters dim1,dim2,...
+      for i:=0 to DimLits.Count-1 do
+        Call.AddArg(TJSElement(DimLits[i]));
+      DimLits.OwnsObjects:=false;
+      DimLits.Clear;
+
       Result:=Call;
     finally
+      DimLits.Free;
       if Result=nil then
         Call.Free;
     end;

@@ -316,6 +316,7 @@ type
     Procedure TestArrayEnumTypeRange;
     Procedure TestArray_SetLengthOutArg;
     Procedure TestArray_SetLengthProperty;
+    Procedure TestArray_SetLengthMultiDim;
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_Concat;
     Procedure TestArray_Copy;
@@ -4941,7 +4942,7 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // $mod.$main
-    '$mod.Arr = rtl.arraySetLength($mod.Arr,3,0);',
+    '$mod.Arr = rtl.arraySetLength($mod.Arr,0,3);',
     '$mod.Arr[0] = 4;',
     '$mod.Arr[1] = rtl.length($mod.Arr) + $mod.Arr[0];',
     '$mod.Arr[$mod.i] = 5;',
@@ -5029,8 +5030,8 @@ begin
     '$mod.i = $mod.Arr2[6][7];',
     '$mod.Arr2[8][9] = $mod.i;',
     '$mod.i = $mod.Arr2[10][11];',
-    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, 14, []);',
-    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 16, 0);',
+    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, [], 14);',
+    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 0, 16);',
     '']));
 end;
 
@@ -5055,7 +5056,7 @@ begin
   ConvertProgram;
   CheckSource('TestArray_StaticInt',
     LinesToStr([ // statements
-    'this.Arr = rtl.arrayNewMultiDim([3],0);',
+    'this.Arr = rtl.arraySetLength(null,0,3);',
     'this.Arr2 = [5, 6, 7];',
     'this.i = 0;',
     'this.b = false;'
@@ -5098,8 +5099,8 @@ begin
   ConvertProgram;
   CheckSource('TestArray_StaticBool',
     LinesToStr([ // statements
-    'this.Arr = rtl.arrayNewMultiDim([2],false);',
-    'this.Arr2 = rtl.arrayNewMultiDim([1],false);',
+    'this.Arr = rtl.arraySetLength(null,false,2);',
+    'this.Arr2 = rtl.arraySetLength(null,false,1);',
     'this.Arr3 = [true, false];',
     'this.b = false;'
     ]),
@@ -5148,8 +5149,8 @@ begin
   ConvertProgram;
   CheckSource('TestArray_StaticChar',
     LinesToStr([ // statements
-    'this.Arr = rtl.arrayNewMultiDim([65536], "");',
-    'this.Arr2 = rtl.arrayNewMultiDim([26], "");',
+    'this.Arr = rtl.arraySetLength(null, "", 65536);',
+    'this.Arr2 = rtl.arraySetLength(null, "", 26);',
     'this.Arr3 = ["p", "a", "s"];',
     'this.Arr4 = ["p", "a", "s"];',
     'this.c = "";',
@@ -5216,8 +5217,8 @@ begin
     '$mod.i = $mod.Arr2[6][7];',
     '$mod.Arr2[8][9] = $mod.i;',
     '$mod.i = $mod.Arr2[10][11];',
-    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, 14, []);',
-    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 16, 0);',
+    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, [], 14);',
+    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 0, 16);',
     '']));
 end;
 
@@ -5260,7 +5261,7 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    '$mod.Arr = rtl.arraySetLength($mod.Arr,3, $mod.TRec);',
+    '$mod.Arr = rtl.arraySetLength($mod.Arr,$mod.TRec,3);',
     '$mod.Arr[0].Int = 4;',
     '$mod.Arr[1].Int = rtl.length($mod.Arr)+$mod.Arr[2].Int;',
     '$mod.Arr[$mod.Arr[$mod.i].Int].Int = $mod.Arr[5].Int;',
@@ -5475,7 +5476,7 @@ begin
     '};',
     'this.e = 0;',
     'this.i = 0;',
-    'this.a = rtl.arrayNewMultiDim([2],0);',
+    'this.a = rtl.arraySetLength(null,0,2);',
     'this.numbers = [1, 2];',
     'this.names = ["red", "blue"];',
     '']),
@@ -5502,7 +5503,7 @@ begin
   CheckSource('TestArray_SetLengthOutArg',
     LinesToStr([ // statements
     'this.DoIt = function (a) {',
-    '  a.set(rtl.arraySetLength(a.get(), 2, 0));',
+    '  a.set(rtl.arraySetLength(a.get(), 0, 2));',
     '};',
     '']),
     LinesToStr([
@@ -5534,7 +5535,29 @@ begin
     'this.Obj = null;',
     '']),
     LinesToStr([
-    '$mod.Obj.SetColors(rtl.arraySetLength($mod.Obj.GetColors(), 2, 0));',
+    '$mod.Obj.SetColors(rtl.arraySetLength($mod.Obj.GetColors(), 0, 2));',
+    '']));
+end;
+
+procedure TTestModule.TestArray_SetLengthMultiDim;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArrArrInt = array of array of longint;',
+  'var',
+  '  a: TArrArrInt;',
+  'begin',
+  '  SetLength(a,2);',
+  '  SetLength(a,3,4);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_SetLengthMultiDim',
+    LinesToStr([ // statements
+    'this.a = [];']),
+    LinesToStr([
+    '$mod.a = rtl.arraySetLength($mod.a, [], 2);',
+    '$mod.a = rtl.arraySetLength($mod.a, 0, 3, 4);',
     '']));
 end;
 
@@ -12362,8 +12385,8 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.Arr = $mod.TheArray;',
     '$mod.TheArray = $mod.Arr;',
-    '$mod.Arr = rtl.arraySetLength($mod.Arr,2,undefined);',
-    '$mod.TheArray = rtl.arraySetLength($mod.TheArray,3,undefined);',
+    '$mod.Arr = rtl.arraySetLength($mod.Arr,undefined,2);',
+    '$mod.TheArray = rtl.arraySetLength($mod.TheArray,undefined,3);',
     '$mod.Arr[4] = $mod.v;',
     '$mod.Arr[5] = rtl.length($mod.TheArray);',
     '$mod.Arr[6] = null;',
@@ -14488,7 +14511,7 @@ begin
     '  procsig: rtl.newTIProcSig(null),',
     '  methodkind: 0',
     '});',
-    'this.StaticArray = rtl.arrayNewMultiDim([2], "");',
+    'this.StaticArray = rtl.arraySetLength(null,"",2);',
     'this.tiStaticArray = null;',
     'this.DynArray = [];',
     'this.tiDynArray = null;',
