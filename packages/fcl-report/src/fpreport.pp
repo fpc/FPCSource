@@ -114,7 +114,7 @@ type
   TFPReportHTMLTag        = (htRegular, htBold, htItalic);
   TFPReportHTMLTagSet     = set of TFPReportHTMLTag;
   TFPReportColumnLayout   = (clVertical, clHorizontal);
-  TFPReportFooterPosition = (fpAfterLast, fpColumnBottom);
+  TFPReportFooterPosition = (fpNormal, fpStackAtBottom);
   TFPReportVisibleOnPage  = (vpAll, vpFirstOnly, vpLastOnly, vpFirstAndLastOnly, vpNotOnFirst, vpNotOnLast, vpNotOnFirstAndLast);
   // For color coding
   TFPReportBandType       = (btUnknown,btPageHeader,btReportTitle,btColumnHeader,btDataHeader,btGroupHeader,btDataband,btGroupFooter,
@@ -840,14 +840,17 @@ type
   TFPReportCustomBand = class(TFPReportElementWithChildren)
   private
     FChildBand: TFPReportChildBand;
+    FKeepTogetherWithChildren: Boolean;
     FUseParentFont: boolean;
     FVisibleOnPage: TFPReportVisibleOnPage;
     FFont: TFPReportFont;
+    FIsOverlowed: Boolean;
     function    GetFont: TFPReportFont;
     function    IsStringValueZero(const AValue: string): boolean;
     procedure   SetChildBand(AValue: TFPReportChildBand);
     procedure   ApplyStretchMode;
     procedure   SetFont(AValue: TFPReportFont);
+    procedure   SetKeepTogetherWithChildren(pKeepTogetherWithChildren: Boolean); virtual;
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
@@ -862,10 +865,19 @@ type
     procedure   RecalcLayout; override;
     procedure   BeforePrint; override;
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    procedure   BeginRuntimeProcessing; virtual;
+    procedure   EndRuntimeProcessing; virtual;
+    function    NeedsUpdateYPos: Boolean; virtual;
+    procedure   AfterPrintBand(aLayouter: TFPReportLayouter; aBand: TFPReportCustomBand); virtual;
+    procedure   BeforePrintWithChilds; virtual;
+    procedure   MovedToNextPageWithChilds; virtual;
+    procedure   AfterPrintWithChilds; virtual;
     property    ChildBand: TFPReportChildBand read FChildBand write SetChildBand;
     property    Font: TFPReportFont read GetFont write SetFont;
     property    UseParentFont: boolean read FUseParentFont write SetUseParentFont;
     property    VisibleOnPage: TFPReportVisibleOnPage read FVisibleOnPage write SetVisibleOnPage;
+    { when set to True then band and child bands are keept on the same page (no page break between them) }
+    property    KeepTogetherWithChildren: Boolean read FKeepTogetherWithChildren write SetKeepTogetherWithChildren default True;
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
@@ -932,6 +944,7 @@ type
     property    StretchMode;
     property    UseParentFont;
     property    VisibleOnPage;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
   end;
 
@@ -965,9 +978,11 @@ type
 
   TFPReportPageFooterBand = class(TFPReportCustomPageFooterBand)
   published
+    property    ChildBand;
     property    Font;
     property    UseParentFont;
     property    VisibleOnPage;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
   end;
 
@@ -982,9 +997,11 @@ type
 
   TFPReportPageHeaderBand = class(TFPReportCustomPageHeaderBand)
   published
+    property    ChildBand;
     property    Font;
     property    UseParentFont;
     property    VisibleOnPage;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
   end;
 
@@ -1013,7 +1030,7 @@ type
   protected
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     function    GetReportBandName: string; override;
-    property    FooterPosition: TFPReportFooterPosition read FFooterPosition write SetFooterPosition default fpColumnBottom;
+    property    FooterPosition: TFPReportFooterPosition read FFooterPosition write SetFooterPosition default fpStackAtBottom;
   public
     constructor Create(AOwner: TComponent); override;
     procedure   Assign(Source: TPersistent); override;
@@ -1035,23 +1052,43 @@ type
 
   TFPReportCustomGroupHeaderBand = class(TFPReportCustomBandWithData)
   private
+    FOverflowedFooterNeedsReprintedHeader: Boolean;
+    FIntermediateFooter: Boolean;
     FLastGroupConditionValue,
     FGroupConditionValue: string;
-    FGroupHeader: TFPReportCustomGroupHeaderBand;
+    FParentGroupHeader: TFPReportCustomGroupHeaderBand;
     FChildGroupHeader: TFPReportCustomGroupHeaderBand;
     FGroupFooter: TFPReportCustomGroupFooterBand;
     FGroupCondition: string;
-    FReprintHeader: Boolean;
+    FOverflowWithFirstDataBand: Boolean;
+    FRTBands: TBandList;
+    FReprintedHeader: Boolean;
     FStartOnNewPage: Boolean;
-    FNeedsHeader: Boolean;
+    FFooterPosition: TFPReportFooterPosition;
+    FDetailsPrinted: Boolean;
+    { runtime properties }
+    FNeedsReprintedHeader: Boolean;
+    FNeedsIntermediateFooter: Boolean;
+    FNeedsPrevVariables: Boolean;
     procedure   SetGroupHeader(AValue: TFPReportCustomGroupHeaderBand);
     procedure   InternalEvaluateGroupCondition;
+    procedure   SetKeepTogetherWithChildren(pKeepTogetherWithChildren: Boolean); override;
+    procedure   SetOverflowedFooterNeedsReprintedHeader(pOverflowedFooterNeedsReprintedHeader: Boolean);
+    procedure   SetOverflowWithFirstDataBand(pOverflowWithFirstDataBand: Boolean);
+    procedure   SetReprintedHeader(pReprintedHeader: Boolean);
+    procedure   SetStartOnNewPage(pStartOnNewPage: Boolean);
   protected
     function    GetReportBandName: string; override;
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure   BeforePrintWithChilds; override;
+    procedure   MovedToNextPageWithChilds; override;
+    procedure   AfterPrintWithChilds; override;
+    procedure   StoreRTBands(pBands: TBandList);
     { This property defines the hierarchy of nested groups. For the top most group, this property will be nil. }
-    property    GroupHeader: TFPReportCustomGroupHeaderBand read FGroupHeader write SetGroupHeader;
+    property    ParentGroupHeader: TFPReportCustomGroupHeaderBand read FParentGroupHeader write SetGroupHeader;
+    { This property defines the hierarchy of nested groups. For the bottom most group, this property will be nil. }
+    property    ChildGroupHeader: TFPReportCustomGroupHeaderBand read FChildGroupHeader;
     { Indicates related GroupFooter band. This will automatically be set by the GroupFooter. }
     property    GroupFooter: TFPReportCustomGroupFooterBand read FGroupFooter;
     { can be a field name or an expression }
@@ -1059,11 +1096,22 @@ type
     { Run-time calculated value }
     property    GroupConditionValue : string read FGroupConditionValue write FGroupConditionValue;
     { start group on new page }
-    property    StartOnNewPage: Boolean read FStartOnNewPage write FStartOnNewPage;
+    property    StartOnNewPage: Boolean read FStartOnNewPage write SetStartOnNewPage;
     { reprint header on new page }
-    property    ReprintHeader: Boolean read FReprintHeader write FReprintHeader;
+    property    ReprintedHeader: Boolean read FReprintedHeader write SetReprintedHeader;
+    { reprints header if group footer is overflowed and ReprintHeader is true }
+    property    OverflowedFooterNeedsReprintedHeader: Boolean read FOverflowedFooterNeedsReprintedHeader write SetOverflowedFooterNeedsReprintedHeader;
+    { print footer before every page break }
+    property    IntermediateFooter: Boolean read FIntermediateFooter write FIntermediateFooter;
+    { footer position:
+      fpNormal:        after detail or inner group footer
+      fpStackAtBottom: stacked at bottom before page footer }
+    property    FooterPosition: TFPReportFooterPosition read FFooterPosition write FFooterPosition default fpNormal;
+    { if first data band flows over to next page, also move this header }
+    property    OverflowWithFirstDataBand: Boolean read FOverflowWithFirstDataBand write SetOverflowWithFirstDataBand default True;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure   Assign(Source: TPersistent); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
     procedure   EvaluateGroupCondition;
@@ -1071,7 +1119,6 @@ type
     function    IsInitialGroupChange: Boolean;
     procedure   ResetGroupConditionValues;
     Class Function ReportBandType : TFPReportBandType; override;
-    property    ChildGroupHeader: TFPReportCustomGroupHeaderBand read FChildGroupHeader;
   end;
 
 
@@ -1082,11 +1129,16 @@ type
     property    ChildBand;
     property    Font;
     property    GroupCondition;
-    property    GroupHeader;
+    property    ParentGroupHeader;
     property    UseParentFont;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
     property    StartOnNewPage;
-    property    ReprintHeader;
+    property    ReprintedHeader;
+    property    OverflowedFooterNeedsReprintedHeader;
+    property    IntermediateFooter;
+    property    OverflowWithFirstDataBand;
+    property    FooterPosition;
   end;
 
 
@@ -1101,8 +1153,10 @@ type
 
   TFPReportTitleBand = class(TFPReportCustomTitleBand)
   published
+    property    ChildBand;
     property    Font;
     property    UseParentFont;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
   end;
 
@@ -1125,12 +1179,16 @@ type
 
   TFPReportSummaryBand = class(TFPReportCustomSummaryBand)
   published
+    property    ChildBand;
     property    Font;
     property    StartNewPage;
     property    UseParentFont;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
   end;
 
+
+  { TFPReportCustomGroupFooterBand }
 
   TFPReportCustomGroupFooterBand = class(TFPReportCustomBandWithData)
   private
@@ -1140,6 +1198,12 @@ type
     function  GetReportBandName: string; override;
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure BeginRuntimeProcessing; override;
+    procedure EndRuntimeProcessing; override;
+    function  NeedsUpdateYPos: Boolean; override;
+    procedure BeforePrintWithChilds; override;
+    procedure AfterPrintBand(aLayouter: TFPReportLayouter; aBand: TFPReportCustomBand); override;
+    procedure AfterPrintWithChilds; override;
     property  GroupHeader: TFPReportCustomGroupHeaderBand read FGroupHeader write SetGroupHeader;
   public
     procedure ReadElement(AReader: TFPReportStreamer); override;
@@ -1153,6 +1217,7 @@ type
     property    Font;
     property    GroupHeader;
     property    UseParentFont;
+    property    KeepTogetherWithChildren;
     property    OnBeforePrint;
   end;
 
@@ -1328,8 +1393,12 @@ type
     FReportData: TFPReportDataCollection;
     FRTObjects: TFPList;  // see property
     FRTCurPageIdx: integer; // RTObjects index reference to current page being layout
-    FRTUseLastValues: Boolean;
-    FInRepeatedGroupHeader: Boolean; // true while repeated group header is printed
+    FRTUsePrevVariableValuesCount: Integer;
+    FRTUsePrevVariableValues: Boolean;
+    FRTInRepeatedGroupHeader: Boolean; // true while repeated group header is printed
+    FRTInIntermediateGroupFooter: Boolean; // true while non final group footer is printed
+    FRTIsOverflowed: Boolean; // true when overflowed band is reprinted
+    FRTGroupDetailsPrinted: Boolean; // true in group footer if at least one detail has been printed
     FExpr: TFPexpressionParser;
     FTitle: string;
     FAuthor: string;
@@ -1355,6 +1424,9 @@ type
     procedure BuiltinGetPageNoPerDesignerPage(var Result: TFPExpressionResult; const Args: TExprParameterArray);
     procedure BuiltinGetPageCount(var Result: TFPExpressionResult; const Args: TExprParameterArray);
     procedure BuiltinGetInRepeatedGroupHeader(var Result: TFPExpressionResult; const Args: TExprParameterArray);
+    procedure BuiltInGetInIntermediateGroupFooter(var Result: TFPExpressionResult; const Args: TExprParameterArray);
+    procedure BuiltinGetIsOverflowed(var Result: TFPExpressionResult; const Args: TExprParameterArray);
+    procedure BuiltinGetIsGroupDetailsPrinted(var Result: TFPExpressionResult; const Args: TExprParameterArray);
     { checks if children are visble, removes children if needed, and recalc Band.Layout bounds }
     procedure EmptyRTObjects;
     procedure ClearDataBandLastTextValues(ABand: TFPReportCustomBandWithData);
@@ -1372,6 +1444,8 @@ type
     procedure SetReportData(AValue: TFPReportDataCollection);
     procedure SetUsePageCountMarker(AValue: Boolean);
     procedure SetVariables(AValue: TFPReportVariables);
+    procedure RTBeginUsePrevVariableValues;
+    procedure RTEndUsePrevVariableValues;
   protected
     FBands: TBandList;
     function CreateVariables: TFPReportVariables; virtual;
@@ -1468,6 +1542,7 @@ type
     FHeaderList: TBandList;
     FFooterList: TBandList;
     FGroupList: TBandList;
+    FBottomStackedFooterList: TBandList;
     FRTPage: TFPReportCustomPage;
     FCurrentRTColumnFooterBand: TFPReportCustomColumnFooterBand;
     FDataLevelStack: UInt8;
@@ -1479,6 +1554,7 @@ type
     procedure SetGetPerDesignerPageCount(Index : Cardinal; AValue: Cardinal);
     Function GetPageNumberPerDesignerPage : Integer;
     Procedure SetPageNumberPerDesignerPage(aValue : Integer);
+    function FooterSpaceNeeded: TFPReportUnits;
   protected
     function HandleBandVisibility(aBand: TFPReportCustomBand; doRecalcLayout : Boolean): Boolean;
     procedure CheckNewOrOverFlow(CheckMulticolumn: Boolean = True);
@@ -1521,7 +1597,9 @@ type
     procedure HandleReportSummaryBands; virtual;
     procedure ShowGroupHeaderBand(aBand: TFPReportCustomGroupHeaderBand; aCheckStartOnNewPage: Boolean); virtual;
     procedure ShowGroupFooterBand(aBand: TFPReportCustomGroupFooterBand); virtual;
+    function ShowBandWithChilds(aBand: TFPReportCustomBand): Boolean; virtual;
     function NoSpaceRemaining: boolean;virtual;
+    procedure EndPage; virtual;
     procedure StartNewPage; virtual;
     procedure StartNewColumn;virtual;
     procedure HandleOverflowed;virtual;
@@ -2181,12 +2259,12 @@ begin
   Result := TFPReportPaperOrientation(GetEnumValue(TypeInfo(TFPReportPaperOrientation), AName));
 end;
 
-function ColumnFooterPositionToString(AEnum: TFPReportFooterPosition): string; inline;
+function FooterPositionToString(AEnum: TFPReportFooterPosition): string; inline;
 begin
   result := GetEnumName(TypeInfo(TFPReportFooterPosition), Ord(AEnum));
 end;
 
-function StringToColumnFooterPosition(AName: string): TFPReportFooterPosition; inline;
+function StringToFooterPosition(AName: string): TFPReportFooterPosition; inline;
 begin
   Result := TFPReportFooterPosition(GetEnumValue(TypeInfo(TFPReportFooterPosition), AName));
 end;
@@ -2378,6 +2456,7 @@ begin
   else
     Result := EncodeDate(lY, lM, lD) + EncodeTime(lH, lMi, lS, 0);
 end;
+
 
 { TFPReportElementEditor }
 
@@ -2605,7 +2684,7 @@ begin
         while Assigned(lGrp) do
         begin
           ExtendResetValueExpression(lGrp.GroupCondition, false);
-          lGrp:=lGrp.GroupHeader;
+          lGrp:=lGrp.ParentGroupHeader;
         end;
       end;
       rtPage:   lResetValueExpression:='PageNo';
@@ -2676,7 +2755,7 @@ var
 begin
   lRpt := Collection.Owner as TFPCustomReport;
 
-  if lRpt.FRTUseLastValues or lRpt.FPageData.EOF then
+  if lRpt.FRTUsePrevVariableValues or lRpt.FPageData.EOF then
     Result:=FLastValue
   else
     Result:=FAggregateValue;
@@ -4874,7 +4953,7 @@ end;
 procedure TFPReportCustomColumnFooterBand.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
 begin
   inherited DoWriteLocalProperties(AWriter, AOriginal);
-  AWriter.WriteString('FooterPosition', ColumnFooterPositionToString(FFooterPosition));
+  AWriter.WriteString('FooterPosition', FooterPositionToString(FFooterPosition));
 end;
 
 function TFPReportCustomColumnFooterBand.GetReportBandName: string;
@@ -4885,7 +4964,7 @@ end;
 constructor TFPReportCustomColumnFooterBand.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFooterPosition := fpColumnBottom;
+  FFooterPosition := fpStackAtBottom;
 end;
 
 procedure TFPReportCustomColumnFooterBand.Assign(Source: TPersistent);
@@ -4902,25 +4981,25 @@ end;
 procedure TFPReportCustomColumnFooterBand.ReadElement(AReader: TFPReportStreamer);
 begin
   inherited ReadElement(AReader);
-  FFooterPosition := StringToColumnFooterPosition(AReader.ReadString('FooterPosition', 'fpColumnBottom'));
+  FFooterPosition := StringToFooterPosition(AReader.ReadString('FooterPosition', 'fpStackAtBottom'));
 end;
 
 { TFPReportCustomGroupHeaderBand }
 
 procedure TFPReportCustomGroupHeaderBand.SetGroupHeader(AValue: TFPReportCustomGroupHeaderBand);
 begin
-  if FGroupHeader = AValue then
+  if FParentGroupHeader = AValue then
     Exit;
-  if Assigned(FGroupHeader) then
+  if Assigned(FParentGroupHeader) then
   begin
-    FGroupHeader.FChildGroupHeader := nil;
-    FGroupHeader.RemoveFreeNotification(Self);
+    FParentGroupHeader.FChildGroupHeader := nil;
+    FParentGroupHeader.RemoveFreeNotification(Self);
   end;
-  FGroupHeader := AValue;
-  if Assigned(FGroupHeader) then
+  FParentGroupHeader := AValue;
+  if Assigned(FParentGroupHeader) then
   begin
-    FGroupHeader.FChildGroupHeader := Self;
-    FGroupHeader.FreeNotification(Self);
+    FParentGroupHeader.FChildGroupHeader := Self;
+    FParentGroupHeader.FreeNotification(Self);
   end;
 end;
 
@@ -4933,6 +5012,12 @@ procedure TFPReportCustomGroupHeaderBand.DoWriteLocalProperties(AWriter: TFPRepo
 begin
   inherited DoWriteLocalProperties(AWriter, AOriginal);
   AWriter.WriteString('GroupCondition', FGroupCondition);
+  AWriter.WriteBoolean('StartOnNewPage', FStartOnNewPage);
+  AWriter.WriteBoolean('ReprintedHeader', FReprintedHeader);
+  AWriter.WriteString('IntermediateFooter', FooterPositionToString(FFooterPosition));
+  AWriter.WriteBoolean('FooterOnEveryPage', FIntermediateFooter);
+  AWriter.WriteBoolean('OverflowedFooterNeedsReprintedHeader', FOverflowedFooterNeedsReprintedHeader);
+  AWriter.WriteBoolean('OverflowWithFirstDataBand', FOverflowWithFirstDataBand);
 end;
 
 procedure TFPReportCustomGroupHeaderBand.Notification(AComponent: TComponent; Operation: TOperation);
@@ -4942,24 +5027,90 @@ begin
   inherited Notification(AComponent, Operation);
 end;
 
+procedure TFPReportCustomGroupHeaderBand.BeforePrintWithChilds;
+begin
+  inherited BeforePrintWithChilds;
+  { the new group begins: if IntermediateFooter it true,
+    intermediate group footer is needed                 }
+  FNeedsIntermediateFooter := True;
+  { the new group begins:
+    no details of this group are printed                }
+  if not Report.FRTInRepeatedGroupHeader then
+    FDetailsPrinted := False;
+  Report.FRTGroupDetailsPrinted := False;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.MovedToNextPageWithChilds;
+begin
+  inherited MovedToNextPageWithChilds;
+  { the new group begins on next page: if IntermediateFooter it true,
+    intermediate group footer is *not* needed on old page             }
+  FNeedsIntermediateFooter := False;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.AfterPrintWithChilds;
+begin
+  inherited AfterPrintWithChilds;
+  { if header is shown then repeated header is needed on next page break }
+  FNeedsReprintedHeader := True;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.StoreRTBands(pBands: TBandList);
+
+var
+  i: Integer;
+
+begin
+  FRTBands.Clear;
+  if OverflowWithFirstDataBand then
+    for i := 0 to pBands.Count-1 do
+      FRTBands.Add(pBands[i]);
+end;
+
 constructor TFPReportCustomGroupHeaderBand.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FGroupHeader := nil;
+  FParentGroupHeader := nil;
   FChildGroupHeader := nil;
   FGroupFooter := nil;
+  FFooterPosition := fpNormal;
+  FOverflowWithFirstDataBand := True;
+  FRTBands := TBandList.Create;
+end;
+
+destructor TFPReportCustomGroupHeaderBand.Destroy;
+begin
+  FRTBands.Free;
+  inherited Destroy;
 end;
 
 procedure TFPReportCustomGroupHeaderBand.Assign(Source: TPersistent);
+
+var
+  E: TFPReportCustomGroupHeaderBand;
+
 begin
   inherited Assign(Source);
-  FGroupCondition := TFPReportCustomGroupHeaderBand(Source).GroupCondition;
+  if Source is TFPReportCustomGroupHeaderBand then
+  begin
+    E := TFPReportCustomGroupHeaderBand(Source);
+    FGroupCondition := E.GroupCondition;
+    FStartOnNewPage := E.StartOnNewPage;
+    FReprintedHeader := E.ReprintedHeader;
+    FFooterPosition := E.FooterPosition;
+  end;
 end;
 
 procedure TFPReportCustomGroupHeaderBand.ReadElement(AReader: TFPReportStreamer);
 begin
   inherited ReadElement(AReader);
   FGroupCondition := AReader.ReadString('GroupCondition', '');
+  FStartOnNewPage := AReader.ReadBoolean('StartOnNewPage', False);
+  FReprintedHeader := AReader.ReadBoolean('ReprintedHeader', False);
+  FIntermediateFooter := AReader.ReadBoolean('IntermediateFooter', False);
+  FFooterPosition := StringToFooterPosition(AReader.ReadString('FooterPosition', 'fpNormal'));
+  FOverflowedFooterNeedsReprintedHeader := AReader.ReadBoolean('OverflowedFooterNeedsReprintedHeader', False);
+  FOverflowWithFirstDataBand := AReader.ReadBoolean('OverflowWithFirstDataBand', False);
 end;
 
 procedure TFPReportCustomGroupHeaderBand.EvaluateGroupCondition;
@@ -4972,8 +5123,8 @@ end;
 
 function TFPReportCustomGroupHeaderBand.GroupChanged: Boolean;
 begin
-  if Assigned(FGroupHeader) then
-    Result := FGroupHeader.GroupChanged or
+  if Assigned(FParentGroupHeader) then
+    Result := FParentGroupHeader.GroupChanged or
       (FLastGroupConditionValue <> FGroupConditionValue)
   else
     Result := FLastGroupConditionValue <> FGroupConditionValue;
@@ -4997,8 +5148,58 @@ begin
     FGroupConditionValue := #255
   else
     FGroupConditionValue := EvaluateExpressionAsText(GroupCondition);
-  if Assigned(FGroupHeader) then
-    FGroupHeader.InternalEvaluateGroupCondition;
+  if FLastGroupConditionValue <> FGroupConditionValue then
+    { repated group header needs previous variables }
+    FNeedsPrevVariables := True;
+  if Assigned(FParentGroupHeader) then
+    FParentGroupHeader.InternalEvaluateGroupCondition;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.SetKeepTogetherWithChildren(
+  pKeepTogetherWithChildren: Boolean);
+begin
+  inherited SetKeepTogetherWithChildren(pKeepTogetherWithChildren);
+  if not FKeepTogetherWithChildren then
+    FOverflowWithFirstDataBand := False;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.SetOverflowedFooterNeedsReprintedHeader
+  (pOverflowedFooterNeedsReprintedHeader: Boolean);
+begin
+  if FOverflowedFooterNeedsReprintedHeader =
+    pOverflowedFooterNeedsReprintedHeader then Exit;
+  FOverflowedFooterNeedsReprintedHeader :=
+    pOverflowedFooterNeedsReprintedHeader;
+  if FOverflowedFooterNeedsReprintedHeader then
+    { only works if ReprintedHeader is set }
+    FReprintedHeader := True;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.SetOverflowWithFirstDataBand(
+  pOverflowWithFirstDataBand: Boolean);
+begin
+  if FOverflowWithFirstDataBand = pOverflowWithFirstDataBand then Exit;
+  FOverflowWithFirstDataBand := pOverflowWithFirstDataBand;
+  if FOverflowWithFirstDataBand then
+    { only works if KeepTogetherWithChildren }
+    FKeepTogetherWithChildren := True;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.SetReprintedHeader(
+  pReprintedHeader: Boolean);
+begin
+  if FReprintedHeader = pReprintedHeader then Exit;
+  FReprintedHeader := pReprintedHeader;
+  if not FReprintedHeader then
+    { also unset OverflowedFooterNeedsReprintedHeader }
+    FOverflowedFooterNeedsReprintedHeader := False;
+end;
+
+procedure TFPReportCustomGroupHeaderBand.SetStartOnNewPage(
+  pStartOnNewPage: Boolean);
+begin
+  if FStartOnNewPage = pStartOnNewPage then Exit;
+  FStartOnNewPage := pStartOnNewPage;
 end;
 
 class function TFPReportCustomGroupHeaderBand.ReportBandType: TFPReportBandType;
@@ -5558,14 +5759,14 @@ var
 begin
   Result := Visible;
   if Result and (FVisibleExpr <> '') then 
-    begin
+  begin
     if EvaluateExpression(FVisibleExpr,res) then
       if (res.ResultType=rtBoolean) then // We may need to change this.
         Result:= Res.ResBoolean;
     {$ifdef gdebug}
     writeln('TFPReportElement.EvaluateVisibility: VisibleExpr=' , FVisibleExpr , '=' , Res.ResultType,' : ',Res.ResBoolean);
     {$endif}
-    end;
+  end;
 end;
 
 procedure TFPReportElement.SetLayout(const AValue: TFPReportLayout);
@@ -5935,7 +6136,7 @@ begin
     Layout.Assign(E.Layout);
     //FParent := E.Parent; // this is nonsense (e.g. in Destroy we need then parent used in Create)
     Visible := E.Visible;
-    VisibleExpr := VisibleExpr;
+    VisibleExpr := E.VisibleExpr;
     StretchMode := E.StretchMode;
     OnBeforePrint := E.OnBeforePrint;
   end;
@@ -6548,7 +6749,25 @@ end;
 procedure TFPCustomReport.BuiltinGetInRepeatedGroupHeader(
   var Result: TFPExpressionResult; const Args: TExprParameterArray);
 begin
-  Result.ResBoolean := FInRepeatedGroupHeader;
+  Result.ResBoolean := FRTInRepeatedGroupHeader;
+end;
+
+procedure TFPCustomReport.BuiltInGetInIntermediateGroupFooter(
+  var Result: TFPExpressionResult; const Args: TExprParameterArray);
+begin
+  Result.ResBoolean := FRTInIntermediateGroupFooter;
+end;
+
+procedure TFPCustomReport.BuiltinGetIsOverflowed(
+  var Result: TFPExpressionResult; const Args: TExprParameterArray);
+begin
+  Result.ResBoolean := FRTIsOverflowed;
+end;
+
+procedure TFPCustomReport.BuiltinGetIsGroupDetailsPrinted(
+  var Result: TFPExpressionResult; const Args: TExprParameterArray);
+begin
+  Result.ResBoolean := FRTGroupDetailsPrinted;
 end;
 
 
@@ -6753,7 +6972,7 @@ begin
         end;
         if lField <> nil then
         begin
-          if FRTUseLastValues then
+          if FRTUsePrevVariableValues then
             SetLastResultValue(lBand.Data)
           else
             SetResultValue(lBand.Data);
@@ -6780,6 +6999,20 @@ procedure TFPCustomReport.SetVariables(AValue: TFPReportVariables);
 begin
   if FVariables=AValue then Exit;
   FVariables.Assign(AValue);
+end;
+
+procedure TFPCustomReport.RTBeginUsePrevVariableValues;
+begin
+  if FRTUsePrevVariableValuesCount = 0 then
+    FRTUsePrevVariableValues := True;
+  inc(FRTUsePrevVariableValuesCount);
+end;
+
+procedure TFPCustomReport.RTEndUsePrevVariableValues;
+begin
+  dec(FRTUsePrevVariableValuesCount);
+  if FRTUsePrevVariableValuesCount = 0 then
+    FRTUsePrevVariableValues := False;
 end;
 
 procedure TFPCustomReport.DoPrepareReport;
@@ -6841,7 +7074,10 @@ begin
   FExpr.Identifiers.AddFunction('RecNo', 'I', '', @BuiltinExprRecNo);
   FExpr.Identifiers.AddFunction('PageNo', 'I', '', @BuiltinGetPageNumber);
   FExpr.Identifiers.AddFunction('PageNoPerDesignerPage', 'I', '', @BuiltInGetPageNoPerDesignerPage);
-  FExpr.Identifiers.AddFunction('InRepeatedGroupheader', 'B', '', @BuiltInGetInRepeatedGroupHeader);
+  FExpr.Identifiers.AddFunction('InRepeatedGroupHeader', 'B', '', @BuiltInGetInRepeatedGroupHeader);
+  FExpr.Identifiers.AddFunction('InIntermediateGroupFooter', 'B', '', @BuiltInGetInIntermediateGroupFooter);
+  FExpr.Identifiers.AddFunction('IsOverflowed', 'B', '', @BuiltInGetIsOverflowed);
+  FExpr.Identifiers.AddFunction('IsGroupDetailPrinted', 'B', '', @BuiltinGetIsGroupDetailsPrinted);
   lHasAggregates:=false;
   For I:=0 to FVariables.Count-1 do
   begin
@@ -7426,6 +7662,13 @@ begin
   Changed;
 end;
 
+procedure TFPReportCustomBand.SetKeepTogetherWithChildren(
+  pKeepTogetherWithChildren: Boolean);
+begin
+  if FKeepTogetherWithChildren = pKeepTogetherWithChildren then Exit;
+  FKeepTogetherWithChildren := pKeepTogetherWithChildren;
+end;
+
 procedure TFPReportCustomBand.SetUseParentFont(AValue: boolean);
 begin
   if FUseParentFont = AValue then
@@ -7631,12 +7874,49 @@ begin
   end;
 end;
 
+procedure TFPReportCustomBand.BeginRuntimeProcessing;
+begin
+  // Do nothing
+end;
+
+procedure TFPReportCustomBand.EndRuntimeProcessing;
+begin
+  // Do nothing
+end;
+
+function TFPReportCustomBand.NeedsUpdateYPos: Boolean;
+begin
+  Result := True;
+end;
+
+procedure TFPReportCustomBand.AfterPrintBand(aLayouter: TFPReportLayouter;
+  aBand: TFPReportCustomBand);
+begin
+  // Do nothing
+end;
+
+procedure TFPReportCustomBand.BeforePrintWithChilds;
+begin
+  // Do nothing
+end;
+
+procedure TFPReportCustomBand.MovedToNextPageWithChilds;
+begin
+  // Do nothing
+end;
+
+procedure TFPReportCustomBand.AfterPrintWithChilds;
+begin
+  // Do nothing
+end;
+
 constructor TFPReportCustomBand.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FVisibleOnPage := vpAll;
   FUseParentFont := True;
-  FFont := nil
+  FFont := nil;
+  FKeepTogetherWithChildren := True;
 end;
 
 destructor TFPReportCustomBand.Destroy;
@@ -7655,6 +7935,7 @@ begin
     if Assigned(GetData) then
       AWriter.WriteString('Data', GetData.Name);
     AWriter.WriteString('VisibleOnPage', VisibleOnPageToString(FVisibleOnPage));
+    AWriter.WriteBoolean('KeepTogetherWithChildren', FKeepTogetherWithChildren);
   finally
     AWriter.PopElement;
   end;
@@ -7676,6 +7957,7 @@ begin
         Page.Report.AddReference(self.Name, s);
 //        Page.Report.AddReference(self, 'ChildBand', s);
       FVisibleOnPage := StringToVisibleOnPage(AReader.ReadString('VisibleOnPage', 'vpAll'));
+      FKeepTogetherWithChildren := AReader.ReadBoolean('KeepTogetherWithChildren', FKeepTogetherWithChildren);
       FUseParentFont := AReader.ReadBoolean('UseParentFont', UseParentFont);
       if not FUseParentFont then
       begin
@@ -7794,6 +8076,53 @@ begin
   if (Operation = opRemove) and (AComponent = FGroupHeader) then
     FGroupHeader := nil;
   inherited Notification(AComponent, Operation);
+end;
+
+procedure TFPReportCustomGroupFooterBand.BeginRuntimeProcessing;
+begin
+  inherited BeginRuntimeProcessing;
+  Report.RTBeginUsePrevVariableValues;
+end;
+
+procedure TFPReportCustomGroupFooterBand.EndRuntimeProcessing;
+begin
+  Report.RTEndUsePrevVariableValues;
+  inherited EndRuntimeProcessing;
+end;
+
+function TFPReportCustomGroupFooterBand.NeedsUpdateYPos: Boolean;
+begin
+  Result := GroupHeader.FFooterPosition <> fpStackAtBottom;
+end;
+
+procedure TFPReportCustomGroupFooterBand.BeforePrintWithChilds;
+begin
+  inherited BeforePrintWithChilds;
+  Report.FRTGroupDetailsPrinted := GroupHeader.FDetailsPrinted;
+end;
+
+procedure TFPReportCustomGroupFooterBand.AfterPrintBand(
+  aLayouter: TFPReportLayouter; aBand: TFPReportCustomBand);
+begin
+  inherited AfterPrintBand(aLayouter, aBand);
+  if GroupHeader.FooterPosition = fpStackAtBottom then
+    aLayouter.FBottomStackedFooterList.Add(aBand);
+end;
+
+procedure TFPReportCustomGroupFooterBand.AfterPrintWithChilds;
+begin
+  inherited AfterPrintWithChilds;
+  { if the footer is printed then it doesn't need a repeated
+    group header if page break occurs due to no space        }
+  GroupHeader.FNeedsReprintedHeader := False;
+  { the old group is finished so next repeated group header
+    does not need to use previous varaible values            }
+  GroupHeader.FNeedsPrevVariables := False;
+  { the old group is finished
+    so an intermediate group footer is needed  }
+  GroupHeader.FNeedsIntermediateFooter := False;
+
+  Report.FRTGroupDetailsPrinted := False;
 end;
 
 procedure TFPReportCustomGroupFooterBand.ReadElement(AReader: TFPReportStreamer);
@@ -8738,7 +9067,15 @@ begin
 end;
 
 procedure TFPReportData.Open;
+
+var
+  I: Integer;
+
 begin
+  for I := 0 to FDataFields.Count - 1 do
+  begin
+    FDataFields[I].FLastValue := nil;
+  end;
   if Assigned(FOnOpen) then
     FOnOpen(Self);
   DoOpen;
@@ -8748,7 +9085,15 @@ begin
 end;
 
 procedure TFPReportData.First;
+
+var
+  I: Integer;
+
 begin
+  for I := 0 to FDataFields.Count - 1 do
+  begin
+    FDataFields[I].FLastValue := nil;
+  end;
   if Assigned(FOnFirst) then
     FOnFirst(Self);
   DoFirst;
@@ -9225,32 +9570,133 @@ end;
 procedure TFPReportLayouter.HandleFooterBands;
 
 Var
-  lBand : TFPReportCustomBand;
+  lFooter, lRTBand: TFPReportCustomBand;
+  i, j: Integer;
+  lFooterPosition: TFPReportFooterPosition;
+  lList: TBandList;
+  lGrp: TFPReportCustomGroupHeaderBand;
 
 begin
-  { Show footer band if it exists }
-  lBand := FFooterList.Find(TFPReportCustomPageFooterBand);
-  if Assigned(lBand) then
-    ShowFooterBand(TFPReportCustomPageFooterBand(lBand));
+  //WriteLn('HandleFooterBands:');
+  lList:=TBandList.Create;
+  try
+    { 1. from bottom to top for page footer and group footer with fpStackAtBottom }
+    for i:=0 to FFooterList.Count-1 do
+    try
+      lFooter:=FFooterList[i];
+      lFooterPosition := fpStackAtBottom;
+      if lFooter is TFPReportCustomGroupFooterBand then begin
+        lGrp := TFPReportCustomGroupFooterBand(lFooter).GroupHeader;
+        if not lGrp.FNeedsIntermediateFooter then
+          Continue;
+        lFooterPosition := lGrp.FooterPosition;
+        Report.FRTInIntermediateGroupFooter := True;
+      end;
+      if lFooterPosition = fpNormal then
+        Continue;
+      lList.Clear;
+      while Assigned(lFooter) do
+      begin
+        lList.Add(lFooter);
+        lFooter := lFooter.ChildBand;
+      end;
+      for j:=lList.Count-1 downto 0 do
+      begin
+        lFooter := lList[j];
+        if lFooterPosition = fpStackAtBottom then
+        begin
+          //WriteLn('   1: ',lFooter.ClassName);
+          lRTBand := TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
+          lRTBand.RecalcLayout;
+          lRTBand.BeforePrint;
+          if MaybeSkipBand(lRTBand) or
+          not lRTBand.EvaluateVisibility then
+          begin
+            //WriteLn('      discarded');
+            lRTBand.Page.RemoveChild(lRTBand);
+            lRTBand.Free;
+            continue;
+          end;
+          FPageFooterYPos := FPageFooterYPos - lRTBand.RTLayout.Height;
+          lRTBand.RTLayout.Top := FPageFooterYPos;
+          //WriteLn('      bottom: page/top/height: ',IntToStr(Report.FPageNumber),'/',FormatFloat('#,##0.0', lRTBand.RTLayout.Top), '/',FormatFloat('#,##0.0', lRTBand.RTLayout.Height));
+          //WriteLn('        FooterYPos: ',FormatFloat('#,##0.0', FPageFooterYPos));
+        end
+      end;
+    finally
+      Report.FRTInIntermediateGroupFooter := False;
+    end;
+    { 2. from top to bottom for group footer with fpNormal }
+    for i:=FFooterList.Count-1 downto 0 do
+    try
+      lFooter:=FFooterList[i];
+      lFooterPosition := fpStackAtBottom;
+      if lFooter is TFPReportCustomGroupFooterBand then begin
+        lGrp := TFPReportCustomGroupFooterBand(lFooter).GroupHeader;
+        if not lGrp.FNeedsIntermediateFooter then
+          Continue;
+        lFooterPosition := lGrp.FooterPosition;
+        Report.FRTInIntermediateGroupFooter := True;
+      end;
+      if lFooterPosition = fpStackAtBottom then
+        Continue;
+      while Assigned(lFooter) do
+      try
+        if lFooterPosition = fpNormal then
+        begin
+          //WriteLn('   2: ',lFooter.ClassName);
+          lRTBand := TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
+          lRTBand.RecalcLayout;
+          lRTBand.BeforePrint;
+          if MaybeSkipBand(lRTBand) or
+          not lRTBand.EvaluateVisibility then
+          begin
+            //WriteLn('      discarded');
+            lRTBand.Page.RemoveChild(lRTBand);
+            lRTBand.Free;
+            continue;
+          end;
+          lRTBand.RTLayout.Top := FLastYPos;
+          UpdateSpaceRemaining(lRTBand);
+          //WriteLn('      normal: page/top/height: ',IntToStr(Report.FPageNumber),'/',FormatFloat('#,##0.0', lRTBand.RTLayout.Top), '/',FormatFloat('#,##0.0', lRTBand.RTLayout.Height));
+          //WriteLn('        LastYPos: ',FormatFloat('#,##0.0', FLastYPos));
+        end
+      finally
+        lFooter := lFooter.ChildBand;
+      end;
+    finally
+      Report.FRTInIntermediateGroupFooter := False;
+    end;
+  finally
+    lList.Free;
+  end;
 end;
 
 procedure TFPReportLayouter.HandleRepeatedGroupHeaderBands;
+
 var
   I: Integer;
   lGrp: TFPReportCustomGroupHeaderBand;
+
 begin
   for I:=FGroupList.Count-1 downto 0 do
   begin
     lGrp := TFPReportCustomGroupHeaderBand(FGroupList[I]);
-    if lGrp.ReprintHeader and
+    if lGrp.ReprintedHeader and
     ( not lGrp.GroupChanged or
-    lGrp.FNeedsHeader) then
+    lGrp.FNeedsReprintedHeader) and
+    ( not lGrp.GroupFooter.FIsOverlowed or
+      lGrp.OverflowedFooterNeedsReprintedHeader ) then
     begin
-      Report.FInRepeatedGroupHeader := True;
+      Report.FRTInRepeatedGroupHeader := True;
+      if lGrp.FNeedsPrevVariables then
+        Report.RTBeginUsePrevVariableValues;
       try
         ShowGroupHeaderBand(lGrp, False);
       finally
-        Report.FInRepeatedGroupHeader := False;
+        Report.FRTInRepeatedGroupHeader := False;
+        if lGrp.FNeedsPrevVariables then
+          Report.RTEndUsePrevVariableValues;
       end;
     end;
   end;
@@ -9272,7 +9718,7 @@ begin
     lFooterBand.RTLayout.Top := (APage.RTLayout.Top + APage.RTLayout.Height) - lFooterBand.RTLayout.Height
   else
     lFooterBand.RTLayout.Top := FPageFooterYPos - lFooterBand.RTLayout.Height;
-  if lFooterBand.FooterPosition = fpAfterLast then
+  if lFooterBand.FooterPosition = fpNormal then
     begin
     if FNewColumn or FOverflowed then
       { take height of overflowed band into account }
@@ -9284,8 +9730,13 @@ end;
 
 function TFPReportLayouter.NoSpaceRemaining: boolean;
 
+var
+  lSpaceNeede: TFPReportUnits;
+
 begin
-  Result:=FSpaceLeft <= 0;
+  lSpaceNeede := FooterSpaceNeeded;
+  Result:=(FSpaceLeft-lSpaceNeede)<= 0;
+  //writeln(' -> ',FormatFloat('#,##0.0', FSpaceLeft-lSpaceNeede));
   if Result then
     begin
     if FMultiColumn and (FCurrentColumn < Pages[PageIdx].ColumnCount) then
@@ -9298,6 +9749,27 @@ begin
       FNewPage := True;
       end;
     end
+end;
+
+procedure TFPReportLayouter.EndPage;
+
+var
+  lFooter: TFPReportCustomGroupFooterBand;
+  i: Integer;
+
+begin
+  { handle footers }
+  FPageFooterYPos := FRTPage.RTLayout.Top + FRTPage.RTLayout.Height;
+  { page footer }
+  HandleFooterBands;
+  { bottom stacked footers }
+  for i:=FBottomStackedFooterList.Count-1 downto 0 do
+  begin
+    lFooter := TFPReportCustomGroupFooterBand(FBottomStackedFooterList[i]);
+    FPageFooterYPos := FPageFooterYPos - lFooter.RTLayout.Height;
+    lFooter.RTLayout.Top := FPageFooterYPos;
+  end;
+  FBottomStackedFooterList.Clear;
 end;
 
 
@@ -9406,9 +9878,11 @@ begin
 end;
 
 procedure TFPReportLayouter.PopulateGroupList(APage: TFPReportCustomPage);
+
 var
   I: Integer;
   lGroup: TFPReportCustomGroupHeaderBand;
+
 begin
   FGroupList.Clear;
   lGroup := nil;
@@ -9425,13 +9899,13 @@ begin
   FHasGroups := true;
   // populate list from lowest to highest group level
   while Assigned(lGroup) do
-    begin
+  begin
     lGroup.ResetGroupConditionValues;
     FGroupList.Add(lGroup);
     if Assigned(lGroup.GroupFooter) then
       FHasGroupFooter := true;
-    lGroup := lGroup.GroupHeader;
-    end;
+    lGroup := lGroup.ParentGroupHeader;
+  end;
 end;
 
 function TFPReportLayouter.GetPerDesignerPageCount(Index : Cardinal): Cardinal;
@@ -9466,6 +9940,50 @@ begin
   Report.FPageNumberPerDesignerPage:=aValue;
 end;
 
+function TFPReportLayouter.FooterSpaceNeeded: TFPReportUnits;
+
+var
+  i: Integer;
+  lFooter, lBand: TFPReportCustomBand;
+  lValue: TFPReportUnits;
+
+begin
+  //Write('FooterSpaceNeeded: ');
+  Result := 0;
+  for i:=0 to FFooterList.Count-1 do
+  begin
+    lValue := 0;
+    try
+      lFooter:=FFooterList[i];
+      if lFooter is TFPReportCustomGroupFooterBand then begin
+        if not TFPReportCustomGroupFooterBand(lFooter).GroupHeader.FNeedsIntermediateFooter then
+          Continue;
+        Report.FRTInIntermediateGroupFooter := True;
+      end;
+      while Assigned(lFooter) do
+      begin
+        lBand:=TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
+        try
+          lBand.BeforePrint;
+          if not MaybeSkipBand(lBand) and
+          lBand.EvaluateVisibility then begin
+            lValue := lValue + lBand.RTLayout.Height;
+            Result := Result + lBand.RTLayout.Height;
+          end;
+          lFooter := lFooter.ChildBand;
+        finally
+          lBand.Page.RemoveChild(lBand);
+          lBand.Free;
+        end;
+      end;
+      Report.FRTInIntermediateGroupFooter := False;
+    finally
+      //write(FormatFloat('#,##0.0', lValue),' ');
+    end;
+  end;
+  //Write(' = ',FormatFloat('#,##0.0', Result));
+end;
+
 procedure TFPReportLayouter.SetPageCount(aCount: Integer);
 begin
   Report.FPageCount:=aCount;
@@ -9492,9 +10010,22 @@ begin
 end;
 
 procedure TFPReportLayouter.PopulateFooterList(APage: TFPReportCustomPage);
+
+var
+  i: Integer;
+  lGrp: TFPReportCustomGroupHeaderBand;
+
 begin
   FFooterList.Clear;
   FFooterList.Add(APage.FindBand(TFPReportCustomPageFooterBand));
+  { add group footers that have to be printed on every page }
+  for i:=FGroupList.Count-1 downto 0 do
+  begin
+    lGrp:=TFPReportCustomGroupHeaderBand(FGroupList[i]);
+    if Assigned(lGrp.GroupFooter) and
+    lGrp.FIntermediateFooter then
+      FFooterList.Add(lGrp.GroupFooter);
+  end;
 end;
 
 procedure TFPReportLayouter.IncPageNumber;
@@ -9514,8 +10045,10 @@ begin
 end;
 
 procedure TFPReportLayouter.StartNewPage;
-
 begin
+  if Assigned(FRTPage) then
+    EndPage;
+  { new page }
   if Assigned(FLastDsgnDataBand) then
     report.ClearDataBandLastTextValues(FLastDsgnDataBand);
   FSpaceLeft := Pages[PageIdx].Layout.Height; // original designer page
@@ -9534,7 +10067,6 @@ begin
     RemoveTitleBandFromHeaderList;
   IncPageNumberPerDesignerPage;
   HandleHeaderBands;
-  HandleFooterBands;
   HandleRepeatedGroupHeaderBands;
   FNewPage := False;
   FPageDetailsPrinted := False;
@@ -9556,23 +10088,10 @@ begin
 end;
 
 procedure TFPReportLayouter.ShowDataBand(const aBand: TFPReportCustomDataBand);
-
-var
-  aChildBand: TFPReportCustomBand;
-  I: Integer;
-
 begin
   FLastDsgnDataBand := aBand;
-  aChildBand := aBand;
-  while Assigned(aChildBand) do
-  begin
-    if HandleBandVisibility(CommonRuntimeBandProcessing(aChildBand),True) then
-    begin
-      { details are printed so repeated group headers are needed if page breaks }
-      FPageDetailsPrinted := True;
-    end;
-    aChildBand := aChildBand.ChildBand;
-  end;  { while ChildBand <> nil }
+  if ShowBandWithChilds(aBand) then
+    FPageDetailsPrinted := True;
 end;
 
 function TFPReportLayouter.HandleBandVisibility(aBand: TFPReportCustomBand; doRecalcLayout: Boolean): Boolean;
@@ -9670,42 +10189,6 @@ begin
   end;
 end;
 
-procedure TFPReportLayouter.ShowGroupFooterBand(
-  aBand: TFPReportCustomGroupFooterBand);
-
-var
-  lBand, lRTBand: TFPReportCustomBand;
-
-begin
-  lBand := aBand;
-  while Assigned(lBand) do
-  begin
-    try
-      Report.FRTUseLastValues:=true;
-      try
-        lRTBand := CommonRuntimeBandProcessing(lBand);
-        if not lBand.EvaluateVisibility then
-        begin
-          FRTPage.RemoveChild(lRTBand);
-          lRTBand.Free;
-          Continue;
-        end
-        else
-          { if the footer is printed then it doesn't need a repeated
-            group header if page break occurs due to no space        }
-          aBand.GroupHeader.FNeedsHeader := False;
-      finally
-        Report.FRTUseLastValues:=false;
-      end;
-      UpdateSpaceRemaining(lRTBand);
-      if NoSpaceRemaining then
-        CheckNewOrOverFlow;
-    finally
-      lBand := lBand.ChildBand;
-    end;
-  end;
-end;
-
 procedure TFPReportLayouter.HandleGroupBands;
 
 Var
@@ -9750,24 +10233,29 @@ procedure TFPReportLayouter.HandleDataBands;
 
 Var
   D : TFPReportCustomDataBand;
-  i : Integer;
+  i , j: Integer;
   lBand : TFPReportCustomBand;
 
 begin
   for I := 0 to Report.FBands.Count-1 do
-    begin
+  begin
     lBand := TFPReportCustomBand(Report.FBands[I]);
     if (lBand is TFPReportCustomDataBand) then
-      begin
+    begin
       inc(FDataLevelStack);
       D:=TFPReportCustomDataBand(lBand);
       if D.HeaderBand <> nil then
         ShowDataHeaderBand(D.HeaderBand);
       ShowDataBand(D);
+      { set DetailsPrinted in all groups }
+      for j := 0 to FGroupList.Count-1 do
+      begin
+        TFPReportCustomGroupHeaderBand(FGroupList[j]).FDetailsPrinted := True;
+      end;
       ShowDetailBand(D);
       dec(FDataLevelStack);
-      end;
     end;
+  end;
 end;
 
 procedure TFPReportLayouter.HandleLastGroupFooters;
@@ -9801,10 +10289,10 @@ Var
 begin
   // Create a list of bands that need to be printed as page headers
   PopulateHeaderList(aPage);
-  // Create a list of bands that need to be printed as page footers
-  PopulateFooterList(aPage);
   // Create a list of group headers
   PopulateGroupList(aPage);
+  // Create a list of bands that need to be printed as page footers
+  PopulateFooterList(aPage);
   // find Bands of interest
   ClearBandList;
   for I := 0 to aPage.BandCount-1 do
@@ -9825,7 +10313,7 @@ begin
       end
     else
       begin
-      if (lBand is TFPReportCustomGroupHeaderBand) and (TFPReportCustomGroupHeaderBand(lBand).GroupHeader <> nil) then
+      if (lBand is TFPReportCustomGroupHeaderBand) and (TFPReportCustomGroupHeaderBand(lBand).ParentGroupHeader <> nil) then
         continue; // this is not the toplevel GroupHeader Band.
       if lBand is TFPReportCustomGroupFooterBand then
         continue; // we will get the Footer from the GroupHeaderBand.FooterBand property
@@ -9838,7 +10326,6 @@ begin
 end;
 
 procedure TFPReportLayouter.CheckNewOrOverFlow(CheckMulticolumn: Boolean);
-
 begin
   if CheckMulticolumn and FNewColumn then
     StartNewColumn;
@@ -9927,6 +10414,7 @@ begin
   FLastGroupCondition := '';
   InitPageNumber;
   FDataLevelStack := 0;
+  FRTPage := nil;
 end;
 
 procedure TFPReportLayouter.InitDesignPage(aPageIdx: integer);
@@ -9971,34 +10459,214 @@ end;
 
 procedure TFPReportLayouter.ShowGroupHeaderBand(
   aBand: TFPReportCustomGroupHeaderBand; aCheckStartOnNewPage: Boolean);
-var
-  lBand, lRTBand: TFPReportCustomBand;
 begin
-  lBand := aBand;
-  if Assigned(aBand) and
-  aCheckStartOnNewPage and
+  if aCheckStartOnNewPage and
+  Assigned(aBand) and
   aBand.StartOnNewPage and
   aBand.GroupChanged and
   FPageDetailsPrinted then
     StartNewPage;
-  while Assigned(lBand) do
+
+  ShowBandWithChilds(aBand);
+end;
+
+procedure TFPReportLayouter.ShowGroupFooterBand(
+  aBand: TFPReportCustomGroupFooterBand);
+begin
+  ShowBandWithChilds(aBand);
+end;
+
+function TFPReportLayouter.ShowBandWithChilds(aBand: TFPReportCustomBand
+  ): Boolean;
+
+var
+  lBand, lRTBand: TFPReportCustomBand;
+  lHandledBands: TBandList;
+  lStartAgain, lSameBandAgain: Boolean;
+  j: Integer;
+  lGrp, lToMoveGrp: TFPReportCustomGroupHeaderBand;
+
+  procedure HandleOverflowedBands;
+
+  var
+    i: Integer;
+
   begin
-    try
-      lRTBand := CommonRuntimeBandProcessing(lBand);
-      if not lBand.EvaluateVisibility then
+    if FOverflowed then
+    begin
+      if aBand.KeepTogetherWithChildren then
       begin
-        FRTPage.RemoveChild(lRTBand);
+        { complete band with child bands move to next page}
+        lStartAgain := True;
+        { remove all overflowed bands and start again on new page }
+        for i := 0 to lHandledBands.Count-1 do
+        begin
+          lBand := lHandledBands[i];
+          { remove band from current page }
+          lBand.Page.RemoveChild(lBand);
+          { correct LastYPos }
+          FLastYPos := FLastYPos - lBand.RTLayout.Height;
+          { free mem }
+          lBand.Free;
+        end;
+        lHandledBands.Clear;
+        //writeln('   complete move to next page');
+        { notify band }
+        aBand.MovedToNextPageWithChilds;
+
+        { if OverflowWithFirstDataBand is set,
+          also move header to next page          }
+        if FGroupList.Count > 0 then
+        begin
+          { when data band overflows use start with lowest gropup header }
+          if aBand is TFPReportCustomDataBand and
+          not Assigned(TFPReportCustomDataBand(aband).MasterBand) then
+            lToMoveGrp := TFPReportCustomGroupHeaderBand(FGroupList[0])
+          { when group header overflows use start with parent group header }
+          else if aBand is TFPReportCustomGroupHeaderBand then
+            lToMoveGrp := TFPReportCustomGroupHeaderBand(aBand).ParentGroupHeader;
+          { remove group headers if OverflowWithFirstDataBand and no details printed }
+          lGrp := lToMoveGrp;
+          while Assigned(lGrp) do
+          begin
+            if lGrp.OverflowWithFirstDataBand and
+            not lGrp.FDetailsPrinted then
+            begin
+              //writeln('      also group ', lGrp.GroupCondition);
+              { remove RT bands of group from current page }
+              for i := 0 to lGrp.FRTBands.Count - 1 do
+              begin
+                lBand := lGrp.FRTBands[i];
+                { remove band from current page }
+                lBand.Page.RemoveChild(lBand);
+                { correct LastYPos }
+                FLastYPos := FLastYPos - lBand.RTLayout.Height;
+                { free mem }
+                lBand.Free;
+              end;
+              lGrp.FRTBands.Clear;
+              { mark group as completed -> no intermediate footer needed on
+                current page and no reprinted header needed
+                as following group header will start on new page             }
+              lGrp.FNeedsIntermediateFooter := False;
+              lGrp.FNeedsReprintedHeader := False;
+            end;
+            { next is parent group header }
+            lGrp := lGrp.ParentGroupHeader;
+          end;
+        end;
+      end
+      else
+      begin
+        { only current band moves to next page}
+        lSameBandAgain := True;
+        { remove band from current page }
+        lRTBand.Page.RemoveChild(lRTBand);
+        { correct LastYPos }
+        FLastYPos := FLastYPos - lRTBand.RTLayout.Height;
+        { free mem }
         lRTBand.Free;
-        Continue;
+        //writeln('   part move to next page');
       end;
-      UpdateSpaceRemaining(lRTBand);
-      if NoSpaceRemaining then
-        CheckNewOrOverFlow;
-      { if header is shown then repeated header is needed on next page break }
-      aBand.FNeedsHeader := True;
-    finally
-      lBand := lBand.ChildBand;
+      { set state variable }
+      aBand.FIsOverlowed := True;
+      { do not handle overflowe in CheckNewOrOverFlow }
+      FOverflowed := False;
     end;
+  end;
+
+  procedure HandleMovedGroupHeaders;
+  var
+    i: Integer;
+  begin
+    { we are on a new page now }
+    { reprint moved headers only (not overflowed ones) }
+    if Assigned(lToMoveGrp) then
+    begin
+      for i := FGroupList.Count-1 downto 0 do
+      begin
+        lGrp := TFPReportCustomGroupHeaderBand(FGroupList[i]);
+        if lGrp.OverflowWithFirstDataBand and
+        not lGrp.FDetailsPrinted then
+        begin
+          //writeln('      reprint group header', lGrp.GroupCondition);
+          ShowBandWithChilds(lGrp);
+        end;
+        { lToMovedGRoup is last group to reprint }
+        if lGrp = lToMoveGrp then
+          break;
+      end;
+    end;
+  end;
+
+begin
+  //write('ShowBandWithChilds: ', aBand.ClassName);
+  //if aBand is TFPReportCustomGroupHeaderBand then
+  //  write(': ',TFPReportCustomGroupHeaderBand(aBand).GroupCondition)
+  //else if aBand is TFPReportCustomGroupFooterBand then
+  //  write(': ',TFPReportCustomGroupFooterBand(aBand).GroupHeader.GroupCondition);
+  //writeln(': Space = ', FormatFloat('#,##0.0', FSpaceLeft));
+  Result := False;
+  lHandledBands := TBandList.Create;
+  try
+    lStartAgain := True;
+    while lStartAgain do
+    begin;
+      lStartAgain := False;
+      lToMoveGrp := nil;
+      { for band and every child }
+      aBand.BeforePrintWithChilds;
+      lBand := aBand;
+      while Assigned(lBand) do
+      begin
+        try
+          lSameBandAgain := False;
+          aBand.BeginRuntimeProcessing;
+          try
+            lRTBand := CommonRuntimeBandProcessing(lBand);
+            if not lBand.EvaluateVisibility then
+            begin
+              { remove band from current page }
+              lRTBand.Page.RemoveChild(lRTBand);
+              { free mem }
+              lRTBand.Free;
+              Continue; { while Assigned(lBand) }
+            end;
+          finally
+            aBand.EndRuntimeProcessing;
+          end;
+          Result := True;
+          lHandledBands.Add(lRTBand);
+          UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
+          if NoSpaceRemaining then
+          begin
+            HandleOverflowedBands;
+            CheckNewOrOverFlow;
+            HandleMovedGroupHeaders;
+          end;
+          if lStartAgain then
+            break;
+          aBand.AfterPrintBand(Self, lRTBand);
+        finally
+          if not lSameBandAgain then
+            lBand := lBand.ChildBand;
+          if lStartAgain or
+          lSameBandAgain then
+            Report.FRTIsOverflowed := True;
+        end;
+      end; { while Assigned(lBand) }
+    end; { while lStartAgain }
+
+    if (aBand is TFPReportCustomGroupHeaderBand) and
+    not Report.FRTInRepeatedGroupHeader and
+    (lHandledBands.Count > 0) then
+      TFPReportCustomGroupHeaderBand(aBand).StoreRTBands(lHandledBands);
+
+    aBand.FIsOverlowed := False;
+    Report.FRTIsOverflowed := False;
+    aBand.AfterPrintWithChilds;
+  finally
+    lHandledBands.Free;
   end;
 end;
 
@@ -10047,6 +10715,7 @@ begin
         RunDataLoop(lPageIdx,lPageData);
       if FHasReportSummaryBand then
         HandleReportSummaryBands;
+      EndPage;
       end;
     SetPageCount(RTObjects.Count);
     end;
@@ -10062,16 +10731,19 @@ begin
   FHeaderList := Nil;
   FFooterList := Nil;
   FGroupList := Nil;
+  FBottomStackedFooterList := nil;
   FmyReport:=AReport;
   try
     FHeaderList := TBandList.Create;
     FFooterList := TBandList.Create;
     FGroupList := TBandList.Create;
+    FBottomStackedFooterList := TBandList.Create;
     DoExecute;
   finally
     FreeAndNil(FGroupList);
     FreeAndNil(FHeaderList);
     FreeAndNil(FFooterList);
+    FreeAndNil(FBottomStackedFooterList);
     FMyReport:=Nil; // Don't free :)
   end;
 end;
