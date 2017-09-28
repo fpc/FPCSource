@@ -110,7 +110,7 @@ implementation
                   current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,15));
                   current_asmdata.CurrAsmList.concat(tai_const.create_16bit(tprocdef(procdefinition).extnumber));
                   if po_syscall_has_importnr in tprocdef(procdefinition).procoptions then
-                    cg.getcpuregister(current_asmdata.CurrAsmList,NR_D2);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_D2);
                 end
               else
                 internalerror(2017081201);
