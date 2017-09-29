@@ -519,10 +519,9 @@ function TCustomSQLScript.NextStatement: AnsiString;
 
 var
   pnt: AnsiString;
-  b,isExtra,terminator_found: Boolean;
+  b,isExtra: Boolean;
 
 begin
-  terminator_found:=False;
   ClearStatement;
   while FLine <= FSQL.Count do
     begin
@@ -530,7 +529,6 @@ begin
     if (pnt=FTerminator) then
       begin
       FCol:=FCol + length(pnt);
-      terminator_found:=True;
       break;
       end
     else if pnt = '/*' then
@@ -583,8 +581,6 @@ begin
         FCol:=FCol + length(pnt);
       end;
     end;
-  if not terminator_found then
-    ClearStatement;
   while (FCurrentStatement.Count > 0) and (trim(FCurrentStatement.Strings[0]) = '') do
     FCurrentStatement.Delete(0);
   while (FCurrentStripped.Count > 0) and (trim(FCurrentStripped.Strings[0]) = '') do
