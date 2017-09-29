@@ -289,11 +289,11 @@ begin
 end;
 
 
-procedure ThreadQueueAppend(aEntry: TThread.PThreadQueueEntry);
+procedure ThreadQueueAppend(aEntry: TThread.PThreadQueueEntry; aQueueIfMain: Boolean);
 begin
   { do we really need a synchronized call? }
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  if GetCurrentThreadID = MainThreadID then
+  if (GetCurrentThreadID = MainThreadID) and (not aQueueIfMain or not IsMultiThread) then
 {$endif}
   begin
     ExecuteThreadQueueEntry(aEntry);
@@ -383,7 +383,7 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
 
     syncentry^.Exception := Nil;
     syncentry^.Method := AMethod;
-    ThreadQueueAppend(syncentry);
+    ThreadQueueAppend(syncentry, False);
 
     syncentry^.Method := Nil;
     syncentry^.Next := Nil;
@@ -502,6 +502,12 @@ end;
 
 
 class procedure TThread.Queue(aThread: TThread; aMethod: TThreadMethod); static;
+begin
+  InternalQueue(aThread, aMethod, False);
+end;
+
+
+class procedure TThread.InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean); static;
 var
   queueentry: PThreadQueueEntry;
 begin
@@ -516,9 +522,20 @@ begin
   queueentry^.Method := aMethod;
 
   { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
-  ThreadQueueAppend(queueentry);
+  ThreadQueueAppend(queueentry, aQueueIfMain);
 end;
 
+
+procedure TThread.ForceQueue(aMethod: TThreadMethod);
+begin
+  ForceQueue(Self, aMethod);
+end;
+
+
+class procedure TThread.ForceQueue(aThread: TThread; aMethod: TThreadMethod); static;
+begin
+  InternalQueue(aThread, aMethod, True);
+end;
 
 class procedure TThread.RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod);
 var

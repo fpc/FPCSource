@@ -1649,6 +1649,7 @@ type
     FSynchronizeEntry: PThreadQueueEntry;
     class function GetCurrentThread: TThread; static;
     class function GetIsSingleProcessor: Boolean; static; inline;
+    class procedure InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean); static;
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
     procedure SetPriority(Value: TThreadPriority);
@@ -1666,6 +1667,7 @@ type
     procedure Execute; virtual; abstract;
     procedure Synchronize(AMethod: TThreadMethod);
     procedure Queue(aMethod: TThreadMethod);
+    procedure ForceQueue(aMethod: TThreadMethod); inline;
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
 {$if defined(windows) or defined(OS2)}
@@ -1714,6 +1716,7 @@ type
     class function CheckTerminated: Boolean; static;
     class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
     class procedure Queue(aThread: TThread; aMethod: TThreadMethod); static;
+    class procedure ForceQueue(aThread: TThread; aMethod: TThreadMethod); inline; static;
     class procedure RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod); static;
     class procedure RemoveQueuedEvents(aMethod: TThreadMethod); static;
     class procedure RemoveQueuedEvents(aThread: TThread); static;
