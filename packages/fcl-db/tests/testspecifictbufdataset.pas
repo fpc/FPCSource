@@ -23,6 +23,14 @@ type
 
   { TTestSpecificTBufDataset }
 
+  { TMyBufDataset }
+
+  TMyBufDataset = Class(TBufDataset)
+  protected
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
+  end;
+
+
   TTestSpecificTBufDataset = class(TDBBasicsTestCase)
   private
     procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
@@ -54,6 +62,13 @@ uses
   variants,
   FmtBCD;
 
+{ TMyBufDataset }
+
+procedure TMyBufDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  Raise ENotImplemented.Create('LoadBlobIntoBuffer not implemented');
+end;
+
 { TTestSpecificTBufDataset }
 
 procedure TTestSpecificTBufDataset.TestDataset(ABufDataset: TBufDataset;
@@ -84,7 +99,7 @@ var
   ds : TBufDataset;
   f: TField;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   F := TAutoIncField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -112,7 +127,7 @@ begin
   DS.Close;
   ds.Free;
 
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   ds.LoadFromFile(fn);
   ds.Last;
   CheckEquals(10,ds.FieldByName('Id').AsInteger);
@@ -138,7 +153,7 @@ end;
 procedure TTestSpecificTBufDataset.CreateDatasetFromFielddefs;
 var ds : TBufDataset;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.FieldDefs.Add('NAME',ftString,50);
   DS.CreateDataset;
@@ -152,7 +167,7 @@ procedure TTestSpecificTBufDataset.CreateDatasetFromFields;
 var ds : TBufDataset;
     f: TField;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   F := TIntegerField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -171,7 +186,7 @@ procedure TTestSpecificTBufDataset.TestOpeningNonExistingDataset;
 var ds : TBufDataset;
     f: TField;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   F := TIntegerField.Create(ds);
   F.FieldName:='ID';
   F.DataSet:=ds;
@@ -179,7 +194,7 @@ begin
   CheckException(ds.Open,EDatabaseError);
   ds.Free;
 
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
 
   CheckException(ds.Open,EDatabaseError);
@@ -191,7 +206,7 @@ var ds : TBufDataset;
     f: TField;
     i: integer;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TMyBufDataset.Create(nil);
   try
     F := TIntegerField.Create(ds);
     F.FieldName:='ID';
@@ -260,7 +275,7 @@ var
   BDS:TBufDataSet;
 
 begin
-  BDS:=TBufDataSet.Create(nil);
+  BDS:=TMyBufDataset.Create(nil);
   BDS.FieldDefs.Add('ID',ftLargeint);
   BDS.CreateDataSet;
   BDS.AppendRecord([1]);

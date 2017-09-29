@@ -2211,7 +2211,6 @@ end;
 
 procedure TTestFieldTypes.TestFieldNames;
 var FieldList : TStringList;
-    i         : integer;
 begin
   FieldList := TStringList.Create;
   try

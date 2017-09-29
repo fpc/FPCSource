@@ -5,7 +5,7 @@ unit tccsvdataset;
 interface
 
 uses
-  Classes, db, SysUtils, fpcunit, testutils, testregistry, csvdataset;
+  Classes, db, SysUtils, fpcunit, testregistry, csvdataset;
 
 type
 

@@ -487,7 +487,7 @@ begin
   try
     ExportSettings.FieldDelimiter:=','; //RFC 4180 specified commas as delimiter
     ExportSettings.HeaderRow:=true; //...allows an optional header line
-    ExportSettings.StringQuoteChar:='"'; //...requires quoting with " (if quoting)
+    ExportSettings.QuoteChar:='"'; //...requires quoting with " (if quoting)
     // Fields containing line breaks (CRLF), double quotes,
     // and commas should be enclosed in double-quotes.
     // => this probably won't get tested with this test set.
@@ -517,7 +517,7 @@ begin
   ExportSettings:=TCSVFormatSettings.Create(true);
   try
     ExportSettings.FieldDelimiter:=';';
-    ExportSettings.StringQuoteChar:='"'; //try explicit assignment
+    ExportSettings.QuoteChar:='"'; //try explicit assignment
     ExportSettings.RowDelimiter:=#10; //Unix/Linux format
     ExportSettings.BooleanFalse:='onwaar'; //why not a Dutch output format?
     ExportSettings.BooleanTrue:='waar'; //why not a Dutch output format?

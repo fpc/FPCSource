@@ -196,7 +196,22 @@ uses
   strutils,
   FmtBCD;
 
-type THackDataLink=class(TDataLink);
+type
+  THackDataLink=class(TDataLink);
+
+  { TMyCustomBufDataset }
+
+  TMyCustomBufDataset = Class(TCustomBufDataset)
+  protected
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
+  end;
+
+{ TMyCustomBufDataset }
+
+procedure TMyCustomBufDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  Raise ENotImplemented.Create('LoadBlobIntoBuffer not implemented');
+end;
 
 { TTestCursorDBBasics }
 
@@ -709,6 +724,7 @@ begin
   for i:=13 to 15 do begin
     datalink1.BufferCount := datalink1.BufferCount+1;
     r := dataset1.RecNo; // syncronizes source dataset to ActiveRecord
+    AssertTrue(r>=0);
     datalink1.ActiveRecord := datalink1.BufferCount-1;
     CheckEquals(i, dataset1.FieldByName('ID').AsInteger);
   end;
@@ -1020,6 +1036,7 @@ begin
   ds.Open;
   ds.InsertRecord([0,'name']);
   v := VarToStr(ds.Fields[1].OldValue);
+  AssertTrue(v<>null);
 end;
 
 procedure TTestCursorDBBasics.TestFieldOldValue;
@@ -1577,7 +1594,7 @@ begin
   TCustomBufDataset(ds).SaveToFile('test.xml');
   ds.close;
 
-  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs := TMyCustomBufDataset.Create(nil);
   try
     LoadDs.LoadFromFile('test.xml');
     FTestXMLDatasetDefinition(LoadDS);
@@ -1611,7 +1628,7 @@ procedure TTestBufDatasetDBBasics.TestClientDatasetAsMemDataset;
 var ds : TCustomBufDataset;
     i  : integer;
 begin
-  ds := TCustomBufDataset.Create(nil);
+  ds := TMyCustomBufDataset.Create(nil);
     try
     DS.FieldDefs.Add('ID',ftInteger);
     DS.FieldDefs.Add('NAME',ftString,50);
@@ -2395,7 +2412,6 @@ procedure TTestBufDatasetDBBasics.TestIndexEditRecord;
 // with a value at the end of the alphabet
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
-    OldID : Integer;
     OldStringValue : string;
 begin
   ds := DBConnector.GetFieldDataset as TCustomBufDataset;
@@ -2526,6 +2542,7 @@ begin
   bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
   s := bufds.IndexFieldNames;
   s := bufds.IndexName;
+  AssertTrue(S<>'');
   bufds.CompareBookmarks(nil,nil);
 end;
 {$endif fpc}
@@ -2915,7 +2932,7 @@ begin
       if Fields[i].DataType in ftBlobTypes then
         begin
           // Type should certainly fall into wider old style, imprecise TBlobType
-          if not(TBlobField(Fields[i]).BlobType in [Low(TBlobType)..High(TBlobType)]) then
+          if not(TBlobField(Fields[i]).BlobType in ftBlobTypes) then
             fail('BlobType for field '+
               Fields[i].FieldName+' is not in old wide incorrect TBlobType range. Actual value: '+
               inttostr(word(TBlobField(Fields[i]).BlobType)));

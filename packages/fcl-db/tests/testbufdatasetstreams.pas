@@ -7,14 +7,22 @@ unit TestBufDatasetStreams;
 interface
 
 uses
-  fpcunit, testregistry,
-  Classes, SysUtils, db, BufDataset;
+  fpcunit, testregistry, Classes, SysUtils, db, BufDataset;
 
 type
 
   { TTestBufDatasetStreams }
 
   TUpdDatasetProc = procedure(ADataset : TCustomBufDataset) of object;
+
+  // Use this class, it implements some abstract methods
+  
+  { TMyCustomBufDataset }
+
+  TMyCustomBufDataset = Class(TCustomBufDataset)
+  protected
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
+  end;
 
   TTestBufDatasetStreams = class(TTestCase)
   private
@@ -94,6 +102,13 @@ const TestXMLFileName = 'test.xml';
       TestBINFileName = 'test.dat';
       TestFileNames: array[TDataPacketFormat] of string = (TestBINFileName, TestXMLFileName, TestXMLFileName, '');
 
+{ TMyCustomBufDataset }
+
+procedure TMyCustomBufDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  Raise ENotImplemented.Create('LoadBlobIntoBuffer not implemented');
+end;
+
 procedure TTestBufDatasetStreams.CompareDatasets(ADataset1,
   ADataset2: TDataset);
 begin
@@ -161,7 +176,7 @@ begin
   AUpdDatasetProc(SaveDs);
   SaveDs.SaveToFile(FileName, AFormat);
 
-  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs := TMyCustomBufDataset.Create(nil);
   LoadDs.LoadFromFile(FileName);
   CompareDatasets(SaveDs,LoadDs);
   SaveDs.Close;
@@ -416,7 +431,7 @@ begin
   SaveDs.Open;
   SaveDs.SaveToFile(TestXMLFileName, dfXML);
 
-  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs := TMyCustomBufDataset.Create(nil);
   LoadDs.LoadFromFile(TestXMLFileName);
   CompareDatasets(SaveDs,LoadDs);
   LoadDs.Free;
@@ -471,7 +486,7 @@ begin
   SaveDs.Open;
   SaveDs.SaveToFile(TestFileNames[AFormat], AFormat);
 
-  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs := TMyCustomBufDataset.Create(nil);
   LoadDs.LoadFromFile(TestFileNames[AFormat]);
   AssertEquals(SaveDs.FieldCount, LoadDs.FieldCount);
 
@@ -536,7 +551,7 @@ begin
     SaveDs.SaveToFile(TestXMLFileName,dfXML);
 
     // Load this file in another dataset
-    LoadDs := TCustomBufDataset.Create(nil);
+    LoadDs := TMyCustomBufDataset.Create(nil);
     try
       LoadDs.LoadFromFile(TestXMLFileName);
       LoadDS.First;
@@ -588,7 +603,7 @@ begin
     SaveToFile(TestFileNames[AFormat], AFormat);
     end;
 
-  LoadDs := TCustomBufDataset.Create(nil);
+  LoadDs := TMyCustomBufDataset.Create(nil);
   try
     LoadDs.LoadFromFile(TestFileNames[AFormat]);
     AssertEquals(SaveDs.FieldCount, LoadDs.FieldCount);

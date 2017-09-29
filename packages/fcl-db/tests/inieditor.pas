@@ -82,7 +82,7 @@ end;
 procedure TFormIniEditor.FormShow(Sender: TObject);
 begin
   if FileNameEdit.FileName='' then
-    FileNameEdit.FileName:=ExpandFileNameUTF8(FIniFilename);
+    FileNameEdit.FileName:=FIniFilename;
 end;
 
 procedure TFormIniEditor.GUITimerTimer(Sender: TObject);
