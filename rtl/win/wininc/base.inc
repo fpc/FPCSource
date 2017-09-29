@@ -228,6 +228,7 @@
      PSHORT = ^SHORT;
 
      PSTR = Pchar;
+     PWSTR = LPWSTR;
 
      PSZ = Pchar;
 {$ifdef UNICODE}
