@@ -124,6 +124,9 @@ const
   scan_e_illegal_asmcpu_specifier=02099;
   scan_w_syscall_convention_not_useable_on_target=02100;
   scan_w_syscall_convention_invalid=02101;
+  scan_w_setpeuserversion_not_support=02102;
+  scan_w_setpeosversion_not_support=02103;
+  scan_w_setpesubsysversion_not_support=02104;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -1080,9 +1083,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 80284;
+  MsgTxtSize = 80461;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,102,347,124,96,58,132,33,221,67,
+    27,105,347,124,96,58,132,33,221,67,
     60,20,30,1,1,1,1,1,1,1
   );

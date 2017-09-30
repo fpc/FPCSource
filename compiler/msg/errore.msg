@@ -142,7 +142,7 @@ general_e_exception_raised=01026_E_Compilation raised exception internally
 #
 # Scanner
 #
-# 02101 is the last used one
+# 02104 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -421,6 +421,12 @@ scan_w_syscall_convention_not_useable_on_target=02100_W_Specified syscall conven
 % is not useable on the current target system.
 scan_w_syscall_convention_invalid=02101_W_Invalid syscall convention specified
 % The compiler did not recognize the syscall convention specified by the \var{\{\$SYSCALL xxx\}} directive.
+scan_w_setpeuserversion_not_support=02102_W_SETPEUSERVERSION is not supported by the target OS
+% The \var{\{\$SETPEUSERVERSION\}} directive is not supported by the target OS.
+scan_w_setpeosversion_not_support=02103_W_SETPEOSVERSION is not supported by the target OS
+% The \var{\{\$SETPEOSVERSION\}} directive is not supported by the target OS.
+scan_w_setpesubsysversion_not_support=02104_W_SETPESUBSYSVERSION is not supported by the target OS
+% The \var{\{\$SETPESUBSYSVERSION\}} directive is not supported by the target OS.
 % \end{description}
 #
 # Parser

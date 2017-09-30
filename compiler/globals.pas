@@ -287,6 +287,9 @@ interface
        description   : string;
        SetPEFlagsSetExplicity,
        SetPEOptFlagsSetExplicity,
+       SetPEOSVersionSetExplicitely,
+       SetPESubSysVersionSetExplicitely,
+       SetPEUserVersionSetExplicitely,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
@@ -296,6 +299,12 @@ interface
        dllminor,
        dllrevision   : word;  { revision only for netware }
        { win pe  }
+       peosversionminor,
+       peosversionmajor,
+       pesubsysversionminor,
+       pesubsysversionmajor,
+       peuserversionminor,
+       peuserversionmajor : word;
        peoptflags,
        peflags : longint;
        minstacksize,
@@ -1517,6 +1526,9 @@ implementation
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
         SetPEOptFlagsSetExplicity:=false;
+        SetPEOSVersionSetExplicitely:=false;
+        SetPESubSysVersionSetExplicitely:=false;
+        SetPEUserVersionSetExplicitely:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;

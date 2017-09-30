@@ -140,6 +140,75 @@ unit scandir;
         Message1(w,current_scanner.readcomment);
       end;
 
+
+    procedure do_version(out major, minor, revision: word; out verstr: string; allowrevision: boolean; out isset: boolean);
+      var
+        majorl,
+        minorl,
+        revisionl,
+        error : longint;
+      begin
+        { change description global var in all cases }
+        { it not used but in win32, os2 and netware }
+        current_scanner.skipspace;
+        { we should only accept Major.Minor format for win32 and os2 }
+        current_scanner.readnumber;
+        major:=0;
+        minor:=0;
+        revision:=0;
+        verstr:='';
+        isset:=false;
+        majorl:=0;
+        minorl:=0;
+        revisionl:=0;
+        val(pattern,majorl,error);
+        if (error<>0) or (majorl > high(word)) or (majorl < 0) then
+          begin
+            Message1(scan_w_wrong_version_ignored,pattern);
+            exit;
+          end;
+        isset:=true;
+        if c='.' then
+          begin
+            current_scanner.readchar;
+            current_scanner.readnumber;
+            val(pattern,minorl,error);
+            if (error<>0) or (minorl > high(word)) or (minorl < 0) then
+              begin
+                Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+pattern);
+                exit;
+              end;
+            if (c='.') and
+               allowrevision then
+              begin
+                 current_scanner.readchar;
+                 current_scanner.readnumber;
+                 val(pattern,revisionl,error);
+                 if (error<>0) or (revisionl > high(word)) or (revisionl < 0) then
+                   begin
+                      Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+tostr(minorl)+'.'+pattern);
+                      exit;
+                   end;
+                 major:=word(majorl);
+                 minor:=word(minorl);
+                 revision:=word(revisionl);
+                 verstr:=tostr(major)+','+tostr(minor)+','+tostr(revision);
+              end
+            else
+              begin
+                 major:=word(majorl);
+                 minor:=word(minorl);
+                 verstr:=tostr(major)+'.'+tostr(minor);
+              end;
+          end
+        else
+          begin
+            major:=word(majorl);
+            verstr:=tostr(major);
+          end;
+      end;
+
+
 {*****************************************************************************
                               Directive Callbacks
 *****************************************************************************}
@@ -1256,6 +1325,45 @@ unit scandir;
         SetPEOptFlagsSetExplicity:=true;
       end;
 
+    procedure dir_setpeuserversion;
+      var
+        dummystr : string;
+        dummyrev : word;
+      begin
+        if not (target_info.system in systems_all_windows) then
+          Message(scan_w_setpeuserversion_not_support);
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          do_version(peuserversionmajor,peuserversionminor,dummyrev,dummystr,false,SetPEUserVersionSetExplicitely);
+      end;
+
+    procedure dir_setpeosversion;
+      var
+        dummystr : string;
+        dummyrev : word;
+      begin
+        if not (target_info.system in systems_all_windows) then
+          Message(scan_w_setpeosversion_not_support);
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,SetPEOSVersionSetExplicitely);
+      end;
+
+    procedure dir_setpesubsysversion;
+      var
+        dummystr : string;
+        dummyrev : word;
+      begin
+        if not (target_info.system in systems_all_windows) then
+          Message(scan_w_setpesubsysversion_not_support);
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,SetPESubSysVersionSetExplicitely);
+      end;
+
     procedure dir_smartlink;
       begin
         do_moduleswitch(cs_create_smart);
@@ -1855,6 +1963,9 @@ unit scandir;
         AddDirective('SCOPEDENUMS',directive_all, @dir_scopedenums);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
         AddDirective('SETPEOPTFLAGS', directive_all, @dir_setpeoptflags);
+        AddDirective('SETPEOSVERSION', directive_all, @dir_setpeosversion);
+        AddDirective('SETPEUSERVERSION', directive_all, @dir_setpeuserversion);
+        AddDirective('SETPESUBSYSVERSION', directive_all, @dir_setpesubsysversion);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);

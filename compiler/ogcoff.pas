@@ -2621,15 +2621,39 @@ const pemagic : array[0..3] of byte = (
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
             peoptheader.FileAlignment:=SectionDataAlign;
-            peoptheader.MajorOperatingSystemVersion:=4;
-            peoptheader.MinorOperatingSystemVersion:=0;
-            peoptheader.MajorImageVersion:=dllmajor;
-            peoptheader.MinorImageVersion:=dllminor;
-            if target_info.system in systems_wince then
-              peoptheader.MajorSubsystemVersion:=3
+            if SetPEOSVersionSetExplicitely then
+              begin
+                peoptheader.MajorOperatingSystemVersion:=peosversionmajor;
+                peoptheader.MinorOperatingSystemVersion:=peosversionminor;
+              end
             else
-              peoptheader.MajorSubsystemVersion:=4;
-            peoptheader.MinorSubsystemVersion:=0;
+              begin
+                peoptheader.MajorOperatingSystemVersion:=10;
+                peoptheader.MinorOperatingSystemVersion:=0;
+              end;
+            if SetPEUserVersionSetExplicitely then
+              begin
+                peoptheader.MajorImageVersion:=peuserversionmajor;
+                peoptheader.MinorImageVersion:=peuserversionminor;
+              end
+            else
+              begin
+                peoptheader.MajorImageVersion:=dllmajor;
+                peoptheader.MinorImageVersion:=dllminor;
+              end;
+            if SetPESubSysVersionSetExplicitely then
+              begin
+                peoptheader.MajorSubsystemVersion:=pesubsysversionmajor;
+                peoptheader.MinorSubsystemVersion:=pesubsysversionminor;
+              end
+            else
+              begin
+                if target_info.system in systems_wince then
+                  peoptheader.MajorSubsystemVersion:=3
+                else
+                  peoptheader.MajorSubsystemVersion:=6;
+                peoptheader.MinorSubsystemVersion:=2;
+              end;
             peoptheader.Win32Version:=0;
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
