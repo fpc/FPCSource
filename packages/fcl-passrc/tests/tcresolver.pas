@@ -6600,17 +6600,35 @@ begin
       'end.'
       ]));
   StartProgram(true);
-  Add('uses unit1;');
-  Add('type');
-  Add('  TClassA = class(TObject)');
-  Add('    procedure ProcA;');
-  Add('  end;');
-  Add('procedure TClassA.ProcA;');
-  Add('begin');
-  Add('  if vprotected=3 then ;');
-  Add('  if vstrictprotected=4 then ;');
-  Add('end;');
-  Add('begin');
+  Add([
+  'uses unit1;',
+  'type',
+  '  TClassA = class(TObject)',
+  '    procedure ProcA;',
+  '  end;',
+  '  TClassB = class(TObject)',
+  '    procedure ProcB;',
+  '  end;',
+  'procedure TClassA.ProcA;',
+  'begin',
+  '  if vprotected=3 then ;',
+  '  if vstrictprotected=4 then ;',
+  '  if self.vprotected=5 then;',
+  '  if self.vstrictprotected=6 then;',
+  '  with self do if vprotected=7 then;',
+  '  with self do if vstrictprotected=8 then;',
+  'end;',
+  'procedure TClassB.ProcB;',
+  'var A: TClassA;',
+  'begin',
+  '  if A.vprotected=9 then;',
+  '  with A do if vprotected=10 then;',
+  'end;',
+  'var A: TClassA;',
+  'begin',
+  '  A.vprotected:=11;',
+  '  with A do vprotected:=12;',
+  '  // error: A.vstrictprotected:=13; ']);
   ParseProgram;
 end;
 

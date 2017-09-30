@@ -1450,6 +1450,7 @@ function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
 {$IF FPC_FULLVERSION<30101}
 function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
 {$ENDIF}
+function NoNil(o: TObject): TObject;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
 function dbgs(const a: TResolvedRefAccess): string;
@@ -1748,6 +1749,13 @@ begin
       or (CompareText(Prefix,LeftStr(Identifier,l))<>0) then
     exit(false);
   Result:=(length(Identifier)=l) or (Identifier[l+1]='.');
+end;
+
+function NoNil(o: TObject): TObject;
+begin
+  if o=nil then
+    raise Exception.Create('');
+  Result:=o;
 end;
 
 {$IF FPC_FULLVERSION<30101}
@@ -9795,12 +9803,20 @@ begin
           RaiseMsg(20170216152354,nCantAccessPrivateMember,sCantAccessPrivateMember,
             ['private',FindData.Found.Name],FindData.ErrorPosEl);
       visProtected:
-        // protected members can only be accessed in same module or descendant classes
+        // protected members can only be accessed in same module
+        // or modules of descendant classes
         if FoundContext.GetModule=Context.GetModule then
           // same module -> ok
         else if (Context is TPasType)
             and (CheckClassIsClass(TPasType(Context),FoundContext,FindData.ErrorPosEl)<>cIncompatible) then
           // context in class or descendant
+        else if (TopScope is TPasDotClassScope)
+            and (TPasDotClassScope(TopScope).ClassScope.Element.GetModule=Context.GetModule) then
+          // e.g. aClassInThisModule.identifier
+        else if (TopScope is TPasWithExprScope)
+            and (TPasWithExprScope(TopScope).Scope is TPasClassScope)
+            and (TPasClassScope(TPasWithExprScope(TopScope).Scope).Element.GetModule=Context.GetModule) then
+          // e.g. with aClassInThisModule do identifier
         else
           RaiseMsg(20170216152356,nCantAccessPrivateMember,sCantAccessPrivateMember,
             ['protected',FindData.Found.Name],FindData.ErrorPosEl);
@@ -9810,7 +9826,7 @@ begin
           RaiseMsg(20170216152357,nCantAccessPrivateMember,sCantAccessPrivateMember,
             ['strict private',FindData.Found.Name],FindData.ErrorPosEl);
       visStrictProtected:
-        // strict protected members can only be access in their and descendant classes
+        // strict protected members can only be accessed in their and descendant classes
         if (Context is TPasType)
             and (CheckClassIsClass(TPasType(Context),FoundContext,FindData.ErrorPosEl)<>cIncompatible) then
           // context in class or descendant
