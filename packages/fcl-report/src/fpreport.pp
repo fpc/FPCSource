@@ -798,6 +798,7 @@ type
     procedure RecalcLayout; override;
     procedure CalcPrintPosition; virtual;
     function  PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
+    procedure PrepareObjects(aRTParent: TFPReportElement); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
   public
@@ -885,6 +886,7 @@ type
     Class Function ReportBandType : TFPReportBandType; virtual;
     procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
+    property Page : TFPReportCustomPage read GetReportPage;
   end;
   TFPReportCustomBandClass = Class of TFPReportCustomBand;
 
@@ -1416,6 +1418,7 @@ type
     FPerDesignerPageCount: array of UInt32;
     FUsePageCountMarker: Boolean;
     FVariables : TFPReportVariables;
+    FDataAdded : TFPList;
     function GetPage(AIndex: integer): TFPReportCustomPage;
     function GetPageCount: integer; { this is designer page count }
     function GetRenderedPageCount: integer;
@@ -6494,6 +6497,12 @@ begin
   Result := TFPReportCustomPage.Create(nil);
   Result.Assign(self);
   Result.CreateRTLayout;
+  PrepareObjects(aRTParent);
+end;
+
+procedure TFPReportCustomPage.PrepareObjects(aRTParent: TFPReportElement);
+begin
+  // inherited PrepareObjects(aRTParent);
 end;
 
 procedure TFPReportCustomPage.MarginsChanged;
@@ -7025,12 +7034,14 @@ begin
   FBands:=Nil;
   L:=CreateLayouter;
   try
+    FDataAdded:=TFPList.Create;
     FBands:=TBandList.Create;
     SetLength(FPerDesignerPageCount, PageCount);
     L.Execute(Self);
   finally
     SetLength(FPerDesignerPageCount, 0);
-    Fbands.Free;
+    FreeAndNil(FDataAdded);
+    FreeAndNil(Fbands);
     L.Free;
   end;
 end;
@@ -7126,25 +7137,29 @@ begin
   F:='';
   For I:=0 to FExpr.Identifiers.Count-1 do
     f:=f+FExpr.Identifiers[i].Name+'; ';
-  for i := 0 to AData.DataFields.Count-1 do
-  begin
-    d := AData.Name;
-    f := AData.DataFields[i].FieldName;
-    r := ReportKindToResultType(AData.DataFields[i].FieldKind);
-    if d <> '' then
+  if FDataAdded.IndexOf(AData)=-1 then
+    begin
+    for i := 0 to AData.DataFields.Count-1 do
       begin
-      {$ifdef gdebug}
-      writeln('registering (dotted name)... '+ d+'.'+f);
-      {$endif}
-      FExpr.Identifiers.AddVariable(d+'.'+f, r, @DoGetExpressionVariableValue);
-      end
-    else
-      begin
-      {$ifdef gdebug}
-      writeln('registering... '+ f);
-      {$endif}
-      FExpr.Identifiers.AddVariable(f, r, @DoGetExpressionVariableValue);
+      d := AData.Name;
+      f := AData.DataFields[i].FieldName;
+      r := ReportKindToResultType(AData.DataFields[i].FieldKind);
+      if d <> '' then
+        begin
+        {$ifdef gdebug}
+        writeln('registering (dotted name)... '+ d+'.'+f);
+        {$endif}
+        FExpr.Identifiers.AddVariable(d+'.'+f, r, @DoGetExpressionVariableValue);
+        end
+      else
+        begin
+        {$ifdef gdebug}
+        writeln('registering... '+ f);
+        {$endif}
+        FExpr.Identifiers.AddVariable(f, r, @DoGetExpressionVariableValue);
+        end;
       end;
+  FDataAdded.Add(AData);
   end;
   if APage.Data = AData then
   begin

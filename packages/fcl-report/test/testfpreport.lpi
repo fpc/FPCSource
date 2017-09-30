@@ -32,19 +32,14 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="--suite=TTestCustomReport.TestPagePrepareObjects"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="fclreport"/>
-      </Item1>
-      <Item2>
-        <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item2>
-      <Item3>
         <PackageName Value="FCL"/>
-      </Item3>
+      </Item1>
     </RequiredPackages>
     <Units Count="5">
       <Unit0>
@@ -75,7 +70,7 @@
       <Filename Value="testfpreport"/>
     </Target>
     <SearchPaths>
-      <OtherUnitFiles Value="$(fptest)/src;$(fptest)/3rdparty/epiktimer"/>
+      <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="units"/>
     </SearchPaths>
     <Parsing>

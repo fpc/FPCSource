@@ -64,7 +64,7 @@ type
     FPrepareObjectsCalled: integer;
     procedure SetupPage;
   protected
-    procedure PrepareObjects; override;
+    procedure PrepareObjects(aRTParent: TFPReportElement); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure ResetChanged;
@@ -77,7 +77,7 @@ type
   private
     FPrepareObjectsCalled: integer;
   protected
-    procedure PrepareObjects; override;
+    procedure PrepareObjects(aRTParent: TFPReportElement); override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -87,7 +87,7 @@ type
   private
     FPrepareObjectsCalled: integer;
   protected
-    procedure PrepareObjects; override;
+    procedure PrepareObjects(aRTParent: TFPReportElement); override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -1983,10 +1983,11 @@ begin
   Margins.Bottom := 20;
 end;
 
-procedure TMyFPReportPage.PrepareObjects;
+procedure TMyFPReportPage.PrepareObjects(aRTParent: TFPReportElement);
+
 begin
   Inc(FPrepareObjectsCalled);
-  inherited PrepareObjects;
+  inherited PrepareObjects(aRTParent);
 end;
 
 constructor TMyFPReportPage.Create(AOwner: TComponent);
@@ -2008,10 +2009,11 @@ end;
 
 { TMyReportTitleBand }
 
-procedure TMyReportTitleBand.PrepareObjects;
+procedure TMyReportTitleBand.PrepareObjects(aRTParent: TFPReportElement);
+
 begin
   Inc(FPrepareObjectsCalled);
-  inherited PrepareObjects;
+  inherited PrepareObjects(aRTParent);
 end;
 
 constructor TMyReportTitleBand.Create(AOwner: TComponent);
@@ -2022,10 +2024,11 @@ end;
 
 { TMyDataBand }
 
-procedure TMyDataBand.PrepareObjects;
+procedure TMyDataBand.PrepareObjects(aRTParent: TFPReportElement);
+
 begin
   Inc(FPrepareObjectsCalled);
-  inherited PrepareObjects;
+  inherited PrepareObjects(aRTParent);
 end;
 
 constructor TMyDataBand.Create(AOwner: TComponent);
@@ -2801,14 +2804,14 @@ begin
   p.Name := 'Page3';
   p.Data := Data;
 
-  AssertEquals('Failed on 1', TMyFPReportPage(Report.Pages[0]).FPrepareObjectsCalled, 0);
-  AssertEquals('Failed on 2', TMyFPReportPage(Report.Pages[1]).FPrepareObjectsCalled, 0);
-  AssertEquals('Failed on 3', TMyFPReportPage(Report.Pages[2]).FPrepareObjectsCalled, 0);
+  AssertEquals('Failed on 1', 0, TMyFPReportPage(Report.Pages[0]).FPrepareObjectsCalled);
+  AssertEquals('Failed on 2', 0, TMyFPReportPage(Report.Pages[1]).FPrepareObjectsCalled);
+  AssertEquals('Failed on 3', 0, TMyFPReportPage(Report.Pages[2]).FPrepareObjectsCalled);
 
   Report.RunReport;
-  AssertEquals('Failed on 4', TMyFPReportPage(Report.Pages[0]).FPrepareObjectsCalled, 1);
-  AssertEquals('Failed on 5', TMyFPReportPage(Report.Pages[1]).FPrepareObjectsCalled, 1);
-  AssertEquals('Failed on 6', TMyFPReportPage(Report.Pages[2]).FPrepareObjectsCalled, 1);
+  AssertEquals('Failed on 4', 1, TMyFPReportPage(Report.Pages[0]).FPrepareObjectsCalled);
+  AssertEquals('Failed on 5', 1, TMyFPReportPage(Report.Pages[1]).FPrepareObjectsCalled);
+  AssertEquals('Failed on 6', 1, TMyFPReportPage(Report.Pages[2]).FPrepareObjectsCalled);
 end;
 
 procedure TTestCustomReport.TestBandPrepareObjects;
