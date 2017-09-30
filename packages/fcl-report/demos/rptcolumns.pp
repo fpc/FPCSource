@@ -263,13 +263,33 @@ begin
   Memo.TextAlignment.Horizontal := taLeftJustified;
   Memo.TextAlignment.Vertical := tlCenter;
 
+  DataFooter := TFPReportDataFooterBand.Create(p);
+  DataFooter.Layout.Height := 10;
+  DataFooter.Frame.Shape := fsRectangle;
+  DataFooter.Frame.BackgroundColor := TFPReportColor($ffa500);
+  DataFooter.UseParentFont := False;
+  DataFooter.Font.Name := 'LiberationSans-Bold';
+  DataFooter.Font.Color := clWhite;
+
+  Memo := TFPReportMemo.Create(DataFooter);
+  Memo.Layout.Left := 5;
+  Memo.Layout.Top := 1.5;
+  Memo.Layout.Width := 50;
+  Memo.Layout.Height := 8;
+  Memo.Text := 'DataFooter Band';
+  Memo.TextAlignment.Horizontal := taLeftJustified;
+  Memo.TextAlignment.Vertical := tlCenter;
+
   DataBand := TFPReportDataBand.Create(p);
   DataBand.Layout.Height := 10;
   DataBand.Data := FDataPage2;
+  DataBand.KeepTogetherWithChildren := False;
   DataBand.Frame.Shape := fsRectangle;
   DataBand.Frame.BackgroundColor := clDataBand;
   { associated DataHeader band }
   DataBand.HeaderBand := DataHeader;
+  { associated DataFooter band }
+  DataBand.FooterBand := DataFooter;
 
   Memo := TFPReportMemo.Create(DataBand);
   Memo.Layout.Left := 5;
@@ -291,23 +311,6 @@ begin
   Memo.Text := 'ChildBand - [p2element]';
 
   DataBand.ChildBand := ChildBand;
-
-  DataFooter := TFPReportDataFooterBand.Create(p);
-  DataFooter.Layout.Height := 10;
-  DataFooter.Frame.Shape := fsRectangle;
-  DataFooter.Frame.BackgroundColor := TFPReportColor($ffa500);
-  DataFooter.UseParentFont := False;
-  DataFooter.Font.Name := 'LiberationSans-Bold';
-  DataFooter.Font.Color := clWhite;
-
-  Memo := TFPReportMemo.Create(DataFooter);
-  Memo.Layout.Left := 5;
-  Memo.Layout.Top := 1.5;
-  Memo.Layout.Width := 50;
-  Memo.Layout.Height := 8;
-  Memo.Text := 'DataFooter Band';
-  Memo.TextAlignment.Horizontal := taLeftJustified;
-  Memo.TextAlignment.Vertical := tlCenter;
 
   ColumnFooter := TFPReportColumnFooterBand.Create(p);
   ColumnFooter.Layout.Height := 15;
