@@ -85,7 +85,13 @@ uses
               A_VMULSD,
               A_VMULSS,
               A_VADDSD,
-              A_VADDSS:
+              A_VADDSS,
+              A_VANDPD,
+              A_VANDPS,
+              A_VORPD,
+              A_VORPS,
+              A_VXORPD,
+              A_VXORPS:
                 result:=OptPass1VOP(p);
               A_MULSD,
               A_MULSS,

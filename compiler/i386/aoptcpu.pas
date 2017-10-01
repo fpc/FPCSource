@@ -1171,7 +1171,13 @@ begin
                   A_VMULSD,
                   A_VMULSS,
                   A_VADDSD,
-                  A_VADDSS:
+                  A_VADDSS,
+                  A_VANDPD,
+                  A_VANDPS,
+                  A_VORPD,
+                  A_VORPS,
+                  A_VXORPD,
+                  A_VXORPS:
                     if OptPass1VOP(p) then
                       continue;
                   A_MULSD,

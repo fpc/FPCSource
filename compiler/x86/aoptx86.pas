@@ -1077,7 +1077,7 @@ unit aoptx86;
           ?
         }
         if GetNextInstruction(p,hp1) and
-          { we mix single and double opperations here because we assume that the compiler
+          { we mix single and double operations here because we assume that the compiler
             generates vmovapd only after double operations and vmovaps only after single operations }
           MatchInstruction(hp1,A_VMOVAPD,A_VMOVAPS,[S_NO]) and
           MatchOperand(taicpu(p).oper[2]^,taicpu(hp1).oper[0]^) and
