@@ -208,6 +208,12 @@ Type
       ct_stm32f051r4,
       ct_stm32f051r6,
       ct_stm32f051r8,
+      ct_stm32f091cc,
+      ct_stm32f091cb,
+      ct_stm32f091rc,
+      ct_stm32f091rb,
+      ct_stm32f091vc,
+      ct_stm32f091vb,
       ct_stm32f100x4, // LD&MD value line, 4=16,6=32,8=64,b=128
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -715,6 +721,12 @@ Const
       (controllertypestr:'STM32F051R4';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00004000; srambase:$20000000; sramsize:$00001000),
       (controllertypestr:'STM32F051R6';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00008000; srambase:$20000000; sramsize:$00001000),
       (controllertypestr:'STM32F051R8';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00010000; srambase:$20000000; sramsize:$00002000),
+      (controllertypestr:'STM32F091CC';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'STM32F091CB';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'STM32F091RC';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'STM32F091RB';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'STM32F091VC';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00008000),
+      (controllertypestr:'STM32F091VB';     controllerunitstr:'STM32F0XX';        cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00008000),
 
       { STM32F1 series }
       (controllertypestr:'STM32F100X4';     controllerunitstr:'STM32F10X_LD';     cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00004000; srambase:$20000000; sramsize:$00001000),
