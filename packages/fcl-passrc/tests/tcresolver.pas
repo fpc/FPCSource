@@ -621,6 +621,9 @@ type
     // hints
     Procedure TestHint_ElementHints;
     Procedure TestHint_ElementHintsMsg;
+
+    // attributes
+    Procedure TestAttributes_Ignore;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -10405,6 +10408,25 @@ begin
   ParseProgram;
   CheckResolverHint(mtWarning,nSymbolXIsDeprecatedY,'Symbol "TDeprecated" is deprecated: ''foo''');
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestAttributes_Ignore;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreattributes}',
+  'type',
+  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
+  '  TObject = class',
+  '    [custom5()] FS: string;',
+  '    [customProp] property S: string read FS;',
+  '  end;',
+  'var',
+  '  [custom6]',
+  '  o: TObject;',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 initialization

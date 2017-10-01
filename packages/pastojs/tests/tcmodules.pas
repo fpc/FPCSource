@@ -527,6 +527,9 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
     Procedure TestRTTI_TypeInfo_FunctionClassType;
+
+    // Attributes
+    Procedure TestAtributes_Ignore;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1756,6 +1759,8 @@ begin
   Add('  c: char = ''4'';');
   Add('  b: boolean = true;');
   Add('  d: double = 5.6;');
+  Add('  e = low(word);');
+  Add('  f = high(word);');
   Add('begin');
   ConvertProgram;
   CheckSource('TestVarBaseTypes',
@@ -1764,7 +1769,9 @@ begin
     'this.s="foo";',
     'this.c="4";',
     'this.b=true;',
-    'this.d=5.6;'
+    'this.d=5.6;',
+    'this.e = 0;',
+    'this.f = 65535;'
     ]),
     '');
 end;
@@ -14664,6 +14671,38 @@ begin
     '$mod.t = $mod.TObject.ClassType().$rtti;',
     '$mod.t = $mod.Obj.$class.ClassType().$rtti;',
     '$mod.t = $mod.Obj.MyClass().$rtti;',
+    '']));
+end;
+
+procedure TTestModule.TestAtributes_Ignore;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch ignoreattributes}',
+  'type',
+  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
+  '  TObject = class',
+  '    [custom5()] FS: string;',
+  '    [customProp] property S: string read FS;',
+  '  end;',
+  'var',
+  '  [custom6]',
+  '  o: TObject;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAtributes_Ignore',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FS = "";',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

@@ -1384,7 +1384,7 @@ type
     function GetCombinedBoolean(Bool1, Bool2: TResolverBaseType; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedInt(const Int1, Int2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     procedure GetIntegerProps(bt: TResolverBaseType; out Precision: word; out Signed: boolean);
-    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: int64): boolean;
+    function GetIntegerRange(bt: TResolverBaseType; out MinVal, MaxVal: MaxPrecInt): boolean;
     function GetIntegerBaseType(Precision: word; Signed: boolean; ErrorEl: TPasElement): TResolverBaseType;
     function GetSmallestIntegerBaseType(MinVal, MaxVal: MaxPrecInt): TResolverBaseType;
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
@@ -1640,7 +1640,7 @@ begin
     while AncestorScope<>nil do
       begin
       Result:=Result+LineEnding+'  ';
-      AncestorEl:=AncestorScope.Element as TPasClassType;
+      AncestorEl:=NoNil(AncestorScope.Element) as TPasClassType;
       Result:=Result+GetClassDesc(AncestorEl);
       AncestorScope:=AncestorScope.AncestorScope;
       end;
@@ -3414,7 +3414,7 @@ begin
   ComputeElement(Right,RightResolved,[rcSkipTypeAlias,rcConstant]);
   CheckSetLitElCompatible(Left,Right,LeftResolved,RightResolved);
 
-  RgValue:=Eval(Left.Parent as TBinaryExpr,[refConst]);
+  RgValue:=Eval(NoNil(Left.Parent) as TBinaryExpr,[refConst]);
   ReleaseEvalValue(RgValue);
 end;
 
@@ -3816,7 +3816,7 @@ begin
   CurClassScope:=ImplProcScope.ClassScope;
   if CurClassScope=nil then
     RaiseInternalError(20161013172346);
-  CurClassType:=CurClassScope.Element as TPasClassType;
+  CurClassType:=NoNil(CurClassScope.Element) as TPasClassType;
   FindData:=Default(TFindOverloadProcData);
   FindData.Proc:=ImplProc;
   FindData.Args:=ImplProc.ProcType.Args;
@@ -4222,7 +4222,7 @@ begin
 
   PropType:=nil;
   CurClassType:=PropEl.Parent as TPasClassType;
-  ClassScope:=CurClassType.CustomData as TPasClassScope;
+  ClassScope:=NoNil(CurClassType.CustomData) as TPasClassScope;
   GetPropType;
   IndexVal:=nil;
   try
@@ -4515,7 +4515,7 @@ begin
   ClassScope.DirectAncestor:=DirectAncestor;
   if AncestorEl<>nil then
     begin
-    ClassScope.AncestorScope:=AncestorEl.CustomData as TPasClassScope;
+    ClassScope.AncestorScope:=NoNil(AncestorEl.CustomData) as TPasClassScope;
     ClassScope.DefaultProperty:=ClassScope.AncestorScope.DefaultProperty;
     end;
   // create canonical class-of for the "Self" in class functions
@@ -4866,14 +4866,14 @@ begin
     OnlyTypeMembers:=false;
     if TypeEl.ClassType=TPasRecordType then
       begin
-      ExprScope:=TPasRecordType(TypeEl).CustomData as TPasRecordScope;
+      ExprScope:=NoNil(TPasRecordType(TypeEl).CustomData) as TPasRecordScope;
       if ExprResolved.IdentEl is TPasType then
         // e.g. with TPoint do PointInCircle
         OnlyTypeMembers:=true;
       end
     else if TypeEl.ClassType=TPasClassType then
       begin
-      ExprScope:=TPasClassType(TypeEl).CustomData as TPasClassScope;
+      ExprScope:=NoNil(TPasClassType(TypeEl).CustomData) as TPasClassScope;
       if ExprResolved.IdentEl is TPasType then
         // e.g. with TFPMemoryImage do FindHandlerFromExtension()
         OnlyTypeMembers:=true;
@@ -5351,7 +5351,7 @@ begin
     begin
     // e.g. unitname.identifier
     // => search in interface and if this is our module in the implementation
-    aModule:=LeftResolved.IdentEl as TPasModule;
+    aModule:=NoNil(LeftResolved.IdentEl) as TPasModule;
     PushModuleDotScope(aModule);
     ResolveExpr(El.right,Access);
     PopScope;
@@ -5378,7 +5378,7 @@ begin
   else if LeftResolved.TypeEl.ClassType=TPasClassOfType then
     begin
     // e.g. ImageClass.FindHandlerFromExtension()
-    ClassEl:=ResolveAliasType(TPasClassOfType(LeftResolved.TypeEl).DestType) as TPasClassType;
+    ClassEl:=ResolveAliasType(TPasClassOfType(NoNil(LeftResolved.TypeEl)).DestType) as TPasClassType;
     ClassScope:=PushClassDotScope(ClassEl);
     ClassScope.OnlyTypeMembers:=true;
     ResolveExpr(El.right,Access);
@@ -5793,7 +5793,7 @@ begin
     begin
     if ResolvedValue.TypeEl.ClassType=TPasClassType then
       begin
-      ClassScope:=ResolvedValue.TypeEl.CustomData as TPasClassScope;
+      ClassScope:=NoNil(ResolvedValue.TypeEl.CustomData) as TPasClassScope;
       if ResolveBracketOperatorClass(Params,ResolvedValue,ClassScope,Access) then
         exit;
       end
@@ -6225,7 +6225,7 @@ begin
       RaiseNotYetImplemented(20161013170956,El);
 
     ProcScope.VisibilityContext:=CurClassType;
-    ProcScope.ClassScope:=CurClassType.CustomData as TPasClassScope;
+    ProcScope.ClassScope:=NoNil(CurClassType.CustomData) as TPasClassScope;
     end;
 end;
 
@@ -6897,7 +6897,7 @@ begin
     TypeEl:=ResolvedEl.TypeEl;
     if TypeEl.ClassType=TPasClassType then
       begin
-      ClassScope:=TypeEl.CustomData as TPasClassScope;
+      ClassScope:=NoNil(TypeEl.CustomData) as TPasClassScope;
       if ClassScope.DefaultProperty<>nil then
         ComputeIndexProperty(ClassScope.DefaultProperty)
       else
@@ -6931,7 +6931,7 @@ begin
         if ArgNo=length(Params.Params) then
           break;
         // continue in sub array
-        ArrayEl:=ResolveAliasType(ArrayEl.ElType) as TPasArrayType;
+        ArrayEl:=NoNil(ResolveAliasType(ArrayEl.ElType)) as TPasArrayType;
       until false;
       OrigResolved:=ResolvedEl;
       ComputeElement(ArrayEl.ElType,ResolvedEl,Flags,StartEl);
@@ -8081,7 +8081,7 @@ begin
       if IsDynArray(ParamResolved.TypeEl) then
         begin
         Result:=cExact;
-        DynArr:=ParamResolved.TypeEl as TPasArrayType;
+        DynArr:=NoNil(ParamResolved.TypeEl) as TPasArrayType;
         end;
       end;
     end;
@@ -8104,7 +8104,7 @@ begin
     if (DynArr=nil) or (ArgNo=length(Params.Params)) then break;
     ElType:=ResolveAliasType(DynArr.ElType);
     if not IsDynArray(ElType) then break;
-    DynArr:=ElType as TPasArrayType;
+    DynArr:=NoNil(ElType) as TPasArrayType;
     inc(ArgNo);
   until false;
 
@@ -9304,7 +9304,7 @@ begin
   El.SourceFilename:=ASrcPos.FileName;
   El.SourceLinenumber:=SrcY;
   if FRootElement=nil then
-    FRootElement:=Result as TPasModule;
+    FRootElement:=NoNil(Result) as TPasModule;
 
   if IsElementSkipped(El) then exit;
 
@@ -10250,24 +10250,24 @@ begin
     begin // program
     if TPasProgram(aModule).ProgramSection<>nil then
       Result.InterfaceScope:=
-        TPasProgram(aModule).ProgramSection.CustomData as TPasSectionScope;
+        NoNil(TPasProgram(aModule).ProgramSection.CustomData) as TPasSectionScope;
     end
   else if aModule is TPasLibrary then
     begin // library
     if TPasLibrary(aModule).LibrarySection<>nil then
       Result.InterfaceScope:=
-        TPasLibrary(aModule).LibrarySection.CustomData as TPasSectionScope;
+        NoNil(TPasLibrary(aModule).LibrarySection.CustomData) as TPasSectionScope;
     end
   else
     begin // unit
     if aModule.InterfaceSection<>nil then
       Result.InterfaceScope:=
-        aModule.InterfaceSection.CustomData as TPasSectionScope;
+        NoNil(aModule.InterfaceSection.CustomData) as TPasSectionScope;
     if (aModule=CurrentParser.CurModule)
         and (aModule.ImplementationSection<>nil)
         and (aModule.ImplementationSection.CustomData<>nil)
     then
-      Result.ImplementationScope:=aModule.ImplementationSection.CustomData as TPasSectionScope;
+      Result.ImplementationScope:=NoNil(aModule.ImplementationSection.CustomData) as TPasSectionScope;
     end;
 
   PushScope(Result);
@@ -10286,7 +10286,7 @@ begin
     end;
   if CurClassType.CustomData=nil then
     RaiseInternalError(20160922163611);
-  ClassScope:=CurClassType.CustomData as TPasClassScope;
+  ClassScope:=NoNil(CurClassType.CustomData) as TPasClassScope;
   Result:=TPasDotClassScope.Create;
   Result.Owner:=Self;
   Result.ClassScope:=ClassScope;
@@ -10298,7 +10298,7 @@ function TPasResolver.PushRecordDotScope(CurRecordType: TPasRecordType
 var
   RecScope: TPasRecordScope;
 begin
-  RecScope:=CurRecordType.CustomData as TPasRecordScope;
+  RecScope:=NoNil(CurRecordType.CustomData) as TPasRecordScope;
   Result:=TPasDotRecordScope.Create;
   Result.Owner:=Self;
   Result.IdentifierScope:=RecScope;
@@ -10310,7 +10310,7 @@ function TPasResolver.PushEnumDotScope(CurEnumType: TPasEnumType
 var
   EnumScope: TPasEnumTypeScope;
 begin
-  EnumScope:=CurEnumType.CustomData as TPasEnumTypeScope;
+  EnumScope:=NoNil(CurEnumType.CustomData) as TPasEnumTypeScope;
   Result:=TPasDotEnumTypeScope.Create;
   Result.Owner:=Self;
   Result.IdentifierScope:=EnumScope;
@@ -13188,7 +13188,7 @@ begin
     if El.CustomData is TResolvedReference then
       begin
         // "inherited;"
-        DeclEl:=TResolvedReference(El.CustomData).Declaration as TPasProcedure;
+        DeclEl:=NoNil(TResolvedReference(El.CustomData).Declaration) as TPasProcedure;
         SetResolverIdentifier(ResolvedEl,btProc,DeclEl,
           TPasProcedure(DeclEl).ProcType,[rrfCanBeStatement]);
       end
@@ -13239,7 +13239,7 @@ begin
       end;
     end
   else if (ElClass=TPasEnumValue) then
-    SetResolverIdentifier(ResolvedEl,btContext,El,El.Parent as TPasEnumType,[rrfReadable])
+    SetResolverIdentifier(ResolvedEl,btContext,El,NoNil(El.Parent) as TPasEnumType,[rrfReadable])
   else if (ElClass=TPasEnumType) then
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasEnumType(El),[])
   else if (ElClass=TPasProperty) then
@@ -13287,7 +13287,7 @@ begin
     if TPasClassType(El).IsForward and (El.CustomData<>nil) then
       begin
       DeclEl:=(TPasClassType(El).CustomData as TResolvedReference).Declaration;
-      ResolvedEl.TypeEl:=DeclEl as TPasClassType;
+      ResolvedEl.TypeEl:=NoNil(DeclEl) as TPasClassType;
       end
     else
       ResolvedEl.TypeEl:=TPasClassType(El);
@@ -13428,7 +13428,7 @@ begin
   if ClassEl.IsForward then
     begin
     DeclEl:=(ClassEl.CustomData as TResolvedReference).Declaration;
-    ClassEl:=DeclEl as TPasClassType;
+    ClassEl:=NoNil(DeclEl) as TPasClassType;
     Result:=ClassEl;
     end
   else
@@ -13472,7 +13472,7 @@ begin
       Result:=TPasAliasType(Result).DestType
     else if (C=TPasClassType) and TPasClassType(Result).IsForward
         and (Result.CustomData is TResolvedReference) then
-      Result:=TResolvedReference(Result.CustomData).Declaration as TPasType
+      Result:=NoNil(TResolvedReference(Result.CustomData).Declaration) as TPasType
     else
       exit;
     end;
@@ -13662,7 +13662,7 @@ begin
     if aClass.ExternalName=ExtName then exit(true);
     AncestorScope:=(aClass.CustomData as TPasClassScope).AncestorScope;
     if AncestorScope=nil then exit;
-    aClass:=AncestorScope.Element as TPasClassType;
+    aClass:=NoNil(AncestorScope.Element) as TPasClassType;
   end;
 end;
 
@@ -13773,7 +13773,7 @@ begin
     case TResEvalRangeInt(Range).ElKind of
       revskEnum:
         begin
-        EnumType:=TResEvalRangeInt(Range).ElType as TPasEnumType;
+        EnumType:=NoNil(TResEvalRangeInt(Range).ElType) as TPasEnumType;
         if EvalLow then
           Result:=TResEvalEnum.CreateValue(
             TResEvalRangeInt(Range).RangeStart,TPasEnumValue(EnumType.Values[0]))
@@ -13889,7 +13889,7 @@ begin
 end;
 
 function TPasResolver.GetIntegerRange(bt: TResolverBaseType; out MinVal,
-  MaxVal: int64): boolean;
+  MaxVal: MaxPrecInt): boolean;
 begin
   Result:=true;
   if bt=btExtended then bt:=BaseTypeExtended;

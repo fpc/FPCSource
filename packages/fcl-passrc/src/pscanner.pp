@@ -263,7 +263,8 @@ type
     msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
     msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
     msExternalClass,       { Allow external class definitions }
-    msIgnoreInterfaces     { workaround til resolver/converter supports interfaces }
+    msIgnoreInterfaces,    { workaround til resolver/converter supports interfaces }
+    msIgnoreAttributes     { workaround til resolver/converter supports attributes }
   );
   TModeSwitches = Set of TModeSwitch;
 
@@ -821,7 +822,8 @@ const
     'ISOPROGRAMPARAS',
     'ISOMOD',
     'EXTERNALCLASS',
-    'IGNOREINTERFACES'
+    'IGNOREINTERFACES',
+    'IGNOREATTRIBUTES'
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(

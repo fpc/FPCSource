@@ -797,7 +797,8 @@ const
     msDelphi,msObjfpc,
     msHintDirective,msNestedComment,
     msExternalClass,
-    msIgnoreInterfaces];
+    msIgnoreInterfaces,
+    msIgnoreAttributes];
 
   btAllJSBaseTypes = [
     btChar,
@@ -6816,6 +6817,7 @@ var
   Value: TResEvalValue;
   Call: TJSCallExpression;
   MinusExpr: TJSAdditiveExpressionMinus;
+  MinVal, MaxVal: MaxPrecInt;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -6919,7 +6921,19 @@ begin
     btByte..btInt64:
       begin
       TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedEl.TypeEl);
-      if TypeEl.ClassType=TPasRangeType then
+      if TypeEl.ClassType=TPasUnresolvedSymbolRef then
+        begin
+        if TypeEl.CustomData is TResElDataBaseType then
+          begin
+          AContext.Resolver.GetIntegerRange(ResolvedEl.BaseType,MinVal,MaxVal);
+          if IsLow then
+            Result:=CreateLiteralNumber(El,MinVal)
+          else
+            Result:=CreateLiteralNumber(El,MaxVal);
+          exit;
+          end;
+        end
+      else if TypeEl.ClassType=TPasRangeType then
         begin
         Value:=AContext.Resolver.EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,
                                                 [refConst],IsLow,El);
@@ -6932,13 +6946,15 @@ begin
           else
             RaiseNotSupported(El,AContext,20170925214317);
           end;
+          exit;
         finally
           ReleaseEvalValue(Value);
         end;
-        end
-      else
-        RaiseNotSupported(El,AContext,20170925214351);
-      exit;
+        end;
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.ConvertBuiltIn_LowHigh ',GetResolverResultDbg(ResolvedEl));
+      {$ENDIF}
+      RaiseNotSupported(El,AContext,20170925214351);
       end;
     btSet:
       begin

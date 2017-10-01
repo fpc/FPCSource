@@ -386,6 +386,7 @@ type
     // Constant declarations
     function ParseConstDecl(Parent: TPasElement): TPasConst;
     function ParseResourcestringDecl(Parent: TPasElement): TPasResString;
+    procedure ParseAttribute(Parent: TPasElement);
     // Variable handling. This includes parts of records
     procedure ParseVarDecl(Parent: TPasElement; List: TFPList);
     procedure ParseInlineVarDecl(Parent: TPasElement; List: TFPList;  AVisibility : TPasMemberVisibility  = visDefault; ClosingBrace: Boolean = False);
@@ -2427,18 +2428,19 @@ begin
 end;
 
 function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
+// sets CurToken to token behind expression
 
   function lastfield:boolean;
 
   begin
-    result:= CurToken<>tkSemicolon;
-    if not result then
+    Result:=CurToken<>tkSemicolon;
+    if not Result then
      begin
-       nexttoken;
-       if curtoken=tkbraceclose then
-         result:=true
+       NextToken;
+       if CurToken=tkBraceClose then
+         Result:=true
        else
-         ungettoken;
+         UngetToken;
      end;
   end;
 
@@ -2938,7 +2940,6 @@ var
   ok: Boolean;
   Proc: TPasProcedure;
   RecordEl: TPasRecordType;
-
 begin
   CurBlock := declNone;
   while True do
@@ -3024,7 +3025,7 @@ begin
             AddProcOrFunction(Declarations,ParseProcedureOrFunctionDecl(Declarations, pt));
             end
           else
-            ExpectToken(tkprocedure);
+            CheckToken(tkprocedure);
         end;
       tkIdentifier:
         begin
@@ -3225,6 +3226,11 @@ begin
           if not (Declarations is TInterfaceSection) then
             ParseLabels(Declarations);
         end;
+      tkSquaredBraceOpen:
+        if msIgnoreAttributes in CurrentModeSwitches then
+          ParseAttribute(Declarations)
+        else
+          ParseExcSyntaxError;
     else
       ParseExcSyntaxError;
     end;
@@ -3432,6 +3438,33 @@ begin
     if not ok then
       ReleaseAndNil(TPasElement(Result));
   end;
+end;
+
+procedure TPasParser.ParseAttribute(Parent: TPasElement);
+var
+  Expr: TPasExpr;
+begin
+  repeat
+    // skip attribute
+    // [name,name(param,param,...),...]
+    repeat
+      ExpectIdentifier;
+      NextToken;
+    until CurToken<>tkDot;
+    if CurToken=tkBraceOpen then
+      begin
+      repeat
+        NextToken;
+        if CurToken=tkBraceClose then
+          break;
+        Expr:=DoParseConstValueExpression(Parent);
+        Expr.Free;
+      until CurToken<>tkComma;
+      CheckToken(tkBraceClose);
+      NextToken;
+      end;
+  until CurToken<>tkComma;
+  CheckToken(tkSquaredBraceClose);
 end;
 
 procedure TPasParser.ReadGenericArguments(List : TFPList;Parent : TPasElement);
@@ -5914,7 +5947,12 @@ begin
         ExpectIdentifier;
         AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,HaveClass));
         HaveClass:=False;
-        end
+        end;
+      tkSquaredBraceOpen:
+        if msIgnoreAttributes in CurrentModeswitches then
+          ParseAttribute(AType)
+        else
+          CheckToken(tkIdentifier);
     else
       CheckToken(tkIdentifier);
     end;
