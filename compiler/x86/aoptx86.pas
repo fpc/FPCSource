@@ -1102,7 +1102,7 @@ unit aoptx86;
       var
         hp1, hp2: tai;
         TmpUsedRegs : TAllUsedRegs;
-        GetNextIntruction_p : Boolean;
+        GetNextInstruction_p : Boolean;
       begin
         Result:=false;
         {  remove mov reg1,reg1? }
@@ -1116,8 +1116,8 @@ unit aoptx86;
             Result:=true;
             exit;
           end;
-        GetNextIntruction_p:=GetNextInstruction(p, hp1);
-        if GetNextIntruction_p and
+        GetNextInstruction_p:=GetNextInstruction(p, hp1);
+        if GetNextInstruction_p and
           MatchInstruction(hp1,A_AND,[]) and
           (taicpu(p).oper[1]^.typ = top_reg) and
           MatchOpType(taicpu(hp1),top_const,top_reg) and
@@ -1126,14 +1126,31 @@ unit aoptx86;
             S_L:
               if (taicpu(hp1).oper[0]^.val = $ffffffff) then
                 begin
-                  DebugMsg('PeepHole Optimization MovAnd2Mov done',p);
+                  { Optimize out:
+                      mov x, %reg
+                      and ffffffffh, %reg
+                  }
+                  DebugMsg('PeepHole Optimization MovAnd2Mov 1 done',p);
+                  asml.remove(hp1);
+                  hp1.free;
+                  Result:=true;
+                  exit;
+                end;
+            S_Q: { TODO: Confirm if this is even possible }
+              if (taicpu(hp1).oper[0]^.val = $ffffffffffffffff) then
+                begin
+                  { Optimize out:
+                      mov x, %reg
+                      and ffffffffffffffffh, %reg
+                  }
+                  DebugMsg('PeepHole Optimization MovAnd2Mov 2 done',p);
                   asml.remove(hp1);
                   hp1.free;
                   Result:=true;
                   exit;
                 end;
           end
-        else if GetNextIntruction_p and
+        else if GetNextInstruction_p and
           MatchInstruction(hp1,A_MOV,[]) and
           (taicpu(p).oper[1]^.typ = top_reg) and
           (getsupreg(taicpu(p).oper[1]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX, RS_ESI, RS_EDI]) and
@@ -1220,13 +1237,14 @@ unit aoptx86;
             }
             begin
               if ((taicpu(hp1).opcode = A_OR) or
+                  (taicpu(hp1).opcode = A_AND) or
                   (taicpu(hp1).opcode = A_TEST)) and
                  (taicpu(hp1).oper[1]^.typ = top_reg) and
                  (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
                 {  we have
 
                    mov %reg1, %reg2
-                   test/or %reg2, %reg2
+                   test/or/and %reg2, %reg2
                 }
                 begin
                   CopyUsedRegs(TmpUsedRegs);
@@ -1240,7 +1258,7 @@ unit aoptx86;
                       { change
 
                         mov %reg1, %reg2
-                        test/or %reg2, %reg2
+                        test/or/and %reg2, %reg2
                         jxx
 
                         to
@@ -1262,12 +1280,12 @@ unit aoptx86;
                       { change
 
                         mov %reg1, %reg2
-                        test/or %reg2, %reg2
+                        test/or/and %reg2, %reg2
 
                         to
 
                         mov %reg1, %reg2
-                        test/or %reg1, %reg1
+                        test/or/and %reg1, %reg1
 
                         }
                       begin
@@ -1284,7 +1302,7 @@ unit aoptx86;
             parameter or to the temporary storage room for the function
             result)
           }
-          if GetNextIntruction_p and
+          if GetNextInstruction_p and
             (tai(hp1).typ = ait_instruction) then
             begin
               if IsExitCode(hp1) and
@@ -1322,7 +1340,7 @@ unit aoptx86;
             end;
 
         { Next instruction is also a MOV ? }
-        if GetNextIntruction_p and
+        if GetNextInstruction_p and
           MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
           begin
             if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
@@ -1504,7 +1522,7 @@ unit aoptx86;
           end
 
         else if (taicpu(p).oper[1]^.typ = top_reg) and
-          GetNextIntruction_p and
+          GetNextInstruction_p and
           (hp1.typ = ait_instruction) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_MOV,[]) and
@@ -1577,7 +1595,7 @@ unit aoptx86;
             ReleaseUsedRegs(TmpUsedRegs);
           end
 
-        else if GetNextIntruction_p and
+        else if GetNextInstruction_p and
           MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
           GetNextInstruction(hp1, hp2) and
           MatchInstruction(hp2,A_OR,[Taicpu(p).opsize]) and
@@ -1597,7 +1615,7 @@ unit aoptx86;
             p:=hp1;
           end
 
-        else if GetNextIntruction_p and
+        else if GetNextInstruction_p and
            MatchInstruction(hp1,A_LEA,[S_L]) and
            MatchOpType(Taicpu(p),top_ref,top_reg) and
            ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
@@ -2614,16 +2632,38 @@ unit aoptx86;
 
 
     procedure TX86AsmOptimizer.PostPeepholeOptMov(const p : tai);
+    begin
+      if (taicpu(p).oper[1]^.typ = Top_Reg) and
+        not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
       begin
-       if MatchOperand(taicpu(p).oper[0]^,0) and
-          (taicpu(p).oper[1]^.typ = Top_Reg) and
-          not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
-         { change "mov $0, %reg" into "xor %reg, %reg" }
-         begin
-           taicpu(p).opcode := A_XOR;
-           taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
-         end;
+        if (taicpu(p).oper[0]^.typ = top_const) then
+        begin
+
+          case taicpu(p).oper[0]^.val of
+          0:
+            begin
+              { change "mov $0,%reg" into "xor %reg,%reg" }
+              taicpu(p).opcode := A_XOR;
+              taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
+            end;
+          $1..$FFFFFFFF:
+            begin
+              { Code size reduction by J. Gareth "Kit" Moreton }
+              { change 64-bit register to 32-bit register to reduce code size (upper 32 bits will be set to zero) }
+              case taicpu(p).opsize of
+              S_Q:
+                begin
+                  DebugMsg('Peephole Optimization: movq x,%reg -> movd x,%reg (x is a 32-bit constant)', p);
+                  TRegisterRec(taicpu(p).oper[1]^.reg).subreg := R_SUBD;
+                  taicpu(p).opsize := S_L;
+                end;
+              end;
+            end;
+          end;
+
+        end;
       end;
+    end;
 
 end.
 
