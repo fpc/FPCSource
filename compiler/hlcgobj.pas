@@ -1281,25 +1281,32 @@ implementation
     begin
       subsetregdef:=cgsize_orddef(sreg.subsetregsize);
       tmpreg:=getintregister(list,subsetregdef);
-      if is_signed(subsetsize) then
+      { insert shifts only if it changes bits being accessed later on }
+      if (sreg.startbit<>0) or
+        (tosize.size*8>sreg.bitlen) then
         begin
-          { sign extend in case the value has a bitsize mod 8 <> 0 }
-          { both instructions will be optimized away if not        }
-          a_op_const_reg_reg(list,OP_SHL,subsetregdef,(tcgsize2size[sreg.subsetregsize]*8)-sreg.startbit-sreg.bitlen,sreg.subsetreg,tmpreg);
-          a_op_const_reg(list,OP_SAR,subsetregdef,(tcgsize2size[sreg.subsetregsize]*8)-sreg.bitlen,tmpreg);
+          if is_signed(subsetsize) then
+            begin
+              { sign extend in case the value has a bitsize mod 8 <> 0 }
+              { both instructions will be optimized away if not        }
+              a_op_const_reg_reg(list,OP_SHL,subsetregdef,(tcgsize2size[sreg.subsetregsize]*8)-sreg.startbit-sreg.bitlen,sreg.subsetreg,tmpreg);
+              a_op_const_reg(list,OP_SAR,subsetregdef,(tcgsize2size[sreg.subsetregsize]*8)-sreg.bitlen,tmpreg);
+            end
+          else
+            begin
+              a_op_const_reg_reg(list,OP_SHR,subsetregdef,sreg.startbit,sreg.subsetreg,tmpreg);
+              stopbit:=sreg.startbit+sreg.bitlen;
+              // on x86(64), 1 shl 32(64) = 1 instead of 0
+              // use aword to prevent overflow with 1 shl 31
+              if (stopbit-sreg.startbit<>AIntBits) then
+                bitmask:=(aword(1) shl (stopbit-sreg.startbit))-1
+              else
+                bitmask:=high(aword);
+              a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),tmpreg);
+            end;
         end
       else
-        begin
-          a_op_const_reg_reg(list,OP_SHR,subsetregdef,sreg.startbit,sreg.subsetreg,tmpreg);
-          stopbit:=sreg.startbit+sreg.bitlen;
-          // on x86(64), 1 shl 32(64) = 1 instead of 0
-          // use aword to prevent overflow with 1 shl 31
-          if (stopbit-sreg.startbit<>AIntBits) then
-            bitmask:=(aword(1) shl (stopbit-sreg.startbit))-1
-          else
-            bitmask:=high(aword);
-          a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),tmpreg);
-        end;
+        a_load_reg_reg(list,subsetregdef,subsetregdef,sreg.subsetreg,tmpreg);
       subsetsizereg:=getintregister(list,subsetsize);
       a_load_reg_reg(list,subsetregdef,subsetsize,tmpreg,subsetsizereg);
       a_load_reg_reg(list,subsetsize,tosize,subsetsizereg,destreg);
