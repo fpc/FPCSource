@@ -537,6 +537,7 @@ type
     Procedure TestDynArrayOfLongint;
     Procedure TestStaticArray;
     Procedure TestStaticArrayOfChar;
+    Procedure TestStaticArrayOfRangeElCheckFail;
     Procedure TestArrayOfArray;
     Procedure TestArrayOfArray_NameAnonymous;
     Procedure TestFunctionReturningArray;
@@ -8699,7 +8700,7 @@ begin
   Add('type');
   Add('  TArrA = array[1..3] of char;');
   Add('const');
-  Add('  A: TArrA = (''p'',''a'',''b'');');
+  Add('  A: TArrA = (''p'',''a'',''p'');'); // duplicate allowed, this bracket is not a set
   Add('  B: TArrA = ''pas'';');
   Add('  Three = length(TArrA);');
   Add('  C: array[1..Three] of char = ''pas'';');
@@ -8708,6 +8709,17 @@ begin
   Add('  F: array[1..2] of widechar = ''äö'';');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestStaticArrayOfRangeElCheckFail;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  A: array[1..2] of shortint = (1,300);');
+  Add('begin');
+  ParseProgram;
+  CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
+    'range check error while evaluating constants (300 must be between -128 and 127)');
 end;
 
 procedure TTestResolver.TestArrayOfArray;

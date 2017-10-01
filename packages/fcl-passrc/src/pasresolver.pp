@@ -11051,7 +11051,7 @@ end;
 
 procedure TPasResolver.CheckAssignExprRange(
   const LeftResolved: TPasResolverResult; RHS: TPasExpr);
-// check if RHS fits into range LeftResolved
+// if RHS is a constant check if it fits into range LeftResolved
 var
   RValue, RangeValue: TResEvalValue;
   MinVal, MaxVal: int64;
@@ -11062,6 +11062,8 @@ var
   bt: TResolverBaseType;
   w: WideChar;
 begin
+  if (LeftResolved.TypeEl<>nil) and (LeftResolved.TypeEl.ClassType=TPasArrayType) then
+    exit; // arrays are checked by element, not by the whole value
   RValue:=Eval(RHS,[refAutoConst]);
   if RValue=nil then
     exit; // not a const expression
@@ -12340,6 +12342,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
           Result:=CheckAssignResCompatibility(ElTypeResolved,ValueResolved,Value,RaiseOnIncompatible);
           if Result=cIncompatible then
             exit;
+          CheckAssignExprRange(ElTypeResolved,Value);
           end
         else
           begin
