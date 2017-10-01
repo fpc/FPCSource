@@ -2628,7 +2628,7 @@ const pemagic : array[0..3] of byte = (
               end
             else
               begin
-                peoptheader.MajorOperatingSystemVersion:=10;
+                peoptheader.MajorOperatingSystemVersion:=4;
                 peoptheader.MinorOperatingSystemVersion:=0;
               end;
             if SetPEUserVersionSetExplicitely then
@@ -2651,8 +2651,8 @@ const pemagic : array[0..3] of byte = (
                 if target_info.system in systems_wince then
                   peoptheader.MajorSubsystemVersion:=3
                 else
-                  peoptheader.MajorSubsystemVersion:=6;
-                peoptheader.MinorSubsystemVersion:=2;
+                  peoptheader.MajorSubsystemVersion:=4;
+                peoptheader.MinorSubsystemVersion:=0;
               end;
             peoptheader.Win32Version:=0;
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
