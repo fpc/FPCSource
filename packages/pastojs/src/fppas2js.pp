@@ -140,7 +140,7 @@ Works:
   - option to write numbers instead of variables
   - ord(), low(), high(), pred(), succ()
   - type cast alias to enumtype
-  - type cast number to enumtype
+  - type cast number to enumtype, enumtype to number
   - const aliasname = enumvalue
 - sets
   - set of enum
@@ -1284,8 +1284,7 @@ type
     Function ConvertBuiltIn_Chr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Ord(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_LowHigh(El: TParamsExpr; AContext: TConvertContext; IsLow: boolean): TJSElement; virtual;
-    Function ConvertBuiltIn_Pred(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
-    Function ConvertBuiltIn_Succ(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_PredSucc(El: TParamsExpr; AContext: TConvertContext; IsPred: boolean): TJSElement; virtual;
     Function ConvertBuiltIn_StrProc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_StrFunc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement; virtual;
@@ -5652,8 +5651,8 @@ begin
           bfOrd: Result:=ConvertBuiltIn_Ord(El,AContext);
           bfLow: Result:=ConvertBuiltIn_LowHigh(El,AContext,true);
           bfHigh: Result:=ConvertBuiltIn_LowHigh(El,AContext,false);
-          bfPred: Result:=ConvertBuiltIn_Pred(El,AContext);
-          bfSucc: Result:=ConvertBuiltIn_Succ(El,AContext);
+          bfPred: Result:=ConvertBuiltIn_PredSucc(El,AContext,true);
+          bfSucc: Result:=ConvertBuiltIn_PredSucc(El,AContext,false);
           bfStrProc: Result:=ConvertBuiltIn_StrProc(El,AContext);
           bfStrFunc: Result:=ConvertBuiltIn_StrFunc(El,AContext);
           bfConcatArray: Result:=ConvertBuiltIn_ConcatArray(El,AContext);
@@ -6724,6 +6723,7 @@ var
   SubParams: TParamsExpr;
   SubParamJS: TJSElement;
   Minus: TJSAdditiveExpressionMinus;
+  Add: TJSAdditiveExpressionPlus;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -6771,6 +6771,17 @@ begin
     Call:=CreateCallExpression(El);
     Call.Expr:=CreateDotExpression(El,Result,CreatePrimitiveDotExpr('charCodeAt',El));
     Result:=Call;
+    exit;
+    end
+  else if ParamResolved.BaseType in btAllBooleans then
+    begin
+    // ord(bool) ->  bool+0
+    Result:=ConvertElement(Param,AContext);
+    // Note: convert Param first, as it might raise an exception
+    Add:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
+    Add.A:=Result;
+    Add.B:=CreateLiteralNumber(El,0);
+    Result:=Add;
     exit;
     end
   else if ParamResolved.BaseType=btContext then
@@ -6970,59 +6981,44 @@ begin
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
-function TPasToJSConverter.ConvertBuiltIn_Pred(El: TParamsExpr;
-  AContext: TConvertContext): TJSElement;
+function TPasToJSConverter.ConvertBuiltIn_PredSucc(El: TParamsExpr;
+  AContext: TConvertContext; IsPred: boolean): TJSElement;
 // pred(enumvalue) -> enumvalue-1
+// succ(enumvalue) -> enumvalue+1
 var
   ResolvedEl: TPasResolverResult;
   Param: TPasExpr;
   V: TJSElement;
-  Expr: TJSAdditiveExpressionMinus;
+  Expr: TJSAdditiveExpression;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
     RaiseInconsistency(20170210120648);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
-  if (ResolvedEl.BaseType=btContext)
-      and (ResolvedEl.TypeEl.ClassType=TPasEnumType) then
+  if (ResolvedEl.BaseType in btAllJSInteger)
+      or ((ResolvedEl.BaseType=btContext)
+        and (ResolvedEl.TypeEl.ClassType=TPasEnumType)) then
     begin
     V:=ConvertElement(Param,AContext);
-    Expr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El));
+    if IsPred then
+      Expr:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,El))
+    else
+      Expr:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
     Expr.A:=V;
     Expr.B:=CreateLiteralNumber(El,1);
     Result:=Expr;
+    exit;
+    end
+  else if ResolvedEl.BaseType in btAllJSBooleans then
+    begin
+    if IsPred then
+      Result:=CreateLiteralBoolean(El,false)
+    else
+      Result:=CreateLiteralBoolean(El,true);
     exit;
     end;
   DoError(20170210120039,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
-    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
-end;
-
-function TPasToJSConverter.ConvertBuiltIn_Succ(El: TParamsExpr;
-  AContext: TConvertContext): TJSElement;
-// succ(enumvalue) -> enumvalue+1
-var
-  ResolvedEl: TPasResolverResult;
-  Param: TPasExpr;
-  V: TJSElement;
-  Expr: TJSAdditiveExpressionPlus;
-begin
-  Result:=nil;
-  if AContext.Resolver=nil then
-    RaiseInconsistency(20170210120645);
-  Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
-  if (ResolvedEl.BaseType=btContext)
-      and (ResolvedEl.TypeEl.ClassType=TPasEnumType) then
-    begin
-    V:=ConvertElement(Param,AContext);
-    Expr:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
-    Expr.A:=V;
-    Expr.B:=CreateLiteralNumber(El,1);
-    Result:=Expr;
-    exit;
-    end;
-  DoError(20170210120626,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
@@ -11047,6 +11043,10 @@ begin
       Call.Expr:=CreateDotExpression(Expr,Result,CreatePrimitiveDotExpr('charCodeAt',Expr));
       Result:=Call;
       end
+    else if ExprResolved.BaseType in btAllJSInteger then
+      begin
+      // ok
+      end
     else if ExprResolved.BaseType=btContext then
       begin
       if ExprResolved.TypeEl.ClassType=TPasEnumType then
@@ -11055,7 +11055,12 @@ begin
         RaiseNotSupported(Expr,AContext,20170415191933);
       end
     else
+      begin
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.CreateSetLiteralElement ',GetResolverResultDbg(ExprResolved));
+      {$ENDIF}
       RaiseNotSupported(Expr,AContext,20170415191822);
+      end;
     end;
 end;
 

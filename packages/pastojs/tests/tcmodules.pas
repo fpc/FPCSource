@@ -275,6 +275,7 @@ type
     Procedure TestSet_BooleanFail;
     Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
+    Procedure TestSet_ConstInt;
 
     // statements
     Procedure TestNestBegin;
@@ -3025,18 +3026,24 @@ begin
   Add('  e: TMyEnum;');
   Add('  i: longint;');
   Add('  s: string;');
+  Add('  b: boolean;');
   Add('begin');
   Add('  i:=ord(red);');
   Add('  i:=ord(green);');
   Add('  i:=ord(e);');
+  Add('  i:=ord(b);');
   Add('  e:=low(tmyenum);');
   Add('  e:=low(e);');
+  Add('  b:=low(boolean);');
   Add('  e:=high(tmyenum);');
   Add('  e:=high(e);');
+  Add('  b:=high(boolean);');
   Add('  e:=pred(green);');
   Add('  e:=pred(e);');
+  Add('  b:=pred(b);');
   Add('  e:=succ(red);');
   Add('  e:=succ(e);');
+  Add('  b:=succ(b);');
   Add('  e:=tmyenum(1);');
   Add('  e:=tmyenum(i);');
   Add('  s:=str(e);');
@@ -3055,20 +3062,26 @@ begin
     '  };',
     'this.e = 0;',
     'this.i = 0;',
-    'this.s = "";'
-    ]),
+    'this.s = "";',
+    'this.b = false;',
+    '']),
     LinesToStr([
     '$mod.i=$mod.TMyEnum.Red;',
     '$mod.i=$mod.TMyEnum.Green;',
     '$mod.i=$mod.e;',
+    '$mod.i=$mod.b+0;',
     '$mod.e=$mod.TMyEnum.Red;',
     '$mod.e=$mod.TMyEnum.Red;',
+    '$mod.b=false;',
     '$mod.e=$mod.TMyEnum.Green;',
     '$mod.e=$mod.TMyEnum.Green;',
+    '$mod.b=true;',
     '$mod.e=$mod.TMyEnum.Green-1;',
     '$mod.e=$mod.e-1;',
+    '$mod.b=false;',
     '$mod.e=$mod.TMyEnum.Red+1;',
     '$mod.e=$mod.e+1;',
+    '$mod.b=true;',
     '$mod.e=1;',
     '$mod.e=$mod.i;',
     '$mod.s = $mod.TMyEnum[$mod.e];',
@@ -3657,6 +3670,7 @@ begin
   '  if blue in teAny then;',
   '  if blue in teAny+[e] then;',
   '  if blue in teAny+teRedBlue then;',
+  '  if e in [red,blue] then;',
   '  s:=teAny;',
   '  s:=teAny+[e];',
   '  s:=[e]+teAny;',
@@ -3683,6 +3697,7 @@ begin
     'if ($mod.TEnum.blue in $mod.teAny) ;',
     'if ($mod.TEnum.blue in rtl.unionSet($mod.teAny, rtl.createSet($mod.e))) ;',
     'if ($mod.TEnum.blue in rtl.unionSet($mod.teAny, $mod.teRedBlue)) ;',
+    'if ($mod.e in rtl.createSet($mod.TEnum.red, $mod.TEnum.blue)) ;',
     '$mod.s = rtl.refSet($mod.teAny);',
     '$mod.s = rtl.unionSet($mod.teAny, rtl.createSet($mod.e));',
     '$mod.s = rtl.unionSet(rtl.createSet($mod.e), $mod.teAny);',
@@ -3722,6 +3737,36 @@ begin
     'if ($mod.c.charCodeAt() in $mod.Chars) ;',
     'if ($mod.c.charCodeAt() in rtl.createSet(null, 97, 122, 95)) ;',
     'if (98 in rtl.createSet(null, 97, 122, 95)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestSet_ConstInt;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  Months = [1..12];',
+  '  Mirror = [-12..-1]+Months;',
+  'var',
+  '  i: smallint;',
+  'begin',
+  '  if 3 in Months then;',
+  '  if i in Months+[i] then;',
+  '  if i in Months+Mirror then;',
+  '  if i in [4..6,8] then;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestSet_ConstInt',
+    LinesToStr([ // statements
+    'this.Months = rtl.createSet(null, 1, 12);',
+    'this.Mirror = rtl.unionSet(rtl.createSet(null, -12, -1), $mod.Months);',
+    'this.i = 0;',
+    '']),
+    LinesToStr([
+    'if (3 in $mod.Months) ;',
+    'if ($mod.i in rtl.unionSet($mod.Months, rtl.createSet($mod.i))) ;',
+    'if ($mod.i in rtl.unionSet($mod.Months, $mod.Mirror)) ;',
+    'if ($mod.i in rtl.createSet(null, 4, 6, 8)) ;',
     '']));
 end;
 
