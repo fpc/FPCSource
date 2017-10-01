@@ -342,6 +342,7 @@ implementation
         pd : tprocdef;
         sym : tsym;
         st : tsymtable;
+        hreg : TRegister;
       begin
          sym:=nil;
          secondpass(left);
@@ -447,7 +448,7 @@ implementation
                         memory as well }
                       ((left.location.size in [OS_PAIR,OS_SPAIR]) and
                        (vs.fieldoffset div sizeof(aword)<>(vs.fieldoffset+vs.getsize-1) div sizeof(aword))) or
-                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER,LOC_CMMREGISTER,LOC_CFPUREGISTER,
+                      (location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER,
                         { actually, we should be able to "subscript" a constant, but this would require some code
                           which enables dumping and reading constants from a temporary memory buffer. This
                           must be done a CPU dependent way, so it is not easy and probably not worth the effort (FK)
@@ -456,6 +457,20 @@ implementation
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef)
                    else
                      begin
+                       if (location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+                         if (tcgsize2size[location.size]<=tcgsize2size[OS_INT]) then
+                           begin
+                             hreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                             cg.a_loadmm_reg_intreg(current_asmdata.CurrAsmList,reg_cgsize(left.location.register),location.size,
+                               left.location.register,hreg,mms_movescalar);
+                             location_reset(left.location,LOC_REGISTER,int_cgsize(tcgsize2size[left.location.size]));
+                             left.location.register:=hreg;
+                             { copy again, we changed left.location }
+                             location_copy(location,left.location);
+                           end
+                         else
+                           hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
+
                        if (left.location.loc = LOC_REGISTER) then
                          location.loc := LOC_SUBSETREG
                        else
