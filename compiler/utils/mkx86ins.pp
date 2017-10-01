@@ -16,7 +16,7 @@
 program mkx86ins;
 
 const
-  Version = '1.6.0';
+  Version = '1.6.1';
   max_operands = 4;
 var
    s : string;
@@ -205,6 +205,11 @@ var
    optypes : array[1..max_operands] of string;
    inschanges: string;
    instrwritten: boolean;
+   SignCheck: Cardinal;
+   StrSearch: Integer;
+
+const
+  SIGNED_INT = ' or ot_signed';
 
 
 procedure DoWriteInstr;
@@ -298,6 +303,7 @@ begin
             end
            else
             begin
+              SignCheck := 0;
               opcode:='A_'+Copy(s,2,i-2);
               intopcode:=Copy(s,2,i-2);
               { intel conditional }
@@ -402,8 +408,15 @@ begin
                      else
                        begin
                          case code of
-                           12,13,14 :
-                             optypes[code-11]:=optypes[code-11]+' or ot_signed';
+                           12,13,14:    {signed byte}
+                             optypes[code-11]:=optypes[code-11]+SIGNED_INT;
+                           172,173,174: {signed long}
+                           begin
+                             { Addition by J. Gareth "Kit" Moreton }
+                             { See below for workaround for routines that take a 64-bit destination but a 32-bit operand in a non-decorated opcode }
+                             SignCheck := code-171;
+                             optypes[SignCheck]:=optypes[SignCheck]+SIGNED_INT;
+                           end;
                          end;
                        end;
                    end;
@@ -445,9 +458,18 @@ begin
                end;
              if hs<>'ND' then
               begin
-                if flags<>'' then
-                 flags:=flags+',';
-                flags:=flags+'if_'+lower(hs);
+                { Addition by J. Gareth "Kit" Moreton }
+                { Workaround for routines that take a 64-bit destination but a 32-bit operand in a non-decorated opcode }
+                if (lower(hs)='sm') and (SignCheck > 0) then
+                 begin
+                   { Remove signed flag }
+                   StrSearch := Pos(SIGNED_INT, optypes[SignCheck]);
+                   Delete(optypes[SignCheck], StrSearch, Length(SIGNED_INT));
+                 end;
+
+                  if flags<>'' then
+                   flags:=flags+',';
+                  flags:=flags+'if_'+lower(hs);
               end;
              if (s[i]=',') and (i<=length(s)) then
               inc(i)

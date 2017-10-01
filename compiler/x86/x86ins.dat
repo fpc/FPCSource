@@ -41,9 +41,11 @@ rm8,reg8              \1\x10\101                      8086
 reg8,rm8              \1\x12\110                      8086
 rm16|32|64,imm8       \320\1\x83\202\15               8086
 reg_eax,imm           \325\1\x15\41                   386,SM
-reg_rax,imm           \326\1\x15\255                  X86_64,SM
+reg_rax,imm           \326\1\x15\255                  X86_64,SD
+reg_rax,imm           \326\1\x15\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\x81\202\41               386,SM
-rm64,imm              \326\1\x81\202\255              X86_64,SM
+rm64,imm              \326\1\x81\202\255              X86_64,SD
+rm64,imm              \326\1\x81\202\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x15\31                   8086,SW
 rm16,imm              \324\1\x81\202\31               8086,SW
 reg_al,imm            \1\x14\21                       8086,SB
@@ -57,9 +59,11 @@ rm8,reg8              \1\x00\101                      8086
 reg8,rm8              \1\x02\110                      8086,SM
 rm16|32|64,imm8       \320\1\x83\200\15               8086
 reg_eax,imm           \320\1\x05\41                   386,SM
-reg_rax,imm           \326\1\x05\255                  X86_64,SM
+reg_rax,imm           \326\1\x05\255                  X86_64,SD
+reg_rax,imm           \326\1\x05\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\x81\200\41               386,SM
-rm64,imm              \326\1\x81\200\255              X86_64,SM
+rm64,imm              \326\1\x81\200\255              X86_64,SD
+rm64,imm              \326\1\x81\200\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x05\31                   8086,SW
 rm16,imm              \324\1\x81\200\31               8086,SW
 reg_al,imm            \1\x04\21                       8086,SB
@@ -73,9 +77,11 @@ rm8,reg8              \1\x20\101                      8086
 reg8,rm8              \1\x22\110                      8086
 rm16|32|64,imm8       \320\1\x83\204\15               8086
 reg_eax,imm           \325\1\x25\41                   386,SM
-reg_rax,imm           \326\1\x25\255                  X86_64,SM
+reg_rax,imm           \326\1\x25\255                  X86_64,SD
+reg_rax,imm           \326\1\x25\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\x81\204\41               386,SM
-rm64,imm              \326\1\x81\204\255              X86_64,SM
+rm64,imm              \326\1\x81\204\255              X86_64,SD
+rm64,imm              \326\1\x81\204\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x25\31                   8086,SW
 rm16,imm              \324\1\x81\204\31               8086,SW
 reg_al,imm            \1\x24\21                       8086,SB
@@ -181,9 +187,11 @@ rm8,reg8              \1\x38\101                      8086
 reg8,rm8              \1\x3A\110                      8086
 rm16|32|64,imm8       \320\1\x83\207\15               8086
 reg_eax,imm           \325\1\x3D\41                   386,SM
-reg_rax,imm           \326\1\x3D\255                  X86_64,SM
+reg_rax,imm           \326\1\x3D\255                  X86_64,SD
+reg_rax,imm           \326\1\x3D\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\x81\207\41               386,SM
-rm64,imm              \326\1\x81\207\255              X86_64,SM
+rm64,imm              \326\1\x81\207\255              X86_64,SD
+rm64,imm              \326\1\x81\207\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x3D\31                   8086,SW
 rm16,imm              \324\1\x81\207\31               8086,SW
 reg_al,imm            \1\x3C\21                       8086,SB
@@ -794,7 +802,8 @@ reg32|64,regmem,imm8  \320\1\x6B\110\16               386,SM
 reg32|64,regmem,imm   \320\1\x69\110\42               386,SM,SD,AR2
 reg32|64,imm8         \320\1\x6B\100\15               386
 reg32,imm             \325\1\x69\100\41               386,SD
-reg64,imm             \326\1\x69\100\255              X86_64
+reg64,imm             \326\1\x69\100\255              X86_64,SD
+reg64,imm             \326\1\x69\100\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg16,regmem,imm8     \324\1\x6B\110\16               186,SM
 reg16,regmem,imm      \324\1\x69\110\32               186,SM,SW,AR2
 reg16,imm8            \324\1\x6B\100\15               186
@@ -1052,9 +1061,10 @@ reg_eax,mem_offs      \325\1\xA1\45                   386,SM
 reg_rax,mem_offs      \326\1\xA1\45                   X86_64,SM
 reg16|32|64,regmem    \320\1\x8B\110                  8086,SM
 reg32,imm             \325\10\xB8\41                  386,SD
+rm64,imm              \326\1\xC7\200\255              X86_64,SD ; Shorter form for writing a 32-bit signed integer to a 64-bit register
 reg64,imm             \326\10\xB8\55                  X86_64,SM
+rm64,imm              \326\1\xC7\200\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\xC7\200\41               386,SM
-rm64,imm              \326\1\xC7\200\255              X86_64,SM
 reg16,imm             \324\10\xB8\31                  8086,SW
 rm16,imm              \324\1\xC7\200\31               8086,SW
 mem_offs,reg_al       \1\xA2\44                       8086,SM
@@ -1165,9 +1175,11 @@ rm8,reg8              \1\x08\101                      8086
 reg8,rm8              \1\x0A\110                      8086,SM
 rm16|32|64,imm8       \320\1\x83\201\15               8086
 reg_eax,imm           \325\1\x0D\41                   386,SM
-reg_rax,imm           \326\1\x0D\255                  X86_64,SM
+reg_rax,imm           \326\1\x0D\255                  X86_64,SD
+reg_rax,imm           \326\1\x0D\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\x81\201\41               386,SM
-rm64,imm              \326\1\x81\201\255              X86_64,SM
+rm64,imm              \326\1\x81\201\255              X86_64,SD
+rm64,imm              \326\1\x81\201\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x0D\31                   8086,SW
 rm16,imm              \324\1\x81\201\31               8086,SW
 reg_al,imm            \1\x0C\21                       8086,SB
@@ -1785,9 +1797,11 @@ rm16|32|64,imm8       \320\1\x83\203\15               8086
 rm8,reg8              \1\x18\101                      8086
 reg8,rm8              \1\x1A\110                      8086,SM
 reg_eax,imm           \325\1\x1D\41                   386,SM
-reg_rax,imm           \326\1\x1D\255                  X86_64,SM
+reg_rax,imm           \326\1\x1D\255                  X86_64,SD
+reg_rax,imm           \326\1\x1D\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \320\1\x81\203\41               386,SM
-rm64,imm              \326\1\x81\203\255              X86_64,SM
+rm64,imm              \326\1\x81\203\255              X86_64,SD
+rm64,imm              \326\1\x81\203\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x1D\31                   8086,SW
 rm16,imm              \320\1\x81\203\31               8086,SW
 reg_al,imm            \1\x1C\21                       8086,SB
@@ -1927,9 +1941,11 @@ rm8,reg8              \1\x28\101                      8086
 reg8,rm8              \1\x2A\110                      8086,SM
 rm16|32|64,imm8       \320\1\x83\205\15               8086
 reg_eax,imm           \325\1\x2D\41                   386,SM
-reg_rax,imm           \326\1\x2D\255                  X86_64,SM
+reg_rax,imm           \326\1\x2D\255                  X86_64,SD
+reg_rax,imm           \326\1\x2D\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \320\1\x81\205\41               386,SM
-rm64,imm              \326\1\x81\205\255              X86_64,SM
+rm64,imm              \326\1\x81\205\255              X86_64,SD
+rm64,imm              \326\1\x81\205\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x2D\31                   8086,SW
 rm16,imm              \324\1\x81\205\31               8086,SW
 reg_al,imm            \1\x2C\21                       8086,SB
@@ -1969,11 +1985,13 @@ regmem,reg16|32|64    \320\1\x85\101                  8086,SM
 reg16|32|64,mem       \320\1\x85\110                  8086,SM
 reg8,reg8             \1\x84\101                      8086
 rm8,reg8              \1\x84\101                      8086,SM
-reg_rax,imm           \326\1\xA9\255                  X86_64,SM
+reg_rax,imm           \326\1\xA9\255                  X86_64,SD
+reg_rax,imm           \326\1\xA9\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_eax,imm           \325\1\xA9\41                   386,SM
 reg_ax,imm            \324\1\xA9\31                   8086,SM
 reg_al,imm            \1\xA8\21                       8086,SM
-rm64,imm              \326\1\xF7\200\255              X86_64,SM
+rm64,imm              \326\1\xF7\200\255              X86_64,SD
+rm64,imm              \326\1\xF7\200\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \325\1\xF7\200\41               386,SM
 rm16,imm              \324\1\xF7\200\31               8086,SM
 rm8,imm               \1\xF6\200\21                   8086,SM
@@ -2069,9 +2087,11 @@ rm8,reg8              \1\x30\101                      8086
 reg8,rm8              \1\x32\110                      8086
 rm16|32|64,imm8       \320\1\x83\206\15               8086
 reg_eax,imm           \325\1\x35\41                   386,SM
-reg_rax,imm           \326\1\x35\255                  X86_64,SM
+reg_rax,imm           \326\1\x35\255                  X86_64,SD
+reg_rax,imm           \326\1\x35\255                  X86_64,SM ; 64-bit undecorated workaround - Kit
 rm32,imm              \320\1\x81\206\41               386,SM
-rm64,imm              \326\1\x81\206\255              X86_64,SM
+rm64,imm              \326\1\x81\206\255              X86_64,SD
+rm64,imm              \326\1\x81\206\255              X86_64,SM ; 64-bit undecorated workaround - Kit
 reg_ax,imm            \324\1\x35\31                   8086,SW
 rm16,imm              \324\1\x81\206\31               8086,SW
 reg_al,imm            \1\x34\21                       8086,SB
