@@ -598,6 +598,11 @@ function fpc_mul_word(f1,f2 : word;checkoverflow : boolean) : word; compilerproc
 function fpc_mul_longint(f1,f2 : longint;checkoverflow : boolean) : longint; compilerproc;
 function fpc_mul_dword(f1,f2 : dword;checkoverflow : boolean) : dword; compilerproc;
 {$else VER3_0}
+
+function fpc_mul_shortint(f1,f2 : shortint) : shortint; compilerproc;
+function fpc_mul_shortint_checkoverflow(f1,f2 : shortint) : shortint; compilerproc;
+function fpc_mul_byte(f1,f2 : byte) : byte; compilerproc;
+function fpc_mul_byte_checkoverflow(f1,f2 : byte) : byte; compilerproc;
 function fpc_mul_integer(f1,f2 : integer) : integer; compilerproc;
 function fpc_mul_integer_checkoverflow(f1,f2 : integer) : integer; compilerproc;
 function fpc_mul_word(f1,f2 : word) : word; compilerproc;

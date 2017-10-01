@@ -612,7 +612,31 @@ unit cgcpu;
                        cg.a_reg_dealloc(list,NR_R0);
                      end
                    else
-                     internalerror(2015061001);
+                     begin
+                       if size=OS_8 then
+                         pd:=search_system_proc('fpc_mul_byte')
+                       else
+                          pd:=search_system_proc('fpc_mul_shortint');
+                       paraloc1.init;
+                       paraloc2.init;
+                       paramanager.getintparaloc(list,pd,1,paraloc1);
+                       paramanager.getintparaloc(list,pd,2,paraloc2);
+                       a_load_reg_cgpara(list,OS_8,src,paraloc2);
+                       a_load_reg_cgpara(list,OS_8,dst,paraloc1);
+                       paramanager.freecgpara(list,paraloc2);
+                       paramanager.freecgpara(list,paraloc1);
+                       alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       if size=OS_8 then
+                         a_call_name(list,'FPC_MUL_BYTE',false)
+                       else
+                         a_call_name(list,'FPC_MUL_SHORTINT',false);
+                       dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.a_reg_alloc(list,NR_R24);
+                       cg.a_load_reg_reg(list,OS_8,OS_8,NR_R24,dst);
+                       cg.a_reg_dealloc(list,NR_R24);
+                       paraloc2.done;
+                       paraloc1.done;
+                     end;
                  end
                else if size in [OS_16,OS_S16] then
                  begin
@@ -632,7 +656,6 @@ unit cgcpu;
                      end
                    else
                      begin
-                       { keep code for muls with overflow checking }
                        if size=OS_16 then
                          pd:=search_system_proc('fpc_mul_word')
                        else

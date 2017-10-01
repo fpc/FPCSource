@@ -1500,6 +1500,107 @@ end;
 
 {$else VER3_0}
 
+{$ifndef FPC_SYSTEM_HAS_MUL_SHORTINT}
+    function fpc_mul_shortint(f1,f2 : shortint) : shortint;[public,alias: 'FPC_MUL_SHORTINT']; compilerproc;
+      begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        { byte(f1) * byte(f2) is coded as a call to mul_byte }
+        fpc_mul_shortint := shortint(byte(f1) * byte(f2));
+      end;
+
+    function fpc_mul_shortint_checkoverflow(f1,f2 : shortint) : shortint;[public,alias: 'FPC_MUL_SHORTINT_CHECKOVERFLOW']; compilerproc;
+      var
+        sign : boolean;
+        q1,q2,q3 : byte;
+      begin
+        sign:=false;
+        if f1 < 0 then
+          begin
+            sign := not(sign);
+            q1 := byte(-f1);
+          end
+        else
+          q1 := f1;
+        if f2 < 0 then
+          begin
+            sign := not(sign);
+            q2 := byte(-f2);
+          end
+        else
+          q2 := f2;
+        { the q1*q2 is coded as call to mul_byte }
+        q3 := q1 * q2;
+
+        if (q1 <> 0) and (q2 <> 0) and
+          ((q1 > q3) or (q2 > q3) or
+          { the bit 7 can be only set if we have $80 }
+          { and sign is true                            }
+          (q3 shr 7 <> 0) and
+           ((q3 <> byte(byte(1) shl 7)) or not(sign))
+          ) then
+          HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+
+        if sign then
+          fpc_mul_shortint_checkoverflow := -q3
+        else
+          fpc_mul_shortint_checkoverflow := q3;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_SHORTINT}
+
+{$ifndef FPC_SYSTEM_HAS_MUL_BYTE}
+    function fpc_mul_byte(f1,f2 : byte) : byte;[public,alias: 'FPC_MUL_BYTE']; compilerproc;
+      var
+        _f1, bitpos : byte;
+        b : byte;
+      begin
+        fpc_mul_byte := 0;
+        bitpos := 1;
+
+        for b := 0 to 7 do
+          begin
+            if (f2 and bitpos) <> 0 then
+              begin
+                _f1 := fpc_mul_byte;
+                fpc_mul_byte := fpc_mul_byte + f1;
+              end;
+            f1 := f1 shl 1;
+            bitpos := bitpos shl 1;
+          end;
+      end;
+
+    function fpc_mul_byte_checkoverflow(f1,f2 : byte) : byte;[public,alias: 'FPC_MUL_BYTE_CHECKOVERFLOW']; compilerproc;
+      var
+        _f1, bitpos : byte;
+        b : byte;
+        f1overflowed : boolean;
+      begin
+        fpc_mul_byte_checkoverflow := 0;
+        bitpos := 1;
+        f1overflowed := false;
+
+        for b := 0 to 7 do
+          begin
+            if (f2 and bitpos) <> 0 then
+              begin
+                _f1 := fpc_mul_byte_checkoverflow;
+                fpc_mul_byte_checkoverflow := fpc_mul_byte_checkoverflow + f1;
+
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if f1overflowed or ((_f1 <> 0) and (f1 <> 0) and
+                  ((_f1 > fpc_mul_byte_checkoverflow) or (f1 > fpc_mul_byte_checkoverflow))) then
+                  HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+              end;
+            { when bootstrapping, we forget about overflow checking for qword :) }
+            f1overflowed := f1overflowed or ((f1 and (1 shl 7)) <> 0);
+            f1 := f1 shl 1;
+            bitpos := bitpos shl 1;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_BYTE}
+
 {$ifndef FPC_SYSTEM_HAS_MUL_INTEGER}
     function fpc_mul_integer(f1,f2 : integer) : integer;[public,alias: 'FPC_MUL_INTEGER']; compilerproc;
       begin
