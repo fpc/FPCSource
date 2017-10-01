@@ -84,7 +84,7 @@ Works:
   - function high(ordinal): ordinal
   - function pred(ordinal): ordinal
   - function high(ordinal): ordinal
-  - cast integer to enum
+  - cast integer to enum, enum to integer
 - sets - TPasSetType
   - set of char
   - set of integer

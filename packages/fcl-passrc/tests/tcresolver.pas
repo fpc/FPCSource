@@ -2428,7 +2428,11 @@ begin
   '  s13 = s2<=s3;',
   '  s14 = s2>=s3;',
   '  s15 = 1 in s2;',
-  'begin']);
+  'var',
+  '  w: word;',
+  'begin',
+  '  if w in [1..12] then ;',
+  '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
@@ -3044,7 +3048,10 @@ begin
   '  s13 = [a,b]<=[a..b];',
   '  s14 = [a,b]>=[a..b];',
   '  s15 = a in [a,b];',
-  'begin']);
+  'var',
+  '  Flag: TFlag;',
+  'begin',
+  '  if Flag in [b,c] then ;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
