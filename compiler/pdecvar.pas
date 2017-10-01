@@ -1240,7 +1240,7 @@ implementation
               if (hp.nodetype=loadn) then
                 begin
                   { we should check the result type of loadn }
-                  if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym]) then
+                  if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym,absolutevarsym]) then
                     Message(parser_e_absolute_only_to_var_or_const);
                   abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
                   abssym.fileinfo:=vs.fileinfo;
