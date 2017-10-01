@@ -6,7 +6,7 @@ unit buildrtl;
       sysinit,
       extpas,
       ctypes, strings,
-      heaptrc, 
+      heaptrc,
       windows,  cmem, dynlibs,
       dos, messages,
       rtlconsts, sysconst, sysutils, math, types,
