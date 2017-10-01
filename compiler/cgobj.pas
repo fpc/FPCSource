@@ -1641,6 +1641,8 @@ implementation
             a_load_reg_reg(list,loc.size,tosize,loc.register,reg);
           LOC_CONSTANT:
             a_load_const_reg(list,tosize,loc.value,reg);
+          LOC_MMREGISTER,LOC_CMMREGISTER:
+            a_loadmm_reg_intreg(list,loc.size,tosize,loc.register,reg,mms_movescalar);
           else
             internalerror(200109092);
         end;
