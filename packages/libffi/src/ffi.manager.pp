@@ -315,11 +315,14 @@ var
   argindirect: array of Pointer;
   rtype: pffi_type;
   rvalue: ffi_arg;
-  i, arglen, argoffset: LongInt;
+  i, arglen, argoffset, retidx, argstart: LongInt;
   cif: ffi_cif;
   retparam: Boolean;
 begin
   aResultValue := TValue.Empty;
+
+  if not (fcfStatic in aFlags) and (Length(aArgs) = 0) then
+    raise EInvocationError.Create(SErrMissingSelfParam);
 
   case aCallConv of
 {$if defined(CPUI386)}
@@ -358,22 +361,36 @@ begin
   if retparam then begin
     Inc(arglen);
     argoffset := 1;
-  end else
+    retidx := 0;
+  end else begin
     argoffset := 0;
+    retidx := -1;
+  end;
 
   SetLength(argtypes, arglen);
   SetLength(argvalues, arglen);
   SetLength(argindirect, arglen);
 
-  for i := Low(aArgs) to High(aArgs) do begin
+  { the order is Self/Vmt (if any), Result param (if any), other params }
+
+  if not (fcfStatic in aFlags) and retparam then begin
+    argtypes[0] := TypeInfoToFFIType(aArgs[0].Value.TypeInfo);
+    argvalues[0] := ValueToFFIValue(aArgs[0].Value, argindirect[0], False);
+    if retparam then
+      Inc(retidx);
+    argstart := 1;
+  end else
+    argstart := 0;
+
+  for i := Low(aArgs) + argstart to High(aArgs) do begin
     argtypes[i - Low(aArgs) + Low(argtypes) + argoffset] := TypeInfoToFFIType(aArgs[i].Value.TypeInfo);
     argvalues[i - Low(aArgs) + Low(argtypes) + argoffset] := ValueToFFIValue(aArgs[i].Value, argindirect[i + argoffset], False);
   end;
 
   if retparam then begin
-    argtypes[0] := TypeInfoToFFIType(aResultType);
+    argtypes[retidx] := TypeInfoToFFIType(aResultType);
     TValue.Make(Nil, aResultType, aResultValue);
-    argvalues[0] := ValueToFFIValue(aResultValue, argindirect[0], True);
+    argvalues[retidx] := ValueToFFIValue(aResultValue, argindirect[retidx], True);
     rtype := @ffi_type_void;
   end else begin
     rtype := TypeInfoToFFIType(aResultType);
