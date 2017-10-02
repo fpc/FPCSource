@@ -356,6 +356,7 @@ type
     Procedure TestClass_Property;
     Procedure TestClass_Property_ClassMethod;
     Procedure TestClass_Property_Indexed;
+    Procedure TestClass_Property_IndexSpec;
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
     Procedure TestClass_PropertyOverride;
@@ -504,6 +505,7 @@ type
     Procedure TestRTTI_PublishedClassPropertyFail;
     Procedure TestRTTI_PublishedClassFieldFail;
     Procedure TestRTTI_PublishedFieldExternalFail;
+    Procedure TestRTTI_IndexModifier;
     Procedure TestRTTI_StoredModifier;
     Procedure TestRTTI_DefaultValue;
     Procedure TestRTTI_DefaultValueSet;
@@ -513,7 +515,6 @@ type
     Procedure TestRTTI_Class_MethodArgFlags;
     Procedure TestRTTI_Class_Property;
     Procedure TestRTTI_Class_PropertyParams;
-    // ToDo: property default value
     Procedure TestRTTI_OverrideMethod;
     Procedure TestRTTI_OverloadProperty;
     // ToDo: array argument
@@ -7400,6 +7401,63 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestClass_Property_IndexSpec;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red, blue);',
+  '  TObject = class',
+  '    function GetIntBool(Index: longint): boolean; virtual; abstract;',
+  '    procedure SetIntBool(Index: longint; b: boolean); virtual; abstract;',
+  '    function GetEnumBool(Index: TEnum): boolean; virtual; abstract;',
+  '    procedure SetEnumBool(Index: TEnum; b: boolean); virtual; abstract;',
+  '    function GetStrIntBool(A: String; I: longint): boolean; virtual; abstract;',
+  '    procedure SetStrIntBool(A: String; I: longint; b: boolean); virtual; abstract;',
+  '    property B1: boolean index 1 read GetIntBool write SetIntBool;',
+  '    property B2: boolean index TEnum.blue read GetEnumBool write SetEnumBool;',
+  '    property I1[A: String]: boolean index 2 read GetStrIntBool write SetStrIntBool;',
+  '  end;',
+  'procedure DoIt(b: boolean); begin end;',
+  'var',
+  '  o: TObject;',
+  'begin',
+  '  o.B1:=o.B1;',
+  '  o.B2:=o.B2;',
+  '  o.I1[''a'']:=o.I1[''b''];',
+  '  doit(o.b1);',
+  '  doit(o.b2);',
+  '  doit(o.i1[''c'']);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_Property_IndexSpec',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (b) {',
+    '};',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.SetIntBool(1, $mod.o.GetIntBool(1));',
+    '$mod.o.SetEnumBool(TEnum.blue, $mod.o.GetEnumBool(TEnum.blue));',
+    '$mod.o.SetStrIntBool("a", 2, $mod.o.GetStrIntBool("b", 2));',
+    '$mod.DoIt($mod.o.GetIntBool(1));',
+    '$mod.DoIt($mod.o.GetEnumBool(TEnum.blue));',
+    '$mod.DoIt($mod.o.GetStrIntBool("c", 2));',
+    '']));
+end;
+
 procedure TTestModule.TestClass_PropertyOfTypeArray;
 begin
   StartProgram(false);
@@ -13450,6 +13508,85 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestRTTI_IndexModifier;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red, blue);',
+  '  TObject = class',
+  '    FB: boolean;',
+  '    procedure SetIntBool(Index: longint; b: boolean); virtual; abstract;',
+  '    function GetBoolBool(Index: boolean): boolean; virtual; abstract;',
+  '    procedure SetBoolBool(Index: boolean; b: boolean); virtual; abstract;',
+  '    function GetEnumBool(Index: TEnum): boolean; virtual; abstract;',
+  '    function GetStrIntBool(A: String; I: longint): boolean; virtual; abstract;',
+  '    procedure SetStrIntBool(A: String; I: longint; b: boolean); virtual; abstract;',
+  '  published',
+  '    property B1: boolean index 1 read FB write SetIntBool;',
+  '    property B2: boolean index TEnum.blue read GetEnumBool write FB;',
+  '    property I1[A: String]: boolean index 2 read GetStrIntBool write SetStrIntBool;',
+  '  end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_IndexModifier',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "blue",',
+    '  blue: 1',
+    '};',
+    '$mod.$rtti.$Enum("TEnum", {',
+    '  minvalue: 0,',
+    '  maxvalue: 1,',
+    '  ordtype: 1,',
+    '  enumtype: this.TEnum',
+    '});',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FB = false;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty(',
+    '    "B1",',
+    '    18,',
+    '    rtl.boolean,',
+    '    "FB",',
+    '    "SetIntBool",',
+    '    {',
+    '      index: 1',
+    '    }',
+    '  );',
+    '  $r.addProperty(',
+    '    "B2",',
+    '    17,',
+    '    rtl.boolean,',
+    '    "GetEnumBool",',
+    '    "FB",',
+    '    {',
+    '      index: $mod.TEnum.blue',
+    '    }',
+    '  );',
+    '  $r.addProperty(',
+    '    "I1",',
+    '    19,',
+    '    rtl.boolean,',
+    '    "GetStrIntBool",',
+    '    "SetStrIntBool",',
+    '    {',
+    '      index: 2',
+    '    }',
+    '  );',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestRTTI_StoredModifier;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
@@ -13461,7 +13598,6 @@ begin
   '  TObject = class',
   '  private',
   '    FB: boolean;',
-  //'    FI: longint;',
   '    function IsBStored: boolean; virtual; abstract;',
   '  published',
   '    property BoolA: boolean read FB stored true;',

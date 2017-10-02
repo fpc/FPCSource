@@ -458,6 +458,7 @@ type
     pbivnRTTIProcFlags,
     pbivnRTTIProcVar_ProcSig,
     pbivnRTTIPropDefault,
+    pbivnRTTIPropIndex,
     pbivnRTTIPropStored,
     pbivnRTTISet_CompType,
     pbivnSelf,
@@ -560,6 +561,7 @@ const
     'flags',
     'procsig',
     'Default',
+    'index',
     'stored',
     'comptype',
     'Self',
@@ -1348,6 +1350,8 @@ type
       pfStoredFalse = 4; // stored false, never
       pfStoredField = 8; // stored field, field name is in Stored
       pfStoredFunction = 12; // stored function, function name is in Stored
+      pfHasIndex = 16; { if getter is function, append Index as last param
+                         if setter is function, append Index as second last param }
     type
       TMethodKind = (
         mkProcedure,      // 0  default
@@ -2242,6 +2246,7 @@ var
   Arg: TPasArgument;
   ArgResolved: TPasResolverResult;
   ParentC: TClass;
+  IndexExpr: TPasExpr;
 begin
   inherited FinishPropertyOfClass(PropEl);
 
@@ -2263,16 +2268,17 @@ begin
   GetterIsBracketAccessor:=IsExternalBracketAccessor(Getter);
   Setter:=GetPasPropertySetter(PropEl);
   SetterIsBracketAccessor:=IsExternalBracketAccessor(Setter);
+  IndexExpr:=GetPasPropertyIndex(PropEl);
   if GetterIsBracketAccessor then
     begin
-    if PropEl.Args.Count<>1 then
+    if (PropEl.Args.Count<>1) or (IndexExpr<>nil) then
       RaiseMsg(20170403001743,nBracketAccessorOfExternalClassMustHaveOneParameter,
         sBracketAccessorOfExternalClassMustHaveOneParameter,
         [],PropEl);
     end;
   if SetterIsBracketAccessor then
     begin
-    if PropEl.Args.Count<>1 then
+    if (PropEl.Args.Count<>1) or (IndexExpr<>nil) then
       RaiseMsg(20170403001806,nBracketAccessorOfExternalClassMustHaveOneParameter,
         sBracketAccessorOfExternalClassMustHaveOneParameter,
         [],PropEl);
@@ -4573,6 +4579,7 @@ var
   ResolvedEl: TPasResolverResult;
   ProcType, TargetProcType: TPasProcedureType;
   ArrLit: TJSArrayLiteral;
+  IndexExpr: TPasExpr;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -4644,6 +4651,9 @@ begin
           Call:=CreateCallExpression(El);
           AssignContext.Call:=Call;
           Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
+          IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+          if IndexExpr<>nil then
+            Call.AddArg(ConvertElement(IndexExpr,AContext));
           Call.AddArg(AssignContext.RightSide);
           AssignContext.RightSide:=nil;
           Result:=Call;
@@ -4653,8 +4663,26 @@ begin
       caRead:
         begin
         Decl:=AContext.Resolver.GetPasPropertyGetter(Prop);
-        if (Decl is TPasFunction) and (Prop.Args.Count=0) then
-          ImplicitCall:=true;
+        if Decl is TPasFunction then
+          begin
+          IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+          if IndexExpr<>nil then
+            begin
+            // call function with index specifier
+            Call:=CreateCallExpression(El);
+            try
+              Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
+              Call.AddArg(ConvertElement(IndexExpr,AContext));
+              Result:=Call;
+            finally
+              if Result=nil then
+                Call.Free;
+            end;
+            exit;
+            end
+          else if (Prop.Args.Count=0) then
+            ImplicitCall:=true;
+          end;
         end;
       else
         RaiseNotSupported(El,AContext,20170213212623);
@@ -5380,6 +5408,7 @@ var
     AccessEl: TPasElement;
     AssignContext: TAssignContext;
     OldAccess: TCtxAccess;
+    IndexExpr: TPasExpr;
   begin
     Result:=nil;
     AssignContext:=nil;
@@ -5434,6 +5463,10 @@ var
         Elements.AddElement.Expr:=Arg;
         inc(i);
         end;
+      // add index specifier
+      IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+      if IndexExpr<>nil then
+        Elements.AddElement.Expr:=ConvertElement(IndexExpr,ArgContext);
       // finally add as last parameter the value
       if AssignContext<>nil then
         begin
@@ -9834,9 +9867,9 @@ var
   GetterPas, SetterPas, DeclEl: TPasElement;
   ResultTypeInfo, DefValue: TJSElement;
   VarType: TPasType;
-  StoredExpr: TPasExpr;
+  StoredExpr, IndexExpr: TPasExpr;
   StoredResolved, VarTypeResolved: TPasResolverResult;
-  StoredValue, PasValue: TResEvalValue;
+  StoredValue, PasValue, IndexValue: TResEvalValue;
 begin
   Result:=nil;
   OptionsEl:=nil;
@@ -9857,8 +9890,10 @@ begin
     SetterPas:=AContext.Resolver.GetPasPropertySetter(Prop);
     if SetterPas is TPasProcedure then
       inc(Flags,pfSetProcedure);
-
     StoredExpr:=AContext.Resolver.GetPasPropertyStoredExpr(Prop);
+    IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+    if IndexExpr<>nil then
+      inc(Flags,pfHasIndex);
     if StoredExpr<>nil then
       begin
       AContext.Resolver.ComputeElement(StoredExpr,StoredResolved,[rcNoImplicitProc]);
@@ -9869,7 +9904,8 @@ begin
         begin
         if (StoredResolved.BaseType=btBoolean) and (StoredResolved.ExprEl<>nil) then
           begin
-          // try evaluating const boolean
+          // could be a const boolean
+          // -> try evaluating const boolean
           StoredValue:=AContext.Resolver.Eval(StoredExpr,[]);
           if StoredValue<>nil then
             try
@@ -9913,6 +9949,19 @@ begin
     else
       Call.AddArg(CreateLiteralString(Prop,GetAccessorName(SetterPas)));
 
+    // add option "index"
+    IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+    if IndexExpr<>nil then
+      begin
+      IndexValue:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+      try
+        AddOption(FBuiltInNames[pbivnRTTIPropIndex],
+          ConvertConstValue(IndexValue,AContext,Prop));
+      finally
+        ReleaseEvalValue(IndexValue);
+      end;
+      end;
+
     // add option "stored"
     if StoredExpr<>nil then
       begin
@@ -9928,9 +9977,7 @@ begin
       try
         DefValue:=nil;
         if VarTypeResolved.BaseType=btSet then
-          begin
           DefValue:=CreateValInit(VarType,Prop.DefaultExpr,Prop.DefaultExpr,AContext);
-          end;
         if DefValue=nil then
           DefValue:=ConvertConstValue(PasValue,AContext,Prop);
         AddOption(FBuiltInNames[pbivnRTTIPropDefault],DefValue);
@@ -10045,8 +10092,6 @@ function TPasToJSConverter.ConvertProperty(El: TPasProperty;
 
 begin
   Result:=Nil;
-  if El.IndexExpr<>nil then
-    RaiseNotSupported(El.IndexExpr,AContext,20170215103010,'property index expression');
   if El.ImplementsFunc<>nil then
     RaiseNotSupported(El.ImplementsFunc,AContext,20170215102923,'property implements function');
   if El.DispIDExpr<>nil then
