@@ -341,6 +341,7 @@ resourcestring
   SErrCallConvNotSupported = 'Calling convention not supported: %s';
   SErrTypeKindNotSupported = 'Type kind is not supported: %s';
   SErrCallbackHandlerNil = 'Callback handler is Nil';
+  SErrMissingSelfParam = 'Missing self parameter';
 
 implementation
 
@@ -545,10 +546,11 @@ begin
   if aIsConstructor then
     raise ENotImplemented.Create(SErrInvokeNotImplemented);
 
-  { ToDo: what exactly is the purpose of IsStatic? }
   flags := [];
   if aIsStatic then
-    Include(flags, fcfStatic);
+    Include(flags, fcfStatic)
+  else if Length(aArgs) = 0 then
+    raise EInvocationError.Create(SErrMissingSelfParam);
 
   SetLength(funcargs, Length(aArgs));
   for i := Low(aArgs) to High(aArgs) do begin
