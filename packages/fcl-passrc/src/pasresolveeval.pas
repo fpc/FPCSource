@@ -142,6 +142,7 @@ const
   nDivByZero = 3069;
   nRangeCheckInSetConstructor = 3070;
   nIncompatibleTypesGotParametersExpected = 3071;
+  nAddingIndexSpecifierRequiresNewX = 3072;
 
 // resourcestring patterns of messages
 resourcestring
@@ -216,6 +217,7 @@ resourcestring
   sDivByZero = 'Division by zero';
   sRangeCheckInSetConstructor = 'range check error in set constructor or duplicate set element';
   sIncompatibleTypesGotParametersExpected = 'Incompatible types, got %s parameters, expected %s';
+  sAddingIndexSpecifierRequiresNewX = 'adding index specifier requires new "%s" specifier';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

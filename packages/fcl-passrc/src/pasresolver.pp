@@ -1352,6 +1352,7 @@ type
     function GetPasPropertyAncestor(El: TPasProperty; WithRedeclarations: boolean = false): TPasProperty;
     function GetPasPropertyGetter(El: TPasProperty): TPasElement;
     function GetPasPropertySetter(El: TPasProperty): TPasElement;
+    function GetPasPropertyIndex(El: TPasProperty): TPasExpr;
     function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
     function GetLoop(El: TPasElement): TPasImplElement;
@@ -3933,11 +3934,12 @@ procedure TPasResolver.FinishPropertyOfClass(PropEl: TPasProperty);
 var
   PropType: TPasType;
   ClassScope: TPasClassScope;
+  AncestorProp: TPasProperty;
+  IndexExpr: TPasExpr;
 
   procedure GetPropType;
   var
     AncEl: TPasElement;
-    AncProp: TPasProperty;
   begin
     if PropType<>nil then exit;
     AncEl:=nil;
@@ -3946,14 +3948,14 @@ var
     if AncEl is TPasProperty then
       begin
       // override or redeclaration property
-      AncProp:=TPasProperty(AncEl);
-      TPasPropertyScope(PropEl.CustomData).AncestorProp:=AncProp;
-      AncProp.AddRef;
+      AncestorProp:=TPasProperty(AncEl);
+      TPasPropertyScope(PropEl.CustomData).AncestorProp:=AncestorProp;
+      AncestorProp.AddRef;
       if proFixCaseOfOverrides in Options then
-        PropEl.Name:=AncProp.Name;
+        PropEl.Name:=AncestorProp.Name;
       end
     else
-      AncProp:=nil;
+      AncestorProp:=nil;
 
     if PropEl.VarType<>nil then
       begin
@@ -3963,15 +3965,15 @@ var
     else
       begin
       // property override
-      if AncProp=nil then
+      if AncestorProp=nil then
         RaiseMsg(20170216151741,nNoPropertyFoundToOverride,sNoPropertyFoundToOverride,[],PropEl);
       // check property versus class property
-      if PropEl.ClassType<>AncProp.ClassType then
-        RaiseXExpectedButYFound(20170216151744,AncProp.ElementTypeName,PropEl.ElementTypeName,PropEl);
+      if PropEl.ClassType<>AncestorProp.ClassType then
+        RaiseXExpectedButYFound(20170216151744,AncestorProp.ElementTypeName,PropEl.ElementTypeName,PropEl);
       // get inherited type
-      PropType:=GetPasPropertyType(AncProp);
+      PropType:=GetPasPropertyType(AncestorProp);
       // update DefaultProperty
-      if (ClassScope.DefaultProperty=AncProp) then
+      if (ClassScope.DefaultProperty=AncestorProp) then
         ClassScope.DefaultProperty:=PropEl;
       end;
   end;
@@ -4043,7 +4045,7 @@ var
         [IntToStr(ArgNo),'untyped',GetTypeDescription(IndexResolved)],ErrorEl)
     else
       begin
-      if CheckParamCompatibility(PropEl.IndexExpr,ProcArg,ArgNo,true)=cIncompatible then
+      if CheckParamCompatibility(IndexExpr,ProcArg,ArgNo,true)=cIncompatible then
         begin
         ComputeElement(ProcArg.ArgType,ProcArgResolved,[rcType]);
         RaiseIncompatibleTypeRes(20170924203829,nIncompatibleTypeArgNo,
@@ -4157,19 +4159,15 @@ var
         end;
       exit;
       end;
-    if (IndexVal=nil)
-        and (IdentEl<>nil)
-        and ((IdentEl.ClassType=TPasVariable)
-          or ((IdentEl.ClassType=TPasConst) and not TPasConst(IdentEl).IsConst))
-        then
+    if (IdentEl<>nil)
+      and ((IdentEl.ClassType=TPasVariable)
+        or ((IdentEl.ClassType=TPasConst) and not TPasConst(IdentEl).IsConst)) then
       begin
       // field
       aVar:=TPasVariable(IdentEl);
       // check if member
       if not (Expr is TPrimitiveExpr) then
         RaiseXExpectedButYFound(20170923202003,'member variable','foreign '+aVar.ElementTypeName,Expr);
-      if PropEl.IndexExpr<>nil then
-        RaiseNotYetImplemented(20170409214006,PropEl.StoredAccessor,'stored with index');
       // check type boolean
       TypeEl:=aVar.VarType;
       TypeEl:=ResolveAliasType(TypeEl);
@@ -4207,9 +4205,11 @@ var
   Proc: TPasProcedure;
   Arg: TPasArgument;
   PropArgCount, NeedArgCnt: Integer;
-  PropTypeResolved, DefaultResolved, IndexResolved: TPasResolverResult;
+  PropTypeResolved, DefaultResolved, IndexResolved,
+    AncIndexResolved: TPasResolverResult;
   m: TVariableModifier;
   IndexVal: TResEvalValue;
+  AncIndexExpr: TPasExpr;
 begin
   CheckTopScope(TPasPropertyScope);
   PopScope;
@@ -4223,15 +4223,23 @@ begin
   PropType:=nil;
   CurClassType:=PropEl.Parent as TPasClassType;
   ClassScope:=NoNil(CurClassType.CustomData) as TPasClassScope;
+  AncestorProp:=nil;
   GetPropType;
   IndexVal:=nil;
   try
     if PropEl.IndexExpr<>nil then
       begin
-      // index specifier -> check if simple value
-      ResolveExpr(PropEl.IndexExpr,rraRead);
-      ComputeElement(PropEl.IndexExpr,IndexResolved,[rcConstant]);
-      IndexVal:=Eval(PropEl.IndexExpr,[refConst]);
+      // index specifier
+      // -> check if simple value
+      IndexExpr:=PropEl.IndexExpr;
+      ResolveExpr(IndexExpr,rraRead);
+      end
+    else
+      IndexExpr:=GetPasPropertyIndex(PropEl);
+    if IndexExpr<>nil then
+      begin
+      ComputeElement(IndexExpr,IndexResolved,[rcConstant]);
+      IndexVal:=Eval(IndexExpr,[refConst]);
       case IndexVal.Kind of
       revkBool,
       revkInt, revkUInt,
@@ -4241,6 +4249,43 @@ begin
       else
         RaiseXExpectedButYFound(20170924202837,'ordinal',GetTypeDescription(IndexResolved),PropEl.IndexExpr);
       end;
+      if (PropEl.IndexExpr<>nil) and (PropEl.VarType=nil) then
+        begin
+        // check if index is compatible to ancestor index specifier
+        AncIndexExpr:=GetPasPropertyIndex(AncestorProp);
+        if AncIndexExpr=nil then
+          begin
+          // ancestor had no index specifier
+          if PropEl.ReadAccessor=nil then
+            begin
+            AccEl:=GetPasPropertyGetter(AncestorProp);
+            if AccEl is TPasProcedure then
+              RaiseMsg(20171002144103,nAddingIndexSpecifierRequiresNewX,
+                sAddingIndexSpecifierRequiresNewX,['read'],IndexExpr);
+            end;
+          if PropEl.WriteAccessor=nil then
+            begin
+            AccEl:=GetPasPropertySetter(AncestorProp);
+            if AccEl is TPasProcedure then
+              RaiseMsg(20171002144419,nAddingIndexSpecifierRequiresNewX,
+                sAddingIndexSpecifierRequiresNewX,['write'],IndexExpr);
+            end;
+          if PropEl.StoredAccessor=nil then
+            begin
+            AccEl:=GetPasPropertyStoredExpr(AncestorProp);
+            if AccEl<>nil then
+              begin
+              ComputeElement(AccEl,AncIndexResolved,[rcNoImplicitProc]);
+              if AncIndexResolved.IdentEl is TPasProcedure then
+                RaiseMsg(20171002144644,nAddingIndexSpecifierRequiresNewX,
+                  sAddingIndexSpecifierRequiresNewX,['stored'],IndexExpr);
+              end;
+            end;
+          end
+        else
+          // ancestor had already an index specifier -> check same type
+          CheckEqualElCompatibility(PropEl.IndexExpr,AncIndexExpr,PropEl.IndexExpr,true);
+        end;
       end;
 
     if PropEl.ReadAccessor<>nil then
@@ -4249,7 +4294,7 @@ begin
       AccEl:=GetAccessor(PropEl.ReadAccessor);
       if (AccEl.ClassType=TPasVariable) or (AccEl.ClassType=TPasConst) then
         begin
-        if (PropEl.Args.Count>0) or (IndexVal<>nil) then
+        if (PropEl.Args.Count>0) then
           RaiseXExpectedButYFound(20170216151823,'function',AccEl.ElementTypeName,PropEl.ReadAccessor);
         if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
           RaiseIncompatibleType(20170216151826,nIncompatibleTypesGotExpected,
@@ -4293,8 +4338,6 @@ begin
           RaiseMsg(20170216151847,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
             [Proc.Name],PropEl.ReadAccessor);
         end
-      else if IndexVal<>nil then
-        RaiseXExpectedButYFound(20170216151849,'function',AccEl.ElementTypeName,PropEl.ReadAccessor)
       else
         RaiseXExpectedButYFound(20170216151850,'variable',AccEl.ElementTypeName,PropEl.ReadAccessor);
       end;
@@ -4306,7 +4349,7 @@ begin
       if (AccEl.ClassType=TPasVariable)
           or ((AccEl.ClassType=TPasConst) and (not TPasConst(AccEl).IsConst)) then
         begin
-        if (PropEl.Args.Count>0) or (IndexVal<>nil) then
+        if (PropEl.Args.Count>0) then
           RaiseXExpectedButYFound(20170216151852,'procedure',AccEl.ElementTypeName,PropEl.WriteAccessor);
         if not IsSameType(TPasVariable(AccEl).VarType,PropType,true) then
           RaiseIncompatibleType(20170216151855,nIncompatibleTypesGotExpected,
@@ -11942,6 +11985,21 @@ begin
       begin
       DeclEl:=(El.WriteAccessor.CustomData as TResolvedReference).Declaration;
       Result:=DeclEl;
+      exit;
+      end;
+    El:=GetPasPropertyAncestor(El);
+    end;
+end;
+
+function TPasResolver.GetPasPropertyIndex(El: TPasProperty): TPasExpr;
+// search the index expression of a property
+begin
+  Result:=nil;
+  while El<>nil do
+    begin
+    if El.IndexExpr<>nil then
+      begin
+      Result:=El.IndexExpr;
       exit;
       end;
     El:=GetPasPropertyAncestor(El);
