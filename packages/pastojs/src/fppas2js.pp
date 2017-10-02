@@ -1163,9 +1163,6 @@ type
     Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
     Function ComputeConstString(Expr: TPasExpr; AContext: TConvertContext; NotEmpty: boolean): String; virtual;
     Function IsExternalClassConstructor(El: TPasElement): boolean;
-    Procedure ComputeRange(const RangeResolved: TPasResolverResult;
-      AContext: TConvertContext; out MinValue, MaxValue: int64;
-      ErrorEl: TPasElement); virtual;
     // Name mangling
     Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
@@ -3937,76 +3934,6 @@ begin
   Result:=false;
 end;
 
-procedure TPasToJSConverter.ComputeRange(
-  const RangeResolved: TPasResolverResult; AContext: TConvertContext; out
-  MinValue, MaxValue: int64; ErrorEl: TPasElement);
-var
-  EnumType: TPasEnumType;
-begin
-  if RangeResolved.BaseType in btAllJSBooleans then
-    begin
-    MinValue:=0;
-    MaxValue:=1;
-    end
-  else if RangeResolved.BaseType=btShortInt then
-    begin
-    MinValue:=-$80;
-    MaxValue:=-$7f;
-    end
-  else if RangeResolved.BaseType=btByte then
-    begin
-    MinValue:=0;
-    MaxValue:=$ff;
-    end
-  else if RangeResolved.BaseType=btSmallInt then
-    begin
-    MinValue:=-$8000;
-    MaxValue:=$7fff;
-    end
-  else if RangeResolved.BaseType=btWord then
-    begin
-    MinValue:=0;
-    MaxValue:=$ffff;
-    end
-  else if RangeResolved.BaseType=btLongint then
-    begin
-    MinValue:=-$80000000;
-    MaxValue:=$7fffffff;
-    end
-  else if RangeResolved.BaseType=btLongWord then
-    begin
-    MinValue:=0;
-    MaxValue:=$ffffffff;
-    end
-  else if RangeResolved.BaseType=btUIntDouble then
-    begin
-    MinValue:=0;
-    MaxValue:=HighJSNativeInt;
-    end
-  else if RangeResolved.BaseType=btIntDouble then
-    begin
-    MinValue:=LowJSNativeInt;
-    MaxValue:=HighJSNativeInt;
-    end
-  else if RangeResolved.BaseType in btAllJSChars then
-    begin
-    MinValue:=0;
-    MaxValue:=$ffff;
-    end
-  else if RangeResolved.BaseType=btContext then
-    begin
-    if RangeResolved.TypeEl.ClassType=TPasEnumType then
-      begin
-      EnumType:=TPasEnumType(RangeResolved.TypeEl);
-      MinValue:=0;
-      MaxValue:=EnumType.Values.Count-1;
-      end;
-    end
-  else
-    DoError(20170411224022,nPasElementNotSupported,sPasElementNotSupported,
-      [AContext.Resolver.BaseTypeNames[RangeResolved.BaseType]],ErrorEl);
-end;
-
 function TPasToJSConverter.ConvertBinaryExpression(El: TBinaryExpr;
   AContext: TConvertContext): TJSElement;
 Const
@@ -6353,10 +6280,10 @@ function TPasToJSConverter.ConvertBuiltIn_Length(El: TParamsExpr;
 var
   Arg: TJSElement;
   Param, RangeEl: TPasExpr;
-  ParamResolved, RangeResolved: TPasResolverResult;
+  ParamResolved: TPasResolverResult;
   Ranges: TPasExprArray;
   Call: TJSCallExpression;
-  aMinValue, aMaxValue: int64;
+  RgLen: MaxPrecInt;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -6372,9 +6299,8 @@ begin
         if length(Ranges)>1 then
           RaiseNotSupported(El,AContext,20170223131042);
         RangeEl:=Ranges[0];
-        AContext.Resolver.ComputeElement(RangeEl,RangeResolved,[rcType]);
-        ComputeRange(RangeResolved,AContext,aMinValue,aMaxValue,RangeEl);
-        Result:=CreateLiteralNumber(El,aMaxValue-aMinValue+1);
+        RgLen:=AContext.Resolver.GetRangeLength(RangeEl);
+        Result:=CreateLiteralNumber(El,RgLen);
         exit;
         end
       else
@@ -8610,11 +8536,10 @@ var
   ArrLit: TJSArrayLiteral;
   Arr: TPasArrayType;
   Index: Integer;
-  RangeResolved: TPasResolverResult;
   ElType: TPasType;
   RangeEl: TPasExpr;
-  aMinValue, aMaxValue: int64;
   Call: TJSCallExpression;
+  RgLen: MaxPrecInt;
 begin
   Result:=nil;
   if El.PackMode<>pmNone then
@@ -8644,9 +8569,8 @@ begin
       Index:=0;
       repeat
         RangeEl:=Arr.Ranges[Index];
-        AContext.Resolver.ComputeElement(RangeEl,RangeResolved,[rcType]);
-        ComputeRange(RangeResolved,AContext,aMinValue,aMaxValue,RangeEl);
-        ArrLit.AddElement(CreateLiteralNumber(RangeEl,aMaxValue-aMinValue+1));
+        RgLen:=AContext.Resolver.GetRangeLength(RangeEl);
+        ArrLit.AddElement(CreateLiteralNumber(RangeEl,RgLen));
         inc(Index);
         if Index=length(Arr.Ranges) then
           begin

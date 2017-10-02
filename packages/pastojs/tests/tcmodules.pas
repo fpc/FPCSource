@@ -13336,6 +13336,7 @@ begin
   Add('  TFlag = (light,dark);');
   Add('  TFlagNames = array[TFlag] of string;');
   Add('  TBoolNames = array[boolean] of string;');
+  Add('  TByteArray = array[1..32768] of byte;');
   Add('  TProc = function(f: TBoolNames): TFlagNames;');
   Add('var p: pointer;');
   Add('begin');
@@ -13363,6 +13364,10 @@ begin
     '$mod.$rtti.$StaticArray("TBoolNames", {',
     '  dims: [2],',
     '  eltype: rtl.string',
+    '});',
+    '$mod.$rtti.$StaticArray("TByteArray", {',
+    '  dims: [32768],',
+    '  eltype: rtl.byte',
     '});',
     '$mod.$rtti.$ProcVar("TProc", {',
     '  procsig: rtl.newTIProcSig([["f", $mod.$rtti["TBoolNames"]]], $mod.$rtti["TFlagNames"])',
