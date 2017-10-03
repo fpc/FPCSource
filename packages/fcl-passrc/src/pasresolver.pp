@@ -618,6 +618,7 @@ type
     procedure WriteIdentifiers(Prefix: string); override;
     destructor Destroy; override;
   end;
+  TPasProcedureScopeClass = class of TPasProcedureScope;
 
   { TPasPropertyScope }
 
@@ -922,6 +923,7 @@ type
     FPendingForwards: TFPList; // list of TPasElement needed to check for forward procs
     FRootElement: TPasModule;
     FScopeClass_Class: TPasClassScopeClass;
+    FScopeClass_Proc: TPasProcedureScopeClass;
     FScopeClass_WithExpr: TPasWithExprScopeClass;
     FScopeCount: integer;
     FScopes: array of TPasScope; // stack of scopes
@@ -970,7 +972,7 @@ type
       FindOverloadData: Pointer; var Abort: boolean); virtual;
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
-    procedure CheckTopScope(ExpectedClass: TPasScopeClass);
+    procedure CheckTopScope(ExpectedClass: TPasScopeClass; AllowDescendants: boolean = false);
     function AddIdentifier(Scope: TPasIdentifierScope;
       const aName: String; El: TPasElement;
       const Kind: TPasIdentifierKind): TPasIdentifier; virtual;
@@ -1416,6 +1418,7 @@ type
     property TopScope: TPasScope read FTopScope;
     property DefaultScope: TPasDefaultScope read FDefaultScope write FDefaultScope;
     property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
+    property ScopeClass_Procedure: TPasProcedureScopeClass read FScopeClass_Proc write FScopeClass_Proc;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
     // last element
     property LastElement: TPasElement read FLastElement;
@@ -3003,12 +3006,17 @@ begin
         po_arrayrangeexpr,po_CheckModeswitches,po_CheckCondFunction];
 end;
 
-procedure TPasResolver.CheckTopScope(ExpectedClass: TPasScopeClass);
+procedure TPasResolver.CheckTopScope(ExpectedClass: TPasScopeClass;
+  AllowDescendants: boolean);
+var
+  Scope: TPasScope;
 begin
-  if TopScope=nil then
+  Scope:=TopScope;
+  if Scope=nil then
     RaiseInternalError(20160922163319,'Expected TopScope='+ExpectedClass.ClassName+' but found nil');
-  if TopScope.ClassType<>ExpectedClass then
-    RaiseInternalError(20160922163323,'Expected TopScope='+ExpectedClass.ClassName+' but found '+TopScope.ClassName);
+  if Scope.ClassType<>ExpectedClass then
+    if (not AllowDescendants) or (not Scope.InheritsFrom(ExpectedClass)) then
+      RaiseInternalError(20160922163323,'Expected TopScope='+ExpectedClass.ClassName+' but found '+Scope.ClassName);
 end;
 
 function TPasResolver.AddIdentifier(Scope: TPasIdentifierScope;
@@ -3486,7 +3494,7 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishProcedure START');
   {$ENDIF}
-  CheckTopScope(TPasProcedureScope);
+  CheckTopScope(FScopeClass_Proc);
   if TPasProcedureScope(TopScope).Element<>aProc then
     RaiseInternalError(20170220163043);
   Body:=aProc.Body;
@@ -3527,7 +3535,7 @@ begin
     begin
     // finished header of a procedure declaration
     // -> search the best fitting proc
-    CheckTopScope(TPasProcedureScope);
+    CheckTopScope(FScopeClass_Proc);
     Proc:=TPasProcedure(El.Parent);
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.FinishProcedureHeader El=',GetTreeDbg(El),' ',GetElementSourcePosStr(El),' IsForward=',Proc.IsForward,' Parent=',GetObjName(El.Parent));
@@ -4669,7 +4677,7 @@ begin
     end;
   if DeclProc is TPasFunction then
     begin
-    // replace 'Result'
+    // redirect implementation 'Result' to declaration FuncType.ResultEl
     Identifier:=ImplProcScope.FindLocalIdentifier(ResolverResultVar);
     if Identifier.Element is TPasResultElement then
       Identifier.Element:=TPasFunction(DeclProc).FuncType.ResultEl;
@@ -5156,12 +5164,13 @@ procedure TPasResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
 var
   FindData: TPRFindData;
   DeclEl: TPasElement;
-  Proc: TPasProcedure;
+  Proc, ImplProc: TPasProcedure;
   Ref: TResolvedReference;
   BuiltInProc: TResElDataBuiltInProc;
   p: SizeInt;
   DottedName: String;
   Bin: TBinaryExpr;
+  ProcScope: TPasProcedureScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveNameExpr El=',GetObjName(El),' Name="',aName,'" ',Access);
@@ -5182,10 +5191,28 @@ begin
     // identifier is a proc and args brackets are missing
     if El.Parent.ClassType=TPasProperty then
       // a property accessor does not need args -> ok
+      // Note: the detailed tests are in FinishPropertyOfClass
     else
       begin
       // examples: funca or @proca or a.funca or @a.funca ...
       Proc:=TPasProcedure(DeclEl);
+      if (Access=rraAssign) and (Proc is TPasFunction)
+          and (El.ClassType=TPrimitiveExpr)
+          and (El.Parent.ClassType=TPasImplAssign)
+          and (TPasImplAssign(El.Parent).left=El) then
+        begin
+        // e.g. funcname:=
+        ProcScope:=Proc.CustomData as TPasProcedureScope;
+        ImplProc:=ProcScope.ImplProc;
+        if ImplProc=nil then
+          ImplProc:=Proc;
+        if El.HasParent(ImplProc) then
+          begin
+          // "FuncA:=" within FuncA  -> redirect to ResultEl
+          Ref.Declaration:=(Proc as TPasFunction).FuncType.ResultEl;
+          exit;
+          end;
+        end;
       if ProcNeedsParams(Proc.ProcType) and not ExprIsAddrTarget(El) then
         begin
         {$IFDEF VerbosePasResolver}
@@ -5252,7 +5279,7 @@ begin
     end;
 
   // 'inherited;' without expression
-  CheckTopScope(TPasProcedureScope);
+  CheckTopScope(FScopeClass_Proc);
   ProcScope:=TPasProcedureScope(TopScope);
   SelfScope:=ProcScope.GetSelfScope;
   if SelfScope=nil then
@@ -5299,7 +5326,7 @@ begin
   writeln('TPasResolver.ResolveInheritedCall El=',GetTreeDbg(El));
   {$ENDIF}
 
-  CheckTopScope(TPasProcedureScope);
+  CheckTopScope(FScopeClass_Proc);
   ProcScope:=TPasProcedureScope(TopScope);
   SelfScope:=ProcScope.GetSelfScope;
   if SelfScope=nil then
@@ -6220,7 +6247,7 @@ begin
   HasDot:=Pos('.',ProcName)>1;
   if not HasDot then
     AddIdentifier(TPasIdentifierScope(TopScope),ProcName,El,pikProc);
-  ProcScope:=TPasProcedureScope(PushScope(El,TPasProcedureScope));
+  ProcScope:=TPasProcedureScope(PushScope(El,FScopeClass_Proc));
   if HasDot then
     begin
     // method implementation -> search class
@@ -6296,7 +6323,7 @@ begin
     ProcType:=TPasProcedureType(El.Parent);
     if ProcType.Parent is TPasProcedure then
       begin
-      if TopScope.ClassType<>TPasProcedureScope then
+      if TopScope.ClassType<>FScopeClass_Proc then
         RaiseInvalidScopeForElement(20160922163529,El);
       AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
       end
@@ -6316,7 +6343,7 @@ end;
 
 procedure TPasResolver.AddFunctionResult(El: TPasResultElement);
 begin
-  if TopScope.ClassType<>TPasProcedureScope then exit;
+  if TopScope.ClassType<>FScopeClass_Proc then exit;
   if not (El.Parent is TPasProcedure) then exit;
   AddIdentifier(TPasProcedureScope(TopScope),ResolverResultVar,El,pikSimple);
 end;
@@ -6329,7 +6356,7 @@ end;
 procedure TPasResolver.AddProcedureBody(El: TProcedureBody);
 begin
   if El=nil then ;
-  CheckTopScope(TPasProcedureScope);
+  CheckTopScope(FScopeClass_Proc);
 end;
 
 procedure TPasResolver.WriteScopes;
@@ -9284,6 +9311,7 @@ begin
   FDynArrayMinIndex:=0;
   FDynArrayMaxIndex:=High(int64);
   FScopeClass_Class:=TPasClassScope;
+  FScopeClass_Proc:=TPasProcedureScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
   fExprEvaluator:=TResExprEvaluator.Create;
   fExprEvaluator.OnLog:=@OnExprEvalLog;
@@ -9699,7 +9727,7 @@ begin
     if wesfConstParent in TPasWithExprScope(StartScope).Flags then
       Include(Ref.Flags,rrfConstInherited);
     end
-  else if StartScope.ClassType=TPasProcedureScope then
+  else if StartScope.ClassType=FScopeClass_Proc then
     begin
     Proc:=TPasProcedureScope(StartScope).Element as TPasProcedure;
     //writeln('TPasResolver.CheckFoundElement ',GetObjName(Proc),' ',IsClassMethod(Proc),' ElScope=',GetObjName(FindData.ElScope));

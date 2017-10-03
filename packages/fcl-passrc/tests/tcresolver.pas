@@ -332,6 +332,7 @@ type
     Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
+    Procedure TestFuncAssignFail;
     Procedure TestForwardProc;
     Procedure TestForwardProcUnresolved;
     Procedure TestNestedForwardProc;
@@ -4545,6 +4546,7 @@ begin
   Add('function Func1: longint;');
   Add('begin');
   Add('  Result:=3;');
+  Add('  Func1:=4; ');
   Add('end;');
   Add('begin');
   ParseProgram;
@@ -4802,14 +4804,29 @@ begin
   Add('      +{@b2}b');
   Add('      +{@c1}c');
   Add('      +{@d1}d;');
+  Add('    Nesty:=3;');
+  Add('    DoIt:=4;');
   Add('  end;');
   Add('begin');
   Add('  Result:={@a1}a');
   Add('      +{@b1}b');
   Add('      +{@c1}c;');
+  Add('  DoIt:=5;');
   Add('end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestFuncAssignFail;
+begin
+  StartProgram(false);
+  Add([
+  'function DoIt: boolean;',
+  'begin',
+  'end;',
+  'begin',
+  '  DoIt:=true;']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
 
 procedure TTestResolver.TestForwardProc;
