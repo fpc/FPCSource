@@ -1003,7 +1003,7 @@ implementation
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
-         distv,dist,
+         dist,distv,
          lv,hv,
          max_label: tconstexprint;
          labelcnt : tcgint;
@@ -1081,14 +1081,9 @@ implementation
                    { can we omit the range check of the jump table ? }
                    getrange(left.resultdef,lv,hv);
                    jumptable_no_range:=(lv=min_label) and (hv=max_label);
-                   { hack a little bit, because the range can be greater }
-                   { than the positive range of a aint            }
 
-                   if (min_label<0) and (max_label>0) then
-                     distv:=max_label+min_label
-                   else
-                     distv:=max_label-min_label;
-                   if (distv>=0) then
+                   distv:=max_label-min_label;
+                   if distv>=0 then
                      dist:=distv.uvalue
                    else
                      dist:=-distv.svalue;
