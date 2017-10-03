@@ -2220,6 +2220,7 @@ begin
   Add('function Func1: longint;');
   Add('begin');
   Add('  Result:=3;');
+  Add('  Func1:=4;');
   Add('end;');
   Add('begin');
   ConvertProgram;
@@ -2228,6 +2229,7 @@ begin
     'this.Func1 = function () {',
     '  var Result = 0;',
     '  Result = 3;',
+    '  Result = 4;',
     '  return Result;',
     '};'
     ]),
@@ -2237,20 +2239,26 @@ end;
 procedure TTestModule.TestNestedProc;
 begin
   StartProgram(false);
-  Add('var vInUnit: longint;');
-  Add('function DoIt(pA,pD: longint): longint;');
-  Add('var');
-  Add('  vB: longint;');
-  Add('  vC: longint;');
-  Add('  function Nesty(pA: longint): longint; ');
-  Add('  var vB: longint;');
-  Add('  begin');
-  Add('    Result:=pa+vb+vc+pd+vInUnit;');
-  Add('  end;');
-  Add('begin');
-  Add('  Result:=pa+vb+vc;');
-  Add('end;');
-  Add('begin');
+  Add([
+  'var vInUnit: longint;',
+  'function DoIt(pA,pD: longint): longint;',
+  'var',
+  '  vB: longint;',
+  '  vC: longint;',
+  '  function Nesty(pA: longint): longint; ',
+  '  var vB: longint;',
+  '  begin',
+  '    Result:=pa+vb+vc+pd+vInUnit;',
+  '    nesty:=3;',
+  '    doit:=4;',
+  '    exit;',
+  '  end;',
+  'begin',
+  '  Result:=pa+vb+vc;',
+  '  doit:=6;',
+  '  exit;',
+  'end;',
+  'begin']);
   ConvertProgram;
   CheckSource('TestNestedProc',
     LinesToStr([ // statements
@@ -2260,12 +2268,17 @@ begin
     '  var vB = 0;',
     '  var vC = 0;',
     '  function Nesty(pA) {',
-    '    var Result = 0;',
+    '    var Result$1 = 0;',
     '    var vB = 0;',
-    '    Result = (((pA + vB) + vC) + pD) + $mod.vInUnit;',
-    '    return Result;',
+    '    Result$1 = (((pA + vB) + vC) + pD) + $mod.vInUnit;',
+    '    Result$1 = 3;',
+    '    Result = 4;',
+    '    return Result$1;',
+    '    return Result$1;',
     '  };',
     '  Result = (pA + vB) + vC;',
+    '  Result = 6;',
+    '  return Result;',
     '  return Result;',
     '};'
     ]),

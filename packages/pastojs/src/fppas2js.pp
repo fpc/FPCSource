@@ -43,6 +43,7 @@ Works:
   - modifier public to protect from removing by optimizer
   - choose overloads based on type and precision
   - fail overload on multiple with loss of precision or one used default param
+  - FuncName:=, auto rename lower lvl Result variables
 - assign statements
 - char
   - literals
@@ -110,6 +111,7 @@ Works:
   - const
   - bracket accessor, getter/setter has external name '[]'
   - TObject.Free sets variable to nil
+  - property stored and index modifier
 - dynamic arrays
   - arrays can be null
   - init as "arr = []"  so typeof works
@@ -223,7 +225,7 @@ Works:
   - callback: assign to jsvalue, equal, not equal
 - RTTI
   - base types
-  - unit $rtti
+  - $mod.$rtti
   - enum type tkEnumeration
   - set type tkSet
   - procedure type  tkProcVar, tkMethod
@@ -241,7 +243,7 @@ Works:
     - typeinfo(class) -> class.$rtti
   - WPO skip not used typeinfo
   - open array param
-  - property stored modifier
+  - property stored and index modifier
   - property default value
 - pointer
   - compare with and assign nil
@@ -251,22 +253,18 @@ Works:
 - dotted unit names, namespaces
 
 ToDos:
-- ignore attributes
 - static arrays
-  - a[][]
   - a[] of record
-  - RTTI
-- property index specifier
 - RTTI
   - class property
   - type alias type
   - documentation
 - move local types to unit scope
 - var absolute
-- FuncName:= (instead of Result:=)
 - check memleaks
 - make records more lightweight
 - enumeration  for..in..do
+- resourcestring
 - pointer of record
 - nested types in class
 - asm: pas() - useful for overloads and protect an identifier from optimization
@@ -756,9 +754,18 @@ type
   end;
   TPas2JsElementDataClass = class of TPas2JsElementData;
 
+  { TPas2JSClassScope }
+
   TPas2JSClassScope = class(TPasClassScope)
   public
     NewInstanceFunction: TPasClassFunction;
+  end;
+
+  { TPas2JSProcedureScope }
+
+  TPas2JSProcedureScope = class(TPasProcedureScope)
+  public
+    ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
   end;
 
   { TPas2JSWithExprScope }
@@ -1918,6 +1925,47 @@ procedure TPas2JSResolver.ResolveNameExpr(El: TPasExpr; const aName: string;
     RaiseMsg(20170516152455,nFreeNeedsVar,sFreeNeedsVar,[],El);
   end;
 
+  procedure CheckResultEl(Ref: TResolvedReference);
+  var
+    Func: TPasFunction;
+    CurEl: TPasElement;
+    Lvl: Integer;
+    ProcScope, CurProcScope: TPas2JSProcedureScope;
+  begin
+    // result refers to a function result
+    // -> check if it is referring to a parent function result
+    Lvl:=0;
+    CurEl:=El;
+    CurProcScope:=nil;
+    while CurEl<>nil do
+      begin
+      if CurEl is TPasFunction then
+        begin
+        inc(Lvl);
+        ProcScope:=CurEl.CustomData as TPas2JSProcedureScope;
+        Func:=ProcScope.DeclarationProc as TPasFunction;
+        if Func=nil then
+          Func:=TPasFunction(CurEl);
+        if Lvl=1 then
+          begin
+          // current function (where the statement of El is)
+          if (Func.FuncType.ResultEl=Ref.Declaration) then
+            exit; // accessing current function -> ok
+          // accessing Result variable of higher function -> need rename
+          if ProcScope.ResultVarName<>'' then
+            exit; // is already renamed
+          CurProcScope:=ProcScope;
+          end;
+        end;
+      CurEl:=CurEl.Parent;
+      end;
+    if Lvl<2 then
+      RaiseNotYetImplemented(20171003112020,El);
+    // El refers to a higher Result variable
+    // -> current function needs another name for its Result variable
+    CurProcScope.ResultVarName:=ResolverResultVar+'$'+IntToStr(Lvl-1);
+  end;
+
 var
   Ref: TResolvedReference;
 begin
@@ -1926,7 +1974,9 @@ begin
     begin
     Ref:=TResolvedReference(El.CustomData);
     if (CompareText(aName,'free')=0) then
-      CheckTObjectFree(Ref);
+      CheckTObjectFree(Ref)
+    else if (Ref.Declaration is TPasResultElement) then
+      CheckResultEl(Ref);
     end;
 end;
 
@@ -2720,6 +2770,7 @@ begin
   StoreSrcColumns:=true;
   Options:=Options+DefaultPasResolverOptions;
   ScopeClass_Class:=TPas2JSClassScope;
+  ScopeClass_Procedure:=TPas2JSProcedureScope;
   ScopeClass_WithExpr:=TPas2JSWithExprScope;
   for bt in [pbtJSValue] do
     AddJSBaseType(Pas2jsBaseTypeNames[bt],bt);
@@ -4507,6 +4558,8 @@ var
   ProcType, TargetProcType: TPasProcedureType;
   ArrLit: TJSArrayLiteral;
   IndexExpr: TPasExpr;
+  Func: TPasFunction;
+  FuncScope: TPas2JSProcedureScope;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -4683,7 +4736,7 @@ begin
 
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertIdentifierExpr ',GetObjName(El),' Decl=',GetObjName(Decl),' Decl.Parent=',GetObjName(Decl.Parent));
-  //if CompareText(aName,'Self')=0 then
+  //if CompareText(aName,'Result')=0 then
   //  begin
   //  writeln('TPasToJSConverter.ConvertIdentifierExpr AContext=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext),' LocalVar=',AContext.GetLocalName(Decl),' ',GetObjName(Decl));
   //  AContext.WriteStack;
@@ -4692,8 +4745,16 @@ begin
 
   if Decl is TPasModule then
     Name:=TransformModuleName(TPasModule(Decl),true,AContext)
-  else if (Decl is TPasFunctionType) and (CompareText(ResolverResultVar,aName)=0) then
-    Name:=ResolverResultVar
+  else if (Decl is TPasResultElement) then
+    begin
+    Name:=ResolverResultVar;
+    Func:=Decl.Parent as TPasFunction;
+    FuncScope:=Func.CustomData as TPas2JSProcedureScope;
+    if FuncScope.ImplProc<>nil then
+      FuncScope:=FuncScope.ImplProc.CustomData as TPas2JSProcedureScope;
+    if FuncScope.ResultVarName<>'' then
+      Name:=FuncScope.ResultVarName;
+    end
   else if Decl.ClassType=TPasEnumValue then
     begin
     if UseEnumNumbers then
@@ -6469,6 +6530,8 @@ function TPasToJSConverter.ConvertBuiltIn_Exit(El: TPasExpr;
 // convert "exit(param);" -> "return param;"
 var
   ProcEl: TPasElement;
+  Scope: TPas2JSProcedureScope;
+  VarName: String;
 begin
   Result:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
   if (El is TParamsExpr) and (length(TParamsExpr(El).Params)>0) then
@@ -6483,8 +6546,14 @@ begin
     while (ProcEl<>nil) and not (ProcEl is TPasProcedure) do
       ProcEl:=ProcEl.Parent;
     if ProcEl is TPasFunction then
+      begin
       // in a function, "return result;"
-      TJSReturnStatement(Result).Expr:=CreatePrimitiveDotExpr(ResolverResultVar,El)
+      Scope:=ProcEl.CustomData as TPas2JSProcedureScope;
+      VarName:=Scope.ResultVarName;
+      if VarName='' then
+        VarName:=ResolverResultVar;
+      TJSReturnStatement(Result).Expr:=CreatePrimitiveDotExpr(VarName,El);
+      end
     else
       ; // in a procedure, "return;" which means "return undefined;"
     end;
@@ -7624,6 +7693,7 @@ Var
   ProcScope: TPasProcedureScope;
   ProcBody: TPasImplBlock;
   ResultEl: TPasResultElement;
+  ResultVarName: String;
 
   Procedure Add(NewEl: TJSElement; PosEl: TPasElement);
   begin
@@ -7646,14 +7716,20 @@ Var
     PasFun: TPasFunction;
     FunType: TPasFunctionType;
     SrcEl: TPasElement;
+    Scope: TPas2JSProcedureScope;
   begin
     PasFun:=El.Parent as TPasFunction;
     FunType:=PasFun.FuncType;
     ResultEl:=FunType.ResultEl;
+    Scope:=PasFun.CustomData as TPas2JSProcedureScope;
+    if Scope.ResultVarName<>'' then
+      ResultVarName:=Scope.ResultVarName
+    else
+      ResultVarName:=ResolverResultVar;
 
     // add 'var result=initvalue'
     SrcEl:=ResultEl;
-    VarSt:=CreateVarStatement(ResolverResultVar,
+    VarSt:=CreateVarStatement(ResultVarName,
       CreateValInit(ResultEl.ResultType,nil,SrcEl,aContext),ResultEl);
     Add(VarSt,ResultEl);
     Result:=SLFirst;
@@ -7664,7 +7740,7 @@ Var
     RetSt: TJSReturnStatement;
   begin
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,ResultEl));
-    RetSt.Expr:=CreatePrimitiveDotExpr(ResolverResultVar,ResultEl);
+    RetSt.Expr:=CreatePrimitiveDotExpr(ResultVarName,ResultEl);
     Add(RetSt,ResultEl);
   end;
 
@@ -7687,6 +7763,7 @@ begin
   SLFirst:=nil;
   SLLast:=nil;
   ResultEl:=nil;
+  ResultVarName:='';
 
   if HasResult then
     AddFunctionResultInit;
