@@ -3004,9 +3004,9 @@ begin
           SetBlock(declResourcestring)
         else
           begin
-          { $IFDEF VerbosePasParser}
+          {$IFDEF VerbosePasParser}
           writeln('TPasParser.ParseDeclarations ',Declarations.Parent.ClassName);
-          { $ENDIF}
+          {$ENDIF}
           ParseExc(nParserResourcestringsMustBeGlobal,SParserResourcestringsMustBeGlobal);
           end;
       tkType:

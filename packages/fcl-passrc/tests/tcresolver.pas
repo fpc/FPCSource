@@ -462,6 +462,7 @@ type
 
     // class of
     Procedure TestClassOf;
+    Procedure TestClassOfAlias;
     Procedure TestClassOfNonClassFail;
     Procedure TestClassOfIsOperatorFail;
     Procedure TestClassOfAsOperatorFail;
@@ -7382,6 +7383,31 @@ begin
   Add('  if mobile is mobiletype then ;');
   Add('  if car is mobiletype then ;');
   Add('  if mobile is cartype then ;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassOfAlias;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = TObject;',
+  '  TBirds = class of TBird;',
+  //'  TEagles = TBirds;',
+  //'var',
+  //'  o: TBird;',
+  //'  c: TEagles;',
+  'begin',
+  //'  c:=TObject;',
+  //'  c:=TBird;',
+  //'  if c=TObject then ;',
+  //'  if c=TBird then ;',
+  //'  if o is TBirds then ;',
+  //'  if o is TEagles then ;',
+  //'  if o is c then ;',
+  '']);
   ParseProgram;
 end;
 
