@@ -4129,6 +4129,7 @@ begin
             Case El.OpCode of
               eopAnd : C:=TJSLogicalAndExpression;
               eopOr : C:=TJSLogicalOrExpression;
+              eopXor : C:=TJSBitwiseXOrExpression;
             else
               DoError(20161024191234,nBinaryOpcodeNotSupported,sBinaryOpcodeNotSupported,['logical XOR'],El);
             end;

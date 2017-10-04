@@ -2075,6 +2075,7 @@ begin
   Add('begin');
   Add('  va:=vb and vc;');
   Add('  va:=vb or vc;');
+  Add('  va:=vb xor vc;');
   Add('  va:=true and vc;');
   Add('  va:=(vb and vc) or (va and vb);');
   Add('  va:=not vb;');
@@ -2088,6 +2089,7 @@ begin
     LinesToStr([ // this.$main
     '$mod.vA = $mod.vB && $mod.vC;',
     '$mod.vA = $mod.vB || $mod.vC;',
+    '$mod.vA = $mod.vB ^ $mod.vC;',
     '$mod.vA = true && $mod.vC;',
     '$mod.vA = ($mod.vB && $mod.vC) || ($mod.vA && $mod.vB);',
     '$mod.vA = !$mod.vB;'
