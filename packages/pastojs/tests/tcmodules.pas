@@ -530,6 +530,12 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
     Procedure TestRTTI_TypeInfo_FunctionClassType;
 
+    // Resourcestring
+    Procedure TestResourcestringProgram;
+    Procedure TestResourcestringUnit;
+    Procedure TestResourcestringImplementation;
+    // ToDo: in unit interface and implementation
+
     // Attributes
     Procedure TestAtributes_Ignore;
   end;
@@ -1130,7 +1136,8 @@ begin
       +'$mod.'+InitName+' = function () {'+LineEnding
       +InitStatements
       +'};'+LineEnding;
-  //writeln('TTestModule.CheckSource InitStatements="',InitStatements,'"');
+  //writeln('TCustomTestModule.CheckSource ExpectedIntf="',ExpectedSrc,'"');
+  //writeln('TTestModule.CheckSource InitStatements="',Trim(InitStatements),'"');
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 
   if (JSImplementationSrc<>nil) then
@@ -14875,6 +14882,112 @@ begin
     '$mod.t = $mod.TObject.ClassType().$rtti;',
     '$mod.t = $mod.Obj.$class.ClassType().$rtti;',
     '$mod.t = $mod.Obj.MyClass().$rtti;',
+    '']));
+end;
+
+procedure TTestModule.TestResourcestringProgram;
+begin
+  StartProgram(false);
+  Add([
+  'const Bar = ''bar'';',
+  'resourcestring',
+  '  Red = ''red'';',
+  '  Foobar = ''fOo''+bar;',
+  'var s: string;',
+  '  c: char;',
+  'begin',
+  '  s:=red;',
+  '  s:=test1.red;',
+  '  c:=red[1];',
+  '  c:=test1.red[2];',
+  '  if red=foobar then ;',
+  '  if red[3]=red[4] then ;']);
+  ConvertProgram;
+  CheckSource('TestResourcestringProgram',
+    LinesToStr([ // statements
+    'this.Bar = "bar";',
+    'this.s = "";',
+    'this.c = "";',
+    '$mod.$resourcestrings = {',
+    '  Red: {',
+    '      org: "red"',
+    '    },',
+    '  Foobar: {',
+    '      org: "fOobar"',
+    '    }',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.s = rtl.getResStr(pas.program, "Red");',
+    '$mod.s = rtl.getResStr(pas.program, "Red");',
+    '$mod.c = rtl.getResStr(pas.program, "Red").charAt(0);',
+    '$mod.c = rtl.getResStr(pas.program, "Red").charAt(1);',
+    'if (rtl.getResStr(pas.program, "Red") === rtl.getResStr(pas.program, "Foobar")) ;',
+    'if (rtl.getResStr(pas.program, "Red").charAt(2) === rtl.getResStr(pas.program, "Red").charAt(3)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestResourcestringUnit;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'const Red = ''rEd'';',
+  'resourcestring',
+  '  Blue = ''blue'';',
+  '  NotRed = ''not''+Red;',
+  'var s: string;',
+  'implementation',
+  'resourcestring',
+  '  ImplGreen = ''green'';',
+  'initialization',
+  '  s:=blue+ImplGreen;',
+  '  s:=test1.blue+test1.implgreen;',
+  '  s:=blue[1]+implgreen[2];']);
+  ConvertUnit;
+  CheckSource('TestResourcestringUnit',
+    LinesToStr([ // statements
+    'this.Red = "rEd";',
+    'this.s = "";',
+    '$mod.$resourcestrings = {',
+    '  Blue: {',
+    '      org: "blue"',
+    '    },',
+    '  NotRed: {',
+    '      org: "notrEd"',
+    '    },',
+    '  ImplGreen: {',
+    '      org: "green"',
+    '    }',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.s = rtl.getResStr(pas.Test1, "Blue") + rtl.getResStr(pas.Test1, "ImplGreen");',
+    '$mod.s = rtl.getResStr(pas.Test1, "Blue") + rtl.getResStr(pas.Test1, "ImplGreen");',
+    '$mod.s = rtl.getResStr(pas.Test1, "Blue").charAt(0) + rtl.getResStr(pas.Test1, "ImplGreen").charAt(1);',
+    '']));
+end;
+
+procedure TTestModule.TestResourcestringImplementation;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'implementation',
+  'resourcestring',
+  '  ImplRed = ''red'';']);
+  ConvertUnit;
+  CheckSource('TestResourcestringImplementation',
+    LinesToStr([ // intf statements
+    'var $impl = $mod.$impl;']),
+    LinesToStr([ // $mod.$init
+    '']),
+    LinesToStr([ // impl statements
+    '$mod.$resourcestrings = {',
+    '  ImplRed: {',
+    '      org: "red"',
+    '    }',
+    '};',
     '']));
 end;
 

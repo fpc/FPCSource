@@ -392,6 +392,7 @@ type
     pbifnGetChar,
     pbifnGetNumber,
     pbifnGetObject,
+    pbifnGetResourcestring,
     pbifnIs,
     pbifnIsExt,
     pbifnFloatToStr,
@@ -441,6 +442,8 @@ type
     pbivnModule,
     pbivnModules,
     pbivnPtrClass,
+    pbivnResourceStrings,
+    pbivnResourceStringOrg,
     pbivnRTL,
     pbivnRTTI, // $rtti
     pbivnRTTIArray_Dims,
@@ -495,6 +498,7 @@ const
     'getChar', // rtl.getChar
     'getNumber', // rtl.getNumber
     'getObject', // rtl.getObject
+    'getResStr', // rtl.getResStr
     'is', // rtl.is
     'isExt', // rtl.isExt
     'floatToStr', // rtl.floatToStr
@@ -544,6 +548,8 @@ const
     '$mod',
     'pas',
     '$class',
+    '$resourcestrings',
+    'org',
     'rtl',
     '$rtti',
     'dims',
@@ -986,6 +992,8 @@ type
   { TRootContext }
 
   TRootContext = Class(TConvertContext)
+  public
+    ResourceStrings: TJSVarDeclaration;
   end;
 
   { TFCLocalVar }
@@ -3698,7 +3706,7 @@ begin
         UsesClause:=El.ImplementationSection.UsesClause;
         if length(UsesClause)>0 then
           begin
-          ArgArray.Elements.AddElement.Expr:=CreateUsesList(El.ImplementationSection,AContext);
+          ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
           HasImplUsesClause:=true;
           end;
         end;
@@ -3721,8 +3729,8 @@ begin
       begin
       // add param
       if not HasImplUsesClause then
-        ArgArray.Elements.AddElement.Expr:=CreateLiteralNull(El);
-      ArgArray.Elements.AddElement.Expr:=ImplFunc;
+        ArgArray.AddElement(CreateLiteralNull(El));
+      ArgArray.AddElement(ImplFunc);
       end;
     end;
 end;
@@ -4727,6 +4735,16 @@ begin
           RaiseNotSupported(El,AContext,20170214120739);
       end;
       end;
+    end
+  else if Decl.ClassType=TPasResString then
+    begin
+    // read resourcestring -> rtl.getResStr($mod,"name")
+    Call:=CreateCallExpression(El);
+    Result:=Call;
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnGetResourcestring]]);
+    Call.AddArg(CreatePrimitiveDotExpr(TransformModuleName(Decl.GetModule,true,AContext),El));
+    Call.AddArg(CreateLiteralString(El,TransformVariableName(Decl,AContext)));
+    exit;
     end;
 
   //writeln('TPasToJSConverter.ConvertPrimitiveExpression pekIdent TResolvedReference ',GetObjName(Ref.Declaration),' ',GetObjName(Ref.Declaration.CustomData));
@@ -7717,6 +7735,9 @@ Var
   ProcBody: TPasImplBlock;
   ResultEl: TPasResultElement;
   ResultVarName: String;
+  C: TClass;
+  ResStrVarEl: TJSVarDeclaration;
+  ResStrVarElAdd: boolean;
 
   Procedure Add(NewEl: TJSElement; PosEl: TPasElement);
   begin
@@ -7767,6 +7788,49 @@ Var
     Add(RetSt,ResultEl);
   end;
 
+  procedure AddResourceString(ResStr: TPasResString);
+  // $mod.$resourcestrings = {
+  //  name1 : { org: "value" },
+  //  name2 : { org: "value" },
+  //  ...
+  //  }
+  var
+    Value: TResEvalValue;
+    ObjLit: TJSObjectLiteral;
+    Lit: TJSObjectLiteralElement;
+    RootContext: TRootContext;
+  begin
+    // first convert expression, it might fail
+    Value:=AContext.Resolver.Eval(ResStr.Expr,[refConst]);
+    //writeln('AddResourceString ',GetObjName(ResStr),' Value=',Value.AsDebugString);
+    // create table
+    if (ResStrVarEl=nil) and (El.ClassType=TImplementationSection) then
+      begin
+      RootContext:=TRootContext(AContext.GetContextOfType(TRootContext));
+      ResStrVarEl:=RootContext.ResourceStrings;
+      end;
+    if ResStrVarEl=nil then
+      begin
+      ResStrVarEl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
+      ResStrVarEl.Name:=FBuiltInNames[pbivnModule]+'.'+FBuiltInNames[pbivnResourceStrings];
+      ResStrVarElAdd:=true;
+      ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+      ResStrVarEl.Init:=ObjLit;
+      RootContext:=TRootContext(AContext.GetContextOfType(TRootContext));
+      RootContext.ResourceStrings:=ResStrVarEl;
+      end;
+    // add element:  name : { ... }
+    Lit:=TJSObjectLiteral(ResStrVarEl.Init).Elements.AddElement;
+    Lit.Name:=TJSString(TransformVariableName(ResStr,AContext));
+    ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,ResStr));
+    Lit.Expr:=ObjLit;
+    // add sub element: org: value
+    Lit:=ObjLit.Elements.AddElement;
+    Lit.Name:=TJSString(FBuiltInNames[pbivnResourceStringOrg]);
+    Lit.Expr:=ConvertConstValue(Value,AContext,ResStr);
+    ReleaseEvalValue(Value);
+  end;
+
 begin
   Result:=nil;
   {
@@ -7787,54 +7851,75 @@ begin
   SLLast:=nil;
   ResultEl:=nil;
   ResultVarName:='';
+  ResStrVarEl:=nil;
+  ResStrVarElAdd:=false;
+  try
 
-  if HasResult then
-    AddFunctionResultInit;
+    if HasResult then
+      AddFunctionResultInit;
 
-  For I:=0 to El.Declarations.Count-1 do
-    begin
-    P:=TPasElement(El.Declarations[i]);
-    {$IFDEF VerbosePas2JS}
-    //writeln('TPasToJSConverter.ConvertDeclarations El[',i,']=',GetObjName(P));
-    {$ENDIF}
-    if not IsElementUsed(P) then continue;
-
-    E:=Nil;
-    if P.ClassType=TPasConst then
-      E:=ConvertConst(TPasConst(P),aContext) // can be nil
-    else if P.ClassType=TPasVariable then
-      E:=CreateVarDecl(TPasVariable(P),aContext) // can be nil
-    else if P is TPasType then
-      E:=CreateTypeDecl(TPasType(P),aContext) // can be nil
-    else if P is TPasProcedure then
+    For I:=0 to El.Declarations.Count-1 do
       begin
-      PasProc:=TPasProcedure(P);
-      if PasProc.IsForward then continue; // JavaScript does not need the forward
-      ProcScope:=TPasProcedureScope(PasProc.CustomData);
-      if (ProcScope.DeclarationProc<>nil)
-          and (not ProcScope.DeclarationProc.IsForward) then
-        continue; // this proc was already converted in interface or class
-      if ProcScope.DeclarationProc<>nil then
-        PasProc:=ProcScope.DeclarationProc;
-      E:=ConvertProcedure(PasProc,aContext);
-      end
-    else
-      RaiseNotSupported(P as TPasElement,AContext,20161024191434);
-    Add(E,P);
-    end;
+      P:=TPasElement(El.Declarations[i]);
+      {$IFDEF VerbosePas2JS}
+      //writeln('TPasToJSConverter.ConvertDeclarations El[',i,']=',GetObjName(P));
+      {$ENDIF}
+      if not IsElementUsed(P) then continue;
 
-  if IsProcBody then
-    begin
-    ProcBody:=TProcedureBody(El).Body;
-    if (ProcBody.Elements.Count>0) or IsAssembler then
-      begin
-      E:=ConvertElement(ProcBody,aContext);
-      Add(E,ProcBody);
+      E:=Nil;
+      C:=P.ClassType;
+      if C=TPasConst then
+        E:=ConvertConst(TPasConst(P),aContext) // can be nil
+      else if C=TPasVariable then
+        E:=CreateVarDecl(TPasVariable(P),aContext) // can be nil
+      else if C.InheritsFrom(TPasType) then
+        E:=CreateTypeDecl(TPasType(P),aContext) // can be nil
+      else if C.InheritsFrom(TPasProcedure) then
+        begin
+        PasProc:=TPasProcedure(P);
+        if PasProc.IsForward then continue; // JavaScript does not need the forward
+        ProcScope:=TPasProcedureScope(PasProc.CustomData);
+        if (ProcScope.DeclarationProc<>nil)
+            and (not ProcScope.DeclarationProc.IsForward) then
+          continue; // this proc was already converted in interface or class
+        if ProcScope.DeclarationProc<>nil then
+          PasProc:=ProcScope.DeclarationProc;
+        E:=ConvertProcedure(PasProc,aContext);
+        end
+      else if C=TPasResString then
+        begin
+        if not (El is TPasSection) then
+          RaiseNotSupported(P,AContext,20171004185348);
+        AddResourceString(TPasResString(P));
+        continue;
+        end
+      else
+        RaiseNotSupported(P as TPasElement,AContext,20161024191434);
+      Add(E,P);
       end;
-    end;
 
-  if HasResult then
-    AddFunctionResultReturn;
+    if IsProcBody then
+      begin
+      ProcBody:=TProcedureBody(El).Body;
+      if (ProcBody.Elements.Count>0) or IsAssembler then
+        begin
+        E:=ConvertElement(ProcBody,aContext);
+        Add(E,ProcBody);
+        end;
+      end;
+
+    if HasResult then
+      AddFunctionResultReturn;
+
+    if ResStrVarEl<>nil then
+      begin
+      if ResStrVarElAdd then
+        Add(ResStrVarEl,El);
+      ResStrVarEl:=nil;
+      end;
+  finally
+    ResStrVarEl.Free;
+  end;
 end;
 
 function TPasToJSConverter.ConvertClassType(El: TPasClassType;
@@ -11364,6 +11449,7 @@ var
   ProcScope: TPasProcedureScope;
   ShortName: String;
   SelfContext: TFunctionContext;
+  ElClass: TClass;
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
@@ -11371,12 +11457,13 @@ begin
   //AContext.WriteStack;
   {$ENDIF}
 
+  ElClass:=El.ClassType;
   if AContext is TDotContext then
     begin
     Dot:=TDotContext(AContext);
     if Dot.Resolver<>nil then
       begin
-      if El is TPasVariable then
+      if ElClass.InheritsFrom(TPasVariable) then
         begin
         //writeln('TPasToJSConverter.CreateReferencePath Left=',GetResolverResultDbg(Dot.LeftResolved),' Right=class var ',GetObjName(El));
         if (ClassVarModifiersType*TPasVariable(El).VarModifiers<>[])
@@ -11405,7 +11492,7 @@ begin
     begin
     // El is local var -> does not need path
     end
-  else if (El is TPasProcedure) and (TPasProcedure(El).LibrarySymbolName<>nil)
+  else if ElClass.InheritsFrom(TPasProcedure) and (TPasProcedure(El).LibrarySymbolName<>nil)
       and not (El.Parent is TPasClassType) then
     begin
     // an external function -> use the literal
@@ -11415,7 +11502,7 @@ begin
       Result:='';
     exit;
     end
-  else if (El is TPasVariable) and (TPasVariable(El).ExportName<>nil)
+  else if ElClass.InheritsFrom(TPasVariable) and (TPasVariable(El).ExportName<>nil)
       and not (El.Parent is TPasClassType) then
     begin
     // an external var -> use the literal
@@ -11425,7 +11512,7 @@ begin
       Result:='';
     exit;
     end
-  else if (El.ClassType=TPasClassType) and TPasClassType(El).IsExternal then
+  else if (ElClass=TPasClassType) and TPasClassType(El).IsExternal then
     begin
     // an external var -> use the literal
     Result:=TPasClassType(El).ExternalName;
