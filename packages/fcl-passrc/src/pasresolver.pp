@@ -1361,6 +1361,7 @@ type
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
     function GetLoop(El: TPasElement): TPasImplElement;
     function ResolveAliasType(aType: TPasType): TPasType;
+    function ResolveAliasTypeEl(El: TPasElement): TPasType; inline;
     function ExprIsAddrTarget(El: TPasExpr): boolean;
     function IsNameExpr(El: TPasExpr): boolean; inline; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
     function GetNameExprValue(El: TPasExpr): string; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
@@ -11668,7 +11669,6 @@ function TPasResolver.CheckEqualResCompatibility(const LHS,
   RErrorEl: TPasElement): integer;
 var
   TypeEl: TPasType;
-  ok: Boolean;
 begin
   Result:=cIncompatible;
   if RErrorEl=nil then RErrorEl:=LErrorEl;
@@ -11678,35 +11678,31 @@ begin
   {$ENDIF}
   if not (rrfReadable in LHS.Flags) then
     begin
-    ok:=false;
     if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasClassType)
-        and (LHS.IdentEl=LHS.TypeEl) then
+        and (ResolveAliasTypeEl(LHS.IdentEl)=LHS.TypeEl) then
       begin
       if RHS.BaseType=btNil then
-        ok:=true
+        exit(cExact)
       else if (RHS.BaseType=btContext) and (RHS.TypeEl.ClassType=TPasClassOfType)
           and (rrfReadable in RHS.Flags) then
         // for example  if TImage=ImageClass then
-        ok:=true;
+        exit(cExact);
       end;
-    if not ok then
-      RaiseMsg(20170216152438,nNotReadable,sNotReadable,[],LErrorEl);
+    RaiseMsg(20170216152438,nNotReadable,sNotReadable,[],LErrorEl);
     end;
   if not (rrfReadable in RHS.Flags) then
     begin
-    ok:=false;
     if (RHS.BaseType=btContext) and (RHS.TypeEl.ClassType=TPasClassType)
-        and (RHS.IdentEl=RHS.TypeEl) then
+        and (ResolveAliasTypeEl(RHS.IdentEl)=RHS.TypeEl) then
       begin
       if LHS.BaseType=btNil then
-        ok:=true
+        exit(cExact)
       else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasClassOfType)
           and (rrfReadable in LHS.Flags) then
         // for example  if ImageClass=TImage then
-        ok:=true;
+        exit(cExact);
       end;
-    if not ok then
-      RaiseMsg(20170216152440,nNotReadable,sNotReadable,[],RErrorEl);
+    RaiseMsg(20170216152440,nNotReadable,sNotReadable,[],RErrorEl);
     end;
 
   if (LHS.BaseType=btCustom) or (RHS.BaseType=btCustom) then
@@ -12228,7 +12224,9 @@ begin
         RaiseMsg(20170216152500,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
           ['class of '+TPasClassOfType(RTypeEl).DestType.FullName,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
       end
-    else if (RHS.IdentEl is TPasClassType) then
+    else if (RHS.IdentEl is TPasClassType)
+        or ((RHS.IdentEl is TPasAliasType)
+          and (ResolveAliasType(TPasAliasType(RHS.IdentEl)).ClassType=TPasClassType)) then
       begin
       // e.g. ImageClass:=TFPMemoryImage;
       Result:=CheckClassIsClass(RTypeEl,TPasClassOfType(LTypeEl).DestType,ErrorEl);
@@ -13606,6 +13604,14 @@ begin
     else
       exit;
     end;
+end;
+
+function TPasResolver.ResolveAliasTypeEl(El: TPasElement): TPasType;
+begin
+  if (El is TPasType) then
+    Result:=ResolveAliasType(TPasType(El))
+  else
+    Result:=nil;
 end;
 
 function TPasResolver.ExprIsAddrTarget(El: TPasExpr): boolean;
