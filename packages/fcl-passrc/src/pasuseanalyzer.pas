@@ -205,6 +205,7 @@ type
     procedure UseClassType(El: TPasClassType; Mode: TPAUseMode); virtual;
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
+    procedure UseResourcestring(El: TPasResString); virtual;
     procedure UseArgument(El: TPasArgument; Access: TResolvedRefAccess); virtual;
     procedure UseResultElement(El: TPasResultElement; Access: TResolvedRefAccess); virtual;
     // create hints for a unit, program or library
@@ -607,6 +608,8 @@ begin
     UseArgument(TPasArgument(El),Access)
   else if C=TPasResultElement then
     UseResultElement(TPasResultElement(El),Access)
+  else if C=TPasResString then
+    UseResourcestring(TPasResString(El))
   else if C.InheritsFrom(TPasProcedure) then
     UseProcedure(TPasProcedure(El))
   else if C.InheritsFrom(TPasExpr) then
@@ -753,6 +756,7 @@ var
   Decl: TPasElement;
   OnlyExports: Boolean;
   UsesClause: TPasUsesClause;
+  C: TClass;
 begin
   // Section is TProgramSection, TLibrarySection, TInterfaceSection, TImplementationSection
   if Mode=paumElement then
@@ -798,20 +802,23 @@ begin
     {$IFDEF VerbosePasAnalyzer}
     writeln('TPasAnalyzer.UseSection ',Section.ClassName,' Decl=',GetElModName(Decl),' Mode=',Mode);
     {$ENDIF}
-    if Decl is TPasProcedure then
+    C:=Decl.ClassType;
+    if C.InheritsFrom(TPasProcedure) then
       begin
       if OnlyExports and ([pmExport,pmPublic]*TPasProcedure(Decl).Modifiers=[]) then
         continue;
       UseProcedure(TPasProcedure(Decl))
       end
-    else if Decl is TPasType then
+    else if C.InheritsFrom(TPasType) then
       UseType(TPasType(Decl),Mode)
-    else if Decl is TPasVariable then
+    else if C.InheritsFrom(TPasVariable) then
       begin
       if OnlyExports and ([vmExport,vmPublic]*TPasVariable(Decl).VarModifiers=[]) then
         continue;
       UseVariable(TPasVariable(Decl),rraNone,true);
       end
+    else if C=TPasResString then
+      UseResourcestring(TPasResString(Decl))
     else
       RaiseNotSupported(20170306165213,Decl);
     end;
@@ -1489,6 +1496,12 @@ begin
     if UseWrite then
       UseElement(Resolver.GetPasPropertySetter(Prop),rraAssign,false);
     end;
+end;
+
+procedure TPasAnalyzer.UseResourcestring(El: TPasResString);
+begin
+  if MarkElementAsUsed(El) then
+    UseExpr(El.Expr);
 end;
 
 procedure TPasAnalyzer.UseArgument(El: TPasArgument; Access: TResolvedRefAccess

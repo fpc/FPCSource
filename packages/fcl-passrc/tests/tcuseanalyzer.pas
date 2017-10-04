@@ -545,6 +545,7 @@ end;
 procedure TTestUseAnalyzer.TestM_Const;
 begin
   StartProgram(false);
+  Add('resourcestring {#rs_used}rs = ''txt'';');
   Add('procedure {#DoIt_used}DoIt;');
   Add('var');
   Add('  {#a_used}a: longint;');
@@ -555,7 +556,7 @@ begin
   Add('  a:=+1;');
   Add('  b:=true;');
   Add('  c:=nil;');
-  Add('  d:=''foo'';');
+  Add('  d:=''foo''+rs;');
   Add('end;');
   Add('begin');
   Add('  DoIt;');

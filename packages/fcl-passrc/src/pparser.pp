@@ -78,6 +78,7 @@ const
   nParserExpectedExternalClassName = 2051;
   nParserNoConstRangeAllowed = 2052;
   nErrRecordVariablesNotAllowed = 2053;
+  nParserResourcestringsMustBeGlobal = 2054;
 
 // resourcestring patterns of messages
 resourcestring
@@ -134,6 +135,7 @@ resourcestring
   SParserPropertyArgumentsCanNotHaveDefaultValues = 'Property arguments can not have default values';
   SParserExpectedExternalClassName = 'Expected external class name';
   SParserNoConstRangeAllowed = 'Const ranges are not allowed';
+  SParserResourcestringsMustBeGlobal = 'Resourcestrings can be only static or global';
 
 type
   TPasScopeType = (
@@ -2998,7 +3000,15 @@ begin
       tkexports:
         SetBlock(declExports);
       tkResourcestring:
-        SetBlock(declResourcestring);
+        if Declarations is TPasSection then
+          SetBlock(declResourcestring)
+        else
+          begin
+          { $IFDEF VerbosePasParser}
+          writeln('TPasParser.ParseDeclarations ',Declarations.Parent.ClassName);
+          { $ENDIF}
+          ParseExc(nParserResourcestringsMustBeGlobal,SParserResourcestringsMustBeGlobal);
+          end;
       tkType:
         SetBlock(declType);
       tkVar:

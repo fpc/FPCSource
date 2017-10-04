@@ -619,6 +619,13 @@ type
     Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
     Procedure TestPointer_OverloadSignature;
 
+    // resourcestrings
+    Procedure TestResourcestring;
+    Procedure TestResourcestringAssignFail;
+    Procedure TestResourcestringLocalFail;
+    Procedure TestResourcestringInConstFail;
+    Procedure TestResourcestringPassVarArgFail;
+
     // hints
     Procedure TestHint_ElementHints;
     Procedure TestHint_ElementHintsMsg;
@@ -10395,6 +10402,70 @@ begin
   Add('  {@tobject}DoIt(b);');
   Add('  {@tclass}DoIt(bc);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestring;
+begin
+  StartProgram(false);
+  Add([
+  'const Foo = ''foo'';',
+  'Resourcestring',
+  '  Bar = foo;',
+  '  Red = ''Red'';',
+  '  r = ''Rd''+foo;',
+  'procedure DoIt(s: string; const h: string); begin end;',
+  'begin',
+  '  if bar=red then ;',
+  '  if bar=''a'' then ;',
+  '  doit(r,r);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestResourcestringAssignFail;
+begin
+  StartProgram(false);
+  Add([
+  'Resourcestring Foo = ''bar'';',
+  'begin',
+  '  Foo:=''a'';',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestResourcestringLocalFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'Resourcestring Foo = ''bar'';',
+  'begin end;',
+  'begin;',
+  '']);
+  CheckParserException(SParserResourcestringsMustBeGlobal,nParserResourcestringsMustBeGlobal);
+end;
+
+procedure TTestResolver.TestResourcestringInConstFail;
+begin
+  StartProgram(false);
+  Add([
+  'Resourcestring Foo = ''foo'';',
+  'const Bar = ''Prefix''+Foo;',
+  'begin',
+  '']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
+procedure TTestResolver.TestResourcestringPassVarArgFail;
+begin
+  StartProgram(false);
+  Add([
+  'Resourcestring Bar = ''foo'';',
+  'procedure DoIt(var s: string); begin end;',
+  'begin',
+  '  doit(bar);',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
 
 procedure TTestResolver.TestHint_ElementHints;

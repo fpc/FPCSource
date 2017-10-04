@@ -982,6 +982,7 @@ type
     procedure AddRecordType(El: TPasRecordType); virtual;
     procedure AddClassType(El: TPasClassType); virtual;
     procedure AddVariable(El: TPasVariable); virtual;
+    procedure AddResourceString(El: TPasResString); virtual;
     procedure AddEnumType(El: TPasEnumType); virtual;
     procedure AddEnumValue(El: TPasEnumValue); virtual;
     procedure AddProperty(El: TPasProperty); virtual;
@@ -1035,6 +1036,7 @@ type
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
     procedure FinishConstDef(El: TPasConst); virtual;
+    procedure FinishResourcestring(El: TPasResString); virtual;
     procedure FinishProcedure(aProc: TPasProcedure); virtual;
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
     procedure FinishMethodDeclHeader(Proc: TPasProcedure); virtual;
@@ -3482,6 +3484,16 @@ begin
     end
   else
     Eval(El.Expr,[refConst])
+end;
+
+procedure TPasResolver.FinishResourcestring(El: TPasResString);
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  ResolveExpr(El.Expr,rraRead);
+  ComputeElement(El.Expr,ResolvedEl,[rcConstant]);
+  if not (ResolvedEl.BaseType in btAllStringAndChars) then
+    RaiseXExpectedButYFound(20171004135753,'string',GetTypeDescription(ResolvedEl),El.Expr);
 end;
 
 procedure TPasResolver.FinishProcedure(aProc: TPasProcedure);
@@ -6156,6 +6168,21 @@ begin
   {$ENDIF}
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160929205730,El);
+  AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
+end;
+
+procedure TPasResolver.AddResourceString(El: TPasResString);
+var
+  C: TClass;
+begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.AddResourceString ',GetObjName(El));
+  {$ENDIF}
+  if not (TopScope is TPasIdentifierScope) then
+    RaiseInvalidScopeForElement(20171004092114,El);
+  C:=El.Parent.ClassType;
+  if not C.InheritsFrom(TPasSection) then
+    RaiseNotYetImplemented(20171004092518,El);
   AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
 end;
 
@@ -9383,6 +9410,8 @@ begin
   if (AClass=TPasVariable)
       or (AClass=TPasConst) then
     AddVariable(TPasVariable(El))
+  else if AClass=TPasResString then
+    AddResourceString(TPasResString(El))
   else if (AClass=TPasProperty) then
     AddProperty(TPasProperty(El))
   else if AClass=TPasArgument then
@@ -9435,7 +9464,7 @@ begin
   else if AClass.InheritsFrom(TPasExpr) then
     // resolved when finished
   else if AClass.InheritsFrom(TPasImplBlock) then
-    // resolved finished
+    // resolved when finished
   else
     RaiseNotYetImplemented(20160922163544,El);
 end;
@@ -13447,6 +13476,8 @@ begin
     if BaseTypes[btShortString]=nil then
       RaiseMsg(20170419203146,nIllegalQualifier,sIllegalQualifier,['['],El);
     end
+  else if ElClass=TPasResString then
+    SetResolverIdentifier(ResolvedEl,btString,El,nil,[rrfReadable])
   else
     RaiseNotYetImplemented(20160922163705,El);
 end;
