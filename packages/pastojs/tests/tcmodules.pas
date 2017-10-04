@@ -7429,7 +7429,8 @@ begin
   '    procedure SetStrIntBool(A: String; I: longint; b: boolean); virtual; abstract;',
   '    property B1: boolean index 1 read GetIntBool write SetIntBool;',
   '    property B2: boolean index TEnum.blue read GetEnumBool write SetEnumBool;',
-  '    property I1[A: String]: boolean index 2 read GetStrIntBool write SetStrIntBool;',
+  '    property B3: boolean index ord(red) read GetIntBool write SetIntBool;',
+  '    property I1[A: String]: boolean index ord(blue) read GetStrIntBool write SetStrIntBool;',
   '  end;',
   'procedure DoIt(b: boolean); begin end;',
   'var',
@@ -7437,6 +7438,7 @@ begin
   'begin',
   '  o.B1:=o.B1;',
   '  o.B2:=o.B2;',
+  '  o.B3:=o.B3;',
   '  o.I1[''a'']:=o.I1[''b''];',
   '  doit(o.b1);',
   '  doit(o.b2);',
@@ -7463,11 +7465,12 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.o.SetIntBool(1, $mod.o.GetIntBool(1));',
-    '$mod.o.SetEnumBool(TEnum.blue, $mod.o.GetEnumBool(TEnum.blue));',
-    '$mod.o.SetStrIntBool("a", 2, $mod.o.GetStrIntBool("b", 2));',
+    '$mod.o.SetEnumBool($mod.TEnum.blue, $mod.o.GetEnumBool($mod.TEnum.blue));',
+    '$mod.o.SetIntBool(0, $mod.o.GetIntBool(0));',
+    '$mod.o.SetStrIntBool("a", 1, $mod.o.GetStrIntBool("b", 1));',
     '$mod.DoIt($mod.o.GetIntBool(1));',
-    '$mod.DoIt($mod.o.GetEnumBool(TEnum.blue));',
-    '$mod.DoIt($mod.o.GetStrIntBool("c", 2));',
+    '$mod.DoIt($mod.o.GetEnumBool($mod.TEnum.blue));',
+    '$mod.DoIt($mod.o.GetStrIntBool("c", 1));',
     '']));
 end;
 

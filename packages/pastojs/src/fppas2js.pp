@@ -4560,6 +4560,7 @@ var
   IndexExpr: TPasExpr;
   Func: TPasFunction;
   FuncScope: TPas2JSProcedureScope;
+  Value: TResEvalValue;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -4633,7 +4634,14 @@ begin
           Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
           IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
           if IndexExpr<>nil then
-            Call.AddArg(ConvertElement(IndexExpr,AContext));
+            begin
+            Value:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+            try
+              Call.AddArg(ConvertConstValue(Value,AssignContext,El));
+            finally
+              ReleaseEvalValue(Value);
+            end;
+            end;
           Call.AddArg(AssignContext.RightSide);
           AssignContext.RightSide:=nil;
           Result:=Call;
@@ -4649,12 +4657,15 @@ begin
           if IndexExpr<>nil then
             begin
             // call function with index specifier
+            Value:=nil;
             Call:=CreateCallExpression(El);
             try
               Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
-              Call.AddArg(ConvertElement(IndexExpr,AContext));
+              Value:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+              Call.AddArg(ConvertConstValue(Value,AContext.GetFunctionContext,El));
               Result:=Call;
             finally
+              ReleaseEvalValue(Value);
               if Result=nil then
                 Call.Free;
             end;
@@ -5397,6 +5408,7 @@ var
     AssignContext: TAssignContext;
     OldAccess: TCtxAccess;
     IndexExpr: TPasExpr;
+    Value: TResEvalValue;
   begin
     Result:=nil;
     AssignContext:=nil;
@@ -5454,7 +5466,14 @@ var
       // add index specifier
       IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
       if IndexExpr<>nil then
-        Elements.AddElement.Expr:=ConvertElement(IndexExpr,ArgContext);
+        begin
+        Value:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+        try
+          Elements.AddElement.Expr:=ConvertConstValue(Value,ArgContext,El);
+        finally
+          ReleaseEvalValue(Value);
+        end;
+        end;
       // finally add as last parameter the value
       if AssignContext<>nil then
         begin
@@ -9227,6 +9246,8 @@ begin
     Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
   revkInt:
     Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+  revkUInt:
+    Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
   revkString:
     Result:=CreateLiteralString(El,TResEvalString(Value).S);
   revkUnicodeString:
@@ -11507,7 +11528,7 @@ var
   Src: TPasElement;
 begin
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.CreateReferencePathExpr El="',GetObjName(El),'" El.Parent=',GetObjName(El.Parent));
+  writeln('TPasToJSConverter.CreateReferencePathExpr El="',GetObjName(El),'" El.Parent=',GetObjName(El.Parent),' ',GetObjName(AContext));
   {$ENDIF}
   Name:=CreateReferencePath(El,AContext,rpkPathAndName,Full,Ref);
   if Ref<>nil then
