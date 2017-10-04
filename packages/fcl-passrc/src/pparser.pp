@@ -144,6 +144,7 @@ type
     stTypeSection,
     stTypeDef, // e.g. a TPasType
     stConstDef, // e.g. a TPasConst
+    stResourceString, // e.g. TPasResString
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
     stExceptOnExpr,
@@ -3053,6 +3054,7 @@ begin
                 ResStrEl := ParseResourcestringDecl(Declarations);
                 Declarations.Declarations.Add(ResStrEl);
                 Declarations.ResStrings.Add(ResStrEl);
+                Engine.FinishScope(stResourceString,ResStrEl);
               end;
             declType:
               begin
