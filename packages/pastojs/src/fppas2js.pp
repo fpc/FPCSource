@@ -1181,7 +1181,7 @@ type
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
     Function HasTypeInfo(El: TPasType; AContext: TConvertContext): boolean; virtual;
-    Function IsClassRTTICreatedBefore(aClass: TPasClassType; Before: TPasElement): boolean;
+    Function IsClassRTTICreatedBefore(aClass: TPasClassType; Before: TPasElement; AConText: TConvertContext): boolean;
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
     Function CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
       AContext : TConvertContext): TJSCallExpression; virtual;
@@ -4204,6 +4204,7 @@ var
   DotExpr: TJSDotMemberExpression;
   NotEl: TJSUnaryNotExpression;
   InOp: TJSRelationalExpressionIn;
+  TypeEl: TPasType;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
@@ -4259,7 +4260,8 @@ begin
       begin
       // "A is class-of-type" -> "A is class"
       FreeAndNil(B);
-      B:=CreateReferencePathExpr(TPasClassOfType(RightResolved.IdentEl).DestType,AContext);
+      TypeEl:=AContext.Resolver.ResolveAliasType(TPasClassOfType(RightResolved.IdentEl).DestType);
+      B:=CreateReferencePathExpr(TypeEl,AContext);
       end;
     if (RightResolved.TypeEl is TPasClassType) and TPasClassType(RightResolved.TypeEl).IsExternal then
       begin
@@ -5560,7 +5562,7 @@ var
 
 Var
   ResolvedEl: TPasResolverResult;
-  TypeEl: TPasType;
+  TypeEl, DestType: TPasType;
   ClassScope: TPas2JSClassScope;
   B: TJSBracketMemberExpression;
   OldAccess: TCtxAccess;
@@ -5610,7 +5612,7 @@ begin
     ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
   else if ResolvedEl.BaseType=btContext then
     begin
-    TypeEl:=ResolvedEl.TypeEl;
+    TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedEl.TypeEl);
     if TypeEl.ClassType=TPasClassType then
       begin
       aClass:=TPasClassType(TypeEl);
@@ -5624,7 +5626,8 @@ begin
     else if TypeEl.ClassType=TPasClassOfType then
       begin
       // aClass[]
-      ClassScope:=TPasClassOfType(TypeEl).DestType.CustomData as TPas2JSClassScope;
+      DestType:=AContext.Resolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
+      ClassScope:=DestType.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty=nil then
         RaiseInconsistency(20170206180503);
       ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty);
@@ -8205,7 +8208,7 @@ begin
   Ref:=TResolvedReference(El.CustomData);
   aClass:=Ref.Declaration as TPasClassType;
   if not HasTypeInfo(aClass,AContext) then exit;
-  if IsClassRTTICreatedBefore(aClass,El) then exit;
+  if IsClassRTTICreatedBefore(aClass,El,AContext) then exit;
   // module.$rtti.$Class("classname");
   Result:=CreateRTTINewType(aClass,FBuiltInNames[pbifnRTTINewClass],true,AContext,ObjLit);
   if ObjLit<>nil then
@@ -8269,6 +8272,7 @@ var
   Call: TJSCallExpression;
   ok: Boolean;
   List: TJSStatementList;
+  DestType: TPasType;
 begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
@@ -8279,15 +8283,16 @@ begin
   try
     Prop:=ObjLit.Elements.AddElement;
     Prop.Name:=TJSString(FBuiltInNames[pbivnRTTIClassRef_InstanceType]);
-    Prop.Expr:=CreateTypeInfoRef(El.DestType,AContext,El);
+    DestType:=AContext.Resolver.ResolveAliasType(El.DestType);
+    Prop.Expr:=CreateTypeInfoRef(DestType,AContext,El);
 
-    if not IsClassRTTICreatedBefore(El.DestType as TPasClassType,El) then
+    if not IsClassRTTICreatedBefore(DestType as TPasClassType,El,AContext) then
       begin
       // class rtti must be forward registered
       if not (AContext is TFunctionContext) then
         RaiseNotSupported(El,AContext,20170412102916);
       // prepend   module.$rtti.$Class("classname");
-      Call:=CreateRTTINewType(El.DestType,FBuiltInNames[pbifnRTTINewClass],true,AContext,ObjLit);
+      Call:=CreateRTTINewType(DestType,FBuiltInNames[pbifnRTTINewClass],true,AContext,ObjLit);
       if ObjLit<>nil then
         RaiseInconsistency(20170412102654);
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
@@ -10659,7 +10664,7 @@ begin
 end;
 
 function TPasToJSConverter.IsClassRTTICreatedBefore(aClass: TPasClassType;
-  Before: TPasElement): boolean;
+  Before: TPasElement; AConText: TConvertContext): boolean;
 var
   Decls: TPasDeclarations;
   i: Integer;
@@ -10687,7 +10692,8 @@ begin
       end
     else if C=TPasClassOfType then
       begin
-      if TPasClassOfType(T).DestType=aClass then exit(true);
+      if AConText.Resolver.ResolveAliasType(TPasClassOfType(T).DestType)=aClass then
+        exit(true);
       end;
     end;
 end;
