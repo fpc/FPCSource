@@ -6473,6 +6473,7 @@ begin
   Add('    constructor Create;');
   Add('    destructor Destroy;');
   Add('  end;');
+  Add('  TBird = TObject;');
   Add('constructor tobject.create;');
   Add('begin end;');
   Add('destructor tobject.destroy;');
@@ -6480,6 +6481,7 @@ begin
   Add('var Obj: tobject;');
   Add('begin');
   Add('  obj:=tobject.create;');
+  Add('  obj:=tbird.create;');
   Add('  obj.destroy;');
   ConvertProgram;
   CheckSource('TestClass_TObjectDefaultConstructor',
@@ -6497,6 +6499,7 @@ begin
     'this.Obj = null;'
     ]),
     LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj.$destroy("Destroy");',
     '']));

@@ -12660,6 +12660,8 @@ begin
     Result:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,AContext,true)
   else if (El is TPasVariable) and (TPasVariable(El).ExportName<>nil) then
     Result:=ComputeConstString(TPasVariable(El).ExportName,AContext,true)
+  else if (El is TPasType) then
+    Result:=TransformVariableName(El,AContext.Resolver.ResolveAliasType(TPasType(El)).Name,AContext)
   else
     Result:=TransformVariableName(El,El.Name,AContext);
 end;
