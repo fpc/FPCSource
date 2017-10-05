@@ -398,6 +398,7 @@ type
     Procedure TestClass_MethodOverrideFixCase;
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
+    Procedure TestClass_MethodOverrideDiffVarName;
     Procedure TestClass_MethodOverloadAncestor;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorOverride;
@@ -5899,6 +5900,23 @@ begin
   Add('begin');
   CheckResolverException('Result type mismatch, expected String, but found Longint',
     nResultTypeMismatchExpectedButFound);
+end;
+
+procedure TTestResolver.TestClass_MethodOverrideDiffVarName;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt(aName: string); virtual; abstract;',
+  '  end;',
+  '  TCar = class',
+  '    procedure DoIt(aCaption: string); override;',
+  '  end;',
+  'procedure TCar.DoIt(aCaption: string); begin end;',
+  'begin'
+  ]);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass_MethodOverloadAncestor;

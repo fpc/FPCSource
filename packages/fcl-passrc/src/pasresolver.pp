@@ -1054,7 +1054,7 @@ type
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
-    procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure);
+    procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
     procedure CheckPendingForwards(El: TPasElement);
     procedure ComputeBinaryExpr(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
@@ -3699,7 +3699,7 @@ begin
       if ProcNeedsImplProc(Proc) or (not ProcNeedsImplProc(DeclProc)) then
         RaiseMsg(20170216151652,nDuplicateIdentifier,sDuplicateIdentifier,
                  [ProcName,GetElementSourcePosStr(DeclProc)],Proc.ProcType);
-      CheckProcSignatureMatch(DeclProc,Proc);
+      CheckProcSignatureMatch(DeclProc,Proc,true);
       DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
       DeclProcScope.ImplProc:=Proc;
       ProcScope:=Proc.CustomData as TPasProcedureScope;
@@ -3779,7 +3779,7 @@ begin
         RaiseMsg(20170216151708,nNoMethodInAncestorToOverride,
           sNoMethodInAncestorToOverride,[GetProcTypeDescription(Proc.ProcType)],Proc.ProcType);
       // override a virtual method
-      CheckProcSignatureMatch(OverloadProc,Proc);
+      CheckProcSignatureMatch(OverloadProc,Proc,false);
       // check visibility
       if Proc.Visibility<>OverloadProc.Visibility then
         case Proc.Visibility of
@@ -3863,7 +3863,7 @@ begin
     RaiseMsg(20170216151722,nAbstractMethodsMustNotHaveImplementation,sAbstractMethodsMustNotHaveImplementation,[],ImplProc);
   if DeclProc.IsExternal then
     RaiseXExpectedButYFound(20170216151725,'method','external method',ImplProc);
-  CheckProcSignatureMatch(DeclProc,ImplProc);
+  CheckProcSignatureMatch(DeclProc,ImplProc,true);
   ImplProcScope.DeclarationProc:=DeclProc;
   DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
   DeclProcScope.ImplProc:=ImplProc;
@@ -4714,8 +4714,8 @@ begin
       [BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType]],El);
 end;
 
-procedure TPasResolver.CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure
-  );
+procedure TPasResolver.CheckProcSignatureMatch(DeclProc,
+  ImplProc: TPasProcedure; CheckNames: boolean);
 var
   i: Integer;
   DeclArgs, ImplArgs: TFPList;
@@ -4737,16 +4737,19 @@ begin
         [],DeclResult,ImplResult,ImplProc);
     end;
 
-  // check argument names
-  DeclArgs:=DeclProc.ProcType.Args;
-  ImplArgs:=ImplProc.ProcType.Args;
-  for i:=0 to DeclArgs.Count-1 do
+  if CheckNames then
     begin
-    DeclName:=TPasArgument(DeclArgs[i]).Name;
-    ImplName:=TPasArgument(ImplArgs[i]).Name;
-    if CompareText(DeclName,ImplName)<>0 then
-      RaiseMsg(20170216151738,nFunctionHeaderMismatchForwardVarName,
-        sFunctionHeaderMismatchForwardVarName,[DeclProc.Name,DeclName,ImplName],ImplProc);
+    // check argument names
+    DeclArgs:=DeclProc.ProcType.Args;
+    ImplArgs:=ImplProc.ProcType.Args;
+    for i:=0 to DeclArgs.Count-1 do
+      begin
+      DeclName:=TPasArgument(DeclArgs[i]).Name;
+      ImplName:=TPasArgument(ImplArgs[i]).Name;
+      if CompareText(DeclName,ImplName)<>0 then
+        RaiseMsg(20170216151738,nFunctionHeaderMismatchForwardVarName,
+          sFunctionHeaderMismatchForwardVarName,[DeclProc.Name,DeclName,ImplName],ImplProc);
+      end;
     end;
 end;
 
