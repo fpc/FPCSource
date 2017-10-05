@@ -6193,6 +6193,8 @@ begin
   '  inherited;',
   '  inherited DoIt;',
   '  if inherited DoIt=14 then ;',
+  '  with Self do inherited;',
+  '  with Self do inherited DoIt;',
   'end;',
   'begin',
    '']);

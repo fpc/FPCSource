@@ -1253,6 +1253,7 @@ type
     function PushEnumDotScope(CurEnumType: TPasEnumType): TPasDotEnumTypeScope;
     procedure ResetSubScopes(out Depth: integer);
     procedure RestoreSubScopes(Depth: integer);
+    function GetInheritedExprScope(ErrorEl: TPasElement): TPasProcedureScope;
     // log and messages
     class procedure UnmangleSourceLineNumber(LineNumber: integer;
       out Line, Column: integer);
@@ -5306,8 +5307,7 @@ begin
     end;
 
   // 'inherited;' without expression
-  CheckTopScope(FScopeClass_Proc);
-  ProcScope:=TPasProcedureScope(TopScope);
+  ProcScope:=GetInheritedExprScope(El);
   SelfScope:=ProcScope.GetSelfScope;
   if SelfScope=nil then
     RaiseMsg(20170216152141,nInheritedOnlyWorksInMethods,sInheritedOnlyWorksInMethods,[],El);
@@ -5353,8 +5353,7 @@ begin
   writeln('TPasResolver.ResolveInheritedCall El=',GetTreeDbg(El));
   {$ENDIF}
 
-  CheckTopScope(FScopeClass_Proc);
-  ProcScope:=TPasProcedureScope(TopScope);
+  ProcScope:=GetInheritedExprScope(El);
   SelfScope:=ProcScope.GetSelfScope;
   if SelfScope=nil then
     RaiseMsg(20170216152148,nInheritedOnlyWorksInMethods,sInheritedOnlyWorksInMethods,[],El);
@@ -10471,6 +10470,23 @@ begin
     FSubScopes[FSubScopeCount]:=nil;
     inc(FScopeCount);
     end;
+end;
+
+function TPasResolver.GetInheritedExprScope(ErrorEl: TPasElement
+  ): TPasProcedureScope;
+var
+  Scope: TPasScope;
+  i: Integer;
+begin
+  i:=ScopeCount;
+  repeat
+    dec(i);
+    if i<0 then
+      RaiseMsg(20171006001229,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+    Scope:=Scopes[i];
+    if Scope is TPasProcedureScope then
+      exit(TPasProcedureScope(Scope));
+  until false;
 end;
 
 procedure TPasResolver.SetLastMsg(const id: int64; MsgType: TMessageType;
