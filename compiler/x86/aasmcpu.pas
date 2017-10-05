@@ -1889,13 +1889,13 @@ implementation
            { 16 bit? }
 
            if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY]) and
-               (br<>NR_NO) and (bsub=R_SUBADDR)
+               (br<>NR_NO) and (bsub=R_SUBQ)
               ) then
            begin
              // vector memory (AVX2) =>> ignore
            end
-           else if ((ir<>NR_NO) and (isub<>R_SUBADDR) and (isub<>R_SUBD)) or
-                   ((br<>NR_NO) and (bsub<>R_SUBADDR) and (bsub<>R_SUBD)) then
+           else if ((ir<>NR_NO) and (isub<>R_SUBQ) and (isub<>R_SUBD)) or
+                   ((br<>NR_NO) and (bsub<>R_SUBQ) and (bsub<>R_SUBD)) then
            begin
              message(asmw_e_16bit_32bit_not_supported);
            end;
@@ -2094,13 +2094,13 @@ implementation
            { 16 bit address? }
 
            if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY]) and
-               (br<>NR_NO) and (bsub=R_SUBADDR)
+               (br<>NR_NO) and (bsub=R_SUBD)
               ) then
            begin
              // vector memory (AVX2) =>> ignore
            end
-           else if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
-                   ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
+           else if ((ir<>NR_NO) and (isub<>R_SUBD)) or
+                   ((br<>NR_NO) and (bsub<>R_SUBD)) then
              message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
            { make single reg base }
@@ -2259,8 +2259,8 @@ implementation
           begin
             { 32 bit address? }
 
-            if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
-               ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
+            if ((ir<>NR_NO) and (isub<>R_SUBW)) or
+               ((br<>NR_NO) and (bsub<>R_SUBW)) then
               message(asmw_e_32bit_not_supported);
             { scalefactor can only be 1 in 16-bit addresses }
             if (s<>1) and (ir<>NR_NO) then
