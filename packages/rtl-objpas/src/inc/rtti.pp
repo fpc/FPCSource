@@ -163,8 +163,10 @@ type
   TRttiNamedObject = class(TRttiObject)
   protected
     function GetName: string; virtual;
+    function GetHandle: Pointer; virtual; abstract;
   public
     property Name: string read GetName;
+    property Handle: Pointer read GetHandle;
   end;
 
   { TRttiType }
@@ -178,6 +180,7 @@ type
   protected
     FTypeData: PTypeData;
     function GetName: string; override;
+    function GetHandle: Pointer; override;
     function GetIsInstance: boolean; virtual;
     function GetIsManaged: boolean; virtual;
     function GetIsOrdinal: boolean; virtual;
@@ -270,6 +273,7 @@ type
   protected
     function GetVisibility: TMemberVisibility; override;
     function GetName: string; override;
+    function GetHandle: Pointer; override;
   public
     constructor create(AParent: TRttiType; APropInfo: PPropInfo);
     function GetValue(Instance: pointer): TValue;
@@ -1616,6 +1620,11 @@ begin
   Result:=FPropInfo^.Name;
 end;
 
+function TRttiProperty.GetHandle: Pointer;
+begin
+  Result := FPropInfo;
+end;
+
 constructor TRttiProperty.create(AParent: TRttiType; APropInfo: PPropInfo);
 begin
   inherited create(AParent);
@@ -1819,6 +1828,11 @@ end;
 function TRttiType.GetName: string;
 begin
   Result:=FTypeInfo^.Name;
+end;
+
+function TRttiType.GetHandle: Pointer;
+begin
+  Result := FTypeInfo;
 end;
 
 constructor TRttiType.create(ATypeInfo: PTypeInfo);
