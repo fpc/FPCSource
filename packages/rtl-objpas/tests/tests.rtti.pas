@@ -24,6 +24,7 @@ type
   published
     //procedure GetTypes;
     procedure GetTypeInteger;
+    procedure GetTypePointer;
     procedure GetClassProperties;
 
     procedure GetClassPropertiesValue;
@@ -833,6 +834,30 @@ begin
 {$endif}
 
   LContext.Free;
+end;
+
+procedure TTestCase1.GetTypePointer;
+var
+  context: TRttiContext;
+  t: TRttiType;
+  p: TRttiPointerType absolute t;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(TypeInfo(Pointer));
+    Assert(t is TRttiPointerType, 'Type of Pointer is not a TRttiPointerType');
+    Assert(not Assigned(p.ReferredType), 'ReferredType of Pointer is not Nil');
+    t := context.GetType(TypeInfo(PLongInt));
+    Assert(t is TRttiPointerType, 'Type of Pointer is not a TRttiPointerType');
+    Assert(Assigned(p.ReferredType), 'ReferredType of PLongInt is Nil');
+    Assert(p.ReferredType = context.GetType(TypeInfo(LongInt)), 'ReferredType of PLongInt is not a LongInt');
+    t := context.GetType(TypeInfo(PWideChar));
+    Assert(t is TRttiPointerType, 'Type of Pointer is not a TRttiPointerType');
+    Assert(Assigned(p.ReferredType), 'ReferredType of PWideChar is Nil');
+    Assert(p.ReferredType = context.GetType(TypeInfo(WideChar)), 'ReferredType of PWideChar is not a WideChar');
+  finally
+    context.Free;
+  end;
 end;
 
 procedure TTestCase1.GetClassProperties;

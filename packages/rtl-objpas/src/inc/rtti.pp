@@ -230,6 +230,12 @@ type
     property StringKind: TRttiStringKind read GetStringKind;
   end;
 
+  TRttiPointerType = class(TRttiType)
+  private
+    function GetReferredType: TRttiType;
+  public
+    property ReferredType: TRttiType read GetReferredType;
+  end;
 
   { TRttiInstanceType }
 
@@ -617,6 +623,13 @@ begin
     Result := false;
 end;
 
+{ TRttiPointerType }
+
+function TRttiPointerType.GetReferredType: TRttiType;
+begin
+  Result := GRttiPool.GetType(FTypeData^.RefType);
+end;
+
 { TRttiPool }
 
 function TRttiPool.GetTypes: specialize TArray<TRttiType>;
@@ -668,6 +681,7 @@ begin
           tkUString,
           tkWString : Result := TRttiStringType.Create(ATypeInfo);
           tkFloat   : Result := TRttiFloatType.Create(ATypeInfo);
+          tkPointer : Result := TRttiPointerType.Create(ATypeInfo);
         else
           Result := TRttiType.Create(ATypeInfo);
         end;
