@@ -3481,6 +3481,8 @@ begin
     else
       RaiseXExpectedButYFound(20170216151609,'range',RangeResolved.IdentEl.ElementTypeName,Expr);
     end;
+  if El.ElType=nil then
+    RaiseNotYetImplemented(20171005235610,El,'array of const');
   FinishSubElementType(El,El.ElType);
 end;
 

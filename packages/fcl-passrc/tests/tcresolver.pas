@@ -576,6 +576,9 @@ type
     Procedure TestArray_ConstOpenArrayWriteFail;
     Procedure TestArray_Static_Const;
 
+    // array of const
+    Procedure TestArrayOfConst;
+
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
     Procedure TestArrayCharRange_OutOfRange;
@@ -9375,6 +9378,16 @@ begin
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestArrayOfConst;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(args: array of const);',
+  'begin end;',
+  'begin']);
+  CheckResolverException('not yet implemented: :TPasArrayType [20171005235610] array of const',nNotYetImplemented);
 end;
 
 procedure TTestResolver.TestArrayIntRange_OutOfRange;
