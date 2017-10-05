@@ -400,6 +400,7 @@ type
     Procedure TestClassOf_ClassMethodSelf;
     Procedure TestClassOf_TypeCast;
     Procedure TestClassOf_ImplicitFunctionCall;
+    Procedure TestClassOf_Const;
 
     // nested class
     Procedure TestNestedClass_Fail;
@@ -9503,6 +9504,42 @@ begin
     '$mod.vI = $mod.Obj.CurNow();',
     '$mod.TObject.Now();',
     '$mod.vI = $mod.TObject.Now();',
+    '']));
+end;
+
+procedure TTestModule.TestClassOf_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = TObject;',
+  '  TBirds = class of TBird;',
+  '  TEagles = TBirds;',
+  '  THawk = class(TBird);',
+  'const',
+  '  Hawk: TEagles = THawk;',
+  '  DefaultBirdClasses : Array [1..2] of TEagles = (',
+  '    TBird,',
+  '    THawk',
+  '  );',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestClassOf_Const',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "THawk", $mod.TObject, function () {',
+    '});',
+    'this.Hawk = $mod.THawk;',
+    'this.DefaultBirdClasses = [$mod.TObject, $mod.THawk];',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

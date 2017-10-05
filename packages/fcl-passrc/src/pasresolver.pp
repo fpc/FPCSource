@@ -11178,6 +11178,8 @@ var
 begin
   if (LeftResolved.TypeEl<>nil) and (LeftResolved.TypeEl.ClassType=TPasArrayType) then
     exit; // arrays are checked by element, not by the whole value
+  if ResolveAliasType(LeftResolved.TypeEl) is TPasClassOfType then
+    exit; // class-of are checked only by type, not by value
   RValue:=Eval(RHS,[refAutoConst]);
   if RValue=nil then
     exit; // not a const expression

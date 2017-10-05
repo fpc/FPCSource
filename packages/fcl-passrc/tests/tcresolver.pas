@@ -484,6 +484,7 @@ type
     Procedure TestClass_TypeCast;
     Procedure TestClassOf_AlwaysForward;
     Procedure TestClassOf_ClassOfBeforeClass_FuncResult;
+    Procedure TestClassOf_Const;
 
     // property
     Procedure TestProperty1;
@@ -7895,6 +7896,27 @@ begin
   Add('  Result:=TObject;');
   Add('end;');
   Add('begin');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassOf_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = TObject;',
+  '  TBirds = class of TBird;',
+  '  TEagles = TBirds;',
+  '  THawk = class(TBird);',
+  'const',
+  '  Hawk: TEagles = THawk;',
+  '  DefaultBirdClasses : Array [1..2] of TEagles = (',
+  '    TBird,',
+  '    THawk',
+  '  );',
+  'begin']);
   ParseProgram;
 end;
 
