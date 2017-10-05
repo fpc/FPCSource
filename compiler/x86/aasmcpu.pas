@@ -1844,7 +1844,7 @@ implementation
         end;
       end;
 
-    function process_ea_ref(const input:toper;var output:ea;rfield:longint):boolean;
+    function process_ea_ref_64_32(const input:toper;var output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s  : byte;
@@ -2057,7 +2057,7 @@ implementation
 
 {$elseif defined(i386)}
 
-    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref_32(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s  : byte;
@@ -2225,7 +2225,7 @@ implementation
           end;
       end;
 
-    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref_16(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s,rv  : byte;
@@ -2320,7 +2320,13 @@ implementation
         {No register, so memory reference.}
         if input.typ<>top_ref then
           internalerror(200409263);
-        result:=process_ea_ref(input,output,rfield);
+{$if defined(x86_64)}
+        result:=process_ea_ref_64_32(input,output,rfield);
+{$elseif defined(i386)}
+        result:=process_ea_ref_32(input,output,rfield);
+{$elseif defined(i8086)}
+        result:=process_ea_ref_16(input,output,rfield);
+{$endif}
       end;
 
     function taicpu.calcsize(p:PInsEntry):shortint;
