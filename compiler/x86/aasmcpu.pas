@@ -483,6 +483,9 @@ interface
          function  calcsize(p:PInsEntry):shortint;
          procedure gencode(objdata:TObjData);
          function  NeedAddrPrefix(opidx:byte):boolean;
+         function  NeedAddrPrefix:boolean;
+         procedure write0x66prefix(objdata:TObjData);
+         procedure write0x67prefix(objdata:TObjData);
          procedure Swapoperands;
          function  FindInsentry(objdata:TObjData):boolean;
       end;
@@ -1704,6 +1707,8 @@ implementation
            InsSize:=calcsize(insentry);
            if segprefix<>NR_NO then
             inc(InsSize);
+           if NeedAddrPrefix then
+            inc(InsSize);
            { Fix opsize if size if forced }
            if insentry^.flags*[IF_SB,IF_SW,IF_SD]<>[] then
              begin
@@ -1759,13 +1764,51 @@ implementation
          end
         else if segprefix<>NR_NO then
           InternalError(201001071);
+        { Address size prefix? }
+        if NeedAddrPrefix then
+        begin
+          write0x67prefix(objdata);
+          { fix the offset for GenNode }
+          inc(InsOffset);
+        end;
         { Generate the instruction }
         GenCode(objdata);
       end;
 
 
+    function is_16_bit_ref(const input:toper):boolean;
+      var
+        ir,br : Tregister;
+        isub,bsub : tsubregister;
+        has_16_bit_regs: Boolean;
+      begin
+        if (input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)=R_MMREGISTER) then
+          exit(false);
+        ir:=input.ref^.index;
+        br:=input.ref^.base;
+        isub:=getsubreg(ir);
+        bsub:=getsubreg(br);
+        { it's a direct address }
+        if (br=NR_NO) and (ir=NR_NO) then
+          begin
+            {$ifdef i8086}
+            result:=true;
+            {$else i8086}
+            result:=false;
+            {$endif}
+          end
+        else
+          { it's an indirection }
+          begin
+            result := ((ir<>NR_NO) and (isub=R_SUBW)) or
+                      ((br<>NR_NO) and (bsub=R_SUBW));
+          end;
+      end;
+
+
     function taicpu.needaddrprefix(opidx:byte):boolean;
       begin
+{$if defined(x86_64)}
         result:=(oper[opidx]^.typ=top_ref) and
                 (oper[opidx]^.ref^.refaddr=addr_no) and
     {$ifdef x86_64}
@@ -1781,6 +1824,22 @@ implementation
                   (getsubreg(oper[opidx]^.ref^.base)<>R_SUBADDR)
                  )
                 );
+{$elseif defined(i386)}
+        result:=(oper[opidx]^.typ=top_ref) and is_16_bit_ref(oper[opidx]^);
+{$elseif defined(i8086)}
+        result:=(oper[opidx]^.typ=top_ref) and not is_16_bit_ref(oper[opidx]^);
+{$endif}
+      end;
+
+
+    function taicpu.NeedAddrPrefix:boolean;
+      var
+        i: Integer;
+      begin
+        for i:=0 to ops-1 do
+          if needaddrprefix(i) then
+            exit(true);
+        result:=false;
       end;
 
 
@@ -2055,7 +2114,7 @@ implementation
       end;
 
 
-{$elseif defined(i386)}
+{$elseif defined(i386) or defined(i8086)}
 
     function process_ea_ref_32(const input:toper;out output:ea;rfield:longint):boolean;
       var
@@ -2210,7 +2269,6 @@ implementation
          output.size:=1+output.bytes;
         result:=true;
       end;
-{$elseif defined(i8086)}
 
     procedure maybe_swap_index_base(var br,ir:Tregister);
       var
@@ -2322,10 +2380,11 @@ implementation
           internalerror(200409263);
 {$if defined(x86_64)}
         result:=process_ea_ref_64_32(input,output,rfield);
-{$elseif defined(i386)}
-        result:=process_ea_ref_32(input,output,rfield);
-{$elseif defined(i8086)}
-        result:=process_ea_ref_16(input,output,rfield);
+{$elseif defined(i386) or defined(i8086)}
+        if is_16_bit_ref(input) then
+          result:=process_ea_ref_16(input,output,rfield)
+        else
+          result:=process_ea_ref_32(input,output,rfield);
 {$endif}
       end;
 
@@ -2593,6 +2652,30 @@ implementation
       end;
 
 
+    procedure taicpu.write0x66prefix(objdata:TObjData);
+      const
+        b66: Byte=$66;
+      begin
+{$ifdef i8086}
+        if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
+          Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
+        objdata.writebytes(b66,1);
+      end;
+
+
+    procedure taicpu.write0x67prefix(objdata:TObjData);
+      const
+        b67: Byte=$67;
+      begin
+{$ifdef i8086}
+        if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
+          Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
+        objdata.writebytes(b67,1);
+      end;
+
+
     procedure taicpu.GenCode(objdata:TObjData);
       {
        * the actual codes (C syntax, i.e. octal):
@@ -2756,28 +2839,6 @@ implementation
         end;
 {$endif x86_64}
 
-       procedure write0x66prefix;
-         const
-           b66: Byte=$66;
-         begin
-{$ifdef i8086}
-           if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-             Message(asmw_e_instruction_not_supported_by_cpu);
-{$endif i8086}
-           objdata.writebytes(b66,1);
-         end;
-
-       procedure write0x67prefix;
-         const
-           b67: Byte=$67;
-         begin
-{$ifdef i8086}
-           if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-             Message(asmw_e_instruction_not_supported_by_cpu);
-{$endif i8086}
-           objdata.writebytes(b67,1);
-         end;
-
        procedure objdata_writereloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
          begin
 {$ifdef i386}
@@ -2900,7 +2961,7 @@ implementation
         { Force word push/pop for registers }
         if (opsize={$ifdef i8086}S_L{$else}S_W{$endif}) and ((codes[0]=#4) or (codes[0]=#6) or
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
-          write0x66prefix;
+          write0x66prefix(objdata);
 
         // needed VEX Prefix (for AVX etc.)
 
@@ -3272,7 +3333,7 @@ implementation
               begin
 {$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
-                  write0x67prefix;
+                  write0x67prefix(objdata);
 {$endif x86_64 or i8086}
               end;
             &310 :   { fixed 16-bit addr }
@@ -3280,13 +3341,13 @@ implementation
               { every insentry having code 0310 must be marked with NOX86_64 }
               InternalError(2011051302);
 {$elseif defined(i386)}
-              write0x67prefix;
+              write0x67prefix(objdata);
 {$elseif defined(i8086)}
               {nothing};
 {$endif}
             &311 :   { fixed 32-bit addr }
 {$if defined(x86_64) or defined(i8086)}
-              write0x67prefix
+              write0x67prefix(objdata)
 {$endif x86_64 or i8086}
               ;
             &320,&321,&322 :
@@ -3297,7 +3358,7 @@ implementation
 {$elseif defined(i8086)}
                   OT_BITS32 :
 {$endif}
-                    write0x66prefix;
+                    write0x66prefix(objdata);
 {$ifndef x86_64}
                   OT_BITS64 :
                       Message(asmw_e_64bit_not_supported);
@@ -3307,7 +3368,7 @@ implementation
             &323 : {no action needed};
             &325:
 {$ifdef i8086}
-              write0x66prefix;
+              write0x66prefix(objdata);
 {$else i8086}
               {no action needed};
 {$endif i8086}
@@ -3317,7 +3378,7 @@ implementation
               begin
 {$ifndef i8086}
                 if not(needed_VEX) then
-                  write0x66prefix;
+                  write0x66prefix(objdata);
 {$endif not i8086}
               end;
             &326 :
