@@ -205,10 +205,6 @@ type
     property TypeSize: integer read GetTypeSize;
   end;
 
-  TRttiStructuredType = class(TRttiType)
-
-  end;
-
   { TRttiFloatType }
 
   TRttiFloatType = class(TRttiType)
@@ -235,22 +231,6 @@ type
     function GetReferredType: TRttiType;
   public
     property ReferredType: TRttiType read GetReferredType;
-  end;
-
-  { TRttiInstanceType }
-
-  TRttiInstanceType = class(TRttiStructuredType)
-  private
-    function GetDeclaringUnitName: string;
-    function GetMetaClassType: TClass;
-  protected
-    function GetIsInstance: boolean; override;
-    function GetTypeSize: integer; override;
-    function GetBaseType: TRttiType; override;
-  public
-    property MetaClassType: TClass read GetMetaClassType;
-    property DeclaringUnitName: string read GetDeclaringUnitName;
-
   end;
 
   { TRttiMember }
@@ -288,6 +268,25 @@ type
     property IsReadable: boolean read GetIsReadable;
     property IsWritable: boolean read GetIsWritable;
     property Visibility: TMemberVisibility read GetVisibility;
+  end;
+
+  TRttiStructuredType = class(TRttiType)
+
+  end;
+
+  { TRttiInstanceType }
+
+  TRttiInstanceType = class(TRttiStructuredType)
+  private
+    function GetDeclaringUnitName: string;
+    function GetMetaClassType: TClass;
+  protected
+    function GetIsInstance: boolean; override;
+    function GetTypeSize: integer; override;
+    function GetBaseType: TRttiType; override;
+  public
+    property MetaClassType: TClass read GetMetaClassType;
+    property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
 
   EInsufficientRtti = class(Exception);
