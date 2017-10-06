@@ -62,8 +62,8 @@ Unit Rax86int;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
+         procedure BuildRecordOffsetSize(const expr: string;var offset:tcgint;var size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -756,7 +756,7 @@ Unit Rax86int;
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
-    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
+    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:tcgint;var size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
       var
         s: string;
       Begin
@@ -784,11 +784,11 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
-        l,k : aint;
+        l,k : tcgint;
         hasparen,
         errorflag,
         needvmtofs : boolean;
@@ -1181,7 +1181,7 @@ Unit Rax86int;
 
     Function tx86intreader.BuildConstExpression:aint;
       var
-        l : aint;
+        l : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
         isseg : boolean;
@@ -1196,7 +1196,7 @@ Unit Rax86int;
 
     Function tx86intreader.BuildRefConstExpression(startingminus:boolean):aint;
       var
-        l : aint;
+        l : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
         isseg : boolean;
@@ -1212,7 +1212,7 @@ Unit Rax86int;
     procedure tx86intreader.BuildReference(oper : tx86operand);
       var
         scale : byte;
-        k,l : aint;
+        k,l : tcgint;
         tempstr,hs : string;
         tempsymtyp : tasmsymtype;
         code : integer;
@@ -1630,7 +1630,7 @@ Unit Rax86int;
 
     Procedure tx86intreader.BuildConstantOperand(oper: tx86operand);
       var
-        l : aint;
+        l : tcgint;
         tempstr : string;
         tempsymtyp : tasmsymtype;
         isseg: boolean;
@@ -1698,10 +1698,10 @@ Unit Rax86int;
         expr,
         hs      : string;
         tempreg : tregister;
-        l       : aint;
+        l       : tcgint;
         hl      : tasmlabel;
         toffset,
-        tsize   : aint;
+        tsize   : tcgint;
         hastypecast: boolean;
       begin
         expr:='';
@@ -2359,7 +2359,7 @@ Unit Rax86int;
         asmsymtyp : tasmsymtype;
         asmsym,
         expr: string;
-        value : aint;
+        value : tcgint;
         isseg: boolean;
         is_farproc_entry : boolean;
       Begin

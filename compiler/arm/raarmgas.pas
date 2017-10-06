@@ -163,7 +163,7 @@ Unit raarmgas;
     procedure tarmattreader.ReadSym(oper : tarmoperand);
       var
          tempstr, mangledname : string;
-         typesize,l,k : longint;
+         typesize,l,k : tcgint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
@@ -310,7 +310,7 @@ Unit raarmgas;
       procedure read_index(require_rbracket : boolean);
         var
           recname : string;
-          o_int,s_int : aint;
+          o_int,s_int : tcgint;
         begin
           case actasmtoken of
             AS_REGISTER :
@@ -576,7 +576,7 @@ Unit raarmgas;
     Procedure tarmattreader.BuildOperand(oper : tarmoperand);
       var
         expr : string;
-        typesize,l : longint;
+        typesize,l : tcgint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -607,7 +607,7 @@ Unit raarmgas;
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : longint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -806,7 +806,7 @@ Unit raarmgas;
           var
             symtype: TAsmsymtype;
             sym: string;
-            val: aint;
+            val: tcgint;
           begin
             case actasmtoken of
               AS_INTNUM,
@@ -1437,7 +1437,7 @@ Unit raarmgas;
       var
         symname,
         symval  : String;
-        val     : aint;
+        val     : tcgint;
         symtyp  : TAsmsymtype;
       begin
         case actasmpattern of

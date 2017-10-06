@@ -50,7 +50,11 @@ type
   TOprRec = record
     case typ:TOprType of
       OPR_NONE      : ();
+{$ifdef AVR}
+      OPR_CONSTANT  : (val:word);
+{$else AVR}
       OPR_CONSTANT  : (val:aint);
+{$endif AVR}
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
       OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint;ref_farproc_entry:boolean;ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
@@ -145,29 +149,29 @@ type
     public
      Constructor create;
      Destructor Destroy;override;
-     Function Evaluate(Expr:  String): aint;
+     Function Evaluate(Expr:  String): tcgint;
      Function Priority(_Operator: Char): aint;
     private
-     RPNStack   : Array[1..RPNMax] of aint;        { Stack For RPN calculator }
-     RPNTop     : aint;
+     RPNStack   : Array[1..RPNMax] of tcgint;        { Stack For RPN calculator }
+     RPNTop     : tcgint;
      OpStack    : Array[1..OpMax] of TExprOperator;    { Operator stack For conversion }
-     OpTop      : aint;
-     Procedure RPNPush(Num: aint);
-     Function RPNPop: aint;
+     OpTop      : tcgint;
+     Procedure RPNPush(Num: tcgint);
+     Function RPNPop: tcgint;
      Procedure RPNCalc(const token: String; prefix: boolean);
      Procedure OpPush(_Operator: char; prefix: boolean);
      { In reality returns TExprOperaotr }
      Procedure OpPop(var _Operator:TExprOperator);
   end;
 
-  { Evaluate an expression string to a aint }
-  Function CalculateExpression(const expression: string): aint;
+  { Evaluate an expression string to a tcgint }
+  Function CalculateExpression(const expression: string): tcgint;
 
   {---------------------------------------------------------------------}
   {                     String routines                                 }
   {---------------------------------------------------------------------}
 
-Function ParseVal(const S:String;base:byte):aint;
+Function ParseVal(const S:String;base:byte):tcgint;
 Function PadZero(Var s: String; n: byte): Boolean;
 Function EscapeToPascal(const s:string): string;
 
@@ -176,10 +180,10 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
-Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
-Function SearchType(const hs:string;var size:aint): Boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: tcgint;var Size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
+Function SearchType(const hs:string;var size:tcgint): Boolean;
 Function SearchRecordType(const s:string): boolean;
-Function SearchIConstant(const s:string; var l:aint): boolean;
+Function SearchIConstant(const s:string; var l:tcgint): boolean;
 Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 
 {---------------------------------------------------------------------
@@ -187,11 +191,11 @@ Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 ---------------------------------------------------------------------}
 
   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
-  Procedure ConcatConstant(p : TAsmList;value: aint; constsize:byte);
-  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
+  Procedure ConcatConstant(p : TAsmList;value: tcgint; constsize:byte);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint);
   Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : TAsmList;s:string);
-  procedure ConcatAlign(p:TAsmList;l:aint);
+  procedure ConcatAlign(p:TAsmList;l:tcgint);
   Procedure ConcatPublic(p:TAsmList;const s : string);
   Procedure ConcatLocal(p:TAsmList;const s : string);
 
@@ -214,7 +218,7 @@ Begin
 end;
 
 
-Procedure TExprParse.RPNPush(Num : aint);
+Procedure TExprParse.RPNPush(Num : tcgint);
 { Add an operand to the top of the RPN stack }
 begin
   if RPNTop < RPNMax then
@@ -227,7 +231,7 @@ begin
 end;
 
 
-Function TExprParse.RPNPop : aint;
+Function TExprParse.RPNPop : tcgint;
 { Get the operand at the top of the RPN stack }
 begin
   RPNPop:=0;
@@ -243,8 +247,8 @@ end;
 
 Procedure TExprParse.RPNCalc(const Token : String; prefix:boolean);                       { RPN Calculator }
 Var
-  Temp  : aint;
-  n1,n2 : aint;
+  Temp  : tcgint;
+  n1,n2 : tcgint;
   LocalError : Integer;
 begin
   { Handle operators }
@@ -383,7 +387,7 @@ begin
 end;
 
 
-Function TExprParse.Evaluate(Expr : String):aint;
+Function TExprParse.Evaluate(Expr : String):tcgint;
 Var
   I     : longint;
   Token : String;
@@ -479,7 +483,7 @@ Begin
 end;
 
 
-Function CalculateExpression(const expression: string): aint;
+Function CalculateExpression(const expression: string): tcgint;
 var
   expr: TExprParse;
 Begin
@@ -558,8 +562,8 @@ Begin
 end;
 
 
-Function ParseVal(const S:String;base:byte):aint;
-{ Converts a decimal string to aint }
+Function ParseVal(const S:String;base:byte):tcgint;
+{ Converts a decimal string to tcgint }
 var
   code : integer;
   errmsg : word;
@@ -592,7 +596,7 @@ Begin
   val(prefix+s,result,code);
   if code<>0 then
     begin
-      val(prefix+s,aword(result),code);
+      val(prefix+s,result,code);
       if code<>0 then
         begin
           Message1(errmsg,s);
@@ -807,24 +811,33 @@ Begin
    exit;
   if sym.typ=absolutevarsym then
     begin
-      if (tabsolutevarsym(sym).abstyp=tovar) then
-        begin
-          { Only support simple loads }
-          plist:=tabsolutevarsym(sym).ref.firstsym;
-          if assigned(plist) and
-             (plist^.sltype=sl_load) then
-            sym:=plist^.sym
-          else
-            begin
-              Message(asmr_e_unsupported_symbol_type);
-              exit;
-            end;
-        end
-      else
-        begin
-          Message(asmr_e_unsupported_symbol_type);
-          exit;
-        end;
+      case tabsolutevarsym(sym).abstyp of
+        tovar:
+          begin
+            { Only support simple loads }
+            plist:=tabsolutevarsym(sym).ref.firstsym;
+            if assigned(plist) and
+               (plist^.sltype=sl_load) then
+              sym:=plist^.sym
+            else
+              begin
+                Message(asmr_e_unsupported_symbol_type);
+                exit;
+              end;
+          end;
+        toaddr:
+          begin
+            initref;
+            opr.ref.offset:=tabsolutevarsym(sym).addroffset;
+            Result:=true;
+            exit;
+          end;
+        else
+          begin
+            Message(asmr_e_unsupported_symbol_type);
+            exit;
+          end;
+      end;
     end;
   case sym.typ of
     fieldvarsym :
@@ -1219,7 +1232,7 @@ begin
 end;
 
 
-Function SearchType(const hs:string;var size:aint): Boolean;
+Function SearchType(const hs:string;var size:tcgint): Boolean;
 var
   srsym : tsym;
   srsymtable : TSymtable;
@@ -1269,7 +1282,7 @@ Begin
 end;
 
 
-Function SearchIConstant(const s:string; var l:aint): boolean;
+Function SearchIConstant(const s:string; var l:tcgint): boolean;
 {**********************************************************************}
 {  Description: Searches for a CONSTANT of name s in either the local  }
 {  symbol list, then in the global symbol list, and returns the value  }
@@ -1305,7 +1318,7 @@ Begin
          begin
            if tconstsym(srsym).consttyp=constord then
             Begin
-              l:=aint(tconstsym(srsym).value.valueord.svalue);
+              l:=tconstsym(srsym).value.valueord.svalue;
               SearchIConstant:=TRUE;
               exit;
             end;
@@ -1330,7 +1343,7 @@ begin
 end;
 
 
-Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: tcgint;var Size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
 { search and returns the offset and size of records/objects of the base }
 { with field name setup in field.                              }
 { returns FALSE if not found.                                  }
@@ -1526,7 +1539,7 @@ end;
   end;
 
 
-Procedure ConcatConstant(p: TAsmList; value: aint; constsize:byte);
+Procedure ConcatConstant(p: TAsmList; value: tcgint; constsize:byte);
 {*********************************************************************}
 { PROCEDURE ConcatConstant(value: aint; maxvalue: aint);        }
 {  Description: This routine adds the value constant to the current   }
@@ -1574,7 +1587,7 @@ Begin
 end;
 
 
-  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint);
   begin
     p.concat(Tai_const.Createname(sym,l));
   end;
@@ -1620,7 +1633,7 @@ end;
      p.concat(Tai_label.Create(l));
    end;
 
-   procedure ConcatAlign(p:TAsmList;l:aint);
+   procedure ConcatAlign(p:TAsmList;l:tcgint);
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }

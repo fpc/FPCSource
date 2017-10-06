@@ -107,7 +107,8 @@ Unit raavrgas;
     procedure tavrattreader.ReadSym(oper : tavroperand);
       var
         tempstr, mangledname : string;
-        typesize,l,k : aint;
+        typesize : tcgint;
+        l,k : tcgint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
@@ -203,7 +204,7 @@ Unit raavrgas;
     Procedure tavrattreader.BuildOperand(oper : tavroperand);
       var
         expr : string;
-        typesize,l : aint;
+        typesize,l : tcgint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -228,7 +229,7 @@ Unit raavrgas;
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -295,10 +296,14 @@ Unit raavrgas;
               AS_PLUS:
                 Begin
                   oper.opr.ref.offset:=BuildConstExpression(True,False);
-                  if actasmtoken<>AS_LPAREN then
-                    Message(asmr_e_invalid_reference_syntax)
-                  else
-                    BuildReference(oper);
+                  case actasmtoken of
+                    AS_LPAREN:
+                      BuildReference(oper);
+                    AS_COMMA:
+                      exit;
+                    else
+                      Message(asmr_e_invalid_reference_syntax)
+                  end;
                 end;
               AS_LPAREN:
                 BuildReference(oper);
@@ -373,8 +378,11 @@ Unit raavrgas;
                   oper.opr.ref.offset:=BuildConstExpression(True,False);
 
                   { absolute memory addresss? }
-                  if actopcode in [A_LDS,A_STS] then
-                    BuildReference(oper)
+                  if (actopcode in [A_LDS,A_STS]) and (actasmtoken<>AS_COMMA) then
+                    begin
+                      if not(MaybeBuildReference) then
+                        Message(asmr_e_invalid_reference_syntax);
+                    end
                   else
                     begin
                       ofs:=oper.opr.ref.offset;

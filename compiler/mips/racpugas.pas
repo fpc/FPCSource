@@ -116,7 +116,7 @@ Interface
     Procedure TMipsReader.BuildOperand(oper : TOperand);
       var
         expr : string;
-        typesize,l : aint;
+        typesize,l : tcgint;
 
         procedure AddLabelOperand(hl:tasmlabel);
           begin
@@ -140,7 +140,7 @@ Interface
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;

@@ -636,7 +636,7 @@ const
       sym : tsym;
       srsymtable : TSymtable;
       hl : tasmlabel;
-      l : longint;
+      l : tcgint;
       errorflag: boolean;
   begin
     BuildExpression:=0;
@@ -1072,7 +1072,7 @@ const
   var
     tempstr: string;
     expr: string;
-    l : longint;
+    l : tcgint;
     errorflag : boolean;
   begin
     BuildRefExpression := 0;
@@ -1401,7 +1401,7 @@ const
     expr: string;
     tempstr: string;
     lab: tasmlabel;
-    l : longint;
+    l : tcgint;
     hl: tasmlabel;
     p: pointer;
   begin

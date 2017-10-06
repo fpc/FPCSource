@@ -62,7 +62,7 @@ Unit rappcgas;
     procedure tppcattreader.ReadSym(oper : tppcoperand);
       var
          tempstr, mangledname : string;
-         typesize,l,k : aint;
+         typesize,l,k : tcgint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
@@ -139,7 +139,7 @@ Unit rappcgas;
         end;
 
       var
-        l : aint;
+        l : tcgint;
         relsym: string;
         asmsymtyp: tasmsymtype;
         isflags: tindsymflags;
@@ -287,7 +287,7 @@ Unit rappcgas;
     Procedure tppcattreader.BuildOperand(oper : tppcoperand);
       var
         expr : string;
-        typesize,l : aint;
+        typesize,l : tcgint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -312,7 +312,7 @@ Unit rappcgas;
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -411,7 +411,7 @@ Unit rappcgas;
       var
         tempreg : tregister;
         hl : tasmlabel;
-        ofs : aint;
+        ofs : tcgint;
       Begin
         expr:='';
         case actasmtoken of

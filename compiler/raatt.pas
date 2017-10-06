@@ -95,9 +95,9 @@ unit raatt;
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
          procedure BuildRva;
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
-         function BuildConstExpression(allowref,betweenbracket:boolean): aint;
+         procedure BuildRecordOffsetSize(const expr: string;var offset:tcgint;var size:tcgint; var mangledname: string; needvmtofs: boolean);
+         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+         function BuildConstExpression(allowref,betweenbracket:boolean): tcgint;
          function Assemble: tlinkedlist;override;
          procedure handleopcode;virtual;abstract;
          function is_asmopcode(const s: string) : boolean;virtual;abstract;
@@ -862,7 +862,7 @@ unit raatt;
        asmsymtyp : TAsmSymType;
        asmsym,
        expr: string;
-       value : aint;
+       value : tcgint;
       Begin
         Repeat
           Case actasmtoken of
@@ -1037,7 +1037,7 @@ unit raatt;
        lasTSec    : TAsmSectiontype;
        l1,
        l2,
-       symofs     : aint;
+       symofs     : tcgint;
        symtyp     : TAsmsymtype;
      Begin
        Message1(asmr_d_start_reading,'GNU AS');
@@ -1325,7 +1325,7 @@ unit raatt;
                                Parsing Helpers
 *****************************************************************************}
 
-    Procedure tattreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
+    Procedure tattreader.BuildRecordOffsetSize(const expr: string;var offset:tcgint;var size:tcgint; var mangledname: string; needvmtofs: boolean);
       { Description: This routine builds up a record offset after a AS_DOT }
       { token is encountered.                                              }
       { On entry actasmtoken should be equal to AS_DOT                     }
@@ -1358,12 +1358,12 @@ unit raatt;
       end;
 
 
-    procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+    procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
         hssymtyp : TAsmSymType;
         hs,tempstr,expr,mangledname : string;
         parenlevel : longint;
-        l,k : aint;
+        l,k : tcgint;
         errorflag : boolean;
         prevtok : tasmtoken;
         sym : tsym;
@@ -1685,9 +1685,9 @@ unit raatt;
       end;
 
 
-    function tattreader.BuildConstExpression(allowref,betweenbracket:boolean): aint;
+    function tattreader.BuildConstExpression(allowref,betweenbracket:boolean): tcgint;
       var
-        l : aint;
+        l : tcgint;
         hs : string;
         hssymtyp : TAsmSymType;
       begin
@@ -1700,7 +1700,7 @@ unit raatt;
 
     Procedure tattreader.BuildConstantOperand(oper : toperand);
       var
-        l : aint;
+        l : tcgint;
         tempstr : string;
         tempsymtyp : TAsmSymType;
       begin
@@ -1722,7 +1722,7 @@ unit raatt;
       var
        asmsymtyp : TAsmSymType;
        asmsym: string;
-       value : aint;
+       value : tcgint;
        ai:tai_const;
       begin
         repeat

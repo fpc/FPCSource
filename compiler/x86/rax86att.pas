@@ -330,7 +330,7 @@ Implementation
       var
         relsym: string;
         asmsymtyp: tasmsymtype;
-        l: aint;
+        l: tcgint;
         sym: tasmsymbol;
       begin
         case actasmtoken of
@@ -401,7 +401,7 @@ Implementation
       var
         tempstr,
         expr : string;
-        typesize,l,k : aint;
+        typesize,l,k : tcgint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -426,7 +426,7 @@ Implementation
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;

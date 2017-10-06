@@ -795,7 +795,7 @@ interface
            procedure derefimpl;override;
            procedure SetCondition(const c:TAsmCond);
            procedure allocate_oper(opers:longint);
-           procedure loadconst(opidx:longint;l:aint);
+           procedure loadconst(opidx:longint;l:tcgint);
            procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
            procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset,forceref:boolean);
            procedure loadref(opidx:longint;const r:treference);
@@ -2553,7 +2553,7 @@ implementation
       end;
 
 
-    procedure tai_cpu_abstract.loadconst(opidx:longint;l:aint);
+    procedure tai_cpu_abstract.loadconst(opidx:longint;l:tcgint);
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do

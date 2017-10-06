@@ -31,7 +31,7 @@ unit raavr;
       rautils;
 
     type
-      TAVROperand=class(TOperand)
+       TAVROperand=class(TOperand)
       end;
 
       TAVRInstruction=class(TInstruction)
