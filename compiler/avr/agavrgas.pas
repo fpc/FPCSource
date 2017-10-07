@@ -119,7 +119,9 @@ unit agavrgas;
                   if assigned(symbol) then
                     s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
 
-                  if offset<0 then
+                  if s='' then
+                    s:=tostr(offset)
+                  else if offset<0 then
                     s:=s+tostr(offset)
                   else if offset>0 then
                     s:=s+'+'+tostr(offset);
