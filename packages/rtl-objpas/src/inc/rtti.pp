@@ -153,7 +153,7 @@ type
 
   { TRttiObject }
 
-  TRttiObject = class
+  TRttiObject = class abstract
   public
 
   end;
