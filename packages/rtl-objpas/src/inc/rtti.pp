@@ -284,7 +284,6 @@ type
     function GetTypeSize: integer; override;
     function GetBaseType: TRttiType; override;
   public
-    destructor Destroy; override;
     function GetProperties: specialize TArray<TRttiProperty>; override;
     property MetaClassType: TClass read GetMetaClassType;
     property DeclaringUnitName: string read GetDeclaringUnitName;
@@ -1671,14 +1670,6 @@ begin
   Result:=sizeof(TObject);
 end;
 
-destructor TRttiInstanceType.Destroy;
-var
-  i: Integer;
-begin
-  for i := 0 to high(FProperties) do
-    FProperties[i].Free;
-end;
-
 function TRttiInstanceType.GetProperties: specialize TArray<TRttiProperty>;
 type
   PPropData = ^TPropData;
@@ -1689,6 +1680,7 @@ var
   PPD: PPropData;
   TP: PPropInfo;
   Count: longint;
+  obj: TRttiObject;
 begin
   if not FPropertiesResolved then
     begin
@@ -1711,8 +1703,15 @@ begin
         While Count>0 do
           begin
             // Don't overwrite properties with the same name
-            if FProperties[TP^.NameIndex]=nil then
-              FProperties[TP^.NameIndex]:=TRttiProperty.Create(TypeRttiType, TP);
+            if FProperties[TP^.NameIndex]=nil then begin
+              obj := GRttiPool.GetByHandle(TP);
+              if Assigned(obj) then
+                FProperties[TP^.NameIndex] := obj as TRttiProperty
+              else begin
+                FProperties[TP^.NameIndex] := TRttiProperty.Create(TypeRttiType, TP);
+                GRttiPool.AddObject(FProperties[TP^.NameIndex]);
+              end;
+            end;
 
             // Point to TP next propinfo record.
             // Located at Name[Length(Name)+1] !

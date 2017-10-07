@@ -76,6 +76,10 @@ type
     property PubPropSetRO: integer read FPubPropRO;
     property PubPropSetRW: integer read FPubPropRW write FPubPropRW;
   end;
+
+  TGetClassPropertiesSub = class(TGetClassProperties)
+
+  end;
   {$M-}
 
   { TTestValueClass }
@@ -864,7 +868,8 @@ procedure TTestCase1.GetClassProperties;
 var
   LContext: TRttiContext;
   LType: TRttiType;
-  PropList: {$ifdef fpc}specialize{$endif} TArray<TRttiProperty>;
+  PropList, PropList2: {$ifdef fpc}specialize{$endif} TArray<TRttiProperty>;
+  i: LongInt;
 begin
   LContext := TRttiContext.Create;
 
@@ -876,6 +881,13 @@ begin
   CheckEquals('PubPropRW', PropList[1].Name);
   CheckEquals('PubPropSetRO', PropList[2].Name);
   CheckEquals('PubPropSetRW', PropList[3].Name);
+
+  LType := LContext.GetType(TypeInfo(TGetClassPropertiesSub));
+  PropList2 := LType.GetProperties;
+
+  CheckEquals(Length(PropList), Length(PropList2));
+  for i := 0 to High(PropList) do
+    Check(PropList[i] = PropList2[i], 'Property instances are not equal');
 
   LContext.Free;
 end;
