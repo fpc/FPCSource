@@ -1671,8 +1671,6 @@ begin
 end;
 
 function TRttiInstanceType.GetProperties: specialize TArray<TRttiProperty>;
-type
-  PPropData = ^TPropData;
 var
   TypeInfo: PTypeInfo;
   TypeRttiType: TRttiType;
