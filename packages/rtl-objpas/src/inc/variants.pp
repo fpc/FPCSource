@@ -3494,8 +3494,6 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
     vararraybounds : PVarArrayBoundArray;
     dynarraybounds : tdynarraybounds;
     i : SizeInt;
-  type
-    TDynArray = array of Pointer;
   begin
     VarArrayDims:=VarArrayDimCount(V);
 
