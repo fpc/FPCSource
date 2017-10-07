@@ -154,8 +154,10 @@ type
   { TRttiObject }
 
   TRttiObject = class abstract
+  protected
+    function GetHandle: Pointer; virtual; abstract;
   public
-
+    property Handle: Pointer read GetHandle;
   end;
 
   { TRttiNamedObject }
@@ -163,10 +165,8 @@ type
   TRttiNamedObject = class(TRttiObject)
   protected
     function GetName: string; virtual;
-    function GetHandle: Pointer; virtual; abstract;
   public
     property Name: string read GetName;
-    property Handle: Pointer read GetHandle;
   end;
 
   { TRttiType }
