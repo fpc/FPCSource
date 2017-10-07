@@ -426,6 +426,26 @@ unit typinfo;
         { PropertyTable: TPropData }
       end;
 
+      PClassData = ^TClassData;
+      TClassData =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        function GetUnitName: ShortString; inline;
+        function GetPropertyTable: PPropData; inline;
+      public
+        ClassType : TClass;
+        Parent : PPTypeInfo;
+        PropCount : SmallInt;
+        property UnitName: ShortString read GetUnitName;
+        property PropertyTable: PPropData read GetPropertyTable;
+      private
+        UnitNameField : ShortString;
+        { PropertyTable: TPropData }
+      end;
+
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -2849,6 +2869,21 @@ end;
 function TInterfaceRawData.GetMethodTable: PIntfMethodTable;
 begin
   Result := aligntoptr(PropertyTable^.Tail);
+end;
+
+{ TClassData }
+
+function TClassData.GetUnitName: ShortString;
+begin
+  Result := UnitNameField;
+end;
+
+function TClassData.GetPropertyTable: PPropData;
+var
+  p: PByte;
+begin
+  p := PByte(@UnitNameField[0]) + SizeOf(UnitNameField[0]) + Length(UnitNameField);
+  Result := AlignTypeData(p);
 end;
 
 { TTypeData }
