@@ -1692,7 +1692,7 @@ begin
 
         // published properties count for this object
         // skip the attribute-info if available
-        PPD := aligntoptr(PPropData(pointer(@TD^.UnitName)+PByte(@TD^.UnitName)^+1));
+        PPD := PClassData(TD)^.PropertyTable;
         Count:=PPD^.PropCount;
         // Now point TP to first propinfo record.
         TP:=PPropInfo(@PPD^.PropList);
@@ -1711,7 +1711,7 @@ begin
 
             // Point to TP next propinfo record.
             // Located at Name[Length(Name)+1] !
-            TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
+            TP:=TP^.Next;
             Dec(Count);
           end;
         TypeInfo:=TD^.Parentinfo;
