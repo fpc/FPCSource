@@ -355,6 +355,9 @@ resourcestring
 
 implementation
 
+uses
+  fgl;
+
 function aligntoptr(p : pointer) : pointer;inline;
    begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -383,13 +386,18 @@ type
   { TRttiPool }
 
   TRttiPool = class
+  private type
+    TRttiObjectMap = specialize TFPGMap<Pointer, TRttiObject>;
   private
+    FObjectMap: TRttiObjectMap;
     FTypesList: specialize TArray<TRttiType>;
     FTypeCount: LongInt;
     FLock: TRTLCriticalSection;
   public
     function GetTypes: specialize TArray<TRttiType>;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
+    function GetByHandle(aHandle: Pointer): TRttiObject;
+    procedure AddObject(aObject: TRttiObject);
     constructor Create;
     destructor Destroy; override;
   end;
@@ -431,6 +439,8 @@ resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
   SErrUnableToSetValueForType = 'Unable to set value for type %s';
   SErrInvalidTypecast         = 'Invalid class typecast';
+  SErrRttiObjectNoHandle      = 'RTTI object instance has no valid handle property';
+  SErrRttiObjectAlreadyRegistered = 'A RTTI object with handle 0x%x is already registered';
 
 var
   PoolRefCount : integer;
@@ -674,6 +684,7 @@ end;
 function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
 var
   i: integer;
+  obj: TRttiObject;
 begin
   if not Assigned(ATypeInfo) then
     Exit(Nil);
@@ -682,14 +693,9 @@ begin
   try
 {$endif}
     Result := Nil;
-    for i := 0 to FTypeCount - 1 do
-      begin
-        if FTypesList[i].FTypeInfo = ATypeInfo then
-          begin
-            Result := FTypesList[i];
-            Break;
-          end;
-      end;
+    obj := GetByHandle(ATypeInfo);
+    if Assigned(obj) then
+      Result := obj as TRttiType;
     if not Assigned(Result) then
       begin
         if FTypeCount = Length(FTypesList) then
@@ -709,8 +715,55 @@ begin
           Result := TRttiType.Create(ATypeInfo);
         end;
         FTypesList[FTypeCount] := Result;
+        FObjectMap.Add(ATypeInfo, Result);
         Inc(FTypeCount);
       end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(FLock);
+  end;
+{$endif}
+end;
+
+function TRttiPool.GetByHandle(aHandle: Pointer): TRttiObject;
+var
+  idx: LongInt;
+begin
+  if not Assigned(aHandle) then
+    Exit(Nil);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(FLock);
+  try
+{$endif}
+    idx := FObjectMap.IndexOf(aHandle);
+    if idx < 0 then
+      Result := Nil
+    else
+      Result := FObjectMap.Data[idx];
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(FLock);
+  end;
+{$endif}
+end;
+
+procedure TRttiPool.AddObject(aObject: TRttiObject);
+var
+  idx: LongInt;
+begin
+  if not Assigned(aObject) then
+    Exit;
+  if not Assigned(aObject.Handle) then
+    raise EArgumentException.Create(SErrRttiObjectNoHandle);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(FLock);
+  try
+{$endif}
+    idx := FObjectMap.IndexOf(aObject.Handle);
+    if idx < 0 then
+      FObjectMap.Add(aObject.Handle, aObject)
+    else if FObjectMap.Data[idx] <> aObject then
+      raise EInvalidOpException.CreateFmt(SErrRttiObjectAlreadyRegistered, [aObject.Handle]);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalsection(FLock);
@@ -724,14 +777,16 @@ begin
   InitCriticalSection(FLock);
 {$endif}
   SetLength(FTypesList, 32);
+  FObjectMap := TRttiObjectMap.Create;
 end;
 
 destructor TRttiPool.Destroy;
 var
   i: LongInt;
 begin
-  for i := 0 to length(FTypesList)-1 do
-    FTypesList[i].Free;
+  for i := 0 to FObjectMap.Count - 1 do
+    FObjectMap.Data[i].Free;
+  FObjectMap.Free;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalsection(FLock);
 {$endif}
