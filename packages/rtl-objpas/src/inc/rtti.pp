@@ -174,8 +174,6 @@ type
   TRttiType = class(TRttiNamedObject)
   private
     FTypeInfo: PTypeInfo;
-    FPropertiesResolved: boolean;
-    FProperties: specialize TArray<TRttiProperty>;
     function GetAsInstance: TRttiInstanceType;
   protected
     FTypeData: PTypeData;
@@ -191,9 +189,8 @@ type
     function GetBaseType: TRttiType; virtual;
   public
     constructor create(ATypeInfo : PTypeInfo);
-    function GetProperties: specialize TArray<TRttiProperty>;
+    function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
-    destructor destroy; override;
     property IsInstance: boolean read GetIsInstance;
     property isManaged: boolean read GetIsManaged;
     property IsOrdinal: boolean read GetIsOrdinal;
@@ -278,6 +275,8 @@ type
 
   TRttiInstanceType = class(TRttiStructuredType)
   private
+    FPropertiesResolved: Boolean;
+    FProperties: specialize TArray<TRttiProperty>;
     function GetDeclaringUnitName: string;
     function GetMetaClassType: TClass;
   protected
@@ -285,6 +284,8 @@ type
     function GetTypeSize: integer; override;
     function GetBaseType: TRttiType; override;
   public
+    destructor Destroy; override;
+    function GetProperties: specialize TArray<TRttiProperty>; override;
     property MetaClassType: TClass read GetMetaClassType;
     property DeclaringUnitName: string read GetDeclaringUnitName;
   end;
@@ -1615,6 +1616,62 @@ begin
   Result:=sizeof(TObject);
 end;
 
+destructor TRttiInstanceType.Destroy;
+var
+  i: Integer;
+begin
+  for i := 0 to high(FProperties) do
+    FProperties[i].Free;
+end;
+
+function TRttiInstanceType.GetProperties: specialize TArray<TRttiProperty>;
+type
+  PPropData = ^TPropData;
+var
+  TypeInfo: PTypeInfo;
+  TypeRttiType: TRttiType;
+  TD: PTypeData;
+  PPD: PPropData;
+  TP: PPropInfo;
+  Count: longint;
+begin
+  if not FPropertiesResolved then
+    begin
+      TypeInfo := FTypeInfo;
+
+      // Get the total properties count
+      SetLength(FProperties,FTypeData^.PropCount);
+      // Clear list
+      FillChar(FProperties[0],FTypeData^.PropCount*sizeof(TRttiProperty),0);
+      TypeRttiType:= self;
+      repeat
+        TD:=GetTypeData(TypeInfo);
+
+        // published properties count for this object
+        // skip the attribute-info if available
+        PPD := aligntoptr(PPropData(pointer(@TD^.UnitName)+PByte(@TD^.UnitName)^+1));
+        Count:=PPD^.PropCount;
+        // Now point TP to first propinfo record.
+        TP:=PPropInfo(@PPD^.PropList);
+        While Count>0 do
+          begin
+            // Don't overwrite properties with the same name
+            if FProperties[TP^.NameIndex]=nil then
+              FProperties[TP^.NameIndex]:=TRttiProperty.Create(TypeRttiType, TP);
+
+            // Point to TP next propinfo record.
+            // Located at Name[Length(Name)+1] !
+            TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
+            Dec(Count);
+          end;
+        TypeInfo:=TD^.Parentinfo;
+        TypeRttiType:= GRttiPool.GetType(TypeInfo);
+      until TypeInfo=nil;
+    end;
+
+  result := FProperties;
+end;
+
 { TRttiMember }
 
 function TRttiMember.GetVisibility: TMemberVisibility;
@@ -1880,51 +1937,8 @@ begin
 end;
 
 function TRttiType.GetProperties: specialize TArray<TRttiProperty>;
-type
-  PPropData = ^TPropData;
-var
-  TypeInfo: PTypeInfo;
-  TypeRttiType: TRttiType;
-  TD: PTypeData;
-  PPD: PPropData;
-  TP: PPropInfo;
-  Count: longint;
 begin
-  if not FPropertiesResolved then
-    begin
-      TypeInfo := FTypeInfo;
-
-      // Get the total properties count
-      SetLength(FProperties,FTypeData^.PropCount);
-      // Clear list
-      FillChar(FProperties[0],FTypeData^.PropCount*sizeof(TRttiProperty),0);
-      TypeRttiType:= self;
-      repeat
-        TD:=GetTypeData(TypeInfo);
-
-        // published properties count for this object
-        // skip the attribute-info if available
-        PPD := aligntoptr(PPropData(pointer(@TD^.UnitName)+PByte(@TD^.UnitName)^+1));
-        Count:=PPD^.PropCount;
-        // Now point TP to first propinfo record.
-        TP:=PPropInfo(@PPD^.PropList);
-        While Count>0 do
-          begin
-            // Don't overwrite properties with the same name
-            if FProperties[TP^.NameIndex]=nil then
-              FProperties[TP^.NameIndex]:=TRttiProperty.Create(TypeRttiType, TP);
-
-            // Point to TP next propinfo record.
-            // Located at Name[Length(Name)+1] !
-            TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
-            Dec(Count);
-          end;
-        TypeInfo:=TD^.Parentinfo;
-        TypeRttiType:= GRttiPool.GetType(TypeInfo);
-      until TypeInfo=nil;
-    end;
-
-  result := FProperties;
+  Result := Nil;
 end;
 
 function TRttiType.GetProperty(const AName: string): TRttiProperty;
@@ -1940,15 +1954,6 @@ begin
         result := FPropList[i];
         break;
       end;
-end;
-
-destructor TRttiType.Destroy;
-var
-  i: Integer;
-begin
-  for i := 0 to high(FProperties) do
-    FProperties[i].Free;
-  inherited destroy;
 end;
 
 { TRttiNamedObject }
