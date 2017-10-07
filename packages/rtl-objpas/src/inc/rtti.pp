@@ -1686,8 +1686,6 @@ begin
 
       // Get the total properties count
       SetLength(FProperties,FTypeData^.PropCount);
-      // Clear list
-      FillChar(FProperties[0],FTypeData^.PropCount*sizeof(TRttiProperty),0);
       TypeRttiType:= self;
       repeat
         TD:=GetTypeData(TypeInfo);
