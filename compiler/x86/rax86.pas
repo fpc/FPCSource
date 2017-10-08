@@ -1262,7 +1262,7 @@ begin
                      if siz=S_FAR then
                        asize:=OT_FAR
                      else
-                       asize:=OT_BITS16;
+                       asize:=OT_BITS32;
 {$else i8086}
                      asize:=OT_BITS32;
 {$endif i8086}
