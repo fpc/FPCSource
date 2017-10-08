@@ -107,6 +107,7 @@ interface
           function handle_unbox: tnode;
           function handle_insert:tnode;
           function handle_delete:tnode;
+          function handle_concat:tnode;
        end;
        tinlinenodeclass = class of tinlinenode;
 
@@ -3589,6 +3590,10 @@ implementation
                 begin
                   result:=handle_insert;
                 end;
+              in_concat_x:
+                begin
+                  result:=handle_concat;
+                end;
               else
                 internalerror(8);
             end;
@@ -4825,6 +4830,52 @@ implementation
            end;
          result:=ccallnode.createintern(procname,left);
          left:=nil;
+       end;
+
+
+     function tinlinenode.handle_concat:tnode;
+
+       procedure do_error;
+         begin
+           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Concat');
+           MessagePos1(fileinfo,sym_e_param_list,'Concat(String[;String;...])');
+         end;
+
+       var
+         cpn : tcallparanode;
+       begin
+         if not assigned(left) then
+           begin
+             do_error;
+             exit(cerrornode.create);
+           end;
+         result:=nil;
+         { the arguments are right to left, but we need them left to right
+           with the correct nesting }
+         cpn:=tcallparanode(left);
+         while assigned(cpn) do
+           begin
+             if assigned(result) then
+               begin
+                 if result.nodetype=addn then
+                   taddnode(result).left:=caddnode.create(addn,cpn.left,taddnode(result).left)
+                 else
+                   result:=caddnode.create(addn,cpn.left,result);
+               end
+             else
+               begin
+                 result:=cpn.left;
+                 { Force string type if it isn't yet }
+                 if not(
+                        (result.resultdef.typ=stringdef) or
+                        is_chararray(result.resultdef) or
+                        is_char(result.resultdef)
+                       ) then
+                   inserttypeconv(result,cshortstringtype);
+               end;
+             cpn.left:=nil;
+             cpn:=tcallparanode(cpn.right);
+           end;
        end;
 
 

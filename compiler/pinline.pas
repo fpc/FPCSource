@@ -40,6 +40,7 @@ interface
     function inline_copy : tnode;
     function inline_insert : tnode;
     function inline_delete : tnode;
+    function inline_concat : tnode;
 
 
 implementation
@@ -667,6 +668,12 @@ implementation
     function inline_delete: tnode;
       begin
         result:=inline_copy_insert_delete(in_delete_x_y_z,'Delete',false);
+      end;
+
+
+    function inline_concat: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_concat_x,'Concat',false);
       end;
 
 

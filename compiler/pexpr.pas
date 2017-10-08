@@ -714,29 +714,7 @@ implementation
 
           in_concat_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
-              { Translate to x:=x+y[+z]. The addnode will do the
-                type checking }
-              p2:=nil;
-              repeat
-                p1:=comp_expr([ef_accept_equal]);
-                if p2<>nil then
-                  p2:=caddnode.create(addn,p2,p1)
-                else
-                  begin
-                    { Force string type if it isn't yet }
-                    if not(
-                           (p1.resultdef.typ=stringdef) or
-                           is_chararray(p1.resultdef) or
-                           is_char(p1.resultdef)
-                          ) then
-                      inserttypeconv(p1,cshortstringtype);
-                    p2:=p1;
-                  end;
-              until not try_to_consume(_COMMA);
-              consume(_RKLAMMER);
-              statement_syssym:=p2;
+              statement_syssym:=inline_concat;
             end;
 
           in_read_x,
