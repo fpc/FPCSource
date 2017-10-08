@@ -632,7 +632,7 @@ implementation
       end;
 
 
-    function inline_copy_insert_delete(nr:tinlinenumber;name:string) : tnode;
+    function inline_copy_insert_delete(nr:tinlinenumber;name:string;checkempty:boolean) : tnode;
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }
@@ -642,7 +642,7 @@ implementation
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
-        if not assigned(paras) then
+        if not assigned(paras) and checkempty then
           begin
             CGMessage1(parser_e_wrong_parameter_size,name);
             exit;
@@ -654,19 +654,19 @@ implementation
 
     function inline_copy: tnode;
       begin
-        result:=inline_copy_insert_delete(in_copy_x,'Copy');
+        result:=inline_copy_insert_delete(in_copy_x,'Copy',true);
       end;
 
 
     function inline_insert: tnode;
       begin
-        result:=inline_copy_insert_delete(in_insert_x_y_z,'Insert');
+        result:=inline_copy_insert_delete(in_insert_x_y_z,'Insert',false);
       end;
 
 
     function inline_delete: tnode;
       begin
-        result:=inline_copy_insert_delete(in_delete_x_y_z,'Delete');
+        result:=inline_copy_insert_delete(in_delete_x_y_z,'Delete',false);
       end;
 
 
