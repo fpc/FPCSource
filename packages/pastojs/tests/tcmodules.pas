@@ -8289,18 +8289,23 @@ end;
 procedure TTestModule.TestClass_RaiseDescendant;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('    constructor Create(Msg: string);');
-  Add('  end;');
-  Add('  Exception = class');
-  Add('  end;');
-  Add('  EConvertError = class(Exception)');
-  Add('  end;');
-  Add('constructor TObject.Create(Msg: string); begin end;');
-  Add('begin');
-  Add('  raise Exception.Create(''Bar1'');');
-  Add('  raise EConvertError.Create(''Bar2'');');
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(Msg: string);',
+  '  end;',
+  '  Exception = class',
+  '  end;',
+  '  EConvertError = class(Exception)',
+  '  end;',
+  'constructor TObject.Create(Msg: string); begin end;',
+  'function AssertConv(Msg: string = ''def''): EConvertError; begin end;',
+  'begin',
+  '  raise Exception.Create(''Bar1'');',
+  '  raise EConvertError.Create(''Bar2'');',
+  '  raise AssertConv(''Bar2'');',
+  '  raise AssertConv;',
+  '']);
   ConvertProgram;
   CheckSource('TestClass_RaiseDescendant',
     LinesToStr([ // statements
@@ -8316,10 +8321,16 @@ begin
     '});',
     'rtl.createClass($mod, "EConvertError", $mod.Exception, function () {',
     '});',
+    'this.AssertConv = function (Msg) {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
     'throw $mod.Exception.$create("Create",["Bar1"]);',
     'throw $mod.EConvertError.$create("Create",["Bar2"]);',
+    'throw $mod.AssertConv("Bar2");',
+    'throw $mod.AssertConv("def");',
     '']));
 end;
 
