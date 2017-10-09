@@ -3912,6 +3912,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
 **2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
+**2Sj_Allows typed constants to be writeable (default in all modes)
 **2Sk_Load fpcylix unit
 **2SI<x>_Set interface style to <x>
 **3SIcom_COM compatible interface (default)

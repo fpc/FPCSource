@@ -2038,6 +2038,11 @@ begin
                            exclude(init_settings.localswitches,cs_do_inline)
                          else
                            include(init_settings.localswitches,cs_do_inline);
+                       'j' :
+                         If UnsetBool(More, j, opt, false) then
+                           exclude(init_settings.localswitches,cs_typed_const_writable)
+                         else
+                           include(init_settings.localswitches,cs_typed_const_writable);
                        'k' :
                          If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.globalswitches,cs_load_fpcylix_unit)
