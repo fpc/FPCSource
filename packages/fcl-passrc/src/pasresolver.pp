@@ -5111,10 +5111,16 @@ begin
     if ResolvedEl.IdentEl<>nil then
       begin
       if (ResolvedEl.IdentEl is TPasVariable)
-          or (ResolvedEl.IdentEl is TPasArgument) then
+          or (ResolvedEl.IdentEl is TPasArgument)
+          or (ResolvedEl.IdentEl is TPasResultElement) then
       else
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.ResolveImplRaise ',GetResolverResultDbg(ResolvedEl));
+        {$ENDIF}
         RaiseMsg(20170216152133,nXExpectedButYFound,sXExpectedButYFound,
                  ['variable',ResolvedEl.IdentEl.ElementTypeName],El.ExceptObject);
+        end;
       end
     else if ResolvedEl.ExprEl<>nil then
     else
@@ -11385,6 +11391,7 @@ begin
     begin
     LBT:=GetActualBaseType(LHS.BaseType);
     RBT:=GetActualBaseType(RHS.BaseType);
+    writeln('AAA1 TPasResolver.CheckAssignResCompatibility ',lbt,' ',rbt);
     if LHS.TypeEl=nil then
       begin
       if LBT=btUntyped then
@@ -11515,7 +11522,14 @@ begin
           [],ErrorEl);
       exit(cIncompatible);
       end
-    else if LBT in [btRange,btSet,btModule,btProc] then
+    else if LBT=btRange then
+      begin
+      // ToDo:
+      if RaiseOnIncompatible then
+        RaiseMsg(20171006004132,nIllegalExpression,sIllegalExpression,[],ErrorEl);
+      exit(cIncompatible);
+      end
+    else if LBT in [btSet,btModule,btProc] then
       begin
       if RaiseOnIncompatible then
         RaiseMsg(20170216152432,nIllegalExpression,sIllegalExpression,[],ErrorEl);
