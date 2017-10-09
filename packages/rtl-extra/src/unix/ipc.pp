@@ -673,13 +673,13 @@ const
 {$endif}
 
 {$if not defined(aix)}
-  SEM_GETNCNT = 3;   { Return the value of sempid (READ)  }
-  SEM_GETPID  = 4;   { Return the value of semval (READ)  }
-  SEM_GETVAL  = 5;   { Return semvals into arg.array (READ)  }
-  SEM_GETALL  = 6;   { Return the value of semzcnt (READ)  }
-  SEM_GETZCNT = 7;   { Set the value of semval to arg.val (ALTER)  }
-  SEM_SETVAL  = 8;   { Set semvals from arg.array (ALTER)  }
-  SEM_SETALL  = 9;
+  SEM_GETNCNT = 3;   { Return the value of semncnt (READ)  }
+  SEM_GETPID  = 4;   { Return the value of sempid (READ)  }
+  SEM_GETVAL  = 5;   { Return the value of semval (READ)  }
+  SEM_GETALL  = 6;   { Return semvals into arg.array (READ)  }
+  SEM_GETZCNT = 7;   { Return the value of semzcnt (READ)  }
+  SEM_SETVAL  = 8;   { Set the value of semval to arg.val (ALTER)  }
+  SEM_SETALL  = 9;   { Set semvals from arg.array (ALTER)  }
 {$endif}
 
   { Permissions  }
