@@ -920,7 +920,7 @@ type
     FLastMsgType: TMessageType;
     FLastSourcePos: TPasSourcePos;
     FOptions: TPasResolverOptions;
-    FPendingForwards: TFPList; // list of TPasElement needed to check for forward procs
+    FPendingForwardProcs: TFPList; // list of TPasElement needed to check for forward procs
     FRootElement: TPasModule;
     FScopeClass_Class: TPasClassScopeClass;
     FScopeClass_Proc: TPasProcedureScopeClass;
@@ -1055,7 +1055,7 @@ type
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
-    procedure CheckPendingForwards(El: TPasElement);
+    procedure CheckPendingForwardProcs(El: TPasElement);
     procedure ComputeBinaryExpr(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -3121,9 +3121,9 @@ begin
 
   // check all methods have bodies
   // and all forward classes and pointers are resolved
-  for i:=0 to FPendingForwards.Count-1 do
-    CheckPendingForwards(TPasElement(FPendingForwards[i]));
-  FPendingForwards.Clear;
+  for i:=0 to FPendingForwardProcs.Count-1 do
+    CheckPendingForwardProcs(TPasElement(FPendingForwardProcs[i]));
+  FPendingForwardProcs.Clear;
 
   // close all sections
   while (TopScope<>nil) and (TopScope.ClassType=TPasSectionScope) do
@@ -6046,7 +6046,7 @@ begin
     end;
 end;
 
-procedure TPasResolver.CheckPendingForwards(El: TPasElement);
+procedure TPasResolver.CheckPendingForwardProcs(El: TPasElement);
 var
   i: Integer;
   DeclEl: TPasElement;
@@ -6108,7 +6108,7 @@ procedure TPasResolver.AddSection(El: TPasSection);
 // TInterfaceSection, TImplementationSection, TProgramSection, TLibrarySection
 // Note: implementation scope is within the interface scope
 begin
-  FPendingForwards.Add(El); // check forward declarations at the end
+  FPendingForwardProcs.Add(El); // check forward declarations at the end
   PushScope(El,TPasSectionScope);
 end;
 
@@ -6132,7 +6132,7 @@ begin
     RaiseInvalidScopeForElement(20160922163508,El);
   if El.Name<>'' then begin
     AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
-    FPendingForwards.Add(El); // check forward declarations at the end
+    FPendingForwardProcs.Add(El); // check forward declarations at the end
   end;
 
   if El.Parent.ClassType<>TPasVariant then
@@ -6177,7 +6177,7 @@ begin
   else
     AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
 
-  FPendingForwards.Add(El); // check forward declarations at the end
+  FPendingForwardProcs.Add(El); // check forward declarations at the end
 end;
 
 procedure TPasResolver.AddVariable(El: TPasVariable);
@@ -9350,7 +9350,7 @@ constructor TPasResolver.Create;
 begin
   inherited Create;
   FDefaultScope:=TPasDefaultScope.Create;
-  FPendingForwards:=TFPList.Create;
+  FPendingForwardProcs:=TFPList.Create;
   FBaseTypeChar:=btAnsiChar;
   FBaseTypeString:=btAnsiString;
   FBaseTypeExtended:=btDouble;
@@ -10059,7 +10059,7 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasResolver.Destroy FPendingForwards...');
   {$ENDIF}
-  FreeAndNil(FPendingForwards);
+  FreeAndNil(FPendingForwardProcs);
   FreeAndNil(fExprEvaluator);
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
@@ -11391,7 +11391,6 @@ begin
     begin
     LBT:=GetActualBaseType(LHS.BaseType);
     RBT:=GetActualBaseType(RHS.BaseType);
-    writeln('AAA1 TPasResolver.CheckAssignResCompatibility ',lbt,' ',rbt);
     if LHS.TypeEl=nil then
       begin
       if LBT=btUntyped then
@@ -14290,9 +14289,7 @@ begin
   writeln('TPasResolver.CheckClassIsClass SrcType=',GetObjName(SrcType),' DestType=',GetObjName(DestType));
   {$ENDIF}
   if DestType=nil then exit(cIncompatible);
-  // skip Dest alias
-  while (DestType.ClassType=TPasAliasType) do
-    DestType:=TPasAliasType(DestType).DestType;
+  DestType:=ResolveAliasType(DestType);
 
   Result:=cExact;
   while SrcType<>nil do

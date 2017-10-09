@@ -486,6 +486,7 @@ type
     Procedure TestClassOf_AlwaysForward;
     Procedure TestClassOf_ClassOfBeforeClass_FuncResult;
     Procedure TestClassOf_Const;
+    Procedure TestClassOf_Const2;
 
     // property
     Procedure TestProperty1;
@@ -7949,6 +7950,25 @@ begin
   '    TBird,',
   '    THawk',
   '  );',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassOf_Const2;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TFieldType = (fta,ftb);',
+  '  TField = Class;',
+  '  TFieldClass = class of TField;',
+  '  TField = Class(TObject);',
+  '  TFieldA = Class(TField);',
+  '  TFieldB = Class(TField);',
+  'Const',
+  '  DefaultFieldClasses : Array [TFieldType] of TFieldClass = (TFieldA,TFieldB);',
   'begin']);
   ParseProgram;
 end;
