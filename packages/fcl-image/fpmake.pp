@@ -264,6 +264,7 @@ begin
     T:=P.Targets.AddUnit('fpimggauss.pp');
     With T.Dependencies do
       AddUnit('fpimage');
+      
     T:=P.Targets.AddUnit('fpbarcode.pp');
     T:=P.Targets.AddUnit('fpimgbarcode.pp');
     With T.Dependencies do
@@ -271,6 +272,16 @@ begin
       AddUnit('fpimage');
       AddUnit('fpcanvas');
       Addunit('fpimgcmn');
+      AddUnit('fpbarcode');
+      end;
+    T:=P.Targets.AddUnit('fpqrcodegen.pp');
+    T:=P.Targets.AddUnit('fpimgqrcode.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpimage');
+      AddUnit('fpcanvas');
+      Addunit('fpimgcmn');
+      AddUnit('fpqrcodegen');
       end;
 
     P.ExamplePath.Add('examples');
