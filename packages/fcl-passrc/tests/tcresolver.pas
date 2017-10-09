@@ -3089,7 +3089,6 @@ end;
 
 procedure TTestResolver.TestEnumRange;
 begin
-  exit;
   StartProgram(false);
   Add([
   'type',
@@ -3097,10 +3096,20 @@ begin
   '  TEnumRg = b..d;',
   'const',
   '  c1: TEnumRg = c;',
-  '  c2 = succ(low(TEnumRg));',
-  '  c3 = pred(high(TEnumRg));',
-  '  c4 = TEnumRg(2);',
-  'begin']);
+  '  c2: TEnumRg = succ(low(TEnumRg));',
+  '  c3: TEnumRg = pred(high(TEnumRg));',
+  '  c4: TEnumRg = TEnumRg(2);',
+  'var',
+  '  s: TEnumRg;',
+  '  Enum: TEnum;',
+  'begin',
+  // s:=d;
+  // Enum:=s;
+  // if Enum=s then ;
+  // if s=Enum then ;
+  // if s=c then ;
+  // if c=s then ;
+  '']);
   ParseProgram;
   // see also: TestPropertyDefaultValue
   CheckResolverUnexpectedHints;

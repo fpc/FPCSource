@@ -2821,8 +2821,8 @@ begin
     end;
 end;
 
-function TResExprEvaluator.EvalArrayParamsExpr(Expr: TParamsExpr; Flags: TResEvalFlags
-  ): TResEvalValue;
+function TResExprEvaluator.EvalArrayParamsExpr(Expr: TParamsExpr;
+  Flags: TResEvalFlags): TResEvalValue;
 var
   ArrayValue, IndexValue: TResEvalValue;
   Int: MaxPrecInt;
