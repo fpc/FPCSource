@@ -24,6 +24,7 @@ uses
   rptcontnr,
   rptnestedgroups,
   rptBarcode,
+  rptQRcode,
   udapp
   ;
 
@@ -59,6 +60,7 @@ begin
   R('objectlistdata',TObjectListDemo);
   R('nestedgroups',TNestedGroupsDemo);
   R('barcode',TBarcodeDemo);
+  R('QRCode',TQRcodeDemo);
 end;
 
 initialization

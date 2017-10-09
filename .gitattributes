@@ -2787,6 +2787,7 @@ packages/fcl-report/demos/rptjson.pp svneol=native#text/plain
 packages/fcl-report/demos/rptmasterdetail.pp svneol=native#text/plain
 packages/fcl-report/demos/rptmasterdetaildataset.pp svneol=native#text/plain
 packages/fcl-report/demos/rptnestedgroups.pp svneol=native#text/plain
+packages/fcl-report/demos/rptqrcode.pp svneol=native#text/plain
 packages/fcl-report/demos/rptshapes.pp svneol=native#text/plain
 packages/fcl-report/demos/rptsimplelist.pp svneol=native#text/plain
 packages/fcl-report/demos/rptttf.pp svneol=native#text/plain
@@ -2813,6 +2814,7 @@ packages/fcl-report/src/fpreporthtmlparser.pp svneol=native#text/plain
 packages/fcl-report/src/fpreporthtmlutil.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportjson.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportpdfexport.pp svneol=native#text/plain
+packages/fcl-report/src/fpreportqrcode.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportstreamer.pp svneol=native#text/plain
 packages/fcl-report/test/fonts/LiberationSerif-Regular.ttf -text
 packages/fcl-report/test/fonts/calibri.ttf -text

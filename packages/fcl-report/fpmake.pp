@@ -109,6 +109,17 @@ begin
       AddUnit('fpreport');
       AddUnit('fpreporthtmlutil');
       end;
+    T:=P.Targets.AddUnit('fpreportbarcode.pp');
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      end;
+   T:=P.Targets.AddUnit('fpreportqrcode.pp');
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      end;
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
