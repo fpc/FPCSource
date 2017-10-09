@@ -221,7 +221,6 @@ procedure TBarcodeDemo.SetBarcodeValue(Sender: TFPReportElement);
 
 begin
   FBarcode.Value:=FReportData.FieldValues['Population'];
-  Writeln(FBarcode.Value);
 end;
 
 procedure TBarcodeDemo.InitialiseData;
