@@ -13,7 +13,7 @@ unit buildrtl;
       typinfo, fgl, classes,
       charset, character, getopts,
       fpwidestring,
-      sharemem, fpintres, windirs,
+      sharemem, exeinfo, fpintres, windirs,
       cpu, signals;
 
   implementation
