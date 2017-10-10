@@ -11455,11 +11455,12 @@ function TPasResolver.CheckAssignResCompatibility(const LHS,
   RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
   ): integer;
 var
-  TypeEl: TPasType;
+  TypeEl, RTypeEl: TPasType;
   Handled: Boolean;
   C: TClass;
   LBT, RBT: TResolverBaseType;
   LRange: TResEvalValue;
+  RightSubResolved: TPasResolverResult;
 begin
   // check if the RHS can be converted to LHS
   {$IFDEF VerbosePasResolver}
@@ -11729,8 +11730,29 @@ begin
           end;
         end;
       end
-    else if (LBT=btContext) and (LHS.TypeEl is TPasArrayType) then
-      Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible);
+    else if (LBT=btContext) then
+      begin
+      TypeEl:=ResolveAliasType(LHS.TypeEl);
+      if (TypeEl.ClassType=TPasArrayType) then
+        Result:=CheckAssignCompatibilityArrayType(LHS,RHS,ErrorEl,RaiseOnIncompatible)
+      else if TypeEl.ClassType=TPasEnumType then
+        begin
+        if (RHS.BaseType=btRange) and (RHS.SubType=btContext) then
+          begin
+          RTypeEl:=ResolveAliasType(RHS.TypeEl);
+          if RTypeEl.ClassType=TPasRangeType then
+            begin
+            ComputeElement(TPasRangeType(RTypeEl).RangeExpr.left,RightSubResolved,[rcConstant]);
+            if (RightSubResolved.BaseType=btContext)
+                and IsSameType(TypeEl,RightSubResolved.TypeEl,true) then
+              begin
+              // enumtype := enumrange
+              Result:=cExact;
+              end;
+            end;
+          end;
+        end;
+      end;
     end;
 
   if (Result>=0) and (Result<cIncompatible) then

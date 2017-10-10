@@ -3100,15 +3100,15 @@ begin
   '  c3: TEnumRg = pred(high(TEnumRg));',
   '  c4: TEnumRg = TEnumRg(2);',
   'var',
-  '  s: TEnumRg;',
+  '  er: TEnumRg;',
   '  Enum: TEnum;',
   'begin',
-  // s:=d;
-  // Enum:=s;
-  // if Enum=s then ;
-  // if s=Enum then ;
-  // if s=c then ;
-  // if c=s then ;
+  '  er:=d;',
+  '  Enum:=er;',
+  //'  if Enum=er then ;',
+  //'  if er=Enum then ;',
+  //'  if er=c then ;',
+  //'  if c=er then ;',
   '']);
   ParseProgram;
   // see also: TestPropertyDefaultValue
