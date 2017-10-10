@@ -104,7 +104,7 @@ begin
   QR.Layout.Top := 1;
   QR.Layout.Width := 34;
   QR.Layout.Height := 34;
-  QR.Value:='http://nayuki.io/';
+  QR.Value:='https://www.nayuki.io/page/qr-code-generator-library/';
   QR.Center:=True;
 
   QR:= TFPReportQRcode.Create(TitleBand);
@@ -243,7 +243,7 @@ end;
 
 procedure TQRCodeDemo.InitialiseData;
 
-Var
+var
   SL : TStringList;
   i : Integer;
   N,V : String;

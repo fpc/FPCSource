@@ -1,14 +1,9 @@
-{
+{ **********************************************************************
     This file is part of the Free Pascal class library FCL.
     Pascal translation and additions (c) 2017 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
-    The Object Pascal version of Nayuki's QR code generator
-    can be used under the FPC license with permission of the
-    original copyright owner Nayuki. (http://nayuki.io/)
-
-    Original C code for QR code generation is Copyright (c) Project Nayuki.
-    (MIT Licensed) see below for the original copyright.
+    Ported from Nayuki's library with permission (see below).
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright of the Pascal version.
@@ -17,39 +12,16 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
+    QR Code generator library (C language)
+    Copyright (c) Project Nayuki. (MIT License)
+    https://www.nayuki.io/page/qr-code-generator-library
+  **********************************************************************}
 {$mode objfpc}
 unit fpqrcodegen;
 
 interface
 
 uses sysutils;
-
-// Original copyright of C version of QR Code generator
-
-{*
- * QR Code generator library (C)
- * 
- * Copyright (c) Project Nayuki. (MIT License)
- * https://www.nayuki.io/page/qr-code-generator-library
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * - The above copyright notice and this permission notice shall be included in
- *   all copies or substantial portions of the Software.
- * - The Software is provided "as is", without warranty of any kind, express or
- *   implied, including but not limited to the warranties of merchantability,
- *   fitness for a particular purpose and noninfringement. In no event shall the
- *   authors or copyright holders be liable for any claim, damages or other
- *   liability, whether in an action of contract, tort or otherwise, arising from,
- *   out of or in connection with the Software or the use or other dealings in the
- *   Software.
- *}
-
 
 {---- Enum and struct types----}
 
@@ -75,9 +47,9 @@ Type
     // The mode indicator for this segment.
     mode : TQRMode;
     // The length of this segment's unencoded data. Always in the range [0, 32767].
-    // For numeric, alphanumeric, and kanji modes, this measures in Unicode code points.
-    // For byte mode, this measures in bytes (raw binary data, text in UTF-8, or other encodings).
-    // For ECI mode, this is always zero.
+    // for numeric, alphanumeric, and kanji modes, this measures in Unicode code points.
+    // for byte mode, this measures in bytes (raw binary data, text in UTF-8, or other encodings).
+    // for ECI mode, this is always zero.
     numChars : word;
     // The data bits of this segment, packed in bitwise big endian.
     // Can be null if the bit length is zero.
@@ -100,7 +72,7 @@ Const
   QRVERSIONMAX  = High(TQRVersion);
 
 // Calculates the number of bytes needed to store any QR Code up to and including the given version number,
-// as a compile-time constant. For example, 'uint8_t buffer[qrcodegen_BUFFER_LEN_FOR_VERSION(25)];'
+// as a compile-time constant. for example, 'uint8_t buffer[qrcodegen_BUFFER_LEN_FOR_VERSION(25)];'
 // can store any single QR Code from version 1 to 25, inclusive.
 // Requires qrcodegen_VERSION_MIN <= n <= qrcodegen_VERSION_MAX.
 Function QRBUFFER_LEN_FOR_VERSION(n : TQRVersion) : integer;
@@ -212,9 +184,9 @@ Function QRIsNumeric(atext : TQRString) : Boolean;
  *   the number of needed bits exceeds INT16_MAX (i.e. 32767).
  * - Otherwise, all valid results are in the range [0, ceil(INT16_MAX / 8)], i.e. at most 4096.
  * - It is okay for the user to allocate more bytes for the buffer than needed.
- * - For byte mode, numChars measures the number of bytes, not Unicode code points.
- * - For ECI mode, numChars must be 0, and the worst-case number of bytes is returned.
- *   An actual ECI segment can have shorter data. For non-ECI modes, the result is exact.
+ * - for byte mode, numChars measures the number of bytes, not Unicode code points.
+ * - for ECI mode, numChars must be 0, and the worst-case number of bytes is returned.
+ *   An actual ECI segment can have shorter data. for non-ECI modes, the result is exact.
  }
 Function QRCalcSegmentBufferSize(aMode: TQRMode; numChars : Cardinal) : Cardinal;
 
@@ -291,53 +263,44 @@ Function QRgetModule(qrcode : TQRBuffer; x, y : word) : Boolean;
 
 Implementation
 
-
-{---- Forward declarations for private functions ----}
-procedure appendBitsToBuffer(val : cardinal; numBits : integer; buffer : TQRBuffer; var bitLen : integer); forward;
-
-procedure appendErrorCorrection(data : TQRBuffer; version: TQRVersion; ecl:  TQRErrorLevelCorrection; Result: TQRBuffer);forward;
-function getNumDataCodewords(version : TQRVersion; ecl : TQRErrorLevelCorrection) : integer;forward;
-function getNumRawDataModules(version : TQRVersion): integer;forward;
-
 Type
   TDegree = 1..30;
   TGenerator = Array[0..29] of byte;
-procedure calcReedSolomonGenerator(degree : TDegree; out result : TGenerator);forward;
-procedure calcReedSolomonRemainder(const data : PByte; dataLen : Integer; constref generator : TGenerator; degree : TDegree; result : PByte);forward;
-
-
-function  finiteFieldMultiply(x,y : Byte) : Byte;forward;
-
-procedure initializeFunctionModules(version : TQRVersion; qrcode : TQRBuffer);forward;
-procedure drawWhiteFunctionModules(qrcode : TQRBuffer; version : TQRVersion);forward;
-procedure drawFormatBits(ecl : TQRErrorLevelCorrection; mask : TQRMask; qrcode : TQRBuffer);forward;
-
-Type
   TPatternPositions = array[0..6] of byte;
-function getAlignmentPatternPositions(version : TQRVersion; var res : TPatternPositions) : Integer;forward;
-Procedure fillRectangle(left,top,width,height : Integer; qrcode : TQRBuffer);forward;
 
-procedure drawCodewords(const data : TQRBuffer; dataLen : integer; qrcode : TQRBuffer);forward;
-procedure applyMask(Modules : TQRBuffer; qrcode : TQRBuffer; mask : TQRMask);forward;
-function getPenaltyScore(const qrcode : TQRBuffer) : int64;forward;
+{---- Forward declarations for private functions ----}
 
-function getModule(qrcode : TQRBuffer; x, y : word) : Boolean;forward;
-procedure setModule(qrcode : TQRBuffer; x,y : Word; isBlack : boolean);forward;
-procedure setModuleBounded(qrcode : TQRBuffer; x,y : Word; isBlack : Boolean);forward;
-
-function calcSegmentBitLength(mode : TQRMode; numChars : Integer) : integer;forward;
-function getTotalBits(segs : TQRSegmentArray; version : TQRVersion) : integer;forward;
-function numCharCountBits(mode : TQRMode; version : TQRVersion) : integer;forward;
+procedure appendBitsToBuffer(val : cardinal; numBits : integer; buffer : TQRBuffer; var bitLen : integer); forward;
+procedure appendErrorCorrection(data : TQRBuffer; version: TQRVersion; ecl:  TQRErrorLevelCorrection; Result: TQRBuffer); forward;
+function getNumDataCodewords(version : TQRVersion; ecl : TQRErrorLevelCorrection) : integer; forward;
+function getNumRawDataModules(version : TQRVersion): integer; forward;
+procedure calcReedSolomonGenerator(degree : TDegree; out result : TGenerator); forward;
+procedure calcReedSolomonRemainder(const data : PByte; dataLen : Integer; constref generator : TGenerator; degree : TDegree; result : PByte); forward;
+function  finiteFieldMultiply(x,y : Byte) : Byte; forward;
+procedure initializeFunctionModules(version : TQRVersion; qrcode : TQRBuffer); forward;
+procedure drawWhiteFunctionModules(qrcode : TQRBuffer; version : TQRVersion); forward;
+procedure drawFormatBits(ecl : TQRErrorLevelCorrection; mask : TQRMask; qrcode : TQRBuffer); forward;
+function getAlignmentPatternPositions(version : TQRVersion; var res : TPatternPositions) : Integer; forward;
+procedure fillRectangle(left,top,width,height : Integer; qrcode : TQRBuffer); forward;
+procedure drawCodewords(const data : TQRBuffer; dataLen : integer; qrcode : TQRBuffer); forward;
+procedure applyMask(Modules : TQRBuffer; qrcode : TQRBuffer; mask : TQRMask); forward;
+function getPenaltyScore(const qrcode : TQRBuffer) : int64; forward;
+function getModule(qrcode : TQRBuffer; x, y : word) : Boolean; forward;
+procedure setModule(qrcode : TQRBuffer; x,y : Word; isBlack : boolean); forward;
+procedure setModuleBounded(qrcode : TQRBuffer; x,y : Word; isBlack : Boolean); forward;
+function calcSegmentBitLength(mode : TQRMode; numChars : Integer) : integer; forward;
+function getTotalBits(segs : TQRSegmentArray; version : TQRVersion) : integer; forward;
+function numCharCountBits(mode : TQRMode; version : TQRVersion) : integer; forward;
 
 
 
 {---- Private tables of constants ----}
 
-// For checking text and encoding segments.
+// for checking text and encoding segments.
 const
   ALPHANUMERIC_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
 
-// For generating error correction codes.
+// for generating error correction codes.
 const
   ECC_CODEWORDS_PER_BLOCK : Array[0..3,0..40] of shortint = (
 	// Version: (note that index 0 is for padding, and is set to an illegal value)
@@ -348,7 +311,7 @@ const
 	(-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28, 24, 28, 22, 24, 24, 30, 28, 28, 26, 28, 30, 24, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30)  // High
   );
 
-// For generating error correction codes.
+// for generating error correction codes.
   NUM_ERROR_CORRECTION_BLOCKS : Array [0..3,0..40] of shortint = (
 	// Version: (note that index 0 is for padding, and is set to an illegal value)
 	//0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40    Error correction level
@@ -358,7 +321,7 @@ const
 	(-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8, 11, 11, 16, 16, 18, 16, 19, 21, 25, 25, 25, 34, 30, 32, 35, 37, 40, 42, 45, 48, 51, 54, 57, 60, 63, 66, 70, 74, 77, 81)  // High
  );
 
-// For automatic mask pattern selection.
+// for automatic mask pattern selection.
 const
   PENALTY_N1 = 3;
   PENALTY_N2 = 3;
@@ -372,7 +335,7 @@ const
 function QREncodeText(aText : TQRString; tempBuffer, qrcode : TQRBuffer;
 	ecl : TQRErrorLevelCorrection; minVersion, maxVersion : TQRVersion;  mask : TQRMask;  boostEcl : Boolean) : boolean;
 
-Var
+var
   i, buflen, textLen : Integer;
   seg : TQRSegmentArray;
   failed : Boolean;
@@ -391,17 +354,17 @@ begin
       seg[0]:=QRmakeNumeric(aText,tempBuffer);
     end
   else if (QRisAlphanumeric(aText)) then
-   begin
-   Failed:=(QRcalcSegmentBufferSize(mALPHANUMERIC, textLen) > bufLen);
-   if not Failed then
-     Seg[0]:=QRMakeAlphanumeric(aText, tempBuffer);
-   end
+    begin
+    Failed:=(QRcalcSegmentBufferSize(mALPHANUMERIC, textLen) > bufLen);
+    if not Failed then
+      Seg[0]:=QRMakeAlphanumeric(aText, tempBuffer);
+    end
   else
     begin
     Failed:=(textLen > bufLen);
     if not Failed then
       begin
-      For I:=1 to Textlen do
+      for I:=1 to Textlen do
         tempBuffer[i-1]:=Ord(aText[i]);
       seg[0].mode:=mBYTE;
       seg[0].bitLength:=calcSegmentBitLength(seg[0].mode, textLen);
@@ -425,7 +388,7 @@ end;
 function QREncodeBinary(dataAndTemp : TQRBuffer; dataLen : Integer; qrcode : TQRBuffer;
 	ecl: TQRErrorLevelCorrection; minVersion, maxVersion: TQRVersion; mask: TQRMask; boostEcl : Boolean) : Boolean;
 
-Var
+var
   seg : TQRSegmentArray;
 
 begin
@@ -447,20 +410,18 @@ end;
 // Appends the given sequence of bits to the given byte-based bit buffer, increasing the bit length.
 procedure appendBitsToBuffer(val : cardinal; numBits : integer; buffer : TQRBuffer; var bitLen : integer);
 
-Var
+var
   I,idx : integer;
 
 begin
   assert((0 <= numBits) and (numBits <= 16) and ((val shr numBits) = 0));
   for I:=numBits-1 downto 0 do
-     begin
-     idx:=bitLen shr 3;
-     buffer[idx]:=buffer[idx]  or ((val shr i) and 1) shl (7 - (bitLen and 7));
-     Inc(Bitlen);
-     end;
+    begin
+    idx:=bitLen shr 3;
+    buffer[idx]:=buffer[idx]  or ((val shr i) and 1) shl (7 - (bitLen and 7));
+    Inc(Bitlen);
+    end;
 end;
-
-
 
 {---- Error correction code generation functions ----}
 
@@ -470,17 +431,15 @@ end;
 // and will be clobbered by this function. The final answer is stored in result[0 : rawCodewords].
 procedure appendErrorCorrection(data : TQRBuffer; version: TQRVersion; ecl:  TQRErrorLevelCorrection; Result: TQRBuffer);
 
-Var
+var
   numBlocks : Shortint;
   blockEccLen : Shortint;
-
   blocklen,I,J,K,L : integer;
   rawCodewords : Integer;
   dataLen : Integer;
   numShortBlocks : Integer;
   shortBlockDataLen : Integer;
   generator : TGenerator;
-
 
 begin
   numBlocks:=NUM_ERROR_CORRECTION_BLOCKS[Ord(ecl)][version];
@@ -507,7 +466,7 @@ begin
   for I:=0 to numBlocks-1 do
     begin
     l:=I;
-    For J:=0 to shortBlockDataLen-1 do
+    for J:=0 to shortBlockDataLen-1 do
       begin
       result[l]:=data[k];
       Inc(k);
@@ -543,8 +502,9 @@ end;
 // for the given version number and error correction level. The result is in the range [9, 2956].
 function getNumDataCodewords(version : TQRVersion; ecl : TQRErrorLevelCorrection) : integer;
 
-Var
+var
   v,e : integer;
+
 begin
   v:=version;
   e:=Ord(ecl);
@@ -557,7 +517,7 @@ end;
 // The result is in the range [208, 29648]. This could be implemented as a 40-entry lookup table.
 function getNumRawDataModules(version : TQRVersion): integer;
 
-Var
+var
   numAlign: integer;
 
 begin
@@ -571,14 +531,12 @@ begin
     end;
 end;
 
-
-
 {---- Reed-Solomon ECC generator functions ----}
 
 // Calculates the Reed-Solomon generator polynomial of the given degree, storing in result[0 : degree].
 procedure calcReedSolomonGenerator(degree : TDegree; out result : TGenerator);
 
-Var
+var
   I,J : byte;
   Root : Byte;
 
@@ -587,12 +545,11 @@ begin
   Result[0]:=0; // Avoid warning
   FillChar(result,sizeof(TGenerator),0);
   result[degree-1]:= 1;
-
   // Compute the product polynomial (x - r^0) * (x - r^1) * (x - r^2) * ... * (x - r^{degree-1}),
   // drop the highest term, and store the rest of the coefficients in order of descending powers.
   // Note that r = 0x02, which is a generator element of this field GF(2^8/0x11D).
   root:=1;
-  For I:=0 to degree-1 do
+  for I:=0 to degree-1 do
     begin
     // Multiply the current product by (x - r^i)
     for j:=0 to Degree-1 do
@@ -610,9 +567,10 @@ end;
 // polynomials are in big endian and the generator has an implicit leading 1 term, storing the result in result[0 : degree].
 procedure calcReedSolomonRemainder(const data : PByte; dataLen : Integer; constref generator : TGenerator; degree : TDegree; result : PByte);
 
-Var
+var
   I,J : Integer;
   factor : byte ;
+
 begin
   FillChar(Result^,degree,0);
   for I:=0 to Datalen-1 do
@@ -620,7 +578,7 @@ begin
     factor:=data[i] xor result[0];
     move( result[1],result[0],(degree - 1));
     result[degree-1] := 0;
-    For j:=0 to degree-1 do
+    for j:=0 to degree-1 do
       begin
       result[j]:=result[j] xor finiteFieldMultiply(generator[j], factor);
       end;
@@ -632,7 +590,7 @@ end;
 // All inputs are valid. This could be implemented as a 256*256 lookup table.
 function  finiteFieldMultiply(x,y : Byte) : Byte;
 
-Var
+var
   Z : Byte;
   I : shortint;
 
@@ -655,7 +613,7 @@ end;
 // version's size, then marks every function module as black.
 procedure initializeFunctionModules(version : TQRVersion; qrcode : TQRBuffer);
 
-Var
+var
   qrsize : byte;
   alignPatPos : TPatternPositions;
   i,j,numAlign : integer;
@@ -679,8 +637,8 @@ begin
   alignPatPos[0]:=0; // Avoid warning
   FillChar(alignPatPos,SizeOf(TPatternPositions),0);
   numAlign:=getAlignmentPatternPositions(version, alignPatPos);
-  For i:=0 to numAlign-1 do
-    For j:=0 to NumAlign-1 do
+  for i:=0 to numAlign-1 do
+    for j:=0 to NumAlign-1 do
       begin
       if ((i=0) and (j=0)) or ((i=0) and (j=(numAlign-1))) or ((i=(numAlign-1)) and (j=0)) then
         continue;  // Skip the three finder corners
@@ -718,8 +676,8 @@ begin
     end;
 
   // Draw 3 finder patterns (all corners except bottom right; overwrites some timing modules)
-  For I:=-4 to 4 do
-    For J:=-4 to 4 do
+  for I:=-4 to 4 do
+    for J:=-4 to 4 do
       begin
       dist:=abs(i);
       if (abs(j) > dist) then
@@ -741,8 +699,8 @@ begin
   alignPatPos[0]:=0; // Avoid warning
   FillChar(alignPatPos,SizeOf(TPatternPositions),0);
   numAlign:=getAlignmentPatternPositions(version, alignPatPos);
-  For i:=0 to numAlign-1 do
-    For j:=0 to NumAlign-1 do
+  for i:=0 to numAlign-1 do
+    for j:=0 to NumAlign-1 do
       begin
       if ((i=0) and (j=0)) or ((i=0) and (j=(numAlign-1))) or ((i=(numAlign-1)) and (j=0)) then
         continue;  // Skip the three finder corners
@@ -778,7 +736,7 @@ end;
 // the format bits, unlike drawWhiteFunctionModules() which might skip black modules.
 procedure drawFormatBits(ecl : TQRErrorLevelCorrection; mask : TQRMask; qrcode : TQRBuffer);
 
-Var
+var
   qrsize,i,rem,data : integer;
 
 begin
@@ -819,7 +777,7 @@ end;
 // storing them to the given array and returning an array length in the range [0, 7].
 function getAlignmentPatternPositions(version : TQRVersion; var res : TPatternPositions) : Integer;
 
-Var
+var
   i,numalign, step, pos : Integer;
 
 begin
@@ -863,7 +821,7 @@ end;
 
 procedure drawCodewords(const data : TQRBuffer; dataLen : integer; qrcode : TQRBuffer);
 
-Var
+var
   i,right,vert,j,y,x,qrsize : integer;
   black,upward : boolean;
 
@@ -908,7 +866,7 @@ end;
 // well-formed QR Code symbol needs exactly one mask applied (not zero, not two, etc.).
 procedure applyMask(Modules : TQRBuffer; qrcode : TQRBuffer; mask : TQRMask);
 
-Var
+var
   x,y,qrsize : integer;
   invert,val : boolean;
 
@@ -1059,7 +1017,7 @@ end;
 // Public function - see documentation comment in header file.
 function QRgetModule(qrcode : TQRBuffer; x,y : Word) : Boolean;
 
-Var
+var
   QrSize : Integer;
 begin
   assert(Length(qrcode)>0);
@@ -1087,7 +1045,7 @@ end;
 // Sets the module at the given coordinates, which must be in bounds.
 procedure setModule(qrcode : TQRBuffer; x,y : Word; isBlack : boolean);
 
-Var
+var
   index,bitindex,byteindex,qrsize : integer;
 
 begin
@@ -1108,6 +1066,7 @@ procedure setModuleBounded(qrcode : TQRBuffer; x,y : Word; isBlack : Boolean);
 
 var
   qrsize : word;
+
 begin
   qrsize := qrcode[0];
   if ((x < qrsize) and (y < qrsize)) then
@@ -1121,7 +1080,7 @@ end;
 // Public function - see documentation comment in header file.
 Function QRIsNumeric(atext : TQRString) : Boolean;
 
-Var
+var
   L,I : integer;
 
 begin
@@ -1137,7 +1096,7 @@ end;
 
 Function QRIsAlphanumeric(aText : TQRString) : Boolean;
 
-Var
+var
   L,I : integer;
 
 begin
@@ -1156,7 +1115,7 @@ end;
 // Public function - see documentation comment in header file.
 Function QRCalcSegmentBufferSize(aMode: TQRMode; numChars : Cardinal) : Cardinal;
 
-Var
+var
   Temp : Integer;
 
 begin
@@ -1173,12 +1132,12 @@ end;
 // - Returns -1 on failure, i.e. numChars > INT16_MAX or
 //   the number of needed bits exceeds INT16_MAX (i.e. 32767).
 // - Otherwise, all valid results are in the range [0, INT16_MAX].
-// - For byte mode, numChars measures the number of bytes, not Unicode code points.
-// - For ECI mode, numChars must be 0, and the worst-case number of bits is returned.
-//   An actual ECI segment can have shorter data. For non-ECI modes, the result is exact.
+// - for byte mode, numChars measures the number of bytes, not Unicode code points.
+// - for ECI mode, numChars must be 0, and the worst-case number of bits is returned.
+//   An actual ECI segment can have shorter data. for non-ECI modes, the result is exact.
 function calcSegmentBitLength(mode : TQRMode; numChars : Integer) : integer;
 
-Var
+var
   temp,N,Limit: integer;
 
 begin
@@ -1248,11 +1207,10 @@ end;
 // Public function - see documentation comment in header file.
 Function QRMakeNumeric(digits : TQRString; buf : TQRBuffer) :  TQRSegment;
 
-Var
+var
   accumcount, bitlen,len: integer;
   accumData : Cardinal;
   c : ansichar;
-
 
 begin
   assert(Length(digits)>0);
@@ -1288,7 +1246,7 @@ end;
 // Public function - see documentation comment in header file.
 Function QRMakeAlphanumeric(aText : TQRString; buf : TQRBuffer) : TQRSegment;
 
-Var
+var
   p,accumcount, bitlen,len: integer;
   accumData : Cardinal;
   c : ansichar;
@@ -1360,7 +1318,6 @@ end;
 // Public function - see documentation comment in header file.
 Function QREncodeSegments(Segs : TQRSegmentArray; ecl: TQRErrorLevelCorrection; tempBuffer, qrcode : TQRBuffer) : Boolean;
 
-
 begin
   Result:=QRencodeSegmentsAdvanced(segs, ecl, QRVERSIONMIN, QRVERSIONMAX, mpAuto, True, tempBuffer, qrcode);
 end;
@@ -1370,7 +1327,7 @@ end;
 Function QREncodeSegmentsAdvanced(Segs : TQRSegmentArray; ecl: TQRErrorLevelCorrection;
 	minVersion, maxVersion : TQRVersion; mask : TQRMask; boostEcl : Boolean; tempBuffer, qrcode : TQRBuffer) : Boolean;
 
-Var
+var
   modebits : byte;
   bitlen, I,j : Integer;
   Version : TQRVersion;
@@ -1480,14 +1437,14 @@ end;
 // or if the actual answer exceeds INT16_MAX.
 function getTotalBits(segs : TQRSegmentArray; version : TQRVersion): integer;
 
-Var
+var
   ccbits,I,numChars,bitLength : integer;
   temp : integer;
 
 begin
   assert(Length(segs)>0);
   result := 0;
-  For I:=0 to Length(segs)-1 do
+  for I:=0 to Length(segs)-1 do
     begin
     numChars := segs[i].numChars;
     bitLength := segs[i].bitLength;
@@ -1520,7 +1477,7 @@ Const
    bmBYTE : T3Bytes = ( 8, 16, 16);
    bmKANJI : T3Bytes = (8, 10, 12);
 
-Var
+var
   I : Integer;
 
 begin
@@ -1534,7 +1491,6 @@ begin
     begin
     assert(false);
     end;
-
   case (mode) of
     mNUMERIC     : Result:=bmNumeric[i]; 
     mALPHANUMERIC: Result:=bmALPHANUMERIC[i]; 
@@ -1556,6 +1512,7 @@ end;
   ---------------------------------------------------------------------}
 
 function TQRCodeGenerator.GetBits(X : Word; Y : Word): Boolean;
+
 begin
   if Assigned(FBytes) then
     Result:=getModule(FBytes,X,Y)
@@ -1564,6 +1521,7 @@ begin
 end;
 
 function TQRCodeGenerator.GetSize: Integer;
+
 begin
   if Assigned(FBytes) then
     Result:=QRgetSize(FBytes)
@@ -1572,6 +1530,7 @@ begin
 end;
 
 procedure TQRCodeGenerator.SetBufferLength(AValue: Word);
+
 begin
   if AValue>QRBUFFER_LEN_MAX then
     AValue:=QRBUFFER_LEN_MAX;
@@ -1590,6 +1549,7 @@ begin
 end;
 
 destructor TQRCodeGenerator.Destroy;
+
 begin
   SetLength(FBytes,0);
   inherited Destroy;
@@ -1597,7 +1557,7 @@ end;
 
 procedure TQRCodeGenerator.Generate(aText: TQRString);
 
-Var
+var
   Tmp : TQRBuffer;
 
 begin
@@ -1608,7 +1568,8 @@ begin
 end;
 
 procedure TQRCodeGenerator.Generate(aNumber: Int64);
-Var
+
+var
   Tmp : TQRBuffer;
   aText : TQRString;
 

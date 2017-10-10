@@ -3,7 +3,8 @@
  * 
  * Run this command-line program with no arguments. The program
  * computes a demonstration QR Codes and print it to the console.
- * 
+ *
+ * Pascal Version: Copyright (c) Michael Van Canneyt (michael@freepascal.org)
  * Copyright (c) Project Nayuki. (MIT License)
  * https://www.nayuki.io/page/qr-code-generator-library
  * 
@@ -29,18 +30,16 @@
 {$CODEPAGE UTF8}
 uses fpqrcodegen, sysutils;
 
-
+// Prints the given QR Code to the console.
 Procedure printqr (qrcode : TQRBuffer);
 
-Var
+var
   size : cardinal;
   border: byte;
   x,y : Integer;
   
 begin
-
   Size:=QRgetSize(qrcode);
-  Writeln(Size);
   border:=4;
   For Y:=-Border to size+Border-1 do
     begin
@@ -62,7 +61,6 @@ var
   tempbuffer,
   qrcode: TQRBuffer;
 
-    
 begin
   SetLength(tempBuffer,QRBUFFER_LEN_MAX);
   SetLength(qrCode,QRBUFFER_LEN_MAX);
@@ -72,22 +70,20 @@ begin
     printQr(qrcode);
 end;
 
-
 // Creates a variety of QR Codes that exercise different features of the library, and prints each one to the console.
-
 
 procedure doVarietyDemo;
 
-COnst
+const
   UTF8Encoded : Array[0..34] of byte =
   ($E3,$81,$93,$E3,$82,$93,$E3,$81,$AB,$E3,$81,$A1,Ord('w'),Ord('a'),$E3,$80,$81,$E4,$B8,$96,$E7,$95,$8C,$EF,$BC,$81,$20,$CE,$B1,$CE,$B2,$CE,$B3,$CE,$B4);
 
-Var
+var
   atext : UTF8String;
   tempbuffer,
   qrcode: TQRBuffer;
 
-  Procedure ResetBuffer;
+  procedure ResetBuffer;
 
   begin
     FillChar(tempBuffer[0],QRBUFFER_LEN_MAX,0);
@@ -95,46 +91,48 @@ Var
   end;
 
 begin
+  // Project Nayuki URL
   SetLength(tempBuffer,QRBUFFER_LEN_MAX);
   SetLength(qrCode,QRBUFFER_LEN_MAX);
   if QRencodeText('https://www.nayuki.io/', tempBuffer, qrcode,
                         EccHIGH, QRVERSIONMIN, QRVERSIONMAX, mp3, true) then
     PrintQr(qrCode);
+  // Numeric mode encoding (3.33 bits per digit)
   ResetBuffer;
   if QRencodeText('314159265358979323846264338327950288419716939937510', tempBuffer, qrcode,
         EccMEDIUM, QRVERSIONMIN, QRVERSIONMAX, mpAUTO, true) then
       printQr(qrcode);
-  ResetBuffer;
 
+  // Alphanumeric mode encoding (5.5 bits per character)
+  ResetBuffer;
   if QRencodeText('DOLLAR-AMOUNT:$39.87 PERCENTAGE:100.00% OPERATIONS:+-*/', tempBuffer, qrcode,
       eccHIGH, QRVERSIONMIN, QRVERSIONMAX, mpAUTO, true) then
       printQr(qrcode);
   ResetBuffer;
 
-    // Unicode text as UTF-8, and different masks
+  // Unicode text as UTF-8, and different masks
+  SetLength(aText,Length(UTF8Encoded));
+  Move(UTF8Encoded[0],atext[1],Length(UTF8Encoded));
 
-    SetLength(aText,Length(UTF8Encoded));
-    Move(UTF8Encoded[0],atext[1],Length(UTF8Encoded));
-    
-    if QRencodeText(atext, tempBuffer, qrcode,
-      eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp0, true) then
-      printQr(qrcode);
-    ResetBuffer;
+  if QRencodeText(atext, tempBuffer, qrcode,
+    eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp0, true) then
+    printQr(qrcode);
+  ResetBuffer;
 
-    if QRencodeText(atext, tempBuffer, qrcode,
-      eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp1, true) then
-      printQr(qrcode);
-    ResetBuffer;
+  if QRencodeText(atext, tempBuffer, qrcode,
+    eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp1, true) then
+    printQr(qrcode);
+  ResetBuffer;
 
-    if QRencodeText(atext, tempBuffer, qrcode,
-      eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp5, true) then
-      printQr(qrcode);
-    ResetBuffer;
+  if QRencodeText(atext, tempBuffer, qrcode,
+    eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp5, true) then
+    printQr(qrcode);
+  ResetBuffer;
 
-    if QRencodeText(atext, tempBuffer, qrcode,
-      eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp7, true) then
-      printQr(qrcode);
-    ResetBuffer;
+  if QRencodeText(atext, tempBuffer, qrcode,
+    eccQUARTILE, QRVERSIONMIN, QRVERSIONMAX, mp7, true) then
+    printQr(qrcode);
+  ResetBuffer;
 
   // Moderately large QR Code using longer text (from Lewis Carroll's Alice in Wonderland)
   atext :=
@@ -154,7 +152,7 @@ end;
 
 procedure doSegmentDemo;
 
-Const
+const
   kanjiChars : Array[0..28] of word = (  // Kanji mode encoding (13 bits per character)
         $0035, $1002, $0FC0, $0AED, $0AD7,
         $015C, $0147, $0129, $0059, $01BD,
@@ -164,7 +162,7 @@ Const
         $0000, $0208, $01FF, $0008);
 
 
-Var
+var
   aText,silver0,silver1,golden0,golden1,golden2 : String;
   tempbuffer,
   qrcode: TQRBuffer;
@@ -194,8 +192,9 @@ begin
   segs[0]:=QRmakeAlphanumeric(silver0, segBuf0);
   segs[1]:=QRmakeNumeric(silver1, segBuf1);
   if QRencodeSegments(segs, eccLOW, tempBuffer, qrcode) then
-     printQr(qrcode);
+    printQr(qrcode);
 
+  // Illustration "golden"
   SetLength(Segbuf0,0);
   SetLength(Segbuf1,0);
   golden0 := 'Golden ratio '#$CF#$86' = 1.';
@@ -218,10 +217,11 @@ begin
   SetLength(bytes,0);
   if QRencodeSegments(segs2,EccLOW, tempBuffer, qrcode) then
     PrintQR(qrCode);
+
+  // Illustration "Madoka": kanji, kana, Greek, Cyrillic, full-width Latin characters
   SetLength(segBuf0,0);
   SetLength(segBuf1,0);
   SetLength(segBuf2,0);
-  
   atext:= // Encoded in UTF-8
         #$E3#$80#$8C#$E9#$AD#$94#$E6#$B3#$95#$E5+
         #$B0#$91#$E5#$A5#$B3#$E3#$81#$BE#$E3#$81+
@@ -253,11 +253,8 @@ begin
     printQr(qrcode);
 end;
 
-// Prints the given QR Code to the console.
-
-
 begin
-   doBasicDemo();
+  doBasicDemo();
   doVarietyDemo();
-   doSegmentDemo();
+  doSegmentDemo();
 end.
