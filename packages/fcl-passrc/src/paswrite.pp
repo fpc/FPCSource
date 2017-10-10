@@ -83,7 +83,11 @@ type
     constructor Create(AStream: TStream); virtual;
     destructor Destroy; override;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
+    procedure WriteRangeType(AType: TPasRangeType); virtual;
     procedure WriteEnumType(AType: TPasEnumType); virtual;
+    procedure WriteFileType(AType: TPasFileType); virtual;
+    procedure WriteSetType(AType: TPasSetType); virtual;
+    procedure WritePointerType(AType: TPasPointerType); virtual;
     procedure WriteElement(AElement: TPasElement);virtual;
     procedure WriteType(AType: TPasType; Full : Boolean = True);virtual;
     procedure WriteProgram(aModule : TPasProgram); virtual;
@@ -257,6 +261,30 @@ begin
   Add(Atype.GetDeclaration(true));
 end;
 
+procedure TPasWriter.WriteSetType(AType: TPasSetType);
+
+begin
+  Add(Atype.GetDeclaration(true));
+end;
+
+procedure TPasWriter.WritePointerType(AType: TPasPointerType);
+
+begin
+  Add(Atype.GetDeclaration(true));
+end;
+
+procedure TPasWriter.WriteFileType(AType: TPasFileType);
+
+begin
+  Add(Atype.GetDeclaration(true));
+end;
+
+procedure TPasWriter.WriteRangeType(AType: TPasRangeType);
+
+begin
+  Add(Atype.GetDeclaration(true));
+end;
+
 procedure TPasWriter.WriteType(AType: TPasType; Full : Boolean = True);
 
 begin
@@ -269,19 +297,26 @@ begin
     WriteClass(TPasClassType(AType))
   else if AType.ClassType = TPasEnumType then
     WriteEnumType(TPasEnumType(AType))
+  else if AType is TPasSetType then
+    WriteSetType(TPasSetType(AType))
   else if AType is TPasProcedureType then
     WriteProcType(TPasProcedureType(AType))
   else if AType is TPasArrayType then
     WriteArrayType(TPasArrayType(AType))
+  else if AType is TPasRangeType then
+    WriteRangeType(TPasRangeType(AType))
   else if AType is TPasRecordType then
     WriteRecordType(TPasRecordType(AType))
   else if AType is TPasAliasType then
     WriteAliasType(TPasAliasType(AType))
+  else if AType is TPasFileType then
+    WriteFileType(TPasFileType(AType))
   else if AType is TPasPointerType then
-    Add(AType.GetDeclaration(true))
+    WritePointerType(TPasPointerType(AType))
+  else if AType is TPasPointerType then
+    WriteRangeType(TPasRangeType(AType))
   else
-    raise EPasWriter.Create('Writing not implemented for ' +
-      AType.ElementTypeName + ' nodes');
+    Raise EPasWriter.CreateFmt('Writing not implemented for %s nodes',[AType.ElementTypeName]);
   if Full then
     AddLn(';');
 end;
@@ -892,7 +927,7 @@ procedure TPasWriter.WriteProcImpl(AProc: TPasProcedureImpl);
 
 var
   i: Integer;
-  E,PE  :TPasElement;
+  E,PE : TPasElement;
 
 begin
   PrepareDeclSection('');
@@ -912,6 +947,7 @@ begin
   end;
   AddLn(';');
   IncDeclSectionLevel;
+  PE:=Nil;
   for i := 0 to AProc.Locals.Count - 1 do
     begin
     E:=TPasElement(AProc.Locals[i]);
