@@ -1,7 +1,7 @@
 {$mode objfpc}
 program Project1;
 
-function CalcSmth(const AValue: Integer): Integer;
+function CalcSmth(const AValue: LongInt): Integer;
 begin
   case AValue of
     -9999999..-1000000: Result := 2;
