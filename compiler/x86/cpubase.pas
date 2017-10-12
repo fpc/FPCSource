@@ -316,13 +316,13 @@ uses
     function segment_regs_equal(r1,r2:tregister):boolean;
 
     { checks whether the specified op is an x86 string instruction (e.g. cmpsb, movsd, scasw, etc.) }
-    function is_x86_string_instruction_op(op: TAsmOp): boolean;
+    function is_x86_string_op(op: TAsmOp): boolean;
     { checks whether the specified op is an x86 parameterless string instruction
       (e.g. returns true for movsb, cmpsw, etc, but returns false for movs, cmps, etc.) }
-    function is_x86_parameterless_string_instruction_op(op: TAsmOp): boolean;
+    function is_x86_parameterless_string_op(op: TAsmOp): boolean;
     { checks whether the specified op is an x86 parameterized string instruction
       (e.g. returns true for movs, cmps, etc, but returns false for movsb, cmpsb, etc.) }
-    function is_x86_parameterized_string_instruction_op(op: TAsmOp): boolean;
+    function is_x86_parameterized_string_op(op: TAsmOp): boolean;
     function x86_param2paramless_string_op(op: TAsmOp): TAsmOp;
     function get_x86_string_op_size(op: TAsmOp): TOpSize;
     { returns the 0-based operand number (intel syntax) of the ds:[si] param of
@@ -656,7 +656,7 @@ implementation
       end;
 
 
-    function is_x86_string_instruction_op(op: TAsmOp): boolean;
+    function is_x86_string_op(op: TAsmOp): boolean;
       begin
         case op of
 {$ifdef x86_64}
@@ -681,7 +681,7 @@ implementation
       end;
 
 
-    function is_x86_parameterless_string_instruction_op(op: TAsmOp): boolean;
+    function is_x86_parameterless_string_op(op: TAsmOp): boolean;
       begin
         case op of
 {$ifdef x86_64}
@@ -705,7 +705,7 @@ implementation
       end;
 
 
-    function is_x86_parameterized_string_instruction_op(op: TAsmOp): boolean;
+    function is_x86_parameterized_string_op(op: TAsmOp): boolean;
       begin
         case op of
           A_MOVS,A_CMPS,A_SCAS,A_LODS,A_STOS,A_INS,A_OUTS:

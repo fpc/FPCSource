@@ -876,7 +876,7 @@ Implementation
         instr.Ops:=operandnum;
         { handle string instructions with parameters }
         with instr do
-          if is_x86_parameterless_string_instruction_op(opcode) and
+          if is_x86_parameterless_string_op(opcode) and
              (Ops>=1) and (Ops<=2) then
             begin
               if opcode=A_MOVSD then
