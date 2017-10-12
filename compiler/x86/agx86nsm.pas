@@ -986,13 +986,7 @@ interface
                     end;
                if fixed_opcode=A_FWAIT then
                 writer.AsmWriteln(#9#9'DB'#9'09bh')
-               else if (fixed_opcode=A_MOVS) or
-                       (fixed_opcode=A_CMPS) or
-                       (fixed_opcode=A_SCAS) or
-                       (fixed_opcode=A_LODS) or
-                       (fixed_opcode=A_STOS) or
-                       (fixed_opcode=A_INS) or
-                       (fixed_opcode=A_OUTS) then
+               else if is_x86_parameterized_string_instruction_op(fixed_opcode) then
                 begin
                   writer.AsmWrite(#9#9);
                   case fixed_opcode of

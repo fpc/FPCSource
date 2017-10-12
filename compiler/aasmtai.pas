@@ -2617,13 +2617,7 @@ implementation
 {$ifdef x86}
             { We allow this exception for x86, since overloading this would be
               too much of a a speed penalty}
-            if (opcode=A_MOVS) or
-               (opcode=A_CMPS) or
-               (opcode=A_SCAS) or
-               (opcode=A_LODS) or
-               (opcode=A_STOS) or
-               (opcode=A_INS) or
-               (opcode=A_OUTS) then
+            if is_x86_parameterized_string_instruction_op(opcode) then
               begin
                 if ((ref^.base=NR_NO) or (getsupreg(ref^.base)<>RS_EDI)) and
                    ((ref^.index=NR_NO) or (getsupreg(ref^.index)<>RS_EDI)) and
@@ -2704,13 +2698,7 @@ implementation
                   new(ref);
                   ref^:=o.ref^;
 {$ifdef x86}
-                  if (opcode=A_MOVS) or
-                     (opcode=A_CMPS) or
-                     (opcode=A_SCAS) or
-                     (opcode=A_LODS) or
-                     (opcode=A_STOS) or
-                     (opcode=A_INS) or
-                     (opcode=A_OUTS) then
+                  if is_x86_parameterized_string_instruction_op(opcode) then
                     begin
                       if ((ref^.base=NR_NO) or (getsupreg(ref^.base)<>RS_EDI)) and
                          ((ref^.index=NR_NO) or (getsupreg(ref^.index)<>RS_EDI)) and
