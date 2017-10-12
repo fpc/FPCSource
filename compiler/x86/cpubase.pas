@@ -315,6 +315,15 @@ uses
     { checks whether two segment registers are normally equal in the current memory model }
     function segment_regs_equal(r1,r2:tregister):boolean;
 
+    { checks whether the specified op is an x86 string instruction (e.g. cmpsb, movsd, scasw, etc.) }
+    function is_x86_string_instruction_op(op: TAsmOp): boolean;
+    { checks whether the specified op is an x86 parameterless string instruction
+      (e.g. returns true for movsb, cmpsw, etc, but returns false for movs, cmps, etc.) }
+    function is_x86_parameterless_string_instruction_op(op: TAsmOp): boolean;
+    { checks whether the specified op is an x86 parameterized string instruction
+      (e.g. returns true for movs, cmps, etc, but returns false for movsb, cmpsb, etc.) }
+    function is_x86_parameterized_string_instruction_op(op: TAsmOp): boolean;
+
 {$ifdef i8086}
     { return whether we need to add an extra FWAIT instruction before the given
       instruction, when we're targeting the i8087. This includes almost all x87
@@ -636,6 +645,66 @@ implementation
         { the remaining are distinct from each other }
         exit(false);
 {$endif}
+      end;
+
+
+    function is_x86_string_instruction_op(op: TAsmOp): boolean;
+      begin
+        case op of
+{$ifdef x86_64}
+          A_MOVSQ,
+          A_CMPSQ,
+          A_SCASQ,
+          A_LODSQ,
+          A_STOSQ,
+{$endif x86_64}
+          A_MOVSB,A_MOVSW,A_MOVSD,
+          A_CMPSB,A_CMPSW,A_CMPSD,
+          A_SCASB,A_SCASW,A_SCASD,
+          A_LODSB,A_LODSW,A_LODSD,
+          A_STOSB,A_STOSW,A_STOSD,
+          A_INSB, A_INSW, A_INSD,
+          A_OUTSB,A_OUTSW,A_OUTSD,
+          A_MOVS,A_CMPS,A_SCAS,A_LODS,A_STOS,A_INS,A_OUTS:
+            result:=true;
+          else
+            result:=false;
+        end;
+      end;
+
+
+    function is_x86_parameterless_string_instruction_op(op: TAsmOp): boolean;
+      begin
+        case op of
+{$ifdef x86_64}
+          A_MOVSQ,
+          A_CMPSQ,
+          A_SCASQ,
+          A_LODSQ,
+          A_STOSQ,
+{$endif x86_64}
+          A_MOVSB,A_MOVSW,A_MOVSD,
+          A_CMPSB,A_CMPSW,A_CMPSD,
+          A_SCASB,A_SCASW,A_SCASD,
+          A_LODSB,A_LODSW,A_LODSD,
+          A_STOSB,A_STOSW,A_STOSD,
+          A_INSB, A_INSW, A_INSD,
+          A_OUTSB,A_OUTSW,A_OUTSD:
+            result:=true;
+          else
+            result:=false;
+        end;
+      end;
+
+
+    function is_x86_parameterized_string_instruction_op(op: TAsmOp): boolean;
+      begin
+        case op of
+          A_MOVS,A_CMPS,A_SCAS,A_LODS,A_STOS,A_INS,A_OUTS:
+            result:=true;
+          else
+            result:=false;
+        end;
       end;
 
 
