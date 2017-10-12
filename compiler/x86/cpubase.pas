@@ -325,6 +325,12 @@ uses
     function is_x86_parameterized_string_instruction_op(op: TAsmOp): boolean;
     function x86_param2paramless_string_op(op: TAsmOp): TAsmOp;
     function get_x86_string_op_size(op: TAsmOp): TOpSize;
+    { returns the 0-based operand number (intel syntax) of the ds:[si] param of
+      a x86 string instruction }
+    function get_x86_string_op_si_param(op: TAsmOp):shortint;
+    { returns the 0-based operand number (intel syntax) of the es:[di] param of
+      a x86 string instruction }
+    function get_x86_string_op_di_param(op: TAsmOp):shortint;
 
 {$ifdef i8086}
     { return whether we need to add an extra FWAIT instruction before the given
@@ -746,6 +752,36 @@ implementation
           A_MOVSQ,A_CMPSQ,A_SCASQ,A_LODSQ,A_STOSQ:
             result:=S_Q;
 {$endif x86_64}
+          else
+            internalerror(2017101202);
+        end;
+      end;
+
+
+    function get_x86_string_op_si_param(op: TAsmOp):shortint;
+      begin
+        case op of
+          A_MOVS,A_OUTS:
+            result:=1;
+          A_CMPS,A_LODS:
+            result:=0;
+          A_SCAS,A_STOS,A_INS:
+            result:=-1;
+          else
+            internalerror(2017101102);
+        end;
+      end;
+
+
+    function get_x86_string_op_di_param(op: TAsmOp):shortint;
+      begin
+        case op of
+          A_MOVS,A_SCAS,A_STOS,A_INS:
+            result:=0;
+          A_CMPS:
+            result:=1;
+          A_LODS,A_OUTS:
+            result:=-1;
           else
             internalerror(2017101202);
         end;
