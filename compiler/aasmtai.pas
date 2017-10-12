@@ -2617,7 +2617,20 @@ implementation
 {$ifdef x86}
             { We allow this exception for x86, since overloading this would be
               too much of a a speed penalty}
-            if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+            if (opcode=A_MOVS) or
+               (opcode=A_CMPS) or
+               (opcode=A_SCAS) or
+               (opcode=A_LODS) or
+               (opcode=A_STOS) or
+               (opcode=A_INS) or
+               (opcode=A_OUTS) then
+              begin
+                if ((ref^.base=NR_NO) or (getsupreg(ref^.base)<>RS_EDI)) and
+                   ((ref^.index=NR_NO) or (getsupreg(ref^.index)<>RS_EDI)) and
+                   (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                  segprefix:=ref^.segment;
+              end
+            else if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
               segprefix:=ref^.segment;
 {$endif}
 {$ifndef llvm}
@@ -2691,7 +2704,20 @@ implementation
                   new(ref);
                   ref^:=o.ref^;
 {$ifdef x86}
-                  if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                  if (opcode=A_MOVS) or
+                     (opcode=A_CMPS) or
+                     (opcode=A_SCAS) or
+                     (opcode=A_LODS) or
+                     (opcode=A_STOS) or
+                     (opcode=A_INS) or
+                     (opcode=A_OUTS) then
+                    begin
+                      if ((ref^.base=NR_NO) or (getsupreg(ref^.base)<>RS_EDI)) and
+                         ((ref^.index=NR_NO) or (getsupreg(ref^.index)<>RS_EDI)) and
+                         (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                        segprefix:=ref^.segment;
+                    end
+                  else if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
                     segprefix:=ref^.segment;
 {$endif x86}
                   if assigned(add_reg_instruction_hook) then

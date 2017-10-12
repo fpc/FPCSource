@@ -635,6 +635,7 @@ interface
       prevfileinfo : tfileposinfo;
       previnfile : tinputfile;
       NewObject :  boolean;
+      tmpreg: TRegister;
     begin
       if not assigned(p) then
        exit;
@@ -985,6 +986,62 @@ interface
                     end;
                if fixed_opcode=A_FWAIT then
                 writer.AsmWriteln(#9#9'DB'#9'09bh')
+               else if (fixed_opcode=A_MOVS) or
+                       (fixed_opcode=A_CMPS) or
+                       (fixed_opcode=A_SCAS) or
+                       (fixed_opcode=A_LODS) or
+                       (fixed_opcode=A_STOS) or
+                       (fixed_opcode=A_INS) or
+                       (fixed_opcode=A_OUTS) then
+                begin
+                  writer.AsmWrite(#9#9);
+                  case fixed_opcode of
+                    A_MOVS,A_OUTS:
+                      i:=1;
+                    A_CMPS,A_LODS:
+                      i:=0;
+                    A_SCAS,A_STOS,A_INS:
+                      i:=-1;
+                    else
+                      internalerror(2017101102);
+                  end;
+                  if (i<>-1) and (taicpu(hp).oper[i]^.typ=top_ref) and
+                     (taicpu(hp).oper[i]^.ref^.segment<>NR_NO) then
+                    writer.AsmWrite(std_regname(taicpu(hp).oper[i]^.ref^.segment)+' ');
+                  for i:=0 to taicpu(hp).ops-1 do
+                    if taicpu(hp).oper[i]^.typ=top_ref then
+                      begin
+                        tmpreg:=NR_NO;
+                        if taicpu(hp).oper[i]^.ref^.base<>NR_NO then
+                          tmpreg:=taicpu(hp).oper[i]^.ref^.base
+                        else if taicpu(hp).oper[i]^.ref^.index<>NR_NO then
+                          tmpreg:=taicpu(hp).oper[i]^.ref^.index;
+                        case reg2opsize(tmpreg) of
+                          S_W:
+                            writer.AsmWrite('a16 ');
+                          S_L:
+                            writer.AsmWrite('a32 ');
+                          S_Q:
+                            writer.AsmWrite('a64 ');
+                        end;
+                        break;
+                      end;
+                  writer.AsmWrite(std_op2str[fixed_opcode]);
+
+                  case taicpu(hp).opsize of
+                    S_B:
+                      writer.AsmWrite('b');
+                    S_W:
+                      writer.AsmWrite('w');
+                    S_L:
+                      writer.AsmWrite('d');
+                    S_Q:
+                      writer.AsmWrite('q');
+                    else
+                      internalerror(2017101101);
+                  end;
+                  writer.AsmLn;
+                end
                else
                 begin
                   prefix:='';

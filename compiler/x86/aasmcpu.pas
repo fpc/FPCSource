@@ -4037,71 +4037,75 @@ implementation
               else InternalError(777207);
             end
             else
-            case actMemCount of
-                0: ; // nothing todo
-                1: begin
-                     MRefInfo := msiUnkown;
-                     case actRegMemTypes and (OT_MMXRM OR OT_XMMRM OR OT_YMMRM) of
-                       OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
-                       OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
-                       OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
-                     end;
-
-                     case actMemSize of
-                       0: MRefInfo := msiNoSize;
-                       OT_BITS8: MRefInfo := msiMem8;
-                       OT_BITS16: MRefInfo := msiMem16;
-                       OT_BITS32: MRefInfo := msiMem32;
-                       OT_BITS64: MRefInfo := msiMem64;
-                       OT_BITS128: MRefInfo := msiMem128;
-                       OT_BITS256: MRefInfo := msiMem256;
-                       OT_BITS80,
-                       OT_FAR,
-                       OT_NEAR,
-                       OT_SHORT: ; // ignore
-                       else
-                         begin
-                           bitcount := bitcnt(actMemSize);
-
-                           if bitcount > 1 then MRefInfo := msiMultiple
-                           else InternalError(777203);
+              begin
+                if (actMemCount=2) and ((AsmOp=A_MOVS) or (AsmOp=A_CMPS)) then
+                  actMemCount:=1;
+                case actMemCount of
+                    0: ; // nothing todo
+                    1: begin
+                         MRefInfo := msiUnkown;
+                         case actRegMemTypes and (OT_MMXRM OR OT_XMMRM OR OT_YMMRM) of
+                           OT_MMXRM: actMemSize := actMemSize or OT_BITS64;
+                           OT_XMMRM: actMemSize := actMemSize or OT_BITS128;
+                           OT_YMMRM: actMemSize := actMemSize or OT_BITS256;
                          end;
-                     end;
 
-                     if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnkown then
-                       begin
-                         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
-                       end
-                     else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
-                       begin
-                         with InsTabMemRefSizeInfoCache^[AsmOp] do
-                         begin
-                           if ((MemRefSize = msiMem8)        OR (MRefInfo = msiMem8))   then MemRefSize := msiMultiple8
-                           else if ((MemRefSize = msiMem16)  OR (MRefInfo = msiMem16))  then MemRefSize := msiMultiple16
-                           else if ((MemRefSize = msiMem32)  OR (MRefInfo = msiMem32))  then MemRefSize := msiMultiple32
-                           else if ((MemRefSize = msiMem64)  OR (MRefInfo = msiMem64))  then MemRefSize := msiMultiple64
-                           else if ((MemRefSize = msiMem128) OR (MRefInfo = msiMem128)) then MemRefSize := msiMultiple128
-                           else if ((MemRefSize = msiMem256) OR (MRefInfo = msiMem256)) then MemRefSize := msiMultiple256
-                           else MemRefSize := msiMultiple;
-                         end;
-                     end;
+                         case actMemSize of
+                           0: MRefInfo := msiNoSize;
+                           OT_BITS8: MRefInfo := msiMem8;
+                           OT_BITS16: MRefInfo := msiMem16;
+                           OT_BITS32: MRefInfo := msiMem32;
+                           OT_BITS64: MRefInfo := msiMem64;
+                           OT_BITS128: MRefInfo := msiMem128;
+                           OT_BITS256: MRefInfo := msiMem256;
+                           OT_BITS80,
+                           OT_FAR,
+                           OT_NEAR,
+                           OT_SHORT: ; // ignore
+                           else
+                             begin
+                               bitcount := bitcnt(actMemSize);
 
-                     if actRegCount > 0 then
-                       begin
-                         case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG) of
-                           OT_MMXREG: RegMMXSizeMask := RegMMXSizeMask or actMemSize;
-                           OT_XMMREG: RegXMMSizeMask := RegXMMSizeMask or actMemSize;
-                           OT_YMMREG: RegYMMSizeMask := RegYMMSizeMask or actMemSize;
-                                 else begin
-                                        RegMMXSizeMask := not(0);
-                                        RegXMMSizeMask := not(0);
-                                        RegYMMSizeMask := not(0);
-                                      end;
+                               if bitcount > 1 then MRefInfo := msiMultiple
+                               else InternalError(777203);
+                             end;
                          end;
+
+                         if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnkown then
+                           begin
+                             InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
+                           end
+                         else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
+                           begin
+                             with InsTabMemRefSizeInfoCache^[AsmOp] do
+                             begin
+                               if ((MemRefSize = msiMem8)        OR (MRefInfo = msiMem8))   then MemRefSize := msiMultiple8
+                               else if ((MemRefSize = msiMem16)  OR (MRefInfo = msiMem16))  then MemRefSize := msiMultiple16
+                               else if ((MemRefSize = msiMem32)  OR (MRefInfo = msiMem32))  then MemRefSize := msiMultiple32
+                               else if ((MemRefSize = msiMem64)  OR (MRefInfo = msiMem64))  then MemRefSize := msiMultiple64
+                               else if ((MemRefSize = msiMem128) OR (MRefInfo = msiMem128)) then MemRefSize := msiMultiple128
+                               else if ((MemRefSize = msiMem256) OR (MRefInfo = msiMem256)) then MemRefSize := msiMultiple256
+                               else MemRefSize := msiMultiple;
+                             end;
+                         end;
+
+                         if actRegCount > 0 then
+                           begin
+                             case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG) of
+                               OT_MMXREG: RegMMXSizeMask := RegMMXSizeMask or actMemSize;
+                               OT_XMMREG: RegXMMSizeMask := RegXMMSizeMask or actMemSize;
+                               OT_YMMREG: RegYMMSizeMask := RegYMMSizeMask or actMemSize;
+                                     else begin
+                                            RegMMXSizeMask := not(0);
+                                            RegXMMSizeMask := not(0);
+                                            RegYMMSizeMask := not(0);
+                                          end;
+                             end;
+                           end;
                        end;
-                   end;
-              else InternalError(777202);
-            end;
+                  else InternalError(777202);
+                end;
+              end;
 
             inc(insentry);
           end;

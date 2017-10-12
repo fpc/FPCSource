@@ -2134,6 +2134,54 @@ imm16|near            \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
 (Ch_RFLAGScc, Ch_WOp1)
 rm8                   \1\x0F\13\x90\200              386
 
+; Alternate syntax of string instructions (with memory operands)
+[MOVS,movsX]
+(Ch_RWESI, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
+mem8,mem8             \1\xA4                          8086,SM
+mem16,mem16           \324\1\xA5                      8086,SM
+mem32,mem32           \325\1\xA5                      386,SM
+mem64,mem64           \326\1\xA5                      X86_64,SM
+
+[CMPS,cmpsX]
+(Ch_RWESI, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+mem8,mem8             \332\1\xA6                      8086,SM
+mem16,mem16           \332\324\1\xA7                  8086,SM
+mem32,mem32           \332\325\1\xA7                  386,SM
+mem64,mem64           \326\1\xA7                      X86_64,SM
+
+[SCAS,scasX]
+(Ch_REAX, Ch_RMemEDI, Ch_RWEDI, Ch_RDirFlag, Ch_WOverflowFlag, Ch_WSignFlag, Ch_WZeroFlag, Ch_WAuxiliaryFlag, Ch_WCarryFlag, Ch_WParityFlag)
+mem8                  \332\1\xAE                      8086
+mem16                 \332\324\1\xAF                  8086
+mem32                 \332\325\1\xAF                  386
+mem64                 \332\326\1\xAF                  X86_64
+
+[LODS,lodsX]
+(Ch_WEAX, Ch_RWESI, Ch_RDirFlag)
+mem8                  \1\xAC                          8086
+mem16                 \324\1\xAD                      8086
+mem32                 \325\1\xAD                      386
+mem64                 \326\1\xAD                      X86_64
+
+[STOS,stosX]
+(Ch_REAX, Ch_WMemEDI, Ch_RWEDI, Ch_RDirFlag)
+mem8                  \1\xAA                          8086
+mem16                 \324\1\xAB                      8086
+mem32                 \325\1\xAB                      386
+mem64                 \326\1\xAB                      X86_64
+
+[INS,insX]
+(Ch_WMemEDI, Ch_RWEDI, Ch_REDX, Ch_RDirFlag)
+mem8,reg_dx           \1\x6C                          186
+mem16,reg_dx          \324\1\x6D                      186
+mem32,reg_dx          \325\1\x6D                      386
+
+[OUTS,outsX]
+(Ch_All, Ch_RDirFlag)
+reg_dx,mem8           \1\x6E                          186
+reg_dx,mem16          \324\1\x6F                      186
+reg_dx,mem32          \325\1\x6F                      386
+
 ;
 ; Katmai Streaming SIMD instructions (SSE -- a.k.a. KNI, XMM, MMX2)
 ;
@@ -5072,7 +5120,7 @@ reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB
 
 ;[FPO2]
 
-[INS]
+[NEC_INS]
 (Ch_All)
 reg8,reg8                             \2\x0F\x31\101                      NEC,16BITONLY
 reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,IMM4,16BITONLY

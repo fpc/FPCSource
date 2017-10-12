@@ -6000,6 +6000,153 @@
     flags   : [if_386]
   ),
   (
+    opcode  : A_MOVS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits8,ot_memory or ot_bits8,ot_none,ot_none);
+    code    : #1#164;
+    flags   : [if_8086,if_sm]
+  ),
+  (
+    opcode  : A_MOVS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits16,ot_memory or ot_bits16,ot_none,ot_none);
+    code    : #212#1#165;
+    flags   : [if_8086,if_sm]
+  ),
+  (
+    opcode  : A_MOVS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits32,ot_memory or ot_bits32,ot_none,ot_none);
+    code    : #213#1#165;
+    flags   : [if_386,if_sm]
+  ),
+  (
+    opcode  : A_CMPS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits8,ot_memory or ot_bits8,ot_none,ot_none);
+    code    : #218#1#166;
+    flags   : [if_8086,if_sm]
+  ),
+  (
+    opcode  : A_CMPS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits16,ot_memory or ot_bits16,ot_none,ot_none);
+    code    : #218#212#1#167;
+    flags   : [if_8086,if_sm]
+  ),
+  (
+    opcode  : A_CMPS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits32,ot_memory or ot_bits32,ot_none,ot_none);
+    code    : #218#213#1#167;
+    flags   : [if_386,if_sm]
+  ),
+  (
+    opcode  : A_SCAS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits8,ot_none,ot_none,ot_none);
+    code    : #218#1#174;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_SCAS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16,ot_none,ot_none,ot_none);
+    code    : #218#212#1#175;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_SCAS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none);
+    code    : #218#213#1#175;
+    flags   : [if_386]
+  ),
+  (
+    opcode  : A_LODS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits8,ot_none,ot_none,ot_none);
+    code    : #1#172;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_LODS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16,ot_none,ot_none,ot_none);
+    code    : #212#1#173;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_LODS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none);
+    code    : #213#1#173;
+    flags   : [if_386]
+  ),
+  (
+    opcode  : A_STOS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits8,ot_none,ot_none,ot_none);
+    code    : #1#170;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_STOS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits16,ot_none,ot_none,ot_none);
+    code    : #212#1#171;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_STOS;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none);
+    code    : #213#1#171;
+    flags   : [if_386]
+  ),
+  (
+    opcode  : A_INS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits8,ot_reg_dx,ot_none,ot_none);
+    code    : #1#108;
+    flags   : [if_186]
+  ),
+  (
+    opcode  : A_INS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits16,ot_reg_dx,ot_none,ot_none);
+    code    : #212#1#109;
+    flags   : [if_186]
+  ),
+  (
+    opcode  : A_INS;
+    ops     : 2;
+    optypes : (ot_memory or ot_bits32,ot_reg_dx,ot_none,ot_none);
+    code    : #213#1#109;
+    flags   : [if_386]
+  ),
+  (
+    opcode  : A_OUTS;
+    ops     : 2;
+    optypes : (ot_reg_dx,ot_memory or ot_bits8,ot_none,ot_none);
+    code    : #1#110;
+    flags   : [if_186]
+  ),
+  (
+    opcode  : A_OUTS;
+    ops     : 2;
+    optypes : (ot_reg_dx,ot_memory or ot_bits16,ot_none,ot_none);
+    code    : #212#1#111;
+    flags   : [if_186]
+  ),
+  (
+    opcode  : A_OUTS;
+    ops     : 2;
+    optypes : (ot_reg_dx,ot_memory or ot_bits32,ot_none,ot_none);
+    code    : #213#1#111;
+    flags   : [if_386]
+  ),
+  (
     opcode  : A_ADDPS;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
@@ -13021,14 +13168,14 @@
     flags   : [if_nec,if_sb,if_imm4,if_16bitonly]
   ),
   (
-    opcode  : A_INS;
+    opcode  : A_NEC_INS;
     ops     : 2;
     optypes : (ot_reg8,ot_reg8,ot_none,ot_none);
     code    : #2#15#49#65;
     flags   : [if_nec,if_16bitonly]
   ),
   (
-    opcode  : A_INS;
+    opcode  : A_NEC_INS;
     ops     : 2;
     optypes : (ot_reg8,ot_immediate,ot_none,ot_none);
     code    : #2#15#57#128#21;
