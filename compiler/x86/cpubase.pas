@@ -323,6 +323,7 @@ uses
     { checks whether the specified op is an x86 parameterized string instruction
       (e.g. returns true for movs, cmps, etc, but returns false for movsb, cmpsb, etc.) }
     function is_x86_parameterized_string_op(op: TAsmOp): boolean;
+    function x86_parameterized_string_op_param_count(op: TAsmOp): shortint;
     function x86_param2paramless_string_op(op: TAsmOp): TAsmOp;
     function get_x86_string_op_size(op: TAsmOp): TOpSize;
     { returns the 0-based operand number (intel syntax) of the ds:[si] param of
@@ -712,6 +713,19 @@ implementation
             result:=true;
           else
             result:=false;
+        end;
+      end;
+
+
+    function x86_parameterized_string_op_param_count(op: TAsmOp): shortint;
+      begin
+        case op of
+          A_MOVS,A_CMPS,A_INS,A_OUTS:
+            result:=2;
+          A_SCAS,A_LODS,A_STOS:
+            result:=1;
+          else
+            internalerror(2017101203);
         end;
       end;
 

@@ -933,6 +933,9 @@ interface
 implementation
 
     uses
+{$ifdef x86}
+      aasmcpu,
+{$endif x86}
       SysUtils,
       verbose,
       globals;
@@ -2603,6 +2606,10 @@ implementation
 
 
     procedure tai_cpu_abstract.loadref(opidx:longint;const r:treference);
+{$ifdef x86}
+      var
+        si_param: ShortInt;
+{$endif}
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
@@ -2619,9 +2626,10 @@ implementation
               too much of a a speed penalty}
             if is_x86_parameterized_string_op(opcode) then
               begin
-                if ((ref^.base=NR_NO) or (getsupreg(ref^.base)<>RS_EDI)) and
-                   ((ref^.index=NR_NO) or (getsupreg(ref^.index)<>RS_EDI)) and
-                   (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                si_param:=get_x86_string_op_si_param(opcode);
+                if (si_param<>-1) and (taicpu(self).OperandOrder=op_att) then
+                  si_param:=x86_parameterized_string_op_param_count(opcode)-si_param-1;
+                if (si_param=opidx) and (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
                   segprefix:=ref^.segment;
               end
             else if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
@@ -2680,6 +2688,10 @@ implementation
 
 
     procedure tai_cpu_abstract.loadoper(opidx:longint;o:toper);
+{$ifdef x86}
+      var
+        si_param: ShortInt;
+{$endif x86}
       begin
         allocate_oper(opidx+1);
         clearop(opidx);
@@ -2698,11 +2710,14 @@ implementation
                   new(ref);
                   ref^:=o.ref^;
 {$ifdef x86}
+                  { We allow this exception for x86, since overloading this would be
+                    too much of a a speed penalty}
                   if is_x86_parameterized_string_op(opcode) then
                     begin
-                      if ((ref^.base=NR_NO) or (getsupreg(ref^.base)<>RS_EDI)) and
-                         ((ref^.index=NR_NO) or (getsupreg(ref^.index)<>RS_EDI)) and
-                         (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                      si_param:=get_x86_string_op_si_param(opcode);
+                      if (si_param<>-1) and (taicpu(self).OperandOrder=op_att) then
+                        si_param:=x86_parameterized_string_op_param_count(opcode)-si_param-1;
+                      if (si_param=opidx) and (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
                         segprefix:=ref^.segment;
                     end
                   else if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then

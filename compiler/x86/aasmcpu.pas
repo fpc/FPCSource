@@ -468,6 +468,7 @@ interface
 {$ifdef i8086}
          procedure loadsegsymbol(opidx:longint;s:tasmsymbol);
 {$endif i8086}
+         property OperandOrder : TOperandOrder read FOperandOrder;
       private
          { next fields are filled in pass1, so pass2 is faster }
          insentry  : PInsEntry;
