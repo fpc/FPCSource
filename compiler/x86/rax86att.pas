@@ -874,164 +874,28 @@ Implementation
           end; { end case }
         until false;
         instr.Ops:=operandnum;
-        { handle string instructions with memory arguments }
+        { handle string instructions with parameters }
         with instr do
-          if Ops=2 then
+          if is_x86_parameterless_string_instruction_op(opcode) and
+             (Ops>=1) and (Ops<=2) then
             begin
-              case opcode of
-                A_MOVSB:
-                  begin
-                    opcode:=A_MOVS;
-                    opsize:=S_B;
-                  end;
-                A_MOVSW:
-                  begin
-                    opcode:=A_MOVS;
-                    opsize:=S_W;
-                  end;
-                A_MOVSD:
-                  begin
-                    { distinguish between MOVS and the SSE MOVSD instruction:
-                      MOVS must have memory 2 reference operands }
-                    if (operands[1].opr.typ=OPR_REFERENCE) and (operands[2].opr.typ=OPR_REFERENCE) then
-                      begin
-                        opcode:=A_MOVS;
-                        opsize:=S_L;
-                      end;
-                  end;
-{$ifdef x86_64}
-                A_MOVSQ:
-                  begin
-                    opcode:=A_MOVS;
-                    opsize:=S_Q;
-                  end;
-{$endif x86_64}
-                A_CMPSB:
-                  begin
-                    opcode:=A_CMPS;
-                    opsize:=S_B;
-                  end;
-                A_CMPSW:
-                  begin
-                    opcode:=A_CMPS;
-                    opsize:=S_W;
-                  end;
-                A_CMPSD:
-                  begin
-                    { no need to distinguish from SSE CMPSD, because the SSE
-                      version has 3 arguments }
-                    opcode:=A_CMPS;
-                    opsize:=S_L;
-                  end;
-{$ifdef x86_64}
-                A_CMPSQ:
-                  begin
-                    opcode:=A_CMPS;
-                    opsize:=S_Q;
-                  end;
-{$endif x86_64}
-                A_INSB:
-                  begin
-                    opcode:=A_INS;
-                    opsize:=S_B;
-                  end;
-                A_INSW:
-                  begin
-                    opcode:=A_INS;
-                    opsize:=S_W;
-                  end;
-                A_INSD:
-                  begin
-                    opcode:=A_INS;
-                    opsize:=S_L;
-                  end;
-                A_OUTSB:
-                  begin
-                    opcode:=A_OUTS;
-                    opsize:=S_B;
-                  end;
-                A_OUTSW:
-                  begin
-                    opcode:=A_OUTS;
-                    opsize:=S_W;
-                  end;
-                A_OUTSD:
-                  begin
-                    opcode:=A_OUTS;
-                    opsize:=S_L;
-                  end;
-              end;
-            end
-          else if Ops=1 then
-            begin
-              case opcode of
-                A_SCASB:
-                  begin
-                    opcode:=A_SCAS;
-                    opsize:=S_B;
-                  end;
-                A_SCASW:
-                  begin
-                    opcode:=A_SCAS;
-                    opsize:=S_W;
-                  end;
-                A_SCASD:
-                  begin
-                    opcode:=A_SCAS;
-                    opsize:=S_L;
-                  end;
-{$ifdef x86_64}
-                A_SCASQ:
-                  begin
-                    opcode:=A_SCAS;
-                    opsize:=S_Q;
-                  end;
-{$endif x86_64}
-                A_LODSB:
-                  begin
-                    opcode:=A_LODS;
-                    opsize:=S_B;
-                  end;
-                A_LODSW:
-                  begin
-                    opcode:=A_LODS;
-                    opsize:=S_W;
-                  end;
-                A_LODSD:
-                  begin
-                    opcode:=A_LODS;
-                    opsize:=S_L;
-                  end;
-{$ifdef x86_64}
-                A_LODSQ:
-                  begin
-                    opcode:=A_LODS;
-                    opsize:=S_Q;
-                  end;
-{$endif x86_64}
-                A_STOSB:
-                  begin
-                    opcode:=A_STOS;
-                    opsize:=S_B;
-                  end;
-                A_STOSW:
-                  begin
-                    opcode:=A_STOS;
-                    opsize:=S_W;
-                  end;
-                A_STOSD:
-                  begin
-                    opcode:=A_STOS;
-                    opsize:=S_L;
-                  end;
-{$ifdef x86_64}
-                A_STOSQ:
-                  begin
-                    opcode:=A_STOS;
-                    opsize:=S_Q;
-                  end;
-{$endif x86_64}
-              end;
+              if opcode=A_MOVSD then
+                begin
+                  { distinguish between MOVS and the SSE MOVSD instruction:
+                    MOVS must have memory 2 reference operands (there's no need
+                    to distinguish from SSE CMPSD, because the SSE version has 3
+                    arguments and we've already checked that above) }
+                  if (Ops=2) and (operands[1].opr.typ=OPR_REFERENCE) and (operands[2].opr.typ=OPR_REFERENCE) then
+                    begin
+                      opcode:=A_MOVS;
+                      opsize:=S_L;
+                    end;
+                end
+              else
+                begin
+                  opsize:=get_x86_string_op_size(opcode);
+                  opcode:=x86_param2paramless_string_op(opcode);
+                end;
             end;
       end;
 

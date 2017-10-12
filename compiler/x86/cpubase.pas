@@ -323,6 +323,8 @@ uses
     { checks whether the specified op is an x86 parameterized string instruction
       (e.g. returns true for movs, cmps, etc, but returns false for movsb, cmpsb, etc.) }
     function is_x86_parameterized_string_instruction_op(op: TAsmOp): boolean;
+    function x86_param2paramless_string_op(op: TAsmOp): TAsmOp;
+    function get_x86_string_op_size(op: TAsmOp): TOpSize;
 
 {$ifdef i8086}
     { return whether we need to add an extra FWAIT instruction before the given
@@ -704,6 +706,48 @@ implementation
             result:=true;
           else
             result:=false;
+        end;
+      end;
+
+
+    function x86_param2paramless_string_op(op: TAsmOp): TAsmOp;
+      begin
+        case op of
+          A_MOVSB,A_MOVSW,A_MOVSD{$ifdef x86_64},A_MOVSQ{$endif}:
+            result:=A_MOVS;
+          A_CMPSB,A_CMPSW,A_CMPSD{$ifdef x86_64},A_CMPSQ{$endif}:
+            result:=A_CMPS;
+          A_SCASB,A_SCASW,A_SCASD{$ifdef x86_64},A_SCASQ{$endif}:
+            result:=A_SCAS;
+          A_LODSB,A_LODSW,A_LODSD{$ifdef x86_64},A_LODSQ{$endif}:
+            result:=A_LODS;
+          A_STOSB,A_STOSW,A_STOSD{$ifdef x86_64},A_STOSQ{$endif}:
+            result:=A_STOS;
+          A_INSB, A_INSW, A_INSD:
+            result:=A_INS;
+          A_OUTSB,A_OUTSW,A_OUTSD:
+            result:=A_OUTS;
+          else
+            internalerror(2017101201);
+        end;
+      end;
+
+
+    function get_x86_string_op_size(op: TAsmOp): TOpSize;
+      begin
+        case op of
+          A_MOVSB,A_CMPSB,A_SCASB,A_LODSB,A_STOSB,A_INSB,A_OUTSB:
+            result:=S_B;
+          A_MOVSW,A_CMPSW,A_SCASW,A_LODSW,A_STOSW,A_INSW,A_OUTSW:
+            result:=S_W;
+          A_MOVSD,A_CMPSD,A_SCASD,A_LODSD,A_STOSD,A_INSD,A_OUTSD:
+            result:=S_L;
+{$ifdef x86_64}
+          A_MOVSQ,A_CMPSQ,A_SCASQ,A_LODSQ,A_STOSQ:
+            result:=S_Q;
+{$endif x86_64}
+          else
+            internalerror(2017101202);
         end;
       end;
 
