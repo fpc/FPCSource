@@ -49,10 +49,10 @@ License:
 Liberation
 ==========
 Official website: 
-    https://fedorahosted.org/liberation-fonts/
+    https://pagure.io/liberation-fonts
 
 Download URL:
-    https://fedorahosted.org/releases/l/i/liberation-fonts/liberation-fonts-ttf-2.00.1.tar.gz
+    https://releases.pagure.org/liberation-fonts/liberation-fonts-ttf-2.00.1.tar.gz
 
 Description:
     The Liberation(tm) Fonts is a font family which aims at metric compatibility
