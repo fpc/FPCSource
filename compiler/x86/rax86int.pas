@@ -2112,6 +2112,7 @@ Unit Rax86int;
         is_far_const:boolean;
         i:byte;
         tmp: toperand;
+        di_param: ShortInt;
 {$ifdef i8086}
         hsymbol: TAsmSymbol;
         hoffset: ASizeInt;
@@ -2286,6 +2287,21 @@ Unit Rax86int;
             else
               if instr.operands[i].opr.typ=OPR_NONE then
                 Message(asmr_e_syntax_error);
+          end;
+        { Check for invalid ES: overrides }
+        if is_x86_parameterized_string_op(instr.opcode) then
+          begin
+            di_param:=get_x86_string_op_di_param(instr.opcode);
+            if di_param<>-1 then
+              begin
+                di_param:=x86_parameterized_string_op_param_count(instr.opcode)-di_param;
+                if di_param<=operandnum then
+                  with instr.operands[di_param] do
+                    if (opr.typ=OPR_REFERENCE) and
+                       (opr.ref.segment<>NR_NO) and
+                       (opr.ref.segment<>NR_ES) then
+                      Message(asmr_e_cannot_override_es_segment);
+              end;
           end;
         { e.g. for "push dword 1", "push word 6" }
         if (instr.ops=1) and

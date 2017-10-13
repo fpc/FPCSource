@@ -2483,7 +2483,7 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 #
 # Assembler reader
 #
-# 07129 is the last used one
+# 07132 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2803,6 +2803,7 @@ asmr_w_unable_to_determine_constant_size_using_word=07131_W_No size specified an
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte, word, dword, etc.) it
 % should use for the constant. Based on its value, WORD is used.
+asmr_e_cannot_override_es_segment=07132_E_Cannot override ES segment
 #
 # Assembler/binary writers
 #
