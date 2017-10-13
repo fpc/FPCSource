@@ -38,6 +38,7 @@ begin
     outsw
     outsl
 
+    { no segment overrides }
     movsb (%rsi), (%rdi)
     movsb (%esi), (%edi)
     movsw (%rsi), (%rdi)
@@ -96,5 +97,125 @@ begin
     outsw (%esi),%dx
     outsl (%rsi),%dx
     outsl (%esi),%dx
+
+    { es:di }
+    movsb (%rsi), %es:(%rdi)
+    movsb (%esi), %es:(%edi)
+    movsw (%rsi), %es:(%rdi)
+    movsw (%esi), %es:(%edi)
+    movsl (%rsi), %es:(%rdi)
+    movsl (%esi), %es:(%edi)
+    movsq (%rsi), %es:(%rdi)
+    movsq (%esi), %es:(%edi)
+
+    cmpsb %es:(%rdi), (%rsi)
+    cmpsb %es:(%edi), (%esi)
+    cmpsw %es:(%rdi), (%rsi)
+    cmpsw %es:(%edi), (%esi)
+    cmpsl %es:(%rdi), (%rsi)
+    cmpsl %es:(%edi), (%esi)
+    cmpsq %es:(%rdi), (%rsi)
+    cmpsq %es:(%edi), (%esi)
+
+    scasb %es:(%rdi)
+    scasb %es:(%edi)
+    scasw %es:(%rdi)
+    scasw %es:(%edi)
+    scasl %es:(%rdi)
+    scasl %es:(%edi)
+    scasq %es:(%rdi)
+    scasq %es:(%edi)
+
+    lodsb (%rsi)
+    lodsb (%esi)
+    lodsw (%rsi)
+    lodsw (%esi)
+    lodsl (%rsi)
+    lodsl (%esi)
+    lodsq (%rsi)
+    lodsq (%esi)
+
+    stosb %es:(%rdi)
+    stosb %es:(%edi)
+    stosw %es:(%rdi)
+    stosw %es:(%edi)
+    stosl %es:(%rdi)
+    stosl %es:(%edi)
+    stosq %es:(%rdi)
+    stosq %es:(%edi)
+
+    insb %dx,%es:(%rdi)
+    insb %dx,%es:(%edi)
+    insw %dx,%es:(%rdi)
+    insw %dx,%es:(%edi)
+    insl %dx,%es:(%rdi)
+    insl %dx,%es:(%edi)
+
+    outsb (%rsi),%dx
+    outsb (%esi),%dx
+    outsw (%rsi),%dx
+    outsw (%esi),%dx
+    outsl (%rsi),%dx
+    outsl (%esi),%dx
+
+    { es:di, fs:si }
+    movsb %fs:(%rsi), %es:(%rdi)
+    movsb %fs:(%esi), %es:(%edi)
+    movsw %fs:(%rsi), %es:(%rdi)
+    movsw %fs:(%esi), %es:(%edi)
+    movsl %fs:(%rsi), %es:(%rdi)
+    movsl %fs:(%esi), %es:(%edi)
+    movsq %fs:(%rsi), %es:(%rdi)
+    movsq %fs:(%esi), %es:(%edi)
+
+    cmpsb %es:(%rdi), %fs:(%rsi)
+    cmpsb %es:(%edi), %fs:(%esi)
+    cmpsw %es:(%rdi), %fs:(%rsi)
+    cmpsw %es:(%edi), %fs:(%esi)
+    cmpsl %es:(%rdi), %fs:(%rsi)
+    cmpsl %es:(%edi), %fs:(%esi)
+    cmpsq %es:(%rdi), %fs:(%rsi)
+    cmpsq %es:(%edi), %fs:(%esi)
+
+    scasb %es:(%rdi)
+    scasb %es:(%edi)
+    scasw %es:(%rdi)
+    scasw %es:(%edi)
+    scasl %es:(%rdi)
+    scasl %es:(%edi)
+    scasq %es:(%rdi)
+    scasq %es:(%edi)
+
+    lodsb %fs:(%rsi)
+    lodsb %fs:(%esi)
+    lodsw %fs:(%rsi)
+    lodsw %fs:(%esi)
+    lodsl %fs:(%rsi)
+    lodsl %fs:(%esi)
+    lodsq %fs:(%rsi)
+    lodsq %fs:(%esi)
+
+    stosb %es:(%rdi)
+    stosb %es:(%edi)
+    stosw %es:(%rdi)
+    stosw %es:(%edi)
+    stosl %es:(%rdi)
+    stosl %es:(%edi)
+    stosq %es:(%rdi)
+    stosq %es:(%edi)
+
+    insb %dx,%es:(%rdi)
+    insb %dx,%es:(%edi)
+    insw %dx,%es:(%rdi)
+    insw %dx,%es:(%edi)
+    insl %dx,%es:(%rdi)
+    insl %dx,%es:(%edi)
+
+    outsb %fs:(%rsi),%dx
+    outsb %fs:(%esi),%dx
+    outsw %fs:(%rsi),%dx
+    outsw %fs:(%esi),%dx
+    outsl %fs:(%rsi),%dx
+    outsl %fs:(%esi),%dx
   end;
 end.
