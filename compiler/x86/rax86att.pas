@@ -786,6 +786,7 @@ Implementation
       var
         operandnum : longint;
         PrefixOp,OverrideOp: tasmop;
+        di_param: ShortInt;
       Begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -897,6 +898,21 @@ Implementation
                   opcode:=x86_param2paramless_string_op(opcode);
                 end;
             end;
+        { Check for invalid ES: overrides }
+        if is_x86_parameterized_string_op(instr.opcode) then
+          begin
+            di_param:=get_x86_string_op_di_param(instr.opcode);
+            if di_param<>-1 then
+              begin
+                di_param:=x86_parameterized_string_op_param_count(instr.opcode)-di_param;
+                if di_param<=operandnum then
+                  with instr.operands[di_param] do
+                    if (opr.typ=OPR_REFERENCE) and
+                       (opr.ref.segment<>NR_NO) and
+                       (opr.ref.segment<>NR_ES) then
+                      Message(asmr_e_cannot_override_es_segment);
+              end;
+          end;
       end;
 
 
