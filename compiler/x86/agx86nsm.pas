@@ -991,7 +991,8 @@ interface
                   writer.AsmWrite(#9#9);
                   i:=get_x86_string_op_si_param(fixed_opcode);
                   if (i<>-1) and (taicpu(hp).oper[i]^.typ=top_ref) and
-                     (taicpu(hp).oper[i]^.ref^.segment<>NR_NO) then
+                     (taicpu(hp).oper[i]^.ref^.segment<>NR_NO) and
+                     (taicpu(hp).oper[i]^.ref^.segment<>NR_DS) then
                     writer.AsmWrite(std_regname(taicpu(hp).oper[i]^.ref^.segment)+' ');
                   for i:=0 to taicpu(hp).ops-1 do
                     if taicpu(hp).oper[i]^.typ=top_ref then
