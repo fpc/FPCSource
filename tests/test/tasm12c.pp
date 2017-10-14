@@ -1,7 +1,7 @@
 { %CPU=i8086 }
 { %NORUN }
 
-{$asmmode att}
+{$asmmode intel}
 {$asmcpu 80386}
 
 begin
