@@ -786,7 +786,7 @@ Implementation
       var
         operandnum : longint;
         PrefixOp,OverrideOp: tasmop;
-        di_param: ShortInt;
+        di_param, si_param: ShortInt;
       Begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -901,16 +901,68 @@ Implementation
         { Check for invalid ES: overrides }
         if is_x86_parameterized_string_op(instr.opcode) then
           begin
+            si_param:=get_x86_string_op_si_param(instr.opcode);
+            if si_param<>-1 then
+              begin
+                si_param:=x86_parameterized_string_op_param_count(instr.opcode)-si_param;
+                if si_param<=operandnum then
+                  with instr.operands[si_param] do
+                    if (opr.typ=OPR_REFERENCE) then
+                      begin
+                        if not((((opr.ref.index<>NR_NO) and
+                                 (opr.ref.base=NR_NO) and
+                                 (getregtype(opr.ref.index)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.index)=RS_ESI)) or
+                                ((opr.ref.index=NR_NO) and
+                                 (opr.ref.base<>NR_NO) and
+                                 (getregtype(opr.ref.base)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.base)=RS_ESI))) and
+                               (opr.ref.offset=0) and
+                               (opr.ref.scalefactor<=1) and
+                               (opr.ref.refaddr=addr_no) and
+                               (opr.ref.symbol=nil) and
+                               (opr.ref.relsymbol=nil)) then
+{$if defined(i8086)}
+                          Message1(asmr_w_invalid_reference,'(%si)');
+{$elseif defined(i386)}
+                          Message1(asmr_w_invalid_reference,'(%esi)');
+{$elseif defined(x86_64)}
+                          Message1(asmr_w_invalid_reference,'(%rsi)');
+{$endif}
+                      end;
+              end;
             di_param:=get_x86_string_op_di_param(instr.opcode);
             if di_param<>-1 then
               begin
                 di_param:=x86_parameterized_string_op_param_count(instr.opcode)-di_param;
                 if di_param<=operandnum then
                   with instr.operands[di_param] do
-                    if (opr.typ=OPR_REFERENCE) and
-                       (opr.ref.segment<>NR_NO) and
-                       (opr.ref.segment<>NR_ES) then
-                      Message(asmr_e_cannot_override_es_segment);
+                    if (opr.typ=OPR_REFERENCE) then
+                      begin
+                        if (opr.ref.segment<>NR_NO) and
+                           (opr.ref.segment<>NR_ES) then
+                          Message(asmr_e_cannot_override_es_segment);
+                        if not((((opr.ref.index<>NR_NO) and
+                                 (opr.ref.base=NR_NO) and
+                                 (getregtype(opr.ref.index)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.index)=RS_EDI)) or
+                                ((opr.ref.index=NR_NO) and
+                                 (opr.ref.base<>NR_NO) and
+                                 (getregtype(opr.ref.base)=R_INTREGISTER) and
+                                 (getsupreg(opr.ref.base)=RS_EDI))) and
+                               (opr.ref.offset=0) and
+                               (opr.ref.scalefactor<=1) and
+                               (opr.ref.refaddr=addr_no) and
+                               (opr.ref.symbol=nil) and
+                               (opr.ref.relsymbol=nil)) then
+{$if defined(i8086)}
+                          Message1(asmr_w_invalid_reference,'(%di)');
+{$elseif defined(i386)}
+                          Message1(asmr_w_invalid_reference,'(%edi)');
+{$elseif defined(x86_64)}
+                          Message1(asmr_w_invalid_reference,'(%edi)');
+{$endif}
+                      end;
               end;
           end;
       end;
