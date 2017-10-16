@@ -635,7 +635,6 @@ interface
       prevfileinfo : tfileposinfo;
       previnfile : tinputfile;
       NewObject :  boolean;
-      tmpreg: TRegister;
     begin
       if not assigned(p) then
        exit;
@@ -997,17 +996,12 @@ interface
                   for i:=0 to taicpu(hp).ops-1 do
                     if taicpu(hp).oper[i]^.typ=top_ref then
                       begin
-                        tmpreg:=NR_NO;
-                        if taicpu(hp).oper[i]^.ref^.base<>NR_NO then
-                          tmpreg:=taicpu(hp).oper[i]^.ref^.base
-                        else if taicpu(hp).oper[i]^.ref^.index<>NR_NO then
-                          tmpreg:=taicpu(hp).oper[i]^.ref^.index;
-                        case reg2opsize(tmpreg) of
-                          S_W:
+                        case get_ref_address_size(taicpu(hp).oper[i]^.ref^) of
+                          16:
                             writer.AsmWrite('a16 ');
-                          S_L:
+                          32:
                             writer.AsmWrite('a32 ');
-                          S_Q:
+                          64:
                             writer.AsmWrite('a64 ');
                         end;
                         break;
