@@ -1777,16 +1777,16 @@ implementation
       end;
 
 
-    function is_16_bit_ref(const input:toper):boolean;
+    function is_16_bit_ref(const ref:treference):boolean;
       var
         ir,br : Tregister;
         isub,bsub : tsubregister;
         has_16_bit_regs: Boolean;
       begin
-        if (input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)=R_MMREGISTER) then
+        if (ref.index<>NR_NO) and (getregtype(ref.index)=R_MMREGISTER) then
           exit(false);
-        ir:=input.ref^.index;
-        br:=input.ref^.base;
+        ir:=ref.index;
+        br:=ref.base;
         isub:=getsubreg(ir);
         bsub:=getsubreg(br);
         { it's a direct address }
@@ -1826,9 +1826,9 @@ implementation
                  )
                 );
 {$elseif defined(i386)}
-        result:=(oper[opidx]^.typ=top_ref) and is_16_bit_ref(oper[opidx]^);
+        result:=(oper[opidx]^.typ=top_ref) and is_16_bit_ref(oper[opidx]^.ref^);
 {$elseif defined(i8086)}
-        result:=(oper[opidx]^.typ=top_ref) and not is_16_bit_ref(oper[opidx]^);
+        result:=(oper[opidx]^.typ=top_ref) and not is_16_bit_ref(oper[opidx]^.ref^);
 {$endif}
       end;
 
@@ -2382,7 +2382,7 @@ implementation
 {$if defined(x86_64)}
         result:=process_ea_ref_64_32(input,output,rfield);
 {$elseif defined(i386) or defined(i8086)}
-        if is_16_bit_ref(input) then
+        if is_16_bit_ref(input.ref^) then
           result:=process_ea_ref_16(input,output,rfield)
         else
           result:=process_ea_ref_32(input,output,rfield);
