@@ -9559,36 +9559,47 @@ begin
           Continue;
         lFooterPosition := lGrp.FooterPosition;
         Report.FRTInIntermediateGroupFooter := True;
-      end;
+      end
+      else
+        lGrp := nil;
       if lFooterPosition = fpNormal then
         Continue;
-      lList.Clear;
-      while Assigned(lFooter) do
-      begin
-        lList.Add(lFooter);
-        lFooter := lFooter.ChildBand;
-      end;
-      for j:=lList.Count-1 downto 0 do
-      begin
-        lFooter := lList[j];
-        if lFooterPosition = fpStackAtBottom then
+      if Assigned(lGrp) and
+      lGrp.FNeedsPrevVariables then
+        Report.RTBeginUsePrevVariableValues;
+      try
+        lList.Clear;
+        while Assigned(lFooter) do
         begin
-          //WriteLn('   1: ',lFooter.ClassName);
-          lRTBand := TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
-          lRTBand.RecalcLayout;
-          lRTBand.BeforePrint;
-          if not lRTBand.EvaluateVisibility then
+          lList.Add(lFooter);
+          lFooter := lFooter.ChildBand;
+        end;
+        for j:=lList.Count-1 downto 0 do
+        begin
+          lFooter := lList[j];
+          if lFooterPosition = fpStackAtBottom then
           begin
-            //WriteLn('      discarded');
-            lRTBand.Page.RemoveChild(lRTBand);
-            lRTBand.Free;
-            continue;
-          end;
-          FPageFooterYPos := FPageFooterYPos - lRTBand.RTLayout.Height;
-          lRTBand.RTLayout.Top := FPageFooterYPos;
-          //WriteLn('      bottom: page/top/height: ',IntToStr(Report.FPageNumber),'/',FormatFloat('#,##0.0', lRTBand.RTLayout.Top), '/',FormatFloat('#,##0.0', lRTBand.RTLayout.Height));
-          //WriteLn('        FooterYPos: ',FormatFloat('#,##0.0', FPageFooterYPos));
-        end
+            //WriteLn('   1: ',lFooter.ClassName);
+            lRTBand := TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
+            lRTBand.RecalcLayout;
+            lRTBand.BeforePrint;
+            if not lRTBand.EvaluateVisibility then
+            begin
+              //WriteLn('      discarded');
+              lRTBand.Page.RemoveChild(lRTBand);
+              lRTBand.Free;
+              continue;
+            end;
+            FPageFooterYPos := FPageFooterYPos - lRTBand.RTLayout.Height;
+            lRTBand.RTLayout.Top := FPageFooterYPos;
+            //WriteLn('      bottom: page/top/height: ',IntToStr(Report.FPageNumber),'/',FormatFloat('#,##0.0', lRTBand.RTLayout.Top), '/',FormatFloat('#,##0.0', lRTBand.RTLayout.Height));
+            //WriteLn('        FooterYPos: ',FormatFloat('#,##0.0', FPageFooterYPos));
+          end
+        end;
+      finally
+        if Assigned(lGrp) and
+        lGrp.FNeedsPrevVariables then
+          Report.RTendUsePrevVariableValues;
       end;
     finally
       Report.FRTInIntermediateGroupFooter := False;
@@ -9598,37 +9609,49 @@ begin
     try
       lFooter:=FFooterList[i];
       lFooterPosition := fpStackAtBottom;
-      if lFooter is TFPReportCustomGroupFooterBand then begin
+      if lFooter is TFPReportCustomGroupFooterBand then
+      begin
         lGrp := TFPReportCustomGroupFooterBand(lFooter).GroupHeader;
         if not lGrp.FNeedsIntermediateFooter then
           Continue;
         lFooterPosition := lGrp.FooterPosition;
         Report.FRTInIntermediateGroupFooter := True;
-      end;
+      end
+      else
+        lGrp := nil;
       if lFooterPosition = fpStackAtBottom then
         Continue;
-      while Assigned(lFooter) do
+      if Assigned(lGrp) and
+      lGrp.FNeedsPrevVariables then
+        Report.RTBeginUsePrevVariableValues;
       try
-        if lFooterPosition = fpNormal then
-        begin
-          //WriteLn('   2: ',lFooter.ClassName);
-          lRTBand := TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
-          lRTBand.RecalcLayout;
-          lRTBand.BeforePrint;
-          if not lRTBand.EvaluateVisibility then
+        while Assigned(lFooter) do
+        try
+          if lFooterPosition = fpNormal then
           begin
-            //WriteLn('      discarded');
-            lRTBand.Page.RemoveChild(lRTBand);
-            lRTBand.Free;
-            continue;
-          end;
-          lRTBand.RTLayout.Top := FLastYPos;
-          UpdateSpaceRemaining(lRTBand);
-          //WriteLn('      normal: page/top/height: ',IntToStr(Report.FPageNumber),'/',FormatFloat('#,##0.0', lRTBand.RTLayout.Top), '/',FormatFloat('#,##0.0', lRTBand.RTLayout.Height));
-          //WriteLn('        LastYPos: ',FormatFloat('#,##0.0', FLastYPos));
-        end
+            //WriteLn('   2: ',lFooter.ClassName);
+            lRTBand := TFPReportCustomBand(lFooter.PrepareObject(FRTPage));
+            lRTBand.RecalcLayout;
+            lRTBand.BeforePrint;
+            if not lRTBand.EvaluateVisibility then
+            begin
+              //WriteLn('      discarded');
+              lRTBand.Page.RemoveChild(lRTBand);
+              lRTBand.Free;
+              continue;
+            end;
+            lRTBand.RTLayout.Top := FLastYPos;
+            UpdateSpaceRemaining(lRTBand);
+            //WriteLn('      normal: page/top/height: ',IntToStr(Report.FPageNumber),'/',FormatFloat('#,##0.0', lRTBand.RTLayout.Top), '/',FormatFloat('#,##0.0', lRTBand.RTLayout.Height));
+            //WriteLn('        LastYPos: ',FormatFloat('#,##0.0', FLastYPos));
+          end
+        finally
+          lFooter := lFooter.ChildBand;
+        end;
       finally
-        lFooter := lFooter.ChildBand;
+        if Assigned(lGrp) and
+        lGrp.FNeedsPrevVariables then
+          Report.RTEndUsePrevVariableValues;
       end;
     finally
       Report.FRTInIntermediateGroupFooter := False;
