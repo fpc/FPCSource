@@ -491,6 +491,10 @@ interface
          function  FindInsentry(objdata:TObjData):boolean;
       end;
 
+    function is_64_bit_ref(const ref:treference):boolean;
+    function is_32_bit_ref(const ref:treference):boolean;
+    function is_16_bit_ref(const ref:treference):boolean;
+
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
@@ -1777,11 +1781,35 @@ implementation
       end;
 
 
+    function is_64_bit_ref(const ref:treference):boolean;
+      begin
+{$if defined(x86_64)}
+        result:=not is_32_bit_ref(ref);
+{$elseif defined(i386) or defined(i8086)}
+        result:=false;
+{$endif}
+      end;
+
+
+    function is_32_bit_ref(const ref:treference):boolean;
+      begin
+{$if defined(x86_64)}
+        result:=(ref.refaddr=addr_no) and
+                (ref.base<>NR_RIP) and
+                (
+                 ((ref.index<>NR_NO) and (getsubreg(ref.index)=R_SUBD)) or
+                 ((ref.base<>NR_NO) and (getsubreg(ref.base)=R_SUBD))
+                );
+{$elseif defined(i386) or defined(i8086)}
+        result:=not is_16_bit_ref(ref);
+{$endif}
+      end;
+
+
     function is_16_bit_ref(const ref:treference):boolean;
       var
         ir,br : Tregister;
         isub,bsub : tsubregister;
-        has_16_bit_regs: Boolean;
       begin
         if (ref.index<>NR_NO) and (getregtype(ref.index)=R_MMREGISTER) then
           exit(false);
@@ -1810,25 +1838,11 @@ implementation
     function taicpu.needaddrprefix(opidx:byte):boolean;
       begin
 {$if defined(x86_64)}
-        result:=(oper[opidx]^.typ=top_ref) and
-                (oper[opidx]^.ref^.refaddr=addr_no) and
-    {$ifdef x86_64}
-                (oper[opidx]^.ref^.base<>NR_RIP) and
-    {$endif x86_64}
-                (
-                 (
-                  (oper[opidx]^.ref^.index<>NR_NO) and
-                  (getsubreg(oper[opidx]^.ref^.index)<>R_SUBADDR)
-                 ) or
-                 (
-                  (oper[opidx]^.ref^.base<>NR_NO) and
-                  (getsubreg(oper[opidx]^.ref^.base)<>R_SUBADDR)
-                 )
-                );
+        result:=(oper[opidx]^.typ=top_ref) and is_32_bit_ref(oper[opidx]^.ref^);
 {$elseif defined(i386)}
         result:=(oper[opidx]^.typ=top_ref) and is_16_bit_ref(oper[opidx]^.ref^);
 {$elseif defined(i8086)}
-        result:=(oper[opidx]^.typ=top_ref) and not is_16_bit_ref(oper[opidx]^.ref^);
+        result:=(oper[opidx]^.typ=top_ref) and is_32_bit_ref(oper[opidx]^.ref^);
 {$endif}
       end;
 
