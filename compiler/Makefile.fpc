@@ -842,7 +842,7 @@ ALLPPUDIR=$(CPU_TARGET)/units/*
 PPULIST=$(wildcard $(PPUDIR)/*.ppu)
 PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
 
-RTLPPUDIR=../rtl/units/$(FULL_TARGET)
+RTLPPUDIR=../rtl/units/$(TARGETSUFFIX)
 RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
 RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
 
@@ -855,8 +855,9 @@ rtlppulogs : $(RTLPPULOGLIST)
 vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 
-%.log-ppu : %.ppu ./utils/ppudump$(EXEEXT)
-	.$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+# Use installed ppudump
+%.log-ppu : %.ppu
+	ppudump -VA -M $< > $@
 
 
 ./utils/ppudump$(EXEEXT):
@@ -865,6 +866,8 @@ vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 ppuinfo :
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
+	echo RTLPPUDIR is "$(RTLPPUDIR)"
+	echo RTLPPU list is "$(RTLPPULIST)"
 
 cleanppulogs :
 	-$(RMPROG) $(PPULOGLIST)

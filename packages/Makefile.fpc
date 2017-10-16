@@ -141,7 +141,8 @@ endif
 
 PPULIST:=$(wildcard */units/*/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
-RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
+# Only remove existing log-ppu files
+RMPPULOGLIST:=$(subst .log-ppu,.rm-log-ppu,$(wildcard $(PPULOGLIST)))
 
 .PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
 
@@ -151,10 +152,11 @@ vpath %.ppu $(ALLPPUDIRS)
 vpath %.log-ppu $(ALLPPUDIRS)
 vpath %.rm-log-ppu $(ALLPPUDIRS)
 
-%.log-ppu : %.ppu ../compiler/utils/ppudump$(EXEEXT)
-	..$(PATHSEP)compiler$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+# Do not try to recompile ppudump, as this does not work if trying to test cross-compiled units
+%.log-ppu : %.ppu
+	ppudump -VA -M $< > $@
 
-%.rm-log-ppu : %.ppu ../compiler/utils/ppudump$(EXEEXT)
+%.rm-log-ppu : %.ppu
 	-$(RMPROG) $<
 
 
@@ -164,6 +166,7 @@ vpath %.rm-log-ppu $(ALLPPUDIRS)
 ppuinfo :
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
+	echo RMPPULOG list is "$(RMPPULOGLIST)"
 
 cleanppulogs : $(RMPPULOGLIST)
 
