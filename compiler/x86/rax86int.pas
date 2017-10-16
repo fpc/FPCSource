@@ -2112,7 +2112,7 @@ Unit Rax86int;
         is_far_const:boolean;
         i:byte;
         tmp: toperand;
-        di_param: ShortInt;
+        di_param, si_param: ShortInt;
 {$ifdef i8086}
         hsymbol: TAsmSymbol;
         hoffset: ASizeInt;
@@ -2291,6 +2291,9 @@ Unit Rax86int;
         { Check for invalid ES: overrides }
         if is_x86_parameterized_string_op(instr.opcode) then
           begin
+            si_param:=get_x86_string_op_si_param(instr.opcode);
+            if si_param<>-1 then
+              si_param:=x86_parameterized_string_op_param_count(instr.opcode)-si_param;
             di_param:=get_x86_string_op_di_param(instr.opcode);
             if di_param<>-1 then
               begin
@@ -2301,6 +2304,16 @@ Unit Rax86int;
                        (opr.ref.segment<>NR_NO) and
                        (opr.ref.segment<>NR_ES) then
                       Message(asmr_e_cannot_override_es_segment);
+              end;
+            { if two memory parameters, check whether their address sizes are equal }
+            if (si_param<>-1) and (di_param<>-1) and
+               (si_param<=operandnum) and (di_param<=operandnum) and
+               (instr.operands[si_param].opr.typ=OPR_REFERENCE) and
+               (instr.operands[di_param].opr.typ=OPR_REFERENCE) then
+              begin
+                if get_ref_address_size(instr.operands[si_param].opr.ref)<>
+                   get_ref_address_size(instr.operands[di_param].opr.ref) then
+                  Message(asmr_e_address_sizes_do_not_match);
               end;
           end;
         { e.g. for "push dword 1", "push word 6" }
