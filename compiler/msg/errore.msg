@@ -2483,7 +2483,7 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 #
 # Assembler reader
 #
-# 07133 is the last used one
+# 07134 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2809,6 +2809,9 @@ asmr_e_cannot_override_es_segment=07132_E_Cannot override ES segment
 asmr_w_invalid_reference=07133_W_Reference is not valid here (expected "$1")
 % Certain x86 instructions require a fixed source or destination reference
 % (e.g. [ESI] or [EDI] for the string instructions source and destination)
+asmr_e_address_sizes_do_not_match=07134_E_Address sizes do not match
+% Caused by using two memory operands in the same instruction with mismatched
+% address sizes (e.g. movs byte ptr [EDI], byte ptr [SI] )
 #
 # Assembler/binary writers
 #

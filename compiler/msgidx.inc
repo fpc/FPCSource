@@ -815,6 +815,7 @@ const
   asmr_w_unable_to_determine_constant_size_using_word=07131;
   asmr_e_cannot_override_es_segment=07132;
   asmr_w_invalid_reference=07133;
+  asmr_e_address_sizes_do_not_match=07134;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -1085,9 +1086,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 80616;
+  MsgTxtSize = 80651;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,105,347,124,96,58,134,33,221,67,
+    27,105,347,124,96,58,135,33,221,67,
     60,20,30,1,1,1,1,1,1,1
   );

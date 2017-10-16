@@ -964,6 +964,16 @@ Implementation
 {$endif}
                       end;
               end;
+            { if two memory parameters, check whether their address sizes are equal }
+            if (si_param<>-1) and (di_param<>-1) and
+               (si_param<=operandnum) and (di_param<=operandnum) and
+               (instr.operands[si_param].opr.typ=OPR_REFERENCE) and
+               (instr.operands[di_param].opr.typ=OPR_REFERENCE) then
+              begin
+                if get_ref_address_size(instr.operands[si_param].opr.ref)<>
+                   get_ref_address_size(instr.operands[di_param].opr.ref) then
+                  Message(asmr_e_address_sizes_do_not_match);
+              end;
           end;
       end;
 
