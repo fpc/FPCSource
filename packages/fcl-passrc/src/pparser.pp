@@ -773,7 +773,7 @@ end;
 function TPasTreeContainer.GetDefaultClassVisibility(AClass: TPasClassType
   ): TPasMemberVisibility;
 begin
-  Result:=visPublic;
+  Result:=visDefault;
   if AClass=nil then ;
 end;
 

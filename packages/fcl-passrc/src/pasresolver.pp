@@ -76,6 +76,7 @@ Works:
   - visibility, override: warn and fix if lower
   - events, proc type of object
   - sealed
+  - $M+ / $TYPEINFO use visPublished as default visibility
 - with..do
 - enums - TPasEnumType, TPasEnumValue
   - propagate to parent scopes
@@ -587,7 +588,8 @@ type
 
   TPasClassScopeFlag = (
     pcsfAncestorResolved,
-    pcsfSealed
+    pcsfSealed,
+    pcsfPublished // default visibility is published due to $M directive
     );
   TPasClassScopeFlags = set of TPasClassScopeFlag;
 
@@ -1229,6 +1231,8 @@ type
     function GetVisibilityContext: TPasElement;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); override;
     function NeedArrayValues(El: TPasElement): boolean; override;
+    function GetDefaultClassVisibility(AClass: TPasClassType
+      ): TPasMemberVisibility; override;
     // built in types and functions
     procedure ClearBuiltInIdentifiers; virtual;
     procedure AddObjFPCBuiltInIdentifiers(
@@ -4618,7 +4622,11 @@ begin
     begin
     ClassScope.AncestorScope:=NoNil(AncestorEl.CustomData) as TPasClassScope;
     ClassScope.DefaultProperty:=ClassScope.AncestorScope.DefaultProperty;
+    if pcsfPublished in ClassScope.AncestorScope.Flags then
+      Include(ClassScope.Flags,pcsfPublished);
     end;
+  if CurrentParser.Scanner.IsDefined(LetterSwitchNames['M']) then
+    Include(ClassScope.Flags,pcsfPublished);
   // create canonical class-of for the "Self" in class functions
   CanonicalSelf:=TPasClassOfType.Create('Self',aClass);
   ClassScope.CanonicalClassOf:=CanonicalSelf;
@@ -10067,6 +10075,20 @@ begin
     Result:=TypeEl.ClassType=TPasArrayType;
     end;
   //writeln('TPasResolver.NeedArrayValues ',GetObjName(El));
+end;
+
+function TPasResolver.GetDefaultClassVisibility(AClass: TPasClassType
+  ): TPasMemberVisibility;
+var
+  ClassScope: TPasClassScope;
+begin
+  if AClass.CustomData=nil then
+    exit(visDefault);
+  ClassScope:=(AClass.CustomData as TPasClassScope);
+  if pcsfPublished in ClassScope.Flags then
+    Result:=visPublished
+  else
+    Result:=visPublic;
 end;
 
 class procedure TPasResolver.UnmangleSourceLineNumber(LineNumber: integer; out

@@ -378,6 +378,7 @@ type
     Procedure TestClassDefaultInheritance;
     Procedure TestClassTripleInheritance;
     Procedure TestClassInheritanceCycleFail;
+    Procedure TestClassDefaultVisibility;
     Procedure TestClassForward;
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
@@ -5549,6 +5550,63 @@ begin
   'type A = class(A)',
   'begin']);
   CheckResolverException('Ancestor cycle detected',nAncestorCycleDetected);
+end;
+
+procedure TTestResolver.TestClassDefaultVisibility;
+var
+  Elements: TFPList;
+  El: TPasElement;
+  aMarker: PSrcMarker;
+  i: Integer;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    {#B}b: longint;',
+  '  end;',
+  '  {$M+}',
+  '  TPersistent = class',
+  '    {#C}c: longint;',
+  '  end;',
+  '  {$M-}',
+  //'  TPic = class',
+  //'    {#D}d: longint;',
+  //'  end;',
+  //'  TComponent = class(TPersistent)',
+  //'    {#E}e: longint;',
+  //'  end;',
+  //'  TControl = class(TComponent)',
+  //'    {#F}f: longint;',
+  //'  end;',
+  'begin']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestClassDefaultVisibility',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestClassDefaultVisibility ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El is TPasVariable) then continue;
+        case aMarker^.Identifier of
+        'B','D':
+          if El.Visibility<>visPublic then
+            RaiseErrorAtSrcMarker('expected visPublic at #'+aMarker^.Identifier+', but got '+VisibilityNames[El.Visibility],aMarker);
+        else
+          if El.Visibility<>visPublished then
+            RaiseErrorAtSrcMarker('expected visPublished at #'+aMarker^.Identifier+', but got '+VisibilityNames[El.Visibility],aMarker);
+        end;
+        break;
+        end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestClassForward;
