@@ -960,7 +960,7 @@ Implementation
 {$elseif defined(i386)}
                           Message1(asmr_w_invalid_reference,'(%edi)');
 {$elseif defined(x86_64)}
-                          Message1(asmr_w_invalid_reference,'(%edi)');
+                          Message1(asmr_w_invalid_reference,'(%rdi)');
 {$endif}
                       end;
               end;
