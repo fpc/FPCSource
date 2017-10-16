@@ -494,6 +494,7 @@ interface
     function is_64_bit_ref(const ref:treference):boolean;
     function is_32_bit_ref(const ref:treference):boolean;
     function is_16_bit_ref(const ref:treference):boolean;
+    function get_ref_address_size(const ref:treference):byte;
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
@@ -1832,6 +1833,19 @@ implementation
             result := ((ir<>NR_NO) and (isub=R_SUBW)) or
                       ((br<>NR_NO) and (bsub=R_SUBW));
           end;
+      end;
+
+
+    function get_ref_address_size(const ref:treference):byte;
+      begin
+        if is_64_bit_ref(ref) then
+          result:=64
+        else if is_32_bit_ref(ref) then
+          result:=32
+        else if is_16_bit_ref(ref) then
+          result:=16
+        else
+          internalerror(2017101601);
       end;
 
 
