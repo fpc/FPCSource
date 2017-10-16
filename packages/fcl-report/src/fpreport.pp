@@ -1197,6 +1197,7 @@ type
   TFPReportCustomGroupFooterBand = class(TFPReportCustomBandWithData)
   private
     FGroupHeader: TFPReportCustomGroupHeaderBand;
+    FDoNotConsiderInFooterSpaceNeeded: Boolean;
     procedure SetGroupHeader(const AValue: TFPReportCustomGroupHeaderBand);
   protected
     function  GetReportBandName: string; override;
@@ -5050,7 +5051,7 @@ begin
     no details of this group are printed                }
   if not Report.FRTInRepeatedGroupHeader then
     FDetailsPrinted := False;
-  Report.FRTGroupDetailsPrinted := False;
+  Report.FRTGroupDetailsPrinted := FDetailsPrinted;
 end;
 
 procedure TFPReportCustomGroupHeaderBand.MovedToNextPageWithChilds;
@@ -9935,6 +9936,7 @@ var
   i: Integer;
   lFooter, lBand: TFPReportCustomBand;
   lValue: TFPReportUnits;
+  lGrpFooter: TFPReportCustomGroupFooterBand;
 
 begin
   //Write('FooterSpaceNeeded: ');
@@ -9945,7 +9947,9 @@ begin
     try
       lFooter:=FFooterList[i];
       if lFooter is TFPReportCustomGroupFooterBand then begin
-        if not TFPReportCustomGroupFooterBand(lFooter).GroupHeader.FNeedsIntermediateFooter then
+        lGrpFooter := TFPReportCustomGroupFooterBand(lFooter);
+        if not lGrpFooter.GroupHeader.FNeedsIntermediateFooter or
+        lGrpFooter.FDoNotConsiderInFooterSpaceNeeded then
           Continue;
         Report.FRTInIntermediateGroupFooter := True;
       end;
@@ -10195,7 +10199,10 @@ begin
       lHighestGroupWithChange := I;
       if Assigned(lGroup.GroupFooter) and
       not lGroup.IsInitialGroupChange then
+      begin
+        lGroup.GroupFooter.FDoNotConsiderInFooterSpaceNeeded := True;
         ShowGroupFooterBand(lGroup.GroupFooter);
+      end;
     end
     else
       break;
@@ -10203,6 +10210,13 @@ begin
 
   if not lGroupChanged then
     exit;
+
+  For I := lHighestGroupWithChange downto 0 do
+  begin
+    lGroup := TFPReportCustomGroupHeaderBand(FGroupHeaderList[I]);
+    if Assigned(lGroup.GroupFooter) then
+      lGroup.GroupFooter.FDoNotConsiderInFooterSpaceNeeded := False;
+  end;
 
   if Assigned(FLastDsgnDataBand) then
     Report.ClearDataBandLastTextValues(FLastDsgnDataBand);
@@ -10458,9 +10472,7 @@ var
   lBand, lRTBand: TFPReportCustomBand;
   lHandledBands: TBandList;
   lStartAgain, lSameBandAgain: Boolean;
-  j: Integer;
   lGrp, lToMoveGrp: TFPReportCustomGroupHeaderBand;
-  lColumnYStartPos: TFPReportUnits;
 
   procedure HandleOverflowedBands;
 
@@ -10472,6 +10484,8 @@ var
     if FNewColumn or
     FOverflowed then
     begin
+      if aBand is TFPReportCustomGroupFooterBand then
+        TFPReportCustomGroupFooterBand(aBand).FDoNotConsiderInFooterSpaceNeeded := False;
       if FCurrentColumn < FRTPage.ColumnCount then
         EndColumn;
       if aBand.KeepTogetherWithChildren then
