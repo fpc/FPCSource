@@ -9202,19 +9202,20 @@ end;
 procedure TTestResolver.TestArray_OpenArrayOfString;
 begin
   StartProgram(false);
-  Add('procedure DoIt(const a: array of String);');
-  Add('var');
-  Add('  i: longint;');
-  Add('  s: string;');
-  Add('begin');
-  Add('  for i:=low(a) to high(a) do s:=a[length(a)-i-1];');
-  Add('end;');
-  Add('const arr: array[0..1] of string = (''A'', ''B'');');
-  Add('var s: string;');
-  Add('begin');
-  Add('  DoIt([]);');
-  Add('  DoIt([s,''foo'','''',s+s]);');
-  Add('  DoIt(arr);');
+  Add([
+  'procedure DoIt(const a: array of String);',
+  'var',
+  '  i: longint;',
+  '  s: string;',
+  'begin',
+  '  for i:=low(a) to high(a) do s:=a[length(a)-i-1];',
+  'end;',
+  'const arr: array[0..1] of string = (''A'', ''B'');',
+  'var s: string;',
+  'begin',
+  '  DoIt([]);',
+  '  DoIt([s,''foo'','''',s+s]);',
+  '  DoIt(arr);']);
   ParseProgram;
 end;
 
