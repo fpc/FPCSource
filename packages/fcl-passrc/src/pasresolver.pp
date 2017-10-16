@@ -886,7 +886,7 @@ type
 
   TPasResolverOption = (
     proFixCaseOfOverrides,  // fix Name of overriding proc/property to the overriden proc/property
-    proClassPropertyNonStatic,  // class property accessor must be non static
+    proClassPropertyNonStatic,  // class property accessors are non static
     proPropertyAsVarParam, // allows to pass a property as a var/out argument
     proClassOfIs, // class-of supports is and as operator
     proExtClassInstanceNoTypeMembers, // class members of external class cannot be accessed by instance
@@ -8251,7 +8251,7 @@ begin
       Result:=cExact
     else if ParamResolved.BaseType=btContext then
       begin
-      if IsDynArray(ParamResolved.TypeEl) then
+      if IsDynArray(ParamResolved.TypeEl) and not IsOpenArray(ParamResolved.TypeEl) then
         begin
         Result:=cExact;
         DynArr:=NoNil(ParamResolved.TypeEl) as TPasArrayType;

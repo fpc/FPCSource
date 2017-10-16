@@ -565,6 +565,7 @@ type
     Procedure TestArray_OpenArrayOfString;
     Procedure TestArray_OpenArrayOfString_IntFail;
     Procedure TestArray_OpenArrayOverride;
+    Procedure TestArray_OpenArrayAsDynArraySetLengthFail;
     Procedure TestArray_CopyConcat;
     Procedure TestStaticArray_CopyConcat;// ToDo
     Procedure TestArray_CopyMismatchFail;
@@ -9248,6 +9249,20 @@ begin
   Add('end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_OpenArrayAsDynArraySetLengthFail;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proOpenAsDynArrays];
+  StartProgram(false);
+  Add([
+  'procedure DoIt(a: array of byte);',
+  'begin',
+  '  SetLength(a,3);',
+  'end;',
+  'begin']);
+  CheckResolverException('Incompatible type arg no. 1: Got "array of Byte", expected "string or dynamic array variable"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestArray_CopyConcat;
