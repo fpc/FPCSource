@@ -9208,10 +9208,12 @@ begin
   Add('begin');
   Add('  for i:=low(a) to high(a) do s:=a[length(a)-i-1];');
   Add('end;');
+  Add('const arr: array[0..1] of string = (''A'', ''B'');');
   Add('var s: string;');
   Add('begin');
   Add('  DoIt([]);');
   Add('  DoIt([s,''foo'','''',s+s]);');
+  Add('  DoIt(arr);');
   ParseProgram;
 end;
 

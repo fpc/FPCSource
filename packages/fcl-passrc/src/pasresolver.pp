@@ -153,12 +153,20 @@ Works:
   - a:=value
   - arr[index]
 - resourcestrings
+- custom ranges
+  - enum: low(), high(), pred(), succ()
 
 ToDo:
+- custom ranges
+  - enum: ord(), rg(int), int(rg), enum:=rg, rg:=enum, rg:=rg,
+     rgbig:=rgsmall, rgsmall:=rgbig
+     enum=rg, rg=enum, rg=rg, rg1=rg2
+     array[rg], low(array), high(array)
 - range checking:
   - indexedprop[param]
   - case-of unique
   - defaultvalue
+- $writableconst off $J-
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
 - classes - TPasClassType

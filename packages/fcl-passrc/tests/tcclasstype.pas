@@ -45,7 +45,7 @@ type
     procedure TearDown; override;
     procedure DefaultMethod;
     Procedure AssertParserError(Const Msg : String);
-    Procedure AssertVisibility(V : TPasMemberVisibility = visDefault; Member : TPasElement = Nil);
+    Procedure AssertVisibility(V : TPasMemberVisibility = visPublic; Member : TPasElement = Nil);
     procedure AssertMemberType(AType : TClass; Member : TPaselement = Nil);
     procedure AssertMemberName(AName : string; Member : TPaselement = Nil);
     Procedure AssertProperty(P : TPasProperty; AVisibility : TPasMemberVisibility;AName,ARead,AWrite,AStored,AImplements : String; AArgCount : Integer; ADefault,ANodefault : Boolean);
@@ -680,7 +680,7 @@ begin
   AssertNotNull('Have field',Members[1]);
   AssertMemberName('b',Members[1]);
   AssertMemberType(TPasVariable,Members[1]);
-  AssertVisibility(visDefault,Members[1]);
+  AssertVisibility(visPublic,Members[1]);
 end;
 
 procedure TTestClassType.TestTwoFieldsB;
@@ -694,7 +694,7 @@ begin
   AssertNotNull('Have field',Members[1]);
   AssertMemberName('b',Members[1]);
   AssertMemberType(TPasVariable,Members[1]);
-  AssertVisibility(visDefault,Members[1]);
+  AssertVisibility(visPublic,Members[1]);
 end;
 
 procedure TTestClassType.TestTwoVarFieldsB;
@@ -879,7 +879,7 @@ begin
   AddMember('Procedure DoSomething');
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertNotNull('Have method',Method1);
   AssertMemberName('DoSomething');
   AssertEquals('No modifiers',[],Method1.Modifiers);
@@ -894,7 +894,7 @@ begin
   AddMember('{c} Procedure DoSomething');
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertNotNull('Have method',Method1);
   AssertMemberName('DoSomething');
   AssertEquals('Comment','c'+sLineBreak,Method1.DocComment);
@@ -912,7 +912,7 @@ begin
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
   AssertEquals('1 class procedure',TPasClassProcedure,members[0].ClassType);
-  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertEquals('Public visibility',visPublic,Members[0].Visibility);
   AssertMemberName('DoSomething');
   AssertEquals('No modifiers',[],TPasClassProcedure(Members[0]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
@@ -934,7 +934,7 @@ begin
   ParseClass;
   AssertEquals('1 members',1,TheClass.Members.Count);
   AssertEquals('1 class procedure',TPasConstructor,Members[0].ClassType);
-  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertEquals('Public visibility',visPublic,Members[0].Visibility);
   AssertMemberName('Create');
   AssertEquals('No modifiers',[],TPasConstructor(Members[0]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasConstructor(Members[0]).ProcType.CallingConvention);
@@ -948,7 +948,7 @@ begin
   ParseClass;
   AssertEquals('1 members',1,TheClass.Members.Count);
   AssertEquals('1 class procedure',TPasClassConstructor,Members[0].ClassType);
-  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertEquals('Public visibility',visPublic,Members[0].Visibility);
   AssertMemberName('Create');
   AssertEquals('No modifiers',[],TPasClassConstructor(Members[0]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasClassConstructor(Members[0]).ProcType.CallingConvention);
@@ -962,7 +962,7 @@ begin
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
   AssertEquals('1 class procedure',TPasDestructor,members[0].ClassType);
-  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertEquals('Public visibility',visPublic,Members[0].Visibility);
   AssertMemberName('Destroy');
   AssertEquals('No modifiers',[],TPasDestructor(Members[0]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasDestructor(Members[0]).ProcType.CallingConvention);
@@ -976,7 +976,7 @@ begin
   ParseClass;
   AssertEquals('1 members',1,TheClass.Members.Count);
   AssertEquals('1 class procedure',TPasClassDestructor,Members[0].ClassType);
-  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertEquals('Public visibility',visPublic,Members[0].Visibility);
   AssertMemberName('Destroy');
   AssertEquals('No modifiers',[],TPasClassDestructor(Members[0]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasClassDestructor(Members[0]).ProcType.CallingConvention);
@@ -989,7 +989,7 @@ begin
   AddMember('Function DoSomething : integer');
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
-  AssertEquals('Default visibility',visDefault,FunctionMethod1.Visibility);
+  AssertEquals('Public visibility',visPublic,FunctionMethod1.Visibility);
   AssertNotNull('Have method',Member1);
   AssertMemberName('DoSomething');
   AssertEquals('No modifiers',[],functionMethod1.Modifiers);
@@ -1004,7 +1004,7 @@ begin
   ParseClass;
   AssertEquals('1 members',1,TheClass.members.Count);
   AssertEquals('1 class procedure',TPasClassFunction,members[0].ClassType);
-  AssertEquals('Default visibility',visDefault,Members[0].Visibility);
+  AssertEquals('Public visibility',visPublic,Members[0].Visibility);
   AssertMemberName('DoSomething');
   AssertEquals('No modifiers',[],TPasClassFunction(members[0]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasClassFunction(members[0]).ProcType.CallingConvention);
@@ -1034,7 +1034,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer)');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1044,7 +1044,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) virtual');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Virtual modifiers',[pmVirtual],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1054,7 +1054,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer); virtual');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Virtual modifiers',[pmVirtual],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1064,7 +1064,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) virtual abstract');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1074,7 +1074,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) virtual; abstract; final');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Virtual, abstract modifiers',[pmVirtual,pmAbstract,pmFinal],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1085,7 +1085,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) override');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Override modifiers',[pmoverride],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1095,7 +1095,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) ReIntroduce');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Reintroduce modifiers',[pmReintroduce],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1105,7 +1105,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) dynamic');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Dynamic modifiers',[pmDynamic],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1115,7 +1115,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) inline');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Inline modifiers',[pmInline],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1138,7 +1138,7 @@ begin
   AddMember('Procedure DoSomethingB(A : Integer)');
   ParseClass;
   DefaultMethod;
-  AssertEquals('First Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('First Default visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertNotNull('Have method 2',Method2);
@@ -1157,7 +1157,7 @@ begin
   ParseClass;
   AssertNotNull('Have member 1',Member1);
   AssertEquals('Overload',TPasOverloadedProc,Member1.ClassType);
-  AssertEquals('Default visibility',visDefault,Member1.Visibility);
+  AssertEquals('Public visibility',visPublic,Member1.Visibility);
 end;
 
 procedure TTestClassType.TestMethodHint;
@@ -1167,7 +1167,7 @@ begin
   DefaultMethod;
   HaveHint(hDeprecated,Member1.Hints);
   HaveHint(hDeprecated,Method1.ProcType.Hints);
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1179,7 +1179,7 @@ begin
   DefaultMethod;
   HaveHint(hDeprecated,Member1.Hints);
   HaveHint(hDeprecated,Method1.ProcType.Hints);
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('virtual modifiers',[pmVirtual],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1189,7 +1189,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) message 123');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('message modifier',[pmMessage],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('Message name','123',Method1.MessageName);
@@ -1200,7 +1200,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) message ''aha''');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('message modifiers',[pmMessage],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('Message name','''aha''',Method1.MessageName);
@@ -1212,11 +1212,11 @@ begin
   AddMember('Procedure DoSomethingElse');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Virtual modifiers',[pmVirtual],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
-  AssertEquals('Default visibility',visDefault,Members[1].Visibility);
-  AssertEquals('Default visibility',TPasProcedure,Members[1].ClassType);
+  AssertEquals('Public visibility',visPublic,Members[1].Visibility);
+  AssertEquals('Public visibility',TPasProcedure,Members[1].ClassType);
   AssertEquals('Virtual modifiers',[],TPasProcedure(Members[1]).Modifiers);
   AssertEquals('Default calling convention',ccDefault, TPasProcedure(Members[1]).ProcType.CallingConvention);
 end;
@@ -1228,7 +1228,7 @@ begin
   AddMember('Procedure DoSomethingElse');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('Virtual modifiers',[pmVirtual],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertEquals('2 Public visibility',visPublic,Members[1].Visibility);
@@ -1798,7 +1798,7 @@ begin
   AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.CLassType);
   AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;
@@ -1842,7 +1842,7 @@ begin
   ParseClass;
   AssertEquals('Is interface',okInterface,TheClass.ObjKind);
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertNull('No UUID',TheClass.GUIDExpr);
@@ -1855,7 +1855,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer) dispid 12');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('dispid modifier',[pmDispID],Method1.Modifiers);
   AssertNotNull('dispid expression',Method1.DispIDExpr);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
@@ -1867,7 +1867,7 @@ begin
   AddMember('Procedure DoSomething(A : Integer); dispid 12');
   ParseClass;
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('dispid modifier',[pmDispID],Method1.Modifiers);
   AssertNotNull('dispid expression',Method1.DispIDExpr);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
@@ -1887,7 +1887,7 @@ begin
   AssertNotNull('Method proc type',FunctionMethod1.ProcType);
   AssertMemberName('GetS');
   AssertEquals('0 arguments',0,FunctionMethod1.ProcType.Args.Count) ;
-  AssertEquals('Default visibility',visDefault,FunctionMethod1.Visibility);
+  AssertEquals('Public visibility',visPublic,FunctionMethod1.Visibility);
   AssertEquals('No modifiers',[],FunctionMethod1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, FunctionMethod1.ProcType.CallingConvention);
   AssertNull('No UUID',TheClass.GUIDExpr);
@@ -1977,7 +1977,7 @@ begin
   ParseClass;
   AssertEquals('Is interface',okInterface,TheClass.ObjKind);
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
   AssertExpression('UUID',TheClass.GUIDExpr,pekString,'''123''');
@@ -2015,7 +2015,7 @@ begin
   AssertEquals('Have helper original alias',TPasUnresolvedTypeRef,TheClass.HelperForType.ClassType);
   AssertEquals('Helper original alias name','TOriginal',TheClass.HelperForType.Name);
   DefaultMethod;
-  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertEquals('Public visibility',visPublic,Method1.Visibility);
   AssertEquals('No modifiers',[],Method1.Modifiers);
   AssertEquals('Default calling convention',ccDefault, Method1.ProcType.CallingConvention);
 end;

@@ -3506,12 +3506,7 @@ begin
     end
   else
     begin
-    if (EnumType.Name<>'') then
-      Result:='Set of '+EnumType.Name
-    else if (enumtype is TPasRangeType) then
-      Result:='Set of '+TPasRangeType(enumtype).RangeStart+'..'+TPasRangeType(enumtype).RangeEnd
-    else
-      Raise EParserError.Create('Unknown pastree enum element = '+EnumType.ClassName);
+    Result:='Set of '+EnumType.Name;
     If Full then
       Result:=Name+' = '+Result;
     end;

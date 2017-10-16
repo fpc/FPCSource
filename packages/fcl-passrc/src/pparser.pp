@@ -190,6 +190,7 @@ type
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
     function NeedArrayValues(El: TPasElement): boolean; virtual;
+    function GetDefaultClassVisibility(AClass: TPasClassType): TPasMemberVisibility; virtual;
     property Package: TPasPackage read FPackage;
     property InterfaceOnly : Boolean Read FInterfaceOnly Write FInterFaceOnly;
     property ScannerLogEvents : TPScannerLogEvents Read FScannerLogEvents Write FScannerLogEvents;
@@ -767,6 +768,13 @@ function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
 begin
   Result:=false;
   if El=nil then ;
+end;
+
+function TPasTreeContainer.GetDefaultClassVisibility(AClass: TPasClassType
+  ): TPasMemberVisibility;
+begin
+  Result:=visPublic;
+  if AClass=nil then ;
 end;
 
 { ---------------------------------------------------------------------
@@ -5895,8 +5903,11 @@ Var
 
 begin
   CurSection:=stNone;
-  CurVisibility := visDefault;
-  HaveClass:=False;
+  haveClass:=false;
+  if Assigned(FEngine) then
+    CurVisibility:=FEngine.GetDefaultClassVisibility(AType)
+  else
+    CurVisibility := visPublic;
   LastToken:=CurToken;
   while (CurToken<>tkEnd) do
     begin
