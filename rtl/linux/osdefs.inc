@@ -94,3 +94,13 @@
   {$define FPC_USEGETTIMEOFDAY}
 {$endif cpusparc64}
 
+{$ifdef android}
+  {$undef usestime}
+  {$undef OLDMMAP}
+  {$define MMAP2}
+  {$define NO_SYSCALL_UTIME}
+  {$ifndef cpumips}
+    {$define NO_SYSCALL_GETRLIMIT}
+  {$endif}
+  {$define FPC_USEGETTIMEOFDAY}
+{$endif android}

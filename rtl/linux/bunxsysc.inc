@@ -15,6 +15,21 @@
 
  **********************************************************************}
 
+{$ifdef android}
+const
+  syscall_nr_pread = syscall_nr_pread64;
+  syscall_nr_pwrite = syscall_nr_pwrite64;
+{$ifndef cpumips}
+  syscall_nr_getuid = syscall_nr_getuid32;
+  syscall_nr_geteuid = syscall_nr_geteuid32;
+  syscall_nr_getgid = syscall_nr_getgid32;
+  syscall_nr_getegid = syscall_nr_getegid32;
+  syscall_nr_setuid = syscall_nr_setuid32;
+  syscall_nr_setgid = syscall_nr_setgid32;
+  syscall_nr_getgroups = syscall_nr_getgroups32;
+{$endif cpumips}
+{$endif android}
+
 Function fpKill(Pid:pid_t;Sig:cint):cint;
 {
   Send signal 'sig' to a process, or a group of processes.
@@ -37,7 +52,11 @@ Function fpSigPending(var nset: TSigSet):cint;
   signals is set in SSet
 }
 begin
+{$ifdef android}
+  fpsigpending:=do_syscall(syscall_nr_sigpending,TSysParam(@nset));
+{$else}
   fpsigpending:=do_syscall(syscall_nr_rt_sigpending,TSysParam(@nset));
+{$endif android}
 end;
 
 function fpsigsuspend(const sigmask:TSigSet):cint;
@@ -47,7 +66,11 @@ function fpsigsuspend(const sigmask:TSigSet):cint;
 }
 
 begin
+{$ifdef android}
+  fpsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(@sigmask));
+{$else}
   fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,TSysParam(@sigmask),TSysParam(8));
+{$endif android}
 end;
 
 function fpsigtimedwait(const sigset:TSigSet;info:Psiginfo;timeout:Ptimespec):cint;
@@ -297,7 +320,7 @@ end;
 function fpgetpgrp : pid_t;
 
 begin
-{$if defined(generic_linux_syscalls)}
+{$if defined(generic_linux_syscalls) or defined(android)}
  fpgetpgrp:=do_syscall(syscall_nr_getpgid,0);
 {$else}
  fpgetpgrp:=do_syscall(syscall_nr_getpgrp);
@@ -313,7 +336,11 @@ end;
 function fpgetsid (pid:TPid): pid_t;
 
 begin
+{$ifdef android}
+ fpgetsid:=0;
+{$else}
  fpgetsid:=do_syscall(syscall_nr_getsid,pid);
+{$endif android}
 end;
 
 Function fpumask(cmask:mode_t):mode_t;
@@ -362,7 +389,7 @@ end;
 Function fpchown(path:pchar;owner:uid_t;group:gid_t):cint;
 
 begin
-{$if defined(generic_linux_syscalls)}
+{$if defined(generic_linux_syscalls) or defined(android)}
   fpChOwn:=do_syscall(syscall_nr_fchownat,AT_FDCWD,TSysParam(path),TSysParam(owner),TSysParam(group),0);
 {$else}
   fpChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
@@ -542,12 +569,12 @@ function fpNice(N:cint):cint;
 Doesn't exist in BSD. Linux emu uses setpriority in a construct as below:
 }
 
-{$if defined(generic_linux_syscalls) or defined(cpux86_64)}
+{$if defined(generic_linux_syscalls) or defined(cpux86_64) or defined(android)}
 var
   oldprio : cint;
 {$endif}
 begin
-{$if defined(generic_linux_syscalls) or defined(cpux86_64)}
+{$if defined(generic_linux_syscalls) or defined(cpux86_64) or defined(android)}
   oldprio:=fpGetPriority(Prio_Process,0);
   fpNice:=fpSetPriority(Prio_Process,0,oldprio+N);
   if fpNice=0 then

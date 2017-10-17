@@ -20,13 +20,21 @@ end;
 
 Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
 begin
+{$ifdef android}
+  fpfstatfs:=-1;
+{$else}
   fpfstatfs:=do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(info))
+{$endif android}
 end;
 
 Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
 
 begin
+{$ifdef android}
+  fpStatFS:=-1;
+{$else}
   fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
+{$endif android}
 end;
 
 Function  fpfsync (fd : cint) : cint;
@@ -34,6 +42,8 @@ Function  fpfsync (fd : cint) : cint;
 begin
   fpfsync:=do_SysCall(syscall_nr_fsync, fd);
 end;
+
+{$ifndef android}
 
 {--------------------------------
       Port IO functions
@@ -59,3 +69,4 @@ end;
 
 {$endif cpui386}
 
+{$endif android}

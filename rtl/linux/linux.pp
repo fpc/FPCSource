@@ -219,7 +219,7 @@ type
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 {$endif}
 
-{$ifndef FPC_USE_LIBC}
+{$if not defined(FPC_USE_LIBC) and not defined(android)}
 {$if defined(cpui386) or defined(cpux86_64)}
 const
   MODIFY_LDT_CONTENTS_DATA       = 0;
@@ -335,6 +335,7 @@ const CAP_CHOWN            = 0;
 
 
 //***********************************************SPLICE from kernel 2.6.17+****************************************
+{$ifndef android}
 
 const
 {* Flags for SPLICE and VMSPLICE.  *}
@@ -356,7 +357,9 @@ function splice (fdin: cInt; offin: off64_t; fdout: cInt;
 function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'tee'; {$ENDIF}
 
 {$endif} // x86
+{$endif android}
 
+{$ifndef android}
 const
   { flags for sync_file_range }
   SYNC_FILE_RANGE_WAIT_BEFORE = 1;
@@ -364,6 +367,7 @@ const
   SYNC_FILE_RANGE_WAIT_AFTER  = 4;
 
 function sync_file_range(fd: cInt; offset, nbytes: off64_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
+{$endif android}
 function fdatasync (fd: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
 
 {$PACKRECORDS 1}
@@ -565,6 +569,7 @@ begin
   capset:=do_syscall(syscall_nr_capset,Tsysparam(header),Tsysparam(data));
 end;
 
+{$ifndef android}
 // TODO: update also on non x86!
 {$ifdef cpu86} // didn't update syscall_nr on others yet
 
@@ -608,6 +613,8 @@ begin
 {$endif}
 {$endif}
 end;
+
+{$endif android}
 
 function fdatasync (fd: cint): cint;
 begin
@@ -677,7 +684,7 @@ end;
 *)
 {$endif} // non-libc
 
-{$ifndef FPC_USE_LIBC}
+{$if not defined(FPC_USE_LIBC) and not defined(android)}
 {$if defined(cpui386) or defined(cpux86_64)}
 { does not exist as a wrapper in glibc, and exists only for x86 }
 function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
@@ -742,6 +749,12 @@ function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
 begin
   clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
+
+{$if defined(android) and not defined(cpumips)}
+const
+  syscall_nr_setregid = syscall_nr_setregid32;
+  syscall_nr_setreuid = syscall_nr_setreuid32;
+{$endif}
 
 function setregid(rgid,egid : uid_t): cint;
 
