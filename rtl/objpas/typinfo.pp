@@ -198,9 +198,15 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetNext: PVmtFieldEntry; inline;
+        function GetTail: Pointer; inline;
+      public
         FieldOffset: PtrUInt;
         TypeIndex: Word;
         Name: ShortString;
+        property Tail: Pointer read GetTail;
+        property Next: PVmtFieldEntry read GetNext;
       end;
 
       PVmtFieldTable = ^TVmtFieldTable;
@@ -209,11 +215,15 @@ unit typinfo;
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
+      private
+        function GetField(aIndex: Word): PVmtFieldEntry;
+      public
         Count: Word;
         ClassTab: PVmtFieldClassTab;
         { should be array[Word] of TFieldInfo;  but
           Elements have variant size! force at least proper alignment }
-        Fields: array[0..0] of TVmtFieldEntry
+        Fields: array[0..0] of TVmtFieldEntry;
+        property Field[aIndex: Word]: PVmtFieldEntry read GetField;
       end;
 
 {$PACKRECORDS 1}
@@ -2833,6 +2843,34 @@ begin
           Dec(Index);
         end;
     end;
+end;
+
+{ TVmtFieldTable }
+
+function TVmtFieldTable.GetField(aIndex: Word): PVmtFieldEntry;
+var
+  c: Word;
+begin
+  if aIndex >= Count then
+    Exit(Nil);
+  c := aIndex;
+  Result := @Fields;
+  while c > 0 do begin
+    Result := Result^.Next;
+    Dec(c);
+  end;
+end;
+
+{ TVmtFieldEntry }
+
+function TVmtFieldEntry.GetNext: PVmtFieldEntry;
+begin
+  Result := aligntoptr(Tail);
+end;
+
+function TVmtFieldEntry.GetTail: Pointer;
+begin
+  Result := PByte(@Name) + Length(Name) + SizeOf(Byte);
 end;
 
 { TInterfaceData }
