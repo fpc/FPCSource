@@ -985,6 +985,23 @@ interface
                     end;
                if fixed_opcode=A_FWAIT then
                 writer.AsmWriteln(#9#9'DB'#9'09bh')
+               else if (fixed_opcode=A_XLAT) and (taicpu(hp).ops=1) and
+                       (taicpu(hp).oper[0]^.typ=top_ref) then
+                begin
+                  writer.AsmWrite(#9#9);
+                  if (taicpu(hp).oper[0]^.ref^.segment<>NR_NO) and
+                     (taicpu(hp).oper[0]^.ref^.segment<>NR_DS) then
+                    writer.AsmWrite(std_regname(taicpu(hp).oper[0]^.ref^.segment)+' ');
+                  case get_ref_address_size(taicpu(hp).oper[0]^.ref^) of
+                    16:
+                      writer.AsmWrite('a16 ');
+                    32:
+                      writer.AsmWrite('a32 ');
+                    64:
+                      writer.AsmWrite('a64 ');
+                  end;
+                  writer.AsmWriteLn('xlatb');
+                end
                else if is_x86_parameterized_string_op(fixed_opcode) then
                 begin
                   writer.AsmWrite(#9#9);

@@ -5867,6 +5867,13 @@
     flags   : [if_8086]
   ),
   (
+    opcode  : A_XLAT;
+    ops     : 1;
+    optypes : (ot_memory or ot_bits8,ot_none,ot_none,ot_none);
+    code    : #1#215;
+    flags   : [if_8086]
+  ),
+  (
     opcode  : A_XLATB;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);

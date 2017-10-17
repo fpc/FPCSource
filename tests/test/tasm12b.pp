@@ -34,7 +34,13 @@ begin
     outsw
     outsd
 
+    xlat
+    xlatb
+
     { no segment overrides }
+    xlat byte ptr [ebx]
+    xlat byte ptr [bx]
+
     movs byte ptr [edi], byte ptr [esi]
     movs byte ptr [di], byte ptr [si]
     movs word ptr [edi], word ptr [esi]
@@ -85,6 +91,9 @@ begin
     outs dx, dword ptr [si]
 
     { es:di }
+    xlat byte ptr ds:[ebx]
+    xlat byte ptr ds:[bx]
+
     movs byte ptr es:[edi], byte ptr [esi]
     movs byte ptr es:[di], byte ptr [si]
     movs word ptr es:[edi], word ptr [esi]
@@ -135,6 +144,9 @@ begin
     outs dx, dword ptr [si]
 
     { es:di, fs:si }
+    xlat byte ptr fs:[ebx]
+    xlat byte ptr fs:[bx]
+
     movs byte ptr es:[edi], byte ptr fs:[esi]
     movs byte ptr es:[di], byte ptr fs:[si]
     movs word ptr es:[edi], word ptr fs:[esi]

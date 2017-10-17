@@ -2074,6 +2074,7 @@ mem8,reg8             \1\x86\101                      8086
 [XLAT]
 (Ch_WEAX, Ch_REBX)
 void                  \1\xD7                          8086
+mem8                  \1\xD7                          8086
 
 [XLATB]
 (Ch_WEAX, Ch_REBX)
