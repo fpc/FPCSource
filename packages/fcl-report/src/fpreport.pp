@@ -841,6 +841,7 @@ type
   TFPReportCustomBand = class(TFPReportElementWithChildren)
   private
     FChildBand: TFPReportChildBand;
+    FParentBand: TFPReportCustomBand;
     FKeepTogetherWithChildren: Boolean;
     FUseParentFont: boolean;
     FVisibleOnPage: TFPReportVisibleOnPage;
@@ -887,6 +888,7 @@ type
     property    VisibleOnPage: TFPReportVisibleOnPage read FVisibleOnPage write SetVisibleOnPage;
     function    EvaluateVisibility: boolean; override;
     property    ChildBand: TFPReportChildBand read FChildBand write SetChildBand;
+    property    ParentBand: TFPReportCustomBand read FParentBand;
     property    Page : TFPReportCustomPage read GetReportPage;
   end;
   TFPReportCustomBandClass = Class of TFPReportCustomBand;
@@ -6673,12 +6675,21 @@ begin
 end;
 
 procedure TFPReportCustomPage.ApplyBandWidth(ABand: TFPReportCustomBand);
+
+var
+  lBand: TFPReportCustomBand;
+
 begin
+  lBand := ABand;
+  if ABand is TFPReportCustomChildBand then
+    { handle child bands like main parent band }
+    while Assigned(lBand.ParentBand) do
+      lBand := lBand.ParentBand;
   { set Band Width appropriately - certain bands are not affected by ColumnCount }
-  if (ABand is TFPReportCustomTitleBand)
-      or (ABand is TFPReportCustomSummaryBand)
-      or (ABand is TFPReportCustomPageHeaderBand)
-      or (ABand is TFPReportCustomPageFooterBand) then
+  if (lBand is TFPReportCustomTitleBand)
+      or (lBand is TFPReportCustomSummaryBand)
+      or (lBand is TFPReportCustomPageHeaderBand)
+      or (lBand is TFPReportCustomPageFooterBand) then
     ABand.Layout.Width := Layout.Width
   else
     ABand.Layout.Width := BandWidthFromColumnCount;
@@ -7668,6 +7679,11 @@ begin
     b := b.ChildBand;
     if b = self then
       raise EReportError.Create(SErrChildBandCircularReference);
+  end;
+  if Assigned(FChildBand) then
+  begin
+    FChildBand.FParentBand := Self;
+    Page.ApplyBandWidth(FChildBand);
   end;
 end;
 
