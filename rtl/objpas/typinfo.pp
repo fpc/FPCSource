@@ -182,6 +182,16 @@ unit typinfo;
         property Tail: Pointer read GetTail;
       end;
 
+      PVmtFieldClassTab = ^TVmtFieldClassTab;
+      TVmtFieldClassTab =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: Word;
+        ClassRef: array[0..0] of PClass;
+      end;
+
       PVmtFieldEntry = ^TVmtFieldEntry;
       TVmtFieldEntry =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -200,7 +210,7 @@ unit typinfo;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
         Count: Word;
-        ClassTab: Pointer;
+        ClassTab: PVmtFieldClassTab;
         { should be array[Word] of TFieldInfo;  but
           Elements have variant size! force at least proper alignment }
         Fields: array[0..0] of TVmtFieldEntry
