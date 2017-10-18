@@ -486,7 +486,7 @@ type
     po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     po_SelfToken,            // Self is a token. For backward compatibility.
     po_CheckModeSwitches,    // stop on unknown modeswitch with an error
-    po_CheckCondFunction     // stop on unknown function in conditional expression, default: return '0'
+    po_CheckCondFunction    // stop on unknown function in conditional expression, default: return '0'
     );
   TPOptions = set of TPOption;
 

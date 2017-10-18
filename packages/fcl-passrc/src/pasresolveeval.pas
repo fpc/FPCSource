@@ -143,6 +143,7 @@ const
   nRangeCheckInSetConstructor = 3070;
   nIncompatibleTypesGotParametersExpected = 3071;
   nAddingIndexSpecifierRequiresNewX = 3072;
+  nCantFindUnitX = 3073;
 
 // resourcestring patterns of messages
 resourcestring
@@ -218,6 +219,7 @@ resourcestring
   sRangeCheckInSetConstructor = 'range check error in set constructor or duplicate set element';
   sIncompatibleTypesGotParametersExpected = 'Incompatible types, got %s parameters, expected %s';
   sAddingIndexSpecifierRequiresNewX = 'adding index specifier requires new "%s" specifier';
+  sCantFindUnitX = 'can''t find unit "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

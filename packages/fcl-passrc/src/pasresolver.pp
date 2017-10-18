@@ -158,6 +158,7 @@ Works:
   - enum: low(), high(), pred(), succ()
 
 ToDo:
+- typecast longint(value) -> (value+0) & $ffffffff
 - custom ranges
   - enum: ord(), rg(int), int(rg), enum:=rg, rg:=enum, rg:=rg,
      rgbig:=rgsmall, rgsmall:=rgbig
@@ -9552,6 +9553,8 @@ begin
     // resolved when finished
   else if AClass.InheritsFrom(TPasImplBlock) then
     // resolved when finished
+  else if AClass=TPasUnresolvedUnitRef then
+    RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
   else
     RaiseNotYetImplemented(20160922163544,El);
 end;

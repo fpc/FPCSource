@@ -315,6 +315,8 @@ type
     Procedure TestUnit_DuplicateUsesDiffNameFail;
     Procedure TestUnit_Unit1DotUnit2Fail;
     Procedure TestUnit_InFilename; // ToDo
+    Procedure TestUnit_MissingUnitErrorPos;
+    Procedure TestUnit_UnitNotFoundErrorPos;
 
     // procs
     Procedure TestProcParam;
@@ -1245,6 +1247,7 @@ end;
 procedure TCustomTestResolver.CheckResolverException(Msg: string; MsgNumber: integer);
 var
   ok: Boolean;
+  Full: String;
 begin
   ok:=false;
   try
@@ -1254,13 +1257,14 @@ begin
       begin
       AssertEquals('Expected {'+Msg+'}, but got msg {'+E.Message+'} number',
         MsgNumber,E.MsgNumber);
-      if (Msg<>E.Message) and (Msg<>E.MsgPattern) then
+      Full:=E.Message+' at '+E.SourcePos.FileName+' ('+IntToStr(E.SourcePos.Row)+','+IntToStr(E.SourcePos.Column)+')';
+      if (Msg<>E.Message) and (Msg<>E.MsgPattern) and (Msg<>Full) then
         begin
         {$IFDEF VerbosePasResolver}
         writeln('TCustomTestResolver.CheckResolverException E.MsgPattern={',E.MsgPattern,'}');
         {$ENDIF}
         AssertEquals('Expected message ('+IntToStr(MsgNumber)+')',
-          '{'+Msg+'}','{'+E.Message+'}');
+          '{'+Msg+'}','{'+E.Message+'} OR {'+E.MsgPattern+'} OR {'+Full+'}');
         end;
       ok:=true;
       end;
@@ -1278,8 +1282,8 @@ begin
   except
     on E: EParserError do
       begin
-      if (Parser.LastMsg<>Msg) and (Parser.LastMsgPattern<>Msg) then
-        Fail('Expected msg {'+Msg+'}, but got {'+Parser.LastMsg+'} OR pattern {'+Parser.LastMsgPattern+'}');
+      if (Parser.LastMsg<>Msg) and (Parser.LastMsgPattern<>Msg) and (E.Message<>Msg) then
+        Fail('Expected msg {'+Msg+'}, but got {'+Parser.LastMsg+'} OR pattern {'+Parser.LastMsgPattern+'} OR E.Message {'+E.Message+'}');
       AssertEquals('Expected {'+Msg+'}, but got msg {'+E.Message+'} number',
         MsgNumber,Parser.LastMsgNumber);
       ok:=true;
@@ -1718,8 +1722,9 @@ begin
     end;
   Result:=FindUnit(aUnitName);
   if Result<>nil then exit;
+  {$IFDEF VerbosePasResolver}
   writeln('TTestResolver.OnPasResolverFindUnit missing unit "',aUnitName,'"');
-  Fail('can''t find unit "'+aUnitName+'"');
+  {$ENDIF}
 end;
 
 procedure TCustomTestResolver.OnFindReference(El: TPasElement; FindData: pointer);
@@ -4557,6 +4562,30 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestUnit_MissingUnitErrorPos;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var j1: longint;']),
+    LinesToStr([
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit2, ;',
+  'begin']);
+  CheckParserException('Expected "Identifier" at token ";" in file afile.pp at line 2 column 13',
+    nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestUnit_UnitNotFoundErrorPos;
+begin
+  StartProgram(true);
+  Add([
+  'uses foo   ;',
+  'begin']);
+  CheckResolverException('can''t find unit "foo" at afile.pp (2,9)',nCantFindUnitX);
+end;
+
 procedure TTestResolver.TestProcParam;
 begin
   StartProgram(false);
@@ -5570,15 +5599,15 @@ begin
   '    {#C}c: longint;',
   '  end;',
   '  {$M-}',
-  //'  TPic = class',
-  //'    {#D}d: longint;',
-  //'  end;',
-  //'  TComponent = class(TPersistent)',
-  //'    {#E}e: longint;',
-  //'  end;',
-  //'  TControl = class(TComponent)',
-  //'    {#F}f: longint;',
-  //'  end;',
+  '  TPic = class',
+  '    {#D}d: longint;',
+  '  end;',
+  '  TComponent = class(TPersistent)',
+  '    {#E}e: longint;',
+  '  end;',
+  '  TControl = class(TComponent)',
+  '    {#F}f: longint;',
+  '  end;',
   'begin']);
   ParseProgram;
   aMarker:=FirstSrcMarker;

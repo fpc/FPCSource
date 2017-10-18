@@ -801,15 +801,19 @@ end;
 
 procedure TPasParser.ParseExc(MsgNumber: integer; const Fmt: String;
   Args: array of const);
+var
+  p: TPasSourcePos;
 begin
   {$IFDEF VerbosePasParser}
   writeln('TPasParser.ParseExc Token="',CurTokenText,'"');
   {$ENDIF}
+  writeln('TPasParser.ParseExc ',Scanner.CurColumn,' ',Scanner.CurSourcePos.Column,' ',Scanner.CurTokenPos.Column);
   SetLastMsg(mtError,MsgNumber,Fmt,Args);
+  p:=Scanner.CurTokenPos;
   raise EParserError.Create(SafeFormat(SParserErrorAtToken,
-    [FLastMsg, CurTokenName, Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn])
-    {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif},
-    Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
+    [FLastMsg, CurTokenName, p.FileName, p.Row, p.Column])
+    {$ifdef addlocation}+' ('+IntToStr(p.Row)+' '+IntToStr(p.Column)+')'{$endif},
+    p.FileName, p.Row, p.Column);
 end;
 
 procedure TPasParser.ParseExcExpectedIdentifier;
@@ -3292,12 +3296,12 @@ begin
     if ASection.ClassType=TImplementationSection then
       CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesClause);
 
-    UnitRef := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
+    UnitRef := Engine.FindModule(AUnitName);  // ToDo: "in" filename
     if Assigned(UnitRef) then
       UnitRef.AddRef
     else
       UnitRef := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
-        AUnitName, ASection));
+        AUnitName, ASection, NamePos));
 
     UsesUnit:=TPasUsesUnit(CreateElement(TPasUsesUnit,AUnitName,ASection,NamePos));
     Result:=ASection.AddUnitToUsesList(AUnitName,NameExpr,InFileExpr,UnitRef,UsesUnit);
@@ -3386,8 +3390,8 @@ begin
   finally
     if FreeExpr then
       begin
-      NameExpr.Release;
-      InFileExpr.Release;
+      ReleaseAndNil(TPasElement(NameExpr));
+      ReleaseAndNil(TPasElement(InFileExpr));
       end;
   end;
 
