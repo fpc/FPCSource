@@ -383,6 +383,31 @@ unit typinfo;
         property Method[Index: Word]: PIntfMethodEntry read GetMethod;
       end;
 
+      PVmtMethodEntry = ^TVmtMethodEntry;
+      TVmtMethodEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Name: PShortString;
+        CodeAddress: CodePointer;
+      end;
+
+      PVmtMethodTable = ^TVmtMethodTable;
+      TVmtMethodTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+      private
+        function GetEntry(Index: LongWord): PVmtMethodEntry; inline;
+      public
+        Count: LongWord;
+        property Entry[Index: LongWord]: PVmtMethodEntry read GetEntry;
+      private
+        Entries: array[0..0] of TVmtMethodEntry;
+      end;
+
       PRecInitData = ^TRecInitData;
       TRecInitData =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -2843,6 +2868,13 @@ begin
           Dec(Index);
         end;
     end;
+end;
+
+{ TVmtMethodTable }
+
+function TVmtMethodTable.GetEntry(Index: LongWord): PVmtMethodEntry;
+begin
+  Result := PVmtMethodEntry(@Entries[0]) + Index;
 end;
 
 { TVmtFieldTable }
