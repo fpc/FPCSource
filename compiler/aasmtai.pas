@@ -2632,7 +2632,9 @@ implementation
                 if (si_param=opidx) and (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
                   segprefix:=ref^.segment;
               end
-            else if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+            else if (opcode=A_XLAT) and (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+              segprefix:=ref^.segment
+            else if (ref^.segment<>NR_NO) and (ref^.segment<>get_default_segment_of_ref(ref^)) then
               segprefix:=ref^.segment;
 {$endif}
 {$ifndef llvm}
@@ -2720,7 +2722,9 @@ implementation
                       if (si_param=opidx) and (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
                         segprefix:=ref^.segment;
                     end
-                  else if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                  else if (opcode=A_XLAT) and (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
+                    segprefix:=ref^.segment
+                  else if (ref^.segment<>NR_NO) and (ref^.segment<>get_default_segment_of_ref(ref^)) then
                     segprefix:=ref^.segment;
 {$endif x86}
                   if assigned(add_reg_instruction_hook) then

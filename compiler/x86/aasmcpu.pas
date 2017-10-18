@@ -495,6 +495,7 @@ interface
     function is_32_bit_ref(const ref:treference):boolean;
     function is_16_bit_ref(const ref:treference):boolean;
     function get_ref_address_size(const ref:treference):byte;
+    function get_default_segment_of_ref(const ref:treference):tregister;
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
@@ -1846,6 +1847,24 @@ implementation
           result:=16
         else
           internalerror(2017101601);
+      end;
+
+
+    function get_default_segment_of_ref(const ref:treference):tregister;
+      begin
+        { for 16-bit registers, we allow base and index to be swapped, that's
+        why we also we check whether ref.index=NR_BP. For 32-bit registers,
+        however, index=NR_EBP is encoded differently than base=NR_EBP and has
+        a different default segment. }
+        if (ref.base=NR_BP) or (ref.index=NR_BP) or
+           (ref.base=NR_EBP) or (ref.base=NR_ESP)
+{$ifdef x86_64}
+        or (ref.base=NR_RBP) or (ref.base=NR_RSP)
+{$endif x86_64}
+           then
+          result:=NR_SS
+        else
+          result:=NR_DS;
       end;
 
 
