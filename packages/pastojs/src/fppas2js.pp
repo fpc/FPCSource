@@ -7378,7 +7378,7 @@ end;
 function TPasToJSConverter.ConvertBuiltIn_InsertArray(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // procedure insert(item,var array,const position)
-// ->  array.splice(position,1,item);
+// ->  array.splice(position,0,item);
 var
   ArrEl: TJSElement;
   Call: TJSCallExpression;
@@ -7390,7 +7390,7 @@ begin
     ArrEl:=ConvertElement(El.Params[1],AContext);
     Call.Expr:=CreateDotExpression(El,ArrEl,CreatePrimitiveDotExpr('splice',El));
     Call.AddArg(ConvertElement(El.Params[2],AContext));
-    Call.AddArg(CreateLiteralNumber(El,1));
+    Call.AddArg(CreateLiteralNumber(El,0));
     Call.AddArg(ConvertElement(El.Params[0],AContext));
     Result:=Call;
   finally
