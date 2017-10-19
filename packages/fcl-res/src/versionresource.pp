@@ -54,7 +54,7 @@ type
     function ReadStringFileInfo(toread : integer) : integer;
     function ReadVarFileInfo(toread : integer) : integer;
     function ReadStringTable(toread : integer;aName : string) : integer;
-    function ReadWideString: string;
+    function ReadWideString(toread: integer = -1): string;
     procedure WriteFixedBlockLength(const position : int64);
     procedure WriteData;
     procedure WriteFixedInfos;
@@ -300,7 +300,7 @@ begin
   begin
     before:=RawData.Position;
     ReadBlockHeader(block);
-    value:=ReadWideString;
+    value:=ReadWideString(block.vallength);
     AlignDWordReading;
     tmp:=RawData.Position-before;
     dec(toread,tmp); inc(Result,tmp);
@@ -308,20 +308,24 @@ begin
   end;
 end;
 
-function TVersionResource.ReadWideString: string;
+function TVersionResource.ReadWideString(toread: integer): string;
 var w : word;
     ws : widestring;
+    i: integer = 0;
 begin
   ws:='';
+  if toread=0 then
+    exit('');
   w:=0;
   repeat
     RawData.ReadBuffer(w,2);
-    if w = 0 then break;
+    if (toread=-1) and (w = 0) then break;
     {$IFDEF ENDIAN_BIG}
     w:=SwapEndian(w);
     {$ENDIF}
     ws:=ws+widechar(w);
-  until false;
+    inc(i);
+  until i = toread;
   Result:=ws;
 end;
 
