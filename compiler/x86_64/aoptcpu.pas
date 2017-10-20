@@ -35,6 +35,7 @@ type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
     function PostPeepHoleOptsCpu(var p : tai) : boolean; override;
+    procedure PostPeepHoleOpts; override;
   end;
 
 implementation
@@ -144,6 +145,13 @@ uses
               end;
             end;
         end;
+      end;
+
+
+    procedure TCpuAsmOptimizer.PostPeepHoleOpts;
+      begin
+        inherited;
+        OptReferences;
       end;
 
 begin

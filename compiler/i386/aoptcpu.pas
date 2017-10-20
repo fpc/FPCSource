@@ -1462,6 +1462,7 @@ begin
       end;
       p := tai(p.next)
     end;
+  OptReferences;
 end;
 
 

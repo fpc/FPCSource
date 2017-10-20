@@ -496,6 +496,7 @@ interface
     function is_16_bit_ref(const ref:treference):boolean;
     function get_ref_address_size(const ref:treference):byte;
     function get_default_segment_of_ref(const ref:treference):tregister;
+    procedure optimize_ref(var ref:treference; inlineasm: boolean);
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
@@ -1865,6 +1866,48 @@ implementation
           result:=NR_SS
         else
           result:=NR_DS;
+      end;
+
+
+    procedure optimize_ref(var ref:treference; inlineasm: boolean);
+      var
+        ss_equals_ds: boolean;
+      begin
+        if inlineasm then
+          ss_equals_ds:=False
+        else
+          ss_equals_ds:=segment_regs_equal(NR_DS,NR_SS);
+        { remove redundant segment overrides }
+        if (ref.segment<>NR_NO) and (ref.segment=get_default_segment_of_ref(ref)) then
+          ref.segment:=NR_NO;
+        if not is_16_bit_ref(ref) then
+          begin
+            { Switching index to base position gives shorter assembler instructions.
+              Converting index*2 to base+index also gives shorter instructions. }
+            if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=2) and
+               (ss_equals_ds or (ref.segment<>NR_NO) or (ref.index<>NR_EBP)) then
+              begin
+                ref.base:=ref.index;
+                if ref.scalefactor=2 then
+                  ref.scalefactor:=1
+                else
+                  begin
+                    ref.index:=NR_NO;
+                    ref.scalefactor:=0;
+                  end;
+              end;
+            { Switching EBP+reg to reg+EBP sometimes gives shorter instructions (if there's no offset) }
+            if (ref.base=NR_EBP) and (ref.index<>NR_NO) and (ref.index<>NR_EBP) and
+               (ref.scalefactor<=1) and (ref.offset=0) and (ref.refaddr=addr_no) and
+               (ss_equals_ds or (ref.segment<>NR_NO)) then
+              begin
+                ref.base:=ref.index;
+                ref.index:=NR_EBP;
+              end;
+          end;
+        { remove redundant segment overrides again }
+        if (ref.segment<>NR_NO) and (ref.segment=get_default_segment_of_ref(ref)) then
+          ref.segment:=NR_NO;
       end;
 
 

@@ -34,6 +34,7 @@ unit aoptcpu;
     Type
       TCpuAsmOptimizer = class(TX86AsmOptimizer)
         function PeepHoleOptPass1Cpu(var p : tai) : boolean; override;
+        procedure PostPeepHoleOpts; override;
       End;
 
   Implementation
@@ -110,6 +111,13 @@ unit aoptcpu;
               end
             end
         end;
+      end;
+
+
+    procedure TCpuAsmOptimizer.PostPeepHoleOpts;
+      begin
+        inherited;
+        OptReferences;
       end;
 
 begin

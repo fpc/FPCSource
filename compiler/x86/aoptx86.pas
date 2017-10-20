@@ -73,6 +73,8 @@ unit aoptx86;
         function OptPass2Jcc(var p : tai) : boolean;
 
         procedure PostPeepholeOptMov(const p : tai);
+
+        procedure OptReferences;
       end;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
@@ -2664,6 +2666,25 @@ unit aoptx86;
         end;
       end;
     end;
+
+
+    procedure TX86AsmOptimizer.OptReferences;
+      var
+        p: tai;
+        i: Integer;
+      begin
+        p := BlockStart;
+        while (p <> BlockEnd) Do
+          begin
+            if p.typ=ait_instruction then
+              begin
+                for i:=0 to taicpu(p).ops-1 do
+                  if taicpu(p).oper[i]^.typ=top_ref then
+                    optimize_ref(taicpu(p).oper[i]^.ref^,false);
+              end;
+            p:=tai(p.next);
+          end;
+      end;
 
 end.
 
