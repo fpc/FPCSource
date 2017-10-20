@@ -195,8 +195,8 @@ begin
   GroupHeader1Region.Frame.Shape := fsRectangle;
   GroupHeader1Region.Frame.BackgroundColor := clGroupHeaderFooter;
   //GroupHeader1Region.StartOnNewPage := True;
-  GroupHeader1Region.ReprintedHeader := True;
-  GroupHeader1Region.IntermediateFooter := True;
+  GroupHeader1Region.ReprintedHeader := [rsPage];
+  GroupHeader1Region.IntermediateFooter := [rsPage];
   //GroupHeader1Region.FooterPosition := fpStackAtBottom;
   GroupHeader1Region.VisibleExpr := 'not InRepeatedGroupHeader';
 
@@ -246,8 +246,8 @@ begin
   GroupHeader2Subregion.GroupCondition := 'subregion';
   GroupHeader2Subregion.ParentGroupHeader := GroupHeader1Region;
   //GroupHeader2Subregion.StartOnNewPage := True;
-  GroupHeader2Subregion.ReprintedHeader := True;
-  GroupHeader2Subregion.IntermediateFooter := True;
+  GroupHeader2Subregion.ReprintedHeader := [rsPage];
+  GroupHeader2Subregion.IntermediateFooter := [rsPage];
   //GroupHeader2Subregion.FooterPosition := fpStackAtBottom;
 
     Shape := TFPReportShape.Create(GroupHeader2Subregion);
@@ -350,8 +350,8 @@ begin
   GroupHeader3Initial.Layout.Height := 2;
   GroupHeader3Initial.GroupCondition := 'copy(country,1,1)';
   GroupHeader3Initial.ParentGroupHeader := GroupHeader2Subregion;
-  GroupHeader3Initial.ReprintedHeader := True;
-  GroupHeader3Initial.IntermediateFooter := True;
+  GroupHeader3Initial.ReprintedHeader := [rsPage];
+  GroupHeader3Initial.IntermediateFooter := [rsPage];
   //GroupHeader3Initial.OverflowedFooterNeedsReprintedHeader := True;
 
     Shape := TFPReportShape.Create(GroupHeader3Initial);
