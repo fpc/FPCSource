@@ -189,8 +189,7 @@ begin
      if DD>0 then
        PY:=DD div 2;
      end; 
-    D.Origin:=Point(PX,PY);
-    D.Draw(aImage);
+    D.Draw(aImage, PX, PY);
   finally
     D.Free;
   end;

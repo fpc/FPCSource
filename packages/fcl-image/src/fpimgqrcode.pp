@@ -27,15 +27,16 @@ type
 
   TImageQRCodeGenerator = Class(TQRCodeGenerator)
   private
-    FOrigin: TPoint;
     FPixelSize: Integer;
+    FBorder: Integer;
   Public
     Constructor Create; override;
     Procedure Draw(Img : TFPCustomImage);
-    // overrides Origin.
-    Procedure SaveToFile(const AFileName : String; aBorder : Integer = 0);
+    Procedure Draw(Img : TFPCustomImage; DestX, DestY: Integer);
+    Function SaveToStream(const AStream : TStream; AWriter: TFPCustomImageWriter): Boolean;
+    Function SaveToFile(const AFileName : String): Boolean;
     Property PixelSize : Integer Read FPixelSize Write FPixelSize default 2;
-    Property Origin : TPoint Read FOrigin Write FOrigin;
+    Property Border : Integer Read FBorder Write FBorder default 0;
   end;
 
 Procedure DrawQRCode(Img : TFPCustomImage; QRCode : TQRBuffer; aOrigin: TPoint; PixelSize : Byte = 1);
@@ -89,38 +90,80 @@ end;
 
 procedure TImageQRCodeGenerator.Draw(Img: TFPCustomImage);
 begin
-  DrawQRCode(Img,Bytes,FOrigin,PixelSize);
+  Draw(Img, 0, 0);
 end;
 
-procedure TImageQRCodeGenerator.SaveToFile(const AFileName: String; aBorder: Integer);
+procedure TImageQRCodeGenerator.Draw(Img: TFPCustomImage; DestX,
+  DestY: Integer);
+var
+  X,Y : Integer;
+  S,D : Integer;
+begin
+  S:=Size;
+  D:=PixelSize*S;
+  if Border>0 then
+    begin
+    For X:=0 to D+(Border*2)-1 do
+      For Y:=1 to Border do
+        begin
+        Img[DestX+X,DestY+Y-1]:=colWhite;
+        Img[DestX+X,DestY+D+(Border*2)-Y]:=colWhite;
+        end;
+    For Y:=Border to D+Border-1 do
+      For X:=1 to Border do
+        begin
+        Img[DestX+X-1,DestY+Y]:=colWhite;
+        Img[DestX+D+(Border*2)-X,DestY+Y]:=colWhite;
+        end;
+    end;
+  DrawQRCode(Img,Bytes,Point(DestX+Border,DestY+Border),PixelSize);
+end;
+
+function TImageQRCodeGenerator.SaveToFile(const AFileName: String): Boolean;
 
 
 Var
+  WriterClass : TFPCustomImageWriterClass;
+  Writer : TFPCustomImageWriter;
+  Stream : TFileStream;
+
+
+begin
+  Result := Size>0;
+  if not Result then exit;
+  WriterClass := TFPCustomImage.FindWriterFromFileName(AFileName);
+  if Assigned(WriterClass) then
+  begin
+    Writer := nil;
+    Stream := nil;
+    try
+      Writer := WriterClass.Create;
+      Stream := TFileStream.Create(AFileName, fmCreate);
+      SaveToStream(Stream, Writer);
+    finally
+      Stream.Free;
+      Writer.Free;
+    end;
+  end else
+    FPImageException.CreateFmt(ErrorText[StrCantDetermineType], [AFileName]);
+end;
+
+function TImageQRCodeGenerator.SaveToStream(const AStream: TStream;
+  AWriter: TFPCustomImageWriter): Boolean;
+Var
   Img : TFPCustomImage;
-  D,S,X,Y : Word;
+  D,S : Word;
 
 
 begin
   S:=Size;
-  if S=0 then exit;
+  Result := S>0;
+  if not Result then exit;
   D:=PixelSize*S;
-  Img:=TFPCompactImgGray8Bit.Create(D+aBorder*2,D+aBorder*2);
+  Img:=TFPCompactImgGray8Bit.Create(D+Border*2,D+Border*2);
   try
-    For X:=0 to D+(aBorder*2)-1 do
-      For Y:=1 to aBorder do
-        begin
-        Img[X,Y-1]:=colWhite;
-        Img[X,D+(aBorder*2)-Y]:=colWhite;
-        end;
-    For Y:=aBorder to D+aBorder-1 do
-      For X:=1 to aBorder do
-        begin
-        Img[X-1,Y]:=colWhite;
-        Img[D+(aBorder*2)-X,Y]:=colWhite;
-        end;
-    Origin:=Point(aBorder,aBorder);
     Draw(Img);
-    Img.SaveToFile(aFileName);
+    Img.SaveToStream(AStream, AWriter);
   finally
     Img.Free;
   end;

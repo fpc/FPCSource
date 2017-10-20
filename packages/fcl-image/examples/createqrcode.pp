@@ -4,7 +4,7 @@ program createqrcode;
 {$H+}
 
 uses
-  Classes, SysUtils, CustApp, fpimage, fpqrcodegen,  fpimgqrcode,
+  Classes, SysUtils, CustApp, fpimage, fpqrcodegen, fpimgqrcode,
   fpwritepng,fpwritebmp,fpwritexpm, FPWriteJPEG, FPWritePCX,
   FPWritePNM, FPWriteTIFF;
 
@@ -15,11 +15,8 @@ type
   TCreateQRApplication = class(TCustomApplication)
   Private
     FText : UTF8String;
-    FBorder : Integer;
     Foutput : String;
-    FPixelSize : Integer;
     FGenerator : TImageQRCodeGenerator;
-    procedure WriteQRCode(QRCode: TQRBuffer);
   protected
 
     function ParseOptions : Boolean;
@@ -47,7 +44,7 @@ begin
     end;
   FText:=GetOptionValue('t','text');
   FGenerator.PixelSize:=StrToIntDef(GetOptionValue('p','pixel-size'),4);
-  FBorder:=StrToIntDef(GetOptionValue('b','border'),0);
+  FGenerator.Border:=StrToIntDef(GetOptionValue('b','border'),0);
   FOutput:=GetOptionValue('o','output');
   if Foutput='' then
     Foutput:='qrcode.png';
@@ -82,44 +79,9 @@ begin
   if not ParseOptions then
      exit;
   FGenerator.Generate(FText);
-  FGenerator.SaveToFile(Foutput,FBorder);
+  FGenerator.SaveToFile(Foutput);
   Terminate;
 end;
-
-procedure TCreateQRApplication.WriteQRCode(QRCode: TQRBuffer);
-
-Var
-  Img : TFPCustomImage;
-  D,S,X,Y : Word;
-
-
-begin
-  S:=QRGetSize(QRCode);
-  if S=0 then exit;
-  D:=FPixelSize*S;
-
-  Img:=TFPCompactImgGray8Bit.Create(D+FBorder*2,D+FBorder*2);
-  try
-    For X:=0 to D+(FBorder*2)-1 do
-      For Y:=1 to FBorder do
-        begin
-        Img[X,Y-1]:=colWhite;
-        Img[X,D+(FBorder*2)-Y]:=colWhite;
-        end;
-    For Y:=FBorder to D+FBorder-1 do
-      For X:=1 to FBorder do
-        begin
-        Img[X-1,Y]:=colWhite;
-        Img[D+(FBorder*2)-X,Y]:=colWhite;
-        end;
-
-    DrawQRCode(Img,QRCode,Point(FBorder,FBorder),FPixelSize);
-    Img.SaveToFile(Foutput);
-  finally
-    Img.Free;
-  end;
-end;
-
 
 constructor TCreateQRApplication.Create(TheOwner: TComponent);
 begin
