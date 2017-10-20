@@ -1509,6 +1509,9 @@ begin
   end;
 end;
 
+Resourcestring
+  SErrCannotWriteToProperty = 'Cannot write to property %s.';
+
 Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;Value : Int64);
 type
   TSetInt64ProcIndex=procedure(index:longint;i:Int64) of object;
@@ -1578,6 +1581,8 @@ begin
               TSetIntegerProc(AMethod)(Value);
           end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -1820,6 +1825,8 @@ begin
               else
                 TSetIntfStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
     tkInterfaceRaw:
@@ -1880,6 +1887,8 @@ begin
               else
                 TSetPointerProc(AMethod)(Value);
             end;
+          else
+            raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
     tkInterface:
@@ -1961,6 +1970,8 @@ begin
         else
           TSetDynArrayProc(AMethod)(TDynArray(Value));
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -2059,6 +2070,8 @@ begin
               else
                 TSetShortStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
     tkAString:
@@ -2079,8 +2092,12 @@ begin
               else
                 TSetAnsiStrProc(AMethod)(Value);
             end;
+          else
+            raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -2176,6 +2193,8 @@ begin
               else
                 TSetWideStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -2260,6 +2279,8 @@ begin
               else
                 TSetUnicodeStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -2342,6 +2363,8 @@ begin
               else
                 TSetRawByteStrProc(AMethod)(Value);
             end;
+        else
+          raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
         end;
       end;
   end;
@@ -2487,6 +2510,8 @@ begin
               TSetCurrencyProcIndex(AMethod)(PropInfo^.Index,Value);
         end;
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
@@ -2566,6 +2591,8 @@ begin
         else
           TSetMethodProc(AMethod)(Value);
       end;
+  else
+    raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [PropInfo^.Name]);
   end;
 end;
 
