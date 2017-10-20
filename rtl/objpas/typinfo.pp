@@ -746,6 +746,12 @@ function GetPropList(Instance: TObject; out PropList: PPropList): Integer;
 
 
 // Property information routines.
+Function IsReadableProp(PropInfo : PPropInfo) : Boolean;
+Function IsReadableProp(Instance: TObject; const PropName: string): Boolean;
+Function IsReadableProp(AClass: TClass; const PropName: string): Boolean;
+Function IsWriteableProp(PropInfo : PPropInfo) : Boolean;
+Function IsWriteableProp(Instance: TObject; const PropName: string): Boolean;
+Function IsWriteableProp(AClass: TClass; const PropName: string): Boolean;
 Function IsStoredProp(Instance: TObject;PropInfo : PPropInfo) : Boolean;
 Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;
@@ -1242,6 +1248,35 @@ begin
     Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
 end;
 
+function IsReadableProp(PropInfo: PPropInfo): Boolean;
+begin
+  Result:=(((PropInfo^.PropProcs) and 3) in [ptField,ptStatic,ptVirtual]);
+end;
+
+function IsReadableProp(Instance: TObject; const PropName: string): Boolean;
+begin
+  Result:=IsReadableProp(FindPropInfo(Instance,PropName));
+end;
+
+function IsReadableProp(AClass: TClass; const PropName: string): Boolean;
+begin
+  Result:=IsReadableProp(FindPropInfo(AClass,PropName));
+end;
+
+function IsWriteableProp(PropInfo: PPropInfo): Boolean;
+begin
+  Result:=(((PropInfo^.PropProcs shr 2) and 3) in [ptField,ptStatic,ptVirtual]);
+end;
+
+function IsWriteableProp(Instance: TObject; const PropName: string): Boolean;
+begin
+  Result:=IsWriteableProp(FindPropInfo(Instance,PropName));
+end;
+
+function IsWriteableProp(AClass: TClass; const PropName: string): Boolean;
+begin
+  Result:=IsWriteableProp(FindPropInfo(AClass,PropName));
+end;
 
 Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 type
