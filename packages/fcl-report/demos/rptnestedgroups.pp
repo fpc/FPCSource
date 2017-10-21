@@ -117,6 +117,7 @@ begin
   rec := TStringList.Create;
   rec.Delimiter := ';';
   rec.StrictDelimiter := true;
+  rec.DelimitedText := sl[0]; // RecNo is 0
 end;
 
 procedure TNestedGroupsDemo.CreateReportDesign;

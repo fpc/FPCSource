@@ -366,6 +366,8 @@ type
     FPrevValue: variant;
     FOnGetUsePrevValue: TFPReportQueryUsePrevValue;
     FExprIdentierDef: TFPExprIdentifierDef;
+  Protected
+    Procedure InitValue(SavePrevious : Boolean); virtual;
   public
     property OnGetUsePrevValue: TFPReportQueryUsePrevValue read FOnGetUsePrevValue write FOnGetUsePrevValue;
     property ExprIdentierDef: TFPExprIdentifierDef read FExprIdentierDef write FExprIdentierDef;
@@ -413,6 +415,7 @@ type
     function GetFieldValue(AFieldName: string): variant;
     function GetFieldWidth(AFieldName: string): integer;
     function GetLastFieldValue(AFieldName: string): variant;
+    procedure InitFieldValues(SavePrevious: Boolean);
     procedure SetDataFields(const AValue: TFPReportDataFields);
   protected
     function CreateDataFields: TFPReportDataFields; virtual;
@@ -9012,6 +9015,15 @@ begin
     TFPReportDatafields(Collection).ReportData.DoGetValue(FieldName, Result);
 end;
 
+procedure TFPReportDataField.InitValue(SavePrevious: Boolean);
+begin
+  if Not SavePrevious then
+    FPrevValue := nil
+  else
+    FPrevValue := FValue;
+  FValue:=GetValue;
+end;
+
 procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
   ConstRef AName: ShortString);
 
@@ -9222,9 +9234,6 @@ end;
 
 procedure TFPReportData.Open;
 
-var
-  I: Integer;
-
 begin
   if Assigned(FOnOpen) then
     FOnOpen(Self);
@@ -9232,28 +9241,28 @@ begin
   InitFieldDefs;
   FIsOpened := True;
   FRecNo := 1;
-  for I := 0 to FDataFields.Count - 1 do
-  begin
-    FDataFields[I].FValue := FDataFields[I].GetValue;
-    FDataFields[I].FPrevValue := nil;
-  end;
+  If not EOF then
+    InitFieldValues(false);
 end;
 
-procedure TFPReportData.First;
+procedure TFPReportData.InitFieldValues(SavePrevious : Boolean);
 
 var
   I: Integer;
+
+begin
+  for I := 0 to FDataFields.Count - 1 do
+    FDataFields[i].InitValue(SavePrevious);
+end;
+
+procedure TFPReportData.First;
 
 begin
   if Assigned(FOnFirst) then
     FOnFirst(Self);
   DoFirst;
   FRecNo := 1;
-  for I := 0 to FDataFields.Count - 1 do with FDataFields[I] do
-  begin
-    FValue := GetValue;
-    FPrevValue := nil;
-  end;
+  InitFieldValues(False);
 end;
 
 procedure TFPReportData.Next;
@@ -9264,11 +9273,8 @@ begin
   if Assigned(FOnNext) then
     FOnNext(Self);
   DoNext;
-  for I := 0 to FDataFields.Count - 1 do
-  begin
-  FDataFields[I].FPrevValue := FDataFields[I].FValue;
-    FDataFields[I].FValue := FDataFields[I].GetValue;
-  end;
+  if not EOF then
+    InitFieldValues(True);
 end;
 
 procedure TFPReportData.Close;
