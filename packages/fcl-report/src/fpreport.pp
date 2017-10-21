@@ -1549,7 +1549,7 @@ type
 
 
   { TFPReportLayouter }
-  TOverFlowAction = (oaStartAgain,oaSameBandAgain);
+  TOverFlowAction = (oaBandWithChilds,oaSingleBand);
   TOverFlowActions = Set of TOverFlowAction;
 
   TFPReportLayouter = Class(TComponent)
@@ -10670,7 +10670,7 @@ begin
     if aBand.KeepTogetherWithChildren then
     begin
       { complete band with child bands move to next column/page }
-      Include(Result,oaStartAgain);
+      Include(Result,oaBandWithChilds);
       { remove all overflowed bands and start again on new column/page }
       RemoveBandsFromPage(aHandledBands);
       //writeln('   complete move to next column/page');
@@ -10710,7 +10710,7 @@ begin
     else
     begin
       { only current band moves to next column/page }
-      Include(Result,oaSameBandAgain);
+      Include(Result,oaSingleBand);
       { remove band from current page }
       aRTBand.Page.RemoveChild(aRTBand);
       { correct LastYPos }
@@ -10781,7 +10781,7 @@ begin
       while Assigned(lBand) do
       begin
         try
-          Exclude(overFlowActions,oaSameBandAgain);
+          Exclude(overFlowActions,oaSingleBand);
           lRTBand := CommonRuntimeBandProcessing(lBand);
           if lRTBand=Nil then
             Continue;
@@ -10790,18 +10790,18 @@ begin
           UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
           if NoSpaceRemaining then
             overFlowActions := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
-          if (oaStartAgain in overFlowActions) then
+          if (oaBandWithChilds in overFlowActions) then
             break;
           if Assigned(lRTBand) then
             aBand.AfterPrintBand(Self, lRTBand);
         finally
-          if not (oaSameBandAgain in overFlowActions) then
+          if not (oaSingleBand in overFlowActions) then
             lBand := lBand.ChildBand;
           if (overFlowActions<>[]) then
             Report.FRTIsOverflowed := True;
         end;
       end; { while Assigned(lBand) }
-    Until not (oaStartAgain in OverFlowActions);
+    Until not (oaBandWithChilds in OverFlowActions);
     if (aBand is TFPReportCustomGroupHeaderBand) and
     not Report.FRTInRepeatedGroupHeader and
     (lHandledBands.Count > 0) then
