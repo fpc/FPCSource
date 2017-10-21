@@ -232,6 +232,7 @@ type
   TFPReportEndReportEvent   = procedure of object;
   TFPReportGetValueNamesEvent = procedure(Sender: TObject; List: TStrings) of object;
   TFPReportBeforePrintEvent = procedure(Sender: TFPReportElement) of object;
+  TFPReportQueryUsePrevValue = function: Boolean of object;
 
 
   TFPReportExporterConfigHandler = Procedure (Sender : TObject; AExporter : TFPReportExporter; var Cancelled : Boolean) of object;
@@ -354,13 +355,21 @@ type
   end;
 
 
+  { TFPReportDataField }
+
   TFPReportDataField = class(TCollectionItem)
   private
     FDisplayWidth: integer;
     FFieldKind: TFPReportFieldKind;
     FFieldName: string;
-    FLastValue: variant;
+    FValue: variant;
+    FPrevValue: variant;
+    FOnGetUsePrevValue: TFPReportQueryUsePrevValue;
+    FExprIdentierDef: TFPExprIdentifierDef;
   public
+    property OnGetUsePrevValue: TFPReportQueryUsePrevValue read FOnGetUsePrevValue write FOnGetUsePrevValue;
+    property ExprIdentierDef: TFPExprIdentifierDef read FExprIdentierDef write FExprIdentierDef;
+    procedure GetRTValue(Var Result : TFPExpressionResult; ConstRef AName : ShortString);
     function GetValue: variant; virtual;
     procedure Assign(Source: TPersistent); override;
   published
@@ -1121,6 +1130,7 @@ type
     property    FooterPosition: TFPReportFooterPosition read FFooterPosition write SetFooterPosition default fpNormal;
     { if first data band flows over to next page/column, also move this header }
     property    OverflowWithFirstDataBand: TFPReportSections read FOverflowWithFirstDataBand write SetOverflowWithFirstDataBand default [rsPage, rsColumn];
+    function    NeedsOverflowWithFirstDataBand(pIsLastColumn: Boolean): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1459,7 +1469,7 @@ type
     procedure DoBeforeRenderReport;
     procedure DoAfterRenderReport;
     procedure DoProcessTwoPass;
-    procedure DoGetExpressionVariableValue(var Result: TFPExpressionResult; constref AName: ShortString);
+    function  DoGetUsePrevValue: Boolean;
     procedure SetReportData(AValue: TFPReportDataCollection);
     procedure SetUsePageCountMarker(AValue: Boolean);
     procedure SetVariables(AValue: TFPReportVariables);
@@ -1536,6 +1546,8 @@ type
 
 
   { TFPReportLayouter }
+  TOverFlowAction = (oaStartAgain,oaSameBandAgain);
+  TOverFlowActions = Set of TOverFlowAction;
 
   TFPReportLayouter = Class(TComponent)
   Private
@@ -1582,7 +1594,9 @@ type
     Procedure SetPageNumberPerDesignerPage(aValue : Integer);
     function FooterSpaceNeeded: TFPReportUnits;
   protected
-    procedure CheckNewOrOverFlow(CheckMulticolumn: Boolean = True);
+    procedure RemoveBandsFromPage(aList: TBandList); virtual;
+    function HandleOverflowedBands(aHandledBands: TBandList; aBand: TFPReportCustomBand; var aRTBand: TFPReportCustomBand): TOverFlowActions; virtual;
+    procedure CheckNewOrOverFlow(CheckMulticolumn: Boolean = True); virtual;
     procedure SetPageCount(aCount : Integer);
     procedure IncPageNumberPerDesignerPage;
     procedure InitRTCurPageIdx;
@@ -2816,7 +2830,6 @@ end;
 procedure TFPReportVariable.GetRTExpressionValue(
   Var Result: TFPExpressionResult; ConstRef AName: ShortString);
 var
-  lResetValue: String;
   lRpt: TFPCustomReport;
 begin
   lRpt := Collection.Owner as TFPCustomReport;
@@ -5145,6 +5158,16 @@ begin
       FRTBands.Add(pBands[i]);
 end;
 
+function TFPReportCustomGroupHeaderBand.NeedsOverflowWithFirstDataBand(
+  pIsLastColumn: Boolean): Boolean;
+begin
+  Result := (
+    pIsLastColumn and
+    (rsPage in FOverflowWithFirstDataBand)
+  ) or
+  (rsColumn in FOverflowWithFirstDataBand);
+end;
+
 constructor TFPReportCustomGroupHeaderBand.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -7026,81 +7049,9 @@ begin
   end;
 end;
 
-procedure TFPCustomReport.DoGetExpressionVariableValue(var Result: TFPExpressionResult; constref AName: ShortString);
-
-var
-  p: integer;
-  b: integer;
-  lBand: TFPReportCustomDataBand;
-  lDataName: string;
-  lFieldName: string;
-  lField: TFPReportDataField;
-
-  procedure SetResultValue(const AData: TFPReportData);
-  begin
-    case FExpr.Identifiers.FindIdentifier(AName).ResultType of
-      rtBoolean:    Result.ResBoolean   := AData.FieldValues[lFieldName];
-      rtInteger:    Result.ResInteger   := AData.FieldValues[lFieldName];
-      rtFloat:      Result.ResFloat     := AData.FieldValues[lFieldName];
-      rtDateTime:   Result.ResDateTime  := AData.FieldValues[lFieldName];
-      rtString:     Result.ResString    := AData.FieldValues[lFieldName];
-    end;
-  end;
-
-  procedure SetLastResultValue(const AData: TFPReportData);
-  begin
-    case FExpr.Identifiers.FindIdentifier(AName).ResultType of
-      rtBoolean:    Result.ResBoolean   := AData.LastFieldValues[lFieldName];
-      rtInteger:    Result.ResInteger   := AData.LastFieldValues[lFieldName];
-      rtFloat:      Result.ResFloat     := AData.LastFieldValues[lFieldName];
-      rtDateTime:   Result.ResDateTime  := AData.LastFieldValues[lFieldName];
-      rtString:     Result.ResString    := AData.LastFieldValues[lFieldName];
-    end;
-  end;
-
+function TFPCustomReport.DoGetUsePrevValue: Boolean;
 begin
-  {$ifdef gdebug}
-  writeln('TFPCustomReport.DoGetExpressionVariableValue():  AName = ' + AName);
-  {$endif}
-  Result.ResString := '';
-  lDataName := '';
-  lFieldName := AName;
-  lField := nil;
-  p := Pos('.', lFieldName);
-  if p > 0 then
-  begin
-    lDataName := Copy(AName, 1, p-1);
-    lFieldName := Copy(AName, p+1, Length(AName));
-  end;
-
-  { look for data bands }
-  for p := 0 to PageCount-1 do
-  begin
-    for b := 0 to Pages[p].BandCount-1 do
-    begin
-      if Pages[p].Bands[b] is TFPReportCustomDataBand then
-      begin
-        lBand := TFPReportCustomDataBand(Pages[p].Bands[b]);
-        if (lDataName = '') then // try every databand
-        begin
-          lField := lBand.Data.DataFields.FindField(lFieldName);
-        end
-        else
-        begin // try only databands where Name is a match
-          if lBand.Data.Name = lDataName then
-            lField := lBand.Data.DataFields.FindField(lFieldName);
-        end;
-        if lField <> nil then
-        begin
-          if FRTUsePrevVariableValues then
-            SetLastResultValue(lBand.Data)
-          else
-            SetResultValue(lBand.Data);
-          Exit;
-        end;
-      end; { databand types only }
-    end; { band count }
-  end; { page count }
+  Result := FRTUsePrevVariableValues;
 end;
 
 procedure TFPCustomReport.SetReportData(AValue: TFPReportDataCollection);
@@ -7220,12 +7171,14 @@ begin
 end;
 
 procedure TFPCustomReport.InitializeExpressionVariables(const APage: TFPReportCustomPage; const AData: TFPReportData);
+
 var
   i: Integer;
   f: string;
   r: TResultType;
   d: string;
   v: TFPReportVariable;
+  df: TFPReportDataField;
 
   function ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
   begin
@@ -7241,7 +7194,6 @@ var
     end;
   end;
 
-
 begin
   {$ifdef gdebug}
   writeln('********** TFPCustomReport.InitializeExpressionVariables');
@@ -7250,28 +7202,30 @@ begin
   For I:=0 to FExpr.Identifiers.Count-1 do
     f:=f+FExpr.Identifiers[i].Name+'; ';
   if FDataAdded.IndexOf(AData)=-1 then
-    begin
+  begin
     for i := 0 to AData.DataFields.Count-1 do
-      begin
+    begin
       d := AData.Name;
-      f := AData.DataFields[i].FieldName;
-      r := ReportKindToResultType(AData.DataFields[i].FieldKind);
+      df := AData.DataFields[i];
+      f := df.FieldName;
+      df.OnGetUsePrevValue := @DoGetUsePrevValue;
+      r := ReportKindToResultType(df.FieldKind);
       if d <> '' then
-        begin
+      begin
         {$ifdef gdebug}
         writeln('registering (dotted name)... '+ d+'.'+f);
         {$endif}
-        FExpr.Identifiers.AddVariable(d+'.'+f, r, @DoGetExpressionVariableValue);
-        end
+        df.ExprIdentierDef := FExpr.Identifiers.AddVariable(d+'.'+f, r, @df.GetRTValue);
+      end
       else
-        begin
+      begin
         {$ifdef gdebug}
         writeln('registering... '+ f);
         {$endif}
-        FExpr.Identifiers.AddVariable(f, r, @DoGetExpressionVariableValue);
-        end;
+        df.ExprIdentierDef := FExpr.Identifiers.AddVariable(f, r, @df.GetRTValue);
       end;
-  FDataAdded.Add(AData);
+    end;
+    FDataAdded.Add(AData);
   end;
   if APage.Data = AData then
   begin
@@ -9058,6 +9012,29 @@ begin
     TFPReportDatafields(Collection).ReportData.DoGetValue(FieldName, Result);
 end;
 
+procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
+  ConstRef AName: ShortString);
+
+  procedure SetResult(const pValue: Variant);
+  begin
+    if Assigned(FExprIdentierDef) then
+      case FExprIdentierDef.ResultType of
+        rtBoolean:    Result.ResBoolean   := pValue;
+        rtInteger:    Result.ResInteger   := pValue;
+        rtFloat:      Result.ResFloat     := pValue;
+        rtDateTime:   Result.ResDateTime  := pValue;
+        rtString:     Result.ResString    := pValue;
+      end;
+  end;
+
+begin
+  if Assigned(FOnGetUsePrevValue) and
+  FOnGetUsePrevValue() then
+    SetResult(FPrevValue)
+  else
+    SetResult(FValue);
+end;
+
 procedure TFPReportDataField.Assign(Source: TPersistent);
 var
   F: TFPReportDataField;
@@ -9068,6 +9045,8 @@ begin
     FDisplayWidth := F.FDisplayWidth;
     FFieldKind := F.FFieldKind;
     FFieldName := F.FFieldName;
+    FOnGetUsePrevValue := F.FOnGetUsePrevValue;
+    FExprIdentierDef := F.FExprIdentierDef;
   end
   else
     inherited Assign(Source);
@@ -9178,7 +9157,7 @@ end;
 
 function TFPReportData.GetLastFieldValue(AFieldName: string): variant;
 begin
-  Result := FDataFields.FieldByName(AFieldName).FLastValue;
+  Result := FDataFields.FieldByName(AFieldName).FPrevValue;
 end;
 
 function TFPReportData.CreateDataFields: TFPReportDataFields;
@@ -9247,16 +9226,17 @@ var
   I: Integer;
 
 begin
-  for I := 0 to FDataFields.Count - 1 do
-  begin
-    FDataFields[I].FLastValue := nil;
-  end;
   if Assigned(FOnOpen) then
     FOnOpen(Self);
   DoOpen;
   InitFieldDefs;
   FIsOpened := True;
   FRecNo := 1;
+  for I := 0 to FDataFields.Count - 1 do
+  begin
+    FDataFields[I].FValue := FDataFields[I].GetValue;
+    FDataFields[I].FPrevValue := nil;
+  end;
 end;
 
 procedure TFPReportData.First;
@@ -9265,28 +9245,30 @@ var
   I: Integer;
 
 begin
-  for I := 0 to FDataFields.Count - 1 do
-  begin
-    FDataFields[I].FLastValue := nil;
-  end;
   if Assigned(FOnFirst) then
     FOnFirst(Self);
   DoFirst;
   FRecNo := 1;
+  for I := 0 to FDataFields.Count - 1 do with FDataFields[I] do
+  begin
+    FValue := GetValue;
+    FPrevValue := nil;
+  end;
 end;
 
 procedure TFPReportData.Next;
 var
   I: Integer;
 begin
-  for I := 0 to FDataFields.Count - 1 do
-  begin
-    FDataFields[I].FLastValue := FieldValues[FDataFields[I].FieldName];
-  end;
   Inc(FRecNo);
   if Assigned(FOnNext) then
     FOnNext(Self);
   DoNext;
+  for I := 0 to FDataFields.Count - 1 do
+  begin
+  FDataFields[I].FPrevValue := FDataFields[I].FValue;
+    FDataFields[I].FValue := FDataFields[I].GetValue;
+  end;
 end;
 
 procedure TFPReportData.Close;
@@ -10544,7 +10526,9 @@ begin
     end;
   if FHasGroupFooter then
     HandleLastGroupFooters;
-  aPageData.Close;
+  if not TwoPass or
+  not IsFirstPass then
+    aPageData.Close;
 end;
 
 procedure TFPReportLayouter.PrepareRecord;
@@ -10633,147 +10617,140 @@ begin
   ShowBandWithChilds(aBand);
 end;
 
-procedure TFPReportLayouter.ShowGroupFooterBand(
-  aBand: TFPReportCustomGroupFooterBand);
+procedure TFPReportLayouter.ShowGroupFooterBand(aBand: TFPReportCustomGroupFooterBand);
 begin
   ShowBandWithChilds(aBand);
   FPageDetailsPrinted := True;
 end;
 
-function TFPReportLayouter.ShowBandWithChilds(aBand: TFPReportCustomBand
-  ): Boolean;
+Procedure TFPReportLayouter.RemoveBandsFromPage(aList : TBandList);
+
+Var
+  i : Integer;
+  B : TFPReportCustomBand;
+
+begin
+  for i := 0 to aList.Count-1 do
+  begin
+    B := aList[i];
+    { remove band from current page }
+    B.Page.RemoveChild(B);
+    { correct LastYPos }
+    FLastYPos := FLastYPos - B.RTLayout.Height;
+    { free mem }
+    B.Free;
+  end;
+  aList.Clear;
+end;
+
+function TFPReportLayouter.HandleOverflowedBands(aHandledBands: TBandList; aBand: TFPReportCustomBand; var aRTBand: TFPReportCustomBand): TOverFlowActions;
 
 var
-  lBand, lRTBand: TFPReportCustomBand;
-  lHandledBands: TBandList;
-  lStartAgain, lSameBandAgain: Boolean;
   lGrp, lToMoveGrp: TFPReportCustomGroupHeaderBand;
+  i: Integer;
 
-  function OverflowWithFirstDataBand: Boolean;
+begin
+  Result := [];
+  lToMoveGrp := nil;
+  if FNewColumn or FOverflowed then
   begin
-    Result := (
-      RTIsLastColumn and
-      (rsPage in lGrp.OverflowWithFirstDataBand)
-    ) or
-    (rsColumn in lGrp.OverflowWithFirstDataBand);
-  end;
-
-  Procedure RemoveBandsFromPage(aList : TBandList);
-
-  Var
-    i : Integer;
-    B : TFPReportCustomBand;
-
-  begin
-    for i := 0 to aList.Count-1 do
+    if aBand is TFPReportCustomGroupFooterBand then
+      TFPReportCustomGroupFooterBand(aBand).FDoNotConsiderInFooterSpaceNeeded := False;
+    if aBand.KeepTogetherWithChildren then
     begin
-      B := aList[i];
-      { remove band from current page }
-      B.Page.RemoveChild(B);
-      { correct LastYPos }
-      FLastYPos := FLastYPos - B.RTLayout.Height;
-      { free mem }
-      B.Free;
-    end;
-    aList.Clear;
-  end;
-
-  procedure HandleOverflowedBands;
-
-  begin
-    if FNewColumn or FOverflowed then
-    begin
-      if aBand is TFPReportCustomGroupFooterBand then
-        TFPReportCustomGroupFooterBand(aBand).FDoNotConsiderInFooterSpaceNeeded := False;
-      if aBand.KeepTogetherWithChildren then
+      { complete band with child bands move to next column/page }
+      Include(Result,oaStartAgain);
+      { remove all overflowed bands and start again on new column/page }
+      RemoveBandsFromPage(aHandledBands);
+      //writeln('   complete move to next column/page');
+      { notify band }
+      aBand.MovedToNextPageWithChilds;
+      { if OverflowWithFirstDataBand is set,
+        also move header to next column/page }
+      if FGroupHeaderList.Count > 0 then
       begin
-        { complete band with child bands move to next column/page }
-        lStartAgain := True;
-        { remove all overflowed bands and start again on new column/page }
-        RemoveBandsFromPage(lHandledBands);
-        //writeln('   complete move to next column/page');
-        { notify band }
-        aBand.MovedToNextPageWithChilds;
-        { if OverflowWithFirstDataBand is set,
-          also move header to next column/page }
-        if FGroupHeaderList.Count > 0 then
+        { when data band overflows use start with lowest gropup header }
+        if aBand is TFPReportCustomDataBand and
+        not Assigned(TFPReportCustomDataBand(aband).MasterBand) then
+          lToMoveGrp := TFPReportCustomGroupHeaderBand(FGroupHeaderList[0])
+        { when group header overflows use start with parent group header }
+        else if aBand is TFPReportCustomGroupHeaderBand then
+          lToMoveGrp := TFPReportCustomGroupHeaderBand(aBand).ParentGroupHeader;
+        { remove group headers if OverflowWithFirstDataBand and no details printed }
+        lGrp := lToMoveGrp;
+        while Assigned(lGrp) do
         begin
-          { when data band overflows use start with lowest gropup header }
-          if aBand is TFPReportCustomDataBand and
-          not Assigned(TFPReportCustomDataBand(aband).MasterBand) then
-            lToMoveGrp := TFPReportCustomGroupHeaderBand(FGroupHeaderList[0])
-          { when group header overflows use start with parent group header }
-          else if aBand is TFPReportCustomGroupHeaderBand then
-            lToMoveGrp := TFPReportCustomGroupHeaderBand(aBand).ParentGroupHeader;
-          { remove group headers if OverflowWithFirstDataBand and no details printed }
-          lGrp := lToMoveGrp;
-          while Assigned(lGrp) do
+          if lGrp.NeedsOverflowWithFirstDataBand(RTIsLastColumn) and not lGrp.FDetailsPrinted then
           begin
-            if OverflowWithFirstDataBand and not lGrp.FDetailsPrinted then
-            begin
-              //writeln('      also group ', lGrp.GroupCondition);
-              { remove RT bands of group from current page }
-              RemoveBandsFromPage(lGrp.FRTBands);
-
-              { mark group as completed -> no intermediate footer needed on
-                current column/page and no reprinted header needed
-                as following group header will start on new column/page     }
-              lGrp.FNeedsIntermediateFooter := False;
-              lGrp.FNeedsReprintedHeader := False;
-            end;
-            { next is parent group header }
-            lGrp := lGrp.ParentGroupHeader;
+            //writeln('      also group ', lGrp.GroupCondition);
+            { remove RT bands of group from current page }
+            RemoveBandsFromPage(lGrp.FRTBands);
+            { mark group as completed -> no intermediate footer needed on
+              current column/page and no reprinted header needed
+              as following group header will start on new column/page     }
+            lGrp.FNeedsIntermediateFooter := False;
+            lGrp.FNeedsReprintedHeader := False;
           end;
+          { next is parent group header }
+          lGrp := lGrp.ParentGroupHeader;
         end;
-      end
-      else
-      begin
-        { only current band moves to next column/page }
-        lSameBandAgain := True;
-        { remove band from current page }
-        lRTBand.Page.RemoveChild(lRTBand);
-        { correct LastYPos }
-        FLastYPos := FLastYPos - lRTBand.RTLayout.Height;
-        { free mem }
-        lRTBand.Free;
-        //writeln('   part move to next page');
       end;
-
-      { set state variable }
-      aBand.FIsOverflowed := True;
-      { handle new column }
-      if FNewColumn and not RTIsLastColumn then
-      begin
-        EndColumn;
-        StartNewColumn;
-      end;
-      { do not handle overflow in CheckNewOrOverFlow }
-      FOverflowed := False;
-    end;
-  end;
-
-  procedure HandleMovedGroupHeaders;
-  var
-    i: Integer;
-  begin
-    { we are on a new page now }
-    { reprint moved headers only (not overflowed ones) }
-    if Assigned(lToMoveGrp) then
+    end
+    else
     begin
-      for i := FGroupHeaderList.Count-1 downto 0 do
+      { only current band moves to next column/page }
+      Include(Result,oaSameBandAgain);
+      { remove band from current page }
+      aRTBand.Page.RemoveChild(aRTBand);
+      { correct LastYPos }
+      FLastYPos := FLastYPos - aRTBand.RTLayout.Height;
+      { free mem }
+      aRTBand.Free;
+      //writeln('   part move to next page');
+    end;
+
+    { set state variable }
+    aBand.FIsOverflowed := True;
+    { handle new column }
+    if FNewColumn and not RTIsLastColumn then
+    begin
+      EndColumn;
+      StartNewColumn;
+    end;
+    { do not handle overflow in CheckNewOrOverFlow }
+    FOverflowed := False;
+  end;
+
+  if FNewPage then
+    StartNewPage;
+
+  { we are on a new page/column now }
+  { reprint moved headers only (not overflowed ones) }
+  if Assigned(lToMoveGrp) then
+  begin
+    for i := FGroupHeaderList.Count-1 downto 0 do
+    begin
+      lGrp := TFPReportCustomGroupHeaderBand(FGroupHeaderList[i]);
+      if lGrp.NeedsOverflowWithFirstDataBand(RTIsLastColumn) and not lGrp.FDetailsPrinted then
       begin
-        lGrp := TFPReportCustomGroupHeaderBand(FGroupHeaderList[i]);
-        if OverflowWithFirstDataBand and not lGrp.FDetailsPrinted then
-        begin
-          //writeln('      reprint group header', lGrp.GroupCondition);
-          ShowBandWithChilds(lGrp);
-        end;
-        { lToMovedGRoup is last group to reprint }
-        if lGrp = lToMoveGrp then
-          break;
+        //writeln('      reprint group header', lGrp.GroupCondition);
+        ShowBandWithChilds(lGrp);
       end;
+      { lToMovedGRoup is last group to reprint }
+      if lGrp = lToMoveGrp then
+        break;
     end;
   end;
+end;
+
+function TFPReportLayouter.ShowBandWithChilds(aBand: TFPReportCustomBand): Boolean;
+
+
+
+Var
+  lHandledBands: TBandList;
+  overFlowActions : TOverFlowActions;
+  lBand,lRTBand: TFPReportCustomBand;
 
 begin
   //write('ShowBandWithChilds: ', aBand.ClassName);
@@ -10786,15 +10763,14 @@ begin
   lHandledBands := TBandList.Create;
   try
     Repeat
-      lStartAgain := False;
-      lToMoveGrp := nil;
+      overflowActions:=[];
       { for band and every child }
       aBand.BeforePrintWithChilds;
       lBand := aBand;
       while Assigned(lBand) do
       begin
         try
-          lSameBandAgain := False;
+          Exclude(overFlowActions,oaSameBandAgain);
           aBand.BeginRuntimeProcessing;
           try
             lRTBand := CommonRuntimeBandProcessing(lBand);
@@ -10807,26 +10783,18 @@ begin
           lHandledBands.Add(lRTBand);
           UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
           if NoSpaceRemaining then
-          begin
-            HandleOverflowedBands;
-            if FNewPage then
-              StartNewPage;
-            HandleMovedGroupHeaders;
-          end;
-          if lStartAgain then
+            overFlowActions := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
+          if (oaStartAgain in overFlowActions) then
             break;
           aBand.AfterPrintBand(Self, lRTBand);
         finally
-          if not lSameBandAgain then
+          if not (oaSameBandAgain in overFlowActions) then
             lBand := lBand.ChildBand;
-          if lStartAgain or
-          lSameBandAgain then
+          if (overFlowActions<>[]) then
             Report.FRTIsOverflowed := True;
         end;
       end; { while Assigned(lBand) }
-    Until not lStartAgain;
-
-
+    Until not (oaStartAgain in OverFlowActions);
     if (aBand is TFPReportCustomGroupHeaderBand) and
     not Report.FRTInRepeatedGroupHeader and
     (lHandledBands.Count > 0) then
