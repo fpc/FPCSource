@@ -10750,6 +10750,8 @@ end;
 
 function TFPReportLayouter.ShowBandWithChilds(aBand: TFPReportCustomBand): Boolean;
 
+
+
 Var
   lHandledBands: TBandList;
   overFlowActions : TOverFlowActions;
@@ -10772,27 +10774,26 @@ begin
       lBand := aBand;
       while Assigned(lBand) do
       begin
-        Exclude(overFlowActions,oaSameBandAgain);
-        lRTBand := CommonRuntimeBandProcessing(lBand);
-        Result := lRTBand<>Nil;
-        if Result then
-          begin
+        try
+          Exclude(overFlowActions,oaSameBandAgain);
+          lRTBand := CommonRuntimeBandProcessing(lBand);
+          if lRTBand=Nil then
+            Continue;
+          Result := True;
           lHandledBands.Add(lRTBand);
           UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
           if NoSpaceRemaining then
             overFlowActions := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
           if (oaStartAgain in overFlowActions) then
-            lband:=Nil // exit while loop.
-          else
-            begin
-            if Assigned(lRTBand) then
-              aBand.AfterPrintBand(Self, lRTBand);
-            if not (oaSameBandAgain in overFlowActions) then
-              lBand := lBand.ChildBand;
-            end;
-          end;
-        if (overFlowActions<>[]) then
-          Report.FRTIsOverflowed := True;
+            break;
+          if Assigned(lRTBand) then
+            aBand.AfterPrintBand(Self, lRTBand);
+        finally
+          if not (oaSameBandAgain in overFlowActions) then
+            lBand := lBand.ChildBand;
+          if (overFlowActions<>[]) then
+            Report.FRTIsOverflowed := True;
+        end;
       end; { while Assigned(lBand) }
     Until not (oaStartAgain in OverFlowActions);
     if (aBand is TFPReportCustomGroupHeaderBand) and
