@@ -10756,8 +10756,6 @@ end;
 
 function TFPReportLayouter.ShowBandWithChilds(aBand: TFPReportCustomBand): Boolean;
 
-
-
 Var
   lHandledBands: TBandList;
   overFlowActions : TOverFlowActions;
@@ -10773,38 +10771,32 @@ begin
   Result := False;
   lHandledBands := TBandList.Create;
   try
-    Repeat
+    lBand := aBand;
+    while Assigned(lBand) do
+    begin
       overflowActions:=[];
-      { for band and every child }
-      aBand.BeforePrintWithChilds;
-      lBand := aBand;
-      while Assigned(lBand) do
-      begin
-        Exclude(overFlowActions,oaSingleBand);
-        lRTBand := CommonRuntimeBandProcessing(lBand);
-        if lRTBand=Nil then
-          lBand := lBand.ChildBand
+      if (lBand=aBand) then
+        aBand.BeforePrintWithChilds;
+      lRTBand := CommonRuntimeBandProcessing(lBand);
+      if lRTBand<>Nil then
+        begin
+        Result := True;
+        lHandledBands.Add(lRTBand);
+        UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
+        if NoSpaceRemaining then
+          overFlowActions := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
+        if (overFlowActions=[]) then
+          aBand.AfterPrintBand(Self, lRTBand)
         else
-          begin
-          Result := True;
-          lHandledBands.Add(lRTBand);
-          UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
-          if NoSpaceRemaining then
-            overFlowActions := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
-          if (oaBandWithChilds in overFlowActions) then
-            lBand:=Nil // force exit from while
-          else
-           begin
-            if Assigned(lRTBand) then
-              aBand.AfterPrintBand(Self, lRTBand);
-            if not (oaSingleBand in overFlowActions) then
-              lBand := lBand.ChildBand;
-            end;
-          if (overFlowActions<>[]) then
-            Report.FRTIsOverflowed := True;
-          end;
-      end; { while Assigned(lBand) }
-    Until not (oaBandWithChilds in OverFlowActions);
+          Report.FRTIsOverflowed := True;
+        end;
+      // Decide what band to process next.
+      if (oaBandWithChilds in overFlowActions) then
+        lBand:=aBand // Restart from the main band.
+      else if not (oaSingleBand in overFlowActions) then
+        // Next band, if we don't need to redo the band because it overflowed.
+        lBand := lBand.ChildBand;
+    end; { while Assigned(lBand) }
     if (aBand is TFPReportCustomGroupHeaderBand) and
     not Report.FRTInRepeatedGroupHeader and
     (lHandledBands.Count > 0) then
