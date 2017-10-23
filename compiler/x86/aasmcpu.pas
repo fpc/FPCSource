@@ -1878,7 +1878,9 @@ implementation
         else
           ss_equals_ds:=segment_regs_equal(NR_DS,NR_SS);
         { remove redundant segment overrides }
-        if (ref.segment<>NR_NO) and (ref.segment=get_default_segment_of_ref(ref)) then
+        if (ref.segment<>NR_NO) and
+           ((inlineasm and (ref.segment=get_default_segment_of_ref(ref))) or
+            ((not inlineasm) and (segment_regs_equal(ref.segment,get_default_segment_of_ref(ref))))) then
           ref.segment:=NR_NO;
         if not is_16_bit_ref(ref) then
           begin
@@ -1906,7 +1908,9 @@ implementation
               end;
           end;
         { remove redundant segment overrides again }
-        if (ref.segment<>NR_NO) and (ref.segment=get_default_segment_of_ref(ref)) then
+        if (ref.segment<>NR_NO) and
+           ((inlineasm and (ref.segment=get_default_segment_of_ref(ref))) or
+            ((not inlineasm) and (segment_regs_equal(ref.segment,get_default_segment_of_ref(ref))))) then
           ref.segment:=NR_NO;
       end;
 
