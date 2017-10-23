@@ -9664,7 +9664,7 @@ begin
         lRTBand := CommonRuntimeBandProcessing(lList[i]);
         if Assigned(lRTBand) then
           FPageFooter.AfterPrintBand(lRTBand);
-      end
+      end;
       FPageFooter.AfterPrintWithChilds;
     finally
       lList.Free;
