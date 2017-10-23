@@ -1551,7 +1551,7 @@ type
 
 
   { TFPReportLayouter }
-  TOverFlowAction = (oaBandWithChilds,oaSingleBand);
+  TOverFlowAction = (oaNone,oaBandWithChilds,oaSingleBand);
   TOverFlowActions = Set of TOverFlowAction;
 
   TFPReportLayouter = Class(TComponent)
@@ -1600,7 +1600,7 @@ type
     function FooterSpaceNeeded: TFPReportUnits;
   protected
     procedure RemoveBandsFromPage(aList: TBandList); virtual;
-    function HandleOverflowedBands(aHandledBands: TBandList; aBand: TFPReportCustomBand; var aRTBand: TFPReportCustomBand): TOverFlowActions; virtual;
+    function HandleOverflowedBands(aHandledBands: TBandList; aBand: TFPReportCustomBand; var aRTBand: TFPReportCustomBand): TOverFlowAction; virtual;
     procedure CheckNewOrOverFlow(CheckMulticolumn: Boolean = True); virtual;
     procedure SetPageCount(aCount : Integer);
     procedure IncPageNumberPerDesignerPage;
@@ -9708,12 +9708,12 @@ begin
       end;
       FPageFooter.BeforePrintWithChilds;
       try
-      for i := lList.Count-1 downto 0 do
-      begin
-        lRTBand := CommonRuntimeBandProcessing(lList[i]);
-        if Assigned(lRTBand) then
-          FPageFooter.AfterPrintBand(FRTBottomStackedFooterList , lRTBand);
-      end
+        for i := lList.Count-1 downto 0 do
+        begin
+          lRTBand := CommonRuntimeBandProcessing(lList[i]);
+          if Assigned(lRTBand) then
+            FPageFooter.AfterPrintBand(FRTBottomStackedFooterList , lRTBand);
+        end
       finally
         FPageFooter.AfterPrintWithChilds;
       end;
@@ -10605,14 +10605,14 @@ begin
   aList.Clear;
 end;
 
-function TFPReportLayouter.HandleOverflowedBands(aHandledBands: TBandList; aBand: TFPReportCustomBand; var aRTBand: TFPReportCustomBand): TOverFlowActions;
+function TFPReportLayouter.HandleOverflowedBands(aHandledBands: TBandList; aBand: TFPReportCustomBand; var aRTBand: TFPReportCustomBand): TOverFlowAction;
 
 var
   lGrp, lToMoveGrp: TFPReportCustomGroupHeaderBand;
   i: Integer;
 
 begin
-  Result := [];
+  Result := oaNone;
   lToMoveGrp := nil;
   if FNewColumn or FOverflowed then
   begin
@@ -10621,7 +10621,7 @@ begin
     if aBand.KeepTogetherWithChildren then
     begin
       { complete band with child bands move to next column/page }
-      Include(Result,oaBandWithChilds);
+      Result:=oaBandWithChilds;
       { remove all overflowed bands and start again on new column/page }
       RemoveBandsFromPage(aHandledBands);
       //writeln('   complete move to next column/page');
@@ -10661,7 +10661,7 @@ begin
     else
     begin
       { only current band moves to next column/page }
-      Include(Result,oaSingleBand);
+      Result:=oaSingleBand;
       { remove band from current page }
       aRTBand.Page.RemoveChild(aRTBand);
       { correct LastYPos }
@@ -10709,7 +10709,7 @@ function TFPReportLayouter.ShowBandWithChilds(aBand: TFPReportCustomBand): Boole
 
 Var
   lHandledBands: TBandList;
-  overFlowActions : TOverFlowActions;
+  overFlowAction : TOverFlowAction;
   lBand,lRTBand: TFPReportCustomBand;
 
 begin
@@ -10725,7 +10725,7 @@ begin
     lBand := aBand;
     while Assigned(lBand) do
     begin
-      overflowActions:=[];
+      overflowAction:=oaNone;
       if (lBand=aBand) then
         aBand.BeforePrintWithChilds;
       lRTBand := CommonRuntimeBandProcessing(lBand);
@@ -10735,18 +10735,22 @@ begin
         lHandledBands.Add(lRTBand);
         UpdateSpaceRemaining(lRTBand, aBand.NeedsUpdateYPos);
         if NoSpaceRemaining then
-          overFlowActions := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
-        if (overFlowActions=[]) then
+          overFlowAction := HandleOverflowedBands(lHandledBands, aBand, lRTBand);
+        if (overFlowAction=oaNone) then
           aBand.AfterPrintBand(FRTBottomStackedFooterList, lRTBand)
         else
           Report.FRTIsOverflowed := True;
         end;
       // Decide what band to process next.
-      if (oaBandWithChilds in overFlowActions) then
-        lBand:=aBand // Restart from the main band.
-      else if not (oaSingleBand in overFlowActions) then
-        // Next band, if we don't need to redo the band because it overflowed.
+      Case overFlowAction of
+      oaBandWithChilds:
+        lBand:=aBand; // Restart from the main band.
+      oaSingleBand:
+        ; // do nothing, same band again
+      oaNone:
+        // Next band
         lBand := lBand.ChildBand;
+      end;
     end; { while Assigned(lBand) }
     if (aBand is TFPReportCustomGroupHeaderBand) and
     not Report.FRTInRepeatedGroupHeader and
