@@ -111,17 +111,11 @@ implementation
              segref.refaddr:=addr_seg;
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,location.register);
            end
-         else if left.location.reference.base=NR_BP then
-           begin
-             location_reset(location,LOC_REGISTER,OS_16);
-             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,location.register));
-           end
          else
            begin
              location_reset(location,LOC_REGISTER,OS_16);
              location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-             current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_DS,location.register));
+             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,get_default_segment_of_ref(left.location.reference),location.register));
            end;
        end;
 
