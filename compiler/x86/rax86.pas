@@ -1248,6 +1248,8 @@ begin
                         localscale,localgetoffset,localforceref);
        OPR_REFERENCE:
          begin
+           if (opcode<>A_XLAT) and not is_x86_string_op(opcode) then
+             optimize_ref(operands[i].opr.ref,true);
            ai.loadref(i-1,operands[i].opr.ref);
            if operands[i].size<>OS_NO then
              begin
