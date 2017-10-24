@@ -697,8 +697,7 @@ procedure TWriter.WriteChildren(Component : TComponent);
 Var
   SRoot, SRootA : TComponent;
   SList : TStringList;
-  SPos : Integer;
-  I : Integer;
+  SPos, I , SAncestorPos: Integer;
   
 begin
   // Write children list. 
@@ -708,6 +707,7 @@ begin
   SRootA:=FRootAncestor;
   SList:=FAncestors;
   SPos:=FCurrentPos;
+  SAncestorPos:=FAncestorPos;
   try
     FAncestors:=Nil;
     FCurrentPos:=0;
@@ -735,7 +735,7 @@ begin
     FRoot:=SRoot;
     FRootAncestor:=SRootA;
     FCurrentPos:=SPos;
-    FAncestorPos:=Spos;
+    FAncestorPos:=SAncestorPos;
   end;
 end;
 
