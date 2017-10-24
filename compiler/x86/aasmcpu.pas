@@ -1872,6 +1872,7 @@ implementation
     procedure optimize_ref(var ref:treference; inlineasm: boolean);
       var
         ss_equals_ds: boolean;
+        tmpreg: TRegister;
       begin
 {$ifdef x86_64}
         { x86_64 in long mode ignores all segment base, limit and access rights
@@ -1912,13 +1913,17 @@ implementation
                     ref.scalefactor:=0;
                   end;
               end;
-            { Switching EBP+reg to reg+EBP sometimes gives shorter instructions (if there's no offset) }
-            if (ref.base=NR_EBP) and (ref.index<>NR_NO) and (ref.index<>NR_EBP) and
+            { Switching rBP+reg to reg+rBP sometimes gives shorter instructions (if there's no offset)
+              On x86_64 this also works for switching r13+reg to reg+r13. }
+            if ((ref.base=NR_EBP) {$ifdef x86_64}or (ref.base=NR_RBP) or (ref.base=NR_R13) or (ref.base=NR_R13D){$endif}) and
+               (ref.index<>NR_NO) and
+               (ref.index<>NR_EBP) and {$ifdef x86_64}(ref.index<>NR_RBP) and (ref.index<>NR_R13) and (ref.index<>NR_R13D) and{$endif}
                (ref.scalefactor<=1) and (ref.offset=0) and (ref.refaddr=addr_no) and
                (ss_equals_ds or (ref.segment<>NR_NO)) then
               begin
+                tmpreg:=ref.base;
                 ref.base:=ref.index;
-                ref.index:=NR_EBP;
+                ref.index:=tmpreg;
               end;
           end;
         { remove redundant segment overrides again }
