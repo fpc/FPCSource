@@ -1209,6 +1209,19 @@ begin
        operands[2].opr.reg:=NR_ST0;
      end;
 
+   { Check for 'POP CS' }
+   if (opcode=A_POP) and (ops=1) and (operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg=NR_CS) then
+{$ifdef i8086}
+     { On i8086 we print only a warning, because 'POP CS' works on 8086 and 8088
+       CPUs, but isn't supported on any later CPU }
+     Message(asmr_w_pop_cs_not_portable);
+{$else i8086}
+     { On the i386 and x86_64 targets, we print out an error, because no CPU,
+       supported by these targets support 'POP CS' }
+     Message(asmr_e_pop_cs_not_valid);
+{$endif i8086}
+
    { I tried to convince Linus Torvalds to add
      code to support ENTER instruction
      (when raising a stack page fault)
