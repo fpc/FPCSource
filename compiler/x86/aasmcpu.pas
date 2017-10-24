@@ -1873,10 +1873,24 @@ implementation
       var
         ss_equals_ds: boolean;
       begin
+{$ifdef x86_64}
+        { x86_64 in long mode ignores all segment base, limit and access rights
+          checks for the DS, ES and SS registers, so we can set ss_equals_ds to
+          true (and thus, perform stronger optimizations on the reference),
+          regardless of whether this is inline asm or not (so, even if the user
+          is doing tricks by loading different values into DS and SS, it still
+          doesn't matter while the processor is in long mode) }
+        ss_equals_ds:=True;
+{$else x86_64}
+        { for i8086 and i386 inline asm, we assume SS<>DS, even if we're
+          compiling for a memory model, where SS=DS, because the user might be
+          doing something tricky with the segment registers (and may have
+          temporarily set them differently) }
         if inlineasm then
           ss_equals_ds:=False
         else
           ss_equals_ds:=segment_regs_equal(NR_DS,NR_SS);
+{$endif x86_64}
         { remove redundant segment overrides }
         if (ref.segment<>NR_NO) and
            ((inlineasm and (ref.segment=get_default_segment_of_ref(ref))) or
