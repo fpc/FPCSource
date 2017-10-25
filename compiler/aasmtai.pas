@@ -564,7 +564,7 @@ interface
        tai_section = class(tai)
           sectype  : TAsmSectiontype;
           secorder : TasmSectionorder;
-          secalign : byte;
+          secalign : longint;
           name     : pshortstring;
           sec      : TObjSection; { used in binary writer }
           destructor Destroy;override;
@@ -574,7 +574,7 @@ interface
          private
           { this constructor is made private on purpose }
           { because sections should be created via new_section() }
-          constructor Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+          constructor Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:longint;Asecorder:TasmSectionorder=secorder_default);
 {$pop}
        end;
 
@@ -1170,7 +1170,7 @@ implementation
                              TAI_SECTION
  ****************************************************************************}
 
-    constructor tai_section.Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
+    constructor tai_section.Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:longint;Asecorder:TasmSectionorder=secorder_default);
       begin
         inherited Create;
         typ:=ait_section;
@@ -1186,7 +1186,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         sectype:=TAsmSectiontype(ppufile.getbyte);
-        secalign:=ppufile.getbyte;
+        secalign:=ppufile.getlongint;
         name:=ppufile.getpshortstring;
         sec:=nil;
       end;
@@ -1202,7 +1202,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putbyte(byte(sectype));
-        ppufile.putbyte(secalign);
+        ppufile.putlongint(secalign);
         ppufile.putstring(name^);
       end;
 

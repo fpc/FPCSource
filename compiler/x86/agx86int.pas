@@ -265,7 +265,7 @@ implementation
       end;
 
     { MASM supports aligns up to 8192 }
-    function alignstr(b : integer) : string;
+    function alignstr(b : longint) : string;
       begin
         case b of
           1: result:='BYTE';

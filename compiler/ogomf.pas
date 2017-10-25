@@ -80,7 +80,7 @@ interface
         FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
         function GetOmfAlignment: TOmfSegmentAlignment;
       public
-        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
         function MemPosStr(AImageBase: qword): string;override;
         property ClassName: string read FClassName;
         property OverlayName: string read FOverlayName;
@@ -100,7 +100,7 @@ interface
       public
         constructor create(const n:string);override;
         function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
-        function sectiontype2align(atype:TAsmSectiontype):shortint;override;
+        function sectiontype2align(atype:TAsmSectiontype):longint;override;
         function sectiontype2class(atype:TAsmSectiontype):string;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
@@ -466,13 +466,17 @@ implementation
             result:=saRelocatableDWordAligned;
           16:
             result:=saRelocatableParaAligned;
+          256:
+            result:=saRelocatablePageAligned;
+          4096:
+            result:=saNotSupported;
           else
             internalerror(2015041504);
         end;
       end;
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
-          const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
+          const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions);
       begin
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
@@ -521,7 +525,7 @@ implementation
           Result:=Result+[oso_data,oso_sparse_data];
       end;
 
-    function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
+    function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): longint;
       begin
         Result:=omf_sectiontype2align(atype);
       end;
@@ -1088,7 +1092,7 @@ implementation
       var
         SegDefRec: TOmfRecord_SEGDEF;
         SegmentName,SegClassName,OverlayName: string;
-        SecAlign: ShortInt;
+        SecAlign: LongInt;
         secoptions: TObjSectionOptions;
         objsec: TOmfObjSection;
       begin
@@ -1127,18 +1131,15 @@ implementation
           saRelocatableDWordAligned:
             SecAlign:=4;
           saRelocatablePageAligned:
-            begin
-              InputError('Page segment alignment not supported');
-              SegDefRec.Free;
-              exit;
-            end;
+            SecAlign:=256;
+          saNotSupported:
+            SecAlign:=4096;
           saAbsolute:
             begin
               InputError('Absolute segment alignment not supported');
               SegDefRec.Free;
               exit;
             end;
-          saNotSupported,
           saNotDefined:
             begin
               InputError('Invalid (unsupported/undefined) OMF segment alignment');

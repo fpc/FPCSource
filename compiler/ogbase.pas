@@ -275,7 +275,7 @@ interface
        ObjData    : TObjData;
        index      : longword;  { index of section in section headers }
        SecSymIdx  : longint;   { index for the section in symtab }
-       SecAlign   : shortint;   { alignment of the section }
+       SecAlign   : longint;   { alignment of the section }
        { section Data }
        Size,
        DataPos    : PUInt;
@@ -290,7 +290,7 @@ interface
        ExeSection  : TExeSection;
        USed        : Boolean;
        VTRefList : TFPObjectList;
-       constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
+       constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:PUInt):PUInt;
        { writes string plus zero byte }
@@ -369,9 +369,9 @@ interface
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
        function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
-       function  sectiontype2align(atype:TAsmSectiontype):shortint;virtual;
+       function  sectiontype2align(atype:TAsmSectiontype):longint;virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;virtual;
-       function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
+       function  createsection(const aname:string;aalign:longint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
        function  createsectiongroup(const aname:string):TObjSectionGroup;
        procedure CreateDebugSections;virtual;
        function  findsection(const aname:string):TObjSection;
@@ -385,7 +385,7 @@ interface
        procedure ResetCachedAsmSymbols;
        { Allocation }
        procedure alloc(len:aword);
-       procedure allocalign(len:shortint);
+       procedure allocalign(len:longint);
        procedure writebytes(const Data;len:aword);
        procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
@@ -507,7 +507,7 @@ interface
         Size,
         DataPos,
         MemPos     : qword;
-        SecAlign   : shortint;
+        SecAlign   : longint;
         Disabled   : boolean;
         SecOptions : TObjSectionOptions;
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
@@ -901,7 +901,7 @@ implementation
                               TObjSection
 ****************************************************************************}
 
-    constructor TObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
+    constructor TObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);
       begin
         inherited Create(AList,Aname);
         { Data }
@@ -1237,7 +1237,7 @@ implementation
       end;
 
 
-    function TObjData.sectiontype2align(atype:TAsmSectiontype):shortint;
+    function TObjData.sectiontype2align(atype:TAsmSectiontype):longint;
       begin
         case atype of
           sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
@@ -1266,7 +1266,7 @@ implementation
       end;
 
 
-    function TObjData.createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean):TObjSection;
+    function TObjData.createsection(const aname:string;aalign:longint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean):TObjSection;
       begin
         if DiscardDuplicate then
           result:=TObjSection(FObjSectionList.Find(aname))
@@ -1415,7 +1415,7 @@ implementation
       end;
 
 
-    procedure TObjData.allocalign(len:shortint);
+    procedure TObjData.allocalign(len:longint);
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402253);

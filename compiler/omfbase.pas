@@ -167,7 +167,7 @@ interface
       saRelocatableParaAligned  = 3,
       saRelocatablePageAligned  = 4,  { 32-bit linkers extension }
       saRelocatableDWordAligned = 5,  { 32-bit linkers extension }
-      saNotSupported            = 6,
+      saNotSupported            = 6,  { PharLap: 4096-byte page alignment }
       saNotDefined              = 7);
     TOmfSegmentCombination = (
       scPrivate   = 0,
@@ -1107,7 +1107,7 @@ interface
 
   { OMF segment class names for the object sections, produced by the FPC code generator }
   function omf_segclass(atype:TAsmSectiontype):string;
-  function omf_sectiontype2align(atype:TAsmSectiontype):shortint;
+  function omf_sectiontype2align(atype:TAsmSectiontype):longint;
   { returns whether the specified section type belongs to the group DGROUP in
     the current memory model. DGROUP is the segment group pointed by DS }
   function section_belongs_to_dgroup(atype:TAsmSectiontype): Boolean;
@@ -2301,7 +2301,7 @@ implementation
 {$endif i8086}
     end;
 
-  function omf_sectiontype2align(atype: TAsmSectiontype): shortint;
+  function omf_sectiontype2align(atype: TAsmSectiontype): longint;
     begin
       case atype of
         sec_stabstr:

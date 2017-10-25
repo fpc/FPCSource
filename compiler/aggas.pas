@@ -48,8 +48,8 @@ interface
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
         function sectionattrs(atype:TAsmSectiontype):string;virtual;
         function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
-        function sectionalignment_aix(atype:TAsmSectiontype;secalign: byte):string;
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte);virtual;
+        function sectionalignment_aix(atype:TAsmSectiontype;secalign: longint):string;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);virtual;
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
@@ -441,7 +441,7 @@ implementation
       end;
 
 
-    function TGNUAssembler.sectionalignment_aix(atype:TAsmSectiontype;secalign: byte): string;
+    function TGNUAssembler.sectionalignment_aix(atype:TAsmSectiontype;secalign: longint): string;
       var
         l: longint;
       begin
@@ -457,7 +457,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte);
+    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);
       var
         s : string;
       begin

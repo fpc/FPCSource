@@ -43,7 +43,7 @@ interface
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : byte);
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : longint);
         procedure ResetSectionsList;
         procedure WriteGroups;
       protected
@@ -462,7 +462,7 @@ interface
       );
 
     procedure TX86NasmAssembler.WriteSection(atype : TAsmSectiontype;
-      const aname : string; alignment : byte);
+      const aname : string; alignment : longint);
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -630,7 +630,7 @@ interface
       quoted   : boolean;
       fixed_opcode: TAsmOp;
       prefix, LastSecName  : string;
-      LastAlign : Byte;
+      LastAlign : LongInt;
       cpu: tcputype;
       prevfileinfo : tfileposinfo;
       previnfile : tinputfile;

@@ -72,9 +72,9 @@ interface
 
     function next_prime(l: longint): longint;
 
-    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
-    function size_2_align(len : longint) : shortint;
+    function size_2_align(len : longint) : longint;
     function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
@@ -341,7 +341,7 @@ implementation
       end;
 
 
-    function size_2_align(len : longint) : shortint;
+    function size_2_align(len : longint) : longint;
       begin
          if len>16 then
            size_2_align:=32
@@ -435,7 +435,7 @@ implementation
       end;
 
 
-    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
       begin
         { varalign  : minimum alignment required for the variable
           minalign  : Minimum alignment of this structure, 0 = undefined

@@ -119,7 +119,7 @@ interface
          coffrelocs,
          coffrelocpos : aword;
        public
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
          procedure writereloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);override;
        end;
 
@@ -379,6 +379,13 @@ implementation
        PE_SCN_ALIGN_16BYTES          = $00500000; { Default alignment if no others are specified. }
        PE_SCN_ALIGN_32BYTES          = $00600000;
        PE_SCN_ALIGN_64BYTES          = $00700000;
+       PE_SCN_ALIGN_128BYTES         = $00800000;
+       PE_SCN_ALIGN_256BYTES         = $00900000;
+       PE_SCN_ALIGN_512BYTES         = $00A00000;
+       PE_SCN_ALIGN_1024BYTES        = $00B00000;
+       PE_SCN_ALIGN_2048BYTES        = $00C00000;
+       PE_SCN_ALIGN_4096BYTES        = $00D00000;
+       PE_SCN_ALIGN_8192BYTES        = $00E00000;
        PE_SCN_LNK_NRELOC_OVFL        = $01000000; { Section contains extended relocations. }
        PE_SCN_MEM_NOT_CACHED         = $04000000; { Section is not cachable.               }
        PE_SCN_MEM_NOT_PAGED          = $08000000; { Section is not pageable.               }
@@ -778,7 +785,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function peencodesechdrflags(aoptions:TObjSectionOptions;aalign:shortint):longword;
+    function peencodesechdrflags(aoptions:TObjSectionOptions;aalign:longint):longword;
       begin
         if oso_executable in aoptions then
           result:=PE_SCN_CNT_CODE or PE_SCN_MEM_EXECUTE
@@ -803,12 +810,19 @@ const pemagic : array[0..3] of byte = (
           16 : result:=result or PE_SCN_ALIGN_16BYTES;
           32 : result:=result or PE_SCN_ALIGN_32BYTES;
           64 : result:=result or PE_SCN_ALIGN_64BYTES;
+         128 : result:=result or PE_SCN_ALIGN_128BYTES;
+         256 : result:=result or PE_SCN_ALIGN_256BYTES;
+         512 : result:=result or PE_SCN_ALIGN_512BYTES;
+        1024 : result:=result or PE_SCN_ALIGN_1024BYTES;
+        2048 : result:=result or PE_SCN_ALIGN_2048BYTES;
+        4096 : result:=result or PE_SCN_ALIGN_4096BYTES;
+        8192 : result:=result or PE_SCN_ALIGN_8192BYTES;
           else result:=result or PE_SCN_ALIGN_16BYTES;
         end;
       end;
 
 
-    procedure pedecodesechdrflags(const aname:string;flags:longword;out aoptions:TObjSectionOptions;out aalign:shortint);
+    procedure pedecodesechdrflags(const aname:string;flags:longword;out aoptions:TObjSectionOptions;out aalign:longint);
       var
         alignflag : longword;
       begin
@@ -828,7 +842,21 @@ const pemagic : array[0..3] of byte = (
           include(aoptions,oso_write);
         { alignment }
         alignflag:=flags and PE_SCN_ALIGN_MASK;
-        if alignflag=PE_SCN_ALIGN_64BYTES then
+        if alignflag=PE_SCN_ALIGN_8192BYTES then
+          aalign:=8192
+        else if alignflag=PE_SCN_ALIGN_4096BYTES then
+          aalign:=4096
+        else if alignflag=PE_SCN_ALIGN_2048BYTES then
+          aalign:=2048
+        else if alignflag=PE_SCN_ALIGN_1024BYTES then
+          aalign:=1024
+        else if alignflag=PE_SCN_ALIGN_512BYTES then
+          aalign:=512
+        else if alignflag=PE_SCN_ALIGN_256BYTES then
+          aalign:=256
+        else if alignflag=PE_SCN_ALIGN_128BYTES then
+          aalign:=128
+        else if alignflag=PE_SCN_ALIGN_64BYTES then
           aalign:=64
         else if alignflag=PE_SCN_ALIGN_32BYTES then
           aalign:=32
@@ -853,7 +881,7 @@ const pemagic : array[0..3] of byte = (
                                TCoffObjSection
 ****************************************************************************}
 
-    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions);
       begin
         inherited create(AList,aname,aalign,aoptions);
       end;
@@ -2032,7 +2060,7 @@ const pemagic : array[0..3] of byte = (
 
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
-        secalign : shortint;
+        secalign : longint;
         secofs,
         strpos,
         i        : longint;

@@ -63,7 +63,7 @@ type
         machoSec  : TMachoSectionType;
         function GetRelocCount: Integer;
         function FileSize: Integer;
-        constructor create(AList:TFPHashObjectList; const Aname:string; Aalign:shortint; Aoptions:TObjSectionOptions);override;
+        constructor create(AList:TFPHashObjectList; const Aname:string; Aalign:longint; Aoptions:TObjSectionOptions);override;
       end;
 
     { TmachoObjData }
@@ -74,7 +74,7 @@ type
         constructor create(const n:string); override;
         procedure CreateDebugSections; override;
         function sectionname(atype:TAsmSectiontype; const aname:string; aorder:TAsmSectionOrder):string;override;
-        function sectiontype2align(atype:TAsmSectiontype):shortint;override;
+        function sectiontype2align(atype:TAsmSectiontype):longint;override;
         function sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;override;
         procedure writereloc(data:aint; len:aword; p:TObjSymbol; reltype:TObjRelocationType);override;
       public
@@ -329,7 +329,7 @@ uses
     end;
 
 
-  function TmachoObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
+  function TmachoObjData.sectiontype2align(atype: TAsmSectiontype): longint;
     begin
       case atype of
         sec_bss:
@@ -1210,7 +1210,7 @@ uses
 
 
   constructor TmachoObjSection.create(AList: TFPHashObjectList;
-    const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
+    const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions);
     begin
       if Aname = '__TEXT __textcoal_nt' then
         Aalign:=4;

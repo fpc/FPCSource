@@ -54,11 +54,11 @@ unit agppcgas;
     end;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
-      max_alignment : array[TAsmSectionType] of byte;
+      max_alignment : array[TAsmSectionType] of longint;
       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
-      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte); override;
+      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint); override;
       procedure WriteAsmList; override;
       procedure WriteExtraHeader; override;
       procedure WriteExtraFooter; override;
@@ -480,7 +480,7 @@ unit agppcgas;
            max_alignment[cur_sectype]:=8;
       end;
 
-    procedure TPPCAIXAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:byte);
+    procedure TPPCAIXAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint);
 
       begin
         secalign:=max_alignment[atype];
@@ -493,7 +493,7 @@ unit agppcgas;
         cur_list : TAsmList;
         hal : tasmlisttype;
         hp : tai;
-        max_al : byte;
+        max_al : longint;
       begin
         { Parse all asmlists to get maximum alignement used for all types }
         for hal:=low(TasmlistType) to high(TasmlistType) do
