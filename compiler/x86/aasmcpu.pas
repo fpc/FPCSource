@@ -2862,7 +2862,11 @@ implementation
       }
 
       var
+{$ifdef i8086}
+        currval : longint;
+{$else i8086}
         currval : aint;
+{$endif i8086}
         currsym : tobjsymbol;
         currrelreloc,
         currabsreloc,
@@ -2932,7 +2936,11 @@ implementation
                 end;
               top_const :
                 begin
+{$ifdef i8086}
+                  currval:=longint(oper[opidx]^.val);
+{$else i8086}
                   currval:=aint(oper[opidx]^.val);
+{$endif i8086}
                   currsym:=nil;
                   currabsreloc:=RELOC_ABSOLUTE;
                   currabsreloc32:=RELOC_ABSOLUTE32;

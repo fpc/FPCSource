@@ -50,11 +50,13 @@ type
   TOprRec = record
     case typ:TOprType of
       OPR_NONE      : ();
-{$ifdef AVR}
+{$if defined(AVR)}
       OPR_CONSTANT  : (val:word);
-{$else AVR}
+{$elseif defined(i8086)}
+      OPR_CONSTANT  : (val:longint);
+{$else}
       OPR_CONSTANT  : (val:aint);
-{$endif AVR}
+{$endif}
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
       OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint;ref_farproc_entry:boolean;ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
