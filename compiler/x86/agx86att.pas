@@ -192,20 +192,10 @@ interface
              owner.writer.AsmWrite('0');
            if (index<>NR_NO) and (base=NR_NO) then
             begin
-              if scalefactor in [0,1] then
-                { Switching index to base position gives shorter
-                  assembler instructions }
-                begin
-                  owner.writer.AsmWrite('('+gas_regname(index)+')');
-                end
-              else
-                begin
-                  owner.writer.AsmWrite('(,'+gas_regname(index));
-                  if scalefactor<>0 then
-                   owner.writer.AsmWrite(','+tostr(scalefactor)+')')
-                  else
-                   owner.writer.AsmWrite(')');
-                end;
+              owner.writer.AsmWrite('(,'+gas_regname(index));
+              if scalefactor<>0 then
+                owner.writer.AsmWrite(','+tostr(scalefactor));
+              owner.writer.AsmWrite(')');
             end
            else
             if (index=NR_NO) and (base<>NR_NO) then
