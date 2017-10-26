@@ -806,6 +806,7 @@ var
   srsymtable : TSymtable;
   indexreg : tregister;
   plist : ppropaccesslistitem;
+  size_set_from_absolute : boolean = false;
 Begin
   SetupVar:=false;
   asmsearchsym(s,sym,srsymtable);
@@ -820,7 +821,11 @@ Begin
             plist:=tabsolutevarsym(sym).ref.firstsym;
             if assigned(plist) and
                (plist^.sltype=sl_load) then
-              sym:=plist^.sym
+              begin
+                setvarsize(tabstractvarsym(sym));
+                size_set_from_absolute:=true;
+                sym:=plist^.sym;
+              end
             else
               begin
                 Message(asmr_e_unsupported_symbol_type);
@@ -831,6 +836,9 @@ Begin
           begin
             initref;
             opr.ref.offset:=tabsolutevarsym(sym).addroffset;
+            setvarsize(tabstractvarsym(sym));
+            size_set_from_absolute:=true;
+            hasvar:=true;
             Result:=true;
             exit;
           end;
@@ -850,7 +858,8 @@ Begin
           setconst(tfieldvarsym(sym).fieldoffset div 8)
         else
           Message(asmr_e_packed_element);
-        setvarsize(tabstractvarsym(sym));
+        if not size_set_from_absolute then
+          setvarsize(tabstractvarsym(sym));
         hasvar:=true;
         SetupVar:=true;
       end;
@@ -905,7 +914,8 @@ Begin
                 SetSize(sizeof(pint),false);
             end;
         end;
-        setvarsize(tabstractvarsym(sym));
+        if not size_set_from_absolute then
+          setvarsize(tabstractvarsym(sym));
         hasvar:=true;
         SetupVar:=true;
         Exit;
