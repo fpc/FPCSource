@@ -96,12 +96,18 @@ end;
 
 procedure TTestSpecificTMemDataset.TestCopyFromDataset;
 var memds1, memds2: TMemDataset;
+    i: integer;
 begin
   memds1:=DBConnector.GetFieldDataset as TMemDataset;
   memds2:=DBConnector.GetNDataset(0) as TMemDataset;
 
   memds1.Open;
+  // insert 1st row with all NULL values
+  memds1.Insert; memds1.Post;
   memds2.CopyFromDataset(memds1);
+  // check if 1st row has all NULL values
+  for i:=0 to memds2.FieldCount-1 do CheckTrue(memds2.Fields[i].IsNull, 'IsNull');
+  memds2.Delete;
   CheckFieldDatasetValues(memds2);
 end;
 
