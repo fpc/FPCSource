@@ -1167,7 +1167,7 @@ begin
                   ftString   : F1.AsString:=F2.AsString;
                   ftBoolean  : F1.AsBoolean:=F2.AsBoolean;
                   ftFloat    : F1.AsFloat:=F2.AsFloat;
-                  ftLargeInt : F1.AsInteger:=F2.AsInteger;
+                  ftLargeInt : F1.AsLargeInt:=F2.AsLargeInt;
                   ftSmallInt : F1.AsInteger:=F2.AsInteger;
                   ftInteger  : F1.AsInteger:=F2.AsInteger;
                   ftDate     : F1.AsDateTime:=F2.AsDateTime;
