@@ -3471,6 +3471,7 @@ begin
   repeat
     // skip attribute
     // [name,name(param,param,...),...]
+    // [name(param,name=param)]
     repeat
       ExpectIdentifier;
       NextToken;

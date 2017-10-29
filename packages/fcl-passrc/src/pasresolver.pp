@@ -1061,6 +1061,7 @@ type
     procedure FinishAncestors(aClass: TPasClassType); virtual;
     procedure FinishPropertyParamAccess(Params: TParamsExpr;
       Prop: TPasProperty);
+    procedure FinishCallArgAccess(Expr: TPasExpr; Access: TResolvedRefAccess);
     procedure EmitTypeHints(PosEl: TPasElement; aType: TPasType); virtual;
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
@@ -1148,6 +1149,8 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Assigned_OnGetCallResult(Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_Assigned_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
     function BI_Chr_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Chr_OnGetCallResult(Proc: TResElDataBuiltInProc;
@@ -4658,6 +4661,19 @@ begin
     end;
 end;
 
+procedure TPasResolver.FinishCallArgAccess(Expr: TPasExpr;
+  Access: TResolvedRefAccess);
+var
+  ResolvedEl: TPasResolverResult;
+  Flags: TPasResolverComputeFlags;
+begin
+  AccessExpr(Expr,Access);
+  Flags:=[rcSetReferenceFlags];
+  if Access<>rraRead then
+    Include(Flags,rcNoImplicitProc);
+  ComputeElement(Expr,ResolvedEl,Flags);
+end;
+
 procedure TPasResolver.EmitTypeHints(PosEl: TPasElement; aType: TPasType);
 begin
   while aType<>nil do
@@ -5628,15 +5644,9 @@ procedure TPasResolver.ResolveFuncParamsExpr(Params: TParamsExpr;
   procedure FinishUntypedParams(ParamAccess: TResolvedRefAccess);
   var
     i: Integer;
-    Value: TPasExpr;
-    ResolvedEl: TPasResolverResult;
   begin
     for i:=0 to length(Params.Params)-1 do
-      begin
-      Value:=Params.Params[i];
-      AccessExpr(Value,ParamAccess);
-      ComputeElement(Value,ResolvedEl,[rcNoImplicitProcType,rcSetReferenceFlags]);
-      end;
+      FinishCallArgAccess(Params.Params[i],ParamAccess);
   end;
 
 var
@@ -5747,7 +5757,7 @@ begin
 
     // set param expression Access flags
     if FoundEl is TPasProcedure then
-      // call proc
+      // now it is known which overloaded proc to call
       FinishProcParams(TPasProcedure(FoundEl).ProcType)
     else if FoundEl is TPasType then
       begin
@@ -5759,13 +5769,17 @@ begin
           or (C=TPasEnumType)
           or (C=TPasSetType)
           or (C=TPasPointerType)
-          or (C=TPasProcedureType)
-          or (C=TPasFunctionType)
           or (C=TPasArrayType)
           or (C=TPasRangeType) then
         begin
         // type cast
         FinishUntypedParams(Access);
+        end
+      else if (C=TPasProcedureType)
+          or (C=TPasFunctionType) then
+        begin
+        // type cast to proc type
+        AccessExpr(Params.Params[0],Access);
         end
       else if C=TPasUnresolvedSymbolRef then
         begin
@@ -8303,8 +8317,8 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  AccessExpr(P[0],rraVarParam);
-  AccessExpr(P[1],rraRead);
+  FinishCallArgAccess(P[0],rraVarParam);
+  FinishCallArgAccess(P[1],rraRead);
 end;
 
 function TPasResolver.BI_InExclude_OnGetCallCompatibility(
@@ -8363,8 +8377,8 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  AccessExpr(P[0],rraVarParam);
-  AccessExpr(P[1],rraRead);
+  FinishCallArgAccess(P[0],rraVarParam);
+  FinishCallArgAccess(P[1],rraRead);
 end;
 
 function TPasResolver.BI_Break_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
@@ -8521,9 +8535,9 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  AccessExpr(P[0],rraVarParam);
+  FinishCallArgAccess(P[0],rraVarParam);
   if Length(P)>1 then
-    AccessExpr(P[1],rraRead);
+    FinishCallArgAccess(P[1],rraRead);
 end;
 
 function TPasResolver.BI_Assigned_OnGetCallCompatibility(
@@ -8564,6 +8578,18 @@ procedure TPasResolver.BI_Assigned_OnGetCallResult(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
 begin
   SetResolverIdentifier(ResolvedEl,btBoolean,Proc.Proc,FBaseTypes[btBoolean],[rrfReadable]);
+end;
+
+procedure TPasResolver.BI_Assigned_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+var
+  P: TPasExpr;
+  ResolvedEl: TPasResolverResult;
+begin
+  if Proc=nil then ;
+  P:=Params.Params[0];
+  AccessExpr(P,rraRead);
+  ComputeElement(P,ResolvedEl,[rcNoImplicitProcType,rcSetReferenceFlags]);
 end;
 
 function TPasResolver.BI_Chr_OnGetCallCompatibility(
@@ -9098,8 +9124,8 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  AccessExpr(P[0],rraRead);
-  AccessExpr(P[1],rraVarParam);
+  FinishCallArgAccess(P[0],rraRead);
+  FinishCallArgAccess(P[1],rraVarParam);
 end;
 
 function TPasResolver.BI_StrFunc_OnGetCallCompatibility(
@@ -9296,9 +9322,9 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  AccessExpr(P[0],rraRead);
-  AccessExpr(P[1],rraVarParam);
-  AccessExpr(P[2],rraRead);
+  FinishCallArgAccess(P[0],rraRead);
+  FinishCallArgAccess(P[1],rraVarParam);
+  FinishCallArgAccess(P[2],rraRead);
 end;
 
 function TPasResolver.BI_DeleteArray_OnGetCallCompatibility(
@@ -9351,9 +9377,9 @@ var
 begin
   if Proc=nil then ;
   P:=Params.Params;
-  AccessExpr(P[0],rraVarParam);
-  AccessExpr(P[1],rraRead);
-  AccessExpr(P[2],rraRead);
+  FinishCallArgAccess(P[0],rraVarParam);
+  FinishCallArgAccess(P[1],rraRead);
+  FinishCallArgAccess(P[2],rraRead);
 end;
 
 function TPasResolver.BI_TypeInfo_OnGetCallCompatibility(
@@ -10213,7 +10239,7 @@ begin
   if bfAssigned in TheBaseProcs then
     AddBuiltInProc('Assigned','function Assigned(const Pointer or Class or Class-of): boolean',
         @BI_Assigned_OnGetCallCompatibility,@BI_Assigned_OnGetCallResult,
-        nil,nil,bfAssigned);
+        nil,@BI_Assigned_OnFinishParamsExpr,bfAssigned);
   if bfChr in TheBaseProcs then
     AddBuiltInProc('Chr','function Chr(const Integer): char',
         @BI_Chr_OnGetCallCompatibility,@BI_Chr_OnGetCallResult,nil,nil,bfChr);
@@ -13333,13 +13359,14 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     {$ENDIF}
     if (ResolvedEl.BaseType=btProc) then
       begin
+      // proc
       if [rcNoImplicitProc,rcConstant,rcType]*Flags=[] then
         begin
-        // a proc and implicit call without params is allowed -> check if possible
+        // implicit call without params is allowed -> check if possible
         Proc:=ResolvedEl.IdentEl as TPasProcedure;
         if not ProcNeedsParams(Proc.ProcType) then
           begin
-          // parameter less proc -> implicit call
+          // parameter less proc -> implicit call possible
           if ResolvedEl.IdentEl is TPasFunction then
             begin
             // function => return result
@@ -13367,13 +13394,14 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
       end
     else if IsProcedureType(ResolvedEl,true) then
       begin
+      // proc type
       if [rcNoImplicitProc,rcNoImplicitProcType,rcConstant,rcType]*Flags=[] then
         begin
-        // a proc type and implicit call without params is allowed -> check if possible
+        // implicit call without params is allowed -> check if possible
         ProcType:=TPasProcedureType(ResolvedEl.TypeEl);
         if not ProcNeedsParams(ProcType) then
           begin
-          // parameter less proc -> implicit call
+          // parameter less proc type -> implicit call possible
           if ResolvedEl.TypeEl is TPasFunctionType then
             // function => return result
             ComputeElement(TPasFunctionType(ResolvedEl.TypeEl).ResultEl,

@@ -363,6 +363,7 @@ type
     Procedure TestProc_ParameterExprAccess;
     Procedure TestProc_FunctionResult_DeclProc;
     Procedure TestProc_TypeCastFunctionResult;
+    Procedure TestProc_ImplicitCalls;
     // ToDo: fail builtin functions in constant with non const param
 
     // record
@@ -5368,6 +5369,64 @@ begin
   Add('begin');
   Add('   s:=smallint(GetIt);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ImplicitCalls;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  ActualImplicitCallWithoutParams: Boolean;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  'function b: longint;',
+  'begin',
+  'end;',
+  'function GetStr: string;',
+  'begin',
+  'end;',
+  'var',
+  '  a: longint;',
+  '  s: string;',
+  '  arr: array of longint;',
+  'begin',
+  '  Inc(a,{#b1}b);',
+  '  Dec(a,{#b2}b);',
+  '  str({#b3}b,s);',
+  '  SetLength(arr,{#b4}b);',
+  '  Insert({#b5}b,arr,{#b6}b);',
+  '  Delete(arr,{#b7}b,{#b8}b);',
+  '  a:=length({#b9}GetStr);',
+  '']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestProc_IncWithImplicitCall ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      ActualImplicitCallWithoutParams:=false;
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestProc_IncWithImplicitCall ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        if not (Ref.Declaration is TPasProcedure) then continue;
+        //writeln('TTestResolver.TestProc_IncWithImplicitCall ',GetObjName(Ref.Declaration),' rrfNewInstance=',rrfNewInstance in Ref.Flags);
+        ActualImplicitCallWithoutParams:=rrfImplicitCallWithoutParams in Ref.Flags;
+        break;
+        end;
+      if not ActualImplicitCallWithoutParams then
+        RaiseErrorAtSrcMarker('expected implicit call at "#'+aMarker^.Identifier+', but got function ref"',aMarker);
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestRecord;
