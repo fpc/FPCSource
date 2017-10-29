@@ -640,27 +640,30 @@ asm
     mov    %rsi, %rdx
     mov    %rdi, %rcx
 {$endif win64}
-    testq   %r8,%r8
-    je      .LCmpbyteZero
+    negq    %r8
+    jz      .LCmpbyteZero
 
-    .balign 8
+    subq    %r8, %rcx
+    subq    %r8, %rdx
+
+    .balign 16
 .LCmpbyteLoop:
-    movb    (%rcx),%r9b
-    cmpb    (%rdx),%r9b
-    leaq    1(%rcx),%rcx
-    leaq    1(%rdx),%rdx
+    movb  (%rcx,%r8), %al
+    cmpb    (%rdx,%r8), %al
     jne     .LCmpbyteExitFast
-    decq    %r8
+    incq     %r8
     jne     .LCmpbyteLoop
-.LCmpbyteExitFast:
-     movzbq  -1(%rdx),%r8     { Compare last position }
-     movzbq  %r9b,%rax
-     subq    %r8,%rax
-     ret
-
 .LCmpbyteZero:
-     movq    $0,%rax
-     ret
+     xorl    %eax, %eax
+     retq
+
+.LCmpbyteExitFast:
+{$ifdef oldbinutils}
+    .byte 0x42,0x0F,0xB6,0x0C,0x02
+{$else}
+     movzbl  (%rdx,%r8), %ecx    { Compare last position }
+{$endif}
+     subq    %rcx, %rax
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
