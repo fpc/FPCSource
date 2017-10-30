@@ -2497,11 +2497,12 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
-{$ifdef symansistr}
-               writeln([space,' Mangledname : ',getansistring]);
-{$else symansistr}
-               writeln([space,' Mangledname : ',getstring]);
-{$endif symansistr}
+               begin
+                 if (tsystemcpu(ppufile.header.cpu) = cpu_jvm) then
+                   writeln([space,'     Mangled name : ',getansistring])
+                 else
+                   writeln([space,'     Mangled name : ',getstring]);
+               end;
              if vo_has_section in varoptions then
                writeln(['Section name:',ppufile.getansistring]);
              write  ([space,' FieldVarSymDeref: ']);
@@ -2902,11 +2903,12 @@ begin
              readcommondef('Procedure definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
-{$ifdef symansistr}
-               writeln([space,'     Mangled name : ',getansistring]);
-{$else symansistr}
-               writeln([space,'     Mangled name : ',getstring]);
-{$endif symansistr}
+               begin
+                 if (tsystemcpu(ppufile.header.cpu) = cpu_jvm) then
+                   writeln([space,'     Mangled name : ',getansistring])
+                 else
+                   writeln([space,'     Mangled name : ',getstring]);
+               end;
              writeln([space,'           Number : ',getword]);
              writeln([space,'            Level : ',getbyte]);
              write  ([space,'            Class : ']);
@@ -2975,6 +2977,8 @@ begin
              readcommondef('Procedural type (ProcVar) definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions, TPpuProcDef(def));
              writeln([space,'   Symtable level :',ppufile.getbyte]);
+             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               readderef('');
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
@@ -3055,8 +3059,6 @@ begin
                  writeln([space,'         DataSize : ',objdef.Size]);
                  writeln([space,'      PaddingSize : ',getword]);
                end;
-             if not EndOfEntry then
-               HasMoreInfos;
              {read the record definitions and symbols}
              if not(df_copied_def in current_defoptions) then
                begin
@@ -3065,6 +3067,8 @@ begin
                  readsymtable('fields',TPpuRecordDef(def));
                  Delete(space,1,4);
                end;
+             if not EndOfEntry then
+               HasMoreInfos;
            end;
 
          ibobjectdef :
@@ -3433,6 +3437,8 @@ begin
          iblinkotherframeworks:
            ReadLinkContainer('Link framework: ');
 
+         ibjvmnamespace:
+            Writeln('JVM name space: '+getString);
          ibmainname:
            Writeln(['Specified main program symbol name: ',getstring]);
 
