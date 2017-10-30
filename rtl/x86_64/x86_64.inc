@@ -648,8 +648,13 @@ asm
 
     .balign 16
 .LCmpbyteLoop:
-    movb  (%rcx,%r8), %al
-    cmpb    (%rdx,%r8), %al
+{$ifdef oldbinutils}
+// for the reason why this alternate coding of movzbl is given here
+// see the comments in FillChar above
+    .byte 0x42,0x0F,0xB6,0x04,0x01
+{$else}
+    movzbl  (%rcx,%r8), %eax
+{$endif}    cmpb    (%rdx,%r8), %al
     jne     .LCmpbyteExitFast
     incq     %r8
     jne     .LCmpbyteLoop
