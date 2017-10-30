@@ -586,7 +586,9 @@ type
     vo_force_finalize,
     { this is an internal variable that is used for Default() intrinsic in code
       sections }
-    vo_is_default_var
+    vo_is_default_var,
+    { i8086 'external far' (can only be used in combination with vo_is_external) }
+    vo_is_far
   );
   tvaroptions=set of tvaroption;
 

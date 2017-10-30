@@ -187,70 +187,70 @@ implementation
         segreg: TRegister;
         newsize: TCgSize;
       begin
-        if current_settings.x86memorymodel=mm_huge then
-          begin
-            case symtableentry.typ of
-              staticvarsym:
+        case symtableentry.typ of
+          staticvarsym:
+            begin
+              gvs:=tstaticvarsym(symtableentry);
+              if (vo_is_dll_var in gvs.varoptions) then
+              { DLL variable }
                 begin
-                  gvs:=tstaticvarsym(symtableentry);
-                  if (vo_is_dll_var in gvs.varoptions) then
-                  { DLL variable }
+                  inherited pass_generate_code;
+                  exit;
+                end
+              { Thread variable }
+              else if (vo_is_thread_var in gvs.varoptions) then
+                begin
+                  { this will be handled in ti8086loadnode.generate_threadvar_access }
+                  inherited pass_generate_code;
+                  exit;
+                end
+              { Normal (or external) variable }
+              else
+                begin
+                  if (current_settings.x86memorymodel<>mm_huge) and not (vo_is_far in gvs.varoptions) then
                     begin
                       inherited pass_generate_code;
                       exit;
-                    end
-                  { Thread variable }
-                  else if (vo_is_thread_var in gvs.varoptions) then
+                    end;
+                  if not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit then
                     begin
-                      { this will be handled in ti8086loadnode.generate_threadvar_access }
                       inherited pass_generate_code;
                       exit;
-                    end
-                  { Normal (or external) variable }
-                  else
-                    begin
-                      if not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit then
-                        begin
-                          inherited pass_generate_code;
-                          exit;
-                        end;
-
-                      { we don't know the size of all arrays }
-                      newsize:=def_cgsize(resultdef);
-                      { alignment is overridden per case below }
-                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[]);
-
-                      if gvs.localloc.loc=LOC_INVALID then
-                        begin
-                          if not(vo_is_weak_external in gvs.varoptions) then
-                            refsym:=current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA)
-                          else
-                            refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
-
-                          segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-
-                          reference_reset_symbol(segref,refsym,0,0,[]);
-                          segref.refaddr:=addr_seg;
-                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
-
-                          reference_reset_symbol(location.reference,refsym,0,location.reference.alignment,[]);
-                          location.reference.segment:=segreg;
-                        end
-                      else
-                        location:=gvs.localloc;
                     end;
 
-                  { make const a LOC_CREFERENCE }
-                  if (gvs.varspez=vs_const) and
-                     (location.loc=LOC_REFERENCE) then
-                    location.loc:=LOC_CREFERENCE;
+                  { we don't know the size of all arrays }
+                  newsize:=def_cgsize(resultdef);
+                  { alignment is overridden per case below }
+                  location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment,[]);
+
+                  if gvs.localloc.loc=LOC_INVALID then
+                    begin
+                      if not(vo_is_weak_external in gvs.varoptions) then
+                        refsym:=current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA)
+                      else
+                        refsym:=current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA);
+
+                      segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+
+                      reference_reset_symbol(segref,refsym,0,0,[]);
+                      segref.refaddr:=addr_seg;
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
+
+                      reference_reset_symbol(location.reference,refsym,0,location.reference.alignment,[]);
+                      location.reference.segment:=segreg;
+                    end
+                  else
+                    location:=gvs.localloc;
                 end;
-              else
-                inherited pass_generate_code;
+
+              { make const a LOC_CREFERENCE }
+              if (gvs.varspez=vs_const) and
+                 (location.loc=LOC_REFERENCE) then
+                location.loc:=LOC_CREFERENCE;
             end;
-          end
-        else
-          inherited pass_generate_code;
+          else
+            inherited pass_generate_code;
+        end;
       end;
 
 

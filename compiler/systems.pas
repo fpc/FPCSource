@@ -285,6 +285,9 @@ interface
 {$endif not DISABLE_TLS_DIRECTORY}
        ;
 
+       { systems that allow external far variables }
+       systems_allow_external_far_var = [system_i8086_msdos,system_i8086_win16,system_i8086_embedded];
+
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 
