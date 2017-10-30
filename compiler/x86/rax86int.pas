@@ -40,7 +40,7 @@ Unit Rax86int;
       AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
       AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,
        {------------------ Assembler directives --------------------}
-      AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_END,
+      AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_PUBLIC,AS_END,
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
@@ -48,6 +48,7 @@ Unit Rax86int;
 
     type
        tx86intreader = class(tasmreader)
+         actasmpattern_origcase : string;
          actasmtoken : tasmtoken;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
@@ -116,7 +117,7 @@ Unit Rax86int;
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
 
        _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
-       ('ALIGN','DB','DW','DD','DQ','END');
+       ('ALIGN','DB','DW','DD','DQ','PUBLIC','END');
 
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
@@ -130,7 +131,7 @@ Unit Rax86int;
         ',',',',',',',',',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
-        '','','','','','END',
+        '','','','','','','END',
         '','','','','','','','','',
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor','wrt','..gotpcrel'
@@ -284,6 +285,7 @@ Unit Rax86int;
               c:=current_scanner.asmgetchar;
             end;
            actasmpattern[0]:=chr(len);
+           actasmpattern_origcase:=actasmpattern;
            uppervar(actasmpattern);
            { allow spaces }
            while (c in [' ',#9]) do
@@ -331,6 +333,7 @@ Unit Rax86int;
                     actasmpattern:=actasmpattern + c;
                     c:=current_scanner.asmgetchar;
                   end;
+                 actasmpattern_origcase:=actasmpattern;
                  uppervar(actasmpattern);
                  actasmtoken:=AS_ID;
                  exit;
@@ -345,6 +348,7 @@ Unit Rax86int;
                     actasmpattern:=actasmpattern + c;
                     c:=current_scanner.asmgetchar;
                   end;
+                 actasmpattern_origcase:=actasmpattern;
                  uppervar(actasmpattern);
                  { after prefix (or segment override) we allow also a new opcode }
                  If (is_prefix(actopcode) or is_override(actopcode)) and is_asmopcode(actasmpattern) then
@@ -533,6 +537,7 @@ Unit Rax86int;
                     actasmpattern:=actasmpattern + c;
                     c:=current_scanner.asmgetchar;
                   end;
+                 actasmpattern_origcase:=actasmpattern;
                  uppervar(actasmpattern);
                  actasmtoken:=AS_ID;
                  exit;
@@ -656,6 +661,7 @@ Unit Rax86int;
                     c:=current_scanner.asmgetchar;
                   end;
                  { Get ending character }
+                 actasmpattern_origcase:=actasmpattern;
                  uppervar(actasmpattern);
                  c:=upcase(c);
                  { possibly a binary number. }
@@ -2495,6 +2501,8 @@ Unit Rax86int;
     Var
       hl : tasmlabel;
       instr : Tx86Instruction;
+      tmpsym: tsym;
+      tmpsrsymtable: TSymtable;
     Begin
       Message1(asmr_d_start_reading,'intel');
       inexpression:=FALSE;
@@ -2526,7 +2534,11 @@ Unit Rax86int;
           AS_LABEL:
             Begin
               if SearchLabel(upper(actasmpattern),hl,true) then
-               ConcatLabel(curlist,hl)
+                begin
+                  if hl.is_public then
+                    ConcatPublic(curlist,actasmpattern_origcase);
+                  ConcatLabel(curlist,hl);
+                end
               else
                Message1(asmr_e_unknown_label_identifier,actasmpattern);
               Consume(AS_LABEL);
@@ -2565,6 +2577,37 @@ Unit Rax86int;
               inexpression:=false;
             end;
 {$endif cpu64bitaddr}
+
+          AS_PUBLIC:
+            Begin
+              Consume(AS_PUBLIC);
+              repeat
+                if actasmtoken=AS_ID then
+                  begin
+                    if (actasmpattern<>'') and (actasmpattern[1]='@') then
+                      Message1(asmr_e_local_label_cannot_be_declared_public,actasmpattern)
+                    else if SearchLabel(upper(actasmpattern),hl,false) then
+                      begin
+                        if not hl.is_public then
+                          begin
+                            hl.is_public:=true;
+                            asmsearchsym(upper(actasmpattern),tmpsym,tmpsrsymtable);
+                            if tlabelsym(tmpsym).defined then
+                              Message1(asmr_e_public_must_be_used_before_label_definition,actasmpattern);
+                          end;
+                      end
+                    else
+                      Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                  end;
+                Consume(AS_ID);
+                if actasmtoken=AS_COMMA then
+                  begin
+                    Consume(AS_COMMA);
+                    if actasmtoken<>AS_ID then
+                      Consume(AS_ID);
+                  end;
+              until actasmtoken=AS_SEPARATOR;
+            end;
 
           AS_ALIGN:
             Begin

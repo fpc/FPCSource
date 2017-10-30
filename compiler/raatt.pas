@@ -1065,7 +1065,11 @@ unit raatt;
            AS_LABEL:
              Begin
                if SearchLabel(upper(actasmpattern),hl,true) then
-                ConcatLabel(curlist,hl)
+                 begin
+                   if hl.is_public then
+                     ConcatPublic(curlist,actasmpattern);
+                   ConcatLabel(curlist,hl);
+                 end
                else
                 Message1(asmr_e_unknown_label_identifier,actasmpattern);
                Consume(AS_LABEL);

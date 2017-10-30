@@ -2483,7 +2483,7 @@ cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the curr
 #
 # Assembler reader
 #
-# 07136 is the last used one
+# 07137 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2817,6 +2817,8 @@ asmr_e_pop_cs_not_valid=07135_E_Instruction "POP CS" is not valid for the curren
 % supported on the i386 or x86_64 targets.
 asmr_w_pop_cs_not_portable=07136_W_Instruction "POP CS" is not portable (it only works on 8086 and 8088 CPUs)
 % The 'pop cs' instruction doesn't work on any CPU, except 8086 and 8088.
+asmr_e_public_must_be_used_before_label_definition=07137_E_Label $1 can only be declared public before it's defined
+asmr_e_local_label_cannot_be_declared_public=07138_E_Local label $1 cannot be declared public
 #
 # Assembler/binary writers
 #
