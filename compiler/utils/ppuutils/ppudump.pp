@@ -2093,7 +2093,8 @@ const
      (mask:vo_volatile;        str:'Volatile'),
      (mask:vo_has_section;     str:'HasSection'),
      (mask:vo_force_finalize;  str:'ForceFinalize'),
-     (mask:vo_is_default_var;  str:'DefaultIntrinsicVar')
+     (mask:vo_is_default_var;  str:'DefaultIntrinsicVar'),
+     (mask:vo_is_far;          str:'IsFar')
   );
 var
   i : longint;
