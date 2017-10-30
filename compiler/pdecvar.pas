@@ -924,10 +924,14 @@ implementation
          try_to_consume(_EXTERNAL) then
         begin
           is_external_var:=true;
-          { far? }
-          if (target_info.system in systems_allow_external_far_var) and
-             try_to_consume(_FAR) then
-            is_far:=true;
+          { near/far? }
+          if target_info.system in systems_allow_external_far_var then
+            begin
+              if try_to_consume(_FAR) then
+                is_far:=true
+              else if try_to_consume(_NEAR) then
+                is_far:=false;
+            end;
           if (idtoken<>_NAME) and (token<>_SEMICOLON) then
             begin
               is_dll:=true;
