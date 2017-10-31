@@ -607,7 +607,9 @@ begin
 
     if not c.FSelectable then  //Sybase stored proc.
     begin
-      repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
+      repeat
+        Fstatus := dbnextrow(FDBProc);
+      until (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
       res := CheckError( dbresults(FDBProc) );
       // stored procedure information (return status and output parameters)
       // are available only after normal results are processed
@@ -742,12 +744,18 @@ begin
   // Compute rows resulting from the COMPUTE clause are not processed
   repeat
     Fstatus := dbnextrow(FDBProc);
+    // In case of network failure FAIL is returned
+    // Use dbsettime() to specify query timeout, else on Windows TCP KeepAliveTime is used, which defaults to 2 hours 
     Result  := Fstatus=REG_ROW;
-  until Result or (Fstatus = NO_MORE_ROWS);
+  until Result or (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
 
   if Fstatus = NO_MORE_ROWS then
     while dbresults(FDBProc) <> NO_MORE_RESULTS do // process remaining results if there are any
-      repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
+      repeat
+        Fstatus := dbnextrow(FDBProc);
+      until (Fstatus = NO_MORE_ROWS) or (Fstatus = FAIL);
+
+  if Fstatus = FAIL then CheckError(FAIL);
 end;
 
 function TMSSQLConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
