@@ -87,6 +87,10 @@ type
   TOperand = class
     opr    : TOprRec;
     typesize : byte;
+    haslabelref,      { if the operand has a label, used in a reference like a
+                        var (e.g. 'mov ax, word ptr [label+5]', but *not*
+                        e.g. 'jmp label') }
+    hasproc,          { if the operand has a procedure/function reference }
     hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
     size   : TCGSize;
@@ -636,6 +640,7 @@ end;
 constructor TOperand.Create;
 begin
   size:=OS_NO;
+  hasproc:=false;
   hastype:=false;
   hasvar:=false;
   FillChar(Opr,sizeof(Opr),0);
@@ -964,6 +969,7 @@ Begin
         else
           Message(asmr_e_invalid_operand_type);
         end;
+        hasproc:=true;
         hasvar:=true;
         SetupVar:=TRUE;
         Exit;
@@ -984,6 +990,7 @@ Begin
               exit;
             end;
         end;
+        haslabelref:=true;
         hasvar:=true;
         SetupVar:=TRUE;
         Exit;
