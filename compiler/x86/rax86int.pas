@@ -128,12 +128,12 @@ Unit Rax86int;
 
       token2str : array[tasmtoken] of string[10] = (
         '','Label','LLabel','String','Integer',
-        ',',',',',',',',',','[',']','(',
+        ',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
         '','','','','','','END',
-        '','','','','','','','','',
-        '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
+        '','','','','','','','','','','','',
+        '','','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor','wrt','..gotpcrel'
       );
 
