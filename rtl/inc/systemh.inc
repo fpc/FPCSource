@@ -671,37 +671,10 @@ type
 (* means that default handling should be used. *)
   TCtrlBreakHandler = function (CtrlBreak: boolean): boolean;
 
-const
-{$ifdef cpui386}
-  { Always i386 or newer }
-  Test8086 : byte = 2;
-  { Always 387 or newer. Emulated if needed. }
-  Test8087 : byte = 3;
-  { will be detected at startup }
-  has_sse_support : boolean = false;
-  has_sse2_support : boolean = false;
-  has_sse3_support : boolean = false;
-  has_mmx_support : boolean = false;
-{$endif cpui386}
-{$ifdef cpui8086}
-  { will be detected at startup }
-  { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
-  Test8086 : byte = 0; public name '__Test8086';
-  { will be detected at startup }
-  { 0=NO FPU, 1=8087, 2=80287, 3=80387 or newer }
-  Test8087 : byte = 0;
-  { will be detected at startup }
-  has_sse_support : boolean = false;
-  has_mmx_support : boolean = false;
-{$endif cpui8086}
-{$ifdef cpum68k}
-  Test68000 : byte = 0;      { Must be determined at startup for both }
-  Test68881 : byte = 0;
-{$endif cpum68k}
-{$ifdef cpusparc64}
-  STACK_BIAS = 2047;
-{$endif cpusparc64}
+{ CPU specific stuff }
+{$i cpuh.inc}
 
+const
 { max level in dumping on error }
   Max_Frame_Dump : Word = 8;
 
