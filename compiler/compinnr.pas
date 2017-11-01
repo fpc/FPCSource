@@ -20,6 +20,9 @@ unit compinnr;
 
 interface
 
+const
+  fpc_in_cpu_first   = 10000;
+
 type
    tinlinenumber=(
      in_none              = -1,
@@ -159,6 +162,11 @@ type
      { 3DNow }
 
      { SSE }
+
+{$if defined(AVR)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif }
    );
 
 implementation

@@ -151,3 +151,4 @@ const
 
    { SSE }
 
+   fpc_in_cpu_first        = 10000;
