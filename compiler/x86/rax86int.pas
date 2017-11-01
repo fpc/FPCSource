@@ -1299,6 +1299,7 @@ Unit Rax86int;
                       begin
                         CreateLocalLabel(tempstr,hl,false);
                         oper.InitRef;
+                        oper.haslabelref:=true;
                         if not negative then
                           begin
                             oper.opr.ref.symbol:=hl;
@@ -1693,6 +1694,7 @@ Unit Rax86int;
            begin
              oper.InitRef;
              oper.opr.ref.symbol:=hl;
+             oper.haslabelref:=true;
 {$ifdef i8086}
              if oper.opr.ref.segment=NR_NO then
                oper.opr.ref.segment:=NR_CS;
