@@ -3611,6 +3611,7 @@ implementation
 
     function tinlinenode.pass_typecheck_cpu : tnode;
       begin
+        Result:=nil;
         internalerror(2017110102);
       end;
 
@@ -5056,6 +5057,7 @@ implementation
 
      function tinlinenode.first_cpu : tnode;
        begin
+         Result:=nil;
          internalerror(2017110101);
        end;
 
