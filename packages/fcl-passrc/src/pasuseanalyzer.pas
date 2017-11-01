@@ -1960,7 +1960,7 @@ begin
       or C.InheritsFrom(TPasVariable)
       or C.InheritsFrom(TPasProcedure)
       or C.InheritsFrom(TPasModule)
-      or C.InheritsFrom(TPasResString);
+      or (C=TPasResString);
 end;
 
 function TPasAnalyzer.IsImplBlockEmpty(El: TPasImplBlock): boolean;

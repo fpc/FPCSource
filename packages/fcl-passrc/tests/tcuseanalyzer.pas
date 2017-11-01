@@ -60,6 +60,7 @@ type
     procedure TestM_RangeType;
     procedure TestM_Unary;
     procedure TestM_Const;
+    procedure TestM_ResourceString;
     procedure TestM_Record;
     procedure TestM_Array;
     procedure TestM_NestedFuncResult;
@@ -110,6 +111,7 @@ type
     // whole program optimization
     procedure TestWP_LocalVar;
     procedure TestWP_UnitUsed;
+    procedure TestWP_UnitUsed_ResourceString;
     procedure TestWP_UnitNotUsed;
     procedure TestWP_UnitInitialization;
     procedure TestWP_UnitFinalization;
@@ -545,21 +547,40 @@ end;
 procedure TTestUseAnalyzer.TestM_Const;
 begin
   StartProgram(false);
-  Add('resourcestring {#rs_used}rs = ''txt'';');
-  Add('procedure {#DoIt_used}DoIt;');
-  Add('var');
-  Add('  {#a_used}a: longint;');
-  Add('  {#b_used}b: boolean;');
-  Add('  {#c_used}c: array of longint;');
-  Add('  {#d_used}d: string;');
-  Add('begin');
-  Add('  a:=+1;');
-  Add('  b:=true;');
-  Add('  c:=nil;');
-  Add('  d:=''foo''+rs;');
-  Add('end;');
-  Add('begin');
-  Add('  DoIt;');
+  Add([
+  'procedure {#DoIt_used}DoIt;',
+  'var',
+  '  {#a_used}a: longint;',
+  '  {#b_used}b: boolean;',
+  '  {#c_used}c: array of longint;',
+  '  {#d_used}d: string;',
+  'begin',
+  '  a:=+1;',
+  '  b:=true;',
+  '  c:=nil;',
+  '  d:=''foo'';',
+  'end;',
+  'begin',
+  '  DoIt;']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_ResourceString;
+begin
+  StartProgram(false);
+  Add([
+  'resourcestring',
+  'resourcestring',
+  '  {#a_used}a = ''txt'';',
+  '  {#b_used}b = ''foo'';',
+  'procedure {#DoIt_used}DoIt(s: string);',
+  'var',
+  '  {#d_used}d: string;',
+  'begin',
+  '  d:=b;',
+  'end;',
+  'begin',
+  '  DoIt(a);']);
   AnalyzeProgram;
 end;
 
@@ -1514,6 +1535,25 @@ begin
   Add('uses unit2;');
   Add('begin');
   Add('  i:=3;');
+  AnalyzeWholeProgram;
+
+  CheckUnitUsed('unit2.pp',true);
+end;
+
+procedure TTestUseAnalyzer.TestWP_UnitUsed_ResourceString;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'resourcestring rs = ''txt'';',
+    'procedure DoIt;',
+    '']),
+    LinesToStr([
+    'procedure DoIt; begin end;']));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('begin');
+  Add('  if rs='''' then ;');
   AnalyzeWholeProgram;
 
   CheckUnitUsed('unit2.pp',true);
