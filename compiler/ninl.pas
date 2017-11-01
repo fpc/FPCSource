@@ -38,6 +38,7 @@ interface
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function pass_typecheck_cpu:tnode;virtual;
           function simplify(forinline : boolean): tnode;override;
           function docompare(p: tnode): boolean; override;
 
@@ -93,6 +94,9 @@ interface
 {$endif not cpu64bitalu}
           function first_AndOrXorShiftRot_assign: tnode; virtual;
           function first_NegNot_assign: tnode; virtual;
+          function first_cpu : tnode; virtual;
+
+          procedure CheckParameters(count : integer);
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -3595,13 +3599,19 @@ implementation
                   result:=handle_concat;
                 end;
               else
-                internalerror(8);
+                result:=pass_typecheck_cpu;
             end;
           end;
 
         if not assigned(result) and not
            codegenerror then
           result:=simplify(false);
+      end;
+
+
+    function tinlinenode.pass_typecheck_cpu : tnode;
+      begin
+        internalerror(2017110102);
       end;
 
 
@@ -3985,7 +3995,7 @@ implementation
          in_fma_float128:
            result:=first_fma;
          else
-           internalerror(89);
+           result:=first_cpu;
           end;
        end;
 {$maxfpuregisters default}
@@ -5041,6 +5051,32 @@ implementation
        begin
          result:=nil;
          expectloc:=left.expectloc;
+       end;
+
+
+     function tinlinenode.first_cpu : tnode;
+       begin
+         internalerror(2017110101);
+       end;
+
+
+     procedure tinlinenode.CheckParameters(count: integer);
+       var
+         p: tnode;
+       begin
+         if count=1 then
+           set_varstate(left,vs_read,[vsf_must_be_valid])
+         else
+           begin
+             p:=left;
+             while count>0 do
+               begin
+                 set_varstate(tcallparanode(p).left,vs_read,[vsf_must_be_valid]);
+
+                 p:=tcallparanode(p).right;
+                 dec(count);
+               end;
+           end;
        end;
 
 end.

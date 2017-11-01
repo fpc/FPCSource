@@ -31,6 +31,7 @@ interface
     type
        tcginlinenode = class(tinlinenode)
           procedure pass_generate_code;override;
+          procedure pass_generate_code_cpu;virtual;
           procedure second_sizeoftypeof;virtual;
           procedure second_length;virtual;
           procedure second_predsucc;virtual;
@@ -216,11 +217,16 @@ implementation
             in_neg_assign_x,
             in_not_assign_x:
                second_NegNot_assign;
-            else internalerror(9);
+            else
+               pass_generate_code_cpu;
          end;
       end;
 
 
+    procedure tcginlinenode.pass_generate_code_cpu;
+      begin
+        Internalerror(2017110103);
+      end;
 
 {*****************************************************************************
                           SIZEOF / TYPEOF GENERIC HANDLING
