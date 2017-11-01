@@ -288,11 +288,12 @@ Not in Version 1.0:
 - optimizations:
   - add $mod only if needed
   - add Self only if needed
-  - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
-  - shortcut for test set is empty  a=[]  a<>[]
-  - put set literals into constants
   - use a number for small sets
+  - put set literals into constants
+  - shortcut for test set is empty  a=[]  a<>[]
+  - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
   - nested procs without var, instead as "function name(){}"
+  - combine multiple var a=0,b=0
   -O1 insert local/unit vars for global type references:
       at start of intf var $r1;
       at end of impl: $r1=path;
