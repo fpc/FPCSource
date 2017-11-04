@@ -34,6 +34,7 @@ unit aoptcpu;
     Type
       TCpuAsmOptimizer = class(TX86AsmOptimizer)
         function PeepHoleOptPass1Cpu(var p : tai) : boolean; override;
+        function PostPeepHoleOptsCpu(var p : tai) : boolean; override;
         procedure PostPeepHoleOpts; override;
       End;
 
@@ -110,6 +111,26 @@ unit aoptcpu;
                   end;
               end
             end
+        end;
+      end;
+
+
+    function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
+      begin
+        result := false;
+        case p.typ of
+          ait_instruction:
+            begin
+              case taicpu(p).opcode of
+                A_MOV:
+                  Result:=PostPeepholeOptMov(p);
+                A_CMP:
+                  Result:=PostPeepholeOptCmp(p);
+                A_OR,
+                A_TEST:
+                  Result:=PostPeepholeOptTestOr(p);
+              end;
+            end;
         end;
       end;
 
