@@ -144,6 +144,9 @@ uses
                   Result:=PostPeepholeOptMov(p);
                 A_CMP:
                   Result:=PostPeepholeOptCmp(p);
+                A_OR,
+                A_TEST:
+                  Result:=PostPeepholeOptTestOr(p);
               end;
             end;
         end;
