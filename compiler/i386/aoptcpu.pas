@@ -1361,7 +1361,7 @@ begin
                         end;
                  end;
               A_TEST, A_OR:
-                if PostPeepholeOptTest(p) then
+                if PostPeepholeOptTestOr(p) then
                   Continue;
             end;
           end;
