@@ -1312,7 +1312,8 @@ begin
                 if PostPeepholeOptCmp(p) then
                   Continue;
               A_MOV:
-                PostPeepholeOptMov(p);
+                if PostPeepholeOptMov(p) then
+                  Continue;
               A_MOVZX:
                 { if register vars are on, it's possible there is code like }
                 {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }

@@ -72,7 +72,7 @@ unit aoptx86;
         function OptPass2Jmp(var p : tai) : boolean;
         function OptPass2Jcc(var p : tai) : boolean;
 
-        procedure PostPeepholeOptMov(const p : tai);
+        function PostPeepholeOptMov(const p : tai) : Boolean;
         function PostPeepholeOptCmp(var p : tai) : Boolean;
 
         procedure OptReferences;
@@ -2634,39 +2634,39 @@ unit aoptx86;
        end;
 
 
-    procedure TX86AsmOptimizer.PostPeepholeOptMov(const p : tai);
-    begin
-      if (taicpu(p).oper[1]^.typ = Top_Reg) and
-        not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+    function TX86AsmOptimizer.PostPeepholeOptMov(const p : tai) : Boolean;
       begin
-        if (taicpu(p).oper[0]^.typ = top_const) then
+        Result:=false;
+        if (taicpu(p).oper[1]^.typ = Top_Reg) and
+          not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
         begin
+          if (taicpu(p).oper[0]^.typ = top_const) then
+          begin
 
-          case taicpu(p).oper[0]^.val of
-          0:
-            begin
-              { change "mov $0,%reg" into "xor %reg,%reg" }
-              taicpu(p).opcode := A_XOR;
-              taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
-            end;
-          $1..$FFFFFFFF:
-            begin
-              { Code size reduction by J. Gareth "Kit" Moreton }
-              { change 64-bit register to 32-bit register to reduce code size (upper 32 bits will be set to zero) }
-              case taicpu(p).opsize of
-              S_Q:
-                begin
-                  DebugMsg('Peephole Optimization: movq x,%reg -> movd x,%reg (x is a 32-bit constant)', p);
-                  TRegisterRec(taicpu(p).oper[1]^.reg).subreg := R_SUBD;
-                  taicpu(p).opsize := S_L;
+            case taicpu(p).oper[0]^.val of
+            0:
+              begin
+                { change "mov $0,%reg" into "xor %reg,%reg" }
+                taicpu(p).opcode := A_XOR;
+                taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
+              end;
+            $1..$FFFFFFFF:
+              begin
+                { Code size reduction by J. Gareth "Kit" Moreton }
+                { change 64-bit register to 32-bit register to reduce code size (upper 32 bits will be set to zero) }
+                case taicpu(p).opsize of
+                S_Q:
+                  begin
+                    DebugMsg('Peephole Optimization: movq x,%reg -> movd x,%reg (x is a 32-bit constant)', p);
+                    TRegisterRec(taicpu(p).oper[1]^.reg).subreg := R_SUBD;
+                    taicpu(p).opsize := S_L;
+                  end;
                 end;
               end;
             end;
           end;
-
         end;
       end;
-    end;
 
 
     function TX86AsmOptimizer.PostPeepholeOptCmp(var p : tai) : Boolean;

@@ -141,7 +141,7 @@ uses
             begin
               case taicpu(p).opcode of
                 A_MOV:
-                  PostPeepholeOptMov(p);
+                  Result:=PostPeepholeOptMov(p);
                 A_CMP:
                   Result:=PostPeepholeOptCmp(p);
               end;
