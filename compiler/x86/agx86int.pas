@@ -976,7 +976,7 @@ implementation
         for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
           begin
             sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
-            if sym.bind=AB_EXTERNAL then
+            if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
               begin
                 case asminfo^.id of
                   as_i386_masm,
