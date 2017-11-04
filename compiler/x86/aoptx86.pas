@@ -73,6 +73,7 @@ unit aoptx86;
         function OptPass2Jcc(var p : tai) : boolean;
 
         procedure PostPeepholeOptMov(const p : tai);
+        function PostPeepholeOptCmp(var p : tai) : Boolean;
 
         procedure OptReferences;
       end;
@@ -2666,6 +2667,20 @@ unit aoptx86;
         end;
       end;
     end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptCmp(var p : tai) : Boolean;
+      begin
+        Result:=false;
+        { change "cmp $0, %reg" to "test %reg, %reg" }
+        if MatchOpType(taicpu(p),top_const,top_reg) and
+           (taicpu(p).oper[0]^.val = 0) then
+          begin
+            taicpu(p).opcode := A_TEST;
+            taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+            Result:=true;
+          end;
+      end;
 
 
     procedure TX86AsmOptimizer.OptReferences;

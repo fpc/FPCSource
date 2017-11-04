@@ -1309,17 +1309,8 @@ begin
                     end;
                 end;
               A_CMP:
-                begin
-                  if (taicpu(p).oper[0]^.typ = top_const) and
-                     (taicpu(p).oper[0]^.val = 0) and
-                     (taicpu(p).oper[1]^.typ = top_reg) then
-                   {change "cmp $0, %reg" to "test %reg, %reg"}
-                    begin
-                      taicpu(p).opcode := A_TEST;
-                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                      continue;
-                    end;
-                end;
+                if PostPeepholeOptCmp(p) then
+                  Continue;
               A_MOV:
                 PostPeepholeOptMov(p);
               A_MOVZX:

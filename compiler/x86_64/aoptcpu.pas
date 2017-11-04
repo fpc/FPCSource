@@ -142,6 +142,8 @@ uses
               case taicpu(p).opcode of
                 A_MOV:
                   PostPeepholeOptMov(p);
+                A_CMP:
+                  Result:=PostPeepholeOptCmp(p);
               end;
             end;
         end;
