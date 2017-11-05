@@ -18,7 +18,6 @@ unit ports;
 
 { this unit uses classes so
   ObjFpc mode is required PM }
-{$Mode ObjFpc}
 
 {$if defined(CPU80386)
   or defined(CPUPENTIUM)
@@ -32,20 +31,20 @@ unit ports;
 interface
 
 type
-   tport = class
+   tport = object
       procedure writeport(p : word;data : byte);
       function  readport(p : word) : byte;
       property pp[w : word] : byte read readport write writeport;default;
    end;
 
-   tportw = class
+   tportw = object
       procedure writeport(p : word;data : word);
       function  readport(p : word) : word;
       property pp[w : word] : word read readport write writeport;default;
    end;
 
 {$ifdef CPU_IS_386_OR_LATER}
-   tportl = class
+   tportl = object
       procedure writeport(p : word;data : longint);
       function  readport(p : word) : longint;
       property pp[w : word] : longint read readport write writeport;default;
