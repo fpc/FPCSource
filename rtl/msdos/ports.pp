@@ -16,9 +16,6 @@
 
 unit ports;
 
-{ this unit uses classes so
-  ObjFpc mode is required PM }
-
 {$if defined(CPU80386)
   or defined(CPUPENTIUM)
   or defined(CPUPENTIUM2)
