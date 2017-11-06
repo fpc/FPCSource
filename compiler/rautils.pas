@@ -28,7 +28,7 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,
-  symconst,symbase,symtype,symdef,symsym,symcpu;
+  symconst,symbase,symtype,symdef,symsym,constexp,symcpu;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -812,6 +812,10 @@ var
   indexreg : tregister;
   plist : ppropaccesslistitem;
   size_set_from_absolute : boolean = false;
+  { offset fixup (in bytes), coming from an absolute declaration with an index
+    (e.g. var tralala: word absolute moo[5]; ) }
+  absoffset: asizeint=0;
+  harrdef: tarraydef;
 Begin
   SetupVar:=false;
   asmsearchsym(s,sym,srsymtable);
@@ -830,6 +834,40 @@ Begin
                 setvarsize(tabstractvarsym(sym));
                 size_set_from_absolute:=true;
                 sym:=plist^.sym;
+                { resolve the chain of array indexes (if there are any) }
+                harrdef:=nil;
+                while assigned(plist^.next) do
+                  begin
+                    plist:=plist^.next;
+                    if (plist^.sltype=sl_vec) and (tabstractvarsym(sym).vardef.typ=arraydef) then
+                      begin
+                        if harrdef=nil then
+                          harrdef:=tarraydef(tabstractvarsym(sym).vardef)
+                        else if harrdef.elementdef.typ=arraydef then
+                          harrdef:=tarraydef(harrdef.elementdef)
+                        else
+                          begin
+                            Message(asmr_e_unsupported_symbol_type);
+                            exit;
+                          end;
+                        if is_special_array(harrdef) then
+                          begin
+                            Message(asmr_e_unsupported_symbol_type);
+                            exit;
+                          end;
+                        if not is_packed_array(harrdef) then
+                          Inc(absoffset,asizeint(Int64(plist^.value-harrdef.lowrange))*harrdef.elesize)
+                        else if (Int64(plist^.value-harrdef.lowrange)*harrdef.elepackedbitsize mod 8)=0 then
+                          Inc(absoffset,asizeint(Int64(plist^.value-harrdef.lowrange)*harrdef.elepackedbitsize div 8))
+                        else
+                          Message(asmr_e_packed_element);
+                      end
+                    else
+                      begin
+                        Message(asmr_e_unsupported_symbol_type);
+                        exit;
+                      end;
+                  end;
               end
             else
               begin
@@ -858,9 +896,9 @@ Begin
     fieldvarsym :
       begin
         if not tabstractrecordsymtable(sym.owner).is_packed then
-          setconst(tfieldvarsym(sym).fieldoffset)
+          setconst(absoffset+tfieldvarsym(sym).fieldoffset)
         else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
-          setconst(tfieldvarsym(sym).fieldoffset div 8)
+          setconst(absoffset+tfieldvarsym(sym).fieldoffset div 8)
         else
           Message(asmr_e_packed_element);
         if not size_set_from_absolute then
@@ -885,6 +923,7 @@ Begin
             begin
               initref;
               opr.ref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(sym).mangledname,AT_DATA);
+              Inc(opr.ref.offset,absoffset);
             end;
           paravarsym,
           localvarsym :
@@ -911,7 +950,7 @@ Begin
                  symtable_has_localvarsyms(current_procinfo.procdef.localst) then
                 message1(asmr_e_local_para_unreachable,s);
               opr.localsym:=tabstractnormalvarsym(sym);
-              opr.localsymofs:=0;
+              opr.localsymofs:=absoffset;
               opr.localindexreg:=indexreg;
               opr.localscale:=0;
               opr.localgetoffset:=GetOffset;
@@ -951,6 +990,7 @@ Begin
           OPR_REFERENCE:
             begin
               opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname,AT_FUNCTION);
+              Inc(opr.ref.offset,absoffset);
 {$ifdef i8086}
               opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
                         and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
@@ -964,7 +1004,7 @@ Begin
               opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
                         and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
 {$endif i8086}
-              opr.symofs:=0;
+              opr.symofs:=absoffset;
             end;
         else
           Message(asmr_e_invalid_operand_type);
@@ -981,6 +1021,7 @@ Begin
           OPR_REFERENCE:
             begin
               opr.ref.symbol:=current_asmdata.RefAsmSymbol(tlabelsym(sym).mangledname,AT_FUNCTION);
+              Inc(opr.ref.offset,absoffset);
               if opr.ref.segment=NR_NO then
                 opr.ref.segment:=NR_CS;
             end;
