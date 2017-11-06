@@ -122,8 +122,9 @@ unit aoptcpu;
           ait_instruction:
             begin
               case taicpu(p).opcode of
-                A_MOV:
-                  Result:=PostPeepholeOptMov(p);
+                {A_MOV commented out, because it still breaks some i8086 code :( }
+                {A_MOV:
+                  Result:=PostPeepholeOptMov(p);}
                 A_CMP:
                   Result:=PostPeepholeOptCmp(p);
                 A_OR,
