@@ -3140,7 +3140,7 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT)
 	$(COMPILER) emu387.pp
 	$(EXECPPAS)
-ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+ports$(PPUEXT) : ports.pp system$(PPUEXT)
 	$(COMPILER) ports.pp
 	$(EXECPPAS)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
