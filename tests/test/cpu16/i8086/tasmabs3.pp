@@ -1,3 +1,5 @@
+{ %cpu=i8086 }
+
 program tasmabs3;
 
 { NOT TP7 compatible (TP7 doesn't support absolute with an index) }
