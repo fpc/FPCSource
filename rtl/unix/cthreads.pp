@@ -667,7 +667,7 @@ begin
     end
   else
     begin
-      //Wait with timeout using pthread_cont_timedwait
+      //Wait with timeout using pthread_cond_timedwait
       fpgettimeofday(@tnow,nil);
       timespec.tv_sec  := tnow.tv_sec + (clong(timeout) div 1000);
       timespec.tv_nsec := (clong(timeout) mod 1000)*1000000 + tnow.tv_usec*1000;
