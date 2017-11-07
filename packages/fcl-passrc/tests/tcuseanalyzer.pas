@@ -82,6 +82,9 @@ type
     procedure TestM_Hint_ParameterNotUsed;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_ParameterNotUsedTypecast;
+    procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
+    procedure TestM_Hint_ArgPassed_No_ParameterNotUsed;
+    procedure TestM_Hint_InheritedWithoutParams;
     procedure TestM_Hint_LocalVariableNotUsed;
     procedure TestM_Hint_ForVar_No_LocalVariableNotUsed;
     procedure TestM_Hint_InterfaceUnitVariableUsed;
@@ -105,8 +108,6 @@ type
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
-    procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
-    procedure TestM_Hint_ArgPassed_No_ParameterNotUsed;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -1000,6 +1001,64 @@ begin
   CheckUseAnalyzerUnexpectedHints;
 end;
 
+procedure TTestUseAnalyzer.TestM_Hint_OutParam_No_AssignedButNeverUsed;
+begin
+  StartProgram(true);
+  Add('procedure DoIt(out x: longint);');
+  Add('begin');
+  Add('  x:=3;');
+  Add('end;');
+  Add('var i: longint;');
+  Add('begin');
+  Add('  DoIt(i);');
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ArgPassed_No_ParameterNotUsed;
+begin
+  StartProgram(false);
+  Add([
+  'procedure AssertTrue(b: boolean);',
+  'begin',
+  '  if b then ;',
+  'end;',
+  'procedure AssertFalse(b: boolean);',
+  'begin',
+  '  AssertTrue(not b);',
+  'end;',
+  'begin',
+  '  AssertFalse(true);',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_InheritedWithoutParams;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(i: longint); virtual;',
+  '  end;',
+  '  TBird = class',
+  '    constructor Create(i: longint); override;',
+  '  end;',
+  'constructor TObject.Create(i: longint);',
+  'begin',
+  '  if i=0 then ;',
+  'end;',
+  'constructor TBird.Create(i: longint);',
+  'begin',
+  '  inherited;',
+  'end;',
+  'begin',
+  '  TBird.Create(3);']);
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
 procedure TTestUseAnalyzer.TestM_Hint_LocalVariableNotUsed;
 begin
   StartProgram(true);
@@ -1473,39 +1532,6 @@ begin
   Add('  Point();');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
-  CheckUseAnalyzerUnexpectedHints;
-end;
-
-procedure TTestUseAnalyzer.TestM_Hint_OutParam_No_AssignedButNeverUsed;
-begin
-  StartProgram(true);
-  Add('procedure DoIt(out x: longint);');
-  Add('begin');
-  Add('  x:=3;');
-  Add('end;');
-  Add('var i: longint;');
-  Add('begin');
-  Add('  DoIt(i);');
-  AnalyzeProgram;
-  CheckUseAnalyzerUnexpectedHints;
-end;
-
-procedure TTestUseAnalyzer.TestM_Hint_ArgPassed_No_ParameterNotUsed;
-begin
-  StartProgram(false);
-  Add([
-  'procedure AssertTrue(b: boolean);',
-  'begin',
-  '  if b then ;',
-  'end;',
-  'procedure AssertFalse(b: boolean);',
-  'begin',
-  '  AssertTrue(not b);',
-  'end;',
-  'begin',
-  '  AssertFalse(true);',
-  '']);
-  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
