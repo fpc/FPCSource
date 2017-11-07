@@ -80,6 +80,7 @@ type
     MsgType: TMessageType;
     MsgNumber: integer;
     Msg: string;
+    SourcePos: TPasSourcePos;
   end;
 
   TTestResolverReferenceData = record
@@ -123,8 +124,9 @@ type
     procedure ParseProgram; virtual;
     procedure ParseUnit; virtual;
     procedure CheckReferenceDirectives; virtual;
-    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer; Msg: string); virtual;
-    procedure CheckResolverUnexpectedHints; virtual;
+    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer;
+      Msg: string; Marker: PSrcMarker = nil); virtual;
+    procedure CheckResolverUnexpectedHints(WithSourcePos: boolean = false); virtual;
     procedure CheckResolverException(Msg: string; MsgNumber: integer);
     procedure CheckParserException(Msg: string; MsgNumber: integer);
     procedure CheckAccessMarkers; virtual;
@@ -642,6 +644,7 @@ type
     // hints
     Procedure TestHint_ElementHints;
     Procedure TestHint_ElementHintsMsg;
+    Procedure TestHint_ElementHintsAlias;
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -709,8 +712,6 @@ end;
 
 procedure TCustomTestResolver.SetUp;
 begin
-  FirstSrcMarker:=nil;
-  LastSrcMarker:=nil;
   FModules:=TObjectList.Create(true);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
@@ -1199,7 +1200,7 @@ begin
 end;
 
 procedure TCustomTestResolver.CheckResolverHint(MsgType: TMessageType;
-  MsgNumber: integer; Msg: string);
+  MsgNumber: integer; Msg: string; Marker: PSrcMarker);
 var
   i: Integer;
   Item: TTestResolverMessage;
@@ -1210,6 +1211,12 @@ begin
     begin
     Item:=Msgs[i];
     if (Item.MsgNumber<>MsgNumber) or (Item.Msg<>Msg) then continue;
+    if (Marker<>nil) then
+      begin
+      if Item.SourcePos.Row<>Marker^.Row then continue;
+      if (Item.SourcePos.Column<Marker^.StartCol)
+          or (Item.SourcePos.Column>Marker^.EndCol) then continue;
+      end;
     // found
     FResolverGoodMsgs.Add(Item);
     str(Item.MsgType,Actual);
@@ -1223,16 +1230,25 @@ begin
   for i:=0 to MsgCount-1 do
     begin
     Item:=Msgs[i];
-    writeln('TCustomTestResolver.CheckResolverHint ',i,'/',MsgCount,' ',Item.MsgType,' ('+IntToStr(Item.MsgNumber),') {',Item.Msg,'}');
+    write('TCustomTestResolver.CheckResolverHint ',i,'/',MsgCount,' ',Item.MsgType,
+      ' ('+IntToStr(Item.MsgNumber),')');
+    if Marker<>nil then
+      write(' '+ExtractFileName(Item.SourcePos.FileName),'(',Item.SourcePos.Row,',',Item.SourcePos.Column,')');
+    writeln(' {',Item.Msg,'}');
     end;
   str(MsgType,Expected);
-  Fail('Missing '+Expected+' ('+IntToStr(MsgNumber)+') '+Msg);
+  Actual:='Missing '+Expected+' ('+IntToStr(MsgNumber)+')';
+  if Marker<>nil then
+    Actual:=Actual+' '+ExtractFileName(Marker^.Filename)+'('+IntToStr(Marker^.Row)+','+IntToStr(Marker^.StartCol)+'..'+IntToStr(Marker^.EndCol)+')';
+  Actual:=Actual+' '+Msg;
+  Fail(Actual);
 end;
 
-procedure TCustomTestResolver.CheckResolverUnexpectedHints;
+procedure TCustomTestResolver.CheckResolverUnexpectedHints(
+  WithSourcePos: boolean);
 var
   i: Integer;
-  s: String;
+  s, Txt: String;
   Msg: TTestResolverMessage;
 begin
   for i:=0 to MsgCount-1 do
@@ -1241,7 +1257,12 @@ begin
     if FResolverGoodMsgs.IndexOf(Msg)>=0 then continue;
     s:='';
     str(Msg.MsgType,s);
-    Fail('Unexpected resolver message found ['+IntToStr(Msg.Id)+'] '+s+': ('+IntToStr(Msg.MsgNumber)+') {'+Msg.Msg+'}');
+    Txt:='Unexpected resolver message found ['+IntToStr(Msg.Id)+'] '
+      +s+': ('+IntToStr(Msg.MsgNumber)+')';
+    if WithSourcePos then
+      Txt:=Txt+' '+ExtractFileName(Msg.SourcePos.FileName)+'('+IntToStr(Msg.SourcePos.Row)+','+IntToStr(Msg.SourcePos.Column)+')';
+    Txt:=Txt+' {'+Msg.Msg+'}';
+    Fail(Txt);
     end;
 end;
 
@@ -1830,6 +1851,8 @@ begin
     aMarker:=aMarker^.Next;
     Dispose(Last);
     end;
+  FirstSrcMarker:=nil;
+  LastSrcMarker:=nil;
 end;
 
 procedure TCustomTestResolver.OnPasResolverLog(Sender: TObject;
@@ -1844,6 +1867,7 @@ begin
   Item.MsgType:=aResolver.LastMsgType;
   Item.MsgNumber:=aResolver.LastMsgNumber;
   Item.Msg:=Msg;
+  Item.SourcePos:=aResolver.LastSourcePos;
   {$IFDEF VerbosePasResolver}
   writeln('TCustomTestResolver.OnPasResolverLog ',GetObjName(Sender),' ',Item.MsgType,' (',Item.MsgNumber,') {',Msg,'}');
   {$ENDIF}
@@ -1985,7 +2009,7 @@ begin
   Add('  integer = longint;');
   Add('  TColor = NotThere;');
   CheckResolverException('identifier not found "NotThere"',nIdentifierNotFound);
-  // TColor element was not created yet, so LastElement must nil
+  // TColor element was not created yet, so LastElement must be nil
   AssertNull('ResolverEngine.LastElement',ResolverEngine.LastElement);
   with ResolverEngine.LastSourcePos do
     begin
@@ -10811,6 +10835,42 @@ begin
   ParseProgram;
   CheckResolverHint(mtWarning,nSymbolXIsDeprecatedY,'Symbol "TDeprecated" is deprecated: ''foo''');
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestHint_ElementHintsAlias;
+var
+  aMarker: PSrcMarker;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPlatform = longint platform;',
+  '  {#a}TAlias = TPlatform;',
+  'var',
+  '  {#b}vB: TPlatform;',
+  '  {#c}vC: TAlias;',
+  'function {#d}DoIt: TPlatform;',
+  'begin',
+  '  Result:=0;',
+  'end;',
+  'function {#e}DoSome: TAlias;',
+  'begin',
+  '  Result:=0;',
+  'end;',
+  'begin',
+  '']);
+  ParseProgram;
+  WriteSources('afile.pp',3,4);
+
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestHint_ElementHintsAlias Marker "',aMarker^.Identifier,'" ',aMarker^.StartCol,'..',aMarker^.EndCol);
+    CheckResolverHint(mtWarning,nSymbolXIsNotPortable,'Symbol "TPlatform" is not portable',aMarker);
+    aMarker:=aMarker^.Next;
+    end;
+
+  CheckResolverUnexpectedHints(true);
 end;
 
 procedure TTestResolver.TestAttributes_Ignore;

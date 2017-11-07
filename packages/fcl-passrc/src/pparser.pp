@@ -1357,6 +1357,8 @@ begin
         ST.DestType:=Ref;
         Result:=ST;
         ST:=Nil;
+        if TypeName<>'' then
+          Engine.FinishScope(stTypeDef,Result);
         end;
       stkRange:
         begin
@@ -1372,6 +1374,8 @@ begin
           Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
           TPasAliasType(Result).DestType:=Ref;
           TPasAliasType(Result).Expr:=Expr;
+          if TypeName<>'' then
+            Engine.FinishScope(stTypeDef,Result);
           end
         else
           Result:=Ref;
@@ -1397,6 +1401,7 @@ begin
   ok:=false;
   try
     Result.DestType := ParseType(Result,NamePos,'');
+    Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
     if not ok then
@@ -3680,6 +3685,7 @@ function TPasParser.ParseSpecializeType(Parent: TPasElement;
 begin
   NextToken;
   Result:=ParseSimpleType(Parent,CurSourcePos,TypeName) as TPasSpecializeType;
+  Engine.FinishScope(stTypeDef,Result);
 end;
 
 function TPasParser.ParseProcedureType(Parent: TPasElement;

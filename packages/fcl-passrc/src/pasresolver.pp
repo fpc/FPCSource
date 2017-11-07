@@ -3330,6 +3330,7 @@ end;
 procedure TPasResolver.FinishTypeDef(El: TPasType);
 var
   C: TClass;
+  aType: TPasType;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishTypeDef El=',GetObjName(El));
@@ -3348,7 +3349,16 @@ begin
   else if C=TPasClassOfType then
     FinishClassOfType(TPasClassOfType(El))
   else if C=TPasArrayType then
-    FinishArrayType(TPasArrayType(El));
+    FinishArrayType(TPasArrayType(El))
+  else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
+    begin
+    aType:=ResolveAliasType(El);
+    if (aType is TPasClassType) and (TPasClassType(aType).ObjKind=okInterface) then
+      exit; // ToDo: msIgnoreInterfaces
+    EmitTypeHints(El,TPasAliasType(El).DestType);
+    end
+  else if (C=TPasPointerType) then
+    EmitTypeHints(El,TPasPointerType(El).DestType);
 end;
 
 procedure TPasResolver.FinishEnumType(El: TPasEnumType);
