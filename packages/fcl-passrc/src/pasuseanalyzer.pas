@@ -1590,6 +1590,7 @@ var
   i: Integer;
   UsedModule, aModule: TPasModule;
   UsesClause: TPasUsesClause;
+  Use: TPasUsesUnit;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitSectionHints ',GetElModName(Section));
@@ -1599,13 +1600,14 @@ begin
   UsesClause:=Section.UsesClause;
   for i:=0 to length(UsesClause)-1 do
     begin
-    if UsesClause[i].Module is TPasModule then
+    Use:=UsesClause[i];
+    if Use.Module is TPasModule then
       begin
-      UsedModule:=TPasModule(UsesClause[i].Module);
+      UsedModule:=TPasModule(Use.Module);
       if CompareText(UsedModule.Name,'system')=0 then continue;
       if FindNode(UsedModule)=nil then
         EmitMessage(20170311191725,mtHint,nPAUnitNotUsed,sPAUnitNotUsed,
-          [UsedModule.Name,aModule.Name],aModule);
+          [UsedModule.Name,aModule.Name],Use.Expr);
       end;
     end;
 

@@ -1570,7 +1570,8 @@ begin
     'procedure DoIt; begin end;']));
 
   StartProgram(true);
-  Add('uses unit2;');
+  Add('uses');
+  Add('  unit2;');
   Add('begin');
   AnalyzeWholeProgram;
 
