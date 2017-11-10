@@ -109,7 +109,9 @@ unit aoptcpu;
                         result:=true;
                       end;
                   end;
-              end
+                A_SUB:
+                  result:=OptPass1Sub(p);
+              end;
             end
         end;
       end;

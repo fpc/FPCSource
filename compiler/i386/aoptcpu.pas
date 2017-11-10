@@ -525,51 +525,6 @@ var
     GetFinalDestination := true;
   end;
 
-  function DoSubAddOpt(var p: tai): Boolean;
-  begin
-    DoSubAddOpt := False;
-    if GetLastInstruction(p, hp1) and
-       (hp1.typ = ait_instruction) and
-       (taicpu(hp1).opsize = taicpu(p).opsize) then
-      case taicpu(hp1).opcode Of
-        A_DEC:
-          if (taicpu(hp1).oper[0]^.typ = top_reg) and
-             (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
-            begin
-              taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+1);
-              asml.remove(hp1);
-              hp1.free;
-            end;
-         A_SUB:
-           if (taicpu(hp1).oper[0]^.typ = top_const) and
-              (taicpu(hp1).oper[1]^.typ = top_reg) and
-              (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
-             begin
-               taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val);
-               asml.remove(hp1);
-               hp1.free;
-             end;
-         A_ADD:
-           if (taicpu(hp1).oper[0]^.typ = top_const) and
-              (taicpu(hp1).oper[1]^.typ = top_reg) and
-              (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
-             begin
-               taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
-               asml.remove(hp1);
-               hp1.free;
-               if (taicpu(p).oper[0]^.val = 0) then
-                 begin
-                   hp1 := tai(p.next);
-                   asml.remove(p);
-                   p.free;
-                   if not GetLastInstruction(hp1, p) then
-                     p := hp1;
-                   DoSubAddOpt := True;
-                 end
-             end;
-       end;
-  end;
-
 begin
   p := BlockStart;
   ClearUsedRegs;
@@ -1116,50 +1071,8 @@ begin
                         end
                     end;
                   A_SUB:
-                    { * change "subl $2, %esp; pushw x" to "pushl x"}
-                    { * change "sub/add const1, reg" or "dec reg" followed by
-                        "sub const2, reg" to one "sub ..., reg" }
-                    begin
-                      if (taicpu(p).oper[0]^.typ = top_const) and
-                         (taicpu(p).oper[1]^.typ = top_reg) then
-                        if (taicpu(p).oper[0]^.val = 2) and
-                           (taicpu(p).oper[1]^.reg = NR_ESP) and
-                           { Don't do the sub/push optimization if the sub }
-                           { comes from setting up the stack frame (JM)    }
-                           (not getLastInstruction(p,hp1) or
-                           (hp1.typ <> ait_instruction) or
-                           (taicpu(hp1).opcode <> A_MOV) or
-                           (taicpu(hp1).oper[0]^.typ <> top_reg) or
-                           (taicpu(hp1).oper[0]^.reg <> NR_ESP) or
-                           (taicpu(hp1).oper[1]^.typ <> top_reg) or
-                           (taicpu(hp1).oper[1]^.reg <> NR_EBP)) then
-                          begin
-                            hp1 := tai(p.next);
-                            while Assigned(hp1) and
-                                  (tai(hp1).typ in [ait_instruction]+SkipInstr) and
-                                  not RegReadByInstruction(NR_ESP,hp1) and
-                                  not RegModifiedByInstruction(NR_ESP,hp1) do
-                              hp1 := tai(hp1.next);
-                            if Assigned(hp1) and
-                               (tai(hp1).typ = ait_instruction) and
-                               (taicpu(hp1).opcode = A_PUSH) and
-                               (taicpu(hp1).opsize = S_W) then
-                              begin
-                                taicpu(hp1).changeopsize(S_L);
-                                if taicpu(hp1).oper[0]^.typ=top_reg then
-                                  setsubreg(taicpu(hp1).oper[0]^.reg,R_SUBWHOLE);
-                                hp1 := tai(p.next);
-                                asml.remove(p);
-                                p.free;
-                                p := hp1;
-                                continue
-                              end;
-                            if DoSubAddOpt(p) then
-                              continue;
-                          end
-                        else if DoSubAddOpt(p) then
-                          continue
-                    end;
+                    if OptPass1Sub(p) then
+                      continue;
                   A_VMOVAPS,
                   A_VMOVAPD:
                     if OptPass1VMOVAP(p) then

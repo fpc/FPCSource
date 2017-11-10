@@ -55,6 +55,8 @@ unit aoptx86;
         class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
+        function DoSubAddOpt(var p : tai) : Boolean;
+
         function PrePeepholeOptSxx(var p : tai) : boolean;
 
         function OptPass1AND(var p : tai) : boolean;
@@ -66,6 +68,7 @@ unit aoptx86;
         function OptPass1MOVXX(var p : tai) : boolean;
         function OptPass1OP(const p : tai) : boolean;
         function OptPass1LEA(var p : tai) : boolean;
+        function OptPass1Sub(var p : tai) : boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -1872,6 +1875,99 @@ unit aoptx86;
             continue;
           end
 *)
+      end;
+
+
+    function TX86AsmOptimizer.DoSubAddOpt(var p: tai): Boolean;
+      var
+        hp1 : tai;
+      begin
+        DoSubAddOpt := False;
+        if GetLastInstruction(p, hp1) and
+           (hp1.typ = ait_instruction) and
+           (taicpu(hp1).opsize = taicpu(p).opsize) then
+          case taicpu(hp1).opcode Of
+            A_DEC:
+              if (taicpu(hp1).oper[0]^.typ = top_reg) and
+                MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
+                begin
+                  taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+1);
+                  asml.remove(hp1);
+                  hp1.free;
+                end;
+             A_SUB:
+               if MatchOpType(taicpu(hp1),top_const,top_reg) and
+                 MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
+                 begin
+                   taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val);
+                   asml.remove(hp1);
+                   hp1.free;
+                 end;
+             A_ADD:
+               if MatchOpType(taicpu(hp1),top_const,top_reg) and
+                 MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
+                 begin
+                   taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
+                   asml.remove(hp1);
+                   hp1.free;
+                   if (taicpu(p).oper[0]^.val = 0) then
+                     begin
+                       hp1 := tai(p.next);
+                       asml.remove(p);
+                       p.free;
+                       if not GetLastInstruction(hp1, p) then
+                         p := hp1;
+                       DoSubAddOpt := True;
+                     end
+                 end;
+           end;
+      end;
+
+
+    function TX86AsmOptimizer.OptPass1Sub(var p : tai) : boolean;
+      var
+        hp1 : tai;
+      begin
+        Result:=false;
+        { * change "subl $2, %esp; pushw x" to "pushl x"}
+        { * change "sub/add const1, reg" or "dec reg" followed by
+            "sub const2, reg" to one "sub ..., reg" }
+        if MatchOpType(taicpu(p),top_const,top_reg) then
+          begin
+{$ifdef i386}
+            if (taicpu(p).oper[0]^.val = 2) and
+               (taicpu(p).oper[1]^.reg = NR_ESP) and
+               { Don't do the sub/push optimization if the sub }
+               { comes from setting up the stack frame (JM)    }
+               (not(GetLastInstruction(p,hp1)) or
+               not(MatchInstruction(hp1,A_MOV,[S_L]) and
+                 MatchOperand(taicpu(hp1).oper[0]^,NR_ESP) and
+                 MatchOperand(taicpu(hp1).oper[0]^,NR_EBP))) then
+              begin
+                hp1 := tai(p.next);
+                while Assigned(hp1) and
+                      (tai(hp1).typ in [ait_instruction]+SkipInstr) and
+                      not RegReadByInstruction(NR_ESP,hp1) and
+                      not RegModifiedByInstruction(NR_ESP,hp1) do
+                  hp1 := tai(hp1.next);
+                if Assigned(hp1) and
+                  MatchInstruction(hp1,A_PUSH,[S_W]) then
+                  begin
+                    taicpu(hp1).changeopsize(S_L);
+                    if taicpu(hp1).oper[0]^.typ=top_reg then
+                      setsubreg(taicpu(hp1).oper[0]^.reg,R_SUBWHOLE);
+                    hp1 := tai(p.next);
+                    asml.remove(p);
+                    p.free;
+                    p := hp1;
+                    Result:=true;
+                    exit;
+                  end;
+              end;
+{$endif i386}
+            if DoSubAddOpt(p) then
+              Result:=true;
+          end;
       end;
 
 
