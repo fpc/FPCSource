@@ -4764,43 +4764,127 @@
     opcode  : A_RET;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
-    code    : #1#195;
+    code    : #215#1#195;
     flags   : [if_8086]
   ),
   (
     opcode  : A_RET;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none,ot_none);
-    code    : #1#194#24;
+    code    : #215#1#194#24;
     flags   : [if_8086,if_sw]
   ),
   (
     opcode  : A_RETF;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
-    code    : #1#203;
+    code    : #215#1#203;
     flags   : [if_8086]
   ),
   (
     opcode  : A_RETF;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none,ot_none);
-    code    : #1#202#24;
+    code    : #215#1#202#24;
     flags   : [if_8086,if_sw]
   ),
   (
     opcode  : A_RETN;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
-    code    : #1#195;
+    code    : #215#1#195;
     flags   : [if_8086]
   ),
   (
     opcode  : A_RETN;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none,ot_none);
-    code    : #1#194#24;
+    code    : #215#1#194#24;
     flags   : [if_8086,if_sw]
+  ),
+  (
+    opcode  : A_RETW;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #212#1#195;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_RETW;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #212#1#194#24;
+    flags   : [if_8086,if_sw]
+  ),
+  (
+    opcode  : A_RETFW;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #212#1#203;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_RETFW;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #212#1#202#24;
+    flags   : [if_8086,if_sw]
+  ),
+  (
+    opcode  : A_RETNW;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #212#1#195;
+    flags   : [if_8086]
+  ),
+  (
+    opcode  : A_RETNW;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #212#1#194#24;
+    flags   : [if_8086,if_sw]
+  ),
+  (
+    opcode  : A_RETD;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #213#1#195;
+    flags   : [if_386,if_nox86_64]
+  ),
+  (
+    opcode  : A_RETD;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #213#1#194#24;
+    flags   : [if_386,if_sw,if_nox86_64]
+  ),
+  (
+    opcode  : A_RETFD;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #213#1#203;
+    flags   : [if_386]
+  ),
+  (
+    opcode  : A_RETFD;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #213#1#202#24;
+    flags   : [if_386,if_sw]
+  ),
+  (
+    opcode  : A_RETND;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #213#1#195;
+    flags   : [if_386,if_nox86_64]
+  ),
+  (
+    opcode  : A_RETND;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #213#1#194#24;
+    flags   : [if_386,if_sw,if_nox86_64]
   ),
   (
     opcode  : A_ROL;

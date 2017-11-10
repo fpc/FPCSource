@@ -1053,7 +1053,41 @@ interface
                       (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     writer.AsmWriteln(#9#9'DB'#9'066h');
 {$endif not i8086}
-                  writer.AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
+                  if (fixed_opcode=A_RETW) or (fixed_opcode=A_RETNW) or (fixed_opcode=A_RETFW) or
+{$ifdef x86_64}
+                     (fixed_opcode=A_RETQ) or (fixed_opcode=A_RETNQ) or (fixed_opcode=A_RETFQ) or
+{$else x86_64}
+                     (fixed_opcode=A_RETD) or (fixed_opcode=A_RETND) or
+{$endif x86_64}
+                     (fixed_opcode=A_RETFD) then
+                   begin
+                     case fixed_opcode of
+                       A_RETW:
+                         writer.AsmWrite(#9#9'o16 ret');
+                       A_RETNW:
+                         writer.AsmWrite(#9#9'o16 retn');
+                       A_RETFW:
+                         writer.AsmWrite(#9#9'o16 retf');
+{$ifdef x86_64}
+                       A_RETQ,
+                       A_RETNQ:
+                         writer.AsmWrite(#9#9'ret');
+                       A_RETFQ:
+                         writer.AsmWrite(#9#9'o64 retf');
+{$else x86_64}
+                       A_RETD:
+                         writer.AsmWrite(#9#9'o32 ret');
+                       A_RETND:
+                         writer.AsmWrite(#9#9'o32 retn');
+{$endif x86_64}
+                       A_RETFD:
+                         writer.AsmWrite(#9#9'o32 retf');
+                       else
+                         internalerror(2017111001);
+                     end;
+                   end
+                  else
+                    writer.AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
                    begin
                      if is_calljmp(fixed_opcode) then

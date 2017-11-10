@@ -1112,7 +1112,16 @@ begin
       if (ops=1) and (opcode=A_BRKEM) then
         siz:=S_B;
 {$endif i8086}
-      if (ops=1) and (opcode=A_RET) or (opcode=A_RETN) or (opcode=A_RETF) then
+      if (ops=1) and (opcode=A_RET) or (opcode=A_RETN) or (opcode=A_RETF) or
+                     (opcode=A_RETW) or (opcode=A_RETNW) or (opcode=A_RETFW) or
+{$ifndef x86_64}
+                     (opcode=A_RETD) or (opcode=A_RETND) or
+{$endif x86_64}
+                     (opcode=A_RETFD)
+{$ifdef x86_64}
+                  or (opcode=A_RETQ) or (opcode=A_RETNQ) or (opcode=A_RETFQ)
+{$endif x86_64}
+          then
         siz:=S_W;
       if (ops=1) and (opcode=A_PUSH) then
         begin

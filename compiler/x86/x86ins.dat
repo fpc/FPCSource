@@ -1719,18 +1719,63 @@ void                  \1\xF3                          8086,PRE
 
 [RET]
 (Ch_All)
-void                  \1\xC3                          8086
-imm                   \1\xC2\30                       8086,SW
+void                  \327\1\xC3                      8086
+imm                   \327\1\xC2\30                   8086,SW
 
 [RETF,lret]
 (Ch_All)
-void                  \1\xCB                          8086
-imm                   \1\xCA\30                       8086,SW
+void                  \327\1\xCB                      8086
+imm                   \327\1\xCA\30                   8086,SW
 
 [RETN,ret]
 (Ch_All)
-void                  \1\xC3                          8086
-imm                   \1\xC2\30                       8086,SW
+void                  \327\1\xC3                      8086
+imm                   \327\1\xC2\30                   8086,SW
+
+[RETW]
+(Ch_All)
+void                  \324\1\xC3                      8086
+imm                   \324\1\xC2\30                   8086,SW
+
+[RETFW,lretw]
+(Ch_All)
+void                  \324\1\xCB                      8086
+imm                   \324\1\xCA\30                   8086,SW
+
+[RETNW,retw]
+(Ch_All)
+void                  \324\1\xC3                      8086
+imm                   \324\1\xC2\30                   8086,SW
+
+[RETD,ret]
+(Ch_All)
+void                  \325\1\xC3                      386,NOX86_64
+imm                   \325\1\xC2\30                   386,SW,NOX86_64
+
+[RETFD,lret]
+(Ch_All)
+void                  \325\1\xCB                      386
+imm                   \325\1\xCA\30                   386,SW
+
+[RETND,ret]
+(Ch_All)
+void                  \325\1\xC3                      386,NOX86_64
+imm                   \325\1\xC2\30                   386,SW,NOX86_64
+
+[RETQ,ret]
+(Ch_All)
+void                  \335\1\xC3                      X86_64
+imm                   \335\1\xC2\30                   X86_64,SW
+
+[RETFQ,lretq]
+(Ch_All)
+void                  \326\1\xCB                      X86_64
+imm                   \326\1\xCA\30                   X86_64,SW
+
+[RETNQ,ret]
+(Ch_All)
+void                  \335\1\xC3                      X86_64
+imm                   \335\1\xC2\30                   X86_64,SW
 
 [ROL,rolX]
 (Ch_Mop2, Ch_Rop1, Ch_WCarryFlag, Ch_WOverflowFlag)
