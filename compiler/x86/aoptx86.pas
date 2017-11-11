@@ -1889,7 +1889,7 @@ unit aoptx86;
           case taicpu(hp1).opcode Of
             A_DEC:
               if (taicpu(hp1).oper[0]^.typ = top_reg) and
-                MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
+                MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
                 begin
                   taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+1);
                   asml.remove(hp1);
