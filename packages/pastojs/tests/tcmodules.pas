@@ -203,6 +203,7 @@ type
 
     // numbers
     Procedure TestDouble;
+    Procedure TestIntegerRange;
 
     // strings
     Procedure TestCharConst;
@@ -220,6 +221,7 @@ type
     Procedure TestBaseType_ShortStringFail;
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
+    Procedure TestCharSet_Custom;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -271,8 +273,6 @@ type
     Procedure TestSet_Property;
     Procedure TestSet_EnumConst;
     Procedure TestSet_AnonymousEnumType;
-    Procedure TestSet_CharFail;
-    Procedure TestSet_BooleanFail;
     Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
     Procedure TestSet_ConstInt;
@@ -3657,26 +3657,6 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestSet_CharFail;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TChars = set of char;');
-  Add('begin');
-  SetExpectedPasResolverError('Not supported: set of Char',nNotSupportedX);
-  ConvertProgram;
-end;
-
-procedure TTestModule.TestSet_BooleanFail;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TBools = set of boolean;');
-  Add('begin');
-  SetExpectedPasResolverError('Not supported: set of Boolean',nNotSupportedX);
-  ConvertProgram;
-end;
-
 procedure TTestModule.TestSet_ConstEnum;
 begin
   StartProgram(false);
@@ -4047,6 +4027,53 @@ begin
     '$mod.d = Math.pow(10, 3);',
     '$mod.d = 10 % 3;',
     '$mod.d = Math.floor(10 / 3);',
+    '']));
+end;
+
+procedure TTestModule.TestIntegerRange;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  MinInt = -1;',
+  '  MaxInt = +1;',
+  'type',
+  '  {#TMyInt}TMyInt = MinInt..MaxInt;',
+  '  TInt2 = 1..3;',
+  'const',
+  '  a = low(TMyInt)+High(TMyInt);',
+  '  b = low(TInt2)+High(TInt2);',
+  '  s1 = [1];',
+  '  s2 = [1,2];',
+  '  s3 = [1..3];',
+  '  s4 = [low(shortint)..high(shortint)];',
+  '  s5 = [succ(low(shortint))..pred(high(shortint))];',
+  '  s6 = 1 in s2;',
+  'var',
+  '  i: TMyInt;',
+  '  i2: TInt2;',
+  'begin',
+  '  i:=i2;',
+  '  if i=i2 then ;']);
+  ConvertProgram;
+  CheckSource('TestIntegerRange',
+    LinesToStr([
+    'this.MinInt = -1;',
+    'this.MaxInt = +1;',
+    'this.a = -1 + 1;',
+    'this.b = 1 + 3;',
+    'this.s1 = rtl.createSet(1);',
+    'this.s2 = rtl.createSet(1, 2);',
+    'this.s3 = rtl.createSet(null, 1, 3);',
+    'this.s4 = rtl.createSet(null, -128, 127);',
+    'this.s5 = rtl.createSet(null, -128 + 1, 127 - 1);',
+    'this.s6 = 1 in $mod.s2;',
+    'this.i = -1;',
+    'this.i2 = 1;',
+    '']),
+    LinesToStr([
+    '$mod.i = $mod.i2;',
+    'if ($mod.i === $mod.i2) ;',
     '']));
 end;
 
@@ -4421,6 +4448,50 @@ begin
   Add('begin');
   SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestCharSet_Custom;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TCharRg = ''a''..''z'';',
+  '  TSetOfCharRg = set of TCharRg;',
+  '  TCharRg2 = ''m''..''p'';',
+  'const',
+  '  crg: TCharRg = ''b'';',
+  'var',
+  '  c: char;',
+  '  crg2: TCharRg2;',
+  '  s: TSetOfCharRg;',
+  'begin',
+  '  c:=crg;',
+  '  crg:=c;',
+  '  crg2:=crg;',
+  '  if c=crg then ;',
+  '  if crg=c then ;',
+  '  if crg=crg2 then ;',
+  '  if c in s then ;',
+  '  if crg2 in s then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCharSet_Custom',
+    LinesToStr([ // statements
+    'this.crg = "b";',
+    'this.c = "";',
+    'this.crg2 = "m";',
+    'this.s = {};',
+    '']),
+    LinesToStr([ // this.$main
+    '$mod.c = $mod.crg;',
+    '$mod.crg = $mod.c;',
+    '$mod.crg2 = $mod.crg;',
+    'if ($mod.c === $mod.crg) ;',
+    'if ($mod.crg === $mod.c) ;',
+    'if ($mod.crg === $mod.crg2) ;',
+    'if ($mod.c.charCodeAt() in $mod.s) ;',
+    'if ($mod.crg2.charCodeAt() in $mod.s) ;',
+    '']));
 end;
 
 procedure TTestModule.TestProcTwoArgs;
@@ -5207,6 +5278,7 @@ begin
   Add('  Arr2: TChars2;');
   Add('  Arr3: array[2..4] of char = (''p'',''a'',''s'');');
   Add('  Arr4: array[11..13] of char = ''pas'';');
+  Add('  Arr5: array[21..22] of char = ''äö'';');
   Add('  c: char;');
   Add('  b: boolean;');
   Add('begin');
@@ -5229,6 +5301,7 @@ begin
     'this.Arr2 = rtl.arraySetLength(null, "", 26);',
     'this.Arr3 = ["p", "a", "s"];',
     'this.Arr4 = ["p", "a", "s"];',
+    'this.Arr5 = ["ä", "ö"];',
     'this.c = "";',
     'this.b = false;',
     '']),
@@ -13977,7 +14050,7 @@ begin
     'this.h = 1;',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
-    '    this.FV = 0;',
+    '    this.FV = -1;',
     '  };',
     '  this.$final = function () {',
     '  };',

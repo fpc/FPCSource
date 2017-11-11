@@ -251,8 +251,17 @@ Works:
   - use 0b for binary literals
   - use 0o for octal literals
 - dotted unit names, namespaces
+- resourcestring
 
 ToDos:
+- enum range, int range, char range, set of enumrange, set of intrange, set of charrange
+- custom ranges
+  - enum: low(), high(), pred(), succ(), ord(), rg(int), int(rg), enum:=rg,
+    rg:=rg, rg1:=rg2, rg:=enum, =, <>, in
+    array[rg], low(array), high(array)
+- enumeration  for..in..do
+    enum, set, char, intrange, enumrange, array
+- typecast longint(highprecint) -> (value+0) & $ffffffff
 - static arrays
   - a[] of record
 - RTTI
@@ -263,8 +272,6 @@ ToDos:
 - var absolute
 - check memleaks
 - make records more lightweight
-- enumeration  for..in..do
-- resourcestring
 - pointer of record
 - nested types in class
 - asm: pas() - useful for overloads and protect an identifier from optimization
@@ -2016,13 +2023,60 @@ end;
 procedure TPas2JSResolver.FinishSetType(El: TPasSetType);
 var
   TypeEl: TPasType;
+  C: TClass;
+  RangeValue: TResEvalValue;
+  bt: TResolverBaseType;
 begin
   inherited FinishSetType(El);
   TypeEl:=ResolveAliasType(El.EnumType);
-  if TypeEl.ClassType=TPasEnumType then
-    // ok
-  else
-    RaiseMsg(20170415182320,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
+  C:=TypeEl.ClassType;
+  if C=TPasEnumType then
+    exit
+  else if C=TPasUnresolvedSymbolRef then
+    begin
+    if TypeEl.CustomData is TResElDataBaseType then
+      begin
+      bt:=TResElDataBaseType(TypeEl.CustomData).BaseType;
+      if bt in [btBoolean,btByte,btShortInt,btSmallInt,btWord,btChar,btWideChar] then
+        exit; // ok
+      {$IFDEF VerbosePas2JS}
+      writeln('TPas2JSResolver.FinishSetType El='+GetObjName(El)+' TypeEl=',GetObjName(TypeEl),' ',bt);
+      {$ENDIF}
+      RaiseMsg(20171110150000,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
+      end;
+    end
+  else if C=TPasRangeType then
+    begin
+    RangeValue:=Eval(TPasRangeType(TypeEl).RangeExpr,[refConst]);
+    try
+      case RangeValue.Kind of
+      revkRangeInt:
+        begin
+        if TResEvalRangeInt(RangeValue).RangeEnd-TResEvalRangeInt(RangeValue).RangeStart>$ffff then
+          begin
+          {$IFDEF VerbosePas2JS}
+          writeln('TPas2JSResolver.FinishSetType El='+GetObjName(El)+' Range='+RangeValue.AsDebugString,' ',bt);
+          {$ENDIF}
+          RaiseMsg(20171110150159,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
+          end;
+        exit;
+        end;
+      else
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TPas2JSResolver.FinishSetType El='+GetObjName(El)+' Range='+RangeValue.AsDebugString);
+        {$ENDIF}
+        RaiseMsg(20171110145211,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
+        end;
+      end;
+    finally
+      ReleaseEvalValue(RangeValue);
+    end;
+    end;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPas2JSResolver.FinishSetType El='+GetObjName(El)+' TypeEl=',GetObjName(TypeEl));
+  {$ENDIF}
+  RaiseMsg(20170415182320,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
 end;
 
 procedure TPas2JSResolver.FinishClassType(El: TPasClassType);
@@ -10521,6 +10575,9 @@ begin
   BinExp:=Nil;
   if AContext.Access<>caRead then
     RaiseInconsistency(20170213213740);
+  if not (El.LoopType in [ltNormal,ltDown]) then
+    RaiseNotSupported(El,AContext,20171110141937);
+
   // get function context
   FuncContext:=AContext;
   while (FuncContext.Parent<>nil) and (not (FuncContext is TFunctionContext)) do
@@ -10931,7 +10988,7 @@ var
   bt: TResolverBaseType;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
-  ResolvedEl: TPasResolverResult;
+  Value: TResEvalValue;
 begin
   T:=PasType;
   if AContext.Resolver<>nil then
@@ -10970,20 +11027,14 @@ begin
     // a "set" without initial value
     Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El))
   else if (C=TPasRangeType) and (AContext.Resolver<>nil) then
-    // a custom range without initial value
+    // a custom range without initial value -> use first value
     begin
-    AContext.Resolver.ComputeElement(PasType,ResolvedEl,[rcType]);
-    if ResolvedEl.BaseType in btAllInteger then
-      Result:=CreateLiteralNumber(El,0)
-    else if ResolvedEl.BaseType in btAllStringAndChars then
-      Result:=CreateLiteralJSString(El,'')
-    else
-      begin
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.CreateValInit ',GetResolverResultDbg(ResolvedEl));
-      {$ENDIF}
-      RaiseNotSupported(El,AContext,20170925203052);
-      end;
+    Value:=AContext.Resolver.Eval(TPasRangeType(T).RangeExpr.left,[refConst]);
+    try
+      Result:=ConvertConstValue(Value,AContext,El);
+    finally
+      ReleaseEvalValue(Value);
+    end;
     end
   else
     begin
@@ -11196,7 +11247,8 @@ begin
   if AContext.Resolver<>nil then
     begin
     AContext.Resolver.ComputeElement(Expr,ExprResolved,[]);
-    if ExprResolved.BaseType in btAllJSStringAndChars then
+    if (ExprResolved.BaseType in btAllJSStringAndChars)
+        or ((ExprResolved.BaseType=btRange) and (ExprResolved.SubType in btAllJSChars)) then
       begin
       // aChar -> aChar.charCodeAt()
       Call:=TJSCallExpression(CreateElement(TJSCallExpression,Expr));
@@ -11277,7 +11329,7 @@ begin
         end
       else if ExprResolved.BaseType in btAllStringAndChars then
         begin
-        US:=TJSString(AContext.Resolver.ComputeConstString(Expr,false,true));
+        US:=TJSString(UTF8Decode(AContext.Resolver.ComputeConstString(Expr,false,true)));
         for i:=1 to length(US) do
           ArrLit.Elements.AddElement.Expr:=CreateLiteralJSString(Expr,US[i]);
         end
