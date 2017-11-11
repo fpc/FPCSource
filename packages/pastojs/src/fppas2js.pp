@@ -2785,13 +2785,26 @@ begin
     begin
     if ParamResolved.IdentEl is TPasSetType then
       TIName:=Pas2JSBuiltInNames[pbitnTISet];
+    end
+  else if ParamResolved.BaseType=btRange then
+    begin
+    ConvertRangeToElement(ParamResolved);
+    if ParamResolved.BaseType in btAllJSInteger then
+      TIName:=Pas2JSBuiltInNames[pbitnTIInteger]
+    else if ParamResolved.BaseType=btContext then
+      begin
+      TypeEl:=ParamResolved.TypeEl;
+      C:=TypeEl.ClassType;
+      if C=TPasEnumType then
+        TIName:=Pas2JSBuiltInNames[pbitnTIEnum];
+      end;
     end;
   if TIName='' then
     begin
     {$IFDEF VerbosePas2JS}
     writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult ',GetResolverResultDbg(ParamResolved));
     {$ENDIF}
-    RaiseMsg(20170413091852,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
+    RaiseNotYetImplemented(20170413091852,Param);
     end;
 
   // search for TIName
@@ -8605,6 +8618,7 @@ var
   MinInt, MaxInt: MaxPrecInt;
   OrdType: TOrdType;
   TIProp: TJSObjectLiteralElement;
+  fn: TPas2JSBuiltInName;
 begin
   Result:=nil;
   if not HasTypeInfo(El,AContext) then exit;
@@ -8618,22 +8632,15 @@ begin
     MaxVal:=AContext.Resolver.EvalRangeLimit(El.RangeExpr,[refConst],false,El);
     if MinVal.Kind=revkInt then
       begin
-      MinInt:=TresEvalInt(MinVal).Int;
-      MaxInt:=TresEvalInt(MaxVal).Int;
-      OrdType:=GetOrdType(MinInt,MaxInt,El);
-      Call:=CreateRTTINewType(El,FBuiltInNames[pbifnRTTINewInt],false,AContext,TIObj);
-      // add  minvalue: number
-      TIProp:=TIObj.Elements.AddElement;
-      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MinValue]);
-      TIProp.Expr:=CreateLiteralNumber(El,MinInt);
-      // add  maxvalue: number
-      TIProp:=TIObj.Elements.AddElement;
-      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MaxValue]);
-      TIProp.Expr:=CreateLiteralNumber(El,MaxInt);
-      // add  ordtype: number
-      TIProp:=TIObj.Elements.AddElement;
-      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_OrdType]);
-      TIProp.Expr:=CreateLiteralNumber(El,ord(OrdType));
+      fn:=pbifnRTTINewInt;
+      MinInt:=TResEvalInt(MinVal).Int;
+      MaxInt:=TResEvalInt(MaxVal).Int;
+      end
+    else if MinVal.Kind=revkEnum then
+      begin
+      fn:=pbifnRTTINewEnum;
+      MinInt:=TResEvalEnum(MinVal).Index;
+      MaxInt:=TResEvalEnum(MaxVal).Index;
       end
     else
       begin
@@ -8641,6 +8648,27 @@ begin
       writeln('TPasToJSConverter.ConvertRangeType type: ',MinVal.AsDebugString,'..',MaxVal.AsDebugString);
       {$ENDIF}
       RaiseNotSupported(El,AContext,20170925201628);
+      end;
+    OrdType:=GetOrdType(MinInt,MaxInt,El);
+    Call:=CreateRTTINewType(El,FBuiltInNames[fn],false,AContext,TIObj);
+    // add  minvalue: number
+    TIProp:=TIObj.Elements.AddElement;
+    TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MinValue]);
+    TIProp.Expr:=CreateLiteralNumber(El,MinInt);
+    // add  maxvalue: number
+    TIProp:=TIObj.Elements.AddElement;
+    TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_MaxValue]);
+    TIProp.Expr:=CreateLiteralNumber(El,MaxInt);
+    // add  ordtype: number
+    TIProp:=TIObj.Elements.AddElement;
+    TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIInt_OrdType]);
+    TIProp.Expr:=CreateLiteralNumber(El,ord(OrdType));
+    if MinVal.Kind=revkEnum then
+      begin
+      // add  enumtype: this.TypeName
+      TIProp:=TIObj.Elements.AddElement;
+      TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIEnum_EnumType]);
+      TIProp.Expr:=CreateSubDeclNameExpr(El,TResEvalEnum(MinVal).ElType.Name,AContext);
       end;
     Result:=Call;
   finally
@@ -10183,6 +10211,7 @@ function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;
   AContext: TConvertContext): TJSElement;
 
 begin
+  //writeln('TPasToJSConverter.ConvertImplBlock ');
   Result:=Nil;
   if (El is TPasImplStatement) then
     Result:=ConvertStatement(TPasImplStatement(El),AContext)

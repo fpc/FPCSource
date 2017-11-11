@@ -496,6 +496,7 @@ type
     Procedure TestRTTI_ProcType;
     Procedure TestRTTI_ProcType_ArgFromOtherUnit;
     Procedure TestRTTI_EnumAndSetType;
+    Procedure TestRTTI_EnumRange;
     Procedure TestRTTI_AnonymousEnumType;
     Procedure TestRTTI_StaticArray;
     Procedure TestRTTI_DynArray;
@@ -13440,6 +13441,23 @@ begin
     '$mod.p = $mod.$rtti["TFlag"];',
     '$mod.p = $mod.$rtti["TFlags"];',
     '']));
+end;
+
+procedure TTestModule.TestRTTI_EnumRange;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TCol = (red,green,blue);',
+  '  TColRg = green..blue;',
+  '  TSetOfColRg = set of TColRg;',
+  'var p: pointer;',
+  'begin',
+  '  p:=typeinfo(tcolrg);',
+  '  p:=typeinfo(tsetofcolrg);',
+  '']);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestRTTI_AnonymousEnumType;
