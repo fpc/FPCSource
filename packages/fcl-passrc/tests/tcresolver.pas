@@ -195,6 +195,7 @@ type
     Procedure TestConstFloatOperators;
     Procedure TestFloatTypeCast;
     Procedure TestBoolSet_Const;
+    Procedure TestBool_ForIn;
 
     // integer range
     Procedure TestIntegerRange;
@@ -205,6 +206,7 @@ type
     Procedure TestCustomIntRangeFail;
     Procedure TestIntSet_Const;
     Procedure TestIntSet_ConstDuplicateElement;
+    Procedure TestInt_ForIn;
 
     // strings
     Procedure TestChar_Ord;
@@ -219,7 +221,9 @@ type
     Procedure TestConstStringOperators;
     Procedure TestConstUnicodeStringOperators;
     Procedure TestCharSet_Const;
+    Procedure TestCharSet_Custom;
     Procedure TestCharAssignStringFail;
+    Procedure TestChar_ForIn;
 
     // enums
     Procedure TestEnums;
@@ -241,7 +245,8 @@ type
     Procedure TestEnumSet_AnonymousEnumtypeName;
     Procedure TestEnumSet_Const;
     Procedure TestSet_IntRange_Const;
-    Procedure TestEnumRange; // ToDo
+    Procedure TestEnumRange;
+    Procedure TestEnum_ForIn;
 
     // operators
     Procedure TestPrgAssignment;
@@ -563,6 +568,7 @@ type
     Procedure TestArrayEnumTypeConstWrongTypeFail;
     Procedure TestArrayEnumTypeConstNonConstFail;
     Procedure TestArrayEnumTypeSetLengthFail;
+    Procedure TestArrayEnumCustomRange;
     Procedure TestArray_DynArrayConst;
     Procedure TestArray_AssignNilToStaticArrayFail1;
     Procedure TestArray_SetLengthProperty;
@@ -2378,15 +2384,44 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestBool_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  //'  TBoolRg = false..true;',
+  '  TSetOfBool = set of boolean;',
+  //'  TSetOfBoolRg = set of TBoolRg;',
+  'var',
+  '  b: boolean;',
+  //'  br: TBoolRg;',
+  'begin',
+  '  for b in boolean do;',
+  //'  for b in TBoolRg do;',
+  '  for b in TSetOfBool do;',
+  //'  for b in TSetOfBoolRg do;',
+  //'  for br in TBoolRg do;',
+  //'  for br in TSetOfBoolRg do;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestIntegerRange;
 begin
   StartProgram(false);
-  Add('const');
-  Add('  MinInt = -1;');
-  Add('  MaxInt = +1;');
-  Add('type');
-  Add('  {#TMyInt}TMyInt = MinInt..MaxInt;');
-  Add('begin');
+  Add([
+  'const',
+  '  MinInt = -1;',
+  '  MaxInt = +1;',
+  'type',
+  '  {#TMyInt}TMyInt = MinInt..MaxInt;',
+  '  TInt2 = 1..3;',
+  'var',
+  '  i: TMyInt;',
+  '  i2: TInt2;',
+  'begin',
+  '  i:=i2;',
+  '  if i=i2 then ;']);
   ParseProgram;
 end;
 
@@ -2493,6 +2528,28 @@ begin
   '  s1 = [1,1..2];',
   'begin']);
   CheckResolverException(sRangeCheckInSetConstructor,nRangeCheckInSetConstructor);
+end;
+
+procedure TTestResolver.TestInt_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TIntRg = 2..4;',
+  '  TSetOfInt = set of byte;',
+  '  TSetOfIntRg = set of TIntRg;',
+  'var',
+  '  i: longint;',
+  '  ir: TIntRg;',
+  'begin',
+  '  for i in longint do;',
+  '  for i in TIntRg do;',
+  '  for i in TSetOfInt do;',
+  '  for i in TSetOfIntRg do;',
+  '  for ir in TIntRg do;',
+  '  for ir in TSetOfIntRg do;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestChar_Ord;
@@ -2673,7 +2730,37 @@ begin
   '  s15 = ''a'' in [''a'',''b''];',
   '  s16 = [#0..#127,#22823..#23398];',
   '  s17 = #22823 in s16;',
-  'begin']);
+  'var c: char;',
+  'begin',
+  '  if c in s3 then ;']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestCharSet_Custom;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TCharRg = ''a''..''z'';',
+  '  TSetOfCharRg = set of TCharRg;',
+  '  TCharRg2 = ''m''..''p'';',
+  'const',
+  '  crg: TCharRg = ''b'';',
+  'var',
+  '  c: char;',
+  '  crg2: TCharRg2;',
+  '  s: TSetOfCharRg;',
+  'begin',
+  '  c:=crg;',
+  '  crg:=c;',
+  '  crg2:=crg;',
+  '  if c=crg then ;',
+  '  if crg=c then ;',
+  '  if crg=crg2 then ;',
+  '  if c in s then ;',
+  '  if crg2 in s then ;',
+  '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
@@ -2689,6 +2776,28 @@ begin
   '  c:=s;']);
   CheckResolverException('Incompatible types: got "String" expected "Char"',
     nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestChar_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TCharRg = ''a''..''z'';',
+  '  TSetOfChar = set of char;',
+  '  TSetOfCharRg = set of TCharRg;',
+  'var',
+  '  c: char;',
+  '  cr: TCharRg;',
+  'begin',
+  '  for c in char do;',
+  '  for c in TCharRg do;',
+  '  for c in TSetOfChar do;',
+  '  for c in TSetOfCharRg do;',
+  '  for cr in TCharRg do;',
+  '  for cr in TSetOfCharRg do;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestEnums;
@@ -3114,7 +3223,8 @@ begin
   'const',
   '  a: TFiveSet = [2..3,5]+[4];',
   '  b = low(TIntRg)+high(TIntRg);',
-  'begin']);
+  'begin',
+  '  if 3 in a then ;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
@@ -3126,25 +3236,60 @@ begin
   'type',
   '  TEnum = (a,b,c,d,e);',
   '  TEnumRg = b..d;',
+  '  TEnumRg2 = c..e;',
+  '  TSetOfEnumRg = set of TEnumRg;',
   'const',
   '  c1: TEnumRg = c;',
   '  c2: TEnumRg = succ(low(TEnumRg));',
   '  c3: TEnumRg = pred(high(TEnumRg));',
   '  c4: TEnumRg = TEnumRg(2);',
+  '  c5: TEnumRg2 = e;',
   'var',
   '  er: TEnumRg;',
+  '  er2: TEnumRg2;',
   '  Enum: TEnum;',
+  '  i: longint;',
+  '  sr: TSetOfEnumRg;',
   'begin',
   '  er:=d;',
   '  Enum:=er;',
-  //'  if Enum=er then ;',
-  //'  if er=Enum then ;',
-  //'  if er=c then ;',
-  //'  if c=er then ;',
+  '  if Enum=er then ;',
+  '  if er=Enum then ;',
+  '  if er=c then ;',
+  '  if c=er then ;',
+  '  if er=er2 then ;',
+  '  er:=er2;',
+  '  i:=ord(er);',
+  '  er:=TEnumRg(i);',
+  '  i:=longint(er);',
+  '  if b in sr then ;',
+  '  if er in sr then ;',
   '']);
   ParseProgram;
-  // see also: TestPropertyDefaultValue
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestEnum_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,green,blue);',
+  '  TEnumRg = green..blue;',
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfEnumRg = set of TEnumRg;',
+  'var',
+  '  e: TEnum;',
+  '  er: TEnumRg;',
+  'begin',
+  '  for e in TEnum do;',
+  '  for e in TEnumRg do;',
+  '  for e in TSetOfEnum do;',
+  '  for e in TSetOfEnumRg do;',
+  '  for er in TEnumRg do;',
+  '  for er in TSetOfEnumRg do;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestPrgAssignment;
@@ -8529,8 +8674,8 @@ begin
   '    FE: TEnum;',
   '    property E1: TEnum read FE default red;',
   '    property E2: TEnum read FE default TEnum.blue;',
-  //'    FEnumRg: TEnumRg;',
-  //'    property EnumRg1: TEnumRg read FEnumRg default white;',
+  '    FEnumRg: TEnumRg;',
+  '    property EnumRg1: TEnumRg read FEnumRg default white;',
   '    FSet: TSet;',
   '    property Set1: TSet read FSet default [];',
   '    property Set2: TSet read FSet default [red];',
@@ -9024,6 +9169,8 @@ begin
   Add('  D = ''pp'';');
   Add('  E: array[length(D)..Three] of char = D;');
   Add('  F: array[1..2] of widechar = ''äö'';');
+  Add('  G: array[1..2] of char = ''ä'';');
+  Add('  H: array[1..4] of char = ''äö'';');
   Add('begin');
   ParseProgram;
 end;
@@ -9291,6 +9438,32 @@ begin
   Add('  SetLength(a,1);');
   CheckResolverException('Incompatible type arg no. 1: Got "static array[] of Longint", expected "string or dynamic array variable"',
     nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestArrayEnumCustomRange;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,blue,green);',
+  '  TEnumRg = blue..green;',
+  '  TEnumArray = array[TEnumRg] of longint;',
+  'var',
+  '  e: TEnum;',
+  '  r: TEnumRg;',
+  '  i: longint;',
+  '  a: TEnumArray;',
+  '  b: array[TEnum] of longint;',
+  '  names: array[TEnumRg] of string = (''blue'',''green'');',
+  'begin',
+  '  r:=low(a);',
+  '  r:=high(a);',
+  '  i:=a[red];',
+  '  a[r]:=a[r];',
+  '  a[e]:=a[e];',
+  '  b[r]:=b[r];',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestArray_DynArrayConst;

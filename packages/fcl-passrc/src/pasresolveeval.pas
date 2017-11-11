@@ -144,6 +144,7 @@ const
   nIncompatibleTypesGotParametersExpected = 3071;
   nAddingIndexSpecifierRequiresNewX = 3072;
   nCantFindUnitX = 3073;
+  nCannotFindEnumeratorForType = 3074;
 
 // resourcestring patterns of messages
 resourcestring
@@ -220,6 +221,7 @@ resourcestring
   sIncompatibleTypesGotParametersExpected = 'Incompatible types, got %s parameters, expected %s';
   sAddingIndexSpecifierRequiresNewX = 'adding index specifier requires new "%s" specifier';
   sCantFindUnitX = 'can''t find unit "%s"';
+  sCannotFindEnumeratorForType = 'Cannot find an enumerator for the type "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -3292,7 +3294,7 @@ begin
   Result:=nil;
   S:=Expr.Value;
   {$IFDEF VerbosePasResEval}
-  writeln('TResExprEvaluator.EvalPrimitiveExprString (',S,')');
+  //writeln('TResExprEvaluator.EvalPrimitiveExprString (',S,')');
   {$ENDIF}
   if S='' then
     RaiseInternalError(20170523113809);
@@ -3393,7 +3395,7 @@ begin
     end;
   until false;
   {$IFDEF VerbosePasResEval}
-  writeln('TResExprEvaluator.EvalPrimitiveExprString Result=',Result.AsString);
+  //writeln('TResExprEvaluator.EvalPrimitiveExprString Result=',Result.AsString);
   {$ENDIF}
 end;
 
@@ -3545,7 +3547,7 @@ var
 begin
   Result:=false;
   {$IFDEF VerbosePasResEval}
-  //writeln('TResExprEvaluator.IsInRange ExprValue=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
+  //writeln('TResExprEvaluator.IsInRange Value=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
   {$ENDIF}
   case RangeValue.Kind of
   revkRangeInt:
@@ -3675,8 +3677,16 @@ begin
         exit(true);
       end
     else
+      begin
+      {$IFDEF VerbosePasResEval}
+      writeln('TResExprEvaluator.IsInRange Value=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
+      {$ENDIF}
       RaiseNotYetImplemented(20170522171551,ValueExpr);
+      end;
   else
+    {$IFDEF VerbosePasResEval}
+    writeln('TResExprEvaluator.IsInRange Value=',dbgs(Value),' RangeValue=',dbgs(RangeValue));
+    {$ENDIF}
     RaiseNotYetImplemented(20170522171307,RangeExpr);
   end;
 end;

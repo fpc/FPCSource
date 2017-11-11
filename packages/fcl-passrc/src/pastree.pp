@@ -1334,7 +1334,7 @@ Type
     VariableName : TPasExpr;
     LoopType : TLoopType;
     StartExpr : TPasExpr;
-    EndExpr : TPasExpr;
+    EndExpr : TPasExpr; // if LoopType=ltIn this is nil
     Body: TPasImplElement;
     Variable: TPasVariable; // not used by TPasParser
     Function Down: boolean; // downto, backward compatibility

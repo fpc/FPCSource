@@ -155,15 +155,12 @@ Works:
   - arr[index]
 - resourcestrings
 - custom ranges
-  - enum: low(), high(), pred(), succ()
+  - enum: low(), high(), pred(), succ(), ord(), rg(int), int(rg), enum:=rg,
+    rg:=rg, rg1:=rg2, rg:=enum, =, <>, in
+    array[rg], low(array), high(array)
 
 ToDo:
-- typecast longint(value) -> (value+0) & $ffffffff
-- custom ranges
-  - enum: ord(), rg(int), int(rg), enum:=rg, rg:=enum, rg:=rg,
-     rgbig:=rgsmall, rgsmall:=rgbig
-     enum=rg, rg=enum, rg=rg, rg1=rg2
-     array[rg], low(array), high(array)
+- for..in..do
 - range checking:
   - indexedprop[param]
   - case-of unique
@@ -174,7 +171,6 @@ ToDo:
 - classes - TPasClassType
    - nested var, const
    - nested types
-- for..in..do
 - records - TPasRecordType,
    - const  TRecordValues
    - function default(record type): record
@@ -191,12 +187,12 @@ ToDo:
 - type helpers
 - record/class helpers
 - generics
+- futures
 - operator overload
 - attributes
 - anonymous functions
 - TPasFileType
 - labels
-- many more: search for "ToDo:"
 
 Debug flags: -d<x>
   VerbosePasResolver
@@ -1040,7 +1036,7 @@ type
     procedure FinishSetType(El: TPasSetType); virtual;
     procedure FinishSubElementType(Parent: TPasElement; El: TPasType); virtual;
     procedure FinishRangeType(El: TPasRangeType); virtual;
-    procedure FinishConstRangeExpr(Left, Right: TPasExpr;
+    procedure FinishConstRangeExpr(RangeExpr: TBinaryExpr;
       out LeftResolved, RightResolved: TPasResolverResult);
     procedure FinishRecordType(El: TPasRecordType); virtual;
     procedure FinishClassType(El: TPasClassType); virtual;
@@ -1093,7 +1089,7 @@ type
       ErrorEl: TPasElement; RaiseOnError: boolean): boolean;
     procedure CombineArrayLitElTypes(Left, Right: TPasExpr;
       var LHS: TPasResolverResult; const RHS: TPasResolverResult);
-    procedure ConvertRangeToFirstValue(var ResolvedEl: TPasResolverResult);
+    procedure ConvertRangeToElement(var ResolvedEl: TPasResolverResult);
     function IsCharLiteral(const Value: string; ErrorPos: TPasElement): TResolverBaseType; virtual;
     function CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc; Expr: TPasExpr;
       MinCount: integer; RaiseOnError: boolean): boolean;
@@ -1402,6 +1398,7 @@ type
     function GetRangeLength(RangeExpr: TPasExpr): MaxPrecInt;
     function EvalRangeLimit(RangeExpr: TPasExpr; Flags: TResEvalFlags;
       EvalLow: boolean; ErrorEl: TPasElement): TResEvalValue; virtual; // compute low() or high()
+    function EvalTypeRange(Decl: TPasType; Flags: TResEvalFlags): TResEvalValue; virtual; // compute low() and high()
     function HasTypeInfo(El: TPasType): boolean; virtual;
     function GetActualBaseType(bt: TResolverBaseType): TResolverBaseType; virtual;
     function GetCombinedBoolean(Bool1, Bool2: TResolverBaseType; ErrorEl: TPasElement): TResolverBaseType; virtual;
@@ -3385,8 +3382,8 @@ begin
   else if C=TPasRangeType then
     begin
     RangeExpr:=TPasRangeType(EnumType).RangeExpr;
-    if RangeExpr.Parent=El then
-      FinishConstRangeExpr(RangeExpr.left,RangeExpr.right,StartResolved,EndResolved);
+    if (RangeExpr.Parent=El) and (RangeExpr.CustomData=nil) then
+      FinishConstRangeExpr(RangeExpr,StartResolved,EndResolved);
     FinishSubElementType(El,EnumType);
     exit;
     end
@@ -3395,7 +3392,7 @@ begin
     if EnumType.CustomData is TResElDataBaseType then
       begin
       BaseTypeData:=TResElDataBaseType(EnumType.CustomData);
-      if BaseTypeData.BaseType in (btAllChars+[btBoolean]) then
+      if BaseTypeData.BaseType in (btAllChars+[btBoolean,btByte]) then
         exit;
       RaiseXExpectedButYFound(20170216151553,'char or boolean',EnumType.ElementTypeName,EnumType);
       end;
@@ -3439,19 +3436,24 @@ end;
 
 procedure TPasResolver.FinishRangeType(El: TPasRangeType);
 var
+  RangeExpr: TBinaryExpr;
   StartResolved, EndResolved: TPasResolverResult;
 begin
-  ResolveExpr(El.RangeExpr.left,rraRead);
-  ResolveExpr(El.RangeExpr.right,rraRead);
-  FinishConstRangeExpr(El.RangeExpr.left,El.RangeExpr.right,StartResolved,EndResolved);
+  RangeExpr:=El.RangeExpr;
+  ResolveExpr(RangeExpr.left,rraRead);
+  ResolveExpr(RangeExpr.right,rraRead);
+  FinishConstRangeExpr(RangeExpr,StartResolved,EndResolved);
 end;
 
-procedure TPasResolver.FinishConstRangeExpr(Left, Right: TPasExpr; out LeftResolved,
-  RightResolved: TPasResolverResult);
+procedure TPasResolver.FinishConstRangeExpr(RangeExpr: TBinaryExpr; out
+  LeftResolved, RightResolved: TPasResolverResult);
 // for example Left..Right
 var
   RgValue: TResEvalValue;
+  Left, Right: TPasExpr;
 begin
+  Left:=RangeExpr.left;
+  Right:=RangeExpr.right;
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.FinishConstRangeExpr Left=',GetObjName(Left),' Right=',GetObjName(Right));
   {$ENDIF}
@@ -3460,7 +3462,7 @@ begin
   ComputeElement(Right,RightResolved,[rcSkipTypeAlias,rcConstant]);
   CheckSetLitElCompatible(Left,Right,LeftResolved,RightResolved);
 
-  RgValue:=Eval(NoNil(Left.Parent) as TBinaryExpr,[refConst]);
+  RgValue:=Eval(RangeExpr,[refConst]);
   ReleaseEvalValue(RgValue);
 end;
 
@@ -3508,9 +3510,7 @@ begin
       else if RangeResolved.SubType=btContext then
         begin
         TypeEl:=ResolveAliasType(RangeResolved.TypeEl);
-        if TypeEl is TPasEnumType then
-          // enum range, e.g. enum1..enum2
-        else if TypeEl is TPasRangeType then
+        if TypeEl is TPasRangeType then
           // custom range
         else
           RaiseXExpectedButYFound(20171009193629,'range',RangeResolved.IdentEl.ElementTypeName,Expr);
@@ -4924,7 +4924,7 @@ begin
         ResolveExpr(OfExpr,rraRead);
         ComputeElement(OfExpr,OfExprResolved,[rcConstant,rcSetReferenceFlags]);
         if OfExprResolved.BaseType=btRange then
-          ConvertRangeToFirstValue(OfExprResolved);
+          ConvertRangeToElement(OfExprResolved);
         CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
         end;
       ResolveImplElement(Stat.Body);
@@ -4944,33 +4944,125 @@ end;
 
 procedure TPasResolver.ResolveImplForLoop(Loop: TPasImplForLoop);
 var
-  VarResolved, StartResolved, EndResolved: TPasResolverResult;
+  VarResolved, StartResolved, EndResolved,
+    OrigStartResolved: TPasResolverResult;
+  EnumeratorFound: Boolean;
+  InRange, VarRange: TResEvalValue;
+  InRangeInt, VarRangeInt: TResEvalRangeInt;
 begin
   // loop var
   ResolveExpr(Loop.VariableName,rraReadAndAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
   if ResolvedElCanBeVarParam(VarResolved)
       and ((VarResolved.BaseType in (btAllBooleans+btAllInteger+btAllChars))
-        or ((VarResolved.BaseType=btContext) and (VarResolved.TypeEl.ClassType=TPasEnumType))) then
+        or ((VarResolved.BaseType=btContext) and (VarResolved.TypeEl.ClassType=TPasEnumType)))
+        or (VarResolved.BaseType=btRange) then
   else
     RaiseMsg(20170216151955,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Loop.VariableName);
 
-  // start value
+  // resolve start expression
   ResolveExpr(Loop.StartExpr,rraRead);
   ComputeElement(Loop.StartExpr,StartResolved,[rcSetReferenceFlags]);
-  if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
-    RaiseIncompatibleTypeRes(20170216151958,nIncompatibleTypesGotExpected,
-      [],StartResolved,VarResolved,Loop.StartExpr);
-  CheckAssignExprRange(VarResolved,Loop.StartExpr);
 
-  // end value
-  ResolveExpr(Loop.EndExpr,rraRead);
-  ComputeElement(Loop.EndExpr,EndResolved,[rcSetReferenceFlags]);
-  if CheckAssignResCompatibility(VarResolved,EndResolved,Loop.EndExpr,false)=cIncompatible then
-    RaiseIncompatibleTypeRes(20170216152001,nIncompatibleTypesGotExpected,
-      [],EndResolved,VarResolved,Loop.EndExpr);
-  CheckAssignExprRange(VarResolved,Loop.EndExpr);
+  case Loop.LoopType of
+  ltNormal,ltDown:
+    begin
+    // start value
+    if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
+      RaiseIncompatibleTypeRes(20170216151958,nIncompatibleTypesGotExpected,
+        [],StartResolved,VarResolved,Loop.StartExpr);
+    CheckAssignExprRange(VarResolved,Loop.StartExpr);
 
+    // end value
+    ResolveExpr(Loop.EndExpr,rraRead);
+    ComputeElement(Loop.EndExpr,EndResolved,[rcSetReferenceFlags]);
+    if CheckAssignResCompatibility(VarResolved,EndResolved,Loop.EndExpr,false)=cIncompatible then
+      RaiseIncompatibleTypeRes(20170216152001,nIncompatibleTypesGotExpected,
+        [],EndResolved,VarResolved,Loop.EndExpr);
+    CheckAssignExprRange(VarResolved,Loop.EndExpr);
+    end;
+  ltIn:
+    begin
+    // check range
+    EnumeratorFound:=false;
+    VarRange:=EvalTypeRange(VarResolved.TypeEl,[]);
+    if VarRange=nil then
+      RaiseXExpectedButYFound(20171109191528,'range',
+                   GetResolverResultDescription(VarResolved),Loop.VariableName);
+    //writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
+    InRange:=nil;
+    try
+      OrigStartResolved:=StartResolved;
+      InRange:=EvalTypeRange(StartResolved.TypeEl,[]);
+      if InRange<>nil then
+        begin
+        //writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString,' ElType=',GetResolverResultDbg(StartResolved));
+        // check if same type
+        case InRange.Kind of
+        revkRangeInt:
+          begin
+          InRangeInt:=TResEvalRangeInt(InRange);
+          case VarRange.Kind of
+          revkRangeInt:
+            begin
+            VarRangeInt:=TResEvalRangeInt(VarRange);
+            case InRangeInt.ElKind of
+              revskEnum:
+                if (VarRangeInt.ElKind<>revskEnum)
+                    or not IsSameType(InRangeInt.ElType,VarRangeInt.ElType) then
+                  RaiseXExpectedButYFound(20171109200752,GetTypeDescription(InRangeInt.ElType),
+                    GetResolverResultDescription(VarResolved,true),loop.VariableName);
+              revskInt:
+                if VarRangeInt.ElKind<>revskInt then
+                  RaiseXExpectedButYFound(20171109200752,'integer',
+                    GetResolverResultDescription(VarResolved,true),loop.VariableName);
+              revskChar:
+                if VarRangeInt.ElKind<>revskChar then
+                  RaiseXExpectedButYFound(20171109200753,'char',
+                    GetResolverResultDescription(VarResolved,true),loop.VariableName);
+              revskBool:
+                if VarRangeInt.ElKind<>revskBool then
+                  RaiseXExpectedButYFound(20171109200754,'boolean',
+                    GetResolverResultDescription(VarResolved,true),loop.VariableName);
+            else
+              RaiseNotYetImplemented(20171109200954,Loop.StartExpr);
+            end;
+            if (VarRangeInt.RangeStart>InRangeInt.RangeStart) then
+              fExprEvaluator.EmitRangeCheckConst(20171109201428,
+                InRangeInt.ElementAsString(InRangeInt.RangeStart),
+                VarRangeInt.ElementAsString(VarRangeInt.RangeStart),
+                VarRangeInt.ElementAsString(VarRangeInt.RangeEnd),Loop.VariableName,mtError);
+            if (VarRangeInt.RangeEnd<InRangeInt.RangeEnd) then
+              fExprEvaluator.EmitRangeCheckConst(20171109201429,
+                InRangeInt.ElementAsString(InRangeInt.RangeEnd),
+                VarRangeInt.ElementAsString(VarRangeInt.RangeStart),
+                VarRangeInt.ElementAsString(VarRangeInt.RangeEnd),Loop.VariableName,mtError);
+            EnumeratorFound:=true;
+            end;
+          else
+            {$IFDEF VerbosePasResolver}
+            writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
+            {$ENDIF}
+          end;
+          end;
+        else
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.ResolveImplForLoop ForIn RangeValue=',InRange.AsDebugString);
+          {$ENDIF}
+        end;
+        end;
+    finally
+      ReleaseEvalValue(VarRange);
+      ReleaseEvalValue(InRange);
+    end;
+
+    if not EnumeratorFound then
+      RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
+        [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);
+    end;
+  else
+    RaiseNotYetImplemented(20171108221334,Loop);
+  end;
   ResolveImplElement(Loop.Body);
 end;
 
@@ -6494,7 +6586,7 @@ procedure TPasResolver.ComputeBinaryExpr(Bin: TBinaryExpr; out
   end;
 
 var
-  LeftResolved, RightResolved: TPasResolverResult;
+  LeftResolved, RightResolved, ElTypeResolved: TPasResolverResult;
   LeftTypeEl, RightTypeEl: TPasType;
 begin
   if (Bin.OpCode=eopSubIdent)
@@ -6517,6 +6609,11 @@ begin
   ComputeElement(Bin.left,LeftResolved,Flags-[rcNoImplicitProc],StartEl);
   ComputeElement(Bin.right,RightResolved,Flags-[rcNoImplicitProc],StartEl);
   // ToDo: check operator overloading
+
+  if LeftResolved.BaseType=btRange then
+    ConvertRangeToElement(LeftResolved);
+  if RightResolved.BaseType=btRange then
+    ConvertRangeToElement(RightResolved);
 
   //writeln('TPasResolver.ComputeBinaryExpr ',OpcodeStrings[Bin.OpCode],' Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
 
@@ -6793,7 +6890,14 @@ begin
           begin
           if (RightResolved.BaseType<>btSet) then
             RaiseXExpectedButYFound(20170216152615,'set of '+LeftResolved.TypeEl.Name,LeftResolved.TypeEl.ElementTypeName,Bin.right);
-          if LeftResolved.TypeEl<>RightResolved.TypeEl then
+          if LeftResolved.TypeEl=RightResolved.TypeEl then
+          else if RightResolved.TypeEl.ClassType=TPasRangeType then
+            begin
+            ComputeElement(TPasRangeType(RightResolved.TypeEl).RangeExpr.left,ElTypeResolved,[rcConstant]);
+            if LeftResolved.TypeEl<>ElTypeResolved.TypeEl then
+              RaiseXExpectedButYFound(20171109215833,'set of '+LeftResolved.TypeEl.Name,'set of '+RightResolved.TypeEl.Name,Bin.right);
+            end
+          else
             RaiseXExpectedButYFound(20170216152618,'set of '+LeftResolved.TypeEl.Name,'set of '+RightResolved.TypeEl.Name,Bin.right);
           SetBaseType(btBoolean);
           exit;
@@ -7291,7 +7395,7 @@ begin
         RaiseNotYetImplemented(20170420134325,Param,'nested array literals');
       IsRange:=ParamResolved.BaseType=btRange;
       if IsRange then
-        ConvertRangeToFirstValue(ParamResolved);
+        ConvertRangeToElement(ParamResolved);
       if FirstResolved.BaseType=btNone then
         begin
         // first value -> check type usable in a set
@@ -7587,7 +7691,7 @@ begin
     [],RHS,LHS,Right);
 end;
 
-procedure TPasResolver.ConvertRangeToFirstValue(
+procedure TPasResolver.ConvertRangeToElement(
   var ResolvedEl: TPasResolverResult);
 var
   TypeEl: TPasType;
@@ -7612,7 +7716,7 @@ end;
 function TPasResolver.IsCharLiteral(const Value: string; ErrorPos: TPasElement
   ): TResolverBaseType;
 // returns true if Value is a Pascal char literal
-// btChar: #65, #$50, ^G, 'a'
+// btAnsiChar: #65, #$50, ^G, 'a'
 // btWideChar: #10000, 'ä'
 var
   p: PChar;
@@ -7629,10 +7733,10 @@ begin
     case p^ of
     '''':
       if (p[1]='''') and (p[2]='''') and (p[3]=#0) then
-        Result:=btChar;
+        Result:=btAnsiChar;
     #32..#38,#40..#191:
       if (p[1]='''') and (p[2]=#0) then
-        Result:=btChar;
+        Result:=btAnsiChar;
     #192..#255:
       if BaseTypeChar=btWideChar then
         begin
@@ -7671,7 +7775,7 @@ begin
     until false;
     if p^=#0 then
       if i<256 then
-        Result:=btChar
+        Result:=btAnsiChar
       else
         Result:=btWideChar;
     end;
@@ -7679,9 +7783,21 @@ begin
     begin
     inc(p);
     if (p^ in ['a'..'z','A'..'Z']) and (p[1]=#0) then
-      exit(btChar);
+      Result:=btAnsiChar;
     end;
   end;
+  if Result in [btAnsiChar,btWideChar] then
+    begin
+    if FBaseTypes[Result]=nil then
+      begin
+      if Result=btAnsiChar then
+        Result:=btWideChar
+      else
+        Result:=btChar;
+      end;
+    if Result=BaseTypeChar then
+      Result:=btChar;
+    end;
 end;
 
 function TPasResolver.CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc;
@@ -7738,7 +7854,6 @@ var
   Ref: TResolvedReference;
   Decl: TPasElement;
   C: TClass;
-  BaseTypeData: TResElDataBaseType;
   ResolvedType: TPasResolverResult;
   EnumValue: TPasEnumValue;
   EnumType: TPasEnumType;
@@ -7805,70 +7920,7 @@ begin
     exit;
     end
   else if C.InheritsFrom(TPasType) then
-    begin
-    Decl:=ResolveAliasType(TPasType(Decl));
-    C:=Decl.ClassType;
-    if C=TPasRangeType then
-      begin
-      Result:=fExprEvaluator.Eval(TPasRangeType(Decl).RangeExpr,Flags);
-      if Result<>nil then
-        begin
-        Result.IdentEl:=Ref.Declaration;
-        exit;
-        end;
-      end
-    else if C=TPasEnumType then
-      begin
-      Result:=TResEvalRangeInt.CreateValue(revskEnum,TPasEnumType(Decl),
-                                           0,TPasEnumType(Decl).Values.Count-1);
-      Result.IdentEl:=Decl;
-      exit;
-      end
-    else if C=TPasUnresolvedSymbolRef then
-      begin
-      if (Decl.CustomData is TResElDataBaseType) then
-        begin
-        BaseTypeData:=TResElDataBaseType(Decl.CustomData);
-        case BaseTypeData.BaseType of
-        btChar:
-          begin
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revskChar;
-          TResEvalRangeInt(Result).RangeStart:=0;
-          if BaseTypeChar in [btChar,btAnsiChar] then
-            TResEvalRangeInt(Result).RangeEnd:=$ff
-          else
-            TResEvalRangeInt(Result).RangeEnd:=$ffff;
-          end;
-        btAnsiChar:
-          Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
-        btWideChar:
-          Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
-        btBoolean,btByteBool,btWordBool,btQWordBool:
-          Result:=TResEvalRangeInt.CreateValue(revskBool,nil,0,1);
-        btByte,
-        btShortInt,
-        btWord,
-        btSmallInt,
-        btLongWord,
-        btLongint,
-        btInt64,
-        btComp,
-        btIntSingle,
-        btUIntSingle,
-        btIntDouble,
-        btUIntDouble:
-          begin
-          Result:=TResEvalRangeInt.Create;
-          TResEvalRangeInt(Result).ElKind:=revskInt;
-          GetIntegerRange(BaseTypeData.BaseType,
-            TResEvalRangeInt(Result).RangeStart,TResEvalRangeInt(Result).RangeEnd);
-          exit;
-          end;
-        end;
-        end;
-      end;
-    end;
+    Result:=EvalTypeRange(TPasType(Decl),Flags);
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.OnExprEvalIdentifier END Result=',dbgs(Result),' refConst=',refConst in Flags);
   {$ENDIF}
@@ -8664,7 +8716,8 @@ function TPasResolver.BI_Ord_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
 var
   Params: TParamsExpr;
   Param: TPasExpr;
-  ParamResolved: TPasResolverResult;
+  ParamResolved, ResolvedEl: TPasResolverResult;
+  TypeEl: TPasType;
 begin
   if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
     exit(cIncompatible);
@@ -8679,7 +8732,22 @@ begin
     if ParamResolved.BaseType in (btAllBooleans+btAllChars) then
       Result:=cExact
     else if (ParamResolved.BaseType=btContext) and (ParamResolved.TypeEl is TPasEnumType) then
-      Result:=cExact;
+      Result:=cExact
+    else if ParamResolved.BaseType=btRange then
+      begin
+      if ParamResolved.SubType in btAllBooleans+btAllChars then
+        Result:=cExact
+      else if ParamResolved.SubType=btContext then
+        begin
+        TypeEl:=ResolveAliasType(ParamResolved.TypeEl);
+        if TypeEl.ClassType=TPasRangeType then
+          begin
+          ComputeElement(TPasRangeType(TypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+          if ResolvedEl.TypeEl.ClassType=TPasEnumType then
+            exit(cExact);
+          end;
+        end;
+      end;
     end;
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20170216152334,1,Param,ParamResolved,'enum or char',RaiseOnError));
@@ -8777,7 +8845,7 @@ begin
         begin
         ComputeElement(ArrayEl.Ranges[0],ResolvedEl,[rcConstant]);
         if ResolvedEl.BaseType=btRange then
-          ConvertRangeToFirstValue(ResolvedEl);
+          ConvertRangeToElement(ResolvedEl);
         end;
       end
     else if TypeEl.ClassType=TPasSetType then
@@ -10366,6 +10434,10 @@ end;
 procedure TPasResolver.AddResolveData(El: TPasElement; Data: TResolveData;
   Kind: TResolveDataListKind);
 begin
+  if Data.Element<>nil then
+    RaiseInternalError(20171111162227);
+  if El.CustomData<>nil then
+    RaiseInternalError(20171111162236);
   Data.Element:=El;
   Data.Owner:=Self;
   Data.Next:=FLastCreatedData[Kind];
@@ -10982,7 +11054,7 @@ var
 
 var
   DimNo: integer;
-  RangeResolved: TPasResolverResult;
+  RangeResolved, OrigRangeResolved, OrigParamResolved: TPasResolverResult;
   bt: TResolverBaseType;
   NextType, TypeEl: TPasType;
   RangeExpr: TPasExpr;
@@ -11022,8 +11094,6 @@ begin
         RangeExpr:=ArrayEl.Ranges[DimNo];
         ComputeElement(RangeExpr,RangeResolved,[]);
         bt:=RangeResolved.BaseType;
-        if bt=btRange then
-          bt:=RangeResolved.SubType;
         if not (rrfReadable in ParamResolved.Flags) then
           begin
           if not RaiseOnError then exit(cIncompatible);
@@ -11031,25 +11101,50 @@ begin
             [IntToStr(ArgNo)],ParamResolved,RangeResolved,Param);
           end;
         TypeFits:=false;
-        if (bt in btAllBooleans) and (ParamResolved.BaseType in btAllBooleans) then
-          TypeFits:=true
-        else if (bt in btAllInteger) and (ParamResolved.BaseType in btAllInteger) then
-          TypeFits:=true
-        else if (bt in btAllChars) and (ParamResolved.BaseType in btAllChars) then
-          TypeFits:=true
-        else if (bt=btContext) and (ParamResolved.BaseType=btContext) then
+        OrigRangeResolved:=RangeResolved;
+        OrigParamResolved:=ParamResolved;
+
+        if bt=btRange then
+          begin
+          ConvertRangeToElement(RangeResolved);
+          bt:=RangeResolved.BaseType;
+          end;
+        if ParamResolved.BaseType=btRange then
+          begin
+          ConvertRangeToElement(ParamResolved);
+          end;
+
+        if (bt in btAllBooleans) then
+          begin
+          if (ParamResolved.BaseType in btAllBooleans) then
+            TypeFits:=true;
+          end
+        else if (bt in btAllInteger) then
+          begin
+          if (ParamResolved.BaseType in btAllInteger) then
+            TypeFits:=true;
+          end
+        else if (bt in btAllChars) then
+          begin
+          if (ParamResolved.BaseType in btAllChars) then
+            TypeFits:=true;
+          end
+        else if (bt=btContext) then
           begin
           TypeEl:=ResolveAliasType(RangeResolved.TypeEl);
-          if (TypeEl.ClassType=TPasEnumType)
-              and IsSameType(TypeEl,ParamResolved.TypeEl,true) then
-            TypeFits:=true;
+          if ParamResolved.BaseType=btContext then
+            begin
+            if (TypeEl.ClassType=TPasEnumType)
+                and IsSameType(TypeEl,ParamResolved.TypeEl,true) then
+              TypeFits:=true;
+            end;
           end;
         if not TypeFits then
           begin
           // incompatible
           if not RaiseOnError then exit(cIncompatible);
           RaiseIncompatibleTypeRes(20170216152422,nIncompatibleTypeArgNo,
-            [IntToStr(ArgNo)],ParamResolved,RangeResolved,Param);
+            [IntToStr(ArgNo)],OrigParamResolved,OrigRangeResolved,Param);
           end;
         if EmitHints then
           fExprEvaluator.IsInRange(Param,RangeExpr,true);
@@ -11344,7 +11439,7 @@ begin
       if C=TPasRangeType then
         begin
         RangeExpr:=TPasRangeType(LTypeEl).RangeExpr;
-        LRangeValue:=Eval(RangeExpr,[],false);
+        LRangeValue:=Eval(RangeExpr,[refConst],false);
         end
       else if C=TPasEnumType then
         begin
@@ -11380,7 +11475,7 @@ begin
     else if LTypeEl is TPasRangeType then
       begin
       RangeExpr:=TPasRangeType(LTypeEl).RangeExpr;
-      LRangeValue:=Eval(RangeExpr,[],false);
+      LRangeValue:=Eval(RangeExpr,[refConst]);
       if LeftResolved.BaseType=btSet then
         fExprEvaluator.IsSetCompatible(RValue,RHS,LRangeValue,true)
       else
@@ -11531,8 +11626,9 @@ var
   Handled: Boolean;
   C: TClass;
   LBT, RBT: TResolverBaseType;
-  LRange: TResEvalValue;
+  LRange, RValue: TResEvalValue;
   RightSubResolved: TPasResolverResult;
+  wc: WideChar;
 begin
   // check if the RHS can be converted to LHS
   {$IFDEF VerbosePasResolver}
@@ -11569,18 +11665,68 @@ begin
     else if (LBT in btAllBooleans)
         and (RBT in btAllBooleans) then
       Result:=cCompatible
-    else if (LBT in btAllChars)
-        and (RBT in btAllChars) then
-      case LBT of
-      btAnsiChar:
-        Result:=cLossyConversion;
-      btWideChar:
-        if RBT=btAnsiChar then
-          Result:=cCompatible
-        else
+    else if (LBT in btAllChars) then
+      begin
+      if (RBT in btAllChars) then
+        case LBT of
+        btAnsiChar:
           Result:=cLossyConversion;
-      else
-        RaiseNotYetImplemented(20170728132440,ErrorEl,BaseTypeNames[LBT]);
+        btWideChar:
+          if RBT=btAnsiChar then
+            Result:=cCompatible
+          else
+            Result:=cLossyConversion;
+        else
+          RaiseNotYetImplemented(20170728132440,ErrorEl,BaseTypeNames[LBT]);
+        end
+      else if (RBT=btRange) and (RHS.SubType in btAllChars) then
+        begin
+        if LBT=btWideChar then
+          exit(cCompatible);
+        // LHS is ansichar
+        if GetActualBaseType(RHS.SubType)=btAnsiChar then
+          exit(cExact);
+        RValue:=Eval(RHS,[refAutoConst]);
+        if RValue<>nil then
+          try
+            // ansichar:=constvalue
+            case RValue.Kind of
+            revkString:
+              if not ExprEvaluator.GetWideChar(TResEvalString(RValue).S,wc) then
+                exit(cIncompatible);
+            revkUnicodeString:
+              begin
+              if length(TResEvalUTF16(RValue).S)<>1 then
+                exit(cIncompatible);
+              wc:=TResEvalUTF16(RValue).S[1];
+              end;
+            else
+              RaiseNotYetImplemented(20171108194650,ErrorEl);
+            end;
+            if ord(wc)>255 then
+              exit(cIncompatible);
+            exit(cCompatible);
+          finally
+            ReleaseEvalValue(RValue);
+          end;
+        // LHS is ansichar, RHS is not a const
+        if (RHS.ExprEl is TBinaryExpr) and (TBinaryExpr(RHS.ExprEl).Kind=pekRange) then
+          begin
+          RValue:=Eval(RHS.ExprEl,[refConst]);
+          try
+            if RValue.Kind<>revkRangeInt then
+              RaiseNotYetImplemented(20171108195035,ErrorEl);
+            if TResEvalRangeInt(RValue).RangeStart>255 then
+              exit(cIncompatible);
+            if TResEvalRangeInt(RValue).RangeEnd>255 then
+              exit(cLossyConversion);
+            exit(cCompatible);
+          finally
+            ReleaseEvalValue(RValue);
+          end;
+          end;
+        RaiseNotYetImplemented(20171108195216,ErrorEl);
+        end;
       end
     else if (LBT in btAllStrings)
         and (RBT in btAllStringAndChars) then
@@ -11684,6 +11830,7 @@ begin
       if (LHS.ExprEl is TBinaryExpr) and (TBinaryExpr(LHS.ExprEl).Kind=pekRange) then
         begin
         LRange:=Eval(LHS.ExprEl,[refConst]);
+        RValue:=nil;
         try
           {$IFDEF VerbosePasResolver}
           //writeln('TPasResolver.CheckAssignResCompatibility LeftRange=',LRange.AsDebugString);
@@ -11700,17 +11847,60 @@ begin
                   {$IFDEF VerbosePasResolver}
                   writeln('TPasResolver.CheckAssignResCompatibility LeftRange=',LRange.AsDebugString,' Left.ElType=',GetObjName(TResEvalRangeInt(LRange).ElType),' RHS.TypeEl=',GetObjName(RHS.TypeEl));
                   {$ENDIF}
-                  // ToDo: check if LRange of RHS is bigger than LRange of LHS (cLossyConversion)
+                  // ToDo: check if LRange is smaller than Range of RHS (cLossyConversion)
                   exit(cExact);
                   end;
                 end;
-            //revskInt: ;
-            //revskChar: ;
-            //revskBool: ;
+            revskInt:
+              if RHS.BaseType in btAllInteger then
+                begin
+                RValue:=Eval(RHS,[refAutoConst]);
+                if RValue<>nil then
+                  begin
+                  // ToDo: check range
+                  end;
+                exit(cCompatible);
+                end;
+            revskChar:
+              if RHS.BaseType in btAllStringAndChars then
+                begin
+                RValue:=Eval(RHS,[refAutoConst]);
+                if RValue<>nil then
+                  begin
+                  case RValue.Kind of
+                  revkString:
+                    if not fExprEvaluator.GetWideChar(TResEvalString(RValue).S,wc) then
+                      exit(cIncompatible);
+                  revkUnicodeString:
+                    begin
+                    if length(TResEvalUTF16(RValue).S)<>1 then
+                      exit(cIncompatible);
+                    wc:=TResEvalUTF16(RValue).S[1];
+                    end;
+                  else
+                    RaiseNotYetImplemented(20171108192232,ErrorEl);
+                  end;
+                  if (ord(wc)<TResEvalRangeInt(LRange).RangeStart)
+                      or (ord(wc)>TResEvalRangeInt(LRange).RangeEnd) then
+                    exit(cIncompatible);
+                  end;
+                exit(cCompatible);
+                end;
+            revskBool:
+              if RHS.BaseType=btBoolean then
+                begin
+                RValue:=Eval(RHS,[refAutoConst]);
+                if RValue<>nil then
+                  begin
+                  // ToDo: check range
+                  end;
+                exit(cCompatible);
+                end;
             end;
           end;
         finally
           ReleaseEvalValue(LRange);
+          ReleaseEvalValue(RValue);
         end;
         end;
       end
@@ -11741,19 +11931,6 @@ begin
             or IsDynArray(TypeEl) then
           Result:=cExact;
         end;
-      end
-    else if (LBT=btSet) and (RBT=btSet) then
-      begin
-      if RHS.TypeEl=nil then
-        Result:=cExact // empty set
-      else if (LHS.SubType=RHS.SubType) and (LHS.SubType in (btAllBooleans+btAllInteger+btAllChars)) then
-        Result:=cExact
-      else if ((LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans))
-          or ((LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger)) then
-        Result:=cCompatible
-      else if (LHS.SubType=btContext) and (LHS.TypeEl is TPasEnumType)
-          and (LHS.TypeEl=RHS.TypeEl) then
-        Result:=cExact;
       end
     else if RBT=btProc then
       begin
@@ -11912,7 +12089,8 @@ function TPasResolver.CheckEqualResCompatibility(const LHS,
   RHS: TPasResolverResult; LErrorEl: TPasElement; RaiseOnIncompatible: boolean;
   RErrorEl: TPasElement): integer;
 var
-  TypeEl: TPasType;
+  TypeEl, RTypeEl: TPasType;
+  ResolvedEl: TPasResolverResult;
 begin
   Result:=cIncompatible;
   if RErrorEl=nil then RErrorEl:=LErrorEl;
@@ -11964,15 +12142,32 @@ begin
     else
       exit(cExact); // same base type, maybe not same type name (e.g. longint and integer)
     end
-  else if (LHS.BaseType in btAllInteger+btAllFloats)
-      and (RHS.BaseType in btAllInteger+btAllFloats) then
-    exit(cCompatible)
-  else if (LHS.BaseType in btAllBooleans)
-      and (RHS.BaseType in btAllBooleans) then
-    exit(cCompatible)
-  else if (LHS.BaseType in btAllStringAndChars)
-      and (RHS.BaseType in btAllStringAndChars) then
-    exit(cCompatible)
+  else if LHS.BaseType in btAllInteger then
+    begin
+    if RHS.BaseType in btAllInteger+btAllFloats then
+      exit(cCompatible)
+    else if (RHS.BaseType=btRange) and (RHS.SubType in btAllInteger) then
+      exit(cCompatible);
+    end
+  else if LHS.BaseType in btAllFloats then
+    begin
+    if RHS.BaseType in btAllInteger+btAllFloats then
+      exit(cCompatible);
+    end
+  else if LHS.BaseType in btAllBooleans then
+    begin
+    if RHS.BaseType in btAllBooleans then
+      exit(cCompatible)
+    else if (RHS.BaseType=btRange) and (RHS.SubType in btAllBooleans) then
+      exit(cCompatible);
+    end
+  else if LHS.BaseType in btAllStringAndChars then
+    begin
+    if RHS.BaseType in btAllStringAndChars then
+      exit(cCompatible)
+    else if (RHS.BaseType=btRange) and (RHS.SubType in btAllChars) then
+      exit(cCompatible);
+    end
   else if LHS.BaseType=btNil then
     begin
       if RHS.BaseType in [btPointer,btNil] then
@@ -12035,12 +12230,78 @@ begin
         exit(cIncompatible);
       end;
     end
-  else if RaiseOnIncompatible then
+  else if LHS.BaseType=btRange then
+    begin
+    if LHS.SubType in btAllInteger then
+      begin
+      // e.g. 2..4
+      if RHS.BaseType in btAllInteger then
+        exit(cCompatible)
+      else if (RHS.BaseType=btRange) and (RHS.SubType in btAllInteger) then
+        exit(cCompatible);
+      end
+    else if LHS.SubType in btAllBooleans then
+      begin
+      if RHS.BaseType in btAllBooleans then
+        exit(cCompatible)
+      else if (RHS.BaseType=btRange) and (RHS.SubType in btAllBooleans) then
+        exit(cCompatible);
+      end
+    else if LHS.SubType in btAllChars then
+      begin
+      if RHS.BaseType in btAllStringAndChars then
+        exit(cCompatible)
+      else if (RHS.BaseType=btRange) and (RHS.SubType in btAllChars) then
+        exit(cCompatible);
+      end
+    else if LHS.SubType=btContext then
+      begin
+      TypeEl:=ResolveAliasType(LHS.TypeEl);
+      if TypeEl.ClassType=TPasRangeType then
+        begin
+        ComputeElement(TPasRangeType(TypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+        if ResolvedEl.BaseType=btContext then
+          begin
+          TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
+          if TypeEl.ClassType=TPasEnumType then
+            begin
+            if RHS.BaseType=btContext then
+              begin
+              RTypeEl:=ResolveAliasType(RHS.TypeEl);
+              if (TypeEl=RTypeEl) then
+                exit(cCompatible);
+              end;
+            end;
+          end;
+        end;
+      end;
+    end
+  else if LHS.BaseType=btContext then
+    begin
+    TypeEl:=ResolveAliasType(LHS.TypeEl);
+    if TypeEl.ClassType=TPasEnumType then
+      begin
+      if RHS.BaseType=btRange then
+        begin
+        RTypeEl:=ResolveAliasType(RHS.TypeEl);
+        if RTypeEl.ClassType=TPasRangeType then
+          begin
+          ComputeElement(TPasRangeType(RTypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+          if ResolvedEl.BaseType=btContext then
+            begin
+            RTypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
+            if TypeEl=RTypeEl then
+              exit(cCompatible);
+            end;
+          end;
+        end;
+      end;
+    end;
+  if RaiseOnIncompatible then
     RaiseIncompatibleTypeRes(20170216152449,nIncompatibleTypesGotExpected,
       [],RHS,LHS,RErrorEl)
   else
     exit(cIncompatible);
-  RaiseNotYetImplemented(20161007101041,LErrorEl,'LHS='+GetResolverResultDbg(LHS)+' RHS='+GetResolverResultDbg(RHS));
 end;
 
 function TPasResolver.ResolvedElCanBeVarParam(
@@ -12754,7 +13015,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
         if RaiseOnIncompatible then
           begin
           {$IFDEF VerbosePasResolver}
-          writeln('CheckRange Values=',GetResolverResultDbg(Values));
+          writeln('CheckRange Values=',GetResolverResultDbg(Values),' ElTypeResolved=',GetResolverResultDbg(ElTypeResolved));
           {$ENDIF}
           RaiseMsg(20170913103143,nExpectXArrayElementsButFoundY,sExpectXArrayElementsButFoundY,
             [IntToStr(Count),'1'],ErrorEl);
@@ -13009,16 +13270,16 @@ begin
           Result:=cExact
         else if ToTypeBaseType in btAllInteger then
           begin
-          if FromResolved.BaseType in btAllInteger then
-            Result:=cCompatible
-          else if FromResolved.BaseType in btAllBooleans then
+          if FromResolved.BaseType in btAllInteger+btAllBooleans then
             Result:=cCompatible
           else if FromResolved.BaseType=btContext then
             begin
             if FromResolved.TypeEl.ClassType=TPasEnumType then
               // e.g. longint(TEnum)
               Result:=cCompatible;
-            end;
+            end
+          else if FromResolved.BaseType=btRange then
+            exit(cCompatible);
           end
         else if ToTypeBaseType in btAllFloats then
           begin
@@ -13684,7 +13945,10 @@ begin
     begin
     ComputeElement(TPasSetType(El).EnumType,ResolvedEl,[rcConstant],StartEl);
     if ResolvedEl.BaseType=btRange then
-      ConvertRangeToFirstValue(ResolvedEl);
+      begin
+      ConvertRangeToElement(ResolvedEl);
+      ResolvedEl.TypeEl:=TPasSetType(El).EnumType;
+      end;
     ResolvedEl.SubType:=ResolvedEl.BaseType;
     ResolvedEl.BaseType:=btSet;
     ResolvedEl.IdentEl:=El;
@@ -13745,14 +14009,17 @@ begin
   Result:=fExprEvaluator.Eval(Expr,Flags);
   if Result=nil then exit;
   {$IFDEF VerbosePasResEval}
-  writeln('TPasResolver.Eval Result=',Result.AsDebugString);
+  writeln('TPasResolver.Eval Expr=',GetObjName(Expr),' Result=',Result.AsDebugString);
   {$ENDIF}
 
   if Store
       and (Expr.CustomData=nil)
       and (Result.Element=nil)
       and (not fExprEvaluator.IsSimpleExpr(Expr)) then
+    begin
+    //writeln('TPasResolver.Eval STORE Expr=',GetObjName(Expr),' Result=',Result.AsDebugString);
     AddResolveData(Expr,Result,lkModule);
+    end;
 end;
 
 function TPasResolver.Eval(const Value: TPasResolverResult;
@@ -13763,7 +14030,7 @@ begin
   Result:=nil;
   if Value.ExprEl<>nil then
     Result:=Eval(Value.ExprEl,Flags,Store)
-  else if Value.IdentEl is TPasVariable then
+  else if Value.IdentEl is TPasConst then
     begin
     Expr:=TPasVariable(Value.IdentEl).Expr;
     if Expr=nil then exit;
@@ -14197,6 +14464,77 @@ begin
   else
     RaiseNotYetImplemented(20170601195336,ErrorEl);
   end;
+end;
+
+function TPasResolver.EvalTypeRange(Decl: TPasType; Flags: TResEvalFlags
+  ): TResEvalValue;
+var
+  C: TClass;
+  BaseTypeData: TResElDataBaseType;
+begin
+  Result:=nil;
+  Decl:=ResolveAliasType(Decl);
+  C:=Decl.ClassType;
+  if C=TPasRangeType then
+    begin
+    Result:=fExprEvaluator.Eval(TPasRangeType(Decl).RangeExpr,Flags);
+    if (Result<>nil) and (Result.IdentEl=nil) then
+      begin
+      Result.IdentEl:=Decl;
+      exit;
+      end;
+    end
+  else if C=TPasEnumType then
+    begin
+    Result:=TResEvalRangeInt.CreateValue(revskEnum,TPasEnumType(Decl),
+                                         0,TPasEnumType(Decl).Values.Count-1);
+    Result.IdentEl:=Decl;
+    exit;
+    end
+  else if C=TPasUnresolvedSymbolRef then
+    begin
+    if (Decl.CustomData is TResElDataBaseType) then
+      begin
+      BaseTypeData:=TResElDataBaseType(Decl.CustomData);
+      case BaseTypeData.BaseType of
+      btChar:
+        begin
+        Result:=TResEvalRangeInt.Create;
+        TResEvalRangeInt(Result).ElKind:=revskChar;
+        TResEvalRangeInt(Result).RangeStart:=0;
+        if BaseTypeChar in [btChar,btAnsiChar] then
+          TResEvalRangeInt(Result).RangeEnd:=$ff
+        else
+          TResEvalRangeInt(Result).RangeEnd:=$ffff;
+        end;
+      btAnsiChar:
+        Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff);
+      btWideChar:
+        Result:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
+      btBoolean,btByteBool,btWordBool,btQWordBool:
+        Result:=TResEvalRangeInt.CreateValue(revskBool,nil,0,1);
+      btByte,
+      btShortInt,
+      btWord,
+      btSmallInt,
+      btLongWord,
+      btLongint,
+      btInt64,
+      btComp,
+      btIntSingle,
+      btUIntSingle,
+      btIntDouble,
+      btUIntDouble:
+        begin
+        Result:=TResEvalRangeInt.Create;
+        TResEvalRangeInt(Result).ElKind:=revskInt;
+        GetIntegerRange(BaseTypeData.BaseType,
+          TResEvalRangeInt(Result).RangeStart,TResEvalRangeInt(Result).RangeEnd);
+        exit;
+        end;
+      end;
+      end;
+    end;
 end;
 
 function TPasResolver.HasTypeInfo(El: TPasType): boolean;
