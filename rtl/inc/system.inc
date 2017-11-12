@@ -1332,6 +1332,11 @@ End;
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
@@ -1354,6 +1359,7 @@ begin
   p[high(s)+1+Reserveentries]:=nil;
   ArrayStringToPPchar:=p;
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;

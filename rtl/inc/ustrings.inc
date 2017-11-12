@@ -642,7 +642,7 @@ var
 begin
 {$ifndef FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
-{$endif FPC_HAS_CPSTRING}     
+{$endif FPC_HAS_CPSTRING}
   cp:=TranslatePlaceholderCP(cp);
   widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, cp, 1);
 end;
@@ -1690,6 +1690,11 @@ function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): Si
 
 
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
   var
     i,j : SizeUInt;
     lw : longword;
@@ -1782,6 +1787,7 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
       end;
     result:=j+1;
   end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1794,6 +1800,11 @@ function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): Si
 
 
 function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
   const
     UNICODE_INVALID=63;
   var
@@ -2072,6 +2083,7 @@ function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar
         Result:=OutputUnicode+1;
       end;
   end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 function UTF8Encode(const s : RawByteString) : RawByteString; inline;
@@ -2378,7 +2390,7 @@ begin
   Result := UTF8Decode(S);
 end;
 
-function UTF8ToString(const S: ShortString): UnicodeString; 
+function UTF8ToString(const S: ShortString): UnicodeString;
 Var
   rs: RawByteString;
 begin
