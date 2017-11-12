@@ -993,7 +993,12 @@ begin
     AllowCompact:=TJSBinaryExpression(El).AllowCompact;
     end;
   If Not (AllowCompact and (woCompact in Options)) then
-    S:=' '+S+' ';
+    begin
+    if El is TJSCommaExpression then
+      S:=S+' '
+    else
+      S:=' '+S+' ';
+    end;
   Write(S);
   WriteJS(El.B);
   Writer.CurElement:=El;
@@ -1449,6 +1454,7 @@ procedure TJSWriter.WriteVariableStatement(El: TJSVariableStatement);
 
 begin
   Write('var ');
+  FSkipRoundBrackets:=true;
   WriteJS(El.A);
 end;
 
