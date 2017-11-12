@@ -420,7 +420,7 @@ CPU_UNITS=at90usb1287 atmega1284 atmega1281 atmega128rfa1 atmega1284p at90can128
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr6)
-CPU_UNITS=atmega2561 atmega2560
+CPU_UNITS=atmega2561 atmega2560 avrsim
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)

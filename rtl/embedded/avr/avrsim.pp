@@ -80,4 +80,3 @@ begin
   OpenIO(StdOut, @WriteChar, @ReadChar, fmOutput, nil);
   OpenIO(StdErr, @WriteChar, @ReadChar, fmOutput, nil);
 end.
-
