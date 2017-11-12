@@ -57,7 +57,7 @@ type
     procedure TestEmptyUnit;
     procedure TestIf;
     procedure TestIfBegin;
-    procedure TestFor;
+    procedure TestForConstRange;
     procedure TestFunction;
     procedure TestExternalObjCall;
     procedure TestBracketAccessor;
@@ -374,24 +374,22 @@ begin
   '});']);
 end;
 
-procedure TTestSrcMap.TestFor;
+procedure TTestSrcMap.TestForConstRange;
 begin
   StartProgram(false);
   Add([
   'var Runner, i: longint;',
   'begin',
-  '  (*for*)for (*r*)Runner := (*start*)1000 + 2000 to (*end*)3000 do',
+  '  (*for*)for (*r*)Runner := (*start*)1000 to (*end*)3000 do',
   '    (*inc*)inc(i);']);
   ConvertProgram;
-  CheckSrcMap('TestFor',[
+  CheckSrcMap('TestForConstRange',[
   'rtl.module("program", [], function () {',
   '  var $mod = this;',
   '  this.Runner = 0;',
   '  this.i = 0;',
   '  $mod.$main = function () {',
-  '(*for*)    var $loopend1 = (*end*)3000;',
-  '(*for*)    for ((*r*)$mod.Runner = (*start*)1000 + 2000; (*r*)$mod.Runner <= (*end*)$loopend1; (*r*)$mod.Runner++)(*for*) $mod.i (*inc*)+= 1;',
-  '(*for*)    if ($mod.Runner > $loopend1) $mod.Runner--;(*for*)',
+  '(*for*)    for ((*r*)$mod.Runner = (*start*)1000; (*r*)$mod.Runner (*end*)<= 3000; (*r*)$mod.Runner++) $mod.i (*inc*)+= 1;',
   '  };',
   '});'
   ]);
@@ -423,8 +421,10 @@ begin
   '    var Runner = 0;',
   '    var j = 0;',
   '    j = 0;',
-  '    var $loopend1 = j;',
-  '    for (Runner = $mod.p; Runner <= $loopend1; Runner++) j += 1;',
+  '    for (var $l1 = 3, $le2 = j; $l1 <= $le2; $l1++) {',
+  '      Runner = $l1;',
+  '      j += 1;',
+  '    };',
   '    Result = j;',
   '    return Result;',
   '  };',

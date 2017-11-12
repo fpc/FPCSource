@@ -222,6 +222,8 @@ type
     Procedure TestBaseType_RawByteStringFail;
     Procedure TestTypeShortstring_Fail;
     Procedure TestCharSet_Custom;
+    Procedure TestForCharDo;
+    Procedure TestForBoolDo;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -264,6 +266,7 @@ type
     Procedure TestEnum_Number;
     Procedure TestEnum_Functions;
     Procedure TestEnum_AsParams;
+    Procedure TestEnumRange_Array;
     Procedure TestSet;
     Procedure TestSet_Operators;
     Procedure TestSet_Operator_In;
@@ -2493,10 +2496,8 @@ begin
     '  break;',
     '} while (!true);',
     'while (true) break;',
-    'var $loopend1 = 2;',
-    'for ($mod.i = 1; $mod.i <= $loopend1; $mod.i++) break;',
-    'if ($mod.i > $loopend1) $mod.i--;'
-    ]));
+    'for ($mod.i = 1; $mod.i <= 2; $mod.i++) break;',
+    '']));
 end;
 
 procedure TTestModule.TestContinue;
@@ -2521,10 +2522,8 @@ begin
     '  continue;',
     '} while (!true);',
     'while (true) continue;',
-    'var $loopend1 = 2;',
-    'for ($mod.i = 1; $mod.i <= $loopend1; $mod.i++) continue;',
-    'if ($mod.i > $loopend1) $mod.i--;'
-    ]));
+    'for ($mod.i = 1; $mod.i <= 2; $mod.i++) continue;',
+    '']));
 end;
 
 procedure TTestModule.TestProc_External;
@@ -3190,6 +3189,38 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestEnumRange_Array;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TEnumRg = green..blue;',
+  '  TArr = array[TEnumRg] of byte;',
+  'var',
+  '  a: TArr;',
+  '  b: TArr = (3,4);',
+  'begin',
+  '  a[green] := b[blue];']);
+  ConvertProgram;
+  CheckSource('TestEnumRange_Array',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Green",',
+    '  Green: 1,',
+    '  "2": "Blue",',
+    '  Blue: 2',
+    '};',
+    'this.a = rtl.arraySetLength(null, 0, 2);',
+    'this.b = [3, 4];',
+    '']),
+    LinesToStr([
+    '  $mod.a[$mod.TEnum.Green - 1] = $mod.b[$mod.TEnum.Blue - 1];',
+    '']));
+end;
+
 procedure TTestModule.TestSet;
 begin
   StartProgram(false);
@@ -3714,19 +3745,21 @@ end;
 procedure TTestModule.TestSet_ConstChar;
 begin
   StartProgram(false);
-  Add('const');
-  Add('  LowChars = [''a''..''z''];');
-  Add('  Chars = LowChars+[''A''..''Z''];');
-  Add('var');
-  Add('  c: char;');
-  Add('  s: string;');
-  Add('begin');
-  Add('  if c in lowchars then ;');
-  Add('  if ''a'' in lowchars then ;');
-  Add('  if s[1] in lowchars then ;');
-  Add('  if c in chars then ;');
-  Add('  if c in [''a''..''z'',''_''] then ;');
-  Add('  if ''b'' in [''a''..''z'',''_''] then ;');
+  Add([
+  'const',
+  '  LowChars = [''a''..''z''];',
+  '  Chars = LowChars+[''A''..''Z''];',
+  'var',
+  '  c: char;',
+  '  s: string;',
+  'begin',
+  '  if c in lowchars then ;',
+  '  if ''a'' in lowchars then ;',
+  '  if s[1] in lowchars then ;',
+  '  if c in chars then ;',
+  '  if c in [''a''..''z'',''_''] then ;',
+  '  if ''b'' in [''a''..''z'',''_''] then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestSet_ConstChar',
     LinesToStr([ // statements
@@ -4495,6 +4528,44 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestForCharDo;
+begin
+  StartProgram(false);
+  Add([
+  'var c: char;',
+  'begin',
+  '  for c:=''a'' to ''c'' do ;',
+  '  for c:=c downto ''a'' do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestForCharDo',
+    LinesToStr([ // statements
+    'this.c = "";']),
+    LinesToStr([ // this.$main
+    'for (var $l1 = 97; $l1 <= 99; $l1++) $mod.c = String.fromCharCode($l1);',
+    'for (var $l2 = $mod.c.charCodeAt(); $l2 >= 97; $l2--) $mod.c = String.fromCharCode($l2);',
+    '']));
+end;
+
+procedure TTestModule.TestForBoolDo;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  for b:=false to true do ;',
+  '  for b:=b downto false do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestForBoolDo',
+    LinesToStr([ // statements
+    'this.b = false;']),
+    LinesToStr([ // this.$main
+    'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 != 0;',
+    'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 != 0;',
+    '']));
+end;
+
 procedure TTestModule.TestProcTwoArgs;
 begin
   StartProgram(false);
@@ -4622,12 +4693,11 @@ begin
     LinesToStr([ // this.$main
     '  $mod.vJ = 0;',
     '  $mod.vN = 3;',
-    '  var $loopend1 = $mod.vN;',
-    '  for ($mod.vI = 1; $mod.vI <= $loopend1; $mod.vI++) {',
+    '  for (var $l1 = 1, $le2 = $mod.vN; $l1 <= $le2; $l1++) {',
+    '    $mod.vI = $l1;',
     '    $mod.vJ = $mod.vJ + $mod.vI;',
     '  };',
-    '  if ($mod.vI > $loopend1) $mod.vI--;'
-    ]));
+    '']));
 end;
 
 procedure TTestModule.TestForLoopInFunction;
@@ -4653,8 +4723,8 @@ begin
     '  var vI = 0;',
     '  var vJ = 0;',
     '  vJ = 0;',
-    '  var $loopend1 = Count;',
-    '  for (vI = 1; vI <= $loopend1; vI++) {',
+    '  for (var $l1 = 1, $le2 = Count; $l1 <= $le2; $l1++) {',
+    '    vI = $l1;',
     '    vJ = vJ + vI;',
     '  };',
     '  return Result;',
@@ -4679,9 +4749,7 @@ begin
     'this.vI = 0;'
     ]),
     LinesToStr([ // this.$main
-    '  var $loopend1 = 2;',
-    '  for ($mod.vI = 1; $mod.vI <= $loopend1; $mod.vI++);',
-    '  if($mod.vI>$loopend1)$mod.vI--;',
+    '  for ($mod.vI = 1; $mod.vI <= 2; $mod.vI++) ;',
     '  if ($mod.vI===3) ;'
     ]));
 end;
@@ -4713,10 +4781,10 @@ begin
     '  var vJ = 0;',
     '  var vK = 0;',
     '  vK = 0;',
-    '  var $loopend1 = Count;',
-    '  for (vI = 1; vI <= $loopend1; vI++) {',
-    '    var $loopend2 = vI;',
-    '    for (vJ = 1; vJ <= $loopend2; vJ++) {',
+    '  for (var $l1 = 1, $le2 = Count; $l1 <= $le2; $l1++) {',
+    '    vI = $l1;',
+    '    for (var $l3 = 1, $le4 = vI; $l3 <= $le4; $l3++) {',
+    '      vJ = $l3;',
     '      vK = vK + vI;',
     '    };',
     '  };',
@@ -5310,15 +5378,15 @@ begin
     '$mod.c = "\x00";',
     '$mod.c = "'#$EF#$BF#$BF'";',
     '$mod.Arr[66] = "a";',
-    '$mod.Arr[68] = $mod.Arr[$mod.c.charCodeAt(0)];',
-    '$mod.Arr[$mod.c.charCodeAt(0)] = $mod.Arr[100];',
-    '$mod.Arr[$mod.Arr[$mod.c.charCodeAt(0)].charCodeAt(0)] = $mod.Arr[65535];',
+    '$mod.Arr[68] = $mod.Arr[$mod.c.charCodeAt()];',
+    '$mod.Arr[$mod.c.charCodeAt()] = $mod.Arr[100];',
+    '$mod.Arr[$mod.Arr[$mod.c.charCodeAt()].charCodeAt()] = $mod.Arr[65535];',
     '$mod.b = $mod.Arr[0] === $mod.Arr[101];',
     '$mod.c = "a";',
     '$mod.c = "z";',
     '$mod.Arr2[1] = "f";',
-    '$mod.Arr2[0] = $mod.Arr2[$mod.c.charCodeAt(0) - 97];',
-    '$mod.Arr2[$mod.c.charCodeAt(0) - 97] = $mod.Arr2[6];',
+    '$mod.Arr2[0] = $mod.Arr2[$mod.c.charCodeAt() - 97];',
+    '$mod.Arr2[$mod.c.charCodeAt() - 97] = $mod.Arr2[6];',
     '']));
 end;
 
@@ -5731,8 +5799,10 @@ begin
     'this.DoIt = function (a) {',
     '  var i = 0;',
     '  var s = "";',
-    '  var $loopend1 = rtl.length(a) - 1;',
-    '  for (i = 0; i <= $loopend1; i++) s = a[(rtl.length(a) - i) - 1];',
+    '  for (var $l1 = 0, $le2 = rtl.length(a) - 1; $l1 <= $le2; $l1++) {',
+    '    i = $l1;',
+    '    s = a[(rtl.length(a) - i) - 1];',
+    '  };',
     '};',
     'this.s = "";',
     '']),
