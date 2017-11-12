@@ -3332,8 +3332,33 @@ begin
    end;
 end;
 
-
 procedure read_arguments(cmd:TCmdStr);
+
+  procedure def_cpu_macros;
+    var
+      abi : tabi;
+      fputype : tfputype;
+      cputype : tcputype;
+    begin
+      for cputype:=low(tcputype) to high(tcputype) do
+        undef_system_macro('CPU'+Cputypestr[cputype]);
+      def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
+
+      for fputype:=low(tfputype) to high(tfputype) do
+        undef_system_macro('FPU'+fputypestr[fputype]);
+      def_system_macro('FPU'+fputypestr[init_settings.fputype]);
+
+      { define abi }
+      for abi:=low(tabi) to high(tabi) do
+        undef_system_macro('FPC_ABI_'+abiinfo[abi].name);
+      def_system_macro('FPC_ABI_'+abiinfo[target_info.abi].name);
+
+      { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
+        systems since most code needs to behave the same on both}
+      if target_info.abi = abi_eabihf then
+        def_system_macro('FPC_ABI_EABI');
+    end;
+
 var
   env: ansistring;
   i : tfeature;
@@ -3608,6 +3633,8 @@ begin
   def_system_macro('CPUINT64');
 {$endif defined(cpu64bitalu)}
 
+  def_cpu_macros;
+
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
       InternalError(2013092801);
@@ -3701,16 +3728,6 @@ begin
         def_system_macro('FPC_BIG_ENDIAN');
       end;
   end;
-
-  { define abi }
-  for abi:=low(tabi) to high(tabi) do
-    undef_system_macro('FPC_ABI_'+abiinfo[abi].name);
-  def_system_macro('FPC_ABI_'+abiinfo[target_info.abi].name);
-
-  { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
-    systems since most code needs to behave the same on both}
-  if target_info.abi = abi_eabihf then
-    def_system_macro('FPC_ABI_EABI');
 
   { Write logo }
   if option.ParaLogo then
@@ -4041,7 +4058,7 @@ begin
 {$endif m68k}
 
   { now we can define cpu and fpu type }
-  def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
+  def_cpu_macros;
 
   { Use init_settings cpu type for asm cpu type,
     if asmcputype is cpu_none,
@@ -4049,8 +4066,6 @@ begin
     option to set it on command line PM }
   if init_settings.asmcputype = cpu_none then
     init_settings.asmcputype:=init_settings.cputype;
-
-  def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
 {$ifdef llvm}
   def_system_macro('CPULLVM');
