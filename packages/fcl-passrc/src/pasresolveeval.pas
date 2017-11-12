@@ -566,7 +566,7 @@ type
     procedure EmitRangeCheckConst(id: int64; const aValue: String;
       MinVal, MaxVal: MaxPrecInt; PosEl: TPasElement; MsgType: TMessageType = mtWarning);
     function ChrValue(Value: TResEvalValue; ErrorEl: TPasElement): TResEvalValue; virtual;
-    function OrdValue(Value: TResEvalValue; ErrorEl: TPasElement): TResEvalInt; virtual;
+    function OrdValue(Value: TResEvalValue; ErrorEl: TPasElement): TResEvalValue; virtual;
     procedure PredValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     procedure SuccValue(Value: TResEvalValue; ErrorEl: TPasElement); virtual;
     function EvalStrFunc(Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
@@ -3829,7 +3829,7 @@ begin
 end;
 
 function TResExprEvaluator.OrdValue(Value: TResEvalValue; ErrorEl: TPasElement
-  ): TResEvalInt;
+  ): TResEvalValue;
 begin
   case Value.Kind of
     revkBool:
@@ -3837,6 +3837,8 @@ begin
         Result:=TResEvalInt.CreateValue(1)
       else
         Result:=TResEvalInt.CreateValue(0);
+    revkInt,revkUInt:
+      Result:=Value;
     revkString:
       if length(TResEvalString(Value).S)<>1 then
         RaiseRangeCheck(20170624160128,ErrorEl)

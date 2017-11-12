@@ -158,9 +158,16 @@ Works:
   - enum: low(), high(), pred(), succ(), ord(), rg(int), int(rg), enum:=rg,
     rg:=rg, rg1:=rg2, rg:=enum, =, <>, in
     array[rg], low(array), high(array)
+- for..in..do :
+  - boolean, char, byte, shortint, word, smallint, longword, longint
+  - enum range, char range, integer range
+  - set of enum, enum range, integer, integer range, char, char range
 
 ToDo:
 - for..in..do
+   - array
+   - operator
+   - class
 - range checking:
   - indexedprop[param]
   - case-of unique
