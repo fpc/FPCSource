@@ -1183,6 +1183,7 @@ implementation
         sa : ansistring;
         cw : tcompilerwidechar;
         l : SizeUInt;
+        exprtype : tdef;
       begin
          result:=nil;
          if (left.nodetype=ordconstn) and
@@ -1284,16 +1285,22 @@ implementation
              end
            else
              begin
+               { use at least u16inttype }
+{$ifdef cpu8bitalu}
+               exprtype:=u16inttype;
+{$else cpu8bitalu}
+               exprtype:=uinttype;
+{$endif cpu8bitalu}
                { create word(byte(char) shl 8 or 1) for litte endian machines }
                { and word(byte(char) or 256) for big endian machines          }
-               left := ctypeconvnode.create_internal(left,u8inttype);
+               left := ctypeconvnode.create_internal(left,exprtype);
                if (target_info.endian = endian_little) then
                  left := caddnode.create(orn,
-                   cshlshrnode.create(shln,left,cordconstnode.create(8,s32inttype,false)),
-                   cordconstnode.create(1,s32inttype,false))
+                   cshlshrnode.create(shln,left,cordconstnode.create(8,exprtype,false)),
+                   cordconstnode.create(1,exprtype,false))
                else
                  left := caddnode.create(orn,left,
-                   cordconstnode.create(1 shl 8,s32inttype,false));
+                   cordconstnode.create(1 shl 8,exprtype,false));
                left := ctypeconvnode.create_internal(left,u16inttype);
                typecheckpass(left);
              end;
