@@ -1817,7 +1817,7 @@ begin
       else
         begin
         // parameter was used
-        if (Usage.Access=paiaWrite) and (Arg.Access<>argOut) then
+        if (Usage.Access=paiaWrite) and not (Arg.Access in [argOut,argVar]) then
           EmitMessage(20170312095348,mtHint,nPAValueParameterIsAssignedButNeverUsed,
             sPAValueParameterIsAssignedButNeverUsed,[Arg.Name],Arg);
         end;

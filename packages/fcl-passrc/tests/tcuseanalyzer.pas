@@ -80,6 +80,7 @@ type
     procedure TestM_Hint_UnitNotUsed;
     procedure TestM_Hint_UnitNotUsed_No_OnlyExternal;
     procedure TestM_Hint_ParameterNotUsed;
+    procedure TestM_Hint_ParameterAssignedButNotReadVarParam;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_ParameterNotUsedTypecast;
     procedure TestM_Hint_OutParam_No_AssignedButNeverUsed;
@@ -964,6 +965,19 @@ begin
   Add('  DoIt(1);');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ParameterAssignedButNotReadVarParam;
+begin
+  StartProgram(true);
+  Add([
+  'procedure DoIt(var i: longint);',
+  'begin i:=3; end;',
+  'var v: longint;',
+  'begin',
+  '  DoIt(v);']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 

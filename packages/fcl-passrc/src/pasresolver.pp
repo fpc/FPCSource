@@ -159,15 +159,16 @@ Works:
     rg:=rg, rg1:=rg2, rg:=enum, =, <>, in
     array[rg], low(array), high(array)
 - for..in..do :
-  - boolean, char, byte, shortint, word, smallint, longword, longint
-  - enum range, char range, integer range
-  - set of enum, enum range, integer, integer range, char, char range
+  - type boolean, char, byte, shortint, word, smallint, longword, longint
+  - type enum range, char range, integer range
+  - type/var set of: enum, enum range, integer, integer range, char, char range
+  - array var
 
 ToDo:
 - for..in..do
-   - array
-   - operator
+   - function: enumerator
    - class
+   - operator
 - range checking:
   - indexedprop[param]
   - case-of unique
@@ -4956,15 +4957,14 @@ var
   EnumeratorFound: Boolean;
   InRange, VarRange: TResEvalValue;
   InRangeInt, VarRangeInt: TResEvalRangeInt;
+  bt: TResolverBaseType;
+  TypeEl: TPasType;
+  C: TClass;
 begin
   // loop var
   ResolveExpr(Loop.VariableName,rraReadAndAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
-  if ResolvedElCanBeVarParam(VarResolved)
-      and ((VarResolved.BaseType in (btAllBooleans+btAllInteger+btAllChars))
-        or ((VarResolved.BaseType=btContext) and (VarResolved.TypeEl.ClassType=TPasEnumType)))
-        or (VarResolved.BaseType=btRange) then
-  else
+  if not ResolvedElCanBeVarParam(VarResolved) then
     RaiseMsg(20170216151955,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Loop.VariableName);
 
   // resolve start expression
@@ -5000,11 +5000,43 @@ begin
     InRange:=nil;
     try
       OrigStartResolved:=StartResolved;
-      InRange:=EvalTypeRange(StartResolved.TypeEl,[]);
-      if InRange<>nil then
+      if StartResolved.IdentEl is TPasType then
+        // e.g. for e in TEnum do
+        InRange:=EvalTypeRange(StartResolved.TypeEl,[])
+      else if rrfReadable in StartResolved.Flags then
         begin
+        // value  (variable or expression)
+        bt:=StartResolved.BaseType;
+        if bt=btSet then
+          InRange:=EvalTypeRange(StartResolved.TypeEl,[])
+        else if bt=btContext then
+          begin
+          TypeEl:=ResolveAliasType(StartResolved.TypeEl);
+          C:=TypeEl.ClassType;
+          if C=TPasArrayType then
+            begin
+            ComputeElement(TPasArrayType(TypeEl).ElType,StartResolved,[rcType]);
+            StartResolved.Flags:=OrigStartResolved.Flags*[rrfReadable,rrfWritable];
+            if CheckAssignResCompatibility(VarResolved,StartResolved,Loop.StartExpr,true)=cIncompatible then
+              RaiseIncompatibleTypeRes(20171112210138,nIncompatibleTypesGotExpected,
+                [],StartResolved,VarResolved,Loop.StartExpr);
+            EnumeratorFound:=true;
+            end;
+          end
+        else
+          begin
+          bt:=GetActualBaseType(bt);
+          if bt=btAnsiString then
+            InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ff)
+          else if bt=btUnicodeString then
+            InRange:=TResEvalRangeInt.CreateValue(revskChar,nil,0,$ffff);
+          end;
+        end;
+      if (not EnumeratorFound) and (InRange<>nil) then
+        begin
+        // in parameter is a constant
+        // -> check if same type
         //writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString,' ElType=',GetResolverResultDbg(StartResolved));
-        // check if same type
         case InRange.Kind of
         revkRangeInt:
           begin
@@ -5058,14 +5090,19 @@ begin
           {$ENDIF}
         end;
         end;
+      if not EnumeratorFound then
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRange.AsDebugString,' StartResolved=',GetResolverResultDbg(StartResolved));
+        {$ENDIF}
+        RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
+          [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);
+        end;
     finally
       ReleaseEvalValue(VarRange);
       ReleaseEvalValue(InRange);
     end;
 
-    if not EnumeratorFound then
-      RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
-        [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);
     end;
   else
     RaiseNotYetImplemented(20171108221334,Loop);
