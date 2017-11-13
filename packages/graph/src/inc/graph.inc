@@ -1233,36 +1233,36 @@ end;
    begin
    end;
 
-  procedure DirectPutPixelDefault(X,Y: smallint);
+  procedure NotInGraphicsMode; noreturn;
    begin
      Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
      Halt(1);
+   end;
+
+  procedure DirectPutPixelDefault(X,Y: smallint);
+   begin
+     NotInGraphicsMode;
    end;
 
   function GetPixelDefault(X,Y: smallint): word;
    begin
-     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
-     Halt(1);
-     exit(0); { avoid warning }
+     NotInGraphicsMode;
    end;
 
   procedure PutPixelDefault(X,Y: smallint; Color: Word);
    begin
-     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
-     Halt(1);
+     NotInGraphicsMode;
    end;
 
   procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: smallint);
    begin
-     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
-     Halt(1);
+     NotInGraphicsMode;
    end;
 
   procedure GetRGBPaletteDefault(ColorNum: smallint; var
             RedValue, GreenValue, BlueValue: smallint);
    begin
-     Writeln(stderr,'Error: Not in graphics mode (use InitGraph and test GraphResult afterwards)');
-     Halt(1);
+     NotInGraphicsMode;
    end;
 
 
