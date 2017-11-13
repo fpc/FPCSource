@@ -421,7 +421,7 @@ begin
   '    var Runner = 0;',
   '    var j = 0;',
   '    j = 0;',
-  '    for (var $l1 = 3, $le2 = j; $l1 <= $le2; $l1++) {',
+  '    for (var $l1 = 3, $end2 = j; $l1 <= $end2; $l1++) {',
   '      Runner = $l1;',
   '      j += 1;',
   '    };',

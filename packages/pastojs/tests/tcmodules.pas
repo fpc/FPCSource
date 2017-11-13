@@ -204,6 +204,7 @@ type
     // numbers
     Procedure TestDouble;
     Procedure TestIntegerRange;
+    Procedure TestForBoolDo;
 
     // strings
     Procedure TestCharConst;
@@ -223,7 +224,7 @@ type
     Procedure TestTypeShortstring_Fail;
     Procedure TestCharSet_Custom;
     Procedure TestForCharDo;
-    Procedure TestForBoolDo;
+    Procedure TestForCharInDo;
 
     // alias types
     Procedure TestAliasTypeRef;
@@ -4111,6 +4112,25 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestForBoolDo;
+begin
+  StartProgram(false);
+  Add([
+  'var b: boolean;',
+  'begin',
+  '  for b:=false to true do ;',
+  '  for b:=b downto false do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestForBoolDo',
+    LinesToStr([ // statements
+    'this.b = false;']),
+    LinesToStr([ // this.$main
+    'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 != 0;',
+    'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 != 0;',
+    '']));
+end;
+
 procedure TTestModule.TestCharConst;
 begin
   StartProgram(false);
@@ -4547,22 +4567,58 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestForBoolDo;
+procedure TTestModule.TestForCharInDo;
 begin
   StartProgram(false);
   Add([
-  'var b: boolean;',
+  'type',
+  '  TSetOfChar = set of char;',
+  '  TCharRg = ''a''..''z'';',
+  '  TSetOfCharRg = set of TCharRg;',
+  'const Foo = ''foo'';',
+  'var',
+  '  c: char;',
+  '  s: string;',
+  '  a1: array of char;',
+  '  a2: array[1..3] of char;',
+  '  a3: array[1..3,4..5] of char;',
+  '  soc: TSetOfChar;',
+  '  socr: TSetOfCharRg;',
+  '  cr: TCharRg;',
   'begin',
-  '  for b:=false to true do ;',
-  '  for b:=b downto false do ;',
+  '  for c in foo do ;',
+  '  for c in s do ;',
+  '  for c in char do ;',
+  //'  for c in a1 do ;',
+  //'  for c in a2 do ;',
+  //'  for c in a3 do ;',
+  //'  for c in [''1''..''3''] do ;',
+  //'  for c in TSetOfChar do ;',
+  //'  for c in TCharRg do ;',
+  //'  for c in soc do ;',
+  //'  for c in TSetOfCharRg do ;',
+  //'  for c in socr do ;',
+  //'  for cr in TCharRg do ;',
+  //'  for cr in TSetOfCharRg do ;',
+  //'  for cr in socr do ;',
   '']);
   ConvertProgram;
-  CheckSource('TestForBoolDo',
+  CheckSource('TestForCharInDo',
     LinesToStr([ // statements
-    'this.b = false;']),
+    'this.Foo = "foo";',
+    'this.c = "";',
+    'this.s = "";',
+    'this.a1 = [];',
+    'this.a2 = rtl.arraySetLength(null, "", 3);',
+    'this.a3 = rtl.arraySetLength(null, "", 3, 2);',
+    'this.soc = {};',
+    'this.socr = {};',
+    'this.cr = "a";',
+    '']),
     LinesToStr([ // this.$main
-    'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 != 0;',
-    'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 != 0;',
+    'for (var ($in1 = $mod.Foo, $l2 = 0), $end3 = $in1.length - 1; $l2 <= $end3; $l2++) $mod.c = $in1.charAt($l2);',
+    'for (var ($in4 = $mod.s, $l5 = 0), $end6 = $in4.length - 1; $l5 <= $end6; $l5++) $mod.c = $in4.charAt($l5);',
+    'for (var $l7 = 0, $end8 = 65535; $l7 <= $end8; $l7++) $mod.c = String.fromCharCode($l7);',
     '']));
 end;
 
@@ -4693,7 +4749,7 @@ begin
     LinesToStr([ // this.$main
     '  $mod.vJ = 0;',
     '  $mod.vN = 3;',
-    '  for (var $l1 = 1, $le2 = $mod.vN; $l1 <= $le2; $l1++) {',
+    '  for (var $l1 = 1, $end2 = $mod.vN; $l1 <= $end2; $l1++) {',
     '    $mod.vI = $l1;',
     '    $mod.vJ = $mod.vJ + $mod.vI;',
     '  };',
@@ -4723,7 +4779,7 @@ begin
     '  var vI = 0;',
     '  var vJ = 0;',
     '  vJ = 0;',
-    '  for (var $l1 = 1, $le2 = Count; $l1 <= $le2; $l1++) {',
+    '  for (var $l1 = 1, $end2 = Count; $l1 <= $end2; $l1++) {',
     '    vI = $l1;',
     '    vJ = vJ + vI;',
     '  };',
@@ -4781,9 +4837,9 @@ begin
     '  var vJ = 0;',
     '  var vK = 0;',
     '  vK = 0;',
-    '  for (var $l1 = 1, $le2 = Count; $l1 <= $le2; $l1++) {',
+    '  for (var $l1 = 1, $end2 = Count; $l1 <= $end2; $l1++) {',
     '    vI = $l1;',
-    '    for (var $l3 = 1, $le4 = vI; $l3 <= $le4; $l3++) {',
+    '    for (var $l3 = 1, $end4 = vI; $l3 <= $end4; $l3++) {',
     '      vJ = $l3;',
     '      vK = vK + vI;',
     '    };',
@@ -5799,7 +5855,7 @@ begin
     'this.DoIt = function (a) {',
     '  var i = 0;',
     '  var s = "";',
-    '  for (var $l1 = 0, $le2 = rtl.length(a) - 1; $l1 <= $le2; $l1++) {',
+    '  for (var $l1 = 0, $end2 = rtl.length(a) - 1; $l1 <= $end2; $l1++) {',
     '    i = $l1;',
     '    s = a[(rtl.length(a) - i) - 1];',
     '  };',

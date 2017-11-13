@@ -55,7 +55,7 @@ Works:
   - read and write char aString[]
   - allow only String, no ShortString, AnsiString, UnicodeString,...
   - allow type casting string to external class name 'String'
-- for loop
+- for int/enum do, for char do, for bool do
 - repeat..until
 - while..do
 - try..finally
@@ -255,12 +255,11 @@ Works:
   - enum, int, char
   - low(), high(), pred(), succ(), ord(),
   - rg(int), int(rg), enum:=rg,
-  - rg:=rg, rg1:=rg2, rg:=enum, =, <>, in
-  - array[rg], low(array), high(array)
+  - rg:=rg, rg1:=rg2, rg:=enum, =, <>,
+  - set of int/enum/char range, in
+  - array[rg], low(array), high(array), length(array)
 
 ToDos:
-- for bool:=
-- "use strict" must be at the beginning of the .js file
 - typecast longint(highprecint) -> (value+0) & $ffffffff
 - static arrays
   - a[] of record
@@ -295,6 +294,7 @@ Not in Version 1.0:
 - record const
 - enums with custom values
 - library
+- constref
 - option typecast checking
 - option verify method calls -CR
 - option range checking -Cr
@@ -317,12 +317,16 @@ Not in Version 1.0:
     Include, Exclude, Inc, Dec, +=, -=, *=, /=
   -O1 replace constant expression with result
   -O1 pass array element by ref: when index is constant, use that directly
-- objects, interfaces, advanced records
+- objects
+- interfaces
+- advanced records
 - class helpers, type helpers, record helpers,
 - generics
 - operator overloading
 - inline
 - anonymous functions
+- extended RTTI
+- attributes
 
 Debugging this unit: -d<x>
    VerbosePas2JS
@@ -455,6 +459,7 @@ type
     pbivnImplementation,
     pbivnLoop,
     pbivnLoopEnd,
+    pbivnLoopIn,
     pbivnModule,
     pbivnModules,
     pbivnPtrClass,
@@ -561,7 +566,8 @@ const
     '$e',
     '$impl',
     '$l',
-    '$le',
+    '$end',
+    '$in',
     '$mod',
     'pas',
     '$class',
@@ -1229,6 +1235,8 @@ type
     Function CreateUsesList(UsesSection: TPasSection; AContext : TConvertContext): TJSArrayLiteral;
     Procedure AddToStatementList(var First, Last: TJSStatementList;
       Add: TJSElement; Src: TPasElement);
+    Procedure AddToVarStatement(VarStat: TJSVariableStatement; Add: TJSElement;
+      Src: TPasElement);
     Function CreateValInit(PasType: TPasType; Expr: TPasExpr; El: TPasElement;
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateVarInit(El: TPasVariable; AContext: TConvertContext): TJSElement; virtual;
@@ -3740,6 +3748,7 @@ begin
   Src:=FunDecl.AFunction.Body.A as TJSSourceElements;
 
   if coUseStrict in Options then
+    // "use strict" must be the first statement in a function
     AddToSourceElements(Src,CreateLiteralString(El,'use strict'));
 
   ImplVarSt:=nil;
@@ -10546,6 +10555,12 @@ function TPasToJSConverter.ConvertForStatement(El: TPasImplForLoop;
 //  The EndExpr must be executed exactly once at beginning.
 //  If the loop is not executed the Variable is not set, aka keeps its old value.
 //  After the loop the variable has the last value.
+type
+  TInKind = (
+    ikNone,
+    ikChar,
+    ikString
+  );
 
   function ConvExpr(Expr: TPasExpr): TJSElement;
   var
@@ -10606,6 +10621,117 @@ function TPasToJSConverter.ConvertForStatement(El: TPasImplForLoop;
       ReleaseEvalValue(OrdValue);
   end;
 
+var
+  ResolvedVar, ResolvedIn: TPasResolverResult;
+  StartValue, EndValue, InValue: TResEvalValue;
+  StartInt, EndInt: MaxPrecInt;
+  HasLoopVar, HasEndVar, HasInVar: Boolean;
+  InKind: TInKind;
+
+  procedure InitWithResolver;
+  begin
+    AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
+    if not (ResolvedVar.IdentEl is TPasVariable) then
+      DoError(20170213214404,nExpectedXButFoundY,sExpectedXButFoundY,['var',
+        AContext.Resolver.GetResolverResultDescription(ResolvedVar)],El.VariableName);
+
+    case El.LoopType of
+    ltNormal,ltDown:
+      begin
+      StartValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
+      StartInt:=GetOrd(StartValue,El.StartExpr);
+      EndValue:=AContext.Resolver.Eval(El.EndExpr,[],false);
+      EndInt:=GetOrd(EndValue,El.EndExpr);
+      end;
+    ltIn:
+      begin
+      HasInVar:=true;
+      AContext.Resolver.ComputeElement(El.StartExpr,ResolvedIn,[]);
+      InValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
+      if InValue<>nil then
+        begin
+        // for in <constant> do
+        case InValue.Kind of
+        revkString,revkUnicodeString:
+          begin
+          // example:
+          //  for c in 'foo' do ;
+          // -> for (var $l1 = 0, $li2 = 'foo'; $l1<=2; $l1++) c = $li2.charAt($l1);
+          InKind:=ikString;
+          StartInt:=0;
+          if InValue.Kind=revkString then
+            EndInt:=length(UTF8Decode(TResEvalString(InValue).S))-1
+          else
+            EndInt:=length(TResEvalUTF16(InValue).S)-1;
+          ReleaseEvalValue(InValue);
+          end;
+        revkRangeInt:
+          begin
+          StartInt:=TResEvalRangeInt(InValue).RangeStart;
+          EndInt:=TResEvalRangeInt(InValue).RangeEnd;
+          HasInVar:=false;
+          case TResEvalRangeInt(InValue).ElKind of
+          revskChar: InKind:=ikChar;
+          else
+            {$IFDEF VerbosePas2JS}
+            writeln('TPasToJSConverter.ConvertForStatement ',GetObjName(El.StartExpr),' InValue=',InValue.AsDebugString);
+            {$ENDIF}
+            RaiseNotSupported(El.StartExpr,AContext,20171113023419);
+          end;
+          end
+        else
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.ConvertForStatement ',GetObjName(El.StartExpr),' InValue=',InValue.AsDebugString);
+          {$ENDIF}
+          RaiseNotSupported(El.StartExpr,AContext,20171112161527);
+        end;
+        end
+      else if rrfReadable in ResolvedIn.Flags then
+        begin
+        // for v in <variable> do
+        if ResolvedIn.BaseType in btAllStrings then
+          begin
+          StartInt:=0;
+          InKind:=ikString;
+          end
+        else if ResolvedIn.BaseType=btContext then
+          begin
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.ConvertForStatement ',GetObjName(El.StartExpr),' StartValue=',StartValue.AsDebugString);
+          {$ENDIF}
+          RaiseNotSupported(El.StartExpr,AContext,20171113012226);
+          end;
+        end
+      else
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('InitWithResolver ResolvedIn=',GetResolverResultDbg(ResolvedIn));
+        {$ENDIF}
+        RaiseNotSupported(El.StartExpr,AContext,20171112195629);
+        end;
+      end;
+    end;
+
+    if EndValue<>nil then
+      begin
+      HasEndVar:=false;
+      if (StartValue<>nil) then
+        begin
+        if StartInt<=EndInt then
+          begin
+          // loop is always executed
+          if StartValue.Kind in [revkInt,revkUInt,revkEnum] then
+            HasLoopVar:=false; // variable can be used as runner
+          end
+        else
+          begin
+          // loop is never executed
+          if coEliminateDeadCode in Options then exit;
+          end;
+        end;
+      end;
+  end;
+
 Var
   ForSt : TJSForStatement;
   List: TJSStatementList;
@@ -10613,22 +10739,27 @@ Var
   Incr: TJSUNaryExpression;
   BinExp : TJSBinaryExpression;
   VarStat: TJSVariableStatement;
-  CurLoopVarName, CurLoopEndVarName: String;
+  CurLoopVarName, CurEndVarName, CurInVarName: String;
   FuncContext: TConvertContext;
-  ResolvedVar: TPasResolverResult;
-  Comma: TJSCommaExpression;
-  LoopPosEl: TPasElement;
-  StartValue, EndValue: TResEvalValue;
-  NeedLoopVar, NeedLoopEndVar: Boolean;
-  StartInt, EndInt: MaxPrecInt;
+  PosEl: TPasElement;
   Statements, V: TJSElement;
   NotEqual: TJSEqualityExpressionNE;
+  Call: TJSCallExpression;
 begin
   Result:=Nil;
   if AContext.Access<>caRead then
     RaiseInconsistency(20170213213740);
-  if not (El.LoopType in [ltNormal,ltDown]) then
+  case El.LoopType of
+  ltNormal,ltDown: ;
+  ltIn:
+    if AContext.Resolver=nil then
+      RaiseNotSupported(El,AContext,20171112160707);
+  else
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.ConvertForStatement LoopType=',El.LoopType);
+    {$ENDIF}
     RaiseNotSupported(El,AContext,20171110141937);
+  end;
 
   // get function context
   FuncContext:=AContext;
@@ -10636,60 +10767,42 @@ begin
     FuncContext:=FuncContext.Parent;
 
   StartValue:=nil;
+  StartInt:=0;
   EndValue:=nil;
+  EndInt:=0;
+  InValue:=nil;
+  InKind:=ikNone;
   Statements:=nil;
   try
-    NeedLoopVar:=true;
-    NeedLoopEndVar:=true;
+    HasLoopVar:=true;
+    HasEndVar:=true;
+    HasInVar:=false;
     if AContext.Resolver<>nil then
-      begin
-      AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
-      if not (ResolvedVar.IdentEl is TPasVariable) then
-        DoError(20170213214404,nExpectedXButFoundY,sExpectedXButFoundY,['var',
-          AContext.Resolver.GetResolverResultDescription(ResolvedVar)],El.VariableName);
-      StartValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
-      StartInt:=GetOrd(StartValue,El.StartExpr);
-      EndValue:=AContext.Resolver.Eval(El.EndExpr,[],false);
-      EndInt:=GetOrd(EndValue,El.EndExpr);
-      if EndValue<>nil then
-        begin
-        NeedLoopEndVar:=false;
-        if (StartValue<>nil) then
-          begin
-          if StartInt<=EndInt then
-            begin
-            // loop is always executed
-            if StartValue.Kind in [revkInt,revkUInt,revkEnum] then
-              NeedLoopVar:=false; // variable can be used as runner
-            end
-          else
-            begin
-            // loop is never executed
-            if coEliminateDeadCode in Options then exit;
-            end;
-          end;
-        end;
-      end;
-    // create unique var names $loop and $loopend
-    if NeedLoopVar then
+      InitWithResolver;
+    // create unique var names $l, $end, $in
+    if HasInVar then
+      CurInVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnLoopIn])
+    else
+      CurInVarName:='';
+    if HasLoopVar then
       CurLoopVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnLoop])
     else
       CurLoopVarName:='';
-    if NeedLoopEndVar then
-      CurLoopEndVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnLoopEnd])
+    if HasEndVar then
+      CurEndVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnLoopEnd])
     else
-      CurLoopEndVarName:='';
+      CurEndVarName:='';
 
     // add "for()"
     ForSt:=TJSForStatement(CreateElement(TJSForStatement,El));
     Statements:=ForSt;
 
-    // add  variable=<startexpr>
-    if (not NeedLoopVar) and NeedLoopEndVar then
+    // add in front of for():  variable=<startexpr>
+    if (not HasLoopVar) and (HasEndVar or HasInVar) then
       begin
       // for example:
       //   i:=<startexpr>;
-      //   for (var $le = <endexpr>; $i<$le; $i++)...
+      //   for (var $end = <endexpr>; $i<$end; $i++)...
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
       SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.VariableName));
       List.A:=SimpleAss;
@@ -10700,39 +10813,65 @@ begin
         SimpleAss.Expr:=CreateLiteralNumber(El.StartExpr,StartInt)
       else
         SimpleAss.Expr:=ConvertElement(El.StartExpr,AContext);
+      PosEl:=El.StartExpr;
       end;
 
-    if NeedLoopVar or NeedLoopEndVar then
+    if HasLoopVar or HasEndVar or HasInVar then
       begin
       // add "for(var ..."
       VarStat:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
       ForSt.Init:=VarStat;
-      if NeedLoopVar then
+      if HasInVar then
         begin
-        // add "$loop=<StartExpr>"
+        // add "$in=<InExpr>"
+        PosEl:=El.StartExpr;
+        if InValue<>nil then
+          V:=ConvertConstValue(InValue,AContext,PosEl)
+        else
+          V:=ConvertElement(El.StartExpr,AContext);
+        V:=CreateVarDecl(CurInVarName,V,PosEl);
+        AddToVarStatement(VarStat,V,PosEl);
+        end;
+      if HasLoopVar then
+        begin
+        // add "$l=<StartExpr>"
+        PosEl:=El.StartExpr;
         if StartValue<>nil then
-          V:=CreateLiteralNumber(El.StartExpr,StartInt)
+          V:=CreateLiteralNumber(PosEl,StartInt)
+        else if El.LoopType=ltIn then
+          case InKind of
+          ikChar, ikString: V:=CreateLiteralNumber(PosEl,StartInt);
+          end
         else
           V:=ConvExpr(El.StartExpr);
-        VarStat.A:=CreateVarDecl(CurLoopVarName,V,El.StartExpr);
+        V:=CreateVarDecl(CurLoopVarName,V,PosEl);
+        AddToVarStatement(VarStat,V,PosEl);
         end;
-      if NeedLoopEndVar then
+      if HasEndVar then
         begin
-        // add "$loopend=<EndExpr>"
+        // add "$end=<EndExpr>"
+        PosEl:=El.EndExpr;
+        if El.EndExpr=nil then
+          PosEl:=El.StartExpr;
         if EndValue<>nil then
-          V:=CreateLiteralNumber(El.EndExpr,EndInt)
+          V:=CreateLiteralNumber(PosEl,EndInt)
+        else if El.LoopType=ltIn then
+          case InKind of
+          ikChar: V:=CreateLiteralNumber(PosEl,EndInt);
+          ikString:
+            begin
+            // add "$end=$in.length-1"
+            V:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,PosEl));
+            TJSAdditiveExpressionMinus(V).A:=CreatePrimitiveDotExpr(CurInVarName+'.length',PosEl);
+            TJSAdditiveExpressionMinus(V).B:=CreateLiteralNumber(PosEl,1);
+            end;
+          else
+            RaiseNotSupported(El.StartExpr,AContext,20171113015445);
+          end
         else
           V:=ConvExpr(El.EndExpr);
-        V:=CreateVarDecl(CurLoopEndVarName,V,El.EndExpr);
-        if VarStat.A=nil then
-          VarStat.A:=V
-        else
-          begin
-          Comma:=TJSCommaExpression(CreateElement(TJSCommaExpression,El.EndExpr));
-          Comma.A:=VarStat.A;
-          Comma.B:=V;
-          VarStat.A:=Comma;
-          end;
+        V:=CreateVarDecl(CurEndVarName,V,PosEl);
+        AddToVarStatement(VarStat,V,PosEl);
         end;
       end
     else
@@ -10746,59 +10885,82 @@ begin
         SimpleAss.Expr:=CreateLiteralNumber(El.StartExpr,StartInt)
       else
         SimpleAss.Expr:=ConvertElement(El.StartExpr,AContext);
+      PosEl:=El.StartExpr;
       end;
 
-    // add "$loop<=$loopend"
+    // add "$l<=$end"
+    if (El.EndExpr<>nil) then
+      PosEl:=El.EndExpr;
     if El.Down then
-      BinExp:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,El.EndExpr))
+      BinExp:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,PosEl))
     else
-      BinExp:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,El.EndExpr));
+      BinExp:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,PosEl));
     ForSt.Cond:=BinExp;
-    if NeedLoopVar then
-      BinExp.A:=CreatePrimitiveDotExpr(CurLoopVarName,El.EndExpr)
+    if HasLoopVar then
+      BinExp.A:=CreatePrimitiveDotExpr(CurLoopVarName,PosEl)
     else
       BinExp.A:=ConvertElement(El.VariableName,AContext);
-    if NeedLoopEndVar then
-      BinExp.B:=CreatePrimitiveDotExpr(CurLoopEndVarName,El.EndExpr)
+    if HasEndVar then
+      BinExp.B:=CreatePrimitiveDotExpr(CurEndVarName,PosEl)
     else
-      BinExp.B:=CreateLiteralNumber(El.EndExpr,EndInt);
+      BinExp.B:=CreateLiteralNumber(PosEl,EndInt);
 
-    // add "$loop++"
+    // add "$l++"
     if El.Down then
-      Incr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,El.EndExpr))
+      Incr:=TJSUnaryPostMinusMinusExpression(CreateElement(TJSUnaryPostMinusMinusExpression,PosEl))
     else
-      Incr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El.EndExpr));
+      Incr:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,PosEl));
     ForSt.Incr:=Incr;
-    if NeedLoopVar then
-      Incr.A:=CreatePrimitiveDotExpr(CurLoopVarName,El.EndExpr)
+    if HasLoopVar then
+      Incr.A:=CreatePrimitiveDotExpr(CurLoopVarName,PosEl)
     else
       Incr.A:=ConvertElement(El.VariableName,AContext);
 
-    // add  "VariableName:=$loop;"
-    if NeedLoopVar then
+    // add  "VariableName:=$l;"
+    if HasLoopVar then
       begin
-      LoopPosEl:=El.Body;
-      if LoopPosEl=nil then
-        LoopPosEl:=El;
-      // add  "VariableName:=$loop;"
-      LoopPosEl:=El.VariableName;
-      SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,LoopPosEl));
+      PosEl:=El.Body;
+      if PosEl=nil then
+        PosEl:=El;
+      PosEl:=El.VariableName;
+      SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
       ForSt.Body:=SimpleAss;
       SimpleAss.LHS:=ConvertElement(El.VariableName,AContext);
-      SimpleAss.Expr:=CreatePrimitiveDotExpr(CurLoopVarName,LoopPosEl);
+      SimpleAss.Expr:=CreatePrimitiveDotExpr(CurLoopVarName,PosEl);
       if AContext.Resolver<>nil then
         begin
-        if (ResolvedVar.BaseType in btAllChars)
+        if InKind<>ikNone then
+          case InKind of
+          ikChar:
+            // String.fromCharCode($l)
+            SimpleAss.Expr:=CreateCallFromCharCode(SimpleAss.Expr,PosEl);
+          ikString:
+            begin
+            // $in.charAt($l)
+            Call:=CreateCallExpression(PosEl);
+            Call.Expr:=CreateDotExpression(PosEl,
+              CreatePrimitiveDotExpr(CurInVarName,El.StartExpr),
+              CreatePrimitiveDotExpr('charAt',PosEl));
+            Call.AddArg(SimpleAss.Expr);
+            SimpleAss.Expr:=Call;
+            end
+          else
+            {$IFDEF VerbosePas2JS}
+            writeln('TPasToJSConverter.ConvertForStatement InKind=',InKind);
+            {$ENDIF}
+            RaiseNotSupported(El.StartExpr,AContext,20171113002550);
+          end
+        else if (ResolvedVar.BaseType in btAllChars)
             or ((ResolvedVar.BaseType=btRange) and (ResolvedVar.SubType in btAllChars)) then
           begin
           // convert int to char
-          SimpleAss.Expr:=CreateCallFromCharCode(SimpleAss.Expr,LoopPosEl);
+          SimpleAss.Expr:=CreateCallFromCharCode(SimpleAss.Expr,PosEl);
           end
         else if (ResolvedVar.BaseType in btAllBooleans)
             or ((ResolvedVar.BaseType=btRange) and (ResolvedVar.SubType in btAllBooleans)) then
           begin
-          // convert int to bool  ->  $loop!=0
-          NotEqual:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,LoopPosEl));
+          // convert int to bool  ->  $l!=0
+          NotEqual:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,PosEl));
           NotEqual.A:=SimpleAss.Expr;
           NotEqual.B:=CreateLiteralNumber(El,0);
           SimpleAss.Expr:=NotEqual;
@@ -10824,6 +10986,7 @@ begin
   finally
     ReleaseEvalValue(StartValue);
     ReleaseEvalValue(EndValue);
+    ReleaseEvalValue(InValue);
     if Result=nil then
       Statements.Free;
   end;
@@ -11166,6 +11329,22 @@ begin
       Last:=SL2;
       Last.B:=Add;
       end;
+    end;
+end;
+
+procedure TPasToJSConverter.AddToVarStatement(VarStat: TJSVariableStatement;
+  Add: TJSElement; Src: TPasElement);
+var
+  Comma: TJSCommaExpression;
+begin
+  if VarStat.A=nil then
+    VarStat.A:=Add
+  else
+    begin
+    Comma:=TJSCommaExpression(CreateElement(TJSCommaExpression,Src));
+    Comma.A:=VarStat.A;
+    Comma.B:=Add;
+    VarStat.A:=Comma;
     end;
 end;
 
