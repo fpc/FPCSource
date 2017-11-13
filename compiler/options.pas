@@ -3357,6 +3357,221 @@ procedure read_arguments(cmd:TCmdStr);
         systems since most code needs to behave the same on both}
       if target_info.abi = abi_eabihf then
         def_system_macro('FPC_ABI_EABI');
+
+      { using a case is pretty useless here (FK) }
+      { some stuff for TP compatibility }
+      {$ifdef i386}
+        def_system_macro('CPU86');
+        def_system_macro('CPU87');
+        def_system_macro('CPU386');
+      {$endif}
+
+      { new processor stuff }
+      {$ifdef i386}
+        def_system_macro('CPUI386');
+        def_system_macro('CPU32');
+        def_system_macro('CPUX86');
+        def_system_macro('FPC_HAS_TYPE_EXTENDED');
+        def_system_macro('FPC_HAS_TYPE_DOUBLE');
+        def_system_macro('FPC_HAS_TYPE_SINGLE');
+      {$endif}
+
+      {$ifdef m68k}
+        def_system_macro('CPU68');
+        def_system_macro('CPU68K');
+        def_system_macro('CPUM68K');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif}
+
+      {$ifdef powerpc}
+        def_system_macro('CPUPOWERPC');
+        def_system_macro('CPUPOWERPC32');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif}
+
+      {$ifdef POWERPC64}
+        def_system_macro('CPUPOWERPC');
+        def_system_macro('CPUPOWERPC64');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif}
+
+      {$ifdef x86_64}
+        def_system_macro('CPUX86_64');
+        def_system_macro('CPUAMD64');
+        def_system_macro('CPU64');
+        def_system_macro('CPUX64');
+        { not supported for now, afaik (FK)
+         def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
+      {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
+        { normally, win64 doesn't support the legacy fpu }
+        if target_info.system=system_x86_64_win64 then
+          begin
+            def_system_macro('FPC_CURRENCY_IS_INT64');
+            def_system_macro('FPC_COMP_IS_INT64');
+          end;
+      {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
+      {$endif}
+
+      {$ifdef sparc}
+        def_system_macro('CPUSPARCGEN');
+        def_system_macro('CPUSPARC');
+        def_system_macro('CPUSPARC32');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif}
+
+      {$ifdef sparc64}
+        def_system_macro('CPUSPARCGEN');
+        def_system_macro('CPUSPARC64');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif}
+
+      {$ifdef arm}
+        def_system_macro('CPUARM');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif arm}
+
+      {$ifdef avr}
+        def_system_macro('CPUAVR');
+        def_system_macro('CPU16');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif avr}
+
+      {$ifdef jvm}
+        def_system_macro('CPUJVM');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif jvm}
+
+      {$ifdef mipsel}
+        def_system_macro('CPUMIPS');
+        def_system_macro('CPUMIPS32');
+        def_system_macro('CPUMIPSEL');
+        def_system_macro('CPUMIPSEL32');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_HAS_TYPE_DOUBLE');
+        def_system_macro('FPC_HAS_TYPE_SINGLE');
+        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+        { On most systems, locals are accessed relative to base pointer,
+          but for MIPS cpu, they are accessed relative to stack pointer.
+          This needs adaptation for so low level routines,
+          like MethodPointerLocal and related objects unit functions. }
+        def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
+      {$endif mipsel}
+
+      {$ifdef mipseb}
+        def_system_macro('CPUMIPS');
+        def_system_macro('CPUMIPS32');
+        def_system_macro('CPUMIPSEB');
+        def_system_macro('CPUMIPSEB32');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_HAS_TYPE_DOUBLE');
+        def_system_macro('FPC_HAS_TYPE_SINGLE');
+        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+        { See comment above for mipsel }
+        def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
+      {$endif}
+
+      {$ifdef i8086}
+        def_system_macro('CPU86');  { Borland compatibility }
+        def_system_macro('CPU87');  { Borland compatibility }
+        def_system_macro('CPUI8086');
+        def_system_macro('CPU16');
+        def_system_macro('FPC_HAS_TYPE_EXTENDED');
+        def_system_macro('FPC_HAS_TYPE_DOUBLE');
+        def_system_macro('FPC_HAS_TYPE_SINGLE');
+        case init_settings.x86memorymodel of
+          mm_tiny:    def_system_macro('FPC_MM_TINY');
+          mm_small:   def_system_macro('FPC_MM_SMALL');
+          mm_medium:  def_system_macro('FPC_MM_MEDIUM');
+          mm_compact: def_system_macro('FPC_MM_COMPACT');
+          mm_large:   def_system_macro('FPC_MM_LARGE');
+          mm_huge:    def_system_macro('FPC_MM_HUGE');
+        end;
+      {$endif i8086}
+
+      {$ifdef aarch64}
+        def_system_macro('CPUAARCH64');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+      {$endif aarch64}
+
+      {$if defined(cpu8bitalu)}
+        def_system_macro('CPUINT8');
+      {$elseif defined(cpu16bitalu)}
+        def_system_macro('CPUINT16');
+      {$elseif defined(cpu32bitalu)}
+        def_system_macro('CPUINT32');
+      {$elseif defined(cpu64bitalu)}
+        def_system_macro('CPUINT64');
+      {$endif defined(cpu64bitalu)}
+
+      {$if defined(avr)}
+        def_system_macro('FPC_HAS_INTERNAL_ABS_SHORTINT');
+      {$endif}
+      {$if defined(i8086) or defined(avr)}
+        def_system_macro('FPC_HAS_INTERNAL_ABS_SMALLINT');
+      {$endif i8086 or avr}
+      { abs(long) is handled internally on all CPUs }
+        def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
+      {$if defined(i8086) or defined(i386) or defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
+        def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
+      {$endif i8086 or i386 or x86_64 or powerpc64 or aarch64}
+
+        def_system_macro('FPC_HAS_MANAGEMENT_OPERATORS');
+        def_system_macro('FPC_HAS_UNICODESTRING');
+        def_system_macro('FPC_RTTI_PACKSET1');
+        def_system_macro('FPC_HAS_CPSTRING');
+      {$ifdef x86_64}
+        def_system_macro('FPC_HAS_RIP_RELATIVE');
+      {$endif x86_64}
+        def_system_macro('FPC_HAS_CEXTENDED');
+        def_system_macro('FPC_HAS_RESSTRINITS');
+
+      { these cpus have an inline rol/ror implementaion }
+      {$ifdef cpurox}
+      {$ifdef m68k}
+        if CPUM68K_HAS_ROLROR in cpu_capabilities[init_settings.cputype] then
+          def_system_macro('FPC_HAS_INTERNAL_ROX');
+      {$else}
+        def_system_macro('FPC_HAS_INTERNAL_ROX');
+      {$endif}
+      {$endif}
+
+      {$ifdef powerpc64}
+        def_system_macro('FPC_HAS_LWSYNC');
+      {$endif}
+
+      { currently, all supported CPUs have an internal sar implementation }
+        def_system_macro('FPC_HAS_INTERNAL_SAR');
+      {$ifdef SUPPORT_GET_FRAME}
+        def_system_macro('INTERNAL_BACKTRACE');
+      {$endif SUPPORT_GET_FRAME}
+        def_system_macro('STR_CONCAT_PROCS');
+      {$warnings off}
+        if pocall_default = pocall_register then
+          def_system_macro('REGCALL');
+      {$warnings on}
     end;
 
 var
@@ -3423,216 +3638,13 @@ begin
   def_system_macro('FPC_STATICRIPFIXED');
   def_system_macro('FPC_VARIANTCOPY_FIXED');
   def_system_macro('FPC_DYNARRAYCOPY_FIXED');
-
-{$if defined(avr)}
-  def_system_macro('FPC_HAS_INTERNAL_ABS_SHORTINT');
-{$endif}
-{$if defined(i8086) or defined(avr)}
-  def_system_macro('FPC_HAS_INTERNAL_ABS_SMALLINT');
-{$endif i8086 or avr}
-{ abs(long) is handled internally on all CPUs }
-  def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$if defined(i8086) or defined(i386) or defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
-  def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
-{$endif i8086 or i386 or x86_64 or powerpc64 or aarch64}
-
-  def_system_macro('FPC_HAS_MANAGEMENT_OPERATORS');
-  def_system_macro('FPC_HAS_UNICODESTRING');
-  def_system_macro('FPC_RTTI_PACKSET1');
-  def_system_macro('FPC_HAS_CPSTRING');
-{$ifdef x86_64}
-  def_system_macro('FPC_HAS_RIP_RELATIVE');
-{$endif x86_64}
-  def_system_macro('FPC_HAS_CEXTENDED');
-  def_system_macro('FPC_HAS_RESSTRINITS');
-
-{ these cpus have an inline rol/ror implementaion }
-{$ifdef cpurox}
-{$ifdef m68k}
-  if CPUM68K_HAS_ROLROR in cpu_capabilities[init_settings.cputype] then
-    def_system_macro('FPC_HAS_INTERNAL_ROX');
-{$else}
-  def_system_macro('FPC_HAS_INTERNAL_ROX');
-{$endif}
-{$endif}
-
-{ currently, all supported CPUs have an internal sar implementation }
-  def_system_macro('FPC_HAS_INTERNAL_SAR');
-
-{$ifdef powerpc64}
-  def_system_macro('FPC_HAS_LWSYNC');
-{$endif}
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
 
-{$ifdef SUPPORT_GET_FRAME}
-  def_system_macro('INTERNAL_BACKTRACE');
-{$endif SUPPORT_GET_FRAME}
-  def_system_macro('STR_CONCAT_PROCS');
-{$warnings off}
-  if pocall_default = pocall_register then
-    def_system_macro('REGCALL');
-{$warnings on}
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
-{ using a case is pretty useless here (FK) }
-{ some stuff for TP compatibility }
-{$ifdef i386}
-  def_system_macro('CPU86');
-  def_system_macro('CPU87');
-  def_system_macro('CPU386');
-{$endif}
 
-{ new processor stuff }
-{$ifdef i386}
-  def_system_macro('CPUI386');
-  def_system_macro('CPU32');
-  def_system_macro('CPUX86');
-  def_system_macro('FPC_HAS_TYPE_EXTENDED');
-  def_system_macro('FPC_HAS_TYPE_DOUBLE');
-  def_system_macro('FPC_HAS_TYPE_SINGLE');
-{$endif}
-{$ifdef m68k}
-  def_system_macro('CPU68');
-  def_system_macro('CPU68K');
-  def_system_macro('CPUM68K');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef powerpc}
-  def_system_macro('CPUPOWERPC');
-  def_system_macro('CPUPOWERPC32');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef POWERPC64}
-  def_system_macro('CPUPOWERPC');
-  def_system_macro('CPUPOWERPC64');
-  def_system_macro('CPU64');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef x86_64}
-  def_system_macro('CPUX86_64');
-  def_system_macro('CPUAMD64');
-  def_system_macro('CPU64');
-  def_system_macro('CPUX64');
-  { not supported for now, afaik (FK)
-   def_system_macro('FPC_HAS_TYPE_FLOAT128'); }
-{$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
-  { normally, win64 doesn't support the legacy fpu }
-  if target_info.system=system_x86_64_win64 then
-    begin
-      def_system_macro('FPC_CURRENCY_IS_INT64');
-      def_system_macro('FPC_COMP_IS_INT64');
-    end;
-{$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
-{$endif}
-{$ifdef sparc}
-  def_system_macro('CPUSPARCGEN');
-  def_system_macro('CPUSPARC');
-  def_system_macro('CPUSPARC32');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef sparc64}
-  def_system_macro('CPUSPARCGEN');
-  def_system_macro('CPUSPARC64');
-  def_system_macro('CPU64');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif}
-{$ifdef arm}
-  def_system_macro('CPUARM');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif arm}
-{$ifdef avr}
-  def_system_macro('CPUAVR');
-  def_system_macro('CPU16');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif avr}
-{$ifdef jvm}
-  def_system_macro('CPUJVM');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif jvm}
-
-{$ifdef mipsel}
-  def_system_macro('CPUMIPS');
-  def_system_macro('CPUMIPS32');
-  def_system_macro('CPUMIPSEL');
-  def_system_macro('CPUMIPSEL32');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_HAS_TYPE_DOUBLE');
-  def_system_macro('FPC_HAS_TYPE_SINGLE');
-  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
-  { On most systems, locals are accessed relative to base pointer,
-    but for MIPS cpu, they are accessed relative to stack pointer.
-    This needs adaptation for so low level routines,
-    like MethodPointerLocal and related objects unit functions. }
-  def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
-{$endif mipsel}
-
-{$ifdef mipseb}
-  def_system_macro('CPUMIPS');
-  def_system_macro('CPUMIPS32');
-  def_system_macro('CPUMIPSEB');
-  def_system_macro('CPUMIPSEB32');
-  def_system_macro('CPU32');
-  def_system_macro('FPC_HAS_TYPE_DOUBLE');
-  def_system_macro('FPC_HAS_TYPE_SINGLE');
-  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
-  { See comment above for mipsel }
-  def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
-{$endif}
-
-{$ifdef i8086}
-  def_system_macro('CPU86');  { Borland compatibility }
-  def_system_macro('CPU87');  { Borland compatibility }
-  def_system_macro('CPUI8086');
-  def_system_macro('CPU16');
-  def_system_macro('FPC_HAS_TYPE_EXTENDED');
-  def_system_macro('FPC_HAS_TYPE_DOUBLE');
-  def_system_macro('FPC_HAS_TYPE_SINGLE');
-  case init_settings.x86memorymodel of
-    mm_tiny:    def_system_macro('FPC_MM_TINY');
-    mm_small:   def_system_macro('FPC_MM_SMALL');
-    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
-    mm_compact: def_system_macro('FPC_MM_COMPACT');
-    mm_large:   def_system_macro('FPC_MM_LARGE');
-    mm_huge:    def_system_macro('FPC_MM_HUGE');
-  end;
-{$endif i8086}
-{$ifdef aarch64}
-  def_system_macro('CPUAARCH64');
-  def_system_macro('CPU64');
-  def_system_macro('FPC_CURRENCY_IS_INT64');
-  def_system_macro('FPC_COMP_IS_INT64');
-{$endif aarch64}
-
-{$if defined(cpu8bitalu)}
-  def_system_macro('CPUINT8');
-{$elseif defined(cpu16bitalu)}
-  def_system_macro('CPUINT16');
-{$elseif defined(cpu32bitalu)}
-  def_system_macro('CPUINT32');
-{$elseif defined(cpu64bitalu)}
-  def_system_macro('CPUINT64');
-{$endif defined(cpu64bitalu)}
-
+  { make cpu makros available when reading the config files the second time }
   def_cpu_macros;
 
   if tf_cld in target_info.flags then
