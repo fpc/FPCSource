@@ -593,7 +593,7 @@ end;
 
 Procedure TTestExpressionWriter.TestBinaryComma;
 begin
-  TestBinary('A comma B',TJSCommaExpression,'(a , b)',False);
+  TestBinary('A comma B',TJSCommaExpression,'(a, b)',False);
 end;
 
 Procedure TTestExpressionWriter.TestBinaryCommaCompact;
