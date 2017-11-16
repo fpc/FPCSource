@@ -1937,6 +1937,60 @@ end;
            SortModes(i,r);
       end;
 
+    procedure FillCommonCGA320(var mode: TModeInfo);
+    begin
+      mode.HardwarePages := 0;
+      mode.MaxColor := 4;
+      mode.PaletteSize := 16;
+      mode.DirectColor := FALSE;
+      mode.MaxX := 319;
+      mode.MaxY := 199;
+      mode.DirectPutPixel  := @ptc_DirectPixelProc_8bpp;
+      mode.PutPixel        := @ptc_PutPixelProc_8bpp;
+      mode.GetPixel        := @ptc_GetPixelProc_8bpp;
+      mode.PutImage        := @ptc_PutImageProc_8bpp;
+      mode.GetImage        := @ptc_GetImageProc_8bpp;
+      mode.GetScanLine     := @ptc_GetScanLineProc_8bpp;
+      mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
+      //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+      mode.HLine           := @ptc_HLineProc_8bpp;
+      mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.SetBkColor      := @SetBkColorCGA320;
+      mode.GetBkColor      := @GetBkColorCGA320;
+      mode.SetVisualPage   := @ptc_SetVisualPage;
+      mode.SetActivePage   := @ptc_SetActivePage;
+      mode.XAspect := 8333;
+      mode.YAspect := 10000;
+    end;
+
+    procedure FillCommonCGA640(var mode: TModeInfo);
+    begin
+      mode.HardwarePages := 0;
+      mode.MaxColor := 2;
+      mode.PaletteSize := 16;
+      mode.DirectColor := FALSE;
+      mode.MaxX := 639;
+      mode.MaxY := 199;
+      mode.DirectPutPixel  := @ptc_DirectPixelProc_8bpp;
+      mode.PutPixel        := @ptc_PutPixelProc_8bpp;
+      mode.GetPixel        := @ptc_GetPixelProc_8bpp;
+      mode.PutImage        := @ptc_PutImageProc_8bpp;
+      mode.GetImage        := @ptc_GetImageProc_8bpp;
+      mode.GetScanLine     := @ptc_GetScanLineProc_8bpp;
+      mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
+      //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+      mode.HLine           := @ptc_HLineProc_8bpp;
+      mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.SetBkColor      := @SetBkColorCGA640;
+      mode.GetBkColor      := @GetBkColorCGA640;
+      mode.SetVisualPage   := @ptc_SetVisualPage;
+      mode.SetActivePage   := @ptc_SetActivePage;
+      mode.XAspect := 4167;
+      mode.YAspect := 10000;
+    end;
+
    var
     graphmode:Tmodeinfo;
     I: Integer;
@@ -1959,363 +2013,83 @@ end;
      RestoreVideoState:=@ptc_restorevideostate;
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=CGAC0;
-       DriverNumber := CGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C0';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC0;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := CGA;
+     graphmode.ModeNumber := CGAC0;
+     graphmode.ModeName := '320 x 200 CGA C0';
+     graphmode.InitMode := @ptc_Init320x200x4cgaC0;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=CGAC1;
-       DriverNumber := CGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C1';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC1;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := CGA;
+     graphmode.ModeNumber := CGAC1;
+     graphmode.ModeName := '320 x 200 CGA C1';
+     graphmode.InitMode := @ptc_Init320x200x4cgaC1;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=CGAC2;
-       DriverNumber := CGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C2';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC2;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := CGA;
+     graphmode.ModeNumber := CGAC2;
+     graphmode.ModeName := '320 x 200 CGA C2';
+     graphmode.InitMode := @ptc_Init320x200x4cgaC2;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=CGAC3;
-       DriverNumber := CGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C3';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC3;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := CGA;
+     graphmode.ModeNumber := CGAC3;
+     graphmode.ModeName := '320 x 200 CGA C3';
+     graphmode.InitMode := @ptc_Init320x200x4cgaC3;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=CGAHi;
-       DriverNumber := CGA;
-       HardwarePages := 0;
-       ModeName:='640 x 200 CGA';
-       MaxColor := 2;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 639;
-       MaxY := 199;
-       InitMode       := @ptc_Init640x200x2;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA640;
-       GetBkColor     := @GetBkColorCGA640;
-
-       XAspect := 4167;
-       YAspect := 10000;
-     end;
+     FillCommonCGA640(graphmode);
+     graphmode.DriverNumber := CGA;
+     graphmode.ModeNumber := CGAHi;
+     graphmode.ModeName:='640 x 200 CGA';
+     graphmode.InitMode := @ptc_Init640x200x2;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=MCGAC0;
-       DriverNumber := MCGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C0';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC0;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := MCGA;
+     graphmode.ModeNumber := MCGAC0;
+     graphmode.ModeName := '320 x 200 CGA C0'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+     graphmode.InitMode := @ptc_Init320x200x4cgaC0;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=MCGAC1;
-       DriverNumber := MCGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C1';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC1;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := MCGA;
+     graphmode.ModeNumber := MCGAC1;
+     graphmode.ModeName := '320 x 200 CGA C1'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+     graphmode.InitMode := @ptc_Init320x200x4cgaC1;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=MCGAC2;
-       DriverNumber := MCGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C2';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC2;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := MCGA;
+     graphmode.ModeNumber := MCGAC2;
+     graphmode.ModeName := '320 x 200 CGA C2'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+     graphmode.InitMode := @ptc_Init320x200x4cgaC2;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=MCGAC3;
-       DriverNumber := MCGA;
-       HardwarePages := 0;
-       ModeName:='320 x 200 CGA C3';
-       MaxColor := 4;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 319;
-       MaxY := 199;
-       InitMode       := @ptc_Init320x200x4cgaC3;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA320;
-       GetBkColor     := @GetBkColorCGA320;
-
-       XAspect := 8333;
-       YAspect := 10000;
-     end;
+     FillCommonCGA320(graphmode);
+     graphmode.DriverNumber := MCGA;
+     graphmode.ModeNumber := MCGAC3;
+     graphmode.ModeName := '320 x 200 CGA C3'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+     graphmode.InitMode := @ptc_Init320x200x4cgaC3;
      AddMode(graphmode);
 
      InitMode(graphmode);
-     with graphmode do
-     begin
-       ModeNumber:=MCGAMed;
-       DriverNumber := MCGA;
-       HardwarePages := 0;
-       ModeName:='640 x 200 CGA';
-       MaxColor := 2;
-       DirectColor := FALSE;
-       PaletteSize := 16;
-       MaxX := 639;
-       MaxY := 199;
-       InitMode       := @ptc_Init640x200x2;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
-       SetBkColor     := @SetBkColorCGA640;
-       GetBkColor     := @GetBkColorCGA640;
-
-       XAspect := 4167;
-       YAspect := 10000;
-     end;
+     FillCommonCGA640(graphmode);
+     graphmode.DriverNumber := MCGA;
+     graphmode.ModeNumber := MCGAMed;
+     graphmode.ModeName:='640 x 200 CGA'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+     graphmode.InitMode := @ptc_Init640x200x2;
      AddMode(graphmode);
 
      InitMode(graphmode);
