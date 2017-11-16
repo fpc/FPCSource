@@ -1991,6 +1991,26 @@ end;
       mode.YAspect := 10000;
     end;
 
+    procedure FillCommonEGAVGA16(var mode: TModeInfo);
+    begin
+      mode.MaxColor := 16;
+      mode.DirectColor := FALSE;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectPutPixel := @ptc_DirectPixelProc_8bpp;
+      mode.PutPixel       := @ptc_PutPixelProc_8bpp;
+      mode.GetPixel       := @ptc_GetPixelProc_8bpp;
+      mode.PutImage       := @ptc_PutImageProc_8bpp;
+      mode.GetImage       := @ptc_GetImageProc_8bpp;
+      mode.GetScanLine    := @ptc_GetScanLineProc_8bpp;
+      mode.SetRGBPalette  := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette  := @ptc_GetRGBPaletteProc;
+      //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+      mode.HLine          := @ptc_HLineProc_8bpp;
+      mode.VLine          := @ptc_VLineProc_8bpp;
+      mode.SetVisualPage  := @ptc_SetVisualPage;
+      mode.SetActivePage  := @ptc_SetActivePage;
+    end;
+
    var
     graphmode:Tmodeinfo;
     I: Integer;
@@ -2164,165 +2184,80 @@ end;
      end;
 
      InitMode(graphmode);
+     FillCommonEGAVGA16(graphmode);
      with graphmode do
      begin
        ModeNumber:=EGALo;
        DriverNumber := EGA;
-       HardwarePages := 3;
        ModeName:='640 x 200 EGA';
-       MaxColor := 16;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 199;
-       InitMode       := @ptc_Init640x200x16;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       HardwarePages := 3;
+       InitMode := @ptc_Init640x200x16;
        XAspect := 4500;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonEGAVGA16(graphmode);
      with graphmode do
      begin
        ModeNumber:=EGAHi;
        DriverNumber := EGA;
-       HardwarePages := 1;
        ModeName:='640 x 350 EGA';
-       MaxColor := 16;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 349;
-       InitMode       := @ptc_Init640x350x16;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       HardwarePages := 1;
+       InitMode := @ptc_Init640x350x16;
        XAspect := 7750;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonEGAVGA16(graphmode);
      with graphmode do
      begin
        ModeNumber:=VGALo;
        DriverNumber := VGA;
-       HardwarePages := 3;
-       ModeName:='640 x 200 EGA';
-       MaxColor := 16;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
+       ModeName:='640 x 200 EGA'; { yes, it says 'EGA' even for the VGA driver; this is TP7 compatible }
        MaxX := 639;
        MaxY := 199;
-       InitMode       := @ptc_Init640x200x16;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       HardwarePages := 3;
+       InitMode := @ptc_Init640x200x16;
        XAspect := 4500;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonEGAVGA16(graphmode);
      with graphmode do
      begin
        ModeNumber:=VGAMed;
        DriverNumber := VGA;
-       HardwarePages := 1;
-       ModeName:='640 x 350 EGA';
-       MaxColor := 16;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
+       ModeName:='640 x 350 EGA'; { yes, it says 'EGA' even for the VGA driver; this is TP7 compatible }
        MaxX := 639;
        MaxY := 349;
-       InitMode       := @ptc_Init640x350x16;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       HardwarePages := 1;
+       InitMode := @ptc_Init640x350x16;
        XAspect := 7750;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonEGAVGA16(graphmode);
      with graphmode do
      begin
        ModeNumber:=VGAHi;
        DriverNumber := VGA;
-       HardwarePages := 0;
        ModeName:='640 x 480 VGA';
-       MaxColor := 16;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 479;
-       InitMode       := @ptc_Init640x480x16;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       HardwarePages := 0;
+       InitMode := @ptc_Init640x480x16;
        XAspect := 10000;
        YAspect := 10000;
      end;
