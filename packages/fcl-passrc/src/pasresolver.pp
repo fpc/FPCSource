@@ -169,6 +169,7 @@ ToDo:
    - function: enumerator
    - class
    - operator
+- parser: TPasParser.ParseProcedureOrFunctionHeader skip searching proc
 - range checking:
   - indexedprop[param]
   - case-of unique

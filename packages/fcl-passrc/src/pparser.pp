@@ -806,8 +806,8 @@ var
 begin
   {$IFDEF VerbosePasParser}
   writeln('TPasParser.ParseExc Token="',CurTokenText,'"');
+  //writeln('TPasParser.ParseExc ',Scanner.CurColumn,' ',Scanner.CurSourcePos.Column,' ',Scanner.CurTokenPos.Column);
   {$ENDIF}
-  writeln('TPasParser.ParseExc ',Scanner.CurColumn,' ',Scanner.CurSourcePos.Column,' ',Scanner.CurTokenPos.Column);
   SetLastMsg(mtError,MsgNumber,Fmt,Args);
   p:=Scanner.CurTokenPos;
   raise EParserError.Create(SafeFormat(SParserErrorAtToken,
@@ -4520,10 +4520,21 @@ begin
       end
     else if (CurToken = tkSquaredBraceOpen) then
       begin
-      repeat
-        NextToken
-      until CurToken = tkSquaredBraceClose;
-      ExpectToken(tkSemicolon);
+      // [] can be an attribute or FPC's [] modifier
+      if IsProc and ([msFpc, msObjfpc]*CurrentModeswitches<>[]) then
+        begin
+        // FPC's [] modifier
+        repeat
+          NextToken
+        until CurToken = tkSquaredBraceClose;
+        ExpectToken(tkSemicolon);
+        end
+      else
+        begin
+        // attribute
+        UngetToken;
+        Exit;
+        end;
       end
     else
       CheckToken(tkSemicolon);
