@@ -819,7 +819,7 @@ Var
 
 begin
   FindMatchesBoyerMooreCaseSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
-  For I:=0 to Length(AMatches) do
+  For I:=0 to pred(Length(AMatches)) do
     Inc(AMatches[i]);
 end;
 
@@ -830,7 +830,7 @@ Var
 
 begin
   FindMatchesBoyerMooreCaseInSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
-  For I:=0 to Length(AMatches) do
+  For I:=0 to pred(Length(AMatches)) do
     Inc(AMatches[i]);
 end;
 

@@ -41,7 +41,7 @@
   You should have received a copy of the GNU Library General Public
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
   Changes :
@@ -2329,7 +2329,7 @@
      // routine when a floating point exception is detected
      _EXCEPTION = record  //+stdlib
        type_  : Integer;  //identifier type replaced by Type_ for compilation
-       Name   : PChar;    // name of function where error occured
+       Name   : PChar;    // name of function where error occurred
        arg1   : double;   // first argument to function
        arg2   : double;   // second argument (if any) to function
        retval : double;   // value to be returned by function

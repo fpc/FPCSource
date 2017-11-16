@@ -74,8 +74,12 @@ begin
   UpdateUsedRegs(UsedRegs, tai(p.Next));
   RegUsedAfterInstruction :=
     (supreg in UsedRegs) and
-    (not(getNextInstruction(p,p)) or
-     not(regLoadedWithNewValue(supreg,false,p)));
+    not(regLoadedWithNewValue(supreg,false,p)) and
+    (
+      not(GetNextInstruction(p,p)) or
+      RegReadByInstruction(supreg,p) or
+      not(regLoadedWithNewValue(supreg,false,p))
+    );
 end;
 
 

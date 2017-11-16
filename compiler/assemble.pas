@@ -1583,7 +1583,7 @@ Implementation
            MaybeNextList(hp);
          end;
         ObjData.afteralloc;
-        { leave if errors have occured }
+        { leave if errors have occurred }
         if errorcount>0 then
          goto doexit;
 
@@ -1604,7 +1604,7 @@ Implementation
         ObjData.createsection(sec_code);
         ObjData.afteralloc;
 
-        { leave if errors have occured }
+        { leave if errors have occurred }
         if errorcount>0 then
          goto doexit;
 
@@ -1625,7 +1625,7 @@ Implementation
         ObjData.createsection(sec_code);
         ObjData.afterwrite;
 
-        { don't write the .o file if errors have occured }
+        { don't write the .o file if errors have occurred }
         if errorcount=0 then
          begin
            { write objectfile }
@@ -1672,7 +1672,7 @@ Implementation
            ObjData.createsection(startsectype);
            TreePass0(hp);
            ObjData.afteralloc;
-           { leave if errors have occured }
+           { leave if errors have occurred }
            if errorcount>0 then
              break;
 
@@ -1684,7 +1684,7 @@ Implementation
            TreePass1(hp);
            ObjData.afteralloc;
 
-           { leave if errors have occured }
+           { leave if errors have occurred }
            if errorcount>0 then
              break;
 
@@ -1697,7 +1697,7 @@ Implementation
            hp:=TreePass2(hp);
            ObjData.afterwrite;
 
-           { leave if errors have occured }
+           { leave if errors have occurred }
            if errorcount>0 then
              break;
 

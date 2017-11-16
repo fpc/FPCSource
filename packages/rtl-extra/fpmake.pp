@@ -24,7 +24,7 @@ Const
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
   MatrixOSes	= [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
-  ObjectsOSes   = [amiga,aros,emx,gba,go32v2,morphos,msdos,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
+  ObjectsOSes   = [amiga,aros,emx,gba,go32v2,morphos,msdos,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
   SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,wince,win32,win64];
@@ -106,6 +106,8 @@ begin
 
     T:=P.Targets.AddUnit('serial.pp',SerialOSes);
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
+    if Defaults.CPU=powerpc then
+      T.OSes:=T.OSes-[amiga];
     with T.Dependencies do
      begin
        addinclude('osdefs.inc',AllUnixOSes);

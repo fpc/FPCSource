@@ -19863,9 +19863,9 @@ function CertVerifyCertificateChainPolicy; external crypt32 name 'CertVerifyCert
 function CryptBinaryToStringA; external crypt32 name 'CryptBinaryToStringA';
 function CryptBinaryToStringW; external crypt32 name 'CryptBinaryToStringW';
 function CryptBinaryToString; external crypt32 name 'CryptBinaryToString' + AWSuffix;
-function CryptStringToBinaryA; external crypt32 name 'CryptToStringBinaryA';
-function CryptStringToBinaryW; external crypt32 name 'CryptToStringBinaryW';
-function CryptStringToBinary; external crypt32 name 'CryptToStringBinary' + AWSuffix;
+function CryptStringToBinaryA; external crypt32 name 'CryptStringToBinaryA';
+function CryptStringToBinaryW; external crypt32 name 'CryptStringToBinaryW';
+function CryptStringToBinary; external crypt32 name 'CryptStringToBinary' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 {$ENDIF JWA_INTERFACESECTION}

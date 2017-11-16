@@ -180,6 +180,7 @@
          Entries    : array[0..0] of tinterfaceentry;
        end;
 
+       PMethod = ^TMethod;
        TMethod = record
          Code : CodePointer;
          Data : Pointer;

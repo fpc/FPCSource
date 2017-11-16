@@ -21,13 +21,21 @@ uses
   Classes, SysUtils;
 
 Type
+
   { TRequestResponse }
+  
+  // Some IIS servers react badly to svAny. So we set up a system where you can set a min/max SSL version.
+  
+  TSSLVersion = (svNone,svAny,svSSLv2,svSSLv3,svTLSv1,svTLSv11,svTLSv12,svTLSv13);
+  TSSLVersions = Set of TSSLVersion;
+  TSSLVersionArray = Array of TSSLVersion;
 
   TRequestResponse = Class(TObject)
   private
     FHeaders : TStrings;
     FStream : TStream;
     FOwnsStream : Boolean;
+    FSSLVersion : TSSLVersion;
   Protected
     function GetHeaders: TStrings;virtual;
     function GetStream: TStream;virtual;
@@ -39,6 +47,8 @@ Type
     Property Headers : TStrings Read GetHeaders;
     // Request content or response content
     Property Content: TStream Read GetStream;
+    // SSLVersion : Which version to use
+    Property SSLVersion : TSSLVersion Read FSSLVersion Write FSSLVersion;
   end;
 
   { TWebClientRequest }
@@ -95,9 +105,6 @@ Type
 
   { TAbstractWebClient }
 
-  TSSLVersion = (svAny,svSSLv2,svSSLv3,svTLSv1,svTLSv11,svTLSv12,svTLSv13);
-  TSSLVersions = Set of TSSLVersion;
-  TSSLVersionArray = Array of TSSLVersion;
 
   TAbstractWebClient = Class(TComponent)
   private
@@ -105,14 +112,19 @@ Type
     FSigner: TAbstractRequestSigner;
     FLogFile : String;
     FLogStream : TStream;
-    FTrySSLVersion: TSSLVersion;
+    FMinSSLVersion: TSSLVersion;
+    FMaxSSLVersion: TSSLVersion;
     Procedure LogRequest(AMethod, AURL: String; ARequest: TWebClientRequest);
     Procedure LogResponse(AResponse: TWebClientResponse);
     procedure SetLogFile(AValue: String);
+    procedure SetSSLVersion(AValue : TSSLVersion);
+    Function GetSSLVersion : TSSLVersion;
   protected
+    // Determine min/max version to try
+    procedure GetVersionLimits(out PMin, PMax: TSSLVersion);
     // Write a string to the log file
     procedure StringToStream(str: string);
-    // Must execute the requested method using request/response. Must take ResponseCOntent stream into account
+    // Must execute the requested method using request/response. Must take ResponseContent stream into account
     Function DoHTTPMethod(Const AMethod,AURL : String; ARequest : TWebClientRequest) : TWebClientResponse; virtual; abstract;
     // Must create a request.
     Function DoCreateRequest : TWebClientRequest; virtual; abstract;
@@ -130,7 +142,12 @@ Type
     Property RequestSigner : TAbstractRequestSigner Read FSigner Write FSigner;
     Property ResponseExaminer : TAbstractResponseExaminer Read FExaminer Write FExaminer;
     Property LogFile : String Read FLogFile Write SetLogFile;
-    property SSLVersion : TSSLVersion Read FTrySSLVersion Write FTrySSLVersion;
+    // This will set MinSSLversion and MaxSSLversion
+    property SSLVersion : TSSLVersion Read GetSSLVersion Write SetSSLVersion;
+    // Minimum Version to try. If spNone is set, all should be tried in succession from high to MinSSLVersion.
+    Property MinSSLVersion : TSSLVersion Read FMinSSLVersion Write FMinSSLVersion default svAny;
+    // Maximum Version to try. If spNone is set, all should be tried in succession from MaxSSLVersion to low.
+    Property MaxSSLVersion : TSSLVersion Read FMaxSSLVersion Write FMaxSSLVersion default svAny;
   end;
   TAbstractWebClientClass = Class of TAbstractWebClient;
 
@@ -211,6 +228,18 @@ end;
 
 { TAbstractWebClient }
 
+procedure TAbstractWebClient.SetSSLVersion(AValue : TSSLVersion);
+
+begin
+  MinSSLVersion:=AValue;
+  MaxSSLVersion:=AValue;
+end;
+
+Function TAbstractWebClient.GetSSLVersion : TSSLVersion;
+
+begin
+  Result:=MinSSLVersion;
+end;
 
 procedure TAbstractWebClient.SetLogFile(AValue: String);
 begin
@@ -220,7 +249,10 @@ begin
   FLogFile:=AValue;
   if (FLogFile<>'') then
     if FileExists(FLogFile) then
-      FLogStream:=TFileStream.Create(FLogFile,fmOpenWrite or fmShareDenyWrite)
+      begin
+      FLogStream:=TFileStream.Create(FLogFile,fmOpenWrite or fmShareDenyWrite);
+      FLogStream.Seek(0,soFromEnd);
+      end
     else
       FLogStream:=TFileStream.Create(FLogFile,fmCreate or fmShareDenyWrite);
 end;
@@ -277,19 +309,61 @@ begin
   StringToStream('');
 end;
 
+procedure TAbstractWebClient.GetVersionLimits(out PMin, PMax: TSSLVersion);
+
+begin
+  if MinSSLVersion=svNone then
+    PMin:=Succ(Low(TSSLVersion))
+  else
+    PMin:=MinSSLVersion;
+  if MaxSSLVersion=svNone then
+    PMax:=High(TSSLVersion)
+  else
+    PMax:=MaxSSLVersion;
+  if PMax<PMin then
+    PMax:=PMin;
+end;
+
 function TAbstractWebClient.ExecuteRequest(const AMethod, AURL: String;
   ARequest: TWebClientRequest): TWebClientResponse;
+  
+Var
+  P,PMax,PMin : TSSLVersion;
+  S: String;
+
 begin
   if Assigned(FLogStream) then
     LogRequest(AMethod,AURL,ARequest);
   Result:=DoHTTPMethod(AMethod,AURL,ARequest);
+  GetVersionLimits(PMin,PMax);
+  if PMin<>PMax then
+    StringToStream('Trying multiple protocols.');
+  P:=PMax;
+  While (Not Assigned(Result)) and (P>=PMin) do
+    begin
+    Str(P,S);
+    StringToStream('Trying protocol: '+S);
+    Result:=Nil;
+    ARequest.SSLVersion:=P;
+    if Assigned(FLogStream) then
+      LogRequest(AMethod,AURL,ARequest);
+    try
+      Result:=DoHTTPMethod(AMethod,AURL,ARequest);
+    except
+      if (P=PMin) then
+        Raise;
+    end;
+    P:=Pred(P);
+    end;
   if Assigned(Result) then
     begin
     if Assigned(FLogStream) then
       LogResponse(Result);
     If Assigned(FExaminer) then
       FExaminer.ExamineResponse(Result);
-    end;
+    end
+  else
+    StringToStream('Request generated no response');
 end;
 
 function TAbstractWebClient.ExecuteSignedRequest(const AMethod, AURL: String;

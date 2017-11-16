@@ -41,7 +41,7 @@
   You should have received a copy of the GNU Library General Public
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 {$ifdef read_interface}
@@ -9090,7 +9090,7 @@ type
 
 // Menubar information
 type
-     tagMENUBARINFO = packed record
+     tagMENUBARINFO = record
        cbSize:DWORD;
        rcBar:Windows.RECT; // rect of bar, popup, item
        _hmenu:HMENU;       // real menu handle of bar, popup
@@ -9308,6 +9308,70 @@ type
     RAWINPUTDEVICELIST = tagRAWINPUTDEVICELIST;
     PRAWINPUTDEVICELIST = ^tagRAWINPUTDEVICELIST;
 //#endif /* _WIN32_WINNT >= 0x0501 */
+
+// Wincon.h  
+
+    _CONSOLE_SCREEN_BUFFER_INFOEX = record
+        cbSize : ULONG;
+        dwSize : COORD;
+        dwCursorPosition : COORD;
+        wAttributes : WORD;
+        srWindow : SMALL_RECT;
+        dwMaximumWindowSize : COORD;
+        wPopupAttributes : WORD;
+        bFullscreenSupported : BOOL;
+        ColorTable : array[0..15] of COLORREF;
+      end;
+    CONSOLE_SCREEN_BUFFER_INFOEX = _CONSOLE_SCREEN_BUFFER_INFOEX;
+    PCONSOLE_SCREEN_BUFFER_INFOEX = ^_CONSOLE_SCREEN_BUFFER_INFOEX;
+
+    
+    _CONSOLE_FONT_INFO = record
+        nFont : DWORD;
+        dwFontSize : COORD;
+      end;
+    CONSOLE_FONT_INFO = _CONSOLE_FONT_INFO;
+    PCONSOLE_FONT_INFO = ^_CONSOLE_FONT_INFO;
+
+    _CONSOLE_FONT_INFOEX = record
+        cbSize : ULONG;
+        nFont : DWORD;
+        dwFontSize : COORD;
+        FontFamily : UINT;
+        FontWeight : UINT;
+        FaceName : array[0..(LF_FACESIZE)-1] of WCHAR;
+      end;
+    CONSOLE_FONT_INFOEX = _CONSOLE_FONT_INFOEX;
+    PCONSOLE_FONT_INFOEX = ^_CONSOLE_FONT_INFOEX;
+
+
+
+    _CONSOLE_HISTORY_INFO = record
+        cbSize : UINT;
+        HistoryBufferSize : UINT;
+        NumberOfHistoryBuffers : UINT;
+        dwFlags : DWORD;
+      end;
+    CONSOLE_HISTORY_INFO = _CONSOLE_HISTORY_INFO;
+    PCONSOLE_HISTORY_INFO = ^_CONSOLE_HISTORY_INFO;
+
+    _CONSOLE_SELECTION_INFO = record
+        dwFlags : DWORD;
+        dwSelectionAnchor : COORD;
+        srSelection : SMALL_RECT;
+      end;
+    CONSOLE_SELECTION_INFO = _CONSOLE_SELECTION_INFO;
+    PCONSOLE_SELECTION_INFO = ^_CONSOLE_SELECTION_INFO;
+
+    _CONSOLE_READCONSOLE_CONTROL = record
+        nLength : ULONG;
+        nInitialChars : ULONG;
+        dwCtrlWakeupMask : ULONG;
+        dwControlKeyState : ULONG;
+      end;
+    CONSOLE_READCONSOLE_CONTROL = _CONSOLE_READCONSOLE_CONTROL;
+    PCONSOLE_READCONSOLE_CONTROL = ^_CONSOLE_READCONSOLE_CONTROL;
+
 {$pop}
 {$endif read_interface}
 

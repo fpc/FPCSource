@@ -18,6 +18,9 @@
 
  **********************************************************************}
 
+{$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
+
 Unit roo;
 {$i direct.inc}
 
@@ -34,6 +37,8 @@ Procedure roobin(n: ArbInt; a: complex; Var z: complex; Var term: ArbInt);
 
 Procedure roof1r(f: rfunc1r; a, b, ae, re: ArbFloat; Var x: ArbFloat;
                  Var term: ArbInt);
+Procedure roof1rn(f: rfunc1rn; a, b, ae, re: ArbFloat; Var x: ArbFloat;
+                 Var term: ArbInt);
 
 {Determine all zeropoints for a given n'th degree polynomal with real
 coefficients}
@@ -45,7 +50,7 @@ Procedure roopol(Var a: ArbFloat; n: ArbInt; Var z: complex;
 
 Procedure rooqua(p, q: ArbFloat; Var z1, z2: complex);
 
-{Roofnr is undocumented, but verry big}
+{Solve a system of non-linear equations}
 
 Procedure roofnr(f: roofnrfunc; n: ArbInt; Var x, residu: ArbFloat; re: ArbFloat;
                  Var term: ArbInt);
@@ -141,13 +146,24 @@ End {roobin};
 Procedure roof1r(f: rfunc1r; a, b, ae, re: ArbFloat; Var x: ArbFloat;
                  Var term: ArbInt);
 
+  function nested_f(x: ArbFloat): ArbFloat;
+  begin
+    Result := f(x);
+  end;
+
+begin
+  roof1rn(@nested_f, a, b, ae, re, x, term);
+end;  
+
+Procedure roof1rn(f: rfunc1rn; a, b, ae, re: ArbFloat; Var x: ArbFloat;
+                 Var term: ArbInt);
 Var fa, fb, c, fc, m, tol, w1, w2 : ArbFloat;
                                 k : ArbInt;
                              stop : boolean;
 
 Begin
   fa := f(a);
- fb := f(b);
+  fb := f(b);
   If (spesgn(fa)*spesgn(fb)=1) Or (ae<0) Or (re<0)
    Then  {wrong input}
     Begin
@@ -173,7 +189,7 @@ Begin
   k := 0;
   tol := ae+re*spemax(abs(a), abs(b));
   w1 := abs(b-a);
- stop := false;
+  stop := false;
   while (abs(b-a)>tol) and (fb<>0) and (Not stop) Do
     Begin
       m := (a+b)/2;

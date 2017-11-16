@@ -44,7 +44,7 @@ type
     destructor Destroy; override;
     property CompressionQuality: TFPJPEGCompressionQuality read FQuality write FQuality;
     property ProgressiveEncoding: boolean read FProgressiveEncoding write FProgressiveEncoding;
-    property GrayScale: boolean read FGrayscale;
+    property GrayScale: boolean read FGrayscale write FGrayScale;
   end;
 
 implementation
@@ -125,10 +125,16 @@ var
   begin
     FInfo.image_width := Img.Width;
     FInfo.image_height := Img.Height;
-    FInfo.input_components := 3; // RGB has 3 components
-    FInfo.in_color_space := JCS_RGB;
     if FGrayscale then
-      jpeg_set_colorspace(@FInfo, JCS_GRAYSCALE);
+    begin
+      FInfo.input_components := 1;
+      FInfo.in_color_space := JCS_GRAYSCALE;
+    end
+    else
+    begin
+      FInfo.input_components := 3; // RGB has 3 components
+      FInfo.in_color_space := JCS_RGB;
+    end;
 
     jpeg_set_defaults(@FInfo);
     jpeg_set_quality(@FInfo, FQuality, True);
@@ -157,6 +163,10 @@ var
     try
       y:=0;
       while (FInfo.next_scanline < FInfo.image_height) do begin
+        if FGrayscale then
+        for x:=0 to FInfo.image_width-1 do
+          SampRow^[x]:=CalculateGray(Img.Colors[x,y]) shr 8
+        else
         for x:=0 to FInfo.image_width-1 do begin
           Color:=Img.Colors[x,y];
           SampRow^[x*3+0]:=Color.Red shr 8;

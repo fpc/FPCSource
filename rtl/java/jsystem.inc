@@ -527,8 +527,8 @@ function aligntoptr(p : pointer) : pointer;inline;
    See the GNU Library General Public License for more details.
    You should have received a copy of the GNU Library General
    Public License along with this library; if not, write to the
-   Free Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307  USA
+   Free Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301  USA
 
    Copyright (C) 1997, 1999 Makoto Matsumoto and Takuji Nishimura.
    When you use this, send an email to: matumoto@math.keio.ac.jp
@@ -1239,7 +1239,7 @@ Begin
      End;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except
-     { prevent endless dump if an exception occured }
+     { prevent endless dump if an exception occurred }
    end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;

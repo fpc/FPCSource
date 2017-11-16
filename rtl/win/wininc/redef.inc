@@ -823,9 +823,9 @@ function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; prcScroll:lpRECT; prc
 //function SearchPathA(lpPath, lpFileName, lpExtension: LPCSTR; nBufferLength: DWORD; lpBuffer: LPCSTR; var lpFilePart: LPCSTR): DWORD; external 'kernel32' name 'SearchPathA';
 //function SearchPathW(lpPath, lpFileName, lpExtension: LPWSTR; nBufferLength: DWORD; lpBuffer: LPWSTR; var lpFilePart: LPWSTR): DWORD; external 'kernel32' name 'SearchPathW';
 //function SendInput(cInputs: UINT; var pInputs: TInput; cbSize: Integer): UINT;external 'user32' name 'SendInput';
-function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD): LRESULT;external 'user32' name 'SendMessageTimeoutA';
-function SendMessageTimeoutA(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD): LRESULT; external 'user32' name 'SendMessageTimeoutA';
-function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD): LRESULT; external 'user32' name 'SendMessageTimeoutW';
+function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT;external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutA(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutW';
 //function SetAclInformation(var pAcl: TACL; pAclInformation: Pointer; nAclInformationLength: DWORD; dwAclInformationClass: TAclInformationClass): BOOL; external 'advapi32' name 'SetAclInformation';
 //function SetColorAdjustment(DC: HDC; const p2: TColorAdjustment): BOOL; external 'gdi32' name 'SetColorAdjustment';
 function SetCommConfig(hCommDev: THandle; const lpCC: TCommConfig; dwSize: DWORD): BOOL; external 'kernel32' name 'SetCommConfig';

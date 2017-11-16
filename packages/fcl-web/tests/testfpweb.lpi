@@ -3,19 +3,12 @@
   <ProjectOptions>
     <Version Value="9"/>
     <General>
-      <Flags>
-        <MainUnitHasCreateFormStatements Value="False"/>
-        <MainUnitHasTitleStatement Value="False"/>
-      </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="mkpdffontdef"/>
+      <Title Value="testfpweb"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
-    <i18n>
-      <EnableI18N LFM="False"/>
-    </i18n>
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
@@ -28,20 +21,25 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="/usr/share/fonts/truetype/msttcorefonts/arial.ttf cp1252 arial.fnt"/>
+        <CommandLineParams Value="--suite=TTestHTTPRoute.TestWebModuleHandler"/>
       </local>
     </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="mkpdffontdef.pp"/>
+        <Filename Value="testfpweb.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="fpttfencodings.pp"/>
+        <Filename Value="tchttproute.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="fpparsettf.pp"/>
+        <Filename Value="../src/base/httproute.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
     </Units>
@@ -49,23 +47,13 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="mkpdffontdef"/>
+      <Filename Value="testfpweb"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src"/>
-      <UnitOutputDirectory Value="units/"/>
+      <OtherUnitFiles Value="../src/base"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <UseAnsiStrings Value="False"/>
-      </SyntaxOptions>
-    </Parsing>
-    <Linking>
-      <Debugging>
-        <UseHeaptrc Value="True"/>
-      </Debugging>
-    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

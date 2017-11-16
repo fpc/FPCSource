@@ -292,6 +292,7 @@ destructor TIPCServerMsgQueue.Destroy;
 begin
   Clear;
   FList.Free;
+  Inherited;
 end;
 
 procedure TIPCServerMsgQueue.Clear;

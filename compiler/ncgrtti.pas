@@ -652,6 +652,7 @@ implementation
                write_rtti_reference(def.elementdef,rt);
                { variant type }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(def.elementdef).getvardef));
+               maybe_write_align;
                { element type }
                if def.elementdef.needs_inittable then
                  write_rtti_reference(def.elementdef,rt)

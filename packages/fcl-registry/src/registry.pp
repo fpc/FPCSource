@@ -58,13 +58,13 @@ type
     procedure SetRootKey(Value: HKEY);
     Procedure SysRegCreate;
     Procedure SysRegFree;
-    Function  SysGetData(const Name: String; Buffer: Pointer; BufSize: Integer; var RegData: TRegDataType): Integer;
+    Function  SysGetData(const Name: String; Buffer: Pointer; BufSize: Integer; Out RegData: TRegDataType): Integer;
     Function  SysPutData(const Name: string; Buffer: Pointer; BufSize: Integer; RegData: TRegDataType) : Boolean;
     Function  SysCreateKey(const Key: String): Boolean;
   protected
     function GetBaseKey(Relative: Boolean): HKey;
     function GetData(const Name: string; Buffer: Pointer;
-                  BufSize: Integer; var RegData: TRegDataType): Integer;
+                  BufSize: Integer; Out RegData: TRegDataType): Integer;
     function GetKey(const Key: string): HKEY;
     procedure ChangeKey(Value: HKey; const Path: string);
     procedure PutData(const Name: string; Buffer: Pointer;
@@ -78,10 +78,10 @@ type
     function CreateKey(const Key: string): Boolean;
     function DeleteKey(const Key: string): Boolean;
     function DeleteValue(const Name: string): Boolean;
-    function GetDataInfo(const ValueName: string; var Value: TRegDataInfo): Boolean;
+    function GetDataInfo(const ValueName: string; Out Value: TRegDataInfo): Boolean;
     function GetDataSize(const ValueName: string): Integer;
     function GetDataType(const ValueName: string): TRegDataType;
-    function GetKeyInfo(var Value: TRegKeyInfo): Boolean;
+    function GetKeyInfo(Out Value: TRegKeyInfo): Boolean;
     function HasSubKeys: Boolean;
     function KeyExists(const Key: string): Boolean;
     function LoadKey(const Key, FileName: string): Boolean;
@@ -272,8 +272,7 @@ begin
     Result := RootKey;
 end;
 
-function TRegistry.GetData(const Name: string; Buffer: Pointer;
-  BufSize: Integer; var RegData: TRegDataType): Integer;
+function TRegistry.GetData(const Name: string; Buffer: Pointer; BufSize: Integer; out RegData: TRegDataType): Integer;
 begin
   Result:=SysGetData(Name,Buffer,BufSize,RegData);
   If (Result=-1) then
@@ -353,12 +352,14 @@ end;
 function TRegistry.ReadCurrency(const Name: string): Currency;
 
 begin
+  Result:=Default(Currency);
   ReadBinaryData(Name, Result, SizeOf(Currency));
 end;
 
 function TRegistry.ReadDate(const Name: string): TDateTime;
 
 begin
+  Result:=Default(TDateTime);
   ReadBinaryData(Name, Result, SizeOf(TDateTime));
   Result:=Trunc(Result);
 end;
@@ -366,12 +367,14 @@ end;
 function TRegistry.ReadDateTime(const Name: string): TDateTime;
 
 begin
+  Result:=Default(TDateTime);
   ReadBinaryData(Name, Result, SizeOf(TDateTime));
 end;
 
 function TRegistry.ReadFloat(const Name: string): Double;
 
 begin
+  Result:=Default(Double);
   ReadBinaryData(Name,Result,SizeOf(Double));
 end;
 
@@ -409,6 +412,7 @@ end;
 function TRegistry.ReadTime(const Name: string): TDateTime;
 
 begin
+  Result:=Default(TDateTime);
   ReadBinaryData(Name, Result, SizeOf(TDateTime));
   Result:=Frac(Result);
 end;

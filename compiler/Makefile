@@ -557,6 +557,9 @@ endif
 ifeq ($(OS_TARGET),msdos)
 NoNativeBinaries=1
 endif
+ifeq ($(OS_TARGET),nds)
+NoNativeBinaries=1
+endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=utils
 endif
@@ -4146,10 +4149,8 @@ cycle:
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=2
 ifndef CROSSINSTALL
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl CYCLELEVEL=3
-ifneq ($(OS_TARGET),embedded)
-ifneq ($(OS_TARGET),gba)
+ifndef NoNativeBinaries
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler CYCLELEVEL=3
-endif
 endif
 endif
 endif

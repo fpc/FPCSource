@@ -195,9 +195,11 @@ begin
   try
     F := TIntegerField.Create(ds);
     F.FieldName:='ID';
+    F.Required:=True;
     F.DataSet:=ds;
     F := TStringField.Create(ds);
     F.FieldName:='NAME';
+    F.Required:=False;
     F.DataSet:=ds;
     F.Size:=50;
 
@@ -221,6 +223,8 @@ begin
 
     TestDataset(ds);
 
+    CheckTrue(ds.FieldDefs[0].Required, 'Required');
+    CheckFalse(ds.FieldDefs[1].Required, 'not Required');
     for i := 0 to ds.FieldDefs.Count-1 do
       begin
       CheckNotEquals(ds.FieldDefs[i].Name,'NAME_CALC');

@@ -378,12 +378,14 @@ implementation
     procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       begin
         inherited insert(sym,checkdup);
+        init_final_check_done:=false;
       end;
 
 
     procedure tstoredsymtable.delete(sym:TSymEntry);
       begin
         inherited delete(sym);
+        init_final_check_done:=false;
       end;
 
 
@@ -1708,7 +1710,7 @@ implementation
             { iso mode program parameters: staticvarsyms might have the same name as a program parameters,
               in this case, copy the isoindex and make the original symbol invisible }
             else if (m_iso in current_settings.modeswitches) and (hsym.typ=programparasym) and (sym.typ=staticvarsym)
-              and (tstaticvarsym(hsym).isoindex<>0) then
+              and (tprogramparasym(hsym).isoindex<>0) then
               begin
                 HideSym(hsym);
                 tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;

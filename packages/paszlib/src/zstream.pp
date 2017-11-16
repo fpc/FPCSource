@@ -324,7 +324,7 @@ begin
     raise Edecompressionerror.create(zerror(err));
 end;
 
-function Tdecompressionstream.GetPosition() : Int64; 
+function Tdecompressionstream.GetPosition() : Int64;
 begin
   GetPosition := raw_read;
 end;
@@ -335,31 +335,28 @@ var c,off: int64;
 
 begin
   off:=Offset;
-  if (origin=soBeginning) or  ((origin=soCurrent) and (off+raw_read>=0)) then
-    begin
-      if origin = soCurrent then
-        seek := raw_read + off
-      else
-        seek := off;
-        
-      if origin=soBeginning then
-        dec(off,raw_read);
-      if offset<0 then
-        begin
-          inc(off,raw_read);
-          reset;
-        end;
-      while off>0 do
-        begin
-          c:=off;
-          if c>bufsize then
-            c:=bufsize;
-          c:=read(Fbuffer^,c);
-          dec(off,c);
-        end;
-    end
-  else
+
+  if origin=soCurrent then
+    inc(off,raw_read);
+  if (origin=soEnd) or (off<0) then
     raise Edecompressionerror.create(Sseek_failed);
+
+  seek:=off;
+
+  if off<raw_read then
+    reset
+  else
+    dec(off,raw_read);
+
+  while off>0 do
+    begin
+      c:=off;
+      if c>bufsize then
+        c:=bufsize;
+      if read(Fbuffer^,c)<>c then
+        raise Edecompressionerror.create(Sseek_failed);
+      dec(off,c);
+    end;
 end;
 
 function Tdecompressionstream.get_compressionrate:single;

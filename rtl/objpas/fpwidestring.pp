@@ -248,7 +248,7 @@ begin
   if (cp=CP_UTF8) then
     begin
       destLen:=UnicodeToUtf8(nil,High(SizeUInt),source,len);
-      SetLength(dest,destLen);
+      SetLength(dest,destLen-1);
       UnicodeToUtf8(@dest[1],destLen,source,len);
       SetCodePage(dest,cp,False);
       exit;
@@ -680,6 +680,8 @@ end;
 
 function StrLCompAnsiString(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 begin
+  if (current_Collation=nil) then
+    exit(OldManager.StrLCompAnsiStringProc(s1,s2,MaxLen));
   if (MaxLen=0) then
     exit(0);
   Result := InternalCompareStrAnsiString(S1,S2,MaxLen,MaxLen);
@@ -689,6 +691,8 @@ function CompareStrAnsiString(const S1, S2: ansistring): PtrInt;
 var
   l1, l2 : PtrInt;
 begin
+  if (current_Collation=nil) then
+    exit(OldManager.CompareStrAnsiStringProc(s1,s2));
   if (Pointer(S1)=Pointer(S2)) then
     exit(0);
   l1:=Length(S1);
@@ -716,6 +720,8 @@ function StrCompAnsiString(S1, S2: PChar): PtrInt;
 var
   l1,l2 : PtrInt;
 begin
+  if (current_Collation=nil) then
+    exit(OldManager.StrCompAnsiStringProc(s1,s2));
   l1:=strlen(S1);
   l2:=strlen(S2);
   Result := InternalCompareStrAnsiString(S1,S2,l1,l2);

@@ -39,7 +39,7 @@
 
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 {$ifdef read_interface}
@@ -2309,6 +2309,7 @@
      SC_MANAGER_MODIFY_BOOT_CONFIG = 32;
   { PostMessage  }
      HWND_BROADCAST = HWND($FFFF);
+     WND_MESSAGE = HWND(-3);
 
   { PrepareTape  }
 
@@ -6209,6 +6210,71 @@ const
   GIDC_ARRIVAL             = 1;
   GIDC_REMOVAL             = 2;
 //#endif /* _WIN32_WINNT >= 0x0501 */
+
+
+//
+// map types for the MapVirtualKey and MapVirtualKeyEx functions
+//
+  MAPVK_VK_TO_VSC     = 0;
+  MAPVK_VSC_TO_VK     = 1;
+  MAPVK_VK_TO_CHAR    = 2;
+  MAPVK_VSC_TO_VK_EX  = 3;
+//#if(WINVER >= 0x0600)
+  MAPVK_VK_TO_VSC_EX  = 4;
+//#endif /* WINVER >= 0x0600 */
+
+//
+// Wincon.h
+//
+    NLS_DBCSCHAR = $00010000;    { DBCS for JPN: SBCS/DBCS mode. }
+    NLS_ALPHANUMERIC = $00000000;    { DBCS for JPN: Alphanumeric mode. }
+    NLS_KATAKANA = $00020000;    { DBCS for JPN: Katakana mode. }
+    NLS_HIRAGANA = $00040000;    { DBCS for JPN: Hiragana mode. }
+    NLS_ROMAN = $00400000;    { DBCS for JPN: Roman/Noroman mode. }
+    NLS_IME_CONVERSION = $00800000;    { DBCS for JPN: IME conversion. }
+    NLS_IME_DISABLE = $20000000;    { DBCS for JPN: IME enable/disable. }
+
+  
+    MOUSE_WHEELED = $0004;    
+    MOUSE_HWHEELED = $0008;    
+
+  
+    COMMON_LVB_LEADING_BYTE = $0100;    { Leading Byte of DBCS }
+    COMMON_LVB_TRAILING_BYTE = $0200;    { Trailing Byte of DBCS }
+    COMMON_LVB_GRID_HORIZONTAL = $0400;    { DBCS: Grid attribute: top horizontal. }
+    COMMON_LVB_GRID_LVERTICAL = $0800;    { DBCS: Grid attribute: left vertical. }
+    COMMON_LVB_GRID_RVERTICAL = $1000;    { DBCS: Grid attribute: right vertical. }
+    COMMON_LVB_REVERSE_VIDEO = $4000;    { DBCS: Reverse fore/back ground attribute. }
+    COMMON_LVB_UNDERSCORE = $8000;    { DBCS: Underscore. }
+    COMMON_LVB_SBCSDBCS = $0300;    { SBCS or DBCS flag. }
+  
+    HISTORY_NO_DUP_FLAG = $1;    
+
+  
+    CONSOLE_NO_SELECTION = $0000;    
+    CONSOLE_SELECTION_IN_PROGRESS = $0001;    { selection has begun }
+    CONSOLE_SELECTION_NOT_EMPTY = $0002;    { non-null select rectangle }
+    CONSOLE_MOUSE_SELECTION = $0004;    { selecting with mouse }
+    CONSOLE_MOUSE_DOWN = $0008;    { mouse is down }
+  
+    ENABLE_INSERT_MODE = $0020;    
+    ENABLE_QUICK_EDIT_MODE = $0040;    
+    ENABLE_EXTENDED_FLAGS = $0080;    
+    ENABLE_AUTO_POSITION = $0100;    
+    ENABLE_VIRTUAL_TERMINAL_INPUT = $0200;    
+  
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;    
+    DISABLE_NEWLINE_AUTO_RETURN = $0008;    
+    ENABLE_LVB_GRID_WORLDWIDE = $0010;    
+    
+    CONSOLE_FULLSCREEN = 1;    { fullscreen console }
+    CONSOLE_FULLSCREEN_HARDWARE = 2;    { console owns the hardware }
+
+
+    CONSOLE_FULLSCREEN_MODE = 1;    
+    CONSOLE_WINDOWED_MODE = 2;    
+
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

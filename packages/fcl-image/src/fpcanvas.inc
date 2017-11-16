@@ -353,6 +353,77 @@ begin
     result := DoGetTextWidth (Text);
 end;
 
+procedure TFPCustomCanvas.TextOut (x,y:integer;text:unicodestring);
+begin
+  if Font is TFPCustomDrawFont then
+    TFPCustomDrawFont(Font).DrawText(x,y, text)
+  else
+    DoTextOut (x,y, text);
+end;
+
+procedure TFPCustomCanvas.GetTextSize (text:unicodestring; var w,h:integer);
+begin
+  if Font is TFPCustomDrawFont then
+    TFPCustomDrawFont(Font).GetTextSize (text, w, h)
+  else
+    DoGetTextSize (Text, w, h);
+end;
+
+function TFPCustomCanvas.GetTextHeight (text:unicodestring) : integer;
+begin
+  Result := TextHeight(Text);
+end;
+
+function TFPCustomCanvas.GetTextWidth (text:unicodestring) : integer;
+begin
+  Result := TextWidth(Text);
+end;
+
+function TFPCustomCanvas.TextExtent(const Text: unicodestring): TSize;
+begin
+  GetTextSize(Text, Result.cx, Result.cy);
+end;
+
+function TFPCustomCanvas.TextHeight(const Text: unicodestring): Integer;
+begin
+  if Font is TFPCustomDrawFont then
+    result := TFPCustomDrawFont(Font).GetTextHeight (text)
+  else
+    result := DoGetTextHeight (Text);
+end;
+
+function TFPCustomCanvas.TextWidth(const Text: unicodestring): Integer;
+begin
+  if Font is TFPCustomDrawFont then
+    result := TFPCustomDrawFont(Font).GetTextWidth (text)
+  else
+    result := DoGetTextWidth (Text);
+end;
+
+procedure TFPCustomCanvas.DoTextOut (x,y:integer;text:unicodestring); 
+
+begin
+  DoTextOut(x,y,string(text));
+end;
+
+procedure TFPCustomCanvas.DoGetTextSize (text:unicodestring; var w,h:integer); 
+
+begin
+  DoGetTextSize(String(Text),w,h);
+end;
+
+function  TFPCustomCanvas.DoGetTextHeight (text:unicodestring) : integer; 
+
+begin
+  Result:=DoGetTextHeight(String(text));
+end;
+
+function  TFPCustomCanvas.DoGetTextWidth (text:unicodestring) : integer; 
+
+begin
+  Result:=DoGetTextWidth(String(text));
+end;
+
 procedure TFPCustomCanvas.Arc(ALeft, ATop, ARight, ABottom, Angle16Deg,
   Angle16DegLength: Integer);
 begin

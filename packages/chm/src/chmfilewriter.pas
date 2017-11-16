@@ -717,8 +717,8 @@ begin
 end;
 
 const
-   protocols   : array[0..3] of string = ('HTTP:','FTP:','MS-ITS:', 'MAILTO:');
-   protocollen : array[0..3] of integer= ( 5 ,4 ,7, 7);
+   protocols   : array[0..4] of string = ('HTTP:','HTTPS:','FTP:','MS-ITS:', 'MAILTO:');
+   protocollen : array[0..4] of integer= ( 5 ,6, 4 ,7, 7);
 
 function TChmProject.SanitizeURL(const basepath,instring,localpath,localname:string;var outstring:String):Boolean;
 var i,j,len : integer;
@@ -813,7 +813,8 @@ end;
 function scantags(prnt:TDomNode; const localname: string; filelist:TStringlist):TDomNode;
 // Seach first matching tag in siblings
 var chld: TDomNode;
-    s   : ansistring;
+    s,
+    att : ansistring;
     i   : Integer;
 begin
   result:=nil;
@@ -831,6 +832,11 @@ begin
                   //printattributes(chld,'');
                   checkattributes(chld,'HREF',localname,filelist);
                 end;
+              if s='SCRIPT' then
+                begin
+                  //printattributes(chld,'');
+                  checkattributes(chld,'SRC',localname,filelist);
+                end;
              if s='IMG'then
                begin
                   //printattributes(chld,'');
@@ -840,19 +846,24 @@ begin
                begin
                   //printattributes(chld,'');
                   checkattributes(chld,'HREF',localname,filelist);
-                  s := findattribute(chld,'NAME');
+                  att := 'NAME';
+                  s := findattribute(chld, att);
+                  if s = '' then begin
+                     att := 'ID';
+                     s := findattribute(chld, att);
+                  end;
                   if s <> '' then
                     begin
                       i := fAnchorList.IndexOf(localname+'#'+s);
                       if i < 0 then begin
                         fAnchorList.Add(localname+'#'+s);
-                        Error(ChmNote,'New Anchor with name '+s+' found while scanning '+localname,1);
+                        Error(ChmNote,'New Anchor with '+att+' '+s+' found while scanning '+localname,1);
                       end else if fAnchorList.Objects[i] = nil then
-                        Error(chmwarning,'Duplicate anchor definitions with name '+s+' found while scanning '+localname,1)
+                        Error(chmwarning,'Duplicate anchor definitions with '+att+' '+s+' found while scanning '+localname,1)
                       else begin
                         fAnchorList.Objects[i].Free;
                         fAnchorList.Objects[i] := nil;
-                        Error(ChmNote,'Anchor with name '+s+' defined while scanning '+localname,1);
+                        Error(ChmNote,'Anchor with '+att+' '+s+' defined while scanning '+localname,1);
                       end;
                     end;
                 end;

@@ -1,16 +1,3 @@
-{ **********************************************************************
-  This file is part of the Free Component Library (FCL)
-  Copyright (c) 2015 by the Free Pascal development team
-        
-  OAuth2 store using an .ini file.
-            
-  See the file COPYING.FPC, included in this distribution,
-  for details about the copyright.
-                   
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  **********************************************************************}
 unit fpoauth2ini;
 
 {$mode objfpc}{$H+}
@@ -34,13 +21,13 @@ Type
     FUserSection: String;
     procedure EnsureFileName;
     Procedure EnsureConfigSections;
+    procedure SetSessionSectionUser(AUser: String);
   Protected
     Function DetectSessionFileName : String;
     Function EnsureUserSession(ASession: TOAuth2Session): Boolean; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
-
     Procedure SaveConfigToIni(AIni : TCustomIniFile;AConfig : TOAuth2Config); virtual;
     Procedure LoadConfigFromIni(AIni : TCustomIniFile;AConfig : TOAuth2Config); virtual;
     Procedure SaveSessionToIni(AIni : TCustomIniFile;ASession : TOAuth2Session); virtual;
@@ -269,6 +256,17 @@ begin
   inherited Destroy;
 end;
 
+procedure TFPOAuth2IniStore.SetSessionSectionUser(AUser : String);
+
+begin
+  If (UserSessionSection='') then
+    begin
+    if (AUser='') then
+       AUser:='anonymous';
+    UserSessionSection:='session_'+AUser;
+    end;
+end;
+
 procedure TFPOAuth2IniStore.LoadSession(ASession: TOAuth2Session;
   const AUser: String);
 
@@ -276,8 +274,8 @@ Var
   Ini : TMemIniFile;
 
 begin
-  Touch('loadsession');
   EnsureFileName;
+  SetSessionSectionUser(AUser);
   If not EnsureUserSession(ASession) then
     Exit;
   Ini:=TMemIniFile.Create(SessionFileName);
@@ -296,6 +294,7 @@ Var
 
 begin
   EnsureFileName;
+  SetSessionSectionUser(AUser);
   If not EnsureUserSession(ASession) then
     Exit;
   Ini:=TMemIniFile.Create(SessionFileName);

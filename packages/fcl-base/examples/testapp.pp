@@ -6,9 +6,9 @@ program testapp;
 uses custapp,classes;
 
 Const
-  ShortOpts = 'abc:d:012';
-  Longopts : Array[1..6] of String = (
-    'add:','append','delete:','verbose','create:','file:');
+  ShortOpts = 'iabc:d:012';
+  Longopts : Array[1..7] of String = (
+    'insensitive','add:','append','delete:','verbose','create:','file:');
 
 Type
   TTestApp = Class(TCustomApplication)
@@ -23,6 +23,7 @@ Var
   Opts,FN,Args : TStrings;
 
 begin
+  CaseSensitiveOptions:=not HasOption('i','insensitive'); 
   Writeln('Exe name            : ',ExeName);
   Writeln('Help file           : ',HelpFile);
   Writeln('Terminated          : ',Terminated);
@@ -60,6 +61,7 @@ begin
     Writeln('Option append found: ',HasOption('append'));
     Writeln('Option a or append found: ',HasOption('a','append'));
     Writeln('-----------------------');
+    Opts.Clear;
     GetEnvironmentList(Opts,True);
     Writeln('Found ',Opts.Count,' environment variables');
     For I:=0 to Opts.Count-1 do

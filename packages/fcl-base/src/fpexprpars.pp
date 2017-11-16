@@ -27,15 +27,15 @@ Type
   TTokenType = (ttPlus, ttMinus, ttLessThan, ttLargerThan, ttEqual, ttDiv,
                 ttMul, ttLeft, ttRight, ttLessThanEqual, ttLargerThanEqual,
                 ttunequal, ttNumber, ttString, ttIdentifier,
-                ttComma, ttand, ttOr,ttXor,ttTrue,ttFalse,ttnot,ttif,
-                ttCase,ttEOF);
+                ttComma, ttAnd, ttOr, ttXor, ttTrue, ttFalse, ttNot, ttif,
+                ttCase, ttPower, ttEOF); // keep ttEOF last
 
   TExprFloat = Double;
 
 Const
   ttDelimiters = [ttPlus, ttMinus, ttLessThan, ttLargerThan, ttEqual, ttDiv,
                   ttMul, ttLeft, ttRight, ttLessThanEqual, ttLargerThanEqual,
-                  ttunequal];
+                  ttunequal, ttPower];
   ttComparisons = [ttLargerThan,ttLessthan,
                    ttLargerThanEqual,ttLessthanEqual,
                    ttEqual,ttUnequal];
@@ -44,6 +44,8 @@ Type
 
   TFPExpressionParser = Class;
   TExprBuiltInManager = Class;
+  TFPExprFunction = Class;
+  TFPExprFunctionClass = Class of TFPExprFunction;
 
   { TFPExpressionScanner }
 
@@ -106,6 +108,10 @@ Type
     Procedure GetNodeValue(var Result : TFPExpressionResult); virtual; abstract;
   Public
     Procedure Check; virtual; abstract;
+    Procedure InitAggregate; virtual;
+    Procedure UpdateAggregate; virtual;
+    Class Function IsAggregate : Boolean; virtual;
+    Function HasAggregate : Boolean; virtual;
     Function NodeType : TResultType; virtual; abstract;
     Function NodeValue : TFPExpressionResult;
     Function AsString : string; virtual; abstract;
@@ -123,6 +129,9 @@ Type
   Public
     Constructor Create(ALeft,ARight : TFPExprNode);
     Destructor Destroy; override;
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+    Function HasAggregate : Boolean; override;
     Procedure Check; override;
     Property left : TFPExprNode Read FLeft;
     Property Right : TFPExprNode Read FRight;
@@ -245,6 +254,9 @@ Type
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
     Procedure Check; override;
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+    Function HasAggregate : Boolean; override;
     Function NodeType : TResultType; override;
     Constructor Create(ACondition,ALeft,ARight : TFPExprNode);
     Destructor destroy; override;
@@ -262,6 +274,9 @@ Type
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
     Procedure Check; override;
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+    function HasAggregate: Boolean; override;
     Function NodeType : TResultType; override;
     Constructor Create(Args : TExprArgumentArray);
     Destructor destroy; override;
@@ -314,6 +329,16 @@ Type
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   end;
 
+  { TFPPowerOperation }
+  TFPPowerOperation = class(TMathOperation)
+  public
+    Procedure Check; override;
+    Function AsString : string ; override;
+    Function NodeType : TResultType; override;
+    Procedure GetNodeValue(var Result : TFPExpressionResult); override;
+  end;
+
+
   { TFPUnaryOperator }
 
   TFPUnaryOperator = Class(TFPExprNode)
@@ -322,6 +347,9 @@ Type
   Public
     Constructor Create(AOperand : TFPExprNode);
     Destructor Destroy; override;
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+    Function HasAggregate : Boolean; override;
     Procedure Check; override;
     Property Operand : TFPExprNode Read FOperand;
   end;
@@ -401,14 +429,19 @@ Type
   end;
 
 
-  TIdentifierType = (itVariable,itFunctionCallBack,itFunctionHandler);
+  TIdentifierType = (itVariable,itFunctionCallBack,itFunctionHandler,itFunctionNode);
   TFPExprFunctionCallBack = Procedure (Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
   TFPExprFunctionEvent = Procedure (Var Result : TFPExpressionResult; Const Args : TExprParameterArray) of object;
+  TFPExprVariableCallBack = Procedure (Var Result : TFPExpressionResult; ConstRef AName : ShortString);
+  TFPExprVariableEvent = Procedure (Var Result : TFPExpressionResult; ConstRef AName : ShortString) of Object;
 
   { TFPExprIdentifierDef }
 
   TFPExprIdentifierDef = Class(TCollectionItem)
   private
+    FNodeType: TFPExprFunctionClass;
+    FOnGetVarValue: TFPExprVariableEvent;
+    FOnGetVarValueCB: TFPExprVariableCallBack;
     FStringValue : String;
     FValue : TFPExpressionResult;
     FArgumentTypes: String;
@@ -435,15 +468,18 @@ Type
   Protected
     Procedure CheckResultType(Const AType : TResultType);
     Procedure CheckVariable;
+    Procedure FetchValue;
   Public
     Function ArgumentCount : Integer;
     Procedure Assign(Source : TPersistent); override;
+    Function EventBasedVariable : Boolean; Inline;
     Property AsFloat : TExprFloat Read GetAsFloat Write SetAsFloat;
     Property AsInteger : Int64 Read GetAsInteger Write SetAsInteger;
     Property AsString : String Read GetAsString Write SetAsString;
     Property AsBoolean : Boolean Read GetAsBoolean Write SetAsBoolean;
     Property AsDateTime : TDateTime Read GetAsDateTime Write SetAsDateTime;
     Property OnGetFunctionValueCallBack : TFPExprFunctionCallBack Read FOnGetValueCB Write FOnGetValueCB;
+    Property OnGetVariableValueCallBack : TFPExprVariableCallBack Read FOnGetVarValueCB Write FOnGetVarValueCB;
   Published
     Property IdentifierType : TIdentifierType Read FIDType Write FIDType;
     Property Name : ShortString Read FName Write SetName;
@@ -451,10 +487,12 @@ Type
     Property ParameterTypes : String Read FArgumentTypes Write SetArgumentTypes;
     Property ResultType : TResultType Read GetResultType Write SetResultType;
     Property OnGetFunctionValue : TFPExprFunctionEvent Read FOnGetValue Write FOnGetValue;
+    Property OnGetVariableValue : TFPExprVariableEvent Read FOnGetVarValue Write FOnGetVarValue;
+    Property NodeType : TFPExprFunctionClass Read FNodeType Write FNodeType;
   end;
 
 
-  TBuiltInCategory = (bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser);
+  TBuiltInCategory = (bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser,bcAggregate);
   TBuiltInCategories = Set of TBuiltInCategory;
 
   { TFPBuiltInExprIdentifierDef }
@@ -482,6 +520,8 @@ Type
     Function IndexOfIdentifier(Const AName : ShortString) : Integer;
     Function FindIdentifier(Const AName : ShortString) : TFPExprIdentifierDef;
     Function IdentifierByName(Const AName : ShortString) : TFPExprIdentifierDef;
+    Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableCallBack) : TFPExprIdentifierDef;
+    Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableEvent) : TFPExprIdentifierDef;
     Function AddVariable(Const AName : ShortString; AResultType : TResultType; AValue : String) : TFPExprIdentifierDef;
     Function AddBooleanVariable(Const AName : ShortString; AValue : Boolean) : TFPExprIdentifierDef;
     Function AddIntegerVariable(Const AName : ShortString; AValue : Integer) : TFPExprIdentifierDef;
@@ -490,6 +530,7 @@ Type
     Function AddDateTimeVariable(Const AName : ShortString; AValue : TDateTime) : TFPExprIdentifierDef;
     Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPExprIdentifierDef;
     Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPExprIdentifierDef;
+    Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPExprIdentifierDef;
     property Identifiers[AIndex : Integer] : TFPExprIdentifierDef Read GetI Write SetI; Default;
   end;
 
@@ -529,6 +570,62 @@ Type
     Property ArgumentNodes : TExprArgumentArray Read FArgumentNodes;
     Property ArgumentParams : TExprParameterArray Read FArgumentParams;
     Function AsString : String; override;
+  end;
+
+  { TAggregateExpr }
+
+  TAggregateExpr = Class(TFPExprFunction)
+  Protected
+    FResult : TFPExpressionResult;
+    Class Function IsAggregate : Boolean; override;
+    Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
+  end;
+
+  { TAggregateMin }
+
+  TAggregateMin = Class(TAggregateExpr)
+  Public
+    FFirst: Boolean;
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+  end;
+
+  { TAggregateMax }
+
+  TAggregateMax = Class(TAggregateExpr)
+  Public
+    FFirst: Boolean;
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+  end;
+
+  { TAggregateSum }
+
+  TAggregateSum = Class(TAggregateExpr)
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+  end;
+
+  { TAggregateAvg }
+
+  TAggregateAvg = Class(TAggregateSum)
+  Protected
+    FCount : Integer;
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
+    Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
+  end;
+
+  { TAggregateCount }
+
+  TAggregateCount = Class(TAggregateExpr)
+  Public
+    Procedure InitAggregate; override;
+    Procedure UpdateAggregate; override;
   end;
 
   { TFPFunctionCallBack }
@@ -586,6 +683,7 @@ Type
     Function Level4 : TFPExprNode;
     Function Level5 : TFPExprNode;
     Function Level6 : TFPExprNode;
+    Function Level7 : TFPExprNode;
     Function Primitive : TFPExprNode;
     function GetToken: TTokenType;
     Function TokenType : TTokenType;
@@ -600,8 +698,12 @@ Type
     Function IdentifierByName(const AName : ShortString) : TFPExprIdentifierDef; virtual;
     Procedure Clear;
     Procedure EvaluateExpression(Var Result : TFPExpressionResult);
+    function ExtractNode(var N: TFPExprNode): Boolean;
     Function Evaluate : TFPExpressionResult;
     Function ResultType : TResultType;
+    Function HasAggregate : Boolean;
+    Procedure InitAggregate;
+    Procedure UpdateAggregate;
     Property AsFloat : TExprFloat Read GetAsFloat;
     Property AsInteger : Int64 Read GetAsInteger;
     Property AsString : String Read GetAsString;
@@ -637,22 +739,23 @@ Type
     Function AddDateTimeVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : TDateTime) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
+    Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
     Property IdentifierCount : Integer Read GetCount;
     Property Identifiers[AIndex : Integer] :TFPBuiltInExprIdentifierDef Read GetI;
   end;
 
   EExprParser = Class(Exception);
 
+Const
+  AllBuiltIns = [bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser,bcAggregate];
 
 Function TokenName (AToken : TTokenType) : String;
 Function ResultTypeName (AResult : TResultType) : String;
 Function CharToResultType(C : Char) : TResultType;
 Function BuiltinIdentifiers : TExprBuiltInManager;
-Procedure RegisterStdBuiltins(AManager : TExprBuiltInManager);
+Procedure RegisterStdBuiltins(AManager : TExprBuiltInManager; Categories : TBuiltInCategories = AllBuiltIns);
 function ArgToFloat(Arg: TFPExpressionResult): TExprFloat;
 
-Const
-  AllBuiltIns = [bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser];
 
 
 implementation
@@ -667,9 +770,9 @@ const
 
   Digits        = ['0'..'9','.'];
   WhiteSpace    = [' ',#13,#10,#9];
-  Operators     = ['+','-','<','>','=','/','*'];
+  Operators     = ['+','-','<','>','=','/','*','^'];
   Delimiters    = Operators+[',','(',')'];
-  Symbols       = ['%','^']+Delimiters;
+  Symbols       = ['%']+Delimiters;
   WordDelimiters = WhiteSpace + Symbols;
 
 Resourcestring
@@ -689,6 +792,7 @@ Resourcestring
   SErrCommaExpected =  'Expected comma (,) at position %d, but got %s';
   SErrInvalidNumberChar = 'Unexpected character in number : %s';
   SErrInvalidNumber = 'Invalid numerical value : %s';
+  SErrUnterminatedIdentifier = 'Unterminated quoted identifier: %s';
   SErrNoOperand = 'No operand for unary operation %s';
   SErrNoleftOperand = 'No left operand for binary operation %s';
   SErrNoRightOperand = 'No right operand for binary operation %s';
@@ -727,13 +831,13 @@ begin
   Raise EExprParser.CreateFmt(Fmt,Args);
 end;
 
-Function TokenName (AToken : TTokenType) : String;
+function TokenName(AToken: TTokenType): String;
 
 begin
   Result:=GetEnumName(TypeInfo(TTokenType),Ord(AToken));
 end;
 
-Function ResultTypeName (AResult : TResultType) : String;
+function ResultTypeName(AResult: TResultType): String;
 
 begin
   Result:=GetEnumName(TypeInfo(TResultType),Ord(AResult));
@@ -755,7 +859,7 @@ end;
 Var
   BuiltIns : TExprBuiltInManager;
 
-Function BuiltinIdentifiers : TExprBuiltInManager;
+function BuiltinIdentifiers: TExprBuiltInManager;
 
 begin
   If (BuiltIns=Nil) then
@@ -767,6 +871,157 @@ Procedure FreeBuiltIns;
 
 begin
   FreeAndNil(Builtins);
+end;
+
+{ TAggregateMax }
+
+procedure TAggregateMax.InitAggregate;
+begin
+  inherited InitAggregate;
+  FFirst:=True;
+  FResult.ResultType:=rtFloat;
+  FResult.resFloat:=0;
+end;
+
+procedure TAggregateMax.UpdateAggregate;
+
+Var
+  OK : Boolean;
+  N : TFPExpressionResult;
+
+begin
+  FArgumentNodes[0].GetNodeValue(N);
+  if FFirst then
+    begin
+    FFirst:=False;
+    OK:=True;
+    end
+  else
+    Case N.ResultType of
+      rtFloat: OK:=N.ResFloat>FResult.ResFloat;
+      rtinteger: OK:=N.ResInteger>FResult.ResFloat;
+    end;
+  if OK then
+    Case N.ResultType of
+      rtFloat: FResult.ResFloat:=N.ResFloat;
+      rtinteger: FResult.ResFloat:=N.ResInteger;
+    end;
+end;
+
+{ TAggregateMin }
+
+procedure TAggregateMin.InitAggregate;
+begin
+  inherited InitAggregate;
+  FFirst:=True;
+  FResult.ResultType:=rtFloat;
+  FResult.resFloat:=0;
+end;
+
+procedure TAggregateMin.UpdateAggregate;
+
+Var
+  OK : Boolean;
+  N : TFPExpressionResult;
+
+begin
+  FArgumentNodes[0].GetNodeValue(N);
+  if FFirst then
+    begin
+    FResult.ResultType:=N.ResultType;
+    FFirst:=False;
+    OK:=True;
+    end
+  else
+    Case N.ResultType of
+      rtFloat: OK:=N.ResFloat<FResult.ResFloat;
+      rtinteger: OK:=N.ResInteger<FResult.ResFloat;
+    end;
+  if OK then
+    Case FResult.ResultType of
+      rtFloat: FResult.ResFloat:=N.ResFloat;
+      rtinteger: FResult.ResFloat:=N.ResInteger;
+    end;
+  inherited UpdateAggregate;
+end;
+
+{ TAggregateAvg }
+
+procedure TAggregateAvg.InitAggregate;
+begin
+  inherited InitAggregate;
+  FCount:=0;
+end;
+
+procedure TAggregateAvg.UpdateAggregate;
+begin
+  inherited UpdateAggregate;
+  Inc(FCount);
+end;
+
+procedure TAggregateAvg.GetNodeValue(var Result: TFPExpressionResult);
+begin
+  inherited GetNodeValue(Result);
+  Result.ResultType:=rtFloat;
+  if FCount=0 then
+    Result.ResFloat:=0
+  else
+    Case FResult.ResultType of
+      rtInteger:
+        Result.ResFloat:=FResult.ResInteger/FCount;
+      rtFloat:
+        Result.ResFloat:=FResult.ResFloat/FCount;
+    end;
+end;
+
+{ TAggregateCount }
+
+procedure TAggregateCount.InitAggregate;
+begin
+  FResult.ResultType:=rtInteger;
+  FResult.ResInteger:=0;
+end;
+
+procedure TAggregateCount.UpdateAggregate;
+begin
+  Inc(FResult.ResInteger);
+end;
+
+{ TAggregateExpr }
+
+class function TAggregateExpr.IsAggregate: Boolean;
+begin
+  Result:=True;
+end;
+
+procedure TAggregateExpr.GetNodeValue(var Result: TFPExpressionResult);
+begin
+  Result:=FResult;
+end;
+
+{ TAggregateSum }
+
+
+procedure TAggregateSum.InitAggregate;
+begin
+  FResult.ResultType:=FArgumentNodes[0].NodeType;
+  Case FResult.ResultType of
+    rtFloat: FResult.ResFloat:=0.0;
+    rtinteger: FResult.ResInteger:=0;
+  end;
+end;
+
+procedure TAggregateSum.UpdateAggregate;
+
+Var
+  R : TFPExpressionResult;
+
+begin
+  FArgumentNodes[0].GetNodeValue(R);
+  Case FResult.ResultType of
+    rtFloat: FResult.ResFloat:=FResult.ResFloat+R.ResFloat;
+    rtinteger: FResult.ResInteger:=FResult.ResInteger+R.ResInteger;
+  end;
 end;
 
 { ---------------------------------------------------------------------
@@ -863,6 +1118,7 @@ begin
       '(' : Result := ttLeft;
       ')' : Result := ttRight;
       ',' : Result := ttComma;
+      '^' : Result := ttPower;
     else
       ScanError(Format(SUnknownDelimiter,[D]));
     end;
@@ -925,7 +1181,7 @@ Var
 begin
   C:=CurrentChar;
   prevC := #0;
-  while (not IsWordDelim(C) or (prevC='E')) and (C<>cNull) do
+  while (not IsWordDelim(C) or (prevC in ['E','-','+'])) and (C<>cNull) do
     begin
     If Not ( IsDigit(C)
              or ((FToken<>'') and (Upcase(C)='E'))
@@ -952,7 +1208,19 @@ begin
   C:=CurrentChar;
   while (not IsWordDelim(C)) and (C<>cNull) do
     begin
-    FToken:=FToken+C;
+    if (C<>'"') then
+      FToken:=FToken+C
+    else
+      begin
+      C:=NextPos;
+      While Not (C in [cNull,'"']) do
+        begin
+        FToken:=FToken+C;
+        C:=NextPos;
+        end;
+      if (C<>'"') then
+        ScanError(Format(SErrUnterminatedIdentifier,[FToken]));
+      end;
     C:=NextPos;
     end;
   S:=LowerCase(Token);
@@ -993,7 +1261,7 @@ begin
     Result:=DoString
   else if IsDigit(C) then
     Result:=DoNumber
-  else if IsAlpha(C) then
+  else if IsAlpha(C) or (C='"') then
     Result:=DoIdentifier
   else
     ScanError(Format(SErrUnknownCharacter,[FPos,C]))  ;
@@ -1004,7 +1272,7 @@ end;
   TFPExpressionParser
   ---------------------------------------------------------------------}
 
-Function TFPExpressionParser.TokenType : TTokenType;
+function TFPExpressionParser.TokenType: TTokenType;
 
 begin
   Result:=FScanner.TokenType;
@@ -1075,13 +1343,13 @@ begin
   inherited Destroy;
 end;
 
-Function TFPExpressionParser.GetToken : TTokenType;
+function TFPExpressionParser.GetToken: TTokenType;
 
 begin
   Result:=FScanner.GetToken;
 end;
 
-Procedure TFPExpressionParser.CheckEOF;
+procedure TFPExpressionParser.CheckEOF;
 
 begin
   If (TokenType=ttEOF) then
@@ -1103,14 +1371,23 @@ begin
   FExprNode.GetNodeValue(Result);
 end;
 
+function TFPExpressionParser.ExtractNode(Var N : TFPExprNode) : Boolean;
+begin
+  Result:=Assigned(FExprNode);
+  if Result then
+    begin
+    N:=FExprNode;
+    FExprNode:=Nil;
+    FExpression:='';
+    end;
+end;
+
 procedure TFPExpressionParser.ParserError(Msg: String);
 begin
   Raise EExprParser.Create(Msg);
 end;
 
 function TFPExpressionParser.ConvertNode(Todo : TFPExprNode; ToType : TResultType): TFPExprNode;
-
-
 begin
   Result:=ToDo;
   Case ToDo.NodeType of
@@ -1214,7 +1491,7 @@ end;
   if the result types differ, they are converted to a common type if possible.
 }
 
-Procedure TFPExpressionParser.CheckNodes(Var Left,Right : TFPExprNode);
+procedure TFPExpressionParser.CheckNodes(var Left, Right: TFPExprNode);
 
 begin
   Left:=MatchNodes(Left,Right);
@@ -1228,7 +1505,7 @@ begin
   FDirty:=True;
 end;
 
-Function TFPExpressionParser.Level1 : TFPExprNode;
+function TFPExpressionParser.Level1: TFPExprNode;
 
 var
   tt: TTokenType;
@@ -1379,8 +1656,28 @@ begin
 end;
 
 function TFPExpressionParser.Level6: TFPExprNode;
+var
+  right: TFPExprNode;
 begin
-{$ifdef debugexpr}  Writeln('Level 6 ',TokenName(TokenType),': ',CurrentToken);{$endif debugexpr}
+{$ifdef debugexpr} Writeln('Level 6 ',TokenName(TokenType),': ',CurrentToken);{$endif debugexpr}
+  Result := Level7;
+  try
+    while (TokenType = ttPower) do
+    begin
+      GetToken;
+      right := Level5;           // Accept '(', unary '+', '-' as next tokens
+      CheckNodes(Result, right);
+      Result := TFPPowerOperation.Create(Result, right);
+    end;
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+function TFPExpressionParser.Level7: TFPExprNode;
+begin
+{$ifdef debugexpr}  Writeln('Level 7 ',TokenName(TokenType),': ',CurrentToken);{$endif debugexpr}
   if (TokenType=ttLeft) then
     begin
     GetToken;
@@ -1448,7 +1745,7 @@ begin
       ACount:=3
     else if IfC then
       ACount:=-4
-    else if (ID.IdentifierType in [itFunctionCallBack,itFunctionHandler]) then
+    else if (ID.IdentifierType in [itFunctionCallBack,itFunctionHandler,itFunctionNode]) then
       ACount:=ID.ArgumentCount
     else
       ACount:=0;
@@ -1500,6 +1797,7 @@ begin
         itVariable         : Result:= TFPExprVariable.CreateIdentifier(ID);
         itFunctionCallBack : Result:= TFPFunctionCallback.CreateFunction(ID,Args);
         itFunctionHandler  : Result:= TFPFunctionEventHandler.CreateFunction(ID,Args);
+        itFunctionNode     : Result:= ID.NodeType.CreateFunction(ID,Args);
       end;
     end;
   GetToken;
@@ -1547,7 +1845,24 @@ function TFPExpressionParser.ResultType: TResultType;
 begin
   if not Assigned(FExprNode) then
     ParserError(SErrInExpression);
-  Result:=FExprNode.NodeType;;
+  Result:=FExprNode.NodeType;
+end;
+
+function TFPExpressionParser.HasAggregate: Boolean;
+begin
+  Result:=Assigned(FExprNode) and FExprNode.HasAggregate;
+end;
+
+procedure TFPExpressionParser.InitAggregate;
+begin
+  If Assigned(FExprNode) then
+    FExprNode.InitAggregate;
+end;
+
+procedure TFPExpressionParser.UpdateAggregate;
+begin
+  If Assigned(FExprNode) then
+    FExprNode.UpdateAggregate;
 end;
 
 { ---------------------------------------------------------------------
@@ -1601,7 +1916,29 @@ begin
     RaiseParserError(SErrUnknownIdentifier,[AName]);
 end;
 
-function TFPExprIdentifierDefs.AddVariable(Const AName: ShortString;
+function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
+  AResultType: TResultType; ACallback: TFPExprVariableCallBack
+  ): TFPExprIdentifierDef;
+begin
+  Result:=Add as TFPExprIdentifierDef;
+  Result.IdentifierType:=itVariable;
+  Result.Name:=AName;
+  Result.ResultType:=AResultType;
+  Result.OnGetVariableValueCallBack:=ACallBack
+end;
+
+function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
+  AResultType: TResultType; ACallback: TFPExprVariableEvent
+  ): TFPExprIdentifierDef;
+begin
+  Result:=Add as TFPExprIdentifierDef;
+  Result.IdentifierType:=itVariable;
+  Result.Name:=AName;
+  Result.ResultType:=AResultType;
+  Result.OnGetVariableValue:=ACallBack
+end;
+
+function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
   AResultType: TResultType; AValue: String): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
@@ -1611,8 +1948,8 @@ begin
   Result.Value:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddBooleanVariable(Const AName: ShortString; AValue: Boolean
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddBooleanVariable(const AName: ShortString;
+  AValue: Boolean): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1621,8 +1958,8 @@ begin
   Result.FValue.ResBoolean:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddIntegerVariable(Const AName: ShortString; AValue: Integer
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddIntegerVariable(const AName: ShortString;
+  AValue: Integer): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1631,8 +1968,8 @@ begin
   Result.FValue.ResInteger:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddFloatVariable(Const AName: ShortString; AValue: TExprFloat
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddFloatVariable(const AName: ShortString;
+  AValue: TExprFloat): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1641,8 +1978,8 @@ begin
   Result.FValue.ResFloat:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddStringVariable(Const AName: ShortString; AValue: String
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddStringVariable(const AName: ShortString;
+  AValue: String): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1651,8 +1988,8 @@ begin
   Result.FValue.ResString:=AValue;
 end;
 
-function TFPExprIdentifierDefs.AddDateTimeVariable(Const AName: ShortString; AValue: TDateTime
-  ): TFPExprIdentifierDef;
+function TFPExprIdentifierDefs.AddDateTimeVariable(const AName: ShortString;
+  AValue: TDateTime): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -1683,6 +2020,18 @@ begin
   Result.ParameterTypes:=AParamTypes;
   Result.ResultType:=CharToResultType(AResultType);
   Result.FOnGetValue:=ACallBack;
+end;
+
+function TFPExprIdentifierDefs.AddFunction(const AName: ShortString;
+  const AResultType: Char; const AParamTypes: String;
+  ANodeClass: TFPExprFunctionClass): TFPExprIdentifierDef;
+begin
+  Result:=Add as TFPExprIdentifierDef;
+  Result.Name:=Aname;
+  Result.IdentifierType:=itFunctionNode;
+  Result.ParameterTypes:=AParamTypes;
+  Result.ResultType:=CharToResultType(AResultType);
+  Result.FNodeType:=ANodeClass;
 end;
 
 { ---------------------------------------------------------------------
@@ -1739,6 +2088,8 @@ procedure TFPExprIdentifierDef.CheckVariable;
 begin
   If Identifiertype<>itvariable then
     RaiseParserError(SErrNotVariable,[Name]);
+  if EventBasedVariable then
+    FetchValue;
 end;
 
 function TFPExprIdentifierDef.ArgumentCount: Integer;
@@ -1762,6 +2113,8 @@ begin
     FName:=EID.FName;
     FOnGetValue:=EID.FOnGetValue;
     FOnGetValueCB:=EID.FOnGetValueCB;
+    FOnGetVarValue:=EID.FOnGetVarValue;
+    FOnGetVarValueCB:=EID.FOnGetVarValueCB;
     end
   else
     inherited Assign(Source);
@@ -1826,6 +2179,46 @@ begin
     rtDateTime : Result:=FormatDateTime('cccc',FValue.ResDateTime);
     rtString   : Result:=FValue.ResString;
   end;
+end;
+
+procedure TFPExprIdentifierDef.FetchValue;
+
+Var
+  RT,RT2 : TResultType;
+  I : Integer;
+
+begin
+  RT:=FValue.ResultType;
+  if Assigned(FOnGetVarValue) then
+    FOnGetVarValue(FValue,FName)
+  else
+    FOnGetVarValueCB(FValue,FName);
+  RT2:=FValue.ResultType;
+  if RT2<>RT then
+    begin
+    // Automatically convert integer to float.
+    if (rt2=rtInteger) and (rt=rtFLoat) then
+      begin
+      FValue.ResultType:=RT;
+      I:=FValue.resInteger;
+      FValue.resFloat:=I;
+      end
+    else
+      begin
+      // Restore
+      FValue.ResultType:=RT;
+      Raise EExprParser.CreateFmt('Value handler for variable %s returned wrong type, expected "%s", got "%s"',[
+        FName,
+        GetEnumName(TypeInfo(TResultType),Ord(rt)),
+        GetEnumName(TypeInfo(TResultType),Ord(rt2))
+        ]);
+      end;
+    end;
+end;
+
+function TFPExprIdentifierDef.EventBasedVariable: Boolean;
+begin
+  Result:=Assigned(FOnGetVarValue) or Assigned(FOnGetVarValueCB);
 end;
 
 function TFPExprIdentifierDef.GetResultType: TResultType;
@@ -1977,6 +2370,14 @@ begin
   Result.Category:=ACategory;
 end;
 
+function TExprBuiltInManager.AddFunction(const ACategory: TBuiltInCategory;
+  const AName: ShortString; const AResultType: Char; const AParamTypes: String;
+  ANodeClass: TFPExprFunctionClass): TFPBuiltInExprIdentifierDef;
+begin
+  Result:=TFPBuiltInExprIdentifierDef(FDefs.AddFunction(AName,AResultType,AParamTypes,ANodeClass));
+  Result. Category:=ACategory;
+end;
+
 
 { ---------------------------------------------------------------------
   Various Nodes
@@ -2010,6 +2411,33 @@ begin
   inherited Destroy;
 end;
 
+procedure TFPBinaryOperation.InitAggregate;
+begin
+  inherited InitAggregate;
+  if Assigned(Left) then
+    Left.InitAggregate;
+  if Assigned(Right) then
+    Right.InitAggregate;
+end;
+
+procedure TFPBinaryOperation.UpdateAggregate;
+begin
+  inherited UpdateAggregate;
+  if Assigned(Left) then
+    Left.UpdateAggregate;
+  if Assigned(Right) then
+    Right.UpdateAggregate;
+end;
+
+function TFPBinaryOperation.HasAggregate: Boolean;
+begin
+  Result:=inherited HasAggregate;
+  if Assigned(Left) then
+    Result:=Result or Left.HasAggregate;
+  if Assigned(Right) then
+    Result:=Result or Right.HasAggregate;
+end;
+
 procedure TFPBinaryOperation.Check;
 begin
   If Not Assigned(Left) then
@@ -2029,6 +2457,28 @@ destructor TFPUnaryOperator.Destroy;
 begin
   FreeAndNil(FOperand);
   inherited Destroy;
+end;
+
+procedure TFPUnaryOperator.InitAggregate;
+begin
+  inherited InitAggregate;
+  if Assigned(FOperand) then
+    FOperand.InitAggregate;
+
+end;
+
+procedure TFPUnaryOperator.UpdateAggregate;
+begin
+  inherited UpdateAggregate;
+  if Assigned(FOperand) then
+    FOperand.UpdateAggregate;
+end;
+
+function TFPUnaryOperator.HasAggregate: Boolean;
+begin
+  Result:=inherited HasAggregate;
+  if Assigned(FOperand) then
+    Result:=Result or FOperand.HasAggregate;
 end;
 
 procedure TFPUnaryOperator.Check;
@@ -2184,6 +2634,26 @@ begin
     end;
 end;
 
+procedure TFPExprNode.InitAggregate;
+begin
+  // Do nothing
+end;
+
+procedure TFPExprNode.UpdateAggregate;
+begin
+  // Do nothing
+end;
+
+function TFPExprNode.HasAggregate: Boolean;
+begin
+  Result:=IsAggregate;
+end;
+
+class function TFPExprNode.IsAggregate: Boolean;
+begin
+  Result:=False;
+end;
+
 function TFPExprNode.NodeValue: TFPExpressionResult;
 begin
   GetNodeValue(Result);
@@ -2289,6 +2759,27 @@ begin
   CheckSameNodeTypes;
 end;
 
+procedure TIfOperation.InitAggregate;
+begin
+  inherited InitAggregate;
+  If Assigned(FCondition) then
+    fCondition.InitAggregate;
+end;
+
+procedure TIfOperation.UpdateAggregate;
+begin
+  inherited UpdateAggregate;
+  If Assigned(FCondition) then
+    FCondition.UpdateAggregate;
+end;
+
+function TIfOperation.HasAggregate: Boolean;
+begin
+  Result:=inherited HasAggregate;
+  if Assigned(Condition) then
+    Result:=Result or Condition.HasAggregate;
+end;
+
 function TIfOperation.NodeType: TResultType;
 begin
   Result:=Left.NodeType;
@@ -2364,6 +2855,45 @@ begin
       If (N.NodeType<>V) then
         RaiseParserError(SErrCaseValueType,[(I-1)div 2,N.AsString,ResultTypeName(V),ResultTypeName(N.NodeType)]);
       end
+    end;
+end;
+
+procedure TCaseOperation.InitAggregate;
+
+Var
+  I : Integer;
+
+begin
+  inherited InitAggregate;
+  if Assigned(FCondition) then
+    FCondition.InitAggregate;
+  For I:=0 to Length(Fargs)-1 do
+    FArgs[i].InitAggregate;
+end;
+
+procedure TCaseOperation.UpdateAggregate;
+Var
+  I : Integer;
+begin
+  inherited UpdateAggregate;
+  if Assigned(FCondition) then
+    FCondition.UpdateAggregate;
+  For I:=0 to Length(Fargs)-1 do
+    FArgs[i].InitAggregate;
+end;
+
+Function  TCaseOperation.HasAggregate : Boolean;
+
+Var
+  I,L : Integer;
+begin
+  Result:=inherited HasAggregate;
+  L:=Length(Fargs);
+  I:=0;
+  While (Not Result) and (I<L) do
+    begin
+    Result:=Result or FArgs[i].HasAggregate;
+    Inc(I)
     end;
 end;
 
@@ -2692,6 +3222,55 @@ begin
   Result.ResultType:=rtFloat;
 end;
 
+{ TFPPowerOperation }
+
+procedure TFPPowerOperation.Check;
+const
+  AllowedTypes = [rtInteger, rtFloat];
+begin
+  CheckNodeType(Left, AllowedTypes);
+  CheckNodeType(Right, AllowedTypes);
+end;
+
+function TFPPowerOperation.AsString: String;
+begin
+  Result := Left.AsString + '^' + Right.AsString;
+end;
+
+function TFPPowerOperation.NodeType: TResultType;
+begin
+  Result := rtFloat;
+end;
+
+function power(base,exponent: TExprFloat): TExprFloat;
+// Adapted from unit "math"
+var
+  ex: Integer;
+begin
+  if Exponent = 0.0 then
+    result := 1.0
+  else if (base = 0.0) and (exponent > 0.0) then
+    result := 0.0
+  else if (base < 0.0) and (frac(exponent) = 0.0) then
+  begin
+    ex := round(exponent);
+    result := exp( exponent * ln(-base));
+    if odd(ex) then result := -result;
+  end
+  else
+    result := exp( exponent * ln(base) );
+end;
+
+procedure TFPPowerOperation.GetNodeValue(var Result: TFPExpressionResult);
+var
+  RRes: TFPExpressionResult;
+begin
+  Left.GetNodeValue(Result);
+  Right.GetNodeValue(RRes);
+  Result.ResFloat := power(ArgToFloat(Result), ArgToFloat(RRes));
+  Result.ResultType := rtFloat;
+end;
+
 { TFPConvertNode }
 
 function TFPConvertNode.AsString: String;
@@ -2771,6 +3350,8 @@ end;
 
 Procedure TFPExprIdentifierNode.GetNodeValue(var Result : TFPExpressionResult);
 begin
+  if Identifier.EventBasedVariable then
+    Identifier.FetchValue;
   Result:=PResult^;
   Result.ResultType:=FResultType;
 end;
@@ -2796,7 +3377,9 @@ Var
 
 begin
   For I:=0 to Length(FArgumentParams)-1 do
+    begin
     FArgumentNodes[i].GetNodeValue(FArgumentParams[i]);
+    end;
 end;
 
 procedure TFPExprFunction.Check;
@@ -2817,7 +3400,7 @@ begin
       // Automatically convert integers to floats in functions that return
       // a float
       if (rta = rtInteger) and (rtp = rtFloat) then begin
-        FArgumentNodes[i] := TIntToFloatNode(FArgumentNodes[i]);
+        FArgumentNodes[i] := TIntToFloatNode.Create(FArgumentNodes[i]);
         exit;
       end;
 
@@ -2877,6 +3460,7 @@ Procedure TFPFunctionCallBack.GetNodeValue(var Result : TFPExpressionResult);
 begin
   If Length(FArgumentParams)>0 then
     CalcParams;
+
   FCallBack(Result,FArgumentParams);
   Result.ResultType:=NodeType;
 end;
@@ -3336,80 +3920,103 @@ begin
     Result.resDateTime:=Args[2].resDateTime
 end;
 
-Procedure RegisterStdBuiltins(AManager : TExprBuiltInManager);
+procedure RegisterStdBuiltins(AManager: TExprBuiltInManager;  Categories: TBuiltInCategories = AllBuiltIns);
 
 begin
   With AManager do
     begin
-    AddFloatVariable(bcMath,'pi',Pi);
-    // Math functions
-    AddFunction(bcMath,'cos','F','F',@BuiltinCos);
-    AddFunction(bcMath,'sin','F','F',@BuiltinSin);
-    AddFunction(bcMath,'arctan','F','F',@BuiltinArctan);
-    AddFunction(bcMath,'abs','F','F',@BuiltinAbs);
-    AddFunction(bcMath,'sqr','F','F',@BuiltinSqr);
-    AddFunction(bcMath,'sqrt','F','F',@BuiltinSqrt);
-    AddFunction(bcMath,'exp','F','F',@BuiltinExp);
-    AddFunction(bcMath,'ln','F','F',@BuiltinLn);
-    AddFunction(bcMath,'log','F','F',@BuiltinLog);
-    AddFunction(bcMath,'frac','F','F',@BuiltinFrac);
-    AddFunction(bcMath,'int','F','F',@BuiltinInt);
-    AddFunction(bcMath,'round','I','F',@BuiltinRound);
-    AddFunction(bcMath,'trunc','I','F',@BuiltinTrunc);
-    // String
-    AddFunction(bcStrings,'length','I','S',@BuiltinLength);
-    AddFunction(bcStrings,'copy','S','SII',@BuiltinCopy);
-    AddFunction(bcStrings,'delete','S','SII',@BuiltinDelete);
-    AddFunction(bcStrings,'pos','I','SS',@BuiltinPos);
-    AddFunction(bcStrings,'lowercase','S','S',@BuiltinLowercase);
-    AddFunction(bcStrings,'uppercase','S','S',@BuiltinUppercase);
-    AddFunction(bcStrings,'stringreplace','S','SSSBB',@BuiltinStringReplace);
-    AddFunction(bcStrings,'comparetext','I','SS',@BuiltinCompareText);
-    // Date/Time
-    AddFunction(bcDateTime,'date','D','',@BuiltinDate);
-    AddFunction(bcDateTime,'time','D','',@BuiltinTime);
-    AddFunction(bcDateTime,'now','D','',@BuiltinNow);
-    AddFunction(bcDateTime,'dayofweek','I','D',@BuiltinDayofweek);
-    AddFunction(bcDateTime,'extractyear','I','D',@BuiltinExtractYear);
-    AddFunction(bcDateTime,'extractmonth','I','D',@BuiltinExtractMonth);
-    AddFunction(bcDateTime,'extractday','I','D',@BuiltinExtractDay);
-    AddFunction(bcDateTime,'extracthour','I','D',@BuiltinExtractHour);
-    AddFunction(bcDateTime,'extractmin','I','D',@BuiltinExtractMin);
-    AddFunction(bcDateTime,'extractsec','I','D',@BuiltinExtractSec);
-    AddFunction(bcDateTime,'extractmsec','I','D',@BuiltinExtractMSec);
-    AddFunction(bcDateTime,'encodedate','D','III',@BuiltinEncodedate);
-    AddFunction(bcDateTime,'encodetime','D','IIII',@BuiltinEncodeTime);
-    AddFunction(bcDateTime,'encodedatetime','D','IIIIIII',@BuiltinEncodeDateTime);
-    AddFunction(bcDateTime,'shortdayname','S','I',@BuiltinShortDayName);
-    AddFunction(bcDateTime,'shortmonthname','S','I',@BuiltinShortMonthName);
-    AddFunction(bcDateTime,'longdayname','S','I',@BuiltinLongDayName);
-    AddFunction(bcDateTime,'longmonthname','S','I',@BuiltinLongMonthName);
-    AddFunction(bcDateTime,'formatdatetime','S','SD',@BuiltinFormatDateTime);
-    // Boolean
-    AddFunction(bcBoolean,'shl','I','II',@BuiltinShl);
-    AddFunction(bcBoolean,'shr','I','II',@BuiltinShr);
-    AddFunction(bcBoolean,'IFS','S','BSS',@BuiltinIFS);
-    AddFunction(bcBoolean,'IFF','F','BFF',@BuiltinIFF);
-    AddFunction(bcBoolean,'IFD','D','BDD',@BuiltinIFD);
-    AddFunction(bcBoolean,'IFI','I','BII',@BuiltinIFI);
-    // Conversion
-    AddFunction(bcConversion,'inttostr','S','I',@BuiltInIntToStr);
-    AddFunction(bcConversion,'strtoint','I','S',@BuiltInStrToInt);
-    AddFunction(bcConversion,'strtointdef','I','SI',@BuiltInStrToIntDef);
-    AddFunction(bcConversion,'floattostr','S','F',@BuiltInFloatToStr);
-    AddFunction(bcConversion,'strtofloat','F','S',@BuiltInStrToFloat);
-    AddFunction(bcConversion,'strtofloatdef','F','SF',@BuiltInStrToFloatDef);
-    AddFunction(bcConversion,'booltostr','S','B',@BuiltInBoolToStr);
-    AddFunction(bcConversion,'strtobool','B','S',@BuiltInStrToBool);
-    AddFunction(bcConversion,'strtobooldef','B','SB',@BuiltInStrToBoolDef);
-    AddFunction(bcConversion,'datetostr','S','D',@BuiltInDateToStr);
-    AddFunction(bcConversion,'timetostr','S','D',@BuiltInTimeToStr);
-    AddFunction(bcConversion,'strtodate','D','S',@BuiltInStrToDate);
-    AddFunction(bcConversion,'strtodatedef','D','SD',@BuiltInStrToDateDef);
-    AddFunction(bcConversion,'strtotime','D','S',@BuiltInStrToTime);
-    AddFunction(bcConversion,'strtotimedef','D','SD',@BuiltInStrToTimeDef);
-    AddFunction(bcConversion,'strtodatetime','D','S',@BuiltInStrToDateTime);
-    AddFunction(bcConversion,'strtodatetimedef','D','SD',@BuiltInStrToDateTimeDef);
+    if bcMath in Categories then
+      begin
+      AddFloatVariable(bcMath,'pi',Pi);
+      // Math functions
+      AddFunction(bcMath,'cos','F','F',@BuiltinCos);
+      AddFunction(bcMath,'sin','F','F',@BuiltinSin);
+      AddFunction(bcMath,'arctan','F','F',@BuiltinArctan);
+      AddFunction(bcMath,'abs','F','F',@BuiltinAbs);
+      AddFunction(bcMath,'sqr','F','F',@BuiltinSqr);
+      AddFunction(bcMath,'sqrt','F','F',@BuiltinSqrt);
+      AddFunction(bcMath,'exp','F','F',@BuiltinExp);
+      AddFunction(bcMath,'ln','F','F',@BuiltinLn);
+      AddFunction(bcMath,'log','F','F',@BuiltinLog);
+      AddFunction(bcMath,'frac','F','F',@BuiltinFrac);
+      AddFunction(bcMath,'int','F','F',@BuiltinInt);
+      AddFunction(bcMath,'round','I','F',@BuiltinRound);
+      AddFunction(bcMath,'trunc','I','F',@BuiltinTrunc);
+      end;
+    if bcStrings in Categories then
+      begin
+      // String
+      AddFunction(bcStrings,'length','I','S',@BuiltinLength);
+      AddFunction(bcStrings,'copy','S','SII',@BuiltinCopy);
+      AddFunction(bcStrings,'delete','S','SII',@BuiltinDelete);
+      AddFunction(bcStrings,'pos','I','SS',@BuiltinPos);
+      AddFunction(bcStrings,'lowercase','S','S',@BuiltinLowercase);
+      AddFunction(bcStrings,'uppercase','S','S',@BuiltinUppercase);
+      AddFunction(bcStrings,'stringreplace','S','SSSBB',@BuiltinStringReplace);
+      AddFunction(bcStrings,'comparetext','I','SS',@BuiltinCompareText);
+      end;
+    if bcDateTime in Categories then
+      begin
+      // Date/Time
+      AddFunction(bcDateTime,'date','D','',@BuiltinDate);
+      AddFunction(bcDateTime,'time','D','',@BuiltinTime);
+      AddFunction(bcDateTime,'now','D','',@BuiltinNow);
+      AddFunction(bcDateTime,'dayofweek','I','D',@BuiltinDayofweek);
+      AddFunction(bcDateTime,'extractyear','I','D',@BuiltinExtractYear);
+      AddFunction(bcDateTime,'extractmonth','I','D',@BuiltinExtractMonth);
+      AddFunction(bcDateTime,'extractday','I','D',@BuiltinExtractDay);
+      AddFunction(bcDateTime,'extracthour','I','D',@BuiltinExtractHour);
+      AddFunction(bcDateTime,'extractmin','I','D',@BuiltinExtractMin);
+      AddFunction(bcDateTime,'extractsec','I','D',@BuiltinExtractSec);
+      AddFunction(bcDateTime,'extractmsec','I','D',@BuiltinExtractMSec);
+      AddFunction(bcDateTime,'encodedate','D','III',@BuiltinEncodedate);
+      AddFunction(bcDateTime,'encodetime','D','IIII',@BuiltinEncodeTime);
+      AddFunction(bcDateTime,'encodedatetime','D','IIIIIII',@BuiltinEncodeDateTime);
+      AddFunction(bcDateTime,'shortdayname','S','I',@BuiltinShortDayName);
+      AddFunction(bcDateTime,'shortmonthname','S','I',@BuiltinShortMonthName);
+      AddFunction(bcDateTime,'longdayname','S','I',@BuiltinLongDayName);
+      AddFunction(bcDateTime,'longmonthname','S','I',@BuiltinLongMonthName);
+      AddFunction(bcDateTime,'formatdatetime','S','SD',@BuiltinFormatDateTime);
+      end;
+    if bcBoolean in Categories then
+      begin
+      // Boolean
+      AddFunction(bcBoolean,'shl','I','II',@BuiltinShl);
+      AddFunction(bcBoolean,'shr','I','II',@BuiltinShr);
+      AddFunction(bcBoolean,'IFS','S','BSS',@BuiltinIFS);
+      AddFunction(bcBoolean,'IFF','F','BFF',@BuiltinIFF);
+      AddFunction(bcBoolean,'IFD','D','BDD',@BuiltinIFD);
+      AddFunction(bcBoolean,'IFI','I','BII',@BuiltinIFI);
+      end;
+    if (bcConversion in Categories) then
+      begin
+      // Conversion
+      AddFunction(bcConversion,'inttostr','S','I',@BuiltInIntToStr);
+      AddFunction(bcConversion,'strtoint','I','S',@BuiltInStrToInt);
+      AddFunction(bcConversion,'strtointdef','I','SI',@BuiltInStrToIntDef);
+      AddFunction(bcConversion,'floattostr','S','F',@BuiltInFloatToStr);
+      AddFunction(bcConversion,'strtofloat','F','S',@BuiltInStrToFloat);
+      AddFunction(bcConversion,'strtofloatdef','F','SF',@BuiltInStrToFloatDef);
+      AddFunction(bcConversion,'booltostr','S','B',@BuiltInBoolToStr);
+      AddFunction(bcConversion,'strtobool','B','S',@BuiltInStrToBool);
+      AddFunction(bcConversion,'strtobooldef','B','SB',@BuiltInStrToBoolDef);
+      AddFunction(bcConversion,'datetostr','S','D',@BuiltInDateToStr);
+      AddFunction(bcConversion,'timetostr','S','D',@BuiltInTimeToStr);
+      AddFunction(bcConversion,'strtodate','D','S',@BuiltInStrToDate);
+      AddFunction(bcConversion,'strtodatedef','D','SD',@BuiltInStrToDateDef);
+      AddFunction(bcConversion,'strtotime','D','S',@BuiltInStrToTime);
+      AddFunction(bcConversion,'strtotimedef','D','SD',@BuiltInStrToTimeDef);
+      AddFunction(bcConversion,'strtodatetime','D','S',@BuiltInStrToDateTime);
+      AddFunction(bcConversion,'strtodatetimedef','D','SD',@BuiltInStrToDateTimeDef);
+      end;
+    if bcAggregate in Categories then
+      begin
+      AddFunction(bcAggregate,'count','I','',TAggregateCount);
+      AddFunction(bcAggregate,'sum','F','F',TAggregateSum);
+      AddFunction(bcAggregate,'avg','F','F',TAggregateAvg);
+      AddFunction(bcAggregate,'min','F','F',TAggregateMin);
+      AddFunction(bcAggregate,'max','F','F',TAggregateMax);
+      end;
     end;
 end;
 

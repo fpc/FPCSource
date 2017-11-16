@@ -22,7 +22,7 @@ type
   TVideoCell = Word;
   PVideoCell = ^TVideoCell;
 
-  TVideoBuf = array[0..32759] of TVideoCell;
+  TVideoBuf = array[0..{$ifdef CPU16}16382{$else}32759{$endif}] of TVideoCell;
   PVideoBuf = ^TVideoBuf;
 
   TVideoDriver = Record

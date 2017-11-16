@@ -79,7 +79,6 @@ Type
     FCurToken: TJSToken;
     FCurTokenString: string;
     FCurLine: string;
-    FDefines: TStrings;
     TokenStr: PChar;
     FWasEndOfLine : Boolean;
     FSourceStream : TStream;
@@ -377,7 +376,7 @@ function TJSScanner.DoStringLiteral: TJSToken;
 Var
   Delim : Char;
   TokenStart : PChar;
-  Len,OLen,I : Integer;
+  Len,OLen: Integer;
   S : String;
 
 begin
@@ -516,17 +515,14 @@ begin
       FCurToken := Result;
       exit;
       end;
+    {$Push}
+    {$R-}
     I:=Succ(I);
+    {$Pop}
     end
 end;
 
 Function TJSScanner.FetchToken: TJSToken;
-
-
-var
-  TokenStart, CurPos: PChar;
-  i: TJSToken;
-  OldLength, SectionLength, NestingLevel, Index: Integer;
 
 begin
   if not (FCurtoken in [tjsWhiteSpace,tjsComment]) then
@@ -541,7 +537,7 @@ begin
         exit;
         end;
       end;
-    CurPos:=TokenStr;
+    //CurPos:=TokenStr;
     FCurTokenString := '';
     case TokenStr[0] of
       #0:         // Empty line

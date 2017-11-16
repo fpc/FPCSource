@@ -9,9 +9,9 @@ const fppkg : array[0..1,1..240] of char=(
   'BuildDir={LocalRepository}build/'#010+
   'ArchivesDir={LocalRepository}archives/'#010+
   'CompilerConfigDir=%CompilerConfigDir%'#010+
-  'RemoteMirrors=http://www.freepascal.org/repository/mirrors.xml'#010+
-  'Remote','Repository=auto'#010+
+  'RemoteMirrors=https://www.freepascal.org/repository/mirrors.xml'#010+
+  'Remot','eRepository=auto'#010+
   'CompilerConfig=default'#010+
   'FPMakeCompilerConfig=default'#010+
-  'Downloader=lnet'#010
+  'Downloader=FPC'#010
 );

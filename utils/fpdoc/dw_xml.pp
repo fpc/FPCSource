@@ -100,7 +100,7 @@ var
       Node['virtual'] := 'true';
     if pmAbstract in ADecl.Modifiers then
       Node['abstract'] := 'true';
-    if pmStatic in ADecl.Modifiers then
+    if assigned(ADecl.ProcType) and (ptmStatic in ADecl.ProcType.Modifiers) then
       Node['static'] := 'true';
     if pmReintroduce in ADecl.Modifiers then
       Node['reintroduce'] := 'true';

@@ -51,6 +51,10 @@ Interface
  {$DEFINE NO_THREADING}
 {$ENDIF GO32V2}
 
+{$IFDEF NDS}
+ {$DEFINE NO_THREADING}
+{$ENDIF NDS}
+
 {$IFDEF NETBSD}
  { NetBSD pthreads are not yet working, try to use fpmake without threads }
   {$DEFINE NO_THREADING}
@@ -2798,11 +2802,19 @@ procedure TCompileWorkerThread.execute;
 begin
   while not Terminated do
     begin
+    { Make sure all of our results are committed before we set (F)Done to true.
+      While RTLeventSetEvent implies a barrier, once the main thread is notified
+      it will walk over all threads and look for those that have Done=true -> it
+      can look at a thread between that thread setting FDone to true and it
+      calling RTLEventSetEvent }
+    WriteBarrier;
     FDone:=true;
     RTLeventSetEvent(FNotifyMainThreadEvent);
     RTLeventWaitFor(FNotifyStartTask,500);
     if not FDone then
       begin
+      { synchronise with WriteBarrier in mainthread for same reason as above }
+      ReadBarrier;
       FBuildEngine.log(vlInfo,'Compiling: '+APackage.Name);
       FCompilationOK:=false;
       try
@@ -7418,12 +7430,14 @@ Var
   begin
     if AThread.Done then
       begin
+        { synchronise with the WriteBarrier in the thread }
+        ReadBarrier;
         if assigned(AThread.APackage) then
           begin
             // The thread has completed compiling the package
             if AThread.CompilationOK then
               AThread.APackage.FTargetState:=tsCompiled
-            else // A problem occured, stop the compilation
+            else // A problem occurred, stop the compilation
               begin
               ErrorState:=true;
               ErrorMessage:=AThread.ErrorMessage;
@@ -7449,6 +7463,11 @@ Var
           // Instruct thread to compile package
           AThread.APackage := CompilePackage;
           AThread.APackage.FProcessing := true;
+          { Commit changes before setting FDone to false, because the threads
+            only wait for an event 500ms at a time and hence way wake up
+            and see that FDone=false before the event is sent and the changes
+            are all committed by the event code }
+          WriteBarrier;
           AThread.FDone:=False;
           RTLeventSetEvent(AThread.NotifyStartTask);
           end;

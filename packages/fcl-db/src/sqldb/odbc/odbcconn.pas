@@ -298,7 +298,7 @@ end;
 constructor TODBCConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash];
 end;
 
 function TODBCConnection.StrToStatementType(s : string) : TStatementType;

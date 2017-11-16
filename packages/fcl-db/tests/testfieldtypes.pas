@@ -2181,12 +2181,12 @@ end;
 
 procedure TTestFieldTypes.TestTableNames;
 var TableList : TStringList;
-    i         : integer;
+
 begin
   TableList := TStringList.Create;
   try
     TSQLDBConnector(DBConnector).Connection.GetTableNames(TableList);
-    AssertTrue(TableList.Find('fpdev',i));
+    AssertTrue(TableList.IndexOf('fpdev')<>-1);
   finally
     TableList.Free;
   end;
@@ -2216,7 +2216,7 @@ begin
   FieldList := TStringList.Create;
   try
     TSQLDBConnector(DBConnector).Connection.GetFieldNames('fpdev',FieldList);
-    AssertTrue(FieldList.Find('id',i));
+    AssertTrue(FieldList.IndexOf('id')<>-1);
   finally
     FieldList.Free;
   end;

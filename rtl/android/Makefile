@@ -3628,9 +3628,9 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp

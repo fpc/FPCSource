@@ -3108,8 +3108,8 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas

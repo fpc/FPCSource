@@ -417,7 +417,7 @@ begin
             end;
           while es>0 do
             begin
-              tt^[t]:=n;
+              tt^[t]:=ntole(cardinal(n));
               dec(es);
               inc(t);
             end;
@@ -462,7 +462,7 @@ begin
                 move_mtf_block;
             end;
           inc(cftab[seq_to_unseq[n]]);
-          tt^[t]:=cardinal(seq_to_unseq[n]);
+          tt^[t]:=ntole(cardinal(seq_to_unseq[n]));
           inc(t);
           if t>100000*blocksize then
             begin
@@ -497,9 +497,9 @@ begin
   q:=p+tt_count;
   while p<>q do
     begin
-      r:=@tt^[cftab[p^ and $ff]];
-      inc(cftab[p^ and $ff]);
-      r^:=r^ or a;
+      r:=@tt^[cftab[ntole(p^) and $ff]];
+      inc(cftab[ntole(p^) and $ff]);
+      r^:=r^ or ntole(a);
       inc(a,256);
       inc(p);
     end;
@@ -567,7 +567,7 @@ procedure Tbzip2_decode_stream.new_block;
 
 begin
   if decode_block then
-    nextrle:=@tt^[tt^[block_origin] shr 8]
+    nextrle:=@tt^[ntole(tt^[block_origin]) shr 8]
   else
     begin
       error(streaderror,bzip2_endoffile);
@@ -582,7 +582,7 @@ procedure Tbzip2_decode_stream.consume_rle;inline;
 
 begin
 {  Pcardinal(nextrle)^:=Pcardinal(nextrle)^ shr 8;}
-  nextrle:=@tt^[Pcardinal(nextrle)^ shr 8];
+  nextrle:=@tt^[ntole(Pcardinal(nextrle)^) shr 8];
   dec(decode_available);
   if decode_available=0 then
     new_block;
@@ -660,7 +660,7 @@ begin
           error(streaderror,bzip2_endoffile);
           nextrle:=nil;
         end;
-      nextrle:=@tt^[tt^[block_origin] shr 8];
+      nextrle:=@tt^[ntole(tt^[block_origin]) shr 8];
     end;
   rle_read(bufptr,count);
 end;

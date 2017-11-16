@@ -1,3 +1,17 @@
+{ ********************************************************************* 
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 2016 Michael Van Canneyt.
+       
+    Javascript parser
+            
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+                   
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+                                
+  **********************************************************************}
 unit jsparser;
 
 { $define debugparser}
@@ -25,8 +39,6 @@ Type
     FPrevious,
     FCurrent : TJSToken;
     FCurrentString : String;
-    FNextNewLine : Boolean;
-    FNextBol : Boolean;
     FFreeScanner : Boolean;
     FCurrentVars : TJSElementNodes;
     FPeekToken: TJSToken;
@@ -141,7 +153,7 @@ Resourcestring
   SErrCatchFinallyExpected   = 'Unexpected token: Expected ''catch'' or ''finally''';
   SErrArgumentsExpected      = 'Unexpected token: Expected '','' or '')'', got %s';
   SErrArrayEnd               = 'Unexpected token: Expected '','' or '']'', got %s';
-  SErrObjectEnd              = 'Unexpected token: Expected '','' or ''}'', got %s';
+  //SErrObjectEnd              = 'Unexpected token: Expected '','' or ''}'', got %s';
   SErrObjectElement          = 'Unexpected token: Expected string, identifier or number after '','' got: %s';
   SErrLiteralExpected        = 'Unexpected token: Expected: null, true, false, number, string, or regex, got: %s';
   SErrInvalidnumber          = 'Invalid numerical value: %s';
@@ -176,6 +188,7 @@ begin
     FCurrent:=FScanner.FetchToken;
     FCurrentString:=FScanner.CurTokenString;
     end;
+  Result:=FCurrent;
   {$ifdef debugparser}Writeln('GetNextToken (',FScanner.CurLine,',',FScanner.CurColumn,'): ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
 end;
 
@@ -557,8 +570,6 @@ function TJSParser.ParseObjectLiteral: TJSElement;
 Var
   N : TJSObjectLiteral;
   E : TJSObjectLiteralElement;
-  I : Integer;
-
 begin
   Consume(tjsCurlyBraceOpen);
   N:=TJSObjectLiteral(CreateElement(TJSObjectLiteral));
@@ -618,9 +629,6 @@ function TJSParser.ParseStringLiteral: TJSElement;
 
 Var
   L : TJSLiteral;
-  D : Double;
-  I : Integer;
-
 begin
     {$ifdef debugparser} Writeln('Parsing string literal');{$endif debugparser}
   Result:=Nil;
@@ -746,7 +754,6 @@ Var
   M  : TJSDotMemberExpression;
   N  : TJSNewMemberExpression;
   B  : TJSBracketMemberExpression;
-  C : TJSCallExpression;
   Done : Boolean;
 
 begin
@@ -758,7 +765,7 @@ begin
                   N:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression));
                   try
                     Result:=N;
-                    N.Mexpr:=ParseMemberExpression();
+                    N.MExpr:=ParseMemberExpression();
                     if (CurrentToken=tjsBraceOpen) then
                       N.Args:=ParseArguments;
                   except
@@ -1378,7 +1385,6 @@ end;
 function TJSParser.ParseVariableStatement : TJSElement;
 
 Var
-  E : TJSElement;
   V : TJSVariableStatement;
 
 begin
@@ -1429,7 +1435,7 @@ begin
     I:=TJSIfStatement(CreateElement(TJSIfStatement));
     I.Cond:=C;
     I.BTrue:=Btrue;
-    I.bfalse:=BFalse;
+    I.BFalse:=BFalse;
     Result:=I;
   except
     FreeAndNil(C);
@@ -1641,8 +1647,6 @@ function TJSParser.ParseWithStatement : TJSElement;
 
 Var
   W : TJSWithStatement;
-  N : TJSElement;
-
 begin
   W:=TJSWithStatement(CreateElement(TJSWithStatement));
   try
@@ -1655,6 +1659,7 @@ begin
     FreeAndNil(W);
     Raise;
   end;
+  Result:=W;
 end;
 
 function TJSParser.ParseSwitchStatement : TJSElement;
@@ -1662,7 +1667,6 @@ function TJSParser.ParseSwitchStatement : TJSElement;
 
 Var
   N : TJSSwitchStatement;
-  C : TJSElement;
   Ca : TJSCaseElement;
 
 begin
@@ -1813,6 +1817,7 @@ begin
         end
       else
         n:='';
+      if n='' then ; // what to do with that?
       Consume(tjsBraceOpen);
       F.AFunction:= TJSFuncDef.Create;
       Args:=ParseFormalParameterList;
@@ -1883,8 +1888,6 @@ function TJSParser.ParseLabeledStatement : TJSElement;
 Var
   OL : TJSLabelSet;
   LS : TJSLabeledStatement;
-  LN : String;
-
 begin
   LS:=TJSLabeledStatement(CreateElement(TJSLabeledStatement));
   try
@@ -2046,7 +2049,7 @@ begin
           If (PeekNextToken<>tjsBraceOpen) then
             begin
             F:=Self.ParseFunctionDeclaration;
-            Result.functions.AddNode.Node:=F;
+            Result.Functions.AddNode.Node:=F;
             end
           else
             begin
@@ -2095,8 +2098,6 @@ end;
 Function TJSParser.ParseProgram: TJSFunctionDeclarationStatement;
 
 Var
-  F : TJSFunctionDeclarationStatement;
-  FD : TJSFuncDef;
   B : TJSElement;
 begin
   {$ifdef debugparser} Writeln('>>> Entering FunctionDeclarationStatement');{$endif}

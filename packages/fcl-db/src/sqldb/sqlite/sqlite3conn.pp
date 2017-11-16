@@ -409,13 +409,14 @@ Const
 
 procedure TSQLite3Connection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 var
- i, fi : integer;
- FN, FD, PrimaryKeyFields : string;
- ft1   : TFieldType;
+ st : psqlite3_stmt;
+ i, j, NotNull : integer;
+ FN, FD, PrimaryKeyFields : AnsiString;
+ FT : TFieldType;
  size1, size2 : integer;
- st    : psqlite3_stmt;
+ CN: PAnsiChar;
 
- function GetPrimaryKeyFields: string;
+ function GetPrimaryKeyFields: AnsiString;
  var IndexDefs: TServerIndexDefs;
      i: integer;
  begin
@@ -432,7 +433,7 @@ var
    Result := '';
  end;
 
- function ExtractPrecisionAndScale(decltype: string; var precision, scale: integer): boolean;
+ function ExtractPrecisionAndScale(decltype: AnsiString; var precision, scale: integer): boolean;
  var p: integer;
  begin
    p:=pos('(', decltype);
@@ -459,34 +460,34 @@ var
 begin
   PrimaryKeyFields := GetPrimaryKeyFields;
   st:=TSQLite3Cursor(cursor).fstatement;
-  for i:= 0 to sqlite3_column_count(st) - 1 do 
+  for i := 0 to sqlite3_column_count(st) - 1 do
     begin
-    FN:=sqlite3_column_name(st,i);
-    FD:=uppercase(sqlite3_column_decltype(st,i));
-    ft1:= ftUnknown;
-    size1:= 0;
-    for fi := 1 to FieldMapCount do if pos(FieldMap[fi].N,FD)=1 then
+    FN := sqlite3_column_name(st,i);
+    FD := uppercase(sqlite3_column_decltype(st,i));
+    FT := ftUnknown;
+    for j := 1 to FieldMapCount do if pos(FieldMap[j].N,FD)=1 then
       begin
-      ft1:=FieldMap[fi].t;
+      FT:=FieldMap[j].t;
       break;
       end;
     // Column declared as INTEGER PRIMARY KEY [AUTOINCREMENT] becomes ROWID for given table
     // declared data type must be INTEGER (not INT, BIGINT, NUMERIC etc.)
     if (FD='INTEGER') and SameText(FN, PrimaryKeyFields) then
-      ft1:=ftAutoInc;
+      FT:=ftAutoInc;
     // In case of an empty fieldtype (FD='', which is allowed and used in calculated
     // columns (aggregates) and by pragma-statements) or an unknown fieldtype,
     // use the field's affinity:
-    if ft1=ftUnknown then
+    if FT=ftUnknown then
       case TStorageType(sqlite3_column_type(st,i)) of
-        stInteger: ft1:=ftLargeInt;
-        stFloat:   ft1:=ftFloat;
-        stBlob:    ft1:=ftBlob;
-        else       ft1:=ftString;
+        stInteger: FT:=ftLargeInt;
+        stFloat:   FT:=ftFloat;
+        stBlob:    FT:=ftBlob;
+        else       FT:=ftString;
       end;
     // handle some specials.
     size1:=0;
-    case ft1 of
+    size2:=0;
+    case FT of
       ftString,
       ftFixedChar,
       ftFixedWideChar,
@@ -504,13 +505,22 @@ begin
                  size1 := 0;               //sql: if a scale is omitted then scale is 0
                  ExtractPrecisionAndScale(FD, size2, size1);
                  if (size2<=18) and (size1=0) then
-                   ft1:=ftLargeInt
+                   FT:=ftLargeInt
                  else if (size2-size1>MaxBCDPrecision-MaxBCDScale) or (size1>MaxBCDScale) then
-                   ft1:=ftFmtBCD;
+                   FT:=ftFmtBCD;
                end;
       ftUnknown : DatabaseErrorFmt('Unknown or unsupported data type %s of column %s', [FD, FN]);
     end; // Case
-    FieldDefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
+    // check if SQLite is compiled with SQLITE_ENABLE_COLUMN_METADATA
+    if Assigned(sqlite3_column_origin_name) then
+      CN := sqlite3_column_origin_name(st,i)
+    else
+      CN := nil;
+    // check only for physical table columns (not computed)
+    // is column declared as NOT NULL ? (table name parameter (3rd) must be not nil)
+    if not (Assigned(CN) and (sqlite3_table_column_metadata(fhandle, sqlite3_column_database_name(st,i), sqlite3_column_table_name(st,i), CN, nil, nil, @NotNull, nil, nil) = SQLITE_OK)) then
+      NotNull := 0;
+    FieldDefs.Add(FieldDefs.MakeNameUnique(FN), FT, size1, NotNull=1, i+1);
     end;
 end;
 
@@ -885,8 +895,8 @@ end;
 procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
   artableinfo, arindexlist, arindexinfo: TArrayStringArray;
-  il,ii: integer;
-  IndexName: string;
+  i,il,ii: integer;
+  DbName, IndexName: string;
   IndexOptions: TIndexOptions;
   PKFields, IXFields: TStrings;
 
@@ -907,14 +917,27 @@ begin
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
 
+  //check for multipart unquoted identifier: DatabaseName.TableName
+  if Pos('"',TableName) = 0 then
+    i := Pos('.',TableName)
+  else
+    i := 0;
+  if i>0 then
+    begin
+    DbName := Copy(TableName,1,i);
+    Delete(TableName,1,i);
+    end
+  else
+    DbName := '';
+
   //primary key fields; 5th column "pk" is zero for columns that are not part of PK
-  artableinfo := stringsquery('PRAGMA table_info('+TableName+');');
+  artableinfo := stringsquery('PRAGMA '+DbName+'table_info('+TableName+');');
   for ii:=low(artableinfo) to high(artableinfo) do
     if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] >= '1') then
       PKFields.Add(artableinfo[ii][1]);
 
   //list of all table indexes
-  arindexlist:=stringsquery('PRAGMA index_list('+TableName+');');
+  arindexlist:=stringsquery('PRAGMA '+DbName+'index_list('+TableName+');');
   for il:=low(arindexlist) to high(arindexlist) do
     begin
     IndexName:=arindexlist[il][1];

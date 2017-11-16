@@ -118,7 +118,7 @@ begin
 end;
 
 function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
-          BufSize: Integer; var RegData: TRegDataType): Integer;
+          BufSize: Integer; Out RegData: TRegDataType): Integer;
 
 Var
   DataType : TDataType;
@@ -138,8 +138,7 @@ begin
 end;
 
 
-function TRegistry.GetDataInfo(const ValueName: string; var Value: TRegDataInfo
-  ): Boolean;
+function TRegistry.GetDataInfo(const ValueName: string; out Value: TRegDataInfo): Boolean;
 
 Var
   Info : TDataInfo;
@@ -170,7 +169,7 @@ begin
   Result := 0;
 end;
 
-function TRegistry.GetKeyInfo(var Value: TRegKeyInfo): Boolean;
+function TRegistry.GetKeyInfo(Out Value: TRegKeyInfo): Boolean;
 
 Var
   Info : TKeyInfo;

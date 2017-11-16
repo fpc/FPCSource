@@ -13,6 +13,7 @@ Type
   TXMLFPDocOptions = Class(TComponent)
   private
   Protected
+    Function PreProcessFile(const AFileName: String; Macros: TStrings): TStream; virtual;
     Procedure Error(Const Msg : String);
     Procedure Error(Const Fmt : String; Args : Array of Const);
     Procedure LoadPackage(APackage : TFPDocPackage; E : TDOMElement); virtual;
@@ -24,7 +25,7 @@ Type
     procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
   Public
-    Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String);
+    Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String; Macros : TStrings = Nil);
     Procedure LoadFromXML(AProject : TFPDocProject; XML : TXMLDocument); virtual;
     Procedure SaveOptionsToFile(AProject : TFPDocProject; Const AFileName : String);
     procedure SaveToXML(AProject : TFPDocProject; ADoc: TXMLDocument); virtual;
@@ -65,7 +66,7 @@ begin
 end;
 
 
-procedure TXMLFPDocOptions.Error(Const Msg: String);
+procedure TXMLFPDocOptions.Error(const Msg: String);
 begin
   Raise EXMLFPDoc.Create(Msg);
 end;
@@ -248,7 +249,8 @@ begin
     end;
 end;
 
-Procedure TXMLFPDocOptions.SaveEngineOptions(Options : TEngineOptions; XML : TXMLDocument; AParent : TDOMElement);
+procedure TXMLFPDocOptions.SaveEngineOptions(Options: TEngineOptions;
+  XML: TXMLDocument; AParent: TDOMElement);
 
   procedure AddStr(const n, v: string);
   var
@@ -288,7 +290,8 @@ begin
 end;
 
 
-Procedure TXMLFPDocOptions.SaveInputFile(Const AInputFile : String; XML : TXMLDocument; AParent: TDOMElement);
+procedure TXMLFPDocOptions.SaveInputFile(const AInputFile: String;
+  XML: TXMLDocument; AParent: TDOMElement);
 
 Var
   F,O : String;
@@ -299,7 +302,8 @@ begin
   AParent['options']:=O;
 end;
 
-Procedure TXMLFPDocOptions.SaveDescription(Const ADescription : String; XML : TXMLDocument; AParent: TDOMElement);
+procedure TXMLFPDocOptions.SaveDescription(const ADescription: String;
+  XML: TXMLDocument; AParent: TDOMElement);
 
 begin
   AParent['file']:=ADescription;
@@ -317,7 +321,8 @@ begin
   AParent['prefix']:=Copy(AImportFile,i+1,Length(AImportFile));
 end;
 
-Procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage; XML : TXMLDocument; AParent: TDOMElement);
+procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage;
+  XML: TXMLDocument; AParent: TDOMElement);
 
 
 var
@@ -358,17 +363,55 @@ begin
 end;
 
 
+Function TXMLFPDocOptions.PreprocessFile(const AFileName: String; Macros : TStrings) : TStream;
 
-procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject; const AFileName: String);
+Var
+  F : TFileStream;
+  P : TTemplateParser;
+  I : Integer;
+  N,V : String;
+
+begin
+  Result:=Nil;
+  P:=Nil;
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    P:=TTemplateParser.Create;
+    P.AllowTagParams:=False;
+    P.StartDelimiter:='{{';
+    P.EndDelimiter:='}}';
+    For I:=0 to Macros.Count-1 do
+      begin
+      Macros.GetNameValue(I,N,V);
+      P.Values[N]:=V;
+      end;
+    Result:=TMemoryStream.Create;
+    P.ParseStream(F,Result);
+    Result.Position:=0;
+  finally
+    FreeAndNil(F);
+    FreeAndNil(P);
+  end;
+end;
+
+procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject;
+  const AFileName: String; Macros: TStrings = Nil);
 
 Var
   XML : TXMLDocument;
+  S : TStream;
 
 begin
-  ReadXMLFile(XML,AFileName);
+  XML:=Nil;
+  if Macros=Nil then
+    S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite)
+  else
+    S:=PreProcessFile(AFileName,Macros);
   try
+    ReadXMLFile(XML,S);
     LoadFromXML(AProject,XML);
   finally
+    FreeAndNil(S);
     FreeAndNil(XML);
   end;
 end;
@@ -393,7 +436,8 @@ begin
     LoadEngineOptions(AProject.Options,N as TDOMElement);
 end;
 
-Procedure TXMLFPDocOptions.SaveOptionsToFile(AProject: TFPDocProject; const AFileName: String);
+procedure TXMLFPDocOptions.SaveOptionsToFile(AProject: TFPDocProject;
+  const AFileName: String);
 
 Var
   XML : TXMLDocument;

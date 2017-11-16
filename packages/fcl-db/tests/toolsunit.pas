@@ -224,6 +224,7 @@ var dbtype,
     dbuser,
     dbhostname,
     dbpassword,
+    dbcharset,
     dblogfilename,
     dbQuoteChars   : string;
     dblogfile      : TextFile;
@@ -476,17 +477,18 @@ procedure ReadIniFile;
 var IniFile : TIniFile;
 
 begin
-  IniFile := TIniFile.Create(getcurrentdir + PathDelim + 'database.ini');
+  IniFile := TIniFile.Create(GetCurrentDir + PathDelim + 'database.ini');
   dbtype:='';
-  if Paramcount>0 then
+  if ParamCount>0 then
     dbtype := ParamStr(1);
-  if (dbtype='') or not inifile.SectionExists(dbtype) then
+  if (dbtype='') or not IniFile.SectionExists(dbtype) then
     dbtype := IniFile.ReadString('Database','Type','');
   dbconnectorname := IniFile.ReadString(dbtype,'Connector','');
   dbname := IniFile.ReadString(dbtype,'Name','');
   dbuser := IniFile.ReadString(dbtype,'User','');
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
+  dbcharset := IniFile.ReadString(dbtype,'CharSet','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
   dblogfilename := IniFile.ReadString(dbtype,'LogFile','');
   dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','"');
@@ -526,8 +528,6 @@ end;
 
 procedure InitialiseDBConnector;
 
-const B: array[boolean] of char=('0','1');  // should be exported from some main db unit, as SQL true/false?
-
 var DBConnectorClass : TPersistentClass;
     i                : integer;
     FormatSettings   : TFormatSettings;
@@ -548,7 +548,7 @@ begin
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
-    testValues[ftBoolean,i] := B[testBooleanValues[i]];
+    testValues[ftBoolean,i] := BoolToStr(testBooleanValues[i], True);
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i],FormatSettings);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);

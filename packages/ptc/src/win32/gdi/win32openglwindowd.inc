@@ -26,16 +26,16 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 type
   TWin32OpenGLWindow = class(TWin32Window)
   private
     FPixelFormatDescriptor: PIXELFORMATDESCRIPTOR;
-	FChosenPixelFormatDescriptor: PIXELFORMATDESCRIPTOR;
+    FChosenPixelFormatDescriptor: PIXELFORMATDESCRIPTOR;
 
-	procedure SetOpenGLAttributes(const AOpenGLAttributes: IPTCOpenGLAttributes);
+    procedure SetOpenGLAttributes(const AOpenGLAttributes: IPTCOpenGLAttributes);
     function EnumerateAllPixelFormats(hdc: HDC): Boolean;
     function SetupOpenGLPixelFormat(hdc: HDC): Boolean;
     procedure LogPixelFormatDescriptor(const pfd: PIXELFORMATDESCRIPTOR);

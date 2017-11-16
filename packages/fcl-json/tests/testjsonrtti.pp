@@ -5,7 +5,7 @@ unit testjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, typinfo, fpjson,
+  Classes, SysUtils, fpcunit, testregistry, typinfo, fpjson,
   dateutils, testcomps, testjsondata, fpjsonrtti;
 
 type
@@ -106,8 +106,10 @@ type
     Procedure TestObjectToJSONString;
     Procedure TestStringsToJSONString;
     Procedure TestCollectionToJSONString;
+    procedure TestTListToJSONString;
     Procedure TestChildren;
     Procedure TestChildren2;
+    Procedure TestLowercase;
   end;
 
   { TTestJSONDeStreamer }
@@ -117,7 +119,6 @@ type
     FDS : TJSONDeStreamer;
     FJD : TJSONData;
     FToFree : TObject;
-    FCalled : Boolean;
     procedure DeStream(JSON: TJSONStringType; AObject: TObject);
     procedure DeStream(JSON: TJSONObject; AObject: TObject);
     procedure DoDateTimeFormat;
@@ -139,6 +140,8 @@ type
     procedure TestEmpty;
     procedure TestBoolean;
     procedure TestInteger;
+    procedure TestIntegerCaseInsensitive;
+    procedure TestIntegerCaseSensitive;
     procedure TestString;
     procedure TestFloat;
     procedure TestFloat2;
@@ -317,6 +320,31 @@ begin
   AssertEquals('Correct integer value',22,B.IntProp);
 end;
 
+procedure TTestJSONDeStreamer.TestIntegerCaseInsensitive;
+
+Var
+  B : TIntegerComponent;
+
+begin
+  DS.Options:=DS.Options+[jdoCaseInsensitive];
+  B:=TIntegerComponent.Create(Nil);
+  DeStream('{ "intprop" : 22 }',B);
+  AssertEquals('Correct integer value',22,B.IntProp);
+end;
+
+procedure TTestJSONDeStreamer.TestIntegerCaseSensitive;
+
+Var
+  B : TIntegerComponent;
+
+begin
+  DS.Options:=DS.Options;
+  B:=TIntegerComponent.Create(Nil);
+  B.IntProp:=0;
+  DeStream('{ "intprop" : 22 }',B);
+  AssertEquals('Correct integer value not reas',0,B.IntProp);
+end;
+
 procedure TTestJSONDeStreamer.TestString;
 
 Var
@@ -367,12 +395,8 @@ Var
 
 begin
   B:=TCompComponent.Create(Nil);
-  DeStream('{ "ExtendedProp" : 5.67 }',B);
-{$ifdef CPUX86_64}
-  AssertEquals('Correct comp value',round(5.67),B.ExtendedProp);
-{$else}
-  AssertEquals('Correct extended value',5.67,B.ExtendedProp);
-{$endif}
+  DeStream('{ "CompProp" : 5.67 }',B);
+  AssertEquals('Correct comp value',round(5.67),B.CompProp);
 end;
 
 procedure TTestJSONDeStreamer.TestFloat5;
@@ -877,12 +901,7 @@ procedure TTestJSONStreamer.TestWriteFloat4;
 begin
   StreamObject(TCompComponent.Create(Nil));
   AssertPropCount(1);
-  // Extended is correct, propname is wrong
-  {$ifdef CPUX86_64}
-    AssertProp('ExtendedProp',TJSONFloat(5));
-  {$else}
-    AssertProp('ExtendedProp',4.56);
-  {$endif}
+  AssertProp('CompProp',5);
 end;
 
 procedure TTestJSONStreamer.TestWriteFloat5;
@@ -1021,7 +1040,6 @@ procedure TTestJSONStreamer.TestCollectionProp2;
 
 Var
   C : TCollectionComponent;
-  F : TJSONObject;
   A : TJSONArray;
 
 begin
@@ -1057,8 +1075,6 @@ end;
 
 procedure TTestJSONStreamer.TestStringsProp1;
 
-Var
-  A : TJSONArray;
 begin
   RJ.Options:=[jsoTstringsAsArray];
   StreamObject(TStringsCOmponent.Create(Nil));
@@ -1068,8 +1084,6 @@ end;
 
 procedure TTestJSONStreamer.TestStringsProp2;
 
-Var
-  A : TJSONArray;
 begin
   StreamObject(TStringsCOmponent.Create(Nil));
   AssertPropCount(1);
@@ -1267,7 +1281,6 @@ end;
 
 procedure TTestJSONStreamer.TestStringsStream4;
 Var
-  O : TJSONObject;
   S : TStringList;
 
 begin
@@ -1598,7 +1611,7 @@ begin
   AssertEquals('Variant type',VarTypeAsText(varSingle),VarTypeAsText(VarType(C.VariantProp)));
   StreamObject(FTofree);
   AssertPropCount(1);
-  AssertProp('VariantProp',3.14);
+  AssertProp('VariantProp',i);
 end;
 
 procedure TTestJSONStreamer.TestVariantdouble;
@@ -1769,6 +1782,38 @@ begin
   end;
 end;
 
+procedure TTestJSONStreamer.TestTListToJSONString ;
+
+
+Var
+  C : TList;
+  D : TJSONData;
+  P : Pointer;
+
+  Function Add : TTestItem;
+
+  begin
+    Result:=TTestItem.Create(Nil);
+    C.Add(Result);
+  end;
+
+begin
+  RJ.Options:=RJ.Options + [jsoStreamTList];
+  C:=TList.Create;
+  try
+    Add.StrProp:='one';
+    Add.StrProp:='two';
+    Add.StrProp:='three';
+    D:=RJ.StreamTList(C);
+    AssertEquals('StreamTlist','[{ "StrProp" : "one" }, { "StrProp" : "two" }, { "StrProp" : "three" }]',D.AsJSON);
+  finally
+    D.Free;
+    For P in C do
+      TObject(P).Free;
+    FreeAndNil(C);
+  end;
+end;
+
 procedure TTestJSONStreamer.TestCollectionToJSONString;
 
 Var
@@ -1827,6 +1872,14 @@ begin
   finally
     SR:=O;
   end;
+end;
+
+procedure TTestJSONStreamer.TestLowercase;
+begin
+  RJ.Options:=RJ.Options+[jsoLowerPropertyNames];
+  StreamObject(TBooleanComponent.Create(nil));
+  AssertPropCount(1);
+  AssertProp('booleanprop',False);
 end;
 
 initialization

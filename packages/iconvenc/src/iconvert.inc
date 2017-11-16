@@ -3,7 +3,7 @@
  {$define noerrnoiconv}
 {$endif}
 
-function Iconvert(S: string; var Res: string; FromEncoding, ToEncoding: string): cint;
+function Iconvert(S: string; var Res: string; const FromEncoding, ToEncoding: string): cint;
 var
   InLen, OutLen, Offset: size_t;
   Src, Dst: pchar;

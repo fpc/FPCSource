@@ -6,6 +6,12 @@ fcl-base. See the fcl-base/texts/fptemplate.txt file.
 
 Architecture:
 
+httpprotocol:
+------------
+
+Mostly standard HTTP header definitions, and some auxiliary routines.
+
+
 httpdefs
 --------
 contains the basic HTTP system definitions: 
@@ -24,6 +30,75 @@ TResponse:
   describes the web server response. Includes headers and contents. 
 TCustomSession: 
  Base for all session components.
+
+httproute
+---------
+
+The old Delphi style routing worked with Datamodules only. The pattern was
+strictly /modulename/actionname or through query variables: ?module=xyz&Action=nmo
+
+This old routing is still available by setting the LegacyRouting property of
+webhandler or webapplication (custweb) to true. (the new routing described
+below is then disabled)
+
+The new routing is more flexible in 3 ways.
+
+- It is no longer required to use datamodules, but this is still supported.
+  There are now 4 methods that can be used to register a route:
+
+  - Using a callback procedure
+    TRouteCallback = Procedure(ARequest: TRequest; AResponse);
+ 
+  - Using a callback event:
+    TRouteEvent = Procedure(ARequest: TRequest; AResponse) of object;
+
+  - Using an interface
+    IRouteInterface = Interface ['{10115353-10BA-4B00-FDA5-80B69AC4CAD0}']
+      Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse);
+    end;
+    Note that this is a CORBA interface, so no reference counting.
+
+  - Using a router object:
+    TRouteObject = Class(TObject,IRouteInterface)
+    Public
+      Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
+    end;
+    TRouteObjectClass = Class of TRouteObject;
+  The object class needs to be registered. The router will instantiate the
+  object and release it once the request was handled.
+ 
+  More methods can be added, if need be.
+  All routes are registered using the HTTPRouter.RegisterRoute method.
+  it is overloaded to accept any of the above parameters.
+
+- The router can now match more complex, parametrized routes.
+
+  A route is the path part of an URL; query parameters are not examined.
+
+  /path1/path2/path3/path4
+
+  In these paths, parameters and wildcards are recognized:
+  :param means that it will match any request with a single part in this location
+  *paramm means that it will match any request with zero or more path parts in this location
+
+  examples:
+
+  /path1  
+  /REST/:Resource/:ID
+  /REST/:Resource
+  /*/something
+  /*path/somethiingelse
+  /*path  
+ 
+  The parameters will be added to TRequest, they are available in the (new) RouteParams array property of TRequest.
+  
+  Paths are matched case sensitively by default, and the first matching pattern is used.
+ 
+  HTTP Modules are registered in the router using classname/* or defaultmodulename/*
+
+- A set of methods can be added to the route registration (default is to  accept all methods). 
+  The router will  match the request method. If the method does not match, it will raise an
+  exception which will result in a 405 HTTP error.
 
 fphttp:
 -------

@@ -3069,7 +3069,8 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+uuchar$(PPUEXT):  $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
@@ -3110,6 +3111,8 @@ character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/iso7185.pp
 ifeq ($(ARCH),x86_64)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
@@ -3119,8 +3122,8 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas

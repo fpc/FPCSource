@@ -28,3 +28,18 @@ pparser.pp
 ----------
 Parser for Pascal source files. Reads files via the pscanner unit and stores
 all parsed data in a parse tree, as implemented in the pastree unit.
+
+pasresolver.pp
+--------------
+A symbol resolver: A TPasTreeContainer descendent that looks up symbols 
+(identifiers) in the parse tree, following the scope rules of Pascal
+
+passrcutil.pp
+-------------
+A small class to roughly analyse a pascal source unit. It gives some methods to get
+a list of interface/implementation units, whether a source file has resource
+strings, a complete list of identifiers etc.
+
+pastounittest.pp
+----------------
+A unit to create a FPC unit test source file from a pascal unit file.

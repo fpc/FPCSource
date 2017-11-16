@@ -31,7 +31,7 @@ unit typelib;
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 interface
@@ -394,7 +394,8 @@ begin
         if RegQueryValue(Handle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
           begin
           SetLength(sRefSrc,il-1);  // includes null terminator
-          if not FDependencies.Find(sRefSrc,i) then
+          i:=FDependencies.Indexof(sRefSrc);
+          if i < 0 Then
             FDependencies.Add(sRefSrc);
           end
         else
@@ -585,7 +586,7 @@ begin
     //get calling convention
     if FD^.callconv=CC_STDCALL then
       begin
-      if lowercase(BstrNameRef)='iunknown' then
+      if not (bIsDispatch or ((TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL)) then
         sConv:='stdcall'
       else
         sConv:='safecall';

@@ -977,6 +977,13 @@ VAR
 BEGIN
   FillChar (Rec, SizeOf (Rec), 0);
   FStream.Write (Rec, RECORDSIZE);
+  {
+    Avoid warning: 'tar: A lone zero block at *'
+    The reason for this message is that GNU tar format has been changed
+    to require TWO zero blocks marking the end of the archive.
+    Thus write a second zero block.
+  }
+  FStream.Write (Rec, RECORDSIZE);
   FFinalized := TRUE;
 END;
 

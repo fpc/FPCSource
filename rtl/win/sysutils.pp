@@ -1,4 +1,4 @@
-{
+         {
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -36,6 +36,9 @@ uses
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
 {$DEFINE OS_FILESETDATEBYNAME}
+
+// this target has an fileflush implementation, don't include dummy
+{$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
 
 { used OS file system APIs use unicodestring }
 {$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
@@ -283,6 +286,11 @@ const
                FILE_SHARE_READ or FILE_SHARE_WRITE);
 
 
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= FlushFileBuffers(Handle);
+end;
+
 Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 begin
   result := CreateFileW(PWideChar(FileName), dword(AccessMode[Mode and 3]),
@@ -444,6 +452,14 @@ begin
   Result:=0;
 end;
 
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
+begin
+   if Handle <> INVALID_HANDLE_VALUE then
+    begin
+    Windows.FindClose(Handle);
+    Handle:=INVALID_HANDLE_VALUE;
+    end;
+end;
 
 Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 begin
@@ -460,6 +476,8 @@ begin
    end;
   { Find file with correct attribute }
   Result:=FindMatch(Rslt,Name);
+  if (Result<>0) then
+    InternalFindClose(Rslt.FindHandle,Rslt.FindData);
 end;
 
 Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
@@ -471,11 +489,6 @@ begin
 end;
 
 
-Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
-begin
-   if Handle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(Handle);
-end;
 
 
 Function FileGetDate (Handle : THandle) : Longint;
@@ -974,23 +987,27 @@ end;
                            Target Dependent
 ****************************************************************************}
 
+
 function SysErrorMessage(ErrorCode: Integer): String;
 const
   MaxMsgSize = Format_Message_Max_Width_Mask;
 var
-  MsgBuffer: pChar;
+  MsgBuffer: unicodestring;
+  len: longint;
 begin
-  GetMem(MsgBuffer, MaxMsgSize);
-  FillChar(MsgBuffer^, MaxMsgSize, #0);
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
-                 nil,
-                 ErrorCode,
-                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 MsgBuffer,                 { This function allocs the memory }
-                 MaxMsgSize,                           { Maximum message size }
-                 nil);
-  SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize*2);
+  SetLength(MsgBuffer, MaxMsgSize);
+  len := FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,
+                        nil,
+                        ErrorCode,
+                        MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                        PUnicodeChar(MsgBuffer),
+                        MaxMsgSize,
+                        nil);
+  // Remove trailing #13#10
+  if (len > 1) and (MsgBuffer[len - 1] = #13) and (MsgBuffer[len] = #10) then
+    Dec(len, 2);
+  SetLength(MsgBuffer, len);
+  Result := MsgBuffer;
 end;
 
 {****************************************************************************

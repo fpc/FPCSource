@@ -1,3 +1,7 @@
+{
+  Examples:
+    ./testpassrc --suite=TTestStatementParser.TestCallQualified2
+}
 unit tcstatements;
 
 {$mode objfpc}{$H+}
@@ -15,6 +19,8 @@ Type
   private
     FStatement: TPasImplBlock;
     FVariables : TStrings;
+    procedure DoTestCallOtherFormat;
+    procedure TestCallFormat(FN: String; Two: Boolean);
   Protected
     Procedure SetUp; override;
     Procedure TearDown; override;
@@ -44,12 +50,22 @@ Type
     Procedure TestCallQualified2;
     Procedure TestCallNoArgs;
     Procedure TestCallOneArg;
+    procedure TestCallWriteFormat1;
+    procedure TestCallWriteFormat2;
+    procedure TestCallWritelnFormat1;
+    procedure TestCallWritelnFormat2;
+    procedure TestCallStrFormat1;
+    procedure TestCallStrFormat2;
+    procedure TestCallOtherFormat;
     Procedure TestIf;
     Procedure TestIfBlock;
     Procedure TestIfAssignment;
     Procedure TestIfElse;
     Procedure TestIfElseBlock;
     Procedure TestIfSemiColonElseError;
+    procedure TestIfforElseBlock;
+    procedure TestIfRaiseElseBlock;
+    procedure TestIfWithBlock;
     Procedure TestNestedIf;
     Procedure TestNestedIfElse;
     Procedure TestWhile;
@@ -75,10 +91,12 @@ Type
     Procedure TestCase2Cases;
     Procedure TestCaseBlock;
     Procedure TestCaseElseBlockEmpty;
+    procedure TestCaseOtherwiseBlockEmpty;
     Procedure TestCaseElseBlockAssignment;
     Procedure TestCaseElseBlock2Assignments;
     Procedure TestCaseIfCaseElse;
     Procedure TestCaseIfElse;
+    Procedure TestCaseElseNoSemicolon;
     Procedure TestRaise;
     Procedure TestRaiseEmpty;
     Procedure TestRaiseAt;
@@ -92,8 +110,20 @@ Type
     Procedure TestTryExceptOn2;
     Procedure TestTryExceptOnElse;
     Procedure TestTryExceptOnIfElse;
+    procedure TestTryExceptRaise;
     Procedure TestAsm;
+    Procedure TestAsmBlock;
+    Procedure TestAsmBlockWithEndLabel;
+    Procedure TestAsmBlockInIfThen;
+    Procedure TestGotoInIfThen;
+    procedure AssignToAddress;
+    procedure FinalizationNoSemicolon;
+    procedure MacroComment;
+    Procedure PLatformIdentifier;
+    Procedure PLatformIdentifier2;
+    Procedure Onidentifier;
   end;
+
 
 implementation
 
@@ -116,7 +146,7 @@ procedure TTestStatementParser.AddStatements(ASource: array of string);
 Var
   I :Integer;
 begin
-  StartProgram('afile');
+  StartProgram(ExtractFileUnitName(MainFilename));
   if FVariables.Count>0 then
     begin
     Add('Var');
@@ -364,9 +394,10 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
+  TAssert.AssertSame('B.left.Parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
   AssertExpression('Unit name',B.Left,pekIdent,'Unita');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
-
 end;
 
 procedure TTestStatementParser.TestCallQualified2;
@@ -381,11 +412,11 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
-  AssertExpression('Unit name',B.Left,pekIdent,'Unita');
-  AssertExpression('Doit call',B.Right,pekBinary,TBinaryExpr);
-  B:=B.Right  as TBinaryExpr;
-  AssertExpression('Unit name',B.Left,pekIdent,'ClassB');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
+  AssertExpression('First two parts of unit name',B.left,pekBinary,TBinaryExpr);
+  B:=B.left as TBinaryExpr;
+  AssertExpression('Unit name part 1',B.Left,pekIdent,'Unita');
+  AssertExpression('Unit name part 2',B.right,pekIdent,'ClassB');
 end;
 
 procedure TTestStatementParser.TestCallNoArgs;
@@ -406,6 +437,7 @@ begin
 end;
 
 procedure TTestStatementParser.TestCallOneArg;
+
 Var
   S : TPasImplSimple;
   P : TParamsExpr;
@@ -420,6 +452,76 @@ begin
   AssertExpression('Correct function call name',P.Value,pekIdent,'Doit');
   AssertEquals('One param',1,Length(P.Params));
   AssertExpression('Parameter is constant',P.Params[0],pekNumber,'1');
+end;
+
+procedure TTestStatementParser.TestCallFormat(FN : String; Two : Boolean);
+
+Var
+  S : TPasImplSimple;
+  P : TParamsExpr;
+  N : String;
+begin
+  N:=fn+'(a:3';
+  if Two then
+    N:=N+':2';
+  N:=N+');';
+  TestStatement(N);
+  AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+  AssertEquals('Simple statement',TPasImplSimple,Statement.ClassType);
+  S:=Statement as TPasImplSimple;
+  AssertExpression('Doit call',S.Expr,pekFuncParams,TParamsExpr);
+  P:=S.Expr as TParamsExpr;
+  AssertExpression('Correct function call name',P.Value,pekIdent,FN);
+  AssertEquals('One param',1,Length(P.Params));
+  AssertExpression('Parameter is identifier',P.Params[0],pekIdent,'a');
+  AssertExpression('Parameter has formatting constant 1' ,P.Params[0].format1,pekNumber,'3');
+  if Two then
+    AssertExpression('Parameter has formatting constant 2',P.Params[0].format2,pekNumber,'2');
+end;
+
+procedure TTestStatementParser.TestCallWriteFormat1;
+
+begin
+  TestCalLFormat('write',False);
+end;
+
+procedure TTestStatementParser.TestCallWriteFormat2;
+
+begin
+  TestCalLFormat('write',True);
+end;
+
+procedure TTestStatementParser.TestCallWritelnFormat1;
+begin
+  TestCalLFormat('writeln',False);
+
+end;
+
+procedure TTestStatementParser.TestCallWritelnFormat2;
+begin
+  TestCalLFormat('writeln',True);
+end;
+
+procedure TTestStatementParser.TestCallStrFormat1;
+begin
+  TestCalLFormat('str',False);
+end;
+
+procedure TTestStatementParser.TestCallStrFormat2;
+begin
+  TestCalLFormat('str',True);
+end;
+
+procedure TTestStatementParser.DoTestCallOtherFormat;
+
+begin
+  TestCalLFormat('nono',False);
+end;
+
+procedure TTestStatementParser.TestCallOtherFormat;
+
+begin
+  AssertException('Only Write(ln) and str allow format',EParserError,@DoTestCallOtherFormat);
 end;
 
 procedure TTestStatementParser.TestIf;
@@ -494,6 +596,41 @@ begin
   AssertEquals('begin end block',TPasImplBeginBlock,I.ifBranch.ClassType);
   AssertNotNull('Else branch',i.ElseBranch);
   AssertEquals('begin end block',TPasImplBeginBlock,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfforElseBlock;
+
+Var
+  I : TPasImplIfElse;
+
+begin
+  TestStatement(['if a then','for X := 1 downto 0 do Writeln(X)','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('For statement',TPasImplForLoop,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfRaiseElseBlock;
+Var
+  I : TPasImplIfElse;
+begin
+  TestStatement(['if a then','raise','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('For statement',TPasImplRaise,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
+end;
+
+procedure TTestStatementParser.TestIfWithBlock;
+Var
+  I : TPasImplIfElse;
+begin
+  TestStatement(['if a then','with b do something','else', 'for X := 0 to 1 do Writeln(X)']);
+  I:=AssertStatement('If statement',TPasImplIfElse) as TPasImplIfElse;
+  AssertExpression('IF condition',I.ConditionExpr,pekIdent,'a');
+  AssertEquals('For statement',TPasImplWithDo,I.ifBranch.ClassType);
+  AssertEquals('For statement',TPasImplForLoop,I.ElseBranch.ClassType);
 end;
 
 procedure TTestStatementParser.TestIfSemiColonElseError;
@@ -657,7 +794,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=1 to 10 do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltNormal,F.Looptype);
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
@@ -674,7 +811,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a in SomeSet Do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Loop type',ltIn,F.Looptype);
   AssertEquals('In loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekIdent,'SomeSet');
@@ -691,7 +828,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=1+1 to 5+5 do',';']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start expression',F.StartExpr,pekBinary,TBinaryExpr);
   B:=F.StartExpr as TBinaryExpr;
@@ -713,7 +850,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=1 to 10 do','begin','end']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('End value',F.EndExpr,pekNumber,'10');
@@ -731,7 +868,7 @@ begin
   DeclareVar('integer');
   TestStatement(['For a:=10 downto 1 do','begin','end']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Down loop',True,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'10');
   AssertExpression('End value',F.EndExpr,pekNumber,'1');
@@ -749,14 +886,14 @@ begin
   DeclareVar('integer','b');
   TestStatement(['For a:=1 to 10 do','For b:=11 to 20 do','begin','end']);
   F:=AssertStatement('For statement',TPasImplForLoop) as TPasImplForLoop;
-  AssertEquals('Loop variable name','a',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'a');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'1');
   AssertExpression('End value',F.EndExpr,pekNumber,'10');
   AssertNotNull('Have while body',F.Body);
   AssertEquals('begin end block',TPasImplForLoop,F.Body.ClassType);
   F:=F.Body as TPasImplForLoop;
-  AssertEquals('Loop variable name','b',F.VariableName);
+  AssertExpression('Loop variable name',F.VariableName,pekIdent,'b');
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start value',F.StartExpr,pekNumber,'11');
   AssertExpression('End value',F.EndExpr,pekNumber,'20');
@@ -974,6 +1111,20 @@ begin
   AssertEquals('Zero statements ',0,TPasImplCaseElse(C.ElseBranch).Elements.Count);
 end;
 
+procedure TTestStatementParser.TestCaseOtherwiseBlockEmpty;
+
+Var
+  C : TPasImplCaseOf;
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : begin end;','otherwise',' end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNotNull('Have case expression',C.CaseExpr);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('Zero statements ',0,TPasImplCaseElse(C.ElseBranch).Elements.Count);
+end;
+
 procedure TTestStatementParser.TestCaseElseBlockAssignment;
 Var
   C : TPasImplCaseOf;
@@ -1065,6 +1216,29 @@ begin
   AssertEquals('1 case label statement',1,S.Elements.Count);
   AssertEquals('If statement in case label 1',TPasImplIfElse,TPasElement(S.Elements[0]).ClassType);
   AssertNotNull('If statement has else block',TPasImplIfElse(S.Elements[0]).ElseBranch);
+end;
+
+procedure TTestStatementParser.TestCaseElseNoSemicolon;
+Var
+  C : TPasImplCaseOf;
+  S : TPasImplCaseStatement;
+begin
+  DeclareVar('integer');
+  TestStatement(['case a of','1 : dosomething;','2 : dosomethingmore','else','a:=1;','end;']);
+  C:=AssertStatement('Case statement',TpasImplCaseOf) as TpasImplCaseOf;
+  AssertNotNull('Have case expression',C.CaseExpr);
+  AssertExpression('Case expression',C.CaseExpr,pekIdent,'a');
+  AssertEquals('case label count',3,C.Elements.Count);
+  S:=TPasImplCaseStatement(C.Elements[0]);
+  AssertEquals('case 1',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'1');
+  S:=TPasImplCaseStatement(C.Elements[1]);
+  AssertEquals('case 2',1,S.Expressions.Count);
+  AssertExpression('Case With identifier 1',TPasExpr(S.Expressions[0]),pekNumber,'2');
+  AssertEquals('third is else',TPasImplCaseElse,TObject(C.Elements[2]).ClassType);
+  AssertNotNull('Have else branch',C.ElseBranch);
+  AssertEquals('Correct else branch class',TPasImplCaseElse,C.ElseBranch.ClassType);
+  AssertEquals('1 statements in else branch ',1,TPasImplCaseElse(C.ElseBranch).Elements.Count);
 end;
 
 procedure TTestStatementParser.TestRaise;
@@ -1306,8 +1480,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[0]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
 //  AssertEquals('Variable name',
@@ -1344,8 +1518,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[0]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse');
   // Exception handler 2
@@ -1353,8 +1527,8 @@ begin
   O:=TPasImplExceptOn(E.Elements[1]);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'Y');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception2');
+  AssertEquals('Exception Variable name','Y',O.VariableName);
+  AssertEquals('Exception Type name','Exception2',O.TypeName);
   S:=TPasImplSimple(O.Elements[0]);
   AssertExpression('DoSomethingElse call',S.Expr,pekIdent,'DoSomethingElse2');
 end;
@@ -1387,8 +1561,8 @@ begin
   AssertEquals(1,E.Elements.Count);
   AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
   O:=TPasImplExceptOn(E.Elements[0]);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplIfElse,TPasElement(O.Elements[0]).ClassType);
   I:=TPasImplIfElse(O.Elements[0]);
@@ -1430,8 +1604,8 @@ begin
   AssertEquals(1,E.Elements.Count);
   AssertEquals('Except on handler',TPasImplExceptOn,TPasElement(E.Elements[0]).ClassType);
   O:=TPasImplExceptOn(E.Elements[0]);
-  AssertExpression('Exception Variable name',O.VarExpr,pekIdent,'E');
-  AssertExpression('Exception Type name',O.TypeExpr,pekIdent,'Exception');
+  AssertEquals('Exception Variable name','E',O.VariableName);
+  AssertEquals('Exception Type name','Exception',O.TypeName);
   AssertEquals(1,O.Elements.Count);
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(O.Elements[0]).ClassType);
   S:=TPasImplSimple(O.Elements[0]);
@@ -1443,6 +1617,29 @@ begin
   AssertEquals('Simple statement',TPasImplSimple,TPasElement(EE.Elements[0]).ClassType);
   S:=TPasImplSimple(EE.Elements[0]);
   AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomethingMore');
+end;
+
+procedure TTestStatementParser.TestTryExceptRaise;
+Var
+  T : TPasImplTry;
+  S : TPasImplSimple;
+  E : TPasImplTryExcept;
+
+begin
+  TestStatement(['Try','  DoSomething;','except','  raise','end']);
+  T:=AssertStatement('Try statement',TPasImplTry) as TPasImplTry;
+  AssertEquals(1,T.Elements.Count);
+  AssertNotNull(T.FinallyExcept);
+  AssertNull(T.ElseBranch);
+  AssertNotNull(T.Elements[0]);
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  S:=TPasImplSimple(T.Elements[0]);
+  AssertExpression('DoSomething call',S.Expr,pekIdent,'DoSomething');
+  AssertEquals('Simple statement',TPasImplSimple,TPasElement(T.Elements[0]).ClassType);
+  AssertEquals('Except statement',TPasImplTryExcept,T.FinallyExcept.ClassType);
+  E:=TPasImplTryExcept(T.FinallyExcept);
+  AssertEquals(1,E.Elements.Count);
+  AssertEquals('Raise statement',TPasImplRaise,TPasElement(E.Elements[0]).ClassType);
 end;
 
 procedure TTestStatementParser.TestAsm;
@@ -1458,6 +1655,118 @@ begin
   AssertEquals('token 2 ','eax',T.Tokens[1]);
   AssertEquals('token 3 ',',',T.Tokens[2]);
   AssertEquals('token 4 ','1',T.Tokens[3]);
+end;
+
+procedure TTestStatementParser.TestAsmBlock;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function BitsHighest(X: Cardinal): Integer;');
+  Source.Add('asm');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.TestAsmBlockWithEndLabel;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function BitsHighest(X: Cardinal): Integer;');
+  Source.Add('asm');
+  Source.Add('  MOV ECX, EAX');
+  Source.Add('  MOV EAX, -1');
+  Source.Add('  BSR EAX, ECX');
+  Source.Add('  JNZ @@End');
+  Source.Add('  MOV EAX, -1');
+  Source.Add('@@End:');
+  Source.Add('end;');
+  Source.Add('begin');
+  Source.Add('end.');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.TestAsmBlockInIfThen;
+begin
+  Source.Add('{$MODE DELPHI}');
+  Source.Add('function Get8087StatusWord(ClearExceptions: Boolean): Word;');
+  Source.Add('  begin');
+  Source.Add('    if ClearExceptions then');
+  Source.Add('    asm');
+  Source.Add('    end');
+  Source.Add('    else');
+  Source.Add('    asm');
+  Source.Add('    end;');
+  Source.Add('  end;');
+  Source.Add('  begin');
+  Source.Add('  end.');
+  ParseModule;
+end;
+
+Procedure TTestStatementParser.AssignToAddress;
+
+begin
+  AddStatements(['@Proc:=Nil']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.FinalizationNoSemicolon;
+begin
+  Source.Add('unit afile;');
+  Source.Add('{$mode objfpc}');
+  Source.Add('interface');
+  Source.Add('implementation');
+  Source.Add('initialization');
+  Source.Add('  writeln(''qqq'')');
+  Source.Add('finalization');
+  Source.Add('  writeln(''qqq'')');
+  ParseModule;
+end;
+
+procedure TTestStatementParser.MacroComment;
+begin
+  AddStatements(['{$MACRO ON}',
+  '{$DEFINE func := //}',
+  '  calltest;',
+  '  func (''1'',''2'',''3'');',
+  'CallTest2;'
+  ]);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.PLatformIdentifier;
+begin
+  AddStatements(['write(platform);']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.PLatformIdentifier2;
+begin
+  AddStatements(['write(libs+platform);']);
+  ParseModule;
+end;
+
+procedure TTestStatementParser.Onidentifier;
+begin
+  Source.Add('function TryOn(const on: boolean): boolean;');
+  Source.Add('  begin');
+  Source.Add('  end;');
+  Source.Add('  begin');
+  Source.Add('  end.');
+  ParseModule;
+end;
+
+Procedure TTestStatementParser.TestGotoInIfThen;
+
+begin
+  AddStatements(['if expr then',
+  '  dosomething',
+  '   else if expr2 then',
+  '    goto try_qword',
+  '  else',
+  '    dosomething;',
+  '  try_qword:',
+  '  dosomething;']);
+  ParseModule;
 end;
 
 initialization

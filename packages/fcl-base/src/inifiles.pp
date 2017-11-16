@@ -165,7 +165,7 @@ type
     procedure WriteString(const Section, Ident, Value: String); virtual; abstract;
     function ReadInteger(const Section, Ident: string; Default: Longint): Longint; virtual;
     procedure WriteInteger(const Section, Ident: string; Value: Longint); virtual;
-    function ReadInt64(const Section, Ident: string; Default: Int64): Longint; virtual;
+    function ReadInt64(const Section, Ident: string; Default: Int64): Int64; virtual;
     procedure WriteInt64(const Section, Ident: string; Value: Int64); virtual;
     function ReadBool(const Section, Ident: string; Default: Boolean): Boolean; virtual;
     procedure WriteBool(const Section, Ident: string; Value: Boolean); virtual;
@@ -220,7 +220,7 @@ type
     procedure ReadSection(const Section: string; Strings: TStrings); override;
     procedure ReadSectionRaw(const Section: string; Strings: TStrings);
     procedure ReadSections(Strings: TStrings); override;
-    procedure ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = []); overload; override;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = [svoIncludeInvalid]); overload; override;
     procedure EraseSection(const Section: string); override;
     procedure DeleteKey(const Section, Ident: String); override;
     procedure UpdateFile; override;
@@ -337,7 +337,10 @@ begin
   if not FValueHashValid then
     UpdateValueHash;
 
-  I := FValueHash.FindIndexOf(S);
+  if CaseSensitive then
+    I := FValueHash.FindIndexOf(S)
+  else
+    I := FValueHash.FindIndexOf(AnsiUpperCase(S));
   if I >= 0 then
     Result := Integer(FValueHash[I])-1
   else
@@ -351,7 +354,10 @@ begin
   if not FNameHashValid then
     UpdateNameHash;
 
-  I := FNameHash.FindIndexOf(Name);
+  if CaseSensitive then
+    I := FNameHash.FindIndexOf(Name)
+  else
+    I := FNameHash.FindIndexOf(AnsiUpperCase(Name));
   if I >= 0 then
     Result := Integer(FNameHash[I])-1
   else
@@ -374,7 +380,10 @@ begin
   else
     FValueHash.Clear;
   for I := 0 to Count - 1 do
-    FValueHash.Add(Strings[I], Pointer(I+1));
+    if CaseSensitive then
+      FValueHash.Add(Strings[I], Pointer(I+1))
+    else
+      FValueHash.Add(AnsiUpperCase(Strings[I]), Pointer(I+1));
   FValueHashValid := True;
 end;
 
@@ -387,7 +396,10 @@ begin
   else
     FNameHash.Clear;
   for I := 0 to Count - 1 do
-    FNameHash.Add(Names[I], Pointer(I+1));
+    if CaseSensitive then
+      FNameHash.Add(Names[I], Pointer(I+1))
+    else
+      FNameHash.Add(AnsiUpperCase(Names[I]), Pointer(I+1));
   FNameHashValid := True;
 end;
 
@@ -608,7 +620,7 @@ begin
 end;
 
 function TCustomIniFile.ReadInt64(const Section, Ident: string; Default: Int64
-  ): Longint;
+  ): Int64;
 begin
   Result := StrToInt64Def(ReadString(Section, Ident, ''), Default);
 end;
@@ -820,7 +832,7 @@ end;
 procedure TCustomIniFile.ReadSectionValues(const Section: string;
   Strings: TStrings);
 begin
-  ReadSectionValues(Section,Strings,[]);
+  ReadSectionValues(Section,Strings,[svoIncludeInvalid]);
 end;
 
 { TIniFile }
@@ -1101,7 +1113,7 @@ begin
   end;
 end;
 
-procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = []);
+procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = [svoIncludeInvalid]);
 var
   oSection: TIniFileSection;
   s: string;

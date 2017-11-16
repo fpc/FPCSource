@@ -339,7 +339,7 @@ Type
   TZipFileEntry = Class(TCollectionItem)
   private
     FArchiveFileName: String; //Name of the file as it appears in the zip file list
-    FAttributes: LongInt;
+    FAttributes: LongWord;
     FDateTime: TDateTime;
     FDiskFileName: String; {Name of the file on disk (i.e. uncompressed. Can be empty if based on a stream.);
     uses local OS/filesystem directory separators}
@@ -368,7 +368,7 @@ Type
     Property Size : Int64 Read FSize Write FSize;
     Property DateTime : TDateTime Read FDateTime Write FDateTime;
     property OS: Byte read FOS write FOS;
-    property Attributes: LongInt read FAttributes write FAttributes;
+    property Attributes: LongWord read FAttributes write FAttributes;
     Property CompressionLevel: TCompressionlevel read FCompressionLevel write FCompressionLevel;
   end;
 

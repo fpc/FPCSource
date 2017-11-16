@@ -41,7 +41,7 @@
   You should have received a copy of the GNU Library General Public
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 {$ifdef read_interface}
@@ -469,9 +469,9 @@ function LogonUser(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _p
 function CreateProcessAsUser(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; _para4:LPSECURITY_ATTRIBUTES; _para5:LPSECURITY_ATTRIBUTES;_para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR;
   _para10:LPSTARTUPINFO;_para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserW';
 
-function FindFirstFileEx(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external name 'FindFirstFileExW';
+function FindFirstFileEx(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExW';
 // winver>$0600 
-function FindFirstFileTransacted(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external name 'FindFirstFileTransactedW';
+function FindFirstFileTransacted(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedW';
 
 {$endif read_interface}
 

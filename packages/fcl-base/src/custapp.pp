@@ -285,7 +285,7 @@ begin
   except
     On E : Exception do
       Log(etError,Format('Error formatting message "%s" with %d arguments: %s',[Fmt,Length(Args),E.Message]));
-  end  
+  end
 end;
 
 constructor TCustomApplication.Create(AOwner: TComponent);
@@ -362,15 +362,14 @@ end;
 
 procedure TCustomApplication.Terminate;
 begin
-  Terminate(0);
+  Terminate(ExitCode);
 end;
 
 procedure TCustomApplication.Terminate(AExitCode : Integer) ;
 
 begin
   FTerminated:=True;
-  If (AExitCode<>0) then
-    ExitCode:=AExitCode;
+  ExitCode:=AExitCode;
 end;
 
 function TCustomApplication.GetOptionAtIndex(AIndex : Integer; IsLong: Boolean): String;
@@ -597,7 +596,7 @@ begin
     If (Length(O)=0) or (O[1]<>FOptionChar) then
       begin
       If Assigned(NonOpts) then
-        NonOpts.Add(O)
+        NonOpts.Add(O);
       end
     else
       begin
@@ -623,7 +622,7 @@ begin
           If FindLongopt(O) then
             begin
             If HaveArg then
-              AddToResult(Format(SErrNoOptionAllowed,[I,O]))
+              AddToResult(Format(SErrNoOptionAllowed,[I,O]));
             end
           else
             begin // Required argument
@@ -643,23 +642,21 @@ begin
           begin
           HaveArg:=(I<ParamCount) and (Length(ParamStr(I+1))>0) and (ParamStr(I+1)[1]<>FOptionChar);
           UsedArg:=False;
-          If HaveArg then
-            OV:=Paramstr(I+1);
           If Not CaseSensitiveOptions then
             O:=LowerCase(O);
           L:=Length(O);
           J:=2;
           While ((Result='') or AllErrors) and (J<=L) do
             begin
-            P:=Pos(O[J],ShortOptions);
+            P:=Pos(O[J],SO);
             If (P=0) or (O[j]=':') then
               AddToResult(Format(SErrInvalidOption,[I,O[J]]))
             else
               begin
-              If (P<Length(ShortOptions)) and (Shortoptions[P+1]=':') then
+              If (P<Length(SO)) and (SO[P+1]=':') then
                 begin
                 // Required argument
-                If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
+                If ((P+1)=Length(SO)) or (SO[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     AddToResult(Format(SErrOptionNeeded,[I,O[J]]));
                 O:=O[j]; // O is added to arguments.
@@ -668,10 +665,11 @@ begin
               end;
             Inc(J);
             end;
-          If HaveArg and UsedArg then
+          HaveArg:=HaveArg and UsedArg;
+          If HaveArg then
             begin
             Inc(I); // Skip argument.
-            O:=O[Length(O)]; // O is added to arguments !
+            OV:=Paramstr(I);
             end;
           end;
         If HaveArg and ((Result='') or AllErrors) then

@@ -1076,7 +1076,7 @@ Var
   S : TFileStream;
 
 begin
-  S:=TFileStream.Create(FileName,fmOpenRead);
+  S:=TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
   Try
     LoadFromStream(S,BlobType);
   Finally
@@ -1096,8 +1096,8 @@ begin
     Position:=0;
     SetLength(Temp,Size);
     ReadBuffer(Pointer(Temp)^,Size);
-    FValue:=Temp;
     end;
+  Value:=Temp;
 end;
 
 Procedure TParam.SetBlobData(Buffer: Pointer; ASize: Integer);

@@ -73,6 +73,8 @@ Var
 
 begin
   Writeln(Format(SCmdLineHelp,[ExtractFileName(Paramstr(0))]));
+  Writeln(SUsageOption008);
+  Writeln(SUsageOption009);
   Writeln(SUsageOption010);
   Writeln(SUsageOption020);
   Writeln(SUsageOption030);
@@ -88,6 +90,7 @@ begin
   Writeln(SUsageOption120);
   Writeln(SUsageOption130);
   Writeln(SUsageOption140);
+  Writeln(SUsageOption145);
   Writeln(SUsageOption150);
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
@@ -179,11 +182,12 @@ procedure TFPDocApplication.ParseCommandLine;
 Const
   SOptProject = '--project=';
   SOptPackage = '--package=';
-  
+  SOptMacro = '--macro=';
+
   Function ProjectOpt(Const s : string) : boolean;
 
   begin
-    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,Length(SOptProject))=SOptProject);
+    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,Length(SOptProject))=SOptProject) or (Copy(s,1,Length(SOptMacro))=SOptMacro);
   end;
 
   Function PackageOpt(Const s : string) : boolean;
@@ -284,7 +288,7 @@ procedure TFPDocApplication.ParseOption(Const S : String);
 
 var
   i: Integer;
-  Cmd, Arg: String;
+  ProjectFileName,Cmd, Arg: String;
 
 begin
   if (s = '-h') or (s = '--help') then
@@ -321,6 +325,14 @@ begin
       AddToFileList(SelectedPackage.Descriptions, Arg)
     else if (Cmd = '--descr-dir') then
       AddDirToFileList(SelectedPackage.Descriptions, Arg, '*.xml')
+    else if (Cmd = '--base-descr-dir') then
+      FCreator.BaseDescrDir:=Arg
+    else if (Cmd = '--macro') then
+      begin
+      If Pos('=',Arg)=0 then
+        WriteLn(StdErr, Format(SCmdLineErrInvalidMacro, [Arg]));
+      FCreator.ProjectMacros.Add(Arg);
+      end
     else if (Cmd = '-f') or (Cmd = '--format') then
       begin
       Arg:=UpperCase(Arg);
@@ -333,6 +345,8 @@ begin
       FCreator.Options.Language := Arg
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(SelectedPackage.Inputs, Arg)
+    else if (Cmd = '--base-input-dir') then
+      FCreator.BaseInputDir:=Arg
     else if (Cmd = '--input-dir') then
       begin
       AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pp');
@@ -378,23 +392,28 @@ end;
 Procedure TFPDocApplication.DoRun;
 
 begin
-{$IFDEF Unix}
-  gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
-{$ELSE}
-  gettext.TranslateResourceStrings('intl/fpdoc.%s.mo');
-{$ENDIF}
-  WriteLn(STitle);
-  WriteLn(Format(SVersion, [DefFPCVersion, DefFPCDate]));
-  WriteLn(SCopyright1);
-  WriteLn(SCopyright2);
-  WriteLn;
-  ParseCommandLine;
-  if (FWriteProjectFile<>'') then
-    FCreator.CreateProjectFile(FWriteProjectFile)
-  else
-    FCreator.CreateDocumentation(FPackage,FDryRun);
-  WriteLn(SDone);
-  Terminate;
+  try
+  {$IFDEF Unix}
+    gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
+  {$ELSE}
+    gettext.TranslateResourceStrings('intl/fpdoc.%s.mo');
+  {$ENDIF}
+    WriteLn(STitle);
+    WriteLn(Format(SVersion, [DefFPCVersion, DefFPCDate]));
+    WriteLn(SCopyright1);
+    WriteLn(SCopyright2);
+    WriteLn;
+    ParseCommandLine;
+    if (FWriteProjectFile<>'') then
+      FCreator.CreateProjectFile(FWriteProjectFile)
+    else
+      FCreator.CreateDocumentation(FPackage,FDryRun);
+    WriteLn(SDone);
+    Terminate;
+  except
+    ExitCode:=1;
+    Raise;
+  end;
 end;
 
 constructor TFPDocApplication.Create(AOwner: TComponent);

@@ -159,7 +159,7 @@ type
     procedure GotoBookmark(const ABookmark : PBufBookmark); virtual; abstract;
     function BookmarkValid(const ABookmark: PBufBookmark): boolean; virtual;
     function CompareBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : integer; virtual;
-    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; inline;
+    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; virtual;
 
     procedure InitialiseIndex; virtual; abstract;
 
@@ -228,6 +228,7 @@ type
     procedure StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark); override;
     procedure GotoBookmark(const ABookmark : PBufBookmark); override;
     function CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): integer; override;
+    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; override;
     procedure InitialiseIndex; override;
 
     procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
@@ -496,6 +497,7 @@ type
     function GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false) : boolean;
     function GetRecordUpdateBufferCached(const ABookmark : TBufBookmark; IncludePrior : boolean = false) : boolean;
     function GetActiveRecordUpdateBuffer : boolean;
+    procedure CancelRecordUpdateBuffer(AUpdateBufferIndex: integer; var ABookmark: TBufBookmark);
     procedure ParseFilter(const AFilter: string);
 
     function GetIndexDefs : TIndexDefs;
@@ -575,6 +577,7 @@ type
     procedure ApplyUpdates; virtual; overload;
     procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
     procedure MergeChangeLog;
+    procedure RevertRecord;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; override;
@@ -1677,6 +1680,11 @@ begin
     Result := -Result;
 end;
 
+function TDoubleLinkedBufIndex.SameBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
+begin
+  Result := Assigned(ABookmark1) and Assigned(ABookmark2) and (ABookmark1^.BookmarkData = ABookmark2^.BookmarkData);
+end;
+
 procedure TDoubleLinkedBufIndex.InitialiseIndex;
 begin
   // Do nothing
@@ -2401,90 +2409,106 @@ begin
   raise EDatabaseError.Create(SApplyRecNotSupported);
 end;
 
-procedure TCustomBufDataset.CancelUpdates;
-var StoreRecBM     : TBufBookmark;
-  procedure CancelUpdBuffer(var AUpdBuffer : TRecUpdateBuffer);
-  var
-    TmpBuf         : TRecordBuffer;
-    StoreUpdBuf    : integer;
-    Bm             : TBufBookmark;
-  begin
-    with AUpdBuffer do
+procedure TCustomBufDataset.CancelRecordUpdateBuffer(AUpdateBufferIndex: integer; var ABookmark: TBufBookmark);
+var
+  ARecordBuffer: TRecordBuffer;
+  NBookmark    : TBufBookmark;
+  i            : integer;
+begin
+  with FUpdateBuffer[AUpdateBufferIndex] do
+    if Assigned(BookmarkData.BookmarkData) then // this is used to exclude buffers which are already handled
       begin
-      if Not assigned(BookmarkData.BookmarkData) then
-        exit;// this is used to exclude buffers which are already handled
-      Case UpdateKind of
-      ukModify:
-        begin
-        FCurrentIndex.GotoBookmark(@BookmarkData);
-        move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
-        FreeRecordBuffer(OldValuesBuffer);
-        end;
-      ukDelete:
-        if (assigned(OldValuesBuffer)) then
+      case UpdateKind of
+        ukModify:
           begin
-          FCurrentIndex.GotoBookmark(@NextBookmarkData);
-          FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
-          FCurrentIndex.ScrollBackward;
-          move(TRecordBuffer(OldValuesBuffer)^,TRecordBuffer(FCurrentIndex.CurrentBuffer)^,FRecordSize);
-
-          {for x := length(FUpdateBuffer)-1 downto 0 do
-            begin
-            if (FUpdateBuffer[x].UpdateKind=ukDelete) and FCurrentIndex.SameBookmarks(@FUpdateBuffer[x].NextBookmarkData,@BookmarkData) then
-              CancelUpdBuffer(FUpdateBuffer[x]);
-            end;}
+          FCurrentIndex.GotoBookmark(@BookmarkData);
+          move(TRecordBuffer(OldValuesBuffer)^, TRecordBuffer(FCurrentIndex.CurrentBuffer)^, FRecordSize);
           FreeRecordBuffer(OldValuesBuffer);
-          inc(FBRecordCount);
-          end  ;
-      ukInsert:
-        begin
-        // Process all update buffers linked to this record before this record is removed
-        StoreUpdBuf:=FCurrentUpdateBuffer;
-        Bm := BookmarkData;
-        BookmarkData.BookmarkData:=nil; // Avoid infinite recursion...
-        if GetRecordUpdateBuffer(Bm,True,False) then
-          begin
-          repeat
-            if (FCurrentUpdateBuffer<>StoreUpdBuf) then
-              CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
-          until not GetRecordUpdateBuffer(Bm,True,True);
           end;
-        FCurrentUpdateBuffer:=StoreUpdBuf;
+        ukDelete:
+          if (assigned(OldValuesBuffer)) then
+            begin
+            FCurrentIndex.GotoBookmark(@NextBookmarkData);
+            FCurrentIndex.InsertRecordBeforeCurrentRecord(TRecordBuffer(BookmarkData.BookmarkData));
+            FCurrentIndex.ScrollBackward;
+            move(TRecordBuffer(OldValuesBuffer)^, TRecordBuffer(FCurrentIndex.CurrentBuffer)^, FRecordSize);
+            FreeRecordBuffer(OldValuesBuffer);
+            inc(FBRecordCount);
+            end;
+        ukInsert:
+          begin
+          FCurrentIndex.GotoBookmark(@BookmarkData);
+          ARecordBuffer := FCurrentIndex.CurrentRecord;
 
-        FCurrentIndex.GotoBookmark(@Bm);
-        TmpBuf:=FCurrentIndex.CurrentRecord;
-        // resync won't work if the currentbuffer is freed...
-        if FCurrentIndex.SameBookmarks(@Bm,@StoreRecBM) then with FCurrentIndex do
-          begin
-          GotoBookmark(@StoreRecBM);
-          if ScrollForward = grEOF then
-            if ScrollBackward = grBOF then
-              ScrollLast;  // last record will be removed from index, so move to spare record
-          StoreCurrentRecIntoBookmark(@StoreRecBM);
+          // Find next record's bookmark
+          FCurrentIndex.DoScrollForward;
+          FCurrentIndex.StoreCurrentRecIntoBookmark(@NBookmark);
+          // Process (re-link) all update buffers linked to this record before this record is removed
+          //  Modified record #1, which is later deleted can be linked to another inserted record #2. In this case deleted record #1 precedes inserted #2 in update buffer.
+          //  Deleted records, which are deleted after this record is inserted are in update buffer after this record.
+          //  if we need revert inserted record which is linked from another deleted records, then we must re-link these records
+          for i:=0 to high(FUpdateBuffer) do
+            if (FUpdateBuffer[i].UpdateKind = ukDelete) and
+               (FUpdateBuffer[i].NextBookmarkData.BookmarkData = BookmarkData.BookmarkData) then
+              FUpdateBuffer[i].NextBookmarkData := NBookmark;
+
+          // ReSync won't work if the CurrentBuffer is freed ... so in this case move to next/prior record
+          if FCurrentIndex.SameBookmarks(@BookmarkData,@ABookmark) then with FCurrentIndex do
+            begin
+            GotoBookmark(@ABookmark);
+            if ScrollForward = grEOF then
+              if ScrollBackward = grBOF then
+                ScrollLast;  // last record will be removed from index, so move to spare record
+            StoreCurrentRecIntoBookmark(@ABookmark);
+            end;
+
+          RemoveRecordFromIndexes(BookmarkData);
+          FreeRecordBuffer(ARecordBuffer);
+          dec(FBRecordCount);
           end;
-        RemoveRecordFromIndexes(Bm);
-        FreeRecordBuffer(TmpBuf);
-        dec(FBRecordCount);
-        end;
       end;
-      BookmarkData.BookmarkData:=nil;
+      BookmarkData.BookmarkData := nil;
       end;
+end;
+
+procedure TCustomBufDataset.RevertRecord;
+var
+  ABookmark : TBufBookmark;
+begin
+  CheckBrowseMode;
+
+  if GetActiveRecordUpdateBuffer then
+  begin
+    FCurrentIndex.StoreCurrentRecIntoBookmark(@ABookmark);
+
+    CancelRecordUpdateBuffer(FCurrentUpdateBuffer, ABookmark);
+
+    // remove update record of current record from update-buffer array
+    Move(FUpdateBuffer[FCurrentUpdateBuffer+1], FUpdateBuffer[FCurrentUpdateBuffer], (High(FUpdateBuffer)-FCurrentUpdateBuffer)*SizeOf(TRecUpdateBuffer));
+    SetLength(FUpdateBuffer, High(FUpdateBuffer));
+
+    FCurrentIndex.GotoBookmark(@ABookmark);
+
+    Resync([]);
   end;
+end;
 
-var r              : Integer;
-
+procedure TCustomBufDataset.CancelUpdates;
+var
+  ABookmark : TBufBookmark;
+  r         : Integer;
 begin
   CheckBrowseMode;
 
   if Length(FUpdateBuffer) > 0 then
     begin
-    FCurrentIndex.StoreCurrentRecIntoBookmark(@StoreRecBM);
-    for r := Length(FUpdateBuffer) - 1 downto 0 do
-      CancelUpdBuffer(FUpdateBuffer[r]);
+    FCurrentIndex.StoreCurrentRecIntoBookmark(@ABookmark);
 
-    SetLength(FUpdateBuffer,0);
+    for r := High(FUpdateBuffer) downto 0 do
+      CancelRecordUpdateBuffer(r, ABookmark);
+    SetLength(FUpdateBuffer, 0);
     
-    FCurrentIndex.GotoBookmark(@StoreRecBM);
+    FCurrentIndex.GotoBookmark(@ABookmark);
     
     Resync([]);
     end;
@@ -2635,7 +2659,7 @@ begin
       FAutoIncField.AsInteger := FAutoIncValue;
       inc(FAutoIncValue);
       end;
-    // The active buffer is the newly created TDataset record,
+    // The active buffer is the newly created TDataSet record,
     // from which the bookmark is set to the record where the new record should be
     // inserted
     ABookmark := PBufBookmark(ActiveBuffer + FRecordSize);
@@ -2653,12 +2677,13 @@ begin
           // insert (before current record)
           FIndexes[i].GotoBookmark(ABookmark);
 
+        // insert new record before current record
         FIndexes[i].InsertRecordBeforeCurrentRecord(ABuff);
         // newly inserted record becomes current record
         FIndexes[i].ScrollBackward;
       end;
 
-    // Link the newly created record buffer to the newly created TDataset record
+    // Link the newly created record buffer to the newly created TDataSet record
     FCurrentIndex.StoreCurrentRecIntoBookmark(ABookmark);
     ABookmark^.BookmarkFlag := bfInserted;
 
@@ -2679,12 +2704,11 @@ begin
 
     if State = dsEdit then
       begin
-      // Create an oldvalues buffer with the old values of the record
-      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
-      with FCurrentIndex do
-        // Move only the real data
-        move(CurrentBuffer^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize);
+      // Create an OldValues buffer with the old values of the record
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukModify;
+      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := IntAllocRecordBuffer;
+      // Move only the real data
+      move(FCurrentIndex.CurrentBuffer^, FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^, FRecordSize);
       end
     else
       begin
@@ -2808,7 +2832,7 @@ begin
     Result := 0
   else
     begin
-    InternalSetToRecord(ActiveBuffer);
+    UpdateCursorPos;
     Result := FCurrentIndex.RecNo;
     end;
 end;
@@ -3018,12 +3042,10 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
       begin
       AStoreUpdBuf:=FCurrentUpdateBuffer;
       if GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,False) then
-        begin
         repeat
           if FCurrentIndex.SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData, @AUpdBuffer.BookmarkData) then
             StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
-        until not GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,True)
-        end;
+        until not GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,True);
       FCurrentUpdateBuffer:=AStoreUpdBuf;
       AThisRowState := [rsvDeleted];
       end
@@ -3036,16 +3058,16 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
       FDatasetReader.StoreRecord(AThisRowState,FCurrentUpdateBuffer);
   end;
 
-  procedure HandleUpdateBuffersFromRecord(AFirstCall : boolean;ARecBookmark : TBufBookmark; var ARowState: TRowState);
+  procedure HandleUpdateBuffersFromRecord(AFindNext : boolean; ARecBookmark : TBufBookmark; var ARowState: TRowState);
   var StoreUpdBuf1,StoreUpdBuf2 : Integer;
   begin
-    if AFirstCall then ARowState:=[];
-    if GetRecordUpdateBuffer(ARecBookmark,True,not AFirstCall) then
+    if not AFindNext then ARowState:=[];
+    if GetRecordUpdateBuffer(ARecBookmark,True,AFindNext) then
       begin
       if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete then
         begin
         StoreUpdBuf1:=FCurrentUpdateBuffer;
-        HandleUpdateBuffersFromRecord(False,ARecBookmark,ARowState);
+        HandleUpdateBuffersFromRecord(True,ARecBookmark,ARowState);
         StoreUpdBuf2:=FCurrentUpdateBuffer;
         FCurrentUpdateBuffer:=StoreUpdBuf1;
         StoreUpdateBuffer(FUpdateBuffer[StoreUpdBuf1], ARowState);
@@ -3054,7 +3076,7 @@ procedure TCustomBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
       else
         begin
         StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
-        HandleUpdateBuffersFromRecord(False,ARecBookmark,ARowState);
+        HandleUpdateBuffersFromRecord(True,ARecBookmark,ARowState);
         end;
       end
   end;
@@ -3078,7 +3100,9 @@ begin
       begin
       RowState:=[];
       FCurrentIndex.StoreCurrentRecIntoBookmark(ABookmark);
-      HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
+      // updates related to current record are stored first
+      HandleUpdateBuffersFromRecord(False,ABookmark^,RowState);
+      // now store current record
       FFilterBuffer:=FCurrentIndex.CurrentBuffer;
       if RowState=[] then
         FDatasetReader.StoreRecord([])
@@ -3094,7 +3118,7 @@ begin
       end;
     // There could be an update buffer linked to the last (spare) record
     FCurrentIndex.StoreSpareRecIntoBookmark(ABookmark);
-    HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
+    HandleUpdateBuffersFromRecord(False,ABookmark^,RowState);
 
     RestoreState(SavedState);
 
@@ -3233,10 +3257,9 @@ end;
 procedure TCustomBufDataset.IntLoadRecordsFromFile;
 
 var SavedState      : TDataSetState;
-    AddRecordBuffer : boolean;
     ARowState       : TRowState;
     AUpdOrder       : integer;
-    x               : integer;
+    i               : integer;
 
 begin
   CheckBiDirectional;
@@ -3274,9 +3297,6 @@ begin
       FDatasetReader.RestoreRecord;
       FIndexes[0].AddRecord;
       inc(FBRecordCount);
-
-      AddRecordBuffer:=False;
-
       end
     else if rsvDeleted in ARowState then
       begin
@@ -3297,16 +3317,11 @@ begin
       FIndexes[0].RemoveRecordFromIndex(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
 
-      for x := FCurrentUpdateBuffer+1 to length(FUpdateBuffer)-1 do
-        if FIndexes[0].SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@FUpdateBuffer[x].NextBookmarkData) then
-          FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[x].NextBookmarkData);
-
-      AddRecordBuffer:=False;
+      for i := FCurrentUpdateBuffer+1 to high(FUpdateBuffer) do
+        if FIndexes[0].SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData, @FUpdateBuffer[i].NextBookmarkData) then
+          FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[i].NextBookmarkData);
       end
     else
-      AddRecordBuffer:=True;
-
-    if AddRecordBuffer then
       begin
       FFilterBuffer:=FIndexes[0].SpareBuffer;
       fillchar(FFilterBuffer^,FNullmaskSize,0);
