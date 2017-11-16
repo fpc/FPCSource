@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=3.0.1
+version=3.0.5
 
 [target]
 dirs=compiler rtl utils packages ide installer
@@ -20,8 +20,8 @@ fpcdir=.
 rule=help
 
 [prerules]
-REQUIREDVERSION=3.0.0
-
+REQUIREDVERSION=3.0.2
+REQUIREDVERSION=3.0.4
 
 # make versions < 3.77 (OS2 version) are buggy
 ifndef inOS2

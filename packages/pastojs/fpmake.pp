@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='3.0.1';
+    P.Version:='3.0.5';
     P.OSes := AllOses-[embedded,msdos];
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
