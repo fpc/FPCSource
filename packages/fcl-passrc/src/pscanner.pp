@@ -263,6 +263,7 @@ type
     msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
     msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
     msExternalClass,       { Allow external class definitions }
+    msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
     msIgnoreInterfaces,    { workaround til resolver/converter supports interfaces }
     msIgnoreAttributes     { workaround til resolver/converter supports attributes }
   );
@@ -822,6 +823,7 @@ const
     'ISOPROGRAMPARAS',
     'ISOMOD',
     'EXTERNALCLASS',
+    'PREFIXEDATTRIBUTES',
     'IGNOREINTERFACES',
     'IGNOREATTRIBUTES'
     );
@@ -857,7 +859,7 @@ const
 const
   AllLanguageModes = [msFPC,msObjFPC,msDelphi,msTP7,msMac,msISO,msExtPas];
 
-Const
+const
   MessageTypeNames : Array[TMessageType] of string = (
     'Fatal','Error','Warning','Note','Hint','Info','Debug'
   );
@@ -866,33 +868,37 @@ const
   // all mode switches supported by FPC
   msAllFPCModeSwitches = [low(TModeSwitch)..High(TModeSwitch)];
 
-  DelphiModeSwitches = [msDelphi,msClass,msObjpas,msresult,msstringpchar,
-     mspointer2procedure,msautoderef,msTPprocvar,msinitfinal,msdefaultansistring,
-     msout,msdefaultpara,msduplicatenames,mshintdirective,
-     msproperty,msdefaultinline,msexcept,msadvancedrecords,mstypehelpers];
+  DelphiModeSwitches = [msDelphi,msClass,msObjpas,msResult,msStringPchar,
+     msPointer2Procedure,msAutoDeref,msTPProcVar,msInitFinal,msDefaultAnsistring,
+     msOut,msDefaultPara,msDuplicateNames,msHintDirective,
+     msProperty,msDefaultInline,msExcept,msAdvancedRecords,msTypeHelpers,
+     msPrefixedAttributes
+     ];
 
-  DelphiUnicodeModeSwitches = delphimodeswitches + [mssystemcodepage,msdefaultunicodestring];
+  DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];
 
   // mode switches of $mode FPC, don't confuse with msAllFPCModeSwitches
-  FPCModeSwitches = [msfpc,msstringpchar,msnestedcomment,msrepeatforward,
-    mscvarsupport,msinitfinal,mshintdirective, msproperty,msdefaultinline];
+  FPCModeSwitches = [msFpc,msStringPchar,msNestedComment,msRepeatForward,
+    msCVarSupport,msInitFinal,msHintDirective,msProperty,msDefaultInline];
 
-  OBJFPCModeSwitches =  [msobjfpc,msclass,msobjpas,msresult,msstringpchar,msnestedcomment,
-    msrepeatforward,mscvarsupport,msinitfinal,msout,msdefaultpara,mshintdirective,
-    msproperty,msdefaultinline,msexcept];
+  OBJFPCModeSwitches =  [msObjfpc,msClass,msObjpas,msResult,msStringPchar,msNestedComment,
+    msRepeatForward,msCVarSupport,msInitFinal,msOut,msDefaultPara,msHintDirective,
+    msProperty,msDefaultInline,msExcept];
 
-  TPModeSwitches = [mstp7,mstpprocvar,msduplicatenames];
+  TPModeSwitches = [msTP7,msTPProcVar,msDuplicateNames];
 
-  GPCModeSwitches = [msgpc,mstpprocvar];
+  GPCModeSwitches = [msGPC,msTPProcVar];
 
-  MacModeSwitches = [msmac,mscvarsupport,msmacprocvar,msnestedprocvars,msnonlocalgoto,
-    msisolikeunaryminus,msdefaultinline];
+  MacModeSwitches = [msMac,msCVarSupport,msMacProcVar,msNestedProcVars,
+    msNonLocalGoto,msISOLikeUnaryMinus,msDefaultInline];
 
-  ISOModeSwitches =  [msiso,mstpprocvar,msduplicatenames,msnestedprocvars,msnonlocalgoto,msisolikeunaryminus,msisolikeio,
-    msisolikeprogramspara, msisolikemod];
+  ISOModeSwitches =  [msIso,msTPProcVar,msDuplicateNames,msNestedProcVars,
+    msNonLocalGoto,msISOLikeUnaryMinus,msISOLikeIO,msISOLikeProgramsPara,
+    msISOLikeMod];
 
-  ExtPasModeSwitches = [msextpas,mstpprocvar,msduplicatenames,msnestedprocvars,msnonlocalgoto,msisolikeunaryminus,msisolikeio,
-    msisolikeprogramspara, msisolikemod];
+  ExtPasModeSwitches = [msExtpas,msTPProcVar,msDuplicateNames,msNestedProcVars,
+    msNonLocalGoto,msISOLikeUnaryMinus,msISOLikeIO,msISOLikeProgramsPara,
+    msISOLikeMod];
 
 function StrToModeSwitch(aName: String): TModeSwitch;
 function FilenameIsAbsolute(const TheFilename: string):boolean;

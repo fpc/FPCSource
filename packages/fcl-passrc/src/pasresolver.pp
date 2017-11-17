@@ -165,6 +165,9 @@ Works:
   - array var
 
 ToDo:
+- Warning: An inherited method is hidden by "constructor Create(TComponent);
+- mode delphi: Error: Not all declarations of "Create" are declared with OVERLOAD
+-
 - for..in..do
    - function: enumerator
    - class

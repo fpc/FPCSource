@@ -446,8 +446,7 @@ begin
     if (tk=tkLineEnding) and not (t in [tkEOF,tkLineEnding]) then
       tk:=FScanner.FetchToken;
     AssertEquals('EOF reached.',tkEOF,FScanner.FetchToken);
-    end
-
+    end;
 end;
 
 procedure TTestScanner.TestToken(t: TToken; const ASource: String;
@@ -463,7 +462,7 @@ begin
     DoTestToken(t,S);
     end;
   DoTestToken(t,UpperCase(ASource));
-  DoTestToken(t,LowerCase(ASource));
+  DoTestToken(t,LowerCase(ASource),CheckEOF);
 end;
 
 procedure TTestScanner.TestTokens(t: array of TToken; const ASource: String;

@@ -11065,7 +11065,7 @@ procedure TTestResolver.TestAttributes_Ignore;
 begin
   StartProgram(false);
   Add([
-  '{$modeswitch ignoreattributes}',
+  '{$modeswitch IgnoreAttributes}',
   'type',
   '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
   '  TObject = class',
@@ -11077,6 +11077,10 @@ begin
   '  [Attr]',
   '  TBird = class(TObject)',
   '  end;',
+  '[Attr]',
+  'procedure DoA; forward;',
+  '[Attr]',
+  'procedure DoA; begin end;',
   'var',
   '  [custom6]',
   '  o: TObject;',

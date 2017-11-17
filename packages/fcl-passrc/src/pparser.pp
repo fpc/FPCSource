@@ -3256,7 +3256,7 @@ begin
             ParseLabels(Declarations);
         end;
       tkSquaredBraceOpen:
-        if msIgnoreAttributes in CurrentModeSwitches then
+        if [msPrefixedAttributes,msIgnoreAttributes]*CurrentModeSwitches<>[] then
           ParseAttribute(Declarations)
         else
           ParseExcSyntaxError;
@@ -4460,10 +4460,11 @@ begin
     // Writeln(modcount, curtokentext);
     LastToken:=CurToken;
     NextToken;
-    if (ModCount in [1,2,3]) and (CurToken = tkEqual) then
+    if (ModCount<=3) and (CurToken = tkEqual) and not (Parent is TPasProcedure) then
       begin
       // for example: const p: procedure = nil;
       UngetToken;
+      Engine.FinishScope(stProcedureHeader,Element);
       exit;
       end;
     If CurToken=tkSemicolon then
@@ -4489,8 +4490,8 @@ begin
           end;
       end;
       ExpectTokens([tkSemicolon,tkEqual]);
-      if curtoken=tkEqual then
-        ungettoken;
+      if CurToken=tkEqual then
+        UngetToken;
       end
     else if IsProc and TokenIsProcedureModifier(Parent,CurTokenString,PM) then
       HandleProcedureModifier(Parent,PM)
@@ -4520,20 +4521,19 @@ begin
       end
     else if (CurToken = tkSquaredBraceOpen) then
       begin
-      // [] can be an attribute or FPC's [] modifier
-      if IsProc and ([msFpc, msObjfpc]*CurrentModeswitches<>[]) then
+      if ([msPrefixedAttributes,msIgnoreAttributes]*CurrentModeswitches<>[]) then
         begin
-        // FPC's [] modifier
+        // [attribute]
+        UngetToken;
+        break;
+        end
+      else
+        begin
+        // ToDo: read FPC's [] modifiers, e.g. [public,alias:'']
         repeat
           NextToken
         until CurToken = tkSquaredBraceClose;
         ExpectToken(tkSemicolon);
-        end
-      else
-        begin
-        // attribute
-        UngetToken;
-        Exit;
         end;
       end
     else
@@ -5994,7 +5994,7 @@ begin
         HaveClass:=False;
         end;
       tkSquaredBraceOpen:
-        if msIgnoreAttributes in CurrentModeswitches then
+        if [msPrefixedAttributes,msIgnoreAttributes]*CurrentModeswitches<>[] then
           ParseAttribute(AType)
         else
           CheckToken(tkIdentifier);
