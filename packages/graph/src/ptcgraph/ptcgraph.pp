@@ -1994,8 +1994,8 @@ end;
     procedure FillCommonEGAVGA16(var mode: TModeInfo);
     begin
       mode.MaxColor := 16;
-      mode.DirectColor := FALSE;
       mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
       mode.DirectPutPixel := @ptc_DirectPixelProc_8bpp;
       mode.PutPixel       := @ptc_PutPixelProc_8bpp;
       mode.GetPixel       := @ptc_GetPixelProc_8bpp;
@@ -2009,6 +2009,79 @@ end;
       mode.VLine          := @ptc_VLineProc_8bpp;
       mode.SetVisualPage  := @ptc_SetVisualPage;
       mode.SetActivePage  := @ptc_SetActivePage;
+    end;
+
+    procedure FillCommonVESA16(var mode: TModeInfo);
+    begin
+      mode.HardwarePages := 1;
+      mode.MaxColor := 16;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
+      mode.DirectPutPixel  := @ptc_DirectPixelProc_8bpp;
+      mode.PutPixel        := @ptc_PutPixelProc_8bpp;
+      mode.GetPixel        := @ptc_GetPixelProc_8bpp;
+      mode.PutImage        := @ptc_PutImageProc_8bpp;
+      mode.GetImage        := @ptc_GetImageProc_8bpp;
+      mode.GetScanLine     := @ptc_GetScanLineProc_8bpp;
+      mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
+      mode.HLine           := @ptc_HLineProc_8bpp;
+      mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.SetVisualPage   := @ptc_SetVisualPage;
+      mode.SetActivePage   := @ptc_SetActivePage;
+    end;
+
+    procedure FillCommonVESA256(var mode: TModeInfo);
+    begin
+      mode.HardwarePages := 1;
+      mode.MaxColor := 256;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
+      mode.DirectPutPixel  := @ptc_DirectPixelProc_8bpp;
+      mode.PutPixel        := @ptc_PutPixelProc_8bpp;
+      mode.GetPixel        := @ptc_GetPixelProc_8bpp;
+      mode.PutImage        := @ptc_PutImageProc_8bpp;
+      mode.GetImage        := @ptc_GetImageProc_8bpp;
+      mode.GetScanLine     := @ptc_GetScanLineProc_8bpp;
+      mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
+      //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+      mode.HLine           := @ptc_HLineProc_8bpp;
+      mode.VLine           := @ptc_VLineProc_8bpp;
+      mode.SetVisualPage   := @ptc_SetVisualPage;
+      mode.SetActivePage   := @ptc_SetActivePage;
+    end;
+
+    procedure FillCommonVESA32kOr64k(var mode: TModeInfo);
+    begin
+      mode.HardwarePages := 1;
+      mode.DirectColor := TRUE;
+      mode.DirectPutPixel  := @ptc_DirectPixelProc_16bpp;
+      mode.PutPixel        := @ptc_PutPixelProc_16bpp;
+      mode.GetPixel        := @ptc_GetPixelProc_16bpp;
+      mode.PutImage        := @ptc_PutImageProc_16bpp;
+      mode.GetImage        := @ptc_GetImageProc_16bpp;
+      mode.GetScanLine     := @ptc_GetScanLineProc_16bpp;
+      mode.SetRGBPalette   := @ptc_SetRGBPaletteProc;
+      mode.GetRGBPalette   := @ptc_GetRGBPaletteProc;
+      //mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+      mode.HLine           := @ptc_HLineProc_16bpp;
+      mode.VLine           := @ptc_VLineProc_16bpp;
+      mode.SetVisualPage   := @ptc_SetVisualPage;
+      mode.SetActivePage   := @ptc_SetActivePage;
+    end;
+
+    procedure FillCommonVESA32k(var mode: TModeInfo);
+    begin
+      FillCommonVESA32kOr64k(mode);
+      mode.MaxColor := 32768;
+      mode.PaletteSize := mode.MaxColor;
+    end;
+    procedure FillCommonVESA64k(var mode: TModeInfo);
+    begin
+      FillCommonVESA32kOr64k(mode);
+      mode.MaxColor := 65536;
+      mode.PaletteSize := mode.MaxColor;
     end;
 
    var
@@ -2332,192 +2405,90 @@ end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonVESA256(graphmode);
      with graphmode do
      begin
        ModeNumber:=m640x400x256;
        DriverNumber := VESA;
-       HardwarePages := 1;
        ModeName:='640 x 400 VESA';
-       MaxColor := 256;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 399;
-       InitMode       := @ptc_Init640x400x256;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-       //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       InitMode := @ptc_Init640x400x256;
        XAspect := 8333;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonVESA256(graphmode);
      with graphmode do
      begin
        ModeNumber:=m640x480x256;
        DriverNumber := VESA;
-       HardwarePages := 1;
        ModeName:='640 x 480 VESA';
-       MaxColor := 256;
-       DirectColor := FALSE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 479;
-       InitMode       := @ptc_Init640x480x256;
-       DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-       PutPixel       := @ptc_PutPixelProc_8bpp;
-       PutImage       := @ptc_PutImageProc_8bpp;
-       GetPixel       := @ptc_GetPixelProc_8bpp;
-       GetScanLine    := @ptc_GetScanLineProc_8bpp;
-       GetImage       := @ptc_GetImageProc_8bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-       //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
-
-       HLine          := @ptc_HLineProc_8bpp;
-       VLine          := @ptc_VLineProc_8bpp;
-
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       InitMode := @ptc_Init640x480x256;
        XAspect := 10000;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonVESA32k(graphmode);
      with graphmode do
      begin
        ModeNumber := m320x200x32k;
        DriverNumber := VESA;
-       HardwarePages := 1;
        ModeName:='320 x 200 VESA';
-       MaxColor := 32768;
-       DirectColor := TRUE;
-       PaletteSize := MaxColor;
        MaxX := 319;
        MaxY := 199;
-       InitMode       := @ptc_Init320x200x32k;
-       DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-       PutPixel       := @ptc_PutPixelProc_16bpp;
-       PutImage       := @ptc_PutImageProc_16bpp;
-       GetPixel       := @ptc_GetPixelProc_16bpp;
-       GetScanLine    := @ptc_GetScanLineProc_16bpp;
-       GetImage       := @ptc_GetImageProc_16bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-       HLine          := @ptc_HLineProc_16bpp;
-       VLine          := @ptc_VLineProc_16bpp;
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       InitMode := @ptc_Init320x200x32k;
        XAspect := 8333;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonVESA32k(graphmode);
      with graphmode do
      begin
        ModeNumber := m640x480x32k;
        DriverNumber := VESA;
-       HardwarePages := 1;
        ModeName:='640 x 480 VESA';
-       MaxColor := 32768;
-       DirectColor := TRUE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 479;
-       InitMode       := @ptc_Init640x480x32k;
-       DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-       PutPixel       := @ptc_PutPixelProc_16bpp;
-       PutImage       := @ptc_PutImageProc_16bpp;
-       GetPixel       := @ptc_GetPixelProc_16bpp;
-       GetScanLine    := @ptc_GetScanLineProc_16bpp;
-       GetImage       := @ptc_GetImageProc_16bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-       HLine          := @ptc_HLineProc_16bpp;
-       VLine          := @ptc_VLineProc_16bpp;
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       InitMode := @ptc_Init640x480x32k;
        XAspect := 10000;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonVESA64k(graphmode);
      with graphmode do
      begin
        ModeNumber := m320x200x64k;
        DriverNumber := VESA;
-       HardwarePages := 1;
        ModeName:='320 x 200 VESA';
-       MaxColor := 65536;
-       DirectColor := TRUE;
-       PaletteSize := MaxColor;
        MaxX := 319;
        MaxY := 199;
-       InitMode       := @ptc_Init320x200x64k;
-       DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-       PutPixel       := @ptc_PutPixelProc_16bpp;
-       PutImage       := @ptc_PutImageProc_16bpp;
-       GetPixel       := @ptc_GetPixelProc_16bpp;
-       GetScanLine    := @ptc_GetScanLineProc_16bpp;
-       GetImage       := @ptc_GetImageProc_16bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-       HLine          := @ptc_HLineProc_16bpp;
-       VLine          := @ptc_VLineProc_16bpp;
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       InitMode := @ptc_Init320x200x64k;
        XAspect := 8333;
        YAspect := 10000;
      end;
      AddMode(graphmode);
 
      InitMode(graphmode);
+     FillCommonVESA64k(graphmode);
      with graphmode do
      begin
        ModeNumber := m640x480x64k;
        DriverNumber := VESA;
-       HardwarePages := 1;
        ModeName:='640 x 480 VESA';
-       MaxColor := 65536;
-       DirectColor := TRUE;
-       PaletteSize := MaxColor;
        MaxX := 639;
        MaxY := 479;
-       InitMode       := @ptc_Init640x480x64k;
-       DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-       PutPixel       := @ptc_PutPixelProc_16bpp;
-       PutImage       := @ptc_PutImageProc_16bpp;
-       GetPixel       := @ptc_GetPixelProc_16bpp;
-       GetScanLine    := @ptc_GetScanLineProc_16bpp;
-       GetImage       := @ptc_GetImageProc_16bpp;
-       SetRGBPalette  := @ptc_SetRGBPaletteProc;
-       GetRGBPalette  := @ptc_GetRGBPaletteProc;
-       HLine          := @ptc_HLineProc_16bpp;
-       VLine          := @ptc_VLineProc_16bpp;
-       SetVisualPage  := @ptc_SetVisualPage;
-       SetActivePage  := @ptc_SetActivePage;
-
+       InitMode := @ptc_Init640x480x64k;
        XAspect := 10000;
        YAspect := 10000;
      end;
@@ -2526,129 +2497,60 @@ end;
      if ContainsAtLeast(800, 600) then
      begin
        InitMode(graphmode);
+       FillCommonVESA16(graphmode);
        with graphmode do
        begin
          ModeNumber := m800x600x16;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='800 x 600 VESA';
-         MaxColor := 16;
-         DirectColor := FALSE;
-         PaletteSize := MaxColor;
          MaxX := 799;
          MaxY := 599;
-         InitMode       := @ptc_Init800x600x16;
-         DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-         PutPixel       := @ptc_PutPixelProc_8bpp;
-         PutImage       := @ptc_PutImageProc_8bpp;
-         GetPixel       := @ptc_GetPixelProc_8bpp;
-         GetScanLine    := @ptc_GetScanLineProc_8bpp;
-         GetImage       := @ptc_GetImageProc_8bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-         HLine          := @ptc_HLineProc_8bpp;
-         VLine          := @ptc_VLineProc_8bpp;
-
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init800x600x16;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA256(graphmode);
        with graphmode do
        begin
          ModeNumber:=m800x600x256;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='800 x 600 VESA';
-         MaxColor := 256;
-         DirectColor := FALSE;
-         PaletteSize := MaxColor;
          MaxX := 799;
          MaxY := 599;
-         InitMode       := @ptc_Init800x600x256;
-         DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-         PutPixel       := @ptc_PutPixelProc_8bpp;
-         PutImage       := @ptc_PutImageProc_8bpp;
-         GetPixel       := @ptc_GetPixelProc_8bpp;
-         GetScanLine    := @ptc_GetScanLineProc_8bpp;
-         GetImage       := @ptc_GetImageProc_8bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
-
-         HLine          := @ptc_HLineProc_8bpp;
-         VLine          := @ptc_VLineProc_8bpp;
-
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init800x600x256;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA32k(graphmode);
        with graphmode do
        begin
          ModeNumber := m800x600x32k;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='800 x 600 VESA';
-         MaxColor := 32768;
-         DirectColor := TRUE;
-         PaletteSize := MaxColor;
          MaxX := 799;
          MaxY := 599;
-         InitMode       := @ptc_Init800x600x32k;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         PutImage       := @ptc_PutImageProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         GetScanLine    := @ptc_GetScanLineProc_16bpp;
-         GetImage       := @ptc_GetImageProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         HLine          := @ptc_HLineProc_16bpp;
-         VLine          := @ptc_VLineProc_16bpp;
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init800x600x32k;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA64k(graphmode);
        with graphmode do
        begin
          ModeNumber := m800x600x64k;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='800 x 600 VESA';
-         MaxColor := 65536;
-         DirectColor := TRUE;
-         PaletteSize := MaxColor;
          MaxX := 799;
          MaxY := 599;
-         InitMode       := @ptc_Init800x600x64k;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         PutImage       := @ptc_PutImageProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         GetScanLine    := @ptc_GetScanLineProc_16bpp;
-         GetImage       := @ptc_GetImageProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         HLine          := @ptc_HLineProc_16bpp;
-         VLine          := @ptc_VLineProc_16bpp;
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init800x600x64k;
          XAspect := 10000;
          YAspect := 10000;
        end;
@@ -2658,129 +2560,60 @@ end;
      if ContainsAtLeast(1024, 768) then
      begin
        InitMode(graphmode);
+       FillCommonVESA16(graphmode);
        with graphmode do
        begin
          ModeNumber := m1024x768x16;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1024 x 768 VESA';
-         MaxColor := 16;
-         DirectColor := FALSE;
-         PaletteSize := MaxColor;
          MaxX := 1023;
          MaxY := 767;
-         InitMode       := @ptc_Init1024x768x16;
-         DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-         PutPixel       := @ptc_PutPixelProc_8bpp;
-         PutImage       := @ptc_PutImageProc_8bpp;
-         GetPixel       := @ptc_GetPixelProc_8bpp;
-         GetScanLine    := @ptc_GetScanLineProc_8bpp;
-         GetImage       := @ptc_GetImageProc_8bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-         HLine          := @ptc_HLineProc_8bpp;
-         VLine          := @ptc_VLineProc_8bpp;
-
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1024x768x16;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA256(graphmode);
        with graphmode do
        begin
          ModeNumber:=m1024x768x256;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1024 x 768 VESA';
-         MaxColor := 256;
-         DirectColor := FALSE;
-         PaletteSize := MaxColor;
          MaxX := 1023;
          MaxY := 767;
-         InitMode       := @ptc_Init1024x768x256;
-         DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-         PutPixel       := @ptc_PutPixelProc_8bpp;
-         PutImage       := @ptc_PutImageProc_8bpp;
-         GetPixel       := @ptc_GetPixelProc_8bpp;
-         GetScanLine    := @ptc_GetScanLineProc_8bpp;
-         GetImage       := @ptc_GetImageProc_8bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
-
-         HLine          := @ptc_HLineProc_8bpp;
-         VLine          := @ptc_VLineProc_8bpp;
-
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1024x768x256;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA32k(graphmode);
        with graphmode do
        begin
          ModeNumber := m1024x768x32k;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1024 x 768 VESA';
-         MaxColor := 32768;
-         DirectColor := TRUE;
-         PaletteSize := MaxColor;
          MaxX := 1023;
          MaxY := 767;
-         InitMode       := @ptc_Init1024x768x32k;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         PutImage       := @ptc_PutImageProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         GetScanLine    := @ptc_GetScanLineProc_16bpp;
-         GetImage       := @ptc_GetImageProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         HLine          := @ptc_HLineProc_16bpp;
-         VLine          := @ptc_VLineProc_16bpp;
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1024x768x32k;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA64k(graphmode);
        with graphmode do
        begin
          ModeNumber := m1024x768x64k;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1024 x 768 VESA';
-         MaxColor := 65536;
-         DirectColor := TRUE;
-         PaletteSize := MaxColor;
          MaxX := 1023;
          MaxY := 767;
-         InitMode       := @ptc_Init1024x768x64k;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         PutImage       := @ptc_PutImageProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         GetScanLine    := @ptc_GetScanLineProc_16bpp;
-         GetImage       := @ptc_GetImageProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         HLine          := @ptc_HLineProc_16bpp;
-         VLine          := @ptc_VLineProc_16bpp;
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1024x768x64k;
          XAspect := 10000;
          YAspect := 10000;
        end;
@@ -2790,129 +2623,60 @@ end;
      if ContainsAtLeast(1280, 1024) then
      begin
        InitMode(graphmode);
+       FillCommonVESA16(graphmode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x16;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1280 x 1024 VESA';
-         MaxColor := 16;
-         DirectColor := FALSE;
-         PaletteSize := MaxColor;
          MaxX := 1279;
          MaxY := 1023;
-         InitMode       := @ptc_Init1280x1024x16;
-         DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-         PutPixel       := @ptc_PutPixelProc_8bpp;
-         PutImage       := @ptc_PutImageProc_8bpp;
-         GetPixel       := @ptc_GetPixelProc_8bpp;
-         GetScanLine    := @ptc_GetScanLineProc_8bpp;
-         GetImage       := @ptc_GetImageProc_8bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-         HLine          := @ptc_HLineProc_8bpp;
-         VLine          := @ptc_VLineProc_8bpp;
-
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1280x1024x16;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA256(graphmode);
        with graphmode do
        begin
          ModeNumber:=m1280x1024x256;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1280 x 1024 VESA';
-         MaxColor := 256;
-         DirectColor := FALSE;
-         PaletteSize := MaxColor;
          MaxX := 1279;
          MaxY := 1023;
-         InitMode       := @ptc_Init1280x1024x256;
-         DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-         PutPixel       := @ptc_PutPixelProc_8bpp;
-         PutImage       := @ptc_PutImageProc_8bpp;
-         GetPixel       := @ptc_GetPixelProc_8bpp;
-         GetScanLine    := @ptc_GetScanLineProc_8bpp;
-         GetImage       := @ptc_GetImageProc_8bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
-
-         HLine          := @ptc_HLineProc_8bpp;
-         VLine          := @ptc_VLineProc_8bpp;
-
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1280x1024x256;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA32k(graphmode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x32k;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1280 x 1024 VESA';
-         MaxColor := 32768;
-         DirectColor := TRUE;
-         PaletteSize := MaxColor;
          MaxX := 1279;
          MaxY := 1023;
-         InitMode       := @ptc_Init1280x1024x32k;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         PutImage       := @ptc_PutImageProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         GetScanLine    := @ptc_GetScanLineProc_16bpp;
-         GetImage       := @ptc_GetImageProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         HLine          := @ptc_HLineProc_16bpp;
-         VLine          := @ptc_VLineProc_16bpp;
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1280x1024x32k;
          XAspect := 10000;
          YAspect := 10000;
        end;
        AddMode(graphmode);
 
        InitMode(graphmode);
+       FillCommonVESA64k(graphmode);
        with graphmode do
        begin
          ModeNumber := m1280x1024x64k;
          DriverNumber := VESA;
-         HardwarePages := 1;
          ModeName:='1280 x 1024 VESA';
-         MaxColor := 65536;
-         DirectColor := TRUE;
-         PaletteSize := MaxColor;
          MaxX := 1279;
          MaxY := 1023;
-         InitMode       := @ptc_Init1280x1024x64k;
-         DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-         PutPixel       := @ptc_PutPixelProc_16bpp;
-         PutImage       := @ptc_PutImageProc_16bpp;
-         GetPixel       := @ptc_GetPixelProc_16bpp;
-         GetScanLine    := @ptc_GetScanLineProc_16bpp;
-         GetImage       := @ptc_GetImageProc_16bpp;
-         SetRGBPalette  := @ptc_SetRGBPaletteProc;
-         GetRGBPalette  := @ptc_GetRGBPaletteProc;
-         HLine          := @ptc_HLineProc_16bpp;
-         VLine          := @ptc_VLineProc_16bpp;
-         SetVisualPage  := @ptc_SetVisualPage;
-         SetActivePage  := @ptc_SetActivePage;
-
+         InitMode := @ptc_Init1280x1024x64k;
          XAspect := 10000;
          YAspect := 10000;
        end;
@@ -2927,33 +2691,15 @@ end;
             ((I = Low(PTCModeList)) or ((Width <> PTCModeList[I-1].Width) or (Height <> PTCModeList[I-1].Height))) then
          begin
            InitMode(graphmode);
+           FillCommonVESA16(graphmode);
            with graphmode do
            begin
              ModeNumber := NextNonStandardModeNumber;
              DriverNumber := VESA;
-             HardwarePages := 1;
              WriteStr(ModeName, Width, ' x ', Height, ' VESA');
-             MaxColor := 16;
-             DirectColor := FALSE;
-             PaletteSize := MaxColor;
              MaxX := Width - 1;
              MaxY := Height - 1;
-             InitMode       := @ptc_InitNonStandard16;
-             DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-             PutPixel       := @ptc_PutPixelProc_8bpp;
-             PutImage       := @ptc_PutImageProc_8bpp;
-             GetPixel       := @ptc_GetPixelProc_8bpp;
-             GetScanLine    := @ptc_GetScanLineProc_8bpp;
-             GetImage       := @ptc_GetImageProc_8bpp;
-             SetRGBPalette  := @ptc_SetRGBPaletteProc;
-             GetRGBPalette  := @ptc_GetRGBPaletteProc;
-
-             HLine          := @ptc_HLineProc_8bpp;
-             VLine          := @ptc_VLineProc_8bpp;
-
-             SetVisualPage  := @ptc_SetVisualPage;
-             SetActivePage  := @ptc_SetActivePage;
-
+             InitMode := @ptc_InitNonStandard16;
              XAspect := 10000;
              YAspect := 10000;
            end;
@@ -2963,34 +2709,15 @@ end;
              break;
 
            InitMode(graphmode);
+           FillCommonVESA256(graphmode);
            with graphmode do
            begin
              ModeNumber := NextNonStandardModeNumber;
              DriverNumber := VESA;
-             HardwarePages := 1;
              WriteStr(ModeName, Width, ' x ', Height, ' VESA');
-             MaxColor := 256;
-             DirectColor := FALSE;
-             PaletteSize := MaxColor;
              MaxX := Width - 1;
              MaxY := Height - 1;
-             InitMode       := @ptc_InitNonStandard256;
-             DirectPutPixel := @ptc_DirectPixelProc_8bpp;
-             PutPixel       := @ptc_PutPixelProc_8bpp;
-             PutImage       := @ptc_PutImageProc_8bpp;
-             GetPixel       := @ptc_GetPixelProc_8bpp;
-             GetScanLine    := @ptc_GetScanLineProc_8bpp;
-             GetImage       := @ptc_GetImageProc_8bpp;
-             SetRGBPalette  := @ptc_SetRGBPaletteProc;
-             GetRGBPalette  := @ptc_GetRGBPaletteProc;
-             //SetAllPalette  := @ptc_SetRGBAllPaletteProc;
-
-             HLine          := @ptc_HLineProc_8bpp;
-             VLine          := @ptc_VLineProc_8bpp;
-
-             SetVisualPage  := @ptc_SetVisualPage;
-             SetActivePage  := @ptc_SetActivePage;
-
+             InitMode := @ptc_InitNonStandard256;
              XAspect := 10000;
              YAspect := 10000;
            end;
@@ -3000,31 +2727,15 @@ end;
              break;
 
            InitMode(graphmode);
+           FillCommonVESA32k(graphmode);
            with graphmode do
            begin
              ModeNumber := NextNonStandardModeNumber;
              DriverNumber := VESA;
-             HardwarePages := 1;
              WriteStr(ModeName, Width, ' x ', Height, ' VESA');
-             MaxColor := 32768;
-             DirectColor := TRUE;
-             PaletteSize := MaxColor;
              MaxX := Width - 1;
              MaxY := Height - 1;
-             InitMode       := @ptc_InitNonStandard32k;
-             DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-             PutPixel       := @ptc_PutPixelProc_16bpp;
-             PutImage       := @ptc_PutImageProc_16bpp;
-             GetPixel       := @ptc_GetPixelProc_16bpp;
-             GetScanLine    := @ptc_GetScanLineProc_16bpp;
-             GetImage       := @ptc_GetImageProc_16bpp;
-             SetRGBPalette  := @ptc_SetRGBPaletteProc;
-             GetRGBPalette  := @ptc_GetRGBPaletteProc;
-             HLine          := @ptc_HLineProc_16bpp;
-             VLine          := @ptc_VLineProc_16bpp;
-             SetVisualPage  := @ptc_SetVisualPage;
-             SetActivePage  := @ptc_SetActivePage;
-
+             InitMode := @ptc_InitNonStandard32k;
              XAspect := 10000;
              YAspect := 10000;
            end;
@@ -3034,31 +2745,15 @@ end;
              break;
 
            InitMode(graphmode);
+           FillCommonVESA64k(graphmode);
            with graphmode do
            begin
              ModeNumber := NextNonStandardModeNumber;
              DriverNumber := VESA;
-             HardwarePages := 1;
              WriteStr(ModeName, Width, ' x ', Height, ' VESA');
-             MaxColor := 65536;
-             DirectColor := TRUE;
-             PaletteSize := MaxColor;
              MaxX := Width - 1;
              MaxY := Height - 1;
-             InitMode       := @ptc_InitNonStandard64k;
-             DirectPutPixel := @ptc_DirectPixelProc_16bpp;
-             PutPixel       := @ptc_PutPixelProc_16bpp;
-             PutImage       := @ptc_PutImageProc_16bpp;
-             GetPixel       := @ptc_GetPixelProc_16bpp;
-             GetScanLine    := @ptc_GetScanLineProc_16bpp;
-             GetImage       := @ptc_GetImageProc_16bpp;
-             SetRGBPalette  := @ptc_SetRGBPaletteProc;
-             GetRGBPalette  := @ptc_GetRGBPaletteProc;
-             HLine          := @ptc_HLineProc_16bpp;
-             VLine          := @ptc_VLineProc_16bpp;
-             SetVisualPage  := @ptc_SetVisualPage;
-             SetActivePage  := @ptc_SetActivePage;
-
+             InitMode := @ptc_InitNonStandard64k;
              XAspect := 10000;
              YAspect := 10000;
            end;
