@@ -57,7 +57,7 @@ interface
 
     uses
       cutils,globtype,systems,cclasses,
-      verbose,finput,fmodule,script,cpuinfo,
+      verbose,finput,fmodule,cscript,cpuinfo,
       cgbase,cgutils,
       itcpugas
       ;

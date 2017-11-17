@@ -47,7 +47,7 @@ unit ag68kvasm;
     uses
        cutils,cfileutl,globals,verbose,
        cgbase,
-       script,
+       cscript,
        itcpugas,cpuinfo,
        aasmcpu;
 

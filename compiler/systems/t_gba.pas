@@ -33,7 +33,7 @@ implementation
        aasmbase,
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_gba,link;
+       globtype,globals,systems,verbose,cscript,fmodule,i_gba,link;
 
     type
        TlinkerGBA=class(texternallinker)

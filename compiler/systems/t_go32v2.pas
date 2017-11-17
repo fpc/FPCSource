@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,
+       globtype,globals,systems,verbose,cscript,
        fmodule,i_go32v2,
        link,ogcoff,owar,aasmbase;
 

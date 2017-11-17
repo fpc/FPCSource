@@ -45,7 +45,7 @@ implementation
       symbase,symtable,symdef,
       finput,fmodule,fppu,
       aasmdata,
-      script,gendef,
+      cscript,gendef,
       comphook,
       scanner,scandir,
       pbase,psystem,pmodules,psub,ncgrtti,

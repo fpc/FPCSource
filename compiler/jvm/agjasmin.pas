@@ -103,7 +103,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,script,
+      cutils,cfileutl,cscript,
       fmodule,finput,verbose,
       symtype,symcpu,symtable,jvmdef,
       itcpujas,cpubase,cpuinfo,cgutils,

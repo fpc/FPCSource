@@ -77,7 +77,7 @@ implementation
     SysUtils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    script,
+    cscript,
     fmodule,
     aasmbase,aasmtai,aasmcpu,cpubase,
     cgbase,ogbase,

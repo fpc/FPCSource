@@ -160,7 +160,7 @@ Implementation
 {$ifdef hasUnix}
       baseunix,
 {$endif hasUnix}
-      script,globals,verbose,comphook,ppu,fpccrc,
+      cscript,globals,verbose,comphook,ppu,fpccrc,
       aasmbase,aasmcpu,
       ogmap;
 

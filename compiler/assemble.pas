@@ -256,7 +256,7 @@ Implementation
       sfpux80,
 {$endif}
 {$endif}
-      script,fmodule,verbose,
+      cscript,fmodule,verbose,
       cpuinfo,
       aasmcpu;
 

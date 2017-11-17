@@ -48,7 +48,7 @@ unit agppcvasm;
     uses
        cutils,cfileutl,globals,verbose,
        cgbase,
-       script,
+       cscript,
        itcpugas,cpuinfo,
        aasmcpu;
 

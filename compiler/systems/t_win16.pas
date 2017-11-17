@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,
+       globtype,globals,systems,verbose,cscript,
        import,export,fmodule,i_win16,
        link,aasmbase,cpuinfo,
        omfbase,ogbase,ogomf,owbase,owomflib,

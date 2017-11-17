@@ -55,7 +55,7 @@ implementation
     uses
       SysUtils,
       cutils,globtype,globals,systems,cclasses,
-      verbose,script,cpuinfo,
+      verbose,cscript,cpuinfo,
       itx86int,
       cgbase
 {$ifdef EXTDEBUG}

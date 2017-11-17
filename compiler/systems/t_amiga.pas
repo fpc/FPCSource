@@ -53,7 +53,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,script,fmodule,i_amiga;
+       globtype,globals,systems,verbose,cscript,fmodule,i_amiga;
 
 
 

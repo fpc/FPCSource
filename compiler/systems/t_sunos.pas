@@ -37,7 +37,7 @@ implementation
     sysutils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    script,
+    cscript,
     fmodule,
     import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase;
 

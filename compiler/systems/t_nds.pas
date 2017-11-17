@@ -33,7 +33,7 @@ implementation
        aasmbase,
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_nds,link;
+       globtype,globals,systems,verbose,cscript,fmodule,i_nds,link;
 
     type
        TlinkerNDS=class(texternallinker)

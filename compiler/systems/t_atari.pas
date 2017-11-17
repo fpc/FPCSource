@@ -49,7 +49,7 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,script,fmodule,i_atari;
+       globtype,globals,systems,verbose,cscript,fmodule,i_atari;
 
 
 constructor TLinkerAtari.Create;

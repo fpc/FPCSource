@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,comphook,script,fmodule,i_embed,link,
+       globtype,globals,systems,verbose,comphook,cscript,fmodule,i_embed,link,
        cpuinfo;
 
     type
