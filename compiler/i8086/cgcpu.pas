@@ -1975,6 +1975,7 @@ unit cgcpu;
       begin
         if size in [OS_32, OS_S32] then
           begin
+            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             if (longint(a shr 16) = 0) then
               list.concat(taicpu.op_reg_reg(A_TEST,S_W,GetNextReg(reg),GetNextReg(reg)))
             else
@@ -1988,6 +1989,7 @@ unit cgcpu;
               list.concat(taicpu.op_const_reg(A_CMP,S_W,longint(a and $ffff),reg));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
             a_label(list,hl_skip);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           inherited a_cmp_const_reg_label(list, size, cmp_op, a, reg, l);
@@ -2004,6 +2006,7 @@ unit cgcpu;
             tmpref:=ref;
             make_simple_ref(list,tmpref);
             inc(tmpref.offset,2);
+            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a shr 16),tmpref));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
@@ -2011,6 +2014,7 @@ unit cgcpu;
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a and $ffff),tmpref));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
             a_label(list,hl_skip);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           inherited a_cmp_const_ref_label(list, size, cmp_op, a, ref, l);
@@ -2025,12 +2029,14 @@ unit cgcpu;
           begin
             check_register_size(size,reg1);
             check_register_size(size,reg2);
+            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,GetNextReg(reg1),GetNextReg(reg2)));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,reg1,reg2));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
             a_label(list,hl_skip);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           inherited a_cmp_reg_reg_label(list, size, cmp_op, reg1, reg2, l);
@@ -2048,6 +2054,7 @@ unit cgcpu;
             make_simple_ref(list,tmpref);
             check_register_size(size,reg);
             inc(tmpref.offset,2);
+            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,GetNextReg(reg)));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
@@ -2055,6 +2062,7 @@ unit cgcpu;
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,reg));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
             a_label(list,hl_skip);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           inherited a_cmp_ref_reg_label(list, size, cmp_op, ref, reg, l);
@@ -2072,6 +2080,7 @@ unit cgcpu;
             make_simple_ref(list,tmpref);
             check_register_size(size,reg);
             inc(tmpref.offset,2);
+            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,GetNextReg(reg),tmpref));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
@@ -2079,6 +2088,7 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,reg,tmpref));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
             a_label(list,hl_skip);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           inherited a_cmp_reg_ref_label(list, size, cmp_op, reg, ref, l);
