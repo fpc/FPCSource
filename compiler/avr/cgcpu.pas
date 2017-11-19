@@ -840,7 +840,7 @@ unit cgcpu;
                  begin
                    if ((qword(a) and mask) shr shift)=0 then
                      list.concat(taicpu.op_reg_reg(A_MOV,reg,NR_R1))
-                   else
+                   else if ((qword(a) and mask) shr shift)<>$ff then
                      list.concat(taicpu.op_reg_const(A_ANDI,reg,(qword(a) and mask) shr shift));
                    { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
                    if i<tcgsize2size[size] then
