@@ -2797,58 +2797,59 @@ end;
 procedure TTestModule.TestProc_OverloadNested;
 begin
   StartProgram(false);
-  Add('procedure DoIt(vA: longint); forward;');
-  Add('procedure DoIt(vB, vC: longint);');
-  Add('begin // 2 param overload');
-  Add('  doit(1);');
-  Add('  doit(1,2);');
-  Add('end;');
-  Add('procedure doit(vA: longint);');
-  Add('  procedure DoIt(vA, vB, vC: longint); forward;');
-  Add('  procedure DoIt(vA, vB, vC, vD: longint);');
-  Add('  begin // 4 param overload');
-  Add('    doit(1);');
-  Add('    doit(1,2);');
-  Add('    doit(1,2,3);');
-  Add('    doit(1,2,3,4);');
-  Add('  end;');
-  Add('  procedure doit(vA, vB, vC: longint);');
-  Add('    procedure DoIt(vA, vB, vC, vD, vE: longint); forward;');
-  Add('    procedure DoIt(vA, vB, vC, vD, vE, vF: longint);');
-  Add('    begin // 6 param overload');
-  Add('      doit(1);');
-  Add('      doit(1,2);');
-  Add('      doit(1,2,3);');
-  Add('      doit(1,2,3,4);');
-  Add('      doit(1,2,3,4,5);');
-  Add('      doit(1,2,3,4,5,6);');
-  Add('    end;');
-  Add('    procedure doit(vA, vB, vC, vD, vE: longint);');
-  Add('    begin // 5 param overload');
-  Add('      doit(1);');
-  Add('      doit(1,2);');
-  Add('      doit(1,2,3);');
-  Add('      doit(1,2,3,4);');
-  Add('      doit(1,2,3,4,5);');
-  Add('      doit(1,2,3,4,5,6);');
-  Add('    end;');
-  Add('  begin // 3 param overload');
-  Add('    doit(1);');
-  Add('    doit(1,2);');
-  Add('    doit(1,2,3);');
-  Add('    doit(1,2,3,4);');
-  Add('    doit(1,2,3,4,5);');
-  Add('    doit(1,2,3,4,5,6);');
-  Add('  end;');
-  Add('begin // 1 param overload');
-  Add('  doit(1);');
-  Add('  doit(1,2);');
-  Add('  doit(1,2,3);');
-  Add('  doit(1,2,3,4);');
-  Add('end;');
-  Add('begin // main');
-  Add('  doit(1);');
-  Add('  doit(1,2);');
+  Add([
+  'procedure DoIt(vA: longint); overload; forward;',
+  'procedure DoIt(vB, vC: longint); overload;',
+  'begin // 2 param overload',
+  '  doit(1);',
+  '  doit(1,2);',
+  'end;',
+  'procedure doit(vA: longint);',
+  '  procedure DoIt(vA, vB, vC: longint); overload; forward;',
+  '  procedure DoIt(vA, vB, vC, vD: longint); overload;',
+  '  begin // 4 param overload',
+  '    doit(1);',
+  '    doit(1,2);',
+  '    doit(1,2,3);',
+  '    doit(1,2,3,4);',
+  '  end;',
+  '  procedure doit(vA, vB, vC: longint);',
+  '    procedure DoIt(vA, vB, vC, vD, vE: longint); overload; forward;',
+  '    procedure DoIt(vA, vB, vC, vD, vE, vF: longint); overload;',
+  '    begin // 6 param overload',
+  '      doit(1);',
+  '      doit(1,2);',
+  '      doit(1,2,3);',
+  '      doit(1,2,3,4);',
+  '      doit(1,2,3,4,5);',
+  '      doit(1,2,3,4,5,6);',
+  '    end;',
+  '    procedure doit(vA, vB, vC, vD, vE: longint);',
+  '    begin // 5 param overload',
+  '      doit(1);',
+  '      doit(1,2);',
+  '      doit(1,2,3);',
+  '      doit(1,2,3,4);',
+  '      doit(1,2,3,4,5);',
+  '      doit(1,2,3,4,5,6);',
+  '    end;',
+  '  begin // 3 param overload',
+  '    doit(1);',
+  '    doit(1,2);',
+  '    doit(1,2,3);',
+  '    doit(1,2,3,4);',
+  '    doit(1,2,3,4,5);',
+  '    doit(1,2,3,4,5,6);',
+  '  end;',
+  'begin // 1 param overload',
+  '  doit(1);',
+  '  doit(1,2);',
+  '  doit(1,2,3);',
+  '  doit(1,2,3,4);',
+  'end;',
+  'begin // main',
+  '  doit(1);',
+  '  doit(1,2);']);
   ConvertProgram;
   CheckSource('TestProcedureOverloadNested',
     LinesToStr([ // statements
