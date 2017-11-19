@@ -200,22 +200,22 @@ Implementation
       if p.opcode in [A_MOV,A_LD,A_LDD,A_LDS,A_LPM,A_LDI,A_MOVW] then
         i:=1;
 
-      while(i<p.ops) do
+      while i<p.ops do
         begin
-          case p.oper[I]^.typ of
+          case p.oper[i]^.typ of
             top_reg:
-              Result := (p.oper[I]^.reg = reg) or
+              Result := (p.oper[i]^.reg = reg) or
                 { MOVW }
                 ((i=1) and (p.opcode=A_MOVW) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg)));
             top_ref:
               Result :=
-                (p.oper[I]^.ref^.base = reg) or
-                (p.oper[I]^.ref^.index = reg);
+                (p.oper[i]^.ref^.base = reg) or
+                (p.oper[i]^.ref^.index = reg);
           end;
           { Bailout if we found something }
           if Result then
             exit;
-          Inc(I);
+          Inc(i);
         end;
     end;
 
@@ -344,8 +344,6 @@ Implementation
                             asml.Remove(p);
                             p.Free;
                             p:=hp1;
-
-                            result:=true;
                           end;
                         ReleaseUsedRegs(TmpUsedRegs);
                       end;
