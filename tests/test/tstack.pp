@@ -1,3 +1,8 @@
+{$ifdef CPUAVR}
+{ avr does not support an exitproc }
+begin
+end.
+{$else CPUAVR}
 {$S+}
 
 { Program to check that an infinite recursion
@@ -60,3 +65,4 @@ begin
   exitproc:=@stack_check_exit;
   x:=inf_rec(5000);
 end.
+{$endif CPUAVR}
