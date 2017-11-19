@@ -2033,6 +2033,58 @@ implementation
             a_load_const_reg(list, size, a, dst);
             exit;
           end;
+{$ifdef cpu8bitalu}
+        OP_SHL:
+          begin
+            if a=8 then
+              case size of
+                OS_S16,OS_16:
+                  begin
+                    a_load_reg_reg(list,OS_8,OS_8,src,GetNextReg(dst));
+                    a_load_const_reg(list,OS_8,0,dst);
+                    exit;
+                  end;
+              end;
+          end;
+        OP_SHR:
+          begin
+            if a=8 then
+              case size of
+                OS_S16,OS_16:
+                  begin
+                    a_load_reg_reg(list,OS_8,OS_8,GetNextReg(src),dst);
+                    a_load_const_reg(list,OS_8,0,GetNextReg(dst));
+                    exit;
+                  end;
+              end;
+          end;
+{$endif cpu8bitalu}
+{$ifdef cpu16bitalu}
+        OP_SHL:
+          begin
+            if a=16 then
+              case size of
+                OS_S32,OS_32:
+                  begin
+                    a_load_reg_reg(list,OS_16,OS_16,src,GetNextReg(dst));
+                    a_load_const_reg(list,OS_16,0,dst);
+                    exit;
+                  end;
+              end;
+          end;
+        OP_SHR:
+          begin
+            if a=16 then
+              case size of
+                OS_S32,OS_32:
+                  begin
+                    a_load_reg_reg(list,OS_8,OS_8,GetNextReg(src),dst);
+                    a_load_const_reg(list,OS_8,0,GetNextReg(dst));
+                    exit;
+                  end;
+              end;
+          end;
+{$endif cpu16bitalu}
       end;
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
