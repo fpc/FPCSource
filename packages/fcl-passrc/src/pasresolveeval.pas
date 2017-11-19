@@ -145,6 +145,9 @@ const
   nAddingIndexSpecifierRequiresNewX = 3072;
   nCantFindUnitX = 3073;
   nCannotFindEnumeratorForType = 3074;
+  nPreviousDeclMissesOverload = 3075;
+  nOverloadedProcMissesOverload = 3076;
+  nMethodHidesMethodOfBaseType = 3077;
 
 // resourcestring patterns of messages
 resourcestring
@@ -222,6 +225,9 @@ resourcestring
   sAddingIndexSpecifierRequiresNewX = 'adding index specifier requires new "%s" specifier';
   sCantFindUnitX = 'can''t find unit "%s"';
   sCannotFindEnumeratorForType = 'Cannot find an enumerator for the type "%s"';
+  sPreviousDeclMissesOverload = 'Previous declaration of "%s" at %s was not marked with "overload" directive';
+  sOverloadedProcMissesOverload = 'Overloaded procedure misses "overload" directive. Previous declaration is at %s';
+  sMethodHidesMethodOfBaseType = 'Method "%s" hides method of base type "%s" at %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

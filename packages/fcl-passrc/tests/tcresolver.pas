@@ -340,6 +340,7 @@ type
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
     Procedure TestProcOverloadBaseTypeOtherUnit;
+    Procedure TestProcOverloadBaseProcNoHint;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestFuncAssignFail;
@@ -411,9 +412,14 @@ type
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
     Procedure TestClass_MethodOverrideDiffVarName;
+    Procedure TestClass_MethodOverloadMissingInDelphi;
     Procedure TestClass_MethodOverloadAncestor;
+    Procedure TestClass_MethodOverloadUnit;
+    Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
+    Procedure TestClass_ConstructorHidesAncestorWarning;
     Procedure TestClass_ConstructorOverride;
+    Procedure TestClass_ConstructorAccessHiddenAncestorFail;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
@@ -5043,6 +5049,22 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestProcOverloadBaseProcNoHint;
+begin
+  StartProgram(false);
+  Add([
+  'function Copy(s: string): string; overload;',
+  'begin end;',
+  'var',
+  '  A: array of longint;',
+  '  s: string;',
+  'begin',
+  '  A:=Copy(A,1);',
+  '  s:=copy(s)']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestProcDuplicate;
 begin
   StartProgram(false);
@@ -6292,6 +6314,21 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_MethodOverloadMissingInDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure DoIt(i: longint); virtual; abstract;',
+  '    procedure DoIt(s: string); virtual; abstract;',
+  '  end;',
+  'begin'
+  ]);
+  CheckResolverException(sPreviousDeclMissesOverload,nPreviousDeclMissesOverload);
+end;
+
 procedure TTestResolver.TestClass_MethodOverloadAncestor;
 begin
   StartProgram(false);
@@ -6316,6 +6353,41 @@ begin
   Add('procedure TCar.DoIt(i: longint); begin end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodOverloadUnit;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure Copy(s: string);',
+  '  end;',
+  'procedure TObject.Copy(s: string);',
+  'var a: array of longint;',
+  'begin',
+  '  a:=system.Copy(a,1,3);',
+  'end;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_MethodReintroduce;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt(p: pointer); virtual; abstract;',
+  '  end;',
+  '  TBird = class',
+  '    procedure DoIt(i: longint); virtual; abstract; reintroduce;',
+  '    procedure DoIt(s: string); virtual; abstract;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_MethodOverloadArrayOfTClass;
@@ -6371,6 +6443,25 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestClass_ConstructorHidesAncestorWarning;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(o: tobject); virtual; abstract;',
+  '  end;',
+  '  TBird = class',
+  '    constructor Create(s: string); virtual; abstract;',
+  '  end;',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nMethodHidesMethodOfBaseType,
+    'Method "Create" hides method of base type "TObject" at afile.pp(4,23)');
+  CheckResolverUnexpectedHints;
+end;
+
 procedure TTestResolver.TestClass_ConstructorOverride;
 begin
   StartProgram(false);
@@ -6394,6 +6485,27 @@ begin
   '  o:=TEagle.Create(o);',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_ConstructorAccessHiddenAncestorFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    constructor Create(o: tobject);',
+  '  end;',
+  '  TBird = class',
+  '    constructor Create(i: longint); reintroduce;',
+  '  end;',
+  'constructor tobject.Create(o: tobject); begin end;',
+  'constructor tbird.Create(i: longint); begin end;',
+  'var o: TBird;',
+  'begin',
+  '  o:=TBird.Create(nil);',
+  '']);
+  CheckResolverException('Incompatible type arg no. 1: Got "Nil", expected "Longint"',
+    nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestClass_MethodScope;
