@@ -312,7 +312,8 @@ Implementation
                        (not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
                        MatchOpType(taicpu(hp1),top_reg,top_reg) and
                        (getsupreg(taicpu(hp1).oper[0]^.reg) in [16..31]) and
-                       (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[0]^.reg) then
+                       (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[0]^.reg) and
+                       not(MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^)) then
                       begin
                         CopyUsedRegs(TmpUsedRegs);
                         if not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg, hp1, TmpUsedRegs)) then
@@ -706,21 +707,17 @@ Implementation
                   begin
                     { turn
                       mov reg0, reg1
-                      push reg0
+                      <op> reg2,reg0
                       dealloc reg0
                       into
-                      push reg1
+                      <op> reg2,reg1
                     }
-                    if (taicpu(p).ops=2) and
-                       (taicpu(p).oper[0]^.typ = top_reg) and
-                       (taicpu(p).oper[1]^.typ = top_reg) and
+                    if MatchOpType(taicpu(p),top_reg,top_reg) and
                        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                        (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
-                       (hp1.typ = ait_instruction) and
-                       (taicpu(hp1).opcode in [A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_ADC,A_SBC,A_EOR,A_AND,A_OR,
+                       MatchInstruction(hp1,[A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_ADC,A_SBC,A_EOR,A_AND,A_OR,
                                                A_STD,A_ST,
                                                A_OUT,A_IN]) and
-                       RegInInstruction(taicpu(p).oper[0]^.reg, hp1) and
                        (not RegModifiedByInstruction(taicpu(p).oper[0]^.reg, hp1)) and
                        {(taicpu(hp1).ops=1) and
                        (taicpu(hp1).oper[0]^.typ = top_reg) and
@@ -921,8 +918,8 @@ Implementation
                       mov rX,...
                       mov rX,...
                     }
-                    else if (hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_MOV) then
-                      while (hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_MOV) and
+                    else if GetNextInstruction(p,hp1) and MatchInstruction(hp1,A_MOV) then
+                      while MatchInstruction(hp1,A_MOV) and
                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                             { don't remove the first mov if the second is a mov rX,rX }
                             not(MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^)) do
