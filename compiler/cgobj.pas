@@ -2078,8 +2078,8 @@ implementation
               case size of
                 OS_S32,OS_32:
                   begin
-                    a_load_reg_reg(list,OS_8,OS_8,GetNextReg(src),dst);
-                    a_load_const_reg(list,OS_8,0,GetNextReg(dst));
+                    a_load_reg_reg(list,OS_16,OS_16,GetNextReg(src),dst);
+                    a_load_const_reg(list,OS_16,0,GetNextReg(dst));
                     exit;
                   end;
               end;
