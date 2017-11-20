@@ -306,7 +306,7 @@ type
     Procedure TestSimpleStatement_VarFail;
 
     // units
-    Procedure TestUnitOverloads;
+    Procedure TestUnitForwardOverloads;
     Procedure TestUnitIntfInitialization;
     Procedure TestUnitUseIntf;
     Procedure TestUnitUseImplFail;
@@ -341,6 +341,12 @@ type
     Procedure TestProcOverloadWithInhAliasClassTypes;
     Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcOverloadBaseProcNoHint;
+    Procedure TestProcOverloadDelphiMissingNextOverload;
+    Procedure TestProcOverloadDelphiMissingPrevOverload;
+    Procedure TestProcOverloadDelphiUnit;
+    Procedure TestProcOverloadDelphiUnitNoOverloadFail;
+    Procedure TestProcOverloadObjFPCUnitWithoutOverloadMod;
+    Procedure TestProcOverloadDelphiWithObjFPC;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestFuncAssignFail;
@@ -4327,25 +4333,26 @@ begin
   CheckResolverException('Illegal expression',nIllegalExpression);
 end;
 
-procedure TTestResolver.TestUnitOverloads;
+procedure TTestResolver.TestUnitForwardOverloads;
 begin
   StartUnit(false);
-  Add('interface');
-  Add('procedure {#ADecl}DoIt(vI: longint);');
-  Add('procedure {#BDecl}DoIt(vI, vJ: longint);');
-  Add('implementation');
-  Add('procedure {#EDecl}DoIt(vI, vJ, vK, vL, vM: longint); forward;');
-  Add('procedure {#C}DoIt(vI, vJ, vK: longint); begin end;');
-  Add('procedure {#AImpl}DoIt(vi: longint); begin end;');
-  Add('procedure {#D}DoIt(vI, vJ, vK, vL: longint); begin end;');
-  Add('procedure {#BImpl}DoIt(vi, vj: longint); begin end;');
-  Add('procedure {#EImpl}DoIt(vi, vj, vk, vl, vm: longint); begin end;');
-  Add('begin');
-  Add('  {@ADecl}DoIt(1);');
-  Add('  {@BDecl}DoIt(2,3);');
-  Add('  {@C}DoIt(4,5,6);');
-  Add('  {@D}DoIt(7,8,9,10);');
-  Add('  {@EDecl}DoIt(11,12,13,14,15);');
+  Add([
+  'interface',
+  'procedure {#ADecl}DoIt(vI: longint);',
+  'procedure {#BDecl}DoIt(vI, vJ: longint);',
+  'implementation',
+  'procedure {#EDecl}DoIt(vI, vJ, vK, vL, vM: longint); forward;',
+  'procedure {#C}DoIt(vI, vJ, vK: longint); begin end;',
+  'procedure {#AImpl}DoIt(vi: longint); begin end;',
+  'procedure {#D}DoIt(vI, vJ, vK, vL: longint); begin end;',
+  'procedure {#BImpl}DoIt(vi, vj: longint); begin end;',
+  'procedure {#EImpl}DoIt(vi, vj, vk, vl, vm: longint); begin end;',
+  'begin',
+  '  {@ADecl}DoIt(1);',
+  '  {@BDecl}DoIt(2,3);',
+  '  {@C}DoIt(4,5,6);',
+  '  {@D}DoIt(7,8,9,10);',
+  '  {@EDecl}DoIt(11,12,13,14,15);']);
   ParseUnit;
 end;
 
@@ -5063,6 +5070,133 @@ begin
   '  s:=copy(s)']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiMissingNextOverload;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure DoIt(i: longint); overload;',
+  'begin end;',
+  'procedure DoIt(s: string);',
+  'begin end;',
+  'begin']);
+  CheckResolverException(sOverloadedProcMissesOverload,nOverloadedProcMissesOverload);
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiMissingPrevOverload;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'procedure DoIt(i: longint); ',
+  'begin end;',
+  'procedure DoIt(s: string); overload;',
+  'begin end;',
+  'begin']);
+  CheckResolverException(sPreviousDeclMissesOverload,nPreviousDeclMissesOverload);
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    '{$mode delphi}',
+    'procedure DoIt(s: string); overload;',
+    'procedure DoIt(b: boolean); overload;',
+    '']),
+    LinesToStr([
+    'procedure DoIt(s: string); begin end;',
+    'procedure DoIt(b: boolean); begin end;',
+    '']));
+
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'uses unit2;',
+  'procedure DoIt(i: longint); overload;',
+  'begin end;',
+  'begin',
+  '  DoIt(3);',
+  '  DoIt(true);',
+  '  DoIt(''foo'');',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiUnitNoOverloadFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    '{$mode delphi}',
+    'procedure DoIt(b: boolean);',
+    '']),
+    LinesToStr([
+    'procedure DoIt(b: boolean); begin end;',
+    '']));
+
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'uses unit2;',
+  'procedure DoIt(i: longint); overload;',
+  'begin end;',
+  'begin',
+  '  DoIt(true);',
+  '']);
+  CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProcOverloadObjFPCUnitWithoutOverloadMod;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    '{$mode objfpc}',
+    'procedure DoIt(s: string);',
+    'procedure DoIt(b: boolean);',
+    '']),
+    LinesToStr([
+    'procedure DoIt(s: string); begin end;',
+    'procedure DoIt(b: boolean); begin end;',
+    '']));
+
+  StartProgram(true);
+  Add([
+  '{$mode objfpc}',
+  'uses unit2;',
+  'procedure DoIt(i: longint); overload;',
+  'begin end;',
+  'begin',
+  '  DoIt(3);',
+  '  DoIt(true);',
+  '  DoIt(''foo'');',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiWithObjFPC;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    '{$mode objfpc}',
+    'procedure DoIt(s: string);',
+    'procedure DoIt(b: boolean);',
+    '']),
+    LinesToStr([
+    'procedure DoIt(s: string); begin end;',
+    'procedure DoIt(b: boolean); begin end;',
+    '']));
+
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'uses unit2;',
+  'begin',
+  '  DoIt(true);',
+  '  DoIt(''foo'');',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcDuplicate;

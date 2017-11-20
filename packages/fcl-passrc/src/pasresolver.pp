@@ -629,6 +629,8 @@ type
     OverriddenProc: TPasProcedure; // if IsOverride then this is the ancestor proc (virtual or override)
     ClassScope: TPasClassScope;
     SelfArg: TPasArgument;
+    IsGroupOverload: boolean; // mode objfpc: one overload is enough for all procs in same scope
+    Mode: TModeSwitch;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -967,6 +969,7 @@ type
       TFindCallElData = record
         Params: TParamsExpr;
         Found: TPasElement; // TPasProcedure or TPasUnresolvedSymbolRef(built in proc) or TPasType (typecast)
+        LastProc: TPasProcedure;
         ElScope, StartScope: TPasScope;
         Distance: integer; // compatibility distance
         Count: integer;
@@ -975,7 +978,7 @@ type
       PFindCallElData = ^TFindCallElData;
 
       TFindOverloadProcKind = (
-        fopkFinishMethodBody, // search method declaration for a body
+        fopkSameSignature, // search method declaration for a body
         fopkProc,   // check overloads for a proc
         fopkMethod  // check overloads for a method
         );
@@ -999,6 +1002,8 @@ type
     procedure OnFindOverloadProc(El: TPasElement; ElScope, StartScope: TPasScope;
       FindOverloadData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
+    function FindProcOverload(const ProcName: string; Proc: TPasProcedure;
+      OnlyScope: TPasScope): TPasProcedure;
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
     procedure CheckTopScope(ExpectedClass: TPasScopeClass; AllowDescendants: boolean = false);
@@ -1487,6 +1492,8 @@ procedure SetResolverValueExpr(out ResolvedType: TPasResolverResult;
   Flags: TPasResolverResultFlags); overload;
 
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
+function ProcNeedsBody(Proc: TPasProcedure): boolean;
+function ProcHasGroupOverload(Proc: TPasProcedure): boolean;
 function ChompDottedIdentifier(const Identifier: string): string;
 function FirstDottedIdentifier(const Identifier: string): string;
 function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
@@ -1755,6 +1762,26 @@ begin
     if not Proc.IsAbstract then exit;
     end;
   Result:=false;
+end;
+
+function ProcNeedsBody(Proc: TPasProcedure): boolean;
+var
+  C: TClass;
+begin
+  if Proc.IsForward or Proc.IsExternal then exit(false);
+  C:=Proc.Parent.ClassType;
+  if (C=TInterfaceSection) or C.InheritsFrom(TPasClassType) then exit(false);
+  Result:=true;
+end;
+
+function ProcHasGroupOverload(Proc: TPasProcedure): boolean;
+var
+  Data: TObject;
+begin
+  if Proc.IsOverload then
+    exit(true);
+  Data:=Proc.CustomData;
+  Result:=(Data is TPasProcedureScope) and TPasProcedureScope(Data).IsGroupOverload;
 end;
 
 function ChompDottedIdentifier(const Identifier: string): string;
@@ -2764,6 +2791,7 @@ var
   CandidateFound: Boolean;
   VarType, TypeEl: TPasType;
   C: TClass;
+  ProcScope: TPasProcedureScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnFindCallElements START --------- ',GetObjName(El),' at ',GetElementSourcePosStr(El));
@@ -2785,12 +2813,11 @@ begin
       exit;
       end;
 
-    if (Proc.CustomData is TPasProcedureScope)
-        and (TPasProcedureScope(Proc.CustomData).DeclarationProc<>nil)
-    then
+    ProcScope:=Proc.CustomData as TPasProcedureScope;
+    if ProcScope.DeclarationProc<>nil then
       begin
       // this proc has a forward declaration -> use that instead
-      Proc:=TPasProcedureScope(Proc.CustomData).DeclarationProc;
+      Proc:=ProcScope.DeclarationProc;
       El:=Proc;
       end;
 
@@ -2798,6 +2825,30 @@ begin
       begin
       // there is already a previous proc
       PrevProc:=TPasProcedure(Data^.Found);
+
+      if TPasProcedureScope(Data^.LastProc.CustomData).Mode=msDelphi then
+        begin
+        if (not Data^.LastProc.IsOverload) or (not Proc.IsOverload) then
+          begin
+          Abort:=true;
+          exit;
+          end;
+        end
+      else
+        begin
+        // mode objfpc
+        if IsSameProcContext(Proc.Parent,Data^.LastProc.Parent) then
+          // mode objfpc: procs in same context have implicit overload
+        else
+          begin
+          // mode objfpc, different context
+          if not ProcHasGroupOverload(Data^.LastProc) then
+            begin
+            Abort:=true;
+            exit;
+            end;
+          end;
+        end;
 
       if (Data^.Distance=cExact) and (PrevProc.Parent<>Proc.Parent)
           and (PrevProc.Parent.ClassType=TPasClassType) then
@@ -2815,30 +2866,19 @@ begin
         end;
       end;
 
+    if (ProcScope.Mode=msDelphi) and not Proc.IsOverload then
+      Abort:=true; // stop searching after this proc
+
     CandidateFound:=true;
     Distance:=CheckCallProcCompatibility(Proc.ProcType,Data^.Params,false);
-    if msDelphi in CurrentParser.CurrentModeswitches then
-      begin
-      if (not Proc.IsOverload) then
-        Abort:=true; // mode delphi: without 'overload' stop search
-      end
-    else
-      begin
-      if (PrevProc<>nil) and (not PrevProc.IsOverload)
-          and not IsSameProcContext(PrevProc.Parent,Proc.Parent) then
-        begin
-        // mode ObjFPC: last proc had no 'overload' and was in another scope
-        //  -> abort and ignore this proc
-        Abort:=true;
-        exit;
-        end;
-      end;
 
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Proc Distance=',Distance,
       ' Data^.Found=',Data^.Found<>nil,' Data^.Distance=',ord(Data^.Distance),
-      ' Signature={',GetProcTypeDescription(Proc.ProcType,true,true),'}');
+      ' Signature={',GetProcTypeDescription(Proc.ProcType,true,true),'}',
+      ' Abort=',Abort);
     {$ENDIF}
+    Data^.LastProc:=Proc;
     end
   else if El is TPasType then
     begin
@@ -3047,7 +3087,7 @@ begin
     Abort:=true;
     if (El.CustomData is TResElDataBuiltInProc) then
       begin
-      if Data^.Proc.IsOverload then
+      if Data^.FoundOverloadModifier or Data^.Proc.IsOverload then
         exit; // no hint
       end;
     case Data^.Kind of
@@ -3060,7 +3100,7 @@ begin
         else
           // give a hint
           LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
-            [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+            [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
       fopkMethod:
         // method hides a non proc
         RaiseMsg(20171118232543,nDuplicateIdentifier,sDuplicateIdentifier,
@@ -3068,6 +3108,7 @@ begin
     end;
     exit;
     end;
+
   // identifier is a proc
   Proc:=TPasProcedure(El);
   if El=Data^.Proc then
@@ -3090,7 +3131,7 @@ begin
   writeln('TPasResolver.OnFindOverloadProc ',GetTreeDbg(El,2));
   {$ENDIF}
   Store:=CheckOverloadProcCompatibility(Data^.Proc,Proc);
-  if Data^.Kind=fopkFinishMethodBody then
+  if Data^.Kind=fopkSameSignature then
     // finding a proc with same signature is enough, see above Data^.OnlyScope
   else
     begin
@@ -3101,20 +3142,19 @@ begin
     if SameScope then
       begin
       // same scope
-      Store:=CheckOverloadProcCompatibility(Data^.Proc,Proc);
+      if (msObjfpc in CurrentParser.CurrentModeswitches) then
+        begin
+          if ProcHasGroupOverload(Data^.Proc) then
+            TPasProcedureScope(Proc.CustomData).IsGroupOverload:=true
+          else if ProcHasGroupOverload(Proc) then
+            TPasProcedureScope(Data^.Proc.CustomData).IsGroupOverload:=true;
+        end;
       if Store then
         begin
         // same scope, same signature
-        if (Data^.Kind=fopkProc)
-            and IsSameProcContext(Data^.Proc.Parent,Proc.Parent)
-            and ProcNeedsImplProc(Proc)
-            and (not ProcNeedsImplProc(Data^.Proc)) then
-          begin
-          // Proc is the forward declaration of Data^.Proc
-          end
-        else
-          RaiseMsg(20171118221821,nDuplicateIdentifier,sDuplicateIdentifier,
-                   [Proc.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+        // Note: forward declaration was already handled in FinishProcedureHeader
+        RaiseMsg(20171118221821,nDuplicateIdentifier,sDuplicateIdentifier,
+                  [Proc.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
         end
       else
         begin
@@ -3125,7 +3165,7 @@ begin
           if not Proc.IsOverload then
             RaiseMsg(20171118222112,nPreviousDeclMissesOverload,sPreviousDeclMissesOverload,
               [Proc.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
-          else if not Proc.IsOverload then
+          else if not Data^.Proc.IsOverload then
             RaiseMsg(20171118222147,nOverloadedProcMissesOverload,sOverloadedProcMissesOverload,
               [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
           end
@@ -3140,15 +3180,12 @@ begin
       begin
       // different scopes
       if Data^.Proc.IsOverride then
-        begin
-        Store:=CheckOverloadProcCompatibility(Data^.Proc,Proc);
-        end
-      else if not Data^.Proc.IsReintroduced then
+      else if Data^.Proc.IsReintroduced then
+      else
         begin
         if Store
             or ((Data^.FoundInSameScope=1) // missing 'overload' hints only for the first proc in a scope
-               and ((not Data^.FoundOverloadModifier)
-                or (not Proc.IsOverload))) then
+               and not ProcHasGroupOverload(Data^.Proc)) then
           begin
           // give a hint, that proc is hiding a proc in other scope
           if Data^.Kind=fopkMethod then
@@ -3157,7 +3194,7 @@ begin
               [Data^.Proc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
           else
             LogMsg(20171118214523,mtHint,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
-              [Proc.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+              [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
           Abort:=true;
           end;
         end;
@@ -3190,6 +3227,22 @@ begin
       exit(true);
     end;
   Result:=false;
+end;
+
+function TPasResolver.FindProcOverload(const ProcName: string;
+  Proc: TPasProcedure; OnlyScope: TPasScope): TPasProcedure;
+var
+  FindData: TFindOverloadProcData;
+  Abort: boolean;
+begin
+  FindData:=Default(TFindOverloadProcData);
+  FindData.Proc:=Proc;
+  FindData.Args:=Proc.ProcType.Args;
+  FindData.Kind:=fopkSameSignature;
+  FindData.OnlyScope:=OnlyScope;
+  Abort:=false;
+  OnlyScope.IterateElements(ProcName,OnlyScope,@OnFindOverloadProc,@FindData,Abort);
+  Result:=FindData.Found;
 end;
 
 procedure TPasResolver.SetCurrentParser(AValue: TPasParser);
@@ -3895,29 +3948,45 @@ begin
       end;
 
     // finish interface/implementation/nested procedure
+    //writeln('TPasResolver.FinishProcedureType FindForward1 ',ProcName,' IsOverload=',Proc.IsOverload,' IsForward=',Proc.IsForward,' ArgCnt=',Proc.ProcType.Args.Count,' ProcNeedsBody=',ProcNeedsBody(Proc));
+    if ProcNeedsBody(Proc) then
+      begin
+      // check if there is a forward declaration
+      ParentScope:=Scopes[ScopeCount-2];
+      //writeln('TPasResolver.FinishProcedureType FindForward2 ',GetObjName(ParentScope));
+      DeclProc:=FindProcOverload(ProcName,Proc,ParentScope);
+      //writeln('TPasResolver.FinishProcedureType FindForward3 ',GetObjName(DeclProc),' Proc.Parent=',GetObjName(Proc.Parent));
+      if (DeclProc=nil) and (Proc.Parent.ClassType=TImplementationSection) then
+        DeclProc:=FindProcOverload(ProcName,Proc,
+          (Proc.GetModule.InterfaceSection.CustomData) as TPasScope);
+      //writeln('TPasResolver.FinishProcedureType FindForward4 ',GetObjName(DeclProc));
+      if (DeclProc<>nil) and ProcNeedsImplProc(DeclProc) then
+        begin
+        // found forward declaration -> connect
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.FinishProcedureHeader forward found: Proc2=',GetTreeDbg(DeclProc),' ',GetElementSourcePosStr(DeclProc),' IsForward=',DeclProc.IsForward,' Parent=',GetObjName(DeclProc.Parent));
+        {$ENDIF}
+        CheckProcSignatureMatch(DeclProc,Proc,true);
+        DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
+        DeclProcScope.ImplProc:=Proc;
+        ProcScope:=Proc.CustomData as TPasProcedureScope;
+        ProcScope.DeclarationProc:=DeclProc;
+        // remove ImplProc from scope
+        ParentScope:=Scopes[ScopeCount-2];
+        (ParentScope as TPasIdentifierScope).RemoveLocalIdentifier(Proc);
+        // replace arguments with declaration arguments
+        ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
+        exit;
+        end;
+      end;
+
+    // check for invalid overloads
     FindData:=Default(TFindOverloadProcData);
     FindData.Proc:=Proc;
     FindData.Args:=Proc.ProcType.Args;
     FindData.Kind:=fopkProc;
     Abort:=false;
     IterateElements(ProcName,@OnFindOverloadProc,@FindData,Abort);
-    if FindData.Found=nil then
-      exit; // no forward definition found -> ok
-
-    DeclProc:=FindData.Found;
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FinishProcedureHeader forward found: Proc2=',GetTreeDbg(DeclProc),' ',GetElementSourcePosStr(DeclProc),' IsForward=',DeclProc.IsForward,' Parent=',GetObjName(DeclProc.Parent));
-    {$ENDIF}
-    CheckProcSignatureMatch(DeclProc,Proc,true);
-    DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
-    DeclProcScope.ImplProc:=Proc;
-    ProcScope:=Proc.CustomData as TPasProcedureScope;
-    ProcScope.DeclarationProc:=DeclProc;
-    // remove ImplProc from scope
-    ParentScope:=Scopes[ScopeCount-2];
-    (ParentScope as TPasIdentifierScope).RemoveLocalIdentifier(Proc);
-    // replace arguments with declaration arguments
-    ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
     end
   else if El.Name<>'' then
     begin
@@ -4006,8 +4075,6 @@ procedure TPasResolver.FinishMethodImplHeader(ImplProc: TPasProcedure);
 var
   ProcName: String;
   CurClassType: TPasClassType;
-  FindData: TFindOverloadProcData;
-  Abort: boolean;
   ImplProcScope, DeclProcScope: TPasProcedureScope;
   DeclProc: TPasProcedure;
   CurClassScope: TPasClassScope;
@@ -4041,18 +4108,12 @@ begin
   if CurClassScope=nil then
     RaiseInternalError(20161013172346);
   CurClassType:=NoNil(CurClassScope.Element) as TPasClassType;
-  FindData:=Default(TFindOverloadProcData);
-  FindData.Proc:=ImplProc;
-  FindData.Args:=ImplProc.ProcType.Args;
-  FindData.OnlyScope:=CurClassScope;
-  FindData.Kind:=fopkFinishMethodBody;
-  Abort:=false;
-  CurClassScope.IterateElements(ProcName,CurClassScope,@OnFindOverloadProc,@FindData,Abort);
-  if FindData.Found=nil then
+
+  DeclProc:=FindProcOverload(ProcName,ImplProc,CurClassScope);
+  if DeclProc=nil then
     RaiseIdentifierNotFound(20170216151720,ImplProc.Name,ImplProc.ProcType);
 
   // connect method declaration and body
-  DeclProc:=FindData.Found;
   if DeclProc.IsAbstract then
     RaiseMsg(20170216151722,nAbstractMethodsMustNotHaveImplementation,sAbstractMethodsMustNotHaveImplementation,[],ImplProc);
   if DeclProc.IsExternal then
@@ -6632,6 +6693,10 @@ begin
   if not HasDot then
     AddIdentifier(TPasIdentifierScope(TopScope),ProcName,El,pikProc);
   ProcScope:=TPasProcedureScope(PushScope(El,FScopeClass_Proc));
+  if msDelphi in CurrentParser.CurrentModeswitches then
+    ProcScope.Mode:=msDelphi
+  else
+    ProcScope.Mode:=msObjfpc;
   if HasDot then
     begin
     // method implementation -> search class

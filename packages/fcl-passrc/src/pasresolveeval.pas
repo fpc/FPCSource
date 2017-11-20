@@ -171,7 +171,7 @@ resourcestring
   sCallingConventionMismatch = 'Calling convention mismatch';
   sResultTypeMismatchExpectedButFound = 'Result type mismatch, expected %s, but found %s';
   sFunctionHeaderMismatchForwardVarName = 'function header "%s" doesn''t match forward : var name changes %s => %s';
-  sFunctionHidesIdentifier = 'function hides identifier "%s" at "%s"';
+  sFunctionHidesIdentifier = 'function hides identifier at "%s"';
   sNoMethodInAncestorToOverride = 'There is no method in an ancestor class to be overridden "%s"';
   sInheritedOnlyWorksInMethods = 'Inherited works only in methods';
   sInheritedNeedsAncestor = 'inherited needs an ancestor';
