@@ -3355,7 +3355,11 @@ implementation
             &40,&41,&42 :    // 040..042
               begin
                 getvalsym(c-&40);
-                if assigned(currsym) then
+                if assigned(currsym)
+{$ifdef i8086}
+                   or (currabsreloc in [RELOC_DGROUP,RELOC_FARDATASEG])
+{$endif i8086}
+                then
                  objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
                  objdata.writebytes(currval,4);
