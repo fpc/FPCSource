@@ -302,6 +302,8 @@ BEGIN
   (*$ENDIF *) (*$WARNINGS ON *)
   (*$IFDEF Unix *)
      IF SearchRec.Attr AND faDirectory = 0 THEN BEGIN
+       FillChar(TimeVal, SizeOf(TimeVal), #0);
+       FillChar(TimeZone, SizeOf(TimeZone), #0);      
        Result := FileDateToDateTime (SearchRec.Time);
        {$IFDEF Kylix}
        GetTimeOfDay (TimeVal, TimeZone);
