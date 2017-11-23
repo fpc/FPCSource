@@ -38,3 +38,41 @@
   {$fatal No memory model defined}
 {$endif}
 
+{$ifndef FPC_UNIT_HAS_STREND}
+{$define FPC_UNIT_HAS_STREND}
+function strend(p : pchar) : pchar;assembler;nostackframe;
+const
+  { used for an offset fixup for accessing the proc parameters in asm routines
+    that use nostackframe. We can't use the parameter name directly, because
+    i8086 doesn't support sp relative addressing. }
+{$ifdef FPC_X86_CODE_FAR}
+  extra_param_offset = 2;
+{$else FPC_X86_CODE_FAR}
+  extra_param_offset = 0;
+{$endif FPC_X86_CODE_FAR}
+asm
+  mov bx, sp
+  xor ax, ax
+{$ifdef FPC_X86_DATA_NEAR}
+  mov dx, ds
+  mov es, dx
+  mov di, ss:[bx + 2 + extra_param_offset]  // @p
+  or di, di
+  jz @@LStrEndNil
+{$else FPC_X86_DATA_NEAR}
+  les di, ss:[bx + 2 + extra_param_offset]  // @p
+  mov dx, es
+  mov cx, dx
+  or cx, di
+  jz @@LStrEndNil
+{$endif FPC_X86_DATA_NEAR}
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  mov cx, 0ffffh
+  repne scasb
+  mov ax, di
+  dec ax
+@@LStrEndNil:
+end;
+{$endif FPC_UNIT_HAS_STREND}
