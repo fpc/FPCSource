@@ -171,7 +171,6 @@ asm
         orl     %edi,%edi
         jz      .LStrEndNil
         movl    $0xffffffff,%ecx
-        xorl    %eax,%eax
         repne
         scasb
         movl    %edi,%eax
