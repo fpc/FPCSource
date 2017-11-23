@@ -183,7 +183,7 @@ end;
 
 
 
-{$ifndef FPC_UNIT_HAS_STREND}
+{$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
 var
@@ -212,7 +212,7 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
-{$endif FPC_UNIT_HAS_STREND}
+{$endif FPC_UNIT_HAS_STRCOMP}
 
 
 
