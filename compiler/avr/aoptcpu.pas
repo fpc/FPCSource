@@ -773,22 +773,20 @@ Implementation
                         op ry,rz
                     }
                     else if (taicpu(p).ops=2) and
-                       (taicpu(p).oper[0]^.typ = top_reg) and
-                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       MatchOpType(taicpu(p),top_reg,top_reg) and
                        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                        (hp1.typ=ait_instruction) and
                        (taicpu(hp1).ops >= 1) and
                        (taicpu(hp1).oper[0]^.typ = top_reg) and
                        GetNextInstructionUsingReg(hp1,hp2,taicpu(hp1).oper[0]^.reg) and
-                       (hp2.typ=ait_instruction) and
-                       (taicpu(hp2).opcode=A_MOV) and
-                       (taicpu(hp2).oper[0]^.typ = top_reg) and
-                       (taicpu(hp2).oper[1]^.typ = top_reg) and
+                       MatchInstruction(hp2,A_MOV) and
+                       MatchOpType(taicpu(hp2),top_reg,top_reg) and
                        (taicpu(hp2).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
                        (taicpu(hp2).oper[1]^.reg = taicpu(hp1).oper[0]^.reg) and
                        (taicpu(hp2).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
                        (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp2)) and
                        (taicpu(hp1).opcode in [A_ADD,A_ADC,A_SUB,A_SBC,A_AND,A_OR,A_EOR,
+                                               A_INC,A_DEC,
                                                A_LSL,A_LSR,A_ASR,A_ROR,A_ROL]) and
                        assigned(FindRegDeAlloc(taicpu(p).oper[0]^.reg, tai(hp2.Next))) then
                       begin
@@ -832,18 +830,15 @@ Implementation
                         op rw,ry
                     }
                     else if (taicpu(p).ops=2) and
-                       (taicpu(p).oper[0]^.typ = top_reg) and
-                       (taicpu(p).oper[1]^.typ = top_reg) and
+                       MatchOpType(taicpu(p),top_reg,top_reg) and
                        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                        (hp1.typ=ait_instruction) and
                        (taicpu(hp1).ops = 2) and
-                       (taicpu(hp1).oper[0]^.typ = top_reg) and
-                       (taicpu(hp1).oper[1]^.typ = top_reg) and
+                       MatchOpType(taicpu(hp1),top_reg,top_reg) and
                        GetNextInstructionUsingReg(hp1,hp2,taicpu(hp1).oper[0]^.reg) and
                        (hp2.typ=ait_instruction) and
                        (taicpu(hp2).opcode=A_MOV) and
-                       (taicpu(hp2).oper[0]^.typ = top_reg) and
-                       (taicpu(hp2).oper[1]^.typ = top_reg) and
+                       MatchOpType(taicpu(hp2),top_reg,top_reg) and
                        (taicpu(hp2).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
                        (taicpu(hp2).oper[1]^.reg = taicpu(hp1).oper[0]^.reg) and
                        (taicpu(hp2).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
