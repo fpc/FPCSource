@@ -1179,9 +1179,8 @@ var RefCount : integer;
 procedure InitializeCups;
 var i : integer;
 begin
-  inc(RefCount);
   //debugln('InitializeCups RefCount=',dbgs(RefCount));
-  if RefCount = 1 then
+  if InterLockedIncrement(RefCount)=1 then
   begin
     for i:=0 to MaxcupsLibs do
     begin
@@ -1193,7 +1192,7 @@ begin
     if CupsLibHandle = nilhandle then
     begin
       //debugln('InitializeCups load cups lib failed');
-      RefCount := 0;
+      InterLockedDecrement(RefCount);
       raise EInOutError.Create('Can not load cups library');
     end;
   end;
@@ -1361,13 +1360,11 @@ end;
 procedure FinalizeCups;
 begin
   //debugln('* FinalizeCups');
-  if RefCount>0 then
-    Dec(RefCount);
-    
-  if RefCount=0 then
+
+  if InterLockedDecrement(RefCount)=0 then
   begin
     if (CupsLibHandle<>NilHandle) and not UnloadLibrary(CupsLibHandle) then
-      Inc(RefCount)
+      InterLockedIncrement(RefCount)
     else
       CupsLibHandle := NilHandle;
   end;
