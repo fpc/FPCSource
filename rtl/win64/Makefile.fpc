@@ -23,7 +23,8 @@ implicitunits=sysinit ctypes strings \
       cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
       cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
       cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
-      unicodedata unicodenumtable
+      unicodedata unicodenumtable \
+      sfpux80
 
 # mmx
 #      fpcmemdll
@@ -126,3 +127,4 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT) buildrtl$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT) buildrtl$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
+

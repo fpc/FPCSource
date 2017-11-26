@@ -254,7 +254,7 @@ Implementation
 {$else}
 {$ifdef FPC_SOFT_FPUX80}
       sfpux80,
-{$endif}
+{$endif FPC_SOFT_FPUX80}
 {$endif}
       cscript,fmodule,verbose,
       cpuinfo,
@@ -1070,15 +1070,17 @@ Implementation
                 writer.AsmWriteLn(asminfo^.comment+'value: '+extended2str(tai_realconst(hp).value.s80val));
 {$else}
 {$ifdef FPC_SOFT_FPUX80}
+{$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
              aitrealconst_s80bit:
-	    begin
-	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
-                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s80val))
-	      else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
-                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
-	      else
-		internalerror(2017091901);
-	    end;
+               begin
+     	         if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
+                   writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_realconst(hp).value.s80val))
+     	         else if sizeof(tai_realconst(hp).value.s80val) = sizeof(single) then
+                   writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_realconst(hp).value.s80val))
+                else
+     	         internalerror(2017091901);
+       	      end;
+{$pop}
 {$endif}
 {$endif cpuextended}
               aitrealconst_s64comp:
@@ -1111,6 +1113,7 @@ Implementation
             end;
 {$else}
 {$ifdef FPC_SOFT_FPUX80}
+{$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
           aitrealconst_s80bit:
             begin
 	      if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
@@ -1121,6 +1124,7 @@ Implementation
 	        internalerror(2017091901);
               pdata:=@eextended;
             end;
+{$pop}
 {$endif}
 {$endif cpuextended}
           aitrealconst_s64comp:
@@ -1891,6 +1895,7 @@ Implementation
                      end;
          {$else}
          {$ifdef FPC_SOFT_FPUX80}
+           {$push}{$warn 6018 off} { Unreachable code due to compile time evaluation }
                    aitrealconst_s80bit:
                      begin
 		       if sizeof(tai_realconst(hp).value.s80val) = sizeof(double) then
@@ -1901,6 +1906,7 @@ Implementation
 			 internalerror(2017091901);
                        pdata:=@eextended;
                      end;
+           {$pop}
 	 {$endif}
          {$endif cpuextended}
                    aitrealconst_s64comp:

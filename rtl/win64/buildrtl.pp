@@ -14,7 +14,7 @@ unit buildrtl;
       charset, character, getopts,
       fpwidestring,
       sharemem, exeinfo, fpintres, windirs,
-      cpu, signals;
+      cpu, signals, sfpux80;
 
   implementation
 
