@@ -1325,11 +1325,14 @@ end;
 {$ifndef FPC_HAS_UPCASE_UNICODECHAR}
 {$define FPC_HAS_UPCASE_UNICODECHAR}
 Function  UpCase(c:UnicodeChar):UnicodeChar;
-var
-  s : UnicodeString;
 begin
-  s:=c;
-  result:=widestringmanager.UpperUnicodeStringProc(s)[1];
+  if (word(c)>=Ord('a')) and (word(c)<=Ord('z')) then
+    Result:= UnicodeChar(word(c)-32)
+  else
+  if word(c)>=128 then
+    Result:= widestringmanager.UpperUnicodeStringProc(UnicodeString(c))[1]
+  else
+    Result:= c;
 end;
 {$endif FPC_HAS_UPCASE_UNICODECHAR}
 
@@ -1346,11 +1349,14 @@ end;
 {$ifndef FPC_HAS_LOWERCASE_UNICODECHAR}
 {$define FPC_HAS_LOWERCASE_UNICODECHAR}
 Function  LowerCase(c:UnicodeChar):UnicodeChar;
-var
-  s : UnicodeString;
 begin
-  s:=c;
-  result:=widestringmanager.LowerUnicodeStringProc(s)[1];
+  if (word(c)>=Ord('A')) and (word(c)<=Ord('Z')) then
+    Result:= UnicodeChar(word(c)+32)
+  else
+  if word(c)>=128 then
+    Result:= widestringmanager.LowerUnicodeStringProc(UnicodeString(c))[1]
+  else
+    Result:= c;
 end;
 {$endif FPC_HAS_LOWERCASE_UNICODECHAR}
 
