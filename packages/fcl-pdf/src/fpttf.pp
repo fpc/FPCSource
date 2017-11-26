@@ -129,7 +129,8 @@ uses
   DOM
   ,XMLRead
   {$ifdef mswindows}
-  ,Windows  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
+  ,Windows,  // for SHGetFolderPath API call used by gTTFontCache.ReadStandardFonts() method
+  Shlobj,activex
   {$endif}
   ;
 
@@ -517,12 +518,13 @@ procedure TFPFontCacheList.ReadStandardFonts;
   {$endif}
 
   {$ifdef mswindows}
-  function GetWinDir: string;
+  function GetWinFontsDir: string;
   var
-    dir: array [0..MAX_PATH] of Char;
+    w : pwidechar;
   begin
-    GetWindowsDirectory(dir, MAX_PATH);
-    Result := StrPas(dir);
+    SHGetKnownFolderPath(FOLDERID_Fonts,0,0,w);
+    Result := w;
+    CoTaskMemFree(w);
   end;
   {$endif}
 
@@ -556,7 +558,7 @@ begin
   {$endif}
 
   {$ifdef mswindows}
-  SearchPath.Add(GetWinDir);
+  SearchPath.Add(GetWinFontsDir);
   {$endif}
 
   {$ifdef darwin} // OSX

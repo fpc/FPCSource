@@ -25,7 +25,7 @@ interface
 uses
       windows,activex,shellapi,commctrl;
 
-Const 
+Const
    IID_IShellExtInit   : TGUID ='{000214E8-0000-0000-C000-000000000046}';
    IID_IShellFolder    : TGUID ='{000214E6-0000-0000-C000-000000000046}';
    IID_IEnumList       : TGUID ='{000214F2-0000-0000-C000-000000000046}';
@@ -216,6 +216,8 @@ Const
    CLSID_ShellItem                     : TGUID = '{9ac9fbe1-e0a2-4ad6-b4ee-e212013ea917}';
    CLSID_FileOpenDialog                : TGUID = '{DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7}';
    CLSID_FileSaveDialog                : TGUID = '{C0B4E2F3-BA21-4773-8DBA-335EC946EB8B}';
+
+   FOLDERID_Fonts                      : TGUID = '{FD228CB7-AE11-4AE3-864C-16F3910AB8FE}';
 
 Const
   SV2GV_CURRENTVIEW  = DWORD(-1);
@@ -550,9 +552,9 @@ Const
   SHCNF_DWORD       = $0003;        // DWORD
   SHCNF_PATHW       = $0005;        // path name
   SHCNF_PRINTERW    = $0006;        // printer friendly name
-  SHCNF_TYPE        = $00FF;  
-  SHCNF_FLUSH       = $1000;  
-  SHCNF_FLUSHNOWAIT = $2000;  
+  SHCNF_TYPE        = $00FF;
+  SHCNF_FLUSH       = $1000;
+  SHCNF_FLUSHNOWAIT = $2000;
   QITIPF_DEFAULT          = $00000000;
   QITIPF_USENAME          = $00000001;
   QITIPF_LINKNOTARGET     = $00000002;
@@ -661,7 +663,7 @@ Const
   PUIFFDF_FRIENDLYDATE    = $00000008;   // "Today", "Yesterday", etc
   PUIFFDF_NOUNITS         = $00000010;   // don't do "KB", "MB", "KHz"
   CATINFO_NORMAL          = $00000000;   // Apply default properties to this category
-  CATINFO_COLLAPSED       = $00000001;   // This category should appear collapsed. useful for the "None" category. 
+  CATINFO_COLLAPSED       = $00000001;   // This category should appear collapsed. useful for the "None" category.
   CATINFO_HIDDEN          = $00000002;   // This category should follow the "Hidden" files setting for being displayed
   CATSORT_DEFAULT         = $00000000;   // Default Sort order
   CATSORT_NAME            = $00000001;   // Sort by name
@@ -680,17 +682,17 @@ Const
   SPINITF_NORMAL          = $00000000;      // default normal progress behavior
   SPINITF_MODAL           = $00000001;      // call punkSite->EnableModeless() or EnableWindow()
   SPINITF_NOMINIMIZE      = $00000008;      // Do not have a minimize button in the caption bar.
-  ARCONTENT_AUTORUNINF    = $00000002; // That's the one we have today, and always had 
-  ARCONTENT_AUDIOCD       = $00000004; // Audio CD (not MP3 and the like, the stuff you buy at the store) 
-  ARCONTENT_DVDMOVIE      = $00000008; // DVD Movie (not MPEGs, the stuff you buy at the store) 
-  ARCONTENT_BLANKCD       = $00000010; // Blank CD-R/CD-RW 
-  ARCONTENT_BLANKDVD      = $00000020; // Blank DVD-R/DVD-RW 
+  ARCONTENT_AUTORUNINF    = $00000002; // That's the one we have today, and always had
+  ARCONTENT_AUDIOCD       = $00000004; // Audio CD (not MP3 and the like, the stuff you buy at the store)
+  ARCONTENT_DVDMOVIE      = $00000008; // DVD Movie (not MPEGs, the stuff you buy at the store)
+  ARCONTENT_BLANKCD       = $00000010; // Blank CD-R/CD-RW
+  ARCONTENT_BLANKDVD      = $00000020; // Blank DVD-R/DVD-RW
   ARCONTENT_UNKNOWNCONTENT= $00000040; // Whatever files.  Mean that it's formatted.
   ARCONTENT_AUTOPLAYPIX   = $00000080; // Whatever files.  Mean that it's formatted.
   ARCONTENT_AUTOPLAYMUSIC = $00000100; // Whatever files.  Mean that it's formatted.
   ARCONTENT_AUTOPLAYVIDEO = $00000200; // Whatever files.  Mean that it's formatted.
   SPBEGINF_NORMAL         = $00000000;      // default normal progress behavior
-  SPBEGINF_AUTOTIME       = $00000002;      // automatically updates the "time remaining" text 
+  SPBEGINF_AUTOTIME       = $00000002;      // automatically updates the "time remaining" text
   SPBEGINF_NOPROGRESSBAR  = $00000010;      // Don't display the progress bar (SetProgress() wont be called)
   SPBEGINF_MARQUEEPROGRESS= $00000020;      // use marquee progress (comctl32 v6 required)
   EXPPS_FILETYPES         = $00000001;
@@ -796,9 +798,9 @@ Const
   SIGDN_DESKTOPABSOLUTEEDITING    = $8004c000;
   SIGDN_FILESYSPATH               = $80058000;
   SIGDN_URL                       = $80068000;
-  SICHINT_DISPLAY         = $00000000;   
-  SICHINT_ALLFIELDS       = $80000000;   
-  SICHINT_CANONICAL       = $10000000;   
+  SICHINT_DISPLAY         = $00000000;
+  SICHINT_ALLFIELDS       = $80000000;
+  SICHINT_CANONICAL       = $10000000;
   BFO_NONE                            = $00000000;      // Do nothing.
   BFO_BROWSER_PERSIST_SETTINGS        = $00000001;      // Does this item want the browser stream? (Same window position as IE browser windows?)
   BFO_RENAME_FOLDER_OPTIONS_TOINTERNET= $00000002;     // Rename "Folder Options" to "Internet Options" in the Tools or View menu?
@@ -863,19 +865,19 @@ Const
   SMC_PROMOTE             = $00000012;  // Promote an item, wParam = SMINV_* flag
   SMC_DEFAULTICON         = $00000016;  // Returns Default icon location in wParam, index in lParam
   SMC_NEWITEM             = $00000017;  // Notifies item is not in the order stream.
-  SMC_CHEVRONEXPAND       = $00000019;  // Notifies of a expansion via the chevron 
-  SMC_DISPLAYCHEVRONTIP   = $0000002A;  // S_OK display, S_FALSE not. 
+  SMC_CHEVRONEXPAND       = $00000019;  // Notifies of a expansion via the chevron
+  SMC_DISPLAYCHEVRONTIP   = $0000002A;  // S_OK display, S_FALSE not.
   SMC_SETSFOBJECT         = $0000002D;  // Called to save the passed object
   SMC_SHCHANGENOTIFY      = $0000002E;  // Called when a Change notify is received. lParam points to SMCSHCHANGENOTIFYSTRUCT
   SMC_CHEVRONGETTIP       = $0000002F;  // Called to get the chevron tip text. wParam = Tip title, Lparam = TipText Both MAX_PATH
   SMC_SFDDRESTRICTED      = $00000030;  // Called requesting if it's ok to drop. wParam = IDropTarget.
   ATTACHMENT_PROMPT_NONE  = $0000;
   ATTACHMENT_PROMPT_SAVE  = $0001;
-  ATTACHMENT_PROMPT_EXEC  = $0002;             
-  ATTACHMENT_PROMPT_EXEC_OR_SAVE      = $0003;             
-  ATTACHMENT_ACTION_CANCEL= $0000; 
+  ATTACHMENT_PROMPT_EXEC  = $0002;
+  ATTACHMENT_PROMPT_EXEC_OR_SAVE      = $0003;
+  ATTACHMENT_ACTION_CANCEL= $0000;
   ATTACHMENT_ACTION_SAVE  = $0001;
-  ATTACHMENT_ACTION_EXEC  = $0002;             
+  ATTACHMENT_ACTION_EXEC  = $0002;
   SMINIT_DEFAULT          = $00000000;  // No Options
   SMINIT_RESTRICT_DRAGDROP= $00000002;  // Don't allow Drag and Drop
   SMINIT_TOPLEVEL         = $00000004;  // This is the top band.
@@ -919,7 +921,7 @@ Const
   FOS_FORCEPREVIEWPANEON  = $40000000;
   SHGFP_TYPE_CURRENT      =  0;   // shgetfolderpath, current value for user, verify it exists
   SHGFP_TYPE_DEFAULT  	  =  1;   // shgetfolderpath, default value, may not exist
-   
+
   SHGDN_NORMAL         = $0000;
   SHGDN_INFOLDER       = $0001;
   SHGDN_FOREDITING     = $1000;
@@ -986,7 +988,7 @@ Type
       PSIGDN     = ^SIGDN;
       SICHINTF   = longint;
       TSICHINTF  = SICHINTF;
-      PSICHINTF  = ^SICHINTF; 
+      PSICHINTF  = ^SICHINTF;
 
 
       PROPERTYUI_NAME_FLAGS = DWord; // enum
@@ -1087,7 +1089,7 @@ Type
 
      PNT_CONSOLE_PROPS = ^NT_CONSOLE_PROPS;
      NT_CONSOLE_PROPS = record
-          dbh : DATABLOCK_HEADER;      
+          dbh : DATABLOCK_HEADER;
           wFillAttribute : WORD;         { fill attribute for console }
           wPopupFillAttribute : WORD;    { fill attribute for console popups }
           dwScreenBufferSize : COORD;    { screen buffer size for console }
@@ -1165,19 +1167,19 @@ Type
           punkRel :  IUnknown;                                  { Relese this interface when window is visible }
                                                                 { Stuff that might be returned from viewer (out) }
           strNewFile : array[0..(MAX_PATH)-1] of OLECHAR;       { New File to view. }
-       end;                                                     
+       end;
      TFVSHOWINFO = FVSHOWINFO;
      LPFVSHOWINFO = PFVSHOWINFO;
      PLPFVSHOWINFO = ^LPFVSHOWINFO;
 
      PSHFOLDERCUSTOMSETTINGSA = ^SHFOLDERCUSTOMSETTINGSA;
      SHFOLDERCUSTOMSETTINGSA = record
-          dwSize : DWORD;                             
-          dwMask : DWORD;                            { IN/OUT   Which Attributes to Get/Set }             
+          dwSize : DWORD;
+          dwMask : DWORD;                            { IN/OUT   Which Attributes to Get/Set }
           pvid : PSHELLVIEWID;                       { OUT - if dwReadWrite is FCS_READ, IN - otherwise }
                                                      { The folder's WebView template path }
-          pszWebViewTemplate : LPSTR;                { OUT - if dwReadWrite is FCS_READ, IN - otherwise }  
-          cchWebViewTemplate : DWORD;                { IN - Specifies the size of the buffer pointed to by pszWebViewTemplate }            
+          pszWebViewTemplate : LPSTR;                { OUT - if dwReadWrite is FCS_READ, IN - otherwise }
+          cchWebViewTemplate : DWORD;                { IN - Specifies the size of the buffer pointed to by pszWebViewTemplate }
           pszWebViewTemplateVersion : LPSTR;         { Ignored if dwReadWrite is FCS_READ }
           pszInfoTip : LPSTR;                        { currently IN only }
           cchInfoTip : DWORD;                        { Infotip for the folder }
@@ -1238,7 +1240,7 @@ Type
           pszDisplayName : LPSTR;    { Return display name of item selected. }
           lpszTitle : LPCSTR;        { text to go in the banner over the tree. }
           ulFlags : UINT;            { Flags that control the return stuff }
-          lpfn : BFFCALLBACK;        
+          lpfn : BFFCALLBACK;
           lParam : LPARAM;           { extra info that's passed back in callbacks }
           iImage : longint;          { output var: where to return the Image index. }
        end;
@@ -1255,7 +1257,7 @@ Type
           pszDisplayName : LPWSTR;    { Return display name of item selected. }
           lpszTitle : LPCWSTR;        { text to go in the banner over the tree. }
           ulFlags : UINT;             { Flags that control the return stuff }
-          lpfn : BFFCALLBACK;         
+          lpfn : BFFCALLBACK;
           lParam : LPARAM;            { extra info that's passed back in callbacks }
           iImage : longint;           { output var: where to return the Image index. }
        end;
@@ -1352,7 +1354,7 @@ Type
 
      PLPCCOMPPOS = ^LPCCOMPPOS;
      LPCCOMPPOS = COMPPOS;
-  
+
      _tagCOMPSTATEINFO = record
           dwSize : DWORD;             { Size of this structure. }
           iLeft : longint;            { Left of the top-left corner in screen co-ordinates. }
@@ -1370,7 +1372,7 @@ Type
      LPCCOMPSTATEINFO = COMPSTATEINFO;
 
      _tagIE4COMPONENT = record
-          dwSize : DWORD;                  {Size of this structure }                                       
+          dwSize : DWORD;                  {Size of this structure }
           dwID : DWORD;                    {Reserved: Set it always to zero. }
           iComponentType : longint;        {One of COMP_TYPE_* }
           fChecked : BOOL;                 { Is this component enabled? }
@@ -1429,7 +1431,7 @@ Type
      PLPSHCOLUMNINFO = ^LPSHCOLUMNINFO;
 
      PSHCOLUMNINIT = ^SHCOLUMNINIT;
-     SHCOLUMNINIT = record                             
+     SHCOLUMNINIT = record
           dwFlags : ULONG;                               { initialization flags }
           dwReserved : ULONG;                            { reserved for future use. }
           wszFolder : array[0..(MAX_PATH)-1] of WCHAR;   { fully qualified folder path (or empty if multiple folders) }
@@ -1455,7 +1457,7 @@ Type
 
      PLPCSHCOLUMNDATA = ^LPCSHCOLUMNDATA;
      LPCSHCOLUMNDATA = SHCOLUMNDATA;
-  
+
      PSHDRAGIMAGE = ^SHDRAGIMAGE;
      SHDRAGIMAGE = record
           sizeDragImage : SIZE;     { OUT - The length and Width of the rendered image }
@@ -1645,7 +1647,7 @@ Type
      PLPSHDESCRIPTIONID = ^LPSHDESCRIPTIONID;
 
   const
-     NUM_POINTS = 3;     
+     NUM_POINTS = 3;
   { asd }
 
   type
@@ -1661,7 +1663,7 @@ Type
      TAUTO_SCROLL_DATA = AUTO_SCROLL_DATA;
 
      PCABINETSTATE = ^CABINETSTATE;
-     CABINETSTATE = record 
+     CABINETSTATE = record
           cLength : WORD;            { NT: Show compressed volumes in a different colour }
           nVersion : WORD;           { NT: Do 8.3 name conversion, or not! }
           flag0 : word;              { NT: Administrators create comon groups }
@@ -1673,7 +1675,7 @@ Type
 
 
 
-     FOLDERSettings = Packed Record 
+     FOLDERSettings = Packed Record
                         ViewMode : UINT;       // View mode (FOLDERVIEWMODE values)
                         fFlags   : UINT;       // View options (FOLDERFLAGS bits)
                       end;
@@ -1681,7 +1683,7 @@ Type
      PFOLDERSettings = ^FOLDERSettings;
      LPFOLDERSettings= PFOLDERSettings;
      LPCFOLDERSettings= LPFOLDERSettings;
-     PSV2CVW2_PARAMS = ^TSV2CVW2_PARAMS; 
+     PSV2CVW2_PARAMS = ^TSV2CVW2_PARAMS;
      TSV2CVW2_PARAMS = packed record  // actually  <pshpack8.h>")
           cbSize    : DWORD;
           psvPrev   : IShellView;
@@ -1719,6 +1721,10 @@ Type
       SHCOLSTATEF = DWORD;
       PSHCOLSTATEF = ^SHCOLSTATEF;
       TSHCOLSTATEF = SHCOLSTATEF;
+
+      KNOWNFOLDERID = TGUID;
+
+      REFKNOWNFOLDERID = ^KNOWNFOLDERID;
 
       PLPITEMIDLIST = ^LPITEMIDLIST;
 
@@ -1926,7 +1932,7 @@ Type
    PFDE_OVERWRITE_RESPONSE      = ^longint;
    FDE_SHAREVIOLATION_RESPONSE  = longint;
    TFDE_SHAREVIOLATION_RESPONSE = FDE_SHAREVIOLATION_RESPONSE;
-   PFDE_SHAREVIOLATION_RESPONSE = ^FDE_SHAREVIOLATION_RESPONSE;    
+   PFDE_SHAREVIOLATION_RESPONSE = ^FDE_SHAREVIOLATION_RESPONSE;
    FILEOPENDIALOGOPTIONS        = longint;
    TFILEOPENDIALOGOPTIONS       = FILEOPENDIALOGOPTIONS;
    PFILEOPENDIALOGOPTIONS       = ^TFILEOPENDIALOGOPTIONS;
@@ -1955,7 +1961,7 @@ Type
 
    IPersistIDList = Interface(IPersist)
         ['{1079acfc-29bd-11d3-8e0d-00c04f6837d5}']
-         function SetIdList(pid:LPCITEMIDLIST):HResult;StdCall; 
+         function SetIdList(pid:LPCITEMIDLIST):HResult;StdCall;
         function GetIdList(out pid:LPCITEMIDLIST):HResult;StdCall;
         end;
 
@@ -1996,12 +2002,12 @@ Type
    IShellFolder2 = interface(IShellFolder)
      ['{93F2F68C-1D1B-11d3-A30E-00C04F79ABD1}']
       function GetDefaultSearchGUID(out guid:TGUID):HResult;StdCall;
-      function EnumSearches(out ppenum:IEnumExtraSearch):HResult;StdCall;    
-      function GetDefaultColumn(dwres:DWORD;psort :pulong; pdisplay:pulong):HResult;StdCall;   
-      function GetDefaultColumnState(icolumn:UINT;pscflag:PSHCOLSTATEF):HResult;StdCall;   
-      function GetDetailsEx(pidl:LPCITEMIDLIST;pscid:PSHCOLUMNID; pv : pOLEvariant):HResult;StdCall;   
-      function GetDetailsOf(pidl:LPCITEMIDLIST;iColumn:UINT;psd:PSHELLDETAILS):HResult;StdCall;   
-      function MapColumnToSCID(iColumn:UINT;pscid:PSHCOLUMNID):HResult;StdCall;   
+      function EnumSearches(out ppenum:IEnumExtraSearch):HResult;StdCall;
+      function GetDefaultColumn(dwres:DWORD;psort :pulong; pdisplay:pulong):HResult;StdCall;
+      function GetDefaultColumnState(icolumn:UINT;pscflag:PSHCOLSTATEF):HResult;StdCall;
+      function GetDetailsEx(pidl:LPCITEMIDLIST;pscid:PSHCOLUMNID; pv : pOLEvariant):HResult;StdCall;
+      function GetDetailsOf(pidl:LPCITEMIDLIST;iColumn:UINT;psd:PSHELLDETAILS):HResult;StdCall;
+      function MapColumnToSCID(iColumn:UINT;pscid:PSHCOLUMNID):HResult;StdCall;
      end;
 
    IAutoComplete = interface(IUnknown)
@@ -2017,11 +2023,11 @@ Type
          function UIActivate(uState:UINT):HResult; StdCall;
          function Refresh:HResult; StdCall;
          function CreateViewWindow(psvPrevious:IShellView;pfs:LPCFOLDERSETTINGS;psb:IShellBrowser;prcview:prect;var ph:HWND):HResult;StdCall;
-         function DestroyViewWindow:HResult; StdCall;        
-         function GetCurrentInfo(pfs: LPFOLDERSETTINGS):HResult; StdCall;     
-         function AddPropertySheetPages(dwreserved : DWORD;pfn:pointer{LPFNSVADDPROPSHEETPAGE};lp:lparam):HResult; StdCall;     
-         function SaveViewState:HResult; StdCall;       
-         function SelectItem( pidlItem: LPCITEMIDLIST;uflags:TSVSIF):HResult; StdCall;       
+         function DestroyViewWindow:HResult; StdCall;
+         function GetCurrentInfo(pfs: LPFOLDERSETTINGS):HResult; StdCall;
+         function AddPropertySheetPages(dwreserved : DWORD;pfn:pointer{LPFNSVADDPROPSHEETPAGE};lp:lparam):HResult; StdCall;
+         function SaveViewState:HResult; StdCall;
+         function SelectItem( pidlItem: LPCITEMIDLIST;uflags:TSVSIF):HResult; StdCall;
          function GetItemObject(uitem:UINT;const riid:TGUID;out ppv :PPOinter):HResult;StdCall;
        end;
 
@@ -2035,21 +2041,21 @@ Type
 
    IFolderView = Interface(IUnknown)
         ['{cde725b0-ccc9-4519-917e-325d72fab4ce}']
-        function GetCurrentViewMode(pViewMode:PUINT):HResult; StdCall;       
-        function SetCurrentViewMode(ViewMode:UINT):HResult; StdCall;       
-        function GetFolder(const riid:TGUID;ppv:pointer):HResult; StdCall;       
-        function Item(iItemIndex:longint;ppidl:LPITEMIDLIST):HResult; StdCall;       
-        function ItemCount(uflags:uint;pcitems:plongint):HResult; StdCall;       
-        function Items (uflags:uint;const id :TGUID;out ppv: pointer):HResult; StdCall;       
-        function GetSelectionMarkedItem(piItem:pint):HResult; StdCall;       
-        function GetFocussedItem(piItem:pint):HResult; StdCall;       
-        function GetItemPosition(pidl:LPCITEMIDLIST;ppt:PPOINT):HResult; StdCall;       
-        function GetSpacing(ppt:ppoint):HResult; StdCall;       
-        function GetDefaultSpacing(ppt:ppoint):HResult; StdCall;       
-        function GetAutoArrange:HResult; StdCall;       
-        function SelectItem(iItem : longint;dwflags:Dword) :HResult; StdCall;       
-        function SelectAndPositionItems(cild:uint;var apid: LPCITEMIDLIST   ;apt:PPOINT;dwflags:DWord):HResult; StdCall;       
-       end;           
+        function GetCurrentViewMode(pViewMode:PUINT):HResult; StdCall;
+        function SetCurrentViewMode(ViewMode:UINT):HResult; StdCall;
+        function GetFolder(const riid:TGUID;ppv:pointer):HResult; StdCall;
+        function Item(iItemIndex:longint;ppidl:LPITEMIDLIST):HResult; StdCall;
+        function ItemCount(uflags:uint;pcitems:plongint):HResult; StdCall;
+        function Items (uflags:uint;const id :TGUID;out ppv: pointer):HResult; StdCall;
+        function GetSelectionMarkedItem(piItem:pint):HResult; StdCall;
+        function GetFocussedItem(piItem:pint):HResult; StdCall;
+        function GetItemPosition(pidl:LPCITEMIDLIST;ppt:PPOINT):HResult; StdCall;
+        function GetSpacing(ppt:ppoint):HResult; StdCall;
+        function GetDefaultSpacing(ppt:ppoint):HResult; StdCall;
+        function GetAutoArrange:HResult; StdCall;
+        function SelectItem(iItem : longint;dwflags:Dword) :HResult; StdCall;
+        function SelectAndPositionItems(cild:uint;var apid: LPCITEMIDLIST   ;apt:PPOINT;dwflags:DWord):HResult; StdCall;
+       end;
     IFolderFilterSite = Interface(IUnknown)
           ['{C0A651F5-B48B-11d2-B5ED-006097C686F6}']
           function SetFilter(punk:IUnknown):HResult; StdCall;
@@ -2078,7 +2084,7 @@ Type
     function QueryActiveShellView(out ppsh :IShellView): HResult;StdCall;
     function OnViewWindowActive(psh :IShellView): HResult;StdCall;
     function SetToolBarItems(lpButtons:LPTBBUTTONSB;nButtons:UINT;uFlags:uint): HResult;StdCall;
-    end;         
+    end;
 
     const
       CLSID_AutoComplete: TGUID = '{00BB2763-6A77-11D0-A535-00C04FD7D062}';
@@ -2118,7 +2124,7 @@ Type
     IContextMenu = interface(IUnknown)
          ['{000214E4-0000-0000-c000-000000000046}']
          function QueryContextMenu(hmenu:HMENU;indexMenu:UINT;idCmdFirst:UINT;idCmdLast:UINT;UFlags:uint):HRESULT;StdCall;
-         function InvokeCommand(var lpici : TCMINVOKECOMMANDINFO):HResult; StdCall;         
+         function InvokeCommand(var lpici : TCMINVOKECOMMANDINFO):HResult; StdCall;
          function GetCommandString(idcmd:UINT_Ptr;uType:UINT;pwreserved:puint;pszName:LPStr;cchMax:uint):HResult;StdCall;
        end;
     IContextMenu2 = interface(IContextMenu)
@@ -2160,7 +2166,7 @@ Type
         function GetDefaultWidth(const fmtid:FMTID; pid:PROPID; pcxChars:pULONG):HRESULT;StdCall;
         function GetFlags(const fmtid:FMTID; pid:PROPID; pFlags:pPROPERTYUI_FLAGS):HRESULT;StdCall;
         function FormatForDisplay(const fmtid:FMTID; pid:PROPID; pvar:pPROPVARIANT; flags:PROPERTYUI_FORMAT_FLAGS;wszText:LPWSTR;cchText:DWORD):HRESULT;StdCall;
-        function GetHelpInfo(const fmtid:FMTID; pid:PROPID; pwszHelpFile:LPWSTR; cch:DWORD; puHelpID:pUINT):HRESULT;StdCall;   
+        function GetHelpInfo(const fmtid:FMTID; pid:PROPID; pwszHelpFile:LPWSTR; cch:DWORD; puHelpID:pUINT):HRESULT;StdCall;
         end;
 }
     ICategoryProvider =interface(IUnknown)
@@ -2315,7 +2321,7 @@ type
       function GetCount(out pcElem: UINT): HResult; stdcall;
       function GetAt(iElem: UINT; const riid: REFIID; out ppv): HResult; stdcall;
     end;
- 
+
     IShellLinkA  = Interface(IUnknown)
         ['{000214EE-0000-0000-C000-000000000046}']
         function GetPath(pszFile:LPSTR; cch:longint;var  pfd:WIN32_FIND_DATA; fFlags:DWORD):HRESULT;StdCall;
@@ -2336,8 +2342,8 @@ type
         function SetRelativePath(pszPathRel:LPCSTR; dwReserved:DWORD):HRESULT;StdCall;
         function Resolve(hwnd:HWND; fFlags:DWORD):HRESULT;StdCall;
         function SetPath(pszFile:LPCSTR):HRESULT;StdCall;
-        end; 
- 
+        end;
+
     IShellLinkW = interface (IUnknown)
         ['{000214F9-0000-0000-C000-000000000046}']
         function GetPath(pszFile:LPWSTR; cch:longint; pfd:pWIN32_FIND_DATAW; fFlags:DWORD):HRESULT;StdCall;
@@ -2364,7 +2370,7 @@ type
     PIShellItem= ^IShellItem;
     IShellItem = interface(IUnknown)
                ['{43826d1e-e718-42ee-bc55-a1e261c37bfe}']
-               function BindToHandler(pbc:IBindCTX;bhid:PGUID;RIID:PIID;ppv:ppointer):HResult;Stdcall;          
+               function BindToHandler(pbc:IBindCTX;bhid:PGUID;RIID:PIID;ppv:ppointer):HResult;Stdcall;
                function GetParent(ppsi:PISHellItem):HResult;Stdcall;
                function GetDisplayName(sigdnname:SIGDN;ppszName:LPWSTR):HResult; Stdcall;
                function GetAttributes(sfgaomask:SFGAOF;psfgaoAttribs:PSFGAOF):HResult;Stdcall;
@@ -2404,14 +2410,14 @@ type
 	             ['{b4db1657-70d7-485e-8e3e-6fcb5a5c1802}']
 				   function Show(hwndparent:HWND):HResult;StdCall;
 				   end;
-				   
+				
     IShellItemFilter = Interface(IUnknown)
 	              ['{2659B475-EEB8-48b7-8F07-B378810F48CF}']
                     function IncludeItem(psi:IShellItem):HResult;StdCall;
                     function GetEnumFlagsForItem(psi:IShellItem;pgrfflags :PSHCONTF):HRESULT;Stdcall;
                    end;					
 
-    IFileDialog = Interface;     
+    IFileDialog = Interface;
     IFileDialogEvents = Interface(IUnknown)
                    ['{973510db-7d7f-452b-8975-74a85828d354}']
                     function OnFileOk         (pfd:IFileDialog):HResult; Stdcall;
@@ -2423,7 +2429,7 @@ type
                     function OnOverwrite      (pfd:IFileDialog;psi:IShellItem;pResponse :pFDE_OVERWRITE_RESPONSE):HResult; Stdcall;
                  end;
 
-    IFileDialog = Interface(IModalWindow) 
+    IFileDialog = Interface(IModalWindow)
                   ['{42f85136-db7e-439c-85f1-e4075d135fc8}']
                     function SetFileTypes(cFileTypes:UINT;rgFilterSpec:pCOMDLG_FILTERSPEC):HRESULT;Stdcall;
 		    function SetFileTypeIndex(iFileType:UINT):HRESULT;Stdcall;
@@ -2581,6 +2587,8 @@ function  SHGetFolderPathAndSubDir (HWND:hwnd;csidl:longint;htoken:THandle;dwfla
 
 function  SHFolderLocation(HWND:hwnd;csidl:longint;htoken:THandle;dwflags:dword;var ppidl:LPITEMIDLIST):HRESULT;StdCall; external 'shell32' name 'SHFolderLocation';
 
+function SHGetKnownFolderPath(const rfid:KNOWNFOLDERID;dwFlags:DWORD;hToken:THandle;Out ppszPath:PWSTR):HRESULT;StdCall; external 'shell32' name 'SHGetKnownFolderPath';
+
 Const External_Library = 'shell32';
 
   function SHAlloc(cb:SIZE_T):pointer;StdCall;external External_library name 'SHAlloc';
@@ -2657,7 +2665,7 @@ Const External_Library = 'shell32';
   procedure SHUpdateImage (pszHashItem:lpcstr; iIndex:Longint; uFlags:UINT; iImageIndex:Longint);StdCall;external External_library name 'SHUpdateImageA';
   {$endif}
 
-  function SHChangeNotifyRegister(hwnd:HWND; fSources:Longint; fEvents:LONG; wMsg:UINT; cEntries:Longint; 
+  function SHChangeNotifyRegister(hwnd:HWND; fSources:Longint; fEvents:LONG; wMsg:UINT; cEntries:Longint;
              pshcne:PSHChangeNotifyEntry):ULONG;StdCall;external External_library name 'SHChangeNotifyRegister';
   function SHChangeNotifyDeregister(ulID:ulong):BOOL;StdCall;external External_library name 'SHChangeNotifyDeregister';
   function SHChangeNotification_Lock(hChangeNotification:THANDLE; dwProcessId:DWord; var pppidl:PLPITEMIDLIST; plEvent:PLONG):THANDLE;StdCall;external External_library name 'SHChangeNotification_Lock';
@@ -2700,12 +2708,12 @@ Const External_Library = 'shell32';
 
   function PathCleanupSpec(pszDir:lpcwstr; pszSpec:LPWStr):Longint;StdCall;external External_library name 'PathCleanupSpec';
   function PathResolve(pszPath:LPWStr; dirs:array of lpcwstr; fFlags:UINT):Longint;StdCall;external External_library name 'PathResolve';
-  function GetFileNameFromBrowse(hwnd:HWND; pszFilePath:LPWStr; cbFilePath:UINT; pszWorkingDir:lpcwstr; pszDefExt:lpcwstr; 
+  function GetFileNameFromBrowse(hwnd:HWND; pszFilePath:LPWStr; cbFilePath:UINT; pszWorkingDir:lpcwstr; pszDefExt:lpcwstr;
              pszFilters:lpcwstr; pszTitle:lpcwstr):BOOL;StdCall;external External_library name 'GetFileNameFromBrowse';
   function DriveType(iDrive:Longint):Longint;StdCall;external External_library name 'DriveType';
   function RealDriveType(iDrive:Longint; fOKToHitNet:BOOL):Longint;StdCall;external External_library name 'RealDriveType';
   function IsNetDrive(iDrive:Longint):Longint;StdCall;external External_library name 'IsNetDrive';
-  function Shell_MergeMenus(hmDst:HMENU; hmSrc:HMENU; uInsert:UINT; uIDAdjust:UINT; uIDAdjustMax:UINT; 
+  function Shell_MergeMenus(hmDst:HMENU; hmSrc:HMENU; uInsert:UINT; uIDAdjust:UINT; uIDAdjustMax:UINT;
              uFlags:ULONG):UINT;StdCall;external External_library name 'Shell_MergeMenus';
   function SHObjectProperties(hwnd:HWND; dwType:DWord; lpObject:lpcwstr; lpPage:lpcwstr):BOOL;StdCall;external External_library name 'SHObjectProperties';
   function SHFormatDrive(hwnd:HWND; drive:UINT; fmtID:UINT; options:UINT):DWord;StdCall;external External_library name 'SHFormatDrive';
@@ -2749,9 +2757,9 @@ Const External_Library = 'shell32';
   function SHStartNetConnectionDialog (hwnd:HWND; pszRemoteName:lpcstr; dwType:DWord):HRESULT;StdCall;external External_library name 'SHStartNetConnectionDialogA';
   {$endif}
 
-  function SHDefExtractIconA(pszIconFile:lpcstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON; 
+  function SHDefExtractIconA(pszIconFile:lpcstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON;
              nIconSize:UINT):HRESULT;StdCall;external External_library name 'SHDefExtractIconA';
-  function SHDefExtractIconW(pszIconFile:lpcwstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON; 
+  function SHDefExtractIconW(pszIconFile:lpcwstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON;
              nIconSize:UINT):HRESULT;StdCall;external External_library name 'SHDefExtractIconW';
   {$ifdef Unicode}
   function SHDefExtractIcon (pszIconFile:lpcwstr; iIndex:Longint; uFlags:UINT; phiconLarge:PHICON; phiconSmall:PHICON;
@@ -2771,11 +2779,11 @@ Const External_Library = 'shell32';
   function IsUserAnAdmin:BOOL;StdCall;external External_library name 'IsUserAnAdmin';
   function SHShellFolderView_Message(hwndMain:HWND; uMsg:UINT; lParam:lparam):lresult;StdCall;external External_library name 'SHShellFolderView_Message';
   function SHCreateShellFolderView(pcsfv:PSFV_CREATE; out ppsv:IShellView):HRESULT;StdCall;external External_library name 'SHCreateShellFolderView';
-  function CDefFolderMenu_Create2(pidlFolder:LPCITEMIDLIST; hwnd:HWND; cidl:UINT;var apidl:LPCITEMIDLIST; psf:IShellFolder; 
+  function CDefFolderMenu_Create2(pidlFolder:LPCITEMIDLIST; hwnd:HWND; cidl:UINT;var apidl:LPCITEMIDLIST; psf:IShellFolder;
              lpfn:LPFNDFMCALLBACK; nKeys:UINT; ahkeyClsKeys:PHKEY; out ppcm:IContextMenu):HRESULT;StdCall;external External_library name 'CDefFolderMenu_Create2';
-  function SHOpenPropSheetA(pszCaption:lpcstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject; 
+  function SHOpenPropSheetA(pszCaption:lpcstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject;
              psb:IShellBrowser; pStartPage:lpcstr):BOOL;StdCall;external External_library name 'SHOpenPropSheetA';
-  function SHOpenPropSheetW(pszCaption:lpcwstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject; 
+  function SHOpenPropSheetW(pszCaption:lpcwstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject;
              psb:IShellBrowser; pStartPage:lpcwstr):BOOL;StdCall;external External_library name 'SHOpenPropSheetW';
   {$ifdef Unicode}
   function SHOpenPropSheet (pszCaption:lpcwstr; ahkeys:array of HKEY; cikeys:UINT; pclsidDefault:PCLSID; pdtobj:IDataObject;
@@ -2797,10 +2805,10 @@ Const External_Library = 'shell32';
   {$else}
   function SHPathPrepareForWrite (hwnd:HWND; punkEnableModless:IUnknown; pszPath:lpcstr; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHPathPrepareForWriteA';
   {$endif}
-{  function SHPropStgCreate(psstg:IPropertySetStorage; fmtid:TREFFMTID; pclsid:PCLSID; grfFlags:DWord; grfMode:DWord; 
+{  function SHPropStgCreate(psstg:IPropertySetStorage; fmtid:TREFFMTID; pclsid:PCLSID; grfFlags:DWord; grfMode:DWord;
              dwDisposition:DWord; out ppstg:IPropertyStorage; puCodePage:PUINT):HRESULT;StdCall;external External_library name 'SHPropStgCreate';
   function SHPropStgReadMultiple(pps:IPropertyStorage; uCodePage:UINT; cpspec:ULONG; rgpspec:array of TPROPSPEC; rgvar:array of TPROPVARIANT):HRESULT;StdCall;external External_library name 'SHPropStgReadMultiple';
-  function SHPropStgWriteMultiple(pps:IPropertyStorage; puCodePage:PUINT; cpspec:ULONG; rgpspec:array of TPROPSPEC; rgvar:array of TPROPVARIANT; 
+  function SHPropStgWriteMultiple(pps:IPropertyStorage; puCodePage:PUINT; cpspec:ULONG; rgpspec:array of TPROPSPEC; rgvar:array of TPROPVARIANT;
              propidNameFirst:TPROPID):HRESULT;StdCall;external External_library name 'SHPropStgWriteMultiple';
 }
   function SHCreateFileExtractIconA(pszFile:lpcstr; dwFileAttributes:DWord; constref riid:TREFIID; ppv:Ppointer):HRESULT;StdCall;external External_library name 'SHCreateFileExtractIconA';
@@ -2812,7 +2820,7 @@ Const External_Library = 'shell32';
   {$endif}
   function SHLimitInputEdit(hwndEdit:HWND; psf:IShellFolder):HRESULT;StdCall;external External_library name 'SHLimitInputEdit';
   function SHMultiFileProperties(pdtobj:IDataObject; dwFlags:DWord):HRESULT;StdCall;external External_library name 'SHMultiFileProperties';
-//  function SHMapIDListToImageListIndexAsync(pts:IShellTaskScheduler; psf:IShellFolder; pidl:LPCITEMIDLIST; flags:UINT; pfn:TPFNASYNCICONTASKBALLBACK; 
+//  function SHMapIDListToImageListIndexAsync(pts:IShellTaskScheduler; psf:IShellFolder; pidl:LPCITEMIDLIST; flags:UINT; pfn:TPFNASYNCICONTASKBALLBACK;
 //             pvData:pointer; pvHint:pointer; piIndex:plongint; piIndexSel:plongint):HRESULT;StdCall;external External_library name 'SHMapIDListToImageListIndexAsync';
   function SHMapPIDLToSystemImageListIndex(pshf:IShellFolder; pidl:LPCITEMIDLIST; piIndexSel:plongint):Longint;StdCall;external External_library name 'SHMapPIDLToSystemImageListIndex';
 
