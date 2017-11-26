@@ -350,6 +350,12 @@ begin
 {$include libcurl/fpmake.pp}
 end;
 
+procedure add_libcups(const ADirectory: string);
+begin
+  with Installer do
+{$include libcups/fpmake.pp}
+end;
+
 procedure add_libffi(const ADirectory: string);
 begin
   with Installer do
