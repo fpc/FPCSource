@@ -54,8 +54,6 @@ interface
 {$endif CPU16}
        TPointerArray = PointerArray;
        PPointerArray = ^PointerArray;
-       TBoundArray = array of integer;
-
 
        // Delphi Berlin compatibility 
        FixedInt = Int32;
