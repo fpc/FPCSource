@@ -191,6 +191,13 @@ type
     property Image : TFPCustomImage read fimage;
   end;
 
+  { TFPBoxInterpolation }
+
+  TFPBoxInterpolation = class(TFPCustomInterpolation)
+  public
+    procedure Execute (x,y,w,h:integer); override;
+  end;
+
   { TFPBaseInterpolation }
 
   TFPBaseInterpolation = class (TFPCustomInterpolation)
