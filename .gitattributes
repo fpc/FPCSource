@@ -12140,6 +12140,7 @@ tests/test/cpu16/i8086/tasmabs4.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tasmabs5.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tasmseg1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tasmseg2.pp svneol=native#text/pascal
+tests/test/cpu16/i8086/tfaradr1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tfarcal1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tfarcal2.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tfarcal3.pp svneol=native#text/plain

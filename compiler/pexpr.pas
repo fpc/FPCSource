@@ -599,6 +599,22 @@ implementation
               statement_syssym:=p1;
             end;
 
+{$ifdef i8086}
+          in_faraddr_x :
+            begin
+              consume(_LKLAMMER);
+              got_addrn:=true;
+              p1:=factor(true,[]);
+              { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+              if token<>_RKLAMMER then
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
+              p1:=geninlinenode(in_faraddr_x,false,p1);
+              got_addrn:=false;
+              consume(_RKLAMMER);
+              statement_syssym:=p1;
+            end;
+{$endif i8086}
+
           in_ofs_x :
             begin
               if target_info.system in systems_managed_vm then

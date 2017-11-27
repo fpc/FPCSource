@@ -104,6 +104,7 @@ const
    fpc_in_ror_assign_x_y    = 93;
    fpc_in_neg_assign_x      = 94;
    fpc_in_not_assign_x      = 95;
+   fpc_in_faraddr_x         = 97;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

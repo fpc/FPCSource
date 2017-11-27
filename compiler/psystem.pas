@@ -87,6 +87,9 @@ implementation
         systemunit.insert(csyssym.create('Assert',in_assert_x_y));
         systemunit.insert(csyssym.create('Val',in_val_x));
         systemunit.insert(csyssym.create('Addr',in_addr_x));
+{$ifdef i8086}
+        systemunit.insert(csyssym.create('FarAddr',in_faraddr_x));
+{$endif i8086}
         systemunit.insert(csyssym.create('TypeInfo',in_typeinfo_x));
         systemunit.insert(csyssym.create('SetLength',in_setlength_x));
         systemunit.insert(csyssym.create('Copy',in_copy_x));

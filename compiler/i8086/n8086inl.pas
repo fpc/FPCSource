@@ -33,6 +33,8 @@ interface
        { ti8086inlinenode }
 
        ti8086inlinenode = class(tx86inlinenode)
+         function pass_typecheck_cpu: tnode; override;
+         function typecheck_faraddr: tnode;
          function typecheck_seg: tnode; override;
          function first_seg: tnode; override;
          procedure second_seg; override;
@@ -56,10 +58,46 @@ implementation
     symtype,symdef,symcpu,
     cgbase,pass_1,pass_2,
     cpuinfo,cpubase,paramgr,
-    nbas,nadd,ncon,ncal,ncnv,nld,ncgutil,
+    nbas,nadd,ncon,ncal,ncnv,nld,nmem,nmat,ncgutil,
     tgobj,
     cga,cgutils,cgx86,cgobj,hlcgobj,
     htypechk,procinfo;
+
+     function ti8086inlinenode.pass_typecheck_cpu: tnode;
+       begin
+         case inlinenumber of
+           in_faraddr_x:
+             result:=typecheck_faraddr;
+           else
+             inherited;
+         end;
+       end;
+
+     function ti8086inlinenode.typecheck_faraddr: tnode;
+       var
+         addr_node: tnode;
+         addr_node_resultdef: tdef;
+         seg_node: tnode;
+       begin
+         addr_node:=caddrnode.create(left);
+         typecheckpass(addr_node);
+         addr_node_resultdef:=addr_node.resultdef;
+         if is_farpointer(addr_node.resultdef) or is_farprocvar(addr_node.resultdef) then
+           begin
+             left:=nil;
+             result:=addr_node;
+           end
+         else
+           begin
+             seg_node:=geninlinenode(in_seg_x,false,left.getcopy);
+             inserttypeconv_internal(seg_node,u32inttype);
+             seg_node:=cshlshrnode.create(shln,seg_node,cordconstnode.create(16,u8inttype,false));
+             inserttypeconv_internal(addr_node,u32inttype);
+             left:=nil;
+             result:=caddnode.create(addn,seg_node,addr_node);
+             inserttypeconv_internal(result,tcpupointerdef.getreusablex86(addr_node_resultdef,x86pt_far));
+           end;
+       end;
 
      function ti8086inlinenode.typecheck_seg: tnode;
        begin
