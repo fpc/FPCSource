@@ -95,7 +95,10 @@ implementation
              inserttypeconv_internal(addr_node,u32inttype);
              left:=nil;
              result:=caddnode.create(addn,seg_node,addr_node);
-             inserttypeconv_internal(result,tcpupointerdef.getreusablex86(addr_node_resultdef,x86pt_far));
+             if addr_node_resultdef.typ=pointerdef then
+               inserttypeconv_internal(result,tcpupointerdef.getreusablex86(tpointerdef(addr_node_resultdef).pointeddef,x86pt_far))
+             else
+               inserttypeconv_internal(result,voidfarpointertype);
            end;
        end;
 
