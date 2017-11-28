@@ -51,9 +51,9 @@ var
   ch: TVideoCell;
   CharWidth,CharHeight: SmallInt;
 begin
-  dc:=BeginPaint(hwnd,@ps);
+  dc:=BeginPaint(hwnd,FarAddr(ps));
   oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
-  GetTextMetrics(dc,@Metrics);
+  GetTextMetrics(dc,FarAddr(Metrics));
   CharWidth:=Metrics.tmMaxCharWidth;
   CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
   x1:=ps.rcPaint.left div CharWidth;
@@ -76,12 +76,12 @@ begin
       ch:=videobuf^[y*ScreenWidth+x];
       SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
       SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
-      TextOut(dc,x*CharWidth,y*CharHeight,@ch,1);
+      TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
     end;
   SetTextColor(dc,oldtextcolor);
   SetBkColor(dc,oldbkcolor);
   SelectObject(dc,oldfont);
-  EndPaint(hwnd,@ps);
+  EndPaint(hwnd,FarAddr(ps));
 end;
 
 function MainWndProc(hwnd: HWND; msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; export;
@@ -115,7 +115,7 @@ begin
   wc.hbrBackground:=GetStockObject(BLACK_BRUSH);
   wc.lpszMenuName:=nil;
   wc.lpszClassName:='FPCConsoleWndClass';
-  if not RegisterClass(wc) then
+  if not RegisterClass(FarAddr(wc)) then
   begin
     MessageBox(0,'Error registering window class',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
     Halt(1);
@@ -149,10 +149,10 @@ procedure ProcessMessages;
 var
   m: MSG;
 begin
-  while PeekMessage(@m,0,0,0,1) do
+  while PeekMessage(FarAddr(m),0,0,0,1) do
   begin
-    TranslateMessage(@m);
-    DispatchMessage(@m);
+    TranslateMessage(FarAddr(m));
+    DispatchMessage(FarAddr(m));
   end;
 end;
 
@@ -182,7 +182,7 @@ var
 begin
   dc:=GetDC(VideoWindow);
   oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
-  GetTextMetrics(dc,@Metrics);
+  GetTextMetrics(dc,FarAddr(Metrics));
   CharWidth:=Metrics.tmMaxCharWidth;
   CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
   oldtextcolor:=GetTextColor(dc);
@@ -196,7 +196,7 @@ begin
         oldvideobuf^[y*ScreenWidth+x]:=videobuf^[y*ScreenWidth+x];
         SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
         SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
-        TextOut(dc,x*CharWidth,y*CharHeight,@ch,1);
+        TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
       end;
     end;
   SetTextColor(dc,oldtextcolor);

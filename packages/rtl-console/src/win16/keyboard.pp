@@ -80,8 +80,8 @@ begin
           VK_MENU:
             KbdShiftState:=KbdShiftState or %1000;
         end;
-        GetKeyboardState(@KbdState);
-        charcount:=ToAscii(wParam,Byte(lParam shr 16),@KbdState,@charbuf,0);
+        GetKeyboardState(FarAddr(KbdState));
+        charcount:=ToAscii(wParam,Byte(lParam shr 16),FarAddr(KbdState),FarAddr(charbuf),0);
         if charcount>0 then
           for i:=0 to charcount-1 do
             KbdBufEnqueue((kbPhys shl 24) or charbuf[i] or (KbdShiftState shl 16));
@@ -118,10 +118,10 @@ function SysGetKeyEvent: TKeyEvent;
 var
   m: MSG;
 begin
-  while KbdBufEmpty and GetMessage(@m,0,0,0) do
+  while KbdBufEmpty and GetMessage(FarAddr(m),0,0,0) do
   begin
-    TranslateMessage(@m);
-    DispatchMessage(@m);
+    TranslateMessage(FarAddr(m));
+    DispatchMessage(FarAddr(m));
   end;
   if KbdBufEmpty then
     SysGetKeyEvent:=0
@@ -134,10 +134,10 @@ function SysPollKeyEvent: TKeyEvent;
 var
   m: MSG;
 begin
-  while PeekMessage(@m,0,0,0,1) do
+  while PeekMessage(FarAddr(m),0,0,0,1) do
   begin
-    TranslateMessage(@m);
-    DispatchMessage(@m);
+    TranslateMessage(FarAddr(m));
+    DispatchMessage(FarAddr(m));
   end;
   if KbdBufEmpty then
     SysPollKeyEvent:=0
