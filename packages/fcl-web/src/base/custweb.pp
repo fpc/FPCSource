@@ -534,6 +534,7 @@ end;
 destructor TWebHandler.Destroy;
 begin
   ModuleFactory.OnModuleRequest:=@HandleModuleRequest;
+  Inherited;
 end;
 
 { TCustomWebApplication }
