@@ -8065,9 +8065,9 @@ Const
      TNETCONNECTINFOSTRUCT = NETCONNECTINFOSTRUCT;
      PNETCONNECTINFOSTRUCT = ^NETCONNECTINFOSTRUCT;
 
-     ENUMMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:METARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
+     ENUMMETAFILEPROC = function (_para1:HDC; _para2:LPHANDLETABLE; _para3:LPMETARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
 
-     ENHMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:ENHMETARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
+     ENHMETAFILEPROC = function (_para1:HDC; _para2:LPHANDLETABLE; _para3:LPENHMETARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
 
      ENUMFONTSPROC = function (_para1:LPLOGFONT; _para2:LPTEXTMETRIC; _para3:DWORD; _para4:LPARAM):longint;stdcall;
      ENUMFONTSPROCA= function (_para1:LPLOGFONTA; _para2:LPTEXTMETRICA; _para3:DWORD; _para4:LPARAM):longint;stdcall;
