@@ -14,67 +14,322 @@
 
  **********************************************************************}
 
-    function SysGlobalGetMem(Size: ptruint): pointer;
+{
+The heap, implemented here is BP7-compatible for the Win16 and 286 protected
+mode targets.
+Large blocks (>=HeapLimit) are allocated as separate blocks on the global heap
+via a separate call to GlobalAlloc(). Since this allocates a new segment
+descriptor and there's a limit of how many of these are available to the system,
+small blocks (<HeapLimit) are suballocated from blocks of size HeapBlock. Each
+such heap block starts with a header of type TGlobalHeapBlockHeader, which is
+always located at offset 0 of the heap block segment. These heap blocks form a
+circular linked list.
+}
+    type
+      PGlobalHeapBlockHeader=^TGlobalHeapBlockHeader;far;
+      TGlobalHeapBlockHeader=record
+        ID: LongWord;  { 20564 }
+        FirstFreeOfs: Word;
+        Unknown: Word;  { don't know what this is; seems to be 0 }
+        TotalFreeSpaceInBlock: Word;
+        NextBlockSeg: Word;  { the link to the next heap block }
+      end;
+      PFreeSubBlock=^TFreeSubBlock;far;
+      TFreeSubBlock=record
+        Next: Word;
+        Size: Word;
+      end;
+
+    function NewHeapBlock: Boolean;
       var
         hglob: HGLOBAL;
+        pb: PGlobalHeapBlockHeader;
       begin
-        hglob:=GlobalAlloc(HeapAllocFlags, Size);
+        hglob:=GlobalAlloc(HeapAllocFlags, HeapBlock);
         if hglob=0 then
           if ReturnNilIfGrowHeapFails then
             begin
-              result:=nil;
+              result:=false;
               exit;
             end
           else
             HandleError(203);
-        result:=GlobalLock(hglob);
-        if result=nil then
+        pb:=GlobalLock(hglob);
+        if (pb=nil) or (Ofs(pb^)<>0) then
           HandleError(204);
+        with pb^ do
+          begin
+            ID:=20564;
+            FirstFreeOfs:=SizeOf(TGlobalHeapBlockHeader);
+            Unknown:=0;
+            TotalFreeSpaceInBlock:=HeapBlock-SizeOf(TGlobalHeapBlockHeader);
+            if HeapList<>0 then
+              NextBlockSeg:=HeapList
+            else
+              NextBlockSeg:=Seg(pb^);
+            with PFreeSubBlock(Ptr(Seg(pb^),SizeOf(TGlobalHeapBlockHeader)))^ do
+              begin
+                Next:=0;
+                Size:=HeapBlock-SizeOf(TGlobalHeapBlockHeader);
+              end;
+          end;
+        HeapList:=Seg(pb^);
+        result:=true;
       end;
 
-    function SysGlobalFreeMem(Addr: Pointer): ptruint;
+    { tries to suballocate from the existing blocks. Returns nil if not enough
+      free space is available. Size must be aligned by 4. }
+    function TryBlockGetMem(Size: Word): FarPointer;
+      var
+        CurBlock: Word;
+        CurBlockP: PGlobalHeapBlockHeader;
+        CurSubBlock, PrevSubBlock: PFreeSubBlock;
+      begin
+        CurBlock:=HeapList;
+        result:=nil;
+        if CurBlock=0 then
+          exit;
+        repeat
+          CurBlockP:=Ptr(CurBlock,0);
+          if CurBlockP^.TotalFreeSpaceInBlock>=Size then
+            begin
+              PrevSubBlock:=nil;
+              CurSubBlock:=Ptr(CurBlock,CurBlockP^.FirstFreeOfs);
+              while Ofs(CurSubBlock^)<>0 do
+                begin
+                  if CurSubBlock^.Size>=Size then
+                    begin
+                      result:=CurSubBlock;
+                      if CurSubBlock^.Size=Size then
+                        begin
+                          if PrevSubBlock<>nil then
+                            PrevSubBlock^.Next:=CurSubBlock^.Next
+                          else
+                            CurBlockP^.FirstFreeOfs:=CurSubBlock^.Next;
+                        end
+                      else
+                        begin
+                          with PFreeSubBlock(Ptr(CurBlock,Ofs(CurSubBlock^)+Size))^ do
+                            begin
+                              Next:=CurSubBlock^.Next;
+                              Size:=CurSubBlock^.Size-Size;
+                            end;
+                          if PrevSubBlock<>nil then
+                            PrevSubBlock^.Next:=Ofs(CurSubBlock^)+Size
+                          else
+                            CurBlockP^.FirstFreeOfs:=Ofs(CurSubBlock^)+Size;
+                        end;
+                      Dec(CurBlockP^.TotalFreeSpaceInBlock,Size);
+                      { TODO: what is FirstFreeOfs if the entire block is allocated??? }
+                      exit;
+                    end;
+                  PrevSubBlock:=CurSubBlock;
+                  CurSubBlock:=Ptr(CurBlock,CurSubBlock^.Next);
+                end;
+            end;
+          CurBlock:=CurBlockP^.NextBlockSeg;
+        until CurBlock=HeapList;
+      end;
+
+    function SysGlobalBlockGetMem(Size: Word): FarPointer;
+      begin
+        Size:=(Size+3) and $fffc;
+        result:=TryBlockGetMem(Size);
+        if result<>nil then
+          exit;
+        if not NewHeapBlock then
+          begin
+            { NewHeapBlock can only return false if ReturnNilIfGrowHeapFails=true }
+            result:=nil;
+            exit;
+          end;
+        result:=TryBlockGetMem(Size);
+      end;
+
+    function SysGlobalGetMem(Size: ptruint): FarPointer;
+      type
+        PFarWord=^Word;far;
+      var
+        hglob: HGLOBAL;
+      begin
+        if (size+2)>=HeapLimit then
+          begin
+            hglob:=GlobalAlloc(HeapAllocFlags, Size);
+            if hglob=0 then
+              if ReturnNilIfGrowHeapFails then
+                begin
+                  result:=nil;
+                  exit;
+                end
+              else
+                HandleError(203);
+            result:=GlobalLock(hglob);
+            if result=nil then
+              HandleError(204);
+          end
+        else
+          begin
+            result:=SysGlobalBlockGetMem(Size+2);
+            PFarWord(result)^:=Size;
+            Inc(result,2);
+          end;
+      end;
+
+    procedure TryBlockFreeMem(Addr: FarPointer; ASize: Word);
+      var
+        CurBlock: Word;
+        CurBlockP: PGlobalHeapBlockHeader;
+        CurSubBlock, PrevSubBlock: PFreeSubBlock;
+      begin
+        ASize:=(ASize+3) and $fffc;
+        CurBlock:=Seg(Addr^);
+        if Ofs(Addr^)<SizeOf(TGlobalHeapBlockHeader) then
+          HandleError(204);
+        CurBlockP:=Ptr(CurBlock,0);
+        if CurBlockP^.TotalFreeSpaceInBlock=0 then
+          begin
+            CurBlockP^.FirstFreeOfs:=Ofs(Addr^);
+            with PFreeSubBlock(Addr)^ do
+              begin
+                Next:=0;
+                Size:=ASize;
+              end;
+          end
+        else if Ofs(Addr^)<CurBlockP^.FirstFreeOfs then
+          begin
+            if (Ofs(Addr^)+ASize)>CurBlockP^.FirstFreeOfs then
+              HandleError(204)
+            else if (Ofs(Addr^)+ASize)=CurBlockP^.FirstFreeOfs then
+              begin
+                PFreeSubBlock(Addr)^.Next:=PFreeSubBlock(Ptr(CurBlock,CurBlockP^.FirstFreeOfs))^.Next;
+                PFreeSubBlock(Addr)^.Size:=ASize+PFreeSubBlock(Ptr(CurBlock,CurBlockP^.FirstFreeOfs))^.Size;
+              end
+            else
+              begin
+                PFreeSubBlock(Addr)^.Next:=CurBlockP^.FirstFreeOfs;
+                PFreeSubBlock(Addr)^.Size:=ASize;
+              end;
+            CurBlockP^.FirstFreeOfs:=Ofs(Addr^);
+          end
+        else
+          begin
+            PrevSubBlock:=nil;
+            CurSubBlock:=Ptr(CurBlock,CurBlockP^.FirstFreeOfs);
+            while Ofs(CurSubBlock^)<Ofs(Addr^) do
+              begin
+                PrevSubBlock:=CurSubBlock;
+                CurSubBlock:=Ptr(CurBlock,CurSubBlock^.Next);
+                if Ofs(CurSubBlock^)=0 then
+                  HandleError(204);
+              end;
+            if PrevSubBlock=nil then
+              HandleError(204);
+            if Ofs(PrevSubBlock^)+PrevSubBlock^.Size=Ofs(Addr^) then
+              begin
+                Inc(PrevSubBlock^.Size,ASize);
+              end
+            else
+              begin
+                PrevSubBlock^.Next:=Ofs(Addr^);
+                if (Ofs(Addr^)+ASize)=Ofs(CurSubBlock^) then
+                  with PFreeSubBlock(Addr)^ do
+                    begin
+                      Next:=CurSubBlock^.Next;
+                      Size:=ASize+CurSubBlock^.Size;
+                    end
+                else
+                  with PFreeSubBlock(Addr)^ do
+                    begin
+                      Next:=Ofs(CurSubBlock^);
+                      Size:=ASize;
+                    end;
+              end;
+          end;
+        Inc(CurBlockP^.TotalFreeSpaceInBlock,ASize);
+      end;
+
+    function SysGlobalFreeMem(Addr: FarPointer): ptruint;
+      type
+        PFarWord=^Word;far;
       var
         hglob: HGLOBAL;
       begin
         if Addr<>nil then
           begin
-            hglob:=HGLOBAL(GlobalHandle(Seg(Addr^)));
-            if hglob=0 then
-              HandleError(204);
-            result:=GlobalSize(hglob);
-            if GlobalUnlock(hglob) then
-              HandleError(204);
-            if GlobalFree(hglob)<>0 then
-              HandleError(204);
+            if Ofs(Addr^)=0 then
+              begin
+                hglob:=HGLOBAL(GlobalHandle(Seg(Addr^)));
+                if hglob=0 then
+                  HandleError(204);
+                result:=GlobalSize(hglob);
+                if GlobalUnlock(hglob) then
+                  HandleError(204);
+                if GlobalFree(hglob)<>0 then
+                  HandleError(204);
+              end
+            else
+              begin
+                Dec(Addr, 2);
+                result:=PFarWord(Addr)^;
+                TryBlockFreeMem(Addr, result+2);
+              end;
           end
         else
           result:=0;
       end;
 
-    function SysGlobalFreeMemSize(Addr: Pointer; Size: Ptruint): ptruint;
+    function SysGlobalFreeMemSize(Addr: FarPointer; Size: Ptruint): ptruint;
       begin
         result:=SysGlobalFreeMem(addr);
       end;
 
-    function SysGlobalAllocMem(size: ptruint): pointer;
+    function SysGlobalAllocMem(size: ptruint): FarPointer;
       var
         hglob: HGLOBAL;
       begin
-        hglob:=GlobalAlloc(HeapAllocFlags or GMEM_ZEROINIT, Size);
-        if hglob=0 then
-          if ReturnNilIfGrowHeapFails then
-            begin
-              result:=nil;
-              exit;
-            end
-          else
-            HandleError(203);
-        result:=GlobalLock(hglob);
-        if result=nil then
-          HandleError(204);
+        if (size+2)>=HeapLimit then
+          begin
+            hglob:=GlobalAlloc(HeapAllocFlags or GMEM_ZEROINIT, Size);
+            if hglob=0 then
+              if ReturnNilIfGrowHeapFails then
+                begin
+                  result:=nil;
+                  exit;
+                end
+              else
+                HandleError(203);
+            result:=GlobalLock(hglob);
+            if result=nil then
+              HandleError(204);
+          end
+        else
+          begin
+            result:=SysGlobalGetMem(size);
+            FillChar(result^,size,0);
+          end;
       end;
 
-    function SysGlobalReAllocMem(var p: pointer; size: ptruint):pointer;
+    function SysGlobalMemSize(p: FarPointer): ptruint;
+      type
+        PFarWord=^Word;far;
+      var
+        hglob: HGLOBAL;
+      begin
+        if Ofs(p^)=0 then
+          begin
+            hglob:=HGLOBAL(GlobalHandle(Seg(p^)));
+            if hglob=0 then
+              HandleError(204);
+            result:=GlobalSize(hglob);
+          end
+        else
+          begin
+            Dec(p,2);
+            result:=PFarWord(p)^;
+          end;
+      end;
+
+    function SysGlobalReAllocMem(var p: FarPointer; size: ptruint):FarPointer;
       var
         hglob: HGLOBAL;
       begin
@@ -86,37 +341,34 @@
         else if p=nil then
           result := SysGlobalAllocMem(size)
         else
-          begin
-            hglob:=HGLOBAL(GlobalHandle(Seg(p^)));
-            if hglob=0 then
-              HandleError(204);
-            if GlobalUnlock(hglob) then
-              HandleError(204);
-            hglob:=GlobalReAlloc(hglob,size,HeapAllocFlags or GMEM_ZEROINIT);
-            if hglob=0 then
-              if ReturnNilIfGrowHeapFails then
-                begin
-                  result:=nil;
-                  p:=nil;
-                  exit;
-                end
-              else
-                HandleError(203);
-            result:=GlobalLock(hglob);
-            if result=nil then
-              HandleError(204);
-          end;
+          if Ofs(p^)=0 then
+            begin
+              hglob:=HGLOBAL(GlobalHandle(Seg(p^)));
+              if hglob=0 then
+                HandleError(204);
+              if GlobalUnlock(hglob) then
+                HandleError(204);
+              hglob:=GlobalReAlloc(hglob,size,HeapAllocFlags or GMEM_ZEROINIT);
+              if hglob=0 then
+                if ReturnNilIfGrowHeapFails then
+                  begin
+                    result:=nil;
+                    p:=nil;
+                    exit;
+                  end
+                else
+                  HandleError(203);
+              result:=GlobalLock(hglob);
+              if result=nil then
+                HandleError(204);
+            end
+          else
+            begin
+              { todo: do it in a more optimal way? }
+              result:=SysGlobalAllocMem(size);
+              Move(p^,result^,SysGlobalMemSize(p));
+            end;
         p := result;
-      end;
-
-    function SysGlobalMemSize(p: pointer): ptruint;
-      var
-        hglob: HGLOBAL;
-      begin
-        hglob:=HGLOBAL(GlobalHandle(Seg(p^)));
-        if hglob=0 then
-          HandleError(204);
-        result:=GlobalSize(hglob);
       end;
 
     const
