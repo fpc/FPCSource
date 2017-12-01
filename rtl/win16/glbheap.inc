@@ -215,20 +215,19 @@ circular linked list.
           begin
             PrevSubBlock:=nil;
             CurSubBlock:=Ptr(CurBlock,CurBlockP^.FirstFreeOfs);
-            while Ofs(CurSubBlock^)<Ofs(Addr^) do
+            while (Ofs(CurSubBlock^)<>0) and (Ofs(CurSubBlock^)<Ofs(Addr^)) do
               begin
                 PrevSubBlock:=CurSubBlock;
                 CurSubBlock:=Ptr(CurBlock,CurSubBlock^.Next);
-                if Ofs(CurSubBlock^)=0 then
-                  HandleError(204);
               end;
             if PrevSubBlock=nil then
               HandleError(204);
+            { merge with previous free block? }
             if Ofs(PrevSubBlock^)+PrevSubBlock^.Size=Ofs(Addr^) then
               begin
                 Inc(PrevSubBlock^.Size,ASize);
                 { merge with next as well? }
-                if (Ofs(PrevSubBlock^)+PrevSubBlock^.Size)=Ofs(CurSubBlock^) then
+                if (Ofs(CurSubBlock^)<>0) and ((Ofs(PrevSubBlock^)+PrevSubBlock^.Size)=Ofs(CurSubBlock^)) then
                   begin
                     Inc(PrevSubBlock^.Size,CurSubBlock^.Size);
                     PrevSubBlock^.Next:=CurSubBlock^.Next;
@@ -237,7 +236,7 @@ circular linked list.
             else
               begin
                 PrevSubBlock^.Next:=Ofs(Addr^);
-                if (Ofs(Addr^)+ASize)=Ofs(CurSubBlock^) then
+                if (Ofs(CurSubBlock^)<>0) and ((Ofs(Addr^)+ASize)=Ofs(CurSubBlock^)) then
                   with PFreeSubBlock(Addr)^ do
                     begin
                       Next:=CurSubBlock^.Next;
