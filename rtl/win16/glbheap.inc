@@ -78,8 +78,8 @@ circular linked list.
       end;
 
     { tries to suballocate from the existing blocks. Returns nil if not enough
-      free space is available. Size must be aligned by 4. }
-    function TryBlockGetMem(Size: Word): FarPointer;
+      free space is available. ASize must be aligned by 4. }
+    function TryBlockGetMem(ASize: Word): FarPointer;
       var
         CurBlock: Word;
         CurBlockP: PGlobalHeapBlockHeader;
@@ -91,16 +91,16 @@ circular linked list.
           exit;
         repeat
           CurBlockP:=Ptr(CurBlock,0);
-          if CurBlockP^.TotalFreeSpaceInBlock>=Size then
+          if CurBlockP^.TotalFreeSpaceInBlock>=ASize then
             begin
               PrevSubBlock:=nil;
               CurSubBlock:=Ptr(CurBlock,CurBlockP^.FirstFreeOfs);
               while Ofs(CurSubBlock^)<>0 do
                 begin
-                  if CurSubBlock^.Size>=Size then
+                  if CurSubBlock^.Size>=ASize then
                     begin
                       result:=CurSubBlock;
-                      if CurSubBlock^.Size=Size then
+                      if CurSubBlock^.Size=ASize then
                         begin
                           if PrevSubBlock<>nil then
                             PrevSubBlock^.Next:=CurSubBlock^.Next
@@ -109,17 +109,17 @@ circular linked list.
                         end
                       else
                         begin
-                          with PFreeSubBlock(Ptr(CurBlock,Ofs(CurSubBlock^)+Size))^ do
+                          with PFreeSubBlock(Ptr(CurBlock,Ofs(CurSubBlock^)+ASize))^ do
                             begin
                               Next:=CurSubBlock^.Next;
-                              Size:=CurSubBlock^.Size-Size;
+                              Size:=CurSubBlock^.Size-ASize;
                             end;
                           if PrevSubBlock<>nil then
-                            PrevSubBlock^.Next:=Ofs(CurSubBlock^)+Size
+                            PrevSubBlock^.Next:=Ofs(CurSubBlock^)+ASize
                           else
-                            CurBlockP^.FirstFreeOfs:=Ofs(CurSubBlock^)+Size;
+                            CurBlockP^.FirstFreeOfs:=Ofs(CurSubBlock^)+ASize;
                         end;
-                      Dec(CurBlockP^.TotalFreeSpaceInBlock,Size);
+                      Dec(CurBlockP^.TotalFreeSpaceInBlock,ASize);
                       { TODO: what is FirstFreeOfs if the entire block is allocated??? }
                       exit;
                     end;
