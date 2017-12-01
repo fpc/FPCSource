@@ -30,7 +30,7 @@ const
   { Length constants. }
   Tab_Stop_Length = 74;
 
-{$ifdef PPC_BP}
+{$ifdef BIT_16}
   MaxLineLength  = 1024;
   MinBufLength   = $1000;
   MaxBufLength   = $ff00;
