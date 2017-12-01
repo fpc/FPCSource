@@ -85,6 +85,29 @@ begin
         if charcount>0 then
           for i:=0 to charcount-1 do
             KbdBufEnqueue((kbPhys shl 24) or charbuf[i] or (KbdShiftState shl 16));
+        { TODO: implement all keys and shift/alt/ctrl combinations }
+        case wParam of
+          VK_LEFT:
+            KbdBufEnqueue((kbPhys shl 24) or $4B00 or (KbdShiftState shl 16));
+          VK_UP:
+            KbdBufEnqueue((kbPhys shl 24) or $4800 or (KbdShiftState shl 16));
+          VK_DOWN:
+            KbdBufEnqueue((kbPhys shl 24) or $5000 or (KbdShiftState shl 16));
+          VK_RIGHT:
+            KbdBufEnqueue((kbPhys shl 24) or $4D00 or (KbdShiftState shl 16));
+          VK_PRIOR: { Page Up }
+            KbdBufEnqueue((kbPhys shl 24) or $4900 or (KbdShiftState shl 16));
+          VK_NEXT:  { Page Down }
+            KbdBufEnqueue((kbPhys shl 24) or $5100 or (KbdShiftState shl 16));
+          VK_HOME:
+            KbdBufEnqueue((kbPhys shl 24) or $4700 or (KbdShiftState shl 16));
+          VK_END:
+            KbdBufEnqueue((kbPhys shl 24) or $4F00 or (KbdShiftState shl 16));
+          VK_INSERT:
+            KbdBufEnqueue((kbPhys shl 24) or $5200 or (KbdShiftState shl 16));
+          VK_DELETE:
+            KbdBufEnqueue((kbPhys shl 24) or $5300 or (KbdShiftState shl 16));
+        end;
       end;
     WM_KEYUP,
     WM_SYSKEYUP:
