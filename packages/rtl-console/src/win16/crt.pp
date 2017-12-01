@@ -27,7 +27,7 @@ Var
 implementation
 
 uses
-  video, keyboard;
+  video, keyboard, WinProcs, WinTypes;
 
 {****************************************************************************
                            Low level Routines
@@ -287,7 +287,18 @@ end;
 *************************************************************************}
 
 procedure Delay(MS: Word);
+var
+  ticks: LongInt;
+  m: MSG;
 begin
+  ticks:=GetTickCount;
+  repeat
+    if PeekMessage(FarAddr(m),0,0,0,1) then
+    begin
+      TranslateMessage(FarAddr(m));
+      DispatchMessage(FarAddr(m));
+    end;
+  until (GetTickCount-ticks)>=MS;
 end;
 
 
