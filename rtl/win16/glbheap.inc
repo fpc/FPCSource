@@ -372,6 +372,7 @@ circular linked list.
               { todo: do it in a more optimal way? }
               result:=SysGlobalAllocMem(size);
               Move(p^,result^,SysGlobalMemSize(p));
+              SysGlobalFreeMem(p);
             end;
         p := result;
       end;
