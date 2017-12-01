@@ -227,6 +227,12 @@ circular linked list.
             if Ofs(PrevSubBlock^)+PrevSubBlock^.Size=Ofs(Addr^) then
               begin
                 Inc(PrevSubBlock^.Size,ASize);
+                { merge with next as well? }
+                if (Ofs(PrevSubBlock^)+PrevSubBlock^.Size)=Ofs(CurSubBlock^) then
+                  begin
+                    Inc(PrevSubBlock^.Size,CurSubBlock^.Size);
+                    PrevSubBlock^.Next:=CurSubBlock^.Next;
+                  end;
               end
             else
               begin
