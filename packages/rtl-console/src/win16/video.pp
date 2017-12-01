@@ -168,6 +168,12 @@ end;
 
 procedure SysDoneVideo;
 begin
+  if VideoWindow<>0 then
+  begin
+    if not DestroyWindow(VideoWindow) then
+      MessageBox(0,'Error destroying window',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
+    VideoWindow:=0;
+  end;
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
