@@ -850,7 +850,7 @@ end;
 {                UNINITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                }
 {---------------------------------------------------------------------------}
 VAR
-   SaveExit: Pointer;                                 { Saved exit pointer }
+   SaveExit: CodePointer;                             { Saved exit pointer }
    Queue   : Array [0..QueueMax-1] Of TEvent;         { New message queue }
 
 {***************************************************************************}
