@@ -601,6 +601,9 @@ asm
   jz @@Lgnf_null
   xchg ax, si  // 1 byte shorter than a mov
   seges lodsw
+ {$ifdef WIN16}
+  and al, $FE
+ {$endif WIN16}
   mov dx, es
 @@Lgnf_null:
 {$endif FPC_X86_DATA_NEAR}
