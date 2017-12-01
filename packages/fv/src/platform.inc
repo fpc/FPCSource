@@ -505,6 +505,34 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE BIT_32_OR_MORE}
 {$ENDIF}
 
+{---------------------------------------------------------------------------}
+{  FPC memory models                                                        }
+{---------------------------------------------------------------------------}
 
+{$ifdef FPC}
+  {$ifdef CPUI8086}
+    {$if defined(FPC_MM_TINY)}
+      {$define FPC_X86_CODE_NEAR}
+      {$define FPC_X86_DATA_NEAR}
+    {$elseif defined(FPC_MM_SMALL)}
+      {$define FPC_X86_CODE_NEAR}
+      {$define FPC_X86_DATA_NEAR}
+    {$elseif defined(FPC_MM_MEDIUM)}
+      {$define FPC_X86_CODE_FAR}
+      {$define FPC_X86_DATA_NEAR}
+    {$elseif defined(FPC_MM_COMPACT)}
+      {$define FPC_X86_CODE_NEAR}
+      {$define FPC_X86_DATA_FAR}
+    {$elseif defined(FPC_MM_LARGE)}
+      {$define FPC_X86_CODE_FAR}
+      {$define FPC_X86_DATA_FAR}
+    {$elseif defined(FPC_MM_HUGE)}
+      {$define FPC_X86_CODE_FAR}
+      {$define FPC_X86_DATA_HUGE}
+    {$else}
+      {$fatal No memory model defined}
+    {$endif}
+  {$endif}
+{$endif}
 
 
