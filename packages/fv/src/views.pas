@@ -445,7 +445,7 @@ TYPE
       FUNCTION GetHelpCtx: Word; Virtual;
       FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION ExecView (P: PView): Word; Virtual;
-      FUNCTION FirstThat (P: Pointer): PView;
+      FUNCTION FirstThat (P: CodePointer): PView;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION FocusNext (Forwards: Boolean): Boolean;
       PROCEDURE Draw; Virtual;
@@ -457,7 +457,7 @@ TYPE
       PROCEDURE SelectDefaultView;
       PROCEDURE Insert (P: PView);
       PROCEDURE Delete (P: PView);
-      PROCEDURE ForEach (P: Pointer);
+      PROCEDURE ForEach (P: CodePointer);
       { ForEach can't be virtual because it generates SIGSEGV }
       PROCEDURE EndModal (Command: Word); Virtual;
       PROCEDURE SelectNext (Forwards: Boolean);
@@ -2102,7 +2102,7 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  FirstThat -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TGroup.FirstThat (P: Pointer): PView;
+FUNCTION TGroup.FirstThat (P: CodePointer): PView;
 VAR
   Tp : PView;
 BEGIN
@@ -2300,7 +2300,7 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  ForEach -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.ForEach (P: Pointer);
+PROCEDURE TGroup.ForEach (P: CodePointer);
 VAR
   Tp,Hp,L0 : PView;
 { Vars Hp and L0 are necessary to hold original pointers in case   }
