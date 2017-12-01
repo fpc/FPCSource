@@ -745,10 +745,17 @@ CONST
 {***************************************************************************}
 
 type
+{$ifdef cpui8086}
+  VoidLocal = function(_BP: Word): pointer;
+  PointerLocal = function(_BP: Word; Param1: pointer): pointer;
+  VoidMethodLocal = function(_BP: Word): pointer;
+  PointerMethodLocal = function(_BP: Word; Param1: pointer): pointer;
+{$else cpui8086}
   VoidLocal = function(_EBP: Pointer): pointer;
   PointerLocal = function(_EBP: Pointer; Param1: pointer): pointer;
   VoidMethodLocal = function(_EBP: Pointer): pointer;
   PointerMethodLocal = function(_EBP: Pointer; Param1: pointer): pointer;
+{$endif cpui8086}
   VoidConstructor = function(VMT: pointer; Obj: pointer): pointer;
   PointerConstructor = function(VMT: pointer; Obj: pointer; Param1: pointer): pointer;
   VoidMethod = function(Obj: pointer): pointer;
@@ -791,25 +798,41 @@ end;
 
 function CallVoidLocal(Func: codepointer; Frame: Pointer): pointer;inline;
 begin
+{$ifdef cpui8086}
+  CallVoidLocal := VoidLocal(Func)(Ofs(Frame^))
+{$else cpui8086}
   CallVoidLocal := VoidLocal(Func)(Frame)
+{$endif cpui8086}
 end;
 
 
 function CallPointerLocal(Func: codepointer; Frame: Pointer; Param1: pointer): pointer;inline;
 begin
+{$ifdef cpui8086}
+  CallPointerLocal := PointerLocal(Func)(Ofs(Frame^), Param1)
+{$else cpui8086}
   CallPointerLocal := PointerLocal(Func)(Frame, Param1)
+{$endif cpui8086}
 end;
 
 
 function CallVoidMethodLocal(Func: codepointer; Frame: Pointer; Obj: pointer): pointer;inline;
 begin
+{$ifdef cpui8086}
+  CallVoidMethodLocal := VoidMethodLocal(Func)(Ofs(Frame^))
+{$else cpui8086}
   CallVoidMethodLocal := VoidMethodLocal(Func)(Frame)
+{$endif cpui8086}
 end;
 
 
 function CallPointerMethodLocal(Func: codepointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
 begin
+{$ifdef cpui8086}
+  CallPointerMethodLocal := PointerMethodLocal(Func)(Ofs(Frame^), Param1)
+{$else cpui8086}
   CallPointerMethodLocal := PointerMethodLocal(Func)(Frame, Param1)
+{$endif cpui8086}
 end;
 
 
