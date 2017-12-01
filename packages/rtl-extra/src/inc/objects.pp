@@ -173,8 +173,13 @@ TYPE
 {                        BIT SWITCHED TYPE CONSTANTS                        }
 {---------------------------------------------------------------------------}
 TYPE
+{$ifdef CPU16}
+   Sw_Word    = Word;
+   Sw_Integer = SmallInt;
+{$else CPU16}
    Sw_Word    = Cardinal;                             { Long Word now }
    Sw_Integer = LongInt;                              { Long integer now }
+{$endif CPU16}
 
 {***************************************************************************}
 {                        PUBLIC RECORD DEFINITIONS                          }
