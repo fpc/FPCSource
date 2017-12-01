@@ -108,6 +108,7 @@
  WINDOWS  OS_WINDOWS  BP/TP7   PPC_BP       PROC_Protected  BIT_16  ASM_BP
                       DELPHI   PPC_DELPHI   PROC_Protected  BIT_16  ASM_BP
                       DELPHI2  PPC_DELPHI2  PROC_Protected  BIT_16  ASM_BP
+          OS_WIN16    FPC      PPC_FPC      PROC_Protected  BIT_16  ASM_FPC
 
  WIN95/NT OS_WINDOWS  DELPHI2  PPC_DELPHI2  PROC_Protected  BIT_32  ASM_BP
                       DELPHI3  PPC_DELPHI3  PROC_Protected  BIT_32  ASM_BP
@@ -138,6 +139,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
  DOS      OS_DOS,OS_GO32       FPC     32-bit         AT&T         CPU86
 
+ WIN16    OS_WIN16             FPC     16-bit           Intel        CPU86
  WIN32    OS_WINDOWS           FPC     32-bit           AT&T         ----
 
  LINUX    OS_LINUX,OS_UNIX     FPC     32-bit           AT&T         ----
@@ -177,13 +179,15 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
-  {$UNDEF BIT_16}
-  {$IFDEF CPU64}
-    {$UNDEF BIT_32}
-    {$DEFINE BIT_64}
-  {$ELSE}
-    {$DEFINE BIT_32}
-    {$UNDEF BIT_64}
+  {$IFNDEF CPU16}
+    {$UNDEF BIT_16}
+    {$IFDEF CPU64}
+      {$UNDEF BIT_32}
+      {$DEFINE BIT_64}
+    {$ELSE}
+      {$DEFINE BIT_32}
+      {$UNDEF BIT_64}
+    {$ENDIF}
   {$ENDIF}
   {$UNDEF PPC_BP}
   {$DEFINE PPC_FPC}
@@ -306,6 +310,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
   {$IFDEF FPC}
+    {$IFDEF WIN16}
+      {$UNDEF OS_WINDOWS}
+      {$DEFINE OS_WIN16}
+    {$ENDIF}
     // {$DEFINE WIN32}
   {$ENDIF}
 {$ENDIF}
