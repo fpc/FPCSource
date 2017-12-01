@@ -40,7 +40,7 @@ circular linked list.
         Size: Word;
       end;
 
-    function NewHeapBlock: Boolean;
+    function NewHeapBlock(LastBlock: Word): Boolean;
       var
         hglob: HGLOBAL;
         pb: PGlobalHeapBlockHeader;
@@ -74,12 +74,14 @@ circular linked list.
               end;
           end;
         HeapList:=Seg(pb^);
+        if LastBlock<>0 then
+          PGlobalHeapBlockHeader(Ptr(LastBlock,0))^.NextBlockSeg:=HeapList;
         result:=true;
       end;
 
     { tries to suballocate from the existing blocks. Returns nil if not enough
       free space is available. ASize must be aligned by 4. }
-    function TryBlockGetMem(ASize: Word): FarPointer;
+    function TryBlockGetMem(ASize: Word; out LastBlock: Word): FarPointer;
       var
         CurBlock: Word;
         CurBlockP: PGlobalHeapBlockHeader;
@@ -87,6 +89,7 @@ circular linked list.
       begin
         CurBlock:=HeapList;
         result:=nil;
+        LastBlock:=0;
         if CurBlock=0 then
           exit;
         repeat
@@ -127,23 +130,26 @@ circular linked list.
                   CurSubBlock:=Ptr(CurBlock,CurSubBlock^.Next);
                 end;
             end;
+          LastBlock:=CurBlock;
           CurBlock:=CurBlockP^.NextBlockSeg;
         until CurBlock=HeapList;
       end;
 
     function SysGlobalBlockGetMem(Size: Word): FarPointer;
+      var
+        LastBlock: Word;
       begin
         Size:=(Size+3) and $fffc;
-        result:=TryBlockGetMem(Size);
+        result:=TryBlockGetMem(Size,LastBlock);
         if result<>nil then
           exit;
-        if not NewHeapBlock then
+        if not NewHeapBlock(LastBlock) then
           begin
             { NewHeapBlock can only return false if ReturnNilIfGrowHeapFails=true }
             result:=nil;
             exit;
           end;
-        result:=TryBlockGetMem(Size);
+        result:=TryBlockGetMem(Size,LastBlock);
       end;
 
     function SysGlobalGetMem(Size: ptruint): FarPointer;
