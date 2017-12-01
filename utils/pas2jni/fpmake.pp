@@ -25,7 +25,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fcl-json');

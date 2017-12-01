@@ -4,7 +4,7 @@
 
 [package]
 main=fcl-web
-version=3.0.3
+version=3.0.5
 
 [target]
 units=fpjsonrpc  webjsonrpc fpextdirect

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
     P.Dependencies.Add('fcl-res');
     p.Dependencies.Add('rtl-objpas');

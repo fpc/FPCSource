@@ -24,7 +24,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('pastojs');

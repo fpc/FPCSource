@@ -153,7 +153,7 @@ begin
       CompilerTarget:=Defaults.CPU;
 
     P:=AddPackage('ide');
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

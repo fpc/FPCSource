@@ -36,7 +36,7 @@ begin
     begin
       // Create fpc-all package
       PBuild:=AddPackage('fpc-all');
-      PBuild.Version:='3.0.3';
+      PBuild.Version:='3.0.5';
     end;
 end;
 

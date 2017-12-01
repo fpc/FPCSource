@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
     if Defaults.CPU=powerpc then
       P.OSes:=P.OSes-[amiga];

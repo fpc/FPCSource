@@ -30,7 +30,7 @@ begin
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('paszlib');
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     T:=P.Targets.AddUnit('src/fpttfencodings.pp');
     T:=P.Targets.AddUnit('src/fpparsettf.pp');
     T:=P.Targets.AddUnit('src/fpfonttextmapping.pp');

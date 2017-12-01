@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     P.OSes:=[win32,win64];
     P.Options.Add('-Ur');
     P.Author := 'Marcel van Brakel, Jedi-apilib team';

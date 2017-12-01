@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
 
     P.Author := 'Library: Red Hat, header: Unknown (but probably Sebastian Guenther)';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';

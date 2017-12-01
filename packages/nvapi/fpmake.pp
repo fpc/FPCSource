@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.0.3';
+    P.Version:='3.0.5';
     P.Author := 'NVidia, Andreas Hausladen, Dmitry "skalogryz" Boyarintsev';
     P.License := 'NVidia license';
     P.HomepageURL := 'nvidia.com';
