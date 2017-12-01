@@ -52,35 +52,39 @@ var
   CharWidth,CharHeight: SmallInt;
 begin
   dc:=BeginPaint(hwnd,FarAddr(ps));
-  oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
-  GetTextMetrics(dc,FarAddr(Metrics));
-  CharWidth:=Metrics.tmMaxCharWidth;
-  CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
-  x1:=ps.rcPaint.left div CharWidth;
-  x2:=1+ps.rcPaint.right div CharWidth;
-  y1:=ps.rcPaint.top div CharHeight;
-  y2:=1+ps.rcPaint.bottom div CharHeight;
-  if x1<0 then
-    x1:=0;
-  if y1<0 then
-    y1:=0;
-  if x2>=ScreenWidth then
-    x2:=ScreenWidth-1;
-  if y2>=ScreenHeight then
-    y2:=ScreenHeight-1;
-  oldtextcolor:=GetTextColor(dc);
-  oldbkcolor:=GetBkColor(dc);
-  for y:=y1 to y2 do
-    for x:=x1 to x2 do
-    begin
-      ch:=videobuf^[y*ScreenWidth+x];
-      SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
-      SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
-      TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
-    end;
-  SetTextColor(dc,oldtextcolor);
-  SetBkColor(dc,oldbkcolor);
-  SelectObject(dc,oldfont);
+  { don't do anything, before the video unit has been fully initialized... }
+  if videobuf<>nil then
+  begin
+    oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
+    GetTextMetrics(dc,FarAddr(Metrics));
+    CharWidth:=Metrics.tmMaxCharWidth;
+    CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
+    x1:=ps.rcPaint.left div CharWidth;
+    x2:=1+ps.rcPaint.right div CharWidth;
+    y1:=ps.rcPaint.top div CharHeight;
+    y2:=1+ps.rcPaint.bottom div CharHeight;
+    if x1<0 then
+      x1:=0;
+    if y1<0 then
+      y1:=0;
+    if x2>=ScreenWidth then
+      x2:=ScreenWidth-1;
+    if y2>=ScreenHeight then
+      y2:=ScreenHeight-1;
+    oldtextcolor:=GetTextColor(dc);
+    oldbkcolor:=GetBkColor(dc);
+    for y:=y1 to y2 do
+      for x:=x1 to x2 do
+      begin
+        ch:=videobuf^[y*ScreenWidth+x];
+        SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
+        SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
+        TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
+      end;
+    SetTextColor(dc,oldtextcolor);
+    SetBkColor(dc,oldbkcolor);
+    SelectObject(dc,oldfont);
+  end;
   EndPaint(hwnd,FarAddr(ps));
 end;
 
