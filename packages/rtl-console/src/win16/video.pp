@@ -191,6 +191,11 @@ var
   CharWidth,CharHeight: SmallInt;
 begin
   dc:=GetDC(VideoWindow);
+  if dc=0 then
+  begin
+    MessageBox(0,'GetDC() failed',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
+    exit;
+  end;
   oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
   GetTextMetrics(dc,FarAddr(Metrics));
   CharWidth:=Metrics.tmMaxCharWidth;
