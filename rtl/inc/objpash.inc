@@ -439,7 +439,9 @@
            vtPWideChar     : (VPWideChar: PWideChar);
            vtAnsiString    : (VAnsiString: Pointer);
            vtCurrency      : (VCurrency: PCurrency);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
            vtVariant       : (VVariant: PVariant);
+{$endif FPC_HAS_FEATURE_VARIANTS}
            vtInterface     : (VInterface: Pointer);
            vtWideString    : (VWideString: Pointer);
            vtInt64         : (VInt64: PInt64);
