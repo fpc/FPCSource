@@ -3145,6 +3145,8 @@ begin
       target_unsup_features:=[f_stackcheck];
     system_i8086_msdos:
       target_unsup_features:=[f_threading,f_dynlibs];
+    system_i8086_win16:
+      target_unsup_features:=[f_threading];
     system_jvm_java32,
     system_jvm_android32:
       target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
