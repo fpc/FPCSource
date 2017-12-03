@@ -231,6 +231,7 @@ type
   TFPReportBeginReportEvent = procedure of object;
   TFPReportEndReportEvent   = procedure of object;
   TFPReportGetValueNamesEvent = procedure(Sender: TObject; List: TStrings) of object;
+  TFPReportGetFieldKindEvent = Procedure(Sender: TObject; aName : String; var AKind : TFPReportFieldKind) of object;
   TFPReportBeforePrintEvent = procedure(Sender: TFPReportElement) of object;
   TFPReportQueryUsePrevValue = function: Boolean of object;
 
@@ -459,17 +460,22 @@ type
   end;
 
 
+  { TFPReportUserData }
+
   TFPReportUserData = class(TFPReportData)
   private
+    FOnGetFieldKind: TFPReportGetFieldKindEvent;
     FOnGetValue: TFPReportGetValueEvent;
     FOnGetNames: TFPReportGetValueNamesEvent;
   protected
+    function GetFieldDataType(const AFieldName: String): TFPReportFieldKind; virtual;
     procedure DoGetValue(const AFieldName: string; var AValue: variant); override;
     procedure DoInitDataFields; override;
   published
     property DataFields;
     property OnGetValue: TFPReportGetValueEvent read FOnGetValue write FOnGetValue;
     property OnGetNames: TFPReportGetValueNamesEvent read FOnGetNames write FOnGetNames;
+    property OnGetFieldKind: TFPReportGetFieldKindEvent read FOnGetFieldKind write FOnGetFieldKind;
   end;
 
   { TFPReportDataItem }
@@ -5021,22 +5027,34 @@ begin
     FOnGetValue(Self, AFieldName, AValue);
 end;
 
+Function TFPReportUserData.GetFieldDataType(Const AFieldName : String) : TFPReportFieldKind;
+
+begin
+  Result:=rfkString;
+  If Assigned(OnGetFieldKind) then
+    OnGetFieldKind(Self,AFieldName,Result);
+end;
+
 procedure TFPReportUserData.DoInitDataFields;
+
 var
   sl: TStringList;
   i: integer;
+
 begin
   inherited DoInitDataFields;
-
   if Assigned(FOnGetNames) then
-  begin
-    sl := TStringList.Create;
-    FOnGetNames(self, sl);
-    for i := 0 to sl.Count-1 do
-      if (Datafields.IndexOfField(sl[i])=-1) then
-        DataFields.AddField(sl[i], rfkString);
-    sl.Free;
-  end;
+    begin
+    sl:= TStringList.Create;
+    try
+      FOnGetNames(self, sl);
+      for i := 0 to sl.Count-1 do
+        if (Datafields.IndexOfField(sl[i])=-1) then
+          DataFields.AddField(sl[i],GetFieldDataType(sl[i]));
+    finally
+      SL.Free;
+    end;
+    end;
 end;
 
 
