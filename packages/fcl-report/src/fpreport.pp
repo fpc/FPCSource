@@ -868,7 +868,6 @@ type
     FIsColumnType: Boolean;
     FBandPosition: TFPReportBandPosition;
     function    GetFont: TFPReportFont;
-    function    IsStringValueZero(const AValue: string): boolean;
     procedure   SetBandPosition(pBandPosition: TFPReportBandPosition); virtual;
     procedure   SetChildBand(AValue: TFPReportChildBand);
     procedure   ApplyStretchMode;
@@ -1479,6 +1478,7 @@ type
     procedure RTEndUsePrevVariableValues;
   protected
     FBands: TBandList;
+    class function IsStringValueZero(const AValue: string): boolean; virtual;
     function CreateVariables: TFPReportVariables; virtual;
     function CreateImages: TFPReportImages; virtual;
     function CreateReportData: TFPReportDataCollection; virtual;
@@ -1754,6 +1754,7 @@ type
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ExpandExpressions;
     procedure   UpdateAggregates;
+    function PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     property    Text: TFPReportString read FText write SetText;
     property    Font: TFPReportFont read GetFont write SetFont;
     property    TextAlignment: TFPReportTextAlignment read FTextAlignment write SetTextAlignment;
@@ -1865,6 +1866,7 @@ type
   protected
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     Procedure   RecalcLayout; override;
+    function PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     property    Image: TFPCustomImage read GetImage write SetImage;
     property    ImageID: integer read FImageID write SetImageID;
     property    Stretched: boolean read FStretched write SetStretched;
@@ -1910,6 +1912,7 @@ type
   Protected
     FTestResult: Boolean;
     Procedure   RecalcLayout; override;
+    Function PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     property    Expression: TFPReportString read FExpression write SetExpression;
   public
     constructor Create(AOwner: TComponent); override;
@@ -4424,6 +4427,44 @@ begin
     end;  { for ... }
 end;
 
+function TFPReportCustomMemo.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
+
+Var
+  m : TFPReportCustomMemo;
+  I : integer;
+  N : TFPExprNode;
+
+begin
+  Result:=Inherited PrepareObject(aRTParent);
+  m:=TFPReportCustomMemo(Result);
+  if moDisableExpressions in m.Options then
+    Exit; // nothing further to do
+  m.ExpandExpressions;
+  // visibility handling
+  if (moHideZeros in m.Options) then
+    begin
+    m.Visible:=Not TFPCustomReport.IsStringValueZero(m.Text);
+    if not M.Visible then
+      exit;
+    end;
+  if (moSuppressRepeated in m.Options) then
+    begin
+    m.Visible:=m.Original.FLastText <> m.Text;
+    if not M.Visible then
+      exit;
+    m.Original.FLastText := m.Text;
+    end;
+  // aggregate handling
+  for I := 0 to Length(m.Original.ExpressionNodes)-1 do
+    begin
+    n := m.Original.ExpressionNodes[I].ExprNode;
+    if Assigned(n)
+       and n.HasAggregate
+       and Not (moNoResetAggregateOnPrint in m.Options) then
+        n.InitAggregate;
+    end;
+end;
+
 constructor TFPReportCustomMemo.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -4701,6 +4742,20 @@ begin
   // Do nothing
 end;
 
+function TFPReportCustomImage.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
+
+Var
+  Img : TFPReportCustomImage;
+  B : TFPReportCustomBand;
+
+begin
+  Result:=inherited PrepareObject(aRTParent);
+  img := TFPReportCustomImage(Result);
+  B:=artParent as TFPReportCustomBand;
+  if (img.FieldName <> '') and Assigned(B.GetData) then
+    img.LoadDBData(B.GetData);
+end;
+
 constructor TFPReportCustomImage.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -4856,6 +4911,19 @@ end;
 procedure TFPReportCustomCheckbox.RecalcLayout;
 begin
   // Do nothing
+end;
+
+function TFPReportCustomCheckbox.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
+
+Var
+  C : TFPReportCustomCheckbox;
+  S : String;
+
+begin
+  Result:=inherited PrepareObject(aRTParent);
+  C:=TFPReportCustomCheckbox(Result);
+  s:=ExpandMacro(C.Expression, True);
+  C.FTestResult := StrToBoolDef(s, False);
 end;
 
 constructor TFPReportCustomCheckbox.Create(AOwner: TComponent);
@@ -6326,20 +6394,17 @@ var
   i: integer;
 begin
   for i := 0 to ChildCount - 1 do
-  begin
     Child[i].PrepareObject(aRTParent);
-  end;
 end;
 
 procedure TFPReportElementWithChildren.RecalcLayout;
+
 var
   i: integer;
 begin
   if Assigned(FChildren) then
-  begin
     for i := 0 to FChildren.Count -1 do
       Child[i].RecalcLayout;
-  end;
 end;
 
 destructor TFPReportElementWithChildren.Destroy;
@@ -7683,7 +7748,7 @@ begin
     Result := FFont;
 end;
 
-function TFPReportCustomBand.IsStringValueZero(const AValue: string): boolean;
+Class function TFPCustomReport.IsStringValueZero(const AValue: string): boolean;
 var
   lIntVal: integer;
   lFloatVal: double;
@@ -7816,13 +7881,6 @@ end;
 function TFPReportCustomBand.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
 
 var
-  m: TFPReportMemo;
-  cb: TFPReportCheckbox;
-  img: TFPReportCustomImage;
-  s: string;
-  c: integer;
-  n: TFPExprNode;
-  nIdx: integer;
   lBand: TFPReportCustomBand;
 
 begin
@@ -7830,65 +7888,7 @@ begin
   lBand.Assign(self);
   lBand.CreateRTLayout;
   Result := lBand;
-
   PrepareObjects(lBand);
-
-  if Assigned(FChildren) then
-  begin
-    for c := 0 to lBand.ChildCount-1 do
-    begin
-      if TFPReportElement(lBand.Child[c]) is TFPReportCustomMemo then
-      begin
-        m := TFPReportMemo(lBand.Child[c]);
-        if moDisableExpressions in m.Options then
-          Continue; // nothing further to do
-        m.ExpandExpressions;
-        // visibility handling
-        if moHideZeros in m.Options then
-        begin
-          if IsStringValueZero(m.Text) then
-          begin
-            m.Visible := False;
-            Continue;
-          end;
-        end;
-        if moSuppressRepeated in m.Options then
-        begin
-          if m.Original.FLastText = m.Text then
-          begin
-            m.Visible := False;
-            Continue;
-          end
-          else
-            m.Original.FLastText := m.Text;
-        end;
-        // aggregate handling
-        for nIdx := 0 to Length(m.Original.ExpressionNodes)-1 do
-          begin
-          n := m.Original.ExpressionNodes[nIdx].ExprNode;
-          if not Assigned(n) then
-            Continue;
-          if n.HasAggregate then
-            begin
-            if Not (moNoResetAggregateOnPrint in m.Options) then
-              n.InitAggregate;
-            end;
-          end;
-      end
-      else if TFPReportElement(lBand.Child[c]) is TFPReportCustomCheckbox then
-      begin
-        cb := TFPReportCheckbox(lBand.Child[c]);
-        s := ExpandMacro(cb.Expression, True);
-        cb.FTestResult := StrToBoolDef(s, False);
-      end
-      else if TFPReportElement(lBand.Child[c]) is TFPReportCustomImage then
-      begin
-        img := TFPReportCustomImage(lBand.Child[c]);
-        if (img.FieldName <> '') and Assigned(GetData) then
-          img.LoadDBData(GetData);
-      end;
-    end; { for c := 0 to ... }
-  end;  { if Assigned(FChildren) ... }
 end;
 
 procedure TFPReportCustomBand.RecalcLayout;
