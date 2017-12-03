@@ -1753,6 +1753,7 @@ type
     procedure   RecalcLayout; override;
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ExpandExpressions;
+    procedure   UpdateAggregates;
     property    Text: TFPReportString read FText write SetText;
     property    Font: TFPReportFont read GetFont write SetFont;
     property    TextAlignment: TFPReportTextAlignment read FTextAlignment write SetTextAlignment;
@@ -4407,6 +4408,22 @@ begin
   Text := lResult;
 end;
 
+
+
+procedure TFPReportCustomMemo.UpdateAggregates;
+
+var
+  i : Integer;
+
+begin
+  for i := 0 to Length(ExpressionNodes)-1 do
+    begin
+    if Assigned(ExpressionNodes[i].ExprNode) then
+      if ExpressionNodes[i].ExprNode.HasAggregate then
+        ExpressionNodes[i].ExprNode.UpdateAggregate;
+    end;  { for ... }
+end;
+
 constructor TFPReportCustomMemo.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -6914,13 +6931,28 @@ begin
   end;
 end;
 
+Function NodeValueAsString(Res : TFPExpressionResult) : String;
+begin
+  case res.ResultType of
+    rtString  : Result := res.ResString;
+    rtInteger : Result := IntToStr(res.ResInteger);
+    rtFloat   : Result := FloatToStr(res.ResFloat);
+    rtBoolean : Result := BoolToStr(res.ResBoolean, True);
+    rtDateTime : Result := FormatDateTime('yyyy-mm-dd', res.ResDateTime);
+  end;
+end;
+
+
 procedure TFPCustomReport.ProcessAggregates(const APageIdx: integer; const AData: TFPReportData);
+
+
 var
   b: integer;
   c: integer;
   i: integer;
   m: TFPReportCustomMemo;
 begin
+  Writeln('TFPCustomReport.ProcessAggregates');
   for b := 0 to Pages[APageIdx].BandCount-1 do
   begin
     if Pages[APageIdx].Bands[b] is TFPReportCustomBandWithData then
@@ -6930,17 +6962,7 @@ begin
     end;
     for c := 0 to Pages[APageIdx].Bands[b].ChildCount-1 do
       if Pages[APageIdx].Bands[b].Child[c] is TFPReportCustomMemo then
-      begin
-        m := TFPReportCustomMemo(Pages[APageIdx].Bands[b].Child[c]);
-        for i := 0 to Length(m.ExpressionNodes)-1 do
-        begin
-          if Assigned(m.ExpressionNodes[i].ExprNode) then
-          begin
-            if m.ExpressionNodes[i].ExprNode.HasAggregate then
-              m.ExpressionNodes[i].ExprNode.UpdateAggregate;
-          end;
-        end;  { for ... }
-      end; { children of band }
+        TFPReportCustomMemo(Pages[APageIdx].Bands[b].Child[c]).UpdateAggregates;
   end; { bands }
 end;
 
@@ -7842,32 +7864,16 @@ begin
         end;
         // aggregate handling
         for nIdx := 0 to Length(m.Original.ExpressionNodes)-1 do
-        begin
+          begin
           n := m.Original.ExpressionNodes[nIdx].ExprNode;
           if not Assigned(n) then
             Continue;
           if n.HasAggregate then
-          begin
-            if moNoResetAggregateOnPrint in m.Options then
             begin
-              // do nothing
-            end
-                 // apply memo.Options rules if applicable
-            else if ((self is TFPReportCustomPageHeaderBand) and (moResetAggregateOnPage in m.Options))
-                  or ((self is TFPReportCustomColumnHeaderBand) and (moResetAggregateOnColumn in m.Options))
-                  or ((self is TFPReportCustomGroupHeaderBand) and (moResetAggregateOnGroup in m.Options)) then
-                n.InitAggregate
-                 // apply Page/Column/Group/Data footer rule
-            else if (self is TFPReportCustomPageFooterBand)
-                  or (self is TFPReportCustomColumnFooterBand)
-                  or (self is TFPReportCustomGroupFooterBand)
-                  or (self is TFPReportCustomDataFooterBand) then
-                n.InitAggregate
-            else
-              // default rule - reset on print. applies to all memos
+            if Not (moNoResetAggregateOnPrint in m.Options) then
               n.InitAggregate;
+            end;
           end;
-        end;
       end
       else if TFPReportElement(lBand.Child[c]) is TFPReportCustomCheckbox then
       begin
@@ -10216,6 +10222,7 @@ begin
         ShowDataHeaderBand(lDsgnDetailBand.HeaderBand);
       while not lData.EOF do
         begin
+        Report.ProcessAggregates(RTCurDsgnPageIdx,lData);
         Report.Variables.PrepareExpressionValues;
         inc(FDataLevelStack);
         ShowDataBand(lDsgnDetailBand);
@@ -10420,9 +10427,12 @@ begin
       StartNewPage;
     if FHasGroups then
       HandleGroupBands;
+    // This must be done after the groups were handled.
+    Report.ProcessAggregates(aPageIdx,aPageData);
     HandleDataBands;
     aPageData.Next;
   end;
+  Report.ProcessAggregates(aPageIdx,aPageData);
   PrepareRecord;
   CheckNewOrOverFlow(True);
   // only print if we actually had data
