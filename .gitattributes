@@ -2786,6 +2786,7 @@ packages/fcl-report/demos/rptdataset.pp svneol=native#text/plain
 packages/fcl-report/demos/rptexpressions.pp svneol=native#text/plain
 packages/fcl-report/demos/rptframes.pp svneol=native#text/plain
 packages/fcl-report/demos/rptgrouping.pp svneol=native#text/plain
+packages/fcl-report/demos/rptgrouping2.pp svneol=native#text/plain
 packages/fcl-report/demos/rptimages.pp svneol=native#text/plain
 packages/fcl-report/demos/rptjson.pp svneol=native#text/plain
 packages/fcl-report/demos/rptmasterdetail.pp svneol=native#text/plain
