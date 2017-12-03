@@ -687,7 +687,7 @@ implementation
             loadtype('vtblarray',vmtarraytype);
             loadtype('__vtbl_ptr_type',vmttype);
           end;
-        if f_threading in features then
+        if f_variants in features then
           begin
             loadtype('variant',cvarianttype);
             loadtype('olevariant',colevarianttype);
