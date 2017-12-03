@@ -32,7 +32,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-d barcode -f fpimage"/>
+        <CommandLineParams Value="-d grouping2 -f pdf"/>
       </local>
     </RunParams>
     <Units Count="18">

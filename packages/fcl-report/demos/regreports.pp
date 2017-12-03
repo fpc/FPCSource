@@ -10,6 +10,7 @@ uses
   rptsimplelist,
   rptexpressions,
   rptgrouping,
+  rptgrouping2,
   rptframes,
   rptimages,
   rptttf,
@@ -45,6 +46,7 @@ begin
   R('simplelist',TSimpleListDemo);
   R('expressions',TExpressionsDemo);
   R('grouping',TGroupingDemo);
+  R('grouping2',TGrouping2Demo);
   R('frames',TFramesDemo);
   R('Images',TImagesDemo);
   R('shapes',TShapesDemo);
