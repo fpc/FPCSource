@@ -934,6 +934,7 @@ type
     procedure ResolveDataName;
     procedure   SetData(const AValue: TFPReportData);
   protected
+    procedure ProcessAggregates(const AData: TFPReportData); virtual;
     Procedure SaveDataToNames; override;
     Procedure RestoreDataFromNames; override;
     function    GetData: TFPReportData; override;
@@ -2550,6 +2551,7 @@ begin
   else
     Result := EncodeDate(lY, lM, lD) + EncodeTime(lH, lMi, lS, 0);
 end;
+
 
 { TFPReportElementEditor }
 
@@ -7030,23 +7032,14 @@ procedure TFPCustomReport.ProcessAggregates(const APageIdx: integer; const AData
 
 
 var
-  b: integer;
-  c: integer;
   i: integer;
-  m: TFPReportCustomMemo;
+  P : TFPReportCustomPage;
+
 begin
-  Writeln('TFPCustomReport.ProcessAggregates');
-  for b := 0 to Pages[APageIdx].BandCount-1 do
-  begin
-    if Pages[APageIdx].Bands[b] is TFPReportCustomBandWithData then
-    begin
-      if TFPReportCustomBandWithData(Pages[APageIdx].Bands[b]).Data <> AData then
-        Continue;  // band is from a different data-loop
-    end;
-    for c := 0 to Pages[APageIdx].Bands[b].ChildCount-1 do
-      if Pages[APageIdx].Bands[b].Child[c] is TFPReportCustomMemo then
-        TFPReportCustomMemo(Pages[APageIdx].Bands[b].Child[c]).UpdateAggregates;
-  end; { bands }
+  P:=Pages[APageIdx];
+  for I := 0 to P.BandCount-1 do
+    if P.Bands[I] is TFPReportCustomBandWithData then
+      TFPReportCustomBandWithData(P.Bands[I]).ProcessAggregates(AData);
 end;
 
 procedure TFPCustomReport.ClearReferenceList;
@@ -8127,6 +8120,20 @@ begin
   if Assigned(FData) then
     FData.FreeNotification(Self);
 end;
+
+procedure TFPReportCustomBandWithData.ProcessAggregates(const AData: TFPReportData);
+
+Var
+  I : Integer;
+
+begin
+  if AData<>Data then
+    exit;
+  for I := 0 to ChildCount-1 do
+    if Child[I] is TFPReportCustomMemo then
+      TFPReportCustomMemo(Child[I]).UpdateAggregates;
+end;
+
 
 procedure TFPReportCustomBandWithData.SaveDataToNames;
 begin
