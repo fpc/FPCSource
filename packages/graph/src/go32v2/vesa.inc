@@ -72,7 +72,7 @@ var
   { linear mode specific stuff }
   InLinear  : boolean;    { true if in linear mode }
   LinearPageOfs : longint; { offset used to set active page }
-  FrameBufferLinearAddress : longint;
+  FrameBufferLinearAddress : dword;
 
   ScanLines: word;        { maximum number of scan lines for mode }
 

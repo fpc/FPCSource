@@ -88,7 +88,7 @@ interface
     function free_ldt_descriptor(d : word) : boolean;
     function segment_to_descriptor(seg : word) : word;
     function get_next_selector_increment_value : word;
-    function get_segment_base_address(d : word) : longint;
+    function get_segment_base_address(d : word) : dword;
     function set_segment_base_address(d : word;s : dword) : boolean;
     function set_segment_limit(d : word;s : dword): boolean;
     function set_descriptor_access_right(d : word;w : word) : boolean;
@@ -771,7 +771,7 @@ interface
          end;
       end;
 
-    function get_segment_base_address(d : word) : longint;
+    function get_segment_base_address(d : word) : dword;
 
       begin
          asm
@@ -902,24 +902,24 @@ interface
     function lock_data(var data;size : longint) : boolean;
 
       var
-         linearaddr : longint;
+         linearaddr : dword;
 
       begin
          if get_run_mode<>rm_dpmi then
            exit;
-         linearaddr:=longint(@data)+get_segment_base_address(get_ds);
+         linearaddr:=dword(@data)+get_segment_base_address(get_ds);
          lock_data:=lock_linear_region(linearaddr,size);
       end;
 
     function lock_code(functionaddr : pointer;size : longint) : boolean;
 
       var
-         linearaddr : longint;
+         linearaddr : dword;
 
       begin
          if get_run_mode<>rm_dpmi then
            exit;
-         linearaddr:=longint(functionaddr)+get_segment_base_address(get_cs);
+         linearaddr:=dword(functionaddr)+get_segment_base_address(get_cs);
          lock_code:=lock_linear_region(linearaddr,size);
       end;
 
@@ -950,22 +950,22 @@ interface
     function unlock_data(var data;size : longint) : boolean;
 
       var
-         linearaddr : longint;
+         linearaddr : dword;
       begin
          if get_run_mode<>rm_dpmi then
            exit;
-         linearaddr:=longint(@data)+get_segment_base_address(get_ds);
+         linearaddr:=dword(@data)+get_segment_base_address(get_ds);
          unlock_data:=unlock_linear_region(linearaddr,size);
       end;
 
     function unlock_code(functionaddr : pointer;size : longint) : boolean;
 
       var
-         linearaddr : longint;
+         linearaddr : dword;
       begin
          if get_run_mode<>rm_dpmi then
            exit;
-         linearaddr:=longint(functionaddr)+get_segment_base_address(get_cs);
+         linearaddr:=dword(functionaddr)+get_segment_base_address(get_cs);
          unlock_code:=unlock_linear_region(linearaddr,size);
       end;
 
