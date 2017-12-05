@@ -999,6 +999,7 @@ begin
     else
       S:=' '+S+' ';
     end;
+  FSkipRoundBrackets:=false;
   Write(S);
   WriteJS(El.B);
   Writer.CurElement:=El;

@@ -246,6 +246,7 @@ type
     Procedure TestBinaryModCompact;
     Procedure TestBinaryComma;
     Procedure TestBinaryCommaCompact;
+    Procedure TestBinaryCallDiv;
     Procedure TestDotMember;
     Procedure TestArgMember;
     Procedure TestNewMember;
@@ -264,7 +265,7 @@ implementation
 
 { TTestExpressionWriter }
 
-Procedure TTestExpressionWriter.TestUnary(Const Msg: String;
+procedure TTestExpressionWriter.TestUnary(const Msg: String;
   AClass: TJSUnaryClass; Result: String);
 Var
   U : TJSUnary;
@@ -275,7 +276,7 @@ begin
   AssertWrite(Msg,Result,U);
 end;
 
-Procedure TTestExpressionWriter.TestBinary(Const Msg: String;
+procedure TTestExpressionWriter.TestBinary(const Msg: String;
   AClass: TJSBinaryClass; Result: String; ACompact: Boolean);
 Var
   U : TJSBinary;
@@ -289,319 +290,350 @@ begin
   AssertWrite(Msg,Result,U);
 end;
 
-Procedure TTestExpressionWriter.TestIdent;
+procedure TTestExpressionWriter.TestIdent;
 
 begin
   AssertWrite('ABC','ABC',CreateIdent('ABC'));
 end;
 
-Procedure TTestExpressionWriter.TestThis;
+procedure TTestExpressionWriter.TestThis;
 begin
   AssertWrite('this','this',TJSPrimaryExpressionThis.Create(0,0));
 end;
 
-Procedure TTestExpressionWriter.TestThrowStatement;
+procedure TTestExpressionWriter.TestThrowStatement;
 
 begin
   TestUnary('Throw expresssion',TJSThrowStatement,'throw a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryDelete;
+procedure TTestExpressionWriter.TestUnaryDelete;
 begin
   TestUnary('Delete expresssion',TJSUnaryDeleteExpression,'delete a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryVoid;
+procedure TTestExpressionWriter.TestUnaryVoid;
 begin
   TestUnary('Void expresssion',TJSUnaryVoidExpression,'void a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryTypeOf;
+procedure TTestExpressionWriter.TestUnaryTypeOf;
 begin
   TestUnary('typeof expresssion',TJSUnaryTypeOfExpression,'typeof a');
 end;
 
-Procedure TTestExpressionWriter.TestPrefixPlusPLus;
+procedure TTestExpressionWriter.TestPrefixPlusPLus;
 begin
   TestUnary('prefix ++ expresssion',TJSUnaryPrePlusPlusExpression,'++a');
 end;
 
-Procedure TTestExpressionWriter.TestPrefixMinusMinus;
+procedure TTestExpressionWriter.TestPrefixMinusMinus;
 begin
   TestUnary('prefix -- expresssion',TJSUnaryPreMinusMinusExpression,'--a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryMinus;
+procedure TTestExpressionWriter.TestUnaryMinus;
 begin
   TestUnary('unary - expresssion',TJSUnaryMinusExpression,'-a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryPlus;
+procedure TTestExpressionWriter.TestUnaryPlus;
 begin
   TestUnary('unary + expresssion',TJSUnaryPlusExpression,'+a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryInv;
+procedure TTestExpressionWriter.TestUnaryInv;
 begin
   TestUnary('unary invert expresssion',TJSUnaryInvExpression,'~a');
 end;
 
-Procedure TTestExpressionWriter.TestUnaryNot;
+procedure TTestExpressionWriter.TestUnaryNot;
 begin
   TestUnary('unary not expresssion',TJSUnaryNotExpression,'!a');
 end;
 
-Procedure TTestExpressionWriter.TestPostPlusPLus;
+procedure TTestExpressionWriter.TestPostPlusPLus;
 begin
   TestUnary('postfix ++ expresssion',TJSUnaryPostPlusPlusExpression,'a++');
 end;
 
-Procedure TTestExpressionWriter.TestPostMinusMinus;
+procedure TTestExpressionWriter.TestPostMinusMinus;
 begin
   TestUnary('postfix -- expresssion',TJSUnaryPostMinusMinusExpression,'a--');
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalOr;
+procedure TTestExpressionWriter.TestBinaryLogicalOr;
 begin
   TestBinary('logical or',TJSLogicalOrExpression,'(a || b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalOrCompact;
+procedure TTestExpressionWriter.TestBinaryLogicalOrCompact;
 begin
   TestBinary('logical or',TJSLogicalOrExpression,'(a||b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalAnd;
+procedure TTestExpressionWriter.TestBinaryLogicalAnd;
 begin
   TestBinary('logical or',TJSLogicalAndExpression,'(a && b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLogicalAndCompact;
+procedure TTestExpressionWriter.TestBinaryLogicalAndCompact;
 begin
   TestBinary('logical or',TJSLogicalAndExpression,'(a&&b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseOr;
+procedure TTestExpressionWriter.TestBinaryBitwiseOr;
 begin
   TestBinary('Bitwise or',TJSBitwiseOrExpression,'(a | b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseOrCompact;
+procedure TTestExpressionWriter.TestBinaryBitwiseOrCompact;
 begin
   TestBinary('Bitwise or',TJSBitwiseOrExpression,'(a|b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseAnd;
+procedure TTestExpressionWriter.TestBinaryBitwiseAnd;
 begin
   TestBinary('Bitwise and',TJSBitwiseAndExpression,'(a & b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseAndCompact;
+procedure TTestExpressionWriter.TestBinaryBitwiseAndCompact;
 begin
   TestBinary('Bitwise and',TJSBitwiseAndExpression,'(a&b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseXOr;
+procedure TTestExpressionWriter.TestBinaryBitwiseXOr;
 begin
   TestBinary('Bitwise xor',TJSBitwiseXOrExpression,'(a ^ b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryBitwiseXOrCompact;
+procedure TTestExpressionWriter.TestBinaryBitwiseXOrCompact;
 begin
   TestBinary('Bitwise xor',TJSBitwiseXOrExpression,'(a^b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryEQ;
+procedure TTestExpressionWriter.TestBinaryEQ;
 begin
   TestBinary('Equal',TJSEqualityExpressionEQ,'(a == b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryEQCompact;
+procedure TTestExpressionWriter.TestBinaryEQCompact;
 begin
   TestBinary('Equal',TJSEqualityExpressionEQ,'(a==b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryNE;
+procedure TTestExpressionWriter.TestBinaryNE;
 begin
   TestBinary('Not Equal',TJSEqualityExpressionNE,'(a != b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryNECompact;
+procedure TTestExpressionWriter.TestBinaryNECompact;
 begin
   TestBinary('Not Equal',TJSEqualityExpressionNE,'(a!=b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySEQ;
+procedure TTestExpressionWriter.TestBinarySEQ;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSEQ,'(a === b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySEQCompact;
+procedure TTestExpressionWriter.TestBinarySEQCompact;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSEQ,'(a===b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySNE;
+procedure TTestExpressionWriter.TestBinarySNE;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSNE,'(a !== b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinarySNECompact;
+procedure TTestExpressionWriter.TestBinarySNECompact;
 begin
   TestBinary('Strictly Equal',TJSEqualityExpressionSNE,'(a!==b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLT;
+procedure TTestExpressionWriter.TestBinaryLT;
 begin
   TestBinary('Less than',TJSRelationalExpressionLT,'(a < b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLTCompact;
+procedure TTestExpressionWriter.TestBinaryLTCompact;
 begin
   TestBinary('Less than',TJSRelationalExpressionLT,'(a<b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGT;
+procedure TTestExpressionWriter.TestBinaryGT;
 begin
   TestBinary('Greater than',TJSRelationalExpressionGT,'(a > b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGTCompact;
+procedure TTestExpressionWriter.TestBinaryGTCompact;
 begin
   TestBinary('Greater than',TJSRelationalExpressionGT,'(a>b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLE;
+procedure TTestExpressionWriter.TestBinaryLE;
 begin
   TestBinary('Less than or equal',TJSRelationalExpressionLE,'(a <= b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLECompact;
+procedure TTestExpressionWriter.TestBinaryLECompact;
 begin
   TestBinary('Less than or equal',TJSRelationalExpressionLE,'(a<=b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGE;
+procedure TTestExpressionWriter.TestBinaryGE;
 begin
   TestBinary('Greater than or equal',TJSRelationalExpressionGE,'(a >= b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryGECompact;
+procedure TTestExpressionWriter.TestBinaryGECompact;
 begin
   TestBinary('Greater than or equal',TJSRelationalExpressionGE,'(a>=b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryIN;
+procedure TTestExpressionWriter.TestBinaryIN;
 begin
   TestBinary('Prop in Object',TJSRelationalExpressionIN,'(a in b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryINCompact;
+procedure TTestExpressionWriter.TestBinaryINCompact;
 begin
   TestBinary('Prop in Object',TJSRelationalExpressionIN,'(a in b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryInstanceOf;
+procedure TTestExpressionWriter.TestBinaryInstanceOf;
 begin
   TestBinary('A instanceof Object',TJSRelationalExpressionInStanceOf,'(a instanceof b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryInstanceOfCompact;
+procedure TTestExpressionWriter.TestBinaryInstanceOfCompact;
 begin
   TestBinary('A instanceof Object',TJSRelationalExpressionInStanceOf,'(a instanceof b)',true);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLShift;
+procedure TTestExpressionWriter.TestBinaryLShift;
 begin
   TestBinary('A lshift B',TJSLShiftExpression,'(a << b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryLShiftOfCompact;
+procedure TTestExpressionWriter.TestBinaryLShiftOfCompact;
 begin
   TestBinary('A lshift B',TJSLShiftExpression,'(a<<b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryRShift;
+procedure TTestExpressionWriter.TestBinaryRShift;
 begin
   TestBinary('A rshift B',TJSRShiftExpression,'(a >> b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryRShiftOfCompact;
+procedure TTestExpressionWriter.TestBinaryRShiftOfCompact;
 begin
   TestBinary('A rshift B',TJSRShiftExpression,'(a>>b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryURShift;
+procedure TTestExpressionWriter.TestBinaryURShift;
 begin
   TestBinary('A urshift B',TJSURShiftExpression,'(a >>> b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryURShiftOfCompact;
+procedure TTestExpressionWriter.TestBinaryURShiftOfCompact;
 begin
   TestBinary('A urshift B',TJSURShiftExpression,'(a>>>b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryPlus;
+procedure TTestExpressionWriter.TestBinaryPlus;
 begin
   TestBinary('A plus B',TJSAdditiveExpressionPlus,'(a + b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryPlusCompact;
+procedure TTestExpressionWriter.TestBinaryPlusCompact;
 begin
   TestBinary('A plus B',TJSAdditiveExpressionPlus,'(a+b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMinus;
+procedure TTestExpressionWriter.TestBinaryMinus;
 begin
   TestBinary('A minus B',TJSAdditiveExpressionMinus,'(a - b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMinusCompact;
+procedure TTestExpressionWriter.TestBinaryMinusCompact;
 begin
   TestBinary('A minus B',TJSAdditiveExpressionMinus,'(a-b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMultiply;
+procedure TTestExpressionWriter.TestBinaryMultiply;
 begin
   TestBinary('A multiply B',TJSMultiplicativeExpressionMul,'(a * b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMultiplyCompact;
+procedure TTestExpressionWriter.TestBinaryMultiplyCompact;
 begin
   TestBinary('A multiply B',TJSMultiplicativeExpressionMul,'(a*b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryDivide;
+procedure TTestExpressionWriter.TestBinaryDivide;
 begin
   TestBinary('A divide B',TJSMultiplicativeExpressionDiv,'(a / b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryDivideCompact;
+procedure TTestExpressionWriter.TestBinaryDivideCompact;
 begin
   TestBinary('A divide B',TJSMultiplicativeExpressionDiv,'(a/b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryMod;
+procedure TTestExpressionWriter.TestBinaryMod;
 begin
   TestBinary('A mod B',TJSMultiplicativeExpressionMod,'(a % b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryModCompact;
+procedure TTestExpressionWriter.TestBinaryModCompact;
 begin
   TestBinary('A mod B',TJSMultiplicativeExpressionMod,'(a%b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryComma;
+procedure TTestExpressionWriter.TestBinaryComma;
 begin
   TestBinary('A comma B',TJSCommaExpression,'(a, b)',False);
 end;
 
-Procedure TTestExpressionWriter.TestBinaryCommaCompact;
+procedure TTestExpressionWriter.TestBinaryCommaCompact;
 begin
   TestBinary('A comma B',TJSCommaExpression,'(a,b)',True);
 end;
 
-Procedure TTestExpressionWriter.TestDotMember;
+procedure TTestExpressionWriter.TestBinaryCallDiv;
+var
+  aDiv: TJSMultiplicativeExpressionDiv;
+  LeftMul: TJSMultiplicativeExpressionMul;
+  LeftCall: TJSCallExpression;
+  RightSub: TJSAdditiveExpressionMinus;
+  Expr: String;
+begin
+  // (2*f(3))/(a-4)
+  aDiv:=TJSMultiplicativeExpressionDiv.Create(0,0);
+  // (2*f(3))
+  LeftMul:=TJSMultiplicativeExpressionMul.Create(0,0);
+  aDiv.A:=LeftMul;
+  // 2
+  LeftMul.A:=CreateLiteral(2);
+  // f(3)
+  LeftCall:=TJSCallExpression.Create(0,0);
+  LeftMul.B:=LeftCall;
+  LeftCall.Expr:=CreateIdent('f');
+  LeftCall.Args:=TJSArguments.Create(0,0);
+  LeftCall.AddArg(CreateLiteral(3));
+  // (a-4)
+  RightSub:=TJSAdditiveExpressionMinus.Create(0,0);
+  aDiv.B:=RightSub;
+  RightSub.A:=CreateIdent('a');
+  RightSub.B:=CreateLiteral(4);
+
+  Expr:='((2 * f(3)) / (a - 4))';
+  AssertWrite('keep needed brackets of '+Expr,Expr,aDiv);
+end;
+
+procedure TTestExpressionWriter.TestDotMember;
 Var
   U : TJSDotMemberExpression;
 
@@ -612,7 +644,7 @@ begin
   AssertWrite('member b of object a (a.b)','a.b',U);
 end;
 
-Procedure TTestExpressionWriter.TestArgMember;
+procedure TTestExpressionWriter.TestArgMember;
 Var
   U : TJSBracketMemberExpression;
 
@@ -623,7 +655,7 @@ begin
   AssertWrite('member b of object a (a[b])','a[b]',U);
 end;
 
-Procedure TTestExpressionWriter.TestNewMember;
+procedure TTestExpressionWriter.TestNewMember;
 Var
   U : TJSNewMemberExpression;
 
@@ -636,7 +668,7 @@ begin
   AssertWrite('member b of object a (a[b])','new a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestNewMemberCompact;
+procedure TTestExpressionWriter.TestNewMemberCompact;
 
 Var
   U : TJSNewMemberExpression;
@@ -651,7 +683,7 @@ begin
   AssertWrite('new a(123)','new a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestNewMemberNoArgs;
+procedure TTestExpressionWriter.TestNewMemberNoArgs;
 Var
   U : TJSNewMemberExpression;
 
@@ -661,7 +693,7 @@ begin
   AssertWrite('new a()','new a()',U);
 end;
 
-Procedure TTestExpressionWriter.TestCall;
+procedure TTestExpressionWriter.TestCall;
 Var
   U : TJSCallExpression;
 
@@ -675,7 +707,7 @@ begin
      'a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestCallCompact;
+procedure TTestExpressionWriter.TestCallCompact;
 Var
   U : TJSCallExpression;
 
@@ -689,7 +721,7 @@ begin
   AssertWrite('call a(123)','a(123)',U);
 end;
 
-Procedure TTestExpressionWriter.TestCallCompact2;
+procedure TTestExpressionWriter.TestCallCompact2;
 Var
   U : TJSCallExpression;
 
@@ -706,7 +738,7 @@ begin
 
 end;
 
-Procedure TTestExpressionWriter.TestCallNoArgs;
+procedure TTestExpressionWriter.TestCallNoArgs;
 Var
   U : TJSCallExpression;
 
@@ -716,7 +748,7 @@ begin
   AssertWrite('call a()','a()',U);
 end;
 
-Procedure TTestExpressionWriter.TestConditional;
+procedure TTestExpressionWriter.TestConditional;
 Var
   U : TJSConditionalExpression;
 
@@ -728,7 +760,7 @@ begin
   AssertWrite('a ? b : c','(a ? b : c)',U);
 end;
 
-Procedure TTestExpressionWriter.TestRegularExpressionLiteral;
+procedure TTestExpressionWriter.TestRegularExpressionLiteral;
 
 Var
   S : TJSRegularExpressionLiteral;
@@ -738,7 +770,7 @@ begin
   AssertWrite('/a/','/a/',S);
 end;
 
-Procedure TTestExpressionWriter.TestRegularExpressionLiteralFlags;
+procedure TTestExpressionWriter.TestRegularExpressionLiteralFlags;
 Var
   S : TJSRegularExpressionLiteral;
 begin
