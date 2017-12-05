@@ -1193,7 +1193,7 @@ begin
   pp:=loc_info^.heap_mem_root;
   if ((loc_info^.getmem_size-loc_info^.freemem_size)=0) and SkipIfNoLeaks then
     exit;
-  Writeln(ptext^,'Heap dump by heaptrc unit of'+ParamStr(0));
+  Writeln(ptext^,'Heap dump by heaptrc unit of '+ParamStr(0));
   Writeln(ptext^,loc_info^.getmem_cnt, ' memory blocks allocated : ',
     loc_info^.getmem_size,'/',loc_info^.getmem8_size);
   Writeln(ptext^,loc_info^.freemem_cnt,' memory blocks freed     : ',
