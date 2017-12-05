@@ -195,9 +195,10 @@ circular linked list.
       begin
         ASize:=(ASize+3) and $fffc;
         CurBlock:=Seg(Addr^);
-        if (Ofs(Addr^)<SizeOf(TGlobalHeapBlockHeader)) or ((Ofs(Addr^) and 3)<>0) then
-          HandleError(204);
         CurBlockP:=Ptr(CurBlock,0);
+        if (Ofs(Addr^)<SizeOf(TGlobalHeapBlockHeader)) or ((Ofs(Addr^) and 3)<>0) or
+           (CurBlockP^.ID<>GlobalHeapBlockID) then
+          HandleError(204);
         if CurBlockP^.TotalFreeSpaceInBlock=0 then
           begin
             CurBlockP^.FirstFreeOfs:=Ofs(Addr^);
