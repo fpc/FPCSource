@@ -347,6 +347,7 @@ type
     Procedure TestProcOverloadDelphiUnitNoOverloadFail;
     Procedure TestProcOverloadObjFPCUnitWithoutOverloadMod;
     Procedure TestProcOverloadDelphiWithObjFPC;
+    Procedure TestProcOverloadDelphiOverride;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestFuncAssignFail;
@@ -5196,6 +5197,53 @@ begin
   '  DoIt(true);',
   '  DoIt(''foo'');',
   '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiOverride;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    function {#a}GetValue: longint; overload; virtual;',
+  '    function {#b}GetValue(AValue: longint): longint; overload; virtual;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '    function {#c}GetValue: longint; overload; override;',
+  '    function {#d}GetValue(AValue: longint): longint; overload; override;',
+  '  end;',
+  '  TBear = class',
+  '    procedure DoIt;',
+  '  end;',
+  'function TBird.GetValue: longint;',
+  'begin',
+  '  if 3={@a}GetValue then ;',
+  '  if 4={@b}GetValue(5) then ;',
+  'end;',
+  'function TBird.GetValue(AValue: longint): longint;',
+  'begin',
+  'end;',
+  'function TEagle.GetValue: longint;',
+  'begin',
+  '  if 13={@c}GetValue then ;',
+  '  if 14={@d}GetValue(15) then ;',
+  '  if 15=inherited {@a}GetValue then ;',
+  '  if 16=inherited {@b}GetValue(17) then ;',
+  'end;',
+  'function TEagle.GetValue(AValue: longint): longint;',
+  'begin',
+  'end;',
+  'procedure TBear.DoIt;',
+  'var',
+  '  e: TEagle;',
+  'begin',
+  '  if 23=e.{@c}GetValue then ;',
+  '  if 24=e.{@d}GetValue(25) then ;',
+  'end;',
+  'begin']);
   ParseProgram;
 end;
 
