@@ -374,6 +374,7 @@ type
     Procedure TestClass_Overloads;
     Procedure TestClass_OverloadsAncestor;
     Procedure TestClass_OverloadConstructor;
+    Procedure TestClass_OverloadDelphiOverride;
     Procedure TestClass_ReintroducedVar;
     Procedure TestClass_RaiseDescendant;
     Procedure TestClass_ExternalMethod;
@@ -8432,6 +8433,87 @@ begin
     '$mod.TObject.$create("Create$1", [1, 2]);',
     '$mod.TCar.$create("Create$2", [1]);',
     '$mod.TCar.$create("Create$3", [1, 2]);',
+    '']));
+end;
+
+procedure TTestModule.TestClass_OverloadDelphiOverride;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    function {#a}GetValue: longint; overload; virtual;',
+  '    function {#b}GetValue(AValue: longint): longint; overload; virtual;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '    function {#c}GetValue: longint; overload; override;',
+  '    function {#d}GetValue(AValue: longint): longint; overload; override;',
+  '  end;',
+  'function TBird.GetValue: longint;',
+  'begin',
+  '  if 3={@a}GetValue then ;',
+  '  if 4={@b}GetValue(5) then ;',
+  'end;',
+  'function TBird.GetValue(AValue: longint): longint;',
+  'begin',
+  'end;',
+  'function TEagle.GetValue: longint;',
+  'begin',
+  '  if 13={@c}GetValue then ;',
+  '  if 14={@d}GetValue(15) then ;',
+  '  if 15=inherited {@a}GetValue then ;',
+  '  if 16=inherited {@b}GetValue(17) then ;',
+  'end;',
+  'function TEagle.GetValue(AValue: longint): longint;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEagle;',
+  'begin',
+  '  if 23=e.{@c}GetValue then ;',
+  '  if 24=e.{@d}GetValue(25) then ;']);
+  ConvertProgram;
+  CheckSource('TestClass_OverloadDelphiOverride',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.GetValue = function () {',
+    '    var Result = 0;',
+    '    if (3 === this.GetValue()) ;',
+    '    if (4 === this.GetValue$1(5)) ;',
+    '    return Result;',
+    '  };',
+    '  this.GetValue$1 = function (AValue) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TEagle", $mod.TBird, function () {',
+    '  this.GetValue = function () {',
+    '    var Result = 0;',
+    '    if (13 === this.GetValue()) ;',
+    '    if (14 === this.GetValue$1(15)) ;',
+    '    if (15 === $mod.TBird.GetValue.call(this)) ;',
+    '    if (16 === $mod.TBird.GetValue$1.call(this, 17)) ;',
+    '    return Result;',
+    '  };',
+    '  this.GetValue$1 = function (AValue) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.e = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if (23 === $mod.e.GetValue()) ;',
+    'if (24 === $mod.e.GetValue$1(25)) ;',
     '']));
 end;
 

@@ -1766,9 +1766,6 @@ begin
     if (El is TPasProcedure) then
       begin
       Proc:=TPasProcedure(El);
-      if Proc.IsOverride or Proc.IsExternal then
-        continue;
-      // Note: Pascal names of external procs are not in the JS, so no need to rename them
       ProcScope:=Proc.CustomData as TPasProcedureScope;
       //writeln('TPas2JSResolver.RenameOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassScope));
       if ProcScope.DeclarationProc<>nil then
@@ -1776,6 +1773,24 @@ begin
         if ProcScope.ImplProc<>nil then
           RaiseInternalError(20170221110853);
         // proc implementation (not forward) -> skip
+        continue;
+        end;
+      if Proc.IsOverride then
+        begin
+        if ProcScope.OverriddenProc=nil then
+          RaiseInternalError(20171205183502);
+        if Proc.Name<>ProcScope.OverriddenProc.Name then
+          begin
+          Proc.Name:=ProcScope.OverriddenProc.Name;
+          if ProcScope.ImplProc<>nil then
+            ProcScope.ImplProc.Name:=Proc.Name;
+          end;
+        Continue;
+        end
+      else if Proc.IsExternal then
+        begin
+        // Note: Pascal names of external procs are not in the generated JS,
+        // so no need to rename them
         continue;
         end;
       // proc declaration (header, not body)
