@@ -4440,6 +4440,8 @@ Var
 
 begin
   Result:=Inherited PrepareObject(aRTParent);
+  if Result=Nil then
+    exit;
   m:=TFPReportCustomMemo(Result);
   if moDisableExpressions in m.Options then
     Exit; // nothing further to do
@@ -4754,6 +4756,8 @@ Var
 
 begin
   Result:=inherited PrepareObject(aRTParent);
+  if Result=Nil then
+    exit;
   img := TFPReportCustomImage(Result);
   B:=artParent as TFPReportCustomBand;
   if (img.FieldName <> '') and Assigned(B.GetData) then
@@ -4925,6 +4929,8 @@ Var
 
 begin
   Result:=inherited PrepareObject(aRTParent);
+  if Result=Nil then
+    exit;
   C:=TFPReportCustomCheckbox(Result);
   s:=ExpandMacro(C.Expression, True);
   C.FTestResult := StrToBoolDef(s, False);
