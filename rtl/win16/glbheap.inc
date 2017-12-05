@@ -123,7 +123,11 @@ circular linked list.
                             CurBlockP^.FirstFreeOfs:=Ofs(CurSubBlock^)+ASize;
                         end;
                       Dec(CurBlockP^.TotalFreeSpaceInBlock,ASize);
-                      { TODO: what is FirstFreeOfs if the entire block is allocated??? }
+                      { if TotalFreeSpaceInBlock becomes 0, then FirstFreeOfs
+                      should also become 0, but that is already handled
+                      correctly in the code above (in this case, by the
+                      line 'CurBlockP^.FirstFreeOfs:=CurSubBlock^.Next',
+                      so there's no need to set it explicitly here. }
                       exit;
                     end;
                   PrevSubBlock:=CurSubBlock;
