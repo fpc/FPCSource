@@ -25,10 +25,12 @@ such heap block starts with a header of type TGlobalHeapBlockHeader, which is
 always located at offset 0 of the heap block segment. These heap blocks form a
 circular linked list.
 }
+    const
+      GlobalHeapBlockID=20564;
     type
       PGlobalHeapBlockHeader=^TGlobalHeapBlockHeader;far;
       TGlobalHeapBlockHeader=record
-        ID: LongWord;  { 20564 }
+        ID: LongWord;  { =GlobalHeapBlockID }
         FirstFreeOfs: Word;
         Unknown: Word;  { don't know what this is; seems to be 0 }
         TotalFreeSpaceInBlock: Word;
@@ -59,7 +61,7 @@ circular linked list.
           HandleError(204);
         with pb^ do
           begin
-            ID:=20564;
+            ID:=GlobalHeapBlockID;
             FirstFreeOfs:=SizeOf(TGlobalHeapBlockHeader);
             Unknown:=0;
             TotalFreeSpaceInBlock:=HeapBlock-SizeOf(TGlobalHeapBlockHeader);
