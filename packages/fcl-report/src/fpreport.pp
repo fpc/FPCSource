@@ -1411,8 +1411,8 @@ type
     Function FindVariable(aName : String)  : TFPReportVariable;
     Function AddVariable(aName : String)  : TFPReportVariable;
     Function AddDataVariable(aName : String)  : TFPReportVariable;
-    Function AddExprVariable(aName : String; aExpr: String; aType: TResultType = rtString; aResetType: TFPReportResetType = rtNone; aResetGroup: TFPReportCustomGroupHeaderBand = nil) : TFPReportVariable;
-    Function AddExprVariable(aName : String; aExpr: String; aType: TResultType; aResetType: TFPReportResetType; aResetValueExpression: String) : TFPReportVariable;
+    Function AddExprVariable(aName : String; aExpr: String; aType: TResultType; aResetGroup: TFPReportCustomGroupHeaderBand) : TFPReportVariable;
+    Function AddExprVariable(aName : String; aExpr: String; aType: TResultType; aResetType: TFPReportResetType = rtnone; aResetValueExpression: String = '') : TFPReportVariable;
     Property Variable[aIndex : Integer] : TFPReportVariable Read GetV Write SetV; default;
   end;
 
@@ -2165,7 +2165,9 @@ resourcestring
   SErrUnknownElementName = 'Unknown element name : %s';
   SErrUnknownElementClass = 'Unknown element class : %s';
   SErrResetGroupMissing = 'ResetType is rtGroup but no ResetGroup specified';
+  SErrEmptyResetValue = 'ResetType is specified, but no ResetExpression is provided';
   SErrExprVarisbleAggregateOnWrongLevel= 'ExprVariable has Aggregate but not on highest level: %s';
+
 
 { includes Report Checkbox element images }
 {$I fpreportcheckbox.inc}
@@ -2747,9 +2749,7 @@ begin
   end;
 end;
 
-function TFPReportVariables.AddExprVariable(aName: String; aExpr: String;
-  aType: TResultType; aResetType: TFPReportResetType;
-  aResetGroup: TFPReportCustomGroupHeaderBand): TFPReportVariable;
+function TFPReportVariables.AddExprVariable(aName: String; aExpr: String; aType: TResultType; aResetGroup: TFPReportCustomGroupHeaderBand): TFPReportVariable;
 var
   lGrp: TFPReportCustomGroupHeaderBand;
   lResetValueExpression: String;
@@ -2766,27 +2766,16 @@ var
   end;
 
 begin
-  if (aResetType = rtGroup)
-  and not Assigned(aResetGroup) then
+  if not Assigned(aResetGroup) then
     raise EReportError.Create(SErrResetGroupMissing);
   lResetValueExpression:='';
-  if Assigned(aResetGroup) then
-  begin
-    case aResetType of
-      rtGroup:
-      begin
-        lGrp:=aResetGroup;
-        while Assigned(lGrp) do
-        begin
-          ExtendResetValueExpression(lGrp.GroupCondition, false);
-          lGrp:=lGrp.ParentGroupHeader;
-        end;
-      end;
-      rtPage:   lResetValueExpression:='PageNo';
-      rtColumn: lResetValueExpression:='ColNo';
+  lGrp:=aResetGroup;
+  while Assigned(lGrp) do
+    begin
+    ExtendResetValueExpression(lGrp.GroupCondition, false);
+    lGrp:=lGrp.ParentGroupHeader;
     end;
-  end;
-  Result := AddExprVariable(aName, aExpr, aType, aResetType, lResetValueExpression);
+  Result := AddExprVariable(aName, aExpr, aType, rtGroup, lResetValueExpression);
 end;
 
 function TFPReportVariables.AddExprVariable(aName: String; aExpr: String;
@@ -2796,14 +2785,21 @@ begin
   if (IndexOfVariable(aName)<>-1) then
     raise EReportError.CreateFmt(SErrDuplicateVariable, [aName]);
   Result:=add as TFPReportVariable;
+  if (aResetValueExpression='') then
+    case aResetType of
+      rtPage:   aResetValueExpression:='PageNo';
+      rtColumn: aResetValueExpression:='ColNo';
+    end;
+  if (aResetType<>rtNone) and (aResetValueExpression='') then
+    raise EReportError.CreateFmt(SErrEmptyResetValue, [aName]);
   with Result do
-  begin
+    begin
     Name:=aName;
     FExpression:=aExpr;
     DataType:=aType;
     FResetType:=aResetType;
     FResetValueExpression:=aResetValueExpression;
-  end;
+    end;
 end;
 
 { TFPReportVariable }

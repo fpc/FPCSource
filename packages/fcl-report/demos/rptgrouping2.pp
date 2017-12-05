@@ -227,7 +227,7 @@ begin
   Memo.Layout.Height := 8;
   Memo.UseParentFont := False;
   Memo.TextAlignment.Horizontal := taRightJustified;
-  Memo.Text := '[FormatFloat(''#,###0.00'',sum(data.population/1000000))] million';
+  Memo.Text := 'Total for [data.continent]: [FormatFloat(''#,###0.00'',sum(data.population/1000000))] million.';
 //  Memo.Options:=Memo.Options+[moNoResetAggregateOnPrint];
   Memo.Font.Size := 16;
 

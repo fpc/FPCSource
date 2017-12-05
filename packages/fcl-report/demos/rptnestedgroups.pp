@@ -559,13 +559,13 @@ begin
 
   {*** variables ***}
 
-  rpt.Variables.AddExprVariable('population_in_M', 'StrToFloat(population) / 1000000', rtFloat);
-  rpt.Variables.AddExprVariable('grp1region_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, rtGroup, GroupHeader1Region);
-  rpt.Variables.AddExprVariable('grp1region_sum_population', 'sum(StrToFloat(population))', rtFloat, rtGroup, GroupHeader1Region);
-  rpt.Variables.AddExprVariable('grp2subregion_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, rtGroup, GroupHeader2Subregion);
-  rpt.Variables.AddExprVariable('grp2subregion_sum_population', 'sum(StrToFloat(population))', rtFloat, rtGroup, GroupHeader2Subregion);
-  rpt.Variables.AddExprVariable('grp3initial_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, rtGroup, GroupHeader3Initial);
-  rpt.Variables.AddExprVariable('grp3initial_sum_population', 'sum(StrToFloat(population))', rtFloat, rtGroup, GroupHeader3Initial);
+  rpt.Variables.AddExprVariable('population_in_M', 'StrToFloat(population) / 1000000', rtFloat, rtNone, '');
+  rpt.Variables.AddExprVariable('grp1region_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, GroupHeader1Region);
+  rpt.Variables.AddExprVariable('grp1region_sum_population', 'sum(StrToFloat(population))', rtFloat, GroupHeader1Region);
+  rpt.Variables.AddExprVariable('grp2subregion_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, GroupHeader2Subregion);
+  rpt.Variables.AddExprVariable('grp2subregion_sum_population', 'sum(StrToFloat(population))', rtFloat, GroupHeader2Subregion);
+  rpt.Variables.AddExprVariable('grp3initial_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, GroupHeader3Initial);
+  rpt.Variables.AddExprVariable('grp3initial_sum_population', 'sum(StrToFloat(population))', rtFloat, GroupHeader3Initial);
   rpt.Variables.AddExprVariable('total_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat);
   rpt.Variables.AddExprVariable('total_sum_population', 'sum(StrToFloat(population))', rtFloat);
 

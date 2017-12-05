@@ -193,11 +193,11 @@ begin
 
 
   {*** variables ***}
-  rpt.Variables.AddExprVariable('population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat);
-  rpt.Variables.AddExprVariable('grp_sum_population', 'sum(StrToFloat(population))', rtFloat, rtGroup, GroupHeader);
-  rpt.Variables.AddExprVariable('grp_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, rtGroup, GroupHeader);
-  rpt.Variables.AddExprVariable('sum_population', 'sum(StrToFloat(population))', rtFloat);
-  rpt.Variables.AddExprVariable('sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat);
+  rpt.Variables.AddExprVariable('population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, rtNone, '');
+  rpt.Variables.AddExprVariable('grp_sum_population', 'sum(StrToFloat(population))',rtFloat , GroupHeader);
+  rpt.Variables.AddExprVariable('grp_sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat, GroupHeader);
+  rpt.Variables.AddExprVariable('sum_population', 'sum(StrToFloat(population))', rtFloat, rtnone, '');
+  rpt.Variables.AddExprVariable('sum_population_in_M', 'sum(StrToFloat(population) / 1000000)', rtFloat,rtnone,'');
 
 
   {*** detail ***}
