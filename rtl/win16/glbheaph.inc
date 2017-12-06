@@ -21,3 +21,6 @@
       HeapLimit: Word=1024;
       HeapBlock: Word=8192;
       HeapAllocFlags: Word=2;  { 2=GMEM_MOVEABLE }
+
+    function MemAvail: LongInt;
+    function MaxAvail: LongInt;

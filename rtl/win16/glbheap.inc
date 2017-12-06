@@ -390,6 +390,57 @@ circular linked list.
         p := result;
       end;
 
+    function MemAvail: LongInt;
+      var
+        CurBlock: Word;
+        CurBlockP: PGlobalHeapBlockHeader;
+        CurSubBlock: PFreeSubBlock;
+      begin
+        result:=GetFreeSpace(0);
+        CurBlock:=HeapList;
+        if CurBlock=0 then
+          exit;
+        repeat
+          CurBlockP:=Ptr(CurBlock,0);
+          CurSubBlock:=Ptr(CurBlock,CurBlockP^.FirstFreeOfs);
+          while Ofs(CurSubBlock^)<>0 do
+            begin
+              if CurSubBlock^.Size>2 then
+                Inc(result,CurSubBlock^.Size-2);
+              CurSubBlock:=Ptr(CurBlock,CurSubBlock^.Next);
+            end;
+          CurBlock:=CurBlockP^.NextBlockSeg;
+        until CurBlock=HeapList;
+      end;
+
+    function MaxAvail: LongInt;
+      var
+        CurBlock: Word;
+        CurBlockP: PGlobalHeapBlockHeader;
+        CurSubBlock: PFreeSubBlock;
+      begin
+        result:=GlobalCompact(0);
+        if result>(65536-SizeOf(TGlobalHeapBlockHeader)-2) then
+          exit;
+        CurBlock:=HeapList;
+        if CurBlock=0 then
+          exit;
+        repeat
+          CurBlockP:=Ptr(CurBlock,0);
+          if CurBlockP^.TotalFreeSpaceInBlock>(result+2) then
+            begin
+              CurSubBlock:=Ptr(CurBlock,CurBlockP^.FirstFreeOfs);
+              while Ofs(CurSubBlock^)<>0 do
+                begin
+                  if CurSubBlock^.Size>(result+2) then
+                    result:=CurSubBlock^.Size-2;
+                  CurSubBlock:=Ptr(CurBlock,CurSubBlock^.Next);
+                end;
+            end;
+          CurBlock:=CurBlockP^.NextBlockSeg;
+        until CurBlock=HeapList;
+      end;
+
     const
       GlobalHeapMemoryManager: TMemoryManager = (
         NeedLock: false;  // Obsolete
