@@ -6097,6 +6097,7 @@ begin
   '  OneInt: TArrInt = (7);',
   '  OneStr: array of integer = (7);',
   //'  Chars: array of char = ''aoc'';',
+  '  NameCount = low(Names)+high(Names)+length(Names);',
   'begin',
   '']);
   ConvertProgram;
@@ -6107,6 +6108,7 @@ begin
     'this.Aliases = ["foo", "b"];',
     'this.OneInt = [7];',
     'this.OneStr = [7];',
+    'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
     '']),
     LinesToStr([ // $mod.$main
     '']));
