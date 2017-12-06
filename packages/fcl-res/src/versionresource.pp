@@ -327,6 +327,9 @@ begin
     inc(i);
   until i = toread;
   Result:=ws;
+  // last #0 should be excluded (#0 is implicitly added for string)
+  if (toread<>-1) and (Result[i] = #0) then
+    SetLength(Result, i-1);
 end;
 
 procedure TVersionResource.WriteFixedBlockLength(const position: int64);
