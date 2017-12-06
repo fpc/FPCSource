@@ -417,6 +417,13 @@ function sum(const data : PExtended; Const N : Longint) : float;
 
 function sumInt(const data : PInt64;Const N : longint) : Int64;
 function sumInt(const data : array of Int64) : Int64;inline;
+function mean(const data : PInt64; const N : Longint):Float;
+function mean(const data: array of Int64):Float;
+function sumInt(const data : PInteger; Const N : longint) : Int64;
+function sumInt(const data : array of Integer) : Int64;inline;
+function mean(const data : PInteger; const N : Longint):Float;
+function mean(const data: array of Integer):Float;
+
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function sumofsquares(const data : array of Single) : float;inline;
@@ -1198,7 +1205,43 @@ function sumInt(const data : PInt64;Const N : longint) : Int64;
 
 function sumInt(const data : array of Int64) : Int64; inline;
   begin
-     Result:=SumInt(@Data[0],High(Data)+1);
+     Result:=SumInt(PInt64(@Data[0]),High(Data)+1);
+  end;
+
+function mean(const data : PInt64; const N : Longint):Float;
+  begin
+     mean:=sumInt(Data,N);
+     mean:=mean/N;
+  end;
+
+function mean(const data: array of Int64):Float;
+  begin
+     mean:=mean(PInt64(@data[0]),High(Data)+1);
+  end;
+
+function sumInt(const data : PInteger; Const N : longint) : Int64;
+var
+   i : longint;
+  begin
+     sumInt:=0;
+     for i:=0 to N-1 do
+       sumInt:=sumInt+data[i];
+  end;
+
+function sumInt(const data : array of Integer) : Int64;inline;
+  begin
+     Result:=sumInt(PInteger(@Data[0]),High(Data)+1);
+  end;
+
+function mean(const data : PInteger; const N : Longint):Float;
+  begin
+     mean:=sumInt(Data,N);
+     mean:=mean/N;
+  end;
+
+function mean(const data: array of Integer):Float;
+  begin
+     mean:=mean(PInteger(@data[0]),High(Data)+1);
   end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
