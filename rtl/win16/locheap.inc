@@ -68,6 +68,11 @@
         result:=LocalSize(THandle(p));
       end;
 
+    function MaxAvail: Word;
+      begin
+        result:=LocalCompact(0);
+      end;
+
     const
       LocalHeapMemoryManager: TMemoryManager = (
         NeedLock: false;  // Obsolete

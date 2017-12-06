@@ -14,3 +14,5 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+    function MaxAvail: Word;
