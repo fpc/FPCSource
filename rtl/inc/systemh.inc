@@ -475,6 +475,9 @@ Type
   PPAnsiChar          = PPChar;
   PPPAnsiChar         = PPPChar;
 
+  UTF8Char = AnsiChar;
+  PUTF8Char = PAnsiChar;
+
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
 {$ifdef CPU16}
@@ -584,6 +587,9 @@ Type
   UnicodeChar         = WideChar;
   PUnicodeChar        = ^UnicodeChar;
   PUnicodeString      = ^UnicodeString;
+
+  MarshaledString     = PWideChar;
+  MarshaledAString    = PAnsiChar;
 
   TSystemCodePage     = Word;
 
