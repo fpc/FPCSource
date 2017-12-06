@@ -172,7 +172,6 @@ ToDo:
    - function: enumerator
    - class
    - operator
-- parser: TPasParser.ParseProcedureOrFunctionHeader skip searching proc
 - range checking:
   - indexedprop[param]
   - case-of unique
@@ -8521,7 +8520,7 @@ end;
 procedure TPasResolver.BI_Length_OnEval(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
 var
-  Param: TPasExpr;
+  Param, Expr: TPasExpr;
   ParamResolved: TPasResolverResult;
   Value: TResEvalValue;
   Ranges: TPasExprArray;
@@ -8551,9 +8550,21 @@ begin
       begin
       Ranges:=TPasArrayType(ParamResolved.TypeEl).Ranges;
       if length(Ranges)=0 then
-        exit;
-      // static array
-      Evaluated:=TResEvalInt.CreateValue(GetRangeLength(Ranges[0]));
+        begin
+        // open or dynamic array
+        if (ParamResolved.IdentEl is TPasVariable)
+            and (TPasVariable(ParamResolved.IdentEl).Expr is TPasExpr) then
+          begin
+          Expr:=TPasVariable(ParamResolved.IdentEl).Expr;
+          if Expr is TArrayValues then
+            Evaluated:=TResEvalInt.CreateValue(length(TArrayValues(Expr).Values));
+          end;
+        end
+      else
+        begin
+        // static array
+        Evaluated:=TResEvalInt.CreateValue(GetRangeLength(Ranges[0]));
+        end;
       end;
     end;
   if Proc=nil then ;
@@ -9124,6 +9135,7 @@ var
   bt: TResolverBaseType;
   MinInt, MaxInt: int64;
   i: Integer;
+  Expr: TPasExpr;
 begin
   Evaluated:=nil;
   Param:=Params.Params[0];
@@ -9142,7 +9154,13 @@ begin
           Evaluated:=TResEvalInt.CreateValue(0)
         else if (ParamResolved.IdentEl is TPasVariable)
             and (TPasVariable(ParamResolved.IdentEl).Expr is TPasExpr) then
-          RaiseNotYetImplemented(20170601191003,Params)
+          begin
+          Expr:=TPasVariable(ParamResolved.IdentEl).Expr;
+          if Expr is TArrayValues then
+            Evaluated:=TResEvalInt.CreateValue(length(TArrayValues(Expr).Values)-1);
+          if Evaluated=nil then
+            RaiseNotYetImplemented(20170601191003,Params);
+          end
         else
           exit;
         end
