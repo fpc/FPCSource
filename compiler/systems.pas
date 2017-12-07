@@ -810,6 +810,10 @@ begin
     default_target(system_i386_openbsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef netbsd}
+    default_target(system_i386_netbsd);
+    {$define default_target_set}
+   {$endif}
    {$ifdef darwin}
     default_target(system_i386_darwin);
     {$define default_target_set}
