@@ -86,8 +86,8 @@ type
 {$DEFINE HAS_SETVERIFY}
 {$DEFINE HAS_GETVERIFY}
 {//$DEFINE HAS_SWAPVECTORS}
-{//$DEFINE HAS_GETINTVEC}
-{//$DEFINE HAS_SETINTVEC}
+{$DEFINE HAS_GETINTVEC}
+{$DEFINE HAS_SETINTVEC}
 {//$DEFINE HAS_KEEP}
 {$DEFINE HAS_GETSHORTNAME}
 {$DEFINE HAS_GETLONGNAME}
@@ -1060,7 +1060,7 @@ end;
                              --- Get/SetIntVec ---
 ******************************************************************************}
 
-(*procedure GetIntVec(intno: Byte; var vector: farpointer); assembler;
+procedure GetIntVec(intno: Byte; var vector: farpointer); assembler;
 asm
   mov al, intno
   mov ah, 35h
@@ -1092,7 +1092,7 @@ asm
   lds dx, word [vector]
   int 21h
   pop ds
-end;*)
+end;
 
 {******************************************************************************
                                   --- Keep ---
