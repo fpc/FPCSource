@@ -249,7 +249,7 @@ begin
   Writeln(debug_output,'Dos command line is #',CmdLine,'#');
 {$EndIf}
   { find argv0len }
-  argv0len:=GetModuleFileName(hInstance,@argv0_arr,SizeOf(argv0_arr));
+  argv0len:=GetModuleFileName(hInstance,FarAddr(argv0_arr),SizeOf(argv0_arr));
 {$IfDef SYSTEM_DEBUG_STARTUP}
   Writeln(debug_output,'arv0 is #',argv0_arr,'# len=', argv0len);
 {$EndIf}
