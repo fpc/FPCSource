@@ -88,7 +88,6 @@ type
 {//$DEFINE HAS_SWAPVECTORS}
 {$DEFINE HAS_GETINTVEC}
 {$DEFINE HAS_SETINTVEC}
-{//$DEFINE HAS_KEEP}
 {$DEFINE HAS_GETSHORTNAME}
 {$DEFINE HAS_GETLONGNAME}
 
@@ -1093,21 +1092,6 @@ asm
   int 21h
   pop ds
 end;
-
-{******************************************************************************
-                                  --- Keep ---
-******************************************************************************}
-
-{Procedure Keep(exitcode: word); assembler;
-asm
-  mov bx, PrefixSeg
-  dec bx
-  mov es, bx
-  mov dx, es:[3]
-  mov ax, exitcode
-  mov ah, 31h
-  int 21h
-end;}
 
 {$ifdef DEBUG_LFN}
 begin
