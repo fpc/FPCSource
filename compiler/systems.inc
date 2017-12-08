@@ -177,7 +177,8 @@
              system_i8086_embedded,     { 90 }
              system_arm_aros,           { 91 }
              system_wasm_wasm32,        { 92 }
-             system_sparc64_linux       { 93 }
+             system_sparc64_linux,      { 93 }
+             system_sparc64_solaris     { 94 }
        );
 
      type
