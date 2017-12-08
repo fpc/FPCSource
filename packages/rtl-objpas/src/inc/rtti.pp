@@ -278,6 +278,7 @@ type
 
   TRttiInterfaceType = class(TRttiType)
   protected
+    function GetBaseType: TRttiType; override;
     function GetIntfBaseType: TRttiInterfaceType; virtual; abstract;
     function GetDeclaringUnitName: String; virtual; abstract;
     function GetGUID: TGUID; virtual; abstract;
@@ -1750,6 +1751,11 @@ begin
 end;
 
 { TRttiInterfaceType }
+
+function TRttiInterfaceType.GetBaseType: TRttiType;
+begin
+  Result := GetIntfBaseType;
+end;
 
 function TRttiInterfaceType.GetGUIDStr: String;
 begin
