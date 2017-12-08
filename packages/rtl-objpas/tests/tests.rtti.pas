@@ -59,6 +59,11 @@ type
     procedure TestReferenceRawDataEmpty;
 
     procedure TestIsManaged;
+
+    procedure TestInterface;
+{$ifdef fpc}
+    procedure TestInterfaceRaw;
+{$endif}
   end;
 
 implementation
@@ -106,6 +111,15 @@ type
     property AGetBoolean: boolean read GetABoolean;
     property AGetShortString: ShortString read GetAShortString;
     property AWriteOnly: integer write SetWriteOnly;
+  end;
+  {$M-}
+
+  {$M+}
+  ITestInterface = interface
+    procedure Test;
+    function Test2: LongInt;
+    procedure Test3(aArg1: LongInt; const aArg2: AnsiString; var aArg3: Boolean; out aArg4: Word);
+    function Test4(aArg1: array of LongInt; aArg2: array of const): AnsiString;
   end;
   {$M-}
 
@@ -1268,6 +1282,39 @@ begin
   CheckEquals(false, IsManaged(TypeInfo(Pointer)), 'IsManaged for tkPointer');
   CheckEquals(false, IsManaged(nil), 'IsManaged for nil');
 end;
+
+procedure TTestCase1.TestInterface;
+var
+  context: TRttiContext;
+  t: TRttiType;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(TypeInfo(IInterface));
+    Check(t is TRttiInterfaceType, 'Type is not an interface type');
+
+    t := context.GetType(TypeInfo(ITestInterface));
+    Check(t is TRttiInterfaceType, 'Type is not an interface type');
+  finally
+    context.Free;
+  end;
+end;
+
+{$ifdef fpc}
+procedure TTestCase1.TestInterfaceRaw;
+var
+  context: TRttiContext;
+  t: TRttiType;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(TypeInfo(ICORBATest));
+    Check(t is TRttiInterfaceType, 'Type is not a raw interface type');
+  finally
+    context.Free;
+  end;
+end;
+{$endif}
 
 initialization
 {$ifdef fpc}

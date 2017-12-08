@@ -271,6 +271,28 @@ type
 
   end;
 
+  TInterfaceType = (
+    itRefCounted, { aka COM interface }
+    itRaw         { aka CORBA interface }
+  );
+
+  TRttiInterfaceType = class(TRttiType)
+  protected
+    function GetIntfBaseType: TRttiInterfaceType; virtual; abstract;
+    function GetDeclaringUnitName: String; virtual; abstract;
+    function GetGUID: TGUID; virtual; abstract;
+    function GetGUIDStr: String; virtual;
+    function GetIntfFlags: TIntfFlags; virtual; abstract;
+    function GetIntfType: TInterfaceType; virtual; abstract;
+  public
+    property BaseType: TRttiInterfaceType read GetIntfBaseType;
+    property DeclaringUnitName: String read GetDeclaringUnitName;
+    property GUID: TGUID read GetGUID;
+    property GUIDStr: String read GetGUIDStr;
+    property IntfFlags: TIntfFlags read GetIntfFlags;
+    property IntfType: TInterfaceType read GetIntfType;
+  end;
+
   { TRttiInstanceType }
 
   TRttiInstanceType = class(TRttiStructuredType)
@@ -409,6 +431,29 @@ type
     procedure ExtractRawDataNoCopy(ABuffer: pointer);
     function GetDataSize: SizeInt;
     function GetReferenceToRawData: pointer;
+  end;
+
+  TRttiRefCountedInterfaceType = class(TRttiInterfaceType)
+  private
+    function IntfData: PInterfaceData; inline;
+  protected
+    function GetIntfBaseType: TRttiInterfaceType; override;
+    function GetDeclaringUnitName: String; override;
+    function GetGUID: TGUID; override;
+    function GetIntfFlags: TIntfFlags; override;
+    function GetIntfType: TInterfaceType; override;
+  end;
+
+  TRttiRawInterfaceType = class(TRttiInterfaceType)
+  private
+    function IntfData: PInterfaceRawData; inline;
+  protected
+    function GetIntfBaseType: TRttiInterfaceType; override;
+    function GetDeclaringUnitName: String; override;
+    function GetGUID: TGUID; override;
+    function GetGUIDStr: String; override;
+    function GetIntfFlags: TIntfFlags; override;
+    function GetIntfType: TInterfaceType; override;
   end;
 
 resourcestring
@@ -680,6 +725,8 @@ begin
           end;
         case ATypeInfo^.Kind of
           tkClass   : Result := TRttiInstanceType.Create(ATypeInfo);
+          tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo);
+          tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo);
           tkSString,
           tkLString,
           tkAString,
@@ -884,6 +931,95 @@ begin
     result := FBuffer
   else
     result := @FBuffer;
+end;
+
+{ TRttiRefCountedInterfaceType }
+
+function TRttiRefCountedInterfaceType.IntfData: PInterfaceData;
+begin
+  Result := PInterfaceData(FTypeData);
+end;
+
+function TRttiRefCountedInterfaceType.GetIntfBaseType: TRttiInterfaceType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(IntfData^.Parent) then
+    Exit(Nil);
+
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(IntfData^.Parent^) as TRttiInterfaceType;
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiRefCountedInterfaceType.GetDeclaringUnitName: String;
+begin
+  Result := IntfData^.UnitName;
+end;
+
+function TRttiRefCountedInterfaceType.GetGUID: TGUID;
+begin
+  Result := IntfData^.GUID;
+end;
+
+function TRttiRefCountedInterfaceType.GetIntfFlags: TIntfFlags;
+begin
+  Result := IntfData^.Flags;
+end;
+
+function TRttiRefCountedInterfaceType.GetIntfType: TInterfaceType;
+begin
+  Result := itRefCounted;
+end;
+
+{ TRttiRawInterfaceType }
+
+function TRttiRawInterfaceType.IntfData: PInterfaceRawData;
+begin
+  Result := PInterfaceRawData(FTypeData);
+end;
+
+function TRttiRawInterfaceType.GetIntfBaseType: TRttiInterfaceType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(IntfData^.Parent) then
+    Exit(Nil);
+
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(IntfData^.Parent^) as TRttiInterfaceType;
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiRawInterfaceType.GetDeclaringUnitName: String;
+begin
+  Result := IntfData^.UnitName;
+end;
+
+function TRttiRawInterfaceType.GetGUID: TGUID;
+begin
+  Result := IntfData^.IID;
+end;
+
+function TRttiRawInterfaceType.GetGUIDStr: String;
+begin
+  Result := IntfData^.IIDStr;
+end;
+
+function TRttiRawInterfaceType.GetIntfFlags: TIntfFlags;
+begin
+  Result := IntfData^.Flags;
+end;
+
+function TRttiRawInterfaceType.GetIntfType: TInterfaceType;
+begin
+  Result := itRaw;
 end;
 
 { TRttiFloatType }
@@ -1611,6 +1747,13 @@ begin
     tkUString : result := skUnicodeString;
     tkWString : result := skWideString;
   end;
+end;
+
+{ TRttiInterfaceType }
+
+function TRttiInterfaceType.GetGUIDStr: String;
+begin
+  Result := GUIDToString(GUID);
 end;
 
 { TRttiInstanceType }
