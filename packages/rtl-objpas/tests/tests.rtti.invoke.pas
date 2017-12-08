@@ -25,7 +25,7 @@ type
     );
     TInvokeFlags = set of TInvokeFlag;
   private
-    function DoInvoke(aCodeAddress: CodePointer; aArgs: TValueArray; aCallConv: TCallConv; aResultType: PTypeInfo; aFlags: TInvokeFlags): TValue;
+    function DoInvoke(aCodeAddress: CodePointer; aArgs: TValueArray; aCallConv: TCallConv; aResultType: PTypeInfo; aFlags: TInvokeFlags; out aValid: Boolean): TValue;
     procedure DoStaticInvokeTestOrdinalCompare(const aTestName: String; aAddress: CodePointer; aCallConv: TCallConv; aValues: TValueArray; aReturnType: PTypeInfo; aResult: Int64);
     procedure DoStaticInvokeTestAnsiStringCompare(const aTestName: String; aAddress: CodePointer; aCallConv: TCallConv; aValues: TValueArray; aReturnType: PTypeInfo; constref aResult: AnsiString);
     procedure DoStaticInvokeTestUnicodeStringCompare(const aTestName: String; aAddress: CodePointer; aCallConv: TCallConv; aValues: TValueArray; aReturnType: PTypeInfo; constref aResult: UnicodeString);
@@ -66,14 +66,16 @@ end;
 {$endif}
 
 function TTestInvoke.DoInvoke(aCodeAddress: CodePointer; aArgs: TValueArray;
-  aCallConv: TCallConv; aResultType: PTypeInfo; aFlags: TInvokeFlags): TValue;
+  aCallConv: TCallConv; aResultType: PTypeInfo; aFlags: TInvokeFlags; out aValid: Boolean): TValue;
 begin
   try
     Result := Rtti.Invoke(aCodeAddress, aArgs, aCallConv, aResultType, ifStatic in aFlags, ifConstructor in aFlags);
+    aValid := True;
   except
-    on e: ENotImplemented do
+    on e: ENotImplemented do begin
       Status('Ignoring unimplemented functionality of test');
-    else
+      aValid := False;
+    end else
       raise;
   end;
 end;
@@ -81,9 +83,10 @@ end;
 procedure TTestInvoke.DoStaticInvokeTestOrdinalCompare(const aTestName: String; aAddress: CodePointer; aCallConv: TCallConv; aValues: TValueArray; aReturnType: PTypeInfo; aResult: Int64);
 var
   resval: TValue;
+  valid: Boolean;
 begin
-  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic]);
-  if Assigned(aReturnType) and (resval.AsOrdinal <> aResult) then begin
+  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic], valid);
+  if valid and Assigned(aReturnType) and (resval.AsOrdinal <> aResult) then begin
     Fail('Result of test "%s" is unexpected; expected: %s, got: %s', [aTestName, IntToStr(aResult), IntToStr(resval.AsOrdinal)]);
   end;
 end;
@@ -93,9 +96,10 @@ procedure TTestInvoke.DoStaticInvokeTestAnsiStringCompare(
   aValues: TValueArray; aReturnType: PTypeInfo; constref aResult: AnsiString);
 var
   resval: TValue;
+  valid: Boolean;
 begin
-  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic]);
-  if Assigned(aReturnType) and (resval.AsAnsiString <> aResult) then begin
+  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic], valid);
+  if valid and Assigned(aReturnType) and (resval.AsAnsiString <> aResult) then begin
     Fail('Result of test "%s" is unexpected; expected: "%s", got: "%s"', [aTestName, aResult, resval.AsString]);
   end;
 end;
@@ -106,9 +110,10 @@ procedure TTestInvoke.DoStaticInvokeTestUnicodeStringCompare(
   );
 var
   resval: TValue;
+  valid: Boolean;
 begin
-  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic]);
-  if Assigned(aReturnType) and (resval.AsUnicodeString <> aResult) then begin
+  resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic], valid);
+  if valid and Assigned(aReturnType) and (resval.AsUnicodeString <> aResult) then begin
     Fail('Result of test "%s" is unexpected; expected: "%s", got: "%s"', [aTestName, aResult, resval.AsString]);
   end;
 end;
@@ -463,9 +468,10 @@ procedure TTestInvoke.TestTObject;
   var
     resval: TValue;
     rescls: TTestClass;
+    valid: Boolean;
   begin
-    resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic]);
-    if Assigned(aReturnType) then begin
+    resval := DoInvoke(aAddress, aValues, aCallConv, aReturnType, [ifStatic], valid);
+    if valid and Assigned(aReturnType) then begin
       rescls := TTestClass(PPointer(resval.GetReferenceToRawData)^);
       if (rescls.fString <> aResult.fString) or (rescls.fValue <> aResult.fValue) then
         Fail('Result of test "%s" is unexpected; expected: "%s"/%s, got: "%s"/%s', [aTestName, aResult.fString, IntToStr(aResult.fValue), rescls.fString, IntToStr(rescls.fValue)]);
