@@ -179,7 +179,8 @@ const
   { 90 }  'Embedded-i8086',
   { 91 }  'AROS-arm',
   { 92 }  'WebAssembly-wasm',
-  { 93 }  'Linux-sparc64'
+  { 93 }  'Linux-sparc64',
+  { 94 }  'Solaris-sparc64'
   );
 
 const
