@@ -28,6 +28,15 @@ type
 
 {$MINENUMSIZE DEFAULT}
 
+const
+  { some Delphi-compatible aliases }
+  tkAnsiChar = tkChar;
+  tkWideChar = tkWChar;
+  tkShortString = tkSString;
+  tkAnsiString = tkAString;
+  tkWideString = tkWString;
+  tkUnicodeString = tkUString;
+
 procedure InitializeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure FinalizeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
