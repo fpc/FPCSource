@@ -279,7 +279,7 @@ implementation
       end;
 
 
-    procedure loaddefaultunits;
+    procedure loadsystemunit;
       begin
         { we are going to rebuild the symtablestack, clear it first }
         symtablestack.clear;
@@ -312,7 +312,11 @@ implementation
           prevent crashes when accessing .owner }
         generrorsym.owner:=systemunit;
         generrordef.owner:=systemunit;
+      end;
 
+
+    procedure loaddefaultunits;
+      begin
         { Units only required for main module }
         if not(current_module.is_unit) then
          begin
@@ -815,6 +819,7 @@ type
          finishstate:pfinishstate;
          globalstate:pglobalstate;
          consume_semicolon_after_uses:boolean;
+         feature : tfeature;
       begin
          result:=true;
 
@@ -884,6 +889,23 @@ type
            read, all following directives are parsed as well }
          setupglobalswitches;
 
+         { generate now the global symboltable,
+           define first as local to overcome dependency conflicts }
+         current_module.localsymtable:=tglobalsymtable.create(current_module.modulename^,current_module.moduleid);
+
+         { insert unitsym of this unit to prevent other units having
+           the same name }
+         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
+
+         { load default system unit, it must be loaded before interface is parsed
+           else we cannot use e.g. feature switches before the next real token }
+         loadsystemunit;
+
+         { system unit is loaded, now insert feature defines }
+         for feature:=low(tfeature) to high(tfeature) do
+           if feature in features then
+             def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
+
          consume(_INTERFACE);
 
          { global switches are read, so further changes aren't allowed  }
@@ -904,16 +926,9 @@ type
 
          parse_only:=true;
 
-         { generate now the global symboltable,
-           define first as local to overcome dependency conflicts }
-         current_module.localsymtable:=tglobalsymtable.create(current_module.modulename^,current_module.moduleid);
-
-         { insert unitsym of this unit to prevent other units having
-           the same name }
-         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
-
-         { load default units, like the system unit }
-         loaddefaultunits;
+         { load default units, like language mode units }
+         if not(cs_compilesystem in current_settings.moduleswitches) then
+           loaddefaultunits;
 
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in current_settings.moduleswitches) and
@@ -2006,7 +2021,10 @@ type
            of the program                                              }
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
-         { load standard units (system,objpas,profile unit) }
+         { load system unit }
+         loadsystemunit;
+
+         { load standard units, e.g objpas,profile unit }
          loaddefaultunits;
 
          { Load units provided on the command line }

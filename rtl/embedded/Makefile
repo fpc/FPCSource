@@ -340,7 +340,6 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-override FPCOPT+=@rtl.cfg
 LOADERS=
 ifeq ($(ARCH),mipsel)
 ifeq ($(SUBARCH),pic32mx)
@@ -2693,7 +2692,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 startup$(OEXT) : $(CPU_TARGET)/startup.s
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp @rtl.cfg $(REDIR)
 uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)

@@ -65,14 +65,14 @@ const
   ibImportSymbols        = 11;
   ibsymref               = 12;
   ibdefref               = 13;
-//  ibendsymtablebrowser   = 14;
-//  ibbeginsymtablebrowser = 15;
+  ibfeatures             = 14;
 {$IFDEF MACRO_DIFF_HINT}
   ibusedmacros           = 16;
 {$ENDIF}
   ibderefdata            = 17;
   ibexportedmacros       = 18;
   ibderefmap             = 19;
+
   {syms}
   ibtypesym        = 20;
   ibprocsym        = 21;

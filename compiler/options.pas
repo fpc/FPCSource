@@ -2007,6 +2007,8 @@ begin
                          end;
                        'f' :
                          begin
+                           if not(cs_compilesystem in init_settings.moduleswitches) then
+                             Message(option_features_only_for_system_unit);
                            inc(j);
                            if more[j]='-' then
                              begin
@@ -4242,9 +4244,10 @@ begin
   if target_info.system in systems_indirect_var_imports then
     def_system_macro('FPC_HAS_INDIRECT_VAR_ACCESS');
 
-  for i:=low(tfeature) to high(tfeature) do
-    if i in features then
-      def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
+  if cs_compilesystem in init_settings.moduleswitches then
+    for i:=low(tfeature) to high(tfeature) do
+      if i in features then
+        def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
 
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }

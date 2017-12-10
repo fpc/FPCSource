@@ -1037,6 +1037,7 @@ const
   option_com_files_require_tiny_model=11057;
   option_gc_incompatible_with_release_flag=11058;
   option_invalid_target_architecture=11059;
+  option_features_only_for_system_unit=11060;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -1090,9 +1091,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 80913;
+  MsgTxtSize = 80986;
 
   MsgIdxMax : array[1..20] of longint=(
     27,105,347,124,96,58,139,33,221,67,
-    60,20,30,1,1,1,1,1,1,1
+    61,20,30,1,1,1,1,1,1,1
   );

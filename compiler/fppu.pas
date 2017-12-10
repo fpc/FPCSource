@@ -1267,6 +1267,10 @@ var
                  modulename:=stringdup(upper(newmodulename));
                  realmodulename:=stringdup(newmodulename);
                end;
+             ibfeatures :
+               begin
+                 ppufile.getsmallset(features);
+               end;
              ibmoduleoptions:
                begin
                  ppufile.getsmallset(moduleoptions);
@@ -1407,6 +1411,12 @@ var
            begin
              ppufile.putstring(mainname^);
              ppufile.writeentry(ibmainname);
+           end;
+
+         if cs_compilesystem in current_settings.moduleswitches then
+           begin
+             ppufile.putsmallset(features);
+             ppufile.writeentry(ibfeatures);
            end;
 
          writesourcefiles;

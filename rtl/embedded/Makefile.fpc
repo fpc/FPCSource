@@ -48,7 +48,6 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-override FPCOPT+=@rtl.cfg
 LOADERS=
 ifeq ($(ARCH),mipsel)
 ifeq ($(SUBARCH),pic32mx)
@@ -198,7 +197,7 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp @rtl.cfg $(REDIR)
 
 uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

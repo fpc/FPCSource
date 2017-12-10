@@ -12,14 +12,12 @@
 
  **********************************************************************}
 {$mode objfpc}
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-{$H+}
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 unit sysconst;
 
 interface
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{$H+}
 resourcestring
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 const

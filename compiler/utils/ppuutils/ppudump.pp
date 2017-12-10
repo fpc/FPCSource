@@ -3676,6 +3676,9 @@ procedure readinterface(silent : boolean);
 var
   b : byte;
   sourcenumber, i : longint;
+  feature : tfeature;
+  features : tfeatures;
+  s : string;
 begin
   with ppufile do
    begin
@@ -3688,6 +3691,20 @@ begin
              CurUnit.Name:=getstring;
              if not silent then
                Writeln(['Module Name: ',CurUnit.Name]);
+           end;
+
+         ibfeatures :
+           begin
+             getsmallset(features);
+             Writeln('Features: ');
+             for feature:=low(tfeatures) to high(tfeature) do
+               if feature in features then
+                 begin
+                   str(feature,s);
+                   s:=copy(s,3,255);
+                   writeln([s]);
+                 end;
+
            end;
 
          ibmoduleoptions:
