@@ -122,13 +122,14 @@ end;
 procedure SetUseACP(ACP:Boolean);
 begin
     UseACP:=ACP;
-    if UseACP then
-      if not(SafeCPSwitching) then
+    if not(SafeCPSwitching) then
+     begin
+      if UseACP then
         SetConsoleOutputCP(GetACP)   // Set console CP only once here if SafeCPSwitching is False and
                                      // if UseACP is True
       else
-       SetConsoleOutputCP(OriginalConsoleOutputCP)    // Set console back to original if UseACP is False
-    else
+        SetConsoleOutputCP(OriginalConsoleOutputCP)    // Set console back to original if UseACP is False
+     end;
 end;
 
 procedure TextMode (Mode: word);
