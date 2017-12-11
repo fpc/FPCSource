@@ -142,16 +142,6 @@ implementation
              else
                location.register:=left.location.reference.segment;
            end
-         { references relative to a symbol use the segment of the symbol,
-           which can be obtained by the SEG directive }
-         else if assigned(left.location.reference.symbol) then
-           begin
-             location_reset(location,LOC_REGISTER,OS_16);
-             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-             reference_reset_symbol(segref,left.location.reference.symbol,0,left.location.reference.alignment,left.location.reference.volatility);
-             segref.refaddr:=addr_seg;
-             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,location.register);
-           end
          else
            begin
              location_reset(location,LOC_REGISTER,OS_16);
