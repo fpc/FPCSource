@@ -207,14 +207,13 @@ implementation
               { Normal (or external) variable }
               else
                 begin
-                  if (current_settings.x86memorymodel<>mm_huge) and not (vo_is_far in gvs.varoptions) then
+                  if ((current_settings.x86memorymodel<>mm_huge) and not (vo_is_far in gvs.varoptions)) or
+                     (not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit) then
                     begin
                       inherited pass_generate_code;
-                      exit;
-                    end;
-                  if not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit then
-                    begin
-                      inherited pass_generate_code;
+                      if (location.loc<>LOC_REFERENCE) and (location.loc<>LOC_CREFERENCE) then
+                        internalerror(2017121101);
+                      location.reference.segment:=NR_DS;
                       exit;
                     end;
 
