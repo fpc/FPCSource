@@ -102,7 +102,10 @@ begin
     WM_PAINT:
       WindowPaint(hwnd);
     WM_DESTROY:
-      PostQuitMessage(0);
+      begin
+        VideoWindow:=0;
+        PostQuitMessage(0);
+      end;
     else
       MainWndProc:=DefWindowProc(hwnd,msg,wParam,lParam);
   end;
@@ -193,34 +196,37 @@ var
   ch: TVideoCell;
   CharWidth,CharHeight: SmallInt;
 begin
-  dc:=GetDC(VideoWindow);
-  if dc=0 then
+  if VideoWindow<>0 then
   begin
-    MessageBox(0,'GetDC() failed',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
-    exit;
-  end;
-  oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
-  GetTextMetrics(dc,FarAddr(Metrics));
-  CharWidth:=Metrics.tmMaxCharWidth;
-  CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
-  oldtextcolor:=GetTextColor(dc);
-  oldbkcolor:=GetBkColor(dc);
-  for y:=0 to ScreenHeight-1 do
-    for x:=0 to ScreenWidth-1 do
+    dc:=GetDC(VideoWindow);
+    if dc=0 then
     begin
-      ch:=videobuf^[y*ScreenWidth+x];
-      if force or (ch<>oldvideobuf^[y*ScreenWidth+x]) then
-      begin
-        oldvideobuf^[y*ScreenWidth+x]:=videobuf^[y*ScreenWidth+x];
-        SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
-        SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
-        TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
-      end;
+      MessageBox(0,'GetDC() failed',nil,MB_OK or MB_ICONHAND or MB_TASKMODAL);
+      exit;
     end;
-  SetTextColor(dc,oldtextcolor);
-  SetBkColor(dc,oldbkcolor);
-  SelectObject(dc,oldfont);
-  ReleaseDC(VideoWindow,dc);
+    oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
+    GetTextMetrics(dc,FarAddr(Metrics));
+    CharWidth:=Metrics.tmMaxCharWidth;
+    CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
+    oldtextcolor:=GetTextColor(dc);
+    oldbkcolor:=GetBkColor(dc);
+    for y:=0 to ScreenHeight-1 do
+      for x:=0 to ScreenWidth-1 do
+      begin
+        ch:=videobuf^[y*ScreenWidth+x];
+        if force or (ch<>oldvideobuf^[y*ScreenWidth+x]) then
+        begin
+          oldvideobuf^[y*ScreenWidth+x]:=videobuf^[y*ScreenWidth+x];
+          SetTextColor(dc,ColorRefs[(ch shr 8) and 15]);
+          SetBkColor(dc,ColorRefs[(ch shr 12) and 15]);
+          TextOut(dc,x*CharWidth,y*CharHeight,FarAddr(ch),1);
+        end;
+      end;
+    SetTextColor(dc,oldtextcolor);
+    SetBkColor(dc,oldbkcolor);
+    SelectObject(dc,oldfont);
+    ReleaseDC(VideoWindow,dc);
+  end;
   ProcessMessages;
 end;
 
