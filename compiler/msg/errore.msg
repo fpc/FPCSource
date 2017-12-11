@@ -3987,6 +3987,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 6*2Tmacos_Mac OS
 6*2Tpalmos_PalmOS
 8*2Tmsdos_MS-DOS (and compatible)
+8*2Twin16_Windows 16 Bit
 A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
