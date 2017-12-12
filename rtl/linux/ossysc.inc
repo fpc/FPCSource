@@ -68,7 +68,6 @@ begin
   result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
 {$else}
   if do_syscall(syscall_nr__llseek,tsysparam(fd),
-//      {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
       tsysparam(hi(offset)),tsysparam(lo(offset)),
       tsysparam(@result), tsysparam(whence)) = -1 then
     result:=off_t(-1);
@@ -86,19 +85,7 @@ function Fpwrite(fd: cint;buf:pchar; nbytes : size_t): ssize_t; [public, alias :
 begin
  Fpwrite:=do_syscall(syscall_nr_write,Fd,TSysParam(buf),nbytes);
 end;
-{
-function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
-   !! check 64 bit off_t sycall
-begin
-  Fpread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,offset);
-end;
 
-function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
-   !! check 64 bit off_t sycall
-begin
- Fpwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,offset);
-end;
-}
 function Fpunlink(path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
 
 begin
