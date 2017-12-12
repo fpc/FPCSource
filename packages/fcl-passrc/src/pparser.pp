@@ -2046,9 +2046,9 @@ function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
   end;
 
 var
-  Last,func, Expr: TPasExpr;
-  prm     : TParamsExpr;
-  b       : TBinaryExpr;
+  Last, Func, Expr: TPasExpr;
+  Params: TParamsExpr;
+  Bin: TBinaryExpr;
   ok, CanSpecialize: Boolean;
   aName: String;
   ISE: TInlineSpecializeExpr;
@@ -2075,7 +2075,7 @@ begin
       else
         Last:=CreatePrimitiveExpr(AParent,pekIdent,aName);
       end;
-    tkfalse, tktrue:    Last:=CreateBoolConstExpr(Aparent,pekBoolConst, CurToken=tktrue);
+    tkfalse, tktrue:    Last:=CreateBoolConstExpr(AParent,pekBoolConst, CurToken=tktrue);
     tknil:              Last:=CreateNilExpr(AParent);
     tkSquaredBraceOpen: Last:=ParseParams(AParent,pekSet);
     tkinherited:
@@ -2086,13 +2086,14 @@ begin
       if (CurToken=tkIdentifier) then
         begin
         SrcPos:=CurTokenPos;
-        b:=CreateBinaryExpr(AParent,Last, DoParseExpression(AParent), eopNone,SrcPos);
-        if not Assigned(b.right) then
+        Bin:=CreateBinaryExpr(AParent,Last,ParseExpIdent(AParent),eopNone,SrcPos);
+        if not Assigned(Bin.right) then
           begin
-          b.Release;
+          Bin.Release;
           ParseExcExpectedIdentifier;
           end;
-        Last:=b;
+        Result:=Bin;
+        exit;
         end;
       UngetToken;
       end;
@@ -2120,12 +2121,12 @@ begin
   end;
 
   Result:=Last;
-  func:=Last;
-  
+
   if Last.Kind<>pekSet then NextToken;
   if not (Last.Kind in [pekNumber,pekString,pekSet,pekIdent,pekSelf,pekNil]) then
     exit;
 
+  Func:=Last;
   ok:=false;
   ISE:=nil;
   try
@@ -2140,7 +2141,7 @@ begin
           aName:=aName+'.'+CurTokenString;
           expr:=CreatePrimitiveExpr(AParent,pekIdent,CurTokenString);
           AddToBinaryExprChain(Result,expr,eopSubIdent,ScrPos);
-          func:=expr;
+          Func:=expr;
           NextToken;
           end
         else
@@ -2152,11 +2153,11 @@ begin
       tkBraceOpen,tkSquaredBraceOpen:
         begin
         if CurToken=tkBraceOpen then
-          prm:=ParseParams(AParent,pekFuncParams,IsWriteOrStr(func))
+          Params:=ParseParams(AParent,pekFuncParams,IsWriteOrStr(Func))
         else
-          prm:=ParseParams(AParent,pekArrayParams);
-        if not Assigned(prm) then Exit;
-        AddParamsToBinaryExprChain(Result,prm);
+          Params:=ParseParams(AParent,pekArrayParams);
+        if not Assigned(Params) then Exit;
+        AddParamsToBinaryExprChain(Result,Params);
         CanSpecialize:=false;
         end;
       tkCaret:

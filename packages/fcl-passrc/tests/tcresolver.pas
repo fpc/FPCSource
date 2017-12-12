@@ -434,6 +434,7 @@ type
     Procedure TestClassCallInheritedWithParamsAbstractFail;
     Procedure TestClassCallInheritedConstructor;
     Procedure TestClassCallInheritedNested;
+    Procedure TestClassCallInheritedAs;
     Procedure TestClassAssignNil;
     Procedure TestClassAssign;
     Procedure TestClassNilAsParam;
@@ -6861,6 +6862,28 @@ begin
   'end;',
   'begin',
    '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassCallInheritedAs;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetSome: TObject; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    function GetIt: TBird;',
+  '  end;',
+  'function TObject.GetSome: TObject;',
+  'begin',
+  'end;',
+  'function TBird.GetIt: TBird;',
+  'begin',
+  '  Result:=inherited GetSome as TBird;',
+  'end;',
+  'begin']);
   ParseProgram;
 end;
 
