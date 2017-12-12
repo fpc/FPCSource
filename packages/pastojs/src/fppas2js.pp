@@ -5899,9 +5899,10 @@ begin
         or (C=TPasFunctionType) then
       begin
       AContext.Resolver.ComputeElement(El.Value,ValueResolved,[rcNoImplicitProc]);
-      if ValueResolved.IdentEl is TPasProcedureType then
+      if (ValueResolved.IdentEl is TPasType)
+          and (AContext.Resolver.ResolveAliasType(TPasType(ValueResolved.IdentEl)) is TPasProcedureType) then
         begin
-         // type cast to proc type
+        // type cast to proc type
         Param:=El.Params[0];
         Result:=ConvertElement(Param,AContext);
         exit;
