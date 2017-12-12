@@ -422,6 +422,7 @@ type
     Procedure TestClass_MethodOverloadMissingInDelphi;
     Procedure TestClass_MethodOverloadAncestor;
     Procedure TestClass_MethodOverloadUnit;
+    Procedure TestClass_MethodOverloadNonVirtualInfo;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorHidesAncestorWarning;
@@ -6554,6 +6555,24 @@ begin
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_MethodOverloadNonVirtualInfo;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt(p: pointer);',
+  '  end;',
+  '  TBird = class',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  'procedure TObject.DoIt(p: pointer); begin end;',
+  'procedure TBird.DoIt(i: longint); begin end;',
+  'begin']);
+  ParseProgram;
+  CheckResolverHint(mtInfo,nFunctionHidesIdentifier,'function hides identifier at "afile.pp(4,19)"');
 end;
 
 procedure TTestResolver.TestClass_MethodReintroduce;

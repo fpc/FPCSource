@@ -3187,12 +3187,14 @@ begin
                and not ProcHasGroupOverload(Data^.Proc)) then
           begin
           // give a hint, that proc is hiding a proc in other scope
-          if Data^.Kind=fopkMethod then
+          if (Data^.Kind=fopkMethod) and (Proc.IsVirtual or Proc.IsOverride) then
             LogMsg(20170216151712,mtWarning,nMethodHidesMethodOfBaseType,
               sMethodHidesMethodOfBaseType,
               [Data^.Proc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
           else
-            LogMsg(20171118214523,mtHint,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
+            // Delphi/FPC do not give a message when hiding a non virtual method
+            // -> emit only an Info
+            LogMsg(20171118214523,mtInfo,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
               [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
           Abort:=true;
           end;
