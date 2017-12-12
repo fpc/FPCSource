@@ -599,6 +599,80 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
     newp^.refcount:=1;
     newp^.high:=newhigh;
   end;
+
+procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr:array of pointer); compilerproc;
+  var
+    i,
+    offset,
+    totallen : sizeint;
+    newp,
+    realp,
+    srealp : pdynarray;
+    ti : pointer;
+    elesize : sizeint;
+    {eletype,}eletypemngd : pointer;
+  begin
+    { the destination is overwritten in each case, so clear it }
+    fpc_dynarray_clear(dest,ti);
+
+    { sanity check }
+    if length(sarr)=0 then
+      exit;
+
+    totallen:=0;
+    for i:=0 to high(sarr) do
+      if assigned(sarr[i]) then
+        begin
+          srealp:=pdynarray(sarr[i]-sizeof(tdynarray));
+          inc(totallen,srealp^.high+1);
+        end;
+
+    if totallen=0 then
+      exit;
+
+    { skip kind and name }
+{$ifdef VER3_0}
+    ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
+
+    elesize:=pdynarraytypedata(ti)^.elSize;
+    //eletype:=pdynarraytypedata(ti)^.elType2^;
+    { only set if type needs initialization }
+    if assigned(pdynarraytypedata(ti)^.elType) then
+      eletypemngd:=pdynarraytypedata(ti)^.elType^
+    else
+      eletypemngd:=nil;
+
+    { allocate new array }
+    getmem(newp,totallen*elesize+sizeof(tdynarray));
+    fillchar(newp^,sizeof(tdynarray),0);
+
+    { copy the elements of each source array }
+    offset:=0;
+    for i:=0 to high(sarr) do
+      if assigned(sarr[i]) then
+        begin
+          srealp:=pdynarray(sarr[i]-sizeof(tdynarray));
+          if srealp^.high>=0 then
+            begin
+              move(sarr[i]^,(pointer(newp)+sizeof(tdynarray)+offset*elesize)^,(srealp^.high+1)*elesize);
+              inc(offset,srealp^.high+1);
+            end;
+        end;
+
+    { increase reference counts of all the elements }
+    if assigned(eletypemngd) then
+      begin
+        for i:=0 to totallen-1 do
+          int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
+      end;
+
+    dest:=pointer(newp)+sizeof(tdynarray);
+    newp^.refcount:=1;
+    newp^.high:=totallen-1;
+  end;
 {$endif VER3_0}
 
 

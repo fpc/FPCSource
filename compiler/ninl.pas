@@ -124,7 +124,7 @@ implementation
 
     uses
       verbose,globals,systems,constexp,
-      globtype,cutils,fmodule,
+      globtype,cutils,cclasses,fmodule,
       symconst,symdef,symsym,symcpu,symtable,paramgr,defcmp,defutil,symbase,
       cpuinfo,
       pass_1,
@@ -4850,10 +4850,21 @@ implementation
          begin
            CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Concat');
            MessagePos1(fileinfo,sym_e_param_list,'Concat(String[;String;...])');
+           MessagePos1(fileinfo,sym_e_param_list,'Concat(Dynamic Array[;Dynamic Array;...])');
          end;
 
        var
          cpn : tcallparanode;
+         list : tfpobjectlist;
+         n,
+         arrn,
+         firstn : tnode;
+         startidx,
+         i : longint;
+         arrconstr : tarrayconstructornode;
+         newstatement : tstatementnode;
+         tempnode : ttempcreatenode;
+         lastchanged : boolean;
        begin
          if not assigned(left) then
            begin
@@ -4861,32 +4872,153 @@ implementation
              exit(cerrornode.create);
            end;
          result:=nil;
-         { the arguments are right to left, but we need them left to right
-           with the correct nesting }
+         { the arguments are right to left, but we need to work on them from
+           left to right, so insert them in a list and process that from back
+           to front }
+         list:=tfpobjectlist.create(false);
+         { remember the last (aka first) dynamic array parameter (important
+           in case of array constructors) }
+         arrn:=nil;
          cpn:=tcallparanode(left);
          while assigned(cpn) do
            begin
-             if assigned(result) then
-               begin
-                 if result.nodetype=addn then
-                   taddnode(result).left:=caddnode.create(addn,cpn.left,taddnode(result).left)
-                 else
-                   result:=caddnode.create(addn,cpn.left,result);
-               end
-             else
-               begin
-                 result:=cpn.left;
-                 { Force string type if it isn't yet }
-                 if not(
-                        (result.resultdef.typ=stringdef) or
-                        is_chararray(result.resultdef) or
-                        is_char(result.resultdef)
-                       ) then
-                   inserttypeconv(result,cshortstringtype);
-               end;
+             list.add(cpn.left);
+             if is_dynamic_array(cpn.left.resultdef) then
+               arrn:=cpn.left;
              cpn.left:=nil;
              cpn:=tcallparanode(cpn.right);
            end;
+
+         if list.count=0 then
+           internalerror(2017100901);
+
+         firstn:=tnode(list.last);
+         if not assigned(firstn) then
+           internalerror(2017100902);
+
+         { are we dealing with strings or dynamic arrays? }
+         if is_dynamic_array(firstn.resultdef) or is_array_constructor(firstn.resultdef) then
+           begin
+             { try to combine all consecutive array constructors }
+             lastchanged:=false;
+             i:=0;
+             repeat
+               if lastchanged or is_array_constructor(tnode(list[i]).resultdef) then
+                 begin
+                   if (i<list.count-1) and is_array_constructor(tnode(list[i+1]).resultdef) then
+                     begin
+                       arrconstr:=tarrayconstructornode(list[i+1]);
+                       while assigned(arrconstr.right) do
+                         arrconstr:=tarrayconstructornode(arrconstr.right);
+                       arrconstr.right:=tnode(list[i]);
+                       list[i]:=list[i+1];
+                       list.delete(i+1);
+                       lastchanged:=true;
+                       tnode(list[i]).resultdef:=nil;
+                       { don't increase index! }
+                       continue;
+                     end;
+                   if lastchanged then
+                     begin
+                       { we concatted all consecutive ones, so typecheck the new one again }
+                       n:=tnode(list[i]);
+                       typecheckpass(n);
+                       list[i]:=n;
+                     end;
+                   lastchanged:=false;
+                 end;
+               inc(i);
+             until i=list.count;
+
+             if list.count=1 then
+               begin
+                 { no need to call the concat helper }
+                 result:=firstn;
+               end
+             else
+               begin
+                 { if we reach this point then the concat list didn't consist
+                   solely of array constructors }
+                 if not assigned(arrn) then
+                   internalerror(2017101001);
+
+                 result:=internalstatements(newstatement);
+
+                 { generate the open array constructor for the source arrays
+                   note: the order needs to be swapped again here! }
+                 arrconstr:=nil;
+                 for i:=0 to list.count-1 do
+                   begin
+                     n:=tnode(list[i]);
+                     { first convert to the target type }
+                     if not is_array_constructor(n.resultdef) then
+                       inserttypeconv(n,arrn.resultdef);
+                     { we need to ensure that we get a reference counted
+                       assignement for the temp array }
+                     tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);
+                     addstatement(newstatement,tempnode);
+                     addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),n));
+                     addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+                     n:=ctemprefnode.create(tempnode);
+                     { then to a plain pointer for the helper }
+                     inserttypeconv_internal(n,voidpointertype);
+                     arrconstr:=carrayconstructornode.create(n,arrconstr);
+                   end;
+                 arrconstr.allow_array_constructor:=true;
+
+                 { based on the code from nopt.genmultistringadd() }
+                 tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);
+                 addstatement(newstatement,tempnode);
+                 { initialize the temp, since it will be passed to a
+                   var-parameter (and finalization, which is performed by the
+                   ttempcreate node and which takes care of the initialization
+                   on native targets, is a noop on managed VM targets) }
+                 if (target_info.system in systems_managed_vm) and
+                    is_managed_type(arrn.resultdef) then
+                   addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                     false,
+                     ccallparanode.create(genintconstnode(0),
+                       ccallparanode.create(ctemprefnode.create(tempnode),nil))));
+
+                 cpn:=ccallparanode.create(
+                         arrconstr,
+                         ccallparanode.create(
+                           caddrnode.create_internal(crttinode.create(tstoreddef(arrn.resultdef),initrtti,rdt_normal)),
+                             ccallparanode.create(ctypeconvnode.create_internal(ctemprefnode.create(tempnode),voidpointertype),nil))
+                       );
+                 addstatement(
+                   newstatement,
+                   ccallnode.createintern(
+                     'fpc_dynarray_concat_multi',
+                     cpn
+                   )
+                 );
+                 addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+                 addstatement(newstatement,ctemprefnode.create(tempnode));
+               end;
+           end
+         else
+           begin
+             { enforce strings }
+             for i:=list.count-1 downto 0 do
+               begin
+                 if assigned(result) then
+                   result:=caddnode.create(addn,result,tnode(list[i]))
+                 else
+                   begin
+                     result:=tnode(list[i]);
+                     { Force string type if it isn't yet }
+                     if not(
+                            (result.resultdef.typ=stringdef) or
+                            is_chararray(result.resultdef) or
+                            is_char(result.resultdef)
+                           ) then
+                       inserttypeconv(result,cshortstringtype);
+                   end;
+               end;
+           end;
+
+         list.free;
        end;
 
 
