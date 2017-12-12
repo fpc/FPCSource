@@ -239,7 +239,7 @@ implementation
                             targetinfos[target_info.system]^.alignment.recordalignmin,
                             targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
-                          if is_open_array(para.vardef) then
+                          if is_open_array(para.vardef) or is_array_of_const(para.vardef) then
                             write_rtti_reference(tcb,tarraydef(para.vardef).elementdef,fullrtti)
                           else
                             write_rtti_reference(tcb,para.vardef,fullrtti);
@@ -386,7 +386,7 @@ implementation
         { Kylix also seems to always add both pfArray and pfReference
           in this case
         }
-        if is_open_array(parasym.vardef) then
+        if is_open_array(parasym.vardef) or is_array_of_const(parasym.vardef) then
           paraspec:=paraspec or pfArray or pfReference;
         { and these for classes and interfaces (maybe because they
           are themselves addresses?)
@@ -518,7 +518,7 @@ implementation
             sym:=tparavarsym(def.paras[i]);
             if not (vo_is_hidden_para in sym.varoptions) or allow_hidden then
               begin
-                if is_open_array(sym.vardef) then
+                if is_open_array(sym.vardef) or is_array_of_const(sym.vardef) then
                   write_rtti(tarraydef(sym.vardef).elementdef,rt)
                 else
                   write_rtti(sym.vardef,rt);
@@ -1244,7 +1244,7 @@ implementation
                    { write flags for current parameter }
                    write_param_flag(tcb,parasym);
                    { write param type }
-                   if is_open_array(parasym.vardef) then
+                   if is_open_array(parasym.vardef) or is_array_of_const(parasym.vardef) then
                      write_rtti_reference(tcb,tarraydef(parasym.vardef).elementdef,fullrtti)
                    else
                      write_rtti_reference(tcb,parasym.vardef,fullrtti);
@@ -1293,7 +1293,7 @@ implementation
                for i:=0 to def.paras.count-1 do
                  if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
                    begin
-                     if is_open_array(tparavarsym(def.paras[i]).vardef) then
+                     if is_open_array(tparavarsym(def.paras[i]).vardef) or is_array_of_const(tparavarsym(def.paras[i]).vardef) then
                        write_rtti_reference(tcb,tarraydef(tparavarsym(def.paras[i]).vardef).elementdef,fullrtti)
                      else
                        write_rtti_reference(tcb,tparavarsym(def.paras[i]).vardef,fullrtti);
