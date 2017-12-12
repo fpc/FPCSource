@@ -200,8 +200,8 @@ Const
         syscall_nr_rt_sigtimedwait      = 177;
         syscall_nr_rt_sigqueueinfo      = 178;
         syscall_nr_rt_sigsuspend        = 179;
-        syscall_nr_pread                = 180;
-        syscall_nr_pwrite               = 181;
+        syscall_nr_pread64              = 180;
+        syscall_nr_pwrite64             = 181;
         syscall_nr_chown                = 182;
         syscall_nr_getcwd               = 183;
         syscall_nr_capget               = 184;
@@ -342,4 +342,3 @@ Const
         syscall_nr_timerfd              = 318;
         syscall_nr_eventfd              = 319;
         syscall_nr_fallocate            = 320;
-

@@ -226,8 +226,8 @@ Const
   syscall_nr_rt_sigtimedwait            = syscall_nr_base+177;
   syscall_nr_rt_sigqueueinfo            = syscall_nr_base+178;
   syscall_nr_rt_sigsuspend              = syscall_nr_base+179;
-  syscall_nr_pread                      = syscall_nr_base+180;
-  syscall_nr_pwrite                     = syscall_nr_base+181;
+  syscall_nr_pread64                    = syscall_nr_base+180;
+  syscall_nr_pwrite64                   = syscall_nr_base+181;
   syscall_nr_chown                      = syscall_nr_base+182;
   syscall_nr_getcwd                     = syscall_nr_base+183;
   syscall_nr_capget                     = syscall_nr_base+184;
@@ -420,4 +420,3 @@ Const
   __ARM_NR_usr26                        = __ARM_NR_BASE+3;
   __ARM_NR_usr32                        = __ARM_NR_BASE+4;
   __ARM_NR_set_tls                      = __ARM_NR_BASE+5;
-

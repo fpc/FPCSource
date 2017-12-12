@@ -647,24 +647,23 @@ begin
 {$endif}
 end;
 
+{ this is used by the Fppread/Fppwrite below. for more information,
+  check the syscall() Linux man page (KB) }
+{$if defined(FPC_ABI_EABI) or defined(CPUMIPS32) or defined(CPUMIPSEL32) or defined(CPUPOWERPC32)}
+{$define FPC_ALIGN_DUMMY}
+{$endif}
+
 function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
 
 begin
 {$ifdef CPU64}
   Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 {$else}
-{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
-  Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,0,  { align parameters as required with dummy }
+  Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,
+    {$ifdef FPC_ALIGN_DUMMY}   0,   {$endif FPC_ALIGN_DUMMY} { align parameters as required with dummy }
     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
    );
-{$else CPUMIPS32}
-  Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,
-    {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
-    {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
-    {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
-   );
-{$endif CPUMIPS32}
 {$endif}
 end;
 
@@ -674,20 +673,16 @@ begin
 {$ifdef CPU64}
   Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 {$else}
-{$if defined(CPUMIPS32) or defined(CPUMIPSEL32)}
-Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,0,  { align parameters as required with dummy }
-  {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
-  {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
- );
-{$else CPUMIPS32}
-Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,
-  {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
-  {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
-  {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
- );
-{$endif CPUMIPS32}
+  Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,
+    {$ifdef FPC_ALIGN_DUMMY}   0,   {$endif FPC_ALIGN_DUMMY} { align parameters as required with dummy }
+    {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
+    {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
+  );
 {$endif}
 end;
+
+{$undef FPC_ALIGN_DUMMY}
+
 
 function Fpreadv(fd: cint; const iov : piovec; iovcnt : cint):ssize_t; [public, alias : 'FPC_SYSC_READV'];
 

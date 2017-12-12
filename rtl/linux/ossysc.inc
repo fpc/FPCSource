@@ -360,6 +360,11 @@ begin
 {$endif cpusparc}
 end;
 
+{ this is used by the FpFtruncate below. for more information,
+  check the syscall() Linux man page (KB) }
+{$if defined(FPC_ABI_EABI) or defined(CPUMIPS32) or defined(CPUMIPSEL32) or defined(CPUPOWERPC32)}
+{$define FPC_ALIGN_DUMMY}
+{$endif}
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 { See notes lseek. This one is completely similar for the parameter (but
@@ -370,12 +375,14 @@ begin
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate,TSysParam(fd),TSysParam(flength));
 {$else}
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate64,TSysParam(fd),
-   {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
+   {$ifdef FPC_ALIGN_DUMMY}   0,  {$endif FPC_ALIGN_DUMMY} { align parameters as required with dummy }
    {$ifdef FPC_BIG_ENDIAN}    tsysparam(hi(flength)),tsysparam(lo(flength)){$endif}
    {$ifdef FPC_LITTLE_ENDIAN} tsysparam(lo(flength)),tsysparam(hi(flength)){$endif}
    );
 {$endif}
 end;
+
+{$undef FPC_ALIGN_DUMMY}
 
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 

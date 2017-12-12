@@ -86,8 +86,8 @@ Const
       syscall_nr_getpagesize       = 64 ; // Common
       syscall_nr_msync             = 65 ; // Common in newer 1.3.x revs...
       syscall_nr_vfork             = 66 ; // Common
-      syscall_nr_pread             = 67 ; // Linux Specific
-      syscall_nr_pwrite            = 68 ; // Linux Specific
+      syscall_nr_pread64           = 67 ; // Linux Specific
+      syscall_nr_pwrite64          = 68 ; // Linux Specific
       syscall_nr_geteuid32         = 69 ; // Linux sparc32, sbrk under SunOS
       syscall_nr_getegid32         = 70 ; // Linux sparc32, sstk under SunOS
       syscall_nr_mmap              = 71 ; // Common
@@ -381,10 +381,3 @@ Const
       syscall_nr_preadv2           = 358;
       syscall_nr_pwritev2          = 359;
       syscall_nr_statx             = 360;
-
-
-
-      { aliases, not sure if they are correct (FPK) }
-      syscall_nr_pread64           = 67;
-      syscall_nr_pwrite64          = 68;
-

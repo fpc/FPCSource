@@ -254,9 +254,6 @@ Const
   syscall_nr_rt_sigqueueinfo            = 4000+198;
   syscall_nr_rt_sigsuspend              = 4000+199;
 
-//  syscall_nr_pread                      = 4000+180;
-//  syscall_nr_pwrite                     = 4000+181;
-
   syscall_nr_pread64                      = 4000+200;
   syscall_nr_pwrite64                     = 4000+201;
 
