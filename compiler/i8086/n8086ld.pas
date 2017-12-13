@@ -247,6 +247,15 @@ implementation
                  (location.loc=LOC_REFERENCE) then
                 location.loc:=LOC_CREFERENCE;
             end;
+          procsym:
+            begin
+              inherited pass_generate_code;
+              if current_settings.x86memorymodel in x86_near_code_models then
+                begin
+                  if (location.loc=LOC_REFERENCE) or (location.loc=LOC_CREFERENCE) then
+                    location.reference.segment:=NR_CS;
+                end;
+            end;
           else
             inherited pass_generate_code;
         end;

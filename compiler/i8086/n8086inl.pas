@@ -55,7 +55,7 @@ implementation
     symconst,
     defutil,
     aasmbase,aasmtai,aasmdata,aasmcpu,
-    symtype,symdef,symcpu,
+    symtype,symdef,symsym,symcpu,
     cgbase,pass_1,pass_2,
     cpuinfo,cpubase,paramgr,
     nbas,nadd,ncon,ncal,ncnv,nld,nmem,nmat,ncgutil,
@@ -103,6 +103,10 @@ implementation
        end;
 
      function ti8086inlinenode.typecheck_seg: tnode;
+       var
+         isprocvar: Boolean;
+         procpointertype: tdef;
+         hsym: tfieldvarsym;
        begin
          result := nil;
          resultdef:=u16inttype;
@@ -113,6 +117,77 @@ implementation
             CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
             exit;
           end;
+
+         { Handle Seg(proc) special, also Seg(procvar) in tp-mode needs
+           special handling }
+         if (left.resultdef.typ=procdef) or
+            (
+             { in case of nf_internal, follow the normal FPC semantics so that
+               we can easily get the actual address of a procvar }
+             not(nf_internal in flags) and
+             (left.resultdef.typ=procvardef) and
+             ((m_tp_procvar in current_settings.modeswitches) or
+              (m_mac_procvar in current_settings.modeswitches))
+            ) then
+           begin
+             isprocvar:=(left.resultdef.typ=procvardef);
+
+             if not isprocvar then
+               begin
+                 if current_settings.x86memorymodel in x86_far_code_models then
+                   begin
+                     left:=ctypeconvnode.create_proc_to_procvar(left);
+                     left.fileinfo:=fileinfo;
+                     typecheckpass(left);
+                   end
+                 else
+                   exit;
+               end;
+
+             { In tp procvar mode the result is always a voidpointer. Insert
+               a typeconversion to voidpointer. For methodpointers we need
+               to load the proc field }
+             if (m_tp_procvar in current_settings.modeswitches) or
+                (m_mac_procvar in current_settings.modeswitches) then
+               begin
+                 if tabstractprocdef(left.resultdef).is_addressonly then
+                   begin
+                     result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).address_type);
+                     include(result.flags,nf_load_procvar);
+                     left:=nil;
+                   end
+                 else
+                   begin
+                     { For procvars and for nested routines we need to return
+                       the proc field of the methodpointer }
+                     if isprocvar or
+                        is_nested_pd(tabstractprocdef(left.resultdef)) then
+                       begin
+                         if tabstractprocdef(left.resultdef).is_methodpointer then
+                           procpointertype:=methodpointertype
+                         else
+                           procpointertype:=nestedprocpointertype;
+                         { find proc field in methodpointer record }
+                         hsym:=tfieldvarsym(trecorddef(procpointertype).symtable.Find('proc'));
+                         if not assigned(hsym) then
+                           internalerror(200412041);
+                         { Load tmehodpointer(left).proc }
+                         result:=csubscriptnode.create(
+                                      hsym,
+                                      ctypeconvnode.create_internal(left,procpointertype));
+                         left:=nil;
+                       end
+                     else
+                       CGMessage(type_e_variable_id_expected);
+                   end;
+               end;
+(*             else
+               begin
+                 { Return the typeconvn only }
+                 result:=left;
+                 left:=nil;
+               end;*)
+           end;
        end;
 
      function ti8086inlinenode.first_seg: tnode;
@@ -127,26 +202,44 @@ implementation
        begin
          secondpass(left);
 
-         if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-           internalerror(2013040101);
-
-         { if a segment register is specified in ref, we use that }
-         if left.location.reference.segment<>NR_NO then
+         if left.resultdef.typ=procvardef then
            begin
-             location_reset(location,LOC_REGISTER,OS_16);
-             if is_segment_reg(left.location.reference.segment) then
-               begin
-                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-                 current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,left.location.reference.segment,location.register));
-               end
-             else
-               location.register:=left.location.reference.segment;
+             if left.resultdef.size<>4 then
+               internalerror(2017121302);
+             Writeln(left.location.loc);
+             case left.location.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 begin
+                   location_reset(location,LOC_REGISTER,OS_16);
+                   location.register:=cg.GetNextReg(left.location.register);
+                 end;
+               else
+                 internalerror(2017121301);
+             end;
            end
          else
            begin
-             location_reset(location,LOC_REGISTER,OS_16);
-             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
-             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,get_default_segment_of_ref(left.location.reference),location.register));
+             if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+               internalerror(2013040101);
+
+             { if a segment register is specified in ref, we use that }
+             if left.location.reference.segment<>NR_NO then
+               begin
+                 location_reset(location,LOC_REGISTER,OS_16);
+                 if is_segment_reg(left.location.reference.segment) then
+                   begin
+                     location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                     current_asmdata.CurrAsmList.Concat(Taicpu.op_reg_reg(A_MOV,S_W,left.location.reference.segment,location.register));
+                   end
+                 else
+                   location.register:=left.location.reference.segment;
+               end
+             else
+               begin
+                 location_reset(location,LOC_REGISTER,OS_16);
+                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                 current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_MOV,S_W,get_default_segment_of_ref(left.location.reference),location.register));
+               end;
            end;
        end;
 
