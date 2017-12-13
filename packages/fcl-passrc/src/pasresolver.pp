@@ -168,6 +168,7 @@ Works:
   - array var
 
 ToDo:
+- Add test:  test1 uses unit1, unit1 uses unit2, test1 references an identifier 'unit2' -> fail
 - for..in..do
    - function: enumerator
    - class
@@ -513,7 +514,8 @@ type
     pikBaseType, // e.g. longint
     pikBuiltInProc,  // e.g. High(), SetLength()
     pikSimple, // simple vars, consts, types, enums
-    pikProc // may need parameter list with round brackets
+    pikProc, // may need parameter list with round brackets
+    pikNamespace
     );
   TPasIdentifierKinds = set of TPasIdentifierKind;
 
@@ -541,6 +543,7 @@ type
     FItems: TFPHashList;
     procedure InternalAdd(Item: TPasIdentifier);
     procedure OnClearItem(Item, Dummy: pointer);
+  protected
     procedure OnWriteItem(Item, Dummy: pointer);
   public
     constructor Create; override;
@@ -570,6 +573,9 @@ type
   { TPasSectionScope - e.g. interface, implementation, program, library }
 
   TPasSectionScope = Class(TPasIdentifierScope)
+  private
+    procedure OnInternalIterate(El: TPasElement; ElScope, StartScope: TPasScope;
+      Data: Pointer; var Abort: boolean);
   public
     UsesScopes: TFPList; // list of TPasSectionScope
     constructor Create; override;
@@ -2213,11 +2219,14 @@ function TPasModuleDotScope.FindIdentifier(const Identifier: String
   function Find(Scope: TPasIdentifierScope): boolean;
   var
     Found: TPasIdentifier;
+    C: TClass;
   begin
     if Scope=nil then exit(false);
     Found:=Scope.FindLocalIdentifier(Identifier);
     FindIdentifier:=Found;
-    Result:=(Found<>nil) and (Found.Element.ClassType<>TPasModule);
+    if Found=nil then exit(false);
+    C:=Found.Element.ClassType;
+    Result:=(C<>TPasModule) and (C<>TPasUsesUnit);
   end;
 
 begin
@@ -2260,6 +2269,17 @@ end;
 
 { TPasSectionScope }
 
+procedure TPasSectionScope.OnInternalIterate(El: TPasElement; ElScope,
+  StartScope: TPasScope; Data: Pointer; var Abort: boolean);
+var
+  FilterData: PPasIterateFilterData absolute Data;
+begin
+  if (El.ClassType=TPasModule) or (El.ClassType=TPasUsesUnit) then
+    exit; // skip used units
+  // call the original iterator
+  FilterData^.OnIterate(El,ElScope,StartScope,FilterData^.Data,Abort);
+end;
+
 constructor TPasSectionScope.Create;
 begin
   inherited Create;
@@ -2283,6 +2303,7 @@ function TPasSectionScope.FindIdentifier(const Identifier: String
 var
   i: Integer;
   UsesScope: TPasIdentifierScope;
+  C: TClass;
 begin
   Result:=inherited FindIdentifier(Identifier);
   if Result<>nil then
@@ -2294,7 +2315,12 @@ begin
     writeln('TPasSectionScope.FindIdentifier "',Identifier,'" in used unit ',GetObjName(UsesScope.Element));
     {$ENDIF}
     Result:=UsesScope.FindLocalIdentifier(Identifier);
-    if Result<>nil then exit;
+    if Result<>nil then
+      begin
+      C:=Result.Element.ClassType;
+      if (C<>TPasModule) and (C<>TPasUsesUnit) then
+        exit;
+      end;
     end;
 end;
 
@@ -2304,16 +2330,19 @@ procedure TPasSectionScope.IterateElements(const aName: string;
 var
   i: Integer;
   UsesScope: TPasIdentifierScope;
+  FilterData: TPasIterateFilterData;
 begin
   inherited IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
   if Abort then exit;
+  FilterData.OnIterate:=OnIterateElement;
+  FilterData.Data:=Data;
   for i:=0 to UsesScopes.Count-1 do
     begin
     UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     {$IFDEF VerbosePasResolver}
     writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',GetObjName(UsesScope.Element));
     {$ENDIF}
-    UsesScope.IterateLocalElements(aName,StartScope,OnIterateElement,Data,Abort);
+    UsesScope.IterateLocalElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
     if Abort then exit;
     end;
 end;
@@ -2322,12 +2351,15 @@ procedure TPasSectionScope.WriteIdentifiers(Prefix: string);
 var
   i: Integer;
   UsesScope: TPasIdentifierScope;
+  SubPrefix: String;
 begin
   inherited WriteIdentifiers(Prefix);
+  SubPrefix:=Prefix+'    ';
   for i:=0 to UsesScopes.Count-1 do
     begin
     UsesScope:=TPasIdentifierScope(UsesScopes[i]);
-    writeln(Prefix+'Uses: '+GetObjName(UsesScope.Element));
+    writeln(Prefix+'  Uses: '+GetObjName(UsesScope.Element)+' "'+UsesScope.Element.GetModule.Name+'"');
+    UsesScope.FItems.ForEachCall(@OnWriteItem,Pointer(SubPrefix));
     end;
 end;
 
@@ -3459,10 +3491,8 @@ begin
     EmitElementHints(Section,UseUnit);
     end;
 
-  // Note: a sub identifier (e.g. a class member) hides all unitnames starting
-  //       with this identifier
-  // -> add first name of dotted unitname as identifier
-  for i:=0 to Section.UsesList.Count-1 do
+  // Add first name of dotted unitname (top level subnamespace) as identifier
+  for i:=Section.UsesList.Count-1 downto 0 do
     begin
     UseUnit:=Section.UsesClause[i];
     FirstName:=UseUnit.Name;
@@ -3470,13 +3500,11 @@ begin
     if p<1 then continue;
     FirstName:=LeftStr(FirstName,p-1);
     OldIdentifier:=Scope.FindLocalIdentifier(FirstName);
-    if OldIdentifier=nil then
-      AddIdentifier(Scope,FirstName,UseUnit.Module,pikSimple)
-    else
-      // a reference in the implementation needs to find a match in the
-      // implementation clause -> replace identfier in the scope
-      OldIdentifier.Element:=UseUnit;
+    if (OldIdentifier=nil) then
+      AddIdentifier(Scope,FirstName,UseUnit.Module,pikNamespace);
     end;
+  // Note: a sub identifier (e.g. a class member) hides all unitnames starting
+  //       with this identifier
 end;
 
 procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);

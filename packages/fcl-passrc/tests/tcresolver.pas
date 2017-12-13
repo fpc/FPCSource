@@ -324,6 +324,7 @@ type
     Procedure TestUnit_InFilename; // ToDo
     Procedure TestUnit_MissingUnitErrorPos;
     Procedure TestUnit_UnitNotFoundErrorPos;
+    Procedure TestUnit_AccessIndirectUsedUnitFail;
 
     // procs
     Procedure TestProcParam;
@@ -4785,6 +4786,29 @@ begin
   'uses foo   ;',
   'begin']);
   CheckResolverException('can''t find unit "foo" at afile.pp (2,9)',nCantFindUnitX);
+end;
+
+procedure TTestResolver.TestUnit_AccessIndirectUsedUnitFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i2: longint;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'uses unit2;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'begin',
+  '  if unit2.i2=0 then ;',
+  '']);
+  CheckResolverException('identifier not found "unit2"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestProcParam;
