@@ -1444,6 +1444,7 @@ type
         uu : tused_unit;
         module_name: ansistring;
         pentry: ppackageentry;
+        feature : tfeature;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
@@ -1565,6 +1566,10 @@ type
              AddUnit('system',false);
              systemunit:=tglobalsymtable(symtablestack.top);
              load_intern_types;
+             { system unit is loaded, now insert feature defines }
+             for feature:=low(tfeature) to high(tfeature) do
+               if feature in features then
+                 def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
            end;
 
          {Load the units used by the program we compile.}
@@ -1878,6 +1883,7 @@ type
          sc : array of TProgramParam;
          i : Longint;
          sysinitmod: tmodule;
+         feature : tfeature;
       begin
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
@@ -2023,6 +2029,11 @@ type
 
          { load system unit }
          loadsystemunit;
+
+         { system unit is loaded, now insert feature defines }
+         for feature:=low(tfeature) to high(tfeature) do
+           if feature in features then
+             def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
 
          { load standard units, e.g objpas,profile unit }
          loaddefaultunits;
