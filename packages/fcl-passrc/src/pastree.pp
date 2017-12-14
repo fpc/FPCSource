@@ -341,6 +341,7 @@ type
   public
     UsesList: TFPList; // kept for compatibility, see TPasUsesUnit.Module
     UsesClause: TPasUsesClause;
+    PendingUsedIntf: TPasUsesUnit; // <>nil while resolving a uses cycle
   end;
 
   { TInterfaceSection }

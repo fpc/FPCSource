@@ -504,6 +504,9 @@ type
   TPasModuleScope = class(TPasScope)
   public
     FirstName: string;
+    PendingResolvers: TFPList; // list of TPasResolver waiting for the unit interface
+    constructor Create; override;
+    destructor Destroy; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
@@ -578,6 +581,7 @@ type
       Data: Pointer; var Abort: boolean);
   public
     UsesScopes: TFPList; // list of TPasSectionScope
+    Finished: boolean;
     constructor Create; override;
     destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
@@ -1062,6 +1066,8 @@ type
     procedure AccessExpr(Expr: TPasExpr; Access: TResolvedRefAccess);
     procedure FinishModule(CurModule: TPasModule); virtual;
     procedure FinishUsesClause; virtual;
+    procedure FinishSection(Section: TPasSection); virtual;
+    procedure FinishInterfaceSection(Section: TPasSection); virtual;
     procedure FinishTypeSection(El: TPasDeclarations); virtual;
     procedure FinishTypeDef(El: TPasType); virtual;
     procedure FinishEnumType(El: TPasEnumType); virtual;
@@ -1262,6 +1268,10 @@ type
       Ref: TResolvedReference); virtual;
     function GetVisibilityContext: TPasElement;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); override;
+    function IsUnitIntfFinished(AModule: TPasModule): boolean;
+    function GetPendingUsedInterface(Section: TPasSection): TPasUsesUnit;
+    procedure CheckPendingUsedInterface(Section: TPasSection); override;
+    procedure ContinueParsing; virtual;
     function NeedArrayValues(El: TPasElement): boolean; override;
     function GetDefaultClassVisibility(AClass: TPasClassType
       ): TPasMemberVisibility; override;
@@ -2365,6 +2375,18 @@ end;
 
 { TPasModuleScope }
 
+constructor TPasModuleScope.Create;
+begin
+  inherited Create;
+  PendingResolvers:=TFPList.Create;
+end;
+
+destructor TPasModuleScope.Destroy;
+begin
+  FreeAndNil(PendingResolvers);
+  inherited Destroy;
+end;
+
 procedure TPasModuleScope.IterateElements(const aName: string;
   StartScope: TPasScope; const OnIterateElement: TIterateScopeElement;
   Data: Pointer; var Abort: boolean);
@@ -3389,6 +3411,8 @@ begin
     end
   else if (CurModuleClass=TPasModule) then
     begin
+    // unit
+    FinishSection(CurModule.InterfaceSection);
     if CurModule.FinalizationSection<>nil then
       // finalization section finished -> resolve
       ResolveImplBlock(CurModule.FinalizationSection);
@@ -3501,10 +3525,49 @@ begin
     FirstName:=LeftStr(FirstName,p-1);
     OldIdentifier:=Scope.FindLocalIdentifier(FirstName);
     if (OldIdentifier=nil) then
-      AddIdentifier(Scope,FirstName,UseUnit.Module,pikNamespace);
+      AddIdentifier(Scope,FirstName,UseUnit,pikNamespace);
     end;
   // Note: a sub identifier (e.g. a class member) hides all unitnames starting
   //       with this identifier
+end;
+
+procedure TPasResolver.FinishSection(Section: TPasSection);
+// Note: can be called multiple times for a section
+var
+  Scope: TPasSectionScope;
+begin
+  Scope:=Section.CustomData as TPasSectionScope;
+  if Scope.Finished then exit;
+  Scope.Finished:=true;
+  if Section is TInterfaceSection then
+    FinishInterfaceSection(Section);
+end;
+
+procedure TPasResolver.FinishInterfaceSection(Section: TPasSection);
+var
+  ModuleScope: TPasModuleScope;
+  PendingResolver: TPasResolver;
+  PendingParser: TPasParser;
+  PendingModule: TPasModule;
+  PendingImpl: TImplementationSection;
+begin
+  {$IFDEF VerbosePasResolver}
+  if not IsUnitIntfFinished(Section.GetModule) then
+    RaiseInternalError(20171214004323,'TPasResolver.FinishInterfaceSection "'+CurrentParser.CurModule.Name+'" "'+Section.GetModule.Name+'" IsUnitIntfFinished=false');
+  {$ENDIF}
+  ModuleScope:=CurrentParser.CurModule.CustomData as TPasModuleScope;
+  while ModuleScope.PendingResolvers.Count>0 do
+    begin
+    PendingResolver:=TObject(ModuleScope.PendingResolvers[0]) as TPasResolver;
+    PendingParser:=PendingResolver.CurrentParser;
+    PendingModule:=PendingParser.CurModule;
+    PendingImpl:=PendingModule.ImplementationSection;
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.FinishInterfaceSection "',ModuleScope.Element.Name,'" Pending="',PendingModule.Name,'"');
+    {$ENDIF}
+    PendingResolver.CheckPendingUsedInterface(PendingImpl);
+    end;
+  if Section=nil then ;
 end;
 
 procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
@@ -6535,6 +6598,8 @@ procedure TPasResolver.AddSection(El: TPasSection);
 // TInterfaceSection, TImplementationSection, TProgramSection, TLibrarySection
 // Note: implementation scope is within the interface scope
 begin
+  if TopScope is TPasSectionScope then
+    FinishSection(TPasSectionScope(TopScope).Element as TPasSection);
   FPendingForwardProcs.Add(El); // check forward declarations at the end
   PushScope(El,TPasSectionScope);
 end;
@@ -10009,6 +10074,10 @@ begin
       NeedPop:=false;
 
     NextEl:=FindElementWithoutParams(CurName,ErrorEl,true);
+    {$IFDEF VerbosePasResolver}
+    //if RightPath<>'' then
+    //  writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ... NextEl=',GetObjName(NextEl));
+    {$ENDIF}
     if NextEl is TPasModule then
       begin
       if CurScopeEl is TPasModule then
@@ -10456,6 +10525,86 @@ begin
   else
     RaiseMsg(20170216152401,nNotYetImplemented,sNotYetImplemented+' FinishScope',[IntToStr(ord(ScopeType))],nil);
   end;
+end;
+
+function TPasResolver.IsUnitIntfFinished(AModule: TPasModule): boolean;
+var
+  CurIntf: TInterfaceSection;
+begin
+  CurIntf:=AModule.InterfaceSection;
+  Result:=(CurIntf<>nil)
+      and (CurIntf.CustomData is TPasSectionScope)
+      and TPasSectionScope(CurIntf.CustomData).Finished;
+end;
+
+function TPasResolver.GetPendingUsedInterface(Section: TPasSection
+  ): TPasUsesUnit;
+var
+  i: Integer;
+  UseUnit: TPasUsesUnit;
+begin
+  Result:=nil;
+  if not (Section is TImplementationSection) then exit;
+  for i:=0 to length(Section.UsesClause)-1 do
+    begin
+    UseUnit:=Section.UsesClause[i];
+    if not (UseUnit.Module is TPasModule) then continue;
+    if not IsUnitIntfFinished(TPasModule(UseUnit.Module)) then
+      exit(UseUnit);
+    end;
+end;
+
+procedure TPasResolver.CheckPendingUsedInterface(Section: TPasSection);
+var
+  PendingModule: TPasModule;
+  PendingModuleScope: TPasModuleScope;
+  List: TFPList;
+  WasPending: Boolean;
+begin
+  {$IFDEF VerbosePasResolver}
+  //writeln('TPasResolver.CheckPendingUsedInterface START "',CurrentParser.CurModule.Name,'"');
+  {$ENDIF}
+  WasPending:=Section.PendingUsedIntf<>nil;
+  if WasPending then
+    begin
+    PendingModule:=Section.PendingUsedIntf.Module as TPasModule;
+    if not IsUnitIntfFinished(PendingModule) then
+      exit; // still pending
+    // other unit interface is finished
+    PendingModuleScope:=NoNil(PendingModule.CustomData) as TPasModuleScope;
+    PendingModuleScope.PendingResolvers.Remove(Self);
+    Section.PendingUsedIntf:=nil;
+    end;
+
+  Section.PendingUsedIntf:=GetPendingUsedInterface(Section);
+  if Section.PendingUsedIntf<>nil then
+    begin
+    // unit not yet finished due to pending used interfaces
+    PendingModule:=Section.PendingUsedIntf.Module as TPasModule;
+    PendingModuleScope:=NoNil(PendingModule.CustomData) as TPasModuleScope;
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.CheckPendingUsedInterface "',CurrentParser.CurModule.Name,'" waiting for unit intf of "',PendingModule.Name,'"');
+    {$ENDIF}
+    List:=PendingModuleScope.PendingResolvers;
+    if List.IndexOf(Self)<0 then
+      List.Add(Self);
+    end
+  else
+    begin
+    if WasPending then
+      // can now continue parsing
+      ContinueParsing;
+    end;
+end;
+
+procedure TPasResolver.ContinueParsing;
+// if there is a unit cycle that stopped parsing this unit
+// this method is called after the needed used unit interfaces have finished
+begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.ContinueParsing "',CurrentParser.CurModule.Name,'"...');
+  {$ENDIF}
+  CurrentParser.ParseContinueImplementation;
 end;
 
 function TPasResolver.NeedArrayValues(El: TPasElement): boolean;

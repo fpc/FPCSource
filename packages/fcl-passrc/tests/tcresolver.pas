@@ -46,6 +46,7 @@ const
     );
 type
   TOnFindUnit = function(Sender: TPasResolver; const aUnitName: String): TPasModule of object;
+  TOnContinueParsing = procedure(Sender: TPasResolver) of object;
 
   { TTestEnginePasResolver }
 
@@ -53,6 +54,7 @@ type
   private
     FFilename: string;
     FModule: TPasModule;
+    FOnContinueParsing: TOnContinueParsing;
     FOnFindUnit: TOnFindUnit;
     FParser: TPasParser;
     FResolver: TStreamResolver;
@@ -62,7 +64,13 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    function CreateElement(AClass: TPTreeElement; const AName: String;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility;
+      const ASrcPos: TPasSourcePos): TPasElement;
+      overload; override;
     function FindModule(const AName: String): TPasModule; override;
+    procedure ContinueParsing; override;
+    property OnContinueParsing: TOnContinueParsing read FOnContinueParsing write FOnContinueParsing;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
     property Resolver: TStreamResolver read FResolver write FResolver;
@@ -110,6 +118,7 @@ type
     function GetModules(Index: integer): TTestEnginePasResolver;
     function GetMsgCount: integer;
     function GetMsgs(Index: integer): TTestResolverMessage;
+    procedure OnPasResolverContinueParsing(Sender: TPasResolver);
     function OnPasResolverFindUnit(SrcResolver: TPasResolver;
       const aUnitName: String): TPasModule;
     procedure OnFindReference(El: TPasElement; FindData: pointer);
@@ -138,6 +147,7 @@ type
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
+    procedure HandleError(CurEngine: TTestEnginePasResolver; E: Exception);
   Public
     constructor Create; override;
     destructor Destroy; override;
@@ -325,6 +335,7 @@ type
     Procedure TestUnit_MissingUnitErrorPos;
     Procedure TestUnit_UnitNotFoundErrorPos;
     Procedure TestUnit_AccessIndirectUsedUnitFail;
+    Procedure TestUnit_Intf1Impl2Intf1;
 
     // procs
     Procedure TestProcParam;
@@ -723,11 +734,23 @@ begin
   inherited Destroy;
 end;
 
+function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
+  const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASrcPos: TPasSourcePos): TPasElement;
+begin
+  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos);
+  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
+    Module:=TPasModule(Result);
+end;
+
 function TTestEnginePasResolver.FindModule(const AName: String): TPasModule;
 begin
-  Result:=nil;
-  if Assigned(OnFindUnit) then
-    Result:=OnFindUnit(Self,AName);
+  Result:=OnFindUnit(Self,AName);
+end;
+
+procedure TTestEnginePasResolver.ContinueParsing;
+begin
+  OnContinueParsing(Self);
 end;
 
 { TCustomTestResolver }
@@ -1519,6 +1542,25 @@ begin
   RaiseErrorAtSrc(Msg,aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
 end;
 
+procedure TCustomTestResolver.HandleError(CurEngine: TTestEnginePasResolver;
+  E: Exception);
+var
+  ErrFilename: String;
+  ErrRow, ErrCol: Integer;
+begin
+  ErrFilename:=CurEngine.Scanner.CurFilename;
+  ErrRow:=CurEngine.Scanner.CurRow;
+  ErrCol:=CurEngine.Scanner.CurColumn;
+  writeln('ERROR: TTestResolver.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
+    +' File='+ErrFilename
+    +' LineNo='+IntToStr(ErrRow)
+    +' Col='+IntToStr(ErrCol)
+    +' Line="'+CurEngine.Scanner.CurLine+'"'
+    );
+  WriteSources(ErrFilename,ErrRow,ErrCol);
+  Fail(E.Message);
+end;
+
 constructor TCustomTestResolver.Create;
 begin
   inherited Create;
@@ -1553,6 +1595,7 @@ begin
   Result.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers;
   Result.OnFindUnit:=@OnPasResolverFindUnit;
+  Result.OnContinueParsing:=@OnPasResolverContinueParsing;
   Result.OnLog:=@OnPasResolverLog;
   FModules.Add(Result);
 end;
@@ -1694,9 +1737,9 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
 
   function FindUnit(const aUnitName: String): TPasModule;
   var
-    i, ErrRow, ErrCol: Integer;
+    i: Integer;
     CurEngine: TTestEnginePasResolver;
-    CurUnitName, ErrFilename: String;
+    CurUnitName: String;
   begin
     {$IFDEF VerboseUnitSearch}
     writeln('TTestResolver.OnPasResolverFindUnit START Unit="',aUnitName,'"');
@@ -1733,19 +1776,7 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
           CurEngine.Parser.ParseUnit(CurEngine.FModule);
         except
           on E: Exception do
-            begin
-            ErrFilename:=CurEngine.Scanner.CurFilename;
-            ErrRow:=CurEngine.Scanner.CurRow;
-            ErrCol:=CurEngine.Scanner.CurColumn;
-            writeln('ERROR: TTestResolver.OnPasResolverFindUnit during parsing: '+E.ClassName+':'+E.Message
-              +' File='+ErrFilename
-              +' LineNo='+IntToStr(ErrRow)
-              +' Col='+IntToStr(ErrCol)
-              +' Line="'+CurEngine.Scanner.CurLine+'"'
-              );
-            WriteSources(ErrFilename,ErrRow,ErrCol);
-            Fail(E.Message);
-            end;
+            HandleError(CurEngine,E);
         end;
         //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
         Result:=CurEngine.Module;
@@ -1909,6 +1940,23 @@ end;
 function TCustomTestResolver.GetMsgs(Index: integer): TTestResolverMessage;
 begin
   Result:=TTestResolverMessage(FResolverMsgs[Index]);
+end;
+
+procedure TCustomTestResolver.OnPasResolverContinueParsing(Sender: TPasResolver
+  );
+var
+  CurEngine: TTestEnginePasResolver;
+begin
+  CurEngine:=Sender as TTestEnginePasResolver;
+  {$IFDEF VerbosePasResolver}
+  writeln('TCustomTestResolver.OnPasResolverContinueParsing "',CurEngine.Module.Name,'"...');
+  {$ENDIF}
+  try
+    CurEngine.Parser.ParseContinueImplementation;
+  except
+    on E: Exception do
+      HandleError(CurEngine,E);
+  end;
 end;
 
 function TCustomTestResolver.GetModuleCount: integer;
@@ -4809,6 +4857,27 @@ begin
   '  if unit2.i2=0 then ;',
   '']);
   CheckResolverException('identifier not found "unit2"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestUnit_Intf1Impl2Intf1;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type number = longint;']),
+    LinesToStr([
+    'uses afile;',
+    'procedure DoIt;',
+    'begin',
+    '  i:=3;',
+    'end;']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit1;',
+  'var i: number;',
+  'implementation']);
+  ParseUnit;
 end;
 
 procedure TTestResolver.TestProcParam;

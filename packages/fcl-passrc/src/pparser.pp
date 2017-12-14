@@ -189,6 +189,7 @@ type
     function FindElement(const AName: String): TPasElement; virtual; abstract;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
+    procedure CheckPendingUsedInterface(Section: TPasSection); virtual;
     function NeedArrayValues(El: TPasElement): boolean; virtual;
     function GetDefaultClassVisibility(AClass: TPasClassType): TPasMemberVisibility; virtual;
     property Package: TPasPackage read FPackage;
@@ -397,6 +398,7 @@ type
     // Main scope parsing
     procedure ParseMain(var Module: TPasModule);
     procedure ParseUnit(var Module: TPasModule);
+    procedure ParseContinueImplementation;
     procedure ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
     procedure ParseLibrary(var Module: TPasModule);
     procedure ParseOptionalUsesList(ASection: TPasSection);
@@ -762,6 +764,11 @@ function TPasTreeContainer.FindModule(const AName: String): TPasModule;
 begin
   if AName='' then ;
   Result := nil;
+end;
+
+procedure TPasTreeContainer.CheckPendingUsedInterface(Section: TPasSection);
+begin
+  if Section=nil then ;
 end;
 
 function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
@@ -2662,7 +2669,6 @@ begin
   else
     UngetToken;
     ParseProgram(Module,True);
-  //    ParseExcTokenError('unit');
   end;
 end;
 
@@ -2671,6 +2677,7 @@ procedure TPasParser.ParseUnit(var Module: TPasModule);
 var
   AUnitName: String;
   StartPos: TPasSourcePos;
+  HasFinished: Boolean;
 begin
   StartPos:=CurTokenPos;
   Module := nil;
@@ -2685,6 +2692,7 @@ begin
   UngetToken;
   Module := TPasModule(CreateElement(TPasModule, AUnitName, Engine.Package, StartPos));
   FCurModule:=Module;
+  HasFinished:=true;
   try
     if Assigned(Engine.Package) then
       begin
@@ -2693,12 +2701,26 @@ begin
       Module.AddRef;
       end;
     CheckHint(Module,True);
-//    ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
     If LogEvent(pleInterface) then
       DoLog(mtInfo,nLogStartInterface,SLogStartInterface);
     ParseInterface;
-    Engine.FinishScope(stModule,Module);
+    if (Module.ImplementationSection<>nil)
+        and (Module.ImplementationSection.PendingUsedIntf<>nil) then
+      HasFinished:=false;
+    if HasFinished then
+      Engine.FinishScope(stModule,Module);
+  finally
+    if HasFinished then
+      FCurModule:=nil;
+  end;
+end;
+
+procedure TPasParser.ParseContinueImplementation;
+begin
+  try
+    ParseDeclarations(CurModule.ImplementationSection);
+    Engine.FinishScope(stModule,CurModule);
   finally
     FCurModule:=nil;
   end;
@@ -2840,6 +2862,9 @@ begin
   Section := TImplementationSection(CreateElement(TImplementationSection, '', CurModule));
   CurModule.ImplementationSection := Section;
   ParseOptionalUsesList(Section);
+  Engine.CheckPendingUsedInterface(Section);
+  if Section.PendingUsedIntf<>nil then
+    exit;
   ParseDeclarations(Section);
 end;
 
