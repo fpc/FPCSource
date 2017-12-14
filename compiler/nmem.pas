@@ -638,8 +638,14 @@ implementation
         result:=false;
         res:=nil;
         if (realsource.nodetype=loadn) and
-           (tloadnode(realsource).symtableentry.typ=absolutevarsym) and
-           (tabsolutevarsym(tloadnode(realsource).symtableentry).abstyp=toaddr) then
+           (tloadnode(realsource).symtableentry.typ=labelsym) then
+          begin
+            resultdef:=voidcodepointertype;
+            result:=true;
+          end
+        else if (realsource.nodetype=loadn) and
+                (tloadnode(realsource).symtableentry.typ=absolutevarsym) and
+                (tabsolutevarsym(tloadnode(realsource).symtableentry).abstyp=toaddr) then
           begin
             offset:=tabsolutevarsym(tloadnode(realsource).symtableentry).addroffset;
             hp:=left;

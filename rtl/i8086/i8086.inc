@@ -1045,6 +1045,36 @@ begin
   HexStr:=HexStr(Word(Val),4);
 end;
 
+function HexStr(Val: NearCsPointer): ShortString;
+begin
+  HexStr:='CS:'+HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: NearDsPointer): ShortString;
+begin
+  HexStr:='DS:'+HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: NearEsPointer): ShortString;
+begin
+  HexStr:='ES:'+HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: NearSsPointer): ShortString;
+begin
+  HexStr:='SS:'+HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: NearFsPointer): ShortString;
+begin
+  HexStr:='FS:'+HexStr(Word(Val),4);
+end;
+
+function HexStr(Val: NearGsPointer): ShortString;
+begin
+  HexStr:='GS:'+HexStr(Word(Val),4);
+end;
+
 function HexStr(Val: FarPointer): ShortString;
 type
   TFarPointerRec = record

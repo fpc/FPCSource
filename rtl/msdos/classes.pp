@@ -18,9 +18,9 @@
 { determine the type of the resource/form file }
 {$define Win16Res}
 
-{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
   { CodePointer = Pointer; nothing to define }
-{$elseif defined(FPC_MM_MEDIUM) or defined(FPC_MM_COMPACT)}
+{$elseif defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM) or defined(FPC_MM_COMPACT)}
   {$define FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
 {$else}
   {$fatal Unknown i8086 memory model.}

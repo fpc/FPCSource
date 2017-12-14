@@ -406,8 +406,12 @@ Type
     CodePointer = FarPointer;
     CodePtrInt = Longint;
     CodePtrUInt = DWord;
-  {$elseif defined(FPC_X86_CODE_NEAR)}
+  {$elseif defined(FPC_MM_TINY)}
     CodePointer = NearPointer;
+    CodePtrInt = Integer;
+    CodePtrUInt = Word;
+  {$elseif defined(FPC_X86_CODE_NEAR)}
+    CodePointer = NearCsPointer;
     CodePtrInt = Integer;
     CodePtrUInt = Word;
   {$else}
@@ -1195,6 +1199,12 @@ Function  OctStr(Val:qword;cnt:byte):shortstring;
 Function  binStr(Val:qword;cnt:byte):shortstring;
 {$ifdef CPUI8086}
 Function  hexStr(Val:NearPointer):shortstring;
+function  hexStr(Val:NearCsPointer):shortstring;
+function  hexStr(Val:NearDsPointer):shortstring;
+function  hexStr(Val:NearEsPointer):shortstring;
+function  hexStr(Val:NearSsPointer):shortstring;
+function  hexStr(Val:NearFsPointer):shortstring;
+function  hexStr(Val:NearGsPointer):shortstring;
 Function  hexStr(Val:FarPointer):shortstring;
 Function  hexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$else CPUI8086}

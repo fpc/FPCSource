@@ -166,8 +166,10 @@ implementation
 {$ifdef i8086}
         if current_settings.x86memorymodel in x86_far_code_models then
           voidcodepointertype:=voidfarpointertype
+        else if current_settings.x86memorymodel=mm_tiny then
+          voidcodepointertype:=voidnearpointertype
         else
-          voidcodepointertype:=voidnearpointertype;
+          voidcodepointertype:=voidnearcspointertype;
         voidstackpointertype:=voidnearsspointertype;
 {$else i8086}
         voidcodepointertype:=voidpointertype;

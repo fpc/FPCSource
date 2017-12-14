@@ -35,7 +35,6 @@ interface
        ti8086addrnode = class(ti86addrnode)
         protected
          procedure set_absvarsym_resultdef; override;
-         function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
          procedure pass_generate_code;override;
         public
          get_offset_only: boolean;
@@ -75,23 +74,6 @@ implementation
           resultdef:=voidfarpointertype
         else
           resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
-      end;
-
-
-    function ti8086addrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
-      begin
-        res:=nil;
-        if (realsource.nodetype=loadn) and
-           (tloadnode(realsource).symtableentry.typ=labelsym) then
-          begin
-            if current_settings.x86memorymodel in x86_far_code_models then
-              resultdef:=voidfarpointertype
-            else
-              resultdef:=voidnearpointertype;
-            result:=true
-          end
-        else
-          result:=inherited;
       end;
 
 
