@@ -175,7 +175,7 @@ type
 
   TTestModule = class(TCustomTestModule)
   Published
-    // Resolvers
+    // program/units
     Procedure TestEmptyProgram;
     Procedure TestEmptyProgramUseStrict;
     Procedure TestEmptyUnit;
@@ -185,6 +185,7 @@ type
     Procedure TestDottedUnitExpr;
     Procedure Test_ModeFPCFail;
     Procedure Test_ModeSwitchCBlocksFail;
+    Procedure TestUnit_Intf1Impl2Intf1;
 
     // vars/const
     Procedure TestVarInt;
@@ -679,6 +680,10 @@ var
 begin
   //writeln('TTestModule.FindUnit START Unit="',aUnitName,'"');
   Result:=nil;
+  if (Module.ClassType=TPasModule)
+      and (CompareText(Module.Name,aUnitName)=0) then
+    exit(Module);
+
   for i:=0 to ResolverCount-1 do
     begin
     CurEngine:=Resolvers[i];
@@ -1693,6 +1698,33 @@ begin
   Add('begin');
   SetExpectedScannerError('Invalid mode switch: "cblocks-"',nErrInvalidModeSwitch);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestUnit_Intf1Impl2Intf1;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type number = longint;']),
+    LinesToStr([
+    'uses test1;',
+    'procedure DoIt;',
+    'begin',
+    '  i:=3;',
+    'end;']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit1;',
+  'var i: number;',
+  'implementation']);
+  ConvertUnit;
+  CheckSource('TestUnit_Intf1Impl2Intf1',
+    LinesToStr([
+    'this.i = 0;',
+    '']),
+    LinesToStr([
+    '']) );
 end;
 
 procedure TTestModule.TestVarInt;
