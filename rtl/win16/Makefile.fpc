@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 dynlibs \
-      sysconst rtlconst sysutils math types typinfo fgl
+      sysconst rtlconst sysutils math types typinfo fgl classes
 
 
 [require]
@@ -141,6 +141,13 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT) \
                     wintypes$(PPUEXT) winprocs$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	$(EXECPPAS)
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
+                   types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) \
+                   winprocs$(PPUEXT) wintypes$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT)
