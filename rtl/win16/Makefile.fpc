@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0s prt0m prt0c prt0l prt0h 
 units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 dynlibs \
-      sysconst rtlconst sysutils math types
+      sysconst rtlconst sysutils math types typinfo
 
 
 [require]
@@ -145,6 +145,10 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
+	$(EXECPPAS)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT)
+        $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp math$(PPUEXT) wintypes$(PPUEXT) objpas$(PPUEXT)
