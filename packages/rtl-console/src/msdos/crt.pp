@@ -47,28 +47,6 @@ asm
   rep stosw
 end;
 
-procedure dosmemmove(sseg, sofs, dseg, dofs: Word; count: Word); assembler;
-asm
-  mov ax, dseg
-  mov es, ax
-  mov di, dofs
-  mov si, sofs
-  mov dx, count
-  mov cx, dx
-  mov ax, sseg
-  push ds
-  mov ds, ax
-  shr cx, 1
-  jz @@1
-  rep movsw
-@@1:
-  and dl, 1
-  jz @@2
-  rep movsb
-@@2:
-  pop ds
-end;
-
 procedure setscreenmode(mode : byte);
 var
   regs : registers;
@@ -562,8 +540,8 @@ begin
   y:=WinMin.Y+y;
   While (y<=WinMax.Y) do
    begin
-     dosmemmove(VidSeg,(y*ScreenWidth+word(WinMin.X))*2,
-                VidSeg,((y-1)*ScreenWidth+word(WinMin.X))*2,(WinMax.X-WinMin.X+1)*2);
+     movedata(VidSeg,(y*ScreenWidth+word(WinMin.X))*2,
+              VidSeg,((y-1)*ScreenWidth+word(WinMin.X))*2,(WinMax.X-WinMin.X+1)*2);
      inc(y);
    end;
   dosmemfillword(VidSeg,(word(WinMax.Y)*ScreenWidth+word(WinMin.X))*2,(WinMax.X-WinMin.X+1),fil);
@@ -586,8 +564,8 @@ begin
   my:=WinMax.Y-WinMin.Y;
   while (my>=y) do
    begin
-     dosmemmove(VidSeg,(word(WinMin.Y+my-1)*ScreenWidth+word(WinMin.X))*2,
-                VidSeg,(word(WinMin.Y+my)*ScreenWidth+word(WinMin.X))*2,(WinMax.X-WinMin.X+1)*2);
+     movedata(VidSeg,(word(WinMin.Y+my-1)*ScreenWidth+word(WinMin.X))*2,
+              VidSeg,(word(WinMin.Y+my)*ScreenWidth+word(WinMin.X))*2,(WinMax.X-WinMin.X+1)*2);
      dec(my);
    end;
   dosmemfillword(VidSeg,(word(WinMin.Y+y-1)*ScreenWidth+word(WinMin.X))*2,(WinMax.X-WinMin.X+1),fil);
