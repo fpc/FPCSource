@@ -288,13 +288,13 @@ end;
        ErrCode:=Code;
     end;
 
-{$ifdef windows}
+{$if defined(win32) or defined(win64)}
 function EExternal.GetExceptionRecord: PExceptionRecord;
 begin
   result:=@FExceptionRecord;
 end;
 
-{$endif windows}
+{$endif win32 or win64}
 
 {$push}
 {$S-}
@@ -726,14 +726,12 @@ begin
 end;
 {$endif}
 
+{$if defined(win32) or defined(win64)}
 function GetModuleName(Module: HMODULE): string;
-{$ifdef MSWINDOWS}
 var
   ResultLength, BufferLength: DWORD;
   Buffer: UnicodeString;
-{$endif}
 begin
-{$ifdef MSWINDOWS}
   BufferLength := MAX_PATH div 2;
   repeat
     Inc(BufferLength, BufferLength);
@@ -744,10 +742,30 @@ begin
   until ResultLength < BufferLength;
   SetLength(Buffer, ResultLength);
   Result := Buffer;
-{$ELSE}
-  Result:='';
-{$ENDIF}
 end;
+{$elseif defined(win16)}
+function GetModuleName(Module: HMODULE): string;
+var
+  ResultLength, BufferLength: DWORD;
+  Buffer: RawByteString;
+begin
+  BufferLength := MAX_PATH div 2;
+  repeat
+    Inc(BufferLength, BufferLength);
+    SetLength(Buffer, BufferLength);
+    ResultLength := GetModuleFileName(Module, FarAddr(Buffer[1]), BufferLength);
+    if ResultLength = 0 then
+      Exit('');
+  until ResultLength < BufferLength;
+  SetLength(Buffer, ResultLength);
+  Result := Buffer;
+end;
+{$else}
+function GetModuleName(Module: HMODULE): string;
+begin
+  Result:='';
+end;
+{$endif}
 
 { Beep support }
 

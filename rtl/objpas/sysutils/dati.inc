@@ -911,13 +911,13 @@ var
   ResultLen: integer;
   ResultBuffer: array[0..255] of char;
   ResultCurrent: pchar;
-{$IFDEF MSWindows}
+{$if defined(win32) or defined(win64)}
   isEnable_E_Format : Boolean;
   isEnable_G_Format : Boolean;
   eastasiainited : boolean;
-{$ENDIF MSWindows}
+{$endif win32 or win64}
 
-{$IFDEF MSWindows}
+{$if defined(win32) or defined(win64)}
   procedure InitEastAsia;
   var     ALCID : LCID;
          PriLangID , SubLangID : Word;
@@ -948,7 +948,7 @@ var
                   );
     eastasiainited :=true;
   end;
-{$ENDIF MSWindows}
+{$endif win32 or win64}
 
   procedure StoreStr(Str: PChar; Len: Integer);
   begin
@@ -1181,7 +1181,7 @@ var
                    StoreString(' ');
                    StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
                  end;
-{$IFDEF MSWindows}
+{$if defined(win32) or defined(win64)}
             'E':
                begin
                  if not Eastasiainited then InitEastAsia;
@@ -1210,7 +1210,7 @@ var
 		 prevlasttoken := lastformattoken;
                  lastformattoken:=token;
                end;
-{$ENDIF MSWindows}
+{$endif win32 or win64}
           end;
 	  prevlasttoken := lastformattoken;
           lastformattoken := token;
@@ -1223,9 +1223,9 @@ var
   end;
 
 begin
-{$ifdef MSWindows}
+{$if defined(win32) or defined(win64)}
   eastasiainited:=false;
-{$endif MSWindows}
+{$endif win32 or win64}
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;

@@ -2469,7 +2469,7 @@ cd    it is better to not use those, since most implementation are not 100%
 
 
 const
-{$if defined(MSDOS) or defined(GO32V2) or defined(WATCOM) }
+{$if defined(MSDOS) or defined(GO32V2) or defined(WATCOM) or defined(WIN16) }
    { upper case translation table for character set 850 }
    CP850UCT: array[128..255] of char =
    (#128,#154,#144,#182,#142,#182,#143,#128,#210,#211,#212,#216,#215,#222,#142,#143,

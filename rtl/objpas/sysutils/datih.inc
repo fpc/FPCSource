@@ -90,8 +90,8 @@ var
 
 type
 { windows isn't defined in 2.0.2 (FK) }
-{$if defined(windows) or defined(win32)}
-   { Win32 reuses the struct from the Windows unit }
+{$if defined(win32) or defined(win64)}
+   { Win32/Win64 reuses the struct from the Windows unit }
 {$DEFINE HAS_SYSTEMTIME}
 {$endif windows}
 
