@@ -121,7 +121,7 @@ begin
     end;
   Regs.Ds := Seg(PChar(FileName)^);
   Regs.cx := $20;                          { Attributes }
-  Intr($21, Regs);
+  MsDos(Regs);
   if (Regs.Flags and fCarry) <> 0 then
     result := Regs.Ax
   else
@@ -179,7 +179,7 @@ begin
      regs.ds:=Seg(Buffer);
      regs.bx:=Handle;
      regs.ax:=$3f00;
-     Intr($21,regs);
+     MsDos(regs);
      if (regs.flags and fCarry) <> 0 then
       begin
         Result:=-1;
@@ -215,7 +215,7 @@ begin
      regs.ds:=Seg(Buffer);
      regs.bx:=Handle;
      regs.ax:=$4000;
-     Intr($21,regs);
+     MsDos(regs);
      if (regs.flags and fCarry) <> 0 then
       begin
         Result:=-1;
@@ -240,7 +240,7 @@ begin
   Regs.dx := Lo(FOffset);
   Regs.cx := Hi(FOffset);
   Regs.bx := Handle;
-  Intr($21, Regs);
+  MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then
      result := -1
   else begin
@@ -265,7 +265,7 @@ begin
    exit;
   Regs.ax := $3e00;
   Regs.bx := Handle;
-  Intr($21, Regs);
+  MsDos(Regs);
 end;
 
 
@@ -283,7 +283,7 @@ begin
     Regs.ds := 0{tb_segment};
     Regs.bx := Handle;
     Regs.ax:=$4000;
-    Intr($21, Regs);
+    MsDos(Regs);
     FileTruncate:=(regs.flags and fCarry)=0;
    end;
 end;
@@ -424,7 +424,7 @@ begin
   //!! for win95 an alternative function is available.
   Regs.bx := Handle;
   Regs.ax := $5700;
-  Intr($21, Regs);
+  MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then
    result := -1
   else
@@ -443,7 +443,7 @@ begin
   Regs.ax := $5701;
   Regs.cx := Lo(Age);
   Regs.dx := Hi(Age);
-  Intr($21, Regs);
+  MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then
    result := -Regs.Ax
   else
@@ -464,7 +464,7 @@ begin
    end
   else
    Regs.Ax := $4300;
-  Intr($21, Regs);
+  MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then
     result := -1
   else
@@ -486,7 +486,7 @@ begin
   else
     Regs.Ax := $4301;
   Regs.Cx := Attr;
-  Intr($21, Regs);
+  MsDos(Regs);
   if Regs.Flags and fCarry <> 0 then
    result := -Regs.Ax
   else
@@ -506,7 +506,7 @@ begin
     Regs.ax := $4100;
   Regs.si := 0;
   Regs.cx := 0;
-  Intr($21, Regs);
+  MsDos(Regs);
   result := (Regs.Flags and fCarry = 0);
 end;
 
@@ -525,7 +525,7 @@ begin
   else
     Regs.ax := $5600;
   Regs.cx := $ff;
-  Intr($21, Regs);
+  MsDos(Regs);
   result := (Regs.Flags and fCarry = 0);
 end;
 
@@ -630,13 +630,13 @@ var
   Regs: Registers;
 begin
   Regs.ah := $2C;
-  Intr($21, Regs);
+  MsDos(Regs);
   SystemTime.Hour := Regs.Ch;
   SystemTime.Minute := Regs.Cl;
   SystemTime.Second := Regs.Dh;
   SystemTime.MilliSecond := Regs.Dl*10;
   Regs.ah := $2A;
-  Intr($21, Regs);
+  MsDos(Regs);
   SystemTime.Year := Regs.Cx;
   SystemTime.Month := Regs.Dh;
   SystemTime.Day := Regs.Dl;
@@ -696,7 +696,7 @@ begin
   Regs.ES := {transfer_buffer div 16}Seg(CountryInfo);
   Regs.DI := {transfer_buffer and 15}Ofs(CountryInfo);
   Regs.CX := SizeOf(TCountryInfo);
-  Intr($21, Regs);
+  MsDos(Regs);
 {  DosMemGet(transfer_buffer div 16,
             transfer_buffer and 15,
             CountryInfo, Regs.CX );}
@@ -900,14 +900,14 @@ begin
    because it should be supported in all DOS versions. Not precise at all,
    though - the smallest step is 10 ms even in the best case. *)
   R.AH := $2C;
-  Intr($21, R);
+  MsDos(R);
   T0 := R.CH * 3600000 + R.CL * 60000 + R.DH * 1000 + R.DL * 10;
   T2 := T0 + MilliSeconds;
   DayOver := T2 > (24 * 3600000);
   repeat
     Intr ($28, R);
 (*    R.AH := $2C; - should be preserved. *)
-    Intr($21, R);
+    MsDos(R);
     T1 := R.CH * 3600000 + R.CL * 60000 + R.DH * 1000 + R.DL * 10;
     if DayOver and (T1 < T0) then
      Inc (T1, 24 * 3600000);
