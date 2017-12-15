@@ -813,6 +813,9 @@ procedure ReadBarrier;
 procedure ReadDependencyBarrier;
 procedure ReadWriteBarrier;
 procedure WriteBarrier;
+{$ifdef cpui8086}
+procedure MoveData(srcseg,srcoff,destseg,destoff:Word;n:Word);
+{$endif cpui8086}
 
 
 {****************************************************************************

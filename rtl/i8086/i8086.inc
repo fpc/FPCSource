@@ -109,6 +109,44 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
+procedure MoveData(srcseg,srcoff,destseg,destoff:Word;n:Word);assembler;nostackframe;
+asm
+  mov bx, sp
+  mov cx, ss:[bx + 2 + extra_param_offset]  // count
+  jcxz @@Done
+
+  mov ax, ds  // backup ds
+  lds si, ss:[bx + 8 + extra_param_offset]  // @source
+  les di, ss:[bx + 4 + extra_param_offset]  // @dest
+
+  cmp si, di
+  jb @@BackwardsMove
+
+{$ifdef FPC_ENABLED_CLD}
+  cld
+{$endif FPC_ENABLED_CLD}
+  shr cx, 1
+  rep movsw
+  adc cx, cx
+  rep movsb
+  jmp @@AfterMove  // todo, add mov ds,ax & ret here for performance reasons
+
+@@BackwardsMove:
+  std
+  add si, cx
+  add di, cx
+  dec si
+  dec di
+  rep movsb  // todo: movsw
+  cld
+
+@@AfterMove:
+  mov ds, ax
+
+@@Done:
+end;
+
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeUInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
