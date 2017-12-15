@@ -17,15 +17,21 @@ unit Types;
   interface
 {$modeswitch advancedrecords}
 {$modeswitch class}
-{$ifdef Windows}
+{$if defined(win32) or defined(win64)}
     uses
        Windows;
-{$endif Windows}
+{$elseif defined(win16)}
+    uses
+       WinTypes;
+{$endif}
 
-{$ifdef mswindows}
+{$if defined(win32) or defined(win64)}
 const
   RT_RCDATA = Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
-{$endif mswindows}
+{$elseif defined(win16)}
+const
+  RT_RCDATA = WinTypes.RT_RCDATA deprecated 'Use WinTypes.RT_RCDATA instead';
+{$endif}
 
 type
   TEndian =  Objpas.TEndian;
@@ -68,7 +74,7 @@ type
   TCompDynArray = array of Comp;
 {$endif}
 
-{$ifdef Windows}
+{$if defined(win32) or defined(win64)}
   TArray4IntegerType = Windows.TArray4IntegerType;
   TSmallPoint = Windows.TSmallPoint;
   PSmallPoint = Windows.PSmallPoint;
@@ -236,7 +242,7 @@ const
   STG_S_MONITORING            = $00030203;
 {$endif}
 
-{$ifndef Windows}
+{$if (not defined(win32)) and (not defined(win64))}
 type
   PCLSID = PGUID;
   TCLSID = TGUID;
@@ -336,7 +342,7 @@ implementation
 
 Uses Math;
 
-{$ifndef Windows}
+{$if (not defined(win32)) and (not defined(win64))}
   {$i typshrd.inc}
 {$endif}
 
