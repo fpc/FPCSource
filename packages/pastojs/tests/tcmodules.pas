@@ -7921,8 +7921,8 @@ begin
     'this.b = false;'
     ]),
     LinesToStr([ // $mod.$main
-    'if ($mod.Obj !== null);',
-    '$mod.b = ($mod.Obj !== null) || false;'
+    'if ($mod.Obj != null);',
+    '$mod.b = ($mod.Obj != null) || false;'
     ]));
 end;
 
@@ -11182,8 +11182,8 @@ begin
     '$mod.b = !rtl.eqCallback($mod.vP,$mod.vQ);',
     '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
     '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
-    '$mod.b = $mod.vP !== null;',
-    'if ($mod.vP !== null) ;',
+    '$mod.b = $mod.vP != null;',
+    'if ($mod.vP != null) ;',
     '']));
 end;
 
@@ -11253,7 +11253,7 @@ begin
     '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
     '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
     '$mod.b = 6 !== $mod.vP(1);',
-    '$mod.b = $mod.vP !== null;',
+    '$mod.b = $mod.vP != null;',
     '$mod.DoIt($mod.vP(1));',
     '$mod.DoIt($mod.vP(2));',
     '']));
@@ -11321,7 +11321,7 @@ begin
     '$mod.b = $mod.vP(1) !== $mod.vQ(1);',
     '$mod.b = $mod.vP(1) !== 5;',
     '$mod.b = 6 !== $mod.vP(1);',
-    '$mod.b = $mod.vP !== null;',
+    '$mod.b = $mod.vP != null;',
     '$mod.DoIt($mod.vP(1));',
     '$mod.DoIt($mod.vP(1));',
     '$mod.DoIt($mod.vP(2));',
@@ -11402,7 +11402,7 @@ begin
     '$mod.b = !rtl.eqCallback($mod.vP, $mod.vQ);',
     '$mod.b = !rtl.eqCallback($mod.vP, $mod.DoIt);',
     '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
-    '$mod.b = $mod.vP !== null;',
+    '$mod.b = $mod.vP != null;',
     '']));
 end;
 
@@ -11715,9 +11715,9 @@ begin
     '$mod.b = !rtl.eqCallback($mod.Obj.FOnFoo, rtl.createCallback($mod.Obj, "DoIt"));',
     '$mod.b = !rtl.eqCallback($mod.Obj.GetFoo(), rtl.createCallback($mod.Obj, "DoIt"));',
     '$mod.b = !rtl.eqCallback($mod.Obj.GetEvents(12), rtl.createCallback($mod.Obj, "DoIt"));',
-    '$mod.b = $mod.Obj.FOnFoo !== null;',
-    '$mod.b = $mod.Obj.GetFoo() !== null;',
-    '$mod.b = $mod.Obj.GetEvents(13) !== null;',
+    '$mod.b = $mod.Obj.FOnFoo != null;',
+    '$mod.b = $mod.Obj.GetFoo() != null;',
+    '$mod.b = $mod.Obj.GetEvents(13) != null;',
     '']));
 end;
 
@@ -11845,9 +11845,9 @@ begin
     '$mod.b = $mod.Obj.GetFoo() === $mod.Obj.FOnFoo(1);',
     '$mod.b = $mod.Obj.FOnFoo(1) !== $mod.Obj.FOnFoo(1);',
     '$mod.b = $mod.Obj.GetFoo() !== $mod.Obj.FOnFoo(1);',
-    '$mod.b = $mod.Obj.FOnFoo !== null;',
-    '$mod.b = $mod.Obj.GetFoo() !== null;',
-    '$mod.b = $mod.Obj.GetEvents(13) !== null;',
+    '$mod.b = $mod.Obj.FOnFoo != null;',
+    '$mod.b = $mod.Obj.GetFoo() != null;',
+    '$mod.b = $mod.Obj.GetEvents(13) != null;',
     '']));
 end;
 
@@ -11979,9 +11979,9 @@ begin
     '$mod.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
     '$mod.b = !rtl.eqCallback($with1.FOnFoo, rtl.createCallback($with1, "DoIt"));',
     '$mod.b = !rtl.eqCallback($with1.GetFoo(), rtl.createCallback($with1, "DoIt"));',
-    '$mod.b = $with1.FOnFoo !== null;',
-    '$mod.b = $with1.FOnFoo !== null;',
-    '$mod.b = $with1.GetFoo() !== null;',
+    '$mod.b = $with1.FOnFoo != null;',
+    '$mod.b = $with1.FOnFoo != null;',
+    '$mod.b = $with1.GetFoo() != null;',
     '']));
 end;
 
@@ -12399,7 +12399,7 @@ begin
     '$mod.p = null;',
     'if ($mod.p === null) ;',
     'if (null === $mod.p) ;',
-    'if ($mod.p !== null) ;',
+    'if ($mod.p != null) ;',
     '$mod.p = $mod.v;',
     '$mod.p = $mod.Obj;',
     '$mod.p = $mod.C;',

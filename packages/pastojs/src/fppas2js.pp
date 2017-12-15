@@ -6792,7 +6792,7 @@ end;
 function TPasToJSConverter.ConvertBuiltIn_Assigned(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 var
-  NE: TJSEqualityExpressionSNE;
+  NE: TJSEqualityExpressionNE;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
   C: TClass;
@@ -6809,10 +6809,10 @@ begin
   {$ENDIF}
   if ParamResolved.BaseType=btPointer then
     begin
-    // convert Assigned(value)  ->  value!==null
+    // convert Assigned(value)  ->  value!=null
     Result:=ConvertElement(Param,AContext);
     // Note: convert Param first, it may raise an exception
-    NE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,El));
+    NE:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
     NE.A:=Result;
     NE.B:=CreateLiteralNull(El);
     Result:=NE;
@@ -6824,10 +6824,10 @@ begin
         or (C=TPasClassOfType)
         or C.InheritsFrom(TPasProcedureType) then
       begin
-      // convert Assigned(value)  ->  value!==null
+      // convert Assigned(value)  ->  value!=null
       Result:=ConvertElement(Param,AContext);
       // Note: convert Param first, it may raise an exception
-      NE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,El));
+      NE:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
       NE.A:=Result;
       NE.B:=CreateLiteralNull(El);
       Result:=NE;
