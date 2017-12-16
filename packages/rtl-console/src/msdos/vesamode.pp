@@ -68,8 +68,7 @@ var
 
       begin
          FillChar(ib,SizeOf(ib),0);
-         regs.ah:=$4f;
-         regs.al:=0;
+         regs.ax:=$4f00;
          regs.es:=Seg(ib);
          regs.di:=Ofs(ib);
          intr($10,regs);
@@ -82,8 +81,7 @@ var
          regs : registers;
 
       begin
-         regs.ah:=$4f;
-         regs.al:=2;
+         regs.ax:=$4f02;
          regs.bx:=m;
          intr($10,regs);
          SetSuperVGAMode:=regs.ax;
