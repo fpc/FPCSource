@@ -9,7 +9,7 @@ procedure add_pas2js(const ADirectory: string);
 
 Var
   P : TPackage;
-  T : TTarget;
+  PT,T : TTarget;
 
 begin
   With Installer do
@@ -21,6 +21,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Description := 'Convert pascal sources to javascript.';
     P.Email := 'michael@freepascal.org';
+    Defaults.Options.Add('-Sc');
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
@@ -28,8 +29,19 @@ begin
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('pastojs');
-
-    T:=P.Targets.AddProgram('pas2js.pp');
+    T:=P.Targets.AddUnit('pas2jscompiler.pp');
+    T:=P.Targets.AddUnit('pas2jsfilecache.pp');
+    T:=P.Targets.AddUnit('pas2jsfileutils.pp');
+    T.Dependencies.AddInclude('pas2jsfileutilsunix.inc',AllUnixOSes);
+    T.Dependencies.AddInclude('pas2jsfileutilswin.inc',AllWindowsOSes);
+    T:=P.Targets.AddUnit('pas2jslogger.pp');
+    T:=P.Targets.AddUnit('pas2jspparser.pp');
+    PT:=P.Targets.AddProgram('pas2js.pp');
+    PT.Dependencies.AddUnit('pas2jscompiler');
+    PT.Dependencies.AddUnit('pas2jsfileutils');
+    PT.Dependencies.AddUnit('pas2jsfilecache');
+    PT.Dependencies.AddUnit('pas2jslogger');
+    PT.Dependencies.AddUnit('pas2jspparser');
     end;
 end;
 

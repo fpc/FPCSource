@@ -1,0 +1,2584 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+    <title>pas2js - Translation of Pascal (Delphi/FPC) programs to JavaScript</title>
+    <meta name="description" content="Translation of Pascal (Delphi/FPC) programs to JavaScript">
+    <meta name="keywords" content="translation,program,Delphi,Pascal,javascript,pas2js">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <style type="text/css">
+     body {
+       padding: 20px;
+       margin-left: 20px;
+     }
+     table.sample th {
+       background-color: #cccccc;
+       font: 120% gelvetica,arial,tahoma;
+     }
+     table.sample pre {
+       color: blue;
+     }
+     table.sample td {
+       padding-left: 20px;
+       padding-right: 20px;
+     }
+     .section {
+       padding-bottom: 1em;
+     }
+    </style>
+</head>
+<body>
+    <div id="head">
+    </div>
+
+    <div class="section">
+    <h2>Overview</h2>
+    <a href="#about">About pas2js</a><br>
+    <a href="#commandlineparameters">Command line parameters</a><br>
+    <a href="#mode">Delphi and ObjFPC mode</a><br>
+    <a href="#modules">Translating modules</a><br>
+    <a href="#variables">Translating variables</a><br>
+    <a href="#string">Translating string</a><br>
+    <a href="#resourcestrings">Translating resourcestrings</a><br>
+    <a href="#types">Translating types</a><br>
+    <a href="#pointer">Translating pointer</a><br>
+    <a href="#record">Translating record</a><br>
+    <a href="#functions">Translating functions</a><br>
+    <a href="#passbyref">Translating passing a parameter by reference</a><br>
+    <a href="#nested functions">Translating nested functions</a><br>
+    <a href="#forloop">Translating for-loop</a><br>
+    <a href="#repeatuntil">Translating repeat..until</a><br>
+    <a href="#whiledo">Translating while..do</a><br>
+    <a href="#withdo">Translating with..do</a><br>
+    <a href="#enums">Translating enums</a><br>
+    <a href="#sets">Translating sets</a><br>
+    <a href="#array">Translating array type</a><br>
+    <a href="#class">Translating class type</a><br>
+    <a href="#classof">Translating class-of type</a><br>
+    <a href="#tobjectfree">Translating TObject.Free</a><br>
+    <a href="#classinterfaces">Translating class interfaces</a><br>
+    <a href="#attributes">Translating attributes</a><br>
+    <a href="#tryfinally">Translating try..finally</a><br>
+    <a href="#tryexcept">Translating try..except</a><br>
+    <a href="#functiontype">Translating function types</a><br>
+    <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
+    <a href="#asm">The asm block</a><br>
+    <a href="#assembler">The procedure modifier assembler</a><br>
+    <a href="#externalproc">The procedure modifier external</a><br>
+    <a href="#varargs">The procedure modifier varargs</a><br>
+    <a href="#externalvar">The var modifier external</a><br>
+    <a href="#externalmembers">The external modifier of class members</a><br>
+    <a href="#externalclass">External classes</a><br>
+    <a href="#externalclassancestor">External class as ancestor</a><br>
+    <a href="#jsvalue">The JSValue type</a><br>
+    <a href="#bracketaccessor">Accessing JS object properties with the bracket accessor</a><br>
+    <a href="#rtti">RTTI - Run Time Type Information</a><br>
+    <a href="#compilerdirectives">Compiler directives</a><br>
+    <a href="#othersupportedelements">Other supported Pascal elements</a><br>
+    <a href="#notsupportedelements">Not supported elements</a><br>
+    <a href="#sourcemaps">Creating source maps</a><br>
+    </div>
+
+    <div class="section">
+    <h2 id="about">About pas2js</h2>
+    pas2js is a compiler/transpiler to translate programs written in Pascal (subset of Delphi/ObjFPC syntax)
+    to JavaScript.<br>
+    The goal is to use strong typing, while still be able to use low level whenever you choose.<br>
+    The compiled Pascal functions can be used in DOM events or called by JavaScript.<br>
+    pas2js is written completely in FPC, runs on many platforms like Windows, Mac and Linux and more.
+    It is built modular consisting of the following parts:
+    <ul>
+    <li>file cache - loading, caching files, converting to UTF-8</li>
+    <li>file resolver - handling search paths, finding used units and include files</li>
+    <li>scanner - reading tokens, handling compiler directives like $IfDef and $Include</li>
+    <li>parser - reading the tokens, checking syntax, creating Pascal nodes</li>
+    <li>resolver - resolving references, type checking and checking duplicate identifiers</li>
+    <li>use analyzer - finding unused identifiers, emit hints and warning</li>
+    <li>converter - translating Pascal nodes into JavaScript nodes</li>
+    <li>compiler - handling config files, parameters, compiling recursively all used units, writes js</li>
+    <li>command line interface - a small wrapper to embed the compiler into a console program</li>
+    <li>library and interface - a small wrapper to embed the compiler into a library</li>
+    </ul>
+    Each part is tested separately and is used by other FPC tools as well. For example
+    the scanner and parser are used by fpdoc too. Thus they are tested and extended by other
+    programmers, reducing greatly the work for developing pas2js. Consistency is kept by
+    several test suites, containing thousands of tests.
+    </div>
+
+    <div class="section">
+    Note: The modular structure allows to compile any parts or the whole compiler into an IDE addon (not yet started).
+    </div>
+
+    <div class="section">
+    <h2 id="commandlineparameters">Command line parameters</h2>
+    Most parameters work the same as their FPC equivalent. pas2js has some options of its own (see -J options).
+<pre>
+Usage: pas2js &lt;your.pas&gt;
+Options:
+Put + after a boolean switch option to enable it, - to disable it
+  @&lt;x&gt;    : Read compiler options from file &lt;x&gt; in addition to the default pas2js.cfg
+  -B      : Rebuild all
+  -d&lt;x&gt;   : Defines the symbol &lt;x&gt;. Optional: -d&lt;x&gt;:=&lt;value&gt;
+  -i&lt;x&gt;   : Write information and halt. &lt;x&gt; is a combination of the following letters:
+    V     : Write short compiler version
+    W     : Write full compiler version
+  -F...   Set file names and paths:
+   -Fe&lt;x&gt; : Redirect output to &lt;x&gt;
+   -Fi&lt;x&gt; : Add &lt;x&gt; to include paths
+   -Fu&lt;x&gt; : Add &lt;x&gt; to unit paths
+   -FU&lt;x&gt; : Set unit output path to &lt;x&gt;
+  -I&lt;x&gt;   : Add &lt;x&gt; to include paths, same as -Fi
+  -J...  Extra options of pas2js
+   -Jc    : Write all JavaScript concatenated into the output file
+   -Ji&lt;x&gt; : Insert JS file &lt;x&gt; into main JS file. E.g. -Jirtl.js. Can be given multiple times.
+   -Jl    : lower case identifiers
+   -Jm    : generate source maps
+     -Jmsourceroot=&lt;x&gt; : use x as "sourceRoot", prefix URL for source file
+            names.
+     -Jmbasedir=&lt;x&gt; : write source file names relative to directory x.
+     -Jminclude : include Pascal sources in source map.
+     -Jm- : disable generating source maps
+   -Ju&lt;x&gt; : Add &lt;x&gt; to foreign unit paths. Foreign units are not compiled.
+   -Je&lt;x&gt; : Encode messages as &lt;x&gt;.
+     -Jeconsole : Console codepage. Default.
+     -Jesystem  : System codepage. On non Windows console and system are the same.
+     -Jeutf-8   : Unicode UTF-8. Default when using -Fe.
+  -l      : Write logo
+  -MDelphi: Delphi 7 compatibility mode
+  -MObjFPC: FPC's Object Pascal compatibility mode (default)
+  -NS&lt;x&gt;  : add &lt;x&gt; to namespaces. Namespaces with trailing - are removed.
+                  Delphi calls this flag "unit scope names".
+  -n      : Do not read the default config files
+  -o&lt;x&gt;   : Change main JavaScript file to &lt;x&gt;, "." means stdout
+  -O&lt;x&gt;   : Optimizations:
+    -O-   : Disable optimizations
+    -O1   : Level 1 optimizations (quick and debugger friendly)
+    -Oo&lt;x&gt; : Enable or disable optimization. The x is case insensitive:
+      -OoEnumNumbers[-] : write enum values as number instead of name. Default in -O1.
+      -OoRemoveNotUsedPrivates[-] : Default is enabled
+      -OoRemoveNotUsedDeclarations[-] : Default enabled for programs with -Jc
+      -OoRemoveNotUsedPublished[-] : Default is disabled
+  -P&lt;x&gt;   : Set target processor. Case insensitive:
+    -Pecmascript5  : default
+    -Pecmascript6
+  -S&lt;x&gt;   : Syntax options. &lt;x&gt; is a combination of the following letters:
+    c     : Support operators like C (*=,+=,/= and -=)
+    d     : Same as -Mdelphi
+    2     : Same as -Mobjfpc (default)
+  -T&lt;x&gt;   : Set target platform, case insensitive.
+    -Tbrowser : default
+    -Tnodejs  : add pas.run(), includes -Jc
+  -u&lt;x&gt;   : Undefines the symbol &lt;x&gt;
+  -v&lt;x&gt;   : Be verbose. &lt;x&gt; is a combination of the following letters:
+    e     : show errors (default)
+    w     : show warnings
+    n     : show notes
+    h     : show hints
+    i     : show info
+    l     : show line numbers
+    a     : show everything
+    0     : show nothing (except errors)
+    b     : show file names with full path
+    c     : show conditionals
+    t     : show tried/used files
+    d     : show debug notes and info, enables -vni
+    q     : show message numbers
+    x     : show used tools
+  -vm&lt;x&gt;,&lt;y&gt;: Do not show messages numbered &lt;x&gt; and &lt;y&gt;.
+  -?      : Show this help
+  -h      : Show this help
+</pre>
+    </div>
+
+    <div class="section">
+    <h2 id="mode">Delphi and ObjFPC mode</h2>
+    <h3>Delphi mode</h3>
+    <ul>
+    <li>Defines macro <i>DELPHI</i></li>
+    <li>Assigning a function to a function type variable does not require the @ operator.
+    For example, you can write either <i>OnGetThing:=GetValue;</i> or <i>OnGetThing:=@GetValue;</i>.</li>
+    <li>A function type variable reference without brackets is treated as a call.
+    For example: If <i>OnGetThing</i> is a variable of type <i>function: integer</i>
+    you can write: <i>If OnGetThing=3 then ;</i>.</li>
+    <li>You must use the @@ operator to get the procedure address (i.e. JS reference) of a procedure type variable.
+    For example instead of <i>If OnClick=nil then ;</i> you must use <i>if @@OnClick=nil then ;</i>.</li>
+    <li>Every procedure/method overload needs the 'overload' modifier.</li>
+    </ul>
+    <h3>ObjFPC mode</h3>
+    This the default mode of pas2js and is generally more strict than the Delphi mode, and allows some more operations.
+    <ul>
+    <li>Defines macro <i>OBJFPC</i></li>
+    <li>Assigning a function to a function type variable requires the @ operator.
+    For example: <i>OnGetThing:=@GetValue;</i>.</li>
+    <li>A function type variable always needs brackets to be called.
+    For example: If <i>OnGetThing</i> is a variable of type <i>function: integer</i>
+    then this is allowed: <i>If OnGetThing()=3 then ;</i>.
+    While this gives an error: <i>If OnGetThing=3 then ;</i>.</li>
+    <li>You can compare a procedure type with <i>nil</i>.
+    For example <i>If OnClick=nil then ;</i>.</li>
+    <li>You can compare a procedure type with a procedure address (i.e. JS reference).
+    For example <i>If OnClick=@OnFormClick then ;</i>.</li>
+    <li>The procedure modifier 'overload' can be omitted when all overloads are
+    in one scope, e.g. a unit or a class. And if one procedure has such modifier
+    all procedures with same name and in same scope are overloads as well.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="modules">Translating modules</h2>
+    A Pascal Program is translated into the following JavaScript structure:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript Structure, not code!</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program &lt;unitname&gt;;
+Implementation
+  [implementation section]
+Begin
+  [main code]
+End.
+</pre>
+          </td>
+          <td>
+<pre>pas.&lt;program&gt;={
+  [implementation section],
+  $main: function() {
+    [main code]
+  }
+};
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    A Pascal Unit is translated into the following JavaScript structure:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript Structure, not code!</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit &lt;unitname&gt;;
+Interface
+  [interface section]
+Implementation
+  [implementation section]
+Initialization
+  [initialization section]
+End.
+</pre>
+          </td>
+          <td>
+<pre>pas.&lt;unitname&gt;={
+  [interface section],
+  $impl: {
+    [implementation section],
+  },
+  $init: function() {
+    [initialization section]
+  }
+};
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Note: The <b>finalization</b> section is not supported by pas2js.<br>
+    </div>
+
+    <div class="section">
+    To create and initialize the units in topological order the compiler translates
+    an Unit to the following JavaScript code:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit &lt;unitname&gt;;
+Interface
+  [interface section]
+Implementation
+  [implementation section]
+Initialization
+  [initialization section]
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module('&lt;unitname&gt;',
+  ['system',...other used units of the interface section...],
+  function(){
+    [interface section]
+    this.$init=function(){
+      [initialization section]
+    };
+  },
+  [...used units of the implementation section],
+  function(){
+    [implementation section]
+  }};
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    Here is a more detailed example to make it more clear:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Uses Sysutils;
+var
+  dIntf: double;
+  sIntf: string = 'abc';
+procedure MyIntfProc;
+Implementation
+Uses Classes;
+Var dImpl:double;
+Procedure MyIntfProc;
+Begin
+  dImpl:=dIntf;
+End;
+Procedure MyImplProc;
+Begin
+  dImpl:=dIntf;
+End;
+Initialization
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System","SysUtils"],
+function(){
+  var $mod = this;
+  var $impl = $mod.$impl;
+  this.dIntf = 0.0;
+  this.sIntf = "abc";
+  this.MyIntfProc = function(){
+    $impl.dImpl = $mod.dIntf;
+  };
+  this.$init = function() {
+  };
+},
+["Classes"],
+function(){
+  var $mod = this;
+  var $impl = $mod.$impl;
+  $impl.dImpl = 0.0;
+  $impl.MyImplProc = function() {
+    $impl.dImpl = $mod.dIntf;
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+      <li>Unit <i>System</i> is always loaded implicitely.</li>
+      <li>References to other units are translated to full path. For example
+        <i>TObject</i> is translated to <i>pas.system.TObject</i></li>
+      <li>References to dotted unitnames, aka units with namespaces are translated
+        to <i>pas["namespace.unitname"]</i>.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="variables">Translating variables</h2>
+    Variables are converted without type, because JavaScript lacks a clear type.
+    They are however always initialized, which helps JavaScript engines to optimize.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Uses Classes,Forms;
+const
+  c1:integer=3;
+  c2 = 'abc';
+  c3 = 234;
+  c4 = 12.45;
+  c5 = nil;
+var
+  v1:string;
+  v2,v3:double;
+  v4:byte=0;
+  v5:TForm;
+  v6:TIdentMapEntry;
+  v7:string='abcäöü';
+  v8:char='c';
+  v9:array of byte;
+Implementation
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System","Classes","Forms"],
+function(){
+  this.c1 = 3;
+  this.c2 = "abc";
+  this.c3 = 234;
+  this.c4 = 12.45;
+  this.c5 = null;
+  this.v1 = "";
+  this.v2 = 0.0;
+  this.v3 = 0.0;
+  this.v4 = 0;
+  this.v5 = null;
+  this.v6 = new pas.Classes.TIdentMapEntry();
+  this.v7 = "abcäöü";
+  this.v8 = "c";
+  this.v9 = [];
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    Notes:
+    <ul>
+    <li>Type casting a <i>boolean</i> to <i>integer</i>, gives <i>0</i> for <i>false</i> and <i>1</i> for <i>true</i>.</li>
+    <li>Type casting an <i>integer</i> to <i>boolean</i>, gives <i>false</i> for <i>0</i> and <i>true</i> otherwise.</li>
+    <li>A <b>char</b> is translated to a JS string, because JS lacks a native char type.</li>
+    <li>A <b>char</b> is a single JS char code. An UTF-16 codepoint can contain one or two <b>char</b>.</li>
+    <li>Integers overflows at runtime differ from Delphi/FPC, due to the double format.
+    For example adding <i>var i: byte = 200; ... i:=i+100;</i> will result in
+    <i>i=300</i> instead of <i>i=44</i> as in Delphi/FPC.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="string">Translating string</h2>
+    Strings are translated to JavaScript strings. They are initialized with ""
+    and are never <b>null</b>.<br>
+    There are no <i>ShortString, AnsiString or RawByteString</i>.
+    <i>Unicodestring</i> and <i>Widestring</i> are alias of <i>String</i>.<br>
+    JavaScript strings are immutable, which means
+    that changing a single character in a string, creates a new string. So a <i>s[2]:='c';</i>
+    is a slow operation in pas2js compared to Delphi/FPC.<br>
+    Although pas2js creates .js files encoded as UTF-8 with BOM, JavaScript strings are
+    UTF-16 at runtime. Keep in mind that one UTF-16 codepoint can need two <i>char</i>,
+    and a visible glyph can need several codepoints. Same as in Delphi.
+    </div>
+
+    <div class="section">
+    <h2 id="resourcestrings">Translating resourcestrings</h2>
+    Resourcestrings are translated to JS objects with original (org) and current value.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+resourcestring
+  rsCompiler = 'pas2js';
+var
+  s:string;
+Implementation
+initialization
+  s:=rsCompiler;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("test1",["System"],function () {
+  var $mod = this;
+  this.s = "";
+  $mod.$resourcestrings = {rsCompiler: {org: "pas2js"}};
+  $mod.$init = function () {
+    $mod.s = rtl.getResStr(pas.test1,"rsCompiler");
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="types">Translating Types</h2>
+    JavaScript type design has no declarative form, except for object types
+    (so-called prototypes).
+    That's why all the derivatives from simple Pascal types can not be translated.
+    The compiler ensures type safety at compile time though, which is a big plus
+    for using Pascal.<br>
+    Complex Pascal types (classes, records, or arrays) are translated into
+    JavaScript objects or arrays respectively.<br>
+    </div>
+
+    <div class="section">
+    <h2 id="pointer">Translating pointer</h2>
+    A <i>pointer</i> is translated to a reference. It can be assigned a class,
+    a class reference, an array, a procedure var, a method var, a @proc address
+    or a @method address. There is no pointer arithmetic and no typed
+    pointers. You can find out its type using the functions <i>isArray</i>,
+    <i>isClass</i>, <i>isClassRef</i>, <i>isCallback</i>, etc of unit <i>JS</i>.
+    </div>
+
+    <div class="section">
+    <h2 id="record">Translating record type</h2>
+    A record is translated to a JavaScript object.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Type
+  TMyRecord = Record
+    i: integer;
+    s: string;
+    d: TDateTime;
+  End;
+Var
+  r, s: TMyRecord;
+Implementation
+Initialization
+  r.i := 123;
+  r:=s;
+  if r=s then ;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  this.TMyRecord = function(s) {
+    if (s){
+      this.i = s.i;
+      this.s = s.s;
+      this.d = s.d;
+    } else {
+      this.i = 0;
+      this.s = "";
+      this.d = 0.0;
+    };
+    this.$equal = function (b) {
+      return (this.i == b.i) && (this.s == b.i) && (this.d == b.d);
+    };
+  };
+  this.r = new this.TMyRecord();
+  $mod.$init = function() {
+    $mod.r.i=123;
+    $mod.r = new $mod.TMyRecord($mod.s);
+    if ($mod.r.$equal($mod.s)) ;
+  },
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>The record variable creates a JavaScript object.</li>
+      <li>Variant records are not supported.</li>
+      <li>Supported: Assign, pass as argument, equal, not equal, array of record</li>
+      <li>Not yet implemented: Constants, pointer of record, advanced records, operators.</li>
+      <li>When assigning a record it is cloned. This is compatible with Delphi and FPC.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="functions">Translating functions</h2>
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Function DoubleIt(n: integer): integer;
+Implementation
+Function DoubleIt(n: integer): integer;
+Begin
+  Result:=2*n;
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  this.DoubleIt = function(n){
+    Result = 0;
+    Result = 2*n;
+    return Result;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+      <li>Local variables become local JavaScript variables: <i>var l = 0;</i>.</li>
+      <li>Local constants become JavaScript variables in the unit/program implementation section.</li>
+      <li>Overloaded functions are given an unique name by appending $1, $2, ...<br>
+      Overloading is always on. You don't need to add the <i>overload</i> modifier.</li>
+      <li>Supported: default values, local types, FuncName:=</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="passbyref">Translating passing a parameter by reference</h2>
+    JavaScript lacks passing by reference. Instead a temporary object is created
+    with a <i>get</i> and <i>set</i> function.
+    That means changes within the procedure are immediately visible outside, compatible with Pascal.
+
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+Procedure DoubleIt(var n: integer);
+Begin
+  n:=2*n;
+End;
+Function Doubling(n: integer): integer;
+Begin
+  DoubleIt(n);
+  Result:=n;
+End;
+Var
+  i: integer = 7;
+Begin
+  Doubling(i);
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  this.i = 7;
+  this.DoubleIt = function(n){
+    n.set(2*n.get());
+  };
+  this.Doubling = function(n){
+    var Result = 0;
+    DoubleIt({
+      get:function(){
+        return n
+      },
+      set:function(v){
+        n=v;
+      }
+    });
+    Result = n;
+    return n;
+  };
+  $mod.$main = function(){
+    Doubling($mod.i);
+  }
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    When the passed value is from another context, the context is passed too:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+Procedure DoubleIt(var n: integer);
+Begin
+  n:=2*n;
+End;
+Var
+  i: integer = 7;
+Begin
+  DoubleIt(i);
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  this.i = 7;
+  this.DoubleIt = function(n){
+    n.set(2*n.get());
+  };
+  $mod.$main = function(){
+    DoubleIt({
+        p:$mod,
+        get:function(){
+          return this.p.i
+        },
+        set:function(v){
+          this.p.i=v;
+        }
+      });
+  }
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    Notes:
+    <ul>
+    <li>Contrary to Delphi/FPC it is allowed to pass a property to a </i>var/out</i> parameter.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="nested functions">Translating nested functions</h2>
+    A nested function is translated to a local variable.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Function SumNNumbers(n, Adder: integer): integer;
+Implementation
+Function SumNNumbers(n, Adder: integer): integer;
+
+  Function Add(k: integer): integer;
+  Begin
+    if k=1 then
+      Result:=1
+    else
+      Result:=Add(k-1)+Adder;
+  End;
+
+Begin
+  Result:=Add(n);
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  this.DoubleIt = function(n,Adder){
+    Result = 0;
+    var Add = function(k) {
+      Result = 0;
+      if (k==1) {
+        Result = 1;
+      } else {
+        Result = Add(k-1)+Adder;
+      }
+      return Result;
+    };
+    Result = Add(n);
+    return Result;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Note: You can assign a nested procedure to a procedure variable. A nested
+    procedure of a method can be assigned to a method variable.<br>
+    JavaScript preserves the current local scope, including references to the
+    local variables of parent functions. Local types and constants belong to the
+    unit scope (singleton).<br>
+    When a method has nested functions, the compiler adds a local var <i>Self</i>.
+    </div>
+
+    <div class="section">
+    <h2 id="forloop">Translating for-loops</h2>
+    The JavaScript for-loop executes the end expression every iteration, while
+    Pascal only executes it once. Therefore a local variable is introduced.
+    If the loop is not entered at all, the variable is not touched. If the loop
+    was entered the variable contanis the last value.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Function SumNNumbers(n: integer): integer;
+Implementation
+Function SumNNumbers(n: integer): integer;
+Var
+  i, j: integer;
+Begin
+  j:=0;
+  For i:=1 To n Do
+  Begin
+    j:=j+i;
+  End;
+  if i&lt;1 then j:=1;
+  Result:=j;
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  this.SumNNumbers=function(n){
+    Result = 0;
+    j = 0;
+    for (var $l1 = 1, $le2 = n; $l1 &lt;= $le2; $l1++) {
+      i = $l1;
+      j = j + i;
+    };
+    if (i&lt;1) j=1;
+    Result = j;
+    return Result;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Note: The after-loop decrement is only added if <i>i</i> is read after the loop.<br>
+    </div>
+
+    <div class="section">
+    <h2 id="repeatuntil">Translating repeat..until</h2>
+    The <i>repeat..until</i> is translated to a <i>do{}while()</i>.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Function SumNNumbers(n: integer): integer;
+Implementation
+Function SumNNumbers(n: integer): integer;
+Var
+  i, j: integer;
+Begin
+  j:=0;
+  i:=0;
+  Repeat
+    i:=i+1;
+    j:=j+i;
+  Until i>=n;
+  Result:=j;
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  this.SumNNumbers=function(n){
+    Result = 0;
+    j = 0;
+    i = 0;
+    do{
+      i = (i + 1);
+      j = (j + i);
+    } while (!(i>=n));
+    Result = j;
+    return Result;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="whiledo">Translating while..do</h2>
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Function SumNNumbers(n: integer): integer;
+Implementation
+Function SumNNumbers(n: integer): integer;
+Var
+  i, j: integer;
+Begin
+  j:=0;
+  i:=0;
+  While i&lt;n Do Begin
+    i:=i+1;
+    j:=j+i;
+  End;
+  Result:=j;
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  this.SumNNumbers=function(n){
+    var Result = 0;
+    var j = 0;
+    var i = 0;
+    while(i&lt;n){
+      i = (i + 1);
+      j = (j + i);
+    };
+    Result = j;
+    return Result;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="casedo">Translating case..do</h2>
+    Although JavaScript has something similar in form of the "switch" statement,
+    it lacks ranges and is on current JS engines often slower than "if-else".
+    Therefore a case..of is translated to if..else.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+Var
+  i: integer;
+Begin
+  case i of
+    1: ;
+    2: i:=3;
+  else
+    i:=4;
+  end;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  this.i = 0;
+  $mod.$main=function(n){
+    $tmp1 = $mod.i;
+    if ($tmp1 == 1){
+    } else if ($tmp1 == 2) {
+      i=3;
+    } else {
+      i=4;
+    }
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="withdo">Translating with..do</h2>
+    JavaScript has a <b>with</b>, but it is slow and deprecated.
+    Instead a temporary variable is used:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+type
+  TClassA = class
+    i: integer;
+  end;
+
+procedure DoIt;
+
+Implementation
+
+procedure DoIt;
+begin
+  with TClassA.Create do
+    i:=3;
+end;
+
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  rtl.createClass($mod, "TClassA", pas.System.TObject, function () {
+    this.$init = function () {
+      this.i = 0;
+    };
+  });
+  this.DoIt = function(){
+    var $with1 = $mod.TClassA.$create("Create");
+    $with1.i = 3;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Note: If the with-expression is already a local variable no new variable is
+    created. This is Delphi/FPC compatible.
+    </div>
+
+    <div class="section">
+    <h2 id="enums">Translating enums</h2>
+    Enum values are translated to numbers. The enum type is translated to an
+    object containing a mapping from name to number and number to name.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+type
+  TMyEnum = (
+    Red,
+    Green,
+    Blue);
+var
+  e: TMyEnum = Blue;
+
+procedure DoIt;
+
+Implementation
+
+procedure DoIt;
+begin
+  e := Green;
+end;
+
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  this.TMyEnum = {
+    "0":"Red",
+    Red:0,
+    "1":"Green",
+    Green:1,
+    "2":"Blue",
+    Blue:2
+    };
+  this.e = $mod.TMyEnum.Blue;
+  this.DoIt = function(){
+    $mod.e = $mod.TMyEnum.Green;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ul>
+    <li>Supported: ord(), low(), high(), pred(), succ(), type cast number to enum.</li>
+    <li>With optimization level -O1 the compiler uses numbers instead of names.</li>
+    <li>Not yet implemented: custom values for enum values.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="sets">Translating sets</h2>
+    A set s is translated to a JavaScript object, where for each included enum
+    holds <i>s.enumvalue==true</i>.
+    This allows arbitrary large sets and the <i>in</i> operator is fast.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+type
+  TColor = (Red, Green, Blue);
+  TColors = set of TColor;
+
+procedure DoIt;
+
+Implementation
+
+procedure DoIt;
+var
+  c: TColor;
+  S, T: TColors;
+  b: boolean;
+begin
+  S:=T;
+  b:=Red in S;
+  Include(S,Blue);
+  Exclude(S,Blue);
+  S:=S+T;
+  S:=S-[Red,c];
+  b:=c in [Red..Blue];
+end;
+
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  this.TColor = {
+    "0":"Red",
+    Red:0,
+    "1":"Green",
+    Green:1,
+    "2":"Blue",
+    Blue:2
+    };
+  $mod.DoIt = function(){
+    var c = 0;
+    var S = {};
+    var T = {};
+    var b = false;
+    S = rtl.refSet(T);
+    b = $mod.TColor.Red in S;
+    S = rtl.includeSet(S,$mod.TColor.Blue);
+    S = rtl.excludeSet(S,$mod.TColor.Blue);
+    S = rtl.unionSet(S,T);
+    S = rtl.diffSet(S,rtl.createSet($mod.TColor.Red,c));
+    b = c in rtl.createSet(null,$mod.TColor.Red,$mod.TColor.Blue);
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>Supported:
+        <ul>
+        <li>Include</li>
+        <li>Exclude</li>
+        <li>literal</li>
+        <li>literal range, e.g. <i>[EnumA..EnumB], ['a'..'z']</i></li>
+        <li>union +</li>
+        <li>difference -</li>
+        <li>intersect *</li>
+        <li>symmetrical difference >&lt;</li>
+        <li>equal =</li>
+        <li>unequal &lt;></li>
+        <li>subset &lt;=</li>
+        <li>superset >=</li>
+        <li>set of anonymous enum type: <i>set of (enum1,enum2,...)</i></li>
+        </ul>
+      </li>
+      <li>Not supported: set of char, set of boolean</li>
+      <li>There is no optimization yet for small sets like in Delphi/FPC.</li>
+      <li>Assigning a set or passing the set as an argument only creates a
+      reference and marks the set as <i>shared</i>.
+      When a <i>shared</i> set is altered with Include/Exclude a new set is
+      created (copy on write).</li>
+      <li>Passing a set as an argument might clone the set.
+      Use the <i>const</i> modifier for parameters whenever possible.</li>
+      <li>Constant sets in expressions (e.g. <i>if c in ['a'..'z'] then</i>)
+      are not yet optimized and created every time. Create a <i>const</i> to avoid this.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="array">Translating array type</h2>
+    All arrays are translated into JavaScript arrays.<br>
+    Contrary to Delphi/FPC dynamic arrays are
+    not reference counted and do not copy on write. That means if you pass an
+    array to a procedure and change an element, the original array is changed.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Type
+  TIntArr = Array of integer;
+  TObjArr = Array of TObject;
+  TRec = record c: char; end;
+  TRecArr = Array of TRec;
+Procedure Test;
+Implementation
+Procedure Test;
+Var
+  IntArr: TIntArr = (1,2,3);
+  ObjArr: TObjArr;
+  RecArr: TRecArr;
+Begin
+  IntArr:=nil;
+  SetLength(IntArr,4);
+  IntArr[2]:=2;
+  IntArr[1]:=length(IntArr);
+  SetLength(ObjArr,5);
+  SetLength(RecArr,2,TRec);
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  this.Test = function(){
+    this.TRec = function(s){
+      if (s){
+        this.c = s.c;
+      } else {
+        this.c = "";
+      };
+      this.$equal = function(b){
+        return (this.c == b.c);
+      };
+    };
+    this.IntArr = [1,2,3];
+    this.ObjArr = [];
+    this.RecArr = [];
+    this.Test = function(){
+      $mod.IntArr = [];
+      rtl.arraySetLength($mod.IntArr,4,0);
+      $mod.IntArr[2] = 2;
+      $mod.IntArr[1] = $mod.IntArr.length;
+      rtl.setArrayLength($mod.ObjArr,5,null);
+      rtl.setArrayLength($mod.RecArr,2,$mod.TRec);
+    }
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+    <li>Supported features of dynamic arrays: SetLength(), Length(), equal/notequal nil, low(), high(),
+    assigned(), concat(), copy(), insert(), delete(), multi dimensional, array of record</li>
+    <li>Dynamic array constants. E.g. const a: array of byte = (1,2)</li>
+    <li>Supported features of static arrays: length(), low(), high(), assigned(), concat(), copy(), const, except const records </li>
+    <li>Open arrays are implemented as dynamic arrays.</li>
+    <li>Calling <i>Concat()</i> with only one array simply returns the array
+     (no cloning). Calling it with multiple arrays creates a clone.
+      This is Delphi 10.1 compatible.</li>
+    <li>In Delphi/FPC an empty array is <i>nil</i>. In JS it can be <i>null</i> or <i>[]</i>.
+     For compatibility comparing an array with <i>nil</i> checks for <i>length(a)>0</i>.</li>
+    <li><i>function Assigned(array): boolean</i>  results true iff <i>length(array)>0</i>.</li>
+    <li>Not yet implemented: array of const.</li>
+    <li><i>function copy(array,start=0,count=max): array</i></li>
+    <li><i>procedure insert(item,var array,const position)</i></li>
+    <li><i>procedure delete(var array,const start,count)</i></li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="class">Translating class type</h2>
+    Classes are implemented using <i>Object.create</i> and some rtl magic.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Type
+  TClassA = Class(TObject)
+  Public
+    i: integer;
+    Procedure Add(a: integer);
+  End;
+var
+  ObjA: TClassA;
+Implementation
+Procedure TClassA.Add(a: integer);
+Begin
+  i:=i+a;
+End;
+Initialization
+  ObjA:=TClassA.Create;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  rtl.createClass($mod,"TClassA",pas.System.TObject,function(){
+    this.$init = function () {
+      this.i = 0;
+    };
+    this.Add = function(a){
+      this.i = this.i + a;
+    };
+  });
+  this.ObjA = null;
+  $mod.$init = function(){
+    $mod.ObjA = $mod.TClassA.$create("Create");
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+    <li>Each class and each instance is an JS object.</li>
+    <li>Each class has a globally unique JS object, created by rtl.createClass.</li>
+    <li><i>Self</i> is never <i>nil</i>.</li>
+    <li>The method <i>TObject.Free</i> is using compiler magic. See <a href="#tobjectfree">Translating TObject.Free</a>.</li>
+    <li><i>Class.$class</i> is a reference to the class itself.</li>
+    <li><i>Class.$ancestor</i> is a reference to the ancestor class.</li>
+    <li>A class has <i>c.$ancestor == Object.getPrototypeOf(c)</i>.</li>
+    <li>A class instance has <i>o.$class == Object.getPrototypeOf(o)</i>.</li>
+    <li><i>Class.$classname</i> is the short name. E.g. <i>TClassA.$classname == 'TClassA'</i>.</li>
+    <li><i>Class.$name</i> is the long name. E.g. <i>TClassA.$name == 'MyModule.TClassA'</i>.</li>
+    <li><i>Class.$unitname</i> is the unit name. E.g. <i>TClassA.$unitname == 'MyModule'</i>.</li>
+    <li>The "<i>is</i>"-operator is implemented using "<i>isPrototypeOf</i>". Note that "<i>instanceof</i>" cannot be used, because classes are JS objects.</li>
+    <li>The "<i>as</i>" operator is implemented as <i>rtl.as(Object,Class)</i>.</li>
+    <li>Supported: constructor, destructor, private, protected, public,
+      strict private, strict protected, class vars, class methods, external methods,
+      virtual, override, abstract, call inherited, assigned(), type cast,
+      overloads, reintroduce, sealed class</li>
+    <li>Property:
+      <ul>
+      <li>References are replaced by getter/setter.</li>
+      <li>Supported: argument lists, default property, class property, stored modifier, index modifier.</li>
+      <li>Class property getter/setter are not static as in Delphi.</li>
+      <li>The <i>Index</i> modifier supports any constant, e.g. a string, while
+      Delphi only allows an ordinal (longint). -2147483648 is not a special
+      number in pas2js. Overriding a property with an index property is allowed
+      in Delphi and pas2js.</li>
+      </ul>
+    </li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="classof">Translating class-of type</h2>
+    A class-of is a reference to a class. See above about translating class.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Type
+  TBird = Class(TObject)
+  Public
+    Class var Count: integer;
+    Class Procedure Add(a: integer); virtual;
+  End;
+  TBirds = class of TBird;
+
+  TPigeon = Class(TBird)
+  Public
+    Class Procedure Add(a: integer); override;
+  End;
+
+var
+  BirdType: TBirds;
+Implementation
+Class Procedure TBird.Add(a: integer);
+Begin
+  Count:=Count+a;
+End;
+Class Procedure TPigeon.Add(a: integer);
+Begin
+  inherited Add(a+1);
+End;
+Initialization
+  BirdType:=TPigeon;
+  BirdType.Add(1);
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System"],
+function(){
+  var $mod = this;
+  rtl.createClass($mod,"TBird",pas.System.TObject,function () {
+    this.Count = 0;
+    this.Add = function (a) {
+      this.Count = this.Count + a;
+    };
+  });
+  rtl.createClass($mod,"TPigeon",$mod.TBird,function () {
+    this.Add = function (a) {
+      $mod.TBird.Add.call(this,a + 1);
+    };
+  });
+  $mod.$init = function(){
+    $mod.BirdType = $mod.TPigeon;
+    $mod.BirdType.Add(1);
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Note that <i>this</i> in a class method is the class itself.<br>
+    <br>
+    Notes:<br>
+    <ul>
+    <li>Contrary to Delphi/FPC the "is" operator works with class-of.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="tobjectfree">Translating TObject.Free</h2>
+    In Delphi/FPC AnObject.Free checks if Self is nil, then calls the destructor
+    and frees the memory, without changing the reference.
+    In JavaScript however calling a method with AnObject=nil causes a crash.
+    And memory cannot be freed explicitely. Memory is only
+    freed if all references are gone (e.g. set to <i>null</i>).<br>
+    Therefore pas2js adds code to call the destructor and sets the variable to <i>nil</i>:<br>
+    <ul>
+      <li><i>Obj.Free</i> on a local variable or argument is translated to
+        <i>Obj = rtl.freeLoc(Obj);</i>.</li>
+      <li><i>Obj.Free</i> on a non local variable is translated to
+        <i>rtl.free(this,"Obj");</i>.</li>
+      <li>Not supported: Freeing a property or function result.<br>
+        For example <i>List[i].Free</i> gives a compiler error. The property
+        setter might create side effects, which would be incompatible to Delphi/FPC.
+        </li>
+    </ul>
+    Notes:
+    <ul>
+      <li>If the destructor raises an exception, the variable is not set to <i>nil</i>.
+        This is compatible to Delphi/FPC, where the memory is not freed in this case.</li>
+      <li>Alternatively you can use <i>FreeAndNil</i>, which first changes
+        the variable to <i>nil</i> and then calls the destructor.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="classinterfaces">Translating class interfaces</h2>
+    Class interfaces are not yet implemented. To make porting code easier there
+    is a <i>{$modeswitch ignoreinterfaces}</i>, that ignores interface declarations
+    and the class interface list.
+    </div>
+
+    <div class="section">
+    <h2 id="attributes">Translating attributes</h2>
+    Attributes are not yet implemented. To make porting code easier there
+    is a <i>{$modeswitch ignoreattributes}</i>, that ignores attributes.
+    </div>
+
+    <div class="section">
+    <h2 id="tryfinally">Translating try..finally</h2>
+    JavaScript has the same, so it translates straight forward.
+    </div>
+
+    <div class="section">
+    <h2 id="tryexcept">Translating try..except</h2>
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+Uses SysUtils, Math, JS;
+Function DoIt(n: integer): double;
+Implementation
+Function DoIt(n: integer): double;
+var E: Exception;
+Begin
+  try
+    Result:=double(7.0)/n;
+    if not IsFinite(Result) then
+      if n=0 then
+        raise EZeroDivide.Create
+      else
+        raise EOverflow.Create;
+  except
+    on EZeroDivide do Result:=0.0;
+    on E2: EOverflow do Result:=0.0;
+    else
+      raise EAbort.Create('Something other: '+String(JS.JSExceptObject));
+  end;
+End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System","SysUtils"],
+function(){
+  this.DoIt=function(n){
+    Result = 0;
+    var E = null;
+    try{
+      Result = 7.0 / n;
+      if (!IsFinite(Result)){
+        if (n==0){
+          throw pas.SysUtils.EZeroDivide.$create("Create");
+        } else {
+          throw pas.SysUtils.EOverflow.$create("Create");
+        };
+      };
+    }catch($e){
+      if (pas.SysUtils.EZeroDivide.isPrototypeOf($e)){
+        Result = 0.0;
+      } else if (pas.SysUtils.EOverflow.isPrototypeOf($e)){
+        var E2 = $e;
+        Result = 0.0;
+      } else {
+        throw pas.SysUtils.EAbort.$create("Create",["Something other: "+(""+$e)]);
+      }
+    }
+    return Result;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+    <li>Division by zero does not raise an exception in JavaScript. Instead it results in Infinity, except for 0/0 which results in NaN.</li>
+    <li>There is no ExceptObject in SysUtils.</li>
+    <li>When calling external functions keep in mind that JS allows to
+    throw (raise) any value, often a string.<br>
+    You can access the current except value via JSExceptValue in unit JS.<br>
+    Note that this is only valid inside the catch-block. The compiler will not warn,
+    if you use it outside.</li>
+    </div>
+
+    <div class="section">
+    <h2 id="functiontype">Translating function type</h2>
+    JavaScript functions work like Delphi's "reference to function", which
+    means like closures. Normal functions and nested functions can simply be
+    assigned to variables.
+    A Pascal method needs <b>this</b> to be the class or class instance.<br>
+    Note that <i>bind</i> cannot be used, because it does not support the <i>equal</i> operator.
+    Instead a wrapper is created:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit UnitA;
+Program MyModule;
+type
+  TMyMethod = procedure(n: integer) of object;
+  TBird = class
+    procedure DoIt(n: integer); virtual; abstract;
+  end;
+  TMyProc = procedure(n: integer);
+procedure DoSome(n: integer);
+begin
+end;
+var
+  m: TMyMethod;
+  Bird: TBird;
+  p: TMyProc;
+Begin
+  m:=@Bird.DoIt;
+  m(3);
+  p:=@DoSome;
+  p(4);
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System","UnitA"],
+function(){
+  var $mod = this;
+  rtl.createClass($mod,"TBird",pas.System.TObject,function(){
+    this.DoIt = function (n) {
+    };
+  });
+  this.DoSome = function (n) {
+  };
+  this.m = null;
+  this.Bird = null;
+  this.p = null;
+  $mod.$main = function() {
+    $mod.m = rtl.createCallback($mod.Bird,"DoIt");
+    $mod.m(3);
+    $mod.p = $mod.DoSome;
+    $mod.p(4);
+  };
+},
+[]);
+
+rtl = {
+  ...
+  createCallback: function(scope, fn){
+    var cb = function(){
+      return scope[fn].apply(scope,arguments);
+    };
+    cb.scope = scope;
+    cb.fn = fn;
+    return cb;
+  },
+  ...
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+    <li>You can assign a nested procedure to procedure variable.
+    You don't need and you must not add the FPC "<i>is nested</i>" modifier.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="calljavascript">Calling JavaScript from Pascal</h2>
+    Pas2js allows to write low level functions and/or access a JavaScript library
+    with the following possibilities:
+    </div>
+
+    <div class="section">
+    <h2 id="asm">The asm block</h2>
+    The asm block is pure JavaScript, that is copied directly into the generated .js file.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+var
+  s: string;
+Begin
+  s = 'Hello World!';
+  Asm
+    console.log(s);
+  End;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  this.s = '';
+  $mod.$main = function(){
+    $mod.s = "Hello World!";
+    console.log(s);
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    Notes:
+    <ul>
+      <li>The block is indented to produce more readable JS code.
+      All lines are indented or unindented the same amount, i.e. sub indentation is kept.</li>
+      <li>The compiler does neither parse, nor check the syntax of the JS.</li>
+      <li>The compiler does not know what Pascal identifiers are used by the
+      asm-block and might remove them, if no Pascal code is using them.
+      To make sure that an identifier is kept, add some dummy code like
+      <i>if MyVar=0 then;</i></li>
+      <li>Accessing an interface, program or library identifier:<br>
+        <ul>
+        <li>From inside the module you can use <i>$mod.Identifier</i>.</li>
+        <li>Otherwise use the fully qualified path <i>pas.Unitname.Identifier</i>.</li>
+        </ul>
+      </li>
+      <li>Accessing an implementation identifier:<br>
+        <ul>
+        <li>From inside the unit you can use <i>$impl.Identifier</i>.</li>
+        <li>Otherwise use the path <i>pas.Unitname.$impl.Identifier</i>.</li>
+        </ul>
+      </li>
+      <li>Accessing a class instance member (field, procedure, function,
+      constructor, destructor) from a method of the class: use <i>this.Identifier</i>.
+      Inside a nested function of a method you use the <i>Self.Identifier</i>.
+      </li>
+      <li>Accessing a class member (class var, class procedure, class function)
+      from a method of the class: for writing use <i>this.$class.Identifier</i>,
+      for reading you can omit the <i>$class</i>.</li>
+      <li>Accessing a class member (class var, class procedure, class function)
+      from a class method of the class: use <i>this.Identifier</i>.</li>
+      <li>Access to Properties must use the getter/setter.</li>
+      <li>When calling a Pascal method, make sure the <b>this</b> is correct:
+        <ul>
+          <li>A class method (e.g. <i>class function</i>, <i>class procedure</i>)
+          needs the class as <i>this</i>.<br>
+          <b>Wrong</b>: <i>aCar.DoIt(params,...)</i><br>
+          <b>Correct</b>: <i>aCar.$class.DoIt(params,...)</i><br>
+          </li>
+        </ul>
+      </li>
+      <li>Calling a Pascal function from a HTML/DOM-element:
+        For example to call a function when user clicks a DOM element you can
+        assign a function to the <i>onclick</i> property. This will call
+        the function with <i>this</i> set to the DOM element.<br>
+        Pascal methods needs a wrapper to set <i>this</i> to the
+        instance. Examples:
+        <ul>
+        <li>An unit function: <i>DOMElement.onclick = $mod.DoIt;</i></li>
+        <li>An implementation function: <i>DOMElement.onclick = $impl.DoIt;</i>.</li>
+        <li>A method: <i>DOMElement.onclick = this.DoIt.bind(this);</i></li>
+        <li>A class function/procedure: <i>DOMElement.onclick = this.DoIt.bind(this.$class);</i></li>
+        <li>A nested function: <i>DOMElement.onclick = DoIt;</i>.</li>
+        </ul>
+      </li>
+      </li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="assembler">The procedure modifier assembler</h2>
+    You can write pure JavaScript functions like this:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+
+Procedure Log(const s: string); assembler;
+Asm
+  console.log(s);
+end;
+
+Begin
+  Log('Hello World!');
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  this.Log = function(s){
+    console.log(s);
+  };
+  $mod.$main = function(){
+    $mod.Log("Hello World!");
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    See also <a href="#asm">asm</a>.
+    </div>
+
+    <div class="section">
+    <h2 id="externalproc">The procedure modifier external</h2>
+    The procedure modifier <i>external</i> requires a string constant and tells the
+    compiler to replace a reference with this string value. The value is not
+    checked for JS syntax.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+Procedure ConsoleLog(const s: string); external name 'console.log';
+// Note: an external procedure has no begin..end block
+Begin
+  ConsoleLog('Hello World!');
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  $mod.$main = function(){
+    console.log("Hello World!");
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="varargs">The procedure modifier varargs</h2>
+    Appending the <b>varargs</b> modifier to a procedure allows to pass arbitrary
+    more parameters to a function. To access these non typed arguments use
+    either <i>JSArguments</i> from unit JS or an <i>asm..end</i> block.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+uses JS;
+function Sum(b: boolean): longint; varargs;
+var i: longint;
+begin
+  if b then
+    asm
+      for (var i=0; i&lt;arguments.length; i++) Result+=arguments[i];
+    end
+  else
+    for i:=0 to JSArguments.length-1 do
+      Result:=Result+longint(JSArguments[i]);
+end;
+var
+  i: integer;
+Begin
+  i:=Sum(true,2,4,6); // i=12
+  i:=Sum(false,2,4,6); // i=12
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System","JS"],
+function(){
+  var $mod = this;
+  this.Sum = function(b){
+    var Result = 0;
+    var i = 0;
+    if (b){
+      for (var i=0; i&lt;arguments.length; i++) Result+=arguments[i];
+    } else {
+      for (var $l1 = 1, $le2 = argumens.length; $l1 &lt;= $le2; $l1++){
+        $i = $l1;
+        Result = Result + arguments[i];
+      }
+    }
+    return Result;
+  };
+  this.i = 0;
+  $mod.$main = function(){
+    $mod.i = $mod.Sum(true,2,4,6);
+    $mod.i = $mod.Sum(false,2,4,6);
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    The above example defines a function <i>Sum</i>, that requires the first parameter to
+    be a boolean and then an arbitrary number of parameters. The compiler does not
+    type check the other parameters, so you can pass anything readable.
+    </div>
+
+    <div class="section">
+    <h2 id="externalvar">The var modifier external</h2>
+    The var modifier <i>external</i> allows to use a JavaScript variable or constant.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+var
+  EulersNumber: Double; external name 'Math.E';
+  d: double;
+Begin
+  d:=EulersNumber;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  this.d = 0.0;
+  $mod.$main = function(){
+    $mod.d = Math.E;
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="externalmembers">The external modifier of class members</h2>
+    The method modifier <i>external</i> works as the procedure modifier, except
+    it uses the scope of the class or instance.<br>
+    The field modifier <i>external</i> works as the var modifier, except
+    it uses the scope of the class or instance.<br>
+    Requires the modeswitch <b>externalclass</b>.
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+{$modeswitch externalclass}
+type
+  TWrapper = class
+  private
+    // let's assume this object has a $Handle and an $id
+  public
+    Id: NativeInt; external name '$Id';
+    function GetState(typ: longint): NativeInt; external name '$Handle.GetState';
+    procedure DoIt;
+  end;
+procedure TWrapper.DoIt;
+begin
+  Id := GetState(4);
+end;
+var
+  W: TWrapper;
+Begin
+  W.Id := 2;
+  W.GetState(3);
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",
+["System"],
+function(){
+  var $mod = this;
+  rtl.createClass($mod, "TWrapper", pas.System.TObject, function () {
+    this.DoIt = function(){
+      this.$Id = this.$Handle.GetState(4);
+    };
+  });
+  this.W = null;
+  $mod.$main = function(){
+    $mod.W.$Id = 2;
+    $mod.W.$Handle.GetState(3);
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="externalclass">External classes</h2>
+    pas2js introduces a new class modifier "<i>external name</i>", which makes
+    the whole class external.
+    External classes allow to easily declare Pascal wrappers for JavaScript
+    objects and function objects.<br>
+    They need the modeswitch <b>externalclass</b> in front of the class.<br>
+    An external class is not a TObject and has none of its methods.<br>
+    All members are external. If you omit the <i>external</i> modifier the
+    external name is the member name. Keep in mind that JS is case sensitive.<br>
+    Destructors are not allowed.<br>
+    Constructors are only allowed with the name <i>New</i> and a call
+    translates to <i>new ExtClass(params)</i>.
+    Properties work the same as with Pascal classes, i.e. are replaced by Getter/Setter.<br>
+
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+{$modeswitch externalclass}
+type
+  TJSDate = class external name 'Date'
+  private
+    function getYear: NativeInt;
+    procedure setYear(const AValue: NativeInt);
+  public
+    constructor New;
+    constructor New(const MilliSecsSince1970: NativeInt);
+    class function now: NativeInt;
+    property Year: NativeInt read getYear write setYear;
+  end;
+var
+  d: TJSDate;
+Begin
+  d:=TJSDate.New;
+  d.Year:=d.Year+1;
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System"],function () {
+  var $mod = this;
+  this.d = null;
+  $mod.$main = function () {
+    $mod.d = new Date();
+    $mod.d.setYear($mod.d.getYear() + 1);
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+      <li>Any class instance can be type casted to any root class.</li>
+      <li>A Pascal class can descend from an external class.</li>
+      <li>You can define a class-of external class and the <b>is</b> and <b>as</b>
+      operators work similar.</li>
+      <li>Class variables work as in JavaScript. That means, each descendant and each
+      instance can have its own value. For example <i>TExtA.Value</i> might be
+      different from <i>InstanceExtA.Value</i>. Setting <i>InstanceExtA.Value</i>
+      does not change <i>TExtA.Value</i>.</li>
+      <li>Class functions and class procedures are allowed, but can only be called via the class, not via an instance.<br>
+      For example you can call the class function <i>TJSString.fromCharCode()</i>, but you cannot
+      call <i>aJSString.fromCharCode()</i>.</li>
+      <li>An external class can descend from another external class.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="externalclassancestor">External class as ancestor</h2>
+    A Pascal class can descend from an external class.<br>
+    The methods <i>AfterConstruction</i> and <i>BeforeDestruction</i>
+    are called if they exist.<br>
+    New instances are created by default with <i>Object.create(ancestorclass)</i>.<br>
+    You can override this, by providing a<br>
+    <b>class function NewInstance(fnname: string; const paramsarray): TPasClass; virtual;</b>.
+    This method is called to create a new instance and before calling the constructor.
+    The name is arbitrary, but the function must be the first non private,
+    non external, virtual class function with the class as result type.<br>
+
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+{$modeswitch externalclass}
+type
+  TExtA = class external name 'ExtA'
+  end;
+  TMyB = class(TExtA)
+  protected
+    class function NewInstance(fnname: string; const paramarray): TMyB; virtual;
+  end;
+class function TMyB.NewInstance(fnname: string; const paramarray): TMyB;
+Begin
+  asm
+  Result = Object.create(ExtA);
+  end;
+End;
+
+Begin
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System"],function () {
+  var $mod = this;
+  rtl.createClassExt($mod, "TMyB", ExtA, "NewInstance", function () {
+    this.$init = function () {
+    };
+    this.$final = function () {
+    };
+    this.NewInstance = function (fnname, paramarray) {
+      var Result = null;
+      Result = Object.create(ExtA);
+      return Result;
+    };
+  });
+  $mod.$main = function () {
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
+    <h2 id="jsvalue">The JSValue type</h2>
+    Pas2js introduces a new type <b>JSValue</b>, which works similar to a JS variable.
+    You can assign almost any value to it and it can be type casted to many types.
+    JSValue is useful for JS wrappers, when a variable can have multiple types.
+    And it can be used for containers storing arbitrary data, e.g. a list of JSValue.<br>
+    Key features:<br>
+    <ul>
+      <li>A JSValue variable initial value is undefined.</li>
+      <li>Operators: =, &lt;&gt;</li>
+      <li>type casting a <i>JSValue</i> to ...
+        <ul>
+         <li><i>Integer: Math.floor(aJSValue)</i>   Note: may return <i>NaN</i></li>
+         <li><i>Boolean: !(aJSValue == false)</i>   Note: works for numbers too, <i>0==false</i></li>
+         <li><i>Double: rtl.getNumber(aJSValue)</i>  Note: <i>typeof(n)=="number"?n:NaN;</i></li>
+         <li><i>String: ""+aJSValue</i></li>
+         <li><i>Char: rtl.getChar(aJSValue)</i>  Note: <i>((typeof(c)!="string") && (c.length==1)) ? c : ""</i></li>
+         <li>class instance or class-of: <i>rtl.getObject()</i>  Note: checks for type <i>"object"</i></li>
+         <li>enum type</li>
+         <li>pointer</li>
+       </ul>
+      </li>
+      <li>A JSValue in a conditional expressions <i>If aJSValue then, while aJSValue do,
+      repeat until aJSValue</i> has the same meaning as in JS: the condition is
+      true, if the value is not <i>undefined, false, null, NaN, 0, ''</i>.
+      Note that <i>new Boolean(false)</i> is not <i>null</i> and the condition is true.
+      </li>
+      <li><i>function Assigned(V: jsvalue): boolean</i> returns true if<br>
+       <i>(V!=undefined) && (V!=null) && (!rtl.isArray(V) || (V.length > 0))</i></li>
+      <li><i>function StrictEqual(const A: jsvalue; const B): boolean</i></li>
+      <li><i>function StrictInequal(const A: jsvalue; const B): boolean</i></li>
+      <li>Any array can be assigned to an <i>array of jsvalue</i>.</li>
+      <li>The unit JS provides many utility functions for JSValue, like <i>hasString,
+      hasValue, isBoolean, isNumber, isInteger, isObject, isClass, isClassInstance, etc..</i></li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="bracketaccessor">Accessing JS object properties with the bracket accessor</h2>
+    Pas2js allows to define index properties that map directly to the JS object properties.
+    For example the default property of TJSObject allows to get and set the
+    properties of an object. For example <i>TJSObject(AnObject)['Name']:=Value;</i><br>
+    Another example is the default property of TJSArray, that allows access via integers
+    <i>aTJSArray[3]:=Value;</i><br>
+    To define your own bracket accessor define a normal index property and define
+    the getter/setter as <i>external name '[]'</i>.<br>
+    Here is an example for a read only accessor:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+{$modeswitch externalclass}
+type
+  TExtA = class external name 'ExtA'
+  private
+    function GetItems(Index: integer): String; external name '[]';
+  public
+    property Items[Index: integer]: String read GetItems; default;
+  end;
+var
+  Obj: TExtA;
+  s: String;
+Begin
+  ... get Obj from somewhere ...
+  s:=Obj[2];
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("program",["System"],function () {
+  var $mod = this;
+  this.Obj = undefined;
+  this.s = "";
+  $mod.$main = function () {
+    $mod.s = Obj[2];
+  };
+});
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+      <li>A property can have a mix of normal accessor and bracket accessor.
+      For example a bracket accessor as getter and a normal function as setter.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="rtti">RTTI - Run Time Type Information</h2>
+    The RTTI provides access to the type data of all published properties,
+    fields and methods. The type data provides similar information as Delphi/FPC,
+    but the internals are very different. Delphi/FPC uses pointers,
+    variant records and fake static arrays, which have no equivalent in JS.
+    Instead pas2js uses external classes. For example:
+    <pre>
+    TTypeInfo = class external name 'rtl.tTypeInfo'
+    public
+      Name: String external name 'name';
+      Kind: TTypeKind external name 'kind';
+    end;
+    TTypeInfoClass = class of TTypeInfo;
+
+    TTypeInfoInteger = class external name 'rtl.tTypeInfoInteger'(TTypeInfo)
+    public
+      MinValue: NativeInt external name 'minvalue';
+      MaxValue: NativeInt external name 'maxvalue';
+      OrdType : TOrdType external name 'ordtype';
+    end;
+    </pre>
+    The <b>typeinfo</b> function works on type, var, const and property identifiers.
+    By default it returns a <i>pointer</i>. If the typinfo unit is used it returns the
+    appropiate <i>TTypeInfo</i>. For instance <i>typeinfo(integer)</i> returns
+    a <i>TTypeInfoInteger</i>.<br>
+    <i>Typeinfo</i> of a <i>var</i> or <i>const</i> returns the typeinfo of its
+    type, not of its current runtime value. The exception is a class and class-of instance
+    variable (e.g. <i>var o: TObject; ... typeinfo(o)</i>), which returns the
+    typeinfo of the current runtime value.
+    If <i>o</i> is <i>null</i> it will give a JS error.<br>
+    Local types (i.e. inside a procedure) do not have typeinfo.<br>
+    Open array parameters are not yet supported.<br>
+    </div>
+
+
+    <div class="section">
+    <h2 id="compilerdirectives">Compiler directives</h2>
+    In config files:
+    <ul>
+    <li>#IFDEF macroname</li>
+    <li>#IFNDEF macroname</li>
+    <li>#IF expression - same as $if, except only defines</li>
+    <li>#ELSEIF</li>
+    <li>#ELSE</li>
+    <li>#ENDIF</li>
+    <li>#ERROR text</li>
+    </ul>
+    In source files:
+    <ul>
+    <li>{$Define <i>MacroName</i>}: defines macro <i>MacroName</i> with value '1'.</li>
+    <li>{$Define <i>MacroName:=value</i>}: defines macro <i>MacroName</i> with custom value.</li>
+    <li>{$Undef <i>MacroName</i>}: undefines macro <i>MacroName</i>.</li>
+    <li>{$IfDef <i>MacroName</i>}: if <i>MacroName</i> is not defined, skip to next $Else or $EndIf. Can be nested.</li>
+    <li>{$IfNDef <i>MacroName</i>}: as $IfDef, except negated.</li>
+    <li>{$If <i>boolean expression</i>}: if <i>expression</i> evaluates to true
+    (not '0'), skip to next $Else or $EndIf. Can be nested.<br>
+    Supported functions and operators:<br>
+      <ul>
+      <li>macro - replaced by its value, a simple define has value '1'</li>
+      <li>defined(macro) - '1' if defined, '0' otherwise</li>
+      <li>undefined(macro) - as <i>not defined(macro)</i></li>
+      <li>option(letter) - same as <i>{$IFOpt letter+}</i></li>
+      <li>not - first level of precedence</li>
+      <li>*, /, div, mod, and, shl, shr - second level of precedence</li>
+      <li>+, -, or, xor - third level of precedence</li>
+      <li>=, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;= - fourth level of precedence</li>
+      <li>If the operands can be converted to numbers they are combined as numbers, otherwise as strings.</li>
+      </ul>
+    Not supported functions and operators:<br>
+      <ul>
+      <li>defined(Pascal identifier), undefined(Pascal identifier)</li>
+      <li>declared(Pascal identifier)</li>
+      <li>in operator</li>
+      </ul>
+    </li>
+    <li>{$IfOpt <i>Letter+,-</i>}: if <i>expression</i> evaluates to true (not '0'), skip to next $Else or $EndIf. Can be nested.</li>
+    <li>{$Else}: If previous $IfDef was skipped, execute next block, otherwise skip.</li>
+    <li>{$ElseIf <i>boolean expression</i>}: As $Else, except with an extra expression like $if to test. There can be multiple $elseif.</li>
+    <li>{$EndIf}: ends an $IfDef block</li>
+    <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
+    <li>{$modeswitch externalclass}: allow declaring external classes</li>
+    <li>{$macro on|off} enables macro replacements. Only macros with a custom value are replaced. Macros are never replaced inside directives.</li>
+    <li>{$I filename} or {$include filename} - insert include file</li>
+    <li>{$ERROR text}</li>
+    <li>{$WARNING text}</li>
+    <li>{$NOTE text}</li>
+    <li>{$HINT text}</li>
+    <li>{$M+}, {$TypeInfo on}: switches default visibility for class members from public to published</li>
+    </ul>
+    Defines:
+    <ul>
+    <li>PASJS</li>
+    <li>PAS2JS_FULLVERSION - major*1000+minor*100+release, e.g. 1.2.3 = 10203</li>
+    <li>Target platform: BROWSER, NODEJS</li>
+    <li>Target processor: ECMAScript5, ECMAScript6, ECMAScript=5</li>
+    <li>Mode: DELPHI, OBJFPC</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="numbers">Numbers</h2>
+    JavaScript only supports double. All Pascal number types and enum values
+    are mapped to this. A double supports integers from<br>
+    MinInteger = -$10000000000000;<br>
+    MaxInteger = $fffffffffffff;<br>
+    MinDouble  =  5.0e-324;<br>
+    MaxDouble  =  1.7e+308;<br>
+    <br>
+    Intrinsic integer types:
+    <ul>
+      <li>Byte - unsigned 8-bit</li>
+      <li>ShortInt - signed 8-bit</li>
+      <li>Word - unsigned 16-bit</li>
+      <li>SmallInt - signed 16-bit</li>
+      <li>LongWord - unsigned 32-bit</li>
+      <li>LongInt - signed 32-bit</li>
+      <li>NativeUInt - unsigned 52-bit</li>
+      <li>NativeInt - signed 53-bit</li>
+    </ul>
+    Notes:
+    <ul>
+    <li>Division by zero does not raise an exception. 0/0 results in NaN, positive/0 is Infinity, negative/0 is -Infinity.</li>
+    <li>NaN&lt;&gt;NaN</li>
+    <li>Overflows work differently. For example in Delphi adding 100 to a byte of 200 gives <i>300 and $ff = 44</i>, while in pas2js it gives 300, which is not a byte anymore.</li>
+    <li>Math.isNan(double) tests for NaN. Otherwise false. isNan(Infinity)=false.</li>
+    <li>Math.isFinite(double) tests if not NaN, positive or negative infinity.</li>
+    <li>Math.isInfinite(double) tests if positive or negative infinity.</li>
+    <li>For more functions see unit Math.</li>
+    <li>To make porting easier Single is defined in the system unit as alias of
+    double, but gives a warning. Since using higher precision might give
+    unexpected results you should check every place.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="othersupportedelements">Other supported Pascal elements</h2>
+    <ul>
+    <li><b>break</b>, <b>continue</b>, <b>exit</b>, <b>exit()</b></li>
+    <li><b>chr</b>, <b>ord</b></li>
+    <li>alias type, but not type alias type</li>
+    <li>inc()/dec() to += -=</li>
+    <li>Converts "a div b" to "Math.floor(a / b)"</li>
+    <li>and, or, xor, not: logical and bitwise</li>
+    <li>Name conflicts with JS identifiers are automatically fixed by changing case.
+    For example a Pascal function "<i>apply"</i> is renamed to "<i>Apply</i>".</li>
+    <li>The built-in procedure <b>str</b> works with boolean, integer, float and enumvalue.<br>
+    Additionally there is <b>str</b> function, that takes an arbitrary number of
+    arguments and returns a concatenated string. It supports string as parameter too.
+    For example s:=str(i,' ',d:1:5).<br>
+    Width and precision is supported. str(i:10) will add spaces to the left to fill up to 10 characters.</b>
+    str(aDouble:1:5) returns a string in decimal format with 5 digits for the fraction.</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="notsupportedelements">Not supported elements</h2>
+    <ul>
+    <li>Advanced records</li>
+    <li>Anonymous functions</li>
+    <li>Array of const</li>
+    <li>Attributes</li>
+    <li>Currency</li>
+    <li>Enumeration for..in..do</li>
+    <li>Enums with custom values</li>
+    <li>Generics</li>
+    <li>Global properties</li>
+    <li>Futures</li>
+    <li>Helpers for types, classes, records</li>
+    <li>Inline</li>
+    <li>Interfaces</li>
+    <li>Library</li>
+    <li>Nested types in class</li>
+    <li>Objects</li>
+    <li>Operator overloading</li>
+    <li>Pointer of record</li>
+    <li>Pointer arithmetic</li>
+    <li>Resources</li>
+    <li>RTTI extended, $RTTI</li>
+    <li>Runtime checks: Overflow -Co, $Q</li>
+    <li>Runtime checks: Range -Cr, $R</li>
+    <li>Runtime checks: Typecast -CR</li>
+    <li>Scoped enums</li>
+    <li>Set of char, boolean, custom range</li>
+    <li>Type alias, e.g. type TTranslateString = type string;</li>
+    <li>Var Absolute modifier</li>
+    <li>Variant records</li>
+    <li>Variants</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="targetprocessor">JavaScript Version</h2>
+    Code generation depending on -P option:
+    <ul>
+    <li>ECMAScript5</li>
+    <li>ECMAScript6: using 0b for binary literals, and 0o for octal literals</li>
+    </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="sourcemaps">Creating source maps</h2>
+    Source maps are files telling the browser what JavaScript comes from which
+    original source (e.g. Pascal file), similar to debug information in FPC/Delphi.<br>
+    In 2017 FireFox and Chrome supports source maps.<br>
+    You can enable generating source map files by using the <i>-Jm</i> option.<br>
+    The compiler generates one module.js.map file for every generated module.js file.
+    The last line of the .js file contains the line<br>
+    <i>//# sourceMappingURL=module.js.map</i><br>
+    telling the browser where to find the source map.<br>
+    The source map contains references to the Pascal files and included .js
+    files (e.g. -Jirtl.js) relative to the location of the source map.
+    Note that if the Pascal file lies in a parent directory, the relativ path
+    contains '../'. You can change the base directory of the relative paths by using
+    the option <i>-Jmbasedir=&lt;x&gt;</i>. For example <i>-JmC:\www\pas</i>
+    creates paths relative to C:\www\pas.<br>
+    You can set the base URL, where the browser finds the Pascal sources, by passing
+    the <i>-Jmsourceroot=&lt;x&gt;</i> option. For example
+    <i>-Jmsourceroot=http://www.yoursite.com/pas/</i>. The browser prepends this
+    to the source map filenames when downloading the original source files
+    (e.g. the .pas files).<br>
+    You can include the whole Pascal sources in the source map using the option
+    <i>-Jminclude</i>.<br>
+    <br>
+    To show the generated mapping for each line you can use the tool fpc/packages/fcl-js/examples/srcmapdump.<br>
+    </div>
+
+    <div id="footer">
+    </div>
+</body>
+</html>
