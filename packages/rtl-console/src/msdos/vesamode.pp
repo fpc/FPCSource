@@ -67,6 +67,7 @@ var
          regs : registers;
 
       begin
+         FillChar(ib,SizeOf(ib),0);
          regs.ah:=$4f;
          regs.al:=0;
          regs.es:=Seg(ib);
