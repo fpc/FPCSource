@@ -460,7 +460,7 @@ asm
 @@SetMouseXYExit:
 end;
 
-Procedure SetMouseXRange (Min,Max:Longint);
+Procedure SetMouseXRange (Min,Max:word);
 begin
   If Not(MousePresent) Then Exit;
   asm
@@ -473,7 +473,7 @@ begin
   end;
 end;
 
-Procedure SetMouseYRange (min,max:Longint);
+Procedure SetMouseYRange (min,max:word);
 begin
   If Not(MousePresent) Then Exit;
   asm
