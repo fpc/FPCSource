@@ -13,11 +13,11 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
 
   WinEventOSes = [win32,win64];
-  KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
+  KVMAll       = [emx,go32v2,msdos,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
 
   // all full KVMers have crt too, except Amigalikes
-  CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos,amiga];
-  KbdOSes      = KVMALL+[msdos];
+  CrtOSes      = KVMALL+[WatCom]-[aros,morphos,amiga];
+  KbdOSes      = KVMALL;
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
   TerminfoOSes = UnixLikes-[beos,haiku];
@@ -84,6 +84,7 @@ begin
        AddInclude('mouseh.inc');
        AddInclude('mouse.inc');
        AddUnit   ('winevent',[win32,win64]);
+       AddUnit   ('video',[go32v2,msdos]);
      end;
 
     T:=P.Targets.AddUnit('video.pp',VideoOSes);
@@ -94,6 +95,7 @@ begin
        AddInclude('videodata.inc',AllAmigaLikeOSes);
        AddInclude('convert.inc',AllUnixOSes);
        AddInclude('nwsys.inc',[netware]);
+       AddUnit   ('mouse',[go32v2,msdos]);
      end;
 
     T:=P.Targets.AddUnit('crt.pp',CrtOSes);
