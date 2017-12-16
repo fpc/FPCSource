@@ -108,9 +108,12 @@ begin
        AddUnit   ('keyboard',[win16]);
      end;
 
-    T:=P.Targets.AddUnit('vesamode.pp',[go32v2]);
+    T:=P.Targets.AddUnit('vesamode.pp',[go32v2,msdos]);
     with T.Dependencies do
-     AddUnit('video');
+     begin
+       AddUnit('video');
+       AddUnit('mouse');
+     end;
   end
 end;
 

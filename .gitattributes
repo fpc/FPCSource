@@ -7248,6 +7248,7 @@ packages/rtl-console/src/inc/videoh.inc svneol=native#text/plain
 packages/rtl-console/src/msdos/crt.pp svneol=native#text/plain
 packages/rtl-console/src/msdos/keyboard.pp svneol=native#text/plain
 packages/rtl-console/src/msdos/mouse.pp svneol=native#text/plain
+packages/rtl-console/src/msdos/vesamode.pp svneol=native#text/plain
 packages/rtl-console/src/msdos/video.pp svneol=native#text/plain
 packages/rtl-console/src/netware/crt.pp svneol=native#text/plain
 packages/rtl-console/src/netware/keyboard.pp svneol=native#text/plain
