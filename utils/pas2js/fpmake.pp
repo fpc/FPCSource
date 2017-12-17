@@ -42,6 +42,12 @@ begin
     PT.Dependencies.AddUnit('pas2jsfilecache');
     PT.Dependencies.AddUnit('pas2jslogger');
     PT.Dependencies.AddUnit('pas2jspparser');
+    PT:=P.Targets.AddLibrary('pas2jslib.pp');
+    PT.Dependencies.AddUnit('pas2jscompiler');
+    PT.Dependencies.AddUnit('pas2jsfileutils');
+    PT.Dependencies.AddUnit('pas2jsfilecache');
+    PT.Dependencies.AddUnit('pas2jslogger');
+    PT.Dependencies.AddUnit('pas2jspparser');
     end;
 end;
 
