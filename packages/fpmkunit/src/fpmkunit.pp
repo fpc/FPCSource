@@ -130,7 +130,7 @@ Type
 
   TInstallMOde = (imInstall, imUnInstall);
 
-  TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram,ttFPDoc);
+  TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram,ttFPDoc,ttSharedLibrary);
   TTargetTypes = set of TTargetType;
 
   TFPDocFormat = (ffHtml, ffHtm, ffXHtml, ffLaTex, ffXMLStruct, ffChm);
@@ -238,6 +238,7 @@ Const
   RsjExt  = '.rsj';
   LibExt  = '.a';
   SharedLibExt = '.so';
+  DyLibExt = '.dylib';
   DLLExt  = '.dll';
   ExeExt  = '.exe';
   DbgExt  = '.dbg';
@@ -252,7 +253,7 @@ Const
   DirNotFound = '<dirnotfound>';
 
   UnitTargets = [ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit];
-  ProgramTargets = [ttProgram,ttExampleProgram];
+  ProgramTargets = [ttProgram,ttExampleProgram,ttSharedLibrary];
 
   DefaultMessages = [vlError,vlWarning,vlCommand];
   AllMessages = [vlError,vlWarning,vlCommand,vlInfo];
@@ -624,6 +625,8 @@ Type
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
     Function GetProgramDebugFileName(AOS : TOS) : String; Virtual;
+    Function GetLibraryFileName(AOS : TOS) : String; Virtual;
+    Function GetLibraryDebugFileName(AOS : TOS) : String; Virtual;
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
@@ -633,7 +636,7 @@ Type
     procedure SetName(const AValue: String);override;
     procedure SetXML(const AValue: string);
     Procedure GetCleanFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
-    Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB: String; ACPU:TCPU; AOS : TOS); virtual;
+    Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Property Dependencies : TDependencies Read FDependencies;
     Property Commands : TCommands Read FCommands;
@@ -692,6 +695,12 @@ Type
     Function AddProgram(Const AProgramName : String;const CPUs:TCPUs) : TTarget;inline;
 {$endif cpu_only_overloads}
     Function AddProgram(Const AProgramName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+    Function AddLibrary(Const ALibraryName : String) : TTarget;inline;
+    Function AddLibrary(Const ALibraryName : String;const OSes:TOSes) : TTarget;inline;
+{$ifdef cpu_only_overloads}
+    Function AddLibrary(Const ALibraryName : String;const CPUs:TCPUs) : TTarget;inline;
+{$endif cpu_only_overloads}
+    Function AddLibrary(Const ALibraryName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
     Function AddExampleUnit(Const AUnitName : String) : TTarget;inline;
     Function AddExampleUnit(Const AUnitName : String;const OSes:TOSes) : TTarget;inline;
 {$ifdef cpu_only_overloads}
@@ -965,6 +974,7 @@ Type
     FUnitInstallDir,
     FUnitConfigFilesInstallDir,
     FBinInstallDir,
+    FLibInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
     FSearchPath: TStrings;
@@ -989,6 +999,7 @@ Type
     function GetGlobalUnitDir: String;
     function GetBaseInstallDir: String;
     function GetBinInstallDir: String;
+    function GetLibInstallDir: String;
     function GetCompiler: String;
     function GetDocInstallDir: String;
     function GetExamplesInstallDir: String;
@@ -1064,6 +1075,7 @@ Type
     Property UnitInstallDir : String Read GetUnitInstallDir Write SetUnitInstallDir;
     Property UnitConfigFilesInstallDir : String Read GetUnitConfigFilesInstallDir Write SetUnitConfigFilesInstallDir;
     Property BinInstallDir : String Read GetBinInstallDir Write FBinInstallDir;
+    Property LibInstallDir : String Read GetLibInstallDir Write FLibInstallDir;
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
     Property FPDocOutputDir : String Read GetFPDocOutputDir Write FFPDocOutputDir;
@@ -1434,6 +1446,7 @@ Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
 Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
 Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
 Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
+Function AddLibraryExtension(const LibraryName: string; AOS : TOS) : string;
 Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
 procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
@@ -1805,6 +1818,7 @@ Const
   KeyBaseInstallDir     = 'BaseInstallDir';
   KeyUnitInstallDir     = 'UnitInstallDir';
   KeyBinInstallDir      = 'BinInstallDir';
+  KeyLibInstallDir      = 'LibInstallDir';
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
   KeyInstallExamples    = 'InstallExamples';
@@ -2515,6 +2529,7 @@ procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; 
   var
     Info : TSearchRec;
   begin
+    Writeln('Searching ',Searchdir);
     if FindFirst(SearchDir+AllFilesMask,faAnyFile and faDirectory,Info)=0 then
     begin
       repeat
@@ -2599,6 +2614,16 @@ begin
     Result:=ExecutableName+ExeExt
   else
     Result:=ExecutableName;
+end;
+
+function AddLibraryExtension(const LibraryName: string; AOS : TOS): string;
+begin
+  if AOS in [Go32v2,Win32,Win64,Wince,OS2,EMX,Watcom] then
+    Result:=LibraryName+DLLExt
+  else if aOS in [darwin,macos,iphonesim] then
+    Result:=LibraryName+DyLibExt
+  else  
+    Result:=LibraryName+SharedLibExt;
 end;
 
 function GetImportLibraryFilename(const UnitName: string; AOS: TOS): string;
@@ -3346,6 +3371,36 @@ begin
 end;
 
 
+Function TTargets.AddLibrary(Const ALibraryName : String) : TTarget;
+begin
+  Result:=AddLibrary(ALibraryName,AllCPUs,AllOSes);
+end;
+
+
+Function TTargets.AddLibrary(Const ALibraryName : String;const OSes:TOSes) : TTarget;
+begin
+  Result:=AddLibrary(ALibraryName,AllCPUs,OSes);
+end;
+
+
+{$ifdef cpu_only_overloads}
+Function TTargets.AddLibrary(Const ALibraryName : String;const CPUs:TCPUs) : TTarget;
+begin
+  Result:=AddLibrary(ALibraryName,CPUs,AllOSes);
+end;
+{$endif cpu_only_overloads}
+
+
+Function TTargets.AddLibrary(Const ALibraryName : String;const CPUs:TCPUs;const OSes:TOSes) : TTarget;
+begin
+  Result:=Add as TTarget;
+  Result.Name:=ALibraryName;
+  Result.CPUs:=CPUs;
+  Result.OSes:=OSes;
+  Result.TargetType:=ttSharedLibrary;
+end;
+
+
 Function TTargets.AddExampleUnit(Const AUnitName : String) : TTarget;
 begin
   Result:=AddExampleUnit(AUnitName,AllCPUs,AllOSes);
@@ -3679,7 +3734,7 @@ end;
 
 procedure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS);
 Var
-  OB,OU : String;
+  OB,OU,OL : String;
   I : Integer;
   T : TTarget;
 begin
@@ -4267,6 +4322,17 @@ begin
       Result:=BaseInstallDir+'bin'+pathdelim+MakeTargetString(Defaults.cpu, Defaults.OS);
 end;
 
+function TCustomDefaults.GetLibInstallDir: String;
+begin
+  If (FLibInstallDir<>'') then
+    Result:=FLibInstallDir
+  else
+    If UnixPaths then
+      Result:=Prefix+'lib'
+    else
+      Result:=BaseInstallDir+'bin'+pathdelim+MakeTargetString(Defaults.cpu, Defaults.OS);
+end;
+
 
 function TCustomDefaults.GetCompiler: String;
 begin
@@ -4425,7 +4491,9 @@ begin
     FBaseInstallDir:='';
   GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
   GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
+  GlobalDictionary.AddVariable('libinstalldir',LibInstallDir);
   BinInstallDir:='';
+  LibInstallDir:='';
   ExamplesInstallDir:='';
 end;
 
@@ -4456,6 +4524,7 @@ begin
   FPrefix:=AValue;
   GlobalDictionary.AddVariable('prefix',Prefix);
   GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
+  GlobalDictionary.AddVariable('libinstalldir',LibInstallDir);
   BaseInstallDir:='';
 end;
 
@@ -4677,6 +4746,7 @@ begin
       Values[KeyBaseInstallDir]:=FBaseInstallDir;
       Values[KeyUnitInstallDir]:=FUnitInstallDir;
       Values[KeyBinInstallDir]:=FBinInstallDir;
+      Values[KeyLibInstallDir]:=FLibInstallDir;
       Values[KeyDocInstallDir]:=FDocInstallDir;
       Values[KeyExamplesInstallDir]:=FExamplesInstallDir;
       Values[KeyRemove]:=FRemove;
@@ -4746,6 +4816,7 @@ begin
       FBaseInstallDir:=Values[KeyBaseInstallDir];
       FUnitInstallDir:=Values[KeyUnitInstallDir];
       FBinInstallDir:=Values[KeyBinInstallDir];
+      FLibInstallDir:=Values[KeyLibInstallDir];
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
       FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
@@ -4757,6 +4828,7 @@ begin
       GlobalDictionary.AddVariable('baseinstalldir',BaseInstallDir);
       GlobalDictionary.AddVariable('prefix',Prefix);
       GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
+      GlobalDictionary.AddVariable('libinstalldir',LibInstallDir);
       end;
   Finally
     L.Free;
@@ -4813,6 +4885,7 @@ begin
   AnalyzeOptions;
   GlobalDictionary.AddVariable('baseinstalldir',Defaults.BaseInstallDir);
   GlobalDictionary.AddVariable('bininstalldir',Defaults.BinInstallDir);
+  GlobalDictionary.AddVariable('libinstalldir',Defaults.LibInstallDir);
   GlobalDictionary.AddVariable('Target',Defaults.Target);
   GlobalDictionary.AddVariable('BuildString',Defaults.BuildString);
   GlobalDictionary.AddVariable('Prefix',Defaults.Prefix);
@@ -5131,7 +5204,7 @@ begin
       end
     else if Checkoption(I,'t','target') then
       Defaults.Target:=OptionArg(I)
-    else if CheckOption(I,'l','list-commands') then
+    else if CheckOption(I,'lc','list-commands') then
       FListMode:=True
     else if Checkoption(I,'P','prefix') then
       Defaults.Prefix:=OptionArg(I)
@@ -5149,8 +5222,10 @@ begin
 {$endif NO_THREADING}
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
-    else if CheckOption(I,'B','bininstalldir') then
+    else if CheckOption(I,'BI','bininstalldir') then
       Defaults.BinInstallDir:=OptionArg(I)
+    else if CheckOption(I,'LI','libinstalldir') then
+      Defaults.LibInstallDir:=OptionArg(I)
     else if CheckOption(I,'U','unitinstalldir') then
       Defaults.UnitInstallDir:=OptionArg(I)
     else if CheckOption(I,'UL','localunitdir') then
@@ -5276,6 +5351,8 @@ begin
   LogArgOption('t','target',SHelpTarget);
   LogArgOption('P','prefix',SHelpPrefix);
   LogArgOption('B','baseinstalldir',SHelpBaseInstalldir);
+  LogArgOption('BI','bininstalldir',SHelpBaseInstalldir);
+  LogArgOption('LI','libinstalldir',SHelpBaseInstalldir);
   LogArgOption('UL','localunitdir',SHelpLocalUnitdir);
   LogArgOption('UG','globalunitdir',SHelpGlobalUnitdir);
   LogArgOption('sp','searchpath',SHelpSearchPath);
@@ -6336,6 +6413,7 @@ begin
 
             case T.TargetType of
               ttProgram,
+              ttSharedLibrary,
               ttUnit,
               ttImplicitUnit :
                 begin
@@ -6890,7 +6968,7 @@ begin
   If Assigned(ATarget.BeforeCompile) then
     ATarget.BeforeCompile(ATarget);
 
-  if (APackage.BuildMode=bmBuildUnit) and not (ATarget.TargetType in [ttProgram,ttExampleProgram]) then
+  if (APackage.BuildMode=bmBuildUnit) and not (ATarget.TargetType in [ttProgram,ttSharedLibrary,ttExampleProgram]) then
     begin
       APackage.FBUTarget.Dependencies.AddUnit(ATarget.Name).FTargetFileName:=ATarget.TargetSourceFileName;
     end
@@ -7335,6 +7413,7 @@ begin
           begin
             ProcessCompileTarget;
           end;
+        ttSharedLibrary,  
         ttProgram:
           begin // do nothing, are compiled later
           end;
@@ -7365,7 +7444,7 @@ begin
     For I:=0 to APackage.Targets.Count-1 do
       begin
         T:=APackage.Targets.TargetItems[i];
-        if T.TargetType=ttProgram then
+        if T.TargetType in [ttProgram,ttSharedLibrary] then
           begin
             ProcessCompileTarget;
           end;
@@ -7612,6 +7691,9 @@ begin
     // Programs
     D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
     InstallPackageFiles(APAckage,[ttProgram],D, imInstall);
+    // Shared libraries
+    D:=IncludeTrailingPathDelimiter(Defaults.LibInstallDir);
+    InstallPackageFiles(APAckage,[ttSharedLibrary],D, imInstall);
     //InstallPackageFiles(APAckage,ttExampleProgram,D);
     // Documentation
     D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.DocInstallDir), True);
@@ -7673,6 +7755,10 @@ begin
   // Programs
   D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
   InstallPackageFiles(APAckage,[ttProgram],D, imUnInstall);
+  SysDeleteDirectory(D);
+  // Libraries
+  D:=IncludeTrailingPathDelimiter(Defaults.LibInstallDir);
+  InstallPackageFiles(APAckage,[ttSharedLibrary],D, imUnInstall);
   SysDeleteDirectory(D);
   // Documentation
   D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.DocInstallDir), True);
@@ -8473,11 +8559,24 @@ begin
   result := Name + DbgExt;
 end;
 
+function TTarget.GetLibraryFileName(AOS : TOS): String;
+begin
+  result := AddLibraryExtension(Name, AOS);
+end;
+
+
+function TTarget.GetLibraryDebugFileName(AOS: TOS): String;
+begin
+  result := Name + DbgExt;
+end;
+
 
 function TTarget.GetOutputFileName(AOs: TOS): String;
 begin
   if TargetType in UnitTargets then
     Result:=GetUnitFileName
+  else if TargetType=ttSharedLibrary then
+    Result:=GetLibraryFileName(AOs)
   else
     Result:=GetProgramFileName(AOs);
 end;
@@ -8524,6 +8623,12 @@ begin
     List.Add(APrefixB + GetProgramFileName(AOS));
     if FileExists(APrefixB + GetProgramDebugFileName(AOS)) then
       List.Add(APrefixB + GetProgramDebugFileName(AOS));
+    end
+  else If (TargetType in [ttSharedLibrary]) then
+    begin
+    List.Add(APrefixB + GetLibraryFileName(AOS));
+    if FileExists(APrefixB + GetLibraryDebugFileName(AOS)) then
+      List.Add(APrefixB + GetLibraryDebugFileName(AOS));
     end;
   If ResourceStrings then
     begin
@@ -8542,7 +8647,7 @@ var
   UnitsDir : string;
 begin
   UnitsDir := Installer.BuildEngine.AddPathPrefix(nil, APrefixU);
-  If Not (TargetType in [ttProgram,ttExampleProgram]) and FileExists(UnitsDir + ObjectFileName) then
+  If Not (TargetType in [ttProgram,ttSharedLibrary,ttExampleProgram]) and FileExists(UnitsDir + ObjectFileName) then
     // The compiler does not create an objectfile for all programs.
     List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
@@ -8554,7 +8659,9 @@ begin
         List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
-    List.Add(APrefixB + GetProgramFileName(AOS));
+    List.Add(APrefixB + GetProgramFileName(AOS))
+  else If (TargetType in [ttSharedLibrary]) then
+    List.Add(APrefixB + GetLibraryFileName(AOS));
   If ResourceStrings then
     begin
       // choose between 2 possible resource files
