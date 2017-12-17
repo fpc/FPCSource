@@ -8562,6 +8562,8 @@ end;
 function TTarget.GetLibraryFileName(AOS : TOS): String;
 begin
   result := AddLibraryExtension(Name, AOS);
+  if aOS in AllUnixOSes then
+    Result:='lib'+Result;
 end;
 
 
