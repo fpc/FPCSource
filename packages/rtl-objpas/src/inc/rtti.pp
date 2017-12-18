@@ -758,7 +758,6 @@ end;
 
 function TRttiPool.GetType(ATypeInfo: PTypeInfo): TRttiType;
 var
-  i: integer;
   obj: TRttiObject;
 begin
   if not Assigned(ATypeInfo) then
