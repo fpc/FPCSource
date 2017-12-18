@@ -383,9 +383,11 @@ type
     class function GetVersion(ShortVersion: boolean): string;
     procedure WriteHelp;
     procedure WriteLogo;
+    procedure WriteVersionLine;
     procedure WriteOptions;
     procedure WriteDefines;
     procedure WriteFoldersAndSearchPaths;
+    procedure WriteInfo;
     function GetShownMsgTypes: TMessageTypes;
 
     procedure AddDefine(const aName: String);
@@ -433,6 +435,11 @@ function CompareFileAndCompilerFilePasFile(Filename, Item: Pointer): integer;
 function CompareCompilerFilesPasUnitname(Item1, Item2: Pointer): integer;
 function CompareUnitnameAndCompilerFile(TheUnitname, Item: Pointer): integer;
 
+function GetCompiledDate: string;
+function GetCompiledFPCVersion: string;
+function GetCompiledTargetOS: string;
+function GetCompiledTargetCPU: string;
+
 implementation
 
 function CompareCompilerFilesPasFile(Item1, Item2: Pointer): integer;
@@ -468,6 +475,27 @@ begin
   anUnitname:=AnsiString(TheUnitname);
   Result:=CompareText(anUnitname,aFile.PasUnitName);
 end;
+
+function GetCompiledDate: string;
+begin
+  Result:={$I %Date%};
+end;
+
+function GetCompiledFPCVersion: string;
+begin
+  Result:={$I %FPCVERSION%};
+end;
+
+function GetCompiledTargetOS: string;
+begin
+  Result:=lowerCase({$I %FPCTARGETOS%});
+end;
+
+function GetCompiledTargetCPU: string;
+begin
+  Result:=lowerCase({$I %FPCTARGETCPU%});
+end;
+
 
 { TPas2jsMacroEngine }
 
@@ -2042,6 +2070,13 @@ procedure TPas2jsCompiler.ReadParam(Param: string; Quick, FromCmdLine: boolean);
     ParamFatal('unknown parameter "'+Param+'". Use -h for help.');
   end;
 
+  procedure AppendInfo(var Value: string; Add: string);
+  begin
+    if Value<>'' then
+      Value:=Value+' ';
+    Value:=Value+Add;
+  end;
+
 var
   p: PChar;
   EnabledFlags, DisabledFlags, Identifier, Value, aFilename, ErrorMsg: string;
@@ -2074,16 +2109,57 @@ begin
       'i':
         begin
           // write information and halt
-          for i:=3 to length(Param) do begin
-            case Param[i] of
+          inc(p);
+          Value:='';
+          repeat
+            case p^ of
+            #0:
+              if p-PChar(Param)=length(Param) then
+                begin
+                if length(Param)=2 then
+                  WriteInfo;
+                break;
+                end;
+            'D': // wite compiler date
+              AppendInfo(Value,GetCompiledDate);
             'V': // write short version
-              Log.LogRaw(GetVersion(true));
+              AppendInfo(Value,GetVersion(true));
             'W': // write long version
-              Log.LogRaw(GetVersion(false));
+              AppendInfo(Value,GetVersion(false));
+            'S':
+              begin
+              inc(p);
+              case p^ of
+              #0:
+                ParamFatal('missing info option after S in "'+Param+'".');
+              'O': // write source OS
+                AppendInfo(Value,GetCompiledTargetOS);
+              'P': // write source processor
+                AppendInfo(Value,GetCompiledTargetCPU);
+              else
+                ParamFatal('unknown info option S"'+p^+'" in "'+Param+'".');
+              end;
+              end;
+            'T':
+              begin
+              inc(p);
+              case p^ of
+              #0:
+                ParamFatal('missing info option after T in "'+Param+'".');
+              'O': // write target platform
+                AppendInfo(Value,PasToJsPlatformNames[TargetPlatform]);
+              'P': // write target processor
+                AppendInfo(Value,PasToJsProcessorNames[TargetProcessor]);
+              else
+                ParamFatal('unknown info option S"'+p^+'" in "'+Param+'".');
+              end;
+              end;
             else
-              ParamFatal('unknown info option "'+Param[i]+'" in "'+Param+'".');
+              ParamFatal('unknown info option "'+p^+'" in "'+Param+'".');
             end;
-          end;
+            inc(p);
+          until false;
+          Log.LogRaw(Value);
           Terminate(0);
         end;
       'B','l','n':
@@ -2911,7 +2987,12 @@ begin
   l('  @<x>    : Read compiler options from file <x> in addition to the default '+DefaultConfigFile);
   l('  -B      : Rebuild all');
   l('  -d<x>   : Defines the symbol <x>. Optional: -d<x>:=<value>');
-  l('  -i<x>   : Write information and halt. <x> is a combination of the following letters:');
+  l('  -i<x>   : Write information and halt. <x> is a combination of the following:');
+  l('    D     : Write compiler date');
+  l('    SO    : Write compiler OS');
+  l('    SP    : Write compiler host processor');
+  l('    TO    : Write target platform');
+  l('    TP    : Write target processor');
   l('    V     : Write short compiler version');
   l('    W     : Write full compiler version');
   l('  -F...   Set file names and paths:');
@@ -2992,8 +3073,13 @@ procedure TPas2jsCompiler.WriteLogo;
 begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
-  Log.LogRaw('Pas2JS Compiler version '+GetVersion(false));
+  WriteVersionLine;
   Log.LogRaw('Copyright (c) 2017 Mattias Gaertner and others');
+end;
+
+procedure TPas2jsCompiler.WriteVersionLine;
+begin
+  Log.LogRaw('Pas2JS Compiler version '+GetVersion(false));
 end;
 
 procedure TPas2jsCompiler.WriteOptions;
@@ -3060,6 +3146,43 @@ begin
     WriteFolder('include path',FileCache.IncludePaths[i]);
   WriteFolder('unit output path',FileCache.UnitOutputPath);
   Log.LogMsgIgnoreFilter(nNameValue,['output file',FileCache.MainJSFile]);
+end;
+
+procedure TPas2jsCompiler.WriteInfo;
+begin
+  WriteVersionLine;
+  Log.LogLn;
+  Log.LogRaw('Compiler date      : '+GetCompiledDate);
+  Log.LogRaw('Compiler CPU target: '+GetCompiledTargetCPU);
+  Log.LogLn;
+  Log.LogRaw('Supported targets (targets marked with ''{*}'' are under development):');
+  Log.LogRaw(['  ',PasToJsPlatformNames[PlatformBrowser],': webbrowser']);
+  Log.LogRaw(['  ',PasToJsPlatformNames[PlatformNodeJS],': Node.js']);
+  Log.LogLn;
+  Log.LogRaw('Supported CPU instruction sets:');
+  Log.LogRaw('  ECMAScript5, ECMAScript6');
+  Log.LogLn;
+  Log.LogRaw('Recognized compiler and RTL features:');
+  Log.LogRaw('  RTTI,CLASSES,EXCEPTIONS,EXITCODE,RANDOM,DYNARRAYS,COMMANDARGS,');
+  Log.LogRaw('  UNICODESTRINGS');
+  Log.LogLn;
+  Log.LogRaw('Supported Optimizations:');
+  Log.LogRaw('  EnumNumbers');
+  Log.LogRaw('  RemoveNotUsedPrivates');
+  Log.LogLn;
+  Log.LogRaw('Supported Whole Program Optimizations:');
+  Log.LogRaw('  RemoveNotUsedDeclarations');
+  Log.LogLn;
+  Log.LogRaw('This program comes under the Library GNU General Public License');
+  Log.LogRaw('For more information read COPYING.FPC, included in this distribution');
+  Log.LogLn;
+  Log.LogRaw('Please report bugs in our bug tracker on:');
+  Log.LogRaw('                 http://bugs.freepascal.org');
+  Log.LogLn;
+  Log.LogRaw('More information may be found on our WWW pages (including directions');
+  Log.LogRaw('for mailing lists useful for asking questions or discussing potential');
+  Log.LogRaw('new features, etc.):');
+  Log.LogRaw('                 http://www.freepascal.org');
 end;
 
 function TPas2jsCompiler.GetShownMsgTypes: TMessageTypes;
