@@ -525,6 +525,30 @@ type
     constructor Create(AVmtMethodParam: PVmtMethodParam);
   end;
 
+  TRttiIntfMethod = class(TRttiMethod)
+  private
+    FIntfMethodEntry: PIntfMethodEntry;
+    FIndex: SmallInt;
+    FParams: specialize TArray<TRttiParameter>;
+  protected
+    function GetHandle: Pointer; override;
+    function GetName: String; override;
+    function GetCallingConvention: TCallConv; override;
+    function GetCodeAddress: CodePointer; override;
+    function GetDispatchKind: TDispatchKind; override;
+    function GetHasExtendedInfo: Boolean; override;
+    function GetIsClassMethod: Boolean; override;
+    function GetIsConstructor: Boolean; override;
+    function GetIsDestructor: Boolean; override;
+    function GetIsStatic: Boolean; override;
+    function GetMethodKind: TMethodKind; override;
+    function GetReturnType: TRttiType; override;
+    function GetVirtualIndex: SmallInt; override;
+  public
+    constructor Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
+    function GetParameters: specialize TArray<TRttiParameter>; override;
+  end;
+
 resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
   SErrUnableToSetValueForType = 'Unable to set value for type %s';
@@ -1126,6 +1150,134 @@ constructor TRttiVmtMethodParameter.Create(AVmtMethodParam: PVmtMethodParam);
 begin
   inherited Create;
   FVmtMethodParam := AVmtMethodParam;
+end;
+
+{ TRttiIntfMethod }
+
+function TRttiIntfMethod.GetHandle: Pointer;
+begin
+  Result := FIntfMethodEntry;
+end;
+
+function TRttiIntfMethod.GetName: String;
+begin
+  Result := FIntfMethodEntry^.Name;
+end;
+
+function TRttiIntfMethod.GetCallingConvention: TCallConv;
+begin
+  Result := FIntfMethodEntry^.CC;
+end;
+
+function TRttiIntfMethod.GetCodeAddress: CodePointer;
+begin
+  Result := Nil;
+end;
+
+function TRttiIntfMethod.GetDispatchKind: TDispatchKind;
+begin
+  Result := dkInterface;
+end;
+
+function TRttiIntfMethod.GetHasExtendedInfo: Boolean;
+begin
+  Result := True;
+end;
+
+function TRttiIntfMethod.GetIsClassMethod: Boolean;
+begin
+  Result := False;
+end;
+
+function TRttiIntfMethod.GetIsConstructor: Boolean;
+begin
+  Result := False;
+end;
+
+function TRttiIntfMethod.GetIsDestructor: Boolean;
+begin
+  Result := False;
+end;
+
+function TRttiIntfMethod.GetIsStatic: Boolean;
+begin
+  Result := False;
+end;
+
+function TRttiIntfMethod.GetMethodKind: TMethodKind;
+begin
+  Result := FIntfMethodEntry^.Kind;
+end;
+
+function TRttiIntfMethod.GetReturnType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(FIntfMethodEntry^.ResultType) then
+    Exit(Nil);
+
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(FIntfMethodEntry^.ResultType^);
+  finally
+    context.Free;
+  end;
+end;
+
+function TRttiIntfMethod.GetVirtualIndex: SmallInt;
+begin
+  Result := FIndex;
+end;
+
+constructor TRttiIntfMethod.Create(AParent: TRttiType; AIntfMethodEntry: PIntfMethodEntry; AIndex: SmallInt);
+begin
+  inherited Create(AParent);
+  FIntfMethodEntry := AIntfMethodEntry;
+  FIndex := AIndex;
+end;
+
+function TRttiIntfMethod.GetParameters: specialize TArray<TRttiParameter>;
+var
+  param: PVmtMethodParam;
+  total, visible: SizeInt;
+  context: TRttiContext;
+  obj: TRttiObject;
+begin
+  if Length(FParams) > 0 then
+    Exit(FParams);
+
+  if FIntfMethodEntry^.ParamCount = 0 then
+    Exit(Nil);
+
+  SetLength(FParams, FIntfMethodEntry^.ParamCount);
+
+  context := TRttiContext.Create;
+  try
+    total := 0;
+    visible := 0;
+    param := FIntfMethodEntry^.Param[0];
+    while total < FIntfMethodEntry^.ParamCount do begin
+      if not (pfHidden in param^.Flags) then begin
+        obj := context.GetByHandle(param);
+        if Assigned(obj) then
+          FParams[visible] := obj as TRttiVmtMethodParameter
+        else begin
+          FParams[visible] := TRttiVmtMethodParameter.Create(param);
+          context.AddObject(FParams[visible]);
+        end;
+        Inc(visible);
+      end;
+
+      param := param^.Next;
+      Inc(total);
+    end;
+
+    SetLength(FParams, visible);
+  finally
+    context.Free;
+  end;
+
+  Result := FParams;
 end;
 
 { TRttiFloatType }
