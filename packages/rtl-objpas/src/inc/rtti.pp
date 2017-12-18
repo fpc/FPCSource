@@ -334,6 +334,8 @@ type
 
   TRttiInterfaceType = class(TRttiType)
   protected
+    function IntfMethodCount: Word;
+    function MethodTable: PIntfMethodTable; virtual; abstract;
     function GetBaseType: TRttiType; override;
     function GetIntfBaseType: TRttiInterfaceType; virtual; abstract;
     function GetDeclaringUnitName: String; virtual; abstract;
@@ -494,6 +496,7 @@ type
   private
     function IntfData: PInterfaceData; inline;
   protected
+    function MethodTable: PIntfMethodTable; override;
     function GetIntfBaseType: TRttiInterfaceType; override;
     function GetDeclaringUnitName: String; override;
     function GetGUID: TGUID; override;
@@ -505,6 +508,7 @@ type
   private
     function IntfData: PInterfaceRawData; inline;
   protected
+    function MethodTable: PIntfMethodTable; override;
     function GetIntfBaseType: TRttiInterfaceType; override;
     function GetDeclaringUnitName: String; override;
     function GetGUID: TGUID; override;
@@ -1032,6 +1036,11 @@ begin
   Result := PInterfaceData(FTypeData);
 end;
 
+function TRttiRefCountedInterfaceType.MethodTable: PIntfMethodTable;
+begin
+  Result := IntfData^.MethodTable;
+end;
+
 function TRttiRefCountedInterfaceType.GetIntfBaseType: TRttiInterfaceType;
 var
   context: TRttiContext;
@@ -1072,6 +1081,12 @@ end;
 function TRttiRawInterfaceType.IntfData: PInterfaceRawData;
 begin
   Result := PInterfaceRawData(FTypeData);
+end;
+
+function TRttiRawInterfaceType.MethodTable: PIntfMethodTable;
+begin
+  { currently there is none! }
+  Result := Nil;
 end;
 
 function TRttiRawInterfaceType.GetIntfBaseType: TRttiInterfaceType;
@@ -2105,6 +2120,22 @@ begin
 end;
 
 { TRttiInterfaceType }
+
+function TRttiInterfaceType.IntfMethodCount: Word;
+var
+  parent: TRttiInterfaceType;
+  table: PIntfMethodTable;
+begin
+  parent := GetIntfBaseType;
+  if Assigned(parent) then
+    Result := parent.IntfMethodCount
+  else
+    Result := 0;
+
+  table := MethodTable;
+  if Assigned(table) then
+    Inc(Result, table^.Count);
+end;
 
 function TRttiInterfaceType.GetBaseType: TRttiType;
 begin
