@@ -43,6 +43,7 @@ uses
 type
   TRttiObject = class;
   TRttiType = class;
+  TRttiMethod = class;
   TRttiProperty = class;
   TRttiInstanceType = class;
 
@@ -177,6 +178,7 @@ type
   TRttiType = class(TRttiNamedObject)
   private
     FTypeInfo: PTypeInfo;
+    FMethods: specialize TArray<TRttiMethod>;
     function GetAsInstance: TRttiInstanceType;
   protected
     FTypeData: PTypeData;
@@ -194,6 +196,8 @@ type
     constructor create(ATypeInfo : PTypeInfo);
     function GetProperties: specialize TArray<TRttiProperty>; virtual;
     function GetProperty(const AName: string): TRttiProperty; virtual;
+    function GetMethods: specialize TArray<TRttiMethod>; virtual;
+    function GetDeclaredMethods: specialize TArray<TRttiMethod>; virtual;
     property IsInstance: boolean read GetIsInstance;
     property isManaged: boolean read GetIsManaged;
     property IsOrdinal: boolean read GetIsOrdinal;
@@ -2515,6 +2519,31 @@ begin
         result := FPropList[i];
         break;
       end;
+end;
+
+function TRttiType.GetMethods: specialize TArray<TRttiMethod>;
+var
+  parentmethods, selfmethods: specialize TArray<TRttiMethod>;
+  parent: TRttiType;
+begin
+  if Assigned(fMethods) then
+    Exit(fMethods);
+
+  selfmethods := GetDeclaredMethods;
+
+  parent := GetBaseType;
+  if Assigned(parent) then begin
+    parentmethods := parent.GetMethods;
+  end;
+
+  fMethods := Concat(parentmethods, selfmethods);
+
+  Result := fMethods;
+end;
+
+function TRttiType.GetDeclaredMethods: specialize TArray<TRttiMethod>;
+begin
+  Result := Nil;
 end;
 
 { TRttiNamedObject }
