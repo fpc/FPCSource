@@ -510,6 +510,18 @@ type
     function GetIntfType: TInterfaceType; override;
   end;
 
+  TRttiVmtMethodParameter = class(TRttiParameter)
+  private
+    FVmtMethodParam: PVmtMethodParam;
+  protected
+    function GetHandle: Pointer; override;
+    function GetName: String; override;
+    function GetFlags: TParamFlags; override;
+    function GetParamType: TRttiType; override;
+  public
+    constructor Create(AVmtMethodParam: PVmtMethodParam);
+  end;
+
 resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
   SErrUnableToSetValueForType = 'Unable to set value for type %s';
@@ -1073,6 +1085,44 @@ end;
 function TRttiRawInterfaceType.GetIntfType: TInterfaceType;
 begin
   Result := itRaw;
+end;
+
+{ TRttiVmtMethodParameter }
+
+function TRttiVmtMethodParameter.GetHandle: Pointer;
+begin
+  Result := FVmtMethodParam;
+end;
+
+function TRttiVmtMethodParameter.GetName: String;
+begin
+  Result := FVmtMethodParam^.Name;
+end;
+
+function TRttiVmtMethodParameter.GetFlags: TParamFlags;
+begin
+  Result := FVmtMethodParam^.Flags;
+end;
+
+function TRttiVmtMethodParameter.GetParamType: TRttiType;
+var
+  context: TRttiContext;
+begin
+  if not Assigned(FVmtMethodParam^.ParamType) then
+    Exit(Nil);
+
+  context := TRttiContext.Create;
+  try
+    Result := context.GetType(FVmtMethodParam^.ParamType^);
+  finally
+    context.Free;
+  end;
+end;
+
+constructor TRttiVmtMethodParameter.Create(AVmtMethodParam: PVmtMethodParam);
+begin
+  inherited Create;
+  FVmtMethodParam := AVmtMethodParam;
 end;
 
 { TRttiFloatType }
