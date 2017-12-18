@@ -267,6 +267,59 @@ type
     property Visibility: TMemberVisibility read GetVisibility;
   end;
 
+  TRttiParameter = class(TRttiNamedObject)
+  private
+    FString: String;
+  protected
+    function GetParamType: TRttiType; virtual; abstract;
+    function GetFlags: TParamFlags; virtual; abstract;
+  public
+    property ParamType: TRttiType read GetParamType;
+    property Flags: TParamFlags read GetFlags;
+    function ToString: String; override;
+  end;
+
+  TDispatchKind = (
+    dkStatic,
+    dkVtable,
+    dkDynamic,
+    dkMessage,
+    dkInterface,
+    { the following are FPC-only and will be moved should Delphi add more }
+    dkMessageString
+  );
+
+  TRttiMethod = class(TRttiMember)
+  private
+    FString: String;
+  protected
+    function GetCallingConvention: TCallConv; virtual; abstract;
+    function GetCodeAddress: CodePointer; virtual; abstract;
+    function GetDispatchKind: TDispatchKind; virtual; abstract;
+    function GetHasExtendedInfo: Boolean; virtual;
+    function GetIsClassMethod: Boolean; virtual; abstract;
+    function GetIsConstructor: Boolean; virtual; abstract;
+    function GetIsDestructor: Boolean; virtual; abstract;
+    function GetIsStatic: Boolean; virtual; abstract;
+    function GetMethodKind: TMethodKind; virtual; abstract;
+    function GetReturnType: TRttiType; virtual; abstract;
+    function GetVirtualIndex: SmallInt; virtual; abstract;
+  public
+    property CallingConvention: TCallConv read GetCallingConvention;
+    property CodeAddress: CodePointer read GetCodeAddress;
+    property DispatchKind: TDispatchKind read GetDispatchKind;
+    property HasExtendedInfo: Boolean read GetHasExtendedInfo;
+    property IsClassMethod: Boolean read GetIsClassMethod;
+    property IsConstructor: Boolean read GetIsConstructor;
+    property IsDestructor: Boolean read GetIsDestructor;
+    property IsStatic: Boolean read GetIsStatic;
+    property MethodKind: TMethodKind read GetMethodKind;
+    property ReturnType: TRttiType read GetReturnType;
+    property VirtualIndex: SmallInt read GetVirtualIndex;
+    function ToString: String; override;
+    function GetParameters: specialize TArray<TRttiParameter>; virtual; abstract;
+  end;
+
   TRttiStructuredType = class(TRttiType)
 
   end;
@@ -1735,6 +1788,103 @@ end;
 class operator TValue.:=(AValue: Boolean): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+{ TRttiParameter }
+
+function TRttiParameter.ToString: String;
+var
+  f: TParamFlags;
+  n: String;
+  t: TRttiType;
+begin
+  if FString = '' then begin
+    f := Flags;
+
+    if pfVar in f then
+      FString := 'var'
+    else if pfConst in f then
+      FString := 'const'
+    else if pfOut in f then
+      FString := 'out'
+    else if pfConstRef in f then
+      FString := 'constref';
+    if FString <> '' then
+      FString := FString + ' ';
+
+    n := Name;
+    if n = '' then
+      n := '<unknown>';
+    FString := FString + n;
+
+    t := ParamType;
+    if Assigned(t) then begin
+      FString := FString + ': ';
+      if pfArray in flags then
+        FString := 'array of ';
+      FString := FString + t.Name;
+    end;
+  end;
+
+  Result := FString;
+end;
+
+{ TRttiMethod }
+
+function TRttiMethod.GetHasExtendedInfo: Boolean;
+begin
+  Result := False;
+end;
+
+function TRttiMethod.ToString: String;
+var
+  ret: TRttiType;
+  n: String;
+  params: specialize TArray<TRttiParameter>;
+  i: LongInt;
+begin
+  if FString = '' then begin
+    n := Name;
+    if n = '' then
+      n := '<unknown>';
+    if not HasExtendedInfo then begin
+      FString := 'method ' + n;
+    end else begin
+      ret := ReturnType;
+
+      if IsClassMethod then
+        FString := 'class ';
+      if IsConstructor then
+        FString := FString + 'constructor'
+      else if IsDestructor then
+        FString := FString + 'destructor'
+      else if Assigned(ret) then
+        FString := FString + 'function'
+      else
+        FString := FString + 'procedure';
+
+      FString := FString + ' ' + n;
+
+      params := GetParameters;
+      if Length(params) > 0 then begin
+        FString := FString + '(';
+        for i := 0 to High(params) do begin
+          if i > 0 then
+            FString := FString + '; ';
+          FString := FString + params[i].ToString;
+        end;
+        FString := FString + ')';
+      end;
+
+      if Assigned(ret) then
+        FString := FString + ': ' + ret.Name;
+
+      if IsStatic then
+        FString := FString + '; static';
+    end;
+  end;
+
+  Result := FString;
 end;
 
 { TRttiStringType }
