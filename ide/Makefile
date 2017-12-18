@@ -2312,7 +2312,7 @@ endif
 endif # NOGDB
 ifndef GDBMI_IS_STATIC
 ifndef BUILDFULLNATIVE
-FPMAKE_OPT+=-sp
+FPMAKE_OPT+=-scp
 endif
 endif # GDBMI_IS_STATIC
 ifdef PPC_TARGET

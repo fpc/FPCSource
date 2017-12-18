@@ -73,7 +73,7 @@ endif # NOGDB
 ifndef GDBMI_IS_STATIC
 ifndef BUILDFULLNATIVE
 # Omit executable is only required if generated executable is not static
-FPMAKE_OPT+=-sp
+FPMAKE_OPT+=-scp
 endif
 endif # GDBMI_IS_STATIC
 
