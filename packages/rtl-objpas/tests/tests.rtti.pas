@@ -1288,6 +1288,11 @@ var
   context: TRttiContext;
   t: TRttiType;
   ti1, ti2: TRttiInterfaceType;
+  methods: {$ifdef fpc}specialize{$endif} TArray<TRttiMethod>;
+  params: {$ifdef fpc}specialize{$endif} TArray<TRttiParameter>;
+  method: TRttiMethod;
+  param: TRttiParameter;
+  flag: TParamFlag;
 begin
   context := TRttiContext.Create;
   try
@@ -1299,6 +1304,12 @@ begin
     ti1 := TRttiInterfaceType(t);
     Check(not Assigned(ti1.BaseType), 'Base type is assigned');
 
+    methods := t.GetMethods;
+    CheckEquals(0, Length(methods), 'Overall method count does not match');
+
+    methods := t.GetDeclaredMethods;
+    CheckEquals(0, Length(methods), 'Declared method conut does not match');
+
     t := context.GetType(TypeInfo(ITestInterface));
     Check(t is TRttiInterfaceType, 'Type is not an interface type');
 
@@ -1308,6 +1319,96 @@ begin
     ti2 := TRttiInterfaceType(t);
     Check(Assigned(ti2.BaseType), 'Base type is not assigned');
     Check(ti2.BaseType = ti1, 'Base type does not match');
+
+    methods := t.GetMethods;
+    CheckEquals(4, Length(methods), 'Overall method count does not match');
+
+    methods := t.GetDeclaredMethods;
+    CheckEquals(4, Length(methods), 'Declared method count does not match');
+
+    method := methods[0];
+    CheckEquals(method.Name, 'Test', 'Method name of Test does not match');
+    Check(method.CallingConvention = ccReg, 'Calling convention of Test does not match');
+    Check(method.MethodKind = mkProcedure, 'Method kind of Test does not match');
+    Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test does not match');
+    Check(not Assigned(method.CodeAddress), 'Code address of Test is not Nil');
+    CheckEquals(method.VirtualIndex, 3, 'Virtual index of Test does not match');
+    Check(not Assigned(method.ReturnType), 'Return type of Test is not Nil');
+    params := method.GetParameters;
+    CheckEquals(0, Length(params), 'Parameter count of Test does not match');
+
+    method := methods[1];
+    CheckEquals(method.Name, 'Test2', 'Method name of Test2 does not match');
+    Check(method.CallingConvention = ccReg, 'Calling convention of Test2 does not match');
+    Check(method.MethodKind = mkFunction, 'Method kind of Test2 does not match');
+    Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test2 does not match');
+    Check(not Assigned(method.CodeAddress), 'Code address of Test2 is not Nil');
+    CheckEquals(method.VirtualIndex, 4, 'Virtual index of Test2 does not match');
+    Check(Assigned(method.ReturnType), 'Return type of Test2 is Nil');
+    Check(method.ReturnType.TypeKind = tkInteger, 'Return type of Test2 is not an ordinal');
+    params := method.GetParameters;
+    CheckEquals(0, Length(params), 'Parameter count of Test2 does not match');
+
+    method := methods[2];
+    CheckEquals(method.Name, 'Test3', 'Method name of Test3 does not match');
+    Check(method.CallingConvention = ccReg, 'Calling convention of Test3 does not match');
+    Check(method.MethodKind = mkProcedure, 'Method kind of Test3 does not match');
+    Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test3 does not match');
+    Check(not Assigned(method.CodeAddress), 'Code address of Test3 is not Nil');
+    CheckEquals(method.VirtualIndex, 5, 'Virtual index of Test3 does not match');
+    Check(not Assigned(method.ReturnType), 'Return type of Test3 is not Nil');
+
+    params := method.GetParameters;
+    CheckEquals(4, Length(params), 'Parameter count of Test3 does not match');
+
+    param := params[0];
+    CheckEquals(param.Name, 'aArg1', 'Parameter name of Test3.aArg1 does not match');
+    Check(param.Flags = [], 'Parameter flags of Test3.aArg1 do not match');
+    Check(Assigned(param.ParamType), 'Parameter type of Test3.aArg1 is Nil');
+    Check(param.ParamType.TypeKind = tkInteger, 'Parameter type of Test3.aArg1 is not an ordinal');
+
+    param := params[1];
+    CheckEquals(param.Name, 'aArg2', 'Parameter name of Test3.aArg2 does not match');
+    Check(param.Flags = [pfConst], 'Parameter flags of Test3.aArg2 do not match');
+    Check(Assigned(param.ParamType), 'Parameter type of Test3.aArg2 is Nil');
+    Check(param.ParamType.TypeKind = tkAnsiString, 'Parameter type of Test3.aArg2 is not a string');
+
+    param := params[2];
+    CheckEquals(param.Name, 'aArg3', 'Parameter name of Test3.aArg3 does not match');
+    Check(param.Flags = [pfVar], 'Parameter flags of Test3.aArg3 do not match');
+    Check(Assigned(param.ParamType), 'Parameter type of Test3.aArg3 is Nil');
+    Check(param.ParamType.TypeKind = {$ifdef fpc}tkBool{$else}tkEnumeration{$endif}, 'Parameter type of Test3.aArg3 is not a boolean');
+
+    param := params[3];
+    CheckEquals(param.Name, 'aArg4', 'Parameter name of Test3.aArg4 does not match');
+    Check(param.Flags = [pfOut], 'Parameter flags of Test3.aArg4 do not match');
+    Check(Assigned(param.ParamType), 'Parameter type of Test3.aArg4 is Nil');
+    Check(param.ParamType.TypeKind = tkInteger, 'Parameter type of Test3.aArg4 is not a string');
+
+    method := methods[3];
+    CheckEquals(method.Name, 'Test4', 'Method name of Test4 does not match');
+    Check(method.CallingConvention = ccReg, 'Calling convention of Test4 does not match');
+    Check(method.MethodKind = mkFunction, 'Method kind of Test4 does not match');
+    Check(method.DispatchKind = dkInterface, 'Dispatch kind of Test4 does not match');
+    Check(not Assigned(method.CodeAddress), 'Code address of Test4 is not Nil');
+    CheckEquals(method.VirtualIndex, 6, 'Virtual index of Test4 does not match');
+    Check(Assigned(method.ReturnType), 'Return type of Test4 is not Nil');
+    Check(method.ReturnType.TypeKind = tkAnsiString, 'Return type of Test4 is not a string');
+
+    params := method.GetParameters;
+    CheckEquals(2, Length(params), 'Parameter count of Test4 does not match');
+
+    param := params[0];
+    CheckEquals(param.Name, 'aArg1', 'Parameter name of Test4.aArg1 does not match');
+    Check(param.Flags = [pfArray, pfReference], 'Parameter flags of Test4.aArg1 do not match');
+    Check(Assigned(param.ParamType), 'Parameter type of Test4.aArg1 is Nil');
+    Check(param.ParamType.TypeKind = tkInteger, 'Parameter type of Test4.aArg1 is not an ordinal');
+
+    param := params[1];
+    CheckEquals(param.Name, 'aArg2', 'Parameter name of Test4.aArg2 does not match');
+    Check(param.Flags = [pfArray, pfReference], 'Parameter flags of Test4.aArg2 do not match');
+    Check(Assigned(param.ParamType), 'Parameter type of Test4.aArg2 is Nil');
+    Check(param.ParamType.TypeKind = tkRecord, 'Parameter type of Test4.aArg2 is not a record');
   finally
     context.Free;
   end;
