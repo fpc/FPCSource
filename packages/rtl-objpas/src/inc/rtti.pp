@@ -41,6 +41,7 @@ uses
   typinfo;
 
 type
+  TRttiObject = class;
   TRttiType = class;
   TRttiProperty = class;
   TRttiInstanceType = class;
@@ -143,6 +144,8 @@ type
   TRttiContext = record
   private
     FContextToken: IInterface;
+    function GetByHandle(AHandle: Pointer): TRttiObject;
+    procedure AddObject(AObject: TRttiObject);
   public
     class function Create: TRttiContext; static;
     procedure  Free;
@@ -2348,6 +2351,20 @@ end;
 procedure TRttiContext.Free;
 begin
   FContextToken := nil;
+end;
+
+function TRttiContext.GetByHandle(AHandle: Pointer): TRttiObject;
+begin
+  if not Assigned(FContextToken) then
+    FContextToken := TPoolToken.Create;
+  Result := (FContextToken as IPooltoken).RttiPool.GetByHandle(AHandle);
+end;
+
+procedure TRttiContext.AddObject(AObject: TRttiObject);
+begin
+  if not Assigned(FContextToken) then
+    FContextToken := TPoolToken.Create;
+  (FContextToken as IPooltoken).RttiPool.AddObject(AObject);
 end;
 
 function TRttiContext.GetType(ATypeInfo: PTypeInfo): TRttiType;
