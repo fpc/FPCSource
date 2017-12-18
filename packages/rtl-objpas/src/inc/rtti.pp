@@ -337,6 +337,8 @@ type
   );
 
   TRttiInterfaceType = class(TRttiType)
+  private
+    fDeclaredMethods: specialize TArray<TRttiMethod>;
   protected
     function IntfMethodCount: Word;
     function MethodTable: PIntfMethodTable; virtual; abstract;
@@ -354,6 +356,7 @@ type
     property GUIDStr: String read GetGUIDStr;
     property IntfFlags: TIntfFlags read GetIntfFlags;
     property IntfType: TInterfaceType read GetIntfType;
+    function GetDeclaredMethods: specialize TArray<TRttiMethod>; override;
   end;
 
   { TRttiInstanceType }
@@ -2149,6 +2152,58 @@ end;
 function TRttiInterfaceType.GetGUIDStr: String;
 begin
   Result := GUIDToString(GUID);
+end;
+
+function TRttiInterfaceType.GetDeclaredMethods: specialize TArray<TRttiMethod>;
+var
+  methtable: PIntfMethodTable;
+  count, index: Word;
+  method: PIntfMethodEntry;
+  context: TRttiContext;
+  obj: TRttiObject;
+  parent: TRttiInterfaceType;
+  parentmethodcount: Word;
+begin
+  if Assigned(fDeclaredMethods) then
+    Exit(fDeclaredMethods);
+
+  methtable := MethodTable;
+  if not Assigned(methtable) then
+    Exit(Nil);
+
+  if (methtable^.Count = 0) or (methtable^.RTTICount = $ffff) then
+    Exit(Nil);
+
+  parent := GetIntfBaseType;
+  if Assigned(parent) then
+    parentmethodcount := parent.IntfMethodCount
+  else
+    parentmethodcount := 0;
+
+  SetLength(fDeclaredMethods, methtable^.Count);
+
+  context := TRttiContext.Create;
+  try
+    method := methtable^.Method[0];
+    count := methtable^.Count;
+    while count > 0 do begin
+      index := methtable^.Count - count;
+      obj := context.GetByHandle(method);
+      if Assigned(obj) then
+        fDeclaredMethods[index] := obj as TRttiMethod
+      else begin
+        fDeclaredMethods[index] := TRttiIntfMethod.Create(Self, method, parentmethodcount + index);
+        context.AddObject(fDeclaredMethods[index]);
+      end;
+
+      method := method^.Next;
+      Dec(count);
+    end;
+  finally
+    context.Free;
+  end;
+
+  Result := fDeclaredMethods;
 end;
 
 { TRttiInstanceType }
