@@ -494,6 +494,7 @@ begin
       Path:=LeftStr(Mask,p-1);
       if FindFirst(Path,faAnyFile,Info)=0 then begin
         repeat
+          if (Info.Name='') or (Info.Name='.') or (Info.Name='..') then continue;
           Filename:=ExtractFilePath(Path)+Info.Name;
           if p>length(Mask) then begin
             // e.g. /path/unit*.pas
