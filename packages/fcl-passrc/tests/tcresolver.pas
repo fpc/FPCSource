@@ -3357,6 +3357,8 @@ begin
   '  TEnumRg = green..blue;',
   '  TSetOfEnum = set of TEnum;',
   '  TSetOfEnumRg = set of TEnumRg;',
+  '  TArrOfEnum = array[TEnum] of byte;',
+  '  TArrOfEnumRg = array[TEnumRg] of byte;',
   'var',
   '  e: TEnum;',
   '  er: TEnumRg;',
@@ -3365,8 +3367,13 @@ begin
   '  for e in TEnumRg do;',
   '  for e in TSetOfEnum do;',
   '  for e in TSetOfEnumRg do;',
+  '  for e in [red..green] do;',
+  '  for e in TArrOfEnum do;',
+  '  for e in TArrOfEnumRg do;',
   '  for er in TEnumRg do;',
   '  for er in TSetOfEnumRg do;',
+  '  for er in [green..blue] do;',
+  '  for er in TArrOfEnumRg do;',
   '']);
   ParseProgram;
 end;
