@@ -269,6 +269,7 @@ type
     Procedure TestEnum_Functions;
     Procedure TestEnum_AsParams;
     Procedure TestEnumRange_Array;
+    Procedure TestEnum_ForIn;
     Procedure TestSet;
     Procedure TestSet_Operators;
     Procedure TestSet_Operator_In;
@@ -292,7 +293,7 @@ type
     Procedure TestFunctionInt;
     Procedure TestFunctionString;
     Procedure TestForLoop;
-    Procedure TestForLoopInFunction;
+    Procedure TestForLoopInsideFunction;
     Procedure TestForLoop_ReadVarAfter;
     Procedure TestForLoop_Nested;
     Procedure TestRepeatUntil;
@@ -3256,6 +3257,54 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestEnum_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TEnumRg = green..blue;',
+  '  TArr = array[TEnum] of byte;',
+  '  TArrRg = array[TEnumRg] of byte;',
+  'var',
+  '  e: TEnum;',
+  '  a1: TArr = (3,4,5);',
+  '  a2: TArrRg = (11,12);',
+  '  b: byte;',
+  'begin',
+  '  for e in TEnum do ;',
+  '  for e in TEnumRg do ;',
+  '  for e in TArr do ;',
+  '  for e in TArrRg do ;',
+  '  for b in a1 do ;',
+  '  for b in a2 do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestEnum_ForIn',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Green",',
+    '  Green: 1,',
+    '  "2": "Blue",',
+    '  Blue: 2',
+    '};',
+    'this.e = 0;',
+    'this.a1 = [3, 4, 5];',
+    'this.a2 = [11, 12];',
+    'this.b = 0;',
+    '']),
+    LinesToStr([
+    '  for ($mod.e = 0; $mod.e <= 2; $mod.e++) ;',
+    '  for ($mod.e = 1; $mod.e <= 2; $mod.e++) ;',
+    '  for ($mod.e = 0; $mod.e <= 2; $mod.e++) ;',
+    '  for ($mod.e = 1; $mod.e <= 2; $mod.e++) ;',
+    '  for (var $in1 = $mod.a1, $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.b = $in1[$l2];',
+    '  for (var $in4 = $mod.a2, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.b = $in4[$l5];',
+    '']));
+end;
+
 procedure TTestModule.TestSet;
 begin
   StartProgram(false);
@@ -4790,7 +4839,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestForLoopInFunction;
+procedure TTestModule.TestForLoopInsideFunction;
 begin
   StartProgram(false);
   Add('function SumNumbers(Count: longint): longint;');
@@ -4806,7 +4855,7 @@ begin
   Add('begin');
   Add('  sumnumbers(3);');
   ConvertProgram;
-  CheckSource('TestForLoopInFunction',
+  CheckSource('TestForLoopInsideFunction',
     LinesToStr([ // statements
     'this.SumNumbers = function (Count) {',
     '  var Result = 0;',

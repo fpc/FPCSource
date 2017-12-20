@@ -10574,11 +10574,13 @@ function TPasToJSConverter.ConvertForStatement(El: TPasImplForLoop;
 type
   TInKind = (
     ikNone,
+    ikEnum,
     ikChar,
-    ikString
+    ikString,
+    ikArray
   );
 
-  function ConvExpr(Expr: TPasExpr): TJSElement;
+  function ConvExpr(Expr: TPasExpr): TJSElement; overload;
   var
     ResolvedEl: TPasResolverResult;
     JSUnaryPlus: TJSUnaryPlusExpression;
@@ -10621,7 +10623,7 @@ type
       end;
   end;
 
-  function GetOrd(Value: TResEvalValue; ErrorEl: TPasElement): MaxPrecInt;
+  function GetOrd(Value: TResEvalValue; ErrorEl: TPasElement): MaxPrecInt; overload;
   var
     OrdValue: TResEvalValue;
   begin
@@ -10637,6 +10639,14 @@ type
       ReleaseEvalValue(OrdValue);
   end;
 
+  function GetEnumValue(EnumType: TPasEnumType; Int: MaxPrecInt): TResEvalValue; overload;
+  begin
+    if (coEnumNumbers in Options) or (Int<0) or (Int>=EnumType.Values.Count) then
+      Result:=TResEvalInt.CreateValue(Int)
+    else
+      Result:=TResEvalEnum.CreateValue(Int,TObject(EnumType.Values[Int]) as TPasEnumValue);
+  end;
+
 var
   ResolvedVar, ResolvedIn: TPasResolverResult;
   StartValue, EndValue, InValue: TResEvalValue;
@@ -10645,6 +10655,9 @@ var
   InKind: TInKind;
 
   procedure InitWithResolver;
+  var
+    EnumType: TPasEnumType;
+    TypeEl: TPasType;
   begin
     AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
     if not (ResolvedVar.IdentEl is TPasVariable) then
@@ -10664,6 +10677,18 @@ var
       HasInVar:=true;
       AContext.Resolver.ComputeElement(El.StartExpr,ResolvedIn,[]);
       InValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
+      if InValue=nil then
+        begin
+        if ResolvedIn.IdentEl is TPasType then
+          begin
+          TypeEl:=AContext.Resolver.ResolveAliasType(TPasType(ResolvedIn.IdentEl));
+          if TypeEl is TPasArrayType then
+            begin
+            if length(TPasArrayType(TypeEl).Ranges)=1 then
+              InValue:=AContext.Resolver.Eval(TPasArrayType(TypeEl).Ranges[0],[refConst]);
+            end;
+          end;
+        end;
       if InValue<>nil then
         begin
         // for in <constant> do
@@ -10687,7 +10712,18 @@ var
           EndInt:=TResEvalRangeInt(InValue).RangeEnd;
           HasInVar:=false;
           case TResEvalRangeInt(InValue).ElKind of
-          revskChar: InKind:=ikChar;
+          revskEnum:
+            if coEnumNumbers in Options then
+              InKind:=ikNone
+            else
+              begin
+              InKind:=ikEnum;
+              EnumType:=TPasEnumType(TResEvalRangeInt(InValue).ElType);
+              StartValue:=GetEnumValue(EnumType,StartInt);
+              EndValue:=GetEnumValue(EnumType,EndInt);
+              end;
+          revskChar:
+            InKind:=ikChar;
           else
             {$IFDEF VerbosePas2JS}
             writeln('TPasToJSConverter.ConvertForStatement ',GetObjName(El.StartExpr),' InValue=',InValue.AsDebugString);
@@ -10707,21 +10743,40 @@ var
         // for v in <variable> do
         if ResolvedIn.BaseType in btAllStrings then
           begin
-          StartInt:=0;
           InKind:=ikString;
+          StartInt:=0;
           end
         else if ResolvedIn.BaseType=btContext then
           begin
-          {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.ConvertForStatement ',GetObjName(El.StartExpr),' StartValue=',StartValue.AsDebugString);
-          {$ENDIF}
-          RaiseNotSupported(El.StartExpr,AContext,20171113012226);
+          TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedIn.TypeEl);
+          if TypeEl is TPasArrayType then
+            begin
+            if length(TPasArrayType(TypeEl).Ranges)<=1 then
+              begin
+              InKind:=ikArray;
+              StartInt:=0;
+              end
+            else
+              begin
+              {$IFDEF VerbosePas2JS}
+              writeln('TPasToJSConverter.ConvertForStatement.InitWithResolver ResolvedIn=',GetResolverResultDbg(ResolvedIn),' length(Ranges)=',length(TPasArrayType(TypeEl).Ranges));
+              {$ENDIF}
+              RaiseNotSupported(El.StartExpr,AContext,20171220010147);
+              end;
+            end
+          else
+            begin
+            {$IFDEF VerbosePas2JS}
+            writeln('TPasToJSConverter.ConvertForStatement.InitWithResolver El.StartExpr=',GetObjName(El.StartExpr),' ResolvedIn=',GetResolverResultDbg(ResolvedIn));
+            {$ENDIF}
+            RaiseNotSupported(El.StartExpr,AContext,20171113012226);
+            end;
           end;
         end
       else
         begin
         {$IFDEF VerbosePas2JS}
-        writeln('InitWithResolver ResolvedIn=',GetResolverResultDbg(ResolvedIn));
+        writeln('TPasToJSConverter.ConvertForStatement.InitWithResolver ResolvedIn=',GetResolverResultDbg(ResolvedIn));
         {$ENDIF}
         RaiseNotSupported(El.StartExpr,AContext,20171112195629);
         end;
@@ -10761,6 +10816,7 @@ Var
   Statements, V: TJSElement;
   NotEqual: TJSEqualityExpressionNE;
   Call: TJSCallExpression;
+  Br: TJSBracketMemberExpression;
 begin
   Result:=Nil;
   if AContext.Access<>caRead then
@@ -10856,7 +10912,7 @@ begin
           V:=CreateLiteralNumber(PosEl,StartInt)
         else if El.LoopType=ltIn then
           case InKind of
-          ikChar, ikString: V:=CreateLiteralNumber(PosEl,StartInt);
+          ikChar, ikString, ikArray: V:=CreateLiteralNumber(PosEl,StartInt);
           end
         else
           V:=ConvExpr(El.StartExpr);
@@ -10876,11 +10932,21 @@ begin
           ikChar: V:=CreateLiteralNumber(PosEl,EndInt);
           ikString:
             begin
-            // add "$end=$in.length-1"
+            // add "$in.length-1"
             V:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,PosEl));
             TJSAdditiveExpressionMinus(V).A:=CreatePrimitiveDotExpr(CurInVarName+'.length',PosEl);
             TJSAdditiveExpressionMinus(V).B:=CreateLiteralNumber(PosEl,1);
             end;
+          ikArray:
+            begin
+            // add "rtl.length($in)-1"
+            Call:=CreateCallExpression(PosEl);
+            Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnArray_Length],PosEl);
+            Call.AddArg(CreatePrimitiveDotExpr(CurInVarName,PosEl));
+            V:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,PosEl));
+            TJSAdditiveExpressionMinus(V).A:=Call;
+            TJSAdditiveExpressionMinus(V).B:=CreateLiteralNumber(PosEl,1);
+            end
           else
             RaiseNotSupported(El.StartExpr,AContext,20171113015445);
           end
@@ -10959,7 +11025,15 @@ begin
               CreatePrimitiveDotExpr('charAt',PosEl));
             Call.AddArg(SimpleAss.Expr);
             SimpleAss.Expr:=Call;
-            end
+            end;
+          ikArray:
+            begin
+            // $in[$l]
+            Br:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,PosEl));
+            Br.MExpr:=CreatePrimitiveDotExpr(CurInVarName,El.StartExpr);
+            Br.Name:=SimpleAss.Expr;
+            SimpleAss.Expr:=Br;
+            end;
           else
             {$IFDEF VerbosePas2JS}
             writeln('TPasToJSConverter.ConvertForStatement InKind=',InKind);
@@ -11351,16 +11425,16 @@ end;
 procedure TPasToJSConverter.AddToVarStatement(VarStat: TJSVariableStatement;
   Add: TJSElement; Src: TPasElement);
 var
-  Comma: TJSCommaExpression;
+  List: TJSVariableDeclarationList;
 begin
   if VarStat.A=nil then
     VarStat.A:=Add
   else
     begin
-    Comma:=TJSCommaExpression(CreateElement(TJSCommaExpression,Src));
-    Comma.A:=VarStat.A;
-    Comma.B:=Add;
-    VarStat.A:=Comma;
+    List:=TJSVariableDeclarationList(CreateElement(TJSVariableDeclarationList,Src));
+    List.A:=VarStat.A;
+    List.B:=Add;
+    VarStat.A:=List;
     end;
 end;
 
