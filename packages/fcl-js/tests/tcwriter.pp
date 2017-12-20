@@ -99,6 +99,7 @@ type
     Procedure TestVarDeclarationStatement;
     Procedure TestVarListDeclarationStatement;
     Procedure TestVarListDeclarationStatement2Vars;
+    Procedure TestVarListDeclarationStatement3Vars;
     Procedure TestReturnStatement;
     Procedure TestLabeledStatement;
     Procedure TestLabeledStatementCompact;
@@ -955,6 +956,33 @@ begin
   L.A:=V;
   V.Name:='b';
   AssertWrite('simple 2 vars','var a, b',S);
+end;
+
+procedure TTestStatementWriter.TestVarListDeclarationStatement3Vars;
+Var
+  S : TJSVariableStatement;
+  V : TJSVarDeclaration;
+  L : TJSVariableDeclarationList;
+
+begin
+  S:=TJSVariableStatement.Create(0,0);
+  L:=TJSVariableDeclarationList.Create(0,0);
+  S.A:=L;
+  V:=TJSVarDeclaration.Create(0,0);
+  L.A:=V;
+  V.Name:='a';
+  V.Init:=CreateLiteral(1);
+  L.B:=TJSVariableDeclarationList.Create(0,0);
+  L:=TJSVariableDeclarationList(L.B);
+  V:=TJSVarDeclaration.Create(0,0);
+  L.A:=V;
+  V.Name:='b';
+  V.Init:=CreateLiteral(2);
+  V:=TJSVarDeclaration.Create(0,0);
+  L.B:=V;
+  V.Name:='c';
+  V.Init:=CreateLiteral(3);
+  AssertWrite('simple 3 vars','var a = 1, b = 2, c = 3',S);
 end;
 
 procedure TTestStatementWriter.TestReturnStatement;
