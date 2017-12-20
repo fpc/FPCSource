@@ -434,7 +434,7 @@ begin
       exit(true);
   end;
   {$IFDEF VerboseFileCache}
-  writeln('TPas2jsCachedFile.Load RELOAD ',Filename,' Loaded=',Loaded);
+  writeln('TPas2jsCachedFile.Load FIRST or RELOAD ',Filename,' Loaded=',Loaded);
   {$ENDIF}
   // needs (re)load
   Result:=false;
