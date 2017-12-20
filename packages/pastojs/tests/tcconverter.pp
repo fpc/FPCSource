@@ -373,7 +373,7 @@ Var
   Cond : TJSRelationalExpressionLE;
   VS: TJSVariableStatement;
   LoopEndVar, LoopVar: String;
-  CS: TJSCommaExpression;
+  VDL: TJSVariableDeclarationList;
 
 begin
   // For I:=1 to 100 do a:=b;
@@ -394,11 +394,11 @@ begin
 
   // "var $l1=1, $le2=100"
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
-  CS:=TJSCommaExpression(AssertElement('For init var has comma',TJSCommaExpression,VS.A));
-  VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,CS.A));
+  VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.A));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
   AssertEquals('Correct name for '+LoopVar,LoopVar,VD.Name);
   AssertLiteral('Correct start value',VD.Init,1);
-  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,CS.B));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VDL.B));
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
   AssertLiteral('Correct end value',VD.Init,100);
 
@@ -433,7 +433,7 @@ Var
   Cond: TJSRelationalExpressionGE;
   VS: TJSVariableStatement;
   LoopEndVar, LoopVar: String;
-  CS: TJSCommaExpression;
+  VDL: TJSVariableDeclarationList;
 
 begin
   // For I:=100 downto 1 do a:=b;
@@ -455,11 +455,11 @@ begin
 
   // "var $l1=100, $le2=1"
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
-  CS:=TJSCommaExpression(AssertElement('For init var has comma',TJSCommaExpression,VS.A));
-  VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,CS.A));
+  VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.A));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
   AssertEquals('Correct name for '+LoopVar,LoopVar,VD.Name);
   AssertLiteral('Correct start value',VD.Init,100);
-  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,CS.B));
+  VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VDL.B));
   AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
   AssertLiteral('Correct end value',VD.Init,1);
 

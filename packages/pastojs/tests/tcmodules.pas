@@ -4203,14 +4203,16 @@ begin
   'begin',
   '  for b:=false to true do ;',
   '  for b:=b downto false do ;',
+  '  for b in boolean do ;',
   '']);
   ConvertProgram;
   CheckSource('TestForBoolDo',
     LinesToStr([ // statements
     'this.b = false;']),
     LinesToStr([ // this.$main
-    'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 != 0;',
-    'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 != 0;',
+    'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 !== 0;',
+    'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 !== 0;',
+    'for (var $l3 = 0; $l3 <= 1; $l3++) $mod.b = $l3 !== 0;',
     '']));
 end;
 
@@ -4699,9 +4701,9 @@ begin
     'this.cr = "a";',
     '']),
     LinesToStr([ // this.$main
-    'for (var ($in1 = $mod.Foo, $l2 = 0), $end3 = $in1.length - 1; $l2 <= $end3; $l2++) $mod.c = $in1.charAt($l2);',
-    'for (var ($in4 = $mod.s, $l5 = 0), $end6 = $in4.length - 1; $l5 <= $end6; $l5++) $mod.c = $in4.charAt($l5);',
-    'for (var $l7 = 0, $end8 = 65535; $l7 <= $end8; $l7++) $mod.c = String.fromCharCode($l7);',
+    'for (var $in1 = $mod.Foo, $l2 = 0, $end3 = $in1.length - 1; $l2 <= $end3; $l2++) $mod.c = $in1.charAt($l2);',
+    'for (var $in4 = $mod.s, $l5 = 0, $end6 = $in4.length - 1; $l5 <= $end6; $l5++) $mod.c = $in4.charAt($l5);',
+    'for (var $l7 = 0; $l7 <= 65535; $l7++) $mod.c = String.fromCharCode($l7);',
     '']));
 end;
 

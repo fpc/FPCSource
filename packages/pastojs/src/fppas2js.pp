@@ -10575,6 +10575,7 @@ type
   TInKind = (
     ikNone,
     ikEnum,
+    ikBool,
     ikChar,
     ikString,
     ikArray
@@ -10711,6 +10712,7 @@ var
           StartInt:=TResEvalRangeInt(InValue).RangeStart;
           EndInt:=TResEvalRangeInt(InValue).RangeEnd;
           HasInVar:=false;
+          HasEndVar:=false;
           case TResEvalRangeInt(InValue).ElKind of
           revskEnum:
             if coEnumNumbers in Options then
@@ -10724,6 +10726,8 @@ var
               end;
           revskChar:
             InKind:=ikChar;
+          revskBool:
+            InKind:=ikBool;
           else
             {$IFDEF VerbosePas2JS}
             writeln('TPasToJSConverter.ConvertForStatement ',GetObjName(El.StartExpr),' InValue=',InValue.AsDebugString);
@@ -10803,6 +10807,16 @@ var
       end;
   end;
 
+  function CreateStrictNotEqual0(Left: TJSElement; PosEl: TPasElement): TJSElement;
+  var
+    SNE: TJSEqualityExpressionSNE;
+  begin
+    SNE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,PosEl));
+    SNE.A:=Left;
+    SNE.B:=CreateLiteralNumber(PosEl,0);
+    Result:=SNE;
+  end;
+
 Var
   ForSt : TJSForStatement;
   List: TJSStatementList;
@@ -10814,7 +10828,6 @@ Var
   FuncContext: TConvertContext;
   PosEl: TPasElement;
   Statements, V: TJSElement;
-  NotEqual: TJSEqualityExpressionNE;
   Call: TJSCallExpression;
   Br: TJSBracketMemberExpression;
 begin
@@ -10911,9 +10924,7 @@ begin
         if StartValue<>nil then
           V:=CreateLiteralNumber(PosEl,StartInt)
         else if El.LoopType=ltIn then
-          case InKind of
-          ikChar, ikString, ikArray: V:=CreateLiteralNumber(PosEl,StartInt);
-          end
+          V:=CreateLiteralNumber(PosEl,StartInt)
         else
           V:=ConvExpr(El.StartExpr);
         V:=CreateVarDecl(CurLoopVarName,V,PosEl);
@@ -10923,13 +10934,14 @@ begin
         begin
         // add "$end=<EndExpr>"
         PosEl:=El.EndExpr;
-        if El.EndExpr=nil then
+        if PosEl=nil then
           PosEl:=El.StartExpr;
         if EndValue<>nil then
           V:=CreateLiteralNumber(PosEl,EndInt)
         else if El.LoopType=ltIn then
           case InKind of
-          ikChar: V:=CreateLiteralNumber(PosEl,EndInt);
+          ikEnum,ikBool,ikChar:
+            V:=CreateLiteralNumber(PosEl,EndInt);
           ikString:
             begin
             // add "$in.length-1"
@@ -10958,7 +10970,7 @@ begin
       end
     else
       begin
-      // for example:
+      // No new vars. For example:
       //   for (VariableName = <startexpr>; VariableName <= <EndExpr>; VariableName++)
       SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.VariableName));
       ForSt.Init:=SimpleAss;
@@ -11013,6 +11025,10 @@ begin
         begin
         if InKind<>ikNone then
           case InKind of
+          ikEnum: ;
+          ikBool:
+            // $in!==0;
+            SimpleAss.Expr:=CreateStrictNotEqual0(SimpleAss.Expr,PosEl);
           ikChar:
             // String.fromCharCode($l)
             SimpleAss.Expr:=CreateCallFromCharCode(SimpleAss.Expr,PosEl);
@@ -11050,10 +11066,7 @@ begin
             or ((ResolvedVar.BaseType=btRange) and (ResolvedVar.SubType in btAllBooleans)) then
           begin
           // convert int to bool  ->  $l!=0
-          NotEqual:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,PosEl));
-          NotEqual.A:=SimpleAss.Expr;
-          NotEqual.B:=CreateLiteralNumber(El,0);
-          SimpleAss.Expr:=NotEqual;
+          SimpleAss.Expr:=CreateStrictNotEqual0(SimpleAss.Expr,PosEl);
           end
         end;
       end;
