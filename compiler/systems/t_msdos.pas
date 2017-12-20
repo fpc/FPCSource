@@ -425,7 +425,8 @@ end;
 
 function TInternalLinkerMsDos.GetDataSize(aExeOutput: TExeOutput): QWord;
 begin
-  Result:=GetTotalSizeForSegmentClass(aExeOutput,'DATA');
+  Result:=GetTotalSizeForSegmentClass(aExeOutput,'DATA')+
+          GetTotalSizeForSegmentClass(aExeOutput,'FAR_DATA');
 end;
 
 function TInternalLinkerMsDos.GetBssSize(aExeOutput: TExeOutput): QWord;
