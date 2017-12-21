@@ -397,6 +397,7 @@ type
     Procedure TestClass_TObjectFreeLowerCase;
     Procedure TestClass_TObjectFreeFunctionFail;
     Procedure TestClass_TObjectFreePropertyFail;
+    Procedure TestClass_ForIn;
 
     // class of
     Procedure TestClassOf_Create;
@@ -9510,6 +9511,78 @@ begin
   '']);
   SetExpectedPasResolverError(sFreeNeedsVar,nFreeNeedsVar);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestClass_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TItem = TObject;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  TBird = class',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TBird.GetEnumerator: TEnumerator;',
+  'begin',
+  'end;',
+  'var',
+  '  b: TBird;',
+  '  i, i2: TItem;',
+  'begin',
+  '  for i in b do i2:=i;']);
+  ConvertProgram;
+  CheckSource('TestClass_ForIn',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TEnumerator", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.FCurrent = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FCurrent = undefined;',
+    '    $mod.TObject.$final.call(this);',
+    '  };',
+    '  this.MoveNext = function () {',
+    '    var Result = false;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.GetEnumerator = function () {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.b = null;',
+    'this.i = null;',
+    'this.i2 = null;'
+    ]),
+    LinesToStr([ // $mod.$main
+    'var $in1 = $mod.b;',
+    'try {',
+    '  while ($in1.MoveNext()){',
+    '    $mod.i = $in1.FCurrent;',
+    '    $mod.i2 = $mod.i;',
+    '  }',
+    '} finally {',
+    '  $in1 = rtl.freeLoc($in1)',
+    '};',
+    '']));
 end;
 
 procedure TTestModule.TestClassOf_Create;
