@@ -257,6 +257,7 @@ type
     Procedure TestSet_IntRange_Const;
     Procedure TestEnumRange;
     Procedure TestEnum_ForIn;
+    Procedure TestEnum_ForInRangeFail;
 
     // operators
     Procedure TestPrgAssignment;
@@ -3367,7 +3368,9 @@ begin
   '  for e in TEnumRg do;',
   '  for e in TSetOfEnum do;',
   '  for e in TSetOfEnumRg do;',
+  '  for e in [] do;',
   '  for e in [red..green] do;',
+  '  for e in [green,blue] do;',
   '  for e in TArrOfEnum do;',
   '  for e in TArrOfEnumRg do;',
   '  for er in TEnumRg do;',
@@ -3376,6 +3379,20 @@ begin
   '  for er in TArrOfEnumRg do;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestEnum_ForInRangeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (red,green,blue);',
+  'var',
+  '  e: TEnum;',
+  'begin',
+  '  for e in red..green do;',
+  '']);
+  CheckResolverException('Cannot find an enumerator for the type "range.."',nCannotFindEnumeratorForType);
 end;
 
 procedure TTestResolver.TestPrgAssignment;

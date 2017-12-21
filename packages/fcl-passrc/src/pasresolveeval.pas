@@ -442,11 +442,11 @@ type
     ElType: TPasType; // revskEnum: TPasEnumType
     constructor Create; override;
     constructor CreateValue(const aElKind: TRESetElKind; aElType: TPasType;
-      const aRangeStart, aRangeEnd: MaxPrecInt);
+      const aRangeStart, aRangeEnd: MaxPrecInt); virtual;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
     function AsDebugString: string; override;
-    function ElementAsString(El: MaxPrecInt): string;
+    function ElementAsString(El: MaxPrecInt): string; virtual;
   end;
 
   { TResEvalRangeUInt }
@@ -462,7 +462,7 @@ type
 
   { TResEvalSet - Kind=revkSetOfInt }
 
-  TResEvalSet = class(TResEvalValue)
+  TResEvalSet = class(TResEvalRangeInt)
   public
     const MaxCount = $ffff;
     type
@@ -471,17 +471,16 @@ type
       end;
       TItems = array of TItem;
   public
-    ElKind: TRESetElKind;
     Ranges: TItems; // disjunct, sorted ascending
-    ElType: TPasType; // revskEnum: TPasEnumType
     constructor Create; override;
     constructor CreateEmpty(aSet: TResEvalSet);
+    constructor CreateValue(const aElKind: TRESetElKind; aElType: TPasType;
+      const aRangeStart, aRangeEnd: MaxPrecInt); override;
     function Clone: TResEvalValue; override;
     function AsString: string; override;
-    function ElementAsString(El: MaxPrecInt): string;
-    function Add(RangeStart, RangeEnd: MaxPrecInt): boolean; // false if duplicate ignored
+    function Add(aRangeStart, aRangeEnd: MaxPrecInt): boolean; // false if duplicate ignored
     function IndexOfRange(Index: MaxPrecInt; FindInsertPos: boolean = false): integer;
-    function Intersects(RangeStart, RangeEnd: MaxPrecInt): integer; // returns index of first intersecting range
+    function Intersects(aRangeStart, aRangeEnd: MaxPrecInt): integer; // returns index of first intersecting range
     procedure ConsistencyCheck;
   end;
 
@@ -4692,6 +4691,13 @@ begin
   ElType:=aSet.ElType;
 end;
 
+constructor TResEvalSet.CreateValue(const aElKind: TRESetElKind;
+  aElType: TPasType; const aRangeStart, aRangeEnd: MaxPrecInt);
+begin
+  inherited CreateValue(aElKind, aElType, aRangeStart, aRangeEnd);
+  Add(aRangeStart,aRangeEnd);
+end;
+
 function TResEvalSet.Clone: TResEvalValue;
 var
   RS: TResEvalSet;
@@ -4721,43 +4727,7 @@ begin
   Result:=Result+']';
 end;
 
-function TResEvalSet.ElementAsString(El: MaxPrecInt): string;
-var
-  EnumType: TPasEnumType;
-  EnumValue: TPasEnumValue;
-begin
-  case ElKind of
-    revskEnum:
-      begin
-      {$IFDEF VerbosePasResEval}
-      if not (ElType is TPasEnumType) then
-        writeln('TResEvalSet.ElementAsString ',ElKind,' expected TPasEnumType, but got ',GetObjName(ElType));
-      {$ENDIF}
-      EnumType:=ElType as TPasEnumType;
-      //writeln('TResEvalSet.ElementAsString EnumType=',GetObjName(EnumType),' Values.Count=',EnumType.Values.Count,' El=',El);
-      if (El>=0) and (El<EnumType.Values.Count) then
-        begin
-        EnumValue:=TPasEnumValue(EnumType.Values[El]);
-        Result:=EnumValue.Name;
-        end
-      else
-        Result:=ElType.Name+'('+IntToStr(El)+')';
-      end;
-    revskInt: Result:=IntToStr(El);
-    revskChar:
-      if El<=$ff then
-        Result:=Chr(El)
-      else
-        Result:=String(WideChar(El));
-    revskBool:
-      if El=0 then
-        Result:='false'
-      else
-        Result:='true';
-  end;
-end;
-
-function TResEvalSet.Add(RangeStart, RangeEnd: MaxPrecInt): boolean;
+function TResEvalSet.Add(aRangeStart, aRangeEnd: MaxPrecInt): boolean;
 
   {$IF FPC_FULLVERSION<30101}
   procedure Insert(const Item: TItem; var Items: TItems; Index: integer);
@@ -4787,9 +4757,9 @@ var
 begin
   Result:=false;
   {$IFDEF VerbosePasResEval}
-  writeln('TResEvalSetInt.Add ',RangeStart,'..',RangeEnd);
+  writeln('TResEvalSetInt.Add ',aRangeStart,'..',aRangeEnd);
   {$ENDIF}
-  if RangeStart>RangeEnd then
+  if aRangeStart>aRangeEnd then
     raise Exception.Create('');
   if ElKind=revskNone then
     raise Exception.Create('');
@@ -4798,68 +4768,75 @@ begin
   if l=0 then
     begin
     // first range
+    RangeStart:=aRangeStart;
+    RangeEnd:=aRangeEnd;
     SetLength(Ranges,1);
-    Ranges[0].RangeStart:=RangeStart;
-    Ranges[0].RangeEnd:=RangeEnd;
+    Ranges[0].RangeStart:=aRangeStart;
+    Ranges[0].RangeEnd:=aRangeEnd;
     exit(true);
     end;
+  if RangeStart>aRangeStart then
+    RangeStart:=aRangeStart;
+  if RangeEnd<aRangeEnd then
+    RangeEnd:=aRangeEnd;
+
   // find insert position
-  StartIndex:=IndexOfRange(RangeStart,true);
-  if (StartIndex>0) and (Ranges[StartIndex-1].RangeEnd=RangeStart-1) then
+  StartIndex:=IndexOfRange(aRangeStart,true);
+  if (StartIndex>0) and (Ranges[StartIndex-1].RangeEnd=aRangeStart-1) then
     dec(StartIndex);
   if StartIndex=l then
     begin
     // add new range
-    Item.RangeStart:=RangeStart;
-    Item.RangeEnd:=RangeEnd;
+    Item.RangeStart:=aRangeStart;
+    Item.RangeEnd:=aRangeEnd;
     Insert(Item,Ranges,StartIndex);
     Result:=true;
     end
   else
     begin
     // StartIndex is now the first affected range
-    EndIndex:=IndexOfRange(RangeEnd,true);
+    EndIndex:=IndexOfRange(aRangeEnd,true);
     if (EndIndex>StartIndex) then
-      if (EndIndex=l) or (Ranges[EndIndex].RangeStart>RangeEnd+1) then
+      if (EndIndex=l) or (Ranges[EndIndex].RangeStart>aRangeEnd+1) then
         dec(EndIndex);
     // EndIndex is now the last affected range
     if StartIndex>EndIndex then
       raise Exception.Create('');
     if StartIndex=EndIndex then
       begin
-      if (Ranges[StartIndex].RangeStart>RangeEnd) then
+      if (Ranges[StartIndex].RangeStart>aRangeEnd) then
         begin
         // range in front
-        if (Ranges[StartIndex].RangeStart>RangeEnd+1) then
+        if (Ranges[StartIndex].RangeStart>aRangeEnd+1) then
           begin
           // insert new range
-          Item.RangeStart:=RangeStart;
-          Item.RangeEnd:=RangeEnd;
+          Item.RangeStart:=aRangeStart;
+          Item.RangeEnd:=aRangeEnd;
           Insert(Item,Ranges,StartIndex);
           Result:=true;
           end
         else
           begin
           // enlarge range at its start
-          Ranges[StartIndex].RangeStart:=RangeStart;
+          Ranges[StartIndex].RangeStart:=aRangeStart;
           Result:=true;
           end;
         end
-      else if Ranges[StartIndex].RangeEnd<RangeStart then
+      else if Ranges[StartIndex].RangeEnd<aRangeStart then
         begin
         // range behind
-        if Ranges[StartIndex].RangeEnd+1<RangeStart then
+        if Ranges[StartIndex].RangeEnd+1<aRangeStart then
           begin
           // insert new range
-          Item.RangeStart:=RangeStart;
-          Item.RangeEnd:=RangeEnd;
+          Item.RangeStart:=aRangeStart;
+          Item.RangeEnd:=aRangeEnd;
           Insert(Item,Ranges,StartIndex+1);
           Result:=true;
           end
         else
           begin
           // enlarge range at its end
-          Ranges[StartIndex].RangeEnd:=RangeEnd;
+          Ranges[StartIndex].RangeEnd:=aRangeEnd;
           Result:=true;
           end;
         end
@@ -4867,21 +4844,21 @@ begin
         begin
         // intersection -> enlarge to union range
         Result:=false;
-        if (Ranges[StartIndex].RangeStart>RangeStart) then
-          Ranges[StartIndex].RangeStart:=RangeStart;
-        if (Ranges[StartIndex].RangeEnd<RangeEnd) then
-          Ranges[StartIndex].RangeEnd:=RangeEnd;
+        if (Ranges[StartIndex].RangeStart>aRangeStart) then
+          Ranges[StartIndex].RangeStart:=aRangeStart;
+        if (Ranges[StartIndex].RangeEnd<aRangeEnd) then
+          Ranges[StartIndex].RangeEnd:=aRangeEnd;
         end;
       end
     else
       begin
       // multiple ranges are merged to one
       Result:=false;
-      if Ranges[StartIndex].RangeStart>RangeStart then
-        Ranges[StartIndex].RangeStart:=RangeStart;
-      if RangeEnd<Ranges[EndIndex].RangeEnd then
-        RangeEnd:=Ranges[EndIndex].RangeEnd;
-      Ranges[StartIndex].RangeEnd:=RangeEnd;
+      if Ranges[StartIndex].RangeStart>aRangeStart then
+        Ranges[StartIndex].RangeStart:=aRangeStart;
+      if aRangeEnd<Ranges[EndIndex].RangeEnd then
+        aRangeEnd:=Ranges[EndIndex].RangeEnd;
+      Ranges[StartIndex].RangeEnd:=aRangeEnd;
       Delete(Ranges,StartIndex+1,EndIndex-StartIndex);
       end;
     end;
@@ -4919,12 +4896,12 @@ begin
     exit(m);
 end;
 
-function TResEvalSet.Intersects(RangeStart, RangeEnd: MaxPrecInt): integer;
+function TResEvalSet.Intersects(aRangeStart, aRangeEnd: MaxPrecInt): integer;
 var
   Index: Integer;
 begin
-  Index:=IndexOfRange(RangeStart,true);
-  if (Index=length(Ranges)) or (Ranges[Index].RangeStart>RangeEnd) then
+  Index:=IndexOfRange(aRangeStart,true);
+  if (Index=length(Ranges)) or (Ranges[Index].RangeStart>aRangeEnd) then
     Result:=-1
   else
     Result:=Index;
@@ -4948,6 +4925,10 @@ begin
       E('');
     if (i>0) and (Ranges[i-1].RangeEnd+1>=Ranges[i].RangeStart) then
       E('missing gap');
+    if RangeStart>Ranges[i].RangeStart then
+      E('wrong RangeStart='+IntToStr(RangeStart));
+    if RangeEnd<Ranges[i].RangeEnd then
+      E('wrong RangeEnd='+IntToStr(RangeEnd));
     end;
 end;
 
