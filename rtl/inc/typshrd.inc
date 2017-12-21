@@ -284,7 +284,7 @@ end;
 
 function TRect.Contains(Pt: TPoint): Boolean;
 begin
-  Result := (Left <= Pt.X) and (Pt.X <= Right) and (Top <= Pt.Y) and (Pt.Y <= Bottom);
+  Result := (Left <= Pt.X) and (Pt.X < Right) and (Top <= Pt.Y) and (Pt.Y < Bottom);
 end;
 
 function TRect.Contains(R: TRect): Boolean;
