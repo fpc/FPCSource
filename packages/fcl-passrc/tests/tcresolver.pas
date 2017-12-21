@@ -489,6 +489,8 @@ type
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
     Procedure TestClass_Const;
+    Procedure TestClass_Enumerator;
+    Procedure TestClass_EnumeratorFunc;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
     // published
@@ -8097,6 +8099,65 @@ begin
   Add('  with Cla do if ci=26 then;');
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_Enumerator;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TItem = TObject;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  TBird = class',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TBird.GetEnumerator: TEnumerator;',
+  'begin',
+  'end;',
+  'var',
+  '  b: TBird;',
+  '  i: TItem;',
+  '  {#i2}i2: TItem;',
+  'begin',
+  '  for i in b do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_EnumeratorFunc;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TItem = longint;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TEnumerator.GetEnumerator: TEnumerator;',
+  'begin',
+  'end;',
+  'function GetIt: TEnumerator;',
+  'begin',
+  'end;',
+  'var',
+  '  i, i2: TItem;',
+  'begin',
+  '  for i in GetIt do i2:=i;']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass_PublishedClassVarFail;

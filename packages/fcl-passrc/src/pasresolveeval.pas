@@ -148,6 +148,8 @@ const
   nPreviousDeclMissesOverload = 3075;
   nOverloadedProcMissesOverload = 3076;
   nMethodHidesMethodOfBaseType = 3077;
+  nContextExpectedXButFoundY = 3078;
+  nContextXInvalidY = 3079;
 
 // resourcestring patterns of messages
 resourcestring
@@ -228,6 +230,8 @@ resourcestring
   sPreviousDeclMissesOverload = 'Previous declaration of "%s" at %s was not marked with "overload" directive';
   sOverloadedProcMissesOverload = 'Overloaded procedure misses "overload" directive. Previous declaration is at %s';
   sMethodHidesMethodOfBaseType = 'Method "%s" hides method of base type "%s" at %s';
+  sContextExpectedXButFoundY = '%s: expected "%s", but found "%s"';
+  sContextXInvalidY = '%s: invalid %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
