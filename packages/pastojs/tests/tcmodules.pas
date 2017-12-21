@@ -206,6 +206,8 @@ type
     Procedure TestDouble;
     Procedure TestIntegerRange;
     Procedure TestForBoolDo;
+    Procedure TestForIntDo;
+    Procedure TestForIntInDo;
 
     // strings
     Procedure TestCharConst;
@@ -282,6 +284,7 @@ type
     Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
     Procedure TestSet_ConstInt;
+    Procedure TestSet_ForIn;
 
     // statements
     Procedure TestNestBegin;
@@ -3308,22 +3311,23 @@ end;
 procedure TTestModule.TestSet;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TColor = (Red, Green, Blue);');
-  Add('  TColors = set of TColor;');
-  Add('var');
-  Add('  c: TColor;');
-  Add('  s: TColors;');
-  Add('  t: TColors = [];');
-  Add('  u: TColors = [Red];');
-  Add('begin');
-  Add('  s:=[];');
-  Add('  s:=[Green];');
-  Add('  s:=[Green,Blue];');
-  Add('  s:=[Red..Blue];');
-  Add('  s:=[Red,Green..Blue];');
-  Add('  s:=[Red,c];');
-  Add('  s:=t;');
+  Add([
+  'type',
+  '  TColor = (Red, Green, Blue);',
+  '  TColors = set of TColor;',
+  'var',
+  '  c: TColor;',
+  '  s: TColors;',
+  '  t: TColors = [];',
+  '  u: TColors = [Red];',
+  'begin',
+  '  s:=[];',
+  '  s:=[Green];',
+  '  s:=[Green,Blue];',
+  '  s:=[Red..Blue];',
+  '  s:=[Red,Green..Blue];',
+  '  s:=[Red,c];',
+  '  s:=t;']);
   ConvertProgram;
   CheckSource('TestEnumName',
     LinesToStr([ // statements
@@ -3892,6 +3896,56 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestSet_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green, Blue);',
+  '  TEnumRg = green..blue;',
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfEnumRg = set of TEnumRg;',
+  'var',
+  '  e, e2: TEnum;',
+  '  er: TEnum;',
+  '  s: TSetOfEnum;',
+  'begin',
+  '  for e in TSetOfEnum do ;',
+  '  for e in TSetOfEnumRg do ;',
+  '  for e in [] do e2:=e;',
+  '  for e in [red..green] do e2:=e;',
+  '  for e in [green,blue] do e2:=e;',
+  '  for e in [red,blue] do e2:=e;',
+  '  for e in s do e2:=e;',
+  '  for er in TSetOfEnumRg do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestEnumName',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0":"Red",',
+    '  Red:0,',
+    '  "1":"Green",',
+    '  Green:1,',
+    '  "2":"Blue",',
+    '  Blue:2',
+    '  };',
+    'this.e = 0;',
+    'this.e2 = 0;',
+    'this.er = 0;',
+    'this.s = {};',
+    '']),
+    LinesToStr([
+    'for ($mod.e = 0; $mod.e <= 2; $mod.e++) ;',
+    'for ($mod.e = 1; $mod.e <= 2; $mod.e++) ;',
+    'for ($mod.e = 0; $mod.e <= 1; $mod.e++) $mod.e2 = $mod.e;',
+    'for ($mod.e = 1; $mod.e <= 2; $mod.e++) $mod.e2 = $mod.e;',
+    'for ($mod.e in rtl.createSet($mod.TEnum.Red, $mod.TEnum.Blue)) $mod.e2 = $mod.e;',
+    'for ($mod.e in $mod.s) $mod.e2 = $mod.e;',
+    'for ($mod.er = 1; $mod.er <= 2; $mod.er++) ;',
+    '']));
+end;
+
 procedure TTestModule.TestNestBegin;
 begin
   StartProgram(false);
@@ -4213,6 +4267,83 @@ begin
     'for (var $l1 = 0; $l1 <= 1; $l1++) $mod.b = $l1 !== 0;',
     'for (var $l2 = +$mod.b; $l2 >= 0; $l2--) $mod.b = $l2 !== 0;',
     'for (var $l3 = 0; $l3 <= 1; $l3++) $mod.b = $l3 !== 0;',
+    '']));
+end;
+
+procedure TTestModule.TestForIntDo;
+begin
+  StartProgram(false);
+  Add([
+  'var i: longint;',
+  'begin',
+  '  for i:=3 to 5 do ;',
+  '  for i:=i downto 2 do ;',
+  '  for i in byte do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestForIntDo',
+    LinesToStr([ // statements
+    'this.i = 0;']),
+    LinesToStr([ // this.$main
+    'for ($mod.i = 3; $mod.i <= 5; $mod.i++) ;',
+    'for (var $l1 = $mod.i; $l1 >= 2; $l1--) $mod.i = $l1;',
+    'for (var $l2 = 0; $l2 <= 255; $l2++) $mod.i = $l2;',
+    '']));
+end;
+
+procedure TTestModule.TestForIntInDo;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TSetOfInt = set of byte;',
+  '  TIntRg = 3..7;',
+  '  TSetOfIntRg = set of TIntRg;',
+  'var',
+  '  i,i2: longint;',
+  '  a1: array of byte;',
+  '  a2: array[1..3] of byte;',
+  '  soi: TSetOfInt;',
+  '  soir: TSetOfIntRg;',
+  '  ir: TIntRg;',
+  'begin',
+  '  for i in byte do ;',
+  '  for i in a1 do ;',
+  '  for i in a2 do ;',
+  '  for i in [11..13] do ;',
+  '  for i in TSetOfInt do ;',
+  '  for i in TIntRg do ;',
+  '  for i in soi do i2:=i;',
+  '  for i in TSetOfIntRg do ;',
+  '  for i in soir do ;',
+  '  for ir in TIntRg do ;',
+  '  for ir in TSetOfIntRg do ;',
+  '  for ir in soir do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestForIntInDo',
+    LinesToStr([ // statements
+    'this.i = 0;',
+    'this.i2 = 0;',
+    'this.a1 = [];',
+    'this.a2 = rtl.arraySetLength(null, 0, 3);',
+    'this.soi = {};',
+    'this.soir = {};',
+    'this.ir = 3;',
+    '']),
+    LinesToStr([ // this.$main
+    'for (var $l1 = 0; $l1 <= 255; $l1++) $mod.i = $l1;',
+    'for (var $in2 = $mod.a1, $l3 = 0, $end4 = rtl.length($in2) - 1; $l3 <= $end4; $l3++) $mod.i = $in2[$l3];',
+    'for (var $in5 = $mod.a2, $l6 = 0, $end7 = rtl.length($in5) - 1; $l6 <= $end7; $l6++) $mod.i = $in5[$l6];',
+    'for (var $l8 = 11; $l8 <= 13; $l8++) $mod.i = $l8;',
+    'for (var $l9 = 0; $l9 <= 255; $l9++) $mod.i = $l9;',
+    'for (var $l10 = 3; $l10 <= 7; $l10++) $mod.i = $l10;',
+    'for ($mod.i in $mod.soi) $mod.i2 = $mod.i;',
+    'for (var $l11 = 3; $l11 <= 7; $l11++) $mod.i = $l11;',
+    'for ($mod.i in $mod.soir) ;',
+    'for (var $l12 = 3; $l12 <= 7; $l12++) $mod.ir = $l12;',
+    'for (var $l13 = 3; $l13 <= 7; $l13++) $mod.ir = $l13;',
+    'for ($mod.ir in $mod.soir) ;',
     '']));
 end;
 
@@ -4662,11 +4793,10 @@ begin
   '  TSetOfCharRg = set of TCharRg;',
   'const Foo = ''foo'';',
   'var',
-  '  c: char;',
+  '  c,c2: char;',
   '  s: string;',
   '  a1: array of char;',
   '  a2: array[1..3] of char;',
-  '  a3: array[1..3,4..5] of char;',
   '  soc: TSetOfChar;',
   '  socr: TSetOfCharRg;',
   '  cr: TCharRg;',
@@ -4674,28 +4804,27 @@ begin
   '  for c in foo do ;',
   '  for c in s do ;',
   '  for c in char do ;',
-  //'  for c in a1 do ;',
-  //'  for c in a2 do ;',
-  //'  for c in a3 do ;',
-  //'  for c in [''1''..''3''] do ;',
-  //'  for c in TSetOfChar do ;',
-  //'  for c in TCharRg do ;',
-  //'  for c in soc do ;',
-  //'  for c in TSetOfCharRg do ;',
-  //'  for c in socr do ;',
-  //'  for cr in TCharRg do ;',
-  //'  for cr in TSetOfCharRg do ;',
-  //'  for cr in socr do ;',
+  '  for c in a1 do ;',
+  '  for c in a2 do ;',
+  '  for c in [''1''..''3''] do ;',
+  '  for c in TSetOfChar do ;',
+  '  for c in TCharRg do ;',
+  '  for c in soc do c2:=c;',
+  '  for c in TSetOfCharRg do ;',
+  '  for c in socr do ;',
+  '  for cr in TCharRg do ;',
+  '  for cr in TSetOfCharRg do ;',
+  '  for cr in socr do ;',
   '']);
   ConvertProgram;
   CheckSource('TestForCharInDo',
     LinesToStr([ // statements
     'this.Foo = "foo";',
     'this.c = "";',
+    'this.c2 = "";',
     'this.s = "";',
     'this.a1 = [];',
     'this.a2 = rtl.arraySetLength(null, "", 3);',
-    'this.a3 = rtl.arraySetLength(null, "", 3, 2);',
     'this.soc = {};',
     'this.socr = {};',
     'this.cr = "a";',
@@ -4704,6 +4833,20 @@ begin
     'for (var $in1 = $mod.Foo, $l2 = 0, $end3 = $in1.length - 1; $l2 <= $end3; $l2++) $mod.c = $in1.charAt($l2);',
     'for (var $in4 = $mod.s, $l5 = 0, $end6 = $in4.length - 1; $l5 <= $end6; $l5++) $mod.c = $in4.charAt($l5);',
     'for (var $l7 = 0; $l7 <= 65535; $l7++) $mod.c = String.fromCharCode($l7);',
+    'for (var $in8 = $mod.a1, $l9 = 0, $end10 = rtl.length($in8) - 1; $l9 <= $end10; $l9++) $mod.c = $in8[$l9];',
+    'for (var $in11 = $mod.a2, $l12 = 0, $end13 = rtl.length($in11) - 1; $l12 <= $end13; $l12++) $mod.c = $in11[$l12];',
+    'for (var $l14 = 49; $l14 <= 51; $l14++) $mod.c = String.fromCharCode($l14);',
+    'for (var $l15 = 0; $l15 <= 65535; $l15++) $mod.c = String.fromCharCode($l15);',
+    'for (var $l16 = 97; $l16 <= 122; $l16++) $mod.c = String.fromCharCode($l16);',
+    'for (var $l17 in $mod.soc) {',
+    '  $mod.c = String.fromCharCode($l17);',
+    '  $mod.c2 = $mod.c;',
+    '};',
+    'for (var $l18 = 97; $l18 <= 122; $l18++) $mod.c = String.fromCharCode($l18);',
+    'for (var $l19 in $mod.socr) $mod.c = String.fromCharCode($l19);',
+    'for (var $l20 = 97; $l20 <= 122; $l20++) $mod.cr = String.fromCharCode($l20);',
+    'for (var $l21 = 97; $l21 <= 122; $l21++) $mod.cr = String.fromCharCode($l21);',
+    'for (var $l22 in $mod.socr) $mod.cr = String.fromCharCode($l22);',
     '']));
 end;
 
