@@ -915,9 +915,7 @@ var
   isEnable_E_Format : Boolean;
   isEnable_G_Format : Boolean;
   eastasiainited : boolean;
-{$endif win32 or win64}
 
-{$if defined(win32) or defined(win64)}
   procedure InitEastAsia;
   var     ALCID : LCID;
          PriLangID , SubLangID : Word;

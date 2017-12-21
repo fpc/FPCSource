@@ -129,7 +129,7 @@ type
    ExceptClass = class of Exception;
 
    EExternal = class(Exception)
-{$if defined(win32) or defined(win64)}
+{$if defined(win32) or defined(win64) or defined(wince)}
    { OS-provided exception record is stored on stack and has very limited lifetime.
      Therefore store a complete copy. }
    private
@@ -137,7 +137,7 @@ type
      function GetExceptionRecord: PExceptionRecord;
    public
      property ExceptionRecord : PExceptionRecord read GetExceptionRecord;
-{$endif win32 or win64}
+{$endif win32 or win64 or wince}
    end;
 
    { integer math exceptions }

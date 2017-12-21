@@ -288,13 +288,13 @@ end;
        ErrCode:=Code;
     end;
 
-{$if defined(win32) or defined(win64)}
+{$if defined(win32) or defined(win64) or defined (wince)}
 function EExternal.GetExceptionRecord: PExceptionRecord;
 begin
   result:=@FExceptionRecord;
 end;
 
-{$endif win32 or win64}
+{$endif win32 or win64 or wince}
 
 {$push}
 {$S-}
@@ -726,7 +726,7 @@ begin
 end;
 {$endif}
 
-{$if defined(win32) or defined(win64)}
+{$if defined(win32) or defined(win64) or defined(wince)}
 function GetModuleName(Module: HMODULE): string;
 var
   ResultLength, BufferLength: DWORD;
