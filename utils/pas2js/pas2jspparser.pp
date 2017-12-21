@@ -126,7 +126,7 @@ begin
   tkLibrary:
     ParseLibrary(Module);
   else
-    ExpectToken(tkUnit);
+    CheckToken(tkUnit);
   end;
 end;
 

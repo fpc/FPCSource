@@ -934,8 +934,6 @@ begin
       Log.LogRaw('Pas-Module:');
       Log.LogRaw(PasModule.GetDeclaration(true));
     end;
-    if PasModule.CustomData=nil then
-      PasModule.CustomData:=Self;
 
     // analyze
     UseAnalyzer.AnalyzeModule(FPasModule);
@@ -970,14 +968,18 @@ begin
       Parser.ParseMain(FPasModule)
     else
       Parser.ParseSubModule(FPasModule);
+    if PasModule.CustomData=nil then
+      PasModule.CustomData:=Self;
+    if (FPasModule.ImplementationSection<>nil)
+        and (FPasModule.ImplementationSection.PendingUsedIntf<>nil) then
+      exit;
+    ParserFinished;
   except
     on E: Exception do
       HandleException(E);
   end;
-  if (FPasModule.ImplementationSection<>nil)
-      and (FPasModule.ImplementationSection.PendingUsedIntf<>nil) then
-    exit;
-  ParserFinished;
+  if (PasModule<>nil) and (PasModule.CustomData=nil) then
+    PasModule.CustomData:=Self;
 end;
 
 procedure TPas2jsCompilerFile.CreateJS;
