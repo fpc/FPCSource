@@ -17,7 +17,7 @@ unit Types;
   interface
 {$modeswitch advancedrecords}
 {$modeswitch class}
-{$if defined(win32) or defined(win64)}
+{$if defined(win32) or defined(win64) or defined(wince)}
     uses
        Windows;
 {$elseif defined(win16)}
@@ -74,7 +74,7 @@ type
   TCompDynArray = array of Comp;
 {$endif}
 
-{$if defined(win32) or defined(win64)}
+{$if defined(win32) or defined(win64) or defined(wince)}
   TArray4IntegerType = Windows.TArray4IntegerType;
   TSmallPoint = Windows.TSmallPoint;
   PSmallPoint = Windows.PSmallPoint;
@@ -242,7 +242,7 @@ const
   STG_S_MONITORING            = $00030203;
 {$endif}
 
-{$if (not defined(win32)) and (not defined(win64))}
+{$if (not defined(win32)) and (not defined(win64)) and (not defined(wince))}
 type
   PCLSID = PGUID;
   TCLSID = TGUID;
@@ -342,7 +342,7 @@ implementation
 
 Uses Math;
 
-{$if (not defined(win32)) and (not defined(win64))}
+{$if (not defined(win32)) and (not defined(win64)) and (not defined(wince))}
   {$i typshrd.inc}
 {$endif}
 
