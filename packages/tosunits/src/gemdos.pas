@@ -71,6 +71,21 @@ const
     FLAG_GET            = 0;
     FLAG_SET            = 1;
 
+// as used by mxalloc
+const
+    MXALLOC_ST          = 0;
+    MXALLOC_ALT         = 1;
+    MXALLOC_PREFER_ST   = 2;
+    MXALLOC_PREFER_ALT  = 3;
+
+    MXALLOC_PROT_DEFAULT     = (0 shl 4);
+    MXALLOC_PROT_PRIVATE     = (1 shl 4);
+    MXALLOC_PROT_GLOBAL      = (2 shl 4);
+    MXALLOC_PROT_SUPER_ONLY  = (3 shl 4);
+    MXALLOC_PROT_WORLD_READ  = (4 shl 4);
+
+    MXALLOC_NO_FREE          = (1 shl 14);
+
 type
     PDTA = ^TDTA;
     TDTA = packed record
@@ -122,17 +137,46 @@ type
   TBASEPAGE = TPD; {* alias types... *}
   PBASEPAGE = ^TBASEPAGE;
 
+type
+  PLINE = ^TLINE;
+  TLINE = record
+      maxlen: byte;        {* Maximum line length *}
+      actuallen: byte;     {* Current line length *}
+      buffer: array[0..254] of byte;   {* Line buffer         *}
+  end;
 
+
+procedure gemdos_pterm0; syscall 1 0;
+function gemdos_cconin: longint; syscall 1 1;
+function gemdos_cconout(c: smallint): longint; syscall 1 2;
+function gemdos_cauxin: longint; syscall 1 3;
+function gemdos_cauxout(c: smallint): longint; syscall 1 4;
+function gemdos_cprnout(c: smallint): longint; syscall 1 5;
+function gemdos_crawio(c: smallint): longint; syscall 1 6;
+function gemdos_crawin: longint; syscall 1 7;
+function gemdos_cnecin: longint; syscall 1 8;
 procedure gemdos_cconws(p: pchar); syscall 1 9;
+function gemdos_cconrs(buf: PLINE): longint; syscall 1 10;
+function gemdos_cconis: longint; syscall 1 11;
 
 function gemdos_dsetdrv(drv: smallint): longint; syscall 1 14;
+
+function gemdos_cconos: smallint; syscall 1 16;
+function gemdos_cprnos: smallint; syscall 1 17;
+function gemdos_cauxis: smallint; syscall 1 18;
+function gemdos_cauxos: smallint; syscall 1 19;
+function gemdos_maddalt(start: pointer; size: longint): longint; syscall 1 20;
+function gemdos_srealloc(len: longint): longint; syscall 1 21;
 
 function gemdos_dgetdrv: smallint; syscall 1 25;
 procedure gemdos_setdta(buf: PDTA); syscall 1 26;
 
-function gemdos_tgetdate: longint; syscall 1 42;
+function gemdos_super(stack: pointer): longint; syscall 1 32;
 
+function gemdos_tgetdate: longint; syscall 1 42;
+function gemdos_tsetdate(date: word): smallint; syscall 1 43;
 function gemdos_tgettime: longint; syscall 1 44;
+function gemdos_tsettime(time: word): smallint; syscall 1 45;
 
 function gemdos_getdta: PDTA; syscall 1 47;
 function gemdos_sversion: smallint; syscall 1 48;
@@ -150,7 +194,9 @@ function gemdos_fwrite(handle: smallint; count: longint; buf: pointer): longint;
 function gemdos_fdelete(fname: pchar): smallint; syscall 1 65;
 function gemdos_fseek(offset: longint; handle: smallint; seekmode: smallint): longint; syscall 1 66;
 function gemdos_fattrib(filename: pchar; wflag: smallint; attrib: smallint): smallint; syscall 1 67;
-
+function gemdos_mxalloc(amount: longint; mode: smallint): pointer; syscall 1 68;
+function gemdos_fdup(handle: smallint): smallint; syscall 1 69;
+function gemdos_fforce(stdh: smallint; nonstdh: smallint): smallint; syscall 1 70;
 function gemdos_dgetpath(path: pchar; driveno: smallint): smallint; syscall 1 71;
 function gemdos_malloc(number: dword): pointer; syscall 1 72;
 function gemdos_free(block: pointer): dword; syscall 1 73;
