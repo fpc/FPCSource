@@ -62,6 +62,22 @@ type
 const
   AES_TRAP_MAGIC = $C8;
 
+type
+  PAESOBJECT = ^TAESOBJECT;
+  TAESOBJECT = record
+    ob_next: smallint;   {* The next object               *}
+    ob_head: smallint;   {* First child                   *}
+    ob_tail: smallint;   {* Last child                    *}
+    ob_type: word;       {* Object type                   *}
+    ob_flags: word;      {* Manipulation flags            *}
+    ob_state: word;      {* Object status                 *}
+    ob_spec: pointer;    {* More under object type        *}
+    ob_x: smallint;      {* X-coordinate of the object    *}
+    ob_y: smallint;      {* Y-coordinate of the object    *}
+    ob_width: smallint;  {* Width of the object           *}
+    ob_height: smallint; {* Height of the object          *}
+  end;
+
 { kinds, as used by wind_create() }
 const
   NAME    = $01;   { Window has a title bar. }
@@ -78,17 +94,57 @@ const
   HSLIDE  = $800;  { Window has a horizontal slider. }
   SMALLER = $4000; { Window has an iconifier. }
 
+{ message flags as used by evnt_multi() }
+const
+  MU_KEYBD  = $0001; { Keyboard event }
+  MU_BUTTON = $0002; { Button event   }
+  MU_M1     = $0004; { Mouse event 1  }
+  MU_M2     = $0008; { Mouse event 2  }
+  MU_MESAG  = $0010; { Messages       }
+  MU_TIMER  = $0020; { Timer events   }
+
+{ window update flags as used by wind_update() }
+const
+  END_UPDATE = (0);  { Screen redraw is compete and the flag set by BEG_UPDATE is reset }
+  BEG_UPDATE = (1);  { Screen redraw starts, rectangle lists are frozen, flag is set to prevent any other processes updating the screen }
+  END_MCTRL  = (2);  { Application releases control of the mouse to the AES and resumes mouse click message reactions }
+  BEG_MCTRL  = (3);  { The application wants to have sole control over mouse button messages }
+
 
 function appl_exit: smallint;
+function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
+function appl_write(ap_wid: smallint; ap_wlength: smallint; ap_wpbuff: pointer): smallint;
 function appl_find(fname: PChar): smallint;
 function appl_init: smallint;
+
+function evnt_keybd: smallint;
+function evnt_button(ev_bclicks: smallint; ev_bmask: smallint; ev_bstate: smallint;
+                     ev_bmx: psmallint; ev_bmy: psmallint; ev_bbutton: psmallint; ev_bkstate: psmallint): smallint;
+function evnt_mouse(ev_moflags: smallint; ev_mox: smallint; ev_moy: smallint; ev_mowidth: smallint; ev_moheight: smallint;
+                    ev_momx: psmallint; ev_momy: psmallint; ev_mobutton: psmallint; ev_mokstate: psmallint): smallint;
+function evnt_mesag(msg: psmallint): smallint;
+function evnt_timer(ev_tlocount: smallint; ev_thicount: smallint): smallint;
+function evnt_multi(ev_mflags: smallint; ev_mbclicks: smallint; ev_mbmask: smallint; ev_mbstate: smallint;
+                    ev_mm1flags: smallint; ev_mm1x: smallint; ev_mm1y: smallint; ev_mm1width: smallint; ev_mm1height: smallint;
+                    ev_mm2flags: smallint; ev_mm2x: smallint; ev_mm2y: smallint; ev_mm2width: smallint; ev_mm2height: smallint;
+                    ev_mmgpbuff: psmallint; ev_mtlocount: smallint; ev_mthicount: smallint;
+                    ev_mmox: psmallint; ev_mmoy: psmallint; ev_mmbutton: psmallint; ev_mmokstate: psmallint;
+                    ev_mkreturn: psmallint; ev_mbreturn: psmallint): smallint;
+function evnt_dclick(ev_dnew: smallint; ev_dgetset: smallint): smallint;
 
 function form_alert(default: smallint; alertstr: PChar): smallint;
 function form_error(error: smallint): smallint;
 
+function graf_handle(gr_hwchar: psmallint; gr_hhchar: psmallint; gr_hwbox: psmallint; gr_hhbox: psmallint): smallint;
+
+function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
+function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
+
 function wind_create(kind: smallint; x, y, w, h: smallint): smallint;
 function wind_delete(handle: smallint): smallint;
 function wind_open(handle: smallint; x, y, w, h: smallint): smallint;
+function wind_update(wi_ubegend: smallint): smallint;
+procedure wind_new;
 
 function crys_if(_opcode: dword): smallint;
 
@@ -242,6 +298,24 @@ begin
   appl_exit:=crys_if($13);
 end;
 
+function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
+begin
+  _intin[0]:=ap_rid;
+  _intin[1]:=ap_rlength;
+  _addrin[0]:=ap_rpbuff;
+
+  appl_read:=crys_if($0b);
+end;
+
+function appl_write(ap_wid: smallint; ap_wlength: smallint; ap_wpbuff: pointer): smallint;
+begin
+  _intin[0]:=ap_wid;
+  _intin[1]:=ap_wlength;
+  _addrin[0]:=ap_wpbuff;
+
+  appl_write:=crys_if($0c);
+end;
+
 function appl_find(fname: PChar): smallint;
 begin
   _addrin[0]:=fname;
@@ -253,6 +327,105 @@ begin
   appl_init:=crys_if($0a);
 end;
 
+function evnt_keybd: smallint;
+begin
+  evnt_keybd:=crys_if($14);
+end;
+
+function evnt_button(ev_bclicks: smallint; ev_bmask: smallint; ev_bstate: smallint;
+                     ev_bmx: psmallint; ev_bmy: psmallint; ev_bbutton: psmallint; ev_bkstate: psmallint): smallint;
+begin
+  _intin[0]:=ev_bclicks;
+  _intin[1]:=ev_bmask;
+  _intin[2]:=ev_bstate;
+
+  crys_if($15);
+
+  ev_bmx^:=_intout[1];
+  ev_bmy^:=_intout[2];
+  ev_bbutton^:=_intout[3];
+  ev_bkstate^:=_intout[4];
+
+  evnt_button:=_intout[0];
+end;
+
+function evnt_mouse(ev_moflags: smallint; ev_mox: smallint; ev_moy: smallint; ev_mowidth: smallint; ev_moheight: smallint;
+                    ev_momx: psmallint; ev_momy: psmallint; ev_mobutton: psmallint; ev_mokstate: psmallint): smallint;
+begin
+  _intin[0]:=ev_moflags;
+  _intin[1]:=ev_mox;
+  _intin[2]:=ev_moy;
+  _intin[3]:=ev_mowidth;
+  _intin[4]:=ev_moheight;
+
+  crys_if($16);
+
+  ev_momx^:=_intout[1];
+  ev_momy^:=_intout[2];
+  ev_mobutton^:=_intout[3];
+  ev_mokstate^:=_intout[4];
+
+  evnt_mouse:=_intout[0];
+end;
+
+function evnt_mesag(msg: psmallint): smallint;
+begin
+  _addrin[0]:=msg;
+  evnt_mesag:=crys_if($17);
+end;
+
+function evnt_timer(ev_tlocount: smallint; ev_thicount: smallint): smallint;
+begin
+  _intin[0]:=ev_tlocount;
+  _intin[1]:=ev_thicount;
+
+  evnt_timer:=crys_if($18);
+end;
+
+function evnt_multi(ev_mflags: smallint; ev_mbclicks: smallint; ev_mbmask: smallint; ev_mbstate: smallint;
+                    ev_mm1flags: smallint; ev_mm1x: smallint; ev_mm1y: smallint; ev_mm1width: smallint; ev_mm1height: smallint;
+                    ev_mm2flags: smallint; ev_mm2x: smallint; ev_mm2y: smallint; ev_mm2width: smallint; ev_mm2height: smallint;
+                    ev_mmgpbuff: psmallint; ev_mtlocount: smallint; ev_mthicount: smallint;
+                    ev_mmox: psmallint; ev_mmoy: psmallint; ev_mmbutton: psmallint; ev_mmokstate: psmallint;
+                    ev_mkreturn: psmallint; ev_mbreturn: psmallint): smallint;
+begin
+  _intin[0]:=ev_mflags;
+  _intin[1]:=ev_mbclicks;
+  _intin[2]:=ev_mbmask;
+  _intin[3]:=ev_mbstate;
+  _intin[4]:=ev_mm1flags;
+  _intin[5]:=ev_mm1x;
+  _intin[6]:=ev_mm1y;
+  _intin[7]:=ev_mm1width;
+  _intin[8]:=ev_mm1height;
+  _intin[9]:=ev_mm2flags;
+  _intin[10]:=ev_mm2x;
+  _intin[11]:=ev_mm2y;
+  _intin[12]:=ev_mm2width;
+  _intin[13]:=ev_mm2height;
+  _intin[14]:=ev_mtlocount;
+  _intin[15]:=ev_mthicount;
+  _addrin[0]:=ev_mmgpbuff;
+
+  crys_if($19);
+
+  ev_mmox^:=_intout[1];
+  ev_mmoy^:=_intout[2];
+  ev_mmbutton^:=_intout[3];
+  ev_mmokstate^:=_intout[4];
+  ev_mkreturn^:=_intout[5];
+  ev_mbreturn^:=_intout[6];
+
+  evnt_multi:=_intout[0];
+end;
+
+function evnt_dclick(ev_dnew: smallint; ev_dgetset: smallint): smallint;
+begin
+  _intin[0]:=ev_dnew;
+  _intin[1]:=ev_dgetset;
+
+  evnt_dclick:=crys_if($1a);
+end;
 
 function form_alert(default: smallint; alertstr: PChar): smallint;
 begin
@@ -267,6 +440,42 @@ begin
   form_error:=crys_if($35);
 end;
 
+function graf_handle(gr_hwchar: psmallint; gr_hhchar: psmallint; gr_hwbox: psmallint; gr_hhbox: psmallint): smallint;
+begin
+  crys_if($4d);
+
+  gr_hwchar^:=_intout[1];
+  gr_hhchar^:=_intout[2];
+  gr_hwbox^:=_intout[3];
+  gr_hhbox^:=_intout[4];
+
+  graf_handle:=_intout[0];
+end;
+
+function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
+begin
+  _addrin[0]:=fs_iinpath;
+  _addrin[1]:=fs_iinsel;
+
+  crys_if($5a);
+
+  fs_iexbutton^:=_intout[1];
+
+  fsel_input:=_intout[0];
+end;
+
+function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
+begin
+  _addrin[0]:=fs_einpath;
+  _addrin[1]:=fs_einsel;
+  _addrin[2]:=elabel;
+
+  crys_if($5b);
+
+  fs_eexbutton^:=_intout[1];
+
+  fsel_exinput:=_intout[0];
+end;
 
 function wind_create(kind: smallint; x, y, w, h: smallint): smallint;
 begin
@@ -292,6 +501,17 @@ begin
   _intin[3]:=w;
   _intin[4]:=h;
   wind_open:=crys_if($65);
+end;
+
+function wind_update(wi_ubegend: smallint): smallint;
+begin
+  _intin[0]:=wi_ubegend;
+  wind_update:=crys_if($6b);
+end;
+
+procedure wind_new;
+begin
+  crys_if($6d);
 end;
 
 
