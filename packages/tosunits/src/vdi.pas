@@ -138,7 +138,13 @@ procedure vdi;
 procedure vdi_str_to_pchar(src: psmallint; des: pchar; len: smallint);
 function pchar_str_to_vdi(src: pchar; des: psmallint): longint;
 
+procedure v_opnwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
+procedure v_clswk(handle: smallint);
+
 procedure v_pline(handle: smallint; count: smallint; pxyarray: psmallint);
+
+procedure v_opnvwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
+procedure v_clsvwk(handle: smallint);
 
 procedure v_get_pixel(handle: smallint; x: smallint; y: smallint;
                       pel: psmallint; index: psmallint);
@@ -195,13 +201,71 @@ begin
   pchar_str_to_vdi:=len-1;
 end;
 
+procedure v_opnwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
+begin
+  // _intin[0..15] = work_in[0..15];
+  move(work_in^,_intin,16*sizeof(smallint));
+
+  _contrl[0]:=1;
+  _contrl[1]:=0;
+  _contrl[3]:=16;
+  _contrl[6]:=0;
+
+  vdi;
+
+  handle^:=_contrl[6];
+  // work_out[0..44] = intout[0..44];
+  // work_out[45..56] = ptsout[0..11];
+  move(_intout,work_out[0],45*sizeof(smallint));
+  move(_ptsout,work_out[45],12*sizeof(smallint));
+end;
+
+procedure v_clswk(handle: smallint);
+begin
+  _contrl[0]:=2;
+  _contrl[1]:=0;
+  _contrl[3]:=0;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
 procedure v_pline(handle: smallint; count: smallint; pxyarray: psmallint);
 begin
-  //  _ptsin[0..2*count-1] = pxyarray[0..2*count-1];
+  // _ptsin[0..2*count-1] = pxyarray[0..2*count-1];
   move(pxyarray^,_ptsin,count*2*sizeof(smallint));
 
   _contrl[0]:=6;
   _contrl[1]:=count;
+  _contrl[3]:=0;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
+procedure v_opnvwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
+begin
+  // _intin[0..10] = work_in[0..10];
+  move(work_in^,_intin,11*sizeof(smallint));
+
+  _contrl[0]:=100;
+  _contrl[1]:=0;
+  _contrl[3]:=11;
+  _contrl[6]:=handle^;
+
+  vdi;
+
+  handle^:=_contrl[6];
+  // work_out[0..44] = intout[0..44];
+  // work_out[45..56] = ptsout[0..11];
+  move(_intout,work_out[0],45*sizeof(smallint));
+  move(_ptsout,work_out[45],12*sizeof(smallint));
+end;
+
+procedure v_clsvwk(handle: smallint);
+begin
+  _contrl[0]:=101;
+  _contrl[1]:=0;
   _contrl[3]:=0;
   _contrl[6]:=handle;
 
@@ -224,7 +288,6 @@ begin
   pel^:=_intout[0];
   index^:=_intout[1];
 end;
-
 
 
 end.

@@ -94,6 +94,27 @@ const
   HSLIDE  = $800;  { Window has a horizontal slider. }
   SMALLER = $4000; { Window has an iconifier. }
 
+{ messages as used by evnt_mesag() }
+const
+  WM_REDRAW     = $0014;
+  WM_TOPPED     = $0015;
+  WM_CLOSED     = $0016;
+  WM_FULLED     = $0017;
+  WM_ARROWED    = $0018;
+  WM_HSLID      = $0019;
+  WM_VSLID      = $001a;
+  WM_SIZED      = $001b;
+  WM_MOVED      = $001c;
+  WM_NEWTOP     = $001d;
+  WM_UNTOPPED   = $001e;
+  WM_ONTOP      = $001f;
+  WM_OFFTOP     = $0020;
+  WM_BOTTOMED   = $0021;
+  WM_ICONIFY    = $0022;
+  WM_UNICONIFY  = $0023;
+  WM_ALLICONIFY = $0024;
+  WM_TOOLBAR    = $0025;
+
 { message flags as used by evnt_multi() }
 const
   MU_KEYBD  = $0001; { Keyboard event }
@@ -141,8 +162,9 @@ function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint
 function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
 
 function wind_create(kind: smallint; x, y, w, h: smallint): smallint;
-function wind_delete(handle: smallint): smallint;
 function wind_open(handle: smallint; x, y, w, h: smallint): smallint;
+function wind_close(wi_clhandle: smallint): smallint;
+function wind_delete(handle: smallint): smallint;
 function wind_update(wi_ubegend: smallint): smallint;
 procedure wind_new;
 
@@ -487,11 +509,6 @@ begin
   wind_create:=crys_if($64);
 end;
 
-function wind_delete(handle: smallint): smallint;
-begin
-  _intin[0]:=handle;
-  wind_delete:=crys_if($67);
-end;
 
 function wind_open(handle: smallint; x, y, w, h: smallint): smallint;
 begin
@@ -501,6 +518,18 @@ begin
   _intin[3]:=w;
   _intin[4]:=h;
   wind_open:=crys_if($65);
+end;
+
+function wind_close(wi_clhandle: smallint): smallint;
+begin
+  _intin[0]:=wi_clhandle;
+  wind_close:=crys_if($66);
+end;
+
+function wind_delete(handle: smallint): smallint;
+begin
+  _intin[0]:=handle;
+  wind_delete:=crys_if($67);
 end;
 
 function wind_update(wi_ubegend: smallint): smallint;

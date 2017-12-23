@@ -19,6 +19,8 @@ interface
 { The API description of this file is based on the information available
   online at: http://toshyp.atari.org }
 
+function xbios_getrez: longint; syscall 14 4;
+
 function xbios_random: longint; syscall 14 17;
 
 implementation
