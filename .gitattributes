@@ -7552,6 +7552,7 @@ packages/tosunits/examples/higem.pas svneol=native#text/plain
 packages/tosunits/fpmake.pp svneol=native#text/plain
 packages/tosunits/src/aes.pas svneol=native#text/plain
 packages/tosunits/src/gemdos.pas svneol=native#text/plain
+packages/tosunits/src/vdi.pas svneol=native#text/plain
 packages/tosunits/src/xbios.pas svneol=native#text/plain
 packages/univint/Makefile svneol=native#text/plain
 packages/univint/Makefile.fpc svneol=native#text/plain

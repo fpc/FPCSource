@@ -29,6 +29,7 @@ begin
 
     T:=P.Targets.AddUnit('gemdos.pas');
     T:=P.Targets.AddUnit('xbios.pas');
+    T:=P.Targets.AddUnit('vdi.pas');
     T:=P.Targets.AddUnit('aes.pas');
 
     P.ExamplePath.Add('examples');
