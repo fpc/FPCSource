@@ -1,3 +1,14 @@
+{
+    Copyright (c) 2017 Karoly Balogh
+
+    Simple, resizable and movable GEM Window
+    Example program for Free Pascal's Atari TOS bindings
+
+    This example program is in the Public Domain under the terms of
+    Unlicense: http://unlicense.org/
+
+ **********************************************************************}
+
 {$APPTYPE GUI}
 program gemwin;
 
