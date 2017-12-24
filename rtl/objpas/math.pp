@@ -501,7 +501,7 @@ function totalvariance(const data : array of Single) : float;inline;
 function variance(const data : PSingle; Const N : Integer) : float;
 function totalvariance(const data : PSingle; Const N : Integer) : float;
 
-{ I don't know what the following functions do: }
+{ Population (aka uncorrected) variance and standard deviation }
 function popnstddev(const data : array of Single) : float;inline;
 function popnstddev(const data : PSingle; Const N : Integer) : float;
 function popnvariance(const data : PSingle; Const N : Integer) : float;
@@ -532,7 +532,7 @@ function totalvariance(const data : array of Double) : float;inline;
 function variance(const data : PDouble; Const N : Integer) : float;
 function totalvariance(const data : PDouble; Const N : Integer) : float;
 
-{ I don't know what the following functions do: }
+{ Population (aka uncorrected) variance and standard deviation }
 function popnstddev(const data : array of Double) : float;inline;
 function popnstddev(const data : PDouble; Const N : Integer) : float;
 function popnvariance(const data : PDouble; Const N : Integer) : float;
@@ -563,7 +563,7 @@ function totalvariance(const data : array of Extended) : float;inline;
 function variance(const data : PExtended; Const N : Integer) : float;
 function totalvariance(const data : PExtended; Const N : Integer) : float;
 
-{ I don't know what the following functions do: }
+{ Population (aka uncorrected) variance and standard deviation }
 function popnstddev(const data : array of Extended) : float;inline;
 function popnstddev(const data : PExtended; Const N : Integer) : float;
 function popnvariance(const data : PExtended; Const N : Integer) : float;
@@ -1382,8 +1382,17 @@ end;
 
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function stddev(const data : array of Single) : float; inline;
+procedure MeanAndTotalVariance
+  (const data: PSingle; N: LongInt; var mu, variance: float);
+var i: LongInt;
+begin
+  mu := Mean( data, N );
+  variance := 0;
+  for i := 0 to N - 1 do
+    variance := variance + Sqr( data[i] - mu );
+end;
 
+function stddev(const data : array of Single) : float; inline;
 begin
   Result:=Stddev(PSingle(@Data[0]),High(Data)+1);
 end;
@@ -1399,25 +1408,17 @@ begin
   Meanandstddev(PSingle(@Data[0]),High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PSingle;
-  Const N : Longint;var mean,stddev : float);
-
-Var I : longint;
-
+procedure meanandstddev
+( const data:   PSingle;
+  const N:      Longint;
+  var   mean,
+        stdDev: Float
+);
+var totalVariance: float;
 begin
-  Mean:=0;
-  StdDev:=0;
-  For I:=0 to N-1 do
-    begin
-    Mean:=Mean+Data[i];
-    StdDev:=StdDev+Sqr(Data[i]);
-    end;
-  Mean:=Mean/N;
-  StdDev:=(StdDev-N*Sqr(Mean));
-  If N>1 then
-    StdDev:=Sqrt(Stddev/(N-1))
-  else
-    StdDev:=0;
+  MeanAndTotalVariance( data, N, mean, totalVariance );
+  if N < 2 then stdDev := 0
+  else stdDev := Sqrt( totalVariance / ( N - 1 ) );
 end;
 
 function variance(const data : array of Single) : float; inline;
@@ -1438,20 +1439,11 @@ begin
   Result:=TotalVariance(PSingle(@Data[0]),High(Data)+1);
 end;
 
-function totalvariance(const data : PSingle;Const N : Integer) : float;
-
-   var S,SS : Float;
-
-  begin
-    If N=1 then
-      Result:=0
-    else
-      begin
-      SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/N;
-      end;
-  end;
-
+function totalvariance(const data : PSingle; const N : Integer) : float;
+var mu: float;
+begin
+  MeanAndTotalVariance( data, N, mu, result );
+end;
 
 function popnstddev(const data : array of Single) : float;
   begin
@@ -1541,8 +1533,17 @@ function norm(const data : PSingle; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function stddev(const data : array of Double) : float; inline;
+procedure MeanAndTotalVariance
+  (const data: PDouble; N: LongInt; var mu, variance: float);
+var i: LongInt;
+begin
+  mu := Mean( data, N );
+  variance := 0;
+  for i := 0 to N - 1 do
+    variance := variance + Sqr( data[i] - mu );
+end;
 
+function stddev(const data : array of Double) : float; inline;
 begin
   Result:=Stddev(PDouble(@Data[0]),High(Data)+1)
 end;
@@ -1559,25 +1560,17 @@ begin
   Meanandstddev(PDouble(@Data[0]),High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PDouble;
-  Const N : Longint;var mean,stddev : float);
-
-Var I : longint;
-
+procedure meanandstddev
+( const data:   PDouble;
+  const N:      Longint;
+  var   mean,
+        stdDev: Float
+);
+var totalVariance: float;
 begin
-  Mean:=0;
-  StdDev:=0;
-  For I:=0 to N-1 do
-    begin
-    Mean:=Mean+Data[i];
-    StdDev:=StdDev+Sqr(Data[i]);
-    end;
-  Mean:=Mean/N;
-  StdDev:=(StdDev-N*Sqr(Mean));
-  If N>1 then
-    StdDev:=Sqrt(Stddev/(N-1))
-  else
-    StdDev:=0;
+  MeanAndTotalVariance( data, N, mean, totalVariance );
+  if N < 2 then stdDev := 0
+  else stdDev := Sqrt( totalVariance / ( N - 1 ) );
 end;
 
 function variance(const data : array of Double) : float; inline;
@@ -1599,20 +1592,11 @@ begin
   Result:=TotalVariance(PDouble(@Data[0]),High(Data)+1);
 end;
 
-function totalvariance(const data : PDouble;Const N : Integer) : float;
-
-   var S,SS : Float;
-
-  begin
-    If N=1 then
-      Result:=0
-    else
-      begin
-      SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/N;
-      end;
-  end;
-
+function totalvariance(const data : PDouble; const N : Integer) : float;
+var mu: float;
+begin
+  MeanAndTotalVariance( data, N, mu, result );
+end;
 
 function popnstddev(const data : array of Double) : float;
 
@@ -1704,6 +1688,16 @@ function norm(const data : PDouble; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure MeanAndTotalVariance
+  (const data: PExtended; N: LongInt; var mu, variance: float);
+var i: LongInt;
+begin
+  mu := Mean( data, N );
+  variance := 0;
+  for i := 0 to N - 1 do
+    variance := variance + Sqr( data[i] - mu );
+end;
+
 function stddev(const data : array of Extended) : float; inline;
 begin
   Result:=Stddev(PExtended(@Data[0]),High(Data)+1)
@@ -1720,25 +1714,17 @@ begin
   Meanandstddev(PExtended(@Data[0]),High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PExtended;
-  Const N : Longint;var mean,stddev : float);
-
-Var I : longint;
-
+procedure meanandstddev
+( const data:   PExtended;
+  const N:      Longint;
+  var   mean,
+        stdDev: Float
+);
+var totalVariance: float;
 begin
-  Mean:=0;
-  StdDev:=0;
-  For I:=0 to N-1 do
-    begin
-      Mean:=Mean+Data[i];
-      StdDev:=StdDev+Sqr(Data[i]);
-    end;
-  Mean:=Mean/N;
-  StdDev:=(StdDev-N*Sqr(Mean));
-  If N>1 then
-    StdDev:=Sqrt(Stddev/(N-1))
-  else
-    StdDev:=0;
+  MeanAndTotalVariance( data, N, mean, totalVariance );
+  if N < 2 then stdDev := 0
+  else stdDev := Sqrt( totalVariance / ( N - 1 ) );
 end;
 
 function variance(const data : array of Extended) : float; inline;
@@ -1761,19 +1747,10 @@ begin
 end;
 
 function totalvariance(const data : PExtended;Const N : Integer) : float;
-
-   var S,SS : Float;
-
-  begin
-    If N=1 then
-      Result:=0
-    else
-      begin
-      SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/N;
-      end;
-  end;
-
+var mu: float;
+begin
+  MeanAndTotalVariance( data, N, mu, result );
+end;
 
 function popnstddev(const data : array of Extended) : float;
 
