@@ -304,6 +304,7 @@ var
   ms: TMemoryStream;
   NewSource, FileEncoding: string;
 begin
+  //writeln('TPas2jsFileLineReader.Create ',AFilename);
   inherited Create(AFilename);
   ms:=TMemoryStream.Create;
   try
