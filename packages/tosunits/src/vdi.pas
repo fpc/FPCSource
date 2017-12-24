@@ -143,11 +143,21 @@ procedure v_clswk(handle: smallint);
 
 procedure v_pline(handle: smallint; count: smallint; pxyarray: psmallint);
 
+procedure v_gtext(handle: smallint; x: smallint; y: smallint; _string: pchar);
+
+procedure v_bar(handle: smallint; pxyarray: psmallint);
+
+function vst_color(handle: smallint; color_index: smallint): smallint;
+function vsf_color(handle: smallint; color_index: smallint): smallint;
+
 procedure v_opnvwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
 procedure v_clsvwk(handle: smallint);
 
 procedure v_get_pixel(handle: smallint; x: smallint; y: smallint;
                       pel: psmallint; index: psmallint);
+
+procedure v_show_c(handle: smallint; reset: smallint);
+procedure v_hide_c(handle: smallint);
 
 
 implementation
@@ -243,6 +253,70 @@ begin
   vdi;
 end;
 
+procedure v_gtext(handle: smallint; x: smallint; y: smallint; _string: pchar);
+var
+  i: smallint;
+begin
+  _ptsin[0]:=x;
+  _ptsin[1]:=y;
+
+  i:=0;
+  repeat
+    _intin[i]:=byte(_string[i]);
+    inc(i);
+  until (_string[i-1] = #0);
+  dec(i);
+
+  _contrl[0]:=8;
+  _contrl[1]:=1;
+  _contrl[3]:=-i;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
+procedure v_bar(handle: smallint; pxyarray: psmallint);
+begin
+  // _ptsin[0..3] = pxyarray[0..3];
+  move(pxyarray^,_ptsin,4*sizeof(smallint));
+  _contrl[0]:=11;
+  _contrl[1]:=2;
+  _contrl[3]:=0;
+  _contrl[5]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
+function vst_color(handle: smallint; color_index: smallint): smallint;
+begin
+  _intin[0]:=color_index;
+
+  _contrl[0]:=22;
+  _contrl[1]:=0;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+
+  vst_color:=_intout[0];
+end;
+
+function vsf_color(handle: smallint; color_index: smallint): smallint;
+begin
+  _intin[0]:=color_index;
+
+  _contrl[0]:=25;
+  _contrl[1]:=0;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+
+  vsf_color:=_intout[0];
+end;
+
+
 procedure v_opnvwk(work_in: psmallint; handle: psmallint; work_out: psmallint);
 begin
   // _intin[0..10] = work_in[0..10];
@@ -289,5 +363,26 @@ begin
   index^:=_intout[1];
 end;
 
+procedure v_show_c(handle: smallint; reset: smallint);
+begin
+  _intin[0]:=reset;
+
+  _contrl[0]:=122;
+  _contrl[1]:=0;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
+procedure v_hide_c(handle: smallint);
+begin
+  _contrl[0]:=123;
+  _contrl[1]:=0;
+  _contrl[3]:=0;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
 
 end.

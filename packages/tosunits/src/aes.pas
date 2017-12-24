@@ -78,6 +78,15 @@ type
     ob_height: smallint; {* Height of the object          *}
   end;
 
+type
+  PGRECT = ^TGRECT;
+  TGRECT = record
+    x: smallint;   {* X-coordinate *}
+    y: smallint;   {* Y-coordinate *}
+    w: smallint;   {* Width        *}
+    h: smallint;   {* Height       *}
+  end;
+
 { kinds, as used by wind_create() }
 const
   NAME    = $01;   { Window has a title bar. }
@@ -131,6 +140,51 @@ const
   END_MCTRL  = (2);  { Application releases control of the mouse to the AES and resumes mouse click message reactions }
   BEG_MCTRL  = (3);  { The application wants to have sole control over mouse button messages }
 
+{ window flags as used by wind_set()/wind_get() }
+const
+  WF_KIND      = (1);
+  WF_NAME      = (2);
+  WF_INFO      = (3);
+  WF_WORKXYWH  = (4);
+  WF_CURRXYWH  = (5);
+  WF_PREVXYWH  = (6);
+  WF_FULLXYWH  = (7);
+  WF_HSLIDE    = (8);
+  WF_VSLIDE    = (9);
+  WF_TOP       = (10);
+  WF_FIRSTXYWH = (11);
+  WF_NEXTXYWH  = (12);
+  WF_NEWDESK   = (14);
+  WF_HSLSIZE   = (15);
+  WF_VSLSIZE   = (16);
+  WF_SCREEN    = (17);
+  WF_TOOLBAR   = (30);
+  WF_MENU      = (33);
+
+{ window calculation types as used by wind_calc() }
+const
+  WC_BORDER = 0;
+  WC_WORK   = 1;
+
+{ AES standard object colors }
+const
+  WHITE    = (00);  { White          1000, 1000, 1000 }
+  BLACK    = (01);  { Black             0,    0,    0 }
+  RED      = (02);  { Red            1000,    0,    0 }
+  GREEN    = (03);  { Green             0, 1000,    0 }
+  BLUE     = (04);  { Blue              0,    0, 1000 }
+  CYAN     = (05);  { Cyan              0, 1000, 1000 }
+  YELLOW   = (06);  { Yellow         1000, 1000,    0 }
+  MAGENTA  = (07);  { Magenta        1000,    0, 1000 }
+  DWHITE   = (08);  { Light grey      752,  752,  752 }
+  DBLACK   = (09);  { Dark grey       501,  501,  501 }
+  DRED     = (10);  { Dark red        713,    0,    0 }
+  DGREEN   = (11);  { Dark green        0,  713,    0 }
+  DBLUE    = (12);  { Dark blue         0,    0,  713 }
+  DCYAN    = (13);  { Dark cyan         0,  713,  713 }
+  DYELLOW  = (14);  { Dark yellow     713,  713,    0 }
+  DMAGENTA = (15);  { Dark magenta    713,    0,  713 }
+
 
 function appl_exit: smallint;
 function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
@@ -157,6 +211,8 @@ function form_alert(default: smallint; alertstr: PChar): smallint;
 function form_error(error: smallint): smallint;
 
 function graf_handle(gr_hwchar: psmallint; gr_hhchar: psmallint; gr_hwbox: psmallint; gr_hhbox: psmallint): smallint;
+function graf_mkstate(gr_mkmx: psmallint; gr_mkmy: psmallint;
+                      gr_mkmstate: psmallint; gr_mkkstate: psmallint): smallint;
 
 function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
 function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
@@ -165,7 +221,18 @@ function wind_create(kind: smallint; x, y, w, h: smallint): smallint;
 function wind_open(handle: smallint; x, y, w, h: smallint): smallint;
 function wind_close(wi_clhandle: smallint): smallint;
 function wind_delete(handle: smallint): smallint;
+function wind_get(wi_ghandle: smallint; wi_gfield: smallint;
+                  wi_gw1: psmallint; wi_gw2: psmallint;
+                  wi_gw3: psmallint; wi_gw4: psmallint): smallint;
+function wind_set(wi_shandle: smallint; wi_sfield: smallint;
+                  wi_sw1: smallint; wi_sw2: smallint;
+                  wi_sw3: smallint; wi_sw4: smallint): smallint;
 function wind_update(wi_ubegend: smallint): smallint;
+function wind_calc(wi_ctype: smallint; wi_ckind: smallint;
+                   wi_cinx: smallint; wi_ciny: smallint;
+                   wi_cinw: smallint; wi_cinh: smallint;
+                   coutx: psmallint; couty: psmallint;
+                   coutw: psmallint; couth: psmallint): smallint;
 procedure wind_new;
 
 function crys_if(_opcode: dword): smallint;
@@ -474,6 +541,19 @@ begin
   graf_handle:=_intout[0];
 end;
 
+function graf_mkstate(gr_mkmx: psmallint; gr_mkmy: psmallint;
+                      gr_mkmstate: psmallint; gr_mkkstate: psmallint): smallint;
+begin
+  crys_if($4f);
+
+  gr_mkmx^:=_intout[1];
+  gr_mkmy^:=_intout[2];
+  gr_mkmstate^:=_intout[3];
+  gr_mkkstate^:=_intout[4];
+
+  graf_mkstate:=_intout[0];
+end;
+
 function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
 begin
   _addrin[0]:=fs_iinpath;
@@ -532,10 +612,65 @@ begin
   wind_delete:=crys_if($67);
 end;
 
+function wind_get(wi_ghandle: smallint; wi_gfield: smallint;
+                  wi_gw1: psmallint; wi_gw2: psmallint;
+                  wi_gw3: psmallint; wi_gw4: psmallint): smallint;
+begin
+  _intin[0]:=wi_ghandle;
+  _intin[1]:=wi_gfield;
+
+  crys_if($68);
+
+  wi_gw1^:=_intout[1];
+  wi_gw2^:=_intout[2];
+  wi_gw3^:=_intout[3];
+  wi_gw4^:=_intout[4];
+
+  wind_get:=_intout[0];
+end;
+
+
+function wind_set(wi_shandle: smallint; wi_sfield: smallint;
+                  wi_sw1: smallint; wi_sw2: smallint;
+                  wi_sw3: smallint; wi_sw4: smallint): smallint;
+begin
+  _intin[0]:=wi_shandle;
+  _intin[1]:=wi_sfield;
+  _intin[2]:=wi_sw1;
+  _intin[3]:=wi_sw2;
+  _intin[4]:=wi_sw3;
+  _intin[5]:=wi_sw4;
+
+  wind_set:=crys_if($69);
+end;
+
 function wind_update(wi_ubegend: smallint): smallint;
 begin
   _intin[0]:=wi_ubegend;
   wind_update:=crys_if($6b);
+end;
+
+function wind_calc(wi_ctype: smallint; wi_ckind: smallint;
+                   wi_cinx: smallint; wi_ciny: smallint;
+                   wi_cinw: smallint; wi_cinh: smallint;
+                   coutx: psmallint; couty: psmallint;
+                   coutw: psmallint; couth: psmallint): smallint;
+begin
+  _intin[0]:=wi_ctype;
+  _intin[1]:=wi_ckind;
+  _intin[2]:=wi_cinx;
+  _intin[3]:=wi_ciny;
+  _intin[4]:=wi_cinw;
+  _intin[5]:=wi_cinh;
+
+  crys_if($6c);
+
+  coutx^:=_intout[1];
+  couty^:=_intout[2];
+  coutw^:=_intout[3];
+  couth^:=_intout[4];
+
+  wind_calc:=_intout[0];
 end;
 
 procedure wind_new;
