@@ -1878,6 +1878,7 @@ var
   aFile: TPas2jsFileLineReader;
   IfLvl, SkipLvl, OldCfgLineNumber: Integer;
   Skip: TSkip;
+  CacheFile: TPas2jsCachedFile;
 begin
   if ShowTriedUsedFiles then
     Log.LogMsgIgnoreFilter(nReadingOptionsFromFile,[CfgFilename]);
@@ -1889,7 +1890,8 @@ begin
     OldCfgFilename:=FCurrentCfgFilename;
     FCurrentCfgFilename:=CfgFilename;
     OldCfgLineNumber:=FCurrentCfgLineNumber;
-    aFile:=TPas2jsFileLineReader.Create(CfgFilename);
+    CacheFile:=FileCache.LoadTextFile(CfgFilename);
+    aFile:=CacheFile.CreateLineReader(true);
     while not aFile.IsEOF do begin
       Line:=aFile.ReadLine;
       FCurrentCfgLineNumber:=aFile.LineNumber;

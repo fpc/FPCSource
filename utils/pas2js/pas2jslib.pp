@@ -11,7 +11,7 @@ uses
   ---------------------------------------------------------------------}
 
 Type
-  TLibLogCallBack = Procedure (Data : Pointer; Msg : PansiChar; MsgLen : Integer); stdcall;
+  TLibLogCallBack = Procedure (Data : Pointer; Msg : PAnsiChar; MsgLen : Integer); stdcall;
   TWriteJSCallBack = Procedure (Data : Pointer;
     AFileName: PAnsiChar; AFileNameLen : Integer;
     AFileData : PAnsiChar; AFileDataLen: Int32); stdcall;
@@ -30,6 +30,7 @@ Type
     Function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; override;
     Procedure GetLastError(AError : PAnsiChar; Var AErrorLength : Longint;
       AErrorClass : PAnsiChar; Var AErrorClassLength : Longint);
+    Function ReadFile(aFilename: string; var aSource: string): boolean; virtual;
   Public
     Constructor Create; override;
     Procedure DoLibraryLog(Sender : TObject; Const Msg : String);
@@ -60,8 +61,9 @@ begin
     end;
 end;
 
-procedure TLibraryPas2JSCompiler.GetLastError(AError: PAnsiChar; var AErrorLength : Longint;
-  AErrorClass: PAnsiChar; var AErrorClassLength : Longint);
+procedure TLibraryPas2JSCompiler.GetLastError(AError: PAnsiChar;
+  Var AErrorLength: Longint; AErrorClass: PAnsiChar;
+  Var AErrorClassLength: Longint);
 
 Var
   L : Integer;
@@ -79,10 +81,17 @@ begin
     Move(FLastErrorClass[1],AErrorClass^,L);
 end;
 
+function TLibraryPas2JSCompiler.ReadFile(aFilename: string; var aSource: string
+  ): boolean;
+begin
+  Result:=false; // use default reader
+end;
+
 constructor TLibraryPas2JSCompiler.Create;
 begin
   inherited Create;
   Log.OnLog:=@DoLibraryLog;
+  FileCache.OnReadFile:=@ReadFile;
 end;
 
 procedure TLibraryPas2JSCompiler.DoLibraryLog(Sender: TObject; const Msg: String);

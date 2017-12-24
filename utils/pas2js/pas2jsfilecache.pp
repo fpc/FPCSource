@@ -110,6 +110,8 @@ type
     property LoadedFileAge: longint read FLoadedFileAge;// only valid if Loaded=true
   end;
 
+  TPas2jsReadFileEvent = function(aFilename: string; var aSource: string): boolean of object;
+
   TPas2jsCachedFilesState = (
     cfsMainJSFileResolved
     );
@@ -137,6 +139,7 @@ type
     FMainSrcFile: string;
     FNamespaces: TStringList;
     FNamespacesFromCmdLine: integer;
+    FOnReadFile: TPas2jsReadFileEvent;
     FOptions: TP2jsFileCacheOptions;
     FReadLineCounter: SizeInt;
     FResetStamp: TChangeStamp;
@@ -160,6 +163,8 @@ type
     procedure SetSrcMapBaseDir(const AValue: string);
     procedure SetUnitOutputPath(AValue: string);
     procedure SetOption(Flag: TP2jsFileCacheOption; Enable: boolean);
+  protected
+    function ReadFile(Filename: string; var Source: string): boolean; virtual;
   public
     constructor Create(aLog: TPas2jsLogger);
     destructor Destroy; override;
@@ -199,6 +204,7 @@ type
     property UnitOutputPath: string read FUnitOutputPath write SetUnitOutputPath; // includes trailing pathdelim
     property UnitPaths: TStringList read FUnitPaths;
     property UnitPathsFromCmdLine: integer read FUnitPathsFromCmdLine;
+    property OnReadFile: TPas2jsReadFileEvent read FOnReadFile write FOnReadFile;
   end;
 
 function CompareFilenameWithCachedFile(Filename, CachedFile: Pointer): integer;
@@ -300,33 +306,8 @@ end;
 { TPas2jsFileLineReader }
 
 constructor TPas2jsFileLineReader.Create(const AFilename: string);
-var
-  ms: TMemoryStream;
-  NewSource, FileEncoding: string;
 begin
-  //writeln('TPas2jsFileLineReader.Create ',AFilename);
-  inherited Create(AFilename);
-  ms:=TMemoryStream.Create;
-  try
-    try
-      ms.LoadFromFile(Filename);
-      SetLength(NewSource,ms.Size);
-      ms.Position:=0;
-      if NewSource<>'' then
-        ms.Read(NewSource[1],length(NewSource));
-    except
-      on E: Exception do begin
-        EPas2jsFileCache.Create('Error reading file "'+Filename+'": '+E.Message);
-        exit;
-      end;
-    end;
-  finally
-    ms.Free;
-  end;
-  FileEncoding:='';
-  FSource:=ConvertTextToUTF8(NewSource,FileEncoding);
-  FSrcPos:=PChar(FSource);
-  FIsEOF:=FSource='';
+  raise Exception.Create('TPas2jsFileLineReader.Create no cache "'+AFilename+'"');
 end;
 
 constructor TPas2jsFileLineReader.Create(aFile: TPas2jsCachedFile);
@@ -413,7 +394,6 @@ function TPas2jsCachedFile.Load(RaiseOnError: boolean): boolean;
   end;
 
 var
-  ms: TMemoryStream;
   NewSource: string;
 begin
   {$IFDEF VerboseFileCache}
@@ -447,23 +427,8 @@ begin
     Err('File is a directory "'+Filename+'"');
     exit;
   end;
-  ms:=TMemoryStream.Create;
-  try
-    try
-      ms.LoadFromFile(Filename);
-      SetLength(NewSource,ms.Size);
-      ms.Position:=0;
-      if NewSource<>'' then
-        ms.Read(NewSource[1],length(NewSource));
-    except
-      on E: Exception do begin
-        Err('Error reading file "'+Filename+'": '+E.Message);
-        exit;
-      end;
-    end;
-  finally
-    ms.Free;
-  end;
+  NewSource:='';
+  if not Cache.ReadFile(Filename,NewSource) then exit;
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load ENCODE ',Filename,' FFileEncoding=',FFileEncoding);
   {$ENDIF}
@@ -893,6 +858,33 @@ begin
     Exclude(FOptions,Flag);
   if Flag in [caoAllJSIntoMainJS] then
     Exclude(FStates,cfsMainJSFileResolved);
+end;
+
+function TPas2jsFilesCache.ReadFile(Filename: string; var Source: string
+  ): boolean;
+var
+  ms: TMemoryStream;
+begin
+  Result:=false;
+  try
+    if Assigned(OnReadFile) then
+      if OnReadFile(Filename,Source) then exit;
+    ms:=TMemoryStream.Create;
+    try
+      ms.LoadFromFile(Filename);
+      SetLength(Source,ms.Size);
+      ms.Position:=0;
+      if Source<>'' then
+        ms.Read(Source[1],length(Source));
+      Result:=true;
+    finally
+      ms.Free;
+    end;
+  except
+    on E: Exception do begin
+      EPas2jsFileCache.Create('Error reading file "'+Filename+'": '+E.Message);
+    end;
+  end;
 end;
 
 constructor TPas2jsFilesCache.Create(aLog: TPas2jsLogger);
