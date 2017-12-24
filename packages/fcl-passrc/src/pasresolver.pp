@@ -2322,7 +2322,7 @@ begin
   Result:=inherited FindIdentifier(Identifier);
   if Result<>nil then
     exit;
-  for i:=0 to UsesScopes.Count-1 do
+  for i:=UsesScopes.Count-1 downto 0 do
     begin
     UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     {$IFDEF VerbosePasResolver}
@@ -2350,7 +2350,7 @@ begin
   if Abort then exit;
   FilterData.OnIterate:=OnIterateElement;
   FilterData.Data:=Data;
-  for i:=0 to UsesScopes.Count-1 do
+  for i:=UsesScopes.Count-1 downto 0 do
     begin
     UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     {$IFDEF VerbosePasResolver}
@@ -2369,7 +2369,7 @@ var
 begin
   inherited WriteIdentifiers(Prefix);
   SubPrefix:=Prefix+'    ';
-  for i:=0 to UsesScopes.Count-1 do
+  for i:=UsesScopes.Count-1 downto 0 do
     begin
     UsesScope:=TPasIdentifierScope(UsesScopes[i]);
     writeln(Prefix+'  Uses: '+GetObjName(UsesScope.Element)+' "'+UsesScope.Element.GetModule.Name+'"');

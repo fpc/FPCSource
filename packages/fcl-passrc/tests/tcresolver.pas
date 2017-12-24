@@ -354,6 +354,7 @@ type
     Procedure TestProcOverloadWithInhAliasClassTypes;
     Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcOverloadBaseProcNoHint;
+    Procedure TestProcOverload_UnitOrderFail;
     Procedure TestProcOverloadDelphiMissingNextOverload;
     Procedure TestProcOverloadDelphiMissingPrevOverload;
     Procedure TestProcOverloadDelphiUnit;
@@ -5160,7 +5161,6 @@ begin
   AddModuleWithIntfImplSrc('unit2.pp',
     LinesToStr([
     'procedure Val(var d: double);',
-    //'procedure Val(var i: integer);',
     '']),
     LinesToStr([
     'procedure Val(var d: double); begin end;',
@@ -5173,7 +5173,6 @@ begin
   Add('  d: double;');
   Add('  i: integer;');
   Add('begin');
-  //Add('  Val(i);');
   Add('  Val(d);');
   ParseProgram;
 end;
@@ -5192,6 +5191,33 @@ begin
   '  s:=copy(s)']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestProcOverload_UnitOrderFail;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'procedure Val(d: string);',
+    '']),
+    LinesToStr([
+    'procedure Val(d: string); begin end;',
+    '']));
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'procedure Val(d: double);',
+    '']),
+    LinesToStr([
+    'procedure Val(d: double); begin end;',
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit1, unit2;',
+  'var',
+  '  s: string;',
+  'begin',
+  '  Val(s);']);
+  CheckResolverException(sIncompatibleTypeArgNo,nIncompatibleTypeArgNo);
 end;
 
 procedure TTestResolver.TestProcOverloadDelphiMissingNextOverload;
