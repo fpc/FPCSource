@@ -868,7 +868,9 @@ begin
   Result:=false;
   try
     if Assigned(OnReadFile) then
-      if OnReadFile(Filename,Source) then exit;
+      Result:=OnReadFile(Filename,Source);
+    if Result then
+      Exit;
     ms:=TMemoryStream.Create;
     try
       ms.LoadFromFile(Filename);
