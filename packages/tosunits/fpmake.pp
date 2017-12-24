@@ -35,6 +35,7 @@ begin
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('higem.pas');
     T:=P.Targets.AddExampleProgram('gemwin.pas');
+    T:=P.Targets.AddExampleProgram('gemcube.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
