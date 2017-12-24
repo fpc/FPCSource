@@ -146,7 +146,9 @@ procedure v_pline(handle: smallint; count: smallint; pxyarray: psmallint);
 procedure v_gtext(handle: smallint; x: smallint; y: smallint; _string: pchar);
 
 procedure v_bar(handle: smallint; pxyarray: psmallint);
+procedure v_circle (handle: smallint; x: smallint; y: smallint; radius: smallint);
 
+function vsl_color(handle: smallint; color_index: smallint): smallint;
 function vst_color(handle: smallint; color_index: smallint): smallint;
 function vsf_color(handle: smallint; color_index: smallint): smallint;
 
@@ -159,6 +161,7 @@ procedure v_get_pixel(handle: smallint; x: smallint; y: smallint;
 procedure v_show_c(handle: smallint; reset: smallint);
 procedure v_hide_c(handle: smallint);
 
+procedure vs_clip(handle: smallint; clip_flag: smallint; pxyarray: psmallint);
 
 implementation
 
@@ -288,6 +291,38 @@ begin
   vdi;
 end;
 
+procedure v_circle (handle: smallint; x: smallint; y: smallint; radius: smallint);
+begin
+  _ptsin[0]:=x;
+  _ptsin[1]:=y;
+  _ptsin[2]:=0;
+  _ptsin[3]:=0;
+  _ptsin[4]:=radius;
+  _ptsin[5]:=0;
+
+  _contrl[0]:=11;
+  _contrl[1]:=3;
+  _contrl[3]:=0;
+  _contrl[5]:=4;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
+function vsl_color(handle: smallint; color_index: smallint): smallint;
+begin
+  _intin[0]:=color_index;
+
+  _contrl[0]:=17;
+  _contrl[1]:=0;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+
+  vsl_color:=_intout[0];
+end;
+
 function vst_color(handle: smallint; color_index: smallint): smallint;
 begin
   _intin[0]:=color_index;
@@ -384,5 +419,22 @@ begin
 
   vdi;
 end;
+
+procedure vs_clip(handle: smallint; clip_flag: smallint; pxyarray: psmallint);
+begin
+  _intin[0]:=clip_flag;
+  _ptsin[0]:=pxyarray[0];
+  _ptsin[1]:=pxyarray[1];
+  _ptsin[2]:=pxyarray[2];
+  _ptsin[3]:=pxyarray[3];
+
+  _contrl[0]:=129;
+  _contrl[1]:=2;
+  _contrl[3]:=1;
+  _contrl[6]:=handle;
+
+  vdi;
+end;
+
 
 end.
