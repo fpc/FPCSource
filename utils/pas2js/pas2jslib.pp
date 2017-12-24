@@ -9,12 +9,17 @@ uses
 { ---------------------------------------------------------------------
   Compiler descendant, usable in library
   ---------------------------------------------------------------------}
+Const
+  DefaultReadBufferSize = 32*1024; // 32kb buffer
 
 Type
   TLibLogCallBack = Procedure (Data : Pointer; Msg : PAnsiChar; MsgLen : Integer); stdcall;
   TWriteJSCallBack = Procedure (Data : Pointer;
     AFileName: PAnsiChar; AFileNameLen : Integer;
     AFileData : PAnsiChar; AFileDataLen: Int32); stdcall;
+  TReadPasCallBack = Procedure (Data : Pointer;
+    AFileName: PAnsiChar; AFileNameLen : Integer;
+    AFileData : PAnsiChar; Var AFileDataLen: Int32); stdcall;
 
   { TLibraryPas2JSCompiler }
 
@@ -24,8 +29,11 @@ Type
     FLastErrorClass: String;
     FOnLibLogCallBack: TLibLogCallBack;
     FOnLibLogData: Pointer;
+    FOnReadPasData: Pointer;
+    FOnReadPasFile: TReadPasCallBack;
     FOnWriteJSCallBack: TWriteJSCallBack;
     FOnWriteJSData: Pointer;
+    FReadBufferLen: Cardinal;
   Protected
     Function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; override;
     Procedure GetLastError(AError : PAnsiChar; Var AErrorLength : Longint;
@@ -41,6 +49,9 @@ Type
     Property OnLibLogData : Pointer Read FOnLibLogData Write FOnLibLogData;
     Property OnWriteJSCallBack : TWriteJSCallBack Read FOnWriteJSCallBack Write FOnWriteJSCallBack;
     Property OnWriteJSData : Pointer Read FOnWriteJSData Write FOnWriteJSData;
+    Property OnReadPasFile : TReadPasCallBack Read FOnReadPasFile Write FOnReadPasFile;
+    Property OnReadPasData : Pointer Read FOnReadPasData Write FOnReadPasData;
+    Property ReadBufferLen : Cardinal Read FReadBufferLen Write FReadBufferLen;
   end;
 
 { TLibraryPas2JSCompiler }
@@ -81,10 +92,35 @@ begin
     Move(FLastErrorClass[1],AErrorClass^,L);
 end;
 
-function TLibraryPas2JSCompiler.ReadFile(aFilename: string; var aSource: string
-  ): boolean;
+function TLibraryPas2JSCompiler.ReadFile(aFilename: string; var aSource: string): boolean;
+
+Var
+  Buf : Array of AnsiChar;
+  S : TStringStream;
+  BytesRead : Cardinal;
+
 begin
-  Result:=false; // use default reader
+  if Not Assigned(OnReadPasFile) then
+    Exit(False);
+  S:=nil;
+  try
+    if ReadBufferLen=0 then
+      ReadBufferLen:=DefaultReadBufferSize;
+    SetLength(Buf,ReadBufferLen);
+    S:=TStringStream.Create('',CP_ACP);
+    Repeat
+      BytesRead:=ReadBufferLen;
+      FOnReadPasFile(OnReadPasData,PAnsiChar(aFileName),Length(aFileName),@Buf[0],BytesRead);
+      If BytesRead>0 then
+        S.Write(Buf[0],BytesRead);
+    Until (BytesRead<ReadBufferLen);
+    Result:=S.Size<>0;
+    if Result then
+      aSource:=S.DataString;
+  finally
+    SetLength(Buf,0);
+    S.Free;
+  end;
 end;
 
 constructor TLibraryPas2JSCompiler.Create;
@@ -92,6 +128,7 @@ begin
   inherited Create;
   Log.OnLog:=@DoLibraryLog;
   FileCache.OnReadFile:=@ReadFile;
+  FReadBufferLen:=DefaultReadBufferSize;
 end;
 
 procedure TLibraryPas2JSCompiler.DoLibraryLog(Sender: TObject; const Msg: String);
@@ -167,6 +204,16 @@ begin
   TLibraryPas2JSCompiler(P).OnLibLogData:=CallBackData;
 end;
 
+Procedure SetPas2JSReadPasCallBack(P : PPas2JSCompiler; ACallBack : TReadPasCallBack;  CallBackData : Pointer; ABufferSize : Cardinal); stdcall;
+
+begin
+  TLibraryPas2JSCompiler(P).OnReadPasData:=CallBackData;
+  TLibraryPas2JSCompiler(P).OnReadPasFile:=ACallback;
+  if (ABufferSize=0) then
+    ABufferSize:=DefaultReadBufferSize;
+  TLibraryPas2JSCompiler(P).ReadBufferLen:=ABufferSize;
+end;
+
 Function RunPas2JSCompiler(P : PPas2JSCompiler; ACompilerExe, AWorkingDir : PAnsiChar;
   CommandLine : PPAnsiChar; DoReset : Boolean) : Boolean; stdcall;
 
@@ -197,6 +244,7 @@ exports
   GetPas2JSCompiler,
   FreePas2JSCompiler,
   RunPas2JSCompiler,
+  SetPas2JSReadPasCallBack,
   SetPas2JSWriteJSCallBack,
   SetPas2JSCompilerLogCallBack,
   GetPas2JSCompilerLastError;
