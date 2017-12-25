@@ -166,12 +166,12 @@ Works:
   - type enum range, char range, integer range
   - type/var set of: enum, enum range, integer, integer range, char, char range
   - array var
+  - function: enumerator
+  - class
 
 ToDo:
 - Add test:  test1 uses unit1, unit1 uses unit2, test1 references an identifier 'unit2' -> fail
 - for..in..do
-   - function: enumerator
-   - class
    - operator
 - range checking:
   - indexedprop[param]
