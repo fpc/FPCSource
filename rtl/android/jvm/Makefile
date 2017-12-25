@@ -340,7 +340,6 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-override FPCOPT+=@rtl.cfg
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
@@ -2318,7 +2317,7 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(RTL)/java/$(SYSTEMUNIT).pp $(SYSDEPS)
-	$(COMPILER) -Us -Sg $(RTL)/java/$(SYSTEMUNIT).pp $(REDIR)
+	$(COMPILER) -Us -Sg @rtl.cfg $(RTL)/java/$(SYSTEMUNIT).pp $(REDIR)
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
 objpas$(PPUEXT): $(RTL)/java/objpas.pp

@@ -342,7 +342,6 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 LOADERS=prt0 cprt0
-override FPCOPT+=@rtl.cfg
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
@@ -2846,7 +2845,7 @@ prt0$(OEXT) : prt0.as
 cprt0$(OEXT) : cprt0.as
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) cprt0.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+	$(COMPILER) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
