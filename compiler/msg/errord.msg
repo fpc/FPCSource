@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 35079
+#   Based on errore.msg of SVN revision 36258
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2017 by the Free Pascal Development team
@@ -15,9 +15,6 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-
-# CodePage 850
-
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -2497,7 +2494,7 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Fun
 % Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
 % To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
 % or replace the function call by alternative code
-cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) fÅr das aktuelle Zielsystem erreicht
+cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) für das aktuelle Zielsystem erreicht
 % Depending of target architecture, the number of units is limited. This limit
 % has been reached. A unit counts only if it contains initialization or finalization count.
 %
@@ -2507,7 +2504,7 @@ cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) fÅr das aktuelle Zi
 #
 # Assembler reader
 #
-# 07129 is the last used one
+# 07131 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2819,6 +2816,14 @@ asmr_e_const16bit_for_segment=07128_E_Nicht ausreichend Platz (16 Bit benîtigt) 
 % less, for example, if you use 'DB SEG symbol' instead of 'DW SEG symbol'.
 asmr_e_invalid_code_value=07129_E_UngÅltiger Wert des Arguments fÅr die .code-Direktive
 % The ARM assembler only allows the values 16 and 32 to be used as arguments to the .code directive
+asmr_w_unable_to_determine_constant_size_using_byte=07130_W_Keine Grî·e fÅr die Konstante angegeben und es konnte auch keine bestimmt werden. Es wird BYTE als Voreinstellung verwendet.
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte, word, dword, etc.) it
+% should use for the constant. Based on its value, BYTE is used.
+asmr_w_unable_to_determine_constant_size_using_word=07131_W_Keine Grî·e fÅr die Konstante angegeben und es konnte auch keine bestimmt werden. Es wird WORD als Voreinstellung verwendet.
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte, word, dword, etc.) it
+% should use for the constant. Based on its value, WORD is used.
 %
 % \end{description}
 # EndOfTeX
@@ -3021,7 +3026,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 #
 # Internal linker messages
 #
-# 09208 is the last used one
+# 09220 is the last used one
 #
 # BeginOfTeX
 %
@@ -3036,9 +3041,9 @@ link_w_32bit_absolute_reloc=09201_W_Objektdatei "$1" enthÑlt eine 32-bit absolut
 % address space only.
 link_e_program_segment_too_large=09202_E_Program-Segment zu gro· (Åbersteigt 64k um $1 Byte)
 % Error when a 16-bit program is compiled in the tiny memory model, but its size exceeds 64k
-link_e_code_segment_too_large=09203_E_Code-Segment zu gro· (Åbersteigt 64k um $1 Byte)
+link_e_code_segment_too_large=09203_E_Code-Segment "$1" zu gro· (Åbersteigt 64k um $2 Byte)
 % Error when a 16-bit program's code segment exceeds 64k bytes
-link_e_data_segment_too_large=09204_E_Data-Segment zu gro· (Åbersteigt 64k um $1 Byte)
+link_e_data_segment_too_large=09204_E_Data-Segment "$1" zu gro· (Åbersteigt 64k um $2 Byte)
 % Error when a 16-bit program's data segment exceeds 64k bytes
 link_e_segment_too_large=09205_E_Segment "$1" zu gro· (Åbersteigt 64k um $2 Byte)
 % Error when a 16-bit program contains a segment that exceeds 64k bytes
@@ -3052,6 +3057,36 @@ link_e_com_program_uses_segment_relocations=09207_E_Eine .COM-Datei kann nicht e
 % directive (either in pascal's built-in inline assembler, or in an externally
 % linked assembly module).
 link_w_program_uses_checkpointer=09208_W_Das Programm "$1" benutzt die experimentelle CheckPointer-Option
+link_e_duplicate_symbol=09209_E_Mehrfach definiertes Symbol "$1"
+% The specified symbol is already defined inside the whole collection of object files.
+link_e_comdat_select_unsupported=09210_E_COMDAT-Auswahlmodus $1 nicht untersÅtzt (Sektion: "$1")
+% The specified COMDAT selection mode is not supported.
+link_e_comdat_associative_section_expected=09211_E_Assoziative Sektion fÅr die COMDAT-Sektion "$1" erwartet
+% The specified COMDAT section is specified as expecting an associative section,
+% but none is specified.
+link_e_comdat_not_matching=09212_E_COMDAT-Sektion-Auswahlmodus fÅr Sektion "$1" und Symbol "$2" stimmen nicht Åberein
+% All COMDAT symbols/sections need to use the same selection mode.
+link_e_comdat_associative_section_not_found=09213_E_Assoziative COMDAT-Sektion fÅr Sektion "$1" nicht gefunden
+% The COMDAT section expects an associative section, but it was not found inside the object file.
+link_d_comdat_discard_any=09214_D_Verwerfe das doppelte Symbol "$1" wegen des COMDAT-Auswahlmodus
+% The COMDAT section specifies that any section with the same name might be selected and this
+% specific section was selected to be discarded.
+link_d_comdat_discard_size=09215_D_Verwerfe das doppelte Symbol "$1" mit der selben Grî·e wegen des COMDAT-Auswahlmodus
+% The COMDAT section specifies that any section with the same name and size might be selected
+% and this specific section was selected to be discarded.
+link_d_comdat_discard_content=09216_D_Verwerfe das doppelte Symbol "$1" mit dem selben Inhalt wegen des COMDAT-Auswahlmodus
+% The COMDAT section specifies that any section with the same name and content might be selected
+% and this specific section was selected to be discarded.
+link_d_comdat_replace_size=09217_D_Ersetze das doppelte Symbol "$1" mit kleinerer Grî·e wegen des COMDAT-Auswahlmodus
+% The COMDAT section specifies that the largest section with the same name should be selected
+% this specific section was larger than the previous largest one.
+link_e_comdat_size_differs=09218_E_Grî·e des doppelten COMDAT-Symbols "$1" unterscheidet sich
+% The COMDAT section specifies that all sections with the same name need to have the same size,
+% but this section had a different size.
+link_e_comdat_content_differs=09219_E_Inhalt des doppelten COMDAT-Symbols "$1" unterscheidet sich
+% The COMDAT section specifies that all sections with the same name need to have the same content,
+% but this section had a different size.
+link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus fÅr das Symbol "$1" unterscheidet sich
 %
 % \end{description}
 # EndOfTeX
@@ -3059,7 +3094,7 @@ link_w_program_uses_checkpointer=09208_W_Das Programm "$1" benutzt die experimen
 #
 # Unit loading
 #
-# 10064 is the last used one
+# 10066 is the last used one
 #
 # BeginOfTeX
 %
@@ -3267,6 +3302,16 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU ist fÅr ein anderes i8086 Speichermo
 % cannot be read.
 unit_u_loading_from_package=10064_U_Unit $1 wird von Paket $2 geladen
 % The unit is loaded from a package.
+cg_f_internal_type_not_found=10065_F_Interner Typ "$1" wurde nicht gefunden. öberprÅfen sie, ob sie die richtige Laufzeit-Bibliothek verwenden.
+% The compiler expects that the runtime library contains certain types. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
+cg_f_internal_type_does_not_match=10066_F_Interner Typ "$1" ist unerwartet. öberprÅfen sie, ob sie die richtige Laufzeit-Bibliothek verwenden.
+% The compiler expects that the runtime library contains certain types. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you changed a type which the compiler needs for internal use and which needs to have a certain structure.
 %
 % \end{description}
 # EndOfTeX
@@ -3274,7 +3319,7 @@ unit_u_loading_from_package=10064_U_Unit $1 wird von Paket $2 geladen
 #
 # Options
 #
-# 11058 is the last used one
+# 11059 is the last used one
 #
 # BeginOfTeX
 %
@@ -3422,6 +3467,8 @@ option_smart_link_requires_external_linker=11056_W_Smart-linking erfordert exter
 option_com_files_require_tiny_model=11057_E_Das Erstellen von .COM Dateien wird fÅr das aktuelle Speichermodell nicht unterstÅtzt. Nur das winzige (tiny) Speichermodell unterstÅtzt .COM Dateien
 % Do not enable experimental -gc option if -Ur option is given.
 option_gc_incompatible_with_release_flag=11058_W_Die experimentelle CheckPointer-Option wird nicht eingeschaltet, weil sie mit der Option -Ur inkompatibel ist
+% The compiler binary only supports a single target architecture. Invoke the fpc binary if you wish to select a compiler binary for a different target architecture.
+option_invalid_target_architecture=11059_E_Nicht unterstÅtzte Zielarchitektur -P$1, rufe statt dessen den Kompilertreiber "fpc" auf.
 %
 % \end{description}
 # EndOfTeX
@@ -3499,8 +3546,8 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Die Sammlung der "symbol livene
 % actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1" fÅr die Gesamtprogramm-Optimierung kann nicht erzeugt werden
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
-%\end{description}
 %
+%\end{description}
 # EndOfTeX
 
 #
@@ -3688,6 +3735,7 @@ F*0*_Es werden nur Optionen aufgelistet, die fÅr die voreingestellte oder ausgew
 **0*_Nach booleschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
 **1@<x>_Lese zusÑtzlich zu den voreingestellten Compiler-Optionen aus fpc.cfg auch die aus <x>
 **1a_Erzeugte Assembler-Datei nicht lîschen
+**2a5_Erzeuge keine Big-Obj-COFF-Dateien fÅr GNU Binutils, die Ñlter als Version 2.25 sind (Windows, NativeNT)
 **2al_Liste Quellcode-Zeilen in der Assembler-Datei
 **2an_Liste "node info" in der Assembler-Datei (-dEXTDEBUG Compiler)
 **2ao_FÅge eine zusÑtzliche Option zum Aufruf des externen Assemblers hinzu (ignoriert fÅr den internen Assembler)
@@ -3745,7 +3793,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Cf<x>_WÑhle den Fliesskomma-Befehlssatz aus; fpc -i oder fpc -if geben die mîglichen Werte aus
 **2CF<x>_Minimale PrÑzission von Fliesskommakonstanten (default, 32, 64)
 **2Cg_Erzeuge PIC code
-**2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
+**2Ch<n>[,m]_<n> Minimale Grî·e des Heap in Byte (zwischen 1023 und 67107840) und optional [m] maximale Grî·e des Heap
 **2Ci_I/O-PrÅfung
 A*2CI<x>_WÑhle den Befehlssatz fÅr ARM aus: ARM oder THUMB
 **2Cn_Lasse die Linkstufe aus
@@ -3857,7 +3905,7 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 **2Mmacpas_KompatibilitÑts-Modus fÅr MacIntosh Pascal-Dialekte
 **2Miso_ISO 7185 Modus
 **2Mextendedpascal_ISO 10206 Modus
-**2Mdelphiunicode_KompatibilitÑts-Modus fÅr Delphi 2009 und spÑter
+**2Mdelphiunicode_KompatibilitÑts-Modus fÅr  Delphi 2009 und spÑter
 **1n_Standard-Konfigurationsdatei ignorieren
 **1o<x>_Die erzeugte, ausfÅhrbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
@@ -3906,6 +3954,7 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 **3SIcorba_CORBA kompatibles Interface
 **2Sm_UnterstÅtze Makros wie in C (global)
 **2So_Sei TP/BP 7.0 kompatibel (wie -Mtp)
+**2Sr_Transparente Dateinamen im ISO-Modus
 **2Ss_Konstruktor- und Destruktorname mÅssen "Init" und "Done" sein
 **2Sv_UnterstÅtze Vektor-Verarbeitung (soweit vorhanden benutze CPU-Vektorerweiterungen)
 **2Sx_Exception SchlÅsselwîrter einschalten (Voreinstellung in Delphi/ObjFPC Moden)
@@ -3931,6 +3980,7 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
+3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
 3*2Tsolaris_Solaris
 3*2Twatcom_Watcom compatible DOS extender
@@ -4043,6 +4093,7 @@ p*2Wi_Benutze interne Resourcen (Darwin)
 3*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 4*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 A*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
+8*2Wh_Benutze "huge"-Code fÅr Units (Ignoriert fÅr Modelle mit CODE in einem separaten Segment)
 8*2Wm<x>_Setze Speichermodell
 8*3WmTiny_Winziges (tiny) Speichermodell
 8*3WmSmall_Kleines (small) Speichermodell (Voreinstellung)
