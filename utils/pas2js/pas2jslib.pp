@@ -107,7 +107,7 @@ begin
     if ReadBufferLen=0 then
       ReadBufferLen:=DefaultReadBufferSize;
     SetLength(Buf,ReadBufferLen);
-    S:=TStringStream.Create('',CP_ACP);
+    S:=TStringStream.Create(''{$IF FPC_FULLVERSION>=30101},CP_ACP{$ENDIF});
     Repeat
       BytesRead:=ReadBufferLen;
       FOnReadPasFile(OnReadPasData,PAnsiChar(aFileName),Length(aFileName),@Buf[0],BytesRead);
