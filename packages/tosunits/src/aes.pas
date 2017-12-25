@@ -186,6 +186,73 @@ const
   DMAGENTA = (15);  { Dark magenta    713,    0,  713 }
 
 
+{ AES mouse form structure }
+type
+  PMFORM = ^TMFORM;
+  TMFORM = record
+    mf_xhot: smallint;       {* X-position hot-spot *}
+    mf_yhot: smallint;       {* Y-position hot-spot *}
+    mf_nplanes: smallint;    {* Number of planes    *}
+    mf_fg: smallint;         {* Mask colour         *}
+    mf_bg: smallint;         {* Pointer colour      *}
+    mf_mask: array[0..15] of smallint;   {* Mask form           *}
+    mf_data: array[0..15] of smallint;   {* Pointer form        *}
+  end;
+
+{ AES mouse cursor number }
+const
+  ARROW          = 0;       { Arrow                               }
+  TEXT_CRSR      = 1;       { Text cursor                         }
+  HOURGLASS      = 2;       { Hourglass, bee                      }
+  BUSY_BEE       = 2;       { See HOURGLASS                       }
+  BUSYBEE        = 2;       { See HOURGLASS                       }
+  POINT_HAND     = 3;       { Pointing hand                       }
+  FLAT_HAND      = 4;       { Flat hand                           }
+  THIN_CROSS     = 5;       { Thin crosshairs                     }
+  THICK_CROSS    = 6;       { Thick crosshairs                    }
+  OUTLN_CROSS    = 7;       { Outlined crosshairs                 }
+  USER_DEF       = 255;     { User-defined mouse form             }
+  M_OFF          = 256;     { Switch off mouse pointer            }
+  M_ON           = 257;     { Switch on mouse pointer             }
+  M_SAVE         = 258;     { Save current mouse form             }
+  M_LAST         = 259;     { Restore most recently saved form    }
+  M_PREVIOUS     = 259;     { See M_LAST                          }
+  M_RESTORE      = 260;     { Restore last shape                  }
+
+{ Menu definitions as used by menu_bar() }
+const
+  MENU_INQUIRE   = -1;
+  MENU_HIDE      = 0;
+  MENU_SHOW      = 1;
+
+{ Form dialog space actions, as used by form_dial() }
+const
+  FMD_START  = 0; { Reserve screen space for a dialog }
+  FMD_GROW   = 1; { Draw several expanding rectangles from the coordinates fo_dilittlx/y/w/hto fo_dibigx/y/w/h }
+  FMD_SHRINK = 2; { Draw several shrinking rectangles from fo_dibigx/y/w/h to fo_dilittlx/y/w/h }
+  FMD_FINISH = 3; { Release the reserved screen space again }
+
+{ Resource structure types as used by rsrc_gaddr()/rsrc_saddr() }
+const
+  R_TREE      = 0;  { Object tree                          }
+  R_OBJECT    = 1;  { Individual OBJECT (TAESOBJECT)       }
+  R_TEDINFO   = 2;  { TEDINFO structure                    }
+  R_ICONBLK   = 3;  { ICONBLK structure                    }
+  R_BITBLK    = 4;  { BITBLK structure                     }
+  R_STRING    = 5;  { Free string data                     }
+  R_IMAGEDATA = 6;  { Free image data                      }
+  R_OBSPEC    = 7;  { ob_spec field in OBJECT (TAESOBJECT) }
+  R_TEPTEXT   = 8;  { te_ptext in TEDINFO                  }
+  R_TEPTMPLT  = 9;  { te_ptmplt in TEDINFO                 }
+  R_TEPVALID  = 10; { te_pvalid in TEDINFO                 }
+  R_IBPMASK   = 11; { ib_pmask in ICONBLK                  }
+  R_IBPDATA   = 12; { ib_pdata in ICONBLK                  }
+  R_IBPTEXT   = 13; { ib_ptext in ICONBLK                  }
+  R_BIPDATA   = 14; { ib_pdate in BITBLK                   }
+  R_FRSTR     = 15; { ad_frstr free string                 }
+  R_FRIMG     = 16; { ad_frimg free image                  }
+
+
 function appl_exit: smallint;
 function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
 function appl_write(ap_wid: smallint; ap_wlength: smallint; ap_wpbuff: pointer): smallint;
@@ -207,12 +274,59 @@ function evnt_multi(ev_mflags: smallint; ev_mbclicks: smallint; ev_mbmask: small
                     ev_mkreturn: psmallint; ev_mbreturn: psmallint): smallint;
 function evnt_dclick(ev_dnew: smallint; ev_dgetset: smallint): smallint;
 
+function menu_bar(me_btree: PAESOBJECT; me_bshow: smallint): smallint;
+function menu_icheck(me_ctree: PAESOBJECT; me_citem: smallint; me_ccheck: smallint): smallint;
+function menu_ienable(me_etree: PAESOBJECT; me_eitem: smallint; me_eenable: smallint): smallint;
+function menu_tnormal(me_ntree: PAESOBJECT; me_ntitle: smallint; me_nnormal: smallint): smallint;
+function menu_text(me_ttree: PAESOBJECT; me_titem: smallint; me_ttext: PChar): smallint;
+function menu_register(me_rapid: smallint; me_rpstring: PChar): smallint;
+
+function objc_add(ob_atree: PAESOBJECT; ob_aparent: smallint; ob_achild: smallint): smallint;
+function objc_delete(ob_dltree: PAESOBJECT; ob_dlobject: smallint): smallint;
+function objc_draw(ob_drtree: PAESOBJECT; ob_drstart: smallint;
+                   ob_drdepth: smallint; ob_drxclip: smallint;
+                   ob_dryclip: smallint; ob_drwclip: smallint;
+                   ob_drhclip: smallint): smallint;
+function objc_find(ob_ftree: PAESOBJECT; ob_fstartob: smallint;
+                   ob_fdepth: smallint; ob_fmx: smallint;
+                   ob_fmy: smallint): smallint;
+function objc_offset(ob_oftree: PAESOBJECT; ob_ofobject: smallint;
+                     ob_ofxoff: psmallint; ob_ofyoff: psmallint): smallint;
+function objc_order(ob_ortree: PAESOBJECT; ob_orobject: smallint;
+                    ob_ornewpos: smallint): smallint;
+function objc_edit(ob_edtree: PAESOBJECT; ob_edobject: smallint;
+                   ob_edchar: smallint; ob_edidx: psmallint;
+                   ob_edkind: smallint): smallint;
+function objc_change(ob_ctree: PAESOBJECT; ob_cobject: smallint;
+                     ob_cresvd: smallint; ob_cxclip: smallint;
+                     ob_cyclip: smallint; ob_cwclip: smallint;
+                     ob_chclip: smallint; ob_cnewstate: smallint;
+                     ob_credraw: smallint): smallint;
+
+function form_do(fo_dotree: PAESOBJECT; fo_dostartob: smallint): smallint;
+function form_dial(fo_diflag: smallint; fo_dilittlx: smallint;
+                   fo_dilittly: smallint; fo_dilittlw: smallint;
+                   fo_dilittlh: smallint; fo_dibigx: smallint;
+                   fo_dibigy: smallint; fo_dibigw: smallint;
+                   fo_dibigh: smallint): smallint;
 function form_alert(default: smallint; alertstr: PChar): smallint;
 function form_error(error: smallint): smallint;
+function form_center(fo_ctree: PAESOBJECT; fo_cx: psmallint;
+                     fo_cy: psmallint; fo_cw: psmallint;
+                     fo_ch: psmallint): smallint;
+function form_keybd(fo_ktree: PAESOBJECT; fo_kobject: smallint;
+                    fo_kobnext: smallint; fo_kchar: smallint;
+                    fo_knxtobject: psmallint; fo_knxtchar: psmallint): smallint;
+function form_button(fo_btree: PAESOBJECT; fo_bobject: smallint;
+                     fo_bclicks: smallint; fo_bnxtobj: psmallint): smallint;
 
 function graf_handle(gr_hwchar: psmallint; gr_hhchar: psmallint; gr_hwbox: psmallint; gr_hhbox: psmallint): smallint;
+function graf_mouse(gr_monumber: smallint; gr_mofaddr: PMFORM): smallint;
 function graf_mkstate(gr_mkmx: psmallint; gr_mkmy: psmallint;
                       gr_mkmstate: psmallint; gr_mkkstate: psmallint): smallint;
+
+function scrp_read(sc_rpscrap: pchar): smallint;
+function scrp_write(sc_wpscrap: pchar): smallint;
 
 function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
 function fsel_exinput(fs_einpath: pchar; fs_einsel: pchar; fs_eexbutton: psmallint; elabel: pchar): smallint;
@@ -227,6 +341,7 @@ function wind_get(wi_ghandle: smallint; wi_gfield: smallint;
 function wind_set(wi_shandle: smallint; wi_sfield: smallint;
                   wi_sw1: smallint; wi_sw2: smallint;
                   wi_sw3: smallint; wi_sw4: smallint): smallint;
+function wind_find(wi_fmx: smallint; wi_fmy: smallint): smallint;
 function wind_update(wi_ubegend: smallint): smallint;
 function wind_calc(wi_ctype: smallint; wi_ckind: smallint;
                    wi_cinx: smallint; wi_ciny: smallint;
@@ -234,6 +349,22 @@ function wind_calc(wi_ctype: smallint; wi_ckind: smallint;
                    coutx: psmallint; couty: psmallint;
                    coutw: psmallint; couth: psmallint): smallint;
 procedure wind_new;
+
+function rsrc_load(re_lpfname: PChar): smallint;
+function rsrc_free: smallint;
+function rsrc_gaddr(re_gtype: smallint; re_gindex: smallint; gaddr: ppointer): smallint;
+function rsrc_saddr(re_stype: smallint; re_sindex: smallint; saddr: pointer): smallint;
+function rsrc_obfix(re_otree: PAESOBJECT; re_oobject: smallint): smallint;
+
+function shel_read(sh_rpcmd: pchar; sh_rptail: pchar): smallint;
+function shel_write(sh_wdoex: smallint; sh_wisgr: smallint;
+                    sh_wiscr: smallint; sh_wpcmd: pchar;
+                    sh_wptail: pchar): smallint;
+function shel_get(sh_gaddr: pchar; sh_glen: word): smallint;
+function shel_put(sh_paddr: pchar; sh_plen: word): smallint;
+function shel_find(sh_fpbuff: pchar): smallint;
+function shel_envrn(sh_epvalue: ppchar; sh_eparm: pchar): smallint;
+
 
 function crys_if(_opcode: dword): smallint;
 
@@ -245,13 +376,13 @@ const
     ( 2, 1, 1, 0 ),    // 11, appl_read
     ( 2, 1, 1, 0 ),    // 12, appl_write
     ( 0, 1, 1, 0 ),    // 13, appl_find
-    ( 2, 1, 1, 0 ),    // 14, appl_tplay
-    ( 1, 1, 1, 0 ),    // 15, appl_trecord
+    ( 2, 1, 1, 0 ),    // 14, appl_tplay !
+    ( 1, 1, 1, 0 ),    // 15, appl_trecord !
     ( 0, 0, 0, 0 ),    // 16
     ( 0, 0, 0, 0 ),    // 17
-    ( 1, 3, 1, 0 ),    // 18, appl_search (V4.0)
+    ( 1, 3, 1, 0 ),    // 18, appl_search (V4.0) !
     ( 0, 1, 0, 0 ),    // 19, appl_exit
-    ( 0, 1, 0, 0 ),    // 20, evnt_keybd
+    ( 0, 1, 0, 0 ),    // 20, evnt_keybd 
     ( 3, 5, 0, 0 ),    // 21, evnt_button
     ( 5, 5, 0, 0 ),    // 22, evnt_mouse
     ( 0, 1, 1, 0 ),    // 23, evnt_mesag
@@ -267,10 +398,10 @@ const
     ( 2, 1, 1, 0 ),    // 33, menu_tnormal
     ( 1, 1, 2, 0 ),    // 34, menu_text
     ( 1, 1, 1, 0 ),    // 35, menu_register
-    ( 2, 1, 2, 0 ),    // 36, menu_popup (V3.3)
-    ( 2, 1, 2, 0 ),    // 37, menu_attach (V3.3)
-    ( 3, 1, 1, 0 ),    // 38, menu_istart (V3.3)
-    ( 1, 1, 1, 0 ),    // 39, menu_settings (V3.3)
+    ( 2, 1, 2, 0 ),    // 36, menu_popup (V3.3) !
+    ( 2, 1, 2, 0 ),    // 37, menu_attach (V3.3) !
+    ( 3, 1, 1, 0 ),    // 38, menu_istart (V3.3) !
+    ( 1, 1, 1, 0 ),    // 39, menu_settings (V3.3) !
     ( 2, 1, 1, 0 ),    // 40, objc_add
     ( 1, 1, 1, 0 ),    // 41, objc_delete
     ( 6, 1, 1, 0 ),    // 42, objc_draw
@@ -279,7 +410,7 @@ const
     ( 2, 1, 1, 0 ),    // 45, objc_order
     ( 4, 2, 1, 0 ),    // 46, objc_edit
     ( 8, 1, 1, 0 ),    // 47, objc_change
-    ( 4, 3, 0, 0 ),    // 48, objc_sysvar (V3.4)
+    ( 4, 3, 0, 0 ),    // 48, objc_sysvar (V3.4) !
     ( 0, 0, 0, 0 ),    // 49
     ( 1, 1, 1, 0 ),    // 50, form_do
     ( 9, 1, 0, 0 ),    // 51, form_dial
@@ -301,13 +432,13 @@ const
     ( 0, 0, 0, 0 ),    // 67
     ( 0, 0, 0, 0 ),    // 68
     ( 0, 0, 0, 0 ),    // 69
-    ( 4, 3, 0, 0 ),    // 70, graf_rubberbox
-    ( 8, 3, 0, 0 ),    // 71, graf_dragbox
-    ( 6, 1, 0, 0 ),    // 72, graf_movebox
-    ( 8, 1, 0, 0 ),    // 73, graf_growbox
-    ( 8, 1, 0, 0 ),    // 74, graf_shrinkbox
-    ( 4, 1, 1, 0 ),    // 75, graf_watchbox
-    ( 3, 1, 1, 0 ),    // 76, graf_slidebox
+    ( 4, 3, 0, 0 ),    // 70, graf_rubberbox !
+    ( 8, 3, 0, 0 ),    // 71, graf_dragbox !
+    ( 6, 1, 0, 0 ),    // 72, graf_movebox !
+    ( 8, 1, 0, 0 ),    // 73, graf_growbox !
+    ( 8, 1, 0, 0 ),    // 74, graf_shrinkbox !
+    ( 4, 1, 1, 0 ),    // 75, graf_watchbox !
+    ( 3, 1, 1, 0 ),    // 76, graf_slidebox !
     ( 0, 5, 0, 0 ),    // 77, graf_handle
     ( 1, 1, 1, 0 ),    // 78, graf_mouse
     ( 0, 5, 0, 0 ),    // 79, graf_mkstate
@@ -346,7 +477,7 @@ const
     ( 2, 1, 0, 1 ),    // 112, rsrc_gaddr
     ( 2, 1, 1, 0 ),    // 113, rsrc_saddr
     ( 1, 1, 1, 0 ),    // 114, rsrc_obfix
-    ( 0, 0, 0, 0 ),    // 115, rsrc_rcfix (V4.0)
+    ( 0, 0, 0, 0 ),    // 115, rsrc_rcfix (V4.0) !
     ( 0, 0, 0, 0 ),    // 116
     ( 0, 0, 0, 0 ),    // 117
     ( 0, 0, 0, 0 ),    // 118
@@ -361,7 +492,7 @@ const
     ( 0, 0, 0, 0 ),    // 127
     ( 0, 0, 0, 0 ),    // 128
     ( 0, 0, 0, 0 ),    // 129
-    ( 1, 5, 0, 0 )     // 130, appl_getinfo (V4.0)
+    ( 1, 5, 0, 0 )     // 130, appl_getinfo (V4.0) !
   );
 
 var
@@ -415,6 +546,7 @@ function appl_init: smallint;
 begin
   appl_init:=crys_if($0a);
 end;
+
 
 function evnt_keybd: smallint;
 begin
@@ -516,6 +648,194 @@ begin
   evnt_dclick:=crys_if($1a);
 end;
 
+
+function menu_bar(me_btree: PAESOBJECT; me_bshow: smallint): smallint;
+begin
+  _intin[0]:=me_bshow;
+  _addrin[0]:=me_btree;
+
+  menu_bar:=crys_if($1e);
+end;
+
+function menu_icheck(me_ctree: PAESOBJECT; me_citem: smallint; me_ccheck: smallint): smallint;
+begin
+  _intin[0]:=me_citem;
+  _intin[1]:=me_ccheck;
+  _addrin[0]:=me_ctree;
+
+  menu_icheck:=crys_if($1f);
+end;
+
+function menu_ienable(me_etree: PAESOBJECT; me_eitem: smallint; me_eenable: smallint): smallint;
+begin
+  _intin[0]:=me_eitem;
+  _intin[1]:=me_eenable;
+  _addrin[0]:=me_etree;
+
+  menu_ienable:=crys_if($20);
+end;
+
+function menu_tnormal(me_ntree: PAESOBJECT; me_ntitle: smallint; me_nnormal: smallint): smallint;
+begin
+  _intin[0]:=me_ntitle;
+  _intin[1]:=me_nnormal;
+  _addrin[0]:=me_ntree;
+
+  menu_tnormal:=crys_if($21);
+end;
+
+function menu_text(me_ttree: PAESOBJECT; me_titem: smallint; me_ttext: PChar): smallint;
+begin
+  _intin[0]:=me_titem;
+  _addrin[0]:=me_ttree;
+  _addrin[1]:=me_ttext;
+
+  menu_text:=crys_if($22);
+end;
+
+function menu_register(me_rapid: smallint; me_rpstring: PChar): smallint;
+begin
+  _intin[0]:=me_rapid;
+  _addrin[0]:=me_rpstring;
+
+  menu_register:=crys_if($23);
+end;
+
+
+function objc_add(ob_atree: PAESOBJECT; ob_aparent: smallint; ob_achild: smallint): smallint;
+begin
+  _intin[0]:=ob_aparent;
+  _intin[1]:=ob_achild;
+  _addrin[0]:=ob_atree;
+
+  objc_add:=crys_if($28);
+end;
+
+function objc_delete(ob_dltree: PAESOBJECT; ob_dlobject: smallint): smallint;
+begin
+  _intin[0]:=ob_dlobject;
+  _addrin[0]:=ob_dltree;
+
+  objc_delete:=crys_if($29);
+end;
+
+function objc_draw(ob_drtree: PAESOBJECT; ob_drstart: smallint;
+                   ob_drdepth: smallint; ob_drxclip: smallint;
+                   ob_dryclip: smallint; ob_drwclip: smallint;
+                   ob_drhclip: smallint): smallint;
+begin
+  _intin[0]:=ob_drstart;
+  _intin[1]:=ob_drdepth;
+  _intin[2]:=ob_drxclip;
+  _intin[3]:=ob_dryclip;
+  _intin[4]:=ob_drwclip;
+  _intin[5]:=ob_drhclip;
+  _addrin[0]:=ob_drtree;
+
+  objc_draw:=crys_if($2a);
+end;
+
+function objc_find(ob_ftree: PAESOBJECT; ob_fstartob: smallint;
+                   ob_fdepth: smallint; ob_fmx: smallint;
+                   ob_fmy: smallint): smallint;
+begin
+  _intin[0]:=ob_fstartob;
+  _intin[1]:=ob_fdepth;
+  _intin[2]:=ob_fmx;
+  _intin[3]:=ob_fmy;
+  _addrin[0]:=ob_ftree;
+
+  objc_find:=crys_if($2b);
+end;
+
+function objc_offset(ob_oftree: PAESOBJECT; ob_ofobject: smallint;
+                     ob_ofxoff: psmallint; ob_ofyoff: psmallint): smallint;
+begin
+  _intin[0]:=ob_ofobject;
+  _addrin[0]:=ob_oftree;
+
+  crys_if($2c);
+
+  ob_ofxoff^:=_intout[1];
+  ob_ofyoff^:=_intout[2];
+
+  objc_offset:=_intout[0];
+end;
+
+function objc_order(ob_ortree: PAESOBJECT; ob_orobject: smallint;
+                    ob_ornewpos: smallint): smallint;
+begin
+  _intin[0]:=ob_orobject;
+  _intin[1]:=ob_ornewpos;
+  _addrin[0]:=ob_ortree;
+
+  objc_order:=crys_if($2d);
+end;
+
+function objc_edit(ob_edtree: PAESOBJECT; ob_edobject: smallint;
+                   ob_edchar: smallint; ob_edidx: psmallint;
+                   ob_edkind: smallint): smallint;
+begin
+  _intin[0]:=ob_edobject;
+  _intin[1]:=ob_edchar;
+  _intin[2]:=ob_edidx^;
+  _intin[3]:=ob_edkind;
+  _addrin[0]:=ob_edtree;
+
+  crys_if($2e);
+
+  ob_edidx^:=_intout[1];
+  objc_edit:=_intout[0];
+end;
+
+function objc_change(ob_ctree: PAESOBJECT; ob_cobject: smallint;
+                     ob_cresvd: smallint; ob_cxclip: smallint;
+                     ob_cyclip: smallint; ob_cwclip: smallint;
+                     ob_chclip: smallint; ob_cnewstate: smallint;
+                     ob_credraw: smallint): smallint;
+begin
+  _intin[0]:=ob_cobject;
+  _intin[1]:=ob_cresvd;
+  _intin[2]:=ob_cxclip;
+  _intin[3]:=ob_cyclip;
+  _intin[4]:=ob_cwclip;
+  _intin[5]:=ob_chclip;
+  _intin[6]:=ob_cnewstate;
+  _intin[7]:=ob_credraw;
+
+  _addrin[0]:=ob_ctree;
+
+  objc_change:=crys_if($2f);
+end;
+
+
+function form_do(fo_dotree: PAESOBJECT; fo_dostartob: smallint): smallint;
+begin
+  _intin[0]:=fo_dostartob;
+  _addrin[0]:=fo_dotree;
+
+  form_do:=crys_if($32);
+end;
+
+function form_dial(fo_diflag: smallint; fo_dilittlx: smallint;
+                   fo_dilittly: smallint; fo_dilittlw: smallint;
+                   fo_dilittlh: smallint; fo_dibigx: smallint;
+                   fo_dibigy: smallint; fo_dibigw: smallint;
+                   fo_dibigh: smallint): smallint;
+begin
+  _intin[0]:=fo_diflag;
+  _intin[1]:=fo_dilittlx;
+  _intin[2]:=fo_dilittly;
+  _intin[3]:=fo_dilittlw;
+  _intin[4]:=fo_dilittlh;
+  _intin[5]:=fo_dibigx;
+  _intin[6]:=fo_dibigy;
+  _intin[7]:=fo_dibigw;
+  _intin[8]:=fo_dibigh;
+
+  form_dial:=crys_if($33);
+end;
+
 function form_alert(default: smallint; alertstr: PChar): smallint;
 begin
   _intin[0]:=default;
@@ -529,6 +849,54 @@ begin
   form_error:=crys_if($35);
 end;
 
+function form_center(fo_ctree: PAESOBJECT; fo_cx: psmallint;
+                     fo_cy: psmallint; fo_cw: psmallint;
+                     fo_ch: psmallint): smallint;
+begin
+  _addrin[0]:=fo_ctree;
+
+  crys_if($36);
+
+  fo_cx^:=_intout[1];
+  fo_cy^:=_intout[2];
+  fo_cw^:=_intout[3];
+  fo_ch^:=_intout[4];
+
+  form_center:=_intout[0];
+end;
+
+function form_keybd(fo_ktree: PAESOBJECT; fo_kobject: smallint;
+                    fo_kobnext: smallint; fo_kchar: smallint;
+                    fo_knxtobject: psmallint; fo_knxtchar: psmallint): smallint;
+begin
+  _intin[0]:=fo_kobject;
+  _intin[1]:=fo_kchar;
+  _intin[2]:=fo_kobnext;
+  _addrin[0]:=fo_ktree;
+
+  crys_if($37);
+
+  fo_knxtobject^:=_intout[1];
+  fo_knxtchar^:=_intout[2];
+
+  form_keybd:=_intout[0];
+end;
+
+function form_button(fo_btree: PAESOBJECT; fo_bobject: smallint;
+                     fo_bclicks: smallint; fo_bnxtobj: psmallint): smallint;
+begin
+  _intin[0]:=fo_bobject;
+  _intin[1]:=fo_bclicks;
+  _addrin[0]:=fo_btree;
+
+  crys_if($38);
+
+  fo_bnxtobj^:=_intout[1];
+
+  form_button:=_intout[0];
+end;
+
+
 function graf_handle(gr_hwchar: psmallint; gr_hhchar: psmallint; gr_hwbox: psmallint; gr_hhbox: psmallint): smallint;
 begin
   crys_if($4d);
@@ -539,6 +907,14 @@ begin
   gr_hhbox^:=_intout[4];
 
   graf_handle:=_intout[0];
+end;
+
+function graf_mouse(gr_monumber: smallint; gr_mofaddr: PMFORM): smallint;
+begin
+  _intin[0]:=gr_monumber;
+  _addrin[0]:=gr_mofaddr;
+
+  graf_mouse:=crys_if($4e);
 end;
 
 function graf_mkstate(gr_mkmx: psmallint; gr_mkmy: psmallint;
@@ -553,6 +929,20 @@ begin
 
   graf_mkstate:=_intout[0];
 end;
+
+
+function scrp_read(sc_rpscrap: pchar): smallint;
+begin
+  _addrin[0]:=sc_rpscrap;
+  scrp_read:=crys_if($50);
+end;
+
+function scrp_write(sc_wpscrap: pchar): smallint;
+begin
+  _addrin[0]:=sc_wpscrap;
+  scrp_write:=crys_if($51);
+end;
+
 
 function fsel_input(fs_iinpath: pchar; fs_iinsel: pchar; fs_iexbutton: psmallint): smallint;
 begin
@@ -579,6 +969,7 @@ begin
   fsel_exinput:=_intout[0];
 end;
 
+
 function wind_create(kind: smallint; x, y, w, h: smallint): smallint;
 begin
   _intin[0]:=kind;
@@ -588,7 +979,6 @@ begin
   _intin[4]:=h;
   wind_create:=crys_if($64);
 end;
-
 
 function wind_open(handle: smallint; x, y, w, h: smallint): smallint;
 begin
@@ -629,7 +1019,6 @@ begin
   wind_get:=_intout[0];
 end;
 
-
 function wind_set(wi_shandle: smallint; wi_sfield: smallint;
                   wi_sw1: smallint; wi_sw2: smallint;
                   wi_sw3: smallint; wi_sw4: smallint): smallint;
@@ -642,6 +1031,14 @@ begin
   _intin[5]:=wi_sw4;
 
   wind_set:=crys_if($69);
+end;
+
+function wind_find(wi_fmx: smallint; wi_fmy: smallint): smallint;
+begin
+  _intin[0]:=wi_fmx;
+  _intin[1]:=wi_fmy;
+
+  wind_find:=crys_if($6a);
 end;
 
 function wind_update(wi_ubegend: smallint): smallint;
@@ -676,6 +1073,100 @@ end;
 procedure wind_new;
 begin
   crys_if($6d);
+end;
+
+
+function rsrc_load(re_lpfname: PChar): smallint;
+begin
+  _addrin[0]:=re_lpfname;
+  rsrc_load:=crys_if($6e);
+end;
+
+function rsrc_free: smallint;
+begin
+  rsrc_free:=crys_if($6f);
+end;
+
+function rsrc_gaddr(re_gtype: smallint; re_gindex: smallint; gaddr: ppointer): smallint;
+begin
+  _intin[0]:=re_gtype;
+  _intin[1]:=re_gindex;
+
+  crys_if($70);
+
+  gaddr^:=_addrout[0];
+
+  rsrc_gaddr:=_intout[0];
+end;
+
+function rsrc_saddr(re_stype: smallint; re_sindex: smallint; saddr: pointer): smallint;
+begin
+  _intin[0]:=re_stype;
+  _intin[1]:=re_sindex;
+  _addrin[0]:=saddr;
+
+  rsrc_saddr:=crys_if($71);
+end;
+
+function rsrc_obfix(re_otree: PAESOBJECT; re_oobject: smallint): smallint;
+begin
+  _intin[0]:=re_oobject;
+  _addrin[0]:=re_otree;
+
+  rsrc_obfix:=crys_if($72);
+end;
+
+
+function shel_read(sh_rpcmd: pchar; sh_rptail: pchar): smallint;
+begin
+  _addrin[0]:=sh_rpcmd;
+  _addrin[1]:=sh_rptail;
+
+   shel_read:=crys_if($78);
+end;
+
+function shel_write(sh_wdoex: smallint; sh_wisgr: smallint;
+                    sh_wiscr: smallint; sh_wpcmd: pchar;
+                    sh_wptail: pchar): smallint;
+begin
+  _intin[0]:=sh_wdoex;
+  _intin[1]:=sh_wisgr;
+  _intin[2]:=sh_wiscr;
+  _addrin[0]:=sh_wpcmd;
+  _addrin[1]:=sh_wptail;
+
+  shel_write:=crys_if($79);
+end;
+
+function shel_get(sh_gaddr: pchar; sh_glen: word): smallint;
+begin
+  _intin[0]:=smallint(sh_glen);
+  _addrin[0]:=sh_gaddr;
+
+  shel_get:=crys_if($7a);
+end;
+
+function shel_put(sh_paddr: pchar; sh_plen: word): smallint;
+begin
+  _intin[0]:=smallint(sh_plen);
+  _addrin[0]:=sh_paddr;
+
+  shel_put:=crys_if($7b);
+end;
+
+function shel_find(sh_fpbuff: pchar): smallint;
+begin
+  _addrin[0]:=sh_fpbuff;
+
+  shel_find:=crys_if($7c);
+end;
+
+function shel_envrn(sh_epvalue: ppchar; sh_eparm: pchar): smallint;
+begin
+  _addrin[0]:=sh_epvalue;
+  _addrin[1]:=sh_eparm;
+
+  shel_envrn:=crys_if($7d);
 end;
 
 
