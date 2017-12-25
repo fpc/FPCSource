@@ -58,6 +58,7 @@
     <a href="#attributes">Translating attributes</a><br>
     <a href="#tryfinally">Translating try..finally</a><br>
     <a href="#tryexcept">Translating try..except</a><br>
+    <a href="#enumerators">Translating enumerators</a><br>
     <a href="#functiontype">Translating function types</a><br>
     <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
     <a href="#asm">The asm block</a><br>
@@ -1681,6 +1682,73 @@ function(){
     You can access the current except value via JSExceptValue in unit JS.<br>
     Note that this is only valid inside the catch-block. The compiler will not warn,
     if you use it outside.</li>
+    </div>
+
+    <div class="section">
+    <h2 id="enumerators">Translating enumerators</h2>
+    The for..in..do supports enumerating:
+    <ul>
+    <li>ordinal types like char, boolean,
+    byte, ..., longword, enums, custom ranges are translated to a for loop.</li>
+    <li>set types are translated to a for loop, while const sets and set variables are enumerated via a for(...in...) loop.</li>
+    <li>string and array variables are enumerated via for loops.</li>
+    </ul>
+    The class GetEnumerator function is translated like this:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Pascal</th>
+          <th>JavaScript</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Unit MyModule;
+Interface
+
+uses Classes;
+
+procedure DoIt(List: TList);
+
+Implementation
+
+procedure DoIt(List: TList);
+var
+  Item: Pointer;
+begin
+  for Item in List do
+    if Item<>nil then ;
+end;
+
+End.
+</pre>
+          </td>
+          <td>
+<pre>rtl.module("MyModule",
+["System","Classes"],
+function(){
+  this.DoIt=function(List){
+    var Item = null;
+    var $in1 = List;
+    try {
+      while ($in1.MoveNext()) {
+        Item = $in1.GetCurrent();
+        if (Item !== null) ;
+      }
+    } finally {
+      $in1 = rtl.freeLoc($in1)
+    };
+  };
+},
+[]);
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    Notes:
+    <ul>
+    <li>Not supported: IEnumerator, operator Enumerator, member modifier enumerator (i.e. custom Current and MoveNext)</li>
+    </ul>
     </div>
 
     <div class="section">
