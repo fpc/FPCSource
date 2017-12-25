@@ -258,6 +258,12 @@ Works:
   - rg:=rg, rg1:=rg2, rg:=enum, =, <>,
   - set of int/enum/char range, in
   - array[rg], low(array), high(array), length(array)
+- enumeration  for..in..do
+   - enum, enum range, set of enum, set of enum range
+   - int, int range, set of int, set of int range
+   - char, char range, set of char, set of char range
+   - array
+   - class
 
 ToDos:
 - remove hasOwnProperty from rtl set functions
@@ -273,13 +279,6 @@ ToDos:
 - check memleaks
 - make records more lightweight
 - pointer of record
-- enumeration  for..in..do
-   - enum, enum range, set of enum, set of enum range
-   - int, int range, set of int, set of int range
-   - char, char range, set of char, set of char range
-   - array
-   - operator
-   - class
 - nested types in class
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - ifthen
@@ -324,6 +323,7 @@ Not in Version 1.0:
 - class helpers, type helpers, record helpers,
 - generics
 - operator overloading
+  - operator enumerator
 - inline
 - anonymous functions
 - extended RTTI
@@ -1286,7 +1286,7 @@ type
     Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext;
       var First, Last: TJSStatementList); virtual;
     Function CreateGetEnumeratorLoop(El: TPasImplForLoop;
-      const ResolvedIn: TPasResolverResult; AContext: TConvertContext): TJSElement; virtual;
+      AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
     Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
@@ -10211,7 +10211,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateGetEnumeratorLoop(El: TPasImplForLoop;
-  const ResolvedIn: TPasResolverResult; AContext: TConvertContext): TJSElement;
+  AContext: TConvertContext): TJSElement;
 //  for Item in List do
 // convert to
 //  var $in=List.GetEnumerator();
@@ -10237,6 +10237,7 @@ var
   end;
 
 var
+  ForScope: TPasForLoopScope;
   Statements: TJSStatementList;
   VarSt: TJSVariableStatement;
   FuncContext: TConvertContext;
@@ -10245,48 +10246,30 @@ var
   TrySt: TJSTryFinallyStatement;
   WhileSt: TJSWhileStatement;
   AssignSt: TJSSimpleAssignStatement;
-  TypeEl: TPasType;
-  ClassScope: TPasClassScope;
-  GetEnumerator, MoveNext, Current: TPasIdentifier;
   GetEnumeratorFunc, MoveNextFunc: TPasFunction;
-  ResolvedFunc: TPasResolverResult;
   CurrentProp: TPasProperty;
   DotContext: TDotContext;
 begin
-  // find class
-  TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedIn.TypeEl);
-  if not (TypeEl is TPasClassType) then
-    RaiseNotSupported(El.StartExpr,AContext,20171221212820);
-  ClassScope:=TypeEl.CustomData as TPasClassScope;
+  ForScope:=TPasForLoopScope(El.CustomData);
+
   // find function GetEnumerator
-  GetEnumerator:=ClassScope.FindIdentifier('GetEnumerator');
-  if GetEnumerator=nil then
-    RaiseNotSupported(El.StartExpr,AContext,20171221212820);
-  if GetEnumerator.Element.ClassType<>TPasFunction then
-    RaiseNotSupported(El.StartExpr,AContext,20171221212820);
-  GetEnumeratorFunc:=TPasFunction(GetEnumerator.Element);
-  // find enumerator class
-  AContext.Resolver.ComputeElement(GetEnumeratorFunc.FuncType.ResultEl,ResolvedFunc,[rcType]);
-  if ResolvedFunc.BaseType<>btContext then
-    RaiseNotSupported(El.StartExpr,AContext,20171221213612);
-  TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedFunc.TypeEl);
-  if not (TypeEl is TPasClassType) then
-    RaiseNotSupported(El.StartExpr,AContext,20171221213632);
-  ClassScope:=TypeEl.CustomData as TPasClassScope;
+  GetEnumeratorFunc:=ForScope.GetEnumerator;
+  if (GetEnumeratorFunc=nil) then
+    RaiseNotSupported(El,AContext,20171225104212);
+  if GetEnumeratorFunc.ClassType<>TPasFunction then
+    RaiseNotSupported(El,AContext,20171225104237);
   // find function MoveNext
-  MoveNext:=ClassScope.FindIdentifier('MoveNext');
-  if MoveNext=nil then
-    RaiseNotSupported(El.StartExpr,AContext,20171221213747);
-  if MoveNext.Element.ClassType<>TPasFunction then
-    RaiseNotSupported(El.StartExpr,AContext,20171221213754);
-  MoveNextFunc:=TPasFunction(MoveNext.Element);
+  MoveNextFunc:=ForScope.MoveNext;
+  if (MoveNextFunc=nil) then
+    RaiseNotSupported(El,AContext,20171225104249);
+  if MoveNextFunc.ClassType<>TPasFunction then
+    RaiseNotSupported(El,AContext,20171225104256);
   // find property Current
-  Current:=ClassScope.FindIdentifier('Current');
-  if Current=nil then
-    RaiseNotSupported(El.StartExpr,AContext,20171221213911);
-  if Current.Element.ClassType<>TPasProperty then
-    RaiseNotSupported(El.StartExpr,AContext,20171221213921);
-  CurrentProp:=TPasProperty(Current.Element);
+  CurrentProp:=ForScope.Current;
+  if (CurrentProp=nil) then
+    RaiseNotSupported(El,AContext,20171225104306);
+  if CurrentProp.ClassType<>TPasProperty then
+    RaiseNotSupported(El,AContext,20171225104316);
 
   // get function context
   FuncContext:=AContext;
@@ -10844,12 +10827,12 @@ var
   StartInt, EndInt: MaxPrecInt;
   HasLoopVar, HasEndVar, HasInVar: Boolean;
   InKind: TInKind;
+  ForScope: TPasForLoopScope;
 
   function InitWithResolver: boolean;
   var
     EnumType: TPasEnumType;
     TypeEl: TPasType;
-    C: TClass;
   begin
     Result:=true;
     AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
@@ -10867,19 +10850,13 @@ var
       end;
     ltIn:
       begin
-      AContext.Resolver.ComputeElement(El.StartExpr,ResolvedIn,[]);
-
-      if (ResolvedIn.BaseType=btContext) then
+      if ForScope.GetEnumerator<>nil then
         begin
-        TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedIn.TypeEl);
-        C:=TypeEl.ClassType;
-        if C=TPasClassType then
-          begin
-          ConvertForStatement:=CreateGetEnumeratorLoop(El,ResolvedIn,AContext);
-          exit(false);
-          end;
+        ConvertForStatement:=CreateGetEnumeratorLoop(El,AContext);
+        exit(false);
         end;
 
+      AContext.Resolver.ComputeElement(El.StartExpr,ResolvedIn,[]);
       HasInVar:=true;
       InValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
       if InValue=nil then
@@ -11079,6 +11056,7 @@ begin
   Result:=Nil;
   if AContext.Access<>caRead then
     RaiseInconsistency(20170213213740);
+  ForScope:=El.CustomData as TPasForLoopScope; // can be nil!
   case El.LoopType of
   ltNormal,ltDown: ;
   ltIn:
