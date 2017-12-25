@@ -486,8 +486,10 @@ Type
   PDateTime           = ^TDateTime;
 {$endif}
   PError              = ^TError;
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
   PVariant            = ^Variant;
   POleVariant         = ^OleVariant;
+{$endif FPC_HAS_FEATURE_VARIANTS}
 
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
