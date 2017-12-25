@@ -701,6 +701,15 @@ type
     destructor Destroy; override;
   end;
 
+  { TPasForLoopScope }
+
+  TPasForLoopScope = Class(TPasScope)
+  public
+    GetEnumerator: TPasFunction;
+    MoveNext: TPasFunction;
+    Current: TPasProperty;
+  end;
+
   { TPasSubScope - base class for sub scopes aka dotted scopes }
 
   TPasSubScope = Class(TPasIdentifierScope)
@@ -5258,6 +5267,8 @@ var
   TypeEl: TPasType;
   C: TClass;
 begin
+  CreateScope(Loop,TPasForLoopScope);
+
   // loop var
   ResolveExpr(Loop.VariableName,rraReadAndAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
@@ -8201,6 +8212,7 @@ var
   ptm: TProcTypeModifier;
   ResultResolved, MoveNextResolved, CurrentResolved: TPasResolverResult;
   CurrentProp: TPasProperty;
+  ForScope: TPasForLoopScope;
 begin
   Result:=false;
   TypeEl:=ResolveAliasType(InResolved.TypeEl);
@@ -8290,6 +8302,12 @@ begin
       RaiseIncompatibleTypeRes(20171221200018,nIncompatibleTypesGotExpected,[],VarResolved,CurrentResolved,Loop.VariableName);
 
     PopScope;
+
+    ForScope:=Loop.CustomData as TPasForLoopScope;
+    ForScope.GetEnumerator:=GetterFunc;
+    ForScope.MoveNext:=MoveNextFunc;
+    ForScope.Current:=CurrentProp;
+
     exit(true);
     end;
 

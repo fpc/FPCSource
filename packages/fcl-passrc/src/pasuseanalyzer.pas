@@ -854,6 +854,7 @@ var
   CaseSt: TPasImplCaseStatement;
   WithDo: TPasImplWithDo;
   SubEl, ParentEl: TPasElement;
+  ForScope: TPasForLoopScope;
 begin
   // do not mark
   if El=nil then exit;
@@ -903,6 +904,10 @@ begin
     UseExpr(ForLoop.VariableName);
     UseExpr(ForLoop.StartExpr);
     UseExpr(ForLoop.EndExpr);
+    ForScope:=ForLoop.CustomData as TPasForLoopScope;
+    UseProcedure(ForScope.GetEnumerator);
+    UseProcedure(ForScope.MoveNext);
+    UseVariable(ForScope.Current,rraRead,false);
     UseImplElement(ForLoop.Body);
     end
   else if C=TPasImplIfElse then
@@ -1190,6 +1195,7 @@ var
   ProcScope: TPasProcedureScope;
   ImplProc: TPasProcedure;
 begin
+  if Proc=nil then exit;
   // use declaration, not implementation
   ProcScope:=Proc.CustomData as TPasProcedureScope;
   if ProcScope.DeclarationProc<>nil then
@@ -1442,6 +1448,7 @@ var
   i: Integer;
   IsRead, IsWrite, CanRead, CanWrite: Boolean;
 begin
+  if El=nil then exit;
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseVariable ',GetElModName(El),' ',Access,' Full=',UseFull);
   {$ENDIF}

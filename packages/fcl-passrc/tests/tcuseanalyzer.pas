@@ -129,6 +129,7 @@ type
     procedure TestWP_PublishedProperty;
     procedure TestWP_BuiltInFunctions;
     procedure TestWP_TypeInfo;
+    procedure TestWP_ForInClass;
   end;
 
 implementation
@@ -1920,6 +1921,39 @@ begin
   '  p:=typeinfo(c);',
   '  p:=typeinfo(c.ClassType);',
   '  p:=typeinfo(GetBirdClass);',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ForInClass;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  {#tenumerator_used}TEnumerator = class',
+  '  strict private',
+  '    {#fcurrent_used}FCurrent: longint;',
+  '  public',
+  '    {#v_notused}v: string;',
+  '    function {#movenext_used}MoveNext: boolean;',
+  '    property {#current_used}Current: longint read FCurrent;',
+  '  end;',
+  '  {#tbird_used}TBird = class',
+  '    function {#getenumerator_used}GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'function TBird.GetEnumerator: TEnumerator;',
+  'begin',
+  'end;',
+  'var',
+  '  {#b_used}b: TBird;',
+  '  {#i_used}i: longint;',
+  'begin',
+  '  for i in b do ;',
   '']);
   AnalyzeWholeProgram;
 end;
