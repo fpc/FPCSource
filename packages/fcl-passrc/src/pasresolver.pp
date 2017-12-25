@@ -6704,6 +6704,9 @@ begin
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160922163510,El);
 
+  if not (TopScope is TPasSectionScope) then
+    RaiseNotYetImplemented(20171225110934,El,'nested classes');
+
   Duplicate:=TPasIdentifierScope(TopScope).FindIdentifier(El.Name);
   //if Duplicate<>nil then
     //writeln('  Duplicate=',GetObjName(Duplicate.Element),' ',ord(Duplicate.Kind));
@@ -10476,6 +10479,13 @@ begin
   OnlyTypeMembers:=false;
   if StartScope is TPasDotIdentifierScope then
     begin
+    if Ref=nil then
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.CheckFoundElement FindData.Found=',GetObjName(FindData.Found),' StartScope=',GetObjName(StartScope));
+      {$ENDIF}
+      RaiseNotYetImplemented(20171225110626,FindData.ErrorPosEl);
+      end;
     OnlyTypeMembers:=TPasDotIdentifierScope(StartScope).OnlyTypeMembers;
     Include(Ref.Flags,rrfDotScope);
     if TPasDotIdentifierScope(StartScope).ConstParent then
