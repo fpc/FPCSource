@@ -13,87 +13,72 @@
 
  **********************************************************************}
 
-{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
-{$define FPC_SYSTEM_HAS_SAR_QWORD}
-function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
+
+{$ifndef FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
+{$define FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
+function fpc_mul_longint_to_int64(f1,f2 : longint) : int64;[public,alias: 'FPC_MUL_LONGINT_TO_INT64']; assembler; nostackframe; compilerproc;
 asm
-  // d0 = shift
-  lea.l   4(sp),a0
-  move.l  d2,-(sp)
-  move.l  d0,d2
-{$ifndef CPUCOLDFIRE}
-  and.w   #63,d2
-  cmp.w   #32,d2
-{$else}
-  and.l   #63,d2
-  cmp.l   #32,d2
-{$endif}
-  bge.s   @longshift
+    tst.l    d0
+    beq.s    @xit0
+    tst.l    d1
+    beq.s    @xit0
 
-  move.l  (a0)+,d0
-  move.l  (a0),d1
+    movem.l  d2-d5,-(sp)
+    move.l   d0,d5
 
-{$ifdef CPUM68K_HAS_ROLROR}
-  cmp.w   #1,d2
-  beq.s   @oneshift
-{$endif}
-{$ifdef CPU68000}
-  cmp.w   #16,d2
-  beq.s   @sixteenshift
-{$endif}
+    eor.l    d1,d5
+    move.l   d0,d2
+    bpl.s    @pos0
 
-  move.l  d3,a0
-  move.l  d4,a1
+    neg.l    d2
+    neg.l    d0
 
-  move.l  d0,d3
-  moveq.l #32,d4
-{$ifndef CPUCOLDFIRE}
-  sub.w   d2,d4
-{$else}
-  sub.l   d2,d4
-{$endif}
-  asr.l   d2,d0
-  lsl.l   d4,d3
-  lsr.l   d2,d1
-  or.l    d3,d1
+@pos0:
+    move.l   d1,d4
+    bpl.s    @pos1
 
-  move.l  a0,d3
-  move.l  a1,d4
+    neg.l    d4
+    neg.l    d1
 
-  bra.s   @quit
+@pos1:
+    move.l   d0,d3
+    swap     d4
+    swap     d3
 
-{$ifdef CPU68000}
-@sixteenshift:
-  move.w  d0,d1
-  swap    d1
-  swap    d0
-  ext.l   d0
+    mulu.w   d1,d0
+    mulu.w   d3,d1
+    mulu.w   d4,d2
+    mulu.w   d4,d3
 
-  bra.s   @quit
-{$endif}
+    swap     d0
+    clr.l    d4
+    add.w    d1,d0
+    addx.l   d4,d3
+    add.w    d2,d0
+    addx.l   d4,d3
 
-{$ifdef CPUM68K_HAS_ROLROR}
-@oneshift:
-  asr.l   #1,d0
-  roxr.l  #1,d1
+    clr.w    d1
+    clr.w    d2
+    swap     d1
+    swap     d2
 
-  bra.s   @quit
-{$endif}
+    add.l    d3,d1
+    swap     d0
+    add.l    d2,d1
 
-@longshift:
-  move.l  (a0),d0
-  move.l  d0,d1
-  smi     d0
-{$if defined(CPU68020) or defined(CPUCOLDFIRE)}
-  extb.l  d0
-{$else}
-  ext.w   d0
-  ext.l   d0
-{$endif}
-  sub.w   #32,d2
-  asr.l   d2,d1
+    tst.l    d5
+    bpl.s    @xit
 
-@quit:
-  move.l (sp)+,d2
+    neg.l    d0
+    negx.l   d1
+
+@xit:
+    movem.l  (sp)+,d2-d5
+    exg.l    d0,d1
+    rts
+
+@xit0:
+    clr.l    d0
+    clr.l    d1
 end;
-{$endif}
+{$endif FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
