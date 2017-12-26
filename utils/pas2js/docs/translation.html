@@ -2518,10 +2518,15 @@ End.
     <li>{$modeswitch externalclass}: allow declaring external classes</li>
     <li>{$macro on|off} enables macro replacements. Only macros with a custom value are replaced. Macros are never replaced inside directives.</li>
     <li>{$I filename} or {$include filename} - insert include file</li>
-    <li>{$ERROR text}</li>
-    <li>{$WARNING text}</li>
-    <li>{$NOTE text}</li>
-    <li>{$HINT text}</li>
+    <li>{$Warnings on|off}</li>
+    <li>{$Notes on|off}</li>
+    <li>{$Hints on|off}</li>
+    <li>{$Error text}</li>
+    <li>{$Warning text}</li>
+    <li>{$Note text}</li>
+    <li>{$Hint text}</li>
+    <li>{$Message hint-text}</li>
+    <li>{$Message hint|note|warn|error|fatal text}</li>
     <li>{$M+}, {$TypeInfo on}: switches default visibility for class members from public to published</li>
     <li>{$ScopedEnums on|off} disabled/default: propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
     </ul>

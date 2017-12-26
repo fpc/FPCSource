@@ -684,6 +684,7 @@ var
   aUnitName: String;
   i: Integer;
   M: TMacroDef;
+  bs: TBoolSwitches;
 begin
   FFileResolver:=aFileResolver;
   // scanner
@@ -696,10 +697,18 @@ begin
   FParser := TPas2jsPasParser.Create(Scanner, FileResolver, PascalResolver);
 
   // set options
+  Scanner.Options:=Scanner.Options+[po_StopOnErrorDirective];
   Scanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   Scanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   Scanner.CurrentModeSwitches:=p2jsMode_SwitchSets[Compiler.Mode];
-  Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
+  bs:=msAllPas2jsBoolSwitches;
+  if not (coShowHints in Compiler.Options) then
+    Exclude(bs,bsHints);
+  if not (coShowNotes in Compiler.Options) then
+    Exclude(bs,bsNotes);
+  if not (coShowWarnings in Compiler.Options) then
+    Exclude(bs,bsWarnings);
+  Scanner.AllowedBoolSwitches:=bs;
   // Note: some Scanner.Options are set by TPasResolver
   for i:=0 to Compiler.Defines.Count-1 do
     begin
