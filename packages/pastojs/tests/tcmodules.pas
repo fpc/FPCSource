@@ -264,7 +264,7 @@ type
     Procedure TestProc_OverloadNested;
     Procedure TestProc_Varargs;
     Procedure TestProc_ConstOrder;
-    Procedure TestProc_VarAbsolute;
+    Procedure TestProc_LocalVarAbsolute;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -3025,7 +3025,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestProc_VarAbsolute;
+procedure TTestModule.TestProc_LocalVarAbsolute;
 begin
   StartProgram(false);
   Add([
@@ -3045,7 +3045,7 @@ begin
   'end;',
   'begin']);
   ConvertProgram;
-  CheckSource('TestProc_VarAbsolute',
+  CheckSource('TestProc_LocalVarAbsolute',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',

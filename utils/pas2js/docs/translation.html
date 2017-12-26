@@ -60,6 +60,7 @@
     <a href="#tryexcept">Translating try..except</a><br>
     <a href="#enumerators">Translating enumerators</a><br>
     <a href="#functiontype">Translating function types</a><br>
+    <a href="#absolute">Translating var modifier absolute</a><br>
     <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
     <a href="#asm">The asm block</a><br>
     <a href="#assembler">The procedure modifier assembler</a><br>
@@ -1752,7 +1753,7 @@ function(){
     </div>
 
     <div class="section">
-    <h2 id="functiontype">Translating function type</h2>
+    <h2 id="functiontype">Translating function types</h2>
     JavaScript functions work like Delphi's "reference to function", which
     means like closures. Normal functions and nested functions can simply be
     assigned to variables.
@@ -1834,6 +1835,14 @@ rtl = {
     <li>You can assign a nested procedure to procedure variable.
     You don't need and you must not add the FPC "<i>is nested</i>" modifier.</li>
     </ul>
+    </div>
+
+    <div class="section">
+    <h2 id="absolute">Translating var modifier absolute</h2>
+    The absolute modifier works as an alias. That means it works FPC/Delphi
+    compatible for related types like Pointer and TObject, and works
+    incompatible for unrelated types like longword and record.<br>
+    The modifier is currently only supported for local variables.
     </div>
 
     <div class="section">
@@ -2610,7 +2619,6 @@ End.
     <li>Scoped enums</li>
     <li>Set of char, boolean, custom range</li>
     <li>Type alias, e.g. type TTranslateString = type string;</li>
-    <li>Var Absolute modifier</li>
     <li>Variant records</li>
     <li>Variants</li>
     </ul>
