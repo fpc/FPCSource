@@ -4047,6 +4047,8 @@ Var
   Msg : String;
 
 begin
+  if (Scanner<>nil) and Scanner.IgnoreMsgType(MsgType) then
+    exit;
   SetLastMsg(MsgType,MsgNumber,Fmt,Args);
   If Assigned(FOnLog) then
     begin

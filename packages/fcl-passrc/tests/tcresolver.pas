@@ -213,9 +213,10 @@ type
     Procedure TestIntegerRange;
     Procedure TestIntegerRangeHighLowerLowFail;
     Procedure TestIntegerRangeLowHigh;
-    Procedure TestAssignIntRangeFail;
-    Procedure TestByteRangeFail;
-    Procedure TestCustomIntRangeFail;
+    Procedure TestAssignIntRangeWarning;
+    Procedure TestByteRangeWarning;
+    Procedure TestByteRangeWarningOff;
+    Procedure TestCustomIntRangeWarning;
     Procedure TestIntSet_Const;
     Procedure TestIntSet_ConstDuplicateElement;
     Procedure TestInt_ForIn;
@@ -2542,7 +2543,7 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
-procedure TTestResolver.TestAssignIntRangeFail;
+procedure TTestResolver.TestAssignIntRangeWarning;
 begin
   StartProgram(false);
   Add([
@@ -2556,7 +2557,7 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
-procedure TTestResolver.TestByteRangeFail;
+procedure TTestResolver.TestByteRangeWarning;
 begin
   StartProgram(false);
   Add([
@@ -2568,7 +2569,18 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
-procedure TTestResolver.TestCustomIntRangeFail;
+procedure TTestResolver.TestByteRangeWarningOff;
+begin
+  StartProgram(false);
+  Add([
+  '{$warnings off}',
+  'var b:byte=300;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestCustomIntRangeWarning;
 begin
   StartProgram(false);
   Add([

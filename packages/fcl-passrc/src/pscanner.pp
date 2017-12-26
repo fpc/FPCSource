@@ -271,12 +271,16 @@ type
 
   // switches, that can be 'on' or 'off' and have no corresponding letter switch
   TBoolSwitch = (
+    bsHints,
+    bsNotes,
+    bsWarnings,
     bsMacro,
     bsScopedEnums
     );
   TBoolSwitches = set of TBoolSwitch;
 const
-  bsAll = [bsMacro..bsScopedEnums];
+  bsAll = [low(TBoolSwitch)..high(TBoolSwitch)];
+  FPCModeBoolSwitches = [bsHints,bsNotes,bsWarnings,bsMacro];
 
 type
   TTokenOption = (toForceCaret,toOperatorToken);
@@ -487,7 +491,7 @@ type
   TPascalScannerPPSkipMode = (ppSkipNone, ppSkipIfBranch, ppSkipElseBranch, ppSkipAll);
 
   TPOption = (
-    po_delphi,               // DEPRECATED Delphi mode: forbid nested comments
+    po_delphi,               // DEPRECATED since fpc 3.1.1: Delphi mode: forbid nested comments
     po_KeepScannerError,     // default: catch EScannerError and raise an EParserError instead
     po_CAssignments,         // allow C-operators += -= *= /=
     po_ResolveStandardTypes, // search for 'longint', 'string', etc., do not use dummies, TPasResolver sets this to use its declarations
@@ -497,7 +501,8 @@ type
     po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     po_SelfToken,            // Self is a token. For backward compatibility.
     po_CheckModeSwitches,    // stop on unknown modeswitch with an error
-    po_CheckCondFunction    // stop on unknown function in conditional expression, default: return '0'
+    po_CheckCondFunction,    // stop on unknown function in conditional expression, default: return '0'
+    po_StopOnErrorDirective  // stop on user $Error, $message error|fatal
     );
   TPOptions = set of TPOption;
 
@@ -576,8 +581,6 @@ type
       Value: string): boolean;
     procedure SetAllowedBoolSwitches(const AValue: TBoolSwitches);
     procedure SetAllowedModeSwitches(const AValue: TModeSwitches);
-    procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches);
-    procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     procedure SetMacrosOn(const AValue: boolean);
     procedure SetOptions(AValue: TPOptions);
     procedure SetReadOnlyBoolSwitches(const AValue: TBoolSwitches);
@@ -603,6 +606,7 @@ type
     procedure HandleENDIF(const AParam: String);
     procedure HandleDefine(Param: String); virtual;
     procedure HandleError(Param: String); virtual;
+    procedure HandleMessageDirective(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
     function HandleInclude(const Param: String): TToken;virtual;
@@ -615,6 +619,8 @@ type
     procedure ClearFiles;
     Procedure ClearMacros;
     Procedure SetCurTokenString(AValue : string);
+    procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches); virtual;
+    procedure SetCurrentModeSwitches(AValue: TModeSwitches); virtual;
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
@@ -638,6 +644,7 @@ type
     Procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
     Function SetForceCaret(AValue : Boolean) : Boolean; // returns old state
+    function IgnoreMsgType(MsgType: TMessageType): boolean; virtual;
     property FileResolver: TBaseFileResolver read FFileResolver;
     property CurSourceFile: TLineReader read FCurSourceFile;
     property CurFilename: string read FCurFilename;
@@ -849,35 +856,38 @@ const
     );
 
   LetterSwitchNames: array['A'..'Z'] of string=(
-     'ALIGN'          // A
-    ,'BOOLEVAL'       // B
-    ,'ASSERTIONS'     // C
-    ,'DEBUGINFO'      // D
-    ,'EXTENSION'      // E
+     'ALIGN'          // A   align fields
+    ,'BOOLEVAL'       // B   complete boolean evaluation
+    ,'ASSERTIONS'     // C   generate code for assertions
+    ,'DEBUGINFO'      // D   generate debuginfo (debug lines), OR: $description 'text'
+    ,'EXTENSION'      // E   output file extension
     ,''               // F
     ,'IMPORTEDDATA'   // G
-    ,'LONGSTRINGS'    // H
-    ,'IOCHECKS'       // I
-    ,'WRITEABLECONST' // J
+    ,'LONGSTRINGS'    // H   String=AnsiString
+    ,'IOCHECKS'       // I   generate EInOutError
+    ,'WRITEABLECONST' // J   writable typed const
     ,''               // K
-    ,'LOCALSYMBOLS'   // L
-    ,'TYPEINFO'       // M
+    ,'LOCALSYMBOLS'   // L   generate local symbol information (debug, requires $D+)
+    ,'TYPEINFO'       // M   allow published members OR $M minstacksize,maxstacksize
     ,''               // N
-    ,'OPTIMIZATION'   // O
-    ,'OPENSTRINGS'    // P
+    ,'OPTIMIZATION'   // O   enable safe optimizations (-O1)
+    ,'OPENSTRINGS'    // P   deprecated Delphi directive
     ,'OVERFLOWCHECKS' // Q
-    ,'RANGECHECKS'    // R
+    ,'RANGECHECKS'    // R   OR resource
     ,''               // S
-    ,'TYPEADDRESS'    // T
+    ,'TYPEDADDRESS'   // T   enabled: @variable gives typed pointer, otherwise untyped pointer
     ,'SAFEDIVIDE'     // U
-    ,'VARSTRINGCHECKS'// V
-    ,'STACKFRAMES'    // W
-    ,'EXTENDEDSYNTAX' // X
-    ,'REFERENCEINFO'  // Y
+    ,'VARSTRINGCHECKS'// V   strict shortstring checking, e.g. cannot pass shortstring[3] to shortstring
+    ,'STACKFRAMES'    // W   always generate stackframes (debugging)
+    ,'EXTENDEDSYNTAX' // X   deprecated Delphi directive
+    ,'REFERENCEINFO'  // Y   store for each identifier the declaration location
     ,''               // Z
    );
 
   BoolSwitchNames: array[TBoolSwitch] of string = (
+    'Hints',
+    'Notes',
+    'Warnings',
     'Macro',
     'ScopedEnums'
     );
@@ -2218,7 +2228,7 @@ begin
   FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
-  FCurrentBoolSwitches:=[];
+  FCurrentBoolSwitches:=FPCModeBoolSwitches;
   FAllowedBoolSwitches:=bsAll;
   FConditionEval:=TCondDirectiveEvaluator.Create;
   FConditionEval.OnLog:=@OnCondEvalLog;
@@ -2624,10 +2634,39 @@ end;
 
 procedure TPascalScanner.HandleError(Param: String);
 begin
-  if po_CheckCondFunction in Options then
+  if po_StopOnErrorDirective in Options then
     Error(nUserDefined, SUserDefined,[Param])
   else
     DoLog(mtWarning,nUserDefined,SUserDefined+' error',[Param]);
+end;
+
+procedure TPascalScanner.HandleMessageDirective(Param: String);
+var
+  p: Integer;
+  Kind: String;
+  MsgType: TMessageType;
+begin
+  if Param='' then exit;
+  p:=1;
+  while (p<=length(Param)) and (Param[p] in ['a'..'z','A'..'Z']) do inc(p);
+  Kind:=LeftStr(Param,p-1);
+  MsgType:=mtHint;
+  case UpperCase(Kind) of
+  'HINT': MsgType:=mtHint;
+  'NOTE': MsgType:=mtNote;
+  'WARN': MsgType:=mtError;
+  'ERROR': MsgType:=mtError;
+  'FATAL': MsgType:=mtFatal;
+  else
+    // $Message 'hint text'
+    p:=1;
+  end;
+  while (p<=length(Param)) and (Param[p] in [' ',#9]) do inc(p);
+  Delete(Param,1,p-1);
+  if MsgType in [mtFatal,mtError] then
+    HandleError(Param)
+  else
+    DoLog(MsgType,nUserDefined,SUserDefined,[Param])
 end;
 
 procedure TPascalScanner.HandleUnDefine(Param: String);
@@ -2945,23 +2984,31 @@ begin
         'ERROR':
           HandleError(Param);
         'HINT':
-          DoLog(mtHint,nUserDefined,SUserDefined,[Directive]);
+          DoLog(mtHint,nUserDefined,SUserDefined,[Param]);
+        'HINTS':
+          DoBoolDirective(bsHints);
         'I','INCLUDE':
           Result:=HandleInclude(Param);
         'MACRO':
           DoBoolDirective(bsMacro);
+        'MESSAGE':
+          HandleMessageDirective(Param);
         'MODE':
           HandleMode(Param);
         'MODESWITCH':
           HandleModeSwitch(Param);
         'NOTE':
-          DoLog(mtNote,nUserDefined,SUserDefined,[Directive]);
+          DoLog(mtNote,nUserDefined,SUserDefined,[Param]);
+        'NOTES':
+          DoBoolDirective(bsNotes);
         'SCOPEDENUMS':
           DoBoolDirective(bsScopedEnums);
         'UNDEF':
           HandleUnDefine(Param);
         'WARNING':
-          DoLog(mtWarning,nUserDefined,SUserDefined,[Directive]);
+          DoLog(mtWarning,nUserDefined,SUserDefined,[Param]);
+        'WARNINGS':
+          DoBoolDirective(bsWarnings);
       else
         Handled:=false;
       end;
@@ -3656,6 +3703,7 @@ Var
   Msg : String;
 
 begin
+  if IgnoreMsgType(MsgType) then exit;
   SetCurMsg(MsgType,MsgNumber,Fmt,Args);
   If Assigned(FOnLog) then
     begin
@@ -3839,6 +3887,16 @@ begin
     Include(FTokenOptions,toForceCaret)
   else
     Exclude(FTokenOptions,toForceCaret)
+end;
+
+function TPascalScanner.IgnoreMsgType(MsgType: TMessageType): boolean;
+begin
+  case MsgType of
+    mtWarning: if not (bsWarnings in FCurrentBoolSwitches) then exit(true);
+    mtNote: if not (bsNotes in FCurrentBoolSwitches) then exit(true);
+    mtHint: if not (bsHints in FCurrentBoolSwitches) then exit(true);
+  end;
+  Result:=false;
 end;
 
 end.

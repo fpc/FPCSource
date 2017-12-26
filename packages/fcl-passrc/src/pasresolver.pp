@@ -86,6 +86,7 @@ Works:
   - function pred(ordinal): ordinal
   - function high(ordinal): ordinal
   - cast integer to enum, enum to integer
+  - $ScopedEnums
 - sets - TPasSetType
   - set of char
   - set of integer
@@ -171,14 +172,13 @@ Works:
 - var modifier 'absolute'
 
 ToDo:
-- for..in..do
-   - operator
+- $pop, $push
+- $writableconst off $J-
+- $RTTI inherited|explicit
 - range checking:
   - indexedprop[param]
   - case-of unique
   - defaultvalue
-- scoped enum
-- $writableconst off $J-
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
 - nested classes
@@ -200,10 +200,13 @@ ToDo:
 - generics
 - futures
 - operator overload
+   - operator enumerator
 - attributes
 - anonymous functions
 - TPasFileType
 - labels
+- $warn identifier ON|off|error|default
+- $zerobasedstrings on|off
 
 Debug flags: -d<x>
   VerbosePasResolver
@@ -929,6 +932,14 @@ type
     );
   TPasResolverOptions = set of TPasResolverOption;
 
+  TPasResolverStep = (
+    prsInit,
+    prsParsing,
+    prsFinishingModule,
+    prsFinishedModule
+    );
+  TPasResolverSteps = set of TPasResolverStep;
+
   { TPasResolver }
 
   TPasResolver = Class(TPasTreeContainer)
@@ -966,6 +977,7 @@ type
     FScopeClass_WithExpr: TPasWithExprScopeClass;
     FScopeCount: integer;
     FScopes: array of TPasScope; // stack of scopes
+    FStep: TPasResolverStep;
     FStoreSrcColumns: boolean;
     FSubScopeCount: integer;
     FSubScopes: array of TPasScope; // stack of scopes
@@ -1480,6 +1492,7 @@ type
     // parsed values
     property DefaultNameSpace: String read FDefaultNameSpace;
     property RootElement: TPasModule read FRootElement;
+    property Step: TPasResolverStep read FStep;
     // scopes
     property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
        If true Line and Column is mangled together in TPasElement.SourceLineNumber.
@@ -3415,6 +3428,8 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishModule START ',CurModule.Name);
   {$ENDIF}
+  FStep:=prsFinishingModule;
+
   CurModuleClass:=CurModule.ClassType;
   if (CurModuleClass=TPasProgram) or (CurModuleClass=TPasLibrary) then
     begin
@@ -3447,6 +3462,7 @@ begin
   CheckTopScope(TPasModuleScope);
   PopScope;
 
+  FStep:=prsFinishedModule;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishModule END ',CurModule.Name);
   {$ENDIF}
@@ -10163,7 +10179,11 @@ begin
   El.SourceFilename:=ASrcPos.FileName;
   El.SourceLinenumber:=SrcY;
   if FRootElement=nil then
+    begin
     FRootElement:=NoNil(Result) as TPasModule;
+    if FStep=prsInit then
+      FStep:=prsParsing;
+    end;
 
   if IsElementSkipped(El) then exit;
 
@@ -11592,6 +11612,11 @@ procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String; Args: array of const;
   PosEl: TPasElement);
 begin
+  if (FStep<prsFinishingModule)
+      and (CurrentParser.Scanner<>nil)
+      and (CurrentParser.Scanner.IgnoreMsgType(MsgType)) then
+    exit; // during parsing consider directives like $Hints on|off
+
   SetLastMsg(id,MsgType,MsgNumber,Fmt,Args,PosEl);
   if Assigned(OnLog) then
     OnLog(Self,FLastMsg)
