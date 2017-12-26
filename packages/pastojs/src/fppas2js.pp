@@ -840,6 +840,11 @@ const
     msIgnoreInterfaces,
     msIgnoreAttributes];
 
+  msAllPas2jsBoolSwitches = [
+    bsMacro,
+    bsScopedEnums
+    ];
+
   btAllJSBaseTypes = [
     btChar,
     btWideChar,

@@ -736,13 +736,20 @@ begin
   FFilename:='test1.pp';
   FFileResolver:=TStreamResolver.Create;
   FFileResolver.OwnsStreams:=True;
+
   FScanner:=TPascalScanner.Create(FFileResolver);
+
   FScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   FScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   FScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
+
+  FScanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
+
   FEngine:=AddModule(Filename);
+
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
   Parser.Options:=Parser.Options+po_pas2js+[po_KeepScannerError];
+
   FModule:=Nil;
   FConverter:=CreateConverter;
 
