@@ -125,6 +125,8 @@ type
     procedure OnCheckElementParent(El: TPasElement; arg: pointer);
     procedure FreeSrcMarkers;
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
+    procedure ScannerDirective(Sender: TObject; Directive, Param: String;
+      var Handled: boolean);
   Protected
     FirstSrcMarker, LastSrcMarker: PSrcMarker;
     Procedure SetUp; override;
@@ -258,6 +260,8 @@ type
     Procedure TestEnumRange;
     Procedure TestEnum_ForIn;
     Procedure TestEnum_ForInRangeFail;
+    Procedure TestEnum_ScopedEnums;
+    Procedure TestEnum_ScopedEnumsFail;
 
     // operators
     Procedure TestPrgAssignment;
@@ -765,6 +769,7 @@ begin
   FModules:=TObjectList.Create(true);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
+  Scanner.OnDirective:=@ScannerDirective;
 end;
 
 procedure TCustomTestResolver.TearDown;
@@ -1930,6 +1935,21 @@ begin
   writeln('TCustomTestResolver.OnPasResolverLog ',GetObjName(Sender),' ',Item.MsgType,' (',Item.MsgNumber,') {',Msg,'}');
   {$ENDIF}
   FResolverMsgs.Add(Item);
+end;
+
+procedure TCustomTestResolver.ScannerDirective(Sender: TObject; Directive,
+  Param: String; var Handled: boolean);
+var
+  aScanner: TPascalScanner;
+begin
+  if Handled then exit;
+  aScanner:=Sender as TPascalScanner;
+  aScanner.LastMsgType:=mtError;
+  aScanner.LastMsg:='unknown directive "'+Directive+'"';
+  aScanner.LastMsgPattern:=aScanner.LastMsg;
+  aScanner.LastMsgArgs:=[];
+  raise EScannerError.Create(aScanner.LastMsg);
+  if Param='' then ;
 end;
 
 function TCustomTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
@@ -3397,6 +3417,34 @@ begin
   '  for e in red..green do;',
   '']);
   CheckResolverException('Cannot find an enumerator for the type "range.."',nCannotFindEnumeratorForType);
+end;
+
+procedure TTestResolver.TestEnum_ScopedEnums;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {$scopedenums on}',
+  '  TEnum = (red, green);',
+  'var e: TEnum;',
+  'begin',
+  '  e:=TEnum.red;'
+  ]);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestEnum_ScopedEnumsFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {$ScopedEnums on}',
+  '  TEnum = (red, green);',
+  'var e: TEnum;',
+  'begin',
+  '  e:=red;'
+  ]);
+  CheckResolverException(sIdentifierNotFound,nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestPrgAssignment;

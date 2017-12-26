@@ -269,6 +269,16 @@ type
   );
   TModeSwitches = Set of TModeSwitch;
 
+  // switches, that can be 'on' or 'off' and have no corresponding letter switch
+  TBoolSwitch = (
+    bsMacro,
+    bsScopedEnums
+    );
+  TBoolSwitches = set of TBoolSwitch;
+const
+  bsAll = [bsMacro..bsScopedEnums];
+
+type
   TTokenOption = (toForceCaret,toOperatorToken);
   TTokenOptions = Set of TTokenOption;
 
@@ -511,9 +521,11 @@ type
 
   TPascalScanner = class
   private
+    FAllowedBoolSwitches: TBoolSwitches;
     FAllowedModes: TModeSwitches;
     FAllowedModeSwitches: TModeSwitches;
     FConditionEval: TCondDirectiveEvaluator;
+    FCurrentBoolSwitches: TBoolSwitches;
     FCurrentModeSwitches: TModeSwitches;
     FCurTokenPos: TPasSourcePos;
     FLastMsg: string;
@@ -530,7 +542,6 @@ type
     FCurLine: string;
     FMacros,
     FDefines: TStrings;
-    FMacrosOn: boolean;
     FNonTokens: TTokens;
     FOnDirective: TPScannerDirectiveEvent;
     FOnEvalFunction: TCEEvalFunctionEvent;
@@ -540,6 +551,7 @@ type
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
     FPreviousToken: TToken;
+    FReadOnlyBoolSwitches: TBoolSwitches;
     FReadOnlyModeSwitches: TModeSwitches;
     FSkipComments: Boolean;
     FSkipWhiteSpace: Boolean;
@@ -555,15 +567,20 @@ type
     PPIsSkippingStack: array[0..255] of Boolean;
     function GetCurColumn: Integer;
     function GetForceCaret: Boolean;
+    function GetMacrosOn: boolean;
     function OnCondEvalFunction(Sender: TCondDirectiveEvaluator; Name,
       Param: String; out Value: string): boolean;
     procedure OnCondEvalLog(Sender: TCondDirectiveEvaluator;
       Args: array of const);
     function OnCondEvalVar(Sender: TCondDirectiveEvaluator; Name: String; out
       Value: string): boolean;
+    procedure SetAllowedBoolSwitches(const AValue: TBoolSwitches);
     procedure SetAllowedModeSwitches(const AValue: TModeSwitches);
+    procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches);
     procedure SetCurrentModeSwitches(AValue: TModeSwitches);
+    procedure SetMacrosOn(const AValue: boolean);
     procedure SetOptions(AValue: TPOptions);
+    procedure SetReadOnlyBoolSwitches(const AValue: TBoolSwitches);
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
   protected
     function FetchLine: boolean;
@@ -576,6 +593,7 @@ type
     procedure PushSkipMode;
     function HandleDirective(const ADirectiveText: String): TToken; virtual;
     function HandleLetterDirective(Letter: char; Enable: boolean): TToken; virtual;
+    procedure HandleBoolDirective(bs: TBoolSwitch; const Param: String); virtual;
     procedure HandleIFDEF(const AParam: String);
     procedure HandleIFNDEF(const AParam: String);
     procedure HandleIFOPT(const AParam: String);
@@ -588,7 +606,6 @@ type
     procedure HandleIncludeFile(Param: String); virtual;
     procedure HandleUnDefine(Param: String);virtual;
     function HandleInclude(const Param: String): TToken;virtual;
-    procedure HandleMacroDirective(const Param: String);virtual;
     procedure HandleMode(const Param: String);virtual;
     procedure HandleModeSwitch(const Param: String);virtual;
     function HandleMacro(AIndex: integer): TToken;virtual;
@@ -638,11 +655,14 @@ type
     Property TokenOptions : TTokenOptions Read FTokenOptions Write FTokenOptions;
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
-    property MacrosOn: boolean read FMacrosOn write FMacrosOn;
+    property MacrosOn: boolean read GetMacrosOn write SetMacrosOn;
     property OnDirective: TPScannerDirectiveEvent read FOnDirective write FOnDirective;
     property AllowedModeSwitches: TModeSwitches read FAllowedModeSwitches Write SetAllowedModeSwitches;
     property ReadOnlyModeSwitches: TModeSwitches read FReadOnlyModeSwitches Write SetReadOnlyModeSwitches;// always set, cannot be disabled
     property CurrentModeSwitches: TModeSwitches read FCurrentModeSwitches Write SetCurrentModeSwitches;
+    property AllowedBoolSwitches: TBoolSwitches read FAllowedBoolSwitches Write SetAllowedBoolSwitches;
+    property ReadOnlyBoolSwitches: TBoolSwitches read FReadOnlyBoolSwitches Write SetReadOnlyBoolSwitches;// cannot be changed by code
+    property CurrentBoolSwitches: TBoolSwitches read FCurrentBoolSwitches Write SetCurrentBoolSwitches;
     property Options : TPOptions read FOptions write SetOptions;
     property ForceCaret : Boolean read GetForceCaret;
     property LogEvents : TPScannerLogEvents read FLogEvents write FLogEvents;
@@ -856,6 +876,12 @@ const
     ,'REFERENCEINFO'  // Y
     ,''               // Z
    );
+
+  BoolSwitchNames: array[TBoolSwitch] of string = (
+    'Macro',
+    'ScopedEnums'
+    );
+
 const
   AllLanguageModes = [msFPC,msObjFPC,msDelphi,msTP7,msMac,msISO,msExtPas];
 
@@ -2192,6 +2218,8 @@ begin
   FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
+  FCurrentBoolSwitches:=[];
+  FAllowedBoolSwitches:=bsAll;
   FConditionEval:=TCondDirectiveEvaluator.Create;
   FConditionEval.OnLog:=@OnCondEvalLog;
   FConditionEval.OnEvalVariable:=@OnCondEvalVar;
@@ -2621,16 +2649,6 @@ begin
     end
 end;
 
-procedure TPascalScanner.HandleMacroDirective(const Param: String);
-begin
-  if CompareText(Param,'on')=0 then
-    MacrosOn:=true
-  else if CompareText(Param,'off')=0 then
-    MacrosOn:=false
-  else
-    Error(nErrXExpectedButYFound,SErrXExpectedButYFound,['on',Param]);
-end;
-
 procedure TPascalScanner.HandleMode(const Param: String);
 
   procedure SetMode(const LangMode: TModeSwitch; const NewModeSwitches: TModeSwitches;
@@ -2866,6 +2884,17 @@ Var
   P : Integer;
   Handled: Boolean;
 
+  procedure DoBoolDirective(bs: TBoolSwitch);
+  begin
+    if bs in AllowedBoolSwitches then
+      begin
+      Handled:=true;
+      HandleBoolDirective(bs,Param);
+      end
+    else
+      Handled:=false;
+  end;
+
 begin
   Result:=tkComment;
   P:=Pos(' ',ADirectiveText);
@@ -2875,7 +2904,7 @@ begin
   Param:=ADirectiveText;
   Delete(Param,1,P);
   {$IFDEF VerbosePasDirectiveEval}
-  Writeln('Directive: "',Directive,'", Param : "',Param,'"');
+  Writeln('TPascalScanner.HandleDirective.Directive: "',Directive,'", Param : "',Param,'"');
   {$ENDIF}
 
   Case UpperCase(Directive) of
@@ -2911,26 +2940,28 @@ begin
       begin
       Handled:=true;
       Case UpperCase(Directive) of
-        'I','INCLUDE':
-          Result:=HandleInclude(Param);
-        'MACRO':
-          HandleMacroDirective(Param);
-        'MODE':
-          HandleMode(Param);
-        'MODESWITCH':
-          HandleModeSwitch(Param);
         'DEFINE':
           HandleDefine(Param);
         'ERROR':
           HandleError(Param);
-        'WARNING':
-          DoLog(mtWarning,nUserDefined,SUserDefined,[Directive]);
-        'NOTE':
-          DoLog(mtNote,nUserDefined,SUserDefined,[Directive]);
         'HINT':
           DoLog(mtHint,nUserDefined,SUserDefined,[Directive]);
+        'I','INCLUDE':
+          Result:=HandleInclude(Param);
+        'MACRO':
+          DoBoolDirective(bsMacro);
+        'MODE':
+          HandleMode(Param);
+        'MODESWITCH':
+          HandleModeSwitch(Param);
+        'NOTE':
+          DoLog(mtNote,nUserDefined,SUserDefined,[Directive]);
+        'SCOPEDENUMS':
+          DoBoolDirective(bsScopedEnums);
         'UNDEF':
           HandleUnDefine(Param);
+        'WARNING':
+          DoLog(mtWarning,nUserDefined,SUserDefined,[Directive]);
       else
         Handled:=false;
       end;
@@ -2956,6 +2987,27 @@ begin
     AddDefine(LetterSwitchNames[Letter])
   else
     UnDefine(LetterSwitchNames[Letter]);
+end;
+
+procedure TPascalScanner.HandleBoolDirective(bs: TBoolSwitch;
+  const Param: String);
+var
+  NewValue: Boolean;
+begin
+  if CompareText(Param,'on')=0 then
+    NewValue:=true
+  else if CompareText(Param,'off')=0 then
+    NewValue:=false
+  else
+    Error(nErrXExpectedButYFound,SErrXExpectedButYFound,['on',Param]);
+  if (bs in CurrentBoolSwitches)=NewValue then exit;
+  if bs in ReadOnlyBoolSwitches then
+    DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+      [BoolSwitchNames[bs]])
+  else if NewValue then
+    Include(FCurrentBoolSwitches,bs)
+  else
+    Exclude(FCurrentBoolSwitches,bs);
 end;
 
 function TPascalScanner.DoFetchToken: TToken;
@@ -3435,6 +3487,11 @@ begin
   Result:=toForceCaret in FTokenOptions;
 end;
 
+function TPascalScanner.GetMacrosOn: boolean;
+begin
+  Result:=bsMacro in FCurrentBoolSwitches;
+end;
+
 function TPascalScanner.OnCondEvalFunction(Sender: TCondDirectiveEvaluator;
   Name, Param: String; out Value: string): boolean;
 begin
@@ -3537,11 +3594,23 @@ begin
   Result:=false;
 end;
 
+procedure TPascalScanner.SetAllowedBoolSwitches(const AValue: TBoolSwitches);
+begin
+  if FAllowedBoolSwitches=AValue then Exit;
+  FAllowedBoolSwitches:=AValue;
+end;
+
 procedure TPascalScanner.SetAllowedModeSwitches(const AValue: TModeSwitches);
 begin
   if FAllowedModeSwitches=AValue then Exit;
   FAllowedModeSwitches:=AValue;
   CurrentModeSwitches:=FCurrentModeSwitches*AllowedModeSwitches;
+end;
+
+procedure TPascalScanner.SetCurrentBoolSwitches(const AValue: TBoolSwitches);
+begin
+  if FCurrentBoolSwitches=AValue then Exit;
+  FCurrentBoolSwitches:=AValue;
 end;
 
 procedure TPascalScanner.SetCurrentModeSwitches(AValue: TModeSwitches);
@@ -3564,6 +3633,14 @@ begin
     UnDefine('UNICODE');
     UnDefine('FPC_UNICODESTRINGS');
     end;
+end;
+
+procedure TPascalScanner.SetMacrosOn(const AValue: boolean);
+begin
+  if AValue then
+    Include(FCurrentBoolSwitches,bsMacro)
+  else
+    Exclude(FCurrentBoolSwitches,bsMacro);
 end;
 
 procedure TPascalScanner.DoLog(MsgType: TMessageType; MsgNumber: integer;
@@ -3606,6 +3683,12 @@ begin
       CurrentModeSwitches:=DelphiModeSwitches
     else
       CurrentModeSwitches:=FPCModeSwitches
+end;
+
+procedure TPascalScanner.SetReadOnlyBoolSwitches(const AValue: TBoolSwitches);
+begin
+  if FReadOnlyBoolSwitches=AValue then Exit;
+  FReadOnlyBoolSwitches:=AValue;
 end;
 
 procedure TPascalScanner.SetReadOnlyModeSwitches(const AValue: TModeSwitches);

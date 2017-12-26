@@ -6823,29 +6823,32 @@ begin
     RaiseInvalidScopeForElement(20160929205736,El);
   AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
 
-  // propagate enum to parent scopes
-  for i:=ScopeCount-2 downto 0 do
+  if not (bsScopedEnums in CurrentParser.Scanner.CurrentBoolSwitches) then
     begin
-    Scope:=Scopes[i];
-    if (Scope is TPasClassScope) or (Scope is TPasRecordScope) then
+    // propagate enum to parent scopes
+    for i:=ScopeCount-2 downto 0 do
       begin
-      // class or record: add if not duplicate
-      Old:=TPasIdentifierScope(Scope).FindIdentifier(El.Name);
-      if Old=nil then
+      Scope:=Scopes[i];
+      if (Scope is TPasClassScope) or (Scope is TPasRecordScope) then
+        begin
+        // class or record: add if not duplicate
+        Old:=TPasIdentifierScope(Scope).FindIdentifier(El.Name);
+        if Old=nil then
+          TPasIdentifierScope(Scope).AddIdentifier(El.Name,El,pikSimple);
+        end
+      else if (Scope is TPasProcedureScope) or (Scope is TPasSectionScope) then
+        begin
+        // procedure or section: check for duplicate and add
+        Old:=TPasIdentifierScope(Scope).FindLocalIdentifier(El.Name);
+        if Old<>nil then
+          RaiseMsg(20170216152224,nDuplicateIdentifier,sDuplicateIdentifier,
+                   [El.Name,GetElementSourcePosStr(Old.Element)],El);
         TPasIdentifierScope(Scope).AddIdentifier(El.Name,El,pikSimple);
-      end
-    else if (Scope is TPasProcedureScope) or (Scope is TPasSectionScope) then
-      begin
-      // procedure or section: check for duplicate and add
-      Old:=TPasIdentifierScope(Scope).FindLocalIdentifier(El.Name);
-      if Old<>nil then
-        RaiseMsg(20170216152224,nDuplicateIdentifier,sDuplicateIdentifier,
-                 [El.Name,GetElementSourcePosStr(Old.Element)],El);
-      TPasIdentifierScope(Scope).AddIdentifier(El.Name,El,pikSimple);
-      break;
-      end
-    else
-      break;
+        break;
+        end
+      else
+        break;
+      end;
     end;
 end;
 
