@@ -841,6 +841,9 @@ const
     msIgnoreAttributes];
 
   msAllPas2jsBoolSwitches = [
+    bsHints,
+    bsNotes,
+    bsWarnings,
     bsMacro,
     bsScopedEnums
     ];
