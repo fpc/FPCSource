@@ -2654,7 +2654,7 @@ begin
   case UpperCase(Kind) of
   'HINT': MsgType:=mtHint;
   'NOTE': MsgType:=mtNote;
-  'WARN': MsgType:=mtError;
+  'WARN': MsgType:=mtWarning;
   'ERROR': MsgType:=mtError;
   'FATAL': MsgType:=mtFatal;
   else
@@ -2666,7 +2666,7 @@ begin
   if MsgType in [mtFatal,mtError] then
     HandleError(Param)
   else
-    DoLog(MsgType,nUserDefined,SUserDefined,[Param])
+    DoLog(MsgType,nUserDefined,SUserDefined,[Param]);
 end;
 
 procedure TPascalScanner.HandleUnDefine(Param: String);
