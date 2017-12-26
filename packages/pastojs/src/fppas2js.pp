@@ -44,6 +44,7 @@ Works:
   - choose overloads based on type and precision
   - fail overload on multiple with loss of precision or one used default param
   - FuncName:=, auto rename lower lvl Result variables
+  - var modifier 'absolute' for local vars
 - assign statements
 - char
   - literals
@@ -353,8 +354,8 @@ const
   nInitializedArraysNotSupported = 4006;
   nMemberExprMustBeIdentifier = 4007;
   nCantWriteSetLiteral = 4008;
-  nVariableIdentifierExpected = 4009;
-  nExpectedXButFoundY = 4010;
+  nInvalidAbsoluteLocation = 4009;
+  //nExpectedXButFoundY = 4010;
   nInvalidFunctionReference = 4011;
   nMissingExternalName = 4012;
   nVirtualMethodNameMustMatchExternal = 4013;
@@ -378,8 +379,8 @@ resourcestring
   sInitializedArraysNotSupported = 'Initialized array variables not yet supported';
   sMemberExprMustBeIdentifier = 'Member expression must be an identifier';
   sCantWriteSetLiteral = 'Cannot write set literal';
-  sVariableIdentifierExpected = 'Variable identifier expected';
-  sExpectedXButFoundY = 'Expected %s, but found %s';
+  sInvalidAbsoluteLocation = 'Invalid absolute location';
+  //sExpectedXButFoundY = 'Expected %s, but found %s';
   sInvalidFunctionReference = 'Invalid function reference';
   sMissingExternalName = 'Missing external name';
   sVirtualMethodNameMustMatchExternal = 'Virtual method name must match external';
@@ -2158,14 +2159,45 @@ const
 var
   ExtName: String;
   ParentC: TClass;
+  AbsExpr: TPasExpr;
+  ResolvedAbsol: TPasResolverResult;
+  AbsIdent: TPasElement;
 begin
   inherited FinishVariable(El);
 
-  if El.AbsoluteLocation<>'' then
-    RaiseMsg(20170728133340,nInvalidVariableModifier,
-      sInvalidVariableModifier,['absolute'],El);
-
   ParentC:=El.Parent.ClassType;
+
+  if El.AbsoluteExpr<>nil then
+    begin
+    // check 'absolute' alias
+    if vmExternal in El.VarModifiers then
+      RaiseMsg(20171226105002,nXModifierMismatchY,sXModifierMismatchY,
+        ['absolute','external'],El.AbsoluteExpr);
+    AbsExpr:=El.AbsoluteExpr;
+    ComputeElement(AbsExpr,ResolvedAbsol,[rcNoImplicitProc]);
+    AbsIdent:=ResolvedAbsol.IdentEl;
+    if ParentC=TProcedureBody then
+      begin
+      // local var
+      if (AbsIdent.Parent=El.Parent)
+          or ((AbsIdent is TPasArgument)
+            and (AbsIdent.Parent.Parent=El.Parent.Parent)) then
+        // ok
+      else
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TPas2JSResolver.FinishVariable absolute: Parent=',GetObjName(El.Parent),' AbsParent=',GetObjName(AbsIdent.Parent));
+        {$ENDIF}
+        RaiseMsg(20171226102424,nInvalidAbsoluteLocation,sInvalidAbsoluteLocation,[],El.AbsoluteExpr);
+        end;
+      end
+    else
+      begin
+      RaiseMsg(20170728133340,nInvalidVariableModifier,
+        sInvalidVariableModifier,['absolute'],El);
+      end;
+    end;
+
   if (ParentC=TPasClassType) then
     begin
     // class member
@@ -3182,14 +3214,14 @@ begin
     revkUnicodeString: Result:=UTF8Encode(TResEvalUTF16(Value).S);
     else
       str(Value.Kind,Result);
-      RaiseMsg(20170211221121,nExpectedXButFoundY,sExpectedXButFoundY,['string literal',Result],Expr);
+      RaiseXExpectedButYFound(20170211221121,'string literal',Result,Expr);
     end;
   finally
     ReleaseEvalValue(Value);
   end;
 
   if NotEmpty and (Result='') then
-    RaiseMsg(20170321085318,nExpectedXButFoundY,sExpectedXButFoundY,['string literal','empty'],Expr);
+    RaiseXExpectedButYFound(20170321085318,'string literal','empty',Expr);
 end;
 
 procedure TPas2JSResolver.CheckAssignExprRangeToCustom(
@@ -6839,7 +6871,7 @@ begin
     Result:=CreateCallFromCharCode(Result,El);
     exit;
     end;
-  DoError(20170325185906,nExpectedXButFoundY,sExpectedXButFoundY,['integer',
+  DoError(20170325185906,nXExpectedButYFound,sXExpectedButYFound,['integer',
     AContext.Resolver.GetResolverResultDescription(ParamResolved)],Param);
 end;
 
@@ -6920,7 +6952,7 @@ begin
       exit;
       end;
     end;
-  DoError(20170210105339,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
+  DoError(20170210105339,nXExpectedButYFound,sXExpectedButYFound,['enum',
     AContext.Resolver.GetResolverResultDescription(ParamResolved)],Param);
 end;
 
@@ -7104,7 +7136,7 @@ begin
         end;
       end;
   end;
-  DoError(20170210110717,nExpectedXButFoundY,sExpectedXButFoundY,['enum or array',
+  DoError(20170210110717,nXExpectedButYFound,sXExpectedButYFound,['enum or array',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
@@ -7145,7 +7177,7 @@ begin
       Result:=CreateLiteralBoolean(El,true);
     exit;
     end;
-  DoError(20170210120039,nExpectedXButFoundY,sExpectedXButFoundY,['enum',
+  DoError(20170210120039,nXExpectedButYFound,sXExpectedButYFound,['enum',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;
 
@@ -7675,11 +7707,10 @@ Var
   ObjLit: TJSObjectLiteralElement;
 begin
   Result:=nil;
+  if El.AbsoluteExpr<>nil then
+    exit; // absolute: do not add a declaration
   if vmExternal in El.VarModifiers then
-    begin
-    // external: do not add a declaration
-    exit;
-    end;
+    exit; // external: do not add a declaration
   if AContext is TObjectContext then
     begin
     // create 'A: initvalue'
@@ -10464,7 +10495,7 @@ begin
       RaiseNotSupported(El,AContext,20170208141622,'modifier '+VariableModifierNames[vm]);
   if El.LibraryName<>nil then
     RaiseNotSupported(El,AContext,20170208141844,'library name');
-  if El.AbsoluteLocation<>'' then
+  if El.AbsoluteExpr<>nil then
     RaiseNotSupported(El,AContext,20170208141926,'absolute');
 
   V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
@@ -10837,7 +10868,7 @@ var
     Result:=true;
     AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
     if not (ResolvedVar.IdentEl is TPasVariable) then
-      DoError(20170213214404,nExpectedXButFoundY,sExpectedXButFoundY,['var',
+      DoError(20170213214404,nXExpectedButYFound,sXExpectedButYFound,['var',
         AContext.Resolver.GetResolverResultDescription(ResolvedVar)],El.VariableName);
 
     case El.LoopType of
@@ -12226,6 +12257,14 @@ function TPasToJSConverter.CreateReferencePath(El: TPasElement;
       Result:=FBuiltInNames[pbivnPtrClass];
   end;
 
+  function GetAbsoluteAlias: string;
+  var
+    AbsolResolved: TPasResolverResult;
+  begin
+    AContext.Resolver.ComputeElement(TPasVariable(El).AbsoluteExpr,AbsolResolved,[rcNoImplicitProc]);
+    Result:=CreateReferencePath(AbsolResolved.IdentEl,AContext,Kind,Full,Ref);
+  end;
+
 var
   FoundModule: TPasModule;
   ParentEl: TPasElement;
@@ -12243,6 +12282,10 @@ begin
   {$ENDIF}
 
   ElClass:=El.ClassType;
+  if ElClass.InheritsFrom(TPasVariable) and (TPasVariable(El).AbsoluteExpr<>nil)
+      and (AContext.Resolver<>nil) then
+    exit(GetAbsoluteAlias);
+
   if AContext is TDotContext then
     begin
     Dot:=TDotContext(AContext);
@@ -12910,6 +12953,8 @@ Var
   Src: TJSSourceElements;
 begin
   Result:=nil;
+  if El.AbsoluteExpr<>nil then
+    exit; // absolute: do not add a declaration
   if not AContext.IsGlobal then
     begin
     // local const are stored in interface/implementation

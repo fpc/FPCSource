@@ -264,6 +264,7 @@ type
     Procedure TestProc_OverloadNested;
     Procedure TestProc_Varargs;
     Procedure TestProc_ConstOrder;
+    Procedure TestProc_VarAbsolute;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -3021,6 +3022,45 @@ begin
     '']),
     LinesToStr([
     ''
+    ]));
+end;
+
+procedure TTestModule.TestProc_VarAbsolute;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Index: longint;',
+  '  end;',
+  'procedure DoIt(i: longint);',
+  'var',
+  '  d: double absolute i;',
+  '  s: string absolute d;',
+  '  o: TObject absolute i;',
+  'begin',
+  '  if d=d then d:=d;',
+  '  if s=s then s:=s;',
+  '  if o.Index<o.Index then o.Index:=o.Index;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_VarAbsolute',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Index = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (i) {',
+    '  if (i === i) i = i;',
+    '  if (i === i) i = i;',
+    '  if (i.Index < i.Index) i.Index = i.Index;',
+    '};'
+    ]),
+    LinesToStr([
     ]));
 end;
 
