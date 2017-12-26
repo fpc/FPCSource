@@ -699,6 +699,7 @@ begin
   Scanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   Scanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   Scanner.CurrentModeSwitches:=p2jsMode_SwitchSets[Compiler.Mode];
+  Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
   // Note: some Scanner.Options are set by TPasResolver
   for i:=0 to Compiler.Defines.Count-1 do
     begin
