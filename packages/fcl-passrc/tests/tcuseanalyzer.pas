@@ -109,6 +109,7 @@ type
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
+    procedure TestM_Hint_AbsoluteVar;
 
     // whole program optimization
     procedure TestWP_LocalVar;
@@ -249,7 +250,6 @@ begin
       end;
     aMarker:=aMarker^.Next;
     end;
-
 end;
 
 procedure TCustomTestUseAnalyzer.CheckUseAnalyzerHint(MsgType: TMessageType;
@@ -1547,6 +1547,22 @@ begin
   Add('  Point();');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_AbsoluteVar;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#DoIt_used}DoIt({#p_used}p: pointer);',
+  'var',
+  '  {#i_used}i: longint absolute p;',
+  '  {#j_used}j: longint absolute i;',
+  'begin',
+  '  if j=3 then ;',
+  'end;',
+  'begin',
+  '  DoIt(nil);']);
   CheckUseAnalyzerUnexpectedHints;
 end;
 

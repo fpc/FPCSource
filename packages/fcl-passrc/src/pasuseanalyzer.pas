@@ -984,7 +984,7 @@ var
   Params: TPasExprArray;
   i: Integer;
   BuiltInProc: TResElDataBuiltInProc;
-  ParamResolved: TPasResolverResult;
+  ParamResolved, ResolvedAbs: TPasResolverResult;
   Decl: TPasElement;
 begin
   if El=nil then exit;
@@ -997,6 +997,13 @@ begin
     Ref:=TResolvedReference(El.CustomData);
     Decl:=Ref.Declaration;
     UseElement(Decl,Ref.Access,false);
+
+    if (Decl is TPasVariable) and (TPasVariable(Decl).AbsoluteExpr<>nil) then
+      begin
+      Resolver.ComputeElement(TPasVariable(Decl).AbsoluteExpr,ResolvedAbs,[rcNoImplicitProc]);
+      if ResolvedAbs.IdentEl is TPasVariable then
+        UseVariable(TPasVariable(ResolvedAbs.IdentEl),Ref.Access,false);
+      end;
 
     if Resolver.IsNameExpr(El) then
       begin
@@ -1050,6 +1057,7 @@ begin
       or (C=TSelfExpr)
       or (C=TBoolConstExpr)
       or (C=TNilExpr) then
+    // ok
   else if C=TBinaryExpr then
     begin
     UseExpr(TBinaryExpr(El).left);
@@ -1514,6 +1522,10 @@ begin
       // ToDo: Prop.ImplementsFunc
       // ToDo: Prop.DispIDExpr
       // see UsePublished: Prop.StoredAccessor, Prop.DefaultExpr
+      end;
+    if El.AbsoluteExpr<>nil then
+      begin
+
       end;
     end
   else

@@ -831,7 +831,8 @@ type
     LibraryName : TPasExpr; // libname of modifier external
     ExportName : TPasExpr; // symbol name of modifier external, export and public
     Modifiers : string;
-    AbsoluteLocation : String;
+    AbsoluteLocation : String deprecated; // deprecated in fpc 3.1.1
+    AbsoluteExpr: TPasExpr;
     Expr: TPasExpr;
     Function Value : String;
   end;

@@ -79,6 +79,7 @@ const
   nParserNoConstRangeAllowed = 2052;
   nErrRecordVariablesNotAllowed = 2053;
   nParserResourcestringsMustBeGlobal = 2054;
+  nParserOnlyOneVariableCanBeAbsolute = 2055;
 
 // resourcestring patterns of messages
 resourcestring
@@ -136,6 +137,7 @@ resourcestring
   SParserExpectedExternalClassName = 'Expected external class name';
   SParserNoConstRangeAllowed = 'Const ranges are not allowed';
   SParserResourcestringsMustBeGlobal = 'Resourcestrings can be only static or global';
+  SParserOnlyOneVariableCanBeAbsolute = 'Only one variable can be absolute';
 
 type
   TPasScopeType = (
@@ -263,7 +265,7 @@ type
     function GetCurrentModeSwitches: TModeSwitches;
     Procedure SetCurrentModeSwitches(AValue: TModeSwitches);
     function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr; ExternalClass : Boolean): string;
-    function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
+    function GetVariableValueAndLocation(Parent : TPasElement; Out Value: TPasExpr; Out AbsoluteExpr: TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
     procedure HandleProcedureTypeModifier(ProcType: TPasProcedureType; ptm : TProcTypeModifier);
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
@@ -3764,28 +3766,31 @@ begin
 end;
 
 function TPasParser.GetVariableValueAndLocation(Parent: TPasElement; out
-  Value: TPasExpr; out Location: String): Boolean;
+  Value: TPasExpr; out AbsoluteExpr: TPasExpr; out Location: String): Boolean;
 
 begin
   Value:=Nil;
+  AbsoluteExpr:=Nil;
+  Location:='';
   NextToken;
   Result:=CurToken=tkEqual;
   if Result then
     begin
     NextToken;
     Value := DoParseConstValueExpression(Parent);
-//    NextToken;
     end;
   if (CurToken=tkAbsolute) then
     begin
     Result:=True;
     ExpectIdentifier;
     Location:=CurTokenText;
+    AbsoluteExpr:=CreatePrimitiveExpr(Parent,pekIdent,CurTokenText);
     NextToken;
     While CurToken=tkDot do
       begin
       ExpectIdentifier;
       Location:=Location+'.'+CurTokenText;
+      AbsoluteExpr:=CreateBinaryExpr(Parent,AbsoluteExpr,CreatePrimitiveExpr(Parent,pekIdent,CurTokenText),eopSubIdent);
       NextToken;
       end;
     UnGetToken;
@@ -3866,18 +3871,20 @@ procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList;
 
 var
   i, OldListCount: Integer;
-  Value , aLibName, aExpName: TPasExpr;
+  Value , aLibName, aExpName, AbsoluteExpr: TPasExpr;
   VarType: TPasType;
   VarEl: TPasVariable;
   H : TPasMemberHints;
   VarMods: TVariableModifiers;
-  D,Mods,Loc: string;
+  D,Mods,AbsoluteLocString: string;
   OldForceCaret,ok,ExternalClass: Boolean;
 
 begin
   Value:=Nil;
   aLibName:=nil;
   aExpName:=nil;
+  AbsoluteExpr:=nil;
+  AbsoluteLocString:='';
   OldListCount:=VarList.Count;
   ok:=false;
   try
@@ -3913,9 +3920,15 @@ begin
 
     H:=CheckHint(Nil,False);
     If Full then
-      GetVariableValueAndLocation(Parent,Value,Loc);
-    if (Value<>nil) and (VarList.Count>OldListCount+1) then
-      ParseExc(nParserOnlyOneVariableCanBeInitialized,SParserOnlyOneVariableCanBeInitialized);
+      GetVariableValueAndLocation(Parent,Value,AbsoluteExpr,AbsoluteLocString);
+    if (VarList.Count>OldListCount+1) then
+      begin
+      // multiple variables
+      if Value<>nil then
+        ParseExc(nParserOnlyOneVariableCanBeAbsolute,SParserOnlyOneVariableCanBeAbsolute);
+      if Value<>nil then
+        ParseExc(nParserOnlyOneVariableCanBeInitialized,SParserOnlyOneVariableCanBeInitialized);
+      end;
     TPasVariable(VarList[OldListCount]).Expr:=Value;
     Value:=nil;
 
@@ -3953,22 +3966,28 @@ begin
         VarEl.Hints:=H;
       VarEl.Modifiers:=Mods;
       VarEl.VarModifiers:=VarMods;
-      VarEl.AbsoluteLocation:=Loc;
+      VarEl.{%H-}AbsoluteLocation:=AbsoluteLocString;
+      if AbsoluteExpr<>nil then
+        begin
+        VarEl.AbsoluteExpr:=AbsoluteExpr;
+        AbsoluteExpr:=nil;
+        end;
       if aLibName<>nil then
         begin
         VarEl.LibraryName:=aLibName;
-        aLibName.AddRef;
+        aLibName:=nil;
         end;
       if aExpName<>nil then
         begin
         VarEl.ExportName:=aExpName;
-        aExpName.AddRef;
+        aExpName:=nil;
         end;
       end;
     ok:=true;
   finally
     if aLibName<>nil then aLibName.Release;
     if aExpName<>nil then aExpName.Release;
+    if AbsoluteExpr<>nil then AbsoluteExpr.Release;
     if not ok then
       begin
         if Value<>nil then Value.Release;

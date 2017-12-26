@@ -393,6 +393,7 @@ type
     Procedure TestProc_FunctionResult_DeclProc;
     Procedure TestProc_TypeCastFunctionResult;
     Procedure TestProc_ImplicitCalls;
+    Procedure TestProc_Absolute;
     // ToDo: fail builtin functions in constant with non const param
 
     // record
@@ -5962,6 +5963,19 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
+end;
+
+procedure TTestResolver.TestProc_Absolute;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(p: Pointer);',
+  'var',
+  '  s: string absolute p;',
+  '  t: array of char absolute s;',
+  'begin',
+  'end;',
+  'begin']);
 end;
 
 procedure TTestResolver.TestRecord;

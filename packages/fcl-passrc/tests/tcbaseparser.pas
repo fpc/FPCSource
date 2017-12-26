@@ -67,11 +67,12 @@ Type
     Procedure CheckHint(AHint : TPasMemberHint);
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AClass : TClass) : TPasExpr;
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AValue : String) : TPrimitiveExpr;
+    Function AssertExpression(Const Msg: String; AExpr : TPasExpr; OpCode : TExprOpCode) : TBinaryExpr;
     Procedure AssertExportSymbol(Const Msg: String; AIndex : Integer; AName,AExportName : String; AExportIndex : Integer = -1);
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasExprKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TLoopType); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasObjKind); overload;
-    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TexprOpcode); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TExprOpCode); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberHint); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TCallingConvention); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TArgumentAccess); overload;
@@ -711,6 +712,13 @@ begin
   AssertEquals(Msg+': Primitive expression value',AValue,TPrimitiveExpr(AExpr).Value);
 end;
 
+function TTestParser.AssertExpression(const Msg: String; AExpr: TPasExpr;
+  OpCode: TExprOpCode): TBinaryExpr;
+begin
+  Result:=AssertExpression(Msg,AExpr,pekBinary,TBinaryExpr) as TBinaryExpr;
+  AssertEquals(Msg+': Binary opcode',OpCode,TBinaryExpr(AExpr).OpCode);
+end;
+
 procedure TTestParser.AssertExportSymbol(const Msg: String; AIndex: Integer;
   AName, AExportName: String; AExportIndex: Integer);
 
@@ -765,7 +773,7 @@ begin
 end;
 
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,
-  AActual: TexprOpcode);
+  AActual: TExprOpCode);
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TexprOpcode),Ord(AExpected)),
                    GetEnumName(TypeInfo(TexprOpcode),Ord(AActual)));

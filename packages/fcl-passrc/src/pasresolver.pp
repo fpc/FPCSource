@@ -168,21 +168,20 @@ Works:
   - array var
   - function: enumerator
   - class
+- var modifier 'absolute'
 
 ToDo:
-- Add test:  test1 uses unit1, unit1 uses unit2, test1 references an identifier 'unit2' -> fail
 - for..in..do
    - operator
 - range checking:
   - indexedprop[param]
   - case-of unique
   - defaultvalue
+- scoped enum
 - $writableconst off $J-
 - fail to write a loop var inside the loop
 - warn: create class with abstract methods
-- classes - TPasClassType
-   - nested var, const
-   - nested types
+- nested classes
 - records - TPasRecordType,
    - const  TRecordValues
    - function default(record type): record
@@ -4306,6 +4305,9 @@ begin
 end;
 
 procedure TPasResolver.FinishVariable(El: TPasVariable);
+var
+  ResolvedAbs: TPasResolverResult;
+  C: TClass;
 begin
   if (El.Visibility=visPublished) then
     begin
@@ -4316,6 +4318,33 @@ begin
     begin
     ResolveExpr(El.Expr,rraRead);
     CheckAssignCompatibility(El,El.Expr,true);
+    end;
+  if El.AbsoluteExpr<>nil then
+    begin
+    if El.VarType=nil then
+      RaiseMsg(20171225235125,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+    if vmExternal in El.VarModifiers then
+      RaiseMsg(20171226104221,nXModifierMismatchY,sXModifierMismatchY,
+        ['absolute','external'],El.AbsoluteExpr);
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.FinishVariable El=',GetObjName(El),' Absolute="',GetObjName(El.AbsoluteExpr),'"');
+    {$ENDIF}
+    ResolveExpr(El.AbsoluteExpr,rraRead);
+    ComputeElement(El.AbsoluteExpr,ResolvedAbs,[rcNoImplicitProc]);
+    if (not (rrfReadable in ResolvedAbs.Flags))
+        or (ResolvedAbs.IdentEl=nil) then
+      RaiseMsg(20171225234734,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+    C:=ResolvedAbs.IdentEl.ClassType;
+    if (C=TPasVariable)
+        or (C=TPasArgument)
+        or ((C=TPasConst) and (TPasConst(ResolvedAbs.IdentEl).VarType<>nil)) then
+    else
+      RaiseMsg(20171225235203,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+    if not (rrfReadable in ResolvedAbs.Flags) then
+      RaiseMsg(20171225235249,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+    // check for cycles
+    if ResolvedAbs.IdentEl=El then
+      RaiseMsg(20171226000703,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
     end;
   EmitTypeHints(El,El.VarType);
 end;
