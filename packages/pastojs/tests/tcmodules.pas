@@ -9620,7 +9620,7 @@ begin
     'this.i2 = null;'
     ]),
     LinesToStr([ // $mod.$main
-    'var $in1 = $mod.b;',
+    'var $in1 = $mod.b.GetEnumerator();',
     'try {',
     '  while ($in1.MoveNext()){',
     '    $mod.i = $in1.FCurrent;',
