@@ -10330,7 +10330,7 @@ begin
     Call.Expr:=CreateDotExpression(PosEl,List,CreateIdentifierExpr(GetEnumeratorFunc,AContext));
     // var $in=
     CurInVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnLoopIn]);
-    VarSt.A:=CreateVarDecl(CurInVarName,List,PosEl);
+    VarSt.A:=CreateVarDecl(CurInVarName,Call,PosEl);
 
     PosEl:=El.VariableName;
     // try()
