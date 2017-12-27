@@ -2054,7 +2054,10 @@ begin
   // first try HOME directory
   aFilename:=ChompPathDelim(GetEnvironmentVariableUTF8('HOME'));
   if aFilename<>'' then
-    if TryConfig(aFilename+PathDelim+DefaultConfigFile) then exit;
+    begin
+    aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+DefaultConfigFile;
+    if TryConfig(aFileName) then exit;
+    end;
 
   // then try compiler directory
   if (CompilerExe<>'') then begin
