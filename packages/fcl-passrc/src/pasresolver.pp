@@ -623,7 +623,7 @@ type
     DirectAncestor: TPasType; // TPasClassType or TPasAliasType or TPasTypeAliasType
     DefaultProperty: TPasProperty;
     Flags: TPasClassScopeFlags;
-    AbstractProcs: array of TPasProcedure;
+    AbstractProcs: TArrayOfPasProcedure;
     destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
@@ -4128,6 +4128,35 @@ procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
         VisibilityNames[OverloadProc.Visibility]],Proc);
     Proc.Visibility:=OverloadProc.Visibility;
   end;
+
+  {$IF FPC_FULLVERSION<30101}
+  procedure Delete(var A: TArrayOfPasProcedure; Index, Count: integer); overload;
+  var
+    i: Integer;
+  begin
+    if Index<0 then
+      RaiseInternalError(20171227121538);
+    if Index+Count>length(A) then
+      RaiseInternalError(20171227121156);
+    for i:=Index+Count to length(A)-1 do
+      A[i-Count]:=A[i];
+    SetLength(A,length(A)-Count);
+  end;
+
+  procedure Insert(Item: TPasProcedure; A: TArrayOfPasProcedure; Index: integer); overload;
+  var
+    i: Integer;
+  begin
+    if Index<0 then
+      RaiseInternalError(20171227121544);
+    if Index>length(A) then
+      RaiseInternalError(20171227121558);
+    SetLength(A,length(A)+1);
+    for i:=length(A)-1 downto Index+1 do
+      A[i]:=A[i-1];
+    A[Index]:=Item;
+  end;
+  {$ENDIF}
 
 var
   Abort: boolean;

@@ -966,6 +966,8 @@ type
     property MessageType : TProcedureMessageType Read FMessageType Write FMessageType;
   end;
 
+  TArrayOfPasProcedure = array of TPasProcedure;
+
   TPasFunction = class(TPasProcedure)
   private
     function GetFT: TPasFunctionType; inline;
