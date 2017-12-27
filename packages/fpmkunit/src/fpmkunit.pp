@@ -178,7 +178,7 @@ Const
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
-  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16];
+  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16,atari];
 
   AllSmartLinkLibraryOSes = [Linux,msdos,win16]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
@@ -2622,7 +2622,7 @@ begin
     Result:=LibraryName+DLLExt
   else if aOS in [darwin,macos,iphonesim] then
     Result:=LibraryName+DyLibExt
-  else  
+  else
     Result:=LibraryName+SharedLibExt;
 end;
 
@@ -7413,7 +7413,7 @@ begin
           begin
             ProcessCompileTarget;
           end;
-        ttSharedLibrary,  
+        ttSharedLibrary,
         ttProgram:
           begin // do nothing, are compiled later
           end;
