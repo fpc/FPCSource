@@ -150,6 +150,7 @@ const
   nMethodHidesMethodOfBaseType = 3077;
   nContextExpectedXButFoundY = 3078;
   nContextXInvalidY = 3079;
+  nConstructingClassXWithAbstractMethodY = 3080;
 
 // resourcestring patterns of messages
 resourcestring
@@ -232,6 +233,7 @@ resourcestring
   sMethodHidesMethodOfBaseType = 'Method "%s" hides method of base type "%s" at %s';
   sContextExpectedXButFoundY = '%s: expected "%s", but found "%s"';
   sContextXInvalidY = '%s: invalid %s';
+  sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

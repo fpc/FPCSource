@@ -77,6 +77,7 @@ Works:
   - events, proc type of object
   - sealed
   - $M+ / $TYPEINFO use visPublished as default visibility
+  - note: constructing class with abstract method
 - with..do
 - enums - TPasEnumType, TPasEnumValue
   - propagate to parent scopes
@@ -174,13 +175,13 @@ Works:
 ToDo:
 - $pop, $push
 - $writableconst off $J-
+- assert()  $assertions
 - $RTTI inherited|explicit
 - range checking:
   - indexedprop[param]
   - case-of unique
   - defaultvalue
 - fail to write a loop var inside the loop
-- warn: create class with abstract methods
 - nested classes
 - records - TPasRecordType,
    - const  TRecordValues
@@ -622,6 +623,7 @@ type
     DirectAncestor: TPasType; // TPasClassType or TPasAliasType or TPasTypeAliasType
     DefaultProperty: TPasProperty;
     Flags: TPasClassScopeFlags;
+    AbstractProcs: array of TPasProcedure;
     destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
@@ -4133,6 +4135,7 @@ var
   FindData: TFindOverloadProcData;
   OverloadProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
+  i: Integer;
 begin
   Proc.ProcType.IsOfObject:=true;
   ProcScope:=TopScope as TPasProcedureScope;
@@ -4187,8 +4190,16 @@ begin
       // check name case
       if proFixCaseOfOverrides in Options then
         Proc.Name:=OverloadProc.Name;
+      // remove abstract
+      if OverloadProc.IsAbstract then
+        for i:=length(ClassScope.AbstractProcs)-1 downto 0 do
+          if ClassScope.AbstractProcs[i]=OverloadProc then
+            Delete(ClassScope.AbstractProcs,i,1);
       end;
     end;
+  // add abstract
+  if Proc.IsAbstract then
+    Insert(Proc,ClassScope.AbstractProcs,length(ClassScope.AbstractProcs));
 end;
 
 procedure TPasResolver.FinishMethodImplHeader(ImplProc: TPasProcedure);
@@ -4993,10 +5004,11 @@ begin
   ClassScope.DirectAncestor:=DirectAncestor;
   if AncestorEl<>nil then
     begin
-    ClassScope.AncestorScope:=NoNil(AncestorEl.CustomData) as TPasClassScope;
-    ClassScope.DefaultProperty:=ClassScope.AncestorScope.DefaultProperty;
-    if pcsfPublished in ClassScope.AncestorScope.Flags then
+    ClassScope.AncestorScope:=AncestorClassScope;
+    ClassScope.DefaultProperty:=AncestorClassScope.DefaultProperty;
+    if pcsfPublished in AncestorClassScope.Flags then
       Include(ClassScope.Flags,pcsfPublished);
+    ClassScope.AbstractProcs:=copy(AncestorClassScope.AbstractProcs);
     end;
   if CurrentParser.Scanner.IsDefined(LetterSwitchNames['M']) then
     Include(ClassScope.Flags,pcsfPublished);
@@ -10526,6 +10538,8 @@ var
   OnlyTypeMembers: Boolean;
   TypeEl: TPasType;
   C: TClass;
+  ClassScope: TPasClassScope;
+  i: Integer;
 begin
   StartScope:=FindData.StartScope;
   OnlyTypeMembers:=false;
@@ -10635,15 +10649,23 @@ begin
         RaiseInternalError(20170131141936);
       Ref.Context:=TResolvedRefCtxConstructor.Create;
       if StartScope is TPasDotClassScope then
-        TypeEl:=TPasDotClassScope(StartScope).ClassScope.Element as TPasType
+        ClassScope:=TPasDotClassScope(StartScope).ClassScope
       else if (StartScope is TPasWithExprScope)
           and (TPasWithExprScope(StartScope).Scope is TPasClassScope) then
-        TypeEl:=TPasClassScope(TPasWithExprScope(StartScope).Scope).Element as TPasType
+        ClassScope:=TPasClassScope(TPasWithExprScope(StartScope).Scope)
       else if (StartScope is TPasProcedureScope) then
-        TypeEl:=TPasProcedureScope(StartScope).ClassScope.Element as TPasType
+        ClassScope:=TPasProcedureScope(StartScope).ClassScope
       else
         RaiseInternalError(20170131150855,GetObjName(StartScope));
+      TypeEl:=ClassScope.Element as TPasType;
       TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
+      if length(ClassScope.AbstractProcs)>0 then
+        begin
+        for i:=0 to length(ClassScope.AbstractProcs)-1 do
+          LogMsg(20171227110746,mtNote,nConstructingClassXWithAbstractMethodY,
+            sConstructingClassXWithAbstractMethodY,
+            [TypeEl.Name,ClassScope.AbstractProcs[i].Name],FindData.ErrorPosEl);
+        end;
       end;
     {$IFDEF VerbosePasResolver}
     if (Proc.ClassType=TPasConstructor) then

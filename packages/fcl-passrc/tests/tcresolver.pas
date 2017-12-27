@@ -448,6 +448,7 @@ type
     Procedure TestClass_ConstructorHidesAncestorWarning;
     Procedure TestClass_ConstructorOverride;
     Procedure TestClass_ConstructorAccessHiddenAncestorFail;
+    Procedure TestClass_ConstructorNoteAbstractMethods;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
@@ -6927,6 +6928,25 @@ begin
   '']);
   CheckResolverException('Incompatible type arg no. 1: Got "Nil", expected "Longint"',
     nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestClass_ConstructorNoteAbstractMethods;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt; virtual; abstract;',
+  '    constructor Create;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '  TObject.Create;']);
+  ParseProgram;
+  CheckResolverHint(mtNote,nConstructingClassXWithAbstractMethodY,'Constructing a class "TObject" with abstract method "DoIt"');
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClass_MethodScope;
