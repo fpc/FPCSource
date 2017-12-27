@@ -4,6 +4,7 @@
     <Version Value="11"/>
     <General>
       <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
@@ -25,45 +26,15 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <Units Count="9">
+    <Units Count="2">
       <Unit0>
         <Filename Value="pas2jslib.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="pas2jscompiler.pp"/>
+        <Filename Value="../../packages/pastojs/src/pas2jslibcompiler.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Pas2jsCompiler"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="pas2jsfilecache.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="Pas2jsFileCache"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="pas2js_defines.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="pas2jsfileutils.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="pas2jsfileutilsunix.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="pas2jsfileutilswin.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="pas2jslogger.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="pas2jspparser.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
