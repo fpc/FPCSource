@@ -15,12 +15,14 @@
 
 unit objcbase;
 
-{$ifdef FPC_HAS_FEATURE_OBJECTIVEC1}
+interface
+
+{$ifndef FPC_HAS_FEATURE_OBJECTIVEC1}
+{$error ObjectiveC1 feature is not supported or not enabled.}
+{$endif}
 
 {$modeswitch objectivec1}
 {$packrecords c}
-
-interface
 
 uses
   ctypes;
@@ -255,14 +257,4 @@ type
 
 implementation
 
-{$else }
-
-interface
-
-implementation
-
-{$endif}
-
 end.
-
-
