@@ -129,7 +129,8 @@ implementation
        'unknown',
        'unknown',
        'aarch64',
-       'wasm32'
+       'wasm32',
+       'sparc64'
       );
 
   function llvm_target_name: ansistring;
