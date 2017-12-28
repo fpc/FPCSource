@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 36258
+#   Based on errore.msg of SVN revision 37710
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2017 by the Free Pascal Development team
@@ -15,6 +15,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 65001
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -147,7 +150,7 @@ general_e_exception_raised=01026_E_Kompilieren verursachte interne Ausnahme (exc
 #
 # Scanner
 #
-# 02101 is the last used one
+# 02104 is the last used one
 #
 # BeginOfTeX
 %
@@ -2504,7 +2507,7 @@ cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) für das aktuelle Z
 #
 # Assembler reader
 #
-# 07131 is the last used one
+# 07138 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2824,6 +2827,22 @@ asmr_w_unable_to_determine_constant_size_using_word=07131_W_Keine Größe für d
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte, word, dword, etc.) it
 % should use for the constant. Based on its value, WORD is used.
+asmr_e_cannot_override_es_segment=07132_E_Kann ES Segment nicht überschreiben
+% The ES segment in the ES:[EDI] reference of the x86 string instructions
+% cannot be overridden.
+asmr_w_invalid_reference=07133_W_Referenz ist hier ungültig (erwartete "$1")
+% Certain x86 instructions require a fixed source or destination reference
+% (e.g. [ESI] or [EDI] for the string instructions source and destination)
+asmr_e_address_sizes_do_not_match=07134_E_Adressgrößen passen nicht
+% Caused by using two memory operands in the same instruction with mismatched
+% address sizes (e.g. movs byte ptr [EDI], byte ptr [SI] )
+asmr_e_pop_cs_not_valid=07135_E_Die Instruktion "POP CS" ist für das aktuelle Ziel ungültig
+% The 'pop cs' instruction works only on the 8086 and 8088 CPUs, which are not
+% supported on the i386 or x86_64 targets.
+asmr_w_pop_cs_not_portable=07136_W_Die Instruktion "POP CS" ist nicht portabel (es funktioniert nur mit 8086 und 8088 CPUs)
+% The 'pop cs' instruction doesn't work on any CPU, except 8086 and 8088.
+asmr_e_public_must_be_used_before_label_definition=07137_E_Das Label $1 kann nur "public" deklariert werden, bevor es definiert wird
+asmr_e_local_label_cannot_be_declared_public=07138_E_Das lokale Label $1 kann nicht als "public" deklariert werden
 %
 % \end{description}
 # EndOfTeX
@@ -3050,7 +3069,7 @@ link_e_segment_too_large=09205_E_Segment "$1" zu groß (übersteigt 64k um $2 By
 link_e_group_too_large=09206_E_Gruppe "$1" zu groß (übersteigt 64k um $2 Byte)
 % Error when a 16-bit program's object modules define a segment group that
 % exceeds 64k bytes
-link_e_com_program_uses_segment_relocations=09207_E_Eine .COM-Datei kann nicht erzeugt werden, weil das Programm Segement-Relocations enthält
+link_e_com_program_uses_segment_relocations=09207_E_Eine .COM-Datei kann nicht erzeugt werden, weil das Programm Segment-Relocations enthält
 % Error occurs, when creating a tiny model DOS .COM file, but at least one of
 % the program's object modules contains segment relocations. Segment relocations
 % might be caused by the use of the Seg() function or by the SEG assembler
@@ -3087,6 +3106,7 @@ link_e_comdat_content_differs=09219_E_Inhalt des doppelten COMDAT-Symbols "$1" u
 % The COMDAT section specifies that all sections with the same name need to have the same content,
 % but this section had a different size.
 link_e_comdat_selection_differs=09220_E_COMDAT-Auswahlmodus für das Symbol "$1" unterscheidet sich%
+%
 % \end{description}
 # EndOfTeX
 
@@ -3318,7 +3338,7 @@ cg_f_internal_type_does_not_match=10066_F_Interner Typ "$1" ist unerwartet. Übe
 #
 # Options
 #
-# 11059 is the last used one
+# 11060 is the last used one
 #
 # BeginOfTeX
 %
@@ -3465,9 +3485,14 @@ option_malformed_para=11055_E_Ungültiges Argument für Parameter: $1
 option_smart_link_requires_external_linker=11056_W_Smart-linking erfordert externen Linker
 option_com_files_require_tiny_model=11057_E_Das Erstellen von .COM Dateien wird für das aktuelle Speichermodell nicht unterstützt. Nur das winzige (tiny) Speichermodell unterstützt .COM Dateien
 % Do not enable experimental -gc option if -Ur option is given.
-option_gc_incompatible_with_release_flag=11058_W_Die experimentelle CheckPointer-Option wird nicht eingeschaltet, weil sie mit der Option -Ur inkompatibel ist
+option_gc_incompatible_with_release_flag=11058_W_Die experimentelle Option CheckPointer wird nicht eingeschaltet, weil sie zur Option -Ur inkompatibel ist
 % The compiler binary only supports a single target architecture. Invoke the fpc binary if you wish to select a compiler binary for a different target architecture.
 option_invalid_target_architecture=11059_E_Nicht unterstützte Zielarchitektur -P$1, rufe statt dessen den Kompilertreiber "fpc" auf.
+% The ppc<target> executables support only a single target architecture. They do not support the -P switch. The compiler driver "fpc"
+% handles this switch, so you have to invoke compiling by using "fpc" instead
+option_features_only_for_system_unit=11060_E_Feature-Schalter werden nur beim Übersetzen der Unit "System" unterstützt
+% To selected a certain feature, the system unit must be compiled with this feature enabled. All other units inherited the features set by the
+% system unit through the ppu of the system unit.
 %
 % \end{description}
 # EndOfTeX
@@ -3720,6 +3745,7 @@ diskutiert werden können, usw.):
 #    P = PowerPC targets
 #    p = PowerPC64 targets
 #    S = Sparc targets
+#    s = Sparc64 targets
 #    V = AVR
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
@@ -3947,6 +3973,7 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 **2Sg_Erlaube LABEL und GOTO
 **2Sh_Benutze ANSI-Strings
 **2Si_Benutze C++ artige INLINE
+**2Sj_Erlaube das Schreiben von typisierten Konstanten (Voreinstellung in allen Modi)
 **2Sk_Lade fpcylix Unit
 **2SI<x>_Setze den Stil des Interface zu <x>
 **3SIcom_COM kompatibles Interface (Voreinstellung)
@@ -3979,7 +4006,6 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
 3*2Tsolaris_Solaris
 3*2Twatcom_Watcom compatible DOS extender
@@ -3997,9 +4023,11 @@ F*2P<x>_Setze die Ziel-CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powe
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux
+6*2Tnetbsd_NetBSD
+6*2Tmacos_Mac OS
 6*2Tpalmos_PalmOS
 8*2Tmsdos_MS-DOS (und kompatible)
-a*2Tdarwin_Darwin/iOS
+8*2Twin16_Windows 16 Bit
 A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
@@ -4008,11 +4036,13 @@ A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
+a*2Tdarwin_Darwin/iOS
+a*2Tlinux_Linux
 J*2Tandroid_Android
 J*2Tjava_Java
+m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
-M*2Tandroid_Android
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
 P*2Taix_AIX
@@ -4028,6 +4058,7 @@ p*2Tdarwin_Darwin/Mac OS X
 p*2Tlinux_Linux
 S*2Tsolaris_Solaris
 S*2Tlinux_Linux
+s*2Tlinux_Linux
 V*2Tembedded_Embedded
 **1u<x>_Entferne die Definition für das Symbol <x>
 **1U<x>_Unit-Optionen:
