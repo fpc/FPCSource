@@ -25,6 +25,7 @@ begin
 
     P.Directory:=ADirectory;
     P.Version:='3.1.1';
+    P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
