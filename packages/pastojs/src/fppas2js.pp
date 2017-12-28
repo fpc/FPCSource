@@ -276,11 +276,9 @@ ToDos:
   - type alias type
   - documentation
 - move local types to unit scope
-- var absolute
-- check memleaks
 - make records more lightweight
 - pointer of record
-- nested types in class
+- nested classes
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - ifthen
 - stdcall of methods: pass original 'this' as first parameter
@@ -296,7 +294,7 @@ Not in Version 1.0:
 - enums with custom values
 - library
 - constref
-- option typecast checking
+- option typecast checking -Ct
 - option verify method calls -CR
 - option range checking -Cr
 - option overflow checking -Co
@@ -12285,9 +12283,11 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
-  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
-  //AContext.WriteStack;
+  writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
+  AContext.WriteStack;
   {$ENDIF}
+  if (El is TPasType) and (AContext<>nil) then
+    El:=AContext.Resolver.ResolveAliasType(TPasType(El));
 
   ElClass:=El.ClassType;
   if ElClass.InheritsFrom(TPasVariable) and (TPasVariable(El).AbsoluteExpr<>nil)

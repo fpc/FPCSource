@@ -390,9 +390,9 @@ type
     Procedure TestClass_Const;
     Procedure TestClass_LocalVarSelfFail;
     Procedure TestClass_ArgSelfFail;
-    Procedure TestClass_NestedSelf;
-    Procedure TestClass_NestedClassSelf;
-    Procedure TestClass_NestedCallInherited;
+    Procedure TestClass_NestedProcSelf;
+    Procedure TestClass_NestedProcClassSelf;
+    Procedure TestClass_NestedProcCallInherited;
     Procedure TestClass_TObjectFree;
     Procedure TestClass_TObjectFreeNewInstance;
     Procedure TestClass_TObjectFreeLowerCase;
@@ -423,6 +423,7 @@ type
     Procedure TestExternalClass_Dollar;
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
+    Procedure TestExternalClass_ClassMethod;
     Procedure TestExternalClass_NonExternalOverride;
     Procedure TestExternalClass_Property;
     Procedure TestExternalClass_ClassProperty;
@@ -9180,7 +9181,7 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestClass_NestedSelf;
+procedure TTestModule.TestClass_NestedProcSelf;
 begin
   StartProgram(false);
   Add([
@@ -9217,7 +9218,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_NestedSelf',
+  CheckSource('TestClass_NestedProcSelf',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.State = 0;',
@@ -9252,7 +9253,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClass_NestedClassSelf;
+procedure TTestModule.TestClass_NestedProcClassSelf;
 begin
   StartProgram(false);
   Add([
@@ -9286,7 +9287,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_NestedClassSelf',
+  CheckSource('TestClass_NestedProcClassSelf',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.State = 0;',
@@ -9318,7 +9319,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClass_NestedCallInherited;
+procedure TTestModule.TestClass_NestedProcCallInherited;
 begin
   StartProgram(false);
   Add([
@@ -9347,7 +9348,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClass_NestedCallInherited',
+  CheckSource('TestClass_NestedProcCallInherited',
     LinesToStr([ // statements
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
@@ -10300,6 +10301,54 @@ begin
     '$with1.$Execute(1);',
     '$with1.$Execute(1);',
     '$with1.$Execute(3);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ClassMethod;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObj''',
+  '    class procedure DoIt(Id: longint = 1); external name ''$Execute'';',
+  '  end;',
+  '  TExtB = TExtA;',
+  'begin',
+  '  texta.doit;',
+  '  texta.doit();',
+  '  texta.doit(2);',
+  '  with texta do begin',
+  '    doit;',
+  '    doit();',
+  '    doit(3);',
+  '  end;',
+  '  textb.doit;',
+  '  textb.doit();',
+  '  textb.doit(4);',
+  '  with textb do begin',
+  '    doit;',
+  '    doit();',
+  '    doit(5);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_ClassMethod',
+    LinesToStr([ // statements
+    '']),
+    LinesToStr([ // $mod.$main
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(2);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(3);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(4);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(1);',
+    'ExtObj.$Execute(5);',
     '']));
 end;
 
