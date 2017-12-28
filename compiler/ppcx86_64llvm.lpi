@@ -12,7 +12,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="ppcx64"/>
+      <Title Value="ppcx64llvm"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
