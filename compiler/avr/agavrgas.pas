@@ -137,7 +137,10 @@ unit agavrgas;
                     else
                       s:='('+s+')';
                   end;
-                end;
+                end
+              { reference to address 0? }
+              else if not(assigned(symbol)) and (offset=0) then
+                s:='(0)';
             end;
           getreferencestring:=s;
         end;
