@@ -871,7 +871,7 @@ type
               (s1^<>current_module.modulename^)
              )
             ) then
-          Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
+           Message2(unit_e_illegal_unit_name,current_module.realmodulename^,s1^);
          if (current_module.modulename^='SYSTEM') then
           include(current_settings.moduleswitches,cs_compilesystem);
          dispose(s2);
