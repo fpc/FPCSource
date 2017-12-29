@@ -621,6 +621,7 @@ Var
   i : integer;
   ParamNames,ParamValues : array of string;
   Res: PMYSQL_RES;
+  Status : Integer;
 
 begin
   C:=Cursor as TCursorName;
@@ -682,7 +683,20 @@ begin
           C.FRes:=Res;
           C.FSelectable:=True;
           end;
-      until mysql_next_result(FMySQL)<>0;
+        Status:=mysql_next_result(FMySQL);
+        if (Status>0) then
+          begin
+          if not ForcedClose then
+            MySQLError(FMySQL, SErrGettingResult, Self)
+          else
+            begin
+            C.RowsAffected:=0;
+            C.FSelectable:= False;
+            C.FRes:=nil;
+            break;
+            end;
+          end;
+      until (Status<>0);
       end;
     end;
 end;
