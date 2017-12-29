@@ -30,8 +30,12 @@ begin
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('pastojs');
+    P.Dependencies.Add('fcl-web');
     PT:=P.Targets.AddProgram('pas2js.pp');
     PT:=P.Targets.AddLibrary('pas2jslib.pp');
+    PT:=P.Targets.AddUnit('httpcompiler.pp');
+    PT:=P.Targets.AddProgram('compileserver.pp');
+    PT.Dependencies.AddUnit('httpcompiler');    
     end;
 end;
 
