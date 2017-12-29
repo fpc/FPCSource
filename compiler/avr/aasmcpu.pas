@@ -422,6 +422,8 @@ implementation
                       end;
                     ait_align:
                       inc(CurrOffset,tai_align(curtai).aligntype);
+                    ait_const:
+                      inc(CurrOffset,tai_const(curtai).size);
                     ait_symbolpair,
                     ait_marker:
                       ;
