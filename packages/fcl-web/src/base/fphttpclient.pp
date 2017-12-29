@@ -55,6 +55,7 @@ Type
     FHTTPClient : TFPCustomHTTPClient;
   Protected
     Function GetProxyHeaders : String; virtual;
+    Function GetOwner: TPersistent; override;
     Property HTTPClient : TFPCustomHTTPClient Read FHTTPClient;
   Public
     Procedure Assign(Source: TPersistent); override;
@@ -459,7 +460,12 @@ function TProxyData.GetProxyHeaders: String;
 begin
   Result:='';
   if (UserName<>'') then
-   Result:='Proxy-Authorization: Basic ' + EncodeStringBase64(UserName+':'+UserName);
+    Result:='Proxy-Authorization: Basic ' + EncodeStringBase64(UserName+':'+Password);
+end;
+
+function TProxyData.GetOwner: TPersistent;
+begin
+  Result:=FHTTPClient;
 end;
 
 procedure TProxyData.Assign(Source: TPersistent);
