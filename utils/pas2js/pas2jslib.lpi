@@ -26,15 +26,11 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <Units Count="2">
+    <Units Count="1">
       <Unit0>
         <Filename Value="pas2jslib.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../../packages/pastojs/src/pas2jslibcompiler.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
