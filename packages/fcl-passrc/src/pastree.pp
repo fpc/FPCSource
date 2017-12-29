@@ -136,6 +136,7 @@ type
   public
     SourceFilename: string;
     SourceLinenumber: Integer;
+    SourceEndLinenumber: Integer;
     Visibility: TPasMemberVisibility;
   public
     constructor Create(const AName: string; AParent: TPasElement); virtual;

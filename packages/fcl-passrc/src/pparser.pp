@@ -451,7 +451,7 @@ function ParseSource(AEngine: TPasTreeContainer;
 function ParseSource(AEngine: TPasTreeContainer;
                      const FPCCommandLine, OSTarget, CPUTarget: String;
                      Options : TParseSourceOptions): TPasModule;
-                     
+
 Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
 Function IsProcModifier(S : String; Out PM : TProcedureModifier) : Boolean;
 Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
@@ -758,32 +758,33 @@ end;
 procedure TPasTreeContainer.FinishScope(ScopeType: TPasScopeType;
   El: TPasElement);
 begin
-  if ScopeType=stModule then ;
-  if El=nil then ;
+  if ScopeType=stModule then ; // avoid compiler warning
+  if Assigned(El) then 
+    El.SourceEndLinenumber := CurrentParser.CurSourcePos.Row;
 end;
 
 function TPasTreeContainer.FindModule(const AName: String): TPasModule;
 begin
-  if AName='' then ;
+  if AName='' then ;  // avoid compiler warning
   Result := nil;
 end;
 
 procedure TPasTreeContainer.CheckPendingUsedInterface(Section: TPasSection);
 begin
-  if Section=nil then ;
+  if Section=nil then ;  // avoid compiler warning
 end;
 
 function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
 begin
   Result:=false;
-  if El=nil then ;
+  if El=nil then ;  // avoid compiler warning
 end;
 
 function TPasTreeContainer.GetDefaultClassVisibility(AClass: TPasClassType
   ): TPasMemberVisibility;
 begin
-  Result:=visDefault;
-  if AClass=nil then ;
+  Result:=visDefault; 
+  if AClass=nil then ;  // avoid compiler warning
 end;
 
 { ---------------------------------------------------------------------
