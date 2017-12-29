@@ -71,6 +71,7 @@ Type
     FContentLength : Int64;
     FAllowRedirect: Boolean;
     FKeepConnection: Boolean;
+    FMaxChunkSize: SizeUInt;
     FMaxRedirects: Byte;
     FOnDataReceived: TDataEvent;
     FOnHeaders: TNotifyEvent;
@@ -295,6 +296,9 @@ Type
     Property AllowRedirect : Boolean Read FAllowRedirect Write FAllowRedirect;
     // Maximum number of redirects. When this number is reached, an exception is raised.
     Property MaxRedirects : Byte Read FMaxRedirects Write FMaxRedirects default DefMaxRedirects;
+    // Maximum chunk size: If chunk sizes bigger than this are encountered, an error will be raised.
+    // Set to zero to disable the check.
+    Property MaxChunkSize : SizeUInt Read FMaxChunkSize Write FMaxChunkSize;
     // Called On redirect. Dest URL can be edited.
     // If The DEST url is empty on return, the method is aborted (with redirect status).
     Property OnRedirect : TRedirectEvent Read FOnRedirect Write FOnRedirect;
@@ -363,7 +367,7 @@ resourcestring
   SErrInvalidProtocolVersion = 'Invalid protocol version in response: "%s"';
   SErrInvalidStatusCode = 'Invalid response status code: %s';
   SErrUnexpectedResponse = 'Unexpected response status code: %d';
-  SErrChunkTooBig = 'Chunk too big';
+  SErrChunkTooBig = 'Chunk too big: Got %d, maximum allowed size: %d';
   SErrChunkLineEndMissing = 'Chunk line end missing';
   SErrMaxRedirectsReached = 'Maximum allowed redirects reached : %d';
   //SErrRedirectAborted = 'Redirect aborted.';
@@ -1038,7 +1042,7 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
 
   var
     c: char;
-    ChunkSize: Integer;
+    ChunkSize: SizeUInt;
     l: Integer;
   begin
     BufPos:=1;
@@ -1047,6 +1051,9 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
       ChunkSize:=0;
       repeat
         if ReadData(@c,1)<1 then exit;
+        // Protect from overflow
+        If ChunkSize>(High(SizeUInt) div 16) then
+          Raise EHTTPClient.CreateFmt(SErrChunkTooBig,[ChunkSize,High(SizeUInt) div 16]);
         case c of
         '0'..'9': ChunkSize:=ChunkSize*16+ord(c)-ord('0');
         'a'..'f': ChunkSize:=ChunkSize*16+ord(c)-ord('a')+10;
@@ -1054,8 +1061,8 @@ Function TFPCustomHTTPClient.ReadResponse(Stream: TStream;
         else
           break;
         end;
-        if ChunkSize>1000000 then
-          Raise EHTTPClient.Create(SErrChunkTooBig);
+        If (MaxChunkSize>0) and (ChunkSize>MaxChunkSize) then
+          Raise EHTTPClient.CreateFmt(SErrChunkTooBig,[ChunkSize,MaxChunkSize]);
       until Terminated;
       // read till line end
       while (c<>#10) and not Terminated do
