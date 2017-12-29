@@ -553,15 +553,16 @@ begin
           AutoClose(TagName);
           namePush(TagName);
           DoStartElement('', TagName, '', Attr);
-          if not (efSubelementContent in HTMLElementProps[FStack[FNesting-1]].Flags) then begin
-            DoEndElement('', TagName, '');
-            NamePop;
-          end;
           if FStack[FNesting-1] in [etScript,etStyle] then
           begin
             NewContext := scScript;
             FScriptEndTag := '</' + HTMLElementProps[FStack[FNesting-1]].Name;
             FScriptEndMatchPos := 1;
+          end;
+          if (efSubcontent*HTMLElementProps[FStack[FNesting-1]].Flags=[]) then begin
+            // do not push empty elements, don't wait for AutoClose
+            DoEndElement('', TagName, '');
+            NamePop;
           end;
         end;
         if Assigned(Attr) then
@@ -574,8 +575,8 @@ begin
     scScript:
       begin
         DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
-        DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
-        namePop;
+        DoEndElement('', Copy(FScriptEndTag, 3), '');
+        NamePop;
         FScriptEndTag := '';
       end;
   end;
