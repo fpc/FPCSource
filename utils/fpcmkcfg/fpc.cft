@@ -32,6 +32,9 @@
   -gl
   -Crtoi
   #WRITE Compiling Debug Version
+#ELSE
+  # Strip debuginfo from the executable if not in debug mode
+  -Xs
 #ENDIF
 
 # assembling
@@ -234,9 +237,6 @@
 
 # always pass an option to the linker
 #-k-s
-
-# Always strip debuginfo from the executable
--Xs
 
 # Always use smartlinking on i8086, because the system unit exceeds the 64kb
 # code limit
