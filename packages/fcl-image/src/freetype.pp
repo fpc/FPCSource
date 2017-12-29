@@ -15,9 +15,11 @@
 {$mode objfpc}{$h+}
 unit freetype;
 
+{$DEFINE DYNAMIC}
+
 interface
 
-uses sysutils, classes, freetypeh, FPImgCmn;
+uses sysutils, classes, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDIF}, FPImgCmn;
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
@@ -315,6 +317,10 @@ begin
   inherited create;
   FList := Tlist.Create;
   FPaths := TStringList.Create;
+{$IFDEF DYNAMIC}
+  if Pointer(FT_Init_FreeType)=Nil then
+    InitializeFreetype();
+{$ENDIF}
   r := FT_Init_FreeType(FTLib);
   if r <> 0  then
     begin

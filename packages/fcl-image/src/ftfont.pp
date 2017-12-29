@@ -17,7 +17,12 @@ unit ftfont;
 
 interface
 
-uses SysUtils, Classes, FPCanvas, fpimgcmn, freetype, freetypeh;
+{$DEFINE DYNAMIC}
+
+uses
+  SysUtils, Classes, FPCanvas, fpimgcmn,
+  {$IFDEF DYNAMIC}freetypehdyn{$ELSE} freetypeh{$ENDIF},
+  freetype;
 
 type
 

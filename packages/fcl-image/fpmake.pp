@@ -223,6 +223,9 @@ begin
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T.Dependencies.AddInclude('libfreetype.inc');
+    T:=P.Targets.AddUnit('freetypehdyn.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T.Dependencies.AddInclude('libfreetype.inc');
     T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin
@@ -236,6 +239,7 @@ begin
           AddUnit('fpimgcmn');
           AddUnit('freetype');
           AddUnit('freetypeh');
+          AddUnit('freetypehdyn');
           AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('pcxcomn.pas');
