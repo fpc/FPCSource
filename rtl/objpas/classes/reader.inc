@@ -715,6 +715,8 @@ Var
   C : TComponent;
   P : integer;
   L : TLinkedList;
+  RI: Pointer; // raw interface
+  IIDStr: ShortString;
   
 begin
   If Assigned(FFixups) then
@@ -731,6 +733,16 @@ begin
       If Assigned(C) then
         if R.FPropInfo^.PropType^.Kind = tkInterface then
           SetInterfaceProp(R.FInstance,R.FPropInfo,C)
+        else if R.FPropInfo^.PropType^.Kind = tkInterfaceRaw then
+        begin
+          IIDStr := GetTypeData(R.FPropInfo^.PropType)^.IIDStr;
+          if IIDStr = '' then
+            raise EReadError.CreateFmt(SInterfaceNoIIDStr, [R.FPropInfo^.PropType^.Name]);
+          if C.GetInterface(IIDStr, RI) then
+            SetRawInterfaceProp(R.FInstance,R.FPropInfo,RI)
+          else
+            raise EReadError.CreateFmt(SComponentDoesntImplement, [C.ClassName, IIDStr]);
+        end
         else
           SetObjectProp(R.FInstance,R.FPropInfo,C)
       else
@@ -1397,7 +1409,7 @@ begin
       begin
         SetVariantProp(Instance,PropInfo,ReadVariant);
       end;
-    tkClass, tkInterface:
+    tkClass, tkInterface, tkInterfaceRaw:
       case FDriver.NextValue of
         vaNil:
           begin
