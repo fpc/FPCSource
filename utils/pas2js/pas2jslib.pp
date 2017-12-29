@@ -4,7 +4,7 @@ library pas2jslib;
 {$H+}
 
 uses
-  SysUtils, Classes, FPPJsSrcMap, Pas2jsFileCache, Pas2jsCompiler, Pas2jsLibCompiler;
+  SysUtils, Classes, FPPJsSrcMap, Pas2jsFileCache, Pas2jsCompiler;
 
 
 exports
