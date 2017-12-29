@@ -71,6 +71,7 @@ type
     function Add(Item: Pointer): Integer;
     procedure Clear;
     procedure Delete(Index: Integer);
+    procedure DeleteRange(IndexFrom, IndexTo : Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPSList;
@@ -565,6 +566,35 @@ begin
   ListItem := InternalItems[Index];
   Deref(ListItem);
   System.Move(InternalItems[Index+1]^, ListItem^, (FCount - Index) * FItemSize);
+  // Shrink the list if appropriate
+  if (FCapacity > 256) and (FCount < FCapacity shr 2) then
+  begin
+    FCapacity := FCapacity shr 1;
+    ReallocMem(FList, (FCapacity+1) * FItemSize);
+  end;
+  { Keep the ending of the list filled with zeros, don't leave garbage data
+    there. Otherwise, we could accidentally have there a copy of some item
+    on the list, and accidentally Deref it too soon.
+    See http://bugs.freepascal.org/view.php?id=20005. }
+  FillChar(InternalItems[FCount]^, (FCapacity+1-FCount) * FItemSize, #0);
+end;
+
+procedure TFPSList.DeleteRange(IndexFrom, IndexTo : Integer);
+var
+  ListItem: Pointer;
+  I: Integer;
+  OldCnt : Integer;
+begin
+  CheckIndex(IndexTo);
+  CheckIndex(IndexFrom);
+  OldCnt:=FCount;
+  Dec(FCount,IndexTo-IndexFrom+1);
+  For I :=IndexFrom To Indexto Do
+    begin
+      ListItem := InternalItems[I];
+      Deref(ListItem);
+    end;
+  System.Move(InternalItems[IndexTo+1]^, InternalItems[IndexFrom]^, (OldCnt - IndexTo-1) * FItemSize);
   // Shrink the list if appropriate
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
   begin
