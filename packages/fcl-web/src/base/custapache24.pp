@@ -504,6 +504,7 @@ end;
 procedure TApacheRequest.InitFromRequest;
 begin
   ParseCookies;
+  ReadContent;
 end;
 
 Constructor TApacheRequest.CreateReq(App : TApacheHandler; ARequest : PRequest_rec);
