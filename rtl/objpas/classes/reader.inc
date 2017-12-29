@@ -850,14 +850,14 @@ function TReader.ReadComponent(Component: TComponent): TComponent;
 var
   Flags: TFilerFlags;
 
-  function Recover(var Component: TComponent): Boolean;
+  function Recover(var aComponent: TComponent): Boolean;
   begin
     Result := False;
     if ExceptObject.InheritsFrom(Exception) then
     begin
       if not ((ffInherited in Flags) or Assigned(Component)) then
-        Component.Free;
-      Component := nil;
+        aComponent.Free;
+      aComponent := nil;
       FDriver.SkipComponent(False);
       Result := Error(Exception(ExceptObject).Message);
     end;
