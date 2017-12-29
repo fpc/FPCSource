@@ -393,8 +393,10 @@ end;
 destructor TFBAdmin.Destroy;
 begin
   if FSvcHandle<>FB_API_NULLHANDLE then
-  WaitInterval:=100;
+  begin
+    WaitInterval:=100;
     DisConnect;
+  end;
   FOutput.Destroy;
   inherited Destroy;
 end;
