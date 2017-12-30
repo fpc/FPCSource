@@ -4,6 +4,11 @@ var
   c,d: SRPChar ;
   
 begin
+  Result:='';
+  c:= NIL; d:=NIL;
+  OldPat:='';
+  Srch:='';
+
   PatLength:=Length(OldPattern);
   if PatLength=0 then begin
     Result:=S;
@@ -26,7 +31,7 @@ begin
     repeat
       P:=Pos(OldPat,Srch,P);
       if P>0 then begin
-        move(NewPattern[1],Result[P],PatLength);
+        move(NewPattern[1],Result[P],PatLength*SizeOf(SRChar));
         if not (rfReplaceAll in Flags) then exit;
         inc(P,PatLength);
       end;
@@ -49,7 +54,7 @@ begin
       exit;
     end;
     NewPatLength:=Length(NewPattern);
-    SetLength(Result,Length(S)+PatCount*(NewPatLength-PatLength)*SizeOf(SRChar));
+    SetLength(Result,Length(S)+PatCount*(NewPatLength-PatLength));
     P:=1; PrevP:=0;
     c:=SRPChar(Result); d:=SRPChar(S);
     repeat
@@ -57,12 +62,12 @@ begin
       if P>0 then begin
         Cnt:=P-PrevP-1;
         if Cnt>0 then begin
-          Move(d^,c^,Cnt);
+          Move(d^,c^,Cnt*SizeOf(SRChar));
           inc(c,Cnt);
           inc(d,Cnt);
         end;
         if NewPatLength>0 then begin
-          Move(NewPattern[1],c^,NewPatLength);
+          Move(NewPattern[1],c^,NewPatLength*SizeOf(SRChar));
           inc(c,NewPatLength);
         end;
         inc(P,PatLength);
@@ -72,7 +77,7 @@ begin
       end;
     until p=0;
     Cnt:=Length(S)-PrevP;
-    if Cnt>0 then Move(d^,c^,Cnt);
+    if Cnt>0 then Move(d^,c^,Cnt*SizeOf(SRChar));
   end;
 end;
 
