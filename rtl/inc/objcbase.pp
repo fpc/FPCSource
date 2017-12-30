@@ -17,9 +17,7 @@ unit objcbase;
 
 interface
 
-{$ifndef FPC_HAS_FEATURE_OBJECTIVEC1}
-{$error ObjectiveC1 feature is not supported or not enabled.}
-{$endif}
+{$ifdef FPC_HAS_FEATURE_OBJECTIVEC1}
 
 {$modeswitch objectivec1}
 {$packrecords c}
@@ -254,6 +252,8 @@ type
     procedure discardContentIfPossible; message 'discardContentIfPossible';
     function isContentDiscarded: Boolean; message 'isContentDiscarded';
   end;
+
+{$endif FPC_HAS_FEATURE_OBJECTIVEC1}
 
 implementation
 
