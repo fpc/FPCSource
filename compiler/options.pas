@@ -3157,6 +3157,8 @@ begin
     system_arm_palmos,
     system_m68k_palmos:
       target_unsup_features:=[f_threading];
+    system_m68k_atari:
+      target_unsup_features:=[f_threading];
     else
       target_unsup_features:=[];
   end;
