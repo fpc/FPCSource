@@ -23,7 +23,16 @@ interface
 {$define FPC_IS_SYSTEM}
 {$define FPC_HAS_ANSI_TEXTFILEREC}
 
+{.$define FPC_AMIGA_USE_TINYHEAP}
+
+{$ifdef FPC_AMIGA_USE_TINYHEAP}
+{$define HAS_MEMORYMANAGER}
+{$endif FPC_AMIGA_USE_TINYHEAP}
+
 {$I systemh.inc}
+{$ifdef FPC_AMIGA_USE_TINYHEAP}
+{$i tnyheaph.inc}
+{$endif FPC_AMIGA_USE_TINYHEAP}
 {$I osdebugh.inc}
 
 {$if defined(cpum68k) and defined(fpusoft)}
@@ -117,6 +126,9 @@ implementation
 {$endif defined(cpum68k) and defined(fpusoft)}
 
 {$I system.inc}
+{$ifdef FPC_AMIGA_USE_TINYHEAP}
+{$i tinyheap.inc}
+{$endif FPC_AMIGA_USE_TINYHEAP}
 {$I osdebug.inc}
 
 {$IFDEF AMIGAOS4}
@@ -312,8 +324,10 @@ begin
   SysInitAmigaOS;
 { Set up signals handlers }
 //  InstallSignals;
+{$ifndef FPC_AMIGA_USE_TINYHEAP}
 { Setup heap }
   InitHeap;
+{$endif FPC_AMIGA_USE_TINYHEAP}
   SysInitExceptions;
 {$ifdef cpum68k}
   fpc_cpucodeinit;
@@ -326,5 +340,7 @@ begin
 { Arguments }
   GenerateArgs;
   InitSystemThreads;
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
   InitSystemDynLibs;
+{$endif}
 end.
