@@ -73,7 +73,12 @@ unit ag68kvasm;
           sec_data, sec_rodata:
             result:='adrw';
           sec_rodata_norel:
-            result:='adr';
+            case target_info.system of
+              { stop vlink from complaining when it merges ro sections into rw ones (KB) }
+              system_m68k_atari: result:='adrw';
+            else
+              result:='adr';
+            end;
           sec_bss, sec_threadvar:
             result:='aurw';
           sec_stab, sec_stabstr:
