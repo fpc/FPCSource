@@ -3159,6 +3159,11 @@ begin
       target_unsup_features:=[f_threading];
     system_m68k_atari:
       target_unsup_features:=[f_threading];
+    { classic amiga has dynamic libraries, but they cannot be integrated in the
+      normal dynlibs infrastructure due to architectural differences, so therefore
+      lets disable the feature. }
+    system_m68k_amiga:
+      target_unsup_features:=[f_dynlibs];
     else
       target_unsup_features:=[];
   end;
