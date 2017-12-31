@@ -1704,6 +1704,8 @@ implementation
 
     function ttypeconvnode.typecheck_dynarray_to_openarray : tnode;
       begin
+        if (actualtargetnode(@left)^.nodetype in [pointerconstn,niln]) then
+          CGMessage(type_e_no_addr_of_constant);
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
         result := ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef));
@@ -2913,7 +2915,9 @@ implementation
                  methodpointer. The typeconv of the methodpointer will then
                  take care of updateing size of niln to OS_64 }
                if not((resultdef.typ=procvardef) and
-                      not(tprocvardef(resultdef).is_addressonly)) then
+                      not(tprocvardef(resultdef).is_addressonly)) and
+                  { converting (dynamic array) nil to a an open array is not allowed }
+                  not is_open_array(resultdef) then
                  begin
                    left.resultdef:=resultdef;
                    if ([nf_explicit,nf_internal] * flags <> []) then
