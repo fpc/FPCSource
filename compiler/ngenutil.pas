@@ -676,6 +676,7 @@ implementation
     var
       size: asizeint;
       trashintval: int64;
+      stringres: tstringconstnode;
     begin
       if trashable_sym(p) then
         begin
@@ -695,12 +696,19 @@ implementation
           if is_managed_type(p.vardef) then
             begin
               if is_string(p.vardef) then
-                trash_small(stat,trashn,
-                  cstringconstnode.createstr(
-                    'uninitialized function result in '+
-                    tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
-                  )
-                )
+                begin
+                  stringres:=
+                    cstringconstnode.createstr(
+                      'uninitialized function result in '+
+                      tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
+                    );
+                  { prevent attempts to convert the string to the specified
+                    code page at compile time, as it may not be available (and
+                    it does not matter) }
+                  if is_ansistring(p.vardef) then
+                    stringres.changestringtype(search_system_type('RAWBYTESTRING').typedef);
+                  trash_small(stat,trashn,stringres);
+                end
               else
                 internalerror(2016030601);
             end
