@@ -118,8 +118,19 @@ type
   End;
 {$elseif defined(darwin) }
 {$packrecords 4}
-{ This is also the strcut for FreeBSD up to version 7
-  renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
+  {$ifdef cpu64}
+    TIPC_Perm = record
+          cuid  : uid_t;    { creator user id }
+          cgid  : gid_t;    { creator group id }
+          uid   : uid_t;    { user id }
+          gid   : gid_t;    { group id }
+          mode  : mode_t;   { r/w permission }
+          seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
+          key   : key_t;    { user specified msg/sem/shm key }
+    End;
+  {$else}
+    { This is also the struct for FreeBSD up to version 7
+      renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -129,6 +140,7 @@ type
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
+  {$endif}
 {$packrecords c}
 {$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) or defined(dragonfly)}
   TIPC_Perm = record
