@@ -2871,18 +2871,25 @@ const
       end;
 
 
+    function find_proc_directive_index(tok: ttoken): longint; inline;
+      begin
+        for result:=1 to num_proc_directives do
+          if proc_direcdata[result].idtok=tok then
+            exit;
+        result:=-1;
+      end;
+
+
     function parse_proc_direc(pd:tabstractprocdef;var pdflags:tpdflags):boolean;
       {
         Parse the procedure directive, returns true if a correct directive is found
       }
       var
         p     : longint;
-        found : boolean;
         name  : TIDString;
       begin
         parse_proc_direc:=false;
         name:=tokeninfo^[idtoken].str;
-        found:=false;
 
       { Hint directive? Then exit immediatly }
         if (m_hintdirective in current_settings.modeswitches) then
@@ -2913,15 +2920,10 @@ const
           exit;
 
       { retrieve data for directive if found }
-        for p:=1 to num_proc_directives do
-         if proc_direcdata[p].idtok=idtoken then
-          begin
-            found:=true;
-            break;
-          end;
+      p:=find_proc_directive_index(idtoken);
 
       { Check if the procedure directive is known }
-        if not found then
+        if p=-1 then
          begin
             { parsing a procvar type the name can be any
               next variable !! }
@@ -3513,6 +3515,7 @@ const
         fwparacnt,
         curridx,
         fwidx,
+        virtualdirinfo,
         i       : longint;
         po_comp : tprocoptions;
         paracompopt: tcompare_paras_options;
@@ -3520,6 +3523,7 @@ const
         symentry: TSymEntry;
         item : tlinkedlistitem;
       begin
+        virtualdirinfo:=-1;
         forwardfound:=false;
 
         { check overloaded functions if the same function already exists }
@@ -3697,7 +3701,21 @@ const
                    if (po_external in fwpd.procoptions) then
                      MessagePos(currpd.fileinfo,parser_e_proc_already_external);
 
-                   { Check parameters }
+                   { check for conflicts with "virtual" if this is a virtual
+                     method, as "virtual" cannot be repeated in the
+                     implementation and hence does not get checked against }
+                   if (po_virtualmethod in fwpd.procoptions) then
+                     begin
+                       if virtualdirinfo=-1 then
+                         begin
+                           virtualdirinfo:=find_proc_directive_index(_VIRTUAL);
+                           if virtualdirinfo=-1 then
+                             internalerror(2018010101);
+                         end;
+                       if (proc_direcdata[virtualdirinfo].mutexclpo * currpd.procoptions)<>[] then
+                         MessagePos1(currpd.fileinfo,parser_e_proc_dir_conflict,tokeninfo^[_VIRTUAL].str);
+                     end;
+                    { Check parameters }
                    if (m_repeat_forward in current_settings.modeswitches) or
                       (currpd.minparacount>0) then
                     begin
