@@ -1733,13 +1733,8 @@ Unit Rax86int;
                         { don't allow direct access to fields of parameters, because that
                           will generate buggy code. Allow it only for explicit typecasting
                           and when the parameter is in a register (delphi compatible) }
-                        if (not oper.hastype) and
-                           (oper.opr.localsym.typ=paravarsym) and
-                           (not(po_assembler in current_procinfo.procdef.procoptions) or
-                            (tparavarsym(oper.opr.localsym).paraloc[calleeside].location^.loc<>LOC_REGISTER) or
-                            (not is_implicit_pointer_object_type(oper.opr.localsym.vardef) and
-                             not paramanager.push_addr_param(oper.opr.localsym.varspez,oper.opr.localsym.vardef,current_procinfo.procdef.proccalloption))) then
-                          Message(asmr_e_cannot_access_field_directly_for_parameters);
+                        if (not oper.hastype) then
+                          checklocalsubscript(oper.opr.localsym);
 
                         oper.opr.localforceref:=true;
                         inc(oper.opr.localsymofs,toffset);
