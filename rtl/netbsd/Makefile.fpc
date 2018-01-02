@@ -134,7 +134,7 @@ dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(BSDINC)/$(SYSTEMUNIT).pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(BSDINC)/$(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT):  $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

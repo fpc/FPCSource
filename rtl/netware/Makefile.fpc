@@ -123,7 +123,7 @@ copyimpfiles:
 # because this will always build system.ppu
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp nwsys.inc $(SYSDEPS)
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 

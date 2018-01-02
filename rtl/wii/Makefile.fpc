@@ -81,7 +81,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp

@@ -103,7 +103,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
         $(COMPILER) $(INC)/uuchar.pp

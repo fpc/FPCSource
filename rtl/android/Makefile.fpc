@@ -123,7 +123,7 @@ dllprt0$(OEXT) : $(ARCH)/dllprt0.as
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp

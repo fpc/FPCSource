@@ -108,7 +108,7 @@ prt0$(OEXT) : $(CPU_TARGET)/prt0.as
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)

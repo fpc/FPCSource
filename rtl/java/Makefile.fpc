@@ -81,7 +81,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg @rtl.cfg $(SYSTEMUNIT).pp $(REDIR)
 
 uuchar$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
         $(COMPILER) $(INC)/uuchar.pp $(REDIR)

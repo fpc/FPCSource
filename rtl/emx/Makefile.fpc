@@ -94,7 +94,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pas $(SYSDEPS)
-        $(COMPILER) -Us -Sg $<
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $<
 
 uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

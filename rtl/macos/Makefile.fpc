@@ -95,7 +95,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-	$(COMPILER) -Us -Sg system.pp $(REDIR)
+	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/strings.pp $(REDIR)

@@ -92,7 +92,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp -Fi../win
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp -Fi../win
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/heaptrc.pp

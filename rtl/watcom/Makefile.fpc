@@ -102,7 +102,7 @@ prt0$(OEXT) : prt0.as
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 

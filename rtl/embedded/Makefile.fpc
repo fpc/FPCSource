@@ -197,7 +197,7 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp @rtl.cfg $(REDIR)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @rtl.cfg $(REDIR)
 
 uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<

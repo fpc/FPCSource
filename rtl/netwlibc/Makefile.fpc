@@ -125,7 +125,7 @@ nwl_dlle$(OEXT) : nwl_dlle.as
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 

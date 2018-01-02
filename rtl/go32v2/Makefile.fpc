@@ -77,7 +77,7 @@ prt0$(OEXT) : v2prt0.as
 # System Units (System, Objpas, Strings)
 #
 system$(PPUEXT) : system.pp $(SYSDEPS)
-	$(COMPILER) -Us -Sg system.pp
+	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp
 	$(EXECPPAS)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp

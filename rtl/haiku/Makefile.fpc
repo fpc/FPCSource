@@ -116,7 +116,7 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS) $(UNIXINC)/sysunixh.inc
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp

@@ -102,7 +102,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp -Fi../win
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg system.pp -Fi../win
 
 uuchar$(PPUEXT) : system$(PPUEXT) $(INC)/uuchar.pp
         $(COMPILER) $(INC)/uuchar.pp
