@@ -1829,6 +1829,7 @@ initialization
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
+  RegisterTarget(system_x86_6432_linux_info);
 {$endif x86_64}
 {$ifdef SPARC}
   RegisterImport(system_SPARC_linux,timportliblinux);
