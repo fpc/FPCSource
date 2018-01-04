@@ -118,6 +118,8 @@ interface
                 s:=s+symbol.name;
                 if (offset <> 0) then
                   s:=s+tostr_with_plus(offset);
+                if (target_info.system = system_m68k_palmos) and (symbol.typ = AT_DATA) then
+                  s:=s+'@END';
               end
             else
               if (offset <> 0) or ((index=NR_NO) and (base=NR_NO)) then
