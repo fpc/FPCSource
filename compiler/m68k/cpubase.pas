@@ -268,7 +268,8 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-{ Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
+
+      { Frame pointer register (initialized in tcpuprocinfo.init_framepointer) }
       RS_FRAME_POINTER_REG: tsuperregister = RS_NO;
       NR_FRAME_POINTER_REG: tregister = NR_NO;
 
@@ -276,8 +277,9 @@ unit cpubase;
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-{ TODO: FIX ME!!! pic offset reg conflicts with frame pointer?}
-      NR_PIC_OFFSET_REG = NR_A5;
+      RS_PIC_OFFSET_REG: tsuperregister = RS_NO;
+      NR_PIC_OFFSET_REG: tregister = NR_NO;
+
       { Return address for DWARF }
       NR_RETURN_ADDRESS_REG = NR_A0;
       RS_RETURN_ADDRESS_REG = RS_A0;
