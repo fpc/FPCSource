@@ -6668,6 +6668,7 @@ packages/os4units/src/workbench.pas svneol=native#text/pascal
 packages/palmunits/Makefile svneol=native#text/plain
 packages/palmunits/Makefile.fpc svneol=native#text/plain
 packages/palmunits/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/palmunits/examples/hello.pas svneol=native#text/plain
 packages/palmunits/fpmake.pp svneol=native#text/plain
 packages/palmunits/src/aboutbox.pp svneol=native#text/plain
 packages/palmunits/src/alarmmgr.pp svneol=native#text/plain
