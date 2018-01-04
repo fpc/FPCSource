@@ -71,8 +71,7 @@ begin
      { This is based on my successful experiment with prc-tools remix.
        Anyone who has more insight into this Palm magic, feel free to fix. (KB) }
      ExeCmd[1]:='ld $OPT $STRIP --no-check-sections -N -dy -o $EXE $RES';
-     ExeCmd[2]:='obj-res $EXE';
-     ExeCmd[3]:='build-prc $EXE.prc "$APPNAME" $APPID $EXE *.$EXE.grc';
+     ExeCmd[2]:='build-prc $EXE.prc "$APPNAME" $APPID $EXE';
    end;
 end;
 
