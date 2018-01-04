@@ -1468,6 +1468,13 @@ var
          tstoredsymtable(globalsymtable).buildderefimpl;
          tunitwpoinfo(wpoinfo).buildderef;
          tunitwpoinfo(wpoinfo).buildderefimpl;
+
+         if assigned(globalmacrosymtable) and (globalmacrosymtable.SymList.count > 0) then
+            begin
+              tstoredsymtable(globalmacrosymtable).buildderef;
+              tstoredsymtable(globalmacrosymtable).buildderefimpl;
+            end;
+
          if (flags and uf_local_symtable)<>0 then
            tstoredsymtable(localsymtable).buildderef_registered;
          buildderefunitimportsyms;
