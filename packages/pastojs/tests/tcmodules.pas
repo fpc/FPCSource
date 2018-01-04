@@ -347,6 +347,7 @@ type
     Procedure TestRecordElementFromWith_AsParams;
     Procedure TestRecord_Equal;
     Procedure TestRecord_TypeCastJSValueToRecord;
+    Procedure TestRecord_VariantFail;
     // ToDo: const record
 
     // classes
@@ -6942,6 +6943,22 @@ begin
     LinesToStr([
     '$mod.Rec = new $mod.TRecord(rtl.getObject($mod.Jv));',
     '']));
+end;
+
+procedure TTestModule.TestRecord_VariantFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record',
+  '    case word of',
+  '    0: (b0, b1: Byte);',
+  '    1: (i: word);',
+  '  end;',
+  'begin']);
+  SetExpectedPasResolverError('variant record is not supported',
+    nXIsNotSupported);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClass_TObjectDefaultConstructor;

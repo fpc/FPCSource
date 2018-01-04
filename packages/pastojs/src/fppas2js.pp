@@ -260,11 +260,11 @@ Works:
   - set of int/enum/char range, in
   - array[rg], low(array), high(array), length(array)
 - enumeration  for..in..do
-   - enum, enum range, set of enum, set of enum range
-   - int, int range, set of int, set of int range
-   - char, char range, set of char, set of char range
-   - array
-   - class
+  - enum, enum range, set of enum, set of enum range
+  - int, int range, set of int, set of int range
+  - char, char range, set of char, set of char range
+  - array
+  - class
 
 ToDos:
 - remove hasOwnProperty from rtl set functions
@@ -921,6 +921,7 @@ type
       Access: TResolvedRefAccess); override;
     procedure FinishModule(CurModule: TPasModule); override;
     procedure FinishSetType(El: TPasSetType); override;
+    procedure FinishRecordType(El: TPasRecordType); override;
     procedure FinishClassType(El: TPasClassType); override;
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
@@ -2126,6 +2127,13 @@ begin
   writeln('TPas2JSResolver.FinishSetType El='+GetObjName(El)+' TypeEl=',GetObjName(TypeEl));
   {$ENDIF}
   RaiseMsg(20170415182320,nNotSupportedX,sNotSupportedX,['set of '+TypeEl.Name],El);
+end;
+
+procedure TPas2JSResolver.FinishRecordType(El: TPasRecordType);
+begin
+  if (El.Variants<>nil) and (El.Variants.Count>0) then
+    RaiseMsg(20180104205309,nXIsNotSupported,sXIsNotSupported,['variant record'],TPasElement(El.Variants[0]));
+  inherited FinishRecordType(El);
 end;
 
 procedure TPas2JSResolver.FinishClassType(El: TPasClassType);
