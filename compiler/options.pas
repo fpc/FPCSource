@@ -1024,12 +1024,14 @@ begin
   if opt='' then
    exit;
 
-  { only parse define,undef,target,verbosity,link etc options the firsttime }
+  { only parse define,undef,target,verbosity,link etc options the firsttime
+    -Us must now also be first-passed to avoid rejection of -Sf options
+    earlier in command line }
   if firstpass and
      not(
          (opt[1]='-') and
          (
-          ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
+          ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l','U'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
           ((length(opt)>3) and (opt[2]='C') and (opt[3]='p')) or
           ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
