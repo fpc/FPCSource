@@ -261,8 +261,9 @@ unit cgcpu;
         for reg:=RS_A0 to RS_A6 do
           begin
             { don't hardwire the frame pointer register, because it can vary between target OS }
-            if assigned(current_procinfo) and (current_procinfo.framepointer = NR_FRAME_POINTER_REG)
-               and (reg = RS_FRAME_POINTER_REG) then
+            if (assigned(current_procinfo) and (current_procinfo.framepointer = NR_FRAME_POINTER_REG)
+               and (reg = RS_FRAME_POINTER_REG))
+               or ((reg = RS_PIC_OFFSET_REG) and (tf_static_reg_based in target_info.flags)) then
               continue;
             setlength(address_regs,length(address_regs)+1);
             address_regs[length(address_regs)-1]:=reg;
@@ -435,6 +436,9 @@ unit cgcpu;
          { NOTE: we don't have to fixup scaling in this function, because the memnode
            won't generate scaling on CPUs which don't support it }
 
+         if (tf_static_reg_based in target_info.flags) and assigned(ref.symbol) and (ref.base=NR_NO) then
+           fullyresolve:=true;
+
          { first, deal with the symbol, if we have an index or base register.
            in theory, the '020+ could deal with these, but it's better to avoid
            long displacements on most members of the 68k family anyway }
@@ -444,6 +448,14 @@ unit cgcpu;
 
              hreg:=getaddressregister(list);
              reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
+             if (tf_static_reg_based in target_info.flags) and (ref.base=NR_NO) then
+               begin
+                 if ref.symbol.typ in [AT_DATA,AT_DATA_FORCEINDIRECT,AT_DATA_NOINDIRECT] then
+                   href.base:=NR_PIC_OFFSET_REG
+                 else
+                   href.base:=NR_PC;
+               end;
+
              list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
              ref.offset:=0;
              ref.symbol:=nil;
@@ -535,6 +547,13 @@ unit cgcpu;
              //list.concat(tai_comment.create(strpnew('fixref: fully resolve to register')));
              if hreg=NR_NO then
                hreg:=getaddressregister(list);
+             if (tf_static_reg_based in target_info.flags) and (ref.base=NR_NO) then
+               begin
+                 if ref.symbol.typ in [AT_DATA,AT_DATA_FORCEINDIRECT,AT_DATA_NOINDIRECT] then
+                   ref.base:=NR_PIC_OFFSET_REG
+                 else
+                   ref.base:=NR_PC;
+               end;
              list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
              ref.base:=hreg;
              ref.index:=NR_NO;
@@ -597,13 +616,15 @@ unit cgcpu;
     procedure tcg68k.a_call_name(list : TAsmList;const s : string; weak: boolean);
       var
         sym: tasmsymbol;
+      const
+        jmp_inst: array[boolean] of tasmop = ( A_JSR, A_BSR );
       begin
         if not(weak) then
           sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
         else
           sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
 
-        list.concat(taicpu.op_sym(A_JSR,S_NO,sym));
+        list.concat(taicpu.op_sym(jmp_inst[tf_code_small in target_info.flags],S_NO,sym));
       end;
 
 
