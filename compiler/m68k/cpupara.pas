@@ -80,6 +80,8 @@ unit cpupara;
       begin
         { d0 and d1 are considered volatile }
         Result:=VOLATILE_INTREGISTERS;
+        if target_info.system in [system_m68k_palmos] then
+          include(result,RS_D2);
       end;
 
 
@@ -87,6 +89,8 @@ unit cpupara;
       begin
         { a0 and a1 are considered volatile }
         Result:=VOLATILE_ADDRESSREGISTERS;
+        if target_info.system in [system_m68k_palmos] then
+          include(result,RS_A2);
       end;
 
     function tcpuparamanager.get_volatile_registers_fpu(calloption:tproccalloption):tcpuregisterset;
@@ -240,8 +244,8 @@ unit cpupara;
                  We also have to figure out a better switch for this, because this is
                  now compiler and platform specific... (KB) }
 
-               if (tprocdef(p).proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                  (target_info.system in [system_m68k_linux]) and
+               if (tprocdef(p).proccalloption in [pocall_syscall,pocall_cdecl,pocall_cppdecl]) and
+                  (target_info.system in [system_m68k_palmos,system_m68k_linux]) and
                   assigned(result.def) and
                   (result.def.typ in [stringdef,pointerdef,classrefdef,objectdef,
                                       procvardef,procdef,arraydef,formaldef]) then
