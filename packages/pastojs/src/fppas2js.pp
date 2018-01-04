@@ -4595,6 +4595,11 @@ begin
     if Right=nil then
       Left.Free;
   end;
+  if Right is TJSLiteral then
+    begin
+    FreeAndNil(Left);
+    exit(Right);
+    end;
   // connect via dot
   Result:=CreateDotExpression(El,Left,Right);
 end;

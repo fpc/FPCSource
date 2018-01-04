@@ -273,6 +273,7 @@ type
     Procedure TestEnum_AsParams;
     Procedure TestEnumRange_Array;
     Procedure TestEnum_ForIn;
+    Procedure TestEnum_ScopedNumber;
     Procedure TestSet;
     Procedure TestSet_Operators;
     Procedure TestSet_Operator_In;
@@ -3356,6 +3357,33 @@ begin
     '  for (var $in1 = $mod.a1, $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.b = $in1[$l2];',
     '  for (var $in4 = $mod.a2, $l5 = 0, $end6 = rtl.length($in4) - 1; $l5 <= $end6; $l5++) $mod.b = $in4[$l5];',
     '']));
+end;
+
+procedure TTestModule.TestEnum_ScopedNumber;
+begin
+  Converter.Options:=Converter.Options+[coEnumNumbers];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnum = (Red, Green);',
+  'var',
+  '  e: TEnum;',
+  'begin',
+  '  e:=TEnum.Green;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestEnum_ScopedNumber',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "Red",',
+    '  Red: 0,',
+    '  "1": "Green",',
+    '  Green: 1',
+    '};',
+    'this.e = 0;',
+    '']),
+    LinesToStr([
+    '$mod.e = 1;']));
 end;
 
 procedure TTestModule.TestSet;
