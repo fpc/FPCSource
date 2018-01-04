@@ -354,7 +354,7 @@ implementation
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
-          (target_info.system=system_i386_go32v2) then
+          (target_info.system in [system_i386_go32v2,system_m68k_palmos]) then
           secname:='.data';
 
         { Windows correctly handles reallocations in readonly sections }
