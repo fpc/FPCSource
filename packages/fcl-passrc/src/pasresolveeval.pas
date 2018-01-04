@@ -151,6 +151,7 @@ const
   nContextExpectedXButFoundY = 3078;
   nContextXInvalidY = 3079;
   nConstructingClassXWithAbstractMethodY = 3080;
+  nXIsNotSupported = 3081;
 
 // resourcestring patterns of messages
 resourcestring
@@ -234,6 +235,7 @@ resourcestring
   sContextExpectedXButFoundY = '%s: expected "%s", but found "%s"';
   sContextXInvalidY = '%s: invalid %s';
   sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
+  sXIsNotSupported = '%s is not supported';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
