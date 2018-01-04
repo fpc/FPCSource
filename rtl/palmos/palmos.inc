@@ -21,6 +21,10 @@ type
   DmOpenRef = Pointer;
 
 type
+  DmResType = UInt32;
+  DmResID = UInt16;
+
+type
   SysAppInfoTag = record
     cmd: Int16;            // command code for app
     cmdPBP: MemPtr;        // cmd ParamBlock
@@ -53,6 +57,15 @@ const
   sysAppLaunchCmdNormalLaunch = 0;
 
 const
+  sysAppLaunchFlagNewThread = $01;  // create a new thread for application
+                                    //  - implies sysAppLaunchFlagNewStack
+  sysAppLaunchFlagNewStack = $02;   // create separate stack for application
+  sysAppLaunchFlagNewGlobals = $04; // create new globals world for application
+                                    //  - implies new owner ID for Memory chunks
+  sysAppLaunchFlagUIApp = $08;      // notifies launch routine that this is a UI app being
+                                    //  launched.
+
+const
   sysTrapSysAppStartup = $A08F;
   sysTrapSysAppExit = $A090;
 
@@ -68,8 +81,24 @@ procedure SndPlaySystemSound(beepID: Word); syscall sysTrapSndPlaySystemSound;
 const
   sysTrapMemChunkFree = $A012;
   sysTrapMemPtrNew = $A013;
+  sysTrapMemHandleLock = $A021;
+  sysTrapMemHandleUnlock = $A022;
 
 function MemPtrNew(size: UInt32): MemPtr; syscall sysTrapMemPtrNew;
 function MemPtrFree(chunkDataP: MemPtr): Err; syscall sysTrapMemChunkFree;
+function MemHandleLock(h: MemHandle): MemPtr; syscall sysTrapMemHandleLock;
+function MemHandleUnlock(h: MemHandle): Err; syscall sysTrapMemHandleUnlock;
+
+const
+  sysTrapDmGet1Resource = $A060;
+  sysTrapDmReleaseResource = $A061;
+
+function DmGet1Resource(type_: DmResType; resID: DmResID): MemHandle; syscall sysTrapDmGet1Resource;
+function DmReleaseResource(resourceH: MemHandle): Err; syscall sysTrapDmReleaseResource;
+
+const
+  sysTrapWinDrawChars = $A220;
+
+procedure WinDrawChars(const chars: PChar; len: SmallInt; x, y: SmallInt); syscall sysTrapWinDrawChars;
 
 {$PACKRECORDS DEFAULT}

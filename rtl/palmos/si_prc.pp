@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$SMARTLINK OFF}
 unit si_prc;
 
 interface
@@ -27,33 +27,90 @@ var
   sysinit_jmpbuf: jmp_buf;
   ExitCode: LongInt;
 
+var
+  { this is declared by the PalmOS linker script }
+  data_start: pbyte; external name 'data_start';
+
 
 procedure PascalMain; external name 'PASCALMAIN';
+procedure FPCRelocateData; forward;
 
 
 { this function must be the first in this unit which contains code }
 function _FPC_proc_start: longint; cdecl; public name '_start';
 var
+  locAppInfo: SysAppInfoPtr;
   prevGlobals: Pointer;
   globalsPtr: Pointer;
 begin
-  if SysAppStartup(appInfo, prevGlobals, globalsPtr) <> 0 then
+  if SysAppStartup(locAppInfo, prevGlobals, globalsPtr) <> 0 then
     begin
       SndPlaySystemSound(sndError);
       exit(-1);
     end;
 
-  if setjmp(sysinit_jmpbuf) = 0 then
-    PascalMain;
+  if (locAppInfo^.launchFlags and sysAppLaunchFlagNewGlobals) > 0 then
+    FPCRelocateData;
 
-  SysAppExit(appInfo, prevGlobals, globalsPtr);
+  if setjmp(sysinit_jmpbuf) = 0 then
+    begin
+      appInfo:=locAppInfo;
+      PascalMain;
+    end;
+
   _FPC_proc_start:=ExitCode;
+  SysAppExit(locAppInfo, prevGlobals, globalsPtr);
 end;
 
 procedure _FPC_proc_halt(_ExitCode: longint); cdecl; public name '_haltproc';
 begin
   ExitCode:=_ExitCode;
   longjmp(sysinit_jmpbuf,1);
+end;
+
+{ data segment relocation magic, ported to Pascal from prc-tools C version }
+type
+  PReloc = ^TReloc;
+  TReloc = record
+    case boolean of
+      true: ( next: smallint; addend: word );
+      false: ( value: dword );
+  end;
+
+procedure RelocateChain(offset: smallint; base: pointer);
+var
+  data_res: pbyte;
+  site: PReloc;
+begin
+  data_res:=@data_start;
+
+  while offset >= 0 do
+    begin
+      site:=PReloc(data_res + offset);
+      offset:=site^.next;
+      site^.next:=0;
+      site^.value:=site^.value + PtrUInt(base);
+    end;
+end;
+
+procedure FPCRelocateData;
+var
+  relocH: MemHandle;
+  chain: psmallint;
+const
+  rloc_id = $726c6f63; // 'rloc'
+begin
+  relocH:=DmGet1Resource(rloc_id, 0);
+  if relocH <> nil then
+    begin
+      chain:=MemHandleLock(relocH);
+      RelocateChain(chain^, @data_start);
+      Inc(chain);
+      RelocateChain(chain^, @_FPC_proc_start);
+      Inc(chain);
+      MemHandleUnlock(relocH);
+      DmReleaseResource(relocH);
+    end;
 end;
 
 end.
