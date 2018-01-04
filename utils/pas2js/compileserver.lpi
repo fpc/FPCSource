@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
@@ -21,23 +21,24 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <Units Count="3">
       <Unit0>
         <Filename Value="compileserver.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-      <Unit0>
-        <Filename Value="httpcompiler.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit0>
       <Unit1>
         <Filename Value="dirwatch.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="httpcompiler.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
