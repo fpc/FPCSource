@@ -199,7 +199,7 @@ implementation
 
 function FahrenheitToCelsius(const AValue: Double): Double;
 begin
-  result:= (5.0/9.0)  * (Avalue - 32.0);
+  result:= (double(5.0)/9.0)  * (Avalue - 32.0);
 end;
 
 function CelsiusToFahrenheit(const AValue: Double): Double;
