@@ -436,7 +436,7 @@ interface
             id     : as_darwin;
             idtxt  : 'AS-DARWIN';
             asmbin : 'as';
-            asmcmd : '--64 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch x86_64';
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
@@ -510,7 +510,7 @@ interface
             id     : as_darwin;
             idtxt  : 'AS-DARWIN';
             asmbin : 'as';
-            asmcmd : '--32 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch i386';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
