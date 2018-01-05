@@ -204,10 +204,8 @@ unit iso7185;
 
 
     Function Eof(var f:TypedFile): Boolean;[IOCheck];
-      Type
-        UnTypedFile = File;
       Begin
-        Eof:=System.Eof(UnTypedFile(f));
+        Eof:=FileRec(f)._private[1]=1;
       End;
 
 begin
