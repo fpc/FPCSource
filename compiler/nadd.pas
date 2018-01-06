@@ -2744,16 +2744,20 @@ implementation
 
     function taddnode.try_make_mul32to64: boolean;
 
-      function canbe32bitint(v: tconstexprint): boolean;
+      function canbe32bitint(v: tconstexprint; out canbesignedconst, canbeunsignedconst: boolean): boolean;
         begin
           result := ((v >= int64(low(longint))) and (v <= int64(high(longint)))) or
-                    ((v >= qword(low(cardinal))) and (v <= qword(high(cardinal))))
+                    ((v >= qword(low(cardinal))) and (v <= qword(high(cardinal))));
+          canbesignedconst:=v<=int64(high(longint));
+          canbeunsignedconst:=v>=0;
         end;
 
-      function is_32bitordconst(n: tnode): boolean;
+      function is_32bitordconst(n: tnode; out canbesignedconst, canbeunsignedconst: boolean): boolean;
         begin
+          canbesignedconst:=false;
+          canbeunsignedconst:=false;
           result := (n.nodetype = ordconstn) and
-                    canbe32bitint(tordconstnode(n).value);
+                    canbe32bitint(tordconstnode(n).value, canbesignedconst, canbeunsignedconst);
         end;
 
       function is_32to64typeconv(n: tnode): boolean;
@@ -2765,40 +2769,47 @@ implementation
 
       var
         temp: tnode;
+        leftoriginallysigned,
+        canbesignedconst, canbeunsignedconst: boolean;
       begin
         result := false;
-        if is_32to64typeconv(left) and
-           (is_32bitordconst(right) or
-            is_32to64typeconv(right) and
-             ((is_signed(ttypeconvnode(left).left.resultdef) =
-               is_signed(ttypeconvnode(right).left.resultdef)) or
-              (is_signed(ttypeconvnode(left).left.resultdef) and
-               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit])))) then
+        if is_32to64typeconv(left) then
           begin
-            temp := ttypeconvnode(left).left;
-            ttypeconvnode(left).left := nil;
-            left.free;
-            left := temp;
-            if (right.nodetype = typeconvn) then
+            leftoriginallysigned:=is_signed(ttypeconvnode(left).left.resultdef);
+            if ((is_32bitordconst(right,canbesignedconst, canbeunsignedconst) and
+                 ((leftoriginallysigned and canbesignedconst) or
+                  (not leftoriginallysigned and canbeunsignedconst))) or
+                (is_32to64typeconv(right) and
+                  ((leftoriginallysigned =
+                    is_signed(ttypeconvnode(right).left.resultdef)) or
+                   (leftoriginallysigned and
+                    (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit]))))) then
               begin
-                temp := ttypeconvnode(right).left;
-                ttypeconvnode(right).left := nil;
-                right.free;
-                right := temp;
+                temp := ttypeconvnode(left).left;
+                ttypeconvnode(left).left := nil;
+                left.free;
+                left := temp;
+                if (right.nodetype = typeconvn) then
+                  begin
+                    temp := ttypeconvnode(right).left;
+                    ttypeconvnode(right).left := nil;
+                    right.free;
+                    right := temp;
+                  end;
+                if (is_signed(left.resultdef)) then
+                  begin
+                    inserttypeconv_internal(left,s32inttype);
+                    inserttypeconv_internal(right,s32inttype);
+                  end
+                else
+                  begin
+                    inserttypeconv_internal(left,u32inttype);
+                    inserttypeconv_internal(right,u32inttype);
+                  end;
+                firstpass(left);
+                firstpass(right);
+                result := true;
               end;
-            if (is_signed(left.resultdef)) then
-              begin
-                inserttypeconv_internal(left,s32inttype);
-                inserttypeconv_internal(right,s32inttype);
-              end
-            else
-              begin
-                inserttypeconv_internal(left,u32inttype);
-                inserttypeconv_internal(right,u32inttype);
-              end;
-            firstpass(left);
-            firstpass(right);
-            result := true;
           end;
       end;
 
