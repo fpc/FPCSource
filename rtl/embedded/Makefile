@@ -349,6 +349,9 @@ endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
+ifeq ($(ARCH),i8086)
+override FPCOPT+=@rtl.cfg
+endif
 CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
@@ -2692,7 +2695,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 startup$(OEXT) : $(CPU_TARGET)/startup.s
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)startup$(OEXT) $(CPU_TARGET)/startup.s  -mabi=32 -march=pic32mx -mtune=pic32mx -W -EL  -msym32
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @rtl.cfg $(REDIR)
+	$(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @system.cfg $(REDIR)
 uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)

@@ -59,6 +59,11 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
+# Always include rtl.cfg config file for i8086
+ifeq ($(ARCH),i8086)
+override FPCOPT+=@rtl.cfg
+endif
+
 CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
@@ -197,7 +202,7 @@ startup$(OEXT) : $(CPU_TARGET)/startup.s
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
-        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @rtl.cfg $(REDIR)
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp @system.cfg $(REDIR)
 
 uuchar$(PPUEXT): $(INC)/uuchar.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
