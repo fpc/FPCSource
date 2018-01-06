@@ -359,9 +359,9 @@ end;
 Procedure TAsmScriptUnix.AddAsmCommand (Const Command, Options,FileName : TCmdStr);
 begin
   if FileName<>'' then
-   Add('echo Assembling '+ScriptFixFileName(FileName));
+   Add('echo Assembling '+maybequoted(ScriptFixFileName(FileName)));
   Add(maybequoted(command)+' '+Options);
-  Add('if [ $? != 0 ]; then DoExitAsm '+ScriptFixFileName(FileName)+'; fi');
+  Add('if [ $? != 0 ]; then DoExitAsm '+maybequoted(ScriptFixFileName(FileName))+'; fi');
 end;
 
 
