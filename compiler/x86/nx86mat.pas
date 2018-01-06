@@ -55,10 +55,10 @@ interface
       constexp,
       cutils,verbose,globals,
       symconst,symdef,
-      aasmbase,aasmtai,aasmdata,defutil,
+      aasmbase,aasmtai,aasmcpu,aasmdata,defutil,
       cgbase,pass_1,pass_2,
       ncon,
-      cpubase,
+      cpubase,cpuinfo,
       cga,cgobj,hlcgobj,cgx86,cgutils;
 
 
@@ -378,8 +378,9 @@ interface
 
     procedure tx86moddivnode.pass_generate_code;
       var
-        hreg1,hreg2,rega,regd:Tregister;
+        hreg1,hreg2,hreg3,rega,regd:Tregister;
         power:longint;
+        instr:TAiCpu;
         op:Tasmop;
         cgsize:TCgSize;
         opsize:topsize;
@@ -387,6 +388,8 @@ interface
         d,m: aword;
         m_add, invertsign: boolean;
         s: byte;
+      label
+        DefaultDiv;
       begin
         secondpass(left);
         if codegenerror then
@@ -522,15 +525,103 @@ interface
               end;
           end
         { unsigned modulus by a (+/-)power-of-2 constant? }
-        else if (nodetype=modn) and (right.nodetype=ordconstn) and
-                isabspowerof2(tordconstnode(right).value,power) and
-                not(is_signed(left.resultdef)) then
+        else if (nodetype=modn) and (right.nodetype=ordconstn) and not(is_signed(left.resultdef)) then
           begin
-            emit_const_reg(A_AND,opsize,(aint(1) shl power)-1,hreg1);
-            location.register:=hreg1;
+            if isabspowerof2(tordconstnode(right).value,power) then
+              begin
+                emit_const_reg(A_AND,opsize,(aint(1) shl power)-1,hreg1);
+                location.register:=hreg1;
+              end
+            else
+              begin
+                d:=tordconstnode(right).value.svalue;
+                if d>=aword(1) shl (left.resultdef.size*8-1) then
+                  begin
+
+                    if not (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+                      goto DefaultDiv;
+
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+
+                    m := aword(-aint(d)); { Two's complement of d }
+
+                    if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
+                      begin
+                        hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        emit_const_reg(A_MOV,opsize,aint(d),hreg2);
+                        emit_const_reg(A_MOV,opsize,aint(m),hreg3);
+                        emit_reg_reg(A_XOR,opsize,location.register,location.register);
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
+
+                        { Emit conditional move that depends on the carry flag }
+                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
+                        instr.condition := C_AE;
+                        current_asmdata.CurrAsmList.concat(instr);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                      end
+                    else
+                      begin
+                        emit_const_reg(A_MOV,opsize,aint(m),hreg3);
+                        emit_reg_reg(A_XOR,opsize,location.register,location.register);
+
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        emit_const_reg(A_CMP,opsize,aint(d),hreg1);
+
+                        { Emit conditional move that depends on the carry flag }
+                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
+                        instr.condition := C_AE;
+                        current_asmdata.CurrAsmList.concat(instr);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                      end;
+
+                    emit_reg_reg(A_ADD,opsize,hreg1,location.register);
+                  end
+                else
+                  begin
+                    { Convert the division to a multiplication }
+                    calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                    emit_const_reg(A_MOV,opsize,aint(m),rega);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                    emit_reg(A_MUL,opsize,hreg1);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
+                    if m_add then
+                      begin
+                        { addition can overflow, shift first bit considering carry,
+                          then shift remaining bits in regular way. }
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                        emit_const_reg(A_RCR,opsize,1,regd);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                        dec(s);
+                      end;
+                    if s<>0 then
+                      emit_const_reg(A_SHR,opsize,aint(s),regd);
+
+                    if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in IMUL }
+                      begin
+                        hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        emit_const_reg(A_MOV,opsize,aint(d),hreg3);
+                        emit_reg_reg(A_IMUL,opsize,hreg3,regd);
+                      end
+                    else
+                      emit_const_reg(A_IMUL,opsize,aint(d),regd);
+
+                    emit_reg_reg(A_SUB,opsize,regd,hreg2);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,hreg2,location.register)
+                  end;
+
+              end;
           end
         else
           begin
+DefaultDiv:
             {Bring denominator to a register.}
             cg.getcpuregister(current_asmdata.CurrAsmList,rega);
             emit_reg_reg(A_MOV,opsize,hreg1,rega);
