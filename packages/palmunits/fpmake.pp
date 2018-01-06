@@ -125,6 +125,7 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('hello.pas');
+    P.Targets.AddExampleProgram('palmcube.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
