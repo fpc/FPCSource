@@ -2873,6 +2873,7 @@ const
 
     function find_proc_directive_index(tok: ttoken): longint; inline;
       begin
+        result:=-1;
         for result:=1 to num_proc_directives do
           if proc_direcdata[result].idtok=tok then
             exit;
