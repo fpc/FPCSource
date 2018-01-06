@@ -4070,16 +4070,33 @@ begin
 {$endif mipsel}
 {$ifdef m68k}
   if init_settings.cputype in cpu_coldfire then
-    def_system_macro('CPUCOLDFIRE')
-  else
-    if (target_info.system in [system_m68k_linux,system_m68k_netbsd]) and
-       not (option.FPUSetExplicitly) then
+    def_system_macro('CPUCOLDFIRE');
+
+  case target_info.system of
+    system_m68k_linux,
+    system_m68k_netbsd:
       begin
-        { enable HW FPU for UNIX by default, but only for
-          original 68k, not Coldfire }
-        exclude(init_settings.moduleswitches,cs_fp_emulation);
-        init_settings.fputype:=fpu_68881;
+        if not (option.FPUSetExplicitly) and
+           not (init_settings.cputype in cpu_coldfire) then
+          begin
+            { enable HW FPU for UNIX by default, but only for
+              original 68k, not Coldfire }
+            exclude(init_settings.moduleswitches,cs_fp_emulation);
+            init_settings.fputype:=fpu_68881;
+          end;
       end;
+    system_m68k_palmos:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mc68000;
+        if not (option.FPUSetExplicitly) then
+          begin
+            { No FPU for PalmOS by default }
+            exclude(init_settings.moduleswitches,cs_fp_emulation);
+            init_settings.fputype:=fpu_none;
+          end;
+      end;
+  end;
 {$endif m68k}
 
   { now we can define cpu and fpu type }
