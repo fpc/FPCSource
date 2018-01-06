@@ -865,6 +865,39 @@ implementation
           end;
       end;
 
+
+    { similar as above, but for assigning @classtype.method to a
+      procvar of object. pexpr.do_proc_call() stores the symtable of classtype
+      in the loadnode so we can retrieve it here (rather than the symtable in
+      which method was found, which may be a parent class) }
+    function maybe_classmethod_to_methodprocvar(var fromnode: tnode; todef: tdef): boolean;
+      var
+        hp: tnode;
+      begin
+        result:=false;
+        if not(m_tp_procvar in current_settings.modeswitches) and
+           (todef.typ=procvardef) and
+           is_methodpointer(tprocvardef(todef)) and
+           (fromnode.nodetype=typeconvn) and
+           (ttypeconvnode(fromnode).convtype=tc_proc_2_procvar) and
+           is_methodpointer(fromnode.resultdef) and
+           (po_classmethod in tprocvardef(fromnode.resultdef).procoptions) and
+           not(po_staticmethod in tprocvardef(fromnode.resultdef).procoptions) and
+           (proc_to_procvar_equal(tprocdef(ttypeconvnode(fromnode).left.resultdef),tprocvardef(todef),false)>=te_convert_l1) then
+          begin
+            hp:=fromnode;
+            fromnode:=ttypeconvnode(fromnode).left;
+            if (fromnode.nodetype=loadn) and
+               not assigned(tloadnode(fromnode).left) then
+              tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(fromnode).symtable.defowner))));
+            fromnode:=ctypeconvnode.create_proc_to_procvar(fromnode);
+            typecheckpass(fromnode);
+            ttypeconvnode(hp).left:=nil;
+            hp.free;
+            result:=true;
+          end;
+      end;
+
 {*****************************************************************************
                            TTYPECONVNODE
 *****************************************************************************}
@@ -2481,7 +2514,8 @@ implementation
                        result:=typecheck_call_helper(convtype);
                      exit;
                    end
-                  else if maybe_global_proc_to_nested(left,resultdef) then
+                  else if maybe_global_proc_to_nested(left,resultdef) or
+                          maybe_classmethod_to_methodprocvar(left,resultdef) then
                     begin
                       result:=left;
                       left:=nil;

@@ -1042,7 +1042,15 @@ implementation
                 if (p1.nodetype<>typen) then
                   tloadnode(p2).set_mp(p1)
                 else
-                  p1.free;
+                  begin
+                    typecheckpass(p1);
+                    if (p1.resultdef.typ=objectdef) then
+                      { so we can create the correct  method pointer again in case
+                        this is a "objectprocvar:=@classname.method" expression }
+                      tloadnode(p2).symtable:=tobjectdef(p1.resultdef).symtable
+                    else
+                      p1.free;
+                  end;
               end;
              p1:=p2;
 
