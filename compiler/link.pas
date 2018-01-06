@@ -891,7 +891,8 @@ Implementation
           end
          else
           begin
-            AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
+            while not SmartLinkOFiles.Empty do
+              AsmRes.AddDeleteCommand(SmartLinkOFiles.GetFirst);
             if scripted_ar then
               AsmRes.AddDeleteCommand(scriptfile);
             AsmRes.AddDeleteDirCommand(smartpath);
