@@ -138,4 +138,5 @@
   add_libgc(ADirectory+IncludeTrailingPathDelimiter('libgc'));
   add_libfontconfig(ADirectory+IncludeTrailingPathDelimiter('libfontconfig'));
   add_fcl_report(ADirectory+IncludeTrailingPathDelimiter('fcl-report'));
+  add_ide(ADirectory+IncludeTrailingPathDelimiter('ide'));
   

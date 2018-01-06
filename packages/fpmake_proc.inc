@@ -788,3 +788,5 @@ begin
   with Installer do
 {$include fcl-report/fpmake.pp}
 end;
+
+{$include ide/fpmake.pp}

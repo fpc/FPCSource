@@ -9,7 +9,7 @@ fpcpackage=y
 fpcsubdir=ide
 
 [default]
-fpcdir=..
+fpcdir=../..
 
 [prerules]
 # Translate INSTALL_UNITDIR to fpmake's --unitinstalldir parameter

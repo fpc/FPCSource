@@ -68,7 +68,6 @@ procedure ide_check_gdb_availability(Sender: TObject);
   end;
 
 var
-  s: string;
   GDBLibDir: string;
   P: TPackage;
 
@@ -145,6 +144,7 @@ Var
   P : TPackage;
   T : TTarget;
   CompilerTarget : TCpu;
+  CompilerDir,
   s: string;
 
 begin
@@ -164,114 +164,122 @@ begin
       CompilerTarget:=StringToCPU(s)
     else
       CompilerTarget:=Defaults.CPU;
-
-    P:=AddPackage('ide');
-    P.Version:='3.1.1';
+    
+    if GDBMIOption or 
+      ( (Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU) and
+        (Defaults.OS in [go32v2,win32,win64,linux,freebsd,os2,emx,beos,haiku])
+      ) then
+      begin
+        P:=AddPackage('ide');
+        P.Version:='3.1.1';
 {$ifdef ALLPACKAGES}
-    P.Directory:=ADirectory;
+        P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Dependencies.Add('rtl-extra');
-    P.Dependencies.Add('fv');
-    P.Dependencies.Add('chm');
-    { This one is only needed if DEBUG is set }
-    P.Dependencies.Add('regexpr');
-    if not (NoGDBOption) and not (GDBMIOption) then
-      P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
-    if GDBMIOption then
-      P.Dependencies.Add('fcl-process');
-    P.Dependencies.Add('graph',[go32v2]);
-    P.Dependencies.Add('ami-extra',AllAmigaLikeOSes);
+        P.Dependencies.Add('rtl-extra');
+        P.Dependencies.Add('fv');
+        P.Dependencies.Add('chm');
+        { This one is only needed if DEBUG is set }
+        P.Dependencies.Add('regexpr');
+        if not (NoGDBOption) and not (GDBMIOption) then
+        P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
+        if GDBMIOption then
+        P.Dependencies.Add('fcl-process');
+        P.Dependencies.Add('graph',[go32v2]);
+        P.Dependencies.Add('ami-extra',AllAmigaLikeOSes);
 
-    P.SupportBuildModes:=[bmOneByOne];
+        P.SupportBuildModes:=[bmOneByOne];
 
-    P.Options.Add('-Ur');
-    P.Options.Add('-dNOCATCH');
-    P.Options.Add('-dBrowserCol');
-    P.Options.Add('-dGDB');
+        P.Options.Add('-Ur');
+        P.Options.Add('-dNOCATCH');
+        P.Options.Add('-dBrowserCol');
+        P.Options.Add('-dGDB');
+        
+        CompilerDir:='../compiler';
 
-    P.Options.Add('-d'+CPUToString(CompilerTarget));
-    P.Options.Add('-Fu../compiler');
-    P.Options.Add('-Fu../compiler/'+CPUToString(CompilerTarget));
-    P.Options.Add('-Fu../compiler/targets');
-    P.Options.Add('-Fu../compiler/systems');
-    P.Options.Add('-Fi../compiler/'+CPUToString(CompilerTarget));
-    P.Options.Add('-Fi../compiler');
+        P.Options.Add('-d'+CPUToString(CompilerTarget));
+        P.Options.Add('-Fu'+CompilerDir);
+        P.Options.Add('-Fu'+CompilerDir+'/'+CPUToString(CompilerTarget));
+        P.Options.Add('-Fu'+CompilerDir+'/targets');
+        P.Options.Add('-Fu'+CompilerDir+'/systems');
+        P.Options.Add('-Fi'+CompilerDir+'/'+CPUToString(CompilerTarget));
+        P.Options.Add('-Fi'+CompilerDir);
 
-    if CompilerTarget in [x86_64, i386, i8086] then
-      P.Options.Add('-Fu../compiler/x86');
-    if CompilerTarget in [powerpc, powerpc64] then
-      P.Options.Add('-Fu../compiler/ppcgen');
-    if CompilerTarget in [sparc, sparc64] then
-      begin
-        P.Options.Add('-Fu../compiler/sparcgen');
-        P.Options.add('-Fi../compiler/sparcgen');
+        if CompilerTarget in [x86_64, i386, i8086] then
+        P.Options.Add('-Fu'+CompilerDir+'/x86');
+        if CompilerTarget in [powerpc, powerpc64] then
+        P.Options.Add('-Fu'+CompilerDir+'/ppcgen');
+        if CompilerTarget in [sparc, sparc64] then
+        begin
+            P.Options.Add('-Fu'+CompilerDir+'/sparcgen');
+            P.Options.add('-Fi'+CompilerDir+'/sparcgen');
+        end;
+        if CompilerTarget = x86_64 then
+        P.Options.Add('-dNOOPT');
+        if CompilerTarget = mipsel then
+        P.Options.Add('-Fu'+CompilerDir+'/mips');
+
+        { powerpc64-aix compiled IDE needs -CTsmalltoc option }
+        if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
+        P.Options.Add('-CTsmalltoc');
+        { Handle SPECIALLINK environment variable if available }
+        s:=GetEnvironmentVariable('SPECIALLINK');
+        if s<>'' then
+        P.Options.Add(s);
+        P.Options.Add('-Sg');
+        P.IncludePath.Add('compiler');
+
+        T:=P.Targets.AddProgram('fp.pas');
+        with T.Dependencies do
+        begin
+        AddUnit('compunit');
+        end;
+
+        T:=P.Targets.AddUnit('compunit.pas');
+        T.Directory:='compiler';
+        T.Install:=false;
+
+        P.InstallFiles.Add('fp.ans','$(bininstalldir)');
+        P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
+        P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
+        P.InstallFiles.Add('program.pt','$(bininstalldir)');
+        P.InstallFiles.Add('unit.pt','$(bininstalldir)');
+        P.InstallFiles.Add('cvsco.tdf','$(bininstalldir)');
+        P.InstallFiles.Add('cvsdiff.tdf','$(bininstalldir)');
+        P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
+        P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
+        P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
+        P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
+
+        with P.Sources do
+        begin
+        AddDoc('readme.ide');
+        AddSrc('readme.txt');
+        AddSrc('todo.txt');
+        AddSrc('fp.ans');
+        AddSrcFiles('*.tdf',P.Directory);
+        AddSrcFiles('*.pas',P.Directory,true);
+        AddSrcFiles('*.inc',P.Directory,true);
+        AddSrcFiles('*.rc',P.Directory);
+        AddSrcFiles('*.ico',P.Directory);
+        AddSrcFiles('*.term',P.Directory);
+        AddSrcFiles('*.pt',P.Directory);
+        end;
+
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.ppu');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.ppu');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.ppu');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.o');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.o');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.o');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.o');
+        P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
+
+        P.BeforeCompileProc:=@ide_check_gdb_availability;
       end;
-    if CompilerTarget = x86_64 then
-      P.Options.Add('-dNOOPT');
-    if CompilerTarget = mipsel then
-      P.Options.Add('-Fu../compiler/mips');
-
-    { powerpc64-aix compiled IDE needs -CTsmalltoc option }
-    if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
-     P.Options.Add('-CTsmalltoc');
-    { Handle SPECIALLINK environment variable if available }
-    s:=GetEnvironmentVariable('SPECIALLINK');
-    if s<>'' then
-      P.Options.Add(s);
-    P.Options.Add('-Sg');
-    P.IncludePath.Add('compiler');
-
-    T:=P.Targets.AddProgram('fp.pas');
-    with T.Dependencies do
-     begin
-      AddUnit('compunit');
-     end;
-
-    T:=P.Targets.AddUnit('compunit.pas');
-    T.Directory:='compiler';
-    T.Install:=false;
-
-    P.InstallFiles.Add('fp.ans','$(bininstalldir)');
-    P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
-    P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
-    P.InstallFiles.Add('program.pt','$(bininstalldir)');
-    P.InstallFiles.Add('unit.pt','$(bininstalldir)');
-    P.InstallFiles.Add('cvsco.tdf','$(bininstalldir)');
-    P.InstallFiles.Add('cvsdiff.tdf','$(bininstalldir)');
-    P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
-    P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
-    P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
-    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
-
-    with P.Sources do
-     begin
-      AddDoc('readme.ide');
-      AddSrc('readme.txt');
-      AddSrc('todo.txt');
-      AddSrc('fp.ans');
-      AddSrcFiles('*.tdf',P.Directory);
-      AddSrcFiles('*.pas',P.Directory,true);
-      AddSrcFiles('*.inc',P.Directory,true);
-      AddSrcFiles('*.rc',P.Directory);
-      AddSrcFiles('*.ico',P.Directory);
-      AddSrcFiles('*.term',P.Directory);
-      AddSrcFiles('*.pt',P.Directory);
-     end;
-
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
-
-    P.BeforeCompileProc:=@ide_check_gdb_availability;
-    end;
+  end;
 end;
 
 {$ifndef ALLPACKAGES}
