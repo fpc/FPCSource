@@ -687,44 +687,42 @@ implementation
                          is_java_class_or_interface(hdef) then
                         Message(parser_e_unique_unsupported);
 
-                      hdef:=tstoreddef(hdef).getcopy;
-
-                      { check if it is an ansistirng(codepage) declaration }
-                      if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
+                      if is_object(hdef) or
+                         is_class_or_interface_or_dispinterface(hdef) then
                         begin
-                          p:=comp_expr([ef_accept_equal]);
-                          consume(_RKLAMMER);
-                          if not is_constintnode(p) then
+                          { just create a child class type; this is
+                            Delphi-compatible }
+                          hdef:=cobjectdef.create(tobjectdef(hdef).objecttype,genorgtypename,tobjectdef(hdef),true);
+                        end
+                      else
+                        begin
+                          hdef:=tstoreddef(hdef).getcopy;
+                          { check if it is an ansistirng(codepage) declaration }
+                          if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                             begin
-                              Message(parser_e_illegal_expression);
-                              { error recovery }
-                            end
-                          else
-                            begin
-                              if (tordconstnode(p).value<0) or (tordconstnode(p).value>65535) then
+                              p:=comp_expr([ef_accept_equal]);
+                              consume(_RKLAMMER);
+                              if not is_constintnode(p) then
                                 begin
-                                  Message(parser_e_invalid_codepage);
-                                  tordconstnode(p).value:=0;
+                                  Message(parser_e_illegal_expression);
+                                  { error recovery }
+                                end
+                              else
+                                begin
+                                  if (tordconstnode(p).value<0) or (tordconstnode(p).value>65535) then
+                                    begin
+                                      Message(parser_e_invalid_codepage);
+                                      tordconstnode(p).value:=0;
+                                    end;
+                                  tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
                                 end;
-                              tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
+                              p.free;
                             end;
-                          p.free;
+                          if (hdef.typ in [pointerdef,classrefdef]) and
+                             (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
+                            current_module.checkforwarddefs.add(hdef);
                         end;
-
-                      { fix name, it is used e.g. for tables }
-                      if is_class_or_interface_or_dispinterface(hdef) then
-                        with tobjectdef(hdef) do
-                          begin
-                            stringdispose(objname);
-                            stringdispose(objrealname);
-                            objrealname:=stringdup(genorgtypename);
-                            objname:=stringdup(upper(genorgtypename));
-                          end;
-
                       include(hdef.defoptions,df_unique);
-                      if (hdef.typ in [pointerdef,classrefdef]) and
-                         (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
-                        current_module.checkforwarddefs.add(hdef);
                     end;
                   if not assigned(hdef.typesym) then
                     begin
