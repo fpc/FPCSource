@@ -35,7 +35,6 @@ var
 procedure PascalMain; external name 'PASCALMAIN';
 procedure FPCRelocateData; forward;
 
-
 { this function must be the first in this unit which contains code }
 function _FPC_proc_start: longint; cdecl; public name '_start';
 var
@@ -43,6 +42,8 @@ var
   prevGlobals: Pointer;
   globalsPtr: Pointer;
 begin
+  _FPC_proc_start:=0;
+
   if SysAppStartup(locAppInfo, prevGlobals, globalsPtr) <> 0 then
     begin
       SndPlaySystemSound(sndError);
@@ -52,13 +53,19 @@ begin
   if (locAppInfo^.launchFlags and sysAppLaunchFlagNewGlobals) > 0 then
     FPCRelocateData;
 
-  if setjmp(sysinit_jmpbuf) = 0 then
+  { we don't support anything but normal startup now }
+  { FIXME: figure it out how various startup commands can }
+  { coexist with the normal system unit infrastructure (KB) }
+  if locAppInfo^.cmd = sysAppLaunchCmdNormalLaunch then
     begin
-      appInfo:=locAppInfo;
-      PascalMain;
+      if setjmp(sysinit_jmpbuf) = 0 then
+        begin
+          appInfo:=locAppInfo;
+          PascalMain;
+        end;
+      _FPC_proc_start:=ExitCode;
     end;
 
-  _FPC_proc_start:=ExitCode;
   SysAppExit(locAppInfo, prevGlobals, globalsPtr);
 end;
 

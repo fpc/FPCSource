@@ -147,12 +147,6 @@ begin
 { Initialize ExitProc }
   ExitProc:=Nil;
 
-  { we don't support anything but normal startup now }
-  { FIXME: lets figure it out how various startup modes }
-  { can coexist with the system unit infrastructure (KB) }
-  if not (palmAppInfo^.cmd = sysAppLaunchCmdNormalLaunch) then
-    halt(0);
-
   SysInitExceptions;
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;
