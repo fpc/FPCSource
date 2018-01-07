@@ -217,12 +217,10 @@ begin
         if CompilerTarget in [powerpc, powerpc64] then
           P.Options.Add('-Fu'+CompilerDir+'/ppcgen');
         if CompilerTarget in [sparc, sparc64] then
-        begin
-            P.Options.Add('-Fu'+CompilerDir+'/sparcgen');
-            P.Options.add('-Fi'+CompilerDir+'/sparcgen');
-        end;
-        if CompilerTarget = x86_64 then
-          P.Options.Add('-dNOOPT');
+          begin
+              P.Options.Add('-Fu'+CompilerDir+'/sparcgen');
+              P.Options.add('-Fi'+CompilerDir+'/sparcgen');
+          end;
         
         if CompilerTarget = mipsel then
           P.Options.Add('-Fu'+CompilerDir+'/mips');
@@ -241,9 +239,9 @@ begin
 
         T:=P.Targets.AddProgram('fp.pas');
         with T.Dependencies do
-        begin
-        AddUnit('compunit');
-        end;
+          begin
+            AddUnit('compunit');
+          end;
 
         T:=P.Targets.AddUnit('compunit.pas');
         T.Directory:='compiler';
