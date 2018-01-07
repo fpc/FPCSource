@@ -2104,7 +2104,7 @@ implementation
                       begin
                         {Array slice using slice builtin function.}
                         l:=Tcallparanode(right).left;
-                        hightree:=caddnode.create(subn,l,genintconstnode(1));
+                        hightree:=caddnode.create(subn,geninlinenode(in_ord_x,false,l),genintconstnode(1));
                         Tcallparanode(right).left:=nil;
 
                         {Remove the inline node.}
@@ -2120,8 +2120,8 @@ implementation
                       {Array slice using .. operator.}
                       with Trangenode(Tvecnode(p).right) do
                         begin
-                          l:=left;  {Get lower bound.}
-                          r:=right; {Get upper bound.}
+                          l:=geninlinenode(in_ord_x,false,left);  {Get lower bound.}
+                          r:=geninlinenode(in_ord_x,false,right); {Get upper bound.}
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
                       hightree:=caddnode.create(subn,r,l);
@@ -2149,10 +2149,10 @@ implementation
                   else
                     begin
                       maybe_load_in_temp(p);
-                      hightree:=geninlinenode(in_high_x,false,p.getcopy);
+                      hightree:=geninlinenode(in_ord_x,false,geninlinenode(in_high_x,false,p.getcopy));
                       typecheckpass(hightree);
                       { only substract low(array) if it's <> 0 }
-                      temp:=geninlinenode(in_low_x,false,p.getcopy);
+                      temp:=geninlinenode(in_ord_x,false,geninlinenode(in_low_x,false,p.getcopy));
                       typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
