@@ -165,7 +165,7 @@ begin
     else
       CompilerTarget:=Defaults.CPU;
     
-    if GDBMIOption or 
+    if GDBMIOption or
       ( (Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU) and
         (Defaults.OS in [go32v2,win32,win64,linux,freebsd,os2,emx,beos,haiku])
       ) then
@@ -182,9 +182,9 @@ begin
         { This one is only needed if DEBUG is set }
         P.Dependencies.Add('regexpr');
         if not (NoGDBOption) and not (GDBMIOption) then
-        P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
+          P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
         if GDBMIOption then
-        P.Dependencies.Add('fcl-process');
+          P.Dependencies.Add('fcl-process');
         P.Dependencies.Add('graph',[go32v2]);
         P.Dependencies.Add('ami-extra',AllAmigaLikeOSes);
 
@@ -195,7 +195,7 @@ begin
         P.Options.Add('-dBrowserCol');
         P.Options.Add('-dGDB');
         
-        CompilerDir:='../compiler';
+        CompilerDir:=P.Directory +'../../compiler';
 
         P.Options.Add('-d'+CPUToString(CompilerTarget));
         P.Options.Add('-Fu'+CompilerDir);
@@ -204,28 +204,38 @@ begin
         P.Options.Add('-Fu'+CompilerDir+'/systems');
         P.Options.Add('-Fi'+CompilerDir+'/'+CPUToString(CompilerTarget));
         P.Options.Add('-Fi'+CompilerDir);
+        
+        if CompilerTarget<>Defaults.CPU then
+          begin
+            P.Options.Add('-o'+CPUToString(CompilerTarget)+'-fp');
+            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
+          end;
 
         if CompilerTarget in [x86_64, i386, i8086] then
-        P.Options.Add('-Fu'+CompilerDir+'/x86');
+          P.Options.Add('-Fu'+CompilerDir+'/x86');
+        
         if CompilerTarget in [powerpc, powerpc64] then
-        P.Options.Add('-Fu'+CompilerDir+'/ppcgen');
+          P.Options.Add('-Fu'+CompilerDir+'/ppcgen');
         if CompilerTarget in [sparc, sparc64] then
         begin
             P.Options.Add('-Fu'+CompilerDir+'/sparcgen');
             P.Options.add('-Fi'+CompilerDir+'/sparcgen');
         end;
         if CompilerTarget = x86_64 then
-        P.Options.Add('-dNOOPT');
+          P.Options.Add('-dNOOPT');
+        
         if CompilerTarget = mipsel then
-        P.Options.Add('-Fu'+CompilerDir+'/mips');
+          P.Options.Add('-Fu'+CompilerDir+'/mips');
 
         { powerpc64-aix compiled IDE needs -CTsmalltoc option }
         if (Defaults.OS=aix) and (Defaults.CPU=powerpc64) then
         P.Options.Add('-CTsmalltoc');
+        
         { Handle SPECIALLINK environment variable if available }
         s:=GetEnvironmentVariable('SPECIALLINK');
         if s<>'' then
-        P.Options.Add(s);
+          P.Options.Add(s);
+        
         P.Options.Add('-Sg');
         P.IncludePath.Add('compiler');
 

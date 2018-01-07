@@ -44,8 +44,8 @@ override FPCOPT:=$(filter-out $(addprefix -Fu,$(COMPILER_UNITDIR)),$(FPCOPT))# C
 ifdef FPMAKEOPT
 FPMAKE_OPT+=$(FPMAKEOPT)
 endif
-FPMAKE_OPT+=--localunitdir=..
-FPMAKE_OPT+=--globalunitdir=../packages
+FPMAKE_OPT+=--localunitdir=../..
+FPMAKE_OPT+=--globalunitdir=../../packages
 FPMAKE_OPT+=$(FPC_TARGETOPT)
 FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
 FPMAKE_OPT+=--compiler=$(FPC)
