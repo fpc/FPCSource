@@ -1497,6 +1497,7 @@ implementation
     function tfornode.pass_typecheck:tnode;
       var
         res : tnode;
+        rangedef: tdef;
       begin
          result:=nil;
          resultdef:=voidtype;
@@ -1529,11 +1530,16 @@ implementation
 
          { Make sure that the loop var and the
            from and to values are compatible types }
-         check_ranges(right.fileinfo,right,left.resultdef);
-         inserttypeconv(right,left.resultdef);
+         if not(m_iso in current_settings.modeswitches) then
+           rangedef:=left.resultdef
+         else
+           rangedef:=get_iso_range_type(left.resultdef);
 
-         check_ranges(t1.fileinfo,t1,left.resultdef);
-         inserttypeconv(t1,left.resultdef);
+         check_ranges(right.fileinfo,right,rangedef);
+         inserttypeconv(right,rangedef);
+
+         check_ranges(t1.fileinfo,t1,rangedef);
+         inserttypeconv(t1,rangedef);
 
          if assigned(t2) then
            typecheckpass(t2);

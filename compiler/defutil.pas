@@ -290,6 +290,9 @@ interface
     }
     procedure getrange(def : tdef;out l, h : TConstExprInt);
 
+    { Returns the range type of an ordinal type in the sense of ISO-10206 }
+    function get_iso_range_type(def: tdef): tdef;
+
     { type being a vector? }
     function is_vector(p : tdef) : boolean;
 
@@ -1111,6 +1114,35 @@ implementation
                      mmx_type:=mmxs32bit;
                 end;
            end;
+      end;
+
+
+    { The range-type of an ordinal-type that is a subrange-type shall be the host-type (see 6.4.2.4) of the subrange-type.
+      The range-type of an ordinal-type that is not a subrange-type shall be the ordinal-type.
+
+      The subrange-bounds shall be of compatible ordinal-types, and the range-type (see 6.4.2.1) of the ordinal-types shall
+      be designated the host-type of the subrange-type. }
+    function get_iso_range_type(def: tdef): tdef;
+      begin
+        result:=nil;
+        case def.typ of
+           orddef:
+             begin
+               if (torddef(def).low>=torddef(sinttype).low) and
+                  (torddef(def).high<=torddef(sinttype).high) then
+                 result:=sinttype
+               else
+                 range_to_type(torddef(def).low,torddef(def).high,result);
+             end;
+           enumdef:
+             begin
+               while assigned(tenumdef(def).basedef) do
+                 def:=tenumdef(def).basedef;
+               result:=def;
+             end
+           else
+             internalerror(2018010701);
+        end;
       end;
 
 
