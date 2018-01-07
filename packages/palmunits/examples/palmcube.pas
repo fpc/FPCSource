@@ -14,7 +14,8 @@
 program palmcube;
 
 uses
-  event_, sysevent, systemmgr, window, font;
+  event_, sysevent, systemmgr, window, font,
+  errorbase, rect;
 
 type
   tvertex = record
@@ -180,7 +181,6 @@ var
   scale: longint;
   sx,sy: string;
 begin
-  WinEraseWindow();
   WinGetWindowExtent(w,h);
 
   scale:=(min(h,w) div 5) shl 16;
@@ -194,33 +194,58 @@ begin
       rcube[i].y:=cy + sarlongint(mulfp(vy,scale),16);
     end;
 
-  for i:=low(faces) to high(faces) do
-    begin
-      if (faces[i].edge and 1) > 0 then
-        WinDrawLine(rcube[faces[i].v1].x,rcube[faces[i].v1].y,
-                    rcube[faces[i].v2].x,rcube[faces[i].v2].y);
-      if (faces[i].edge and 2) > 0 then
-        WinDrawLine(rcube[faces[i].v2].x,rcube[faces[i].v2].y,
-                    rcube[faces[i].v3].x,rcube[faces[i].v3].y);
-      if (faces[i].edge and 4) > 0 then
-        WinDrawLine(rcube[faces[i].v3].x,rcube[faces[i].v3].y,
-                    rcube[faces[i].v1].x,rcube[faces[i].v1].y);
-    end;
-
   str(tx,sx);
   str(ty,sy);
   sx:='FPC Cube! X:'+sx+' Y:'+sy;
+
+  WinEraseWindow();
   WinDrawChars(@sx[1],length(sx),1,h-FntLineHeight);
+
+  for i:=low(faces) to high(faces) do
+    begin
+      with faces[i] do
+        begin
+          if (edge and 1) > 0 then
+            WinDrawLine(rcube[v1].x,rcube[v1].y,
+                        rcube[v2].x,rcube[v2].y);
+          if (edge and 2) > 0 then
+            WinDrawLine(rcube[v2].x,rcube[v2].y,
+                        rcube[v3].x,rcube[v3].y);
+          if (edge and 4) > 0 then
+            WinDrawLine(rcube[v3].x,rcube[v3].y,
+                        rcube[v1].x,rcube[v1].y);
+        end;
+    end;
 end;
 
+function CreateOffscreenWin(var offScreen: WinHandle; var screen: WinHandle; var r: RectangleType): boolean;
+var
+  err: word;
+  w, h: smallint;
+begin
+  WinGetWindowExtent(w,h);
+  offScreen:=WinCreateOffscreenWindow(w,h,screenFormat,err);
+  screen:= WinGetDrawWindow();
+  if err = 0 then
+     WinSetDrawWindow(offScreen);
+  r.topLeft.x:=0;
+  r.topLeft.y:=0;
+  r.extent.x:=h;
+  r.extent.y:=w;
+  CreateOffscreenWin:=err = 0;
+end;
 
 procedure EventLoop;
 var
   event: EventType;
   prevX,prevY: smallint;
+  offscreen: boolean;
+  offScrWin, scrWin: WinHandle;
+  r: RectangleType;
 begin
   prevX:=-1;
   prevY:=-1;
+  offScreen:=CreateOffscreenWin(offScrWin,scrWin,r);
   repeat
     EvtGetEvent(event, 20);
     SysHandleEvent(event);
@@ -229,8 +254,12 @@ begin
         prevX:=event.screenX;
         prevY:=event.screenY;
         paintcube(prevX,prevY);
+        if offscreen then
+          WinCopyRectangle(offScrWin, scrWin, r, 0, 0, winPaint);
       end;
   until (event.eType = appStopEvent);
+  if offscreen then
+    WinDeleteWindow(offScrWin, false);
 end;
 
 begin
