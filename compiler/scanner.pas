@@ -4548,7 +4548,11 @@ type
                    if found=3 then
                     found:=4
                    else
-                    found:=1;
+                    begin
+                      if found=4 then
+                        inc_comment_level;
+                      found:=1;
+                    end;
                  end;
                ')' :
                  begin
