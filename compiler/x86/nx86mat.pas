@@ -611,10 +611,8 @@ interface
 
                     emit_reg_reg(A_SUB,opsize,regd,hreg2);
                     cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
-                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,hreg2,location.register)
+                    location.register:=hreg2;
                   end;
-
               end;
           end
         else
