@@ -143,18 +143,26 @@ begin
 end;
 
 begin
+{$ifdef FPC_HAS_FEATURE_STACKCHECK}
   StackLength := CheckInitialStkLen(InitialStkLen);
+{$endif FPC_HAS_FEATURE_STACKCHECK}
 { Initialize ExitProc }
   ExitProc:=Nil;
 
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   SysInitExceptions;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;
 {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 { Reset IO Error }
   InOutRes:=0;
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 { Setup command line arguments }
   SysInitParamsAndEnv;
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 end.
