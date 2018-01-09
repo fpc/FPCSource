@@ -607,6 +607,10 @@ Type
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
+{ opaque data type and related opaque pointer }
+  TOpaqueData = record end;
+  POpaqueData = ^TOpaqueData;
+
 { procedure type }
   TProcedure  = Procedure;
 
