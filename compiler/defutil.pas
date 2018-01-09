@@ -1128,11 +1128,40 @@ implementation
         case def.typ of
            orddef:
              begin
-               if (torddef(def).low>=torddef(sinttype).low) and
-                  (torddef(def).high<=torddef(sinttype).high) then
-                 result:=sinttype
-               else
-                 range_to_type(torddef(def).low,torddef(def).high,result);
+               if is_integer(def) then
+                 begin
+                   if (torddef(def).low>=torddef(sinttype).low) and
+                      (torddef(def).high<=torddef(sinttype).high) then
+                     result:=sinttype
+                   else
+                     range_to_type(torddef(def).low,torddef(def).high,result);
+                 end
+               else case torddef(def).ordtype of
+                 pasbool8:
+                   result:=pasbool8type;
+                 pasbool16:
+                   result:=pasbool16type;
+                 pasbool32:
+                   result:=pasbool32type;
+                 pasbool64:
+                   result:=pasbool64type;
+                 bool8bit:
+                   result:=bool8type;
+                 bool16bit:
+                   result:=bool16type;
+                 bool32bit:
+                   result:=bool32type;
+                 bool64bit:
+                   result:=bool64type;
+                 uchar:
+                   result:=cansichartype;
+                 uwidechar:
+                   result:=cwidechartype;
+                 scurrency:
+                   result:=s64currencytype;
+                 else
+                   internalerror(2018010901);
+               end;
              end;
            enumdef:
              begin
