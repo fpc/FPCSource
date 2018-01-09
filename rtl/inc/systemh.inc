@@ -610,6 +610,7 @@ Type
 { opaque data type and related opaque pointer }
   TOpaqueData = record end;
   POpaqueData = ^TOpaqueData;
+  OpaquePointer = type POpaqueData;
 
 { procedure type }
   TProcedure  = Procedure;
