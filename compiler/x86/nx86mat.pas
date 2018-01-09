@@ -524,9 +524,9 @@ interface
                   end;
               end;
           end
-        { unsigned modulus by a (+/-)power-of-2 constant? }
         else if (nodetype=modn) and (right.nodetype=ordconstn) and not(is_signed(left.resultdef)) then
           begin
+            { unsigned modulus by a (+/-)power-of-2 constant? }
             if isabspowerof2(tordconstnode(right).value,power) then
               begin
                 emit_const_reg(A_AND,opsize,(aint(1) shl power)-1,hreg1);
@@ -554,12 +554,6 @@ interface
                         emit_reg_reg(A_XOR,opsize,location.register,location.register);
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
-
-                        { Emit conditional move that depends on the carry flag }
-                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
-                        instr.condition := C_AE;
-                        current_asmdata.CurrAsmList.concat(instr);
-                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
                       begin
@@ -568,13 +562,14 @@ interface
 
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_const_reg(A_CMP,opsize,aint(d),hreg1);
-
-                        { Emit conditional move that depends on the carry flag }
-                        instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
-                        instr.condition := C_AE;
-                        current_asmdata.CurrAsmList.concat(instr);
-                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end;
+
+                    { Emit conditional move that depends on the carry flag being zero,
+                      that is, the comparison result is above or equal }
+                    instr:=TAiCpu.op_reg_reg(A_CMOVcc,opsize,hreg3,location.register);
+                    instr.condition := C_AE;
+                    current_asmdata.CurrAsmList.concat(instr);
+                    cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                     emit_reg_reg(A_ADD,opsize,hreg1,location.register);
                   end
@@ -600,8 +595,11 @@ interface
                         dec(s);
                       end;
                     if s<>0 then
-                      emit_const_reg(A_SHR,opsize,aint(s),regd);
+                      emit_const_reg(A_SHR,opsize,aint(s),regd); { R/EDX now contains the quotient }
 
+                    { Now multiply the quotient by the original denominator and
+                      subtract the product from the original numerator to get
+                      the remainder. }
                     if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in IMUL }
                       begin
                         hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);

@@ -1,3 +1,4 @@
+program tmoddiv4;
 
 const
   TestValues: array[0..10] of QWord = (500, 1, 0, 995, $100000000, $100000001, $7FFFFFFFFFFFFFFF, QWord($8000000000000000), QWord($8000000000000001), QWord($8000000000000002), 1000000);
@@ -107,4 +108,5 @@ begin
     Writeln(Y);
     DoCheck;
   end;
+  writeln('ok');
 end.

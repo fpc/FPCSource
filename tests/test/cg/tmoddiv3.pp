@@ -1,4 +1,4 @@
-program testfile2;
+program tmoddiv3;
 
 const
   TestValues: array[0..9] of LongWord = (500, 1, 0, 995, $7FFFFFFF, $80000000, $80000001, $80000002, $FFFFFFFF, 1000000);
