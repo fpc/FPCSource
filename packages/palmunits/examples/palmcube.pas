@@ -179,7 +179,7 @@ var
   w, h: smallint;
   vr: tvertex;
   scale: longint;
-  sx,sy: string;
+  sx,sy: string[64];
 begin
   WinGetWindowExtent(w,h);
 
@@ -247,9 +247,9 @@ begin
   prevY:=-1;
   offScreen:=CreateOffscreenWin(offScrWin,scrWin,r);
   repeat
-    EvtGetEvent(event, 20);
-    SysHandleEvent(event);
-    if (event.screenX<>prevX) or (event.screenY<>prevY) then
+    EvtGetEvent(event, evtWaitForever);
+    if not SysHandleEvent(event) and 
+       ((event.screenX<>prevX) or (event.screenY<>prevY)) then
       begin
         prevX:=event.screenX;
         prevY:=event.screenY;
