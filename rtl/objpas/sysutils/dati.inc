@@ -1079,7 +1079,7 @@ var
         ':': StoreStr(@FormatSettings.TimeSeparator, 1);
 	'[': if (fdoInterval in Options) then isInterval := true else StoreStr(FormatCurrent, 1);
 	']': if (fdoInterval in Options) then isInterval := false else StoreStr(FormatCurrent, 1);
-        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' :
+        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' {$IFDEF MSWindows}, 'G', 'E'{$ENDIF MSWindows} :
         begin
           while (P < FormatEnd) and (UpCase(P^) = Token) do
             Inc(P);
@@ -1183,7 +1183,7 @@ var
             'E':
                begin
                  if not Eastasiainited then InitEastAsia;
-                 if Not(isEnable_E_Format) then StoreStr(@FormatCurrent^, 1)
+                 if Not(isEnable_E_Format) then StoreStr(FormatCurrent, 1)
                   else
                    begin
                      while (P < FormatEnd) and (UpCase(P^) = Token) do
@@ -1197,7 +1197,7 @@ var
              'G':
                begin
                  if not Eastasiainited then InitEastAsia;
-                 if Not(isEnable_G_Format) then StoreStr(@FormatCurrent^, 1)
+                 if Not(isEnable_G_Format) then StoreStr(FormatCurrent, 1)
                   else
                    begin
                      while (P < FormatEnd) and (UpCase(P^) = Token) do
