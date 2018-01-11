@@ -605,7 +605,7 @@ Implementation
               { Constant memory offset }
               { This must absolutely be followed by (  }
               oper.InitRef;
-              oper.opr.ref.offset:=BuildConstExpression(True,False);
+              oper.opr.ref.offset:=asizeint(BuildConstExpression(True,False));
               if actasmtoken<>AS_LPAREN then
                 Message(asmr_e_invalid_reference_syntax)
               else

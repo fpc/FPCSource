@@ -1718,7 +1718,7 @@ unit raatt;
         else
          begin
            oper.opr.typ:=OPR_CONSTANT;
-           oper.opr.val:=l;
+           oper.opr.val:=aint(l);
          end;
       end;
 
