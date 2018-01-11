@@ -412,7 +412,7 @@ interface
 
         if (nodetype=divn) and (right.nodetype=ordconstn) then
           begin
-            if isabspowerof2(int64(tordconstnode(right).value),power) then
+            if isabspowerof2(tordconstnode(right).value,power) then
               begin
                 { for signed numbers, the numerator must be adjusted before the
                   shift instruction, but not wih unsigned numbers! Otherwise,
