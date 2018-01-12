@@ -378,7 +378,7 @@ interface
 
     procedure tx86moddivnode.pass_generate_code;
       var
-        hreg1,hreg2,hreg3,rega,regd:Tregister;
+        hreg1,hreg2,hreg3,rega,regd,tempreg:Tregister;
         power:longint;
         instr:TAiCpu;
         op:Tasmop;
@@ -415,7 +415,7 @@ interface
             if isabspowerof2(tordconstnode(right).value,power) then
               begin
                 { for signed numbers, the numerator must be adjusted before the
-                  shift instruction, but not wih unsigned numbers! Otherwise,
+                  shift instruction, but not with unsigned numbers! Otherwise,
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
                 if is_signed(left.resultdef) Then
                   begin
@@ -485,8 +485,24 @@ interface
                     d:=tordconstnode(right).value.svalue;
                     if d>=aword(1) shl (left.resultdef.size*8-1) then
                       begin
+                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        { Ensure that the whole register is 0, since SETcc only sets the lowest byte }
+
+                        if opsize = S_Q then
+                          begin
+                            { Emit an XOR instruction that only operates on the lower 32 bits,
+                              since we want to initialise this register to zero, the upper 32
+                              bits will be set to zero regardless, and the resultant machine code
+                              will usually be smaller due to the lack of a REX prefix. [Kit] }
+                            tempreg := location.register;
+                            setsubreg(tempreg, R_SUBD);
+                            emit_reg_reg(A_XOR, S_L, tempreg, tempreg);
+                          end
+                        else
+                          emit_reg_reg(A_XOR,opsize,location.register,location.register);
+
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                        if (cgsize in [OS_64,OS_S64]) then
+                        if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
                           begin
                             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                             emit_const_reg(A_MOV,opsize,aint(d),hreg2);
@@ -494,9 +510,38 @@ interface
                           end
                         else
                           emit_const_reg(A_CMP,opsize,aint(d),hreg1);
-                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
-                        emit_const_reg(A_MOV,opsize,0,location.register);
-                        emit_const_reg(A_SBB,opsize,-1,location.register);
+                        { NOTE: SBB and SETAE are both 3 bytes long without the REX prefix,
+                          both use an ALU for their execution and take a single cycle to
+                          run. The only difference is that SETAE does not modify the flags,
+                          allowing for some possible reuse. [Kit] }
+{$ifdef x86_64}
+                        { Emit a SETcc instruction that depends on the carry bit being zero,
+                          that is, the numerator is greater than or equal to the denominator. }
+                        tempreg := location.register;
+                        setsubreg(tempreg, R_SUBL);
+                         { On x86-64, all registers can have their lower 8 bits represented }
+                        instr:=TAiCpu.op_reg(A_SETcc,S_B,tempreg);
+                        instr.condition := C_AE;
+                        current_asmdata.CurrAsmList.concat(instr);
+{$else}
+                        case getsupreg(location.register) of
+                          { On x86, only these four registers can have their lower 8 bits represented }
+                          RS_EAX, RS_ECX, RS_EDX, RS_EBX:
+                            begin
+                              { Emit a SETcc instruction that depends on the carry bit being zero,
+                                that is, the numerator is greater than or equal to the denominator. }
+                              tempreg := location.register;
+                              setsubreg(tempreg, R_SUBL);
+                              instr:=TAiCpu.op_reg(A_SETcc,S_B,tempreg);
+                              instr.condition := C_AE;
+                              current_asmdata.CurrAsmList.concat(instr);
+                            end;
+                          else
+                            { It will likely emit SBB anyway because location.register is
+                              usually imaginary. [Kit] }
+                            emit_const_reg(A_SBB,opsize,-1,location.register);
+                        end;
+{$endif}
                         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
