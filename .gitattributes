@@ -3044,6 +3044,8 @@ packages/fcl-web/examples/echo/cgi/echo.res -text
 packages/fcl-web/examples/echo/fcgi/echo.lpi svneol=native#text/plain
 packages/fcl-web/examples/echo/fcgi/echo.lpr svneol=native#text/plain
 packages/fcl-web/examples/echo/fcgi/echo.res -text
+packages/fcl-web/examples/echo/fphttp/echo.lpi svneol=native#text/xml
+packages/fcl-web/examples/echo/fphttp/echo.lpr svneol=native#text/pascal
 packages/fcl-web/examples/echo/webmodule/wmecho.lfm svneol=native#text/plain
 packages/fcl-web/examples/echo/webmodule/wmecho.pas svneol=native#text/plain
 packages/fcl-web/examples/fptemplate/README.txt svneol=native#text/plain
