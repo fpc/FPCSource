@@ -1703,7 +1703,7 @@ begin
   else case Field.DataType of
     ftString   : Result := QuotedStr(Field.AsString);
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSqlFormatSettings) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Field.AsDateTime,FSqlFormatSettings) + '''';
+    ftDateTime : Result := QuotedStr(FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz',Field.AsDateTime,FSqlFormatSettings));
     ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
     Result := Field.AsString;
@@ -1720,7 +1720,7 @@ begin
     ftString   : Result := QuotedStr(GetAsString(Param));
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime,FSQLFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
+    ftDateTime : Result := QuotedStr(FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings));
     ftCurrency,
     ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
