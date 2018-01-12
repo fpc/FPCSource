@@ -3,10 +3,10 @@ program echo;
 {$mode objfpc}{$H+}
 
 uses
-  fphttpapp, wmecho;
+  SysUtils, fphttpapp, wmecho;
 
 begin
-  Application.Port:=2018;
+  Application.Port:=StrToIntDef(ParamStr(1), 8080);
   Application.Initialize;
   Application.Run;
 end.
