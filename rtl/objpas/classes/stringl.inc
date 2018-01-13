@@ -975,13 +975,13 @@ end;
 
 
 
-Procedure TStrings.LoadFromFile(const FileName: string);
+Procedure TStrings.LoadFromFile(const FileName: string; IgnoreEncoding : Boolean = True);
 Var
         TheStream : TFileStream;
 begin
   TheStream:=TFileStream.Create(FileName,fmOpenRead or fmShareDenyWrite);
   try
-    LoadFromStream(TheStream);
+    LoadFromStream(TheStream, IgnoreEncoding);
   finally
     TheStream.Free;
   end;
@@ -1001,9 +1001,7 @@ begin
   end;
 end;
 
-
-
-Procedure TStrings.LoadFromStream(Stream: TStream);
+Procedure TStrings.LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean = True);
 {
    Borlands method is no good, since a pipe for
    instance doesn't have a size.
@@ -1019,6 +1017,11 @@ Var
   BufLen,
   I,BufDelta     : Longint;
 begin
+  if not IgnoreEncoding then
+    begin
+    LoadFromStream(Stream,Nil);
+    Exit;
+    end;
   // reread into a buffer
   beginupdate;
   try
