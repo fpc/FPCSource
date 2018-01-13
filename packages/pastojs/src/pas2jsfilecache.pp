@@ -26,6 +26,109 @@ type
   EPas2jsFileCache = class(Exception);
 
 type
+  TPas2jsFileAgeTime = longint;
+  TPas2jsFileAttr = longint;
+  TPas2jsFileSize = int64;
+  TPas2jsSearchFileCase = (
+    sfcDefault,
+    sfcCaseSensitive,
+    sfcCaseInsensitive
+  );
+
+  TPas2jsCachedDirectories = class;
+
+  TPas2jsCachedDirectoryEntry = class
+  public
+    Name: string;
+    Time: TPas2jsFileAgeTime; // modification time
+    Attr: TPas2jsFileAttr;
+    Size: TPas2jsFileSize;
+  end;
+
+  { TPas2jsCachedDirectory }
+
+  TPas2jsCachedDirectory = class
+  private
+    FChangeStamp: TChangeStamp;
+    FPath: string;
+    FEntries: TFPList; // if Sorted=true
+    FPool: TPas2jsCachedDirectories;
+    FRefCount: integer;
+    FSorted: boolean;
+    function GetEntries(Index: integer): TPas2jsCachedDirectoryEntry;
+    procedure SetSorted(const AValue: boolean);
+  public
+    constructor Create(aPath: string; aPool: TPas2jsCachedDirectories);
+    destructor Destroy; override;
+    function Count: integer;
+    procedure Clear;
+    property ChangeStamp: TChangeStamp read FChangeStamp write FChangeStamp;
+    function NeedsUpdate: boolean; inline;
+    procedure Update;
+    procedure Reference;
+    procedure Release;
+    property RefCount: integer read FRefCount;
+    function Add(const Name: string; Time: TPas2jsFileAgeTime;
+      Attr: TPas2jsFileAttr; Size: TPas2jsFileSize): TPas2jsCachedDirectoryEntry;
+    function FindFile(const ShortFilename: string;
+                      const FileCase: TPas2jsSearchFileCase): string;
+    function FileAge(const ShortFilename: string): TPas2jsFileAgeTime;
+    function FileAttr(const ShortFilename: string): TPas2jsFileAttr;
+    function FileSize(const ShortFilename: string): TPas2jsFileSize;
+    function IndexOfFileCaseInsensitive(const ShortFilename: String): integer;
+    function IndexOfFileCaseSensitive(const ShortFilename: String): integer;
+    function IndexOfFile(const ShortFilename: String): integer; inline;
+    property Entries[Index: integer]: TPas2jsCachedDirectoryEntry read GetEntries; default;
+    procedure GetFiles(var Files: TStrings;
+      IncludeDirs: boolean = true // add faDirectory as well
+      ); // returns relative file names
+    procedure CheckConsistency;
+    procedure WriteDebugReport;
+    property Path: string read FPath; // with trailing path delimiter
+    property Pool: TPas2jsCachedDirectories read FPool;
+    property Sorted: boolean read FSorted write SetSorted; // descending, sort first case insensitive, then sensitive
+  end;
+
+  { TPas2jsCachedDirectories }
+
+  TPas2jsCachedDirectories = class
+  private
+    FChangeStamp: TChangeStamp;
+    FDirectories: TAVLTree;// tree of TPas2jsCachedDirectory sorted by Directory
+    FWorkingDirectory: string;
+  private
+    type
+      TFileInfo = record
+        Filename: string;
+        DirPath: string;
+        ShortFilename: string;
+        Dir: TPas2jsCachedDirectory;
+      end;
+    function GetFileInfo(var Info: TFileInfo): boolean;
+    procedure SetWorkingDirectory(const AValue: string);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property ChangeStamp: TChangeStamp read FChangeStamp;
+    procedure Invalidate; inline;
+    procedure Clear;
+    function DirectoryExists(Filename: string): boolean;
+    function FileExists(Filename: string): boolean;
+    function FileAge(Filename: string): TPas2jsFileAgeTime;
+    function FileAttr(Filename: string): TPas2jsFileAttr;
+    function FileSize(Filename: string): TPas2jsFileSize;
+    function FindDiskFilename(const Filename: string;
+                              {%H-}SearchCaseInsensitive: boolean = false): string; // using Pascal case insensitivity, not UTF-8
+    procedure GetListing(const aDirectory: string; var Files: TStrings;
+        IncludeDirs: boolean = true // add faDirectory as well
+        ); // returns relative file names
+    function GetDirectory(const Directory: string;
+                      CreateIfNotExists: boolean = true;
+                      DoReference: boolean = true): TPas2jsCachedDirectory;
+    property WorkingDirectory: string read FWorkingDirectory write SetWorkingDirectory; // used for relative filenames, contains trailing path delimiter
+  end;
+
+type
   TP2jsFileCacheOption = (
     caoShowFullFilenames,
     caoShowTriedUsedFiles,
@@ -127,6 +230,7 @@ type
   TPas2jsFilesCache = class
   private
     FBaseDirectory: string;
+    FDirectoryCache: TPas2jsCachedDirectories;
     FFiles: TAVLTree; // tree of TPas2jsCachedFile sorted for Filename
     FForeignUnitPaths: TStringList;
     FForeignUnitPathsFromCmdLine: integer;
@@ -182,9 +286,12 @@ type
     function IndexOfInsertFilename(const aFilename: string): integer;
     procedure AddInsertFilename(const aFilename: string);
     procedure RemoveInsertFilename(const aFilename: string);
+    procedure GetListing(const aDirectory: string; var Files: TStrings;
+                         FullPaths: boolean = true);
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
+    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property ForeignUnitPaths: TStringList read FForeignUnitPaths;
     property ForeignUnitPathsFromCmdLine: integer read FForeignUnitPathsFromCmdLine;
     property IncludePaths: TStringList read FIncludePaths;
@@ -209,6 +316,12 @@ type
 
 function CompareFilenameWithCachedFile(Filename, CachedFile: Pointer): integer;
 function CompareCachedFiles(File1, File2: Pointer): integer;
+function ComparePas2jsCacheDirectories(Dir1, Dir2: Pointer): integer;
+function CompareAnsiStringWithDirectoryCache(Path, DirCache: Pointer): integer;
+function ComparePas2jsDirectoryEntries(Entry1, Entry2: Pointer): integer;
+function CompareFirstCaseInsThenSensitive(const s, h: string): integer;
+
+// UTF-8 helper functions
 function ConvertTextToUTF8(const Src: string; var SrcEncoding: string): string;
 function GuessEncoding(const Src: string): string;
 function HasUTF8BOM(const s: string): boolean;
@@ -229,6 +342,36 @@ var
   Cache2: TPas2jsCachedFile absolute File2;
 begin
   Result:=CompareFilenames(Cache1.Filename,Cache2.Filename);
+end;
+
+function ComparePas2jsCacheDirectories(Dir1, Dir2: Pointer): integer;
+var
+  Directory1: TPas2jsCachedDirectory absolute Dir1;
+  Directory2: TPas2jsCachedDirectory absolute Dir2;
+begin
+  Result:=CompareFilenames(Directory1.Path,Directory2.Path);
+end;
+
+function CompareAnsiStringWithDirectoryCache(Path, DirCache: Pointer): integer;
+var
+  Directory: TPas2jsCachedDirectory absolute DirCache;
+begin
+  Result:=CompareFilenames(AnsiString(Path),Directory.Path);
+end;
+
+function ComparePas2jsDirectoryEntries(Entry1, Entry2: Pointer): integer;
+var
+  E1: TPas2jsCachedDirectoryEntry absolute Entry1;
+  E2: TPas2jsCachedDirectoryEntry absolute Entry2;
+begin
+  Result:=CompareFirstCaseInsThenSensitive(E1.Name,E2.Name);
+end;
+
+function CompareFirstCaseInsThenSensitive(const s, h: string): integer;
+begin
+  Result:=CompareText(s,h);
+  if Result<>0 then exit;
+  Result:=CompareStr(s,h);
 end;
 
 function ConvertTextToUTF8(const Src: string; var SrcEncoding: string): string;
@@ -301,6 +444,470 @@ begin
   Result:=s;
   if not HasUTF8BOM(Result) then exit;
   Delete(Result,1,3);
+end;
+
+{ TPas2jsCachedDirectory }
+
+function TPas2jsCachedDirectory.GetEntries(Index: integer
+  ): TPas2jsCachedDirectoryEntry;
+begin
+  Result:=TPas2jsCachedDirectoryEntry(FEntries[Index]);
+end;
+
+procedure TPas2jsCachedDirectory.SetSorted(const AValue: boolean);
+begin
+  if FSorted=AValue then Exit;
+  FSorted:=AValue;
+  if not FSorted then exit;
+  FEntries.Sort(@ComparePas2jsDirectoryEntries); // sort descending
+end;
+
+constructor TPas2jsCachedDirectory.Create(aPath: string;
+  aPool: TPas2jsCachedDirectories);
+begin
+  FRefCount:=1;
+  FPath:=IncludeTrailingPathDelimiter(aPath);
+  FEntries:=TFPList.Create;
+  FPool:=aPool;
+end;
+
+destructor TPas2jsCachedDirectory.Destroy;
+begin
+  FreeAndNil(FEntries);
+  inherited Destroy;
+end;
+
+function TPas2jsCachedDirectory.Count: integer;
+begin
+  Result:=FEntries.Count;
+end;
+
+procedure TPas2jsCachedDirectory.Clear;
+var
+  i: Integer;
+begin
+  for i:=0 to FEntries.Count-1 do
+    TObject(FEntries[i]).Free;
+  FEntries.Clear;
+  FSorted:=true;
+end;
+
+function TPas2jsCachedDirectory.NeedsUpdate: boolean;
+begin
+  Result:=(Pool.ChangeStamp<>FChangeStamp) or (FChangeStamp=InvalidChangeStamp);
+end;
+
+procedure TPas2jsCachedDirectory.Update;
+var
+  Info: TUnicodeSearchRec;
+begin
+  if not NeedsUpdate then exit;
+  FChangeStamp:=Pool.ChangeStamp;
+  Clear;
+
+  // Note: do not add a 'if not DirectoryExists then exit'.
+  // This will not work on automounted directories. You must use FindFirst.
+
+  if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then begin
+    repeat
+      // check if special file
+      if (Info.Name='.') or (Info.Name='..') or (Info.Name='')
+      then
+        continue;
+      // add file
+      Add(String(Info.Name),Info.Time,Info.Attr,Info.Size);
+    until FindNext(Info)<>0;
+  end;
+  FindClose(Info);
+  Sorted:=true;
+  {$IFDEF VerbosePas2JSDirCache}
+  writeln('TPas2jsCachedDirectories.Update "',Path,'" Count=',Count);
+  CheckConsistency;
+  {$ENDIF}
+end;
+
+procedure TPas2jsCachedDirectory.Reference;
+begin
+  inc(FRefCount);
+end;
+
+procedure TPas2jsCachedDirectory.Release;
+begin
+  if FRefCount<1 then
+    raise Exception.Create('TPas2jsCachedDirectory.Release "'+Path+'"');
+  dec(FRefCount);
+  if FRefCount=0 then Free;
+end;
+
+function TPas2jsCachedDirectory.Add(const Name: string;
+  Time: TPas2jsFileAgeTime; Attr: TPas2jsFileAttr; Size: TPas2jsFileSize
+  ): TPas2jsCachedDirectoryEntry;
+begin
+  Result:=TPas2jsCachedDirectoryEntry.Create;
+  Result.Name:=Name;
+  Result.Time:=Time;
+  Result.Attr:=Attr;
+  Result.Size:=Size;
+  FEntries.Add(Result);
+  FSorted:=false;
+end;
+
+function TPas2jsCachedDirectory.FindFile(const ShortFilename: string;
+  const FileCase: TPas2jsSearchFileCase): string;
+var
+  i: Integer;
+begin
+  case FileCase of
+    sfcCaseSensitive: i:=IndexOfFileCaseSensitive(ShortFilename);
+    sfcCaseInsensitive: i:=IndexOfFileCaseInsensitive(ShortFilename);
+  else
+    i:=IndexOfFile(ShortFilename);
+  end;
+  if i>=0 then
+    Result:=Entries[i].Name
+  else
+    Result:='';
+end;
+
+function TPas2jsCachedDirectory.FileAge(const ShortFilename: string
+  ): TPas2jsFileAgeTime;
+var
+  i: Integer;
+begin
+  i:=IndexOfFile(ShortFilename);
+  if i>=0 then
+    Result:=Entries[i].Time
+  else
+    Result:=-1;
+end;
+
+function TPas2jsCachedDirectory.FileAttr(const ShortFilename: string
+  ): TPas2jsFileAttr;
+var
+  i: Integer;
+begin
+  i:=IndexOfFile(ShortFilename);
+  if i>=0 then
+    Result:=Entries[i].Attr
+  else
+    Result:=0;
+end;
+
+function TPas2jsCachedDirectory.FileSize(const ShortFilename: string
+  ): TPas2jsFileSize;
+var
+  i: Integer;
+begin
+  i:=IndexOfFile(ShortFilename);
+  if i>=0 then
+    Result:=Entries[i].Size
+  else
+    Result:=-1;
+end;
+
+function TPas2jsCachedDirectory.IndexOfFileCaseInsensitive(
+  const ShortFilename: String): integer;
+var
+  l, r, cmp, m: Integer;
+  Entry: TPas2jsCachedDirectoryEntry;
+begin
+  Sorted:=true;
+  l:=0;
+  r:=Count-1;
+  while l<=r do begin
+    m:=(l+r) shr 1;
+    Entry:=Entries[m];
+    cmp:=CompareText(Entry.Name,ShortFilename);
+    if cmp>0 then
+      r:=m-1
+    else if cmp<0 then
+      l:=m+1
+    else
+      exit(m);
+  end;
+  Result:=-1;
+end;
+
+function TPas2jsCachedDirectory.IndexOfFileCaseSensitive(
+  const ShortFilename: String): integer;
+var
+  l, r, cmp, m: Integer;
+  Entry: TPas2jsCachedDirectoryEntry;
+begin
+  Sorted:=true;
+  l:=0;
+  r:=Count-1;
+  while l<=r do begin
+    m:=(l+r) shr 1;
+    Entry:=Entries[m];
+    cmp:=CompareFirstCaseInsThenSensitive(Entry.Name,ShortFilename);
+    if cmp>0 then
+      r:=m-1
+    else if cmp<0 then
+      l:=m+1
+    else
+      exit(m);
+  end;
+  Result:=-1;
+end;
+
+function TPas2jsCachedDirectory.IndexOfFile(const ShortFilename: String
+  ): integer;
+begin
+  {$IFDEF CaseInsensitiveFilenames}
+  Result:=IndexOfFileCaseInsensitive(ShortFilename);
+  {$ELSE}
+  Result:=IndexOfFileCaseSensitive(ShortFilename);
+  {$ENDIF}
+end;
+
+procedure TPas2jsCachedDirectory.GetFiles(var Files: TStrings;
+  IncludeDirs: boolean);
+var
+  i: Integer;
+  Entry: TPas2jsCachedDirectoryEntry;
+begin
+  if Files=nil then
+    Files:=TStringList.Create;
+  if (Self=nil) or (Path='') then exit;
+  Update;
+  for i:=0 to Count-1 do begin
+    Entry:=Entries[i];
+    if IncludeDirs or ((Entry.Attr and faDirectory)=0) then
+      Files.Add(Entry.Name);
+  end;
+end;
+
+procedure TPas2jsCachedDirectory.CheckConsistency;
+
+  procedure E(Msg: string);
+  begin
+    WriteDebugReport;
+    writeln('TPas2jsCachedDirectory.CheckConsistency Failed for "',Path,'": '+Msg);
+  end;
+
+var
+  i, cmp, j: Integer;
+  Entry, LastEntry: TPas2jsCachedDirectoryEntry;
+begin
+  if Path<>IncludeTrailingPathDelimiter(Path) then
+    E('Path<>IncludeTrailingPathDelimiter(Path)');
+  LastEntry:=nil;
+  for i:=0 to Count-1 do begin
+    Entry:=Entries[i];
+    if (Entry.Name='') or (Entry.Name='.') or (Entry.Name='..') then
+      E('invalid entry "'+Entry.Name+'"');
+    if (Entry.Size<0) then
+      E('invalid size "'+Entry.Name+'" '+IntToStr(Entry.Size));
+    if Sorted then begin
+      if (LastEntry<>nil) then begin
+        if LastEntry.Name=Entry.Name then
+          E('duplicate "'+Entry.Name+'"');
+        cmp:=CompareText(LastEntry.Name,Entry.Name);
+        if cmp>0 then
+          E('sorted wrong case insensitive "'+LastEntry.Name+'" "'+Entry.Name+'"');
+        if (cmp=0) and (CompareStr(LastEntry.Name,Entry.Name)>0) then
+          E('sorted wrong case sensitive "'+LastEntry.Name+'" "'+Entry.Name+'"');
+      end;
+      j:=IndexOfFileCaseSensitive(Entry.Name);
+      if i<>j then
+        E('IndexOfFileCaseSensitive failed "'+Entry.Name+'" expected '+IntToStr(i)+', but was '+IntToStr(j));
+    end;
+    LastEntry:=Entry;
+  end;
+end;
+
+procedure TPas2jsCachedDirectory.WriteDebugReport;
+var
+  i: Integer;
+  Entry: TPas2jsCachedDirectoryEntry;
+begin
+  writeln('TPas2jsCachedDirectory.WriteDebugReport Count=',Count,' Path="',Path,'"');
+  for i:=0 to Count-1 do begin
+    Entry:=Entries[i];
+    writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',DateTimeToStr(FileDateToDateTime(Entry.Time)),' Dir=',faDirectory and Entry.Attr>0);
+  end;
+end;
+
+{ TPas2jsCachedDirectories }
+
+function TPas2jsCachedDirectories.GetFileInfo(var Info: TFileInfo): boolean;
+begin
+  Info.Filename:=ChompPathDelim(ResolveDots(Info.Filename));
+  if Info.Filename='' then exit(false);
+  if not FilenameIsAbsolute(Info.Filename) then
+    Info.Filename:=WorkingDirectory+Info.Filename;
+  Info.ShortFilename:=ExtractFilename(Info.Filename);
+  Info.DirPath:=ExtractFilePath(Info.Filename);
+  if (Info.ShortFilename<>'') and (Info.ShortFilename<>'.') and (Info.ShortFilename<>'..')
+  then begin
+    Info.Dir:=GetDirectory(Info.DirPath,true,false);
+  end else begin
+    Info.Dir:=nil;
+  end;
+  Result:=true;
+end;
+
+procedure TPas2jsCachedDirectories.SetWorkingDirectory(const AValue: string);
+begin
+  FWorkingDirectory:=IncludeTrailingPathDelimiter(ResolveDots(AValue));
+end;
+
+constructor TPas2jsCachedDirectories.Create;
+begin
+  IncreaseChangeStamp(FChangeStamp);
+  FDirectories:=TAVLTree.Create(@ComparePas2jsCacheDirectories);
+end;
+
+destructor TPas2jsCachedDirectories.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+procedure TPas2jsCachedDirectories.Invalidate;
+begin
+  IncreaseChangeStamp(FChangeStamp);
+end;
+
+procedure TPas2jsCachedDirectories.Clear;
+var
+  Node: TAVLTreeNode;
+  Dir: TPas2jsCachedDirectory;
+begin
+  Node:=FDirectories.FindLowest;
+  while Node<>nil do begin
+    Dir:=TPas2jsCachedDirectory(Node.Data);
+    if Dir.FRefCount<>1 then
+      raise Exception.Create('TPas2jsCachedDirectories.Clear "'+Dir.Path+'" '+IntToStr(Dir.FRefCount));
+    Dir.Release;
+    Node.Data:=nil;
+    Node:=FDirectories.FindSuccessor(Node);
+  end;
+  FDirectories.Clear;
+end;
+
+function TPas2jsCachedDirectories.DirectoryExists(Filename: string): boolean;
+var
+  Info: TFileInfo;
+begin
+  Info.Filename:=Filename;
+  if not GetFileInfo(Info) then exit(false);
+  if Info.Dir<>nil then
+    Result:=(Info.Dir.FileAttr(Info.ShortFilename) and faDirectory)>0
+  else
+    Result:=SysUtils.DirectoryExists(Info.Filename);
+end;
+
+function TPas2jsCachedDirectories.FileExists(Filename: string): boolean;
+var
+  Info: TFileInfo;
+begin
+  Info.Filename:=Filename;
+  if not GetFileInfo(Info) then exit(false);
+  if Info.Dir<>nil then
+    Result:=Info.Dir.IndexOfFile(Info.ShortFilename)>=0
+  else
+    Result:=SysUtils.FileExists(Info.Filename);
+end;
+
+function TPas2jsCachedDirectories.FileAge(Filename: string): TPas2jsFileAgeTime;
+var
+  Info: TFileInfo;
+begin
+  Info.Filename:=Filename;
+  if GetFileInfo(Info) and (Info.Dir<>nil) then
+    Result:=Info.Dir.FileAge(Info.ShortFilename)
+  else
+    Result:=-1;
+end;
+
+function TPas2jsCachedDirectories.FileAttr(Filename: string): TPas2jsFileAttr;
+var
+  Info: TFileInfo;
+begin
+  Info.Filename:=Filename;
+  if GetFileInfo(Info) and (Info.Dir<>nil) then
+    Result:=Info.Dir.FileAttr(Info.ShortFilename)
+  else
+    Result:=0;
+end;
+
+function TPas2jsCachedDirectories.FileSize(Filename: string): TPas2jsFileSize;
+var
+  Info: TFileInfo;
+begin
+  Info.Filename:=Filename;
+  if GetFileInfo(Info) and (Info.Dir<>nil) then
+    Result:=Info.Dir.FileSize(Info.ShortFilename)
+  else
+    Result:=-1;
+end;
+
+function TPas2jsCachedDirectories.FindDiskFilename(const Filename: string;
+  SearchCaseInsensitive: boolean): string;
+var
+  ADirectory: String;
+  Cache: TPas2jsCachedDirectory;
+  DiskShortFilename: String;
+begin
+  Result:=ChompPathDelim(ResolveDots(Filename));
+  if Result='' then exit;
+  //debugln(['TPas2jsCachedDirectories.FindDiskFilename Filename=',Result]);
+  {$IF defined(NotLiteralFilenames) or defined(CaseInsensitiveFilenames)}
+  {$ELSE}
+  if (not SearchCaseInsensitive) then exit;
+  {$ENDIF}
+  ADirectory:=ExtractFilePath(Result);
+  if ADirectory=Result then
+    exit; // root directory, e.g. / under Linux or C: under Windows
+  if SearchCaseInsensitive then
+    // search recursively all directory parts
+    ADirectory:=IncludeTrailingPathDelimiter(FindDiskFilename(ADirectory,true));
+  Cache:=GetDirectory(ADirectory,true,false);
+  //debugln(['TPas2jsCachedDirectories.FindDiskFilename Dir=',Cache.Directory]);
+  Result:=ExtractFileName(Result);
+  DiskShortFilename:=Cache.FindFile(Result,sfcCaseInsensitive);
+  //debugln(['TPas2jsCachedDirectories.FindDiskFilename DiskShortFilename=',DiskShortFilename]);
+  if DiskShortFilename<>'' then Result:=DiskShortFilename;
+  Result:=Cache.Path+Result;
+end;
+
+procedure TPas2jsCachedDirectories.GetListing(const aDirectory: string;
+  var Files: TStrings; IncludeDirs: boolean);
+begin
+  GetDirectory(aDirectory,true,false).GetFiles(Files,IncludeDirs);
+end;
+
+function TPas2jsCachedDirectories.GetDirectory(const Directory: string;
+  CreateIfNotExists: boolean; DoReference: boolean): TPas2jsCachedDirectory;
+var
+  Dir: String;
+  Node: TAVLTreeNode;
+begin
+  Dir:=ResolveDots(Directory);
+  if not FilenameIsAbsolute(Dir) then
+    Dir:=WorkingDirectory+Dir;
+  Dir:=IncludeTrailingPathDelimiter(Dir);
+  Node:=FDirectories.FindKey(Pointer(Dir),@CompareAnsiStringWithDirectoryCache);
+  if Node<>nil then begin
+    Result:=TPas2jsCachedDirectory(Node.Data);
+    if DoReference then
+      Result.Reference;
+  end else if DoReference or CreateIfNotExists then begin
+    {$IFDEF VerbosePas2JSDirCache}
+    writeln('TPas2jsCachedDirectories.GetDirectory "',Dir,'"');
+    {$ENDIF}
+    {$IFDEF CaseInsensitiveFilenames}
+    Dir:=IncludeTrailingPathDelimiter(FindDiskFilename(ChompPathDelim(Dir)));
+    {$ENDIF}
+    Result:=TPas2jsCachedDirectory.Create(Dir,Self);
+    FDirectories.Add(Result);
+    if DoReference then
+      Result.Reference;
+    Result.Update;
+  end else
+    Result:=nil;
 end;
 
 { TPas2jsFileLineReader }
@@ -411,7 +1018,7 @@ begin
     {$IFDEF VerboseFileCache}
     writeln('TPas2jsCachedFile.Load CHECK FILEAGE "',Filename,'"');
     {$ENDIF}
-    if LoadedFileAge=FileAge(Filename) then
+    if LoadedFileAge=Cache.DirectoryCache.FileAge(Filename) then
       exit(true);
   end;
   {$IFDEF VerboseFileCache}
@@ -419,11 +1026,11 @@ begin
   {$ENDIF}
   // needs (re)load
   Result:=false;
-  if not FileExists(Filename) then begin
+  if not Cache.DirectoryCache.FileExists(Filename) then begin
     Err('File not found "'+Filename+'"');
     exit;
   end;
-  if DirectoryExists(Filename) then begin
+  if Cache.DirectoryCache.DirectoryExists(Filename) then begin
     Err('File is a directory "'+Filename+'"');
     exit;
   end;
@@ -435,7 +1042,7 @@ begin
   FSource:=ConvertTextToUTF8(NewSource,FFileEncoding);
   FLoaded:=true;
   FCacheStamp:=Cache.ResetStamp;
-  FLoadedFileAge:=FileAge(Filename);
+  FLoadedFileAge:=Cache.DirectoryCache.FileAge(Filename);
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load END ',Filename,' FFileEncoding=',FFileEncoding);
   {$ENDIF}
@@ -485,8 +1092,8 @@ function TPas2jsFileResolver.FindIncludeFileName(const aFilename: string): Strin
       if SearchLowUpCase(Result) then exit;
       end;
     // then search in include path
-    for i:=0 to IncludePaths.Count-1 do begin
-      Result:=IncludePaths[i]+Filename;
+    for i:=0 to Cache.IncludePaths.Count-1 do begin
+      Result:=Cache.IncludePaths[i]+Filename;
       if SearchLowUpCase(Result) then exit;
     end;
     Result:='';
@@ -527,7 +1134,7 @@ end;
 function TPas2jsFileResolver.FindSourceFile(const aFilename: string): TLineReader;
 begin
   Result:=nil;
-  if not FileExists(aFilename) then
+  if not Cache.DirectoryCache.FileExists(aFilename) then
     raise EFileNotFoundError.Create(aFilename)
   else
     Result:=Cache.LoadTextFile(aFilename).CreateLineReader(false);
@@ -643,7 +1250,7 @@ end;
 
 function TPas2jsFileResolver.FileExistsLogged(const Filename: string): boolean;
 begin
-  Result:=FileExists(Filename);
+  Result:=Cache.DirectoryCache.FileExists(Filename);
   if Cache.ShowTriedUsedFiles then
     if Result then
       Cache.Log.LogMsgIgnoreFilter(nSearchingFileFound,[Cache.FormatPath(Filename)])
@@ -711,6 +1318,7 @@ begin
   AValue:=ExpandDirectory(AValue);
   if FBaseDirectory=AValue then Exit;
   FBaseDirectory:=AValue;
+  DirectoryCache.WorkingDirectory:=BaseDirectory;
 end;
 
 function TPas2jsFilesCache.AddSearchPaths(const Paths: string;
@@ -901,6 +1509,7 @@ begin
   FNamespaces:=TStringList.Create;
   FUnitPaths:=TStringList.Create;
   FFiles:=TAVLTree.Create(@CompareCachedFiles);
+  FDirectoryCache:=TPas2jsCachedDirectories.Create;
   RegisterMessages;
 end;
 
@@ -908,6 +1517,7 @@ destructor TPas2jsFilesCache.Destroy;
 begin
   FLog:=nil;
   FFiles.FreeAndClear;
+  FreeAndNil(FDirectoryCache);
   FreeAndNil(FFiles);
   FreeAndNil(FInsertFilenames);
   FreeAndNil(FIncludePaths);
@@ -920,6 +1530,7 @@ end;
 procedure TPas2jsFilesCache.Reset;
 begin
   IncreaseChangeStamp(FResetStamp);
+  FDirectoryCache.Invalidate;
   FOptions:=DefaultPas2jsFileCacheOptions;
   FMainJSFile:='';
   FMainSrcFile:='';
@@ -1086,6 +1697,12 @@ begin
   i:=IndexOfInsertFilename(aFilename);
   if i>=0 then
     InsertFilenames.Delete(i);
+end;
+
+procedure TPas2jsFilesCache.GetListing(const aDirectory: string;
+  var Files: TStrings; FullPaths: boolean);
+begin
+  DirectoryCache.GetDirectory(aDirectory,true,false).GetFiles(Files,FullPaths);
 end;
 
 end.

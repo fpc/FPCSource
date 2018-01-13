@@ -293,6 +293,7 @@ type
     FCurrentCfgFilename: string;
     FCurrentCfgLineNumber: integer;
     FDefines: TStrings; // Objects can be TMacroDef
+    FDirectoryCache: TPas2jsCachedDirectories;
     FFileCache: TPas2jsFilesCache;
     FFileCacheAutoFree: boolean;
     FFiles: TAVLTree; // tree of TPas2jsCompilerFile sorted for PasFilename
@@ -407,6 +408,7 @@ type
     property CurrentCfgLineNumber: integer read FCurrentCfgLineNumber;
     property DefaultNamespace: String read GetDefaultNamespace;
     property Defines: TStrings read FDefines;
+    property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property FileCache: TPas2jsFilesCache read FFileCache write SetFileCache;
     property FileCacheAutoFree: boolean read FFileCacheAutoFree write FFileCacheAutoFree;
     property FileCount: integer read GetFileCount;
@@ -1472,10 +1474,11 @@ begin
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'-B'])
     else if FileCache.AllJSIntoMainJS then
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'-Jc'])
-    else if (aFile.JSFilename<>'') and (not FileExists(aFile.JSFilename)) then
+    else if (aFile.JSFilename<>'') and (not DirectoryCache.FileExists(aFile.JSFilename)) then
       Mark(nUnitNeedsCompileJSMissing,[aFile.GetModuleName,FileCache.FormatPath(aFile.JSFilename)])
     else if (aFile.JSFilename<>'')
-    and (FileAge(aFile.PasFilename)>FileAge(aFile.JSFilename)) then begin
+    and (DirectoryCache.FileAge(aFile.PasFilename)>DirectoryCache.FileAge(aFile.JSFilename))
+    then begin
       // ToDo: replace FileAge with checksum
       Mark(nUnitNeedsCompilePasHasChanged,[aFile.GetModuleName,FileCache.FormatPath(aFile.JSFilename)])
     end;
@@ -2043,7 +2046,7 @@ procedure TPas2jsCompiler.LoadDefaultConfig;
     aFilename:=ExpandFileNameUTF8(aFilename);
     if ShowTriedUsedFiles then
       Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
-    if not FileExists(aFilename) then exit;
+    if not DirectoryCache.FileExists(aFilename) then exit;
     Result:=true;
     LoadConfig(aFilename);
   end;
@@ -2425,7 +2428,7 @@ begin
       if aFilename='' then
         ParamFatal('invalid config file at param position '+IntToStr(i));
       aFilename:=ExpandFileNameUTF8(aFilename);
-      if not FileExists(aFilename) then
+      if not DirectoryCache.FileExists(aFilename) then
         ParamFatal('config file not found: "'+copy(Param,2,length(Param))+'"');
       LoadConfig(aFilename);
     end;
@@ -2437,7 +2440,7 @@ begin
       if FileCache.MainSrcFile<>'' then
         ParamFatal('Two Pascal files. Only one Pascal file is supported.');
       aFilename:=ExpandFileNameUTF8(Param);
-      if not FileExists(aFilename) then
+      if not DirectoryCache.FileExists(aFilename) then
         ParamFatal('Pascal file not found: "'+Param+'"');
       FileCache.MainSrcFile:=aFilename;
     end;
@@ -2724,8 +2727,12 @@ begin
   RegisterMessages;
 
   FFileCache:=TPas2jsFilesCache.Create(Log);
+  FFileCache.BaseDirectory:=GetCurrentDirUTF8;
   FFileCacheAutoFree:=true;
+  FDirectoryCache:=FFileCache.DirectoryCache;
   FLog.OnFormatPath:=@FileCache.FormatPath;
+
+  FDirectoryCache.GetDirectory('/home/mattias/pascal/mypas2js/examples/',true,false).CheckConsistency;
 
   FDefines:=TStringList.Create;
   // Done by Reset: TStringList(FDefines).Sorted:=True;
@@ -2761,6 +2768,7 @@ begin
     FreeAndNil(FFileCache)
   else
     FFileCache:=nil;
+  FDirectoryCache:=nil;
 
   FreeAndNil(FParamMacros);
   FreeAndNil(FLog);
@@ -3243,7 +3251,7 @@ begin
   aFile:=FindPasFile(PasFilename);
   if aFile<>nil then exit;
 
-  if (PasFilename='') or not FileExists(PasFilename) then begin
+  if (PasFilename='') or not DirectoryCache.FileExists(PasFilename) then begin
     Log.LogMsg(nSourceFileNotFound,[PasFilename]);
     Terminate(ExitCodeFileNotFound);
   end;
