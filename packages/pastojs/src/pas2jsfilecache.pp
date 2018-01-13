@@ -57,6 +57,8 @@ type
     FSorted: boolean;
     function GetEntries(Index: integer): TPas2jsCachedDirectoryEntry;
     procedure SetSorted(const AValue: boolean);
+  protected
+    procedure DoReadDir; virtual;
   public
     constructor Create(aPath: string; aPool: TPas2jsCachedDirectories);
     destructor Destroy; override;
@@ -89,6 +91,8 @@ type
     property Sorted: boolean read FSorted write SetSorted; // descending, sort first case insensitive, then sensitive
   end;
 
+  TReadDirectoryEvent = function(Dir: TPas2jsCachedDirectory): boolean of object;// true = skip default function
+
   { TPas2jsCachedDirectories }
 
   TPas2jsCachedDirectories = class
@@ -97,6 +101,7 @@ type
     FDirectories: TAVLTree;// tree of TPas2jsCachedDirectory sorted by Directory
     FWorkingDirectory: string;
   private
+    FOnReadDirectory: TReadDirectoryEvent;
     type
       TFileInfo = record
         Filename: string;
@@ -126,6 +131,7 @@ type
                       CreateIfNotExists: boolean = true;
                       DoReference: boolean = true): TPas2jsCachedDirectory;
     property WorkingDirectory: string read FWorkingDirectory write SetWorkingDirectory; // used for relative filenames, contains trailing path delimiter
+    property OnReadDirectory: TReadDirectoryEvent read FOnReadDirectory write FOnReadDirectory;
   end;
 
 type
@@ -463,6 +469,28 @@ begin
   FEntries.Sort(@ComparePas2jsDirectoryEntries); // sort descending
 end;
 
+procedure TPas2jsCachedDirectory.DoReadDir;
+var
+  Info: TUnicodeSearchRec;
+begin
+  if Assigned(Pool.OnReadDirectory) then
+    if Pool.OnReadDirectory(Self) then exit;
+
+  // Note: do not add a 'if not DirectoryExists then exit'.
+  // This will not work on automounted directories. You must use FindFirst.
+  if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then begin
+    repeat
+      // check if special file
+      if (Info.Name='.') or (Info.Name='..') or (Info.Name='')
+      then
+        continue;
+      // add file
+      Add(String(Info.Name),Info.Time,Info.Attr,Info.Size);
+    until FindNext(Info)<>0;
+  end;
+  FindClose(Info);
+end;
+
 constructor TPas2jsCachedDirectory.Create(aPath: string;
   aPool: TPas2jsCachedDirectories);
 begin
@@ -499,27 +527,11 @@ begin
 end;
 
 procedure TPas2jsCachedDirectory.Update;
-var
-  Info: TUnicodeSearchRec;
 begin
   if not NeedsUpdate then exit;
-  FChangeStamp:=Pool.ChangeStamp;
   Clear;
-
-  // Note: do not add a 'if not DirectoryExists then exit'.
-  // This will not work on automounted directories. You must use FindFirst.
-
-  if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then begin
-    repeat
-      // check if special file
-      if (Info.Name='.') or (Info.Name='..') or (Info.Name='')
-      then
-        continue;
-      // add file
-      Add(String(Info.Name),Info.Time,Info.Attr,Info.Size);
-    until FindNext(Info)<>0;
-  end;
-  FindClose(Info);
+  DoReadDir;
+  FChangeStamp:=Pool.ChangeStamp;
   Sorted:=true;
   {$IFDEF VerbosePas2JSDirCache}
   writeln('TPas2jsCachedDirectories.Update "',Path,'" Count=',Count);
