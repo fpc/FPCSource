@@ -63,7 +63,7 @@ interface
         * save the scanner state before calling this routine, and restore when done.
         * the code *must* be written in objfpc style
   }
-  function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
+  function str_parse_method_impl(const str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
 
   { parses a typed constant assignment to ssym
 
@@ -232,7 +232,7 @@ implementation
     end;
 
 
-  function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
+  function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean):boolean;
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
@@ -253,9 +253,10 @@ implementation
       oldparse_only:=parse_only;
       parse_only:=false;
       result:=false;
-      { inject the string in the scanner }
+      { "const" starts a new kind of block and hence makes the scanner return }
       str:=str+'const;';
-      current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
+      { inject the string in the scanner }
+      current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),lineno,fileno);
       current_scanner.readtoken(false);
       { and parse it... }
       read_proc(is_classdef,usefwpd,false);
@@ -266,6 +267,12 @@ implementation
       current_scanner.tempopeninputfile;
       result:=true;
      end;
+
+
+  function str_parse_method_impl(const str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
+    begin
+      result:=str_parse_method_impl_with_fileinfo(str, usefwpd, current_scanner.inputfile.ref_index, current_scanner.line_no, is_classdef);
+    end;
 
 
   procedure str_parse_typedconst(list: TAsmList; str: ansistring; ssym: tstaticvarsym);
@@ -968,6 +975,7 @@ implementation
       wrapperinfo: pskpara_interface_wrapper;
       callthroughpd: tprocdef;
       str: ansistring;
+      fileinfo: tfileposinfo;
     begin
       wrapperinfo:=pskpara_interface_wrapper(pd.skpara);
       if not assigned(wrapperinfo) then
@@ -983,7 +991,17 @@ implementation
       str:=str+callthroughpd.procsym.realname+'(';
       addvisibibleparameters(str,callthroughpd);
       str:=str+') end;';
-      str_parse_method_impl(str,pd,false);
+      { add dummy file info so we can step in/through it }
+      if pd.owner.iscurrentunit then
+        fileinfo:=pd.fileinfo
+      else
+        begin
+          fileinfo.moduleindex:=current_module.moduleid;
+          fileinfo.fileindex:=1;
+          fileinfo.line:=1;
+          fileinfo.column:=1;
+        end;
+      str_parse_method_impl_with_fileinfo(str,pd,fileinfo.fileindex,fileinfo.line,false);
       dispose(wrapperinfo);
       pd.skpara:=nil;
     end;

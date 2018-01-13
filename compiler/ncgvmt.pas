@@ -118,7 +118,7 @@ implementation
       wpobase,
       cgbase,parabase,paramgr,
 {$ifndef cpuhighleveltarget}
-      hlcgobj,hlcgcpu,
+      hlcgobj,hlcgcpu,dbgbase,
 {$endif not cpuhighleveltarget}
       ncgrtti;
 
@@ -1272,6 +1272,9 @@ implementation
 {$ifdef cpuhighleveltarget}
         wrapperpd: tprocdef;
         wrapperinfo: pskpara_interface_wrapper;
+{$else}
+       tmplist: tasmlist;
+       oldfileposinfo: tfileposinfo;
 {$endif cpuhighleveltarget}
       begin
         for i:=0 to _class.ImplementedInterfaces.count-1 do
@@ -1301,12 +1304,31 @@ implementation
                     wrapperpd:=create_procdef_alias(pd,tmps,tmps,
                       current_module.localsymtable,_class,
                       tsk_interface_wrapper,wrapperinfo);
+                    include(wrapperpd.procoptions,po_noreturn);
 {$else cpuhighleveltarget}
+                    oldfileposinfo:=current_filepos;
+                    if pd.owner.iscurrentunit then
+                      current_filepos:=pd.fileinfo
+                    else
+                      begin
+                        current_filepos.moduleindex:=1;
+                        current_filepos.fileindex:=1;
+                        current_filepos.line:=1;
+                        current_filepos.column:=1;
+                      end;
                     { create wrapper code }
-                    new_section(list,sec_code,tmps,target_info.alignment.procalign);
+                    tmplist:=tasmlist.create;
+                    new_section(tmplist,sec_code,tmps,target_info.alignment.procalign);
+                    tmplist.Concat(tai_function_name.create(pd.procsym.RealName));
                     hlcg.init_register_allocators;
-                    hlcg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
+                    hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
+                    if (cs_debuginfo in current_settings.moduleswitches) or
+                       (cs_use_lineinfo in current_settings.globalswitches) then
+                      current_debuginfo.insertlineinfo(tmplist);
+                    list.concatlist(tmplist);
+                    tmplist.Free;
+                    current_filepos:=oldfileposinfo;
 {$endif cpuhighleveltarget}
                   end;
               end;
@@ -1347,7 +1369,7 @@ implementation
                       include(def.defstates,ds_vmt_written);
                     end;
                   if is_class(def) then
-                    gen_intf_wrapper(current_asmdata.asmlists[al_globals],tobjectdef(def));
+                    gen_intf_wrapper(current_asmdata.asmlists[al_procedures],tobjectdef(def));
                 end;
               procdef :
                 begin
