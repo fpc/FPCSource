@@ -205,6 +205,9 @@ interface
     {# Returns true if p is a short string type }
     function is_shortstring(p : tdef) : boolean;
 
+    {# Returns true if p is any pointer def }
+    function is_pointer(p : tdef) : boolean;
+
     {# Returns true if p is a pchar def }
     function is_pchar(p : tdef) : boolean;
 
@@ -854,6 +857,12 @@ implementation
       begin
         is_open_widechararray:= is_open_array(p) and
                                 is_widechar(tarraydef(p).elementdef);
+      end;
+
+    { true if p is any pointer def }
+    function is_pointer(p : tdef) : boolean;
+      begin
+        is_pointer:=(p.typ=pointerdef);
       end;
 
     { true if p is a pchar def }

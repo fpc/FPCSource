@@ -13441,6 +13441,7 @@ tests/test/tprocvar3.pp svneol=native#text/plain
 tests/test/tprop.pp svneol=native#text/plain
 tests/test/tprop1.pp svneol=native#text/plain
 tests/test/tprop2.pp svneol=native#text/plain
+tests/test/tpropdef.pp svneol=native#text/plain
 tests/test/trange1.pp svneol=native#text/plain
 tests/test/trange2.pp svneol=native#text/plain
 tests/test/trange3.pp svneol=native#text/plain

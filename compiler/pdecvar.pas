@@ -222,6 +222,15 @@ implementation
              end;
           end;
 
+          function has_implicit_default(p : tpropertysym) : boolean;
+
+          begin
+             has_implicit_default:=
+               (is_string(p.propdef) or
+               is_real(p.propdef) or
+               is_pointer(p.propdef));
+          end;
+
           function allow_default_property(p : tpropertysym) : boolean;
 
           begin
@@ -655,6 +664,10 @@ implementation
                      end;
                   end;
               end;
+           end;
+         if has_implicit_default(p) then
+           begin
+              p.default:=0;
            end;
          if not is_record(astruct) and try_to_consume(_DEFAULT) then
            begin

@@ -944,7 +944,7 @@ begin
           DefValue :=PPropInfo(PropInfo)^.Default;
           DefFloatValue:=PSingle(@PPropInfo(PropInfo)^.Default)^;
           end;
-        if (FloatValue<>DefFloatValue) or (DefValue=longint($80000000)) then
+        if (FloatValue<>DefFloatValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteFloat(FloatValue);
@@ -985,9 +985,12 @@ begin
         if HasAncestor then
           DefStrValue := GetStrProp(Ancestor, PropInfo)
         else
+        begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
           SetLength(DefStrValue, 0);
+        end;
 
-        if StrValue <> DefStrValue then
+        if (StrValue<>DefStrValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           if Assigned(FOnWriteStringProperty) then
@@ -1002,9 +1005,12 @@ begin
         if HasAncestor then
           WDefStrValue := GetWideStrProp(Ancestor, PropInfo)
         else
+        begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
           SetLength(WDefStrValue, 0);
+        end;
 
-        if WStrValue <> WDefStrValue then
+        if (WStrValue<>WDefStrValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteWideString(WStrValue);
@@ -1017,9 +1023,12 @@ begin
         if HasAncestor then
           UDefStrValue := GetUnicodeStrProp(Ancestor, PropInfo)
         else
+        begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
           SetLength(UDefStrValue, 0);
+        end;
 
-        if UStrValue <> UDefStrValue then
+        if (UStrValue<>UDefStrValue) or (not HasAncestor and (DefValue=longint($80000000))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteUnicodeString(UStrValue);
