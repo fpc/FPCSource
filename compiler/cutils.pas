@@ -910,7 +910,7 @@ implementation
       return if value is a power of 2. And if correct return the power
     }
       begin
-        if (value = 0) or (value and (value - 1) <> 0) then
+        if (value <= 0) or (value and (value - 1) <> 0) then
           exit(false);
         power:=BsfQWord(value);
         result:=true;
