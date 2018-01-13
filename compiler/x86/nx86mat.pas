@@ -514,34 +514,13 @@ interface
                           both use an ALU for their execution and take a single cycle to
                           run. The only difference is that SETAE does not modify the flags,
                           allowing for some possible reuse. [Kit] }
-{$ifdef x86_64}
+
                         { Emit a SETcc instruction that depends on the carry bit being zero,
                           that is, the numerator is greater than or equal to the denominator. }
-                        tempreg := location.register;
-                        setsubreg(tempreg, R_SUBL);
-                         { On x86-64, all registers can have their lower 8 bits represented }
+                        tempreg:=cg.makeregsize(current_asmdata.CurrAsmList,location.register,OS_8);
                         instr:=TAiCpu.op_reg(A_SETcc,S_B,tempreg);
-                        instr.condition := C_AE;
+                        instr.condition:=C_AE;
                         current_asmdata.CurrAsmList.concat(instr);
-{$else}
-                        case getsupreg(location.register) of
-                          { On x86, only these four registers can have their lower 8 bits represented }
-                          RS_EAX, RS_ECX, RS_EDX, RS_EBX:
-                            begin
-                              { Emit a SETcc instruction that depends on the carry bit being zero,
-                                that is, the numerator is greater than or equal to the denominator. }
-                              tempreg := location.register;
-                              setsubreg(tempreg, R_SUBL);
-                              instr:=TAiCpu.op_reg(A_SETcc,S_B,tempreg);
-                              instr.condition := C_AE;
-                              current_asmdata.CurrAsmList.concat(instr);
-                            end;
-                          else
-                            { It will likely emit SBB anyway because location.register is
-                              usually imaginary. [Kit] }
-                            emit_const_reg(A_SBB,opsize,-1,location.register);
-                        end;
-{$endif}
                         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
