@@ -226,11 +226,11 @@ function TrimSet(const S: String;const CSet:TSysCharSet): String;
 type
   SizeIntArray = array of SizeInt;
 
-procedure FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
-procedure FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
+Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
+Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
 
-procedure FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
-procedure FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean);
+Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean; 
+Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
 
 Type
   TStringReplaceAlgorithm = (sraDefault,    // Default algoritm as used in StringUtils.
@@ -267,9 +267,10 @@ implementation
   The function is based in the Boyer-Moore algorithm.
 *)
 
-procedure FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: PChar;
+function FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: PChar;
   const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
-  const aMatchAll: Boolean);
+  const aMatchAll: Boolean) : Boolean;
+  
 const
   ALPHABET_LENGHT=256;
   MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
@@ -399,11 +400,12 @@ begin
     end;
   end;
   SetLength(aMatches,MatchesCount);
+  Result:=MatchesCount>0;
 end;
 
-procedure FindMatchesBoyerMooreCaseINSensitive(const S, OldPattern: PChar;
+function FindMatchesBoyerMooreCaseINSensitive(const S, OldPattern: PChar;
   const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
-  const aMatchAll: Boolean);
+  const aMatchAll: Boolean) : Boolean;
 const
   ALPHABET_LENGHT=256;
   MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
@@ -552,6 +554,7 @@ begin
     end;
   end;
   SetLength(aMatches,MatchesCount);
+  Result:=MatchesCount>0;
 end;
 
 function StringReplaceFast(const S, OldPattern, NewPattern: string;
@@ -813,24 +816,24 @@ begin
 end;
 
 
-procedure FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
+Function FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : boolean; 
 
 Var
   I : SizeInt;
 
 begin
-  FindMatchesBoyerMooreCaseSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+  Result:=FindMatchesBoyerMooreCaseSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
   For I:=0 to pred(Length(AMatches)) do
     Inc(AMatches[i]);
 end;
 
-procedure FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean);
+Function FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean) : Boolean;
 
 Var
   I : SizeInt;
 
 begin
-  FindMatchesBoyerMooreCaseInSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+  Result:=FindMatchesBoyerMooreCaseInSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
   For I:=0 to pred(Length(AMatches)) do
     Inc(AMatches[i]);
 end;
