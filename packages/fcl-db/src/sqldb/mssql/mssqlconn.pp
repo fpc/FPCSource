@@ -229,6 +229,7 @@ begin
     FQuery:=AParams.ParseSQL(Buf, false, sqEscapeSlash in FConnection.ConnOptions, sqEscapeRepeat in FConnection.ConnOptions, psSimulated, ParamBinding, FParamReplaceString)
   else
     FQuery:=Buf;
+  FPrepared := True;
 end;
 
 function TDBLibCursor.ReplaceParams(AParams: TParams): string;
