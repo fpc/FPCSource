@@ -269,6 +269,7 @@ type
     procedure SetOption(Flag: TP2jsFileCacheOption; Enable: boolean);
   protected
     function ReadFile(Filename: string; var Source: string): boolean; virtual;
+    procedure FindMatchingFiles(Mask: string; MaxCount: integer; Files: TStrings);// find files, matching * and ?
   public
     constructor Create(aLog: TPas2jsLogger);
     destructor Destroy; override;
@@ -1494,6 +1495,48 @@ begin
     on E: Exception do begin
       EPas2jsFileCache.Create('Error reading file "'+Filename+'": '+E.Message);
     end;
+  end;
+end;
+
+procedure TPas2jsFilesCache.FindMatchingFiles(Mask: string; MaxCount: integer;
+  Files: TStrings);
+var
+  p, StartP, i: Integer;
+  Filename, CurMask: String;
+  Dir: TPas2jsCachedDirectory;
+  Entry: TPas2jsCachedDirectoryEntry;
+begin
+  Mask:=ResolveDots(Mask);
+  p:=1;
+  while p<=length(Mask) do begin
+    if Mask[p] in ['*','?'] then begin
+      while (p>1) and not (Mask[p-1] in AllowDirectorySeparators) do dec(p);
+      Dir:=DirectoryCache.GetDirectory(LeftStr(Mask,p-1),true,false);
+      StartP:=p;
+      while (p<=length(Mask)) and not (Mask[p] in AllowDirectorySeparators) do inc(p);
+      CurMask:=copy(Mask,StartP,p-StartP);
+      for i:=0 to Dir.Count-1 do begin
+        Entry:=Dir.Entries[i];
+        if not MatchGlobbing(CurMask,Entry.Name) then continue;
+        Filename:=Dir.Path+Entry.Name;
+        if p>length(Mask) then begin
+          // e.g. /path/unit*.pas
+          if Files.Count>=MaxCount then
+            raise EListError.Create('found too many files "'+Mask+'"');
+          Files.Add(Filename);
+        end else begin
+          // e.g. /path/sub*path/...
+          FindMatchingFiles(Filename+copy(Mask,p,length(Mask)),MaxCount,Files);
+        end;
+      end;
+      exit;
+    end;
+    inc(p);
+  end;
+  if DirectoryCache.FileExists(Mask) then begin
+    if Files.Count>=MaxCount then
+      raise EListError.Create('found too many files "'+Mask+'"');
+    Files.Add(Mask);
   end;
 end;
 

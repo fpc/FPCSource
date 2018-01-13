@@ -37,7 +37,7 @@ function GetPhysicalFilename(const Filename: string;
         ExceptionOnError: boolean): string;
 function ResolveSymLinks(const Filename: string;
                  {%H-}ExceptionOnError: boolean): string; // if a link is broken returns ''
-procedure FindMatchingFiles(Mask: string; MaxCount: integer; Files: TStrings);// find files, matching * and ?
+function MatchGlobbing(Mask, Name: string): boolean;
 
 function GetEnvironmentVariableCountUTF8: Integer;
 function GetEnvironmentStringUTF8(Index: Integer): string;
@@ -518,42 +518,69 @@ begin
   Result:=AnsiCompareFileName(File1,File2);
 end;
 
-procedure FindMatchingFiles(Mask: string; MaxCount: integer; Files: TStrings);
-var
-  p: Integer;
-  Path, Filename: String;
-  Info: TRawByteSearchRec;
-begin
-  Mask:=ResolveDots(Mask);
-  p:=1;
-  while p<=length(Mask) do begin
-    if Mask[p] in ['*','?'] then begin
-      while (p<=length(Mask)) and not (Mask[p] in AllowDirectorySeparators) do inc(p);
-      Path:=LeftStr(Mask,p-1);
-      if FindFirst(Path,faAnyFile,Info)=0 then begin
-        repeat
-          if (Info.Name='') or (Info.Name='.') or (Info.Name='..') then continue;
-          Filename:=ExtractFilePath(Path)+Info.Name;
-          if p>length(Mask) then begin
-            // e.g. /path/unit*.pas
-            if Files.Count>=MaxCount then
-              raise EListError.Create('found too many files "'+Path+'"');
-            Files.Add(Filename);
-          end else begin
-            // e.g. /path/sub*path/...
-            FindMatchingFiles(Filename+copy(Mask,p,length(Mask)),MaxCount,Files);
+function MatchGlobbing(Mask, Name: string): boolean;
+// match * and ?
+
+  function IsNameEnd(NameP: PChar): boolean; inline;
+  begin
+    Result:=(NameP^=#0) and (NameP-PChar(Name)=length(Name));
+  end;
+
+  function Check(MaskP, NameP: PChar): boolean;
+  var
+    c: Integer;
+  begin
+    repeat
+      case MaskP^ of
+      #0:
+        exit(IsNameEnd(NameP));
+      '?':
+        if not IsNameEnd(NameP) then begin
+          inc(MaskP);
+          c:=UTF8CharacterStrictLength(NameP);
+          if c<1 then c:=1;
+          inc(NameP,c);
+        end else
+          exit(false);
+      '*':
+        begin
+          repeat
+            inc(MaskP);
+          until MaskP^<>'*';
+          if MaskP=#0 then exit(true);
+          while not IsNameEnd(NameP) do begin
+            inc(NameP);
+            if Check(MaskP,NameP) then exit(true);
           end;
-        until FindNext(Info)<>0;
+          exit(false);
+        end;
+      else
+        if NameP^<>MaskP^ then exit(false);
+        c:=UTF8CharacterStrictLength(MaskP);
+        if c<1 then c:=1;
+        inc(MaskP);
+        c:=UTF8CharacterStrictLength(NameP);
+        if c<1 then c:=1;
+        inc(NameP,c);
       end;
-      exit;
-    end;
-    inc(p);
+    until false;
   end;
-  if FileExists(Mask) then begin
-    if Files.Count>=MaxCount then
-      raise EListError.Create('found too many files "'+Mask+'"');
-    Files.Add(Mask);
-  end;
+
+var
+  MaskP: PChar;
+begin
+  if Mask='' then exit(Name='');
+  {$IFDEF CaseInsensitiveFilenames}
+  Mask:=AnsiLowerCase(Mask);
+  Name:=AnsiLowerCase(Name);
+  {$ENDIF}
+  MaskP:=PChar(Mask);
+  while (MaskP^='*') and (MaskP[1]='*') do inc(MaskP);
+  if (MaskP^='*') and (MaskP[1]=#0) then
+    exit(true); // the * mask fits all, even the empty string
+  if Name='' then
+    exit(false);
+  Result:=Check(MaskP,PChar(Name));
 end;
 
 function GetNextDelimitedItem(const List: string; Delimiter: char;
