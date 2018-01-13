@@ -262,6 +262,7 @@ type
                    AReader:TFPCustomImageReaderClass);
       procedure RegisterImageWriter (const ATypeName,TheExtensions:string;
                    AWriter:TFPCustomImageWriterClass);
+      procedure UnregisterImageHandlers(const ATypeName: string; ARemoveReader: boolean = True; ARemoveWriter: boolean = True);
       property Count : integer read GetCount;
       property ImageReader [const TypeName:string] : TFPCustomImageReaderClass read GetReader;
       property ImageWriter [const TypeName:string] : TFPCustomImageWriterClass read GetWriter;
