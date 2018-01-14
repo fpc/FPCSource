@@ -1319,7 +1319,7 @@ implementation
                     { create wrapper code }
                     tmplist:=tasmlist.create;
                     new_section(tmplist,sec_code,tmps,target_info.alignment.procalign);
-                    tmplist.Concat(tai_function_name.create(pd.procsym.RealName));
+                    tmplist.Concat(tai_function_name.create(tmps));
                     hlcg.init_register_allocators;
                     hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
