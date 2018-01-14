@@ -287,7 +287,7 @@ implementation
          Exit;
        end;
       ppuversion:=inppu.getversion;
-      if ppuversion<CurrentPPUVersion then
+      if ppuversion<>CurrentPPUVersion then
        begin
          inppu.free;
          Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
