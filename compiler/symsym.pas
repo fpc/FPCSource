@@ -1600,7 +1600,7 @@ implementation
          varstate:=vs_readwritten;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
-         addr_taken:=boolean(ppufile.getbyte);
+         addr_taken:=ppufile.getboolean;
          ppufile.getderef(vardefderef);
          ppufile.getsmallset(varoptions);
       end;
@@ -1632,7 +1632,7 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
-         ppufile.putbyte(byte(addr_taken));
+         ppufile.putboolean(addr_taken);
          ppufile.do_crc:=oldintfcrc;
          ppufile.putderef(vardefderef);
          ppufile.putsmallset(varoptions);
@@ -2133,7 +2133,7 @@ implementation
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
-         univpara:=boolean(ppufile.getbyte);
+         univpara:=ppufile.getboolean;
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -2159,7 +2159,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
-         ppufile.putbyte(byte(univpara));
+         ppufile.putboolean(univpara);
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -2698,8 +2698,8 @@ implementation
     constructor tmacro.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(macrosym,ppufile);
-         defined:=boolean(ppufile.getbyte);
-         is_compiler_var:=boolean(ppufile.getbyte);
+         defined:=ppufile.getboolean;
+         is_compiler_var:=ppufile.getboolean;
          is_used:=false;
          buflen:= ppufile.getlongint;
          if buflen > 0 then
@@ -2721,8 +2721,8 @@ implementation
     procedure tmacro.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putbyte(byte(defined));
-         ppufile.putbyte(byte(is_compiler_var));
+         ppufile.putboolean(defined);
+         ppufile.putboolean(is_compiler_var);
          ppufile.putlongint(buflen);
          if buflen > 0 then
            ppufile.putdata(buftext^,buflen);

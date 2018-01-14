@@ -1617,14 +1617,14 @@ implementation
   constructor tjvmasnode.ppuload(t: tnodetype; ppufile: tcompilerppufile);
     begin
       inherited;
-      classreftypecast:=boolean(ppufile.getbyte);
+      classreftypecast:=ppufile.getboolean;
     end;
 
 
   procedure tjvmasnode.ppuwrite(ppufile: tcompilerppufile);
     begin
       inherited ppuwrite(ppufile);
-      ppufile.putbyte(byte(classreftypecast));
+      ppufile.putboolean(classreftypecast);
     end;
 
 

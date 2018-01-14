@@ -1007,7 +1007,7 @@ function getexprint:Tconstexprint;
 
 begin
   getexprint.overflow:=false;
-  getexprint.signed:=boolean(ppufile.getbyte);
+  getexprint.signed:=ppufile.getboolean;
   getexprint.svalue:=ppufile.getint64;
 end;
 
@@ -2803,7 +2803,7 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('',TPpuParamDef(def).DefaultValue);
              writeln([space,'       ParaNr : ',getword]);
-             writeln([space,'        Univ  : ',boolean(getbyte)]);
+             writeln([space,'        Univ  : ',getboolean]);
              writeln([space,'     VarState : ',getbyte]);
              writeln([space,'         Refs : ',getbyte]);
              if (vo_has_explicit_paraloc in varoptions) then
@@ -2834,8 +2834,8 @@ begin
          ibmacrosym :
            begin
              readcommonsym('Macro symbol ');
-             writeln([space,'       Defined: ',boolean(getbyte)]);
-             writeln([space,'  Compiler var: ',boolean(getbyte)]);
+             writeln([space,'       Defined: ',getboolean]);
+             writeln([space,'  Compiler var: ',getboolean]);
              len:=getlongint;
              writeln([space,'  Value length: ',len]);
              if len > 0 then
@@ -3735,13 +3735,11 @@ begin
                while not EndOfEntry do
                  begin
                     Write('Conditional ',getstring);
-                    b:=getbyte;
-                    if boolean(b)=true then
+                    if getboolean then
                       write(' defined at startup')
                     else
                       write(' not defined at startup');
-                    b:=getbyte;
-                    if boolean(b)=true then
+                    if getboolean then
                       writeln(' was used')
                     else
                       writeln;
@@ -3982,7 +3980,7 @@ begin
       WriteError('!! Error in PPU');
       exit;
     end;
-  if boolean(ppufile.getbyte) then
+  if ppufile.getboolean then
     begin
       readsymtableoptions('interface macro');
       {skip the definition section for macros (since they are never used) }

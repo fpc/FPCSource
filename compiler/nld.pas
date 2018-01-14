@@ -1215,8 +1215,8 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
         ppufile.getderef(typesymderef);
-        allowed:=boolean(ppufile.getbyte);
-        helperallowed:=boolean(ppufile.getbyte);
+        allowed:=ppufile.getboolean;
+        helperallowed:=ppufile.getboolean;
       end;
 
 
@@ -1225,8 +1225,8 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
         ppufile.putderef(typesymderef);
-        ppufile.putbyte(byte(allowed));
-        ppufile.putbyte(byte(helperallowed));
+        ppufile.putboolean(allowed);
+        ppufile.putboolean(helperallowed);
       end;
 
 

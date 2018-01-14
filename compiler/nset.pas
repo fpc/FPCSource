@@ -500,7 +500,7 @@ implementation
       var
         b : byte;
       begin
-        ppufile.putbyte(byte(p^.label_type = ltConstString));
+        ppufile.putboolean(p^.label_type = ltConstString);
         if (p^.label_type = ltConstString) then
           begin
             p^._low_str.ppuwrite(ppufile);
@@ -528,7 +528,7 @@ implementation
         p : pcaselabel;
       begin
         new(p);
-        if boolean(ppufile.getbyte) then
+        if ppufile.getboolean then
           begin
             p^.label_type := ltConstString;
             p^._low_str := cstringconstnode.ppuload(stringconstn,ppufile);

@@ -890,7 +890,7 @@ implementation
 
     begin
       getexprint.overflow:=false;
-      getexprint.signed:=boolean(getbyte);
+      getexprint.signed:=getboolean;
       getexprint.svalue:=getint64;
     end;
 
@@ -1081,7 +1081,7 @@ implementation
     begin
       if v.overflow then
         internalerror(200706102);
-      putbyte(byte(v.signed));
+      putboolean(v.signed);
       putint64(v.svalue);
     end;
 

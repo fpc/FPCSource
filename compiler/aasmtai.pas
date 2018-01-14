@@ -1243,7 +1243,7 @@ implementation
         inherited Create;
         sym:=ppufile.getasmsymbol;
         size:=ppufile.getaint;
-        is_global:=boolean(ppufile.getbyte);
+        is_global:=ppufile.getboolean;
       end;
 
 
@@ -1252,7 +1252,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putasmsymbol(sym);
         ppufile.putaint(size);
-        ppufile.putbyte(byte(is_global));
+        ppufile.putboolean(is_global);
       end;
 
 
@@ -1326,7 +1326,7 @@ implementation
         inherited ppuload(t,ppufile);
         sym:=ppufile.getasmsymbol;
         size:=ppufile.getlongint;
-        is_global:=boolean(ppufile.getbyte);
+        is_global:=ppufile.getboolean;
       end;
 
 
@@ -1335,7 +1335,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putasmsymbol(sym);
         ppufile.putlongint(size);
-        ppufile.putbyte(byte(is_global));
+        ppufile.putboolean(is_global);
       end;
 
 
@@ -2423,7 +2423,7 @@ implementation
         inherited ppuload(t,ppufile);
         temppos:=ppufile.getlongint;
         tempsize:=ppufile.getlongint;
-        allocation:=boolean(ppufile.getbyte);
+        allocation:=ppufile.getboolean;
 {$ifdef EXTDEBUG}
         problem:=nil;
 {$endif EXTDEBUG}
@@ -2435,7 +2435,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putlongint(temppos);
         ppufile.putlongint(tempsize);
-        ppufile.putbyte(byte(allocation));
+        ppufile.putboolean(allocation);
       end;
 
 
@@ -2503,7 +2503,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getdata(reg,sizeof(Tregister));
         ratype:=tregalloctype(ppufile.getbyte);
-        keep:=boolean(ppufile.getbyte);
+        keep:=ppufile.getboolean;
       end;
 
 
@@ -2512,7 +2512,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putdata(reg,sizeof(Tregister));
         ppufile.putbyte(byte(ratype));
-        ppufile.putbyte(byte(keep));
+        ppufile.putboolean(keep);
       end;
 
 
@@ -2863,7 +2863,7 @@ implementation
 {$ifdef x86}
         ppufile.getdata(segprefix,sizeof(Tregister));
 {$endif x86}
-        is_jmp:=boolean(ppufile.getbyte);
+        is_jmp:=ppufile.getboolean;
       end;
 
 
@@ -2880,7 +2880,7 @@ implementation
 {$ifdef x86}
         ppufile.putdata(segprefix,sizeof(Tregister));
 {$endif x86}
-        ppufile.putbyte(byte(is_jmp));
+        ppufile.putboolean(is_jmp);
       end;
 
 
@@ -3067,7 +3067,7 @@ implementation
         aligntype:=ppufile.getbyte;
         fillsize:=0;
         fillop:=ppufile.getbyte;
-        use_op:=boolean(ppufile.getbyte);
+        use_op:=ppufile.getboolean;
       end;
 
 
@@ -3076,7 +3076,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putbyte(aligntype);
         ppufile.putbyte(fillop);
-        ppufile.putbyte(byte(use_op));
+        ppufile.putboolean(use_op);
       end;
 
 

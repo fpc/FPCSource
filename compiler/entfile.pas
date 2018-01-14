@@ -275,6 +275,7 @@ type
     function getaword:{$ifdef generic_cpu}qword{$else}aword{$endif};
     function  getreal:entryreal;
     function  getrealsize(sizeofreal : longint):entryreal;
+    function  getboolean:boolean;inline;
     function  getstring:string;
     function  getpshortstring:pshortstring;
     function  getansistring:ansistring;
@@ -301,6 +302,7 @@ type
     procedure putptruint(v:TConstPtrUInt);
     procedure putaword(i:aword);
     procedure putreal(d:entryreal);
+    procedure putboolean(b:boolean);inline;
     procedure putstring(const s:string);
     procedure putansistring(const s:ansistring);
     procedure putnormalset(const b);
@@ -952,6 +954,12 @@ begin
 end;
 
 
+function tentryfile.getboolean:boolean;
+begin
+  result:=boolean(getbyte);
+end;
+
+
 function tentryfile.getstring:string;
 begin
   result[0]:=chr(getbyte);
@@ -1269,6 +1277,12 @@ begin
     end
   else
     putdata(d,sizeof(entryreal));
+end;
+
+
+procedure tentryfile.putboolean(b:boolean);
+begin
+  putbyte(byte(b));
 end;
 
 

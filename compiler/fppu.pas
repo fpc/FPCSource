@@ -674,8 +674,8 @@ var
         if tmacro(p).is_used or is_initial then
           begin
             ppufile.putstring(p.name);
-            ppufile.putbyte(byte(is_initial));
-            ppufile.putbyte(byte(tmacro(p).is_used));
+            ppufile.putboolean(is_initial);
+            ppufile.putboolean(tmacro(p).is_used);
           end;
       end;
 
@@ -937,8 +937,8 @@ var
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
-           was_initial:=boolean(ppufile.getbyte);
-           was_used:=boolean(ppufile.getbyte);
+           was_initial:=ppufile.getboolean;
+           was_used:=ppufile.getboolean;
            mac:=tmacro(initialmacrosymtable.Find(hs));
            if assigned(mac) then
              begin

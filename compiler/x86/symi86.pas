@@ -77,7 +77,7 @@ procedure ti86absolutevarsym.ppuload_platform(ppufile: tcompilerppufile);
   begin
     inherited;
     if abstyp=toaddr then
-      absseg:=boolean(ppufile.getbyte)
+      absseg:=ppufile.getboolean
     else
       absseg:=false;
   end;
@@ -87,7 +87,7 @@ procedure ti86absolutevarsym.ppuwrite_platform(ppufile: tcompilerppufile);
   begin
     inherited;
     if abstyp=toaddr then
-      ppufile.putbyte(byte(absseg));
+      ppufile.putboolean(absseg);
   end;
 
 end.
