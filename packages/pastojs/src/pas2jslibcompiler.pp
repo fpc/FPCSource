@@ -24,7 +24,8 @@ Type
   TReadPasCallBack = Procedure (Data : Pointer;
     AFileName: PAnsiChar; AFileNameLen : Integer;
     AFileData : PAnsiChar; Var AFileDataLen: Int32); stdcall;
-  TReadDirCallBack = Function (P : PDirectoryCache; ADirPath: PAnsiChar): boolean; stdcall;
+  TReadDirCallBack = Function (Data : Pointer;
+    P : PDirectoryCache; ADirPath: PAnsiChar): boolean; stdcall;
 
   { TLibraryPas2JSCompiler }
 
@@ -35,6 +36,7 @@ Type
     FOnLibLogCallBack: TLibLogCallBack;
     FOnLibLogData: Pointer;
     FOnReadDir: TReadDirCallBack;
+    FOnReadDirData: Pointer;
     FOnReadPasData: Pointer;
     FOnReadPasFile: TReadPasCallBack;
     FOnWriteJSCallBack: TWriteJSCallBack;
@@ -60,6 +62,7 @@ Type
     Property OnReadPasData : Pointer Read FOnReadPasData Write FOnReadPasData;
     Property ReadBufferLen : Cardinal Read FReadBufferLen Write FReadBufferLen;
     Property OnReadDir: TReadDirCallBack read FOnReadDir write FOnReadDir;
+    Property OnReadDirData: Pointer read FOnReadDirData write FOnReadDirData;
   end;
 
 Type
@@ -69,11 +72,12 @@ Type
 Procedure SetPas2JSWriteJSCallBack(P : PPas2JSCompiler; ACallBack : TWriteJSCallBack; CallBackData : Pointer); stdcall;
 Procedure SetPas2JSCompilerLogCallBack(P : PPas2JSCompiler; ACallBack : TLibLogCallBack; CallBackData : Pointer); stdcall;
 Procedure SetPas2JSReadPasCallBack(P : PPas2JSCompiler; ACallBack : TReadPasCallBack; CallBackData : Pointer; ABufferSize : Cardinal); stdcall;
+Procedure SetPas2JSReadDirCallBack(P : PPas2JSCompiler; ACallBack : TReadDirCallBack; CallBackData : Pointer); stdcall;
 Function RunPas2JSCompiler(P : PPas2JSCompiler; ACompilerExe, AWorkingDir : PAnsiChar; CommandLine : PPAnsiChar; DoReset : Boolean) : Boolean; stdcall;
 Procedure FreePas2JSCompiler(P : PPas2JSCompiler); stdcall;
 Function GetPas2JSCompiler : PPas2JSCompiler; stdcall;
 Procedure GetPas2JSCompilerLastError(P : PPas2JSCompiler; AError : PAnsiChar; Var AErrorLength : Longint; AErrorClass : PAnsiChar; Var AErrorClassLength : Longint); stdcall;
-Procedure AddDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
+Procedure AddPas2JSDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
   AAge: TPas2jsFileAgeTime; AAttr: TPas2jsFileAttr; ASize: TPas2jsFileSize); stdcall;
 
 implementation
@@ -85,7 +89,7 @@ function TLibraryPas2JSCompiler.ReadDirectory(Dir: TPas2jsCachedDirectory
 begin
   Result:=false; // return false to call the default TPas2jsCachedDirectory.DoReadDir
   if Assigned(OnReadDir) then
-    Result:=OnReadDir(Dir,PAnsiChar(Dir.Path));
+    Result:=OnReadDir(FOnReadDirData,Dir,PAnsiChar(Dir.Path));
 end;
 
 function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean;
@@ -244,6 +248,13 @@ begin
   TLibraryPas2JSCompiler(P).ReadBufferLen:=ABufferSize;
 end;
 
+procedure SetPas2JSReadDirCallBack(P: PPas2JSCompiler;
+  ACallBack: TReadDirCallBack; CallBackData: Pointer); stdcall;
+begin
+  TLibraryPas2JSCompiler(P).OnReadDir:=ACallBack;
+  TLibraryPas2JSCompiler(P).OnReadDirData:=CallBackData;
+end;
+
 Function RunPas2JSCompiler(P : PPas2JSCompiler; ACompilerExe, AWorkingDir : PAnsiChar;
   CommandLine : PPAnsiChar; DoReset : Boolean) : Boolean; stdcall;
 
@@ -270,7 +281,7 @@ begin
   TLibraryPas2JSCompiler(P).GetLastError(AError,AErrorLength,AErrorClass,AErrorClassLength);
 end;
 
-procedure AddDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
+procedure AddPas2JSDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
   AAge: TPas2jsFileAgeTime; AAttr: TPas2jsFileAttr; ASize: TPas2jsFileSize);
   stdcall;
 begin

@@ -13,6 +13,8 @@ exports
   RunPas2JSCompiler,
   SetPas2JSReadPasCallBack,
   SetPas2JSWriteJSCallBack,
+  SetPas2JSReadDirCallBack,
+  AddPas2JSDirectoryEntry,
   SetPas2JSCompilerLogCallBack,
   GetPas2JSCompilerLastError;
 
