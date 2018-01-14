@@ -975,7 +975,13 @@ end;
 
 
 
-Procedure TStrings.LoadFromFile(const FileName: string; IgnoreEncoding : Boolean = True);
+Procedure TStrings.LoadFromFile(const FileName: string);
+
+begin
+  LoadFromFile(FileName,False)
+end;
+
+Procedure TStrings.LoadFromFile(const FileName: string; IgnoreEncoding : Boolean);
 Var
         TheStream : TFileStream;
 begin
@@ -1001,7 +1007,13 @@ begin
   end;
 end;
 
-Procedure TStrings.LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean = True);
+Procedure TStrings.LoadFromStream(Stream: TStream);
+
+begin
+  LoadFromStream(Stream,False);
+end;
+
+Procedure TStrings.LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean);
 {
    Borlands method is no good, since a pipe for
    instance doesn't have a size.

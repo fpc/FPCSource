@@ -690,9 +690,11 @@ type
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
     procedure InsertObject(Index: Integer; const S: string;
       AObject: TObject);
-    procedure LoadFromFile(const FileName: string; IgnoreEncoding : Boolean = True); overload; virtual;
+    procedure LoadFromFile(const FileName: string); overload;
+    procedure LoadFromFile(const FileName: string; IgnoreEncoding : Boolean);
     procedure LoadFromFile(const FileName: string; AEncoding: TEncoding); overload; virtual;
-    procedure LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean = True); overload; virtual;
+    procedure LoadFromStream(Stream: TStream); overload; virtual;
+    procedure LoadFromStream(Stream: TStream; IgnoreEncoding : Boolean); overload;
     procedure LoadFromStream(Stream: TStream; AEncoding: TEncoding); overload; virtual;
     procedure Move(CurIndex, NewIndex: Integer); virtual;
     procedure SaveToFile(const FileName: string); overload; virtual;
