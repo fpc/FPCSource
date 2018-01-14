@@ -326,7 +326,11 @@ implementation
                          (tobjectdef(def).childof.dbg_state=dbg_state_written) then
                         appenddef(list,def)
                       else if tobjectdef(def).childof.dbg_state=dbg_state_queued then
-                        deftowritelist.add(def)
+                        begin
+                          { ensure that the parent is indeed queued }
+                          deftowritelist.add(tobjectdef(def).childof);
+                          deftowritelist.add(def);
+                        end
                       else if tobjectdef(def).childof.dbg_state=dbg_state_used then
                         { comes somewhere after the current def in the looplist
                           and will be written at that point, so we will have to
