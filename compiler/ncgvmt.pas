@@ -1311,7 +1311,7 @@ implementation
                       current_filepos:=pd.fileinfo
                     else
                       begin
-                        current_filepos.moduleindex:=1;
+                        current_filepos.moduleindex:=current_module.unit_index;
                         current_filepos.fileindex:=1;
                         current_filepos.line:=1;
                         current_filepos.column:=1;
