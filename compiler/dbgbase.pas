@@ -343,8 +343,6 @@ implementation
                     internalerror(200610054);
                 end;
               end;
-            if looplist.count=deftowritelist.count then
-              internalerror(2018011401);
             looplist.clear;
             templist := looplist;
             looplist := deftowritelist;
