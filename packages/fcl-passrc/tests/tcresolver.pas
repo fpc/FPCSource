@@ -1949,7 +1949,7 @@ begin
   aScanner.LastMsgType:=mtError;
   aScanner.LastMsg:='unknown directive "'+Directive+'"';
   aScanner.LastMsgPattern:=aScanner.LastMsg;
-  aScanner.LastMsgArgs:=[];
+  aScanner.LastMsgArgs:=nil;
   raise EScannerError.Create(aScanner.LastMsg);
   if Param='' then ;
 end;

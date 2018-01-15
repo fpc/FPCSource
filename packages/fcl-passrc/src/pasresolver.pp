@@ -633,6 +633,14 @@ type
   end;
   TPasClassScopeClass = class of TPasClassScope;
 
+  TPasProcedureScopeFlag = (
+    ppsfHints, // $Hints on for analyzer (runs at end of module, so have to safe Scanner flags)
+    ppsfNotes, // $Notes on for analyzer
+    ppsfWarnings, // $Warnings on for analyzer
+    ppsfIsGroupOverload // mode objfpc: one overload is enough for all procs in same scope
+    );
+  TPasProcedureScopeFlags = set of TPasProcedureScopeFlag;
+
   { TPasProcedureScope }
 
   TPasProcedureScope = Class(TPasIdentifierScope)
@@ -642,8 +650,8 @@ type
     OverriddenProc: TPasProcedure; // if IsOverride then this is the ancestor proc (virtual or override)
     ClassScope: TPasClassScope;
     SelfArg: TPasArgument;
-    IsGroupOverload: boolean; // mode objfpc: one overload is enough for all procs in same scope
     Mode: TModeSwitch;
+    Flags: TPasProcedureScopeFlags;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -1120,6 +1128,7 @@ type
     procedure FinishCallArgAccess(Expr: TPasExpr; Access: TResolvedRefAccess);
     procedure EmitTypeHints(PosEl: TPasElement; aType: TPasType); virtual;
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
+    procedure StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
@@ -1823,7 +1832,8 @@ begin
   if Proc.IsOverload then
     exit(true);
   Data:=Proc.CustomData;
-  Result:=(Data is TPasProcedureScope) and TPasProcedureScope(Data).IsGroupOverload;
+  Result:=(Data is TPasProcedureScope)
+    and (ppsfIsGroupOverload in TPasProcedureScope(Data).Flags);
 end;
 
 function ChompDottedIdentifier(const Identifier: string): string;
@@ -3225,9 +3235,9 @@ begin
       if (msObjfpc in CurrentParser.CurrentModeswitches) then
         begin
           if ProcHasGroupOverload(Data^.Proc) then
-            TPasProcedureScope(Proc.CustomData).IsGroupOverload:=true
+            Include(TPasProcedureScope(Proc.CustomData).Flags,ppsfIsGroupOverload)
           else if ProcHasGroupOverload(Proc) then
-            TPasProcedureScope(Data^.Proc.CustomData).IsGroupOverload:=true;
+            Include(TPasProcedureScope(Data^.Proc.CustomData).Flags,ppsfIsGroupOverload);
         end;
       if Store then
         begin
@@ -3912,17 +3922,20 @@ var
   i: Integer;
   Body: TProcedureBody;
   SubEl: TPasElement;
-  SubProcScope: TPasProcedureScope;
+  SubProcScope, ProcScope: TPasProcedureScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishProcedure START');
   {$ENDIF}
   CheckTopScope(FScopeClass_Proc);
-  if TPasProcedureScope(TopScope).Element<>aProc then
+  ProcScope:=TPasProcedureScope(TopScope);
+  if ProcScope.Element<>aProc then
     RaiseInternalError(20170220163043);
+
   Body:=aProc.Body;
   if Body<>nil then
     begin
+    StoreScannerFlagsInProc(ProcScope);
     if Body.Body is TPasImplAsmStatement then
       aProc.Modifiers:=aProc.Modifiers+[pmAssembler];
     ResolveImplBlock(Body.Body);
@@ -4070,7 +4083,6 @@ begin
       end;
 
     // finish interface/implementation/nested procedure
-    //writeln('TPasResolver.FinishProcedureType FindForward1 ',ProcName,' IsOverload=',Proc.IsOverload,' IsForward=',Proc.IsForward,' ArgCnt=',Proc.ProcType.Args.Count,' ProcNeedsBody=',ProcNeedsBody(Proc));
     if ProcNeedsBody(Proc) then
       begin
       // check if there is a forward declaration
@@ -4100,6 +4112,13 @@ begin
         ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
         exit;
         end;
+      end
+    else
+      begin
+      // forward declaration
+      ProcScope:=Proc.CustomData as TPasProcedureScope;
+      // ToDo: store the scanner flags *before* it has parsed the token after the proc
+      StoreScannerFlagsInProc(ProcScope);
       end;
 
     // check for invalid overloads
@@ -4143,7 +4162,7 @@ procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
     SetLength(A,length(A)-Count);
   end;
 
-  procedure Insert(Item: TPasProcedure; A: TArrayOfPasProcedure; Index: integer); overload;
+  procedure Insert(Item: TPasProcedure; var A: TArrayOfPasProcedure; Index: integer); overload;
   var
     i: Integer;
   begin
@@ -4168,6 +4187,8 @@ var
 begin
   Proc.ProcType.IsOfObject:=true;
   ProcScope:=TopScope as TPasProcedureScope;
+  // ToDo: store the scanner flags *before* it has parsed the token after the proc
+  StoreScannerFlagsInProc(ProcScope);
   ClassScope:=Scopes[ScopeCount-2] as TPasClassScope;
   ProcScope.ClassScope:=ClassScope;
   FindData:=Default(TFindOverloadProcData);
@@ -5129,6 +5150,19 @@ begin
   if hUnimplemented in El.Hints then
     LogMsg(20170419190317,mtWarning,nSymbolXIsNotImplemented,sSymbolXIsNotImplemented,
       [El.Name],PosEl);
+end;
+
+procedure TPasResolver.StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
+var
+  ScanBools: TBoolSwitches;
+begin
+  ScanBools:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsHints in ScanBools then
+    Include(ProcScope.Flags,ppsfHints);
+  if bsNotes in ScanBools then
+    Include(ProcScope.Flags,ppsfNotes);
+  if bsWarnings in ScanBools then
+    Include(ProcScope.Flags,ppsfWarnings);
 end;
 
 procedure TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs(

@@ -2034,10 +2034,32 @@ procedure TPasAnalyzer.EmitMessage(const Id: int64;
   const Args: array of const; PosEl: TPasElement);
 var
   Msg: TPAMessage;
+  El: TPasElement;
+  ProcScope: TPasProcedureScope;
 begin
   {$IFDEF VerbosePasAnalyzer}
   //writeln('TPasAnalyzer.EmitMessage [',Id,'] ',MsgType,': (',MsgNumber,') Fmt={',Fmt,'} PosEl='+GetElModName(PosEl));
   {$ENDIF}
+  if MsgType in [mtHint,mtNote,mtWarning] then
+    begin
+    El:=PosEl;
+    while El<>nil do
+      begin
+      if El is TPasProcedure then
+        begin
+        ProcScope:=El.CustomData as TPasProcedureScope;
+        if ProcScope.ImplProc<>nil then
+          ProcScope:=ProcScope.ImplProc.CustomData as TPasProcedureScope;
+        case MsgType of
+        mtHint: if not (ppsfHints in ProcScope.Flags) then exit;
+        mtNote: if not (ppsfNotes in ProcScope.Flags) then exit;
+        mtWarning: if not (ppsfWarnings in ProcScope.Flags) then exit;
+        end;
+        break;
+        end;
+      El:=El.Parent;
+      end;
+    end;
   Msg:=TPAMessage.Create;
   Msg.Id:=Id;
   Msg.MsgType:=MsgType;
