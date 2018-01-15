@@ -73,12 +73,12 @@ Procedure SetPas2JSWriteJSCallBack(P : PPas2JSCompiler; ACallBack : TWriteJSCall
 Procedure SetPas2JSCompilerLogCallBack(P : PPas2JSCompiler; ACallBack : TLibLogCallBack; CallBackData : Pointer); stdcall;
 Procedure SetPas2JSReadPasCallBack(P : PPas2JSCompiler; ACallBack : TReadPasCallBack; CallBackData : Pointer; ABufferSize : Cardinal); stdcall;
 Procedure SetPas2JSReadDirCallBack(P : PPas2JSCompiler; ACallBack : TReadDirCallBack; CallBackData : Pointer); stdcall;
+Procedure AddPas2JSDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
+  AAge: TPas2jsFileAgeTime; AAttr: TPas2jsFileAttr; ASize: TPas2jsFileSize); stdcall;
 Function RunPas2JSCompiler(P : PPas2JSCompiler; ACompilerExe, AWorkingDir : PAnsiChar; CommandLine : PPAnsiChar; DoReset : Boolean) : Boolean; stdcall;
 Procedure FreePas2JSCompiler(P : PPas2JSCompiler); stdcall;
 Function GetPas2JSCompiler : PPas2JSCompiler; stdcall;
 Procedure GetPas2JSCompilerLastError(P : PPas2JSCompiler; AError : PAnsiChar; Var AErrorLength : Longint; AErrorClass : PAnsiChar; Var AErrorClassLength : Longint); stdcall;
-Procedure AddPas2JSDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
-  AAge: TPas2jsFileAgeTime; AAttr: TPas2jsFileAttr; ASize: TPas2jsFileSize); stdcall;
 
 implementation
 
@@ -222,23 +222,25 @@ end;
   Flat interface
   ---------------------------------------------------------------------}
 
-Procedure SetPas2JSWriteJSCallBack(P : PPas2JSCompiler; ACallBack : TWriteJSCallBack;
-  CallBackData : Pointer); stdcall;
+procedure SetPas2JSWriteJSCallBack(P: PPas2JSCompiler;
+  ACallBack: TWriteJSCallBack; CallBackData: Pointer); stdcall;
 
 begin
   TLibraryPas2JSCompiler(P).OnWriteJSCallBack:=ACallBack;
   TLibraryPas2JSCompiler(P).OnWriteJSData:=CallBackData;
 end;
 
-Procedure SetPas2JSCompilerLogCallBack(P : PPas2JSCompiler; ACallBack : TLibLogCallBack;
-  CallBackData : Pointer); stdcall;
+procedure SetPas2JSCompilerLogCallBack(P: PPas2JSCompiler;
+  ACallBack: TLibLogCallBack; CallBackData: Pointer); stdcall;
 
 begin
   TLibraryPas2JSCompiler(P).OnLibLogCallBack:=ACallBack;
   TLibraryPas2JSCompiler(P).OnLibLogData:=CallBackData;
 end;
 
-Procedure SetPas2JSReadPasCallBack(P : PPas2JSCompiler; ACallBack : TReadPasCallBack;  CallBackData : Pointer; ABufferSize : Cardinal); stdcall;
+procedure SetPas2JSReadPasCallBack(P: PPas2JSCompiler;
+  ACallBack: TReadPasCallBack; CallBackData: Pointer; ABufferSize: Cardinal);
+  stdcall;
 
 begin
   TLibraryPas2JSCompiler(P).OnReadPasData:=CallBackData;
@@ -255,37 +257,39 @@ begin
   TLibraryPas2JSCompiler(P).OnReadDirData:=CallBackData;
 end;
 
-Function RunPas2JSCompiler(P : PPas2JSCompiler; ACompilerExe, AWorkingDir : PAnsiChar;
-  CommandLine : PPAnsiChar; DoReset : Boolean) : Boolean; stdcall;
-
-begin
-  Result:=TLibraryPas2JSCompiler(P).LibraryRun(ACompilerExe,AWorkingDir,CommandLine,DoReset)
-end;
-
-Procedure FreePas2JSCompiler(P : PPas2JSCompiler); stdcall;
-
-begin
-  TLibraryPas2JSCompiler(P).Free;
-end;
-
-Function GetPas2JSCompiler : PPas2JSCompiler; stdcall;
-
-begin
-  Result:=TLibraryPas2JSCompiler.Create;
-end;
-
-Procedure GetPas2JSCompilerLastError(P : PPas2JSCompiler; AError : PAnsiChar;
-  Var AErrorLength : Longint; AErrorClass : PAnsiChar; Var AErrorClassLength : Longint); stdcall;
-
-begin
-  TLibraryPas2JSCompiler(P).GetLastError(AError,AErrorLength,AErrorClass,AErrorClassLength);
-end;
-
 procedure AddPas2JSDirectoryEntry(P: PDirectoryCache; AFilename: PAnsiChar;
   AAge: TPas2jsFileAgeTime; AAttr: TPas2jsFileAttr; ASize: TPas2jsFileSize);
   stdcall;
 begin
   TPas2jsCachedDirectory(P).Add(AFilename,AAge,AAttr,ASize);
+end;
+
+function RunPas2JSCompiler(P: PPas2JSCompiler; ACompilerExe,
+  AWorkingDir: PAnsiChar; CommandLine: PPAnsiChar; DoReset: Boolean): Boolean;
+  stdcall;
+
+begin
+  Result:=TLibraryPas2JSCompiler(P).LibraryRun(ACompilerExe,AWorkingDir,CommandLine,DoReset)
+end;
+
+procedure FreePas2JSCompiler(P: PPas2JSCompiler); stdcall;
+
+begin
+  TLibraryPas2JSCompiler(P).Free;
+end;
+
+function GetPas2JSCompiler: PPas2JSCompiler; stdcall;
+
+begin
+  Result:=TLibraryPas2JSCompiler.Create;
+end;
+
+procedure GetPas2JSCompilerLastError(P: PPas2JSCompiler; AError: PAnsiChar;
+  Var AErrorLength: Longint; AErrorClass: PAnsiChar;
+  Var AErrorClassLength: Longint); stdcall;
+
+begin
+  TLibraryPas2JSCompiler(P).GetLastError(AError,AErrorLength,AErrorClass,AErrorClassLength);
 end;
 
 end.
