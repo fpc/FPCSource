@@ -73,7 +73,7 @@ Const
 
   MariaDBVersion =
 {$IFDEF mysql57}
-    '10.1';
+    '10.';
 {$ELSE}
 {$IFDEF mysql56}   // MariaDB 10.0 is compatible with MySQL 5.6
     '10.';
