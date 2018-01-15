@@ -1702,9 +1702,9 @@ begin
   if (not assigned(Field)) or Field.IsNull then Result := 'Null'
   else case Field.DataType of
     ftString   : Result := QuotedStr(Field.AsString);
-    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSqlFormatSettings) + '''';
-    ftDateTime : Result := QuotedStr(FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz',Field.AsDateTime,FSqlFormatSettings));
-    ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
+    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSQLFormatSettings) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Field.AsDateTime,FSQLFormatSettings) + '''';
+    ftTime     : Result := '''' + TimeIntervalToString(Field.AsDateTime) + '''';
   else
     Result := Field.AsString;
   end; {case}
@@ -1718,9 +1718,9 @@ begin
     ftMemo,
     ftFixedChar,
     ftString   : Result := QuotedStr(GetAsString(Param));
-    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime,FSQLFormatSettings) + '''';
-    ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
-    ftDateTime : Result := QuotedStr(FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings));
+    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd', Param.AsDateTime, FSQLFormatSettings) + '''';
+    ftTime     : Result := '''' + TimeIntervalToString(Param.AsDateTime) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
     ftCurrency,
     ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);

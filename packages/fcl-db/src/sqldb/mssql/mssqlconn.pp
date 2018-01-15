@@ -376,6 +376,9 @@ begin
         //  Result := '0x' + StrToHex(Param.AsString)
         //else
         Result := 'N' + inherited GetAsSQLText(Param);
+      ftDateTime:
+        // ISO 8601 format is unambiguous; is not affected by the SET DATEFORMAT or SET LANGUAGE setting.
+        Result := '''' + FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Param.AsDateTime, FSQLFormatSettings) + '''';
       ftBlob, ftBytes, ftVarBytes:
         Result := '0x' + StrToHex(Param.AsString);
       else
