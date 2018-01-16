@@ -64,7 +64,7 @@ type
     destructor Destroy; override;
     function Count: integer;
     procedure Clear;
-    property ChangeStamp: TChangeStamp read FChangeStamp write FChangeStamp;
+    property ChangeStamp: TChangeStamp read FChangeStamp write FChangeStamp;// set on Update to Pool.ChangeStamp
     function NeedsUpdate: boolean; inline;
     procedure Update;
     procedure Reference;
@@ -907,6 +907,7 @@ begin
     Result:=TPas2jsCachedDirectory(Node.Data);
     if DoReference then
       Result.Reference;
+    Result.Update;
   end else if DoReference or CreateIfNotExists then begin
     {$IFDEF VerbosePas2JSDirCache}
     writeln('TPas2jsCachedDirectories.GetDirectory "',Dir,'"');
