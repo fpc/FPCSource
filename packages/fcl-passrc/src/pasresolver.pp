@@ -10237,7 +10237,12 @@ begin
     RaiseInternalError(20160922163535,'more than one root element Class="'+AClass.ClassName+'" Root='+GetObjName(FRootElement));
 
   if ASrcPos.FileName='' then
+    begin
+    { $IFDEF VerbosePasResolver}
+    writeln('TPasResolver.CreateElement ',AClass.ClassName,' Name=',AName,' Parent=',GetObjName(AParent),' (',ASrcPos.Row,',',ASrcPos.Column,')');
+    { $ENDIF}
     RaiseInternalError(20160922163541,'missing filename');
+    end;
   SrcY:=ASrcPos.Row;
   if StoreSrcColumns then
     begin

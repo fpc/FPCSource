@@ -816,10 +816,17 @@ var
 begin
   {$IFDEF VerbosePasParser}
   writeln('TPasParser.ParseExc Token="',CurTokenText,'"');
-  //writeln('TPasParser.ParseExc ',Scanner.CurColumn,' ',Scanner.CurSourcePos.Column,' ',Scanner.CurTokenPos.Column);
+  //writeln('TPasParser.ParseExc ',Scanner.CurColumn,' ',Scanner.CurSourcePos.Column,' ',Scanner.CurTokenPos.Column,' ',Scanner.CurSourceFile.Filename);
   {$ENDIF}
   SetLastMsg(mtError,MsgNumber,Fmt,Args);
   p:=Scanner.CurTokenPos;
+  if p.FileName='' then
+    p:=Scanner.CurSourcePos;
+  if p.Row=0 then
+    begin
+    p.Row:=1;
+    p.Column:=1;
+    end;
   raise EParserError.Create(SafeFormat(SParserErrorAtToken,
     [FLastMsg, CurTokenName, p.FileName, p.Row, p.Column])
     {$ifdef addlocation}+' ('+IntToStr(p.Row)+' '+IntToStr(p.Column)+')'{$endif},
@@ -2669,6 +2676,8 @@ begin
       ParseProgram(Module);
     tkLibrary:
       ParseLibrary(Module);
+    tkEOF:
+      CheckToken(tkprogram);
   else
     UngetToken;
     ParseProgram(Module,True);

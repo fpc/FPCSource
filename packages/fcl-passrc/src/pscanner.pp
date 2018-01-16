@@ -2350,7 +2350,7 @@ begin
         Result := FCurToken;
         end
       else
-        break
+        break;
       end;
     tkWhiteSpace,
     tkLineEnding:
@@ -3062,8 +3062,6 @@ var
   TokenStart: PChar;
   i: TToken;
   OldLength, SectionLength, NestingLevel, Index: Integer;
-
-
 begin
   Result:=tkLineEnding;
   if TokenStr = nil then
