@@ -176,7 +176,6 @@ Works:
 ToDo:
 - $pop, $push
 - $writableconst off $J-
-- assert()  $assertions
 - $RTTI inherited|explicit
 - range checking:
   - indexedprop[param]
