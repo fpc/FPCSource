@@ -149,54 +149,67 @@ function DbgString(Element: TJSElement; Indent: integer): string;
 begin
   if Element=nil then
     Result:='(*no element*)'
-  else if Element is TJSLiteral then begin
+  else if Element is TJSLiteral then
+  begin
     Result:=DbgAsString(TJSLiteral(Element).Value,Indent+2);
-  end else if Element is TJSPrimaryExpressionIdent then begin
+  end else if Element is TJSPrimaryExpressionIdent then
+  begin
     Result:=String(TJSPrimaryExpressionIdent(Element).Name);
 
   // array literal
-  end else if Element is TJSArrayLiteral then begin
+  end else if Element is TJSArrayLiteral then
+  begin
     Result:='['+DbgAsString(TJSArrayLiteral(Element).Elements,Indent+2)+']';
 
   // object literal
-  end else if Element is TJSObjectLiteral then begin
+  end else if Element is TJSObjectLiteral then
+  begin
     Result:='['+DbgAsString(TJSObjectLiteral(Element).Elements,Indent+2)+']';
 
   // arguments
-  end else if Element is TJSArguments then begin
+  end else if Element is TJSArguments then
+  begin
     Result:='('+DbgAsString(TJSArguments(Element).Elements,Indent+2)+')';
 
   // member
-  end else if Element is TJSMemberExpression then begin
+  end else if Element is TJSMemberExpression then
+  begin
     Result:='('+DbgString(TJSMemberExpression(Element).MExpr,Indent+2)+')';
   // ToDo: TJSNewMemberExpression
   // ToDo: TJSDotMemberExpression
   // ToDo: TJSBracketMemberExpression
 
   // call
-  end else if Element is TJSCallExpression then begin
+  end else if Element is TJSCallExpression then
+  begin
     Result:=DbgString(TJSCallExpression(Element).Expr,Indent+2)
            +DbgString(TJSCallExpression(Element).Args,Indent+2);
 
   // unary
-  end else if Element is TJSUnary then begin
+  end else if Element is TJSUnary then
+  begin
     Result:=TJSUnary(Element).PrefixOperator
            +DbgString(TJSUnary(Element).A,Indent+2)
            +TJSUnary(Element).PostFixOperator;
 
   // binary
-  end else if Element is TJSBinary then begin
-    if Element is TJSStatementList then begin
+  end else if Element is TJSBinary then
+  begin
+    if Element is TJSStatementList then
+    begin
       Result:=DbgString(TJSBinaryExpression(Element).A,Indent+2)+';'+LineEnding
              +Space(Indent)+DbgString(TJSBinaryExpression(Element).B,Indent);
-    end else if Element is TJSVariableDeclarationList then begin
+    end else if Element is TJSVariableDeclarationList then
+    begin
       Result:=DbgString(TJSBinaryExpression(Element).A,Indent+2)+';'+LineEnding
              +Space(Indent)+DbgString(TJSBinaryExpression(Element).B,Indent);
-    end else if Element is TJSWithStatement then begin
+    end else if Element is TJSWithStatement then
+    begin
       Result:='with ('+DbgString(TJSBinaryExpression(Element).A,Indent+2)+'){'+LineEnding
              +Space(Indent)+DbgString(TJSBinaryExpression(Element).B,Indent+2)+LineEnding
              +Space(Indent)+'}';
-    end else if Element is TJSBinaryExpression then begin
+    end else if Element is TJSBinaryExpression then
+    begin
       Result:=DbgString(TJSBinaryExpression(Element).A,Indent+2);
       if TJSBinaryExpression(Element).AllowCompact then
         Result+=TJSBinaryExpression(Element).OperatorString
@@ -208,25 +221,29 @@ begin
     end;
 
   // ? :
-  end else if Element is TJSConditionalExpression then begin
+  end else if Element is TJSConditionalExpression then
+  begin
     Result:=DbgString(TJSConditionalExpression(Element).A,Indent+2)
            +'?'+DbgString(TJSConditionalExpression(Element).B,Indent+2)
            +':'+DbgString(TJSConditionalExpression(Element).C,Indent+2);
 
   // assignment
-  end else if Element is TJSAssignStatement then begin
+  end else if Element is TJSAssignStatement then
+  begin
     Result:=DbgString(TJSAssignStatement(Element).LHS,Indent+2)
            +TJSAssignStatement(Element).OperatorString
            +DbgString(TJSAssignStatement(Element).Expr,Indent+2);
 
   // var
-  end else if Element is TJSVarDeclaration then begin
+  end else if Element is TJSVarDeclaration then
+  begin
     Result:=TJSVarDeclaration(Element).Name;
     if TJSVarDeclaration(Element).Init<>nil then
       Result+='='+DbgString(TJSVarDeclaration(Element).Init,Indent+2);
 
   // if(){} else {}
-  end else if Element is TJSIfStatement then begin
+  end else if Element is TJSIfStatement then
+  begin
     Result:='if('+DbgString(TJSIfStatement(Element).Cond,Indent+2)+'){'+LineEnding
        +Space(Indent+2)+DbgString(TJSIfStatement(Element).BTrue,Indent+2)+LineEnding
        +Space(Indent);
@@ -236,10 +253,12 @@ begin
          +Space(Indent)+'}';
 
   // body
-  end else if Element is TJSBodyStatement then begin
+  end else if Element is TJSBodyStatement then
+  begin
 
     // while(){}
-    if Element is TJSWhileStatement then begin
+    if Element is TJSWhileStatement then
+    begin
       Result:='while('+DbgString(TJSWhileStatement(Element).Cond,Indent+2)+')';
       if TJSWhileStatement(Element).Body<>nil then
         Result+=DbgString(TJSWhileStatement(Element).Body,Indent)
@@ -247,7 +266,8 @@ begin
         Result+='{}';
 
     // do{}while()
-    end else if Element is TJSDoWhileStatement then begin
+    end else if Element is TJSDoWhileStatement then
+    begin
       Result:='do';
       if TJSDoWhileStatement(Element).Body<>nil then
         Result+=DbgString(TJSDoWhileStatement(Element).Body,Indent)
@@ -256,7 +276,8 @@ begin
       Result+='('+DbgString(TJSDoWhileStatement(Element).Cond,Indent+2)+')';
 
     // for(Init;Incr;Cond)Body
-    end else if Element is TJSForStatement then begin
+    end else if Element is TJSForStatement then
+    begin
       Result:='for(';
       if TJSForStatement(Element).Init<>nil then
         Result+=DbgString(TJSForStatement(Element).Init,Indent+2);
@@ -384,7 +405,8 @@ begin
     else
       exit(m);
   end;
-  if FindInsertPos then begin
+  if FindInsertPos then
+  begin
     Result:=m;
     if l>m then inc(Result);
   end else begin
@@ -413,7 +435,8 @@ var
   InsertPos, OldCount: Integer;
 begin
   OldCount:=FMsgNumberDisabledCount;
-  if AValue then begin
+  if AValue then
+  begin
     // enable
     InsertPos:=FindMsgNumberDisabled(MsgNumber,true);
     if (InsertPos<OldCount) and (FMsgNumberDisabled[InsertPos]=MsgNumber) then
@@ -520,7 +543,8 @@ var
   i: Integer;
   LastMsg, CurMsg: TPas2jsMessage;
 begin
-  if FMsg.Count>1 then begin;
+  if FMsg.Count>1 then
+  begin;
     FMsg.Sort(@CompareP2JMessage);
 
     // check for duplicates
@@ -664,12 +688,14 @@ var
   s: String;
 begin
   s:='';
-  if Filename<>'' then begin
+  if Filename<>'' then
+  begin
     if Assigned(OnFormatPath) then
       s+=OnFormatPath(Filename)
     else
       s+=Filename;
-    if Line>0 then begin
+    if Line>0 then
+    begin
       s+='('+IntToStr(Line);
       if Col>0 then s+=','+IntToStr(Col);
       s+=')';
@@ -711,7 +737,8 @@ end;
 procedure TPas2jsLogger.Reset;
 begin
   OutputFilename:='';
-  if FMsgNumberDisabled<>nil then begin
+  if FMsgNumberDisabled<>nil then
+  begin
     ReAllocMem(FMsgNumberDisabled,0);
     FMsgNumberDisabledCount:=0;
   end;

@@ -592,7 +592,8 @@ begin
     raise EPas2jsMacro.Create('macro cycle detected: "'+s+'"');
   p:=1;
   while p<length(s) do begin
-    if (s[p]='$') and (s[p+1] in ['_','a'..'z','A'..'Z']) then begin
+    if (s[p]='$') and (s[p+1] in ['_','a'..'z','A'..'Z']) then
+    begin
       StartP:=p;
       inc(p,2);
       while (p<=length(s)) and (s[p] in ['_','a'..'z','A'..'Z','0'..'9']) do
@@ -602,7 +603,8 @@ begin
       if Macro=nil then
         raise EPas2jsMacro.Create('macro not found "'+MacroName+'" in "'+s+'"');
       NewValue:='';
-      if Macro.CanHaveParams and (p<=length(s)) and (s[p]='(') then begin
+      if Macro.CanHaveParams and (p<=length(s)) and (s[p]='(') then
+      begin
         // read NewValue
         inc(p);
         ParamStartP:=p;
@@ -613,7 +615,8 @@ begin
           case s[p] of
           '(': inc(BracketLvl);
           ')':
-            if BracketLvl=1 then begin
+            if BracketLvl=1 then
+            begin
               NewValue:=copy(s,ParamStartP,p-ParamStartP);
               break;
             end else begin
@@ -623,7 +626,8 @@ begin
         until false;
       end else if (p<=length(s)) and (s[p]='$') then
         inc(p);
-      if Assigned(Macro.OnSubstitute) then begin
+      if Assigned(Macro.OnSubstitute) then
+      begin
         if not Macro.OnSubstitute(Sender,NewValue,Lvl+1) then
           raise EPas2jsMacro.Create('macro "'+MacroName+'" failed in "'+s+'"');
       end else
@@ -670,7 +674,8 @@ begin
     FreeAndNil(FUsedBy[ub]);
   FreeAndNil(FJSModule);
   FreeAndNil(FConverter);
-  if FPasModule<>nil then begin
+  if FPasModule<>nil then
+  begin
     FPasModule.Release;
     FPasModule:=nil;
   end;
@@ -731,7 +736,8 @@ begin
   Parser.Log:=Log;
   PascalResolver.P2JParser:=Parser;
 
-  if not IsMainFile then begin
+  if not IsMainFile then
+  begin
     aUnitName:=ExtractFilenameOnly(PasFilename);
     if CompareText(aUnitName,'system')=0 then
       Parser.ImplicitUses.Clear;
@@ -746,9 +752,11 @@ begin
   if (Element.ClassType=TPasUnitModule) or (Element.ClassType=TPasModule) then
   begin
     SrcName:=Element.Name;
-    if IsMainFile then begin
+    if IsMainFile then
+    begin
       // main source is an unit
-      if PasUnitName='' then begin
+      if PasUnitName='' then
+      begin
         {$IFDEF VerboseSetPasUnitName}
         writeln('TPas2jsCompilerFile.OnPasTreeCheckSrcName ',PasFilename,' Name=',Element.Name,' IsMainFile=',IsMainFile);
         {$ENDIF}
@@ -867,7 +875,8 @@ var
   aFilename: String;
   aRow, aColumn: integer;
 begin
-  if E.PasElement<>nil then begin
+  if E.PasElement<>nil then
+  begin
     aFilename:=E.PasElement.SourceFilename;
     PascalResolver.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,aRow,aColumn);
   end else begin
@@ -884,7 +893,8 @@ var
   aFilename: String;
   aRow, aColumn: integer;
 begin
-  if E.PasElement<>nil then begin
+  if E.PasElement<>nil then
+  begin
     aFilename:=E.PasElement.SourceFilename;
     PascalResolver.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,aRow,aColumn);
     Log.Log(E.MsgType,E.Message,E.MsgNumber,aFilename,aRow,aColumn);
@@ -903,7 +913,8 @@ end;
 
 procedure TPas2jsCompilerFile.HandleException(E: Exception);
 begin
-  if E is EScannerError then begin
+  if E is EScannerError then
+  begin
     Log.Log(Scanner.LastMsgType,Scanner.LastMsg,Scanner.LastMsgNumber,
             Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
     Compiler.Terminate(ExitCodeSyntaxError);
@@ -923,7 +934,8 @@ var
   Line, Col: integer;
   Filename: String;
 begin
-  if (El<>nil) then begin
+  if (El<>nil) then
+  begin
     Filename:=El.SourceFilename;
     TPasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
   end else begin
@@ -942,7 +954,8 @@ end;
 procedure TPas2jsCompilerFile.ParserFinished;
 begin
   try
-    if ShowDebug then begin
+    if ShowDebug then
+    begin
       Log.LogRaw('Pas-Module:');
       Log.LogRaw(PasModule.GetDeclaration(true));
     end;
@@ -1053,15 +1066,18 @@ begin
   Result:=nil;
   aModule:=GetCurPasModule;
   if aModule=nil then exit;
-  if aModule.ClassType=TPasModule then begin
+  if aModule.ClassType=TPasModule then
+  begin
     IntfSection:=TPasModule(aModule).InterfaceSection;
     if IntfSection<>nil then
       Result:=IntfSection.UsesClause;
-  end else if aModule.ClassType=TPasProgram then begin
+  end else if aModule.ClassType=TPasProgram then
+  begin
     PrgSection:=TPasProgram(aModule).ProgramSection;
     if PrgSection<>nil then
       Result:=PrgSection.UsesClause;
-  end else if aModule.ClassType=TPasLibrary then begin
+  end else if aModule.ClassType=TPasLibrary then
+  begin
     LibSection:=TPasLibrary(aModule).LibrarySection;
     if LibSection<>nil then
       Result:=LibSection.UsesClause;
@@ -1112,7 +1128,8 @@ begin
   if (aModule=nil) or (aModule.CustomData=nil) then exit;
   if aModule.CustomData is TPas2jsCompilerFile then
     Result:=TPas2jsCompilerFile(aModule.CustomData)
-  else if aModule.CustomData is TPasModuleScope then begin
+  else if aModule.CustomData is TPasModuleScope then
+  begin
     Scope:=TPasModuleScope(aModule.CustomData);
     Resolver:=NoNil(Scope.Owner) as TPas2jsCompilerResolver;
     Result:=Resolver.Owner as TPas2jsCompilerFile;
@@ -1126,7 +1143,8 @@ var
   i: Integer;
 begin
   Result:=nil;
-  if CompareText(ExtractFilenameOnly(PasFilename),UseUnitname)=0 then begin
+  if CompareText(ExtractFilenameOnly(PasFilename),UseUnitname)=0 then
+  begin
     // duplicate identifier or unit cycle
     Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
   end;
@@ -1139,11 +1157,13 @@ begin
   else
     RaiseInternalError(20170504161408,'internal error TPas2jsCompilerFile.FindModule PasTree.LastElement='+GetObjName(LastEl)+' '+GetObjName(LastEl.Parent));
 
-  if (Pos('.',UseUnitname)<1) then begin
+  if (Pos('.',UseUnitname)<1) then
+  begin
     // generic unit -> search with namespaces
     // first the default program namespace
     aNameSpace:=Compiler.GetDefaultNamespace;
-    if aNameSpace<>'' then begin
+    if aNameSpace<>'' then
+    begin
       Result:=FindUnit(aNameSpace+'.'+UseUnitname);
       if Result<>nil then exit;
     end;
@@ -1172,14 +1192,16 @@ function TPas2jsCompilerFile.FindUnit(const UseUnitname: String): TPasModule;
   begin
     for i:=0 to aFile.UsedByCount[ubMainSection]-1 do begin
       aParent:=aFile.UsedBy[ubMainSection,i];
-      if aParent=SearchFor then begin
+      if aParent=SearchFor then
+      begin
         // unit cycle found
         Cycle:=TFPList.Create;
         Cycle.Add(aParent);
         Cycle.Add(aFile);
         exit(true);
       end;
-      if FindCycle(aParent,SearchFor,Cycle) then begin
+      if FindCycle(aParent,SearchFor,Cycle) then
+      begin
         Cycle.Add(aFile);
         exit(true);
       end;
@@ -1196,7 +1218,8 @@ var
     Cycle: TFPList;
     CyclePath: String;
   begin
-    if Parser.CurModule.ImplementationSection=nil then begin
+    if Parser.CurModule.ImplementationSection=nil then
+    begin
       // main uses section (e.g. interface or program, not implementation)
       // -> check for cycles
 
@@ -1204,7 +1227,8 @@ var
 
       Cycle:=nil;
       try
-        if FindCycle(aFile,aFile,Cycle) then begin
+        if FindCycle(aFile,aFile,Cycle) then
+        begin
           CyclePath:='';
           for i:=0 to Cycle.Count-1 do begin
             if i>0 then CyclePath+=',';
@@ -1230,7 +1254,8 @@ begin
 
   // first try registered units
   aFile:=Compiler.FindUsedUnit(UseUnitname);
-  if aFile<>nil then begin
+  if aFile<>nil then
+  begin
     // known unit
     if (aFile.PasUnitName<>'') and (CompareText(aFile.PasUnitName,UseUnitname)<>0) then
     begin
@@ -1246,7 +1271,8 @@ begin
 
     // search Pascal file
     UsePasFilename:=FileResolver.FindUnitFileName(UseUnitname,InFilename,UseIsForeign);
-    if UsePasFilename='' then begin
+    if UsePasFilename='' then
+    begin
       // can't find unit
       exit;
     end;
@@ -1260,7 +1286,8 @@ begin
 
     // load Pascal file
     Compiler.LoadPasFile(UsePasFilename,UseUnitname,aFile);
-    if aFile=Self then begin
+    if aFile=Self then
+    begin
       // unit uses itself -> cycle
       Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
     end;
@@ -1344,7 +1371,8 @@ var
 begin
   // check defines
   i:=FDefines.IndexOf(aName);
-  if i>=0 then begin
+  if i>=0 then
+  begin
     M:=TMacroDef(FDefines.Objects[i]);
     if M=nil then
       Value:=CondDirectiveBool[true]
@@ -1355,7 +1383,8 @@ begin
 
   // check modeswitches
   ms:=StrToModeSwitch(aName);
-  if (ms<>msNone) and (ms in p2jsMode_SwitchSets[Mode]) then begin
+  if (ms<>msNone) and (ms in p2jsMode_SwitchSets[Mode]) then
+  begin
     Value:=CondDirectiveBool[true];
     exit(true);
   end;
@@ -1405,7 +1434,8 @@ begin
     FreeAndNil(Checked);
 
     // write success message
-    if ExitCode=0 then begin
+    if ExitCode=0 then
+    begin
       Seconds:=(Now-StartTime)*86400;
       Log.LogMsgIgnoreFilter(nLinesInFilesCompiled,
              [IntToStr(FileCache.ReadLineCounter),IntToStr(SrcFileCount),
@@ -1443,7 +1473,8 @@ function TPas2jsCompiler.MarkNeedBuilding(aFile: TPas2jsCompilerFile;
       UsedFile:=TPas2jsCompilerFile.GetFile(aModule);
       if UsedFile=nil then
         RaiseInternalError(20171214121631,aModule.Name);
-      if MarkNeedBuilding(UsedFile,Checked,SrcFileCount) then begin
+      if MarkNeedBuilding(UsedFile,Checked,SrcFileCount) then
+      begin
         if not aFile.NeedBuild then
           Mark(nUnitNeedsCompileDueToUsedUnit,
                                    [aFile.GetModuleName,UsedFile.GetModuleName]);
@@ -1466,7 +1497,8 @@ begin
   CheckUsesClause(aFile.GetPasMainUsesClause);
   CheckUsesClause(aFile.GetPasImplUsesClause);
 
-  if (not aFile.NeedBuild) and (not aFile.IsForeign) then begin
+  if (not aFile.NeedBuild) and (not aFile.IsForeign) then
+  begin
     // this unit can be compiled
     if aFile.IsMainFile then
       Mark(nUnitNeedsCompileDueToOption,[aFile.GetModuleName,'<main source file>'])
@@ -1484,9 +1516,11 @@ begin
     end;
   end;
 
-  if aFile.NeedBuild then begin
+  if aFile.NeedBuild then
+  begin
     // unit needs compile
-    if aFile.IsForeign then begin
+    if aFile.IsForeign then
+    begin
       // ... but is forbidden to compile
       Log.LogMsg(nOptionForbidsCompile,[aFile.GetModuleName]);
       Terminate(ExitCodeWriteError);
@@ -1555,17 +1589,20 @@ begin
   for i:=0 to SrcMap.SourceCount-1 do begin
     LocalFilename:=SrcMap.SourceFiles[i];
     if LocalFilename='' then continue;
-    if SrcMapInclude then begin
+    if SrcMapInclude then
+    begin
       // include source in SrcMap
       aFile:=FileCache.LoadTextFile(LocalFilename);
       SrcMap.SourceContents[i]:=aFile.Source;
     end;
     // translate local file name
-    if BaseDir<>'' then begin
-      if not TryCreateRelativePath(LocalFilename,BaseDir,true,MapFilename)
-      then begin
+    if BaseDir<>'' then
+    begin
+      if not TryCreateRelativePath(LocalFilename,BaseDir,true,MapFilename) then
+      begin
         // e.g. file is on another partition
-        if not SrcMapInclude then begin
+        if not SrcMapInclude then
+        begin
           Log.Log(mtError,
             SafeFormat(sUnableToTranslatePathToDir,[LocalFilename,BaseDir]),
             nUnableToTranslatePathToDir);
@@ -1620,7 +1657,8 @@ var
   begin
     aFileWriter:=TPas2JSMapper.Create(4096);
     FreeWriter:=true;
-    if SrcMapEnable then begin
+    if SrcMapEnable then
+    begin
       SrcMap:=TPas2JSSrcMap.Create(ExtractFilename(aFilename));
       aFileWriter.SrcMap:=SrcMap;
       SrcMap.Release;// release the refcount from the Create
@@ -1642,7 +1680,8 @@ begin
   Checked.Add(aFile);
 
   FreeWriter:=false;
-  if FileCache.AllJSIntoMainJS and (CombinedFileWriter=nil) then begin
+  if FileCache.AllJSIntoMainJS and (CombinedFileWriter=nil) then
+  begin
     // create CombinedFileWriter
     DestFilename:=FileCache.GetResolvedMainJSFile;
     CreateFileWriter(DestFilename);
@@ -1659,7 +1698,8 @@ begin
   aJSWriter:=nil;
   aFileWriter:=CombinedFileWriter;
   try
-    if aFileWriter=nil then begin
+    if aFileWriter=nil then
+    begin
       // create writer for this file
       CreateFileWriter(DestFilename);
       if aFile.IsMainFile and not FileCache.AllJSIntoMainJS then
@@ -1679,10 +1719,12 @@ begin
     if DoWriteJSFile(aFile.JSFilename,aFileWriter) then
       exit;// descendant has written -> finished
 
-    if (aFile.JSFilename='') and (FileCache.MainJSFile='.') then begin
+    if (aFile.JSFilename='') and (FileCache.MainJSFile='.') then
+    begin
       // write to stdout
       Log.LogRaw(aFileWriter.AsAnsistring);
-    end else if FreeWriter then begin
+    end else if FreeWriter then
+    begin
       // write to file
 
       //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.PasFilename,' ',aFile.JSFilename);
@@ -1691,11 +1733,13 @@ begin
 
       // check output directory
       DestDir:=ChompPathDelim(ExtractFilePath(DestFilename));
-      if (DestDir<>'') and not DirectoryExists(DestDir) then begin
+      if (DestDir<>'') and not DirectoryExists(DestDir) then
+      begin
         Log.LogMsg(nOutputDirectoryNotFound,[FileCache.FormatPath(DestDir)]);
         Terminate(ExitCodeFileNotFound);
       end;
-      if DirectoryExists(DestFilename) then begin
+      if DirectoryExists(DestFilename) then
+      begin
         Log.LogMsg(nFileIsFolder,[FileCache.FormatPath(DestFilename)]);
         Terminate(ExitCodeWriteError);
       end;
@@ -1707,14 +1751,16 @@ begin
         fs:=TFileStream.Create(DestFilename,fmCreate);
         try
           // UTF8-BOM
-          if (Log.Encoding='') or (Log.Encoding='utf8') then begin
+          if (Log.Encoding='') or (Log.Encoding='utf8') then
+          begin
             Src:=String(UTF8BOM);
             fs.Write(Src[1],length(Src));
           end;
           // JS source
           fs.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
           // source map comment
-          if aFileWriter.SrcMap<>nil then begin
+          if aFileWriter.SrcMap<>nil then
+          begin
             Src:='//# sourceMappingURL='+ExtractFilename(MapFilename)+LineEnding;
             fs.Write(Src[1],length(Src));
           end;
@@ -1730,7 +1776,8 @@ begin
       end;
 
       // write source map
-      if aFileWriter.SrcMap<>nil then begin
+      if aFileWriter.SrcMap<>nil then
+      begin
         Log.LogMsg(nWritingFile,[FileCache.FormatPath(MapFilename)],'',0,0,
                    not (coShowLineNumbers in Options));
         FinishSrcMap(aFileWriter.SrcMap);
@@ -1755,7 +1802,8 @@ begin
     end;
 
   finally
-    if FreeWriter then begin
+    if FreeWriter then
+    begin
       if CombinedFileWriter=aFileWriter then
         CombinedFileWriter:=nil;
       aFileWriter.Free
@@ -1915,7 +1963,8 @@ begin
       while (p^ in [' ',#9]) do inc(p);
       if p^=#0 then continue; // empty line
 
-      if p^='#' then begin
+      if p^='#' then
+      begin
         // cfg directive
         inc(p);
         if p^ in [#0,#9,' ','-'] then continue; // comment
@@ -1924,9 +1973,11 @@ begin
         'ifdef','ifndef':
           begin
             inc(IfLvl);
-            if Skip=skipNone then begin
+            if Skip=skipNone then
+            begin
               aName:=GetWord;
-              if IsDefined(aName)=(Directive='ifdef') then begin
+              if IsDefined(aName)=(Directive='ifdef') then
+              begin
                 // execute block
                 if ShowDebug then
                   DebugCfgDirective('true -> execute');
@@ -1942,9 +1993,11 @@ begin
         'if':
           begin
             inc(IfLvl);
-            if Skip=skipNone then begin
+            if Skip=skipNone then
+            begin
               Expr:=copy(Line,p-PChar(Line)+1,length(Line));
-              if ConditionEvaluator.Eval(Expr) then begin
+              if ConditionEvaluator.Eval(Expr) then
+              begin
                 // execute block
                 if ShowDebug then
                   DebugCfgDirective('true -> execute');
@@ -1963,13 +2016,15 @@ begin
               CfgSyntaxError('"'+Directive+'" without ifdef');
             if (Skip=skipElse) and (IfLvl=SkipLvl) then
               CfgSyntaxError('"there was already an $else');;
-            if (Skip=skipIf) and (IfLvl=SkipLvl) then begin
+            if (Skip=skipIf) and (IfLvl=SkipLvl) then
+            begin
               // if-block was skipped -> execute else block
               if ShowDebug then
                 DebugCfgDirective('execute');
               SkipLvl:=0;
               Skip:=skipNone;
-            end else if Skip=skipNone then begin
+            end else if Skip=skipNone then
+            begin
               // if-block was executed -> skip else block
               if ShowDebug then
                 DebugCfgDirective('skip');
@@ -1980,10 +2035,12 @@ begin
           begin
             if IfLvl=0 then
               CfgSyntaxError('"'+Directive+'" without ifdef');
-            if (Skip=skipIf) and (IfLvl=SkipLvl) then begin
+            if (Skip=skipIf) and (IfLvl=SkipLvl) then
+            begin
               // if-block was skipped -> try this elseif
               Expr:=copy(Line,p-PChar(Line)+1,length(Line));
-              if ConditionEvaluator.Eval(Expr) then begin
+              if ConditionEvaluator.Eval(Expr) then
+              begin
                 // execute elseif block
                 if ShowDebug then
                   DebugCfgDirective('true -> execute');
@@ -1994,7 +2051,8 @@ begin
                 if ShowDebug then
                   DebugCfgDirective('false -> skip');
               end;
-            end else if Skip=skipNone then begin
+            end else if Skip=skipNone then
+            begin
               // if-block was executed -> skip without test
               if ShowDebug then
                 DebugCfgDirective('no test -> skip');
@@ -2006,7 +2064,8 @@ begin
             if IfLvl=0 then
               CfgSyntaxError('"'+Directive+'" without ifdef');
             dec(IfLvl);
-            if IfLvl<SkipLvl then begin
+            if IfLvl<SkipLvl then
+            begin
               // end block
               if ShowDebug then
                 DebugCfgDirective('end block');
@@ -2022,7 +2081,8 @@ begin
           else
             DebugCfgDirective('skipping unknown directive');
         end;
-      end else if Skip=skipNone then begin
+      end else if Skip=skipNone then
+      begin
         // option line
         Line:=String(p);
         ReadParam(Line,false,false);
@@ -2063,9 +2123,11 @@ begin
     end;
 
   // then try compiler directory
-  if (CompilerExe<>'') then begin
+  if (CompilerExe<>'') then
+  begin
     aFilename:=ExtractFilePath(CompilerExe);
-    if aFilename<>'' then begin
+    if aFilename<>'' then
+    begin
       aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
       if TryConfig(aFilename) then exit;
     end;
@@ -2115,7 +2177,8 @@ begin
   ParamMacros.Substitute(Param,Self);
   if Param='' then exit;
 
-  if Quick and ((Param='-h') or (Param='-?') or (Param='--help')) then begin
+  if Quick and ((Param='-h') or (Param='-?') or (Param='--help')) then
+  begin
     WriteHelp;
     Terminate(0);
   end;
@@ -2201,10 +2264,12 @@ begin
           end;
         end;
       'd': // define
-        if not Quick then begin
+        if not Quick then
+        begin
           Identifier:=copy(Param,3,length(Param));
           i:=Pos(':=',Identifier);
-          if i>0 then begin
+          if i>0 then
+          begin
             Value:=copy(Identifier,i+2,length(Identifier));
             Identifier:=LeftStr(Identifier,i-1);
             if not IsValidIdent(Identifier) then
@@ -2232,7 +2297,8 @@ begin
           end;
         end;
       'I': // include path, same as -Fi
-        if not Quick then begin
+        if not Quick then
+        begin
           inc(p);
           if not FileCache.AddIncludePaths(String(p),FromCmdLine,ErrorMsg) then
             ParamFatal('invalid include path "'+ErrorMsg+'"');
@@ -2247,11 +2313,13 @@ begin
           'i':
             if p^=#0 then
               ParamFatal('missing insertion file: '+Param)
-            else if not Quick then begin
+            else if not Quick then
+            begin
               aFilename:=String(p);
               if aFilename='' then
                 UnknownParam;
-              if aFilename[length(aFilename)]='-' then begin
+              if aFilename[length(aFilename)]='-' then
+              begin
                 Delete(aFilename,length(aFilename),1);
                 if aFilename='' then
                   UnknownParam;
@@ -2353,7 +2421,8 @@ begin
           inc(p,length(Identifier));
           Enable:=true;
           c:=Identifier[length(Identifier)];
-          if c in ['+','-'] then begin
+          if c in ['+','-'] then
+          begin
             Enable:=c='+';
             Delete(Identifier,length(Identifier),1);
           end;
@@ -2406,7 +2475,8 @@ begin
           ParamFatal('invalid target platform "'+Identifier+'"');
         end;
       'u': // undefine
-        if not Quick then begin
+        if not Quick then
+        begin
           Identifier:=copy(Param,3,length(Param));
           if not IsValidIdent(Identifier) then
             ParamFatal('-u: invalid undefine: "'+Param+'"');
@@ -2422,7 +2492,8 @@ begin
       end;
     end;
   '@':
-    if not Quick then begin
+    if not Quick then
+    begin
       // load extra config file
       aFilename:=copy(Param,2,length(Param));
       if aFilename='' then
@@ -2434,7 +2505,8 @@ begin
     end;
   else
     // filename
-    if (not Quick) then begin
+    if (not Quick) then
+    begin
       if not FromCmdLine then
         CfgSyntaxError('invalid parameter');
       if FileCache.MainSrcFile<>'' then
@@ -2452,7 +2524,8 @@ var
   Enabled, Disabled: string;
   i: Integer;
 begin
-  if p^='m' then begin
+  if p^='m' then
+  begin
     // read m-flags
     repeat
       inc(p);
@@ -2554,7 +2627,8 @@ begin
     if Pos(Letter,Allowed)<1 then
       ParamFatal('unknown option "'+Param+'". Use -h for help.');
     inc(p);
-    if p^='-' then begin
+    if p^='-' then
+    begin
       // disable
       if Pos(Letter,Disabled)<1 then Disabled+=Letter;
       i:=Pos(Letter,Enabled);
@@ -2820,7 +2894,8 @@ var
   M: TMacroDef;
 begin
   i:=FDefines.IndexOf(aName);
-  if (i<>-1) then begin
+  if (i<>-1) then
+  begin
     M:=TMacroDef(FDefines.Objects[i]);
     M.Free;
     FDefines.Delete(i);
@@ -2919,7 +2994,8 @@ begin
     WriteLogo;
 
   // show debug info
-  if ShowDebug then begin
+  if ShowDebug then
+  begin
     WriteOptions;
     WriteDefines;
   end;
@@ -2957,7 +3033,8 @@ const
     end;
 
   begin
-    if length(s)<=MaxLineLen then begin
+    if length(s)<=MaxLineLen then
+    begin
       Log.LogRaw(s);
       exit;
     end;
@@ -2982,7 +3059,8 @@ const
         inc(p);
       end;
       inc(CodePointCount);
-      if CodePointCount>=MaxLineLen then begin
+      if CodePointCount>=MaxLineLen then
+      begin
         if (WordBreak=nil) or (WordBreak-PChar(s)<MaxLineLen div 3) then
           WordBreak:=LastCharStart;
         Len:=WordBreak-PChar(s);
@@ -3001,7 +3079,8 @@ var
 begin
   WriteLogo;
   Log.LogLn;
-  if CompilerExe<>'' then begin
+  if CompilerExe<>'' then
+  begin
     l('Usage: '+CompilerExe+' <your.pas>');
   end else begin
     l('Usage: pas2js <your.pas>');
@@ -3128,7 +3207,8 @@ begin
   // message encoding
   Log.LogMsgIgnoreFilter(nMessageEncodingIs,[IntToStr(Log.MsgCount)]);
   // source map options
-  if SrcMapEnable then begin
+  if SrcMapEnable then
+  begin
     Log.LogMsgIgnoreFilter(nSrcMapSourceRootIs,[SrcMapSourceRoot]);
     Log.LogMsgIgnoreFilter(nSrcMapBaseDirIs,[SrcMapBaseDir]);
   end;
@@ -3251,13 +3331,15 @@ begin
   aFile:=FindPasFile(PasFilename);
   if aFile<>nil then exit;
 
-  if (PasFilename='') or not DirectoryCache.FileExists(PasFilename) then begin
+  if (PasFilename='') or not DirectoryCache.FileExists(PasFilename) then
+  begin
     Log.LogMsg(nSourceFileNotFound,[PasFilename]);
     Terminate(ExitCodeFileNotFound);
   end;
 
   PasFilename:=ExpandFileNameUTF8(PasFilename);
-  if DirectoryExists(PasFilename) then begin
+  if DirectoryExists(PasFilename) then
+  begin
     Log.LogMsg(nFileIsFolder,[PasFilename]);
     Terminate(ExitCodeFileNotFound);
   end;
@@ -3313,7 +3395,8 @@ begin
   if aFile.PasUnitName='' then
     RaiseInternalError(20170504161347,'missing PasUnitName "'+aFile.PasFilename+'"');
   OldFile:=FindUsedUnit(aFile.PasUnitName);
-  if OldFile<>nil then begin
+  if OldFile<>nil then
+  begin
     if OldFile<>aFile then
       RaiseInternalError(20170504161354,'duplicate unit "'+OldFile.PasUnitName+'" "'+aFile.PasFilename+'" "'+OldFile.PasFilename+'"');
   end else begin

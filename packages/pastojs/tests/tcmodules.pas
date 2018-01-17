@@ -1217,13 +1217,15 @@ var
       StartPos:=p;
       while not (p^ in [#0,#10,#13]) do inc(p);
       ExpLine:=copy(Expected,StartPos-PChar(Expected)+1,p-StartPos);
-      if p^ in [#10,#13] then begin
+      if p^ in [#10,#13] then
+      begin
         if (p[1] in [#10,#13]) and (p^<>p[1]) then
           inc(p,2)
         else
           inc(p);
       end;
-      if (p<=ExpectedP) and (p^<>#0) then begin
+      if (p<=ExpectedP) and (p^<>#0) then
+      begin
         writeln('= ',ExpLine);
       end else begin
         // diff line
@@ -1458,8 +1460,10 @@ procedure TCustomTestModule.RaiseException(E: Exception);
 var
   MsgNumber: Integer;
 begin
-  if ExpectedErrorClass<>nil then begin
-    if FExpectedErrorClass=E.ClassType then begin
+  if ExpectedErrorClass<>nil then
+  begin
+    if FExpectedErrorClass=E.ClassType then
+    begin
       if E is EPas2JS then
         MsgNumber:=EPas2JS(E).MsgNumber
       else if E is EPasResolve then

@@ -90,7 +90,8 @@ begin
   while Depth<12 do begin
     inc(Depth);
     LinkFilename:=fpReadLink(Result);
-    if LinkFilename='' then begin
+    if LinkFilename='' then
+    begin
       AText:='"'+Filename+'"';
       case fpGetErrno() of
       ESysEAcces:
@@ -108,7 +109,8 @@ begin
         // not a symbolic link, just a regular file
         exit;
       end;
-      if (not ExceptionOnError) then begin
+      if (not ExceptionOnError) then
+      begin
         Result:='';
         exit;
       end;

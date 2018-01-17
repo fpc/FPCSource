@@ -113,7 +113,8 @@ var
   ExpPath: String;
   l: integer;
 begin
-  if Path='' then begin
+  if Path='' then
+  begin
     Result:=false;
     exit;
   end;
@@ -132,7 +133,8 @@ begin
   if Path = '' then
     exit;
   Len:=length(Result);
-  if (Result[1] in AllowDirectorySeparators) then begin
+  if (Result[1] in AllowDirectorySeparators) then
+  begin
     MinLen := 1;
     {$IFDEF HasUNCPaths}
     if (Len >= 2) and (Result[2] in AllowDirectorySeparators) then
@@ -220,7 +222,8 @@ begin
 
   // skip matching directories
   SharedDirs:=0;
-  if FileP^ in AllowDirectorySeparators then begin
+  if FileP^ in AllowDirectorySeparators then
+  begin
     if not (BaseP^ in AllowDirectorySeparators) then exit;
     repeat
       while FileP^ in AllowDirectorySeparators do inc(FileP);
@@ -256,7 +259,8 @@ begin
 
   //writeln('TryCreateRelativePath UpDirCount=',UpDirCount,' File="',FileP,'" Base="',BaseP,'"');
   // create relative filename
-  if (FileP^=#0) and (UpDirCount=0) then begin
+  if (FileP^=#0) and (UpDirCount=0) then
+  begin
     // Filename is the BaseDirectory
     if UsePointDirectory then
       RelPath:='.'
@@ -327,14 +331,16 @@ begin
     if (c in AllowDirectorySeparators) then c := PathDelim;
     {$endif}
     // check for duplicate path delims
-    if (c=PathDelim) then begin
+    if (c=PathDelim) then
+    begin
       inc(SrcPos);
       {$IFDEF Windows}
       if (DestPos>2)
       {$ELSE}
       if (DestPos>1)
       {$ENDIF}
-      and (Result[DestPos-1]=PathDelim) then begin
+      and (Result[DestPos-1]=PathDelim) then
+      begin
         // skip duplicate PathDelim
         continue;
       end;
@@ -343,10 +349,13 @@ begin
       continue;
     end;
     // check for special dirs . and ..
-    if (c='.') then begin
-      if (SrcPos<Len) then begin
+    if (c='.') then
+    begin
+      if (SrcPos<Len) then
+      begin
         if (AFilename[SrcPos+1] in AllowDirectorySeparators)
-        and IsPathDelim(Result,DestPos-1) then begin
+        and IsPathDelim(Result,DestPos-1) then
+        begin
           // special dir ./ or */./
           // -> skip
           inc(SrcPos,2);
@@ -365,31 +374,38 @@ begin
           //  6. ../..   -> copy because if the first '..' was not resolved, the next can't neither
           //  7. dir/..  -> trim dir and ..
           //  8. dir$macro/..  -> copy
-          if DestPos=1 then begin
+          if DestPos=1 then
+          begin
             //  1. .. or ../  -> copy
-          end else if (DestPos=2) and (Result[1]=PathDelim) then begin
+          end else if (DestPos=2) and (Result[1]=PathDelim) then
+          begin
             //  2. /..     -> skip .., keep /
             inc(SrcPos,2);
             continue;
           {$IFDEF Windows}
-          end else if (DestPos=3) and IsDriveDelim(Result,2) then begin
+          end else if (DestPos=3) and IsDriveDelim(Result,2) then
+          begin
             //  3. C:..    -> copy
           end else if (DestPos=4) and (Result[3]=PathDelim)
-          and IsDriveDelim(Result,2) then begin
+          and IsDriveDelim(Result,2) then
+          begin
             //  4. C:\..   -> skip .., keep C:\
             inc(SrcPos,2);
             continue;
           end else if (DestPos=3) and (Result[1]=PathDelim)
-          and (Result[2]=PathDelim) then begin
+          and (Result[2]=PathDelim) then
+          begin
             //  5. \\..    -> skip .., keep \\
             inc(SrcPos,2);
             continue;
           {$ENDIF}
-          end else if (DestPos>1) and (Result[DestPos-1]=PathDelim) then begin
+          end else if (DestPos>1) and (Result[DestPos-1]=PathDelim) then
+          begin
             // */.
             if (DestPos>3)
             and (Result[DestPos-2]='.') and (Result[DestPos-3]='.')
-            and IsPathDelim(Result,DestPos-4) then begin
+            and IsPathDelim(Result,DestPos-4) then
+            begin
               //  6. ../..   -> copy because if the first '..' was not resolved, the next can't neither
             end else begin
               //  7. xxxdir/..  -> trim dir and skip ..
@@ -403,28 +419,34 @@ begin
               MacroPos:=DirStart;
               while MacroPos<DestPos do begin
                 if (Result[MacroPos]='$')
-                and (Result[MacroPos+1] in ['(','a'..'z','A'..'Z']) then begin
+                and (Result[MacroPos+1] in ['(','a'..'z','A'..'Z']) then
+                begin
                   // 8. directory contains a macro -> keep
                   break;
                 end;
                 inc(MacroPos);
               end;
-              if MacroPos=DestPos then begin
+              if MacroPos=DestPos then
+              begin
                 // previous directory does not contain a macro -> remove dir/..
                 DestPos:=DirStart;
                 inc(SrcPos,2);
                 //writeln('ResolveDots ',DestPos,' SrcPos=',SrcPos,' File="',AFilename,'" Result="',copy(Result,1,DestPos-1),'"');
-                if SrcPos>Len then begin
+                if SrcPos>Len then
+                begin
                   // '..' at end of filename
-                  if (DestPos>1) and (Result[DestPos-1]=PathDelim) then begin
+                  if (DestPos>1) and (Result[DestPos-1]=PathDelim) then
+                  begin
                     // foo/dir/.. -> foo
                     dec(DestPos);
-                  end else if (DestPos=1) then begin
+                  end else if (DestPos=1) then
+                  begin
                     // foo/.. -> .
                     Result[1]:='.';
                     DestPos:=2;
                   end;
-                end else if DestPos=1 then begin
+                end else if DestPos=1 then
+                begin
                   // e.g. 'foo/../'
                   while (SrcPos<=Len) and (AFilename[SrcPos] in AllowDirectorySeparators) do
                     inc(SrcPos);
@@ -436,7 +458,8 @@ begin
         end;
       end else begin
         // special dir . at end of filename
-        if DestPos=1 then begin
+        if DestPos=1 then
+        begin
           Result:='.';
           exit;
         end;
@@ -535,7 +558,8 @@ function MatchGlobbing(Mask, Name: string): boolean;
       #0:
         exit(IsNameEnd(NameP));
       '?':
-        if not IsNameEnd(NameP) then begin
+        if not IsNameEnd(NameP) then
+        begin
           inc(MaskP);
           c:=UTF8CharacterStrictLength(NameP);
           if c<1 then c:=1;
@@ -611,22 +635,26 @@ end;
 function UTF8CharacterStrictLength(P: PChar): integer;
 begin
   if p=nil then exit(0);
-  if ord(p^)<%10000000 then begin
+  if ord(p^)<%10000000 then
+  begin
     // regular single byte character
     exit(1);
   end
-  else if ord(p^)<%11000000 then begin
+  else if ord(p^)<%11000000 then
+  begin
     // invalid single byte character
     exit(0);
   end
-  else if ((ord(p^) and %11100000) = %11000000) then begin
+  else if ((ord(p^) and %11100000) = %11000000) then
+  begin
     // should be 2 byte character
     if (ord(p[1]) and %11000000) = %10000000 then
       exit(2)
     else
       exit(0);
   end
-  else if ((ord(p^) and %11110000) = %11100000) then begin
+  else if ((ord(p^) and %11110000) = %11100000) then
+  begin
     // should be 3 byte character
     if ((ord(p[1]) and %11000000) = %10000000)
     and ((ord(p[2]) and %11000000) = %10000000) then
@@ -634,7 +662,8 @@ begin
     else
       exit(0);
   end
-  else if ((ord(p^) and %11111000) = %11110000) then begin
+  else if ((ord(p^) and %11111000) = %11110000) then
+  begin
     // should be 4 byte character
     if ((ord(p[1]) and %11000000) = %10000000)
     and ((ord(p[2]) and %11000000) = %10000000)
@@ -648,7 +677,8 @@ end;
 
 function GetDefaultTextEncoding: string;
 begin
-  if EncodingValid then begin
+  if EncodingValid then
+  begin
     Result:=DefaultTextEncoding;
     exit;
   end;
@@ -660,7 +690,8 @@ begin
   Result:=EncodingUTF8;
   {$ELSE}
   Lang := GetEnvironmentVariable('LC_ALL');
-  if Lang='' then begin
+  if Lang='' then
+  begin
     Lang := GetEnvironmentVariable('LC_MESSAGES');
     if Lang='' then
       Lang := GetEnvironmentVariable('LANG');

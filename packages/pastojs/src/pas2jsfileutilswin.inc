@@ -475,7 +475,8 @@ var
   len: LongInt;
 begin
   Result:=s;
-  if IsASCII(Result) then begin
+  if IsASCII(Result) then
+  begin
     // prevent codepage conversion magic
     SetCodePage(RawByteString(Result), CP_ACP, False);
     exit;
@@ -485,7 +486,8 @@ begin
     exit;
   len:=WideCharToMultiByte(CP_ACP,0,PUnicodeChar(src),length(src),nil,0,nil,nil);
   SetLength(Result,len);
-  if len>0 then begin
+  if len>0 then
+  begin
     WideCharToMultiByte(CP_ACP,0,PUnicodeChar(src),length(src),@Result[1],length(Result),nil,nil);
     // prevent codepage conversion magic
     SetCodePage(RawByteString(Result), CP_ACP, False);
@@ -507,7 +509,8 @@ var
   UTF16Str: UnicodeString;
 begin
   Result:=s;
-  if IsASCII(Result) then begin
+  if IsASCII(Result) then
+  begin
     // prevent codepage conversion magic
     SetCodePage(RawByteString(Result), CP_ACP, False);
     exit;

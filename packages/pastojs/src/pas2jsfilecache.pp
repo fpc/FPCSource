@@ -391,14 +391,17 @@ begin
     SrcEncoding:=GuessEncoding(Src);
   if Result='' then exit;
   NormSrcEncoding:=NormalizeEncoding(SrcEncoding);
-  if NormSrcEncoding=NormalizeEncoding(EncodingUTF8) then begin
+  if NormSrcEncoding=NormalizeEncoding(EncodingUTF8) then
+  begin
     p:=PChar(Result);
-    if (p^=#$EF) and (p[1]=#$BB) and (p[2]=#$BF) then begin
+    if (p^=#$EF) and (p[1]=#$BB) and (p[2]=#$BF) then
+    begin
       // cut out UTF-8 BOM
       Delete(Result,1,3);
     end;
   end else if (NormSrcEncoding=EncodingSystem)
-      or (NormSrcEncoding=GetDefaultTextEncoding) then begin
+      or (NormSrcEncoding=GetDefaultTextEncoding) then
+  begin
     Result:=SystemCPToUTF8(Result);
   end else
     EPas2jsFileCache.Create('invalid encoding "'+SrcEncoding+'"');
@@ -420,7 +423,8 @@ begin
   l:=length(Src);
   p:=PChar(Src);
   repeat
-    if ord(p^)<128 then begin
+    if ord(p^)<128 then
+    begin
       // ASCII
       if (p^=#0) and (p-PChar(Src)>=l) then
         exit(EncodingUTF8);
@@ -478,7 +482,8 @@ begin
 
   // Note: do not add a 'if not DirectoryExists then exit'.
   // This will not work on automounted directories. You must use FindFirst.
-  if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then begin
+  if FindFirst(UnicodeString(Path+AllFilesMask),faAnyFile,Info)=0 then
+  begin
     repeat
       // check if special file
       if (Info.Name='.') or (Info.Name='..') or (Info.Name='')
@@ -712,8 +717,10 @@ begin
       E('invalid entry "'+Entry.Name+'"');
     if (Entry.Size<0) then
       E('invalid size "'+Entry.Name+'" '+IntToStr(Entry.Size));
-    if Sorted then begin
-      if (LastEntry<>nil) then begin
+    if Sorted then
+    begin
+      if (LastEntry<>nil) then
+      begin
         if LastEntry.Name=Entry.Name then
           E('duplicate "'+Entry.Name+'"');
         cmp:=CompareText(LastEntry.Name,Entry.Name);
@@ -753,7 +760,8 @@ begin
   Info.ShortFilename:=ExtractFilename(Info.Filename);
   Info.DirPath:=ExtractFilePath(Info.Filename);
   if (Info.ShortFilename<>'') and (Info.ShortFilename<>'.') and (Info.ShortFilename<>'..')
-  then begin
+  then
+  begin
     Info.Dir:=GetDirectory(Info.DirPath,true,false);
   end else begin
     Info.Dir:=nil;
@@ -903,12 +911,14 @@ begin
     Dir:=WorkingDirectory+Dir;
   Dir:=IncludeTrailingPathDelimiter(Dir);
   Node:=FDirectories.FindKey(Pointer(Dir),@CompareAnsiStringWithDirectoryCache);
-  if Node<>nil then begin
+  if Node<>nil then
+  begin
     Result:=TPas2jsCachedDirectory(Node.Data);
     if DoReference then
       Result.Reference;
     Result.Update;
-  end else if DoReference or CreateIfNotExists then begin
+  end else if DoReference or CreateIfNotExists then
+  begin
     {$IFDEF VerbosePas2JSDirCache}
     writeln('TPas2jsCachedDirectories.GetDirectory "',Dir,'"');
     {$ENDIF}
@@ -973,7 +983,8 @@ begin
     c:=p^;
     case c of
     #0:
-      if p-PChar(FSource)=length(FSource) then begin
+      if p-PChar(FSource)=length(FSource) then
+      begin
         FIsEOF:=true;
         GetLine;
         exit;
@@ -1020,9 +1031,11 @@ begin
   {$IFDEF VerboseFileCache}
   writeln('TPas2jsCachedFile.Load START "',Filename,'" Loaded=',Loaded);
   {$ENDIF}
-  if Loaded then begin
+  if Loaded then
+  begin
     // already loaded, check if it still valid
-    if (Cache.ResetStamp=FCacheStamp) then begin
+    if (Cache.ResetStamp=FCacheStamp) then
+    begin
       // nothing changed
       Result:=FLastErrorMsg='';
       if (not Result) and RaiseOnError then
@@ -1040,11 +1053,13 @@ begin
   {$ENDIF}
   // needs (re)load
   Result:=false;
-  if not Cache.DirectoryCache.FileExists(Filename) then begin
+  if not Cache.DirectoryCache.FileExists(Filename) then
+  begin
     Err('File not found "'+Filename+'"');
     exit;
   end;
-  if Cache.DirectoryCache.DirectoryExists(Filename) then begin
+  if Cache.DirectoryCache.DirectoryExists(Filename) then
+  begin
     Err('File is a directory "'+Filename+'"');
     exit;
   end;
@@ -1123,7 +1138,8 @@ begin
   if Cache.ShowTriedUsedFiles then
     Cache.Log.LogMsgIgnoreFilter(nIncludeSearch,[Filename]);
 
-  if FilenameIsAbsolute(Filename) then begin
+  if FilenameIsAbsolute(Filename) then
+  begin
     Result:=Filename;
     if not SearchLowUpCase(Result) then
       Result:='';
@@ -1134,7 +1150,8 @@ begin
   Result:=SearchCasedInIncPath(Filename);
   if Result<>'' then exit;
 
-  if ExtractFileExt(Filename)='' then begin
+  if ExtractFileExt(Filename)='' then
+  begin
     // search with the default file extensions
     Result:=SearchCasedInIncPath(Filename+'.inc');
     if Result<>'' then exit;
@@ -1174,7 +1191,8 @@ var
 begin
   Result:='';
 
-  if InFilename<>'' then begin
+  if InFilename<>'' then
+  begin
     Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,['not yet implemented "in" '+Cache.FormatPath(InFilename)])
     // ToDo
   end;
@@ -1182,7 +1200,8 @@ begin
   // first search in foreign unit paths
   IsForeign:=true;
   for i:=0 to Cache.ForeignUnitPaths.Count-1 do
-    if SearchInDir(Cache.ForeignUnitPaths[i],Result) then begin
+    if SearchInDir(Cache.ForeignUnitPaths[i],Result) then
+    begin
       IsForeign:=true;
       exit;
     end;
@@ -1203,7 +1222,8 @@ function TPas2jsFileResolver.FindUnitJSFileName(const aUnitFilename: string
 begin
   Result:='';
   if aUnitFilename='' then exit;
-  if Cache.AllJSIntoMainJS then begin
+  if Cache.AllJSIntoMainJS then
+  begin
     Result:=Cache.GetResolvedMainJSFile;
   end else begin
     if Cache.UnitOutputPath<>'' then
@@ -1284,12 +1304,14 @@ begin
     exit(false);
   {$IFNDEF CaseInsensitiveFilenames}
   CasedFilename:=ExtractFilePath(Filename)+LowerCase(ExtractFileName(Filename));
-  if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then begin
+  if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+  begin
     Filename:=CasedFilename;
     exit(true);
   end;
   CasedFilename:=ExtractFilePath(Filename)+UpperCase(ExtractFileName(Filename));
-  if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then begin
+  if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+  begin
     Filename:=CasedFilename;
     exit(true);
   end;
@@ -1360,7 +1382,8 @@ var
       end;
     spkIdentifier:
       begin
-        if aPath[length(aPath)]='-' then begin
+        if aPath[length(aPath)]='-' then
+        begin
           Delete(aPath,length(aPath),1);
           Remove:=true;
         end;
@@ -1374,18 +1397,22 @@ var
       end;
     end;
 
-    if Remove then begin
+    if Remove then
+    begin
       // remove
-      if i>=0 then begin
+      if i>=0 then
+      begin
         List.Delete(i);
         if CmdLineCount>i then dec(CmdLineCount);
       end;
       exit(true);
     end;
 
-    if FromCmdLine then begin
+    if FromCmdLine then
+    begin
       // from cmdline: append in order to the cmdline params, in front of cfg params
-      if i>=0 then begin
+      if i>=0 then
+      begin
         if i<=CmdLineCount then exit(true);
         List.Delete(i);
       end;
@@ -1393,7 +1420,8 @@ var
       inc(CmdLineCount);
     end else begin
       // from cfg: append in reverse order to the cfg params, behind cmdline params
-      if i>=0 then begin
+      if i>=0 then
+      begin
         if i<=CmdLineCount+Added then exit(true);
         List.Delete(i);
       end;
@@ -1421,7 +1449,8 @@ begin
       if (aPath='') then continue;
       aPaths.Clear;
       FindMatchingFiles(aPath,1000,aPaths);
-      if aPaths.Count=0 then begin
+      if aPaths.Count=0 then
+      begin
         if not Add(aPath) then exit;
       end else begin
         for i:=0 to aPaths.Count-1 do
@@ -1522,7 +1551,8 @@ begin
   Mask:=ResolveDots(Mask);
   p:=1;
   while p<=length(Mask) do begin
-    if Mask[p] in ['*','?'] then begin
+    if Mask[p] in ['*','?'] then
+    begin
       while (p>1) and not (Mask[p-1] in AllowDirectorySeparators) do dec(p);
       Dir:=DirectoryCache.GetDirectory(LeftStr(Mask,p-1),true,false);
       StartP:=p;
@@ -1532,7 +1562,8 @@ begin
         Entry:=Dir.Entries[i];
         if not MatchGlobbing(CurMask,Entry.Name) then continue;
         Filename:=Dir.Path+Entry.Name;
-        if p>length(Mask) then begin
+        if p>length(Mask) then
+        begin
           // e.g. /path/unit*.pas
           if Files.Count>=MaxCount then
             raise EListError.Create('found too many files "'+Mask+'"');
@@ -1546,7 +1577,8 @@ begin
     end;
     inc(p);
   end;
-  if DirectoryCache.FileExists(Mask) then begin
+  if DirectoryCache.FileExists(Mask) then
+  begin
     if Files.Count>=MaxCount then
       raise EListError.Create('found too many files "'+Mask+'"');
     Files.Add(Mask);
@@ -1639,8 +1671,10 @@ function TPas2jsFilesCache.FormatPath(const aPath: string): string;
 begin
   Result:=aPath;
   if (Result='') or (BaseDirectory='') then exit;
-  if FilenameIsAbsolute(aPath) then begin
-    if not ShowFullPaths then begin
+  if FilenameIsAbsolute(aPath) then
+  begin
+    if not ShowFullPaths then
+    begin
       if BaseDirectory=LeftStr(Result,length(BaseDirectory)) then
         Delete(Result,1,length(BaseDirectory));
     end;
@@ -1652,14 +1686,17 @@ end;
 
 function TPas2jsFilesCache.GetResolvedMainJSFile: string;
 begin
-  if not (cfsMainJSFileResolved in FStates) then begin
+  if not (cfsMainJSFileResolved in FStates) then
+  begin
     if MainJSFile='.' then
       FMainJSFileResolved:=''
     else begin
       FMainJSFileResolved:=MainJSFile;
-      if FMainJSFileResolved='' then begin
+      if FMainJSFileResolved='' then
+      begin
         // no option -o
-        if UnitOutputPath<>'' then begin
+        if UnitOutputPath<>'' then
+        begin
           // option -FU and no -o => put into UnitOutputPath
           FMainJSFileResolved:=UnitOutputPath+ChangeFileExt(ExtractFilename(MainSrcFile),'.js')
         end else begin
@@ -1683,7 +1720,8 @@ var
 begin
   Filename:=NormalizeFilename(Filename,true);
   Node:=FFiles.FindKey(Pointer(Filename),@CompareFilenameWithCachedFile);
-  if Node=nil then begin
+  if Node=nil then
+  begin
     // new file
     Result:=TPas2jsCachedFile.Create(Self,Filename);
     FFiles.Add(Result);
