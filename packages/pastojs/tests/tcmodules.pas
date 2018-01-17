@@ -102,6 +102,7 @@ type
   protected
     procedure SetUp; override;
     function CreateConverter: TPasToJSConverter; virtual;
+    procedure InitScanner(aScanner: TPascalScanner); virtual;
     procedure TearDown; override;
     Procedure Add(Line: string); virtual;
     Procedure Add(const Lines: array of string);
@@ -555,6 +556,9 @@ type
 
     // Attributes
     Procedure TestAtributes_Ignore;
+
+    // Assertions
+    procedure TestAssert;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -710,6 +714,7 @@ begin
       //writeln('TTestModule.FindUnit SOURCE=',CurEngine.Source);
       CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
       CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
+      InitScanner(CurEngine.Scanner);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
       CurEngine.Parser.Options:=CurEngine.Parser.Options+po_pas2js+[po_KeepScannerError];
       if CompareText(CurUnitName,'System')=0 then
@@ -741,12 +746,7 @@ begin
   FFileResolver.OwnsStreams:=True;
 
   FScanner:=TPascalScanner.Create(FFileResolver);
-
-  FScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
-  FScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
-  FScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
-
-  FScanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
+  InitScanner(FScanner);
 
   FEngine:=AddModule(Filename);
 
@@ -763,6 +763,16 @@ function TCustomTestModule.CreateConverter: TPasToJSConverter;
 begin
   Result:=TPasToJSConverter.Create;
   Result.Options:=co_tcmodules;
+end;
+
+procedure TCustomTestModule.InitScanner(aScanner: TPascalScanner);
+begin
+  aScanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
+  aScanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
+  aScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
+
+  aScanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
+  aScanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
 end;
 
 procedure TCustomTestModule.TearDown;
@@ -15817,6 +15827,35 @@ begin
     'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestAssert;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt;',
+  'var',
+  '  b: boolean;',
+  '  s: string;',
+  'begin',
+  '  {$Assertions on}',
+  '  Assert(b);',
+  'end;',
+  'begin',
+  '  DoIt;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAssert',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var b = false;',
+    '  var s = "";',
+    '  if (b) throw "assert failed";',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt();',
     '']));
 end;
 

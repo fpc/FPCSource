@@ -839,6 +839,7 @@ const
     msIgnoreAttributes];
 
   msAllPas2jsBoolSwitches = [
+    bsAssertions,
     bsHints,
     bsNotes,
     bsWarnings,
@@ -1350,6 +1351,7 @@ type
     Function ConvertBuiltIn_InsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_DeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_TypeInfo(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -5851,6 +5853,11 @@ begin
           bfInsertArray: Result:=ConvertBuiltIn_InsertArray(El,AContext);
           bfDeleteArray: Result:=ConvertBuiltIn_DeleteArray(El,AContext);
           bfTypeInfo: Result:=ConvertBuiltIn_TypeInfo(El,AContext);
+          bfAssert:
+            begin
+            Result:=ConvertBuiltIn_Assert(El,AContext);
+            if Result=nil then exit;
+            end
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
@@ -7575,6 +7582,51 @@ begin
     end
   else
     Result:=CreateTypeInfoRef(TypeEl,AContext,Param);
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_Assert(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// throw pas.SysUtils.EAssertionFailed.$create("Create");
+// throw pas.SysUtils.EAssertionFailed.$create("Create$1",["text"]);
+var
+  CtxEl: TPasElement;
+  ProcScope: TPasProcedureScope;
+  IfSt: TJSIfStatement;
+  ThrowSt: TJSThrowStatement;
+begin
+  Result:=nil;
+
+  // check if assertions are enabled
+  CtxEl:=El;
+  while CtxEl<>nil do
+    begin
+    if CtxEl is TPasProcedure then
+      begin
+      ProcScope:=CtxEl.CustomData as TPasProcedureScope;
+      if not (ppsfAssertions in ProcScope.Flags) then exit;
+      break;
+      end;
+    CtxEl:=CtxEl.Parent;
+    end;
+
+  IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
+  try
+    IfSt.Cond:=ConvertExpression(El.Params[0],AContext);
+    ThrowSt:=TJSThrowStatement(CreateElement(TJSThrowStatement,El.Params[0]));
+    IfSt.BTrue:=ThrowSt;
+    // ToDo: find sysutils.EAssertionFailed
+    if length(El.Params)>1 then
+      begin
+      ThrowSt.A:=ConvertExpression(El.Params[1],AContext);
+      end
+    else
+      ThrowSt.A:=CreateLiteralJSString(El.Params[0],'assert failed');
+
+    Result:=IfSt;
+  finally
+    if Result=nil then
+      IfSt.Free;
+  end;
 end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
