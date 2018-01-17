@@ -504,17 +504,31 @@ type
   end;
   TPasScopeClass = class of TPasScope;
 
+  TPasModuleScopeFlag = (
+    pmsfAssertDefSearched,
+    pmsfAssertMsgSearched
+    );
+  TPasModuleScopeFlags = set of TPasModuleScopeFlag;
+
   { TPasModuleScope }
 
   TPasModuleScope = class(TPasScope)
+  private
+    FAssertDefConstructor: TPasConstructor;
+    FAssertMsgConstructor: TPasConstructor;
+    procedure SetAssertDefConstructor(const AValue: TPasConstructor);
+    procedure SetAssertMsgConstructor(const AValue: TPasConstructor);
   public
     FirstName: string;
     PendingResolvers: TFPList; // list of TPasResolver waiting for the unit interface
+    Flags: TPasModuleScopeFlags;
     constructor Create; override;
     destructor Destroy; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
+    property AssertDefConstructor: TPasConstructor read FAssertDefConstructor write SetAssertDefConstructor;
+    property AssertMsgConstructor: TPasConstructor read FAssertMsgConstructor write SetAssertMsgConstructor;
   end;
 
   TPasIdentifierKind = (
@@ -1171,6 +1185,7 @@ type
       MaxCount: integer; RaiseOnError: boolean): integer;
     function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
+    procedure CheckAssertException(Params: TParamsExpr); virtual;
   protected
     fExprEvaluator: TResExprEvaluator;
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: int64;
@@ -2417,6 +2432,28 @@ end;
 
 { TPasModuleScope }
 
+procedure TPasModuleScope.SetAssertDefConstructor(const AValue: TPasConstructor
+  );
+begin
+  if FAssertDefConstructor=AValue then Exit;
+  if FAssertDefConstructor<>nil then
+    FAssertDefConstructor.Release;
+  FAssertDefConstructor:=AValue;
+  if FAssertDefConstructor<>nil then
+    FAssertDefConstructor.AddRef;
+end;
+
+procedure TPasModuleScope.SetAssertMsgConstructor(const AValue: TPasConstructor
+  );
+begin
+  if FAssertMsgConstructor=AValue then Exit;
+  if FAssertMsgConstructor<>nil then
+    FAssertMsgConstructor.Release;
+  FAssertMsgConstructor:=AValue;
+  if FAssertMsgConstructor<>nil then
+    FAssertMsgConstructor.AddRef;
+end;
+
 constructor TPasModuleScope.Create;
 begin
   inherited Create;
@@ -2425,6 +2462,8 @@ end;
 
 destructor TPasModuleScope.Destroy;
 begin
+  AssertDefConstructor:=nil;
+  AssertMsgConstructor:=nil;
   FreeAndNil(PendingResolvers);
   inherited Destroy;
 end;
@@ -8485,6 +8524,57 @@ begin
   Result:=cIncompatible;
 end;
 
+procedure TPasResolver.CheckAssertException(Params: TParamsExpr);
+
+  function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
+  var
+    Clause: TPasUsesClause;
+    i: Integer;
+    Use: TPasUsesUnit;
+    ModName: String;
+  begin
+    Result:=nil;
+    if (Section=nil) then exit;
+    Clause:=Section.UsesClause;
+    for i:=0 to length(Clause)-1 do
+      begin
+      Use:=Clause[i];
+      if (Use.Module=nil) or not (Use.Module is TPasModule) then continue;
+      ModName:=Use.Module.Name;
+      if CompareText(ModName,aName)=0 then
+        exit(TPasModule(Use.Module));
+      end;
+  end;
+
+  function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
+  begin
+    Result:=FindUsedUnitInSection(aName,aMod.InterfaceSection);
+    if Result<>nil then exit;
+    Result:=FindUsedUnitInSection(aName,aMod.ImplementationSection);
+  end;
+
+var
+  aMod, UtilsMod: TPasModule;
+  ModScope: TPasModuleScope;
+  Flag: TPasModuleScopeFlag;
+begin
+  aMod:=Params.GetModule;
+  ModScope:=aMod.CustomData as TPasModuleScope;
+  if length(Params.Params)>1 then
+    Flag:=pmsfAssertMsgSearched
+  else
+    Flag:=pmsfAssertDefSearched;
+  if Flag in ModScope.Flags then exit;
+  Include(ModScope.Flags,Flag);
+
+  // find unit sysutils
+  UtilsMod:=FindUsedUnit('sysutils',aMod);
+  if UtilsMod=nil then exit;
+
+  // find EAssertionFailed
+
+end;
+
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
   const id: int64; MsgType: TMessageType; MsgNumber: integer;
   const Fmt: String; Args: array of const; PosEl: TPasElement);
@@ -10217,6 +10307,9 @@ begin
     end;
 
   Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
+
+  if RaiseOnError then
+    CheckAssertException(Params);
 end;
 
 constructor TPasResolver.Create;

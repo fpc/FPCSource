@@ -559,6 +559,7 @@ type
 
     // Assertions
     procedure TestAssert;
+    procedure TestAssert_SysUtils;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -15847,6 +15848,53 @@ begin
   '']);
   ConvertProgram;
   CheckSource('TestAssert',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var b = false;',
+    '  var s = "";',
+    '  if (b) throw "assert failed";',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt();',
+    '']));
+end;
+
+procedure TTestModule.TestAssert_SysUtils;
+begin
+  AddModuleWithIntfImplSrc('SysUtils.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '    constructor Create;',
+    '  end;',
+    '  EAssertionFailed = class',
+    '    constructor Create(s: string);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'constructor TObject.Create;',
+    'begin end;',
+    'constructor EAssertionFailed.Create(s: string);',
+    'begin end;',
+    '']) );
+
+  StartProgram(true);
+  Add([
+  'uses sysutils;',
+  'procedure DoIt;',
+  'var',
+  '  b: boolean;',
+  '  s: string;',
+  'begin',
+  '  {$Assertions on}',
+  '  Assert(b);',
+  'end;',
+  'begin',
+  '  DoIt;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAssert_SysUtils',
     LinesToStr([ // statements
     'this.DoIt = function () {',
     '  var b = false;',
