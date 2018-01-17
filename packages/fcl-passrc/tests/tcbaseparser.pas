@@ -458,6 +458,7 @@ begin
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
   FScanner:=TPascalScanner.Create(FResolver);
+  FScanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
   CreateEngine(FEngine);
   FParser:=TTestPasParser.Create(FScanner,FResolver,FEngine);
   FSource:=TStringList.Create;

@@ -1782,6 +1782,7 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
         //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
         CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
         CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
+        CurEngine.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
         CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
         if CompareText(CurUnitName,'System')=0 then
           CurEngine.Parser.ImplicitUses.Clear;
@@ -2512,6 +2513,7 @@ begin
   '  Assert(b);',
   '  Assert(b,''error'');',
   '  Assert(false,''error''+s);',
+  '  Assert(not b);',
   '']);
   ParseProgram;
 end;

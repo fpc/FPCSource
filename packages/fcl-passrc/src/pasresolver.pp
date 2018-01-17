@@ -171,6 +171,7 @@ Works:
   - function: enumerator
   - class
 - var modifier 'absolute'
+- Assert(bool[,string])
 
 ToDo:
 - $pop, $push
@@ -636,6 +637,7 @@ type
   TPasClassScopeClass = class of TPasClassScope;
 
   TPasProcedureScopeFlag = (
+    ppsfAssertions, // $Assertions on
     ppsfHints, // $Hints on for analyzer (runs at end of module, so have to safe Scanner flags)
     ppsfNotes, // $Notes on for analyzer
     ppsfWarnings, // $Warnings on for analyzer
@@ -801,7 +803,7 @@ type
     rrfNewInstance, // constructor call (without it call constructor as normal method)
     rrfFreeInstance, // destructor call (without it call destructor as normal method)
     rrfVMT, // use VMT for call
-    rrfConstInherited  // parent is const and children are too
+    rrfConstInherited // parent is const and children are too
     );
   TResolvedReferenceFlags = set of TResolvedReferenceFlag;
 
@@ -1698,7 +1700,7 @@ begin
     end
   else if El.ClassType=TPasUnresolvedSymbolRef then
     begin
-    if TPasUnresolvedSymbolRef(El).CustomData is TResElDataBuiltInProc then
+    if El.CustomData is TResElDataBuiltInProc then
       Result:=Result+TResElDataBuiltInProc(TPasUnresolvedSymbolRef(El).CustomData).Signature;
     end;
 end;
@@ -5161,6 +5163,8 @@ var
   ScanBools: TBoolSwitches;
 begin
   ScanBools:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsAssertions in ScanBools then
+    Include(ProcScope.Flags,ppsfAssertions);
   if bsHints in ScanBools then
     Include(ProcScope.Flags,ppsfHints);
   if bsNotes in ScanBools then

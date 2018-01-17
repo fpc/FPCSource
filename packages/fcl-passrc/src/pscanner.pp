@@ -269,8 +269,35 @@ type
   );
   TModeSwitches = Set of TModeSwitch;
 
-  // switches, that can be 'on' or 'off' and have no corresponding letter switch
+  // switches, that can be 'on' or 'off'
   TBoolSwitch = (
+    bsNone,
+    bsAlign,          // A   align fields
+    bsBoolEval,       // B   complete boolean evaluation
+    bsAssertions,     // C   generate code for assertions
+    bsDebugInfo,      // D   generate debuginfo (debug lines), OR: $description 'text'
+    bsExtension,      // E   output file extension
+                      // F
+    bsImportedData,   // G
+    bsLongStrings,    // H   String=AnsiString
+    bsIOChecks,       // I   generate EInOutError
+    bsWriteableConst, // J   writable typed const
+                      // K
+    bsLocalSymbols,   // L   generate local symbol information (debug, requires $D+)
+    bsTypeInfo,       // M   allow published members OR $M minstacksize,maxstacksize
+                      // N
+    bsOptimization,   // O   enable safe optimizations (-O1)
+    bsOpenStrings,    // P   deprecated Delphi directive
+    bsOverflowChecks, // Q
+    bsRangeChecks,    // R
+                      // S
+    bsTypedAddress,   // T   enabled: @variable gives typed pointer, otherwise untyped pointer
+    bsSafeDivide,     // U
+    bsVarStringChecks,// V   strict shortstring checking, e.g. cannot pass shortstring[3] to shortstring
+    bsStackframes,    // W   always generate stackframes (debugging)
+    bsExtendedSyntax, // X   deprecated Delphi directive
+    bsReferenceInfo,  // Y   store for each identifier the declaration location
+                      // Z
     bsHints,
     bsNotes,
     bsWarnings,
@@ -279,8 +306,38 @@ type
     );
   TBoolSwitches = set of TBoolSwitch;
 const
+  LetterToBoolSwitch: array['A'..'Z'] of TBoolSwitch = (
+    bsAlign,          // A
+    bsBoolEval,       // B
+    bsAssertions,     // C
+    bsDebugInfo,      // D or $description
+    bsExtension,      // E
+    bsNone,           // F
+    bsImportedData,   // G
+    bsLongStrings,    // H
+    bsIOChecks,       // I or $include
+    bsWriteableConst, // J
+    bsNone,           // K
+    bsLocalSymbols,   // L
+    bsTypeInfo,       // M or $M minstacksize,maxstacksize
+    bsNone,           // N
+    bsOptimization,   // O
+    bsOpenStrings,    // P
+    bsOverflowChecks, // Q
+    bsRangeChecks,    // R or $resource
+    bsNone,           // S
+    bsTypedAddress,   // T
+    bsSafeDivide,     // U
+    bsVarStringChecks,// V
+    bsStackframes,    // W
+    bsExtendedSyntax, // X
+    bsReferenceInfo,  // Y
+    bsNone            // Z
+    );
+
   bsAll = [low(TBoolSwitch)..high(TBoolSwitch)];
-  FPCModeBoolSwitches = [bsHints,bsNotes,bsWarnings,bsMacro];
+  FPCModeBoolSwitches = [bsAlign..bsReferenceInfo,
+                         bsHints,bsNotes,bsWarnings,bsMacro,bsScopedEnums];
 
 type
   TTokenOption = (toForceCaret,toOperatorToken);
@@ -885,6 +942,28 @@ const
    );
 
   BoolSwitchNames: array[TBoolSwitch] of string = (
+    'None',
+    'Align',
+    'BoolEval',
+    'Assertions',
+    'DebugInfo',
+    'Extension',
+    'ImportedData',
+    'LongStrings',
+    'IOChecks',
+    'WriteableConst',
+    'LocalSymbols',
+    'TypeInfo',
+    'Optimization',
+    'OpenStrings',
+    'OverflowChecks',
+    'RangeChecks',
+    'TypedAddress',
+    'SafeDivide',
+    'VarStringChecks',
+    'Stackframes',
+    'ExtendedSyntax',
+    'ReferenceInfo',
     'Hints',
     'Notes',
     'Warnings',
@@ -2228,8 +2307,8 @@ begin
   FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
-  FCurrentBoolSwitches:=FPCModeBoolSwitches;
-  FAllowedBoolSwitches:=bsAll;
+  FCurrentBoolSwitches:=[];
+  FAllowedBoolSwitches:=FPCModeBoolSwitches;
   FConditionEval:=TCondDirectiveEvaluator.Create;
   FConditionEval.OnLog:=@OnCondEvalLog;
   FConditionEval.OnEvalVariable:=@OnCondEvalVar;
@@ -2979,6 +3058,8 @@ begin
       begin
       Handled:=true;
       Case UpperCase(Directive) of
+        'ASSERTIONS':
+          DoBoolDirective(bsAssertions);
         'DEFINE':
           HandleDefine(Param);
         'ERROR':
@@ -3003,6 +3084,8 @@ begin
           DoBoolDirective(bsNotes);
         'SCOPEDENUMS':
           DoBoolDirective(bsScopedEnums);
+        'TYPEINFO':
+          DoBoolDirective(bsTypeInfo);
         'UNDEF':
           HandleUnDefine(Param);
         'WARNING':
@@ -3024,16 +3107,39 @@ begin
 end;
 
 function TPascalScanner.HandleLetterDirective(Letter: char; Enable: boolean): TToken;
+var
+  bs: TBoolSwitch;
 begin
   Result:=tkComment;
   Letter:=upcase(Letter);
-  if LetterSwitchNames[Letter]='' then
+  bs:=LetterToBoolSwitch[Letter];
+  if bs=bsNone then
     DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
       [Letter]);
-  if Enable then
-    AddDefine(LetterSwitchNames[Letter])
-  else
-    UnDefine(LetterSwitchNames[Letter]);
+  if not (bs in AllowedBoolSwitches) then
+    begin
+    DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+      [Letter]);
+    end;
+  if (bs in FCurrentBoolSwitches)<>Enable then
+    begin
+    if bs in FReadOnlyBoolSwitches then
+      begin
+      DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
+        [Letter]);
+      exit;
+      end;
+    if Enable then
+      begin
+      AddDefine(LetterSwitchNames[Letter]);
+      Include(FCurrentBoolSwitches,bs);
+      end
+    else
+      begin
+      UnDefine(LetterSwitchNames[Letter]);
+      Exclude(FCurrentBoolSwitches,bs);
+      end;
+    end;
 end;
 
 procedure TPascalScanner.HandleBoolDirective(bs: TBoolSwitch;
@@ -3677,6 +3783,16 @@ begin
     begin
     UnDefine('UNICODE');
     UnDefine('FPC_UNICODESTRINGS');
+    end;
+  if msDefaultAnsistring in AddedMS then
+    begin
+    AddDefine(LetterSwitchNames['H'],true);
+    Include(FCurrentBoolSwitches,bsLongStrings);
+    end
+  else if msDefaultAnsistring in RemovedMS then
+    begin
+    UnDefine(LetterSwitchNames['H'],true);
+    Exclude(FCurrentBoolSwitches,bsLongStrings);
     end;
 end;
 
