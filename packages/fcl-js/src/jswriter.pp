@@ -1028,14 +1028,24 @@ end;
 
 procedure TJSWriter.WriteConditionalExpression(El: TJSConditionalExpression);
 
+var
+  NeedBrackets: Boolean;
 begin
-  write('(');
+  NeedBrackets:=true;
+  if NeedBrackets then
+    begin
+    write('(');
+    FSkipRoundBrackets:=true;
+    end;
   WriteJS(El.A);
   write(' ? ');
-  WriteJS(El.B);
+  if El.B<>nil then
+    WriteJS(El.B);
   write(' : ');
-  WriteJS(El.C);
-  write(')');
+  if El.C<>nil then
+    WriteJS(El.C);
+  if NeedBrackets then
+    write(')');
 end;
 
 procedure TJSWriter.WriteAssignStatement(El: TJSAssignStatement);
