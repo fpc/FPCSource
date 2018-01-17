@@ -202,12 +202,15 @@ type
     Procedure TestConstIntOperators;
     Procedure TestConstBitwiseOps;
     Procedure TestIntegerTypeCast;
-    Procedure TestConstBoolOperators;
-    Procedure TestBoolTypeCast;
     Procedure TestConstFloatOperators;
     Procedure TestFloatTypeCast;
+
+    // boolean
+    Procedure TestBoolTypeCast;
+    Procedure TestConstBoolOperators;
     Procedure TestBoolSet_Const;
     Procedure TestBool_ForIn;
+    Procedure TestBool_Assert;
 
     // integer range
     Procedure TestIntegerRange;
@@ -2386,36 +2389,6 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
-procedure TTestResolver.TestConstBoolOperators;
-begin
-  StartProgram(false);
-  Add([
-  'const',
-  '  a=true and false;',
-  '  b=true or false;',
-  '  c=true xor false;',
-  '  d=not b;',
-  '  e=a=b;',
-  '  f=a<>b;',
-  '  g=low(boolean) or high(boolean);',
-  '  h=succ(false) or pred(true);',
-  '  i=ord(false)+ord(true);',
-  'begin']);
-  ParseProgram;
-  CheckResolverUnexpectedHints;
-end;
-
-procedure TTestResolver.TestBoolTypeCast;
-begin
-  StartProgram(false);
-  Add('var');
-  Add('  a: boolean = boolean(0);');
-  Add('  b: boolean = boolean(1);');
-  Add('begin');
-  ParseProgram;
-  CheckResolverUnexpectedHints;
-end;
-
 procedure TTestResolver.TestConstFloatOperators;
 begin
   StartProgram(false);
@@ -2448,6 +2421,36 @@ begin
   '  c=single(double(-123456890123456789012345));',
   '  d=single(-1);',
   '  e=single(word(-1));',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestBoolTypeCast;
+begin
+  StartProgram(false);
+  Add('var');
+  Add('  a: boolean = boolean(0);');
+  Add('  b: boolean = boolean(1);');
+  Add('begin');
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestConstBoolOperators;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a=true and false;',
+  '  b=true or false;',
+  '  c=true xor false;',
+  '  d=not b;',
+  '  e=a=b;',
+  '  f=a<>b;',
+  '  g=low(boolean) or high(boolean);',
+  '  h=succ(false) or pred(true);',
+  '  i=ord(false)+ord(true);',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;
@@ -2493,6 +2496,22 @@ begin
   //'  for b in TSetOfBoolRg do;',
   //'  for br in TBoolRg do;',
   //'  for br in TSetOfBoolRg do;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestBool_Assert;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  b : boolean;',
+  '  s: string;',
+  'begin',
+  '  Assert(true);',
+  '  Assert(b);',
+  '  Assert(b,''error'');',
+  '  Assert(false,''error''+s);',
   '']);
   ParseProgram;
 end;

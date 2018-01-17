@@ -414,7 +414,8 @@ type
     bfCopyArray,
     bfInsertArray,
     bfDeleteArray,
-    bfTypeInfo
+    bfTypeInfo,
+    bfAssert
     );
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
@@ -442,7 +443,8 @@ const
     'Copy',
     'Insert',
     'Delete',
-    'TypeInfo'
+    'TypeInfo',
+    'Assert'
     );
   bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
@@ -1275,6 +1277,8 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_TypeInfo_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    function BI_Assert_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -10178,6 +10182,40 @@ begin
   SetResolverTypeExpr(ResolvedEl,btPointer,FBaseTypes[btPointer],[rrfReadable]);
 end;
 
+function TPasResolver.BI_Assert_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+// check params of built-in procedure 'Assert'
+//  Assert(bool)
+//  Assert(bool,string)
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+begin
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit(cIncompatible);
+  Params:=TParamsExpr(Expr);
+
+  // first param: boolean
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[]);
+  if not (rrfReadable in ParamResolved.Flags)
+     or not (ParamResolved.BaseType in btAllBooleans) then
+    exit(CheckRaiseTypeArgNo(20180117123819,1,Param,ParamResolved,'boolean',RaiseOnError));
+
+  // optional second parameter: string
+  if length(Params.Params)>1 then
+    begin
+    Param:=Params.Params[1];
+    ComputeElement(Param,ParamResolved,[]);
+    if not (rrfReadable in ParamResolved.Flags)
+       or not (ParamResolved.BaseType in btAllStringAndChars) then
+      exit(CheckRaiseTypeArgNo(20180117123932,2,Param,ParamResolved,'string',RaiseOnError));
+    end;
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
+end;
+
 constructor TPasResolver.Create;
 begin
   inherited Create;
@@ -11139,6 +11177,9 @@ begin
     AddBuiltInProc('TypeInfo','function TypeInfo(type or var identifier): Pointer',
         @BI_TypeInfo_OnGetCallCompatibility,@BI_TypeInfo_OnGetCallResult,
         nil,nil,bfTypeInfo);
+  if bfAssert in TheBaseProcs then
+    AddBuiltInProc('Assert','procedure Assert(bool[,string])',
+        @BI_Assert_OnGetCallCompatibility,nil,nil,nil,bfAssert,[bipfCanBeStatement]);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType
