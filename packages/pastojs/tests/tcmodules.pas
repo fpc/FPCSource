@@ -557,9 +557,10 @@ type
     // Attributes
     Procedure TestAtributes_Ignore;
 
-    // Assertions
+    // Assertions, checks
     procedure TestAssert;
     procedure TestAssert_SysUtils;
+    procedure TestCheckMethodCall;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -15904,6 +15905,41 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.DoIt();',
+    '']));
+end;
+
+procedure TTestModule.TestCheckMethodCall;
+begin
+  Scanner.CurrentBoolSwitches:=Scanner.CurrentBoolSwitches+[bsMethodCallChecks];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TObject.DoIt;',
+  'begin',
+  'end;',
+  'var o : TObject;',
+  'begin',
+  '  o.DoIt;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCheckMethodCall',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    rtl.checkMethodCall(this,$mod.TObject);',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.DoIt();',
     '']));
 end;
 

@@ -89,6 +89,9 @@ type
     coShowUsedTools,
     coShowMessageNumbers, // not in "show all"
     coShowDebug,    // not in "show all"
+    coOverflowChecking,
+    coRangeChecking,
+    coMethodCallChecking,
     coAssertions,
     coAllowCAssignments,
     coLowerCase,
@@ -120,6 +123,9 @@ const
     'Show used tools',
     'Show message numbers',
     'Show debug',
+    'Overflow checking',
+    'Range checking',
+    'Method call checking',
     'Assertions',
     'Allow C assignments',
     'Lowercase identifiers',
@@ -338,6 +344,7 @@ type
     procedure ReadParam(Param: string; Quick, FromCmdLine: boolean);
     procedure ReadSingleLetterOptions(const Param: string; p: PChar;
       const Allowed: string; out Enabled, Disabled: string);
+    procedure ReadCodeGenerationFlags(Param: String; p: PChar);
     procedure ReadSyntaxFlags(Param: String; p: PChar);
     procedure ReadVerbosityFlags(Param: String; p: PChar);
     procedure RegisterMessages;
@@ -712,6 +719,12 @@ begin
   Scanner.CurrentModeSwitches:=p2jsMode_SwitchSets[Compiler.Mode];
   Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
   bs:=[];
+  if coOverflowChecking in Compiler.Options then
+    Include(bs,bsOverflowChecks);
+  if coRangeChecking in Compiler.Options then
+    Include(bs,bsRangeChecks);
+  if coMethodCallChecking in Compiler.Options then
+    Include(bs,bsMethodCallChecks);
   if coAssertions in Compiler.Options then
     Include(bs,bsAssertions);
   if coShowHints in Compiler.Options then
@@ -2268,6 +2281,11 @@ begin
             end;
           end;
         end;
+      'C': // code generation
+        begin
+          inc(p);
+          ReadCodeGenerationFlags(Param,p);
+        end;
       'd': // define
         if not Quick then
         begin
@@ -2588,6 +2606,28 @@ begin
     'd': ShowDebug:=false;
     'q': Options:=Options-[coShowMessageNumbers];
     'x': Options:=Options-[coShowUsedTools];
+    end;
+  end;
+end;
+
+procedure TPas2jsCompiler.ReadCodeGenerationFlags(Param: String; p: PChar);
+var
+  Enabled, Disabled: string;
+  i: Integer;
+begin
+  ReadSingleLetterOptions(Param,p,'orR',Enabled,Disabled);
+  for i:=1 to length(Enabled) do begin
+    case Enabled[i] of
+    'o': Options:=Options+[coOverflowChecking];
+    'r': Options:=Options+[coRangeChecking];
+    'R': Options:=Options+[coMethodCallChecking];
+    end;
+  end;
+  for i:=1 to length(Disabled) do begin
+    case Disabled[i] of
+    'o': Options:=Options-[coOverflowChecking];
+    'r': Options:=Options-[coRangeChecking];
+    'R': Options:=Options-[coMethodCallChecking];
     end;
   end;
 end;
@@ -3106,6 +3146,10 @@ begin
   l('    TP    : Write target processor');
   l('    V     : Write short compiler version');
   l('    W     : Write full compiler version');
+  l('  -C<x>   : Code generation options. <x> is a combination of the following letters:');
+  l('    o     : Overflow checking');
+  l('    r     : Range checking');
+  l('    R     : Verify object method call validity');
   l('  -F...   Set file names and paths:');
   l('   -Fe<x> : Redirect output to <x>. UTF-8 encoded.');
   l('   -Fi<x> : Add <x> to include paths');

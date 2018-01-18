@@ -407,6 +407,7 @@ type
     pbifnArray_SetLength,
     pbifnAs,
     pbifnAsExt,
+    pbifnCheckMethodCall,
     pbifnClassInstanceFree,
     pbifnClassInstanceNew,
     pbifnCreateClass,
@@ -515,6 +516,7 @@ const
     'arraySetLength', // rtl.arraySetLength
     'as', // rtl.as
     'asExt', // rtl.asExt
+    'checkMethodCall',
     '$destroy',
     '$create',
     'createClass', // rtl.createClass
@@ -843,11 +845,14 @@ const
 
   msAllPas2jsBoolSwitches = [
     bsAssertions,
+    bsRangeChecks,
+    bsOverflowChecks,
     bsHints,
     bsNotes,
     bsWarnings,
     bsMacro,
-    bsScopedEnums
+    bsScopedEnums,
+    bsMethodCallChecks
     ];
 
   btAllJSBaseTypes = [
@@ -1011,6 +1016,7 @@ type
     Access: TCtxAccess;
     AccessContext: TConvertContext;
     TmpVarCount: integer;
+    ScannerBoolSwitches: TBoolSwitches;
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); virtual;
     function GetRootModule: TPasModule;
     function GetFunctionContext: TFunctionContext;
@@ -3551,6 +3557,7 @@ begin
     Resolver:=Parent.Resolver;
     Access:=aParent.Access;
     AccessContext:=aParent.AccessContext;
+    ScannerBoolSwitches:=aParent.ScannerBoolSwitches;
     end;
 end;
 
@@ -7591,9 +7598,8 @@ function TPasToJSConverter.ConvertBuiltIn_Assert(El: TParamsExpr;
   AContext: TConvertContext): TJSElement;
 // throw pas.SysUtils.EAssertionFailed.$create("Create");
 // throw pas.SysUtils.EAssertionFailed.$create("Create$1",["text"]);
+// throw "text"
 var
-  CtxEl: TPasElement;
-  ProcScope: TPasProcedureScope;
   IfSt: TJSIfStatement;
   ThrowSt: TJSThrowStatement;
   ModScope: TPasModuleScope;
@@ -7603,32 +7609,12 @@ var
   Call: TJSCallExpression;
   FunName: String;
   PosEl: TPasExpr;
-  Enabled: Boolean;
 begin
   Result:=nil;
 
   // check if assertions are enabled
-  Enabled:=false;
-  CtxEl:=El;
-  while CtxEl<>nil do
-    begin
-    if CtxEl is TPasProcedure then
-      begin
-      ProcScope:=CtxEl.CustomData as TPasProcedureScope;
-      if not (ppsfAssertions in ProcScope.Flags) then exit;
-      Enabled:=true;
-      break;
-      end
-    else if CtxEl is TPasModule then
-      begin
-      ModScope:=CtxEl.CustomData as TPasModuleScope;
-      if not (pmsfAssertions in ModScope.Flags) then exit;
-      Enabled:=true;
-      break;
-      end;
-    CtxEl:=CtxEl.Parent;
-    end;
-  if not Enabled then exit;
+  if not (bsAssertions in AContext.ScannerBoolSwitches) then
+    exit;
 
   Ref:=nil;
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
@@ -9130,6 +9116,9 @@ Var
   SelfSt: TJSVariableStatement;
   ImplProc: TPasProcedure;
   BodyPas: TProcedureBody;
+  PosEl: TPasElement;
+  Call: TJSCallExpression;
+  ClassPath: String;
 begin
   Result:=nil;
 
@@ -9173,25 +9162,41 @@ begin
     FD.Params.Add(TransformVariableName(Arg,AContext));
     end;
 
-  if ImplProc.Body<>nil then
+  BodyPas:=ImplProc.Body;
+  if (BodyPas<>nil) or (bsMethodCallChecks in ImplProcScope.ScannerBoolSwitches) then
     begin
-    BodyPas:=ImplProc.Body;
+    PosEl:=BodyPas;
+    if PosEl=nil then
+      PosEl:=ImplProc;
     BodyJS:=FD.Body;
     FuncContext:=TFunctionContext.Create(ImplProc,FD.Body,AContext);
     try
+      FuncContext.ScannerBoolSwitches:=ImplProcScope.ScannerBoolSwitches;
       FirstSt:=nil;
       LastSt:=nil;
       if ProcScope.ClassScope<>nil then
         begin
         // method or class method
         FuncContext.ThisPas:=ProcScope.ClassScope.Element;
+        if bsMethodCallChecks in FuncContext.ScannerBoolSwitches then
+          begin
+          // rtl.checkMethodCall(this,<class>)
+          Call:=CreateCallExpression(PosEl);
+          AddBodyStatement(Call,PosEl);
+          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],
+                                          FBuiltInNames[pbifnCheckMethodCall]]);
+          Call.AddArg(CreatePrimitiveDotExpr('this',PosEl));
+          ClassPath:=CreateReferencePath(ProcScope.ClassScope.Element,AContext,rpkPathAndName);
+          Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
+          end;
+
         if ImplProc.Body.Functions.Count>0 then
           begin
           // has nested procs -> add "var self = this;"
           FuncContext.AddLocalVar(FBuiltInNames[pbivnSelf],FuncContext.ThisPas);
           SelfSt:=CreateVarStatement(FBuiltInNames[pbivnSelf],
                               CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
-          AddBodyStatement(SelfSt,BodyPas);
+          AddBodyStatement(SelfSt,PosEl);
           if ImplProcScope.SelfArg<>nil then
             begin
             // redirect Pascal-Self to JS-Self
@@ -9210,22 +9215,12 @@ begin
       {$IFDEF VerbosePas2JS}
       //FuncContext.WriteStack;
       {$ENDIF}
-      AddBodyStatement(ConvertDeclarations(BodyPas,FuncContext),BodyPas);
+      if BodyPas<>nil then
+        AddBodyStatement(ConvertDeclarations(BodyPas,FuncContext),BodyPas);
     finally
       FuncContext.Free;
     end;
     end;
-  {
-  TPasProcedureBase = class(TPasElement)
-  TPasOverloadedProc = class(TPasProcedureBase)
-  TPasProcedure = class(TPasProcedureBase)
-  TPasFunction = class(TPasProcedure)
-  TPasOperator = class(TPasProcedure)
-  TPasConstructor = class(TPasProcedure)
-  TPasDestructor = class(TPasProcedure)
-  TPasClassProcedure = class(TPasProcedure)
-  TPasClassFunction = class(TPasProcedure)
-  }
 end;
 
 function TPasToJSConverter.ConvertBeginEndStatement(El: TPasImplBeginBlock;
@@ -13139,16 +13134,14 @@ begin
     RaiseInconsistency(20161024190203);
     end;
   C:=El.ClassType;
-  If (C=TPasPackage)  then
-    Result:=ConvertPackage(TPasPackage(El),AContext)
-  else if (C=TPasResString) then
-    Result:=ConvertResString(TPasResString(El),AContext)
-  else if (C=TPasConst) then
+  if (C=TPasConst) then
     Result:=ConvertConst(TPasConst(El),AContext)
   else if (C=TPasProperty) then
     Result:=ConvertProperty(TPasProperty(El),AContext)
   else if (C=TPasVariable) then
     Result:=ConvertVariable(TPasVariable(El),AContext)
+  else if (C=TPasResString) then
+    Result:=ConvertResString(TPasResString(El),AContext)
   else if (C=TPasExportSymbol) then
     Result:=ConvertExportSymbol(TPasExportSymbol(El),AContext)
   else if (C=TPasLabels) then
@@ -13165,6 +13158,8 @@ begin
     Result:=ConvertImplBlock(TPasImplBlock(El),AContext)
   else if C.InheritsFrom(TPasModule)  then
     Result:=ConvertModule(TPasModule(El),AContext)
+  else If (C=TPasPackage)  then
+    Result:=ConvertPackage(TPasPackage(El),AContext)
   else
     begin
     Result:=nil;
