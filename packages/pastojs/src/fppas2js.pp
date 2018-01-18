@@ -268,9 +268,9 @@ Works:
 - Assert(bool[,string])
   - without sysutils: if(bool) throw string
   - with sysutils: if(bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
+- Method call check
 
 ToDos:
-- remove hasOwnProperty from rtl set functions
 - typecast longint(highprecint) -> (value+0) & $ffffffff
 - static arrays
   - a[] of record
@@ -398,6 +398,8 @@ resourcestring
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
+  IsExtModePasClassInstance = 1;
+  IsExtModePasClass = 2;
 
 type
   TPas2JSBuiltInName = (
@@ -947,9 +949,6 @@ type
       cJSValueConversion = 2*cTypeConversion;
     // additional base types
     function AddJSBaseType(const aName: string; Typ: TPas2jsBaseType): TResElDataPas2JSBaseType;
-    function IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType): boolean;
-    function IsJSBaseType(const TypeResolved: TPasResolverResult;
-      Typ: TPas2jsBaseType; HasValue: boolean = false): boolean;
     function CheckAssignCompatibilityCustom(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean; var Handled: boolean): integer; override;
@@ -958,12 +957,18 @@ type
     function CheckEqualCompatibilityCustomType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
+    procedure ComputeBinaryExprRes(Bin: TBinaryExpr; out
+      ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+      var LeftResolved, RightResolved: TPasResolverResult); override;
     procedure BI_TypeInfo_OnGetCallResult(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr; out ResolvedEl: TPasResolverResult); override;
   public
     constructor Create;
     destructor Destroy; override;
     // base types
+    function IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType): boolean;
+    function IsJSBaseType(const TypeResolved: TPasResolverResult;
+      Typ: TPas2jsBaseType; HasValue: boolean = false): boolean;
     procedure AddObjFPCBuiltInIdentifiers(
       const TheBaseTypes: TResolveBaseTypes;
       const TheBaseProcs: TResolverBuiltInProcs); override;
@@ -2631,24 +2636,6 @@ begin
   Result.JSBaseType:=Typ;
 end;
 
-function TPas2JSResolver.IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType
-  ): boolean;
-begin
-  Result:=(TypeEl is TPasUnresolvedSymbolRef)
-    and (CompareText(TypeEl.Name,Pas2jsBaseTypeNames[Typ])=0)
-    and (TypeEl.CustomData is TResElDataPas2JSBaseType);
-end;
-
-function TPas2JSResolver.IsJSBaseType(const TypeResolved: TPasResolverResult;
-  Typ: TPas2jsBaseType; HasValue: boolean): boolean;
-begin
-  if (TypeResolved.BaseType<>btCustom) or not IsJSBaseType(TypeResolved.TypeEl,Typ) then
-    exit(false);
-  if HasValue and not (rrfReadable in TypeResolved.Flags) then
-    exit(false);
-  Result:=true;
-end;
-
 function TPas2JSResolver.CheckAssignCompatibilityCustom(const LHS,
   RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean;
   var Handled: boolean): integer;
@@ -2787,6 +2774,37 @@ begin
     exit(CheckEqualCompatibilityCustomType(RHS,LHS,ErrorEl,RaiseOnIncompatible))
   else
     RaiseInternalError(20170330005725);
+end;
+
+procedure TPas2JSResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  var LeftResolved, RightResolved: TPasResolverResult);
+
+  procedure SetBaseType(BaseType: TResolverBaseType);
+  begin
+    SetResolverValueExpr(ResolvedEl,BaseType,BaseTypes[BaseType],Bin,[rrfReadable]);
+  end;
+
+begin
+  if (LeftResolved.BaseType=btCustom)
+      or (RightResolved.BaseType=btCustom) then
+    case Bin.OpCode of
+    eopIs:
+      if IsJSBaseType(LeftResolved,pbtJSValue,true) then
+        begin
+        // aJSValue is x
+        if (RightResolved.IdentEl is TPasType)
+            and (ResolveAliasType(TPasType(RightResolved.IdentEl)) is TPasClassType) then
+          begin
+          // e.g. if aJSValue is TObject then ;
+          SetBaseType(btBoolean);
+          exit;
+          end;
+        end;
+    end;
+
+  inherited ComputeBinaryExprRes(Bin, ResolvedEl, Flags, LeftResolved,
+    RightResolved);
 end;
 
 procedure TPas2JSResolver.BI_TypeInfo_OnGetCallResult(
@@ -2960,6 +2978,24 @@ begin
   ClearElementData;
   FreeAndNil(FExternalNames);
   inherited Destroy;
+end;
+
+function TPas2JSResolver.IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType
+  ): boolean;
+begin
+  Result:=(TypeEl is TPasUnresolvedSymbolRef)
+    and (CompareText(TypeEl.Name,Pas2jsBaseTypeNames[Typ])=0)
+    and (TypeEl.CustomData is TResElDataPas2JSBaseType);
+end;
+
+function TPas2JSResolver.IsJSBaseType(const TypeResolved: TPasResolverResult;
+  Typ: TPas2jsBaseType; HasValue: boolean): boolean;
+begin
+  if (TypeResolved.BaseType<>btCustom) or not IsJSBaseType(TypeResolved.TypeEl,Typ) then
+    exit(false);
+  if HasValue and not (rrfReadable in TypeResolved.Flags) then
+    exit(false);
+  Result:=true;
 end;
 
 procedure TPas2JSResolver.AddObjFPCBuiltInIdentifiers(
@@ -4381,7 +4417,7 @@ var
   DotExpr: TJSDotMemberExpression;
   NotEl: TJSUnaryNotExpression;
   InOp: TJSRelationalExpressionIn;
-  TypeEl: TPasType;
+  TypeEl, LeftTypeEl, RightTypeEl: TPasType;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
@@ -4430,23 +4466,39 @@ begin
   else if (El.OpCode=eopIs) then
     begin
     // "A is B"
+    LeftTypeEl:=AContext.Resolver.ResolveAliasType(LeftResolved.TypeEl);
+    RightTypeEl:=AContext.Resolver.ResolveAliasType(RightResolved.TypeEl);
     Call:=CreateCallExpression(El);
     Result:=Call;
     Call.AddArg(A); A:=nil;
-    if RightResolved.IdentEl is TPasClassOfType then
+    if (RightResolved.IdentEl is TPasType) then
+      TypeEl:=AContext.Resolver.ResolveAliasType(TPasType(RightResolved.IdentEl))
+    else
+      TypeEl:=nil;
+    if (TypeEl is TPasClassOfType) then
       begin
-      // "A is class-of-type" -> "A is class"
+      // "A is class-of-type" -> use the class
       FreeAndNil(B);
-      TypeEl:=AContext.Resolver.ResolveAliasType(TPasClassOfType(RightResolved.IdentEl).DestType);
+      TypeEl:=AContext.Resolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
       B:=CreateReferencePathExpr(TypeEl,AContext);
       end;
-    if (RightResolved.TypeEl is TPasClassType) and TPasClassType(RightResolved.TypeEl).IsExternal then
+    if (LeftResolved.BaseType=btCustom) then
+      begin
+      // aJSValue is ... -> "rtl.isExt(A,B)"
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIsExt]]);
+      Call.AddArg(B); B:=nil;
+      if TypeEl is TPasClassType then
+        Call.AddArg(CreateLiteralNumber(El.right,IsExtModePasClassInstance))
+      else if TypeEl is TPasClassOfType then
+        Call.AddArg(CreateLiteralNumber(El.right,IsExtModePasClass));
+      end
+    else if (RightTypeEl is TPasClassType) and TPasClassType(RightTypeEl).IsExternal then
       begin
       // B is an external class -> "rtl.isExt(A,B)"
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIsExt]]);
       Call.AddArg(B); B:=nil;
       end
-    else if LeftResolved.TypeEl is TPasClassOfType then
+    else if LeftTypeEl is TPasClassOfType then
       begin
       // A is a TPasClassOfType -> "rtl.is(A,B)"
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIs]]);
@@ -5930,6 +5982,16 @@ begin
             end;
           end;
         end;
+
+      if bsMethodCallChecks in AContext.ScannerBoolSwitches then
+        begin
+        if (C=TPasClassType)
+          or (C=TPasClassOfType) then
+          begin
+
+          end;
+        end;
+
       exit;
       end
     else if C.InheritsFrom(TPasVariable) then

@@ -3149,7 +3149,7 @@ begin
   l('  -C<x>   : Code generation options. <x> is a combination of the following letters:');
   l('    o     : Overflow checking');
   l('    r     : Range checking');
-  l('    R     : Verify object method call validity');
+  l('    R     : Verify object method calls and object type casts');
   l('  -F...   Set file names and paths:');
   l('   -Fe<x> : Redirect output to <x>. UTF-8 encoded.');
   l('   -Fi<x> : Add <x> to include paths');

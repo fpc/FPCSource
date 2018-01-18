@@ -13191,19 +13191,22 @@ end;
 procedure TTestModule.TestJSValue_ClassInstance;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  end;');
-  Add('  TBirdObject = TObject;');
-  Add('var');
-  Add('  v: jsvalue;');
-  Add('  o: TObject;');
-  Add('begin');
-  Add('  v:=o;');
-  Add('  v:=TObject(o);');
-  Add('  v:=TBirdObject(o);');
-  Add('  o:=TObject(v);');
-  Add('  o:=TBirdObject(v);');
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBirdObject = TObject;',
+  'var',
+  '  v: jsvalue;',
+  '  o: TObject;',
+  'begin',
+  '  v:=o;',
+  '  v:=TObject(o);',
+  '  v:=TBirdObject(o);',
+  '  o:=TObject(v);',
+  '  o:=TBirdObject(v);',
+  '  if v is TObject then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestJSValue_ClassInstance',
     LinesToStr([ // statements
@@ -13222,6 +13225,7 @@ begin
     '$mod.v = $mod.o;',
     '$mod.o = rtl.getObject($mod.v);',
     '$mod.o = rtl.getObject($mod.v);',
+    'if (rtl.isExt($mod.v, $mod.TObject, 1)) ;',
     '']));
 end;
 
