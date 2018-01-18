@@ -61,6 +61,7 @@
     <a href="#enumerators">Translating enumerators</a><br>
     <a href="#functiontype">Translating function types</a><br>
     <a href="#absolute">Translating var modifier absolute</a><br>
+    <a href="#assert">Translating assert()</a><br>
     <a href="#calljavascript">Calling JavaScript from Pascal</a><br>
     <a href="#asm">The asm block</a><br>
     <a href="#assembler">The procedure modifier assembler</a><br>
@@ -167,6 +168,7 @@ Put + after a boolean switch option to enable it, - to disable it
     -Pecmascript5  : default
     -Pecmascript6
   -S&lt;x&gt;   : Syntax options. &lt;x&gt; is a combination of the following letters:
+    a     : Turn on assertions
     c     : Support operators like C (*=,+=,/= and -=)
     d     : Same as -Mdelphi
     2     : Same as -Mobjfpc (default)
@@ -1843,6 +1845,13 @@ rtl = {
     compatible for related types like Pointer and TObject, and works
     incompatible for unrelated types like longword and record.<br>
     The modifier is currently only supported for local variables.
+    </div>
+
+    <div class="section">
+    <h2 id="assert">Translating assert()</h2>
+    The Assert(boolean[,string]) function is translated to <i>if(bool) throw x</i>.
+    If unit sysutils is used, it creates an EAssertFailed exception.<br>
+    Otherwise it throws a string.
     </div>
 
     <div class="section">
