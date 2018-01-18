@@ -1323,9 +1323,10 @@ implementation
                     hlcg.init_register_allocators;
                     hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
-                    if (cs_debuginfo in current_settings.moduleswitches) or
-                       (cs_use_lineinfo in current_settings.globalswitches) then
-                      current_debuginfo.insertlineinfo(tmplist);
+                    if ((cs_debuginfo in current_settings.moduleswitches) or
+                       (cs_use_lineinfo in current_settings.globalswitches)) and
+                       (target_dbg.id<>dbg_stabx) then
+                         current_debuginfo.insertlineinfo(tmplist);
                     list.concatlist(tmplist);
                     tmplist.Free;
                     current_filepos:=oldfileposinfo;
