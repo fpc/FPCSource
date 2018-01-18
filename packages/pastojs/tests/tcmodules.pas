@@ -5769,51 +5769,49 @@ end;
 
 procedure TTestModule.TestArray_StaticMultiDim;
 begin
-  exit;
   StartProgram(false);
-  Add('type');
-  Add('  TArrayInt = array[1..3] of longint;');
-  Add('  TArrayArrayInt = array[5..6] of TArrayInt;');
-  Add('var');
-  Add('  Arr: TArrayInt;');
-  Add('  Arr2: TArrayArrayInt;');
-  Add('  i: longint;');
-  Add('begin');
-  Add('  i:=low(arr);');
-  Add('  i:=low(arr2);');
-  Add('  i:=low(arr2[5]);');
-  Add('  i:=high(arr);');
-  Add('  i:=high(arr2);');
-  Add('  i:=high(arr2[6]);');
-  Add('  arr2[3]:=arr;');
-  Add('  arr2[4][5]:=i;');
-  Add('  i:=arr2[6][7];');
-  Add('  arr2[8,9]:=i;');
-  Add('  i:=arr2[10,11];');
-  Add('  SetLength(arr2,14);');
-  Add('  SetLength(arr2[15],16);');
+  Add([
+  'type',
+  '  TArrayInt = array[1..3] of longint;',
+  '  TArrayArrayInt = array[5..6] of TArrayInt;',
+  'var',
+  '  Arr: TArrayInt;',
+  '  Arr2: TArrayArrayInt;',
+  '  Arr3: array[boolean] of TArrayInt = ((11,12,13),(21,22,23));',
+  '  i: longint;',
+  'begin',
+  '  i:=low(arr);',
+  '  i:=low(arr2);',
+  '  i:=low(arr2[5]);',
+  '  i:=high(arr);',
+  '  i:=high(arr2);',
+  '  i:=high(arr2[6]);',
+  '  arr2[5]:=arr;',
+  '  arr2[6][2]:=i;',
+  '  i:=arr2[6][3];',
+  '  arr2[6,3]:=i;',
+  '  i:=arr2[5,2];',
+  '']);
   ConvertProgram;
   CheckSource('TestArray_StaticMultiDim',
     LinesToStr([ // statements
-    'this.Arr = [];',
-    'this.Arr2 = [];',
+    'this.Arr = rtl.arraySetLength(null, 0, 3);',
+    'this.Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
+    'this.Arr3 = [[11, 12, 13], [21, 22, 23]];',
     'this.i = 0;'
     ]),
     LinesToStr([ // $mod.$main
-    '$mod.Arr2 = [];',
-    'if (rtl.length($mod.Arr2) === 0) ;',
-    'if (rtl.length($mod.Arr2) === 0) ;',
-    '$mod.i = 0;',
-    '$mod.i = 0;',
-    '$mod.i = rtl.length($mod.Arr2) - 1;',
-    '$mod.i = rtl.length($mod.Arr2[2]) - 1;',
-    '$mod.Arr2[3] = $mod.Arr;',
-    '$mod.Arr2[4][5] = $mod.i;',
-    '$mod.i = $mod.Arr2[6][7];',
-    '$mod.Arr2[8][9] = $mod.i;',
-    '$mod.i = $mod.Arr2[10][11];',
-    '$mod.Arr2 = rtl.arraySetLength($mod.Arr2, [], 14);',
-    '$mod.Arr2[15] = rtl.arraySetLength($mod.Arr2[15], 0, 16);',
+    '$mod.i = 1;',
+    '$mod.i = 5;',
+    '$mod.i = 1;',
+    '$mod.i = 3;',
+    '$mod.i = 6;',
+    '$mod.i = 3;',
+    '$mod.Arr2[0] = $mod.Arr;',
+    '$mod.Arr2[1][1] = $mod.i;',
+    '$mod.i = $mod.Arr2[1][2];',
+    '$mod.Arr2[1][2] = $mod.i;',
+    '$mod.i = $mod.Arr2[0][1];',
     '']));
 end;
 

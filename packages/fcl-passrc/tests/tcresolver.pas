@@ -10517,6 +10517,7 @@ begin
   'const',
   '  a = low(TIntArr)+high(TIntArr);',
   '  b: array[1..3] of longint = (10,11,12);',
+  '  c: array[boolean] of TIntArr = ((21,22,23),(31,32,33));',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;

@@ -211,11 +211,11 @@ Type
   TJSArrayLiteralElement = Class(TCollectionItem)
   private
     FExpr: TJSelement;
-    FFindex: Integer;
+    FElementIndex: Integer;
   Public
     Destructor Destroy; override;
     Property Expr : TJSElement Read FExpr Write FExpr;
-    Property ElementIndex : Integer Read FFindex Write FFIndex;
+    Property ElementIndex : Integer Read FElementIndex Write FElementIndex;
   end;
 
   { TJSArrayLiteralElements - Elements property of TJSArrayLiteral }
@@ -1567,8 +1567,12 @@ begin
 end;
 
 procedure TJSArrayLiteral.AddElement(El: TJSElement);
+var
+  ArrEl: TJSArrayLiteralElement;
 begin
-  Elements.AddElement.Expr:=El;
+  ArrEl:=Elements.AddElement;
+  ArrEl.ElementIndex:=Elements.Count-1;
+  ArrEl.Expr:=El;
 end;
 
 destructor TJSArrayLiteral.Destroy;

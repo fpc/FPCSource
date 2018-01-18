@@ -7709,26 +7709,20 @@ end;
 
 function TPasToJSConverter.ConvertArrayValues(El: TArrayValues;
   AContext: TConvertContext): TJSElement;
-
 Var
-  R :  TJSArrayLiteral;
+  ArrLit :  TJSArrayLiteral;
   I : Integer;
-  rel : TJSArrayLiteralElement;
-
 begin
-  R:=TJSArrayLiteral(CreateElement(TJSObjectLiteral,El));
+  ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
   For I:=0 to Length(El.Values)-1 do
     begin
-    Rel:=R.Elements.AddElement;
-    Rel.ElementIndex:=i;
-    Rel.Expr:=ConvertElement(El.Values[i],AContext);
+    ArrLit.AddElement(ConvertElement(El.Values[i],AContext));
     end;
-  Result:=R;
+  Result:=ArrLit;
 end;
 
 function TPasToJSConverter.ConvertExpression(El: TPasExpr;
   AContext: TConvertContext): TJSElement;
-
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertExpression El=',GetObjName(El),' Context=',GetObjName(AContext));
@@ -7752,6 +7746,8 @@ begin
     Result:=ConvertParamsExpression(TParamsExpr(El),AContext)
   else if (El.ClassType=TRecordValues) then
     Result:=ConvertRecordValues(TRecordValues(El),AContext)
+  else if (El.ClassType=TArrayValues) then
+    Result:=ConvertArrayValues(TArrayValues(El),AContext)
   else
     RaiseNotSupported(El,AContext,20161024191314);
 end;
