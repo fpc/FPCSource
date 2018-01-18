@@ -986,6 +986,7 @@ var
   BuiltInProc: TResElDataBuiltInProc;
   ParamResolved, ResolvedAbs: TPasResolverResult;
   Decl: TPasElement;
+  ModScope: TPasModuleScope;
 begin
   if El=nil then exit;
   // Note: expression itself is not marked, but it can reference identifiers
@@ -1034,7 +1035,8 @@ begin
       if Decl.CustomData is TResElDataBuiltInProc then
         begin
         BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
-        if BuiltInProc.BuiltIn=bfTypeInfo then
+        case BuiltInProc.BuiltIn of
+        bfTypeInfo:
           begin
           Params:=(El.Parent as TParamsExpr).Params;
           Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
@@ -1046,6 +1048,14 @@ begin
           else
             UsePublished(ParamResolved.IdentEl);
           end;
+        bfAssert:
+          begin
+          ModScope:=Resolver.RootElement.CustomData as TPasModuleScope;
+          if ModScope.AssertClass<>nil then
+            UseType(ModScope.AssertClass,paumElement);
+          end;
+        end;
+
         end;
       end;
 
@@ -2036,6 +2046,7 @@ var
   Msg: TPAMessage;
   El: TPasElement;
   ProcScope: TPasProcedureScope;
+  ModScope: TPasModuleScope;
 begin
   {$IFDEF VerbosePasAnalyzer}
   //writeln('TPasAnalyzer.EmitMessage [',Id,'] ',MsgType,': (',MsgNumber,') Fmt={',Fmt,'} PosEl='+GetElModName(PosEl));
@@ -2054,6 +2065,16 @@ begin
         mtHint: if not (ppsfHints in ProcScope.Flags) then exit;
         mtNote: if not (ppsfNotes in ProcScope.Flags) then exit;
         mtWarning: if not (ppsfWarnings in ProcScope.Flags) then exit;
+        end;
+        break;
+        end
+      else if El is TPasModule then
+        begin
+        ModScope:=TPasModule(El).CustomData as TPasModuleScope;
+        case MsgType of
+        mtHint: if not (pmsfHints in ModScope.Flags) then exit;
+        mtNote: if not (pmsfNotes in ModScope.Flags) then exit;
+        mtWarning: if not (pmsfWarnings in ModScope.Flags) then exit;
         end;
         break;
         end;

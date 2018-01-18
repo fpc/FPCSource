@@ -505,8 +505,11 @@ type
   TPasScopeClass = class of TPasScope;
 
   TPasModuleScopeFlag = (
-    pmsfAssertDefSearched,
-    pmsfAssertMsgSearched
+    pmsfAssertions, // $Assertions on
+    pmsfHints, // $Hints on for analyzer (runs at end of module, so have to safe Scanner flags)
+    pmsfNotes, // $Notes on for analyzer
+    pmsfWarnings, // $Warnings on for analyzer
+    pmsfAssertSearched // assert constructors searched
     );
   TPasModuleScopeFlags = set of TPasModuleScopeFlag;
 
@@ -514,8 +517,10 @@ type
 
   TPasModuleScope = class(TPasScope)
   private
+    FAssertClass: TPasClassType;
     FAssertDefConstructor: TPasConstructor;
     FAssertMsgConstructor: TPasConstructor;
+    procedure SetAssertClass(const AValue: TPasClassType);
     procedure SetAssertDefConstructor(const AValue: TPasConstructor);
     procedure SetAssertMsgConstructor(const AValue: TPasConstructor);
   public
@@ -527,6 +532,7 @@ type
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
+    property AssertClass: TPasClassType read FAssertClass write SetAssertClass;
     property AssertDefConstructor: TPasConstructor read FAssertDefConstructor write SetAssertDefConstructor;
     property AssertMsgConstructor: TPasConstructor read FAssertMsgConstructor write SetAssertMsgConstructor;
   end;
@@ -1185,7 +1191,9 @@ type
       MaxCount: integer; RaiseOnError: boolean): integer;
     function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
-    procedure CheckAssertException(Params: TParamsExpr); virtual;
+    procedure FinishAssertCall(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
+    procedure FindAssertExceptionConstructors(ErrorEl: TPasElement); virtual;
   protected
     fExprEvaluator: TResExprEvaluator;
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: int64;
@@ -1295,6 +1303,8 @@ type
       {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
     function BI_Assert_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_Assert_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2443,6 +2453,16 @@ begin
     FAssertDefConstructor.AddRef;
 end;
 
+procedure TPasModuleScope.SetAssertClass(const AValue: TPasClassType);
+begin
+  if FAssertClass=AValue then Exit;
+  if FAssertClass<>nil then
+    FAssertClass.Release;
+  FAssertClass:=AValue;
+  if FAssertClass<>nil then
+    FAssertClass.AddRef;
+end;
+
 procedure TPasModuleScope.SetAssertMsgConstructor(const AValue: TPasConstructor
   );
 begin
@@ -2462,6 +2482,7 @@ end;
 
 destructor TPasModuleScope.Destroy;
 begin
+  AssertClass:=nil;
   AssertDefConstructor:=nil;
   AssertMsgConstructor:=nil;
   FreeAndNil(PendingResolvers);
@@ -3480,6 +3501,8 @@ procedure TPasResolver.FinishModule(CurModule: TPasModule);
 var
   CurModuleClass: TClass;
   i: Integer;
+  ModScope: TPasModuleScope;
+  ScanBools: TBoolSwitches;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishModule START ',CurModule.Name);
@@ -3487,6 +3510,18 @@ begin
   FStep:=prsFinishingModule;
 
   CurModuleClass:=CurModule.ClassType;
+  ModScope:=CurModule.CustomData as TPasModuleScope;
+
+  ScanBools:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsAssertions in ScanBools then
+    Include(ModScope.Flags,pmsfAssertions);
+  if bsHints in ScanBools then
+    Include(ModScope.Flags,pmsfHints);
+  if bsNotes in ScanBools then
+    Include(ModScope.Flags,pmsfNotes);
+  if bsWarnings in ScanBools then
+    Include(ModScope.Flags,pmsfWarnings);
+
   if (CurModuleClass=TPasProgram) or (CurModuleClass=TPasLibrary) then
     begin
     // resolve begin..end block
@@ -8524,7 +8559,28 @@ begin
   Result:=cIncompatible;
 end;
 
-procedure TPasResolver.CheckAssertException(Params: TParamsExpr);
+procedure TPasResolver.FinishAssertCall(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr);
+var
+  aMod: TPasModule;
+  ModScope: TPasModuleScope;
+  aConstructor: TPasConstructor;
+begin
+  if Proc=nil then ;
+  aMod:=RootElement;
+  ModScope:=aMod.CustomData as TPasModuleScope;
+  if not (pmsfAssertSearched in ModScope.Flags) then
+    FindAssertExceptionConstructors(Params);
+  if ModScope.AssertClass=nil then exit;
+  if length(Params.Params)>1 then
+    aConstructor:=ModScope.AssertMsgConstructor
+  else
+    aConstructor:=ModScope.AssertDefConstructor;
+  if aConstructor=nil then exit;
+  CreateReference(aConstructor,Params,rraRead);
+end;
+
+procedure TPasResolver.FindAssertExceptionConstructors(ErrorEl: TPasElement);
 
   function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
   var
@@ -8547,32 +8603,83 @@ procedure TPasResolver.CheckAssertException(Params: TParamsExpr);
   end;
 
   function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
+  var
+    C: TClass;
   begin
-    Result:=FindUsedUnitInSection(aName,aMod.InterfaceSection);
-    if Result<>nil then exit;
-    Result:=FindUsedUnitInSection(aName,aMod.ImplementationSection);
+    C:=aMod.ClassType;
+    if C.InheritsFrom(TPasProgram) then
+      Result:=FindUsedUnitInSection(aName,TPasProgram(aMod).ProgramSection)
+    else if C.InheritsFrom(TPasLibrary) then
+      Result:=FindUsedUnitInSection(aName,TPasLibrary(aMod).LibrarySection)
+    else
+      begin
+      Result:=FindUsedUnitInSection(aName,aMod.InterfaceSection);
+      if Result<>nil then exit;
+      Result:=FindUsedUnitInSection(aName,aMod.ImplementationSection);
+      end
   end;
 
 var
   aMod, UtilsMod: TPasModule;
   ModScope: TPasModuleScope;
-  Flag: TPasModuleScopeFlag;
+  SectionScope: TPasSectionScope;
+  Identifier: TPasIdentifier;
+  El: TPasElement;
+  ClassScope: TPasClassScope;
+  aConstructor: TPasConstructor;
+  Arg: TPasArgument;
+  ArgResolved: TPasResolverResult;
 begin
-  aMod:=Params.GetModule;
+  aMod:=RootElement;
   ModScope:=aMod.CustomData as TPasModuleScope;
-  if length(Params.Params)>1 then
-    Flag:=pmsfAssertMsgSearched
-  else
-    Flag:=pmsfAssertDefSearched;
-  if Flag in ModScope.Flags then exit;
-  Include(ModScope.Flags,Flag);
+  if pmsfAssertSearched in ModScope.Flags then exit;
+  Include(ModScope.Flags,pmsfAssertSearched);
 
   // find unit sysutils
   UtilsMod:=FindUsedUnit('sysutils',aMod);
   if UtilsMod=nil then exit;
 
   // find EAssertionFailed
-
+  //writeln('TPasResolver.CheckAssertException ',GetObjName(UtilsMod),' ',GetObjName(UtilsMod.InterfaceSection));
+  if UtilsMod.InterfaceSection=nil then exit;
+  SectionScope:=NoNil(UtilsMod.InterfaceSection.CustomData) as TPasSectionScope;
+  Identifier:=SectionScope.FindLocalIdentifier('EAssertionFailed');
+  //writeln('TPasResolver.CheckAssertException Identifier=',GetObjName(Identifier));
+  if Identifier=nil then exit;
+  El:=Identifier.Element;
+  if not (El is TPasClassType) then
+    RaiseXExpectedButYFound(20180117173439,'class EAssertionFailed',El.ElementTypeName,ErrorEl);
+  ClassScope:=NoNil(El.CustomData) as TPasClassScope;
+  ModScope.AssertClass:=TPasClassType(El);
+  repeat
+    Identifier:=ClassScope.FindIdentifier('create');
+    while Identifier<>nil do
+      begin
+      if Identifier.Element.ClassType=TPasConstructor then
+        begin
+        aConstructor:=TPasConstructor(Identifier.Element);
+        //writeln('TPasResolver.CheckAssertException ',aConstructor.Name,' ',aConstructor.ProcType.Args.Count);
+        if aConstructor.ProcType.Args.Count=0 then
+          begin
+          if ModScope.AssertDefConstructor=nil then
+            ModScope.AssertDefConstructor:=aConstructor;
+          end
+        else if aConstructor.ProcType.Args.Count=1 then
+          begin
+          if ModScope.AssertMsgConstructor=nil then
+            begin
+            Arg:=TPasArgument(aConstructor.ProcType.Args[0]);
+            //writeln('TPasResolver.CheckAssertException ',GetObjName(Arg.ArgType),' ',GetObjName(BaseTypes[BaseTypeString]));
+            ComputeElement(Arg.ArgType,ArgResolved,[rcType]);
+            if ArgResolved.BaseType in btAllStrings then
+              ModScope.AssertMsgConstructor:=aConstructor;
+            end;
+          end;
+        end;
+      Identifier:=Identifier.NextSameIdentifier;
+      end;
+    ClassScope:=ClassScope.AncestorScope;
+  until ClassScope=nil;
 end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;
@@ -10307,9 +10414,12 @@ begin
     end;
 
   Result:=CheckBuiltInMaxParamCount(Proc,Params,2,RaiseOnError);
+end;
 
-  if RaiseOnError then
-    CheckAssertException(Params);
+procedure TPasResolver.BI_Assert_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+begin
+  FinishAssertCall(Proc,Params);
 end;
 
 constructor TPasResolver.Create;
@@ -11275,7 +11385,8 @@ begin
         nil,nil,bfTypeInfo);
   if bfAssert in TheBaseProcs then
     AddBuiltInProc('Assert','procedure Assert(bool[,string])',
-        @BI_Assert_OnGetCallCompatibility,nil,nil,nil,bfAssert,[bipfCanBeStatement]);
+        @BI_Assert_OnGetCallCompatibility,nil,nil,
+        @BI_Assert_OnFinishParamsExpr,bfAssert,[bipfCanBeStatement]);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType

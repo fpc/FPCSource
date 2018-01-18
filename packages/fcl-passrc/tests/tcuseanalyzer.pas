@@ -133,6 +133,7 @@ type
     procedure TestWP_BuiltInFunctions;
     procedure TestWP_TypeInfo;
     procedure TestWP_ForInClass;
+    procedure TestWP_AssertSysUtils;
   end;
 
 implementation
@@ -2005,6 +2006,44 @@ begin
   '  for i in b do ;',
   '']);
   AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_AssertSysUtils;
+begin
+  AddModuleWithIntfImplSrc('SysUtils.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '    constructor {#a_used}Create;',
+    '  end;',
+    '  {#e_used}EAssertionFailed = class',
+    '    constructor {#b_used}Create(s: string);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'constructor TObject.Create;',
+    'begin end;',
+    'constructor EAssertionFailed.Create(s: string);',
+    'begin end;',
+    '']) );
+
+  StartProgram(true);
+  Add([
+  'uses sysutils;',
+  'procedure DoIt;',
+  'var',
+  '  b: boolean;',
+  '  s: string;',
+  'begin',
+  '  {$Assertions on}',
+  '  Assert(b);',
+  '  Assert(b,s);',
+  'end;',
+  'begin',
+  '  DoIt;',
+  '']);
+  AnalyzeWholeProgram;
+  // ToDo: check if both EAssertionFailed.Create are used
 end;
 
 initialization

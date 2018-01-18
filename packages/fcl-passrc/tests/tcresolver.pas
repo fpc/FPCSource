@@ -211,6 +211,7 @@ type
     Procedure TestBoolSet_Const;
     Procedure TestBool_ForIn;
     Procedure TestBool_Assert;
+    Procedure TestBool_AssertSysutils;
 
     // integer range
     Procedure TestIntegerRange;
@@ -1464,7 +1465,10 @@ function TCustomTestResolver.FindElementsAt(aFilename: string; aLine, aStartCol,
 var
   ok: Boolean;
   FoundRefs: TTestResolverReferenceData;
+  i: Integer;
+  CurResolver: TTestEnginePasResolver;
 begin
+  //writeln('TCustomTestResolver.FindElementsAt START "',aFilename,'" Line=',aLine,' Col=',aStartCol,'-',aEndCol);
   FoundRefs:=Default(TTestResolverReferenceData);
   FoundRefs.Filename:=aFilename;
   FoundRefs.Row:=aLine;
@@ -1473,7 +1477,15 @@ begin
   FoundRefs.Found:=TFPList.Create;
   ok:=false;
   try
+    // find all markers
     Module.ForEachCall(@OnFindReference,@FoundRefs);
+    for i:=0 to ModuleCount-1 do
+      begin
+      CurResolver:=Modules[i];
+      if CurResolver.Module=Module then continue;
+      //writeln('TCustomTestResolver.FindElementsAt ',CurResolver.Filename);
+      CurResolver.Module.ForEachCall(@OnFindReference,@FoundRefs);
+      end;
     ok:=true;
   finally
     if not ok then
@@ -2514,6 +2526,43 @@ begin
   '  Assert(b,''error'');',
   '  Assert(false,''error''+s);',
   '  Assert(not b);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestBool_AssertSysutils;
+begin
+  AddModuleWithIntfImplSrc('SysUtils.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '    constructor Create;',
+    '  end;',
+    '  EAssertionFailed = class',
+    '    constructor Create(s: string);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'constructor TObject.Create;',
+    'begin end;',
+    'constructor EAssertionFailed.Create(s: string);',
+    'begin end;',
+    '']) );
+
+  StartProgram(true);
+  Add([
+  'uses sysutils;',
+  'procedure DoIt;',
+  'var',
+  '  b: boolean;',
+  '  s: string;',
+  'begin',
+  '  {$Assertions on}',
+  '  Assert(b);',
+  '  Assert(b,s);',
+  'end;',
+  'begin',
+  '  DoIt;',
   '']);
   ParseProgram;
 end;
