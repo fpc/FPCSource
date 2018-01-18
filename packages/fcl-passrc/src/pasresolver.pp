@@ -1153,6 +1153,9 @@ type
     procedure ComputeBinaryExpr(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
+    procedure ComputeBinaryExprRes(Bin: TBinaryExpr;
+      out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+      var LeftResolved, RightResolved: TPasResolverResult); virtual;
     procedure ComputeArrayParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -7163,15 +7166,8 @@ end;
 procedure TPasResolver.ComputeBinaryExpr(Bin: TBinaryExpr; out
   ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
   StartEl: TPasElement);
-
-  procedure SetBaseType(BaseType: TResolverBaseType);
-  begin
-    SetResolverValueExpr(ResolvedEl,BaseType,FBaseTypes[BaseType],Bin,[rrfReadable]);
-  end;
-
 var
-  LeftResolved, RightResolved, ElTypeResolved: TPasResolverResult;
-  LeftTypeEl, RightTypeEl: TPasType;
+  LeftResolved, RightResolved: TPasResolverResult;
 begin
   if (Bin.OpCode=eopSubIdent)
   or ((Bin.OpCode=eopNone) and (Bin.left is TInheritedExpr)) then
@@ -7186,7 +7182,7 @@ begin
     if CheckEqualElCompatibility(Bin.left,Bin.right,nil,true,
         rcSetReferenceFlags in Flags)=cIncompatible then
       RaiseInternalError(20161007215912);
-    SetBaseType(btBoolean);
+    SetResolverValueExpr(ResolvedEl,btBoolean,FBaseTypes[btBoolean],Bin,[rrfReadable]);
     exit;
     end;
 
@@ -7194,6 +7190,22 @@ begin
   ComputeElement(Bin.right,RightResolved,Flags-[rcNoImplicitProc],StartEl);
   // ToDo: check operator overloading
 
+  ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
+end;
+
+procedure TPasResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  var LeftResolved, RightResolved: TPasResolverResult);
+
+  procedure SetBaseType(BaseType: TResolverBaseType);
+  begin
+    SetResolverValueExpr(ResolvedEl,BaseType,FBaseTypes[BaseType],Bin,[rrfReadable]);
+  end;
+
+var
+  ElTypeResolved: TPasResolverResult;
+  LeftTypeEl, RightTypeEl: TPasType;
+begin
   if LeftResolved.BaseType=btRange then
     ConvertRangeToElement(LeftResolved);
   if RightResolved.BaseType=btRange then
@@ -7492,12 +7504,15 @@ begin
         end;
     eopIs:
       begin
-      if (LeftResolved.TypeEl is TPasClassType) then
+      LeftTypeEl:=ResolveAliasType(LeftResolved.TypeEl);
+      RightTypeEl:=ResolveAliasType(RightResolved.TypeEl);
+      if (LeftTypeEl is TPasClassType) then
         begin
         if (LeftResolved.IdentEl=nil) or (LeftResolved.IdentEl is TPasType) then
           RaiseMsg(20170216152230,nIllegalQualifier,sIllegalQualifier,['is'],Bin);
         // left side is a class instance
-        if RightResolved.IdentEl is TPasClassType then
+        if (RightResolved.IdentEl is TPasType)
+            and (ResolveAliasType(TPasType(RightResolved.IdentEl)) is TPasClassType) then
           begin
           // e.g. if Image is TFPMemoryImage then ;
           // Note: at compile time the check is reversed: right must inherit from left
@@ -7514,16 +7529,16 @@ begin
             exit;
             end;
           {$IFDEF VerbosePasResolver}
-          writeln('TPasResolver.ComputeBinaryExpr LeftClass=',GetClassAncestorsDbg(TPasClassType(LeftResolved.TypeEl)));
-          writeln('TPasResolver.ComputeBinaryExpr RightClass=',GetClassAncestorsDbg(TPasClassType(RightResolved.IdentEl)));
+          writeln('TPasResolver.ComputeBinaryExprRes LeftClass=',GetClassAncestorsDbg(TPasClassType(LeftResolved.TypeEl)));
+          writeln('TPasResolver.ComputeBinaryExprRes RightClass=',GetClassAncestorsDbg(TPasClassType(RightResolved.IdentEl)));
           {$ENDIF}
           end
-        else if (RightResolved.TypeEl is TPasClassOfType)
+        else if (RightTypeEl is TPasClassOfType)
             and (rrfReadable in RightResolved.Flags) then
           begin
           // e.g. if Image is ImageClass then ;
           if (CheckClassesAreRelated(LeftResolved.TypeEl,
-              TPasClassOfType(RightResolved.TypeEl).DestType,Bin)<>cIncompatible) then
+              TPasClassOfType(RightTypeEl).DestType,Bin)<>cIncompatible) then
             begin
             SetBaseType(btBoolean);
             exit;
@@ -7532,14 +7547,15 @@ begin
         else
           RaiseXExpectedButYFound(20170216152625,'class type',RightResolved.TypeEl.ElementTypeName,Bin.right);
         end
-      else if (proClassOfIs in Options) and (LeftResolved.TypeEl is TPasClassOfType)
+      else if (proClassOfIs in Options) and (LeftTypeEl is TPasClassOfType)
           and (rrfReadable in LeftResolved.Flags) then
         begin
         if (LeftResolved.IdentEl=nil) or (LeftResolved.IdentEl is TPasType) then
           RaiseMsg(20170322101128,nIllegalQualifier,sIllegalQualifier,['is'],Bin);
         // left side is class-of variable
         LeftTypeEl:=ResolveAliasType(TPasClassOfType(LeftResolved.TypeEl).DestType);
-        if RightResolved.IdentEl is TPasClassType then
+        if (RightResolved.IdentEl is TPasType)
+            and (ResolveAliasType(TPasType(RightResolved.IdentEl)) is TPasClassType) then
           begin
           // e.g. if ImageClass is TFPMemoryImage then ;
           // Note: at compile time the check is reversed: right must inherit from left
@@ -7549,11 +7565,11 @@ begin
             exit;
             end
           end
-        else if (RightResolved.TypeEl is TPasClassOfType) then
+        else if (RightTypeEl is TPasClassOfType) then
           begin
           // e.g. if ImageClassA is ImageClassB then ;
           // or   if ImageClassA is TFPImageClass then ;
-          RightTypeEl:=ResolveAliasType(TPasClassOfType(RightResolved.TypeEl).DestType);
+          RightTypeEl:=ResolveAliasType(TPasClassOfType(RightTypeEl).DestType);
           if (CheckClassesAreRelated(LeftTypeEl,RightTypeEl,Bin)<>cIncompatible) then
             begin
             SetBaseType(btBoolean);
@@ -7570,15 +7586,17 @@ begin
         RaiseMsg(20170216152234,nLeftSideOfIsOperatorExpectsAClassButGot,sLeftSideOfIsOperatorExpectsAClassButGot,
                  [LeftResolved.TypeEl.ElementTypeName],Bin.left);
       {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.ComputeBinaryExpr is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
+      writeln('TPasResolver.ComputeBinaryExprRes is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
       {$ENDIF}
       RaiseMsg(20170216152236,nTypesAreNotRelated,sTypesAreNotRelated,[],Bin);
       end;
     eopAs:
       begin
-      if (LeftResolved.TypeEl is TPasClassType) then
+      LeftTypeEl:=ResolveAliasType(LeftResolved.TypeEl);
+      if (LeftTypeEl is TPasClassType) then
         begin
-        if (LeftResolved.IdentEl=nil) or (LeftResolved.IdentEl is TPasType)
+        if (LeftResolved.IdentEl=nil)
+            or (LeftResolved.IdentEl is TPasType)
             or (not (rrfReadable in LeftResolved.Flags)) then
           RaiseMsg(20170216152237,nIllegalQualifier,sIllegalQualifier,['as'],Bin);
         if RightResolved.IdentEl=nil then
@@ -7594,15 +7612,19 @@ begin
         end;
       end;
     eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual:
-      if (LeftResolved.TypeEl.ClassType=TPasEnumType)
+      begin
+      LeftTypeEl:=ResolveAliasType(LeftResolved.TypeEl);
+      RightTypeEl:=ResolveAliasType(RightResolved.TypeEl);
+      if (LeftTypeEl.ClassType=TPasEnumType)
           and (rrfReadable in LeftResolved.Flags)
-          and (LeftResolved.TypeEl=RightResolved.TypeEl)
+          and (LeftTypeEl=RightTypeEl)
           and (rrfReadable in RightResolved.Flags)
       then
         begin
         SetBaseType(btBoolean);
         exit;
         end;
+      end;
     eopSubIdent:
       begin
       ResolvedEl:=RightResolved;
@@ -7666,7 +7688,7 @@ begin
           exit;
           end;
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.ComputeBinaryExpr + - * >< Sets LeftSubType='+BaseTypeNames[LeftResolved.SubType]
+        writeln('TPasResolver.ComputeBinaryExprRes + - * >< Sets LeftSubType='+BaseTypeNames[LeftResolved.SubType]
           +' RightSubType='+BaseTypeNames[RightResolved.SubType]);
         {$ENDIF}
         end;
@@ -7681,9 +7703,10 @@ begin
       end;
     end;
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ComputeBinaryExpr OpCode=',OpcodeStrings[Bin.OpCode],' Kind=',Bin.Kind,' Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
+  writeln('TPasResolver.ComputeBinaryExprRes OpCode=',OpcodeStrings[Bin.OpCode],' Kind=',Bin.Kind,' Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
   {$ENDIF}
   RaiseMsg(20170216152241,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[Bin.OpCode]],Bin);
+  if Flags=[] then ;
 end;
 
 procedure TPasResolver.ComputeArrayParams(Params: TParamsExpr; out
