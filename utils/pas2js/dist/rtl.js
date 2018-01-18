@@ -340,14 +340,31 @@ var rtl = {
 
   EInvalidCast: null,
 
+  raiseEInvalidCast: function(){
+    if (rtl.EInvalidCast){
+      if (rtl.EInvalidCast.Create){
+        throw rtl.EInvalidCast.$create("Create");
+      } else {
+        throw rtl.EInvalidCast.$create("create");
+      }
+    } else {
+      throw "invalid type cast";
+    }
+  },
+
   as: function(instance,type){
-    if(rtl.is(instance,type)) return instance;
-    throw rtl.EInvalidCast.$create("create");
+    if((instance === null) || rtl.is(instance,type)) return instance;
+    rtl.raiseEInvalidCast();
   },
 
   asExt: function(instance,type){
-    if(rtl.isExt(instance,type)) return instance;
-    throw rtl.EInvalidCast.$create("create");
+    if((instance === null) || rtl.isExt(instance,type)) return instance;
+    rtl.raiseEInvalidCast();
+  },
+
+  checkMethodCall: function(obj,type){
+    if (rtl.isObject(obj) && rtl.is(obj,type)) return;
+    rtl.raiseEInvalidCast();
   },
 
   length: function(arr){
@@ -459,7 +476,7 @@ var rtl = {
 
   cloneSet: function(s){
     var r = {};
-    for (var key in s) if (s.hasOwnProperty(key)) r[key]=true;
+    for (var key in s) r[key]=true;
     return r;
   },
 
@@ -482,37 +499,37 @@ var rtl = {
 
   diffSet: function(s,t){
     var r = {};
-    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) r[key]=true;
+    for (var key in s) if (!t[key]) r[key]=true;
     delete r.$shared;
     return r;
   },
 
   unionSet: function(s,t){
     var r = {};
-    for (var key in s) if (s.hasOwnProperty(key)) r[key]=true;
-    for (var key in t) if (t.hasOwnProperty(key)) r[key]=true;
+    for (var key in s) r[key]=true;
+    for (var key in t) r[key]=true;
     delete r.$shared;
     return r;
   },
 
   intersectSet: function(s,t){
     var r = {};
-    for (var key in s) if (s.hasOwnProperty(key) && t[key]) r[key]=true;
+    for (var key in s) if (t[key]) r[key]=true;
     delete r.$shared;
     return r;
   },
 
   symDiffSet: function(s,t){
     var r = {};
-    for (var key in s) if (s.hasOwnProperty(key) && !t[key]) r[key]=true;
-    for (var key in t) if (t.hasOwnProperty(key) && !s[key]) r[key]=true;
+    for (var key in s) if (!t[key]) r[key]=true;
+    for (var key in t) if (!s[key]) r[key]=true;
     delete r.$shared;
     return r;
   },
 
   eqSet: function(s,t){
-    for (var key in s) if (s.hasOwnProperty(key) && !t[key] && (key!='$shared')) return false;
-    for (var key in t) if (t.hasOwnProperty(key) && !s[key] && (key!='$shared')) return false;
+    for (var key in s) if (!t[key] && (key!='$shared')) return false;
+    for (var key in t) if (!s[key] && (key!='$shared')) return false;
     return true;
   },
 
@@ -521,12 +538,12 @@ var rtl = {
   },
 
   leSet: function(s,t){
-    for (var key in s) if (s.hasOwnProperty(key) && !t[key] && (key!='$shared')) return false;
+    for (var key in s) if (!t[key] && (key!='$shared')) return false;
     return true;
   },
 
   geSet: function(s,t){
-    for (var key in t) if (t.hasOwnProperty(key) && !s[key] && (key!='$shared')) return false;
+    for (var key in t) if (!s[key] && (key!='$shared')) return false;
     return true;
   },
 
