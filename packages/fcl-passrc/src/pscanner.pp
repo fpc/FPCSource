@@ -302,7 +302,8 @@ type
     bsNotes,
     bsWarnings,
     bsMacro,
-    bsScopedEnums
+    bsScopedEnums,
+    bsMethodCallChecks // check type of Self
     );
   TBoolSwitches = set of TBoolSwitch;
 const
@@ -942,6 +943,7 @@ const
    );
 
   BoolSwitchNames: array[TBoolSwitch] of string = (
+    // letter directives
     'None',
     'Align',
     'BoolEval',
@@ -964,11 +966,13 @@ const
     'Stackframes',
     'ExtendedSyntax',
     'ReferenceInfo',
+    // other bool directives
     'Hints',
     'Notes',
     'Warnings',
     'Macro',
-    'ScopedEnums'
+    'ScopedEnums',
+    'MethodCallChecks'
     );
 
 const

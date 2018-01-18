@@ -505,10 +505,6 @@ type
   TPasScopeClass = class of TPasScope;
 
   TPasModuleScopeFlag = (
-    pmsfAssertions, // $Assertions on
-    pmsfHints, // $Hints on for analyzer (runs at end of module, so have to safe Scanner flags)
-    pmsfNotes, // $Notes on for analyzer
-    pmsfWarnings, // $Warnings on for analyzer
     pmsfAssertSearched // assert constructors searched
     );
   TPasModuleScopeFlags = set of TPasModuleScopeFlag;
@@ -527,6 +523,7 @@ type
     FirstName: string;
     PendingResolvers: TFPList; // list of TPasResolver waiting for the unit interface
     Flags: TPasModuleScopeFlags;
+    ScannerBoolSwitches: TBoolSwitches;
     constructor Create; override;
     destructor Destroy; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
@@ -656,10 +653,6 @@ type
   TPasClassScopeClass = class of TPasClassScope;
 
   TPasProcedureScopeFlag = (
-    ppsfAssertions, // $Assertions on
-    ppsfHints, // $Hints on for analyzer (runs at end of module, so have to safe Scanner flags)
-    ppsfNotes, // $Notes on for analyzer
-    ppsfWarnings, // $Warnings on for analyzer
     ppsfIsGroupOverload // mode objfpc: one overload is enough for all procs in same scope
     );
   TPasProcedureScopeFlags = set of TPasProcedureScopeFlag;
@@ -675,6 +668,7 @@ type
     SelfArg: TPasArgument;
     Mode: TModeSwitch;
     Flags: TPasProcedureScopeFlags;
+    ScannerBoolSwitches: TBoolSwitches;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -3502,7 +3496,6 @@ var
   CurModuleClass: TClass;
   i: Integer;
   ModScope: TPasModuleScope;
-  ScanBools: TBoolSwitches;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishModule START ',CurModule.Name);
@@ -3512,15 +3505,7 @@ begin
   CurModuleClass:=CurModule.ClassType;
   ModScope:=CurModule.CustomData as TPasModuleScope;
 
-  ScanBools:=CurrentParser.Scanner.CurrentBoolSwitches;
-  if bsAssertions in ScanBools then
-    Include(ModScope.Flags,pmsfAssertions);
-  if bsHints in ScanBools then
-    Include(ModScope.Flags,pmsfHints);
-  if bsNotes in ScanBools then
-    Include(ModScope.Flags,pmsfNotes);
-  if bsWarnings in ScanBools then
-    Include(ModScope.Flags,pmsfWarnings);
+  ModScope.ScannerBoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
 
   if (CurModuleClass=TPasProgram) or (CurModuleClass=TPasLibrary) then
     begin
@@ -5232,18 +5217,8 @@ begin
 end;
 
 procedure TPasResolver.StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
-var
-  ScanBools: TBoolSwitches;
 begin
-  ScanBools:=CurrentParser.Scanner.CurrentBoolSwitches;
-  if bsAssertions in ScanBools then
-    Include(ProcScope.Flags,ppsfAssertions);
-  if bsHints in ScanBools then
-    Include(ProcScope.Flags,ppsfHints);
-  if bsNotes in ScanBools then
-    Include(ProcScope.Flags,ppsfNotes);
-  if bsWarnings in ScanBools then
-    Include(ProcScope.Flags,ppsfWarnings);
+  ProcScope.ScannerBoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
 end;
 
 procedure TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs(

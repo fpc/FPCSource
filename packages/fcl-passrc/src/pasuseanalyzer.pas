@@ -2062,9 +2062,9 @@ begin
         if ProcScope.ImplProc<>nil then
           ProcScope:=ProcScope.ImplProc.CustomData as TPasProcedureScope;
         case MsgType of
-        mtHint: if not (ppsfHints in ProcScope.Flags) then exit;
-        mtNote: if not (ppsfNotes in ProcScope.Flags) then exit;
-        mtWarning: if not (ppsfWarnings in ProcScope.Flags) then exit;
+        mtHint: if not (bsHints in ProcScope.ScannerBoolSwitches) then exit;
+        mtNote: if not (bsNotes in ProcScope.ScannerBoolSwitches) then exit;
+        mtWarning: if not (bsWarnings in ProcScope.ScannerBoolSwitches) then exit;
         end;
         break;
         end
@@ -2072,9 +2072,9 @@ begin
         begin
         ModScope:=TPasModule(El).CustomData as TPasModuleScope;
         case MsgType of
-        mtHint: if not (pmsfHints in ModScope.Flags) then exit;
-        mtNote: if not (pmsfNotes in ModScope.Flags) then exit;
-        mtWarning: if not (pmsfWarnings in ModScope.Flags) then exit;
+        mtHint: if not (bsHints in ModScope.ScannerBoolSwitches) then exit;
+        mtNote: if not (bsNotes in ModScope.ScannerBoolSwitches) then exit;
+        mtWarning: if not (bsWarnings in ModScope.ScannerBoolSwitches) then exit;
         end;
         break;
         end;
