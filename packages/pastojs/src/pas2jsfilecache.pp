@@ -922,9 +922,6 @@ begin
     {$IFDEF VerbosePas2JSDirCache}
     writeln('TPas2jsCachedDirectories.GetDirectory "',Dir,'"');
     {$ENDIF}
-    {$IFDEF CaseInsensitiveFilenames}
-    Dir:=IncludeTrailingPathDelimiter(FindDiskFilename(ChompPathDelim(Dir)));
-    {$ENDIF}
     Result:=TPas2jsCachedDirectory.Create(Dir,Self);
     FDirectories.Add(Result);
     if DoReference then

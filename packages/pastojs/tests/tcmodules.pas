@@ -15889,6 +15889,7 @@ begin
   'begin',
   '  {$Assertions on}',
   '  Assert(b);',
+  '  Assert(b,''msg'');',
   'end;',
   'begin',
   '  DoIt;',
@@ -15899,7 +15900,8 @@ begin
     'this.DoIt = function () {',
     '  var b = false;',
     '  var s = "";',
-    '  if (b) throw "assert failed";',
+    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create");',
+    '  if (b) throw pas.SysUtils.EAssertionFailed.$create("Create$1", ["msg"]);',
     '};',
     '']),
     LinesToStr([ // $mod.$main

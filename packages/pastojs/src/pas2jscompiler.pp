@@ -89,6 +89,7 @@ type
     coShowUsedTools,
     coShowMessageNumbers, // not in "show all"
     coShowDebug,    // not in "show all"
+    coAssertions,
     coAllowCAssignments,
     coLowerCase,
     coEnumValuesAsNumbers,
@@ -119,6 +120,7 @@ const
     'Show used tools',
     'Show message numbers',
     'Show debug',
+    'Assertions',
     'Allow C assignments',
     'Lowercase identifiers',
     'Enum values as numbers',
@@ -708,14 +710,17 @@ begin
   Scanner.AllowedModeSwitches:=msAllPas2jsModeSwitches;
   Scanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   Scanner.CurrentModeSwitches:=p2jsMode_SwitchSets[Compiler.Mode];
-  bs:=msAllPas2jsBoolSwitches;
-  if not (coShowHints in Compiler.Options) then
-    Exclude(bs,bsHints);
-  if not (coShowNotes in Compiler.Options) then
-    Exclude(bs,bsNotes);
-  if not (coShowWarnings in Compiler.Options) then
-    Exclude(bs,bsWarnings);
-  Scanner.AllowedBoolSwitches:=bs;
+  Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
+  bs:=[];
+  if coAssertions in Compiler.Options then
+    Include(bs,bsAssertions);
+  if coShowHints in Compiler.Options then
+    Include(bs,bsHints);
+  if coShowNotes in Compiler.Options then
+    Include(bs,bsNotes);
+  if coShowWarnings in Compiler.Options then
+    Include(bs,bsWarnings);
+  Scanner.CurrentBoolSwitches:=bs;
   // Note: some Scanner.Options are set by TPasResolver
   for i:=0 to Compiler.Defines.Count-1 do
     begin
@@ -2592,9 +2597,10 @@ var
   Enabled, Disabled: string;
   i: Integer;
 begin
-  ReadSingleLetterOptions(Param,p,'c',Enabled,Disabled);
+  ReadSingleLetterOptions(Param,p,'a2cd',Enabled,Disabled);
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
+    'a': Options:=Options+[coAssertions];
     '2': Mode:=p2jmObjFPC;
     'c': Options:=Options+[coAllowCAssignments];
     'd': Mode:=p2jmDelphi;
@@ -2602,6 +2608,7 @@ begin
   end;
   for i:=1 to length(Disabled) do begin
     case Disabled[i] of
+    'a': Options:=Options-[coAssertions];
     '2': ;
     'c': Options:=Options-[coAllowCAssignments];
     'd': ;
@@ -3140,6 +3147,7 @@ begin
   l('    -Pecmascript5 : default');
   l('    -Pecmascript6');
   l('  -S<x>   : Syntax options. <x> is a combination of the following letters:');
+  l('    a     : Turn on assertions');
   l('    c     : Support operators like C (*=,+=,/= and -=)');
   l('    d     : Same as -Mdelphi');
   l('    2     : Same as -Mobjfpc (default)');

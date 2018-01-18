@@ -265,6 +265,9 @@ Works:
   - char, char range, set of char, set of char range
   - array
   - class
+- Assert(bool[,string])
+  - without sysutils: if(bool) throw string
+  - with sysutils: if(bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
 
 ToDos:
 - remove hasOwnProperty from rtl set functions
@@ -3924,18 +3927,18 @@ var
   FunName: String;
 begin
   Result:=nil;
-  //writeln('TPasToJSConverter.CreateNewInstanceStatement Ref.Declaration=',GetObjName(Ref.Declaration));
+  //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Ref.Declaration=',GetObjName(Ref.Declaration));
   Proc:=Ref.Declaration as TPasProcedure;
   if Proc.Name='' then
     RaiseInconsistency(20170125191914);
-  //writeln('TPasToJSConverter.CreateNewInstanceStatement Proc.Name=',Proc.Name);
+  //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Proc.Name=',Proc.Name);
   ProcScope:=Proc.CustomData as TPasProcedureScope;
-  //writeln('TPasToJSConverter.CreateNewInstanceStatement ProcScope.Element=',GetObjName(ProcScope.Element),' ProcScope.ClassScope=',GetObjName(ProcScope.ClassScope),' ProcScope.DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ProcScope.ImplProc=',GetObjName(ProcScope.ImplProc),' ProcScope.CustomData=',GetObjName(ProcScope.CustomData));
+  //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr ProcScope.Element=',GetObjName(ProcScope.Element),' ProcScope.ClassScope=',GetObjName(ProcScope.ClassScope),' ProcScope.DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ProcScope.ImplProc=',GetObjName(ProcScope.ImplProc),' ProcScope.CustomData=',GetObjName(ProcScope.CustomData));
   ClassScope:=ProcScope.ClassScope;
   aClass:=ClassScope.Element;
   if aClass.Name='' then
     RaiseInconsistency(20170125191923);
-  //writeln('TPasToJSConverter.CreateNewInstanceStatement aClass.Name=',aClass.Name);
+  //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr aClass.Name=',aClass.Name);
   C:=CreateCallExpression(Ref.Element);
   ok:=false;
   try
@@ -7593,10 +7596,19 @@ var
   ProcScope: TPasProcedureScope;
   IfSt: TJSIfStatement;
   ThrowSt: TJSThrowStatement;
+  ModScope: TPasModuleScope;
+  aConstructor: TPasConstructor;
+  Ref: TResolvedReference;
+  ArrLit: TJSArrayLiteral;
+  Call: TJSCallExpression;
+  FunName: String;
+  PosEl: TPasExpr;
+  Enabled: Boolean;
 begin
   Result:=nil;
 
   // check if assertions are enabled
+  Enabled:=false;
   CtxEl:=El;
   while CtxEl<>nil do
     begin
@@ -7604,26 +7616,71 @@ begin
       begin
       ProcScope:=CtxEl.CustomData as TPasProcedureScope;
       if not (ppsfAssertions in ProcScope.Flags) then exit;
+      Enabled:=true;
+      break;
+      end
+    else if CtxEl is TPasModule then
+      begin
+      ModScope:=CtxEl.CustomData as TPasModuleScope;
+      if not (pmsfAssertions in ModScope.Flags) then exit;
+      Enabled:=true;
       break;
       end;
     CtxEl:=CtxEl.Parent;
     end;
+  if not Enabled then exit;
 
+  Ref:=nil;
   IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
   try
+    PosEl:=El.Params[0];
     IfSt.Cond:=ConvertExpression(El.Params[0],AContext);
-    ThrowSt:=TJSThrowStatement(CreateElement(TJSThrowStatement,El.Params[0]));
+    ThrowSt:=TJSThrowStatement(CreateElement(TJSThrowStatement,PosEl));
     IfSt.BTrue:=ThrowSt;
-    // ToDo: find sysutils.EAssertionFailed
-    if length(El.Params)>1 then
-      begin
-      ThrowSt.A:=ConvertExpression(El.Params[1],AContext);
-      end
-    else
-      ThrowSt.A:=CreateLiteralJSString(El.Params[0],'assert failed');
 
+    // using sysutils.EAssertionFailed if available
+    aConstructor:=nil;
+    if El.CustomData is TResolvedReference then
+      begin
+      Ref:=TResolvedReference(El.CustomData);
+      if Ref.Declaration is TPasConstructor then
+        aConstructor:=TPasConstructor(Ref.Declaration);
+      Ref:=nil;
+      end;
+    //writeln('TPasToJSConverter.ConvertBuiltIn_Assert ',GetObjName(aConstructor));
+    if aConstructor<>nil then
+      begin
+      Ref:=TResolvedReference.Create;
+      ModScope:=El.GetModule.CustomData as TPasModuleScope;
+      Ref.Declaration:=ModScope.AssertClass;
+      // pas.sysutils.EAssertionFailed
+      FunName:=CreateReferencePath(ModScope.AssertClass,AContext,rpkPathAndName,true,Ref);
+      // append .$create('Create')
+      FunName:=FunName+'.'+FBuiltInNames[pbifnClassInstanceNew];
+      Call:=CreateCallExpression(PosEl);
+      Call.Expr:=CreatePrimitiveDotExpr(FunName,PosEl);
+      // parameter: "Create"
+      Call.AddArg(CreateLiteralString(PosEl,TransformVariableName(aConstructor,AContext)));
+      ThrowSt.A:=Call;
+      if length(El.Params)>1 then
+        begin
+        // add [msg]
+        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El.Params[1]));
+        Call.AddArg(ArrLit);
+        ArrLit.AddElement(ConvertExpression(El.Params[1],AContext));
+        end;
+      end;
+    if ThrowSt.A=nil then
+      begin
+      // fallback: throw msg
+      if length(El.Params)>1 then
+        ThrowSt.A:=ConvertExpression(El.Params[1],AContext)
+      else
+        ThrowSt.A:=CreateLiteralJSString(El.Params[0],'assert failed');
+      end;
     Result:=IfSt;
   finally
+    Ref.Free;
     if Result=nil then
       IfSt.Free;
   end;
