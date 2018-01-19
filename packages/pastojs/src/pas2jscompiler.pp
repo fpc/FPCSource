@@ -89,9 +89,9 @@ type
     coShowUsedTools,
     coShowMessageNumbers, // not in "show all"
     coShowDebug,    // not in "show all"
-    coOverflowChecking,
-    coRangeChecking,
-    coMethodCallChecking,
+    coOverflowChecks,
+    coRangeChecks,
+    coObjectChecks,
     coAssertions,
     coAllowCAssignments,
     coLowerCase,
@@ -719,12 +719,12 @@ begin
   Scanner.CurrentModeSwitches:=p2jsMode_SwitchSets[Compiler.Mode];
   Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
   bs:=[];
-  if coOverflowChecking in Compiler.Options then
+  if coOverflowChecks in Compiler.Options then
     Include(bs,bsOverflowChecks);
-  if coRangeChecking in Compiler.Options then
+  if coRangeChecks in Compiler.Options then
     Include(bs,bsRangeChecks);
-  if coMethodCallChecking in Compiler.Options then
-    Include(bs,bsMethodCallChecks);
+  if coObjectChecks in Compiler.Options then
+    Include(bs,bsObjectChecks);
   if coAssertions in Compiler.Options then
     Include(bs,bsAssertions);
   if coShowHints in Compiler.Options then
@@ -2618,16 +2618,16 @@ begin
   ReadSingleLetterOptions(Param,p,'orR',Enabled,Disabled);
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
-    'o': Options:=Options+[coOverflowChecking];
-    'r': Options:=Options+[coRangeChecking];
-    'R': Options:=Options+[coMethodCallChecking];
+    'o': Options:=Options+[coOverflowChecks];
+    'r': Options:=Options+[coRangeChecks];
+    'R': Options:=Options+[coObjectChecks];
     end;
   end;
   for i:=1 to length(Disabled) do begin
     case Disabled[i] of
-    'o': Options:=Options-[coOverflowChecking];
-    'r': Options:=Options-[coRangeChecking];
-    'R': Options:=Options-[coMethodCallChecking];
+    'o': Options:=Options-[coOverflowChecks];
+    'r': Options:=Options-[coRangeChecks];
+    'R': Options:=Options-[coObjectChecks];
     end;
   end;
 end;
@@ -3149,7 +3149,7 @@ begin
   l('  -C<x>   : Code generation options. <x> is a combination of the following letters:');
   l('    o     : Overflow checking');
   l('    r     : Range checking');
-  l('    R     : Verify object method calls and object type casts');
+  l('    R     : Object checks. Verify method calls and object type casts.');
   l('  -F...   Set file names and paths:');
   l('   -Fe<x> : Redirect output to <x>. UTF-8 encoded.');
   l('   -Fi<x> : Add <x> to include paths');

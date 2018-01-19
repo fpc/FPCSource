@@ -854,7 +854,7 @@ const
     bsWarnings,
     bsMacro,
     bsScopedEnums,
-    bsMethodCallChecks
+    bsObjectChecks
     ];
 
   btAllJSBaseTypes = [
@@ -5981,7 +5981,7 @@ begin
 
       Result:=ConvertElement(Param,AContext);
 
-      if bsMethodCallChecks in AContext.ScannerBoolSwitches then
+      if bsObjectChecks in AContext.ScannerBoolSwitches then
         begin
         if (C=TPasClassType)
            or (C=TPasClassOfType) then
@@ -9256,7 +9256,7 @@ begin
     end;
 
   BodyPas:=ImplProc.Body;
-  if (BodyPas<>nil) or (bsMethodCallChecks in ImplProcScope.ScannerBoolSwitches) then
+  if (BodyPas<>nil) or (bsObjectChecks in ImplProcScope.ScannerBoolSwitches) then
     begin
     PosEl:=BodyPas;
     if PosEl=nil then
@@ -9271,7 +9271,7 @@ begin
         begin
         // method or class method
         FuncContext.ThisPas:=ProcScope.ClassScope.Element;
-        if bsMethodCallChecks in FuncContext.ScannerBoolSwitches then
+        if bsObjectChecks in FuncContext.ScannerBoolSwitches then
           begin
           // rtl.checkMethodCall(this,<class>)
           Call:=CreateCallExpression(PosEl);

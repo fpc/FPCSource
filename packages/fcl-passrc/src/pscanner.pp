@@ -303,7 +303,7 @@ type
     bsWarnings,
     bsMacro,
     bsScopedEnums,
-    bsMethodCallChecks // check type of Self
+    bsObjectChecks    // check methods 'Self' and object type casts
     );
   TBoolSwitches = set of TBoolSwitch;
 const
@@ -972,7 +972,7 @@ const
     'Warnings',
     'Macro',
     'ScopedEnums',
-    'MethodCallChecks'
+    'ObjectChecks'
     );
 
 const

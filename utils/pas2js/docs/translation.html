@@ -131,7 +131,7 @@ Put + after a boolean switch option to enable it, - to disable it
   -C&lt;x&gt;   : Code generation options. &lt;x&gt; is a combination of the following letters:
     o     : Overflow checking
     r     : Range checking
-    R     : Verify object method call and object type casts
+    R     : Object checks. Verify method calls and object type casts.
   -F...   Set file names and paths:
    -Fe&lt;x&gt; : Redirect output to &lt;x&gt;
    -Fi&lt;x&gt; : Add &lt;x&gt; to include paths
@@ -2380,10 +2380,11 @@ End.
       Note that <i>new Boolean(false)</i> is not <i>null</i> and the condition is true.
       </li>
       <li><i>function Assigned(V: jsvalue): boolean</i> returns true if<br>
-       <i>(V!=undefined) && (V!=null) && (!rtl.isArray(V) || (V.length > 0))</i></li>
+        <i>(V!=undefined) && (V!=null) && (!rtl.isArray(V) || (V.length > 0))</i></li>
       <li><i>function StrictEqual(const A: jsvalue; const B): boolean</i></li>
       <li><i>function StrictInequal(const A: jsvalue; const B): boolean</i></li>
       <li>Any array can be assigned to an <i>array of jsvalue</i>.</li>
+      <li>is-operator: <i>jsvalue is class-type</i>, <i>jsvalue is class-of-type</i><br>
       <li>The unit JS provides many utility functions for JSValue, like <i>hasString,
       hasValue, isBoolean, isNumber, isInteger, isObject, isClass, isClassInstance, etc..</i></li>
     </ul>
