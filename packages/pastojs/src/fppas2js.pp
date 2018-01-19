@@ -269,12 +269,21 @@ Works:
 - Assert(bool[,string])
   - without sysutils: if(bool) throw string
   - with sysutils: if(bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
-- $Objectchecks:
+- Object checks:
   - Method call EInvalidCast, rtl.checkMethodCall
   - type cast to class-type and class-of-type, rtl.asExt, EInvalidCast
--
+- Range checks:
+  - assign int:=, int+=
+  - procedure argument int
 
 ToDos:
+- range checks:
+  - proc args
+  - assign enum:=, enum+=
+  - prop:=
+  - string[index]
+  - array[index]
+  - prop[index]
 - typecast longint(highprecint) -> value & $ffffffff
 - static arrays
   - a[] of record
@@ -1257,6 +1266,8 @@ type
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateProcCallArgRef(El: TPasExpr; ResolvedEl: TPasResolverResult;
       TargetArg: TPasArgument;  AContext: TConvertContext): TJSElement; virtual;
+    Function CreateArgumentAccess(Arg: TPasArgument; AContext: TConvertContext;
+      PosEl: TPasElement): TJSElement; virtual;
     Function CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
     Function CreateMemberExpression(Members: array of string): TJSDotMemberExpression;
     Function CreateCallExpression(El: TPasElement): TJSCallExpression;
@@ -4809,8 +4820,6 @@ var
   Prop: TPasProperty;
   ImplicitCall: Boolean;
   AssignContext: TAssignContext;
-  Arg: TPasArgument;
-  ParamContext: TParamContext;
   ResolvedEl: TPasResolverResult;
   ProcType, TargetProcType: TPasProcedureType;
   ArrLit: TJSArrayLiteral;
@@ -4917,49 +4926,8 @@ begin
     end
   else if Decl.ClassType=TPasArgument then
     begin
-    Arg:=TPasArgument(Decl);
-    if Arg.Access in [argVar,argOut] then
-      begin
-      // Arg is a reference object
-      case AContext.Access of
-        caRead:
-          begin
-          // create arg.get()
-          Call:=CreateCallExpression(El);
-          Call.Expr:=CreateDotExpression(El,
-            CreateIdentifierExpr(Arg.Name,Arg,AContext),
-            CreatePrimitiveDotExpr(TempRefObjGetterName,El));
-          Result:=Call;
-          exit;
-          end;
-        caAssign:
-          begin
-          // create arg.set(RHS)
-          AssignContext:=AContext.AccessContext as TAssignContext;
-          if AssignContext.Call<>nil then
-            RaiseNotSupported(El,AContext,20170214120606);
-          Call:=CreateCallExpression(El);
-          AssignContext.Call:=Call;
-          Call.Expr:=CreateDotExpression(El,
-                        CreateIdentifierExpr(Arg.Name,Arg,AContext),
-                        CreatePrimitiveDotExpr(TempRefObjSetterName,El));
-          Call.AddArg(AssignContext.RightSide);
-          AssignContext.RightSide:=nil;
-          Result:=Call;
-          exit;
-          end;
-        caByReference:
-          begin
-          // simply pass the reference
-          ParamContext:=AContext.AccessContext as TParamContext;
-          ParamContext.ReusingReference:=true;
-          Result:=CreateIdentifierExpr(Arg.Name,Arg,AContext);
-          exit;
-          end;
-        else
-          RaiseNotSupported(El,AContext,20170214120739);
-      end;
-      end;
+    Result:=CreateArgumentAccess(TPasArgument(Decl),AContext,El);
+    exit;
     end
   else if Decl.ClassType=TPasResString then
     begin
@@ -9207,7 +9175,7 @@ var
 Var
   FS : TJSFunctionDeclarationStatement;
   FD : TJSFuncDef;
-  n:Integer;
+  n, i:Integer;
   AssignSt: TJSSimpleAssignStatement;
   FuncContext: TFunctionContext;
   ProcScope, ImplProcScope: TPasProcedureScope;
@@ -9218,6 +9186,8 @@ Var
   PosEl: TPasElement;
   Call: TJSCallExpression;
   ClassPath: String;
+  ArgResolved: TPasResolverResult;
+  MinVal, MaxVal: MaxPrecInt;
 begin
   Result:=nil;
 
@@ -9262,7 +9232,7 @@ begin
     end;
 
   BodyPas:=ImplProc.Body;
-  if (BodyPas<>nil) or (bsObjectChecks in ImplProcScope.ScannerBoolSwitches) then
+  if BodyPas<>nil then
     begin
     PosEl:=BodyPas;
     if PosEl=nil then
@@ -9273,6 +9243,31 @@ begin
       FuncContext.ScannerBoolSwitches:=ImplProcScope.ScannerBoolSwitches;
       FirstSt:=nil;
       LastSt:=nil;
+
+      if (bsRangeChecks in ImplProcScope.ScannerBoolSwitches)
+          and (AContext.Resolver<>nil) then
+        for i:=0 to El.ProcType.Args.Count-1 do
+          begin
+          Arg:=TPasArgument(El.ProcType.Args[i]);
+          if Arg.ArgType=nil then continue;
+          AContext.Resolver.ComputeElement(Arg,ArgResolved,[rcType]);
+          if ArgResolved.BaseType in btAllJSInteger then
+            begin
+            if AContext.Resolver.ResolveAliasType(ArgResolved.TypeEl) is TPasUnresolvedSymbolRef then
+              begin
+              if not AContext.Resolver.GetIntegerRange(ArgResolved.BaseType,MinVal,MaxVal) then
+                RaiseNotSupported(Arg,AContext,20180119192608);
+              // use Arg as PosEl, so that user knows which Arg is out of range
+              Call:=CreateCallExpression(Arg);
+              Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
+              AddBodyStatement(Call,Arg);
+              Call.AddArg(CreateArgumentAccess(Arg,AContext,Arg));
+              Call.AddArg(CreateLiteralNumber(Arg,MinVal));
+              Call.AddArg(CreateLiteralNumber(Arg,MaxVal));
+              end;
+            end;
+          end;
+
       if ProcScope.ClassScope<>nil then
         begin
         // method or class method
@@ -10872,7 +10867,7 @@ begin
         begin
         if AssignContext.LeftResolved.BaseType in btAllJSInteger then
           begin
-          if AssignContext.LeftResolved.TypeEl is TPasUnresolvedSymbolRef then
+          if AContext.Resolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl) is TPasUnresolvedSymbolRef then
             begin
             if not AContext.Resolver.GetIntegerRange(AssignContext.LeftResolved.BaseType,MinVal,MaxVal) then
               RaiseNotSupported(El.left,AContext,20180119154120);
@@ -13113,6 +13108,62 @@ begin
       end;
     ParamContext.Free;
   end;
+end;
+
+function TPasToJSConverter.CreateArgumentAccess(Arg: TPasArgument;
+  AContext: TConvertContext; PosEl: TPasElement): TJSElement;
+var
+  Call: TJSCallExpression;
+  AssignContext: TAssignContext;
+  ParamContext: TParamContext;
+  Name: String;
+begin
+  if Arg.Access in [argVar,argOut] then
+    begin
+    // Arg is a reference object
+    case AContext.Access of
+      caRead:
+        begin
+        // create arg.get()
+        Call:=CreateCallExpression(PosEl);
+        Call.Expr:=CreateDotExpression(PosEl,
+          CreateIdentifierExpr(Arg.Name,PosEl,AContext),
+          CreatePrimitiveDotExpr(TempRefObjGetterName,PosEl));
+        Result:=Call;
+        exit;
+        end;
+      caAssign:
+        begin
+        // create arg.set(RHS)
+        AssignContext:=AContext.AccessContext as TAssignContext;
+        if AssignContext.Call<>nil then
+          RaiseNotSupported(Arg,AContext,20170214120606);
+        Call:=CreateCallExpression(PosEl);
+        AssignContext.Call:=Call;
+        Call.Expr:=CreateDotExpression(PosEl,
+                      CreateIdentifierExpr(Arg.Name,PosEl,AContext),
+                      CreatePrimitiveDotExpr(TempRefObjSetterName,PosEl));
+        Call.AddArg(AssignContext.RightSide);
+        AssignContext.RightSide:=nil;
+        Result:=Call;
+        exit;
+        end;
+      caByReference:
+        begin
+        // simply pass the reference
+        ParamContext:=AContext.AccessContext as TParamContext;
+        ParamContext.ReusingReference:=true;
+        Result:=CreateIdentifierExpr(Arg.Name,PosEl,AContext);
+        exit;
+        end;
+      else
+        RaiseNotSupported(Arg,AContext,20170214120739);
+    end;
+    end;
+  Name:=Arg.Name;
+  if (CompareText(Name,'Self')=0) and (AContext.GetSelfContext<>nil) then
+    Name:=AContext.GetLocalName(Arg);
+  Result:=CreatePrimitiveDotExpr(Name,PosEl);
 end;
 
 function TPasToJSConverter.ConvertExceptOn(El: TPasImplExceptOn;

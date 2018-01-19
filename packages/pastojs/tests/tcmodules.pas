@@ -15980,14 +15980,14 @@ begin
   'var',
   '  b: byte;',
   '  w: word;',
-  'procedure DoIt;',
+  'procedure DoIt(p: byte);',
   'begin',
   '  b:=w;',
   '  b+=w;',
   'end;',
   '{$R-}',
   'begin',
-  '  DoIt;',
+  '  DoIt(w);',
   '  b:=w;',
   '{$R+}',
   '']);
@@ -15996,13 +15996,14 @@ begin
     LinesToStr([ // statements
     'this.b = 0;',
     'this.w = 0;',
-    'this.DoIt = function () {',
+    'this.DoIt = function (p) {',
+    '  rtl.rc(p, 0, 255);',
     '  $mod.b = rtl.rc($mod.w,0,255);',
     '  rtl.rc($mod.b += $mod.w, 0, 255);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt();',
+    '$mod.DoIt($mod.w);',
     '$mod.b = rtl.rc($mod.w,0,255);',
     '']));
 end;
