@@ -29,6 +29,7 @@ begin
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
     P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
@@ -167,6 +168,19 @@ begin
       begin
         OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('custapache24');
+      end;
+    with P.Targets.AddUnit('custhttpsys.pp') do
+      begin
+        OSes:=[Win32,Win64];
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        ResourceStrings:=true;
+      end;
+    with P.Targets.AddUnit('fphttpsys.pp') do
+      begin
+        OSes:=[Win32,Win64];
+        Dependencies.AddUnit('custhttpsys');
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;
