@@ -134,6 +134,7 @@ type
     procedure TestWP_TypeInfo;
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
+    procedure TestWP_RangeErrorSysUtils;
   end;
 
 implementation
@@ -2043,7 +2044,38 @@ begin
   '  DoIt;',
   '']);
   AnalyzeWholeProgram;
-  // ToDo: check if both EAssertionFailed.Create are used
+end;
+
+procedure TTestUseAnalyzer.TestWP_RangeErrorSysUtils;
+begin
+  AddModuleWithIntfImplSrc('SysUtils.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '    constructor {#a_used}Create;',
+    '  end;',
+    '  {#e_used}ERangeError = class',
+    '  end;',
+    '']),
+    LinesToStr([
+    'constructor TObject.Create;',
+    'begin end;',
+    '']) );
+
+  StartProgram(true);
+  Add([
+  'uses sysutils;',
+  'procedure DoIt;',
+  'var',
+  '  b: byte;',
+  'begin',
+  '  {$R+}',
+  '  b:=1;',
+  'end;',
+  'begin',
+  '  DoIt;',
+  '']);
+  AnalyzeWholeProgram;
 end;
 
 initialization

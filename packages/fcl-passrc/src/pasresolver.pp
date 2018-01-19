@@ -505,7 +505,9 @@ type
   TPasScopeClass = class of TPasScope;
 
   TPasModuleScopeFlag = (
-    pmsfAssertSearched // assert constructors searched
+    pmsfAssertSearched, // assert constructors searched
+    pmsfRangeErrorNeeded, // somewhere is range checking on
+    pmsfRangeErrorSearched // ERangeError constructor searched
     );
   TPasModuleScopeFlags = set of TPasModuleScopeFlag;
 
@@ -516,9 +518,13 @@ type
     FAssertClass: TPasClassType;
     FAssertDefConstructor: TPasConstructor;
     FAssertMsgConstructor: TPasConstructor;
+    FRangeErrorClass: TPasClassType;
+    FRangeErrorConstructor: TPasConstructor;
     procedure SetAssertClass(const AValue: TPasClassType);
     procedure SetAssertDefConstructor(const AValue: TPasConstructor);
     procedure SetAssertMsgConstructor(const AValue: TPasConstructor);
+    procedure SetRangeErrorClass(const AValue: TPasClassType);
+    procedure SetRangeErrorConstructor(const AValue: TPasConstructor);
   public
     FirstName: string;
     PendingResolvers: TFPList; // list of TPasResolver waiting for the unit interface
@@ -532,6 +538,8 @@ type
     property AssertClass: TPasClassType read FAssertClass write SetAssertClass;
     property AssertDefConstructor: TPasConstructor read FAssertDefConstructor write SetAssertDefConstructor;
     property AssertMsgConstructor: TPasConstructor read FAssertMsgConstructor write SetAssertMsgConstructor;
+    property RangeErrorClass: TPasClassType read FRangeErrorClass write SetRangeErrorClass;
+    property RangeErrorConstructor: TPasConstructor read FRangeErrorConstructor write SetRangeErrorConstructor;
   end;
 
   TPasIdentifierKind = (
@@ -1188,9 +1196,15 @@ type
       MaxCount: integer; RaiseOnError: boolean): integer;
     function CheckRaiseTypeArgNo(id: int64; ArgNo: integer; Param: TPasExpr;
       const ParamResolved: TPasResolverResult; Expected: string; RaiseOnError: boolean): integer;
+    function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
+    function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
     procedure FinishAssertCall(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
+    function FindExceptionConstructor(const aUnitName, aClassName: string;
+      out aClass: TPasClassType; out aConstructor: TPasConstructor;
+      ErrorEl: TPasElement): boolean; virtual;
     procedure FindAssertExceptionConstructors(ErrorEl: TPasElement); virtual;
+    procedure FindRangeErrorConstructors(ErrorEl: TPasElement); virtual;
   protected
     fExprEvaluator: TResExprEvaluator;
     procedure OnExprEvalLog(Sender: TResExprEvaluator; const id: int64;
@@ -2471,6 +2485,27 @@ begin
     FAssertMsgConstructor.AddRef;
 end;
 
+procedure TPasModuleScope.SetRangeErrorClass(const AValue: TPasClassType);
+begin
+  if FRangeErrorClass=AValue then Exit;
+  if FRangeErrorClass<>nil then
+    FRangeErrorClass.Release;
+  FRangeErrorClass:=AValue;
+  if FRangeErrorClass<>nil then
+    FRangeErrorClass.AddRef;
+end;
+
+procedure TPasModuleScope.SetRangeErrorConstructor(const AValue: TPasConstructor
+  );
+begin
+  if FRangeErrorConstructor=AValue then Exit;
+  if FRangeErrorConstructor<>nil then
+    FRangeErrorConstructor.Release;
+  FRangeErrorConstructor:=AValue;
+  if FRangeErrorConstructor<>nil then
+    FRangeErrorConstructor.AddRef;
+end;
+
 constructor TPasModuleScope.Create;
 begin
   inherited Create;
@@ -3509,6 +3544,9 @@ begin
   ModScope:=CurModule.CustomData as TPasModuleScope;
 
   ModScope.ScannerBoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsRangeChecks in ModScope.ScannerBoolSwitches then
+    Include(ModScope.Flags,pmsfRangeErrorNeeded);
+  FindRangeErrorConstructors(CurModule);
 
   if (CurModuleClass=TPasProgram) or (CurModuleClass=TPasLibrary) then
     begin
@@ -5220,8 +5258,15 @@ begin
 end;
 
 procedure TPasResolver.StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
+var
+  ModScope: TPasModuleScope;
 begin
   ProcScope.ScannerBoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsRangeChecks in ProcScope.ScannerBoolSwitches then
+    begin
+    ModScope:=RootElement.CustomData as TPasModuleScope;
+    Include(ModScope.Flags,pmsfRangeErrorNeeded);
+    end;
 end;
 
 procedure TPasResolver.ReplaceProcScopeImplArgsWithDeclArgs(
@@ -8557,6 +8602,43 @@ begin
   Result:=cIncompatible;
 end;
 
+function TPasResolver.FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
+var
+  Clause: TPasUsesClause;
+  i: Integer;
+  Use: TPasUsesUnit;
+  ModName: String;
+begin
+  Result:=nil;
+  if (Section=nil) then exit;
+  Clause:=Section.UsesClause;
+  for i:=0 to length(Clause)-1 do
+    begin
+    Use:=Clause[i];
+    if (Use.Module=nil) or not (Use.Module is TPasModule) then continue;
+    ModName:=Use.Module.Name;
+    if CompareText(ModName,aName)=0 then
+      exit(TPasModule(Use.Module));
+    end;
+end;
+
+function TPasResolver.FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
+var
+  C: TClass;
+begin
+  C:=aMod.ClassType;
+  if C.InheritsFrom(TPasProgram) then
+    Result:=FindUsedUnitInSection(aName,TPasProgram(aMod).ProgramSection)
+  else if C.InheritsFrom(TPasLibrary) then
+    Result:=FindUsedUnitInSection(aName,TPasLibrary(aMod).LibrarySection)
+  else
+    begin
+    Result:=FindUsedUnitInSection(aName,aMod.InterfaceSection);
+    if Result<>nil then exit;
+    Result:=FindUsedUnitInSection(aName,aMod.ImplementationSection);
+    end
+end;
+
 procedure TPasResolver.FinishAssertCall(Proc: TResElDataBuiltInProc;
   Params: TParamsExpr);
 var
@@ -8578,51 +8660,59 @@ begin
   CreateReference(aConstructor,Params,rraRead);
 end;
 
-procedure TPasResolver.FindAssertExceptionConstructors(ErrorEl: TPasElement);
-
-  function FindUsedUnitInSection(const aName: string; Section: TPasSection): TPasModule;
-  var
-    Clause: TPasUsesClause;
-    i: Integer;
-    Use: TPasUsesUnit;
-    ModName: String;
-  begin
-    Result:=nil;
-    if (Section=nil) then exit;
-    Clause:=Section.UsesClause;
-    for i:=0 to length(Clause)-1 do
-      begin
-      Use:=Clause[i];
-      if (Use.Module=nil) or not (Use.Module is TPasModule) then continue;
-      ModName:=Use.Module.Name;
-      if CompareText(ModName,aName)=0 then
-        exit(TPasModule(Use.Module));
-      end;
-  end;
-
-  function FindUsedUnit(const aName: string; aMod: TPasModule): TPasModule;
-  var
-    C: TClass;
-  begin
-    C:=aMod.ClassType;
-    if C.InheritsFrom(TPasProgram) then
-      Result:=FindUsedUnitInSection(aName,TPasProgram(aMod).ProgramSection)
-    else if C.InheritsFrom(TPasLibrary) then
-      Result:=FindUsedUnitInSection(aName,TPasLibrary(aMod).LibrarySection)
-    else
-      begin
-      Result:=FindUsedUnitInSection(aName,aMod.InterfaceSection);
-      if Result<>nil then exit;
-      Result:=FindUsedUnitInSection(aName,aMod.ImplementationSection);
-      end
-  end;
-
+function TPasResolver.FindExceptionConstructor(const aUnitName,
+  aClassName: string; out aClass: TPasClassType; out
+  aConstructor: TPasConstructor; ErrorEl: TPasElement): boolean;
 var
   aMod, UtilsMod: TPasModule;
-  ModScope: TPasModuleScope;
   SectionScope: TPasSectionScope;
   Identifier: TPasIdentifier;
   El: TPasElement;
+  ClassScope: TPasClassScope;
+begin
+  Result:=false;
+  aClass:=nil;
+  aConstructor:=nil;
+
+  // find unit in uses clauses
+  aMod:=RootElement;
+  UtilsMod:=FindUsedUnit(aUnitName,aMod);
+  if UtilsMod=nil then exit;
+
+  // find class in interface
+  if UtilsMod.InterfaceSection=nil then exit;
+  SectionScope:=NoNil(UtilsMod.InterfaceSection.CustomData) as TPasSectionScope;
+  Identifier:=SectionScope.FindLocalIdentifier(aClassName);
+  if Identifier=nil then exit;
+  El:=Identifier.Element;
+  if not (El is TPasClassType) then
+    RaiseXExpectedButYFound(20180119172517,'class '+aClassName,El.ElementTypeName,ErrorEl);
+  aClass:=TPasClassType(El);
+
+  ClassScope:=NoNil(aClass.CustomData) as TPasClassScope;
+  repeat
+    Identifier:=ClassScope.FindIdentifier('create');
+    while Identifier<>nil do
+      begin
+      if Identifier.Element.ClassType=TPasConstructor then
+        begin
+        aConstructor:=TPasConstructor(Identifier.Element);
+        if aConstructor.ProcType.Args.Count=0 then
+          exit(true);
+        end;
+      Identifier:=Identifier.NextSameIdentifier;
+      end;
+    ClassScope:=ClassScope.AncestorScope;
+  until ClassScope=nil;
+  aConstructor:=nil;
+end;
+
+procedure TPasResolver.FindAssertExceptionConstructors(ErrorEl: TPasElement);
+var
+  aMod: TPasModule;
+  ModScope: TPasModuleScope;
+  Identifier: TPasIdentifier;
+  aClass: TPasClassType;
   ClassScope: TPasClassScope;
   aConstructor: TPasConstructor;
   Arg: TPasArgument;
@@ -8633,22 +8723,10 @@ begin
   if pmsfAssertSearched in ModScope.Flags then exit;
   Include(ModScope.Flags,pmsfAssertSearched);
 
-  // find unit sysutils
-  UtilsMod:=FindUsedUnit('sysutils',aMod);
-  if UtilsMod=nil then exit;
-
-  // find EAssertionFailed
-  //writeln('TPasResolver.CheckAssertException ',GetObjName(UtilsMod),' ',GetObjName(UtilsMod.InterfaceSection));
-  if UtilsMod.InterfaceSection=nil then exit;
-  SectionScope:=NoNil(UtilsMod.InterfaceSection.CustomData) as TPasSectionScope;
-  Identifier:=SectionScope.FindLocalIdentifier('EAssertionFailed');
-  //writeln('TPasResolver.CheckAssertException Identifier=',GetObjName(Identifier));
-  if Identifier=nil then exit;
-  El:=Identifier.Element;
-  if not (El is TPasClassType) then
-    RaiseXExpectedButYFound(20180117173439,'class EAssertionFailed',El.ElementTypeName,ErrorEl);
-  ClassScope:=NoNil(El.CustomData) as TPasClassScope;
-  ModScope.AssertClass:=TPasClassType(El);
+  FindExceptionConstructor('sysutils','EAssertionFailed',aClass,aConstructor,ErrorEl);
+  if aClass=nil then exit;
+  ClassScope:=NoNil(aClass.CustomData) as TPasClassScope;
+  ModScope.AssertClass:=aClass;
   repeat
     Identifier:=ClassScope.FindIdentifier('create');
     while Identifier<>nil do
@@ -8656,7 +8734,7 @@ begin
       if Identifier.Element.ClassType=TPasConstructor then
         begin
         aConstructor:=TPasConstructor(Identifier.Element);
-        //writeln('TPasResolver.CheckAssertException ',aConstructor.Name,' ',aConstructor.ProcType.Args.Count);
+        //writeln('TPasResolver.FindAssertExceptionConstructors ',aConstructor.Name,' ',aConstructor.ProcType.Args.Count);
         if aConstructor.ProcType.Args.Count=0 then
           begin
           if ModScope.AssertDefConstructor=nil then
@@ -8667,7 +8745,7 @@ begin
           if ModScope.AssertMsgConstructor=nil then
             begin
             Arg:=TPasArgument(aConstructor.ProcType.Args[0]);
-            //writeln('TPasResolver.CheckAssertException ',GetObjName(Arg.ArgType),' ',GetObjName(BaseTypes[BaseTypeString]));
+            //writeln('TPasResolver.FindAssertExceptionConstructors ',GetObjName(Arg.ArgType),' ',GetObjName(BaseTypes[BaseTypeString]));
             ComputeElement(Arg.ArgType,ArgResolved,[rcType]);
             if ArgResolved.BaseType in btAllStrings then
               ModScope.AssertMsgConstructor:=aConstructor;
@@ -8678,6 +8756,23 @@ begin
       end;
     ClassScope:=ClassScope.AncestorScope;
   until ClassScope=nil;
+end;
+
+procedure TPasResolver.FindRangeErrorConstructors(ErrorEl: TPasElement);
+var
+  aMod: TPasModule;
+  ModScope: TPasModuleScope;
+  aClass: TPasClassType;
+  aConstructor: TPasConstructor;
+begin
+  aMod:=RootElement;
+  ModScope:=aMod.CustomData as TPasModuleScope;
+  if pmsfRangeErrorSearched in ModScope.Flags then exit;
+  Include(ModScope.Flags,pmsfRangeErrorSearched);
+
+  FindExceptionConstructor('sysutils','ERangeError',aClass,aConstructor,ErrorEl);
+  ModScope.RangeErrorClass:=aClass;
+  ModScope.RangeErrorConstructor:=aConstructor;
 end;
 
 procedure TPasResolver.OnExprEvalLog(Sender: TResExprEvaluator;

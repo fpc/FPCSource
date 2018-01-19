@@ -723,6 +723,8 @@ procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
     UseImplBlock(aSection,true);
   end;
 
+var
+  ModScope: TPasModuleScope;
 begin
   if ElementVisited(aModule,Mode) then exit;
   {$IFDEF VerbosePasAnalyzer}
@@ -742,6 +744,11 @@ begin
     end;
   UseInitFinal(aModule.InitializationSection);
   UseInitFinal(aModule.FinalizationSection);
+  ModScope:=aModule.CustomData as TPasModuleScope;
+  if ModScope.RangeErrorClass<>nil then
+    UseClassType(ModScope.RangeErrorClass,paumElement);
+  if ModScope.RangeErrorConstructor<>nil then
+    UseProcedure(ModScope.RangeErrorConstructor);
 
   if Mode=paumElement then
     // e.g. a reference: unitname.identifier
