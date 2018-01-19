@@ -65,6 +65,14 @@ var rtl = {
     return ((typeof(o)==="object") || (typeof(o)==='function')) ? o : null;
   },
 
+  isPasClass: function(type){
+    return (rtl.isObject(type) && type.hasOwnProperty('$classname') && rtl.isObject(type.$module));
+  },
+
+  isPasClassInstance: function(type){
+    return (rtl.isObject(type) && rtl.isPasClass(type.$class));
+  },
+
   m_loading: 0,
   m_loading_intf: 1,
   m_intf_loaded: 2,
@@ -320,20 +328,30 @@ var rtl = {
     return null;
   },
 
-  is: function(descendant,type){
-    return type.isPrototypeOf(descendant) || (descendant===type);
+  is: function(instance,type){
+    return type.isPrototypeOf(instance) || (instance===type);
   },
 
-  isExt: function(instance,type){
+  isExt: function(instance,type,mode){
+    // mode===1 means instance must be a Pascal class instance
+    // mode===2 means instance must be a Pascal class
     // Notes:
     // isPrototypeOf and instanceof return false on equal
     // isPrototypeOf does not work for Date.isPrototypeOf(new Date())
     //   so if isPrototypeOf is false test with instanceof
     // instanceof needs a function on right side
-    if (instance == null) return false; // Note: ==null checks for undefined
+    if (instance == null) return false; // Note: ==null checks for undefined too
     if ((typeof(type) !== 'object') && (typeof(type) !== 'function')) return false;
-    if (instance === type) return true;
-    if (type.isPrototypeOf && type.isPrototypeOf(instance)) return true;
+    if (instance === type){
+      if (mode===1) return false;
+      if (mode===2) return rtl.isPasClass(instance);
+      return true;
+    }
+    if (type.isPrototypeOf && type.isPrototypeOf(instance)){
+      if (mode===1) return rtl.isPasClassInstance(instance);
+      if (mode===2) return rtl.isPasClass(instance);
+      return true;
+    }
     if ((typeof type == 'function') && (instance instanceof type)) return true;
     return false;
   },
@@ -357,8 +375,8 @@ var rtl = {
     rtl.raiseEInvalidCast();
   },
 
-  asExt: function(instance,type){
-    if((instance === null) || rtl.isExt(instance,type)) return instance;
+  asExt: function(instance,type,mode){
+    if((instance === null) || rtl.isExt(instance,type,mode)) return instance;
     rtl.raiseEInvalidCast();
   },
 
