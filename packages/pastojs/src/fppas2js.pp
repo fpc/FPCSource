@@ -3883,6 +3883,8 @@ begin
   try
     // add "var $mod = this;"
     IntfContext.ThisPas:=El;
+    if El.CustomData is TPasModuleScope then
+      IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).ScannerBoolSwitches;
     ModVarName:=FBuiltInNames[pbivnModule];
     IntfContext.AddLocalVar(ModVarName,El);
     AddToSourceElements(Src,CreateVarStatement(ModVarName,
@@ -4494,7 +4496,7 @@ begin
       end;
     if (LeftResolved.BaseType=btCustom) then
       begin
-      // aJSValue is ... -> "rtl.isExt(A,B)"
+      // aJSValue is ... -> "rtl.isExt(A,B,mode)"
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIsExt]]);
       Call.AddArg(B); B:=nil;
       if RightTypeEl is TPasClassType then
@@ -5880,6 +5882,8 @@ var
   Param: TPasExpr;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
+  aName: String;
+  aClassTypeEl: TPasClassType;
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
@@ -5976,7 +5980,31 @@ begin
       AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
 
       Result:=ConvertElement(Param,AContext);
-      if (ParamResolved.BaseType=btCustom)
+
+      if bsMethodCallChecks in AContext.ScannerBoolSwitches then
+        begin
+        if (C=TPasClassType)
+           or (C=TPasClassOfType) then
+          begin
+          // TObject(value) -> rtl.asExt(value,type,mode)
+          if C=TPasClassOfType then
+            aClassTypeEl:=AContext.Resolver.ResolveAliasType(TPasClassOfType(Decl).DestType) as TPasClassType
+          else
+            aClassTypeEl:=TPasClassType(Decl);
+          aName:=CreateReferencePath(aClassTypeEl,AContext,rpkPathAndName);
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnAsExt]]);
+          Call.AddArg(Result);
+          Call.AddArg(CreatePrimitiveDotExpr(aName,El.Value));
+          if aClassTypeEl.IsExternal then
+          else if C=TPasClassOfType then
+            Call.AddArg(CreateLiteralNumber(El.Value,IsExtModePasClass))
+          else
+            Call.AddArg(CreateLiteralNumber(El.Value,IsExtModePasClassInstance));
+          Result:=Call;
+          end;
+        end
+      else if (ParamResolved.BaseType=btCustom)
           and (ParamResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
         begin
         JSBaseType:=TResElDataPas2JSBaseType(ParamResolved.TypeEl.CustomData).JSBaseType;
@@ -5992,15 +6020,6 @@ begin
             Call.AddArg(Result);
             Result:=Call;
             end;
-          end;
-        end;
-
-      if bsMethodCallChecks in AContext.ScannerBoolSwitches then
-        begin
-        if (C=TPasClassType)
-          or (C=TPasClassOfType) then
-          begin
-
           end;
         end;
 
@@ -12470,8 +12489,8 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
-  AContext.WriteStack;
+  //writeln('TPasToJSConverter.CreateReferencePath START El=',GetObjName(El),' Parent=',GetObjName(El.Parent),' Context=',GetObjName(AContext),' SelfContext=',GetObjName(AContext.GetSelfContext));
+  //AContext.WriteStack;
   {$ENDIF}
   if (El is TPasType) and (AContext<>nil) then
     El:=AContext.Resolver.ResolveAliasType(TPasType(El));
