@@ -385,6 +385,28 @@ var rtl = {
     rtl.raiseEInvalidCast();
   },
 
+  raiseRangeCheck: function(){
+    var m = pas.sysutils || pas.SysUtils;
+    if (m){
+      var t = m.ERangeError || m.erangeerror;
+      if (rtl.isPasClass(t)){
+        var f = 'Create';
+        if (rtl.isFunction(t[f])){
+          throw t.$create(f);
+        } else {
+          throw t.$create('create');
+        }
+      }
+    }
+    throw 'range error';
+  },
+
+  rc: function(i,minval,maxval){
+    // range check integer
+    if ((Math.floor(i)===i) && (i>=minval) && (i<=maxval)) return i;
+    rtl.raiseRangeCheck();
+  },
+
   length: function(arr){
     return (arr == null) ? 0 : arr.length;
   },
