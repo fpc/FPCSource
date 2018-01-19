@@ -131,7 +131,7 @@ Put + after a boolean switch option to enable it, - to disable it
   -C&lt;x&gt;   : Code generation options. &lt;x&gt; is a combination of the following letters:
     o     : Overflow checking
     r     : Range checking
-    R     : Verify object method call validity
+    R     : Verify object method call and object type casts
   -F...   Set file names and paths:
    -Fe&lt;x&gt; : Redirect output to &lt;x&gt;
    -Fi&lt;x&gt; : Add &lt;x&gt; to include paths
@@ -143,8 +143,7 @@ Put + after a boolean switch option to enable it, - to disable it
    -Ji&lt;x&gt; : Insert JS file &lt;x&gt; into main JS file. E.g. -Jirtl.js. Can be given multiple times.
    -Jl    : lower case identifiers
    -Jm    : generate source maps
-     -Jmsourceroot=&lt;x&gt; : use x as "sourceRoot", prefix URL for source file
-            names.
+     -Jmsourceroot=&lt;x&gt; : use x as "sourceRoot", prefix URL for source file names.
      -Jmbasedir=&lt;x&gt; : write source file names relative to directory x.
      -Jminclude : include Pascal sources in source map.
      -Jm- : disable generating source maps
