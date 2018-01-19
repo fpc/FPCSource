@@ -13232,22 +13232,25 @@ end;
 procedure TTestModule.TestJSValue_ClassOf;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TClass = class of TObject;');
-  Add('  TObject = class');
-  Add('  end;');
-  Add('  TBirds = class of TBird;');
-  Add('  TBird = class(TObject) end;');
-  Add('var');
-  Add('  v: jsvalue;');
-  Add('  c: TClass;');
-  Add('begin');
-  Add('  v:=c;');
-  Add('  v:=TObject;');
-  Add('  v:=TClass(c);');
-  Add('  v:=TBirds(c);');
-  Add('  c:=TClass(v);');
-  Add('  c:=TBirds(v);');
+  Add([
+  'type',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '  end;',
+  '  TBirds = class of TBird;',
+  '  TBird = class(TObject) end;',
+  'var',
+  '  v: jsvalue;',
+  '  c: TClass;',
+  'begin',
+  '  v:=c;',
+  '  v:=TObject;',
+  '  v:=TClass(c);',
+  '  v:=TBirds(c);',
+  '  c:=TClass(v);',
+  '  c:=TBirds(v);',
+  '  if v is TClass then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestJSValue_ClassOf',
     LinesToStr([ // statements
@@ -13269,6 +13272,7 @@ begin
     '$mod.v = $mod.c;',
     '$mod.c = rtl.getObject($mod.v);',
     '$mod.c = rtl.getObject($mod.v);',
+    'if (rtl.isExt($mod.v, $mod.TObject, 2)) ;',
     '']));
 end;
 

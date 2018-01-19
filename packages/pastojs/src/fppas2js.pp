@@ -2785,6 +2785,8 @@ procedure TPas2JSResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
     SetResolverValueExpr(ResolvedEl,BaseType,BaseTypes[BaseType],Bin,[rrfReadable]);
   end;
 
+var
+  RightTypeEl: TPasType;
 begin
   if (LeftResolved.BaseType=btCustom)
       or (RightResolved.BaseType=btCustom) then
@@ -2797,6 +2799,14 @@ begin
             and (ResolveAliasType(TPasType(RightResolved.IdentEl)) is TPasClassType) then
           begin
           // e.g. if aJSValue is TObject then ;
+          SetBaseType(btBoolean);
+          exit;
+          end;
+        RightTypeEl:=ResolveAliasType(RightResolved.TypeEl);
+        if (RightTypeEl is TPasClassOfType) then
+          begin
+          // e.g. if aJSValue is TClass then ;
+          // or  if aJSValue is ImageClass then ;
           SetBaseType(btBoolean);
           exit;
           end;
@@ -4487,10 +4497,12 @@ begin
       // aJSValue is ... -> "rtl.isExt(A,B)"
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIsExt]]);
       Call.AddArg(B); B:=nil;
-      if TypeEl is TPasClassType then
+      if RightTypeEl is TPasClassType then
         Call.AddArg(CreateLiteralNumber(El.right,IsExtModePasClassInstance))
-      else if TypeEl is TPasClassOfType then
-        Call.AddArg(CreateLiteralNumber(El.right,IsExtModePasClass));
+      else if RightTypeEl is TPasClassOfType then
+        Call.AddArg(CreateLiteralNumber(El.right,IsExtModePasClass))
+      else
+        RaiseNotSupported(El,AContext,20180119005904);
       end
     else if (RightTypeEl is TPasClassType) and TPasClassType(RightTypeEl).IsExternal then
       begin
