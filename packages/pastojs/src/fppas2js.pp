@@ -223,6 +223,7 @@ Works:
   - parameter, result type, assign from/to untyped
   - operators equal, not equal
   - callback: assign to jsvalue, equal, not equal
+  - jsvalue is class-type, jsvalue is class-of-type
 - RTTI
   - base types
   - $mod.$rtti
@@ -268,10 +269,13 @@ Works:
 - Assert(bool[,string])
   - without sysutils: if(bool) throw string
   - with sysutils: if(bool) throw pas.sysutils.EAssertionFailed.$create("Create",[string])
-- Method call check
+- $Objectchecks:
+  - Method call EInvalidCast, rtl.checkMethodCall
+  - type cast to class-type and class-of-type, rtl.asExt, EInvalidCast
+-
 
 ToDos:
-- typecast longint(highprecint) -> (value+0) & $ffffffff
+- typecast longint(highprecint) -> value & $ffffffff
 - static arrays
   - a[] of record
 - RTTI
@@ -426,6 +430,7 @@ type
     pbifnProcType_Create,
     pbifnProcType_Equal,
     pbifnProgramMain,
+    pbifnRangeCheckInt,
     pbifnRecordEqual,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
     pbifnRTTIAddFields, // typeinfos of tkclass and tkrecord have addFields
@@ -535,6 +540,7 @@ const
     'createCallback', // rtl.createCallback
     'eqCallback', // rtl.eqCallback
     '$main',
+    'rc',
     '$equal',
     'addField',
     'addFields',
@@ -10773,6 +10779,8 @@ Var
   AssignContext: TAssignContext;
   Flags: TPasResolverComputeFlags;
   LeftIsProcType: Boolean;
+  Call: TJSCallExpression;
+  MinVal, MaxVal: MaxPrecInt;
 
 begin
   Result:=nil;
@@ -10858,6 +10866,26 @@ begin
       AssignContext.RightSide:=nil;
       T.LHS:=LHS;
       Result:=T;
+
+      if (bsRangeChecks in AContext.ScannerBoolSwitches)
+          and not (T.Expr is TJSLiteral) then
+        begin
+        // LHS:=rtl.rc(RHS,min,max)
+        if AssignContext.LeftResolved.BaseType in btAllJSInteger then
+          begin
+          if AssignContext.LeftResolved.TypeEl is TPasUnresolvedSymbolRef then
+            begin
+            if not AContext.Resolver.GetIntegerRange(AssignContext.LeftResolved.BaseType,MinVal,MaxVal) then
+              RaiseNotSupported(El.left,AContext,20180119154120);
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
+            Call.AddArg(T.Expr);
+            T.Expr:=Call;
+            Call.AddArg(CreateLiteralNumber(El.right,MinVal));
+            Call.AddArg(CreateLiteralNumber(El.right,MaxVal));
+            end;
+          end;
+        end;
       end;
   finally
     if Result=nil then

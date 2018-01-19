@@ -560,7 +560,8 @@ type
     // Assertions, checks
     procedure TestAssert;
     procedure TestAssert_SysUtils;
-    procedure TestCheckMethodCall;
+    procedure TestObjectChecks;
+    procedure TestRangeChecks_Assign;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -15916,9 +15917,9 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestCheckMethodCall;
+procedure TTestModule.TestObjectChecks;
 begin
-  Scanner.CurrentBoolSwitches:=Scanner.CurrentBoolSwitches+[bsMethodCallChecks];
+  Scanner.CurrentBoolSwitches:=Scanner.CurrentBoolSwitches+[bsObjectChecks];
   StartProgram(false);
   Add([
   'type',
@@ -15967,6 +15968,39 @@ begin
     '$mod.o.DoIt();',
     '$mod.b = rtl.asExt($mod.o,$mod.TBird, 1);',
     '$mod.bc = rtl.asExt($mod.c, $mod.TBird, 2);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_Assign;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'var',
+  '  b: byte;',
+  '  w: word;',
+  'procedure DoIt;',
+  'begin',
+  '  b:=w;',
+  'end;',
+  '{$R-}',
+  'begin',
+  '  DoIt;',
+  '  b:=w;',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_Assign',
+    LinesToStr([ // statements
+    'this.b = 0;',
+    'this.w = 0;',
+    'this.DoIt = function () {',
+    '  $mod.b = rtl.rc($mod.w,0,255);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt();',
+    '$mod.b = rtl.rc($mod.w,0,255);',
     '']));
 end;
 
