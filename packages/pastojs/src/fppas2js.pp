@@ -10870,7 +10870,6 @@ begin
       if (bsRangeChecks in AContext.ScannerBoolSwitches)
           and not (T.Expr is TJSLiteral) then
         begin
-        // LHS:=rtl.rc(RHS,min,max)
         if AssignContext.LeftResolved.BaseType in btAllJSInteger then
           begin
           if AssignContext.LeftResolved.TypeEl is TPasUnresolvedSymbolRef then
@@ -10879,8 +10878,18 @@ begin
               RaiseNotSupported(El.left,AContext,20180119154120);
             Call:=CreateCallExpression(El);
             Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
-            Call.AddArg(T.Expr);
-            T.Expr:=Call;
+            if El.Kind=akDefault then
+              begin
+              // LHS:=rtl.rc(RHS,min,max)    check before assign
+              Call.AddArg(T.Expr);
+              T.Expr:=Call;
+              end
+            else
+              begin
+              // rtl.rc(LHS+=RHS,min,max)    check after assign
+              Call.AddArg(Result);
+              Result:=Call;
+              end;
             Call.AddArg(CreateLiteralNumber(El.right,MinVal));
             Call.AddArg(CreateLiteralNumber(El.right,MaxVal));
             end;

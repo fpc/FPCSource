@@ -15973,6 +15973,7 @@ end;
 
 procedure TTestModule.TestRangeChecks_Assign;
 begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
   StartProgram(false);
   Add([
   '{$R+}',
@@ -15982,6 +15983,7 @@ begin
   'procedure DoIt;',
   'begin',
   '  b:=w;',
+  '  b+=w;',
   'end;',
   '{$R-}',
   'begin',
@@ -15996,6 +15998,7 @@ begin
     'this.w = 0;',
     'this.DoIt = function () {',
     '  $mod.b = rtl.rc($mod.w,0,255);',
+    '  rtl.rc($mod.b += $mod.w, 0, 255);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
