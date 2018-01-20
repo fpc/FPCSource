@@ -38,51 +38,53 @@ Type
   ---------------------------------------------------------------------}
 
 
-Function StreamRead(var F: TTextRec) : longint;
+procedure StreamRead(var F: TTextRec);
 
 begin
-  Result:=0;
+  InOutRes:=0;
   With F do
     Try
       Bufend:=GetStream(F).Read(BufPtr^,BufSize);
       BufPos:=0;
     except
-      Result:=100;
+      InOutRes:=100;
     end;
 end;
 
 
-Function StreamWrite(var F: TTextRec ): longint;
+procedure StreamWrite(var F: TTextRec );
 begin
-  Result:=0;
+  InOutRes:=0;
   with F do
     if (BufPos>0) then
       try
         GetStream(F).WriteBuffer(BufPtr^,BufPos);
         BufPos:=0;
       except
-        Result:=101;
+        InOutRes:=101;
       end;
 end;
 
 
-Function StreamFlush(var F: TTextRec): longint;
+{$PUSH}
+{$WARN 5024 OFF : Parameter "$1" not used}
+Procedure StreamFlush(var F: TTextRec);
 
 begin
-  Result:=0;
+  InOutRes:=0;
 end;
 
 
-Function StreamClose(var F: TTextRec): longint;
+procedure StreamClose(var F: TTextRec);
 begin
-  Result:=0;
+  InOutRes:=0;
 end;
+{$POP}
 
-
-Function StreamOpen(var F: TTextRec ): longint;
+Procedure StreamOpen(var F: TTextRec );
 
 begin
-  Result := 0;
+  InOutRes:=0;
   with F do
     begin
     BufPos:=0;
@@ -101,7 +103,7 @@ begin
           Try
             GetStream(F).Seek(0,soFromEnd);
           except
-            Result:=156;
+            InOutRes:=156;
           end;
         end;
     end;
@@ -130,11 +132,11 @@ begin
     begin
     OpenFunc:=@StreamOpen;
     CloseFunc:=@StreamClose;
- Case DefaultTextLineBreakStyle Of
-    tlbsLF: TextRec(f).LineEnd := #10;
-    tlbsCRLF: TextRec(f).LineEnd := #13#10;
-    tlbsCR: TextRec(f).LineEnd := #13;
-  End;
+    Case DefaultTextLineBreakStyle Of
+      tlbsLF: LineEnd:=#10;
+      tlbsCRLF: LineEnd:=#13#10;
+      tlbsCR: LineEnd:=#13;
+    End;
     PStream(@UserData)^:=Stream;
     Mode:=fmClosed;
     BufSize:=SizeOf(Buffer);
