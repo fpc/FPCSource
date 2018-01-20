@@ -933,7 +933,7 @@ constructor TIniFile.Create(const AFileName: string; AOptions: TIniFileoptions);
 begin
   FBOM := '';
   If Not (self is TMemIniFile) then
-    StripQuotes:=True;
+    Include(AOptions,ifoStripQuotes);
   inherited Create(AFileName,AOptions);
   FStream := nil;
   ReadIniValues;
