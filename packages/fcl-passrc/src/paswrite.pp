@@ -808,6 +808,11 @@ begin
     WriteType(TPasFunctionType(AProc.ProcType).ResultEl.ResultType,False);
   end;
   Add(';');
+  // delphi compatible order for example: procedure foo; reintroduce; overload; static;
+  if not IsImpl and AProc.IsReintroduced then
+    Add(' reintroduce;');
+  if AProc.IsOverload then
+    Add(' overload;');
   if not IsImpl then
     begin
     if AProc.IsVirtual then
@@ -818,15 +823,11 @@ begin
       Add(' abstract;');
     if AProc.IsOverride then
       Add(' override;');
-    if AProc.IsReintroduced then
-      Add(' reintroduce;');
     if AProc.IsStatic then
       Add(' static;');
     end;
   if pmAssembler in AProc.Modifiers then
     Add(' assembler;');
-  if AProc.IsOverload then
-    Add(' overload;');
   if AProc.CallingConvention<>ccDefault then
     Add(' '+cCallingConventions[AProc.CallingConvention]+';');
   If Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName) then
