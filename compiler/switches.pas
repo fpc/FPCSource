@@ -26,7 +26,7 @@ unit switches;
 interface
 
 uses
-  globtype;
+  systems,globtype;
 
 procedure HandleSwitch(switch,state:char);
 function CheckSwitch(switch,state:char):boolean;
@@ -37,11 +37,12 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
 procedure recordpendingverbosityfullswitch(verbosity: longint);
 procedure recordpendingcallingswitch(const str: shortstring);
+procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
 procedure flushpendingswitchesstate;
 
 implementation
 uses
-  systems,cpuinfo,
+  cpuinfo,
 {$ifdef llvm}
   { override optimizer switches }
   llvminfo,
@@ -294,6 +295,7 @@ procedure recordpendingverbosityswitch(sw: char; state: char);
     pendingstate.nextverbositystr:=pendingstate.nextverbositystr+sw+state;
   end;
 
+
 procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
   var
     pstate : pmessagestaterecord;
@@ -304,6 +306,7 @@ procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
     pstate^.state:=state;
     pendingstate.nextmessagerecord:=pstate;
   end;
+
 
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
   begin
@@ -321,6 +324,13 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
          exclude(pendingstate.nextlocalswitches,sw);
       end;
     pendingstate.localswitcheschanged:=true;
+  end;
+
+
+procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
+  begin
+    pendingstate.nextalignment:=alignment;
+    pendingstate.alignmentchanged:=true;
   end;
 
 
@@ -361,6 +371,12 @@ procedure flushpendingswitchesstate;
         status.verbosity:=pendingstate.nextverbosityfullswitch;
         pendingstate.verbosityfullswitched:=false;
       end;
+    if pendingstate.alignmentchanged then
+      begin
+        current_settings.alignment:=pendingstate.nextalignment;
+        pendingstate.alignmentchanged:=false;
+      end;
+    { process pending verbosity changes (warnings on, etc) }
     if pendingstate.nextverbositystr<>'' then
       begin
         setverbosity(pendingstate.nextverbositystr);

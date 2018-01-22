@@ -26,7 +26,8 @@ unit scandir;
   interface
 
     uses
-      globtype;
+      globtype,
+      systems;
 
     const
       switchesstatestackmax = 20;
@@ -36,6 +37,7 @@ unit scandir;
         localsw: tlocalswitches;
         verbosity: longint;
         pmessage : pmessagestaterecord;
+        alignment : talignmentinfo;
       end;
 
     type
@@ -52,7 +54,7 @@ unit scandir;
     uses
       SysUtils,
       cutils,cfileutl,
-      globals,systems,widestr,cpuinfo,
+      globals,widestr,cpuinfo,
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
@@ -1172,6 +1174,7 @@ unit scandir;
       Dec(switchesstatestackpos);
       recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
+      recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
       pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
       { Reset verbosity and forget previous pmeesage }
       RestoreLocalVerbosity(nil);
@@ -1209,6 +1212,7 @@ unit scandir;
       switchesstatestack[switchesstatestackpos].localsw:= current_settings.localswitches;
       switchesstatestack[switchesstatestackpos].pmessage:= current_settings.pmessage;
       switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
+      switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
       Inc(switchesstatestackpos);
     end;
 

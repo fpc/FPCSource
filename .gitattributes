@@ -11955,6 +11955,7 @@ tests/test/cg/tldparam.pp svneol=native#text/plain
 tests/test/cg/tloadvmt.pp svneol=native#text/plain
 tests/test/cg/tlohi.pp svneol=native#text/plain
 tests/test/cg/tlohi2.pp svneol=native#text/pascal
+tests/test/cg/tm128.pp svneol=native#text/pascal
 tests/test/cg/tmanypar.pp svneol=native#text/plain
 tests/test/cg/tmoddiv.pp svneol=native#text/plain
 tests/test/cg/tmoddiv1.pp svneol=native#text/plain

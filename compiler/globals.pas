@@ -220,6 +220,8 @@ interface
         nextverbosityfullswitch: longint;
         nextcallingstr : shortstring;
         nextmessagerecord : pmessagestaterecord;
+        nextalignment : talignmentinfo;
+        alignmentchanged,
         verbosityfullswitched,
         localswitcheschanged : boolean;
       end;
