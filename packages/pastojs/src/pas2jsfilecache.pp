@@ -22,6 +22,9 @@ const // Messages
   nSearchingFileFound = 203; sSearchingFileFound = 'Searching file: %s... found';
   nSearchingFileNotFound = 204; sSearchingFileNotFound = 'Searching file: %s... not found';
 
+const
+  PrecompiledExt = 'pju';
+
 type
   EPas2jsFileCache = class(Exception);
 

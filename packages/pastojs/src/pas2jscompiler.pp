@@ -29,7 +29,7 @@ uses
 const
   VersionMajor = 0;
   VersionMinor = 8;
-  VersionRelease = 44;
+  VersionRelease = 45;
   VersionExtra = '+beta';
   DefaultConfigFile = 'pas2js.cfg';
 
@@ -364,8 +364,7 @@ type
     procedure SetTargetPlatform(const AValue: TPasToJsPlatform);
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
   protected
-    // If this function returns true, the compiler assumes the file was written.
-    // If false, the compiler will attempt to write the file itself.
+    // DoWriteJSFile: return false to use the default write function.
     function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; virtual;
     procedure Compile(StartTime: TDateTime);
     function MarkNeedBuilding(aFile: TPas2jsCompilerFile; Checked: TAVLTree;
@@ -2333,6 +2332,14 @@ begin
           inc(p);
           case c of
           'c': FileCache.AllJSIntoMainJS:=p^<>'-';
+          'e':
+            begin
+            Identifier:=NormalizeEncoding(String(p));
+            case Identifier of
+            'console','system','utf8': Log.Encoding:=Identifier;
+            else ParamFatal('invalid encoding "'+String(p)+'"');
+            end;
+            end;
           'i':
             if p^=#0 then
               ParamFatal('missing insertion file: '+Param)
@@ -2389,14 +2396,18 @@ begin
             if not Quick then
               if not FileCache.AddSrcUnitPaths(String(p),FromCmdLine,ErrorMsg) then
                 ParamFatal('invalid foreign unit path "'+ErrorMsg+'"');
-          'e':
+          {$IFDEF EnablePas2jsPrecompiled}
+          'U':
             begin
-            Identifier:=NormalizeEncoding(String(p));
-            case Identifier of
-            'console','system','utf8': Log.Encoding:=Identifier;
-            else ParamFatal('invalid encoding "'+String(p)+'"');
+            Value:=String(p);
+            if (Value='') or SameText(Value,PrecompiledExt) then
+              begin
+
+              end
+            else
+              ParamFatal('invalid precompile output format -JU"'+Value+'"');;
             end;
-            end
+          {$ENDIF}
           else UnknownParam;
           end;
         end;
@@ -3170,8 +3181,9 @@ begin
   l('     -Jminclude : include Pascal sources in source map.');
   l('     -Jm- : disable generating source maps');
   l('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
-  //l('   -Jg<x> : Add <x> to group paths. A "-" starts a new group.');
-  //l('   -JU<x> : Set unit output path of current group to <y>');
+  {$IFDEF EnablePas2jsPrecompiled}
+  l('   -JU    : Create precompiled units in '+PrecompiledExt+' format.');
+  {$ENDIF}
   l('  -l      : Write logo');
   l('  -MDelphi: Delphi 7 compatibility mode');
   l('  -MObjFPC: FPC''s Object Pascal compatibility mode (default)');
