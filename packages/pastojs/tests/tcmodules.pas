@@ -260,6 +260,7 @@ type
     Procedure TestProc_Asm;
     Procedure TestProc_Assembler;
     Procedure TestProc_VarParam;
+    Procedure TestProc_VarParamString;
     Procedure TestProc_Overload;
     Procedure TestProc_OverloadForward;
     Procedure TestProc_OverloadUnit;
@@ -2634,7 +2635,7 @@ begin
   Add('  i:=Bar;');
   Add('  i:=Bla(''abc'');');
   ConvertProgram;
-  CheckSource('TestProcedureExternal',
+  CheckSource('TestProc_External',
     LinesToStr([ // statements
     'this.i = 0;'
     ]),
@@ -2666,7 +2667,7 @@ begin
   Add('  doit;');
   Add('  uNit2.doit;');
   ConvertUnit;
-  CheckSource('TestProcedureExternalOtherUnit',
+  CheckSource('TestProc_ExternalOtherUnit',
     LinesToStr([
     '']),
     LinesToStr([
@@ -2692,7 +2693,7 @@ begin
   'end;',
   'begin']);
   ConvertProgram;
-  CheckSource('TestProcedureAsm',
+  CheckSource('TestProc_Asm',
     LinesToStr([ // statements
     'this.DoIt = function () {',
     '  var Result = 0;',
@@ -2715,7 +2716,7 @@ begin
   Add('end;');
   Add('begin');
   ConvertProgram;
-  CheckSource('TestProcedureAssembler',
+  CheckSource('TestProc_Assembler',
     LinesToStr([ // statements
     'this.DoIt = function () {',
     '  { a:{ b:{}, c:[]}, d:''1'' };',
@@ -2745,7 +2746,7 @@ begin
   Add('begin');
   Add('  doit(i,i,i);');
   ConvertProgram;
-  CheckSource('TestProcedure_VarParam',
+  CheckSource('TestProc_VarParam',
     LinesToStr([ // statements
     'this.DoIt = function (vG,vH,vI) {',
     '  var vJ = 0;',
@@ -2790,6 +2791,32 @@ begin
     '      this.p.i = v;',
     '    }',
     '});'
+    ]));
+end;
+
+procedure TTestModule.TestProc_VarParamString;
+begin
+  StartProgram(false);
+  Add(['type TCaption = string;',
+  'procedure DoIt(vA: TCaption; var vB: TCaption; out vC: TCaption);',
+  'var c: char;',
+  'begin',
+  '  va[1]:=c;',
+  '  vb[2]:=c;',
+  '  vc[3]:=c;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_VarParamString',
+    LinesToStr([ // statements
+    'this.DoIt = function (vA,vB,vC) {',
+    '  var c = "";',
+    '  vA = rtl.setCharAt(vA, 0, c);',
+    '  vB.set(rtl.setCharAt(vB.get(), 1, c));',
+    '  vC.set(rtl.setCharAt(vC.get(), 2, c));',
+    '};',
+    '']),
+    LinesToStr([
     ]));
 end;
 
@@ -4710,20 +4737,21 @@ end;
 procedure TTestModule.TestString_CharAt;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  s: string;');
-  Add('  c: char;');
-  Add('  b: boolean;');
-  Add('begin');
-  Add('  b:= s[1] = c;');
-  Add('  b:= c = s[1];');
-  Add('  b:= c <> s[1];');
-  Add('  b:= c > s[1];');
-  Add('  b:= c >= s[1];');
-  Add('  b:= c < s[2];');
-  Add('  b:= c <= s[1];');
-  Add('  s[1] := c;');
-  Add('  s[2+3] := c;');
+  Add([
+  'var',
+  '  s: string;',
+  '  c: char;',
+  '  b: boolean;',
+  'begin',
+  '  b:= s[1] = c;',
+  '  b:= c = s[1];',
+  '  b:= c <> s[1];',
+  '  b:= c > s[1];',
+  '  b:= c >= s[1];',
+  '  b:= c < s[2];',
+  '  b:= c <= s[1];',
+  '  s[1] := c;',
+  '  s[2+3] := c;']);
   ConvertProgram;
   CheckSource('TestString_CharAt',
     LinesToStr([ // statements

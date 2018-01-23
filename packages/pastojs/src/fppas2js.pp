@@ -5270,9 +5270,9 @@ var
       end;
   end;
 
-  procedure ConvertStringBracket;
+  procedure ConvertStringBracket(const ResolvedValue: TPasResolverResult);
   var
-    Call: TJSCallExpression;
+    SetCharCall, SetStrCall: TJSCallExpression;
     Param: TPasExpr;
     DotExpr: TJSDotMemberExpression;
     AssignContext: TAssignContext;
@@ -5280,58 +5280,91 @@ var
     AssignSt: TJSSimpleAssignStatement;
     OldAccess: TCtxAccess;
     IndexExpr: TJSElement;
+    Arg: TPasArgument;
   begin
+    Result:=nil;
     Param:=El.Params[0];
     case AContext.Access of
     caAssign:
       begin
-      // s[index] := value  ->  s = rtl.setCharAt(s,index,value)
+      // s[index] := value
       AssignContext:=AContext.AccessContext as TAssignContext;
-      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      if AssignContext.RightSide=nil then
+        RaiseInconsistency(20180123192020);
+
+      AssignSt:=nil;
+      SetStrCall:=nil;
+      SetCharCall:=nil;
       try
+        // rtl.setCharAt(s,index,value)
+        // rtl.setCharAt
+        SetCharCall:=CreateCallExpression(El);
+        SetCharCall.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
+        // first param  s
         OldAccess:=AContext.Access;
         AContext.Access:=caRead;
-        AssignSt.LHS:=ConvertElement(El.Value,AContext);
-        // rtl.setCharAt
-        Call:=CreateCallExpression(El);
-        AssignContext.Call:=Call;
-        AssignSt.Expr:=Call;
-        Elements:=Call.Args.Elements;
-        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
-        // first param  s
-        Elements.AddElement.Expr:=ConvertElement(El.Value,AContext);
+        SetCharCall.AddArg(ConvertElement(El.Value,AContext));
         // second param  index-1
-        IndexExpr:=ConvertIndexMinus1(Param);
-        Elements.AddElement.Expr:=IndexExpr;
+        SetCharCall.AddArg(ConvertIndexMinus1(Param));
         AContext.Access:=OldAccess;
         // third param  value
-        Elements.AddElement.Expr:=AssignContext.RightSide;
+        SetCharCall.AddArg(AssignContext.RightSide);
         AssignContext.RightSide:=nil;
-        Result:=AssignSt
+
+        if ResolvedValue.IdentEl is TPasArgument then
+          begin
+          Arg:=TPasArgument(ResolvedValue.IdentEl);
+          if Arg.Access in [argVar,argOut] then
+            begin
+            // s[index] := value  ->  s.set(rtl.setCharAt(s.get(),index,value))
+            SetStrCall:=CreateCallExpression(El.Value);
+            SetStrCall.Expr:=CreateMemberExpression([TransformVariableName(Arg,AContext),TempRefObjSetterName]);
+            SetStrCall.AddArg(SetCharCall);
+            AssignContext.Call:=SetCharCall;
+            SetCharCall:=nil;
+            Result:=SetStrCall;
+            end;
+          end;
+        if Result=nil then
+          begin
+          // s[index] := value  ->  s = rtl.setCharAt(s,index,value)
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+          AssignSt.Expr:=SetCharCall;
+          AssignContext.Call:=SetCharCall;
+          SetCharCall:=nil;
+          OldAccess:=AContext.Access;
+          AContext.Access:=caRead;
+          AssignSt.LHS:=ConvertElement(El.Value,AContext);
+          Result:=AssignSt;
+          end;
       finally
         if Result=nil then
+          begin
+          SetCharCall.Free;
+          SetStrCall.Free;
           AssignSt.Free;
+          end;
       end;
       end;
     caRead:
       begin
-      Call:=CreateCallExpression(El);
-      Elements:=Call.Args.Elements;
+      SetCharCall:=CreateCallExpression(El);
+      Elements:=SetCharCall.Args.Elements;
       try
         // s[index]  ->  s.charAt(index-1)
         // add string accessor
         DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-        Call.Expr:=DotExpr;
+        SetCharCall.Expr:=DotExpr;
         DotExpr.MExpr:=ConvertElement(El.Value,AContext);
         DotExpr.Name:='charAt';
 
         // add parameter "index-1"
         IndexExpr:=ConvertIndexMinus1(Param);
         Elements.AddElement.Expr:=IndexExpr;
-        Result:=Call;
+        Result:=SetCharCall;
       finally
         if Result=nil then
-          Call.Free;
+          SetCharCall.Free;
       end;
       end;
     else
@@ -5810,7 +5843,7 @@ begin
   {$ENDIF}
   if ResolvedEl.BaseType in btAllJSStrings then
     // astring[]
-    ConvertStringBracket
+    ConvertStringBracket(ResolvedEl)
   else if (ResolvedEl.IdentEl is TPasProperty)
       and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
     // aproperty[]
