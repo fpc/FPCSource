@@ -1902,7 +1902,7 @@ begin
       ClassEl:=TPasClassType(El);
       if ClassEl.IsForward then continue;
       if ClassEl.ObjKind=okInterface then
-        exit;
+        continue;
       ClassScope:=El.CustomData as TPas2JSClassScope;
       OldScopeCount:=FOverloadScopes.Count;
 
