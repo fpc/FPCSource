@@ -3930,7 +3930,7 @@ begin
 
     H:=CheckHint(Nil,False);
     If Full then
-      GetVariableValueAndLocation(Parent,Value,AbsoluteExpr,AbsoluteLocString);
+      GetVariableValueAndLocation(VarEl,Value,AbsoluteExpr,AbsoluteLocString);
     if (VarList.Count>OldListCount+1) then
       begin
       // multiple variables

@@ -290,7 +290,8 @@ type
     btNil,         // nil = pointer, class, procedure, method, ...
     btProc,        // TPasProcedure
     btBuiltInProc,
-    btSet,         // []    see SubType, can also be round bracket in var a:arraytype = (x,y)
+    btSet,         // [] see SubType
+    //btArrayLit,    // [] array literal, can also be round bracket in var a:arraytype = (x,y)
     btRange        // a..b  see SubType
     );
   TResolveBaseTypes = set of TResolverBaseType;
@@ -5784,14 +5785,15 @@ begin
   else
     Access:=rraReadAndAssign;
   ResolveExpr(El.left,Access);
-  ResolveExpr(El.right,rraRead);
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveImplAssign Kind=',El.Kind,' left=',GetObjName(El.left),' right=',GetObjName(el.right));
   {$ENDIF}
   // check LHS can be assigned
   ComputeElement(El.left,LeftResolved,[rcSkipTypeAlias,rcNoImplicitProc,rcSetReferenceFlags]);
   CheckCanBeLHS(LeftResolved,true,El.left);
+
   // compute RHS
+  ResolveExpr(El.right,rraRead); // ToDo: btArrayLit: if LHS is array then pass ArrType and Dim
   Flags:=[rcSkipTypeAlias,rcSetReferenceFlags];
   if IsProcedureType(LeftResolved,true) then
     if (msDelphi in CurrentParser.CurrentModeswitches) then
@@ -13761,7 +13763,7 @@ begin
     Include(RHSFlags,rcNoImplicitProcType);
   if SetReferenceFlags then
     Include(RHSFlags,rcSetReferenceFlags);
-  ComputeElement(Expr,ExprResolved,RHSFlags);
+  ComputeElement(Expr,ExprResolved,RHSFlags); // ToDo: btArrayLit: if ParamResolved is array then pass ArrType and Dim
 
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CheckParamCompatibility Expr=',GetTreeDbg(Expr,2),' ResolvedExpr=',GetResolverResultDbg(ExprResolved),' RHSFlags=',dbgs(RHSFlags));
@@ -14024,6 +14026,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
     i, Count: Integer;
     IsLastRange: Boolean;
     ArrayValues: TPasExprArray;
+    Impl: TPasElement;
   begin
     Expr:=Values.ExprEl;
     if (Expr=nil) and (Values.IdentEl is TPasVariable) then
@@ -14117,10 +14120,28 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
       end
     else if Values.BaseType=btSet then
       begin
-      // common mistake: const requires () instead of []
-      if RaiseOnIncompatible then
-        RaiseMsg(20170913181208,nXExpectedButYFound,sXExpectedButYFound,
-          ['(','['],ErrorEl);
+      if ErrorEl.Parent is TPasVariable then
+        begin
+        // common mistake: const requires () instead of []
+        if RaiseOnIncompatible then
+          RaiseMsg(20170913181208,nXExpectedButYFound,sXExpectedButYFound,
+            ['(','['],ErrorEl);
+        exit;
+        end;
+      Impl:=ErrorEl;
+      while (Impl<>nil) and not (Impl is TPasImplBlock) do
+        begin
+        if Impl is TPasProcedure then
+          begin
+          Impl:=nil;
+          break;
+          end;
+        Impl:=Impl.Parent;
+        end;
+      if Impl=nil then
+        exit;
+      // ToDo: const array in implblock, e.g. arr:=[1,2,3]
+
       exit;
       end
     else
@@ -14177,8 +14198,8 @@ begin
     exit;
   if IsEmptySet(RHS) then
     begin
-    if length(LArrType.Ranges)=0 then
-      exit(cExact); // empty set fits dyn and open array
+    if (length(LArrType.Ranges)=0) then
+      exit(cExact); // empty set fits open and dyn array
     end;
 
   CheckRange(LArrType,0,RHS,ErrorEl);
