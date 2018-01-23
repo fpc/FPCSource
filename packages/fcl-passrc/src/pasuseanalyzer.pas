@@ -1737,8 +1737,13 @@ begin
       EmitMessage(20170312000020,mtHint,nPAPrivateTypeXNeverUsed,
         sPAPrivateTypeXNeverUsed,[El.FullName],El)
     else
+      begin
+      if (El is TPasClassType) and (TPasClassType(El).ObjKind=okInterface) then
+        exit;
+
       EmitMessage(20170312000025,mtHint,nPALocalXYNotUsed,
         sPALocalXYNotUsed,[El.ElementTypeName,El.Name],El);
+      end;
     exit;
     end;
   // emit hints for sub elements

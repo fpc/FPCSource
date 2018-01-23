@@ -14140,7 +14140,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
         end;
       if Impl=nil then
         exit;
-      // ToDo: const array in implblock, e.g. arr:=[1,2,3]
+      // ToDo: btArrayLit: const array in implblock, e.g. arr:=[1,2,3]
 
       exit;
       end
