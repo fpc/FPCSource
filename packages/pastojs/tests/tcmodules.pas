@@ -253,6 +253,7 @@ type
     Procedure TestFunctionResultInCondition;
     Procedure TestExit;
     Procedure TestBreak;
+    Procedure TestBreakAsVar;
     Procedure TestContinue;
     Procedure TestProc_External;
     Procedure TestProc_ExternalOtherUnit;
@@ -2544,15 +2545,17 @@ end;
 procedure TTestModule.TestBreak;
 begin
   StartProgram(false);
-  Add('var i: longint;');
-  Add('begin');
-  Add('  repeat');
-  Add('    break;');
-  Add('  until true;');
-  Add('  while true do');
-  Add('    break;');
-  Add('  for i:=1 to 2 do');
-  Add('    break;');
+  Add([
+  'var',
+  '  i: longint;',
+  'begin',
+  '  repeat',
+  '    break;',
+  '  until true;',
+  '  while true do',
+  '    break;',
+  '  for i:=1 to 2 do',
+  '    break;']);
   ConvertProgram;
   CheckSource('TestBreak',
     LinesToStr([ // statements
@@ -2564,6 +2567,31 @@ begin
     '} while (!true);',
     'while (true) break;',
     'for ($mod.i = 1; $mod.i <= 2; $mod.i++) break;',
+    '']));
+end;
+
+procedure TTestModule.TestBreakAsVar;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(break: boolean);',
+  'begin',
+  '  if break then ;',
+  'end;',
+  'var',
+  '  break: boolean;',
+  'begin',
+  '  if break then ;']);
+  ConvertProgram;
+  CheckSource('TestBreakAsVar',
+    LinesToStr([ // statements
+    'this.DoIt = function (Break) {',
+    '  if (Break) ;',
+    '};',
+    'this.Break = false;',
+    '']),
+    LinesToStr([
+    'if($mod.Break) ;',
     '']));
 end;
 
@@ -13280,38 +13308,40 @@ end;
 procedure TTestModule.TestJSValue_ArrayOfJSValue;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TArray = array of JSValue;');
-  Add('  TArrgh = tarray;');
-  Add('  TArrInt = array of integer;');
-  Add('var');
-  Add('  v: jsvalue;');
-  Add('  TheArray: tarray;');
-  Add('  Arr: tarrgh;');
-  Add('  i: integer;');
-  Add('  ArrInt: tarrint;');
-  Add('begin');
-  Add('  arr:=thearray;');
-  Add('  thearray:=arr;');
-  Add('  setlength(arr,2);');
-  Add('  setlength(thearray,3);');
-  Add('  arr[4]:=v;');
-  Add('  arr[5]:=length(thearray);');
-  Add('  arr[6]:=nil;');
-  Add('  arr[7]:=thearray[8];');
-  Add('  arr[low(arr)]:=high(thearray);');
-  Add('  arr:=arrint;');
-  Add('  arrInt:=tarrint(arr);');
-  Add('  if TheArray = nil then ;');
-  Add('  if nil = TheArray then ;');
-  Add('  if TheArray <> nil then ;');
-  Add('  if nil <> TheArray then ;');
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TArray = array of JSValue;',
+  '  TArrgh = tarray;',
+  '  TArrInt = array of integer;',
+  'var',
+  '  v: jsvalue;',
+  '  TheArray: tarray = (1,''2'');',
+  '  Arr: tarrgh;',
+  '  i: integer;',
+  '  ArrInt: tarrint;',
+  'begin',
+  '  arr:=thearray;',
+  '  thearray:=arr;',
+  '  setlength(arr,2);',
+  '  setlength(thearray,3);',
+  '  arr[4]:=v;',
+  '  arr[5]:=length(thearray);',
+  '  arr[6]:=nil;',
+  '  arr[7]:=thearray[8];',
+  '  arr[low(arr)]:=high(thearray);',
+  '  arr:=arrint;',
+  '  arrInt:=tarrint(arr);',
+  '  if TheArray = nil then ;',
+  '  if nil = TheArray then ;',
+  '  if TheArray <> nil then ;',
+  '  if nil <> TheArray then ;',
+  '']);
   ConvertProgram;
   CheckSource('TestJSValue_ArrayOfJSValue',
     LinesToStr([ // statements
     'this.v = undefined;',
-    'this.TheArray = [];',
+    'this.TheArray = [1, "2"];',
     'this.Arr = [];',
     'this.i = 0;',
     'this.ArrInt = [];',

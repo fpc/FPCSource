@@ -277,8 +277,14 @@ Works:
   - procedure argument int
 
 ToDos:
+- btArrayLit
+  a: array of jsvalue;
+  a:=[];
+- bug:
+  v:=a[0]  gives Local variable "a" is assigned but never used
 - range checks:
-  - proc args
+  - compile time: warnings to errors
+  - proc args enum, custom enum, custom int
   - assign enum:=, enum+=
   - prop:=
   - string[index]
@@ -13160,7 +13166,7 @@ begin
         RaiseNotSupported(Arg,AContext,20170214120739);
     end;
     end;
-  Name:=Arg.Name;
+  Name:=TransformVariableName(Arg,Arg.Name,AContext);
   if (CompareText(Name,'Self')=0) and (AContext.GetSelfContext<>nil) then
     Name:=AContext.GetLocalName(Arg);
   Result:=CreatePrimitiveDotExpr(Name,PosEl);
