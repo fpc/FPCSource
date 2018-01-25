@@ -2680,9 +2680,9 @@ End.
     <i>-Jminclude</i>.<br>
     <br>
     To show the generated mapping for each line you can use the tool fpc/packages/fcl-js/examples/srcmapdump.<br>
-    <li>The sourcemap starts with the line <i>)]}</i> to avoid potential XSSI
-    (cross site script inclusion) issues. This is recommended in the specifications
-    and the browser should ignore it. See here
+    <li>According to the specifications sourcemap should start with the XSSI
+    (cross site script inclusion) protection header <i>)]}</i>, but some browsers
+    don't support that. Enable it with -Jmxssiheader. See here the specs:
     https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit#heading=h.h7yy76c5il9v
     </li>
     </div>

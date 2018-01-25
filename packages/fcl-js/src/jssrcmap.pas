@@ -58,7 +58,7 @@ type
     );
   TSourceMapOptions = set of TSourceMapOption;
 const
-  DefaultSourceMapOptions = [smoAddMonotonous,smoSafetyHeader];
+  DefaultSourceMapOptions = [smoAddMonotonous];
 type
 
   { TSourceMap }
