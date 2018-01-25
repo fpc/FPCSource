@@ -652,7 +652,11 @@ asm
   ext.w   d0
   ext.l   d0
 {$endif}
+{$ifndef CPUCOLDFIRE}
   sub.w   #32,d2
+{$else}
+  sub.l   #32,d2
+{$endif}
   asr.l   d2,d1
 
 @quit:
