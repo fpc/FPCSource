@@ -247,6 +247,7 @@ type
     Procedure TestImplProc;
     Procedure TestFunctionResult;
     Procedure TestNestedProc;
+    Procedure TestNestedProc_ResultString;
     Procedure TestForwardProc;
     Procedure TestNestedForwardProc;
     Procedure TestAssignFunctionResult;
@@ -2369,6 +2370,44 @@ begin
     '  Result = (pA + vB) + vC;',
     '  Result = 6;',
     '  return Result;',
+    '  return Result;',
+    '};'
+    ]),
+    '');
+end;
+
+procedure TTestModule.TestNestedProc_ResultString;
+begin
+  StartProgram(false);
+  Add([
+  'function DoIt: string;',
+  '  function Nesty: string; ',
+  '  begin',
+  '    nesty:=#65#66;',
+  '    nesty[1]:=#67;',
+  '    doit:=#68;',
+  '    doit[2]:=#69;',
+  '  end;',
+  'begin',
+  '  doit:=#70;',
+  '  doit[3]:=#71;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestNestedProc_ResultString',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var Result = "";',
+    '  function Nesty() {',
+    '    var Result$1 = "";',
+    '    Result$1 = "AB";',
+    '    Result$1 = rtl.setCharAt(Result$1, 0, "C");',
+    '    Result = "D";',
+    '    Result = rtl.setCharAt(Result, 1, "E");',
+    '    return Result$1;',
+    '  };',
+    '  Result = "F";',
+    '  Result = rtl.setCharAt(Result, 2, "G");',
     '  return Result;',
     '};'
     ]),
