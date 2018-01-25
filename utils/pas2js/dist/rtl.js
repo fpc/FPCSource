@@ -526,13 +526,13 @@ var rtl = {
   },
 
   includeSet: function(s,enumvalue){
-    if (s.$shared) s = cloneSet(s);
+    if (s.$shared) s = rtl.cloneSet(s);
     s[enumvalue] = true;
     return s;
   },
 
   excludeSet: function(s,enumvalue){
-    if (s.$shared) s = cloneSet(s);
+    if (s.$shared) s = rtl.cloneSet(s);
     delete s[enumvalue];
     return s;
   },
