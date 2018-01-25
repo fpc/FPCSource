@@ -373,6 +373,7 @@ type
     Procedure TestProcOverloadDelphiOverride;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
+    Procedure TestNestedProc_ResultString;
     Procedure TestFuncAssignFail;
     Procedure TestForwardProc;
     Procedure TestForwardProcUnresolved;
@@ -5569,6 +5570,59 @@ begin
   Add('end;');
   Add('begin');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestNestedProc_ResultString;
+var
+  aMarker: PSrcMarker;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+begin
+  StartProgram(false);
+  Add([
+  'function DoIt: string;',
+  '  function Sub: char;',
+  '  begin',
+  '    {#a1}DoIt:=#65;',
+  '    {#a2}DoIt[1]:=#66;',
+  '    {#a3}DoIt;',
+  '  end;',
+  'begin',
+  '  {#b1}DoIt:=#67;',
+  '  {#b2}DoIt[2]:=#68;',
+  '  {#b3}DoIt;',
+  'end;',
+  'begin']);
+  ParseProgram;
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.TestNestedProc_ResultString ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    Elements:=FindElementsAt(aMarker);
+    try
+      for i:=0 to Elements.Count-1 do
+        begin
+        El:=TPasElement(Elements[i]);
+        //writeln('TTestResolver.TestNestedProc_ResultString ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+        if not (El.CustomData is TResolvedReference) then continue;
+        Ref:=TResolvedReference(El.CustomData);
+        //writeln('TTestResolver.TestNestedProc_ResultString ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' Decl=',GetObjName(Ref.Declaration));
+        case aMarker^.Identifier of
+        'a1','a2','b1','b2':
+          if not (Ref.Declaration is TPasResultElement) then
+            RaiseErrorAtSrcMarker('expected FuncResult at "#'+aMarker^.Identifier+', but was "'+GetObjName(Ref.Declaration)+'"',aMarker);
+        'a3','b3':
+          if not (Ref.Declaration is TPasFunction) then
+            RaiseErrorAtSrcMarker('expected TPasFunction at "#'+aMarker^.Identifier+', but was "'+GetObjName(Ref.Declaration)+'"',aMarker);
+        end;
+        end;
+    finally
+      Elements.Free;
+    end;
+    aMarker:=aMarker^.Next;
+    end;
 end;
 
 procedure TTestResolver.TestFuncAssignFail;

@@ -6583,11 +6583,33 @@ var
     FindData: TPRFindData;
     Ref: TResolvedReference;
     DeclEl: TPasElement;
+    Proc, ImplProc: TPasProcedure;
+    ProcScope: TPasProcedureScope;
   begin
     // e.g. Name[]
     DeclEl:=FindElementWithoutParams(ArrayName,FindData,Value,true);
     Ref:=CreateReference(DeclEl,Value,Access,@FindData);
     CheckFoundElement(FindData,Ref);
+    if DeclEl is TPasProcedure then
+      begin
+      Proc:=TPasProcedure(DeclEl);
+      if (Access=rraAssign) and (Proc is TPasFunction)
+          and (Value.ClassType=TPrimitiveExpr)
+          and (Params.Parent.ClassType=TPasImplAssign)
+          and (TPasImplAssign(Params.Parent).left=Params) then
+        begin
+        // e.g. funcname[]:=
+        ProcScope:=Proc.CustomData as TPasProcedureScope;
+        ImplProc:=ProcScope.ImplProc;
+        if ImplProc=nil then
+          ImplProc:=Proc;
+        if Params.HasParent(ImplProc) then
+          begin
+          // "FuncA[]:=" within FuncA -> redirect to ResultEl
+          Ref.Declaration:=(Proc as TPasFunction).FuncType.ResultEl;
+          end;
+        end;
+      end;
     ComputeElement(Value,ResolvedEl,[rcSkipTypeAlias,rcSetReferenceFlags]);
   end;
 
