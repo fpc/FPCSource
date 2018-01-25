@@ -3557,7 +3557,7 @@ begin
   V:=FindLocalVar(El);
   if V<>nil then
     Result:=V.Name
-  else if El=ThisPas then
+  else if ThisPas=El then
     Result:='this'
   else
     Result:=inherited GetLocalName(El);
@@ -5272,7 +5272,7 @@ var
 
   procedure ConvertStringBracket(const ResolvedValue: TPasResolverResult);
   var
-    SetCharCall, SetStrCall: TJSCallExpression;
+    NewValue, SetStrCall: TJSCallExpression;
     Param: TPasExpr;
     DotExpr: TJSDotMemberExpression;
     AssignContext: TAssignContext;
@@ -5294,21 +5294,22 @@ var
 
       AssignSt:=nil;
       SetStrCall:=nil;
-      SetCharCall:=nil;
+      NewValue:=nil;
       try
-        // rtl.setCharAt(s,index,value)
+        // NewValue: rtl.setCharAt(s,index,value)
+
         // rtl.setCharAt
-        SetCharCall:=CreateCallExpression(El);
-        SetCharCall.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
+        NewValue:=CreateCallExpression(El);
+        NewValue.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
         // first param  s
         OldAccess:=AContext.Access;
         AContext.Access:=caRead;
-        SetCharCall.AddArg(ConvertElement(El.Value,AContext));
+        NewValue.AddArg(ConvertElement(El.Value,AContext));
         // second param  index-1
-        SetCharCall.AddArg(ConvertIndexMinus1(Param));
+        NewValue.AddArg(ConvertIndexMinus1(Param));
         AContext.Access:=OldAccess;
         // third param  value
-        SetCharCall.AddArg(AssignContext.RightSide);
+        NewValue.AddArg(AssignContext.RightSide);
         AssignContext.RightSide:=nil;
 
         if ResolvedValue.IdentEl is TPasArgument then
@@ -5316,22 +5317,25 @@ var
           Arg:=TPasArgument(ResolvedValue.IdentEl);
           if Arg.Access in [argVar,argOut] then
             begin
-            // s[index] := value  ->  s.set(rtl.setCharAt(s.get(),index,value))
+            // call by reference
+            // s[index] := value  ->  s.set(NewValue)
             SetStrCall:=CreateCallExpression(El.Value);
             SetStrCall.Expr:=CreateMemberExpression([TransformVariableName(Arg,AContext),TempRefObjSetterName]);
-            SetStrCall.AddArg(SetCharCall);
-            AssignContext.Call:=SetCharCall;
-            SetCharCall:=nil;
+            SetStrCall.AddArg(NewValue);
+            AssignContext.Call:=NewValue;
+            NewValue:=nil;
             Result:=SetStrCall;
             end;
-          end;
+          end
+        else if ResolvedValue.IdentEl is TPasProperty then
+          RaiseNotSupported(El,AContext,20180124115924);
         if Result=nil then
           begin
-          // s[index] := value  ->  s = rtl.setCharAt(s,index,value)
+          // s[index] := value  ->  s = NewValue
           AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-          AssignSt.Expr:=SetCharCall;
-          AssignContext.Call:=SetCharCall;
-          SetCharCall:=nil;
+          AssignSt.Expr:=NewValue;
+          AssignContext.Call:=NewValue;
+          NewValue:=nil;
           OldAccess:=AContext.Access;
           AContext.Access:=caRead;
           AssignSt.LHS:=ConvertElement(El.Value,AContext);
@@ -5340,7 +5344,7 @@ var
       finally
         if Result=nil then
           begin
-          SetCharCall.Free;
+          NewValue.Free;
           SetStrCall.Free;
           AssignSt.Free;
           end;
@@ -5348,23 +5352,23 @@ var
       end;
     caRead:
       begin
-      SetCharCall:=CreateCallExpression(El);
-      Elements:=SetCharCall.Args.Elements;
+      NewValue:=CreateCallExpression(El);
+      Elements:=NewValue.Args.Elements;
       try
         // s[index]  ->  s.charAt(index-1)
         // add string accessor
         DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-        SetCharCall.Expr:=DotExpr;
+        NewValue.Expr:=DotExpr;
         DotExpr.MExpr:=ConvertElement(El.Value,AContext);
         DotExpr.Name:='charAt';
 
         // add parameter "index-1"
         IndexExpr:=ConvertIndexMinus1(Param);
         Elements.AddElement.Expr:=IndexExpr;
-        Result:=SetCharCall;
+        Result:=NewValue;
       finally
         if Result=nil then
-          SetCharCall.Free;
+          NewValue.Free;
       end;
       end;
     else
@@ -12638,7 +12642,7 @@ begin
       RaiseNotSupported(El,AContext,20170201172141,GetObjName(El));
     if (El.CustomData is TPasProcedureScope) then
       begin
-      // proc: always use the the declaration, not the body
+      // proc: always use the declaration, not the body
       ProcScope:=TPasProcedureScope(El.CustomData);
       if ProcScope.DeclarationProc<>nil then
         El:=ProcScope.DeclarationProc;
@@ -12693,11 +12697,15 @@ begin
           begin
           // Pascal and JS have similar scoping rules (we are not in a dotscope),
           // so 'this' can be used.
+          SelfContext:=AContext.GetSelfContext;
           if ShortName<>'' then
             Result:=ShortName
+          else if AContext.GetFunctionContext.ThisPas<>nil then
+            Result:='this'
+          else if SelfContext<>nil then
+            Result:=SelfContext.GetLocalName(SelfContext.ThisPas)
           else
-            Result:='this';
-          SelfContext:=AContext.GetSelfContext;
+            RaiseNotSupported(El,AContext,20180125004049);
           if (SelfContext<>nil) and not IsClassFunction(SelfContext.PasElement) then
             begin
             // inside a method -> Self is a class instance
@@ -13199,9 +13207,10 @@ begin
         RaiseNotSupported(Arg,AContext,20170214120739);
     end;
     end;
-  Name:=TransformVariableName(Arg,Arg.Name,AContext);
-  if (CompareText(Name,'Self')=0) and (AContext.GetSelfContext<>nil) then
-    Name:=AContext.GetLocalName(Arg);
+  if (CompareText(Arg.Name,'Self')=0) and (AContext.GetSelfContext<>nil) then
+    Name:=AContext.GetLocalName(Arg)
+  else
+    Name:=TransformVariableName(Arg,Arg.Name,AContext);
   Result:=CreatePrimitiveDotExpr(Name,PosEl);
 end;
 
