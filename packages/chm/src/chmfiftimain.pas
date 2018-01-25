@@ -392,6 +392,7 @@ destructor TChmSearchWriter.Destroy;
 
 begin
  freeandnil(FActiveLeafNode);
+ inherited;
 end;
 
 

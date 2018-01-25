@@ -1641,7 +1641,7 @@ begin
   end;
   if not Result then begin
     AFileName := ExtractFilePath(FileName[0])+AFileName;
-    if FileExists(AFileName) and (ExtractFileExt(AFileName) = '.chm') then OpenNewFile(AFileName);
+    if FileExists(AFileName) and (LowerCase(ExtractFileExt(AFileName)) = '.chm') then OpenNewFile(AFileName);
     Result := True;
   end;
 end;
