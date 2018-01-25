@@ -396,6 +396,7 @@ type
     Procedure TestClass_LocalVarSelfFail;
     Procedure TestClass_ArgSelfFail;
     Procedure TestClass_NestedProcSelf;
+    Procedure TestClass_NestedProcSelf2;
     Procedure TestClass_NestedProcClassSelf;
     Procedure TestClass_NestedProcCallInherited;
     Procedure TestClass_TObjectFree;
@@ -9361,6 +9362,82 @@ begin
     '    Self.$class.State = Self.State + 15;',
     '    $mod.TObject.State = $mod.TObject.State + 16;',
     '    Self.SetSize(Self.GetSize() + 17);',
+    '    Self.SetSize(Self.GetSize() + 18);',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClass_NestedProcSelf2;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Key: longint;',
+  '    class var State: longint;',
+  '    function GetSize: longint; virtual; abstract;',
+  '    procedure SetSize(Value: longint); virtual; abstract;',
+  '    property Size: longint read GetSize write SetSize;',
+  '  end;',
+  '  TBird = class',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure tbird.doit;',
+  '  procedure Sub;',
+  '  begin',
+  '    key:=key+2;',
+  '    self.key:=self.key+3;',
+  '    state:=state+4;',
+  '    self.state:=self.state+5;',
+  '    tobject.state:=tobject.state+6;',
+  '    size:=size+7;',
+  '    self.size:=self.size+8;',
+  '  end;',
+  'begin',
+  '  sub;',
+  '  key:=key+12;',
+  '  self.key:=self.key+13;',
+  '  state:=state+14;',
+  '  self.state:=self.state+15;',
+  '  tobject.state:=tobject.state+16;',
+  '  size:=size+17;',
+  '  self.size:=self.size+18;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_NestedProcSelf2',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.State = 0;',
+    '  this.$init = function () {',
+    '    this.Key = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.DoIt = function () {',
+    '    var Self = this;',
+    '    function Sub() {',
+    '      Self.Key = Self.Key + 2;',
+    '      Self.Key = Self.Key + 3;',
+    '      Self.$class.State = Self.State + 4;',
+    '      Self.$class.State = Self.State + 5;',
+    '      $mod.TObject.State = $mod.TObject.State + 6;',
+    '      Self.SetSize(Self.GetSize() + 7);',
+    '      Self.SetSize(Self.GetSize() + 8);',
+    '    };',
+    '    Sub();',
+    '    this.Key = this.Key + 12;',
+    '    Self.Key = Self.Key + 13;',
+    '    this.$class.State = this.State + 14;',
+    '    Self.$class.State = Self.State + 15;',
+    '    $mod.TObject.State = $mod.TObject.State + 16;',
+    '    this.SetSize(this.GetSize() + 17);',
     '    Self.SetSize(Self.GetSize() + 18);',
     '  };',
     '});',

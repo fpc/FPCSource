@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, AVL_Tree, contnrs,
   PScanner, PParser, PasTree, PasResolver, PasUseAnalyzer, PasResolveEval,
-  jstree, jswriter, FPPas2Js, FPPJsSrcMap,
+  jstree, jswriter, JSSrcMap, FPPas2Js, FPPJsSrcMap,
   Pas2jsFileUtils, Pas2jsLogger, Pas2jsFileCache, Pas2jsPParser;
 
 const
@@ -99,7 +99,8 @@ type
     coKeepNotUsedPrivates,
     coKeepNotUsedDeclarationsWPO,
     coSourceMapCreate,
-    coSourceMapInclude
+    coSourceMapInclude,
+    coSourceMapXSSIHeader
     );
   TP2jsCompilerOptions = set of TP2jsCompilerOption;
 const
@@ -133,7 +134,8 @@ const
     'Keep not used private declarations',
     'Keep not used declarations (WPO)',
     'Create source map',
-    'Include Pascal sources in source map'
+    'Include Pascal sources in source map',
+    'Prepend XSSI protection )]} to source map'
     );
 
 //------------------------------------------------------------------------------
@@ -329,6 +331,7 @@ type
     function GetSrcMapBaseDir: string;
     function GetSrcMapEnable: boolean;
     function GetSrcMapInclude: boolean;
+    function GetSrcMapXSSIHeader: boolean;
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
     function OnMacroEnv(Sender: TObject; var Params: string; Lvl: integer
@@ -361,6 +364,7 @@ type
     procedure SetSrcMapBaseDir(const AValue: string);
     procedure SetSrcMapEnable(const AValue: boolean);
     procedure SetSrcMapInclude(const AValue: boolean);
+    procedure SetSrcMapXSSIHeader(const AValue: boolean);
     procedure SetTargetPlatform(const AValue: TPasToJsPlatform);
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
   protected
@@ -429,6 +433,7 @@ type
     property SrcMapSourceRoot: string read FSrcMapSourceRoot write FSrcMapSourceRoot;
     property SrcMapBaseDir: string read GetSrcMapBaseDir write SetSrcMapBaseDir;
     property SrcMapInclude: boolean read GetSrcMapInclude write SetSrcMapInclude;
+    property SrcMapXSSIHeader: boolean read GetSrcMapXSSIHeader write SetSrcMapXSSIHeader;
     property ShowDebug: boolean read GetShowDebug write SetShowDebug;
     property ShowFullPaths: boolean read GetShowFullPaths write SetShowFullPaths;
     property ShowLogo: Boolean read GetShowLogo write SetShowLogo;
@@ -1681,6 +1686,10 @@ var
       SrcMap.Release;// release the refcount from the Create
       SrcMap.SourceRoot:=SrcMapSourceRoot;
       SrcMap.LocalFilename:=aFile.JSFilename;
+      if SrcMapXSSIHeader then
+        SrcMap.Options:=SrcMap.Options+[smoSafetyHeader]
+      else
+        SrcMap.Options:=SrcMap.Options-[smoSafetyHeader];
     end;
   end;
 
@@ -1923,6 +1932,11 @@ end;
 function TPas2jsCompiler.GetSrcMapInclude: boolean;
 begin
   Result:=coSourceMapInclude in FOptions;
+end;
+
+function TPas2jsCompiler.GetSrcMapXSSIHeader: boolean;
+begin
+  Result:=coSourceMapXSSIHeader in FOptions;
 end;
 
 procedure TPas2jsCompiler.LoadConfig(CfgFilename: string);
@@ -2375,6 +2389,10 @@ begin
                 SrcMapInclude:=true
               else if Value='include-' then
                 SrcMapInclude:=false
+              else if Value='xssiheader' then
+                SrcMapXSSIHeader:=true
+              else if Value='xssiheader-' then
+                SrcMapXSSIHeader:=false
               else
                 begin
                 i:=Pos('=',Value);
@@ -2392,6 +2410,24 @@ begin
               // enable source maps when setting any -Jm<x> option
               SrcMapEnable:=true;
               end;
+          'o':
+            begin
+              Identifier:=String(p);
+              if Identifier='' then
+                ParamFatal('missing -Jo option');
+              inc(p,length(Identifier));
+              Enable:=true;
+              c:=Identifier[length(Identifier)];
+              if c in ['+','-'] then
+              begin
+                Enable:=c='+';
+                Delete(Identifier,length(Identifier),1);
+              end;
+              if CompareText(Identifier,'SearchLikeFPC')=0 then
+                FileCache.SearchLikeFPC:=Enable
+              else
+                UnknownParam;
+            end;
           'u':
             if not Quick then
               if not FileCache.AddSrcUnitPaths(String(p),FromCmdLine,ErrorMsg) then
@@ -2451,7 +2487,8 @@ begin
           begin
           inc(p);
           Identifier:=String(p);
-          if Identifier='' then UnknownParam;
+          if Identifier='' then
+            ParamFatal('missing -Oo option');
           inc(p,length(Identifier));
           Enable:=true;
           c:=Identifier[length(Identifier)];
@@ -2833,6 +2870,11 @@ begin
   SetOption(coSourceMapInclude,AValue);
 end;
 
+procedure TPas2jsCompiler.SetSrcMapXSSIHeader(const AValue: boolean);
+begin
+  SetOption(coSourceMapXSSIHeader,AValue);
+end;
+
 procedure TPas2jsCompiler.SetTargetPlatform(const AValue: TPasToJsPlatform);
 begin
   if FTargetPlatform=AValue then Exit;
@@ -3179,7 +3221,10 @@ begin
   l('     -Jmsourceroot=<x> : use x as "sourceRoot", prefix URL for source file names.');
   l('     -Jmbasedir=<x> : write source file names relative to directory x.');
   l('     -Jminclude : include Pascal sources in source map.');
+  l('     -Jmxssiheader : start source map with XSSI protection )]}.');
   l('     -Jm- : disable generating source maps');
+  l('   -Jo<x> : Enable or disable extra option. The x is case insensitive:');
+  l('     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.');
   l('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
   {$IFDEF EnablePas2jsPrecompiled}
   l('   -JU    : Create precompiled units in '+PrecompiledExt+' format.');
@@ -3230,7 +3275,7 @@ begin
   l('  -?      : Show this help');
   l('  -h      : Show this help');
   Log.LogLn;
-  l('Macros:  $Name, $Name$ or $Name()');
+  l('Macros: Format is $Name, $Name$ or $Name()');
   for i:=0 to ParamMacros.Count-1 do begin
     ParamMacro:=ParamMacros[i];
     Log.LogRaw(['  $',ParamMacro.Name,BoolToStr(ParamMacro.CanHaveParams,'()',''),': ',ParamMacro.Description]);

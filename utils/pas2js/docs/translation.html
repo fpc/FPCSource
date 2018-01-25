@@ -146,6 +146,7 @@ Put + after a boolean switch option to enable it, - to disable it
      -Jmsourceroot=&lt;x&gt; : use x as "sourceRoot", prefix URL for source file names.
      -Jmbasedir=&lt;x&gt; : write source file names relative to directory x.
      -Jminclude : include Pascal sources in source map.
+     -Jmxssiheader : start source map with XSSI protection )]}.
      -Jm- : disable generating source maps
    -Ju&lt;x&gt; : Add &lt;x&gt; to foreign unit paths. Foreign units are not compiled.
    -Je&lt;x&gt; : Encode messages as &lt;x&gt;.
@@ -1854,7 +1855,12 @@ rtl = {
     <h2 id="assert">Translating assert()</h2>
     The Assert(boolean[,string]) function is translated to <i>if(bool) throw x</i>.
     If unit sysutils is used, it creates an EAssertFailed exception.<br>
-    Otherwise it throws a string.
+    Otherwise it throws a string.<br>
+    <ul>
+    <li>Command line enable with -Sa, disable with -Sa-</li>
+    <li>In code enable with <i>{$C+}</i> or <i>{$Assertions on}</i>,
+      disable with <i>{$C-}</i> or <i>{$Assertions off}</i></li>
+    </ul>
     </div>
 
     <div class="section">
@@ -2674,6 +2680,11 @@ End.
     <i>-Jminclude</i>.<br>
     <br>
     To show the generated mapping for each line you can use the tool fpc/packages/fcl-js/examples/srcmapdump.<br>
+    <li>The sourcemap starts with the line <i>)]}</i> to avoid potential XSSI
+    (cross site script inclusion) issues. This is recommended in the specifications
+    and the browser should ignore it. See here
+    https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit#heading=h.h7yy76c5il9v
+    </li>
     </div>
 
     <div id="footer">

@@ -141,7 +141,8 @@ type
   TP2jsFileCacheOption = (
     caoShowFullFilenames,
     caoShowTriedUsedFiles,
-    caoAllJSIntoMainJS
+    caoAllJSIntoMainJS,
+    caoSearchLikeFPC
     );
   TP2jsFileCacheOptions = set of TP2jsFileCacheOption;
 const
@@ -150,7 +151,8 @@ const
     // only used by experts, no need for resourcestrings
     'Show full filenames',
     'Show tried/used files',
-    'Combine all JavaScript into main file'
+    'Combine all JavaScript into main file',
+    'Search files like FPC'
     );
 
 type
@@ -262,6 +264,7 @@ type
     FUnitPaths: TStringList;
     FUnitPathsFromCmdLine: integer;
     function GetAllJSIntoMainJS: Boolean;
+    function GetSearchLikeFPC: boolean;
     function GetShowFullFilenames: boolean;
     function GetShowTriedUsedFiles: boolean;
     procedure RegisterMessages;
@@ -271,8 +274,9 @@ type
       FromCmdLine: boolean; var List: TStringList; var CmdLineCount: integer): string;
     procedure SetMainJSFile(AValue: string);
     procedure SetOptions(AValue: TP2jsFileCacheOptions);
-    procedure SetShowFullFilenames(AValue: boolean);
-    procedure SetShowTriedUsedFiles(AValue: boolean);
+    procedure SetSearchLikeFPC(const AValue: boolean);
+    procedure SetShowFullFilenames(const AValue: boolean);
+    procedure SetShowTriedUsedFiles(const AValue: boolean);
     procedure SetSrcMapBaseDir(const AValue: string);
     procedure SetUnitOutputPath(AValue: string);
     procedure SetOption(Flag: TP2jsFileCacheOption; Enable: boolean);
@@ -315,9 +319,10 @@ type
     property Options: TP2jsFileCacheOptions read FOptions write SetOptions default DefaultPas2jsFileCacheOptions;
     property ReadLineCounter: SizeInt read FReadLineCounter write FReadLineCounter;
     property ResetStamp: TChangeStamp read FResetStamp;
-    property SrcMapBaseDir: string read FSrcMapBaseDir write SetSrcMapBaseDir; // includes trailing pathdelim
+    property SearchLikeFPC: boolean read GetSearchLikeFPC write SetSearchLikeFPC;
     property ShowFullPaths: boolean read GetShowFullFilenames write SetShowFullFilenames;
     property ShowTriedUsedFiles: boolean read GetShowTriedUsedFiles write SetShowTriedUsedFiles;
+    property SrcMapBaseDir: string read FSrcMapBaseDir write SetSrcMapBaseDir; // includes trailing pathdelim
     property UnitOutputPath: string read FUnitOutputPath write SetUnitOutputPath; // includes trailing pathdelim
     property UnitPaths: TStringList read FUnitPaths;
     property UnitPathsFromCmdLine: integer read FUnitPathsFromCmdLine;
@@ -1334,6 +1339,11 @@ begin
   Result:=caoAllJSIntoMainJS in FOptions;
 end;
 
+function TPas2jsFilesCache.GetSearchLikeFPC: boolean;
+begin
+  Result:=caoSearchLikeFPC in FOptions;
+end;
+
 function TPas2jsFilesCache.GetShowFullFilenames: boolean;
 begin
   Result:=caoShowFullFilenames in FOptions;
@@ -1474,12 +1484,17 @@ begin
   FOptions:=AValue;
 end;
 
-procedure TPas2jsFilesCache.SetShowFullFilenames(AValue: boolean);
+procedure TPas2jsFilesCache.SetSearchLikeFPC(const AValue: boolean);
+begin
+  SetOption(caoSearchLikeFPC,AValue);
+end;
+
+procedure TPas2jsFilesCache.SetShowFullFilenames(const AValue: boolean);
 begin
   SetOption(caoShowFullFilenames,AValue);
 end;
 
-procedure TPas2jsFilesCache.SetShowTriedUsedFiles(AValue: boolean);
+procedure TPas2jsFilesCache.SetShowTriedUsedFiles(const AValue: boolean);
 begin
   SetOption(caoShowTriedUsedFiles,AValue);
 end;
