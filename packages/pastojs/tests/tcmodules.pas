@@ -1884,22 +1884,26 @@ end;
 procedure TTestModule.TestTypeCast_BaseTypes;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  i: longint;');
-  Add('  b: boolean;');
-  Add('  d: double;');
-  Add('  s: string;');
-  Add('  c: char;');
-  Add('begin');
-  Add('  i:=longint(i);');
-  Add('  i:=longint(b);');
-  Add('  b:=boolean(b);');
-  Add('  b:=boolean(i);');
-  Add('  d:=double(d);');
-  Add('  d:=double(i);');
-  Add('  s:=string(s);');
-  Add('  s:=string(c);');
-  Add('  c:=char(c);');
+  Add([
+  'var',
+  '  i: longint;',
+  '  b: boolean;',
+  '  d: double;',
+  '  s: string;',
+  '  c: char;',
+  'begin',
+  '  i:=longint(i);',
+  '  i:=longint(b);',
+  '  b:=boolean(b);',
+  '  b:=boolean(i);',
+  '  d:=double(d);',
+  '  d:=double(i);',
+  '  s:=string(s);',
+  '  s:=string(c);',
+  '  c:=char(c);',
+  '  c:=char(i);',
+  '  c:=char(65);',
+  '']);
   ConvertProgram;
   CheckSource('TestAliasTypeRef',
     LinesToStr([ // statements
@@ -1919,6 +1923,8 @@ begin
     '$mod.s = $mod.s;',
     '$mod.s = $mod.c;',
     '$mod.c = $mod.c;',
+    '$mod.c = String.fromCharCode($mod.i);',
+    '$mod.c = "A";',
     '']));
 end;
 

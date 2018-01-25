@@ -1247,6 +1247,7 @@ type
     Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
     Function ComputeConstString(Expr: TPasExpr; AContext: TConvertContext; NotEmpty: boolean): String; virtual;
     Function IsExternalClassConstructor(El: TPasElement): boolean;
+    Function IsLiteralInteger(El: TJSElement; out Number: MaxPrecInt): boolean;
     // Name mangling
     Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
@@ -4233,6 +4234,20 @@ begin
   Result:=false;
 end;
 
+function TPasToJSConverter.IsLiteralInteger(El: TJSElement; out
+  Number: MaxPrecInt): boolean;
+begin
+  Result:=false;
+  if not (El is TJSLiteral) then exit;
+  if (TJSLiteral(El).Value.ValueType=jstNumber) then
+    try
+      Number:=Round(TJSLiteral(El).Value.AsNumber);
+      if Number=TJSLiteral(El).Value.AsNumber then
+        exit(true);
+    except
+    end;
+end;
+
 function TPasToJSConverter.ConvertBinaryExpression(El: TBinaryExpr;
   AContext: TConvertContext): TJSElement;
 Const
@@ -6302,15 +6317,8 @@ var
   to_bt: TResolverBaseType;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
-  NotEqual: TJSEqualityExpressionNE;
-  CondExpr: TJSConditionalExpression;
   JSBaseType: TPas2jsBaseType;
-  Call: TJSCallExpression;
-  NotExpr: TJSUnaryNotExpression;
-  AddExpr: TJSAdditiveExpressionPlus;
   JSBaseTypeData: TResElDataPas2JSBaseType;
-  TypeEl: TPasType;
-  C: TClass;
 
   function IsParamPas2JSBaseType: boolean;
   var
@@ -6325,6 +6333,15 @@ var
     JSBaseType:=JSBaseTypeData.JSBaseType;
   end;
 
+var
+  NotEqual: TJSEqualityExpressionNE;
+  CondExpr: TJSConditionalExpression;
+  Call: TJSCallExpression;
+  NotExpr: TJSUnaryNotExpression;
+  AddExpr: TJSAdditiveExpressionPlus;
+  TypeEl: TPasType;
+  C: TClass;
+  Int: MaxPrecInt;
 begin
   Result:=nil;
   Param:=El.Params[0];
@@ -6466,19 +6483,54 @@ begin
       Result:=ConvertElement(Param,AContext);
       exit;
       end
-    else if IsParamPas2JSBaseType then
+    else if (ParamResolved.BaseType in btAllInteger)
+        or ((ParamResolved.BaseType=btContext)
+          and (AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl).ClassType=TPasEnumType))
+        then
       begin
-      if JSBaseType=pbtJSValue then
+      // Note: convert value first in case it raises an exception
+      Result:=ConvertElement(Param,AContext);
+      if IsLiteralInteger(Result,Int)
+          and (Int>=0) and (Int<=$ffff) then
         begin
-        // convert jsvalue to char -> rtl.getChar(value)
-        Result:=ConvertElement(Param,AContext);
-        // Note: convert value first in case it raises an exception
+        FreeAndNil(Result);
+        Result:=CreateLiteralJSString(Param,WideChar(Int));
+        end
+      else
+        begin
+        // char(integer) -> String.fromCharCode(integer)
+        Result:=CreateCallFromCharCode(Result,El);
+        end;
+      exit;
+      end
+    else if (ParamResolved.BaseType in (btArrayRangeTypes+[btRange]))
+        or (IsParamPas2JSBaseType and (JSBaseType=pbtJSValue)) then
+      begin
+      // convert value to char -> rtl.getChar(value)
+      // Note: convert value first in case it raises an exception
+      Result:=ConvertElement(Param,AContext);
+      if IsLiteralInteger(Result,Int) then
+        begin
+        if (Int>=0) and (Int<=$ffff) then
+          begin
+          FreeAndNil(Result);
+          Result:=CreateLiteralJSString(Param,WideChar(Int));
+          end
+        else
+          begin
+          // char(integer) -> String.fromCharCode(integer)
+          Result:=CreateCallFromCharCode(Result,El);
+          end;
+        end
+      else
+        begin
+        // convert value to char -> rtl.getChar(value)
         Call:=CreateCallExpression(El);
         Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnGetChar]]);
         Call.AddArg(Result);
         Result:=Call;
-        exit;
         end;
+      exit;
       end;
     end
   else if to_bt=btPointer then
