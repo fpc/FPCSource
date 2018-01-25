@@ -3907,30 +3907,34 @@ end;
 procedure TTestResolver.TestTypeCastBaseTypes;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  si: smallint;');
-  Add('  i: longint;');
-  Add('  fs: single;');
-  Add('  d: double;');
-  Add('  b: boolean;');
-  Add('  c: char;');
-  Add('  s: string;');
-  Add('begin');
-  Add('  d:=double({#a_read}i);');
-  Add('  i:=shortint({#b_read}i);');
-  Add('  i:=longint({#c_read}si);');
-  Add('  d:=double({#d_read}d);');
-  Add('  fs:=single({#e_read}d);');
-  Add('  d:=single({#f_read}d);');
-  Add('  b:=longbool({#g_read}b);');
-  Add('  b:=bytebool({#i_read}longbool({#h_read}b));');
-  Add('  d:=double({#j_read}i)/2.5;');
-  Add('  b:=boolean({#k_read}i);');
-  Add('  i:=longint({#l_read}b);');
-  Add('  d:=double({#m_read}i);');
-  Add('  c:=char({#n_read}c);');
-  Add('  s:=string({#o_read}s);');
-  Add('  s:=string({#p_read}c);');
+  Add([
+  'var',
+  '  si: smallint;',
+  '  i: longint;',
+  '  fs: single;',
+  '  d: double;',
+  '  b: boolean;',
+  '  c: char;',
+  '  s: string;',
+  'begin',
+  '  d:=double({#a_read}i);',
+  '  i:=shortint({#b_read}i);',
+  '  i:=longint({#c_read}si);',
+  '  d:=double({#d_read}d);',
+  '  fs:=single({#e_read}d);',
+  '  d:=single({#f_read}d);',
+  '  b:=longbool({#g_read}b);',
+  '  b:=bytebool({#i_read}longbool({#h_read}b));',
+  '  d:=double({#j_read}i)/2.5;',
+  '  b:=boolean({#k_read}i);',
+  '  i:=longint({#l_read}b);',
+  '  d:=double({#m_read}i);',
+  '  c:=char({#n_read}c);',
+  '  c:=char({#o_read}i);',
+  '  c:=char(65);',
+  '  s:=string({#p_read}s);',
+  '  s:=string({#q_read}c);',
+  '']);
   ParseProgram;
   CheckAccessMarkers;
 end;

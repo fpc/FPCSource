@@ -8970,6 +8970,8 @@ var
   Int: MaxPrecInt;
   MinIntVal, MaxIntVal: int64;
   Flo: MaxPrecFloat;
+  c: Char;
+  w: WideChar;
 begin
   Result:=nil;
   {$IFDEF VerbosePasResEval}
@@ -9037,7 +9039,7 @@ begin
           end;
         exit;
         end
-      else if bt=btboolean then
+      else if bt in btAllBooleans then
         case Int of
         0: Result:=TResEvalBool.CreateValue(false);
         1: Result:=TResEvalBool.CreateValue(true);
@@ -9045,15 +9047,29 @@ begin
           fExprEvaluator.EmitRangeCheckConst(20170710203254,
             Value.AsString,0,1,Params,mtError);
         end
+      else if (bt=btAnsiChar) or ((bt=btChar) and (BaseTypeChar=btAnsiChar)) then
+        try
+          c:=Char(Int);
+          Result:=TResEvalString.CreateValue(c);
+        except
+          RaiseMsg(20180125112510,nRangeCheckError,sRangeCheckError,[],Params);
+        end
+      else if (bt=btWideChar) or ((bt=btChar) and (BaseTypeChar=btWideChar)) then
+        try
+          w:=WideChar(Int);
+          Result:=TResEvalUTF16.CreateValue(w);
+        except
+          RaiseMsg(20180125112716,nRangeCheckError,sRangeCheckError,[],Params);
+        end
       else if bt=btSingle then
         try
-          Result:=TResEvalFloat.CreateValue(Single(Int))
+          Result:=TResEvalFloat.CreateValue(Single(Int));
         except
           RaiseMsg(20170711002015,nRangeCheckError,sRangeCheckError,[],Params);
         end
       else if bt=btDouble then
         try
-          Result:=TResEvalFloat.CreateValue(Double(Int))
+          Result:=TResEvalFloat.CreateValue(Double(Int));
         except
           RaiseMsg(20170711002016,nRangeCheckError,sRangeCheckError,[],Params);
         end
@@ -14393,7 +14409,7 @@ function TPasResolver.CheckTypeCastRes(const FromResolved,
   ToResolved: TPasResolverResult; ErrorEl: TPasElement; RaiseOnError: boolean
   ): integer;
 var
-  ToTypeEl, ToClassType, FromClassType: TPasType;
+  ToTypeEl, ToClassType, FromClassType, FromTypeEl: TPasType;
   ToTypeBaseType: TResolverBaseType;
   C: TClass;
   ToProcType, FromProcType: TPasProcedureType;
@@ -14421,16 +14437,15 @@ begin
           Result:=cExact
         else if ToTypeBaseType in btAllInteger then
           begin
-          if FromResolved.BaseType in btAllInteger+btAllBooleans then
+          if FromResolved.BaseType in (btArrayRangeTypes+[btRange]) then
             Result:=cCompatible
           else if FromResolved.BaseType=btContext then
             begin
-            if FromResolved.TypeEl.ClassType=TPasEnumType then
+            FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+            if FromTypeEl.ClassType=TPasEnumType then
               // e.g. longint(TEnum)
               Result:=cCompatible;
-            end
-          else if FromResolved.BaseType=btRange then
-            exit(cCompatible);
+            end;
           end
         else if ToTypeBaseType in btAllFloats then
           begin
@@ -14446,6 +14461,18 @@ begin
           else if FromResolved.BaseType in btAllInteger then
             Result:=cCompatible;
           end
+        else if ToTypeBaseType in btAllChars then
+          begin
+          if FromResolved.BaseType in (btArrayRangeTypes+[btRange]) then
+            Result:=cCompatible
+          else if FromResolved.BaseType=btContext then
+            begin
+            FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+            if FromTypeEl.ClassType=TPasEnumType then
+              // e.g. char(TEnum)
+              Result:=cCompatible;
+            end;
+          end
         else if ToTypeBaseType in btAllStrings then
           begin
           if FromResolved.BaseType in btAllStringAndChars then
@@ -14457,16 +14484,17 @@ begin
             Result:=cExact
           else if FromResolved.BaseType=btContext then
             begin
-            C:=FromResolved.TypeEl.ClassType;
+            FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+            C:=FromTypeEl.ClassType;
             if (C=TPasClassType)
                 or (C=TPasClassOfType)
                 or (C=TPasPointerType)
-                or ((C=TPasArrayType) and IsDynArray(FromResolved.TypeEl)) then
+                or ((C=TPasArrayType) and IsDynArray(FromTypeEl)) then
               Result:=cExact
             else if (C=TPasProcedureType) or (C=TPasFunctionType) then
               begin
               // from procvar to pointer
-              FromProcType:=TPasProcedureType(FromResolved.TypeEl);
+              FromProcType:=TPasProcedureType(FromTypeEl);
               if FromProcType.IsOfObject then
                 begin
                 if proMethodAddrAsPointer in Options then
