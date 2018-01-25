@@ -104,7 +104,7 @@ type
     );
   TP2jsCompilerOptions = set of TP2jsCompilerOption;
 const
-  DefaultP2jsCompilerOptions = [coShowErrors];
+  DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader];
   coShowAll = [coShowErrors..coShowUsedTools];
   coO1Enable = [coEnumValuesAsNumbers];
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
@@ -3221,7 +3221,7 @@ begin
   l('     -Jmsourceroot=<x> : use x as "sourceRoot", prefix URL for source file names.');
   l('     -Jmbasedir=<x> : write source file names relative to directory x.');
   l('     -Jminclude : include Pascal sources in source map.');
-  l('     -Jmxssiheader : start source map with XSSI protection )]}.');
+  l('     -Jmxssiheader : start source map with XSSI protection )]}'', default.');
   l('     -Jm- : disable generating source maps');
   l('   -Jo<x> : Enable or disable extra option. The x is case insensitive:');
   l('     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.');

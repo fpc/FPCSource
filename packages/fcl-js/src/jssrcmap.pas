@@ -26,7 +26,7 @@ uses
 
 const
   Base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  DefaultSrcMapHeader = ')]}'+LineEnding;
+  DefaultSrcMapHeader = ')]}'''+LineEnding;
 
 type
   EJSSourceMap = class(Exception);
@@ -58,7 +58,7 @@ type
     );
   TSourceMapOptions = set of TSourceMapOption;
 const
-  DefaultSourceMapOptions = [smoAddMonotonous];
+  DefaultSourceMapOptions = [smoAddMonotonous,smoSafetyHeader];
 type
 
   { TSourceMap }
