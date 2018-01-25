@@ -23,7 +23,12 @@ asm
     tst.l    d1
     beq.s    @xit0
 
+{$ifndef CPUCOLDFIRE}
     movem.l  d2-d5,-(sp)
+{$else}
+    tst.l    -(sp)
+    movem.l  d2-d5,(sp)
+{$endif}
     move.l   d0,d5
 
     eor.l    d1,d5
@@ -73,7 +78,12 @@ asm
     negx.l   d1
 
 @xit:
+{$ifndef CPUCOLDFIRE}
     movem.l  (sp)+,d2-d5
+{$else}
+    movem.l  (sp),d2-d5
+    tst.l    (sp)+
+{$endif}
     exg.l    d0,d1
     rts
 
