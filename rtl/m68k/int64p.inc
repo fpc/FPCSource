@@ -80,11 +80,14 @@ asm
 @xit:
 {$ifndef CPUCOLDFIRE}
     movem.l  (sp)+,d2-d5
+    exg.l    d0,d1
 {$else}
+    move.l   d0,d2
+    move.l   d1,d0
+    move.l   d2,d1
     movem.l  (sp),d2-d5
     tst.l    (sp)+
 {$endif}
-    exg.l    d0,d1
     rts
 
 @xit0:
