@@ -27,7 +27,7 @@ asm
     movem.l  d2-d5,-(sp)
 {$else}
     tst.l    -(sp)
-    movem.l  d2-d5,(sp)
+    movem.l  d2-d6,(sp)
 {$endif}
     move.l   d0,d5
 
@@ -55,11 +55,25 @@ asm
     mulu.w   d4,d2
     mulu.w   d4,d3
 
+{$ifdef CPUCOLDFIRE}
+    { backup lo value of d0 }
+    clr.l    d6
+    move.w   d0,d6
+    clr.w    d0
+{$endif}
     swap     d0
     clr.l    d4
+{$ifndef CPUCOLDFIRE}
     add.w    d1,d0
+{$else}
+    add.l    d1,d0
+{$endif}
     addx.l   d4,d3
+{$ifndef CPUCOLDFIRE}
     add.w    d2,d0
+{$else}
+    add.l    d2,d0
+{$endif}
     addx.l   d4,d3
 
     clr.w    d1
@@ -69,6 +83,10 @@ asm
 
     add.l    d3,d1
     swap     d0
+{$ifdef CPUCOLDFIRE}
+    { restore lo value of d0 }
+    move.w   d6,d0
+{$endif}
     add.l    d2,d1
 
     tst.l    d5
@@ -85,7 +103,7 @@ asm
     move.l   d0,d2
     move.l   d1,d0
     move.l   d2,d1
-    movem.l  (sp),d2-d5
+    movem.l  (sp),d2-d6
     tst.l    (sp)+
 {$endif}
     rts
