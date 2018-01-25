@@ -2340,7 +2340,7 @@ begin
       if (pm in Proc.Modifiers)
           and (not (pm in [pmVirtual, pmAbstract, pmOverride,
                            pmOverload, pmReintroduce,
-                           pmAssembler, pmPublic,
+                           pmInline, pmAssembler, pmPublic,
                            pmExternal, pmForward])) then
         RaiseNotYetImplemented(20170208142159,El,'modifier '+ModifierNames[pm]);
     for ptm in TProcTypeModifiers do
