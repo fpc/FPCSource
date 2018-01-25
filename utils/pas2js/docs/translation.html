@@ -140,6 +140,10 @@ Put + after a boolean switch option to enable it, - to disable it
   -I&lt;x&gt;   : Add &lt;x&gt; to include paths, same as -Fi
   -J...  Extra options of pas2js
    -Jc    : Write all JavaScript concatenated into the output file
+   -Je&lt;x&gt; : Encode messages as &lt;x&gt;.
+     -Jeconsole : Console codepage. Default.
+     -Jesystem  : System codepage. On non Windows console and system are the same.
+     -Jeutf-8   : Unicode UTF-8. Default when using -Fe.
    -Ji&lt;x&gt; : Insert JS file &lt;x&gt; into main JS file. E.g. -Jirtl.js. Can be given multiple times.
    -Jl    : lower case identifiers
    -Jm    : generate source maps
@@ -148,11 +152,9 @@ Put + after a boolean switch option to enable it, - to disable it
      -Jminclude : include Pascal sources in source map.
      -Jmxssiheader : start source map with XSSI protection )]}.
      -Jm- : disable generating source maps
+   -Jo&lt;x&gt; : Enable or disable extra option. The x is case insensitive:
+     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.
    -Ju&lt;x&gt; : Add &lt;x&gt; to foreign unit paths. Foreign units are not compiled.
-   -Je&lt;x&gt; : Encode messages as &lt;x&gt;.
-     -Jeconsole : Console codepage. Default.
-     -Jesystem  : System codepage. On non Windows console and system are the same.
-     -Jeutf-8   : Unicode UTF-8. Default when using -Fe.
   -l      : Write logo
   -MDelphi: Delphi 7 compatibility mode
   -MObjFPC: FPC's Object Pascal compatibility mode (default)

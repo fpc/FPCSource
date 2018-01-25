@@ -3229,6 +3229,7 @@ begin
   l('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
   {$IFDEF EnablePas2jsPrecompiled}
   l('   -JU    : Create precompiled units in '+PrecompiledExt+' format.');
+  // ToDo: list all registered formats
   {$ENDIF}
   l('  -l      : Write logo');
   l('  -MDelphi: Delphi 7 compatibility mode');

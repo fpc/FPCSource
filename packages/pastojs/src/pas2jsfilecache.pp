@@ -122,6 +122,7 @@ type
     procedure Clear;
     function DirectoryExists(Filename: string): boolean;
     function FileExists(Filename: string): boolean;
+    function FileExistsI(var Filename: string): boolean;
     function FileAge(Filename: string): TPas2jsFileAgeTime;
     function FileAttr(Filename: string): TPas2jsFileAttr;
     function FileSize(Filename: string): TPas2jsFileSize;
@@ -173,6 +174,7 @@ type
     function FindUnitJSFileName(const aUnitFilename: string): String;
     function FindCustomJSFileName(const aFilename: string): String;
     function FileExistsLogged(const Filename: string): boolean;
+    function FileExistsILogged(var Filename: string): boolean;
     function SearchLowUpCase(var Filename: string): boolean; virtual;
     property Cache: TPas2jsFilesCache read FCache;
   end;
@@ -840,6 +842,24 @@ begin
     Result:=SysUtils.FileExists(Info.Filename);
 end;
 
+function TPas2jsCachedDirectories.FileExistsI(var Filename: string): boolean;
+var
+  Info: TFileInfo;
+  i: Integer;
+begin
+  Info.Filename:=Filename;
+  if not GetFileInfo(Info) then exit(false);
+  if Info.Dir=nil then
+    Result:=SysUtils.FileExists(Info.Filename)
+  else
+  begin
+    i:=Info.Dir.IndexOfFileCaseInsensitive(Info.ShortFilename);
+    Result:=i>=0;
+    if Result then
+      Filename:=ExtractFilePath(Filename)+Info.Dir[i].Name;
+  end;
+end;
+
 function TPas2jsCachedDirectories.FileAge(Filename: string): TPas2jsFileAgeTime;
 var
   Info: TFileInfo;
@@ -1106,7 +1126,7 @@ begin
   Filename:=FindIncludeFileName(aFilename);
   if Filename='' then exit;
   try
-    Result := TFileLineReader.Create(Filename); // ToDo: 1. convert encoding to UTF-8, 2. use cache
+    Result := TFileLineReader.Create(Filename);
   except
     // error is shown in the scanner, which has the context information
   end;
@@ -1168,12 +1188,20 @@ begin
 end;
 
 function TPas2jsFileResolver.FindSourceFile(const aFilename: string): TLineReader;
+var
+  CurFilename: String;
+  Found: Boolean;
 begin
   Result:=nil;
-  if not Cache.DirectoryCache.FileExists(aFilename) then
+  CurFilename:=aFilename;
+  if Cache.SearchLikeFPC then
+    Found:=Cache.DirectoryCache.FileExists(CurFilename)
+  else
+    Found:=Cache.DirectoryCache.FileExistsI(CurFilename);
+  if not Found then
     raise EFileNotFoundError.Create(aFilename)
   else
-    Result:=Cache.LoadTextFile(aFilename).CreateLineReader(false);
+    Result:=Cache.LoadTextFile(CurFilename).CreateLineReader(false);
 end;
 
 function TPas2jsFileResolver.FindUnitFileName(const aUnitname,
@@ -1297,30 +1325,50 @@ begin
       Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[Cache.FormatPath(Filename)]);
 end;
 
+function TPas2jsFileResolver.FileExistsILogged(var Filename: string): boolean;
+begin
+  Result:=Cache.DirectoryCache.FileExistsI(Filename);
+  if Cache.ShowTriedUsedFiles then
+    if Result then
+      Cache.Log.LogMsgIgnoreFilter(nSearchingFileFound,[Cache.FormatPath(Filename)])
+    else
+      Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[Cache.FormatPath(Filename)]);
+end;
+
 function TPas2jsFileResolver.SearchLowUpCase(var Filename: string): boolean;
 {$IFNDEF CaseInsensitiveFilenames}
 var
   CasedFilename: String;
 {$ENDIF}
 begin
-  if FileExistsLogged(Filename) then
-    exit(true);
-  if StrictFileCase then
-    exit(false);
-  {$IFNDEF CaseInsensitiveFilenames}
-  CasedFilename:=ExtractFilePath(Filename)+LowerCase(ExtractFileName(Filename));
-  if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+  if StrictFileCase or Cache.SearchLikeFPC then
   begin
-    Filename:=CasedFilename;
-    exit(true);
-  end;
-  CasedFilename:=ExtractFilePath(Filename)+UpperCase(ExtractFileName(Filename));
-  if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+    if FileExistsLogged(Filename) then
+      exit(true);
+    if StrictFileCase then
+      exit(false);
+    {$IFNDEF CaseInsensitiveFilenames}
+    // FPC like search:
+    // first as written, then lowercase, then uppercase
+    CasedFilename:=ExtractFilePath(Filename)+LowerCase(ExtractFileName(Filename));
+    if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+    begin
+      Filename:=CasedFilename;
+      exit(true);
+    end;
+    CasedFilename:=ExtractFilePath(Filename)+UpperCase(ExtractFileName(Filename));
+    if (Filename<>CasedFilename) and FileExistsLogged(CasedFilename) then
+    begin
+      Filename:=CasedFilename;
+      exit(true);
+    end;
+    {$ENDIF}
+  end else
   begin
-    Filename:=CasedFilename;
-    exit(true);
+    // search case insensitive
+    if FileExistsILogged(Filename) then
+      exit(true);
   end;
-  {$ENDIF}
   Result:=false;
 end;
 
