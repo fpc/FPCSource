@@ -13,7 +13,7 @@ unit Pas2jsLogger;
 interface
 
 uses
-  Classes, SysUtils, PasTree, PScanner, jstree, jsbase, jswriter,
+  Classes, SysUtils, PasTree, PScanner, jstree, jsbase, jswriter, fpjson,
   Pas2jsFileUtils;
 
 const
@@ -64,6 +64,7 @@ type
     procedure SetMsgNumberDisabled(MsgNumber: integer; AValue: boolean);
     procedure SetOutputFilename(AValue: string);
     procedure SetSorted(AValue: boolean);
+    procedure DoLogRaw(const Msg: string; SkipEncoding : Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -83,6 +84,8 @@ type
       UseFilter: boolean = true);
     function GetMsgText(MsgNumber: integer; Args: array of const): string;
     function FormatMsg(MsgType: TMessageType; Msg: string; MsgNumber: integer = 0;
+      const Filename: string = ''; Line: integer = 0; Col: integer = 0): string;
+    function FormatJSONMsg(MsgType: TMessageType; Msg: string; MsgNumber: integer = 0;
       const Filename: string = ''; Line: integer = 0; Col: integer = 0): string;
     procedure OpenOutputFile;
     procedure Flush;
@@ -475,6 +478,41 @@ begin
   if FSorted then Sort;
 end;
 
+procedure TPas2jsLogger.DoLogRaw(const Msg: string; SkipEncoding : Boolean);
+
+Var
+  S : String;
+
+begin
+  if SkipEncoding then
+    S:=Msg
+  else
+    begin
+    if Encoding='utf8' then
+    else if Encoding='console' then
+      S:=UTF8ToConsole(Msg)
+    else if Encoding='system' then
+      S:=UTF8ToSystemCP(Msg)
+    else
+      begin
+      // default: write UTF-8 to outputfile and console codepage to console
+      if FOutputFile=nil then
+        S:=UTF8ToConsole(Msg);
+      end;
+    end;
+  //writeln('TPas2jsLogger.LogRaw "',Encoding,'" "',DbgStr(S),'"');
+  if FOnLog<>Nil then
+    FOnLog(Self,S)
+  else if FOutputFile<>nil then
+    FOutputFile.Write(S+LineEnding)
+  else
+    begin
+    // prevent codepage conversion magic
+    SetCodePage(RawByteString(S), CP_OEMCP, False);
+    writeln(S);
+    end;
+end;
+
 constructor TPas2jsLogger.Create;
 begin
   FMsg:=TFPList.Create;
@@ -569,30 +607,8 @@ begin
 end;
 
 procedure TPas2jsLogger.LogRaw(const Msg: string);
-var
-  S: String;
 begin
-  S:=Msg;
-  if Encoding='utf8' then
-  else if Encoding='console' then
-    S:=UTF8ToConsole(S)
-  else if Encoding='system' then
-    S:=UTF8ToSystemCP(S)
-  else begin
-    // default: write UTF-8 to outputfile and console codepage to console
-    if FOutputFile=nil then
-      S:=UTF8ToConsole(S);
-  end;
-  //writeln('TPas2jsLogger.LogRaw "',Encoding,'" "',DbgStr(S),'"');
-  if FOnLog<>Nil then
-    FOnLog(Self,S)
-  else if FOutputFile<>nil then
-    FOutputFile.Write(S+LineEnding)
-  else begin
-    // prevent codepage conversion magic
-    SetCodePage(RawByteString(S), CP_OEMCP, False);
-    writeln(S);
-  end;
+  DoLogRaw(Msg,False);
 end;
 
 procedure TPas2jsLogger.LogRaw(Args: array of const);
@@ -644,8 +660,16 @@ begin
   Msg:=FindMsg(MsgNumber,true);
   if UseFilter and not (Msg.Typ in FShowMsgTypes) then exit;
   if MsgNumberDisabled[MsgNumber] then exit;
-  s:=FormatMsg(Msg.Typ,SafeFormat(Msg.Pattern,Args),MsgNumber,Filename,Line,Col);
-  LogRaw(s);
+  if encoding='json' then
+    begin
+    s:=FormatJSONMsg(Msg.Typ,SafeFormat(Msg.Pattern,Args),MsgNumber,Filename,Line,Col);
+    DoLogRaw(S,True);
+    end
+  else
+    begin
+    s:=FormatMsg(Msg.Typ,SafeFormat(Msg.Pattern,Args),MsgNumber,Filename,Line,Col);
+    DoLogRaw(S,False);
+    end;
 end;
 
 procedure TPas2jsLogger.LogMsgIgnoreFilter(MsgNumber: integer;
@@ -707,6 +731,33 @@ begin
     s+='('+IntToStr(MsgNumber)+') ';
   s+=Msg;
   Result:=s;
+end;
+
+function TPas2jsLogger.FormatJSONMsg(MsgType: TMessageType; Msg: string; MsgNumber: integer; const Filename: string; Line: integer;
+  Col: integer): string;
+
+Var
+  J : TJSONObject;
+  FN : String;
+
+begin
+  if Assigned(OnFormatPath) then
+    FN:=OnFormatPath(Filename)
+  else
+    FN:=Filename;
+  J:=TJSONObject.Create([
+    'message',Msg,
+    'line',Line,
+    'col',Col,
+    'number',MsgNumber,
+    'filename',FN,
+    'type',MsgTypeToStr(MsgType)
+    ]);
+  try
+    Result:=J.AsJSON;
+  finally
+    J.Free;
+  end;
 end;
 
 procedure TPas2jsLogger.OpenOutputFile;

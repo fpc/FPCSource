@@ -2350,7 +2350,7 @@ begin
             begin
             Identifier:=NormalizeEncoding(String(p));
             case Identifier of
-            'console','system','utf8': Log.Encoding:=Identifier;
+            'console','system','utf8', 'json': Log.Encoding:=Identifier;
             else ParamFatal('invalid encoding "'+String(p)+'"');
             end;
             end;
@@ -3215,6 +3215,7 @@ begin
   l('     -Jeconsole : Console codepage. This is the default.');
   l('     -Jesystem  : System codepage. On non Windows console and system are the same.');
   l('     -Jeutf-8   : Unicode UTF-8. Default when using -Fe.');
+  l('     -JeJSON    : Output compiler messages as JSON. Logo etc are outputted as-is.');
   l('   -Ji<x> : Insert JS file <x> into main JS file. E.g. -Jirtl.js. Can be given multiple times. To remove a file name append a minus, e.g. -Jirtl.js-.');
   l('   -Jl    : lower case identifiers');
   l('   -Jm    : generate source maps');

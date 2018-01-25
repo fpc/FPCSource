@@ -67,7 +67,6 @@ Type
 
 Type
   PPas2JSCompiler = Pointer;
-  PStubCreator = Pointer;
 
 Procedure SetPas2JSWriteJSCallBack(P : PPas2JSCompiler; ACallBack : TWriteJSCallBack; CallBackData : Pointer); stdcall;
 Procedure SetPas2JSCompilerLogCallBack(P : PPas2JSCompiler; ACallBack : TLibLogCallBack; CallBackData : Pointer); stdcall;
