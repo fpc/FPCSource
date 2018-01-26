@@ -26,7 +26,7 @@ asm
 {$ifndef CPUCOLDFIRE}
     movem.l  d2-d5,-(sp)
 {$else}
-    tst.l    -(sp)
+    lea      -20(sp),sp
     movem.l  d2-d6,(sp)
 {$endif}
     move.l   d0,d5
@@ -104,7 +104,7 @@ asm
     move.l   d1,d0
     move.l   d2,d1
     movem.l  (sp),d2-d6
-    tst.l    (sp)+
+    lea      20(sp),sp
 {$endif}
     rts
 
