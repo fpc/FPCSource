@@ -1429,6 +1429,12 @@ Function GetProcessID:SizeUInt;
 Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_FEATURE_PROCESSES}
 
+{$ifdef cpum68k}
+{ due to the register calling convention which uses address registers explicit
+  variants of the Interlocked* functions for Pointers are needed }
+{$define FPC_HAS_EXPLICIT_INTERLOCKED_POINTER}
+{$endif}
+
 {$ifdef cpu16}
 function InterLockedIncrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDINCREMENT16';
 function InterLockedDecrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDDECREMENT16';
