@@ -744,6 +744,42 @@ begin
 end;
 {$endif ndef FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
 
+{$ifdef FPC_HAS_EXPLICIT_INTERLOCKED_POINTER}
+{$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}
+
+function InterLockedDecrement (var Target: pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedDecrement(PtrInt(Target)));
+  end;
+
+function InterLockedIncrement (var Target: pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedIncrement(PtrInt(Target)));
+  end;
+
+function InterLockedExchange (var Target: pointer; Source : pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedExchange(PtrInt(Target), PtrInt(Source)));
+  end;
+
+function InterLockedExchangeAdd (var Target: pointer; Source : pointer) : pointer;
+  begin
+    Result := Pointer(InterLockedExchangeAdd(PtrInt(Target), PtrInt(Source)));
+  end;
+
+function InterLockedCompareExchange (var Target: pointer; NewValue: pointer; Comperand: pointer): pointer;
+  begin
+    Result := Pointer(InterLockedCompareExchange(PtrInt(Target), PtrInt(NewValue), PtrInt(Comperand)));
+  end;
+
+function InterLockedCompareExchangePointer (var Target: pointer; NewValue: pointer; Comperand: pointer): pointer;
+  begin
+    Result := Pointer(InterLockedCompareExchange(PtrInt(Target), PtrInt(NewValue), PtrInt(Comperand)));
+  end;
+
+{$endif FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}
+{$endif FPC_HAS_EXPLICIT_INTERLOCKED_POINTER}
+
 procedure fpc_objecterror; compilerproc;
 begin
   HandleErrorAddrFrameInd(210,get_pc_addr,get_frame);
