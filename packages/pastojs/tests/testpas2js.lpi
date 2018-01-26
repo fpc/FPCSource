@@ -68,8 +68,9 @@
         <IsPartOfProject Value="True"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../src/pas2jsfiler.pas"/>
+        <Filename Value="../src/pas2jsfiler.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JsFiler"/>
       </Unit8>
     </Units>
   </ProjectOptions>

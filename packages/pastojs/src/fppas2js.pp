@@ -953,6 +953,7 @@ type
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
       Access: TResolvedRefAccess); override;
     procedure FinishModule(CurModule: TPasModule); override;
+    procedure FinishEnumType(El: TPasEnumType); override;
     procedure FinishSetType(El: TPasSetType); override;
     procedure FinishRecordType(El: TPasRecordType); override;
     procedure FinishClassType(El: TPasClassType); override;
@@ -2109,6 +2110,20 @@ begin
   finally
     FOverloadScopes.Free;
   end;
+end;
+
+procedure TPas2JSResolver.FinishEnumType(El: TPasEnumType);
+var
+  i: Integer;
+  EnumValue: TPasEnumValue;
+begin
+  inherited FinishEnumType(El);
+  for i:=0 to El.Values.Count-1 do
+    begin
+    EnumValue:=TPasEnumValue(El.Values[i]);
+    if EnumValue.Value<>nil then
+      RaiseNotYetImplemented(20180126202434,EnumValue,'enum const');
+    end;
 end;
 
 procedure TPas2JSResolver.FinishSetType(El: TPasSetType);

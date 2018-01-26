@@ -37,6 +37,9 @@ uses
   Classes, SysUtils, FPPas2Js, PasResolver, PasTree;
 
 type
+
+  { TPasToJsFiler }
+
   TPasToJsFiler = class
   public
     constructor Create; virtual;
@@ -45,6 +48,23 @@ type
   end;
 
 implementation
+
+{ TPasToJsFiler }
+
+constructor TPasToJsFiler.Create;
+begin
+
+end;
+
+destructor TPasToJsFiler.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TPasToJsFiler.WriteModule(aResolver: TPasResolver);
+begin
+  if aResolver=nil then ;
+end;
 
 end.
 

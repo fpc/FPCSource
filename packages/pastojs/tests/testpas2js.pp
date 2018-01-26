@@ -18,7 +18,7 @@ program testpas2js;
 
 uses
   Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations, tcsrcmap,
-  tcfiler, pas2jsfiler;
+  tcfiler, Pas2JsFiler;
 
 type
 

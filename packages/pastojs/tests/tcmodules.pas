@@ -273,6 +273,7 @@ type
     // enums, sets
     Procedure TestEnum_Name;
     Procedure TestEnum_Number;
+    Procedure TestEnum_ConstFail;
     Procedure TestEnum_Functions;
     Procedure TestEnum_AsParams;
     Procedure TestEnumRange_Array;
@@ -3230,7 +3231,7 @@ begin
   Add('  i: longint;');
   Add('begin');
   Add('  e:=green;');
-  //Add('  i:=longint(e);');
+  Add('  i:=longint(e);');
   ConvertProgram;
   CheckSource('TestEnumNumber',
     LinesToStr([ // statements
@@ -3245,9 +3246,23 @@ begin
     'this.i = 0;'
     ]),
     LinesToStr([
-    '$mod.e=1;'
-    //'$mod.i=$mod.e;'
+    '$mod.e=1;',
+    '$mod.i=$mod.e;'
     ]));
+end;
+
+procedure TTestModule.TestEnum_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  'type TMyEnum = (Red = 100, Green = 101);',
+  'var',
+  '  e: TMyEnum;',
+  '  f: TMyEnum = Green;',
+  'begin',
+  '  e:=green;']);
+  SetExpectedPasResolverError('not yet implemented: Red:TPasEnumValue [20180126202434] enum const',3002);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestEnum_Functions;
