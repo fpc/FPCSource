@@ -1391,10 +1391,10 @@ begin
 end;
 
 function TPas2jsFileResolver.SearchLowUpCase(var Filename: string): boolean;
-{$IFNDEF CaseInsensitiveFilenames}
 var
-  CasedFilename: String;
   i: Integer;
+{$IFNDEF CaseInsensitiveFilenames}
+  CasedFilename: String;
 {$ENDIF}
 begin
   if StrictFileCase or Cache.SearchLikeFPC then
