@@ -282,6 +282,7 @@ ToDos:
   a:=[];
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
+- setlength(dynarray)  modeswitch to create a copy
 - range checks:
   - compile time: warnings to errors
   - proc args enum, custom enum, custom int

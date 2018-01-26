@@ -32,7 +32,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="9">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
@@ -63,6 +63,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPPJsSrcMap"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="tcfiler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../src/pas2jsfiler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
