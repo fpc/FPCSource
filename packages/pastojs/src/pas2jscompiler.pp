@@ -946,6 +946,16 @@ begin
     HandleEPasResolve(EPasResolve(E))
   else if E is EPas2JS then
     HandleEPas2JS(EPas2JS(E))
+  else if E is EFileNotFoundError then
+  begin
+    Log.Log(mtFatal,E.Message);
+    Compiler.Terminate(ExitCodeFileNotFound);
+  end
+  else if E is EPas2jsFileCache then
+  begin
+    Log.Log(mtFatal,E.Message);
+    Compiler.Terminate(ExitCodeFileNotFound);
+  end
   else
     HandleUnknownException(E);
 end;
@@ -996,11 +1006,8 @@ begin
   try
     Scanner.OpenFile(PasFilename);
   except
-    on E: EScannerError do begin
-      Log.Log(Scanner.LastMsgType,Scanner.LastMsg,Scanner.LastMsgNumber,
-              Scanner.CurFilename,Scanner.CurRow,Scanner.CurColumn);
-      Compiler.Terminate(ExitCodeSyntaxError);
-    end;
+    on E: Exception do
+      HandleException(E);
   end;
 end;
 
@@ -2367,9 +2374,9 @@ begin
                 Delete(aFilename,length(aFilename),1);
                 if aFilename='' then
                   UnknownParam;
-                FileCache.RemoveInsertFilename(aFilename);
+                FileCache.RemoveInsertJSFilename(aFilename);
               end else
-                FileCache.AddInsertFilename(aFilename);
+                FileCache.AddInsertJSFilename(aFilename);
             end;
           'l': SetOption(coLowerCase,p^<>'-');
           'm':

@@ -21,6 +21,7 @@ const // Messages
   nUnitSearch = 202; sUnitSearch = 'Unitsearch: %s';
   nSearchingFileFound = 203; sSearchingFileFound = 'Searching file: %s... found';
   nSearchingFileNotFound = 204; sSearchingFileNotFound = 'Searching file: %s... not found';
+  nDuplicateFileFound = 205; sDuplicateFileFound = 'Duplicate file found: "%s" and "%s"';
 
 const
   PrecompiledExt = 'pju';
@@ -83,6 +84,8 @@ type
     function IndexOfFileCaseInsensitive(const ShortFilename: String): integer;
     function IndexOfFileCaseSensitive(const ShortFilename: String): integer;
     function IndexOfFile(const ShortFilename: String): integer; inline;
+    function CountSameNamesCaseInsensitive(Index: integer): integer;
+    procedure GetSameNamesCaseInsensitive(Index: integer; List: TStrings);
     property Entries[Index: integer]: TPas2jsCachedDirectoryEntry read GetEntries; default;
     procedure GetFiles(var Files: TStrings;
       IncludeDirs: boolean = true // add faDirectory as well
@@ -122,7 +125,7 @@ type
     procedure Clear;
     function DirectoryExists(Filename: string): boolean;
     function FileExists(Filename: string): boolean;
-    function FileExistsI(var Filename: string): boolean;
+    function FileExistsI(var Filename: string): integer; // returns number of found files
     function FileAge(Filename: string): TPas2jsFileAgeTime;
     function FileAttr(Filename: string): TPas2jsFileAttr;
     function FileSize(Filename: string): TPas2jsFileSize;
@@ -174,7 +177,7 @@ type
     function FindUnitJSFileName(const aUnitFilename: string): String;
     function FindCustomJSFileName(const aFilename: string): String;
     function FileExistsLogged(const Filename: string): boolean;
-    function FileExistsILogged(var Filename: string): boolean;
+    function FileExistsILogged(var Filename: string): integer;
     function SearchLowUpCase(var Filename: string): boolean; virtual;
     property Cache: TPas2jsFilesCache read FCache;
   end;
@@ -299,11 +302,12 @@ type
     function LoadTextFile(Filename: string): TPas2jsCachedFile;
     function NormalizeFilename(const Filename: string; RaiseOnError: boolean): string;
     procedure InsertCustomJSFiles(aWriter: TPas2JSMapper);
-    function IndexOfInsertFilename(const aFilename: string): integer;
-    procedure AddInsertFilename(const aFilename: string);
-    procedure RemoveInsertFilename(const aFilename: string);
+    function IndexOfInsertJSFilename(const aFilename: string): integer;
+    procedure AddInsertJSFilename(const aFilename: string);
+    procedure RemoveInsertJSFilename(const aFilename: string);
     procedure GetListing(const aDirectory: string; var Files: TStrings;
                          FullPaths: boolean = true);
+    procedure RaiseDuplicateFile(aFilename: string);
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
@@ -562,7 +566,7 @@ end;
 procedure TPas2jsCachedDirectory.Release;
 begin
   if FRefCount<1 then
-    raise Exception.Create('TPas2jsCachedDirectory.Release "'+Path+'"');
+    raise Exception.Create('TPas2jsCachedDirectory.Release [20180126090800] "'+Path+'"');
   dec(FRefCount);
   if FRefCount=0 then Free;
 end;
@@ -689,6 +693,46 @@ begin
   {$ENDIF}
 end;
 
+function TPas2jsCachedDirectory.CountSameNamesCaseInsensitive(Index: integer
+  ): integer;
+var
+  i: Integer;
+  Filename: String;
+begin
+  Filename:=Entries[Index].Name;
+  Result:=1;
+  for i:=Index-1 downto 0 do
+  begin
+    if CompareText(Entries[i].Name,Filename)<>0 then break;
+    inc(Result);
+  end;
+  for i:=Index+1 to Count-1 do
+  begin
+    if CompareText(Entries[i].Name,Filename)<>0 then break;
+    inc(Result);
+  end;
+end;
+
+procedure TPas2jsCachedDirectory.GetSameNamesCaseInsensitive(Index: integer;
+  List: TStrings);
+var
+  i: Integer;
+  Filename: String;
+begin
+  Filename:=Entries[Index].Name;
+  List.Add(Filename);
+  for i:=Index-1 downto 0 do
+  begin
+    if CompareText(Entries[i].Name,Filename)<>0 then break;
+    List.Add(Entries[i].Name);
+  end;
+  for i:=Index+1 to Count-1 do
+  begin
+    if CompareText(Entries[i].Name,Filename)<>0 then break;
+    List.Add(Entries[i].Name);
+  end;
+end;
+
 procedure TPas2jsCachedDirectory.GetFiles(var Files: TStrings;
   IncludeDirs: boolean);
 var
@@ -810,7 +854,7 @@ begin
   while Node<>nil do begin
     Dir:=TPas2jsCachedDirectory(Node.Data);
     if Dir.FRefCount<>1 then
-      raise Exception.Create('TPas2jsCachedDirectories.Clear "'+Dir.Path+'" '+IntToStr(Dir.FRefCount));
+      raise Exception.Create('TPas2jsCachedDirectories.Clear [20180126090807] "'+Dir.Path+'" '+IntToStr(Dir.FRefCount));
     Dir.Release;
     Node.Data:=nil;
     Node:=FDirectories.FindSuccessor(Node);
@@ -842,21 +886,26 @@ begin
     Result:=SysUtils.FileExists(Info.Filename);
 end;
 
-function TPas2jsCachedDirectories.FileExistsI(var Filename: string): boolean;
+function TPas2jsCachedDirectories.FileExistsI(var Filename: string): integer;
 var
   Info: TFileInfo;
   i: Integer;
 begin
+  Result:=0;
   Info.Filename:=Filename;
-  if not GetFileInfo(Info) then exit(false);
+  if not GetFileInfo(Info) then exit;
   if Info.Dir=nil then
-    Result:=SysUtils.FileExists(Info.Filename)
+  begin
+    if SysUtils.FileExists(Info.Filename) then
+      Result:=1;
+  end
   else
   begin
     i:=Info.Dir.IndexOfFileCaseInsensitive(Info.ShortFilename);
-    Result:=i>=0;
-    if Result then
-      Filename:=ExtractFilePath(Filename)+Info.Dir[i].Name;
+    if i<0 then
+      exit;
+    Filename:=Info.Dir.Path+Info.Dir[i].Name;
+    Result:=Info.Dir.CountSameNamesCaseInsensitive(i);
   end;
 end;
 
@@ -963,7 +1012,7 @@ end;
 
 constructor TPas2jsFileLineReader.Create(const AFilename: string);
 begin
-  raise Exception.Create('TPas2jsFileLineReader.Create no cache "'+AFilename+'"');
+  raise Exception.Create('TPas2jsFileLineReader.Create [20180126090825] no cache "'+AFilename+'"');
 end;
 
 constructor TPas2jsFileLineReader.Create(aFile: TPas2jsCachedFile);
@@ -1191,13 +1240,19 @@ function TPas2jsFileResolver.FindSourceFile(const aFilename: string): TLineReade
 var
   CurFilename: String;
   Found: Boolean;
+  i: Integer;
 begin
   Result:=nil;
   CurFilename:=aFilename;
-  if Cache.SearchLikeFPC then
+  if StrictFileCase or Cache.SearchLikeFPC then
     Found:=Cache.DirectoryCache.FileExists(CurFilename)
   else
-    Found:=Cache.DirectoryCache.FileExistsI(CurFilename);
+  begin
+    i:=Cache.DirectoryCache.FileExistsI(CurFilename);
+    Found:=i=1;
+    if i>1 then
+      Cache.RaiseDuplicateFile(CurFilename);
+  end;
   if not Found then
     raise EFileNotFoundError.Create(aFilename)
   else
@@ -1325,11 +1380,11 @@ begin
       Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[Cache.FormatPath(Filename)]);
 end;
 
-function TPas2jsFileResolver.FileExistsILogged(var Filename: string): boolean;
+function TPas2jsFileResolver.FileExistsILogged(var Filename: string): integer;
 begin
   Result:=Cache.DirectoryCache.FileExistsI(Filename);
   if Cache.ShowTriedUsedFiles then
-    if Result then
+    if Result>0 then
       Cache.Log.LogMsgIgnoreFilter(nSearchingFileFound,[Cache.FormatPath(Filename)])
     else
       Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,[Cache.FormatPath(Filename)]);
@@ -1339,6 +1394,7 @@ function TPas2jsFileResolver.SearchLowUpCase(var Filename: string): boolean;
 {$IFNDEF CaseInsensitiveFilenames}
 var
   CasedFilename: String;
+  i: Integer;
 {$ENDIF}
 begin
   if StrictFileCase or Cache.SearchLikeFPC then
@@ -1366,8 +1422,10 @@ begin
   end else
   begin
     // search case insensitive
-    if FileExistsILogged(Filename) then
-      exit(true);
+    i:=FileExistsILogged(Filename);
+    if i=1 then exit(true);
+    if i>1 then
+      Cache.RaiseDuplicateFile(Filename);
   end;
   Result:=false;
 end;
@@ -1380,6 +1438,7 @@ begin
   Log.RegisterMsg(mtInfo,nUnitSearch,sUnitSearch);
   Log.RegisterMsg(mtInfo,nSearchingFileFound,sSearchingFileFound);
   Log.RegisterMsg(mtInfo,nSearchingFileNotFound,sSearchingFileNotFound);
+  Log.RegisterMsg(mtFatal,nDuplicateFileFound,sDuplicateFileFound);
 end;
 
 function TPas2jsFilesCache.GetAllJSIntoMainJS: Boolean;
@@ -1605,6 +1664,12 @@ end;
 
 procedure TPas2jsFilesCache.FindMatchingFiles(Mask: string; MaxCount: integer;
   Files: TStrings);
+
+  procedure TooMany(id: int64);
+  begin
+    raise EListError.Create('found too many files "'+Mask+'". Max='+IntToStr(MaxCount)+' ['+IntToStr(id)+']');
+  end;
+
 var
   p, StartP, i: Integer;
   Filename, CurMask: String;
@@ -1629,7 +1694,7 @@ begin
         begin
           // e.g. /path/unit*.pas
           if Files.Count>=MaxCount then
-            raise EListError.Create('found too many files "'+Mask+'"');
+            TooMany(20180126091916);
           Files.Add(Filename);
         end else begin
           // e.g. /path/sub*path/...
@@ -1643,7 +1708,7 @@ begin
   if DirectoryCache.FileExists(Mask) then
   begin
     if Files.Count>=MaxCount then
-      raise EListError.Create('found too many files "'+Mask+'"');
+      TooMany(20180126091913);
     Files.Add(Mask);
   end;
 end;
@@ -1830,7 +1895,7 @@ begin
   end;
 end;
 
-function TPas2jsFilesCache.IndexOfInsertFilename(const aFilename: string
+function TPas2jsFilesCache.IndexOfInsertJSFilename(const aFilename: string
   ): integer;
 var
   i: Integer;
@@ -1841,17 +1906,17 @@ begin
   Result:=-1;
 end;
 
-procedure TPas2jsFilesCache.AddInsertFilename(const aFilename: string);
+procedure TPas2jsFilesCache.AddInsertJSFilename(const aFilename: string);
 begin
-  if IndexOfInsertFilename(aFilename)<0 then
+  if IndexOfInsertJSFilename(aFilename)<0 then
     InsertFilenames.Add(aFilename);
 end;
 
-procedure TPas2jsFilesCache.RemoveInsertFilename(const aFilename: string);
+procedure TPas2jsFilesCache.RemoveInsertJSFilename(const aFilename: string);
 var
   i: Integer;
 begin
-  i:=IndexOfInsertFilename(aFilename);
+  i:=IndexOfInsertJSFilename(aFilename);
   if i>=0 then
     InsertFilenames.Delete(i);
 end;
@@ -1860,6 +1925,35 @@ procedure TPas2jsFilesCache.GetListing(const aDirectory: string;
   var Files: TStrings; FullPaths: boolean);
 begin
   DirectoryCache.GetDirectory(aDirectory,true,false).GetFiles(Files,FullPaths);
+end;
+
+procedure TPas2jsFilesCache.RaiseDuplicateFile(aFilename: string);
+
+  procedure E(const File1, File2: string);
+  begin
+    raise EPas2jsFileCache.Create(SafeFormat(sDuplicateFileFound,[File1,File2]));
+  end;
+
+var
+  Dir: TPas2jsCachedDirectory;
+  i: Integer;
+  List: TStringList;
+  ShortFilename: String;
+begin
+  Dir:=DirectoryCache.GetDirectory(ExtractFilePath(aFilename),true,false);
+  ShortFilename:=ExtractFilename(aFilename);
+  i:=Dir.IndexOfFileCaseSensitive(ShortFilename);
+  if i<0 then
+    E(aFilename,'?');
+  List:=TStringList.Create;
+  try
+    Dir.GetSameNamesCaseInsensitive(i,List);
+    if List.Count<2 then
+      E(aFilename,'?');
+    E(Dir.Path+List[0],List[1]);
+  finally
+    List.Free;
+  end;
 end;
 
 end.
