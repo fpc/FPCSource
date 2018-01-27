@@ -3176,9 +3176,9 @@ begin
                   for i := 0 to List.Count - 1 do
                   begin
                     VarEl := TPasVariable(List[i]);
-                    Engine.FinishScope(stDeclaration,VarEl);
                     Declarations.Declarations.Add(VarEl);
                     Declarations.Variables.Add(VarEl);
+                    Engine.FinishScope(stDeclaration,VarEl);
                   end;
                   CheckToken(tkSemicolon);
                 finally
@@ -5915,6 +5915,7 @@ begin
       begin
       Element := TPasElement(VarList[i]);
       Element.Visibility := AVisibility;
+      AType.Members.Add(Element);
       if (Element is TPasVariable) then
         begin
         VarEl:=TPasVariable(Element);
@@ -5924,7 +5925,6 @@ begin
           Include(VarEl.VarModifiers,vmStatic);
         Engine.FinishScope(stDeclaration,VarEl);
         end;
-      AType.Members.Add(Element);
       end;
   finally
     VarList.Free;
@@ -5942,6 +5942,7 @@ begin
     T:=ParseTypeDecl(AType);
     T.Visibility:=AVisibility;
     AType.Members.Add(t);
+    Engine.FinishScope(stTypeDef,T);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
     Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
@@ -5961,6 +5962,7 @@ begin
     C:=ParseConstDecl(AType);
     C.Visibility:=AVisibility;
     AType.Members.Add(C);
+    Engine.FinishScope(stDeclaration,C);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
     Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);

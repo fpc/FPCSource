@@ -4473,7 +4473,7 @@ var
   C: TClass;
 begin
   C:=El.ClassType;
-  if C=TPasVariable then
+  if (C=TPasVariable) or (C=TPasConst) then
     FinishVariable(TPasVariable(El))
   else if C=TPasProperty then
     FinishPropertyOfClass(TPasProperty(El))
@@ -4484,6 +4484,7 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.FinishDeclaration ',GetObjName(El));
     {$ENDIF}
+    RaiseNotYetImplemented(20180127121557,El);
     end;
 end;
 
