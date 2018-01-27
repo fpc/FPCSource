@@ -65,16 +65,24 @@ asm
     clr.l    d4
 {$ifndef CPUCOLDFIRE}
     add.w    d1,d0
-{$else}
-    add.l    d1,d0
-{$endif}
     addx.l   d4,d3
-{$ifndef CPUCOLDFIRE}
     add.w    d2,d0
-{$else}
-    add.l    d2,d0
-{$endif}
     addx.l   d4,d3
+{$else}
+    { accumulate the carry bits of both add operations in d4 and add them at
+      once to d3 }
+    move.w   d1,d4
+    add.l    d4,d0
+
+    move.w   d2,d4
+    add.l    d4,d0
+
+    move.l   d0,d4
+    lsr.l    #8,d4
+    lsr.l    #8,d4
+
+    add.l    d4,d3
+ {$endif}
 
     clr.w    d1
     clr.w    d2
@@ -84,8 +92,11 @@ asm
     add.l    d3,d1
     swap     d0
 {$ifdef CPUCOLDFIRE}
-    { restore lo value of d0 }
-    move.w   d6,d0
+    { add original lo value of d0 }
+    swap     d6
+    clr.w    d6
+    swap     d6
+    add.l    d6,d0
 {$endif}
     add.l    d2,d1
 
