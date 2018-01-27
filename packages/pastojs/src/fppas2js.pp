@@ -2275,6 +2275,9 @@ begin
     if TPasClassType(El.Parent).IsExternal then
       begin
       // external class -> make variable external
+      if El.Expr<>nil then
+        RaiseMsg(20180127111830,nIllegalQualifier,sIllegalQualifier,
+          ['='],El.Expr);
       if not (vmExternal in El.VarModifiers) then
         begin
         if (El.ClassType=TPasVariable) or (El.ClassType=TPasConst) then
