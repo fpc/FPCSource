@@ -427,7 +427,7 @@ type
 
     // external class
     Procedure TestExternalClass_Var;
-    //ToDo Procedure TestExternalClass_Const;
+    Procedure TestExternalClass_ConstFail;
     Procedure TestExternalClass_Dollar;
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
@@ -10456,16 +10456,17 @@ end;
 procedure TTestModule.TestExternalClass_Var;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtA = class external name ''ExtObj''');
-  Add('    Id: longint external name ''$Id'';');
-  Add('    B: longint;');
-  Add('  end;');
-  Add('var Obj: TExtA;');
-  Add('begin');
-  Add('  obj.id:=obj.id+1;');
-  Add('  obj.B:=obj.B+1;');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObj''',
+  '    Id: longint external name ''$Id'';',
+  '    B: longint;',
+  '  end;',
+  'var Obj: TExtA;',
+  'begin',
+  '  obj.id:=obj.id+1;',
+  '  obj.B:=obj.B+1;']);
   ConvertProgram;
   CheckSource('TestExternalClass_Var',
     LinesToStr([ // statements
@@ -10475,6 +10476,20 @@ begin
     '$mod.Obj.$Id = $mod.Obj.$Id + 1;',
     '$mod.Obj.B = $mod.Obj.B + 1;',
     '']));
+end;
+
+procedure TTestModule.TestExternalClass_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObj''',
+  '    const Id: longint = 3;',
+  '  end;',
+  'begin']);
+  SetExpectedPasResolverError('illegal qualifier "="',nIllegalQualifier);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestExternalClass_Dollar;
