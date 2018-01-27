@@ -317,6 +317,7 @@ type
     Procedure TestRepeatUntilNonBoolFail;
     Procedure TestWhileDoNonBoolFail;
     Procedure TestIfThenNonBoolFail;
+    Procedure TestIfAssignMissingSemicolonFail;
     Procedure TestForLoopVarNonVarFail;
     Procedure TestForLoopStartIncompFail;
     Procedure TestForLoopEndIncompFail;
@@ -4227,19 +4228,21 @@ end;
 procedure TTestResolver.TestStatements;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  v1,v2,v3:longint;');
-  Add('begin');
-  Add('  v1:=1;');
-  Add('  v2:=v1+v1*v1+v1 div v1;');
-  Add('  v3:=-v1;');
-  Add('  repeat');
-  Add('    v1:=v1+1;');
-  Add('  until v1>=5;');
-  Add('  while v1>=0 do');
-  Add('    v1:=v1-v2;');
-  Add('  for v1:=v2 to v3 do v2:=v1;');
-  Add('  if v1<v2 then v3:=v1 else v3:=v2;');
+  Add([
+  'var',
+  '  v1,v2,v3:longint;',
+  'begin',
+  '  v1:=1;',
+  '  v2:=v1+v1*v1+v1 div v1;',
+  '  v3:=-v1;',
+  '  repeat',
+  '    v1:=v1+1;',
+  '  until v1>=5;',
+  '  while v1>=0 do',
+  '    v1:=v1-v2;',
+  '  for v1:=v2 to v3 do v2:=v1;',
+  '  if v1<v2 then v3:=v1 else v3:=v2;',
+  '']);
   ParseProgram;
   AssertEquals('3 declarations',3,PasProgram.ProgramSection.Declarations.Count);
 end;
@@ -4448,6 +4451,18 @@ begin
   Add('begin');
   Add('  if 3 then ;');
   CheckResolverException('Boolean expected, but Longint found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestIfAssignMissingSemicolonFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v:longint;',
+  'begin',
+  '  if true then v:=1',
+  '  v:=2']);
+  CheckParserException('Expected "Semicolon"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestForLoopVarNonVarFail;

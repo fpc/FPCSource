@@ -4956,15 +4956,19 @@ var
   end;
 
   procedure CheckSemicolon;
+  var
+    t: TToken;
   begin
-    if (CurBlock.Elements.Count>0) and not (GetPrevToken in [tkSemicolon,tkColon])
-        and (CurBlock.ClassType<>TPasImplIfElse) then
-      begin
-      {$IFDEF VerbosePasParser}
-      writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',GetPrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
-      {$ENDIF}
-      ParseExcTokenError('Semicolon');
-      end;
+    if (CurBlock.Elements.Count=0) then exit;
+    t:=GetPrevToken;
+    if t in [tkSemicolon,tkColon] then
+      exit;
+    if (CurBlock.ClassType=TPasImplIfElse) and (t=tkelse) then
+      exit;
+    {$IFDEF VerbosePasParser}
+    writeln('TPasParser.ParseStatement.CheckSemicolon Prev=',GetPrevToken,' Cur=',CurToken,' ',CurBlock.ClassName,' ',CurBlock.Elements.Count,' ',TObject(CurBlock.Elements[0]).ClassName);
+    {$ENDIF}
+    ParseExcTokenError('Semicolon');
   end;
 
 var
@@ -4994,7 +4998,7 @@ begin
   while True do
   begin
     NextToken;
-    // WriteLn({$IFDEF VerbosePasParser}i,{$ENDIF}' Token=',CurTokenText);
+    //WriteLn({$IFDEF VerbosePasParser}i,{$ENDIF}' Token=',CurTokenText);
     case CurToken of
     tkasm:
       begin
@@ -5440,7 +5444,7 @@ begin
             // assign statement
             Ak:=TokenToAssignKind(CurToken);
             NextToken;
-            right:=DoParseExpression(CurBlock); // this may solve TPasImplWhileDo.AddElement BUG
+            right:=DoParseExpression(CurBlock);
             El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock,SrcPos));
             left.Parent:=El;
             right.Parent:=El;
