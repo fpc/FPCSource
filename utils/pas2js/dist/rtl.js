@@ -109,18 +109,7 @@ var rtl = {
   },
 
   exitcode: 0,
-  // Create needed polyfills for the rtl to run.
-  
-  createPolyFills : function () {
-    if (!Math.trunc) {
-      Math.trunc = function(v) {
-	v = +v;
-	if (!isFinite(v)) return v;
-	return (v - v % 1) || (v < 0 ? -0 : v === 0 ? v : 0);
-      };
-    }
-  },
-  
+
   run: function(module_name){
   
     function doRun(){
@@ -137,8 +126,6 @@ var rtl = {
         if (rtl.isNumber(r)) rtl.exitcode = r;
       }
     }
-    
-    rtl.createPolyFills();
     
     if (rtl.showUncaughtExceptions) {
       try{

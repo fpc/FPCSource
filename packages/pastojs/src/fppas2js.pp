@@ -277,6 +277,7 @@ Works:
   - procedure argument int
 
 ToDos:
+- 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
   a:=[];

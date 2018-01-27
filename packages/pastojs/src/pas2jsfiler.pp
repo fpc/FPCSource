@@ -44,7 +44,7 @@ type
   public
     constructor Create; virtual;
     destructor Destroy; override;
-    procedure WriteModule(aResolver: TPasResolver);
+    procedure WriteModule(aResolver: TPasResolver); virtual;
   end;
 
 implementation
@@ -63,7 +63,7 @@ end;
 
 procedure TPasToJsFiler.WriteModule(aResolver: TPasResolver);
 begin
-  if aResolver=nil then ;
+
 end;
 
 end.
