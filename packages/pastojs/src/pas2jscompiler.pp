@@ -2051,9 +2051,9 @@ begin
         'else':
           begin
             if IfLvl=0 then
-              CfgSyntaxError('"'+Directive+'" without ifdef');
+              CfgSyntaxError('"'+Directive+'" without #ifdef');
             if (Skip=skipElse) and (IfLvl=SkipLvl) then
-              CfgSyntaxError('"there was already an $else');;
+              CfgSyntaxError('"there was already an #else');
             if (Skip=skipIf) and (IfLvl=SkipLvl) then
             begin
               // if-block was skipped -> execute else block
@@ -2067,12 +2067,13 @@ begin
               if ShowDebug then
                 DebugCfgDirective('skip');
               Skip:=skipElse;
+              SkipLvl:=IfLvl;
             end;
           end;
         'elseif':
           begin
             if IfLvl=0 then
-              CfgSyntaxError('"'+Directive+'" without ifdef');
+              CfgSyntaxError('"'+Directive+'" without #ifdef');
             if (Skip=skipIf) and (IfLvl=SkipLvl) then
             begin
               // if-block was skipped -> try this elseif
@@ -2100,7 +2101,7 @@ begin
         'endif':
           begin
             if IfLvl=0 then
-              CfgSyntaxError('"'+Directive+'" without ifdef');
+              CfgSyntaxError('"'+Directive+'" without #ifdef');
             dec(IfLvl);
             if IfLvl<SkipLvl then
             begin
@@ -2115,7 +2116,7 @@ begin
           ParamFatal('user defined: '+copy(Line,p-PChar(Line)+1,length(Line)))
         else
           if Skip=skipNone then
-            CfgSyntaxError('unknown directive "'+Directive+'"')
+            CfgSyntaxError('unknown directive "#'+Directive+'"')
           else
             DebugCfgDirective('skipping unknown directive');
         end;
