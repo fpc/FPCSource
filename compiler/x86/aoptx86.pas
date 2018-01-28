@@ -1117,6 +1117,8 @@ unit aoptx86;
           begin
             GetNextInstruction(p, hp1);
             DebugMsg('PeepHole Optimization Mov2Nop done',p);
+            { take care of the register (de)allocs following p }
+            UpdateUsedRegs(tai(p.next));
             asml.remove(p);
             p.free;
             p:=hp1;
