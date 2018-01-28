@@ -482,6 +482,7 @@ type
     Procedure TestProcType_ReferenceToMethod;
     Procedure TestProcType_Typecast;
     Procedure TestProcType_PassProcToUntyped;
+    Procedure TestProcType_PassProcToArray;
 
     // pointer
     Procedure TestPointer;
@@ -505,6 +506,7 @@ type
     Procedure TestJSValue_FuncResultType;
     Procedure TestJSValue_ProcType_Assign;
     Procedure TestJSValue_ProcType_Equal;
+    Procedure TestJSValue_ProcType_Param;
     Procedure TestJSValue_AssignToPointerFail;
     Procedure TestJSValue_OverloadDouble;
     Procedure TestJSValue_OverloadNativeInt;
@@ -12983,6 +12985,40 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestProcType_PassProcToArray;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFunc = function: longint;',
+  '  TArrFunc = array of TFunc;',
+  'procedure DoIt(Arr: TArrFunc); begin end;',
+  'function GetIt: longint; begin end;',
+  'var',
+  '  Func: tfunc;',
+  'begin',
+  '  doit([]);',
+  '  doit([@GetIt]);',
+  '  doit([Func]);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestProcType_PassProcToArray',
+    LinesToStr([ // statements
+    'this.DoIt = function (Arr) {',
+    '};',
+    'this.GetIt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Func = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt([]);',
+    '$mod.DoIt([$mod.GetIt]);',
+    '$mod.DoIt([$mod.Func]);',
+    '']));
+end;
+
 procedure TTestModule.TestPointer;
 begin
   StartProgram(false);
@@ -13872,6 +13908,51 @@ begin
     'if (rtl.eqCallback($mod.GetIt, $mod.V)) ;',
     'if (rtl.eqCallback(rtl.createCallback($mod.o, "Getter"), $mod.V)) ;',
     'if (rtl.eqCallback(rtl.createCallback($mod.o.$class, "GetGlob"), $mod.V)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ProcType_Param;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  variant = jsvalue;',
+  '  TArrVariant = array of variant;',
+  '  TArrVar2 = TArrVariant;',
+  '  TFuncInt = function: longint;',
+  'function GetIt: longint;',
+  'begin',
+  'end;',
+  'procedure DoIt(p: jsvalue; Arr: TArrVar2);',
+  'var v: variant;',
+  'begin',
+  '  v:=arr[1];',
+  'end;',
+  'var s: string;',
+  'begin',
+  '  DoIt(GetIt,[]);',
+  '  DoIt(@GetIt,[]);',
+  '  DoIt(1,[s,GetIt]);',
+  '  DoIt(1,[s,@GetIt]);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_ProcType_Param',
+    LinesToStr([ // statements
+    'this.GetIt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.DoIt = function (p, Arr) {',
+    '  var v = undefined;',
+    '  v = Arr[1];',
+    '};',
+    'this.s = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.GetIt(), []);',
+    '$mod.DoIt($mod.GetIt, []);',
+    '$mod.DoIt(1, [$mod.s, $mod.GetIt()]);',
+    '$mod.DoIt(1, [$mod.s, $mod.GetIt]);',
     '']));
 end;
 
