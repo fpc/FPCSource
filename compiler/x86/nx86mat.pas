@@ -488,18 +488,9 @@ interface
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                         { Ensure that the whole register is 0, since SETcc only sets the lowest byte }
 
-                        if opsize = S_Q then
-                          begin
-                            { Emit an XOR instruction that only operates on the lower 32 bits,
-                              since we want to initialise this register to zero, the upper 32
-                              bits will be set to zero regardless, and the resultant machine code
-                              will usually be smaller due to the lack of a REX prefix. [Kit] }
-                            tempreg := location.register;
-                            setsubreg(tempreg, R_SUBD);
-                            emit_reg_reg(A_XOR, S_L, tempreg, tempreg);
-                          end
-                        else
-                          emit_reg_reg(A_XOR,opsize,location.register,location.register);
+                        { If the operands are 64 bits, this XOR routine will be shrunk by the
+                          peephole optimizer. [Kit] }
+                        emit_reg_reg(A_XOR,opsize,location.register,location.register);
 
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }

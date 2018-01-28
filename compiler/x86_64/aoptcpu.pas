@@ -144,11 +144,15 @@ uses
               case taicpu(p).opcode of
                 A_MOV:
                   Result:=PostPeepholeOptMov(p);
+                A_MOVZX:
+                  Result:=PostPeepholeOptMovzx(p);
                 A_CMP:
                   Result:=PostPeepholeOptCmp(p);
                 A_OR,
                 A_TEST:
                   Result:=PostPeepholeOptTestOr(p);
+                A_XOR:
+                  Result:=PostPeepholeOptXor(p);
               end;
             end;
         end;
