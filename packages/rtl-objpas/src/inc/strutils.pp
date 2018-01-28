@@ -45,6 +45,7 @@ Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
 Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 Function MatchStr(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
+Function MatchText(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
 Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
 Function IndexText(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
 Operator in (const AText: string; const AValues: array of string):Boolean;inline;
@@ -991,6 +992,10 @@ begin
   Result := IndexStr(AText,AValues) <> -1;
 end;
 
+function MatchText(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
+begin
+ Result := IndexText(AText,AValues) <> -1;
+end;
 
 function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
 var
