@@ -1504,6 +1504,7 @@ procedure TDataSet.ClearFields;
 
 
 begin
+  if not (State in dsEditModes) then DatabaseError(SNotEditing, Self);
   DataEvent(deCheckBrowseMode, 0);
   FreeFieldBuffers;
   InternalInitRecord(ActiveBuffer);
