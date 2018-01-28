@@ -85,6 +85,9 @@ Unit AoptObj;
         Function IsUsed(Reg: TRegister): Boolean;
         { get all the currently used registers }
         Function GetUsedRegs: TRegSet;
+
+        { outputs  the current set }
+        Procedure Dump(var t : text);
       Private
         Typ : TRegisterType;
         UsedRegs: TRegSet;
@@ -450,6 +453,18 @@ Unit AoptObj;
       Begin
         GetUsedRegs := UsedRegs;
       End;
+
+
+    procedure TUsedRegs.Dump(var t: text);
+      var
+        i: dword;
+      begin
+        write(t,Typ,' ');
+        for i:=low(TRegSet) to high(TRegSet) do
+          if i in UsedRegs then
+            write(t,i,' ');
+         writeln(t);
+      end;
 
 
     Destructor TUsedRegs.Destroy;
