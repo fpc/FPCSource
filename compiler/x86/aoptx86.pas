@@ -1298,7 +1298,7 @@ unit aoptx86;
                       begin
                         taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
                         taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
-                        DebugMsg('PeepHole Optimization MovTestJxx2ovTestJxx done',p);
+                        DebugMsg('PeepHole Optimization MovTestJxx2MovTestJxx done',p);
                       end;
                   ReleaseUsedRegs(TmpUsedRegs);
                 end
