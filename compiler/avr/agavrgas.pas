@@ -75,6 +75,9 @@ unit agavrgas;
 
     Procedure TAVRInstrWriter.WriteInstruction(hp : tai);
 
+      var
+        op: TAsmOp;
+
       function getreferencestring(var ref : treference) : string;
         var
           s : string;
@@ -107,12 +110,14 @@ unit agavrgas;
                       s:=s+gas_regname(base);
                   end;
                   if addressmode=AM_POSTINCREMENT then
-                    s:=s+'+';
-
-                  if offset>0 then
-                    s:=s+'+'+tostr(offset)
-                  else if offset<0 then
-                    s:=s+tostr(offset);
+                    s:=s+'+'
+                  else if addressmode = AM_UNCHANGED then
+                    begin
+                      if (offset>0) or ((offset=0) and (op in [A_LDD,A_STD])) then
+                        s:=s+'+'+tostr(offset)
+                      else if offset<0 then
+                        s:=s+tostr(offset);
+                    end;
                 end
               else if assigned(symbol) or (offset<>0) then
                 begin
@@ -174,10 +179,10 @@ unit agavrgas;
           end;
         end;
 
-    var op: TAsmOp;
-        s: string;
-        i: byte;
-        sep: string[3];
+    var
+      s: string;
+      i: byte;
+      sep: string[3];
     begin
       op:=taicpu(hp).opcode;
       s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
