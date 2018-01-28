@@ -822,6 +822,7 @@ type
   TResolvedReferenceFlag = (
     rrfDotScope, // found reference via a dot scope (TPasDotIdentifierScope)
     rrfImplicitCallWithoutParams, // a TPrimitiveExpr is an implicit call without params
+    rrfNoImplicitCallWithoutParams, // a TPrimitiveExpr is an implicit call without params
     rrfNewInstance, // constructor call (without it call constructor as normal method)
     rrfFreeInstance, // destructor call (without it call destructor as normal method)
     rrfVMT, // use VMT for call
@@ -6362,8 +6363,8 @@ procedure TPasResolver.ResolveFuncParamsExpr(Params: TParamsExpr;
         argOut: ParamAccess:=rraOutParam;
         end;
       AccessExpr(Params.Params[i],ParamAccess);
-      CheckCallProcCompatibility(ProcType,Params,false,true);
       end;
+    CheckCallProcCompatibility(ProcType,Params,false,true);
   end;
 
   procedure FinishUntypedParams(ParamAccess: TResolvedRefAccess);
@@ -6736,12 +6737,21 @@ end;
 
 procedure TPasResolver.ResolveSetParamsExpr(Params: TParamsExpr);
 // e.g. resolving '[1,2..3]'
+var
+  i: Integer;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveSetParamsExpr ',GetTreeDbg(Params));
   {$ENDIF}
   if Params.Value<>nil then
     RaiseNotYetImplemented(20160930135910,Params);
+  for i:=0 to length(Params.Params)-1 do
+    begin
+    Param:=Params.Params[i];
+    ComputeElement(Param,ParamResolved,[rcNoImplicitProcType,rcSetReferenceFlags]);
+    end;
 end;
 
 procedure TPasResolver.ResolveArrayValues(El: TArrayValues);
@@ -12131,11 +12141,10 @@ begin
       IsVarArgs:=IsVarArgs or (ptmVarargs in ProcType.Modifiers);
       if IsVarArgs then
         begin
-        Flags:=[rcNoImplicitProcType];
         if SetReferenceFlags then
-          Flags:=[rcNoImplicitProcType]
+          Flags:=[rcNoImplicitProcType,rcSetReferenceFlags]
         else
-          Flags:=[rcNoImplicitProcType,rcSetReferenceFlags];
+          Flags:=[rcNoImplicitProcType];
         ComputeElement(Param,ParamResolved,Flags,Param);
         if not (rrfReadable in ParamResolved.Flags) then
           begin
@@ -14830,10 +14839,19 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     else
       writeln('TPasResolver.ComputeElement.ComputeIdentifier "',GetObjName(Expr),'" ',GetResolverResultDbg(ResolvedEl),' Flags=',dbgs(Flags));
     {$ENDIF}
+    if not (rcSetReferenceFlags in Flags)
+        and (rrfNoImplicitCallWithoutParams in Ref.Flags) then
+      exit;
+
     if (ResolvedEl.BaseType=btProc) then
       begin
       // proc
-      if [rcNoImplicitProc,rcConstant,rcType]*Flags=[] then
+      if rcNoImplicitProc in Flags then
+        begin
+         if rcSetReferenceFlags in Flags then
+           Include(Ref.Flags,rrfNoImplicitCallWithoutParams);
+        end
+      else if [rcConstant,rcType]*Flags=[] then
         begin
         // implicit call without params is allowed -> check if possible
         Proc:=ResolvedEl.IdentEl as TPasProcedure;
@@ -14868,7 +14886,12 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     else if IsProcedureType(ResolvedEl,true) then
       begin
       // proc type
-      if [rcNoImplicitProc,rcNoImplicitProcType,rcConstant,rcType]*Flags=[] then
+      if [rcNoImplicitProc,rcNoImplicitProcType]*Flags<>[] then
+        begin
+         if rcSetReferenceFlags in Flags then
+           Include(Ref.Flags,rrfNoImplicitCallWithoutParams);
+        end
+      else if [rcConstant,rcType]*Flags=[] then
         begin
         // implicit call without params is allowed -> check if possible
         ProcType:=TPasProcedureType(ResolvedEl.TypeEl);
