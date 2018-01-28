@@ -1,3 +1,4 @@
+{ %OPT=-O3 }
 {$mode objfpc}
 {$R+}
 {$H+}
