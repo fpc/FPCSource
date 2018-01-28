@@ -28,6 +28,7 @@ type
     // fields
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
+    procedure TestClearFields;
 
     procedure TestSupportIntegerFields;
     procedure TestSupportSmallIntFields;
@@ -1198,6 +1199,15 @@ begin
     end;
     CheckTrue(PassException);
 
+    end;
+end;
+
+procedure TTestDBBasics.TestClearFields;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    open;
+    AssertException('Cannot call clearfields when not in edit mode',EDatabaseError,ClearFields);
     end;
 end;
 
