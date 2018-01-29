@@ -3471,11 +3471,22 @@ begin
       UngetToken;
       Result.IsConst:=true;
       end;
-    ExpectToken(tkEqual);
     NextToken;
-    Result.Expr:=DoParseConstValueExpression(Result);
-    if (Result.VarType=Nil) and (Result.Expr.Kind=pekRange) then
-      ParseExc(nParserNoConstRangeAllowed, SParserNoConstRangeAllowed );
+    if CurToken=tkEqual then
+      begin
+      NextToken;
+      Result.Expr:=DoParseConstValueExpression(Result);
+      if (Result.VarType=Nil) and (Result.Expr.Kind=pekRange) then
+        ParseExc(nParserNoConstRangeAllowed,SParserNoConstRangeAllowed);
+      end
+    else if (Result.VarType<>nil)
+        and (po_ExtClassConstWithoutExpr in Options)
+        and (Parent is TPasClassType)
+        and TPasClassType(Parent).IsExternal
+        and (TPasClassType(Parent).ObjKind=okClass) then
+      // const without expression is allowed in external class
+    else
+      CheckToken(tkEqual);
     UngetToken;
     CheckHint(Result,True);
     ok:=true;

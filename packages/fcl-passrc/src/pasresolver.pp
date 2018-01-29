@@ -1419,8 +1419,8 @@ type
     // find value and type of an element
     procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
-    function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
-    function Eval(const Value: TPasResolverResult; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue;
+    function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
+    function Eval(const Value: TPasResolverResult; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
     // checking compatibilility
     function IsSameType(TypeA, TypeB: TPasType; ResolveAlias: boolean = false): boolean; // check if it is exactly the same
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
@@ -4004,14 +4004,16 @@ end;
 
 procedure TPasResolver.FinishConstDef(El: TPasConst);
 begin
-  ResolveExpr(El.Expr,rraRead);
+  if El.Expr<>nil then
+    ResolveExpr(El.Expr,rraRead);
   if El.VarType<>nil then
     begin
-    CheckAssignCompatibility(El,El.Expr,true);
+    if El.Expr<>nil then
+      CheckAssignCompatibility(El,El.Expr,true);
     EmitTypeHints(El,El.VarType);
     end
-  else
-    Eval(El.Expr,[refConst])
+  else if El.Expr<>nil then
+    Eval(El.Expr,[refConst]);
 end;
 
 procedure TPasResolver.FinishResourcestring(El: TPasResString);
@@ -11059,6 +11061,8 @@ begin
     // found member in external class instance
       C:=FindData.Found.ClassType;
       if (C=TPasProcedure) or (C=TPasFunction) then
+        // ok
+      else if (C=TPasConst) then
         // ok
       else if C.InheritsFrom(TPasVariable)
           and (not (vmClass in TPasVariable(FindData.Found).VarModifiers)) then

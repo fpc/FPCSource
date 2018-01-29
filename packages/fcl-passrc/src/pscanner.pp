@@ -560,7 +560,8 @@ type
     po_SelfToken,            // Self is a token. For backward compatibility.
     po_CheckModeSwitches,    // stop on unknown modeswitch with an error
     po_CheckCondFunction,    // stop on unknown function in conditional expression, default: return '0'
-    po_StopOnErrorDirective  // stop on user $Error, $message error|fatal
+    po_StopOnErrorDirective, // stop on user $Error, $message error|fatal
+    po_ExtClassConstWithoutExpr // allow const without expression in external class
     );
   TPOptions = set of TPOption;
 
