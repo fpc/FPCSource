@@ -111,6 +111,7 @@ type
     procedure TestM_Hint_FunctionResultDoesNotSeemToBeSet_Abstract;
     procedure TestM_Hint_FunctionResultRecord;
     procedure TestM_Hint_FunctionResultPassRecordElement;
+    procedure TestM_Hint_FunctionResultAssembler;
     procedure TestM_Hint_AbsoluteVar;
 
     // whole program optimization
@@ -1582,6 +1583,19 @@ begin
   Add('  Point();');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "Y" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_FunctionResultAssembler;
+begin
+  StartProgram(false);
+  Add([
+  'function GetIt: longint; assembler;',
+  'asm',
+  'end;',
+  'begin',
+  '  GetIt;']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
