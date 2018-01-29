@@ -264,7 +264,7 @@ begin
     'var d = 6;',
     'this.DoIt = function () {',
     '  var Result = 0;',
-    '  Result = b + d;',
+    '  Result = 4 + d;',
     '  return Result;',
     '};',
     '']),
@@ -819,7 +819,7 @@ begin
   '  });',
   '  this.T = null;',
   '  $mod.$main = function () {',
-  '    $mod.T = $mod.TObject.$create("Create",[$mod.gcBlack]);',
+  '    $mod.T = $mod.TObject.$create("Create",[0]);',
   '  };',
   '});',
   '']);

@@ -2275,12 +2275,14 @@ begin
     RaiseVarModifierNotSupported(ClassFieldModifiersAllowed);
     if TPasClassType(El.Parent).IsExternal then
       begin
-      // external class -> make variable external
-      if El.Expr<>nil then
-        RaiseMsg(20180127111830,nIllegalQualifier,sIllegalQualifier,
-          ['='],El.Expr);
+      // external class
+      if El.Visibility=visPublished then
+        // Note: an external class has no typeinfo
+        RaiseMsg(20170413221516,nSymbolCannotBePublished,sSymbolCannotBePublished,
+          [],El);
       if not (vmExternal in El.VarModifiers) then
         begin
+        // make variable external
         if (El.ClassType=TPasVariable) or (El.ClassType=TPasConst) then
           begin
           if El.ExportName<>nil then
@@ -2290,10 +2292,9 @@ begin
           end;
         Include(El.VarModifiers,vmExternal);
         end;
-      if El.Visibility=visPublished then
-        // Note: an external class has no typeinfo
-        RaiseMsg(20170413221516,nSymbolCannotBePublished,sSymbolCannotBePublished,
-          [],El);
+      if (El.ClassType=TPasConst) and (TPasConst(El).Expr<>nil) then
+        // external const with expression is not writable
+        TPasConst(El).IsConst:=true;
       end;
     end
   else if ParentC=TPasRecordType then
@@ -4969,6 +4970,27 @@ begin
     begin
     Result:=CreateArgumentAccess(TPasArgument(Decl),AContext,El);
     exit;
+    end
+  else if Decl.ClassType=TPasConst then
+    begin
+    if TPasConst(Decl).IsConst and (TPasConst(Decl).Expr<>nil) then
+      begin
+      Value:=AContext.Resolver.Eval(TPasConst(Decl).Expr,[refConst]);
+      if (Value<>nil)
+          and (Value.Kind in [revkNil,revkBool,revkInt,revkUInt,revkFloat,revkEnum]) then
+        try
+          Result:=ConvertConstValue(Value,AContext,El);
+          exit;
+        finally
+          ReleaseEvalValue(Value);
+        end;
+      if vmExternal in TPasConst(Decl).VarModifiers then
+        begin
+        // external constant are always added by value, not by reference
+        Result:=ConvertElement(TPasConst(Decl).Expr,AContext);
+        exit;
+        end;
+      end;
     end
   else if Decl.ClassType=TPasResString then
     begin
@@ -9758,6 +9780,11 @@ end;
 
 function TPasToJSConverter.ConvertConstValue(Value: TResEvalValue;
   AContext: TConvertContext; El: TPasElement): TJSElement;
+var
+  Ranges: TResEvalSet.TItems;
+  Range: TResEvalSet.TItem;
+  Call: TJSCallExpression;
+  i: Integer;
 begin
   Result:=nil;
   if Value=nil then
@@ -9783,7 +9810,35 @@ begin
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertConstValue Value=',Value.AsDebugString,' IdentEl=',GetObjName(Value.IdentEl));
       {$ENDIF}
-      RaiseNotSupported(El,AContext,20171221125842);
+      // rtl.createSet()
+      Call:=CreateCallExpression(El);
+      try
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSet_Create]]);
+        Ranges:=TResEvalSet(Value).Ranges;
+        for i:=0 to length(Ranges)-1 do
+          begin
+          Range:=Ranges[i];
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.ConvertConstValue SetLiteral ',i,' ',Range.RangeStart,'..',Range.RangeEnd);
+          {$ENDIF}
+          if Range.RangeStart=Range.RangeEnd then
+            begin
+            // add one integer
+            Call.AddArg(CreateLiteralNumber(El,Range.RangeStart));
+            end
+          else
+            begin
+            // range -> add three parameters: null,left,right
+            Call.AddArg(CreateLiteralNull(El));
+            Call.AddArg(CreateLiteralNumber(El,Range.RangeStart));
+            Call.AddArg(CreateLiteralNumber(El,Range.RangeEnd));
+            end;
+          end;
+        Result:=Call;
+      finally
+        if Result=nil then
+          Call.Free;
+      end;
       end
   else
     {$IFDEF VerbosePas2JS}

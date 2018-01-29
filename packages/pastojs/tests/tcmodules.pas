@@ -31,7 +31,7 @@ uses
 
 const
   // default parser+scanner options
-  po_pas2js = [po_asmwhole,po_resolvestandardtypes];
+  po_pas2js = [po_asmwhole,po_resolvestandardtypes,po_ExtClassConstWithoutExpr];
   co_tcmodules = [coNoTypeInfo];
 type
 
@@ -427,7 +427,7 @@ type
 
     // external class
     Procedure TestExternalClass_Var;
-    Procedure TestExternalClass_ConstFail;
+    Procedure TestExternalClass_Const;
     Procedure TestExternalClass_Dollar;
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
@@ -3144,10 +3144,10 @@ begin
   CheckSource('TestProc_ConstOrder',
     LinesToStr([ // statements
     'this.A = 3;',
-    'this.B = $mod.A + 1;',
-    'var C = $mod.A + 1;',
-    'var D = $mod.B + 1;',
-    'var E = ((D + C) + $mod.B) + $mod.A;',
+    'this.B = 3 + 1;',
+    'var C = 3 + 1;',
+    'var D = 4 + 1;',
+    'var E = ((5 + 4) + 4) + 3;',
     'this.DoIt = function () {',
     '};',
     '']),
@@ -3933,10 +3933,10 @@ begin
     'this.Enums = {};',
     '']),
     LinesToStr([
-    '$mod.Enums = rtl.includeSet($mod.Enums, $mod.Orange);',
-    '$mod.Enums = rtl.excludeSet($mod.Enums, $mod.Orange);',
-    'if ($mod.Orange in $mod.Enums) ;',
-    'if ($mod.Orange in rtl.createSet($mod.Orange, $mod.TEnum.Red)) ;',
+    '$mod.Enums = rtl.includeSet($mod.Enums, $mod.TEnum.Red);',
+    '$mod.Enums = rtl.excludeSet($mod.Enums, $mod.TEnum.Red);',
+    'if ($mod.TEnum.Red in $mod.Enums) ;',
+    'if ($mod.TEnum.Red in rtl.createSet($mod.TEnum.Red, $mod.TEnum.Red)) ;',
     '']));
 end;
 
@@ -3977,16 +3977,16 @@ begin
     '']),
     LinesToStr([
     '$mod.f = rtl.includeSet($mod.f, $mod.TFlags$a.red);',
-    '$mod.f = rtl.includeSet($mod.f, $mod.favorite);',
+    '$mod.f = rtl.includeSet($mod.f, $mod.TFlags$a.red);',
     '$mod.i = $mod.TFlags$a.red;',
-    '$mod.i = $mod.favorite;',
+    '$mod.i = $mod.TFlags$a.red;',
     '$mod.i = $mod.TFlags$a.red;',
     '$mod.i = $mod.TFlags$a.red;',
     '$mod.i = $mod.TFlags$a.red;',
     '$mod.i = $mod.TFlags$a.green;',
     '$mod.i = $mod.TFlags$a.green;',
     '$mod.i = $mod.TFlags$a.green;',
-    '$mod.f = rtl.createSet($mod.TFlags$a.green, $mod.favorite);',
+    '$mod.f = rtl.createSet($mod.TFlags$a.green, $mod.TFlags$a.red);',
     '']));
 end;
 
@@ -4301,10 +4301,10 @@ begin
     'var cB$1 = 4;',
     'this.DoIt = function () {',
     '  function Sub() {',
-    '    cB$1 = cB$1 + csA;',
-    '    cA = (cA + csA) + 5;',
+    '    cB$1 = cB$1 + 3;',
+    '    cA = (cA + 3) + 5;',
     '  };',
-    '  cA = (cA + cB) + 6;',
+    '  cA = (cA + 2) + 6;',
     '};'
     ]),
     LinesToStr([
@@ -10480,18 +10480,47 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestExternalClass_ConstFail;
+procedure TTestModule.TestExternalClass_Const;
 begin
   StartProgram(false);
   Add([
   '{$modeswitch externalclass}',
   'type',
   '  TExtA = class external name ''ExtObj''',
-  '    const Id: longint = 3;',
+  '    const Two: longint = 2;',
+  '    const Three = 3;',
+  '    const Id: longint;',
   '  end;',
-  'begin']);
-  SetExpectedPasResolverError('illegal qualifier "="',nIllegalQualifier);
+  '  TExtB = class external name ''ExtB''',
+  '    A: TExtA;',
+  '  end;',
+  'var',
+  '  A: texta;',
+  '  B: textb;',
+  '  i: longint;',
+  'begin',
+  '  i:=a.two;',
+  '  i:=texta.two;',
+  '  i:=a.three;',
+  '  i:=texta.three;',
+  '  i:=a.id;',
+  '  i:=texta.id;',
+  '']);
   ConvertProgram;
+  CheckSource('TestExternalClass_Dollar',
+    LinesToStr([ // statements
+    'this.A = null;',
+    'this.B = null;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.i = 2;',
+    '$mod.i = 2;',
+    '$mod.i = 3;',
+    '$mod.i = 3;',
+    '$mod.i = $mod.A.Id;',
+    '$mod.i = ExtObj.Id;',
+    '']));
 end;
 
 procedure TTestModule.TestExternalClass_Dollar;
@@ -11111,7 +11140,7 @@ begin
   Add('    constructor New;');
   Add('  end;');
   Add('function DoIt: longint;');
-  Add('const ExtA = 3;');
+  Add('const ExtA: longint = 3;');
   Add('begin');
   Add('  Result:=ExtA;');
   Add('end;');
