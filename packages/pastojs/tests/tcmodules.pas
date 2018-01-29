@@ -4386,8 +4386,13 @@ procedure TTestModule.TestDouble;
 begin
   StartProgram(false);
   Add([
+  'type',
+  '  TDateTime = double;',
+  'const',
+  '  a = TDateTime(2.7);',
+  '  b = a + TDateTime(1.7);',
   'var',
-  '  d: double;',
+  '  d: double = b;',
   'begin',
   '  d:=1.0;',
   '  d:=1.0/3.0;',
@@ -4401,7 +4406,9 @@ begin
   ConvertProgram;
   CheckSource('TestDouble',
     LinesToStr([
-    'this.d=0.0;'
+    'this.a = 2.7;',
+    'this.b = 2.7000000000000002E+000 + 1.7;',
+    'this.d = 4.4000000000000004E+000;'
     ]),
     LinesToStr([
     '$mod.d = 1.0;',

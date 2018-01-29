@@ -9798,6 +9798,8 @@ begin
     Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
   revkUInt:
     Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
+  revkFloat:
+    Result:=CreateLiteralNumber(El,TResEvalFloat(Value).FloatValue);
   revkString:
     Result:=CreateLiteralString(El,TResEvalString(Value).S);
   revkUnicodeString:
