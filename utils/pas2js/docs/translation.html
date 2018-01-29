@@ -2289,6 +2289,8 @@ End.
       instance can have its own value. For example <i>TExtA.Value</i> might be
       different from <i>InstanceExtA.Value</i>. Setting <i>InstanceExtA.Value</i>
       does not change <i>TExtA.Value</i>.</li>
+      <li>Const with an expression are replaced by the expression.</li>
+      <li>Const without an expression are treated as a readonly variable.</li>
       <li>Class functions and class procedures are allowed, but can only be called via the class, not via an instance.<br>
       For example you can call the class function <i>TJSString.fromCharCode()</i>, but you cannot
       call <i>aJSString.fromCharCode()</i>.</li>
