@@ -440,6 +440,9 @@ endif
 ifeq ($(ARCH),x86_64)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 endif
+ifeq ($(ARCH),m68k)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math
+endif
 ifeq ($(ARCH),mipsel)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
