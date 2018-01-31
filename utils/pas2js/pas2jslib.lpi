@@ -4,7 +4,6 @@
     <Version Value="11"/>
     <General>
       <Flags>
-        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
