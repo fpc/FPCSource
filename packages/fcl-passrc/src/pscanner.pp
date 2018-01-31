@@ -620,8 +620,9 @@ type
     FSkipComments: Boolean;
     FSkipWhiteSpace: Boolean;
     FTokenOptions: TTokenOptions;
-    TokenStr: PChar;
+    FTokenStr: PChar;
     FIncludeStack: TFPList;
+    FFiles: TStrings;
 
     // Preprocessor $IFxxx skipping data
     PPSkipMode: TPascalScannerPPSkipMode;
@@ -646,6 +647,7 @@ type
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
   protected
     function FetchLine: boolean;
+    procedure AddFile(aFilename: string); virtual;
     function GetMacroName(const Param: String): String;
     procedure SetCurMsg(MsgType: TMessageType; MsgNumber: integer; Const Fmt : String; Args : Array of const);
     Procedure DoLog(MsgType: TMessageType; MsgNumber: integer; Const Msg : String; SkipSourceInfo : Boolean = False);overload;
@@ -705,14 +707,12 @@ type
     Function SetForceCaret(AValue : Boolean) : Boolean; // returns old state
     function IgnoreMsgType(MsgType: TMessageType): boolean; virtual;
     property FileResolver: TBaseFileResolver read FFileResolver;
+    property Files: TStrings read FFiles;
     property CurSourceFile: TLineReader read FCurSourceFile;
     property CurFilename: string read FCurFilename;
-    Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
-    Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
     property CurLine: string read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
-
     property CurToken: TToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
     property CurTokenPos: TPasSourcePos read FCurTokenPos;
@@ -730,6 +730,8 @@ type
     property ReadOnlyBoolSwitches: TBoolSwitches read FReadOnlyBoolSwitches Write SetReadOnlyBoolSwitches;// cannot be changed by code
     property CurrentBoolSwitches: TBoolSwitches read FCurrentBoolSwitches Write SetCurrentBoolSwitches;
     property Options : TPOptions read FOptions write SetOptions;
+    Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
+    Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
     property ForceCaret : Boolean read GetForceCaret;
     property LogEvents : TPScannerLogEvents read FLogEvents write FLogEvents;
     property OnLog : TPScannerLogHandler read FOnLog write FOnLog;
@@ -2306,6 +2308,7 @@ constructor TPascalScanner.Create(AFileResolver: TBaseFileResolver);
 begin
   inherited Create;
   FFileResolver := AFileResolver;
+  FFiles:=TStringList.Create;
   FIncludeStack := TFPList.Create;
   FDefines := CS;
   FMacros:=CS;
@@ -2342,6 +2345,7 @@ begin
     end;
   FIncludeStack.Clear;
   FreeAndNil(FCurSourceFile);
+  FFiles.Clear;
 end;
 
 procedure TPascalScanner.ClearMacros;
@@ -2365,6 +2369,7 @@ begin
   Clearfiles;
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
+  AddFile(FCurFilename);
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
@@ -2429,7 +2434,7 @@ begin
         FCurTokenString := IncludeStackItem.TokenString;
         FCurLine := IncludeStackItem.Line;
         FCurRow := IncludeStackItem.Row;
-        TokenStr := IncludeStackItem.TokenStr;
+        FTokenStr := IncludeStackItem.TokenStr;
         IncludeStackItem.Free;
         Result := FCurToken;
         end
@@ -2482,7 +2487,7 @@ var
     AddLen: PtrInt;
     OldLen: Integer;
   begin
-    AddLen:=TokenStr-StartPos;
+    AddLen:=FTokenStr-StartPos;
     if AddLen=0 then
       FCurTokenString:=''
     else
@@ -2490,15 +2495,15 @@ var
       OldLen:=length(FCurTokenString);
       SetLength(FCurTokenString,OldLen+AddLen);
       Move(StartPos^,PChar(PChar(FCurTokenString)+OldLen)^,AddLen);
-      StartPos:=TokenStr;
+      StartPos:=FTokenStr;
       end;
   end;
 
 begin
   FCurTokenString := '';
-  StartPos:=TokenStr;
+  StartPos:=FTokenStr;
   repeat
-    case TokenStr[0] of
+    case FTokenStr[0] of
       #0: // end of line
         begin
           Add;
@@ -2515,15 +2520,15 @@ begin
             FCurToken := Result;
             exit;
             end;
-          StartPos:=TokenStr;
+          StartPos:=FTokenStr;
         end;
       '0'..'9', 'A'..'Z', 'a'..'z','_':
         begin
           // number or identifier
-          if (TokenStr[0] in ['e','E'])
-              and (TokenStr[1] in ['n','N'])
-              and (TokenStr[2] in ['d','D'])
-              and not (TokenStr[3] in ['0'..'9', 'A'..'Z', 'a'..'z','_']) then
+          if (FTokenStr[0] in ['e','E'])
+              and (FTokenStr[1] in ['n','N'])
+              and (FTokenStr[2] in ['d','D'])
+              and not (FTokenStr[3] in ['0'..'9', 'A'..'Z', 'a'..'z','_']) then
             begin
             // 'end' found
             Add;
@@ -2537,20 +2542,20 @@ begin
             // return 'end'
             Result := tkend;
             SetLength(FCurTokenString, 3);
-            Move(TokenStr^, FCurTokenString[1], 3);
-            inc(TokenStr,3);
+            Move(FTokenStr^, FCurTokenString[1], 3);
+            inc(FTokenStr,3);
             FCurToken := Result;
             exit;
             end
           else
             begin
             // skip identifier
-            while TokenStr[0] in ['0'..'9', 'A'..'Z', 'a'..'z','_'] do
-              inc(TokenStr);
+            while FTokenStr[0] in ['0'..'9', 'A'..'Z', 'a'..'z','_'] do
+              inc(FTokenStr);
             end;
         end;
       else
-        inc(TokenStr);
+        inc(FTokenStr);
     end;
   until false;
 end;
@@ -2581,51 +2586,51 @@ begin
   FCurTokenString := '';
 
   repeat
-    case TokenStr[0] of
+    case FTokenStr[0] of
       '^' :
         begin
-        TokenStart := TokenStr;
-        Inc(TokenStr);
-        if TokenStr[0] in ['a'..'z','A'..'Z'] then
-          Inc(TokenStr);
+        TokenStart := FTokenStr;
+        Inc(FTokenStr);
+        if FTokenStr[0] in ['a'..'z','A'..'Z'] then
+          Inc(FTokenStr);
         if Result=tkEOF then Result := tkChar else Result:=tkString;
         end;
       '#':
         begin
-          TokenStart := TokenStr;
-          Inc(TokenStr);
-          if TokenStr[0] = '$' then
+          TokenStart := FTokenStr;
+          Inc(FTokenStr);
+          if FTokenStr[0] = '$' then
           begin
-            Inc(TokenStr);
+            Inc(FTokenStr);
             repeat
-              Inc(TokenStr);
-            until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
+              Inc(FTokenStr);
+            until not (FTokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
           end else
             repeat
-              Inc(TokenStr);
-            until not (TokenStr[0] in ['0'..'9']);
+              Inc(FTokenStr);
+            until not (FTokenStr[0] in ['0'..'9']);
           if Result=tkEOF then Result := tkChar else Result:=tkString;
         end;
       '''':
         begin
-          TokenStart := TokenStr;
-          Inc(TokenStr);
+          TokenStart := FTokenStr;
+          Inc(FTokenStr);
 
           while true do
           begin
-            if TokenStr[0] = '''' then
-              if TokenStr[1] = '''' then
-                Inc(TokenStr)
+            if FTokenStr[0] = '''' then
+              if FTokenStr[1] = '''' then
+                Inc(FTokenStr)
               else
                 break;
 
-            if TokenStr[0] = #0 then
+            if FTokenStr[0] = #0 then
               Error(nErrOpenString,SErrOpenString);
 
-            Inc(TokenStr);
+            Inc(FTokenStr);
           end;
-          Inc(TokenStr);
-          if ((TokenStr - TokenStart)=3) then // 'z'
+          Inc(FTokenStr);
+          if ((FTokenStr - TokenStart)=3) then // 'z'
             Result := tkChar
           else
             Result := tkString;
@@ -2633,7 +2638,7 @@ begin
     else
       Break;
     end;
-    SectionLength := TokenStr - TokenStart;
+    SectionLength := FTokenStr - TokenStart;
     SetLength(FCurTokenString, OldLength + SectionLength);
     if SectionLength > 0 then
       Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
@@ -2654,9 +2659,9 @@ begin
   SI.TokenString := CurTokenString;
   SI.Line := CurLine;
   SI.Row := CurRow;
-  SI.TokenStr := TokenStr;
+  SI.TokenStr := FTokenStr;
   FIncludeStack.Add(SI);
-  TokenStr:=Nil;
+  FTokenStr:=Nil;
   FCurRow := 0;
 end;
 
@@ -2675,6 +2680,7 @@ begin
   FCurFilename := Param;
   if FCurSourceFile is TFileLineReader then
     FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
+  AddFile(FCurFilename);
   If LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(FCurFileName)],True);
 end;
@@ -3175,7 +3181,7 @@ var
   OldLength, SectionLength, NestingLevel, Index: Integer;
 begin
   Result:=tkLineEnding;
-  if TokenStr = nil then
+  if FTokenStr = nil then
     if not FetchLine then
     begin
       Result := tkEOF;
@@ -3186,7 +3192,7 @@ begin
   FCurTokenPos.FileName:=CurFilename;
   FCurTokenPos.Row:=CurRow;
   FCurTokenPos.Column:=CurColumn;
-  case TokenStr[0] of
+  case FTokenStr[0] of
     #0:         // Empty line
       begin
         FetchLine;
@@ -3196,37 +3202,37 @@ begin
       begin
         Result := tkWhitespace;
         repeat
-          Inc(TokenStr);
-          if TokenStr[0] = #0 then
+          Inc(FTokenStr);
+          if FTokenStr[0] = #0 then
             if not FetchLine then
             begin
               FCurToken := Result;
               exit;
             end;
-        until not (TokenStr[0] in [' ']);
+        until not (FTokenStr[0] in [' ']);
       end;
     #9:
       begin
         Result := tkTab;
         repeat
-          Inc(TokenStr);
-          if TokenStr[0] = #0 then
+          Inc(FTokenStr);
+          if FTokenStr[0] = #0 then
             if not FetchLine then
             begin
               FCurToken := Result;
               exit;
             end;
-        until not (TokenStr[0] in [#9]);
+        until not (FTokenStr[0] in [#9]);
       end;
     '#', '''':
       Result:=DoFetchTextToken;
     '&':
       begin
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         repeat
-          Inc(TokenStr);
-        until not (TokenStr[0] in ['0'..'7']);
-        SectionLength := TokenStr - TokenStart;
+          Inc(FTokenStr);
+        until not (FTokenStr[0] in ['0'..'7']);
+        SectionLength := FTokenStr - TokenStart;
         if (SectionLength=1) then // &Keyword
           begin
           DoFetchToken();
@@ -3242,11 +3248,11 @@ begin
       end;
     '$':
       begin
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         repeat
-          Inc(TokenStr);
-        until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
-        SectionLength := TokenStr - TokenStart;
+          Inc(FTokenStr);
+        until not (FTokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
+        SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
@@ -3254,11 +3260,11 @@ begin
       end;
     '%':
       begin
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         repeat
-          Inc(TokenStr);
-        until not (TokenStr[0] in ['0','1']);
-        SectionLength := TokenStr - TokenStart;
+          Inc(FTokenStr);
+        until not (FTokenStr[0] in ['0','1']);
+        SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
@@ -3266,22 +3272,22 @@ begin
       end;
     '(':
       begin
-        Inc(TokenStr);
-        if TokenStr[0] <> '*' then
+        Inc(FTokenStr);
+        if FTokenStr[0] <> '*' then
           Result := tkBraceOpen
         else
           begin
           // Old-style multi-line comment
-          Inc(TokenStr);
-          TokenStart := TokenStr;
+          Inc(FTokenStr);
+          TokenStart := FTokenStr;
           FCurTokenString := '';
           OldLength := 0;
           NestingLevel:=0;
-          while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') or (NestingLevel>0) do
+          while (FTokenStr[0] <> '*') or (FTokenStr[1] <> ')') or (NestingLevel>0) do
             begin
-            if TokenStr[0] = #0 then
+            if FTokenStr[0] = #0 then
               begin
-              SectionLength:=TokenStr - TokenStart +1;
+              SectionLength:=FTokenStr - TokenStart +1;
               SetLength(FCurTokenString, OldLength + SectionLength);
               if SectionLength > 1 then
                 Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength - 1);
@@ -3293,25 +3299,25 @@ begin
                 FCurToken := Result;
                 exit;
                 end;
-              TokenStart:=TokenStr;
+              TokenStart:=FTokenStr;
               end
             else
               begin
               If (msNestedComment in CurrentModeSwitches) then
                  begin
-                 if (TokenStr[0] = '(') and (TokenStr[1] = '*') then
+                 if (FTokenStr[0] = '(') and (FTokenStr[1] = '*') then
                    Inc(NestingLevel)
-                 else if (TokenStr[0] = '*') and (TokenStr[1] = ')') and not PPIsSkipping then
+                 else if (FTokenStr[0] = '*') and (FTokenStr[1] = ')') and not PPIsSkipping then
                    Dec(NestingLevel);
                  end;
-              Inc(TokenStr);
+              Inc(FTokenStr);
               end;
           end;
-          SectionLength := TokenStr - TokenStart;
+          SectionLength := FTokenStr - TokenStart;
           SetLength(FCurTokenString, OldLength + SectionLength);
           if SectionLength > 0 then
             Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-          Inc(TokenStr, 2);
+          Inc(FTokenStr, 2);
           Result := tkComment;
           if Copy(CurTokenString,1,1)='$' then
             Result := HandleDirective(CurTokenString);
@@ -3319,23 +3325,23 @@ begin
       end;
     ')':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkBraceClose;
       end;
     '*':
       begin
         Result:=tkMul;
-        Inc(TokenStr);
-        if TokenStr[0] = '*' then
+        Inc(FTokenStr);
+        if FTokenStr[0] = '*' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkPower;
           end 
         else if (po_CAssignments in options) then
           begin
-          if TokenStr[0]='=' then
+          if FTokenStr[0]='=' then
             begin
-            Inc(TokenStr);
+            Inc(FTokenStr);
             Result:=tkAssignMul;
             end;
           end
@@ -3343,40 +3349,40 @@ begin
     '+':
       begin
         Result:=tkPlus;
-        Inc(TokenStr);
+        Inc(FTokenStr);
         if (po_CAssignments in options) then
           begin
-          if TokenStr[0]='=' then
+          if FTokenStr[0]='=' then
             begin
-            Inc(TokenStr);
+            Inc(FTokenStr);
             Result:=tkAssignPlus;
             end;
           end
       end;
     ',':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkComma;
       end;
     '-':
       begin
         Result := tkMinus;
-        Inc(TokenStr);
+        Inc(FTokenStr);
         if (po_CAssignments in options) then
           begin
-          if TokenStr[0]='=' then
+          if FTokenStr[0]='=' then
             begin
-            Inc(TokenStr);
+            Inc(FTokenStr);
             Result:=tkAssignMinus;
             end;
           end
       end;
     '.':
       begin
-        Inc(TokenStr);
-        if TokenStr[0] = '.' then
+        Inc(FTokenStr);
+        if FTokenStr[0] = '.' then
         begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkDotDot;
         end else
           Result := tkDot;
@@ -3384,15 +3390,15 @@ begin
     '/':
       begin
         Result := tkDivision;
-        Inc(TokenStr);
-        if (TokenStr[0] = '/') then       // Single-line comment
+        Inc(FTokenStr);
+        if (FTokenStr[0] = '/') then       // Single-line comment
           begin
-          Inc(TokenStr);
-          TokenStart := TokenStr;
+          Inc(FTokenStr);
+          TokenStart := FTokenStr;
           FCurTokenString := '';
-          while TokenStr[0] <> #0 do
-            Inc(TokenStr);
-          SectionLength := TokenStr - TokenStart;
+          while FTokenStr[0] <> #0 do
+            Inc(FTokenStr);
+          SectionLength := FTokenStr - TokenStart;
           SetLength(FCurTokenString, SectionLength);
           if SectionLength > 0 then
             Move(TokenStart^, FCurTokenString[1], SectionLength);
@@ -3409,9 +3415,9 @@ begin
           end
         else if (po_CAssignments in options) then
           begin
-          if TokenStr[0]='=' then
+          if FTokenStr[0]='=' then
             begin
-            Inc(TokenStr);
+            Inc(FTokenStr);
             Result:=tkAssignDivision;
             end;
           end
@@ -3420,25 +3426,25 @@ begin
       begin
         // 1, 12, 1.2, 1.2E3, 1.E2, 1E2, 1.2E-3, 1E+2
         // beware of 1..2
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         repeat
-          Inc(TokenStr);
-        until not (TokenStr[0] in ['0'..'9']);
-        if (TokenStr[0]='.') and (TokenStr[1]<>'.') then
+          Inc(FTokenStr);
+        until not (FTokenStr[0] in ['0'..'9']);
+        if (FTokenStr[0]='.') and (FTokenStr[1]<>'.') then
           begin
-          inc(TokenStr);
-          while TokenStr[0] in ['0'..'9'] do
-            Inc(TokenStr);
+          inc(FTokenStr);
+          while FTokenStr[0] in ['0'..'9'] do
+            Inc(FTokenStr);
           end;
-        if TokenStr[0] in ['e', 'E'] then
+        if FTokenStr[0] in ['e', 'E'] then
         begin
-          Inc(TokenStr);
-          if TokenStr[0] in ['-','+'] then
-            inc(TokenStr);
-          while TokenStr[0] in ['0'..'9'] do
-            Inc(TokenStr);
+          Inc(FTokenStr);
+          if FTokenStr[0] in ['-','+'] then
+            inc(FTokenStr);
+          while FTokenStr[0] in ['0'..'9'] do
+            Inc(FTokenStr);
         end;
-        SectionLength := TokenStr - TokenStart;
+        SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
@@ -3446,35 +3452,35 @@ begin
       end;
     ':':
       begin
-        Inc(TokenStr);
-        if TokenStr[0] = '=' then
+        Inc(FTokenStr);
+        if FTokenStr[0] = '=' then
         begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkAssign;
         end else
           Result := tkColon;
       end;
     ';':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkSemicolon;
       end;
     '<':
       begin
-        Inc(TokenStr);
-        if TokenStr[0] = '>' then
+        Inc(FTokenStr);
+        if FTokenStr[0] = '>' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkNotEqual;
           end
-        else if TokenStr[0] = '=' then
+        else if FTokenStr[0] = '=' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkLessEqualThan;
           end
-        else if TokenStr[0] = '<' then
+        else if FTokenStr[0] = '<' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkshl;
           end
         else
@@ -3482,24 +3488,24 @@ begin
       end;
     '=':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkEqual;
       end;
     '>':
       begin
-        Inc(TokenStr);
-        if TokenStr[0] = '=' then
+        Inc(FTokenStr);
+        if FTokenStr[0] = '=' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkGreaterEqualThan;
-            end else if TokenStr[0] = '<' then
+            end else if FTokenStr[0] = '<' then
             begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkSymmetricalDifference;
           end
-        else if TokenStr[0] = '>' then
+        else if FTokenStr[0] = '>' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result := tkshr;
           end
         else
@@ -3507,22 +3513,22 @@ begin
       end;
     '@':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkAt;
-        if TokenStr^='@' then
+        if FTokenStr^='@' then
           begin
-          Inc(TokenStr);
+          Inc(FTokenStr);
           Result:=tkAtAt;
           end;
       end;
     '[':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkSquaredBraceOpen;
       end;
     ']':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkSquaredBraceClose;
       end;
     '^':
@@ -3532,7 +3538,7 @@ begin
                    tkNil,tkOperator,tkBraceClose,tkSquaredBraceClose,tkCaret,
                    tkWhitespace]) then
         begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkCaret;
         end
       else
@@ -3540,21 +3546,21 @@ begin
       end;
     '\':
       begin
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkBackslash;
       end;
     '{':        // Multi-line comment
       begin
-        Inc(TokenStr);
-        TokenStart := TokenStr;
+        Inc(FTokenStr);
+        TokenStart := FTokenStr;
         FCurTokenString := '';
         OldLength := 0;
         NestingLevel := 0;
-        while (TokenStr[0] <> '}') or (NestingLevel > 0) do
+        while (FTokenStr[0] <> '}') or (NestingLevel > 0) do
         begin
-          if TokenStr[0] = #0 then
+          if FTokenStr[0] = #0 then
           begin
-            SectionLength := TokenStr - TokenStart + 1;
+            SectionLength := FTokenStr - TokenStart + 1;
             SetLength(FCurTokenString, OldLength + SectionLength);
             if SectionLength > 1 then
               Move(TokenStart^, FCurTokenString[OldLength + 1],
@@ -3567,21 +3573,21 @@ begin
               FCurToken := Result;
               exit;
             end;
-            TokenStart := TokenStr;
+            TokenStart := FTokenStr;
           end else
           begin
-            if (msNestedComment in CurrentModeSwitches) and (TokenStr[0] = '{') then
+            if (msNestedComment in CurrentModeSwitches) and (FTokenStr[0] = '{') then
               Inc(NestingLevel)
-            else if (TokenStr[0] = '}') and not PPIsSkipping then
+            else if (FTokenStr[0] = '}') and not PPIsSkipping then
               Dec(NestingLevel);
-            Inc(TokenStr);
+            Inc(FTokenStr);
           end;
         end;
-        SectionLength := TokenStr - TokenStart;
+        SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, OldLength + SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-        Inc(TokenStr);
+        Inc(FTokenStr);
         Result := tkComment;
         //WriteLn('Kommentar: "', CurTokenString, '"');
         if (Copy(CurTokenString,1,1)='$') then
@@ -3589,11 +3595,11 @@ begin
       end;
     'A'..'Z', 'a'..'z', '_':
       begin
-        TokenStart := TokenStr;
+        TokenStart := FTokenStr;
         repeat
-          Inc(TokenStr);
-        until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-        SectionLength := TokenStr - TokenStart;
+          Inc(FTokenStr);
+        until not (FTokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
+        SectionLength := FTokenStr - TokenStart;
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
@@ -3617,9 +3623,9 @@ begin
       end;
   else
     if PPIsSkipping then
-      Inc(TokenStr)
+      Inc(FTokenStr)
     else
-      Error(nErrInvalidCharacter, SErrInvalidCharacter, [TokenStr[0]]);
+      Error(nErrInvalidCharacter, SErrInvalidCharacter, [FTokenStr[0]]);
   end;
 
   FCurToken := Result;
@@ -3632,8 +3638,8 @@ end;
 
 function TPascalScanner.GetCurColumn: Integer;
 begin
-  If (TokenStr<>Nil) then
-    Result := TokenStr - PChar(CurLine) + 1
+  If (FTokenStr<>Nil) then
+    Result := FTokenStr - PChar(CurLine) + 1
   else
     Result := 1;
 end;
@@ -3871,22 +3877,31 @@ function TPascalScanner.FetchLine: boolean;
 begin
   if CurSourceFile.IsEOF then
   begin
-    if TokenStr<>nil then
+    if FTokenStr<>nil then
       begin
       FCurLine := '';
-      TokenStr := nil;
+      FTokenStr := nil;
       inc(FCurRow); // set CurRow to last line+1
       end;
     Result := false;
   end else
   begin
     FCurLine := CurSourceFile.ReadLine;
-    TokenStr := PChar(CurLine);
+    FTokenStr := PChar(CurLine);
     Result := true;
     Inc(FCurRow);
     if LogEvent(sleLineNumber) and ((FCurRow Mod 100) = 0) then
       DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True);
   end;
+end;
+
+procedure TPascalScanner.AddFile(aFilename: string);
+var
+  i: Integer;
+begin
+  for i:=0 to FFiles.Count-1 do
+    if FFiles[i]=aFilename then exit;
+  FFiles.Add(aFilename);
 end;
 
 function TPascalScanner.GetMacroName(const Param: String): String;
