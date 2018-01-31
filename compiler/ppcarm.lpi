@@ -1,7 +1,7 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -24,30 +24,33 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <Units Count="4">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
         <Filename Value="arm\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aasmcpu"/>
       </Unit1>
       <Unit2>
         <Filename Value="arm\aoptcpu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aoptcpu"/>
       </Unit2>
       <Unit3>
         <Filename Value="aopt.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="aopt"/>
       </Unit3>
     </Units>
   </ProjectOptions>
@@ -79,11 +82,8 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CustomOptions Value="-darm"/>
-      <CompilerPath Value="$(CompPath)"/>
+      <CustomOptions Value="-darm
+-dFPC_ARMHF"/>
     </Other>
   </CompilerOptions>
 </CONFIG>
