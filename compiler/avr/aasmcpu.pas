@@ -445,8 +445,8 @@ implementation
                   ait_instruction:
                     case taicpu(curtai).opcode of
                       A_BRxx:
-                        if (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>64) or
-                          (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-63) then
+                        if (taicpu(curtai).oper[0]^.typ=top_ref) and ((taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>64) or
+                          (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-63)) then
                           begin
                             if inasmblock then
                               Message(asmw_e_short_jmp_out_of_range)
