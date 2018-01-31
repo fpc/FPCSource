@@ -448,12 +448,17 @@ implementation
                         if (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>64) or
                           (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-63) then
                           begin
-                            current_asmdata.getjumplabel(l);
-                            list.insertafter(tai_label.create(l),curtai);
-                            list.insertafter(taicpu.op_sym(A_JMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai);
-                            taicpu(curtai).oper[0]^.ref^.symbol:=l;
-                            taicpu(curtai).condition:=inverse_cond(taicpu(curtai).condition);
-                            again:=true;
+                            if inasmblock then
+                              Message(asmw_e_short_jmp_out_of_range)
+                            else
+                              begin
+                                current_asmdata.getjumplabel(l);
+                                list.insertafter(tai_label.create(l),curtai);
+                                list.insertafter(taicpu.op_sym(A_JMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai);
+                                taicpu(curtai).oper[0]^.ref^.symbol:=l;
+                                taicpu(curtai).condition:=inverse_cond(taicpu(curtai).condition);
+                                again:=true;
+                              end;
                           end;
                       A_JMP:
                         { replace JMP by RJMP? ...
