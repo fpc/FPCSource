@@ -154,13 +154,13 @@ function EncodeBase64VLQ(i: NativeInt): String;
 { Convert signed number to base64-VLQ:
   Each base64 has 6bit, where the most significant bit is the continuation bit
   (1=there is a next base64 character).
-  The first character contains the 5 least significant bits of the number.
-  The last bit of the first character is the sign bit (1=negative).
+  The first character contains the sign bit in the last bit (1=negative)
+  and the 5 least significant bits of the number.
   For example:
   A = 0 = %000000 => 0
   B = 1 = %000001 => -0
   C = 2 = %000010 => 1
-  iF = 34 5 = %100010 %000101 = 00010 00101 = 1000101 = 69
+  iF = 34 5 = %100010 %000101 = + 0001 00101 = 100101 = 37
 }
 
   procedure RaiseRange;
