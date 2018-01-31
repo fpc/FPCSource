@@ -467,6 +467,7 @@ type
 
     // proc types
     Procedure TestProcType;
+    Procedure TestProcType_Arg;
     Procedure TestProcType_FunctionFPC;
     Procedure TestProcType_FunctionDelphi;
     Procedure TestProcType_ProcedureDelphi;
@@ -11799,32 +11800,33 @@ end;
 procedure TTestModule.TestProcType;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TProcInt = procedure(vI: longint = 1);');
-  Add('procedure DoIt(vJ: longint);');
-  Add('begin end;');
-  Add('var');
-  Add('  b: boolean;');
-  Add('  vP, vQ: tprocint;');
-  Add('begin');
-  Add('  vp:=nil;');
-  Add('  vp:=vp;');
-  Add('  vp:=@doit;');
-  Add('  vp;');
-  Add('  vp();');
-  Add('  vp(2);');
-  Add('  b:=vp=nil;');
-  Add('  b:=nil=vp;');
-  Add('  b:=vp=vq;');
-  Add('  b:=vp=@doit;');
-  Add('  b:=@doit=vp;');
-  Add('  b:=vp<>nil;');
-  Add('  b:=nil<>vp;');
-  Add('  b:=vp<>vq;');
-  Add('  b:=vp<>@doit;');
-  Add('  b:=@doit<>vp;');
-  Add('  b:=Assigned(vp);');
-  Add('  if Assigned(vp) then ;');
+  Add([
+  'type',
+  '  TProcInt = procedure(vI: longint = 1);',
+  'procedure DoIt(vJ: longint);',
+  'begin end;',
+  'var',
+  '  b: boolean;',
+  '  vP, vQ: tprocint;',
+  'begin',
+  '  vp:=nil;',
+  '  vp:=vp;',
+  '  vp:=@doit;',
+  '  vp;',
+  '  vp();',
+  '  vp(2);',
+  '  b:=vp=nil;',
+  '  b:=nil=vp;',
+  '  b:=vp=vq;',
+  '  b:=vp=@doit;',
+  '  b:=@doit=vp;',
+  '  b:=vp<>nil;',
+  '  b:=nil<>vp;',
+  '  b:=vp<>vq;',
+  '  b:=vp<>@doit;',
+  '  b:=@doit<>vp;',
+  '  b:=Assigned(vp);',
+  '  if Assigned(vp) then ;']);
   ConvertProgram;
   CheckSource('TestProcType',
     LinesToStr([ // statements
@@ -11853,6 +11855,70 @@ begin
     '$mod.b = !rtl.eqCallback($mod.DoIt, $mod.vP);',
     '$mod.b = $mod.vP != null;',
     'if ($mod.vP != null) ;',
+    '']));
+end;
+
+procedure TTestModule.TestProcType_Arg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TProcInt = procedure(vI: longint = 1);',
+  'procedure DoIt(vJ: longint); begin end;',
+  'procedure DoSome(vP, vQ: TProcInt);',
+  'var',
+  '  b: boolean;',
+  'begin',
+  '  vp:=nil;',
+  '  vp:=vp;',
+  '  vp:=@doit;',
+  '  vp;',
+  '  vp();',
+  '  vp(2);',
+  '  b:=vp=nil;',
+  '  b:=nil=vp;',
+  '  b:=vp=vq;',
+  '  b:=vp=@doit;',
+  '  b:=@doit=vp;',
+  '  b:=vp<>nil;',
+  '  b:=nil<>vp;',
+  '  b:=vp<>vq;',
+  '  b:=vp<>@doit;',
+  '  b:=@doit<>vp;',
+  '  b:=Assigned(vp);',
+  '  if Assigned(vp) then ;',
+  'end;',
+  'begin',
+  '  DoSome(@DoIt,nil);']);
+  ConvertProgram;
+  CheckSource('TestProcType_Arg',
+    LinesToStr([ // statements
+    'this.DoIt = function(vJ) {',
+    '};',
+    'this.DoSome = function(vP, vQ) {',
+    '  var b = false;',
+    '  vP = null;',
+    '  vP = vP;',
+    '  vP = $mod.DoIt;',
+    '  vP(1);',
+    '  vP(1);',
+    '  vP(2);',
+    '  b = vP === null;',
+    '  b = null === vP;',
+    '  b = rtl.eqCallback(vP,vQ);',
+    '  b = rtl.eqCallback(vP, $mod.DoIt);',
+    '  b = rtl.eqCallback($mod.DoIt, vP);',
+    '  b = vP !== null;',
+    '  b = null !== vP;',
+    '  b = !rtl.eqCallback(vP, vQ);',
+    '  b = !rtl.eqCallback(vP, $mod.DoIt);',
+    '  b = !rtl.eqCallback($mod.DoIt, vP);',
+    '  b = vP != null;',
+    '  if (vP != null) ;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoSome($mod.DoIt,null);',
     '']));
 end;
 

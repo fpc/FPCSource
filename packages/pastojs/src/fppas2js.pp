@@ -4853,6 +4853,36 @@ function TPasToJSConverter.ConvertIdentifierExpr(El: TPasExpr;
     Result:=AContext.GetSelfContext<>nil;
   end;
 
+  procedure CallImplicit(Decl: TPasElement);
+  var
+    ProcType: TPasProcedureType;
+    ResolvedEl: TPasResolverResult;
+    Call: TJSCallExpression;
+  begin
+    // create a call with default parameters
+    ProcType:=nil;
+    if Decl is TPasProcedure then
+      ProcType:=TPasProcedure(Decl).ProcType
+    else
+      begin
+      AContext.Resolver.ComputeElement(El,ResolvedEl,[rcNoImplicitProc]);
+      if ResolvedEl.TypeEl is TPasProcedureType then
+        ProcType:=TPasProcedureType(ResolvedEl.TypeEl)
+      else
+        RaiseNotSupported(El,AContext,20170217005025);
+      end;
+
+    Call:=nil;
+    try
+      CreateProcedureCall(Call,nil,ProcType,AContext);
+      Call.Expr:=Result;
+      Result:=Call;
+    finally
+      if Result<>Call then
+        Call.Free;
+    end;
+  end;
+
 var
   Decl: TPasElement;
   Name: String;
@@ -4860,10 +4890,9 @@ var
   Call: TJSCallExpression;
   BuiltInProc: TResElDataBuiltInProc;
   Prop: TPasProperty;
-  ImplicitCall: Boolean;
+  IsImplicitCall: Boolean;
   AssignContext: TAssignContext;
-  ResolvedEl: TPasResolverResult;
-  ProcType, TargetProcType: TPasProcedureType;
+  TargetProcType: TPasProcedureType;
   ArrLit: TJSArrayLiteral;
   IndexExpr: TPasExpr;
   Func: TPasFunction;
@@ -4919,7 +4948,7 @@ begin
 
   Prop:=nil;
   AssignContext:=nil;
-  ImplicitCall:=rrfImplicitCallWithoutParams in Ref.Flags;
+  IsImplicitCall:=rrfImplicitCallWithoutParams in Ref.Flags;
 
   if Decl.ClassType=TPasProperty then
     begin
@@ -4960,7 +4989,7 @@ begin
         begin
         Result:=CreatePropertyGet(Prop,Ref,AContext,El);
         if Result is TJSCallExpression then exit;
-        if not ImplicitCall then exit;
+        if not IsImplicitCall then exit;
         end;
       else
         RaiseNotSupported(El,AContext,20170213212623);
@@ -4969,6 +4998,8 @@ begin
   else if Decl.ClassType=TPasArgument then
     begin
     Result:=CreateArgumentAccess(TPasArgument(Decl),AContext,El);
+    if IsImplicitCall then
+      CallImplicit(Decl);
     exit;
     end
   else if Decl.ClassType=TPasConst then
@@ -5001,10 +5032,8 @@ begin
     Call.AddArg(CreatePrimitiveDotExpr(TransformModuleName(Decl.GetModule,true,AContext),El));
     Call.AddArg(CreateLiteralString(El,TransformVariableName(Decl,AContext)));
     exit;
-    end;
-
-  //writeln('TPasToJSConverter.ConvertPrimitiveExpression pekIdent TResolvedReference ',GetObjName(Ref.Declaration),' ',GetObjName(Ref.Declaration.CustomData));
-  if Decl.CustomData is TResElDataBuiltInProc then
+    end
+  else if Decl.CustomData is TResElDataBuiltInProc then
     begin
     BuiltInProc:=TResElDataBuiltInProc(Decl.CustomData);
     {$IFDEF VerbosePas2JS}
@@ -5063,31 +5092,8 @@ begin
   if Result=nil then
     Result:=CreatePrimitiveDotExpr(Name,El);
 
-  if ImplicitCall then
-    begin
-    // create a call with default parameters
-    ProcType:=nil;
-    if Decl is TPasProcedure then
-      ProcType:=TPasProcedure(Decl).ProcType
-    else
-      begin
-      AContext.Resolver.ComputeElement(El,ResolvedEl,[rcNoImplicitProc]);
-      if ResolvedEl.TypeEl is TPasProcedureType then
-        ProcType:=TPasProcedureType(ResolvedEl.TypeEl)
-      else
-        RaiseNotSupported(El,AContext,20170217005025);
-      end;
-
-    Call:=nil;
-    try
-      CreateProcedureCall(Call,nil,ProcType,AContext);
-      Call.Expr:=Result;
-      Result:=Call;
-    finally
-      if Result<>Call then
-        Call.Free;
-    end;
-    end;
+  if IsImplicitCall then
+    CallImplicit(Decl);
 end;
 
 function TPasToJSConverter.ConvertBoolConstExpression(El: TBoolConstExpr;
