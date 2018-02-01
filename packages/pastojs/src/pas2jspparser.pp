@@ -109,7 +109,7 @@ constructor TPas2jsPasParser.Create(AScanner: TPascalScanner;
   AFileResolver: TBaseFileResolver; AEngine: TPasTreeContainer);
 begin
   inherited Create(AScanner,AFileResolver,AEngine);
-  Options:=Options+[po_AsmWhole,po_ResolveStandardTypes,po_ExtClassConstWithoutExpr];
+  Options:=Options+po_pas2js;
 end;
 
 procedure TPas2jsPasParser.SetLastMsg(MsgType: TMessageType;

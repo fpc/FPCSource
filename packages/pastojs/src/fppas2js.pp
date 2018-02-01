@@ -880,6 +880,12 @@ const
     bsObjectChecks
     ];
 
+  // default parser+scanner options
+  po_pas2js = [
+    po_AsmWhole,
+    po_ResolveStandardTypes,
+    po_ExtClassConstWithoutExpr];
+
   btAllJSBaseTypes = [
     btChar,
     btWideChar,

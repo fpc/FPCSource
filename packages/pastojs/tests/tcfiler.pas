@@ -35,16 +35,18 @@ type
   TCustomTestPrecompile = Class(TCustomTestModule)
   private
     FInitialFlags: TPJUInitialFlags;
-    FPJUReader: TPasToJsReader;
-    FPJUWriter: TPasToJsWriter;
+    FPJUReader: TPJUReader;
+    FPJUWriter: TPJUWriter;
+    procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
+      out Count: integer);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
     procedure WriteReadUnit; virtual;
     procedure StartParsing; override;
   public
-    property PJUWriter: TPasToJsWriter read FPJUWriter write FPJUWriter;
-    property PJUReader: TPasToJsReader read FPJUReader write FPJUReader;
+    property PJUWriter: TPJUWriter read FPJUWriter write FPJUWriter;
+    property PJUReader: TPJUReader read FPJUReader write FPJUReader;
     property InitialFlags: TPJUInitialFlags read FInitialFlags;
   end;
 
@@ -59,6 +61,23 @@ type
 implementation
 
 { TCustomTestPrecompile }
+
+procedure TCustomTestPrecompile.OnFilerGetSrc(Sender: TObject;
+  aFilename: string; out p: PChar; out Count: integer);
+var
+  i: Integer;
+  aModule: TTestEnginePasResolver;
+  Src: String;
+begin
+  for i:=0 to ResolverCount-1 do
+    begin
+    aModule:=Resolvers[i];
+    if aModule.Filename<>aFilename then continue;
+    Src:=aModule.Source;
+    p:=PChar(Src);
+    Count:=length(Src);
+    end;
+end;
 
 procedure TCustomTestPrecompile.SetUp;
 begin
@@ -83,11 +102,12 @@ var
   ReadScanner: TPascalScanner;
   ReadParser: TPasParser;
 begin
-  FPJUWriter:=TPasToJsWriter.Create;
-  FPJUReader:=TPasToJsReader.Create;
+  FPJUWriter:=TPJUWriter.Create;
+  FPJUReader:=TPJUReader.Create;
   ms:=TMemoryStream.Create;
   try
     try
+      PJUWriter.OnGetSrc:=@OnFilerGetSrc;
       PJUWriter.WriteModule(Engine,ms,InitialFlags);
     except
       on E: Exception do
@@ -140,11 +160,10 @@ begin
   FInitialFlags.ParserOptions:=Parser.Options;
   FInitialFlags.ModeSwitches:=Scanner.CurrentModeSwitches;
   FInitialFlags.BoolSwitches:=Scanner.CurrentBoolSwitches;
-  // ToDo: defines
-  FInitialFlags.ResolverOptions:=Engine.Options;
-  FInitialFlags.PasTojsOptions:=Converter.Options;
+  FInitialFlags.ConverterOptions:=Converter.Options;
   FInitialFlags.TargetPlatform:=Converter.TargetPlatform;
   FInitialFlags.TargetProcessor:=Converter.TargetProcessor;
+  // ToDo: defines
 end;
 
 { TTestPrecompile }
