@@ -42,6 +42,7 @@
     <a href="#pointer">Translating pointer</a><br>
     <a href="#record">Translating record</a><br>
     <a href="#functions">Translating functions</a><br>
+    <a href="#anonymousfunctions">Translating anonymous functions</a><br>
     <a href="#passbyref">Translating passing a parameter by reference</a><br>
     <a href="#nested functions">Translating nested functions</a><br>
     <a href="#forloop">Translating for-loop</a><br>
@@ -1777,8 +1778,7 @@ function(){
         </tr>
         <tr>
           <td>
-<pre>Unit UnitA;
-Program MyModule;
+<pre>Program MyModule;
 type
   TMyMethod = procedure(n: integer) of object;
   TBird = class
@@ -1850,10 +1850,69 @@ rtl = {
     </div>
 
     <div class="section">
+    <h2 id="anonymousfunctions">Translating anonymous functions</h2>
+    Anonymous functions are not yet supported by pas2js. The next best thing are
+    local procedures. For example:
+    <table class="sample">
+      <tbody>
+        <tr>
+          <th>Delphi</th>
+          <th>Pas2js</th>
+        </tr>
+        <tr>
+          <td>
+<pre>Program MyModule;
+type
+  TAdder = reference to function(n: integer): integer;
+
+function CreateAdder(a: integer): TAdder;
+begin
+  Result:=function(b: integer)
+    begin
+      Result:=a+b;
+    end;
+end;
+
+var
+  Adder: TAdder;
+Begin
+  Adder:=CreateAdder(3);
+  writeln(Adder(5)); // gives 8
+End.
+</pre>
+          </td>
+          <td>
+<pre>Program MyModule;
+type
+  TAdder = reference to function(n: integer): integer;
+
+function CreateAdder(a: integer): TAdder;
+  function Add(b: integer): integer;
+  begin
+    Result:=a+b;
+  end;
+begin
+  Result:=@Add;
+end;
+
+var
+  Adder: TAdder;
+Begin
+  Adder:=CreateAdder(3);
+  writeln(Adder(5)); // gives 8
+End.
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="section">
     <h2 id="absolute">Translating var modifier absolute</h2>
     The absolute modifier works as an alias. That means it works FPC/Delphi
     compatible for related types like Pointer and TObject, and works
-    incompatible for unrelated types like longword and record.<br>
+    incompatible for unrelated types like longword and record (e.g. var r: TPoint absolute MyLongInt).<br>
     The modifier is currently only supported for local variables.
     </div>
 
