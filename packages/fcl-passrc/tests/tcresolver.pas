@@ -8318,48 +8318,52 @@ end;
 procedure TTestResolver.TestClass_Const;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TClass = class of TObject;');
-  Add('  TObject = class');
-  Add('  public');
-  Add('    const cI: integer = 3;');
-  Add('    procedure DoIt;');
-  Add('    class procedure DoMore;');
-  Add('  end;');
-  Add('implementation');
-  Add('procedure tobject.doit;');
-  Add('begin');
-  Add('  if cI=4 then;');
-  Add('  if 5=cI then;');
-  Add('  if Self.cI=6 then;');
-  Add('  if 7=Self.cI then;');
-  Add('  with Self do begin');
-  Add('    if cI=11 then;');
-  Add('    if 12=cI then;');
-  Add('  end;');
-  Add('end;');
-  Add('class procedure tobject.domore;');
-  Add('begin');
-  Add('  if cI=8 then;');
-  Add('  if Self.cI=9 then;');
-  Add('  if 10=cI then;');
-  Add('  if 11=Self.cI then;');
-  Add('  with Self do begin');
-  Add('    if cI=13 then;');
-  Add('    if 14=cI then;');
-  Add('  end;');
-  Add('end;');
-  Add('var');
-  Add('  Obj: TObject;');
-  Add('  Cla: TClass;');
-  Add('begin');
-  Add('  if TObject.cI=21 then ;');
-  Add('  if Obj.cI=22 then ;');
-  Add('  if Cla.cI=23 then ;');
-  Add('  with obj do if ci=24 then;');
-  Add('  with TObject do if ci=25 then;');
-  Add('  with Cla do if ci=26 then;');
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '  strict private const',
+  '    Prefix = ''binary'';',
+  '    PrefixLength = Length(Prefix);',
+  '  public',
+  '    const cI: integer = 3;',
+  '    procedure DoIt;',
+  '    class procedure DoMore;',
+  '  end;',
+  'implementation',
+  'procedure tobject.doit;',
+  'begin',
+  '  if cI=4 then;',
+  '  if 5=cI then;',
+  '  if Self.cI=6 then;',
+  '  if 7=Self.cI then;',
+  '  with Self do begin',
+  '    if cI=11 then;',
+  '    if 12=cI then;',
+  '  end;',
+  'end;',
+  'class procedure tobject.domore;',
+  'begin',
+  '  if cI=8 then;',
+  '  if Self.cI=9 then;',
+  '  if 10=cI then;',
+  '  if 11=Self.cI then;',
+  '  with Self do begin',
+  '    if cI=13 then;',
+  '    if 14=cI then;',
+  '  end;',
+  'end;',
+  'var',
+  '  Obj: TObject;',
+  '  Cla: TClass;',
+  'begin',
+  '  if TObject.cI=21 then ;',
+  '  if Obj.cI=22 then ;',
+  '  if Cla.cI=23 then ;',
+  '  with obj do if ci=24 then;',
+  '  with TObject do if ci=25 then;',
+  '  with Cla do if ci=26 then;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;

@@ -3103,6 +3103,7 @@ begin
                 ConstEl := ParseConstDecl(Declarations);
                 Declarations.Declarations.Add(ConstEl);
                 Declarations.Consts.Add(ConstEl);
+                Engine.FinishScope(stConstDef,ConstEl);
               end;
             declResourcestring:
               begin
@@ -3190,6 +3191,7 @@ begin
               PropEl:=ParseProperty(Declarations,CurtokenString,visDefault,false);
               Declarations.Declarations.Add(PropEl);
               Declarations.Properties.Add(PropEl);
+              Engine.FinishScope(stDeclaration,PropEl);
               end;
           else
             ParseExcSyntaxError;
@@ -3494,7 +3496,6 @@ begin
     if not ok then
       ReleaseAndNil(TPasElement(Result));
   end;
-  Engine.FinishScope(stConstDef,Result);
 end;
 
 // Starts after the variable name
@@ -4825,7 +4826,6 @@ begin
     if not ok then
       Result.Release;
   end;
-  Engine.FinishScope(stDeclaration,Result);
 end;
 
 // Starts after the "begin" token
@@ -5718,6 +5718,7 @@ begin
         Cons:=ParseConstDecl(ARec);
         Cons.Visibility:=v;
         ARec.members.Add(Cons);
+        Engine.FinishScope(stConstDef,Cons);
         end;
       tkVar:
         begin
@@ -5750,6 +5751,7 @@ begin
         ExpectToken(tkIdentifier);
         Prop:=ParseProperty(ARec,CurtokenString,v,isClass);
         Arec.Members.Add(Prop);
+        Engine.FinishScope(stDeclaration,Prop);
         end;
       tkOperator,
       tkProcedure,
@@ -5977,7 +5979,7 @@ begin
     C:=ParseConstDecl(AType);
     C.Visibility:=AVisibility;
     AType.Members.Add(C);
-    Engine.FinishScope(stDeclaration,C);
+    Engine.FinishScope(stConstDef,C);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
     Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
@@ -5996,6 +5998,7 @@ Var
   CurSection : TSectionType;
   haveClass : Boolean;
   LastToken: TToken;
+  PropEl: TPasProperty;
 
 begin
   CurSection:=stNone;
@@ -6064,7 +6067,9 @@ begin
         if not haveClass then
           SaveComments;
         ExpectIdentifier;
-        AType.Members.Add(ParseProperty(AType,CurtokenString,CurVisibility,HaveClass));
+        PropEl:=ParseProperty(AType,CurtokenString,CurVisibility,HaveClass);
+        AType.Members.Add(PropEl);
+        Engine.FinishScope(stDeclaration,PropEl);
         HaveClass:=False;
         end;
       tkSquaredBraceOpen:
