@@ -1086,6 +1086,27 @@ interface
                          internalerror(2017111001);
                      end;
                    end
+                  else if (fixed_opcode=A_SEGCS) or (fixed_opcode=A_SEGDS) or
+                          (fixed_opcode=A_SEGSS) or (fixed_opcode=A_SEGES) or
+                          (fixed_opcode=A_SEGFS) or (fixed_opcode=A_SEGGS) then
+                    begin
+                      case fixed_opcode of
+                        A_SEGCS:
+                          writer.AsmWrite(#9#9'cs');
+                        A_SEGDS:
+                          writer.AsmWrite(#9#9'ds');
+                        A_SEGSS:
+                          writer.AsmWrite(#9#9'ss');
+                        A_SEGES:
+                          writer.AsmWrite(#9#9'es');
+                        A_SEGFS:
+                          writer.AsmWrite(#9#9'fs');
+                        A_SEGGS:
+                          writer.AsmWrite(#9#9'gs');
+                        else
+                          internalerror(2018020101);
+                      end;
+                    end
                   else
                     writer.AsmWrite(#9#9+prefix+std_op2str[fixed_opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then

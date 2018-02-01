@@ -2116,6 +2116,7 @@ Unit Rax86int;
         i:byte;
         tmp: toperand;
         di_param, si_param: ShortInt;
+        prefix_or_override_pending_concat: boolean = false;
 {$ifdef i8086}
         hsymbol: TAsmSymbol;
         hoffset: ASizeInt;
@@ -2130,22 +2131,26 @@ Unit Rax86int;
           if is_prefix(actopcode) then
             with instr do
               begin
+                if prefix_or_override_pending_concat then
+                  ConcatInstruction(curlist);
                 PrefixOp:=ActOpcode;
                 opcode:=ActOpcode;
                 condition:=ActCondition;
                 opsize:=ActOpsize;
-                ConcatInstruction(curlist);
+                prefix_or_override_pending_concat:=true;
                 consume(AS_OPCODE);
               end
           else
            if is_override(actopcode) then
              with instr do
                begin
+                 if prefix_or_override_pending_concat then
+                   ConcatInstruction(curlist);
                  OverrideOp:=ActOpcode;
                  opcode:=ActOpcode;
                  condition:=ActCondition;
                  opsize:=ActOpsize;
-                 ConcatInstruction(curlist);
+                 prefix_or_override_pending_concat:=true;
                  consume(AS_OPCODE);
                end
           else
@@ -2157,10 +2162,23 @@ Unit Rax86int;
         { opcode }
         if (actasmtoken <> AS_OPCODE) then
          begin
-           Message(asmr_e_invalid_or_missing_opcode);
-           RecoverConsume(false);
-           exit;
+           { allow a prefix or override to be used standalone, like an opcode
+             with zero operands; this is TP7 compatible and allows compiling
+             ugly code like 'seges; db $67,$66; lodsw' }
+           if prefix_or_override_pending_concat then
+             exit
+           else
+             begin
+               Message(asmr_e_invalid_or_missing_opcode);
+               RecoverConsume(false);
+               exit;
+             end;
          end;
+        if prefix_or_override_pending_concat then
+          begin
+            instr.ConcatInstruction(curlist);
+            prefix_or_override_pending_concat:=false;
+          end;
         { Fill the instr object with the current state }
         with instr do
           begin
