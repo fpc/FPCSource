@@ -10515,7 +10515,7 @@ begin
   '  i:=texta.id;',
   '']);
   ConvertProgram;
-  CheckSource('TestExternalClass_Dollar',
+  CheckSource('TestExternalClass_Const',
     LinesToStr([ // statements
     'this.A = null;',
     'this.B = null;',

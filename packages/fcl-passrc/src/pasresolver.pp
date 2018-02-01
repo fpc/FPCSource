@@ -1137,7 +1137,6 @@ type
     procedure FinishClassType(El: TPasClassType); virtual;
     procedure FinishClassOfType(El: TPasClassOfType); virtual;
     procedure FinishArrayType(El: TPasArrayType); virtual;
-    procedure FinishConstDef(El: TPasConst); virtual;
     procedure FinishResourcestring(El: TPasResString); virtual;
     procedure FinishProcedure(aProc: TPasProcedure); virtual;
     procedure FinishProcedureType(El: TPasProcedureType); virtual;
@@ -4002,20 +4001,6 @@ begin
   FinishSubElementType(El,El.ElType);
 end;
 
-procedure TPasResolver.FinishConstDef(El: TPasConst);
-begin
-  if El.Expr<>nil then
-    ResolveExpr(El.Expr,rraRead);
-  if El.VarType<>nil then
-    begin
-    if El.Expr<>nil then
-      CheckAssignCompatibility(El,El.Expr,true);
-    EmitTypeHints(El,El.VarType);
-    end
-  else if El.Expr<>nil then
-    Eval(El.Expr,[refConst]);
-end;
-
 procedure TPasResolver.FinishResourcestring(El: TPasResString);
 var
   ResolvedEl: TPasResolverResult;
@@ -4502,12 +4487,19 @@ begin
       RaiseMsg(20170403223837,nSymbolCannotBePublished,sSymbolCannotBePublished,[],El);
     end;
   if El.Expr<>nil then
-    begin
     ResolveExpr(El.Expr,rraRead);
-    CheckAssignCompatibility(El,El.Expr,true);
-    end;
+  if El.VarType<>nil then
+    begin
+    if El.Expr<>nil then
+      CheckAssignCompatibility(El,El.Expr,true);
+    end
+  else if El.Expr<>nil then
+    Eval(El.Expr,[refConst]);
   if El.AbsoluteExpr<>nil then
     begin
+    if El.ClassType=TPasConst then
+      RaiseMsg(20180201225530,nXModifierMismatchY,sXModifierMismatchY,
+        ['absolute','const'],El.AbsoluteExpr);
     if El.VarType=nil then
       RaiseMsg(20171225235125,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
     if vmExternal in El.VarModifiers then
@@ -4533,7 +4525,8 @@ begin
     if ResolvedAbs.IdentEl=El then
       RaiseMsg(20171226000703,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
     end;
-  EmitTypeHints(El,El.VarType);
+  if El.VarType<>nil then
+    EmitTypeHints(El,El.VarType);
 end;
 
 procedure TPasResolver.FinishPropertyOfClass(PropEl: TPasProperty);
@@ -11233,7 +11226,6 @@ begin
   stUsesClause: FinishUsesClause;
   stTypeSection: FinishTypeSection(El as TPasDeclarations);
   stTypeDef: FinishTypeDef(El as TPasType);
-  stConstDef: FinishConstDef(El as TPasConst);
   stResourceString: FinishResourcestring(El as TPasResString);
   stProcedure: FinishProcedure(El as TPasProcedure);
   stProcedureHeader: FinishProcedureType(El as TPasProcedureType);

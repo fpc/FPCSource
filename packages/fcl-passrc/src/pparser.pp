@@ -145,7 +145,6 @@ type
     stUsesClause,
     stTypeSection,
     stTypeDef, // e.g. a TPasType
-    stConstDef, // e.g. a TPasConst
     stResourceString, // e.g. TPasResString
     stProcedure, // also method, procedure, constructor, destructor, ...
     stProcedureHeader,
@@ -3103,7 +3102,7 @@ begin
                 ConstEl := ParseConstDecl(Declarations);
                 Declarations.Declarations.Add(ConstEl);
                 Declarations.Consts.Add(ConstEl);
-                Engine.FinishScope(stConstDef,ConstEl);
+                Engine.FinishScope(stDeclaration,ConstEl);
               end;
             declResourcestring:
               begin
@@ -5718,7 +5717,7 @@ begin
         Cons:=ParseConstDecl(ARec);
         Cons.Visibility:=v;
         ARec.members.Add(Cons);
-        Engine.FinishScope(stConstDef,Cons);
+        Engine.FinishScope(stDeclaration,Cons);
         end;
       tkVar:
         begin
@@ -5979,7 +5978,7 @@ begin
     C:=ParseConstDecl(AType);
     C.Visibility:=AVisibility;
     AType.Members.Add(C);
-    Engine.FinishScope(stConstDef,C);
+    Engine.FinishScope(stDeclaration,C);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
     Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);
