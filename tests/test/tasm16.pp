@@ -106,6 +106,19 @@ const
   expect18: array [0..1] of byte = (
     $65,$AC           // seggs lodsb
   );
+{$ifdef cpui8086}
+  expect19: array [0..2] of byte = (
+    $F3,              // rep
+    $66,              // db $66
+    $A5               // movsw
+  );
+{$else}
+  expect19: array [0..3] of byte = (
+    $F3,              // rep
+    $66,              // db $66
+    $66,$A5           // movsw
+  );
+{$endif}
 
 {$asmmode intel}
 
@@ -181,6 +194,10 @@ procedure test18; assembler; nostackframe;
 asm
   seggs lodsb
 end;
+procedure test19; assembler; nostackframe;
+asm
+  rep; db $66; movsw
+end;
 
 procedure Error;
 begin
@@ -245,6 +262,8 @@ begin
   if not CompareCode(CodePointer(@test17), @expect17, SizeOf(expect17)) then
     Error;
   if not CompareCode(CodePointer(@test18), @expect18, SizeOf(expect18)) then
+    Error;
+  if not CompareCode(CodePointer(@test19), @expect19, SizeOf(expect19)) then
     Error;
   Writeln('Ok!')
 end.
