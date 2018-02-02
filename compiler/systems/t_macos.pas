@@ -42,11 +42,25 @@ interface
       function  MakeExecutable:boolean;override;
     end;
 
+    { used for crosscompiling, depends on Retro68 GNU binutils }
+    TLinkerMacOS = class(texternallinker)
+    private
+      function WriteResponseFile(isdll: boolean): boolean;
+      procedure SetMacOS68kInfo;
+      function MakeMacOSExe: boolean;
+    public
+      constructor Create; override;
+      procedure SetDefaultInfo; override;
+      {procedure InitSysInitUnitName; override;}
+      function  MakeExecutable: boolean; override;
+    end;
+
+
 implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutl,cclasses,aasmbase,
        globtype,globals,systems,verbose,cscript,fmodule,i_macos,
        ogbase,
        symconst;
@@ -237,6 +251,193 @@ begin
 end;
 
 
+{*****************************************************************************
+                                TLINKERMACOS
+*****************************************************************************}
+
+constructor TLinkerMacOS.Create;
+begin
+  Inherited Create;
+  { allow duplicated libs (PM) }
+  SharedLibFiles.doubles:=true;
+  StaticLibFiles.doubles:=true;
+end;
+
+
+procedure TLinkerMacOS.SetMacOS68kInfo;
+begin
+  with Info do
+    begin
+      ExeCmd[1]:='ld $DYNLINK $GCSECTIONS $OPT -d -n -o $EXE $RES';
+    end
+end;
+
+
+procedure TLinkerMacOS.SetDefaultInfo;
+begin
+  case (target_info.system) of
+    system_m68k_macos:      SetMacOS68kInfo;
+  end;
+end;
+
+
+{procedure TLinkerMacOS.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
+end;}
+
+
+function TLinkerMacOS.WriteResponseFile(isdll: boolean): boolean;
+var
+  linkres  : TLinkRes;
+  i        : longint;
+  HPath    : TCmdStrListItem;
+  s        : string;
+  linklibc : boolean;
+begin
+  WriteResponseFile:=False;
+
+  { Open link.res file }
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+
+  { Write path to search libraries }
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  while assigned(HPath) do
+   begin
+    s:=HPath.Str;
+    if (cs_link_on_target in current_settings.globalswitches) then
+     s:=ScriptFixFileName(s);
+    LinkRes.Add('-L'+s);
+    HPath:=TCmdStrListItem(HPath.Next);
+   end;
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  while assigned(HPath) do
+   begin
+    s:=HPath.Str;
+    if s<>'' then
+     LinkRes.Add('SEARCH_DIR("'+s+'")');
+    HPath:=TCmdStrListItem(HPath.Next);
+   end;
+
+  LinkRes.Add('INPUT (');
+  { add objectfiles, start with prt0 always }
+  if not (target_info.system in systems_internal_sysinit) then
+    begin
+      s:=FindObjectFile('prt0','',false);
+      LinkRes.AddFileName(maybequoted(s));
+    end;
+  while not ObjectFiles.Empty do
+   begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+     begin
+      LinkRes.AddFileName(maybequoted(s));
+     end;
+   end;
+  LinkRes.Add(')');
+
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+    LinkRes.Add('GROUP(');
+    while not StaticLibFiles.Empty do
+     begin
+      S:=StaticLibFiles.GetFirst;
+      LinkRes.AddFileName(maybequoted(s));
+     end;
+    LinkRes.Add(')');
+   end;
+
+    { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+      here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+    linklibc:=false;
+    while not SharedLibFiles.Empty do
+     begin
+      S:=SharedLibFiles.GetFirst;
+      if s<>'c' then
+       begin
+        i:=Pos(target_info.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        LinkRes.Add('-l'+s);
+       end
+      else
+       begin
+        LinkRes.Add('-l'+s);
+        linklibc:=true;
+       end;
+     end;
+    { be sure that libc&libgcc is the last lib }
+    if linklibc then
+     begin
+      LinkRes.Add('-lc');
+      LinkRes.Add('-lgcc');
+     end;
+
+{ Write and Close response }
+  linkres.writetodisk;
+  linkres.free;
+
+  WriteResponseFile:=True;
+end;
+
+
+function TLinkerMacOS.MakeMacOSExe: boolean;
+var
+  BinStr,
+  CmdStr  : TCmdStr;
+  StripStr: string[40];
+  DynLinkStr : string;
+  GCSectionsStr : string;
+  ExeName: string;
+begin
+  StripStr:='';
+  GCSectionsStr:='';
+  DynLinkStr:='';
+
+  if (cs_link_strip in current_settings.globalswitches) then
+    StripStr:='-s';
+  if rlinkpath<>'' then
+    DynLinkStr:='--rpath-link '+rlinkpath;
+    if create_smartlink_sections then
+      GCSectionsStr:='--gc-sections ';
+
+  ExeName:=current_module.exefilename;
+
+  { Call linker }
+  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  binstr:=FindUtil(utilsprefix+BinStr);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
+  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
+  MakeMacOSExe:=DoExec(BinStr,CmdStr,true,false);
+end;
+
+
+function TLinkerMacOS.MakeExecutable:boolean;
+var
+  success : boolean;
+begin
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.exefilename);
+
+  { Write used files and libraries }
+  WriteResponseFile(false);
+
+  success:=MakeMacOSExe;
+
+  { Remove ReponseFile }
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+    DeleteFile(outputexedir+Info.ResName);
+
+  MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
+
 
 {*****************************************************************************
                                   Initialize
@@ -244,11 +445,18 @@ end;
 
 initialization
 {$ifdef m68k}
+{$ifndef macos}
+  RegisterLinker(ld_mpw,TLinkerMacOS);
+{$endif}
   RegisterTarget(system_m68k_macos_info);
   RegisterImport(system_m68k_macos,timportlibmacos);
 {$endif m68k}
 {$ifdef powerpc}
+{$ifndef macos}
+  RegisterLinker(ld_mpw,TLinkerMacOS);
+{$else}
   RegisterLinker(ld_mpw,TLinkerMPW);
+{$endif}
   RegisterTarget(system_powerpc_macos_info);
   RegisterImport(system_powerpc_macos,timportlibmacos);
 {$endif powerpc}
