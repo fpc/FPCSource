@@ -29,6 +29,9 @@ interface
 uses
   BaseUnix, unixtype;
 
+Const
+  O_CLOEXEC = $80000;
+  
 type
   TSysInfo = record
     uptime: clong;                     //* Seconds since boot */
