@@ -1340,15 +1340,12 @@ begin
       If D <> '' Then
         if not ForceDirectories(D) then
           Raise EInoutError.CreateFmt(SErrCouldNotCreatePath,[D]);
-      if FEncoding=nil then
-        slLines.SaveToFile(FFileName)
-      else
-        slLines.SaveToFile(FFileName, FEncoding);
+      slLines.SaveToFile(FFileName, FEncoding);
       end
     else if FStream <> nil then
       begin
       Fstream.Size:=0;
-      slLines.SaveToStream(FStream);
+      slLines.SaveToStream(FStream, FEncoding);
       end;
     FillSectionList(slLines);
     FDirty := false;
