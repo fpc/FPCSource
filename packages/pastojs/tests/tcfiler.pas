@@ -97,7 +97,7 @@ procedure TCustomTestPrecompile.WriteReadUnit;
 var
   ms: TMemoryStream;
   PJU: string;
-  ReadResolver: TPasResolver;
+  ReadResolver: TPas2JSResolver;
   ReadFileResolver: TFileResolver;
   ReadScanner: TPascalScanner;
   ReadParser: TPasParser;
@@ -108,7 +108,7 @@ begin
   try
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
-      PJUWriter.WriteModule(Engine,ms,InitialFlags);
+      PJUWriter.WritePJU(Engine,InitialFlags,ms);
     except
       on E: Exception do
       begin
@@ -124,16 +124,17 @@ begin
       System.Move(ms.Memory^,PJU[1],length(PJU));
 
       writeln('TCustomTestPrecompile.WriteReadUnit PJU START-----');
-      writeln(dbgmem(PJU));
+      writeln(PJU);
       writeln('TCustomTestPrecompile.WriteReadUnit PJU END-------');
 
       ReadFileResolver:=TFileResolver.Create;
       ReadScanner:=TPascalScanner.Create(ReadFileResolver);
-      ReadResolver:=TPasResolver.Create;
+      ReadResolver:=TPas2JSResolver.Create;
       ReadParser:=TPasParser.Create(ReadScanner,ReadFileResolver,ReadResolver);
       ReadResolver.CurrentParser:=ReadParser;
       try
-        PJUReader.ReadModule(ReadResolver,PJU);
+        ms.Position:=0;
+        PJUReader.ReadPJU(ReadResolver,ms);
       finally
         ReadParser.Free;
         ReadScanner.Free;

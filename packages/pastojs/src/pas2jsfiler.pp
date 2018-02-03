@@ -34,13 +34,15 @@ unit Pas2JsFiler;
 interface
 
 uses
-  Classes, SysUtils, contnrs, crc,
+  Classes, Types, SysUtils, contnrs, crc,
+  fpjson, jsonparser, jsonscanner,
   PasTree, PScanner, PParser, PasResolveEval, PasResolver,
   Pas2jsFileUtils, FPPas2Js;
 
 const
   PJUMagic = 'Pas2JSCache';
   PJUVersion = 1;
+
   PJUDefaultParserOptions: TPOptions = [
     po_KeepScannerError,
     po_ResolveStandardTypes,
@@ -51,6 +53,22 @@ const
     po_CheckModeSwitches,
     po_CheckCondFunction,
     po_ExtClassConstWithoutExpr];
+
+  PJUParserOptionNames: array[TPOption] of string = (
+    'delphi',
+    'KeepScannerError',
+    'CAssignments',
+    'ResolveStandardTypes',
+    'AsmWhole',
+    'NoOverloadedProcs',
+    'KeepClassForward',
+    'ArrayRangeExpr',
+    'SelfToken',
+    'CheckModeSwitches',
+    'CheckCondFunction',
+    'StopOnErrorDirective',
+    'ExtClassConstWithoutExpr');
+
   PJUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
     msClass,
@@ -65,14 +83,115 @@ const
     msExcept,
     msDefaultUnicodestring,
     msCBlocks];
+
+  PJUModeSwitchNames: array[TModeSwitch] of string = (
+    'None',
+    'Fpc',
+    'Objfpc',
+    'Delphi',
+    'DelphiUnicode',
+    'TP7',
+    'Mac',
+    'Iso',
+    'Extpas',
+    'GPC',
+    'Class',
+    'Objpas',
+    'Result',
+    'StringPchar',
+    'CVarSupport',
+    'NestedComment',
+    'TPProcVar',
+    'MacProcVar',
+    'RepeatForward',
+    'Pointer2Procedure',
+    'AutoDeref',
+    'InitFinal',
+    'DefaultAnsistring',
+    'Out',
+    'DefaultPara',
+    'HintDirective',
+    'DuplicateNames',
+    'Property',
+    'DefaultInline',
+    'Except',
+    'ObjectiveC1',
+    'ObjectiveC2',
+    'NestedProcVars',
+    'NonLocalGoto',
+    'AdvancedRecords',
+    'ISOLikeUnaryMinus',
+    'SystemCodePage',
+    'FinalFields',
+    'DefaultUnicodestring',
+    'TypeHelpers',
+    'CBlocks',
+    'ISOLikeIO',
+    'ISOLikeProgramsPara',
+    'ISOLikeMod',
+    'ExternalClass',
+    'PrefixedAttributes',
+    'IgnoreInterfaces',
+    'IgnoreAttributes'
+    );
+
   PJUDefaultBoolSwitches: TBoolSwitches = [
     bsHints,
     bsNotes,
     bsWarnings
     ];
+  PJUBoolSwitchNames: array[TBoolSwitch] of string = (
+    'None',
+    'Align',
+    'BoolEval',
+    'Assertions',
+    'DebugInfo',
+    'Extension',
+    'ImportedData',
+    'LongStrings',
+    'IOChecks',
+    'WriteableConst',
+    'LocalSymbols',
+    'TypeInfo',
+    'Optimization',
+    'OpenStrings',
+    'OverflowChecks',
+    'RangeChecks',
+    'TypedAddress',
+    'SafeDivide',
+    'VarStringChecks',
+    'Stackframes',
+    'ExtendedSyntax',
+    'ReferenceInfo',
+    'Hints',
+    'Notes',
+    'Warnings',
+    'Macro',
+    'ScopedEnums',
+    'ObjectChecks'
+    );
+
   PJUDefaultConvertOptions: TPasToJsConverterOptions = [];
+  PJUConverterOptions: array[TPasToJsConverterOption] of string = (
+    'LowerCase',
+    'SwitchStatement',
+    'EnumNumbers',
+    'UseStrict',
+    'NoTypeInfo',
+    'EliminateDeadCode'
+    );
+
   PJUDefaultTargetPlatform = PlatformBrowser;
+  PJUTargetPlatformNames: array[TPasToJsPlatform] of string = (
+   'Browser',
+   'NodeJS'
+    );
+
   PJUDefaultTargetProcessor = ProcessorECMAScript5;
+  PJUTargetProcessorNames: array[TPasToJsProcessor] of string = (
+   'ECMAScript5',
+   'ECMAScript6'
+    );
 
 type
   { TPJUInitialFlags }
@@ -91,18 +210,31 @@ type
   end;
 
 type
-  TPJUSourceFileKind = (
-    sfkUnit,   // 0
-    sfkInclude // 1
+  TPJUSourceFileType = (
+    sftUnit,
+    sftInclude
   );
-  TPJUSourceFileKinds = set of TPJUSourceFileKind;
+  TPJUSourceFileKinds = set of TPJUSourceFileType;
+const
+  PJUSourceFileTypeNames: array[TPJUSourceFileType] of string = (
+    'Unit',
+    'Include'
+    );
+
+type
   TPJUSourceFileChecksum = cardinal;
+  EPas2JsFilerError = class(Exception)
+  public
+    Owner: TObject;
+  end;
+  EPas2JsWriteError = class(EPas2JsFilerError);
+  EPas2JsReadError = class(EPas2JsFilerError);
 
   { TPJUSourceFile }
 
   TPJUSourceFile = class
   public
-    Kind: TPJUSourceFileKind;
+    FileType: TPJUSourceFileType;
     Filename: string;
     Checksum: TPJUSourceFileChecksum;
     Index: integer;
@@ -111,6 +243,14 @@ type
   TPJUGetSrcEvent = procedure(Sender: TObject; aFilename: string;
     out p: PChar; out Count: integer) of object;
 
+  { TPJUWriterContext }
+
+  TPJUWriterContext = class
+  public
+    ModeSwitches: TModeSwitches;
+    BoolSwitches: TBoolSwitches;
+  end;
+
   { TPJUWriter }
 
   TPJUWriter = class
@@ -118,81 +258,77 @@ type
     FInitialFlags: TPJUInitialFlags;
     FOnGetSrc: TPJUGetSrcEvent;
     FParser: TPasParser;
-    FResolver: TPasResolver;
+    FResolver: TPas2JSResolver;
     FScanner: TPascalScanner;
     FSourceFiles: TObjectList;
     FSourceFilesSorted: array of TPJUSourceFile;
-    FStream: TStream;
   protected
+    procedure RaiseMsg(Id: int64; const Msg: string = '');
+    procedure AddArrayFlag(Obj: TJSONObject; var Arr: TJSONArray;
+      const ArrName, Flag: string; Enable: boolean);
     function GetSrcCheckSum(aFilename: string): TPJUSourceFileChecksum;
-    procedure WriteStr(const s: string);
-    procedure WriteInt(const i: MaxPrecInt);
-    procedure WriteText(const s: string);
-    procedure WriteHeaderMagic; virtual;
-    procedure WriteHeaderVersion; virtual;
-    procedure WriteInitialFlags; virtual;
-    procedure WriteParserOptions(const Value, DefaultValue: TPOptions); virtual;
-    procedure WriteModeSwitches(const Value, DefaultValue: TModeSwitches); virtual;
-    procedure WriteBoolSwitches(const Value, DefaultValue: TBoolSwitches); virtual;
-    procedure WriteConvertOptions(const Value, DefaultValue: TPasToJsConverterOptions); virtual;
-    procedure WriteSrcFiles; virtual;
+    procedure WriteHeaderMagic(Obj: TJSONObject); virtual;
+    procedure WriteHeaderVersion(Obj: TJSONObject); virtual;
+    procedure WriteInitialFlags(Obj: TJSONObject); virtual;
+    procedure WriteParserOptions(Obj: TJSONObject; const Value, DefaultValue: TPOptions); virtual;
+    procedure WriteModeSwitches(Obj: TJSONObject; const Value, DefaultValue: TModeSwitches); virtual;
+    procedure WriteBoolSwitches(Obj: TJSONObject; const Value, DefaultValue: TBoolSwitches); virtual;
+    procedure WriteConvertOptions(Obj: TJSONObject; const Value, DefaultValue: TPasToJsConverterOptions); virtual;
+    procedure WriteSrcFiles(Obj: TJSONObject); virtual;
+    procedure WriteModule(ParentJSON: TJSONObject; Module: TPasModule;
+      aContext: TPJUWriterContext); virtual;
+    procedure WriteModuleScope(ParentJSON: TJSONObject; ModScope: TPasModuleScope;
+      aContext: TPJUWriterContext); virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
     procedure Clear;
-    procedure WriteModule(aResolver: TPasResolver; aStream: TStream;
-      InitFlags: TPJUInitialFlags); virtual;
-    property Resolver: TPasResolver read FResolver;
-    property Stream: TStream read FStream;
+    procedure WritePJU(aResolver: TPas2JSResolver;
+      InitFlags: TPJUInitialFlags; aStream: TStream); virtual;
+    function WriteJSON(aResolver: TPas2JSResolver;
+      InitFlags: TPJUInitialFlags): TJSONObject; virtual;
+    property Resolver: TPas2JSResolver read FResolver;
     property Parser: TPasParser read FParser;
     property Scanner: TPascalScanner read FScanner;
     property InitialFlags: TPJUInitialFlags read FInitialFlags;
     property OnGetSrc: TPJUGetSrcEvent read FOnGetSrc write FOnGetSrc;
   end;
 
-  EPas2JsReadError = class(Exception)
-  public
-    Owner: TObject;
-  end;
-
   { TPJUReader }
 
   TPJUReader = class
   private
-    FCur: PByte;
-    FEnd: PByte;
     FFileVersion: longint;
     FInitialFlags: TPJUInitialFlags;
     FParser: TPasParser;
-    FPJU: String;
-    FResolver: TPasResolver;
+    FResolver: TPas2JSResolver;
     FScanner: TPascalScanner;
     FSourceFiles: TObjectList;
   protected
     procedure RaiseMsg(Id: int64; const Msg: string = '');
-    procedure RaiseEOF(Id: int64);
-    function ReadStr(Cnt: integer): string;
-    function CheckStr(const s: string): boolean;
-    function ReadInt: MaxPrecInt; overload;
-    function ReadInt(LowBound, UpBound: MaxPrecInt): MaxPrecInt; overload;
-    function ReadText: string;
-    procedure ReadHeaderMagic; virtual;
-    procedure ReadHeaderVersion; virtual;
-    procedure ReadInitialFlags; virtual;
-    function ReadParserOptions(const DefaultValue: TPOptions): TPOptions; virtual;
-    function ReadModeSwitches(const DefaultValue: TModeSwitches): TModeSwitches; virtual;
-    function ReadBoolSwitches(const DefaultValue: TBoolSwitches): TBoolSwitches; virtual;
-    function ReadConverterOptions(const DefaultValue: TPasToJsConverterOptions): TPasToJsConverterOptions; virtual;
-    procedure ReadSrcFiles; virtual;
+    function CheckJSONArray(Data: TJSONData; Id: int64): TJSONArray;
+    function CheckJSONObject(Data: TJSONData; Id: int64): TJSONObject;
+    function CheckJSONString(Data: TJSONData; Id: int64): String;
+    procedure ReadHeaderMagic(Obj: TJSONObject); virtual;
+    procedure ReadHeaderVersion(Obj: TJSONObject); virtual;
+    procedure ReadArrayFlags(Data: TJSONData; const PropName: string; out Names: TStringDynArray; out Enable: TBooleanDynArray);
+    function ReadParserOptions(Data: TJSONData; const DefaultValue: TPOptions): TPOptions; virtual;
+    function ReadModeSwitches(Data: TJSONData; const DefaultValue: TModeSwitches): TModeSwitches; virtual;
+    function ReadBoolSwitches(Data: TJSONData; const DefaultValue: TBoolSwitches): TBoolSwitches; virtual;
+    function ReadConverterOptions(Data: TJSONData; const DefaultValue: TPasToJsConverterOptions): TPasToJsConverterOptions; virtual;
+    procedure ReadTargetPlatform(Data: TJSONData); virtual;
+    procedure ReadTargetProcessor(Data: TJSONData); virtual;
+    procedure ReadSrcFiles(Data: TJSONData); virtual;
+    procedure ReadModule(Data: TJSONData); virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
     procedure Clear;
-    procedure ReadModule(aResolver: TPasResolver; aPJU: String); virtual;
-    property Resolver: TPasResolver read FResolver;
+    procedure ReadPJU(aResolver: TPas2JSResolver; aStream: TStream); virtual;
+    procedure ReadJSON(aResolver: TPas2JSResolver; Obj: TJSONObject); virtual;
+    property Resolver: TPas2JSResolver read FResolver;
     property Parser: TPasParser read FParser;
     property Scanner: TPascalScanner read FScanner;
-    property PJU: String read FPJU;
     property FileVersion: longint read FFileVersion;
     property InitialFlags: TPJUInitialFlags read FInitialFlags;
   end;
@@ -493,439 +629,30 @@ begin
   TargetProcessor:=PJUDefaultTargetProcessor;
 end;
 
-{ TPJUReader }
-
-procedure TPJUReader.RaiseMsg(Id: int64; const Msg: string);
-begin
-  raise EPas2JsReadError.Create('['+IntToStr(Id)+'] '+Msg);
-end;
-
-procedure TPJUReader.RaiseEOF(Id: int64);
-begin
-  RaiseMsg(Id,'unexpected EOF');
-end;
-
-function TPJUReader.ReadStr(Cnt: integer): string;
-begin
-  if Cnt=0 then exit('');
-  if Cnt>0 then
-    begin
-    if FEnd-FCur<Cnt then
-      RaiseEOF(20180130192845);
-    SetLength(Result,Cnt);
-    System.Move(FCur^,Result[1],Cnt);
-    inc(FCur,Cnt);
-    end
-  else
-    RaiseMsg(20180130193811);
-end;
-
-function TPJUReader.CheckStr(const s: string): boolean;
-var
-  l: Integer;
-begin
-  l:=length(s);
-  if l=0 then exit(true);
-  if FEnd-FCur<l then
-    RaiseEOF(20180130201602);
-  if not CompareMem(FCur,@s[1],l) then exit(false);
-  inc(FCur,l);
-  Result:=true;
-end;
-
-function TPJUReader.ReadInt: MaxPrecInt;
-begin
-  if FCur=FEnd then
-    RaiseMsg(20180130201047);
-  Result:=DecodeVLQ(FCur); // Note: safe because FEnd^=#0
-  if FCur>FEnd then
-    begin
-    FCur:=FEnd;
-    RaiseMsg(20180130200819);
-    end;
-end;
-
-function TPJUReader.ReadInt(LowBound, UpBound: MaxPrecInt): MaxPrecInt;
-begin
-  Result:=ReadInt();
-  if Result<LowBound then
-    RaiseMsg(20180130203354)
-  else if Result>UpBound then
-    RaiseMsg(20180130203413);
-end;
-
-function TPJUReader.ReadText: string;
-var
-  l: MaxPrecInt;
-begin
-  l:=ReadInt;
-  if l=0 then
-    exit('')
-  else if l<0 then
-    RaiseMsg(20180130200936)
-  else if FEnd-FCur<l then
-    RaiseMsg(20180130200946);
-  SetLength(Result,l);
-  System.Move(FCur^,Result[1],l);
-  inc(FCur,l);
-end;
-
-procedure TPJUReader.ReadHeaderMagic;
-begin
-  if not CheckStr(PJUMagic) then
-    RaiseMsg(20180130201710,'not a pju file');
-end;
-
-procedure TPJUReader.ReadHeaderVersion;
-begin
-  FFileVersion:=ReadInt;
-  if FFileVersion<1 then
-    RaiseMsg(20180130201801,'invalid pju file version');
-  if FFileVersion>PJUVersion then
-    RaiseMsg(20180130201822,'pju file was created by a newer compiler.');
-end;
-
-procedure TPJUReader.ReadInitialFlags;
-begin
-  InitialFlags.ParserOptions:=ReadParserOptions(PJUDefaultParserOptions);
-  InitialFlags.ModeSwitches:=ReadModeSwitches(PJUDefaultModeSwitches);
-  InitialFlags.BoolSwitches:=ReadBoolSwitches(PJUDefaultBoolSwitches);
-  InitialFlags.ConverterOptions:=ReadConverterOptions(PJUDefaultConvertOptions);
-  case ReadInt of
-    1: InitialFlags.TargetPlatform:=PlatformBrowser;
-    2: InitialFlags.TargetPlatform:=PlatformNodeJS;
-  else
-    RaiseMsg(20180131170539,'invalid target platform');
-  end;
-  case ReadInt of
-    1: InitialFlags.TargetProcessor:=ProcessorECMAScript5;
-    2: InitialFlags.TargetProcessor:=ProcessorECMAScript6;
-  else
-    RaiseMsg(20180131170622,'invalid target processor');
-  end;
-  // ToDo: write initial flags: BoolSwitches, used defines, used macros
-end;
-
-function TPJUReader.ReadParserOptions(const DefaultValue: TPOptions): TPOptions;
-var
-  i: integer;
-begin
-  Result:=DefaultValue;
-  repeat
-    i:=ReadInt(-100,100);
-    case i of
-    0: exit;
-    +1: Include(Result,po_KeepScannerError);
-    -1: Exclude(Result,po_KeepScannerError);
-    +2: Include(Result,po_CAssignments);
-    -2: Exclude(Result,po_CAssignments);
-    +3: Include(Result,po_ResolveStandardTypes);
-    -3: Exclude(Result,po_ResolveStandardTypes);
-    +4: Include(Result,po_AsmWhole);
-    -4: Exclude(Result,po_AsmWhole);
-    +5: Include(Result,po_NoOverloadedProcs);
-    -5: Exclude(Result,po_NoOverloadedProcs);
-    +6: Include(Result,po_KeepClassForward);
-    -6: Exclude(Result,po_KeepClassForward);
-    +7: Include(Result,po_ArrayRangeExpr);
-    -7: Exclude(Result,po_ArrayRangeExpr);
-    +8: Include(Result,po_SelfToken);
-    -8: Exclude(Result,po_SelfToken);
-    +9: Include(Result,po_CheckModeSwitches);
-    -9: Exclude(Result,po_CheckModeSwitches);
-    +10: Include(Result,po_CheckCondFunction);
-    -10: Exclude(Result,po_CheckCondFunction);
-    +11: Include(Result,po_StopOnErrorDirective);
-    -11: Exclude(Result,po_StopOnErrorDirective);
-    +12: Include(Result,po_ExtClassConstWithoutExpr);
-    -12: Exclude(Result,po_ExtClassConstWithoutExpr);
-    else
-      RaiseMsg(20180131163751,'po='+IntToStr(i));
-    end;
-  until false;
-end;
-
-function TPJUReader.ReadModeSwitches(const DefaultValue: TModeSwitches
-  ): TModeSwitches;
-var
-  i: integer;
-begin
-  Result:=DefaultValue;
-  repeat
-    i:=ReadInt(-100,100);
-    case i of
-    0: exit;
-    -1: Exclude(Result,msNone);
-    +1: Include(Result,msNone);
-    // mode
-    -2: Exclude(Result,msFpc);
-    +2: Include(Result,msFpc);
-    -3: Exclude(Result,msObjfpc);
-    +3: Include(Result,msObjfpc);
-    -4: Exclude(Result,msDelphi);
-    +4: Include(Result,msDelphi);
-    -5: Exclude(Result,msDelphiUnicode);
-    +5: Include(Result,msDelphiUnicode);
-    -6: Exclude(Result,msTP7);
-    +6: Include(Result,msTP7);
-    -7: Exclude(Result,msMac);
-    +7: Include(Result,msMac);
-    -8: Exclude(Result,msIso);
-    +8: Include(Result,msIso);
-    -9: Exclude(Result,msExtpas);
-    +9: Include(Result,msExtpas);
-    -10: Exclude(Result,msGPC);
-    +10: Include(Result,msGPC);
-    // switches
-    -31: Exclude(Result,msClass);
-    +31: Include(Result,msClass);
-    -32: Exclude(Result,msObjpas);
-    +32: Include(Result,msObjpas);
-    -33: Exclude(Result,msResult);
-    +33: Include(Result,msResult);
-    -34: Exclude(Result,msStringPchar);
-    +34: Include(Result,msStringPchar);
-    -35: Exclude(Result,msCVarSupport);
-    +35: Include(Result,msCVarSupport);
-    -36: Exclude(Result,msNestedComment);
-    +36: Include(Result,msNestedComment);
-    -37: Exclude(Result,msTPProcVar);
-    +37: Include(Result,msTPProcVar);
-    -38: Exclude(Result,msMacProcVar);
-    +38: Include(Result,msMacProcVar);
-    -39: Exclude(Result,msRepeatForward);
-    +39: Include(Result,msRepeatForward);
-    -40: Exclude(Result,msPointer2Procedure);
-    +40: Include(Result,msPointer2Procedure);
-    -41: Exclude(Result,msAutoDeref);
-    +41: Include(Result,msAutoDeref);
-    -42: Exclude(Result,msInitFinal);
-    +42: Include(Result,msInitFinal);
-    -43: Exclude(Result,msDefaultAnsistring);
-    +43: Include(Result,msDefaultAnsistring);
-    -44: Exclude(Result,msOut);
-    +44: Include(Result,msOut);
-    -45: Exclude(Result,msDefaultPara);
-    +45: Include(Result,msDefaultPara);
-    -46: Exclude(Result,msHintDirective);
-    +46: Include(Result,msHintDirective);
-    -47: Exclude(Result,msDuplicateNames);
-    +47: Include(Result,msDuplicateNames);
-    -48: Exclude(Result,msProperty);
-    +48: Include(Result,msProperty);
-    -49: Exclude(Result,msDefaultInline);
-    +49: Include(Result,msDefaultInline);
-    -50: Exclude(Result,msExcept);
-    +50: Include(Result,msExcept);
-    -51: Exclude(Result,msObjectiveC1);
-    +51: Include(Result,msObjectiveC1);
-    -52: Exclude(Result,msObjectiveC2);
-    +52: Include(Result,msObjectiveC2);
-    -53: Exclude(Result,msNestedProcVars);
-    +53: Include(Result,msNestedProcVars);
-    -54: Exclude(Result,msNonLocalGoto);
-    +54: Include(Result,msNonLocalGoto);
-    -55: Exclude(Result,msAdvancedRecords);
-    +55: Include(Result,msAdvancedRecords);
-    -56: Exclude(Result,msISOLikeUnaryMinus);
-    +56: Include(Result,msISOLikeUnaryMinus);
-    -57: Exclude(Result,msSystemCodePage);
-    +57: Include(Result,msSystemCodePage);
-    -58: Exclude(Result,msFinalFields);
-    +58: Include(Result,msFinalFields);
-    -59: Exclude(Result,msDefaultUnicodestring);
-    +59: Include(Result,msDefaultUnicodestring);
-    -60: Exclude(Result,msTypeHelpers);
-    +60: Include(Result,msTypeHelpers);
-    -61: Exclude(Result,msCBlocks);
-    +61: Include(Result,msCBlocks);
-    -62: Exclude(Result,msISOLikeIO);
-    +62: Include(Result,msISOLikeIO);
-    -63: Exclude(Result,msISOLikeProgramsPara);
-    +63: Include(Result,msISOLikeProgramsPara);
-    -64: Exclude(Result,msISOLikeMod);
-    +64: Include(Result,msISOLikeMod);
-    -65: Exclude(Result,msExternalClass);
-    +65: Include(Result,msExternalClass);
-    -66: Exclude(Result,msPrefixedAttributes);
-    +66: Include(Result,msPrefixedAttributes);
-    -67: Exclude(Result,msIgnoreInterfaces);
-    +67: Include(Result,msIgnoreInterfaces);
-    -68: Exclude(Result,msIgnoreAttributes);
-    +68: Include(Result,msIgnoreAttributes);
-    else
-      RaiseMsg(20180131152915,'ms='+IntToStr(i));
-    end;
-  until false;
-end;
-
-function TPJUReader.ReadBoolSwitches(const DefaultValue: TBoolSwitches
-  ): TBoolSwitches;
-var
-  i: integer;
-begin
-  Result:=DefaultValue;
-  repeat
-    i:=ReadInt(-100,100);
-    case i of
-    0: exit;
-    +1: Include(Result,bsNone);
-    -1: Exclude(Result,bsNone);
-    +2: Include(Result,bsAlign);
-    -2: Exclude(Result,bsAlign);
-    +3: Include(Result,bsBoolEval);
-    -3: Exclude(Result,bsBoolEval);
-    +4: Include(Result,bsAssertions);
-    -4: Exclude(Result,bsAssertions);
-    +5: Include(Result,bsDebugInfo);
-    -5: Exclude(Result,bsDebugInfo);
-    +6: Include(Result,bsExtension);
-    -6: Exclude(Result,bsExtension);
-    +7: Include(Result,bsImportedData);
-    -7: Exclude(Result,bsImportedData);
-    +8: Include(Result,bsLongStrings);
-    -8: Exclude(Result,bsLongStrings);
-    +9: Include(Result,bsIOChecks);
-    -9: Exclude(Result,bsIOChecks);
-    +10: Include(Result,bsWriteableConst);
-    -10: Exclude(Result,bsWriteableConst);
-    +11: Include(Result,bsLocalSymbols);
-    -11: Exclude(Result,bsLocalSymbols);
-    +12: Include(Result,bsTypeInfo);
-    -12: Exclude(Result,bsTypeInfo);
-    +13: Include(Result,bsOptimization);
-    -13: Exclude(Result,bsOptimization);
-    +14: Include(Result,bsOpenStrings);
-    -14: Exclude(Result,bsOpenStrings);
-    +15: Include(Result,bsOverflowChecks);
-    -15: Exclude(Result,bsOverflowChecks);
-    +16: Include(Result,bsRangeChecks);
-    -16: Exclude(Result,bsRangeChecks);
-    +17: Include(Result,bsTypedAddress);
-    -17: Exclude(Result,bsTypedAddress);
-    +18: Include(Result,bsSafeDivide);
-    -18: Exclude(Result,bsSafeDivide);
-    +19: Include(Result,bsVarStringChecks);
-    -19: Exclude(Result,bsVarStringChecks);
-    +20: Include(Result,bsStackframes);
-    -20: Exclude(Result,bsStackframes);
-    +21: Include(Result,bsExtendedSyntax);
-    -21: Exclude(Result,bsExtendedSyntax);
-    +22: Include(Result,bsReferenceInfo);
-    -22: Exclude(Result,bsReferenceInfo);
-    +23: Include(Result,bsHints);
-    -23: Exclude(Result,bsHints);
-    +24: Include(Result,bsNotes);
-    -24: Exclude(Result,bsNotes);
-    +25: Include(Result,bsWarnings);
-    -25: Exclude(Result,bsWarnings);
-    +26: Include(Result,bsMacro);
-    -26: Exclude(Result,bsMacro);
-    +27: Include(Result,bsScopedEnums);
-    -27: Exclude(Result,bsScopedEnums);
-    +28: Include(Result,bsObjectChecks);
-    -28: Exclude(Result,bsObjectChecks);
-    else
-      RaiseMsg(20180131170303,'bs='+IntToStr(i));
-    end;
-  until false;
-end;
-
-function TPJUReader.ReadConverterOptions(
-  const DefaultValue: TPasToJsConverterOptions): TPasToJsConverterOptions;
-var
-  i: integer;
-begin
-  Result:=DefaultValue;
-  repeat
-    i:=ReadInt(-100,100);
-    case i of
-    0: exit;
-    +1: Exclude(Result,coLowerCase);
-    -1: Include(Result,coLowerCase);
-    +2: Exclude(Result,coSwitchStatement);
-    -2: Include(Result,coSwitchStatement);
-    +3: Exclude(Result,coEnumNumbers);
-    -3: Include(Result,coEnumNumbers);
-    +4: Exclude(Result,coUseStrict);
-    -4: Include(Result,coUseStrict);
-    +5: Exclude(Result,coNoTypeInfo);
-    -5: Include(Result,coNoTypeInfo);
-    +6: Exclude(Result,coEliminateDeadCode);
-    -6: Include(Result,coEliminateDeadCode);
-    else
-      RaiseMsg(20180131170301,'co='+IntToStr(i));
-    end;
-  until false;
-end;
-
-procedure TPJUReader.ReadSrcFiles;
-var
-  Cnt: MaxPrecInt;
-  i: Integer;
-  CurFile: TPJUSourceFile;
-  CurFilename: String;
-begin
-  if not CheckStr('Files') then
-    RaiseMsg(20180130202024);
-  Cnt:=ReadInt;
-  for i:=0 to Cnt-1 do
-    begin
-    CurFile:=TPJUSourceFile.Create;
-    FSourceFiles.Add(CurFile);
-    CurFile.Kind:=TPJUSourceFileKind(ReadInt(ord(low(TPJUSourceFileKind)),ord(high(TPJUSourceFileKind))));
-    CurFilename:=ReadText;
-    if CurFilename='' then
-      RaiseMsg(20180130203605);
-    if length(CurFilename)>MAX_PATH then
-      RaiseMsg(20180130203624);
-    DoDirSeparators(CurFilename);
-    if CurFilename<>ResolveDots(CurFilename) then
-      RaiseMsg(20180130203841);
-    if ExtractFilenameOnly(CurFilename)='' then
-      RaiseMsg(20180130203924);
-    CurFile.Filename:=CurFilename;
-    CurFile.Checksum:=ReadInt(low(TPJUSourceFileChecksum),high(TPJUSourceFileChecksum));
-    end;
-end;
-
-constructor TPJUReader.Create;
-begin
-  FSourceFiles:=TObjectList.Create(true);
-  FInitialFlags:=TPJUInitialFlags.Create;
-end;
-
-destructor TPJUReader.Destroy;
-begin
-  FreeAndNil(FInitialFlags);
-  FreeAndNil(FSourceFiles);
-  inherited Destroy;
-end;
-
-procedure TPJUReader.Clear;
-begin
-  FSourceFiles.Clear;
-  FResolver:=nil;
-  FPJU:='';
-  FInitialFlags.Clear;
-end;
-
-procedure TPJUReader.ReadModule(aResolver: TPasResolver; aPJU: String);
-begin
-  FResolver:=aResolver;
-  FParser:=Resolver.CurrentParser;
-  FScanner:=FParser.Scanner;
-  FPJU:=aPJU;
-  FCur:=PByte(PChar(FPJU));
-  FEnd:=FCur+length(FPJU);
-
-  ReadHeaderMagic;
-  ReadHeaderVersion;
-  ReadInitialFlags;
-  ReadSrcFiles;
-end;
-
 { TPJUWriter }
+
+procedure TPJUWriter.RaiseMsg(Id: int64; const Msg: string);
+var
+  E: EPas2JsWriteError;
+begin
+  E:=EPas2JsWriteError.Create('['+IntToStr(Id)+'] '+Msg);
+  E.Owner:=Self;
+  raise E;
+end;
+
+procedure TPJUWriter.AddArrayFlag(Obj: TJSONObject; var Arr: TJSONArray;
+  const ArrName, Flag: string; Enable: boolean);
+begin
+  if Arr=nil then
+    begin
+    Arr:=TJSONArray.Create;
+    Obj.Add(ArrName,Arr);
+    end;
+  if Enable then
+    Arr.Add(Flag)
+  else
+    Arr.Add('-'+Flag);
+end;
 
 function TPJUWriter.GetSrcCheckSum(aFilename: string): TPJUSourceFileChecksum;
 var
@@ -936,249 +663,84 @@ begin
   Result:=ComputeChecksum(p,Cnt);
 end;
 
-procedure TPJUWriter.WriteStr(const s: string);
+procedure TPJUWriter.WriteHeaderMagic(Obj: TJSONObject);
 begin
-  if s='' then exit;
-  FStream.Write(s[1],length(s));
+  Obj.Add('FileType',PJUMagic);
 end;
 
-procedure TPJUWriter.WriteInt(const i: MaxPrecInt);
+procedure TPJUWriter.WriteHeaderVersion(Obj: TJSONObject);
 begin
-  WriteStr(EncodeVLQ(i));
-  //writeln('TPasToJsWriter.WriteInt ',i,' ',dbgmem(EncodeVLQ(i)));
+  Obj.Add('Version',PJUVersion);
 end;
 
-procedure TPJUWriter.WriteText(const s: string);
+procedure TPJUWriter.WriteInitialFlags(Obj: TJSONObject);
 begin
-  WriteInt(length(s));
-  if s<>'' then
-    WriteStr(s);
-end;
-
-procedure TPJUWriter.WriteHeaderMagic;
-begin
-  WriteStr(PJUMagic);
-end;
-
-procedure TPJUWriter.WriteHeaderVersion;
-begin
-  WriteInt(PJUVersion);
-end;
-
-procedure TPJUWriter.WriteInitialFlags;
-begin
-  WriteParserOptions(InitialFlags.ParserOptions,PJUDefaultParserOptions);
-  WriteModeSwitches(InitialFlags.Modeswitches,PJUDefaultModeSwitches);
-  WriteBoolSwitches(InitialFlags.BoolSwitches,PJUDefaultBoolSwitches);
-  WriteConvertOptions(InitialFlags.ConverterOptions,PJUDefaultConvertOptions);
-  case InitialFlags.TargetPlatform of
-    PlatformBrowser: WriteInt(1);
-    PlatformNodeJS: WriteInt(2);
-  end;
-  case InitialFlags.TargetProcessor of
-    ProcessorECMAScript5: WriteInt(1);
-    ProcessorECMAScript6: WriteInt(2);
-  end;
+  WriteParserOptions(Obj,InitialFlags.ParserOptions,PJUDefaultParserOptions);
+  WriteModeSwitches(Obj,InitialFlags.Modeswitches,PJUDefaultModeSwitches);
+  WriteBoolSwitches(Obj,InitialFlags.BoolSwitches,PJUDefaultBoolSwitches);
+  WriteConvertOptions(Obj,InitialFlags.ConverterOptions,PJUDefaultConvertOptions);
+  if InitialFlags.TargetPlatform<>PJUDefaultTargetPlatform then
+    Obj.Add('TargetPlatform',PJUTargetPlatformNames[InitialFlags.TargetPlatform]);
+  if InitialFlags.TargetProcessor<>PJUDefaultTargetProcessor then
+    Obj.Add('TargetProcessor',PJUTargetProcessorNames[InitialFlags.TargetProcessor]);
   // ToDo: write initial flags: used defines, used macros
 end;
 
-procedure TPJUWriter.WriteParserOptions(const Value, DefaultValue: TPOptions);
-
-  procedure AddDiff(s: TPOption; Int: MaxPrecInt);
-  begin
-    if s in Value then
-      begin
-      if not (s in DefaultValue) then
-        begin
-        WriteInt(Int);
-        //writeln('TPJUWriter.WriteParserOptions.AddDiff ',s);
-        end;
-      end
-    else
-      begin
-      if s in DefaultValue then
-        WriteInt(-Int);
-      end;
-  end;
-
+procedure TPJUWriter.WriteParserOptions(Obj: TJSONObject; const Value,
+  DefaultValue: TPOptions);
+var
+  Arr: TJSONArray;
+  f: TPOption;
 begin
-  AddDiff(po_KeepScannerError,1);
-  AddDiff(po_CAssignments,2);
-  AddDiff(po_ResolveStandardTypes,3);
-  AddDiff(po_AsmWhole,4);
-  AddDiff(po_NoOverloadedProcs,5);
-  AddDiff(po_KeepClassForward,6);
-  AddDiff(po_ArrayRangeExpr,7);
-  AddDiff(po_SelfToken,8);
-  AddDiff(po_CheckModeSwitches,9);
-  AddDiff(po_CheckCondFunction,10);
-  AddDiff(po_StopOnErrorDirective,11);
-  AddDiff(po_ExtClassConstWithoutExpr,12);
-  WriteInt(0);
+  Arr:=nil;
+  for f in TPOptions do
+    if (f in Value)<>(f in DefaultValue) then
+      AddArrayFlag(Obj,Arr,'ParserOptions',PJUParserOptionNames[f],f in Value);
 end;
 
-procedure TPJUWriter.WriteModeSwitches(const Value,
+procedure TPJUWriter.WriteModeSwitches(Obj: TJSONObject; const Value,
   DefaultValue: TModeSwitches);
-
-  procedure AddDiff(s: TModeSwitch; Int: MaxPrecInt);
-  begin
-    if s in Value then
-      begin
-      if not (s in DefaultValue) then
-        begin
-        WriteInt(Int);
-        //writeln('TPJUWriter.WriteModeSwitches.AddDiff ',s);
-        end;
-      end
-    else
-      begin
-      if s in DefaultValue then
-        WriteInt(-Int);
-      end;
-  end;
-
+var
+  Arr: TJSONArray;
+  f: TModeSwitch;
 begin
-  AddDiff(msNone,1);
-  // mode
-  AddDiff(msFpc,2);
-  AddDiff(msObjfpc,3);
-  AddDiff(msDelphi,4);
-  AddDiff(msDelphiUnicode,5);
-  AddDiff(msTP7,6);
-  AddDiff(msMac,7);
-  AddDiff(msIso,8);
-  AddDiff(msExtpas,9);
-  AddDiff(msGPC,10);
-  // switches
-  AddDiff(msClass,31);
-  AddDiff(msObjpas,32);
-  AddDiff(msResult,33);
-  AddDiff(msStringPchar,34);
-  AddDiff(msCVarSupport,35);
-  AddDiff(msNestedComment,36);
-  AddDiff(msTPProcVar,37);
-  AddDiff(msMacProcVar,38);
-  AddDiff(msRepeatForward,39);
-  AddDiff(msPointer2Procedure,40);
-  AddDiff(msAutoDeref,41);
-  AddDiff(msInitFinal,42);
-  AddDiff(msDefaultAnsistring,43);
-  AddDiff(msOut,44);
-  AddDiff(msDefaultPara,45);
-  AddDiff(msHintDirective,46);
-  AddDiff(msDuplicateNames,47);
-  AddDiff(msProperty,48);
-  AddDiff(msDefaultInline,49);
-  AddDiff(msExcept,50);
-  AddDiff(msObjectiveC1,51);
-  AddDiff(msObjectiveC2,52);
-  AddDiff(msNestedProcVars,53);
-  AddDiff(msNonLocalGoto,54);
-  AddDiff(msAdvancedRecords,55);
-  AddDiff(msISOLikeUnaryMinus,56);
-  AddDiff(msSystemCodePage,57);
-  AddDiff(msFinalFields,58);
-  AddDiff(msDefaultUnicodestring,59);
-  AddDiff(msTypeHelpers,60);
-  AddDiff(msCBlocks,61);
-  AddDiff(msISOLikeIO,62);
-  AddDiff(msISOLikeProgramsPara,63);
-  AddDiff(msISOLikeMod,64);
-  AddDiff(msExternalClass,65);
-  AddDiff(msPrefixedAttributes,66);
-  AddDiff(msIgnoreInterfaces,67);
-  AddDiff(msIgnoreAttributes,68);
-  // stop byte
-  WriteInt(0);
+  Arr:=nil;
+  for f in TModeSwitch do
+    if (f in Value)<>(f in DefaultValue) then
+      AddArrayFlag(Obj,Arr,'ModeSwitches',PJUModeSwitchNames[f],f in Value);
 end;
 
-procedure TPJUWriter.WriteBoolSwitches(const Value,
+procedure TPJUWriter.WriteBoolSwitches(Obj: TJSONObject; const Value,
   DefaultValue: TBoolSwitches);
-
-  procedure AddDiff(s: TBoolSwitch; Int: MaxPrecInt);
-  begin
-    if s in Value then
-      begin
-      if not (s in DefaultValue) then
-        begin
-        WriteInt(Int);
-        //writeln('TPJUWriter.WriteBoolSwitches.AddDiff ',s);
-        end;
-      end
-    else
-      begin
-      if s in DefaultValue then
-        WriteInt(-Int);
-      end;
-  end;
-
+var
+  Arr: TJSONArray;
+  f: TBoolSwitch;
 begin
-  AddDiff(bsNone,1);
-  AddDiff(bsAlign,2);
-  AddDiff(bsBoolEval,3);
-  AddDiff(bsAssertions,4);
-  AddDiff(bsDebugInfo,5);
-  AddDiff(bsExtension,6);
-  AddDiff(bsImportedData,7);
-  AddDiff(bsLongStrings,8);
-  AddDiff(bsIOChecks,9);
-  AddDiff(bsWriteableConst,10);
-  AddDiff(bsLocalSymbols,11);
-  AddDiff(bsTypeInfo,12);
-  AddDiff(bsOptimization,13);
-  AddDiff(bsOpenStrings,14);
-  AddDiff(bsOverflowChecks,15);
-  AddDiff(bsRangeChecks,16);
-  AddDiff(bsTypedAddress,17);
-  AddDiff(bsSafeDivide,18);
-  AddDiff(bsVarStringChecks,19);
-  AddDiff(bsStackframes,20);
-  AddDiff(bsExtendedSyntax,21);
-  AddDiff(bsReferenceInfo,22);
-  AddDiff(bsHints,23);
-  AddDiff(bsNotes,24);
-  AddDiff(bsWarnings,25);
-  AddDiff(bsMacro,26);
-  AddDiff(bsScopedEnums,27);
-  AddDiff(bsObjectChecks,28);
-  WriteInt(0);
+  Arr:=nil;
+  for f in TBoolSwitch do
+    if (f in Value)<>(f in DefaultValue) then
+      AddArrayFlag(Obj,Arr,'BoolSwitches',PJUBoolSwitchNames[f],f in Value);
 end;
 
-procedure TPJUWriter.WriteConvertOptions(const Value,
+procedure TPJUWriter.WriteConvertOptions(Obj: TJSONObject; const Value,
   DefaultValue: TPasToJsConverterOptions);
-
-  procedure AddDiff(s: TPasToJsConverterOption; Int: MaxPrecInt);
-  begin
-    if s in Value then
-      begin
-      if not (s in DefaultValue) then
-        begin
-        WriteInt(Int);
-        //writeln('TPJUWriter.WriteConvertOptions.AddDiff ',s);
-        end;
-      end
-    else
-      begin
-      if s in DefaultValue then
-        WriteInt(-Int);
-      end;
-  end;
-
+var
+  Arr: TJSONArray;
+  f: TPasToJsConverterOption;
 begin
-  AddDiff(coLowerCase,1);
-  AddDiff(coSwitchStatement,2);
-  AddDiff(coEnumNumbers,3);
-  AddDiff(coUseStrict,4);
-  AddDiff(coNoTypeInfo,5);
-  AddDiff(coEliminateDeadCode,6);
-  WriteInt(0);
+  Arr:=nil;
+  for f in TPasToJsConverterOption do
+    if (f in Value)<>(f in DefaultValue) then
+      AddArrayFlag(Obj,Arr,'ConverterOptions',PJUConverterOptions[f],f in Value);
 end;
 
-procedure TPJUWriter.WriteSrcFiles;
+procedure TPJUWriter.WriteSrcFiles(Obj: TJSONObject);
 var
   CurFile: TPJUSourceFile;
   List: TFPList;
   i: Integer;
+  SourcesArr: TJSONArray;
+  Src: TJSONObject;
 begin
   List:=TFPList.Create;
   try
@@ -1189,9 +751,9 @@ begin
       CurFile.Index:=i;
       CurFile.Filename:=Scanner.Files[i];
       if i=0 then
-        CurFile.Kind:=sfkUnit
+        CurFile.FileType:=sftUnit
       else
-        CurFile.Kind:=sfkInclude;
+        CurFile.FileType:=sftInclude;
       FSourceFiles.Add(CurFile);
       CurFile.Checksum:=GetSrcCheckSum(CurFile.Filename);
       List.Add(CurFile);
@@ -1204,18 +766,63 @@ begin
       FSourceFilesSorted[i]:=TPJUSourceFile(List[i]);
 
     // write
-    WriteStr('Files');
-    WriteInt(FSourceFiles.Count);
+    SourcesArr:=TJSONArray.Create;
+    Obj.Add('Sources',SourcesArr);
     for i:=0 to FSourceFiles.Count-1 do
       begin
       CurFile:=TPJUSourceFile(FSourceFiles[i]);
-      WriteInt(ord(CurFile.Kind));
-      WriteText(CurFile.Filename);
-      WriteInt(CurFile.Checksum);
+      Src:=TJSONObject.Create;
+      SourcesArr.Add(Src);
+      if (i=0) then
+        // the first file is the unit source, no need to write Kind
+      else if (CurFile.FileType=sftInclude) then
+        // the default file type is include, no need to write Kind
+      else
+        Src.Add('Type',PJUSourceFileTypeNames[CurFile.FileType]);
+      Src.Add('File',CurFile.Filename);
+      Src.Add('CheckSum',CurFile.Checksum);
       end;
   finally
     List.Free;
   end;
+end;
+
+procedure TPJUWriter.WriteModule(ParentJSON: TJSONObject; Module: TPasModule;
+  aContext: TPJUWriterContext);
+var
+  Obj: TJSONObject;
+  ModScope: TPasModuleScope;
+begin
+  Obj:=TJSONObject.Create;
+  ParentJSON.Add('Module',Obj);
+  Obj.Add('Name',Module.Name);
+
+  if Module.ClassType=TPasModule then
+    Obj.Add('Type','Unit')
+  else if Module.ClassType=TPasProgram then
+    Obj.Add('Type','Program')
+  else if Module.ClassType=TPasLibrary then
+    Obj.Add('Type','Library')
+  else
+    RaiseMsg(20180203163923);
+
+  ModScope:=Module.CustomData as TPasModuleScope;
+  WriteModuleScope(Obj,ModScope,aContext);
+
+  // ToDo: write sections
+end;
+
+procedure TPJUWriter.WriteModuleScope(ParentJSON: TJSONObject;
+  ModScope: TPasModuleScope; aContext: TPJUWriterContext);
+begin
+  // FirstName not needed
+  // ToDo: Flags: TPasModuleScopeFlags;
+  WriteBoolSwitches(ParentJSON,ModScope.ScannerBoolSwitches,aContext.BoolSwitches);
+  // ToDo: AssertClass: TPasClassType
+  // ToDo: AssertDefConstructor: TPasConstructor
+  // ToDo: AssertMsgConstructor: TPasConstructor
+  // ToDo: RangeErrorClass: TPasClassType
+  // ToDo: RangeErrorConstructor: TPasConstructor
 end;
 
 constructor TPJUWriter.Create;
@@ -1236,29 +843,489 @@ begin
   FResolver:=nil;
   FParser:=nil;
   FScanner:=nil;
-  FStream:=nil;
   FInitialFlags:=nil;
 end;
 
-procedure TPJUWriter.WriteModule(aResolver: TPasResolver; aStream: TStream;
-  InitFlags: TPJUInitialFlags);
+procedure TPJUWriter.WritePJU(aResolver: TPas2JSResolver;
+  InitFlags: TPJUInitialFlags; aStream: TStream);
+var
+  aJSON: TJSONObject;
 begin
+  aJSON:=WriteJSON(aResolver,InitFlags);
+  try
+    aJSON.DumpJSON(aStream);
+  finally
+    aJSON.Free;
+  end;
+end;
+
+function TPJUWriter.WriteJSON(aResolver: TPas2JSResolver;
+  InitFlags: TPJUInitialFlags): TJSONObject;
+var
+  Obj: TJSONObject;
+  aContext: TPJUWriterContext;
+begin
+  Result:=nil;
   FResolver:=aResolver;
   FParser:=Resolver.CurrentParser;
   FScanner:=FParser.Scanner;
-  FStream:=aStream;
   FInitialFlags:=InitFlags;
+
+  aContext:=nil;
+  Obj:=TJSONObject.Create;
   try
-    WriteHeaderMagic;
-    WriteHeaderVersion;
-    WriteInitialFlags;
-    WriteSrcFiles;
+    WriteHeaderMagic(Obj);
+    WriteHeaderVersion(Obj);
+    WriteInitialFlags(Obj);
+    WriteSrcFiles(Obj);
     // ToDo: WriteUsedModulesPrecompiledChecksums;
-    // ToDo: WriteModule;
+    aContext:=TPJUWriterContext.Create;
+    aContext.ModeSwitches:=InitialFlags.ModeSwitches;
+    aContext.BoolSwitches:=InitialFlags.BoolSwitches;
+    WriteModule(Obj,aResolver.RootElement,aContext);
     // ToDo: write final flags: modeswitches, boolswitches, used defines
+
+    Result:=Obj;
   finally
-    FStream:=nil;
+    aContext.Free;
+    if Result=nil then
+      Obj.Free;
   end;
+end;
+
+{ TPJUReader }
+
+procedure TPJUReader.RaiseMsg(Id: int64; const Msg: string);
+var
+  E: EPas2JsReadError;
+begin
+  E:=EPas2JsReadError.Create('['+IntToStr(Id)+'] '+Msg);
+  E.Owner:=Self;
+  raise E;
+end;
+
+function TPJUReader.CheckJSONArray(Data: TJSONData; Id: int64): TJSONArray;
+begin
+  if Data is TJSONArray then exit(TJSONArray(Data));
+  RaiseMsg(Id);
+  Result:=nil;
+end;
+
+function TPJUReader.CheckJSONObject(Data: TJSONData; Id: int64): TJSONObject;
+begin
+  if Data is TJSONObject then exit(TJSONObject(Data));
+  RaiseMsg(Id);
+  Result:=nil;
+end;
+
+function TPJUReader.CheckJSONString(Data: TJSONData; Id: int64): String;
+begin
+  if Data is TJSONString then
+    exit(String(Data.AsString));
+  RaiseMsg(Id);
+  Result:='';
+end;
+
+procedure TPJUReader.ReadHeaderMagic(Obj: TJSONObject);
+begin
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadHeaderMagic ',Obj.Get('FileType',''));
+  {$ENDIF}
+  if Obj.Get('FileType','')<>PJUMagic then
+    RaiseMsg(20180130201710,'not a pju file');
+end;
+
+procedure TPJUReader.ReadHeaderVersion(Obj: TJSONObject);
+begin
+  FFileVersion:=Obj.Get('Version',0);
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadHeaderVersion ',FFileVersion);
+  {$ENDIF}
+  if FFileVersion<1 then
+    RaiseMsg(20180130201801,'invalid pju file version');
+  if FFileVersion>PJUVersion then
+    RaiseMsg(20180130201822,'pju file was created by a newer compiler.');
+end;
+
+procedure TPJUReader.ReadArrayFlags(Data: TJSONData; const PropName: string;
+  out Names: TStringDynArray; out Enable: TBooleanDynArray);
+const
+  IdentStart = ['a'..'z','A'..'Z','_'];
+var
+  Arr: TJSONArray;
+  Cnt, i: Integer;
+  s: String;
+begin
+  Names:=nil;
+  Enable:=nil;
+  if Data=nil then exit;
+  Arr:=CheckJSONArray(Data,20180203100055);
+  Cnt:=Arr.Count;
+  if Cnt=0 then exit;
+  SetLength(Names,Cnt);
+  SetLength(Enable,Cnt);
+  for i:=0 to Cnt-1 do
+    begin
+    Data:=Arr[i];
+    if not (Data is TJSONString) then
+      RaiseMsg(20180202132350,PropName+' elements must be string');
+    s:=String(TJSONString(Data).AsString);
+    if s='' then
+      RaiseMsg(20180202133605,PropName+' elements must be string');
+    if s[1]='-' then
+      begin
+      Enable[i]:=false;
+      system.Delete(s,1,1);
+      end
+    else
+      Enable[i]:=true;
+    if not (s[1] in IdentStart) then
+      RaiseMsg(20180202133605,PropName+' elements must be identifiers');
+    Names[i]:=s;
+    end;
+end;
+
+function TPJUReader.ReadParserOptions(Data: TJSONData;
+  const DefaultValue: TPOptions): TPOptions;
+var
+  Names: TStringDynArray;
+  Enable: TBooleanDynArray;
+  s: String;
+  f: TPOption;
+  Found: Boolean;
+  i: Integer;
+begin
+  Result:=DefaultValue;
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadParserOptions START');
+  {$ENDIF}
+  ReadArrayFlags(Data,'ParserOptions',Names,Enable);
+  for i:=0 to length(Names)-1 do
+    begin
+    s:=Names[i];
+    Found:=false;
+    for f in TPOption do
+      if s=PJUParserOptionNames[f] then
+        begin
+        if Enable[i] then
+          Include(Result,f)
+        else
+          Exclude(Result,f);
+        Found:=true;
+        break;
+        end;
+    if not Found then
+      RaiseMsg(20180202144009,'unknown ParserOption "'+s+'"');
+    end;
+end;
+
+function TPJUReader.ReadModeSwitches(Data: TJSONData;
+  const DefaultValue: TModeSwitches): TModeSwitches;
+var
+  Names: TStringDynArray;
+  Enable: TBooleanDynArray;
+  s: String;
+  f: TModeSwitch;
+  Found: Boolean;
+  i: Integer;
+begin
+  Result:=DefaultValue;
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadModeSwitches START');
+  {$ENDIF}
+  ReadArrayFlags(Data,'ModeSwitches',Names,Enable);
+  for i:=0 to length(Names)-1 do
+    begin
+    s:=Names[i];
+    Found:=false;
+    for f in TModeSwitch do
+      if s=PJUModeSwitchNames[f] then
+        begin
+        if Enable[i] then
+          Include(Result,f)
+        else
+          Exclude(Result,f);
+        Found:=true;
+        break;
+        end;
+    if not Found then
+      RaiseMsg(20180202144054,'unknown ModeSwitch "'+s+'"');
+    end;
+end;
+
+function TPJUReader.ReadBoolSwitches(Data: TJSONData;
+  const DefaultValue: TBoolSwitches): TBoolSwitches;
+var
+  Names: TStringDynArray;
+  Enable: TBooleanDynArray;
+  s: String;
+  f: TBoolSwitch;
+  i: Integer;
+  Found: Boolean;
+begin
+  Result:=DefaultValue;
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadBoolSwitches START');
+  {$ENDIF}
+  ReadArrayFlags(Data,'BoolSwitches',Names,Enable);
+  for i:=0 to length(Names)-1 do
+    begin
+    s:=Names[i];
+    Found:=false;
+    for f in TBoolSwitch do
+      if s=PJUBoolSwitchNames[f] then
+        begin
+        if Enable[i] then
+          Include(Result,f)
+        else
+          Exclude(Result,f);
+        Found:=true;
+        break;
+        end;
+    if not Found then
+      RaiseMsg(20180202144116,'unknown BoolSwitch "'+s+'"');
+    end;
+end;
+
+function TPJUReader.ReadConverterOptions(Data: TJSONData;
+  const DefaultValue: TPasToJsConverterOptions): TPasToJsConverterOptions;
+var
+  Names: TStringDynArray;
+  Enable: TBooleanDynArray;
+  s: String;
+  f: TPasToJsConverterOption;
+  i: Integer;
+  Found: Boolean;
+begin
+  Result:=DefaultValue;
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadConverterOptions START');
+  {$ENDIF}
+  ReadArrayFlags(Data,'ConverterOptions',Names,Enable);
+  for i:=0 to length(Names)-1 do
+    begin
+    s:=Names[i];
+    Found:=false;
+    for f in TPasToJsConverterOption do
+      if s=PJUConverterOptions[f] then
+        begin
+        if Enable[i] then
+          Include(Result,f)
+        else
+          Exclude(Result,f);
+        Found:=true;
+        break;
+        end;
+    if not Found then
+      RaiseMsg(20180202144136,'unknown ConvertOptions "'+s+'"');
+    end;
+end;
+
+procedure TPJUReader.ReadTargetPlatform(Data: TJSONData);
+var
+  p: TPasToJsPlatform;
+  s: String;
+begin
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadTargetPlatform START');
+  {$ENDIF}
+  s:=CheckJSONString(Data,20180203100215);
+  for p in TPasToJsPlatform do
+    if s=PJUTargetPlatformNames[p] then
+      begin
+      InitialFlags.TargetPlatform:=p;
+      exit;
+      end;
+  RaiseMsg(20180202145542,'invalid TargetPlatform');
+end;
+
+procedure TPJUReader.ReadTargetProcessor(Data: TJSONData);
+var
+  p: TPasToJsProcessor;
+  s: String;
+begin
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadTargetProcessor START');
+  {$ENDIF}
+  s:=CheckJSONString(Data,20180203100235);
+  for p in TPasToJsProcessor do
+    if s=PJUTargetProcessorNames[p] then
+      begin
+      InitialFlags.TargetProcessor:=p;
+      exit;
+      end;
+  RaiseMsg(20180202145623,'invalid TargetProcessor');
+end;
+
+procedure TPJUReader.ReadSrcFiles(Data: TJSONData);
+var
+  SourcesArr: TJSONArray;
+  i, j: Integer;
+  Src: TJSONObject;
+  CurFile: TPJUSourceFile;
+  Found: Boolean;
+  ft: TPJUSourceFileType;
+  s: TJSONStringType;
+  CurFilename, PropName: string;
+begin
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadSrcFiles START ');
+  {$ENDIF}
+  SourcesArr:=CheckJSONArray(Data,20180203100250);
+  for i:=0 to SourcesArr.Count-1 do
+    begin
+    Src:=CheckJSONObject(SourcesArr[i],20180203100307);
+    CurFile:=TPJUSourceFile.Create;
+    FSourceFiles.Add(CurFile);
+    if i=0 then
+      CurFile.FileType:=sftUnit
+    else
+      CurFile.FileType:=sftInclude;
+
+    for j:=0 to Src.Count-1 do
+      begin
+      PropName:=Src.Names[j];
+      Data:=Src.Elements[PropName];
+      case PropName of
+      'Type':
+        begin
+        s:=CheckJSONString(Data,20180203101322);
+        Found:=false;
+        for ft in TPJUSourceFileType do
+          if s=PJUSourceFileTypeNames[ft] then
+            begin
+            Found:=true;
+            CurFile.FileType:=ft;
+            break;
+            end;
+        if not Found then
+          RaiseMsg(20180202144347,'unknown filetype "'+s+'"');
+        end;
+      'File':
+        begin
+        CurFilename:=CheckJSONString(Data,20180203100410);
+        if CurFilename='' then
+          RaiseMsg(20180130203605);
+        if length(CurFilename)>MAX_PATH then
+          RaiseMsg(20180130203624);
+        DoDirSeparators(CurFilename);
+        if CurFilename<>ResolveDots(CurFilename) then
+          RaiseMsg(20180130203841);
+        if ExtractFilenameOnly(CurFilename)='' then
+          RaiseMsg(20180130203924);
+        CurFile.Filename:=CurFilename;
+        end;
+      'CheckSum':
+        CurFile.Checksum:=Data.AsInt64;
+      else
+        RaiseMsg(20180202152628,'unknown file property "'+PropName+'"');
+      end;
+      end;
+    end;
+end;
+
+procedure TPJUReader.ReadModule(Data: TJSONData);
+var
+  Obj: TJSONObject;
+  aType, aName: String;
+  aModule: TPasModule;
+begin
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadModule START ');
+  {$ENDIF}
+  Obj:=CheckJSONObject(Data,20180203100422);
+  aName:=String(Obj.Get('Name',''));
+  aType:=String(Obj.Get('Type',''));
+  case aType of
+  'Unit': aModule:=TPasModule.Create(aName,nil);
+  'Program': aModule:=TPasProgram.Create(aName,nil);
+  'Library': aModule:=TPasLibrary.Create(aName,nil);
+  else
+    {$IFDEF VerbosePJUReader}
+    writeln('TPJUReader.ReadModule Type="',aType,'"');
+    {$ENDIF}
+    RaiseMsg(20180203100748);
+  end;
+  Resolver.RootElement:=aModule;
+  // ToDo: modscope
+end;
+
+constructor TPJUReader.Create;
+begin
+  FSourceFiles:=TObjectList.Create(true);
+  FInitialFlags:=TPJUInitialFlags.Create;
+end;
+
+destructor TPJUReader.Destroy;
+begin
+  FreeAndNil(FInitialFlags);
+  FreeAndNil(FSourceFiles);
+  inherited Destroy;
+end;
+
+procedure TPJUReader.Clear;
+begin
+  FSourceFiles.Clear;
+  FResolver:=nil;
+  FInitialFlags.Clear;
+end;
+
+procedure TPJUReader.ReadPJU(aResolver: TPas2JSResolver; aStream: TStream);
+var
+  JParser: TJSONParser;
+  Data: TJSONData;
+begin
+  JParser:=TJSONParser.Create(aStream,[joUTF8,joStrict]);
+  try
+    Data:=JParser.Parse;
+    if not (Data is TJSONObject) then
+      RaiseMsg(20180202130727,'expected JSON object, but found '+JSONTypeName(Data.JSONType));
+  finally
+    JParser.Free;
+  end;
+  ReadJSON(aResolver,TJSONObject(Data));
+end;
+
+procedure TPJUReader.ReadJSON(aResolver: TPas2JSResolver;
+  Obj: TJSONObject);
+var
+  aName: String;
+  Data: TJSONData;
+  i: Integer;
+begin
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadModuleAsJSON START ');
+  {$ENDIF}
+  FResolver:=aResolver;
+  FParser:=Resolver.CurrentParser;
+  FScanner:=FParser.Scanner;
+
+  ReadHeaderMagic(Obj);
+  ReadHeaderVersion(Obj);
+
+  for i:=0 to Obj.Count-1 do
+    begin
+    aName:=Obj.Names[i];
+    writeln('TPJUReader.ReadModuleAsJSON ',aName);
+    Data:=Obj.Elements[aName];
+    case Obj.Names[i] of
+    'FileType': ;
+    'Version': ;
+    'ParserOptions': InitialFlags.ParserOptions:=ReadParserOptions(Data,PJUDefaultParserOptions);
+    'ModeSwitches': InitialFlags.ModeSwitches:=ReadModeSwitches(Data,PJUDefaultModeSwitches);
+    'BoolSwitches': InitialFlags.BoolSwitches:=ReadBoolSwitches(Data,PJUDefaultBoolSwitches);
+    'ConverterOptions': InitialFlags.ConverterOptions:=ReadConverterOptions(Data,PJUDefaultConvertOptions);
+    'TargetPlatform': ReadTargetPlatform(Data);
+    'TargetProcessor': ReadTargetProcessor(Data);
+    'Sources': ReadSrcFiles(Data);
+    'Module': ReadModule(Data);
+    else
+      RaiseMsg(20180202151706,'unknown property "'+aName+'"');
+    end;
+    end;
+  {$IFDEF VerbosePJUReader}
+  writeln('TPJUReader.ReadModuleAsJSON END');
+  {$ENDIF}
 end;
 
 end.

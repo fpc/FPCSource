@@ -527,7 +527,7 @@ type
     procedure SetRangeErrorClass(const AValue: TPasClassType);
     procedure SetRangeErrorConstructor(const AValue: TPasConstructor);
   public
-    FirstName: string;
+    FirstName: string; // the 'unit1' in 'unit1', or 'ns' in 'ns.unit1'
     PendingResolvers: TFPList; // list of TPasResolver waiting for the unit interface
     Flags: TPasModuleScopeFlags;
     ScannerBoolSwitches: TBoolSwitches;
@@ -1072,6 +1072,7 @@ type
       OnlyScope: TPasScope): TPasProcedure;
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
+    procedure SetRootElement(const AValue: TPasModule); virtual;
     procedure CheckTopScope(ExpectedClass: TPasScopeClass; AllowDescendants: boolean = false);
     function AddIdentifier(Scope: TPasIdentifierScope;
       const aName: String; El: TPasElement;
@@ -1544,7 +1545,7 @@ type
     property DynArrayMaxIndex: int64 read FDynArrayMaxIndex write FDynArrayMaxIndex;
     // parsed values
     property DefaultNameSpace: String read FDefaultNameSpace;
-    property RootElement: TPasModule read FRootElement;
+    property RootElement: TPasModule read FRootElement write SetRootElement;
     property Step: TPasResolverStep read FStep;
     // scopes
     property StoreSrcColumns: boolean read FStoreSrcColumns write FStoreSrcColumns; {
@@ -2946,6 +2947,12 @@ begin
     Result:=FBaseTypes[bt].Name
   else
     Result:=ResBaseTypeNames[bt];
+end;
+
+procedure TPasResolver.SetRootElement(const AValue: TPasModule);
+begin
+  if FRootElement=AValue then Exit;
+  FRootElement:=AValue;
 end;
 
 procedure TPasResolver.OnFindFirstElement(El: TPasElement; ElScope,
@@ -10643,7 +10650,7 @@ begin
   El.SourceLinenumber:=SrcY;
   if FRootElement=nil then
     begin
-    FRootElement:=NoNil(Result) as TPasModule;
+    RootElement:=NoNil(Result) as TPasModule;
     if FStep=prsInit then
       FStep:=prsParsing;
     end;
