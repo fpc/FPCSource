@@ -4406,6 +4406,8 @@ begin
   '  fn12345678_9 = -12345678.9;',
   '  f1_0En12 = 1E-12;',
   '  fn1_0En12 = -1E-12;',
+  '  maxdouble = 1.7e+308;',
+  '  mindouble = -1.7e+308;',
   'var',
   '  d: double = b;',
   'begin',
@@ -4430,6 +4432,8 @@ begin
   '  d:=fn12345678_9;',
   '  d:=f1_0En12;',
   '  d:=fn1_0En12;',
+  '  d:=maxdouble;',
+  '  d:=mindouble;',
   '']);
   ConvertProgram;
   CheckSource('TestDouble',
@@ -4449,6 +4453,8 @@ begin
     'this.fn12345678_9 = -12345678.9;',
     'this.f1_0En12 = 1E-12;',
     'this.fn1_0En12 = -1E-12;',
+    'this.maxdouble = 1.7e+308;',
+    'this.mindouble = -1.7e+308;',
     'this.d = 4.4;'
     ]),
     LinesToStr([
@@ -4473,6 +4479,8 @@ begin
     '$mod.d = -1.23456789E7;',
     '$mod.d = 1E-12;',
     '$mod.d = -1E-12;',
+    '$mod.d = 1.7E308;',
+    '$mod.d = -1.7E308;',
     '']));
 end;
 

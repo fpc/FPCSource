@@ -580,8 +580,12 @@ begin
       exit;
       end;
     jstNumber :
-      if Frac(V.AsNumber)=0 then // this needs to be improved
-        Str(Round(V.AsNumber),S)
+      if (Frac(V.AsNumber)=0)
+          and (V.AsNumber>=double(low(int64)))
+          and (V.AsNumber<=double(high(int64))) then
+        begin
+        Str(Round(V.AsNumber),S);
+        end
       else
         begin
         Str(V.AsNumber,S);
