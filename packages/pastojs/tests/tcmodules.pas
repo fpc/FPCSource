@@ -4408,6 +4408,8 @@ begin
   '  fn1_0En12 = -1E-12;',
   '  maxdouble = 1.7e+308;',
   '  mindouble = -1.7e+308;',
+  '  MinSafeIntDouble = -$10000000000000;',
+  '  MaxSafeIntDouble =   $fffffffffffff;',
   'var',
   '  d: double = b;',
   'begin',
@@ -4434,6 +4436,8 @@ begin
   '  d:=fn1_0En12;',
   '  d:=maxdouble;',
   '  d:=mindouble;',
+  '  d:=MinSafeIntDouble;',
+  '  d:=MaxSafeIntDouble;',
   '']);
   ConvertProgram;
   CheckSource('TestDouble',
@@ -4455,6 +4459,8 @@ begin
     'this.fn1_0En12 = -1E-12;',
     'this.maxdouble = 1.7e+308;',
     'this.mindouble = -1.7e+308;',
+    'this.MinSafeIntDouble = -0x10000000000000;',
+    'this.MaxSafeIntDouble = 0xfffffffffffff;',
     'this.d = 4.4;'
     ]),
     LinesToStr([
@@ -4481,6 +4487,8 @@ begin
     '$mod.d = -1E-12;',
     '$mod.d = 1.7E308;',
     '$mod.d = -1.7E308;',
+    '$mod.d = -4503599627370496;',
+    '$mod.d = 4503599627370495;',
     '']));
 end;
 

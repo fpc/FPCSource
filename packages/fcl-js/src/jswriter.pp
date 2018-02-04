@@ -581,8 +581,8 @@ begin
       end;
     jstNumber :
       if (Frac(V.AsNumber)=0)
-          and (V.AsNumber>=double(low(int64)))
-          and (V.AsNumber<=double(high(int64))) then
+          and (V.AsNumber>double(low(int64)))
+          and (V.AsNumber<double(high(int64))) then
         begin
         Str(Round(V.AsNumber),S);
         end
