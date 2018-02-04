@@ -559,7 +559,7 @@ begin
         Continue;
       end;
       { then check for the method }
-      if entry^.Method <> aMethod then begin
+      if Assigned(aMethod) and (entry^.Method <> aMethod) then begin
         lastentry := entry;
         entry := entry^.Next;
         Continue;
