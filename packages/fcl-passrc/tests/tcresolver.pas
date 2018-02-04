@@ -277,6 +277,7 @@ type
     Procedure TestAssignIntToStringFail;
     Procedure TestAssignStringToIntFail;
     Procedure TestIntegerOperators;
+    Procedure TestIntegerBoolFail;
     Procedure TestBooleanOperators;
     Procedure TestStringOperators;
     Procedure TestWideCharOperators;
@@ -3768,6 +3769,17 @@ begin
   Add('  if i<j then;');
   Add('  if i<=j then;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestIntegerBoolFail;
+begin
+  StartProgram(false);
+  Add([
+  'var i: longint;',
+  'begin',
+  '  i:=3 * false;']);
+  CheckResolverException('Operator is not overloaded: "Longint" * "Boolean"',
+    nOperatorIsNotOverloadedAOpB);
 end;
 
 procedure TTestResolver.TestBooleanOperators;
@@ -8603,7 +8615,7 @@ begin
   Add('var cars: TCars;');
   Add('begin');
   Add('  if cars is TCars then ;');
-  CheckResolverException('left side of is-operator expects a class, but got "class of" type',
+  CheckResolverException('left side of is-operator expects a class, but got "class of"',
     nLeftSideOfIsOperatorExpectsAClassButGot);
 end;
 
@@ -8619,7 +8631,8 @@ begin
   Add('  cars: TCars;');
   Add('begin');
   Add('  cars:=cars as TCars;');
-  CheckResolverException('illegal qualifier "as"',nIllegalQualifier);
+  CheckResolverException('Operator is not overloaded: "TCars" as "class of TCars"',
+    nOperatorIsNotOverloadedAOpB);
 end;
 
 procedure TTestResolver.TestClassOfIsOperator;
@@ -8935,7 +8948,8 @@ begin
   Add('  c: tclass;');
   Add('begin');
   Add('  c:=c as TClass;');
-  CheckResolverException('illegal qualifier "as"',nIllegalQualifier);
+  CheckResolverException('Operator is not overloaded: "TClass" as "class of TClass"',
+    nOperatorIsNotOverloadedAOpB);
 end;
 
 procedure TTestResolver.TestClassOf_MemberAsFail;
@@ -8949,7 +8963,7 @@ begin
   Add('var o: TObject;');
   Add('begin');
   Add('  o.c:=o.c as TClass;');
-  CheckResolverException('illegal qualifier "as"',nIllegalQualifier);
+  CheckResolverException('Operator is not overloaded: "TClass" as "class of TClass"',nOperatorIsNotOverloadedAOpB);
 end;
 
 procedure TTestResolver.TestClassOf_IsFail;
@@ -8963,7 +8977,7 @@ begin
   Add('  c: tclass;');
   Add('begin');
   Add('  if c is TObject then;');
-  CheckResolverException('left side of is-operator expects a class, but got "class of" type',
+  CheckResolverException('left side of is-operator expects a class, but got "class of"',
     nLeftSideOfIsOperatorExpectsAClassButGot);
 end;
 
@@ -11005,7 +11019,7 @@ begin
   Add('var n: TNotifyEvent;');
   Add('begin');
   Add('  n:=@ProcA;');
-  CheckResolverException('procedure type modifier "of Object" mismatch',
+  CheckResolverException('procedural type modifier "of Object" mismatch',
     nXModifierMismatchY);
 end;
 
@@ -11024,7 +11038,7 @@ begin
   Add('  o: TObject;');
   Add('begin');
   Add('  n:=@o.ProcA;');
-  CheckResolverException('procedure type modifier "of Object" mismatch',
+  CheckResolverException('procedural type modifier "of Object" mismatch',
     nXModifierMismatchY);
 end;
 
@@ -11039,7 +11053,7 @@ begin
   Add('begin');
   Add('  p:=@ProcA;');
   CheckResolverException(
-    'Incompatible types: got "procedure type" expected "function type"',
+    'Incompatible types: got "procedural type" expected "functional type"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -11085,7 +11099,7 @@ begin
   Add('  p:=@SubProc;');
   Add('end;');
   Add('begin');
-  CheckResolverException('procedure type modifier "is nested" mismatch',
+  CheckResolverException('procedural type modifier "is nested" mismatch',
     nXModifierMismatchY);
 end;
 
@@ -11284,7 +11298,7 @@ begin
   Add('var p: TNestedProc;');
   Add('begin');
   Add('  p:=@DoIt;');
-  CheckResolverException('procedure type modifier "is nested" mismatch',nXModifierMismatchY);
+  CheckResolverException('procedural type modifier "is nested" mismatch',nXModifierMismatchY);
 end;
 
 procedure TTestResolver.TestProcType_ReferenceTo;
@@ -11656,7 +11670,7 @@ begin
   Add('  e: TEvent;');
   Add('begin');
   Add('  p:=Pointer(e);');
-  CheckResolverException('Illegal type conversion: "procedure type of Object" to "Pointer"',
+  CheckResolverException('Illegal type conversion: "procedural type of Object" to "Pointer"',
     nIllegalTypeConversionTo);
 end;
 

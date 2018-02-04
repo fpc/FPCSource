@@ -519,7 +519,7 @@ type
     Params: TFPList; // list of TPasType or TPasExpr
   end;
 
-  { TInlineTypeExpr }
+  { TInlineTypeExpr - not used by TPasParser}
 
   TInlineTypeExpr = class(TPasExpr)
   public
@@ -532,7 +532,7 @@ type
     DestType: TPasType;
   end;
 
-  { TInlineSpecializeExpr }
+  { TInlineSpecializeExpr - A<B,C> }
 
   TInlineSpecializeExpr = class(TInlineTypeExpr)
   end;

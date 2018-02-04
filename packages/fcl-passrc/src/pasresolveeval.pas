@@ -152,6 +152,7 @@ const
   nContextXInvalidY = 3079;
   nConstructingClassXWithAbstractMethodY = 3080;
   nXIsNotSupported = 3081;
+  nOperatorIsNotOverloadedAOpB = 3082;
 
 // resourcestring patterns of messages
 resourcestring
@@ -191,7 +192,7 @@ resourcestring
   sWrongNumberOfParametersForTypeCast = 'wrong number of parameters for type cast to %s';
   sIllegalTypeConversionTo = 'Illegal type conversion: "%s" to "%s"';
   sConstantExpressionExpected = 'Constant expression expected';
-  sLeftSideOfIsOperatorExpectsAClassButGot = 'left side of is-operator expects a class, but got %s';
+  sLeftSideOfIsOperatorExpectsAClassButGot = 'left side of is-operator expects a class, but got "%s"';
   sNotReadable = 'not readable';
   sClassPropertyAccessorMustBeStatic = 'class property accessor must be static';
   sClassPropertyAccessorMustNotBeStatic = 'class property accessor must not be static';
@@ -236,6 +237,8 @@ resourcestring
   sContextXInvalidY = '%s: invalid %s';
   sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
   sXIsNotSupported = '%s is not supported';
+  sOperatorIsNotOverloadedAOpB = 'Operator is not overloaded: "%s" %s "%s"';
+
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
