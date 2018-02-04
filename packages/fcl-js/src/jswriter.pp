@@ -520,10 +520,12 @@ const
   end;
 
 Var
-  S : String;
+  S , S2: String;
   JS: TJSString;
   p, StartP: PWideChar;
-  MinIndent, CurLineIndent: Integer;
+  MinIndent, CurLineIndent, j, Exp, Code: Integer;
+  i: SizeInt;
+  D: TJSNumber;
 begin
   if V.CustomValue<>'' then
     begin
@@ -581,7 +583,113 @@ begin
       if Frac(V.AsNumber)=0 then // this needs to be improved
         Str(Round(V.AsNumber),S)
       else
+        begin
         Str(V.AsNumber,S);
+        if S[1]=' ' then Delete(S,1,1);
+        i:=Pos('E',S);
+        if (i>2) then
+          begin
+          j:=i-2;
+          case s[j] of
+          '0':
+            begin
+            // check for 1.2340000000000001E...
+            while (j>1) and (s[j]='0') do dec(j);
+            if s[j]='.' then inc(j);
+            S2:=LeftStr(S,j)+copy(S,i,length(S));
+            val(S2,D,Code);
+            if (Code=0) and (D=V.AsNumber) then
+              S:=S2;
+            end;
+          '9':
+            begin
+            // check for 1.234999999999991E...
+            while (j>1) and (s[j]='9') do dec(j);
+            // cut '99999'
+            S2:=LeftStr(S,j)+copy(S,i,length(S));
+            if S[j]='.' then
+              Insert('0',S2,j+1);
+            // increment, e.g. 1.2999 -> 1.3
+            while (j>0) do
+              begin
+              case S2[j] of
+              '0'..'8':
+                begin
+                S2[j]:=chr(ord(S2[j])+1);
+                break;
+                end;
+              '9':
+                S2[j]:='0';
+              end;
+              dec(j);
+              end;
+            val(S2,D,Code);
+            if (Code=0) and (D=V.AsNumber) then
+              S:=S2;
+            end;
+          end;
+          end;
+        // chomp default exponent E+000
+        i:=Pos('E',S);
+        if i>0 then
+          begin
+          val(copy(S,i+1,length(S)),Exp,Code);
+          if Code=0 then
+            begin
+            if Exp=0 then
+              // 1.1E+000 -> 1.1
+              Delete(S,i,length(S))
+            else if (Exp>=-6) and (Exp<=6) then
+              begin
+              Delete(S,i,length(S));
+              j:=Pos('.',S);
+              if j>0 then
+                Delete(S,j,1)
+              else
+                begin
+                j:=1;
+                while not (S[j] in ['0'..'9']) do inc(j);
+                end;
+              if Exp<0 then
+                begin
+                // e.g. -1.2  E-1
+                while Exp<0 do
+                  begin
+                  if (j>1) and (S[j-1] in ['0'..'9']) then
+                    dec(j)
+                  else
+                    Insert('0',S,j);
+                  inc(Exp);
+                  end;
+                Insert('.',S,j);
+                if (j=1) or not (S[j-1] in ['0'..'9']) then
+                  Insert('0',S,j);
+                if S[length(S)]='0' then
+                  Delete(S,length(S),1);
+                end
+              else
+                begin
+                // e.g. -1.2  E1
+                while Exp>0 do
+                  begin
+                  if (j<=length(S)) and (S[j] in ['0'..'9']) then
+                    inc(j)
+                  else
+                    Insert('0',S,j);
+                  dec(Exp);
+                  end;
+                if j<=length(S) then
+                  Insert('.',S,j);
+                end;
+              end
+            else
+              begin
+              // e.g. 1.0E+001  -> 1.0E1
+              S:=LeftStr(S,i)+IntToStr(Exp);
+              end
+            end;
+          end;
+        end;
     jstObject : ;
     jstReference : ;
     JSTCompletion : ;
