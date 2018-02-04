@@ -205,6 +205,7 @@ type
 
     // numbers
     Procedure TestDouble;
+    Procedure TestInteger;
     Procedure TestIntegerRange;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -4420,6 +4421,34 @@ begin
     '$mod.d = Math.pow(10, 3);',
     '$mod.d = 10 % 3;',
     '$mod.d = Math.floor(10 / 3);',
+    '']));
+end;
+
+procedure TTestModule.TestInteger;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  MinInt = low(NativeInt);',
+  '  MaxInt = high(NativeInt);',
+  'type',
+  '  {#TMyInt}TMyInt = MinInt..MaxInt;',
+  'const',
+  '  a = low(TMyInt)+High(TMyInt);',
+  'var',
+  '  i: TMyInt;',
+  'begin',
+  '  i:=-MinInt;']);
+  ConvertProgram;
+  CheckSource('TestIntegerRange',
+    LinesToStr([
+    'this.MinInt = -4503599627370496;',
+    'this.MaxInt = 4503599627370495;',
+    'this.a = -4503599627370496 + 4503599627370495;',
+    'this.i = -4503599627370496;',
+    '']),
+    LinesToStr([
+    '$mod.i = - -4503599627370496;',
     '']));
 end;
 

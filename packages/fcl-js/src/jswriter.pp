@@ -123,6 +123,7 @@ Type
     FFreeWriter : Boolean;
     FIndentChar : Char;
     FIndentSize: Byte;
+    FLastChar: WideChar;
     FLinePos : Integer;
     FOptions: TWriteOptions;
     FSkipCurlyBrackets : Boolean;
@@ -186,6 +187,7 @@ Type
     Property Options : TWriteOptions Read FOptions Write SetOptions;
     Property IndentSize : Byte Read FIndentSize Write FIndentSize;
     Property UseUTF8 : Boolean Read GetUseUTF8;
+    property LastChar: WideChar read FLastChar;
   end;
   EJSWriter = Class(Exception);
 
@@ -349,8 +351,11 @@ end;
 procedure TJSWriter.WriteIndent;
 
 begin
-  If (FLinePos=0) then
+  If (FLinePos=0) and (FCurIndent>0) then
+    begin
     FLinePos:=Writer.Write(StringOfChar(FIndentChar,FCurIndent));
+    FLastChar:=WideChar(FIndentChar);
+    end;
 end;
 
 procedure TJSWriter.Indent;
@@ -376,10 +381,15 @@ begin
   if UseUTF8 then
     begin
     S:=UTF16ToUTF8(U);
+    if S='' then exit;
     FLinePos:=FLinePos+Writer.Write(S);
+    FLastChar:=WideChar(S[length(S)]);
     end
-  else
+  else if U<>'' then
+    begin
     FLinePos:=FLinePos+Writer.Write(U);
+    FLastChar:=U[length(U)];
+    end;
 end;
 
 procedure TJSWriter.Write(const S: AnsiString);
@@ -389,7 +399,9 @@ begin
   else
     begin
     WriteIndent;
+    if s='' then exit;
     FLinePos:=FLinePos+Writer.Write(S);
+    FLastChar:=WideChar(S[length(S)]);
     end;
 end;
 
@@ -401,6 +413,7 @@ begin
     begin
     WriteIndent;
     Writer.WriteLn(S);
+    FLastChar:=WideChar(#10);
     FLinePos:=0;
     end;
 end;
@@ -419,6 +432,8 @@ begin
     begin
     WriteIndent;
     FLinePos:=FLinePos+Writer.Write(U);
+    Writer.WriteLn('');
+    FLastChar:=WideChar(#10);
     FLinePos:=0;
     end;
 end;
@@ -570,6 +585,11 @@ begin
     jstObject : ;
     jstReference : ;
     JSTCompletion : ;
+  end;
+  if S='' then exit;
+  case S[1] of
+  '+': if FLastChar='+' then Write(' ');
+  '-': if FLastChar='-' then Write(' ');
   end;
   Write(S);
 end;
@@ -868,15 +888,19 @@ begin
 end;
 
 procedure TJSWriter.WriteUnary(El: TJSUnary);
-
 Var
   S : String;
-
 begin
   FSkipRoundBrackets:=false;
   S:=El.PreFixOperator;
   if (S<>'') then
+    begin
+    case S[1] of
+    '+': if FLastChar='+' then Write(' ');
+    '-': if FLastChar='-' then Write(' ');
+    end;
     Write(S);
+    end;
   WriteJS(El.A);
   if (S='') then
     begin
@@ -884,6 +908,9 @@ begin
     if (S<>'') then
       begin
       Writer.CurElement:=El;
+      if ((S='-') and (FLastChar='-'))
+          or ((S='+') and (FLastChar='+')) then
+        Write(' ');
       Write(S);
       end;
     end;
