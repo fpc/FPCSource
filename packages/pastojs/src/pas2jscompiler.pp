@@ -1430,12 +1430,14 @@ var
   CombinedFileWriter: TPas2JSMapper;
   SrcFileCount: integer;
   Seconds: TDateTime;
+  ok: Boolean;
 begin
   if FMainFile<>nil then
     RaiseInternalError(20170504192137,'');
   Checked:=nil;
   CombinedFileWriter:=nil;
   SrcFileCount:=0;
+  ok:=false;
   try
     // load main Pascal file
     LoadPasFile(FileCache.MainSrcFile,'',FMainFile);
@@ -1469,10 +1471,11 @@ begin
       Log.LogMsgIgnoreFilter(nLinesInFilesCompiled,
              [IntToStr(FileCache.ReadLineCounter),IntToStr(SrcFileCount),
               FormatFloat('0.0',Seconds)]);
+      ok:=true;
     end;
   finally
     Checked.Free;
-    if ExitCode<>0 then
+    if not Ok then
       Log.LogMsgIgnoreFilter(nCompilationAborted,[]);
     CombinedFileWriter.Free;
   end;
@@ -1743,7 +1746,14 @@ begin
     aJSWriter:=TJSWriter.Create(aFileWriter);
     aJSWriter.Options:=[woUseUTF8,woCompactArrayLiterals,woCompactObjectLiterals,woCompactArguments];
     aJSWriter.IndentSize:=2;
-    aJSWriter.WriteJS(aFile.JSModule);
+    try
+      aJSWriter.WriteJS(aFile.JSModule);
+    except
+      on E: Exception do begin
+        Log.LogPlain('[20180204193420] Error while creating JavaScript "'+FileCache.FormatPath(DestFilename)+'": '+E.Message);
+        Terminate(ExitCodeErrorInternal);
+      end;
+    end;
 
     if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
       aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.PasFilename);

@@ -11,8 +11,8 @@ uses
   {$IFDEF UNIX}
   cthreads, cwstring,
   {$ENDIF}
-  Pas2jsFileUtils, Classes, SysUtils, CustApp,
-  Pas2jsCompiler;
+  Classes, SysUtils, CustApp,
+  Pas2jsFileUtils, Pas2jsLogger, Pas2jsCompiler;
 
 Type
 
@@ -44,6 +44,12 @@ begin
       Compiler.Run(ParamStr(0),GetCurrentDirUTF8,ParamList);
     except
       on E: ECompilerTerminate do ;
+      on E: Exception do
+      begin
+        writeln(E.Message);
+        if ExitCode=0 then
+          ExitCode:=ExitCodeErrorInternal;
+      end;
     end;
   finally
     ParamList.Free;
