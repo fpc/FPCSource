@@ -610,8 +610,7 @@ begin
             if S[j]='.' then
               Insert('0',S2,j+1);
             // increment, e.g. 1.2999 -> 1.3
-            while (j>0) do
-              begin
+            repeat
               case S2[j] of
               '0'..'8':
                 begin
@@ -620,9 +619,22 @@ begin
                 end;
               '9':
                 S2[j]:='0';
+              '.': ;
               end;
               dec(j);
-              end;
+              if (j=0) or not (S2[j] in ['0'..'9','.']) then
+                begin
+                // e.g. -9.999 became 0.0
+                val(copy(S,i+1,length(S)),Exp,Code);
+                if Code=0 then
+                  begin
+                  S2:='1E'+IntToStr(Exp+1);
+                  if S[1]='-' then
+                    S2:='-'+S2;
+                  end;
+                break;
+                end;
+            until false;
             val(S2,D,Code);
             if (Code=0) and (D=V.AsNumber) then
               S:=S2;
