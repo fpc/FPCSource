@@ -110,12 +110,12 @@ uses
                       if po_abstractmethod in pd.procoptions then
                         Message(type_e_cant_take_address_of_abstract_method)
                       else
-                        ftcb.emit_tai(Tai_const.Createname(pd.mangledname,0),u16inttype);
+                        ftcb.emit_tai(Tai_const.Createname_near(pd.mangledname,0),u16inttype);
                     end;
                   staticvarsym :
-                    ftcb.emit_tai(Tai_const.Createname(tstaticvarsym(srsym).mangledname,0),u16inttype);
+                    ftcb.emit_tai(Tai_const.Createname_near(tstaticvarsym(srsym).mangledname,0),u16inttype);
                   labelsym :
-                    ftcb.emit_tai(Tai_const.Createname(tlabelsym(srsym).mangledname,0),u16inttype);
+                    ftcb.emit_tai(Tai_const.Createname_near(tlabelsym(srsym).mangledname,0),u16inttype);
                   else
                     Message(type_e_variable_id_expected);
                 end;
