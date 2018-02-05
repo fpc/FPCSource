@@ -12215,6 +12215,7 @@ tests/test/cpu16/i8086/tptrsize.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tra1.pp svneol=native#text/pascal
 tests/test/cpu16/i8086/tretf1.pp svneol=native#text/plain
 tests/test/cpu16/i8086/tretf2.pp svneol=native#text/plain
+tests/test/cpu16/i8086/tsegofs1.pp svneol=native#text/plain
 tests/test/cpu16/i8086/ttasm1.pp svneol=native#text/plain
 tests/test/cpu16/i8086/ttheap1.pp svneol=native#text/pascal
 tests/test/cpu16/taddint1.pp svneol=native#text/pascal
