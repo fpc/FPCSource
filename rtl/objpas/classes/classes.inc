@@ -362,8 +362,18 @@ procedure TThread.DoneSynchronizeEvent;
 class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
   var
     syncentry: PThreadQueueEntry;
+    thread: TThread;
   begin
-    if not Assigned(AThread) then begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    if Assigned(AThread) and (AThread.ThreadID = GetCurrentThreadID) then
+{$else}
+    if Assigned(AThread) then
+{$endif}
+      thread := AThread
+    else if Assigned(CurrentThreadVar) then
+      thread := CurrentThreadVar
+    else begin
+      thread := Nil;
       { use a local synchronize event }
       New(syncentry);
       FillChar(syncentry^, SizeOf(TThreadQueueEntry), 0);
@@ -374,11 +384,13 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
       syncentry^.ThreadID := 0{GetCurrentThreadID};
       syncentry^.SyncEvent := nil{RtlEventCreate};
 {$endif}
-    end else begin
-      { the Synchronize event is instantiated on demand }
-      AThread.InitSynchronizeEvent;
+    end;
 
-      syncentry := AThread.FSynchronizeEntry;
+    if Assigned(thread) then begin
+      { the Synchronize event is instantiated on demand }
+      thread.InitSynchronizeEvent;
+
+      syncentry := thread.FSynchronizeEntry;
     end;
 
     syncentry^.Exception := Nil;
@@ -388,7 +400,7 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
     syncentry^.Method := Nil;
     syncentry^.Next := Nil;
 
-    if not Assigned(AThread) then begin
+    if not Assigned(thread) then begin
       { clean up again }
 {$ifdef FPC_HAS_FEATURE_THREADING}
       RtlEventDestroy(syncentry^.SyncEvent);
