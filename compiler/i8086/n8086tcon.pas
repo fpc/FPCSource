@@ -64,6 +64,9 @@ uses
            (tinlinenode(node).inlinenumber=in_seg_x) then
           begin
             hp:=tunarynode(node).left;
+            if (hp.nodetype=typeconvn) and
+               (ttypeconvnode(hp).convtype=tc_proc_2_procvar) then
+              hp:=tunarynode(hp).left;
             if hp.nodetype=loadn then
               begin
                 srsym:=tloadnode(hp).symtableentry;
