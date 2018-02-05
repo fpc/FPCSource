@@ -206,7 +206,6 @@ implementation
            begin
              if left.resultdef.size<>4 then
                internalerror(2017121302);
-             Writeln(left.location.loc);
              case left.location.loc of
                LOC_REGISTER,LOC_CREGISTER:
                  begin
