@@ -120,7 +120,7 @@ unit raatt;
       { globals }
       verbose,systems,
       { input }
-      scanner,
+      scanner, pbase,
       { symtable }
       symbase,symtype,symsym,symdef,symtable,
 {$ifdef x86}
@@ -1049,6 +1049,11 @@ unit raatt;
           _asmsorted:=TRUE;
         end;
        curlist:=TAsmList.Create;
+
+       { we might need to know which parameters are passed in registers }
+       if not parse_generic then
+         current_procinfo.generate_parameter_info;
+
        lasTSec:=sec_code;
        { start tokenizer }
        gettoken;
