@@ -55,6 +55,14 @@ unit Hermes;
 {$ENDIF}
 
 interface
+{$IF  defined(cpui386) and defined(FPC_PIC)}
+  { FPC_PIC is only set after parsing _INTERFFACE keyword
+    so we need to delay the test to here }
+  { the i386 assembler code is not prepared for PIC code }    
+  {$DEFINE noassembler}
+  { Thus, disable assembler code in that case for now }
+  {$UNDEF I386_ASSEMBLER}
+{$ENDIF}
 
 const
   HERMES_CONVERT_NORMAL = 0;
