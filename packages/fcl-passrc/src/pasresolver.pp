@@ -530,7 +530,7 @@ type
     FirstName: string; // the 'unit1' in 'unit1', or 'ns' in 'ns.unit1'
     PendingResolvers: TFPList; // list of TPasResolver waiting for the unit interface
     Flags: TPasModuleScopeFlags;
-    ScannerBoolSwitches: TBoolSwitches;
+    BoolSwitches: TBoolSwitches;
     constructor Create; override;
     destructor Destroy; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
@@ -677,7 +677,7 @@ type
     SelfArg: TPasArgument;
     Mode: TModeSwitch;
     Flags: TPasProcedureScopeFlags;
-    ScannerBoolSwitches: TBoolSwitches;
+    BoolSwitches: TBoolSwitches;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -3631,13 +3631,20 @@ begin
   CurModuleClass:=CurModule.ClassType;
   ModScope:=CurModule.CustomData as TPasModuleScope;
 
-  ModScope.ScannerBoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
-  if bsRangeChecks in ModScope.ScannerBoolSwitches then
+  ModScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsRangeChecks in ModScope.BoolSwitches then
     Include(ModScope.Flags,pmsfRangeErrorNeeded);
   FindRangeErrorConstructors(CurModule);
 
-  if (CurModuleClass=TPasProgram) or (CurModuleClass=TPasLibrary) then
+  if (CurModuleClass=TPasProgram) then
     begin
+    FinishSection(TPasProgram(CurModule).ProgramSection);
+    // resolve begin..end block
+    ResolveImplBlock(CurModule.InitializationSection);
+    end
+  else if (CurModuleClass=TPasLibrary) then
+    begin
+    FinishSection(TPasLibrary(CurModule).LibrarySection);
     // resolve begin..end block
     ResolveImplBlock(CurModule.InitializationSection);
     end
@@ -3645,6 +3652,7 @@ begin
     begin
     // unit
     FinishSection(CurModule.InterfaceSection);
+    FinishSection(CurModule.ImplementationSection);
     if CurModule.FinalizationSection<>nil then
       // finalization section finished -> resolve
       ResolveImplBlock(CurModule.FinalizationSection);
@@ -5346,8 +5354,8 @@ procedure TPasResolver.StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
 var
   ModScope: TPasModuleScope;
 begin
-  ProcScope.ScannerBoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
-  if bsRangeChecks in ProcScope.ScannerBoolSwitches then
+  ProcScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+  if bsRangeChecks in ProcScope.BoolSwitches then
     begin
     ModScope:=RootElement.CustomData as TPasModuleScope;
     Include(ModScope.Flags,pmsfRangeErrorNeeded);

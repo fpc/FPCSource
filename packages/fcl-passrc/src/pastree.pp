@@ -344,6 +344,7 @@ type
     UsesClause: TPasUsesClause;
     PendingUsedIntf: TPasUsesUnit; // <>nil while resolving a uses cycle
   end;
+  TPasSectionClass = class of TPasSection;
 
   { TInterfaceSection }
 
