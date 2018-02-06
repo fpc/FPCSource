@@ -59,6 +59,10 @@ GDBMI=1
 endif
 endif # NOGDBMI
 
+ifdef NOGDBMI
+FPMAKE_OPT+=--NOGDBMI=1
+endif
+
 ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
 # If the rtl does not require libc, then

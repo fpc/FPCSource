@@ -2303,6 +2303,9 @@ ifneq ($(findstring $(OS_TARGET),$(GDBMI_DEFAULT_OS_LIST)),)
 GDBMI=1
 endif
 endif # NOGDBMI
+ifdef NOGDBMI
+FPMAKE_OPT+=--NOGDBMI=1
+endif
 ifdef GDBMI
 FPMAKE_OPT+=--GDBMI=1
 ifeq ($(findstring $(OS_TARGET),aix beos darwin haiku solaris),)
