@@ -2322,6 +2322,21 @@ ifdef PPC_TARGET
 FPMAKE_OPT+=--CompilerTarget=$(PPC_TARGET)
 endif
 .NOTPARALLEL:
+PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64
+CLEAN_TARGETS=$(addsuffix _clean,$(sort $(PPC_TARGETS)))
+DISTCLEAN_TARGETS=$(addsuffix _distclean,$(sort $(PPC_TARGETS)))
+INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(PPC_TARGETS)))
+.PHONY: $(PPC_TARGETS) $(CLEAN_TARGETS) $(DISTCLEAN_TARGETS) $(INSTALL_TARGETS)
+$(PPC_TARGETS):
+	$(MAKE) PPC_TARGET=$@ all
+$(CLEAN_TARGETS):
+	$(MAKE) clean PPC_TARGET=$(subst _clean,,$@)
+$(DISTCLEAN_TARGETS):
+	$(MAKE) distclean PPC_TARGET=$(subst _distclean,,$@)
+$(INSTALL_TARGETS):
+	$(MAKE) all install PPC_TARGET=$(subst _exe_install,,$@)
+all_targets: $(PPC_TARGETS)
+all_targets_install: $(INSTALL_TARGETS)
 fpmake$(SRCEXEEXT): fpmake.pp
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake$(SRCEXEEXT)
