@@ -526,7 +526,9 @@ begin
     begin
     // prevent codepage conversion magic
     SetCodePage(RawByteString(S), CP_OEMCP, False);
+    {AllowWriteln}
     writeln(S);
+    {AllowWriteln-}
     end;
 end;
 

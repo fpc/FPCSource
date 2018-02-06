@@ -91,7 +91,9 @@ var
     if (LastMsgNumber>=0) and (MsgNumber<>LastMsgNumber+1) then
       begin
       s:='gap in registered message numbers: '+IntToStr(LastMsgNumber)+' '+IntToStr(MsgNumber);
+      {AllowWriteln}
       writeln('Pas2jsPParser.RegisterMessages ',s);
+      {AllowWriteln-}
       raise Exception.Create(s);
       end;
     Log.RegisterMsg(MsgType,MsgNumber,MsgPattern);

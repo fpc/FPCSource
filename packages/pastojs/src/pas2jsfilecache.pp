@@ -764,6 +764,7 @@ begin
 end;
 
 procedure TPas2jsCachedDirectory.CheckConsistency;
+{AllowWriteln}
 
   procedure E(Msg: string);
   begin
@@ -802,6 +803,7 @@ begin
     end;
     LastEntry:=Entry;
   end;
+  {AllowWriteln-}
 end;
 
 procedure TPas2jsCachedDirectory.WriteDebugReport;
@@ -809,11 +811,13 @@ var
   i: Integer;
   Entry: TPas2jsCachedDirectoryEntry;
 begin
+  {AllowWriteln}
   writeln('TPas2jsCachedDirectory.WriteDebugReport Count=',Count,' Path="',Path,'"');
   for i:=0 to Count-1 do begin
     Entry:=Entries[i];
     writeln(i,' "',Entry.Name,'" Size=',Entry.Size,' Time=',DateTimeToStr(FileDateToDateTime(Entry.Time)),' Dir=',faDirectory and Entry.Attr>0);
   end;
+  {AllowWriteln-}
 end;
 
 { TPas2jsCachedDirectories }

@@ -2633,11 +2633,13 @@ function TPas2JSResolver.FindExternalName(const aName: String
 begin
   Result:=TPasIdentifier(FExternalNames.Find(aName));
   {$IFDEF VerbosePasResolver}
+  {AllowWriteln}
   if (Result<>nil) and (Result.Owner<>Self) then
     begin
     writeln('TPas2JSResolver.FindExternalName Result.Owner<>Self Owner='+GetObjName(Result.Owner));
     raise Exception.Create('20170322235814');
     end;
+  {AllowWriteln-}
   {$ENDIF}
 end;
 
@@ -3637,8 +3639,10 @@ var
   i: Integer;
 begin
   inherited DoWriteStack(Index);
+  {AllowWriteln}
   for i:=0 to length(LocalVars)-1 do
     writeln('    ',i,' ',LocalVars[i].Name,': ',GetObjName(LocalVars[i].Element));
+  {AllowWriteln-}
 end;
 
 { TConvertContext }
@@ -3740,6 +3744,7 @@ begin
 end;
 
 procedure TConvertContext.WriteStack;
+{AllowWriteln}
 
   procedure W(Index: integer; AContext: TConvertContext);
   begin
@@ -3752,10 +3757,13 @@ begin
   writeln('TConvertContext.WriteStack: ');
   W(1,Self);
 end;
+{AllowWriteln-}
 
 procedure TConvertContext.DoWriteStack(Index: integer);
 begin
+  {AllowWriteln}
   writeln('  ',Index,' ',ToString);
+  {AllowWriteln-}
 end;
 
 function TConvertContext.ToString: string;

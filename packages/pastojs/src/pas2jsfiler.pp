@@ -1874,7 +1874,9 @@ begin
   for i:=0 to Obj.Count-1 do
     begin
     aName:=Obj.Names[i];
+    {$IFDEF VerbosePJUFiler}
     writeln('TPJUReader.ReadModuleAsJSON ',aName);
+    {$ENDIF}
     Data:=Obj.Elements[aName];
     case Obj.Names[i] of
     'FileType': ;

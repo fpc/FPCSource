@@ -189,7 +189,7 @@ begin
   if Assigned(FOnLibLogCallBack) then
     FOnLibLogCallBack(FOnLibLogData,PAnsiChar(Msg),Length(Msg))
   else if isConsole then
-    Writeln(Msg);
+    {AllowWriteln}Writeln(Msg);{AllowWriteln-}
 end;
 
 function TLibraryPas2JSCompiler.LibraryRun(ACompilerExe, AWorkingDir: PAnsiChar;
