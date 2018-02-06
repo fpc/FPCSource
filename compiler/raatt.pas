@@ -896,7 +896,7 @@ unit raatt;
                  begin
                    if constsize<>sizeof(pint) then
                     Message(asmr_w_32bit_const_for_address);
-                   ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
+                   ConcatConstSymbol(curlist,asmsym,asmsymtyp,value,constsize)
                  end
                 else
                  ConcatConstant(curlist,value,constsize);
