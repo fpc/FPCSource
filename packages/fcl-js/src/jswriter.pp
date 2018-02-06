@@ -16,6 +16,7 @@ unit jswriter;
 
 {$mode objfpc}{$H+}
 { $DEFINE DEBUGJSWRITER}
+{AllowWriteln}
 
 interface
 
