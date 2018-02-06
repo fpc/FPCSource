@@ -554,7 +554,11 @@ uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
   systems,cpubase,
+  {$ifdef jvm}
+  //itcpujas,
+  {$else}
   itcpugas,
+  {$endif jvm}
   {$if defined(I386) or defined(x64_86)}
      rax86,
   {$endif}
