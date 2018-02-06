@@ -12194,7 +12194,6 @@ begin
     begin
     GotDesc:=GetTypeDescription(GotType);
     ExpDesc:=GetTypeDescription(ExpType);
-    writeln('AAA1 TPasResolver.GetIncompatibleTypeDesc {',ExpDesc,'}');
     if GotDesc=ExpDesc then
       begin
       GotDesc:=GetTypeDescription(GotType,true);
