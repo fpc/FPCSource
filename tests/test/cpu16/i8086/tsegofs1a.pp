@@ -1,11 +1,11 @@
 { %cpu=i8086 }
-program tsegofs1;
+program tsegofs1a;
 
 { Test for typed constants, initialized with ofs(x) or seg(x) }
 { This test is TP7 compatible }
 
 {$ifdef FPC}
-  {$mode FPC}
+  {$mode TP}
 {$endif FPC}
 
 procedure proc1;
