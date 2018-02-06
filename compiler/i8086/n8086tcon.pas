@@ -98,6 +98,9 @@ uses
              is_proc2procvar_load(Ttypeconvnode(node).left,pd)) then
           begin
             hp:=tunarynode(Ttypeconvnode(node).left).left;
+            if (hp.nodetype=typeconvn) and
+               (ttypeconvnode(hp).convtype=tc_proc_2_procvar) then
+              hp:=tunarynode(hp).left;
             if hp.nodetype=loadn then
               begin
                 srsym:=tloadnode(hp).symtableentry;
