@@ -606,6 +606,7 @@ Type
     FCommands : TCommands;
     FDirectory: String;
     FExtension: String;
+    FExeName : String;
     FTargetSourceFileName : String;
     FFileType: TFileType;
     FOptions: TStrings;
@@ -620,6 +621,7 @@ Type
     Function GetUnitFileName : String; virtual;
     function GetUnitLibFileName(AOS: TOS): String; virtual;
     Function GetObjectFileName : String; virtual;
+    Function GetBinFileBase: String;
     function GetRSTFileName : String; Virtual;
     function GetRSJFileName : String; Virtual;
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
@@ -634,6 +636,7 @@ Type
     Function  GetOutputFileName (AOs : TOS) : String; Virtual;
     Function HaveOptions : Boolean;
     procedure SetName(const AValue: String);override;
+    procedure SetExeName(const AValue: String);
     procedure SetXML(const AValue: string);
     Procedure GetCleanFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
@@ -8548,20 +8551,29 @@ begin
 end;
 
 
+function TTarget.GetBinFileBase: String;
+begin
+  if FExeName <> '' then
+    Result := FExeName
+  else
+    Result:=Name;
+end;
+
+
 function TTarget.GetProgramFileName(AOS : TOS): String;
 begin
-  result := AddProgramExtension(Name, AOS);
+    result := AddProgramExtension(GetBinFileBase, AOS);
 end;
 
 
 function TTarget.GetProgramDebugFileName(AOS: TOS): String;
 begin
-  result := Name + DbgExt;
+  result := GetBinFileBase + DbgExt;
 end;
 
 function TTarget.GetLibraryFileName(AOS : TOS): String;
 begin
-  result := AddLibraryExtension(Name, AOS);
+  result := AddLibraryExtension(GetBinFileBase, AOS);
   if aOS in AllUnixOSes then
     Result:='lib'+Result;
 end;
@@ -8569,7 +8581,7 @@ end;
 
 function TTarget.GetLibraryDebugFileName(AOS: TOS): String;
 begin
-  result := Name + DbgExt;
+  result := GetBinFileBase + DbgExt;
 end;
 
 
@@ -8600,6 +8612,18 @@ begin
   inherited SetName(Copy(N,1,Length(N)-Length(E)));
   FExtension:=E;
   FDirectory:=D;
+end;
+
+procedure TTarget.SetExeName(const AValue: String);
+Var
+  N,E : String;
+begin
+  N:=FixPath(AValue, False);
+  E:=ExtractFileExt(N);
+  N:=ExtractFileName(N);
+  FExeName:=Copy(N,1,Length(N)-Length(E));
+  { Use exact AValue for -o option }
+  Options.Add('-o'+AValue);
 end;
 
 procedure TTarget.SetXML(const AValue: string);
