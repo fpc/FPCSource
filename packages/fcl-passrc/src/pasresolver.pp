@@ -2147,8 +2147,10 @@ end;
 
 procedure TPasWithExprScope.WriteIdentifiers(Prefix: string);
 begin
+  {AllowWriteln}
   writeln(Prefix+'WithExpr: '+GetTreeDbg(Expr,length(Prefix)));
   Scope.WriteIdentifiers(Prefix);
+  {AllowWriteln-}
 end;
 
 { TPasWithScope }
@@ -2523,6 +2525,7 @@ var
   UsesScope: TPasIdentifierScope;
   SubPrefix: String;
 begin
+  {AllowWriteln}
   inherited WriteIdentifiers(Prefix);
   SubPrefix:=Prefix+'    ';
   for i:=UsesScopes.Count-1 downto 0 do
@@ -2531,6 +2534,7 @@ begin
     writeln(Prefix+'  Uses: '+GetObjName(UsesScope.Element)+' "'+UsesScope.Element.GetModule.Name+'"');
     UsesScope.FItems.ForEachCall(@OnWriteItem,Pointer(SubPrefix));
     end;
+  {AllowWriteln-}
 end;
 
 { TPasModuleScope }
@@ -2643,7 +2647,9 @@ end;
 
 procedure TPasScope.WriteIdentifiers(Prefix: string);
 begin
+  {AllowWriteln}
   writeln(Prefix,'Element: ',GetObjName(Element));
+  {AllowWriteln-}
 end;
 
 { TPasIdentifierScope }
@@ -2678,12 +2684,14 @@ var
   PasIdentifier: TPasIdentifier absolute Item;
   Prefix: String;
 begin
+  {AllowWriteln}
   Prefix:=AnsiString(Dummy);
   while PasIdentifier<>nil do
     begin
     writeln(Prefix,'Identifier="',PasIdentifier.Identifier,'" Element=',GetObjName(PasIdentifier.Element));
     PasIdentifier:=PasIdentifier.NextSameIdentifier;
     end;
+  {AllowWriteln-}
 end;
 
 procedure TPasIdentifierScope.InternalAdd(Item: TPasIdentifier);
@@ -2745,11 +2753,13 @@ function TPasIdentifierScope.FindIdentifier(const Identifier: String
 begin
   Result:=FindLocalIdentifier(Identifier);
   {$IFDEF VerbosePasResolver}
+  {AllowWriteln}
   if (Result<>nil) and (Result.Owner<>Self) then
     begin
     writeln('TPasIdentifierScope.FindIdentifier Result.Owner<>Self Owner='+GetObjName(Result.Owner));
     raise Exception.Create('20160925184159');
     end;
+  {AllowWriteln-}
   {$ENDIF}
 end;
 
@@ -5648,10 +5658,12 @@ begin
           if InRange=nil then
             InRange:=EvalTypeRange(TypeEl,[]);
           {$IFDEF VerbosePasResolver}
+          {AllowWriteln}
           if InRange<>nil then
             writeln('TPasResolver.ResolveImplForLoop in type: InRange=',InRange.AsDebugString)
           else
             writeln('TPasResolver.ResolveImplForLoop in type: InRange=nil');
+          {AllowWriteln-}
           {$ENDIF}
           end
         else if rrfReadable in StartResolved.Flags then
@@ -7320,6 +7332,7 @@ begin
 end;
 
 procedure TPasResolver.WriteScopes;
+{AllowWriteln}
 var
   i: Integer;
   Scope: TPasScope;
@@ -7331,6 +7344,7 @@ begin
     writeln('  ',i,'/',ScopeCount,' ',GetObjName(Scope));
     Scope.WriteIdentifiers('  ');
     end;
+  {AllowWriteln-}
 end;
 
 procedure TPasResolver.ComputeBinaryExpr(Bin: TBinaryExpr; out
@@ -9044,10 +9058,12 @@ begin
             RaiseNotYetImplemented(20170624192324,Params);
           end;
           {$IFDEF VerbosePasResEval}
+          {AllowWriteln}
           if Result<>nil then
             writeln('TPasResolver.OnExprEvalParams Called BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn],' Result=',Result.AsString)
           else
             writeln('TPasResolver.OnExprEvalParams Called BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn],' Result=nil');
+          {AllowWriteln-}
           {$ENDIF}
           exit;
           end
@@ -9792,10 +9808,12 @@ begin
   Param:=Params.Params[0];
   Value:=Eval(Param,Flags);
   {$IFDEF VerbosePasResEval}
+  {AllowWriteln}
   if Value=nil then
     writeln('TPasResolver.BI_Chr_OnEval Value=NIL')
   else
     writeln('TPasResolver.BI_Chr_OnEval Value=',Value.AsDebugString);
+  {AllowWriteln-}
   {$ENDIF}
   if Value=nil then exit;
   try
@@ -9866,10 +9884,12 @@ begin
   Param:=Params.Params[0];
   Value:=Eval(Param,Flags);
   {$IFDEF VerbosePasResEval}
+  {AllowWriteln}
   if Value=nil then
     writeln('TPasResolver.BI_Ord_OnEval Value=NIL')
   else
     writeln('TPasResolver.BI_Ord_OnEval Value=',Value.AsDebugString);
+  {AllowWriteln-}
   {$ENDIF}
   if Value=nil then exit;
   try
@@ -10134,10 +10154,12 @@ begin
     RaiseNotYetImplemented(20170601202353,Params);
     end;
   {$IFDEF VerbosePasResEval}
+  {AllowWriteln}
   if Evaluated=nil then
     writeln('TPasResolver.BI_LowHigh_OnEval END ResolvedEl=',GetResolverResultDbg(ParamResolved),' Evaluated NO SET')
   else
     writeln('TPasResolver.BI_LowHigh_OnEval END ResolvedEl=',GetResolverResultDbg(ParamResolved),' Evaluated=',Evaluated.AsDebugString);
+  {AllowWriteln-}
   {$ENDIF}
 end;
 
@@ -10594,8 +10616,10 @@ begin
     else if Decl is TPasFunction then
       aType:=TPasFunction(Decl).FuncType.ResultEl.ResultType;
     {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
     if aType=nil then
       writeln('TPasResolver.BI_TypeInfo_OnGetCallCompatibility Decl=',GetObjName(Decl));
+    {AllowWriteln-}
     {$ENDIF}
     end;
   if aType=nil then
@@ -10720,9 +10744,9 @@ begin
 
   if ASrcPos.FileName='' then
     begin
-    { $IFDEF VerbosePasResolver}
+    {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.CreateElement ',AClass.ClassName,' Name=',AName,' Parent=',GetObjName(AParent),' (',ASrcPos.Row,',',ASrcPos.Column,')');
-    { $ENDIF}
+    {$ENDIF}
     RaiseInternalError(20160922163541,'missing filename');
     end;
   SrcY:=ASrcPos.Row;
@@ -10846,8 +10870,10 @@ begin
         RaiseMsg(20170328003146,nIllegalExpression,sIllegalExpression,[],ErrorEl);
       end;
     {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
     if RightPath<>'' then
       writeln('TPasResolver.FindElement searching scope "',CurName,'" RightPath="',RightPath,'" ...');
+    {AllowWriteln-}
     {$ENDIF}
     if not IsValidIdent(CurName) then
       RaiseNotYetImplemented(20170328000033,ErrorEl);
@@ -11220,6 +11246,7 @@ begin
         end;
       end;
     {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
     if (Proc.ClassType=TPasConstructor) then
       begin
       write('TPasResolver.CheckFoundElement ',GetObjName(Proc));
@@ -11233,6 +11260,7 @@ begin
         end;
       writeln;
       end;
+    {AllowWriteln-}
     {$ENDIF}
 
     // destructor: FreeInstance or normal call
@@ -11242,6 +11270,7 @@ begin
           or (not TPasDotClassScope(StartScope).InheritedExpr)) then
         Ref.Flags:=Ref.Flags+[rrfFreeInstance];
     {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
     if (Proc.ClassType=TPasDestructor) then
       begin
       write('TPasResolver.CheckFoundElement ',GetObjName(Proc));
@@ -11256,6 +11285,7 @@ begin
         end;
       writeln;
       end;
+    {AllowWriteln-}
     {$ENDIF}
     end;
 
@@ -11709,6 +11739,7 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
   var
     FormerDeclEl: TPasElement;
   begin
+    {AllowWriteln}
     writeln('RaiseAlreadySet RefEl=',GetObjName(RefEl),' DeclEl=',GetObjName(DeclEl));
     writeln('  RefEl at ',GetElementSourcePosStr(RefEl));
     writeln('  RefEl.CustomData=',GetObjName(RefEl.CustomData));
@@ -11718,6 +11749,7 @@ function TPasResolver.CreateReference(DeclEl, RefEl: TPasElement;
       writeln('  TResolvedReference(RefEl.CustomData).Declaration=',GetObjName(FormerDeclEl),
        ' IsSame=',FormerDeclEl=DeclEl);
       end;
+    {AllowWriteln-}
     RaiseInternalError(20160922163554,'customdata<>nil');
   end;
 
@@ -11770,8 +11802,10 @@ begin
   if FScopeCount=0 then
     RaiseInternalError(20160922163557);
   {$IFDEF VerbosePasResolver}
+  {AllowWriteln}
   //writeln('TPasResolver.PopScope ',FScopeCount,' ',FTopScope<>nil,' IsDefault=',FTopScope=FDefaultScope);
   writeln('TPasResolver.PopScope ',FTopScope.ClassName,' IsStoredInElement=',FTopScope.IsStoredInElement,' Element=',GetObjName(FTopScope.Element),' FreeOnPop=',FTopScope.FreeOnPop);
+  {AllowWriteln-}
   {$ENDIF}
   dec(FScopeCount);
   if FTopScope.FreeOnPop then
@@ -11978,11 +12012,13 @@ begin
     end;
   CreateMsgArgs(FLastMsgArgs,Args);
   {$IFDEF VerbosePasResolver}
+  {AllowWriteln}
   write('TPasResolver.SetLastMsg ',id,' ',GetElementSourcePosStr(PosEl),' ');
   s:='';
   str(MsgType,s);
   write(s);
   writeln(': [',MsgNumber,'] ',FLastMsg);
+  {AllowWriteln-}
   {$ENDIF}
 end;
 
@@ -14940,10 +14976,12 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
     if rrfConstInherited in Ref.Flags then
       Exclude(ResolvedEl.Flags,rrfWritable);
     {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
     if Expr is TPrimitiveExpr then
       writeln('TPasResolver.ComputeElement.ComputeIdentifier TPrimitiveExpr "',TPrimitiveExpr(Expr).Value,'" ',GetResolverResultDbg(ResolvedEl),' Flags=',dbgs(Flags))
     else
       writeln('TPasResolver.ComputeElement.ComputeIdentifier "',GetObjName(Expr),'" ',GetResolverResultDbg(ResolvedEl),' Flags=',dbgs(Flags));
+    {AllowWriteln-}
     {$ENDIF}
     if not (rcSetReferenceFlags in Flags)
         and (rrfNoImplicitCallWithoutParams in Ref.Flags) then
@@ -15738,8 +15776,10 @@ begin
     RaiseNotYetImplemented(20170910210554,RangeExpr);
   end;
   {$IFDEF VerbosePasResolver}
+  {AllowWriteln}
   //if Result=0 then
     writeln('TPasResolver.GetRangeLength Result=',Result);
+  {AllowWriteln-}
   {$ENDIF}
 end;
 

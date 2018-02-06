@@ -2151,11 +2151,13 @@ Var
 
 begin
 {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}
+  {AllowWriteln}
   CN:=ClassName+' '+Name;
   CN:=CN+' '+IntToStr(FRefCount);
   //If Assigned(Parent) then
   //  CN:=CN+' ('+Parent.ClassName+')';
   Writeln('TPasElement.Release : ',Cn);
+  {AllowWriteln-}
 {$endif}
   if FRefCount = 0 then
     begin

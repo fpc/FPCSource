@@ -1849,11 +1849,13 @@ begin
     if Ref=nil then
       begin
       {$IFDEF VerbosePasResolver}
+      {AllowWriteln}
       if po_resolvestandardtypes in FOptions then
         begin
         writeln('ERROR: TPasParser.ParseSimpleType resolver failed to raise an error');
         ParseExcExpectedIdentifier;
         end;
+      {AllowWriteln-}
       {$ENDIF}
       end
     else if not (Ref is TPasType) then
@@ -5666,12 +5668,14 @@ end;
 procedure TPasParser.DumpCurToken(const Msg: String; IndentAction: TIndentAction
   );
 begin
+  {AllowWriteln}
   if IndentAction=iaUndent then
     FDumpIndent:=copy(FDumpIndent,1,Length(FDumpIndent)-2);
   Writeln(FDumpIndent,Msg,' : ',TokenInfos[CurToken],' "',CurTokenString,'", Position: ',Scanner.CurFilename,'(',Scanner.CurRow,',',SCanner.CurColumn,') : ',Scanner.CurLine);
   if IndentAction=iaIndent then
     FDumpIndent:=FDumpIndent+'  ';
   Flush(output);
+  {AllowWriteln-}
 end;
 
 function TPasParser.GetCurrentModeSwitches: TModeSwitches;
@@ -6340,6 +6344,7 @@ begin
 end;
 
 {$IFDEF VerbosePasParser}
+{AllowWriteln}
 procedure TPasParser.WriteBinaryExprChain(Prefix: string; First, Last: TPasExpr
   );
 var
@@ -6399,6 +6404,7 @@ begin
       writeln(' Last=nil');
     end;
 end;
+{AllowWriteln-}
 {$ENDIF}
 
 function TPasParser.CreateUnaryExpr(AParent: TPasElement; AOperand: TPasExpr;

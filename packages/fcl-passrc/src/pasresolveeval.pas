@@ -1155,10 +1155,12 @@ begin
       RaiseNotYetImplemented(20170530100827,Expr);
     end;
     {$IFDEF VerbosePasResEval}
+    {AllowWriteln}
     if Result<>nil then
       writeln('TResExprEvaluator.EvalBinaryExpr Left=',LeftValue.AsDebugString,' Opcode=',OpcodeStrings[Expr.OpCode],' Right=',RightValue.AsDebugString,' Result=',Result.AsDebugString)
     else
       writeln('TResExprEvaluator.EvalBinaryExpr Left=',LeftValue.AsDebugString,' Opcode=',OpcodeStrings[Expr.OpCode],' Right=',RightValue.AsDebugString,' Result not set');
+    {AllowWriteln-}
     {$ENDIF}
   finally
     ReleaseEvalValue(LeftValue);
