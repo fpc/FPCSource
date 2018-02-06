@@ -239,12 +239,18 @@ Procedure CalcSigFPE(sig : longint);cdecl;
 {$else}
 function CalcSigFPE(sig : longint) : longint;cdecl;
 {$endif}
+{$ifdef CPUI386}
+  var
+    { Use a local variable to avoid problems with PIC code }
+    local_fpucw : word;
+{$endif CPUI386}
 begin
 {$ifdef CPUI386}
   asm
     fninit
-    fldcw fpucw
+    fldcw local_fpucw
   end;
+  fpucw := local_fpucw;
 {$endif}
   { ErrorBox('Error while computing math expression',nil);
     was only there for debugging PM }
@@ -276,13 +282,19 @@ end;
 var
   StoreSigFPE : SignalHandler;
 {$endif HasSignal}
+{$ifdef CPUI386}
+var
+  { Use a local variable to avoid problems with PIC code }
+  local_fpucw : word;
+{$endif CPUI386}
 begin
   CalcKey:=true;
   Key := UpCaseStr(Key);
 {$ifdef HasSignal}
 {$ifdef CPUI386}
+  local_fpucw:=fpucw;
   asm
-    fstcw fpucw
+    fstcw local_fpucw
   end;
 {$endif}
 {$ifdef go32v2}
