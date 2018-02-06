@@ -144,19 +144,11 @@ implementation
                    exit;
                end;
 
-             { In tp procvar mode the result is always a voidpointer. Insert
-               a typeconversion to voidpointer. For methodpointers we need
-               to load the proc field }
+             { In tp procvar mode for methodpointers we need to load the proc field }
              if (m_tp_procvar in current_settings.modeswitches) or
                 (m_mac_procvar in current_settings.modeswitches) then
                begin
-                 if tabstractprocdef(left.resultdef).is_addressonly then
-                   begin
-                     result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).address_type);
-                     include(result.flags,nf_load_procvar);
-                     left:=nil;
-                   end
-                 else
+                 if not tabstractprocdef(left.resultdef).is_addressonly then
                    begin
                      { For procvars and for nested routines we need to return
                        the proc field of the methodpointer }
