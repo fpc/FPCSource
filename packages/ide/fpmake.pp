@@ -10,6 +10,8 @@ uses
 const
   NoGDBOption: boolean = false;
   GDBMIOption: boolean = false;
+  GDBMI_Disabled: boolean = false;
+  GDBMI_DEFAULT_OSes = [aix, darwin, freebsd, haiku,linux, netbsd, openbsd, solaris, win32, win64];
 
 procedure ide_check_gdb_availability(Sender: TObject);
 
@@ -150,22 +152,31 @@ Var
 begin
   AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
+  AddCustomFpmakeCommandlineOption('NOGDBMI','If value=1 or ''Y'', explicitly disable GDB/MI option');
   AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
     if (s='1') or (s='Y') then
      NoGDBOption := true;
-    s := GetCustomFpmakeCommandlineOptionValue('GDBMI');
+    s := GetCustomFpmakeCommandlineOptionValue('NOGDBMI');
     if (s='1') or (s='Y') then
-     GDBMIOption := true;
+     GDBMI_Disabled := true;
+    if not GDBMI_Disabled then
+      begin
+        s := GetCustomFpmakeCommandlineOptionValue('GDBMI');
+        if (s='1') or (s='Y') then
+          GDBMIOption := true;
+        if (Defaults.OS in GDBMI_DEFAULT_OSes) then
+          GDBMIOption := True;
+      end;
     s :=GetCustomFpmakeCommandlineOptionValue('CompilerTarget');
     if s <> '' then
       CompilerTarget:=StringToCPU(s)
     else
       CompilerTarget:=Defaults.CPU;
     
-    if GDBMIOption or
+    if GDBMIOption or GDBMI_Disabled or
       ( (Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU) and
         (Defaults.OS in [go32v2,win32,win64,linux,freebsd,os2,emx,beos,haiku])
       ) then
