@@ -216,12 +216,6 @@ begin
         P.Options.Add('-Fi'+CompilerDir+'/'+CPUToString(CompilerTarget));
         P.Options.Add('-Fi'+CompilerDir);
         
-        if CompilerTarget<>Defaults.CPU then
-          begin
-            P.Options.Add('-o'+CPUToString(CompilerTarget)+'-fp');
-            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
-          end;
-
         if CompilerTarget in [x86_64, i386, i8086] then
           P.Options.Add('-Fu'+CompilerDir+'/x86');
         
@@ -249,6 +243,12 @@ begin
         P.IncludePath.Add('compiler');
 
         T:=P.Targets.AddProgram('fp.pas');
+        if CompilerTarget<>Defaults.CPU then
+          begin
+            T.SetExeName(CPUToString(CompilerTarget)+'-fp');
+            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
+          end;
+
         with T.Dependencies do
           begin
             AddUnit('compunit');
