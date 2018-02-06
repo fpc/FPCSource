@@ -3935,7 +3935,7 @@ begin
     // add "var $mod = this;"
     IntfContext.ThisPas:=El;
     if El.CustomData is TPasModuleScope then
-      IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).ScannerBoolSwitches;
+      IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).BoolSwitches;
     ModVarName:=FBuiltInNames[pbivnModule];
     IntfContext.AddLocalVar(ModVarName,El);
     AddToSourceElements(Src,CreateVarStatement(ModVarName,
@@ -9389,11 +9389,11 @@ begin
     BodyJS:=FD.Body;
     FuncContext:=TFunctionContext.Create(ImplProc,FD.Body,AContext);
     try
-      FuncContext.ScannerBoolSwitches:=ImplProcScope.ScannerBoolSwitches;
+      FuncContext.ScannerBoolSwitches:=ImplProcScope.BoolSwitches;
       FirstSt:=nil;
       LastSt:=nil;
 
-      if (bsRangeChecks in ImplProcScope.ScannerBoolSwitches)
+      if (bsRangeChecks in ImplProcScope.BoolSwitches)
           and (AContext.Resolver<>nil) then
         for i:=0 to El.ProcType.Args.Count-1 do
           begin
