@@ -46,7 +46,9 @@ begin
       on E: ECompilerTerminate do ;
       on E: Exception do
       begin
+        {AllowWriteln}
         writeln(E.Message);
+        {AllowWriteln-}
         if ExitCode=0 then
           ExitCode:=ExitCodeErrorInternal;
       end;

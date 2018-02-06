@@ -208,12 +208,12 @@ end;
 
 constructor TDirWatcher.Create(App: THTTPCompilerApplication; ADir: String);
 begin
- Inherited create(APP);
- FApp:=App;
- FDW:=TDirwatch.Create(Self);
- FDW.AddWatch(ADir,allEvents);
- FDW.OnChange:=@DoChange;
- TThread.ExecuteInThread(@FDW.StartWatch);
+  Inherited create(APP);
+  FApp:=App;
+  FDW:=TDirwatch.Create(Self);
+  FDW.AddWatch(ADir,allEvents);
+  FDW.OnChange:=@DoChange;
+  TThread.ExecuteInThread(@FDW.StartWatch);
 end;
 
 destructor TDirWatcher.Destroy;
@@ -228,31 +228,35 @@ end;
 
 procedure THTTPCompilerApplication.DoLog(EventType: TEventType; const Msg: String);
 begin
- if Quiet then
-   exit;
- if IsConsole then
-   Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',EventType,'] ',Msg)
- else
-   inherited DoLog(EventType, Msg);
+  {AllowWriteln}
+  if Quiet then
+    exit;
+  if IsConsole then
+    Writeln(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',Now),' [',EventType,'] ',Msg)
+  else
+    inherited DoLog(EventType, Msg);
+  {AllowWriteln-}
 end;
 
 procedure THTTPCompilerApplication.Usage(Msg : String);
 
 begin
- if (Msg<>'') then
-   Writeln('Error: ',Msg);
- Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
- Writeln('Where options is one or more of : ');
- Writeln('-d --directory=dir  Base directory from which to serve files.');
- Writeln('                    Default is current working directory: ',GetCurrentDir);
- Writeln('-h --help           This help text');
- Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
- Writeln('-n --noindexpage    Do not allow index page.');
- Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
- Writeln('-q --quiet          Do not write diagnostic messages');
- Writeln('-w --watch          Watch directory for changes');
- Writeln('-c --compile[=proj] Recompile project if pascal files change. Default project is app.lpr');
- Halt(Ord(Msg<>''));
+  {AllowWriteln}
+  if (Msg<>'') then
+    Writeln('Error: ',Msg);
+  Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
+  Writeln('Where options is one or more of : ');
+  Writeln('-d --directory=dir  Base directory from which to serve files.');
+  Writeln('                    Default is current working directory: ',GetCurrentDir);
+  Writeln('-h --help           This help text');
+  Writeln('-i --indexpage=name Directory index page to use (default: index.html)');
+  Writeln('-n --noindexpage    Do not allow index page.');
+  Writeln('-p --port=NNNN      TCP/IP port to listen on (default is 3000)');
+  Writeln('-q --quiet          Do not write diagnostic messages');
+  Writeln('-w --watch          Watch directory for changes');
+  Writeln('-c --compile[=proj] Recompile project if pascal files change. Default project is app.lpr');
+  Halt(Ord(Msg<>''));
+  {AllowWriteln-}
 end;
 
 constructor THTTPCompilerApplication.Create(AOWner: TComponent);
@@ -312,7 +316,9 @@ procedure THTTPCompilerApplication.AddToStatus(O : TJSONObject);
 begin
   FStatusLock.Enter;
   try
+    {$ifdef VerboseHTTPCompiler}
     Writeln('Adding to status ',Assigned(O),' : ',O.ClassName);
+    {$endif}
     FStatusList.Add(O);
   finally
     FStatusLock.Leave;
@@ -356,7 +362,9 @@ begin
         R:=TJSONObject.Create(['ping',True])
       else
         begin
+        {$ifdef VerboseHTTPCompiler}
         Writeln(FStatusList[0].ClassName);
+        {$endif}
         O:=FStatusList[0] as TJSONObject;
         FStatusList.Delete(0);
         if O.Get('action','')<>'file' then

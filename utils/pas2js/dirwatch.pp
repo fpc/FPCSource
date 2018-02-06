@@ -432,9 +432,11 @@ begin
         setlength(fn,fnl);
         if (fnl>0) then
           move(e^.name,fn[1],fnl);
+        {$ifdef VerboseDirWatch}
         Writeln('Change ',e^.mask,' (',
 //                InotifyEventsToString(e^.mask),
                 ') detected for file "',fn,'"');
+        {$endif}
         ptrint(e):=ptrint(e)+sizeof(inotify_event)+e^.len-1;
         end;
       end;
