@@ -871,6 +871,7 @@ const
   msAllPas2jsBoolSwitches = [
     bsAssertions,
     bsRangeChecks,
+    bsTypeInfo,
     bsOverflowChecks,
     bsHints,
     bsNotes,
