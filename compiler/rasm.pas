@@ -155,6 +155,7 @@ unit rasm;
         if (po_assembler in current_procinfo.procdef.procoptions) and
            (sym.typ=paravarsym) and
            (tparavarsym(sym).paraloc[calleeside].location^.loc=LOC_REGISTER) and
+           { ... however this is only possible if the pointer takes only one register location }
            not assigned(tparavarsym(sym).paraloc[calleeside].location^.Next) and
            isimplicitpointer then
           exit;
