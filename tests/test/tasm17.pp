@@ -18,7 +18,7 @@ const
 var
   expect2: array [0..6] of word;
 
-procedure test1; assembler;
+procedure test1; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
 asm
   dw xx
   dw offset xx
@@ -27,7 +27,7 @@ asm
   db 55h, 0aah
 end;
 
-procedure test2; assembler;
+procedure test2; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
 asm
   dw xx+5
   dw offset xx+6
