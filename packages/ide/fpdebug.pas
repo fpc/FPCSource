@@ -356,7 +356,7 @@ uses
   Windebug,
 {$endif Windows}
 {$ifdef Unix}
-  termio,
+  baseunix, unix, termio,
 {$endif Unix}
   Systems,Globals,
   FPRegs,FPTools,
@@ -873,7 +873,7 @@ begin
           s:=TransformRemoteString(RemoteSshExecCommand);
           PushStatus(S);
 {$ifdef Unix}
-          error:=0;
+          ErrorVal:=0;
           { return without waiting for the function to end }
           s:= s+' &';
           If fpsystem(s)=-1 Then
