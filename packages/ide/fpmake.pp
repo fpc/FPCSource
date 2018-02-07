@@ -247,6 +247,7 @@ begin
           begin
             T.SetExeName(CPUToString(CompilerTarget)+'-fp');
             P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
+            P.Options.Add('-dCROSSGDB');
           end;
 
         with T.Dependencies do
