@@ -2451,7 +2451,13 @@ Unit Rax86int;
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry,hasofs);
                 if asmsym<>'' then
                  begin
-                   if (not isseg) and (constsize<>sizeof(pint)) then
+                   if (not isseg) and
+{$ifdef i8086}
+                      ((constsize<>2) and (constsize<>4))
+{$else i8086}
+                      (constsize<>sizeof(pint))
+{$endif i8086}
+                      then
                      Message1(asmr_w_const32bit_for_address,asmsym);
 {$ifdef i8086}
                    if asmsym='@DATA' then
