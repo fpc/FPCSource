@@ -64,7 +64,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:tcgint;var size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry,hasofs:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -790,7 +790,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry,hasofs:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -812,6 +812,7 @@ Unit Rax86int;
         asmsymtyp:=AT_DATA;
         isseg:=false;
         is_farproc_entry:=FALSE;
+        hasofs:=FALSE;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
@@ -1190,10 +1191,9 @@ Unit Rax86int;
         l : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
-        isseg : boolean;
-        is_farproc_entry : boolean;
+        isseg,is_farproc_entry,hasofs : boolean;
       begin
-        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,isseg,is_farproc_entry);
+        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,isseg,is_farproc_entry,hasofs);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1205,10 +1205,9 @@ Unit Rax86int;
         l : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
-        isseg : boolean;
-        is_farproc_entry : boolean;
+        isseg,is_farproc_entry,hasofs : boolean;
       begin
-        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,isseg,is_farproc_entry);
+        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,isseg,is_farproc_entry,hasofs);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1227,7 +1226,7 @@ Unit Rax86int;
         GotPlus,Negative : boolean;
         hl : tasmlabel;
         isseg: boolean;
-        is_farproc_entry,
+        is_farproc_entry,hasofs,
         hastypecast: boolean;
       Begin
         Consume(AS_LBRACKET);
@@ -1550,7 +1549,7 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
+                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,isseg,is_farproc_entry,hasofs);
                 { already handled by BuildConstSymbolExpression(); must be
                   handled there to avoid [reg-1+1] being interpreted as
                   [reg-(1+1)] }
@@ -1640,12 +1639,11 @@ Unit Rax86int;
         l : tcgint;
         tempstr : string;
         tempsymtyp : tasmsymtype;
-        isseg: boolean;
-        is_farproc_entry : boolean;
+        isseg,is_farproc_entry,hasofs : boolean;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
+        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg,is_farproc_entry,hasofs);
 {$ifdef i8086}
         if tempstr='@DATA' then
           begin
@@ -2412,8 +2410,7 @@ Unit Rax86int;
         asmsym,
         expr: string;
         value : tcgint;
-        isseg: boolean;
-        is_farproc_entry : boolean;
+        isseg,is_farproc_entry,hasofs : boolean;
       Begin
         Repeat
           Case actasmtoken of
@@ -2447,7 +2444,7 @@ Unit Rax86int;
 {$endif i8086}
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry,hasofs);
                 if asmsym<>'' then
                  begin
                    if (not isseg) and (constsize<>sizeof(pint)) then
