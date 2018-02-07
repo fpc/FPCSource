@@ -198,7 +198,7 @@ Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 
   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
   Procedure ConcatConstant(p : TAsmList;value: tcgint; constsize:byte);
-  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
   Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : TAsmList;s:string);
   procedure ConcatAlign(p:TAsmList;l:tcgint);
@@ -1647,7 +1647,7 @@ Begin
 end;
 
 
-  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
   begin
     p.concat(Tai_const.Createname(sym,l));
   end;
