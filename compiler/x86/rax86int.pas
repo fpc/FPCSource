@@ -919,7 +919,10 @@ Unit Rax86int;
             AS_OFFSET:
               begin
                 if (actasmtoken = AS_OFFSET) then
-                  needofs:=true
+                  begin
+                    needofs:=true;
+                    hasofs:=true;
+                  end
                 else
                   needvmtofs:=true;
                 Consume(actasmtoken);
