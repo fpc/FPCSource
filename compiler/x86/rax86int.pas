@@ -2442,6 +2442,7 @@ Unit Rax86int;
             AS_LPAREN,
             AS_NOT,
             AS_INTNUM,
+            AS_OFFSET,
 {$ifdef i8086}
             AS_SEG,
 {$endif i8086}
