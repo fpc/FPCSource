@@ -1649,7 +1649,28 @@ end;
 
   Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
   begin
+{$ifdef i8086}
+    { 'DW xx' as well as 'DW OFFSET xx' are just near pointers }
+    if constsize=2 then
+      p.concat(Tai_const.Createname_near(sym,l))
+    else if constsize=4 then
+      begin
+        if isofs then
+          begin
+            { 'DD OFFSET xx' is a 32-bit offset; since we don't produce 32-bit
+              relocations yet, just do a 16-bit one and set the high word to 0 }
+            p.concat(Tai_const.Createname_near(sym,l));
+            p.concat(Tai_const.Create_16bit(0));
+          end
+        else
+          { 'DD xx' is a far pointer }
+          p.concat(Tai_const.Createname_far(sym,l));
+      end
+    else
+      internalerror(2018020701);
+{$else i8086}
     p.concat(Tai_const.Createname(sym,l));
+{$endif i8086}
   end;
 
 
