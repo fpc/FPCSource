@@ -2458,7 +2458,10 @@ Unit Rax86int;
                       (constsize<>sizeof(pint))
 {$endif i8086}
                       then
-                     Message1(asmr_w_const32bit_for_address,asmsym);
+                     begin
+                       Message1(asmr_w_const32bit_for_address,asmsym);
+                       constsize:=sizeof(pint);
+                     end;
 {$ifdef i8086}
                    if asmsym='@DATA' then
                      begin
