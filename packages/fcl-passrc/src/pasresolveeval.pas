@@ -153,6 +153,9 @@ const
   nConstructingClassXWithAbstractMethodY = 3080;
   nXIsNotSupported = 3081;
   nOperatorIsNotOverloadedAOpB = 3082;
+  nIllegalQualifierAfter = 3004;
+  nIllegalQualifierInFrontOf = 3005;
+  nIllegalQualifierWithin = 3006;
 
 // resourcestring patterns of messages
 resourcestring
@@ -238,6 +241,9 @@ resourcestring
   sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
   sXIsNotSupported = '%s is not supported';
   sOperatorIsNotOverloadedAOpB = 'Operator is not overloaded: "%s" %s "%s"';
+  sIllegalQualifierAfter = 'illegal qualifier "%s" after "%s"';
+  sIllegalQualifierInFrontOf = 'illegal qualifier "%s" in front of "%s"';
+  sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
 
 
 type

@@ -13348,7 +13348,7 @@ begin
   Add('  p: Pointer;');
   Add('begin');
   Add('  p:=p[1];');
-  SetExpectedPasResolverError('illegal qualifier "["',nIllegalQualifier);
+  SetExpectedPasResolverError('illegal qualifier "[" after "Pointer"',nIllegalQualifierAfter);
   ConvertProgram;
 end;
 

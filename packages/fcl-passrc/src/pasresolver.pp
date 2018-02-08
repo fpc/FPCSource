@@ -3283,7 +3283,8 @@ begin
       begin
       // El is the first element found -> raise error
       // ToDo: use the ( as error position
-      RaiseMsg(20170216151525,nIllegalQualifier,sIllegalQualifier,['('],Data^.Params);
+      RaiseMsg(20170216151525,nIllegalQualifierAfter,sIllegalQualifierAfter,
+        ['(',El.ElementTypeName],Data^.Params);
       end;
     exit;
     end;
@@ -5979,7 +5980,7 @@ begin
           ['set of '+BaseTypeNames[RightResolved.SubType],'set of '+BaseTypeNames[LeftResolved.SubType]],El.right);
       end
     else
-      RaiseMsg(20170216152125,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
+      RaiseIncompatibleTypeRes(20180208115707,nOperatorIsNotOverloadedAOpB,[AssignKindNames[El.Kind]],RightResolved,LeftResolved,El);
     // store const expression result
     Eval(El.right,[]);
     end;
@@ -6425,7 +6426,8 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveSubIdent left=',GetObjName(Left),' right=',GetObjName(El.right),' leftresolved=',GetResolverResultDbg(LeftResolved));
   {$ENDIF}
-  RaiseMsg(20170216152157,nIllegalQualifier,sIllegalQualifier,['.'],El);
+  RaiseMsg(20170216152157,nIllegalQualifierAfter,sIllegalQualifierAfter,
+    ['.',GetResolverResultDescription(LeftResolved)],El);
 end;
 
 procedure TPasResolver.ResolveParamsExpr(Params: TParamsExpr;
@@ -6560,7 +6562,7 @@ begin
         if TypeEl is TPasProcedureType then
           CheckCallProcCompatibility(TPasProcedureType(TypeEl),Params,true)
         else
-          RaiseMsg(20170405003522,nIllegalQualifier,sIllegalQualifier,['('],Params);
+          RaiseMsg(20170405003522,nIllegalQualifierAfter,sIllegalQualifierAfter,['(',TypeEl.ElementTypeName],Params);
         end
       else
         RaiseNotYetImplemented(20161003134755,FindCallData.Found);
@@ -6660,22 +6662,25 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.ResolveFuncParamsExpr FoundEl=',GetObjName(FoundEl),' CustomData=',GetObjName(FoundEl.CustomData));
         {$ENDIF}
-        RaiseMsg(20170306121908,nIllegalQualifier,sIllegalQualifier,['('],Params);
+        RaiseMsg(20170306121908,nIllegalQualifierAfter,sIllegalQualifierAfter,
+          ['(',TypeEl.ElementTypeName],Params);
         end;
       end
     else
       begin
       // FoundEl is not a type, maybe a var
       ComputeElement(FoundEl,ResolvedEl,[rcNoImplicitProc,rcSetReferenceFlags]);
-      if ResolvedEl.TypeEl is TPasProcedureType then
+      TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
+      if TypeEl is TPasProcedureType then
         begin
-        FinishProcParams(TPasProcedureType(ResolvedEl.TypeEl));
+        FinishProcParams(TPasProcedureType(TypeEl));
         exit;
         end;
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.ResolveFuncParamsExpr FoundEl=',GetObjName(FoundEl),' CustomData=',GetObjName(FoundEl.CustomData),' Resolvedel=',GetResolverResultDbg(ResolvedEl));
       {$ENDIF}
-      RaiseMsg(20170306104301,nIllegalQualifier,sIllegalQualifier,['('],Params);
+      RaiseMsg(20170306104301,nIllegalQualifierAfter,sIllegalQualifierAfter,
+        ['(',TypeEl.ElementTypeName],Params);
       end;
     end
   else if Value.ClassType=TParamsExpr then
@@ -6693,7 +6698,8 @@ begin
         exit;
         end
       end;
-    RaiseMsg(20170216152202,nIllegalQualifier,sIllegalQualifier,['('],Params);
+    RaiseMsg(20170216152202,nIllegalQualifierAfter,sIllegalQualifierAfter,
+      ['(',SubParams.ElementTypeName],Params);
     end
   else
     RaiseNotYetImplemented(20161014085118,Params.Value);
@@ -6825,14 +6831,16 @@ begin
     else if ResolvedValue.TypeEl.ClassType=TPasArrayType then
       begin
       if ResolvedValue.IdentEl is TPasType then
-        RaiseMsg(20170216152215,nIllegalQualifier,sIllegalQualifier,['['],Params);
+        RaiseMsg(20170216152215,nIllegalQualifierAfter,sIllegalQualifierAfter,
+          ['[',ResolvedValue.IdentEl.ElementTypeName],Params);
       CheckCallArrayCompatibility(TPasArrayType(ResolvedValue.TypeEl),Params,true,true);
       for i:=0 to length(Params.Params)-1 do
         AccessExpr(Params.Params[i],rraRead);
       exit;
       end;
     end;
-  RaiseMsg(20170216152217,nIllegalQualifier,sIllegalQualifier,['['],Params);
+  RaiseMsg(20170216152217,nIllegalQualifierAfter,sIllegalQualifierAfter,
+    ['[',GetResolverResultDescription(ResolvedValue,true)],Params);
 end;
 
 function TPasResolver.ResolveBracketOperatorClass(Params: TParamsExpr;
@@ -6847,7 +6855,8 @@ begin
     begin
     // class has default property
     if (ResolvedValue.IdentEl is TPasType) and (not PropEl.IsClass) then
-      RaiseMsg(20170216152213,nIllegalQualifier,sIllegalQualifier,['['],Params);
+      RaiseMsg(20170216152213,nIllegalQualifierAfter,sIllegalQualifierAfter,
+        ['[',GetResolverResultDescription(ResolvedValue,true)],Params);
     Value:=Params.Value;
     if Value.CustomData is TResolvedReference then
       SetResolvedRefAccess(Value,TResolvedReference(Value.CustomData),rraRead);
@@ -7996,7 +8005,7 @@ begin
     ComputeIndexProperty(TPasProperty(ResolvedEl.IdentEl))
   else if ResolvedEl.BaseType=btContext then
     begin
-    TypeEl:=ResolvedEl.TypeEl;
+    TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
     if TypeEl.ClassType=TPasClassType then
       begin
       ClassScope:=NoNil(TypeEl.CustomData) as TPasClassScope;
@@ -8016,7 +8025,8 @@ begin
     else if TypeEl.ClassType=TPasArrayType then
       begin
       if not (rrfReadable in ResolvedEl.Flags) then
-        RaiseMsg(20170517001140,nIllegalQualifier,sIllegalQualifier,['['],Params);
+        RaiseMsg(20170517001140,nIllegalQualifierAfter,sIllegalQualifierAfter,
+          ['[',TypeEl.ElementTypeName],Params);
       ArrayEl:=TPasArrayType(TypeEl);
       ArgNo:=0;
       repeat
@@ -15172,12 +15182,14 @@ begin
         if ResolvedEl.BaseType in (btAllInteger+btAllFloats) then
           exit
         else
-          RaiseMsg(20170216152532,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TUnaryExpr(El).OpCode]],El);
+          RaiseMsg(20170216152532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+            [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
       eopNot:
         if ResolvedEl.BaseType in (btAllInteger+btAllBooleans) then
           exit
         else
-          RaiseMsg(20170216152534,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TUnaryExpr(El).OpCode]],El);
+          RaiseMsg(20180208121532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+            [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
       eopAddress:
         if (ResolvedEl.BaseType=btProc) and (ResolvedEl.IdentEl is TPasProcedure) then
           begin
@@ -15185,13 +15197,15 @@ begin
           exit;
           end
         else
-          RaiseMsg(20170216152535,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TUnaryExpr(El).OpCode]],El);
+          RaiseMsg(20180208121541,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+            [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
       eopMemAddress:
         begin
         if (ResolvedEl.BaseType=btContext) and (ResolvedEl.TypeEl is TPasProcedureType) then
           exit
         else
-          RaiseMsg(20170902145547,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TUnaryExpr(El).OpCode]],El);
+          RaiseMsg(20180208121549,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+            [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
         end;
     end;
     RaiseNotYetImplemented(20160926142426,El);
@@ -15713,8 +15727,13 @@ end;
 
 function TPasResolver.IsProcedureType(const ResolvedEl: TPasResolverResult;
   HasValue: boolean): boolean;
+var
+  TypeEl: TPasType;
 begin
-  if (ResolvedEl.BaseType<>btContext) or not (ResolvedEl.TypeEl is TPasProcedureType) then
+  if (ResolvedEl.BaseType<>btContext) then
+    exit(false);
+  TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
+  if not (TypeEl is TPasProcedureType) then
     exit(false);
   if HasValue and not (rrfReadable in ResolvedEl.Flags) then
     exit(false);

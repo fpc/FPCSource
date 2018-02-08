@@ -9668,8 +9668,8 @@ begin
   Add('var o: TObject;');
   Add('begin');
   Add('  if o[5]=6 then;');
-  CheckResolverException('illegal qualifier "["',
-    nIllegalQualifier);
+  CheckResolverException('illegal qualifier "[" after "TObject"',
+    nIllegalQualifierAfter);
 end;
 
 procedure TTestResolver.TestIgnoreInterfaces;
