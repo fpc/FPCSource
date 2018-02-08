@@ -243,6 +243,13 @@ uses
 const
   ParserMaxEmbeddedColumn = 2048;
   ParserMaxEmbeddedRow = $7fffffff div ParserMaxEmbeddedColumn;
+  po_Resolver = [
+    po_ResolveStandardTypes,
+    po_NoOverloadedProcs,
+    po_KeepClassForward,
+    po_ArrayRangeExpr,
+    po_CheckModeswitches,
+    po_CheckCondFunction];
 
 type
   TResolverBaseType = (
@@ -569,6 +576,7 @@ type
     destructor Destroy; override;
     property Element: TPasElement read FElement write SetElement;
   end;
+  TPasIdentifierArray = array of TPasIdentifier;
 
   { TPasIdentifierScope - elements with a list of sub identifiers }
 
@@ -577,6 +585,7 @@ type
     FItems: TFPHashList;
     procedure InternalAdd(Item: TPasIdentifier);
     procedure OnClearItem(Item, Dummy: pointer);
+    procedure OnCollectItem(Item, List: pointer);
   protected
     procedure OnWriteItem(Item, Dummy: pointer);
   public
@@ -595,6 +604,7 @@ type
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
     procedure WriteIdentifiers(Prefix: string); override;
+    function GetLocalIdentifiers: TFPList; virtual;
   end;
 
   { TPasDefaultScope - root scope }
@@ -2679,6 +2689,14 @@ begin
     end;
 end;
 
+procedure TPasIdentifierScope.OnCollectItem(Item, List: pointer);
+var
+  PasIdentifier: TPasIdentifier absolute Item;
+  FPList: TFPList absolute List;
+begin
+  FPList.Add(PasIdentifier);
+end;
+
 procedure TPasIdentifierScope.OnWriteItem(Item, Dummy: pointer);
 var
   PasIdentifier: TPasIdentifier absolute Item;
@@ -2872,6 +2890,12 @@ begin
   inherited WriteIdentifiers(Prefix);
   Prefix:=Prefix+'  ';
   FItems.ForEachCall(@OnWriteItem,Pointer(Prefix));
+end;
+
+function TPasIdentifierScope.GetLocalIdentifiers: TFPList;
+begin
+  Result:=TFPList.Create;
+  FItems.ForEachCall(@OnCollectItem,Pointer(Result));
 end;
 
 { TPasResolver }
@@ -3539,9 +3563,7 @@ begin
   Clear;
   inherited SetCurrentParser(AValue);
   if CurrentParser<>nil then
-    CurrentParser.Options:=CurrentParser.Options
-      +[po_resolvestandardtypes,po_nooverloadedprocs,po_keepclassforward,
-        po_arrayrangeexpr,po_CheckModeswitches,po_CheckCondFunction];
+    CurrentParser.Options:=CurrentParser.Options+po_Resolver;
 end;
 
 procedure TPasResolver.CheckTopScope(ExpectedClass: TPasScopeClass;
