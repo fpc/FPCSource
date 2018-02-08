@@ -48,11 +48,15 @@ type
     procedure CheckRestoredDeclarations(const Path: string; Orig, Rest: TPasDeclarations); virtual;
     procedure CheckRestoredSection(const Path: string; Orig, Rest: TPasSection); virtual;
     procedure CheckRestoredModule(const Path: string; Orig, Rest: TPasModule); virtual;
-    procedure CheckRestoredModuleScope(const Path: string; El: TPasElement; Orig, Rest: TPasModuleScope); virtual;
-    procedure CheckRestoredIdentifierScope(const Path: string; El: TPasElement; Orig, Rest: TPasIdentifierScope); virtual;
-    procedure CheckRestoredSectionScope(const Path: string; El: TPasElement; Orig, Rest: TPasSectionScope); virtual;
+    procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPasModuleScope); virtual;
+    procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope); virtual;
+    procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPasSectionScope); virtual;
     procedure CheckRestoredCustomData(const Path: string; El: TPasElement; Orig, Rest: TObject); virtual;
     procedure CheckRestoredElement(const Path: string; Orig, Rest: TPasElement); virtual;
+    procedure CheckRestoredConst(const Path: string; Orig, Rest: TPasConst); virtual;
+    procedure CheckRestoredVariable(const Path: string; Orig, Rest: TPasVariable); virtual;
+    procedure CheckRestoredPrimitiveExpr(const Path: string; Orig, Rest: TPrimitiveExpr); virtual;
+    procedure CheckRestoredExpr(const Path: string; Orig, Rest: TPasExpr); virtual;
     procedure CheckRestoredReference(const Path: string; Orig, Rest: TPasElement); virtual;
   public
     property PJUWriter: TPJUWriter read FPJUWriter write FPJUWriter;
@@ -66,6 +70,8 @@ type
   published
     procedure Test_Base256VLQ;
     procedure TestPC_EmptyUnit;
+
+    procedure TestPC_Const;
   end;
 
 implementation
@@ -112,6 +118,8 @@ var
   ReadScanner: TPascalScanner;
   ReadParser: TPasParser;
 begin
+  ConvertUnit;
+
   FPJUWriter:=TPJUWriter.Create;
   FPJUReader:=TPJUReader.Create;
   ms:=TMemoryStream.Create;
@@ -143,8 +151,13 @@ begin
 
       ReadFileResolver:=TFileResolver.Create;
       ReadScanner:=TPascalScanner.Create(ReadFileResolver);
+      InitScanner(ReadScanner);
       ReadResolver:=TTestEnginePasResolver.Create;
+      ReadResolver.Filename:=Engine.Filename;
+      ReadResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
+      //ReadResolver.OnFindUnit:=@OnPasResolverFindUnit;
       ReadParser:=TPasParser.Create(ReadScanner,ReadFileResolver,ReadResolver);
+      ReadParser.Options:=po_tcmodules;
       ReadResolver.CurrentParser:=ReadParser;
       ms.Position:=0;
       PJUReader.ReadPJU(ReadResolver,ms);
@@ -205,7 +218,7 @@ begin
     RestDecl:=TPasElement(Rest.Declarations[i]);
     SubPath:=Path+'['+IntToStr(i)+']';
     if OrigDecl.Name<>'' then
-      SubPath:=SubPath+OrigDecl.Name
+      SubPath:=SubPath+'"'+OrigDecl.Name+'"'
     else
       SubPath:=SubPath+'?noname?';
     CheckRestoredElement(SubPath,OrigDecl,RestDecl);
@@ -238,7 +251,7 @@ begin
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
-  El: TPasElement; Orig, Rest: TPasModuleScope);
+  Orig, Rest: TPasModuleScope);
 begin
   AssertEquals(Path+': FirstName',Orig.FirstName,Rest.FirstName);
   if Orig.Flags<>Rest.Flags then
@@ -253,13 +266,49 @@ begin
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredIdentifierScope(
-  const Path: string; El: TPasElement; Orig, Rest: TPasIdentifierScope);
+  const Path: string; Orig, Rest: TPasIdentifierScope);
+var
+  OrigList: TFPList;
+  i: Integer;
+  OrigIdentifier, RestIdentifier: TPasIdentifier;
 begin
-  // ToDo
+  OrigList:=nil;
+  try
+    OrigList:=Orig.GetLocalIdentifiers;
+    for i:=0 to OrigList.Count-1 do
+    begin
+      OrigIdentifier:=TPasIdentifier(OrigList[i]);
+      RestIdentifier:=Rest.FindLocalIdentifier(OrigIdentifier.Identifier);
+      if RestIdentifier=nil then
+        Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Missing RestIdentifier Orig='+OrigIdentifier.Identifier);
+      repeat
+        AssertEquals(Path+'.Local.Identifier',OrigIdentifier.Identifier,RestIdentifier.Identifier);
+        CheckRestoredReference(Path+'.Local',OrigIdentifier.Element,RestIdentifier.Element);
+        if OrigIdentifier.Kind<>RestIdentifier.Kind then
+          Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Orig='+PJUIdentifierKindNames[OrigIdentifier.Kind]+' Rest='+PJUIdentifierKindNames[RestIdentifier.Kind]);
+        if OrigIdentifier.NextSameIdentifier=nil then
+        begin
+          if RestIdentifier.NextSameIdentifier<>nil then
+            Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Too many RestIdentifier.NextSameIdentifier='+GetObjName(RestIdentifier.Element));
+          break;
+        end
+        else begin
+          if RestIdentifier.NextSameIdentifier=nil then
+            Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Missing RestIdentifier.NextSameIdentifier Orig='+GetObjName(OrigIdentifier.NextSameIdentifier.Element));
+        end;
+        if CompareText(OrigIdentifier.Identifier,OrigIdentifier.NextSameIdentifier.Identifier)<>0 then
+          Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Cur.Identifier<>Next.Identifier '+OrigIdentifier.Identifier+'<>'+OrigIdentifier.NextSameIdentifier.Identifier);
+        OrigIdentifier:=OrigIdentifier.NextSameIdentifier;
+        RestIdentifier:=RestIdentifier.NextSameIdentifier;
+      until false;
+    end;
+  finally
+    OrigList.Free;
+  end;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSectionScope(const Path: string;
-  El: TPasElement; Orig, Rest: TPasSectionScope);
+  Orig, Rest: TPasSectionScope);
 var
   i: Integer;
   OrigUses, RestUses: TPasSectionScope;
@@ -276,7 +325,7 @@ begin
     CheckRestoredReference(Path+': Uses['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
     end;
   AssertEquals(Path+': Finished',Orig.Finished,Rest.Finished);
-  CheckRestoredIdentifierScope(Path,El,Orig,Rest);
+  CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredCustomData(const Path: string;
@@ -297,11 +346,11 @@ begin
 
   C:=Orig.ClassType;
   if C=TPasModuleScope then
-    CheckRestoredModuleScope(Path+'[TPasModuleScope]',El,TPasModuleScope(Orig),TPasModuleScope(Rest))
+    CheckRestoredModuleScope(Path+'[TPasModuleScope]',TPasModuleScope(Orig),TPasModuleScope(Rest))
   else if C=TPasSectionScope then
-    CheckRestoredSectionScope(Path+'[TPasSectionScope]',El,TPasSectionScope(Orig),TPasSectionScope(Rest))
+    CheckRestoredSectionScope(Path+'[TPasSectionScope]',TPasSectionScope(Orig),TPasSectionScope(Rest))
   else
-    Fail(Path+': unknown CustomData '+GetObjName(Orig));
+    Fail(Path+': unknown CustomData "'+GetObjName(Orig)+'" El='+GetObjName(El));
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredElement(const Path: string; Orig,
@@ -349,8 +398,51 @@ begin
     CheckRestoredModule(Path,TPasModule(Orig),TPasModule(Rest))
   else if C.InheritsFrom(TPasSection) then
     CheckRestoredSection(Path,TPasSection(Orig),TPasSection(Rest))
+  else if C=TPasConst then
+    CheckRestoredConst(Path,TPasConst(Orig),TPasConst(Rest))
+  else if C=TPasVariable then
+    CheckRestoredVariable(Path,TPasVariable(Orig),TPasVariable(Rest))
+  else if C=TPrimitiveExpr then
+    CheckRestoredPrimitiveExpr(Path,TPrimitiveExpr(Orig),TPrimitiveExpr(Rest))
   else
     Fail(Path+': unknown class '+C.ClassName);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredConst(const Path: string; Orig,
+  Rest: TPasConst);
+begin
+  AssertEquals(Path+': IsConst',Orig.IsConst,Rest.IsConst);
+  CheckRestoredVariable(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredVariable(const Path: string; Orig,
+  Rest: TPasVariable);
+begin
+  CheckRestoredElement(Path+'.VarType',Orig.VarType,Rest.VarType);
+  if Orig.VarModifiers<>Rest.VarModifiers then
+    Fail(Path+'.VarModifiers');
+  CheckRestoredElement(Path+'.LibraryName',Orig.LibraryName,Rest.LibraryName);
+  CheckRestoredElement(Path+'.ExportName',Orig.ExportName,Rest.ExportName);
+  CheckRestoredElement(Path+'.AbsoluteExpr',Orig.AbsoluteExpr,Rest.AbsoluteExpr);
+  CheckRestoredElement(Path+'.Expr',Orig.Expr,Rest.Expr);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredPrimitiveExpr(const Path: string;
+  Orig, Rest: TPrimitiveExpr);
+begin
+  AssertEquals(Path+'.Value',Orig.Value,Rest.Value);
+  CheckRestoredExpr(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredExpr(const Path: string; Orig,
+  Rest: TPasExpr);
+begin
+  if Orig.Kind<>Rest.Kind then
+    Fail(Path+'.Kind');
+  if Orig.OpCode<>Rest.OpCode then
+    Fail(Path+'.OpCode');
+  CheckRestoredElement(Path+'.Format1',Orig.format1,Rest.format1);
+  CheckRestoredElement(Path+'.Format2',Orig.format2,Rest.format2);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredReference(const Path: string;
@@ -367,6 +459,10 @@ begin
   if Orig.ClassType<>Rest.ClassType then
     Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
   AssertEquals(Path+': Name',Orig.Name,Rest.Name);
+
+  if Orig is TPasUnresolvedSymbolRef then
+    exit; // compiler types and procs are the same in every unit -> skip checking unit
+
   CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
 end;
 
@@ -413,9 +509,19 @@ end;
 procedure TTestPrecompile.TestPC_EmptyUnit;
 begin
   StartUnit(false);
-  Add('interface');
-  Add('implementation');
-  ConvertUnit;
+  Add([
+  'interface',
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Const;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'const c = 3;',
+  'implementation']);
   WriteReadUnit;
 end;
 

@@ -31,7 +31,7 @@ uses
 
 const
   // default parser+scanner options
-  po_pas2js = [po_asmwhole,po_resolvestandardtypes,po_ExtClassConstWithoutExpr];
+  po_tcmodules = po_Pas2js+[po_KeepScannerError];
   co_tcmodules = [coNoTypeInfo];
 type
 
@@ -728,7 +728,7 @@ begin
       CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
       InitScanner(CurEngine.Scanner);
       CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
-      CurEngine.Parser.Options:=CurEngine.Parser.Options+po_pas2js+[po_KeepScannerError];
+      CurEngine.Parser.Options:=po_tcmodules;
       if CompareText(CurUnitName,'System')=0 then
         CurEngine.Parser.ImplicitUses.Clear;
       CurEngine.Scanner.OpenFile(CurEngine.Filename);
@@ -763,7 +763,7 @@ begin
   FEngine:=AddModule(Filename);
 
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
-  Parser.Options:=Parser.Options+po_pas2js+[po_KeepScannerError];
+  Parser.Options:=po_tcmodules;
 
   FModule:=Nil;
   FConverter:=CreateConverter;

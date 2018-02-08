@@ -882,7 +882,7 @@ const
     ];
 
   // default parser+scanner options
-  po_pas2js = [
+  po_Pas2js = po_Resolver+[
     po_AsmWhole,
     po_ResolveStandardTypes,
     po_ExtClassConstWithoutExpr];
