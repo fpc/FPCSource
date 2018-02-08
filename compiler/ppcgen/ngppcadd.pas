@@ -326,7 +326,13 @@ implementation
           ltn,lten,gtn,gten,
           equaln,unequaln :
             begin
-              op:=A_FCMPO;
+              { clang does not recognize fcmpo instruction,
+                so we need to fall back to fcmpu, which does not
+                generate the same exeception information }
+              if target_asm.id = as_clang then
+                op:=A_FCMPU
+              else
+                op:=A_FCMPO;
               cmpop:=true;
             end;
           else
