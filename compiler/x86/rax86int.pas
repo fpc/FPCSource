@@ -275,7 +275,9 @@ Unit Rax86int;
          begin
            firsttoken:=FALSE;
            len:=0;
-           while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
+           while (c in ['A'..'Z','a'..'z','0'..'9','_','@']) or
+                 { TP7 also allows $&? characters in local labels }
+                 (forcelabel and (c in ['$','&','?'])) do
             begin
               { if there is an at_sign, then this must absolutely be a label }
               if c = '@' then
@@ -328,7 +330,7 @@ Unit Rax86int;
                begin
                  actasmpattern:=c;
                  c:=current_scanner.asmgetchar;
-                 while c in  ['A'..'Z','a'..'z','0'..'9','_','@'] do
+                 while c in  ['A'..'Z','a'..'z','0'..'9','_','@','$','&','?'] do
                   begin
                     actasmpattern:=actasmpattern + c;
                     c:=current_scanner.asmgetchar;
