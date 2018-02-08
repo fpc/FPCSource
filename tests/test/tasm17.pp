@@ -17,6 +17,7 @@ const
 
 var
   expect2: array [0..6] of word;
+  expect3: array [0..6] of word;
 
 procedure test1; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
 asm
@@ -33,6 +34,15 @@ asm
   dw offset xx+6
   dd xx+7
   dd offset xx+8
+  db 55h, 0aah
+end;
+
+procedure test3; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
+asm
+  dw 9+xx
+  dw 11+offset xx
+  dd 12+xx
+  dd 14+offset xx
   db 55h, 0aah
 end;
 
@@ -69,5 +79,16 @@ begin
   expect2[6] := $aa55;
   if not CompareCode(CodePointer(@test2), @expect2, SizeOf(expect2)) then
     Error;
+
+  expect3[0] := Ofs(xx)+9;
+  expect3[1] := Ofs(xx)+11;
+  expect3[2] := Ofs(xx)+12;
+  expect3[3] := Seg(xx);
+  expect3[4] := Ofs(xx)+14;
+  expect3[5] := 0;
+  expect3[6] := $aa55;
+  if not CompareCode(CodePointer(@test3), @expect3, SizeOf(expect3)) then
+    Error;
+
   Writeln('Ok!');
 end.
