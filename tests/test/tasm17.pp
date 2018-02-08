@@ -18,7 +18,7 @@ const
 var
   expect2: array [0..6] of word;
   expect3: array [0..6] of word;
-  expect4: array [0..4] of word;
+  expect4: array [0..12] of word;
 
 procedure test1; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
 asm
@@ -55,6 +55,15 @@ asm
   nop
   nop
   dw @jumptarget
+  nop
+  nop
+  dw offset @jumptarget
+  nop
+  nop
+  dd @jumptarget
+  nop
+  nop
+  dd offset @jumptarget
   nop
   nop
 @jumptarget:
@@ -107,9 +116,17 @@ begin
 
   expect4[0] := $9090;
   expect4[1] := $9090;
-  expect4[2] := Ofs(test4) + 8;
+  expect4[2] := Ofs(test4) + 24;
   expect4[3] := $9090;
-  expect4[4] := $aa55;
+  expect4[4] := Ofs(test4) + 24;
+  expect4[5] := $9090;
+  expect4[6] := Ofs(test4) + 24;
+  expect4[7] := Seg(test4);
+  expect4[8] := $9090;
+  expect4[9] := Ofs(test4) + 24;
+  expect4[10] := 0;
+  expect4[11] := $9090;
+  expect4[12] := $aa55;
   if not CompareCode(CodePointer(@test4), @expect4, SizeOf(expect4)) then
     Error;
 
