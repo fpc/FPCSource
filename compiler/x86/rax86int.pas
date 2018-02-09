@@ -66,7 +66,7 @@ Unit Rax86int;
          procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
          procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
          function BuildConstExpression:aint;
-         function BuildRefConstExpression(startingminus:boolean=false):aint;
+         function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
          procedure BuildOperand(oper: tx86operand;istypecast:boolean);
          procedure BuildConstantOperand(oper: tx86operand);
@@ -1207,9 +1207,9 @@ Unit Rax86int;
       end;
 
 
-    Function tx86intreader.BuildRefConstExpression(startingminus:boolean):aint;
+    Function tx86intreader.BuildRefConstExpression(out size:tcgint;startingminus:boolean):aint;
       var
-        l,size : tcgint;
+        l : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
         isseg,is_farproc_entry,hasofs : boolean;
@@ -1260,7 +1260,9 @@ Unit Rax86int;
                    (SearchIConstant(actasmpattern,l) or
                     SearchRecordType(actasmpattern)) then
                  begin
-                   l:=BuildRefConstExpression(negative);
+                   l:=BuildRefConstExpression(size,negative);
+                   if size<>0 then
+                     oper.SetSize(size,false);
                    negative:=false;   { "l" was negated if necessary }
                    GotPlus:=(prevasmtoken=AS_PLUS);
                    GotStar:=(prevasmtoken=AS_STAR);
@@ -1823,7 +1825,9 @@ Unit Rax86int;
                     else
 {$endif x86_64}
                     begin
-                      l := BuildRefConstExpression;
+                      l := BuildRefConstExpression(tsize);
+                      if tsize<>0 then
+                        oper.SetSize(tsize,false);
                       inc(oper.opr.ref.offset,l);
                       inc(oper.opr.constoffset,l);
                     end;
@@ -1915,14 +1919,18 @@ Unit Rax86int;
                       case oper.opr.typ of
                         OPR_REFERENCE :
                           begin
-                            l := BuildRefConstExpression;
+                            l := BuildRefConstExpression(tsize);
+                            if tsize<>0 then
+                              oper.SetSize(tsize,false);
                             inc(oper.opr.ref.offset,l);
                             inc(oper.opr.constoffset,l);
                           end;
 
                         OPR_LOCAL :
                           begin
-                            l := BuildRefConstExpression;
+                            l := BuildRefConstExpression(tsize);
+                            if tsize<>0 then
+                              oper.SetSize(tsize,false);
                             inc(oper.opr.localsymofs,l);
                             inc(oper.opr.localconstoffset,l);
                           end;
