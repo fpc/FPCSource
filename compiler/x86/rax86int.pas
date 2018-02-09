@@ -64,7 +64,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry,hasofs:boolean);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry,hasofs:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -793,7 +793,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry,hasofs:boolean);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry,hasofs:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
