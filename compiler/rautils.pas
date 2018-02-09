@@ -185,7 +185,7 @@ Function EscapeToPascal(const s:string): string;
                      Symbol helper routines
 ---------------------------------------------------------------------}
 
-procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
+procedure AsmSearchSym(const s:string;out srsym:tsym;out srsymtable:TSymtable);
 Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
 Function SearchType(const hs:string;out size:tcgint): Boolean;
 Function SearchRecordType(const s:string): boolean;
@@ -1265,7 +1265,7 @@ end;
                       Symbol table helper routines
 ****************************************************************************}
 
-procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
+procedure AsmSearchSym(const s:string;out srsym:tsym;out srsymtable:TSymtable);
 var
   i : integer;
 begin
