@@ -186,7 +186,7 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
-Function GetRecordOffsetSize(s:string;Var Offset: tcgint;var Size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
+Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
 Function SearchType(const hs:string;var size:tcgint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:tcgint): boolean;
@@ -1403,7 +1403,7 @@ begin
 end;
 
 
-Function GetRecordOffsetSize(s:string;Var Offset: tcgint;var Size:tcgint; var mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
+Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
 { search and returns the offset and size of records/objects of the base }
 { with field name setup in field.                              }
 { returns FALSE if not found.                                  }
