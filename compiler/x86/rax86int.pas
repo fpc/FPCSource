@@ -1125,7 +1125,7 @@ Unit Rax86int;
                        (sym.typ = fieldvarsym) and
                        not(sp_static in sym.symoptions)) then
                      begin
-                      BuildRecordOffsetSize(tempstr,l,k,hs,needvmtofs,hastypecast);
+                      BuildRecordOffsetSize(tempstr,l,size,hs,needvmtofs,hastypecast);
                       if hs <> '' then
                         hssymtyp:=AT_FUNCTION
                       else
