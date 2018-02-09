@@ -1083,6 +1083,7 @@ Unit Rax86int;
                              begin
                                if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
                                 Message(asmr_e_wrong_sym_type);
+                               size:=ttypesym(sym).typedef.size;
                              end;
                            fieldvarsym :
                              begin
