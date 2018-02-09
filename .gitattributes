@@ -12493,6 +12493,7 @@ tests/test/tasm15.pp svneol=native#text/plain
 tests/test/tasm15a.pp svneol=native#text/plain
 tests/test/tasm16.pp svneol=native#text/plain
 tests/test/tasm17.pp svneol=native#text/plain
+tests/test/tasm18.pp svneol=native#text/plain
 tests/test/tasm2.inc svneol=native#text/plain
 tests/test/tasm2.pp svneol=native#text/plain
 tests/test/tasm2a.pp svneol=native#text/plain
