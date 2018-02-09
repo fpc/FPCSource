@@ -187,7 +187,7 @@ Function EscapeToPascal(const s:string): string;
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
 Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
-Function SearchType(const hs:string;var size:tcgint): Boolean;
+Function SearchType(const hs:string;out size:tcgint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:tcgint): boolean;
 Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
@@ -1292,7 +1292,7 @@ begin
 end;
 
 
-Function SearchType(const hs:string;var size:tcgint): Boolean;
+Function SearchType(const hs:string;out size:tcgint): Boolean;
 var
   srsym : tsym;
   srsymtable : TSymtable;
