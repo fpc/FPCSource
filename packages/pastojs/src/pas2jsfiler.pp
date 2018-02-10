@@ -604,6 +604,7 @@ type
     procedure WriteProperty(Obj: TJSONObject; El: TPasProperty; aContext: TPJUWriterContext); virtual;
     procedure WriteProcedureModifiers(Obj: TJSONObject; const Value, DefaultValue: TProcedureModifiers); virtual;
     procedure WriteProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPJUWriterContext); virtual;
+    procedure WriteOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPJUWriterContext); virtual;
     procedure WriteExternalReferences(ParentJSON: TJSONObject); virtual;
   public
     constructor Create; override;
@@ -1922,12 +1923,40 @@ begin
     Obj.Add('Type','Property');
     WriteProperty(Obj,TPasProperty(El),aContext);
     end
-  else if C=TPasProcedure then
+  else if C.InheritsFrom(TPasProcedure) then
     begin
     ProcScope:=El.CustomData as TPasProcedureScope;
     if ProcScope.DeclarationProc<>nil then
       exit;
-    Obj.Add('Type','Procedure');
+    if C.InheritsFrom(TPasOperator) then
+      begin
+      if C=TPasOperator then
+        Obj.Add('Type','Operator')
+      else if C=TPasClassOperator then
+        Obj.Add('Type','ClassOperator')
+      else
+        RaiseMsg(20180210130142,El);
+      WriteOperator(Obj,TPasOperator(El),aContext);
+      exit;
+      end;
+    if C=TPasProcedure then
+      Obj.Add('Type','Procedure')
+    else if C=TPasCLassProcedure then
+      Obj.Add('Type','ClassProcedure')
+    else if C=TPasFunction then
+      Obj.Add('Type','Function')
+    else if C=TPasClassFunction then
+      Obj.Add('Type','ClassFunction')
+    else if C=TPasConstructor then
+      Obj.Add('Type','Constructor')
+    else if C=TPasClassConstructor then
+      Obj.Add('Type','ClassConstructor')
+    else if C=TPasDestructor then
+      Obj.Add('Type','Destructor')
+    else if C=TPasClassDestructor then
+      Obj.Add('Type','Class Destructor')
+    else
+      RaiseMsg(20180210130202,El);
     WriteProcedure(Obj,TPasProcedure(El),aContext);
     end
   else
@@ -2368,6 +2397,15 @@ begin
       Obj.Add('MessageType',PJUProcedureMessageTypeNames[El.MessageType]);
     end;
   WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteOperator(Obj: TJSONObject; El: TPasOperator;
+  aContext: TPJUWriterContext);
+begin
+  Obj.Add('Operator',PJUOperatorTypeNames[El.OperatorType]);
+  if El.TokenBased then
+    Obj.Add('TokenBased',El.TokenBased);
+  WriteProcedure(Obj,El,aContext);
 end;
 
 procedure TPJUWriter.WriteExternalReferences(ParentJSON: TJSONObject);

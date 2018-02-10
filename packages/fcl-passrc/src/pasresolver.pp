@@ -1833,7 +1833,7 @@ begin
   else if C=TPasTypeAliasType then
     Result:='type alias'
   else if C=TPasClassOfType then
-    Result:='class-of'
+    Result:='class of'
   else if C=TPasSpecializeType then
     Result:='specialize'
   else if C=TInlineSpecializeExpr then
