@@ -296,7 +296,7 @@ type
       const Arg: Pointer); override;
   end;
 
-  { TPasDeclarations }
+  { TPasDeclarations - base class of TPasSection, TProcedureBody }
 
   TPasDeclarations = class(TPasElement)
   public
@@ -520,7 +520,7 @@ type
     Params: TFPList; // list of TPasType or TPasExpr
   end;
 
-  { TInlineTypeExpr - not used by TPasParser}
+  { TInlineTypeExpr - base class TInlineSpecializeExpr }
 
   TInlineTypeExpr = class(TPasExpr)
   public
@@ -668,8 +668,11 @@ type
   end;
 
   TPasGenericTemplateType = Class(TPasType);
-  TPasObjKind = (okObject, okClass, okInterface, okGeneric, okSpecialize,
-                 okClassHelper,okRecordHelper,okTypeHelper, okDispInterface);
+  TPasObjKind = (
+    okObject, okClass, okInterface, okGeneric,
+    okSpecialize,
+    okClassHelper,okRecordHelper,okTypeHelper,
+    okDispInterface);
 
   { TPasClassType }
 
@@ -879,13 +882,15 @@ type
     ReadAccessor: TPasExpr;
     WriteAccessor: TPasExpr;
     ImplementsFunc: TPasExpr;
-    DispIDExpr : TPasexpr;   // Can be nil.
+    DispIDExpr : TPasExpr;   // Can be nil.
 
-    StoredAccessor: TPasExpr; // can be nil, if StoredAccessorName is 'True' or 'False'
+    StoredAccessor: TPasExpr;
     DefaultExpr: TPasExpr;
     Args: TFPList;        // List of TPasArgument objects
-    ReadAccessorName, WriteAccessorName, ImplementsName,
-      StoredAccessorName: string;
+    ReadAccessorName: string; // not used by resolver
+    WriteAccessorName: string; // not used by resolver
+    ImplementsName: string; // not used by resolver
+    StoredAccessorName: string; // not used by resolver
     DispIDReadOnly,
     IsDefault, IsNodefault: Boolean;
     property IsClass: boolean read GetIsClass write SetIsClass;
@@ -901,7 +906,7 @@ type
     function TypeName: string; virtual; abstract;
   end;
 
-  { TPasOverloadedProc }
+  { TPasOverloadedProc - not used by resolver }
 
   TPasOverloadedProc = class(TPasProcedureBase)
   public
@@ -1462,7 +1467,9 @@ const
     'strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
-    'object', 'class', 'interface','class','class','class helper','record helper','type helper','dispinterface');
+    'object', 'class', 'interface', 'class',
+    'class',
+    'class helper','record helper','type helper','dispinterface');
 
   ExprKindNames : Array[TPasExprKind] of string = (
       'Ident',
