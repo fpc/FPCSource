@@ -6,7 +6,7 @@ main=rtl
 [target]
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
 units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
-      math macpas iso7185 extpas rtlconst typinfo cpu types \
+      math macpas iso7185 extpas rtlconsts typinfo cpu types \
       getopts fgl classes \
       msmouse ports  \
       charset cpall ctypes \
@@ -142,11 +142,11 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(EXECPPAS)
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 
@@ -154,7 +154,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutil
         $(COMPILER) $(OBJPASDIR)/math.pp
 	$(EXECPPAS)
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) system$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 
@@ -162,8 +162,8 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPU
         $(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
 	$(EXECPPAS)
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
@@ -215,7 +215,7 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 
-character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/character.pas
 
 unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) system$(PPUEXT)

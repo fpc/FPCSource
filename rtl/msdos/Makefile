@@ -349,256 +349,256 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-macos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-aros)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),arm-aros)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i8086-embedded)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),aarch64-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),aarch64-darwin)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),wasm-wasm)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),sparc64-linux)
-override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconst typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
+override TARGET_UNITS+=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils math macpas iso7185 extpas rtlconsts typinfo cpu types getopts fgl classes msmouse ports  charset cpall ctypes fpwidestring character unicodedata unicodenumtable
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
@@ -2892,23 +2892,23 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 	$(EXECPPAS)
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 	$(EXECPPAS)
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconst$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp types$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
 	$(EXECPPAS)
 math$(PPUEXT): $(OBJPASDIR)/math.pp $(PROCINC)/mathu.inc objpas$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
 	$(EXECPPAS)
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) system$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Sg -Fi$(OBJPASDIR) $(OBJPASDIR)/typinfo.pp
 	$(EXECPPAS)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 	$(EXECPPAS)
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(OBJPASDIR)/rtlconst.inc objpas$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconsts.pp
 	$(EXECPPAS)
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
@@ -2942,7 +2942,7 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(EXECPPAS)
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
-character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
