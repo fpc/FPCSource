@@ -357,8 +357,6 @@ end;
 
 Procedure FileClose (Handle : THandle);
 begin
-  if Handle<=4 then
-   exit;
   CloseHandle(Handle);
 end;
 
