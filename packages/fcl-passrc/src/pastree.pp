@@ -670,7 +670,7 @@ type
   TPasGenericTemplateType = Class(TPasType);
   TPasObjKind = (
     okObject, okClass, okInterface, okGeneric,
-    okSpecialize,
+    // okSpecialize removed in FPC 3.1.1
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
 
@@ -1468,7 +1468,6 @@ const
 
   ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface', 'class',
-    'class',
     'class helper','record helper','type helper','dispinterface');
 
   ExprKindNames : Array[TPasExprKind] of string = (
@@ -2579,7 +2578,6 @@ begin
     okClass: Result := SPasTreeClassType;
     okInterface: Result := SPasTreeInterfaceType;
     okGeneric : Result := SPasTreeGenericType;
-    okSpecialize : Result := SPasTreeSpecializedType;
     okClassHelper : Result:=SPasClassHelperType;
     okRecordHelper : Result:=SPasRecordHelperType;
   else

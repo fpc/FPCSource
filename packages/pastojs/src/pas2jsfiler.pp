@@ -294,7 +294,6 @@ const
     'Class',
     'Interface',
     'Generic',
-    'Specialize',
     'ClassHelper',
     'RecordHelper',
     'TypeHelper',
