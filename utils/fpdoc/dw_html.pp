@@ -3383,32 +3383,21 @@ var
       AppendGenericTypes(CodeEl,AClass.GenericTemplateTypes,false);
     AppendSym(CodeEl, '=');
     AppendText(CodeEl, ' ');
-    if AClass.ObjKind<>okSpecialize then
-      AppendKw(CodeEl, ObjKindNames[AClass.ObjKind])
-    else
-      AppendKw(CodeEl, ' specialize ');
+    AppendKw(CodeEl, ObjKindNames[AClass.ObjKind]);
 
     if Assigned(AClass.AncestorType) then
     begin
-      if AClass.ObjKind=okSpecialize then
+      AppendSym(CodeEl, '(');
+      AppendHyperlink(CodeEl, AClass.AncestorType);
+      if AClass.Interfaces.count>0 Then
         begin
-        AppendHyperlink(CodeEl, AClass.AncestorType);
-        AppendGenericTypes(CodeEl,AClass.GenericTemplateTypes,true)
-        end
-      else
-        begin
-        AppendSym(CodeEl, '(');
-        AppendHyperlink(CodeEl, AClass.AncestorType);
-        if AClass.Interfaces.count>0 Then
-          begin
-            for i:=0 to AClass.interfaces.count-1 do
-             begin
-               AppendSym(CodeEl, ', ');
-               AppendHyperlink(CodeEl,TPasClassType(AClass.Interfaces[i]));
-             end;
-          end;
-        AppendSym(CodeEl, ')');
+          for i:=0 to AClass.interfaces.count-1 do
+           begin
+             AppendSym(CodeEl, ', ');
+             AppendHyperlink(CodeEl,TPasClassType(AClass.Interfaces[i]));
+           end;
         end;
+      AppendSym(CodeEl, ')');
     end;
     CreateMemberDeclarations(AClass, AClass.Members,TableEl, not AClass.IsShortDefinition);
 

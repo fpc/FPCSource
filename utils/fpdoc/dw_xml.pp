@@ -439,7 +439,6 @@ var
       okClass: ClassEl := Result.CreateElement('class');
       okObject: ClassEl := Result.CreateElement('object');
       okInterface: ClassEl := Result.CreateElement('interface');
-      okSpecialize: ClassEl := Result.CreateElement('classspecialized');
       //okGeneric: Result.CreateElement('generic');
       //okClassHelper: Result.CreateElement('classhelper');
       //okRecordHelper: Result.CreateElement('recordhelper');
@@ -457,10 +456,6 @@ var
       if Assigned(AClass.AncestorType) then
         ClassEl['parentclass'] := AClass.AncestorType.Name;
 
-      if AClass.ObjKind = okSpecialize then
-      begin
-        ProcessGenericTypes(AClass.GenericTemplateTypes, ClassEl);
-      end;
       AddSourceInfo(AClass,ClassEl);
 
       if Assigned(AClass.Interfaces) then
