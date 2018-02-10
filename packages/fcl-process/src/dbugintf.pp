@@ -44,7 +44,7 @@ Function InitDebugClient : Boolean;
 
 Const
   SendError       : String = '';
-  DefaultDebugServer = 'dbugsrv';
+  DefaultDebugServer = 'debugserver';
  
 ResourceString
   SProcessID = 'Process %s';
