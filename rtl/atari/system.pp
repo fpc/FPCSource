@@ -18,7 +18,8 @@ unit System;
 
 interface
 
-{$define FPC_HAS_ANSI_TEXTFILEREC}
+{$define FPC_STDOUT_TRUE_ALIAS}
+{$define FPC_ANSI_TEXTFILEREC}
 {$define FPC_ATARI_USE_TINYHEAP}
 
 {$ifdef FPC_ATARI_USE_TINYHEAP}
@@ -143,10 +144,11 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 
 function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
@@ -164,7 +166,9 @@ begin
   InitHeap;
 {$endif FPC_ATARI_USE_TINYHEAP}
   SysInitExceptions;
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
   InitUnicodeStringManager;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
@@ -173,5 +177,5 @@ begin
   SysInitParamsAndEnv;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitSystemThreads;
-{$endif}
+{$endif FPC_HAS_FEATURE_THREADING}
 end.
