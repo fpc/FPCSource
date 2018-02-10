@@ -766,9 +766,18 @@ Var
   { Standard In- and Output }
   ErrOutput,
   Output,
-  Input,
+  Input       : Text;
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
   StdOut,
   StdErr      : Text;
+{$else FPC_STDOUT_TRUE_ALIAS}
+  { Optionally, make StdOut and StdErr a true alias of Output
+    and ErrOutput. This is benefical on small systems where the
+    data segment size is limited, as it lessens the RTL's data
+    size by a bit more than 1K. }
+  StdOut      : Text Absolute Output;
+  StdErr      : Text Absolute ErrOutput;
+{$endif FPC_STDOUT_TRUE_ALIAS}
   InOutRes    : Word;
   { Stack checking }
   StackBottom : Pointer;

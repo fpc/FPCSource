@@ -1012,10 +1012,12 @@ begin
     Flush(Output);
   if Textrec(ErrOutput).Mode=fmOutput then
     Flush(ErrOutput);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
   if Textrec(stdout).Mode=fmOutput then
     Flush(stdout);
   if Textrec(StdErr).Mode=fmOutput then
     Flush(StdErr);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
