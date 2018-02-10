@@ -23,6 +23,7 @@ interface
 
 { Use Ansi Char for files }
 {$define FPC_ANSI_TEXTFILEREC}
+{$define FPC_STDOUT_TRUE_ALIAS}
 
 {$ifdef NO_WIDESTRINGS}
   { Do NOT use wide Char for files }
@@ -654,8 +655,10 @@ begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 
 function GetProcessID: SizeUInt;
