@@ -45,6 +45,11 @@ const
 
   PJUDefaultParserOptions: TPOptions = po_Pas2js;
 
+  PJUBoolStr: array[boolean] of string = (
+    'False',
+    'True'
+    );
+
   PJUParserOptionNames: array[TPOption] of string = (
     'delphi',
     'KeepScannerError',
@@ -278,6 +283,84 @@ const
     'SubId'
     );
 
+  PJUPackModeNames: array[TPackMode] of string = (
+    'None',
+    'Packed',
+    'BitPacked'
+    );
+
+  PJUObjKindNames: array[TPasObjKind] of string = (
+    'Object',
+    'Class',
+    'Interface',
+    'Generic',
+    'Specialize',
+    'ClassHelper',
+    'RecordHelper',
+    'TypeHelper',
+    'DispInterface'
+    );
+
+  PJUArgumentAccessNames: array[TArgumentAccess] of string = (
+    'Default',
+    'Const',
+    'Var',
+    'Out',
+    'ConstRef'
+    );
+
+  PJUCallingConventionNames: array[TCallingConvention] of string = (
+    'Default',
+    'Register',
+    'Pascal',
+    'CDecl',
+    'StdCall',
+    'OldFPCCall',
+    'SafeCall',
+    'SysCall'
+    );
+
+  PJUProcedureMessageTypeNames: array[TProcedureMessageType] of string = (
+    'None',
+    'Integer',
+    'String'
+    );
+
+  PJUOperatorTypeNames: array[TOperatorType] of string = (
+    'Unknown',
+    'Implicit',
+    'Explicit',
+    'Mul',
+    'Plus',
+    'Minus',
+    'Division',
+    'LessThan',
+    'Equal',
+    'GreaterThan',
+    'Assign',
+    'NotEqual',
+    'LessEqualThan',
+    'GreaterEqualThan',
+    'Power',
+    'SymmetricalDifference',
+    'Inc',
+    'Dec',
+    'Mod',
+    'Negative',
+    'Positive',
+    'BitWiseOr',
+    'Div',
+    'LeftShift',
+    'LogicalOr',
+    'BitwiseAnd',
+    'bitwiseXor',
+    'LogicalAnd',
+    'LogicalNot',
+    'LogicalXor',
+    'RightShift',
+    'Enumerator'
+    );
+
 type
   { TPJUInitialFlags }
 
@@ -445,15 +528,42 @@ type
     procedure WriteSection(ParentJSON: TJSONObject; Section: TPasSection;
       const PropName: string; aContext: TPJUWriterContext); virtual;
     procedure WriteDeclarations(ParentJSON: TJSONObject; Decls: TPasDeclarations; aContext: TPJUWriterContext); virtual;
-    procedure WriteDeclaration(Obj: TJSONObject; Decl: TPasElement; aContext: TPJUWriterContext); virtual;
-    procedure WriteElType(Obj: TJSONObject; const PropName: string; El: TPasElement; aType: TPasType; aContext: TPJUWriterContext); virtual;
+    procedure WriteElementProperty(Obj: TJSONObject; Parent: TPasElement;
+      const PropName: string; El: TPasElement; aContext: TPJUWriterContext); virtual;
+    procedure WriteElementList(Obj: TJSONObject; Parent: TPasElement;
+      const PropName: string; ListOfElements: TFPList; aContext: TPJUWriterContext); virtual;
+    procedure WriteElement(Obj: TJSONObject; El: TPasElement; aContext: TPJUWriterContext); virtual;
+    procedure WriteElType(Obj: TJSONObject; El: TPasElement; const PropName: string; aType: TPasType; aContext: TPJUWriterContext); virtual;
     procedure WriteVarModifiers(Obj: TJSONObject; const Value, DefaultValue: TVariableModifiers); virtual;
-    procedure WriteVariable(Obj: TJSONObject; Decl: TPasVariable; aContext: TPJUWriterContext); virtual;
-    procedure WriteConst(Obj: TJSONObject; Decl: TPasConst; aContext: TPJUWriterContext); virtual;
-    procedure WriteExpr(Obj: TJSONObject; const PropName: string; Expr: TPasExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteExpr(Obj: TJSONObject; Parent: TPasElement;
+      const PropName: string; Expr: TPasExpr; aContext: TPJUWriterContext); virtual;
     procedure WritePasExpr(Obj: TJSONObject; Expr: TPasExpr;
       WriteKind: boolean; DefaultOpCode: TExprOpCode; aContext: TPJUWriterContext); virtual;
-    procedure WritePrimitiveExpr(Obj: TJSONObject; const PropName: string; Expr: TPrimitiveExpr; aContext: TPJUWriterContext); virtual;
+    procedure WritePasExprArray(Obj: TJSONObject; Parent: TPasElement;
+      const PropName: string; const ExprArr: TPasExprArray; aContext: TPJUWriterContext); virtual;
+    procedure WriteUnaryExpr(Obj: TJSONObject; Expr: TUnaryExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteBinaryExpr(Obj: TJSONObject; Expr: TBinaryExpr; aContext: TPJUWriterContext); virtual;
+    procedure WritePrimitiveExpr(Obj: TJSONObject; Expr: TPrimitiveExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteParamsExpr(Obj: TJSONObject; Expr: TParamsExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues; aContext: TPJUWriterContext); virtual;
+    procedure WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues; aContext: TPJUWriterContext); virtual;
+    procedure WriteResString(Obj: TJSONObject; El: TPasResString; aContext: TPJUWriterContext); virtual;
+    procedure WriteAliasType(Obj: TJSONObject; El: TPasAliasType; aContext: TPJUWriterContext); virtual;
+    procedure WritePointerType(Obj: TJSONObject; El: TPasPointerType; aContext: TPJUWriterContext); virtual;
+    procedure WriteSpecializeType(Obj: TJSONObject; El: TPasSpecializeType; aContext: TPJUWriterContext); virtual;
+    procedure WriteInlineTypeExpr(Obj: TJSONObject; Expr: TInlineTypeExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteInlineSpecializeExpr(Obj: TJSONObject; Expr: TInlineSpecializeExpr; aContext: TPJUWriterContext); virtual;
+    procedure WriteArrayType(Obj: TJSONObject; El: TPasArrayType; aContext: TPJUWriterContext); virtual;
+    procedure WriteFileType(Obj: TJSONObject; El: TPasFileType; aContext: TPJUWriterContext); virtual;
+    procedure WriteEnumValue(Obj: TJSONObject; El: TPasEnumValue; aContext: TPJUWriterContext); virtual;
+    procedure WriteEnumType(Obj: TJSONObject; El: TPasEnumType; aContext: TPJUWriterContext); virtual;
+    procedure WriteSetType(Obj: TJSONObject; El: TPasSetType; aContext: TPJUWriterContext); virtual;
+    procedure WriteRecordVariant(Obj: TJSONObject; El: TPasVariant; aContext: TPJUWriterContext); virtual;
+    procedure WriteRecordType(Obj: TJSONObject; El: TPasRecordType; aContext: TPJUWriterContext); virtual;
+    procedure WriteClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPJUWriterContext); virtual;
+    procedure WriteVariable(Obj: TJSONObject; El: TPasVariable; aContext: TPJUWriterContext); virtual;
+    procedure WriteConst(Obj: TJSONObject; El: TPasConst; aContext: TPJUWriterContext); virtual;
     procedure WriteExternalReferences(ParentJSON: TJSONObject); virtual;
   public
     constructor Create; override;
@@ -1431,6 +1541,7 @@ var
   Ordered: TPasIdentifierArray;
 begin
   Arr:=nil;
+  if aContext=nil then ;
   Locals:=Scope.GetLocalIdentifiers;
   try
     p:=0;
@@ -1519,6 +1630,8 @@ begin
   for i:=0 to Decls.Declarations.Count-1 do
     begin
     Decl:=TPasElement(Decls.Declarations[i]);
+    if Decl.Parent<>Decls then
+      RaiseMsg(20180208221915,Decl,'['+IntToStr(i)+']='+GetObjName(Decl)+': '+GetObjName(Decls)+'<>'+GetObjName(Decl.Parent));
     if Arr=nil then
       begin
       Arr:=TJSONArray.Create;
@@ -1526,41 +1639,209 @@ begin
       end;
     DeclObj:=TJSONObject.Create;
     Arr.Add(DeclObj);
-    WriteDeclaration(DeclObj,Decl,aContext);
+    WriteElement(DeclObj,Decl,aContext);
     end;
 end;
 
-procedure TPJUWriter.WriteDeclaration(Obj: TJSONObject;
-  Decl: TPasElement; aContext: TPJUWriterContext);
+procedure TPJUWriter.WriteElementProperty(Obj: TJSONObject;
+  Parent: TPasElement; const PropName: string; El: TPasElement;
+  aContext: TPJUWriterContext);
+var
+  SubObj: TJSONObject;
+begin
+  if El=nil then exit;
+  if Parent<>El.Parent then
+    RaiseMsg(20180208221751,El,GetObjName(Parent)+'<>'+GetObjName(El.Parent));
+  SubObj:=TJSONObject.Create;
+  Obj.Add(PropName,SubObj);
+  WriteElement(SubObj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteElementList(Obj: TJSONObject; Parent: TPasElement;
+  const PropName: string; ListOfElements: TFPList; aContext: TPJUWriterContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  SubObj: TJSONObject;
+  Item: TPasElement;
+begin
+  if (ListOfElements=nil) or (ListOfElements.Count=0) then exit;
+  Arr:=TJSONArray.Create;
+  Obj.Add(PropName,Arr);
+  for i:=0 to ListOfElements.Count-1 do
+    begin
+    Item:=TPasElement(ListOfElements[i]);
+    if Item.Parent<>Parent then
+      RaiseMsg(20180209191444,Item,GetObjName(Parent)+'<>'+GetObjName(Item.Parent));
+    SubObj:=TJSONObject.Create;
+    Arr.Add(SubObj);
+    WriteElement(SubObj,Item,aContext);
+    end;
+end;
+
+procedure TPJUWriter.WriteElement(Obj: TJSONObject;
+  El: TPasElement; aContext: TPJUWriterContext);
 var
   C: TClass;
 begin
-  C:=Decl.ClassType;
-  if C=TPasConst then
-  begin
-    Obj.Add('Type','Const');
-    WriteConst(Obj,TPasConst(Decl),aContext);
-  end else if C=TPasVariable then
-  begin
+  C:=El.ClassType;
+  if C=TUnaryExpr then
+    begin
+    Obj.Add('Type','Unary');
+    WriteUnaryExpr(Obj,TUnaryExpr(El),aContext);
+    end
+  else if C=TBinaryExpr then
+    begin
+    Obj.Add('Type','Binary');
+    WriteBinaryExpr(Obj,TBinaryExpr(El),aContext);
+    end
+  else if C.InheritsFrom(TPasExpr) then
+    begin
+    Obj.Add('Type',PJUExprKindNames[TPrimitiveExpr(El).Kind]);
+    WritePrimitiveExpr(Obj,TPrimitiveExpr(El),aContext);
+    end
+  else if C=TBoolConstExpr then
+    begin
+    if El.CustomData=nil then
+      Obj.Add('Type',PJUBoolStr[TBoolConstExpr(El).Value])
+    else
+      WriteBoolConstExpr(Obj,TBoolConstExpr(El),aContext);
+    end
+  else if C=TNilExpr then
+    Obj.Add('Type','nil')
+  else if C=TInheritedExpr then
+    begin
+    Obj.Add('Type','inherited');
+    WritePasExpr(Obj,TInheritedExpr(El),false,eopNone,aContext);
+    end
+  else if C=TSelfExpr then
+    begin
+    Obj.Add('Type','Self');
+    WritePasExpr(Obj,TSelfExpr(El),false,eopNone,aContext);
+    end
+  else if C=TParamsExpr then
+    begin
+    case TParamsExpr(El).Kind of
+    pekArrayParams: Obj.Add('Type','A[]');
+    pekFuncParams: Obj.Add('Type','F()');
+    pekSet: Obj.Add('Type','[]');
+    end;
+    WriteParamsExpr(Obj,TParamsExpr(El),aContext);
+    end
+  else if C=TRecordValues then
+    begin
+    Obj.Add('Type','RecValues');
+    WriteRecordValues(Obj,TRecordValues(El),aContext);
+    end
+  else if C=TArrayValues then
+    begin
+    Obj.Add('Type','ArrValues');
+    WriteArrayValues(Obj,TArrayValues(El),aContext);
+    end
+  else if C=TPasResString then
+    begin
+    Obj.Add('Type','ResString');
+    WriteResString(Obj,TPasResString(El),aContext);
+    end
+  else if C=TPasAliasType then
+    begin
+    Obj.Add('Type','Alias');
+    WriteAliasType(Obj,TPasAliasType(El),aContext);
+    end
+  else if C=TPasPointerType then
+    begin
+    Obj.Add('Type','Pointer');
+    WritePointerType(Obj,TPasPointerType(El),aContext);
+    end
+  else if C=TPasTypeAliasType then
+    begin
+    Obj.Add('Type','TypeAlias');
+    WriteAliasType(Obj,TPasTypeAliasType(El),aContext);
+    end
+  else if C=TPasClassOfType then
+    begin
+    Obj.Add('Type','ClassOf');
+    WriteAliasType(Obj,TPasClassOfType(El),aContext);
+    end
+  else if C=TPasSpecializeType then
+    begin
+    Obj.Add('Type','Specialize');
+    WriteSpecializeType(Obj,TPasSpecializeType(El),aContext);
+    end
+  else if C=TInlineSpecializeExpr then
+    begin
+    Obj.Add('Type','InlineSpecialize');
+    WriteInlineSpecializeExpr(Obj,TInlineSpecializeExpr(El),aContext);
+    end
+  else if C=TPasArrayType then
+    begin
+    Obj.Add('Type','ArrType');
+    WriteArrayType(Obj,TPasArrayType(El),aContext);
+    end
+  else if C=TPasFileType then
+    begin
+    Obj.Add('Type','File');
+    WriteFileType(Obj,TPasFileType(El),aContext);
+    end
+  else if C=TPasEnumValue then
+    begin
+    Obj.Add('Type','EnumV');
+    WriteEnumValue(Obj,TPasEnumValue(El),aContext);
+    end
+  else if C=TPasEnumType then
+    begin
+    Obj.Add('Type','EnumType');
+    WriteEnumType(Obj,TPasEnumType(El),aContext);
+    end
+  else if C=TPasSetType then
+    begin
+    Obj.Add('Type','SetType');
+    WriteSetType(Obj,TPasSetType(El),aContext);
+    end
+  else if C=TPasVariant then
+    begin
+    Obj.Add('Type','RecVariant');
+    WriteRecordVariant(Obj,TPasVariant(El),aContext);
+    end
+  else if C=TPasRecordType then
+    begin
+    Obj.Add('Type','Record');
+    WriteRecordType(Obj,TPasRecordType(El),aContext);
+    end
+  else if C=TPasClassType then
+    begin
+    Obj.Add('Type','Class');// ToDo
+    WriteClassType(Obj,TPasClassType(El),aContext);
+    end
+
+  else if C=TPasVariable then
+    begin
     Obj.Add('Type','Var');
-    WriteVariable(Obj,TPasVariable(Decl),aContext)
-  end else
-    RaiseMsg(20180205154041,Decl);
+    WriteVariable(Obj,TPasVariable(El),aContext);
+    end
+  else if C=TPasConst then
+    begin
+      Obj.Add('Type','Const');
+      WriteConst(Obj,TPasConst(El),aContext);
+    end
+  else
+    RaiseMsg(20180205154041,El);
 end;
 
-procedure TPJUWriter.WriteElType(Obj: TJSONObject; const PropName: string;
-  El: TPasElement; aType: TPasType; aContext: TPJUWriterContext);
+procedure TPJUWriter.WriteElType(Obj: TJSONObject; El: TPasElement;
+  const PropName: string; aType: TPasType; aContext: TPJUWriterContext);
 begin
   if aType=nil then exit;
   if (aType.Name='') or (aType.Parent=El) then
-  begin
+    begin
     // anonymous type
-
-  end
-  else begin
+    WriteElementProperty(Obj,El,PropName,aType,aContext);
+    end
+  else
+    begin
     // reference
-
-  end;
+    AddReferenceToObj(Obj,PropName,aType);
+    end;
   RaiseMsg(20180206183542,El);
 end;
 
@@ -1576,38 +1857,54 @@ begin
       AddArrayFlag(Obj,Arr,'VarMod',PJUVarModifierNames[f],f in Value);
 end;
 
-procedure TPJUWriter.WriteVariable(Obj: TJSONObject; Decl: TPasVariable;
+procedure TPJUWriter.WriteUnaryExpr(Obj: TJSONObject; Expr: TUnaryExpr;
   aContext: TPJUWriterContext);
 begin
-  WriteElType(Obj,'VarType',Decl,Decl.VarType,aContext);
-  WriteVarModifiers(Obj,Decl.VarModifiers,[]);
-  WriteExpr(Obj,'Library',Decl.LibraryName,aContext);
-  WriteExpr(Obj,'Export',Decl.ExportName,aContext);
-  WriteExpr(Obj,'Absolute',Decl.AbsoluteExpr,aContext);
-  WriteExpr(Obj,'Expr',Decl.Expr,aContext);
-
-  WritePasElement(Obj,Decl,aContext);
+  WriteExpr(Obj,Expr,'Operand',Expr.Operand,aContext);
+  WritePasExpr(Obj,Expr,false,eopAdd,aContext);
 end;
 
-procedure TPJUWriter.WriteConst(Obj: TJSONObject; Decl: TPasConst;
+procedure TPJUWriter.WriteBinaryExpr(Obj: TJSONObject; Expr: TBinaryExpr;
   aContext: TPJUWriterContext);
 begin
-  if Decl.IsConst<>(Decl.VarType=nil) then
-    Obj.Add('IsConst',Decl.IsConst);
-  WriteVariable(Obj,Decl,aContext);
+  WriteExpr(Obj,Expr,'left',Expr.left,aContext);
+  WriteExpr(Obj,Expr,'right',Expr.right,aContext);
+  WritePasExpr(Obj,Expr,false,eopAdd,aContext);
 end;
 
-procedure TPJUWriter.WriteExpr(Obj: TJSONObject; const PropName: string;
-  Expr: TPasExpr; aContext: TPJUWriterContext);
+procedure TPJUWriter.WriteVariable(Obj: TJSONObject; El: TPasVariable;
+  aContext: TPJUWriterContext);
+begin
+  WriteElType(Obj,El,'VarType',El.VarType,aContext);
+  WriteVarModifiers(Obj,El.VarModifiers,[]);
+  WriteExpr(Obj,El,'Library',El.LibraryName,aContext);
+  WriteExpr(Obj,El,'Export',El.ExportName,aContext);
+  WriteExpr(Obj,El,'Absolute',El.AbsoluteExpr,aContext);
+  WriteExpr(Obj,El,'Expr',El.Expr,aContext);
+
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteConst(Obj: TJSONObject; El: TPasConst;
+  aContext: TPJUWriterContext);
+begin
+  if El.IsConst<>(El.VarType=nil) then
+    Obj.Add('IsConst',El.IsConst);
+  WriteVariable(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteExpr(Obj: TJSONObject; Parent: TPasElement;
+  const PropName: string; Expr: TPasExpr; aContext: TPJUWriterContext);
 var
-  C: TClass;
+  SubObj: TJSONObject;
 begin
   if Expr=nil then exit;
-  C:=Expr.ClassType;
-  if C=TPrimitiveExpr then
-    WritePrimitiveExpr(Obj,PropName,TPrimitiveExpr(Expr),aContext)
-  else
-    RaiseMsg(20180206185146,Expr);
+  if Parent<>Expr.Parent then
+    RaiseMsg(20180208221051,Expr,GetObjName(Parent)+'<>'+GetObjName(Expr.Parent));
+  // ToDo: write simple expressions in a compact format
+  SubObj:=TJSONObject.Create;
+  Obj.Add(PropName,SubObj);
+  WriteElement(SubObj,Expr,aContext);
 end;
 
 procedure TPJUWriter.WritePasExpr(Obj: TJSONObject; Expr: TPasExpr;
@@ -1617,22 +1914,200 @@ begin
     Obj.Add('Kind',PJUExprKindNames[Expr.Kind]);
   if (Expr.OpCode<>DefaultOpCode) then
     Obj.Add('Op',PJUExprOpCodeNames[Expr.OpCode]);
-  WriteExpr(Obj,'Format1',Expr.format1,aContext);
-  WriteExpr(Obj,'Format2',Expr.format2,aContext);
+  WriteExpr(Obj,Expr,'Format1',Expr.format1,aContext);
+  WriteExpr(Obj,Expr,'Format2',Expr.format2,aContext);
   WritePasElement(Obj,Expr,aContext);
 end;
 
-procedure TPJUWriter.WritePrimitiveExpr(Obj: TJSONObject;
-  const PropName: string; Expr: TPrimitiveExpr; aContext: TPJUWriterContext);
+procedure TPJUWriter.WritePasExprArray(Obj: TJSONObject; Parent: TPasElement;
+  const PropName: string; const ExprArr: TPasExprArray;
+  aContext: TPJUWriterContext);
 var
+  Arr: TJSONArray;
+  i: Integer;
+  Expr: TPasExpr;
   SubObj: TJSONObject;
 begin
-  SubObj:=TJSONObject.Create;
-  Obj.Add(PropName,SubObj);
-  SubObj.Add('Type',PJUExprKindNames[Expr.Kind]);
+  if length(ExprArr)=0 then exit;
+  Arr:=TJSONArray.Create;
+  Obj.Add(PropName,Arr);
+  for i:=0 to length(ExprArr)-1 do
+    begin
+    Expr:=ExprArr[i];
+    if Expr.Parent<>Parent then
+      RaiseMsg(20180209191444,Expr,GetObjName(Parent)+'<>'+GetObjName(Expr.Parent));
+    SubObj:=TJSONObject.Create;
+    Arr.Add(SubObj);
+    WriteElement(SubObj,Expr,aContext);
+    end;
+end;
+
+procedure TPJUWriter.WritePrimitiveExpr(Obj: TJSONObject; Expr: TPrimitiveExpr;
+  aContext: TPJUWriterContext);
+begin
   if Expr.Value<>'' then
-    SubObj.Add('Value',Expr.Value);
-  WritePasExpr(SubObj,Expr,false,eopNone,aContext);
+    Obj.Add('Value',Expr.Value);
+  WritePasExpr(Obj,Expr,false,eopNone,aContext);
+end;
+
+procedure TPJUWriter.WriteBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr;
+  aContext: TPJUWriterContext);
+begin
+  if Expr.Value then
+    Obj.Add('Value',true);
+  WritePasExpr(Obj,Expr,false,eopNone,aContext);
+end;
+
+procedure TPJUWriter.WriteParamsExpr(Obj: TJSONObject; Expr: TParamsExpr;
+  aContext: TPJUWriterContext);
+begin
+  WriteExpr(Obj,Expr,'Value',Expr.Value,aContext);
+  WritePasExprArray(Obj,Expr,'Params',Expr.Params,aContext);
+  WritePasExpr(Obj,Expr,false,eopNone,aContext);
+end;
+
+procedure TPJUWriter.WriteRecordValues(Obj: TJSONObject; Expr: TRecordValues;
+  aContext: TPJUWriterContext);
+var
+  Arr: TJSONArray;
+  i: Integer;
+  SubObj: TJSONObject;
+  RecValue: TRecordValuesItem;
+begin
+  if length(Expr.Fields)>0 then
+    begin
+    Arr:=TJSONArray.Create;
+    Obj.Add('Fields',Arr);
+    for i:=0 to length(Expr.Fields)-1 do
+      begin
+      RecValue:=Expr.Fields[i];
+      SubObj:=TJSONObject.Create;
+      Arr.Add(SubObj);
+      SubObj.Add('Name',RecValue.Name);
+      if (RecValue.ValueExp<>nil) and (RecValue.ValueExp.Name<>'') then
+        RaiseMsg(20180209192240,RecValue.ValueExp);
+      WriteElement(SubObj,RecValue.ValueExp,aContext);
+      end;
+    end;
+  WritePasExpr(Obj,Expr,false,eopNone,aContext);
+end;
+
+procedure TPJUWriter.WriteArrayValues(Obj: TJSONObject; Expr: TArrayValues;
+  aContext: TPJUWriterContext);
+begin
+  WritePasExprArray(Obj,Expr,'Values',Expr.Values,aContext);
+  WritePasExpr(Obj,Expr,false,eopNone,aContext);
+end;
+
+procedure TPJUWriter.WriteResString(Obj: TJSONObject; El: TPasResString;
+  aContext: TPJUWriterContext);
+begin
+  WriteExpr(Obj,El,'Expr',El.Expr,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteAliasType(Obj: TJSONObject; El: TPasAliasType;
+  aContext: TPJUWriterContext);
+begin
+  WriteElType(Obj,El,'Dest',El.DestType,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WritePointerType(Obj: TJSONObject; El: TPasPointerType;
+  aContext: TPJUWriterContext);
+begin
+  WriteElType(Obj,El,'Dest',El.DestType,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteSpecializeType(Obj: TJSONObject;
+  El: TPasSpecializeType; aContext: TPJUWriterContext);
+begin
+  WriteElementList(Obj,El,'Params',El.Params,aContext);
+  WriteAliasType(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteInlineTypeExpr(Obj: TJSONObject; Expr: TInlineTypeExpr;
+  aContext: TPJUWriterContext);
+begin
+  WriteElType(Obj,Expr,'Dest',Expr.DestType,aContext);
+  WritePasExpr(Obj,Expr,false,eopNone,aContext);
+end;
+
+procedure TPJUWriter.WriteInlineSpecializeExpr(Obj: TJSONObject;
+  Expr: TInlineSpecializeExpr; aContext: TPJUWriterContext);
+begin
+  WriteInlineTypeExpr(Obj,Expr,aContext);
+end;
+
+procedure TPJUWriter.WriteArrayType(Obj: TJSONObject; El: TPasArrayType;
+  aContext: TPJUWriterContext);
+begin
+  WritePasExprArray(Obj,El,'Ranges',El.Ranges,aContext);
+  if El.PackMode<>pmNone then
+    Obj.Add('Packed',PJUPackModeNames[El.PackMode]);
+  WriteElType(Obj,El,'ElType',El.ElType,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteFileType(Obj: TJSONObject; El: TPasFileType;
+  aContext: TPJUWriterContext);
+begin
+  WriteElType(Obj,El,'ElType',El.ElType,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteEnumValue(Obj: TJSONObject; El: TPasEnumValue;
+  aContext: TPJUWriterContext);
+begin
+  WriteExpr(Obj,El,'Value',El.Value,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteEnumType(Obj: TJSONObject; El: TPasEnumType;
+  aContext: TPJUWriterContext);
+begin
+  WriteElementList(Obj,El,'Values',El.Values,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteSetType(Obj: TJSONObject; El: TPasSetType;
+  aContext: TPJUWriterContext);
+begin
+  WriteElType(Obj,El,'EnumType',El.EnumType,aContext);
+  if El.IsPacked then
+    Obj.Add('Packed',true);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteRecordVariant(Obj: TJSONObject; El: TPasVariant;
+  aContext: TPJUWriterContext);
+begin
+  WriteElementList(Obj,El,'Values',El.Values,aContext);
+  WriteElType(Obj,El,'Members',El.Members,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteRecordType(Obj: TJSONObject; El: TPasRecordType;
+  aContext: TPJUWriterContext);
+begin
+  if El.PackMode<>pmNone then
+    Obj.Add('Packed',PJUPackModeNames[El.PackMode]);
+  WriteElementList(Obj,El,'Members',El.Members,aContext);
+  // VariantEl: TPasElement can be TPasVariable or TPasType
+  if El.VariantEl is TPasType then
+    WriteElType(Obj,El,'VariantEl',TPasType(El.VariantEl),aContext)
+  else
+    WriteElementProperty(Obj,El,'VariantEl',El.VariantEl,aContext);
+  WriteElementList(Obj,El,'Variants',El.Variants,aContext);
+  WriteElementList(Obj,El,'Templates',El.GenericTemplateTypes,aContext);
+  WritePasElement(Obj,El,aContext);
+end;
+
+procedure TPJUWriter.WriteClassType(Obj: TJSONObject; El: TPasClassType;
+  aContext: TPJUWriterContext);
+begin
+  // ToDo
 end;
 
 procedure TPJUWriter.WriteExternalReferences(ParentJSON: TJSONObject);
@@ -1668,10 +2143,8 @@ begin
       SystemArr.Add(Obj);
       Obj.Add('Name',El.Name);
       if Data is TResElDataBuiltInProc then
-        begin
         case TResElDataBuiltInProc(Data).BuiltIn of
         bfStrFunc: Obj.Add('Type','Func');
-        end;
         end;
       Ref.Obj:=Obj;
       ResolvePendingElRefs(Ref);
@@ -2465,6 +2938,7 @@ var
   Data: TJSONData;
   Id: Integer;
 begin
+  if aContext=nil then ;
   Data:=Obj.Find(PropName);
   if Data=nil then exit;
   if Data is TJSONIntegerNumber then
