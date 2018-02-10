@@ -3212,41 +3212,41 @@ begin
             Case CurToken of
               tkObject,
               tkClass :
-                 begin
-                 ClassEl := TPasClassType(CreateElement(TPasClassType,
-                   TypeName, Declarations, NamePos));
-                 ClassEl.SetGenericTemplates(List);
-                 NextToken;
-                 DoParseClassType(ClassEl);
-                 Declarations.Declarations.Add(ClassEl);
-                 Declarations.Classes.Add(ClassEl);
-                 CheckHint(classel,True);
-                 Engine.FinishScope(stTypeDef,ClassEl);
-                 end;
-              tkRecord:
                 begin
-                RecordEl := TPasRecordType(CreateElement(TPasRecordType,
+                ClassEl := TPasClassType(CreateElement(TPasClassType,
                   TypeName, Declarations, NamePos));
-                RecordEl.SetGenericTemplates(List);
+                ClassEl.SetGenericTemplates(List);
                 NextToken;
-                ParseRecordFieldList(RecordEl,tkend,true);
-                Declarations.Declarations.Add(RecordEl);
-                Declarations.Classes.Add(RecordEl);
-                CheckHint(RecordEl,True);
-                Engine.FinishScope(stTypeDef,RecordEl);
+                DoParseClassType(ClassEl);
+                Declarations.Declarations.Add(ClassEl);
+                Declarations.Classes.Add(ClassEl);
+                CheckHint(classel,True);
+                Engine.FinishScope(stTypeDef,ClassEl);
                 end;
-              tkArray:
-                 begin
-                 if List.Count<>1 then
-                   ParseExc(nParserGenericArray1Element,sParserGenericArray1Element);
-                 ArrEl:=TPasArrayType(ParseArrayType(Declarations,NamePos,TypeName,pmNone));
-                 CheckHint(ArrEl,True);
-                 ArrEl.ElType.Release;
-                 ArrEl.ElType:=TPasGenericTemplateType(List[0]);
-                 Declarations.Declarations.Add(ArrEl);
-                 Declarations.Types.Add(ArrEl);
-                 Engine.FinishScope(stTypeDef,ArrEl);
-                 end;
+             tkRecord:
+               begin
+               RecordEl := TPasRecordType(CreateElement(TPasRecordType,
+                 TypeName, Declarations, NamePos));
+               RecordEl.SetGenericTemplates(List);
+               NextToken;
+               ParseRecordFieldList(RecordEl,tkend,true);
+               Declarations.Declarations.Add(RecordEl);
+               Declarations.Classes.Add(RecordEl);
+               CheckHint(RecordEl,True);
+               Engine.FinishScope(stTypeDef,RecordEl);
+               end;
+             tkArray:
+               begin
+               if List.Count<>1 then
+                 ParseExc(nParserGenericArray1Element,sParserGenericArray1Element);
+               ArrEl:=TPasArrayType(ParseArrayType(Declarations,NamePos,TypeName,pmNone));
+               CheckHint(ArrEl,True);
+               ArrEl.ElType.Release;
+               ArrEl.ElType:=TPasGenericTemplateType(List[0]);
+               Declarations.Declarations.Add(ArrEl);
+               Declarations.Types.Add(ArrEl);
+               Engine.FinishScope(stTypeDef,ArrEl);
+               end;
             else
               ParseExc(nParserGenericClassOrArray,SParserGenericClassOrArray);
             end;

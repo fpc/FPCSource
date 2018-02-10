@@ -668,6 +668,7 @@ type
   end;
 
   TPasGenericTemplateType = Class(TPasType);
+
   TPasObjKind = (
     okObject, okClass, okInterface, okGeneric,
     // okSpecialize removed in FPC 3.1.1
@@ -926,7 +927,7 @@ type
                         pmExport, pmOverload, pmMessage, pmReintroduce,
                         pmInline,pmAssembler, pmPublic,
                         pmCompilerProc,pmExternal,pmForward, pmDispId, 
-                        pmNoReturn, pmfar, pmFinal);
+                        pmNoReturn, pmFar, pmFinal);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
                         
