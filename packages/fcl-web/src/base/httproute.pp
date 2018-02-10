@@ -130,6 +130,7 @@ Type
 
   TRouteObject = Class(TObject,IRouteInterface)
   Public
+    Constructor Create; virtual; 
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
   end;
   TRouteObjectClass = Class of TRouteObject;
@@ -256,6 +257,14 @@ end;
 procedure THTTPRouteCallback.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   CallBack(ARequest, AResponse);
+end;
+
+{ TRouteObject }
+
+Constructor TRouteObject.Create;
+
+begin
+  // Do nothing, added to make sure descendents can override it.
 end;
 
 { THTTPRouteObject }
