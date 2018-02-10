@@ -25,6 +25,8 @@ unit aoptcpu;
 
 {$i fpcdefs.inc}
 
+{$define DEBUG_AOPTCPU}
+
   Interface
 
     uses
@@ -85,8 +87,7 @@ unit aoptcpu;
                       (taicpu(p).oper[0]^.ref^.segment=taicpu(hp1).oper[0]^.ref^.segment) and
                       (taicpu(p).oper[0]^.ref^.symbol=taicpu(hp1).oper[0]^.ref^.symbol) and
                       (taicpu(p).oper[0]^.ref^.relsymbol=taicpu(hp1).oper[0]^.ref^.relsymbol) and
-                      (taicpu(p).oper[0]^.ref^.offset+2=taicpu(hp1).oper[0]^.ref^.offset) and
-                      assigned(FindRegDealloc(taicpu(hp2).oper[0]^.reg,tai(hp2.Next)))  then
+                      (taicpu(p).oper[0]^.ref^.offset+2=taicpu(hp1).oper[0]^.ref^.offset) then
                       begin
                         case taicpu(hp2).oper[1]^.reg of
                           NR_DS:
@@ -102,8 +103,18 @@ unit aoptcpu;
                           else
                             internalerror(2015092601);
                         end;
-                        asml.remove(hp1);
-                        hp1.free;
+                        if assigned(FindRegDealloc(taicpu(hp2).oper[0]^.reg,tai(hp2.Next))) then
+                          begin
+                            asml.remove(hp1);
+                            hp1.free;
+                            DebugMsg('Peephole optimizer MovMovMov2LXX',p);
+                          end
+                        else
+                          begin
+                            taicpu(hp1).loadreg(0,taicpu(hp2).oper[1]^.reg);
+                            DebugMsg('Peephole optimizer MovMovMov2LXXMov',p);
+                          end;
+
                         asml.remove(hp2);
                         hp2.free;
                         result:=true;
