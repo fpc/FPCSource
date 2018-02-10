@@ -118,6 +118,22 @@ unit aoptcpu;
                         asml.remove(hp2);
                         hp2.free;
                         result:=true;
+                      end
+                    else if MatchInstruction(p,A_MOV,[S_W]) and
+                      MatchOpType(taicpu(p),top_reg,top_reg) and
+                      GetNextInstruction(p, hp1) and
+                      MatchInstruction(hp1,A_PUSH,[S_W]) and
+                      MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) and
+                      assigned(FindRegDealloc(taicpu(hp1).oper[0]^.reg,tai(hp1.Next))) then
+                      begin
+                        DebugMsg('Peephole optimizer MovPush2Push',p);
+                        taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
+                        { take care of the register (de)allocs following p }
+                        UpdateUsedRegs(tai(p.next));
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        result:=true;
                       end;
                   end;
                 A_SUB:
