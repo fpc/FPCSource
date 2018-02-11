@@ -2677,7 +2677,7 @@ unit cgx86;
             getcpuregister(list,REGSI);
 {$ifdef i8086}
             { at this point, si and di are allocated, so no register is available as index =>
-              compiler will hang/ie during spilling, so avoid that srcref has base and index }
+              compiler will hang/ie during spilling, so avoid that srcref has base and index, see also tests/tbs/tb0637.pp }
             if (srcref.base<>NR_NO) and (srcref.index<>NR_NO) then
               begin
                 r:=getaddressregister(list);
