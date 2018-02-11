@@ -1486,7 +1486,8 @@ unit cgx86;
                  else
                    op := A_MOVD;
                OS_M64, OS_64, OS_S64:
-                 if UseAVX then
+                 { there is no VMOVQ for MMX registers }
+                 if UseAVX and (getregtype(reg)<>R_MMXREGISTER) then
                    op := A_VMOVQ
                  else
                    op := A_MOVQ;
@@ -1659,7 +1660,8 @@ unit cgx86;
                  else
                    op := A_MOVD;
                OS_M64, OS_64, OS_S64:
-                 if UseAVX then
+                 { there is no VMOVQ for MMX registers }
+                 if UseAVX and (getregtype(reg)<>R_MMXREGISTER) then
                    op := A_VMOVQ
                  else
                    op := A_MOVQ;
