@@ -367,6 +367,8 @@ var
   arg: PChar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
 begin
+  { force environment to be setup so dos_argv0 is loaded }
+  envp;
   { load commandline from psp }
   SetLength(doscmd, Mem[PrefixSeg:$80]);
   for I := 1 to length(doscmd) do
