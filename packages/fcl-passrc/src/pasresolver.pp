@@ -1,9 +1,8 @@
 {
     This file is part of the Free Component Library
 
-    Pascal source parser
-    Copyright (c) 2000-2005 by
-      Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    Pascal resolver
+    Copyright (c) 2018  Mattias Gaertner  mattias@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

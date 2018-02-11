@@ -973,6 +973,7 @@ type
     Property MessageName : String Read FMessageName Write FMessageName;
     property MessageType : TProcedureMessageType Read FMessageType Write FMessageType;
   end;
+  TPasProcedureClass = class of TPasProcedure;
 
   TArrayOfPasProcedure = array of TPasProcedure;
 
