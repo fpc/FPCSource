@@ -1135,6 +1135,15 @@ Unit Rax86int;
                           expr:=expr + tempstr;
                         end
                     end
+                   else if (actasmtoken<>AS_DOT) and
+                           assigned(sym) and
+                           (sym.typ=typesym) and
+                           (ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
+                     begin
+                       { just a record type (without being followed by dot)
+                         evaluates to 0. Ugly, but TP7 compatible. }
+                       expr:=expr+'0';
+                     end
                    else
                     begin
                       if (expr='') or (expr[length(expr)] in ['+','-','/','*']) then
