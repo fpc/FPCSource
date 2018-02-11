@@ -682,6 +682,7 @@ implementation
 
     procedure tcgassignmentnode.pass_generate_code;
       var
+         shuffle : pmmshuffle;
          hlabel : tasmlabel;
          href : treference;
          releaseright : boolean;
@@ -968,22 +969,21 @@ implementation
               LOC_MMREGISTER,
               LOC_CMMREGISTER:
                 begin
-                  if left.resultdef.typ=arraydef then
-                    begin
-                    end
+                  if (is_vector(left.resultdef)) then
+                    shuffle := nil
                   else
-                    begin
-                      case left.location.loc of
-                        LOC_CMMREGISTER,
-                        LOC_MMREGISTER:
-                          hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.register,mms_movescalar);
-                        LOC_REFERENCE,
-                        LOC_CREFERENCE:
-                          hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.reference,mms_movescalar);
-                        else
-                          internalerror(2009112601);
-                      end;
-                    end;
+                    shuffle := mms_movescalar;
+
+                  case left.location.loc of
+                    LOC_CMMREGISTER,
+                    LOC_MMREGISTER:
+                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.register, shuffle);
+                    LOC_REFERENCE,
+                    LOC_CREFERENCE:
+                      hlcg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location.reference, shuffle);
+                    else
+                      internalerror(2009112601);
+                  end;
                 end;
               LOC_REGISTER,
               LOC_CREGISTER :

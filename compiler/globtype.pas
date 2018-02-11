@@ -539,7 +539,9 @@ interface
          pocall_sysv_abi_cdecl,
          { for x86-64: forces Microsoft ABI (Pascal resp. C) }
          pocall_ms_abi_default,
-         pocall_ms_abi_cdecl
+         pocall_ms_abi_cdecl,
+         { for x86-64: Microsoft's "vectorcall" ABI }
+         pocall_vectorcall
        );
        tproccalloptions = set of tproccalloption;
 
@@ -560,9 +562,10 @@ interface
            'Interrupt',
            'HardFloat',
            'SysV_ABI_Default',
-           'MS_ABI_CDecl',
+           'MS_ABI_CDecl', { TODO: Is this correct? Shouldn't it be SysV_ABI_Default }
            'MS_ABI_Default',
-           'MS_ABI_CDecl'
+           'MS_ABI_CDecl',
+           'VectorCall'
          );
 
        { Default calling convention }

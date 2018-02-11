@@ -74,10 +74,14 @@ uses
               A_MOVZX:
                 Result:=OptPass1Movx(p);
               A_VMOVAPS,
-              A_VMOVAPD:
+              A_VMOVAPD,
+              A_VMOVUPS,
+              A_VMOVUPD:
                 result:=OptPass1VMOVAP(p);
               A_MOVAPD,
-              A_MOVAPS:
+              A_MOVAPS,
+              A_MOVUPD,
+              A_MOVUPS:
                 result:=OptPass1MOVAP(p);
               A_VDIVSD,
               A_VDIVSS,

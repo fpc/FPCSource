@@ -35,7 +35,8 @@
         S_NEAR,S_FAR,S_SHORT,
         S_T,
         S_XMM,
-        S_YMM
+        S_YMM,
+        S_ZMM
       );
 
       TOpSizes = set of topsize;

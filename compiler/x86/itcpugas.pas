@@ -52,27 +52,28 @@ interface
        'd',
        '','','',
        't',
-        'x',
-        'y'
+       'x',
+       'y',
+       'z'
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
      { !! S_LQ excluded: movzlq does not exist, movslq is processed
        as a separate instruction w/o suffix (aka movsxd), and there are
        no more instructions needing it. }
-     att_sizesuffixstr : array[0..13] of string[2] = (
-       '','BW','BL','WL','BQ','WQ',{'LQ',}'B','W','L','S','Q','T','X','Y'
+     att_sizesuffixstr : array[0..14] of string[2] = (
+       '','BW','BL','WL','BQ','WQ',{'LQ',}'B','W','L','S','Q','T','X','Y','Z'
      );
-     att_sizesuffix : array[0..13] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO,S_NO,S_NO
+     att_sizesuffix : array[0..14] of topsize = (
+       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO,S_NO,S_NO,S_NO
      );
-     att_sizefpusuffix : array[0..13] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO
+     att_sizefpusuffix : array[0..14] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO,S_NO
      );
-     att_sizefpuintsuffix : array[0..13] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO
+     att_sizefpuintsuffix : array[0..14] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO,S_NO
      );
-     att_sizemmsuffix : array[0..13] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM
+     att_sizemmsuffix : array[0..14] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM,S_ZMM
      );
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
@@ -82,24 +83,25 @@ interface
        'd',
        '','','',
        't',
-        'x',
-        'y'
+       'x',
+       'y',
+       'z'
      );
      { suffix-to-opsize conversion tables, used in asmreadrer }
-     att_sizesuffixstr : array[0..11] of string[2] = (
-       '','BW','BL','WL','B','W','L','S','Q','T','X','Y'
+     att_sizesuffixstr : array[0..12] of string[2] = (
+       '','BW','BL','WL','B','W','L','S','Q','T','X','Y','Z'
      );
-     att_sizesuffix : array[0..11] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO,S_NO,S_NO
+     att_sizesuffix : array[0..12] of topsize = (
+       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO
      );
-     att_sizefpusuffix : array[0..11] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO
+     att_sizefpusuffix : array[0..12] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_NO,S_FX,S_NO,S_NO,S_NO
      );
-     att_sizefpuintsuffix : array[0..11] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO
+     att_sizefpuintsuffix : array[0..12] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO,S_NO,S_NO,S_NO
      );
-     att_sizemmsuffix : array[0..11] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM
+     att_sizemmsuffix : array[0..12] of topsize = (
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_XMM,S_YMM,S_ZMM
      );
 
 {$endif x86_64}

@@ -82,6 +82,7 @@ interface
          function  alignment:shortint;virtual;abstract;
          { alignment when this type appears in a record/class/... }
          function  structalignment:shortint;virtual;
+         function  aggregatealignment:shortint;virtual;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
          function  getsymtable(t:tgetsymtable):TSymtable;virtual;
@@ -377,6 +378,14 @@ implementation
     function tdef.structalignment: shortint;
       begin
         result:=alignment;
+      end;
+
+    function tdef.aggregatealignment: shortint;
+      begin
+        if Assigned(Owner) and Assigned(Owner.defowner) and (Owner.defowner is TDef) and (Owner.defowner <> Self) then
+          Result := max(structalignment, TDef(Owner.defowner).aggregatealignment)
+        else
+          Result := structalignment;
       end;
 
 

@@ -1538,6 +1538,8 @@ implementation
               result:=OS_F32;
             OS_64:
               result:=OS_F64;
+            OS_128:
+              result:=OS_M128;
           end;
         end;
     end;

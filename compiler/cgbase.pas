@@ -164,14 +164,18 @@ interface
        { OS_NO is also used memory references with large data that can
          not be loaded in a register directly }
        TCgSize = (OS_NO,
-                 { integer registers }
-                  OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
-                 { single,double,extended,comp,float128 }
-                  OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
+                  OS_8,   OS_16,   OS_32,   OS_64,   OS_128,
+                  OS_S8,  OS_S16,  OS_S32,  OS_S64,  OS_S128,
+                 { single, double, extended, comp, float128 }
+                  OS_F32, OS_F64,  OS_F80,  OS_C64,  OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
                  { entities, then the signed counterparts             }
-                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,  
-                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128,OS_MS256 );  
+                  OS_M8,  OS_M16,  OS_M32,  OS_M64,  OS_M128,  OS_M256,  OS_M512,
+                  OS_MS8, OS_MS16, OS_MS32, OS_MS64, OS_MS128, OS_MS256, OS_MS512,
+                 { multi-media sizes: single-precision floating-point }
+                  OS_MF32, OS_MF128, OS_MF256, OS_MF512,
+                 { multi-media sizes: double-precision floating-point }
+                  OS_MD64, OS_MD128, OS_MD256, OS_MD512);
 
       { Register types }
       TRegisterType = (
@@ -205,15 +209,16 @@ interface
         { For Intel X86 AVX-Register }
         R_SUBMMX,     { = 12; 128 BITS }
         R_SUBMMY,     { = 13; 256 BITS }
+        R_SUBMMZ,     { = 14; 512 BITS }
         { Subregisters for the flags register (x86) }
-        R_SUBFLAGCARRY,     { = 14; Carry flag }
-        R_SUBFLAGPARITY,    { = 15; Parity flag }
-        R_SUBFLAGAUXILIARY, { = 16; Auxiliary flag }
-        R_SUBFLAGZERO,      { = 17; Zero flag }
-        R_SUBFLAGSIGN,      { = 18; Sign flag }
-        R_SUBFLAGOVERFLOW,  { = 19; Overflow flag }
-        R_SUBFLAGINTERRUPT, { = 20; Interrupt enable flag }
-        R_SUBFLAGDIRECTION  { = 21; Direction flag }
+        R_SUBFLAGCARRY,     { = 15; Carry flag }
+        R_SUBFLAGPARITY,    { = 16; Parity flag }
+        R_SUBFLAGAUXILIARY, { = 17; Auxiliary flag }
+        R_SUBFLAGZERO,      { = 18; Zero flag }
+        R_SUBFLAGSIGN,      { = 19; Sign flag }
+        R_SUBFLAGOVERFLOW,  { = 20; Overflow flag }
+        R_SUBFLAGINTERRUPT, { = 21; Interrupt enable flag }
+        R_SUBFLAGDIRECTION  { = 22; Direction flag }
       );
       TSubRegisterSet = set of TSubRegister;
 
@@ -307,12 +312,19 @@ interface
        NR_INVALID    = tregister($fffffffff);
 
        tcgsize2size : Array[tcgsize] of integer =
+        (0,
          { integer values }
-        (0,1,2,4,8,16,1,2,4,8,16,
+         1,  2,  4,  8, 16,
+         1,  2,  4,  8, 16,
          { floating point values }
-         4,8,10,8,16,
+         4,  8, 10,  8, 16,
          { multimedia values }
-         1,2,4,8,16,32,1,2,4,8,16,32); 
+         1,  2,  4,  8, 16, 32, 64,
+         1,  2,  4,  8, 16, 32, 64,
+         { single-precision multimedia values }
+         4, 16, 32, 64,
+         { double-precision multimedia values }
+         8, 16, 32, 64);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
          (OS_F32,OS_F64,OS_F80,OS_F80,OS_C64,OS_C64,OS_F128);
@@ -348,16 +360,25 @@ interface
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
-          OS_8,OS_16,OS_32,OS_64,OS_128,OS_8,OS_16,OS_32,OS_64,OS_128,
-          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
-          OS_M64,OS_M128,OS_M256);
+         OS_8,    OS_16,   OS_32,   OS_64,   OS_128,
+         OS_8,    OS_16,   OS_32,   OS_64,   OS_128,
+
+         OS_F32,  OS_F64,  OS_F80,  OS_C64,  OS_F128,
+         OS_M8,   OS_M16,  OS_M32,  OS_M64,  OS_M128, OS_M256, OS_M512,
+         OS_M8,   OS_M16,  OS_M32,  OS_M64,  OS_M128, OS_M256, OS_M512,
+         OS_MF32, OS_MF128,OS_MF256,OS_MF512,
+         OS_MD64, OS_MD128,OS_MD256,OS_MD512);
+
 
        tcgsize2signed : array[tcgsize] of tcgsize = (OS_NO,
-          OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
-          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
-          OS_M64,OS_M128,OS_M256);
+         OS_S8,   OS_S16,  OS_S32,  OS_S64,  OS_S128,
+         OS_S8,   OS_S16,  OS_S32,  OS_S64,  OS_S128,
+
+         OS_F32,  OS_F64,  OS_F80,  OS_C64,  OS_F128,
+         OS_MS8,  OS_MS16, OS_MS32, OS_MS64, OS_MS128,OS_MS256,OS_MS512,
+         OS_MS8,  OS_MS16, OS_MS32, OS_MS64, OS_MS128,OS_MS256,OS_MS512,
+         OS_MF32, OS_MF128,OS_MF256,OS_MF512,
+         OS_MD64, OS_MD128,OS_MD256,OS_MD512);
 
 
        tcgloc2str : array[TCGLoc] of string[12] = (
@@ -404,6 +425,8 @@ interface
     }
     function int_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
     function int_float_cgsize(const a: tcgint): tcgsize;
+    function float_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function double_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
 
     function tcgsize2str(cgsize: tcgsize):string;
 
@@ -660,6 +683,8 @@ implementation
             result:=result+'mx';
           R_SUBMMY:
             result:=result+'my';
+          R_SUBMMZ:
+            result:=result+'mz';
           else
             internalerror(200308252);
         end;
@@ -697,6 +722,39 @@ implementation
             result:=OS_F128;
           else
             internalerror(200603211);
+        end;
+      end;
+
+
+    function float_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        case a of
+          4:
+            result := OS_MF32;
+          16:
+            result := OS_MF128;
+          32:
+            result := OS_MF256;
+          64:
+            result := OS_MF512;
+          else
+            result := int_cgsize(a);
+        end;
+      end;
+
+    function double_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        case a of
+          8:
+            result := OS_MD64;
+          16:
+            result := OS_MD128;
+          32:
+            result := OS_MD256;
+          64:
+            result := OS_MD512;
+          else
+            result := int_cgsize(a);
         end;
       end;
 

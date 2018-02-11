@@ -2382,7 +2382,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=50;
+  num_proc_directives=51;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2845,6 +2845,15 @@ const
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
       handler  : nil;
       pocall   : pocall_ms_abi_cdecl;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_VECTORCALL;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_vectorcall;
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];

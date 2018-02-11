@@ -343,7 +343,8 @@ const
      0,0,0,
      80,
      128,
-     256
+     256,
+     512
     );
 {$else}
 topsize2memsize: array[topsize] of integer =
@@ -354,7 +355,8 @@ topsize2memsize: array[topsize] of integer =
    0,0,0,
    80,
    128,
-   256
+   256,
+   512
   );
 {$endif}
 

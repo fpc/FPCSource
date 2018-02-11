@@ -1112,7 +1112,8 @@ implementation
          'SYSV_ABI_DEFAULT',
          'SYSV_ABI_CDECL',
          'MS_ABI_DEFAULT',
-         'MS_ABI_CDECL'
+         'MS_ABI_CDECL',
+         'VECTORCALL'
         );
       var
         t  : tproccalloption;

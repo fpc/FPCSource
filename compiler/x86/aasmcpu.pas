@@ -52,6 +52,7 @@ interface
       OT_BITS64    = $00000008;  { x86_64 and FPU }
       OT_BITS128   = $10000000;  { 16 byte SSE }
       OT_BITS256   = $20000000;  { 32 byte AVX }
+      OT_BITS512   = $40000000;  { 64 byte AVX512 }
       OT_BITS80    = $00000010;  { FPU only  }
       OT_FAR       = $00000020;  { this means 16:16 or 16:32, like in CALL/JMP }
       OT_NEAR      = $00000040;
@@ -612,7 +613,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
@@ -622,7 +624,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
@@ -632,7 +635,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          )
        );
 
@@ -650,7 +654,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
@@ -660,7 +665,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
@@ -670,7 +676,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          )
       );
 
@@ -688,7 +695,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
@@ -698,7 +706,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
@@ -708,7 +717,8 @@ implementation
           OT_NEAR,OT_FAR,OT_SHORT,
           OT_NONE,
           OT_BITS128,
-          OT_BITS256
+          OT_BITS256,
+          OT_BITS512
          )
       );
 

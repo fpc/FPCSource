@@ -1338,7 +1338,24 @@ implementation
           arraydef :
             begin
               if is_dynamic_array(def) or not is_special_array(def) then
-                result := int_cgsize(def.size)
+                begin
+                  if (cs_support_vectors in current_settings.globalswitches) and is_vector(def) and ((TArrayDef(def).elementdef.typ = floatdef) and not (cs_fp_emulation in current_settings.moduleswitches)) then
+                    begin
+                      { Determine if, based on the floating-point type and the size
+                        of the array, if it can be made into a vector }
+                      case TFloatDef(def).floattype of
+                        s32real:
+                          result := float_array_cgsize(def.size);
+                        s64real:
+                          result := double_array_cgsize(def.size);
+                        else
+                          { If not, fall back }
+                          result := int_cgsize(def.size);
+                      end;
+                    end
+                  else
+                    result := int_cgsize(def.size);
+                end
               else
                 result := OS_NO;
             end;
@@ -1379,25 +1396,53 @@ implementation
         case def.typ of
           arraydef:
             begin
-              if tarraydef(def).elementdef.typ in [orddef,floatdef] then
-                begin
-                  { this is not correct, OS_MX normally mean that the vector
-                    contains elements of size X. However, vectors themselves
-                    can also have different sizes (e.g. a vector of 2 singles on
-                    SSE) and the total size is currently more important }
-                  case def.size of
-                    1: result:=OS_M8;
-                    2: result:=OS_M16;
-                    4: result:=OS_M32;
-                    8: result:=OS_M64;
-                    16: result:=OS_M128;
-                    32: result:=OS_M256;
-                    else
-                      internalerror(2013060103);
+              case tarraydef(def).elementdef.typ of
+                orddef:
+                  begin
+                    { this is not correct, OS_MX normally mean that the vector
+                      contains elements of size X. However, vectors themselves
+                      can also have different sizes (e.g. a vector of 2 singles on
+                      SSE) and the total size is currently more important }
+                    case def.size of
+                      1: result:=OS_M8;
+                      2: result:=OS_M16;
+                      4: result:=OS_M32;
+                      8: result:=OS_M64;
+                      16: result:=OS_M128;
+                      32: result:=OS_M256;
+                      64: result:=OS_M512;
+                      else
+                        internalerror(2013060103);
+                    end;
                   end;
-                end
-              else
-                result:=def_cgsize(def);
+                floatdef:
+                  begin
+                    case TFloatDef(tarraydef(def).elementdef).floattype of
+                      s32real:
+                        case def.size of
+                          4:  result:=OS_MF32;
+                          16: result:=OS_MF128;
+                          32: result:=OS_MF256;
+                          64: result:=OS_MF512;
+                          else
+                            internalerror(2017121400);
+                        end;
+                      s64real:
+                        case def.size of
+                          8:  result:=OS_MD64;
+                          16: result:=OS_MD128;
+                          32: result:=OS_MD256;
+                          64: result:=OS_MD512;
+                          else
+                            internalerror(2017121401);
+                        end;
+                      else
+                        internalerror(2017121402);
+                    end;
+                  end;
+                else
+                  result:=def_cgsize(def);
+              end;
             end
           else
             result:=def_cgsize(def);

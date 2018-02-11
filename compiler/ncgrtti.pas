@@ -335,7 +335,8 @@ implementation
          { pocall_sysv_abi_default } 14,
          { pocall_sysv_abi_cdecl }   15,
          { pocall_ms_abi_default }   16,
-         { pocall_ms_abi_cdecl }     17
+         { pocall_ms_abi_cdecl }     17,
+         { pocall_vectorcall }       18
         );
       begin
         tcb.emit_ord_const(ProcCallOptionToCallConv[def.proccalloption],u8inttype);

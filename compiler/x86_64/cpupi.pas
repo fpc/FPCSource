@@ -173,7 +173,7 @@ implementation
         result:=
            ((target_info.system=system_x86_64_win64) and
             not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
-           (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
+            (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl,pocall_vectorcall]);
       end;
 
 
