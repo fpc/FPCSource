@@ -204,6 +204,14 @@ implementation
                    location_reset(location,LOC_REGISTER,OS_16);
                    location.register:=cg.GetNextReg(left.location.register);
                  end;
+               LOC_CREFERENCE,LOC_REFERENCE:
+                  begin
+                    location_reset(location,LOC_REGISTER,OS_16);
+                    segref:=left.location.reference;
+                    inc(segref.offset,2);
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
+                    current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(A_MOV,S_W,segref,location.register));
+                  end;
                else
                  internalerror(2017121301);
              end;
