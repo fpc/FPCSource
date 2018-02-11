@@ -1123,7 +1123,7 @@ begin
 end;
 
 
-Procedure Halt(ErrNum: Longint);
+Procedure Halt(ErrNum: Longint);noreturn;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
 {$ifdef FPC_LIMITED_EXITCODE}
@@ -1219,7 +1219,7 @@ begin
 end;
 
 
-procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
+procedure RunError(w : word);[alias: 'FPC_RUNERROR'];noreturn;
 var
   bp : pointer;
   pcaddr : codepointer;
@@ -1234,13 +1234,13 @@ begin
 end;
 
 
-Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 Begin
   RunError (0);
 End;
 
 
-Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 Begin
   Halt(0);
 End;

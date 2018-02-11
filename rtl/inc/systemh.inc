@@ -1549,13 +1549,13 @@ procedure Dump_Stack(var f : text;skipframes : longint);
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
-Procedure RunError(w:Word);
-Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure halt(errnum:Longint);
+Procedure RunError(w:Word);noreturn;
+Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
+Procedure halt(errnum:Longint);noreturn;
 {$ifdef FPC_HAS_FEATURE_HEAP}
 Procedure AddExitProc(Proc:TProcedure);
 {$endif FPC_HAS_FEATURE_HEAP}
-Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 
 { Need to be exported for threads unit }
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
