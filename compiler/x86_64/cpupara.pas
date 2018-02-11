@@ -1846,7 +1846,9 @@ unit cpupara;
                                 paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_vectorcall[mmparareg],subreg)
                               else
                                 paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],subreg);
-                            end;
+                            end
+                          else
+                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],subreg);
 
                           { matching int register must be skipped }
                           if use_ms_abi then
