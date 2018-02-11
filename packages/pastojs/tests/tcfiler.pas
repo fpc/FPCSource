@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 2014 by Michael Van Canneyt
+    Copyright (c) 2018 by Michael Van Canneyt
 
     Unit tests for Pascal-to-Javascript precompile class.
 
@@ -44,13 +44,16 @@ type
     procedure TearDown; override;
     procedure WriteReadUnit; virtual;
     procedure StartParsing; override;
+    function CheckRestoredObject(const Path: string; Orig, Rest: TObject): boolean; virtual;
     procedure CheckRestoredResolver(Original, Restored: TPas2JSResolver); virtual;
     procedure CheckRestoredDeclarations(const Path: string; Orig, Rest: TPasDeclarations); virtual;
     procedure CheckRestoredSection(const Path: string; Orig, Rest: TPasSection); virtual;
     procedure CheckRestoredModule(const Path: string; Orig, Rest: TPasModule); virtual;
+    procedure CheckRestoredScopeReference(const Path: string; Orig, Rest: TPasScope); virtual;
     procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPasModuleScope); virtual;
     procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope); virtual;
     procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPasSectionScope); virtual;
+    procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
     procedure CheckRestoredCustomData(const Path: string; El: TPasElement; Orig, Rest: TObject); virtual;
     procedure CheckRestoredElement(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElementList(const Path: string; Orig, Rest: TFPList); virtual;
@@ -224,6 +227,22 @@ begin
   // ToDo: defines
 end;
 
+function TCustomTestPrecompile.CheckRestoredObject(const Path: string; Orig,
+  Rest: TObject): boolean;
+begin
+  if Orig=nil then
+    begin
+    if Rest<>nil then
+      Fail(Path+': Orig=nil Rest='+GetObjName(Rest));
+    exit(false);
+    end
+  else if Rest=nil then
+    Fail(Path+': Orig='+GetObjName(Orig)+' Rest=nil');
+  if Orig.ClassType<>Rest.ClassType then
+    Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
+  Result:=true;
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredResolver(Original,
   Restored: TPas2JSResolver);
 begin
@@ -279,6 +298,13 @@ begin
     CheckRestoredElement(Path+'.LibrarySection',TPasLibrary(Orig).LibrarySection,TPasLibrary(Rest).LibrarySection);
   CheckRestoredElement(Path+'.InitializationSection',Orig.InitializationSection,Rest.InitializationSection);
   CheckRestoredElement(Path+'.FinalizationSection',Orig.FinalizationSection,Rest.FinalizationSection);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredScopeReference(const Path: string;
+  Orig, Rest: TPasScope);
+begin
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
+  CheckRestoredReference(Path+'.Element',Orig.Element,Rest.Element);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
@@ -359,27 +385,40 @@ begin
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
+  Orig, Rest: TPas2JSProcedureScope);
+begin
+  AssertEquals(Path+': ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
+
+  // DeclarationProc: TPasProcedure; only the declaration is stored
+  // ImplProc: TPasProcedure; only the declaration is stored
+  CheckRestoredReference(Path+': OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
+
+  CheckRestoredScopeReference(Path+': ClassScope',Orig.ClassScope,Rest.ClassScope);
+  CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
+  AssertEquals(Path+'.Mode',PJUModeSwitchNames[Orig.Mode],PJUModeSwitchNames[Rest.Mode]);
+  if Orig.Flags<>Rest.Flags then
+    Fail(Path+'.Flags');
+  if Orig.BoolSwitches<>Rest.BoolSwitches then
+    Fail(Path+'.BoolSwitches');
+
+  CheckRestoredIdentifierScope(Path,Orig,Rest);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredCustomData(const Path: string;
   El: TPasElement; Orig, Rest: TObject);
 var
   C: TClass;
 begin
-  if Orig=nil then
-    begin
-    if Rest<>nil then
-      Fail(Path+': Orig=nil Rest='+GetObjName(Rest));
-    exit;
-    end
-  else if Rest=nil then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest=nil');
-  if Orig.ClassType<>Rest.ClassType then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
 
   C:=Orig.ClassType;
   if C=TPasModuleScope then
     CheckRestoredModuleScope(Path+'[TPasModuleScope]',TPasModuleScope(Orig),TPasModuleScope(Rest))
   else if C=TPasSectionScope then
     CheckRestoredSectionScope(Path+'[TPasSectionScope]',TPasSectionScope(Orig),TPasSectionScope(Rest))
+  else if C=TPas2JSProcedureScope then
+    CheckRestoredProcScope(Path+'[TPas2JSProcedureScope]',TPas2JSProcedureScope(Orig),TPas2JSProcedureScope(Rest))
   else
     Fail(Path+': unknown CustomData "'+GetObjName(Orig)+'" El='+GetObjName(El));
 end;
@@ -389,16 +428,7 @@ procedure TCustomTestPrecompile.CheckRestoredElement(const Path: string; Orig,
 var
   C: TClass;
 begin
-  if Orig=nil then
-    begin
-    if Rest<>nil then
-      Fail(Path+': Orig=nil Rest='+GetObjName(Rest));
-    exit;
-    end
-  else if Rest=nil then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest=nil');
-  if Orig.ClassType<>Rest.ClassType then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
 
   AssertEquals(Path+': Name',Orig.Name,Rest.Name);
   AssertEquals(Path+': SourceFilename',Orig.SourceFilename,Rest.SourceFilename);
@@ -523,16 +553,7 @@ var
   i: Integer;
   SubPath: String;
 begin
-  if Orig=nil then
-    begin
-    if Rest=nil then
-      exit;
-    Fail(Path+' Orig=nil Rest='+GetObjName(Rest));
-    end
-  else if Rest=nil then
-    Fail(Path+' Orig='+GetObjName(Orig)+' Rest=nil')
-  else if Orig.ClassType<>Rest.ClassType then
-    Fail(Path+' Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
   AssertEquals(Path+'.Count',Orig.Count,Rest.Count);
   for i:=0 to Orig.Count-1 do
     begin
@@ -848,16 +869,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredReference(const Path: string;
   Orig, Rest: TPasElement);
 begin
-  if Orig=nil then
-    begin
-    if Rest<>nil then
-      Fail(Path+': Orig=nil Rest='+GetObjName(Rest));
-    exit;
-    end
-  else if Rest=nil then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest=nil');
-  if Orig.ClassType<>Rest.ClassType then
-    Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
   AssertEquals(Path+': Name',Orig.Name,Rest.Name);
 
   if Orig is TPasUnresolvedSymbolRef then

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 2014 by Michael Van Canneyt
+    Copyright (c) 2018 by Michael Van Canneyt
 
     Unit tests for Pascal-to-Javascript converter class.
 
