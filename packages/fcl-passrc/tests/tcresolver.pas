@@ -430,6 +430,7 @@ type
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodWithoutClassFail;
+    Procedure TestClass_MethodInOtherUnitFail;
     Procedure TestClass_MethodWithParams;
     Procedure TestClass_MethodUnresolvedPrg;
     Procedure TestClass_MethodUnresolvedUnit;
@@ -6560,6 +6561,27 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException('identifier not found "TClassA"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestClass_MethodInOtherUnitFail;
+begin
+  AddModuleWithIntfImplSrc('unit1.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '  end;',
+    '']),
+    '');
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'procedure TObject.DoIt;',
+  'begin',
+  'end;',
+  'begin']);
+  CheckResolverException('method class "TObject" in other unit "unit1"',nMethodClassXInOtherUnitY);
 end;
 
 procedure TTestResolver.TestClass_MethodWithParams;

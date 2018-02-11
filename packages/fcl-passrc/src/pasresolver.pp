@@ -7284,8 +7284,15 @@ begin
       CurClassType:=TPasClassType(FindElementWithoutParams(aClassName,El,false));
       if not (CurClassType is TPasClassType) then
         begin
-        aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName));
-        RaiseXExpectedButYFound(20170216152557,'class',aClassname+':'+GetElementTypeName(CurClassType),El);
+        aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
+        RaiseXExpectedButYFound(20170216152557,
+          'class',aClassname+':'+GetElementTypeName(CurClassType),El);
+        end;
+      if CurClassType.GetModule<>El.GetModule then
+        begin
+        aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
+        RaiseMsg(20180211230432,nMethodClassXInOtherUnitY,sMethodClassXInOtherUnitY,
+          [aClassName,CurClassType.GetModule.Name],El);
         end;
 
       // restore scope

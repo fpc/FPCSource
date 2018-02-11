@@ -156,6 +156,7 @@ const
   nIllegalQualifierAfter = 3004;
   nIllegalQualifierInFrontOf = 3005;
   nIllegalQualifierWithin = 3006;
+  nMethodClassXInOtherUnitY = 3007;
 
 // resourcestring patterns of messages
 resourcestring
@@ -244,7 +245,7 @@ resourcestring
   sIllegalQualifierAfter = 'illegal qualifier "%s" after "%s"';
   sIllegalQualifierInFrontOf = 'illegal qualifier "%s" in front of "%s"';
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
-
+  sMethodClassXInOtherUnitY = 'method class "%s" in other unit "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
