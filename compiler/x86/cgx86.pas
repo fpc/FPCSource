@@ -2675,6 +2675,17 @@ unit cgx86;
                 list.concat(taicpu.op_reg(A_POP,push_segment_size,NR_ES));
               end;
             getcpuregister(list,REGSI);
+{$ifdef i8086}
+            { at this point, si and di are allocated, so no register is available as index =>
+              compiler will hang/ie during spilling, so avoid that srcref has base and index }
+            if (srcref.base<>NR_NO) and (srcref.index<>NR_NO) then
+              begin
+                r:=getaddressregister(list);
+                a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,srcref.base,srcref.index,r);
+                srcref.base:=r;
+                srcref.index:=NR_NO;
+              end;
+{$endif i8086}
             if ((source.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP)))) or
                (is_segment_reg(source.segment) and segment_regs_equal(source.segment,NR_DS)) then
               begin
