@@ -38,6 +38,9 @@ Unit System;
 
 {$define FPC_ANSI_TEXTFILEREC}
 
+{ make output and stdout as well as input and stdin equal to save memory }
+{$define FPC_STDOUT_TRUE_ALIAS}
+
 {$ifdef CPUI8086}
   {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
   {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
