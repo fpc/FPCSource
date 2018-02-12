@@ -27,7 +27,7 @@ type
   end;
 
 const
-  expect1: array [0..$A9] of byte = (
+  expect1: array [0..$B9] of byte = (
     $F7,$05,$01,$00,      { TEST    WORD PTR [DI],0001    }
     $F6,$05,$01,          { TEST    BYTE PTR [DI],01      }
     $F7,$45,$01,$01,$00,  { TEST    WORD PTR [DI+01],0001 }
@@ -63,6 +63,8 @@ const
     $F6,$45,$FD,$01,      { TEST    BYTE PTR [DI-03],01   }
     $F6,$45,$04,$01,      { TEST    BYTE PTR [DI+04],01   }
     $F6,$45,$04,$01,      { TEST    BYTE PTR [DI+04],01   }
+    $F6,$05,$01,          { TEST    BYTE PTR [DI],01      }
+    $F6,$45,$01,$01,      { TEST    BYTE PTR [DI+01],01   }
 
     $F7,$05,$01,$00,      { TEST    WORD PTR [DI],0001    }
     $F7,$05,$01,$00,      { TEST    WORD PTR [DI],0001    }
@@ -71,7 +73,9 @@ const
     $F7,$45,$FF,$01,$00,  { TEST    WORD PTR [DI-01],0001 }
     $F7,$45,$FD,$01,$00,  { TEST    WORD PTR [DI-03],0001 }
     $F7,$45,$04,$01,$00,  { TEST    WORD PTR [DI+04],0001 }
-    $F7,$45,$04,$01,$00   { TEST    WORD PTR [DI+04],0001 }
+    $F7,$45,$04,$01,$00,  { TEST    WORD PTR [DI+04],0001 }
+    $F7,$05,$01,$00,      { TEST    WORD PTR [DI],0001    }
+    $F7,$45,$01,$01,$00   { TEST    WORD PTR [DI+01],0001 }
   );
 {$ifdef FPC}
   expect2: array [0..$4C] of byte = (
@@ -127,6 +131,8 @@ asm
   test byte ptr [di-foo.b2], cval        { test byte ptr [di-3], 1 }
   test byte ptr [di+foo.b2+foo.w], cval  { test byte ptr [di+4], 1 }
   test byte ptr [di+foo.w+foo.b2], cval  { test byte ptr [di+4], 1 }
+  test byte ptr [di+foo32], cval         { test byte ptr [di], 1   }
+  test byte ptr [di+foo32_2.l], cval     { test byte ptr [di+1], 1 }
 
   test word ptr [di+foo2], cval          { test word ptr [di], 1   }
   test word ptr [di+foo], cval           { test word ptr [di], 1   }
@@ -136,6 +142,8 @@ asm
   test word ptr [di-foo.b2], cval        { test word ptr [di-3], 1 }
   test word ptr [di+foo.b2+foo.w], cval  { test word ptr [di+4], 1 }
   test word ptr [di+foo.w+foo.b2], cval  { test word ptr [di+4], 1 }
+  test word ptr [di+foo32], cval         { test word ptr [di], 1   }
+  test word ptr [di+foo32_2.l], cval     { test word ptr [di+1], 1 }
 end;
 
 {$ifdef FPC}
