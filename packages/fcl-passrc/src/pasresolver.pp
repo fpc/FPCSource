@@ -1496,8 +1496,9 @@ type
     function GetTypeDescription(aType: TPasType; AddPath: boolean = false): string;
     function GetTypeDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
-    function GetPasPropertyType(El: TPasProperty): TPasType;
     function GetPasPropertyAncestor(El: TPasProperty; WithRedeclarations: boolean = false): TPasProperty;
+    function GetPasPropertyType(El: TPasProperty): TPasType;
+    function GetPasPropertyArgs(El: TPasProperty): TFPList;
     function GetPasPropertyGetter(El: TPasProperty): TPasElement;
     function GetPasPropertySetter(El: TPasProperty): TPasElement;
     function GetPasPropertyIndex(El: TPasProperty): TPasExpr;
@@ -6816,7 +6817,7 @@ begin
     exit;
     end
   else if (ResolvedValue.IdentEl is TPasProperty)
-      and (TPasProperty(ResolvedValue.IdentEl).Args.Count>0) then
+      and (GetPasPropertyArgs(TPasProperty(ResolvedValue.IdentEl)).Count>0) then
     begin
     PropEl:=TPasProperty(ResolvedValue.IdentEl);
     CheckCallPropertyCompatibility(PropEl,Params,true);
@@ -8010,7 +8011,7 @@ begin
     ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable,rrfCanBeStatement]+[rrfAssignable];
     end
   else if (ResolvedEl.IdentEl is TPasProperty)
-      and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
+      and (GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
     // property with args
     ComputeIndexProperty(TPasProperty(ResolvedEl.IdentEl))
   else if ResolvedEl.BaseType=btContext then
@@ -12374,23 +12375,25 @@ var
   PropArg: TPasArgument;
   ArgNo, ParamComp: Integer;
   Param: TPasExpr;
+  PropArgs: TFPList;
 begin
   Result:=cExact;
-  if PropEl.Args.Count<length(Params.Params) then
+  PropArgs:=GetPasPropertyArgs(PropEl);
+  if PropArgs.Count<length(Params.Params) then
     begin
     if not RaiseOnError then exit(cIncompatible);
     RaiseMsg(20170216152412,nWrongNumberOfParametersForCallTo,sWrongNumberOfParametersForCallTo,
       [PropEl.Name],Params)
     end
-  else if PropEl.Args.Count>length(Params.Params) then
+  else if PropArgs.Count>length(Params.Params) then
     begin
     if not RaiseOnError then exit(cIncompatible);
     RaiseMsg(20170216152413,nMissingParameterX,sMissingParameterX,
-      [TPasArgument(PropEl.Args[length(Params.Params)]).Name],Params);
+      [TPasArgument(PropArgs[length(Params.Params)]).Name],Params);
     end;
-  for ArgNo:=0 to PropEl.Args.Count-1 do
+  for ArgNo:=0 to PropArgs.Count-1 do
     begin
-    PropArg:=TPasArgument(PropEl.Args[ArgNo]);
+    PropArg:=TPasArgument(PropArgs[ArgNo]);
     Param:=Params.Params[ArgNo];
     ParamComp:=CheckParamCompatibility(Param,PropArg,ArgNo,RaiseOnError);
     if ParamComp=cIncompatible then
@@ -13861,6 +13864,16 @@ begin
     Result:=BaseTypeNames[R.BaseType];
 end;
 
+function TPasResolver.GetPasPropertyAncestor(El: TPasProperty;
+  WithRedeclarations: boolean): TPasProperty;
+begin
+  Result:=nil;
+  if El=nil then exit;
+  if (not WithRedeclarations) and (El.VarType<>nil) then exit;
+  if El.CustomData=nil then exit;
+  Result:=TPasPropertyScope(El.CustomData).AncestorProp;
+end;
+
 function TPasResolver.GetPasPropertyType(El: TPasProperty): TPasType;
 begin
   Result:=nil;
@@ -13872,14 +13885,15 @@ begin
     end;
 end;
 
-function TPasResolver.GetPasPropertyAncestor(El: TPasProperty;
-  WithRedeclarations: boolean): TPasProperty;
+function TPasResolver.GetPasPropertyArgs(El: TPasProperty): TFPList;
 begin
-  Result:=nil;
-  if El=nil then exit;
-  if (not WithRedeclarations) and (El.VarType<>nil) then exit;
-  if El.CustomData=nil then exit;
-  Result:=TPasPropertyScope(El.CustomData).AncestorProp;
+  while El<>nil do
+    begin
+    Result:=El.Args;
+    if El.VarType<>nil then
+      exit;
+    El:=GetPasPropertyAncestor(El);
+    end;
 end;
 
 function TPasResolver.GetPasPropertyGetter(El: TPasProperty): TPasElement;

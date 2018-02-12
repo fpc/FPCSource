@@ -582,6 +582,7 @@ type
     Procedure TestProperty_WrongTypeAsIndexFail;
     Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
+    Procedure TestDefaultPropertyIncVisibility;
     Procedure TestMissingDefaultProperty;
 
     // class interfaces
@@ -9695,6 +9696,43 @@ begin
   Add('  o[3]:=4;');
   Add('  if o[5]=6 then;');
   Add('  if 7=o[8] then;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestDefaultPropertyIncVisibility;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type',
+    '  TNumber = longint;',
+    '  TInteger = longint;',
+    '  TObject = class',
+    '  private',
+    '    function GetItems(Index: TNumber): TInteger; virtual; abstract;',
+    '    procedure SetItems(Index: TInteger; Value: TNumber); virtual; abstract;',
+    '  protected',
+    '    property Items[Index: TNumber]: longint read GetItems write SetItems;',
+    '  end;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'type',
+  '  TBird = class',
+  '  public',
+  '    property Items;',
+  '  end;',
+  'procedure DoIt(i: TInteger);',
+  'begin',
+  'end;',
+  'var b: TBird;',
+  'begin',
+  '  b.Items[1]:=2;',
+  '  b.Items[3]:=b.Items[4];',
+  '  DoIt(b.Items[5]);',
+  '']);
   ParseProgram;
 end;
 
