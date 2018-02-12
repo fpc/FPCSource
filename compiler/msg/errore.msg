@@ -1576,7 +1576,7 @@ parser_e_invalid_internal_function_index=03346_E_Index $1 is not a valid interna
 %
 # Type Checking
 #
-# 04123 is the last used one
+# 04124 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2009,6 +2009,7 @@ type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$
 type_e_function_reference_kind=04123_E_Subroutine references cannot be declared as "of object" or "is nested", they can always refer to any kind of subroutine
 % Subroutine references can refer to any kind of subroutine and hence do not
 % require specialisation for methods or nested subroutines.
+type_e_seg_procvardef_wrong_memory_model=04124_E_Procedure variables in that memory model do not store segment information
 % \end{description}
 #
 # Symtable
