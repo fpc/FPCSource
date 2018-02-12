@@ -197,7 +197,7 @@ implementation
          if left.resultdef.typ=procvardef then
            begin
              if left.resultdef.size<>4 then
-               internalerror(2017121302);
+               CGMessage(type_e_seg_procvardef_wrong_memory_model);
              case left.location.loc of
                LOC_REGISTER,LOC_CREGISTER:
                  begin
