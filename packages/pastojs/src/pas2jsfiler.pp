@@ -503,6 +503,7 @@ type
     procedure RaiseMsg(Id: int64; const Msg: string = ''); virtual; abstract; overload;
     procedure RaiseMsg(Id: int64; El: TPasElement; const Msg: string = ''); overload;
     function GetDefaultMemberVisibility(El, LastElement: TPasElement): TPasMemberVisibility; virtual;
+    function GetDefaultPasScopeVisibilityContext(Scope: TPasScope): TPasElement; virtual;
     procedure GetDefaultsPasIdentifierProps(El: TPasElement; out Kind: TPasIdentifierKind; out Name: string); virtual;
     function GetDefaultProcModifiers(Proc: TPasProcedure): TProcedureModifiers; virtual;
     function GetDefaultProcTypeModifiers(Proc: TPasProcedureType): TProcTypeModifiers; virtual;
@@ -569,10 +570,12 @@ type
     procedure WriteConvertOptions(Obj: TJSONObject; const Value, DefaultValue: TPasToJsConverterOptions); virtual;
     procedure WriteSrcFiles(Obj: TJSONObject); virtual;
     procedure WriteMemberHints(Obj: TJSONObject; const Value, DefaultValue: TPasMemberHints); virtual;
-    procedure WritePasElement(Obj: TJSONObject; El: TPasElement; aContext: TPJUWriterContext); virtual;
-    procedure WriteModuleScopeFlags(Obj: TJSONObject; const Value, DefaultValue: TPasModuleScopeFlags); virtual;
-    procedure WriteModule(Obj: TJSONObject; aModule: TPasModule; aContext: TPJUWriterContext); virtual;
+    procedure WritePasScope(Obj: TJSONObject; Scope: TPasScope; aContext: TPJUWriterContext); virtual;
     procedure WriteIdentifierScope(Obj: TJSONObject; Scope: TPasIdentifierScope; aContext: TPJUWriterContext); virtual;
+    procedure WriteModuleScopeFlags(Obj: TJSONObject; const Value, DefaultValue: TPasModuleScopeFlags); virtual;
+    procedure WriteModuleScope(Obj: TJSONObject; Scope: TPasModuleScope; aContext: TPJUWriterContext); virtual;
+    procedure WritePasElement(Obj: TJSONObject; El: TPasElement; aContext: TPJUWriterContext); virtual;
+    procedure WriteModule(Obj: TJSONObject; aModule: TPasModule; aContext: TPJUWriterContext); virtual;
     procedure WriteSection(ParentJSON: TJSONObject; Section: TPasSection;
       const PropName: string; aContext: TPJUWriterContext); virtual;
     procedure WriteDeclarations(ParentJSON: TJSONObject; Decls: TPasDeclarations; aContext: TPJUWriterContext); virtual;
@@ -689,6 +692,7 @@ type
     procedure Set_ClassType_AncestorType(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassType_HelperForType(RefEl: TPasElement; Data: TObject);
     procedure Set_ResultElement_ResultType(RefEl: TPasElement; Data: TObject);
+    procedure Set_PasScope_VisibilityContext(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_AssertClass(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_AssertDefConstructor(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_AssertMsgConstructor(RefEl: TPasElement; Data: TObject);
@@ -733,8 +737,10 @@ type
       const Setter: TOnSetElReference; aContext: TPJUReaderContext); virtual;
     function ReadExpr(Obj: TJSONObject; Parent: TPasElement; const PropName: string;
       aContext: TPJUReaderContext): TPasExpr; virtual;
+    procedure ReadPasScope(Obj: TJSONObject; Scope: TPasScope); virtual;
     procedure ReadIdentifierScope(Arr: TJSONArray; Scope: TPasIdentifierScope); virtual;
     function ReadModuleScopeFlags(Obj: TJSONObject; El: TPasElement; const DefaultValue: TPasModuleScopeFlags): TPasModuleScopeFlags; virtual;
+    procedure ReadModuleScope(Obj: TJSONObject; Scope: TPasModuleScope; aContext: TPJUReaderContext); virtual;
     procedure ReadModule(Data: TJSONData; aContext: TPJUReaderContext); virtual;
     procedure ReadPasExpr(Obj: TJSONObject; Expr: TPasExpr; ReadKind: boolean; aContext: TPJUReaderContext); virtual;
     procedure ReadPasExprArray(Obj: TJSONObject; Parent: TPasElement;
@@ -1162,6 +1168,22 @@ begin
     Result:=LastElement.Visibility
   else
     Result:=visDefault;
+end;
+
+function TPJUFiler.GetDefaultPasScopeVisibilityContext(Scope: TPasScope
+  ): TPasElement;
+var
+  El: TPasElement;
+begin
+  El:=Scope.Element;
+  if El is TPasClassType then
+    Result:=El
+  else if El is TPasModule then
+    Result:=El
+  else if (Scope is TPasProcedureScope) and (TPasProcedureScope(Scope).ClassScope<>nil) then
+    Result:=TPasProcedureScope(Scope).ClassScope.Element
+  else
+    Result:=nil;
 end;
 
 procedure TPJUFiler.GetDefaultsPasIdentifierProps(El: TPasElement; out
@@ -1634,16 +1656,7 @@ begin
 
   // module scope
   ModScope:=TPasModuleScope(CheckElScope(aModule,20180206113855,TPasModuleScope));
-  if ModScope.FirstName<>FirstDottedIdentifier(aModule.Name) then
-    RaiseMsg(20180206114233,aModule);
-  // write not needed: ModScope.FirstName
-  WriteModuleScopeFlags(Obj,ModScope.Flags,PJUDefaultModuleScopeFlags);
-  WriteBoolSwitches(Obj,ModScope.BoolSwitches,aContext.BoolSwitches);
-  AddReferenceToObj(Obj,'AssertClass',ModScope.AssertClass);
-  AddReferenceToObj(Obj,'AssertDefConstructor',ModScope.AssertDefConstructor);
-  AddReferenceToObj(Obj,'AssertMsgConstructor',ModScope.AssertMsgConstructor);
-  AddReferenceToObj(Obj,'RangeErrorClass',ModScope.RangeErrorClass);
-  AddReferenceToObj(Obj,'RangeErrorConstructor',ModScope.RangeErrorConstructor);
+  WriteModuleScope(Obj,ModScope,aContext);
 
   // write sections
   aContext.LastElement:=aModule;
@@ -1658,6 +1671,17 @@ begin
   // ToDo: write precompiled aModule.FinalizationSection
 
   WriteExternalReferences(Obj);
+end;
+
+procedure TPJUWriter.WritePasScope(Obj: TJSONObject; Scope: TPasScope;
+  aContext: TPJUWriterContext);
+var
+  DefVisibilityContext: TPasElement;
+begin
+  if aContext=nil then ;
+  DefVisibilityContext:=GetDefaultPasScopeVisibilityContext(Scope);
+  if Scope.VisibilityContext<>DefVisibilityContext then
+    AddReferenceToObj(Obj,'VisibilityContext',Scope.VisibilityContext);
 end;
 
 procedure TPJUWriter.WriteIdentifierScope(Obj: TJSONObject;
@@ -1695,6 +1719,7 @@ var
   Item: TPasIdentifier;
   Ordered: TPasIdentifierArray;
 begin
+  WritePasScope(Obj,Scope,aContext);
   Arr:=nil;
   if aContext=nil then ;
   Locals:=Scope.GetLocalIdentifiers;
@@ -1733,6 +1758,25 @@ begin
   finally
     Locals.Free;
   end;
+end;
+
+procedure TPJUWriter.WriteModuleScope(Obj: TJSONObject; Scope: TPasModuleScope;
+  aContext: TPJUWriterContext);
+var
+  aModule: TPasModule;
+begin
+  aModule:=Scope.Element as TPasModule;
+  if Scope.FirstName<>FirstDottedIdentifier(aModule.Name) then
+    RaiseMsg(20180206114233,aModule);
+  // write not needed: Scope.FirstName
+  WriteModuleScopeFlags(Obj,Scope.Flags,PJUDefaultModuleScopeFlags);
+  WriteBoolSwitches(Obj,Scope.BoolSwitches,aContext.BoolSwitches);
+  AddReferenceToObj(Obj,'AssertClass',Scope.AssertClass);
+  AddReferenceToObj(Obj,'AssertDefConstructor',Scope.AssertDefConstructor);
+  AddReferenceToObj(Obj,'AssertMsgConstructor',Scope.AssertMsgConstructor);
+  AddReferenceToObj(Obj,'RangeErrorClass',Scope.RangeErrorClass);
+  AddReferenceToObj(Obj,'RangeErrorConstructor',Scope.RangeErrorConstructor);
+  WritePasScope(Obj,Scope,aContext);
 end;
 
 procedure TPJUWriter.WriteSection(ParentJSON: TJSONObject;
@@ -2826,6 +2870,14 @@ begin
     El.ResultType:=TPasType(RefEl)
   else
     RaiseMsg(20180211121537,El,GetObjName(RefEl));
+end;
+
+procedure TPJUReader.Set_PasScope_VisibilityContext(RefEl: TPasElement;
+  Data: TObject);
+var
+  Scope: TPasScope absolute Data;
+begin
+  Scope.VisibilityContext:=RefEl;
 end;
 
 procedure TPJUReader.Set_ModScope_AssertClass(RefEl: TPasElement; Data: TObject
@@ -3987,6 +4039,14 @@ begin
     RaiseMsg(20180207190200,Parent,PropName+':'+GetObjName(Data));
 end;
 
+procedure TPJUReader.ReadPasScope(Obj: TJSONObject; Scope: TPasScope);
+begin
+  if Obj.Find('VisibilityContext')=nil then
+    Scope.VisibilityContext:=GetDefaultPasScopeVisibilityContext(Scope)
+  else
+    ReadElementReference(Obj,Scope,'VisibilityContext',@Set_PasScope_VisibilityContext);
+end;
+
 procedure TPJUReader.ReadIdentifierScope(Arr: TJSONArray;
   Scope: TPasIdentifierScope);
 // called after reading module, i.e. all elements are created
@@ -4081,6 +4141,23 @@ begin
     end;
 end;
 
+procedure TPJUReader.ReadModuleScope(Obj: TJSONObject; Scope: TPasModuleScope;
+  aContext: TPJUReaderContext);
+var
+  aModule: TPasModule;
+begin
+  aModule:=Scope.Element as TPasModule;
+  Scope.FirstName:=FirstDottedIdentifier(aModule.Name);
+  Scope.Flags:=ReadModuleScopeFlags(Obj,aModule,PJUDefaultModuleScopeFlags);
+  Scope.BoolSwitches:=ReadBoolSwitches(Obj.Find('BoolSwitches'),aModule,aContext.BoolSwitches);
+  ReadElementReference(Obj,Scope,'AssertClass',@Set_ModScope_AssertClass);
+  ReadElementReference(Obj,Scope,'AssertDefConstructor',@Set_ModScope_AssertDefConstructor);
+  ReadElementReference(Obj,Scope,'AssertMsgConstructor',@Set_ModScope_AssertMsgConstructor);
+  ReadElementReference(Obj,Scope,'RangeErrorClass',@Set_ModScope_RangeErrorClass);
+  ReadElementReference(Obj,Scope,'RangeErrorConstructor',@Set_ModScope_RangeErrorConstructor);
+  ReadPasScope(Obj,Scope);
+end;
+
 procedure TPJUReader.ReadModule(Data: TJSONData; aContext: TPJUReaderContext);
 
   function PreReadSection(ParentJSON: TJSONObject; const PropName: string): TJSONObject;
@@ -4121,57 +4198,52 @@ begin
 
   // modscope
   ModScope:=TPasModuleScope(Resolver.CreateScope(aModule,TPasModuleScope));
-  ModScope.FirstName:=FirstDottedIdentifier(aModule.Name);
-  ModScope.Flags:=ReadModuleScopeFlags(Obj,aModule,PJUDefaultModuleScopeFlags);
-  ModScope.BoolSwitches:=ReadBoolSwitches(Obj.Find('BoolSwitches'),aModule,aContext.BoolSwitches);
+  ReadModuleScope(Obj,ModScope,aContext);
   OldBoolSwitches:=aContext.BoolSwitches;
   aContext.BoolSwitches:=ModScope.BoolSwitches;
-  ReadElementReference(Obj,ModScope,'AssertClass',@Set_ModScope_AssertClass);
-  ReadElementReference(Obj,ModScope,'AssertDefConstructor',@Set_ModScope_AssertDefConstructor);
-  ReadElementReference(Obj,ModScope,'AssertMsgConstructor',@Set_ModScope_AssertMsgConstructor);
-  ReadElementReference(Obj,ModScope,'RangeErrorClass',@Set_ModScope_RangeErrorClass);
-  ReadElementReference(Obj,ModScope,'RangeErrorConstructor',@Set_ModScope_RangeErrorConstructor);
+  try
 
-  // read sections
-  aContext.LastElement:=aModule;
-  SubObj:=PreReadSection(Obj,'Interface');
-  if SubObj<>nil then
-    begin
-    aModule.InterfaceSection:=TInterfaceSection.Create('',aModule);
-    ReadSection(SubObj,aModule.InterfaceSection,aContext);
-    aContext.LastElement:=aModule.InterfaceSection;
-    end;
-  SubObj:=PreReadSection(Obj,'Implementation');
-  if SubObj<>nil then
-    begin
-    aModule.ImplementationSection:=TImplementationSection.Create('',aModule);
-    ReadSection(SubObj,aModule.ImplementationSection,aContext);
-    aContext.LastElement:=aModule.InterfaceSection;
-    end;
-  if aModule.ClassType=TPasProgram then
-    begin
-    SubObj:=PreReadSection(Obj,'Program');
+    // read sections
+    aContext.LastElement:=aModule;
+    SubObj:=PreReadSection(Obj,'Interface');
     if SubObj<>nil then
       begin
-      TPasProgram(aModule).ProgramSection:=TProgramSection.Create('',aModule);
-      ReadSection(SubObj,TPasProgram(aModule).ProgramSection,aContext);
-      aContext.LastElement:=TPasProgram(aModule).ProgramSection;
+      aModule.InterfaceSection:=TInterfaceSection.Create('',aModule);
+      ReadSection(SubObj,aModule.InterfaceSection,aContext);
+      aContext.LastElement:=aModule.InterfaceSection;
       end;
-    end
-  else if aModule.ClassType=TPasLibrary then
-    begin
-    SubObj:=PreReadSection(Obj,'Library');
+    SubObj:=PreReadSection(Obj,'Implementation');
     if SubObj<>nil then
       begin
-      TPasLibrary(aModule).LibrarySection:=TLibrarySection.Create('',aModule);
-      ReadSection(SubObj,TPasLibrary(aModule).LibrarySection,aContext);
-      aContext.LastElement:=TPasLibrary(aModule).LibrarySection;
+      aModule.ImplementationSection:=TImplementationSection.Create('',aModule);
+      ReadSection(SubObj,aModule.ImplementationSection,aContext);
+      aContext.LastElement:=aModule.InterfaceSection;
       end;
-    end;
-  // ToDo: read precompiled aModule.InitializationSection
-  // ToDo: read precompiled aModule.FinalizationSection
-
-  aContext.BoolSwitches:=OldBoolSwitches;
+    if aModule.ClassType=TPasProgram then
+      begin
+      SubObj:=PreReadSection(Obj,'Program');
+      if SubObj<>nil then
+        begin
+        TPasProgram(aModule).ProgramSection:=TProgramSection.Create('',aModule);
+        ReadSection(SubObj,TPasProgram(aModule).ProgramSection,aContext);
+        aContext.LastElement:=TPasProgram(aModule).ProgramSection;
+        end;
+      end
+    else if aModule.ClassType=TPasLibrary then
+      begin
+      SubObj:=PreReadSection(Obj,'Library');
+      if SubObj<>nil then
+        begin
+        TPasLibrary(aModule).LibrarySection:=TLibrarySection.Create('',aModule);
+        ReadSection(SubObj,TPasLibrary(aModule).LibrarySection,aContext);
+        aContext.LastElement:=TPasLibrary(aModule).LibrarySection;
+        end;
+      end;
+    // ToDo: read precompiled aModule.InitializationSection
+    // ToDo: read precompiled aModule.FinalizationSection
+  finally
+    aContext.BoolSwitches:=OldBoolSwitches;
+  end;
 
   ResolvePending;
 end;
