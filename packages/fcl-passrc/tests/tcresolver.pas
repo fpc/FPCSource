@@ -429,6 +429,7 @@ type
     Procedure TestClassForwardNotResolved;
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
+    Procedure TestClass_MethodImplDuplicateFail;
     Procedure TestClass_MethodWithoutClassFail;
     Procedure TestClass_MethodInOtherUnitFail;
     Procedure TestClass_MethodWithParams;
@@ -6548,6 +6549,22 @@ begin
   '']);
   CheckResolverException('full method name expected, but short name found',
     nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestClass_MethodImplDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TObject.DoIt; begin end;',
+  'procedure TObject.DoIt; begin end;',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "TObject.DoIt" at afile.pp(6,23) at afile.pp (7,23)',
+    nDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestClass_MethodWithoutClassFail;

@@ -4514,15 +4514,19 @@ begin
   DeclProc:=FindProcOverload(ProcName,ImplProc,CurClassScope);
   if DeclProc=nil then
     RaiseIdentifierNotFound(20170216151720,ImplProc.Name,ImplProc.ProcType);
+  DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
 
   // connect method declaration and body
+  if DeclProcScope.ImplProc<>nil then
+    RaiseMsg(20180212094546,nDuplicateIdentifier,sDuplicateIdentifier,
+      [DeclProcScope.ImplProc.Name,GetElementSourcePosStr(DeclProcScope.ImplProc)],
+      ImplProc);
   if DeclProc.IsAbstract then
     RaiseMsg(20170216151722,nAbstractMethodsMustNotHaveImplementation,sAbstractMethodsMustNotHaveImplementation,[],ImplProc);
   if DeclProc.IsExternal then
     RaiseXExpectedButYFound(20170216151725,'method','external method',ImplProc);
   CheckProcSignatureMatch(DeclProc,ImplProc,true);
   ImplProcScope.DeclarationProc:=DeclProc;
-  DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
   DeclProcScope.ImplProc:=ImplProc;
 
   // replace arguments in scope with declaration arguments
