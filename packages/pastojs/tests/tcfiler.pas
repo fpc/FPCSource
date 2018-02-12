@@ -50,13 +50,25 @@ type
     procedure CheckRestoredSection(const Path: string; Orig, Rest: TPasSection); virtual;
     procedure CheckRestoredModule(const Path: string; Orig, Rest: TPasModule); virtual;
     procedure CheckRestoredScopeReference(const Path: string; Orig, Rest: TPasScope); virtual;
+    procedure CheckRestoredElementBase(const Path: string; Orig, Rest: TPasElementBase); virtual;
+    procedure CheckRestoredResolveData(const Path: string; Orig, Rest: TResolveData); virtual;
+    procedure CheckRestoredPasScope(const Path: string; Orig, Rest: TPasScope); virtual;
     procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPasModuleScope); virtual;
     procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope); virtual;
     procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPasSectionScope); virtual;
+    procedure CheckRestoredEnumTypeScope(const Path: string; Orig, Rest: TPasEnumTypeScope); virtual;
+    procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPasRecordScope); virtual;
+    procedure CheckRestoredClassScope(const Path: string; Orig, Rest: TPas2JSClassScope); virtual;
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
+    procedure CheckRestoredPropertyScope(const Path: string; Orig, Rest: TPasPropertyScope); virtual;
+    procedure CheckRestoredResolvedReference(const Path: string; Orig, Rest: TResolvedReference); virtual;
     procedure CheckRestoredCustomData(const Path: string; El: TPasElement; Orig, Rest: TObject); virtual;
+    procedure CheckRestoredReference(const Path: string; Orig, Rest: TPasElement); virtual;
+    procedure CheckRestoredElOrRef(const Path: string; Orig, OrigProp, Rest, RestProp: TPasElement); virtual;
     procedure CheckRestoredElement(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElementList(const Path: string; Orig, Rest: TFPList); virtual;
+    procedure CheckRestoredElRefList(const Path: string; OrigParent: TPasElement;
+      Orig: TFPList; RestParent: TPasElement; Rest: TFPList; AllowInSitu: boolean); virtual;
     procedure CheckRestoredPasExpr(const Path: string; Orig, Rest: TPasExpr); virtual;
     procedure CheckRestoredUnaryExpr(const Path: string; Orig, Rest: TUnaryExpr); virtual;
     procedure CheckRestoredBinaryExpr(const Path: string; Orig, Rest: TBinaryExpr); virtual;
@@ -91,7 +103,6 @@ type
     procedure CheckRestoredProperty(const Path: string; Orig, Rest: TPasProperty); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
-    procedure CheckRestoredReference(const Path: string; Orig, Rest: TPasElement); virtual;
   public
     property PJUWriter: TPJUWriter read FPJUWriter write FPJUWriter;
     property PJUReader: TPJUReader read FPJUReader write FPJUReader;
@@ -307,6 +318,25 @@ begin
   CheckRestoredReference(Path+'.Element',Orig.Element,Rest.Element);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredElementBase(const Path: string;
+  Orig, Rest: TPasElementBase);
+begin
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredResolveData(const Path: string;
+  Orig, Rest: TResolveData);
+begin
+  CheckRestoredElementBase(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredPasScope(const Path: string; Orig,
+  Rest: TPasScope);
+begin
+  CheckRestoredReference(Path+'.VisibilityContext',Orig.VisibilityContext,Rest.VisibilityContext);
+  CheckRestoredResolveData(Path,Orig,Rest);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
   Orig, Rest: TPasModuleScope);
 begin
@@ -320,6 +350,7 @@ begin
   CheckRestoredReference(Path+'.AssertMsgConstructor',Orig.AssertMsgConstructor,Rest.AssertMsgConstructor);
   CheckRestoredReference(Path+'.RangeErrorClass',Orig.RangeErrorClass,Rest.RangeErrorClass);
   CheckRestoredReference(Path+'.RangeErrorConstructor',Orig.RangeErrorConstructor,Rest.RangeErrorConstructor);
+  CheckRestoredPasScope(Path,Orig,Rest);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredIdentifierScope(
@@ -362,6 +393,7 @@ begin
   finally
     OrigList.Free;
   end;
+  CheckRestoredPasScope(Path,Orig,Rest);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSectionScope(const Path: string;
@@ -385,6 +417,38 @@ begin
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredEnumTypeScope(const Path: string;
+  Orig, Rest: TPasEnumTypeScope);
+begin
+  CheckRestoredElement(Path+'.CanonicalSet',Orig.CanonicalSet,Rest.CanonicalSet);
+  CheckRestoredIdentifierScope(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredRecordScope(const Path: string;
+  Orig, Rest: TPasRecordScope);
+begin
+  CheckRestoredIdentifierScope(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredClassScope(const Path: string;
+  Orig, Rest: TPas2JSClassScope);
+var
+  i: Integer;
+begin
+  CheckRestoredScopeReference(Path+'.AncestorScope',Orig.AncestorScope,Rest.AncestorScope);
+  CheckRestoredElement(Path+'.CanonicalClassOf',Orig.CanonicalClassOf,Rest.CanonicalClassOf);
+  CheckRestoredReference(Path+'.DirectAncestor',Orig.DirectAncestor,Rest.DirectAncestor);
+  CheckRestoredReference(Path+'.DefaultProperty',Orig.DefaultProperty,Rest.DefaultProperty);
+  if Orig.Flags<>Rest.Flags then
+    Fail(Path+'.Flags');
+  AssertEquals(Path+'.AbstractProcs.length',length(Orig.AbstractProcs),length(Rest.AbstractProcs));
+  for i:=0 to length(Orig.AbstractProcs)-1 do
+    CheckRestoredReference(Path+'.AbstractProcs['+IntToStr(i)+']',Orig.AbstractProcs[i],Rest.AbstractProcs[i]);
+  CheckRestoredReference(Path+'.NewInstanceFunction',Orig.NewInstanceFunction,Rest.NewInstanceFunction);
+
+  CheckRestoredIdentifierScope(Path,Orig,Rest);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
   Orig, Rest: TPas2JSProcedureScope);
 begin
@@ -405,6 +469,37 @@ begin
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredPropertyScope(const Path: string;
+  Orig, Rest: TPasPropertyScope);
+begin
+  CheckRestoredReference(Path+'.AncestorProp',Orig.AncestorProp,Rest.AncestorProp);
+  CheckRestoredIdentifierScope(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredResolvedReference(
+  const Path: string; Orig, Rest: TResolvedReference);
+var
+  C: TClass;
+begin
+  if Orig.Flags<>Rest.Flags then
+    Fail(Path+'.Flags');
+  if Orig.Access<>Rest.Access then
+    AssertEquals(Path+'.Access',PJUResolvedRefAccessNames[Orig.Access],PJUResolvedRefAccessNames[Rest.Access]);
+  if not CheckRestoredObject(Path+'.Context',Orig.Context,Rest.Context) then exit;
+  if Orig.Context<>nil then
+    begin
+    C:=Orig.Context.ClassType;
+    if C=TResolvedRefCtxConstructor then
+      CheckRestoredReference(Path+'.Context[TResolvedRefCtxConstructor].Typ',
+        TResolvedRefCtxConstructor(Orig.Context).Typ,
+        TResolvedRefCtxConstructor(Rest.Context).Typ);
+    end;
+  CheckRestoredScopeReference(Path+'.WithExprScope',Orig.WithExprScope,Rest.WithExprScope);
+  CheckRestoredReference(Path+'.Declaration',Orig.Declaration,Rest.Declaration);
+
+  CheckRestoredResolveData(Path,Orig,Rest);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredCustomData(const Path: string;
   El: TPasElement; Orig, Rest: TObject);
 var
@@ -413,14 +508,50 @@ begin
   if not CheckRestoredObject(Path,Orig,Rest) then exit;
 
   C:=Orig.ClassType;
-  if C=TPasModuleScope then
+  if C=TResolvedReference then
+    CheckRestoredResolvedReference(Path+'[TResolvedReference]',TResolvedReference(Orig),TResolvedReference(Rest))
+  else if C=TPasModuleScope then
     CheckRestoredModuleScope(Path+'[TPasModuleScope]',TPasModuleScope(Orig),TPasModuleScope(Rest))
   else if C=TPasSectionScope then
     CheckRestoredSectionScope(Path+'[TPasSectionScope]',TPasSectionScope(Orig),TPasSectionScope(Rest))
+  else if C=TPasEnumTypeScope then
+    CheckRestoredEnumTypeScope(Path+'[TPasEnumTypeScope]',TPasEnumTypeScope(Orig),TPasEnumTypeScope(Rest))
+  else if C=TPasRecordScope then
+    CheckRestoredRecordScope(Path+'[TPasRecordScope]',TPasRecordScope(Orig),TPasRecordScope(Rest))
+  else if C=TPas2JSClassScope then
+    CheckRestoredClassScope(Path+'[TPas2JSClassScope]',TPas2JSClassScope(Orig),TPas2JSClassScope(Rest))
   else if C=TPas2JSProcedureScope then
     CheckRestoredProcScope(Path+'[TPas2JSProcedureScope]',TPas2JSProcedureScope(Orig),TPas2JSProcedureScope(Rest))
+  else if C=TPasPropertyScope then
+    CheckRestoredPropertyScope(Path+'[TPasPropertyScope]',TPasPropertyScope(Orig),TPasPropertyScope(Rest))
   else
     Fail(Path+': unknown CustomData "'+GetObjName(Orig)+'" El='+GetObjName(El));
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredReference(const Path: string;
+  Orig, Rest: TPasElement);
+begin
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
+  AssertEquals(Path+': Name',Orig.Name,Rest.Name);
+
+  if Orig is TPasUnresolvedSymbolRef then
+    exit; // compiler types and procs are the same in every unit -> skip checking unit
+
+  CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredElOrRef(const Path: string; Orig,
+  OrigProp, Rest, RestProp: TPasElement);
+begin
+  if not CheckRestoredObject(Path,OrigProp,RestProp) then exit;
+  if Orig<>OrigProp.Parent then
+    begin
+    if Rest=RestProp.Parent then
+      Fail(Path+' Orig "'+GetObjName(OrigProp)+'" is reference Orig.Parent='+GetObjName(Orig)+', Rest "'+GetObjName(RestProp)+'" is insitu');
+    CheckRestoredReference(Path,OrigProp,RestProp);
+    end
+  else
+    CheckRestoredElement(Path,OrigProp,RestProp);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredElement(const Path: string; Orig,
@@ -440,15 +571,7 @@ begin
     Fail(Path+': Hints');
   AssertEquals(Path+': HintMessage',Orig.HintMessage,Rest.HintMessage);
 
-  if Orig.Parent=nil then
-    begin
-    if Rest.Parent<>nil then
-      Fail(Path+': Orig.Parent=nil Rest.Parent='+GetObjName(Rest.Parent));
-    end
-  else if Rest.Parent=nil then
-    Fail(Path+': Orig.Parent='+GetObjName(Orig.Parent)+' Rest.Parent=nil')
-  else if Orig.Parent.ClassType<>Rest.Parent.ClassType then
-    Fail(Path+': Orig.Parent='+GetObjName(Orig.Parent)+' Rest.Parent='+GetObjName(Rest.Parent));
+  CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
 
   CheckRestoredCustomData(Path+'.CustomData',Rest,Orig.CustomData,Rest.CustomData);
 
@@ -568,6 +691,32 @@ begin
     end;
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredElRefList(const Path: string;
+  OrigParent: TPasElement; Orig: TFPList; RestParent: TPasElement;
+  Rest: TFPList; AllowInSitu: boolean);
+var
+  OrigItem, RestItem: TObject;
+  i: Integer;
+  SubPath: String;
+begin
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
+  AssertEquals(Path+'.Count',Orig.Count,Rest.Count);
+  for i:=0 to Orig.Count-1 do
+    begin
+    SubPath:=Path+'['+IntToStr(i)+']';
+    OrigItem:=TObject(Orig[i]);
+    if not (OrigItem is TPasElement) then
+      Fail(SubPath+' Orig='+GetObjName(OrigItem));
+    RestItem:=TObject(Rest[i]);
+    if not (RestItem is TPasElement) then
+      Fail(SubPath+' Rest='+GetObjName(RestItem));
+    if AllowInSitu then
+      CheckRestoredElOrRef(SubPath,OrigParent,TPasElement(OrigItem),RestParent,TPasElement(RestItem))
+    else
+      CheckRestoredReference(SubPath,TPasElement(OrigItem),TPasElement(RestItem));
+    end;
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredPasExpr(const Path: string; Orig,
   Rest: TPasExpr);
 begin
@@ -656,27 +805,27 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredAliasType(const Path: string;
   Orig, Rest: TPasAliasType);
 begin
-  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
+  CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType);
   CheckRestoredElement(Path+'.Expr',Orig.Expr,Rest.Expr);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredPointerType(const Path: string;
   Orig, Rest: TPasPointerType);
 begin
-  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
+  CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSpecializedType(
   const Path: string; Orig, Rest: TPasSpecializeType);
 begin
   CheckRestoredElementList(Path+'.Params',Orig.Params,Rest.Params);
-  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
+  CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredInlineSpecializedExpr(
   const Path: string; Orig, Rest: TInlineSpecializeExpr);
 begin
-  CheckRestoredElement(Path+'.DestType',Orig.DestType,Rest.DestType);
+  CheckRestoredElOrRef(Path+'.DestType',Orig,Orig.DestType,Rest,Rest.DestType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredRangeType(const Path: string;
@@ -691,13 +840,13 @@ begin
   CheckRestoredPasExprArray(Path+'.Ranges',Orig.Ranges,Rest.Ranges);
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PJUPackModeNames[Orig.PackMode]+' Rest='+PJUPackModeNames[Rest.PackMode]);
-  CheckRestoredElement(Path+'.ElType',Orig.ElType,Rest.ElType);
+  CheckRestoredElOrRef(Path+'.ElType',Orig,Orig.ElType,Rest,Rest.ElType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredFileType(const Path: string; Orig,
   Rest: TPasFileType);
 begin
-  CheckRestoredElement(Path+'.ElType',Orig.ElType,Rest.ElType);
+  CheckRestoredElOrRef(Path+'.ElType',Orig,Orig.ElType,Rest,Rest.ElType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredEnumValue(const Path: string;
@@ -715,7 +864,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredSetType(const Path: string; Orig,
   Rest: TPasSetType);
 begin
-  CheckRestoredElement(Path+'.EnumType',Orig.EnumType,Rest.EnumType);
+  CheckRestoredElOrRef(Path+'.EnumType',Orig,Orig.EnumType,Rest,Rest.EnumType);
   AssertEquals(Path+'.IsPacked',Orig.IsPacked,Rest.IsPacked);
 end;
 
@@ -732,7 +881,7 @@ begin
   if Orig.PackMode<>Rest.PackMode then
     Fail(Path+'.PackMode Orig='+PJUPackModeNames[Orig.PackMode]+' Rest='+PJUPackModeNames[Rest.PackMode]);
   CheckRestoredElementList(Path+'.Members',Orig.Members,Rest.Members);
-  CheckRestoredElement(Path+'.VariantEl',Orig.VariantEl,Rest.VariantEl);
+  CheckRestoredElOrRef(Path+'.VariantEl',Orig,Orig.VariantEl,Rest,Rest.VariantEl);
   CheckRestoredElementList(Path+'.Variants',Orig.Variants,Rest.Variants);
   CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
 end;
@@ -744,15 +893,15 @@ begin
     Fail(Path+'.PackMode Orig='+PJUPackModeNames[Orig.PackMode]+' Rest='+PJUPackModeNames[Rest.PackMode]);
   if Orig.ObjKind<>Rest.ObjKind then
     Fail(Path+'.ObjKind Orig='+PJUObjKindNames[Orig.ObjKind]+' Rest='+PJUObjKindNames[Rest.ObjKind]);
-  CheckRestoredElement(Path+'.AncestorType',Orig.AncestorType,Rest.AncestorType);
-  CheckRestoredElement(Path+'.HelperForType',Orig.HelperForType,Rest.HelperForType);
+  CheckRestoredReference(Path+'.AncestorType',Orig.AncestorType,Rest.AncestorType);
+  CheckRestoredReference(Path+'.HelperForType',Orig.HelperForType,Rest.HelperForType);
   AssertEquals(Path+'.IsForward',Orig.IsForward,Rest.IsForward);
   AssertEquals(Path+'.IsExternal',Orig.IsExternal,Rest.IsExternal);
   // irrelevant: IsShortDefinition
   CheckRestoredElement(Path+'.GUIDExpr',Orig.GUIDExpr,Rest.GUIDExpr);
   CheckRestoredElementList(Path+'.Members',Orig.Members,Rest.Members);
   AssertEquals(Path+'.Modifiers',Orig.Modifiers.Text,Rest.Modifiers.Text);
-  CheckRestoredElementList(Path+'.Interfaces',Orig.Interfaces,Rest.Interfaces);
+  CheckRestoredElRefList(Path+'.Interfaces',Orig,Orig.Interfaces,Rest,Rest.Interfaces,false);
   CheckRestoredElementList(Path+'.GenericTemplateTypes',Orig.GenericTemplateTypes,Rest.GenericTemplateTypes);
   AssertEquals(Path+'.ExternalNameSpace',Orig.ExternalNameSpace,Rest.ExternalNameSpace);
   AssertEquals(Path+'.ExternalName',Orig.ExternalName,Rest.ExternalName);
@@ -763,7 +912,7 @@ procedure TCustomTestPrecompile.CheckRestoredArgument(const Path: string; Orig,
 begin
   if Orig.Access<>Rest.Access then
     Fail(Path+'.Access Orig='+PJUArgumentAccessNames[Orig.Access]+' Rest='+PJUArgumentAccessNames[Rest.Access]);
-  CheckRestoredElement(Path+'.ArgType',Orig.ArgType,Rest.ArgType);
+  CheckRestoredElOrRef(Path+'.ArgType',Orig,Orig.ArgType,Rest,Rest.ArgType);
   CheckRestoredElement(Path+'.ValueExpr',Orig.ValueExpr,Rest.ValueExpr);
 end;
 
@@ -780,7 +929,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredResultElement(const Path: string;
   Orig, Rest: TPasResultElement);
 begin
-  CheckRestoredElement(Path+'.ResultType',Orig.ResultType,Rest.ResultType);
+  CheckRestoredElOrRef(Path+'.ResultType',Orig,Orig.ResultType,Rest,Rest.ResultType);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredFunctionType(const Path: string;
@@ -799,7 +948,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredVariable(const Path: string; Orig,
   Rest: TPasVariable);
 begin
-  CheckRestoredElement(Path+'.VarType',Orig.VarType,Rest.VarType);
+  CheckRestoredElOrRef(Path+'.VarType',Orig,Orig.VarType,Rest,Rest.VarType);
   if Orig.VarModifiers<>Rest.VarModifiers then
     Fail(Path+'.VarModifiers');
   CheckRestoredElement(Path+'.LibraryName',Orig.LibraryName,Rest.LibraryName);
@@ -864,18 +1013,6 @@ begin
     Fail(Path+'.OperatorType Orig='+PJUOperatorTypeNames[Orig.OperatorType]+' Rest='+PJUOperatorTypeNames[Rest.OperatorType]);
   AssertEquals(Path+'.TokenBased',Orig.TokenBased,Rest.TokenBased);
   CheckRestoredProcedure(Path,Orig,Rest);
-end;
-
-procedure TCustomTestPrecompile.CheckRestoredReference(const Path: string;
-  Orig, Rest: TPasElement);
-begin
-  if not CheckRestoredObject(Path,Orig,Rest) then exit;
-  AssertEquals(Path+': Name',Orig.Name,Rest.Name);
-
-  if Orig is TPasUnresolvedSymbolRef then
-    exit; // compiler types and procs are the same in every unit -> skip checking unit
-
-  CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
 end;
 
 { TTestPrecompile }

@@ -378,6 +378,7 @@ type
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
     Procedure TestClass_PropertyOverride;
+    Procedure TestClass_PropertyIncVisibility;
     Procedure TestClass_Assigned;
     Procedure TestClass_WithClassDoCreate;
     Procedure TestClass_WithClassInstDoProperty;
@@ -8421,6 +8422,56 @@ begin
     '$mod.Obj.SetItem($mod.Obj.GetItem());',
     '$mod.Car.SetItem($mod.Car.GetBag());',
     '']));
+end;
+
+procedure TTestModule.TestClass_PropertyIncVisibility;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type',
+    '  TNumber = longint;',
+    '  TInteger = longint;',
+    '  TObject = class',
+    '  private',
+    '    function GetItems(Index: TNumber): TInteger; virtual; abstract;',
+    '    procedure SetItems(Index: TInteger; Value: TNumber); virtual; abstract;',
+    '  protected',
+    '    property Items[Index: TNumber]: longint read GetItems write SetItems;',
+    '  end;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'type',
+  '  TBird = class',
+  '  public',
+  '    property Items;',
+  '  end;',
+  'procedure DoIt(i: TInteger);',
+  'begin',
+  'end;',
+  'var b: TBird;',
+  'begin',
+  '  b.Items[1]:=2;',
+  '  b.Items[3]:=b.Items[4];',
+  '  DoIt(b.Items[5]);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_PropertyIncVisibility',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TBird", pas.unit1.TObject, function () {',
+    '});',
+    'this.DoIt = function (i) {',
+    '};',
+    'this.b = null;'
+    ]),
+    LinesToStr([ // $mod.$main
+    '$mod.b.SetItems(1, 2);',
+    '$mod.b.SetItems(3, $mod.b.GetItems(4));',
+    '$mod.DoIt($mod.b.GetItems(5));'
+    ]));
 end;
 
 procedure TTestModule.TestClass_Assigned;

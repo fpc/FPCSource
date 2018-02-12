@@ -395,6 +395,16 @@ const
     'GrpOverload'
     );
 
+  PJUResolvedRefAccessNames: array[TResolvedRefAccess] of string = (
+    'None',
+    'Read',
+    'Assign',
+    'ReadAndAssign',
+    'VarParam',
+    'OutParam',
+    'ParamToUnknownProc'
+    );
+
 type
   { TPJUInitialFlags }
 

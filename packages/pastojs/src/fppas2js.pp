@@ -2513,6 +2513,7 @@ var
   ArgResolved: TPasResolverResult;
   ParentC: TClass;
   IndexExpr: TPasExpr;
+  PropArgs: TFPList;
 begin
   inherited FinishPropertyOfClass(PropEl);
 
@@ -2535,23 +2536,24 @@ begin
   Setter:=GetPasPropertySetter(PropEl);
   SetterIsBracketAccessor:=IsExternalBracketAccessor(Setter);
   IndexExpr:=GetPasPropertyIndex(PropEl);
+  PropArgs:=GetPasPropertyArgs(PropEl);
   if GetterIsBracketAccessor then
     begin
-    if (PropEl.Args.Count<>1) or (IndexExpr<>nil) then
+    if (PropArgs.Count<>1) or (IndexExpr<>nil) then
       RaiseMsg(20170403001743,nBracketAccessorOfExternalClassMustHaveOneParameter,
         sBracketAccessorOfExternalClassMustHaveOneParameter,
         [],PropEl);
     end;
   if SetterIsBracketAccessor then
     begin
-    if (PropEl.Args.Count<>1) or (IndexExpr<>nil) then
+    if (PropArgs.Count<>1) or (IndexExpr<>nil) then
       RaiseMsg(20170403001806,nBracketAccessorOfExternalClassMustHaveOneParameter,
         sBracketAccessorOfExternalClassMustHaveOneParameter,
         [],PropEl);
     end;
   if GetterIsBracketAccessor or SetterIsBracketAccessor then
     begin
-    Arg:=TPasArgument(PropEl.Args[0]);
+    Arg:=TPasArgument(PropArgs[0]);
     if not (Arg.Access in [argDefault,argConst]) then
       RaiseMsg(20170403090225,nXExpectedButYFound,sXExpectedButYFound,
         ['default or "const"',AccessNames[Arg.Access]],PropEl);
@@ -5670,7 +5672,7 @@ var
       exit(false);
     Result:=true;
     // bracket accessor of external class
-    if Prop.Args.Count<>1 then
+    if AContext.Resolver.GetPasPropertyArgs(Prop).Count<>1 then
       RaiseInconsistency(20170403003753);
     // bracket accessor of external class  -> create  PathEl[param]
     Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El.Params[0]));
@@ -5732,6 +5734,7 @@ var
     OldAccess: TCtxAccess;
     IndexExpr: TPasExpr;
     Value: TResEvalValue;
+    PropArgs: TFPList;
   begin
     Result:=nil;
     AssignContext:=nil;
@@ -5762,18 +5765,19 @@ var
       Elements:=Call.Args.Elements;
       OldAccess:=ArgContext.Access;
       // add params
+      PropArgs:=AContext.Resolver.GetPasPropertyArgs(Prop);
       i:=0;
-      while i<Prop.Args.Count do
+      while i<PropArgs.Count do
         begin
-        TargetArg:=TPasArgument(Prop.Args[i]);
+        TargetArg:=TPasArgument(PropArgs[i]);
         Arg:=CreateProcCallArg(El.Params[i],TargetArg,ArgContext);
         Elements.AddElement.Expr:=Arg;
         inc(i);
         end;
       // fill up default values
-      while i<Prop.Args.Count do
+      while i<PropArgs.Count do
         begin
-        TargetArg:=TPasArgument(Prop.Args[i]);
+        TargetArg:=TPasArgument(PropArgs[i]);
         if TargetArg.ValueExpr=nil then
           begin
           {$IFDEF VerbosePas2JS}
@@ -5927,7 +5931,7 @@ begin
     // astring[]
     ConvertStringBracket(ResolvedEl)
   else if (ResolvedEl.IdentEl is TPasProperty)
-      and (TPasProperty(ResolvedEl.IdentEl).Args.Count>0) then
+      and (AContext.Resolver.GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
     // aproperty[]
     ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
   else if ResolvedEl.BaseType=btContext then
