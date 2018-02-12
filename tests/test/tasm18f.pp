@@ -1,6 +1,6 @@
 { %FAIL }
 { %CPU=i8086,i386,x86_64 }
-program tasm18e;
+program tasm18f;
 
 {$ifdef FPC}
   {$asmmode intel}
