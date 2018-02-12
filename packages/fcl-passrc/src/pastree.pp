@@ -868,6 +868,7 @@ type
 
   TPasProperty = class(TPasVariable)
   private
+    FArgs: TFPList;
     FResolvedType : TPasType;
     function GetIsClass: boolean;
     procedure SetIsClass(AValue: boolean);
@@ -887,13 +888,13 @@ type
 
     StoredAccessor: TPasExpr;
     DefaultExpr: TPasExpr;
-    Args: TFPList;        // List of TPasArgument objects
     ReadAccessorName: string; // not used by resolver
     WriteAccessorName: string; // not used by resolver
     ImplementsName: string; // not used by resolver
     StoredAccessorName: string; // not used by resolver
     DispIDReadOnly,
     IsDefault, IsNodefault: Boolean;
+    property Args: TFPList read FArgs; // List of TPasArgument objects
     property IsClass: boolean read GetIsClass write SetIsClass;
     Function ResolvedType : TPasType;
     Function IndexValue : String;
@@ -2846,7 +2847,7 @@ end;
 constructor TPasProperty.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
-  Args := TFPList.Create;
+  FArgs := TFPList.Create;
 end;
 
 destructor TPasProperty.Destroy;
@@ -2855,7 +2856,7 @@ var
 begin
   for i := 0 to Args.Count - 1 do
     TPasArgument(Args[i]).Release;
-  FreeAndNil(Args);
+  FreeAndNil(FArgs);
   ReleaseAndNil(TPasElement(IndexExpr));
   ReleaseAndNil(TPasElement(ReadAccessor));
   ReleaseAndNil(TPasElement(WriteAccessor));
