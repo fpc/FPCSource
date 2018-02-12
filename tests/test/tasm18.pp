@@ -18,6 +18,13 @@ type
   foo2 = record
     bb1, bb2: byte;
   end;
+  foo32 = record
+    b1, b2, b3, b4: byte;
+  end;
+  foo32_2 = record
+    b1: byte;
+    l: longint;
+  end;
 
 const
   expect1: array [0..$A9] of byte = (
@@ -66,6 +73,21 @@ const
     $F7,$45,$04,$01,$00,  { TEST    WORD PTR [DI+04],0001 }
     $F7,$45,$04,$01,$00   { TEST    WORD PTR [DI+04],0001 }
   );
+{$ifdef FPC}
+  expect2: array [0..$4C] of byte = (
+    $66,$F7,$05,$01,$00,$00,$00,      { TEST    DWORD PTR [DI],00000001    }
+    $66,$F7,$45,$01,$01,$00,$00,$00,  { TEST    DWORD PTR [DI+01],00000001 }
+
+    $66,$F7,$05,$01,$00,$00,$00,      { TEST    DWORD PTR [DI],00000001    }
+    $66,$F7,$05,$01,$00,$00,$00,      { TEST    DWORD PTR [DI],00000001    }
+    $66,$F7,$45,$01,$01,$00,$00,$00,  { TEST    DWORD PTR [DI+01],00000001 }
+    $66,$F7,$45,$03,$01,$00,$00,$00,  { TEST    DWORD PTR [DI+03],00000001 }
+    $66,$F7,$45,$FF,$01,$00,$00,$00,  { TEST    DWORD PTR [DI-01],00000001 }
+    $66,$F7,$45,$FD,$01,$00,$00,$00,  { TEST    DWORD PTR [DI-03],00000001 }
+    $66,$F7,$45,$04,$01,$00,$00,$00,  { TEST    DWORD PTR [DI+04],00000001 }
+    $66,$F7,$45,$04,$01,$00,$00,$00   { TEST    DWORD PTR [DI+04],00000001 }
+  );
+{$endif FPC}
 
 
 procedure test1; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
@@ -116,6 +138,26 @@ asm
   test word ptr [di+foo.w+foo.b2], cval  { test word ptr [di+4], 1 }
 end;
 
+{$ifdef FPC}
+{ 32-bit test }
+{ FPC only, since TP7 doesn't support 32-bit }
+{$asmcpu 80386}
+procedure test2; assembler; {$IFDEF FPC_MM_HUGE}nostackframe;{$ENDIF}
+asm
+  test [di+foo32], cval                   { test dword ptr [di], 1   }
+  test [di+foo32_2.l], cval               { test dword ptr [di+1], 1 }
+
+  test dword ptr [di+foo2], cval          { test dword ptr [di], 1   }
+  test dword ptr [di+foo], cval           { test dword ptr [di], 1   }
+  test dword ptr [di+foo.w], cval         { test dword ptr [di+1], 1 }
+  test dword ptr [di+foo.b2], cval        { test dword ptr [di+3], 1 }
+  test dword ptr [di-foo.w], cval         { test dword ptr [di-1], 1 }
+  test dword ptr [di-foo.b2], cval        { test dword ptr [di-3], 1 }
+  test dword ptr [di+foo.b2+foo.w], cval  { test dword ptr [di+4], 1 }
+  test dword ptr [di+foo.w+foo.b2], cval  { test dword ptr [di+4], 1 }
+end;
+{$endif FPC}
+
 procedure Error;
 begin
   Writeln('Error!');
@@ -140,6 +182,10 @@ end;
 begin
   if not CompareCode(CodePointer(@test1), @expect1, SizeOf(expect1)) then
     Error;
+{$ifdef FPC}
+  if not CompareCode(CodePointer(@test2), @expect2, SizeOf(expect2)) then
+    Error;
+{$endif FPC}
 
   Writeln('Ok!');
 end.
