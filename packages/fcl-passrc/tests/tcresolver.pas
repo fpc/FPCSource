@@ -427,6 +427,7 @@ type
     Procedure TestClassForward;
     Procedure TestClassForwardAsAncestorFail;
     Procedure TestClassForwardNotResolved;
+    Procedure TestClassForwardDuplicateFail;
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodImplDuplicateFail;
@@ -6516,6 +6517,19 @@ begin
   Add('begin');
   CheckResolverException(sForwardTypeNotResolved,
     nForwardTypeNotResolved);
+end;
+
+procedure TTestResolver.TestClassForwardDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class;',
+  '  TObject = class;',
+  '  TObject = class',
+  '  end;',
+  'begin']);
+  CheckResolverException('Duplicate identifier "TObject" at afile.pp(3,10)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestClass_Method;

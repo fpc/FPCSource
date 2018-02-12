@@ -5191,9 +5191,24 @@ var
   aModifier: String;
   IsSealed: Boolean;
   CanonicalSelf: TPasClassOfType;
+  ParentDecls: TPasDeclarations;
+  Decl: TPasElement;
 begin
   if aClass.IsForward then
+    begin
+    // check for duplicate forwards
+    ParentDecls:=aClass.Parent as TPasDeclarations;
+    for i:=0 to ParentDecls.Declarations.Count-1 do
+      begin
+      Decl:=TPasElement(ParentDecls.Declarations[i]);
+      if (CompareText(Decl.Name,aClass.Name)=0)
+          and (Decl<>aClass) then
+        RaiseMsg(20180212144132,nDuplicateIdentifier,sDuplicateIdentifier,
+          [Decl.Name,GetElementSourcePosStr(Decl)],aClass);
+      end;
     exit;
+    end;
+
   if aClass.ObjKind<>okClass then
     begin
     if (aClass.ObjKind=okInterface)
@@ -7103,7 +7118,7 @@ begin
   if not (TopScope is TPasSectionScope) then
     RaiseNotYetImplemented(20171225110934,El,'nested classes');
 
-  Duplicate:=TPasIdentifierScope(TopScope).FindIdentifier(El.Name);
+  Duplicate:=TPasIdentifierScope(TopScope).FindLocalIdentifier(El.Name);
   //if Duplicate<>nil then
     //writeln('  Duplicate=',GetObjName(Duplicate.Element),' ',ord(Duplicate.Kind));
 
