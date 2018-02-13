@@ -1876,6 +1876,8 @@ unit cgcpu;
          regs : tcpuregisterset;
          reg : tsuperregister;
       begin
+        if current_procinfo.procdef.isempty then
+          exit;
         if po_interrupt in current_procinfo.procdef.procoptions then
           begin
             { check if the framepointer is actually used, this is done here because
@@ -1898,11 +1900,16 @@ unit cgcpu;
             if current_procinfo.framepointer<>NR_NO then
               regs:=regs+[RS_R28,RS_R29];
 
+            { we clear r1 }
+            include(regs,RS_R1);
+
             regs:=regs+[RS_R0];
 
             for reg:=RS_R31 downto RS_R0 do
               if reg in regs then
                 list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
+
+            list.concat(taicpu.op_reg(A_CLR,NR_R1));
 
             { Save SREG }
             list.concat(taicpu.op_reg_const(A_IN, NR_R0, $3F));
@@ -1964,27 +1971,32 @@ unit cgcpu;
           exit;
         if po_interrupt in current_procinfo.procdef.procoptions then
           begin
-            regs:=rg[R_INTREGISTER].used_in_proc;
-            if current_procinfo.framepointer<>NR_NO then
+            if not(current_procinfo.procdef.isempty) then
               begin
-                regs:=regs+[RS_R28,RS_R29];
-                LocalSize:=current_procinfo.calc_stackframe_size;
-                a_adjust_sp(list,LocalSize);
+                regs:=rg[R_INTREGISTER].used_in_proc;
+                if current_procinfo.framepointer<>NR_NO then
+                  begin
+                    regs:=regs+[RS_R28,RS_R29];
+                    LocalSize:=current_procinfo.calc_stackframe_size;
+                    a_adjust_sp(list,LocalSize);
+                  end;
+
+                { we clear r1 }
+                include(regs,RS_R1);
+
+                { Reload SREG }
+                regs:=regs+[RS_R0];
+
+                list.concat(taicpu.op_reg(A_POP, NR_R0));
+                list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
+
+                for reg:=RS_R0 to RS_R31 do
+                  if reg in regs then
+                    list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
               end;
-
-            { Reload SREG }
-            regs:=regs+[RS_R0];
-
-            list.concat(taicpu.op_reg(A_POP, NR_R0));
-            list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
-
-            for reg:=RS_R0 to RS_R31 do
-              if reg in regs then
-                list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-
             list.concat(taicpu.op_none(A_RETI));
           end
-        else if not(nostackframe) then
+        else if not(nostackframe) and not(current_procinfo.procdef.isempty) then
           begin
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             if current_procinfo.framepointer<>NR_NO then
