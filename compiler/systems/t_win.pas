@@ -1251,6 +1251,7 @@ implementation
             Add('  . = ALIGN(__section_alignment__);');
             Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
             Add('  {');
+            Add('    __text_start__ = . ;');
             Add('    *(.init)');
             add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
             Add('    *(SORT(.text$*))');
