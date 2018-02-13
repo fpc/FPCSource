@@ -613,7 +613,7 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
     {eletype,}eletypemngd : pointer;
   begin
     { the destination is overwritten in each case, so clear it }
-    fpc_dynarray_clear(dest,ti);
+    fpc_dynarray_clear(dest,pti);
 
     { sanity check }
     if length(sarr)=0 then
