@@ -3875,6 +3875,14 @@ begin
           option.paratargetdbg:=dbg_none;
           exclude(init_settings.moduleswitches,cs_debuginfo);
         end;
+      { Some assemblers, like clang, do not support
+        stabs debugging format, switch to dwardé in that case }
+      if (af_no_stabs in asminfos[option.paratargetasm]^.flags) and
+         (option.paratargetdbg=dbg_stabs) then
+        begin
+          option.paratargetdbg:=dbg_dwarf2;
+        end;
+
     end;
   {TOptionheck a second time as we might have changed assembler just above }
   option.checkoptionscompatibility;
