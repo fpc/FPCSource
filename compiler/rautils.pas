@@ -816,6 +816,7 @@ var
     (e.g. var tralala: word absolute moo[5]; ) }
   absoffset: asizeint=0;
   harrdef: tarraydef;
+  tmpprocinfo: tprocinfo;
 Begin
   SetupVar:=false;
   asmsearchsym(s,sym,srsymtable);
@@ -928,6 +929,17 @@ Begin
           paravarsym,
           localvarsym :
             begin
+              tmpprocinfo:=current_procinfo;
+              while assigned(tmpprocinfo) do
+                begin
+                  if (sym.owner=tmpprocinfo.procdef.localst) or
+                     (sym.owner=tmpprocinfo.procdef.parast) then
+                    begin
+                      tmpprocinfo.procdef.init_paraloc_info(calleeside);
+                      break;
+                    end;
+                  tmpprocinfo:=tmpprocinfo.parent;
+                end;
               if opr.typ=OPR_REFERENCE then
                 begin
                   indexreg:=opr.ref.base;
