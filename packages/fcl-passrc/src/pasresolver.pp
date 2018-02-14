@@ -4101,7 +4101,12 @@ begin
     ResolveExpr(Expr,rraRead);
     ComputeElement(Expr,RangeResolved,[rcConstant]);
     if (RangeResolved.IdentEl<>nil) and not (RangeResolved.IdentEl is TPasType) then
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.FinishArrayType ',GetResolverResultDbg(RangeResolved));
+      {$ENDIF}
       RaiseXExpectedButYFound(20170216151607,'range',GetElementTypeName(RangeResolved.IdentEl),Expr);
+      end;
     if (RangeResolved.BaseType=btRange) then
       begin
       if (RangeResolved.SubType in btArrayRangeTypes) then
@@ -4111,6 +4116,8 @@ begin
         TypeEl:=ResolveAliasType(RangeResolved.TypeEl);
         if TypeEl is TPasRangeType then
           // custom range
+        else if TypeEl is TPasEnumType then
+          // anonymous enum range
         else
           RaiseXExpectedButYFound(20171009193629,'range',GetElementTypeName(RangeResolved.IdentEl),Expr);
         end
@@ -7699,6 +7706,7 @@ begin
           begin
           CheckSetLitElCompatible(Bin.left,Bin.right,LeftResolved,RightResolved);
           ResolvedEl:=LeftResolved;
+          ResolvedEl.IdentEl:=nil;
           ResolvedEl.SubType:=ResolvedEl.BaseType;
           ResolvedEl.BaseType:=btRange;
           ResolvedEl.ExprEl:=Bin;

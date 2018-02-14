@@ -3425,11 +3425,15 @@ begin
   '  TEnum = (Red, Green, Blue);',
   '  TEnumRg = green..blue;',
   '  TArr = array[TEnumRg] of byte;',
+  '  TArr2 = array[green..blue] of byte;',
   'var',
   '  a: TArr;',
   '  b: TArr = (3,4);',
+  '  c: TArr2 = (5,6);',
   'begin',
-  '  a[green] := b[blue];']);
+  '  a[green] := b[blue];',
+  '  c[green] := c[blue];',
+  '']);
   ConvertProgram;
   CheckSource('TestEnumRange_Array',
     LinesToStr([ // statements
@@ -3443,9 +3447,11 @@ begin
     '};',
     'this.a = rtl.arraySetLength(null, 0, 2);',
     'this.b = [3, 4];',
+    'this.c = [5, 6];',
     '']),
     LinesToStr([
     '  $mod.a[$mod.TEnum.Green - 1] = $mod.b[$mod.TEnum.Blue - 1];',
+    '  $mod.c[$mod.TEnum.Green - 1] = $mod.c[$mod.TEnum.Blue - 1];',
     '']));
 end;
 
@@ -6271,20 +6277,21 @@ end;
 procedure TTestModule.TestArrayEnumTypeRange;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TEnum = (red,blue);');
-  Add('  TEnumArray = array[TEnum] of longint;');
-  Add('var');
-  Add('  e: TEnum;');
-  Add('  i: longint;');
-  Add('  a: TEnumArray;');
-  Add('  numbers: TEnumArray = (1,2);');
-  Add('  names: array[TEnum] of string = (''red'',''blue'');');
-  Add('begin');
-  Add('  e:=low(a);');
-  Add('  e:=high(a);');
-  Add('  i:=a[red];');
-  Add('  a[e]:=a[e];');
+  Add([
+  'type',
+  '  TEnum = (red,blue);',
+  '  TEnumArray = array[TEnum] of longint;',
+  'var',
+  '  e: TEnum;',
+  '  i: longint;',
+  '  a: TEnumArray;',
+  '  numbers: TEnumArray = (1,2);',
+  '  names: array[TEnum] of string = (''red'',''blue'');',
+  'begin',
+  '  e:=low(a);',
+  '  e:=high(a);',
+  '  i:=a[red];',
+  '  a[e]:=a[e];']);
   ConvertProgram;
   CheckSource('TestArrayEnumTypeRange',
     LinesToStr([ // statements
