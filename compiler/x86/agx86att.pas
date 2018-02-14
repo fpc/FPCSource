@@ -451,7 +451,7 @@ interface
             asmbin : 'clang';
             asmcmd : '-c -o $OBJ $EXTRAOPT -arch x86_64 $DARWINVERSION -x assembler $ASM';
             supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
@@ -525,7 +525,7 @@ interface
             asmbin : 'clang';
             asmcmd : '-c -o $OBJ $EXTRAOPT -arch i386 $DARWINVERSION -x assembler $ASM';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
-            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_no_stabs];
             labelprefix : 'L';
             comment : '# ';
             dollarsign: '$';
