@@ -296,19 +296,6 @@ unit cpupara;
         if handled then
           exit;
 
-        { darwin/x86 requires that results < sizeof(aint) are sign/zero
-          extended to sizeof(aint) }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (side=calleeside) and
-           (result.intsize>0) and
-           (result.intsize<sizeof(aint)) then
-          begin
-            result.def:=sinttype;
-            result.intsize:=sizeof(aint);
-            retcgsize:=OS_SINT;
-            result.size:=retcgsize;
-          end;
-
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
@@ -447,19 +434,7 @@ unit cpupara;
             else
               begin
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
-                { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
-                { zero extended to sizeof(aint)                                }
-                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                   (side = callerside) and
-                   (paralen > 0) and
-                   (paralen < sizeof(aint)) then
-                  begin
-                    paralen:=sizeof(aint);
-                    paracgsize:=OS_SINT;
-                    paradef:=sinttype;
-                  end
-                else
-                  paracgsize:=def_cgsize(paradef);
+                paracgsize:=def_cgsize(paradef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
@@ -479,13 +454,6 @@ unit cpupara;
                 else
                   paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                 varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
-
-                { don't let push_size return 16, because then we can    }
-                { read past the end of the heap since the value is only }
-                { 10 bytes long (JM)                                    }
-                if (paracgsize = OS_F80) and
-                   (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
-                  paralen:=16;
                 paraloc^.reference.offset:=parasize;
                 if side=calleeside then
                   begin
