@@ -56,13 +56,15 @@ interface
          maxCrecordalign : longint;
        end;
 
-       tasmflags = (af_none,
-         af_outputbinary,
-         af_needar,af_smartlink_sections,
-         af_labelprefix_only_inside_procedure,
-         af_supports_dwarf,
-         af_no_debug,
-         af_stabs_use_function_absolute_addresses
+       tasmflags = (af_none
+         ,af_outputbinary
+         ,af_needar
+         ,af_smartlink_sections
+         ,af_labelprefix_only_inside_procedure
+         ,af_supports_dwarf
+         ,af_no_debug
+         ,af_stabs_use_function_absolute_addresses
+         ,af_no_stabs
        );
 
        pasminfo = ^tasminfo;
