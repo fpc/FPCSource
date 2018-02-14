@@ -1909,11 +1909,11 @@ unit cgcpu;
               if reg in regs then
                 list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
 
-            list.concat(taicpu.op_reg(A_CLR,NR_R1));
-
             { Save SREG }
             list.concat(taicpu.op_reg_const(A_IN, NR_R0, $3F));
             list.concat(taicpu.op_reg(A_PUSH, NR_R0));
+
+            list.concat(taicpu.op_reg(A_CLR,NR_R1));
 
             if current_procinfo.framepointer<>NR_NO then
               begin
