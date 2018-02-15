@@ -175,11 +175,16 @@ begin
       CompilerTarget:=StringToCPU(s)
     else
       CompilerTarget:=Defaults.CPU;
-    
-    if GDBMIOption or GDBMI_Disabled or
-      ( (Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU) and
+    { Only try to build natively }
+    { or for cross-compile if the resulting executable
+      does not depend on C libs }
+    if ((GDBMIOption or NoGDBOption) and
+        ((Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU)
+         or (Defaults.OS in [go32v2,win32,win64,linux,freebsd]))) or
+       { This is the list of native targets that can be compiled natively with gdbint packages }
+       ((Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU) and
         (Defaults.OS in [go32v2,win32,win64,linux,freebsd,os2,emx,beos,haiku])
-      ) then
+       ) then
       begin
         P:=AddPackage('ide');
         P.Version:='3.1.1';
