@@ -271,7 +271,8 @@ implementation
       begin
         { The result from constructors and destructors can't be accessed directly }
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
-           not is_void(pd.returndef) then
+           not is_void(pd.returndef) and
+           (not(po_assembler in pd.procoptions) or paramanager.asm_result_var(pd.returndef,pd)) then
          begin
            storepos:=current_tokenpos;
            current_tokenpos:=pd.fileinfo;

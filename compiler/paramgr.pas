@@ -46,6 +46,8 @@ unit paramgr;
           function param_use_paraloc(const cgpara:tcgpara):boolean;virtual;
           { Returns true if the return value is actually a parameter pointer }
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;virtual;
+          { Returns true if a result variable should be allocated for an assembler routine }
+          function asm_result_var(def:tdef;pd:tabstractprocdef):boolean;virtual;
 
           function push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           function keep_para_array_range(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
@@ -198,6 +200,15 @@ implementation
            ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or
            ((def.typ=objectdef) and (is_object(def))) or
            ((def.typ=setdef) and not is_smallset(def));
+      end;
+
+
+    { true if a result variable should be allocated for an assembler routine }
+    function tparamanager.asm_result_var(def:tdef;pd:tabstractprocdef):boolean;
+      begin
+        if not(po_assembler in pd.procoptions) then
+          internalerror(2018021501);
+        result:=true;
       end;
 
 
