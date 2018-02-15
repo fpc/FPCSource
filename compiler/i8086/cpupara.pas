@@ -35,6 +35,7 @@ unit cpupara;
        tcpuparamanager = class(tparamanager)
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
+          function asm_result_var(def:tdef;pd:tabstractprocdef):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_para_align(calloption : tproccalloption):byte;override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
@@ -112,6 +113,14 @@ unit cpupara;
           end;
 
         result:=inherited ret_in_param(def,pd);
+      end;
+
+
+    function tcpuparamanager.asm_result_var(def:tdef;pd:tabstractprocdef):boolean;
+      begin
+        if not(po_assembler in pd.procoptions) then
+          internalerror(2018021501);
+        result:=ret_in_param(def,pd);
       end;
 
 
