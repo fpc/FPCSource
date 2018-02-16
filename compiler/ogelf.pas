@@ -1260,7 +1260,7 @@ implementation
            { section data }
            layoutsections(datapos);
            { section headers }
-           shoffset:=datapos;
+           shoffset:=align(datapos,dword(Sizeof(AInt)));
            inc(datapos,(nsections+1)*sizeof(telfsechdr));
 
            { Write ELF Header }
@@ -1298,6 +1298,9 @@ implementation
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }
            WriteSectionContent(data);
+
+           { Align header }
+           Writer.Writezeros(Align(Writer.Size,Sizeof(AInt))-Writer.Size);
            { section headers, start with an empty header for sh_undef }
            writer.writezeros(sizeof(telfsechdr));
            ObjSectionList.ForEachCall(@section_write_sechdr,nil);
