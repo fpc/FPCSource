@@ -310,6 +310,8 @@ implementation
 *****************************************************************************}
 
     procedure tarmnotnode.second_boolean;
+      var
+        tmpreg : TRegister;
       begin
         { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
@@ -328,7 +330,14 @@ implementation
                 begin
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
+                  if is_64bit(resultdef) then
+                    begin
+                      tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                      { OR low and high parts together }
+                      current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,left.location.register64.reglo,left.location.register64.reghi,tmpreg),PF_S));
+                    end
+                  else
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
                 end;
