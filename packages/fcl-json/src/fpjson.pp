@@ -54,7 +54,8 @@ Const
 Type
   TJSONData = Class;
 
-  { TMJBaseObjectEnumerator }
+  { TBaseJSONEnumerator }
+
   TJSONEnum = Record
     Key : TJSONStringType;
     KeyNum : Integer;
@@ -67,9 +68,6 @@ Type
     function MoveNext : Boolean; virtual; abstract;
     property Current: TJSONEnum read GetCurrent;
   end;
-
-  { TMJObjectEnumerator }
-
 
   { TJSONData }
   
@@ -294,7 +292,7 @@ Type
   end;
   TJSONStringClass = Class of TJSONString;
 
-  { TJSONboolean }
+  { TJSONBoolean }
 
   TJSONBoolean = class(TJSONData)
   Private
@@ -746,7 +744,7 @@ begin
                 W:=Copy(S,I+1,4);
                 Inc(I,4);
                 Inc(P,4);
-                Result:=Result+WideChar(StrToInt('$'+W));
+                Result:=Result+TJSONStringType(WideChar(StrToInt('$'+W)));
                 end;
         end;
         end;
@@ -1061,6 +1059,7 @@ end;
 function TJSONData.GetItem(Index : Integer): TJSONData;
 begin
   Result:=nil;
+  if Index>0 then ;
 end;
 
 function TJSONData.GetCount: Integer;
@@ -1202,6 +1201,8 @@ procedure TJSONData.SetItem(Index : Integer; const AValue:
   TJSONData);
 begin
   // Do Nothing
+  if Index>0 then ;
+  if AValue<>nil then ;
 end;
 
 function TJSONData.FormatJSON(Options: TFormatOptions; Indentsize: Integer
@@ -1216,6 +1217,9 @@ function TJSONData.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
 
 begin
   Result:=AsJSON;
+  if Options=[] then ;
+  if CurrentIndent=0 then ;
+  if Indent>0 then ;
 end;
 
 { TJSONnumber }
@@ -1484,26 +1488,31 @@ end;
 procedure TJSONNull.SetAsBoolean(const AValue: Boolean);
 begin
   ConvertError(False);
+  if AValue then ;
 end;
 
 procedure TJSONNull.SetAsFloat(const AValue: TJSONFloat);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONNull.SetAsInteger(const AValue: Integer);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONNull.SetAsInt64(const AValue: Int64);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONNull.SetAsQword(const AValue: QWord);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 function TJSONNull.GetAsJSON: TJSONStringType;
@@ -1519,6 +1528,7 @@ end;
 procedure TJSONNull.SetAsString(const AValue: TJSONStringType);
 begin
   ConvertError(True);
+  if AValue='' then ;
 end;
 
 
@@ -1530,6 +1540,7 @@ end;
 procedure TJSONNull.SetValue(const AValue: variant);
 begin
   ConvertError(False);
+  if VarType(AValue)=0 then ;
 end;
 
 class function TJSONNull.JSONType: TJSONType;
@@ -2028,26 +2039,31 @@ end;
 procedure TJSONArray.SetAsBoolean(const AValue: Boolean);
 begin
   ConvertError(False);
+  if AValue then ;
 end;
 
 procedure TJSONArray.SetAsFloat(const AValue: TJSONFloat);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONArray.SetAsInteger(const AValue: Integer);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONArray.SetAsInt64(const AValue: Int64);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONArray.SetAsQword(const AValue: QWord);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 {$warnings on}
@@ -2135,6 +2151,7 @@ end;
 procedure TJSONArray.SetAsString(const AValue: TJSONStringType);
 begin
   ConvertError(False);
+  if AValue='' then ;
 end;
 
 function TJSONArray.GetValue: variant;
@@ -2145,6 +2162,7 @@ end;
 procedure TJSONArray.SetValue(const AValue: variant);
 begin
   ConvertError(False);
+  if VarType(AValue)=0 then ;
 end;
 {$warnings on}
 
@@ -2660,26 +2678,31 @@ end;
 procedure TJSONObject.SetAsBoolean(const AValue: Boolean);
 begin
   ConvertError(False);
+  if AValue then ;
 end;
 
 procedure TJSONObject.SetAsFloat(const AValue: TJSONFloat);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONObject.SetAsInteger(const AValue: Integer);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONObject.SetAsInt64(const AValue: Int64);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 procedure TJSONObject.SetAsQword(const AValue: QWord);
 begin
   ConvertError(False);
+  if AValue>0 then ;
 end;
 
 {$warnings on}
@@ -2722,6 +2745,7 @@ end;
 procedure TJSONObject.SetAsString(const AValue: TJSONStringType);
 begin
   ConvertError(False);
+  if AValue='' then ;
 end;
 
 function TJSONObject.GetValue: variant;
@@ -2732,6 +2756,7 @@ end;
 procedure TJSONObject.SetValue(const AValue: variant);
 begin
   ConvertError(False);
+  if VarType(AValue)=0 then ;
 end;
 {$warnings on}
 
