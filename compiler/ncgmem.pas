@@ -355,8 +355,10 @@ implementation
              if (not is_managed_type(left.resultdef)) or
                 (target_info.system in systems_garbage_collected_managed_types) then
                begin
-                 { the contents of a class are aligned to a sizeof(pointer) }
-                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),voidpointertype.size,[]);
+                 { take care of the alignment of the fields }
+                 if not(left.resultdef is tabstractrecorddef) then
+                   Internalerror(2018021601);
+                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),newalignment(tabstractrecorddef(left.resultdef).alignment,vs.fieldoffset),[]);
                  case left.location.loc of
                     LOC_CREGISTER,
                     LOC_REGISTER:
