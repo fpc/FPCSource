@@ -1001,6 +1001,7 @@ type
     FBaseTypeLength: TResolverBaseType;
     FBaseTypes: array[TResolverBaseType] of TPasUnresolvedSymbolRef;
     FBaseTypeString: TResolverBaseType;
+    FBuiltInProcs: array[TResolverBuiltInProc] of TResElDataBuiltInProc;
     FDefaultNameSpace: String;
     FDefaultScope: TPasDefaultScope;
     FDynArrayMaxIndex: int64;
@@ -1030,6 +1031,7 @@ type
     FTopScope: TPasScope;
     procedure ClearResolveDataList(Kind: TResolveDataListKind);
     function GetBaseTypeNames(bt: TResolverBaseType): string;
+    function GetBuiltInProcs(bp: TResolverBuiltInProc): TResElDataBuiltInProc;
   protected
     const
       cExact = 0;
@@ -1490,7 +1492,6 @@ type
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // uility functions
-    property BaseTypeNames[bt: TResolverBaseType]: string read GetBaseTypeNames;
     function GetProcTypeDescription(ProcType: TPasProcedureType; UseName: boolean = true; AddPaths: boolean = false): string;
     function GetResolverResultDescription(const T: TPasResolverResult; OnlyType: boolean = false): string;
     function GetTypeDescription(aType: TPasType; AddPath: boolean = false): string;
@@ -1542,16 +1543,19 @@ type
     function GetCombinedChar(const Char1, Char2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
+    function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
   public
     // options
     property Options: TPasResolverOptions read FOptions write FOptions;
     property AnonymousElTypePostfix: String read FAnonymousElTypePostfix
       write FAnonymousElTypePostfix; // default empty, if set, anonymous element types are named ArrayName+Postfix and added to declarations
     property BaseTypes[bt: TResolverBaseType]: TPasUnresolvedSymbolRef read GetBaseTypes;
+    property BaseTypeNames[bt: TResolverBaseType]: string read GetBaseTypeNames;
     property BaseTypeChar: TResolverBaseType read FBaseTypeChar write FBaseTypeChar;
     property BaseTypeExtended: TResolverBaseType read FBaseTypeExtended write FBaseTypeExtended;
     property BaseTypeString: TResolverBaseType read FBaseTypeString write FBaseTypeString;
     property BaseTypeLength: TResolverBaseType read FBaseTypeLength write FBaseTypeLength;
+    property BuiltInProcs[bp: TResolverBuiltInProc]: TResElDataBuiltInProc read GetBuiltInProcs;
     property ExprEvaluator: TResExprEvaluator read fExprEvaluator;
     property DynArrayMinIndex: int64 read FDynArrayMinIndex write FDynArrayMinIndex;
     property DynArrayMaxIndex: int64 read FDynArrayMaxIndex write FDynArrayMaxIndex;
@@ -3061,6 +3065,12 @@ begin
     Result:=FBaseTypes[bt].Name
   else
     Result:=ResBaseTypeNames[bt];
+end;
+
+function TPasResolver.GetBuiltInProcs(bp: TResolverBuiltInProc
+  ): TResElDataBuiltInProc;
+begin
+  Result:=FBuiltInProcs[bp];
 end;
 
 procedure TPasResolver.SetRootElement(const AValue: TPasModule);
@@ -11616,10 +11626,13 @@ end;
 procedure TPasResolver.ClearBuiltInIdentifiers;
 var
   bt: TResolverBaseType;
+  bp: TResolverBuiltInProc;
 begin
   ClearResolveDataList(lkBuiltIn);
   for bt in TResolverBaseType do
     FBaseTypes[bt]:=nil;
+  for bp in TResolverBuiltInProc do
+    FBuiltInProcs[bp]:=nil;
 end;
 
 procedure TPasResolver.AddObjFPCBuiltInIdentifiers(
@@ -11782,6 +11795,8 @@ begin
   Result.Flags:=Flags;
   AddResolveData(El,Result,lkBuiltIn);
   FDefaultScope.AddIdentifier(aName,El,pikBuiltInProc);
+  if BuiltIn<>bfCustom then
+    FBuiltInProcs[BuiltIn]:=Result;
 end;
 
 procedure TPasResolver.AddResolveData(El: TPasElement; Data: TResolveData;
@@ -15467,7 +15482,8 @@ begin
   if Store
       and (Expr.CustomData=nil)
       and (Result.Element=nil)
-      and (not fExprEvaluator.IsSimpleExpr(Expr)) then
+      and (not fExprEvaluator.IsSimpleExpr(Expr))
+      and (Expr.GetModule=RootElement) then
     begin
     //writeln('TPasResolver.Eval STORE Expr=',GetObjName(Expr),' Result=',Result.AsDebugString);
     AddResolveData(Expr,Result,lkModule);
@@ -16281,6 +16297,21 @@ begin
     El:=El.Parent;
     end;
   Result:=false;
+end;
+
+function TPasResolver.FindLocalBuiltInSymbol(El: TPasElement): TPasElement;
+var
+  Data: TObject;
+begin
+  Data:=El.CustomData;
+  if Data=nil then
+    RaiseInternalError(20180215185302,GetObjName(El));
+  if Data.ClassType=TResElDataBaseType then
+    Result:=BaseTypes[TResElDataBaseType(Data).BaseType]
+  else if Data.ClassType=TResElDataBuiltInProc then
+    Result:=BuiltInProcs[TResElDataBuiltInProc(Data).BuiltIn].Element
+  else
+    Result:=nil;
 end;
 
 function TPasResolver.CheckSrcIsADstType(const ResolvedSrcType,

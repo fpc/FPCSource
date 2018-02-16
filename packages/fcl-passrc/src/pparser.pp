@@ -3965,7 +3965,8 @@ begin
       NextToken;
       If Curtoken<>tkSemicolon then
         UnGetToken;
-      Mods:=GetVariableModifiers(Parent,VarMods,aLibName,aExpName,ExternalClass);
+      VarEl:=TPasVariable(VarList[0]);
+      Mods:=GetVariableModifiers(VarEl,VarMods,aLibName,aExpName,ExternalClass);
       if (mods='') and (CurToken<>tkSemicolon) then
         NextToken;
       end
