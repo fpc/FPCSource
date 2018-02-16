@@ -2,7 +2,34 @@
 
 {$IFDEF FPC}
 {$MODE TP}
+{$ELSE}
+{$DEFINE FPC_MM_LARGE}
 {$ENDIF FPC}
+
+{$IFDEF FPC_MM_TINY}
+  {$DEFINE NEAR_CODE}
+  {$DEFINE NEAR_DATA}
+{$ENDIF}
+{$IFDEF FPC_MM_SMALL}
+  {$DEFINE NEAR_CODE}
+  {$DEFINE NEAR_DATA}
+{$ENDIF}
+{$IFDEF FPC_MM_MEDIUM}
+  {$DEFINE FAR_CODE}
+  {$DEFINE NEAR_DATA}
+{$ENDIF}
+{$IFDEF FPC_MM_COMPACT}
+  {$DEFINE NEAR_CODE}
+  {$DEFINE FAR_DATA}
+{$ENDIF}
+{$IFDEF FPC_MM_LARGE}
+  {$DEFINE FAR_CODE}
+  {$DEFINE FAR_DATA}
+{$ENDIF}
+{$IFDEF FPC_MM_HUGE}
+  {$DEFINE FAR_CODE}
+  {$DEFINE FAR_DATA}
+{$ENDIF}
 
 program tasm20;
 
@@ -17,6 +44,7 @@ var
 {$ifdef FPC}
   res3: int64;
 {$endif FPC}
+  res4: string;
   expect_sp: word;
   actual_sp: word;
 
@@ -49,6 +77,35 @@ asm
 end;
 {$endif FPC}
 
+function myfunc4: string; assembler;
+asm
+  mov actual_sp, sp
+  cld
+{$IFDEF FAR_DATA}
+  les di, @Result
+{$ELSE}
+  mov di, @Result
+  push ds
+  pop es
+{$ENDIF}
+  mov al, 7  { string length }
+  stosb
+  mov al, 'T'
+  stosb
+  mov al, 'r'
+  stosb
+  mov al, 'a'
+  stosb
+  mov al, 'l'
+  stosb
+  mov al, 'a'
+  stosb
+  mov al, 'l'
+  stosb
+  mov al, 'a'
+  stosb
+end;
+
 procedure Error;
 begin
   Writeln('Error!');
@@ -68,5 +125,8 @@ begin
   if (res3 <> $123456789ABCDEF0) or (expect_sp <> actual_sp) then
     Error;
 {$endif FPC}
+  res4 := myfunc4;
+  if (res4 <> 'Tralala') and ((expect_sp - actual_sp) <> (2 + SizeOf(Pointer))) then
+    Error;
   Writeln('Ok!');
 end.
