@@ -173,7 +173,7 @@ Resourcestring
   SErrUnexpectedEOF   = 'Unexpected EOF encountered.';
   SErrUnexpectedToken = 'Unexpected token (%s) encountered.';
   SErrExpectedColon   = 'Expected colon (:), got token "%s".';
-  SErrEmptyElement = 'Empty element encountered.';
+  //SErrEmptyElement = 'Empty element encountered.';
   SErrExpectedElementName    = 'Expected element name, got token "%s"';
   SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';
   SErrInvalidNumber          = 'Number is not an integer or real number: %s';
@@ -228,8 +228,8 @@ begin
     tkNull  : NullValue;
     tkTrue,
     tkFalse : BooleanValue(t=tkTrue);
-    tkString : if joUTF8 in Options then
-                 StringValue(UTF8Decode(CurrentTokenString))
+    tkString : if (joUTF8 in Options) and (DefaultSystemCodePage<>CP_UTF8) then
+                 StringValue(TJSONStringType(UTF8Decode(CurrentTokenString)))
                else
                  StringValue(CurrentTokenString);
     tkCurlyBraceOpen :
