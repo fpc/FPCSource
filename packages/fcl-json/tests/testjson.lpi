@@ -22,7 +22,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TJSONIniTest.TestConvertIni"/>
+        <CommandLineParams Value="--suite=TTestParser.TestArray"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -31,7 +31,7 @@
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="6">
       <Unit0>
         <Filename Value="testjson.pp"/>
         <IsPartOfProject Value="True"/>
@@ -56,14 +56,6 @@
         <Filename Value="testjsonreader.pp"/>
         <IsPartOfProject Value="True"/>
       </Unit5>
-      <Unit6>
-        <Filename Value="../src/jsonini.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="tcjsonini.pp"/>
-        <IsPartOfProject Value="True"/>
-      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -87,11 +79,9 @@
     <Exceptions Count="2">
       <Item1>
         <Name Value="EConvertError"/>
-        <Enabled Value="False"/>
       </Item1>
       <Item2>
         <Name Value="EJSON"/>
-        <Enabled Value="False"/>
       </Item2>
     </Exceptions>
   </Debugging>

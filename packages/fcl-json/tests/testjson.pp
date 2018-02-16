@@ -17,7 +17,7 @@
 program testjson;
 
 uses
-  Classes, testjsondata, testjsonparser, testjsonrtti, consoletestrunner, testjsonreader, jsonini, tcjsonini;
+  Classes, testjsondata, testjsonparser, testjsonrtti, consoletestrunner, testjsonreader;
 
 type
   { TLazTestRunner }
