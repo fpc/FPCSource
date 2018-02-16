@@ -109,7 +109,7 @@ Uses Syscall;
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
 
-{$ifdef ver3_0}
+{$if defined(VER3_0_0) or defined(VER3_0_2)}
 function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 {$else}
 function FPsysctl (Name: pcint; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
