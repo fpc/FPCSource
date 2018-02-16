@@ -208,8 +208,8 @@ var
   TokenStart: PChar;
   it : TJSONToken;
   I : Integer;
-  OldLength, SectionLength,  tstart,tcol: Integer;
-  C : char;
+  OldLength, SectionLength,  tstart,tcol, u: Integer;
+  C , c2: char;
   S : String;
   IsStar,EOC: Boolean;
 
@@ -272,21 +272,24 @@ begin
               '/' : S:='/';
               'u' : begin
                     S:='0000';
+                    u:=0;
                     For I:=1 to 4 do
                       begin
                       Inc(TokenStr);
-                      Case TokenStr[0] of
-                        '0'..'9','A'..'F','a'..'f' :
-                          S[i]:=Upcase(TokenStr[0]);
+                      c2:=TokenStr^;
+                      Case c2 of
+                        '0'..'9': u:=u*16+ord(c2)-ord('0');
+                        'A'..'F': u:=u*16+ord(c2)-ord('A')+10;
+                        'a'..'f': u:=u*16+ord(c2)-ord('a')+10;
                       else
                         Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
                       end;
                       end;
-                    // WideChar takes care of conversion...  
-                    if (joUTF8 in Options) then
-                      S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))))
+                    // ToDo: 4-bytes UTF16
+                    if (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8) then
+                      S:=Utf8Encode(WideString(WideChar(u))) // ToDo: use faster function
                     else
-                      S:=WideChar(StrToInt('$'+S));  
+                      S:=String(WideChar(u)); // WideChar converts the encoding. Should it warn on loss?
                     end;
               #0  : Error(SErrOpenString);
             else
@@ -298,7 +301,6 @@ begin
             Move(S[1],FCurTokenString[OldLength + SectionLength+1],Length(S));
             Inc(OldLength, SectionLength+Length(S));
             // Next char
-            // Inc(TokenStr);
             TokenStart := TokenStr+1;
             end;
           if TokenStr[0] = #0 then
