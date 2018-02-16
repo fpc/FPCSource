@@ -106,6 +106,11 @@ asm
   stosb
 end;
 
+procedure myfunc5(s: string); assembler;
+asm
+  mov actual_sp, sp
+end;
+
 procedure Error;
 begin
   Writeln('Error!');
@@ -127,6 +132,9 @@ begin
 {$endif FPC}
   res4 := myfunc4;
   if (res4 <> 'Tralala') and ((expect_sp - actual_sp) <> (2 + SizeOf(Pointer))) then
+    Error;
+  myfunc5('Test');
+  if (expect_sp - actual_sp) <> (2 + SizeOf(Pointer)) then
     Error;
   Writeln('Ok!');
 end.
