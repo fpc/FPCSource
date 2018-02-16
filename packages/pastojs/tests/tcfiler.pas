@@ -62,7 +62,8 @@ type
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
     procedure CheckRestoredPropertyScope(const Path: string; Orig, Rest: TPasPropertyScope); virtual;
     procedure CheckRestoredResolvedReference(const Path: string; Orig, Rest: TResolvedReference); virtual;
-    procedure CheckRestoredCustomData(const Path: string; El: TPasElement; Orig, Rest: TObject); virtual;
+    procedure CheckRestoredEvalValue(const Path: string; Orig, Rest: TResEvalValue); virtual;
+    procedure CheckRestoredCustomData(const Path: string; RestoredEl: TPasElement; Orig, Rest: TObject); virtual;
     procedure CheckRestoredReference(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElOrRef(const Path: string; Orig, OrigProp, Rest, RestProp: TPasElement); virtual;
     procedure CheckRestoredElement(const Path: string; Orig, Rest: TPasElement); virtual;
@@ -117,6 +118,7 @@ type
     procedure TestPC_EmptyUnit;
 
     procedure TestPC_Const;
+    procedure TestPC_Var;
   end;
 
 implementation
@@ -175,7 +177,7 @@ begin
   try
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
-      PJUWriter.WritePJU(Engine,InitialFlags,ms);
+      PJUWriter.WritePJU(Engine,InitialFlags,ms,false);
     except
       on E: Exception do
       begin
@@ -292,7 +294,7 @@ procedure TCustomTestPrecompile.CheckRestoredSection(const Path: string; Orig,
 begin
   if length(Orig.UsesClause)>0 then
     ; // ToDo
-  CheckRestoredDeclarations(Path,Rest,Orig);
+  CheckRestoredDeclarations(Path,Orig,Rest);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredModule(const Path: string; Orig,
@@ -500,8 +502,69 @@ begin
   CheckRestoredResolveData(Path,Orig,Rest);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredEvalValue(const Path: string;
+  Orig, Rest: TResEvalValue);
+var
+  i: Integer;
+begin
+  if not CheckRestoredObject(Path,Orig,Rest) then exit;
+  if Orig.Kind<>Rest.Kind then
+    Fail(Path+'.Kind');
+  if not CheckRestoredObject(Path+'.Element',Orig.Element,Rest.Element) then exit;
+  CheckRestoredReference(Path+'.IdentEl',Orig.IdentEl,Rest.IdentEl);
+  case Orig.Kind of
+    revkNone: Fail(Path+'.Kind=revkNone');
+    revkCustom: Fail(Path+'.Kind=revkNone');
+    revkNil: ;
+    revkBool: AssertEquals(Path+'.B',TResEvalBool(Orig).B,TResEvalBool(Rest).B);
+    revkInt: AssertEquals(Path+'.Int',TResEvalInt(Orig).Int,TResEvalInt(Rest).Int);
+    revkUInt:
+      if TResEvalUInt(Orig).UInt<>TResEvalUInt(Rest).UInt then
+        Fail(Path+'.UInt');
+    revkFloat: AssertEquals(Path+'.FloatValue',TResEvalFloat(Orig).FloatValue,TResEvalFloat(Rest).FloatValue);
+    revkString: AssertEquals(Path+'.S,Raw',TResEvalString(Orig).S,TResEvalString(Rest).S);
+    revkUnicodeString: AssertEquals(Path+'.S,UTF16',String(TResEvalUTF16(Orig).S),String(TResEvalUTF16(Rest).S));
+    revkEnum:
+      begin
+      AssertEquals(Path+'.Index',TResEvalEnum(Orig).Index,TResEvalEnum(Rest).Index);
+      CheckRestoredReference(Path+'.ElType',TResEvalEnum(Orig).ElType,TResEvalEnum(Rest).ElType);
+      end;
+    revkRangeInt:
+      begin
+      if TResEvalRangeInt(Orig).ElKind<>TResEvalRangeInt(Rest).ElKind then
+        Fail(Path+'.Int/ElKind');
+      CheckRestoredReference(Path+'.Int/ElType',TResEvalRangeInt(Orig).ElType,TResEvalRangeInt(Rest).ElType);
+      AssertEquals(Path+'.Int/RangeStart',TResEvalRangeInt(Orig).RangeStart,TResEvalRangeInt(Rest).RangeStart);
+      AssertEquals(Path+'.Int/RangeEnd',TResEvalRangeInt(Orig).RangeEnd,TResEvalRangeInt(Rest).RangeEnd);
+      end;
+    revkRangeUInt:
+      begin
+      if TResEvalRangeUInt(Orig).RangeStart<>TResEvalRangeUInt(Rest).RangeStart then
+        Fail(Path+'.UInt/RangeStart');
+      if TResEvalRangeUInt(Orig).RangeEnd<>TResEvalRangeUInt(Rest).RangeEnd then
+        Fail(Path+'.UInt/RangeEnd');
+      end;
+    revkSetOfInt:
+      begin
+      if TResEvalSet(Orig).ElKind<>TResEvalSet(Rest).ElKind then
+        Fail(Path+'.SetInt/ElKind');
+      CheckRestoredReference(Path+'.SetInt/ElType',TResEvalSet(Orig).ElType,TResEvalSet(Rest).ElType);
+      AssertEquals(Path+'.SetInt/RangeStart',TResEvalSet(Orig).RangeStart,TResEvalSet(Rest).RangeStart);
+      AssertEquals(Path+'.SetInt/RangeEnd',TResEvalSet(Orig).RangeEnd,TResEvalSet(Rest).RangeEnd);
+      AssertEquals(Path+'.SetInt/length(Items)',length(TResEvalSet(Orig).Ranges),length(TResEvalSet(Rest).Ranges));
+      for i:=0 to length(TResEvalSet(Orig).Ranges)-1 do
+        begin
+        AssertEquals(Path+'.SetInt/Items['+IntToStr(i)+'].RangeStart',
+          TResEvalSet(Orig).Ranges[i].RangeStart,TResEvalSet(Rest).Ranges[i].RangeStart);
+        AssertEquals(Path+'.SetInt/Items['+IntToStr(i)+'].RangeEnd',
+          TResEvalSet(Orig).Ranges[i].RangeEnd,TResEvalSet(Rest).Ranges[i].RangeEnd);
+        end;
+      end;
+  end;
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredCustomData(const Path: string;
-  El: TPasElement; Orig, Rest: TObject);
+  RestoredEl: TPasElement; Orig, Rest: TObject);
 var
   C: TClass;
 begin
@@ -524,8 +587,10 @@ begin
     CheckRestoredProcScope(Path+'[TPas2JSProcedureScope]',TPas2JSProcedureScope(Orig),TPas2JSProcedureScope(Rest))
   else if C=TPasPropertyScope then
     CheckRestoredPropertyScope(Path+'[TPasPropertyScope]',TPasPropertyScope(Orig),TPasPropertyScope(Rest))
+  else if C.InheritsFrom(TResEvalValue) then
+    CheckRestoredEvalValue(Path+'['+Orig.ClassName+']',TResEvalValue(Orig),TResEvalValue(Rest))
   else
-    Fail(Path+': unknown CustomData "'+GetObjName(Orig)+'" El='+GetObjName(El));
+    Fail(Path+': unknown CustomData "'+GetObjName(Orig)+'" El='+GetObjName(RestoredEl));
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredReference(const Path: string;
@@ -558,8 +623,13 @@ procedure TCustomTestPrecompile.CheckRestoredElement(const Path: string; Orig,
   Rest: TPasElement);
 var
   C: TClass;
+  AModule: TPasModule;
 begin
   if not CheckRestoredObject(Path,Orig,Rest) then exit;
+
+  AModule:=Orig.GetModule;
+  if AModule<>Module then
+    Fail(Path+' wrong module: Orig='+GetObjName(AModule)+' '+GetObjName(Module));
 
   AssertEquals(Path+': Name',Orig.Name,Rest.Name);
   AssertEquals(Path+': SourceFilename',Orig.SourceFilename,Rest.SourceFilename);
@@ -1069,7 +1139,24 @@ begin
   StartUnit(false);
   Add([
   'interface',
-  'const c = 3;',
+  'const',
+  '  Three = 3;',
+  '  FourPlusFive: longint = 4+5 deprecated ''deprtext'';',
+  '  Four: byte = 6-2*2 platform;',
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Var;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'var',
+  '  FourPlusFive: longint = 4+5 deprecated ''deprtext'';',
+  '  e: double external name ''Math.e'';',
+  '  AnoArr: array of longint = (1,2,3);',
+  '  s: string = ''aaaäö'';',
   'implementation']);
   WriteReadUnit;
 end;

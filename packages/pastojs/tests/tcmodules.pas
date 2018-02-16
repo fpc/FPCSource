@@ -217,6 +217,7 @@ type
     Procedure TestChar_Ord;
     Procedure TestChar_Chr;
     Procedure TestStringConst;
+    Procedure TestStringConstSurrogate;
     Procedure TestString_Length;
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
@@ -4801,16 +4802,18 @@ end;
 procedure TTestModule.TestStringConst;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  s: string = ''abc'';');
-  Add('begin');
-  Add('  s:='''';');
-  Add('  s:=#13#10;');
-  Add('  s:=#9''foo'';');
-  Add('  s:=#$A9;');
-  Add('  s:=''foo''#13''bar'';');
-  Add('  s:=''"'';');
-  Add('  s:=''"''''"'';');
+  Add([
+  'var',
+  '  s: string = ''abc'';',
+  'begin',
+  '  s:='''';',
+  '  s:=#13#10;',
+  '  s:=#9''foo'';',
+  '  s:=#$A9;',
+  '  s:=''foo''#13''bar'';',
+  '  s:=''"'';',
+  '  s:=''"''''"'';',
+  '']);
   ConvertProgram;
   CheckSource('TestStringConst',
     LinesToStr([
@@ -4824,6 +4827,25 @@ begin
     '$mod.s="foo\rbar";',
     '$mod.s=''"'';',
     '$mod.s=''"\''"'';'
+    ]));
+end;
+
+procedure TTestModule.TestStringConstSurrogate;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  s: string;',
+  'begin',
+  '  s:=''😊'';', // 1F60A
+  '']);
+  ConvertProgram;
+  CheckSource('TestStringConstSurrogate',
+    LinesToStr([
+    'this.s="";'
+    ]),
+    LinesToStr([
+    '$mod.s="😊";'
     ]));
 end;
 

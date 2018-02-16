@@ -3201,7 +3201,7 @@ var
 begin
   Result:='';
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ExtractPasStringLiteral "',S,'"');
+  writeln('TPasToJSConverter.ExtractPasStringLiteral S="',S,'" ',RawStrToCaption(S,100),' ',length(S));
   {$ENDIF}
   if S='' then
     RaiseInternalError(20170207154543);
@@ -3221,7 +3221,7 @@ begin
         '''':
           begin
           if p>StartP then
-            Result:=Result+TJSString(copy(S,StartP-PChar(S)+1,p-StartP));
+            Result:=Result+TJSString(UTF8Decode(copy(S,StartP-PChar(S)+1,p-StartP)));
           inc(p);
           StartP:=p;
           if p^<>'''' then
@@ -3235,7 +3235,7 @@ begin
         end;
       until false;
       if p>StartP then
-        Result:=Result+TJSString(copy(S,StartP-PChar(S)+1,p-StartP));
+        Result:=Result+TJSString(UTF8Decode(copy(S,StartP-PChar(S)+1,p-StartP)));
       end;
     '#':
       begin
@@ -3301,7 +3301,11 @@ begin
     end;
   until false;
   {$IFDEF VerbosePas2JS}
+  {AllowWriteln}
   writeln('TPasToJSConverter.ExtractPasStringLiteral Result="',Result,'"');
+  //for i:=1 to length(Result) do
+  //  writeln('  Result[',i,']',HexStr(ord(Result[i]),4));
+  {AllowWriteln-}
   {$ENDIF}
 end;
 
