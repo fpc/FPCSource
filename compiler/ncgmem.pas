@@ -356,9 +356,9 @@ implementation
                 (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { take care of the alignment of the fields }
-                 if not(left.resultdef is tabstractrecorddef) then
+                 if not(left.resultdef is tobjectdef) then
                    Internalerror(2018021601);
-                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),newalignment(tabstractrecorddef(left.resultdef).alignment,vs.fieldoffset),[]);
+                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),newalignment(tObjectSymtable(tobjectdef(left.resultdef).symtable).recordalignment,vs.fieldoffset),[]);
                  case left.location.loc of
                     LOC_CREGISTER,
                     LOC_REGISTER:
