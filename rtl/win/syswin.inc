@@ -166,12 +166,27 @@ end;
 
 procedure TranslateMxcsr(mxcsr: longword; var code: longint);
 begin
-  case (mxcsr and $3f) of
-    1,32:  code:=-207;  { InvalidOp, Precision }
-    2,16:  code:=-206;  { Denormal, Underflow }
-    4:     code:=-208;  { !!reZeroDivide }
-    8:     code:=-205;  { reOverflow }
-  end;
+  { we can return only one value, further one's are lost }
+  { InvalidOp }
+  if (mxcsr and 1)<>0 then
+    code:=-207
+  { Denormal }
+  else if (mxcsr and 2)<>0 then
+    code:=-206
+  { !!reZeroDivide }
+  else if (mxcsr and 4)<>0 then
+    code:=-208
+  { reOverflow }
+  else if (mxcsr and 8)<>0 then
+    code:=-205
+  { Underflow }
+  else if (mxcsr and 16)<>0 then
+    code:=-206
+  { Precision }
+  else if (mxcsr and 32)<>0 then
+    code:=-207
+  else { this should not happen }
+    code:=-255
 end;
 
 function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord; errcode: Longint): Pointer;
