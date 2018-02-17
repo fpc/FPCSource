@@ -3718,15 +3718,24 @@ implementation
                  (oper[1]^.typ=top_reg) and
                  (oper[0]^.reg=oper[1]^.reg)
                 ) or
-                (((opcode=A_MOVSS) or (opcode=A_MOVSD) or (opcode=A_MOVQ) or
-                  (opcode=A_MOVAPS) or (opcode=A_MOVAPD) or
-                  (opcode=A_VMOVSS) or (opcode=A_VMOVSD) or (opcode=A_VMOVQ) or
-                  (opcode=A_VMOVAPS) or (opcode=A_VMOVAPD)) and
-                 (regtype = R_MMREGISTER) and
-                 (ops=2) and
-                 (oper[0]^.typ=top_reg) and
-                 (oper[1]^.typ=top_reg) and
-                 (oper[0]^.reg=oper[1]^.reg)
+                ({ checking the opcodes is a long "or" chain, so check first the registers which is more selective }
+                 ((regtype = R_MMREGISTER) and
+                  (ops=2) and
+                  (oper[0]^.typ=top_reg) and
+                  (oper[1]^.typ=top_reg) and
+                  (oper[0]^.reg=oper[1]^.reg)) and
+                  (
+                   (opcode=A_MOVSS) or (opcode=A_MOVSD) or
+                   (opcode=A_MOVQ) or (opcode=A_MOVD) or
+                   (opcode=A_MOVAPS) or (opcode=A_MOVAPD) or
+                   (opcode=A_MOVUPS) or (opcode=A_MOVUPD) or
+                   (opcode=A_MOVDQA) or (opcode=A_MOVDQU) or
+                   (opcode=A_VMOVSS) or (opcode=A_VMOVSD) or
+                   (opcode=A_VMOVQ) or (opcode=A_VMOVD) or
+                   (opcode=A_VMOVAPS) or (opcode=A_VMOVAPD) or
+                   (opcode=A_VMOVUPS) or (opcode=A_VMOVUPD) or
+                   (opcode=A_VMOVDQA) or (opcode=A_VMOVDQU)
+                  )
                 );
       end;
 
