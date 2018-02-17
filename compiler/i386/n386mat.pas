@@ -121,27 +121,31 @@ implementation
         v : TConstExprInt;
         l2,l3:Tasmlabel;
       begin
-        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-
-        { load left operator in a register }
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-        hreg64hi:=left.location.register64.reghi;
-        hreg64lo:=left.location.register64.reglo;
-
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
           begin
             v:=Tordconstnode(right).value and 63;
+
+            { load left operator in a register }
+            if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
+              ((left.location.loc=LOC_CREGISTER) and ((v.svalue and 31)<>0)) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+            hreg64hi:=left.location.register64.reghi;
+            hreg64lo:=left.location.register64.reglo;
+
+            location_reset(location,left.location.loc,def_cgsize(resultdef));
             if v>31 then
               begin
                 if nodetype=shln then
                   begin
+                    hreg64hi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
                     if ((v and 31) <> 0) then
                       emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
                   end
                 else
                   begin
+                    hreg64lo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                     emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
                     if ((v and 31) <> 0) then
                       emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
@@ -151,15 +155,18 @@ implementation
               end
             else
               begin
-                if nodetype=shln then
+                if (v.svalue and 31)<>0 then
                   begin
-                    emit_const_reg_reg(A_SHLD,S_L,v.svalue and 31,hreg64lo,hreg64hi);
-                    emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
-                  end
-                else
-                  begin
-                    emit_const_reg_reg(A_SHRD,S_L,v.svalue and 31,hreg64hi,hreg64lo);
-                    emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
+                    if nodetype=shln then
+                      begin
+                        emit_const_reg_reg(A_SHLD,S_L,v.svalue and 31,hreg64lo,hreg64hi);
+                        emit_const_reg(A_SHL,S_L,v.svalue and 31,hreg64lo);
+                      end
+                    else
+                      begin
+                        emit_const_reg_reg(A_SHRD,S_L,v.svalue and 31,hreg64hi,hreg64lo);
+                        emit_const_reg(A_SHR,S_L,v.svalue and 31,hreg64hi);
+                      end;
                   end;
                 location.register64.reglo:=hreg64lo;
                 location.register64.reghi:=hreg64hi;
@@ -167,6 +174,14 @@ implementation
           end
         else
           begin
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+
+            { load left operator in a register }
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+
+            hreg64hi:=left.location.register64.reghi;
+            hreg64lo:=left.location.register64.reglo;
+
             { load right operators in a register }
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_ECX);
             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,u32inttype,right.location,NR_ECX);
