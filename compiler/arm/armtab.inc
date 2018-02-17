@@ -5440,6 +5440,34 @@
     flags   : if_arm32 or if_vfpv2
   ),
   (
+    opcode  : A_FMDRR;
+    ops     : 3;
+    optypes : (ot_vreg,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
+    code    : #144#236#64#11#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_FMDRR;
+    ops     : 3;
+    optypes : (ot_vreg,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
+    code    : #64#12#64#11#16;
+    flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_FMRRD;
+    ops     : 3;
+    optypes : (ot_reg32,ot_reg32,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #144#236#80#11#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_FMRRD;
+    ops     : 3;
+    optypes : (ot_reg32,ot_reg32,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #64#12#80#11#16;
+    flags   : if_arm32 or if_vfpv2
+  ),
+  (
     opcode  : A_POP;
     ops     : 1;
     optypes : (ot_reglist,ot_none,ot_none,ot_none,ot_none,ot_none);

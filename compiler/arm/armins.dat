@@ -1481,8 +1481,12 @@ vreg,vreg               \x43\xEE\xB8\xA\x40          THUMB32,VFPv2
 vreg,vreg               \x43\xE\xB8\xA\x40           ARM32,VFPv2
 
 [FMDRRcc]
+vreg,reg32,reg32        \x90\xEC\x40\xB\x10          THUMB32,VFPv2
+vreg,reg32,reg32        \x40\xC\x40\xB\x10           ARM32,VFPv2
 
 [FMRRDcc]
+reg32,reg32,vreg        \x90\xEC\x50\xB\x10          THUMB32,VFPv2
+reg32,reg32,vreg        \x40\xC\x50\xB\x10           ARM32,VFPv2
 
 ; Thumb-2
 
