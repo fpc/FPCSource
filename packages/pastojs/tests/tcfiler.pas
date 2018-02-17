@@ -119,6 +119,12 @@ type
 
     procedure TestPC_Const;
     procedure TestPC_Var;
+    procedure TestPC_Enum;
+    procedure TestPC_Set;
+    procedure TestPC_Record;
+    procedure TestPC_JSValue;
+    procedure TestPC_Proc;
+    procedure TestPC_Class;
   end;
 
 implementation
@@ -1142,7 +1148,18 @@ begin
   'const',
   '  Three = 3;',
   '  FourPlusFive: longint = 4+5 deprecated ''deprtext'';',
-  '  Four: byte = 6-2*2 platform;',
+  '  Four: byte = +6-2*2 platform;',
+  '  Affirmative = true;',
+  '  Negative = false;', // bool lit
+  '  NotNegative = not Negative;', // boolconst
+  '  UnaryMinus = -3;', // unary minus
+  '  FloatA = -31.678E-012;', // float lit
+  '  HighInt = High(longint);', // func params, built-in function
+  '  s = ''abc'';', // string lit
+  '  c: char = s[1];', // array params
+  '  a: array[1..2] of longint = (3,4);', // anonymous array, range, array values
+  'resourcestring',
+  '  rs = ''rs'';',
   'implementation']);
   WriteReadUnit;
 end;
@@ -1157,6 +1174,106 @@ begin
   '  e: double external name ''Math.e'';',
   '  AnoArr: array of longint = (1,2,3);',
   '  s: string = ''aaaäö'';',
+  '  s2: string = ''😊'';', // 1F60A
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Enum;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TEnum = (red,green,blue);',
+  '  TEnumRg = green..blue;',
+  '  TArrOfEnum = array of TEnum;',
+  '  TArrOfEnumRg = array of TEnumRg;',
+  '  TArrEnumOfInt = array[TEnum] of longint;',
+  'var',
+  '  HighEnum: TEnum = high(TEnum);',
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Set;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TEnum = (red,green,blue);',
+  '  TEnumRg = green..blue;',
+  '  TEnumAlias = TEnum;', // alias
+  '  TSetOfEnum = set of TEnum;',
+  '  TSetOfAnoEnum = set of TEnum;', // anonymous enumtype
+  '  TSetOfEnumRg = set of TEnumRg;',
+  'var',
+  '  Empty: TSetOfEnum = [];', // empty set lit
+  '  All: TSetOfEnum = [low(TEnum)..pred(high(TEnum)),high(TEnum)];', // full set lit, range in set
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Record;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TRec = record',
+  '    i: longint;',
+  '    s: string;',
+  '  end;',
+  '  P = pointer;', // alias type to built-in type
+  '  TArrOfRec = array of TRec;',
+  'var',
+  '  r: TRec;', // full set lit, range in set
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_JSValue;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'var',
+  '  p: pointer = nil;', // pointer, nil lit
+  '  js: jsvalue = 13 div 4;', // jsvalue
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc;
+begin
+  exit;  // ToDo
+  StartUnit(false);
+  Add([
+  'interface',
+  '  procedure Abs(d: double): double; external name ''Math.Abs'';',
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Class;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '  private',
+  '    FInt: longint;',
+  '  public',
+  '    property Int: longint read FInt write FInt default 3;',
+  '  end;',
+  '  TBird = class',
+  '  published',
+  '    property Int;',
+  '  end;',
+  'var',
+  '  o: tobject;',
   'implementation']);
   WriteReadUnit;
 end;

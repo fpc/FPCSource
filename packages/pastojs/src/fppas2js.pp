@@ -1006,6 +1006,7 @@ type
     function CheckTypeCastRes(const FromResolved,
       ToResolved: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnError: boolean): integer; override;
+    function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; override;
     property JSBaseTypes[aBaseType: TPas2jsBaseType]: TPasUnresolvedSymbolRef read GetJSBaseTypes;
     // compute literals and constants
     function ExtractPasStringLiteral(El: TPasElement; const S: String): TJSString; virtual;
@@ -3181,6 +3182,14 @@ begin
       end;
     end;
   Result:=inherited CheckTypeCastRes(FromResolved,ToResolved,ErrorEl,RaiseOnError);
+end;
+
+function TPas2JSResolver.FindLocalBuiltInSymbol(El: TPasElement): TPasElement;
+begin
+  Result:=inherited FindLocalBuiltInSymbol(El);
+  if Result<>nil then exit;
+  if El.CustomData is TResElDataPas2JSBaseType then
+    Result:=JSBaseTypes[TResElDataPas2JSBaseType(El.CustomData).JSBaseType];
 end;
 
 function TPas2JSResolver.ExtractPasStringLiteral(El: TPasElement;
