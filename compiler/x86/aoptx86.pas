@@ -82,6 +82,7 @@ unit aoptx86;
 {$endif}
         function PostPeepholeOptCmp(var p : tai) : Boolean;
         function PostPeepholeOptTestOr(var p : tai) : Boolean;
+        function PostPeepholeOptCall(var p : tai) : Boolean;
 
         procedure OptReferences;
       end;
@@ -3074,6 +3075,58 @@ unit aoptx86;
         else if IsTestConstX and (taicpu(p).oper[1]^.typ=top_reg) then
           taicpu(p).loadoper(0,taicpu(p).oper[1]^);
       end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptCall(var p : tai) : Boolean;
+      var
+        hp1 : tai;
+      begin
+        Result:=false;
+{$ifndef x86_64}
+        { don't do this on modern CPUs, this really hurts them due to
+          broken call/ret pairing }
+        if (current_settings.optimizecputype < cpu_Pentium2) and
+           not(cs_create_pic in current_settings.moduleswitches) and
+           GetNextInstruction(p, hp1) and
+           MatchInstruction(hp1,A_JMP,[S_NO]) and
+           MatchOpType(taicpu(hp1),top_ref) and
+           (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full)) then
+          begin
+            hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
+            InsertLLItem(p.previous, p, hp2);
+            taicpu(p).opcode := A_JMP;
+            taicpu(p).is_jmp := true;
+            asml.remove(hp1);
+            hp1.free;
+            Result:=true;
+          end
+        else
+{$endif x86_64}
+        { replace
+            call   procname
+            ret
+          by
+            jmp    procname
+
+          this should never hurt except when pic is used, not sure
+          how to handle it then
+
+          but do it only on level 4 because it destroys stack back traces
+        }
+        if (cs_opt_level4 in current_settings.optimizerswitches) and
+          not(cs_create_pic in current_settings.moduleswitches) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1,A_RET,[S_NO]) and
+          (taicpu(hp1).ops=0) then
+          begin
+            taicpu(p).opcode := A_JMP;
+            taicpu(p).is_jmp := true;
+            asml.remove(hp1);
+            hp1.free;
+            Result:=true;
+          end;
+      end;
+
 
 {$ifdef x86_64}
     function TX86AsmOptimizer.PostPeepholeOptMovzx(const p : tai) : Boolean;

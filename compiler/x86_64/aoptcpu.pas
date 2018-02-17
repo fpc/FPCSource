@@ -157,6 +157,8 @@ uses
                   Result:=PostPeepholeOptTestOr(p);
                 A_XOR:
                   Result:=PostPeepholeOptXor(p);
+                A_CALL:
+                  Result:=PostPeepholeOptCall(p);
               end;
             end;
         end;
