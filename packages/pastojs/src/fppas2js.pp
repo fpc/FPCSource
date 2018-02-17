@@ -1325,8 +1325,10 @@ type
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext);
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement): TJSElement; virtual;
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
-    Function CreateCloneRecord(El: TPasElement; ResolvedEl: TPasResolverResult;
+    Function CreateCloneRecord(El: TPasElement; RecTypeEl: TPasRecordType;
       RecordExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
+    Function CreateCloneStaticArray(El: TPasElement; ArrTypeEl: TPasArrayType;
+      ArrayExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallback(El: TPasElement; ResolvedEl: TPasResolverResult;
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateAssignStatement(LeftEl: TPasElement; AssignContext: TAssignContext): TJSElement; virtual;
@@ -10063,19 +10065,32 @@ begin
 end;
 
 function TPasToJSConverter.CreateCloneRecord(El: TPasElement;
-  ResolvedEl: TPasResolverResult; RecordExpr: TJSElement;
-  AContext: TConvertContext): TJSElement;
+  RecTypeEl: TPasRecordType; RecordExpr: TJSElement; AContext: TConvertContext
+  ): TJSElement;
 // create  "new RecordType(RecordExpr)
 var
   NewExpr: TJSNewMemberExpression;
 begin
-  if not (ResolvedEl.TypeEl is TPasRecordType) then
-    RaiseInconsistency(20170212155956);
   NewExpr:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-  NewExpr.MExpr:=CreateReferencePathExpr(ResolvedEl.TypeEl,AContext);
+  NewExpr.MExpr:=CreateReferencePathExpr(RecTypeEl,AContext);
   NewExpr.Args:=TJSArguments(CreateElement(TJSArguments,El));
   NewExpr.AddArg(RecordExpr);
   Result:=NewExpr;
+end;
+
+function TPasToJSConverter.CreateCloneStaticArray(El: TPasElement;
+  ArrTypeEl: TPasArrayType; ArrayExpr: TJSElement; AContext: TConvertContext
+  ): TJSElement;
+var
+  Call: TJSCallExpression;
+begin
+  if length(ArrTypeEl.Ranges)>1 then
+    RaiseNotSupported(El,AContext,20180218002409,'cloning multi dim static array');
+  // ArrayExpr.slice(0)
+  Call:=CreateCallExpression(El);
+  Call.Expr:=CreateDotExpression(El,ArrayExpr,CreatePrimitiveDotExpr('slice',El));
+  Call.AddArg(CreateLiteralNumber(El,0));
+  Result:=Call;
 end;
 
 function TPasToJSConverter.CreateCallback(El: TPasElement;
@@ -10986,6 +11001,7 @@ Var
   LeftIsProcType: Boolean;
   Call: TJSCallExpression;
   MinVal, MaxVal: MaxPrecInt;
+  RightTypeEl: TPasType;
 
 begin
   Result:=nil;
@@ -11037,7 +11053,8 @@ begin
       end
     else if AssignContext.RightResolved.BaseType=btContext then
       begin
-      if AssignContext.RightResolved.TypeEl.ClassType=TPasRecordType then
+      RightTypeEl:=AContext.Resolver.ResolveAliasType(AssignContext.RightResolved.TypeEl);
+      if RightTypeEl.ClassType=TPasRecordType then
         begin
         // right side is a record -> clone
         {$IFDEF VerbosePas2JS}
@@ -11045,7 +11062,7 @@ begin
         {$ENDIF}
         // create  "new RightRecordType(RightRecord)"
         AssignContext.RightSide:=CreateCloneRecord(El.right,
-                  AssignContext.RightResolved,AssignContext.RightSide,AContext);
+                  TPasRecordType(RightTypeEl),AssignContext.RightSide,AContext);
         end;
       end;
     LHS:=ConvertElement(El.left,AssignContext);
@@ -12996,6 +13013,7 @@ var
   ExprResolved, ArgResolved: TPasResolverResult;
   ExprFlags: TPasResolverComputeFlags;
   NeedVar: Boolean;
+  ArgTypeEl, ExprTypeEl: TPasType;
 begin
   Result:=nil;
   if TargetArg=nil then
@@ -13012,20 +13030,20 @@ begin
 
   NeedVar:=TargetArg.Access in [argVar,argOut];
   AContext.Resolver.ComputeElement(TargetArg,ArgResolved,[]);
+  ArgTypeEl:=AContext.Resolver.ResolveAliasType(ArgResolved.TypeEl);
   ExprFlags:=[];
   if NeedVar then
     Include(ExprFlags,rcNoImplicitProc)
   else if AContext.Resolver.IsProcedureType(ArgResolved,true) then
     Include(ExprFlags,rcNoImplicitProcType);
 
-  if (ArgResolved.TypeEl is TPasArrayType)
+  if (ArgTypeEl is TPasArrayType)
       and (El is TParamsExpr) and (TParamsExpr(El).Kind=pekSet) then
     begin
     // passing a set to an open array
     if NeedVar then
       RaiseNotSupported(El,AContext,20170326213042);
-    Result:=ConvertOpenArrayParam(AContext.Resolver.ResolveAliasType(ArgResolved.TypeEl),
-                                  TParamsExpr(El),AContext);
+    Result:=ConvertOpenArrayParam(ArgTypeEl,TParamsExpr(El),AContext);
     exit;
     end;
 
@@ -13039,7 +13057,7 @@ begin
     // pass as default, const or constref
     AContext.Access:=caRead;
 
-    if (ExprResolved.BaseType=btNil) and (ArgResolved.TypeEl is TPasArrayType) then
+    if (ExprResolved.BaseType=btNil) and (ArgTypeEl is TPasArrayType) then
       begin
       // arrays must never be null -> pass []
       Result:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
@@ -13062,14 +13080,24 @@ begin
         end
       else if ExprResolved.BaseType=btContext then
         begin
-        if ExprResolved.TypeEl.ClassType=TPasRecordType then
+        ExprTypeEl:=AContext.Resolver.ResolveAliasType(ExprResolved.TypeEl);
+        if (ExprTypeEl.ClassType=TPasArrayType) then
+          begin
+          if length(TPasArrayType(ExprTypeEl).Ranges)>0 then
+            begin
+            // right side is a static array -> clone
+            Result:=CreateCloneStaticArray(El,TPasArrayType(ExprTypeEl),Result,AContext);
+            exit;
+            end;
+          end
+        else if ExprTypeEl.ClassType=TPasRecordType then
           begin
           // right side is a record -> clone
           {$IFDEF VerbosePas2JS}
           writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
           {$ENDIF}
           // create  "new RightRecordType(RightRecord)"
-          Result:=CreateCloneRecord(El,ExprResolved,Result,AContext);
+          Result:=CreateCloneRecord(El,TPasRecordType(ExprTypeEl),Result,AContext);
           exit;
           end;
         end;
@@ -13631,8 +13659,10 @@ const
         PasVarType:=AContext.Resolver.ResolveAliasType(PasVar.VarType);
         if PasVarType.ClassType=TPasRecordType then
           begin
-          SetResolverIdentifier(ResolvedPasVar,btContext,PasVar,PasVarType,[rrfReadable,rrfWritable]);
-          VarAssignSt.Expr:=CreateCloneRecord(PasVar,ResolvedPasVar,VarDotExpr,FuncContext);
+          SetResolverIdentifier(ResolvedPasVar,btContext,PasVar,PasVarType,
+                                [rrfReadable,rrfWritable]);
+          VarAssignSt.Expr:=CreateCloneRecord(PasVar,TPasRecordType(PasVarType),
+                                              VarDotExpr,FuncContext);
           continue;
           end
         else if PasVarType.ClassType=TPasSetType then

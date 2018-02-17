@@ -329,7 +329,8 @@ type
     Procedure TestArray_StaticMultiDim; // ToDo
     Procedure TestArrayOfRecord;
     // ToDo: Procedure TestArrayOfSet;
-    Procedure TestArray_AsParams;
+    Procedure TestArray_DynAsParams;
+    Procedure TestArray_StaticAsParams;
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
@@ -6120,27 +6121,28 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestArray_AsParams;
+procedure TTestModule.TestArray_DynAsParams;
 begin
   StartProgram(false);
-  Add('type integer = longint;');
-  Add('type TArrInt = array of integer;');
-  Add('procedure DoIt(vG: TArrInt; const vH: TArrInt; var vI: TArrInt);');
-  Add('var vJ: TArrInt;');
-  Add('begin');
-  Add('  vg:=vg;');
-  Add('  vj:=vh;');
-  Add('  vi:=vi;');
-  Add('  doit(vg,vg,vg);');
-  Add('  doit(vh,vh,vj);');
-  Add('  doit(vi,vi,vi);');
-  Add('  doit(vj,vj,vj);');
-  Add('end;');
-  Add('var i: TArrInt;');
-  Add('begin');
-  Add('  doit(i,i,i);');
+  Add([
+  'type integer = longint;',
+  'type TArrInt = array of integer;',
+  'procedure DoIt(vG: TArrInt; const vH: TArrInt; var vI: TArrInt);',
+  'var vJ: TArrInt;',
+  'begin',
+  '  vg:=vg;',
+  '  vj:=vh;',
+  '  vi:=vi;',
+  '  doit(vg,vg,vg);',
+  '  doit(vh,vh,vj);',
+  '  doit(vi,vi,vi);',
+  '  doit(vj,vj,vj);',
+  'end;',
+  'var i: TArrInt;',
+  'begin',
+  '  doit(i,i,i);']);
   ConvertProgram;
-  CheckSource('TestArray_AsParams',
+  CheckSource('TestArray_DynAsParams',
     LinesToStr([ // statements
     'this.DoIt = function (vG,vH,vI) {',
     '  var vJ = [];',
@@ -6177,6 +6179,75 @@ begin
     ]),
     LinesToStr([
     '$mod.DoIt($mod.i,$mod.i,{',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});'
+    ]));
+end;
+
+procedure TTestModule.TestArray_StaticAsParams;
+begin
+  StartProgram(false);
+  Add([
+  'type integer = longint;',
+  'type TArrInt = array[1..2] of integer;',
+  'procedure DoIt(vG: TArrInt; const vH: TArrInt; var vI: TArrInt);',
+  'var vJ: TArrInt;',
+  'begin',
+  '  vg:=vg;',
+  '  vj:=vh;',
+  '  vi:=vi;',
+  '  doit(vg,vg,vg);',
+  '  doit(vh,vh,vj);',
+  '  doit(vi,vi,vi);',
+  '  doit(vj,vj,vj);',
+  'end;',
+  'var i: TArrInt;',
+  'begin',
+  '  doit(i,i,i);']);
+  ConvertProgram;
+  CheckSource('TestArray_StaticAsParams',
+    LinesToStr([ // statements
+    'this.DoIt = function (vG,vH,vI) {',
+    '  var vJ = rtl.arraySetLength(null, 0, 2);',
+    '  vG = vG;',
+    '  vJ = vH;',
+    '  vI.set(vI.get());',
+    '  $mod.DoIt(vG.slice(0), vG, {',
+    '    get: function () {',
+    '      return vG;',
+    '    },',
+    '    set: function (v) {',
+    '      vG = v;',
+    '    }',
+    '  });',
+    '  $mod.DoIt(vH.slice(0), vH, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '  $mod.DoIt(vI.get().slice(0), vI.get(), vI);',
+    '  $mod.DoIt(vJ.slice(0), vJ, {',
+    '    get: function () {',
+    '      return vJ;',
+    '    },',
+    '    set: function (v) {',
+    '      vJ = v;',
+    '    }',
+    '  });',
+    '};',
+    'this.i = rtl.arraySetLength(null, 0, 2);'
+    ]),
+    LinesToStr([
+    '$mod.DoIt($mod.i.slice(0),$mod.i,{',
     '  p: $mod,',
     '  get: function () {',
     '      return this.p.i;',
