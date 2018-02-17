@@ -1346,6 +1346,30 @@ unit aoptx86;
                     Result:=true;
                     Exit;
                   end;
+                top_const:
+                  begin
+                    { change
+                        mov const, %treg
+                        mov %treg, y
+
+                        to
+
+                        mov const, y
+                    }
+                    if (taicpu(hp1).oper[1]^.typ=top_reg) or
+                      ((taicpu(p).oper[0]^.val>=low(longint)) and (taicpu(p).oper[0]^.val<=high(longint))) then
+                      begin
+                        if taicpu(hp1).oper[1]^.typ=top_reg then
+                          AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
+                        taicpu(p).loadOper(1,taicpu(hp1).oper[1]^);
+                        DebugMsg(SPeepholeOptimization + 'MovMov2Mov 5 done',p);
+                        asml.remove(hp1);
+                        hp1.free;
+                        ReleaseUsedRegs(TmpUsedRegs);
+                        Result:=true;
+                        Exit;
+                      end;
+                  end;
                 top_ref:
                   if (taicpu(hp1).oper[1]^.typ = top_reg) then
                     begin
