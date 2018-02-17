@@ -175,7 +175,7 @@ implementation
                      begin
                        consume(_LECKKLAMMER);
                        repeat
-                         if def.typ=arraydef then
+                         if assigned(def) and (def.typ=arraydef) then
                           begin
                             idx:=0;
                             p:=comp_expr([ef_accept_equal]);
