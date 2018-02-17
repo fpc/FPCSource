@@ -1151,7 +1151,7 @@ begin
         Result:=EvalBinarySymmetricaldifferenceExpr(Expr,LeftValue,RightValue);
       else
         {$IFDEF VerbosePasResolver}
-        writeln('TResExprEvaluator.EvalBinaryExpr Opcode=',OpcodeStrings[Expr.OpCode],' Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+        writeln('TResExprEvaluator.EvalBinaryExpr Kind=',Expr.Kind,' Opcode=',OpcodeStrings[Expr.OpCode],' Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
         {$ENDIF}
         RaiseNotYetImplemented(20170530100823,Expr);
       end;

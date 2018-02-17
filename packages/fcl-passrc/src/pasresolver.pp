@@ -5333,7 +5333,7 @@ begin
   CanonicalSelf:=TPasClassOfType.Create('Self',aClass);
   ClassScope.CanonicalClassOf:=CanonicalSelf;
   CanonicalSelf.DestType:=aClass;
-  aClass.AddRef;
+  aClass.AddRef; // for the CanonicalSelf.DestType
   CanonicalSelf.Visibility:=visStrictPrivate;
   CanonicalSelf.SourceFilename:=aClass.SourceFilename;
   CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
