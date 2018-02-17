@@ -758,7 +758,7 @@ procedure TPasTreeContainer.FinishScope(ScopeType: TPasScopeType;
   El: TPasElement);
 begin
   if ScopeType=stModule then ; // avoid compiler warning
-  if Assigned(El) then 
+  if Assigned(El) and (CurrentParser<>nil) then
     El.SourceEndLinenumber := CurrentParser.CurSourcePos.Row;
 end;
 
@@ -1280,7 +1280,7 @@ begin
       end
     else
       UngetToken;
-    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Parent));
+    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Result));
     TPasStringType(Result.DestType).LengthExpr:=LengthAsText;
     ok:=true;
   finally
@@ -1390,6 +1390,7 @@ begin
           Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent, NamePos));
           TPasAliasType(Result).DestType:=Ref;
           TPasAliasType(Result).Expr:=Expr;
+          Expr.Parent:=Result;
           if TypeName<>'' then
             Engine.FinishScope(stTypeDef,Result);
           end
@@ -2193,6 +2194,7 @@ begin
           begin
           // an inline specialization (e.g. A<B,C>)
           ISE:=TInlineSpecializeExpr(CreateElement(TInlineSpecializeExpr,'',AParent,SrcPos));
+          ISE.Kind:=pekSpecialize;
           ST:=TPasSpecializeType(CreateElement(TPasSpecializeType,'',ISE,SrcPos));
           ISE.DestType:=ST;
           ReadSpecializeArguments(ST);

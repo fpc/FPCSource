@@ -167,7 +167,7 @@ type
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst,
      pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
-     pekInherited, pekSelf);
+     pekInherited, pekSelf, pekSpecialize);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
@@ -1487,7 +1487,8 @@ const
       'ArrayParams',
       'ListOfExp',
       'Inherited',
-      'Self');
+      'Self',
+      'Specialize');
 
   OpcodeStrings : Array[TExprOpCode] of string = (
         '','+','-','*','/','div','mod','**',
