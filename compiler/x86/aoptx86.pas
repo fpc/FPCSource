@@ -1309,7 +1309,6 @@ unit aoptx86;
         else if GetNextInstruction_p and
           MatchInstruction(hp1,A_MOV,[]) and
           (taicpu(p).oper[1]^.typ = top_reg) and
-          (getsupreg(taicpu(p).oper[1]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX, RS_ESI, RS_EDI]) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
           begin
             CopyUsedRegs(TmpUsedRegs);
