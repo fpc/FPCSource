@@ -329,7 +329,7 @@ type
     Function TokenIsProcedureModifier(Parent : TPasElement; const S : String; Out PM : TProcedureModifier) : Boolean; virtual;
     Function TokenIsProcedureTypeModifier(Parent : TPasElement; const S : String; Out PTM : TProcTypeModifier) : Boolean; virtual;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
-    function ParseParams(AParent : TPasElement;paramskind: TPasExprKind; AllowFormatting : Boolean = False): TParamsExpr;
+    function ParseParams(AParent : TPasElement; ParamsKind: TPasExprKind; AllowFormatting : Boolean = False): TParamsExpr;
     function ParseExpIdent(AParent : TPasElement): TPasExpr;
     procedure DoParseClassType(AType: TPasClassType);
     function DoParseExpression(AParent: TPaselement;InitExpr: TPasExpr=nil; AllowEqual : Boolean = True): TPasExpr;
@@ -1871,16 +1871,16 @@ begin
     end;
 end;
 
-function TPasParser.ParseParams(AParent: TPasElement; paramskind: TPasExprKind;
+function TPasParser.ParseParams(AParent: TPasElement; ParamsKind: TPasExprKind;
   AllowFormatting: Boolean = False): TParamsExpr;
 var
-  params  : TParamsExpr;
-  p       : TPasExpr;
+  Params  : TParamsExpr;
+  Expr    : TPasExpr;
   PClose  : TToken;
 
 begin
   Result:=nil;
-  if paramskind in [pekArrayParams, pekSet] then
+  if ParamsKind in [pekArrayParams, pekSet] then
     begin
     if CurToken<>tkSquaredBraceOpen then
       ParseExc(nParserExpectTokenError,SParserExpectTokenError,['[']);
@@ -1893,28 +1893,28 @@ begin
     PClose:=tkBraceClose;
     end;
 
-  params:=TParamsExpr(CreateElement(TParamsExpr,'',AParent,CurTokenPos));
+  Params:=TParamsExpr(CreateElement(TParamsExpr,'',AParent,CurTokenPos));
   try
-    params.Kind:=paramskind;
+    Params.Kind:=ParamsKind;
     NextToken;
     if not isEndOfExp(false,false) then
       begin
       repeat
-        p:=DoParseExpression(params);
-        if not Assigned(p) then
+        Expr:=DoParseExpression(Params);
+        if not Assigned(Expr) then
           ParseExcSyntaxError;
-        params.AddParam(p);
+        Params.AddParam(Expr);
         if (CurToken=tkColon) then
           if Not AllowFormatting then
             ParseExc(nParserExpectTokenError,SParserExpectTokenError,[','])
           else
             begin
             NextToken;
-            p.format1:=DoParseExpression(p);
+            Expr.format1:=DoParseExpression(Expr);
             if (CurToken=tkColon) then
               begin
               NextToken;
-              p.format2:=DoParseExpression(p);
+              Expr.format2:=DoParseExpression(Expr);
               end;
             end;
         if not (CurToken in [tkComma, PClose]) then
@@ -1932,9 +1932,9 @@ begin
       until CurToken=PClose;
       end;
     NextToken;
-    Result:=params;
+    Result:=Params;
   finally
-    if not Assigned(Result) then params.Release;
+    if not Assigned(Result) then Params.Release;
   end;
 end;
 
