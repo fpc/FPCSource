@@ -495,6 +495,7 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
             err := 218;
             must_reset_fpu := false;
           end;
+        STATUS_FLOAT_MULTIPLE_FAULTS,
         STATUS_FLOAT_MULTIPLE_TRAPS:
           begin
             { dumping ExtendedRegisters and comparing with the actually value of mxcsr revealed 24 }
