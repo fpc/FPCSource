@@ -1674,6 +1674,27 @@ unit aoptx86;
                 taicpu(hp1).fileinfo := taicpu(p).fileinfo;
                 DebugMsg(SPeepholeOptimization + 'MovMov2MovMov 1',p);
               end
+            {
+              mov*  x,reg1
+              mov*  y,reg1
+
+              to
+
+              mov*  y,reg1
+            }
+            else if (taicpu(p).oper[1]^.typ=top_reg) and
+              MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
+              not(RegInOp(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[0]^)) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'MovMov2Mov 4 done',p);
+                { take care of the register (de)allocs following p }
+                UpdateUsedRegs(tai(p.next));
+                asml.remove(p);
+                p.free;
+                p:=hp1;
+                Result:=true;
+                exit;
+              end;
           end
 
         else if (taicpu(p).oper[1]^.typ = top_reg) and
