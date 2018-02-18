@@ -276,6 +276,9 @@ implementation
            end
 {$endif defined(cpu8bitalu)}
 {$if defined(cpu8bitalu)}
+{ this should be also enabled for 16 bit CPUs, however, I have no proper testing facility for 16 bit, my
+  testing results using Dosbox are no reliable }
+{ $if defined(cpu8bitalu) or defined(cpu16bitalu)}
          else if (tsetdef(right.resultdef).setbase>=-32768) and
            (tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase+1<=65536) then
            begin
