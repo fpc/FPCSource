@@ -395,12 +395,13 @@ CPU_UNITS=attiny44a attiny26 attiny48 attiny10 attiny84a attiny2313 attiny461 at
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr35)
-CPU_UNITS=at90usb82 at90usb162 attiny167 atmega8u2 atmega8a atmega16u2 atmega32u2 attiny1634
+CPU_UNITS=at90usb82 at90usb162 attiny167 atmega8u2 atmega16u2 atmega32u2 attiny1634
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr4)
 CPU_UNITS=atmega88p at90pwm3b atmega48a atmega48 atmega88a at90pwm81 atmega8 atmega8515 \
-	  atmega88pa atmega88 atmega48p atmega8535 at90pwm1 at90pwm2b atmega48pa ata6285 ata6286
+	  atmega88pa atmega88 atmega48p atmega8535 at90pwm1 at90pwm2b atmega48pa ata6285 ata6286 \
+      atmega8a
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr5)
