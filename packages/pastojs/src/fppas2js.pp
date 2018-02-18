@@ -428,6 +428,7 @@ type
     pbifnArray_Copy,
     pbifnArray_Length,
     pbifnArray_SetLength,
+    pbifnArray_Static_Clone,
     pbifnAs,
     pbifnAsExt,
     pbifnCheckMethodCall,
@@ -538,6 +539,7 @@ const
     'arrayCopy', // rtl.arrayCopy
     'length', // rtl.length
     'arraySetLength', // rtl.arraySetLength
+    '$clone',
     'as', // rtl.as
     'asExt', // rtl.asExt
     'checkMethodCall',
@@ -1015,6 +1017,7 @@ type
     procedure CheckAssignExprRangeToCustom(
       const LeftResolved: TPasResolverResult; RValue: TResEvalValue;
       RHS: TPasExpr); override;
+    function HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -1274,8 +1277,10 @@ type
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
     Function CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
       AContext : TConvertContext): TJSCallExpression; virtual;
-    Function CreateFunction(El: TPasElement; WithBody: boolean = true;
+    Function CreateFunctionSt(El: TPasElement; WithBody: boolean = true;
       WithSrc: boolean = false): TJSFunctionDeclarationStatement;
+    Function CreateFunctionDef(El: TPasElement; WithBody: boolean = true;
+      WithSrc: boolean = false): TJSFuncDef;
     Procedure CreateProcedureCall(var Call: TJSCallExpression; Args: TParamsExpr;
       TargetProc: TPasProcedureType; AContext: TConvertContext); virtual;
     Procedure CreateProcedureCallArgs(Elements: TJSArrayLiteralElements;
@@ -3392,6 +3397,25 @@ begin
   if RValue=nil then ;
 end;
 
+function TPas2JSResolver.HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
+var
+  l: Integer;
+  ElType: TPasType;
+begin
+  l:=length(Arr.Ranges);
+  if l=0 then exit(false);
+  if l>1 then exit(true);
+  ElType:=ResolveAliasType(Arr.ElType);
+  if ElType is TPasArrayType then
+    Result:=length(TPasArrayType(ElType).Ranges)>0
+  else if ElType is TPasRecordType then
+    Result:=true
+  else if ElType is TPasSetType then
+    Result:=true
+  else
+    Result:=false;
+end;
+
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
   DataClass: TPas2JsElementDataClass): TPas2JsElementData;
 begin
@@ -3945,8 +3969,8 @@ begin
   ArgArray.Elements.AddElement.Expr:=CreateUsesList(UsesSection,AContext);
 
   // add interface parameter: function(){}
-  FunDecl:=CreateFunction(El,true,true);
-  ArgArray.Elements.AddElement.Expr:=FunDecl;
+  FunDecl:=CreateFunctionSt(El,true,true);
+  ArgArray.AddElement(FunDecl);
   Src:=FunDecl.AFunction.Body.A as TJSSourceElements;
 
   if coUseStrict in Options then
@@ -4093,25 +4117,25 @@ begin
   Result:=C;
 end;
 
-function TPasToJSConverter.CreateFunction(El: TPasElement; WithBody: boolean;
+function TPasToJSConverter.CreateFunctionSt(El: TPasElement; WithBody: boolean;
   WithSrc: boolean): TJSFunctionDeclarationStatement;
 var
-  FuncDef: TJSFuncDef;
   FuncSt: TJSFunctionDeclarationStatement;
-  Src: TJSSourceElements;
 begin
   FuncSt:=TJSFunctionDeclarationStatement(CreateElement(TJSFunctionDeclarationStatement,El));
   Result:=FuncSt;
-  FuncDef:=TJSFuncDef.Create;
-  FuncSt.AFunction:=FuncDef;
+  FuncSt.AFunction:=CreateFunctionDef(El,WithBody,WithSrc);
+end;
+
+function TPasToJSConverter.CreateFunctionDef(El: TPasElement;
+  WithBody: boolean; WithSrc: boolean): TJSFuncDef;
+begin
+  Result:=TJSFuncDef.Create;
   if WithBody then
     begin
-    FuncDef.Body:=TJSFunctionBody(CreateElement(TJSFunctionBody,El));
+    Result.Body:=TJSFunctionBody(CreateElement(TJSFunctionBody,El));
     if WithSrc then
-      begin
-      Src:=TJSSourceElements(CreateElement(TJSSourceElements, El));
-      FuncDef.Body.A:=Src;
-      end;
+      Result.Body.A:=TJSSourceElements(CreateElement(TJSSourceElements, El));
     end;
 end;
 
@@ -8495,7 +8519,7 @@ var
       FuncVD:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
       AddToSourceElements(Src,FuncVD);
       FuncVD.Name:='this.'+MemberFuncName[Kind];
-      Func:=CreateFunction(El);
+      Func:=CreateFunctionSt(El);
       FuncVD.Init:=Func;
       Func.AFunction.Body.A:=New_Src;
       New_Src:=nil;
@@ -8633,7 +8657,7 @@ begin
      end;
 
     // add parameter: class initialize function 'function(){...}'
-    FunDecl:=CreateFunction(El,true,true);
+    FunDecl:=CreateFunctionSt(El,true,true);
     Call.AddArg(FunDecl);
     Src:=TJSSourceElements(FunDecl.AFunction.Body.A);
 
@@ -9166,7 +9190,14 @@ end;
 
 function TPasToJSConverter.ConvertArrayType(El: TPasArrayType;
   AContext: TConvertContext): TJSElement;
-// Create
+// Static array of static array need clone function:
+//  TStaticArray$clone = function(a){
+//    var r = [];
+//    for (var i=0; i<*High(a)*; i++) r.push(a[i].slice(0));
+//    return r;
+//  };
+//
+// Published array types need:
 //  module.$rtti.$StaticArray("name",{
 //    dims: [dimsize1,dimsize2,...],
 //    eltype: module.$rtti["ElTypeName"]
@@ -9174,6 +9205,11 @@ function TPasToJSConverter.ConvertArrayType(El: TPasArrayType;
 //  module.$rtti.$DynArray("name",{
 //    eltype: module.$rtti["ElTypeName"]
 //  };
+//
+const
+  CloneArrName = 'a';
+  CloneResultName = 'r';
+  CloneRunName = 'i';
 var
   CallName: String;
   Obj: TJSObjectLiteral;
@@ -9184,7 +9220,18 @@ var
   ElType: TPasType;
   RangeEl: TPasExpr;
   Call: TJSCallExpression;
-  RgLen: MaxPrecInt;
+  RgLen, RangeEnd: MaxPrecInt;
+  CloneFunc: TJSVarDeclaration;
+  List: TJSStatementList;
+  Func: TJSFunctionDeclarationStatement;
+  Src: TJSSourceElements;
+  VarSt: TJSVariableStatement;
+  ForLoop: TJSForStatement;
+  ExprLT: TJSRelationalExpressionLT;
+  PlusPlus: TJSUnaryPostPlusPlusExpression;
+  BracketEx: TJSBracketMemberExpression;
+  CloneEl: TJSElement;
+  ReturnSt: TJSReturnStatement;
 begin
   Result:=nil;
   if El.PackMode<>pmNone then
@@ -9193,51 +9240,137 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertArrayType ',GetObjName(El));
   {$ENDIF}
-  if not HasTypeInfo(El,AContext) then exit;
 
-  // module.$rtti.$DynArray("name",{...})
-  if length(El.Ranges)>0 then
-    CallName:=FBuiltInNames[pbifnRTTINewStaticArray]
-  else
-    CallName:=FBuiltInNames[pbifnRTTINewDynArray];
-  Call:=CreateRTTINewType(El,CallName,false,AContext,Obj);
-  try
-    ElType:=El.ElType;
-    if length(El.Ranges)>0 then
-      begin
-      // dims: [dimsize1,dimsize2,...]
-      Prop:=Obj.Elements.AddElement;
-      Prop.Name:=TJSString(FBuiltInNames[pbivnRTTIArray_Dims]);
-      ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-      Prop.Expr:=ArrLit;
-      Arr:=El;
+  if AContext.Resolver.HasStaticArrayCloneFunc(El) then
+    begin
+    // For example: type TArr = array[1..2] of array[1..2] of longint;
+    //  TStaticArray$clone = function(a){
+    //    var r = [];
+    //    for (var i=0; i<*High(a)*; i++) r.push(a[i].slice(0));
+    //    return r;
+    //  };
+    BracketEx:=nil;
+    CloneFunc:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
+    try
       Index:=0;
-      repeat
-        RangeEl:=Arr.Ranges[Index];
-        RgLen:=AContext.Resolver.GetRangeLength(RangeEl);
-        ArrLit.AddElement(CreateLiteralNumber(RangeEl,RgLen));
-        inc(Index);
-        if Index=length(Arr.Ranges) then
-          begin
-          if ElType.ClassType<>TPasArrayType then
-            break;
-          Arr:=TPasArrayType(ElType);
-          if length(Arr.Ranges)=0 then
-            RaiseNotSupported(Arr,AContext,20170411222315,'static array of anonymous array');
-          ElType:=Arr.ElType;
-          Index:=0;
-          end;
-      until false;
-      end;
-    // eltype: ref
-    Prop:=Obj.Elements.AddElement;
-    Prop.Name:=TJSString(FBuiltInNames[pbivnRTTIArray_ElType]);
-    Prop.Expr:=CreateTypeInfoRef(ElType,AContext,El);
-    Result:=Call;
-  finally
-    if Result=nil then
+      RangeEl:=El.Ranges[Index];
+      // function(a){...
+      CloneFunc.Name:=El.Name+FBuiltInNames[pbifnArray_Static_Clone];
+      Func:=CreateFunctionSt(El,true,true);
+      CloneFunc.Init:=Func;
+      Func.AFunction.Params.Add(CloneArrName);
+      Src:=Func.AFunction.Body.A as TJSSourceElements;
+      // var r = [];
+      VarSt:=CreateVarStatement(CloneResultName,TJSArrayLiteral(CreateElement(TJSArrayLiteral,El)),El);
+      AddToSourceElements(Src,VarSt);
+      // for (
+      ForLoop:=TJSForStatement(CreateElement(TJSForStatement,El));
+      AddToSourceElements(Src,ForLoop);
+      // var i=0;
+      ForLoop.Init:=CreateVarStatement(CloneRunName,CreateLiteralNumber(El,0),El);
+      // i<high(a)
+      ExprLT:=TJSRelationalExpressionLT(CreateElement(TJSRelationalExpressionLT,El));
+      ForLoop.Cond:=ExprLT;
+      ExprLT.A:=CreatePrimitiveDotExpr(CloneRunName,El);
+      RangeEnd:=AContext.Resolver.GetRangeLength(RangeEl);
+      ExprLT.B:=CreateLiteralNumber(RangeEl,RangeEnd);
+      // i++
+      PlusPlus:=TJSUnaryPostPlusPlusExpression(CreateElement(TJSUnaryPostPlusPlusExpression,El));
+      ForLoop.Incr:=PlusPlus;
+      PlusPlus.A:=CreatePrimitiveDotExpr(CloneRunName,El);
+      // r.push(...
+      Call:=CreateCallExpression(El);
+      ForLoop.Body:=Call;
+      Call.Expr:=CreatePrimitiveDotExpr(CloneResultName+'.push',El);
+      // a[i]
+      BracketEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+      BracketEx.MExpr:=CreatePrimitiveDotExpr(CloneArrName,El);
+      BracketEx.Name:=CreatePrimitiveDotExpr(CloneRunName,El);
+      // clone a[i]
+      ElType:=AContext.Resolver.ResolveAliasType(El.ElType);
+      CloneEl:=nil;
+      if ElType is TPasArrayType then
+        begin
+        if length(TPasArrayType(ElType).Ranges)=0 then
+          RaiseNotSupported(El,AContext,20180218223414,GetObjName(ElType));
+        CloneEl:=CreateCloneStaticArray(El,TPasArrayType(ElType),BracketEx,AContext);
+        end
+      else if ElType is TPasRecordType then
+        CloneEl:=CreateCloneRecord(El,TPasRecordType(ElType),BracketEx,AContext)
+      else if ElType is TPasSetType then
+        CloneEl:=CreateReferencedSet(El,BracketEx)
+      else
+        RaiseNotSupported(El,AContext,20180218223618,GetObjName(ElType));
+      Call.AddArg(CloneEl);
+      BracketEx:=nil;
+      // return r;
+      ReturnSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
+      AddToSourceElements(Src,ReturnSt);
+      ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
+
+      Result:=CloneFunc;
+      CloneFunc:=nil;
+    finally
+      BracketEx.Free;
+      CloneFunc.Free;
+    end;
+    end;
+
+  if HasTypeInfo(El,AContext) then
+    begin
+    // module.$rtti.$DynArray("name",{...})
+    if length(El.Ranges)>0 then
+      CallName:=FBuiltInNames[pbifnRTTINewStaticArray]
+    else
+      CallName:=FBuiltInNames[pbifnRTTINewDynArray];
+    Call:=CreateRTTINewType(El,CallName,false,AContext,Obj);
+    try
+      ElType:=AContext.Resolver.ResolveAliasType(El.ElType);
+      if length(El.Ranges)>0 then
+        begin
+        // static array
+        // dims: [dimsize1,dimsize2,...]
+        Prop:=Obj.Elements.AddElement;
+        Prop.Name:=TJSString(FBuiltInNames[pbivnRTTIArray_Dims]);
+        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        Prop.Expr:=ArrLit;
+        Arr:=El;
+        Index:=0;
+        repeat
+          RangeEl:=Arr.Ranges[Index];
+          RgLen:=AContext.Resolver.GetRangeLength(RangeEl);
+          ArrLit.AddElement(CreateLiteralNumber(RangeEl,RgLen));
+          inc(Index);
+          if Index=length(Arr.Ranges) then
+            begin
+            if ElType.ClassType<>TPasArrayType then
+              break;
+            Arr:=TPasArrayType(ElType);
+            if length(Arr.Ranges)=0 then
+              RaiseNotSupported(Arr,AContext,20170411222315,'static array of anonymous array');
+            ElType:=AContext.Resolver.ResolveAliasType(Arr.ElType);
+            Index:=0;
+            end;
+        until false;
+        end;
+      // eltype: ref
+      Prop:=Obj.Elements.AddElement;
+      Prop.Name:=TJSString(FBuiltInNames[pbivnRTTIArray_ElType]);
+      Prop.Expr:=CreateTypeInfoRef(ElType,AContext,El);
+      if Result=nil then
+        Result:=Call
+      else
+        begin
+        List:=TJSStatementList(CreateElement(TJSStatementList,El));
+        List.A:=Result;
+        List.B:=Call;
+        Result:=List;
+        end;
+      Call:=nil;
+    finally
       Call.Free;
-  end;
+    end;
+    end;
 end;
 
 function TPasToJSConverter.GetOrdType(MinValue, MaxValue: MaxPrecInt;
@@ -9392,7 +9525,7 @@ begin
     AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext,ImplProc);
     end;
 
-  FS:=CreateFunction(ImplProc,ImplProc.Body<>nil);
+  FS:=CreateFunctionSt(ImplProc,ImplProc.Body<>nil);
   FD:=FS.AFunction;
   if AssignSt<>nil then
     AssignSt.Expr:=FS
@@ -9559,7 +9692,7 @@ begin
   ok:=false;
   try
     AssignSt.LHS:=CreateMemberExpression([FBuiltInNames[pbivnModule],FunName]);
-    FDS:=CreateFunction(El,El.Elements.Count>0);
+    FDS:=CreateFunctionSt(El,El.Elements.Count>0);
     AssignSt.Expr:=FDS;
     if El.Elements.Count>0 then
       begin
@@ -9903,7 +10036,7 @@ var
 begin
   Result:=nil;
   // create function(){}
-  FunDecl:=CreateFunction(El,true,true);
+  FunDecl:=CreateFunctionSt(El,true,true);
   Src:=TJSSourceElements(FunDecl.AFunction.Body.A);
 
   // create section context (a function)
@@ -10083,14 +10216,30 @@ function TPasToJSConverter.CreateCloneStaticArray(El: TPasElement;
   ): TJSElement;
 var
   Call: TJSCallExpression;
+  Path: String;
+  FuncContext: TFunctionContext;
 begin
-  if length(ArrTypeEl.Ranges)>1 then
-    RaiseNotSupported(El,AContext,20180218002409,'cloning multi dim static array');
-  // ArrayExpr.slice(0)
-  Call:=CreateCallExpression(El);
-  Call.Expr:=CreateDotExpression(El,ArrayExpr,CreatePrimitiveDotExpr('slice',El));
-  Call.AddArg(CreateLiteralNumber(El,0));
-  Result:=Call;
+  if AContext.Resolver.HasStaticArrayCloneFunc(ArrTypeEl) then
+    begin
+    // TArrayType$clone(ArrayExpr);
+    if ArrTypeEl.Name='' then
+      RaiseNotSupported(El,AContext,20180218230407,'copy anonymous multi dim array');
+    FuncContext:=AContext.GetFunctionContext;
+    Path:=CreateReferencePath(ArrTypeEl,FuncContext,rpkPathAndName)
+          +FBuiltInNames[pbifnArray_Static_Clone];
+    Call:=CreateCallExpression(El);
+    Call.Expr:=CreatePrimitiveDotExpr(Path,El);
+    Call.AddArg(ArrayExpr);
+    Result:=Call;
+    end
+  else
+    begin
+    // ArrayExpr.slice(0)
+    Call:=CreateCallExpression(El);
+    Call.Expr:=CreateDotExpression(El,ArrayExpr,CreatePrimitiveDotExpr('slice',El));
+    Call.AddArg(CreateLiteralNumber(El,0));
+    Result:=Call;
+    end;
 end;
 
 function TPasToJSConverter.CreateCallback(El: TPasElement;
@@ -11054,13 +11203,24 @@ begin
     else if AssignContext.RightResolved.BaseType=btContext then
       begin
       RightTypeEl:=AContext.Resolver.ResolveAliasType(AssignContext.RightResolved.TypeEl);
-      if RightTypeEl.ClassType=TPasRecordType then
+      if RightTypeEl.ClassType=TPasArrayType then
+        begin
+        if length(TPasArrayType(RightTypeEl).Ranges)>0 then
+          begin
+          // right side is a static array -> clone
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.ConvertAssignStatement STATIC ARRAY variable Right={',GetResolverResultDbg(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
+          {$ENDIF}
+          AssignContext.RightSide:=CreateCloneStaticArray(El.right,
+                    TPasArrayType(RightTypeEl),AssignContext.RightSide,AContext);
+          end;
+        end
+      else if RightTypeEl.ClassType=TPasRecordType then
         begin
         // right side is a record -> clone
         {$IFDEF VerbosePas2JS}
         writeln('TPasToJSConverter.ConvertAssignStatement RECORD variable Right={',GetResolverResultDbg(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
         {$ENDIF}
-        // create  "new RightRecordType(RightRecord)"
         AssignContext.RightSide:=CreateCloneRecord(El.right,
                   TPasRecordType(RightTypeEl),AssignContext.RightSide,AContext);
         end;
@@ -13317,7 +13477,7 @@ begin
     // add   get:function(){ return GetExpr; }
     ObjLit:=Obj.Elements.AddElement;
     ObjLit.Name:=TempRefObjGetterName;
-    FuncSt:=CreateFunction(El);
+    FuncSt:=CreateFunctionSt(El);
     ObjLit.Expr:=FuncSt;
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
     FuncSt.AFunction.Body.A:=RetSt;
@@ -13330,7 +13490,7 @@ begin
     // add   set:function(v){ SetExpr }
     ObjLit:=Obj.Elements.AddElement;
     ObjLit.Name:=TempRefObjSetterName;
-    FuncSt:=CreateFunction(El);
+    FuncSt:=CreateFunctionSt(El);
     ObjLit.Expr:=FuncSt;
     FuncSt.AFunction.Params.Add(TempRefObjSetterArgName);
     FuncSt.AFunction.Body.A:=SetExpr;
@@ -13636,7 +13796,6 @@ const
     First, Last: TJSStatementList;
     VarDotExpr: TJSDotMemberExpression;
     PasVarType: TPasType;
-    ResolvedPasVar: TPasResolverResult;
   begin
     // init members with s
     First:=nil;
@@ -13657,18 +13816,25 @@ const
       if (AContext.Resolver<>nil) then
         begin
         PasVarType:=AContext.Resolver.ResolveAliasType(PasVar.VarType);
-        if PasVarType.ClassType=TPasRecordType then
+        if PasVarType.ClassType=TPasArrayType then
           begin
-          SetResolverIdentifier(ResolvedPasVar,btContext,PasVar,PasVarType,
-                                [rrfReadable,rrfWritable]);
+          if length(TPasArrayType(PasVarType).Ranges)>0 then
+            begin
+            // clone sub static array
+            VarAssignSt.Expr:=CreateCloneStaticArray(PasVar,TPasArrayType(PasVarType),
+                                                VarDotExpr,FuncContext);
+            end;
+          end
+        else if PasVarType.ClassType=TPasRecordType then
+          begin
+          // clone sub record
           VarAssignSt.Expr:=CreateCloneRecord(PasVar,TPasRecordType(PasVarType),
                                               VarDotExpr,FuncContext);
-          continue;
           end
         else if PasVarType.ClassType=TPasSetType then
           begin
+          // clone sub set
           VarAssignSt.Expr:=CreateReferencedSet(PasVar,VarDotExpr);
-          continue;
           end
         end;
       end;
@@ -13747,7 +13913,7 @@ const
     AssignSt.LHS:=CreateMemberExpression(['this',FBuiltInNames[pbifnRecordEqual]]);
     AddToStatementList(BodyFirst,BodyLast,AssignSt,El);
     // add "function(b){"
-    FDS:=CreateFunction(El);
+    FDS:=CreateFunctionSt(El);
     AssignSt.Expr:=FDS;
     FD:=FDS.AFunction;
     FD.Params.Add(EqualParamName);
@@ -13843,7 +14009,7 @@ begin
   ListLast:=nil;
   ok:=false;
   try
-    FDS:=CreateFunction(El);
+    FDS:=CreateFunctionSt(El);
     if AContext is TObjectContext then
       begin
       // add 'TypeName: function(){}'

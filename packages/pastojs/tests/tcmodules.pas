@@ -329,8 +329,8 @@ type
     Procedure TestArray_StaticMultiDim; // ToDo
     Procedure TestArrayOfRecord;
     // ToDo: Procedure TestArrayOfSet;
-    Procedure TestArray_DynAsParams;
-    Procedure TestArray_StaticAsParams;
+    Procedure TestArray_DynAsParam;
+    Procedure TestArray_StaticAsParam;
     Procedure TestArrayElement_AsParams;
     Procedure TestArrayElementFromFuncResult_AsParams;
     Procedure TestArrayEnumTypeRange;
@@ -6047,10 +6047,17 @@ begin
   '  i:=arr2[6][3];',
   '  arr2[6,3]:=i;',
   '  i:=arr2[5,2];',
+  '  arr2:=arr2;',// clone multi dim static array
+  //'  arr3:=arr3;',// clone anonymous multi dim static array
   '']);
   ConvertProgram;
   CheckSource('TestArray_StaticMultiDim',
     LinesToStr([ // statements
+    'TArrayArrayInt$clone = function (a) {',
+    '  var r = [];',
+    '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
+    '  return r;',
+    '};',
     'this.Arr = rtl.arraySetLength(null, 0, 3);',
     'this.Arr2 = rtl.arraySetLength(null, 0, 2, 3);',
     'this.Arr3 = [[11, 12, 13], [21, 22, 23]];',
@@ -6063,11 +6070,12 @@ begin
     '$mod.i = 3;',
     '$mod.i = 6;',
     '$mod.i = 3;',
-    '$mod.Arr2[0] = $mod.Arr;',
+    '$mod.Arr2[0] = $mod.Arr.slice(0);',
     '$mod.Arr2[1][1] = $mod.i;',
     '$mod.i = $mod.Arr2[1][2];',
     '$mod.Arr2[1][2] = $mod.i;',
     '$mod.i = $mod.Arr2[0][1];',
+    '$mod.Arr2 = $mod.TArrayArrayInt$clone($mod.Arr2);',
     '']));
 end;
 
@@ -6121,7 +6129,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestArray_DynAsParams;
+procedure TTestModule.TestArray_DynAsParam;
 begin
   StartProgram(false);
   Add([
@@ -6190,7 +6198,7 @@ begin
     ]));
 end;
 
-procedure TTestModule.TestArray_StaticAsParams;
+procedure TTestModule.TestArray_StaticAsParam;
 begin
   StartProgram(false);
   Add([
@@ -6215,9 +6223,9 @@ begin
     LinesToStr([ // statements
     'this.DoIt = function (vG,vH,vI) {',
     '  var vJ = rtl.arraySetLength(null, 0, 2);',
-    '  vG = vG;',
-    '  vJ = vH;',
-    '  vI.set(vI.get());',
+    '  vG = vG.slice(0);',
+    '  vJ = vH.slice(0);',
+    '  vI.set(vI.get().slice(0));',
     '  $mod.DoIt(vG.slice(0), vG, {',
     '    get: function () {',
     '      return vG;',
@@ -6896,6 +6904,7 @@ begin
   Add('    Int: longint;');
   Add('    D: double;');
   Add('    Arr: array of longint;');
+  Add('    Arr2: array[1..2] of longint;');
   Add('    Small: TSmallRec;');
   Add('    Enums: TEnums;');
   Add('  end;');
@@ -6927,18 +6936,21 @@ begin
     '    this.Int = s.Int;',
     '    this.D = s.D;',
     '    this.Arr = s.Arr;',
+    '    this.Arr2 = s.Arr2.slice(0);',
     '    this.Small = new $mod.TSmallRec(s.Small);',
     '    this.Enums = rtl.refSet(s.Enums);',
     '  } else {',
     '    this.Int = 0;',
     '    this.D = 0.0;',
     '    this.Arr = [];',
+    '    this.Arr2 = rtl.arraySetLength(null, 0, 2);',
     '    this.Small = new $mod.TSmallRec();',
     '    this.Enums = {};',
     '  };',
     '  this.$equal = function (b) {',
     '    return (this.Int === b.Int) && ((this.D === b.D) && ((this.Arr === b.Arr)',
-    ' && (this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums))));',
+    ' && ((this.Arr2 === b.Arr2)',
+    ' && (this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums)))));',
     '  };',
     '};',
     'this.r = new $mod.TBigRec();',
