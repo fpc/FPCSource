@@ -3080,6 +3080,7 @@ unit aoptx86;
     function TX86AsmOptimizer.PostPeepholeOptCall(var p : tai) : Boolean;
       var
         hp1 : tai;
+        hp2 : taicpu;
       begin
         Result:=false;
 {$ifndef x86_64}
@@ -3090,7 +3091,7 @@ unit aoptx86;
            GetNextInstruction(p, hp1) and
            MatchInstruction(hp1,A_JMP,[S_NO]) and
            MatchOpType(taicpu(hp1),top_ref) and
-           (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full)) then
+           (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full) then
           begin
             hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
             InsertLLItem(p.previous, p, hp2);
