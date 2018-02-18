@@ -3352,6 +3352,8 @@ procedure read_arguments(cmd:TCmdStr);
       abi : tabi;
       fputype : tfputype;
       cputype : tcputype;
+      controller: tcontrollertype;
+      s: string;
     begin
       for cputype:=low(tcputype) to high(tcputype) do
         undef_system_macro('CPU'+Cputypestr[cputype]);
@@ -3361,10 +3363,27 @@ procedure read_arguments(cmd:TCmdStr);
         undef_system_macro('FPU'+fputypestr[fputype]);
       def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
+{$PUSH}
+{$WARN 6018 OFF} { Unreachable code due to compile time evaluation }
+      if ControllerSupport then
+        begin
+          for controller:=low(tcontrollertype) to high(tcontrollertype) do
+            begin
+              s:=embedded_controllers[controller].controllertypestr;
+              if s<>'' then
+                undef_system_macro('FPC_MCU_'+s);
+            end;
+          s:=embedded_controllers[init_settings.controllertype].controllertypestr;
+          if s<>'' then
+            def_system_macro('FPC_MCU_'+s);
+        end;
+{$POP}
+
       { define abi }
       for abi:=low(tabi) to high(tabi) do
         undef_system_macro('FPC_ABI_'+abiinfo[abi].name);
       def_system_macro('FPC_ABI_'+abiinfo[target_info.abi].name);
+
 
       { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
         systems since most code needs to behave the same on both}
