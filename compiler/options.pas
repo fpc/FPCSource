@@ -2384,7 +2384,15 @@ begin
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
                             if not(SetControllerType(s,init_settings.controllertype)) then
-                              IllegalPara(opt);
+                              IllegalPara(opt)
+                            else
+                              begin
+                                if init_settings.cputype<>embedded_controllers[init_settings.controllertype].cputype then
+                                begin
+                                  Message(scan_n_changecputype);
+                                  init_settings.cputype:=embedded_controllers[init_settings.controllertype].cputype;
+                                end;
+                              end;
                             break;
                           end
                         else
