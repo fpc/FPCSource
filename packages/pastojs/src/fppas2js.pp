@@ -10223,7 +10223,9 @@ begin
     begin
     // TArrayType$clone(ArrayExpr);
     if ArrTypeEl.Name='' then
-      RaiseNotSupported(El,AContext,20180218230407,'copy anonymous multi dim array');
+      RaiseNotSupported(El,AContext,20180218230407,'copy anonymous multi dim static array');
+    if length(ArrTypeEl.Ranges)>1 then
+      RaiseNotSupported(El,AContext,20180218231700,'copy multi dim static array');
     FuncContext:=AContext.GetFunctionContext;
     Path:=CreateReferencePath(ArrTypeEl,FuncContext,rpkPathAndName)
           +FBuiltInNames[pbifnArray_Static_Clone];
