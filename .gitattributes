@@ -12514,6 +12514,7 @@ tests/test/tasm19.pp svneol=native#text/plain
 tests/test/tasm2.inc svneol=native#text/plain
 tests/test/tasm2.pp svneol=native#text/plain
 tests/test/tasm20.pp svneol=native#text/plain
+tests/test/tasm21.pp svneol=native#text/plain
 tests/test/tasm2a.pp svneol=native#text/plain
 tests/test/tasm3.pp svneol=native#text/plain
 tests/test/tasm4.pp svneol=native#text/plain

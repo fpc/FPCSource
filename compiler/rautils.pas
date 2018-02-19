@@ -1301,6 +1301,42 @@ begin
     end
   else
     searchsym(s,srsym,srsymtable);
+  { in asm routines, the function result variable, that matches the function
+    name should be avoided, because:
+    1) there's already a @Result directive (even in TP7) that can be used, if
+       you want to access the function result
+    2) there's no other way to disambiguate between the function result variable
+       and the function's address (using asm syntax only)
+
+    This fixes code, such as:
+
+    function test1: word;
+    begin
+      asm
+        mov ax, offset test1
+      end;
+    end;
+
+    and makes it work in a consistent manner as this code:
+
+    procedure test2;
+    begin
+      asm
+        mov ax, offset test2
+      end;
+    end; }
+  if assigned(srsym) and
+     assigned(srsymtable) and
+     (srsym.typ=absolutevarsym) and
+     (vo_is_funcret in tabsolutevarsym(srsym).varoptions) and
+     (srsymtable.symtabletype=localsymtable) and
+     assigned(srsymtable.defowner) and
+     (srsymtable.defowner.typ=procdef) and
+     (tprocdef(srsymtable.defowner).procsym.name=tabsolutevarsym(srsym).Name) then
+    begin
+      srsym:=tprocdef(srsymtable.defowner).procsym;
+      srsymtable:=srsym.Owner;
+    end;
 end;
 
 
