@@ -367,7 +367,7 @@ unit raavr;
                           // Need to check if original value was signed or simply sign overflowed in 16 bit?
                           if ((taicpu(Result).oper[i]^.val > AVRInstrConstraint[opcode].Operands[i].max) or
                               (taicpu(Result).oper[i]^.val < AVRInstrConstraint[opcode].Operands[i].min)) then
-                            Message(cg_e_parasize_too_big);
+                            Message(asmr_e_constant_out_of_bounds);
                         end;
                   end;
               end;
