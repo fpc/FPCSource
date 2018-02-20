@@ -6104,7 +6104,7 @@ begin
         //writeln('TTestResolver.TestProc_FunctionResult_DeclProc ',GetObjName(Ref.Declaration));
         if not (Ref.Declaration is TPasResultElement) then continue;
         ResultEl:=TPasResultElement(Ref.Declaration);
-        Proc:=ResultEl.Parent as TPasProcedure;
+        Proc:=ResultEl.Parent.Parent as TPasProcedure;
         ProcScope:=Proc.CustomData as TPasProcedureScope;
         if ProcScope.DeclarationProc<>nil then
           RaiseErrorAtSrcMarker('expected Result to resolve to declaration at "#'+aMarker^.Identifier+', but was implproc"',aMarker);

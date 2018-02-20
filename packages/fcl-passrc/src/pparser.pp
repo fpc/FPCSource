@@ -5596,7 +5596,7 @@ begin
       Result.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '', Result))
     else
       begin
-      Result.ProcType := CreateFunctionType('', 'Result', Result, True, CurTokenPos);
+      Result.ProcType := CreateFunctionType('', 'Result', Result, False, CurTokenPos);
       if (ProcType in [ptOperator, ptClassOperator]) then
         begin
         TPasOperator(Result).TokenBased:=IsTokenBased;

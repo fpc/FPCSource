@@ -617,6 +617,7 @@ begin
     UseExpr(TPasExpr(El))
   else if C=TPasEnumValue then
     begin
+    UseExpr(TPasEnumValue(El).Value);
     repeat
       MarkElementAsUsed(El);
       El:=El.Parent;
@@ -665,6 +666,8 @@ begin
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     UsePublished(TPasAliasType(El).DestType)
   else if C=TPasEnumType then
+    for i:=0 to TPasEnumType(El).Values.Count-1 do
+      UsePublished(TPasEnumValue(TPasEnumType(El).Values[i]))
   else if C=TPasSetType then
     UsePublished(TPasSetType(El).EnumType)
   else if C=TPasRangeType then
@@ -991,7 +994,7 @@ var
   Params: TPasExprArray;
   i: Integer;
   BuiltInProc: TResElDataBuiltInProc;
-  ParamResolved, ResolvedAbs: TPasResolverResult;
+  ParamResolved: TPasResolverResult;
   Decl: TPasElement;
   ModScope: TPasModuleScope;
 begin
@@ -1005,13 +1008,6 @@ begin
     Ref:=TResolvedReference(El.CustomData);
     Decl:=Ref.Declaration;
     UseElement(Decl,Ref.Access,false);
-
-    if (Decl is TPasVariable) and (TPasVariable(Decl).AbsoluteExpr<>nil) then
-      begin
-      Resolver.ComputeElement(TPasVariable(Decl).AbsoluteExpr,ResolvedAbs,[rcNoImplicitProc]);
-      if ResolvedAbs.IdentEl is TPasVariable then
-        UseVariable(TPasVariable(ResolvedAbs.IdentEl),Ref.Access,false);
-      end;
 
     if Resolver.IsNameExpr(El) then
       begin
@@ -1318,6 +1314,8 @@ begin
     else if C=TPasEnumType then
       begin
       if not MarkElementAsUsed(El) then exit;
+      for i:=0 to TPasEnumType(El).Values.Count-1 do
+        UseElement(TPasEnumValue(TPasEnumType(El).Values[i]),rraRead,false);
       end
     else if C=TPasPointerType then
       begin
@@ -1531,18 +1529,15 @@ begin
     UseExpr(El.Expr);
     UseExpr(El.LibraryName);
     UseExpr(El.ExportName);
+    UseExpr(El.AbsoluteExpr);
     if Prop<>nil then
       begin
       for i:=0 to Prop.Args.Count-1 do
         UseType(TPasArgument(Prop.Args[i]).ArgType,paumElement);
       UseExpr(Prop.IndexExpr);
-      // ToDo: Prop.ImplementsFunc
-      // ToDo: Prop.DispIDExpr
+      UseExpr(Prop.ImplementsFunc);
+      // ToDo: UseExpr(Prop.DispIDExpr);
       // see UsePublished: Prop.StoredAccessor, Prop.DefaultExpr
-      end;
-    if El.AbsoluteExpr<>nil then
-      begin
-
       end;
     end
   else
