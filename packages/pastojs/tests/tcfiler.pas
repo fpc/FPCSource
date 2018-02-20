@@ -283,7 +283,7 @@ begin
     begin
     OrigDecl:=TPasElement(Orig.Declarations[i]);
     if i>=Rest.Declarations.Count then
-      AssertEquals(Path+': Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
+      AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
     RestDecl:=TPasElement(Rest.Declarations[i]);
     SubPath:=Path+'['+IntToStr(i)+']';
     if OrigDecl.Name<>'' then
@@ -292,7 +292,7 @@ begin
       SubPath:=SubPath+'?noname?';
     CheckRestoredElement(SubPath,OrigDecl,RestDecl);
     end;
-  AssertEquals(Path+': Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
+  AssertEquals(Path+'.Declarations.Count',Orig.Declarations.Count,Rest.Declarations.Count);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSection(const Path: string; Orig,
@@ -348,11 +348,11 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
   Orig, Rest: TPasModuleScope);
 begin
-  AssertEquals(Path+': FirstName',Orig.FirstName,Rest.FirstName);
+  AssertEquals(Path+'.FirstName',Orig.FirstName,Rest.FirstName);
   if Orig.Flags<>Rest.Flags then
-    Fail(Path+': Flags');
+    Fail(Path+'.Flags');
   if Orig.BoolSwitches<>Rest.BoolSwitches then
-    Fail(Path+': BoolSwitches');
+    Fail(Path+'.BoolSwitches');
   CheckRestoredReference(Path+'.AssertClass',Orig.AssertClass,Rest.AssertClass);
   CheckRestoredReference(Path+'.AssertDefConstructor',Orig.AssertDefConstructor,Rest.AssertDefConstructor);
   CheckRestoredReference(Path+'.AssertMsgConstructor',Orig.AssertMsgConstructor,Rest.AssertMsgConstructor);
@@ -415,13 +415,13 @@ begin
     begin
     OrigUses:=TPasSectionScope(Orig.UsesScopes[i]);
     if not (TObject(Rest.UsesScopes[i]) is TPasSectionScope) then
-      Fail(Path+': Uses['+IntToStr(i)+'] Rest='+GetObjName(TObject(Rest.UsesScopes[i])));
+      Fail(Path+'.UsesScopes['+IntToStr(i)+'] Rest='+GetObjName(TObject(Rest.UsesScopes[i])));
     RestUses:=TPasSectionScope(Rest.UsesScopes[i]);
     if OrigUses.ClassType<>RestUses.ClassType then
-      Fail(Path+': Uses['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
-    CheckRestoredReference(Path+': Uses['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
+      Fail(Path+'.Uses['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
+    CheckRestoredReference(Path+'.Uses['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
     end;
-  AssertEquals(Path+': Finished',Orig.Finished,Rest.Finished);
+  AssertEquals(Path+'.Finished',Orig.Finished,Rest.Finished);
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
@@ -460,21 +460,28 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
   Orig, Rest: TPas2JSProcedureScope);
 begin
-  AssertEquals(Path+': ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
+  CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
+  CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
+  if Rest.DeclarationProc=nil then
+    begin
+    AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
+    CheckRestoredReference(Path+'.OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
 
-  // DeclarationProc: TPasProcedure; only the declaration is stored
-  // ImplProc: TPasProcedure; only the declaration is stored
-  CheckRestoredReference(Path+': OverriddenProc',Orig.OverriddenProc,Rest.OverriddenProc);
+    CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassScope,Rest.ClassScope);
+    CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
+    AssertEquals(Path+'.Mode',PJUModeSwitchNames[Orig.Mode],PJUModeSwitchNames[Rest.Mode]);
+    if Orig.Flags<>Rest.Flags then
+      Fail(Path+'.Flags');
+    if Orig.BoolSwitches<>Rest.BoolSwitches then
+      Fail(Path+'.BoolSwitches');
 
-  CheckRestoredScopeReference(Path+': ClassScope',Orig.ClassScope,Rest.ClassScope);
-  CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
-  AssertEquals(Path+'.Mode',PJUModeSwitchNames[Orig.Mode],PJUModeSwitchNames[Rest.Mode]);
-  if Orig.Flags<>Rest.Flags then
-    Fail(Path+'.Flags');
-  if Orig.BoolSwitches<>Rest.BoolSwitches then
-    Fail(Path+'.BoolSwitches');
+    CheckRestoredIdentifierScope(Path,Orig,Rest);
+    end
+  else
+    begin
+    // ImplProc
 
-  CheckRestoredIdentifierScope(Path,Orig,Rest);
+    end;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredPropertyScope(const Path: string;
@@ -603,7 +610,7 @@ procedure TCustomTestPrecompile.CheckRestoredReference(const Path: string;
   Orig, Rest: TPasElement);
 begin
   if not CheckRestoredObject(Path,Orig,Rest) then exit;
-  AssertEquals(Path+': Name',Orig.Name,Rest.Name);
+  AssertEquals(Path+'.Name',Orig.Name,Rest.Name);
 
   if Orig is TPasUnresolvedSymbolRef then
     exit; // compiler types and procs are the same in every unit -> skip checking unit
@@ -637,15 +644,15 @@ begin
   if AModule<>Module then
     Fail(Path+' wrong module: Orig='+GetObjName(AModule)+' '+GetObjName(Module));
 
-  AssertEquals(Path+': Name',Orig.Name,Rest.Name);
-  AssertEquals(Path+': SourceFilename',Orig.SourceFilename,Rest.SourceFilename);
-  AssertEquals(Path+': SourceLinenumber',Orig.SourceLinenumber,Rest.SourceLinenumber);
-  //AssertEquals(Path+': SourceEndLinenumber',Orig.SourceEndLinenumber,Rest.SourceEndLinenumber);
+  AssertEquals(Path+'.Name',Orig.Name,Rest.Name);
+  AssertEquals(Path+'.SourceFilename',Orig.SourceFilename,Rest.SourceFilename);
+  AssertEquals(Path+'.SourceLinenumber',Orig.SourceLinenumber,Rest.SourceLinenumber);
+  //AssertEquals(Path+'.SourceEndLinenumber',Orig.SourceEndLinenumber,Rest.SourceEndLinenumber);
   if Orig.Visibility<>Rest.Visibility then
-    Fail(Path+': Visibility '+PJUMemberVisibilityNames[Orig.Visibility]+' '+PJUMemberVisibilityNames[Rest.Visibility]);
+    Fail(Path+'.Visibility '+PJUMemberVisibilityNames[Orig.Visibility]+' '+PJUMemberVisibilityNames[Rest.Visibility]);
   if Orig.Hints<>Rest.Hints then
-    Fail(Path+': Hints');
-  AssertEquals(Path+': HintMessage',Orig.HintMessage,Rest.HintMessage);
+    Fail(Path+'.Hints');
+  AssertEquals(Path+'.HintMessage',Orig.HintMessage,Rest.HintMessage);
 
   CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
 
@@ -1043,7 +1050,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredConst(const Path: string; Orig,
   Rest: TPasConst);
 begin
-  AssertEquals(Path+': IsConst',Orig.IsConst,Rest.IsConst);
+  AssertEquals(Path+'.IsConst',Orig.IsConst,Rest.IsConst);
   CheckRestoredVariable(Path,Orig,Rest);
 end;
 
@@ -1067,18 +1074,32 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcedure(const Path: string;
   Orig, Rest: TPasProcedure);
+var
+  RestScope, OrigScope: TPas2JSProcedureScope;
 begin
-  CheckRestoredElement(Path+'.ProcType',Orig.ProcType,Rest.ProcType);
-  CheckRestoredElement(Path+'.PublicName',Orig.PublicName,Rest.PublicName);
-  CheckRestoredElement(Path+'.LibrarySymbolName',Orig.LibrarySymbolName,Rest.LibrarySymbolName);
-  CheckRestoredElement(Path+'.LibraryExpr',Orig.LibraryExpr,Rest.LibraryExpr);
-  CheckRestoredElement(Path+'.DispIDExpr',Orig.DispIDExpr,Rest.DispIDExpr);
-  AssertEquals(Path+'.AliasName',Orig.AliasName,Rest.AliasName);
-  if Orig.Modifiers<>Rest.Modifiers then
-    Fail(Path+'.Modifiers');
-  AssertEquals(Path+'.MessageName',Orig.MessageName,Rest.MessageName);
-  if Orig.MessageType<>Rest.MessageType then
-    Fail(Path+'.MessageType Orig='+PJUProcedureMessageTypeNames[Orig.MessageType]+' Rest='+PJUProcedureMessageTypeNames[Rest.MessageType]);
+  CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
+  OrigScope:=Orig.CustomData as TPas2JSProcedureScope;
+  RestScope:=Rest.CustomData as TPas2JSProcedureScope;
+  CheckRestoredReference(Path+'.CustomData[TPas2JSProcedureScope].DeclarationProc',
+    OrigScope.DeclarationProc,RestScope.DeclarationProc);
+  if RestScope.DeclarationProc=nil then
+    begin
+    CheckRestoredElement(Path+'.ProcType',Orig.ProcType,Rest.ProcType);
+    CheckRestoredElement(Path+'.PublicName',Orig.PublicName,Rest.PublicName);
+    CheckRestoredElement(Path+'.LibrarySymbolName',Orig.LibrarySymbolName,Rest.LibrarySymbolName);
+    CheckRestoredElement(Path+'.LibraryExpr',Orig.LibraryExpr,Rest.LibraryExpr);
+    CheckRestoredElement(Path+'.DispIDExpr',Orig.DispIDExpr,Rest.DispIDExpr);
+    AssertEquals(Path+'.AliasName',Orig.AliasName,Rest.AliasName);
+    if Orig.Modifiers<>Rest.Modifiers then
+      Fail(Path+'.Modifiers');
+    AssertEquals(Path+'.MessageName',Orig.MessageName,Rest.MessageName);
+    if Orig.MessageType<>Rest.MessageType then
+      Fail(Path+'.MessageType Orig='+PJUProcedureMessageTypeNames[Orig.MessageType]+' Rest='+PJUProcedureMessageTypeNames[Rest.MessageType]);
+    end
+  else
+    begin
+    // ImplProc
+    end;
   // ToDo: Body
 end;
 
@@ -1247,12 +1268,19 @@ end;
 
 procedure TTestPrecompile.TestPC_Proc;
 begin
-  exit;  // ToDo
   StartUnit(false);
   Add([
   'interface',
-  '  procedure Abs(d: double): double; external name ''Math.Abs'';',
-  'implementation']);
+  '  function Abs(d: double): double; external name ''Math.Abs'';',
+  '  function GetIt(d: double): double;',
+  'implementation',
+  'function GetIt(d: double): double;',
+  'var j: double;',
+  'begin',
+  '  j:=Abs(d);',
+  '  Result:=j;',
+  'end;',
+  '']);
   WriteReadUnit;
 end;
 
@@ -1263,18 +1291,25 @@ begin
   'interface',
   'type',
   '  TObject = class',
-  '  private',
+  '  protected',
   '    FInt: longint;',
+  '    procedure SetInt(Value: longint); virtual; abstract;',
   '  public',
-  '    property Int: longint read FInt write FInt default 3;',
+  '    property Int: longint read FInt write SetInt default 3;',
   '  end;',
   '  TBird = class',
+  '  protected',
+  '    procedure SetInt(Value: longint); override;',
   '  published',
   '    property Int;',
   '  end;',
   'var',
   '  o: tobject;',
-  'implementation']);
+  'implementation',
+  'procedure TBird.SetInt(Value: longint);',
+  'begin',
+  'end;'
+  ]);
   WriteReadUnit;
 end;
 

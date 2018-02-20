@@ -5121,7 +5121,7 @@ begin
   else if (Decl is TPasResultElement) then
     begin
     Name:=ResolverResultVar;
-    Func:=Decl.Parent as TPasFunction;
+    Func:=Decl.Parent.Parent as TPasFunction;
     FuncScope:=Func.CustomData as TPas2JSProcedureScope;
     if FuncScope.ImplProc<>nil then
       FuncScope:=FuncScope.ImplProc.CustomData as TPas2JSProcedureScope;
