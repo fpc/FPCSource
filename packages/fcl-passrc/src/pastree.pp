@@ -757,6 +757,7 @@ type
     property IsNested : Boolean read GetIsNested write SetIsNested;
     property IsReferenceTo : Boolean Read GetIsReference write SetIsReference;
   end;
+  TPasProcedureTypeClass = class of TPasProcedureType;
 
   { TPasResultElement }
 
@@ -885,7 +886,6 @@ type
     WriteAccessor: TPasExpr;
     ImplementsFunc: TPasExpr;
     DispIDExpr : TPasExpr;   // Can be nil.
-
     StoredAccessor: TPasExpr;
     DefaultExpr: TPasExpr;
     ReadAccessorName: string; // not used by resolver
@@ -1372,7 +1372,7 @@ Type
 
   TPasImplSimple = class (TPasImplStatement)
   public
-    expr  : TPasExpr;
+    Expr  : TPasExpr;
     Destructor Destroy; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
@@ -2801,8 +2801,7 @@ end;
 
 destructor TPasFunctionType.Destroy;
 begin
-  if Assigned(ResultEl) then
-    ResultEl.Release;
+  ReleaseAndNil(TPasElement(ResultEl));
   inherited Destroy;
 end;
 
@@ -3246,7 +3245,7 @@ end;
 function TPasImplBlock.AddSimple(exp:TPasExpr):TPasImplSimple;
 begin
   Result:=TPasImplSimple.Create('', Self);
-  Result.expr:=exp;
+  Result.Expr:=exp;
   AddElement(Result);
 end;
 
