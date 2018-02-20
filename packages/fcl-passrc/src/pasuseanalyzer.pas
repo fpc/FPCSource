@@ -666,8 +666,6 @@ begin
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     UsePublished(TPasAliasType(El).DestType)
   else if C=TPasEnumType then
-    for i:=0 to TPasEnumType(El).Values.Count-1 do
-      UsePublished(TPasEnumValue(TPasEnumType(El).Values[i]))
   else if C=TPasSetType then
     UsePublished(TPasSetType(El).EnumType)
   else if C=TPasRangeType then

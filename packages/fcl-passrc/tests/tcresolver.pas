@@ -507,6 +507,7 @@ type
     Procedure TestClass_VarExternal;
     Procedure TestClass_WarnOverrideLowerVisibility;
     Procedure TestClass_Const;
+    Procedure TestClass_ClassConstFail;
     Procedure TestClass_Enumerator;
     Procedure TestClass_EnumeratorFunc;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
@@ -8432,6 +8433,18 @@ begin
   '  with Cla do if ci=26 then;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_ClassConstFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    class const c = 1;',
+  '  end;',
+  'begin']);
+  CheckParserException(sParserExpectToken2Error,nParserExpectToken2Error);
 end;
 
 procedure TTestResolver.TestClass_Enumerator;

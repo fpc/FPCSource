@@ -6020,7 +6020,12 @@ begin
       tkType:
         CurSection:=stType;
       tkConst:
+        begin
+        if haveClass then
+          ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
+            ['Procedure','Var']);
         CurSection:=stConst;
+        end;
       tkVar:
         if LastToken=tkClass then
           CurSection:=stClassVar
