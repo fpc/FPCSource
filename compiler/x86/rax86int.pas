@@ -1240,13 +1240,19 @@ Unit Rax86int;
         code : integer;
         hreg : tregister;
         GotStar,GotOffset,HadVar,
-        GotPlus,Negative : boolean;
+        GotPlus,Negative,BracketlessReference : boolean;
         hl : tasmlabel;
         isseg: boolean;
         is_farproc_entry,hasofs,
         hastypecast: boolean;
       Begin
-        Consume(AS_LBRACKET);
+        if actasmtoken=AS_LBRACKET then
+          begin
+            Consume(AS_LBRACKET);
+            BracketlessReference:=false;
+          end
+        else
+          BracketlessReference:=true;
         if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
           oper.InitRef;
         GotStar:=false;
@@ -1636,9 +1642,21 @@ Unit Rax86int;
 
             AS_RBRACKET :
               begin
-                if GotPlus or GotStar then
+                if GotPlus or GotStar or BracketlessReference then
                   Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_RBRACKET);
+                break;
+              end;
+
+            AS_SEPARATOR,
+            AS_END,
+            AS_COMMA:
+              begin
+                if not BracketlessReference then
+                  begin
+                    Message(asmr_e_invalid_reference_syntax);
+                    RecoverConsume(true);
+                  end;
                 break;
               end;
 
