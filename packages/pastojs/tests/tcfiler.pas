@@ -60,6 +60,7 @@ type
     procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPasRecordScope); virtual;
     procedure CheckRestoredClassScope(const Path: string; Orig, Rest: TPas2JSClassScope); virtual;
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
+    procedure CheckRestoredProcScopeRefs(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
     procedure CheckRestoredPropertyScope(const Path: string; Orig, Rest: TPasPropertyScope); virtual;
     procedure CheckRestoredResolvedReference(const Path: string; Orig, Rest: TResolvedReference); virtual;
     procedure CheckRestoredEvalValue(const Path: string; Orig, Rest: TResEvalValue); virtual;
@@ -127,7 +128,19 @@ type
     procedure TestPC_Class;
   end;
 
+function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
+
 implementation
+
+function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
+var
+  Ref1: TPasProcScopeReference absolute Item1;
+  Ref2: TPasProcScopeReference absolute Item2;
+begin
+  Result:=CompareText(Ref1.Element.Name,Ref2.Element.Name);
+  if Result<>0 then exit;
+  Result:=ComparePointer(Ref1.Element,Ref2.Element);
+end;
 
 { TCustomTestPrecompile }
 
@@ -462,6 +475,7 @@ procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
 begin
   CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
   CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
+  CheckRestoredProcScopeRefs(Path+'.References',Orig,Rest);
   if Rest.DeclarationProc=nil then
     begin
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
@@ -480,8 +494,46 @@ begin
   else
     begin
     // ImplProc
-
     end;
+
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredProcScopeRefs(const Path: string;
+  Orig, Rest: TPas2JSProcedureScope);
+var
+  OrigList, RestList: TFPList;
+  i: Integer;
+  OrigRef, RestRef: TPasProcScopeReference;
+begin
+  CheckRestoredObject(Path,Orig.References,Rest.References);
+  OrigList:=nil;
+  RestList:=nil;
+  try
+    OrigList:=Orig.GetReferences;
+    RestList:=Rest.GetReferences;
+    OrigList.Sort(@CompareListOfProcScopeRef);
+    RestList.Sort(@CompareListOfProcScopeRef);
+    for i:=0 to OrigList.Count-1 do
+      begin
+      OrigRef:=TPasProcScopeReference(OrigList[i]);
+      if i>=RestList.Count then
+        Fail(Path+'['+IntToStr(i)+'] Missing in Rest: "'+OrigRef.Element.Name+'"');
+      RestRef:=TPasProcScopeReference(RestList[i]);
+      CheckRestoredReference(Path+'['+IntToStr(i)+'].Name="'+OrigRef.Element.Name+'"',OrigRef.Element,RestRef.Element);
+      if OrigRef.Access<>RestRef.Access then
+        AssertEquals(Path+'['+IntToStr(i)+']"'+OrigRef.Element.Name+'".Access',
+          PJUPSRefAccessNames[OrigRef.Access],PJUPSRefAccessNames[RestRef.Access]);
+      end;
+    if RestList.Count>OrigList.Count then
+      begin
+      i:=OrigList.Count;
+      RestRef:=TPasProcScopeReference(RestList[i]);
+      Fail(Path+'['+IntToStr(i)+'] Too many in Rest: "'+RestRef.Element.Name+'"');
+      end;
+  finally
+    OrigList.Free;
+    RestList.Free;
+  end;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredPropertyScope(const Path: string;

@@ -52,7 +52,7 @@ interface
 uses
   Classes, Types, SysUtils, contnrs, AVL_Tree, crc,
   fpjson, jsonparser, jsonscanner,
-  PasTree, PScanner, PParser, PasResolveEval, PasResolver,
+  PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
   Pas2jsFileUtils, FPPas2Js;
 
 const
@@ -415,6 +415,16 @@ const
     'GrpOverload'
     );
 
+  PJUDefaultPSRefAccess = psraRead;
+  PJUPSRefAccessNames: array[TPSRefAccess] of string = (
+    'None',
+    'Read',
+    'Write',
+    'ReadWrite',
+    'WriteRead',
+    'TypeInfo'
+    );
+
   PJUResolvedRefAccessNames: array[TResolvedRefAccess] of string = (
     'None',
     'Read',
@@ -580,17 +590,10 @@ type
 
   TPJUWriter = class(TPJUFiler)
   private
+    FAnalyzer: TPasAnalyzer;
     FElementIdCounter: integer;
     FSourceFilesSorted: TPJUSourceFileArray;
     FInImplementation: boolean;
-  protected
-    type
-      TGatherRefs = class
-      public
-        ImplProc: TPasProcedure;
-        DeclProc: TPasProcedure;
-        Scope: TPas2JSProcedureScope;
-      end;
   protected
     procedure RaiseMsg(Id: int64; const Msg: string = ''); override; overload;
     procedure ResolvePendingElRefs(Ref: TPJUFilerElementRef);
@@ -601,12 +604,6 @@ type
     procedure AddReferenceToObj(Obj: TJSONObject; const PropName: string;
       El: TPasElement; WriteNil: boolean = false); virtual;
     procedure CreateElReferenceId(Ref: TPJUFilerElementRef); virtual;
-    function GatherRefs_Add(Refs: TGatherRefs; RefEl: TPasElement;
-      Access: TResolvedRefAccess): TPasProcScopeReference;
-    function GatherRefs_TypeInfo(Refs: TGatherRefs; RefEl: TPasElement): TPasProcScopeReference;
-    procedure GatherRefsElList(Refs: TGatherRefs; Parent: TPasElement; ElList: TFPList);
-    procedure GatherRefsEl(Refs: TGatherRefs; Parent, El: TPasElement;
-      MustBeParent: boolean); virtual;
   protected
     procedure WriteHeaderMagic(Obj: TJSONObject); virtual;
     procedure WriteHeaderVersion(Obj: TJSONObject); virtual;
@@ -695,6 +692,7 @@ type
       InitFlags: TPJUInitialFlags): TJSONObject; virtual;
     function IndexOfSourceFile(const Filename: string): integer;
     property SourceFilesSorted: TPJUSourceFileArray read FSourceFilesSorted;
+    property Analyzer: TPasAnalyzer read FAnalyzer;
   end;
 
   { TPJUReaderContext }
@@ -771,6 +769,7 @@ type
     function ReadBoolean(Obj: TJSONObject; const PropName: string; out b: boolean; El: TPasElement): boolean;
     function ReadArray(Obj: TJSONObject; const PropName: string; out Arr: TJSONArray; El: TPasElement): boolean;
     function ReadObject(Obj: TJSONObject; const PropName: string; out SubObj: TJSONObject; El: TPasElement): boolean;
+    function GetElReference(Id: integer; ErrorEl: TPasElement): TPJUFilerElementRef; virtual;
     function AddElReference(Id: integer; ErrorEl: TPasElement; El: TPasElement): TPJUFilerElementRef; virtual;
     procedure PromiseSetElReference(Id: integer; const Setter: TOnSetElReference; Data: TObject; ErrorEl: TPasElement); virtual;
     procedure PromiseSetElListReference(Id: integer; List: TFPList; Index: integer; ErrorEl: TPasElement); virtual;
@@ -859,6 +858,7 @@ type
     function ReadProcScopeFlags(Obj: TJSONObject; El: TPasElement;
       const PropName: string; const DefaultValue: TPasProcedureScopeFlags): TPasProcedureScopeFlags; virtual;
     procedure ReadProcedureScope(Obj: TJSONObject; Scope: TPas2JSProcedureScope; aContext: TPJUReaderContext); virtual;
+    procedure ReadProcScopeReferences(Obj: TJSONObject; ImplScope: TPas2JSProcedureScope); virtual;
     procedure ReadProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPJUReaderContext); virtual;
     procedure ReadOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPJUReaderContext); virtual;
     // ToDo: procedure ReadExternalReferences(ParentJSON: TJSONObject); virtual;
@@ -1549,321 +1549,6 @@ begin
   inc(FElementIdCounter);
   Ref.Id:=FElementIdCounter;
   Ref.Obj.Add('Id',Ref.Id);
-end;
-
-function TPJUWriter.GatherRefs_Add(Refs: TGatherRefs; RefEl: TPasElement;
-  Access: TResolvedRefAccess): TPasProcScopeReference;
-begin
-  if RefEl=nil then exit(nil);
-  if RefEl.HasParent(Refs.ImplProc)
-      or (RefEl=Refs.ImplProc)
-      or (RefEl=Refs.DeclProc)
-  then
-    exit(nil); // ref inside the proc
-  Result:=Refs.Scope.AddReference(RefEl,ResolvedToPSRefAccess[Access]);
-end;
-
-function TPJUWriter.GatherRefs_TypeInfo(Refs: TGatherRefs; RefEl: TPasElement
-  ): TPasProcScopeReference;
-begin
-  Result:=GatherRefs_Add(Refs,RefEl,rraRead);
-  if Result=nil then exit;
-  Result.NeedTypeInfo:=true;
-end;
-
-procedure TPJUWriter.GatherRefsElList(Refs: TGatherRefs; Parent: TPasElement;
-  ElList: TFPList);
-var
-  i: Integer;
-begin
-  for i:=0 to ElList.Count-1 do
-    GatherRefsEl(Refs,Parent,TPasElement(ElList[i]),true);
-end;
-
-procedure TPJUWriter.GatherRefsEl(Refs: TGatherRefs; Parent, El: TPasElement;
-  MustBeParent: boolean);
-var
-  C: TClass;
-  Ref: TResolvedReference;
-  i: Integer;
-  MyEl, SubEl: TPasElement;
-  ExprArr, Params: TPasExprArray;
-  BuiltInProc: TResElDataBuiltInProc;
-  ModScope: TPasModuleScope;
-  ParamResolved: TPasResolverResult;
-  CaseOf: TPasImplCaseOf;
-  CaseSt: TPasImplCaseStatement;
-  ForLoop: TPasImplForLoop;
-  ForScope: TPasForLoopScope;
-  WithDo: TPasImplWithDo;
-begin
-  if El=nil then exit;
-
-  if El.Parent<>Parent then
-    begin
-    // reference created by parser
-    if MustBeParent then
-      RaiseMsg(20180219182028,El,GetObjName(Parent)+'<>'+GetObjName(El.Parent));
-
-    if El.CustomData is TResElDataBuiltInSymbol then
-      begin
-      // built-in symbol -> redirect to symbol of this module
-      MyEl:=Resolver.FindLocalBuiltInSymbol(El);
-      if MyEl=nil then
-        RaiseMsg(20180219180838,El,GetObjName(El.CustomData));
-      El:=MyEl as TPasUnresolvedSymbolRef;
-
-      if El.CustomData is TResElDataBuiltInProc then
-        begin
-        BuiltInProc:=TResElDataBuiltInProc(El.CustomData);
-        case BuiltInProc.BuiltIn of
-        bfTypeInfo:
-          begin
-          Params:=(El.Parent as TParamsExpr).Params;
-          Resolver.ComputeElement(Params[0],ParamResolved,[rcNoImplicitProc]);
-          if ParamResolved.IdentEl is TPasFunction then
-            GatherRefs_TypeInfo(Refs,TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType)
-          else
-            GatherRefs_TypeInfo(Refs,ParamResolved.IdentEl);
-          end;
-        bfAssert:
-          begin
-          ModScope:=Resolver.RootElement.CustomData as TPasModuleScope;
-          if ModScope.AssertClass<>nil then
-            GatherRefs_Add(Refs,ModScope.AssertClass,rraRead);
-          end;
-        end;
-        end;
-      end;
-
-    // store reference
-    GatherRefs_Add(Refs,El,rraRead);
-    exit;
-    end;
-
-  if El.CustomData is TResolvedReference then
-    begin
-    // reference created by resolver
-    Ref:=TResolvedReference(El.CustomData);
-    GatherRefs_Add(Refs,Ref.Declaration,Ref.Access);
-    end;
-
-  C:=El.ClassType;
-  if (C=TPasImplBlock)
-      or (C=TPasImplBeginBlock) then
-    GatherRefsElList(Refs,El,TPasImplBlock(El).Elements)
-  else if C=TPasImplSimple then
-    // simple expression
-    GatherRefsEl(Refs,El,TPasImplSimple(El).Expr,true)
-  else if C=TPasImplAssign then
-    // a:=b
-    begin
-    GatherRefsEl(Refs,El,TPasImplAssign(El).left,true);
-    GatherRefsEl(Refs,El,TPasImplAssign(El).right,true);
-    end
-  else if C=TPasImplAsmStatement then
-    // asm..end
-  else if C=TPasImplCaseOf then
-    begin
-    // case-of
-    CaseOf:=TPasImplCaseOf(El);
-    GatherRefsEl(Refs,El,CaseOf.CaseExpr,true);
-    for i:=0 to CaseOf.Elements.Count-1 do
-      begin
-      SubEl:=TPasElement(CaseOf.Elements[i]);
-      if SubEl.ClassType=TPasImplCaseStatement then
-        begin
-        CaseSt:=TPasImplCaseStatement(SubEl);
-        GatherRefsElList(Refs,El,CaseSt.Expressions);
-        GatherRefsEl(Refs,El,CaseSt.Body,true);
-        end
-      else if SubEl.ClassType=TPasImplCaseElse then
-        GatherRefsElList(Refs,El,TPasImplCaseElse(El).Elements)
-      else
-        RaiseMsg(20180219200924,SubEl,GetObjName(SubEl));
-      end;
-    end
-  else if C=TPasImplForLoop then
-    begin
-    // for-loop
-    ForLoop:=TPasImplForLoop(El);
-    GatherRefsEl(Refs,El,ForLoop.VariableName,true);
-    GatherRefsEl(Refs,El,ForLoop.StartExpr,true);
-    GatherRefsEl(Refs,El,ForLoop.EndExpr,true);
-    ForScope:=ForLoop.CustomData as TPasForLoopScope;
-    GatherRefsEl(Refs,El,ForScope.GetEnumerator,false);
-    GatherRefsEl(Refs,El,ForScope.MoveNext,false);
-    GatherRefsEl(Refs,El,ForScope.Current,false);
-    GatherRefsEl(Refs,El,ForLoop.Body,true);
-    end
-  else if C=TPasImplIfElse then
-    begin
-    // if-then-else
-    GatherRefsEl(Refs,El,TPasImplIfElse(El).ConditionExpr,true);
-    GatherRefsEl(Refs,El,TPasImplIfElse(El).IfBranch,true);
-    GatherRefsEl(Refs,El,TPasImplIfElse(El).ElseBranch,true);
-    end
-  else if C=TPasImplLabelMark then
-    // label mark
-  else if C=TPasImplRepeatUntil then
-    begin
-    // repeat-until
-    GatherRefsElList(Refs,El,TPasImplRepeatUntil(El).Elements);
-    GatherRefsEl(Refs,El,TPasImplRepeatUntil(El).ConditionExpr,true);
-    end
-  else if C=TPasImplWhileDo then
-    begin
-    // while-do
-    GatherRefsEl(Refs,El,TPasImplWhileDo(El).ConditionExpr,true);
-    GatherRefsElList(Refs,El,TPasImplWhileDo(El).Elements);
-    end
-  else if C=TPasImplWithDo then
-    begin
-    // with-do
-    WithDo:=TPasImplWithDo(El);
-    GatherRefsElList(Refs,El,WithDo.Expressions);
-    GatherRefsElList(Refs,El,WithDo.Elements);
-    end
-  else if C=TPasImplExceptOn then
-    begin
-    // except-on
-    GatherRefsEl(Refs,El,TPasImplExceptOn(El).VarEl,true);
-    GatherRefsEl(Refs,El,TPasImplExceptOn(El).TypeEl,false);
-    GatherRefsEl(Refs,El,TPasImplExceptOn(El).Body,true);
-    end
-  else if C=TPasImplRaise then
-    begin
-    // raise
-    GatherRefsEl(Refs,El,TPasImplRaise(El).ExceptObject,true);
-    GatherRefsEl(Refs,El,TPasImplRaise(El).ExceptAddr,true);
-    end
-  else if C=TPasImplTry then
-    begin
-    // try..finally/except..else..end
-    GatherRefsElList(Refs,El,TPasImplTry(El).Elements);
-    GatherRefsEl(Refs,El,TPasImplTry(El).FinallyExcept,true);
-    GatherRefsEl(Refs,El,TPasImplTry(El).ElseBranch,true);
-    end
-  else if C.InheritsFrom(TPasImplTryHandler) then
-    // try..finally..except..else..
-    GatherRefsElList(Refs,El,TPasImplTryHandler(El).Elements)
-  else if (C=TPasAliasType)
-      or (C=TPasTypeAliasType)
-      or (C=TPasClassOfType) then
-    GatherRefsEl(Refs,El,TPasAliasType(El).DestType,false)
-  else if C=TPasArrayType then
-    begin
-    ExprArr:=TPasArrayType(El).Ranges;
-    for i:=0 to length(ExprArr)-1 do
-      GatherRefsEl(Refs,El,ExprArr[i],true);
-    GatherRefsEl(Refs,El,TPasArrayType(El).ElType,false);
-    end
-  else if C=TPasRecordType then
-    begin
-    GatherRefsElList(Refs,El,TPasRecordType(El).Members);
-    end
-  else if C=TPasClassType then
-    begin
-    RaiseMsg(20180219183041,El,'local class not supported');
-    end
-  else if C=TPasEnumValue then
-    GatherRefsEl(Refs,El,TPasEnumValue(El).Value,false)
-  else if C=TPasEnumType then
-    GatherRefsElList(Refs,El,TPasEnumType(El).Values)
-  else if C=TPasPointerType then
-    GatherRefsEl(Refs,El,TPasPointerType(El).DestType,false)
-  else if C=TPasRangeType then
-    GatherRefsEl(Refs,El,TPasRangeType(El).RangeExpr,true)
-  else if C=TPasSetType then
-    GatherRefsEl(Refs,El,TPasSetType(El).EnumType,false)
-  else if C=TProcedureBody then
-    begin
-    GatherRefsEl(Refs,El,TProcedureBody(El).Body,true);
-    GatherRefsElList(Refs,El,TProcedureBody(El).Declarations);
-    end
-  else if C.InheritsFrom(TPasProcedureType) then
-    begin
-    GatherRefsElList(Refs,El,TPasProcedureType(El).Args);
-    if El is TPasFunctionType then
-      GatherRefsEl(Refs,El,TPasFunctionType(El).ResultEl.ResultType,false);
-    end
-  else if C=TPasArgument then
-    begin
-    GatherRefsEl(Refs,El,TPasArgument(El).ArgType,true);
-    GatherRefsEl(Refs,El,TPasArgument(El).ValueExpr,true);
-    end
-  else if C.InheritsFrom(TPasVariable) then
-    begin
-    GatherRefsEl(Refs,El,TPasVariable(El).VarType,false);
-    GatherRefsEl(Refs,El,TPasVariable(El).LibraryName,true);
-    GatherRefsEl(Refs,El,TPasVariable(El).ExportName,true);
-    GatherRefsEl(Refs,El,TPasVariable(El).AbsoluteExpr,true);
-    GatherRefsEl(Refs,El,TPasVariable(El).Expr,true);
-    if C=TPasConst then
-    else if C=TPasProperty then
-      begin
-      GatherRefsEl(Refs,El,TPasProperty(El).IndexExpr,true);
-      GatherRefsEl(Refs,El,TPasProperty(El).ReadAccessor,true);
-      GatherRefsEl(Refs,El,TPasProperty(El).WriteAccessor,true);
-      GatherRefsEl(Refs,El,TPasProperty(El).ImplementsFunc,true);
-      GatherRefsEl(Refs,El,TPasProperty(El).DispIDExpr,true);
-      GatherRefsEl(Refs,El,TPasProperty(El).StoredAccessor,true);
-      GatherRefsEl(Refs,El,TPasProperty(El).DefaultExpr,true);
-      GatherRefsElList(Refs,El,TPasProperty(El).Args);
-      end;
-    end
-  else if C=TPasResultElement then
-    GatherRefsEl(Refs,El,TPasResultElement(El).ResultType,false)
-  else if C=TPasResString then
-    GatherRefsEl(Refs,El,TPasResString(El).Expr,true)
-  else if C.InheritsFrom(TPasProcedure) then
-    begin
-    GatherRefsEl(Refs,El,TPasProcedure(El).ProcType,true);
-    GatherRefsEl(Refs,El,TPasProcedure(El).Body,true);
-    if TPasProcedure(El).PublicName<>nil then
-      RaiseMsg(20180219190331,El);
-    if TPasProcedure(El).LibrarySymbolName<>nil then
-      RaiseMsg(20180219190354,El);
-    if TPasProcedure(El).LibraryExpr<>nil then
-      RaiseMsg(20180219190402,El);
-    if TPasProcedure(El).DispIDExpr<>nil then
-      RaiseMsg(20180219190420,El);
-    end
-  else if C.InheritsFrom(TPasExpr) then
-    begin
-    GatherRefsEl(Refs,El,TPasExpr(El).format1,true);
-    GatherRefsEl(Refs,El,TPasExpr(El).format2,true);
-    if (C=TPrimitiveExpr)
-        or (C=TSelfExpr)
-        or (C=TBoolConstExpr)
-        or (C=TNilExpr) then
-    else if C=TBinaryExpr then
-      begin
-      GatherRefsEl(Refs,El,TBinaryExpr(El).left,true);
-      GatherRefsEl(Refs,El,TBinaryExpr(El).right,true);
-      end
-    else if C=TUnaryExpr then
-      GatherRefsEl(Refs,El,TUnaryExpr(El).Operand,true)
-    else if C=TParamsExpr then
-      begin
-      GatherRefsEl(Refs,El,TParamsExpr(El).Value,true);
-      ExprArr:=TParamsExpr(El).Params;
-      for i:=0 to length(ExprArr)-1 do
-        GatherRefsEl(Refs,El,ExprArr[i],true);
-      end
-    else if C=TArrayValues then
-      begin
-      ExprArr:=TArrayValues(El).Values;
-      for i:=0 to length(ExprArr)-1 do
-        GatherRefsEl(Refs,El,ExprArr[i],true);
-      end
-    else if C=TInheritedExpr then
-    else
-      RaiseMsg(20180219191705,El,GetObjName(El));
-    end
-  // ToDo: implblocks
-  else
-    RaiseMsg(20180219144250,El);
 end;
 
 procedure TPJUWriter.WriteHeaderMagic(Obj: TJSONObject);
@@ -3172,7 +2857,14 @@ procedure TPJUWriter.WriteProcedure(Obj: TJSONObject; El: TPasProcedure;
 var
   DefProcMods: TProcedureModifiers;
   Scope: TPas2JSProcedureScope;
-  Refs: TGatherRefs;
+  List: TFPList;
+  Arr: TJSONArray;
+  i: Integer;
+  PSRef: TPasProcScopeReference;
+  SubObj: TJSONObject;
+  DeclProc: TPasProcedure;
+  DeclScope: TPasProcedureScope;
+  Ref: TPJUFilerElementRef;
 begin
   WritePasElement(Obj,El,aContext);
   Scope:=El.CustomData as TPas2JSProcedureScope;
@@ -3202,18 +2894,40 @@ begin
     AddReferenceToObj(Obj,'DeclarationProc',Scope.DeclarationProc);
     end;
 
-  if El.Body<>nil then
+  if (Scope.ImplProc=nil) and (El.Body<>nil) then
     begin
-    if Scope.ImplProc<>nil then
-      RaiseMsg(20180219145737,El);
-    Refs:=TGatherRefs.Create;
+    // Note: the References are stored in the declaration scope,
+    //       but in the JSON of the implementation scope, so that
+    //       all references can be resolved immediately by the reader
+    DeclProc:=Scope.DeclarationProc;
+    if DeclProc=nil then
+      DeclProc:=El;
+    DeclScope:=NoNil(DeclProc.CustomData) as TPasProcedureScope;
+    // write references
+    if DeclScope.References=nil then
+      Analyzer.AnalyzeProcRefs(DeclProc);
+    List:=DeclScope.GetReferences;
     try
-      Refs.Scope:=Scope;
-      Refs.DeclProc:=Scope.DeclarationProc;
-      Refs.ImplProc:=El;
-      GatherRefsEl(Refs,El,El.Body,true);
+      if List.Count>0 then
+        begin
+        Arr:=TJSONArray.Create;
+        Obj.Add('ProcRefs',Arr);
+        for i:=0 to List.Count-1 do
+          begin
+          PSRef:=TPasProcScopeReference(List[i]);
+          Ref:=GetElementReference(PSRef.Element);
+          if (Ref.Id=0) and not (Ref.Element is TPasUnresolvedSymbolRef) then
+            RaiseMsg(20180221170307,El,GetObjName(Ref.Element));
+          SubObj:=TJSONObject.Create;
+          Arr.Add(SubObj);
+          if PSRef.Access<>PJUDefaultPSRefAccess then
+            SubObj.Add('Access',PJUPSRefAccessNames[PSRef.Access]);
+          AddReferenceToObj(SubObj,'Id',PSRef.Element);
+          end;
+        end;
     finally
-      Refs.Free;
+      Analyzer.Clear;
+      List.Free;
     end;
     end;
 end;
@@ -3292,10 +3006,12 @@ end;
 constructor TPJUWriter.Create;
 begin
   inherited Create;
+  FAnalyzer:=TPasAnalyzer.Create;
 end;
 
 destructor TPJUWriter.Destroy;
 begin
+  FreeAndNil(FAnalyzer);
   inherited Destroy;
 end;
 
@@ -3464,6 +3180,8 @@ begin
   aContext:=nil;
   Obj:=TJSONObject.Create;
   try
+    Analyzer.Clear;
+    Analyzer.Resolver:=aResolver;
     WriteHeaderMagic(Obj);
     WriteHeaderVersion(Obj);
     WriteInitialFlags(Obj);
@@ -3482,6 +3200,7 @@ begin
     aContext.Free;
     if Result=nil then
       Obj.Free;
+    Analyzer.Clear;
   end;
 end;
 
@@ -3910,6 +3629,16 @@ begin
     RaiseMsg(20180210212719,El,PropName+':'+Data.ClassName);
   SubObj:=TJSONObject(Data);
   Result:=true;
+end;
+
+function TPJUReader.GetElReference(Id: integer; ErrorEl: TPasElement
+  ): TPJUFilerElementRef;
+begin
+  if Id<=0 then
+    RaiseMsg(20180221171721,ErrorEl);
+  if Id>=length(FElementRefsArray) then
+    RaiseMsg(20180221171741,ErrorEl);
+  Result:=FElementRefsArray[Id];
 end;
 
 function TPJUReader.AddElReference(Id: integer; ErrorEl: TPasElement;
@@ -5096,8 +4825,8 @@ procedure TPJUReader.ReadIdentifierScopeArray(Arr: TJSONArray;
   function GetElRef(Id: integer; out DefKind: TPasIdentifierKind;
     out DefName: string): TPJUFilerElementRef;
   begin
-    Result:=AddElReference(Id,Scope.Element,nil);
-    if Result.Element=nil then
+    Result:=GetElReference(Id,Scope.Element);
+    if (Result=nil) or (Result.Element=nil) then
       RaiseMsg(20180207161358,Scope.Element,'Id not found: '+IntToStr(Id));
     GetDefaultsPasIdentifierProps(Result.Element,DefKind,DefName);
   end;
@@ -5597,8 +5326,8 @@ begin
     if Data is TJSONIntegerNumber then
       begin
       Id:=Data.AsInteger;
-      Ref:=AddElReference(Id,Scope.Element,nil);
-      if Ref.Element=nil then
+      Ref:=GetElReference(Id,Scope.Element);
+      if (Ref=nil) or (Ref.Element=nil) then
         RaiseMsg(20180214121727,Scope.Element,'['+IntToStr(i)+'] missing Id '+IntToStr(Id));
       if Ref.Element is TPasProcedure then
         Scope.AbstractProcs[i]:=TPasProcedure(Ref.Element)
@@ -5995,6 +5724,63 @@ begin
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
 
+procedure TPJUReader.ReadProcScopeReferences(Obj: TJSONObject;
+  ImplScope: TPas2JSProcedureScope);
+var
+  i, Id: Integer;
+  Arr: TJSONArray;
+  Data: TJSONData;
+  SubObj: TJSONObject;
+  DeclProc: TPasProcedure;
+  Ref: TPJUFilerElementRef;
+  Found: Boolean;
+  Access: TPSRefAccess;
+  s: string;
+  DeclScope: TPasProcedureScope;
+begin
+  // Note: the References are stored in the declaration scope,
+  //       and in the JSON of the implementation scope, so that
+  //       all references can be resolved immediately
+  DeclProc:=ImplScope.DeclarationProc;
+  if DeclProc=nil then
+    DeclProc:=ImplScope.Element as TPasProcedure;
+  DeclScope:=DeclProc.CustomData as TPasProcedureScope;
+  if DeclScope.References<>nil then
+    RaiseMsg(20180221172403,DeclProc);
+  if not ReadArray(Obj,'ProcRefs',Arr,DeclProc) then exit;
+  for i:=0 to Arr.Count-1 do
+    begin
+    Data:=Arr[i];
+    if not (Data is TJSONObject) then
+      RaiseMsg(20180221164800,DeclProc,GetObjName(Data));
+    SubObj:=TJSONObject(Data);
+    Data:=SubObj.Find('Id');
+    if not (Data is TJSONIntegerNumber) then
+      RaiseMsg(20180221171546,DeclProc,GetObjName(Data));
+    Id:=Data.AsInteger;
+    Ref:=GetElReference(Id,DeclProc);
+    if Ref=nil then
+      RaiseMsg(20180221171940,DeclProc,IntToStr(Id));
+    if Ref.Element=nil then
+      RaiseMsg(20180221171940,DeclProc,IntToStr(Id));
+    if ReadString(SubObj,'Access',s,DeclProc) then
+      begin
+      Found:=false;
+      for Access in TPSRefAccess do
+        if s=PJUPSRefAccessNames[Access] then
+          begin
+          Found:=true;
+          break;
+          end;
+      if not Found then
+        RaiseMsg(20180221172333,DeclProc,'Access "'+s+'"');
+      end
+    else
+      Access:=PJUDefaultPSRefAccess;
+    DeclScope.AddReference(Ref.Element,Access);
+    end;
+end;
+
 procedure TPJUReader.ReadProcedure(Obj: TJSONObject; El: TPasProcedure;
   aContext: TPJUReaderContext);
 var
@@ -6015,8 +5801,8 @@ begin
   if ReadInteger(Obj,'DeclarationProc',DeclProcId,El) then
     begin
     // ImplProc
-    Ref:=AddElReference(DeclProcId,El,nil);
-    if Ref.Element=nil then
+    Ref:=GetElReference(DeclProcId,El);
+    if (Ref=nil) or (Ref.Element=nil) then
       RaiseMsg(20180219140423,El,'missing DeclarationProc '+IntToStr(DeclProcId));
     if not (Ref.Element is TPasProcedure) then
       RaiseMsg(20180219140547,El,'DeclarationProc='+GetObjName(Ref.Element));
@@ -6060,6 +5846,8 @@ begin
     ReadProcedureScope(Obj,Scope,aContext);
     end;
 
+  if Obj.Find('ImplProc')=nil then
+    ReadProcScopeReferences(Obj,Scope);
   // ToDo: Body : TProcedureBody;
 end;
 
