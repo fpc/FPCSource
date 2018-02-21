@@ -35,6 +35,8 @@ type
       const MsgText: string); virtual;
     procedure CheckUseAnalyzerUnexpectedHints; virtual;
     procedure CheckUnitUsed(const aFilename: string; Used: boolean); virtual;
+    procedure CheckUnitProcedureReferences(const ProcName: string;
+      const RefNames: array of string);
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
     function PAMessageCount: integer;
@@ -136,9 +138,19 @@ type
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
+
+    // procedure references
+    procedure TestPR_UnitVar;
   end;
 
+function dbgs(a: TPSRefAccess) : string;
+
 implementation
+
+function dbgs(a: TPSRefAccess): string;
+begin
+  str(a,Result);
+end;
 
 { TCustomTestUseAnalyzer }
 
@@ -328,6 +340,132 @@ begin
     if Used then
       Fail('expected unit "'+aFilename+'" used, but it is not used');
     end;
+end;
+
+procedure TCustomTestUseAnalyzer.CheckUnitProcedureReferences(
+  const ProcName: string; const RefNames: array of string);
+type
+  TEntry = record
+    Name: string;
+    Access: TPSRefAccess;
+  end;
+
+var
+  Entries: array of TEntry;
+
+  procedure CheckRefs(Scope: TPasProcedureScope);
+
+    procedure DumpRefsAndFail(Refs: TFPList; const Msg: string);
+    var
+      i: Integer;
+      Ref: TPasProcScopeReference;
+    begin
+      for i:=0 to Refs.Count-1 do
+        begin
+        Ref:=TPasProcScopeReference(Refs[i]);
+        if Ref=nil then break;
+        {$IFDEF VerbosePasAnalyzer}
+        writeln('DumpRefsAndFail ',i,' ',GetObjName(Ref.Element),' ',Ref.Access);
+        {$ENDIF}
+        end;
+      Fail(Msg);
+    end;
+
+  var
+    Refs: TFPList;
+    j, i: Integer;
+    o: TObject;
+    Ref: TPasProcScopeReference;
+  begin
+    Refs:=Scope.GetReferences;
+    try
+      // check that Refs only contains TPasProcScopeReference
+      for i:=0 to Refs.Count-1 do
+        begin
+        o:=TObject(Refs[i]);
+        if not (o is TPasProcScopeReference) then
+          Fail('Refs['+IntToStr(i)+'] '+GetObjName(o));
+        end;
+      // check that all Entries are referenced
+      for i:=0 to length(Entries)-1 do
+        begin
+        j:=Refs.Count-1;
+        while (j>=0)
+            and (CompareText(Entries[i].Name,TPasProcScopeReference(Refs[j]).Element.Name)<>0) do
+          dec(j);
+        if j<0 then
+          DumpRefsAndFail(Refs,'Missing reference "'+Entries[i].Name+'"');
+        Ref:=TPasProcScopeReference(Refs[j]);
+        if (Entries[i].Access<>psraNone) and (Ref.Access<>Entries[i].Access) then
+          DumpRefsAndFail(Refs,'Wrong reference access "'+Entries[i].Name+'",'
+            +' expected '+dbgs(Entries[i].Access)+', but got '+dbgs(Ref.Access));
+        end;
+      // check that no other references are in Refs
+      for i:=0 to Refs.Count-1 do
+        begin
+        Ref:=TPasProcScopeReference(Refs[i]);
+        j:=length(Entries)-1;
+        while (j>=0)
+            and (CompareText(Ref.Element.Name,Entries[j].Name)<>0) do
+          dec(j);
+        if j<0 then
+          DumpRefsAndFail(Refs,'Unneeded reference "'+GetObjName(Ref.Element)+'"');
+        end;
+    finally
+      Refs.Free;
+    end;
+  end;
+
+  function FindProc(Section: TPasSection): boolean;
+  var
+    i: Integer;
+    El: TPasElement;
+    Proc: TPasProcedure;
+    Scope: TPasProcedureScope;
+  begin
+    for i:=0 to Section.Declarations.Count-1 do
+      begin
+      El:=TPasElement(Section.Declarations[i]);
+      if CompareText(El.Name,ProcName)<>0 then continue;
+      if not (El is TPasProcedure) then
+        Fail('El is not proc '+GetObjName(El));
+      Proc:=TPasProcedure(El);
+      Scope:=Proc.CustomData as TPasProcedureScope;
+      if Scope.DeclarationProc<>nil then continue;
+      Analyzer.Clear;
+      Analyzer.AnalyzeProcRefs(Proc);
+      CheckRefs(Scope);
+      exit(true);
+      end;
+    Result:=false;
+  end;
+
+var
+  i: Integer;
+begin
+  ParseUnit;
+
+  SetLength(Entries,High(RefNames)-low(RefNames)+1);
+  for i:=low(RefNames) to high(RefNames) do
+    begin
+    Entries[i].Name:=RefNames[i];
+    Entries[i].Access:=psraNone;
+    end;
+
+  if Module is TPasProgram then
+    begin
+    if FindProc(TPasProgram(Module).ProgramSection) then exit;
+    end
+  else if Module is TPasLibrary then
+    begin
+    if FindProc(TPasLibrary(Module).LibrarySection) then exit;
+    end
+  else if Module.ClassType=TPasModule then
+    begin
+    if FindProc(Module.InterfaceSection) then exit;
+    if FindProc(Module.ImplementationSection) then exit;
+    end;
+  Fail('missing proc '+ProcName);
 end;
 
 function TCustomTestUseAnalyzer.PAMessageCount: integer;
@@ -2092,8 +2230,34 @@ begin
   AnalyzeWholeProgram;
 end;
 
+procedure TTestUseAnalyzer.TestPR_UnitVar;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TColor = longint;',
+  '  TIntColor = TColor;',
+  'var',
+  '  i: longint;',
+  '  j: longint;',
+  'procedure DoIt;',
+  'implementation',
+  'procedure DoIt;',
+  'type',
+  '  TSubColor = TIntColor;',
+  'var',
+  '  b: TSubColor;',
+  'begin',
+  '  b:=i;',
+  'end;',
+  '']);
+  CheckUnitProcedureReferences('DoIt',['i','tintcolor']);
+end;
+
 initialization
   RegisterTests([TTestUseAnalyzer]);
 
 end.
+
 

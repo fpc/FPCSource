@@ -160,6 +160,15 @@ type
     paumPublished // Mark element and its type and descend into children and mark published identifiers
     );
   TPAUseModes = set of TPAUseMode;
+const
+  PAUseModeToPSRefAccess: array[TPAUseMode] of TPSRefAccess = (
+    psraRead,
+    psraRead,
+    psraRead,
+    psraTypeInfo
+    );
+
+type
 
   { TPasAnalyzer }
 
@@ -172,6 +181,8 @@ type
     FResolver: TPasResolver;
     FScopeModule: TPasModule;
     FUsedElements: TAVLTree; // tree of TPAElement sorted for Element
+    FRefProcDecl: TPasProcedure; // if set, collect only what this proc references
+    FRefProcScope: TPasProcedureScope; // the ProcScope of FRefProcDecl
     function AddOverride(OverriddenEl, OverrideEl: TPasElement): boolean;
     function FindOverrideNode(El: TPasElement): TAVLTreeNode;
     function FindOverrideList(El: TPasElement): TPAOverrideList;
@@ -188,6 +199,7 @@ type
     procedure CreateTree; virtual;
     function MarkElementAsUsed(El: TPasElement; aClass: TPAElementClass = nil): boolean; // true if new
     function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean;
+    function MarkProcRef(El: TPasElement; Access: TPSRefAccess): boolean; // true if outside FRefProcDecl
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UsePublished(El: TPasElement); virtual;
@@ -222,6 +234,7 @@ type
     procedure Clear;
     procedure AnalyzeModule(aModule: TPasModule);
     procedure AnalyzeWholeProgram(aStartModule: TPasProgram);
+    procedure AnalyzeProcRefs(Proc: TPasProcedure);
     procedure EmitModuleHints(aModule: TPasModule); virtual;
     function FindElement(El: TPasElement): TPAElement;
     // utility
@@ -488,6 +501,9 @@ end;
 
 procedure TPasAnalyzer.RaiseInconsistency(const Id: int64; Msg: string);
 begin
+  {$IFDEF VerbosePasAnalyzer}
+  writeln('TPasAnalyzer.RaiseInconsistency ['+IntToStr(Id)+']: '+Msg);
+  {$ENDIF}
   raise EPasAnalyzer.Create('['+IntToStr(Id)+']: '+Msg);
 end;
 
@@ -594,6 +610,22 @@ begin
   FChecked[Mode].Add(El);
 end;
 
+function TPasAnalyzer.MarkProcRef(El: TPasElement; Access: TPSRefAccess
+  ): boolean;
+var
+  Parent: TPasElement;
+begin
+  Parent:=El;
+  while Parent<>nil do
+    begin
+    if (Parent=FRefProcDecl) or (Parent=FRefProcScope.ImplProc) then
+      exit(false); // inside proc
+    Parent:=Parent.Parent;
+    end;
+  FRefProcScope.AddReference(El,Access);
+  Result:=true;
+end;
+
 procedure TPasAnalyzer.UseElement(El: TPasElement; Access: TResolvedRefAccess;
   UseFull: boolean);
 var
@@ -644,6 +676,8 @@ begin
   writeln('TPasAnalyzer.UsePublished START ',GetObjName(El));
   {$ENDIF}
   if ElementVisited(El,paumPublished) then exit;
+  if (FRefProcDecl<>nil) and MarkProcRef(El,psraTypeInfo) then exit;
+
   C:=El.ClassType;
   if C=TPasUnresolvedSymbolRef then
   else if (C=TPasVariable) or (C=TPasConst) then
@@ -728,6 +762,8 @@ var
   ModScope: TPasModuleScope;
 begin
   if ElementVisited(aModule,Mode) then exit;
+  if (FRefProcDecl<>nil) and MarkProcRef(aModule,psraRead) then exit;
+
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseModule ',GetElModName(aModule),' Mode=',Mode);
   {$ENDIF}
@@ -1221,9 +1257,11 @@ begin
     exit; // skip implementation, Note:PasResolver always refers the declaration
 
   if not MarkElementAsUsed(Proc) then exit;
+  if (FRefProcDecl<>nil) and MarkProcRef(Proc,psraRead) then exit;
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseProcedure ',GetElModName(Proc));
   {$ENDIF}
+
   UseProcedureType(Proc.ProcType,false);
 
   ImplProc:=Proc;
@@ -1232,12 +1270,15 @@ begin
   if ImplProc.Body<>nil then
     UseImplBlock(ImplProc.Body.Body,false);
 
-  if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
-    AddOverride(ProcScope.OverriddenProc,Proc);
+  if FRefProcDecl=nil then
+    begin
+    if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
+      AddOverride(ProcScope.OverriddenProc,Proc);
 
-  // mark overrides
-  if [pmOverride,pmVirtual]*Proc.Modifiers<>[] then
-    UseOverrides(Proc);
+    // mark overrides
+    if [pmOverride,pmVirtual]*Proc.Modifiers<>[] then
+      UseOverrides(Proc);
+    end;
 end;
 
 procedure TPasAnalyzer.UseProcedureType(ProcType: TPasProcedureType;
@@ -1250,10 +1291,11 @@ begin
   writeln('TPasAnalyzer.UseProcedureType ',GetElModName(ProcType));
   {$ENDIF}
   if Mark and not MarkElementAsUsed(ProcType) then exit;
+
   for i:=0 to ProcType.Args.Count-1 do
     begin
     Arg:=TPasArgument(ProcType.Args[i]);
-    // Note: arguments are marked when used in code
+    // Note: the arguments themselves are marked when used in code
     // mark argument type and default value
     UseType(Arg.ArgType,paumElement);
     UseExpr(Arg.ValueExpr);
@@ -1268,6 +1310,8 @@ var
   i: Integer;
 begin
   if El=nil then exit;
+  if (FRefProcDecl<>nil) and MarkProcRef(El,PAUseModeToPSRefAccess[Mode]) then exit;
+
   C:=El.ClassType;
   if Mode=paumAllExports then
     begin
@@ -1473,6 +1517,8 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseVariable ',GetElModName(El),' ',Access,' Full=',UseFull);
   {$ENDIF}
+  if (FRefProcDecl<>nil) and MarkProcRef(El,ResolvedToPSRefAccess[Access]) then exit;
+
   if El.ClassType=TPasProperty then
     Prop:=TPasProperty(El)
   else
@@ -1567,8 +1613,8 @@ end;
 
 procedure TPasAnalyzer.UseResourcestring(El: TPasResString);
 begin
-  if MarkElementAsUsed(El) then
-    UseExpr(El.Expr);
+  if not MarkElementAsUsed(El) then exit;
+  UseExpr(El.Expr);
 end;
 
 procedure TPasAnalyzer.UseArgument(El: TPasArgument; Access: TResolvedRefAccess
@@ -1577,6 +1623,8 @@ var
   Usage: TPAElement;
   IsRead, IsWrite: Boolean;
 begin
+  if FRefProcDecl<>nil then exit;
+
   IsRead:=false;
   IsWrite:=false;
   case Access of
@@ -1611,6 +1659,8 @@ var
   IsRead, IsWrite: Boolean;
   Usage: TPAElement;
 begin
+  if FRefProcDecl<>nil then exit;
+
   IsRead:=false;
   IsWrite:=false;
   case Access of
@@ -1642,6 +1692,8 @@ end;
 procedure TPasAnalyzer.EmitElementHints(El: TPasElement);
 begin
   if El=nil then exit;
+  if FRefProcDecl<>nil then exit;
+
   if El is TPasVariable then
     EmitVariableHints(TPasVariable(El))
   else if El is TPasType then
@@ -1957,6 +2009,36 @@ begin
   {$ENDIF}
 end;
 
+procedure TPasAnalyzer.AnalyzeProcRefs(Proc: TPasProcedure);
+var
+  ProcScope: TPasProcedureScope;
+begin
+  {$IFDEF VerbosePasAnalyzer}
+  writeln('TPasAnalyzer.AnalyzeProcRefs START ',GetObjName(Proc));
+  {$ENDIF}
+  if Resolver=nil then
+    RaiseInconsistency(20180221110035,'TPasAnalyzer.AnalyzeProcRefs missing Resolver '+GetObjName(Proc));
+  if FUsedElements.Count>0 then
+    RaiseInconsistency(20180221110035,GetObjName(Proc));
+  ScopeModule:=Proc.GetModule;
+  ProcScope:=NoNil(Proc.CustomData) as TPasProcedureScope;
+  if ProcScope.References<>nil then
+    RaiseInconsistency(20180221161728,GetObjName(Proc));
+  if ProcScope.DeclarationProc<>nil then
+    RaiseInconsistency(20180221110215,GetObjName(Proc));
+  FRefProcDecl:=Proc;
+  FRefProcScope:=ProcScope;
+  try
+    UseProcedure(Proc);
+  finally
+    FRefProcDecl:=nil;
+    FRefProcScope:=nil;
+  end;
+  {$IFDEF VerbosePasAnalyzer}
+  writeln('TPasAnalyzer.AnalyzeProcRefs END ',GetObjName(Proc));
+  {$ENDIF}
+end;
+
 procedure TPasAnalyzer.EmitModuleHints(aModule: TPasModule);
 begin
   {$IFDEF VerbosePasAnalyzer}
@@ -2106,6 +2188,7 @@ end;
 
 procedure TPasAnalyzer.EmitMessage(Msg: TPAMessage);
 begin
+  if FRefProcDecl<>nil then exit;
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.EmitMessage [',Msg.Id,'] ',Msg.MsgType,': (',Msg.MsgNumber,') ',Msg.MsgText);
   {$ENDIF}

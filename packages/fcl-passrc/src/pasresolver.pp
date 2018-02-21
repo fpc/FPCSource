@@ -690,7 +690,6 @@ type
     Owner: TObject;
     {$ENDIF}
     Access: TPSRefAccess;
-    NeedTypeInfo: boolean;
     NextSameName: TPasProcScopeReference;
     destructor Destroy; override;
     property Element: TPasElement read FElement write SetElement;
@@ -706,6 +705,7 @@ type
   TPasProcedureScope = Class(TPasIdentifierScope)
   private
     procedure OnClearReferenceItem(Item, Dummy: pointer);
+    procedure OnCollectReferenceItem(Item, aList: pointer);
   public
     DeclarationProc: TPasProcedure; // the corresponding forward declaration
     ImplProc: TPasProcedure; // the corresponding proc with Body
@@ -726,6 +726,7 @@ type
     procedure ClearReferences;
     function AddReference(El: TPasElement; Access: TPSRefAccess): TPasProcScopeReference;
     function FindReference(const aName: string): TPasProcScopeReference;
+    function GetReferences: TFPList;
   end;
   TPasProcedureScopeClass = class of TPasProcedureScope;
 
@@ -2274,6 +2275,14 @@ begin
     end;
 end;
 
+procedure TPasProcedureScope.OnCollectReferenceItem(Item, aList: pointer);
+var
+  Ref: TPasProcScopeReference absolute Item;
+  List: TFPList absolute aList;
+begin
+  List.Add(Ref);
+end;
+
 function TPasProcedureScope.FindIdentifier(const Identifier: String
   ): TPasIdentifier;
 begin
@@ -2432,6 +2441,13 @@ begin
   if References=nil then exit(nil);
   LoName:=lowercase(aName);
   Result:=TPasProcScopeReference(References.Find(LoName));
+end;
+
+function TPasProcedureScope.GetReferences: TFPList;
+begin
+  Result:=TFPList.Create;
+  if References=nil then exit;
+  References.ForEachCall(@OnCollectReferenceItem,Result);
 end;
 
 { TPasClassScope }
@@ -3092,7 +3108,7 @@ end;
 function TPasIdentifierScope.GetLocalIdentifiers: TFPList;
 begin
   Result:=TFPList.Create;
-  FItems.ForEachCall(@OnCollectItem,Pointer(Result));
+  FItems.ForEachCall(@OnCollectItem,Result);
 end;
 
 { TPasResolver }
