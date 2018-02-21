@@ -1234,7 +1234,7 @@ begin
 
   pfile_in_zip_read_info^.stream.next_out := pbyte(buf);
 
-  pfile_in_zip_read_info^.stream.avail_out := integer(len);
+  pfile_in_zip_read_info^.stream.avail_out := len;
 
   if (len > pfile_in_zip_read_info^.rest_read_uncompressed) then
     pfile_in_zip_read_info^.stream.avail_out :=
