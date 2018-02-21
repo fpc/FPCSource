@@ -1850,7 +1850,8 @@ Var
   ZVersionReqd : Word;
   ZBitFlag : Word;
   ZipStream : TStream;
-  TmpFileName : String;
+  TmpFileName, Start : String;
+  I : Integer;
 
 Begin
   OpenInput(Item);
@@ -1860,9 +1861,12 @@ Begin
       ZipStream:=TMemoryStream.Create
     else
       begin
-      TmpFileName:=ChangeFileExt(FFileName,'.tmp');
-      if TmpFileName=FFileName then
-        TmpFileName:=TmpFileName+'.tmp';
+      Start := ChangeFileExt(FFileName, '');
+      I := 0;
+      repeat
+        TmpFileName := Format('%s%.5d.tmp', [Start, I]);
+        Inc(I);
+      until not FileExists(TmpFileName);
       ZipStream:=TFileStream.Create(TmpFileName,fmCreate);
       end;
     Try
