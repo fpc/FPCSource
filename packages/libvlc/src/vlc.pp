@@ -687,7 +687,8 @@ end;
 
 procedure TCustomVLCMediaPlayer.SetAudioMuted(AValue: Boolean);
 begin
-  libvlc_audio_set_mute(instance, ord(AValue));
+  if Assigned(FInstance) then
+    libvlc_audio_set_mute(instance, ord(AValue));
 end;
 
 procedure TCustomVLCMediaPlayer.SetFitWindow(AValue: Boolean);
