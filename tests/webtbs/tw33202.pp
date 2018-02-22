@@ -1,5 +1,5 @@
 { %CPU=avr }
-{ %OPT=-Sm }
+{ %OPT=-Sm -Wpavrsim }
 program macrotest;
 const
   sramMax = FPC_SRAMBASE + FPC_SRAMSIZE - 1;
