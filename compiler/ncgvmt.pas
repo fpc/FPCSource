@@ -108,6 +108,7 @@ implementation
 
     uses
       cutils,cclasses,
+      fpccrc,
       globtype,globals,verbose,constexp,
       systems,fmodule,
       symsym,symtable,symcreat,
@@ -708,6 +709,25 @@ implementation
            Interface tables
 **************************************}
 
+    function CreateWrapperName(_class : tobjectdef;AImplIntf : TImplementedInterface;i : longint;pd : tprocdef) : string;
+      var
+        tmpstr : AnsiString;
+        hs : string;
+        crc : DWord;
+      begin
+        tmpstr:=_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
+        if length(tmpstr)>100 then
+          begin
+            crc:=0;
+            crc:=UpdateCrc32(crc,tmpstr[101],length(tmpstr)-100);
+            hs:=copy(tmpstr,1,100)+'$CRC'+hexstr(crc,8);
+          end
+        else
+          hs:=tmpstr;
+        result:=make_mangledname('WRPR',_class.owner,hs);
+      end;
+
+
     procedure TVMTWriter.intf_create_vtbl(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint);
       var
         datatcb : ttai_typedconstbuilder;
@@ -724,8 +744,7 @@ implementation
             for i:=0 to AImplIntf.procdefs.count-1 do
               begin
                 pd:=tprocdef(AImplIntf.procdefs[i]);
-                hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
-                                     tostr(i)+'_$_'+pd.mangledname);
+                hs:=CreateWrapperName(_Class,AImplIntf,i,pd);
                 { create reference }
                 datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd));
               end;
@@ -1292,8 +1311,7 @@ implementation
                     if (po_virtualmethod in pd.procoptions) and
                        not is_objectpascal_helper(tprocdef(pd).struct) then
                       tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
-                    tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
-                      ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
+                    tmps:=CreateWrapperName(_Class,ImplIntf,j,pd);
 {$ifdef cpuhighleveltarget}
                     new(wrapperinfo);
                     wrapperinfo^.pd:=pd;
