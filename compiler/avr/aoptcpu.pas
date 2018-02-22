@@ -703,6 +703,20 @@ Implementation
 
                        result:=true;
                     end;
+                A_RCALL:
+                  if (cs_opt_level4 in current_settings.optimizerswitches) and
+                    GetNextInstruction(p,hp1) and
+                    MatchInstruction(hp1,A_RET) then
+                    begin
+                       DebugMsg('Peephole RCallReg2RJmp performed', p);
+
+                       taicpu(p).opcode:=A_RJMP;
+
+                       asml.Remove(hp1);
+                       hp1.Free;
+
+                       result:=true;
+                    end;
                 A_MOV:
                   begin
                     { turn
