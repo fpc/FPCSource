@@ -71,11 +71,11 @@ unit raavr;
        // A_SUB
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
        // A_SUBI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_SBC
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
        // A_SBCI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_SBRC
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
        // A_SBRS
@@ -85,11 +85,11 @@ unit raavr;
        // A_AND
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
        // A_ANDI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_OR
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
        // A_ORI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_EOR
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
        // A_COM
@@ -97,9 +97,9 @@ unit raavr;
        // A_NEG
        (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
        // A_SBR
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_CBR
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_INC
        (numOperands: (1 shl 1); Operands: ((typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none), (typ: top_none))),
        // A_DEC
@@ -145,7 +145,7 @@ unit raavr;
        // A_CPC
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_reg; rt: rt_all), (typ: top_none), (typ: top_none))),
        // A_CPI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_SBIC
        (numOperands: (1 shl 2); Operands: ((typ: top_const; max: 31; min: 0), (typ: top_const; max: 7; min: 0), (typ: top_none), (typ: top_none))),
        // A_SBIS
@@ -157,7 +157,7 @@ unit raavr;
        // A_MOVW
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_even), (typ: top_reg; rt: rt_even), (typ: top_none), (typ: top_none))),
        // A_LDI
-       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: 0), (typ: top_none), (typ: top_none))),
+       (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_16_31), (typ: top_const; max: 255; min: -128), (typ: top_none), (typ: top_none))),
        // A_LDS TODO: There are 2 versions with different machine codes and constant ranges. Could possibly distinguish based on size of PC?
        // Perhaps handle separately with a check on sub-architecture? Range check only important if smaller instruction code selected on larger arch
        (numOperands: (1 shl 2); Operands: ((typ: top_reg; rt: rt_all), (typ: top_const; max: 65535; min: 0), (typ: top_none), (typ: top_none))),

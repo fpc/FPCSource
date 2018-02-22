@@ -343,7 +343,8 @@ Unit raavrgas;
 
           AS_INTNUM,
           AS_MINUS,
-          AS_PLUS:
+          AS_PLUS,
+          AS_NOT:
             Begin
               if (actasmtoken=AS_MINUS) and
                  (actopcode in [A_LD,A_ST]) then
