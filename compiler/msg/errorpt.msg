@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Portuguese (CP850) language file for Free Pascal Compiler
 #   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.19883
@@ -3086,7 +3086,7 @@ wpo_cant_create_feedback_file=12019_E_Imposs°vel criar arquivo retorno otimizaá‰
 #
 option_logo=11023_[
 Compilador Free Pascal vers∆o $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2018 by Florian Klaempfl and others
 ]
 
 #

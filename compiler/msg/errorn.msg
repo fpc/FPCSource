@@ -2,7 +2,7 @@
 %%% Contains all comments from errorn.msg
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2008 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Dutch Language File for Free Pascal in CP850 (just one line in help affected)
 #   Latest updates contributed by Matthijs Willemstein <matthijs at willemstein.net>
@@ -3485,7 +3485,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler versie $FPCFULLVERSION [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1993-2017 door Florian Klaempfl en anderen
+Copyright (c) 1993-2018 door Florian Klaempfl en anderen
 ]
 #
 # Info (option -i)

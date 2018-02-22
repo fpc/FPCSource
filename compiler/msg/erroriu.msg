@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Italian Language File for Free Pascal
 #   Contributed by Massimo Soricetti <notturno at quipo.it>
@@ -2693,7 +2693,7 @@ wpo_cant_create_feedback_file=12019_E_Impossibile creare il file di feedback "$1
 #
 option_logo=11023_[
 Compilatore Free Pascal, versione $FPCFULLVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2017 di Florian Klaempfl and others
+Copyright (c) 1993-2018 di Florian Klaempfl and others
 ]
 
 #

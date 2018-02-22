@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Polish (ISO 8859-2) Language File for Free Pascal
 #
@@ -2119,7 +2119,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2018 by Florian Klaempfl and others
 ]
 
 #

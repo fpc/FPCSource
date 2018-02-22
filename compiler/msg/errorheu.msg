@@ -2,7 +2,7 @@
 %%% Contains all comments from errorheu.msg
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2008 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Hebrew (UTF8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
@@ -3496,7 +3496,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2018 by Florian Klaempfl and others
 ]
 
 #

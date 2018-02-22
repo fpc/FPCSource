@@ -2,7 +2,7 @@
 %%% Contains all comments from errorfi.msg
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2013 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   French (ISO 8859-1) Language File for Free Pascal
 #   Latest updates contributed by Rémi Dorlet <remi at dorlet.org>
@@ -3499,7 +3499,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 # Logo (option -l)
 #
 option_logo=11023_[ Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2017, Florian Klaempfl and others]
+Copyright (c) 1993-2018, Florian Klaempfl and others]
 #
 # Info (option -i)
 #

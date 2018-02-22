@@ -2,7 +2,7 @@
 %%% Contains all comments from errorid.msg
 #   $Id: errorid.msg,v 1.124 2007/09/20 02:52:50 zaenal Exp $
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2008 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Indonesian Language File for Free Pascal
 #   Contributed by Zaenal Mutaqin <ade999 at gmail.com>
@@ -3504,7 +3504,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler versi $FPCFULLVERSION [$FPCDATE] untuk $FPCCPU
-Hak Cipta (c) 1993-2017 oleh Florian Klaempfl and others
+Hak Cipta (c) 1993-2018 oleh Florian Klaempfl and others
 ]
 
 #

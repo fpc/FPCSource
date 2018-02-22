@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2000 by the Free Pascal Development team
+#   Copyright (c) 1998-2018 by the Free Pascal Development team
 #
 #   French (cp850) Language File for Free Pascal
 #
@@ -1715,7 +1715,7 @@ option_asm_forced=11022_W_"$1" assembler use forced
 #
 option_logo=11023_[
 Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] pour $FPCTARGET
-Copyright (c) 1993-2017 by Florian Klaempfl and others
+Copyright (c) 1993-2018 by Florian Klaempfl and others
 ]
 
 #

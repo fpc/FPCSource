@@ -3,7 +3,7 @@
 #$
 #   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers 
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Danish Language File for Free Pascal
 #
@@ -3535,7 +3535,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2017 Florian Klaempfl and others
+Copyright (c) 1993-2018 Florian Klaempfl and others
 ]
 
 #
