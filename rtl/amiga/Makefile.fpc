@@ -125,7 +125,7 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT) heaptrc$(PP
 iso7185$(PPUEXT) : $(INC)/iso7185.pp buildrtl$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
 
-extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
+extpas$(PPUEXT) : $(INC)/extpas.pp buildrtl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) heaptrc$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) heaptrc$(PPUEXT)
