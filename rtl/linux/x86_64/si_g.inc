@@ -88,6 +88,7 @@ procedure ini_dummy;
     movq %rdx, %r9          { Address of the shared library termination
                              function.  }
     popq %rsi               { Pop the argument count.  }
+    pushq %rsi              { keep stack aligned }
     movq %rsp, %rdx         { argv starts just at the current stack top.  }
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
@@ -200,6 +201,7 @@ procedure main_stub; assembler; nostackframe;
 procedure _FPC_libc_haltproc(e:longint); assembler; nostackframe; public name '_haltproc';
   asm
     movl %edi,%eax
+    popq    %rdx                    { keep stack aligned }
     movq fpc_ret(%rip),%rdx         { return to libc }
     movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx
