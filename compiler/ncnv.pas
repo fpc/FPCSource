@@ -566,6 +566,8 @@ implementation
                                      inserttypeconv(p2,u8inttype);
                                    end;
 
+                                if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
+                                  CGMessagePos(p2.fileinfo,type_w_empty_constant_range_set);
                                 for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
                                   do_set(l);
                                 p2.free;

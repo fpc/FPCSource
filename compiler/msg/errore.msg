@@ -2011,6 +2011,8 @@ type_e_function_reference_kind=04123_E_Subroutine references cannot be declared 
 % Subroutine references can refer to any kind of subroutine and hence do not
 % require specialisation for methods or nested subroutines.
 type_e_seg_procvardef_wrong_memory_model=04124_E_Procedure variables in that memory model do not store segment information
+type_w_empty_constant_range_set=04125_W_The first value of a set constructur range is greater then the second value, so the range describes an empty set.
+% If a set is constructed like this: \var{s:=[9..7];]}, then an empty set is generated. As this is something normally not desired, the compiler warns about it.
 % \end{description}
 #
 # Symtable
