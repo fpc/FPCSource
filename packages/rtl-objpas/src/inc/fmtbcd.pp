@@ -4130,6 +4130,12 @@ begin
     else { array or something like that }
         not_implemented;
     end;
+  // peephole, avoids problems with databases, mantis #30853
+  if (Result.Precision = 0) and (Result.SignSpecialPlaces = 0) then 
+    begin
+      Result.Precision := 10;
+      Result.SignSpecialPlaces := 2;
+    end;
 end;
 
 function VarToBCD ( const aValue : Variant ) : tBCD;
