@@ -243,6 +243,7 @@ type
   end;
 
   TPas2jsReadFileEvent = function(aFilename: string; var aSource: string): boolean of object;
+  TPas2jsWriteFileEvent = procedure(aFilename: string; Source: string) of object;
 
   TPas2jsCachedFilesState = (
     cfsMainJSFileResolved
@@ -273,6 +274,7 @@ type
     FNamespaces: TStringList;
     FNamespacesFromCmdLine: integer;
     FOnReadFile: TPas2jsReadFileEvent;
+    FOnWriteFile: TPas2jsWriteFileEvent;
     FOptions: TP2jsFileCacheOptions;
     FReadLineCounter: SizeInt;
     FResetStamp: TChangeStamp;
@@ -321,6 +323,7 @@ type
     procedure GetListing(const aDirectory: string; var Files: TStrings;
                          FullPaths: boolean = true);
     procedure RaiseDuplicateFile(aFilename: string);
+    procedure SaveToFile(ms: TMemoryStream; Filename: string);
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
@@ -346,6 +349,7 @@ type
     property UnitPaths: TStringList read FUnitPaths;
     property UnitPathsFromCmdLine: integer read FUnitPathsFromCmdLine;
     property OnReadFile: TPas2jsReadFileEvent read FOnReadFile write FOnReadFile;
+    property OnWriteFile: TPas2jsWriteFileEvent read FOnWriteFile write FOnWriteFile;
   end;
 
 function CompareFilenameWithCachedFile(Filename, CachedFile: Pointer): integer;
@@ -1293,13 +1297,24 @@ function TPas2jsFileResolver.FindUnitFileName(const aUnitname,
 
 var
   i: Integer;
+  aFilename: String;
 begin
   Result:='';
+  IsForeign:=false;
 
   if InFilename<>'' then
   begin
-    Cache.Log.LogMsgIgnoreFilter(nSearchingFileNotFound,['not yet implemented "in" '+Cache.FormatPath(InFilename)])
-    // ToDo
+    aFilename:=SetDirSeparators(InFilename);
+    Result:=ResolveDots(aFilename);
+    if FilenameIsAbsolute(Result) then
+    begin
+      if SearchLowUpCase(Result) then exit;
+    end else
+    begin
+      Result:=ResolveDots(BaseDirectory+Result);
+      if SearchLowUpCase(Result) then exit;
+    end;
+    exit('');
   end;
 
   // first search in foreign unit paths
@@ -1970,6 +1985,28 @@ begin
     E(Dir.Path+List[0],List[1]);
   finally
     List.Free;
+  end;
+end;
+
+procedure TPas2jsFilesCache.SaveToFile(ms: TMemoryStream; Filename: string);
+var
+  s: string;
+  l: Int64;
+begin
+  if Assigned(OnWriteFile) then
+  begin
+    l:=ms.Size-ms.Position;
+    if l>0 then
+    begin
+      SetLength(s,l);
+      ms.Read(s[1],l);
+    end
+    else
+      s:='';
+    OnWriteFile(Filename,s);
+  end else
+  begin
+    ms.SaveToFile(Filename);
   end;
 end;
 

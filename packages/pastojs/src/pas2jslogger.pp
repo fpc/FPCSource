@@ -59,6 +59,12 @@ type
   TPas2jsLogger = class
   private
     FEncoding: string;
+    FLastMsgCol: integer;
+    FLastMsgFile: string;
+    FLastMsgLine: integer;
+    FLastMsgNumber: integer;
+    FLastMsgTxt: string;
+    FLastMsgType: TMessageType;
     FMsgNumberDisabled: PInteger;// sorted ascending
     FMsgNumberDisabledCount: integer;
     FMsg: TFPList; // list of TPas2jsMessage
@@ -107,6 +113,7 @@ type
     procedure Flush;
     procedure CloseOutputFile;
     procedure Reset;
+    procedure ClearLastMsg;
   public
     property Encoding: string read FEncoding write SetEncoding; // normalized
     property MsgCount: integer read GetMsgCount;
@@ -117,7 +124,13 @@ type
     property ShowMsgNumbers: boolean read FShowMsgNumbers write FShowMsgNumbers;
     property ShowMsgTypes: TMessageTypes read FShowMsgTypes write FShowMsgTypes;
     property Sorted: boolean read FSorted write SetSorted;
-    Property OnLog : TPas2jsLogEvent Read FOnLog Write FonLog;
+    property OnLog: TPas2jsLogEvent read FOnLog write FOnLog;
+    property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
+    property LastMsgFile: string read FLastMsgFile write FLastMsgFile;
+    property LastMsgLine: integer read FLastMsgLine write FLastMsgLine;
+    property LastMsgCol: integer read FLastMsgCol write FLastMsgCol;
+    property LastMsgTxt: string read FLastMsgTxt write FLastMsgTxt;
+    property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
   end;
 
 function CompareP2JMessage(Item1, Item2: Pointer): Integer;
@@ -662,6 +675,7 @@ end;
 
 procedure TPas2jsLogger.LogRaw(const Msg: string);
 begin
+  ClearLastMsg;
   DoLogRaw(Msg,False);
 end;
 
@@ -679,7 +693,8 @@ procedure TPas2jsLogger.LogPlain(const Msg: string);
 var
   s: String;
 begin
-  if encoding='json' then
+  ClearLastMsg;
+  if Encoding='json' then
     begin
     s:=FormatJSONMsg(mtInfo,Msg,0,'',0,0);
     DoLogRaw(s,True);
@@ -714,7 +729,13 @@ begin
     s:=FormatJSONMsg(MsgType,Msg,MsgNumber,Filename,Line,Col)
   else
     s:=FormatMsg(MsgType,Msg,MsgNumber,Filename,Line,Col);
-  LogRaw(s);
+  FLastMsgType:=MsgType;
+  FLastMsgNumber:=MsgNumber;
+  FLastMsgTxt:=Msg;
+  FLastMsgFile:=Filename;
+  FLastMsgLine:=Line;
+  FLastMsgCol:=Col;
+  DoLogRaw(s,False);
 end;
 
 procedure TPas2jsLogger.LogMsgIgnoreFilter(MsgNumber: integer;
@@ -828,6 +849,16 @@ begin
   end;
   ShowMsgNumbers:=false;
   FShowMsgTypes:=DefaultLogMsgTypes;
+end;
+
+procedure TPas2jsLogger.ClearLastMsg;
+begin
+  FLastMsgType:=mtInfo;
+  FLastMsgNumber:=0;
+  FLastMsgTxt:='';
+  FLastMsgFile:='';
+  FLastMsgLine:=0;
+  FLastMsgCol:=0;
 end;
 
 end.

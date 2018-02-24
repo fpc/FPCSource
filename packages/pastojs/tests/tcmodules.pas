@@ -56,7 +56,8 @@ type
     procedure SetModule(AValue: TPasModule);
   public
     destructor Destroy; override;
-    function FindModule(const AName: String): TPasModule; override;
+    function FindUnit(const AName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule; override;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
     property Resolver: TStreamResolver read FResolver write FResolver;
@@ -659,11 +660,15 @@ begin
   inherited Destroy;
 end;
 
-function TTestEnginePasResolver.FindModule(const AName: String): TPasModule;
+function TTestEnginePasResolver.FindUnit(const AName, InFilename: String;
+  NameExpr, InFileExpr: TPasExpr): TPasModule;
 begin
   Result:=nil;
+  if InFilename<>'' then
+    RaiseNotYetImplemented(20180224101926,InFileExpr,'Use testcase tcunitsearch instead');
   if Assigned(OnFindUnit) then
     Result:=OnFindUnit(AName);
+  if NameExpr=nil then ;
 end;
 
 { TCustomTestModule }

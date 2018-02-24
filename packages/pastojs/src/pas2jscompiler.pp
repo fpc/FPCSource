@@ -1,4 +1,4 @@
-{ Author: Mattias Gaertner  2017  mattias@freepascal.org
+{ Author: Mattias Gaertner  2018  mattias@freepascal.org
 
 Abstract:
   TPas2jsCompiler is the wheel boss of the pas2js compiler.
@@ -253,8 +253,10 @@ type
     constructor Create(aCompiler: TPas2jsCompiler; const aPasFilename: string);
     destructor Destroy; override;
     procedure CreateScannerAndParser(aFileResolver: TPas2jsFileResolver);
-    function OnPasTreeFindModule(const UseUnitname: String): TPasModule;
-    function FindUnit(const UseUnitname: String): TPasModule;
+    function OnPasTreeFindModule(const UseUnitName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule;
+    function FindUnit(const UseUnitname, InFilename: String;
+      NameExpr, InFileExpr: TPasExpr): TPasModule;
     procedure OnPasTreeCheckSrcName(const Element: TPasElement);
     procedure OpenFile(aFilename: string);// beware: this changes FileResolver.BaseDirectory
     procedure ParsePascal;
@@ -381,6 +383,8 @@ type
     procedure InitParamMacros;
     procedure ClearDefines;
     procedure RaiseInternalError(id: int64; Msg: string);
+    function GetExitCode: Longint; virtual;
+    procedure SetExitCode(Value: Longint); virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -413,6 +417,8 @@ type
     procedure LoadPasFile(PasFilename, UseUnitName: string; out aFile: TPas2jsCompilerFile);
     function FindUsedUnit(const TheUnitName: string): TPas2jsCompilerFile;
     procedure AddUsedUnit(aFile: TPas2jsCompilerFile);
+
+    function DirectoryExists(const Filename: string): boolean;
   public
     property CompilerExe: string read FCompilerExe write SetCompilerExe;
     property ConditionEvaluator: TCondDirectiveEvaluator read FConditionEval;
@@ -443,6 +449,7 @@ type
     property TargetPlatform: TPasToJsPlatform read FTargetPlatform write SetTargetPlatform;
     property TargetProcessor: TPasToJsProcessor read FTargetProcessor write SetTargetProcessor;
     property WPOAnalyzer: TPas2JSWPOptimizer read FWPOAnalyzer; // Whole Program Optimization
+    property ExitCode: longint read GetExitCode write SetExitCode;
   end;
 
 function CompareCompilerFilesPasFile(Item1, Item2: Pointer): integer;
@@ -806,6 +813,8 @@ begin
   try
     Parser.ParseContinueImplementation;
   except
+    on E: ECompilerTerminate do
+      raise;
     on E: Exception do
       HandleException(E);
   end;
@@ -929,8 +938,10 @@ end;
 procedure TPas2jsCompilerFile.HandleUnknownException(E: Exception);
 begin
   if not (E is ECompilerTerminate) then
-    Log.Log(mtFatal,E.ClassName+': '+E.Message,0);
+    Log.Log(mtFatal,'bug: uncaught ECompilerTerminate'+': '+E.Message,0); // must use on E:ECompilerTerminate do raise;
+  Log.Log(mtFatal,E.ClassName+': '+E.Message,0);
   Compiler.Terminate(ExitCodeErrorInternal);
+  // Note: a "raise E" is not allowed by caught exceptions, try..except will free it
 end;
 
 procedure TPas2jsCompilerFile.HandleException(E: Exception);
@@ -995,6 +1006,8 @@ begin
     // analyze
     UseAnalyzer.AnalyzeModule(FPasModule);
   except
+    on E: ECompilerTerminate do
+      raise;
     on E: Exception do
       HandleException(E);
   end;
@@ -1006,6 +1019,8 @@ begin
   try
     Scanner.OpenFile(PasFilename);
   except
+    on E: ECompilerTerminate do
+      raise;
     on E: Exception do
       HandleException(E);
   end;
@@ -1015,6 +1030,8 @@ procedure TPas2jsCompilerFile.ParsePascal;
 begin
   if ShowDebug then
     Log.LogPlain(['Debug: Parsing Pascal "',PasFilename,'"...']);
+  if FPasModule<>nil then
+    raise ECompilerTerminate.Create('TPas2jsCompilerFile.ParsePascal '+PasFilename);
   try
     // parse Pascal
     PascalResolver.InterfaceOnly:=IsForeign;
@@ -1029,6 +1046,8 @@ begin
       exit;
     ParserFinished;
   except
+    on E: ECompilerTerminate do
+      raise;
     on E: Exception do
       HandleException(E);
   end;
@@ -1054,6 +1073,8 @@ begin
     FConverter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
     FJSModule:=Converter.ConvertPasElement(PasModule,PascalResolver);
   except
+    on E: ECompilerTerminate do
+      raise;
     on E: Exception do
       HandleException(E);
   end;
@@ -1165,7 +1186,8 @@ begin
   end;
 end;
 
-function TPas2jsCompilerFile.OnPasTreeFindModule(const UseUnitname: String): TPasModule;
+function TPas2jsCompilerFile.OnPasTreeFindModule(const UseUnitName,
+  InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
 var
   aNameSpace: String;
   LastEl: TPasElement;
@@ -1186,14 +1208,14 @@ begin
   else
     RaiseInternalError(20170504161408,'internal error TPas2jsCompilerFile.FindModule PasTree.LastElement='+GetObjName(LastEl)+' '+GetObjName(LastEl.Parent));
 
-  if (Pos('.',UseUnitname)<1) then
+  if (InFilename='') and (Pos('.',UseUnitname)<1) then
   begin
     // generic unit -> search with namespaces
     // first the default program namespace
     aNameSpace:=Compiler.GetDefaultNamespace;
     if aNameSpace<>'' then
     begin
-      Result:=FindUnit(aNameSpace+'.'+UseUnitname);
+      Result:=FindUnit(aNameSpace+'.'+UseUnitname,'',nil,nil);
       if Result<>nil then exit;
     end;
 
@@ -1201,17 +1223,18 @@ begin
     for i:=0 to Compiler.FileCache.Namespaces.Count-1 do begin
       aNameSpace:=Compiler.FileCache.Namespaces[i];
       if aNameSpace='' then continue;
-      Result:=FindUnit(aNameSpace+'.'+UseUnitname);
+      Result:=FindUnit(aNameSpace+'.'+UseUnitname,'',nil,nil);
       if Result<>nil then exit;
     end
   end;
 
   // search in unitpath
-  Result:=FindUnit(UseUnitname);
-  // if nil resolver will give a nice error position
+  Result:=FindUnit(UseUnitname,InFilename,NameExpr,InFileExpr);
+  // if Result=nil resolver will give a nice error position
 end;
 
-function TPas2jsCompilerFile.FindUnit(const UseUnitname: String): TPasModule;
+function TPas2jsCompilerFile.FindUnit(const UseUnitname, InFilename: String;
+  NameExpr, InFileExpr: TPasExpr): TPasModule;
 
   function FindCycle(aFile, SearchFor: TPas2jsCompilerFile;
     var Cycle: TFPList): boolean;
@@ -1263,7 +1286,7 @@ var
             if i>0 then CyclePath+=',';
             CyclePath+=TPas2jsCompilerFile(Cycle[i]).GetModuleName;
           end;
-          Parser.RaiseParserError(nUnitCycle,[CyclePath]);
+          PascalResolver.RaiseMsg(20180223141537,nUnitCycle,sUnitCycle,[CyclePath],NameExpr);
         end;
       finally
         Cycle.Free;
@@ -1275,35 +1298,61 @@ var
   end;
 
 var
-  UsePasFilename, InFilename, UseJSFilename: String;
+  UsePasFilename, UseJSFilename, ActualUnitname: String;
   UseIsForeign: boolean;
+  OtherFile: TPas2jsCompilerFile;
 begin
   Result:=nil;
-  InFilename:='';
 
-  // first try registered units
-  aFile:=Compiler.FindUsedUnit(UseUnitname);
-  if aFile<>nil then
+  // first try loaded units
+  aFile:=nil;
+  if InFilename='' then
+    aFile:=Compiler.FindUsedUnit(UseUnitname);
+  UsePasFilename:='';
+  if aFile=nil then
   begin
-    // known unit
-    if (aFile.PasUnitName<>'') and (CompareText(aFile.PasUnitName,UseUnitname)<>0) then
-    begin
-      Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit unitname MISMATCH aFile.PasUnitname="',aFile.PasUnitName,'"',
-         ' Self=',FileResolver.Cache.FormatPath(PasFilename),
-         ' Uses=',UseUnitname,
-         ' IsForeign=',IsForeign]);
-      RaiseInternalError(20170504161412,'TPas2jsPasTree.FindUnit unit name mismatch');
-    end;
-    CheckCycle;
-  end else begin
-    // new unit -> search
-
     // search Pascal file
     UsePasFilename:=FileResolver.FindUnitFileName(UseUnitname,InFilename,UseIsForeign);
     if UsePasFilename='' then
     begin
       // can't find unit
       exit;
+    end;
+  end;
+
+  ActualUnitname:=UseUnitname;
+  if InFilename<>'' then
+  begin
+    ActualUnitname:=ExtractFilenameOnly(InFilename);
+    aFile:=Compiler.FindPasFile(UsePasFilename);
+  end;
+
+  if aFile<>nil then
+  begin
+    // known unit
+    if (aFile.PasUnitName<>'') and (CompareText(aFile.PasUnitName,ActualUnitname)<>0) then
+    begin
+      Log.LogPlain(['Debug: TPas2jsPasTree.FindUnit unitname MISMATCH aFile.PasUnitname="',aFile.PasUnitName,'"',
+         ' Self=',FileResolver.Cache.FormatPath(PasFilename),
+         ' Uses=',ActualUnitname,
+         ' IsForeign=',IsForeign]);
+      RaiseInternalError(20170504161412,'TPas2jsPasTree.FindUnit unit name mismatch');
+    end;
+    CheckCycle;
+  end else begin
+    // new unit
+
+    if InFilename<>'' then
+    begin
+      aFile:=Compiler.FindUsedUnit(ActualUnitname);
+      if aFile<>nil then
+      begin
+        {$IF defined(VerbosePasResolver) or defined(VerbosePas2JS)}
+        writeln('TPas2jsCompilerFile.FindUnit in-file unit name duplicate: New=',UsePasFilename,' Old=',aFile.PasFilename);
+        {$ENDIF}
+        PascalResolver.RaiseMsg(20180223141323,nDuplicateFileFound,sDuplicateFileFound,
+          [UsePasFilename,aFile.PasFilename],InFileExpr);
+      end;
     end;
 
     UseJSFilename:='';
@@ -1314,23 +1363,40 @@ begin
     //    ' IsForeign=',IsForeign,' JSFile="',FileResolver.Cache.FormatPath(useJSFilename),'"']);
 
     // load Pascal file
-    Compiler.LoadPasFile(UsePasFilename,UseUnitname,aFile);
+    Compiler.LoadPasFile(UsePasFilename,ActualUnitname,aFile);
+
+    // consistency checks
+    if aFile.PasUnitName<>ActualUnitname then
+      RaiseInternalError(20170922143329,'aFile.PasUnitName='+aFile.PasUnitName+' UseUnitname='+ActualUnitname);
+    if CompareFilenames(aFile.PasFilename,UsePasFilename)<>0 then
+      RaiseInternalError(20170922143330,'aFile.PasFilename='+aFile.PasFilename+' UsePasFilename='+UsePasFilename);
+
     if aFile=Self then
     begin
       // unit uses itself -> cycle
-      Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
+      Parser.RaiseParserError(nUnitCycle,[ActualUnitname]);
     end;
-    if aFile.PasUnitName<>UseUnitname then
-      RaiseInternalError(20170922143329,'aFile.PasUnitName='+aFile.PasUnitName+' UseUnitname='+UseUnitname);
 
+    // add file to trees
     Compiler.AddUsedUnit(aFile);
-    if aFile<>Compiler.FindUsedUnit(UseUnitname) then
-      begin
-      if Compiler.FindUsedUnit(UseUnitname)=nil then
-        RaiseInternalError(20170922143405,'UseUnitname='+UseUnitname)
+    // consistency checks
+    OtherFile:=Compiler.FindUsedUnit(ActualUnitname);
+    if aFile<>OtherFile then
+    begin
+      if OtherFile=nil then
+        RaiseInternalError(20170922143405,'ActualUnitname='+ActualUnitname)
       else
-        RaiseInternalError(20170922143511,'UseUnitname='+UseUnitname+' Found='+Compiler.FindUsedUnit(UseUnitname).PasUnitName);
-      end;
+        RaiseInternalError(20170922143511,'ActualUnitname='+ActualUnitname+' Found='+OtherFile.PasUnitName);
+    end;
+    OtherFile:=Compiler.FindPasFile(UsePasFilename);
+    if aFile<>OtherFile then
+    begin
+      if OtherFile=nil then
+        RaiseInternalError(20180224094625,'UsePasFilename='+UsePasFilename)
+      else
+        RaiseInternalError(20180224094627,'UsePasFilename='+UsePasFilename+' Found='+OtherFile.PasFilename);
+    end;
+
     CheckCycle;
 
     aFile.JSFilename:=UseJSFilename;
@@ -1706,7 +1772,6 @@ var
 var
   DestFilename, DestDir, Src, MapFilename: String;
   aJSWriter: TJSWriter;
-  fs: TFileStream;
   ms: TMemoryStream;
 begin
   //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.PasFilename,' Need=',aFile.NeedBuild,' Checked=',Checked.Find(aFile)<>nil);
@@ -1791,24 +1856,26 @@ begin
 
       // write js
       try
-        fs:=TFileStream.Create(DestFilename,fmCreate);
+        ms:=TMemoryStream.Create;
         try
           // UTF8-BOM
           if (Log.Encoding='') or (Log.Encoding='utf8') then
           begin
             Src:=String(UTF8BOM);
-            fs.Write(Src[1],length(Src));
+            ms.Write(Src[1],length(Src));
           end;
           // JS source
-          fs.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
+          ms.Write(aFileWriter.Buffer^,aFileWriter.BufferLength);
           // source map comment
           if aFileWriter.SrcMap<>nil then
           begin
             Src:='//# sourceMappingURL='+ExtractFilename(MapFilename)+LineEnding;
-            fs.Write(Src[1],length(Src));
+            ms.Write(Src[1],length(Src));
           end;
+          ms.Position:=0;
+          FileCache.SaveToFile(ms,DestFilename);
         finally
-          fs.Free;
+          ms.Free;
         end;
       except
         on E: Exception do begin
@@ -1830,7 +1897,7 @@ begin
             // Note: No UTF-8 BOM in source map, Chrome 59 gives an error
             aFileWriter.SrcMap.SaveToStream(ms);
             ms.Position:=0;
-            ms.SaveToFile(MapFilename);
+            FileCache.SaveToFile(ms,MapFilename);
           finally
             ms.Free;
           end;
@@ -1897,6 +1964,16 @@ procedure TPas2jsCompiler.RaiseInternalError(id: int64; Msg: string);
 begin
   Log.LogPlain('['+IntToStr(id)+'] '+Msg);
   raise Exception.Create(Msg);
+end;
+
+function TPas2jsCompiler.GetExitCode: Longint;
+begin
+  Result:=System.ExitCode;
+end;
+
+procedure TPas2jsCompiler.SetExitCode(Value: Longint);
+begin
+  System.ExitCode:=Value;
 end;
 
 procedure TPas2jsCompiler.Terminate(TheExitCode: integer);
@@ -2152,7 +2229,7 @@ procedure TPas2jsCompiler.LoadDefaultConfig;
   begin
     Result:=false;
     if aFilename='' then exit;
-    aFilename:=ExpandFileNameUTF8(aFilename);
+    aFilename:=ExpandFileNameUTF8(aFilename,FileCache.BaseDirectory);
     if ShowTriedUsedFiles then
       Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
     if not DirectoryCache.FileExists(aFilename) then exit;
@@ -2217,6 +2294,7 @@ var
   Enable: Boolean;
   aPlatform: TPasToJsPlatform;
 begin
+  //writeln('TPas2jsCompiler.ReadParam ',Param,' ',Quick,' ',FromCmdLine);
   if ShowDebug then
     if Quick then
       Log.LogMsgIgnoreFilter(nQuickHandlingOption,[Param])
@@ -2587,7 +2665,7 @@ begin
       aFilename:=copy(Param,2,length(Param));
       if aFilename='' then
         ParamFatal('invalid config file at param position '+IntToStr(i));
-      aFilename:=ExpandFileNameUTF8(aFilename);
+      aFilename:=ExpandFileNameUTF8(aFilename,FileCache.BaseDirectory);
       if not DirectoryCache.FileExists(aFilename) then
         ParamFatal('config file not found: "'+copy(Param,2,length(Param))+'"');
       LoadConfig(aFilename);
@@ -2600,7 +2678,7 @@ begin
         CfgSyntaxError('invalid parameter');
       if FileCache.MainSrcFile<>'' then
         ParamFatal('Two Pascal files. Only one Pascal file is supported.');
-      aFilename:=ExpandFileNameUTF8(Param);
+      aFilename:=ExpandFileNameUTF8(Param,FileCache.BaseDirectory);
       if not DirectoryCache.FileExists(aFilename) then
         ParamFatal('Pascal file not found: "'+Param+'"');
       FileCache.MainSrcFile:=aFilename;
@@ -2817,7 +2895,7 @@ end;
 procedure TPas2jsCompiler.SetCompilerExe(AValue: string);
 begin
   if AValue<>'' then
-    AValue:=ExpandFileNameUTF8(AValue);
+    AValue:=ExpandFileNameUTF8(AValue,FileCache.BaseDirectory);
   if FCompilerExe=AValue then Exit;
   FCompilerExe:=AValue;
 end;
@@ -3090,8 +3168,10 @@ begin
   if FileCount>0 then
     RaiseInternalError(20170504161340,'internal error: TPas2jsCompiler.Run FileCount>0');
 
-  CompilerExe:=aCompilerExe;
+  // ste working directory, need by all relative filenames
   FileCache.BaseDirectory:=aWorkingDir;
+
+  CompilerExe:=aCompilerExe; // maybe needed to find the default config
 
   // quick check command line params
   for i:=0 to ParamList.Count-1 do
@@ -3466,8 +3546,8 @@ begin
     Terminate(ExitCodeFileNotFound);
   end;
 
-  PasFilename:=ExpandFileNameUTF8(PasFilename);
-  if DirectoryExists(PasFilename) then
+  PasFilename:=ExpandFileNameUTF8(PasFilename,FileCache.BaseDirectory);
+  if DirectoryCache.DirectoryExists(PasFilename) then
   begin
     Log.LogMsg(nFileIsFolder,[PasFilename]);
     Terminate(ExitCodeFileNotFound);
@@ -3479,7 +3559,10 @@ begin
     {$IFDEF VerboseSetPasUnitName}
     writeln('TPas2jsCompiler.LoadPasFile File="',PasFilename,'" UseUnit="',UseUnitName,'"');
     {$ENDIF}
-    aFile.PasUnitName:=UseUnitName;
+    if CompareText(ExtractFilenameOnly(PasFilename),UseUnitName)=0 then
+      aFile.PasUnitName:=UseUnitName
+    else
+      aFile.PasUnitName:=ExtractFilenameOnly(PasFilename);
     end;
   FFiles.Add(aFile);
   aFile.ShowDebug:=ShowDebug;
@@ -3531,6 +3614,11 @@ begin
   end else begin
     FUnits.Add(aFile);
   end;
+end;
+
+function TPas2jsCompiler.DirectoryExists(const Filename: string): boolean;
+begin
+  Result:=FileCache.DirectoryCache.DirectoryExists(Filename);
 end;
 
 end.

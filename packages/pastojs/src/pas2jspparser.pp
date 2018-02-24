@@ -48,7 +48,8 @@ type
     property Log: TPas2jsLogger read FLog write FLog;
   end;
 
-  TOnFindModule = function(const aUnitname: String): TPasModule of object;
+  TOnFindModule = function(const AUnitName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule of object;
   TOnCheckSrcName = procedure(const aElement: TPasElement) of object;
 
   { TPas2jsCompilerResolver }
@@ -66,6 +67,8 @@ type
       const ASrcPos: TPasSourcePos): TPasElement;
       overload; override;
     function FindModule(const aUnitname: String): TPasModule; override;
+    function FindUnit(const AName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule; override;
     procedure ContinueParsing; override;
   public
     Owner: TObject;
@@ -160,7 +163,15 @@ end;
 
 function TPas2jsCompilerResolver.FindModule(const aUnitname: String): TPasModule;
 begin
-  Result:=OnFindModule(aUnitname);
+  raise EPasResolve.Create('Call TPas2jsCompilerResolver.FindModule(name,expr,...) instead');
+  Result:=nil;
+  if aUnitname='' then ;
+end;
+
+function TPas2jsCompilerResolver.FindUnit(const AName, InFilename: String;
+  NameExpr, InFileExpr: TPasExpr): TPasModule;
+begin
+  Result:=OnFindModule(AName,InFilename,NameExpr,InFileExpr);
 end;
 
 procedure TPas2jsCompilerResolver.ContinueParsing;
