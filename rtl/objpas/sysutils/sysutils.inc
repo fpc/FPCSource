@@ -471,6 +471,13 @@ begin
 end;
 
 {$endif}
+
+procedure CheckOSError(LastError: Integer);
+begin
+  if LastError <> 0 then
+    RaiseLastOSError(LastError);
+end;
+
 Procedure AssertErrorHandler (Const Msg,FN : ShortString;LineNo:longint; TheAddr : pointer);
 Var
   S : String;

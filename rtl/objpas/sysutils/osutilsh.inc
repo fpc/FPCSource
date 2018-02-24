@@ -21,6 +21,7 @@ Function GetLastOSError : Integer;
 {$endif}
 Procedure RaiseLastOSError;overload;
 Procedure RaiseLastOSError(LastError: Integer);overload;
+procedure CheckOSError(LastError: Integer);platform;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
