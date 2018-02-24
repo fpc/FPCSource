@@ -539,10 +539,12 @@ interface
 
     var
       starttime  : real;
+      startsystime : TSystemTime;
 
     function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;
+    function getrealtime(const st: TSystemTime) : real;
     function getrealtime : real;
 
     procedure DefaultReplacements(var s:ansistring);
@@ -825,13 +827,17 @@ implementation
        Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
+   function getrealtime(const st: TSystemTime) : real;
+     begin
+       result := st.Hour*3600.0 + st.Minute*60.0 + st.Second + st.MilliSecond/1000.0;
+     end;
 
    function getrealtime : real;
      var
        st:TSystemTime;
      begin
        GetLocalTime(st);
-       result:=st.Hour*3600.0+st.Minute*60.0+st.Second+st.MilliSecond/1000.0;
+       result:=getrealtime(st);
      end;
 
 {****************************************************************************

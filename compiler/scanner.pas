@@ -2439,6 +2439,36 @@ type
                hs:=gettimestr;
              'DATE':
                hs:=getdatestr;
+             'DATEYEAR':
+               begin
+                 hs:=tostr(startsystime.Year);
+                 macroIsString:=false;
+               end;
+             'DATEMONTH':
+               begin
+                 hs:=tostr(startsystime.Month);
+                 macroIsString:=false;
+               end;
+             'DATEDAY':
+               begin
+                 hs:=tostr(startsystime.Day);
+                 macroIsString:=false;
+               end;
+             'TIMEHOUR':
+               begin
+                 hs:=tostr(startsystime.Hour);
+                 macroIsString:=false;
+               end;
+             'TIMEMINUTE':
+               begin
+                 hs:=tostr(startsystime.Minute);
+                 macroIsString:=false;
+               end;
+             'TIMESECOND':
+               begin
+                 hs:=tostr(startsystime.Second);
+                 macroIsString:=false;
+               end;
              'FILE':
                hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex);
              'LINE':

@@ -252,7 +252,8 @@ begin
        SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
                          exOverflow, exUnderflow, exPrecision]);
 
-       starttime:=getrealtime;
+       GetLocalTime(startsystime);
+       starttime := getrealtime(startsystime);
 
        { Initialize the compiler }
        InitCompiler(cmd);
