@@ -157,7 +157,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall,rmInfo);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -1292,6 +1292,7 @@ Type
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
     Procedure PkgList; virtual;
+    Procedure Info;
     procedure AddAutoPackageVariantsToPackage(APackage: TPackage); virtual;
   Public
     Constructor Create(AOwner : TComponent); virtual;
@@ -5196,6 +5197,8 @@ begin
       FRunMode:=rmPkgList
     else if CheckCommand(I,'u','uninstall') then
       FRunMode:=rmUnInstall
+    else if CheckCommand(I,'in','info') then
+      FRunMode:=rmInfo
     else if CheckOption(I,'h','help') then
       Usage('',[])
     else if Checkoption(I,'C','cpu') then
@@ -5385,6 +5388,28 @@ begin
     halt(0);
 end;
 
+procedure TCustomInstaller.Info;
+Var Cpu : TCpu;
+    OS  : TOS;
+  
+begin
+  Write('CPU_TARGET=');
+  for cpu:=succ(low(cpu)) to high(tcpu) do // skip NONE
+    begin
+       write(cputostring(cpu));
+       if cpu<>high(tcpu) then
+       write(',');
+    end;
+  writeln;
+  Write('OS_TARGET=');
+  for OS:=succ(low(TOS)) to high(tOS) do // skip NONE
+    begin
+       write(OStostring(os));
+       if os<>high(tos) then
+       write(',');
+    end;
+  writeln;
+end;
 
 procedure TCustomInstaller.Compile(Force: Boolean);
 begin
@@ -5487,6 +5512,7 @@ begin
       rmManifest : Manifest;
       rmPkgList : PkgList;
       rmUnInstall : UnInstall;
+      rmInfo      : Info;
     end;
   except
     On E : Exception do
@@ -9326,4 +9352,5 @@ Finalization
   FreeAndNil(Defaults);
   FreeAndNil(GPluginManager);
 end.
+
 
