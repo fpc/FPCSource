@@ -2481,6 +2481,10 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_The function used,
 cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the current target
 % Depending of target architecture, the number of units is limited. This limit
 % has been reached. A unit counts only if it contains initialization or finalization count.
+cg_h_no_inline=06058_H_Call to subroutine "$1" marked as inline is not inlined
+% The directive inline is only a hint to the compiler. Sometimes the compiler ignores this hint, a subroutine
+% marked as inline is not inlined. In this case, this hint is given. Compiling with \var{-vd} might result in more information why
+% the directive inline is ignored.
 %
 % \end{description}
 # EndOfTeX

@@ -4356,6 +4356,8 @@ implementation
              result:=pass1_inline
            else
              begin
+               if po_inline in procdefinition.procoptions then
+                 Message1(cg_h_no_inline,current_procinfo.procdef.fullprocname(false));
                mark_unregable_parameters;
                result:=pass1_normal;
              end;
