@@ -47,6 +47,8 @@ Type
   TFPExprFunction = Class;
   TFPExprFunctionClass = Class of TFPExprFunction;
 
+  TNumberKind = (nkDecimal, nkHex, nkOctal, nkBinary);
+
   { TFPExpressionScanner }
 
   TFPExpressionScanner = Class(TObject)
@@ -62,14 +64,14 @@ Type
   protected
     procedure SetSource(const AValue: String); virtual;
     function DoIdentifier: TTokenType;
-    function DoNumber: TTokenType;
+    function DoNumber(AKind: TNumberKind): TTokenType;
     function DoDelimiter: TTokenType;
     function DoString: TTokenType;
     Function NextPos : Char; // inline;
     procedure SkipWhiteSpace; // inline;
     function IsWordDelim(C : Char) : Boolean; // inline;
     function IsDelim(C : Char) : Boolean; // inline;
-    function IsDigit(C : Char) : Boolean; // inline;
+    function IsDigit(C : Char; AKind: TNumberKind) : Boolean; // inline;
     function IsAlpha(C : Char) : Boolean; // inline;
   public
     Constructor Create;
@@ -591,6 +593,7 @@ Type
   TAggregateExpr = Class(TFPExprFunction)
   Protected
     FResult : TFPExpressionResult;
+  public
     Class Function IsAggregate : Boolean; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
   end;
@@ -781,13 +784,22 @@ uses typinfo;
 const
   cNull=#0;
   cSingleQuote = '''';
+  cHexIdentifier = '$';
+  cOctalIdentifier = '&';
+  cBinaryIdentifier = '%';
 
   Digits        = ['0'..'9','.'];
+  HexDigits     = ['0'..'9', 'A'..'F', 'a'..'f'];
+  OctalDigits   = ['0'..'7'];
+  BinaryDigits  = ['0', '1'];
   WhiteSpace    = [' ',#13,#10,#9];
   Operators     = ['+','-','<','>','=','/','*','^'];
   Delimiters    = Operators+[',','(',')'];
   Symbols       = ['%']+Delimiters;
   WordDelimiters = WhiteSpace + Symbols;
+
+var
+  FileFormatSettings: TFormatSettings;
 
 Resourcestring
   SBadQuotes        = 'Unterminated string';
@@ -1115,9 +1127,14 @@ begin
   Result:=C in Delimiters;
 end;
 
-function TFPExpressionScanner.IsDigit(C: Char): Boolean;
+function TFPExpressionScanner.IsDigit(C: Char; AKind: TNumberKind): Boolean;
 begin
-  Result:=C in Digits;
+  case AKind of
+    nkDecimal: Result := C in Digits;
+    nkHex    : Result := C in HexDigits;
+    nkOctal  : Result := C in OctalDigits;
+    nkBinary : Result := C in BinaryDigits;
+  end;
 end;
 
 Procedure TFPExpressionScanner.SkipWhiteSpace;
@@ -1215,7 +1232,21 @@ begin
     Result:=#0;
 end;
 
-Function TFPExpressionScanner.DoNumber : TTokenType;
+procedure Val(const S: string; out V: TExprFloat; out Code: Integer);
+var
+  L64: Int64;
+begin
+  if (S <> '') and (S[1] in ['&', '$', '%']) then
+  begin
+    System.Val(S, L64, Code);
+    if Code = 0 then
+      V := L64
+  end
+  else
+    System.Val(S, V, Code);
+end;
+
+Function TFPExpressionScanner.DoNumber(AKind: TNumberKind) : TTokenType;
 
 Var
   C : Char;
@@ -1223,16 +1254,38 @@ Var
   I : Integer;
   prevC: Char;
 
+  function ValidDigit(C: Char; AKind: TNumberKind): Boolean;
+  begin
+    Result := IsDigit(C, AKind);
+    if (not Result) then
+      case AKind of
+        nkDecimal:
+          Result := ((FToken <> '') and (UpCase(C)='E')) or
+                    ((FToken <> '') and (C in ['+','-']) and (prevC='E'));
+        nkHex:
+          Result := (C = cHexIdentifier) and (prevC = #0);
+        nkOctal:
+          Result := (C = cOctalIdentifier) and (prevC = #0);
+        nkBinary:
+          Result := (C = cBinaryIdentifier) and (prevC = #0);
+      end;
+  end;
+
 begin
   C:=CurrentChar;
   prevC := #0;
-  while (not IsWordDelim(C) or (prevC in ['E','-','+'])) and (C<>cNull) do
-    begin
-    If Not ( IsDigit(C)
-             or ((FToken<>'') and (Upcase(C)='E'))
-             or ((FToken<>'') and (C in ['+','-']) and (prevC='E'))
-           )
-    then
+  while (C <> cNull) do
+  begin
+    if IsWordDelim(C) then
+      case AKind of
+        nkDecimal:
+          if not (prevC in ['E','-','+']) then break;
+        nkHex, nkOctal:
+          break;
+        nkBinary:
+          if (prevC <> #0) then break;   // allow '%' as first char
+      end;
+    if not ValidDigit(C, AKind) then
       ScanError(Format(SErrInvalidNumberChar,[C]));
     FToken := FToken+C;
     prevC := Upcase(C);
@@ -1306,8 +1359,14 @@ begin
     Result:=DoDelimiter
   else if (C=cSingleQuote) then
     Result:=DoString
-  else if IsDigit(C) then
-    Result:=DoNumber
+  else if (C=cHexIdentifier) then
+    Result := DoNumber(nkHex)
+  else if (C=cOctalIdentifier) then
+    Result := DoNumber(nkOctal)
+  else if (C=cBinaryIdentifier) then
+    Result := DoNumber(nkBinary)
+  else if IsDigit(C, nkDecimal) then
+    Result:=DoNumber(nkDecimal)
   else if IsAlpha(C) or (C='"') then
     Result:=DoIdentifier
   else
@@ -2112,8 +2171,8 @@ begin
     Case FValue.ResultType of
       rtBoolean  : FValue.ResBoolean:=FStringValue='True';
       rtInteger  : FValue.ResInteger:=StrToInt(AValue);
-      rtFloat    : FValue.ResFloat:=StrToFloat(AValue);
-      rtDateTime : FValue.ResDateTime:=StrToDateTime(AValue);
+      rtFloat    : FValue.ResFloat:=StrToFloat(AValue, FileFormatSettings);
+      rtDateTime : FValue.ResDateTime:=StrToDateTime(AValue, FileFormatSettings);
       rtString   : FValue.ResString:=AValue;
     end
   else
@@ -2223,8 +2282,8 @@ begin
                  else
                    Result:='False';
     rtInteger  : Result:=IntToStr(FValue.ResInteger);
-    rtFloat    : Result:=FloatToStr(FValue.ResFloat);
-    rtDateTime : Result:=FormatDateTime('cccc',FValue.ResDateTime);
+    rtFloat    : Result:=FloatToStr(FValue.ResFloat, FileFormatSettings);
+    rtDateTime : Result:=FormatDateTime('cccc',FValue.ResDateTime, FileFormatSettings);
     rtString   : Result:=FValue.ResString;
   end;
 end;
@@ -4112,8 +4171,19 @@ begin
     FCategory:=(Source as TFPBuiltInExprIdentifierDef).Category;
 end;
 
+procedure InitFileFormatSettings;
+begin
+  FileFormatSettings := DefaultFormatSettings;
+  FileFormatSettings.DecimalSeparator := '.';
+  FileFormatSettings.DateSeparator := '-';
+  FileFormatSettings.TimeSeparator := ':';
+  FileFormatsettings.ShortDateFormat := 'yyyy-mm-dd';
+  FileFormatSettings.LongTimeFormat := 'hh:nn:ss';
+end;
+
 initialization
   RegisterStdBuiltins(BuiltinIdentifiers);
+  InitFileFormatSettings;
 
 finalization
   FreeBuiltins;

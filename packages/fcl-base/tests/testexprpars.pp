@@ -530,6 +530,7 @@ type
   private
   Published
     Procedure TestCreate;
+    Procedure TestNumberValues;
     Procedure TestSimpleNodeFloat;
     procedure TestSimpleNodeInteger;
     procedure TestSimpleNodeBooleanTrue;
@@ -1320,10 +1321,19 @@ procedure TTestExpressionScanner.TestTokens;
 
 Const
   TestStrings : Array[TTokenType] of String
+  (*
+  TTokenType = (ttPlus, ttMinus, ttLessThan, ttLargerThan, ttEqual, ttDiv,
+                ttMod, ttMul, ttLeft, ttRight, ttLessThanEqual,
+                ttLargerThanEqual, ttunequal, ttNumber, ttString, ttIdentifier,
+                ttComma, ttAnd, ttOr, ttXor, ttTrue, ttFalse, ttNot, ttif,
+                ttCase, ttPower, ttEOF); // keep ttEOF last
+
+  *)
     = ('+','-','<','>','=','/',
-       '*','(',')','<=','>=',
-       '<>','1','''abc''','abc',',','and',
-       'or','xor','true','false','not','if','case','^','');
+       'mod','*','(',')','<=',
+       '>=', '<>','1','''abc''','abc',
+       ',','and', 'or','xor','true','false','not',
+       'if','case','^','');
 
 var
   t : TTokenType;
@@ -1348,16 +1358,22 @@ end;
 
 procedure TTestExpressionScanner.TestNumber;
 begin
-  {TestString('123',ttNumber);
+  TestString('123',ttNumber);
+  TestString('$FF',ttNumber);
+  TestString('&77',ttNumber);
+  TestString('%11111111',ttNumber);
   TestString('123.4',ttNumber);
   TestString('123.E4',ttNumber);
   TestString('1.E4',ttNumber);
   TestString('1e-2',ttNumber);
+  DoInValidNumber('$GG');
+  DoInvalidNumber('&88');
+  DoInvalidNumber('%22');
   DoInvalidNumber('1..1');
-}
   DoInvalidNumber('1.E--1');
 //  DoInvalidNumber('.E-1');
 end;
+
 
 procedure TTestExpressionScanner.TestInvalidCharacter;
 begin
@@ -2841,6 +2857,60 @@ begin
   AssertEquals('Expression is empty','',FP.Expression);
   AssertNotNull('Identifiers assigned',FP.Identifiers);
   AssertEquals('No identifiers',0,FP.Identifiers.Count);
+end;
+
+procedure TTestParserExpressions.TestNumberValues;
+
+  Procedure DoTest(E :  String; V : integer);
+
+  var
+    res: TFPExpressionResult;
+
+  begin
+    FP.Expression:=E;
+    res := FP.Evaluate;
+    AssertTrue('Expression '+E+': Result is a number', Res.ResultType in [rtInteger,rtFloat]);
+    AssertTrue('Expression '+E+': Correct value', ArgToFloat(res)=V);
+  end;
+
+
+begin
+  // Decimal numbers
+     DoTest('1', 1);
+     DoTest('1E2', 100);
+     DoTest('1.0/1E-2', 100);
+  // DoTest('200%', 2);
+     WriteLn;
+     // Hex numbers
+     DoTest('$0001', 1);
+     DoTest('-$01', -1);
+     DoTest('$A', 10);
+     DoTest('$FF', 255);
+     DoTest('$fe', 254);
+     DoTest('$FFFF', $FFFF);
+     DoTest('1E2', 100);
+     DoTest('$E', 14);
+     DoTest('$D+1E2', 113);
+     DoTest('$0A-$0B', -1);
+     // Hex and variables
+     FP.Identifiers.AddVariable('a', rtInteger, '1');
+     FP.Identifiers.AddVariable('b', rtInteger, '$B');
+     DoTest('a', 1);
+     DoTest('b', $B);
+     DoTest('$A+a', 11);
+     DoTest('$B-b', 0);
+     WriteLn;
+     // Octal numbers
+     DoTest('&10', 8);
+     DoTest('&10+10', 18);
+     // Mixed hex and octal expression
+     DoTest('&10-$0008', 0);
+     WriteLn;
+     // Binary numbers
+     DoTest('%1', 1);
+     DoTest('%11', 3);
+     DoTest('%1000', 8);
+
 end;
 
 
@@ -4343,7 +4413,7 @@ begin
   AssertEquals('One variable added',1,FP.Identifiers.Count);
   AssertSame('Result equals variable added',I,FP.Identifiers[0]);
   AssertEquals('Variable has correct resulttype',rtDateTime,I.ResultType);
-  AssertEquals('Variable has correct value',FormatDateTime('cccc',D),I.Value);
+  AssertEquals('Variable has correct value',FormatDateTime('yyyy-mm-dd hh:nn:ss',D),I.Value);
 end;
 
 procedure TTestParserVariables.AddVariabletwice;
@@ -5547,7 +5617,7 @@ begin
   AssertSame('Result equals variable added',I,FM.Identifiers[0]);
   AssertEquals('Variable has correct category',ord(bcUser),Ord(I.Category));
   AssertEquals('Variable has correct resulttype',rtDateTime,I.ResultType);
-  AssertEquals('Variable has correct value',FormatDateTime('cccc',D),I.Value);
+  AssertEquals('Variable has correct value',FormatDateTime('yyyy-mm-dd hh:nn:ss',D),I.Value);
 end;
 
 procedure TTestBuiltinsManager.TestFunction1;
@@ -5720,7 +5790,6 @@ procedure TTestBuiltins.TestRegister;
 
 begin
   RegisterStdBuiltins(FM);
-  AssertEquals('Correct number of identifiers',69,FM.IdentifierCount);
   Assertvariable('pi',rtFloat);
   AssertFunction('cos','F','F',bcMath);
   AssertFunction('sin','F','F',bcMath);
@@ -5785,11 +5854,13 @@ begin
   AssertFunction('strtotimedef','D','SD',bcConversion);
   AssertFunction('strtodatetime','D','S',bcConversion);
   AssertFunction('strtodatetimedef','D','SD',bcConversion);
+  AssertFunction('formatfloat','S','SF',bcConversion);
   AssertFunction('sum','F','F',bcAggregate);
   AssertFunction('count','I','',bcAggregate);
   AssertFunction('avg','F','F',bcAggregate);
   AssertFunction('min','F','F',bcAggregate);
   AssertFunction('max','F','F',bcAggregate);
+  AssertEquals('Correct number of identifiers',70,FM.IdentifierCount);
 end;
 
 procedure TTestBuiltins.TestVariablepi;
