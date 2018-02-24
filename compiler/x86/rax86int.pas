@@ -44,7 +44,7 @@ Unit Rax86int;
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
-      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL);
+      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL,AS_TARGET_DIRECTIVE);
 
     type
        tx86intreader = class(tasmreader)
@@ -72,6 +72,9 @@ Unit Rax86int;
          procedure BuildConstantOperand(oper: tx86operand);
          procedure BuildOpCode(instr : tx86instruction);
          procedure BuildConstant(constsize: byte);
+
+         function is_targetdirective(const s: string): boolean;virtual;
+         procedure HandleTargetDirective;virtual;
        end;
 
 
@@ -134,7 +137,7 @@ Unit Rax86int;
         '','','','','','','END',
         '','','','','','','','','','','','',
         '','','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
-        'and','or','xor','wrt','..gotpcrel'
+        'and','or','xor','wrt','..gotpcrel',''
       );
 
     constructor tx86intreader.create;
@@ -250,6 +253,17 @@ Unit Rax86int;
       end;
 
 
+    function tx86intreader.is_targetdirective(const s: string): boolean;
+      begin
+        result:=false;
+      end;
+
+
+    procedure tx86intreader.handletargetdirective;
+      begin
+      end;
+
+
     Procedure tx86intreader.GetToken;
       var
         len : longint;
@@ -275,6 +289,29 @@ Unit Rax86int;
          begin
            firsttoken:=FALSE;
            len:=0;
+
+           { directive check }
+           if c = '.' then
+            begin
+              actasmpattern:='.';
+              c:=current_scanner.asmgetchar;
+              while c in ['A'..'Z','a'..'z','0'..'9','_'] do
+                begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner.asmgetchar;
+                end;
+              { directives are case sensitive!! }
+              if is_asmdirective(actasmpattern) then
+               exit;
+              if is_targetdirective(actasmpattern) then
+                begin
+                  actasmtoken:=AS_TARGET_DIRECTIVE;
+                  exit;
+                end;
+              Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
+              exit;
+            end;
+
            while (c in ['A'..'Z','a'..'z','0'..'9','_','@']) or
                  { TP7 also allows $&? characters in local labels }
                  (forcelabel and (c in ['$','&','?'])) do
@@ -2703,6 +2740,9 @@ Unit Rax86int;
             Begin
               Consume(AS_SEPARATOR);
             end;
+
+          AS_TARGET_DIRECTIVE:
+            HandleTargetDirective;
 
           AS_END :
             break; { end assembly block }

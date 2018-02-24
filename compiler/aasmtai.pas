@@ -362,7 +362,8 @@ interface
           ash_endprologue,ash_handler,ash_handlerdata,
           ash_eh,ash_32,ash_no32,
           ash_setframe,ash_stackalloc,ash_pushreg,
-          ash_savereg,ash_savexmm,ash_pushframe
+          ash_savereg,ash_savexmm,ash_pushframe,
+          ash_pushnv,ash_savenv
         );
 
       TSymbolPairKind = (spk_set, spk_thumb_set, spk_localentry);
@@ -398,7 +399,8 @@ interface
         '.seh_endprologue','.seh_handler','.seh_handlerdata',
         '.seh_eh','.seh_32','seh_no32',
         '.seh_setframe','.seh_stackalloc','.seh_pushreg',
-        '.seh_savereg','.seh_savexmm','.seh_pushframe'
+        '.seh_savereg','.seh_savexmm','.seh_pushframe',
+        '.pushnv','.savenv'
       );
       symbolpairkindstr: array[TSymbolPairKind] of string[11]=(
         '.set', '.thumb_set', '.localentry'
@@ -3130,7 +3132,9 @@ implementation
         sd_reg,        { pushreg }
         sd_regoffset,  { savereg }
         sd_regoffset,  { savexmm }
-        sd_none        { pushframe }
+        sd_none,       { pushframe }
+        sd_reg,        { pushnv }
+        sd_none        { savenv }
       );
 
     constructor tai_seh_directive.create(_kind:TAsmSehDirective);
