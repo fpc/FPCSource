@@ -2440,6 +2440,8 @@ end;
 operator mod(const a,b:float) c:float;inline;
 begin
   c:= a-b * Int(a/b);
+  if SameValue(abs(c),abs(b)) then
+    c:=0.0;
 end;
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
