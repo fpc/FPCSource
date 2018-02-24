@@ -51,6 +51,9 @@ interface
           function first_fma: tnode; override;
           function first_frac_real : tnode; override;
           function first_int_real : tnode; override;
+
+          function simplify(forinline : boolean) : tnode; override;
+
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -83,8 +86,9 @@ implementation
       verbose,compinnr,
       defutil,
       aasmbase,aasmdata,aasmcpu,
-      symtype,symdef,symcpu,
-      cgbase,pass_2,
+      symconst,symtype,symdef,symcpu,
+      ncnv,
+      cgbase,pass_1,pass_2,
       cpuinfo,cpubase,nutils,
       ncal,ncgutil,
       tgobj,
@@ -281,6 +285,7 @@ implementation
          if (current_settings.fputype>=fpu_sse41) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
+             maybe_remove_round_trunc_typeconv;
              expectloc:=LOC_MMREGISTER;
              Result:=nil;
            end
@@ -294,11 +299,35 @@ implementation
          if (current_settings.fputype>=fpu_sse41) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
-             expectloc:=LOC_MMREGISTER;
              Result:=nil;
+             expectloc:=LOC_MMREGISTER;
            end
          else
            Result:=inherited first_int_real;
+       end;
+
+
+     function tx86inlinenode.simplify(forinline : boolean) : tnode;
+       var
+         temp : tnode;
+       begin
+         if (current_settings.fputype>=fpu_sse41) and
+           (inlinenumber=in_int_real) and (left.nodetype=typeconvn) and
+           not(nf_explicit in left.flags) and
+           (ttypeconvnode(left).left.resultdef.typ=floatdef) and
+           ((is_double(ttypeconvnode(left).left.resultdef)) or (is_single(ttypeconvnode(left).left.resultdef))) then
+           begin
+             { get rid of the type conversion }
+             temp:=ttypeconvnode(left).left;
+             ttypeconvnode(left).left:=nil;
+             left.free;
+             left:=temp;
+             result:=self.getcopy;
+             tinlinenode(result).resultdef:=temp.resultdef;
+             typecheckpass(result);
+           end
+         else
+           Result:=inherited simplify(forinline);
        end;
 
 
