@@ -6899,7 +6899,6 @@ packages/pastojs/tests/tcoptimizations.pas svneol=native#text/plain
 packages/pastojs/tests/tcsrcmap.pas svneol=native#text/plain
 packages/pastojs/tests/testpas2js.lpi svneol=native#text/plain
 packages/pastojs/tests/testpas2js.pp svneol=native#text/plain
-packages/pastojs/todo.txt svneol=native#text/plain
 packages/paszlib/Makefile svneol=native#text/plain
 packages/paszlib/Makefile.fpc svneol=native#text/plain
 packages/paszlib/Makefile.fpc.fpcmake svneol=native#text/plain
