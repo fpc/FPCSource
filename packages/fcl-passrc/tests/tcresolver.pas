@@ -45,7 +45,9 @@ const
     '='  // mkDirectReference
     );
 type
-  TOnFindUnit = function(Sender: TPasResolver; const aUnitName: String): TPasModule of object;
+  TOnFindUnit = function(Sender: TPasResolver;
+    const aUnitName, InFilename: String;
+    NameExpr, InFileExpr: TPasExpr): TPasModule of object;
   TOnContinueParsing = procedure(Sender: TPasResolver) of object;
 
   { TTestEnginePasResolver }
@@ -57,7 +59,7 @@ type
     FOnContinueParsing: TOnContinueParsing;
     FOnFindUnit: TOnFindUnit;
     FParser: TPasParser;
-    FResolver: TStreamResolver;
+    FStreamResolver: TStreamResolver;
     FScanner: TPascalScanner;
     FSource: string;
     procedure SetModule(AValue: TPasModule);
@@ -68,12 +70,13 @@ type
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASrcPos: TPasSourcePos): TPasElement;
       overload; override;
-    function FindModule(const AName: String): TPasModule; override;
+    function FindUnit(const AName, InFilename: String; NameExpr,
+      InFileExpr: TPasExpr): TPasModule; override;
     procedure ContinueParsing; override;
     property OnContinueParsing: TOnContinueParsing read FOnContinueParsing write FOnContinueParsing;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
-    property Resolver: TStreamResolver read FResolver write FResolver;
+    property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
     property Scanner: TPascalScanner read FScanner write FScanner;
     property Parser: TPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
@@ -120,7 +123,7 @@ type
     function GetMsgs(Index: integer): TTestResolverMessage;
     procedure OnPasResolverContinueParsing(Sender: TPasResolver);
     function OnPasResolverFindUnit(SrcResolver: TPasResolver;
-      const aUnitName: String): TPasModule;
+      const aUnitName, InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
     procedure OnFindReference(El: TPasElement; FindData: pointer);
     procedure OnCheckElementParent(El: TPasElement; arg: pointer);
     procedure FreeSrcMarkers;
@@ -343,7 +346,9 @@ type
     Procedure TestUnit_DuplicateDottedUsesFail;
     Procedure TestUnit_DuplicateUsesDiffNameFail;
     Procedure TestUnit_Unit1DotUnit2Fail;
-    Procedure TestUnit_InFilename; // ToDo
+    Procedure TestUnit_InFilename;
+    Procedure TestUnit_InFilenameAliasDelphiFail;
+    Procedure TestUnit_InFilenameInUnitDelphiFail;
     Procedure TestUnit_MissingUnitErrorPos;
     Procedure TestUnit_UnitNotFoundErrorPos;
     Procedure TestUnit_AccessIndirectUsedUnitFail;
@@ -750,7 +755,7 @@ end;
 
 destructor TTestEnginePasResolver.Destroy;
 begin
-  FResolver:=nil;
+  FStreamResolver:=nil;
   Module:=nil;
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
@@ -766,9 +771,10 @@ begin
     Module:=TPasModule(Result);
 end;
 
-function TTestEnginePasResolver.FindModule(const AName: String): TPasModule;
+function TTestEnginePasResolver.FindUnit(const AName, InFilename: String;
+  NameExpr, InFileExpr: TPasExpr): TPasModule;
 begin
-  Result:=OnFindUnit(Self,AName);
+  Result:=OnFindUnit(Self,AName,InFilename,NameExpr,InFileExpr);
 end;
 
 procedure TTestEnginePasResolver.ContinueParsing;
@@ -1768,7 +1774,32 @@ begin
 end;
 
 function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
-  const aUnitName: String): TPasModule;
+  const aUnitName, InFilename: String; NameExpr, InFileExpr: TPasExpr
+  ): TPasModule;
+
+  function InitUnit(CurEngine: TTestEnginePasResolver): TPasModule;
+  begin
+    CurEngine.StreamResolver:=Resolver;
+    //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
+    CurEngine.StreamResolver.AddStream(CurEngine.FileName,
+                                    TStringStream.Create(CurEngine.Source));
+    CurEngine.Scanner:=TPascalScanner.Create(CurEngine.StreamResolver);
+    CurEngine.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
+    CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,
+                                        CurEngine.StreamResolver,CurEngine);
+    if CompareText(ExtractFileUnitName(CurEngine.Filename),'System')=0 then
+      CurEngine.Parser.ImplicitUses.Clear;
+    CurEngine.Scanner.OpenFile(CurEngine.Filename);
+    try
+      CurEngine.Parser.NextToken;
+      CurEngine.Parser.ParseUnit(CurEngine.FModule);
+    except
+      on E: Exception do
+        HandleError(CurEngine,E);
+    end;
+    //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
+    Result:=CurEngine.Module;
+  end;
 
   function FindUnit(const aUnitName: String): TPasModule;
   var
@@ -1797,31 +1828,53 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
         {$IFDEF VerboseUnitSearch}
         writeln('TTestResolver.OnPasResolverFindUnit PARSING unit "',CurEngine.Filename,'"');
         {$ENDIF}
-
-        CurEngine.Resolver:=Resolver;
-        //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
-        CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
-        CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
-        CurEngine.Scanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
-        CurEngine.Parser:=TPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
-        if CompareText(CurUnitName,'System')=0 then
-          CurEngine.Parser.ImplicitUses.Clear;
-        CurEngine.Scanner.OpenFile(CurEngine.Filename);
-        try
-          CurEngine.Parser.NextToken;
-          CurEngine.Parser.ParseUnit(CurEngine.FModule);
-        except
-          on E: Exception do
-            HandleError(CurEngine,E);
-        end;
-        //writeln('TTestResolver.OnPasResolverFindUnit END ',CurUnitName);
-        Result:=CurEngine.Module;
+        Result:=InitUnit(CurEngine);
         exit;
         end;
       end;
   end;
+
+  function GetResolver(aFilename: string): boolean;
+  var
+    CurEngine: TTestEnginePasResolver;
+    aModule: TPasModule;
+  begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TCustomTestResolver.OnPasResolverFindUnit searching file "',aFilename,'"');
+    {$ENDIF}
+    CurEngine:=FindModuleWithFilename(aFilename);
+    if CurEngine=nil then exit(false);
+    aModule:=InitUnit(CurEngine);
+    if aModule=nil then exit(false);
+    OnPasResolverFindUnit:=aModule;
+    Result:=true;
+  end;
+
+var
+  aFilename: String;
 begin
   if SrcResolver=nil then ;
+  if NameExpr=nil then ;
+  if InFilename<>'' then
+    begin
+    // uses IN parameter
+    {$IFDEF VerbosePasResolver}
+    writeln('TCustomTestResolver.OnPasResolverFindUnit searching IN-file "',InFilename,'"');
+    {$ENDIF}
+    if SrcResolver<>ResolverEngine then
+      SrcResolver.RaiseMsg(20180222004753,100000,'in-file only allowed in program',
+         [],InFileExpr);
+
+    aFilename:=InFilename;
+    DoDirSeparators(aFilename);
+    if FilenameIsAbsolute(aFilename) then
+      if GetResolver(aFilename) then exit;
+    aFilename:=ExtractFilePath(ResolverEngine.Filename)+aFilename;
+    if GetResolver(aFilename) then exit;
+    SrcResolver.RaiseMsg(20180222004311,100001,'in-file ''%s'' not found',
+      [InFilename],InFileExpr);
+    end;
+
   if (Pos('.',aUnitName)<1) and (ResolverEngine.DefaultNameSpace<>'') then
     begin
     // first search in default program namespace
@@ -4991,21 +5044,55 @@ end;
 
 procedure TTestResolver.TestUnit_InFilename;
 begin
-  exit;
   AddModuleWithIntfImplSrc('unit2.pp',
     LinesToStr([
-    'uses unit1;',
-    'var j1: longint;']),
+    'var i1: longint;']),
     LinesToStr([
     '']));
 
   StartProgram(true);
   Add([
-  'uses foo in ''unit2.pas'';',
+  'uses foo in ''unit2.pp'';',
   'begin',
   '  if foo.i1=0 then ;',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestUnit_InFilenameAliasDelphiFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'uses foo in ''unit2.pp'';',
+  'begin',
+  '  if foo.i1=0 then ;',
+  '']);
+  CheckResolverException('foo expected, but unit2 found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestUnit_InFilenameInUnitDelphiFail;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i1: longint;']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add([
+  '{$mode delphi}',
+  'interface',
+  'uses unit2 in ''unit2.pp'';',
+  'implementation',
+  '']);
+  CheckParserException('Expected ";"',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestUnit_MissingUnitErrorPos;
@@ -5029,7 +5116,7 @@ begin
   Add([
   'uses foo   ;',
   'begin']);
-  CheckResolverException('can''t find unit "foo" at afile.pp (2,9)',nCantFindUnitX);
+  CheckResolverException('can''t find unit "foo" at afile.pp (2,6)',nCantFindUnitX);
 end;
 
 procedure TTestResolver.TestUnit_AccessIndirectUsedUnitFail;

@@ -1388,6 +1388,9 @@ type
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASrcPos: TPasSourcePos): TPasElement;
       overload; override;
+    function FindModule(const AName: String; NameExpr, InFileExpr: TPasExpr): TPasModule; override;
+    function FindUnit(const AName, InFilename: String;
+      NameExpr, InFileExpr: TPasExpr): TPasModule; virtual; abstract;
     function FindElement(const aName: String): TPasElement; override; // used by TPasParser
     function FindElementWithoutParams(const AName: String; ErrorPosEl: TPasElement;
       NoProcsWithArgs: boolean): TPasElement;
@@ -1877,7 +1880,17 @@ begin
   if El=nil then
     exit('?');
   C:=El.ClassType;
-  if C=TPasAliasType then
+  if C=TPrimitiveExpr then
+    Result:=ExprKindNames[TPrimitiveExpr(El).Kind]
+  else if C=TUnaryExpr then
+    Result:='unary '+OpcodeStrings[TUnaryExpr(El).OpCode]
+  else if C=TBinaryExpr then
+    Result:=ExprKindNames[TBinaryExpr(El).Kind]
+  else if C=TBoolConstExpr then
+    Result:='boolean const'
+  else if C=TNilExpr then
+    Result:='nil'
+  else if C=TPasAliasType then
     Result:='alias'
   else if C=TPasPointerType then
     Result:='pointer'
@@ -11123,6 +11136,56 @@ begin
     RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
   else
     RaiseNotYetImplemented(20160922163544,El);
+end;
+
+function TPasResolver.FindModule(const AName: String; NameExpr,
+  InFileExpr: TPasExpr): TPasModule;
+var
+  Value: TResEvalValue;
+  InFilename, FileUnitName: String;
+begin
+  if InFileExpr<>nil then
+    begin
+    if not (InFileExpr is TPrimitiveExpr) then
+      RaiseMsg(20180221234828,nXExpectedButYFound,sXExpectedButYFound,
+               ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
+    Value:=ExprEvaluator.Eval(TPrimitiveExpr(InFileExpr),[refConst]);
+    try
+      if (Value=nil) then
+        RaiseMsg(20180222000004,nXExpectedButYFound,sXExpectedButYFound,
+                 ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
+      case Value.Kind of
+      revkString:
+        InFilename:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,InFileExpr);
+      revkUnicodeString:
+        InFilename:=UTF8Encode(TResEvalUTF16(Value).S);
+      else
+        RaiseMsg(20180222000122,nXExpectedButYFound,sXExpectedButYFound,
+                 ['string literal',Value.AsDebugString],InFileExpr);
+      end;
+    finally
+      ReleaseEvalValue(Value);
+    end;
+    if InFilename='' then
+      RaiseMsg(20180222001220,nXExpectedButYFound,sXExpectedButYFound,
+               ['file path','empty string'],InFileExpr);
+    if msDelphi in CurrentParser.CurrentModeswitches then
+      begin
+      // in delphi the last unit name must match the filename
+      FileUnitName:=ChangeFileExt(ExtractFileName(InFilename),'');
+      if CompareText(AName,FileUnitName)<>0 then
+        RaiseMsg(20180222230400,nXExpectedButYFound,sXExpectedButYFound,
+                 [AName,FileUnitName],InFileExpr);
+      end;
+    end;
+  Result:=FindUnit(AName,InFilename,NameExpr,InFileExpr);
+  if Result=nil then
+    begin
+    if InFileExpr<>nil then
+      RaiseMsg(20180223140434,nCantFindUnitX,sCantFindUnitX,[InFilename],InFileExpr)
+    else
+      RaiseMsg(20180223140409,nCantFindUnitX,sCantFindUnitX,[AName],NameExpr);
+    end;
 end;
 
 function TPasResolver.FindElement(const aName: String): TPasElement;

@@ -190,6 +190,7 @@ type
     function FindElement(const AName: String): TPasElement; virtual; abstract;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
+    function FindModule(const AName: String; NameExpr, InFileExpr: TPasExpr): TPasModule; virtual;
     procedure CheckPendingUsedInterface(Section: TPasSection); virtual;
     function NeedArrayValues(El: TPasElement): boolean; virtual;
     function GetDefaultClassVisibility(AClass: TPasClassType): TPasMemberVisibility; virtual;
@@ -766,6 +767,14 @@ function TPasTreeContainer.FindModule(const AName: String): TPasModule;
 begin
   if AName='' then ;  // avoid compiler warning
   Result := nil;
+end;
+
+function TPasTreeContainer.FindModule(const AName: String; NameExpr,
+  InFileExpr: TPasExpr): TPasModule;
+begin
+  Result:=FindModule(AName);
+  if NameExpr=nil then ;
+  if InFileExpr=nil then ;
 end;
 
 procedure TPasTreeContainer.CheckPendingUsedInterface(Section: TPasSection);
@@ -2938,7 +2947,6 @@ end;
 
 function TPasParser.GetProcTypeFromToken(tk: TToken; IsClass: Boolean
   ): TProcType;
-
 begin
   Case tk of
     tkProcedure :
@@ -3344,7 +3352,7 @@ begin
     if ASection.ClassType=TImplementationSection then
       CheckDuplicateInUsesList(AUnitName,CurModule.InterfaceSection.UsesClause);
 
-    UnitRef := Engine.FindModule(AUnitName);  // ToDo: "in" filename
+    UnitRef := Engine.FindModule(AUnitName,NameExpr,InFileExpr);
     if Assigned(UnitRef) then
       UnitRef.AddRef
     else
@@ -3398,6 +3406,7 @@ var
   InFileExpr: TPrimitiveExpr;
   FreeExpr: Boolean;
   NamePos, SrcPos: TPasSourcePos;
+  aModule: TPasModule;
 begin
   CheckImplicitUsedUnits(ASection);
 
@@ -3423,6 +3432,12 @@ begin
       end;
       if (CurToken=tkin) then
         begin
+        if (msDelphi in CurrentModeswitches) then
+          begin
+          aModule:=ASection.GetModule;
+          if (aModule<>nil) and ((aModule.ClassType=TPasModule) or (aModule is TPasUnitModule)) then
+            CheckToken(tkSemicolon); // delphi does not allow it in units
+          end;
         ExpectToken(tkString);
         InFileExpr:=CreatePrimitiveExpr(ASection,pekString,CurTokenString);
         NextToken;
