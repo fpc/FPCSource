@@ -3,7 +3,7 @@ uses
   math;
 
 var
-  a,b,c : double;
+  a,b,c : float;
 begin
   a:=7.7;
   b:=1.1;
