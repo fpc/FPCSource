@@ -2296,6 +2296,11 @@ begin
   Result := (R shl 16) or (G shl 8) or B;
 end;
 
+function QWordToReportColor(AQWord: QWord):TFPReportColor;
+begin
+  Result := TFPReportColor(AQWord and $FFFFFFFF);
+end;
+
 function StretchModeToString(AEnum: TFPReportStretchMode): string; inline;
 begin
   result := GetEnumName(TypeInfo(TFPReportStretchMode), Ord(AEnum));
@@ -3403,7 +3408,11 @@ begin
     end;
   end
   else
+  begin
+    if not Assigned(FFont) then
+      FFont := TFPReportFont.Create;
     Result := FFont;
+  end;
 end;
 
 procedure TFPReportCustomMemo.SetUseParentFont(AValue: Boolean);
@@ -4369,11 +4378,11 @@ begin
   begin
     AWriter.WriteString('FontName', Font.Name);
     AWriter.WriteInteger('FontSize', Font.Size);
-    AWriter.WriteInteger('FontColor', Font.Color);
+    AWriter.WriteQWord('FontColor', Font.Color);
   end;
 
   AWriter.WriteFloat('LineSpacing', LineSpacing);
-  AWriter.WriteInteger('LinkColor', LinkColor);
+  AWriter.WriteQWord('LinkColor', LinkColor);
   AWriter.WriteString('Options', MemoOptionsToString(Options));
 end;
 
@@ -4537,10 +4546,10 @@ begin
   begin
     Font.Name := AReader.ReadString('FontName', Font.Name);
     Font.Size := AReader.ReadInteger('FontSize', Font.Size);
-    Font.Color := AReader.ReadInteger('FontColor', Font.Color);
+    Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
   end;
   FLineSpacing := AReader.ReadFloat('LineSpacing', LineSpacing);
-  FLinkColor := AReader.ReadInteger('LinkColor', LinkColor);
+  FLinkColor := QWordToReportColor(AReader.ReadQWord('LinkColor', LinkColor));
   Options := StringToMemoOptions(AReader.ReadString('Options', ''));
   Changed;
 end;
@@ -4604,7 +4613,7 @@ begin
   AWriter.WriteString('ShapeType', ShapeTypeToString(ShapeType));
   AWriter.WriteString('Orientation', OrientationToString(Orientation));
   AWriter.WriteFloat('CornerRadius', CornerRadius);
-  AWriter.WriteInteger('Color', Color);
+  AWriter.WriteQWord('Color', Color);
 end;
 
 constructor TFPReportCustomShape.Create(AOwner: TComponent);
@@ -5622,25 +5631,25 @@ var
 begin
   if (AOriginal = nil) then
   begin
-    AWriter.WriteInteger('Color', Color);
+    AWriter.WriteQWord('Color', Color);
     AWriter.WriteString('Pen', FramePenToString(Pen));
     AWriter.WriteInteger('Width', Ord(Width));
     AWriter.WriteString('Shape', FrameShapeToString(Shape));
     //TODO Write out the enum values instead of the Integer value.
     I := integer(Lines);
     AWriter.WriteInteger('Lines', I);
-    AWriter.WriteInteger('BackgroundColor', BackgroundColor);
+    AWriter.WriteQWord('BackgroundColor', BackgroundColor);
   end
   else
   begin
-    AWriter.WriteIntegerDiff('Color', Color, AOriginal.Color);
+    AWriter.WriteQWordDiff('Color', Color, AOriginal.Color);
     AWriter.WriteStringDiff('Pen', FramePenToString(Pen), FramePenToString(AOriginal.Pen));
     AWriter.WriteIntegerDiff('Width', Ord(Width), AOriginal.Width);
     AWriter.WriteStringDiff('Shape', FrameShapeToString(Shape), FrameShapeToString(AOriginal.Shape));
     I := integer(Lines);
     J := integer(Aoriginal.Lines);
     AWriter.WriteIntegerDiff('Lines', I, J);
-    AWriter.WriteIntegerDiff('BackgroundColor', BackgroundColor, AOriginal.BackgroundColor);
+    AWriter.WriteQWordDiff('BackgroundColor', BackgroundColor, AOriginal.BackgroundColor);
   end;
 end;
 
@@ -5648,13 +5657,13 @@ procedure TFPReportFrame.ReadElement(AReader: TFPReportStreamer);
 var
   I: integer;
 begin
-  Color := AReader.ReadInteger('Color', Color);
+  Color := QWordToReportColor(AReader.ReadQWord('Color', Color ));
   Pen := StringToFramePen(AReader.ReadString('Pen', 'psSolid'));
   Width := AReader.ReadInteger('Width', Ord(Width));
   Shape := StringToFrameShape(AReader.ReadString('Shape', 'fsNone'));
   I := integer(Lines);
   Lines := TFPReportFrameLines(AReader.ReadInteger('Lines', I));
-  BackgroundColor := AReader.ReadInteger('BackgroundColor', BackgroundColor);
+  BackgroundColor := QWordToReportColor(AReader.ReadQWord('BackgroundColor', BackgroundColor));
 end;
 
 { TFPReportTextAlignment }
@@ -6764,7 +6773,7 @@ begin
   Pagesize.Height := AReader.ReadFloat('PageSize.Height', 297);
   Font.Name := AReader.ReadString('FontName', Font.Name);
   Font.Size := AReader.ReadInteger('FontSize', Font.Size);
-  Font.Color := AReader.ReadInteger('FontColor', Font.Color);
+  Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
   FDataName:=AReader.ReadString('Data','');
   if FDataName<>'' then
     RestoreDataFromNames;
@@ -6804,7 +6813,7 @@ begin
   AWriter.WriteFloat('PageSize.Height', PageSize.Height);
   AWriter.WriteString('FontName', Font.Name);
   AWriter.WriteInteger('FontSize', Font.Size);
-  AWriter.WriteInteger('FontColor', Font.Color);
+  AWriter.WriteQWord('FontColor', Font.Color);
   if Assigned(FData) then
     AWriter.WriteString('Data',FData.Name);
   AWriter.PushElement('Margins');
@@ -7963,7 +7972,7 @@ begin
   begin
     AWriter.WriteString('FontName', Font.Name);
     AWriter.WriteInteger('FontSize', Font.Size);
-    AWriter.WriteInteger('FontColor', Font.Color);
+    AWriter.WriteQWord('FontColor', Font.Color);
   end;
 end;
 
@@ -8058,7 +8067,7 @@ begin
       begin
         Font.Name := AReader.ReadString('FontName', Font.Name);
         Font.Size := AReader.ReadInteger('FontSize', Font.Size);
-        Font.Color := AReader.ReadInteger('FontColor', Font.Color);
+        Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
       end;
 
       // TODO: Read Data information

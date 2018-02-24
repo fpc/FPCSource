@@ -42,6 +42,8 @@ type
 
     // Writing properties of the current element
     procedure   WriteInteger(AName: String; AValue: Integer); virtual; abstract;
+    procedure   WriteInt64(AName: String; AValue: Int64); virtual; abstract;
+    procedure   WriteQWord(AName: String; AValue: QWord); virtual; abstract;
     procedure   WriteFloat(AName: String; AValue: Extended); virtual; abstract;
     procedure   WriteString(AName: String; AValue: String); virtual; abstract;
     procedure   WriteBoolean(AName: String; AValue: Boolean); virtual; abstract;
@@ -49,6 +51,8 @@ type
     procedure   WriteStream(AName: String; AValue: TStream); virtual; abstract;
     // Writing properties but only when different from original
     procedure   WriteIntegerDiff(AName: String; AValue, AOriginal: Integer); virtual; abstract;
+    procedure   WriteInt64Diff(AName: String; AValue, AOriginal: Int64); virtual; abstract;
+    procedure   WriteQWordDiff(AName: String; AValue, AOriginal: QWord); virtual; abstract;
     procedure   WriteFloatDiff(AName: String; AValue, AOriginal: Extended); virtual; abstract;
     procedure   WriteStringDiff(AName: String; AValue, AOriginal: String); virtual; abstract;
     procedure   WriteBooleanDiff(AName: String; AValue, AOriginal: Boolean); virtual; abstract;
@@ -56,6 +60,8 @@ type
     procedure   WriteStreamDiff(AName: String; AValue, AOriginal: TStream); virtual; abstract;
     // Reading properties
     function    ReadInteger(AName: String; ADefault: Integer): Integer; virtual; abstract;
+    function    ReadInt64(AName: String; ADefault: Int64): Int64; virtual; abstract;
+    function    ReadQWord(AName: String; ADefault: QWord): QWord; virtual; abstract;
     function    ReadFloat(AName: String; ADefault: Extended): Extended; virtual; abstract;
     function    ReadString(AName: String; ADefault: String): String; virtual; abstract;
     function    ReadDateTime(AName: String; ADefault: TDateTime): TDateTime; virtual; abstract;
@@ -81,18 +87,24 @@ type
   public
     // FPReportStreamer interface
     procedure   WriteInteger(AName: String; AValue: Integer); override;
+    procedure   WriteInt64(AName: String; AValue: Int64); override;
+    procedure   WriteQWord(AName: String; AValue: QWord); override;
     procedure   WriteFloat(AName: String; AValue: Extended); override;
     procedure   WriteString(AName: String; AValue: String); override;
     procedure   WriteBoolean(AName: String; AValue: Boolean); override;
     procedure   WriteDateTime(AName: String; AValue: TDateTime); override;
     procedure   WriteStream(AName: String; AValue: TStream); override;
     procedure   WriteIntegerDiff(AName: String; AValue, AOriginal: Integer); override;
+    procedure   WriteInt64Diff(AName: String; AValue, AOriginal: Int64); override;
+    procedure   WriteQWordDiff(AName: String; AValue, AOriginal: QWord); override;
     procedure   WriteFloatDiff(AName: String; AValue, AOriginal: Extended); override;
     procedure   WriteStringDiff(AName: String; AValue, AOriginal: String); override;
     procedure   WriteBooleanDiff(AName: String; AValue, AOriginal: Boolean); override;
     procedure   WriteDateTimeDiff(AName: String; AValue, AOriginal: TDateTime); override;
     procedure   WriteStreamDiff(AName: String; AValue, AOriginal: TStream); override;
     function    ReadInteger(AName: String; ADefault: Integer): Integer; override;
+    function    ReadInt64(AName: String; ADefault: Int64): Int64; override;
+    function    ReadQWord(AName: String; ADefault: QWord): QWord; override;
     function    ReadFloat(AName: String; ADefault: Extended): Extended; override;
     function    ReadString(AName: String; ADefault: String): String; override;
     function    ReadDateTime(AName: String; ADefault: TDateTime): TDateTime; override;
@@ -205,6 +217,16 @@ begin
   CurrentElement.Add(AName, AValue);
 end;
 
+procedure TFPReportJSONStreamer.WriteInt64(AName: String; AValue: Int64);
+begin
+  CurrentElement.Add(AName, AValue);
+end;
+
+procedure TFPReportJSONStreamer.WriteQWord(AName: String; AValue: QWord);
+begin
+ CurrentElement.Add(AName, AValue);
+end;
+
 procedure TFPReportJSONStreamer.WriteFloat(AName: String; AValue: Extended);
 begin
   CurrentElement.Add(AName, AValue);
@@ -234,6 +256,20 @@ procedure TFPReportJSONStreamer.WriteIntegerDiff(AName: String; AValue, AOrigina
 begin
   if (AValue <> AOriginal) then
     WriteInteger(AName, AValue);
+end;
+
+procedure TFPReportJSONStreamer.WriteInt64Diff(AName: String; AValue,
+  AOriginal: Int64);
+begin
+  if (AValue <> AOriginal) then
+    WriteInt64(AName, AValue);
+end;
+
+procedure TFPReportJSONStreamer.WriteQWordDiff(AName: String; AValue,
+  AOriginal: QWord);
+begin
+  if (AValue <> AOriginal) then
+    WriteQWord(AName, AValue);
 end;
 
 procedure TFPReportJSONStreamer.WriteFloatDiff(AName: String; AValue, AOriginal: Extended);
@@ -277,7 +313,39 @@ begin
   else
   begin
     if d.JSONType = jtNumber then
+      Result := d.AsInteger
+    else
+      Result := ADefault;
+  end;
+end;
+
+function TFPReportJSONStreamer.ReadInt64(AName: String; ADefault: Int64): Int64;
+var
+  d: TJSONData;
+begin
+  d := FindChild(AName) as TJSONData;
+  if d = nil then
+    Result := ADefault
+  else
+  begin
+    if d.JSONType = jtNumber then
       Result := d.AsInt64
+    else
+      Result := ADefault;
+  end;
+end;
+
+function TFPReportJSONStreamer.ReadQWord(AName: String; ADefault: QWord): QWord;
+var
+  d: TJSONData;
+begin
+  d := FindChild(AName) as TJSONData;
+  if d = nil then
+    Result := ADefault
+  else
+  begin
+    if d.JSONType = jtNumber then
+      Result := d.AsQWord
     else
       Result := ADefault;
   end;
