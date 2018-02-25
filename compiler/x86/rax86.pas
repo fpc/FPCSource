@@ -332,34 +332,6 @@ begin
   Opsize:=S_NO;
 end;
 
-
-const
-{$ifdef x86_64}
-  topsize2memsize: array[topsize] of integer =
-    (0, 8,16,32,64,8,8,16,8,16,32,
-     16,32,64,
-     16,32,64,0,0,
-     64,
-     0,0,0,
-     80,
-     128,
-     256,
-     512
-    );
-{$else}
-topsize2memsize: array[topsize] of integer =
-  (0, 8,16,32,64,8,8,16,
-   16,32,64,
-   16,32,64,0,0,
-   64,
-   0,0,0,
-   80,
-   128,
-   256,
-   512
-  );
-{$endif}
-
 procedure Tx86Instruction.AddReferenceSizes;
 { this will add the sizes for references like [esi] which do not
   have the size set yet, it will take only the size if the other

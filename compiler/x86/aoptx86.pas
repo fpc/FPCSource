@@ -2812,6 +2812,7 @@ unit aoptx86;
       var
         hp1 : tai;
         RegName1, RegName2: string;
+        MaskLength : Cardinal;
       begin
         Result:=false;
 
@@ -2876,6 +2877,30 @@ unit aoptx86;
                     hp1.free;
                   end;
               end
+        else if MatchOpType(taicpu(p),top_const,top_reg) and
+          MatchInstruction(hp1,A_SHL,[]) and
+          MatchOpType(taicpu(hp1),top_const,top_reg) and
+          (getsupreg(taicpu(p).oper[1]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) then
+          begin
+            { get length of potential and mask }
+            MaskLength:=SizeOf(taicpu(p).oper[0]^.val)*8-BsrQWord(taicpu(p).oper[0]^.val)-1;
+
+            { really a mask? }
+            if (((QWord(1) shl MaskLength)-1)=taicpu(p).oper[0]^.val) and
+              { unmasked part shifted out? }
+              ((MaskLength+taicpu(hp1).oper[0]^.val)>=topsize2memsize[taicpu(hp1).opsize]) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'AndShlToShl done',p);
+
+                { take care of the register (de)allocs following p }
+                UpdateUsedRegs(tai(p.next));
+                asml.remove(p);
+                p.free;
+                p:=hp1;
+                Result:=true;
+                exit;
+              end;
+          end
         else if MatchOpType(taicpu(p),top_const,top_reg) and
           MatchInstruction(hp1,A_MOVSX{$ifdef x86_64},A_MOVSXD{$endif x86_64},[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
