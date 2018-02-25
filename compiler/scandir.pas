@@ -913,6 +913,9 @@ unit scandir;
               if (hs='NOTE') then
                 w:=scan_n_user_defined
             else
+              if (hs='INFO') then
+                w:=scan_i_user_defined
+            else
               Message1(scan_w_illegal_directive,hs);
           end;
         { Only print message when there was no error }
