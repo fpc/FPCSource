@@ -2845,7 +2845,7 @@ unit aoptx86;
           MatchInstruction(hp1,A_MOVZX,[]) and
           (taicpu(hp1).oper[0]^.typ = top_reg) and
           MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) and
-          (getsubreg(taicpu(hp1).oper[0]^.reg)=getsubreg(taicpu(hp1).oper[1]^.reg)) and
+          (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
            (((taicpu(p).opsize=S_W) and
              (taicpu(hp1).opsize=S_BW)) or
             ((taicpu(p).opsize=S_L) and
