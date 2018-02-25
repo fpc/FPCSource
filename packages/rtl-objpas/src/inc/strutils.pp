@@ -1,4 +1,4 @@
-{
+﻿{
     Delphi/Kylix compatibility unit: String handling routines.
 
     This file is part of the Free Pascal run time library.
@@ -193,6 +193,7 @@ function XorDecode(const Key, Source: string): string;
 function GetCmdLineArg(const Switch: string; SwitchChars: TSysCharSet): string;
 function Numb2USA(const S: string): string;
 function Hex2Dec(const S: string): Longint;
+function Hex2Dec64(const S: string): int64;
 function Dec2Numb(N: Longint; Len, Base: Byte): string;
 function Numb2Dec(S: string; Base: Byte): Longint;
 function IntToBin(Value: Longint; Digits, Spaces: Integer): string;
@@ -857,6 +858,18 @@ begin
     HexStr:=S;
   Result:=StrToInt(HexStr);
 end;
+
+function Hex2Dec64(const S: string): int64;
+var
+  HexStr: string;
+begin
+  if Pos('$',S)=0 then
+    HexStr:='$'+ S
+  else
+    HexStr:=S;
+  Result:=StrToInt64(HexStr);
+end;
+
 
 {
   We turn off implicit exceptions, since these routines are tested, and it 
