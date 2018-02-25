@@ -1731,7 +1731,7 @@ unit aoptx86;
           (taicpu(hp2).oper[0]^.typ=top_reg) and
           (SuperRegistersEqual(taicpu(hp2).oper[0]^.reg,taicpu(p).oper[1]^.reg)) and
           (IsFoldableArithOp(taicpu(hp1), taicpu(p).oper[1]^.reg) or
-           ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
+           ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and (taicpu(hp2).opsize=S_L) and
             IsFoldableArithOp(taicpu(hp1), newreg(R_INTREGISTER,getsupreg(taicpu(p).oper[1]^.reg),R_SUBQ)))
           ) then
           { change   movsX/movzX    reg/ref, reg2
