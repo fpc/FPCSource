@@ -2830,7 +2830,7 @@ asmr_e_local_label_cannot_be_declared_public=07138_E_Local label $1 cannot be de
 #
 # Assembler/binary writers
 #
-# 08032 is the last used one
+# 08033 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2884,6 +2884,7 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
 asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
+asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
 #
 # Executing linker/assembler
 #

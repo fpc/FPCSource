@@ -449,7 +449,7 @@ implementation
                           (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-63)) then
                           begin
                             if inasmblock then
-                              Message(asmw_e_short_jmp_out_of_range)
+                              Message(asmw_e_brxx_out_of_range)
                             else
                               begin
                                 current_asmdata.getjumplabel(l);
