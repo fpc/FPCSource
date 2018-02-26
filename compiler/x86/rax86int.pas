@@ -63,6 +63,7 @@ Unit Rax86int;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
+         procedure AddReferences(dest,src : tx86operand);
          procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
          procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
          function BuildConstExpression:aint;
@@ -798,6 +799,69 @@ Unit Rax86int;
                                  Parsing Helpers
 *****************************************************************************}
 
+    { Adds two references (dest:=dest+src) }
+    procedure tx86intreader.AddReferences(dest,src : tx86operand);
+
+      procedure AddRegister(reg:tregister;scalefactor:byte);
+        begin
+          if reg=NR_NO then
+            exit;
+          if (dest.opr.ref.base=NR_NO) and (scalefactor=1) then
+            begin
+              dest.opr.ref.base:=reg;
+              exit;
+            end;
+          if dest.opr.ref.index=NR_NO then
+            begin
+              dest.opr.ref.index:=reg;
+              exit;
+            end;
+          if dest.opr.ref.index=reg then
+            begin
+              Inc(dest.opr.ref.scalefactor,scalefactor);
+              exit;
+            end;
+          Message(asmr_e_multiple_index);
+        end;
+
+      begin
+        if (dest.opr.typ<>OPR_REFERENCE) or (src.opr.typ<>OPR_REFERENCE) then
+          internalerror(2018022601);
+        AddRegister(src.opr.ref.base,1);
+        AddRegister(src.opr.ref.index,src.opr.ref.scalefactor);
+        if src.opr.ref.segment<>NR_NO then
+          begin
+            if dest.opr.ref.segment<>NR_NO then
+              begin
+                if m_tp7 in current_settings.modeswitches then
+                  Message(asmr_w_multiple_segment_overrides)
+                else
+                  Message(asmr_e_multiple_segment_overrides);
+              end;
+            dest.opr.ref.segment:=src.opr.ref.segment;
+          end;
+        Inc(dest.opr.ref.offset,src.opr.ref.offset);
+        Inc(dest.opr.constoffset,src.opr.constoffset);
+        dest.haslabelref:=dest.haslabelref or src.haslabelref;
+        dest.hasproc:=dest.hasproc or src.hasproc;
+        dest.hasvar:=dest.hasvar or src.hasvar;
+        if assigned(src.opr.ref.symbol) then
+          begin
+            if assigned(dest.opr.ref.symbol) then
+              Message(asmr_e_cant_have_multiple_relocatable_symbols);
+            dest.opr.ref.symbol:=src.opr.ref.symbol;
+          end;
+        if assigned(src.opr.ref.relsymbol) then
+          begin
+            if assigned(dest.opr.ref.relsymbol) then
+              Message(asmr_e_cant_have_multiple_relocatable_symbols);
+            dest.opr.ref.relsymbol:=src.opr.ref.relsymbol;
+          end;
+        if dest.opr.ref.refaddr=addr_no then
+          dest.opr.ref.refaddr:=src.opr.ref.refaddr;
+      end;
+
+
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
@@ -1282,6 +1346,7 @@ Unit Rax86int;
         isseg: boolean;
         is_farproc_entry,hasofs,
         hastypecast: boolean;
+        tmpoper: tx86operand;
       Begin
         if actasmtoken=AS_LBRACKET then
           begin
@@ -1677,11 +1742,26 @@ Unit Rax86int;
                 GotStar:=(prevasmtoken=AS_STAR);
               end;
 
+            AS_LBRACKET :
+              begin
+                tmpoper:=Tx86Operand.create;
+                BuildReference(tmpoper);
+                AddReferences(oper,tmpoper);
+                tmpoper.Free;
+              end;
+
             AS_RBRACKET :
               begin
                 if GotPlus or GotStar or BracketlessReference then
                   Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_RBRACKET);
+                if actasmtoken=AS_LBRACKET then
+                  begin
+                    tmpoper:=Tx86Operand.create;
+                    BuildReference(tmpoper);
+                    AddReferences(oper,tmpoper);
+                    tmpoper.Free;
+                  end;
                 break;
               end;
 
