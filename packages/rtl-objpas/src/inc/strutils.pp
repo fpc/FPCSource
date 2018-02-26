@@ -33,6 +33,8 @@ Function AnsiEndsText(const ASubText, AText: string): Boolean;
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
 Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
+Function StartsText(const ASubText, AText: string): Boolean;
+Function EndsText(const ASubText, AText: string): Boolean;
 
 { ---------------------------------------------------------------------
     Case sensitive search/replace
@@ -44,6 +46,8 @@ Function AnsiEndsStr(const ASubText, AText: string): Boolean;
 Function AnsiReplaceStr(const AText, AFromText, AToText: string): string;inline;
 Function AnsiMatchStr(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
+Function StartsStr(const ASubText, AText: string): Boolean;
+Function EndsStr(const ASubText, AText: string): Boolean;
 Function MatchStr(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
 Function MatchText(const AText: UnicodeString; const AValues: array of UnicodeString): Boolean;
 Function IndexStr(const AText: UnicodeString; const AValues: array of UnicodeString): Integer;
@@ -919,6 +923,25 @@ begin
 end;
 
 
+function StartsText(const ASubText, AText: string): Boolean;
+begin
+  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
+    Result := StrLIComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
+  else
+    Result := False;
+end;
+
+
+function EndsText(const ASubText, AText: string): Boolean;
+begin
+  if Length(AText) >= Length(ASubText) then
+    Result := StrLIComp(PChar(ASubText),
+      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
+  else
+    Result := False;
+end;
+
+
 function AnsiReplaceText(const AText, AFromText, AToText: string): string;
 begin
   Result := StringReplace(AText,AFromText,AToText,[rfReplaceAll,rfIgnoreCase]);
@@ -969,6 +992,25 @@ function AnsiEndsStr(const ASubText, AText: string): Boolean;
 begin
   if Length(AText) >= Length(ASubText) then
     Result := AnsiStrLComp(PChar(ASubText),
+      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
+  else
+    Result := False;
+end;
+
+
+function StartsStr(const ASubText, AText: string): Boolean;
+begin
+  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
+    Result := StrLComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
+  else
+    Result := False;
+end;
+
+
+function EndsStr(const ASubText, AText: string): Boolean;
+begin
+  if Length(AText) >= Length(ASubText) then
+    Result := StrLComp(PChar(ASubText),
       PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
   else
     Result := False;
