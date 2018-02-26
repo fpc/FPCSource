@@ -1068,7 +1068,7 @@ type
     Procedure SetItem(Index: Integer; Value: TIndexDef);
   public
     constructor Create(ADataSet: TDataSet); virtual; overload;
-    procedure Add(const Name, Fields: string; Options: TIndexOptions);
+    procedure Add(const Name, Fields: string; Options: TIndexOptions); overload;
     Function AddIndexDef: TIndexDef;
     function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
@@ -2474,14 +2474,19 @@ end;
 Function TIndexDefs.AddIndexDef: TIndexDef;
 
 begin
-//  Result := inherited add as TIndexDef;
-  Result:=TIndexDef.Create(Self,'','',[]);
+  Result := inherited add as TIndexDef;
 end;
 
 procedure TIndexDefs.Add(const Name, Fields: string; Options: TIndexOptions);
 
+Var
+  D : TIndexDef;
+
 begin
-  TIndexDef.Create(Self,Name,Fields,Options);
+  D:=AddIndexDef;
+  D.Name:=Name;
+  D.Fields:=Fields;
+  D.Options:=Options;
 end;
 
 function TIndexDefs.Find(const IndexName: string): TIndexDef;
