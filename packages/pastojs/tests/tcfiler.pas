@@ -24,7 +24,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry,
-  PasTree, PScanner, PasResolver, PasResolveEval, PParser,
+  PasTree, PScanner, PasResolver, PasResolveEval, PParser, PasUseAnalyzer,
   FPPas2Js, Pas2JsFiler,
   tcmodules;
 
@@ -34,6 +34,7 @@ type
 
   TCustomTestPrecompile = Class(TCustomTestModule)
   private
+    FAnalyzer: TPasAnalyzer;
     FInitialFlags: TPJUInitialFlags;
     FPJUReader: TPJUReader;
     FPJUWriter: TPJUWriter;
@@ -42,6 +43,7 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    procedure ConvertModule; override;
     procedure WriteReadUnit; virtual;
     procedure StartParsing; override;
     function CheckRestoredObject(const Path: string; Orig, Rest: TObject): boolean; virtual;
@@ -106,6 +108,7 @@ type
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
   public
+    property Analyzer: TPasAnalyzer read FAnalyzer;
     property PJUWriter: TPJUWriter read FPJUWriter write FPJUWriter;
     property PJUReader: TPJUReader read FPJUReader write FPJUReader;
     property InitialFlags: TPJUInitialFlags read FInitialFlags;
@@ -165,14 +168,23 @@ procedure TCustomTestPrecompile.SetUp;
 begin
   inherited SetUp;
   FInitialFlags:=TPJUInitialFlags.Create;
+  FAnalyzer:=TPasAnalyzer.Create;
+  Analyzer.Resolver:=Engine;
 end;
 
 procedure TCustomTestPrecompile.TearDown;
 begin
+  FreeAndNil(FAnalyzer);
   FreeAndNil(FPJUWriter);
   FreeAndNil(FPJUReader);
   FreeAndNil(FInitialFlags);
   inherited TearDown;
+end;
+
+procedure TCustomTestPrecompile.ConvertModule;
+begin
+  Analyzer.AnalyzeModule(Module);
+  inherited ConvertModule;
 end;
 
 procedure TCustomTestPrecompile.WriteReadUnit;

@@ -21,6 +21,7 @@ type
     FAnalyzer: TPasAnalyzer;
     FPAMessages: TFPList; // list of TPAMessage
     FPAGoodMessages: TFPList;
+    FProcAnalyzer: TPasAnalyzer;
     function GetPAMessages(Index: integer): TPAMessage;
     procedure OnAnalyzerMessage(Sender: TObject; Msg: TPAMessage);
   protected
@@ -39,6 +40,7 @@ type
       const RefNames: array of string);
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
+    property ProcAnalyzer: TPasAnalyzer read FProcAnalyzer;
     function PAMessageCount: integer;
     property PAMessages[Index: integer]: TPAMessage read GetPAMessages;
   end;
@@ -185,6 +187,7 @@ begin
     TPAMessage(FPAMessages[i]).Release;
   FreeAndNil(FPAMessages);
   FreeAndNil(FAnalyzer);
+  FreeAndNil(FProcAnalyzer);
   inherited TearDown;
 end;
 
@@ -353,7 +356,7 @@ type
 var
   Entries: array of TEntry;
 
-  procedure CheckRefs(Scope: TPasProcedureScope);
+  procedure CheckRefs(Scope: TPasProcedureScope; const Prefix: string);
 
     procedure DumpRefsAndFail(Refs: TFPList; const Msg: string);
     var
@@ -365,10 +368,10 @@ var
         Ref:=TPasProcScopeReference(Refs[i]);
         if Ref=nil then break;
         {$IFDEF VerbosePasAnalyzer}
-        writeln('DumpRefsAndFail ',i,' ',GetObjName(Ref.Element),' ',Ref.Access);
+        writeln('DumpRefsAndFail ',Prefix,' ',i,' ',GetObjName(Ref.Element),' ',Ref.Access);
         {$ENDIF}
         end;
-      Fail(Msg);
+      Fail(Prefix+': '+Msg);
     end;
 
   var
@@ -384,7 +387,7 @@ var
         begin
         o:=TObject(Refs[i]);
         if not (o is TPasProcScopeReference) then
-          Fail('Refs['+IntToStr(i)+'] '+GetObjName(o));
+          Fail(Prefix+': Refs['+IntToStr(i)+'] '+GetObjName(o));
         end;
       // check that all Entries are referenced
       for i:=0 to length(Entries)-1 do
@@ -422,6 +425,7 @@ var
     El: TPasElement;
     Proc: TPasProcedure;
     Scope: TPasProcedureScope;
+    ProcAnalyzer: TPasAnalyzer;
   begin
     for i:=0 to Section.Declarations.Count-1 do
       begin
@@ -432,9 +436,21 @@ var
       Proc:=TPasProcedure(El);
       Scope:=Proc.CustomData as TPasProcedureScope;
       if Scope.DeclarationProc<>nil then continue;
-      Analyzer.Clear;
-      Analyzer.AnalyzeProcRefs(Proc);
-      CheckRefs(Scope);
+
+      // check references created by AnalyzeModule
+      CheckRefs(Scope,'AnalyzeModule');
+
+      // check references created by AnalyzeProcRefs
+      Scope.ClearReferences;
+      if FProcAnalyzer=nil then
+        begin
+        ProcAnalyzer:=TPasAnalyzer.Create;
+        ProcAnalyzer.Resolver:=ResolverEngine;
+        end;
+      ProcAnalyzer.Clear;
+      ProcAnalyzer.AnalyzeProcRefs(Proc);
+      CheckRefs(Scope,'AnalyzeProcRefs');
+
       exit(true);
       end;
     Result:=false;
@@ -443,8 +459,6 @@ var
 var
   i: Integer;
 begin
-  ParseUnit;
-
   SetLength(Entries,High(RefNames)-low(RefNames)+1);
   for i:=low(RefNames) to high(RefNames) do
     begin
@@ -1750,6 +1764,7 @@ begin
   'end;',
   'begin',
   '  DoIt(nil);']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
@@ -2252,6 +2267,8 @@ begin
   '  b:=i;',
   'end;',
   '']);
+  Analyzer.Options:=Analyzer.Options+[paoProcReferences];
+  AnalyzeUnit;
   CheckUnitProcedureReferences('DoIt',['i','tintcolor']);
 end;
 
