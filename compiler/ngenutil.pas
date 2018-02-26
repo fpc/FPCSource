@@ -1478,6 +1478,13 @@ implementation
       tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip]);
       s:='FPC '+full_version_string+
         ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname;
+{$ifdef m68k}
+      { Ensure that the size of s is multiple of 2 to avoid problems
+        like on m68k-amiga which has a .balignw just after,
+        causes an assembler error }
+      while (length(s) mod 2) <> 0 do
+        s:=s+' ';
+{$endif m68k}
       def:=carraydef.getreusable(cansichartype,length(s));
       tcb.maybe_begin_aggregate(def);
       tcb.emit_tai(Tai_string.Create(s),def);
