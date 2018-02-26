@@ -814,6 +814,7 @@ Unit Rax86int;
           if dest.opr.ref.index=NR_NO then
             begin
               dest.opr.ref.index:=reg;
+              dest.opr.ref.scalefactor:=scalefactor;
               exit;
             end;
           if dest.opr.ref.index=reg then
