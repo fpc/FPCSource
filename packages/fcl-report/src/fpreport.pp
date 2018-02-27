@@ -120,6 +120,7 @@ type
   // For color coding
   TFPReportBandType       = (btUnknown,btPageHeader,btReportTitle,btColumnHeader,btDataHeader,btGroupHeader,btDataband,btGroupFooter,
                              btDataFooter,btColumnFooter,btReportSummary,btPageFooter,btChild);
+  TFPReportBandTypes = Set of TFPReportBandType;
   TFPReportMemoOption     = (
             moSuppressRepeated,
             moHideZeros,
@@ -304,6 +305,8 @@ type
   end;
 
 
+  { TFPReportComponent }
+
   TFPReportComponent = class(TComponent)
   private
     FReportState: TFPReportState;
@@ -316,9 +319,14 @@ type
     procedure StartRender; virtual;
     // called when the renderer ends its job on the report.
     procedure EndRender; virtual;
+
   public
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); virtual;
     procedure ReadElement(AReader: TFPReportStreamer); virtual;
+    // called when the designer starts editing this component .
+    Procedure StartDesigning; virtual;
+    // called when the designer ends editing this component .
+    Procedure EndDesigning; virtual;
     property ReportState: TFPReportState read FReportState;
   end;
 
@@ -715,6 +723,10 @@ type
     procedure RecalcLayout; override;
   public
     destructor  Destroy; override;
+    // called when the designer starts editing this component .
+    Procedure StartDesigning; override;
+    // called when the designer ends editing this component .
+    Procedure EndDesigning; override;
     procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
     function    Equals(AElement: TFPReportElement): boolean; override;
@@ -1522,6 +1534,8 @@ type
     procedure   RemovePage(APage: TFPReportCustomPage);
     function    FindRecursive(const AName: string): TFPReportElement;
     procedure   RunReport;
+    Procedure StartDesigning; virtual;
+    Procedure EndDesigning; virtual;
     procedure   RenderReport(const AExporter: TFPReportExporter);
     Property Variables : TFPReportVariables Read FVariables Write SetVariables;
     {$IFDEF gdebug}
@@ -5483,6 +5497,18 @@ begin
   FReportState := rsDesign;
 end;
 
+procedure TFPReportComponent.StartDesigning;
+begin
+  SetDesigning(True,True);
+  FReportState:=rsDesign;
+end;
+
+procedure TFPReportComponent.EndDesigning;
+begin
+  SetDesigning(False,True);
+  FReportState:=rsDesign;
+end;
+
 procedure TFPReportComponent.WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
 begin
   AWriter.WriteString('Name', Name);
@@ -6449,6 +6475,28 @@ begin
     FreeAndNil(FChildren);
   end;
   inherited Destroy;
+end;
+
+procedure TFPReportElementWithChildren.StartDesigning;
+
+Var
+  I : Integer;
+
+begin
+  inherited StartDesigning;
+  For I:=0 to ChildCount-1 do
+    Child[I].StartDesigning;
+end;
+
+procedure TFPReportElementWithChildren.EndDesigning;
+
+Var
+  I : Integer;
+
+begin
+  inherited EndDesigning;
+  For I:=0 to ChildCount-1 do
+    Child[I].EndDesigning;
 end;
 
 procedure TFPReportElementWithChildren.WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
@@ -7574,6 +7622,28 @@ procedure TFPCustomReport.EndRender;
 begin
   inherited EndRender;
   DoAfterRenderReport;
+end;
+
+procedure TFPCustomReport.StartDesigning;
+
+Var
+  I : Integer;
+
+begin
+  SetDesigning(True,True);
+  For I:=0 to PageCount-1 do
+    Pages[i].StartDesigning;
+end;
+
+procedure TFPCustomReport.EndDesigning;
+
+Var
+  I : Integer;
+
+begin
+  SetDesigning(False,True);
+  For I:=0 to PageCount-1 do
+    Pages[i].EndDesigning;
 end;
 
 function TFPCustomReport.FindRecursive(const AName: string): TFPReportElement;
