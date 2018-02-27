@@ -800,6 +800,7 @@ type
     FDataName : String;
     FFont: TFPReportFont;
     FMargins: TFPReportMargins;
+    FOnPageSizeChange: TNotifyEvent;
     FOrientation: TFPReportPaperOrientation;
     FPageSize: TFPReportPageSize;
     FReport: TFPCustomReport;
@@ -855,6 +856,7 @@ type
     property    ColumnGap: TFPReportUnits read FColumnGap write SetColumnGap default 0;
     property    ColumnLayout: TFPReportColumnLayout read FColumnLayout write SetColumnLayout default clVertical;
     property    Font: TFPReportFont read FFont write SetFont;
+    Property OnPageSizeChange : TNotifyEvent Read FOnPageSizeChange Write FOnPageSizeChange;
   end;
   TFPReportCustomPageClass = Class of TFPReportCustomPage;
 
@@ -6776,6 +6778,8 @@ end;
 procedure TFPReportCustomPage.PageSizeChanged;
 begin
   RecalcLayout;
+  If Assigned(FOnPageSizeChange) then
+    FOnPageSizeChange(Self);
 end;
 
 constructor TFPReportCustomPage.Create(AOwner: TComponent);
