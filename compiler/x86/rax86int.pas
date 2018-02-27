@@ -1606,11 +1606,11 @@ Unit Rax86int;
 
             AS_REGISTER :
               begin
+                hreg:=actasmregister;
+                Consume(AS_REGISTER);
                 if not((GotPlus and (not Negative)) or
                        GotStar) then
                   Message(asmr_e_invalid_reference_syntax);
-                hreg:=actasmregister;
-                Consume(AS_REGISTER);
                 { this register will be the index:
                    1. just read a *
                    2. next token is a *
