@@ -673,8 +673,6 @@ type
     procedure RecalcLayout; virtual; abstract;
     property  StretchMode: TFPReportStretchMode read FStretchMode write FStretchMode default smDontStretch;
     property  OnBeforePrint: TFPReportBeforePrintEvent read FOnBeforePrint write FOnBeforePrint;
-    property Page: TFPReportCustomPage read GetReportPage;
-    property Band: TFPReportCustomBand read GetReportBand;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -688,6 +686,8 @@ type
     function EvaluateVisibility : boolean; virtual;
     property Parent: TFPReportElement read FParent write SetParent;
     Property Report : TFPCustomReport read GetReport;
+    property Page: TFPReportCustomPage read GetReportPage;
+    property Band: TFPReportCustomBand read GetReportBand;
     { Runtime Layout - populated when layouting of report is calculated. }
     property  RTLayout: TFPReportLayout read FRTLayout write FRTLayout; // TOOD: Maybe we should rename this to PrintLayout?
   published
