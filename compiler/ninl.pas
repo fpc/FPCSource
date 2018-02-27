@@ -4725,7 +4725,10 @@ implementation
                begin
                  datatemp:=ctempcreatenode.create_value(first,first.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
-                 datan:=caddrnode.create_internal(cvecnode.create(ctemprefnode.create(datatemp),cordconstnode.create(0,sizesinttype,false)));
+                 if is_dynamic_array(first) then
+                   datan:=ctypeconvnode.create_internal(ctemprefnode.create(datatemp),voidpointertype)
+                 else
+                   datan:=caddrnode.create_internal(cvecnode.create(ctemprefnode.create(datatemp),cordconstnode.create(0,sizesinttype,false)));
                  datacountn:=cinlinenode.create(in_length_x,false,ctemprefnode.create(datatemp));
                end
              else if isconstr then
@@ -4733,7 +4736,7 @@ implementation
                  inserttypeconv(firstn,second);
                  datatemp:=ctempcreatenode.create_value(second,second.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
-                 datan:=caddrnode.create_internal(cvecnode.create(ctemprefnode.create(datatemp),cordconstnode.create(0,sizesinttype,false)));
+                 datan:=ctypeconvnode.create_internal(ctemprefnode.create(datatemp),voidpointertype);
                  datacountn:=cinlinenode.create(in_length_x,false,ctemprefnode.create(datatemp));
                end
              else
