@@ -53,9 +53,7 @@ uses
 
 CONST numlib_version=2;         {used to detect version conflicts between
                                   header unit and dll}
-      highestelement=20000;     {Maximal n x m dimensions of matrix.
-                                 +/- highestelement*SIZEOF(arbfloat) is
-                                  minimal size of matrix.}
+
 type {Definition of base types}
 {$IFDEF ArbExtended}
       ArbFloat    = extended;
@@ -181,8 +179,6 @@ type
                        offsetx, offsety, scalex, scaley: ArbFloat
                  end;
 
-
-
      {Standard Functions used in NumLib}
      rfunc1r    = Function(x : ArbFloat): ArbFloat;
      rfunc1rn   = Function(x : ArbFloat): ArbFloat is nested;
@@ -195,33 +191,47 @@ type
      oderk1n    = procedure(x: ArbFloat; var y, f: ArbFloat);
      roofnrfunc = procedure(var x, fx: ArbFloat; var deff: boolean);
 
+
+ {Maximal n x m dimensions of matrix.
+  +/- highestelement*SIZEOF(elementtype) is
+  minimal size of matrix.}
+const
+  highestfloatelement = High(ArbInt) div SizeOf(ArbFloat);
+  highestptrelement = High(ArbInt) div SizeOf(Pointer);
+  highestintelement = High(ArbInt) div SizeOf(ArbInt);
+  highestboolelement = High(ArbInt) div SizeOf(boolean);
+  highestcomplexelement = High(ArbInt) div SizeOf(complex);
+  highestvectorelement = High(ArbInt) div SizeOf(vector);
+
+
+type
      {Definition of matrix types in NumLib. First some vectors.
       The high boundery is a maximal number only. Vectors can be smaller, but
       not bigger. The difference is the starting number}
-     arfloat0   = array[0..highestelement] of ArbFloat;
-     arfloat1   = array[1..highestelement] of ArbFloat;
-     arfloat2   = array[2..highestelement] of ArbFloat;
-     arfloat_1  = array[-1..highestelement] of ArbFloat;
+     arfloat0   = array[0..highestfloatelement-1] of ArbFloat;
+     arfloat1   = array[1..highestfloatelement] of ArbFloat;
+     arfloat2   = array[2..highestfloatelement+1] of ArbFloat;
+     arfloat_1  = array[-1..highestfloatelement-2] of ArbFloat;
 
      {A matrix is an array of floats}
-     ar2dr      = array[0..highestelement] of ^arfloat0;
-     ar2dr1     = array[1..highestelement] of ^arfloat1;
+     ar2dr      = array[0..highestptrelement-1] of ^arfloat0;
+     ar2dr1     = array[1..highestptrelement] of ^arfloat1;
 
      {Matrices can get big, so we mosttimes allocate them on the heap.}
      par2dr1    = ^ar2dr1;
 
      {Integer vectors}
-     arint0     = array[0..highestelement] of ArbInt;
-     arint1     = array[1..highestelement] of ArbInt;
+     arint0     = array[0..highestintelement-1] of ArbInt;
+     arint1     = array[1..highestintelement] of ArbInt;
 
      {Boolean (true/false) vectors}
-     arbool1    = array[1..highestelement] of boolean;
+     arbool1    = array[1..highestboolelement] of boolean;
 
      {Complex vectors}
-     arcomp0    = array[0..highestelement] of complex;
-     arcomp1    = array[1..highestelement] of complex;
-     arvect0    = array[0..highestelement] of vector;
-     vectors    = array[1..highestelement] of vector;
+     arcomp0    = array[0..highestcomplexelement-1] of complex;
+     arcomp1    = array[1..highestcomplexelement] of complex;
+     arvect0    = array[0..highestvectorelement-1] of vector;
+     vectors    = array[1..highestvectorelement] of vector;
 
      parcomp    = ^arcomp1;
 
