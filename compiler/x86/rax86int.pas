@@ -1608,59 +1608,68 @@ Unit Rax86int;
               begin
                 hreg:=actasmregister;
                 Consume(AS_REGISTER);
-                if not((GotPlus and (not Negative)) or
-                       GotStar) then
-                  Message(asmr_e_invalid_reference_syntax);
-                { this register will be the index:
-                   1. just read a *
-                   2. next token is a *
-                   3. base register is already used }
-                case oper.opr.typ of
-                  OPR_LOCAL :
-                    begin
-                      if (oper.opr.localindexreg<>NR_NO) then
-                        Message(asmr_e_multiple_index);
-{$ifdef x86_64}
-                      { Locals/parameters cannot be accessed RIP-relative. Need a dedicated error message here? }
-                      if (hreg=NR_RIP) then
-                        Message(asmr_e_no_local_or_para_allowed);
-{$endif x86_64}
-                      oper.opr.localindexreg:=hreg;
-                      if scale<>0 then
+                if actasmtoken=AS_COLON then
+                  begin
+                    Consume(AS_COLON);
+                    oper.InitRefConvertLocal;
+                    oper.opr.ref.segment:=hreg;
+                  end
+                else
+                  begin
+                    if not((GotPlus and (not Negative)) or
+                           GotStar) then
+                      Message(asmr_e_invalid_reference_syntax);
+                    { this register will be the index:
+                       1. just read a *
+                       2. next token is a *
+                       3. base register is already used }
+                    case oper.opr.typ of
+                      OPR_LOCAL :
                         begin
-                          oper.opr.localscale:=scale;
-                          scale:=0;
+                          if (oper.opr.localindexreg<>NR_NO) then
+                            Message(asmr_e_multiple_index);
+{$ifdef x86_64}
+                          { Locals/parameters cannot be accessed RIP-relative. Need a dedicated error message here? }
+                          if (hreg=NR_RIP) then
+                            Message(asmr_e_no_local_or_para_allowed);
+{$endif x86_64}
+                          oper.opr.localindexreg:=hreg;
+                          if scale<>0 then
+                            begin
+                              oper.opr.localscale:=scale;
+                              scale:=0;
+                            end;
                         end;
-                    end;
-                  OPR_REFERENCE :
-                    begin
-                      if (GotStar) or
-                         (actasmtoken=AS_STAR) or
-                         (oper.opr.ref.base<>NR_NO) then
-                       begin
-                         if (oper.opr.ref.index<>NR_NO) then
-                          Message(asmr_e_multiple_index);
-                         oper.opr.ref.index:=hreg;
-                         if scale<>0 then
+                      OPR_REFERENCE :
+                        begin
+                          if (GotStar) or
+                             (actasmtoken=AS_STAR) or
+                             (oper.opr.ref.base<>NR_NO) then
                            begin
-                             oper.opr.ref.scalefactor:=scale;
-                             scale:=0;
-                           end;
-                       end
-                      else
-                        begin
-                          oper.opr.ref.base:=hreg;
+                             if (oper.opr.ref.index<>NR_NO) then
+                              Message(asmr_e_multiple_index);
+                             oper.opr.ref.index:=hreg;
+                             if scale<>0 then
+                               begin
+                                 oper.opr.ref.scalefactor:=scale;
+                                 scale:=0;
+                               end;
+                           end
+                          else
+                            begin
+                              oper.opr.ref.base:=hreg;
 {$ifdef x86_64}
-                          { non-GOT based RIP-relative accesses are also position-independent }
-                          if (oper.opr.ref.base=NR_RIP) and
-                             (oper.opr.ref.refaddr<>addr_pic) then
-                            oper.opr.ref.refaddr:=addr_pic_no_got;
+                              { non-GOT based RIP-relative accesses are also position-independent }
+                              if (oper.opr.ref.base=NR_RIP) and
+                                 (oper.opr.ref.refaddr<>addr_pic) then
+                                oper.opr.ref.refaddr:=addr_pic_no_got;
 {$endif x86_64}
+                            end;
                         end;
                     end;
-                end;
-                GotPlus:=false;
-                GotStar:=false;
+                    GotPlus:=false;
+                    GotStar:=false;
+                  end;
               end;
 
             AS_OFFSET :
