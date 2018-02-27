@@ -108,6 +108,12 @@ begin
   CheckArray(t, [1, 3, 5]);
 
   t := Nil;
+  t2 := Nil;
+  Insert(t2, t, 0);
+  PrintArray(t);
+  CheckArray(t, []);
+
+  t := Nil;
   Insert([], t, 0);
   PrintArray(t);
   CheckArray(t, []);
