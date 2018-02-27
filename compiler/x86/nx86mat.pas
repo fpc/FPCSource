@@ -688,6 +688,7 @@ DefaultDiv:
       end;
 
 
+{$ifdef SUPPORT_MMX}
     procedure tx86shlshrnode.second_mmx;
       var
         op         : TAsmOp;
@@ -780,5 +781,6 @@ DefaultDiv:
 
         location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
+{$endif SUPPORT_MMX}
 
 end.
