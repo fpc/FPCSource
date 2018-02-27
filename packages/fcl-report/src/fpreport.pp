@@ -321,6 +321,7 @@ type
     procedure EndRender; virtual;
 
   public
+    Function AllocateName : String;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); virtual;
     procedure ReadElement(AReader: TFPReportStreamer); virtual;
     // called when the designer starts editing this component .
@@ -5495,6 +5496,21 @@ end;
 procedure TFPReportComponent.EndRender;
 begin
   FReportState := rsDesign;
+end;
+
+function TFPReportComponent.AllocateName: String;
+
+Var
+  BaseName : String;
+  I : Integer;
+
+begin
+  BaseName:=ClassName;
+  I:=1;
+  Repeat
+    Result:=BaseName+IntToStr(I);
+    Inc(I);
+  Until (Owner=Nil) or (Owner.FindComponent(Result)=Nil);
 end;
 
 procedure TFPReportComponent.StartDesigning;
