@@ -2367,12 +2367,16 @@ implementation
         if (nf_absolute in flags) then
           begin
             convtype:=tc_equal;
-            if (tstoreddef(resultdef).is_intregable<>tstoreddef(left.resultdef).is_intregable) or
+            { we need to check regability only if something is really regable }
+            if ((tstoreddef(left.resultdef).is_intregable) or
+               (tstoreddef(resultdef).is_fpuregable)) and
+               (
+               (tstoreddef(resultdef).is_intregable<>tstoreddef(left.resultdef).is_intregable) or
                (tstoreddef(resultdef).is_fpuregable<>tstoreddef(left.resultdef).is_fpuregable) or
                { like in pdecvar.read_absolute(): if the size changes, the
                  register size would also have to change (but second_nothing
                  does not handle this) }
-               (tstoreddef(resultdef).size<>tstoreddef(left.resultdef).size) then
+               (tstoreddef(resultdef).size<>tstoreddef(left.resultdef).size)) then
               make_not_regable(left,[ra_addr_regable]);
             exit;
           end;
