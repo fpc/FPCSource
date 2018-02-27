@@ -48,6 +48,12 @@ interface
          procedure pass_generate_code;override;
       end;
 
+      tx86shlshrnode = class(tcgshlshrnode)
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;override;
+{$endif SUPPORT_MMX}
+      end;
+
   implementation
 
     uses
@@ -59,7 +65,8 @@ interface
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,cgobj,hlcgobj,cgx86,cgutils;
+      cga,cgobj,hlcgobj,cgx86,cgutils,
+      tgobj;
 
 
 {*****************************************************************************
@@ -678,6 +685,100 @@ DefaultDiv:
             else
               cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register);
           end;
+      end;
+
+
+    procedure tx86shlshrnode.second_mmx;
+      var
+        op         : TAsmOp;
+        cmpop      : boolean;
+        mmxbase    : tmmxtype;
+        hreg,
+        hregister  : tregister;
+      begin
+        secondpass(left);
+        if codegenerror then
+          exit;
+        secondpass(right);
+        if codegenerror then
+          exit;
+
+        cmpop:=false;
+        op:=A_NOP;
+
+        mmxbase:=mmx_type(left.resultdef);
+        location_reset(location,LOC_MMXREGISTER,def_cgsize(resultdef));
+        case nodetype of
+          shrn :
+            case mmxbase of
+               mmxs16bit,mmxu16bit,mmxfixed16:
+                 op:=A_PSRLW;
+               mmxs32bit,mmxu32bit:
+                 op:=A_PSRLD;
+               mmxs64bit,mmxu64bit:
+                 op:=A_PSRLQ;
+               else
+                 Internalerror(2018022504);
+            end;
+          shln :
+            case mmxbase of
+               mmxs16bit,mmxu16bit,mmxfixed16:
+                 op:=A_PSLLW;
+               mmxs32bit,mmxu32bit:
+                 op:=A_PSLLD;
+               mmxs64bit,mmxu64bit:
+                 op:=A_PSLLD;
+               else
+                 Internalerror(2018022503);
+            end;
+          else
+            internalerror(2018022502);
+        end;
+
+        { left and right no register?  }
+        { then one must be demanded    }
+        if (left.location.loc<>LOC_MMXREGISTER) then
+         begin
+           { register variable ? }
+           if (left.location.loc=LOC_CMMXREGISTER) then
+            begin
+              hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+              emit_reg_reg(A_MOVQ,S_NO,left.location.register,hregister);
+            end
+           else
+            begin
+              if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+               internalerror(2018022505);
+
+              hregister:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+              emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
+            end;
+
+           location_reset(left.location,LOC_MMXREGISTER,OS_NO);
+           left.location.register:=hregister;
+         end;
+
+        { at this point, left.location.loc should be LOC_MMXREGISTER }
+        case right.location.loc of
+          LOC_MMXREGISTER,LOC_CMMXREGISTER:
+            begin
+              emit_reg_reg(op,S_NO,right.location.register,left.location.register);
+              location.register:=left.location.register;
+            end;
+          LOC_CONSTANT:
+            emit_const_reg(op,S_NO,right.location.value,left.location.register);
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
+              emit_ref_reg(op,S_NO,right.location.reference,left.location.register);
+            end;
+          else
+            internalerror(2018022506);
+        end;
+        location.register:=left.location.register;
+
+        location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 
 end.

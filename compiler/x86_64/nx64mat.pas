@@ -29,7 +29,7 @@ interface
       node,nmat,nx86mat;
 
     type
-      tx8664shlshrnode = class(tshlshrnode)
+      tx8664shlshrnode = class(tx86shlshrnode)
          procedure pass_generate_code;override;
       end;
 

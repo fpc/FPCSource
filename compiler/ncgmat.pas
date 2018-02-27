@@ -102,6 +102,9 @@ interface
       end;
 
       tcgshlshrnode = class(tshlshrnode)
+{$ifdef SUPPORT_MMX}
+         procedure second_mmx;virtual;abstract;
+{$endif SUPPORT_MMX}
 {$ifndef cpu64bitalu}
          procedure second_64bit;virtual;
 {$endif not cpu64bitalu}
@@ -602,6 +605,11 @@ implementation
       begin
          secondpass(left);
          secondpass(right);
+{$ifdef SUPPORT_MMX}
+           if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
+             second_mmx
+         else
+{$endif SUPPORT_MMX}
 {$ifndef cpu64bitalu}
          if is_64bit(left.resultdef) then
            second_64bit

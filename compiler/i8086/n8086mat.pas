@@ -35,7 +35,7 @@ interface
          procedure pass_generate_code;override;
       end;
 
-      ti8086shlshrnode = class(tcgshlshrnode)
+      ti8086shlshrnode = class(tx86shlshrnode)
          procedure second_64bit;override;
          function first_shlshr64bitint: tnode; override;
       end;

@@ -32,7 +32,7 @@ interface
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
-                   mmxu32bit,mmxs32bit,mmxfixed16,mmxsingle);
+                   mmxu32bit,mmxs32bit,mmxfixed16,mmxsingle,mmxs64bit,mmxu64bit);
 
 
 {*****************************************************************************
