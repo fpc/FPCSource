@@ -1069,6 +1069,7 @@ var
   BS,S,aFamily,aStyle,aWeight : String;
   bDiv,span : THTMLElement;
   FixedPos : Boolean;
+  L : THTMLLinkElement;
 
 begin
   lMemo := TFPReportMemo(AMemo);
@@ -1143,9 +1144,19 @@ begin
         S:=S+Format(' font-family: "%s";',[txtblk.FontName]);
       S:=S+ColorToStyle('color',TxtBlk.FGColor);
       ApplyStyle(bDiv,S);
-      span:=FDoc.CreateSpanElement;
-      span.appendChild(FDoc.CreateTextNode(txtBlk.Text));
-      bDiv.AppendChild(span);
+      if txtBlk is TFPHTTPTextBlock then
+        begin
+        L:=FDoc.CreateLinkElement;
+        L.HRef:=TFPHTTPTextBlock(txtBlk).URL;
+        L.AppendChild(FDoc.CreateTextNode(txtBlk.Text));
+        bDiv.AppendChild(L);
+        end
+      else
+        begin
+        span:=FDoc.CreateSpanElement;
+        span.appendChild(FDoc.CreateTextNode(txtBlk.Text));
+        bDiv.AppendChild(span);
+        end;
       end;
     end;
 end;
