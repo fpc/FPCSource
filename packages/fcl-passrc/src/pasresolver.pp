@@ -6822,6 +6822,14 @@ begin
         else
           RaiseMsg(20170405003522,nIllegalQualifierAfter,sIllegalQualifierAfter,['(',TypeEl.ElementTypeName],Params);
         end
+      else if FindCallData.Found is TPasArgument then
+        begin
+        TypeEl:=ResolveAliasType(TPasArgument(FindCallData.Found).ArgType);
+        if TypeEl is TPasProcedureType then
+          CheckCallProcCompatibility(TPasProcedureType(TypeEl),Params,true)
+        else
+          RaiseMsg(20180228145412,nIllegalQualifierAfter,sIllegalQualifierAfter,['(',TypeEl.ElementTypeName],Params);
+        end
       else
         RaiseNotYetImplemented(20161003134755,FindCallData.Found);
       end;
