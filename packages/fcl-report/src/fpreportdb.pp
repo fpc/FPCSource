@@ -22,6 +22,9 @@ uses
   Classes, SysUtils, fpreport, db;
 
 Type
+
+  { TFPReportDatasetData }
+
   TFPReportDatasetData = class(TFPReportData)
   private
     FDataSet: TDataSet;
@@ -35,6 +38,8 @@ Type
     function  DoEOF: boolean; override;
   Public
     property  DataFields;
+    Procedure StartDesigning; override;
+    Procedure EndDesigning; override;
   published
     property  DataSet: TDataSet read FDataSet write FDataSet;
   end;
@@ -180,6 +185,22 @@ end;
 function TFPReportDatasetData.DoEOF: boolean;
 begin
   Result := FDataSet.EOF;
+end;
+
+procedure TFPReportDatasetData.StartDesigning;
+begin
+  Inherited;
+  if Assigned(DataSet) then
+    // Dirty hack!!
+    TFPReportDatasetData(Dataset).SetDesigning(True,True);
+end;
+
+procedure TFPReportDatasetData.EndDesigning;
+begin
+  if Assigned(DataSet) then
+    // Dirty hack!!
+    TFPReportDatasetData(Dataset).SetDesigning(False,True);
+  Inherited;
 end;
 
 end.
