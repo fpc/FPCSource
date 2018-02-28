@@ -1664,8 +1664,9 @@ function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDot
 function NoNil(o: TObject): TObject;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
-function dbgs(const a: TResolvedRefAccess): string;
+function dbgs(const a: TResolvedRefAccess): string; overload;
 function dbgs(const Flags: TResolvedReferenceFlags): string; overload;
+function dbgs(const a: TPSRefAccess): string; overload;
 
 implementation
 
@@ -2150,6 +2151,11 @@ begin
       Result:=Result+s;
       end;
   Result:='['+Result+']';
+end;
+
+function dbgs(const a: TPSRefAccess): string;
+begin
+  str(a,Result);
 end;
 
 { TPasProcScopeReference }

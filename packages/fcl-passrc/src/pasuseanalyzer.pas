@@ -187,6 +187,7 @@ type
     function FindOverrideList(El: TPasElement): TPAOverrideList;
     procedure SetOptions(AValue: TPasAnalyzerOptions);
     procedure UpdateAccess(IsWrite: Boolean; IsRead: Boolean; Usage: TPAElement);
+    procedure OnUseProcScopeRef(data, DeclScope: pointer);
   protected
     procedure RaiseInconsistency(const Id: int64; Msg: string);
     procedure RaiseNotSupported(const Id: int64; El: TPasElement; const Msg: string = '');
@@ -238,6 +239,7 @@ type
     procedure AnalyzeProcRefs(Proc: TPasProcedure);
     procedure EmitModuleHints(aModule: TPasModule); virtual;
     function FindElement(El: TPasElement): TPAElement;
+    function FindUsedElement(El: TPasElement): TPAElement;
     // utility
     function IsUsed(El: TPasElement): boolean; // valid after calling Analyze*
     function IsTypeInfoUsed(El: TPasElement): boolean; // valid after calling Analyze*
@@ -248,6 +250,7 @@ type
     procedure EmitMessage(const Id: int64; const MsgType: TMessageType;
       MsgNumber: integer; Fmt: String; const Args: array of const; PosEl: TPasElement);
     procedure EmitMessage(Msg: TPAMessage);
+    function GetUsedElements: TFPList; virtual; // list of TPAElement
     property OnMessage: TPAMessageEvent read FOnMessage write FOnMessage;
     property Options: TPasAnalyzerOptions read FOptions write SetOptions;
     property Resolver: TPasResolver read FResolver write FResolver;
@@ -259,6 +262,7 @@ function CompareElementWithPAElement(El, Id: Pointer): integer;
 function ComparePAOverrideLists(List1, List2: Pointer): integer;
 function CompareElementWithPAOverrideList(El, List: Pointer): integer;
 function GetElModName(El: TPasElement): string;
+function dbgs(a: TPAIdentifierAccess): string; overload;
 
 implementation
 
@@ -311,6 +315,11 @@ begin
     Result:='NilModule.'+Result
   else
     Result:=aModule.Name+'.'+Result;
+end;
+
+function dbgs(a: TPAIdentifierAccess): string;
+begin
+  str(a,Result);
 end;
 
 { TPAMessage }
@@ -507,6 +516,28 @@ begin
       paiaWriteRead: ;
       else RaiseInconsistency(20170311183127, '');
     end;
+end;
+
+procedure TPasAnalyzer.OnUseProcScopeRef(data, DeclScope: pointer);
+var
+  Ref: TPasProcScopeReference absolute data;
+  Scope: TPasProcedureScope absolute DeclScope;
+begin
+  if Scope=nil then ;
+  case Ref.Access of
+    psraNone: ;
+    psraRead: UseElement(Ref.Element,rraRead,false);
+    psraWrite: UseElement(Ref.Element,rraAssign,false);
+    psraReadWrite: UseElement(Ref.Element,rraReadAndAssign,false);
+    psraWriteRead:
+      begin
+      UseElement(Ref.Element,rraAssign,false);
+      UseElement(Ref.Element,rraRead,false);
+      end;
+    psraTypeInfo: UsePublished(Ref.Element);
+  else
+    RaiseNotSupported(20180228191928,Ref.Element,dbgs(Ref.Access));
+  end;
 end;
 
 procedure TPasAnalyzer.RaiseInconsistency(const Id: int64; Msg: string);
@@ -1349,6 +1380,9 @@ begin
   writeln('TPasAnalyzer.UseProcedure ',GetElModName(Proc));
   {$ENDIF}
 
+  if ProcScope.References<>nil then
+    ProcScope.References.ForEachCall(@OnUseProcScopeRef,ProcScope);
+
   UseProcedureType(Proc.ProcType,false);
 
   ImplProc:=Proc;
@@ -2159,18 +2193,23 @@ begin
     Result:=TPAElement(Node.Data);
 end;
 
-function TPasAnalyzer.IsUsed(El: TPasElement): boolean;
+function TPasAnalyzer.FindUsedElement(El: TPasElement): TPAElement;
 var
   ProcScope: TPasProcedureScope;
 begin
-  if not IsIdentifier(El) then exit(true);
+  if not IsIdentifier(El) then exit(nil);
   if El is TPasProcedure then
     begin
     ProcScope:=El.CustomData as TPasProcedureScope;
     if ProcScope.DeclarationProc<>nil then
       El:=ProcScope.DeclarationProc;
     end;
-  Result:=FindElement(El)<>nil;
+  Result:=FindElement(El);
+end;
+
+function TPasAnalyzer.IsUsed(El: TPasElement): boolean;
+begin
+  Result:=FindUsedElement(El)<>nil;
 end;
 
 function TPasAnalyzer.IsTypeInfoUsed(El: TPasElement): boolean;
@@ -2292,6 +2331,19 @@ begin
   finally
     Msg.Release;
   end;
+end;
+
+function TPasAnalyzer.GetUsedElements: TFPList;
+var
+  Node: TAVLTreeNode;
+begin
+  Result:=TFPList.Create;
+  Node:=FUsedElements.FindLowest;
+  while Node<>nil do
+    begin
+    Result.Add(Node.Data);
+    Node:=FUsedElements.FindSuccessor(Node);
+    end;
 end;
 
 end.
