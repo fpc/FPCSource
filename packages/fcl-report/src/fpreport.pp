@@ -1544,6 +1544,7 @@ type
     Procedure StartDesigning; virtual;
     Procedure EndDesigning; virtual;
     procedure RenderReport(const AExporter: TFPReportExporter);
+    procedure   AddBuiltinsToExpressionIdentifiers(Idents: TFPExprIdentifierDefs); virtual;
     Property Variables : TFPReportVariables Read FVariables Write SetVariables;
     Property ExpressionParser : TFPExpressionParser Read FExpr;
     {$IFDEF gdebug}
@@ -7297,6 +7298,22 @@ begin
     FVariables[i].RestoreValue;
 end;
 
+procedure TFPCustomReport.AddBuiltinsToExpressionIdentifiers(Idents : TFPExprIdentifierDefs);
+
+begin
+  Idents.AddDateTimeVariable('TODAY', Date);
+  Idents.AddStringVariable('AUTHOR', Author);
+  Idents.AddStringVariable('TITLE', Title);
+  Idents.AddFunction('RecNo', 'I', '', @BuiltinExprRecNo);
+  Idents.AddFunction('PageNo', 'I', '', @BuiltinGetPageNumber);
+  Idents.AddFunction('ColNo', 'I', '', @BuiltinGetColumnNumber);
+  Idents.AddFunction('PageNoPerDesignerPage', 'I', '', @BuiltInGetPageNoPerDesignerPage);
+  Idents.AddFunction('InRepeatedGroupHeader', 'B', '', @BuiltInGetInRepeatedGroupHeader);
+  Idents.AddFunction('InIntermediateGroupFooter', 'B', '', @BuiltInGetInIntermediateGroupFooter);
+  Idents.AddFunction('IsOverflowed', 'B', '', @BuiltInGetIsOverflowed);
+  Idents.AddFunction('IsGroupDetailPrinted', 'B', '', @BuiltinGetIsGroupDetailsPrinted);
+end;
+
 procedure TFPCustomReport.InitializeDefaultExpressions;
 
 Var
@@ -7308,17 +7325,7 @@ begin
   FExpr.Clear;
   FExpr.Identifiers.Clear;
   FExpr.BuiltIns := [bcStrings,bcDateTime,bcMath,bcBoolean,bcConversion,bcData,bcVaria,bcUser, bcAggregate];
-  FExpr.Identifiers.AddDateTimeVariable('TODAY', Date);
-  FExpr.Identifiers.AddStringVariable('AUTHOR', Author);
-  FExpr.Identifiers.AddStringVariable('TITLE', Title);
-  FExpr.Identifiers.AddFunction('RecNo', 'I', '', @BuiltinExprRecNo);
-  FExpr.Identifiers.AddFunction('PageNo', 'I', '', @BuiltinGetPageNumber);
-  FExpr.Identifiers.AddFunction('ColNo', 'I', '', @BuiltinGetColumnNumber);
-  FExpr.Identifiers.AddFunction('PageNoPerDesignerPage', 'I', '', @BuiltInGetPageNoPerDesignerPage);
-  FExpr.Identifiers.AddFunction('InRepeatedGroupHeader', 'B', '', @BuiltInGetInRepeatedGroupHeader);
-  FExpr.Identifiers.AddFunction('InIntermediateGroupFooter', 'B', '', @BuiltInGetInIntermediateGroupFooter);
-  FExpr.Identifiers.AddFunction('IsOverflowed', 'B', '', @BuiltInGetIsOverflowed);
-  FExpr.Identifiers.AddFunction('IsGroupDetailPrinted', 'B', '', @BuiltinGetIsGroupDetailsPrinted);
+  AddBuiltInsToExpressionIdentifiers(FExpr.Identifiers);
   lHasAggregates:=false;
   For I:=0 to FVariables.Count-1 do
   begin
