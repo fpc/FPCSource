@@ -1754,10 +1754,14 @@ Unit Rax86int;
 
             AS_LBRACKET :
               begin
+                if (GotPlus and Negative) or GotStar then
+                  Message(asmr_e_invalid_reference_syntax);
                 tmpoper:=Tx86Operand.create;
                 BuildReference(tmpoper);
                 AddReferences(oper,tmpoper);
                 tmpoper.Free;
+                GotPlus:=false;
+                GotStar:=false;
               end;
 
             AS_RBRACKET :
