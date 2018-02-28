@@ -4307,6 +4307,8 @@ implementation
     function tisnode.pass_1 : tnode;
       var
         procname: string;
+        statement : tstatementnode;
+        tempnode : ttempcreatenode;
       begin
         result:=nil;
         { Passing a class type to an "is" expression cannot result in a class
@@ -4316,9 +4318,42 @@ implementation
 
         if is_class(left.resultdef) and
            (right.resultdef.typ=classrefdef) then
-          result := ccallnode.createinternres('fpc_do_is',
-            ccallparanode.create(left,ccallparanode.create(right,nil)),
-            resultdef)
+          begin
+            if (right.nodetype=loadvmtaddrn) and
+              (tloadvmtaddrnode(right).left.nodetype=typen) and
+              (oo_is_sealed in tobjectdef(tloadvmtaddrnode(right).left.resultdef).objectoptions) and
+              equal_defs(left.resultdef,tclassrefdef(right.resultdef).pointeddef) then
+              begin
+                if might_have_sideeffects(left) or
+                  (node_complexity(left)>2) then
+                  begin
+                    result:=internalstatements(statement);
+                    tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                    addstatement(statement,tempnode);
+                    addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode),left));
+                    addstatement(statement,caddnode.create_internal(andn,
+                      caddnode.create_internal(unequaln,ctemprefnode.create(tempnode),cnilnode.create),
+                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(ctemprefnode.create(tempnode)),right)
+                      )
+                    );
+
+                    left:=nil;
+                    right:=nil;
+                  end
+                else
+                  begin
+                    result:=caddnode.create_internal(andn,
+                      caddnode.create_internal(unequaln,left.getcopy,cnilnode.create),
+                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(left.getcopy),right)
+                      );
+                    right:=nil;
+                  end;
+              end
+            else
+              result := ccallnode.createinternres('fpc_do_is',
+                ccallparanode.create(left,ccallparanode.create(right,nil)),
+                resultdef);
+          end
         else
           begin
             if is_class(left.resultdef) then
