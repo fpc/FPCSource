@@ -1544,6 +1544,7 @@ type
     Procedure EndDesigning; virtual;
     procedure RenderReport(const AExporter: TFPReportExporter);
     Property Variables : TFPReportVariables Read FVariables Write SetVariables;
+    Property ExpressionParser : TFPExpressionParser Read FExpr;
     {$IFDEF gdebug}
     function DebugPreparedPageAsJSON(const APageNo: Byte): string;
     {$ENDIF}
