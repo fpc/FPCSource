@@ -26,15 +26,16 @@ Works:
 - resolving forward references
 - restore resolver scopes
 - restore resolved references and access flags
+- write+read compiled proc body
 
 ToDo:
-- test restoring types
-- test restoring expressions
-- interface/implementation references
 - store converted proc implementation
   - store references
+  - code
   - local const
+- store only used elements, not unneeded privates
 - use stored converted proc implementation
+- WPO uses Proc.References
 - store converted initialization/finalization
 - use stored converted initialization/finalization
 - uses section
@@ -52,7 +53,7 @@ interface
 uses
   Classes, Types, SysUtils, contnrs, AVL_Tree, crc,
   fpjson, jsonparser, jsonscanner,
-  PasTree, PScanner, PParser, PasResolveEval, PasResolver, PasUseAnalyzer,
+  PasTree, PScanner, PParser, PasResolveEval, PasResolver,
   Pas2jsFileUtils, FPPas2Js;
 
 const
@@ -183,14 +184,15 @@ const
     'ObjectChecks'
     );
 
-  PJUDefaultConvertOptions: TPasToJsConverterOptions = [];
+  PJUDefaultConvertOptions: TPasToJsConverterOptions = [coStoreProcJS];
   PJUConverterOptions: array[TPasToJsConverterOption] of string = (
     'LowerCase',
     'SwitchStatement',
     'EnumNumbers',
     'UseStrict',
     'NoTypeInfo',
-    'EliminateDeadCode'
+    'EliminateDeadCode',
+    'StoreProcJS'
     );
 
   PJUDefaultTargetPlatform = PlatformBrowser;
@@ -590,7 +592,7 @@ type
 
   TPJUWriter = class(TPJUFiler)
   private
-    FAnalyzer: TPasAnalyzer;
+    FConverter: TPasToJSConverter;
     FElementIdCounter: integer;
     FSourceFilesSorted: TPJUSourceFileArray;
     FInImplementation: boolean;
@@ -686,13 +688,12 @@ type
     constructor Create; override;
     destructor Destroy; override;
     procedure Clear; override;
-    procedure WritePJU(aResolver: TPas2JSResolver;
+    procedure WritePJU(aResolver: TPas2JSResolver; aConverter: TPasToJSConverter;
       InitFlags: TPJUInitialFlags; aStream: TStream; Compressed: boolean); virtual;
-    function WriteJSON(aResolver: TPas2JSResolver;
+    function WriteJSON(aResolver: TPas2JSResolver; aConverter: TPasToJSConverter;
       InitFlags: TPJUInitialFlags): TJSONObject; virtual;
     function IndexOfSourceFile(const Filename: string): integer;
     property SourceFilesSorted: TPJUSourceFileArray read FSourceFilesSorted;
-    property Analyzer: TPasAnalyzer read FAnalyzer;
   end;
 
   { TPJUReaderContext }
@@ -859,6 +860,7 @@ type
       const PropName: string; const DefaultValue: TPasProcedureScopeFlags): TPasProcedureScopeFlags; virtual;
     procedure ReadProcedureScope(Obj: TJSONObject; Scope: TPas2JSProcedureScope; aContext: TPJUReaderContext); virtual;
     procedure ReadProcScopeReferences(Obj: TJSONObject; ImplScope: TPas2JSProcedureScope); virtual;
+    procedure ReadProcedureBody(Obj: TJSONObject; El: TPasProcedure; aContext: TPJUReaderContext); virtual;
     procedure ReadProcedure(Obj: TJSONObject; El: TPasProcedure; aContext: TPJUReaderContext); virtual;
     procedure ReadOperator(Obj: TJSONObject; El: TPasOperator; aContext: TPJUReaderContext); virtual;
     // ToDo: procedure ReadExternalReferences(ParentJSON: TJSONObject); virtual;
@@ -2857,13 +2859,13 @@ procedure TPJUWriter.WriteProcedure(Obj: TJSONObject; El: TPasProcedure;
 var
   DefProcMods: TProcedureModifiers;
   Scope: TPas2JSProcedureScope;
-  List: TFPList;
+  Refs: TFPList;
   Arr: TJSONArray;
   i: Integer;
   PSRef: TPasProcScopeReference;
   SubObj: TJSONObject;
   DeclProc: TPasProcedure;
-  DeclScope: TPasProcedureScope;
+  DeclScope: TPas2JsProcedureScope;
   Ref: TPJUFilerElementRef;
 begin
   WritePasElement(Obj,El,aContext);
@@ -2896,40 +2898,49 @@ begin
 
   if (Scope.ImplProc=nil) and (El.Body<>nil) then
     begin
-    // Note: the References are stored in the declaration scope,
-    //       but in the JSON of the implementation scope, so that
+    // Note: although the References are in the declaration scope,
+    //       they are stored with the implementation scope, so that
     //       all references can be resolved immediately by the reader
     DeclProc:=Scope.DeclarationProc;
     if DeclProc=nil then
       DeclProc:=El;
-    DeclScope:=NoNil(DeclProc.CustomData) as TPasProcedureScope;
+    DeclScope:=NoNil(DeclProc.CustomData) as TPas2JSProcedureScope;
     // write references
-    if DeclScope.References=nil then
-      Analyzer.AnalyzeProcRefs(DeclProc);
-    List:=DeclScope.GetReferences;
-    try
-      if List.Count>0 then
-        begin
-        Arr:=TJSONArray.Create;
-        Obj.Add('ProcRefs',Arr);
-        for i:=0 to List.Count-1 do
+    if DeclScope.References<>nil then
+      begin
+      Refs:=DeclScope.GetReferences;
+      try
+        if Refs.Count>0 then
           begin
-          PSRef:=TPasProcScopeReference(List[i]);
-          Ref:=GetElementReference(PSRef.Element);
-          if (Ref.Id=0) and not (Ref.Element is TPasUnresolvedSymbolRef) then
-            RaiseMsg(20180221170307,El,GetObjName(Ref.Element));
-          SubObj:=TJSONObject.Create;
-          Arr.Add(SubObj);
-          if PSRef.Access<>PJUDefaultPSRefAccess then
-            SubObj.Add('Access',PJUPSRefAccessNames[PSRef.Access]);
-          AddReferenceToObj(SubObj,'Id',PSRef.Element);
+          Arr:=TJSONArray.Create;
+          Obj.Add('ProcRefs',Arr);
+          for i:=0 to Refs.Count-1 do
+            begin
+            PSRef:=TPasProcScopeReference(Refs[i]);
+            Ref:=GetElementReference(PSRef.Element);
+            if (Ref.Id=0) and not (Ref.Element is TPasUnresolvedSymbolRef) then
+              RaiseMsg(20180221170307,El,GetObjName(Ref.Element));
+            SubObj:=TJSONObject.Create;
+            Arr.Add(SubObj);
+            if PSRef.Access<>PJUDefaultPSRefAccess then
+              SubObj.Add('Access',PJUPSRefAccessNames[PSRef.Access]);
+            AddReferenceToObj(SubObj,'Id',PSRef.Element);
+            end;
           end;
-        end;
-    finally
-      Analyzer.Clear;
-      List.Free;
+      finally
+        Refs.Free;
+      end;
+      end;
+
+    // precompiled body
+    if Scope.BodyJS<>'' then
+      begin
+      Obj.Add('Body',Scope.BodyJS);
+      // ToDo: globals
+      end;
     end;
-    end;
+  if (Scope.BodyJS<>'') and (Scope.ImplProc<>nil) then
+    RaiseMsg(20180228142831,El);
 end;
 
 procedure TPJUWriter.WriteOperator(Obj: TJSONObject; El: TPasOperator;
@@ -3006,12 +3017,10 @@ end;
 constructor TPJUWriter.Create;
 begin
   inherited Create;
-  FAnalyzer:=TPasAnalyzer.Create;
 end;
 
 destructor TPJUWriter.Destroy;
 begin
-  FreeAndNil(FAnalyzer);
   inherited Destroy;
 end;
 
@@ -3025,7 +3034,8 @@ begin
 end;
 
 procedure TPJUWriter.WritePJU(aResolver: TPas2JSResolver;
-  InitFlags: TPJUInitialFlags; aStream: TStream; Compressed: boolean);
+  aConverter: TPasToJSConverter; InitFlags: TPJUInitialFlags; aStream: TStream;
+  Compressed: boolean);
 var
   CurIndent: integer;
   Spaces: string;
@@ -3157,7 +3167,7 @@ var
   aJSON: TJSONObject;
 begin
   CurIndent:=0;
-  aJSON:=WriteJSON(aResolver,InitFlags);
+  aJSON:=WriteJSON(aResolver,aConverter,InitFlags);
   try
     WriteObj(aJSON);
   finally
@@ -3166,12 +3176,13 @@ begin
 end;
 
 function TPJUWriter.WriteJSON(aResolver: TPas2JSResolver;
-  InitFlags: TPJUInitialFlags): TJSONObject;
+  aConverter: TPasToJSConverter; InitFlags: TPJUInitialFlags): TJSONObject;
 var
   Obj, JSMod: TJSONObject;
   aContext: TPJUWriterContext;
 begin
   Result:=nil;
+  FConverter:=aConverter;
   FResolver:=aResolver;
   FParser:=Resolver.CurrentParser;
   FScanner:=FParser.Scanner;
@@ -3180,8 +3191,6 @@ begin
   aContext:=nil;
   Obj:=TJSONObject.Create;
   try
-    Analyzer.Clear;
-    Analyzer.Resolver:=aResolver;
     WriteHeaderMagic(Obj);
     WriteHeaderVersion(Obj);
     WriteInitialFlags(Obj);
@@ -3200,7 +3209,6 @@ begin
     aContext.Free;
     if Result=nil then
       Obj.Free;
-    Analyzer.Clear;
   end;
 end;
 
@@ -5781,6 +5789,19 @@ begin
     end;
 end;
 
+procedure TPJUReader.ReadProcedureBody(Obj: TJSONObject; El: TPasProcedure;
+  aContext: TPJUReaderContext);
+var
+  ImplScope: TPas2JSProcedureScope;
+  s: string;
+begin
+  ImplScope:=TPas2JSProcedureScope(El.CustomData);
+  if not ReadString(Obj,'Body',s,El) then
+    RaiseMsg(20180228131232,El);
+  ImplScope.BodyJS:=s;
+  if aContext=nil then ;
+end;
+
 procedure TPJUReader.ReadProcedure(Obj: TJSONObject; El: TPasProcedure;
   aContext: TPJUReaderContext);
 var
@@ -5848,7 +5869,9 @@ begin
 
   if Obj.Find('ImplProc')=nil then
     ReadProcScopeReferences(Obj,Scope);
-  // ToDo: Body : TProcedureBody;
+
+  if Obj.Find('Body')<>nil then
+    ReadProcedureBody(Obj,El,aContext);
 end;
 
 procedure TPJUReader.ReadOperator(Obj: TJSONObject; El: TPasOperator;

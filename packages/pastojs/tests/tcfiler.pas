@@ -40,10 +40,13 @@ type
     FPJUWriter: TPJUWriter;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
+    function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
+    function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-    procedure ConvertModule; override;
+    function CreateConverter: TPasToJSConverter; override;
+    procedure ParseUnit; override;
     procedure WriteReadUnit; virtual;
     procedure StartParsing; override;
     function CheckRestoredObject(const Path: string; Orig, Rest: TObject): boolean; virtual;
@@ -164,12 +167,27 @@ begin
     end;
 end;
 
+function TCustomTestPrecompile.OnConverterIsElementUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=Analyzer.IsUsed(El);
+end;
+
+function TCustomTestPrecompile.OnConverterIsTypeInfoUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=Analyzer.IsTypeInfoUsed(El);
+end;
+
 procedure TCustomTestPrecompile.SetUp;
 begin
   inherited SetUp;
   FInitialFlags:=TPJUInitialFlags.Create;
   FAnalyzer:=TPasAnalyzer.Create;
   Analyzer.Resolver:=Engine;
+  Analyzer.Options:=Analyzer.Options+[paoProcImplReferences];
+  Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
+  Converter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
 end;
 
 procedure TCustomTestPrecompile.TearDown;
@@ -181,10 +199,16 @@ begin
   inherited TearDown;
 end;
 
-procedure TCustomTestPrecompile.ConvertModule;
+function TCustomTestPrecompile.CreateConverter: TPasToJSConverter;
 begin
+  Result:=inherited CreateConverter;
+  Result.Options:=Result.Options+[coStoreProcJS];
+end;
+
+procedure TCustomTestPrecompile.ParseUnit;
+begin
+  inherited ParseUnit;
   Analyzer.AnalyzeModule(Module);
-  inherited ConvertModule;
 end;
 
 procedure TCustomTestPrecompile.WriteReadUnit;
@@ -208,7 +232,7 @@ begin
   try
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
-      PJUWriter.WritePJU(Engine,InitialFlags,ms,false);
+      PJUWriter.WritePJU(Engine,Converter,InitialFlags,ms,false);
     except
       on E: Exception do
       begin
@@ -484,10 +508,35 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
   Orig, Rest: TPas2JSProcedureScope);
+var
+  OrigList, RestList: TStringList;
+  i: Integer;
 begin
   CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
   CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
   CheckRestoredProcScopeRefs(Path+'.References',Orig,Rest);
+  if Orig.BodyJS<>Rest.BodyJS then
+    begin
+    writeln('TCustomTestPrecompile.CheckRestoredProcScope ',Path,'.BodyJS diff:');
+    OrigList:=TStringList.Create;
+    RestList:=TStringList.Create;
+    try
+      OrigList.Text:=Orig.BodyJS;
+      RestList.Text:=Rest.BodyJS;
+      for i:=0 to OrigList.Count-1 do
+        begin
+        if i>=RestList.Count then
+          Fail(Path+'.BodyJS RestLine missing: '+OrigList[i]);
+        writeln('  ',i,': '+OrigList[i]);
+        end;
+      if OrigList.Count<RestList.Count then
+        Fail(Path+'.BodyJS RestLine too much: '+RestList[OrigList.Count]);
+   finally
+      OrigList.Free;
+      RestList.Free;
+    end;
+    end;
+
   if Rest.DeclarationProc=nil then
     begin
     AssertEquals(Path+'.ResultVarName',Orig.ResultVarName,Rest.ResultVarName);
@@ -517,6 +566,7 @@ var
   i: Integer;
   OrigRef, RestRef: TPasProcScopeReference;
 begin
+  // check References of a proc with implementation
   CheckRestoredObject(Path,Orig.References,Rest.References);
   OrigList:=nil;
   RestList:=nil;
@@ -1343,6 +1393,9 @@ begin
   'begin',
   '  j:=Abs(d);',
   '  Result:=j;',
+  'end;',
+  'procedure NotUsed;',
+  'begin',
   'end;',
   '']);
   WriteReadUnit;

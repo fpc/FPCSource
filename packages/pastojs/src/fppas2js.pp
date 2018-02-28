@@ -363,8 +363,9 @@ unit FPPas2Js;
 interface
 
 uses
-  Classes, SysUtils, math, contnrs, jsbase, jstree, PasTree, PScanner,
-  PasResolver, PasResolveEval;
+  Classes, SysUtils, math, contnrs,
+  jsbase, jstree, jswriter,
+  PasTree, PScanner, PasResolveEval, PasResolver;
 
 // message numbers
 const
@@ -827,6 +828,8 @@ type
   TPas2JSProcedureScope = class(TPasProcedureScope)
   public
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
+    // Option coStoreProcJS
+    BodyJS: string;// stored in ImplScope
   end;
 
   { TPas2JSWithExprScope }
@@ -1167,7 +1170,8 @@ type
     coEnumNumbers, // use enum numbers instead of names
     coUseStrict,   // insert 'use strict'
     coNoTypeInfo,  // do not generate RTTI
-    coEliminateDeadCode  // skip code that is never executed
+    coEliminateDeadCode,  // skip code that is never executed
+    coStoreProcJS  // store references to JS code in procscopes
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 
@@ -1255,7 +1259,7 @@ type
     Procedure DoError(Id: int64; MsgNumber: integer; const MsgPattern: string; Const Args : Array of Const; El: TPasElement);
     procedure RaiseNotSupported(El: TPasElement; AContext: TConvertContext; Id: int64; const Msg: string = '');
     procedure RaiseIdentifierNotFound(Identifier: string; El: TPasElement; Id: int64);
-    procedure RaiseInconsistency(Id: int64);
+    procedure RaiseInconsistency(Id: int64; El: TPasElement);
     // Computation, value conversions
     Function GetExpressionValueType(El: TPasExpr; AContext: TConvertContext ): TJSType; virtual;
     Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
@@ -1355,6 +1359,7 @@ type
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
     Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
+    Procedure StorePrecompiledProcedure(ImplProc: TPasProcedure; JS: TJSElement); virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -4086,14 +4091,14 @@ begin
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Ref.Declaration=',GetObjName(Ref.Declaration));
   Proc:=Ref.Declaration as TPasProcedure;
   if Proc.Name='' then
-    RaiseInconsistency(20170125191914);
+    RaiseInconsistency(20170125191914,Proc);
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr Proc.Name=',Proc.Name);
   ProcScope:=Proc.CustomData as TPasProcedureScope;
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr ProcScope.Element=',GetObjName(ProcScope.Element),' ProcScope.ClassScope=',GetObjName(ProcScope.ClassScope),' ProcScope.DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ProcScope.ImplProc=',GetObjName(ProcScope.ImplProc),' ProcScope.CustomData=',GetObjName(ProcScope.CustomData));
   ClassScope:=ProcScope.ClassScope;
   aClass:=ClassScope.Element;
   if aClass.Name='' then
-    RaiseInconsistency(20170125191923);
+    RaiseInconsistency(20170125191923,aClass);
   //writeln('TPasToJSConverter.CreateFreeOrNewInstanceExpr aClass.Name=',aClass.Name);
   C:=CreateCallExpression(Ref.Element);
   ok:=false;
@@ -4775,7 +4780,7 @@ begin
   AContext.Access:=caRead;
   Left:=ConvertElement(El.left,AContext);
   if Left=nil then
-    RaiseInconsistency(20170201140821);
+    RaiseInconsistency(20170201140821,El);
   AContext.Access:=OldAccess;
   // convert right side
   DotContext:=TDotContext.Create(El,Left,AContext);
@@ -5103,7 +5108,7 @@ begin
       RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
     end;
     if Result=nil then
-      RaiseInconsistency(20170214120048);
+      RaiseInconsistency(20170214120048,Decl);
     exit;
     end;
 
@@ -5182,7 +5187,7 @@ function TPasToJSConverter.ConvertInheritedExpression(El: TInheritedExpr;
     Result:=nil;
     SelfContext:=AContext.GetSelfContext;
     if SelfContext=nil then
-      RaiseInconsistency(20170418114702);
+      RaiseInconsistency(20170418114702,El);
     SelfName:=SelfContext.GetLocalName(SelfContext.ThisPas);
 
     if Apply and (SelfContext<>AContext) then
@@ -5197,11 +5202,11 @@ function TPasToJSConverter.ConvertInheritedExpression(El: TInheritedExpr;
       // -> use the direct ancestor class of the current proc
       aClass:=SelfContext.ThisPas as TPasClassType;
       if aClass.CustomData=nil then
-        RaiseInconsistency(20170323111252);
+        RaiseInconsistency(20170323111252,aClass);
       ClassScope:=TPasClassScope(aClass.CustomData);
       AncestorScope:=ClassScope.AncestorScope;
       if AncestorScope=nil then
-        RaiseInconsistency(20170323111306);
+        RaiseInconsistency(20170323111306,aClass);
       AncestorClass:=AncestorScope.Element as TPasClassType;
       FunName:=CreateReferencePath(AncestorClass,AContext,rpkPathAndName,true)
         +'.'+TransformVariableName(AncestorProc,AContext);
@@ -5409,7 +5414,7 @@ var
       // s[index] := value
       AssignContext:=AContext.AccessContext as TAssignContext;
       if AssignContext.RightSide=nil then
-        RaiseInconsistency(20180123192020);
+        RaiseInconsistency(20180123192020,El);
 
       AssignSt:=nil;
       SetStrCall:=nil;
@@ -5654,7 +5659,7 @@ var
           Arg:=nil;
           inc(ArgNo);
           if ArgNo>length(El.Params) then
-            RaiseInconsistency(20170206180553);
+            RaiseInconsistency(20170206180553,El);
           end;
         if ArgNo=length(El.Params) then
           break;
@@ -5712,7 +5717,7 @@ var
     Result:=true;
     // bracket accessor of external class
     if AContext.Resolver.GetPasPropertyArgs(Prop).Count<>1 then
-      RaiseInconsistency(20170403003753);
+      RaiseInconsistency(20170403003753,Prop);
     // bracket accessor of external class  -> create  PathEl[param]
     Bracket:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El.Params[0]));
     try
@@ -5822,7 +5827,7 @@ var
           {$IFDEF VerbosePas2JS}
           writeln('TPasToJSConverter.ConvertArrayParams.ConvertIndexedProperty missing default value: Prop=',Prop.Name,' i=',i);
           {$ENDIF}
-          RaiseInconsistency(20170206185126);
+          RaiseInconsistency(20170206185126,TargetArg);
           end;
         AContext.Access:=caRead;
         Arg:=ConvertElement(TargetArg.ValueExpr,ArgContext);
@@ -5932,7 +5937,7 @@ Var
   aClass: TPasClassType;
 begin
   if El.Kind<>pekArrayParams then
-    RaiseInconsistency(20170209113713);
+    RaiseInconsistency(20170209113713,El);
   ArgContext:=AContext;
   while ArgContext is TDotContext do
     ArgContext:=ArgContext.Parent;
@@ -5984,7 +5989,7 @@ begin
         // anObject[]
         ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty)
       else
-        RaiseInconsistency(20170206180448);
+        RaiseInconsistency(20170206180448,aClass);
       end
     else if TypeEl.ClassType=TPasClassOfType then
       begin
@@ -5992,7 +5997,7 @@ begin
       DestType:=AContext.Resolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
       ClassScope:=DestType.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty=nil then
-        RaiseInconsistency(20170206180503);
+        RaiseInconsistency(20170206180503,DestType);
       ConvertDefaultProperty(ResolvedEl,ClassScope.DefaultProperty);
       end
     else if TypeEl.ClassType=TPasArrayType then
@@ -6025,7 +6030,7 @@ var
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
-    RaiseInconsistency(20170209113515);
+    RaiseInconsistency(20170209113515,El);
   //writeln('TPasToJSConverter.ConvertFuncParams START pekFuncParams ',GetObjName(El.CustomData),' ',GetObjName(El.Value.CustomData));
   Call:=nil;
   Elements:=nil;
@@ -6078,7 +6083,7 @@ begin
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
         if Result=nil then
-          RaiseInconsistency(20170210121932);
+          RaiseInconsistency(20170210121932,El);
         exit;
         end
       else if Decl.CustomData is TResElDataBaseType then
@@ -6318,7 +6323,7 @@ begin
       NewExpr:=nil;
       end
     else
-      RaiseInconsistency(20170323083214);
+      RaiseInconsistency(20170323083214,Proc);
   finally
     ExtNameEl.Free;
     NewExpr.Free;
@@ -6367,7 +6372,7 @@ begin
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertTObjectFree With=',GetObjName(WithExprScope.Expr));
       {$ENDIF}
-      RaiseInconsistency(20170517092248);
+      RaiseInconsistency(20170517092248,Bin);
       end;
 
     LeftJS:=ConvertElement(Bin.left,AContext);
@@ -6379,7 +6384,7 @@ begin
       begin
       aName:=TJSPrimaryExpressionIdent(LeftJS).Name;
       if Pos('.',aName)>0 then
-        RaiseInconsistency(20170516173832);
+        RaiseInconsistency(20170516173832,Bin.left);
       // v.free
       // -> v=rtl.freeLoc(v);
       Getter:=LeftJS;
@@ -6704,7 +6709,7 @@ var
   ArgEl: TPasExpr;
 begin
   if El.Kind<>pekSet then
-    RaiseInconsistency(20170209112737);
+    RaiseInconsistency(20170209112737,El);
   if AContext.Access<>caRead then
     DoError(20170209112926,nCantWriteSetLiteral,sCantWriteSetLiteral,[],El);
   if length(El.Params)=0 then
@@ -6840,7 +6845,7 @@ begin
   Result:=nil;
   Param0:=El.Params[0];
   if AContext.Access<>caRead then
-    RaiseInconsistency(20170213213621);
+    RaiseInconsistency(20170213213621,El);
   AContext.Resolver.ComputeElement(Param0,ResolvedParam0,[rcNoImplicitProc]);
   {$IFDEF VerbosePasResolver}
   writeln('TPasToJSConverter.ConvertBuiltInSetLength ',GetResolverResultDbg(ResolvedParam0));
@@ -7107,7 +7112,7 @@ var
 begin
   Result:=nil;
   if AContext.Resolver=nil then
-    RaiseInconsistency(20170210105235);
+    RaiseInconsistency(20170210105235,El);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ParamResolved,[rcNoImplicitProcType]);
   {$IFDEF VerbosePas2JS}
@@ -7164,7 +7169,7 @@ var
 begin
   Result:=nil;
   if AContext.Resolver=nil then
-    RaiseInconsistency(20170325185847);
+    RaiseInconsistency(20170325185847,El);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
   if ParamResolved.BaseType in btAllJSInteger then
@@ -7192,7 +7197,7 @@ var
 begin
   Result:=nil;
   if AContext.Resolver=nil then
-    RaiseInconsistency(20170210105235);
+    RaiseInconsistency(20170210105235,El);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
   if ParamResolved.BaseType=btChar then
@@ -7218,7 +7223,7 @@ begin
             Minus:=TJSAdditiveExpressionMinus(CreateElement(TJSAdditiveExpressionMinus,Param));
             Call.AddArg(Minus);
             if length(SubParams.Params)<>1 then
-              RaiseInconsistency(20170405231706);
+              RaiseInconsistency(20170405231706,El);
             Minus.A:=ConvertElement(SubParams.Params[0],AContext);
             Minus.B:=CreateLiteralNumber(Param,1);
             Result:=Call;
@@ -7295,7 +7300,7 @@ var
 begin
   Result:=nil;
   if AContext.Resolver=nil then
-    RaiseInconsistency(20170210120659);
+    RaiseInconsistency(20170210120659,El);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
   case ResolvedEl.BaseType of
@@ -7456,7 +7461,7 @@ var
 begin
   Result:=nil;
   if AContext.Resolver=nil then
-    RaiseInconsistency(20170210120648);
+    RaiseInconsistency(20170210120648,El);
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
   if (ResolvedEl.BaseType in btAllJSInteger)
@@ -7655,7 +7660,7 @@ var
   i: Integer;
 begin
   if length(El.Params)<1 then
-    RaiseInconsistency(20170331000332);
+    RaiseInconsistency(20170331000332,El);
   if length(El.Params)=1 then
     begin
     // concat(array1)  ->  array1
@@ -7727,9 +7732,9 @@ begin
     Param:=El.Params[0];
     AContext.Resolver.ComputeElement(El,ParamResolved,[]);
     if ParamResolved.BaseType<>btContext then
-      RaiseInconsistency(20170401003242);
+      RaiseInconsistency(20170401003242,El);
     if ParamResolved.TypeEl.ClassType<>TPasArrayType then
-      RaiseInconsistency(20170401003256);
+      RaiseInconsistency(20170401003256,El);
     ArrayType:=TPasArrayType(ParamResolved.TypeEl);
     AContext.Resolver.ComputeElement(ArrayType.ElType,ElTypeResolved,[rcType]);
     // rtl.arrayCopy(type,src,start,count)
@@ -8014,7 +8019,7 @@ var
   Ident: TJSPrimaryExpressionIdent;
 begin
   if AName='' then
-    RaiseInconsistency(20170402230134);
+    RaiseInconsistency(20170402230134,Src);
   p:=PosLast('.',AName);
   if p>0 then
     begin
@@ -8764,7 +8769,7 @@ begin
   // module.$rtti.$Class("classname");
   Result:=CreateRTTINewType(aClass,FBuiltInNames[pbifnRTTINewClass],true,AContext,ObjLit);
   if ObjLit<>nil then
-    RaiseInconsistency(20170412093427);
+    RaiseInconsistency(20170412093427,El);
 end;
 
 function TPasToJSConverter.ConvertClassExternalType(El: TPasClassType;
@@ -8846,7 +8851,7 @@ begin
       // prepend   module.$rtti.$Class("classname");
       Call:=CreateRTTINewType(DestType,FBuiltInNames[pbifnRTTINewClass],true,AContext,ObjLit);
       if ObjLit<>nil then
-        RaiseInconsistency(20170412102654);
+        RaiseInconsistency(20170412102654,El);
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
       List.A:=Call;
       List.B:=Result;
@@ -9488,7 +9493,7 @@ Var
   n, i:Integer;
   AssignSt: TJSSimpleAssignStatement;
   FuncContext: TFunctionContext;
-  ProcScope, ImplProcScope: TPasProcedureScope;
+  ProcScope, ImplProcScope: TPas2JSProcedureScope;
   Arg: TPasArgument;
   SelfSt: TJSVariableStatement;
   ImplProc: TPasProcedure;
@@ -9504,7 +9509,7 @@ begin
   if El.IsAbstract then exit;
   if El.IsExternal then exit;
 
-  ProcScope:=TPasProcedureScope(El.CustomData);
+  ProcScope:=TPas2JSProcedureScope(El.CustomData);
   if ProcScope.DeclarationProc<>nil then
     exit;
 
@@ -9515,7 +9520,7 @@ begin
   ImplProc:=El;
   if ProcScope.ImplProc<>nil then
     ImplProc:=ProcScope.ImplProc;
-  ImplProcScope:=TPasProcedureScope(ImplProc.CustomData);
+  ImplProcScope:=TPas2JSProcedureScope(ImplProc.CustomData);
 
   AssignSt:=nil;
   if AContext.IsGlobal then
@@ -9535,6 +9540,7 @@ begin
     Result:=FS;
     FD.Name:=TJSString(TransformVariableName(El,AContext));
     end;
+
   for n := 0 to El.ProcType.Args.Count - 1 do
     begin
     Arg:=TPasArgument(El.ProcType.Args[n]);
@@ -9625,6 +9631,9 @@ begin
       FuncContext.Free;
     end;
     end;
+
+  if coStoreProcJS in Options then
+    StorePrecompiledProcedure(ImplProc,Result);
 end;
 
 function TPasToJSConverter.ConvertBeginEndStatement(El: TPasImplBeginBlock;
@@ -10062,7 +10071,7 @@ begin
     // create implementation declarations
     ImplDecl:=ConvertDeclarations(El.ImplementationSection,ImplContext);
     if ImplDecl<>nil then
-      RaiseInconsistency(20170910175032); // elements should have been added directly
+      RaiseInconsistency(20170910175032,El); // elements should have been added directly
     if Src.Statements[Src.Statements.Count-1].Node=ImplVarSt then
       exit; // no implementation
     // add impl declarations
@@ -10095,9 +10104,9 @@ var
 begin
   Result:=nil;
   if Left=nil then
-    RaiseInconsistency(20170201140827);
+    RaiseInconsistency(20170201140827,aParent);
   if Right=nil then
-    RaiseInconsistency(20170211192018);
+    RaiseInconsistency(20170211192018,aParent);
   ok:=false;
   try
     // create a TJSDotMemberExpression of Left and the left-most identifier of Right
@@ -10160,7 +10169,7 @@ begin
           {$IFDEF VerbosePas2JS}
           writeln('TPasToJSConverter.CreateDotExpression Right=',GetObjName(Right),' RightParent=',GetObjName(RightParent),' Result=',GetObjName(Result));
           {$ENDIF}
-          RaiseInconsistency(20170129141307);
+          RaiseInconsistency(20170129141307,aParent);
           end;
         Dot.MExpr := Left;
         Dot.Name := TJSPrimaryExpressionIdent(Right).Name;
@@ -10261,7 +10270,7 @@ var
 begin
   Result:=nil;
   if not (ResolvedEl.IdentEl is TPasProcedure) then
-    RaiseInconsistency(20170215140756);
+    RaiseInconsistency(20170215140756,El);
 
   Target:=ConvertElement(El,AContext);
 
@@ -10370,7 +10379,7 @@ begin
     if AssignContext.RightSide<>nil then
       begin
       LHS.Free;
-      RaiseInconsistency(20170207215447);
+      RaiseInconsistency(20170207215447,LeftEl);
       end;
     Result:=LHS;
     end
@@ -10502,7 +10511,7 @@ begin
   // get module path
   aModule:=El.GetModule;
   if aModule=nil then
-    RaiseInconsistency(20170418115552);
+    RaiseInconsistency(20170418115552,El);
   RttiPath:=AContext.GetLocalName(aModule);
   if RttiPath='' then
     RttiPath:=TransformModuleName(aContext.GetRootModule,true,AContext);
@@ -10730,7 +10739,7 @@ begin
             try
               // stored <const bool>
               if StoredValue.Kind<>revkBool then
-                RaiseInconsistency(20170924082845);
+                RaiseInconsistency(20170924082845,Prop);
               StoredExpr:=nil;
               if TResEvalBool(StoredValue).B then
                 inc(Flags,pfStoredTrue)
@@ -11016,6 +11025,29 @@ begin
     end;
 end;
 
+procedure TPasToJSConverter.StorePrecompiledProcedure(ImplProc: TPasProcedure;
+  JS: TJSElement);
+var
+  ImplScope: TPas2JSProcedureScope;
+  aWriter: TBufferWriter;
+  aJSWriter: TJSWriter;
+begin
+  ImplScope:=TPas2JSProcedureScope(ImplProc.CustomData);
+  if ImplScope.ImplProc<>nil then
+    RaiseInconsistency(20180228124545,ImplProc);
+  aJSWriter:=nil;
+  aWriter:=TBufferWriter.Create(1000);
+  try
+    aJSWriter:=TJSWriter.Create(aWriter);
+    aJSWriter.IndentSize:=2;
+    aJSWriter.WriteJS(JS);
+    ImplScope.BodyJS:=aWriter.AsAnsistring;
+  finally
+    aJSWriter.Free;
+    aWriter.Free;
+  end;
+end;
+
 function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;
   AContext: TConvertContext): TJSElement;
 
@@ -11232,7 +11264,7 @@ begin
       begin
       // left side is a Setter -> RightSide was already inserted as parameter
       if AssignContext.RightSide<>nil then
-        RaiseInconsistency(20170207215544);
+        RaiseInconsistency(20170207215544,El.left);
       Result:=LHS;
       end
     else
@@ -11719,7 +11751,7 @@ Var
 begin
   Result:=Nil;
   if AContext.Access<>caRead then
-    RaiseInconsistency(20170213213740);
+    RaiseInconsistency(20170213213740,El);
   ForScope:=El.CustomData as TPasForLoopScope; // can be nil!
   case El.LoopType of
   ltNormal,ltDown: ;
@@ -12054,7 +12086,7 @@ begin
     //   $with1.X = 3;
     FuncContext:=TFunctionContext(AContext.GetContextOfType(TFunctionContext));
     if FuncContext=nil then
-      RaiseInconsistency(20170212003759);
+      RaiseInconsistency(20170212003759,El);
     FirstSt:=nil;
     LastSt:=nil;
     try
@@ -12167,7 +12199,7 @@ begin
   Result:=false;
   if aClass.Parent=nil then exit;
   if not aClass.Parent.InheritsFrom(TPasDeclarations) then
-    RaiseInconsistency(20170412101457);
+    RaiseInconsistency(20170412101457,aClass);
   Decls:=TPasDeclarations(aClass.Parent);
   Types:=Decls.Types;
   for i:=0 to Types.Count-1 do
@@ -12188,11 +12220,6 @@ begin
         exit(true);
       end;
     end;
-end;
-
-procedure TPasToJSConverter.RaiseInconsistency(Id: int64);
-begin
-  raise Exception.Create('TPasToJSConverter.RaiseInconsistency['+IntToStr(Id)+']: you found a bug');
 end;
 
 function TPasToJSConverter.CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
@@ -12384,7 +12411,7 @@ begin
       begin
       if AContext.Resolver=nil then
         exit(CreateLiteralUndefined(El));
-      RaiseInconsistency(20170415185745);
+      RaiseInconsistency(20170415185745,El);
       end;
     Result:=ConvertElement(Expr,AContext);
     if Result=nil then
@@ -12662,7 +12689,7 @@ var
   JS: TJSString;
 begin
   if Lit.Value.ValueType<>jstString then
-    RaiseInconsistency(20171112020856);
+    RaiseInconsistency(20171112020856,ErrorEl);
   if Lit.Value.CustomValue<>'' then
     JS:=Lit.Value.CustomValue
   else
@@ -12814,7 +12841,7 @@ var
   BinExpr: TJSBinaryExpression;
 begin
   if not (OpCode in [eopEqual,eopNotEqual]) then
-    RaiseInconsistency(20170401184819);
+    RaiseInconsistency(20170401184819,El);
   Call:=CreateCallExpression(El);
   Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Length]]);
   Call.AddArg(JSArray);
@@ -13018,7 +13045,7 @@ begin
           // in other unit -> use pas.unitname.$impl
           FoundModule:=El.GetModule;
           if FoundModule=nil then
-            RaiseInconsistency(20161024192755);
+            RaiseInconsistency(20161024192755,El);
           Prepend(Result,TransformModuleName(FoundModule,true,AContext)
              +'.'+FBuiltInNames[pbivnImplementation]);
           end;
@@ -13334,7 +13361,7 @@ begin
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.CreateProcedureCallArg FullGetter=',GetObjName(FullGetter),' Getter=',GetObjName(ParamContext.Getter),' Setter=',GetObjName(ParamContext.Setter));
       {$ENDIF}
-      RaiseInconsistency(20170213222941);
+      RaiseInconsistency(20170213222941,El);
       end;
 
     // create "{p:Result,get:function(){return this.p.Getter},set:function(v){this.p.Setter(v);}}"
@@ -13344,7 +13371,7 @@ begin
       begin
       // create "{get:function(){return FullGetter;},set:function(v){FullGetter=v;}}"
       if (ParamContext.Getter<>nil) and (ParamContext.Getter<>FullGetter) then
-        RaiseInconsistency(20170213224339);
+        RaiseInconsistency(20170213224339,El);
       GetPath:=String(TJSPrimaryExpressionIdent(FullGetter).Name);
       GetDotPos:=PosLast('.',GetPath);
       if GetDotPos>0 then
@@ -13471,7 +13498,7 @@ begin
     else if (SetExpr.ClassType=TJSCallExpression) then
       // has already the form  Func(v)
     else
-      RaiseInconsistency(20170213225940);
+      RaiseInconsistency(20170213225940,El);
 
     // add   p:GetPathExpr
     AddVar(GetPathName,GetPathExpr);
@@ -13717,7 +13744,7 @@ begin
   if El=nil then
     begin
     Result:=nil;
-    RaiseInconsistency(20161024190203);
+    RaiseInconsistency(20161024190203,El);
     end;
   C:=El.ClassType;
   if (C=TPasConst) then
@@ -14067,7 +14094,7 @@ begin
       // module.$rtti.$Record("typename",{});
       Call:=CreateRTTINewType(El,FBuiltInNames[pbifnRTTINewRecord],false,AContext,ObjLit);
       if ObjLit=nil then
-        RaiseInconsistency(20170412124804);
+        RaiseInconsistency(20170412124804,El);
       if El.Members.Count>0 then
         begin
         // module.$rtti.$Record("typename",{}).addFields(
@@ -14168,6 +14195,23 @@ begin
   raise E;
 end;
 
+procedure TPasToJSConverter.RaiseInconsistency(Id: int64; El: TPasElement);
+var
+  s: String;
+begin
+  s:='TPasToJSConverter.RaiseInconsistency['+IntToStr(Id)+']: you found a bug';
+  if El<>nil then
+    begin
+    s:=s+El.FullName;
+    if El.Name<>'' then
+      s:=s+El.Name
+    else
+      s:=s+GetElementTypeName(El);
+    s:=s+' at '+TPas2JSResolver.GetDbgSourcePosStr(El);
+    end;
+  raise Exception.Create(s);
+end;
+
 function TPasToJSConverter.TransformVariableName(El: TPasElement;
   const AName: String; AContext: TConvertContext): String;
 var
@@ -14176,7 +14220,7 @@ var
 begin
   if AContext=nil then ;
   if Pos('.',AName)>0 then
-    RaiseInconsistency(20170203164711);
+    RaiseInconsistency(20170203164711,El);
   if UseLowerCase then
     Result:=LowerCase(AName)
   else
@@ -14299,7 +14343,7 @@ begin
   Result:='';
   El:=AContext.Resolver.ResolveAliasType(El);
   if El=nil then
-    RaiseInconsistency(20170409172756);
+    RaiseInconsistency(20170409172756,El);
   if El=AContext.PasElement then
     begin
     // referring to itself

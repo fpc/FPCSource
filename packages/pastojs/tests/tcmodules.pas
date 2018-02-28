@@ -580,6 +580,7 @@ type
 function LinesToStr(Args: array of const): string;
 function ExtractFileUnitName(aFilename: string): string;
 function JSToStr(El: TJSElement): string;
+function CheckSrcDiff(Expected, Actual: string; out Msg: string): boolean;
 
 implementation
 
@@ -636,6 +637,158 @@ begin
     aJSWriter.Free;
     aWriter.Free;
   end;
+end;
+
+function CheckSrcDiff(Expected, Actual: string; out Msg: string): boolean;
+// search diff, ignore changes in spaces
+const
+  SpaceChars = [#9,#10,#13,' '];
+var
+  ExpectedP, ActualP: PChar;
+
+  function FindLineEnd(p: PChar): PChar;
+  begin
+    Result:=p;
+    while not (Result^ in [#0,#10,#13]) do inc(Result);
+  end;
+
+  function FindLineStart(p, MinP: PChar): PChar;
+  begin
+    while (p>MinP) and not (p[-1] in [#10,#13]) do dec(p);
+    Result:=p;
+  end;
+
+  procedure DiffFound;
+  var
+    ActLineStartP, ActLineEndP, p, StartPos: PChar;
+    ExpLine, ActLine: String;
+    i: Integer;
+  begin
+    writeln('Diff found "',Msg,'". Lines:');
+    // write correct lines
+    p:=PChar(Expected);
+    repeat
+      StartPos:=p;
+      while not (p^ in [#0,#10,#13]) do inc(p);
+      ExpLine:=copy(Expected,StartPos-PChar(Expected)+1,p-StartPos);
+      if p^ in [#10,#13] then
+      begin
+        if (p[1] in [#10,#13]) and (p^<>p[1]) then
+          inc(p,2)
+        else
+          inc(p);
+      end;
+      if (p<=ExpectedP) and (p^<>#0) then
+      begin
+        writeln('= ',ExpLine);
+      end else begin
+        // diff line
+        // write actual line
+        ActLineStartP:=FindLineStart(ActualP,PChar(Actual));
+        ActLineEndP:=FindLineEnd(ActualP);
+        ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
+        writeln('- ',ActLine);
+        // write expected line
+        writeln('+ ',ExpLine);
+        // write empty line with pointer ^
+        for i:=1 to 2+ExpectedP-StartPos do write(' ');
+        writeln('^');
+        Msg:='expected "'+ExpLine+'", but got "'+ActLine+'".';
+        CheckSrcDiff:=false;
+        exit;
+      end;
+    until p^=#0;
+
+    writeln('DiffFound Actual:-----------------------');
+    writeln(Actual);
+    writeln('DiffFound Expected:---------------------');
+    writeln(Expected);
+    writeln('DiffFound ------------------------------');
+    Msg:='diff found, but lines are the same, internal error';
+    CheckSrcDiff:=false;
+  end;
+
+var
+  IsSpaceNeeded: Boolean;
+  LastChar, Quote: Char;
+begin
+  Result:=true;
+  Msg:='';
+  if Expected='' then Expected:=' ';
+  if Actual='' then Actual:=' ';
+  ExpectedP:=PChar(Expected);
+  ActualP:=PChar(Actual);
+  repeat
+    //writeln('TTestModule.CheckDiff Exp="',ExpectedP^,'" Act="',ActualP^,'"');
+    case ExpectedP^ of
+    #0:
+      begin
+      // check that rest of Actual has only spaces
+      while ActualP^ in SpaceChars do inc(ActualP);
+      if ActualP^<>#0 then
+        begin
+        DiffFound;
+        exit;
+        end;
+      exit(true);
+      end;
+    ' ',#9,#10,#13:
+      begin
+      // skip space in Expected
+      IsSpaceNeeded:=false;
+      if ExpectedP>PChar(Expected) then
+        LastChar:=ExpectedP[-1]
+      else
+        LastChar:=#0;
+      while ExpectedP^ in SpaceChars do inc(ExpectedP);
+      if (LastChar in ['a'..'z','A'..'Z','0'..'9','_','$'])
+          and (ExpectedP^ in ['a'..'z','A'..'Z','0'..'9','_','$']) then
+        IsSpaceNeeded:=true;
+      if IsSpaceNeeded and (not (ActualP^ in SpaceChars)) then
+        begin
+        DiffFound;
+        exit;
+        end;
+      while ActualP^ in SpaceChars do inc(ActualP);
+      end;
+    '''','"':
+      begin
+      while ActualP^ in SpaceChars do inc(ActualP);
+      if ExpectedP^<>ActualP^ then
+        begin
+        DiffFound;
+        exit;
+        end;
+      Quote:=ExpectedP^;
+      repeat
+        inc(ExpectedP);
+        inc(ActualP);
+        if ExpectedP^<>ActualP^ then
+          begin
+          DiffFound;
+          exit;
+          end;
+        if (ExpectedP^ in [#0,#10,#13]) then
+          break
+        else if (ExpectedP^=Quote) then
+          begin
+          inc(ExpectedP);
+          inc(ActualP);
+          break;
+          end;
+      until false;
+      end;
+    else
+      while ActualP^ in SpaceChars do inc(ActualP);
+      if ExpectedP^<>ActualP^ then
+        begin
+        DiffFound;
+        exit;
+        end;
+      inc(ExpectedP);
+      inc(ActualP);
+    end;
+  until false;
 end;
 
 { TTestEnginePasResolver }
@@ -1217,114 +1370,11 @@ end;
 
 procedure TCustomTestModule.CheckDiff(Msg, Expected, Actual: string);
 // search diff, ignore changes in spaces
-const
-  SpaceChars = [#9,#10,#13,' '];
 var
-  ExpectedP, ActualP: PChar;
-
-  function FindLineEnd(p: PChar): PChar;
-  begin
-    Result:=p;
-    while not (Result^ in [#0,#10,#13]) do inc(Result);
-  end;
-
-  function FindLineStart(p, MinP: PChar): PChar;
-  begin
-    while (p>MinP) and not (p[-1] in [#10,#13]) do dec(p);
-    Result:=p;
-  end;
-
-  procedure DiffFound;
-  var
-    ActLineStartP, ActLineEndP, p, StartPos: PChar;
-    ExpLine, ActLine: String;
-    i: Integer;
-  begin
-    writeln('Diff found "',Msg,'". Lines:');
-    // write correct lines
-    p:=PChar(Expected);
-    repeat
-      StartPos:=p;
-      while not (p^ in [#0,#10,#13]) do inc(p);
-      ExpLine:=copy(Expected,StartPos-PChar(Expected)+1,p-StartPos);
-      if p^ in [#10,#13] then
-      begin
-        if (p[1] in [#10,#13]) and (p^<>p[1]) then
-          inc(p,2)
-        else
-          inc(p);
-      end;
-      if (p<=ExpectedP) and (p^<>#0) then
-      begin
-        writeln('= ',ExpLine);
-      end else begin
-        // diff line
-        // write actual line
-        ActLineStartP:=FindLineStart(ActualP,PChar(Actual));
-        ActLineEndP:=FindLineEnd(ActualP);
-        ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
-        writeln('- ',ActLine);
-        // write expected line
-        writeln('+ ',ExpLine);
-        // write empty line with pointer ^
-        for i:=1 to 2+ExpectedP-StartPos do write(' ');
-        writeln('^');
-        AssertEquals(Msg,ExpLine,ActLine);
-        break;
-      end;
-    until p^=#0;
-
-    writeln('DiffFound Actual:-----------------------');
-    writeln(Actual);
-    writeln('DiffFound Expected:---------------------');
-    writeln(Expected);
-    writeln('DiffFound ------------------------------');
-    Fail('diff found, but lines are the same, internal error');
-  end;
-
-var
-  IsSpaceNeeded: Boolean;
-  LastChar: Char;
+  s: string;
 begin
-  if Expected='' then Expected:=' ';
-  if Actual='' then Actual:=' ';
-  ExpectedP:=PChar(Expected);
-  ActualP:=PChar(Actual);
-  repeat
-    //writeln('TTestModule.CheckDiff Exp="',ExpectedP^,'" Act="',ActualP^,'"');
-    case ExpectedP^ of
-    #0:
-      begin
-      // check that rest of Actual has only spaces
-      while ActualP^ in SpaceChars do inc(ActualP);
-      if ActualP^<>#0 then
-        DiffFound;
-      exit;
-      end;
-    ' ',#9,#10,#13:
-      begin
-      // skip space in Expected
-      IsSpaceNeeded:=false;
-      if ExpectedP>PChar(Expected) then
-        LastChar:=ExpectedP[-1]
-      else
-        LastChar:=#0;
-      while ExpectedP^ in SpaceChars do inc(ExpectedP);
-      if (LastChar in ['a'..'z','A'..'Z','0'..'9','_','$'])
-          and (ExpectedP^ in ['a'..'z','A'..'Z','0'..'9','_','$']) then
-        IsSpaceNeeded:=true;
-      if IsSpaceNeeded and (not (ActualP^ in SpaceChars)) then
-        DiffFound;
-      while ActualP^ in SpaceChars do inc(ActualP);
-      end;
-    else
-      while ActualP^ in SpaceChars do inc(ActualP);
-      if ExpectedP^<>ActualP^ then
-        DiffFound;
-      inc(ExpectedP);
-      inc(ActualP);
-    end;
-  until false;
+  if CheckSrcDiff(Expected,Actual,s) then exit;
+  Fail(Msg+': '+s);
 end;
 
 procedure TCustomTestModule.CheckUnit(Filename, ExpectedSrc: string);
@@ -5515,7 +5565,6 @@ begin
   Add('  end;');
   Add('end;');
   ConvertUnit;
-  // ToDo: check use analyzer
   CheckSource('TestAsmPas_Impl',
     LinesToStr([
     'var $impl = $mod.$impl;',
