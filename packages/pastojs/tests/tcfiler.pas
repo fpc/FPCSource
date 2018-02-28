@@ -26,7 +26,7 @@ uses
   Classes, SysUtils, fpcunit, testregistry,
   PasTree, PScanner, PasResolver, PasResolveEval, PParser, PasUseAnalyzer,
   FPPas2Js, Pas2JsFiler,
-  tcmodules;
+  tcmodules, jstree;
 
 type
 
@@ -43,6 +43,8 @@ type
       out Count: integer);
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
+    function OnRestConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
+    function OnRestConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -51,6 +53,7 @@ type
     procedure WriteReadUnit; virtual;
     procedure StartParsing; override;
     function CheckRestoredObject(const Path: string; Orig, Rest: TObject): boolean; virtual;
+    procedure CheckRestoredJS(const Path, Orig, Rest: string); virtual;
     // check restored parser+resolver
     procedure CheckRestoredResolver(Original, Restored: TPas2JSResolver); virtual;
     procedure CheckRestoredDeclarations(const Path: string; Orig, Rest: TPasDeclarations); virtual;
@@ -135,6 +138,9 @@ type
     procedure TestPC_Record;
     procedure TestPC_JSValue;
     procedure TestPC_Proc;
+    procedure TestPC_Proc_Nested;
+    procedure TestPC_Proc_LocalConst;
+    procedure TestPC_Proc_UTF8;
     procedure TestPC_Class;
   end;
 
@@ -183,6 +189,18 @@ begin
   Result:=Analyzer.IsTypeInfoUsed(El);
 end;
 
+function TCustomTestPrecompile.OnRestConverterIsElementUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=RestAnalyzer.IsUsed(El);
+end;
+
+function TCustomTestPrecompile.OnRestConverterIsTypeInfoUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=RestAnalyzer.IsTypeInfoUsed(El);
+end;
+
 procedure TCustomTestPrecompile.SetUp;
 begin
   inherited SetUp;
@@ -218,12 +236,14 @@ end;
 procedure TCustomTestPrecompile.WriteReadUnit;
 var
   ms: TMemoryStream;
-  PJU: string;
+  PJU, RestJSSrc, OrigJSSrc: string;
   // restored classes:
   RestResolver: TTestEnginePasResolver;
   RestFileResolver: TFileResolver;
   RestScanner: TPascalScanner;
   RestParser: TPasParser;
+  RestConverter: TPasToJSConverter;
+  RestJSModule: TJSSourceElements;
 begin
   ConvertUnit;
 
@@ -234,6 +254,8 @@ begin
   RestScanner:=nil;
   RestResolver:=nil;
   RestFileResolver:=nil;
+  RestConverter:=nil;
+  RestJSModule:=nil;
   try
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
@@ -278,13 +300,56 @@ begin
       end;
     end;
 
+    // analyze
     FRestAnalyzer:=TPasAnalyzer.Create;
     FRestAnalyzer.Resolver:=RestResolver;
-    RestAnalyzer.AnalyzeModule(RestResolver.RootElement);
+    try
+      RestAnalyzer.AnalyzeModule(RestResolver.RootElement);
+    except
+      on E: Exception do
+      begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TCustomTestPrecompile.WriteReadUnit ANALYZEMODULE failed');
+        {$ENDIF}
+        Fail('AnalyzeModule precompiled failed('+E.ClassName+'): '+E.Message);
+      end;
+    end;
+    // check parser+resolver+analyzer
     CheckRestoredResolver(Engine,RestResolver);
 
-    // ToDo: compare converter
+    // convert using the precompiled procs
+    RestConverter:=CreateConverter;
+    RestConverter.OnIsElementUsed:=@OnRestConverterIsElementUsed;
+    RestConverter.OnIsTypeInfoUsed:=@OnRestConverterIsTypeInfoUsed;
+    try
+      RestJSModule:=RestConverter.ConvertPasElement(RestResolver.RootElement,RestResolver) as TJSSourceElements;
+    except
+      on E: Exception do
+      begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TCustomTestPrecompile.WriteReadUnit CONVERTER failed');
+        {$ENDIF}
+        Fail('Convert precompiled failed('+E.ClassName+'): '+E.Message);
+      end;
+    end;
+
+    OrigJSSrc:=JSToStr(JSModule);
+    RestJSSrc:=JSToStr(RestJSModule);
+
+    if OrigJSSrc<>RestJSSrc then
+      begin
+      writeln('TCustomTestPrecompile.WriteReadUnit OrigJSSrc:---------START');
+      writeln(OrigJSSrc);
+      writeln('TCustomTestPrecompile.WriteReadUnit OrigJSSrc:---------END');
+      writeln('TCustomTestPrecompile.WriteReadUnit RestJSSrc:---------START');
+      writeln(RestJSSrc);
+      writeln('TCustomTestPrecompile.WriteReadUnit RestJSSrc:---------END');
+      CheckDiff('WriteReadUnit JS diff',OrigJSSrc,RestJSSrc);
+      end;
+
   finally
+    RestJSModule.Free;
+    RestConverter.Free;
     FreeAndNil(FRestAnalyzer);
     RestParser.Free;
     RestScanner.Free;
@@ -320,6 +385,37 @@ begin
   if Orig.ClassType<>Rest.ClassType then
     Fail(Path+': Orig='+GetObjName(Orig)+' Rest='+GetObjName(Rest));
   Result:=true;
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredJS(const Path, Orig, Rest: string);
+var
+  OrigList, RestList: TStringList;
+  i: Integer;
+begin
+  if Orig=Rest then exit;
+  writeln('TCustomTestPrecompile.CheckRestoredJS ORIG START--------------');
+  writeln(Orig);
+  writeln('TCustomTestPrecompile.CheckRestoredJS ORIG END----------------');
+  writeln('TCustomTestPrecompile.CheckRestoredJS REST START--------------');
+  writeln(Rest);
+  writeln('TCustomTestPrecompile.CheckRestoredJS REST END----------------');
+  OrigList:=TStringList.Create;
+  RestList:=TStringList.Create;
+  try
+    OrigList.Text:=Orig;
+    RestList.Text:=Rest;
+    for i:=0 to OrigList.Count-1 do
+      begin
+      if i>=RestList.Count then
+        Fail(Path+' missing: '+OrigList[i]);
+      writeln('  ',i,': '+OrigList[i]);
+      end;
+    if OrigList.Count<RestList.Count then
+      Fail(Path+' too much: '+RestList[OrigList.Count]);
+ finally
+    OrigList.Free;
+    RestList.Free;
+  end;
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredResolver(Original,
@@ -520,32 +616,25 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredProcScope(const Path: string;
   Orig, Rest: TPas2JSProcedureScope);
 var
-  OrigList, RestList: TStringList;
   i: Integer;
 begin
   CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
   CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
   CheckRestoredProcScopeRefs(Path+'.References',Orig,Rest);
   if Orig.BodyJS<>Rest.BodyJS then
+    CheckRestoredJS(Path+'.BodyJS',Orig.BodyJS,Rest.BodyJS);
+
+  CheckRestoredObject(Path+'.GlobalJS',Orig.GlobalJS,Rest.GlobalJS);
+  if Orig.GlobalJS<>nil then
     begin
-    writeln('TCustomTestPrecompile.CheckRestoredProcScope ',Path,'.BodyJS diff:');
-    OrigList:=TStringList.Create;
-    RestList:=TStringList.Create;
-    try
-      OrigList.Text:=Orig.BodyJS;
-      RestList.Text:=Rest.BodyJS;
-      for i:=0 to OrigList.Count-1 do
-        begin
-        if i>=RestList.Count then
-          Fail(Path+'.BodyJS RestLine missing: '+OrigList[i]);
-        writeln('  ',i,': '+OrigList[i]);
-        end;
-      if OrigList.Count<RestList.Count then
-        Fail(Path+'.BodyJS RestLine too much: '+RestList[OrigList.Count]);
-   finally
-      OrigList.Free;
-      RestList.Free;
-    end;
+    for i:=0 to Orig.GlobalJS.Count-1 do
+      begin
+      if i>=Rest.GlobalJS.Count then
+        Fail(Path+'.GlobalJS['+IntToStr(i)+'] missing: '+Orig.GlobalJS[i]);
+      CheckRestoredJS(Path+'.GlobalJS['+IntToStr(i)+']',Orig.GlobalJS[i],Rest.GlobalJS[i]);
+      end;
+    if Orig.GlobalJS.Count<Rest.GlobalJS.Count then
+      Fail(Path+'.GlobalJS['+IntToStr(i)+'] too much: '+Rest.GlobalJS[Orig.GlobalJS.Count]);
     end;
 
   if Rest.DeclarationProc=nil then
@@ -567,7 +656,6 @@ begin
     begin
     // ImplProc
     end;
-
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcScopeRefs(const Path: string;
@@ -1433,6 +1521,73 @@ begin
   'end;',
   'procedure NotUsed;',
   'begin',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_Nested;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '  function GetIt(d: longint): longint;',
+  'implementation',
+  'var k: double;',
+  'function GetIt(d: longint): longint;',
+  'var j: double;',
+  '  function GetSum(a,b: longint): longint; forward;',
+  '  function GetMul(a,b: longint): longint; ',
+  '  begin',
+  '    Result:=a*b;',
+  '  end;',
+  '  function GetSum(a,b: longint): longint;',
+  '  begin',
+  '    Result:=a+b;',
+  '  end;',
+  '  procedure NotUsed;',
+  '  begin',
+  '  end;',
+  'begin',
+  '  Result:=GetMul(GetSum(d,2),3);',
+  'end;',
+  'procedure NotUsed;',
+  'begin',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_LocalConst;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '  function GetIt(d: double): double;',
+  'implementation',
+  'function GetIt(d: double): double;',
+  'const',
+  '  c: double = 3.3;',
+  '  e: double = 2.7;', // e is not used
+  'begin',
+  '  Result:=d+c;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_UTF8;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '  function DoIt: string;',
+  'implementation',
+  'function DoIt: string;',
+  'const',
+  '  c = ''äöü😊'';',
+  'begin',
+  '  Result:=''ÄÖÜ😊''+c;',
   'end;',
   '']);
   WriteReadUnit;

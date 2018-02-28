@@ -829,7 +829,10 @@ type
   public
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
     // Option coStoreProcJS
-    BodyJS: string;// stored in ImplScope
+    BodyJS: string; // stored in ImplScope
+    GlobalJS: TStringList; // stored in ImplScope
+    procedure AddGlobalJS(const JS: string);
+    destructor Destroy; override;
   end;
 
   { TPas2JSWithExprScope }
@@ -1360,6 +1363,7 @@ type
     Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
     Procedure StorePrecompiledProcedure(ImplProc: TPasProcedure; JS: TJSElement); virtual;
+    Function StorePrecompiledJS(El: TJSElement): string; virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -1543,6 +1547,21 @@ function PosLast(c: char; const s: string): integer;
 begin
   Result:=length(s);
   while (Result>0) and (s[Result]<>c) do dec(Result);
+end;
+
+{ TPas2JSProcedureScope }
+
+procedure TPas2JSProcedureScope.AddGlobalJS(const JS: string);
+begin
+  if GlobalJS=nil then
+    GlobalJS:=TStringList.Create;
+  GlobalJS.Add(Js);
+end;
+
+destructor TPas2JSProcedureScope.Destroy;
+begin
+  FreeAndNil(GlobalJS);
+  inherited Destroy;
 end;
 
 { TFCLocalVar }
@@ -9490,9 +9509,9 @@ var
 Var
   FS : TJSFunctionDeclarationStatement;
   FD : TJSFuncDef;
-  n, i:Integer;
+  n, i, Line, Col:Integer;
   AssignSt: TJSSimpleAssignStatement;
-  FuncContext: TFunctionContext;
+  FuncContext, ConstContext: TFunctionContext;
   ProcScope, ImplProcScope: TPas2JSProcedureScope;
   Arg: TPasArgument;
   SelfSt: TJSVariableStatement;
@@ -9503,6 +9522,8 @@ Var
   ClassPath: String;
   ArgResolved: TPasResolverResult;
   MinVal, MaxVal: MaxPrecInt;
+  Lit: TJSLiteral;
+  ConstSrcElems: TJSSourceElements;
 begin
   Result:=nil;
 
@@ -9521,6 +9542,36 @@ begin
   if ProcScope.ImplProc<>nil then
     ImplProc:=ProcScope.ImplProc;
   ImplProcScope:=TPas2JSProcedureScope(ImplProc.CustomData);
+
+  if ImplProcScope.BodyJS<>'' then
+    begin
+    // using precompiled code
+    TPasResolver.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
+    if ImplProcScope.GlobalJS<>nil then
+      begin
+      ConstContext:=AContext.GetGlobalFunc;
+      if not (ConstContext.JSElement is TJSSourceElements) then
+        begin
+        {$IFDEF VerbosePas2JS}
+        writeln('TPasToJSConverter.ConvertProcedure ConstContext=',GetObjName(ConstContext),' JSElement=',GetObjName(ConstContext.JSElement));
+        {$ENDIF}
+        RaiseNotSupported(El,AContext,20180228231008);
+        end;
+      ConstSrcElems:=TJSSourceElements(ConstContext.JSElement);
+      for i:=0 to ImplProcScope.GlobalJS.Count-1 do
+        begin
+        // precompiled global var or type
+        Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
+        Lit.Value.CustomValue:=UTF8Decode(ImplProcScope.GlobalJS[i]);
+        AddToSourceElements(ConstSrcElems,Lit);
+        end;
+      end;
+    // precompiled body
+    Lit:=TJSLiteral.Create(Line,Col,El.SourceFilename);
+    Lit.Value.CustomValue:=UTF8Decode(ImplProcScope.BodyJS);
+    Result:=Lit;
+    exit;
+    end;
 
   AssignSt:=nil;
   if AContext.IsGlobal then
@@ -9632,8 +9683,11 @@ begin
     end;
     end;
 
-  if coStoreProcJS in Options then
-    StorePrecompiledProcedure(ImplProc,Result);
+  if (coStoreProcJS in Options) and (AContext.Resolver<>nil) then
+    begin
+    if AContext.Resolver.GetTopLvlProc(El)=El then
+      StorePrecompiledProcedure(ImplProc,Result);
+    end;
 end;
 
 function TPasToJSConverter.ConvertBeginEndStatement(El: TPasImplBeginBlock;
@@ -11029,19 +11083,25 @@ procedure TPasToJSConverter.StorePrecompiledProcedure(ImplProc: TPasProcedure;
   JS: TJSElement);
 var
   ImplScope: TPas2JSProcedureScope;
-  aWriter: TBufferWriter;
-  aJSWriter: TJSWriter;
 begin
   ImplScope:=TPas2JSProcedureScope(ImplProc.CustomData);
   if ImplScope.ImplProc<>nil then
     RaiseInconsistency(20180228124545,ImplProc);
+  ImplScope.BodyJS:=StorePrecompiledJS(JS);
+end;
+
+function TPasToJSConverter.StorePrecompiledJS(El: TJSElement): string;
+var
+  aWriter: TBufferWriter;
+  aJSWriter: TJSWriter;
+begin
   aJSWriter:=nil;
   aWriter:=TBufferWriter.Create(1000);
   try
     aJSWriter:=TJSWriter.Create(aWriter);
     aJSWriter.IndentSize:=2;
-    aJSWriter.WriteJS(JS);
-    ImplScope.BodyJS:=aWriter.AsAnsistring;
+    aJSWriter.WriteJS(El);
+    Result:=aWriter.AsAnsistring;
   finally
     aJSWriter.Free;
     aWriter.Free;
@@ -13685,6 +13745,8 @@ Var
   C: TJSElement;
   V: TJSVariableStatement;
   Src: TJSSourceElements;
+  Proc: TPasProcedure;
+  ProcScope: TPas2JSProcedureScope;
 begin
   Result:=nil;
   if El.AbsoluteExpr<>nil then
@@ -13705,6 +13767,16 @@ begin
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
     V.A:=C;
     AddToSourceElements(Src,V);
+
+    if (coStoreProcJS in Options) and (AContext.Resolver<>nil) then
+      begin
+      Proc:=AContext.Resolver.GetTopLvlProc(AContext.PasElement);
+      if Proc<>nil then
+        begin
+        ProcScope:=TPas2JSProcedureScope(Proc.CustomData);
+        ProcScope.AddGlobalJS(StorePrecompiledJS(V));
+        end;
+      end;
     end
   else if AContext is TObjectContext then
     begin

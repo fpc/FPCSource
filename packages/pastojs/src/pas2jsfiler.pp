@@ -28,14 +28,11 @@ Works:
 - restore resolved references and access flags
 - useanalyzer: use restored proc references
 - write+read compiled proc body
+- converter: use precompiled body
+- store/restore/use precompiled JS of proc bodies
+- store/restore/use precompiled JS of proc local const
 
 ToDo:
-- store converted proc implementation
-  - store references
-  - code
-  - local const
-- store only used elements, not unneeded privates
-- use stored converted proc implementation
 - WPO uses Proc.References
 - store converted initialization/finalization
 - use stored converted initialization/finalization
@@ -2936,8 +2933,14 @@ begin
     // precompiled body
     if Scope.BodyJS<>'' then
       begin
+      if Scope.GlobalJS<>nil then
+        begin
+        Arr:=TJSONArray.Create;
+        Obj.Add('Globals',Arr);
+        for i:=0 to Scope.GlobalJS.Count-1 do
+          Arr.Add(Scope.GlobalJS[i]);
+        end;
       Obj.Add('Body',Scope.BodyJS);
-      // ToDo: globals
       end;
     end;
   if (Scope.BodyJS<>'') and (Scope.ImplProc<>nil) then
@@ -5795,11 +5798,28 @@ procedure TPJUReader.ReadProcedureBody(Obj: TJSONObject; El: TPasProcedure;
 var
   ImplScope: TPas2JSProcedureScope;
   s: string;
+  Arr: TJSONArray;
+  i: Integer;
+  Data: TJSONData;
 begin
   ImplScope:=TPas2JSProcedureScope(El.CustomData);
+  if ImplScope.BodyJS<>'' then
+    RaiseMsg(20180228231510,El);
+  if ImplScope.GlobalJS<>nil then
+    RaiseMsg(20180228231511,El);
   if not ReadString(Obj,'Body',s,El) then
     RaiseMsg(20180228131232,El);
   ImplScope.BodyJS:=s;
+  if ReadArray(Obj,'Globals',Arr,El) then
+    begin
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONString) then
+        RaiseMsg(20180228231555,El,IntToStr(i)+':'+GetObjName(Data));
+      ImplScope.AddGlobalJS(Data.AsString);
+      end;
+    end;
   if aContext=nil then ;
 end;
 
