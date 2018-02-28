@@ -88,6 +88,7 @@ type
   TFPReportCustomMemo     = class;
   TFPReportChildBand      = class;
   TFPReportCustomDataBand = class;
+  TFPReportCustomChildBand = Class;
   TFPReportCustomDataHeaderBand = class;
   TFPReportCustomDataFooterBand = class;
   TFPReportCustomGroupHeaderBand = class;
@@ -878,7 +879,7 @@ type
 
   TFPReportCustomBand = class(TFPReportElementWithChildren)
   private
-    FChildBand: TFPReportChildBand;
+    FChildBand: TFPReportCustomChildBand;
     FParentBand,
     FMainBand: TFPReportCustomBand;
     FKeepTogetherWithChildren: Boolean;
@@ -890,7 +891,7 @@ type
     FBandPosition: TFPReportBandPosition;
     function    GetFont: TFPReportFont;
     procedure   SetBandPosition(pBandPosition: TFPReportBandPosition); virtual;
-    procedure   SetChildBand(AValue: TFPReportChildBand);
+    procedure   SetChildBand(AValue: TFPReportCustomChildBand);
     procedure   ApplyStretchMode;
     procedure   SetFont(AValue: TFPReportFont);
     procedure   SetKeepTogetherWithChildren(pKeepTogetherWithChildren: Boolean); virtual;
@@ -932,7 +933,7 @@ type
     procedure   ReadElement(AReader: TFPReportStreamer); override;
     property    VisibleOnPage: TFPReportVisibleOnPage read FVisibleOnPage write SetVisibleOnPage;
     function    EvaluateVisibility: boolean; override;
-    property    ChildBand: TFPReportChildBand read FChildBand write SetChildBand;
+    property    ChildBand: TFPReportCustomChildBand read FChildBand write SetChildBand;
     property    ParentBand: TFPReportCustomBand read FParentBand;
     property    MainBand: TFPReportCustomBand read FMainBand;
     property    Page : TFPReportCustomPage read GetReportPage;
@@ -7885,7 +7886,7 @@ begin
   FBandPosition := pBandPosition;
 end;
 
-procedure TFPReportCustomBand.SetChildBand(AValue: TFPReportChildBand);
+procedure TFPReportCustomBand.SetChildBand(AValue: TFPReportCustomChildBand);
 var
   b: TFPReportCustomBand;
 begin
