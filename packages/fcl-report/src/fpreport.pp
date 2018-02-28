@@ -5509,6 +5509,10 @@ Var
 
 begin
   BaseName:=ClassName;
+  If SameText(Copy(BaseName,1,9),'TFPReport') then
+    Delete(BaseName,1,9)
+  else If SameText(Copy(BaseName,1,1),'T') then
+    Delete(BaseName,1,1);
   I:=1;
   Repeat
     Result:=BaseName+IntToStr(I);
