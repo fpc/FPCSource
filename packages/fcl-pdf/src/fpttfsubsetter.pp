@@ -828,9 +828,9 @@ var
   itm: TTextMapping;
 begin
   Result := TMemoryStream.Create;
-  SetLength(startCode, FGlyphIDList.Count);
-  SetLength(endCode, FGlyphIDList.Count);
-  SetLength(idDelta, FGlyphIDList.Count);
+  SetLength(startCode, FGlyphIDList.Count + 1);
+  SetLength(endCode, FGlyphIDList.Count + 1);
+  SetLength(idDelta, FGlyphIDList.Count + 1);
 
   // cmap header
   WriteUInt16(Result, 0);  // version
