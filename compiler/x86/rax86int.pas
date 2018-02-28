@@ -30,6 +30,7 @@ Unit Rax86int;
       cpubase,
       globtype,
       aasmbase,
+      cgbase,
       rasm,
       rax86;
 
@@ -64,6 +65,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure AddReferences(dest,src : tx86operand);
+         procedure SetSegmentOverride(oper:tx86operand;seg:tregister);
          procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
          procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
          function BuildConstExpression:aint;
@@ -102,7 +104,7 @@ Unit Rax86int;
        { register allocator }
        rautils,itx86int,
        { codegen }
-       cgbase,procinfo,paramgr
+       procinfo,paramgr
        ;
 
     type
@@ -831,16 +833,7 @@ Unit Rax86int;
         AddRegister(src.opr.ref.base,1);
         AddRegister(src.opr.ref.index,src.opr.ref.scalefactor);
         if src.opr.ref.segment<>NR_NO then
-          begin
-            if dest.opr.ref.segment<>NR_NO then
-              begin
-                if m_tp7 in current_settings.modeswitches then
-                  Message(asmr_w_multiple_segment_overrides)
-                else
-                  Message(asmr_e_multiple_segment_overrides);
-              end;
-            dest.opr.ref.segment:=src.opr.ref.segment;
-          end;
+          SetSegmentOverride(dest,src.opr.ref.segment);
         Inc(dest.opr.ref.offset,src.opr.ref.offset);
         Inc(dest.opr.constoffset,src.opr.constoffset);
         dest.haslabelref:=dest.haslabelref or src.haslabelref;
@@ -860,6 +853,21 @@ Unit Rax86int;
           end;
         if dest.opr.ref.refaddr=addr_no then
           dest.opr.ref.refaddr:=src.opr.ref.refaddr;
+      end;
+
+
+    procedure tx86intreader.SetSegmentOverride(oper:tx86operand;seg:tregister);
+      begin
+        if oper.opr.typ<>OPR_REFERENCE then
+          internalerror(2018022801);
+        if oper.opr.ref.segment<>NR_NO then
+          begin
+            if m_tp7 in current_settings.modeswitches then
+              Message(asmr_w_multiple_segment_overrides)
+            else
+              Message(asmr_e_multiple_segment_overrides);
+          end;
+        oper.opr.ref.segment:=seg;
       end;
 
 
@@ -1612,7 +1620,7 @@ Unit Rax86int;
                   begin
                     Consume(AS_COLON);
                     oper.InitRefConvertLocal;
-                    oper.opr.ref.segment:=hreg;
+                    SetSegmentOverride(oper,hreg);
                   end
                 else
                   begin
@@ -2176,7 +2184,7 @@ Unit Rax86int;
                  Begin
                    Consume(AS_COLON);
                    oper.InitRef;
-                   oper.opr.ref.segment:=tempreg;
+                   SetSegmentOverride(oper,tempreg);
                    BuildReference(oper);
                  end
                 else
