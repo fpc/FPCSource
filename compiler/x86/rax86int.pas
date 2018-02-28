@@ -978,7 +978,7 @@ Unit Rax86int;
             AS_PLUS:
               Begin
                 Consume(AS_PLUS);
-                if isref and (actasmtoken=AS_REGISTER) then
+                if isref and ((actasmtoken=AS_REGISTER) or (actasmtoken=AS_LBRACKET)) then
                  break;
                 expr:=expr + '+';
               end;
