@@ -2267,7 +2267,7 @@ begin
   '  b:=i;',
   'end;',
   '']);
-  Analyzer.Options:=Analyzer.Options+[paoProcReferences];
+  Analyzer.Options:=Analyzer.Options+[paoProcImplReferences];
   AnalyzeUnit;
   CheckUnitProcedureReferences('DoIt',['i','tintcolor']);
 end;

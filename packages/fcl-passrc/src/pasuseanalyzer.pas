@@ -147,7 +147,7 @@ type
 
   TPasAnalyzerOption = (
     paoOnlyExports, // default: use all class members accessible from outside (protected, but not private)
-    paoProcReferences // collect TPasProcedureScope.References of top lvl proc implementations
+    paoProcImplReferences // collect TPasProcedureScope.References of top lvl proc implementations
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;
 
@@ -656,23 +656,30 @@ end;
 
 procedure TPasAnalyzer.MarkScopeRef(Parent, El: TPasElement;
   Access: TPSRefAccess);
-var
-  ParentProcScope, ElProcScope: TPasProcedureScope;
+
+  procedure CheckImplRef;
+  var
+    ParentProcScope, ElProcScope: TPasProcedureScope;
+    ImplProc: TPasProcedure;
+  begin
+    ParentProcScope:=FindTopProcScope(Parent,true);
+    if ParentProcScope=nil then exit;
+    ImplProc:=ParentProcScope.ImplProc;
+    if ImplProc=nil then
+      ImplProc:=TPasProcedure(ParentProcScope.Element);
+    if ImplProc.Body=nil then
+      exit; // has no implementation, e.g. external proc
+
+    ElProcScope:=FindTopProcScope(El,true);
+    if ElProcScope=ParentProcScope then exit;
+    ParentProcScope.AddReference(El,Access);
+  end;
+
 begin
   if El=nil then exit;
   if El.Parent=Parent then exit; // same scope
-  if paoProcReferences in Options then
-    begin
-    ParentProcScope:=FindTopProcScope(Parent,true);
-    if ParentProcScope<>nil then
-      begin
-      ElProcScope:=FindTopProcScope(El,true);
-      if ElProcScope<>ParentProcScope then
-        begin
-        ParentProcScope.AddReference(El,Access);
-        end;
-      end;
-    end;
+  if paoProcImplReferences in Options then
+    CheckImplRef;
 end;
 
 procedure TPasAnalyzer.UseElement(El: TPasElement; Access: TResolvedRefAccess;
