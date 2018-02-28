@@ -124,12 +124,12 @@ begin
   if (FStruct is TJSONObject) and (FKey='') then
     FKey:=Akey
   else
-    DoError('Duplicatekey or no object')
+    DoError('Duplicatekey or no object');
 end;
 
 procedure TJSONParser.StringValue(const AValue: TJSONStringType);
 begin
-  NewValue(CreateJSON(AValue))
+  NewValue(CreateJSON(AValue));
 end;
 
 procedure TJSONParser.NullValue;
