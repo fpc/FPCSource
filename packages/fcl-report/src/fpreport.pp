@@ -1538,9 +1538,11 @@ type
     procedure   RemovePage(APage: TFPReportCustomPage);
     function    FindRecursive(const AName: string): TFPReportElement;
     procedure   RunReport;
+    Procedure   ClearPreparedReport; virtual;
+    Function    Prepared : Boolean;
     Procedure StartDesigning; virtual;
     Procedure EndDesigning; virtual;
-    procedure   RenderReport(const AExporter: TFPReportExporter);
+    procedure RenderReport(const AExporter: TFPReportExporter);
     Property Variables : TFPReportVariables Read FVariables Write SetVariables;
     {$IFDEF gdebug}
     function DebugPreparedPageAsJSON(const APageNo: Byte): string;
@@ -7716,6 +7718,16 @@ begin
   DoEndReport;
 end;
 
+procedure TFPCustomReport.ClearPreparedReport;
+begin
+  EmptyRTObjects;
+end;
+
+function TFPCustomReport.Prepared: Boolean;
+begin
+  Result:=RTObjects.Count>0;
+end;
+
 procedure TFPCustomReport.RenderReport(const AExporter: TFPReportExporter);
 begin
   if not Assigned(AExporter) then
@@ -9968,9 +9980,11 @@ end;
 procedure TFPReportLayouter.EndPage;
 begin
   if Assigned(FRTPage) then
+    begin
     EndColumn;
-  { bottom stacked group and column footers }
-  HandleBottomStackedFooters;
+    { bottom stacked group and column footers }
+    HandleBottomStackedFooters;
+    end;
 end;
 
 procedure TFPReportLayouter.StartNewColumn;
