@@ -299,6 +299,7 @@ type
   public
     constructor Create; virtual;
     procedure   Assign(Source: TPersistent); override;
+  Published
     property    Name: string read FFontName write SetFontName;
     { value is in font Point units }
     property    Size: integer read FFontSize write SetFontSize default 10;
@@ -2131,6 +2132,13 @@ function gBandFactory : TFPReportBandFactory;
 
 Function ReportExportManager : TFPReportExportManager;
 
+{ this should probably be more configurable or flexible per platform }
+Const
+  cDefaultFont = 'Helvetica';
+
+Var
+  ReportDefaultFont : string = cDefaultFont;
+
 implementation
 
 uses
@@ -2142,8 +2150,6 @@ uses
   fpTTF;
 
 resourcestring
-  { this should probably be more configurable or flexible per platform }
-  cDefaultFont = 'Helvetica';
   cPageCountMarker = '~PC~';
 
   SErrInvalidLineWidth   = 'Invalid line width: %d';
@@ -8978,7 +8984,7 @@ end;
 constructor TFPReportFont.Create;
 begin
   inherited Create;
-  FFontName := cDefaultFont;
+  FFontName := ReportDefaultFont;
   FFontColor := clBlack;
   FFontSize := 10;
 end;
@@ -8987,13 +8993,15 @@ procedure TFPReportFont.Assign(Source: TPersistent);
 var
   o: TFPReportFont;
 begin
-  //inherited Assign(Source);
-  if (Source = nil) or not (Source is TFPReportFont) then
-    ReportError(SErrCantAssignReportFont);
-  o := TFPReportFont(Source);
-  FFontName := o.Name;
-  FFontSize := o.Size;
-  FFontColor := o.Color;
+  if (Source is TFPReportFont) then
+    begin
+    o := TFPReportFont(Source);
+    FFontName := o.Name;
+    FFontSize := o.Size;
+    FFontColor := o.Color;
+    end
+  else
+    Inherited Assign(Source);
 end;
 
 { TFPReportPaperManager }
