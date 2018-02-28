@@ -26,6 +26,7 @@ Works:
 - resolving forward references
 - restore resolver scopes
 - restore resolved references and access flags
+- useanalyzer: use restored proc references
 - write+read compiled proc body
 
 ToDo:

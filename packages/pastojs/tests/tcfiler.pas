@@ -38,6 +38,7 @@ type
     FInitialFlags: TPJUInitialFlags;
     FPJUReader: TPJUReader;
     FPJUWriter: TPJUWriter;
+    FRestAnalyzer: TPasAnalyzer;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
     function OnConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
@@ -50,6 +51,7 @@ type
     procedure WriteReadUnit; virtual;
     procedure StartParsing; override;
     function CheckRestoredObject(const Path: string; Orig, Rest: TObject): boolean; virtual;
+    // check restored parser+resolver
     procedure CheckRestoredResolver(Original, Restored: TPas2JSResolver); virtual;
     procedure CheckRestoredDeclarations(const Path: string; Orig, Rest: TPasDeclarations); virtual;
     procedure CheckRestoredSection(const Path: string; Orig, Rest: TPasSection); virtual;
@@ -72,6 +74,7 @@ type
     procedure CheckRestoredCustomData(const Path: string; RestoredEl: TPasElement; Orig, Rest: TObject); virtual;
     procedure CheckRestoredReference(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElOrRef(const Path: string; Orig, OrigProp, Rest, RestProp: TPasElement); virtual;
+    procedure CheckRestoredAnalyzerElement(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElement(const Path: string; Orig, Rest: TPasElement); virtual;
     procedure CheckRestoredElementList(const Path: string; Orig, Rest: TFPList); virtual;
     procedure CheckRestoredElRefList(const Path: string; OrigParent: TPasElement;
@@ -112,6 +115,7 @@ type
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
+    property RestAnalyzer: TPasAnalyzer read FRestAnalyzer;
     property PJUWriter: TPJUWriter read FPJUWriter write FPJUWriter;
     property PJUReader: TPJUReader read FPJUReader write FPJUReader;
     property InitialFlags: TPJUInitialFlags read FInitialFlags;
@@ -215,20 +219,21 @@ procedure TCustomTestPrecompile.WriteReadUnit;
 var
   ms: TMemoryStream;
   PJU: string;
-  ReadResolver: TTestEnginePasResolver;
-  ReadFileResolver: TFileResolver;
-  ReadScanner: TPascalScanner;
-  ReadParser: TPasParser;
+  // restored classes:
+  RestResolver: TTestEnginePasResolver;
+  RestFileResolver: TFileResolver;
+  RestScanner: TPascalScanner;
+  RestParser: TPasParser;
 begin
   ConvertUnit;
 
   FPJUWriter:=TPJUWriter.Create;
   FPJUReader:=TPJUReader.Create;
   ms:=TMemoryStream.Create;
-  ReadParser:=nil;
-  ReadScanner:=nil;
-  ReadResolver:=nil;
-  ReadFileResolver:=nil;
+  RestParser:=nil;
+  RestScanner:=nil;
+  RestResolver:=nil;
+  RestFileResolver:=nil;
   try
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
@@ -251,18 +256,18 @@ begin
       writeln(PJU);
       writeln('TCustomTestPrecompile.WriteReadUnit PJU END-------');
 
-      ReadFileResolver:=TFileResolver.Create;
-      ReadScanner:=TPascalScanner.Create(ReadFileResolver);
-      InitScanner(ReadScanner);
-      ReadResolver:=TTestEnginePasResolver.Create;
-      ReadResolver.Filename:=Engine.Filename;
-      ReadResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
-      //ReadResolver.OnFindUnit:=@OnPasResolverFindUnit;
-      ReadParser:=TPasParser.Create(ReadScanner,ReadFileResolver,ReadResolver);
-      ReadParser.Options:=po_tcmodules;
-      ReadResolver.CurrentParser:=ReadParser;
+      RestFileResolver:=TFileResolver.Create;
+      RestScanner:=TPascalScanner.Create(RestFileResolver);
+      InitScanner(RestScanner);
+      RestResolver:=TTestEnginePasResolver.Create;
+      RestResolver.Filename:=Engine.Filename;
+      RestResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
+      //RestResolver.OnFindUnit:=@OnPasResolverFindUnit;
+      RestParser:=TPasParser.Create(RestScanner,RestFileResolver,RestResolver);
+      RestParser.Options:=po_tcmodules;
+      RestResolver.CurrentParser:=RestParser;
       ms.Position:=0;
-      PJUReader.ReadPJU(ReadResolver,ms);
+      PJUReader.ReadPJU(RestResolver,ms);
     except
       on E: Exception do
       begin
@@ -273,12 +278,18 @@ begin
       end;
     end;
 
-    CheckRestoredResolver(Engine,ReadResolver);
+    FRestAnalyzer:=TPasAnalyzer.Create;
+    FRestAnalyzer.Resolver:=RestResolver;
+    RestAnalyzer.AnalyzeModule(RestResolver.RootElement);
+    CheckRestoredResolver(Engine,RestResolver);
+
+    // ToDo: compare converter
   finally
-    ReadParser.Free;
-    ReadScanner.Free;
-    ReadResolver.Free; // free parser before resolver
-    ReadFileResolver.Free;
+    FreeAndNil(FRestAnalyzer);
+    RestParser.Free;
+    RestScanner.Free;
+    RestResolver.Free; // free parser before resolver
+    RestFileResolver.Free;
     ms.Free;
   end;
 end;
@@ -746,6 +757,29 @@ begin
     CheckRestoredElement(Path,OrigProp,RestProp);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredAnalyzerElement(
+  const Path: string; Orig, Rest: TPasElement);
+var
+  OrigUsed, RestUsed: TPAElement;
+begin
+  //writeln('TCustomTestPrecompile.CheckRestoredAnalyzerElement ',GetObjName(RestAnalyzer));
+  if RestAnalyzer=nil then exit;
+  OrigUsed:=Analyzer.FindUsedElement(Orig);
+  //writeln('TCustomTestPrecompile.CheckRestoredAnalyzerElement ',GetObjName(Orig),'=',OrigUsed<>nil,' ',GetObjName(Rest),'=',RestAnalyzer.FindUsedElement(Rest)<>nil);
+  if OrigUsed<>nil then
+    begin
+    RestUsed:=RestAnalyzer.FindUsedElement(Rest);
+    if RestUsed=nil then
+      Fail(Path+': used in OrigAnalyzer, but not used in RestAnalyzer');
+    if OrigUsed.Access<>RestUsed.Access then
+      AssertEquals(Path+'->Analyzer.Access',dbgs(OrigUsed.Access),dbgs(RestUsed.Access));
+    end
+  else if RestAnalyzer.IsUsed(Rest) then
+    begin
+    Fail(Path+': not used in OrigAnalyzer, but used in RestAnalyzer');
+    end;
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredElement(const Path: string; Orig,
   Rest: TPasElement);
 var
@@ -864,6 +898,8 @@ begin
     CheckRestoredSection(Path,TPasSection(Orig),TPasSection(Rest))
   else
     Fail(Path+': unknown class '+C.ClassName);
+
+  CheckRestoredAnalyzerElement(Path,Orig,Rest);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredElementList(const Path: string;
@@ -1388,10 +1424,11 @@ begin
   '  function Abs(d: double): double; external name ''Math.Abs'';',
   '  function GetIt(d: double): double;',
   'implementation',
+  'var k: double;',
   'function GetIt(d: double): double;',
   'var j: double;',
   'begin',
-  '  j:=Abs(d);',
+  '  j:=Abs(d+k);',
   '  Result:=j;',
   'end;',
   'procedure NotUsed;',
