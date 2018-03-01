@@ -745,6 +745,8 @@ Implementation
                Begin
                  Consume(AS_COLON);
                  oper.InitRef;
+                 if not is_segment_reg(tempreg) then
+                   Message(asmr_e_invalid_seg_override);
                  oper.opr.ref.segment:=tempreg;
                  { This must absolutely be followed by a reference }
                  if not MaybeBuildReference then

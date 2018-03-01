@@ -860,6 +860,8 @@ Unit Rax86int;
       begin
         if oper.opr.typ<>OPR_REFERENCE then
           internalerror(2018022801);
+        if not is_segment_reg(seg) then
+          Message(asmr_e_invalid_seg_override);
         if oper.opr.ref.segment<>NR_NO then
           begin
             if m_tp7 in current_settings.modeswitches then
