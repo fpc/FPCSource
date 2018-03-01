@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 197;
+  CurrentPPUVersion = 198;
 
 { unit flags }
   uf_init                = $000001; { unit has initialization section }

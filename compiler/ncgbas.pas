@@ -127,6 +127,7 @@ interface
       var
         sym : tabstractnormalvarsym;
 {$ifdef x86}
+        segment : tregister;
         scale : byte;
 {$endif x86}
         forceref,
@@ -139,6 +140,7 @@ interface
             sofs:=op.localoper^.localsymofs;
             indexreg:=op.localoper^.localindexreg;
 {$ifdef x86}
+            segment:=op.localoper^.localsegment;
             scale:=op.localoper^.localscale;
 {$endif x86}
             getoffset:=op.localoper^.localgetoffset;
@@ -150,7 +152,11 @@ interface
                 begin
                   if getoffset then
                     begin
-                      if indexreg=NR_NO then
+                      if (indexreg=NR_NO)
+{$ifdef x86}
+                         and (segment=NR_NO)
+{$endif x86}
+                         then
                         begin
                           op.typ:=top_const;
                           op.val:=sym.localloc.reference.offset+sofs;
@@ -161,6 +167,9 @@ interface
                           new(op.ref);
                           reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs,
                             newalignment(sym.localloc.reference.alignment,sofs),[]);
+{$ifdef x86}
+                          op.ref^.segment:=segment;
+{$endif x86}
                         end;
                     end
                   else
@@ -171,6 +180,7 @@ interface
                         newalignment(sym.localloc.reference.alignment,sofs),[]);
                       op.ref^.index:=indexreg;
 {$ifdef x86}
+                      op.ref^.segment:=segment;
                       op.ref^.scalefactor:=scale;
 {$endif x86}
                     end;

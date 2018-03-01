@@ -59,7 +59,7 @@ type
 {$endif}
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
       OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint;ref_farproc_entry:boolean;ref:treference);
-      OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
+      OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localsegment,localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGSET    : (regsetdata,regsetaddr,regsetfpu : tcpuregisterset);
@@ -810,6 +810,9 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
 var
   sym : tsym;
   srsymtable : TSymtable;
+{$ifdef x86}
+  segreg,
+{$endif x86}
   indexreg : tregister;
   plist : ppropaccesslistitem;
   size_set_from_absolute : boolean = false;
@@ -943,6 +946,9 @@ Begin
                 end;
               if opr.typ=OPR_REFERENCE then
                 begin
+{$ifdef x86}
+                  segreg:=opr.ref.segment;
+{$endif x86}
                   indexreg:=opr.ref.base;
                   if opr.ref.index<>NR_NO then
                     begin
@@ -953,7 +959,12 @@ Begin
                     end;
                 end
               else
-                indexreg:=NR_NO;
+                begin
+{$ifdef x86}
+                  segreg:=NR_NO;
+{$endif x86}
+                  indexreg:=NR_NO;
+                end;
               opr.typ:=OPR_LOCAL;
               if assigned(current_procinfo.parent) and
                  not(po_inline in current_procinfo.procdef.procoptions) and
@@ -964,6 +975,9 @@ Begin
                 message1(asmr_e_local_para_unreachable,s);
               opr.localsym:=tabstractnormalvarsym(sym);
               opr.localsymofs:=absoffset;
+{$ifdef x86}
+              opr.localsegment:=segreg;
+{$endif x86}
               opr.localindexreg:=indexreg;
               opr.localscale:=0;
               opr.localgetoffset:=GetOffset;
@@ -1128,6 +1142,9 @@ var
   localvarsize,localconstoffset: asizeint;
   localsym:tabstractnormalvarsym;
   localsymofs:aint;
+{$ifdef x86}
+  localsegment,
+{$endif x86}
   localindexreg:tregister;
   localscale:byte;
 begin
@@ -1140,6 +1157,9 @@ begin
           localconstoffset:=opr.localconstoffset;
           localsym:=opr.localsym;
           localsymofs:=opr.localsymofs;
+{$ifdef x86}
+          localsegment:=opr.localsegment;
+{$endif x86}
           localindexreg:=opr.localindexreg;
           localscale:=opr.localscale;;
           opr.typ:=OPR_REFERENCE;
@@ -1150,6 +1170,9 @@ begin
           opr.ref_farproc_entry:=false;
           opr.ref.base:=tparavarsym(localsym).paraloc[calleeside].Location^.register;
           opr.ref.offset:=localsymofs;
+{$ifdef x86}
+          opr.ref.segment:=localsegment;
+{$endif x86}
           opr.ref.index:=localindexreg;
           opr.ref.scalefactor:=localscale;
         end
@@ -1233,8 +1256,13 @@ end;
               OPR_SYMBOL:
                 ai.loadsymbol(i-1,symbol,symofs);
               OPR_LOCAL :
-                ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
-                             localscale,localgetoffset,localforceref);
+                begin
+                  ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
+                               localscale,localgetoffset,localforceref);
+{$ifdef x86}
+                  ai.oper[i-1]^.localoper^.localsegment:=localsegment;
+{$endif x86}
+                end;
               OPR_REFERENCE:
                 ai.loadref(i-1,ref);
 {$ifdef m68k}

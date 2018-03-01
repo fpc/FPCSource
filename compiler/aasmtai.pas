@@ -270,6 +270,9 @@ interface
         localsym : pointer;
         localsymderef : tderef;
         localsymofs : longint;
+{$ifdef x86}
+        localsegment,
+{$endif x86}
         localindexreg : tregister;
         localscale : byte;
         localgetoffset,
@@ -2634,6 +2637,9 @@ implementation
                localscale:=scale;
                localgetoffset:=getoffset;
                localforceref:=forceref;
+{$ifdef x86}
+               localsegment:=NR_NO;
+{$endif x86}
              end;
            typ:=top_local;
          end;
@@ -2988,6 +2994,9 @@ implementation
                 begin
                   ppufile.getderef(localsymderef);
                   localsymofs:=ppufile.getaint;
+{$ifdef x86}
+                  localsegment:=tregister(ppufile.getlongint);
+{$endif x86}
                   localindexreg:=tregister(ppufile.getlongint);
                   localscale:=ppufile.getbyte;
                   localgetoffset:=(ppufile.getbyte<>0);
@@ -3027,6 +3036,9 @@ implementation
                 begin
                   ppufile.putderef(localsymderef);
                   ppufile.putaint(localsymofs);
+{$ifdef x86}
+                  ppufile.putlongint(longint(localsegment));
+{$endif x86}
                   ppufile.putlongint(longint(localindexreg));
                   ppufile.putbyte(localscale);
                   ppufile.putbyte(byte(localgetoffset));

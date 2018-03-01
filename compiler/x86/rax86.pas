@@ -1240,8 +1240,11 @@ begin
           ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_LOCAL :
          with operands[i].opr do
-           ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
-                        localscale,localgetoffset,localforceref);
+           begin
+             ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
+                          localscale,localgetoffset,localforceref);
+             ai.oper[i-1]^.localoper^.localsegment:=localsegment;
+           end;
        OPR_REFERENCE:
          begin
            if (opcode<>A_XLAT) and not is_x86_string_op(opcode) then
