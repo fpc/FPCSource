@@ -33,6 +33,7 @@ interface
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
+{$DEFINE HAS_TEMPDIR}
 
 {OS has only 1 byte version for ExecuteProcess}
 {$define executeprocuni}
@@ -914,6 +915,23 @@ procedure Sleep(Milliseconds: cardinal);
 begin
   // Amiga dos.library Delay() has precision of 1/50 seconds
   DOSDelay(Milliseconds div 20);
+end;
+
+
+function GetTempDir(Global: Boolean): string;
+begin
+  if Assigned(OnGetTempDir) then
+    Result := OnGetTempDir(Global)
+  else
+  begin
+    Result := GetEnvironmentVariable('TEMP');
+    if Result = '' Then
+      Result:=GetEnvironmentVariable('TMP');
+    if Result = '' then
+      Result := 'T:'; // fallback.
+  end;
+  if Result <> '' then
+    Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 
