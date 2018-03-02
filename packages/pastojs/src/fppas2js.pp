@@ -816,6 +816,19 @@ type
   end;
   TPas2JsElementDataClass = class of TPas2JsElementData;
 
+  { TPas2JSModuleScope }
+
+  TPas2JSModuleScope = class(TPasModuleScope)
+  public
+  end;
+
+  { TPas2JSInitialFinalizationScope }
+
+  TPas2JSInitialFinalizationScope = class(TPasInitialFinalizationScope)
+  public
+    JS: string; // Option coStoreProcJS
+  end;
+
   { TPas2JSClassScope }
 
   TPas2JSClassScope = class(TPasClassScope)
@@ -828,9 +841,8 @@ type
   TPas2JSProcedureScope = class(TPasProcedureScope)
   public
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
-    // Option coStoreProcJS
-    BodyJS: string; // stored in ImplScope
-    GlobalJS: TStringList; // stored in ImplScope
+    BodyJS: string; // Option coStoreProcJS: stored in ImplScope
+    GlobalJS: TStringList; // Option coStoreProcJS: stored in ImplScope
     procedure AddGlobalJS(const JS: string);
     destructor Destroy; override;
   end;
@@ -1174,7 +1186,7 @@ type
     coUseStrict,   // insert 'use strict'
     coNoTypeInfo,  // do not generate RTTI
     coEliminateDeadCode,  // skip code that is never executed
-    coStoreProcJS  // store references to JS code in procscopes
+    coStoreImplJS  // store references to JS code in procscopes
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 
@@ -1362,7 +1374,6 @@ type
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
     Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
-    Procedure StorePrecompiledProcedure(ImplProc: TPasProcedure; JS: TJSElement); virtual;
     Function StorePrecompiledJS(El: TJSElement): string; virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -3061,6 +3072,8 @@ begin
   StoreSrcColumns:=true;
   Options:=Options+DefaultPasResolverOptions;
   ScopeClass_Class:=TPas2JSClassScope;
+  ScopeClass_InitialFinalization:=TPas2JSInitialFinalizationScope;
+  ScopeClass_Module:=TPas2JSModuleScope;
   ScopeClass_Procedure:=TPas2JSProcedureScope;
   ScopeClass_WithExpr:=TPas2JSWithExprScope;
   for bt in [pbtJSValue] do
@@ -9683,10 +9696,10 @@ begin
     end;
     end;
 
-  if (coStoreProcJS in Options) and (AContext.Resolver<>nil) then
+  if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
     begin
     if AContext.Resolver.GetTopLvlProc(El)=El then
-      StorePrecompiledProcedure(ImplProc,Result);
+      ImplProcScope.BodyJS:=StorePrecompiledJS(Result);
     end;
 end;
 
@@ -9736,12 +9749,27 @@ function TPasToJSConverter.ConvertInitializationSection(
 var
   FDS: TJSFunctionDeclarationStatement;
   FunName: String;
-  IsMain, ok: Boolean;
+  IsMain: Boolean;
   AssignSt: TJSSimpleAssignStatement;
   FuncContext: TFunctionContext;
   Body: TJSFunctionBody;
+  Scope: TPas2JSInitialFinalizationScope;
+  Line, Col: integer;
+  Lit: TJSLiteral;
 begin
   // create: '$mod.$init=function(){}'
+  Result:=nil;
+  Scope:=TPas2JSInitialFinalizationScope(El.CustomData);
+
+  if Scope.JS<>'' then
+    begin
+    // precompiled JS
+    TPasResolver.UnmangleSourceLineNumber(El.Parent.SourceLinenumber,Line,Col);
+    Lit:=TJSLiteral.Create(Line,Col,El.Parent.SourceFilename);
+    Lit.Value.CustomValue:=UTF8Decode(Scope.JS);
+    Result:=Lit;
+    exit;
+    end;
 
   IsMain:=(El.Parent<>nil) and (El.Parent is TPasProgram);
   if IsMain then
@@ -9749,10 +9777,8 @@ begin
   else
     FunName:=FBuiltInNames[pbifnUnitInit];
 
-  AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-  Result:=AssignSt;
   FuncContext:=nil;
-  ok:=false;
+  AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
   try
     AssignSt.LHS:=CreateMemberExpression([FBuiltInNames[pbivnModule],FunName]);
     FDS:=CreateFunctionSt(El,El.Elements.Count>0);
@@ -9765,11 +9791,15 @@ begin
       //   simply refer to $mod, so no need to set ThisPas here
       Body.A:=ConvertImplBlockElements(El,FuncContext,false);
       end;
-    ok:=true;
+    Result:=AssignSt;
   finally
     FuncContext.Free;
-    if not ok then FreeAndNil(Result);
+    if Result=nil then
+      AssignSt.Free;
   end;
+
+  if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
+    Scope.JS:=StorePrecompiledJS(Result);
 end;
 
 function TPasToJSConverter.ConvertFinalizationSection(El: TFinalizationSection;
@@ -11077,17 +11107,6 @@ begin
     Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
     Result:=CreatePrimitiveDotExpr(Name,PosEl);
     end;
-end;
-
-procedure TPasToJSConverter.StorePrecompiledProcedure(ImplProc: TPasProcedure;
-  JS: TJSElement);
-var
-  ImplScope: TPas2JSProcedureScope;
-begin
-  ImplScope:=TPas2JSProcedureScope(ImplProc.CustomData);
-  if ImplScope.ImplProc<>nil then
-    RaiseInconsistency(20180228124545,ImplProc);
-  ImplScope.BodyJS:=StorePrecompiledJS(JS);
 end;
 
 function TPasToJSConverter.StorePrecompiledJS(El: TJSElement): string;
@@ -13768,7 +13787,7 @@ begin
     V.A:=C;
     AddToSourceElements(Src,V);
 
-    if (coStoreProcJS in Options) and (AContext.Resolver<>nil) then
+    if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
       begin
       Proc:=AContext.Resolver.GetTopLvlProc(AContext.PasElement);
       if Proc<>nil then

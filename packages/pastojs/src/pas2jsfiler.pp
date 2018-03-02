@@ -31,11 +31,11 @@ Works:
 - converter: use precompiled body
 - store/restore/use precompiled JS of proc bodies
 - store/restore/use precompiled JS of proc local const
+- store/restore/use precompiled JS of initialization plus references
+- useanalyzer: generate + use initialization/finalization references
 
 ToDo:
 - WPO uses Proc.References
-- store converted initialization/finalization
-- use stored converted initialization/finalization
 - uses section
 - external references
 - stop after uses section and continue reading
@@ -182,7 +182,7 @@ const
     'ObjectChecks'
     );
 
-  PJUDefaultConvertOptions: TPasToJsConverterOptions = [coStoreProcJS];
+  PJUDefaultConvertOptions: TPasToJsConverterOptions = [coStoreImplJS];
   PJUConverterOptions: array[TPasToJsConverterOption] of string = (
     'LowerCase',
     'SwitchStatement',
@@ -190,7 +190,7 @@ const
     'UseStrict',
     'NoTypeInfo',
     'EliminateDeadCode',
-    'StoreProcJS'
+    'StoreImplJS'
     );
 
   PJUDefaultTargetPlatform = PlatformBrowser;
@@ -617,7 +617,7 @@ type
     procedure WritePasScope(Obj: TJSONObject; Scope: TPasScope; aContext: TPJUWriterContext); virtual;
     procedure WriteIdentifierScope(Obj: TJSONObject; Scope: TPasIdentifierScope; aContext: TPJUWriterContext); virtual;
     procedure WriteModuleScopeFlags(Obj: TJSONObject; const Value, DefaultValue: TPasModuleScopeFlags); virtual;
-    procedure WriteModuleScope(Obj: TJSONObject; Scope: TPasModuleScope; aContext: TPJUWriterContext); virtual;
+    procedure WriteModuleScope(Obj: TJSONObject; Scope: TPas2JSModuleScope; aContext: TPJUWriterContext); virtual;
     procedure WritePasElement(Obj: TJSONObject; El: TPasElement; aContext: TPJUWriterContext); virtual;
     procedure WriteModule(Obj: TJSONObject; aModule: TPasModule; aContext: TPJUWriterContext); virtual;
     procedure WriteSection(ParentJSON: TJSONObject; Section: TPasSection;
@@ -639,6 +639,8 @@ type
       DefaultKind: TPasExprKind; DefaultOpCode: TExprOpCode; aContext: TPJUWriterContext); virtual;
     procedure WritePasExprArray(Obj: TJSONObject; Parent: TPasElement;
       const PropName: string; const ExprArr: TPasExprArray; aContext: TPJUWriterContext); virtual;
+    procedure WriteScopeReferences(Obj: TJSONObject; References: TPasScopeReferences;
+      const PropName: string; aContext: TPJUWriterContext); virtual;
     procedure WriteUnaryExpr(Obj: TJSONObject; Expr: TUnaryExpr; aContext: TPJUWriterContext); virtual;
     procedure WriteBinaryExpr(Obj: TJSONObject; Expr: TBinaryExpr; aContext: TPJUWriterContext); virtual;
     procedure WritePrimitiveExpr(Obj: TJSONObject; Expr: TPrimitiveExpr; aContext: TPJUWriterContext); virtual;
@@ -805,10 +807,12 @@ type
     procedure ReadPasExprArray(Obj: TJSONObject; Parent: TPasElement;
       const PropName: string; var ExprArr: TPasExprArray; aContext: TPJUReaderContext); virtual;
     procedure ReadPasScope(Obj: TJSONObject; Scope: TPasScope; aContext: TPJUReaderContext); virtual;
+    procedure ReadScopeReferences(Obj: TJSONObject; Scope: TPasScope;
+      const PropName: string; var References: TPasScopeReferences); virtual;
     procedure ReadIdentifierScopeArray(Arr: TJSONArray; Scope: TPasIdentifierScope); virtual;
     procedure ReadIdentifierScope(Obj: TJSONObject; Scope: TPasIdentifierScope; aContext: TPJUReaderContext); virtual;
     function ReadModuleScopeFlags(Obj: TJSONObject; El: TPasElement; const DefaultValue: TPasModuleScopeFlags): TPasModuleScopeFlags; virtual;
-    procedure ReadModuleScope(Obj: TJSONObject; Scope: TPasModuleScope; aContext: TPJUReaderContext); virtual;
+    procedure ReadModuleScope(Obj: TJSONObject; Scope: TPas2JSModuleScope; aContext: TPJUReaderContext); virtual;
     procedure ReadModule(Data: TJSONData; aContext: TPJUReaderContext); virtual;
     procedure ReadUnaryExpr(Obj: TJSONObject; Expr: TUnaryExpr; aContext: TPJUReaderContext); virtual;
     procedure ReadBinaryExpr(Obj: TJSONObject; Expr: TBinaryExpr; aContext: TPJUReaderContext); virtual;
@@ -1777,8 +1781,19 @@ procedure TPJUWriter.WriteModule(Obj: TJSONObject; aModule: TPasModule;
     WriteSection(Obj,Section,PropName,aContext);
   end;
 
+  procedure WImplBlock(Block: TPasImplBlock; const PropPrefix: string);
+  var
+    Scope: TPas2JSInitialFinalizationScope;
+  begin
+    if Block=nil then exit;
+    Scope:=Block.CustomData as TPas2JSInitialFinalizationScope;
+    if Scope.JS<>'' then
+      Obj.Add(PropPrefix+'JS',Scope.JS);
+    WriteScopeReferences(Obj,Scope.References,PropPrefix+'Refs',aContext);
+  end;
+
 var
-  ModScope: TPasModuleScope;
+  ModScope: TPas2JSModuleScope;
 begin
   WritePasElement(Obj,aModule,aContext);
 
@@ -1792,7 +1807,7 @@ begin
     RaiseMsg(20180203163923);
 
   // module scope
-  ModScope:=TPasModuleScope(CheckElScope(aModule,20180206113855,TPasModuleScope));
+  ModScope:=TPas2JSModuleScope(CheckElScope(aModule,20180206113855,TPas2JSModuleScope));
   WriteModuleScope(Obj,ModScope,aContext);
 
   // write sections
@@ -1800,11 +1815,20 @@ begin
 
   WSection(aModule.ImplementationSection,'Implementation');
   if aModule.ClassType=TPasProgram then
-    WSection(TPasProgram(aModule).ProgramSection,'Program')
+    begin
+    WSection(TPasProgram(aModule).ProgramSection,'Program');
+    WImplBlock(aModule.InitializationSection,'begin');
+    end
   else if aModule.ClassType=TPasLibrary then
+    begin
     WSection(TPasLibrary(aModule).LibrarySection,'Library');
-  // ToDo: write precompiled aModule.InitializationSection
-  // ToDo: write precompiled aModule.FinalizationSection
+    WImplBlock(aModule.InitializationSection,'begin');
+    end
+  else
+    begin
+    WImplBlock(aModule.InitializationSection,'Init');
+    WImplBlock(aModule.FinalizationSection,'Final');
+    end;
 
   WriteExternalReferences(Obj);
 end;
@@ -1896,8 +1920,8 @@ begin
   end;
 end;
 
-procedure TPJUWriter.WriteModuleScope(Obj: TJSONObject; Scope: TPasModuleScope;
-  aContext: TPJUWriterContext);
+procedure TPJUWriter.WriteModuleScope(Obj: TJSONObject;
+  Scope: TPas2JSModuleScope; aContext: TPJUWriterContext);
 var
   aModule: TPasModule;
 begin
@@ -2405,6 +2429,43 @@ begin
     end;
 end;
 
+procedure TPJUWriter.WriteScopeReferences(Obj: TJSONObject;
+  References: TPasScopeReferences; const PropName: string;
+  aContext: TPJUWriterContext);
+var
+  Refs: TFPList;
+  Arr: TJSONArray;
+  i: Integer;
+  PSRef: TPasScopeReference;
+  Ref: TPJUFilerElementRef;
+  SubObj: TJSONObject;
+begin
+  if References=nil then exit;
+  Refs:=References.GetList;
+  try
+    if Refs.Count>0 then
+      begin
+      Arr:=TJSONArray.Create;
+      Obj.Add(PropName,Arr);
+      for i:=0 to Refs.Count-1 do
+        begin
+        PSRef:=TPasScopeReference(Refs[i]);
+        Ref:=GetElementReference(PSRef.Element);
+        if (Ref.Id=0) and not (Ref.Element is TPasUnresolvedSymbolRef) then
+          RaiseMsg(20180221170307,References.Scope.Element,GetObjName(Ref.Element));
+        SubObj:=TJSONObject.Create;
+        Arr.Add(SubObj);
+        if PSRef.Access<>PJUDefaultPSRefAccess then
+          SubObj.Add('Access',PJUPSRefAccessNames[PSRef.Access]);
+        AddReferenceToObj(SubObj,'Id',PSRef.Element);
+        end;
+      end;
+  finally
+    Refs.Free;
+  end;
+  if aContext=nil then ;
+end;
+
 procedure TPJUWriter.WriteUnaryExpr(Obj: TJSONObject; Expr: TUnaryExpr;
   aContext: TPJUWriterContext);
 begin
@@ -2857,14 +2918,10 @@ procedure TPJUWriter.WriteProcedure(Obj: TJSONObject; El: TPasProcedure;
 var
   DefProcMods: TProcedureModifiers;
   Scope: TPas2JSProcedureScope;
-  Refs: TFPList;
   Arr: TJSONArray;
   i: Integer;
-  PSRef: TPasProcScopeReference;
-  SubObj: TJSONObject;
   DeclProc: TPasProcedure;
   DeclScope: TPas2JsProcedureScope;
-  Ref: TPJUFilerElementRef;
 begin
   WritePasElement(Obj,El,aContext);
   Scope:=El.CustomData as TPas2JSProcedureScope;
@@ -2903,32 +2960,7 @@ begin
     if DeclProc=nil then
       DeclProc:=El;
     DeclScope:=NoNil(DeclProc.CustomData) as TPas2JSProcedureScope;
-    // write references
-    if DeclScope.References<>nil then
-      begin
-      Refs:=DeclScope.GetReferences;
-      try
-        if Refs.Count>0 then
-          begin
-          Arr:=TJSONArray.Create;
-          Obj.Add('ProcRefs',Arr);
-          for i:=0 to Refs.Count-1 do
-            begin
-            PSRef:=TPasProcScopeReference(Refs[i]);
-            Ref:=GetElementReference(PSRef.Element);
-            if (Ref.Id=0) and not (Ref.Element is TPasUnresolvedSymbolRef) then
-              RaiseMsg(20180221170307,El,GetObjName(Ref.Element));
-            SubObj:=TJSONObject.Create;
-            Arr.Add(SubObj);
-            if PSRef.Access<>PJUDefaultPSRefAccess then
-              SubObj.Add('Access',PJUPSRefAccessNames[PSRef.Access]);
-            AddReferenceToObj(SubObj,'Id',PSRef.Element);
-            end;
-          end;
-      finally
-        Refs.Free;
-      end;
-      end;
+    WriteScopeReferences(Obj,DeclScope.References,'Refs',aContext);
 
     // precompiled body
     if Scope.BodyJS<>'' then
@@ -3427,7 +3459,7 @@ end;
 procedure TPJUReader.Set_ModScope_AssertClass(RefEl: TPasElement; Data: TObject
   );
 var
-  Scope: TPasModuleScope absolute Data;
+  Scope: TPas2JSModuleScope absolute Data;
 begin
   if RefEl is TPasClassType then
     Scope.AssertClass:=TPasClassType(RefEl)
@@ -3438,7 +3470,7 @@ end;
 procedure TPJUReader.Set_ModScope_AssertDefConstructor(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPasModuleScope absolute Data;
+  Scope: TPas2JSModuleScope absolute Data;
 begin
   if RefEl is TPasConstructor then
     Scope.AssertDefConstructor:=TPasConstructor(RefEl)
@@ -3449,7 +3481,7 @@ end;
 procedure TPJUReader.Set_ModScope_AssertMsgConstructor(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPasModuleScope absolute Data;
+  Scope: TPas2JSModuleScope absolute Data;
 begin
   if RefEl is TPasConstructor then
     Scope.AssertMsgConstructor:=TPasConstructor(RefEl)
@@ -3460,7 +3492,7 @@ end;
 procedure TPJUReader.Set_ModScope_RangeErrorClass(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPasModuleScope absolute Data;
+  Scope: TPas2JSModuleScope absolute Data;
 begin
   if RefEl is TPasClassType then
     Scope.RangeErrorClass:=TPasClassType(RefEl)
@@ -3471,7 +3503,7 @@ end;
 procedure TPJUReader.Set_ModScope_RangeErrorConstructor(RefEl: TPasElement;
   Data: TObject);
 var
-  Scope: TPasModuleScope absolute Data;
+  Scope: TPas2JSModuleScope absolute Data;
 begin
   if RefEl is TPasConstructor then
     Scope.RangeErrorConstructor:=TPasConstructor(RefEl)
@@ -4830,6 +4862,57 @@ begin
   if aContext=nil then ;
 end;
 
+procedure TPJUReader.ReadScopeReferences(Obj: TJSONObject; Scope: TPasScope;
+  const PropName: string; var References: TPasScopeReferences);
+var
+  Arr: TJSONArray;
+  i, Id: Integer;
+  Data: TJSONData;
+  SubObj: TJSONObject;
+  Ref: TPJUFilerElementRef;
+  s: string;
+  Found: Boolean;
+  Access: TPSRefAccess;
+  El: TPasElement;
+begin
+  El:=Scope.Element;
+  if References<>nil then
+    RaiseMsg(20180302145101,El);
+  if not ReadArray(Obj,PropName,Arr,El) then exit;
+  References:=TPasScopeReferences.Create(Scope);
+  for i:=0 to Arr.Count-1 do
+    begin
+    Data:=Arr[i];
+    if not (Data is TJSONObject) then
+      RaiseMsg(20180221164800,El,GetObjName(Data));
+    SubObj:=TJSONObject(Data);
+    Data:=SubObj.Find('Id');
+    if not (Data is TJSONIntegerNumber) then
+      RaiseMsg(20180221171546,El,GetObjName(Data));
+    Id:=Data.AsInteger;
+    Ref:=GetElReference(Id,El);
+    if Ref=nil then
+      RaiseMsg(20180221171940,El,IntToStr(Id));
+    if Ref.Element=nil then
+      RaiseMsg(20180221171940,El,IntToStr(Id));
+    if ReadString(SubObj,'Access',s,El) then
+      begin
+      Found:=false;
+      for Access in TPSRefAccess do
+        if s=PJUPSRefAccessNames[Access] then
+          begin
+          Found:=true;
+          break;
+          end;
+      if not Found then
+        RaiseMsg(20180221172333,El,'Access "'+s+'"');
+      end
+    else
+      Access:=PJUDefaultPSRefAccess;
+    References.Add(Ref.Element,Access);
+    end;
+end;
+
 procedure TPJUReader.ReadIdentifierScopeArray(Arr: TJSONArray;
   Scope: TPasIdentifierScope);
 // called after reading module, i.e. all elements are created
@@ -4940,8 +5023,8 @@ begin
     end;
 end;
 
-procedure TPJUReader.ReadModuleScope(Obj: TJSONObject; Scope: TPasModuleScope;
-  aContext: TPJUReaderContext);
+procedure TPJUReader.ReadModuleScope(Obj: TJSONObject;
+  Scope: TPas2JSModuleScope; aContext: TPJUReaderContext);
 var
   aModule: TPasModule;
 begin
@@ -4958,6 +5041,8 @@ begin
 end;
 
 procedure TPJUReader.ReadModule(Data: TJSONData; aContext: TPJUReaderContext);
+var
+  aModule: TPasModule;
 
   function PreReadSection(ParentJSON: TJSONObject; const PropName: string): TJSONObject;
   var
@@ -4968,11 +5053,23 @@ procedure TPJUReader.ReadModule(Data: TJSONData; aContext: TPJUReaderContext);
     Result:=CheckJSONObject(PropData,20180205121719);
   end;
 
+  procedure ReadInitialFinal(Obj: TJSONObject; Block: TPasImplBlock;
+    const PropPrefix: string);
+  var
+    Scope: TPas2JSInitialFinalizationScope;
+    s: string;
+  begin
+    Scope:=TPas2JSInitialFinalizationScope(Resolver.CreateScope(Block,Resolver.ScopeClass_InitialFinalization));
+    Block.CustomData:=Scope;
+    if not ReadString(Obj,PropPrefix+'JS',s,Block) then exit;
+    Scope.JS:=s;
+    ReadScopeReferences(Obj,Scope,PropPrefix+'Refs',Scope.References);
+  end;
+
 var
   Obj, SubObj: TJSONObject;
   aType, aName: String;
-  aModule: TPasModule;
-  ModScope: TPasModuleScope;
+  ModScope: TPas2JSModuleScope;
   OldBoolSwitches: TBoolSwitches;
 begin
   {$IFDEF VerbosePJUFiler}
@@ -4994,7 +5091,7 @@ begin
   Resolver.RootElement:=aModule;
   ReadPasElement(Obj,aModule,aContext);
 
-  ModScope:=TPasModuleScope(Resolver.CreateScope(aModule,TPasModuleScope));
+  ModScope:=TPas2JSModuleScope(Resolver.CreateScope(aModule,Resolver.ScopeClass_Module));
   ReadModuleScope(Obj,ModScope,aContext);
 
   ReadSystemSymbols(Obj,aModule);
@@ -5035,8 +5132,16 @@ begin
         ReadSection(SubObj,TPasLibrary(aModule).LibrarySection,aContext);
         end;
       end;
-    // ToDo: read precompiled aModule.InitializationSection
-    // ToDo: read precompiled aModule.FinalizationSection
+    if Obj.Find('InitJS')<>nil then
+      begin
+      aModule.InitializationSection:=TInitializationSection.Create('',aModule);
+      ReadInitialFinal(Obj,aModule.InitializationSection,'Init');
+      end;
+    if Obj.Find('FinalJS')<>nil then
+      begin
+      aModule.FinalizationSection:=TFinalizationSection.Create('',aModule);
+      ReadInitialFinal(Obj,aModule.FinalizationSection,'Final');
+      end;
   finally
     aContext.BoolSwitches:=OldBoolSwitches;
   end;
@@ -5383,7 +5488,7 @@ var
   Data: TJSONData;
   Scope: TPas2JSClassScope;
 begin
-  Scope:=TPas2JSClassScope(Resolver.CreateScope(El,TPas2JSClassScope));
+  Scope:=TPas2JSClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
   El.CustomData:=Scope;
 
   ReadPasElement(Obj,El,aContext);
@@ -5739,16 +5844,8 @@ end;
 procedure TPJUReader.ReadProcScopeReferences(Obj: TJSONObject;
   ImplScope: TPas2JSProcedureScope);
 var
-  i, Id: Integer;
-  Arr: TJSONArray;
-  Data: TJSONData;
-  SubObj: TJSONObject;
-  DeclProc: TPasProcedure;
-  Ref: TPJUFilerElementRef;
-  Found: Boolean;
-  Access: TPSRefAccess;
-  s: string;
   DeclScope: TPasProcedureScope;
+  DeclProc: TPasProcedure;
 begin
   // Note: the References are stored in the declaration scope,
   //       and in the JSON of the implementation scope, so that
@@ -5759,38 +5856,7 @@ begin
   DeclScope:=DeclProc.CustomData as TPasProcedureScope;
   if DeclScope.References<>nil then
     RaiseMsg(20180221172403,DeclProc);
-  if not ReadArray(Obj,'ProcRefs',Arr,DeclProc) then exit;
-  for i:=0 to Arr.Count-1 do
-    begin
-    Data:=Arr[i];
-    if not (Data is TJSONObject) then
-      RaiseMsg(20180221164800,DeclProc,GetObjName(Data));
-    SubObj:=TJSONObject(Data);
-    Data:=SubObj.Find('Id');
-    if not (Data is TJSONIntegerNumber) then
-      RaiseMsg(20180221171546,DeclProc,GetObjName(Data));
-    Id:=Data.AsInteger;
-    Ref:=GetElReference(Id,DeclProc);
-    if Ref=nil then
-      RaiseMsg(20180221171940,DeclProc,IntToStr(Id));
-    if Ref.Element=nil then
-      RaiseMsg(20180221171940,DeclProc,IntToStr(Id));
-    if ReadString(SubObj,'Access',s,DeclProc) then
-      begin
-      Found:=false;
-      for Access in TPSRefAccess do
-        if s=PJUPSRefAccessNames[Access] then
-          begin
-          Found:=true;
-          break;
-          end;
-      if not Found then
-        RaiseMsg(20180221172333,DeclProc,'Access "'+s+'"');
-      end
-    else
-      Access:=PJUDefaultPSRefAccess;
-    DeclScope.AddReference(Ref.Element,Access);
-    end;
+  ReadScopeReferences(Obj,DeclScope,'Refs',DeclScope.References);
 end;
 
 procedure TPJUReader.ReadProcedureBody(Obj: TJSONObject; El: TPasProcedure;
@@ -5835,7 +5901,7 @@ var
   Ref: TPJUFilerElementRef;
   DeclProc: TPasProcedure;
 begin
-  Scope:=TPas2JSProcedureScope(Resolver.CreateScope(El,TPas2JSProcedureScope));
+  Scope:=TPas2JSProcedureScope(Resolver.CreateScope(El,Resolver.ScopeClass_Procedure));
   El.CustomData:=Scope;
 
   ReadPasElement(Obj,El,aContext);

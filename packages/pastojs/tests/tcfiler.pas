@@ -63,14 +63,15 @@ type
     procedure CheckRestoredElementBase(const Path: string; Orig, Rest: TPasElementBase); virtual;
     procedure CheckRestoredResolveData(const Path: string; Orig, Rest: TResolveData); virtual;
     procedure CheckRestoredPasScope(const Path: string; Orig, Rest: TPasScope); virtual;
-    procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPasModuleScope); virtual;
+    procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPas2JSModuleScope); virtual;
     procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope); virtual;
     procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPasSectionScope); virtual;
+    procedure CheckRestoredInitialFinalizationScope(const Path: string; Orig, Rest: TPas2JSInitialFinalizationScope); virtual;
     procedure CheckRestoredEnumTypeScope(const Path: string; Orig, Rest: TPasEnumTypeScope); virtual;
     procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPasRecordScope); virtual;
     procedure CheckRestoredClassScope(const Path: string; Orig, Rest: TPas2JSClassScope); virtual;
     procedure CheckRestoredProcScope(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
-    procedure CheckRestoredProcScopeRefs(const Path: string; Orig, Rest: TPas2JSProcedureScope); virtual;
+    procedure CheckRestoredScopeRefs(const Path: string; Orig, Rest: TPasScopeReferences); virtual;
     procedure CheckRestoredPropertyScope(const Path: string; Orig, Rest: TPasPropertyScope); virtual;
     procedure CheckRestoredResolvedReference(const Path: string; Orig, Rest: TResolvedReference); virtual;
     procedure CheckRestoredEvalValue(const Path: string; Orig, Rest: TResEvalValue); virtual;
@@ -142,6 +143,7 @@ type
     procedure TestPC_Proc_LocalConst;
     procedure TestPC_Proc_UTF8;
     procedure TestPC_Class;
+    procedure TestPC_Initialization;
   end;
 
 function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
@@ -150,8 +152,8 @@ implementation
 
 function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
 var
-  Ref1: TPasProcScopeReference absolute Item1;
-  Ref2: TPasProcScopeReference absolute Item2;
+  Ref1: TPasScopeReference absolute Item1;
+  Ref2: TPasScopeReference absolute Item2;
 begin
   Result:=CompareText(Ref1.Element.Name,Ref2.Element.Name);
   if Result<>0 then exit;
@@ -207,7 +209,7 @@ begin
   FInitialFlags:=TPJUInitialFlags.Create;
   FAnalyzer:=TPasAnalyzer.Create;
   Analyzer.Resolver:=Engine;
-  Analyzer.Options:=Analyzer.Options+[paoProcImplReferences];
+  Analyzer.Options:=Analyzer.Options+[paoImplReferences];
   Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
   Converter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
 end;
@@ -224,7 +226,7 @@ end;
 function TCustomTestPrecompile.CreateConverter: TPasToJSConverter;
 begin
   Result:=inherited CreateConverter;
-  Result.Options:=Result.Options+[coStoreProcJS];
+  Result.Options:=Result.Options+[coStoreImplJS];
 end;
 
 procedure TCustomTestPrecompile.ParseUnit;
@@ -461,8 +463,16 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredModule(const Path: string; Orig,
   Rest: TPasModule);
+
+  procedure CheckInitFinal(const Path: string; OrigBlock, RestBlock: TPasImplBlock);
+  begin
+    CheckRestoredObject(Path,OrigBlock,RestBlock);
+    if OrigBlock=nil then exit;
+    CheckRestoredCustomData(Path+'.CustomData',RestBlock,OrigBlock.CustomData,RestBlock.CustomData);
+  end;
+
 begin
-  if not (Orig.CustomData is TPasModuleScope) then
+  if not (Orig.CustomData is TPas2JSModuleScope) then
     Fail(Path+'.CustomData is not TPasModuleScope'+GetObjName(Orig.CustomData));
 
   CheckRestoredElement(Path+'.InterfaceSection',Orig.InterfaceSection,Rest.InterfaceSection);
@@ -471,8 +481,9 @@ begin
     CheckRestoredElement(Path+'.ProgramSection',TPasProgram(Orig).ProgramSection,TPasProgram(Rest).ProgramSection)
   else if Orig is TPasLibrary then
     CheckRestoredElement(Path+'.LibrarySection',TPasLibrary(Orig).LibrarySection,TPasLibrary(Rest).LibrarySection);
-  CheckRestoredElement(Path+'.InitializationSection',Orig.InitializationSection,Rest.InitializationSection);
-  CheckRestoredElement(Path+'.FinalizationSection',Orig.FinalizationSection,Rest.FinalizationSection);
+
+  CheckInitFinal(Path+'.InitializationSection',Orig.InitializationSection,Rest.InitializationSection);
+  CheckInitFinal(Path+'.FnializationSection',Orig.FinalizationSection,Rest.FinalizationSection);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredScopeReference(const Path: string;
@@ -502,7 +513,7 @@ begin
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredModuleScope(const Path: string;
-  Orig, Rest: TPasModuleScope);
+  Orig, Rest: TPas2JSModuleScope);
 begin
   AssertEquals(Path+'.FirstName',Orig.FirstName,Rest.FirstName);
   if Orig.Flags<>Rest.Flags then
@@ -581,6 +592,14 @@ begin
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
+procedure TCustomTestPrecompile.CheckRestoredInitialFinalizationScope(
+  const Path: string; Orig, Rest: TPas2JSInitialFinalizationScope);
+begin
+  CheckRestoredScopeRefs(Path+'.References',Orig.References,Rest.References);
+  if Orig.JS<>Rest.JS then
+    CheckRestoredJS(Path+'.JS',Orig.JS,Rest.JS);
+end;
+
 procedure TCustomTestPrecompile.CheckRestoredEnumTypeScope(const Path: string;
   Orig, Rest: TPasEnumTypeScope);
 begin
@@ -620,7 +639,7 @@ var
 begin
   CheckRestoredReference(Path+'.DeclarationProc',Orig.DeclarationProc,Rest.DeclarationProc);
   CheckRestoredReference(Path+'.ImplProc',Orig.ImplProc,Rest.ImplProc);
-  CheckRestoredProcScopeRefs(Path+'.References',Orig,Rest);
+  CheckRestoredScopeRefs(Path+'.References',Orig.References,Rest.References);
   if Orig.BodyJS<>Rest.BodyJS then
     CheckRestoredJS(Path+'.BodyJS',Orig.BodyJS,Rest.BodyJS);
 
@@ -658,28 +677,28 @@ begin
     end;
 end;
 
-procedure TCustomTestPrecompile.CheckRestoredProcScopeRefs(const Path: string;
-  Orig, Rest: TPas2JSProcedureScope);
+procedure TCustomTestPrecompile.CheckRestoredScopeRefs(const Path: string;
+  Orig, Rest: TPasScopeReferences);
 var
   OrigList, RestList: TFPList;
   i: Integer;
-  OrigRef, RestRef: TPasProcScopeReference;
+  OrigRef, RestRef: TPasScopeReference;
 begin
-  // check References of a proc with implementation
-  CheckRestoredObject(Path,Orig.References,Rest.References);
+  CheckRestoredObject(Path,Orig,Rest);
+  if Orig=nil then exit;
   OrigList:=nil;
   RestList:=nil;
   try
-    OrigList:=Orig.GetReferences;
-    RestList:=Rest.GetReferences;
+    OrigList:=Orig.GetList;
+    RestList:=Rest.GetList;
     OrigList.Sort(@CompareListOfProcScopeRef);
     RestList.Sort(@CompareListOfProcScopeRef);
     for i:=0 to OrigList.Count-1 do
       begin
-      OrigRef:=TPasProcScopeReference(OrigList[i]);
+      OrigRef:=TPasScopeReference(OrigList[i]);
       if i>=RestList.Count then
         Fail(Path+'['+IntToStr(i)+'] Missing in Rest: "'+OrigRef.Element.Name+'"');
-      RestRef:=TPasProcScopeReference(RestList[i]);
+      RestRef:=TPasScopeReference(RestList[i]);
       CheckRestoredReference(Path+'['+IntToStr(i)+'].Name="'+OrigRef.Element.Name+'"',OrigRef.Element,RestRef.Element);
       if OrigRef.Access<>RestRef.Access then
         AssertEquals(Path+'['+IntToStr(i)+']"'+OrigRef.Element.Name+'".Access',
@@ -688,7 +707,7 @@ begin
     if RestList.Count>OrigList.Count then
       begin
       i:=OrigList.Count;
-      RestRef:=TPasProcScopeReference(RestList[i]);
+      RestRef:=TPasScopeReference(RestList[i]);
       Fail(Path+'['+IntToStr(i)+'] Too many in Rest: "'+RestRef.Element.Name+'"');
       end;
   finally
@@ -799,10 +818,12 @@ begin
   C:=Orig.ClassType;
   if C=TResolvedReference then
     CheckRestoredResolvedReference(Path+'[TResolvedReference]',TResolvedReference(Orig),TResolvedReference(Rest))
-  else if C=TPasModuleScope then
-    CheckRestoredModuleScope(Path+'[TPasModuleScope]',TPasModuleScope(Orig),TPasModuleScope(Rest))
+  else if C=TPas2JSModuleScope then
+    CheckRestoredModuleScope(Path+'[TPas2JSModuleScope]',TPas2JSModuleScope(Orig),TPas2JSModuleScope(Rest))
   else if C=TPasSectionScope then
     CheckRestoredSectionScope(Path+'[TPasSectionScope]',TPasSectionScope(Orig),TPasSectionScope(Rest))
+  else if C=TPas2JSInitialFinalizationScope then
+    CheckRestoredInitialFinalizationScope(Path+'[TPas2JSInitialFinalizationScope]',TPas2JSInitialFinalizationScope(Orig),TPas2JSInitialFinalizationScope(Rest))
   else if C=TPasEnumTypeScope then
     CheckRestoredEnumTypeScope(Path+'[TPasEnumTypeScope]',TPasEnumTypeScope(Orig),TPasEnumTypeScope(Rest))
   else if C=TPasRecordScope then
@@ -1619,6 +1640,26 @@ begin
   'begin',
   'end;'
   ]);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Initialization;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'implementation',
+  'type',
+  '  TCaption = string;',
+  '  TRec = record h: string; end;',
+  'var',
+  '  s: TCaption;',
+  '  r: TRec;',
+  'initialization',
+  '  s:=''ö😊'';',
+  '  r.h:=''Ä😊'';',
+  'end.',
+  '']);
   WriteReadUnit;
 end;
 
