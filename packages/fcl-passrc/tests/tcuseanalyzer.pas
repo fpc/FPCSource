@@ -36,7 +36,7 @@ type
       const MsgText: string); virtual;
     procedure CheckUseAnalyzerUnexpectedHints; virtual;
     procedure CheckUnitUsed(const aFilename: string; Used: boolean); virtual;
-    procedure CheckUnitProcedureReferences(const ProcName: string;
+    procedure CheckScopeReferences(const ScopeName: string;
       const RefNames: array of string);
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
@@ -141,8 +141,9 @@ type
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
 
-    // procedure references
-    procedure TestPR_UnitVar;
+    // scope references
+    procedure TestSR_Proc_UnitVar;
+    procedure TestSR_Init_UnitVar;
   end;
 
 function dbgs(a: TPSRefAccess) : string;
@@ -345,8 +346,8 @@ begin
     end;
 end;
 
-procedure TCustomTestUseAnalyzer.CheckUnitProcedureReferences(
-  const ProcName: string; const RefNames: array of string);
+procedure TCustomTestUseAnalyzer.CheckScopeReferences(
+  const ScopeName: string; const RefNames: array of string);
 type
   TEntry = record
     Name: string;
@@ -356,16 +357,20 @@ type
 var
   Entries: array of TEntry;
 
-  procedure CheckRefs(Scope: TPasProcedureScope; const Prefix: string);
+  procedure CheckRefs(ScopeRefs: TPasScopeReferences; const Prefix: string);
 
     procedure DumpRefsAndFail(Refs: TFPList; const Msg: string);
     var
       i: Integer;
-      Ref: TPasProcScopeReference;
+      Ref: TPasScopeReference;
     begin
+      {$IFDEF VerbosePasAnalyzer}
+      if Refs.Count=0 then
+        writeln('DumpRefsAndFail ',Prefix,' NO REFS');
+      {$ENDIF}
       for i:=0 to Refs.Count-1 do
         begin
-        Ref:=TPasProcScopeReference(Refs[i]);
+        Ref:=TPasScopeReference(Refs[i]);
         if Ref=nil then break;
         {$IFDEF VerbosePasAnalyzer}
         writeln('DumpRefsAndFail ',Prefix,' ',i,' ',GetObjName(Ref.Element),' ',Ref.Access);
@@ -378,15 +383,18 @@ var
     Refs: TFPList;
     j, i: Integer;
     o: TObject;
-    Ref: TPasProcScopeReference;
+    Ref: TPasScopeReference;
   begin
-    Refs:=Scope.GetReferences;
+    if ScopeRefs=nil then
+      Refs:=TFPList.Create
+    else
+      Refs:=ScopeRefs.GetList;
     try
       // check that Refs only contains TPasProcScopeReference
       for i:=0 to Refs.Count-1 do
         begin
         o:=TObject(Refs[i]);
-        if not (o is TPasProcScopeReference) then
+        if not (o is TPasScopeReference) then
           Fail(Prefix+': Refs['+IntToStr(i)+'] '+GetObjName(o));
         end;
       // check that all Entries are referenced
@@ -394,11 +402,11 @@ var
         begin
         j:=Refs.Count-1;
         while (j>=0)
-            and (CompareText(Entries[i].Name,TPasProcScopeReference(Refs[j]).Element.Name)<>0) do
+            and (CompareText(Entries[i].Name,TPasScopeReference(Refs[j]).Element.Name)<>0) do
           dec(j);
         if j<0 then
           DumpRefsAndFail(Refs,'Missing reference "'+Entries[i].Name+'"');
-        Ref:=TPasProcScopeReference(Refs[j]);
+        Ref:=TPasScopeReference(Refs[j]);
         if (Entries[i].Access<>psraNone) and (Ref.Access<>Entries[i].Access) then
           DumpRefsAndFail(Refs,'Wrong reference access "'+Entries[i].Name+'",'
             +' expected '+dbgs(Entries[i].Access)+', but got '+dbgs(Ref.Access));
@@ -406,7 +414,7 @@ var
       // check that no other references are in Refs
       for i:=0 to Refs.Count-1 do
         begin
-        Ref:=TPasProcScopeReference(Refs[i]);
+        Ref:=TPasScopeReference(Refs[i]);
         j:=length(Entries)-1;
         while (j>=0)
             and (CompareText(Ref.Element.Name,Entries[j].Name)<>0) do
@@ -425,12 +433,11 @@ var
     El: TPasElement;
     Proc: TPasProcedure;
     Scope: TPasProcedureScope;
-    ProcAnalyzer: TPasAnalyzer;
   begin
     for i:=0 to Section.Declarations.Count-1 do
       begin
       El:=TPasElement(Section.Declarations[i]);
-      if CompareText(El.Name,ProcName)<>0 then continue;
+      if CompareText(El.Name,ScopeName)<>0 then continue;
       if not (El is TPasProcedure) then
         Fail('El is not proc '+GetObjName(El));
       Proc:=TPasProcedure(El);
@@ -438,22 +445,19 @@ var
       if Scope.DeclarationProc<>nil then continue;
 
       // check references created by AnalyzeModule
-      CheckRefs(Scope,'AnalyzeModule');
-
-      // check references created by AnalyzeProcRefs
-      Scope.ClearReferences;
-      if FProcAnalyzer=nil then
-        begin
-        ProcAnalyzer:=TPasAnalyzer.Create;
-        ProcAnalyzer.Resolver:=ResolverEngine;
-        end;
-      ProcAnalyzer.Clear;
-      ProcAnalyzer.AnalyzeProcRefs(Proc);
-      CheckRefs(Scope,'AnalyzeProcRefs');
+      CheckRefs(Scope.References,'AnalyzeModule');
 
       exit(true);
       end;
     Result:=false;
+  end;
+
+  procedure CheckInitialFinalization(El: TPasImplBlock);
+  var
+    Scope: TPasInitialFinalizationScope;
+  begin
+    Scope:=El.CustomData as TPasInitialFinalizationScope;
+    CheckRefs(Scope.References,'AnalyzeModule');
   end;
 
 var
@@ -468,18 +472,46 @@ begin
 
   if Module is TPasProgram then
     begin
-    if FindProc(TPasProgram(Module).ProgramSection) then exit;
+    if CompareText(ScopeName,'begin')=0 then
+      begin
+      // check begin-block references created by AnalyzeModule
+      CheckInitialFinalization(Module.InitializationSection);
+      exit;
+      end
+    else if FindProc(TPasProgram(Module).ProgramSection) then
+      exit;
     end
   else if Module is TPasLibrary then
     begin
-    if FindProc(TPasLibrary(Module).LibrarySection) then exit;
+    if CompareText(ScopeName,'begin')=0 then
+      begin
+      // check begin-block references created by AnalyzeModule
+      CheckInitialFinalization(Module.InitializationSection);
+      exit;
+      end
+    else if FindProc(TPasLibrary(Module).LibrarySection) then
+      exit;
     end
   else if Module.ClassType=TPasModule then
     begin
-    if FindProc(Module.InterfaceSection) then exit;
-    if FindProc(Module.ImplementationSection) then exit;
+    if CompareText(ScopeName,'initialization')=0 then
+      begin
+      // check initialization references created by AnalyzeModule
+      CheckInitialFinalization(Module.InitializationSection);
+      exit;
+      end
+    else if CompareText(ScopeName,'finalization')=0 then
+      begin
+      // check finalization references created by AnalyzeModule
+      CheckInitialFinalization(Module.FinalizationSection);
+      exit;
+      end
+    else if FindProc(Module.InterfaceSection) then
+      exit
+    else if FindProc(Module.ImplementationSection) then
+      exit;
     end;
-  Fail('missing proc '+ProcName);
+  Fail('missing proc '+ScopeName);
 end;
 
 function TCustomTestUseAnalyzer.PAMessageCount: integer;
@@ -2245,7 +2277,7 @@ begin
   AnalyzeWholeProgram;
 end;
 
-procedure TTestUseAnalyzer.TestPR_UnitVar;
+procedure TTestUseAnalyzer.TestSR_Proc_UnitVar;
 begin
   StartUnit(false);
   Add([
@@ -2267,9 +2299,37 @@ begin
   '  b:=i;',
   'end;',
   '']);
-  Analyzer.Options:=Analyzer.Options+[paoProcImplReferences];
+  Analyzer.Options:=Analyzer.Options+[paoImplReferences];
   AnalyzeUnit;
-  CheckUnitProcedureReferences('DoIt',['i','tintcolor']);
+  CheckScopeReferences('DoIt',['i','tintcolor']);
+end;
+
+procedure TTestUseAnalyzer.TestSR_Init_UnitVar;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TColor = longint;',
+  '  TIntColor = TColor;',
+  'var',
+  '  i: longint;',
+  '  j: longint;',
+  'implementation',
+  'type',
+  '  TSubColor = TIntColor;',
+  'var',
+  '  b: TSubColor;',
+  'initialization',
+  '  b:=i;',
+  'finalization',
+  '  b:=j;',
+  'end.',
+  '']);
+  Analyzer.Options:=Analyzer.Options+[paoImplReferences];
+  AnalyzeUnit;
+  CheckScopeReferences('initialization',['b','i']);
+  CheckScopeReferences('finalization',['b','j']);
 end;
 
 initialization

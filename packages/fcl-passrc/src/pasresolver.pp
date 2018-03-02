@@ -486,7 +486,50 @@ type
     Element: TPasType; // TPasClassOfType or TPasPointerType
   end;
 
+  TPSRefAccess = (
+    psraNone,
+    psraRead,
+    psraWrite,
+    psraReadWrite,
+    psraWriteRead,
+    psraTypeInfo
+    );
+
+  { TPasScopeReference }
+
+  TPasScopeReference = class
+  private
+    FElement: TPasElement;
+    procedure SetElement(const AValue: TPasElement);
+  public
+    {$IFDEF VerbosePasResolver}
+    Owner: TObject;
+    {$ENDIF}
+    Access: TPSRefAccess;
+    NextSameName: TPasScopeReference;
+    destructor Destroy; override;
+    property Element: TPasElement read FElement write SetElement;
+  end;
+
   TPasScope = class;
+
+  { TPasScopeReferences - used by TPasAnalyzer to store references of a proc or initialization section }
+
+  TPasScopeReferences = class
+  private
+    FScope: TPasScope;
+    procedure OnClearItem(Item, Dummy: pointer);
+    procedure OnCollectItem(Item, aList: pointer);
+  public
+    References: TFPHashList; // hash list of TPasScopeReference
+    constructor Create(aScope: TPasScope);
+    destructor Destroy; override;
+    procedure Clear;
+    function Add(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
+    function Find(const aName: string): TPasScopeReference;
+    function GetList: TFPList;
+    property Scope: TPasScope read FScope;
+  end;
 
   TIterateScopeElement = procedure(El: TPasElement; ElScope, StartScope: TPasScope;
     Data: Pointer; var Abort: boolean) of object;
@@ -548,6 +591,7 @@ type
     property RangeErrorClass: TPasClassType read FRangeErrorClass write SetRangeErrorClass;
     property RangeErrorConstructor: TPasConstructor read FRangeErrorConstructor write SetRangeErrorConstructor;
   end;
+  TPasModuleScopeClass = class of TPasModuleScope;
 
   TPasIdentifierKind = (
     pikNone, // not yet initialized
@@ -631,6 +675,16 @@ type
     procedure WriteIdentifiers(Prefix: string); override;
   end;
 
+  { TPasInitialFinalizationScope - e.g. TInitializationSection, TFinalizationSection }
+
+  TPasInitialFinalizationScope = Class(TPasScope)
+  public
+    References: TPasScopeReferences; // created by TPasAnalyzer
+    function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
+    destructor Destroy; override;
+  end;
+  TPasInitialFinalizationScopeClass = class of TPasInitialFinalizationScope;
+
   { TPasEnumTypeScope }
 
   TPasEnumTypeScope = Class(TPasIdentifierScope)
@@ -670,31 +724,6 @@ type
   end;
   TPasClassScopeClass = class of TPasClassScope;
 
-  TPSRefAccess = (
-    psraNone,
-    psraRead,
-    psraWrite,
-    psraReadWrite,
-    psraWriteRead,
-    psraTypeInfo
-    );
-
-  { TPasProcScopeReference }
-
-  TPasProcScopeReference = class
-  private
-    FElement: TPasElement;
-    procedure SetElement(const AValue: TPasElement);
-  public
-    {$IFDEF VerbosePasResolver}
-    Owner: TObject;
-    {$ENDIF}
-    Access: TPSRefAccess;
-    NextSameName: TPasProcScopeReference;
-    destructor Destroy; override;
-    property Element: TPasElement read FElement write SetElement;
-  end;
-
   TPasProcedureScopeFlag = (
     ppsfIsGroupOverload // mode objfpc: one overload is enough for all procs in same scope
     );
@@ -703,9 +732,6 @@ type
   { TPasProcedureScope }
 
   TPasProcedureScope = Class(TPasIdentifierScope)
-  private
-    procedure OnClearReferenceItem(Item, Dummy: pointer);
-    procedure OnCollectReferenceItem(Item, aList: pointer);
   public
     DeclarationProc: TPasProcedure; // the corresponding forward declaration
     ImplProc: TPasProcedure; // the corresponding proc with Body
@@ -715,7 +741,6 @@ type
     Mode: TModeSwitch;
     Flags: TPasProcedureScopeFlags;
     BoolSwitches: TBoolSwitches;
-    References: TFPHashList; // list of TPasProcScopeReference, created by TPasAnalyzer
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -723,9 +748,9 @@ type
     function GetSelfScope: TPasProcedureScope; // get the next parent procscope with a classcope
     procedure WriteIdentifiers(Prefix: string); override;
     destructor Destroy; override;
-    procedure ClearReferences;
-    function AddReference(El: TPasElement; Access: TPSRefAccess): TPasProcScopeReference;
-    function FindReference(const aName: string): TPasProcScopeReference;
+  public
+    References: TPasScopeReferences; // created by TPasAnalyzer in DeclrationProc
+    function AddReference(El: TPasElement; Access: TPSRefAccess): TPasScopeReference;
     function GetReferences: TFPList;
   end;
   TPasProcedureScopeClass = class of TPasProcedureScope;
@@ -1066,6 +1091,8 @@ type
     FPendingForwardProcs: TFPList; // list of TPasElement needed to check for forward procs
     FRootElement: TPasModule;
     FScopeClass_Class: TPasClassScopeClass;
+    FScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass;
+    FScopeClass_Module: TPasModuleScopeClass;
     FScopeClass_Proc: TPasProcedureScopeClass;
     FScopeClass_WithExpr: TPasWithExprScopeClass;
     FScopeCount: integer;
@@ -1136,6 +1163,7 @@ type
       const Kind: TPasIdentifierKind): TPasIdentifier; virtual;
     procedure AddModule(El: TPasModule); virtual;
     procedure AddSection(El: TPasSection); virtual;
+    procedure AddInitialFinalizationSection(El: TPasImplBlock); virtual;
     procedure AddType(El: TPasType); virtual;
     procedure AddRecordType(El: TPasRecordType); virtual;
     procedure AddClassType(El: TPasClassType); virtual;
@@ -1210,6 +1238,7 @@ type
     procedure FinishPropertyParamAccess(Params: TParamsExpr;
       Prop: TPasProperty);
     procedure FinishCallArgAccess(Expr: TPasExpr; Access: TResolvedRefAccess);
+    procedure FinishInitialFinalization(El: TPasImplBlock);
     procedure EmitTypeHints(PosEl: TPasElement; aType: TPasType); virtual;
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
@@ -1623,6 +1652,8 @@ type
     property TopScope: TPasScope read FTopScope;
     property DefaultScope: TPasDefaultScope read FDefaultScope write FDefaultScope;
     property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
+    property ScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass read FScopeClass_InitialFinalization write FScopeClass_InitialFinalization;
+    property ScopeClass_Module: TPasModuleScopeClass read FScopeClass_Module write FScopeClass_Module;
     property ScopeClass_Procedure: TPasProcedureScopeClass read FScopeClass_Proc write FScopeClass_Proc;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
     // last element
@@ -2159,9 +2190,25 @@ begin
   str(a,Result);
 end;
 
-{ TPasProcScopeReference }
+{ TPasInitialFinalizationScope }
 
-procedure TPasProcScopeReference.SetElement(const AValue: TPasElement);
+function TPasInitialFinalizationScope.AddReference(El: TPasElement;
+  Access: TPSRefAccess): TPasScopeReference;
+begin
+  if References=nil then
+    References:=TPasScopeReferences.Create(Self);
+  Result:=References.Add(El,Access);
+end;
+
+destructor TPasInitialFinalizationScope.Destroy;
+begin
+  FreeAndNil(References);
+  inherited Destroy;
+end;
+
+{ TPasScopeReference }
+
+procedure TPasScopeReference.SetElement(const AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
   if FElement<>nil then
@@ -2171,7 +2218,7 @@ begin
     FElement.AddRef;
 end;
 
-destructor TPasProcScopeReference.Destroy;
+destructor TPasScopeReference.Destroy;
 begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasProcScopeReference.Destroy START ',ClassName,' "',GetObjName(Element),'"');
@@ -2181,6 +2228,154 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasProcScopeReference.Destroy END ',ClassName);
   {$ENDIF}
+end;
+
+{ TPasScopeReferences }
+
+procedure TPasScopeReferences.OnClearItem(Item, Dummy: pointer);
+var
+  Ref: TPasScopeReference absolute Item;
+  Ref2: TPasScopeReference;
+begin
+  if Dummy=nil then ;
+  //writeln('TPasProcedureScope.OnClearReferenceItem ',GetObjName(Ref.Element));
+  while Ref<>nil do
+    begin
+    Ref2:=Ref;
+    Ref:=Ref.NextSameName;
+    Ref2.Free;
+    end;
+end;
+
+procedure TPasScopeReferences.OnCollectItem(Item, aList: pointer);
+var
+  Ref: TPasScopeReference absolute Item;
+  List: TFPList absolute aList;
+begin
+  List.Add(Ref);
+end;
+
+constructor TPasScopeReferences.Create(aScope: TPasScope);
+begin
+  References:=TFPHashList.Create;
+  FScope:=aScope;
+end;
+
+destructor TPasScopeReferences.Destroy;
+begin
+  Clear;
+  FreeAndNil(References);
+  inherited Destroy;
+end;
+
+procedure TPasScopeReferences.Clear;
+begin
+  if References=nil then exit;
+  References.ForEachCall(@OnClearItem,nil);
+  References.Clear;
+end;
+
+function TPasScopeReferences.Add(El: TPasElement; Access: TPSRefAccess
+  ): TPasScopeReference;
+var
+  LoName: String;
+  OldItem, Item: TPasScopeReference;
+  Index: Integer;
+begin
+  LoName:=lowercase(El.Name);
+  OldItem:=TPasScopeReference(References.Find(LoName));
+  Item:=OldItem;
+  while Item<>nil do
+    begin
+    if Item.Element=El then
+      begin
+      // already marked as used -> combine access
+      case Access of
+      psraNone: ;
+      psraRead:
+        case Item.Access of
+          psraNone: Item.Access:=Access;
+          //psraRead: ;
+          psraWrite: Item.Access:=psraWriteRead;
+          //psraReadWrite: ;
+          //psraWriteRead: ;
+          //psraTypeInfo: ;
+        end;
+      psraWrite:
+        case Item.Access of
+          psraNone: Item.Access:=Access;
+          psraRead: Item.Access:=psraReadWrite;
+          //psraWrite: ;
+          //psraReadWrite: ;
+          //psraWriteRead: ;
+          //psraTypeInfo: ;
+        end;
+      psraReadWrite:
+        case Item.Access of
+          psraNone: Item.Access:=Access;
+          psraRead: Item.Access:=psraReadWrite;
+          psraWrite: Item.Access:=psraWriteRead;
+          //psraReadWrite: ;
+          //psraWriteRead: ;
+          //psraTypeInfo: ;
+        end;
+      psraWriteRead:
+        case Item.Access of
+          psraNone: Item.Access:=Access;
+          psraRead: Item.Access:=psraReadWrite;
+          psraWrite: Item.Access:=psraWriteRead;
+          //psraReadWrite: ;
+          //psraWriteRead: ;
+          //psraTypeInfo: ;
+        end;
+      psraTypeInfo: Item.Access:=psraTypeInfo;
+      else
+        raise EPasResolve.Create(GetObjName(El)+' unknown Access');
+      end;
+      exit(Item);
+      end;
+    Item:=Item.NextSameName;
+    end;
+  // new reference
+  Item:=TPasScopeReference.Create;
+  Item.Element:=El;
+  Item.Access:=Access;
+  Index:=References.FindIndexOf(LoName);
+  if Index<0 then
+    begin
+    References.Add(LoName,Item);
+    {$IFDEF VerbosePJUFiler}
+    if TPasScopeReference(References.Find(LoName))<>Item then
+      raise EPasResolve.Create('20180219230028');
+    {$ENDIF}
+    end
+  else
+    begin
+    OldItem:=TPasScopeReference(References.List^[Index].Data);
+    {$IFDEF VerbosePJUFiler}
+    if lowercase(OldItem.Element.Name)<>LoName then
+      raise EPasResolve.Create('20180219230055');
+    {$ENDIF}
+    Item.NextSameName:=OldItem;
+    References.List^[Index].Data:=Item;
+    end;
+  Result:=Item;
+end;
+
+function TPasScopeReferences.Find(const aName: string): TPasScopeReference;
+var
+  LoName: String;
+begin
+  if References=nil then exit(nil);
+  LoName:=lowercase(aName);
+  Result:=TPasScopeReference(References.Find(LoName));
+end;
+
+function TPasScopeReferences.GetList: TFPList;
+begin
+  Result:=TFPList.Create;
+  if References=nil then exit;
+  References.ForEachCall(@OnCollectItem,Result);
 end;
 
 { TPasPropertyScope }
@@ -2280,29 +2475,6 @@ end;
 
 { TPasProcedureScope }
 
-procedure TPasProcedureScope.OnClearReferenceItem(Item, Dummy: pointer);
-var
-  Ref: TPasProcScopeReference absolute Item;
-  Ref2: TPasProcScopeReference;
-begin
-  if Dummy=nil then ;
-  //writeln('TPasProcedureScope.OnClearReferenceItem ',GetObjName(Ref.Element));
-  while Ref<>nil do
-    begin
-    Ref2:=Ref;
-    Ref:=Ref.NextSameName;
-    Ref2.Free;
-    end;
-end;
-
-procedure TPasProcedureScope.OnCollectReferenceItem(Item, aList: pointer);
-var
-  Ref: TPasProcScopeReference absolute Item;
-  List: TFPList absolute aList;
-begin
-  List.Add(Ref);
-end;
-
 function TPasProcedureScope.FindIdentifier(const Identifier: String
   ): TPasIdentifier;
 begin
@@ -2345,7 +2517,7 @@ end;
 
 destructor TPasProcedureScope.Destroy;
 begin
-  ClearReferences;
+  FreeAndNil(References);
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasProcedureScope.Destroy START ',ClassName);
   {$ENDIF}
@@ -2356,118 +2528,20 @@ begin
   {$ENDIF}
 end;
 
-procedure TPasProcedureScope.ClearReferences;
-begin
-  if References=nil then exit;
-  References.ForEachCall(@OnClearReferenceItem,nil);
-  References.Clear;
-  FreeAndNil(References);
-end;
-
 function TPasProcedureScope.AddReference(El: TPasElement; Access: TPSRefAccess
-  ): TPasProcScopeReference;
-var
-  LoName: String;
-  OldItem, Item: TPasProcScopeReference;
-  Index: Integer;
+  ): TPasScopeReference;
 begin
   if References=nil then
-    References:=TFPHashList.Create;
-  LoName:=lowercase(El.Name);
-  OldItem:=TPasProcScopeReference(References.Find(LoName));
-  Item:=OldItem;
-  while Item<>nil do
-    begin
-    if Item.Element=El then
-      begin
-      // already marked as used -> combine access
-      case Access of
-      psraNone: ;
-      psraRead:
-        case Item.Access of
-          psraNone: Item.Access:=Access;
-          //psraRead: ;
-          psraWrite: Item.Access:=psraWriteRead;
-          //psraReadWrite: ;
-          //psraWriteRead: ;
-          //psraTypeInfo: ;
-        end;
-      psraWrite:
-        case Item.Access of
-          psraNone: Item.Access:=Access;
-          psraRead: Item.Access:=psraReadWrite;
-          //psraWrite: ;
-          //psraReadWrite: ;
-          //psraWriteRead: ;
-          //psraTypeInfo: ;
-        end;
-      psraReadWrite:
-        case Item.Access of
-          psraNone: Item.Access:=Access;
-          psraRead: Item.Access:=psraReadWrite;
-          psraWrite: Item.Access:=psraWriteRead;
-          //psraReadWrite: ;
-          //psraWriteRead: ;
-          //psraTypeInfo: ;
-        end;
-      psraWriteRead:
-        case Item.Access of
-          psraNone: Item.Access:=Access;
-          psraRead: Item.Access:=psraReadWrite;
-          psraWrite: Item.Access:=psraWriteRead;
-          //psraReadWrite: ;
-          //psraWriteRead: ;
-          //psraTypeInfo: ;
-        end;
-      psraTypeInfo: Item.Access:=psraTypeInfo;
-      else
-        raise EPasResolve.Create(GetObjName(El)+' unknown Access');
-      end;
-      exit(Item);
-      end;
-    Item:=Item.NextSameName;
-    end;
-  // new reference
-  Item:=TPasProcScopeReference.Create;
-  Item.Element:=El;
-  Item.Access:=Access;
-  Index:=References.FindIndexOf(LoName);
-  if Index<0 then
-    begin
-    References.Add(LoName,Item);
-    {$IFDEF VerbosePJUFiler}
-    if TPasProcScopeReference(References.Find(LoName))<>Item then
-      raise EPasResolve.Create('20180219230028');
-    {$ENDIF}
-    end
-  else
-    begin
-    OldItem:=TPasProcScopeReference(References.List^[Index].Data);
-    {$IFDEF VerbosePJUFiler}
-    if lowercase(OldItem.Element.Name)<>LoName then
-      raise EPasResolve.Create('20180219230055');
-    {$ENDIF}
-    Item.NextSameName:=OldItem;
-    References.List^[Index].Data:=Item;
-    end;
-  Result:=Item;
-end;
-
-function TPasProcedureScope.FindReference(const aName: string
-  ): TPasProcScopeReference;
-var
-  LoName: String;
-begin
-  if References=nil then exit(nil);
-  LoName:=lowercase(aName);
-  Result:=TPasProcScopeReference(References.Find(LoName));
+    References:=TPasScopeReferences.Create(Self);
+  Result:=References.Add(El,Access);
 end;
 
 function TPasProcedureScope.GetReferences: TFPList;
 begin
-  Result:=TFPList.Create;
-  if References=nil then exit;
-  References.ForEachCall(@OnCollectReferenceItem,Result);
+  if References=nil then
+    Result:=TFPList.Create
+  else
+    Result:=References.GetList;
 end;
 
 { TPasClassScope }
@@ -3944,7 +4018,7 @@ begin
   // close all sections
   while (TopScope<>nil) and (TopScope.ClassType=TPasSectionScope) do
     PopScope;
-  CheckTopScope(TPasModuleScope);
+  CheckTopScope(FScopeClass_Module);
   PopScope;
 
   FStep:=prsFinishedModule;
@@ -5599,6 +5673,13 @@ begin
   if Access<>rraRead then
     Include(Flags,rcNoImplicitProc);
   ComputeElement(Expr,ResolvedEl,Flags);
+end;
+
+procedure TPasResolver.FinishInitialFinalization(El: TPasImplBlock);
+begin
+  if El=nil then ;
+  CheckTopScope(ScopeClass_InitialFinalization);
+  PopScope;
 end;
 
 procedure TPasResolver.EmitTypeHints(PosEl: TPasElement; aType: TPasType);
@@ -7311,7 +7392,7 @@ var
 begin
   if TopScope<>DefaultScope then
     RaiseInvalidScopeForElement(20160922163504,El);
-  ModScope:=TPasModuleScope(PushScope(El,TPasModuleScope));
+  ModScope:=TPasModuleScope(PushScope(El,FScopeClass_Module));
   ModScope.VisibilityContext:=El;
   ModScope.FirstName:=FirstDottedIdentifier(El.Name);
   C:=El.ClassType;
@@ -7329,6 +7410,11 @@ begin
     FinishSection(TPasSectionScope(TopScope).Element as TPasSection);
   FPendingForwardProcs.Add(El); // check forward declarations at the end
   PushScope(El,TPasSectionScope);
+end;
+
+procedure TPasResolver.AddInitialFinalizationSection(El: TPasImplBlock);
+begin
+  PushScope(El,ScopeClass_InitialFinalization);
 end;
 
 procedure TPasResolver.AddType(El: TPasType);
@@ -11015,6 +11101,8 @@ begin
   FDynArrayMinIndex:=0;
   FDynArrayMaxIndex:=High(int64);
   FScopeClass_Class:=TPasClassScope;
+  FScopeClass_InitialFinalization:=TPasInitialFinalizationScope;
+  FScopeClass_Module:=TPasModuleScope;
   FScopeClass_Proc:=TPasProcedureScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
   fExprEvaluator:=TResExprEvaluator.Create;
@@ -11145,6 +11233,10 @@ begin
   else if AClass=TPasUsesUnit then
   else if AClass.InheritsFrom(TPasExpr) then
     // resolved when finished
+  else if AClass=TInitializationSection then
+    AddInitialFinalizationSection(TInitializationSection(El))
+  else if AClass=TFinalizationSection then
+    AddInitialFinalizationSection(TFinalizationSection(El))
   else if AClass.InheritsFrom(TPasImplBlock) then
     // resolved when finished
   else if AClass=TPasUnresolvedUnitRef then
@@ -11727,6 +11819,7 @@ begin
   stExceptOnStatement: FinishExceptOnStatement;
   stDeclaration: FinishDeclaration(El);
   stAncestors: FinishAncestors(El as TPasClassType);
+  stInitialFinalization: FinishInitialFinalization(El as TPasImplBlock);
   else
     RaiseMsg(20170216152401,nNotYetImplemented,sNotYetImplemented+' FinishScope',[IntToStr(ord(ScopeType))],nil);
   end;

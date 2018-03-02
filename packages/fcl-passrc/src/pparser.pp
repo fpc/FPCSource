@@ -151,7 +151,8 @@ type
     stExceptOnExpr,
     stExceptOnStatement,
     stDeclaration, // e.g. a TPasProperty, TPasVariable, TPasArgument
-    stAncestors // the list of ancestors and interfaces of a class
+    stAncestors, // the list of ancestors and interfaces of a class
+    stInitialFinalization
     );
   TPasScopeTypes = set of TPasScopeType;
 
@@ -2904,10 +2905,12 @@ begin
     if (CurToken=tkend) then
     begin
       ExpectToken(tkDot);
+      Engine.FinishScope(stInitialFinalization,Section);
       exit;
     end
     else if (CurToken=tkfinalization) then
     begin
+      Engine.FinishScope(stInitialFinalization,Section);
       ParseFinalization;
       exit;
     end
@@ -2933,6 +2936,7 @@ begin
     if (CurToken=tkend) then
     begin
       ExpectToken(tkDot);
+      Engine.FinishScope(stInitialFinalization,Section);
       exit;
     end
     else if CurToken<>tkSemiColon then

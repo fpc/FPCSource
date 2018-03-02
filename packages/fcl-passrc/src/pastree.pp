@@ -1206,6 +1206,7 @@ Type
   public
     Elements: TFPList;    // list of TPasImplElement and maybe one TPasImplCaseElse
   end;
+  TPasImplBlockClass = class of TPasImplBlock;
 
   { TPasImplStatement }
 

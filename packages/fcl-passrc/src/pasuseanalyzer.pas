@@ -147,7 +147,7 @@ type
 
   TPasAnalyzerOption = (
     paoOnlyExports, // default: use all class members accessible from outside (protected, but not private)
-    paoProcImplReferences // collect TPasProcedureScope.References of top lvl proc implementations
+    paoImplReferences // collect references of top lvl proc implementations, initializationa dn finalization sections
     );
   TPasAnalyzerOptions = set of TPasAnalyzerOption;
 
@@ -179,19 +179,17 @@ type
     FResolver: TPasResolver;
     FScopeModule: TPasModule;
     FUsedElements: TAVLTree; // tree of TPAElement sorted for Element
-    FRefProcDecl: TPasProcedure; // if set, collect only what this proc references
-    FRefProcScope: TPasProcedureScope; // the ProcScope of FRefProcDecl
     procedure UseElType(El: TPasElement; aType: TPasType; Mode: TPAUseMode); inline;
     function AddOverride(OverriddenEl, OverrideEl: TPasElement): boolean;
     function FindOverrideNode(El: TPasElement): TAVLTreeNode;
     function FindOverrideList(El: TPasElement): TPAOverrideList;
     procedure SetOptions(AValue: TPasAnalyzerOptions);
     procedure UpdateAccess(IsWrite: Boolean; IsRead: Boolean; Usage: TPAElement);
-    procedure OnUseProcScopeRef(data, DeclScope: pointer);
+    procedure OnUseScopeRef(data, DeclScope: pointer);
   protected
     procedure RaiseInconsistency(const Id: int64; Msg: string);
     procedure RaiseNotSupported(const Id: int64; El: TPasElement; const Msg: string = '');
-    function FindTopProcScope(El: TPasElement; Decl: boolean): TPasProcedureScope;
+    function FindTopImplScope(El: TPasElement): TPasScope;
     // mark used elements
     function Add(El: TPasElement; CheckDuplicate: boolean = true;
       aClass: TPAElementClass = nil): TPAElement;
@@ -200,8 +198,7 @@ type
     procedure CreateTree; virtual;
     function MarkElementAsUsed(El: TPasElement; aClass: TPAElementClass = nil): boolean; // true if new
     function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean;
-    function MarkSingleProcRef(El: TPasElement; Access: TPSRefAccess): boolean; // true if outside FRefProcDecl
-    procedure MarkScopeRef(Parent, El: TPasElement; Access: TPSRefAccess);
+    procedure MarkImplScopeRef(El, RefEl: TPasElement; Access: TPSRefAccess);
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UsePublished(El: TPasElement); virtual;
@@ -213,6 +210,7 @@ type
     procedure UseExprRef(El: TPasElement; Expr: TPasExpr;
       Access: TResolvedRefAccess; UseFull: boolean); virtual;
     procedure UseInheritedExpr(El: TInheritedExpr); virtual;
+    procedure UseScopeReferences(Refs: TPasScopeReferences); virtual;
     procedure UseProcedure(Proc: TPasProcedure); virtual;
     procedure UseProcedureType(ProcType: TPasProcedureType; Mark: boolean); virtual;
     procedure UseType(El: TPasType; Mode: TPAUseMode); virtual;
@@ -236,7 +234,6 @@ type
     procedure Clear;
     procedure AnalyzeModule(aModule: TPasModule);
     procedure AnalyzeWholeProgram(aStartModule: TPasProgram);
-    procedure AnalyzeProcRefs(Proc: TPasProcedure);
     procedure EmitModuleHints(aModule: TPasModule); virtual;
     function FindElement(El: TPasElement): TPAElement;
     function FindUsedElement(El: TPasElement): TPAElement;
@@ -436,7 +433,7 @@ procedure TPasAnalyzer.UseElType(El: TPasElement; aType: TPasType;
   Mode: TPAUseMode);
 begin
   if aType=nil then exit;
-  MarkScopeRef(El,aType,PAUseModeToPSRefAccess[Mode]);
+  MarkImplScopeRef(El,aType,PAUseModeToPSRefAccess[Mode]);
   UseType(aType,Mode);
 end;
 
@@ -518,10 +515,10 @@ begin
     end;
 end;
 
-procedure TPasAnalyzer.OnUseProcScopeRef(data, DeclScope: pointer);
+procedure TPasAnalyzer.OnUseScopeRef(data, DeclScope: pointer);
 var
-  Ref: TPasProcScopeReference absolute data;
-  Scope: TPasProcedureScope absolute DeclScope;
+  Ref: TPasScopeReference absolute data;
+  Scope: TPasScope absolute DeclScope;
 begin
   if Scope=nil then ;
   case Ref.Access of
@@ -564,21 +561,32 @@ begin
   raise E;
 end;
 
-function TPasAnalyzer.FindTopProcScope(El: TPasElement; Decl: boolean
-  ): TPasProcedureScope;
+function TPasAnalyzer.FindTopImplScope(El: TPasElement): TPasScope;
+var
+  ProcScope: TPasProcedureScope;
+  C: TClass;
+  ImplProc: TPasProcedure;
 begin
   Result:=nil;
   while El<>nil do
     begin
-    if El is TPasProcedure then
-      Result:=El.CustomData as TPasProcedureScope;
+    C:=El.ClassType;
+    if C.InheritsFrom(TPasProcedure) then
+      begin
+      ProcScope:=TPasProcedureScope(El.CustomData);
+      if ProcScope.DeclarationProc<>nil then
+        ProcScope:=TPasProcedureScope(ProcScope.DeclarationProc.CustomData);
+      ImplProc:=ProcScope.ImplProc;
+      if ImplProc=nil then
+        ImplProc:=TPasProcedure(ProcScope.Element);
+      if ImplProc.Body<>nil then
+        // has implementation, not an external proc
+        Result:=ProcScope;
+      end
+    else if (C=TInitializationSection)
+        or (C=TFinalizationSection) then
+      Result:=TPasInitialFinalizationScope(El.CustomData);
     El:=El.Parent;
-    end;
-  if Result=nil then exit;
-  if Decl then
-    begin
-    if Result.DeclarationProc<>nil then
-      Result:=Result.DeclarationProc.CustomData as TPasProcedureScope;
     end;
 end;
 
@@ -669,47 +677,31 @@ begin
   FChecked[Mode].Add(El);
 end;
 
-function TPasAnalyzer.MarkSingleProcRef(El: TPasElement; Access: TPSRefAccess
-  ): boolean;
-var
-  Parent: TPasElement;
-begin
-  Parent:=El;
-  while Parent<>nil do
-    begin
-    if (Parent=FRefProcDecl) or (Parent=FRefProcScope.ImplProc) then
-      exit(false); // inside proc
-    Parent:=Parent.Parent;
-    end;
-  FRefProcScope.AddReference(El,Access);
-  Result:=true;
-end;
-
-procedure TPasAnalyzer.MarkScopeRef(Parent, El: TPasElement;
+procedure TPasAnalyzer.MarkImplScopeRef(El, RefEl: TPasElement;
   Access: TPSRefAccess);
 
   procedure CheckImplRef;
+  // check if El inside a proc, initialization or finalization
+  // and if RefEl is outside
   var
-    ParentProcScope, ElProcScope: TPasProcedureScope;
-    ImplProc: TPasProcedure;
+    ElImplScope, RefElImplScope: TPasScope;
   begin
-    ParentProcScope:=FindTopProcScope(Parent,true);
-    if ParentProcScope=nil then exit;
-    ImplProc:=ParentProcScope.ImplProc;
-    if ImplProc=nil then
-      ImplProc:=TPasProcedure(ParentProcScope.Element);
-    if ImplProc.Body=nil then
-      exit; // has no implementation, e.g. external proc
-
-    ElProcScope:=FindTopProcScope(El,true);
-    if ElProcScope=ParentProcScope then exit;
-    ParentProcScope.AddReference(El,Access);
+    ElImplScope:=FindTopImplScope(El);
+    if ElImplScope=nil then exit;
+    RefElImplScope:=FindTopImplScope(RefEl);
+    if RefElImplScope=ElImplScope then exit;
+    if ElImplScope is TPasProcedureScope then
+      TPasProcedureScope(ElImplScope).AddReference(RefEl,Access)
+    else if ElImplScope is TPasInitialFinalizationScope then
+      TPasInitialFinalizationScope(ElImplScope).AddReference(RefEl,Access)
+    else
+      RaiseInconsistency(20180302142933,GetObjName(ElImplScope));
   end;
 
 begin
-  if El=nil then exit;
-  if El.Parent=Parent then exit; // same scope
-  if paoProcImplReferences in Options then
+  if RefEl=nil then exit;
+  if RefEl.Parent=El then exit; // same scope
+  if paoImplReferences in Options then
     CheckImplRef;
 end;
 
@@ -754,7 +746,7 @@ procedure TPasAnalyzer.UsePublished(El: TPasElement);
   procedure UseSubEl(SubEl: TPasElement); inline;
   begin
     if SubEl=nil then exit;
-    MarkScopeRef(El,SubEl,psraTypeInfo);
+    MarkImplScopeRef(El,SubEl,psraTypeInfo);
     UsePublished(SubEl);
   end;
 
@@ -771,7 +763,6 @@ begin
   writeln('TPasAnalyzer.UsePublished START ',GetObjName(El));
   {$ENDIF}
   if ElementVisited(El,paumPublished) then exit;
-  if (FRefProcDecl<>nil) and MarkSingleProcRef(El,psraTypeInfo) then exit;
 
   C:=El.ClassType;
   if C=TPasUnresolvedSymbolRef then
@@ -845,8 +836,13 @@ end;
 procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
 
   procedure UseInitFinal(ImplBlock: TPasImplBlock);
+  var
+    Scope: TPasInitialFinalizationScope;
   begin
-    if IsImplBlockEmpty(ImplBlock) then exit;
+    if ImplBlock=nil then exit;
+    Scope:=TPasInitialFinalizationScope(ImplBlock.CustomData);
+    UseScopeReferences(Scope.References);
+    if (Scope.References=nil) and IsImplBlockEmpty(ImplBlock) then exit;
     // this module has an initialization section -> mark module
     if FindNode(aModule)=nil then
       Add(aModule);
@@ -857,7 +853,6 @@ var
   ModScope: TPasModuleScope;
 begin
   if ElementVisited(aModule,Mode) then exit;
-  if (FRefProcDecl<>nil) and MarkSingleProcRef(aModule,psraRead) then exit;
 
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseModule ',GetElModName(aModule),' Mode=',Mode);
@@ -944,7 +939,7 @@ begin
     writeln('TPasAnalyzer.UseSection ',Section.ClassName,' Decl=',GetElModName(Decl),' Mode=',Mode);
     {$ENDIF}
     C:=Decl.ClassType;
-    // Note: no MarkScopeRef needed, because all Decl are in the same scope
+    // Note: no MarkImplScopeRef needed, because all Decl are in the same scope
     if C.InheritsFrom(TPasProcedure) then
       begin
       if OnlyExports and ([pmExport,pmPublic]*TPasProcedure(Decl).Modifiers=[]) then
@@ -1046,11 +1041,11 @@ begin
     UseExpr(ForLoop.StartExpr);
     UseExpr(ForLoop.EndExpr);
     ForScope:=ForLoop.CustomData as TPasForLoopScope;
-    MarkScopeRef(ForLoop,ForScope.GetEnumerator,psraRead);
+    MarkImplScopeRef(ForLoop,ForScope.GetEnumerator,psraRead);
     UseProcedure(ForScope.GetEnumerator);
-    MarkScopeRef(ForLoop,ForScope.MoveNext,psraRead);
+    MarkImplScopeRef(ForLoop,ForScope.MoveNext,psraRead);
     UseProcedure(ForScope.MoveNext);
-    MarkScopeRef(ForLoop,ForScope.Current,psraRead);
+    MarkImplScopeRef(ForLoop,ForScope.Current,psraRead);
     UseVariable(ForScope.Current,rraRead,false);
     UseImplElement(ForLoop.Body);
     end
@@ -1145,7 +1140,7 @@ begin
     Ref:=TResolvedReference(El.CustomData);
     Decl:=Ref.Declaration;
     Access:=Ref.Access;
-    MarkScopeRef(El,Decl,ResolvedToPSRefAccess[Access]);
+    MarkImplScopeRef(El,Decl,ResolvedToPSRefAccess[Access]);
     UseElement(Decl,Access,false);
 
     if Resolver.IsNameExpr(El) then
@@ -1190,13 +1185,13 @@ begin
           if ParamResolved.IdentEl is TPasFunction then
             begin
             SubEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType;
-            MarkScopeRef(El,SubEl,psraTypeInfo);
+            MarkImplScopeRef(El,SubEl,psraTypeInfo);
             UsePublished(SubEl);
             end
           else
             begin
             SubEl:=ParamResolved.IdentEl;
-            MarkScopeRef(El,SubEl,psraTypeInfo);
+            MarkImplScopeRef(El,SubEl,psraTypeInfo);
             UsePublished(SubEl);
             end;
           // the parameter is not used otherwise
@@ -1289,7 +1284,7 @@ begin
     if (Expr.CustomData is TResolvedReference) then
       begin
       Ref:=TResolvedReference(Expr.CustomData);
-      MarkScopeRef(El,Ref.Declaration,ResolvedToPSRefAccess[Access]);
+      MarkImplScopeRef(El,Ref.Declaration,ResolvedToPSRefAccess[Access]);
       UseElement(Ref.Declaration,Access,UseFull);
       end;
     end
@@ -1344,6 +1339,12 @@ begin
     end;
 end;
 
+procedure TPasAnalyzer.UseScopeReferences(Refs: TPasScopeReferences);
+begin
+  if Refs=nil then exit;
+  Refs.References.ForEachCall(@OnUseScopeRef,Refs.Scope);
+end;
+
 procedure TPasAnalyzer.UseProcedure(Proc: TPasProcedure);
 
   procedure UseOverrides(CurProc: TPasProcedure);
@@ -1375,13 +1376,10 @@ begin
     exit; // skip implementation, Note:PasResolver always refers the declaration
 
   if not MarkElementAsUsed(Proc) then exit;
-  if (FRefProcDecl<>nil) and MarkSingleProcRef(Proc,psraRead) then exit;
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseProcedure ',GetElModName(Proc));
   {$ENDIF}
-
-  if ProcScope.References<>nil then
-    ProcScope.References.ForEachCall(@OnUseProcScopeRef,ProcScope);
+  UseScopeReferences(ProcScope.References);
 
   UseProcedureType(Proc.ProcType,false);
 
@@ -1390,19 +1388,6 @@ begin
     ImplProc:=ProcScope.ImplProc;
   if ImplProc.Body<>nil then
     UseImplBlock(ImplProc.Body.Body,false);
-
-  if FRefProcDecl=nil then
-    begin
-    if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
-      begin
-      MarkScopeRef(Proc,ProcScope.OverriddenProc,psraRead);
-      AddOverride(ProcScope.OverriddenProc,Proc);
-      end;
-
-    // mark overrides
-    if [pmOverride,pmVirtual]*Proc.Modifiers<>[] then
-      UseOverrides(Proc);
-    end;
 end;
 
 procedure TPasAnalyzer.UseProcedureType(ProcType: TPasProcedureType;
@@ -1434,7 +1419,6 @@ var
   i: Integer;
 begin
   if El=nil then exit;
-  if (FRefProcDecl<>nil) and MarkSingleProcRef(El,PAUseModeToPSRefAccess[Mode]) then exit;
 
   C:=El.ClassType;
   if Mode=paumAllExports then
@@ -1641,7 +1625,6 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseVariable ',GetElModName(El),' ',Access,' Full=',UseFull);
   {$ENDIF}
-  if (FRefProcDecl<>nil) and MarkSingleProcRef(El,ResolvedToPSRefAccess[Access]) then exit;
 
   if El.ClassType=TPasProperty then
     Prop:=TPasProperty(El)
@@ -1747,8 +1730,6 @@ var
   Usage: TPAElement;
   IsRead, IsWrite: Boolean;
 begin
-  if FRefProcDecl<>nil then exit;
-
   IsRead:=false;
   IsWrite:=false;
   case Access of
@@ -1783,8 +1764,6 @@ var
   IsRead, IsWrite: Boolean;
   Usage: TPAElement;
 begin
-  if FRefProcDecl<>nil then exit;
-
   IsRead:=false;
   IsWrite:=false;
   case Access of
@@ -1816,7 +1795,6 @@ end;
 procedure TPasAnalyzer.EmitElementHints(El: TPasElement);
 begin
   if El=nil then exit;
-  if FRefProcDecl<>nil then exit;
 
   if El is TPasVariable then
     EmitVariableHints(TPasVariable(El))
@@ -2133,36 +2111,6 @@ begin
   {$ENDIF}
 end;
 
-procedure TPasAnalyzer.AnalyzeProcRefs(Proc: TPasProcedure);
-var
-  ProcScope: TPasProcedureScope;
-begin
-  {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.AnalyzeProcRefs START ',GetObjName(Proc));
-  {$ENDIF}
-  if Resolver=nil then
-    RaiseInconsistency(20180221110035,'TPasAnalyzer.AnalyzeProcRefs missing Resolver '+GetObjName(Proc));
-  if FUsedElements.Count>0 then
-    RaiseInconsistency(20180221110035,GetObjName(Proc));
-  ScopeModule:=Proc.GetModule;
-  ProcScope:=NoNil(Proc.CustomData) as TPasProcedureScope;
-  if ProcScope.References<>nil then
-    RaiseInconsistency(20180221161728,GetObjName(Proc));
-  if ProcScope.DeclarationProc<>nil then
-    RaiseInconsistency(20180221110215,GetObjName(Proc));
-  FRefProcDecl:=Proc;
-  FRefProcScope:=ProcScope;
-  try
-    UseProcedure(Proc);
-  finally
-    FRefProcDecl:=nil;
-    FRefProcScope:=nil;
-  end;
-  {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.AnalyzeProcRefs END ',GetObjName(Proc));
-  {$ENDIF}
-end;
-
 procedure TPasAnalyzer.EmitModuleHints(aModule: TPasModule);
 begin
   {$IFDEF VerbosePasAnalyzer}
@@ -2317,7 +2265,6 @@ end;
 
 procedure TPasAnalyzer.EmitMessage(Msg: TPAMessage);
 begin
-  if FRefProcDecl<>nil then exit;
   if not Assigned(OnMessage) then
     begin
     Msg.Release;
