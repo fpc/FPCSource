@@ -134,6 +134,7 @@ _haltproc:
 	movq    ___fpc_ret_rbp@GOTPCREL(%rip),%rcx
         movq    (%rcx),%rbp
 	movq    ___fpc_ret@GOTPCREL(%rip),%rcx
+        popq    %rdx
         movq    (%rcx),%rdx
         pushq    %rdx
 	ret

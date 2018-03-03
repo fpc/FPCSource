@@ -172,6 +172,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 procedure _FPC_libc_haltproc(e:longint); assembler; nostackframe; public name '_haltproc';
   asm
     movl      %edi,%eax
+    popq    %rdx                    { keep stack aligned }
     movq fpc_ret(%rip),%rdx         { return to libc }
     movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx
