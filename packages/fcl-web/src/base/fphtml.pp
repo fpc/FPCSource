@@ -488,7 +488,7 @@ type
 
   { TCustomHTMLModule }
 
-  TCustomHTMLModule = Class(TCustomHTTPModule)
+  TCustomHTMLModule = Class(TSessionHTTPModule)
   private
     FDocument : THTMLDocument;
     FActions: THTMLContentActions;
@@ -510,10 +510,14 @@ type
   
   TFPHTMLModule=Class(TCustomHTMLModule)
   Published
-    Property OnGetContent;
     Property Actions;
+    Property CreateSession;
+    Property Session;
     Property OnCreateDocument;
     Property OnCreateWriter;
+    Property OnGetContent;
+    Property OnNewSession;
+    Property OnSessionExpired;
   end;
   
   EHTMLError = Class(EHTTP);
