@@ -118,6 +118,10 @@ Type
     procedure SetOnGetAction(const AValue: TGetActionEvent);
     procedure SetTemplate(const AValue: TFPTemplate);
   Protected
+    // Override these 3 if you want to have customized versions of the appropriate properties...
+    function CreateTemplateVars: TTemplateVars; virtual;
+    function CreateTemplate: TFPTemplate; virtual;
+    function CreateActions: TFPWebActions; virtual;
     Function HandleActions(ARequest : TRequest): Boolean; virtual;
     procedure DoOnRequest(ARequest: TRequest; AResponse: TResponse; var AHandled: Boolean); virtual;
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
@@ -435,9 +439,9 @@ end;
 constructor TCustomFPWebModule.CreateNew(AOwner: TComponent; CreateMode : Integer);
 begin
   inherited;
-  FActions:=TFPWebActions.Create(TFPWebAction);
-  FTemplate:=TFPWebTemplate.Create(Self);
-  FTemplateVars:=TTemplateVars.Create(TTemplateVar);
+  FActions:=CreateActions;
+  FTemplate:=CreateTemplate;
+  FTemplateVars:=CreateTemplateVars
 end;
 
 destructor TCustomFPWebModule.Destroy;
@@ -448,6 +452,23 @@ begin
   inherited Destroy;
 end;
 
+Function TCustomFPWebModule.CreateTemplateVars : TTemplateVars;
+
+begin
+  Result:=TTemplateVars.Create(TTemplateVar);
+end;
+
+Function TCustomFPWebModule.CreateTemplate : TFPTemplate;
+
+begin
+  Result:=TFPWebTemplate.Create(Self);
+end;
+
+Function TCustomFPWebModule.CreateActions : TFPWebActions;
+
+begin
+  Result:=TFPWebActions.Create(TFPWebAction);
+end;
 
 procedure TCustomFPWebModule.DoOnRequest(ARequest: TRequest; AResponse: TResponse; Var AHandled : Boolean);
 
