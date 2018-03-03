@@ -1531,16 +1531,17 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    Procedure   SaveDataToNames;
-    Procedure   RestoreDataFromNames;
-    procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
-    procedure   ReadElement(AReader: TFPReportStreamer); override;
-    procedure   AddPage(APage: TFPReportCustomPage);
-    procedure   RemovePage(APage: TFPReportCustomPage);
-    function    FindRecursive(const AName: string): TFPReportElement;
-    procedure   RunReport;
-    Procedure   ClearPreparedReport; virtual;
-    Function    Prepared : Boolean;
+    Procedure Clear;
+    Procedure SaveDataToNames;
+    Procedure RestoreDataFromNames;
+    procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    procedure ReadElement(AReader: TFPReportStreamer); override;
+    procedure AddPage(APage: TFPReportCustomPage);
+    procedure RemovePage(APage: TFPReportCustomPage);
+    function  FindRecursive(const AName: string): TFPReportElement;
+    procedure RunReport;
+    Procedure ClearPreparedReport; virtual;
+    Function  Prepared : Boolean;
     Procedure StartDesigning; virtual;
     Procedure EndDesigning; virtual;
     procedure RenderReport(const AExporter: TFPReportExporter);
@@ -7504,6 +7505,25 @@ begin
   FreeAndNil(FImages);
   FreeAndNil(FVariables);
   inherited Destroy;
+end;
+
+procedure TFPCustomReport.Clear;
+
+begin
+  // Variables
+  FRTCurPageIdx := -1;
+  FDateCreated := Now;
+  FTwoPass := False;
+  FIsFirstPass := False;
+  // Collections
+  FreeAndNil(FExpr); // Special case, recreated on run
+  FReportData.Clear;
+  While FPages.Count>0 do
+    RemovePage(Pages[FPages.Count-1]);
+  FPages.Clear;
+  ClearReferenceList;
+  FImages.Clear;
+  FVariables.Clear;
 end;
 
 procedure TFPCustomReport.SaveDataToNames;
