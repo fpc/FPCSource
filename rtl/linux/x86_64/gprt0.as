@@ -42,7 +42,6 @@ _start:
 	movq %rdx, %r9		/* Address of the shared library termination
 				   function.  */
 	popq %rsi		/* Pop the argument count.  */
-        pushq %rsi              /* keep stack aligned */
 	movq %rsp, %rdx		/* argv starts just at the current stack top.  */
 
         movq    entryinfo@GOTPCREL(%rip),%r10 /* load address of entryinfo variable */
