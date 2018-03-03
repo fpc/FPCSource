@@ -3857,6 +3857,167 @@ ymmreg,ymmreg,ymmrm             \362\364\370\1\xC2\75\120\1\x1E     AVX,SANDYBRI
 xmmreg,xmmreg,xmmrm             \362\370\1\xC2\75\120\1\x1F         AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm             \362\364\370\1\xC2\75\120\1\x1F     AVX,SANDYBRIDGE
 
+[VCMPEQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0     AVX,SANDYBRIDGE
+
+[VCMPLTPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1     AVX,SANDYBRIDGE
+
+[VCMPLEPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x2         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x2     AVX,SANDYBRIDGE
+
+[VCMPUNORDPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x3         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x3     AVX,SANDYBRIDGE
+
+[VCMPNEQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x4         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x4     AVX,SANDYBRIDGE
+
+[VCMPNLTPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x5         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x5     AVX,SANDYBRIDGE
+
+[VCMPNLEPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x6         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x6     AVX,SANDYBRIDGE
+
+[VCMPORDPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x7         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x7     AVX,SANDYBRIDGE
+
+[VCMPEQ_UQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x8         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x8     AVX,SANDYBRIDGE
+
+[VCMPNGEPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x9         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x9     AVX,SANDYBRIDGE
+
+[VCMPNGTPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0A         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0A     AVX,SANDYBRIDGE
+
+[VCMPFALSEPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0B         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0B     AVX,SANDYBRIDGE
+
+[VCMPNEQ_OQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0C         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0C     AVX,SANDYBRIDGE
+
+[VCMPGEPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0D         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0D     AVX,SANDYBRIDGE
+
+[VCMPGTPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0E         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0E     AVX,SANDYBRIDGE
+
+[VCMPTRUEPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x0F         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x0F     AVX,SANDYBRIDGE
+
+[VCMPEQ_OSPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x10         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x10     AVX,SANDYBRIDGE
+
+[VCMPLT_OQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x11         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x11     AVX,SANDYBRIDGE
+
+[VCMPLE_OQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x12         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x12     AVX,SANDYBRIDGE
+
+[VCMPUNORD_SPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x13         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x13     AVX,SANDYBRIDGE
+
+[VCMPNEQ_USPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x14         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x14     AVX,SANDYBRIDGE
+
+[VCMPNLT_UQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x15         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x15     AVX,SANDYBRIDGE
+
+[VCMPNLE_UQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x16         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x16     AVX,SANDYBRIDGE
+
+[VCMPORD_SPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x17         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x17     AVX,SANDYBRIDGE
+
+[VCMPEQ_USPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x18         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x18     AVX,SANDYBRIDGE
+
+[VCMPNGE_UQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x19         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x19     AVX,SANDYBRIDGE
+
+[VCMPNGT_UQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1A         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1A     AVX,SANDYBRIDGE
+
+[VCMPFALSE_OSPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1B         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1B     AVX,SANDYBRIDGE
+
+[VCMPNEQ_OSPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1C         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1C     AVX,SANDYBRIDGE
+
+[VCMPGE_OQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1D         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1D     AVX,SANDYBRIDGE
+
+[VCMPGT_OQPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1E         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1E     AVX,SANDYBRIDGE
+
+[VCMPTRUE_USPD]
+(Ch_All)
+xmmreg,xmmreg,xmmrm             \361\362\370\1\xC2\75\120\1\x1F         AVX,SANDYBRIDGE
+ymmreg,ymmreg,ymmrm             \361\362\364\370\1\xC2\75\120\1\x1F     AVX,SANDYBRIDGE
+
+
 ;
 ; VCMPPS/VCMPSS must come after the specific ops; that way the disassembler will find the
 ; specific ops first and only disassemble illegal ones as cmpps.

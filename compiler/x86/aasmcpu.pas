@@ -1,4 +1,4 @@
-{
+﻿{
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the abstract assembler implementation for the i386
@@ -199,7 +199,7 @@ interface
 {$elseif defined(i8086)}
       instabentries = {$i i8086nop.inc}
 {$endif}
-      maxinfolen    = 8;
+      maxinfolen    = 9;
 
     type
       { What an instruction can change. Needed for optimizer and spilling code.
