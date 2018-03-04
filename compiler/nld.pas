@@ -121,6 +121,7 @@ interface
           function docompare(p: tnode): boolean; override;
           procedure force_type(def:tdef);
           procedure insert_typeconvs;
+          function isempty : boolean;
        end;
        tarrayconstructornodeclass = class of tarrayconstructornode;
 
@@ -1013,6 +1014,12 @@ implementation
               end;
             n:=tarrayconstructornode(n.right);
           end;
+      end;
+
+
+    function tarrayconstructornode.isempty:boolean;
+      begin
+        result:=not(assigned(left)) and not(assigned(right));
       end;
 
 

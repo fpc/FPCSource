@@ -81,6 +81,7 @@ procedure fpc_dynarray_assign(var dest : pointer; src : pointer; ti: pointer); c
 procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : pointer);compilerproc;
 procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;count : SizeInt;pti : pointer);compilerproc;
 procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr:array of pointer); compilerproc;
+procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 : pointer); compilerproc;
 {$endif VER3_0}
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 

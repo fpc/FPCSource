@@ -401,11 +401,7 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
        end;
 
      { skip kind and name }
-{$ifdef VER3_0}
-     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
-{$else VER3_0}
      ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
-{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -468,6 +464,7 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
     newp^.high:=newhigh;
   end;
 
+
 procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;count : SizeInt;pti : pointer);compilerproc;
   var
     newhigh,
@@ -501,11 +498,7 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
       source:=0;
 
     { skip kind and name }
-{$ifdef VER3_0}
-    ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
-{$else VER3_0}
     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
-{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
     eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -600,6 +593,7 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
     newp^.high:=newhigh;
   end;
 
+
 procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr:array of pointer); compilerproc;
   var
     i,
@@ -610,11 +604,8 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
     srealp : pdynarray;
     ti : pointer;
     elesize : sizeint;
-    {eletype,}eletypemngd : pointer;
+    eletypemngd : pointer;
   begin
-    { the destination is overwritten in each case, so clear it }
-    fpc_dynarray_clear(dest,pti);
-
     { sanity check }
     if length(sarr)=0 then
       exit;
@@ -622,35 +613,33 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
     totallen:=0;
     for i:=0 to high(sarr) do
       if assigned(sarr[i]) then
-        begin
-          srealp:=pdynarray(sarr[i]-sizeof(tdynarray));
-          inc(totallen,srealp^.high+1);
-        end;
+        inc(totallen,pdynarray(sarr[i]-sizeof(tdynarray))^.high+1);
 
     if totallen=0 then
-      exit;
+      begin
+        fpc_dynarray_clear(dest,pti);
+        exit;
+      end;
 
     { skip kind and name }
-{$ifdef VER3_0}
-    ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
-{$else VER3_0}
     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
-{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
-    //eletype:=pdynarraytypedata(ti)^.elType2^;
+
     { only set if type needs initialization }
     if assigned(pdynarraytypedata(ti)^.elType) then
       eletypemngd:=pdynarraytypedata(ti)^.elType^
     else
       eletypemngd:=nil;
 
-    { allocate new array }
-    getmem(newp,totallen*elesize+sizeof(tdynarray));
-    fillchar(newp^,sizeof(tdynarray),0);
-
     { copy the elements of each source array }
     offset:=0;
+
+    { the idea to reuse the first array, re-allocate it and append the other entries is not possible as the first entry
+      might be finalized later on by the caller however in case of a re-allocate, the entry itself might be gone }
+    { allocate new array }
+    getmem(newp,totallen*elesize+sizeof(tdynarray));
+
     for i:=0 to high(sarr) do
       if assigned(sarr[i]) then
         begin
@@ -661,6 +650,79 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
               inc(offset,srealp^.high+1);
             end;
         end;
+    { increase reference counts of all the elements }
+    if assigned(eletypemngd) then
+      begin
+        for i:=0 to totallen-1 do
+          int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
+      end;
+
+    { clear at the end, dest could be a reference to an array being used also as source }
+    fpc_dynarray_clear(dest,pti);
+    dest:=pointer(newp)+sizeof(tdynarray);
+    newp^.refcount:=1;
+    newp^.high:=totallen-1;
+  end;
+
+
+procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 : pointer); compilerproc;
+  var
+    i,
+    offset,
+    totallen : sizeint;
+    newp,
+    realp,
+    srealp : pdynarray;
+    ti : pointer;
+    elesize : sizeint;
+    eletypemngd : pointer;
+  begin
+    totallen:=0;
+    if assigned(src1) then
+      inc(totallen,pdynarray(src1-sizeof(tdynarray))^.high+1);
+    if assigned(src2) then
+      inc(totallen,pdynarray(src2-sizeof(tdynarray))^.high+1);
+
+    if totallen=0 then
+      begin
+        fpc_dynarray_clear(dest,pti);
+        exit;
+      end;
+
+    { skip kind and name }
+    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+
+    elesize:=pdynarraytypedata(ti)^.elSize;
+
+    { only set if type needs initialization }
+    if assigned(pdynarraytypedata(ti)^.elType) then
+      eletypemngd:=pdynarraytypedata(ti)^.elType^
+    else
+      eletypemngd:=nil;
+
+    { the idea to reuse the first array, re-allocate it and append the other entries is not possible as the first entry
+      might be finalized later on by the caller however in case of a re-allocate, the entry itself might be gone }
+    { allocate new array }
+    getmem(newp,totallen*elesize+sizeof(tdynarray));
+
+    { copy the elements of each source array }
+    offset:=0;
+    if assigned(src1) then
+      begin
+        srealp:=pdynarray(src1-sizeof(tdynarray));
+        if srealp^.high>=0 then
+          begin
+            move(src1^,(pointer(newp)+sizeof(tdynarray)+offset*elesize)^,(srealp^.high+1)*elesize);
+            inc(offset,srealp^.high+1);
+          end;
+      end;
+
+    if assigned(src2) then
+      begin
+        srealp:=pdynarray(src2-sizeof(tdynarray));
+        if srealp^.high>=0 then
+          move(src2^,(pointer(newp)+sizeof(tdynarray)+offset*elesize)^,(srealp^.high+1)*elesize);
+      end;
 
     { increase reference counts of all the elements }
     if assigned(eletypemngd) then
@@ -669,6 +731,8 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
           int_addref(pointer(newp)+sizeof(tdynarray)+i*elesize,eletypemngd);
       end;
 
+    { clear at the end, dest could be a reference to an array being also source }
+    fpc_dynarray_clear(dest,pti);
     dest:=pointer(newp)+sizeof(tdynarray);
     newp^.refcount:=1;
     newp^.high:=totallen-1;

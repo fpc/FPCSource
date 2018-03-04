@@ -499,6 +499,13 @@ implementation
                       exit;
                     end;
 
+                 { <dyn. array> + <dyn. array> is handled by the compiler }
+                 if (treetyp=addn) and (is_dynamic_array(ld) or is_dynamic_array(rd)) then
+                    begin
+                      allowed:=false;
+                      exit;
+                    end;
+
                 allowed:=true;
               end;
             objectdef :

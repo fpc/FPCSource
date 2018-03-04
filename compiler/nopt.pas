@@ -76,6 +76,8 @@ function canbeaddsstringcsstringoptnode(p: taddnode): boolean;
 function genaddsstringcsstringoptnode(p: taddnode): tnode;
 function canbemultistringadd(p: taddnode): boolean;
 function genmultistringadd(p: taddnode): tnode;
+function canbemultidynarrayadd(p: taddnode): boolean;
+function genmultidynarrayadd(p: taddnode): tnode;
 
 
 function is_addsstringoptnode(p: tnode): boolean;
@@ -398,6 +400,97 @@ begin
         newstatement,
         ccallnode.createintern(
           'fpc_'+tstringdef(p.resultdef).stringtypname+'_concat_multi',
+          para
+        )
+      );
+      addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+      addstatement(newstatement,ctemprefnode.create(tempnode));
+    end;
+end;
+
+
+function canbemultidynarrayadd(p: taddnode): boolean;
+var
+  hp : tnode;
+  i  : longint;
+begin
+  result:=false;
+  if not(is_dynamic_array(p.resultdef)) then
+    exit;
+  i:=0;
+  hp:=p;
+  while assigned(hp) and (hp.nodetype=addn) do
+    begin
+      inc(i);
+      hp:=taddnode(hp).left;
+    end;
+  result:=(i>1);
+end;
+
+
+function genmultidynarrayadd(p: taddnode): tnode;
+var
+  hp,sn : tnode;
+  arrp  : tarrayconstructornode;
+  newstatement : tstatementnode;
+  tempnode    : ttempcreatenode;
+  para : tcallparanode;
+begin
+  arrp:=nil;
+  hp:=p;
+  while assigned(hp) and (hp.nodetype=addn) do
+    begin
+      sn:=ctypeconvnode.create_internal(taddnode(hp).right.getcopy,voidpointertype);
+      arrp:=carrayconstructornode.create(sn,arrp);
+      hp:=taddnode(hp).left;
+    end;
+  sn:=ctypeconvnode.create_internal(hp.getcopy,voidpointertype);
+  arrp:=carrayconstructornode.create(sn,arrp);
+  arrp.allow_array_constructor:=true;
+  if assigned(aktassignmentnode) and
+     (aktassignmentnode.right=p) and
+     (aktassignmentnode.left.resultdef=p.resultdef) and
+     valid_for_var(aktassignmentnode.left,false) then
+    begin
+      para:=ccallparanode.create(
+              arrp,
+            ccallparanode.create(
+              caddrnode.create_internal(crttinode.create(tstoreddef(p.resultdef),initrtti,rdt_normal)),
+            ccallparanode.create(
+              ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidpointertype),nil)
+          ));
+      result:=ccallnode.createintern(
+                'fpc_dynarray_concat_multi',
+                para
+              );
+      include(aktassignmentnode.flags,nf_assign_done_in_right);
+    end
+  else
+    begin
+      result:=internalstatements(newstatement);
+      tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true);
+      addstatement(newstatement,tempnode);
+      { initialize the temp, since it will be passed to a
+        var-parameter (and finalization, which is performed by the
+        ttempcreate node and which takes care of the initialization
+        on native targets, is a noop on managed VM targets) }
+      if (target_info.system in systems_managed_vm) and
+         is_managed_type(p.resultdef) then
+        addstatement(newstatement,cinlinenode.create(in_setlength_x,
+          false,
+          ccallparanode.create(genintconstnode(0),
+            ccallparanode.create(ctemprefnode.create(tempnode),nil))));
+      para:=ccallparanode.create(
+              arrp,
+            ccallparanode.create(
+              caddrnode.create_internal(crttinode.create(tstoreddef(p.resultdef),initrtti,rdt_normal)),
+            ccallparanode.create(
+              ctypeconvnode.create_internal(ctemprefnode.create(tempnode),voidpointertype),nil)
+          ));
+      addstatement(
+        newstatement,
+        ccallnode.createintern(
+          'fpc_dynarray_concat_multi',
           para
         )
       );

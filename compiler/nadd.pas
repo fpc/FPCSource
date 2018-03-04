@@ -56,6 +56,7 @@ interface
           { parts explicitely in the code generator (JM)    }
           function first_addstring: tnode; virtual;
           function first_addset: tnode; virtual;
+          function first_adddynarray : tnode; virtual;
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
@@ -1236,12 +1237,12 @@ implementation
 
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
-         if is_array_constructor(left.resultdef) then
+         if not(is_dynamic_array(right.resultdef)) and is_array_constructor(left.resultdef) then
           begin
             arrayconstructor_to_set(left);
             typecheckpass(left);
           end;
-         if is_array_constructor(right.resultdef) then
+         if not(is_dynamic_array(left.resultdef)) and is_array_constructor(right.resultdef) then
           begin
             arrayconstructor_to_set(right);
             typecheckpass(right);
@@ -2120,7 +2121,16 @@ implementation
               inserttypeconv_explicit(right,left.resultdef)
           end
 
-       { support dynamicarray=nil,dynamicarray<>nil }
+         { <dyn. array>+<dyn. array> ? }
+         else if (nodetype=addn) and (is_dynamic_array(ld) or is_dynamic_array(rd)) then
+           begin
+              if not(is_dynamic_array(ld)) then
+                inserttypeconv(left,rd);
+              if not(is_dynamic_array(rd)) then
+                inserttypeconv(right,ld);
+           end
+
+        { support dynamicarray=nil,dynamicarray<>nil }
          else if (is_dynamic_array(ld) and (rt=niln)) or
                  (is_dynamic_array(rd) and (lt=niln)) or
                  (is_dynamic_array(ld) and is_dynamic_array(rd)) then
@@ -2729,6 +2739,104 @@ implementation
         end;
       end;
 
+    function taddnode.first_adddynarray : tnode;
+      var
+        p: tnode;
+        newstatement : tstatementnode;
+        tempnode (*,tempnode2*) : ttempcreatenode;
+        cmpfuncname: string;
+        para: tcallparanode;
+      begin
+        result:=nil;
+        { when we get here, we are sure that both the left and the right }
+        { node are both strings of the same stringtype (JM)              }
+        case nodetype of
+          addn:
+            begin
+              if (left.nodetype=arrayconstructorn) and (tarrayconstructornode(left).isempty) then
+                begin
+                  result:=right;
+                  left.free;
+                  left:=nil;
+                  right:=nil;
+                  exit;
+                end;
+              if (right.nodetype=arrayconstructorn) and (tarrayconstructornode(right).isempty) then
+                begin
+                  result:=left;
+                  left:=nil;
+                  right.free;
+                  right:=nil;
+                  exit;
+                end;
+              { create the call to the concat routine both strings as arguments }
+              if assigned(aktassignmentnode) and
+                  (aktassignmentnode.right=self) and
+                  (aktassignmentnode.left.resultdef=resultdef) and
+                  valid_for_var(aktassignmentnode.left,false) then
+                begin
+                  para:=ccallparanode.create(
+                          ctypeconvnode.create_internal(right,voidcodepointertype),
+                        ccallparanode.create(
+                          ctypeconvnode.create_internal(left,voidcodepointertype),
+                        ccallparanode.create(
+                          caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
+                        ccallparanode.create(
+                          ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidcodepointertype),nil)
+                        )));
+                  result:=ccallnode.createintern(
+                            'fpc_dynarray_concat',
+                            para
+                          );
+                  include(aktassignmentnode.flags,nf_assign_done_in_right);
+                  firstpass(result);
+                end
+              else
+                begin
+                  result:=internalstatements(newstatement);
+                  tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                  addstatement(newstatement,tempnode);
+                  { initialize the temp, since it will be passed to a
+                    var-parameter (and finalization, which is performed by the
+                    ttempcreate node and which takes care of the initialization
+                    on native targets, is a noop on managed VM targets) }
+                  if (target_info.system in systems_managed_vm) and
+                     is_managed_type(resultdef) then
+                    addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                      false,
+                      ccallparanode.create(genintconstnode(0),
+                        ccallparanode.create(ctemprefnode.create(tempnode),nil))));
+                  para:=ccallparanode.create(
+                          ctypeconvnode.create_internal(right,voidcodepointertype),
+                        ccallparanode.create(
+                          ctypeconvnode.create_internal(left,voidcodepointertype),
+                        ccallparanode.create(
+                          caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
+                        ccallparanode.create(
+                          ctypeconvnode.create_internal(ctemprefnode.create(tempnode),voidcodepointertype),nil)
+                        )));
+                  addstatement(
+                    newstatement,
+                    ccallnode.createintern(
+                      'fpc_dynarray_concat',
+                      para
+                    )
+                  );
+                  addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+                  addstatement(newstatement,ctemprefnode.create(tempnode));
+                end;
+              { we reused the arguments }
+              left := nil;
+              right := nil;
+            end;
+          unequaln,equaln:
+            { nothing to do }
+            ;
+          else
+            Internalerror(2018030301);
+          end;
+      end;
+
 
     function taddnode.use_generic_mul32to64: boolean;
       begin
@@ -3218,6 +3326,15 @@ implementation
              exit;
            end;
 
+         { Can we optimize multiple dyn. array additions into a single call?
+           This need to be done on a complete tree to detect the multiple
+           add nodes and is therefor done before the subtrees are processed }
+         if canbemultidynarrayadd(self) then
+           begin
+             result:=genmultidynarrayadd(self);
+             exit;
+           end;
+
          { typical set tests like (s*[const. set])<>/=[] can be converted into an or'ed chain of in tests
            for var sets if const. set contains only a few elements }
          if (cs_opt_level1 in current_settings.optimizerswitches) and (nodetype in [unequaln,equaln]) and (left.resultdef.typ=setdef) and not(is_smallset(left.resultdef)) then
@@ -3581,6 +3698,11 @@ implementation
             end
 {$endif SUPPORT_MMX}
 
+         else if is_dynamic_array(ld) or is_dynamic_array(rd) then
+           begin
+             result:=first_adddynarray;
+             exit;
+           end
          { the general solution is to convert to 32 bit int }
          else
            begin
