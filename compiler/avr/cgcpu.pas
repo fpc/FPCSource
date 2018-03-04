@@ -581,7 +581,11 @@ unit cgcpu;
                        if i<tcgsize2size[size] then
                          NextTmp;
                    end;
-                 end;
+                 end
+               else if size in [OS_S8,OS_8] then
+                 list.concat(taicpu.op_reg(A_NEG,dst))
+               else
+                 Internalerror(2018030401);
              end;
 
            OP_NOT:
