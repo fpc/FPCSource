@@ -379,7 +379,7 @@ implementation
   {$endif i8086}
 {$endif x86}
         set_default_ptr_types;
-        openchararraytype:=carraydef.create(0,-1,sizesinttype);
+        openchararraytype:=carraydef.create_openarray;
         tarraydef(openchararraytype).elementdef:=cansichartype;
         cfiletype:=cfiledef.createuntyped;
         if f_variants in features then

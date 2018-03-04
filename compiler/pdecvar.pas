@@ -414,7 +414,7 @@ implementation
                       begin
                         consume(_OF);
                         { define range and type of range }
-                        hdef:=carraydef.create(0,-1,s32inttype);
+                        hdef:=carraydef.create_openarray;
                         hdef.owner:=astruct.symtable;
                         { define field type }
                         single_type(arraytype,[]);
