@@ -534,23 +534,6 @@ end;
 procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
   aToNative: Boolean);
 
- // There seems to be no WStrCopy defined, this is a copy of
- // the generic StrCopy function, adapted for WideChar.
- Function WStrCopy(Dest, Source:PWideChar): PWideChar;
- var
-   counter : SizeInt;
- Begin
-   counter := 0;
-   while Source[counter] <> #0 do
-   begin
-     Dest[counter] := char(Source[counter]);
-     Inc(counter);
-   end;
-   { terminate the string }
-   Dest[counter] := #0;
-   WStrCopy := Dest;
- end;
-
 var
   DT : TFieldType;
 
@@ -566,7 +549,7 @@ begin
   // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
+      ftWideString              : StrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
   else
@@ -578,7 +561,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
+      ftWideString              : StrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
 end;
