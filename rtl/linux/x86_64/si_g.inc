@@ -145,7 +145,6 @@ procedure ini_dummy;
     { argc is longint in EntryInformation, thus use %edi register }
     movl %esi,TEntryInformation.OS.argc(%rcx)
     movq %rsp,TEntryInformation.OS.argv(%rcx)
-    movq %rsp,(%rax)
     leaq 8(,%rsi,8),%rax
     addq %rsp,%rax
     movq %rax,TEntryInformation.OS.envp(%rcx)

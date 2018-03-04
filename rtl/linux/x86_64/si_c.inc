@@ -71,7 +71,7 @@ procedure main_stub; assembler; nostackframe;
 
     { store stack length }
     movq StackLength@GOTPCREL(%rip),%rax
-    movq %rax,TEntryInformation.OS.stklen(%rcx)
+    movq %rax,TEntryInformation.OS.stklen(%rdi)
 
     { store pointer to haltproc }
     movq    _FPC_libc_haltproc@GOTPCREL(%rip),%rax
@@ -131,7 +131,6 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     { argc is longint in EntryInformation, thus use %edi register }
     movl %esi,TEntryInformation.OS.argc(%rcx)
     movq %rsp,TEntryInformation.OS.argv(%rcx)
-    movq %rsp,(%rax)
     leaq 8(,%rsi,8),%rax
     addq %rsp,%rax
     movq %rax,TEntryInformation.OS.envp(%rcx)

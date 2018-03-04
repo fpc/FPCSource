@@ -336,7 +336,7 @@ interface
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
-                                   system_i386_linux,system_powerpc64_linux,system_sparc64_linux,
+                                   system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
                                    system_m68k_atari,system_m68k_palmos
                                   ]+systems_darwin+systems_amigalike;
 
