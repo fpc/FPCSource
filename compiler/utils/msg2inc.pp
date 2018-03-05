@@ -102,7 +102,7 @@ begin
       begin
         if s=']' then
          multiline:=false
-        else
+        else if (s[1] <> '#') then
          inc(msgsize,length(s)+1); { +1 for linebreak }
       end
      else
@@ -191,7 +191,7 @@ begin
            ptxt^:=#0;
            inc(ptxt);
          end
-        else
+        else if (s[1] <> '#') then
          begin
            move(s[1],ptxt^,length(s));
            inc(ptxt,length(s));
