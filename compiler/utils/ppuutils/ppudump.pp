@@ -180,7 +180,8 @@ const
   { 91 }  'AROS-arm',
   { 92 }  'WebAssembly-wasm',
   { 93 }  'Linux-sparc64',
-  { 94 }  'Solaris-sparc64'
+  { 94 }  'Solaris-sparc64',
+  { 95 }  'NetBSD-arm'
   );
 
 const

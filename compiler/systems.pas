@@ -239,7 +239,8 @@ interface
        systems_netbsd  = [system_i386_netbsd,
                           system_m68k_netbsd,
                           system_powerpc_netbsd,
-                          system_x86_64_netbsd];
+                          system_x86_64_netbsd,
+                          system_arm_netbsd];
        systems_openbsd = [system_i386_openbsd,
                           system_x86_64_openbsd];
 
@@ -973,6 +974,10 @@ begin
     {$ifdef linux}
       {$define default_target_set}
       default_target(system_arm_linux);
+    {$endif}
+    {$ifdef netbsd}
+      {$define default_target_set}
+      default_target(system_arm_netbsd);
     {$endif}
     {$ifdef android}
       {$define default_target_set}

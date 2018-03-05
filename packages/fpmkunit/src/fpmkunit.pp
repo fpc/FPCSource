@@ -180,7 +180,7 @@ Const
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
   AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16,atari];
 
-  AllSmartLinkLibraryOSes = [Linux,msdos,win16]; // OSes that use .a library files for smart-linking
+  AllSmartLinkLibraryOSes = [Linux,msdos,win16,palmos]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -193,7 +193,7 @@ Const
     { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
     { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false, false),
     { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-    { netbsd }  ( false, true,  true,  true,  true,  true,  false, false, false, false, false, false, false, false, false, false),
+    { netbsd }  ( false, true,  true,  true,  true,  true,  true,  false, false, false, false, false, false, false, false, false),
     { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { solaris } ( false, true,  false, false, true,  true,  false, false, false, false, false, false, false, false, false, false),

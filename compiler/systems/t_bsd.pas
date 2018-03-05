@@ -1101,6 +1101,10 @@ initialization
   RegisterImport(system_arm_darwin,timportlibdarwin);
   RegisterExport(system_arm_darwin,texportlibdarwin);
   RegisterTarget(system_arm_darwin_info);
+
+  RegisterImport(system_arm_netbsd,timportlibbsd);
+  RegisterExport(system_arm_netbsd,texportlibbsd);
+  RegisterTarget(system_arm_netbsd_info);
 {$endif arm}
 {$ifdef aarch64}
   RegisterImport(system_aarch64_darwin,timportlibdarwin);

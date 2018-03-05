@@ -645,6 +645,69 @@ unit i_bsd;
             llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
           );
 
+       system_arm_netbsd_info : tsysteminfo =
+          (
+            system       : system_arm_netbsd;
+            name         : 'NetBSD for ARMHF';
+            shortname    : 'NetBSD';
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources];
+            cpu          : cpu_arm;
+            unit_env     : '';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.s';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas; {as_arm_elf32;}
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_bsd;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4     // should be 8 probably
+              );
+            first_parm_offset : 8;
+            stacksize    : 32*1024*1024;
+            stackalign   : 16;
+            abi : abi_default;
+            llvmdatalayout : 'todo';
+          );
+
        system_powerpc_darwin_info  : tsysteminfo =
           (
             system       : system_powerpc_darwin;
@@ -1219,6 +1282,9 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_arm_darwin_info);
   {$endif Darwin}
+  {$ifdef NetBSD}
+     set_source_info(system_arm_netbsd_info);
+  {$endif}
 {$endif cpuarm}
 {$ifdef cpuaarch64}
   {$ifdef Darwin}
