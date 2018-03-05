@@ -78,7 +78,8 @@ const
     'CheckModeSwitches',
     'CheckCondFunction',
     'StopOnErrorDirective',
-    'ExtClassConstWithoutExpr');
+    'ExtClassConstWithoutExpr',
+    'StopOnUnitInterface');
 
   PJUDefaultModeSwitches: TModeSwitches = [
     msObjfpc,
@@ -4234,6 +4235,7 @@ var
   i: Integer;
 begin
   Section:=Scope.Element as TPasSection;
+  Scope.UsesFinished:=true;
   Scope.Finished:=true;
   Data:=Obj.Find('Uses');
   if Data<>nil then

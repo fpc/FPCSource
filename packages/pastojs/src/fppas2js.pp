@@ -905,7 +905,8 @@ const
   po_Pas2js = po_Resolver+[
     po_AsmWhole,
     po_ResolveStandardTypes,
-    po_ExtClassConstWithoutExpr];
+    po_ExtClassConstWithoutExpr,
+    po_StopOnUnitInterface];
 
   btAllJSBaseTypes = [
     btChar,

@@ -127,6 +127,7 @@ type
   TTestCLI_UnitSearch = class(TCustomTestCLI)
   published
     procedure TestUS_Program;
+    procedure TestUS_UsesEmptyFileFail;
 
     procedure TestUS_UsesInFile;
     procedure TestUS_UsesInFile_Duplicate;
@@ -522,6 +523,16 @@ begin
   Compile(['test1.pas','-va']);
 end;
 
+procedure TTestCLI_UnitSearch.TestUS_UsesEmptyFileFail;
+begin
+  AddFile('system.pp','');
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  Compile(['test1.pas',''],ExitCodeSyntaxError);
+  AssertEquals('ErrorMsg','Expected "unit"',ErrorMsg);
+end;
+
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile;
 begin
   AddUnit('system.pp',[''],['']);
@@ -577,7 +588,7 @@ begin
     'begin',
     'end.']);
   Compile(['test1.pas','-Jc'],ExitCodeSyntaxError);
-  AssertEquals('ErrorMsg','Duplicate file found: "/home/user/sub/unit1.pas" and "/home/user/unit1.pas"',ErrorMsg);
+  AssertEquals('ErrorMsg','Duplicate file found: "/home/user/unit1.pas" and "/home/user/sub/unit1.pas"',ErrorMsg);
 end;
 
 Initialization

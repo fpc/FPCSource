@@ -108,6 +108,7 @@ type
     Procedure Add(Line: string); virtual;
     Procedure Add(const Lines: array of string);
     Procedure StartParsing; virtual;
+    procedure ParseModuleQueue; virtual;
     procedure ParseModule; virtual;
     procedure ParseProgram; virtual;
     procedure ParseUnit; virtual;
@@ -140,7 +141,7 @@ type
     procedure HandlePasResolveError(E: EPasResolve);
     procedure HandlePas2JSError(E: EPas2JS);
     procedure HandleException(E: Exception);
-    procedure RaiseException(E: Exception);
+    procedure FailException(E: Exception);
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     function IndexOfResolver(const Filename: string): integer;
     function GetResolver(const Filename: string): TTestEnginePasResolver;
@@ -922,8 +923,10 @@ begin
   InitScanner(FScanner);
 
   FEngine:=AddModule(Filename);
+  FEngine.Scanner:=FScanner;
 
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
+  FEngine.Parser:=FParser;
   Parser.Options:=po_tcmodules;
 
   FModule:=Nil;
@@ -968,8 +971,6 @@ begin
     FModule:=nil;
     end;
   FreeAndNil(FSource);
-  FreeAndNil(FParser);
-  FreeAndNil(FScanner);
   FreeAndNil(FFileResolver);
   if FModules<>nil then
     begin
@@ -1005,6 +1006,30 @@ begin
   Writeln(Src);
 end;
 
+procedure TCustomTestModule.ParseModuleQueue;
+var
+  i: Integer;
+  CurResolver: TTestEnginePasResolver;
+  Found: Boolean;
+  Section: TPasSection;
+begin
+  // parse til exception or all modules finished
+  while not SkipTests do
+    begin
+    Found:=false;
+    for i:=0 to ResolverCount-1 do
+      begin
+      CurResolver:=Resolvers[i];
+      if CurResolver.CurrentParser=nil then continue;
+      if not CurResolver.CurrentParser.CanParseContinue(Section) then continue;
+      CurResolver.Parser.ParseContinue;
+      Found:=true;
+      break;
+      end;
+    if not Found then break;
+    end;
+end;
+
 procedure TCustomTestModule.ParseModule;
 begin
   if SkipTests then exit;
@@ -1012,6 +1037,7 @@ begin
   try
     StartParsing;
     Parser.ParseMain(FModule);
+    ParseModuleQueue;
   except
     on E: Exception do
       HandleException(E);
@@ -1475,7 +1501,7 @@ begin
   writeln('ERROR: TCustomTestModule.HandleScannerError '+E.ClassName+':'+E.Message
     +' '+Scanner.CurFilename
     +'('+IntToStr(Scanner.CurRow)+','+IntToStr(Scanner.CurColumn)+')');
-  RaiseException(E);
+  FailException(E);
 end;
 
 procedure TCustomTestModule.HandleParserError(E: EParserError);
@@ -1486,7 +1512,7 @@ begin
     +' '+E.Filename+'('+IntToStr(E.Row)+','+IntToStr(E.Column)+')'
     +' MainModuleScannerLine="'+Scanner.CurLine+'"'
     );
-  RaiseException(E);
+  FailException(E);
 end;
 
 procedure TCustomTestModule.HandlePasResolveError(E: EPasResolve);
@@ -1498,7 +1524,7 @@ begin
   WriteSources(P.FileName,P.Row,P.Column);
   writeln('ERROR: TCustomTestModule.HandlePasResolveError '+E.ClassName+':'+E.Message
     +' '+P.FileName+'('+IntToStr(P.Row)+','+IntToStr(P.Column)+')');
-  RaiseException(E);
+  FailException(E);
 end;
 
 procedure TCustomTestModule.HandlePas2JSError(E: EPas2JS);
@@ -1511,7 +1537,7 @@ begin
   writeln('ERROR: TCustomTestModule.HandlePas2JSError '+E.ClassName+':'+E.Message
     +' '+E.PasElement.SourceFilename
     +'('+IntToStr(Row)+','+IntToStr(Col)+')');
-  RaiseException(E);
+  FailException(E);
 end;
 
 procedure TCustomTestModule.HandleException(E: Exception);
@@ -1532,11 +1558,11 @@ begin
       WriteSources('',0,0);
       writeln('ERROR: TCustomTestModule.HandleException '+E.ClassName+':'+E.Message);
       end;
-    RaiseException(E);
+    FailException(E);
     end;
 end;
 
-procedure TCustomTestModule.RaiseException(E: Exception);
+procedure TCustomTestModule.FailException(E: Exception);
 var
   MsgNumber: Integer;
 begin
