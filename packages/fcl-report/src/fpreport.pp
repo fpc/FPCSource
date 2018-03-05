@@ -10064,8 +10064,7 @@ begin
   //writeln(' -> ',FormatFloat('#,##0.0', FSpaceLeft-lSpaceNeeded));
   if Result then
   begin
-    if FRTIsMultiColumn and
-    not RTIsLastColumn then
+    if FRTIsMultiColumn and not RTIsLastColumn then
     begin
       FNewColumn := True;
     end
@@ -10126,7 +10125,7 @@ var
 begin
   FOverflowed := False;
   lPrevRTPage := TFPReportCustomPage(RTObjects[RTCurPageIdx-1]);
-  if FRTIsMultiColumn and (FGroupFooterList.Find(TFPReportCustomColumnFooterBand) <> nil) then
+  if (FGroupFooterList.Find(TFPReportCustomColumnFooterBand) <> nil) then
     lBandCount := lPrevRTPage.BandCount - 2  // skip over the ColumnFooter band
   else
     lBandCount := lPrevRTPage.BandCount - 1;
@@ -10144,7 +10143,7 @@ procedure TFPReportLayouter.PrepareHeader(APage: TFPReportCustomPage);
 begin
   FTitle := TFPReportCustomTitleBand(APage.FindBand(TFPReportCustomTitleBand));
   FPageHeader := TFPReportCustomPageHeaderBand(APage.FindBand(TFPReportCustomPageHeaderBand));
-  if FRTIsMultiColumn then
+//  if FRTIsMultiColumn then
     FColumnHeader := TFPReportColumnHeaderBand(Pages[RTCurDsgnPageIdx].FindBand(TFPReportColumnHeaderBand));
 end;
 
@@ -10370,7 +10369,7 @@ begin
     (lGrp.FIntermediateFooter <> []) then
       FGroupFooterList.Add(lGrp.GroupFooter);
   end;
-  if FRTIsMultiColumn then
+//  if FRTIsMultiColumn then
     FColumnFooter := TFPReportColumnFooterBand(Pages[RTCurDsgnPageIdx].FindBand(TFPReportColumnFooterBand));
 end;
 
