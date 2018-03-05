@@ -3966,6 +3966,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 **2st_Generate script to link on target
 **2sr_Skip register allocation phase (use with -alr)
 **1T<x>_Target operating system:
+# i386 targets
 3*2Tandroid_Android
 3*2Taros_AROS
 3*2Tbeos_BeOS
@@ -3989,6 +3990,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
+# x86_64 targets
 4*2Tdarwin_Darwin/Mac OS X
 4*2Tfreebsd_FreeBSD
 4*2Tiphonesim_ iPhoneSimulator
@@ -3997,31 +3999,43 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 4*2Topenbsd_OpenBSD
 4*2Tsolaris_Solaris
 4*2Twin64_Win64 (64 bit Windows systems)
+# m68k targets
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
 6*2Tmacos_Mac OS
 6*2Tpalmos_PalmOS
+# i8086 targets
+8*2Tembedded_Embedded
 8*2Tmsdos_MS-DOS (and compatible)
 8*2Twin16_Windows 16 Bit
+# arm targets
 A*2Tandroid_Android
+A*2Taros_AROS
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
 A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
 A*2Tnds_Nintendo DS
+A*2Tnetbsd_NetBSD
+A*2Tpalmos_PalmOS
 A*2Tsymbian_Symbian
 A*2Twince_Windows CE
+# aarch64 targets
 a*2Tdarwin_Darwin/iOS
 a*2Tlinux_Linux
+# jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
+# mips targets
 m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
+# mipsel targets
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
+# powerpc targets
 P*2Taix_AIX
 P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin/Mac OS X
@@ -4030,12 +4044,16 @@ P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
 P*2Tnetbsd_NetBSD
 P*2Twii_Wii
+# powerpc64 targets
 p*2Taix_AIX
 p*2Tdarwin_Darwin/Mac OS X
 p*2Tlinux_Linux
+# sparc targets
 S*2Tsolaris_Solaris
 S*2Tlinux_Linux
+# sparc64 targets
 s*2Tlinux_Linux
+# avr targets
 V*2Tembedded_Embedded
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
