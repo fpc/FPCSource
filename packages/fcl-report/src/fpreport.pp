@@ -321,9 +321,10 @@ type
     procedure StartRender; virtual;
     // called when the renderer ends its job on the report.
     procedure EndRender; virtual;
-
   public
     Function AllocateName : String;
+    // Called when done reading
+    Procedure FixupReference(PN,PV : String; C : TFPReportElement); virtual;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); virtual;
     procedure ReadElement(AReader: TFPReportStreamer); virtual;
     // called when the designer starts editing this component .
@@ -929,6 +930,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
     procedure   Assign(Source: TPersistent); override;
+    procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
     Class Function ReportBandType : TFPReportBandType; virtual;
     procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
@@ -951,6 +953,7 @@ type
     procedure ResolveDataName;
     procedure   SetData(const AValue: TFPReportData);
   protected
+
     procedure ProcessAggregates(const AData: TFPReportData); virtual;
     Procedure SaveDataToNames; override;
     Procedure RestoreDataFromNames; override;
@@ -965,6 +968,8 @@ type
   TFPReportCustomBandWithDataClass = Class of TFPReportCustomBandWithData;
 
 
+  { TFPReportCustomDataBand }
+
   TFPReportCustomDataBand = class(TFPReportCustomBandWithData)
   private
     FHeaderBand: TFPReportCustomDataHeaderBand;
@@ -972,11 +977,14 @@ type
     FMasterBand: TFPReportCustomDataBand;
     FDisplayPosition: Integer;
   protected
-    property    DisplayPosition: Integer read FDisplayPosition write FDisplayPosition default 0;
-    property    FooterBand: TFPReportCustomDataFooterBand read FFooterBand write FFooterBand;
-    property    HeaderBand: TFPReportCustomDataHeaderBand read FHeaderBand write FHeaderBand;
-    property    MasterBand: TFPReportCustomDataBand read FMasterBand write FMasterBand;
+    Procedure FixupReference(PN,PV : String; C : TFPReportElement); override;
+    property  DisplayPosition: Integer read FDisplayPosition write FDisplayPosition default 0;
+    property  FooterBand: TFPReportCustomDataFooterBand read FFooterBand write FFooterBand;
+    property  HeaderBand: TFPReportCustomDataHeaderBand read FHeaderBand write FHeaderBand;
+    property  MasterBand: TFPReportCustomDataBand read FMasterBand write FMasterBand;
   public
+    procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    procedure ReadElement(AReader: TFPReportStreamer); override;
     constructor Create(AOwner: TComponent); override;
   end;
   TFPReportCustomDataBandClass = Class of TFPReportCustomDataBand;
@@ -1488,7 +1496,7 @@ type
 
     { these three methods are used to resolve references while reading a report from file. }
     procedure ClearReferenceList;
-    procedure AddReference(const AParentName, AChildName: string);
+    procedure AddReference(AComponent : TFPReportComponent; const APropertyName,AValueName: string);
     procedure FixupReferences;
 
     procedure DoBeforeRenderReport;
@@ -5102,6 +5110,59 @@ end;
 
 { TFPReportCustomDataBand }
 
+procedure TFPReportCustomDataBand.FixupReference(PN, PV: String; C: TFPReportElement);
+begin
+  If SameText('FooterBand',PN) and (C is TFPReportCustomDataFooterBand) then
+    FooterBand:=TFPReportCustomDataFooterBand(C)
+  else If SameText('HeaderBand',PN) and (C is TFPReportCustomDataHeaderBand) then
+    HeaderBand:=TFPReportCustomDataHeaderBand(C)
+  else If SameText('MasterBand',PN) and (C is TFPReportCustomDataBand) then
+    MasterBand:=TFPReportCustomDataBand(C)
+  else
+    Inherited;
+end;
+
+procedure TFPReportCustomDataBand.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil);
+
+  Procedure WBand(B : TFPReportCustomBand; Prefix : String);
+
+  begin
+    If Assigned(B) then
+      AWriter.WriteString(Prefix+'Band',B.Name);
+  end;
+
+begin
+  inherited DoWriteLocalProperties(AWriter, AOriginal);
+  WBand(FooterBand,'Footer');
+  WBand(HeaderBand,'Header');
+  WBand(MasterBand,'Master');
+end;
+
+procedure TFPReportCustomDataBand.ReadElement(AReader: TFPReportStreamer);
+
+  Function RBand(Prefix : String) : TFPReportElement;
+
+  Var
+    S : String;
+
+  begin
+    Result:=Nil;
+    S:=AReader.ReadString(Prefix+'Band','');
+    if (S<>'') then
+      begin
+      Result:=Report.FindRecursive(S);
+      if Result=Nil then
+        Report.AddReference(Self,Prefix+'Band',S);
+      end;
+  end;
+
+begin
+  inherited ReadElement(AReader);
+  FooterBand:=TFPReportCustomDataFooterBand(RBand('Footer'));
+  HeaderBand:=TFPReportCustomDataHeaderBand(RBand('Header'));
+  MasterBand:=TFPReportCustomDataBand(RBand('Master'));
+end;
+
 constructor TFPReportCustomDataBand.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -5529,6 +5590,11 @@ begin
     Result:=BaseName+IntToStr(I);
     Inc(I);
   Until (Owner=Nil) or (Owner.FindComponent(Result)=Nil);
+end;
+
+procedure TFPReportComponent.FixupReference(PN, PV: String; C: TFPReportElement);
+begin
+  // Do nothing
 end;
 
 procedure TFPReportComponent.StartDesigning;
@@ -7145,34 +7211,32 @@ begin
     FReferenceList.Clear;
 end;
 
-procedure TFPCustomReport.AddReference(const AParentName, AChildName: string);
+procedure TFPCustomReport.AddReference(AComponent: TFPReportComponent; const APropertyName, AValueName: string);
 begin
-  FReferenceList.Values[AParentName] := AChildName;
+  FReferenceList.AddObject(AComponent.Name+'.'+APropertyName+'='+AValueName,AComponent);
 end;
 
 procedure TFPCustomReport.FixupReferences;
 var
-  i: integer;
-  p: TFPReportElement;
+  i,j: integer;
+  PN,CN,VN : String;
+  p: TFPReportComponent;
   c: TFPReportElement;
 begin
-  if FReferenceList.Count = 1 then
-    Exit;
   for i := 0 to FReferenceList.Count-1 do
-  begin
-    p := FindRecursive(FReferenceList.Names[i]);
+    begin
+    FReferenceList.GetNameValue(I,PN,VN);
+    J:=Pos('.',PN);
+    CN:=Copy(PN,1,J-1);
+    Delete(PN,1,J);
+    p:=TFPReportComponent(FReferenceList.Objects[i]);
+    if P=Nil then
+      p:=FindRecursive(CN);
     if not Assigned(p) then
-      Continue; // failded to find the Parent
+      Continue; // failded to find the component
     c := FindRecursive(FReferenceList.ValueFromIndex[i]);
-    if not Assigned(c) then
-      Continue; // failded to find the Child
-    if not (c is TFPReportCustomChildBand) then
-      Continue; // wrong type - unexpected
-    if p is TFPReportCustomBand then
-      TFPReportCustomBand(p).ChildBand := TFPReportChildBand(c)
-    else if p is TFPReportCustomChildBand then
-      TFPReportCustomChildBand(p).ChildBand := TFPReportChildBand(c);
-  end;
+    P.FixupReference(PN,VN,C);
+    end;
 end;
 
 procedure TFPCustomReport.DoBeforeRenderReport;
@@ -8081,6 +8145,17 @@ begin
   end;
 end;
 
+procedure TFPReportCustomBand.FixupReference(PN, PV: String; C: TFPReportElement);
+begin
+  if SameText(PN,'ChildBand') then
+    begin
+    if C is TFPReportCustomChildBand then
+      ChildBand:=C as TFPReportCustomChildBand
+    end
+  else
+    inherited FixupReference(PN, PV, C);
+end;
+
 class function TFPReportCustomBand.ReportBandType: TFPReportBandType;
 begin
   Result:=btUnknown;
@@ -8197,9 +8272,8 @@ begin
     try
       inherited ReadElement(AReader);
       s := AReader.ReadString('ChildBand', '');
-      if s <> '' then
-        Page.Report.AddReference(self.Name, s);
-//        Page.Report.AddReference(self, 'ChildBand', s);
+      if (s<>'') then
+        Page.Report.AddReference(Self, 'ChildBand', s);
       FVisibleOnPage := StringToVisibleOnPage(AReader.ReadString('VisibleOnPage', 'vpAll'));
       FKeepTogetherWithChildren := AReader.ReadBoolean('KeepTogetherWithChildren', FKeepTogetherWithChildren);
       FBandPosition := StringToBandPosition(AReader.ReadString('BandPosition', 'bpNormal'));
@@ -10592,32 +10666,40 @@ Var
   lBand : TFPReportCustomBand;
 
 begin
-  if not aPageData.IsOpened then
-    aPageData.Open;
-  if IsFirstPass then
-  begin
-    Report.InitializeExpressionVariables(Pages[aPageIdx], aPageData);
-    Report.CacheMemoExpressions(aPageIdx, aPageData);
-  end;
-  aPageData.First;
+  if Assigned(aPageData) then
+    begin
+    if not aPageData.IsOpened then
+      aPageData.Open;
+    if IsFirstPass then
+      begin
+      Report.InitializeExpressionVariables(Pages[aPageIdx], aPageData);
+      Report.CacheMemoExpressions(aPageIdx, aPageData);
+      end;
+    aPageData.First;
+    end;
   InitBandList(Pages[aPageIdx],aPageData);
-  while not aPageData.EOF do
-  begin
-    PrepareRecord;
-    if FNewPage then
-      StartNewPage;
-    if FHasGroups then
-      HandleGroupBands;
-    // This must be done after the groups were handled.
+  if Not Assigned(aPageData) then
+    StartNewPage
+  else
+    begin
+    while not aPageData.EOF do
+      begin
+      PrepareRecord;
+      if FNewPage then
+        StartNewPage;
+      if FHasGroups then
+        HandleGroupBands;
+      // This must be done after the groups were handled.
+      Report.ProcessAggregates(aPageIdx,aPageData);
+      HandleDataBands;
+      aPageData.Next;
+      end;
     Report.ProcessAggregates(aPageIdx,aPageData);
-    HandleDataBands;
-    aPageData.Next;
-  end;
-  Report.ProcessAggregates(aPageIdx,aPageData);
-  PrepareRecord;
+    PrepareRecord;
+    end;
   CheckNewOrOverFlow(True);
   // only print if we actually had data
-  if (aPageData.RecNo > 1) then
+  if assigned(aPageData) and (aPageData.RecNo > 1) then
     begin
     for I := 0 to Report.FBands.Count-1 do
       begin
@@ -10629,8 +10711,7 @@ begin
     end;
   if FHasGroupFooter then
     HandleLastGroupFooters;
-  if not TwoPass or
-  not IsFirstPass then
+  if Assigned(aPageData) and (not TwoPass or not IsFirstPass) then
     aPageData.Close;
 end;
 
@@ -10937,8 +11018,7 @@ begin
       lPageData:=Pages[lPageIdx].Data;
       Report.FPageData:=lPagedata;
       InitDesignPage(lPageIdx);
-      if Assigned(lPageData) then
-        RunDataLoop(lPageIdx,lPageData);
+      RunDataLoop(lPageIdx,lPageData);
       if FHasReportSummaryBand then
         HandleReportSummaryBands;
       EndPage;
