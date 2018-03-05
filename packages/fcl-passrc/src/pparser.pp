@@ -192,7 +192,7 @@ type
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
     function FindModule(const AName: String; NameExpr, InFileExpr: TPasExpr): TPasModule; virtual;
-    procedure CheckPendingUsedInterface(Section: TPasSection); virtual;
+    function CheckPendingUsedInterface(Section: TPasSection): boolean; virtual; // true if changed
     function NeedArrayValues(El: TPasElement): boolean; virtual;
     function GetDefaultClassVisibility(AClass: TPasClassType): TPasMemberVisibility; virtual;
     property Package: TPasPackage read FPackage;
@@ -401,7 +401,9 @@ type
     // Main scope parsing
     procedure ParseMain(var Module: TPasModule);
     procedure ParseUnit(var Module: TPasModule);
-    procedure ParseContinueImplementation;
+    function GetLastSection: TPasSection; virtual;
+    function CanParseContinue(out Section: TPasSection): boolean; virtual;
+    procedure ParseContinue; virtual;
     procedure ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
     procedure ParseLibrary(var Module: TPasModule);
     procedure ParseOptionalUsesList(ASection: TPasSection);
@@ -778,9 +780,11 @@ begin
   if InFileExpr=nil then ;
 end;
 
-procedure TPasTreeContainer.CheckPendingUsedInterface(Section: TPasSection);
+function TPasTreeContainer.CheckPendingUsedInterface(Section: TPasSection
+  ): boolean;
 begin
   if Section=nil then ;  // avoid compiler warning
+  Result:=false;
 end;
 
 function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
@@ -2727,39 +2731,137 @@ begin
       end;
     CheckHint(Module,True);
     ExpectToken(tkInterface);
-    If LogEvent(pleInterface) then
-      DoLog(mtInfo,nLogStartInterface,SLogStartInterface);
+    if po_StopOnUnitInterface in Options then
+      begin
+      HasFinished:=false;
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasParser.ParseUnit pause parsing after unit name ',CurModule.Name);
+      {$ENDIF}
+      exit;
+      end;
     ParseInterface;
+    if (Module.InterfaceSection<>nil)
+        and (Module.InterfaceSection.PendingUsedIntf<>nil) then
+      begin
+      HasFinished:=false;
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasParser.ParseUnit pause parsing after interface uses list ',CurModule.Name);
+      {$ENDIF}
+      end;
     if (Module.ImplementationSection<>nil)
         and (Module.ImplementationSection.PendingUsedIntf<>nil) then
+      begin
       HasFinished:=false;
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasParser.ParseUnit pause parsing after implementation uses list ',CurModule.Name);
+      {$ENDIF}
+      end;
     if HasFinished then
       Engine.FinishScope(stModule,Module);
   finally
     if HasFinished then
-      FCurModule:=nil;
+      FCurModule:=nil; // clear module if there is an error or finished parsing
   end;
 end;
 
-procedure TPasParser.ParseContinueImplementation;
+function TPasParser.GetLastSection: TPasSection;
 begin
+  Result:=nil;
+  if FCurModule=nil then
+    exit; // parse completed
+  if CurModule is TPasProgram then
+    Result:=TPasProgram(CurModule).ProgramSection
+  else if CurModule is TPasLibrary then
+    Result:=TPasLibrary(CurModule).LibrarySection
+  else if (CurModule.ClassType=TPasModule) or (CurModule is TPasUnitModule) then
+    begin
+    if CurModule.ImplementationSection<>nil then
+      Result:=CurModule.ImplementationSection
+    else
+      Result:=CurModule.InterfaceSection; // might be nil
+    end;
+end;
+
+function TPasParser.CanParseContinue(out Section: TPasSection): boolean;
+begin
+  Result:=false;
+  Section:=nil;
+  if FCurModule=nil then
+    exit; // parse completed
+  if (LastMsg<>'') and (LastMsgType<=mtError) then
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasParser.CanParseContinue ',CurModule.Name,' LastMsg="',LastMsgType,':',LastMsg,'"');
+    {$ENDIF}
+    exit;
+    end;
+  if (Scanner.LastMsg<>'') and (Scanner.LastMsgType<=mtError) then
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasParser.CanParseContinue ',CurModule.Name,' Scanner.LastMsg="',Scanner.LastMsgType,':',Scanner.LastMsg,'"');
+    {$ENDIF}
+    exit;
+    end;
+
+  Section:=GetLastSection;
+  if Section=nil then
+    if (po_StopOnUnitInterface in Options)
+        and ((CurModule is TPasUnitModule) or (CurModule.ClassType=TPasModule))
+        and (CurModule.InterfaceSection=nil) then
+      exit(true)
+    else
+      exit(false);
+  Result:=Section.PendingUsedIntf=nil;
+end;
+
+procedure TPasParser.ParseContinue;
+// continue parsing after stopped due to pending uses
+var
+  Section: TPasSection;
+  HasFinished: Boolean;
+begin
+  if CurModule=nil then
+    ParseExcTokenError('TPasParser.ParseContinue missing module');
+  {$IFDEF VerbosePasParser}
+  writeln('TPasParser.ParseContinue ',CurModule.Name);
+  {$ENDIF}
+  if not CanParseContinue(Section) then
+    ParseExcTokenError('TPasParser.ParseContinue missing section');
+  HasFinished:=true;
   try
-    ParseDeclarations(CurModule.ImplementationSection);
-    Engine.FinishScope(stModule,CurModule);
+    if Section=nil then
+      begin
+      // continue after unit name
+      ParseInterface;
+      end
+    else
+      begin
+      // continue after uses clause
+      Engine.FinishScope(stUsesClause,Section);
+      ParseDeclarations(Section);
+      end;
+    Section:=GetLastSection;
+    if (Section<>nil) and (Section.PendingUsedIntf<>nil) then
+      HasFinished:=false;
+    if HasFinished then
+      Engine.FinishScope(stModule,CurModule);
   finally
-    FCurModule:=nil;
+    if HasFinished then
+      FCurModule:=nil; // clear module if there is an error or finished parsing
   end;
 end;
 
 // Starts after the "program" token
 procedure TPasParser.ParseProgram(var Module: TPasModule; SkipHeader : Boolean = False);
-
 Var
   PP : TPasProgram;
   Section : TProgramSection;
   N : String;
   StartPos: TPasSourcePos;
-
+  HasFinished: Boolean;
+  {$IFDEF VerbosePasResolver}
+  aSection: TPasSection;
+  {$ENDIF}
 begin
   StartPos:=CurTokenPos;
   if SkipHeader then
@@ -2779,6 +2881,7 @@ begin
   Module := nil;
   PP:=TPasProgram(CreateElement(TPasProgram, N, Engine.Package, StartPos));
   Module :=PP;
+  HasFinished:=true;
   FCurModule:=Module;
   try
     if Assigned(Engine.Package) then
@@ -2806,10 +2909,26 @@ begin
     Section := TProgramSection(CreateElement(TProgramSection, '', CurModule));
     PP.ProgramSection := Section;
     ParseOptionalUsesList(Section);
+    HasFinished:=Section.PendingUsedIntf=nil;
+    if not HasFinished then
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasParser.ParseProgram pause parsing after uses list of "',CurModule.Name,'"');
+      if CanParseContinue(aSection) then
+        begin
+        writeln('TPasParser.ParseProgram Section=',Section.ClassName,' Section.PendingUsedIntf=',Section.PendingUsedIntf<>nil);
+        if aSection<>nil then
+          writeln('TPasParser.ParseProgram aSection=',aSection.ClassName,' ',Section=aSection);
+        ParseExc(nErrNoSourceGiven,'[20180305172432] ');
+        end;
+      {$ENDIF}
+      exit;
+      end;
     ParseDeclarations(Section);
     Engine.FinishScope(stModule,Module);
   finally
-    FCurModule:=nil;
+    if HasFinished then
+      FCurModule:=nil; // clear module if there is an error or finished parsing
   end;
 end;
 
@@ -2820,6 +2939,7 @@ Var
   Section : TLibrarySection;
   N: String;
   StartPos: TPasSourcePos;
+  HasFinished: Boolean;
 
 begin
   StartPos:=CurTokenPos;
@@ -2835,6 +2955,7 @@ begin
   Module := nil;
   PP:=TPasLibrary(CreateElement(TPasLibrary, N, Engine.Package, StartPos));
   Module :=PP;
+  HasFinished:=true;
   FCurModule:=Module;
   try
     if Assigned(Engine.Package) then
@@ -2848,10 +2969,14 @@ begin
     Section := TLibrarySection(CreateElement(TLibrarySection, '', CurModule));
     PP.LibrarySection := Section;
     ParseOptionalUsesList(Section);
+    HasFinished:=Section.PendingUsedIntf=nil;
+    if not HasFinished then
+      exit;
     ParseDeclarations(Section);
     Engine.FinishScope(stModule,Module);
   finally
-    FCurModule:=nil;
+    if HasFinished then
+      FCurModule:=nil; // clear module if there is an error or finished parsing
   end;
 end;
 
@@ -2859,13 +2984,15 @@ procedure TPasParser.ParseOptionalUsesList(ASection: TPasSection);
 // checks if next token is Uses keyword and reads the uses list
 begin
   NextToken;
+  CheckImplicitUsedUnits(ASection);
   if CurToken=tkuses then
     ParseUsesList(ASection)
-  else begin
-    CheckImplicitUsedUnits(ASection);
-    Engine.FinishScope(stUsesClause,ASection);
+  else
     UngetToken;
-  end;
+  Engine.CheckPendingUsedInterface(ASection);
+  if ASection.PendingUsedIntf<>nil then
+    exit;
+  Engine.FinishScope(stUsesClause,ASection);
 end;
 
 // Starts after the "interface" token
@@ -2873,9 +3000,13 @@ procedure TPasParser.ParseInterface;
 var
   Section: TInterfaceSection;
 begin
+  If LogEvent(pleInterface) then
+    DoLog(mtInfo,nLogStartInterface,SLogStartInterface);
   Section := TInterfaceSection(CreateElement(TInterfaceSection, '', CurModule));
   CurModule.InterfaceSection := Section;
   ParseOptionalUsesList(Section);
+  if Section.PendingUsedIntf<>nil then
+    exit;
   ParseDeclarations(Section); // this also parses the Implementation section
 end;
 
@@ -2887,7 +3018,6 @@ begin
   Section := TImplementationSection(CreateElement(TImplementationSection, '', CurModule));
   CurModule.ImplementationSection := Section;
   ParseOptionalUsesList(Section);
-  Engine.CheckPendingUsedInterface(Section);
   if Section.PendingUsedIntf<>nil then
     exit;
   ParseDeclarations(Section);
@@ -3412,8 +3542,6 @@ var
   NamePos, SrcPos: TPasSourcePos;
   aModule: TPasModule;
 begin
-  CheckImplicitUsedUnits(ASection);
-
   NameExpr:=nil;
   InFileExpr:=nil;
   FreeExpr:=true;
@@ -3439,8 +3567,9 @@ begin
         if (msDelphi in CurrentModeswitches) then
           begin
           aModule:=ASection.GetModule;
-          if (aModule<>nil) and ((aModule.ClassType=TPasModule) or (aModule is TPasUnitModule)) then
-            CheckToken(tkSemicolon); // delphi does not allow it in units
+          if (aModule<>nil)
+              and ((aModule.ClassType=TPasModule) or (aModule is TPasUnitModule)) then
+            CheckToken(tkSemicolon); // delphi does not allow in-filename in units
           end;
         ExpectToken(tkString);
         InFileExpr:=CreatePrimitiveExpr(ASection,pekString,CurTokenString);
@@ -3461,8 +3590,6 @@ begin
       ReleaseAndNil(TPasElement(InFileExpr));
       end;
   end;
-
-  Engine.FinishScope(stUsesClause,ASection);
 end;
 
 // Starts after the variable name

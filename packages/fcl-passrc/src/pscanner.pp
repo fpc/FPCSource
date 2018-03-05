@@ -558,10 +558,11 @@ type
     po_KeepClassForward,     // disabled: delete class fowards when there is a class declaration
     po_ArrayRangeExpr,       // enable: create TPasArrayType.IndexRange, disable: create TPasArrayType.Ranges
     po_SelfToken,            // Self is a token. For backward compatibility.
-    po_CheckModeSwitches,    // stop on unknown modeswitch with an error
-    po_CheckCondFunction,    // stop on unknown function in conditional expression, default: return '0'
-    po_StopOnErrorDirective, // stop on user $Error, $message error|fatal
-    po_ExtClassConstWithoutExpr // allow const without expression in external class
+    po_CheckModeSwitches,    // error on unknown modeswitch with an error
+    po_CheckCondFunction,    // error on unknown function in conditional expression, default: return '0'
+    po_StopOnErrorDirective, // error on user $Error, $message error|fatal
+    po_ExtClassConstWithoutExpr, // allow const without expression in external class
+    po_StopOnUnitInterface   // parse only a unit name and stop at interface keyword
     );
   TPOptions = set of TPOption;
 

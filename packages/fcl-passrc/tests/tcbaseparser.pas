@@ -62,7 +62,7 @@ Type
     Procedure Add(Const Lines : array of String);
     Procedure StartParsing;
     Procedure ParseDeclarations;
-    Procedure ParseModule;
+    Procedure ParseModule; virtual;
     procedure ResetParser;
     Procedure CheckHint(AHint : TPasMemberHint);
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AClass : TClass) : TPasExpr;
