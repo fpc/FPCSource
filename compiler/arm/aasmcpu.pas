@@ -1189,9 +1189,9 @@ implementation
                       begin
                         penalty:=multiplier;
                         hp:=tai(hp.next);
-                        { skip register allocations and comments inserted by the optimizer as well as a label
+                        { skip register allocations and comments inserted by the optimizer as well as a label and align
                           as jump tables for thumb might have }
-                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc,ait_label]) do
+                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc,ait_label,ait_align]) do
                           hp:=tai(hp.next);
                         while assigned(hp) and (hp.typ=ait_const) do
                           begin
