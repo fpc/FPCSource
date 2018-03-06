@@ -1144,6 +1144,7 @@ type
     function    GetReportBandName: string; override;
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   Notification(AComponent: TComponent; Operation: TOperation); override;
+    Procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
     procedure   BeforePrintWithChilds; override;
     procedure   MovedToNextPageWithChilds; override;
     procedure   AfterPrintWithChilds; override;
@@ -5356,13 +5357,29 @@ begin
   AWriter.WriteString('IntermediateFooter', ReportSectionsToString(FIntermediateFooter));
   AWriter.WriteString('OverflowedFooterNeedsReprintedHeader', ReportSectionsToString(FOverflowedFooterNeedsReprintedHeader));
   AWriter.WriteString('OverflowWithFirstDataBand', ReportSectionsToString(FOverflowWithFirstDataBand));
+  If Assigned(ParentGroupHeader) then
+    AWriter.WriteString('ParentGroupHeader', ParentGroupHeader.Name);
 end;
 
 procedure TFPReportCustomGroupHeaderBand.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  if (Operation = opRemove) and (AComponent = FChildGroupHeader) then
-    FChildGroupHeader := nil;
   inherited Notification(AComponent, Operation);
+  if (Operation = opRemove) then
+    begin
+    if (AComponent = FChildGroupHeader) then
+      FChildGroupHeader := nil
+    else (AComponent = FParentGroupHeader) then
+      FParentGroupHeader := nil;
+    end;
+
+end;
+
+procedure TFPReportCustomGroupHeaderBand.FixupReference(PN, PV: String; C: TFPReportElement);
+begin
+  if SameText(PN,'ParentGroupHeader') then
+    ParentGroupHeader:=TFPReportCustomGroupHeaderBand(C)
+  else
+    inherited FixupReference(PN, PV, C);
 end;
 
 procedure TFPReportCustomGroupHeaderBand.BeforePrintWithChilds;
@@ -5473,6 +5490,11 @@ begin
 end;
 
 procedure TFPReportCustomGroupHeaderBand.ReadElement(AReader: TFPReportStreamer);
+
+Var
+  S : String;
+  C : TFPReportElement;
+
 begin
   inherited ReadElement(AReader);
   FGroupCondition := AReader.ReadString('GroupCondition', '');
@@ -5481,6 +5503,15 @@ begin
   FIntermediateFooter := StringToReportSections(AReader.ReadString('IntermediateFooter', ''));
   FOverflowedFooterNeedsReprintedHeader := StringToReportSections(AReader.ReadString('OverflowedFooterNeedsReprintedHeader', ''));
   FOverflowWithFirstDataBand := StringToReportSections(AReader.ReadString('OverflowWithFirstDataBand', 'rsPage,rsColumn'));
+  S:=AReader.ReadString('ParentGroupHeader','');
+  if (S<>'') then
+    begin
+    C:=Report.FindRecursive(S);
+    if C is TFPReportCustomGroupHeaderBand then
+      ParentGroupHeader:=TFPReportCustomGroupHeaderBand(C)
+    else
+      Report.AddReference(Self,'ParentGroupHeader',S);
+    end;
 end;
 
 procedure TFPReportCustomGroupHeaderBand.EvaluateGroupCondition;
