@@ -1419,6 +1419,8 @@ type
     destructor Destroy; override;
     Procedure Assign(Source : TPersistent); override;
     procedure PrepareExpressionValue;
+    Procedure WriteElement(aWriter : TFPReportStreamer); virtual;
+    Procedure ReadElement(aWriter : TFPReportStreamer); virtual;
     Property AsExpressionResult : TFPExpressionResult Read GetER Write SetER;
     Property AsString : String Read GetAsString Write SetAsString;
     Property AsInteger : Int64 Read GetAsInteger Write SetAsInteger;
@@ -3198,6 +3200,52 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TFPReportVariable.WriteElement(aWriter: TFPReportStreamer);
+begin
+  With AWriter do
+    begin
+    WriteString('Name',Self.Name);
+    WriteString('DataType',ResultTypeName(DataType));
+    WriteString('Value',Value);
+    WriteString('Expression',Expression);
+    WriteString('ResetValueExpression',ResetValueExpression);
+    WriteString('ResetType',GetEnumName(TypeInfo(TFPReportResetType),Ord(ResetType)));
+    end;
+end;
+
+procedure TFPReportVariable.ReadElement(aWriter: TFPReportStreamer);
+
+Var
+  S : String;
+  I : integer;
+begin
+  With AWriter do
+    begin
+    Self.Name:=ReadString('Name','');
+    S:=ReadString('DataType','string');
+    if S<>'' then
+      I:=GetEnumValue(TypeInfo(TResultType),S)
+    else
+      I:=-1;
+    if I=-1 then
+      DataType:=rtString
+    else
+      DataType:=TResultType(I);
+    Value:=ReadString('Value','');
+    Expression:=ReadString('Expression','');
+    ResetValueExpression:=ReadString('ResetValueExpression','');
+    S:=ReadString('ResetType','');
+    if S<>'' then
+      I:=GetEnumValue(TypeInfo(TFPReportResetType),S)
+    else
+      I:=-1;
+    if I=-1 then
+      ResetType:=rtNone
+    else
+      ResetType:=TFPReportResetType(I);
+    end;
 end;
 
 function TFPReportBandFactory.getBandClass(aIndex : TFPReportBandType
@@ -7792,6 +7840,20 @@ begin
     finally
       AWriter.PopElement;
     end;
+    AWriter.PushElement('Variables');
+    try
+      for i := 0 to Variables.Count - 1 do
+        begin
+          AWriter.PushElement(IntToStr(i)); // use variable index as identifier
+          try
+            Variables[i].WriteElement(AWriter);
+          finally
+            AWriter.PopElement;
+          end;
+        end;
+    finally
+      AWriter.PopElement;
+    end;
   finally
     AWriter.PopElement;
   end;
@@ -7803,6 +7865,7 @@ var
   E: TObject;
   i: integer;
   p: TFPReportPage;
+  v : TFPReportVariable;
   lImgItem: TFPReportImageItem;
 begin
   ClearReferenceList;
@@ -7852,6 +7915,23 @@ begin
         end;  { for i }
         AReader.PopElement;
       end; { pages }
+      E := AReader.FindChild('Variables');
+      if Assigned(E) then
+      begin
+        AReader.PushElement(E);
+        for i := 0 to AReader.ChildCount-1 do
+        begin
+          E := AReader.GetChild(i);
+          AReader.PushElement(E); // child index is the identifier
+          try
+            v := Variables.Add as TFPReportVariable;
+            v.ReadElement(AReader);
+          finally
+            AReader.PopElement;
+          end;
+        end;  { for I }
+        AReader.PopElement;
+      end; { Variables }
 
       // TODO: Implement reading OnRenderReport, OnBeginReport, OnEndReport
     finally
