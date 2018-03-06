@@ -7834,7 +7834,7 @@ begin
   if PageCount=0 then
     aErrors.Add(SErrNeedPages);
   For I:=0 to PageCount-1 do
-    Pages[1].Validate(aErrors);
+    Pages[i].Validate(aErrors);
 end;
 
 procedure TFPCustomReport.Validate;
