@@ -1412,6 +1412,7 @@ type
     Procedure SaveValue; virtual;
     Procedure RestoreValue; virtual;
   Protected
+    Procedure ReleaseExpressionNodes;
     Procedure GetRTValue(Var Result : TFPExpressionResult; ConstRef AName : ShortString); virtual;
     procedure GetRTExpressionValue(Var Result : TFPExpressionResult; ConstRef AName : ShortString); virtual;
   Public
@@ -2933,8 +2934,7 @@ begin
     FAggregateValues.Delete(FAggregateValues.Count-1);
   end;
   FAggregateValues.Free;
-  FExpressionNode.Free;
-  FResetValueExpressionNode.Free;
+  ReleaseExpressionNodes;
   inherited Destroy;
 end;
 
@@ -2946,6 +2946,12 @@ end;
 procedure TFPReportVariable.RestoreValue;
 begin
   FValue:=FSavedValue;
+end;
+
+procedure TFPReportVariable.ReleaseExpressionNodes;
+begin
+  FreeAndNil(FExpressionNode);
+  FreeAndNil(FResetValueExpressionNode);
 end;
 
 function TFPReportVariable.GetValue: String;
@@ -4256,7 +4262,7 @@ var
   i: integer;
 begin
   for i := 0 to Length(ExpressionNodes)-1 do
-    ExpressionNodes[i].ExprNode.Free;
+    FreeAndNil(ExpressionNodes[i].ExprNode);
   SetLength(ExpressionNodes, 0);
 end;
 
@@ -4393,7 +4399,7 @@ end;
 
 function TFPReportCustomMemo.GetExpr: TFPExpressionParser;
 begin
-  Result := TFPReportCustomBand(Parent).Page.Report.FExpr;
+  Result:=Report.FExpr;
 end;
 
 function TFPReportCustomMemo.CreateTextBlock(const IsURL: boolean): TFPTextBlock;
@@ -7643,6 +7649,7 @@ begin
     For I:=0 to FVariables.Count-1 do
     begin
       v:=FVariables[I];
+      v.ReleaseExpressionNodes;
       if v.Expression<>'' then
       begin
         FExpr.Expression:=v.Expression;
