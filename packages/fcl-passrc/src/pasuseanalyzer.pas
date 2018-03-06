@@ -605,6 +605,9 @@ begin
   Result:=aClass.Create;
   Result.Element:=El;
   FUsedElements.Add(Result);
+  {$IFDEF VerbosePasAnalyzer}
+  //writeln('TPasAnalyzer.Add END ',GetElModName(El),' Success=',FindNode(El)<>nil,' ',ptruint(pointer(El)));
+  {$ENDIF}
 end;
 
 procedure TPasAnalyzer.CreateTree;
@@ -2271,7 +2274,7 @@ begin
     exit;
     end;
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.EmitMessage [',Msg.Id,'] ',Msg.MsgType,': (',Msg.MsgNumber,') ',Msg.MsgText);
+  writeln('TPasAnalyzer.EmitMessage [',Msg.Id,'] ',Msg.MsgType,': (',Msg.MsgNumber,') ',Msg.MsgText,' ScopeModule=',GetObjName(ScopeModule));
   {$ENDIF}
   try
     OnMessage(Self,Msg);

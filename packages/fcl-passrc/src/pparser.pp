@@ -2790,14 +2790,14 @@ begin
     exit; // parse completed
   if (LastMsg<>'') and (LastMsgType<=mtError) then
     begin
-    {$IFDEF VerbosePasResolver}
+    {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
     writeln('TPasParser.CanParseContinue ',CurModule.Name,' LastMsg="',LastMsgType,':',LastMsg,'"');
     {$ENDIF}
     exit;
     end;
   if (Scanner.LastMsg<>'') and (Scanner.LastMsgType<=mtError) then
     begin
-    {$IFDEF VerbosePasResolver}
+    {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
     writeln('TPasParser.CanParseContinue ',CurModule.Name,' Scanner.LastMsg="',Scanner.LastMsgType,':',Scanner.LastMsg,'"');
     {$ENDIF}
     exit;
@@ -2810,8 +2810,16 @@ begin
         and (CurModule.InterfaceSection=nil) then
       exit(true)
     else
+      begin
+      {$IFDEF VerboseUnitQueue}
+      writeln('TPasParser.CanParseContinue ',CurModule.Name,' no LastSection');
+      {$ENDIF}
       exit(false);
+      end;
   Result:=Section.PendingUsedIntf=nil;
+  {$IFDEF VerboseUnitQueue}
+  writeln('TPasParser.CanParseContinue ',CurModule.Name,' Result=',Result,' ',Section.ElementTypeName);
+  {$ENDIF}
 end;
 
 procedure TPasParser.ParseContinue;
@@ -2841,7 +2849,9 @@ begin
       ParseDeclarations(Section);
       end;
     Section:=GetLastSection;
-    if (Section<>nil) and (Section.PendingUsedIntf<>nil) then
+    if Section=nil then
+      ParseExc(nErrNoSourceGiven,'[20180306112327]');
+    if Section.PendingUsedIntf<>nil then
       HasFinished:=false;
     if HasFinished then
       Engine.FinishScope(stModule,CurModule);
@@ -2913,6 +2923,7 @@ begin
     if not HasFinished then
       begin
       {$IFDEF VerbosePasResolver}
+      {AllowWriteln}
       writeln('TPasParser.ParseProgram pause parsing after uses list of "',CurModule.Name,'"');
       if CanParseContinue(aSection) then
         begin
@@ -2921,6 +2932,7 @@ begin
           writeln('TPasParser.ParseProgram aSection=',aSection.ClassName,' ',Section=aSection);
         ParseExc(nErrNoSourceGiven,'[20180305172432] ');
         end;
+      {AllowWriteln-}
       {$ENDIF}
       exit;
       end;

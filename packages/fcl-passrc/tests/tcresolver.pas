@@ -71,6 +71,7 @@ type
       overload; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
+    procedure UsedInterfacesFinished(Section: TPasSection); override;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
     property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
@@ -775,6 +776,13 @@ begin
   Result:=OnFindUnit(Self,AName,InFilename,NameExpr,InFileExpr);
 end;
 
+procedure TTestEnginePasResolver.UsedInterfacesFinished(Section: TPasSection);
+begin
+  if Section=nil then ;
+  // do not parse recursively
+  // using a queue
+end;
+
 { TCustomTestResolver }
 
 procedure TCustomTestResolver.SetUp;
@@ -796,6 +804,8 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown ResolverEngine.Clear');
   {$ENDIF}
+  if ResolverEngine.Parser=Parser then
+    ResolverEngine.Parser:=nil;
   ResolverEngine.Clear;
   if FModules<>nil then
     begin
@@ -830,6 +840,9 @@ var
   CurResolver: TTestEnginePasResolver;
   Found: Boolean;
 begin
+  if ResolverEngine.Parser=nil then
+    ResolverEngine.Parser:=Parser;
+
   inherited ParseModule;
   repeat
     Found:=false;
@@ -837,27 +850,35 @@ begin
       begin
       CurResolver:=Modules[i];
       if CurResolver.Parser=nil then continue;
-      if CurResolver.Parser.CanParseContinue(Section) then
-        begin
-        {$IFDEF VerbosePasResolver}
-        writeln('TCustomTestResolver.ParseModule continue parsing section=',GetObjName(Section),' of ',CurResolver.Filename);
-        {$ENDIF}
-        Found:=true;
-        CurResolver.Parser.ParseContinue;
-        break;
-        end;
+      if not CurResolver.Parser.CanParseContinue(Section) then
+        continue;
+      {$IFDEF VerbosePasResolver}
+      writeln('TCustomTestResolver.ParseModule continue parsing section=',GetObjName(Section),' of ',CurResolver.Filename);
+      {$ENDIF}
+      Found:=true;
+      CurResolver.Parser.ParseContinue;
+      break;
       end;
   until not Found;
 
   for i:=0 to ModuleCount-1 do
     begin
     CurResolver:=Modules[i];
-    if CurResolver.CurrentParser.CurModule<>nil then
+    if CurResolver.Parser=nil then
       begin
+      if CurResolver.CurrentParser<>nil then
+        Fail(CurResolver.Filename+' Parser<>CurrentParser Parser="'+GetObjName(CurResolver.Parser)+'" CurrentParser='+GetObjName(CurResolver.CurrentParser));
+      continue;
+      end;
+    if CurResolver.Parser.CurModule<>nil then
+      begin
+      Section:=CurResolver.Parser.GetLastSection;
       {$IFDEF VerbosePasResolver}
-      writeln('TCustomTestResolver.ParseModule module not finished "',CurResolver.RootElement.Name,'"');
+      writeln('TCustomTestResolver.ParseModule module not finished "',GetObjName(CurResolver.RootElement),'" LastSection=',GetObjName(Section)+' PendingUsedIntf='+GetObjName(Section.PendingUsedIntf));
+      if (Section<>nil) and (Section.PendingUsedIntf<>nil) then
+        writeln('TCustomTestResolver.ParseModule PendingUsedIntf=',GetObjName(Section.PendingUsedIntf.Module));
       {$ENDIF}
-      Fail('module not finished "'+CurResolver.RootElement.Name+'"');
+      Fail('module not finished "'+GetObjName(CurResolver.RootElement)+'"');
       end;
     end;
 end;

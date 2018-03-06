@@ -1438,7 +1438,7 @@ type
     procedure NotifyPendingUsedInterfaces; virtual;
     function GetPendingUsedInterface(Section: TPasSection): TPasUsesUnit;
     function CheckPendingUsedInterface(Section: TPasSection): boolean; override;
-    procedure ContinueParsing; virtual;
+    procedure UsedInterfacesFinished(Section: TPasSection); virtual;
     function NeedArrayValues(El: TPasElement): boolean; override;
     function GetDefaultClassVisibility(AClass: TPasClassType
       ): TPasMemberVisibility; override;
@@ -4138,7 +4138,10 @@ end;
 
 procedure TPasResolver.FinishInterfaceSection(Section: TPasSection);
 begin
-  {$IFDEF VerbosePasResolver}
+  {$IFDEF VerboseUnitQueue}
+  writeln('TPasResolver.FinishInterfaceSection ',GetObjName(RootElement));
+  {$ENDIF}
+  {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
   if not IsUnitIntfFinished(Section.GetModule) then
     RaiseInternalError(20171214004323,'TPasResolver.FinishInterfaceSection "'+CurrentParser.CurModule.Name+'" "'+Section.GetModule.Name+'" IsUnitIntfFinished=false');
   {$ENDIF}
@@ -11832,7 +11835,6 @@ var
   PendingResolver: TPasResolver;
   PendingParser: TPasParser;
   PendingSection: TPasSection;
-  Changed: Boolean;
 begin
   // call all PendingResolvers
   // Note that a waiting resolver might continue parsing, so this
@@ -11849,14 +11851,7 @@ begin
     {$ENDIF}
     if PendingSection=nil then
       RaiseInternalError(20180305141421);
-    Changed:=PendingResolver.CheckPendingUsedInterface(PendingSection); // beware: this might alter the ModuleScope.PendingResolvers
-    if Changed and (PendingSection.PendingUsedIntf=nil) then
-      begin
-      {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.FinishInterfaceSection "',ModuleScope.Element.Name,'" Continue="',PendingResolver.RootElement.Name,'"');
-      {$ENDIF}
-      PendingParser.ParseContinue;
-      end;
+    PendingResolver.CheckPendingUsedInterface(PendingSection); // beware: this might alter the ModuleScope.PendingResolvers
     dec(i);
     if i>=ModuleScope.PendingResolvers.Count then
       i:=ModuleScope.PendingResolvers.Count-1;
@@ -11905,6 +11900,7 @@ begin
     end;
 
   Section.PendingUsedIntf:=GetPendingUsedInterface(Section);
+  //writeln('TPasResolver.CheckPendingUsedInterface ',GetObjName(RootElement),' Section=',GetObjName(Section),' PendingUsedIntf=',GetObjName(Section.PendingUsedIntf));
   if Section.PendingUsedIntf<>nil then
     begin
     // module not yet finished due to pending used interfaces
@@ -11921,22 +11917,26 @@ begin
   else
     begin
     {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
     if WasPending then
       writeln('TPasResolver.CheckPendingUsedInterface "',CurrentParser.CurModule.Name,'" uses section complete: ',Section.ClassName);
+    {AllowWriteln-}
     {$ENDIF}
-
     Result:=WasPending;
+    if Result then
+      UsedInterfacesFinished(Section);
     end;
 end;
 
-procedure TPasResolver.ContinueParsing;
+procedure TPasResolver.UsedInterfacesFinished(Section: TPasSection);
 // if there is a unit cycle that stopped parsing this unit
 // this method is called after the needed used unit interfaces have finished
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ContinueParsing "',CurrentParser.CurModule.Name,'"...');
+  writeln('TPasResolver.UsesSectionFinished ',Section.ElementTypeName,' "',CurrentParser.CurModule.Name,'"...');
   {$ENDIF}
   CurrentParser.ParseContinue;
+  if Section=nil then ;
 end;
 
 function TPasResolver.NeedArrayValues(El: TPasElement): boolean;

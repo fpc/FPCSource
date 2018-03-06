@@ -83,8 +83,9 @@ type
     // single module hints
     procedure TestM_Hint_UnitNotUsed;
     procedure TestM_Hint_UnitNotUsed_No_OnlyExternal;
+    procedure TestM_Hint_UnitUsed;
+    procedure TestM_Hint_UnitUsedVarArgs;
     procedure TestM_Hint_ParameterNotUsed;
-    procedure TestM_HintsOff_ParameterNotUsed;
     procedure TestM_Hint_ParameterAssignedButNotReadVarParam;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_ParameterNotUsedTypecast;
@@ -1146,6 +1147,40 @@ begin
   CheckUseAnalyzerUnexpectedHints;
 end;
 
+procedure TTestUseAnalyzer.TestM_Hint_UnitUsed;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;',
+    '']),
+    LinesToStr(['']));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('begin');
+  Add('  i:=3;');
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_UnitUsedVarArgs;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'var i: longint;',
+    '']),
+    LinesToStr(['']));
+
+  StartProgram(true);
+  Add('uses unit2;');
+  Add('procedure Writeln(); varargs;');
+  Add('begin end;');
+  Add('begin');
+  Add('  writeln(i);');
+  AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
 procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsed;
 begin
   StartProgram(true);
@@ -1156,11 +1191,6 @@ begin
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
   CheckUseAnalyzerUnexpectedHints;
-end;
-
-procedure TTestUseAnalyzer.TestM_HintsOff_ParameterNotUsed;
-begin
-
 end;
 
 procedure TTestUseAnalyzer.TestM_Hint_ParameterAssignedButNotReadVarParam;
