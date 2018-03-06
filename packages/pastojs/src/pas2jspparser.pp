@@ -58,7 +58,6 @@ type
   private
     FLog: TPas2jsLogger;
     FOnCheckSrcName: TOnCheckSrcName;
-    FOnContinueParsing: TNotifyEvent;
     FOnFindModule: TOnFindModule;
     FP2JParser: TPas2jsPasParser;
   public
@@ -69,10 +68,9 @@ type
     function FindModule(const aUnitname: String): TPasModule; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
-    procedure ContinueParsing; override;
+    procedure UsedInterfacesFinished(Section: TPasSection); override;
   public
     Owner: TObject;
-    property OnContinueParsing: TNotifyEvent read FOnContinueParsing write FOnContinueParsing;
     property OnFindModule: TOnFindModule read FOnFindModule write FOnFindModule;
     property OnCheckSrcName: TOnCheckSrcName read FOnCheckSrcName write FOnCheckSrcName;
     property Log: TPas2jsLogger read FLog write FLog;
@@ -174,9 +172,9 @@ begin
   Result:=OnFindModule(AName,InFilename,NameExpr,InFileExpr);
 end;
 
-procedure TPas2jsCompilerResolver.ContinueParsing;
+procedure TPas2jsCompilerResolver.UsedInterfacesFinished(Section: TPasSection);
 begin
-  OnContinueParsing(Self);
+  if Section=nil then ;
 end;
 
 end.

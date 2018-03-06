@@ -3088,7 +3088,7 @@ var
     aStream.Write(c,1);
   end;
 
-  procedure WriteLn;
+  procedure WriteLine;
   begin
     WriteString(sLineBreak);
     if CurIndent>0 then
@@ -3120,7 +3120,7 @@ var
     if not Compressed then
       begin
       Indent;
-      WriteLn;
+      WriteLine;
       end;
     for i:=0 to Obj.Count-1 do
       begin
@@ -3128,7 +3128,7 @@ var
         begin
         WriteChar(',');
         if not Compressed then
-          WriteLn;
+          WriteLine;
         end;
       Name:=Obj.Names[i];
       WriteChar('"');
@@ -3142,7 +3142,7 @@ var
     if not Compressed then
       begin
       Unindent;
-      WriteLn;
+      WriteLine;
       end;
     WriteChar('}');
   end;
@@ -3155,7 +3155,7 @@ var
     if not Compressed then
       begin
       Indent;
-      WriteLn;
+      WriteLine;
       end;
     for i:=0 to Arr.Count-1 do
       begin
@@ -3163,14 +3163,14 @@ var
         begin
         WriteChar(',');
         if not Compressed then
-          WriteLn;
+          WriteLine;
         end;
       WriteData(Arr[i]);
       end;
     if not Compressed then
       begin
       Unindent;
-      WriteLn;
+      WriteLine;
       end;
     WriteChar(']');
   end;

@@ -58,6 +58,7 @@ type
     destructor Destroy; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
+    procedure UsedInterfacesFinished(Section: TPasSection); override;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
     property Resolver: TStreamResolver read FResolver write FResolver;
@@ -825,6 +826,13 @@ begin
   if NameExpr=nil then ;
 end;
 
+procedure TTestEnginePasResolver.UsedInterfacesFinished(Section: TPasSection);
+begin
+  // do not parse recursively
+  // parse via the queue
+  if Section=nil then ;
+end;
+
 { TCustomTestModule }
 
 function TCustomTestModule.GetResolverCount: integer;
@@ -1021,12 +1029,26 @@ begin
       begin
       CurResolver:=Resolvers[i];
       if CurResolver.CurrentParser=nil then continue;
-      if not CurResolver.CurrentParser.CanParseContinue(Section) then continue;
+      if not CurResolver.CurrentParser.CanParseContinue(Section) then
+        continue;
       CurResolver.Parser.ParseContinue;
       Found:=true;
       break;
       end;
     if not Found then break;
+    end;
+
+  for i:=0 to ResolverCount-1 do
+    begin
+    CurResolver:=Resolvers[i];
+    if CurResolver.Parser=nil then
+      begin
+      if CurResolver.CurrentParser<>nil then
+        Fail('TCustomTestModule.ParseModuleQueue '+CurResolver.Filename+' '+GetObjName(CurResolver.Parser)+'=Parser<>CurrentParser='+GetObjName(CurResolver.CurrentParser));
+      continue;
+      end;
+    if CurResolver.Parser.CurModule<>nil then
+      Fail('TCustomTestModule.ParseModuleQueue '+CurResolver.Filename+' NOT FINISHED CurModule='+GetObjName(CurResolver.Parser.CurModule));
     end;
 end;
 
