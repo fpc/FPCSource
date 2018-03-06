@@ -1401,6 +1401,7 @@ type
     procedure SetDataType(AValue: TResultType);
     procedure SetER(AValue: TFPExpressionResult);
     procedure SetName(AValue: String);
+    procedure SetResetType(AValue: TFPReportResetType);
     procedure SetValue(AValue: String);
     Procedure SaveValue; virtual;
     Procedure RestoreValue; virtual;
@@ -1422,9 +1423,9 @@ type
     Property Name : String Read FName Write SetName;
     Property DataType : TResultType Read GetDataType Write SetDataType;
     property Value : String Read GetValue Write SetValue;
-    property Expression: String Read FExpression;
-    property ResetValueExpression: String Read FResetValueExpression;
-    property ResetType : TFPReportResetType Read FResetType;
+    property Expression: String Read FExpression Write FExpression;
+    property ResetValueExpression: String Read FResetValueExpression Write FResetValueExpression;
+    property ResetType : TFPReportResetType Read FResetType Write SetResetType;
   end;
 
   { TFPReportVariables }
@@ -2850,8 +2851,9 @@ begin
     Name:=aName;
     FExpression:=aExpr;
     DataType:=aType;
-    FResetType:=aResetType;
-    FResetValueExpression:=aResetValueExpression;
+    ResetType:=aResetType;
+
+    ResetValueExpression:=aResetValueExpression;
     end;
 end;
 
@@ -3062,6 +3064,16 @@ begin
   FName:=AValue;
 end;
 
+procedure TFPReportVariable.SetResetType(AValue: TFPReportResetType);
+begin
+  if FResetType=AValue then Exit;
+  FResetType:=AValue;
+  Case FResetType of
+    rtPage:   FResetValueExpression:='PageNo';
+    rtColumn: FResetValueExpression:='ColNo';
+  end;
+end;
+
 procedure TFPReportVariable.Assign(Source: TPersistent);
 
 Var
@@ -3073,6 +3085,10 @@ begin
     V:=Source as TFPReportVariable;
     FName:=V.Name;
     FValue:=V.FValue;
+    FExpression:=V.Expression;
+    FResetType:=V.FResetType;
+    FResetValueExpression:=V.FResetValueExpression;
+    FResetValue:=V.FResetValue;
     end
   else
     inherited Assign(Source);
