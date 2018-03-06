@@ -907,6 +907,7 @@ type
     procedure   SetDataFromName(AName : String); virtual;
     procedure   SetParent(const AValue: TFPReportElement); override;
     procedure   CreateRTLayout; override;
+    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     { this is normally run against the runtime version of the Band instance. }
     procedure   RecalcLayout; override;
@@ -978,12 +979,16 @@ type
     FFooterBand: TFPReportCustomDataFooterBand;
     FMasterBand: TFPReportCustomDataBand;
     FDisplayPosition: Integer;
+    procedure SetFooterBand(AValue: TFPReportCustomDataFooterBand);
+    procedure SetHeaderBand(AValue: TFPReportCustomDataHeaderBand);
+    procedure SetMasterBand(AValue: TFPReportCustomDataBand);
   protected
     Procedure FixupReference(PN,PV : String; C : TFPReportElement); override;
+    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     property  DisplayPosition: Integer read FDisplayPosition write FDisplayPosition default 0;
-    property  FooterBand: TFPReportCustomDataFooterBand read FFooterBand write FFooterBand;
-    property  HeaderBand: TFPReportCustomDataHeaderBand read FHeaderBand write FHeaderBand;
-    property  MasterBand: TFPReportCustomDataBand read FMasterBand write FMasterBand;
+    property  FooterBand: TFPReportCustomDataFooterBand read FFooterBand write SetFooterBand;
+    property  HeaderBand: TFPReportCustomDataHeaderBand read FHeaderBand write SetHeaderBand;
+    property  MasterBand: TFPReportCustomDataBand read FMasterBand write SetMasterBand;
   public
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure ReadElement(AReader: TFPReportStreamer); override;
@@ -5137,6 +5142,36 @@ end;
 
 { TFPReportCustomDataBand }
 
+procedure TFPReportCustomDataBand.SetFooterBand(AValue: TFPReportCustomDataFooterBand);
+begin
+  if FFooterBand=AValue then Exit;
+  if Assigned(FFooterBand) then
+    FFooterBand.RemoveFreeNotification(Self);
+  FFooterBand:=AValue;
+  if Assigned(FFooterBand) then
+    FFooterBand.FreeNotification(Self);
+end;
+
+procedure TFPReportCustomDataBand.SetHeaderBand(AValue: TFPReportCustomDataHeaderBand);
+begin
+  if FHeaderBand=AValue then Exit;
+  if Assigned(FHeaderBand) then
+    FHeaderBand.RemoveFreeNotification(Self);
+  FHeaderBand:=AValue;
+  if Assigned(FHeaderBand) then
+    FHeaderBand.FreeNotification(Self);
+end;
+
+procedure TFPReportCustomDataBand.SetMasterBand(AValue: TFPReportCustomDataBand);
+begin
+  if FMasterBand=AValue then Exit;
+  if Assigned(FMasterBand) then
+    FMasterBand.RemoveFreeNotification(Self);
+  FMasterBand:=AValue;
+  if Assigned(FMasterBand) then
+    FMasterBand.FreeNotification(Self);
+end;
+
 procedure TFPReportCustomDataBand.FixupReference(PN, PV: String; C: TFPReportElement);
 begin
   If SameText('FooterBand',PN) and (C is TFPReportCustomDataFooterBand) then
@@ -5147,6 +5182,20 @@ begin
     MasterBand:=TFPReportCustomDataBand(C)
   else
     Inherited;
+end;
+
+procedure TFPReportCustomDataBand.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if Operation=opRemove then
+    begin
+    if AComponent = FHeaderBand then
+      FheaderBand:=Nil
+    else if AComponent = FFooterBand then
+      FFooterBand:=Nil
+    else if AComponent = FMasterBand then
+      FMasterBand:=Nil;
+    end;
 end;
 
 procedure TFPReportCustomDataBand.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil);
@@ -8077,20 +8126,23 @@ var
 begin
   if FChildBand = AValue then
     Exit;
-  FChildBand := AValue;
-  b := FChildBand;
-  while b <> nil do
-  begin
-    b := b.ChildBand;
-    if b = self then
-      raise EReportError.Create(SErrChildBandCircularReference);
-  end;
   if Assigned(FChildBand) then
-  begin
+    FChildBand.RemoveFreeNotification(Self);
+  b := aValue;
+  while b <> nil do
+    begin
+    b:=b.ChildBand;
+    if b=self then
+      raise EReportError.Create(SErrChildBandCircularReference);
+    end;
+  FChildBand := AValue;
+  if Assigned(FChildBand) then
+    begin
+    FChildBand.RemoveFreeNotification(Self);
     FChildBand.FParentBand := Self;
     FChildBand.FMainBand := FMainBand;
     Page.ApplyBandWidth(FChildBand);
-  end;
+    end;
 end;
 
 procedure TFPReportCustomBand.ApplyStretchMode;
@@ -8174,6 +8226,16 @@ procedure TFPReportCustomBand.CreateRTLayout;
 begin
   inherited CreateRTLayout;
   FRTLayout.Left := Page.Layout.Left;
+end;
+
+procedure TFPReportCustomBand.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if Operation=opRemove then
+    begin
+    if AComponent=FChildBand then
+      FChildBand:=Nil;
+    end;
 end;
 
 function TFPReportCustomBand.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
