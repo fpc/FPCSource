@@ -5368,7 +5368,7 @@ begin
     begin
     if (AComponent = FChildGroupHeader) then
       FChildGroupHeader := nil
-    else (AComponent = FParentGroupHeader) then
+    else if (AComponent = FParentGroupHeader) then
       FParentGroupHeader := nil;
     end;
 
