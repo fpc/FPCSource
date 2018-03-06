@@ -1254,6 +1254,7 @@ type
     FDoNotConsiderInFooterSpaceNeeded: Boolean;
     procedure SetGroupHeader(const AValue: TFPReportCustomGroupHeaderBand);
   protected
+    procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
     procedure SetBandPosition(pBandPosition: TFPReportBandPosition); override;
     function  GetReportBandName: string; override;
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
@@ -8497,6 +8498,14 @@ begin
   end;
 end;
 
+procedure TFPReportCustomGroupFooterBand.FixupReference(PN, PV: String; C: TFPReportElement);
+begin
+  if SameText(PN,'Groupheader') then
+    GroupHeader:=TFPReportCustomGroupHeaderBand(C)
+  else
+    inherited FixupReference(PN, PV, C);
+end;
+
 procedure TFPReportCustomGroupFooterBand.SetBandPosition(
   pBandPosition: TFPReportBandPosition);
 begin
@@ -8572,17 +8581,18 @@ end;
 procedure TFPReportCustomGroupFooterBand.ReadElement(AReader: TFPReportStreamer);
 var
   s: string;
-//  c: TFPReportElement;
+  c: TFPReportElement;
 begin
-//  c := nil;
   inherited ReadElement(AReader);
   s := AReader.ReadString('GroupHeader', '');
-  if s = '' then
-    Exit;
-  // TODO: recursively search Page.Report for the GroupHeader
-  //c := Page.Report.FindComponent(s);
-  //if Assigned(c) then
-  //  FGroupHeader := TFPReportCustomGroupHeaderBand(c);
+  if s<>'' then
+    begin
+    c:=Report.FindRecursive(S);
+    if Not (C is TFPReportCustomGroupHeaderBand) then
+      Report.AddReference(Self,'GroupHeader',S)
+    else
+      FGroupHeader := TFPReportCustomGroupHeaderBand(c);
+    end;
 end;
 
 class function TFPReportCustomGroupFooterBand.ReportBandType: TFPReportBandType;
