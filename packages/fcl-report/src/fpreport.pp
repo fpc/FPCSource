@@ -9543,18 +9543,26 @@ procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
   procedure SetResult(const pValue: Variant);
   begin
     if Assigned(FExprIdentierDef) then
-      case FExprIdentierDef.ResultType of
-        rtBoolean:    Result.ResBoolean   := pValue;
-        rtInteger:    Result.ResInteger   := pValue;
-        rtFloat:      Result.ResFloat     := pValue;
-        rtDateTime:   Result.ResDateTime  := pValue;
-        rtString:     Result.ResString    := pValue;
-      end;
+      if varIsNull(pValue) then
+        case FExprIdentierDef.ResultType of
+          rtBoolean:    Result.ResBoolean   := False;
+          rtInteger:    Result.ResInteger   := 0;
+          rtFloat:      Result.ResFloat     := 0.0;
+          rtDateTime:   Result.ResDateTime  := 0.0;
+          rtString:     Result.ResString    := '';
+        end
+      else
+        case FExprIdentierDef.ResultType of
+          rtBoolean:    Result.ResBoolean   := pValue;
+          rtInteger:    Result.ResInteger   := pValue;
+          rtFloat:      Result.ResFloat     := pValue;
+          rtDateTime:   Result.ResDateTime  := pValue;
+          rtString:     Result.ResString    := pValue;
+        end;
   end;
 
 begin
-  if Assigned(FOnGetUsePrevValue) and
-  FOnGetUsePrevValue() then
+  if Assigned(FOnGetUsePrevValue) and FOnGetUsePrevValue() then
     SetResult(FPrevValue)
   else
     SetResult(FValue);
