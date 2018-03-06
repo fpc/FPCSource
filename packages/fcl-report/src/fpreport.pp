@@ -10197,7 +10197,7 @@ begin
     if ReprintedHeader and
     ( not lGrp.GroupChanged or
     lGrp.FNeedsReprintedHeader) and
-    ( not lGrp.GroupFooter.FIsOverflowed or
+    ( not (Assigned(lGrp.GroupFooter) and lGrp.GroupFooter.FIsOverflowed) or
       OverflowedFooterNeedsReprintedHeader ) then
     begin
       Report.FRTInRepeatedGroupHeader := True;
