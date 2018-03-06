@@ -3735,6 +3735,7 @@ option_help_pages=11025_[
 F*0*_Only options valid for the default or selected platform are listed.
 **0*_Put + after a boolean switch option to enable it, - to disable it.
 **1@<x>_Read compiler options from <x> in addition to the default fpc.cfg
+# Assembler related options
 **1a_The compiler does not delete the generated assembler file
 **2a5_Don't generate Big Obj COFF files for GNU Binutils older than 2.25 (Windows, NativeNT)
 **2al_List sourcecode lines in assembler file
@@ -3743,6 +3744,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 *L2ap_Use pipes instead of creating temporary assembler files
 **2ar_List register allocation/release info in assembler file
 **2at_List temp allocation/release info in assembler file
+# Choice of assembler used
 **1A<x>_Output format:
 **2Adefault_Use default assembler
 3*2Aas_Assemble using GNU AS
@@ -3770,7 +3772,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 4*2Apecoff_PE-COFF (Win64) using internal writer
 4*2Aelf_ELF (Linux-64bit) using internal writer
 4*2Ayasm_Assemble using Yasm (experimental)
-4*2Anasm_Assemble  using Nasm (experimental)
+4*2Anasm_Assemble using Nasm (experimental)
 4*2Anasmwin64_Assemble Win64 object file using Nasm (experimental)
 4*2Anasmelf_Assemble Linux-64bit object file using Nasm (experimental)
 4*2Anasmdarwin_Assemble darwin macho64 object file using Nasm (experimental)
@@ -3781,6 +3783,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 A*2Aas_Assemble using GNU AS
 P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
+# Used only internally by IDE
 **1b_Generate browser info
 **2bl_Generate local symbol info
 **1B_Build all modules
@@ -3976,7 +3979,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
 3*2Thaiku_Haiku
-3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
+3*2Tiphonesim_iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
 3*2Tlinux_Linux
 3*2Tnativent_Native NT API (experimental)
 3*2Tnetbsd_NetBSD
@@ -3991,9 +3994,12 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
 # x86_64 targets
+4*2Taros_AROS
 4*2Tdarwin_Darwin/Mac OS X
+4*2Tdragonfly_DragonFly BSD
+4*2Tembedded_Embedded
 4*2Tfreebsd_FreeBSD
-4*2Tiphonesim_ iPhoneSimulator
+4*2Tiphonesim_iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
 4*2Topenbsd_OpenBSD
@@ -4002,6 +4008,7 @@ F*2P<x>_Set target CPU (aarch64,arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,
 # m68k targets
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
+6*2Tembedded_Embedded
 6*2Tlinux_Linux
 6*2Tnetbsd_NetBSD
 6*2Tmacos_Mac OS
@@ -4028,17 +4035,18 @@ a*2Tlinux_Linux
 # jvm targets
 J*2Tandroid_Android
 J*2Tjava_Java
-# mips targets
+# mipsel targets
 m*2Tandroid_Android
 m*2Tembedded_Embedded
 m*2Tlinux_Linux
-# mipsel targets
+# mipseb targets
 M*2Tembedded_Embedded
 M*2Tlinux_Linux
 # powerpc targets
 P*2Taix_AIX
 P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin/Mac OS X
+P*2Tembedded_Embedded
 P*2Tlinux_Linux
 P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
@@ -4047,14 +4055,17 @@ P*2Twii_Wii
 # powerpc64 targets
 p*2Taix_AIX
 p*2Tdarwin_Darwin/Mac OS X
+p*2Tembedded_Embedded
 p*2Tlinux_Linux
 # sparc targets
-S*2Tsolaris_Solaris
 S*2Tlinux_Linux
+S*2Tsolaris_Solaris
 # sparc64 targets
 s*2Tlinux_Linux
+# not yet ready s*2Tsolaris_Solaris
 # avr targets
 V*2Tembedded_Embedded
+# end of targets section
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
