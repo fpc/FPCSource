@@ -1,6 +1,9 @@
 { %CPU=i386 }
 
 {$MODE TP}
+{$ifdef FPC}
+  {$PIC OFF}
+{$endif FPC}
 
 program tasm21a;
 

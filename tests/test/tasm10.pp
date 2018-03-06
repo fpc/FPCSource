@@ -4,6 +4,7 @@
 {$ifdef fpc}
 {$mode delphi}
 {$asmmode intel}
+{$PIC OFF}
 {$endif}
 
 type

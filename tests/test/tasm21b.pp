@@ -2,6 +2,9 @@
 
 {$MODE TP}
 {$ASMMODE INTEL}
+{$ifdef FPC}
+  {$PIC OFF}
+{$endif FPC}
 
 program tasm21b;
 
