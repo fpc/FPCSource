@@ -8780,7 +8780,7 @@ begin
     if Not (C is TFPReportCustomGroupHeaderBand) then
       Report.AddReference(Self,'GroupHeader',S)
     else
-      FGroupHeader := TFPReportCustomGroupHeaderBand(c);
+      GroupHeader := TFPReportCustomGroupHeaderBand(c);
     end;
 end;
 
