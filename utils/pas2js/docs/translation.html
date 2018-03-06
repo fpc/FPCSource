@@ -2672,9 +2672,12 @@ End.
     <li>and, or, xor, not: logical and bitwise</li>
     <li>Name conflicts with JS identifiers are automatically fixed by changing case.
     For example a Pascal function "<i>apply"</i> is renamed to "<i>Apply</i>".</li>
-    <li>uses unitname in 'filename'. In $mode delphi the in-filenames are only
-    allowed in the program and the unitname must fit the filename. In $mode
-    objfpc units can use in-filenames too and alias are allowed.</li>
+    <li>uses unitname in 'filename'.
+    In <i>$mode delphi</i> the in-filenames are only allowed in the program
+    and the unitname must fit the filename,
+    e.g. <i>uses unit1 in 'sub/Unit1.pas'</i>.<br>
+    In <i>$mode objfpc</i> units can use in-filenames too and
+    alias are allowed, e.g. <i>uses foo in 'bar.pas'</i>.</li>
     <li>The built-in procedure <b>str</b> works with boolean, integer, float and enumvalue.<br>
     Additionally there is <b>str</b> function, that takes an arbitrary number of
     arguments and returns a concatenated string. It supports string as parameter too.
