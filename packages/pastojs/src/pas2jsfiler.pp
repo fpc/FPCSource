@@ -593,6 +593,7 @@ type
   private
     FConverter: TPasToJSConverter;
     FElementIdCounter: integer;
+    FOnIsElementUsed: TPas2JSIsElementUsedEvent;
     FSourceFilesSorted: TPJUSourceFileArray;
     FInImplementation: boolean;
   protected
@@ -695,6 +696,7 @@ type
       InitFlags: TPJUInitialFlags): TJSONObject; virtual;
     function IndexOfSourceFile(const Filename: string): integer;
     property SourceFilesSorted: TPJUSourceFileArray read FSourceFilesSorted;
+    property OnIsElementUsed: TPas2JSIsElementUsedEvent read FOnIsElementUsed write FOnIsElementUsed;
   end;
 
   { TPJUReaderContext }
@@ -734,6 +736,7 @@ type
   private
     FElementRefsArray: TPJUFilerElementRefArray; // TPJUFilerElementRef by Id
     FFileVersion: longint;
+    FJSON: TJSONObject;
     FPendingIdentifierScopes: TObjectList; // list of TPJUReaderPendingIdentifierScope
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
     procedure Set_AliasType_DestType(RefEl: TPasElement; Data: TObject);
@@ -787,6 +790,7 @@ type
     procedure ReadSrcFiles(Data: TJSONData); virtual;
     function ReadMemberHints(Obj: TJSONObject; El: TPasElement; const DefaultValue: TPasMemberHints): TPasMemberHints; virtual;
     procedure ReadPasElement(Obj: TJSONObject; El: TPasElement; aContext: TPJUReaderContext); virtual;
+    procedure ReadUsedUnits(Obj: TJSONObject; Section: TPasSection; aContext: TPJUReaderContext); virtual;
     procedure ReadSectionScope(Obj: TJSONObject; Scope: TPasSectionScope; aContext: TPJUReaderContext); virtual;
     procedure ReadSection(Obj: TJSONObject; Section: TPasSection; aContext: TPJUReaderContext); virtual;
     procedure ReadDeclarations(Obj: TJSONObject; Section: TPasSection; aContext: TPJUReaderContext); virtual;
@@ -814,7 +818,7 @@ type
     procedure ReadIdentifierScope(Obj: TJSONObject; Scope: TPasIdentifierScope; aContext: TPJUReaderContext); virtual;
     function ReadModuleScopeFlags(Obj: TJSONObject; El: TPasElement; const DefaultValue: TPasModuleScopeFlags): TPasModuleScopeFlags; virtual;
     procedure ReadModuleScope(Obj: TJSONObject; Scope: TPas2JSModuleScope; aContext: TPJUReaderContext); virtual;
-    procedure ReadModule(Data: TJSONData; aContext: TPJUReaderContext); virtual;
+    procedure ReadModule(Obj: TJSONObject; aContext: TPJUReaderContext); virtual;
     procedure ReadUnaryExpr(Obj: TJSONObject; Expr: TUnaryExpr; aContext: TPJUReaderContext); virtual;
     procedure ReadBinaryExpr(Obj: TJSONObject; Expr: TBinaryExpr; aContext: TPJUReaderContext); virtual;
     procedure ReadBoolConstExpr(Obj: TJSONObject; Expr: TBoolConstExpr; aContext: TPJUReaderContext); virtual;
@@ -873,9 +877,11 @@ type
     constructor Create; override;
     destructor Destroy; override;
     procedure Clear; override;
-    procedure ReadPJU(aResolver: TPas2JSResolver; aStream: TStream); virtual;
-    procedure ReadJSON(aResolver: TPas2JSResolver; Obj: TJSONObject); virtual;
+    procedure ReadPJU(aResolver: TPas2JSResolver; aStream: TStream); virtual; // sets property JSON, reads header and returns
+    procedure ReadJSONHeader(aResolver: TPas2JSResolver; Obj: TJSONObject); virtual;
+    procedure ReadJSONContinue; virtual;
     property FileVersion: longint read FFileVersion;
+    property JSON: TJSONObject read FJSON;
   end;
 
 function ComparePointer(Data1, Data2: Pointer): integer;
@@ -1943,11 +1949,13 @@ end;
 procedure TPJUWriter.WriteSection(ParentJSON: TJSONObject;
   Section: TPasSection; const PropName: string; aContext: TPJUWriterContext);
 var
-  Obj: TJSONObject;
+  Obj, SubObj: TJSONObject;
   Scope, UsesScope: TPasSectionScope;
   i: Integer;
   Arr: TJSONArray;
   UsesUnit: TPasUsesUnit;
+  Name, InFilename: String;
+  Ref: TPJUFilerElementRef;
 begin
   if Section=nil then exit;
   Obj:=TJSONObject.Create;
@@ -1959,18 +1967,45 @@ begin
     RaiseMsg(20180206130333,Section);
   if Scope.UsesScopes.Count<>length(Section.UsesClause) then
     RaiseMsg(20180206122222,Section);
-  if length(Section.UsesClause)>0 then
+  Arr:=nil;
+  for i:=0 to Scope.UsesScopes.Count-1 do
     begin
-    Arr:=TJSONArray.Create;
-    ParentJSON.Add('Uses',Arr);
-    for i:=0 to Scope.UsesScopes.Count-1 do
+    UsesUnit:=Section.UsesClause[i];
+    UsesScope:=TPasSectionScope(Scope.UsesScopes[i]);
+    if UsesScope.Element<>UsesUnit.Module then
+      RaiseMsg(20180206122459,Section,'usesscope '+IntToStr(i)+' UsesScope.Element='+GetObjName(UsesScope.Element)+' Module='+GetObjName(Section.UsesClause[i].Module));
+    if Arr=nil then
       begin
-      UsesUnit:=Section.UsesClause[i];
-      UsesScope:=TPasSectionScope(Scope.UsesScopes[i]);
-      if UsesScope.Element<>UsesUnit.Module then
-        RaiseMsg(20180206122459,Section,'usesscope '+IntToStr(i)+' UsesScope.Element='+GetObjName(UsesScope.Element)+' Module='+GetObjName(Section.UsesClause[i].Module));
-      // ToDo
-      RaiseMsg(20180206124005,'ToDo');
+      Arr:=TJSONArray.Create;
+      ParentJSON.Add('Uses',Arr);
+      end;
+    SubObj:=TJSONObject.Create;
+    Arr.Add(SubObj);
+    Name:=DotExprToName(UsesUnit.Expr);
+    if Name='' then
+      RaiseMsg(20180307091654,UsesUnit.Expr);
+    SubObj.Add('Name',Name);
+    if UsesUnit.InFilename<>nil then
+      begin
+      InFilename:=Resolver.GetUsesUnitInFilename(UsesUnit.InFilename);
+      if InFilename='' then
+        RaiseMsg(20180307094723,UsesUnit.InFilename);
+      SubObj.Add('In',InFilename);
+      end;
+    if CompareText(UsesUnit.Module.Name,Name)<>0 then
+      SubObj.Add('UnitName',UsesUnit.Module.Name);
+    // ref object for uses
+    Ref:=GetElementReference(UsesUnit);
+    Ref.Obj:=SubObj;
+    if OnIsElementUsed(Self,UsesUnit.Module) then
+      begin
+      // ref object for module
+      Ref:=GetElementReference(UsesUnit.Module);
+      if Ref.Obj=nil then
+        begin
+        Ref.Obj:=TJSONObject.Create;
+        SubObj.Add('Refs',Ref.Obj);
+        end;
       end;
     end;
   WriteIdentifierScope(Obj,Scope,aContext);
@@ -3901,7 +3936,7 @@ begin
         break;
         end;
     if not Found then
-      RaiseMsg(20180202144009,'unknown ParserOption "'+s+'"');
+      RaiseMsg(20180202144009,El,'unknown ParserOption "'+s+'"');
     end;
 end;
 
@@ -3935,7 +3970,7 @@ begin
         break;
         end;
     if not Found then
-      RaiseMsg(20180202144054,'unknown ModeSwitch "'+s+'"');
+      RaiseMsg(20180202144054,El,'unknown ModeSwitch "'+s+'"');
     end;
 end;
 
@@ -4226,25 +4261,74 @@ begin
   if aContext<>nil then ;
 end;
 
+procedure TPJUReader.ReadUsedUnits(Obj: TJSONObject; Section: TPasSection;
+  aContext: TPJUReaderContext);
+var
+  Arr: TJSONArray;
+  i, p: Integer;
+  Data: TJSONData;
+  SubObj: TJSONObject;
+  Name, CurName, InFilename, ModuleName: string;
+  Use: TPasUsesUnit;
+  Prim: TPrimitiveExpr;
+  Module: TPasModule;
+begin
+  if not ReadArray(Obj,'Uses',Arr,Section) then exit;
+  SetLength(Section.UsesClause,Arr.Count);
+  for i:=0 to length(Section.UsesClause)-1 do
+    Section.UsesClause[i]:=nil;
+  for i:=0 to Arr.Count-1 do
+    begin
+    Data:=Arr[i];
+    if not (Data is TJSONObject) then
+      RaiseMsg(20180307103518,Section,GetObjName(Data));
+    SubObj:=TJSONObject(Data);
+    if not ReadString(SubObj,'Name',Name,Section) then
+      RaiseMsg(20180307103629,Section);
+    if not IsValidIdent(Name,true,true) then
+      RaiseMsg(20180307103937,Section,Name);
+    ReadString(SubObj,'In',InFilename,Section);
+    ReadString(SubObj,'UnitName',ModuleName,Section);
+    Use:=TPasUsesUnit.Create(Name,Section);
+    Section.UsesClause[i]:=Use;
+    while Name<>'' do
+      begin
+      p:=Pos('.',Name);
+      if p>0 then
+        begin
+        CurName:=LeftStr(Name,p-1);
+        Delete(Name,1,p)
+        end
+      else
+        begin
+        CurName:=Name;
+        Name:='';
+        end;
+      Prim:=TPrimitiveExpr.Create(Use,pekString,CurName);
+      if Use.Expr=nil then
+        Use.Expr:=Prim
+      else
+        Use.Expr:=TBinaryExpr.Create(Use,Use.Expr,Prim,eopSubIdent);
+      end;
+    if InFilename<>'' then
+      Use.InFilename:=TPrimitiveExpr.Create(Use,pekString,InFilename);
+    if ModuleName='' then ModuleName:=Name;
+    Module:=Resolver.FindModule(Name,Use.Expr,Use.InFilename);
+    if Module=nil then
+      RaiseMsg(20180307231247,Use);
+
+    // Refs
+    end;
+  Resolver.CheckPendingUsedInterface(Section);
+  if aContext=nil then ;
+end;
+
 procedure TPJUReader.ReadSectionScope(Obj: TJSONObject;
   Scope: TPasSectionScope; aContext: TPJUReaderContext);
-var
-  Data: TJSONData;
-  UsesArr: TJSONArray;
-  Section: TPasSection;
-  i: Integer;
 begin
-  Section:=Scope.Element as TPasSection;
+  //Section:=Scope.Element as TPasSection;
   Scope.UsesFinished:=true;
   Scope.Finished:=true;
-  Data:=Obj.Find('Uses');
-  if Data<>nil then
-    begin
-    UsesArr:=CheckJSONArray(Data,Section,'Uses');
-    // ToDo UsesClause
-    RaiseMsg(20180206124604,'ToDo');
-    for i:=0 to UsesArr.Count-1 do ;
-    end;
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
 
@@ -4259,6 +4343,8 @@ begin
   ReadPasElement(Obj,Section,aContext);
 
   Scope:=TPasSectionScope(Resolver.CreateScope(Section,TPasSectionScope));
+  ReadUsedUnits(Obj,Section,aContext);
+
   ReadSectionScope(Obj,Scope,aContext);
 
   ReadDeclarations(Obj,Section,aContext);
@@ -5042,7 +5128,7 @@ begin
   ReadPasScope(Obj,Scope,aContext);
 end;
 
-procedure TPJUReader.ReadModule(Data: TJSONData; aContext: TPJUReaderContext);
+procedure TPJUReader.ReadModule(Obj: TJSONObject; aContext: TPJUReaderContext);
 var
   aModule: TPasModule;
 
@@ -5069,7 +5155,7 @@ var
   end;
 
 var
-  Obj, SubObj: TJSONObject;
+  SubObj: TJSONObject;
   aType, aName: String;
   ModScope: TPas2JSModuleScope;
   OldBoolSwitches: TBoolSwitches;
@@ -5077,7 +5163,6 @@ begin
   {$IFDEF VerbosePJUFiler}
   writeln('TPJUReader.ReadModule START ');
   {$ENDIF}
-  Obj:=CheckJSONObject(Data,20180203100422);
   aName:=String(Obj.Get('Name',''));
   aType:=String(Obj.Get('Type',''));
   case aType of
@@ -5109,6 +5194,8 @@ begin
       begin
       aModule.InterfaceSection:=TInterfaceSection.Create('',aModule);
       ReadSection(SubObj,aModule.InterfaceSection,aContext);
+      if aModule.InterfaceSection.PendingUsedIntf<>nil then
+        exit;
       end;
     SubObj:=PreReadSection(Obj,'Implementation');
     if SubObj<>nil then
@@ -6130,64 +6217,75 @@ begin
   finally
     JParser.Free;
   end;
-  ReadJSON(aResolver,TJSONObject(Data));
+  ReadJSONHeader(aResolver,TJSONObject(Data));
 end;
 
-procedure TPJUReader.ReadJSON(aResolver: TPas2JSResolver;
+procedure TPJUReader.ReadJSONHeader(aResolver: TPas2JSResolver;
   Obj: TJSONObject);
 var
   aName: String;
   Data: TJSONData;
   i: Integer;
-  aContext: TPJUReaderContext;
-  aModule: TPasModule;
 begin
   {$IFDEF VerbosePJUFiler}
-  writeln('TPJUReader.ReadModuleAsJSON START ');
+  writeln('TPJUReader.ReadJSONHeader START ');
   {$ENDIF}
   FResolver:=aResolver;
   FParser:=Resolver.CurrentParser;
   FScanner:=FParser.Scanner;
+  FJSON:=Obj;
 
   ReadHeaderMagic(Obj);
   ReadHeaderVersion(Obj);
 
-  aModule:=nil;
   for i:=0 to Obj.Count-1 do
     begin
     aName:=Obj.Names[i];
     {$IFDEF VerbosePJUFiler}
-    writeln('TPJUReader.ReadModuleAsJSON ',aName);
+    writeln('TPJUReader.ReadJSONHeader ',aName);
     {$ENDIF}
     Data:=Obj.Elements[aName];
-    case Obj.Names[i] of
-    'FileType': ;
-    'Version': ;
-    'ParserOptions': InitialFlags.ParserOptions:=ReadParserOptions(Data,aModule,PJUDefaultParserOptions);
-    'ModeSwitches': InitialFlags.ModeSwitches:=ReadModeSwitches(Data,aModule,PJUDefaultModeSwitches);
-    'BoolSwitches': InitialFlags.BoolSwitches:=ReadBoolSwitches(Obj,aModule,aName,PJUDefaultBoolSwitches);
-    'ConverterOptions': InitialFlags.ConverterOptions:=ReadConverterOptions(Data,aModule,PJUDefaultConvertOptions);
+    case aName of
+    'FileType': ; // done in ReadHeaderMagic
+    'Version': ; // done in ReadHeaderVersion
     'TargetPlatform': ReadTargetPlatform(Data);
     'TargetProcessor': ReadTargetProcessor(Data);
     'Sources': ReadSrcFiles(Data);
-    'Module':
-      begin
-      aContext:=TPJUReaderContext.Create;
-      try
-        aContext.ModeSwitches:=InitialFlags.ModeSwitches;
-        aContext.BoolSwitches:=InitialFlags.BoolSwitches;
-        ReadModule(Data,aContext);
-        aModule:=aResolver.RootElement;
-      finally
-        aContext.Free;
-      end;
-      end
+    'ParserOptions': InitialFlags.ParserOptions:=ReadParserOptions(Data,nil,PJUDefaultParserOptions);
+    'ModeSwitches': InitialFlags.ModeSwitches:=ReadModeSwitches(Data,nil,PJUDefaultModeSwitches);
+    'BoolSwitches': InitialFlags.BoolSwitches:=ReadBoolSwitches(Obj,nil,aName,PJUDefaultBoolSwitches);
+    'ConverterOptions': InitialFlags.ConverterOptions:=ReadConverterOptions(Data,nil,PJUDefaultConvertOptions);
+    'Module': ReadJSONContinue;
     else
       RaiseMsg(20180202151706,'unknown property "'+aName+'"');
     end;
     end;
   {$IFDEF VerbosePJUFiler}
-  writeln('TPJUReader.ReadModuleAsJSON END');
+  writeln('TPJUReader.ReadJSONHeader END');
+  {$ENDIF}
+end;
+
+procedure TPJUReader.ReadJSONContinue;
+var
+  Obj, SubObj: TJSONObject;
+  aContext: TPJUReaderContext;
+begin
+  {$IFDEF VerbosePJUFiler}
+  writeln('TPJUReader.ReadJSONContinue START');
+  {$ENDIF}
+  Obj:=JSON;
+  if not ReadObject(Obj,'Module',SubObj,nil) then
+    RaiseMsg(20180307114005,'missing Module');
+  aContext:=TPJUReaderContext.Create;
+  try
+    aContext.ModeSwitches:=InitialFlags.ModeSwitches;
+    aContext.BoolSwitches:=InitialFlags.BoolSwitches;
+    ReadModule(SubObj,aContext);
+  finally
+    aContext.Free;
+  end;
+  {$IFDEF VerbosePJUFiler}
+  writeln('TPJUReader.ReadJSONContinue END');
   {$ENDIF}
 end;
 

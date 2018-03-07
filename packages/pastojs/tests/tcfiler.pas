@@ -261,6 +261,7 @@ begin
   try
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
+      PJUWriter.OnIsElementUsed:=@OnConverterIsElementUsed;
       PJUWriter.WritePJU(Engine,Converter,InitialFlags,ms,false);
     except
       on E: Exception do
