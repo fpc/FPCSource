@@ -10,5 +10,15 @@ asm
   mov ax, [5+[7]]                          { mov ax, [000Ch] }
 end;
 
+procedure t2; assembler;
+var
+  locl: word;
+asm
+  mov ax, locl                             { mov ax, [bp-02] }
+  mov ax, cs:locl                          { mov ax, cs:[bp-02] }
+  mov ax, [cs:locl]                        { mov ax, cs:[bp-02] }
+  mov ax, [cs:[locl]]                      { mov ax, cs:[bp-02] }
+end;
+
 begin
 end.

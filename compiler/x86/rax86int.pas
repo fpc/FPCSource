@@ -827,6 +827,9 @@ Unit Rax86int;
           Message(asmr_e_multiple_index);
         end;
 
+      var
+        tmplocal: TOprRec;
+        segreg: TRegister;
       begin
         case dest.opr.typ of
           OPR_REFERENCE:
@@ -858,6 +861,39 @@ Unit Rax86int;
                     if dest.opr.ref.refaddr=addr_no then
                       dest.opr.ref.refaddr:=src.opr.ref.refaddr;
                   end;
+                OPR_LOCAL:
+                  begin
+                    tmplocal:=src.opr;
+                    if dest.opr.ref.base<>NR_NO then
+                      begin
+                        if tmplocal.localindexreg=NR_NO then
+                          begin
+                            tmplocal.localindexreg:=dest.opr.ref.base;
+                            tmplocal.localscale:=0;
+                          end
+                        else if tmplocal.localindexreg=dest.opr.ref.base then
+                          tmplocal.localscale:=Min(tmplocal.localscale,1)+1
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    if dest.opr.ref.index<>NR_NO then
+                      begin
+                        if tmplocal.localindexreg=NR_NO then
+                          begin
+                            tmplocal.localindexreg:=dest.opr.ref.index;
+                            tmplocal.localscale:=dest.opr.ref.scalefactor;
+                          end
+                        else if tmplocal.localindexreg=dest.opr.ref.index then
+                          tmplocal.localscale:=Min(tmplocal.localscale,1)+Min(dest.opr.ref.scalefactor,1)
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    Inc(tmplocal.localconstoffset,dest.opr.constoffset);
+                    segreg:=dest.opr.ref.segment;
+                    dest.opr:=tmplocal;
+                    if segreg<>NR_NO then
+                      SetSegmentOverride(dest,segreg);
+                  end;
                 else
                   internalerror(2018030701);
               end;
@@ -870,18 +906,34 @@ Unit Rax86int;
 
     procedure tx86intreader.SetSegmentOverride(oper:tx86operand;seg:tregister);
       begin
-        if oper.opr.typ<>OPR_REFERENCE then
-          internalerror(2018022801);
         if not is_segment_reg(seg) then
           Message(asmr_e_invalid_seg_override);
-        if oper.opr.ref.segment<>NR_NO then
-          begin
-            if m_tp7 in current_settings.modeswitches then
-              Message(asmr_w_multiple_segment_overrides)
-            else
-              Message(asmr_e_multiple_segment_overrides);
-          end;
-        oper.opr.ref.segment:=seg;
+        case oper.opr.typ of
+          OPR_REFERENCE:
+            begin
+              if oper.opr.ref.segment<>NR_NO then
+                begin
+                  if m_tp7 in current_settings.modeswitches then
+                    Message(asmr_w_multiple_segment_overrides)
+                  else
+                    Message(asmr_e_multiple_segment_overrides);
+                end;
+              oper.opr.ref.segment:=seg;
+            end;
+          OPR_LOCAL:
+            begin
+              if oper.opr.localsegment<>NR_NO then
+                begin
+                  if m_tp7 in current_settings.modeswitches then
+                    Message(asmr_w_multiple_segment_overrides)
+                  else
+                    Message(asmr_e_multiple_segment_overrides);
+                end;
+              oper.opr.localsegment:=seg;
+            end;
+          else
+            internalerror(2018030703);
+        end;
       end;
 
 
