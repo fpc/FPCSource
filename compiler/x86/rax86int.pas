@@ -828,31 +828,43 @@ Unit Rax86int;
         end;
 
       begin
-        if (dest.opr.typ<>OPR_REFERENCE) or (src.opr.typ<>OPR_REFERENCE) then
-          internalerror(2018022601);
-        AddRegister(src.opr.ref.base,1);
-        AddRegister(src.opr.ref.index,src.opr.ref.scalefactor);
-        if src.opr.ref.segment<>NR_NO then
-          SetSegmentOverride(dest,src.opr.ref.segment);
-        Inc(dest.opr.ref.offset,src.opr.ref.offset);
-        Inc(dest.opr.constoffset,src.opr.constoffset);
-        dest.haslabelref:=dest.haslabelref or src.haslabelref;
-        dest.hasproc:=dest.hasproc or src.hasproc;
-        dest.hasvar:=dest.hasvar or src.hasvar;
-        if assigned(src.opr.ref.symbol) then
-          begin
-            if assigned(dest.opr.ref.symbol) then
-              Message(asmr_e_cant_have_multiple_relocatable_symbols);
-            dest.opr.ref.symbol:=src.opr.ref.symbol;
-          end;
-        if assigned(src.opr.ref.relsymbol) then
-          begin
-            if assigned(dest.opr.ref.relsymbol) then
-              Message(asmr_e_cant_have_multiple_relocatable_symbols);
-            dest.opr.ref.relsymbol:=src.opr.ref.relsymbol;
-          end;
-        if dest.opr.ref.refaddr=addr_no then
-          dest.opr.ref.refaddr:=src.opr.ref.refaddr;
+        case dest.opr.typ of
+          OPR_REFERENCE:
+            begin
+              case src.opr.typ of
+                OPR_REFERENCE:
+                  begin
+                    AddRegister(src.opr.ref.base,1);
+                    AddRegister(src.opr.ref.index,src.opr.ref.scalefactor);
+                    if src.opr.ref.segment<>NR_NO then
+                      SetSegmentOverride(dest,src.opr.ref.segment);
+                    Inc(dest.opr.ref.offset,src.opr.ref.offset);
+                    Inc(dest.opr.constoffset,src.opr.constoffset);
+                    dest.haslabelref:=dest.haslabelref or src.haslabelref;
+                    dest.hasproc:=dest.hasproc or src.hasproc;
+                    dest.hasvar:=dest.hasvar or src.hasvar;
+                    if assigned(src.opr.ref.symbol) then
+                      begin
+                        if assigned(dest.opr.ref.symbol) then
+                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                        dest.opr.ref.symbol:=src.opr.ref.symbol;
+                      end;
+                    if assigned(src.opr.ref.relsymbol) then
+                      begin
+                        if assigned(dest.opr.ref.relsymbol) then
+                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                        dest.opr.ref.relsymbol:=src.opr.ref.relsymbol;
+                      end;
+                    if dest.opr.ref.refaddr=addr_no then
+                      dest.opr.ref.refaddr:=src.opr.ref.refaddr;
+                  end;
+                else
+                  internalerror(2018030701);
+              end;
+            end;
+          else
+            internalerror(2018030702);
+        end;
       end;
 
 
