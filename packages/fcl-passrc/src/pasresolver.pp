@@ -1593,6 +1593,7 @@ type
     function IsNameExpr(El: TPasExpr): boolean; inline; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
     function GetNameExprValue(El: TPasExpr): string; // TSelfExpr or TPrimitiveExpr with Kind=pekIdent
     function GetNextDottedExpr(El: TPasExpr): TPasExpr;
+    function GetUsesUnitInFilename(InFileExpr: TPasExpr): string;
     function GetPathStart(El: TPasExpr): TPasExpr;
     function GetNewInstanceExpr(El: TPasExpr): TPasExpr;
     function ParentNeedsExprResult(El: TPasExpr): boolean;
@@ -1695,6 +1696,7 @@ function IsDottedIdentifierPrefix(const Prefix, Identifier: string): boolean;
 {$IF FPC_FULLVERSION<30101}
 function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
 {$ENDIF}
+function DotExprToName(Expr: TPasExpr): string;
 function NoNil(o: TObject): TObject;
 
 function dbgs(const Flags: TPasResolverComputeFlags): string; overload;
@@ -2103,6 +2105,38 @@ begin
       or (CompareText(Prefix,LeftStr(Identifier,l))<>0) then
     exit(false);
   Result:=(length(Identifier)=l) or (Identifier[l+1]='.');
+end;
+
+function DotExprToName(Expr: TPasExpr): string;
+var
+  C: TClass;
+  Prim: TPrimitiveExpr;
+  Bin: TBinaryExpr;
+  s: String;
+begin
+  Result:='';
+  if Expr=nil then exit;
+  C:=Expr.ClassType;
+  if C=TPrimitiveExpr then
+    begin
+    Prim:=TPrimitiveExpr(Expr);
+    case Prim.Kind of
+      pekIdent: Result:=Result+Prim.Value;
+      pekSelf: Result:=Result+'Self';
+    end;
+    end
+  else if C=TBinaryExpr then
+    begin
+    Bin:=TBinaryExpr(Expr);
+    if Bin.OpCode=eopSubIdent then
+      begin
+      Result:=DotExprToName(Bin.left);
+      if Result='' then exit;
+      s:=DotExprToName(Bin.right);
+      if s='' then exit('');
+      Result:=Result+'.'+s;
+      end;
+    end;
 end;
 
 function NoNil(o: TObject): TObject;
@@ -3290,6 +3324,32 @@ begin
       RaiseNotYetImplemented(20170502163953,Bin);
       end;
   until false;
+end;
+
+function TPasResolver.GetUsesUnitInFilename(InFileExpr: TPasExpr): string;
+var
+  Value: TResEvalValue;
+begin
+  if not (InFileExpr is TPrimitiveExpr) then
+    RaiseMsg(20180221234828,nXExpectedButYFound,sXExpectedButYFound,
+             ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
+  Value:=ExprEvaluator.Eval(TPrimitiveExpr(InFileExpr),[refConst]);
+  try
+    if (Value=nil) then
+      RaiseMsg(20180222000004,nXExpectedButYFound,sXExpectedButYFound,
+               ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
+    case Value.Kind of
+    revkString:
+      Result:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,InFileExpr);
+    revkUnicodeString:
+      Result:=UTF8Encode(TResEvalUTF16(Value).S);
+    else
+      RaiseMsg(20180222000122,nXExpectedButYFound,sXExpectedButYFound,
+               ['string literal',Value.AsDebugString],InFileExpr);
+    end;
+  finally
+    ReleaseEvalValue(Value);
+  end;
 end;
 
 function TPasResolver.GetPathStart(El: TPasExpr): TPasExpr;
@@ -11240,31 +11300,11 @@ end;
 function TPasResolver.FindModule(const AName: String; NameExpr,
   InFileExpr: TPasExpr): TPasModule;
 var
-  Value: TResEvalValue;
   InFilename, FileUnitName: String;
 begin
   if InFileExpr<>nil then
     begin
-    if not (InFileExpr is TPrimitiveExpr) then
-      RaiseMsg(20180221234828,nXExpectedButYFound,sXExpectedButYFound,
-               ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
-    Value:=ExprEvaluator.Eval(TPrimitiveExpr(InFileExpr),[refConst]);
-    try
-      if (Value=nil) then
-        RaiseMsg(20180222000004,nXExpectedButYFound,sXExpectedButYFound,
-                 ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
-      case Value.Kind of
-      revkString:
-        InFilename:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,InFileExpr);
-      revkUnicodeString:
-        InFilename:=UTF8Encode(TResEvalUTF16(Value).S);
-      else
-        RaiseMsg(20180222000122,nXExpectedButYFound,sXExpectedButYFound,
-                 ['string literal',Value.AsDebugString],InFileExpr);
-      end;
-    finally
-      ReleaseEvalValue(Value);
-    end;
+    InFilename:=GetUsesUnitInFilename(InFileExpr);
     if InFilename='' then
       RaiseMsg(20180222001220,nXExpectedButYFound,sXExpectedButYFound,
                ['file path','empty string'],InFileExpr);
