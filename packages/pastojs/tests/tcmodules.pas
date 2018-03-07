@@ -267,6 +267,7 @@ type
     Procedure TestProc_Assembler;
     Procedure TestProc_VarParam;
     Procedure TestProc_VarParamString;
+    Procedure TestProc_VarParamV;
     Procedure TestProc_Overload;
     Procedure TestProc_OverloadForward;
     Procedure TestProc_OverloadUnit;
@@ -2975,6 +2976,37 @@ begin
     '']),
     LinesToStr([
     ]));
+end;
+
+procedure TTestModule.TestProc_VarParamV;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Inc2(var i: longint);',
+  'begin',
+  '  i:=i+2;',
+  'end;',
+  'procedure DoIt(v: longint);',
+  'begin',
+  '  Inc2(v);',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_VarParamV',
+    LinesToStr([ // statements
+    'this.Inc2 = function (i) {',
+    '  i.set(i.get()+2);',
+    '};',
+    'this.DoIt = function (v) {',
+    '  $mod.Inc2({get: function () {',
+    '    return v;',
+    '  }, set: function (p) {',
+    '    v = p;',
+    '  }});',
+    '};',
+    '']),
+    LinesToStr([
+    '']));
 end;
 
 procedure TTestModule.TestProc_Overload;

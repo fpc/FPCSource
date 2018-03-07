@@ -1545,6 +1545,7 @@ const
   TempRefObjGetterName = 'get';
   TempRefObjSetterName = 'set';
   TempRefObjSetterArgName = 'v';
+  TempRefObjSetterArgNameAlt = 'p';
 
 function CodePointToJSString(u: longword): TJSString;
 begin
@@ -13406,6 +13407,7 @@ var
   GetPath, SetPath: String;
   BracketExpr: TJSBracketMemberExpression;
   DotExpr: TJSDotMemberExpression;
+  SetterArgName: Char;
 begin
   // pass reference -> create a temporary JS object with a FullGetter and setter
   Obj:=nil;
@@ -13415,6 +13417,7 @@ begin
   SetPathExpr:=nil;
   GetExpr:=nil;
   SetExpr:=nil;
+  SetterArgName:=TempRefObjSetterArgName;
   try
     // create FullGetter and setter
     ParamContext.Access:=caByReference;
@@ -13572,7 +13575,10 @@ begin
       // create   SetExpr = v;
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       AssignSt.LHS:=SetExpr;
-      AssignSt.Expr:=CreatePrimitiveDotExpr(TempRefObjSetterArgName,El);
+      if (SetExpr is TJSPrimaryExpressionIdent)
+          and (TJSPrimaryExpressionIdent(SetExpr).Name=TJSString(SetterArgName)) then
+        SetterArgName:=TempRefObjSetterArgNameAlt;
+      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,El);
       SetExpr:=AssignSt;
       end
     else if (SetExpr.ClassType=TJSCallExpression) then
@@ -13601,7 +13607,7 @@ begin
     ObjLit.Name:=TempRefObjSetterName;
     FuncSt:=CreateFunctionSt(El);
     ObjLit.Expr:=FuncSt;
-    FuncSt.AFunction.Params.Add(TempRefObjSetterArgName);
+    FuncSt.AFunction.Params.Add(SetterArgName);
     FuncSt.AFunction.Body.A:=SetExpr;
     SetExpr:=nil;
 
