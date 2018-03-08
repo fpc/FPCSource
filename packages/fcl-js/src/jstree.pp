@@ -885,7 +885,7 @@ Type
   Public
     Constructor Create(ALine,AColumn : Integer; const ASource : String = ''); override;
     Destructor Destroy; override;
-    Property Cond : TJSelement Read FCond Write FCond;
+    Property Cond : TJSElement Read FCond Write FCond;
     Property Cases : TJSCaseElements Read FCases;
     Property TheDefault : TJSCaseElement Read FDefault Write FDefault; // one of Cases
   end;
