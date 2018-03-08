@@ -28,7 +28,12 @@ uses
 type
 
   { Using an abstract class in case we want to support multiple output writers. eg: JSON, XML etc }
+
+  { TFPReportStreamer }
+
   TFPReportStreamer = class(TComponent)
+  private
+    FIsModified: Boolean;
   public
     function PushCurrentElement: TObject; virtual; abstract;
     function PushElement(const AName: String): TObject; virtual; abstract;
@@ -67,6 +72,8 @@ type
     function    ReadDateTime(AName: String; ADefault: TDateTime): TDateTime; virtual; abstract;
     function    ReadBoolean(AName: String; ADefault: Boolean): Boolean; virtual; abstract;
     function    ReadStream(AName: String; AValue: TStream) : Boolean; virtual; abstract;
+    Procedure Modified;
+    Property IsModified : Boolean Read FIsModified;
   end;
 
 
@@ -144,6 +151,13 @@ resourcestring
 const
   { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
   cIntlDateTimeStor = 'yyyymmdd"T"hhnnss';    // for storage
+
+{ TFPReportStreamer }
+
+procedure TFPReportStreamer.Modified;
+begin
+  FIsModified:=True;
+end;
 
 
 { TFPReportJSONStreamer }

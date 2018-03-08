@@ -5807,7 +5807,10 @@ begin
     Name := AReader.ReadString('Name', 'UnknownName');
   except
     On E : EComponentError do
+      begin
       Name:=AllocateName;
+      AReader.Modified;
+      end;
   end;
 end;
 
