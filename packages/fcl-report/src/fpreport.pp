@@ -894,12 +894,13 @@ type
     FKeepTogetherWithChildren: Boolean;
     FUseParentFont: boolean;
     FVisibleOnPage: TFPReportVisibleOnPage;
-    FMyFont: TFPReportFont;
+    FFont: TFPReportFont;
     FIsOverflowed: Boolean;
     FIsColumnType: Boolean;
     FBandPosition: TFPReportBandPosition;
     function    GetParentFont: TFPReportFont;
     procedure HandleFontChange(Sender: TObject);
+    procedure ReassignParentFont;
     procedure   SetBandPosition(pBandPosition: TFPReportBandPosition); virtual;
     procedure   SetChildBand(AValue: TFPReportCustomChildBand);
     procedure   ApplyStretchMode;
@@ -927,7 +928,7 @@ type
     procedure   BeforePrintWithChilds; virtual;
     procedure   MovedToNextPageWithChilds; virtual;
     procedure   AfterPrintWithChilds; virtual;
-    property    Font: TFPReportFont read FMyFont write SetFont;
+    property    Font: TFPReportFont read FFont write SetFont;
     property    UseParentFont: boolean read FUseParentFont write SetUseParentFont;
     { when set to True then band and child bands are keept on the same page (no page break between them) }
     property    KeepTogetherWithChildren: Boolean read FKeepTogetherWithChildren write SetKeepTogetherWithChildren default True;
@@ -1812,13 +1813,15 @@ type
     function    IsExprAtArrayPos(const APos: integer): Boolean;
     procedure   SetFont(const AValue: TFPReportFont);
   protected
+    procedure ReassignParentFont;
     function    CreateTextAlignment: TFPReportTextAlignment; virtual;
     function    GetExpr: TFPExpressionParser; virtual;
     procedure   RecalcLayout; override;
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ExpandExpressions;
     procedure   UpdateAggregates;
-    function PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
+    function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
+    Procedure SetParent(const AValue: TFPReportElement); override;
     property    Text: TFPReportString read FText write SetText;
     property    Font: TFPReportFont read FFont write SetFont;
     property    TextAlignment: TFPReportTextAlignment read FTextAlignment write SetTextAlignment;
@@ -3556,11 +3559,8 @@ begin
   if FUseParentFont = AValue then
     Exit;
   if aValue then
-    begin
-    R:=GetParentFont;
-    if (R<>Nil) then
-      FFont.Assign(R); // Careful, will set FUseParentFont to false through OnChange handler
-    end;
+    ReassignParentFont;
+  // Careful, ReassignParentFont set FUseParentFont to false through OnChange handler
   FUseParentFont := AValue;
   Changed;
 end;
@@ -3649,7 +3649,7 @@ begin
   if ALineWidth = 0 then
     Exit;
   { We are doing a PostScript Name lookup (it contains Bold, Italic info) }
-  lFC := gTTFontCache.Find(Font.Name);
+  lFC := gTTFontCache.FindFont(Font.Name);
   if not Assigned(lFC) then
     raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
   { result is in pixels }
@@ -4145,7 +4145,7 @@ var
 
 begin
   // TODO: FontName might need to change to TextBlock.FontName.
-  lFC := gTTFontCache.Find(Font.Name); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
+  lFC := gTTFontCache.FindFont(Font.Name); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
   if not Assigned(lFC) then
     raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
   { Both lHeight and lDescenderHeight are in pixels }
@@ -4162,7 +4162,7 @@ var
   lFC: TFPFontCacheItem;
 begin
   // TODO: FontName might need to change to TextBlock.FontName.
-  lFC := gTTFontCache.Find(Font.Name); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
+  lFC := gTTFontCache.FindFont(Font.Name); // we are doing a PostScript Name lookup (it contains Bold, Italic info)
   if not Assigned(lFC) then
     raise EReportFontNotFound.CreateFmt(SErrFontNotFound, [Font.Name]);
   { result is in pixels }
@@ -4613,6 +4613,24 @@ begin
     end;
 end;
 
+procedure TFPReportCustomMemo.SetParent(const AValue: TFPReportElement);
+begin
+  inherited SetParent(AValue);
+  if UseParentFont then
+    ReassignParentFont;
+end;
+
+Procedure TFPReportCustomMemo.ReassignParentFont;
+
+Var
+  F : TFPReportFont;
+
+begin
+  F:=GetParentFont;
+  If Assigned(F) then
+    Font.Assign(F);
+end;
+
 constructor TFPReportCustomMemo.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -4686,11 +4704,7 @@ begin
     Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
     end
   else
-    begin
-    F:=GetParentFont;
-    If Assigned(F) then
-      Font.Assign(F);
-    end;
+    ReAssignParentFont;
   FLineSpacing := AReader.ReadFloat('LineSpacing', LineSpacing);
   FLinkColor := QWordToReportColor(AReader.ReadQWord('LinkColor', LinkColor));
   Options := StringToMemoOptions(AReader.ReadString('Options', ''));
@@ -6308,6 +6322,7 @@ begin
 end;
 
 procedure TFPReportElement.SetParent(const AValue: TFPReportElement);
+
 begin
   if FParent = AValue then
     Exit;
@@ -8307,7 +8322,7 @@ end;
 procedure TFPReportCustomBand.SetFont(AValue: TFPReportFont);
 begin
   UseParentFont:=False;
-  FMyFont.Assign(AValue);
+  FFont.Assign(AValue);
   Changed;
 end;
 
@@ -8327,11 +8342,8 @@ begin
   if FUseParentFont = AValue then
     Exit;
   if AValue then
-    begin
-    F:=GetParentFont;
-    if Assigned(F) then
-      FMyFont.Assign(F); // Will set SetUseParentFont to false in onChange
-    end;
+    ReassignParentFont;
+  // Must set this afterwards, because OnChange of font will reset it
   FUseParentFont := AValue;
   Changed;
 end;
@@ -8364,6 +8376,19 @@ begin
   if not ((AValue = nil) or (AValue is TFPReportCustomPage)) then
     ReportError(SErrNotAReportPage, [AValue.ClassName, AValue.Name]);
   inherited SetParent(AValue);
+  if UseParentFont then
+    ReassignParentFont;
+end;
+
+procedure TFPReportCustomBand.ReassignParentFont;
+
+Var
+  F : TFPReportFont;
+
+begin
+  F:=GetParentFont;
+  if Assigned(F) then
+    FFont.Assign(F);
 end;
 
 procedure TFPReportCustomBand.CreateRTLayout;
@@ -8512,13 +8537,13 @@ begin
   FUseParentFont := True;
   FKeepTogetherWithChildren := True;
   FBandPosition := bpNormal;
-  FMyFont:=TFPReportFont.Create;
-  FMyFont.OnChanged:=@HandleFontChange;
+  FFont:=TFPReportFont.Create;
+  FFont.OnChanged:=@HandleFontChange;
 end;
 
 destructor TFPReportCustomBand.Destroy;
 begin
-  FreeAndNil(FMyFont);
+  FreeAndNil(FFont);
   inherited Destroy;
 end;
 
@@ -8569,11 +8594,7 @@ begin
         Font.Color := QWordToReportColor(AReader.ReadQWord('FontColor', Font.Color));
         end
       else
-        begin
-        F:=GetParentFont;
-        if Assigned(F) then
-          Font.Assign(F);
-        end;
+        ReAssignParentFont;
       // TODO: Read Data information
       S:=AReader.ReadString('Data','');
       if (S<>'') then

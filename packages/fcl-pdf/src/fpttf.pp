@@ -82,7 +82,9 @@ type
     property    IsItalic: boolean read GetIsItalic;
     property    IsBold: boolean read GetIsBold;
   end;
+  TFPFontCacheItemArray = Array of TFPFontCacheItem;
 
+  { TFPFontCacheList }
 
   TFPFontCacheList = class(TObject)
   private
@@ -112,6 +114,9 @@ type
     function    Find(const AFontCacheItem: TFPFontCacheItem): integer; overload;
     function    Find(const AFamilyName: string; ABold: boolean; AItalic: boolean): TFPFontCacheItem; overload;
     function    Find(const APostScriptName: string): TFPFontCacheItem; overload;
+    function    FindHumanFriendly(const AName: string ): TFPFontCacheItem; overload;
+    function    FindFamily(const AFamilyName: string ): TFPFontCacheItemArray; overload;
+    function    FindFont(const AName: string): TFPFontCacheItem; overload;
     { not used: utility function doing a conversion for us. }
     function    PointSizeInPixels(const APointSize: single): single;
     property    Items[AIndex: Integer]: TFPFontCacheItem read GetItem write SetItem; default;
@@ -593,13 +598,15 @@ begin
 end;
 
 function TFPFontCacheList.Find(const AFamilyName: string; ABold: boolean; AItalic: boolean): TFPFontCacheItem;
+
 var
   i: integer;
+
 begin
   for i := 0 to Count-1 do
   begin
     Result := Items[i];
-    if (Result.FamilyName = AFamilyName) and (Result.IsItalic = AItalic)
+    if SameText(Result.FamilyName,AFamilyName) and (Result.IsItalic = AItalic)
         and (Result.IsBold = ABold)
     then
       exit;
@@ -614,10 +621,63 @@ begin
   for i := 0 to Count-1 do
   begin
     Result := Items[i];
-    if (Result.PostScriptName = APostScriptName) then
+    if SameText(Result.PostScriptName,APostScriptName) then
       Exit;
   end;
   Result := nil;
+end;
+
+function TFPFontCacheList.FindHumanFriendly(const AName: string): TFPFontCacheItem;
+var
+  i: integer;
+begin
+  for i := 0 to Count-1 do
+  begin
+    Result := Items[i];
+    if SameText(Result.HumanFriendlyName,AName) then
+      Exit;
+  end;
+  Result := nil;
+end;
+
+function TFPFontCacheList.FindFamily(const AFamilyName: string): TFPFontCacheItemArray;
+
+var
+  i,aLen: integer;
+  f : TFPFontCacheItem;
+
+begin
+  aLen:=0;
+  SetLength(Result,Count);
+  for i := 0 to Count-1 do
+    begin
+    f:=Items[i];
+    if SameText(F.FamilyName,AFamilyName) then
+      begin
+      Result[aLen]:=F;
+      inc(Alen);
+      end;
+    end;
+  SetLength(Result,aLen);
+end;
+
+function TFPFontCacheList.FindFont(const AName: string): TFPFontCacheItem;
+
+Var
+  aFamily : TFPFontCacheItemArray;
+
+begin
+  Result:=Find(AName);
+  if (Result=Nil) then
+    Result:=Find(aName,False,False);
+  if (Result=Nil) then
+    Result:=FindHumanFriendly(aName);
+  if (Result=Nil) then
+    begin
+    aFamily:=FindFamily(aName);
+    if Length(aFamily)>0 then
+      Result:=aFamily[0];
+    end;
 end;
 
 function TFPFontCacheList.PointSizeInPixels(const APointSize: single): single;
