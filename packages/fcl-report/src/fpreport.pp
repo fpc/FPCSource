@@ -1453,6 +1453,7 @@ type
     procedure SetV(aIndex : Integer; AValue: TFPReportVariable);
   Protected
   public
+    Procedure ReleaseExpressionNodes;
     procedure PrepareExpressionValues;
     Function IndexOfVariable(aName : String)  : Integer;
     Function FindVariable(aName : String)  : TFPReportVariable;
@@ -2777,6 +2778,14 @@ begin
   Items[aIndex]:=AValue;
 end;
 
+procedure TFPReportVariables.ReleaseExpressionNodes;
+var
+  i: Integer;
+begin
+  for i:=0 to Count-1 do
+    GetV(i).ReleaseExpressionNodes;
+end;
+
 procedure TFPReportVariables.PrepareExpressionValues;
 var
   i: Integer;
@@ -2968,6 +2977,8 @@ procedure TFPReportVariable.ReleaseExpressionNodes;
 begin
   FreeAndNil(FExpressionNode);
   FreeAndNil(FResetValueExpressionNode);
+  FResetValue:='';
+  FResetValueExpression:='';
 end;
 
 function TFPReportVariable.GetValue: String;
@@ -8108,6 +8119,7 @@ end;
 procedure TFPCustomReport.ClearPreparedReport;
 begin
   EmptyRTObjects;
+  FVariables.ReleaseExpressionNodes;
 end;
 
 function TFPCustomReport.Prepared: Boolean;
