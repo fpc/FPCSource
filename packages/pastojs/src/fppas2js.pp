@@ -1228,7 +1228,7 @@ type
 
   TPasToJSConverter = Class(TObject)
   private
-    // inline at top, only functions declared after the inline implementation actually use it
+    // inline at ttop, because fpc 3.1 requires inline implementation in front of use
     function GetUseEnumNumbers: boolean; inline;
     function GetUseLowerCase: boolean; inline;
     function GetUseSwitchStatement: boolean; inline;
@@ -1289,11 +1289,13 @@ type
     Function IsPreservedWord(const aName: string): boolean; virtual;
     Function GetTypeInfoName(El: TPasType; AContext: TConvertContext;
       ErrorEl: TPasElement): String; virtual;
-    // Never create an element manually, always use the below functions
+    // utility functions for creating stuff
     Function IsElementUsed(El: TPasElement): boolean; virtual;
     Function IsSystemUnit(aModule: TPasModule): boolean; virtual;
     Function HasTypeInfo(El: TPasType; AContext: TConvertContext): boolean; virtual;
     Function IsClassRTTICreatedBefore(aClass: TPasClassType; Before: TPasElement; AConText: TConvertContext): boolean;
+    Procedure FindAvailableLocalName(var aName: string; JSExpr: TJSElement);
+    // Never create an element manually, always use the below functions
     Function CreateElement(C: TJSElementClass; Src: TPasElement): TJSElement; virtual;
     Function CreateFreeOrNewInstanceExpr(Ref: TResolvedReference;
       AContext : TConvertContext): TJSCallExpression; virtual;
@@ -1375,7 +1377,7 @@ type
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
     Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
-    Function StorePrecompiledJS(El: TJSElement): string; virtual;
+    Function CreatePrecompiledJS(El: TJSElement): string; virtual;
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -1545,7 +1547,6 @@ const
   TempRefObjGetterName = 'get';
   TempRefObjSetterName = 'set';
   TempRefObjSetterArgName = 'v';
-  TempRefObjSetterArgNameAlt = 'p';
 
 function CodePointToJSString(u: longword): TJSString;
 begin
@@ -9701,7 +9702,7 @@ begin
   if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
     begin
     if AContext.Resolver.GetTopLvlProc(El)=El then
-      ImplProcScope.BodyJS:=StorePrecompiledJS(Result);
+      ImplProcScope.BodyJS:=CreatePrecompiledJS(Result);
     end;
 end;
 
@@ -9801,7 +9802,7 @@ begin
   end;
 
   if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
-    Scope.JS:=StorePrecompiledJS(Result);
+    Scope.JS:=CreatePrecompiledJS(Result);
 end;
 
 function TPasToJSConverter.ConvertFinalizationSection(El: TFinalizationSection;
@@ -11111,7 +11112,7 @@ begin
     end;
 end;
 
-function TPasToJSConverter.StorePrecompiledJS(El: TJSElement): string;
+function TPasToJSConverter.CreatePrecompiledJS(El: TJSElement): string;
 var
   aWriter: TBufferWriter;
   aJSWriter: TJSWriter;
@@ -12303,6 +12304,162 @@ begin
     end;
 end;
 
+procedure TPasToJSConverter.FindAvailableLocalName(var aName: string;
+  JSExpr: TJSElement);
+var
+  StartJSName, JSName: TJSString;
+  n: integer;
+  Changed: boolean;
+
+  procedure Next;
+  var
+    ch: WideChar;
+  begin
+    Changed:=true;
+    // name clash -> change JSName
+    if (n=0) and (length(JSName)=1) then
+      begin
+      // single letter -> choose next single letter
+      ch:=JSName[1];
+      case ch of
+      'a'..'x': JSName:=succ(ch);
+      'z': JSName:='a';
+      end;
+      if JSName=StartJSName then
+        begin
+        n:=1;
+        JSName:=StartJSName+TJSString(IntToStr(n));
+        end;
+      end
+    else
+      begin
+      inc(n);
+      JSName:=StartJSName+TJSString(IntToStr(n));
+      end;
+  end;
+
+  procedure Find(El: TJSElement);
+  var
+    C: TClass;
+    Call: TJSCallExpression;
+    i: Integer;
+  begin
+    if El=nil then exit;
+    C:=El.ClassType;
+    if C=TJSPrimaryExpressionIdent then
+      begin
+      if TJSPrimaryExpressionIdent(El).Name=JSName then
+        Next;
+      end
+    else if C.InheritsFrom(TJSMemberExpression) then
+      begin
+      Find(TJSMemberExpression(El).MExpr);
+      if C=TJSBracketMemberExpression then
+        Find(TJSBracketMemberExpression(El).Name)
+      else if C=TJSNewMemberExpression then
+        with TJSNewMemberExpression(El).Args.Elements do
+          for i:=0 to Count-1 do
+            Find(Elements[i].Expr)
+      end
+    else if C=TJSCallExpression then
+      begin
+      Call:=TJSCallExpression(El);
+      Find(Call.Expr);
+      if Call.Args<>nil then
+        with Call.Args.Elements do
+          for i:=0 to Count-1 do
+            Find(Elements[i].Expr);
+      end
+    else if C.InheritsFrom(TJSUnary) then
+      Find(TJSUnary(El).A)
+    else if C.InheritsFrom(TJSBinary) then
+      begin
+      Find(TJSBinary(El).A);
+      Find(TJSBinary(El).B);
+      end
+    else if C=TJSArrayLiteral then
+      begin
+      with TJSArrayLiteral(El).Elements do
+        for i:=0 to Count-1 do
+          Find(Elements[i].Expr);
+      end
+    else if C=TJSConditionalExpression then
+      begin
+      Find(TJSConditionalExpression(El).A);
+      Find(TJSConditionalExpression(El).B);
+      Find(TJSConditionalExpression(El).C);
+      end
+    else if C.InheritsFrom(TJSAssignStatement) then
+      begin
+      Find(TJSAssignStatement(El).LHS);
+      Find(TJSAssignStatement(El).Expr);
+      end
+    else if C=TJSVarDeclaration then
+      Find(TJSVarDeclaration(El).Init)
+    else if C=TJSObjectLiteral then
+      begin
+      with TJSObjectLiteral(El).Elements do
+        for i:=0 to Count-1 do
+          Find(Elements[i].Expr);
+      end
+    else if C=TJSIfStatement then
+      begin
+      Find(TJSIfStatement(El).Cond);
+      Find(TJSIfStatement(El).BTrue);
+      Find(TJSIfStatement(El).BFalse);
+      end
+    else if C.InheritsFrom(TJSBodyStatement) then
+      begin
+      Find(TJSBodyStatement(El).Body);
+      if C.InheritsFrom(TJSCondLoopStatement) then
+        begin
+        Find(TJSCondLoopStatement(El).Cond);
+        if C=TJSForStatement then
+          begin
+          Find(TJSForStatement(El).Init);
+          Find(TJSForStatement(El).Incr);
+          end;
+        end
+      else if C=TJSForInStatement then
+        begin
+        Find(TJSForInStatement(El).LHS);
+        Find(TJSForInStatement(El).List);
+        end;
+      end
+    else if C=TJSSwitchStatement then
+      begin
+      Find(TJSSwitchStatement(El).Cond);
+      with TJSSwitchStatement(El).Cases do
+        for i:=0 to Count-1 do
+          with Cases[i] do
+            begin
+            Find(Expr);
+            Find(Body);
+            end;
+      if TJSSwitchStatement(El).TheDefault<>nil then
+        with TJSSwitchStatement(El).TheDefault do
+          begin
+          Find(Expr);
+          Find(Body);
+          end;
+      end;
+  end;
+
+begin
+  if JSExpr=nil then exit;
+  StartJSName:=TJSString(aName);
+  JSName:=StartJSName;
+  n:=0;
+  Changed:=false;
+  Find(JSExpr);
+  if not Changed then exit;
+  repeat
+    Changed:=false;
+    Find(JSExpr);
+  until not changed;
+  aName:=UTF8Encode(JSName);
+end;
+
 function TPasToJSConverter.CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
 var
   unary: TJSUnary;
@@ -13407,7 +13564,7 @@ var
   GetPath, SetPath: String;
   BracketExpr: TJSBracketMemberExpression;
   DotExpr: TJSDotMemberExpression;
-  SetterArgName: Char;
+  SetterArgName: String;
 begin
   // pass reference -> create a temporary JS object with a FullGetter and setter
   Obj:=nil;
@@ -13575,9 +13732,7 @@ begin
       // create   SetExpr = v;
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       AssignSt.LHS:=SetExpr;
-      if (SetExpr is TJSPrimaryExpressionIdent)
-          and (TJSPrimaryExpressionIdent(SetExpr).Name=TJSString(SetterArgName)) then
-        SetterArgName:=TempRefObjSetterArgNameAlt;
+      FindAvailableLocalName(SetterArgName,SetExpr);
       AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,El);
       SetExpr:=AssignSt;
       end
@@ -13800,7 +13955,7 @@ begin
       if Proc<>nil then
         begin
         ProcScope:=TPas2JSProcedureScope(Proc.CustomData);
-        ProcScope.AddGlobalJS(StorePrecompiledJS(V));
+        ProcScope.AddGlobalJS(CreatePrecompiledJS(V));
         end;
       end;
     end
