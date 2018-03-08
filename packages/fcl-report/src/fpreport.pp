@@ -2878,7 +2878,6 @@ begin
     FExpression:=aExpr;
     DataType:=aType;
     ResetType:=aResetType;
-
     ResetValueExpression:=aResetValueExpression;
     end;
 end;
@@ -6780,15 +6779,18 @@ begin
 end;
 
 destructor TFPReportElementWithChildren.Destroy;
-//var
-//  i: integer;
+var
+  i: integer;
 begin
   if Assigned(FChildren) then
-  begin
-//    for i := 0 to FChildren.Count - 1 do
-//      Child[i].FParent := nil;
+    begin
+    for i := 0 to FChildren.Count - 1 do
+      begin
+      Child[i].FParent := nil;
+      Child[i].Free;
+      end;
     FreeAndNil(FChildren);
-  end;
+    end;
   inherited Destroy;
 end;
 
@@ -7383,6 +7385,7 @@ procedure TFPCustomReport.EmptyRTObjects;
 begin
   while RTObjects.Count > 0 do
   begin
+
     TFPReportElement(RTObjects[0]).Free;
     RTObjects.Delete(0);
   end;
