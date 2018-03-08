@@ -18,6 +18,7 @@ asm
   mov ax, cs:locl                          { mov ax, cs:[bp-02] }
   mov ax, [cs:locl]                        { mov ax, cs:[bp-02] }
   mov ax, [cs:[locl]]                      { mov ax, cs:[bp-02] }
+  mov ax, cs:locl[5]                       { mov ax, cs:[bp+03] }
 end;
 
 begin

@@ -898,6 +898,44 @@ Unit Rax86int;
                   internalerror(2018030701);
               end;
             end;
+          OPR_LOCAL:
+            begin
+              case src.opr.typ of
+                OPR_REFERENCE:
+                  begin
+                    if src.opr.ref.base<>NR_NO then
+                      begin
+                        if dest.opr.localindexreg=NR_NO then
+                          begin
+                            dest.opr.localindexreg:=src.opr.ref.base;
+                            dest.opr.localscale:=0;
+                          end
+                        else if dest.opr.localindexreg=src.opr.ref.base then
+                          dest.opr.localscale:=Min(dest.opr.localscale,1)+1
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    if src.opr.ref.index<>NR_NO then
+                      begin
+                        if dest.opr.localindexreg=NR_NO then
+                          begin
+                            dest.opr.localindexreg:=src.opr.ref.index;
+                            dest.opr.localscale:=src.opr.ref.scalefactor;
+                          end
+                        else if dest.opr.localindexreg=src.opr.ref.index then
+                          dest.opr.localscale:=Min(dest.opr.localscale,1)+Min(src.opr.ref.scalefactor,1)
+                        else
+                          Message(asmr_e_multiple_index);
+                      end;
+                    Inc(dest.opr.localconstoffset,src.opr.constoffset);
+                    Inc(dest.opr.localsymofs,src.opr.constoffset);
+                    if src.opr.ref.segment<>NR_NO then
+                      SetSegmentOverride(dest,src.opr.ref.segment);
+                  end;
+                else
+                  internalerror(2018030703);
+              end;
+            end;
           else
             internalerror(2018030702);
         end;
