@@ -3558,10 +3558,9 @@ Var
 begin
   if FUseParentFont = AValue then
     Exit;
+  FUseParentFont := AValue;
   if aValue then
     ReassignParentFont;
-  // Careful, ReassignParentFont set FUseParentFont to false through OnChange handler
-  FUseParentFont := AValue;
   Changed;
 end;
 
@@ -4624,11 +4623,17 @@ Procedure TFPReportCustomMemo.ReassignParentFont;
 
 Var
   F : TFPReportFont;
+  B : Boolean;
 
 begin
-  F:=GetParentFont;
-  If Assigned(F) then
-    Font.Assign(F);
+  B:=UseParentFont;
+  Try
+    F:=GetParentFont;
+    If Assigned(F) then
+      Font.Assign(F);
+  Finally
+    FUseParentFont:=B;
+  end;
 end;
 
 constructor TFPReportCustomMemo.Create(AOwner: TComponent);
@@ -8341,10 +8346,9 @@ Var
 begin
   if FUseParentFont = AValue then
     Exit;
+  FUseParentFont := AValue;
   if AValue then
     ReassignParentFont;
-  // Must set this afterwards, because OnChange of font will reset it
-  FUseParentFont := AValue;
   Changed;
 end;
 
@@ -8384,11 +8388,17 @@ procedure TFPReportCustomBand.ReassignParentFont;
 
 Var
   F : TFPReportFont;
+  B : Boolean;
 
 begin
+  B:=UseParentFont;
+  try
   F:=GetParentFont;
   if Assigned(F) then
     FFont.Assign(F);
+  Finally
+    FUseParentFont:=B;
+  end;
 end;
 
 procedure TFPReportCustomBand.CreateRTLayout;
