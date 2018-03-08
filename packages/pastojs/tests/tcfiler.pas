@@ -293,6 +293,8 @@ begin
       RestResolver.CurrentParser:=RestParser;
       ms.Position:=0;
       PJUReader.ReadPJU(RestResolver,ms);
+      if not PJUReader.ReadJSONContinue then
+        Fail('ReadJSONContinue=false, pending used interfaces');
     except
       on E: Exception do
       begin
