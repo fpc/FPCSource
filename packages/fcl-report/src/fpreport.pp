@@ -2169,8 +2169,13 @@ function gBandFactory : TFPReportBandFactory;
 Function ReportExportManager : TFPReportExportManager;
 
 { this should probably be more configurable or flexible per platform }
+
 Const
+{$IFDEF UNIX}
+  cDefaultFont = 'LiberationSans';
+{$ELSE}
   cDefaultFont = 'Helvetica';
+{$ENDIF}
 
 Var
   ReportDefaultFont : string = cDefaultFont;
