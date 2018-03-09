@@ -2978,7 +2978,6 @@ begin
   FreeAndNil(FExpressionNode);
   FreeAndNil(FResetValueExpressionNode);
   FResetValue:='';
-  FResetValueExpression:='';
 end;
 
 function TFPReportVariable.GetValue: String;
