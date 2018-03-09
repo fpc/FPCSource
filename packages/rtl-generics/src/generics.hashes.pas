@@ -935,8 +935,14 @@ end;
   {$endif CPUX64}
 {$else}
   {$ifdef CPUX86}
-    {$define CPUINTEL}
-    {$ASMMODE INTEL}
+    {$ifndef FPC_PIC}
+      {$define CPUINTEL}
+      {$ASMMODE INTEL}
+    {$else}
+      { Assembler code uses references to static
+        variables with are not PIC ready }
+      {$define PUREPASCAL}
+    {$endif}
   {$else CPUX86}
   {$define PUREPASCAL}
   {$endif}
