@@ -7813,6 +7813,9 @@ end;
 
 procedure TFPCustomReport.Clear;
 
+Var
+  P : TFPReportCustomPage;
+
 begin
   // Variables
   FRTCurPageIdx := -1;
@@ -7825,7 +7828,11 @@ begin
   if Assigned(FPages) then
     begin
     While PageCount>0 do
-      RemovePage(Pages[FPages.Count-1]);
+      begin
+      P:=Pages[PageCount-1];
+      RemovePage(P);
+      FreeAndNil(P);
+      end;
     FPages.Clear;
     end;
   ClearReferenceList;
