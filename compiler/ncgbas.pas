@@ -330,6 +330,10 @@ interface
                                      ReLabel(ref^.symbol);
                                    if assigned(ref^.relsymbol) then
                                      ReLabel(ref^.relsymbol);
+{$ifdef x86}
+                                   if (ref^.segment<>NR_NO) and (ref^.segment<>get_default_segment_of_ref(ref^)) then
+                                     taicpu(hp2).segprefix:=ref^.segment;
+{$endif x86}
                                  end;
                              end;
                            end;
@@ -364,7 +368,19 @@ interface
 {$endif}
                        { fixup the references }
                        for i:=1 to taicpu(hp).ops do
-                         ResolveRef(taicpu(hp).fileinfo,taicpu(hp).oper[i-1]^);
+                         begin
+                           ResolveRef(taicpu(hp).fileinfo,taicpu(hp).oper[i-1]^);
+{$ifdef x86}
+                           with taicpu(hp).oper[i-1]^ do
+                             begin
+                               case typ of
+                                 top_ref :
+                                   if (ref^.segment<>NR_NO) and (ref^.segment<>get_default_segment_of_ref(ref^)) then
+                                     taicpu(hp).segprefix:=ref^.segment;
+                               end;
+                             end;
+{$endif x86}
+                         end;
 {$ifdef x86}
                       { can only be checked now that all local operands }
                       { have been resolved                              }
