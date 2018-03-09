@@ -36,9 +36,6 @@ Working:
 - Hint: 'Function result does not seem to be set'
 - TPasArgument: compute the effective Access
 - calls: use the effective Access of arguments
-
-ToDo:
-- Add test: Call Override: e.g. A.Proc, mark only overrides of descendants of A
 }
 unit PasUseAnalyzer;
 
@@ -1391,6 +1388,13 @@ begin
     ImplProc:=ProcScope.ImplProc;
   if ImplProc.Body<>nil then
     UseImplBlock(ImplProc.Body.Body,false);
+
+  if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
+    AddOverride(ProcScope.OverriddenProc,Proc);
+
+  // mark overrides
+  if [pmOverride,pmVirtual]*Proc.Modifiers<>[] then
+    UseOverrides(Proc);
 end;
 
 procedure TPasAnalyzer.UseProcedureType(ProcType: TPasProcedureType;

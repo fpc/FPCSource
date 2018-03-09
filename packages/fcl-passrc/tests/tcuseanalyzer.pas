@@ -128,6 +128,7 @@ type
     procedure TestWP_UnitFinalization;
     procedure TestWP_CallInherited;
     procedure TestWP_ProgramPublicDeclarations;
+    procedure TestWP_ClassOverride;
     procedure TestWP_ClassDefaultProperty;
     procedure TestWP_Published;
     procedure TestWP_PublishedSetType;
@@ -1989,6 +1990,42 @@ begin
   Add('procedure {#DoPublic_used}DoPublic; public; begin end;');
   Add('procedure {#DoPrivate_notused}DoPrivate; begin end;');
   Add('begin');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassOverride;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TObject_used}TObject = class',
+  '  protected',
+  '    function {#TObject_getcount_used}GetCount: longint; virtual; abstract;',
+  '  public',
+  '    property {#TObject_count_used}Count: longint read GetCount;',
+  '  end;',
+  '',
+  '  {#tb_used}TB = class(TObject)',
+  '  private',
+  '    {#tb_fcount_used}FCount: longint;',
+  '  protected',
+  '    function {#tb_getcount_used}GetCount: longint; override;',
+  '  end;',
+  '',
+  'function TB.GetCount: longint;',
+  'begin',
+  '  Result:=FCount;',
+  'end;',
+  '',
+  'procedure {#doit_used}DoIt;',
+  'var',
+  '  {#l_used}l: TB;',
+  'begin',
+  '  if l.count=3 then ;',
+  'end;',
+  '',
+  'begin',
+  '  DoIt;']);
   AnalyzeWholeProgram;
 end;
 
