@@ -3226,29 +3226,30 @@ end;
 procedure TTestModule.TestProc_Varargs;
 begin
   StartProgram(false);
-  Add('procedure ProcA(i:longint); varargs; external name ''ProcA'';');
-  Add('procedure ProcB; varargs; external name ''ProcB'';');
-  Add('procedure ProcC(i: longint = 17); varargs; external name ''ProcC'';');
-  Add('function GetIt: longint; begin end;');
-  Add('begin');
-  Add('  ProcA(1);');
-  Add('  ProcA(1,2);');
-  Add('  ProcA(1,2.0);');
-  Add('  ProcA(1,2,3);');
-  Add('  ProcA(1,''2'');');
-  Add('  ProcA(2,'''');');
-  Add('  ProcA(3,false);');
-  Add('  ProcB;');
-  Add('  ProcB();');
-  Add('  ProcB(4);');
-  Add('  ProcB(''foo'');');
-  Add('  ProcC;');
-  Add('  ProcC();');
-  Add('  ProcC(4);');
-  Add('  ProcC(5,''foo'');');
-  Add('  ProcB(GetIt);');
-  Add('  ProcB(GetIt());');
-  Add('  ProcB(GetIt,GetIt());');
+  Add([
+  'procedure ProcA(i:longint); varargs; external name ''ProcA'';',
+  'procedure ProcB; varargs; external name ''ProcB'';',
+  'procedure ProcC(i: longint = 17); varargs; external name ''ProcC'';',
+  'function GetIt: longint; begin end;',
+  'begin',
+  '  ProcA(1);',
+  '  ProcA(1,2);',
+  '  ProcA(1,2.0);',
+  '  ProcA(1,2,3);',
+  '  ProcA(1,''2'');',
+  '  ProcA(2,'''');',
+  '  ProcA(3,false);',
+  '  ProcB;',
+  '  ProcB();',
+  '  ProcB(4);',
+  '  ProcB(''foo'');',
+  '  ProcC;',
+  '  ProcC();',
+  '  ProcC(4);',
+  '  ProcC(5,''foo'');',
+  '  ProcB(GetIt);',
+  '  ProcB(GetIt());',
+  '  ProcB(GetIt,GetIt());']);
   ConvertProgram;
   CheckSource('TestProc_Varargs',
     LinesToStr([ // statements
@@ -6916,18 +6917,19 @@ end;
 procedure TTestModule.TestExternalClass_TypeCastArrayToExternalArray;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TJSArray = class external name ''Array''');
-  Add('    class function isArray(Value: JSValue) : boolean;');
-  Add('    function concat() : TJSArray; varargs;');
-  Add('  end;');
-  Add('var');
-  Add('  aObj: TJSArray;');
-  Add('  a: array of longint;');
-  Add('begin');
-  Add('  if TJSArray.isArray(65) then ;');
-  Add('  aObj:=TJSArray(a).concat(a);');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSArray = class external name ''Array''',
+  '    class function isArray(Value: JSValue) : boolean;',
+  '    function concat() : TJSArray; varargs;',
+  '  end;',
+  'var',
+  '  aObj: TJSArray;',
+  '  a: array of longint;',
+  'begin',
+  '  if TJSArray.isArray(65) then ;',
+  '  aObj:=TJSArray(a).concat(a);']);
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastArrayToExternalArray',
     LinesToStr([ // statements

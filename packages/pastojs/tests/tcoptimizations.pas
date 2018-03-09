@@ -44,6 +44,7 @@ type
     procedure TearDown; override;
     procedure ParseModule; override;
     procedure ParseProgram; override;
+    function CreateConverter: TPasToJSConverter; override;
   public
     property AnalyzerModule: TPasAnalyzer read FAnalyzerModule;
     property AnalyzerProgram: TPasAnalyzer read FAnalyzerProgram;
@@ -67,15 +68,17 @@ type
     procedure TestWPO_OmitRecordMember;
     procedure TestWPO_OmitNotUsedTObject;
     procedure TestWPO_TObject;
-    procedure TestWPO_OmitClassField;
-    procedure TestWPO_OmitClassMethod;
-    procedure TestWPO_OmitClassClassMethod;
-    procedure TestWPO_OmitPropertyGetter1;
-    procedure TestWPO_OmitPropertyGetter2;
-    procedure TestWPO_OmitPropertySetter1;
-    procedure TestWPO_OmitPropertySetter2;
+    procedure TestWPO_Class_Property;
+    procedure TestWPO_Class_OmitField;
+    procedure TestWPO_Class_OmitMethod;
+    procedure TestWPO_Class_OmitClassMethod;
+    procedure TestWPO_Class_OmitPropertyGetter1;
+    procedure TestWPO_Class_OmitPropertyGetter2;
+    procedure TestWPO_Class_OmitPropertySetter1;
+    procedure TestWPO_Class_OmitPropertySetter2;
     procedure TestWPO_CallInherited;
     procedure TestWPO_UseUnit;
+    procedure TestWPO_Class_PropertyInOtherUnit;
     procedure TestWPO_ProgramPublicDeclaration;
     procedure TestWPO_ConstructorDefaultValueConst;
     procedure TestWPO_RTTI_PublishedField;
@@ -93,8 +96,15 @@ var
 begin
   if WholeProgramOptimization then
     A:=AnalyzerProgram
+  else if Sender=Converter then
+    A:=AnalyzerModule
   else
-    A:=AnalyzerModule;
+    begin
+    {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
+    writeln('TCustomTestOptimizations.OnConverterIsElementUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Sender=',GetObjName(Sender));
+    {$ENDIF}
+    Fail('converting other unit without WPO');
+    end;
   Result:=A.IsUsed(El);
   {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
   writeln('TCustomTestOptimizations.OnConverterIsElementUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Result=',Result);
@@ -108,8 +118,15 @@ var
 begin
   if WholeProgramOptimization then
     A:=AnalyzerProgram
+  else if Sender=Converter then
+    A:=AnalyzerModule
   else
-    A:=AnalyzerModule;
+    begin
+    {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
+    writeln('TCustomTestOptimizations.OnConverterIsTypeInfoUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Sender=',GetObjName(Sender));
+    {$ENDIF}
+    Fail('converting other unit without WPO');
+    end;
   Result:=A.IsTypeInfoUsed(El);
   {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
   writeln('TCustomTestOptimizations.OnConverterIsTypeInfoUsed El=',GetObjName(El),' WPO=',WholeProgramOptimization,' Result=',Result);
@@ -124,8 +141,6 @@ begin
   FAnalyzerModule.Resolver:=Engine;
   FAnalyzerProgram:=TPasAnalyzer.Create;
   FAnalyzerProgram.Resolver:=Engine;
-  Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
-  Converter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
 end;
 
 procedure TCustomTestOptimizations.TearDown;
@@ -158,6 +173,13 @@ begin
   {$IF defined(VerbosePas2JS) or defined(VerbosePasAnalyzer)}
   writeln('TCustomTestOptimizations.ParseProgram START');
   {$ENDIF}
+end;
+
+function TCustomTestOptimizations.CreateConverter: TPasToJSConverter;
+begin
+  Result:=inherited CreateConverter;
+  Result.OnIsElementUsed:=@OnConverterIsElementUsed;
+  Result.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
 end;
 
 { TTestOptimizations }
@@ -429,7 +451,49 @@ begin
     '$mod.o = null;']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitClassField;
+procedure TTestOptimizations.TestWPO_Class_Property;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  private',
+  '    const CA = 3;',
+  '  private',
+  '    FA: longint;',
+  '    function GetA: longint;',
+  '    procedure SetA(Value: longint);',
+  '    function IsStoredA: boolean;',
+  '    property A: longint read GetA write SetA stored IsStoredA default CA;',
+  '  end;',
+  'function tobject.geta: longint; begin end;',
+  'procedure tobject.seta(value: longint); begin end;',
+  'function tobject.isstoreda: boolean; begin end;',
+  'var o: TObject;',
+  'begin',
+  '  o.A:=o.A;']);
+  ConvertProgram;
+  CheckSource('TestWPO_Class_TObject',
+    LinesToStr([
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetA = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.SetA = function (Value) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([
+    '$mod.o.SetA($mod.o.GetA());']));
+end;
+
+procedure TTestOptimizations.TestWPO_Class_OmitField;
 begin
   StartProgram(false);
   Add('type');
@@ -456,7 +520,7 @@ begin
     '$mod.o.a = 3;']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitClassMethod;
+procedure TTestOptimizations.TestWPO_Class_OmitMethod;
 begin
   StartProgram(false);
   Add('type');
@@ -486,7 +550,7 @@ begin
     '$mod.o.ProcB();']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitClassClassMethod;
+procedure TTestOptimizations.TestWPO_Class_OmitClassMethod;
 begin
   StartProgram(false);
   Add('type');
@@ -516,7 +580,7 @@ begin
     '$mod.o.$class.ProcB();']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertyGetter1;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertyGetter1;
 begin
   StartProgram(false);
   Add('type');
@@ -552,7 +616,7 @@ begin
     '']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertyGetter2;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertyGetter2;
 begin
   StartProgram(false);
   Add('type');
@@ -588,7 +652,7 @@ begin
     '']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertySetter1;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertySetter1;
 begin
   StartProgram(false);
   Add('type');
@@ -624,7 +688,7 @@ begin
     '']));
 end;
 
-procedure TTestOptimizations.TestWPO_OmitPropertySetter2;
+procedure TTestOptimizations.TestWPO_Class_OmitPropertySetter2;
 begin
   StartProgram(false);
   Add('type');
@@ -748,6 +812,63 @@ begin
     '});',
     '']);
   CheckDiff('TestWPO_UseUnit',ExpectedSrc,ActualSrc);
+end;
+
+procedure TTestOptimizations.TestWPO_Class_PropertyInOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    const CA = 3;',
+    '  private',
+    '    FOther: string;',
+    '    FA: longint;',
+    '    function GetA: longint;',
+    '    procedure SetA(Value: longint);',
+    '    function IsStoredA: boolean;',
+    '  public',
+    '    property A: longint read GetA write SetA stored IsStoredA default CA;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'function TObject.geta: longint;',
+    'begin',
+    'end;',
+    'procedure TObject.seta(value: longint);',
+    'begin',
+    '  FA:=Value;',
+    'end;',
+    'function TObject.isstoreda: boolean; begin end;',
+    '']));
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'var o: TObject;',
+  'begin',
+  '  o.A:=o.A;']);
+  ConvertProgram;
+  CheckUnit('unit1.pp',
+  LinesToStr([
+  'rtl.module("unit1", ["system"], function () {',
+  '  var $mod = this;',
+  '  rtl.createClass($mod, "TObject", null, function () {',
+  '    this.$init = function () {',
+  '      this.FA = 0;',
+  '    };',
+  '    this.$final = function () {',
+  '    };',
+  '    this.GetA = function () {',
+  '      var Result = 0;',
+  '      return Result;',
+  '    };',
+  '    this.SetA = function (Value) {',
+  '      this.FA = Value;',
+  '    };',
+  '  });',
+  '});',
+  '']));
 end;
 
 procedure TTestOptimizations.TestWPO_ProgramPublicDeclaration;
