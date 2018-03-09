@@ -7817,6 +7817,8 @@ Var
   P : TFPReportCustomPage;
 
 begin
+  // Previous run objects
+  EmptyRTObjects;
   // Variables
   FRTCurPageIdx := -1;
   FDateCreated := Now;
