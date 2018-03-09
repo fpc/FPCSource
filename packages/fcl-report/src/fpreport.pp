@@ -7823,12 +7823,17 @@ begin
   // Collections
   FreeAndNil(FExpr); // Special case, recreated on run
   FReportData.Clear;
-  While FPages.Count>0 do
-    RemovePage(Pages[FPages.Count-1]);
-  FPages.Clear;
+  if Assigned(FPages) then
+    begin
+    While PageCount>0 do
+      RemovePage(Pages[FPages.Count-1]);
+    FPages.Clear;
+    end;
   ClearReferenceList;
-  FImages.Clear;
-  FVariables.Clear;
+  If Assigned(Fimages) then
+    FImages.Clear;
+  If Assigned(FVariables) then
+    FVariables.Clear;
 end;
 
 procedure TFPCustomReport.SaveDataToNames;
