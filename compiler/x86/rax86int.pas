@@ -889,6 +889,7 @@ Unit Rax86int;
                           Message(asmr_e_multiple_index);
                       end;
                     Inc(tmplocal.localconstoffset,dest.opr.constoffset);
+                    Inc(tmplocal.localsymofs,dest.opr.ref.offset);
                     segreg:=dest.opr.ref.segment;
                     dest.opr:=tmplocal;
                     if segreg<>NR_NO then
@@ -928,7 +929,7 @@ Unit Rax86int;
                           Message(asmr_e_multiple_index);
                       end;
                     Inc(dest.opr.localconstoffset,src.opr.constoffset);
-                    Inc(dest.opr.localsymofs,src.opr.constoffset);
+                    Inc(dest.opr.localsymofs,src.opr.ref.offset);
                     if src.opr.ref.segment<>NR_NO then
                       SetSegmentOverride(dest,src.opr.ref.segment);
                   end;
