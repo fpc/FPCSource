@@ -113,14 +113,17 @@ procedure TFPJSONReport.LoadFromJSON(aJSON: TJSONObject);
 
 Var
   R : TFPReportJSONStreamer;
+  N : String;
 
 begin
+  N:=Name;
   R:=TFPReportJSONStreamer.Create(Nil);
   try
     R.OwnsJSON:=False;
     R.JSON:=aJSON;
     ReadElement(R);
   finally
+    Name:=N;
     R.Free;
   end;
 end;
