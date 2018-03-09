@@ -10823,19 +10823,21 @@ var
   lDsgnDetailBand: TFPReportCustomDataBand;
   lDetailBand: TFPReportCustomBand;
   lDetailBandList: TBandList;
-  lData: TFPReportData;
-  i: integer;
+  oData,lData: TFPReportData;
+  i,j: integer;
+  lPage : TFPReportCustomPage;
 
 begin
   if AMasterBand = nil then
     Exit;
   lDsgnDetailBand := nil;
   lDetailBandList := TBandList.Create;
+  lPage:=Pages[RTCurDsgnPageIdx];
   try
     { collect bands of interest }
-    for i := 0 to Pages[RTCurDsgnPageIdx].BandCount-1 do
+    for i := 0 to lPage.BandCount-1 do
       begin
-      lDetailBand := Pages[RTCurDsgnPageIdx].Bands[i];
+      lDetailBand := lPage.Bands[i];
       if (lDetailBand is TFPReportCustomDataBand)
         and (TFPReportCustomDataBand(lDetailBand).MasterBand = AMasterBand)
         and (TFPReportCustomDataBand(lDetailBand).Data <> nil) then
@@ -10852,8 +10854,20 @@ begin
       if not lData.IsOpened then
         begin
         lData.Open;
-        Report.InitializeExpressionVariables(Pages[RTCurDsgnPageIdx], lData);
+        Report.InitializeExpressionVariables(lPage, lData);
+        for j := 0 to Report.ReportData.Count-1 do
+          begin
+          oData:=Report.ReportData.Data[j].Data;
+          if Assigned(oData) and (oData<>lData) then
+            Report.InitializeExpressionVariables(lPage, oData);
+          end;
         Report.CacheMemoExpressions(RTCurDsgnPageIdx, lData);
+        for j := 0 to Report.ReportData.Count-1 do
+          begin
+          oData:=Report.ReportData.Data[j].Data;
+          if Assigned(oData) and (oData<>lData) then
+            Report.CacheMemoExpressions(RTCurDsgnPageIdx, oData);
+          end;
         end;
       lData.First;
       if (not lData.EOF) and (lDsgnDetailBand.HeaderBand <> nil) then
@@ -11047,7 +11061,7 @@ procedure TFPReportLayouter.RunDataLoop(aPageIdx: Integer;
 Var
   I : integer;
   lBand : TFPReportCustomBand;
-
+  oData : TFPReportData;
 begin
   if Assigned(aPageData) then
     begin
@@ -11056,7 +11070,19 @@ begin
     if IsFirstPass then
       begin
       Report.InitializeExpressionVariables(Pages[aPageIdx], aPageData);
+      for I := 0 to Report.ReportData.Count-1 do
+        begin
+        oData:=Report.ReportData.Data[i].Data;
+        if Assigned(oData) and (oData<>aPageData) then
+          Report.InitializeExpressionVariables(Pages[RTCurDsgnPageIdx],oData);
+        end;
       Report.CacheMemoExpressions(aPageIdx, aPageData);
+      for I := 0 to Report.ReportData.Count-1 do
+        begin
+        oData:=Report.ReportData.Data[i].Data;
+        if Assigned(oData) and (oData<>aPageData) then
+          Report.CacheMemoExpressions(RTCurDsgnPageIdx, oData);
+        end;
       end;
     aPageData.First;
     end;
