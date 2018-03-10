@@ -2525,7 +2525,17 @@ begin
           c:=p^;
           inc(p);
           case c of
-          'c': FileCache.AllJSIntoMainJS:=p^<>'-';
+          'c':
+            begin
+              if p^='-' then
+              begin
+                FileCache.AllJSIntoMainJS:=false;
+                inc(p);
+              end else
+                FileCache.AllJSIntoMainJS:=true;
+              if p^<>#0 then
+                ParamFatal('invalid value "'+String(p)+'"');
+            end;
           'e':
             begin
             Identifier:=NormalizeEncoding(String(p));
