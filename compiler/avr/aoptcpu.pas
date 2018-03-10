@@ -755,6 +755,35 @@ Implementation
                     end;
                 A_MOV:
                   begin
+                    { change
+                      mov reg0, reg1
+                      dealloc reg0
+                      into
+                      dealloc reg0
+                    }
+                    if MatchOpType(taicpu(p),top_reg,top_reg) then
+                      begin
+                        CopyUsedRegs(TmpUsedRegs);
+                        UpdateUsedRegs(TmpUsedRegs,tai(p.Next));
+                        if not(RegInUsedRegs(taicpu(p).oper[0]^.reg,TmpUsedRegs)) and
+                          { reg. allocation information before calls is not perfect, so don't do this before
+                            calls/icalls }
+                          GetNextInstruction(p,hp1) and
+                          not(MatchInstruction(hp1,[A_CALL,A_RCALL])) then
+                          begin
+                            GetNextInstruction(p,hp1);
+                            DebugMsg('Peephole Mov2Nop performed', p);
+                            UpdateUsedRegs(tai(p.Next));
+                            asml.Remove(p);
+                            p.Free;
+                            p:=hp1;
+                            result:=true;
+                            ReleaseUsedRegs(TmpUsedRegs);
+                            exit;
+                          end;
+                        ReleaseUsedRegs(TmpUsedRegs);
+                      end;
+
                     { turn
                       mov reg0, reg1
                       <op> reg2,reg0
