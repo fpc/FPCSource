@@ -495,6 +495,8 @@ begin
     internalerror(200112301);
   result.simple := true;
   result.cr := f.cr;
+  if byte(f.cr)=0 then
+    Comment(V_error,'Wrong use of whole CR register in falgs_to_cond');
   result.cond := flag_2_cond[f.flag];
 end;
 
