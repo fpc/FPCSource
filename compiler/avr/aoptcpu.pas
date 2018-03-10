@@ -662,20 +662,14 @@ Implementation
                          begin
                            DebugMsg('Peephole PushPushPopPop2Movw performed', p);
 
-                           taicpu(p).ops:=2;
-                           taicpu(p).opcode:=A_MOVW;
+                           taicpu(hp3).ops:=2;
+                           taicpu(hp3).opcode:=A_MOVW;
 
-                           taicpu(p).loadreg(1, taicpu(p).oper[0]^.reg);
-                           taicpu(p).loadreg(0, taicpu(hp3).oper[0]^.reg);
+                           taicpu(hp3).loadreg(1, taicpu(p).oper[0]^.reg);
 
-                           asml.Remove(hp1);
-                           hp1.Free;
-                           asml.Remove(hp2);
-                           hp2.Free;
-                           asml.Remove(hp3);
-                           hp3.Free;
-
-                           result:=true;
+                           RemoveCurrentP(taicpu(p));
+                           RemoveCurrentP(taicpu(p));
+                           result:=RemoveCurrentP(taicpu(p));
                          end
                        else
                          begin
@@ -692,6 +686,19 @@ Implementation
 
                            taicpu(hp1).loadreg(1, taicpu(hp1).oper[0]^.reg);
                            taicpu(hp1).loadreg(0, taicpu(hp2).oper[0]^.reg);
+
+                           { life range of reg2 and reg3 is increased, fix register allocation entries }
+                           CopyUsedRegs(TmpUsedRegs);
+                           UpdateUsedRegs(TmpUsedRegs,tai(p.Next));
+                           AllocRegBetween(taicpu(hp2).oper[0]^.reg,hp1,hp2,TmpUsedRegs);
+                           ReleaseUsedRegs(TmpUsedRegs);
+
+                           CopyUsedRegs(TmpUsedRegs);
+                           AllocRegBetween(taicpu(hp3).oper[0]^.reg,p,hp3,TmpUsedRegs);
+                           ReleaseUsedRegs(TmpUsedRegs);
+
+                           IncludeRegInUsedRegs(taicpu(hp3).oper[0]^.reg,UsedRegs);
+                           UpdateUsedRegs(tai(p.Next));
 
                            asml.Remove(hp2);
                            hp2.Free;
@@ -767,9 +774,10 @@ Implementation
                     if MatchOpType(taicpu(p),top_reg,top_reg) and
                        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
                        (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
-                       MatchInstruction(hp1,[A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_ADC,A_SBC,A_EOR,A_AND,A_OR,
-                                               A_STD,A_ST,
-                                               A_OUT,A_IN]) and
+                       (MatchInstruction(hp1,[A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_ADC,A_SBC,A_EOR,A_AND,A_OR,
+                                               A_OUT,A_IN]) or
+                       { the reference register of ST/STD cannot be replaced }
+                       (MatchInstruction(hp1,[A_STD,A_ST]) and (MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^)))) and
                        (not RegModifiedByInstruction(taicpu(p).oper[0]^.reg, hp1)) and
                        {(taicpu(hp1).ops=1) and
                        (taicpu(hp1).oper[0]^.typ = top_reg) and
@@ -794,6 +802,10 @@ Implementation
                             dealloc.Free;
                           end;
 
+                        { life range of reg1 is increased }
+                        AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,usedregs);
+                        { p will be removed, update used register as we continue
+                          with the next instruction after p }
 
                         result:=RemoveCurrentP(taicpu(p));
                       end
@@ -934,6 +946,8 @@ Implementation
                           begin
                             asml.Remove(alloc);
                             asml.InsertBefore(alloc,p);
+                            { proper book keeping of currently used registers }
+                            IncludeRegInUsedRegs(taicpu(hp1).oper[0]^.reg,UsedRegs);
                           end;
 
                         taicpu(p).opcode:=A_MOVW;
@@ -1070,3 +1084,4 @@ Implementation
 begin
   casmoptimizer:=TCpuAsmOptimizer;
 End.
+
