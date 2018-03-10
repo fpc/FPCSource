@@ -45,6 +45,7 @@ type
     function OnConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
     function OnRestConverterIsElementUsed(Sender: TObject; El: TPasElement): boolean;
     function OnRestConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement): boolean;
+    function OnRestResolverFindUnit(const aUnitName: String): TPasModule;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -144,6 +145,9 @@ type
     procedure TestPC_Proc_UTF8;
     procedure TestPC_Class;
     procedure TestPC_Initialization;
+
+    procedure TestPC_UseUnit;
+    procedure TestPC_UseUnit_Class;
   end;
 
 function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
@@ -201,6 +205,55 @@ function TCustomTestPrecompile.OnRestConverterIsTypeInfoUsed(Sender: TObject;
   El: TPasElement): boolean;
 begin
   Result:=RestAnalyzer.IsTypeInfoUsed(El);
+end;
+
+function TCustomTestPrecompile.OnRestResolverFindUnit(const aUnitName: String
+  ): TPasModule;
+
+  function FindRestUnit(Name: string): TPasModule;
+  var
+    i: Integer;
+    CurEngine: TTestEnginePasResolver;
+    CurUnitName: String;
+  begin
+    for i:=0 to ResolverCount-1 do
+      begin
+      CurEngine:=Resolvers[i];
+      CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
+      {$IFDEF VerbosePJUFiler}
+      //writeln('TCustomTestPrecompile.FindRestUnit Checking ',i,'/',ResolverCount,' ',CurEngine.Filename,' ',CurUnitName);
+      {$ENDIF}
+      if CompareText(Name,CurUnitName)=0 then
+        begin
+        Result:=CurEngine.Module;
+        if Result<>nil then
+          begin
+          {$IFDEF VerbosePJUFiler}
+          //writeln('TCustomTestPrecompile.FindRestUnit Found parsed module: ',Result.Filename);
+          {$ENDIF}
+          exit;
+          end;
+        {$IFDEF VerbosePJUFiler}
+        writeln('TCustomTestPrecompile.FindRestUnit PARSING unit "',CurEngine.Filename,'"');
+        {$ENDIF}
+        Fail('not parsed');
+        end;
+      end;
+  end;
+
+var
+  DefNamespace: String;
+begin
+  if (Pos('.',aUnitName)<1) then
+    begin
+    DefNamespace:=GetDefaultNamespace;
+    if DefNamespace<>'' then
+      begin
+      Result:=FindRestUnit(DefNamespace+'.'+aUnitName);
+      if Result<>nil then exit;
+      end;
+    end;
+  Result:=FindRestUnit(aUnitName);
 end;
 
 procedure TCustomTestPrecompile.SetUp;
@@ -287,7 +340,7 @@ begin
       RestResolver:=TTestEnginePasResolver.Create;
       RestResolver.Filename:=Engine.Filename;
       RestResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
-      //RestResolver.OnFindUnit:=@OnPasResolverFindUnit;
+      RestResolver.OnFindUnit:=@OnRestResolverFindUnit;
       RestParser:=TPasParser.Create(RestScanner,RestFileResolver,RestResolver);
       RestParser.Options:=po_tcmodules;
       RestResolver.CurrentParser:=RestParser;
@@ -1661,6 +1714,76 @@ begin
   'initialization',
   '  s:=''ö😊'';',
   '  r.h:=''Ä😊'';',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_UseUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  TColor = longint;',
+    '  TRec = record h: TColor; end;',
+    '  TEnum = (red,green);',
+    'var',
+    '  c: TColor;',
+    '  r: TRec;',
+    '  e: TEnum;']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit2;',
+  'var',
+  '  i: system.longint;',
+  '  e2: TEnum;',
+  'implementation',
+  'initialization',
+  '  c:=1;',
+  '  r.h:=2;',
+  '  e:=red;',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_UseUnit_Class;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  private',
+    '    FA: longint;',
+    '  public',
+    '    type',
+    '      TEnum = (red,green);',
+    '  public',
+    '    i: longint;',
+    '    e: TEnum;',
+    '    procedure DoIt; virtual; abstract;',
+    '    property A: longint read FA write FA;',
+    '  end;',
+    'var',
+    '  o: TObject;']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit2;',
+  'var',
+  '  b: TObject;',
+  'implementation',
+  'initialization',
+  '  o.DoIt;',
+  '  o.i:=b.A;',
+  '  o.e:=red;',
   'end.',
   '']);
   WriteReadUnit;

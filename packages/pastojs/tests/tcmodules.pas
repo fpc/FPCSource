@@ -100,10 +100,10 @@ type
     function GetResolverCount: integer;
     function GetResolvers(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
-    function FindUnit(const aUnitName: String): TPasModule;
   protected
     procedure SetUp; override;
     function CreateConverter: TPasToJSConverter; virtual;
+    function LoadUnit(const aUnitName: String): TPasModule;
     procedure InitScanner(aScanner: TPascalScanner); virtual;
     procedure TearDown; override;
     Procedure Add(Line: string); virtual;
@@ -858,17 +858,17 @@ begin
     DefNamespace:=GetDefaultNamespace;
     if DefNamespace<>'' then
       begin
-      Result:=FindUnit(DefNamespace+'.'+aUnitName);
+      Result:=LoadUnit(DefNamespace+'.'+aUnitName);
       if Result<>nil then exit;
       end;
     end;
-  Result:=FindUnit(aUnitName);
+  Result:=LoadUnit(aUnitName);
   if Result<>nil then exit;
   writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
   Fail('can''t find unit "'+aUnitName+'"');
 end;
 
-function TCustomTestModule.FindUnit(const aUnitName: String): TPasModule;
+function TCustomTestModule.LoadUnit(const aUnitName: String): TPasModule;
 var
   i: Integer;
   CurEngine: TTestEnginePasResolver;

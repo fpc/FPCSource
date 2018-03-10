@@ -58,6 +58,8 @@ const
   PJUMagic = 'Pas2JSCache';
   PJUVersion = 1;
 
+  BuiltInNodeName = 'BuiltIn';
+
   PJUDefaultParserOptions: TPOptions = po_Pas2js;
 
   PJUBoolStr: array[boolean] of string = (
@@ -792,6 +794,7 @@ type
     procedure ReadSrcFiles(Data: TJSONData); virtual;
     function ReadMemberHints(Obj: TJSONObject; El: TPasElement; const DefaultValue: TPasMemberHints): TPasMemberHints; virtual;
     procedure ReadPasElement(Obj: TJSONObject; El: TPasElement; aContext: TPJUReaderContext); virtual;
+    procedure ReadExtRefs(Obj: TJSONObject; El: TPasElement); virtual;
     procedure ReadUsedUnits(Obj: TJSONObject; Section: TPasSection; aContext: TPJUReaderContext); virtual;
     procedure ReadSectionScope(Obj: TJSONObject; Scope: TPasSectionScope; aContext: TPJUReaderContext); virtual;
     procedure ReadSection(Obj: TJSONObject; Section: TPasSection; aContext: TPJUReaderContext); virtual;
@@ -1216,7 +1219,7 @@ procedure TPJUFilerElementRef.Clear;
 var
   Ref, NextRef: TPJUFilerPendingElRef;
 begin
-  FreeAndNil(Elements);
+  Elements:=nil;
   Ref:=Pending;
   while Ref<>nil do
     begin
@@ -1225,6 +1228,7 @@ begin
     Ref.Free;
     Ref:=NextRef;
     end;
+  Pending:=nil;
 end;
 
 destructor TPJUFilerElementRef.Destroy;
@@ -1955,7 +1959,7 @@ procedure TPJUWriter.WriteSection(ParentJSON: TJSONObject;
 var
   Obj, SubObj: TJSONObject;
   Scope, UsesScope: TPasSectionScope;
-  i: Integer;
+  i, j: Integer;
   Arr: TJSONArray;
   UsesUnit: TPasUsesUnit;
   Name, InFilename: String;
@@ -1976,16 +1980,28 @@ begin
     begin
     UsesUnit:=Section.UsesClause[i];
     UsesScope:=TPasSectionScope(Scope.UsesScopes[i]);
-    if UsesScope.Element<>UsesUnit.Module then
+    if UsesScope.Element<>TPasModule(UsesUnit.Module).InterfaceSection then
       RaiseMsg(20180206122459,Section,'usesscope '+IntToStr(i)+' UsesScope.Element='+GetObjName(UsesScope.Element)+' Module='+GetObjName(Section.UsesClause[i].Module));
     if Arr=nil then
       begin
       Arr:=TJSONArray.Create;
-      ParentJSON.Add('Uses',Arr);
+      Obj.Add('Uses',Arr);
       end;
     SubObj:=TJSONObject.Create;
     Arr.Add(SubObj);
-    Name:=DotExprToName(UsesUnit.Expr);
+    if UsesUnit.Expr<>nil then
+      Name:=DotExprToName(UsesUnit.Expr)
+    else
+      begin
+      // implicit unit, e.g. system
+      Name:=UsesUnit.Module.Name;
+      for j:=0 to Parser.ImplicitUses.Count-1 do
+        if CompareText(Parser.ImplicitUses[i],Name)=0 then
+          begin
+          Name:=Parser.ImplicitUses[i];
+          break;
+          end;
+      end;
     if Name='' then
       RaiseMsg(20180307091654,UsesUnit.Expr);
     SubObj.Add('Name',Name);
@@ -2008,7 +2024,7 @@ begin
       if Ref.Obj=nil then
         begin
         Ref.Obj:=TJSONObject.Create;
-        SubObj.Add('Refs',Ref.Obj);
+        SubObj.Add('Module',Ref.Obj);
         end;
       end;
     end;
@@ -2477,7 +2493,6 @@ var
   Arr: TJSONArray;
   i: Integer;
   PSRef: TPasScopeReference;
-  Ref: TPJUFilerElementRef;
   SubObj: TJSONObject;
 begin
   if References=nil then exit;
@@ -2490,9 +2505,6 @@ begin
       for i:=0 to Refs.Count-1 do
         begin
         PSRef:=TPasScopeReference(Refs[i]);
-        Ref:=GetElementReference(PSRef.Element);
-        if (Ref.Id=0) and not (Ref.Element is TPasUnresolvedSymbolRef) then
-          RaiseMsg(20180221170307,References.Scope.Element,GetObjName(Ref.Element));
         SubObj:=TJSONObject.Create;
         Arr.Add(SubObj);
         if PSRef.Access<>PJUDefaultPSRefAccess then
@@ -3030,6 +3042,21 @@ end;
 
 procedure TPJUWriter.WriteExternalReferences(ParentJSON: TJSONObject);
 
+  procedure WriteMemberIndex(Members: TFPList; Member: TPasElement; Obj: TJSONObject);
+  var
+    i, Index: Integer;
+  begin
+    for i:=0 to Members.Count-1 do
+      if TPasElement(Members[i])=Member then
+        begin
+        Index:=i;
+        break;
+        end;
+    if Index<0 then
+      RaiseMsg(20180309184111,Member);
+    Obj.Add('Index',Index);
+  end;
+
   function WriteExternalRef(El: TPasElement): TPJUFilerElementRef;
   var
     ParentRef, Ref: TPJUFilerElementRef;
@@ -3038,12 +3065,6 @@ procedure TPJUWriter.WriteExternalReferences(ParentJSON: TJSONObject);
   begin
     Result:=nil;
     if El=nil then exit;
-    if El.ClassType=TInterfaceSection then
-      begin
-      // skip to module
-      Result:=WriteExternalRef(El.GetModule);
-      exit;
-      end;
     // check if already written
     Ref:=GetElementReference(El);
     if Ref.Obj<>nil then
@@ -3053,15 +3074,37 @@ procedure TPJUWriter.WriteExternalReferences(ParentJSON: TJSONObject);
     ParentRef:=WriteExternalRef(Parent);
     if ParentRef=nil then
       if not (El is TPasModule) then
-        RaiseMsg(20180308174440,GetObjName(El));
+        RaiseMsg(20180308174440,El,GetObjName(El));
     // check name
     Name:=El.Name;
     if Name='' then
-      RaiseMsg(20180308174850,GetObjName(El));
+      if El is TInterfaceSection then
+        Name:='Interface'
+      else
+        RaiseMsg(20180308174850,El,GetObjName(El));
     // write
     Ref.Obj:=TJSONObject.Create;
+    Ref.Obj.Add('Name',Name);
     if ParentRef<>nil then
       begin
+      // add member index
+      if Parent is TPasDeclarations then
+        WriteMemberIndex(TPasDeclarations(Parent).Declarations,El,Ref.Obj)
+      else if Parent is TPasClassType then
+        WriteMemberIndex(TPasClassType(Parent).Members,El,Ref.Obj)
+      else if Parent is TPasRecordType then
+        WriteMemberIndex(TPasRecordType(Parent).Members,El,Ref.Obj)
+      else if Parent is TPasEnumType then
+        WriteMemberIndex(TPasEnumType(Parent).Values,El,Ref.Obj)
+      else if Parent is TPasModule then
+        begin
+        if El is TInterfaceSection then
+        else
+          RaiseMsg(20180310104857,Parent,GetObjName(El));
+        end
+      else
+        RaiseMsg(20180310104810,Parent,GetObjName(El));
+      // add to parent
       if ParentRef.Elements=nil then
         begin
         ParentRef.Elements:=TJSONArray.Create;
@@ -3069,7 +3112,7 @@ procedure TPJUWriter.WriteExternalReferences(ParentJSON: TJSONObject);
         end;
       ParentRef.Elements.Add(Ref.Obj);
       end;
-    Ref.Obj.Add('Name',Name);
+    Result:=Ref;
   end;
 
 var
@@ -3092,13 +3135,13 @@ begin
     Data:=El.CustomData;
     if Data is TResElDataBuiltInSymbol then
       begin
-      // add built-in symbol to System array
+      // add built-in symbol to BuildIn array
       if El<>Resolver.FindLocalBuiltInSymbol(El) then
         RaiseMsg(20180207124914,El);
       if SystemArr=nil then
         begin
         SystemArr:=TJSONArray.Create;
-        ParentJSON.Add('System',SystemArr);
+        ParentJSON.Add(BuiltInNodeName,SystemArr);
         end;
       Obj:=TJSONObject.Create;
       SystemArr.Add(Obj);
@@ -3116,9 +3159,8 @@ begin
       if Ref.Element.GetModule=Resolver.RootElement then
         RaiseMsg(20180207115645,Ref.Element); // an element of this module was not written
       // external element
-      if Ref.Obj<>nil then
-        continue; // already written
-      Ref:=WriteExternalRef(El);
+      if Ref.Obj=nil then
+        WriteExternalRef(El);
       // Ref.Id is written in ResolvePendingElRefs
       ResolvePendingElRefs(Ref);
       end;
@@ -4307,19 +4349,97 @@ begin
   if aContext<>nil then ;
 end;
 
+procedure TPJUReader.ReadExtRefs(Obj: TJSONObject; El: TPasElement);
+
+  procedure ReadMembers(Arr: TJSONArray; Members: TFPList);
+  var
+    i, Index: Integer;
+    Data: TJSONData;
+    SubObj: TJSONObject;
+    Name: string;
+    ChildEl: TPasElement;
+  begin
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      if not (Data is TJSONObject) then
+        RaiseMsg(20180309173351,El);
+      SubObj:=TJSONObject(Data);
+      // search element
+      if not ReadString(SubObj,'Name',Name,El) then
+        RaiseMsg(20180309180233,El,IntToStr(i));
+      if not ReadInteger(SubObj,'Index',Index,El) then
+        RaiseMsg(20180309184629,El,IntToStr(i));
+      if (Index<0) or (Index>=Members.Count) then
+        RaiseMsg(20180309184718,El,IntToStr(Index)+' out of bounds 0-'+IntToStr(Members.Count));
+      ChildEl:=TPasElement(Members[Index]);
+      if ChildEl.Name<>Name then
+        RaiseMsg(20180309200800,El,'Expected="'+Name+'", but found "'+ChildEl.Name+'"');
+      // read child declarations
+      ReadExtRefs(SubObj,ChildEl);
+      end;
+  end;
+
+var
+  Arr: TJSONArray;
+  Id: Integer;
+  Data: TJSONData;
+  SubObj: TJSONObject;
+  Intf: TInterfaceSection;
+  Name: string;
+begin
+  {$IFDEF VerbosePJUFiler}
+  writeln('TPJUReader.ReadExtRefs ',GetObjName(El));
+  {$ENDIF}
+  if ReadInteger(Obj,'Id',Id,El) then
+    AddElReference(Id,El,El);
+  if ReadArray(Obj,'El',Arr,El) then
+    begin
+    if El is TPasDeclarations then
+      ReadMembers(Arr,TPasDeclarations(El).Declarations)
+    else if El is TPasClassType then
+      ReadMembers(Arr,TPasClassType(El).Members)
+    else if El is TPasRecordType then
+      ReadMembers(Arr,TPasRecordType(El).Members)
+    else if El is TPasEnumType then
+      ReadMembers(Arr,TPasEnumType(El).Values)
+    else if El is TPasModule then
+      begin
+      // a Module has only the Interface as child
+      if Arr.Count<>1 then
+        RaiseMsg(20180309180715,El,IntToStr(Arr.Count));
+      Data:=Arr[0];
+      if not (Data is TJSONObject) then
+        RaiseMsg(20180309180745,El);
+      SubObj:=TJSONObject(Data);
+      if not ReadString(SubObj,'Name',Name,El) then
+        RaiseMsg(20180309180749,El);
+      if Name<>'Interface' then
+        RaiseMsg(20180309180806,El);
+      Intf:=TPasModule(El).InterfaceSection;
+      if Intf=nil then
+        RaiseMsg(20180309180856,El);
+      ReadExtRefs(SubObj,Intf);
+      end
+    else
+      RaiseMsg(20180309180610,El);
+    end;
+end;
+
 procedure TPJUReader.ReadUsedUnits(Obj: TJSONObject; Section: TPasSection;
   aContext: TPJUReaderContext);
 var
   Arr: TJSONArray;
-  i, p: Integer;
+  i, Id: Integer;
   Data: TJSONData;
-  SubObj: TJSONObject;
-  Name, CurName, InFilename, ModuleName: string;
+  UsesObj, ModuleObj: TJSONObject;
+  Name, InFilename, ModuleName: string;
   Use: TPasUsesUnit;
-  Prim: TPrimitiveExpr;
   Module: TPasModule;
+  Scope, UsedScope: TPasSectionScope;
 begin
   if not ReadArray(Obj,'Uses',Arr,Section) then exit;
+  Scope:=Section.CustomData as TPasSectionScope;
   SetLength(Section.UsesClause,Arr.Count);
   for i:=0 to length(Section.UsesClause)-1 do
     Section.UsesClause[i]:=nil;
@@ -4328,42 +4448,34 @@ begin
     Data:=Arr[i];
     if not (Data is TJSONObject) then
       RaiseMsg(20180307103518,Section,GetObjName(Data));
-    SubObj:=TJSONObject(Data);
-    if not ReadString(SubObj,'Name',Name,Section) then
+    UsesObj:=TJSONObject(Data);
+    if not ReadString(UsesObj,'Name',Name,Section) then
       RaiseMsg(20180307103629,Section);
     if not IsValidIdent(Name,true,true) then
       RaiseMsg(20180307103937,Section,Name);
-    ReadString(SubObj,'In',InFilename,Section);
-    ReadString(SubObj,'UnitName',ModuleName,Section);
+    ReadString(UsesObj,'In',InFilename,Section);
+    ReadString(UsesObj,'UnitName',ModuleName,Section);
+    {$IFDEF VerbosePJUFiler}
+    writeln('TPJUReader.ReadUsedUnits ',i,' Name="',Name,'" In="',InFilename,'" ModuleName="',ModuleName,'"');
+    {$ENDIF}
     Use:=TPasUsesUnit.Create(Name,Section);
     Section.UsesClause[i]:=Use;
-    while Name<>'' do
-      begin
-      p:=Pos('.',Name);
-      if p>0 then
-        begin
-        CurName:=LeftStr(Name,p-1);
-        Delete(Name,1,p)
-        end
-      else
-        begin
-        CurName:=Name;
-        Name:='';
-        end;
-      Prim:=TPrimitiveExpr.Create(Use,pekString,CurName);
-      if Use.Expr=nil then
-        Use.Expr:=Prim
-      else
-        Use.Expr:=TBinaryExpr.Create(Use,Use.Expr,Prim,eopSubIdent);
-      end;
+    // Use.Expr is not needed
     if InFilename<>'' then
       Use.InFilename:=TPrimitiveExpr.Create(Use,pekString,InFilename);
     if ModuleName='' then ModuleName:=Name;
     Module:=Resolver.FindModule(Name,Use.Expr,Use.InFilename);
     if Module=nil then
       RaiseMsg(20180307231247,Use);
+    Use.Module:=Module;
+    UsedScope:=Module.InterfaceSection.CustomData as TPasSectionScope;
+    Scope.UsesScopes.Add(UsedScope);
 
+    if ReadInteger(UsesObj,'Id',Id,Use) then
+      AddElReference(Id,Use,Use);
     // Refs
+    if ReadObject(UsesObj,'Module',ModuleObj,Use) then
+      ReadExtRefs(ModuleObj,Module);
     end;
   Resolver.CheckPendingUsedInterface(Section);
   if aContext=nil then ;
@@ -6210,7 +6322,7 @@ var
   bp: TResolverBuiltInProc;
   pbt: TPas2jsBaseType;
 begin
-  if not ReadArray(Obj,'System',Arr,ErrorEl) then exit;
+  if not ReadArray(Obj,BuiltInNodeName,Arr,ErrorEl) then exit;
   for i:=0 to Arr.Count-1 do
     begin
     Data:=Arr[i];
