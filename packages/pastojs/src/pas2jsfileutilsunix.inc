@@ -23,14 +23,13 @@ end;
 function ExpandFileNameUTF8(const FileName: string; BaseDir: string): string;
 var
   IsAbs: Boolean;
-  CurDir, HomeDir, Fn: String;
+  HomeDir, Fn: String;
 begin
   Fn := FileName;
   ForcePathDelims(Fn);
   IsAbs := FileNameIsUnixAbsolute(Fn);
   if (not IsAbs) then
   begin
-    CurDir := GetCurrentDirUtf8;
     if ((Length(Fn) > 1) and (Fn[1] = '~') and (Fn[2] = '/')) or (Fn = '~') then
     begin
       HomeDir := GetEnvironmentVariableUTF8('HOME');
@@ -47,7 +46,7 @@ begin
   else
   begin
     if (BaseDir = '') then
-      Fn := IncludeTrailingPathDelimiter(CurDir) + Fn
+      Fn := IncludeTrailingPathDelimiter(GetCurrentDirUtf8) + Fn
     else
       Fn := IncludeTrailingPathDelimiter(BaseDir) + Fn;
     Fn := ResolveDots(Fn);

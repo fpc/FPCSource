@@ -324,6 +324,7 @@ type
                          FullPaths: boolean = true);
     procedure RaiseDuplicateFile(aFilename: string);
     procedure SaveToFile(ms: TMemoryStream; Filename: string);
+    function ExpandDirectory(const Filename, BaseDir: string): string;
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
@@ -1500,7 +1501,7 @@ end;
 
 procedure TPas2jsFilesCache.SetBaseDirectory(AValue: string);
 begin
-  AValue:=ExpandDirectory(AValue);
+  AValue:=Pas2jsFileUtils.ExpandDirectory(AValue);
   if FBaseDirectory=AValue then Exit;
   FBaseDirectory:=AValue;
   DirectoryCache.WorkingDirectory:=BaseDirectory;
@@ -1594,8 +1595,10 @@ begin
       aPath:=GetNextDelimitedItem(Paths,';',p);
       if aPath='' then continue;
       if Kind=spkPath then
-        aPath:=ExpandDirectory(aPath);
-      if (aPath='') then continue;
+      begin
+        aPath:=ExpandDirectory(aPath,BaseDirectory);
+        if aPath='' then continue;
+      end;
       aPaths.Clear;
       FindMatchingFiles(aPath,1000,aPaths);
       if aPaths.Count=0 then
@@ -1642,14 +1645,14 @@ procedure TPas2jsFilesCache.SetSrcMapBaseDir(const AValue: string);
 var
   NewValue: String;
 begin
-  NewValue:=ExpandDirectory(AValue);
+  NewValue:=ExpandDirectory(AValue,BaseDirectory);
   if FSrcMapBaseDir=NewValue then Exit;
   FSrcMapBaseDir:=NewValue;
 end;
 
 procedure TPas2jsFilesCache.SetUnitOutputPath(AValue: string);
 begin
-  AValue:=ExpandDirectory(AValue);
+  AValue:=ExpandDirectory(AValue,BaseDirectory);
   if FUnitOutputPath=AValue then Exit;
   FUnitOutputPath:=AValue;
 end;
@@ -1898,7 +1901,7 @@ begin
   if ExtractFilename(Result)='' then
     if RaiseOnError then
       raise EFileNotFoundError.Create('invalid file name "'+Filename+'"');
-  Result:=ExpandFileNameUTF8(Result);
+  Result:=ExpandFileNameUTF8(Result,BaseDirectory);
   if (ExtractFilename(Result)='') or not FilenameIsAbsolute(Result) then
     if RaiseOnError then
       raise EFileNotFoundError.Create('invalid file name "'+Filename+'"');
@@ -2008,6 +2011,18 @@ begin
   begin
     ms.SaveToFile(Filename);
   end;
+end;
+
+function TPas2jsFilesCache.ExpandDirectory(const Filename, BaseDir: string
+  ): string;
+begin
+  if Filename='' then exit('');
+  if BaseDir<>'' then
+    Result:=ExpandFileNameUTF8(Filename,BaseDir)
+  else
+    Result:=ExpandFileNameUTF8(Filename,BaseDirectory);
+  if Result='' then exit;
+  Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
 end.
