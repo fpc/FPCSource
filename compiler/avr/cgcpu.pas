@@ -526,26 +526,20 @@ unit cgcpu;
            OP_ADD:
              begin
                list.concat(taicpu.op_reg_reg(A_ADD,dst,src));
-               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+               for i:=2 to tcgsize2size[size] do
                  begin
-                   for i:=2 to tcgsize2size[size] do
-                     begin
-                       NextSrcDstPreInc;
-                       list.concat(taicpu.op_reg_reg(A_ADC,dst,src));
-                     end;
+                   NextSrcDstPreInc;
+                   list.concat(taicpu.op_reg_reg(A_ADC,dst,src));
                  end;
              end;
 
            OP_SUB:
              begin
                list.concat(taicpu.op_reg_reg(A_SUB,dst,src));
-               if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+               for i:=2 to tcgsize2size[size] do
                  begin
-                   for i:=2 to tcgsize2size[size] do
-                     begin
-                       NextSrcDstPreInc;
-                       list.concat(taicpu.op_reg_reg(A_SBC,dst,src));
-                     end;
+                   NextSrcDstPreInc;
+                   list.concat(taicpu.op_reg_reg(A_SBC,dst,src));
                  end;
              end;
 
