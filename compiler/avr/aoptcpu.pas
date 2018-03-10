@@ -251,7 +251,7 @@ Implementation
                   (taicpu(hp1).oper[0]^.reg = NR_R1) and
                   (taicpu(p).opcode in [A_ADC,A_ADD,A_AND,A_ANDI,A_ASR,A_COM,A_EOR,
                                         A_LSL,A_LSR,
-                                        A_OR,A_ORI,A_ROL,A_ROR])))) or
+                                        A_OR,A_ORI,A_ROL,A_ROR,A_SUB,A_SBI])))) or
                (MatchInstruction(hp1, A_CPI) and
                 (taicpu(p).opcode = A_ANDI) and
                 (taicpu(p).oper[1]^.typ=top_const) and
@@ -266,7 +266,9 @@ Implementation
                 EQ = Z=1; NE = Z=0;
                 MI = N=1; PL = N=0; }
               MatchInstruction(hp2, A_BRxx) and
-              (taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL]) { and
+              ((taicpu(hp2).condition in [C_EQ,C_NE,C_MI,C_PL]) or
+              { sub/sbc set all flags }
+               (taicpu(p).opcode in [A_SUB,A_SBI])){ and
               no flag allocation tracking implemented yet on avr
               assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp2.Next)))} then
               begin
@@ -282,7 +284,9 @@ Implementation
                 }
 
                 // If we compare to the same value we are masking then invert the comparison
-                if (taicpu(hp1).opcode=A_CPI) then
+                if (taicpu(hp1).opcode=A_CPI) or
+                  { sub/sbc with reverted? }
+                  ((taicpu(hp1).oper[0]^.reg = NR_R1) and (taicpu(p).opcode in [A_SUB,A_SBI])) then
                   taicpu(hp2).condition:=inverse_cond(taicpu(hp2).condition);
 
                 asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
