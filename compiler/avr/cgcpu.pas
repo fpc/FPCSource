@@ -1178,9 +1178,10 @@ unit cgcpu;
          conv_done: boolean;
          tmpreg : tregister;
          i : integer;
-         QuickRef : Boolean;
+         QuickRef,ungetcpuregister_z: Boolean;
        begin
          QuickRef:=false;
+         ungetcpuregister_z:=false;
 
          href:=Ref;
          { ensure, href.base contains a valid register if there is any register used }
@@ -1197,16 +1198,22 @@ unit cgcpu;
                     (href.symbol=nil) and
                      (href.Index=NR_NO) and
                      (href.Offset in [0..64-tcgsize2size[fromsize]])) then
-               href:=normalize_ref(list,href,NR_R30)
+               begin
+                 href:=normalize_ref(list,href,NR_R30);
+                 getcpuregister(list,NR_R30);
+                 getcpuregister(list,NR_R31);
+                 ungetcpuregister_z:=true;
+               end
              else
                begin
                  if (href.base<>NR_R28) and (href.base<>NR_R30) then
                    begin
-                     maybegetcpuregister(list,NR_R30);
+                     getcpuregister(list,NR_R30);
                      emit_mov(list,NR_R30,href.base);
-                     maybegetcpuregister(list,NR_R31);
+                     getcpuregister(list,NR_R31);
                      emit_mov(list,NR_R31,GetNextReg(href.base));
                      href.base:=NR_R30;
+                     ungetcpuregister_z:=true;
                    end;
                  QuickRef:=true;
                end;
@@ -1356,7 +1363,7 @@ unit cgcpu;
                end;
            end;
 
-         if not(QuickRef) then
+         if not(QuickRef) or ungetcpuregister_z then
            begin
              ungetcpuregister(list,href.base);
              ungetcpuregister(list,GetNextReg(href.base));
@@ -1371,9 +1378,10 @@ unit cgcpu;
          conv_done: boolean;
          tmpreg : tregister;
          i : integer;
-         QuickRef : boolean;
+         QuickRef,ungetcpuregister_z: boolean;
        begin
          QuickRef:=false;
+         ungetcpuregister_z:=false;
 
          href:=Ref;
          { ensure, href.base contains a valid register if there is any register used }
@@ -1390,16 +1398,22 @@ unit cgcpu;
                     (href.symbol=nil) and
                      (href.Index=NR_NO) and
                      (href.Offset in [0..64-tcgsize2size[fromsize]])) then
-               href:=normalize_ref(list,href,NR_R30)
+               begin
+                 href:=normalize_ref(list,href,NR_R30);
+                 getcpuregister(list,NR_R30);
+                 getcpuregister(list,NR_R31);
+                 ungetcpuregister_z:=true;
+               end
              else
                begin
                  if (href.base<>NR_R28) and (href.base<>NR_R30) then
                    begin
-                     maybegetcpuregister(list,NR_R30);
+                     getcpuregister(list,NR_R30);
                      emit_mov(list,NR_R30,href.base);
-                     maybegetcpuregister(list,NR_R31);
+                     getcpuregister(list,NR_R31);
                      emit_mov(list,NR_R31,GetNextReg(href.base));
                      href.base:=NR_R30;
+                     ungetcpuregister_z:=true;
                    end;
                  QuickRef:=true;
                end;
@@ -1512,7 +1526,7 @@ unit cgcpu;
                end;
            end;
 
-         if not(QuickRef) then
+         if ungetcpuregister_z then
            begin
              ungetcpuregister(list,href.base);
              ungetcpuregister(list,GetNextReg(href.base));
@@ -1908,14 +1922,18 @@ unit cgcpu;
                 list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
 
             { Save SREG }
+            cg.getcpuregister(list,NR_R0);
             list.concat(taicpu.op_reg_const(A_IN, NR_R0, $3F));
             list.concat(taicpu.op_reg(A_PUSH, NR_R0));
+            cg.ungetcpuregister(list,NR_R0);
 
             list.concat(taicpu.op_reg(A_CLR,NR_R1));
 
             if current_procinfo.framepointer<>NR_NO then
               begin
+                cg.getcpuregister(list,NR_R28);
                 list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
+                cg.getcpuregister(list,NR_R29);
                 list.concat(taicpu.op_reg_const(A_IN,NR_R29,NIO_SP_HI));
                 a_adjust_sp(list,-localsize);
               end;
@@ -1948,7 +1966,9 @@ unit cgcpu;
 
             if current_procinfo.framepointer<>NR_NO then
               begin
+                cg.getcpuregister(list,NR_R28);
                 list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
+                cg.getcpuregister(list,NR_R29);
                 list.concat(taicpu.op_reg_const(A_IN,NR_R29,NIO_SP_HI));
                 a_adjust_sp(list,-localsize);
               end;
@@ -1985,8 +2005,10 @@ unit cgcpu;
                 { Reload SREG }
                 regs:=regs+[RS_R0];
 
+                cg.getcpuregister(list,NR_R0);
                 list.concat(taicpu.op_reg(A_POP, NR_R0));
                 list.concat(taicpu.op_const_reg(A_OUT, $3F, NR_R0));
+                cg.ungetcpuregister(list,NR_R0);
 
                 for reg:=RS_R0 to RS_R31 do
                   if reg in regs then
@@ -2129,6 +2151,8 @@ unit cgcpu;
               internalerror(2011022007);
             countreg:=getintregister(list,countregsize);
             a_load_const_reg(list,countregsize,len,countreg);
+            cg.getcpuregister(list,NR_R30);
+            cg.getcpuregister(list,NR_R31);
             a_loadaddr_ref_reg(list,source,NR_R30);
 
             { only base or index register in dest? }
@@ -2154,13 +2178,21 @@ unit cgcpu;
             }
             list.concat(taicpu.op_reg(A_PUSH,tmpreg));
             list.concat(taicpu.op_reg(A_PUSH,GetNextReg(tmpreg)));
+            cg.getcpuregister(list,NR_R27);
             list.concat(taicpu.op_reg(A_POP,NR_R27));
+            cg.getcpuregister(list,NR_R26);
             list.concat(taicpu.op_reg(A_POP,NR_R26));
             cg.a_label(list,l);
+            cg.getcpuregister(list,NR_R0);
             list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
             list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
+            cg.ungetcpuregister(list,NR_R0);
             list.concat(taicpu.op_reg(A_DEC,countreg));
             a_jmp_flags(list,F_NE,l);
+            cg.ungetcpuregister(list,NR_R26);
+            cg.ungetcpuregister(list,NR_R27);
+            cg.ungetcpuregister(list,NR_R30);
+            cg.ungetcpuregister(list,NR_R31);
             // keep registers alive
             list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
           end
@@ -2175,7 +2207,11 @@ unit cgcpu;
                     (source.Index=NR_NO) and
                     (source.Offset in [0..64-len])) and
               not((source.Base=NR_NO) and (source.Index=NR_NO)) then
-              srcref:=normalize_ref(list,source,NR_R30)
+              begin
+                cg.getcpuregister(list,NR_R30);
+                cg.getcpuregister(list,NR_R31);
+                srcref:=normalize_ref(list,source,NR_R30)
+              end
             else
               begin
                 SrcQuickRef:=true;
@@ -2214,12 +2250,18 @@ unit cgcpu;
                     }
                     list.concat(taicpu.op_reg(A_PUSH,tmpreg));
                     list.concat(taicpu.op_reg(A_PUSH,GetNextReg(tmpreg)));
+                    cg.getcpuregister(list,NR_R27);
                     list.concat(taicpu.op_reg(A_POP,NR_R27));
+                    cg.getcpuregister(list,NR_R26);
                     list.concat(taicpu.op_reg(A_POP,NR_R26));
                     dstref.base:=NR_R26;
                   end
                 else
-                  dstref:=normalize_ref(list,dest,NR_R30);
+                  begin
+                    cg.getcpuregister(list,NR_R30);
+                    cg.getcpuregister(list,NR_R31);
+                    dstref:=normalize_ref(list,dest,NR_R30);
+                  end;
               end
             else
               begin
@@ -2239,8 +2281,10 @@ unit cgcpu;
                 else
                   dstref.addressmode:=AM_UNCHANGED;
 
+                cg.getcpuregister(list,NR_R0);
                 list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
                 list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
+                cg.ungetcpuregister(list,NR_R0);
 
                 if SrcQuickRef then
                   inc(srcref.offset);
@@ -2251,6 +2295,11 @@ unit cgcpu;
               begin
                 ungetcpuregister(list,srcref.base);
                 ungetcpuregister(list,TRegister(ord(srcref.base)+1));
+              end;
+            if not(DestQuickRef) then
+              begin
+                ungetcpuregister(list,dstref.base);
+                ungetcpuregister(list,TRegister(ord(dstref.base)+1));
               end;
           end;
       end;
