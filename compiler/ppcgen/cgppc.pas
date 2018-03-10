@@ -153,11 +153,29 @@ unit cgppc;
 
      function cgsize2string(const size : TCgSize) : string;
        const
-         cgsize_strings : array[TCgSize] of string[8] = (
-           'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
-           'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
-           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_MS8', 'OS_MS16', 'OS_MS32',
-           'OS_MS64', 'OS_MS128', 'OS_MS256');
+       (* TCgSize = (OS_NO,
+                  OS_8,   OS_16,   OS_32,   OS_64,   OS_128,
+                  OS_S8,  OS_S16,  OS_S32,  OS_S64,  OS_S128,
+                 { single, double, extended, comp, float128 }
+                  OS_F32, OS_F64,  OS_F80,  OS_C64,  OS_F128,
+                 { multi-media sizes: split in byte, word, dword, ... }
+                 { entities, then the signed counterparts             }
+                  OS_M8,  OS_M16,  OS_M32,  OS_M64,  OS_M128,  OS_M256,  OS_M512,
+                  OS_MS8, OS_MS16, OS_MS32, OS_MS64, OS_MS128, OS_MS256, OS_MS512,
+                 { multi-media sizes: single-precision floating-point }
+                  OS_MF32, OS_MF128, OS_MF256, OS_MF512,
+                 { multi-media sizes: double-precision floating-point }
+                  OS_MD64, OS_MD128, OS_MD256, OS_MD512); *)
+
+          cgsize_strings : array[TCgSize] of string[8] = (
+           'OS_NO',
+           'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128',
+           'OS_S8', 'OS_S16', 'OS_S32', 'OS_S64', 'OS_S128',
+           'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
+           'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_M256', 'OS_M512',
+           'OS_MS8', 'OS_MS16', 'OS_MS32', 'OS_MS64', 'OS_MS128', 'OS_MS256', 'OS_MS512',
+           'OS_MF32', 'OS_MF128', 'OS_MF256', 'OS_MF512',
+           'OS_MD64', 'OS_MD128', 'OS_MD256', 'OS_MD512');
        begin
          result := cgsize_strings[size];
        end;
