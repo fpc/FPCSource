@@ -6896,6 +6896,7 @@ packages/pastojs/tests/tcconverter.pp svneol=native#text/plain
 packages/pastojs/tests/tcfiler.pas svneol=native#text/plain
 packages/pastojs/tests/tcmodules.pas svneol=native#text/plain
 packages/pastojs/tests/tcoptimizations.pas svneol=native#text/plain
+packages/pastojs/tests/tcprecompile.pas svneol=native#text/plain
 packages/pastojs/tests/tcsrcmap.pas svneol=native#text/plain
 packages/pastojs/tests/tcunitsearch.pas svneol=native#text/plain
 packages/pastojs/tests/testpas2js.lpi svneol=native#text/plain
