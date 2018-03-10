@@ -326,6 +326,9 @@ Unit AoptObj;
           reloaded with a new value or it is deallocated afterwards }
         function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
 
+        { removes p from asml, updates registers and replaces it by a valid value, if this is the case true is returned }
+        function RemoveCurrentP(var p : taicpu): boolean;
+
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
          <code>               <code>
@@ -1286,6 +1289,20 @@ Unit AoptObj;
       end;
 
 
+    function TAOptObj.RemoveCurrentP(var p : taicpu) : boolean;
+      var
+        hp1 : tai;
+      begin
+        result:=GetNextInstruction(p,hp1);
+        { p will be removed, update used register as we continue
+          with the next instruction after p }
+        UpdateUsedRegs(tai(p.Next));
+        AsmL.Remove(p);
+        p.Free;
+        p:=taicpu(hp1);
+      end;
+
+
     function FindAnyLabel(hp: tai; var l: tasmlabel): Boolean;
       begin
         FindAnyLabel := false;
@@ -1477,8 +1494,11 @@ Unit AoptObj;
             UpdateUsedRegs(tai(p.next));
             if PrePeepHoleOptsCpu(p) then
               continue;
-            UpdateUsedRegs(p);
-            p:=tai(p.next);
+            if assigned(p) then
+              begin
+                UpdateUsedRegs(p);
+                p:=tai(p.next);
+              end;
           end;
       end;
 
@@ -1633,8 +1653,11 @@ Unit AoptObj;
                       end; { if is_jmp }
                   end;
               end;
-              UpdateUsedRegs(p);
-              p:=tai(p.next);
+              if assigned(p) then
+                begin
+                  UpdateUsedRegs(p);
+                  p:=tai(p.next);
+                end;
             end;
         until stoploop or not(cs_opt_level3 in current_settings.optimizerswitches);
       end;
@@ -1651,8 +1674,11 @@ Unit AoptObj;
             UpdateUsedRegs(tai(p.next));
             if PeepHoleOptPass2Cpu(p) then
               continue;
-            UpdateUsedRegs(p);
-            p:=tai(p.next);
+            if assigned(p) then
+              begin
+                UpdateUsedRegs(p);
+                p:=tai(p.next);
+              end;
           end;
       end;
 
@@ -1668,8 +1694,11 @@ Unit AoptObj;
             UpdateUsedRegs(tai(p.next));
             if PostPeepHoleOptsCpu(p) then
               continue;
-            UpdateUsedRegs(p);
-            p:=tai(p.next);
+            if assigned(p) then
+              begin
+                UpdateUsedRegs(p);
+                p:=tai(p.next);
+              end;
           end;
       end;
 
