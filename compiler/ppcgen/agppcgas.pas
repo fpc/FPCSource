@@ -315,7 +315,11 @@ unit agppcgas;
                   end;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
+                      begin
+                        if byte(c.cr)=0 then
+                          Comment(V_error,'Wrong use of whole CR register for '+tempstr);
+                        cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
+                      end;
                     C_T,C_F,C_DNZT,C_DNZF,C_DZT,C_DZF:
                       cond2str := tempstr+tostr(c.crbit);
                     else
