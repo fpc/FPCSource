@@ -546,6 +546,38 @@ Implementation
                         result:=true;
                       end;
                   end;
+                A_ADD:
+                  begin
+                    if (taicpu(p).oper[1]^.reg=NR_R1) and
+                    GetNextInstruction(p, hp1) and
+                    MatchInstruction(hp1,A_ADC) then
+                    begin
+                      DebugMsg('Peephole AddAdc2Add performed', p);
+
+                      taicpu(hp1).opcode:=A_ADD;
+
+                      asml.Remove(p);
+                      p.Free;
+                      p:=hp1;
+                      result:=true;
+                    end;
+                  end;
+                A_SUB:
+                  begin
+                    if (taicpu(p).oper[1]^.reg=NR_R1) and
+                    GetNextInstruction(p, hp1) and
+                    MatchInstruction(hp1,A_SBC) then
+                    begin
+                      DebugMsg('Peephole SubSbc2Sub performed', p);
+
+                      taicpu(hp1).opcode:=A_SUB;
+
+                      asml.Remove(p);
+                      p.Free;
+                      p:=hp1;
+                      result:=true;
+                    end;
+                  end;
                 A_CLR:
                   begin
                     { turn the common
