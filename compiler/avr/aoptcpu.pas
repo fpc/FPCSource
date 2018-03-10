@@ -144,6 +144,10 @@ Implementation
       If (p1.typ = ait_instruction) and (taicpu(p1).opcode in [A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU]) and
               ((getsupreg(reg)=RS_R0) or (getsupreg(reg)=RS_R1)) then
         Result:=true
+      else if (p1.typ = ait_instruction) and (taicpu(p1).opcode=A_MOVW) and
+        ((TRegister(ord(taicpu(p1).oper[0]^.reg)+1)=reg) or (TRegister(ord(taicpu(p1).oper[1]^.reg)+1)=reg) or
+         (taicpu(p1).oper[0]^.reg=reg) or (taicpu(p1).oper[1]^.reg=reg)) then
+        Result:=true
       else
         Result:=inherited RegInInstruction(Reg, p1);
     end;
