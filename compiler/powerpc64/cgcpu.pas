@@ -1510,8 +1510,6 @@ var
 
 begin
 {$IFDEF extdebug}
-  if len > high(aint) then
-    internalerror(2002072704);
   list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
 {$ENDIF extdebug}
   { if the references are equal, exit, there is no need to copy anything }
