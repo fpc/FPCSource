@@ -2121,8 +2121,10 @@ begin
     begin
     Prim:=TPrimitiveExpr(Expr);
     case Prim.Kind of
-      pekIdent: Result:=Result+Prim.Value;
-      pekSelf: Result:=Result+'Self';
+      pekIdent,pekString: Result:=Prim.Value;
+      pekSelf: Result:='Self';
+    else
+      EPasResolve.Create('[20180309155400] DotExprToName '+GetObjName(Prim)+' '+ExprKindNames[Prim.Kind]);
     end;
     end
   else if C=TBinaryExpr then
