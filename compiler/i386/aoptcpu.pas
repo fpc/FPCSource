@@ -1054,6 +1054,9 @@ begin
               A_CALL:
                 if PostPeepHoleOptCall(p) then
                   Continue;
+              A_LEA:
+                if PostPeepholeOptLea(p) then
+                  Continue;
               A_CMP:
                 if PostPeepholeOptCmp(p) then
                   Continue;

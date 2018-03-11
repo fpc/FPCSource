@@ -161,6 +161,8 @@ uses
                   Result:=PostPeepholeOptXor(p);
                 A_CALL:
                   Result:=PostPeepholeOptCall(p);
+                A_LEA:
+                  Result:=PostPeepholeOptLea(p);
               end;
             end;
         end;

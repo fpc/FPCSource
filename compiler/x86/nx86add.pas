@@ -138,6 +138,7 @@ unit nx86add;
                       spilling, while 'test %reg,%reg' still requires loading into register.
                       If spilling is not necessary, it is changed back into 'test %reg,%reg' by
                       peephole optimizer (this optimization is currently available only for i386). }
+                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 {$ifdef i386}
                    emit_const_reg(A_TEST,TCGSize2Opsize[opsize],aint(-1),left.location.register)
 {$else i386}

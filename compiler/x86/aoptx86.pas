@@ -83,6 +83,7 @@ unit aoptx86;
         function PostPeepholeOptCmp(var p : tai) : Boolean;
         function PostPeepholeOptTestOr(var p : tai) : Boolean;
         function PostPeepholeOptCall(var p : tai) : Boolean;
+        function PostPeepholeOptLea(const p : tai) : Boolean;
 
         procedure OptReferences;
       end;
@@ -668,7 +669,10 @@ unit aoptx86;
                 R_SUBFLAGDIRECTION:
                   Result:=[Ch_W0DirFlag,Ch_W1DirFlag,Ch_WFlags]*Ch<>[];
                 else
+                  begin
+                  writeln(getsubreg(reg));
                   internalerror(2017050501);
+                  end;
               end;
               exit;
             end;
@@ -1948,36 +1952,6 @@ unit aoptx86;
               end;
             ReleaseUsedRegs(TmpUsedRegs);
           end;
-
-(*
-        This is unsafe, lea doesn't modify the flags but "add"
-        does. This breaks webtbs/tw15694.pp. The above
-        transformations are also unsafe, but they don't seem to
-        be triggered by code that FPC generators (or that at
-        least does not occur in the tests...). This needs to be
-        fixed by checking for the liveness of the flags register.
-
-        else if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) then
-          begin
-            hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.index,
-              taicpu(p).oper[0]^.ref^.base);
-            InsertLLItem(asml,p.previous,p.next, hp1);
-            DebugMsg(SPeepholeOptimization + 'Lea2AddBase done',hp1);
-            p.free;
-            p:=hp1;
-            continue;
-          end
-        else if MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) then
-          begin
-            hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.base,
-              taicpu(p).oper[0]^.ref^.index);
-            InsertLLItem(asml,p.previous,p.next,hp1);
-            DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',hp1);
-            p.free;
-            p:=hp1;
-            continue;
-          end
-*)
       end;
 
 
@@ -2985,6 +2959,33 @@ unit aoptx86;
             jump, but only if it's a conditional jump (PFV)
           }
           taicpu(p).opcode := A_TEST;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptLea(const p : tai) : Boolean;
+      begin
+        Result:=false;
+        if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
+          MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
+          (taicpu(p).oper[0]^.ref^.index<>NR_NO) then
+          begin
+            taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.base);
+            taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.index);
+            taicpu(p).opcode:=A_ADD;
+            DebugMsg(SPeepholeOptimization + 'Lea2AddBase done',p);
+            result:=true;
+          end
+
+        else if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
+          MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) and
+          (taicpu(p).oper[0]^.ref^.base<>NR_NO) then
+          begin
+            taicpu(p).loadreg(1,taicpu(p).oper[0]^.ref^.index);
+            taicpu(p).loadreg(0,taicpu(p).oper[0]^.ref^.base);
+            taicpu(p).opcode:=A_ADD;
+            DebugMsg(SPeepholeOptimization + 'Lea2AddIndex done',p);
+            result:=true;
+          end;
       end;
 
 
