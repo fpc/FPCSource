@@ -312,6 +312,7 @@ unit cgobj;
           procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
           procedure a_op_reg_loc(list : TAsmList; Op: TOpCG; reg: tregister; const loc: tlocation);
+          procedure a_op_loc_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const loc: tlocation; reg: tregister);
           procedure a_op_ref_loc(list : TAsmList; Op: TOpCG; const ref: TReference; const loc: tlocation);
 
           { trinary operations for processors that support them, 'emulated' }
@@ -1992,6 +1993,22 @@ implementation
             a_op_reg_ref(list,op,loc.size,reg,loc.reference);
           else
             internalerror(200109061);
+        end;
+      end;
+
+
+    procedure tcg.a_op_loc_reg(list : TAsmList; Op : TOpCG; size: TCGSize; const loc : tlocation; reg : tregister);
+
+      begin
+        case loc.loc of
+          LOC_REGISTER, LOC_CREGISTER:
+            a_op_reg_reg(list,op,size,loc.register,reg);
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_op_ref_reg(list,op,size,loc.reference,reg);
+          LOC_CONSTANT:
+            a_op_const_reg(list,op,size,loc.value,reg);
+          else
+            internalerror(2018031101);
         end;
       end;
 
