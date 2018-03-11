@@ -112,6 +112,8 @@ uses
                 result:=OptPass1LEA(p);
               A_SUB:
                 result:=OptPass1Sub(p);
+              A_SHL,A_SAL:
+                result:=OptPass1SHLSAL(p);
             end;
           end;
         end;

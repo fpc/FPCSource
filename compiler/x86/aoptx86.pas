@@ -2082,7 +2082,7 @@ unit aoptx86;
       begin
         Result:=false;
         if MatchOpType(taicpu(p),top_const,top_reg) and
-           (taicpu(p).opsize = S_L) and
+           (taicpu(p).opsize in [S_L{$ifdef x86_64},S_Q{$endif x86_64}]) and
            (taicpu(p).oper[0]^.val <= 3) then
           { Changes "shl const, %reg32; add const/reg, %reg32" to one lea statement }
           begin
@@ -2143,10 +2143,14 @@ unit aoptx86;
                       hp1.free;
                     end;
               end;
-            if TmpBool2 or
+            if TmpBool2
+{$ifndef x86_64}
+               or
                ((current_settings.optimizecputype < cpu_Pentium2) and
                (taicpu(p).oper[0]^.val <= 3) and
-               not(cs_opt_size in current_settings.optimizerswitches)) then
+               not(cs_opt_size in current_settings.optimizerswitches))
+{$endif x86_64}
+              then
               begin
                 if not(TmpBool2) and
                     (taicpu(p).oper[0]^.val = 1) then
@@ -2155,13 +2159,14 @@ unit aoptx86;
                       taicpu(p).oper[1]^.reg, taicpu(p).oper[1]^.reg)
                   end
                 else
-                  hp1 := taicpu.op_ref_reg(A_LEA, S_L, TmpRef,
+                  hp1 := taicpu.op_ref_reg(A_LEA, taicpu(p).opsize, TmpRef,
                               taicpu(p).oper[1]^.reg);
                 InsertLLItem(p.previous, p.next, hp1);
                 p.free;
                 p := hp1;
               end;
           end
+{$ifndef x86_64}
         else if (current_settings.optimizecputype < cpu_Pentium2) and
           MatchOpType(taicpu(p),top_const,top_reg) then
           begin
@@ -2189,7 +2194,9 @@ unit aoptx86;
                p.free;
                p := hp1;
              end;
-          end;
+          end
+{$endif x86_64}
+          ;
       end;
 
 
