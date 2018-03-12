@@ -2113,6 +2113,7 @@ begin
     RaiseInconsistency(20170315153252,'');
   ScopeModule:=nil;
   UseModule(aStartModule,paumAllExports);
+  MarkElementAsUsed(aStartModule); // always mark the start
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.AnalyzeWholeProgram END ',GetElModName(aStartModule));
   {$ENDIF}
