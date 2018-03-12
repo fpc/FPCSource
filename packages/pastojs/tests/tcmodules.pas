@@ -350,6 +350,7 @@ type
     Procedure TestExternalClass_TypeCastArrayFromExternalArray;
 
     // record
+    Procedure TestRecord_Empty;
     Procedure TestRecord_Var;
     Procedure TestWithRecordDo;
     Procedure TestRecord_Assign;
@@ -6968,6 +6969,31 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestRecord_Empty;
+begin
+  StartProgram(false);
+  Add(['type',
+  '  TRecA = record',
+  '  end;',
+  'var a,b: TRecA;',
+  'begin',
+  '  if a=b then ;']);
+  ConvertProgram;
+  CheckSource('TestRecord_Empty',
+    LinesToStr([ // statements
+    'this.TRecA = function (s) {',
+    '  this.$equal = function (b) {',
+    '    return true;',
+    '  };',
+    '};',
+    'this.a = new $mod.TRecA();',
+    'this.b = new $mod.TRecA();'
+    ]),
+    LinesToStr([ // $mod.$main
+    'if ($mod.a.$equal($mod.b)) ;'
+    ]));
+end;
+
 procedure TTestModule.TestRecord_Var;
 begin
   StartProgram(false);
@@ -12184,6 +12210,9 @@ begin
   CheckSource('TestClassInterface_Ignore',
     LinesToStr([ // statements
     'this.TGUID = function (s) {',
+    '  this.$equal = function (b) {',
+    '    return true;',
+    '  };',
     '};',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
@@ -16403,6 +16432,9 @@ begin
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses3',
     LinesToStr([ // statements
     'this.TRec = function (s) {',
+    '  this.$equal = function (b) {',
+    '    return true;',
+    '  };',
     '};',
     '$mod.$rtti.$Record("TRec", {});',
     'rtl.createClass($mod, "TObject", null, function () {',

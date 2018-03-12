@@ -14093,7 +14093,8 @@ const
       // create 'this.A = s.A;'
       VarAssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PasVar));
       AddToStatementList(First,Last,VarAssignSt,PasVar);
-      if i=0 then IfSt.BTrue:=First;
+      if IfSt.BTrue=nil then
+        IfSt.BTrue:=First;
       VarAssignSt.LHS:=CreateSubDeclNameExpr(PasVar,PasVar.Name,FuncContext);
       VarDotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,PasVar));
       VarAssignSt.Expr:=VarDotExpr;
@@ -14255,6 +14256,8 @@ const
         EqExpr.B:=CreateMemberExpression([EqualParamName,VarName]);
         end;
       end;
+    if RetSt.Expr=nil then
+      RetSt.Expr:=CreateLiteralBoolean(El,true);
   end;
 
   procedure AddRTTIFields(Args: TJSArguments; var First, Last: TJSStatementList);
@@ -14320,11 +14323,10 @@ begin
     FuncContext:=TFunctionContext.Create(El,FD.Body,AContext);
     FuncContext.ThisPas:=El;
     FuncContext.IsGlobal:=true;
+    BodyFirst:=nil;
+    BodyLast:=nil;
     if El.Members.Count>0 then
       begin
-      BodyFirst:=nil;
-      BodyLast:=nil;
-
       // add if(s)
       IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,El));
       AddToStatementList(BodyFirst,BodyLast,IfSt,El);
@@ -14334,11 +14336,11 @@ begin
       AddCloneStatements(IfSt,FuncContext);
       // add init default statements
       AddInitDefaultStatements(IfSt,FuncContext);
-
-      // add equal function
-      AddEqualFunction(BodyFirst,BodyLast,FuncContext);
-
       end;
+    // add equal function
+    AddEqualFunction(BodyFirst,BodyLast,FuncContext);
+    if FD.Body.A=nil then
+      FD.Body.A:=BodyFirst;
 
     if HasTypeInfo(El,AContext) then
       begin

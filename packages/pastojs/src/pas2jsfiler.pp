@@ -33,12 +33,12 @@ Works:
 - store/restore/use precompiled JS of proc local const
 - store/restore/use precompiled JS of initialization plus references
 - useanalyzer: generate + use initialization/finalization references
-
-ToDo:
-- WPO uses Proc.References
 - uses section
 - external references
 - stop after uses section and continue reading
+
+ToDo:
+- WPO uses Proc.References
 - gzipped json
 
 }
