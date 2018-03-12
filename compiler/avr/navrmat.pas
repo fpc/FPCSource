@@ -59,37 +59,71 @@ implementation
       var
         tmpreg,lreg : tregister;
         i : longint;
+        falselabel,truelabel,skiplabel: TAsmLabel;
       begin
         if not handle_locjump then
           begin
             secondpass(left);
-            case left.location.loc of
-              LOC_FLAGS :
-                begin
-                  location_copy(location,left.location);
-                  inverse_flags(location.resflags);
-                end;
-              LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE,
-              LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF :
-                begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,0));
+            { short code? }
+            if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) and
+              (left.location.sreg.bitlen=1) then
+              begin
+                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,left.location.sreg.subsetreg,left.location.sreg.startbit));
+                current_asmdata.getjumplabel(truelabel);
+                current_asmdata.getjumplabel(falselabel);
+                { sbrc does a jump without an explicit label,
+                  if we do not insert skiplabel here and increase its reference count, the optimizer removes the whole true block altogether }
+                current_asmdata.getjumplabel(skiplabel);
+                skiplabel.increfs;
+                location_reset_jump(location,truelabel,falselabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+              end
+            else if (left.location.loc in [LOC_SUBSETREF,LOC_CSUBSETREF]) and
+              (left.location.sref.bitlen=1) and (left.location.sref.bitindexreg=NR_NO) then
+              begin
+                tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+                hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,u8inttype,osuinttype,left.location.sref.ref,tmpreg);
+                current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_SBRC,tmpreg,left.location.sref.startbit));
+                current_asmdata.getjumplabel(truelabel);
+                current_asmdata.getjumplabel(falselabel);
+                { sbrc does a jump without an explicit label,
+                  if we do not insert skiplabel here and increase its reference count, the optimizer removes the whole true block altogether }
+                current_asmdata.getjumplabel(skiplabel);
+                skiplabel.increfs;
+                location_reset_jump(location,truelabel,falselabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                cg.a_label(current_asmdata.CurrAsmList,skiplabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
+              end
+            else
+              case left.location.loc of
+                 LOC_FLAGS :
+                   begin
+                     location_copy(location,left.location);
+                     inverse_flags(location.resflags);
+                   end;
+                 LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF,
+                 LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,0));
 
-                  tmpreg:=left.location.register;
-                  for i:=2 to tcgsize2size[left.location.size] do
-                    begin
-                      if i=5 then
-                        tmpreg:=left.location.registerhi
-                      else
-                        tmpreg:=cg.GetNextReg(tmpreg);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg));
-                    end;
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags:=F_EQ;
+                     tmpreg:=left.location.register;
+                     for i:=2 to tcgsize2size[left.location.size] do
+                       begin
+                         if i=5 then
+                           tmpreg:=left.location.registerhi
+                         else
+                           tmpreg:=cg.GetNextReg(tmpreg);
+                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg));
+                       end;
+                     location_reset(location,LOC_FLAGS,OS_NO);
+                     location.resflags:=F_EQ;
+                  end;
+                 else
+                   internalerror(2003042401);
                end;
-              else
-                internalerror(2003042401);
-            end;
           end;
       end;
 
