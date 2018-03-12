@@ -6202,7 +6202,7 @@ begin
   ConvertProgram;
   CheckSource('TestArray_StaticMultiDim',
     LinesToStr([ // statements
-    'TArrayArrayInt$clone = function (a) {',
+    'this.TArrayArrayInt$clone = function (a) {',
     '  var r = [];',
     '  for (var i = 0; i < 2; i++) r.push(a[i].slice(0));',
     '  return r;',

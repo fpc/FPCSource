@@ -9235,7 +9235,7 @@ end;
 function TPasToJSConverter.ConvertArrayType(El: TPasArrayType;
   AContext: TConvertContext): TJSElement;
 // Static array of static array need clone function:
-//  TStaticArray$clone = function(a){
+//  this.TStaticArray$clone = function(a){
 //    var r = [];
 //    for (var i=0; i<*High(a)*; i++) r.push(a[i].slice(0));
 //    return r;
@@ -9255,6 +9255,7 @@ const
   CloneResultName = 'r';
   CloneRunName = 'i';
 var
+  AssignSt: TJSSimpleAssignStatement;
   CallName: String;
   Obj: TJSObjectLiteral;
   Prop: TJSObjectLiteralElement;
@@ -9265,7 +9266,6 @@ var
   RangeEl: TPasExpr;
   Call: TJSCallExpression;
   RgLen, RangeEnd: MaxPrecInt;
-  CloneFunc: TJSVarDeclaration;
   List: TJSStatementList;
   Func: TJSFunctionDeclarationStatement;
   Src: TJSSourceElements;
@@ -9288,20 +9288,23 @@ begin
   if AContext.Resolver.HasStaticArrayCloneFunc(El) then
     begin
     // For example: type TArr = array[1..2] of array[1..2] of longint;
-    //  TStaticArray$clone = function(a){
+    //  this.TStaticArray$clone = function(a){
     //    var r = [];
     //    for (var i=0; i<*High(a)*; i++) r.push(a[i].slice(0));
     //    return r;
     //  };
     BracketEx:=nil;
-    CloneFunc:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
+    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
     try
+      // add 'this.TypeName = function(){}'
+      AssignSt.LHS:=CreateSubDeclNameExpr(El,
+                       El.Name+FBuiltInNames[pbifnArray_Static_Clone],AContext);
+
       Index:=0;
       RangeEl:=El.Ranges[Index];
       // function(a){...
-      CloneFunc.Name:=El.Name+FBuiltInNames[pbifnArray_Static_Clone];
       Func:=CreateFunctionSt(El,true,true);
-      CloneFunc.Init:=Func;
+      AssignSt.Expr:=Func;
       Func.AFunction.Params.Add(CloneArrName);
       Src:=Func.AFunction.Body.A as TJSSourceElements;
       // var r = [];
@@ -9352,11 +9355,11 @@ begin
       AddToSourceElements(Src,ReturnSt);
       ReturnSt.Expr:=CreatePrimitiveDotExpr(CloneResultName,El);
 
-      Result:=CloneFunc;
-      CloneFunc:=nil;
+      Result:=AssignSt;
+      AssignSt:=nil;
     finally
       BracketEx.Free;
-      CloneFunc.Free;
+      AssignSt.Free;
     end;
     end;
 
