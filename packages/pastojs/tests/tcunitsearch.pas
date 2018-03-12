@@ -71,6 +71,7 @@ type
 
   TCustomTestCLI = class(TTestCase)
   private
+    FCurDate: TDateTime;
     FErrorCol: integer;
     FErrorFile: string;
     FErrorLine: integer;
@@ -94,7 +95,7 @@ type
     procedure DoLog(Sender: TObject; const Msg: String);
     Function OnReadDirectory(Dir: TPas2jsCachedDirectory): boolean; virtual;
     Function OnReadFile(aFilename: string; var aSource: string): boolean; virtual;
-    procedure OnWriteFile(aFilename: string; Source: string);
+    procedure OnWriteFile(aFilename: string; Source: string); virtual;
     procedure WriteSources;
   public
     constructor Create; override;
@@ -121,6 +122,7 @@ type
     property ErrorLine: integer read FErrorLine write FErrorLine;
     property ErrorCol: integer read FErrorCol write FErrorCol;
     property ErrorNumber: integer read FErrorNumber write FErrorNumber;
+    property CurDate: TDateTime read FCurDate write FCurDate;
   end;
 
   { TTestCLI_UnitSearch }
@@ -238,7 +240,7 @@ procedure TCustomTestCLI.DoLog(Sender: TObject; const Msg: String);
 var
   LogMsg: TCLILogMsg;
 begin
-  {$IFDEF VerbosePasResolver}
+  {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
   writeln('TCustomTestCLI.DoLog ',Msg,' File=',Compiler.Log.LastMsgFile,' Line=',Compiler.Log.LastMsgLine);
   {$ENDIF}
   LogMsg:=TCLILogMsg.Create;
@@ -294,12 +296,13 @@ begin
   if aFile=nil then exit(false);
   if (faDirectory and aFile.Attr)>0 then
   begin
-    {$IFDEF VerbosePasResolver}
+    {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
     writeln('[20180224000557] TCustomTestCLI.OnReadFile ',aFilename);
     {$ENDIF}
     EPas2jsFileCache.Create('TCustomTestCLI.OnReadFile: reading directory '+aFilename);
   end;
   aSource:=aFile.Source;
+  //writeln('TCustomTestCLI.OnReadFile ',aFile.Filename,' "',LeftStr(aFile.Source,50),'"');
   Result:=true;
 end;
 
@@ -308,14 +311,14 @@ var
   aFile: TCLIFile;
 begin
   aFile:=FindFile(aFilename);
-  {$IFDEF VerbosePasResolver}
-  writeln('TCustomTestCLI.WriteFile ',aFilename,' Found=',aFile<>nil);
+  {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+  writeln('TCustomTestCLI.WriteFile ',aFilename,' Found=',aFile<>nil,' SrcLen=',length(Source));
   {$ENDIF}
   if aFile<>nil then
   begin
     if faDirectory and aFile.Attr>0 then
     begin
-      {$IFDEF VerbosePasResolver}
+      {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
       writeln('[20180223175616] TCustomTestCLI.OnWriteFile ',aFilename);
       {$ENDIF}
       raise EPas2jsFileCache.Create('unable to write file to directory "'+aFilename+'"');
@@ -326,8 +329,9 @@ begin
     FFiles.Add(aFile);
   end;
   aFile.Source:=Source;
-  aFile.Attr:=faDirectory;
-  aFile.Age:=DateTimeToFileDate(Now);
+  aFile.Attr:=faNormal;
+  aFile.Age:=DateTimeToFileDate(CurDate);
+  //writeln('TCustomTestCLI.OnWriteFile ',aFile.Filename,' "',LeftStr(aFile.Source,50),'"');
 end;
 
 procedure TCustomTestCLI.WriteSources;
@@ -373,6 +377,7 @@ begin
   FFiles:=TObjectList.Create(true);
   FLogMsgs:=TObjectList.Create(true);
   FParams:=TStringList.Create;
+  CurDate:=Now;
 end;
 
 destructor TCustomTestCLI.Destroy;
@@ -389,6 +394,7 @@ var
   i: Integer;
 begin
   AssertEquals('Initial System.ExitCode',0,system.ExitCode);
+  Params.Clear;
   for i:=low(Args) to High(Args) do
     Params.Add(Args[i]);
   try
@@ -398,13 +404,13 @@ begin
     except
       on E: ECompilerTerminate do
       begin
-        {$IFDEF VerbosePasResolver}
+        {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
         writeln('TCustomTestCLI.Compile ',E.ClassName,':',E.Message);
         {$ENDIF}
       end;
       on E: Exception do
       begin
-        {$IFDEF VerbosePasResolver}
+        {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
         writeln('TCustomTestCLI.Compile ',E.ClassName,':',E.Message);
         {$ENDIF}
         Fail('TCustomTestCLI.Compile '+E.ClassName+':'+E.Message);
@@ -486,7 +492,7 @@ var
   aFile: TCLIFile;
 begin
   Result:=nil;
-  Filename:=ExpandFilename(Filename);
+  Filename:=IncludeTrailingPathDelimiter(ExpandFilename(Filename));
   p:=length(Filename);
   while p>1 do
   begin
@@ -497,11 +503,16 @@ begin
       if Result=nil then
         Result:=aFile;
       if aFile=nil then
-        FFiles.Add(TCLIFile.Create(Dir,'',DefaultFileAge,faDirectory))
+        begin
+        {$IFDEF VerbosePJUFiler}
+        writeln('TCustomTestCLI.AddDir add Dir=',Dir);
+        {$ENDIF}
+        FFiles.Add(TCLIFile.Create(Dir,'',DefaultFileAge,faDirectory));
+        end
       else if (aFile.Attr and faDirectory)=0 then
       begin
-        {$IFDEF VerbosePasResolver}
-        writeln('[20180224001036] TCustomTestCLI.AddDir Dir=',Dir);
+        {$IFDEF VerbosePJUFiler}
+        writeln('[20180224001036] TCustomTestCLI.AddDir file exists: Dir=',Dir);
         {$ENDIF}
         raise EPas2jsFileCache.Create('[20180224001036] TCustomTestCLI.AddDir Dir='+Dir);
       end;

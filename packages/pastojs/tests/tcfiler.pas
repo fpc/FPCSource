@@ -35,9 +35,9 @@ type
   TCustomTestPrecompile = Class(TCustomTestModule)
   private
     FAnalyzer: TPasAnalyzer;
-    FInitialFlags: TPJUInitialFlags;
-    FPJUReader: TPJUReader;
-    FPJUWriter: TPJUWriter;
+    FInitialFlags: TPCUInitialFlags;
+    FPJUReader: TPCUReader;
+    FPJUWriter: TPCUWriter;
     FRestAnalyzer: TPasAnalyzer;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
@@ -121,9 +121,9 @@ type
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
     property RestAnalyzer: TPasAnalyzer read FRestAnalyzer;
-    property PJUWriter: TPJUWriter read FPJUWriter write FPJUWriter;
-    property PJUReader: TPJUReader read FPJUReader write FPJUReader;
-    property InitialFlags: TPJUInitialFlags read FInitialFlags;
+    property PJUWriter: TPCUWriter read FPJUWriter write FPJUWriter;
+    property PJUReader: TPCUReader read FPJUReader write FPJUReader;
+    property InitialFlags: TPCUInitialFlags read FInitialFlags;
   end;
 
   { TTestPrecompile }
@@ -259,7 +259,7 @@ end;
 procedure TCustomTestPrecompile.SetUp;
 begin
   inherited SetUp;
-  FInitialFlags:=TPJUInitialFlags.Create;
+  FInitialFlags:=TPCUInitialFlags.Create;
   FAnalyzer:=TPasAnalyzer.Create;
   Analyzer.Resolver:=Engine;
   Analyzer.Options:=Analyzer.Options+[paoImplReferences];
@@ -302,8 +302,8 @@ var
 begin
   ConvertUnit;
 
-  FPJUWriter:=TPJUWriter.Create;
-  FPJUReader:=TPJUReader.Create;
+  FPJUWriter:=TPCUWriter.Create;
+  FPJUReader:=TPCUReader.Create;
   ms:=TMemoryStream.Create;
   RestParser:=nil;
   RestScanner:=nil;
@@ -315,7 +315,7 @@ begin
     try
       PJUWriter.OnGetSrc:=@OnFilerGetSrc;
       PJUWriter.OnIsElementUsed:=@OnConverterIsElementUsed;
-      PJUWriter.WritePJU(Engine,Converter,InitialFlags,ms,false);
+      PJUWriter.WritePCU(Engine,Converter,InitialFlags,ms,false);
     except
       on E: Exception do
       begin
@@ -345,9 +345,9 @@ begin
       RestParser.Options:=po_tcmodules;
       RestResolver.CurrentParser:=RestParser;
       ms.Position:=0;
-      PJUReader.ReadPJU(RestResolver,ms);
-      if not PJUReader.ReadJSONContinue then
-        Fail('ReadJSONContinue=false, pending used interfaces');
+      PJUReader.ReadPCU(RestResolver,ms);
+      if not PJUReader.ReadContinue then
+        Fail('ReadContinue=false, pending used interfaces');
     except
       on E: Exception do
       begin
@@ -604,7 +604,7 @@ begin
         AssertEquals(Path+'.Local.Identifier',OrigIdentifier.Identifier,RestIdentifier.Identifier);
         CheckRestoredReference(Path+'.Local',OrigIdentifier.Element,RestIdentifier.Element);
         if OrigIdentifier.Kind<>RestIdentifier.Kind then
-          Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Orig='+PJUIdentifierKindNames[OrigIdentifier.Kind]+' Rest='+PJUIdentifierKindNames[RestIdentifier.Kind]);
+          Fail(Path+'.Local['+OrigIdentifier.Identifier+'] Orig='+PCUIdentifierKindNames[OrigIdentifier.Kind]+' Rest='+PCUIdentifierKindNames[RestIdentifier.Kind]);
         if OrigIdentifier.NextSameIdentifier=nil then
         begin
           if RestIdentifier.NextSameIdentifier<>nil then
@@ -719,7 +719,7 @@ begin
 
     CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassScope,Rest.ClassScope);
     CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
-    AssertEquals(Path+'.Mode',PJUModeSwitchNames[Orig.Mode],PJUModeSwitchNames[Rest.Mode]);
+    AssertEquals(Path+'.Mode',PCUModeSwitchNames[Orig.Mode],PCUModeSwitchNames[Rest.Mode]);
     if Orig.Flags<>Rest.Flags then
       Fail(Path+'.Flags');
     if Orig.BoolSwitches<>Rest.BoolSwitches then
@@ -758,7 +758,7 @@ begin
       CheckRestoredReference(Path+'['+IntToStr(i)+'].Name="'+OrigRef.Element.Name+'"',OrigRef.Element,RestRef.Element);
       if OrigRef.Access<>RestRef.Access then
         AssertEquals(Path+'['+IntToStr(i)+']"'+OrigRef.Element.Name+'".Access',
-          PJUPSRefAccessNames[OrigRef.Access],PJUPSRefAccessNames[RestRef.Access]);
+          PCUPSRefAccessNames[OrigRef.Access],PCUPSRefAccessNames[RestRef.Access]);
       end;
     if RestList.Count>OrigList.Count then
       begin
@@ -787,7 +787,7 @@ begin
   if Orig.Flags<>Rest.Flags then
     Fail(Path+'.Flags');
   if Orig.Access<>Rest.Access then
-    AssertEquals(Path+'.Access',PJUResolvedRefAccessNames[Orig.Access],PJUResolvedRefAccessNames[Rest.Access]);
+    AssertEquals(Path+'.Access',PCUResolvedRefAccessNames[Orig.Access],PCUResolvedRefAccessNames[Rest.Access]);
   if not CheckRestoredObject(Path+'.Context',Orig.Context,Rest.Context) then exit;
   if Orig.Context<>nil then
     begin
@@ -962,7 +962,7 @@ begin
   AssertEquals(Path+'.SourceLinenumber',Orig.SourceLinenumber,Rest.SourceLinenumber);
   //AssertEquals(Path+'.SourceEndLinenumber',Orig.SourceEndLinenumber,Rest.SourceEndLinenumber);
   if Orig.Visibility<>Rest.Visibility then
-    Fail(Path+'.Visibility '+PJUMemberVisibilityNames[Orig.Visibility]+' '+PJUMemberVisibilityNames[Rest.Visibility]);
+    Fail(Path+'.Visibility '+PCUMemberVisibilityNames[Orig.Visibility]+' '+PCUMemberVisibilityNames[Rest.Visibility]);
   if Orig.Hints<>Rest.Hints then
     Fail(Path+'.Hints');
   AssertEquals(Path+'.HintMessage',Orig.HintMessage,Rest.HintMessage);
@@ -1237,7 +1237,7 @@ procedure TCustomTestPrecompile.CheckRestoredArrayType(const Path: string;
 begin
   CheckRestoredPasExprArray(Path+'.Ranges',Orig.Ranges,Rest.Ranges);
   if Orig.PackMode<>Rest.PackMode then
-    Fail(Path+'.PackMode Orig='+PJUPackModeNames[Orig.PackMode]+' Rest='+PJUPackModeNames[Rest.PackMode]);
+    Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   CheckRestoredElOrRef(Path+'.ElType',Orig,Orig.ElType,Rest,Rest.ElType);
 end;
 
@@ -1277,7 +1277,7 @@ procedure TCustomTestPrecompile.CheckRestoredRecordType(const Path: string;
   Orig, Rest: TPasRecordType);
 begin
   if Orig.PackMode<>Rest.PackMode then
-    Fail(Path+'.PackMode Orig='+PJUPackModeNames[Orig.PackMode]+' Rest='+PJUPackModeNames[Rest.PackMode]);
+    Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   CheckRestoredElementList(Path+'.Members',Orig.Members,Rest.Members);
   CheckRestoredElOrRef(Path+'.VariantEl',Orig,Orig.VariantEl,Rest,Rest.VariantEl);
   CheckRestoredElementList(Path+'.Variants',Orig.Variants,Rest.Variants);
@@ -1288,9 +1288,9 @@ procedure TCustomTestPrecompile.CheckRestoredClassType(const Path: string;
   Orig, Rest: TPasClassType);
 begin
   if Orig.PackMode<>Rest.PackMode then
-    Fail(Path+'.PackMode Orig='+PJUPackModeNames[Orig.PackMode]+' Rest='+PJUPackModeNames[Rest.PackMode]);
+    Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   if Orig.ObjKind<>Rest.ObjKind then
-    Fail(Path+'.ObjKind Orig='+PJUObjKindNames[Orig.ObjKind]+' Rest='+PJUObjKindNames[Rest.ObjKind]);
+    Fail(Path+'.ObjKind Orig='+PCUObjKindNames[Orig.ObjKind]+' Rest='+PCUObjKindNames[Rest.ObjKind]);
   CheckRestoredReference(Path+'.AncestorType',Orig.AncestorType,Rest.AncestorType);
   CheckRestoredReference(Path+'.HelperForType',Orig.HelperForType,Rest.HelperForType);
   AssertEquals(Path+'.IsForward',Orig.IsForward,Rest.IsForward);
@@ -1309,7 +1309,7 @@ procedure TCustomTestPrecompile.CheckRestoredArgument(const Path: string; Orig,
   Rest: TPasArgument);
 begin
   if Orig.Access<>Rest.Access then
-    Fail(Path+'.Access Orig='+PJUArgumentAccessNames[Orig.Access]+' Rest='+PJUArgumentAccessNames[Rest.Access]);
+    Fail(Path+'.Access Orig='+PCUArgumentAccessNames[Orig.Access]+' Rest='+PCUArgumentAccessNames[Rest.Access]);
   CheckRestoredElOrRef(Path+'.ArgType',Orig,Orig.ArgType,Rest,Rest.ArgType);
   CheckRestoredElement(Path+'.ValueExpr',Orig.ValueExpr,Rest.ValueExpr);
 end;
@@ -1319,7 +1319,7 @@ procedure TCustomTestPrecompile.CheckRestoredProcedureType(const Path: string;
 begin
   CheckRestoredElementList(Path+'.Args',Orig.Args,Rest.Args);
   if Orig.CallingConvention<>Rest.CallingConvention then
-    Fail(Path+'.CallingConvention Orig='+PJUCallingConventionNames[Orig.CallingConvention]+' Rest='+PJUCallingConventionNames[Rest.CallingConvention]);
+    Fail(Path+'.CallingConvention Orig='+PCUCallingConventionNames[Orig.CallingConvention]+' Rest='+PCUCallingConventionNames[Rest.CallingConvention]);
   if Orig.Modifiers<>Rest.Modifiers then
     Fail(Path+'.Modifiers');
 end;
@@ -1409,7 +1409,7 @@ begin
       Fail(Path+'.Modifiers');
     AssertEquals(Path+'.MessageName',Orig.MessageName,Rest.MessageName);
     if Orig.MessageType<>Rest.MessageType then
-      Fail(Path+'.MessageType Orig='+PJUProcedureMessageTypeNames[Orig.MessageType]+' Rest='+PJUProcedureMessageTypeNames[Rest.MessageType]);
+      Fail(Path+'.MessageType Orig='+PCUProcedureMessageTypeNames[Orig.MessageType]+' Rest='+PCUProcedureMessageTypeNames[Rest.MessageType]);
     end
   else
     begin
@@ -1422,7 +1422,7 @@ procedure TCustomTestPrecompile.CheckRestoredOperator(const Path: string; Orig,
   Rest: TPasOperator);
 begin
   if Orig.OperatorType<>Rest.OperatorType then
-    Fail(Path+'.OperatorType Orig='+PJUOperatorTypeNames[Orig.OperatorType]+' Rest='+PJUOperatorTypeNames[Rest.OperatorType]);
+    Fail(Path+'.OperatorType Orig='+PCUOperatorTypeNames[Orig.OperatorType]+' Rest='+PCUOperatorTypeNames[Rest.OperatorType]);
   AssertEquals(Path+'.TokenBased',Orig.TokenBased,Rest.TokenBased);
   CheckRestoredProcedure(Path,Orig,Rest);
 end;

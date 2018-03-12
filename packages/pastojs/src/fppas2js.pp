@@ -308,6 +308,7 @@ ToDos:
 - stdcall of methods: pass original 'this' as first parameter
 
 Not in Version 1.0:
+- property read Arr[0]  https://bugs.freepascal.org/view.php?id=33416
 - write, writeln
 - arrays
   - array of const
@@ -1190,6 +1191,9 @@ type
     coStoreImplJS  // store references to JS code in procscopes
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
+const
+  DefaultPasToJSOptions = [coLowerCase];
+type
 
   TPas2JSIsElementUsedEvent = function(Sender: TObject; El: TPasElement): boolean of object;
 
@@ -1513,7 +1517,7 @@ type
     destructor Destroy; override;
     Function ConvertPasElement(El: TPasElement; Resolver: TPas2JSResolver) : TJSElement;
     // options
-    Property Options: TPasToJsConverterOptions read FOptions write FOptions;
+    Property Options: TPasToJsConverterOptions read FOptions write FOptions default DefaultPasToJSOptions;
     Property TargetPlatform: TPasToJsPlatform read FTargetPlatform write FTargetPlatform;
     Property TargetProcessor: TPasToJsProcessor read FTargetProcessor write FTargetProcessor;
     Property UseLowerCase: boolean read GetUseLowerCase write SetUseLowerCase default true;
@@ -1856,7 +1860,7 @@ begin
     end;
   PopOverloadScope;
   {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.RenameOverloadsInSection END ',GetObjName(aSection));
+  //writeln('TPas2JSResolver.RenameOverloadsInSection END ',GetObjName(aSection));
   {$ENDIF}
 end;
 
@@ -1910,7 +1914,7 @@ begin
       end;
     end;
   {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.RenameOverloads END ',GetObjName(DeclEl));
+  //writeln('TPas2JSResolver.RenameOverloads END ',GetObjName(DeclEl));
   {$ENDIF}
 end;
 
@@ -1984,7 +1988,7 @@ begin
       RenameOverload(El);
     end;
   {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.RenameSubOverloads END');
+  //writeln('TPas2JSResolver.RenameSubOverloads END');
   {$ENDIF}
 end;
 
@@ -9500,7 +9504,7 @@ constructor TPasToJSConverter.Create;
 var
   n: TPas2JSBuiltInName;
 begin
-  FOptions:=[coLowerCase];
+  FOptions:=DefaultPasToJSOptions;
   for n in TPas2JSBuiltInName do
     FBuiltInNames[n]:=Pas2JSBuiltInNames[n];
 end;
