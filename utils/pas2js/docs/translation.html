@@ -1479,7 +1479,10 @@ function(){
     <li>Property:
       <ul>
       <li>References are replaced by getter/setter.</li>
-      <li>Supported: argument lists, default property, class property, stored modifier, index modifier.</li>
+      <li>Supported: argument lists, default property, class property,
+      stored modifier, index modifier.</li>
+      <li>Not supported: getter/setter to an array element,
+      e.g. <i>property A: char read FArray[0];</i> </li>
       <li>Class property getter/setter are not static as in Delphi.</li>
       <li>The <i>Index</i> modifier supports any constant, e.g. a string, while
       Delphi only allows an ordinal (longint). -2147483648 is not a special
