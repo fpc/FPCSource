@@ -34,7 +34,7 @@ var p:pointer;
   size, storage : ptruint;
   i,j:longint;
   done:boolean;
-  mem : sizeint;
+  mem : sizeuint;
 begin
   ReturnNilIfGrowHeapFails:=true;
   domem(mem);

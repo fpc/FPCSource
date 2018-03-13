@@ -10,7 +10,7 @@ begin
   ReAllocMem(P, 0);
 end;
 
-var Mem : sizeint;
+var Mem : sizeuint;
 begin
   domem(mem);
   Test;

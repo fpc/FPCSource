@@ -117,7 +117,7 @@ end;
 Procedure TestParams;
 
 Var S : WideString;
-    Mem : SizeInt;
+    Mem : SizeUInt;
 
 begin
   Mem:=0;
@@ -315,7 +315,7 @@ Const S1 : WideString = 'ABC';
 
 Var I : Integer;
     S3 : WideString;
-    mem : SizeInt;
+    mem : SizeUInt;
 
 begin
  mem:=0;
@@ -360,7 +360,7 @@ Var S,T : WideString;
     E : Extended;
     Si : Single;
     Co : Comp;
-    TempMem:SizeInt;
+    TempMem:SizeUInt;
 begin
   TempMem:=0;
   DoMem(TempMem);
@@ -447,7 +447,7 @@ begin
   Writeln (S);
 end;
 
-Var GlobalStartMem,StartMem : SizeInt;
+Var GlobalStartMem,StartMem : SizeUInt;
 
 begin
   GlobalStartMem:=0;

@@ -10,7 +10,7 @@ interface
 
   procedure require_error(num : longint);
 
-function DoMem (Var StartMem : sizeint): sizeint;
+function DoMem (Var StartMem : sizeuint): sizeuint;
 
 
 implementation
