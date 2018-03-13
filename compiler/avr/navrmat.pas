@@ -77,6 +77,7 @@ implementation
                 skiplabel.increfs;
                 location_reset_jump(location,truelabel,falselabel);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
+                cg.a_label(current_asmdata.CurrAsmList,skiplabel);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
               end
             else if (left.location.loc in [LOC_SUBSETREF,LOC_CSUBSETREF]) and
