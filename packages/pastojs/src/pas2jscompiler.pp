@@ -29,7 +29,7 @@ uses
 const
   VersionMajor = 0;
   VersionMinor = 9;
-  VersionRelease = 9;
+  VersionRelease = 10;
   VersionExtra = '+beta';
   DefaultConfigFile = 'pas2js.cfg';
 
