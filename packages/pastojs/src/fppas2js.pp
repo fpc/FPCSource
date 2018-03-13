@@ -982,6 +982,7 @@ type
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
       Access: TResolvedRefAccess); override;
+    procedure FinishInterfaceSection(Section: TPasSection); override;
     procedure FinishModule(CurModule: TPasModule); override;
     procedure FinishEnumType(El: TPasEnumType); override;
     procedure FinishSetType(El: TPasSetType); override;
@@ -1827,38 +1828,21 @@ end;
 
 procedure TPas2JSResolver.RenameOverloadsInSection(aSection: TPasSection);
 var
-  ImplSection: TImplementationSection;
-  SectionClass: TClass;
+  IntfSection: TInterfaceSection;
 begin
   if aSection=nil then exit;
+  IntfSection:=nil;
+  if aSection.ClassType=TImplementationSection then
+    begin
+    IntfSection:=RootElement.InterfaceSection;
+    PushOverloadScope(IntfSection.CustomData as TPasIdentifierScope);
+    end;
   PushOverloadScope(aSection.CustomData as TPasIdentifierScope);
   RenameOverloads(aSection,aSection.Declarations);
-  SectionClass:=aSection.ClassType;
-  if SectionClass=TInterfaceSection then
-    begin
-    // unit interface
-    // first rename all overloads in interface and implementation
-    ImplSection:=(aSection.Parent as TPasModule).ImplementationSection;
-    if ImplSection<>nil then
-      begin
-      PushOverloadScope(ImplSection.CustomData as TPasIdentifierScope);
-      RenameOverloads(ImplSection,ImplSection.Declarations);
-      end;
-    // and then rename all nested overloads (e.g. methods)
-    // Important: nested overloads must check both interface and implementation
-    RenameSubOverloads(aSection.Declarations);
-    if ImplSection<>nil then
-      begin
-      RenameSubOverloads(ImplSection.Declarations);
-      PopOverloadScope;
-      end;
-    end
-  else
-    begin
-    // program or library
-    RenameSubOverloads(aSection.Declarations);
-    end;
+  RenameSubOverloads(aSection.Declarations);
   PopOverloadScope;
+  if IntfSection<>nil then
+    PopOverloadScope;
   {$IFDEF VerbosePas2JS}
   //writeln('TPas2JSResolver.RenameOverloadsInSection END ',GetObjName(aSection));
   {$ENDIF}
@@ -1887,6 +1871,7 @@ begin
         if ProcScope.ImplProc<>nil then
           RaiseInternalError(20170221110853);
         // proc implementation (not forward) -> skip
+        Proc.Name:=ProcScope.DeclarationProc.Name;
         continue;
         end;
       if Proc.IsOverride then
@@ -1899,7 +1884,7 @@ begin
           if ProcScope.ImplProc<>nil then
             ProcScope.ImplProc.Name:=Proc.Name;
           end;
-        Continue;
+        continue;
         end
       else if Proc.IsExternal then
         begin
@@ -1922,7 +1907,7 @@ procedure TPas2JSResolver.RenameSubOverloads(Declarations: TFPList);
 var
   i, OldScopeCount: Integer;
   El: TPasElement;
-  Proc, ImplProc: TPasProcedure;
+  Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ClassScope, aScope: TPasClassScope;
   ClassEl: TPasClassType;
@@ -1935,28 +1920,19 @@ begin
     if C.InheritsFrom(TPasProcedure) then
       begin
       Proc:=TPasProcedure(El);
-      if Proc.IsAbstract or Proc.IsExternal then continue;
       ProcScope:=Proc.CustomData as TPasProcedureScope;
       {$IFDEF VerbosePas2JS}
       writeln('TPas2JSResolver.RenameSubOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassScope));
       {$ENDIF}
-      if ProcScope.DeclarationProc<>nil then
-        // proc implementation (not forward) -> skip
-        continue;
-      ImplProc:=Proc;
-      if ProcScope.ImplProc<>nil then
+      if Proc.Body<>nil then
         begin
-        // this proc has a separate implementation
-        // -> switch to implementation
-        ImplProc:=ProcScope.ImplProc;
-        ProcScope:=ImplProc.CustomData as TPasProcedureScope;
+        PushOverloadScope(ProcScope);
+        // first rename all overloads on this level
+        RenameOverloads(Proc.Body,Proc.Body.Declarations);
+        // then process nested procedures
+        RenameSubOverloads(Proc.Body.Declarations);
+        PopOverloadScope;
         end;
-      PushOverloadScope(ProcScope);
-      // first rename all overloads on this level
-      RenameOverloads(ImplProc.Body,ImplProc.Body.Declarations);
-      // then process nested procedures
-      RenameSubOverloads(ImplProc.Body.Declarations);
-      PopOverloadScope;
       end
     else if C=TPasClassType then
       begin
@@ -2146,19 +2122,27 @@ begin
     end;
 end;
 
+procedure TPas2JSResolver.FinishInterfaceSection(Section: TPasSection);
+begin
+  inherited FinishInterfaceSection(Section);
+  if FOverloadScopes=nil then
+    begin
+    FOverloadScopes:=TFPList.Create;
+    RenameOverloadsInSection(Section);
+    end;
+end;
+
 procedure TPas2JSResolver.FinishModule(CurModule: TPasModule);
 var
   ModuleClass: TClass;
 begin
   inherited FinishModule(CurModule);
-  FOverloadScopes:=TFPList.Create;
+  if FOverloadScopes=nil then
+    FOverloadScopes:=TFPList.Create;
   try
     ModuleClass:=CurModule.ClassType;
     if ModuleClass=TPasModule then
-      begin
-      RenameOverloadsInSection(CurModule.InterfaceSection);
-      // Note: ImplementationSection is child of InterfaceSection
-      end
+      RenameOverloadsInSection(CurModule.ImplementationSection)
     else if ModuleClass=TPasProgram then
       RenameOverloadsInSection(TPasProgram(CurModule).ProgramSection)
     else if CurModule.ClassType=TPasLibrary then
@@ -2166,7 +2150,7 @@ begin
     else
       RaiseNotYetImplemented(20170221000032,CurModule);
   finally
-    FOverloadScopes.Free;
+    FreeAndNil(FOverloadScopes);
   end;
 end;
 
@@ -3095,6 +3079,7 @@ destructor TPas2JSResolver.Destroy;
 begin
   ClearElementData;
   FreeAndNil(FExternalNames);
+  FreeAndNil(FOverloadScopes);
   inherited Destroy;
 end;
 

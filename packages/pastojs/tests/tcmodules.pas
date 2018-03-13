@@ -270,8 +270,9 @@ type
     Procedure TestProc_VarParamV;
     Procedure TestProc_Overload;
     Procedure TestProc_OverloadForward;
-    Procedure TestProc_OverloadUnit;
+    Procedure TestProc_OverloadIntfImpl;
     Procedure TestProc_OverloadNested;
+    Procedure TestProc_OverloadUnitCycle;
     Procedure TestProc_Varargs;
     Procedure TestProc_ConstOrder;
     Procedure TestProc_LocalVarAbsolute;
@@ -3091,7 +3092,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestProc_OverloadUnit;
+procedure TTestModule.TestProc_OverloadIntfImpl;
 begin
   StartUnit(false);
   Add('interface');
@@ -3239,6 +3240,45 @@ begin
     LinesToStr([
     '$mod.DoIt(1);',
     '$mod.DoIt$1(1, 2);',
+    '']));
+end;
+
+procedure TTestModule.TestProc_OverloadUnitCycle;
+begin
+  AddModuleWithIntfImplSrc('Unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '    procedure DoIt(b: boolean); virtual; abstract;',
+    '    procedure DoIt(i: longint); virtual; abstract;',
+    '  end;',
+    '']),
+    'uses test1;');
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit2;',
+  'type',
+  '  TEagle = class(TObject)',
+  '    procedure DoIt(b: boolean); override;',
+  '    procedure DoIt(i: longint); override;',
+  '  end;',
+  'implementation',
+  'procedure TEagle.DoIt(b: boolean); begin end;',
+  'procedure TEagle.DoIt(i: longint); begin end;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestProc_OverloadUnitCycle',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TEagle", pas.Unit2.TObject, function () {',
+    '  this.DoIt = function (b) {',
+    '  };',
+    '  this.DoIt$1 = function (i) {',
+    '  };',
+    '});',
+    '']),
+    '',
+    LinesToStr([
     '']));
 end;
 
