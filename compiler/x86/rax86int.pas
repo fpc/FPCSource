@@ -933,6 +933,8 @@ Unit Rax86int;
                     if src.opr.ref.segment<>NR_NO then
                       SetSegmentOverride(dest,src.opr.ref.segment);
                   end;
+                OPR_LOCAL:
+                  Message(asmr_e_no_local_or_para_allowed);
                 else
                   internalerror(2018030703);
               end;
