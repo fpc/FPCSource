@@ -40,10 +40,14 @@ asm
 {$endif}
 {$endif}
 
+{$if defined(fpu68881) or defined(fpucoldfire)}
+  fmove.l   fpcr,d0
+  move.l    d0,52(a0)
+{$endif}
 {$if defined(fpu68881)}
-  fmovem.x  fp2-fp7,52(a0)
+  fmovem.x  fp2-fp7,56(a0)
 {$elseif defined(fpucoldfire)}
-  fmovem.d  fp2-fp7,52(a0)
+  fmovem.d  fp2-fp7,56(a0)
 {$endif}
 
   // save FP
@@ -104,10 +108,14 @@ asm
 {$endif}
 {$endif}
 
+{$if defined(fpu68881) or defined(fpucoldfire)}
+  move.l 52(a0),d1
+  fmove.l d1,fpcr
+{$endif}
 {$if defined(fpu68881)}
-  fmovem.x  52(a0),fp2-fp7
+  fmovem.x  56(a0),fp2-fp7
 {$elseif defined(fpucoldfire)}
-  fmovem.d  52(a0),fp2-fp7
+  fmovem.d  56(a0),fp2-fp7
 {$endif}
   // new return pc is at (sp)
 end;
