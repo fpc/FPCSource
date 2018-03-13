@@ -2491,7 +2491,7 @@ cg_h_no_inline=06058_H_Call to subroutine "$1" marked as inline is not inlined
 #
 # Assembler reader
 #
-# 07139 is the last used one
+# 07141 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2829,6 +2829,7 @@ asmr_e_public_must_be_used_before_label_definition=07137_E_Label $1 can only be 
 asmr_e_local_label_cannot_be_declared_public=07138_E_Local label $1 cannot be declared public
 asmr_e_multiple_segment_overrides=07139_E_Cannot use multiple segment overrides
 asmr_w_multiple_segment_overrides=07140_W_Multiple segment overrides (only the last one will take effect)
+asmr_w_segment_override_ignored_in_64bit_mode=07141_W_Segment base $1 will be generated, but is ignored by the CPU in 64-bit mode
 #
 # Assembler/binary writers
 #

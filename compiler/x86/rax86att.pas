@@ -747,6 +747,10 @@ Implementation
                  oper.InitRef;
                  if not is_segment_reg(tempreg) then
                    Message(asmr_e_invalid_seg_override);
+{$ifdef x86_64}
+                 if (tempreg=NR_CS) or (tempreg=NR_DS) or (tempreg=NR_SS) or (tempreg=NR_ES) then
+                   Message1(asmr_w_segment_override_ignored_in_64bit_mode,gas_regname(tempreg));
+{$endif x86_64}
                  oper.opr.ref.segment:=tempreg;
                  { This must absolutely be followed by a reference }
                  if not MaybeBuildReference then

@@ -949,6 +949,10 @@ Unit Rax86int;
       begin
         if not is_segment_reg(seg) then
           Message(asmr_e_invalid_seg_override);
+{$ifdef x86_64}
+        if (seg=NR_CS) or (seg=NR_DS) or (seg=NR_SS) or (seg=NR_ES) then
+          Message1(asmr_w_segment_override_ignored_in_64bit_mode,masm_regname(seg));
+{$endif x86_64}
         case oper.opr.typ of
           OPR_REFERENCE:
             begin
