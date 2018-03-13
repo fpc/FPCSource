@@ -26,52 +26,133 @@ interface
 uses
   Classes, SysUtils,
   fpcunit, testregistry,
-  tcunitsearch, tcmodules;
+  tcunitsearch, tcmodules, Pas2jsFileUtils;
 
 type
 
   { TTestCLI_Precompile }
 
   TTestCLI_Precompile = class(TCustomTestCLI)
-  public
+  protected
+    procedure CheckPrecompile(MainFile, UnitPaths: string;
+      SharedParams: TStringList = nil;
+      FirstRunParams: TStringList = nil;
+      SecondRunParams: TStringList = nil);
   published
     procedure TestPCU_EmptyUnit;
+    procedure TestPCU_ParamNS;
+    procedure TestPCU_UnitCycle;
   end;
+
+function LinesToList(const Lines: array of string): TStringList;
 
 implementation
 
+function LinesToList(const Lines: array of string): TStringList;
+var
+  i: Integer;
+begin
+  Result:=TStringList.Create;
+  for i:=Low(Lines) to High(Lines) do Result.Add(Lines[i]);
+end;
+
 { TTestCLI_Precompile }
 
-procedure TTestCLI_Precompile.TestPCU_EmptyUnit;
+procedure TTestCLI_Precompile.CheckPrecompile(MainFile, UnitPaths: string;
+  SharedParams: TStringList; FirstRunParams: TStringList;
+  SecondRunParams: TStringList);
 var
-  aFile, JSFile: TCLIFile;
-  OrigSrc, NewSrc, s: String;
+  UnitOutputDir, JSFilename, OrigSrc, NewSrc, s: String;
+  JSFile: TCLIFile;
 begin
-  AddUnit('sub/system.pp',[''],['']);
+  try
+    UnitOutputDir:='units';
+    AddDir(UnitOutputDir);
+    // compile, create  .pcu files
+    {$IFDEF VerbosePCUFiler}
+    writeln('TTestCLI_Precompile.CheckPrecompile create pcu files=========================');
+    {$ENDIF}
+    Params.Clear;
+    if SharedParams<>nil then
+      Params.Assign(SharedParams);
+    if FirstRunParams<>nil then
+      Params.AddStrings(FirstRunParams);
+    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JUpcu','-FU'+UnitOutputDir]);
+    AssertFileExists('units/system.pcu');
+    JSFilename:=UnitOutputDir+PathDelim+ExtractFilenameOnly(MainFile)+'.js';
+    AssertFileExists(JSFilename);
+    JSFile:=FindFile(JSFilename);
+    OrigSrc:=JSFile.Source;
+    // compile, using .pcu files
+    {$IFDEF VerbosePCUFiler}
+    writeln('TTestCLI_Precompile.CheckPrecompile compile using pcu files==================');
+    {$ENDIF}
+    JSFile.Source:='';
+    Compiler.Reset;
+    Params.Clear;
+    if SharedParams<>nil then
+      Params.Assign(SharedParams);
+    if SecondRunParams<>nil then
+      Params.AddStrings(SecondRunParams);
+    Compile([MainFile,'-Jc','-FU'+UnitOutputDir]);
+    NewSrc:=JSFile.Source;
+    if not CheckSrcDiff(OrigSrc,NewSrc,s) then
+    begin
+      WriteSources;
+      Fail('test1.js: '+s);
+    end;
+  finally
+    SharedParams.Free;
+    FirstRunParams.Free;
+    SecondRunParams.Free;
+  end;
+end;
+
+procedure TTestCLI_Precompile.TestPCU_EmptyUnit;
+begin
+  AddUnit('src/system.pp',[''],['']);
   AddFile('test1.pas',[
     'begin',
     'end.']);
-  AddDir('units');
-  // compile, create  .pcu files
-  {$IFDEF VerbosePJUFiler}
-  writeln('TTestCLI_Precompile.TestPCU_EmptyUnit create pcu files=========================');
-  {$ENDIF}
-  Compile(['test1.pas','-Jc','-Fusub','-JUpcu','-FUunits']);
-  aFile:=FindFile('units/system.pcu');
-  AssertNotNull('units/system.pcu',aFile);
-  JSFile:=FindFile('units/test1.js');
-  AssertNotNull('units/test1.js',JSFile);
-  OrigSrc:=JSFile.Source;
+  CheckPrecompile('test1.pas','src');
+end;
 
-  // compile, using .pcu files
-  {$IFDEF VerbosePJUFiler}
-  writeln('TTestCLI_Precompile.TestPCU_EmptyUnit compile using pcu files==================');
-  {$ENDIF}
-  Compiler.Reset;
-  Compile(['test1.pas','-Jc','-Fuunits']);
-  NewSrc:=JSFile.Source;
-  if not CheckSrcDiff(OrigSrc,NewSrc,s) then
-    Fail('test1.js: '+s);
+procedure TTestCLI_Precompile.TestPCU_ParamNS;
+begin
+  AddUnit('src/system.pp',[''],['']);
+  AddUnit('src/foo.unit1.pp',['var i: longint;'],['']);
+  AddFile('test1.pas',[
+    'uses unit1;',
+    'begin',
+    '  i:=3;',
+    'end.']);
+  CheckPrecompile('test1.pas','src',LinesToList(['-NSfoo']));
+end;
+
+procedure TTestCLI_Precompile.TestPCU_UnitCycle;
+begin
+  AddUnit('src/system.pp',['type integer = longint;'],['']);
+  AddUnit('src/unit1.pp',
+  ['var i: integer;',
+   'procedure Do1(j: integer);'],
+  ['uses unit2;',
+   'procedure Do1(j: integer);',
+   'begin',
+   '  Do2(j);',
+   'end;']);
+  AddUnit('src/unit2.pp',
+  ['uses unit1;',
+  'procedure Do2(j: integer);'],
+  ['procedure Do2(j: integer);',
+   'begin',
+   '  unit1.i:=j;',
+   'end;']);
+  AddFile('test1.pas',[
+    'uses unit1;',
+    'begin',
+    '  Do1(3);',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
 end;
 
 Initialization

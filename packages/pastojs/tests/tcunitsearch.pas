@@ -112,6 +112,7 @@ type
     function AddFile(Filename: string; const SourceLines: array of string): TCLIFile;
     function AddUnit(Filename: string; const Intf, Impl: array of string): TCLIFile;
     function AddDir(Filename: string): TCLIFile;
+    procedure AssertFileExists(Filename: string);
     property WorkDir: string read FWorkDir write SetWorkDir;
     property DefaultFileAge: longint read FDefaultFileAge write FDefaultFileAge;
     property ExitCode: integer read GetExitCode write SetExitCode;
@@ -240,7 +241,7 @@ procedure TCustomTestCLI.DoLog(Sender: TObject; const Msg: String);
 var
   LogMsg: TCLILogMsg;
 begin
-  {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+  {$IF defined(VerbosePasResolver) or defined(VerbosePCUFiler)}
   writeln('TCustomTestCLI.DoLog ',Msg,' File=',Compiler.Log.LastMsgFile,' Line=',Compiler.Log.LastMsgLine);
   {$ENDIF}
   LogMsg:=TCLILogMsg.Create;
@@ -296,7 +297,7 @@ begin
   if aFile=nil then exit(false);
   if (faDirectory and aFile.Attr)>0 then
   begin
-    {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+    {$IF defined(VerbosePasResolver) or defined(VerbosePCUFiler)}
     writeln('[20180224000557] TCustomTestCLI.OnReadFile ',aFilename);
     {$ENDIF}
     EPas2jsFileCache.Create('TCustomTestCLI.OnReadFile: reading directory '+aFilename);
@@ -309,29 +310,40 @@ end;
 procedure TCustomTestCLI.OnWriteFile(aFilename: string; Source: string);
 var
   aFile: TCLIFile;
+  {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
+  //i: Integer;
+  {$ENDIF}
 begin
   aFile:=FindFile(aFilename);
-  {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+  {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
   writeln('TCustomTestCLI.WriteFile ',aFilename,' Found=',aFile<>nil,' SrcLen=',length(Source));
   {$ENDIF}
   if aFile<>nil then
   begin
-    if faDirectory and aFile.Attr>0 then
+    if (faDirectory and aFile.Attr)>0 then
     begin
-      {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('[20180223175616] TCustomTestCLI.OnWriteFile ',aFilename);
       {$ENDIF}
       raise EPas2jsFileCache.Create('unable to write file to directory "'+aFilename+'"');
     end;
   end else
   begin
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
+    //writeln('TCustomTestCLI.OnWriteFile FFiles: ',FFiles.Count);
+    //for i:=0 to FFiles.Count-1 do
+    //begin
+    //  aFile:=TCLIFile(FFiles[i]);
+    //  writeln('  ',i,': Filename=',aFile.Filename,' ',CompareFilenames(aFile.Filename,aFilename),' Dir=',(aFile.Attr and faDirectory)>0,' Len=',length(aFile.Source));
+    //end;
+    {$ENDIF}
     aFile:=TCLIFile.Create(aFilename,'',0,0);
     FFiles.Add(aFile);
   end;
   aFile.Source:=Source;
   aFile.Attr:=faNormal;
   aFile.Age:=DateTimeToFileDate(CurDate);
-  //writeln('TCustomTestCLI.OnWriteFile ',aFile.Filename,' "',LeftStr(aFile.Source,50),'"');
+  writeln('TCustomTestCLI.OnWriteFile ',aFile.Filename,' Found=',FindFile(aFilename)<>nil,' "',LeftStr(aFile.Source,50),'" ');
 end;
 
 procedure TCustomTestCLI.WriteSources;
@@ -394,7 +406,6 @@ var
   i: Integer;
 begin
   AssertEquals('Initial System.ExitCode',0,system.ExitCode);
-  Params.Clear;
   for i:=low(Args) to High(Args) do
     Params.Add(Args[i]);
   try
@@ -404,13 +415,13 @@ begin
     except
       on E: ECompilerTerminate do
       begin
-        {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+        {$IF defined(VerbosePasResolver) or defined(VerbosePCUFiler)}
         writeln('TCustomTestCLI.Compile ',E.ClassName,':',E.Message);
         {$ENDIF}
       end;
       on E: Exception do
       begin
-        {$IF defined(VerbosePasResolver) or defined(VerbosePJUFiler)}
+        {$IF defined(VerbosePasResolver) or defined(VerbosePCUFiler)}
         writeln('TCustomTestCLI.Compile ',E.ClassName,':',E.Message);
         {$ENDIF}
         Fail('TCustomTestCLI.Compile '+E.ClassName+':'+E.Message);
@@ -454,7 +465,7 @@ end;
 function TCustomTestCLI.AddFile(Filename, Source: string): TCLIFile;
 begin
   Filename:=ExpandFilename(Filename);
-  {$IFDEF VerbosePJUFiler}
+  {$IFDEF VerbosePCUFiler}
   writeln('TCustomTestCLI.AddFile ',Filename);
   {$ENDIF}
   Result:=FindFile(Filename);
@@ -504,14 +515,14 @@ begin
         Result:=aFile;
       if aFile=nil then
         begin
-        {$IFDEF VerbosePJUFiler}
+        {$IFDEF VerbosePCUFiler}
         writeln('TCustomTestCLI.AddDir add Dir=',Dir);
         {$ENDIF}
         FFiles.Add(TCLIFile.Create(Dir,'',DefaultFileAge,faDirectory));
         end
       else if (aFile.Attr and faDirectory)=0 then
       begin
-        {$IFDEF VerbosePJUFiler}
+        {$IFDEF VerbosePCUFiler}
         writeln('[20180224001036] TCustomTestCLI.AddDir file exists: Dir=',Dir);
         {$ENDIF}
         raise EPas2jsFileCache.Create('[20180224001036] TCustomTestCLI.AddDir Dir='+Dir);
@@ -520,6 +531,14 @@ begin
     end else
       dec(p);
   end;
+end;
+
+procedure TCustomTestCLI.AssertFileExists(Filename: string);
+var
+  aFile: TCLIFile;
+begin
+  aFile:=FindFile(Filename);
+  AssertNotNull('File not found: '+Filename,aFile);
 end;
 
 function TCustomTestCLI.GetLogCount: integer;

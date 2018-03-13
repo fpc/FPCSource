@@ -820,7 +820,8 @@ type
     function ReadMemberHints(Obj: TJSONObject; El: TPasElement; const DefaultValue: TPasMemberHints): TPasMemberHints; virtual;
     procedure ReadPasElement(Obj: TJSONObject; El: TPasElement; aContext: TPCUReaderContext); virtual;
     procedure ReadExtRefs(Obj: TJSONObject; El: TPasElement); virtual;
-    procedure ReadUsedUnits(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
+    procedure ReadUsedUnitsInit(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
+    procedure ReadUsedUnitsFinish(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
     procedure ReadSectionScope(Obj: TJSONObject; Scope: TPasSectionScope; aContext: TPCUReaderContext); virtual;
     procedure ReadSection(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
     procedure ReadDeclarations(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
@@ -1365,32 +1366,19 @@ end;
 { TPCUCustomReader }
 
 function TPCUCustomReader.ReadCanContinue: boolean;
-
-  function SectionCanContinue(Section: TPasSection): boolean;
-  var
-    Scope: TPasSectionScope;
-  begin
-    Scope:=Section.CustomData as TPasSectionScope;
-    if Scope.Finished then exit(false);
-    Result:=Section.PendingUsedIntf=nil;
-  end;
-
 var
   Module: TPasModule;
+  Section: TPasSection;
+  Scope: TPasSectionScope;
 begin
   Result:=false;
   Module:=Resolver.RootElement;
-  if Module is TPasProgram then
-    Result:=SectionCanContinue(TPasProgram(Module).ProgramSection)
-  else if Module is TPasLibrary then
-    Result:=SectionCanContinue(TPasLibrary(Module).LibrarySection)
-  else
-    begin
-    if Module.ImplementationSection<>nil then
-      Result:=SectionCanContinue(Module.ImplementationSection)
-    else
-      Result:=SectionCanContinue(Module.InterfaceSection);
-    end;
+  if Module=nil then exit(true); // not yet started
+  Section:=Resolver.GetLastSection;
+  if Section=nil then exit(true); // only header
+  Scope:=Section.CustomData as TPasSectionScope;
+  if Scope.Finished then exit(false); // finished
+  Result:=Section.PendingUsedIntf=nil;
 end;
 
 { TPCUFilerElementRef }
@@ -4626,20 +4614,19 @@ begin
     end;
 end;
 
-procedure TPCUReader.ReadUsedUnits(Obj: TJSONObject; Section: TPasSection;
+procedure TPCUReader.ReadUsedUnitsInit(Obj: TJSONObject; Section: TPasSection;
   aContext: TPCUReaderContext);
+// Note: can be called twice for each section if there are pending used interfaces
 var
   Arr: TJSONArray;
   i, Id: Integer;
   Data: TJSONData;
-  UsesObj, ModuleObj: TJSONObject;
+  UsesObj: TJSONObject;
   Name, InFilename, ModuleName: string;
   Use: TPasUsesUnit;
   Module: TPasModule;
-  Scope, UsedScope: TPasSectionScope;
 begin
   if not ReadArray(Obj,'Uses',Arr,Section) then exit;
-  Scope:=Section.CustomData as TPasSectionScope;
   SetLength(Section.UsesClause,Arr.Count);
   for i:=0 to length(Section.UsesClause)-1 do
     Section.UsesClause[i]:=nil;
@@ -4668,16 +4655,50 @@ begin
     if Module=nil then
       RaiseMsg(20180307231247,Use);
     Use.Module:=Module;
-    UsedScope:=Module.InterfaceSection.CustomData as TPasSectionScope;
-    Scope.UsesScopes.Add(UsedScope);
-
+    Module.AddRef;
     if ReadInteger(UsesObj,'Id',Id,Use) then
       AddElReference(Id,Use,Use);
+    end;
+  Resolver.CheckPendingUsedInterface(Section);
+  if aContext=nil then ;
+end;
+
+procedure TPCUReader.ReadUsedUnitsFinish(Obj: TJSONObject;
+  Section: TPasSection; aContext: TPCUReaderContext);
+var
+  Arr: TJSONArray;
+  Scope, UsedScope: TPasSectionScope;
+  i: Integer;
+  Use: TPasUsesUnit;
+  Module: TPasModule;
+  Data: TJSONData;
+  UsesObj, ModuleObj: TJSONObject;
+begin
+  if not ReadArray(Obj,'Uses',Arr,Section) then exit;
+  Scope:=Section.CustomData as TPasSectionScope;
+  if Scope.UsesFinished then
+    RaiseMsg(20180313133931,Section);
+  if Section.PendingUsedIntf<>nil then
+    RaiseMsg(20180313134142,Section,GetObjName(Section.PendingUsedIntf));
+  if Arr.Count<>length(Section.UsesClause) then
+    RaiseMsg(20180313134338,IntToStr(Arr.Count)+'<>'+IntToStr(length(Section.UsesClause)));
+  for i:=0 to Arr.Count-1 do
+  begin
+    Data:=Arr[i];
+    if not (Data is TJSONObject) then
+      RaiseMsg(20180313134409,Section,GetObjName(Data));
+    UsesObj:=TJSONObject(Data);
+    Use:=Section.UsesClause[i];
+
+    Module:=Use.Module as TPasModule;
+    UsedScope:=Module.InterfaceSection.CustomData as TPasSectionScope;
+    Scope.UsesScopes.Add(UsedScope);
     // Refs
     if ReadObject(UsesObj,'Module',ModuleObj,Use) then
       ReadExtRefs(ModuleObj,Module);
-    end;
-  Resolver.CheckPendingUsedInterface(Section);
+  end;
+  Scope.UsesFinished:=true;
+
   if aContext=nil then ;
 end;
 
@@ -4689,6 +4710,7 @@ end;
 
 procedure TPCUReader.ReadSection(Obj: TJSONObject; Section: TPasSection;
   aContext: TPCUReaderContext);
+// Note: can be called twice for each section if there are pending used interfaces
 var
   Scope: TPasSectionScope;
 begin
@@ -4699,24 +4721,22 @@ begin
     begin
     ReadPasElement(Obj,Section,aContext);
     Scope:=TPasSectionScope(Resolver.CreateScope(Section,TPasSectionScope));
-    ReadUsedUnits(Obj,Section,aContext);
+    ReadUsedUnitsInit(Obj,Section,aContext);
     if Section.PendingUsedIntf<>nil then exit;
     end
   else
     begin
     Scope:=Section.CustomData as TPasSectionScope;
+    if Scope.Finished then
+      RaiseMsg(20180308160336,Section);
     if Section.PendingUsedIntf<>nil then
       RaiseMsg(20180308160639,Section,GetObjName(Section.PendingUsedIntf));
     end;
-
-  if Scope.Finished then
-    RaiseMsg(20180308160336,Section);
-  if Scope.UsesFinished then
-    RaiseMsg(20180308160337,Section);
-  Scope.UsesFinished:=true;
-
+  // read external references
+  ReadUsedUnitsFinish(Obj,Section,aContext);
+  // read scope, needs external refs
   ReadSectionScope(Obj,Scope,aContext);
-
+  // read declarations, needs external refs
   ReadDeclarations(Obj,Section,aContext);
   Scope.Finished:=true;
   if Section is TInterfaceSection then

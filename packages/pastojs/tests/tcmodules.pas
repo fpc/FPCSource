@@ -662,31 +662,40 @@ var
     Result:=p;
   end;
 
+  procedure SkipLineEnd(var p: PChar);
+  begin
+    if p^ in [#10,#13] then
+    begin
+      if (p[1] in [#10,#13]) and (p^<>p[1]) then
+        inc(p,2)
+      else
+        inc(p);
+    end;
+  end;
+
   procedure DiffFound;
   var
     ActLineStartP, ActLineEndP, p, StartPos: PChar;
     ExpLine, ActLine: String;
-    i: Integer;
+    i, LineNo, DiffLineNo: Integer;
   begin
     writeln('Diff found "',Msg,'". Lines:');
     // write correct lines
     p:=PChar(Expected);
+    LineNo:=0;
+    DiffLineNo:=0;
     repeat
       StartPos:=p;
       while not (p^ in [#0,#10,#13]) do inc(p);
       ExpLine:=copy(Expected,StartPos-PChar(Expected)+1,p-StartPos);
-      if p^ in [#10,#13] then
-      begin
-        if (p[1] in [#10,#13]) and (p^<>p[1]) then
-          inc(p,2)
-        else
-          inc(p);
-      end;
+      SkipLineEnd(p);
+      inc(LineNo);
       if (p<=ExpectedP) and (p^<>#0) then
       begin
         writeln('= ',ExpLine);
       end else begin
         // diff line
+        if DiffLineNo=0 then DiffLineNo:=LineNo;
         // write actual line
         ActLineStartP:=FindLineStart(ActualP,PChar(Actual));
         ActLineEndP:=FindLineEnd(ActualP);
@@ -699,6 +708,15 @@ var
         writeln('^');
         Msg:='expected "'+ExpLine+'", but got "'+ActLine+'".';
         CheckSrcDiff:=false;
+        // write up to three following actual lines to get some context
+        for i:=1 to 3 do begin
+          ActLineStartP:=ActLineEndP;
+          SkipLineEnd(ActLineStartP);
+          if ActLineStartP^=#0 then break;
+          ActLineEndP:=FindLineEnd(ActLineStartP);
+          ActLine:=copy(Actual,ActLineStartP-PChar(Actual)+1,ActLineEndP-ActLineStartP);
+          writeln('~ ',ActLine);
+        end;
         exit;
       end;
     until p^=#0;

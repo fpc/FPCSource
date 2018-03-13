@@ -36,8 +36,8 @@ type
   private
     FAnalyzer: TPasAnalyzer;
     FInitialFlags: TPCUInitialFlags;
-    FPJUReader: TPCUReader;
-    FPJUWriter: TPCUWriter;
+    FPCUReader: TPCUReader;
+    FPCUWriter: TPCUWriter;
     FRestAnalyzer: TPasAnalyzer;
     procedure OnFilerGetSrc(Sender: TObject; aFilename: string; out p: PChar;
       out Count: integer);
@@ -121,8 +121,8 @@ type
   public
     property Analyzer: TPasAnalyzer read FAnalyzer;
     property RestAnalyzer: TPasAnalyzer read FRestAnalyzer;
-    property PJUWriter: TPCUWriter read FPJUWriter write FPJUWriter;
-    property PJUReader: TPCUReader read FPJUReader write FPJUReader;
+    property PCUWriter: TPCUWriter read FPCUWriter write FPCUWriter;
+    property PCUReader: TPCUReader read FPCUReader write FPCUReader;
     property InitialFlags: TPCUInitialFlags read FInitialFlags;
   end;
 
@@ -220,7 +220,7 @@ function TCustomTestPrecompile.OnRestResolverFindUnit(const aUnitName: String
       begin
       CurEngine:=Resolvers[i];
       CurUnitName:=ExtractFileUnitName(CurEngine.Filename);
-      {$IFDEF VerbosePJUFiler}
+      {$IFDEF VerbosePCUFiler}
       //writeln('TCustomTestPrecompile.FindRestUnit Checking ',i,'/',ResolverCount,' ',CurEngine.Filename,' ',CurUnitName);
       {$ENDIF}
       if CompareText(Name,CurUnitName)=0 then
@@ -228,12 +228,12 @@ function TCustomTestPrecompile.OnRestResolverFindUnit(const aUnitName: String
         Result:=CurEngine.Module;
         if Result<>nil then
           begin
-          {$IFDEF VerbosePJUFiler}
+          {$IFDEF VerbosePCUFiler}
           //writeln('TCustomTestPrecompile.FindRestUnit Found parsed module: ',Result.Filename);
           {$ENDIF}
           exit;
           end;
-        {$IFDEF VerbosePJUFiler}
+        {$IFDEF VerbosePCUFiler}
         writeln('TCustomTestPrecompile.FindRestUnit PARSING unit "',CurEngine.Filename,'"');
         {$ENDIF}
         Fail('not parsed');
@@ -270,8 +270,8 @@ end;
 procedure TCustomTestPrecompile.TearDown;
 begin
   FreeAndNil(FAnalyzer);
-  FreeAndNil(FPJUWriter);
-  FreeAndNil(FPJUReader);
+  FreeAndNil(FPCUWriter);
+  FreeAndNil(FPCUReader);
   FreeAndNil(FInitialFlags);
   inherited TearDown;
 end;
@@ -291,7 +291,7 @@ end;
 procedure TCustomTestPrecompile.WriteReadUnit;
 var
   ms: TMemoryStream;
-  PJU, RestJSSrc, OrigJSSrc: string;
+  PCU, RestJSSrc, OrigJSSrc: string;
   // restored classes:
   RestResolver: TTestEnginePasResolver;
   RestFileResolver: TFileResolver;
@@ -302,8 +302,8 @@ var
 begin
   ConvertUnit;
 
-  FPJUWriter:=TPCUWriter.Create;
-  FPJUReader:=TPCUReader.Create;
+  FPCUWriter:=TPCUWriter.Create;
+  FPCUReader:=TPCUReader.Create;
   ms:=TMemoryStream.Create;
   RestParser:=nil;
   RestScanner:=nil;
@@ -313,9 +313,9 @@ begin
   RestJSModule:=nil;
   try
     try
-      PJUWriter.OnGetSrc:=@OnFilerGetSrc;
-      PJUWriter.OnIsElementUsed:=@OnConverterIsElementUsed;
-      PJUWriter.WritePCU(Engine,Converter,InitialFlags,ms,false);
+      PCUWriter.OnGetSrc:=@OnFilerGetSrc;
+      PCUWriter.OnIsElementUsed:=@OnConverterIsElementUsed;
+      PCUWriter.WritePCU(Engine,Converter,InitialFlags,ms,false);
     except
       on E: Exception do
       begin
@@ -327,12 +327,12 @@ begin
     end;
 
     try
-      SetLength(PJU,ms.Size);
-      System.Move(ms.Memory^,PJU[1],length(PJU));
+      SetLength(PCU,ms.Size);
+      System.Move(ms.Memory^,PCU[1],length(PCU));
 
-      writeln('TCustomTestPrecompile.WriteReadUnit PJU START-----');
-      writeln(PJU);
-      writeln('TCustomTestPrecompile.WriteReadUnit PJU END-------');
+      writeln('TCustomTestPrecompile.WriteReadUnit PCU START-----');
+      writeln(PCU);
+      writeln('TCustomTestPrecompile.WriteReadUnit PCU END-------');
 
       RestFileResolver:=TFileResolver.Create;
       RestScanner:=TPascalScanner.Create(RestFileResolver);
@@ -345,8 +345,8 @@ begin
       RestParser.Options:=po_tcmodules;
       RestResolver.CurrentParser:=RestParser;
       ms.Position:=0;
-      PJUReader.ReadPCU(RestResolver,ms);
-      if not PJUReader.ReadContinue then
+      PCUReader.ReadPCU(RestResolver,ms);
+      if not PCUReader.ReadContinue then
         Fail('ReadContinue=false, pending used interfaces');
     except
       on E: Exception do
@@ -641,8 +641,8 @@ begin
       Fail(Path+'.UsesScopes['+IntToStr(i)+'] Rest='+GetObjName(TObject(Rest.UsesScopes[i])));
     RestUses:=TPasSectionScope(Rest.UsesScopes[i]);
     if OrigUses.ClassType<>RestUses.ClassType then
-      Fail(Path+'.Uses['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
-    CheckRestoredReference(Path+'.Uses['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
+      Fail(Path+'.UsesScopes['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
+    CheckRestoredReference(Path+'.UsesScopes['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
     end;
   AssertEquals(Path+'.Finished',Orig.Finished,Rest.Finished);
   CheckRestoredIdentifierScope(Path,Orig,Rest);

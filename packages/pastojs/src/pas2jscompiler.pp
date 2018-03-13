@@ -253,6 +253,10 @@ type
       out Count: integer);
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
     procedure OnParserLog(Sender: TObject; const Msg: String);
+    function OnPCUConverterIsElementUsed(Sender: TObject; El: TPasElement
+      ): boolean;
+    function OnPCUConverterIsTypeInfoUsed(Sender: TObject; El: TPasElement
+      ): boolean;
     procedure OnScannerLog(Sender: TObject; const Msg: String);
     procedure OnUseAnalyzerMessage(Sender: TObject; Msg: TPAMessage);
     procedure HandleEParserError(E: EParserError);
@@ -275,6 +279,7 @@ type
     function GetInitialConverterOptions: TPasToJsConverterOptions;
     procedure CreateScannerAndParser(aFileResolver: TPas2jsFileResolver);
     procedure CreatePCUReader;
+    procedure CreateConverter;
     function FindPCU(const UseUnitName: string; out aFormat: TPas2JSPrecompileFormat): string;
     function OnResolverFindModule(const UseUnitName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule;
@@ -868,6 +873,15 @@ begin
   end;
 end;
 
+procedure TPas2jsCompilerFile.CreateConverter;
+begin
+  if FConverter<>nil then exit;
+  FConverter:=TPasToJSConverter.Create;
+  FConverter.Options:=GetInitialConverterOptions;
+  FConverter.TargetPlatform:=Compiler.TargetPlatform;
+  FConverter.TargetProcessor:=Compiler.TargetProcessor;
+end;
+
 procedure TPas2jsCompilerFile.OnResolverCheckSrcName(const Element: TPasElement);
 var
   SrcName, ExpectedSrcName: String;
@@ -968,6 +982,18 @@ begin
           aScanner.CurFilename,aScanner.CurRow,aScanner.CurColumn);
 end;
 
+function TPas2jsCompilerFile.OnPCUConverterIsElementUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=UseAnalyzer.IsUsed(El);
+end;
+
+function TPas2jsCompilerFile.OnPCUConverterIsTypeInfoUsed(Sender: TObject;
+  El: TPasElement): boolean;
+begin
+  Result:=UseAnalyzer.IsTypeInfoUsed(El);
+end;
+
 procedure TPas2jsCompilerFile.OnScannerLog(Sender: TObject; const Msg: String);
 var
   aScanner: TPascalScanner;
@@ -1028,7 +1054,7 @@ end;
 procedure TPas2jsCompilerFile.HandleUnknownException(E: Exception);
 begin
   if not (E is ECompilerTerminate) then
-    Log.Log(mtFatal,'bug: uncaught ECompilerTerminate'+': '+E.Message,0); // must use on E:ECompilerTerminate do raise;
+    Log.Log(mtFatal,'bug: uncaught '+E.ClassName+': '+E.Message,0); // must use on E:ECompilerTerminate do raise;
   Log.Log(mtFatal,E.ClassName+': '+E.Message,0);
   Compiler.Terminate(ExitCodeErrorInternal);
   // Note: a "raise E" is not allowed by caught exceptions, try..except will free it
@@ -1118,7 +1144,7 @@ begin
     writeln('TPas2jsCompilerFile.ReaderFinished analyzing ',PasFilename,' ...');
     {$ENDIF}
     UseAnalyzer.AnalyzeModule(FPasModule);
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompilerFile.ReaderFinished analyzed ',PasFilename,' ScopeModule=',GetObjName(UseAnalyzer.ScopeModule));
     {$ENDIF}
 
@@ -1138,10 +1164,11 @@ var
   Writer: TPCUWriter;
   ms: TMemoryStream;
   DestDir: String;
+  JS: TJSElement;
 begin
   if PasModule.ClassType<>TPasModule then
   begin
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompilerFile.WritePCU not a unit: ',PasFilename,' skip');
     {$ENDIF}
     exit;
@@ -1149,7 +1176,7 @@ begin
 
   if (PCUFilename<>'') or (PCUReader<>nil) then
   begin
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompilerFile.WritePCU already precompiled "',PCUFilename,'" Reader=',GetObjName(PCUReader));
     {$ENDIF}
     exit;
@@ -1157,10 +1184,11 @@ begin
   FPCUFilename:=Compiler.CreatePrecompileFilename(Self);
   FPCUFormat:=Compiler.FileCache.PrecompileFormat;
 
-  {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+  {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
   writeln('TPas2jsCompilerFile.WritePCU precompiling ',PCUFilename);
   {$ENDIF}
 
+  JS:=nil;
   PF:=Compiler.FileCache.PrecompileFormat;
   ms:=TMemoryStream.Create;
   Writer:=PF.WriterClass.Create;
@@ -1168,8 +1196,17 @@ begin
     Writer.GUID:=Compiler.PrecompileGUID;
     Writer.OnGetSrc:=@OnFilerGetSrc;
     Writer.OnIsElementUsed:=@OnWriterIsElementUsed;
+
+    // create JavaScript for procs, initialization, finalization
+    CreateConverter;
+    Converter.Options:=Converter.Options+[coStoreImplJS];
+    Converter.OnIsElementUsed:=@OnPCUConverterIsElementUsed;
+    Converter.OnIsTypeInfoUsed:=@OnPCUConverterIsTypeInfoUsed;
+    JS:=Converter.ConvertPasElement(PasModule,PascalResolver);
+    Converter.Options:=Converter.Options-[coStoreImplJS];
+
     Writer.WritePCU(PascalResolver,Converter,Compiler.PrecompileInitialFlags,ms,false);
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompilerFile.WritePCU precompiled ',PCUFilename);
     {$ENDIF}
 
@@ -1180,7 +1217,7 @@ begin
     DestDir:=ChompPathDelim(ExtractFilePath(PCUFilename));
     if (DestDir<>'') and not Compiler.DirectoryExists(DestDir) then
     begin
-      {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('TPas2jsCompilerFile.WritePCU output dir not found "',DestDir,'"');
       {$ENDIF}
       Log.LogMsg(nOutputDirectoryNotFound,[Compiler.FileCache.FormatPath(DestDir)]);
@@ -1188,7 +1225,7 @@ begin
     end;
     if Compiler.DirectoryExists(PCUFilename) then
     begin
-      {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('TPas2jsCompilerFile.WritePCU file is folder "',DestDir,'"');
       {$ENDIF}
       Log.LogMsg(nFileIsFolder,[Compiler.FileCache.FormatPath(PCUFilename)]);
@@ -1197,10 +1234,11 @@ begin
 
     ms.Position:=0;
     Compiler.FileCache.SaveToFile(ms,PCUFilename);
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompilerFile.WritePCU written ',PCUFilename);
     {$ENDIF}
   finally
+    JS.Free;
     Writer.Free;
     ms.Free;
   end;
@@ -1249,7 +1287,7 @@ begin
         FReaderState:=prsWaitingForUsedUnits;
     end;
     {$IFDEF VerboseUnitQueue}
-    writeln('TPas2jsCompilerFile.ReadUnit ',PasFilename,' Finished=',Parser.CurModule=nil);
+    writeln('TPas2jsCompilerFile.ReadUnit ',PasFilename,' ReaderState=',ReaderState);
     {$ENDIF}
   except
     on E: ECompilerTerminate do
@@ -1283,7 +1321,7 @@ begin
       Result:=Parser.CurModule=nil;
     end;
     {$IFDEF VerboseUnitQueue}
-    writeln('TPas2jsCompilerFile.ReadContinue ',PasFilename,' finished=',Parser.CurModule=nil);
+    writeln('TPas2jsCompilerFile.ReadContinue ',PasFilename,' finished=',Result);
     {$ENDIF}
     if Result then
       ReaderFinished
@@ -1322,12 +1360,9 @@ begin
     UseAnalyzer.EmitModuleHints(PasModule);
 
     // convert
-    FConverter:=TPasToJSConverter.Create;
-    FConverter.Options:=GetInitialConverterOptions;
-    FConverter.TargetPlatform:=Compiler.TargetPlatform;
-    FConverter.TargetProcessor:=Compiler.TargetProcessor;
-    FConverter.OnIsElementUsed:=@OnConverterIsElementUsed;
-    FConverter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
+    CreateConverter;
+    Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
+    Converter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
     FJSModule:=Converter.ConvertPasElement(PasModule,PascalResolver);
   except
     on E: ECompilerTerminate do
@@ -1343,14 +1378,12 @@ var
 begin
   aModule:=GetCurPasModule;
   if aModule=nil then exit;
-  if aModule.ClassType=TPasUnitModule then
-    Result:=TPasUnitModule(aModule).InterfaceSection
-  else if aModule.ClassType=TPasProgram then
+  if aModule.ClassType=TPasProgram then
     Result:=TPasProgram(aModule).ProgramSection
   else if aModule.ClassType=TPasLibrary then
     Result:=TPasLibrary(aModule).LibrarySection
   else
-    Result:=nil;
+    Result:=aModule.InterfaceSection;
 end;
 
 function TPas2jsCompilerFile.GetPasImplSection: TPasSection;
@@ -1406,6 +1439,8 @@ function TPas2jsCompilerFile.GetCurPasModule: TPasModule;
 begin
   if PasModule<>nil then
     Result:=PasModule
+  else if (PascalResolver<>nil) and (PascalResolver.RootElement<>nil) then
+    Result:=PascalResolver.RootElement
   else if Parser<>nil then
     Result:=Parser.CurModule
   else
@@ -1492,32 +1527,41 @@ end;
 function TPas2jsCompilerFile.OnResolverFindModule(const UseUnitName,
   InFilename: String; NameExpr, InFileExpr: TPasExpr): TPasModule;
 var
-  FoundUnitName: string;
-  FoundIsForeign: Boolean;
+  FoundPasFilename, FoundPasUnitName, FoundPCUFilename, FoundPCUUnitName: string;
+  FoundPasIsForeign: Boolean;
+  FoundPCUFormat: TPas2JSPrecompileFormat;
 
-  function TryUnitName(const TestUnitName: string): string;
+  procedure TryUnitName(const TestUnitName: string);
   var
     aFile: TPas2jsCompilerFile;
   begin
-    // search loaded units
-    aFile:=Compiler.FindUnitWithName(TestUnitName);
-    if aFile<>nil then
+    if FoundPasFilename='' then
     begin
-      FoundUnitName:=TestUnitName;
-      exit(aFile.PasFilename);
+      // search loaded units
+      aFile:=Compiler.FindUnitWithName(TestUnitName);
+      if aFile<>nil then
+      begin
+        FoundPasFilename:=aFile.PasFilename;
+        FoundPasUnitName:=TestUnitName;
+      end else begin
+        // search pas in unit path
+        FoundPasFilename:=FileResolver.FindUnitFileName(TestUnitName,'',FoundPasIsForeign);
+        if FoundPasFilename<>'' then
+          FoundPasUnitName:=TestUnitName;
+      end;
     end;
-    // search pas in unit path
-    Result:=FileResolver.FindUnitFileName(TestUnitName,'',FoundIsForeign);
-    if Result<>'' then
-      FoundUnitName:=TestUnitName;
+    if FoundPCUFilename='' then
+    begin
+      FoundPCUFilename:=FindPCU(TestUnitName,FoundPCUFormat);
+      if FoundPCUFilename<>'' then
+        FoundPCUUnitName:=TestUnitName;
+    end;
   end;
 
 var
-  aNameSpace, DefNameSpace, FoundPasFilename, FoundPCUFilename: String;
-  LastEl: TPasElement;
+  aNameSpace, DefNameSpace: String;
   i: Integer;
   aFile: TPas2jsCompilerFile;
-  FoundPCUFormat: TPas2JSPrecompileFormat;
 begin
   Result:=nil;
   if CompareText(ExtractFilenameOnly(PasFilename),UseUnitname)=0 then
@@ -1526,29 +1570,19 @@ begin
     Parser.RaiseParserError(nUnitCycle,[UseUnitname]);
   end;
 
-  LastEl:=PascalResolver.LastElement;
-  if (LastEl<>nil)
-      and ((LastEl is TPasSection) or (LastEl.ClassType=TPasUsesUnit)
-        or (LastEl.Parent is TPasSection)) then
-    // ok
-  else
-    RaiseInternalError(20170504161408,'internal error TPas2jsCompilerFile.FindModule PasTree.LastElement='+GetObjName(LastEl)+' '+GetObjName(LastEl.Parent));
-
   FoundPasFilename:='';
-  FoundIsForeign:=false;
-  FoundUnitName:='';
+  FoundPasIsForeign:=false;
+  FoundPasUnitName:='';
   FoundPCUFilename:='';
   FoundPCUFormat:=nil;
+  FoundPCUUnitName:='';
   if (InFilename='') and (Pos('.',UseUnitname)<1) then
   begin
     // generic unit -> search with namespaces
     // first the default program namespace
     DefNameSpace:=Compiler.GetDefaultNamespace;
     if DefNameSpace<>'' then
-    begin
-      FoundPasFilename:=TryUnitName(DefNameSpace+'.'+UseUnitname);
-      FoundPCUFilename:=FindPCU(DefNameSpace+'.'+UseUnitname,FoundPCUFormat);
-    end;
+      TryUnitName(DefNameSpace+'.'+UseUnitname);
 
     if (FoundPasFilename='') or (FoundPCUFilename='') then
     begin
@@ -1557,10 +1591,7 @@ begin
         aNameSpace:=Compiler.FileCache.Namespaces[i];
         if aNameSpace='' then continue;
         if SameText(aNameSpace,DefNameSpace) then continue;
-        if FoundPasFilename='' then
-          FoundPasFilename:=TryUnitName(aNameSpace+'.'+UseUnitname);
-        if FoundPCUFilename='' then
-          FoundPCUFilename:=FindPCU(aNameSpace+'.'+UseUnitname,FoundPCUFormat);
+        TryUnitName(aNameSpace+'.'+UseUnitname);
       end;
     end;
   end;
@@ -1574,30 +1605,33 @@ begin
       if aFile<>nil then
       begin
         FoundPasFilename:=aFile.PasFilename;
-        FoundUnitName:=UseUnitName;
+        FoundPasUnitName:=UseUnitName;
       end;
     end;
     if FoundPasFilename='' then
     begin
       // search Pascal file
-      FoundPasFilename:=FileResolver.FindUnitFileName(UseUnitname,InFilename,FoundIsForeign);
+      FoundPasFilename:=FileResolver.FindUnitFileName(UseUnitname,InFilename,FoundPasIsForeign);
       if FoundPasFilename<>'' then
         begin
         if InFilename<>'' then
-          FoundUnitName:=ExtractFilenameOnly(InFilename)
+          FoundPasUnitName:=ExtractFilenameOnly(InFilename)
         else
-          FoundUnitName:=UseUnitName;
+          FoundPasUnitName:=UseUnitName;
         end
       else if InFilename<>'' then
         exit; // an in-filename unit source is missing -> stop
     end;
   end;
   if FoundPCUFilename='' then
+  begin
     FoundPCUFilename:=FindPCU(UseUnitName,FoundPCUFormat);
+    FoundPCUUnitName:=UseUnitName;
+  end;
 
   if (FoundPCUFilename<>'') and (FoundPasFilename='') then
   begin
-    aFile:=LoadUsedUnit(FoundPCUFilename,UseUnitName,'',NameExpr,nil,false,FoundPCUFormat);
+    aFile:=LoadUsedUnit(FoundPCUFilename,FoundPCUUnitName,'',NameExpr,nil,false,FoundPCUFormat);
     if aFile<>nil then
       Result:=aFile.PasModule;
     exit;
@@ -1606,8 +1640,8 @@ begin
   if FoundPasFilename<>'' then
   begin
     // load unit
-    aFile:=LoadUsedUnit(FoundPasFilename,FoundUnitName,InFilename,
-                         NameExpr,InFileExpr,FoundIsForeign,nil);
+    aFile:=LoadUsedUnit(FoundPasFilename,FoundPasUnitName,InFilename,
+                         NameExpr,InFileExpr,FoundPasIsForeign,nil);
     if aFile<>nil then
       Result:=aFile.PasModule;
   end;
@@ -1652,7 +1686,7 @@ var
     Cycle: TFPList;
     CyclePath: String;
   begin
-    if Parser.CurModule.ImplementationSection=nil then
+    if PasModule.ImplementationSection=nil then
     begin
       // main uses section (e.g. interface or program, not implementation)
       // -> check for cycles
@@ -1910,6 +1944,7 @@ var
   i: Integer;
   aFile: TPas2jsCompilerFile;
   Found: Boolean;
+  Section: TPasSection;
 begin
   // parse til exception or all modules have finished
   repeat
@@ -1934,6 +1969,13 @@ begin
       writeln('TPas2jsCompiler.ProcessQueue aFile=',aFile.PasFilename);
       {$ENDIF}
       aFile.ReadContinue;
+      if aFile.ReaderState=prsCanContinue then
+      begin
+        {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
+        writeln('TPas2jsCompiler.ProcessQueue aFile=',aFile.PasFilename,' ReadContinue buggy');
+        {$ENDIF}
+        RaiseInternalError(20180313130300,'File='+aFile.PasFilename+' ReadContinue buggy');
+      end;
       break;
       end;
   until not Found;
@@ -1945,13 +1987,20 @@ begin
   for i:=0 to FReadingModules.Count-1 do
     begin
     aFile:=TPas2jsCompilerFile(FReadingModules[i]);
-    if aFile.Parser.CurModule<>nil then
+    if aFile.PascalResolver=nil then
+      RaiseInternalError(20180313124125,aFile.PasFilename);
+    if (aFile.PCUReader=nil) and (aFile.Parser.CurModule<>nil) then
       begin
       {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
       writeln('TPas2jsCompiler.ProcessQueue aFile=',aFile.PasFilename,' was not finished');
       {$ENDIF}
       RaiseInternalError(20180305185342,aFile.PasFilename);
       end;
+    Section:=aFile.PascalResolver.GetLastSection;
+    if Section=nil then
+      RaiseInternalError(20180313124207,aFile.PasFilename);
+    if Section.PendingUsedIntf<>nil then
+      RaiseInternalError(20180313124226,aFile.PasFilename+' '+GetObjName(Section)+' PendingUsedIntf='+GetObjName(Section.PendingUsedIntf));
     end;
 end;
 
@@ -1998,7 +2047,7 @@ begin
   if FileCache.AllJSIntoMainJS and (WPOAnalyzer<>nil)
   and not WPOAnalyzer.IsUsed(aFile.PasModule) then
   begin
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePJUFiler)}
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompiler.MarkNeedBuilding module not used by WPO: ',aFile.PasFilename);
     {$ENDIF}
     exit(false);
