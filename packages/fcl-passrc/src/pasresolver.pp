@@ -1627,6 +1627,7 @@ type
     function GetCombinedString(const Str1, Str2: TPasResolverResult; ErrorEl: TPasElement): TResolverBaseType; virtual;
     function IsElementSkipped(El: TPasElement): boolean; virtual;
     function FindLocalBuiltInSymbol(El: TPasElement): TPasElement; virtual;
+    function GetLastSection: TPasSection;
   public
     // options
     property Options: TPasResolverOptions read FOptions write FOptions;
@@ -2382,7 +2383,7 @@ begin
   if Index<0 then
     begin
     References.Add(LoName,Item);
-    {$IFDEF VerbosePJUFiler}
+    {$IFDEF VerbosePCUFiler}
     if TPasScopeReference(References.Find(LoName))<>Item then
       raise EPasResolve.Create('20180219230028');
     {$ENDIF}
@@ -2390,7 +2391,7 @@ begin
   else
     begin
     OldItem:=TPasScopeReference(References.List^[Index].Data);
-    {$IFDEF VerbosePJUFiler}
+    {$IFDEF VerbosePCUFiler}
     if lowercase(OldItem.Element.Name)<>LoName then
       raise EPasResolve.Create('20180219230055');
     {$ENDIF}
@@ -4205,7 +4206,7 @@ begin
   {$ENDIF}
   {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
   if not IsUnitIntfFinished(Section.GetModule) then
-    RaiseInternalError(20171214004323,'TPasResolver.FinishInterfaceSection "'+CurrentParser.CurModule.Name+'" "'+Section.GetModule.Name+'" IsUnitIntfFinished=false');
+    RaiseInternalError(20171214004323,'TPasResolver.FinishInterfaceSection "'+RootElement.Name+'" "'+Section.GetModule.Name+'" IsUnitIntfFinished=false');
   {$ENDIF}
   NotifyPendingUsedInterfaces;
   if Section=nil then ;
@@ -11875,21 +11876,18 @@ var
   ModuleScope: TPasModuleScope;
   i: Integer;
   PendingResolver: TPasResolver;
-  PendingParser: TPasParser;
   PendingSection: TPasSection;
 begin
   // call all PendingResolvers
-  // Note that a waiting resolver might continue parsing, so this
-  // recursively solves all unit cycles
+  // Note that a waiting resolver might continue parsing
   ModuleScope:=RootElement.CustomData as TPasModuleScope;
   i:=ModuleScope.PendingResolvers.Count-1;
   while i>=0 do
     begin
     PendingResolver:=TObject(ModuleScope.PendingResolvers[i]) as TPasResolver;
-    PendingParser:=PendingResolver.CurrentParser;
-    PendingSection:=PendingParser.GetLastSection;
+    PendingSection:=PendingResolver.GetLastSection;
     {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.FinishInterfaceSection "',ModuleScope.Element.Name,'" Pending="',PendingResolver.RootElement.Name,'"');
+    writeln('TPasResolver.NotifyPendingUsedInterfaces "',ModuleScope.Element.Name,'" Pending="',PendingResolver.RootElement.Name,'"');
     {$ENDIF}
     if PendingSection=nil then
       RaiseInternalError(20180305141421);
@@ -11924,7 +11922,7 @@ var
   WasPending: Boolean;
 begin
   {$IFDEF VerbosePasResolver}
-  //writeln('TPasResolver.CheckPendingUsedInterface START "',CurrentParser.CurModule.Name,'" Section.PendingUsedIntf=',Section.PendingUsedIntf<>nil);
+  //writeln('TPasResolver.CheckPendingUsedInterface START "',RootElement.Name,'" Section.PendingUsedIntf=',Section.PendingUsedIntf<>nil);
   {$ENDIF}
   WasPending:=Section.PendingUsedIntf<>nil;
   if WasPending then
@@ -11933,8 +11931,8 @@ begin
     if not IsUnitIntfFinished(PendingModule) then
       exit; // still pending
     // other unit interface is finished
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.CheckPendingUsedInterface "',CurrentParser.CurModule.Name,'" UnitIntf finished of "',PendingModule.Name,'"');
+    {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
+    writeln('TPasResolver.CheckPendingUsedInterface "',RootElement.Name,'" UnitIntf finished of "',PendingModule.Name,'"');
     {$ENDIF}
     PendingModuleScope:=NoNil(PendingModule.CustomData) as TPasModuleScope;
     PendingModuleScope.PendingResolvers.Remove(Self);
@@ -11948,8 +11946,8 @@ begin
     // module not yet finished due to pending used interfaces
     PendingModule:=Section.PendingUsedIntf.Module as TPasModule;
     PendingModuleScope:=NoNil(PendingModule.CustomData) as TPasModuleScope;
-    {$IFDEF VerbosePasResolver}
-    writeln('TPasResolver.CheckPendingUsedInterface "',CurrentParser.CurModule.Name,'" waiting for unit intf of "',PendingModule.Name,'"');
+    {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
+    writeln('TPasResolver.CheckPendingUsedInterface "',RootElement.Name,'" waiting for unit intf of "',PendingModule.Name,'"');
     {$ENDIF}
     List:=PendingModuleScope.PendingResolvers;
     if List.IndexOf(Self)<0 then
@@ -11958,10 +11956,10 @@ begin
     end
   else
     begin
-    {$IFDEF VerbosePasResolver}
+    {$IF defined(VerbosePasResolver) or defined(VerboseUnitQueue)}
     {AllowWriteln}
     if WasPending then
-      writeln('TPasResolver.CheckPendingUsedInterface "',CurrentParser.CurModule.Name,'" uses section complete: ',Section.ClassName);
+      writeln('TPasResolver.CheckPendingUsedInterface "',RootElement.Name,'" uses section complete: ',Section.ClassName);
     {AllowWriteln-}
     {$ENDIF}
     Result:=WasPending;
@@ -11975,7 +11973,7 @@ procedure TPasResolver.UsedInterfacesFinished(Section: TPasSection);
 // this method is called after the needed used unit interfaces have finished
 begin
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.UsesSectionFinished ',Section.ElementTypeName,' "',CurrentParser.CurModule.Name,'"...');
+  writeln('TPasResolver.UsesSectionFinished ',Section.ElementTypeName,' "',RootElement.Name,'"...');
   {$ENDIF}
   CurrentParser.ParseContinue;
   if Section=nil then ;
@@ -12406,7 +12404,7 @@ begin
     if aModule.InterfaceSection<>nil then
       Result.InterfaceScope:=
         NoNil(aModule.InterfaceSection.CustomData) as TPasSectionScope;
-    if (aModule=CurrentParser.CurModule)
+    if (aModule=RootElement)
         and (aModule.ImplementationSection<>nil)
         and (aModule.ImplementationSection.CustomData<>nil)
     then
@@ -16791,6 +16789,23 @@ begin
     Result:=BuiltInProcs[TResElDataBuiltInProc(Data).BuiltIn].Element
   else
     Result:=nil;
+end;
+
+function TPasResolver.GetLastSection: TPasSection;
+var
+  Module: TPasModule;
+begin
+  Result:=nil;
+  Module:=RootElement;
+  if Module=nil then exit;
+  if Module is TPasProgram then
+    Result:=TPasProgram(Module).ProgramSection
+  else if Module is TPasLibrary then
+    Result:=TPasLibrary(Module).LibrarySection
+  else if Module.ImplementationSection<>nil then
+    Result:=Module.ImplementationSection
+  else
+    Result:=Module.InterfaceSection;
 end;
 
 function TPasResolver.CheckSrcIsADstType(const ResolvedSrcType,

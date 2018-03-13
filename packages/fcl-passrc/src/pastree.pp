@@ -2177,7 +2177,12 @@ begin
     end
   else if FRefCount=High(FRefCount) then
     begin
-    {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}  Writeln('TPasElement.Released OUCH: ',Cn); {$endif}
+    {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}
+    Writeln('TPasElement.Released OUCH: ',Cn);
+    {$endif}
+    {$if defined(VerbosePasResolver) or defined(VerbosePCUFiler)}
+    Writeln('TPasElement.Released : ',ClassName,' ',Name);
+    {$endif}
     raise Exception.Create('');
     end
   else
