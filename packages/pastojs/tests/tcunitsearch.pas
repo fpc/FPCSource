@@ -471,7 +471,8 @@ begin
   Result:=FindFile(Filename);
   if Result<>nil then
     raise Exception.Create('[20180224001050] TCustomTestCLI.AddFile already exists: '+Filename);
-  FFiles.Add(TCLIFile.Create(Filename,Source,DefaultFileAge,faNormal));
+  Result:=TCLIFile.Create(Filename,Source,DefaultFileAge,faNormal);
+  FFiles.Add(Result);
   AddDir(ExtractFilePath(Filename));
 end;
 

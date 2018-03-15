@@ -1190,12 +1190,11 @@ begin
   writeln('TPas2jsCachedFile.Load ENCODE ',Filename,' FFileEncoding=',FFileEncoding);
   {$ENDIF}
   if Binary then
-    FSource:=ConvertTextToUTF8(NewSource,FFileEncoding)
-  else
   begin
     FSource:=NewSource;
     FFileEncoding:=EncodingBinary;
-  end;
+  end else
+    FSource:=ConvertTextToUTF8(NewSource,FFileEncoding);
   FLoaded:=true;
   FCacheStamp:=Cache.ResetStamp;
   FLoadedFileAge:=Cache.DirectoryCache.FileAge(Filename);

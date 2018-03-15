@@ -50,7 +50,7 @@ type
     FModule: TPasModule;
     FOnFindUnit: TOnFindUnit;
     FParser: TTestPasParser;
-    FResolver: TStreamResolver;
+    FStreamResolver: TStreamResolver;
     FScanner: TPascalScanner;
     FSource: string;
     procedure SetModule(AValue: TPasModule);
@@ -61,7 +61,7 @@ type
     procedure UsedInterfacesFinished(Section: TPasSection); override;
     property OnFindUnit: TOnFindUnit read FOnFindUnit write FOnFindUnit;
     property Filename: string read FFilename write FFilename;
-    property Resolver: TStreamResolver read FResolver write FResolver;
+    property StreamResolver: TStreamResolver read FStreamResolver write FStreamResolver;
     property Scanner: TPascalScanner read FScanner write FScanner;
     property Parser: TTestPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
@@ -828,11 +828,11 @@ end;
 
 destructor TTestEnginePasResolver.Destroy;
 begin
-  FreeAndNil(FResolver);
+  FreeAndNil(FStreamResolver);
   Module:=nil;
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
-  FreeAndNil(FResolver);
+  FreeAndNil(FStreamResolver);
   inherited Destroy;
 end;
 
@@ -912,13 +912,13 @@ begin
       //writeln('TTestModule.FindUnit PARSING unit "',CurEngine.Filename,'"');
       FileResolver.FindSourceFile(aUnitName);
 
-      CurEngine.Resolver:=TStreamResolver.Create;
-      CurEngine.Resolver.OwnsStreams:=True;
+      CurEngine.StreamResolver:=TStreamResolver.Create;
+      CurEngine.StreamResolver.OwnsStreams:=True;
       //writeln('TTestModule.FindUnit SOURCE=',CurEngine.Source);
-      CurEngine.Resolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
-      CurEngine.Scanner:=TPascalScanner.Create(CurEngine.Resolver);
+      CurEngine.StreamResolver.AddStream(CurEngine.FileName,TStringStream.Create(CurEngine.Source));
+      CurEngine.Scanner:=TPascalScanner.Create(CurEngine.StreamResolver);
       InitScanner(CurEngine.Scanner);
-      CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.Resolver,CurEngine);
+      CurEngine.Parser:=TTestPasParser.Create(CurEngine.Scanner,CurEngine.StreamResolver,CurEngine);
       CurEngine.Parser.Options:=po_tcmodules;
       if CompareText(CurUnitName,'System')=0 then
         CurEngine.Parser.ImplicitUses.Clear;

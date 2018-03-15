@@ -3683,7 +3683,10 @@ var
   El: TPasVariable absolute Data;
 begin
   if RefEl is TPasType then
-    El.VarType:=TPasType(RefEl)
+    begin
+    El.VarType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121809,El,GetObjName(RefEl));
 end;
@@ -3693,7 +3696,10 @@ var
   El: TPasAliasType absolute Data;
 begin
   if RefEl is TPasType then
-    El.DestType:=TPasType(RefEl)
+    begin
+    El.DestType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121801,El,GetObjName(RefEl));
 end;
@@ -3704,7 +3710,10 @@ var
   El: TPasPointerType absolute Data;
 begin
   if RefEl is TPasType then
-    El.DestType:=TPasType(RefEl)
+    begin
+    El.DestType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121757,El,GetObjName(RefEl));
 end;
@@ -3715,7 +3724,10 @@ var
   El: TInlineTypeExpr absolute Data;
 begin
   if RefEl is TPasType then
-    El.DestType:=TPasType(RefEl)
+    begin
+    El.DestType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121750,El,GetObjName(RefEl));
 end;
@@ -3725,7 +3737,10 @@ var
   El: TPasArrayType absolute Data;
 begin
   if RefEl is TPasType then
-    El.ElType:=TPasType(RefEl)
+    begin
+    El.ElType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121732,El,GetObjName(RefEl));
 end;
@@ -3735,7 +3750,10 @@ var
   El: TPasFileType absolute Data;
 begin
   if RefEl is TPasType then
-    El.ElType:=TPasType(RefEl)
+    begin
+    El.ElType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121726,El,GetObjName(RefEl));
 end;
@@ -3745,7 +3763,10 @@ var
   El: TPasSetType absolute Data;
 begin
   if RefEl is TPasType then
-    El.EnumType:=TPasType(RefEl)
+    begin
+    El.EnumType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121714,El,GetObjName(RefEl));
 end;
@@ -3755,7 +3776,10 @@ var
   El: TPasVariant absolute Data;
 begin
   if RefEl is TPasRecordType then
-    El.Members:=TPasRecordType(RefEl)
+    begin
+    El.Members:=TPasRecordType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121657,El,GetObjName(RefEl));
 end;
@@ -3766,7 +3790,10 @@ var
   El: TPasRecordType absolute Data;
 begin
   if (RefEl is TPasType) or (RefEl.ClassType=TPasVariable) then
-    El.VariantEl:=RefEl
+    begin
+    El.VariantEl:=RefEl;
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180210205031,El,GetObjName(RefEl));
 end;
@@ -3776,7 +3803,10 @@ var
   El: TPasArgument absolute Data;
 begin
   if RefEl is TPasType then
-    El.ArgType:=TPasType(RefEl)
+    begin
+    El.ArgType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121643,El,GetObjName(RefEl));
 end;
@@ -3829,7 +3859,10 @@ var
   El: TPasClassType absolute Data;
 begin
   if RefEl is TPasType then
-    El.AncestorType:=TPasType(RefEl)
+    begin
+    El.AncestorType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121632,El,GetObjName(RefEl));
 end;
@@ -3840,7 +3873,10 @@ var
   El: TPasClassType absolute Data;
 begin
   if RefEl is TPasType then
-    El.HelperForType:=TPasType(RefEl)
+    begin
+    El.HelperForType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121612,El,GetObjName(RefEl));
 end;
@@ -3851,7 +3887,10 @@ var
   El: TPasResultElement absolute Data;
 begin
   if RefEl is TPasType then
-    El.ResultType:=TPasType(RefEl)
+    begin
+    El.ResultType:=TPasType(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180211121537,El,GetObjName(RefEl));
 end;
@@ -3925,7 +3964,10 @@ var
   Scope: TPasPropertyScope absolute Data;
 begin
   if RefEl is TPasProperty then
-    Scope.AncestorProp:=TPasProperty(RefEl)
+    begin
+    Scope.AncestorProp:=TPasProperty(RefEl);
+    RefEl.AddRef;
+    end
   else
     RaiseMsg(20180213214723,Scope.Element,GetObjName(RefEl));
 end;
@@ -5985,7 +6027,8 @@ end;
 procedure TPCUReader.ReadEnumTypeScope(Obj: TJSONObject;
   Scope: TPasEnumTypeScope; aContext: TPCUReaderContext);
 begin
-  Scope.CanonicalSet:=TPasSetType(ReadElementProperty(Obj,Scope.Element,'CanonicalSet',TPasSetType,aContext));
+  Scope.CanonicalSet:=TPasSetType(ReadElementProperty(
+                        Obj,Scope.Element,'CanonicalSet',TPasSetType,aContext));
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
 
@@ -6626,7 +6669,8 @@ begin
     DefProcMods:=GetDefaultProcModifiers(El);
     El.Modifiers:=ReadProcedureModifiers(Obj,El,'PMods',DefProcMods);
     // read ProcType after El.Modifiers
-    El.ProcType:=TPasProcedureType(ReadElementProperty(Obj,El,'ProcType',TPasProcedureType,aContext));
+    El.ProcType:=TPasProcedureType(ReadElementProperty(
+                                 Obj,El,'ProcType',TPasProcedureType,aContext));
 
     ReadProcedureScope(Obj,Scope,aContext);
     end;

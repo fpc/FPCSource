@@ -50,6 +50,7 @@ type
   TTestCLI_Precompile = class(TCustomTestCLI_Precompile)
   published
     procedure TestPCU_EmptyUnit;
+    procedure TestPCU_UTF8BOM;
     procedure TestPCU_ParamNS;
     procedure TestPCU_Overloads;
     procedure TestPCU_UnitCycle;
@@ -136,6 +137,25 @@ begin
   CheckPrecompile('test1.pas','src');
 end;
 
+procedure TTestCLI_Precompile.TestPCU_UTF8BOM;
+var
+  aFile: TCLIFile;
+begin
+  aFile:=AddUnit('src/system.pp',
+    ['var',
+    '  s: string = ''aaaäö'';',
+    '  s2: string = ''😊'';', // 1F60A
+    ''],
+    ['']);
+  aFile.Source:=UTF8BOM+aFile.Source;
+  aFile:=AddFile('test1.pas',[
+    'begin',
+    '  s:=''ö😊'';',
+    'end.']);
+  aFile.Source:=UTF8BOM+aFile.Source;
+  CheckPrecompile('test1.pas','src');
+end;
+
 procedure TTestCLI_Precompile.TestPCU_ParamNS;
 begin
   AddUnit('src/system.pp',[''],['']);
@@ -168,19 +188,19 @@ begin
   'procedure DoIt(s: string); overload;'],
   ['procedure DoIt(s: string);',
    'begin',
-   '  unit1.i:=j;',
+   '  unit1.i:=length(s);',
    'end;']);
   AddFile('test1.pas',[
-    'uses unit1;',
+    'uses unit1, unit2;',
     'procedure DoIt(d: double); overload;',
     'begin',
-    '  unit1.i:=j;',
+    '  unit1.i:=4;',
     'end;',
     'begin',
     '  DoIt(3);',
     '  DoIt(''abc'');',
-    '  Do1(true);',
-    '  Do1(3.3);',
+    '  DoIt(true);',
+    '  DoIt(3.3);',
     'end.']);
   CheckPrecompile('test1.pas','src');
 end;
