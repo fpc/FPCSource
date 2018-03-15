@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 {$ifdef fpc}
 {$mode objfpc}
 {$h+}

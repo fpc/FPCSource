@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { %fail }
 { %version=1.1 }
 

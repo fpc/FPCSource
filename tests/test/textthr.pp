@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { %target=darwin,linux,freebsd,solaris,haiku,aix }
 
 {$mode objfpc}

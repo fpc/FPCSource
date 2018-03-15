@@ -1,3 +1,5 @@
+{%skiptarget=$nothread }
+
 {$mode objfpc}
 
 uses

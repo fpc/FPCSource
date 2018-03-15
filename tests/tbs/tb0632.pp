@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { Note: needs multi threading }
 program tb0632;
 
