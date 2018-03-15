@@ -110,7 +110,7 @@ type
   TFPReportFrameLine      = (flTop, flBottom, flLeft, flRight);
   TFPReportFrameLines     = set of TFPReportFrameLine;
   TFPReportFrameShape     = (fsNone, fsRectangle, fsRoundedRect, fsDoubleRect, fsShadow);
-  TFPReportFieldKind      = (rfkString, rfkBoolean, rfkInteger, rfkFloat, rfkDateTime, rfkStream);
+  TFPReportFieldKind      = (rfkString, rfkBoolean, rfkInteger, rfkFloat, rfkDateTime, rfkStream, rfkCurrency);
   TFPReportStretchMode    = (smDontStretch, smActualHeight, smMaxHeight);
   TFPReportHTMLTag        = (htRegular, htBold, htItalic);
   TFPReportHTMLTagSet     = set of TFPReportHTMLTag;
@@ -695,6 +695,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     Function CreatePropertyHash : String; virtual;
+    function ExpressionResultToString(const Res: TFPExpressionResult): String; virtual;
     function Equals(AElement: TFPReportElement): boolean; virtual; reintroduce;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure ReadElement(AReader: TFPReportStreamer); override;
@@ -1400,6 +1401,7 @@ type
     FResetValueExpressionNode: TFPExprNode;
     procedure CheckType(aType: TResultType);
     function GetAsBoolean: Boolean;
+    function GetAsCurrency: Currency;
     function GetAsDateTime: TDateTime;
     function GetAsFloat: TexprFloat;
     function GetAsInteger: Int64;
@@ -1408,6 +1410,7 @@ type
     function GetER: TFPExpressionResult;
     function GetValue: String;
     procedure SetAsBoolean(AValue: Boolean);
+    procedure SetAsCurrency(AValue: Currency);
     procedure SetAsDateTime(AValue: TDateTime);
     procedure SetAsFloat(AValue: TExprFloat);
     procedure SetAsInteger(AValue: Int64);
@@ -1435,6 +1438,7 @@ type
     Property AsInteger : Int64 Read GetAsInteger Write SetAsInteger;
     Property AsBoolean : Boolean Read GetAsBoolean Write SetAsBoolean;
     Property AsFloat : TExprFloat Read GetAsFloat Write SetAsFloat;
+    Property AsCurrency : Currency Read GetAsCurrency Write SetAsCurrency;
     Property AsDateTime : TDateTime Read GetAsDateTime Write SetAsDateTime;
   Published
     Property Name : String Read FName Write SetName;
@@ -1562,6 +1566,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
+    class function ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
     Procedure Clear;
     Procedure SaveDataToNames;
     Procedure RestoreDataFromNames;
@@ -2898,6 +2903,7 @@ procedure TFPReportVariable.SetValue(AValue: String);
 Var
   C : Integer;
   f : TExprFloat;
+  CC : Currency;
 
 begin
   if GetValue=AValue then
@@ -2912,6 +2918,13 @@ begin
                      raise EConvertError.CreateFmt(
                        SErrInvalidFloatingPointValue, [AValue]);
                    ASFloat:=F;
+                   end;
+      rtCurrency : begin
+                   Val(AValue,CC,C);
+                   if C<>0 then
+                     raise EConvertError.CreateFmt(
+                       SErrInvalidFloatingPointValue, [AValue]);
+                   AsCurrency:=CC;
                    end;
       rtDateTime : asDateTime:=ISO8601ToDateTime(AValue);
       rtString   : AsString:=AValue;
@@ -2986,6 +2999,7 @@ begin
     rtBoolean  : Result:=BoolToStr(AsBoolean,True);
     rtInteger  : Result:=IntToStr(AsInteger);
     rtFloat    : Str(AsFloat,Result);
+    rtCurrency : Str(AsCurrency,Result);
     rtDateTime : Result:=DateTimeToISO8601(AsDateTime);
     rtString   : Result:=AsString
   else
@@ -3018,6 +3032,12 @@ function TFPReportVariable.GetAsBoolean: Boolean;
 begin
   CheckType(rtBoolean);
   Result:=FValue.Resboolean;
+end;
+
+function TFPReportVariable.GetAsCurrency: Currency;
+begin
+  CheckType(rtCurrency);
+  Result:=FValue.ResCurrency;
 end;
 
 function TFPReportVariable.GetAsDateTime: TDateTime;
@@ -3059,6 +3079,12 @@ procedure TFPReportVariable.SetAsBoolean(AValue: Boolean);
 begin
   FValue.ResultType:=rtBoolean;
   FValue.resBoolean:=AValue;
+end;
+
+procedure TFPReportVariable.SetAsCurrency(AValue: Currency);
+begin
+  FValue.ResultType:=rtCurrency;
+  FValue.ResCurrency:=AValue;
 end;
 
 procedure TFPReportVariable.SetAsDateTime(AValue: TDateTime);
@@ -4551,13 +4577,7 @@ begin
       if IsExprAtArrayPos(lStartPos) then
       begin
         n := Original.ExpressionNodes[i].ExprNode;
-        case n.NodeValue.ResultType of
-          rtString  : s := n.NodeValue.ResString;
-          rtInteger : s := IntToStr(n.NodeValue.ResInteger);
-          rtFloat   : s := FloatToStr(n.NodeValue.ResFloat);
-          rtBoolean : s := BoolToStr(n.NodeValue.ResBoolean, True);
-          rtDateTime : s := FormatDateTime('yyyy-mm-dd', n.NodeValue.ResDateTime);
-        end;
+        S:=ExpressionResultToString(n.NodeValue);
         lResult := StringReplace(lResult, '[' + str + ']', s, [rfReplaceAll]);
       end;
     end;
@@ -6583,6 +6603,20 @@ begin
   Result:='yyyy-mm-dd';
 end;
 
+
+function TFPReportElement.ExpressionResultToString(const Res : TFPExpressionResult): String;
+
+begin
+  case Res.ResultType of
+    rtString  : Result := Res.ResString;
+    rtInteger : Result := IntToStr(Res.ResInteger);
+    rtFloat   : Result := FloatToStr(Res.ResFloat);
+    rtCurrency  : Result := FloatToStr(Res.ResFloat);
+    rtBoolean : Result := BoolToStr(Res.resBoolean, True);
+    rtDateTime : Result := FormatDateTime(GetDateTimeFormat, Res.resDateTime);
+  end;
+end;
+
 function TFPReportElement.EvaluateExpressionAsText(const AExpr: String): String;
 
 Var
@@ -6591,13 +6625,7 @@ Var
 begin
   Result:='';
   if EvaluateExpression(AExpr,Res) then
-    case Res.ResultType of
-      rtString  : Result := Res.ResString;
-      rtInteger : Result := IntToStr(Res.ResInteger);
-      rtFloat   : Result := FloatToStr(Res.ResFloat);
-      rtBoolean : Result := BoolToStr(Res.resBoolean, True);
-      rtDateTime : Result := FormatDateTime(GetDateTimeFormat, Res.resDateTime);
-    end;
+    Result:=ExpressionResultToString(Res);
 end;
 
 
@@ -7416,17 +7444,6 @@ begin
   end;
 end;
 
-Function NodeValueAsString(Res : TFPExpressionResult) : String;
-begin
-  case res.ResultType of
-    rtString  : Result := res.ResString;
-    rtInteger : Result := IntToStr(res.ResInteger);
-    rtFloat   : Result := FloatToStr(res.ResFloat);
-    rtBoolean : Result := BoolToStr(res.ResBoolean, True);
-    rtDateTime : Result := FormatDateTime('yyyy-mm-dd', res.ResDateTime);
-  end;
-end;
-
 
 procedure TFPCustomReport.ProcessAggregates(const APageIdx: integer; const AData: TFPReportData);
 
@@ -7648,6 +7665,22 @@ begin
     FExpr.Identifiers.AddFunction('PageCount', 'I', '', @BuiltinGetPageCount);
 end;
 
+
+Class function TFPCustomReport.ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
+begin
+  case AType of
+    rfkString:      Result := rtString;
+    rfkBoolean:     Result := rtBoolean;
+    rfkInteger:     Result := rtInteger;
+    rfkFloat:       Result := rtFloat;
+    rfkCurrency:     Result := rtCurrency;
+    rfkDateTime:    Result := rtDateTime;
+    rfkStream:      Result := rtString; //  TODO:  What do we do here?????
+  else
+    Result := rtString;
+  end;
+end;
+
 procedure TFPCustomReport.InitializeExpressionVariables(const APage: TFPReportCustomPage; const AData: TFPReportData);
 
 var
@@ -7657,20 +7690,6 @@ var
   d: string;
   v: TFPReportVariable;
   df: TFPReportDataField;
-
-  function ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
-  begin
-    case AType of
-      rfkString:      Result := rtString;
-      rfkBoolean:     Result := rtBoolean;
-      rfkInteger:     Result := rtInteger;
-      rfkFloat:       Result := rtFloat;
-      rfkDateTime:    Result := rtDateTime;
-      rfkStream:      Result := rtString; //  TODO:  What do we do here?????
-      else
-        Result := rtString;
-    end;
-  end;
 
 begin
   {$ifdef gdebug}
@@ -9659,6 +9678,7 @@ procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
           rtBoolean:    Result.ResBoolean   := False;
           rtInteger:    Result.ResInteger   := 0;
           rtFloat:      Result.ResFloat     := 0.0;
+          rtCurrency:   Result.ResCurrency  := 0.0;
           rtDateTime:   Result.ResDateTime  := 0.0;
           rtString:     Result.ResString    := '';
         end
@@ -9667,6 +9687,7 @@ procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
           rtBoolean:    Result.ResBoolean   := pValue;
           rtInteger:    Result.ResInteger   := pValue;
           rtFloat:      Result.ResFloat     := pValue;
+          rtCurrency:   Result.ResCurrency  := pValue;
           rtDateTime:   Result.ResDateTime  := pValue;
           rtString:     Result.ResString    := pValue;
         end;
