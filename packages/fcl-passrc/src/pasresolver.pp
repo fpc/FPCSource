@@ -1676,7 +1676,8 @@ function GetTreeDbg(El: TPasElement; Indent: integer = 0): string;
 function GetResolverResultDbg(const T: TPasResolverResult): string;
 function GetClassAncestorsDbg(El: TPasClassType): string;
 function ResolverResultFlagsToStr(const Flags: TPasResolverResultFlags): string;
-function GetElementTypeName(El: TPasElement): string;
+function GetElementTypeName(El: TPasElement): string; overload;
+function GetElementTypeName(C: TPasElementBaseClass): string; overload;
 
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
   BaseType: TResolverBaseType; IdentEl: TPasElement;
@@ -1924,6 +1925,24 @@ begin
     Result:='unary '+OpcodeStrings[TUnaryExpr(El).OpCode]
   else if C=TBinaryExpr then
     Result:=ExprKindNames[TBinaryExpr(El).Kind]
+  else
+    begin
+    Result:=GetElementTypeName(TPasElementBaseClass(C));
+    if Result='' then
+      Result:=El.ElementTypeName;
+    end;
+end;
+
+function GetElementTypeName(C: TPasElementBaseClass): string;
+begin
+  if C=nil then
+    exit('nil');
+  if C=TPrimitiveExpr then
+    Result:='primitive expression'
+  else if C=TUnaryExpr then
+    Result:='unary expression'
+  else if C=TBinaryExpr then
+    Result:='binary expression'
   else if C=TBoolConstExpr then
     Result:='boolean const'
   else if C=TNilExpr then
@@ -1995,7 +2014,7 @@ begin
   else if C=TPasClassFunction then
     Result:='class function'
   else
-    Result:=El.ElementTypeName;
+    Result:='?';
 end;
 
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
