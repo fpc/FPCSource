@@ -1322,6 +1322,13 @@ implementation
                   else
                     Message1(parser_e_type_cant_be_used_in_array_index,def.typename);
                 end;
+              { generic parameter? }
+              undefineddef:
+                begin
+                  lowval:=0;
+                  highval:=1;
+                  indexdef:=def;
+                end;
               else
                 Message(sym_e_error_in_type_def);
             end;
