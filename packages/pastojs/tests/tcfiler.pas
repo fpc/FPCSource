@@ -145,9 +145,11 @@ type
     procedure TestPC_Proc_UTF8;
     procedure TestPC_Class;
     procedure TestPC_Initialization;
+    procedure TestPC_BoolSwitches;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
+    procedure TestPC_UseIndirectUnit;
   end;
 
 function CompareListOfProcScopeRef(Item1, Item2: Pointer): integer;
@@ -478,12 +480,22 @@ end;
 
 procedure TCustomTestPrecompile.CheckRestoredResolver(Original,
   Restored: TPas2JSResolver);
+var
+  OrigParser, RestParser: TPasParser;
 begin
   AssertNotNull('CheckRestoredResolver Original',Original);
   AssertNotNull('CheckRestoredResolver Restored',Restored);
   if Original.ClassType<>Restored.ClassType then
     Fail('CheckRestoredResolver Original='+Original.ClassName+' Restored='+Restored.ClassName);
   CheckRestoredElement('RootElement',Original.RootElement,Restored.RootElement);
+  OrigParser:=Original.CurrentParser;
+  RestParser:=Restored.CurrentParser;
+  if OrigParser.Options<>RestParser.Options then
+    Fail('CheckRestoredResolver Parser.Options');
+  if OrigParser.Scanner.CurrentBoolSwitches<>RestParser.Scanner.CurrentBoolSwitches then
+    Fail('CheckRestoredResolver Scanner.BoolSwitches');
+  if OrigParser.Scanner.CurrentModeSwitches<>RestParser.Scanner.CurrentModeSwitches then
+    Fail('CheckRestoredResolver Scanner.ModeSwitches');
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredDeclarations(const Path: string;
@@ -1719,6 +1731,32 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_BoolSwitches;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '{$R+}',
+  '{$C+}',
+  'type',
+  '  TObject = class',
+  '{$C-}',
+  '    procedure DoIt;',
+  '  end;',
+  '{$C+}',
+  'implementation',
+  '{$R-}',
+  'procedure TObject.DoIt;',
+  'begin',
+  'end;',
+  '{$C-}',
+  'initialization',
+  '{$R+}',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_UseUnit;
 begin
   AddModuleWithIntfImplSrc('unit2.pp',
@@ -1784,6 +1822,37 @@ begin
   '  o.DoIt;',
   '  o.i:=b.A;',
   '  o.e:=red;',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_UseIndirectUnit;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '    i: longint;',
+    '  end;']),
+    LinesToStr([
+    '']));
+
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'uses unit2;',
+    'var o: TObject;']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit1;',
+  'implementation',
+  'initialization',
+  '  o.i:=3;',
   'end.',
   '']);
   WriteReadUnit;

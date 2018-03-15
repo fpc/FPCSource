@@ -1205,7 +1205,8 @@ begin
     JS:=Converter.ConvertPasElement(PasModule,PascalResolver);
     Converter.Options:=Converter.Options-[coStoreImplJS];
 
-    Writer.WritePCU(PascalResolver,Converter,Compiler.PrecompileInitialFlags,ms,false);
+    Writer.WritePCU(PascalResolver,Converter,Compiler.PrecompileInitialFlags,ms,
+      {$IFDEF DisablePCUCompressed}false{$ELSE}true{$ENDIF});
     {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
     writeln('TPas2jsCompilerFile.WritePCU precompiled ',PCUFilename);
     {$ENDIF}

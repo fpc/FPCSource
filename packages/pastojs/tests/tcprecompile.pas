@@ -25,22 +25,33 @@ interface
 
 uses
   Classes, SysUtils,
-  fpcunit, testregistry,
-  tcunitsearch, tcmodules, Pas2jsFileUtils;
+  fpcunit, testregistry, Pas2jsFileUtils, Pas2JsFiler,
+  tcunitsearch, tcmodules;
 
 type
 
-  { TTestCLI_Precompile }
+  { TCustomTestCLI_Precompile }
 
-  TTestCLI_Precompile = class(TCustomTestCLI)
+  TCustomTestCLI_Precompile = class(TCustomTestCLI)
+  private
+    FFormat: TPas2JSPrecompileFormat;
   protected
     procedure CheckPrecompile(MainFile, UnitPaths: string;
       SharedParams: TStringList = nil;
       FirstRunParams: TStringList = nil;
       SecondRunParams: TStringList = nil);
+  public
+    constructor Create; override;
+    property Format: TPas2JSPrecompileFormat read FFormat write FFormat;
+  end;
+
+  { TTestCLI_Precompile }
+
+  TTestCLI_Precompile = class(TCustomTestCLI_Precompile)
   published
     procedure TestPCU_EmptyUnit;
     procedure TestPCU_ParamNS;
+    procedure TestPCU_Overloads;
     procedure TestPCU_UnitCycle;
   end;
 
@@ -56,9 +67,9 @@ begin
   for i:=Low(Lines) to High(Lines) do Result.Add(Lines[i]);
 end;
 
-{ TTestCLI_Precompile }
+{ TCustomTestCLI_Precompile }
 
-procedure TTestCLI_Precompile.CheckPrecompile(MainFile, UnitPaths: string;
+procedure TCustomTestCLI_Precompile.CheckPrecompile(MainFile, UnitPaths: string;
   SharedParams: TStringList; FirstRunParams: TStringList;
   SecondRunParams: TStringList);
 var
@@ -77,8 +88,8 @@ begin
       Params.Assign(SharedParams);
     if FirstRunParams<>nil then
       Params.AddStrings(FirstRunParams);
-    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JUpcu','-FU'+UnitOutputDir]);
-    AssertFileExists('units/system.pcu');
+    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JU'+Format.Ext,'-FU'+UnitOutputDir]);
+    AssertFileExists('units/system.'+Format.Ext);
     JSFilename:=UnitOutputDir+PathDelim+ExtractFilenameOnly(MainFile)+'.js';
     AssertFileExists(JSFilename);
     JSFile:=FindFile(JSFilename);
@@ -108,6 +119,14 @@ begin
   end;
 end;
 
+constructor TCustomTestCLI_Precompile.Create;
+begin
+  inherited Create;
+  FFormat:=PrecompileFormats.FindExt('pcu');
+end;
+
+{ TTestCLI_Precompile }
+
 procedure TTestCLI_Precompile.TestPCU_EmptyUnit;
 begin
   AddUnit('src/system.pp',[''],['']);
@@ -127,6 +146,43 @@ begin
     '  i:=3;',
     'end.']);
   CheckPrecompile('test1.pas','src',LinesToList(['-NSfoo']));
+end;
+
+procedure TTestCLI_Precompile.TestPCU_Overloads;
+begin
+  AddUnit('src/system.pp',['type integer = longint;'],['']);
+  AddUnit('src/unit1.pp',
+  ['var i: integer;',
+   'procedure DoIt(j: integer); overload;',
+   'procedure DoIt(b: boolean);'],
+  ['procedure DoIt(j: integer);',
+   'begin',
+   '  i:=j;',
+   'end;',
+   'procedure DoIt(b: boolean);',
+   'begin',
+   '  i:=3;',
+   'end;']);
+  AddUnit('src/unit2.pp',
+  ['uses unit1;',
+  'procedure DoIt(s: string); overload;'],
+  ['procedure DoIt(s: string);',
+   'begin',
+   '  unit1.i:=j;',
+   'end;']);
+  AddFile('test1.pas',[
+    'uses unit1;',
+    'procedure DoIt(d: double); overload;',
+    'begin',
+    '  unit1.i:=j;',
+    'end;',
+    'begin',
+    '  DoIt(3);',
+    '  DoIt(''abc'');',
+    '  Do1(true);',
+    '  Do1(3.3);',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
 end;
 
 procedure TTestCLI_Precompile.TestPCU_UnitCycle;
