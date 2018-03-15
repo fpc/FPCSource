@@ -95,7 +95,7 @@ var
       ftWord:           Result := rfkInteger;
       ftBoolean:        Result := rfkBoolean;
       ftFloat:          Result := rfkFloat;
-      ftCurrency:       Result := rfkFloat;
+      ftCurrency:       Result := rfkCurrency;
       ftBCD:            Result := rfkFloat;
       ftDate:           Result := rfkDateTime;
       ftTime:           Result := rfkDateTime;
