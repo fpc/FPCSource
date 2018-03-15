@@ -704,7 +704,7 @@ unit i_bsd;
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
             stackalign   : 16;
-            abi : abi_default;
+            abi : abi_eabi;
             llvmdatalayout : 'todo';
           );
 
