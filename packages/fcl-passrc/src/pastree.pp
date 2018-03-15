@@ -2471,7 +2471,7 @@ begin
     TPasElement(Values[i]).Release;
   FreeAndNil(Values);
   if Assigned(Members) then
-    ReleaseAndNil(TpasElement(Members));
+    ReleaseAndNil(TPasElement(Members));
   inherited Destroy;
 end;
 
@@ -2569,9 +2569,9 @@ begin
     TPasElement(Interfaces[i]).Release;
   FreeAndNil(Members);
   if Assigned(AncestorType) then
-    AncestorType.Release;
+    ReleaseAndNil(TPasElement(AncestorType));
   if Assigned(HelperForType) then
-    HelperForType.Release;
+    ReleaseAndNil(TPasElement(HelperForType));
   ReleaseAndNil(TPasElement(GUIDExpr));
   FreeAndNil(Modifiers);
   FreeAndNil(Interfaces);
@@ -2800,7 +2800,7 @@ end;
 destructor TPasResultElement.Destroy;
 begin
   if Assigned(ResultType) then
-    ResultType.Release;
+    ReleaseAndNil(TPasElement(ResultType));
   inherited Destroy;
 end;
 
