@@ -295,6 +295,7 @@ ToDos:
 - typecast longint(highprecint) -> value & $ffffffff
 - static arrays
   - a[] of record
+  - clone multi dim static array
 - RTTI
   - class property
   - type alias type
@@ -3433,7 +3434,7 @@ var
 begin
   l:=length(Arr.Ranges);
   if l=0 then exit(false);
-  if l>1 then exit(true);
+  if l>1 then exit(false ); // ToDo: return true when cloning multi dims is implemented
   ElType:=ResolveAliasType(Arr.ElType);
   if ElType is TPasArrayType then
     Result:=length(TPasArrayType(ElType).Ranges)>0
