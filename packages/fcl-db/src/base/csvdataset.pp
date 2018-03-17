@@ -173,6 +173,7 @@ begin
   If FOwnsOptions then
     FreeAndNil(FOPtions);
   FreeAndNil(Fline);
+  FreeAndNil(FParser);
   inherited Destroy;
 end;
 
