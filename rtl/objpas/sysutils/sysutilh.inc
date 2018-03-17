@@ -38,7 +38,7 @@ type
 
    TProcedure = procedure;
 
-   TFilename = String;
+   TFileName = type string;
 
    TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
 
