@@ -531,6 +531,7 @@ type
     Procedure TestClassOf;
     Procedure TestClassOfAlias;
     Procedure TestClassOfNonClassFail;
+    Procedure TestClassOfAssignClassOfFail;
     Procedure TestClassOfIsOperatorFail;
     Procedure TestClassOfAsOperatorFail;
     Procedure TestClassOfIsOperator;
@@ -8826,6 +8827,20 @@ begin
   Add('  TCars = class of longint;');
   Add('begin');
   CheckResolverException('Incompatible types: got "Longint" expected "class"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestClassOfAssignClassOfFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TClass = class of TObject;',
+  'var c: TClass;',
+  'begin',
+  '  c:=TClass;']);
+  CheckResolverException('Incompatible types: got "type class-of" expected "class of TObject"',
     nIncompatibleTypesGotExpected);
 end;
 

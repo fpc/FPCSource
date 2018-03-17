@@ -14605,7 +14605,7 @@ begin
     RaiseInternalError(20160922163648);
   LTypeEl:=ResolveAliasType(LHS.TypeEl);
   RTypeEl:=ResolveAliasType(RHS.TypeEl);
-  if LTypeEl=RTypeEl then
+  if (LTypeEl=RTypeEl) and not (RTypeEl is TPasClassOfType) then
     exit(cExact);
 
   {$IFDEF VerbosePasResolver}
@@ -14632,12 +14632,22 @@ begin
       Result:=cExact
     else if (RTypeEl.ClassType=TPasClassOfType) then
       begin
-      // e.g. ImageClass:=AnotherImageClass;
-      Result:=CheckClassIsClass(TPasClassOfType(RTypeEl).DestType,
-        TPasClassOfType(LTypeEl).DestType,ErrorEl);
-      if (Result=cIncompatible) and RaiseOnIncompatible then
-        RaiseMsg(20170216152500,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          ['class of '+TPasClassOfType(RTypeEl).DestType.FullName,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
+      if not (RHS.IdentEl is TPasClassOfType) then
+        begin
+        // e.g. ImageClass:=AnotherImageClass;
+        Result:=CheckClassIsClass(TPasClassOfType(RTypeEl).DestType,
+          TPasClassOfType(LTypeEl).DestType,ErrorEl);
+        if (Result=cIncompatible) and RaiseOnIncompatible then
+          RaiseMsg(20170216152500,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+            ['class of '+TPasClassOfType(RTypeEl).DestType.FullName,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
+        end
+      else
+        begin
+        Result:=cIncompatible;
+        if (Result=cIncompatible) and RaiseOnIncompatible then
+          RaiseMsg(20180317103206,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+            ['type class-of','class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
+        end;
       end
     else if (RHS.IdentEl is TPasClassType)
         or ((RHS.IdentEl is TPasAliasType)
