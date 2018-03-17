@@ -23,7 +23,7 @@ asm
 end;
 
 const
-  t2_size = 38;
+  t2_size = 37;
 procedure t2; assembler;
 var
   locl: longword;
