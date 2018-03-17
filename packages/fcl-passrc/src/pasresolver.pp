@@ -3987,6 +3987,8 @@ var
   IsClassScope: Boolean;
   C: TClass;
 begin
+  if aName='' then exit(nil);
+
   IsClassScope:=(Scope is TPasClassScope);
 
   if (El.Visibility=visPublished) then
@@ -4409,9 +4411,12 @@ begin
   Decl.Types.Add(El);
   if (El.ClassType=TPasEnumType) and (Parent.ClassType=TPasSetType) then
     begin
+    // anonymous enumtype
     EnumScope:=TPasEnumTypeScope(El.CustomData);
     if EnumScope.CanonicalSet<>Parent then
       begin
+      // When a TPasEnumType is created a CanonicalSet is created.
+      // Release the autocreated CanonicalSet and use the parent.
       if EnumScope.CanonicalSet<>nil then
         EnumScope.CanonicalSet.Release;
       EnumScope.CanonicalSet:=TPasSetType(Parent);
@@ -7600,9 +7605,17 @@ begin
   AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
   PushScope(El,TPasEnumTypeScope);
   // add canonical set
-  CanonicalSet:=TPasSetType.Create('',El);
-  CanonicalSet.EnumType:=El;
-  El.AddRef;
+  if El.Parent is TPasSetType then
+    begin
+    CanonicalSet:=TPasSetType(El.Parent);
+    CanonicalSet.AddRef;
+    end
+  else
+    begin
+    CanonicalSet:=TPasSetType.Create('',El);
+    CanonicalSet.EnumType:=El;
+    El.AddRef;
+    end;
   TPasEnumTypeScope(TopScope).CanonicalSet:=CanonicalSet;
 end;
 

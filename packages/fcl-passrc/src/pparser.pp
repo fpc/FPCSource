@@ -4284,29 +4284,29 @@ begin
     Access := argDefault;
     IsUntyped := False;
     ArgType := nil;
+    NextToken;
+    if CurToken = tkConst then
+    begin
+      Access := argConst;
+      Name := ExpectIdentifier;
+    end else if CurToken = tkConstRef then
+    begin
+      Access := argConstref;
+      Name := ExpectIdentifier;
+    end else if CurToken = tkVar then
+    begin
+      Access := ArgVar;
+      Name := ExpectIdentifier;
+    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
+    begin
+      Access := ArgOut;
+      Name := ExpectIdentifier;
+    end else if CurToken = tkIdentifier then
+      Name := CurTokenString
+    else
+      ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
     while True do
     begin
-      NextToken;
-      if CurToken = tkConst then
-      begin
-        Access := argConst;
-        Name := ExpectIdentifier;
-      end else if CurToken = tkConstRef then
-      begin
-        Access := argConstref;
-        Name := ExpectIdentifier;
-      end else if CurToken = tkVar then
-      begin
-        Access := ArgVar;
-        Name := ExpectIdentifier;
-      end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OUT') then
-      begin
-        Access := ArgOut;
-        Name := ExpectIdentifier;
-      end else if CurToken = tkIdentifier then
-        Name := CurTokenString
-      else
-        ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
       Arg := TPasArgument(CreateElement(TPasArgument, Name, Parent));
       Arg.Access := Access;
       Args.Add(Arg);
@@ -4323,11 +4323,16 @@ begin
       end
       else if CurToken <> tkComma then
         ParseExc(nParserExpectedCommaColon,SParserExpectedCommaColon);
+      NextToken;
+      if CurToken = tkIdentifier then
+        Name := CurTokenString
+      else
+        ParseExc(nParserExpectedConstVarID,SParserExpectedConstVarID);
     end;
     Value:=Nil;
     if not IsUntyped then
       begin
-      Arg := TPasArgument(Args[0]);
+      Arg := TPasArgument(Args[OldArgCount]);
       ArgType := ParseType(Arg,CurSourcePos);
       ok:=false;
       try

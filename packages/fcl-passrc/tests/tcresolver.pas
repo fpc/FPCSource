@@ -363,6 +363,7 @@ type
     Procedure TestProcOverloadWithBaseTypes2;
     Procedure TestProcOverloadNearestHigherPrecision;
     Procedure TestProcCallLowPrecision;
+    Procedure TestProcOverloadUntyped;
     Procedure TestProcOverloadMultiLowPrecisionFail;
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
@@ -5375,6 +5376,22 @@ begin
   'var i: int64;',
   'begin',
   '  {@longint}DoIt(i);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadUntyped;
+begin
+  StartProgram(false);
+  Add([
+  'procedure {#a}DoIt(a, b: longint); external;',
+  'procedure {#b}DoIt(const a; b: longint); external;',
+  'var',
+  '  a: longint;',
+  '  b: boolean;',
+  'begin',
+  '  {@a}DoIt(a,a);',
+  '  {@b}DoIt(b,a);',
   '']);
   ParseProgram;
 end;
