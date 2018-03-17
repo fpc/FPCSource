@@ -75,7 +75,7 @@ implementation
         if not(cs_check_overflow in current_settings.localswitches) and
            (right.nodetype=ordconstn) and
            (nodetype=divn) and
-           not(is_64bitint(resultdef)) and
+           not(is_64bit(resultdef)) and
            {Only the ARM and thumb2-isa support umull and smull, which are required for arbitary division by const optimization}
            (GenerateArmCode or
             GenerateThumb2Code or
@@ -87,11 +87,11 @@ implementation
           result:=nil
         else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=divn) and
-          not(is_64bitint(resultdef)) then
+          not(is_64bit(resultdef)) then
           result:=nil
         else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
           (nodetype=modn) and
-          not(is_64bitint(resultdef)) then
+          not(is_64bit(resultdef)) then
           begin
             if (right.nodetype=ordconstn) and
               ispowerof2(tordconstnode(right).value,power) and

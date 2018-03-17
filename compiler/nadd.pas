@@ -2358,6 +2358,7 @@ implementation
                   hp:=nil;
                   if s64currencytype.typ=floatdef then
                     begin
+{$ifndef VER3_0}
                       { if left is a currency integer constant, we can get rid of the factor 10000 }
                       { int64(...) causes a cast on currency, so it is the currency value multiplied by 10000 }
                       if (left.nodetype=realconstn) and (is_currency(left.resultdef)) and ((int64(trealconstnode(left).value_currency) mod 10000)=0) then
@@ -2374,6 +2375,7 @@ implementation
                           trealconstnode(right).value_real:=trealconstnode(right).value_real/10000;
                         end
                       else
+{$endif VER3_0}
                         begin
                           hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype));
                           include(hp.flags,nf_is_currency);
@@ -2381,6 +2383,7 @@ implementation
                     end
                   else
                     begin
+{$ifndef VER3_0}
                       { if left is a currency integer constant, we can get rid of the factor 10000 }
                       if (left.nodetype=ordconstn) and (is_currency(left.resultdef)) and ((tordconstnode(left).value mod 10000)=0) then
                         tordconstnode(left).value:=tordconstnode(left).value div 10000
@@ -2388,6 +2391,7 @@ implementation
                       else if (right.nodetype=ordconstn) and (is_currency(right.resultdef)) and ((tordconstnode(right).value mod 10000)=0) then
                         tordconstnode(right).value:=tordconstnode(right).value div 10000
                       else
+{$endif VER3_0}
                         begin
                           hp:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,s64currencytype,false));
                           include(hp.flags,nf_is_currency);

@@ -189,7 +189,8 @@ implementation
         result:=
           (left.resultdef.typ=orddef) and
           (right.resultdef.typ=orddef) and
-          (is_64bitint(left.resultdef) or is_64bitint(right.resultdef));
+          { include currency as well }
+          (is_64bit(left.resultdef) or is_64bit(right.resultdef));
 {$endif cpu64bitaly}
       end;
 
@@ -429,7 +430,9 @@ implementation
           u32bit:
             procname := procname + 'dword';
           s32bit:
-            procname := procname + 'longint'
+            procname := procname + 'longint';
+          scurrency:
+            procname := procname + 'currency';
           else
             internalerror(2015070501);
         end;

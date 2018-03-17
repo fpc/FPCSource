@@ -633,6 +633,9 @@ function fpc_mul_int64_checkoverflow(f1,f2 : int64) : int64; compilerproc;
 function fpc_mul_dword_to_qword(f1,f2 : dword) : qword; compilerproc;
 function fpc_mul_longint_to_int64(f1,f2 : longint) : int64; compilerproc;
 
+function fpc_div_currency(n,z : currency) : currency; compilerproc;
+function fpc_mod_currency(n,z : currency) : currency; compilerproc;
+
 {$ifdef FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 function fpc_shl_qword(value : qword; shift : sizeint) : qword; compilerproc;
 function fpc_shr_qword(value : qword; shift : sizeint) : qword; compilerproc;
