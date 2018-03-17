@@ -8026,6 +8026,7 @@ begin
       E := AReader.FindChild('Variables');
       if Assigned(E) then
       begin
+        Variables.Clear;
         AReader.PushElement(E);
         for i := 0 to AReader.ChildCount-1 do
         begin
