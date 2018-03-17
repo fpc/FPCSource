@@ -401,12 +401,13 @@ end;
 
 destructor TMemDataset.Destroy;
 begin
-  FStream.Free;
+//  FStream.Free;
   FreeMem(FFieldOffsets);
   FreeMem(FFieldSizes);
   FBlobs.Clear;
   FBlobs.Free;
   inherited Destroy;
+  FStream.Free;
 end;
 
 function TMemDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
