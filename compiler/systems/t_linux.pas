@@ -126,7 +126,22 @@ begin
   if not Dontlinkstdlibpath Then
     begin
 {$ifdef x86_64}
-      LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+      { some linuxes might not have the lib64 variants (Arch, LFS }
+      if PathExists('/usr/X11R6/lib64',true) then
+        LibrarySearchPath.AddPath(sysrootpath,'/usr/X11R6/lib64',true)
+      else if PathExists('/usr/X11R6/lib',true) then
+        LibrarySearchPath.AddPath(sysrootpath,'/usr/X11R6/lib',true);
+
+      if PathExists('/usr/lib64',true) then
+        LibrarySearchPath.AddPath(sysrootpath,'/usr/lib64',true)
+      else if PathExists('/usr/lib',true) then
+        LibrarySearchPath.AddPath(sysrootpath,'/usr/lib',true);
+
+      { /lib64 should be the really first, so add it before everything else }
+      if PathExists('/lib64',true) then
+        LibrarySearchPath.AddPath(sysrootpath,'/lib64',true)
+      else if PathExists('/lib',true) then
+        LibrarySearchPath.AddPath(sysrootpath,'/lib',true);
 {$else}
 {$ifdef powerpc64}
       if target_info.abi<>abi_powerpc_elfv2 then
