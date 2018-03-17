@@ -653,7 +653,7 @@ end;
 procedure TMemDataset.InternalOpen;
 
 begin
-  If (FFileName<>'') then
+  If (FFileName<>'') and FileExists(FFileName) then
     FOpenStream:=TFileStream.Create(FFileName,fmOpenRead);
   Try
     InternalInitFieldDefs;
