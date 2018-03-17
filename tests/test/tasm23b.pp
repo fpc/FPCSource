@@ -29,22 +29,22 @@ var
   locl: longword;
 asm
   mov eax, locl                             { mov еax, [rbp-08] }
-  mov eax, fs:locl                          { mov еax, fs:[rbp-08] }
-  mov eax, [fs:locl]                        { mov еax, fs:[rbp-08] }
-  mov eax, [fs:[locl]]                      { mov еax, fs:[rbp-08] }
-  mov eax, fs:locl[5]                       { mov еax, fs:[rbp-03] }
-  mov eax, fs:5[locl]                       { mov еax, fs:[rbp-03] }
+  mov eax, fs:locl                          { mov еax, fs:[rbp-04] }
+  mov eax, [fs:locl]                        { mov еax, fs:[rbp-04] }
+  mov eax, [fs:[locl]]                      { mov еax, fs:[rbp-04] }
+  mov eax, fs:locl[5]                       { mov еax, fs:[rbp+01] }
+  mov eax, fs:5[locl]                       { mov еax, fs:[rbp+01] }
 end;
 procedure t2_verify; assembler;
 var
   locl: longword;
 asm
-  mov eax, [rbp-08]     { mov еax, locl        }
-  mov eax, fs:[rbp-08]  { mov еax, fs:locl     }
-  mov eax, fs:[rbp-08]  { mov еax, [fs:locl]   }
-  mov eax, fs:[rbp-08]  { mov еax, [fs:[locl]] }
-  mov eax, fs:[rbp-03]  { mov еax, fs:locl[5]  }
-  mov eax, fs:[rbp-03]  { mov еax, fs:5[locl]  }
+  mov eax, [rbp-04]     { mov еax, locl        }
+  mov eax, fs:[rbp-04]  { mov еax, fs:locl     }
+  mov eax, fs:[rbp-04]  { mov еax, [fs:locl]   }
+  mov eax, fs:[rbp-04]  { mov еax, [fs:[locl]] }
+  mov eax, fs:[rbp+01]  { mov еax, fs:locl[5]  }
+  mov eax, fs:[rbp+01]  { mov еax, fs:5[locl]  }
 end;
 
 { This version works in all i8086 memory models }
