@@ -47,6 +47,9 @@ begin
   FConn.UserName:=AUserName;
   FConn.Password:=APassword;
   FConn.Transaction:=TSQLTransaction.Create(Self);
+  FConn.Transaction.Params.Add('version1');
+  FConn.Transaction.Params.Add('read_committed');
+  FConn.Transaction.Params.Add('isc_tpb_lock_read=PARMTAB');
   FConn.OnLog:=@DoSQLLog;
   FConn.LogEvents:=LogAllEventsExtra;
   FConn.Connected:=True;

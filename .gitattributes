@@ -2019,6 +2019,7 @@ packages/fcl-db/examples/loadlibdemo.pp svneol=native#text/plain
 packages/fcl-db/examples/logsqldemo.lpi svneol=native#text/plain
 packages/fcl-db/examples/logsqldemo.pas svneol=native#text/plain
 packages/fcl-db/examples/pqeventstest.pp svneol=native#text/plain
+packages/fcl-db/examples/showcsv.pp svneol=native#text/plain
 packages/fcl-db/examples/sqlite3loadlib.lpr svneol=native#text/plain
 packages/fcl-db/examples/sqlparser.pp svneol=native#text/plain
 packages/fcl-db/fpmake.pp svneol=native#text/plain
