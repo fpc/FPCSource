@@ -815,6 +815,7 @@ type
     procedure Set_ModScope_AssertMsgConstructor(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_RangeErrorClass(RefEl: TPasElement; Data: TObject);
     procedure Set_ModScope_RangeErrorConstructor(RefEl: TPasElement; Data: TObject);
+    procedure Set_EnumTypeScope_CanonicalSet(RefEl: TPasElement; Data: TObject);
     procedure Set_PropertyScope_AncestorProp(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_ImplProc(RefEl: TPasElement; Data: TObject);
     procedure Set_ProcedureScope_Overridden(RefEl: TPasElement; Data: TObject);
@@ -997,6 +998,8 @@ function crc32(crc: cardinal; buf: Pbyte; len: cardinal): cardinal;
 
 function ModeSwitchToInt(ms: TModeSwitch): byte;
 function StrToPasIdentifierKind(const s: string): TPasIdentifierKind;
+
+procedure GrowIdToRefsArray(var IdToRefsArray: TPCUFilerElementRefArray; Id: integer);
 
 function dbgmem(const s: string): string; overload;
 function dbgmem(p: PChar; Cnt: integer): string; overload;
@@ -1336,6 +1339,22 @@ begin
   Result:=pikNone;
 end;
 
+procedure GrowIdToRefsArray(var IdToRefsArray: TPCUFilerElementRefArray; Id: integer);
+var
+  OldCapacity, NewCapacity: Integer;
+begin
+  OldCapacity:=length(IdToRefsArray);
+  if Id>=OldCapacity then
+    begin
+    // grow
+    NewCapacity:=OldCapacity;
+    if NewCapacity=0 then NewCapacity:=100;
+    while NewCapacity<Id+1 do NewCapacity:=NewCapacity*2;
+    SetLength(IdToRefsArray,NewCapacity);
+    FillByte(IdToRefsArray[OldCapacity],SizeOf(Pointer)*(NewCapacity-OldCapacity),0);
+    end;
+end;
+
 function dbgmem(const s: string): string;
 begin
   if s='' then exit('');
@@ -1547,7 +1566,7 @@ begin
   C:=Expr.ClassType;
   if C=TArrayValues then exit(false);
   if C=TRecordValues then exit(false);
-  Result:=true;
+  Result:=not Resolver.ExprEvaluator.IsSimpleExpr(Expr);
 end;
 
 function TPCUFiler.GetSrcCheckSum(aFilename: string): TPCUSourceFileChecksum;
@@ -2334,7 +2353,7 @@ var
   SubObj: TJSONObject;
 begin
   if El=nil then exit;
-  if Parent<>El.Parent then
+  if (Parent<>El.Parent) then
     RaiseMsg(20180208221751,El,GetObjName(Parent)+'<>'+GetObjName(El.Parent));
   SubObj:=TJSONObject.Create;
   Obj.Add(PropName,SubObj);
@@ -2683,7 +2702,6 @@ procedure TPCUWriter.WriteExprCustomData(Obj: TJSONObject; Expr: TPasExpr;
 var
   Ref: TResolvedReference;
 begin
-  if Expr.CustomData=nil then exit;
   if Expr.CustomData is TResolvedReference then
     begin
     Ref:=TResolvedReference(Expr.CustomData);
@@ -2936,7 +2954,7 @@ procedure TPCUWriter.WriteEnumTypeScope(Obj: TJSONObject;
   Scope: TPasEnumTypeScope; aContext: TPCUWriterContext);
 begin
   WriteIdentifierScope(Obj,Scope,aContext);
-  WriteElementProperty(Obj,Scope.Element,'CanonicalSet',Scope.CanonicalSet,aContext);
+  WriteElType(Obj,Scope.Element,'CanonicalSet',Scope.CanonicalSet,aContext);
 end;
 
 procedure TPCUWriter.WriteEnumType(Obj: TJSONObject; El: TPasEnumType;
@@ -3958,6 +3976,22 @@ begin
     RaiseMsg(20180211123100,Scope.Element,GetObjName(RefEl));
 end;
 
+procedure TPCUReader.Set_EnumTypeScope_CanonicalSet(RefEl: TPasElement;
+  Data: TObject);
+var
+  El: TPasEnumType absolute Data;
+  Scope: TPasEnumTypeScope;
+begin
+  if RefEl is TPasSetType then
+    begin
+    Scope:=El.CustomData as TPasEnumTypeScope;
+    Scope.CanonicalSet:=TPasSetType(RefEl);
+    RefEl.AddRef;
+    end
+  else
+    RaiseMsg(20180316215238,Scope.Element,GetObjName(RefEl));
+end;
+
 procedure TPCUReader.Set_PropertyScope_AncestorProp(RefEl: TPasElement;
   Data: TObject);
 var
@@ -4145,7 +4179,6 @@ end;
 function TPCUReader.AddElReference(Id: integer; ErrorEl: TPasElement;
   El: TPasElement): TPCUFilerElementRef;
 var
-  NewCapacity, OldCapacity: Integer;
   Ref: TPCUFilerElementRef;
   RefItem: TPCUFilerPendingElRef;
   PendingElRef: TPCUReaderPendingElRef;
@@ -4153,16 +4186,10 @@ var
 begin
   if Id<=0 then
     RaiseMsg(20180207151233,ErrorEl);
-  OldCapacity:=length(FElementRefsArray);
-  if Id>=OldCapacity then
-    begin
-    // grow
-    NewCapacity:=OldCapacity;
-    if NewCapacity=0 then NewCapacity:=16;
-    while NewCapacity<Id+1 do NewCapacity:=NewCapacity*2;
-    SetLength(FElementRefsArray,NewCapacity);
-    FillByte(FElementRefsArray[OldCapacity],SizeOf(Pointer)*(NewCapacity-OldCapacity),0);
-    end;
+  if Id>1000000 then
+    RaiseMsg(20180316090216,ErrorEl,IntToStr(Id));
+  if Id>=length(FElementRefsArray) then
+    GrowIdToRefsArray(FElementRefsArray,Id);
 
   Ref:=FElementRefsArray[Id];
   {$IFDEF VerbosePCUFiler}
@@ -4750,12 +4777,16 @@ var
   SubObj: TJSONObject;
   Intf: TInterfaceSection;
   Name: string;
+  Ref: TPCUFilerElementRef;
 begin
   {$IFDEF VerbosePCUFiler}
   writeln('TPCUReader.ReadExtRefs ',GetObjName(El));
   {$ENDIF}
   if ReadInteger(Obj,'Id',Id,El) then
-    AddElReference(Id,El,El);
+    begin
+    Ref:=AddElReference(Id,El,El);
+    Ref.Obj:=Obj;
+    end;
   if ReadArray(Obj,'El',Arr,El) then
     begin
     if El is TPasDeclarations then
@@ -5465,6 +5496,7 @@ begin
 
   if not ReadBoolean(Obj,'Eval',NeedEvalValue,Expr) then
     NeedEvalValue:=GetDefaultExprHasEvalValue(Expr);
+  //writeln('TPCUReader.ReadExprCustomData ',Expr.FullPath,' ',GetObjName(Expr),' NeedEvalValue=',NeedEvalValue);
   if NeedEvalValue then
     begin
     Value:=Resolver.Eval(Expr,[refAutoConst]);
@@ -6027,8 +6059,7 @@ end;
 procedure TPCUReader.ReadEnumTypeScope(Obj: TJSONObject;
   Scope: TPasEnumTypeScope; aContext: TPCUReaderContext);
 begin
-  Scope.CanonicalSet:=TPasSetType(ReadElementProperty(
-                        Obj,Scope.Element,'CanonicalSet',TPasSetType,aContext));
+  ReadElType(Obj,'CanonicalSet',Scope.Element,@Set_EnumTypeScope_CanonicalSet,aContext);
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
 

@@ -137,8 +137,11 @@ type
     procedure TestPC_Var;
     procedure TestPC_Enum;
     procedure TestPC_Set;
+    procedure TestPC_SetOfAnonymousEnumType;
     procedure TestPC_Record;
     procedure TestPC_JSValue;
+    procedure TestPC_Array;
+    procedure TestPC_ArrayOfAnonymous;
     procedure TestPC_Proc;
     procedure TestPC_Proc_Nested;
     procedure TestPC_Proc_LocalConst;
@@ -671,7 +674,7 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredEnumTypeScope(const Path: string;
   Orig, Rest: TPasEnumTypeScope);
 begin
-  CheckRestoredElement(Path+'.CanonicalSet',Orig.CanonicalSet,Rest.CanonicalSet);
+  CheckRestoredReference(Path+'.CanonicalSet',Orig.CanonicalSet,Rest.CanonicalSet);
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
 
@@ -963,7 +966,9 @@ var
   C: TClass;
   AModule: TPasModule;
 begin
+  //writeln('TCustomTestPrecompile.CheckRestoredElement START Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
   if not CheckRestoredObject(Path,Orig,Rest) then exit;
+  //writeln('TCustomTestPrecompile.CheckRestoredElement CheckRestoredObject Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
 
   AModule:=Orig.GetModule;
   if AModule<>Module then
@@ -979,8 +984,10 @@ begin
     Fail(Path+'.Hints');
   AssertEquals(Path+'.HintMessage',Orig.HintMessage,Rest.HintMessage);
 
+  //writeln('TCustomTestPrecompile.CheckRestoredElement Checking Parent... Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
   CheckRestoredReference(Path+'.Parent',Orig.Parent,Rest.Parent);
 
+  //writeln('TCustomTestPrecompile.CheckRestoredElement Checking CustomData... Orig=',GetObjName(Orig),' Rest=',GetObjName(Rest));
   CheckRestoredCustomData(Path+'.CustomData',Rest,Orig.CustomData,Rest.CustomData);
 
   C:=Orig.ClassType;
@@ -1523,6 +1530,7 @@ begin
   '  AnoArr: array of longint = (1,2,3);',
   '  s: string = ''aaaäö'';',
   '  s2: string = ''😊'';', // 1F60A
+  '  a,b: longint;',
   'implementation']);
   WriteReadUnit;
 end;
@@ -1554,11 +1562,22 @@ begin
   '  TEnumRg = green..blue;',
   '  TEnumAlias = TEnum;', // alias
   '  TSetOfEnum = set of TEnum;',
-  '  TSetOfAnoEnum = set of TEnum;', // anonymous enumtype
   '  TSetOfEnumRg = set of TEnumRg;',
+  '  TSetOfDir = set of (west,east);',
   'var',
   '  Empty: TSetOfEnum = [];', // empty set lit
   '  All: TSetOfEnum = [low(TEnum)..pred(high(TEnum)),high(TEnum)];', // full set lit, range in set
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_SetOfAnonymousEnumType;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TSetOfDir = set of (west,east);',
   'implementation']);
   WriteReadUnit;
 end;
@@ -1593,6 +1612,32 @@ begin
   WriteReadUnit;
 end;
 
+procedure TTestPrecompile.TestPC_Array;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TEnum = (red,green);',
+  '  TArrInt = array of longint;',
+  '  TArrInt2 = array[1..2] of longint;',
+  '  TArrEnum1 = array[red..green] of longint;',
+  '  TArrEnum2 = array[TEnum] of longint;',
+  'implementation']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_ArrayOfAnonymous;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'var',
+  '  a: array of pointer;',
+  'implementation']);
+  WriteReadUnit;
+end;
+
 procedure TTestPrecompile.TestPC_Proc;
 begin
   StartUnit(false);
@@ -1600,6 +1645,8 @@ begin
   'interface',
   '  function Abs(d: double): double; external name ''Math.Abs'';',
   '  function GetIt(d: double): double;',
+  '  procedure DoArgs(const a; var b: array of char; out c: jsvalue); inline;',
+  '  procedure DoMulti(a,b: byte);',
   'implementation',
   'var k: double;',
   'function GetIt(d: double): double;',
@@ -1607,6 +1654,12 @@ begin
   'begin',
   '  j:=Abs(d+k);',
   '  Result:=j;',
+  'end;',
+  'procedure DoArgs(const a; var b: array of char; out c: jsvalue); inline;',
+  'begin',
+  'end;',
+  'procedure DoMulti(a,b: byte);',
+  'begin',
   'end;',
   'procedure NotUsed;',
   'begin',
