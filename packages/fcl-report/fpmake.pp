@@ -24,6 +24,7 @@ begin
     P.Dependencies.Add('fcl-pdf');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-db');
+    P.Dependencies.Add('fcl-web');
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
