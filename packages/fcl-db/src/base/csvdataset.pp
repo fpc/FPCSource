@@ -143,10 +143,8 @@ procedure TCSVDataPacketReader.SetCreateFieldDefs(AValue: TFieldDefs);
 begin
   if FCreateFieldDefs=AValue then Exit;
   if (FCreateFieldDefs=Nil) then
-    begin
     FCreateFieldDefs:=TFieldDefs.Create(AValue.Dataset);
-    FCreateFieldDefs.Assign(AValue);
-    end;
+  FCreateFieldDefs.Assign(AValue);
 end;
 
 constructor TCSVDataPacketReader.Create(ADataSet: TCustomBufDataset; AStream: TStream);
@@ -170,6 +168,7 @@ end;
 
 destructor TCSVDataPacketReader.Destroy;
 begin
+  FreeAndNil(FCreateFieldDefs);
   If FOwnsOptions then
     FreeAndNil(FOPtions);
   FreeAndNil(Fline);
