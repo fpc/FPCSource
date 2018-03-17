@@ -1615,6 +1615,14 @@ type
     property OnEndReport;
   end;
 
+  TFPReportCustomDataManager = Class(TComponent)
+  Public
+    procedure WriteElement(AWriter: TFPReportStreamer); virtual; abstract;
+    procedure ReadElement(AReader: TFPReportStreamer); virtual; abstract;
+    Procedure ApplyToReport(aReport : TFPCustomReport; AErrors: TStrings); virtual; abstract;
+    Procedure RemoveFromReport(aReport : TFPCustomReport); virtual; abstract;
+  end;
+
 
   { TFPReportLayouter }
   TOverFlowAction = (oaNone,oaBandWithChilds,oaSingleBand);
@@ -2123,7 +2131,6 @@ type
     property    Count: Integer read GetCount;
     property    Items[AIndex: Integer]: TFPReportCustomBand read GetItems write SetItems; default;
   end;
-
 
   { TFPReportExportManager }
 

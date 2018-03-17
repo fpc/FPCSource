@@ -20,19 +20,33 @@ unit fpjsonreport;
 interface
 
 uses
-  Classes, SysUtils, fpreport, fpjson, fpreportstreamer;
+  Classes, SysUtils, fpreport, fpjson, fpreportstreamer, fpreportdata;
 
 Type
 
   { TFPJSONReport }
+  TReadReportJSONEvent = Procedure(Sender : TObject; JSON : TJSONObject) of object;
+  TWriteReportJSONEvent = Procedure(Sender : TObject; JSON : TJSONObject) of object;
 
   TFPJSONReport = class(TFPReport)
   private
+    FDataManager: TFPCustomReportDataManager;
     FDesignTimeJSON: TJSONObject;
+    FLoadErrors: TStrings;
+    FOnReadJSON: TReadReportJSONEvent;
+    FOnWriteJSON: TWriteReportJSONEvent;
+    FDesignDataName : String;
+    function GetDesignDataName: String;
     procedure ReadReportJSON(Reader: TReader);
+    procedure SetDataManager(AValue: TFPCustomReportDataManager);
+    procedure SetDesignDataName(AValue: String);
+    function StoreDesignDataName: Boolean;
     procedure WriteReportJSON(Writer: TWriter);
   Protected
+    procedure DoReadJSON(aJSON: TJSONObject);virtual;
+    procedure DoWriteJSON(aJSON: TJSONObject);virtual;
     Procedure DefineProperties(Filer: TFiler); override;
+    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   Public
     Constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -42,10 +56,18 @@ Type
     Procedure SavetoJSON(aJSON : TJSONObject); virtual;
     Procedure LoadFromFile(const aFileName : String);
     Procedure SaveToFile(const aFileName : String);
+    Property LoadErrors : TStrings Read FLoadErrors;
+    Property DataManager : TFPCustomReportDataManager Read FDataManager Write SetDataManager;
+    Property DesignDataName : String Read GetDesignDataName Write SetDesignDataName Stored StoreDesignDataName;
     Property DesignTimeJSON : TJSONObject Read FDesignTimeJSON;
+    Property OnReadJSON : TReadReportJSONEvent Read FOnReadJSON Write FOnReadJSON;
+    Property OnWriteJSON : TWriteReportJSONEvent Read FOnWriteJSON Write FOnWriteJSON;
   end;
 
 implementation
+
+Const
+  DefaultDesignData = 'DesignData';
 
 Resourcestring
   SErrInvalidJSONData = 'Invalid JSON Data';
@@ -79,6 +101,27 @@ begin
     end;
 end;
 
+procedure TFPJSONReport.SetDataManager(AValue: TFPCustomReportDataManager);
+begin
+  if FDataManager=AValue then Exit;
+  If Assigned(FDataManager) then
+    FDataManager.RemoveFreeNotification(Self);
+  FDataManager:=AValue;
+  If Assigned(FDataManager) then
+    FDataManager.FreeNotification(Self);
+end;
+
+procedure TFPJSONReport.SetDesignDataName(AValue: String);
+begin
+  if AValue=GetDesignDataName then exit;
+  FDesignDataName:=aValue;
+end;
+
+function TFPJSONReport.StoreDesignDataName: Boolean;
+begin
+  Result:=GetDesignDataName<>DefaultDesignData;
+end;
+
 procedure TFPJSONReport.WriteReportJSON(Writer: TWriter);
 
 Var
@@ -97,16 +140,53 @@ begin
   Filer.DefineProperty('ReportJSON',@ReadReportJSON,@WriteReportJSON,Assigned(FDesignTimeJSON) and (FDesignTimeJSON.Count>0));
 end;
 
+procedure TFPJSONReport.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation=opRemove) and (AComponent=FDataManager) then
+    FDataManager:=Nil;
+end;
+
 constructor TFPJSONReport.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FDesignTimeJSON:=TJSONObject.Create;
+  FLoadErrors:=TStringList.Create;
 end;
 
 destructor TFPJSONReport.Destroy;
 begin
+  FreeAndNil(FLoadErrors);
   FreeAndNil(FDesignTimeJSON);
   inherited Destroy;
+end;
+
+Function TFPJSONReport.GetDesignDataName : String;
+
+begin
+  Result:=FDesignDataName;
+  if (FDesignDataName='') then
+    Result:=DefaultDesignData;
+end;
+
+procedure TFPJSONReport.DoReadJSON(aJSON: TJSONObject);
+
+Var
+  O : TJSONObject;
+
+begin
+  FloadErrors.Clear;
+  if Assigned(FOnReadJSON) then
+    FOnReadJSON(Self,aJSON);
+  if Assigned(FDataManager) then
+    begin
+    O:=aJSON.get(GetDesignDataName,TJSONObject(Nil));
+    if Assigned(O) then
+      begin
+      FDataManager.LoadFromJSON(O);
+      FDataManager.ApplyToReport(Self,LoadErrors);
+      end;
+    end;
 end;
 
 procedure TFPJSONReport.LoadFromJSON(aJSON: TJSONObject);
@@ -117,6 +197,7 @@ Var
 
 begin
   N:=Name;
+  DoReadJSON(aJSON);
   R:=TFPReportJSONStreamer.Create(Nil);
   try
     R.OwnsJSON:=False;
@@ -128,12 +209,29 @@ begin
   end;
 end;
 
+procedure TFPJSONReport.DoWriteJSON(aJSON: TJSONObject);
+
+Var
+   O: TJSONObject;
+
+begin
+  if Assigned(FDataManager) then
+    begin
+    O:=TJSONObject.Create();
+    aJSON.Add(GetDesignDataName,O);
+    FDataManager.SaveToJSON(O);
+    end;
+  if Assigned(FOnWriteJSON) then
+    FOnWriteJSON(Self,aJSON);
+end;
+
 procedure TFPJSONReport.SavetoJSON(aJSON: TJSONObject);
 
 Var
   R : TFPReportJSONStreamer;
 
 begin
+  DoWriteJSON(aJSON);
   R:=TFPReportJSONStreamer.Create(Nil);
   try
     R.OwnsJSON:=False;

@@ -28,7 +28,9 @@ Type
   TFPReportDatasetData = class(TFPReportData)
   private
     FDataSet: TDataSet;
+    procedure SetDataSet(AValue: TDataSet);
   protected
+    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure DoGetValue(const AFieldName: string; var AValue: variant); override;
     procedure DoInitDataFields; override;
     procedure DoOpen; override;
@@ -41,7 +43,7 @@ Type
     Procedure StartDesigning; override;
     Procedure EndDesigning; override;
   published
-    property  DataSet: TDataSet read FDataSet write FDataSet;
+    property  DataSet: TDataSet read FDataSet write SetDataSet;
   end;
 
 implementation
@@ -52,6 +54,23 @@ resourcestring
 
 
 { TFPReportDatasetData }
+
+procedure TFPReportDatasetData.SetDataSet(AValue: TDataSet);
+begin
+  if FDataSet=AValue then Exit;
+  if Assigned(FDataset) then
+    FDataset.RemoveFreeNotification(Self);
+  FDataSet:=AValue;
+  if Assigned(FDataset) then
+    FDataset.FreeNotification(Self);
+end;
+
+procedure TFPReportDatasetData.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation=opRemove) and (AComponent=FDataset) then
+    FDataset:=Nil;
+end;
 
 procedure TFPReportDatasetData.DoGetValue(const AFieldName: string; var AValue: variant);
 var

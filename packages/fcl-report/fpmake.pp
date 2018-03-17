@@ -48,11 +48,52 @@ begin
       AddUnit('fpreportstreamer');
       AddUnit('fpreporthtmlparser');
       end;
+
+    T:=P.Targets.AddUnit('fpreportdata.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      AddUnit('fpreport');
+      
+    T:=P.Targets.AddUnit('fpreportdatacsv.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpreportdata');
+      end;
+
+    T:=P.Targets.AddUnit('fpreportdatadbf.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpreportdata');
+      end;
+
+    T:=P.Targets.AddUnit('fpreportdatajson.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpreportdata');
+      end;
+
+
+    T:=P.Targets.AddUnit('fpreportdatasqldb.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpreportdata');
+      end;
       
     T:=P.Targets.AddUnit('fpjsonreport.pp');
     T.ResourceStrings := True;
     with T.Dependencies do
+      begin
       AddUnit('fpreport');
+      AddUnit('fpreportdata');
+      end; 
       
     T:=P.Targets.AddUnit('fpreportjson.pp');
     T.ResourceStrings := True;
