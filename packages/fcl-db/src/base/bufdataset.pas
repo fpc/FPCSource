@@ -3028,7 +3028,7 @@ end;
 
 function TCustomBufDataset.GetIndexName: String;
 begin
-  if FIndexes.Count>0 then
+  if (FIndexes.Count>0) and (CurrentIndexBuf <> nil) then
     result := CurrentIndexBuf.Name
   else
     result := FIndexName;
