@@ -4349,7 +4349,7 @@ begin
             ParseExc(nParserPropertyArgumentsCanNotHaveDefaultValues,
               SParserPropertyArgumentsCanNotHaveDefaultValues);
           NextToken;
-          Value := DoParseExpression(Parent,Nil);
+          Value := DoParseExpression(Arg,Nil);
           // After this, we're on ), which must be unget.
           LastHadDefaultValue:=true;
           end
