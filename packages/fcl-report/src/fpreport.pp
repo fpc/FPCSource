@@ -1519,7 +1519,7 @@ type
     { checks if children are visble, removes children if needed, and recalc Band.Layout bounds }
     procedure EmptyRTObjects;
     procedure ClearDataBandLastTextValues(ABand: TFPReportCustomBandWithData);
-    procedure ProcessAggregates(const APageIdx: integer; const AData: TFPReportData);
+    procedure ProcessAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
 
     { these three methods are used to resolve references while reading a report from file. }
     procedure ClearReferenceList;
@@ -1547,8 +1547,9 @@ type
     procedure DoBeginReport; virtual;
     procedure DoEndReport; virtual;
     procedure InitializeDefaultExpressions; virtual;
-    procedure InitializeExpressionVariables(const APage: TFPReportCustomPage;   const AData: TFPReportData); virtual;
-    procedure CacheMemoExpressions(const APageIdx: integer; const AData: TFPReportData); virtual;
+    procedure InitializeExpressionVariables; virtual;
+    procedure InitializePageAggregateData(const APage: TFPReportCustomPage; const AData: TFPReportData); virtual;
+    procedure CacheMemoExpressions(const APage: TFPReportCustomPage); virtual;
     procedure StartRender; override;
     procedure EndRender; override;
     // stores object instances for and during layouting
@@ -4279,12 +4280,14 @@ begin
 end;
 
 procedure TFPReportCustomMemo.ParseText;
+
 var
   lCount: integer;
   n: TFPExprNode;
   i: integer;
   str: string;
   lStartPos: integer;
+
 begin
   { clear array and then set the correct array size }
   ClearExpressionNodes;
@@ -4292,9 +4295,7 @@ begin
     lCount := TokenCount(Text)-1
   else
     exit;
-
   SetLength(ExpressionNodes, lCount);
-
   str := '';
   n := nil;
   for i := 1 to lCount do
@@ -7458,18 +7459,15 @@ begin
 end;
 
 
-procedure TFPCustomReport.ProcessAggregates(const APageIdx: integer; const AData: TFPReportData);
-
+procedure TFPCustomReport.ProcessAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
 
 var
   i: integer;
-  P : TFPReportCustomPage;
 
 begin
-  P:=Pages[APageIdx];
-  for I := 0 to P.BandCount-1 do
-    if P.Bands[I] is TFPReportCustomBandWithData then
-      TFPReportCustomBandWithData(P.Bands[I]).ProcessAggregates(AData);
+  for I := 0 to aPage.BandCount-1 do
+    if (aPage.Bands[I] is TFPReportCustomBandWithData) then
+      TFPReportCustomBandWithData(aPage.Bands[I]).ProcessAggregates(AData);
 end;
 
 procedure TFPCustomReport.ClearReferenceList;
@@ -7675,6 +7673,52 @@ begin
     FExpr.Identifiers.AddFunction('PageCount', 'I', '', @BuiltinGetPageCount);
 end;
 
+procedure TFPCustomReport.InitializePageAggregateData(const APage: TFPReportCustomPage; const AData: TFPReportData);
+
+var
+  i: Integer;
+  f: string;
+  r: TResultType;
+  d: string;
+  v: TFPReportVariable;
+  df: TFPReportDataField;
+
+begin
+  // Sanity check
+  if Not (APage.Data = AData) then
+    exit;
+  For I:=0 to FVariables.Count-1 do
+    begin
+    v:=FVariables[I];
+    v.ReleaseExpressionNodes;
+    if v.Expression<>'' then
+      begin
+      FExpr.Expression:=v.Expression;
+      FExpr.ExtractNode(v.FExpressionNode);
+      v.FIsAggregate:=v.FExpressionNode.IsAggregate;
+      if v.FExpressionNode.HasAggregate and
+      not v.FExpressionNode.IsAggregate then
+        raise EReportError.CreateFmt(SErrExprVarisbleAggregateOnWrongLevel, [v.FExpressionNode.AsString]);
+      if not v.FIsAggregate then
+        begin
+        v.FResetType:=rtNone;
+        v.FResetValueExpression:='';
+        end;
+      end;
+    if v.ResetValueExpression<>'' then
+      begin
+      FExpr.Expression := v.ResetValueExpression;
+      FExpr.ExtractNode(v.FResetValueExpressionNode);
+      end;
+    end;
+  For I:=0 to FVariables.Count-1 do
+    begin
+    v:=FVariables[I];
+    if v.Expression<>'' then
+      FExpr.Identifiers.AddVariable(v.Name, v.DataType, @v.GetRTExpressionValue);
+    end;
+end;
+
 
 Class function TFPCustomReport.ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
 begin
@@ -7691,104 +7735,71 @@ begin
   end;
 end;
 
-procedure TFPCustomReport.InitializeExpressionVariables(const APage: TFPReportCustomPage; const AData: TFPReportData);
+procedure TFPCustomReport.InitializeExpressionVariables;
 
 var
-  i: Integer;
+  i,j: Integer;
   f: string;
   r: TResultType;
   d: string;
   v: TFPReportVariable;
   df: TFPReportDataField;
+  aData : TFPReportData;
 
 begin
-  {$ifdef gdebug}
-  writeln('********** TFPCustomReport.InitializeExpressionVariables');
-  {$endif}
-  F:='';
-  For I:=0 to FExpr.Identifiers.Count-1 do
-    f:=f+FExpr.Identifiers[i].Name+'; ';
-  if FDataAdded.IndexOf(AData)=-1 then
-  begin
-    for i := 0 to AData.DataFields.Count-1 do
+  For J:=0 to ReportData.Count-1 do
     begin
-      d := AData.Name;
-      df := AData.DataFields[i];
-      f := df.FieldName;
-      df.OnGetUsePrevValue := @DoGetUsePrevValue;
-      r := ReportKindToResultType(df.FieldKind);
-      if d <> '' then
+    aData:=ReportData[J].Data;
+    {$ifdef gdebug}
+    writeln('********** TFPCustomReport.InitializeExpressionVariables');
+    {$endif}
+    F:='';
+    For i:=0 to FExpr.Identifiers.Count-1 do
+      f:=f+FExpr.Identifiers[i].Name+'; ';
+    if FDataAdded.IndexOf(AData)=-1 then
       begin
-        {$ifdef gdebug}
-        writeln('registering (dotted name)... '+ d+'.'+f);
-        {$endif}
-        df.ExprIdentierDef := FExpr.Identifiers.AddVariable(d+'.'+f, r, @df.GetRTValue);
-      end
-      else
-      begin
-        {$ifdef gdebug}
-        writeln('registering... '+ f);
-        {$endif}
-        df.ExprIdentierDef := FExpr.Identifiers.AddVariable(f, r, @df.GetRTValue);
-      end;
-    end;
-    FDataAdded.Add(AData);
-  end;
-  if APage.Data = AData then
-  begin
-    For I:=0 to FVariables.Count-1 do
-    begin
-      v:=FVariables[I];
-      v.ReleaseExpressionNodes;
-      if v.Expression<>'' then
-      begin
-        FExpr.Expression:=v.Expression;
-        FExpr.ExtractNode(v.FExpressionNode);
-        v.FIsAggregate:=v.FExpressionNode.IsAggregate;
-        if v.FExpressionNode.HasAggregate and
-        not v.FExpressionNode.IsAggregate then
-          raise EReportError.CreateFmt(SErrExprVarisbleAggregateOnWrongLevel, [v.FExpressionNode.AsString]);
-        if not v.FIsAggregate then begin
-          v.FResetType:=rtNone;
-          v.FResetValueExpression:='';
+      for i := 0 to AData.DataFields.Count-1 do
+        begin
+        d := AData.Name;
+        df := AData.DataFields[i];
+        f := df.FieldName;
+        df.OnGetUsePrevValue := @DoGetUsePrevValue;
+        r := ReportKindToResultType(df.FieldKind);
+        if d <> '' then
+          begin
+          {$ifdef gdebug}
+          writeln('registering (dotted name)... '+ d+'.'+f);
+          {$endif}
+          df.ExprIdentierDef := FExpr.Identifiers.AddVariable(d+'.'+f, r, @df.GetRTValue);
+          end
+        else
+          begin
+          {$ifdef gdebug}
+          writeln('registering... '+ f);
+          {$endif}
+          df.ExprIdentierDef := FExpr.Identifiers.AddVariable(f, r, @df.GetRTValue);
+          end;
         end;
+      FDataAdded.Add(AData);
       end;
-      if v.ResetValueExpression<>'' then
-      begin
-        FExpr.Expression := v.ResetValueExpression;
-        FExpr.ExtractNode(v.FResetValueExpressionNode);
-      end;
-    end;
-    For I:=0 to FVariables.Count-1 do
-    begin
-      v:=FVariables[I];
-      if v.Expression<>'' then
-        FExpr.Identifiers.AddVariable(v.Name, v.DataType, @v.GetRTExpressionValue);
-    end;
-  end;
+   end;
 end;
 
-procedure TFPCustomReport.CacheMemoExpressions(const APageIdx: integer; const AData: TFPReportData);
+procedure TFPCustomReport.CacheMemoExpressions(const APage: TFPReportCustomPage);
+
 var
   b: integer;
   c: integer;
   m: TFPReportCustomMemo;
-begin
-  for b := 0 to Pages[APageIdx].BandCount-1 do
-  begin
-    if Pages[APageIdx].Bands[b] is TFPReportCustomBandWithData then
-    begin
-      if TFPReportCustomBandWithData(Pages[APageIdx].Bands[b]).Data <> AData then
-        Continue;  // band is from a different data-loop
-    end;
 
-    for c := 0 to Pages[APageIdx].Bands[b].ChildCount-1 do
-      if Pages[APageIdx].Bands[b].Child[c] is TFPReportCustomMemo then
-      begin
-        m := TFPReportCustomMemo(Pages[APageIdx].Bands[b].Child[c]);
+begin
+  for b := 0 to aPage.BandCount-1 do
+    for c := 0 to aPage.Bands[b].ChildCount-1 do
+      if aPage.Bands[b].Child[c] is TFPReportCustomMemo then
+        begin
+        m := TFPReportCustomMemo(aPage.Bands[b].Child[c]);
         m.ParseText;
-      end;
-  end; { bands }
+        end;
 end;
 
 constructor TFPCustomReport.Create(AOwner: TComponent);
@@ -10886,27 +10897,16 @@ begin
       if not lData.IsOpened then
         begin
         lData.Open;
-        Report.InitializeExpressionVariables(lPage, lData);
-        for j := 0 to Report.ReportData.Count-1 do
-          begin
-          oData:=Report.ReportData.Data[j].Data;
-          if Assigned(oData) and (oData<>lData) then
-            Report.InitializeExpressionVariables(lPage, oData);
-          end;
-        Report.CacheMemoExpressions(RTCurDsgnPageIdx, lData);
-        for j := 0 to Report.ReportData.Count-1 do
-          begin
-          oData:=Report.ReportData.Data[j].Data;
-          if Assigned(oData) and (oData<>lData) then
-            Report.CacheMemoExpressions(RTCurDsgnPageIdx, oData);
-          end;
+        // Report.InitializeExpressionVariables;
+        Report.InitializePageAggregateData(lPage,lData);
+        // Report.CacheMemoExpressions(lPage);
         end;
       lData.First;
       if (not lData.EOF) and (lDsgnDetailBand.HeaderBand <> nil) then
         ShowDataHeaderBand(lDsgnDetailBand.HeaderBand);
       while not lData.EOF do
         begin
-        Report.ProcessAggregates(RTCurDsgnPageIdx,lData);
+        Report.ProcessAggregates(lPage,lData);
         Report.Variables.PrepareExpressionValues;
         inc(FDataLevelStack);
         ShowDataBand(lDsgnDetailBand);
@@ -11113,31 +11113,29 @@ Var
   I : integer;
   lBand : TFPReportCustomBand;
   oData : TFPReportData;
+  lPage : TFPReportCustomPage;
+
 begin
+  lPage:=Pages[aPageIdx];
   if Assigned(aPageData) then
     begin
     if not aPageData.IsOpened then
       aPageData.Open;
+    For I:=0 to Report.ReportData.Count-1 do
+      begin
+      oData:=Report.ReportData[i].Data;
+      if Assigned(oData) and (oData<>aPageData) and (not odata.IsOpened) then
+        oData.Open;
+      end;
     if IsFirstPass then
       begin
-      Report.InitializeExpressionVariables(Pages[aPageIdx], aPageData);
-      for I := 0 to Report.ReportData.Count-1 do
-        begin
-        oData:=Report.ReportData.Data[i].Data;
-        if Assigned(oData) and (oData<>aPageData) then
-          Report.InitializeExpressionVariables(Pages[RTCurDsgnPageIdx],oData);
-        end;
-      Report.CacheMemoExpressions(aPageIdx, aPageData);
-      for I := 0 to Report.ReportData.Count-1 do
-        begin
-        oData:=Report.ReportData.Data[i].Data;
-        if Assigned(oData) and (oData<>aPageData) then
-          Report.CacheMemoExpressions(RTCurDsgnPageIdx, oData);
-        end;
+      Report.InitializeExpressionVariables;
+      Report.InitializePageAggregateData(lPage, aPageData);
+      Report.CacheMemoExpressions(lPage);
       end;
     aPageData.First;
     end;
-  InitBandList(Pages[aPageIdx],aPageData);
+  InitBandList(lPage,aPageData);
   if Not Assigned(aPageData) then
     StartNewPage
   else
@@ -11152,11 +11150,11 @@ begin
       if FHasGroups then
         HandleGroupBands;
       // This must be done after the groups were handled.
-      Report.ProcessAggregates(aPageIdx,aPageData);
+      Report.ProcessAggregates(lPage,aPageData);
       HandleDataBands;
       aPageData.Next;
       end;
-    Report.ProcessAggregates(aPageIdx,aPageData);
+    Report.ProcessAggregates(lPage,aPageData);
     PrepareRecord;
     end;
   CheckNewOrOverFlow(True);
