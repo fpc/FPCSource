@@ -359,6 +359,9 @@ type
     Procedure TestFunctionResult;
     Procedure TestProcedureResultFail;
     Procedure TestProcOverload;
+    Procedure TestProcOverloadImplDuplicateFail;
+    Procedure TestProcOverloadImplDuplicate2Fail;
+    Procedure TestProcOverloadOtherUnit;
     Procedure TestProcOverloadWithBaseTypes;
     Procedure TestProcOverloadWithBaseTypes2;
     Procedure TestProcOverloadNearestHigherPrecision;
@@ -5297,6 +5300,50 @@ begin
   AssertEquals('is function',TPasFunction,El.ClassType);
 
   AssertEquals('1 statement',1,PasProgram.InitializationSection.Elements.Count);
+end;
+
+procedure TTestResolver.TestProcOverloadImplDuplicateFail;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt(d: double);',
+  'implementation',
+  'procedure DoIt(d: double); begin end;',
+  'procedure DoIt(d: double); begin end;',
+  'end.']);
+  CheckResolverException('Duplicate identifier "DoIt" at afile.pp(5,15)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestProcOverloadImplDuplicate2Fail;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'implementation',
+  'procedure DoIt(d: double); begin end;',
+  'procedure DoIt(d: double); begin end;',
+  'end.']);
+  CheckResolverException('Duplicate identifier "DoIt" at afile.pp(4,15)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestProcOverloadOtherUnit;
+begin
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'procedure DoIt(d: double);',
+    '']),
+    LinesToStr([
+    'procedure DoIt(d: double); begin end;',
+    '']));
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'implementation',
+  'procedure DoIt(d: double); begin end;',
+  'end.']);
+  ParseUnit;
 end;
 
 procedure TTestResolver.TestProcOverloadWithBaseTypes;

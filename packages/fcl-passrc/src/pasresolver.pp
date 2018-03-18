@@ -3826,7 +3826,7 @@ begin
     exit;
     end;
 
-  //writeln('TPasResolver.OnFindOverloadProc Data^.OnlyScope=',GetObjName(Data^.OnlyScope),' ElScope=',GetObjName(ElScope),' ',Data^.OnlyScope=ElScope);
+  //writeln('TPasResolver.OnFindOverloadProc Data^.OnlyScope=',GetObjName(Data^.OnlyScope),' ElScope=',GetObjName(ElScope),' Same=',Data^.OnlyScope=ElScope);
   if (Data^.OnlyScope<>nil) and (Data^.OnlyScope<>ElScope) then
     begin
     // do not search any further, only one scope should be searched
@@ -4562,7 +4562,7 @@ begin
       aProc.Modifiers:=aProc.Modifiers+[pmAssembler];
     ResolveImplBlock(Body.Body);
 
-    // check if all forward procs are resolved
+    // check if all nested forward procs are resolved
     for i:=0 to Body.Declarations.Count-1 do
       begin
       SubEl:=TPasElement(Body.Declarations[i]);
@@ -4709,30 +4709,39 @@ begin
       begin
       // check if there is a forward declaration
       ParentScope:=Scopes[ScopeCount-2];
-      //writeln('TPasResolver.FinishProcedureType FindForward2 ',GetObjName(ParentScope));
+      //writeln('TPasResolver.FinishProcedureType FindForward2 ParentScope=',GetObjName(ParentScope),'=',GetObjName(ParentScope.Element),' Proc=',GetObjName(Proc),' at ',GetElementSourcePosStr(Proc));
       DeclProc:=FindProcOverload(ProcName,Proc,ParentScope);
-      //writeln('TPasResolver.FinishProcedureType FindForward3 ',GetObjName(DeclProc),' Proc.Parent=',GetObjName(Proc.Parent));
+      //writeln('TPasResolver.FinishProcedureType FindForward3 DeclProc=',GetObjName(DeclProc),' Proc.Parent=',GetObjName(Proc.Parent));
       if (DeclProc=nil) and (Proc.Parent.ClassType=TImplementationSection) then
         DeclProc:=FindProcOverload(ProcName,Proc,
           (Proc.GetModule.InterfaceSection.CustomData) as TPasScope);
-      //writeln('TPasResolver.FinishProcedureType FindForward4 ',GetObjName(DeclProc));
-      if (DeclProc<>nil) and ProcNeedsImplProc(DeclProc) then
+      //writeln('TPasResolver.FinishProcedureType FindForward4 ',GetObjName(DeclProc),' at ',GetElementSourcePosStr(DeclProc));
+      if (DeclProc<>nil) then
         begin
-        // found forward declaration -> connect
-        {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.FinishProcedureHeader forward found: Proc2=',GetTreeDbg(DeclProc),' ',GetElementSourcePosStr(DeclProc),' IsForward=',DeclProc.IsForward,' Parent=',GetObjName(DeclProc.Parent));
-        {$ENDIF}
-        CheckProcSignatureMatch(DeclProc,Proc,true);
-        DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
-        DeclProcScope.ImplProc:=Proc;
-        ProcScope:=Proc.CustomData as TPasProcedureScope;
-        ProcScope.DeclarationProc:=DeclProc;
-        // remove ImplProc from scope
-        ParentScope:=Scopes[ScopeCount-2];
-        (ParentScope as TPasIdentifierScope).RemoveLocalIdentifier(Proc);
-        // replace arguments with declaration arguments
-        ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
-        exit;
+        if ProcNeedsImplProc(DeclProc) then
+          begin
+          // found forward declaration
+          DeclProcScope:=DeclProc.CustomData as TPasProcedureScope;
+          if DeclProcScope.ImplProc<>nil then
+            RaiseMsg(20180318222430,nDuplicateIdentifier,sDuplicateIdentifier,
+              [DeclProcScope.ImplProc.Name,GetElementSourcePosStr(DeclProcScope.ImplProc)],Proc);
+          // connect
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.FinishProcedureHeader forward found: Proc2=',GetTreeDbg(DeclProc),' ',GetElementSourcePosStr(DeclProc),' IsForward=',DeclProc.IsForward,' Parent=',GetObjName(DeclProc.Parent));
+          {$ENDIF}
+          CheckProcSignatureMatch(DeclProc,Proc,true);
+          DeclProcScope.ImplProc:=Proc;
+          ProcScope:=Proc.CustomData as TPasProcedureScope;
+          ProcScope.DeclarationProc:=DeclProc;
+          // remove ImplProc from scope
+          (ParentScope as TPasIdentifierScope).RemoveLocalIdentifier(Proc);
+          // replace arguments with declaration arguments
+          ReplaceProcScopeImplArgsWithDeclArgs(ProcScope);
+          exit;
+          end
+        else
+          RaiseMsg(20180318220543,nDuplicateIdentifier,sDuplicateIdentifier,
+            [DeclProc.Name,GetElementSourcePosStr(DeclProc)],Proc);
         end;
       end
     else
