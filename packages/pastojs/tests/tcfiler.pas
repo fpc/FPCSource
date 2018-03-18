@@ -146,7 +146,9 @@ type
     procedure TestPC_Proc_Nested;
     procedure TestPC_Proc_LocalConst;
     procedure TestPC_Proc_UTF8;
+    procedure TestPC_Proc_Arg;
     procedure TestPC_Class;
+    procedure TestPC_ClassForward;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
 
@@ -1530,7 +1532,7 @@ begin
   '  AnoArr: array of longint = (1,2,3);',
   '  s: string = ''aaaäö'';',
   '  s2: string = ''😊'';', // 1F60A
-  '  a,b: longint;',
+  '  a,b: array of longint;',
   'implementation']);
   WriteReadUnit;
 end;
@@ -1705,7 +1707,7 @@ begin
   StartUnit(false);
   Add([
   'interface',
-  '  function GetIt(d: double): double;',
+  'function GetIt(d: double): double;',
   'implementation',
   'function GetIt(d: double): double;',
   'const',
@@ -1723,13 +1725,27 @@ begin
   StartUnit(false);
   Add([
   'interface',
-  '  function DoIt: string;',
+  'function DoIt: string;',
   'implementation',
   'function DoIt: string;',
   'const',
   '  c = ''äöü😊'';',
   'begin',
   '  Result:=''ÄÖÜ😊''+c;',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_Proc_Arg;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'procedure DoIt(var a; out b,c: longint; const e,f: array of byte; g: boolean = true);',
+  'implementation',
+  'procedure DoIt(var a; out b,c: longint; const e,f: array of byte; g: boolean = true);',
+  'begin',
   'end;',
   '']);
   WriteReadUnit;
@@ -1760,6 +1776,31 @@ begin
   'procedure TBird.SetInt(Value: longint);',
   'begin',
   'end;'
+  ]);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_ClassForward;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class end;',
+  '  TBird = class;',
+  '  TBirdClass = class of TBird;',
+  '  TFish = class',
+  '    B: TBird;',
+  '  end;',
+  '  TBird = class',
+  '    F: TFish;',
+  '  end;',
+  'var',
+  '  b: tbird;',
+  '  f: tfish;',
+  '  bc: TBirdClass;',
+  'implementation',
+  'end.'
   ]);
   WriteReadUnit;
 end;

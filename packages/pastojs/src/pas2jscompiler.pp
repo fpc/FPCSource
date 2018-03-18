@@ -1053,13 +1053,10 @@ begin
 end;
 
 procedure TPas2jsCompilerFile.HandleEPCUReader(E: EPas2JsReadError);
-var
-  Reader: TPCUCustomReader;
 begin
   if E.Owner is TPCUCustomReader then
   begin
-    Reader:=TPCUCustomReader(E.Owner);
-    Log.Log(mtError,E.Message);
+    Log.Log(mtError,E.Message,0,PCUFilename);
   end else begin
     Log.Log(mtError,E.Message);
   end;
@@ -1221,7 +1218,9 @@ begin
     Converter.OnIsTypeInfoUsed:=@OnPCUConverterIsTypeInfoUsed;
     JS:=Converter.ConvertPasElement(PasModule,PascalResolver);
     Converter.Options:=Converter.Options-[coStoreImplJS];
-
+    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
+    writeln('TPas2jsCompilerFile.WritePCU create pcu ... ',PCUFilename);
+    {$ENDIF}
     Writer.WritePCU(PascalResolver,Converter,Compiler.PrecompileInitialFlags,ms,
       {$IFDEF DisablePCUCompressed}false{$ELSE}true{$ENDIF});
     {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
@@ -3872,10 +3871,10 @@ begin
   if PrecompileFormats.Count>0 then
   begin
     l('   -JU<x> : Create precompiled units in format x.');
-    l('     -JU- : Do not create precompiled units.');
     for i:=0 to PrecompileFormats.Count-1 do
       with PrecompileFormats[i] do
         l('     -JU'+Ext+' : '+Description);
+    l('     -JU- : Disable prior -JU<x> option. Do not create precompiled units.');
   end;
   l('  -l      : Write logo');
   l('  -MDelphi: Delphi 7 compatibility mode');
@@ -4108,7 +4107,7 @@ begin
   if UseUnitName<>'' then
     begin
     {$IFDEF VerboseSetPasUnitName}
-    writeln('TPas2jsCompiler.LoadPasFile File="',PasFilename,'" UseUnit="',UseUnitName,'"');
+    writeln('TPas2jsCompiler.LoadPasFile File="',aFile.PasFilename,'" UseUnit="',UseUnitName,'"');
     {$ENDIF}
     if CompareText(ExtractFilenameOnly(UnitFilename),UseUnitName)=0 then
       aFile.PasUnitName:=UseUnitName

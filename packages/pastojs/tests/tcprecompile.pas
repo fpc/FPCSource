@@ -54,6 +54,7 @@ type
     procedure TestPCU_ParamNS;
     procedure TestPCU_Overloads;
     procedure TestPCU_UnitCycle;
+    procedure TestPCU_ClassForward;
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -230,6 +231,45 @@ begin
     'uses unit1;',
     'begin',
     '  Do1(3);',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
+end;
+
+procedure TTestCLI_Precompile.TestPCU_ClassForward;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddUnit('src/unit1.pp',
+  ['type',
+   '  TClass = class of TObject;',
+   '  TBirdClass = class of TBird;',
+   '  TObject = class',
+   '    FBirdClass: TBirdClass;',
+   '    constructor Create;',
+   '    constructor Create(Id: integer);',
+   '    property BirdClass: TBirdClass read FBirdClass;',
+   '  end;',
+   '  TBird = class',
+   '    constructor Create(d: double); overload;',
+   '  end;',
+   ''],
+  ['constructor TObject.Create; begin end;',
+   'constructor TObject.Create(Id: integer); begin end;',
+   'constructor TBird.Create(d: double); begin end;']);
+  AddFile('test1.pas',[
+    'uses unit1;',
+    'var',
+    '  b: TBird;',
+    '  c: TClass;',
+    'begin',
+    '  c:=TObject;',
+    '  c:=TBird;',
+    '  c:=b.BirdClass;',
+    '  b:=TBird.Create;',
+    '  b:=TBird.Create(1);',
+    '  b:=TBird.Create(3.3);',
     'end.']);
   CheckPrecompile('test1.pas','src');
 end;

@@ -695,6 +695,7 @@ type
     procedure WriteElType(Obj: TJSONObject; El: TPasElement; const PropName: string; aType: TPasType; aContext: TPCUWriterContext); virtual;
     procedure WriteVarModifiers(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TVariableModifiers); virtual;
     procedure WriteResolvedRefFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TResolvedReferenceFlags); virtual;
+    procedure WriteResolvedReference(Obj: TJSONObject; Ref: TResolvedReference; ErrorEl: TPasElement); virtual;
     procedure WriteExprCustomData(Obj: TJSONObject; Expr: TPasExpr; aContext: TPCUWriterContext); virtual;
     procedure WriteExpr(Obj: TJSONObject; Parent: TPasElement;
       const PropName: string; Expr: TPasExpr; aContext: TPCUWriterContext); virtual;
@@ -876,6 +877,7 @@ type
       const Setter: TOnSetElReference; aContext: TPCUReaderContext); virtual;
     function ReadResolvedRefFlags(Obj: TJSONObject; El: TPasElement;
       const PropName: string; const DefaultValue: TResolvedReferenceFlags): TResolvedReferenceFlags; virtual;
+    procedure ReadResolvedReference(Obj: TJSONObject; Ref: TResolvedReference; ErrorEl: TPasElement); virtual;
     procedure ReadPasExpr(Obj: TJSONObject; Expr: TPasExpr; DefKind: TPasExprKind; aContext: TPCUReaderContext); virtual;
     procedure ReadExprCustomData(Obj: TJSONObject; Expr: TPasExpr; aContext: TPCUReaderContext); virtual;
     function ReadExpr(Obj: TJSONObject; Parent: TPasElement; const PropName: string;
@@ -1007,6 +1009,8 @@ function crc32(crc: cardinal; buf: Pbyte; len: cardinal): cardinal;
 
 function ModeSwitchToInt(ms: TModeSwitch): byte;
 function StrToPasIdentifierKind(const s: string): TPasIdentifierKind;
+
+procedure WriteJSON(aData: TJSONData; TargetStream: TStream; Compressed: boolean);
 
 procedure GrowIdToRefsArray(var IdToRefsArray: TPCUFilerElementRefArray; Id: integer);
 
@@ -1346,6 +1350,140 @@ begin
     if s=PCUIdentifierKindNames[Kind] then
       exit(Kind);
   Result:=pikNone;
+end;
+
+procedure WriteJSON(aData: TJSONData; TargetStream: TStream; Compressed: boolean
+  );
+var
+  CurIndent: integer;
+  Spaces: string;
+
+  procedure WriteString(const s: string);
+  begin
+    if s='' then exit;
+    TargetStream.Write(s[1],length(s));
+  end;
+
+  procedure WriteChar(const c: char);
+  begin
+    TargetStream.Write(c,1);
+  end;
+
+  procedure WriteLine;
+  begin
+    WriteString(sLineBreak);
+    if CurIndent>0 then
+      TargetStream.Write(Spaces[1],CurIndent);
+  end;
+
+  procedure Indent;
+  begin
+    if Compressed then exit;
+    inc(CurIndent,2);
+    if CurIndent>length(Spaces) then
+      Spaces:=Spaces+'  ';
+  end;
+
+  procedure Unindent;
+  begin
+    if Compressed then exit;
+    dec(CurIndent,2);
+  end;
+
+  procedure WriteData(Data: TJSONData); forward;
+
+  procedure WriteObj(Obj: TJSONObject);
+  var
+    i: Integer;
+    Name: String;
+  begin
+    WriteChar('{');
+    if not Compressed then
+      begin
+      Indent;
+      WriteLine;
+      end;
+    for i:=0 to Obj.Count-1 do
+      begin
+      if i>0 then
+        begin
+        WriteChar(',');
+        if not Compressed then
+          WriteLine;
+        end;
+      Name:=Obj.Names[i];
+      WriteChar('"');
+      if IsValidIdent(Name) then
+        WriteString(Name)
+      else
+        WriteString(StringToJSONString(Name,false));
+      WriteString('":');
+      WriteData(Obj.Elements[Name]);
+      end;
+    if not Compressed then
+      begin
+      Unindent;
+      WriteLine;
+      end;
+    WriteChar('}');
+  end;
+
+  procedure WriteArray(Arr: TJSONArray);
+  var
+    i: Integer;
+  begin
+    WriteChar('[');
+    if not Compressed then
+      begin
+      Indent;
+      WriteLine;
+      end;
+    for i:=0 to Arr.Count-1 do
+      begin
+      if i>0 then
+        begin
+        WriteChar(',');
+        if not Compressed then
+          WriteLine;
+        end;
+      WriteData(Arr[i]);
+      end;
+    if not Compressed then
+      begin
+      Unindent;
+      WriteLine;
+      end;
+    WriteChar(']');
+  end;
+
+  procedure WriteData(Data: TJSONData);
+  var
+    C: TClass;
+  begin
+    C:=Data.ClassType;
+    if C=TJSONObject then
+      WriteObj(TJSONObject(Data))
+    else if C=TJSONArray then
+      WriteArray(TJSONArray(Data))
+    else if C.InheritsFrom(TJSONNumber)
+        or (C=TJSONBoolean)
+      then
+      WriteString(Data.AsString)
+    else if (C=TJSONNull) then
+      WriteString('null')
+    else if C=TJSONString then
+      begin
+      WriteChar('"');
+      WriteString(StringToJSONString(Data.AsString));
+      WriteChar('"');
+      end
+    else
+      raise EPas2JsWriteError.Create('unknown JSON data '+GetObjName(Data));
+  end;
+
+begin
+  CurIndent:=0;
+  WriteData(aData);
 end;
 
 procedure GrowIdToRefsArray(var IdToRefsArray: TPCUFilerElementRefArray; Id: integer);
@@ -2025,6 +2163,9 @@ var
   DefVisibility: TPasMemberVisibility;
   Ref: TPCUFilerElementRef;
 begin
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUWriter.WritePasElement ',GetObjName(El));
+  {$ENDIF}
   if El.Name<>'' then
     Obj.Add('Name',El.Name);
 
@@ -2154,7 +2295,7 @@ var
     GetDefaultsPasIdentifierProps(Item.Element,DefKind,DefName);
     if (Item.Kind=DefKind) and (Item.Identifier=DefName) then
     begin
-      // add simply the element Id
+      // add the element Id
       AddReferenceToArray(Arr,Item.Element);
     end
     else begin
@@ -2385,6 +2526,9 @@ begin
     Arr.Add(DeclObj);
     WriteElement(DeclObj,Decl,aContext);
     end;
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUWriter.WriteDeclarations END ',GetObjName(Decls));
+  {$ENDIF}
 end;
 
 procedure TPCUWriter.WriteElementProperty(Obj: TJSONObject;
@@ -2712,6 +2856,19 @@ begin
       AddArrayFlag(Obj,Arr,PropName,PCUResolvedReferenceFlagNames[f],f in Value);
 end;
 
+procedure TPCUWriter.WriteResolvedReference(Obj: TJSONObject;
+  Ref: TResolvedReference; ErrorEl: TPasElement);
+begin
+  WriteResolvedRefFlags(Obj,'RefFlags',Ref.Flags,[]);
+  if Ref.Access<>rraRead then
+    Obj.Add('RefAccess',PCUResolvedRefAccessNames[Ref.Access]);
+  if Ref.WithExprScope<>nil then
+    RaiseMsg(20180215132828,ErrorEl);
+  if Ref.Context<>nil then
+    RaiseMsg(20180215132849,ErrorEl,GetObjName(Ref.Context));
+  AddReferenceToObj(Obj,'RefDecl',Ref.Declaration);
+end;
+
 procedure TPCUWriter.WriteExprCustomData(Obj: TJSONObject; Expr: TPasExpr;
   aContext: TPCUWriterContext);
 
@@ -2746,14 +2903,7 @@ begin
   if Expr.CustomData is TResolvedReference then
     begin
     Ref:=TResolvedReference(Expr.CustomData);
-    WriteResolvedRefFlags(Obj,'RefFlags',Ref.Flags,[]);
-    if Ref.Access<>rraRead then
-      Obj.Add('RefAccess',PCUResolvedRefAccessNames[Ref.Access]);
-    if Ref.WithExprScope<>nil then
-      RaiseMsg(20180215132828,Expr);
-    if Ref.Context<>nil then
-      RaiseMsg(20180215132849,Expr,GetObjName(Ref.Context));
-    AddReferenceToObj(Obj,'RefDecl',Ref.Declaration);
+    WriteResolvedReference(Obj,Ref,Expr);
     CheckNext(Ref.CustomData);
     end
   else
@@ -2768,7 +2918,7 @@ var
 begin
   if Expr=nil then exit;
   if Parent<>Expr.Parent then
-    RaiseMsg(20180208221051,Parent,'Expr='+GetObjName(Expr)+' '+GetObjName(Parent)+'<>'+GetObjName(Expr.Parent));
+    RaiseMsg(20180208221051,Parent,PropName+' Expr='+GetObjName(Expr)+' Parent='+GetObjName(Parent)+'<>'+GetObjName(Expr.Parent)+'=Expr.Parent');
   // ToDo: write simple expressions in a compact format
   SubObj:=TJSONObject.Create;
   Obj.Add(PropName,SubObj);
@@ -3102,6 +3252,7 @@ procedure TPCUWriter.WriteClassType(Obj: TJSONObject; El: TPasClassType;
 var
   Arr: TJSONArray;
   i: Integer;
+  Ref: TResolvedReference;
 begin
   WritePasElement(Obj,El,aContext);
   if El.PackMode<>pmNone then
@@ -3115,7 +3266,6 @@ begin
     Obj.Add('External',true);
   // not needed IsShortDefinition: Boolean; -> class(anchestor); without end
   WriteExpr(Obj,El,'GUID',El.GUIDExpr,aContext);
-  WriteElementList(Obj,El,'Members',El.Members,aContext);
   if El.Modifiers.Count>0 then
     begin
     Arr:=TJSONArray.Create;
@@ -3123,13 +3273,21 @@ begin
     for i:=0 to El.Modifiers.Count-1 do
       Arr.Add(El.Modifiers[i]);
     end;
-  WriteElementList(Obj,El,'Interfaces',El.Interfaces,aContext,true);
   if El.ExternalNameSpace<>'' then
     Obj.Add('ExternalNameSpace',El.ExternalNameSpace);
   if El.ExternalName<>'' then
     Obj.Add('ExternalName',El.ExternalName);
-
-  WriteClassScope(Obj,El.CustomData as TPas2JSClassScope,aContext);
+  if El.IsForward then
+    begin
+    Ref:=TResolvedReference(El.CustomData);
+    WriteResolvedReference(Obj,Ref,El);
+    end
+  else
+    begin
+    WriteElementList(Obj,El,'Interfaces',El.Interfaces,aContext,true);
+    WriteElementList(Obj,El,'Members',El.Members,aContext);
+    WriteClassScope(Obj,El.CustomData as TPas2JSClassScope,aContext);
+    end;
 end;
 
 procedure TPCUWriter.WriteArgument(Obj: TJSONObject; El: TPasArgument;
@@ -3138,8 +3296,14 @@ begin
   WritePasElement(Obj,El,aContext);
   if El.Access<>argDefault then
     Obj.Add('Access',PCUArgumentAccessNames[El.Access]);
-  WriteElType(Obj,El,'ArgType',El.ArgType,aContext);
-  WriteExpr(Obj,El,'Value',El.ValueExpr,aContext);
+  if El.ArgType<>nil then
+    begin
+    if El.ArgType.Parent=El then
+      WriteElementProperty(Obj,El,'ArgType',El.ArgType,aContext)
+    else
+      AddReferenceToObj(Obj,'ArgType',El.ArgType);
+    end;
+  WriteExpr(Obj,El,'Value',El.ValueExpr,aContext)
 end;
 
 procedure TPCUWriter.WriteProcTypeModifiers(Obj: TJSONObject;
@@ -3190,7 +3354,15 @@ procedure TPCUWriter.WriteVariable(Obj: TJSONObject; El: TPasVariable;
   aContext: TPCUWriterContext);
 begin
   WritePasElement(Obj,El,aContext);
-  WriteElType(Obj,El,'VarType',El.VarType,aContext);
+  if El.VarType<>nil then
+    begin
+    if El.VarType.Parent=El then
+      // anonymous type
+      WriteElementProperty(Obj,El,'VarType',El.VarType,aContext)
+    else
+      // reference
+      AddReferenceToObj(Obj,'VarType',El.VarType);
+    end;
   WriteVarModifiers(Obj,'VarMods',El.VarModifiers,[]);
   WriteExpr(Obj,El,'Library',El.LibraryName,aContext);
   WriteExpr(Obj,El,'Export',El.ExportName,aContext);
@@ -3381,13 +3553,14 @@ procedure TPCUWriter.WriteExtRefSignature(Ref: TPCUFilerElementRef;
         end;
     if Index<0 then
       RaiseMsg(20180309184111,Member);
-    Obj.Add('Index',Index);
+    Obj.Add('MId',Index);
   end;
 
 var
   Parent: TPasElement;
   C: TClass;
 begin
+  //writeln('TPCUWriter.WriteExtRefSignature START ',GetObjName(Ref.Element));
   if aContext=nil then ;
   // write member index
   Parent:=Ref.Element.Parent;
@@ -3408,6 +3581,7 @@ begin
     end
   else
     RaiseMsg(20180310104810,Parent,GetObjName(Ref.Element));
+  //writeln('TPCUWriter.WriteExtRefSignature END ',GetObjName(Ref.Element));
 end;
 
 function TPCUWriter.WriteExternalReference(El: TPasElement;
@@ -3423,6 +3597,7 @@ begin
   Ref:=GetElementReference(El);
   if Ref.Obj<>nil then
     exit(Ref);
+  //writeln('TPCUWriter.WriteExternalReference ',GetObjName(El));
   // check that is written
   Parent:=El.Parent;
   ParentRef:=WriteExternalReference(Parent,aContext);
@@ -3474,7 +3649,10 @@ var
   Ref: TPCUFilerElementRef;
   El: TPasElement;
 begin
-   while FFirstNewExt<>nil do
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUWriter.WriteExternalReferences START aContext.Section=',GetObjName(aContext.Section));
+  {$ENDIF}
+  while FFirstNewExt<>nil do
     begin
     Ref:=FFirstNewExt;
     FFirstNewExt:=Ref.NextNewExt;
@@ -3497,6 +3675,9 @@ begin
     // Ref.Id is written in ResolvePendingElRefs
     ResolvePendingElRefs(Ref);
     end;
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUWriter.WriteExternalReferences END aContext.Section=',GetObjName(aContext.Section));
+  {$ENDIF}
 end;
 
 constructor TPCUWriter.Create;
@@ -3525,145 +3706,24 @@ procedure TPCUWriter.WritePCU(aResolver: TPas2JSResolver;
   Compressed: boolean);
 var
   TargetStream: TStream;
-  CurIndent: integer;
-  Spaces: string;
-
-  procedure WriteString(const s: string);
-  begin
-    if s='' then exit;
-    TargetStream.Write(s[1],length(s));
-  end;
-
-  procedure WriteChar(const c: char);
-  begin
-    TargetStream.Write(c,1);
-  end;
-
-  procedure WriteLine;
-  begin
-    WriteString(sLineBreak);
-    if CurIndent>0 then
-      TargetStream.Write(Spaces[1],CurIndent);
-  end;
-
-  procedure Indent;
-  begin
-    if Compressed then exit;
-    inc(CurIndent,2);
-    if CurIndent>length(Spaces) then
-      Spaces:=Spaces+'  ';
-  end;
-
-  procedure Unindent;
-  begin
-    if Compressed then exit;
-    dec(CurIndent,2);
-  end;
-
-  procedure WriteData(Data: TJSONData); forward;
-
-  procedure WriteObj(Obj: TJSONObject);
-  var
-    i: Integer;
-    Name: String;
-  begin
-    WriteChar('{');
-    if not Compressed then
-      begin
-      Indent;
-      WriteLine;
-      end;
-    for i:=0 to Obj.Count-1 do
-      begin
-      if i>0 then
-        begin
-        WriteChar(',');
-        if not Compressed then
-          WriteLine;
-        end;
-      Name:=Obj.Names[i];
-      WriteChar('"');
-      if IsValidIdent(Name) then
-        WriteString(Name)
-      else
-        WriteString(StringToJSONString(Name,false));
-      WriteString('":');
-      WriteData(Obj.Elements[Name]);
-      end;
-    if not Compressed then
-      begin
-      Unindent;
-      WriteLine;
-      end;
-    WriteChar('}');
-  end;
-
-  procedure WriteArray(Arr: TJSONArray);
-  var
-    i: Integer;
-  begin
-    WriteChar('[');
-    if not Compressed then
-      begin
-      Indent;
-      WriteLine;
-      end;
-    for i:=0 to Arr.Count-1 do
-      begin
-      if i>0 then
-        begin
-        WriteChar(',');
-        if not Compressed then
-          WriteLine;
-        end;
-      WriteData(Arr[i]);
-      end;
-    if not Compressed then
-      begin
-      Unindent;
-      WriteLine;
-      end;
-    WriteChar(']');
-  end;
-
-  procedure WriteData(Data: TJSONData);
-  var
-    C: TClass;
-  begin
-    C:=Data.ClassType;
-    if C=TJSONObject then
-      WriteObj(TJSONObject(Data))
-    else if C=TJSONArray then
-      WriteArray(TJSONArray(Data))
-    else if C.InheritsFrom(TJSONNumber)
-        or (C=TJSONBoolean)
-      then
-      WriteString(Data.AsString)
-    else if (C=TJSONNull) then
-      WriteString('null')
-    else if C=TJSONString then
-      begin
-      WriteChar('"');
-      WriteString(StringToJSONString(Data.AsString));
-      WriteChar('"');
-      end
-    else
-      raise EPas2JsWriteError.Create('unknown JSON data '+GetObjName(Data));
-  end;
-
 var
   aJSON: TJSONObject;
   Comp: Tcompressionstream;
 begin
-  CurIndent:=0;
   aJSON:=WriteJSON(aResolver,aConverter,InitFlags);
   TargetStream:=aStream;
   try
     if Compressed then
       TargetStream:=TMemoryStream.Create;
-    WriteObj(aJSON);
+    {$IFDEF VerbosePCUFiler}
+    writeln('TPCUWriter.WritePCU create js');
+    {$ENDIF}
+    Pas2jsFiler.WriteJSON(aJSON,TargetStream,Compressed);
     if Compressed then
       begin
+      {$IFDEF VerbosePCUFiler}
+      writeln('TPCUWriter.WritePCU zip...');
+      {$ENDIF}
       Comp:=Tcompressionstream.create(cldefault,aStream);
       try
         Comp.WriteDWord(TargetStream.Size);
@@ -3672,6 +3732,9 @@ begin
         Comp.Free;
       end;
       end;
+    {$IFDEF VerbosePCUFiler}
+    writeln('TPCUWriter.WritePCU END');
+    {$ENDIF}
   finally
     if TargetStream<>aStream then
       TargetStream.Free;
@@ -3696,18 +3759,27 @@ begin
   Obj:=TJSONObject.Create;
   try
     FJSON:=Obj;
+    {$IFDEF VerbosePCUFiler}
+    writeln('TPCUWriter.WriteJSON header ...');
+    {$ENDIF}
     WriteHeaderMagic(Obj);
     WriteHeaderVersion(Obj);
     WriteGUID(Obj);
     WriteInitialFlags(Obj);
     WriteSrcFiles(Obj);
     // ToDo: WriteUsedModulesPrecompiledChecksums
+    {$IFDEF VerbosePCUFiler}
+    writeln('TPCUWriter.WriteJSON module ...');
+    {$ENDIF}
     aContext:=TPCUWriterContext.Create;
     aContext.ModeSwitches:=InitialFlags.ModeSwitches;
     aContext.BoolSwitches:=InitialFlags.BoolSwitches;
     JSMod:=TJSONObject.Create;
     Obj.Add('Module',JSMod);
     WriteModule(JSMod,aResolver.RootElement,aContext);
+    {$IFDEF VerbosePCUFiler}
+    writeln('TPCUWriter.WriteJSON footer ...');
+    {$ENDIF}
     WriteFinalFlags(Obj);
 
     Result:=Obj;
@@ -3717,6 +3789,9 @@ begin
     if Result=nil then
       Obj.Free;
   end;
+  {$IFDEF VerbosePCUFiler}
+  writeln('TPCUWriter.WriteJSON END');
+  {$ENDIF}
 end;
 
 function TPCUWriter.IndexOfSourceFile(const Filename: string): integer;
@@ -4801,7 +4876,7 @@ begin
     // search element
     if not ReadString(SubObj,'Name',Name,El) then
       RaiseMsg(20180309180233,El,IntToStr(i));
-    if not ReadInteger(SubObj,'Index',Index,El) then
+    if not ReadInteger(SubObj,'MId',Index,El) then
       RaiseMsg(20180309184629,El,IntToStr(i));
     if (Index<0) or (Index>=Members.Count) then
       RaiseMsg(20180309184718,El,IntToStr(Index)+' out of bounds 0-'+IntToStr(Members.Count));
@@ -5467,6 +5542,31 @@ begin
     end;
 end;
 
+procedure TPCUReader.ReadResolvedReference(Obj: TJSONObject;
+  Ref: TResolvedReference; ErrorEl: TPasElement);
+var
+  Found: Boolean;
+  s: string;
+  a: TResolvedRefAccess;
+begin
+  ReadElementReference(Obj,Ref,'RefDecl',@Set_ResolvedReference_Declaration);
+  Ref.Flags:=ReadResolvedRefFlags(Obj,ErrorEl,'RefFlags',[]);
+  Ref.Access:=rraRead;
+  if ReadString(Obj,'RefAccess',s,ErrorEl) then
+    begin
+    Found:=false;
+    for a in TResolvedRefAccess do
+      if s=PCUResolvedRefAccessNames[a] then
+        begin
+        Ref.Access:=a;
+        Found:=true;
+        break;
+        end;
+    if not Found then
+      RaiseMsg(20180215134804,ErrorEl,s);
+    end;
+end;
+
 procedure TPCUReader.ReadPasExpr(Obj: TJSONObject; Expr: TPasExpr;
   DefKind: TPasExprKind; aContext: TPCUReaderContext);
 var
@@ -5511,9 +5611,7 @@ procedure TPCUReader.ReadExprCustomData(Obj: TJSONObject; Expr: TPasExpr;
   aContext: TPCUReaderContext);
 var
   Ref: TResolvedReference;
-  s: string;
-  Found, NeedEvalValue: Boolean;
-  a: TResolvedRefAccess;
+  NeedEvalValue: Boolean;
   Value: TResEvalValue;
 begin
   Ref:=TResolvedReference(Expr.CustomData);
@@ -5521,22 +5619,7 @@ begin
     begin
     Ref:=TResolvedReference.Create;
     Resolver.AddResolveData(Expr,Ref,lkModule);
-    ReadElementReference(Obj,Ref,'RefDecl',@Set_ResolvedReference_Declaration);
-    Ref.Flags:=ReadResolvedRefFlags(Obj,Expr,'RefFlags',[]);
-    Ref.Access:=rraRead;
-    if ReadString(Obj,'RefAccess',s,Expr) then
-      begin
-      Found:=false;
-      for a in TResolvedRefAccess do
-        if s=PCUResolvedRefAccessNames[a] then
-          begin
-          Ref.Access:=a;
-          Found:=true;
-          break;
-          end;
-      if not Found then
-        RaiseMsg(20180215134804,Expr,s);
-      end;
+    ReadResolvedReference(Obj,Ref,Expr);
     end;
 
   if not ReadBoolean(Obj,'Eval',NeedEvalValue,Expr) then
@@ -6284,16 +6367,28 @@ var
   i: Integer;
   Data: TJSONData;
   Scope: TPas2JSClassScope;
+  Ref: TResolvedReference;
 begin
-  Scope:=TPas2JSClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
-  El.CustomData:=Scope;
+  ReadBoolean(Obj,'Forward',El.IsForward,El);
+
+  if El.IsForward then
+    begin
+    Scope:=nil;
+    Ref:=TResolvedReference.Create;
+    Resolver.AddResolveData(El,Ref,lkModule);
+    ReadResolvedReference(Obj,Ref,El);
+    end
+  else
+    begin
+    Scope:=TPas2JSClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
+    El.CustomData:=Scope;
+    end;
 
   ReadPasElement(Obj,El,aContext);
   El.PackMode:=ReadPackedMode(Obj,'Packed',El);
   // ObjKind is the 'Type'
   ReadElType(Obj,'Ancestor',El,@Set_ClassType_AncestorType,aContext);
   ReadElType(Obj,'HelperFor',El,@Set_ClassType_HelperForType,aContext);
-  ReadBoolean(Obj,'Forward',El.IsForward,El);
   ReadBoolean(Obj,'External',El.IsExternal,El);
   // not needed IsShortDefinition: Boolean; -> class(anchestor); without end
   El.GUIDExpr:=ReadExpr(Obj,El,'GUID',aContext);
@@ -6314,12 +6409,14 @@ begin
   ReadString(Obj,'ExternalNameSpace',El.ExternalNameSpace,El);
   ReadString(Obj,'ExternalName',El.ExternalName,El);
 
-  ReadClassScope(Obj,Scope,aContext);
+  if Scope<>nil then
+    begin
+    ReadClassScope(Obj,Scope,aContext);
+    // read Members as last
+    ReadElementList(Obj,El,'Members',El.Members,aContext);
 
-  // read Members as last
-  ReadElementList(Obj,El,'Members',El.Members,aContext);
-
-  ReadClassScopeAbstractProcs(Obj,Scope);
+    ReadClassScopeAbstractProcs(Obj,Scope);
+    end;
 end;
 
 procedure TPCUReader.ReadArgument(Obj: TJSONObject; El: TPasArgument;
@@ -6643,9 +6740,11 @@ var
   DeclScope: TPasProcedureScope;
   DeclProc: TPasProcedure;
 begin
-  // Note: the References are stored in the declaration scope,
-  //       and in the JSON of the implementation scope, so that
-  //       all references can be resolved immediately
+  // Note: the References are stored in the scope object of the declaration proc,
+  //       OTOH in the JSON they are stored in the scope of the implementation
+  //       proc, so that all references can be resolved immediately.
+  if ImplScope.ImplProc<>nil then
+    RaiseMsg(20180318212631,ImplScope.Element);
   DeclProc:=ImplScope.DeclarationProc;
   if DeclProc=nil then
     DeclProc:=ImplScope.Element as TPasProcedure;

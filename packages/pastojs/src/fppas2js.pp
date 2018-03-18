@@ -2435,7 +2435,7 @@ begin
             RaiseMsg(20170322142158,nInvalidXModifierY,
               sInvalidXModifierY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
           Proc.Modifiers:=Proc.Modifiers+[pmExternal];
-          Proc.LibrarySymbolName:=TPrimitiveExpr.Create(El,pekString,''''+Proc.Name+'''');
+          Proc.LibrarySymbolName:=TPrimitiveExpr.Create(Proc,pekString,''''+Proc.Name+'''');
           end;
 
         if Proc.Visibility=visPublished then
