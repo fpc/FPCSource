@@ -1504,6 +1504,7 @@ type
     FUsePageCountMarker: Boolean;
     FVariables : TFPReportVariables;
     FDataAdded : TFPList;
+    procedure BuiltinGetFieldIsNull(var Result: TFPExpressionResult; const Args: TExprParameterArray);
     function GetPage(AIndex: integer): TFPReportCustomPage;
     function GetPageCount: integer; { this is designer page count }
     function GetRenderedPageCount: integer;
@@ -1583,7 +1584,7 @@ type
     Procedure StartDesigning; virtual;
     Procedure EndDesigning; virtual;
     procedure RenderReport(const AExporter: TFPReportExporter);
-    procedure   AddBuiltinsToExpressionIdentifiers(Idents: TFPExprIdentifierDefs); virtual;
+    procedure AddBuiltinsToExpressionIdentifiers(Idents: TFPExprIdentifierDefs); virtual;
     Property Variables : TFPReportVariables Read FVariables Write SetVariables;
     Property ExpressionParser : TFPExpressionParser Read FExpr;
     {$IFDEF gdebug}
@@ -7411,25 +7412,55 @@ end;
 procedure TFPCustomReport.BuiltinGetInRepeatedGroupHeader(
   var Result: TFPExpressionResult; const Args: TExprParameterArray);
 begin
+  Result.ResultType:=rtBoolean;
   Result.ResBoolean := FRTInRepeatedGroupHeader;
 end;
 
 procedure TFPCustomReport.BuiltInGetInIntermediateGroupFooter(
   var Result: TFPExpressionResult; const Args: TExprParameterArray);
 begin
+  Result.ResultType:=rtBoolean;
   Result.ResBoolean := FRTInIntermediateGroupFooter;
 end;
 
 procedure TFPCustomReport.BuiltinGetIsOverflowed(
   var Result: TFPExpressionResult; const Args: TExprParameterArray);
 begin
+  Result.ResultType:=rtBoolean;
   Result.ResBoolean := FRTIsOverflowed;
 end;
 
 procedure TFPCustomReport.BuiltinGetIsGroupDetailsPrinted(
   var Result: TFPExpressionResult; const Args: TExprParameterArray);
 begin
+  Result.ResultType:=rtBoolean;
   Result.ResBoolean := FRTGroupDetailsPrinted;
+end;
+
+
+procedure TFPCustomReport.BuiltinGetFieldIsNull(var Result: TFPExpressionResult; const Args: TExprParameterArray);
+
+Var
+  DN,FN : String;
+  I : Integer;
+  RD : TFPReportData;
+
+begin
+  Result.ResultType:=rtBoolean;
+  Result.ResBoolean := True;
+  FN:=Args[0].ResString;
+  DN:='';
+  I:=Pos('.',FN);
+  if I>0 then
+    begin
+    DN:=Copy(FN,1,I-1);
+    Delete(FN,1,I);
+    end;
+  RD:=ReportData.FindReportData(DN);
+  if (DN='') and (ReportData.Count=1) then
+    RD:=ReportData[0].Data;
+  if Assigned(RD) and (RD.IndexOfField(FN)<>-1) then
+    Result.ResBoolean:=VarIsNull(RD.FieldValues[FN]);
 end;
 
 
@@ -7641,6 +7672,7 @@ begin
   Idents.AddFunction('InIntermediateGroupFooter', 'B', '', @BuiltInGetInIntermediateGroupFooter);
   Idents.AddFunction('IsOverflowed', 'B', '', @BuiltInGetIsOverflowed);
   Idents.AddFunction('IsGroupDetailPrinted', 'B', '', @BuiltinGetIsGroupDetailsPrinted);
+  Idents.AddFunction('FieldIsNull', 'B', 'S', @BuiltinGetFieldIsNull);
 end;
 
 procedure TFPCustomReport.InitializeDefaultExpressions;
@@ -7803,6 +7835,7 @@ begin
 end;
 
 constructor TFPCustomReport.Create(AOwner: TComponent);
+
 begin
   inherited Create(AOwner);
   FReportData:=CreateReportData;
