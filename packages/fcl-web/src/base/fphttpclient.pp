@@ -816,8 +816,6 @@ function TFPCustomHTTPClient.ReadResponseHeaders: integer;
     C : String;
 
   begin
-    If Assigned(FCookies) then
-      FCookies.Clear;
     P:=Pos(':',S);
     System.Delete(S,1,P);
     Repeat
@@ -837,6 +835,8 @@ Var
   StatusLine,S : String;
 
 begin
+  If Assigned(FCookies) then
+    FCookies.Clear;
   if not ReadString(StatusLine) then
     Exit(0);
   Result:=ParseStatusLine(StatusLine);
