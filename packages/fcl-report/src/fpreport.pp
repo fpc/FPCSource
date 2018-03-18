@@ -11127,13 +11127,14 @@ begin
       if Assigned(oData) and (oData<>aPageData) and (not odata.IsOpened) then
         oData.Open;
       end;
-    if IsFirstPass then
-      begin
-      Report.InitializeExpressionVariables;
-      Report.InitializePageAggregateData(lPage, aPageData);
-      Report.CacheMemoExpressions(lPage);
-      end;
     aPageData.First;
+    end;
+  if IsFirstPass then
+    begin
+    Report.InitializeExpressionVariables;
+    if Assigned(aPageData) then
+      Report.InitializePageAggregateData(lPage, aPageData);
+    Report.CacheMemoExpressions(lPage);
     end;
   InitBandList(lPage,aPageData);
   if Not Assigned(aPageData) then
