@@ -191,6 +191,7 @@ ToDo:
 - array+array
 - pointer type, ^type, @ operator, [] operator
 - type alias type
+- set of CharRange
 - object
 - interfaces
   - implements, supports

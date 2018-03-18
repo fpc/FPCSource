@@ -295,6 +295,7 @@ type
     Procedure TestSet_Property;
     Procedure TestSet_EnumConst;
     Procedure TestSet_AnonymousEnumType;
+    Procedure TestSet_AnonymousEnumTypeChar; // ToDo
     Procedure TestSet_ConstEnum;
     Procedure TestSet_ConstChar;
     Procedure TestSet_ConstInt;
@@ -4206,6 +4207,38 @@ begin
     '$mod.i = $mod.TFlags$a.green;',
     '$mod.i = $mod.TFlags$a.green;',
     '$mod.f = rtl.createSet($mod.TFlags$a.green, $mod.TFlags$a.red);',
+    '']));
+end;
+
+procedure TTestModule.TestSet_AnonymousEnumTypeChar;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'type',
+  '  TAtoZ = ''A''..''Z'';',
+  '  TSetOfAZ = set of TAtoZ;',
+  'var',
+  '  c: char;',
+  '  a: TAtoZ;',
+  '  s: TSetOfAZ = [''P'',''A''];',
+  '  i: longint;',
+  'begin',
+  '  Include(s,''S'');',
+  '  Include(s,c);',
+  '  Include(s,a);',
+  '  c:=low(TAtoZ);',
+  '  i:=ord(low(TAtoZ));',
+  '  a:=high(TAtoZ);',
+  '  a:=high(TSetOfAtoZ);',
+  '  s:=[a,c,''M''];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestSet_AnonymousEnumTypeChar',
+    LinesToStr([ // statements
+    '']),
+    LinesToStr([
     '']));
 end;
 
@@ -13620,30 +13653,33 @@ end;
 procedure TTestModule.TestPointer;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  TClass = class of TObject;');
-  Add('  TArrInt = array of longint;');
-  Add('var');
-  Add('  v: jsvalue;');
-  Add('  Obj: tobject;');
-  Add('  C: tclass;');
-  Add('  a: tarrint;');
-  Add('  p: Pointer;');
-  Add('begin');
-  Add('  p:=p;');
-  Add('  p:=nil;');
-  Add('  if p=nil then;');
-  Add('  if nil=p then;');
-  Add('  if Assigned(p) then;');
-  Add('  p:=Pointer(v);');
-  Add('  p:=obj;');
-  Add('  p:=c;');
-  Add('  p:=a;');
-  Add('  p:=tobject;');
-  Add('  obj:=TObject(p);');
-  Add('  c:=TClass(p);');
-  Add('  a:=TArrInt(p);');
+  Add(['type',
+  '  TObject = class end;',
+  '  TClass = class of TObject;',
+  '  TArrInt = array of longint;',
+  'const',
+  '  n = nil;',
+  'var',
+  '  v: jsvalue;',
+  '  Obj: tobject;',
+  '  C: tclass;',
+  '  a: tarrint;',
+  '  p: Pointer = nil;',
+  'begin',
+  '  p:=p;',
+  '  p:=nil;',
+  '  if p=nil then;',
+  '  if nil=p then;',
+  '  if Assigned(p) then;',
+  '  p:=Pointer(v);',
+  '  p:=obj;',
+  '  p:=c;',
+  '  p:=a;',
+  '  p:=tobject;',
+  '  obj:=TObject(p);',
+  '  c:=TClass(p);',
+  '  a:=TArrInt(p);',
+  '  p:=n;']);
   ConvertProgram;
   CheckSource('TestPointer',
     LinesToStr([ // statements
@@ -13653,6 +13689,7 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
+    'this.n = null;',
     'this.v = undefined;',
     'this.Obj = null;',
     'this.C = null;',
@@ -13673,6 +13710,7 @@ begin
     '$mod.Obj = $mod.p;',
     '$mod.C = $mod.p;',
     '$mod.a = $mod.p;',
+    '$mod.p = null;',
     '']));
 end;
 

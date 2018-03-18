@@ -262,6 +262,7 @@ type
     procedure HandleEParserError(E: EParserError);
     procedure HandleEPasResolve(E: EPasResolve);
     procedure HandleEPas2JS(E: EPas2JS);
+    procedure HandleEPCUReader(E: EPas2JsReadError);
     procedure HandleUnknownException(E: Exception);
     procedure HandleException(E: Exception);
     procedure DoLogMsgAtEl(MsgType: TMessageType; const Msg: string;
@@ -1051,6 +1052,20 @@ begin
   Compiler.Terminate(ExitCodeConverterError);
 end;
 
+procedure TPas2jsCompilerFile.HandleEPCUReader(E: EPas2JsReadError);
+var
+  Reader: TPCUCustomReader;
+begin
+  if E.Owner is TPCUCustomReader then
+  begin
+    Reader:=TPCUCustomReader(E.Owner);
+    Log.Log(mtError,E.Message);
+  end else begin
+    Log.Log(mtError,E.Message);
+  end;
+  Compiler.Terminate(ExitCodePCUError);
+end;
+
 procedure TPas2jsCompilerFile.HandleUnknownException(E: Exception);
 begin
   if not (E is ECompilerTerminate) then
@@ -1073,6 +1088,8 @@ begin
     HandleEPasResolve(EPasResolve(E))
   else if E is EPas2JS then
     HandleEPas2JS(EPas2JS(E))
+  else if E is EPas2JsReadError then
+    HandleEPCUReader(EPas2JsReadError(E))
   else if E is EFileNotFoundError then
   begin
     Log.Log(mtFatal,E.Message);

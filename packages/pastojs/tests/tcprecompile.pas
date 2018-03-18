@@ -39,7 +39,7 @@ type
     procedure CheckPrecompile(MainFile, UnitPaths: string;
       SharedParams: TStringList = nil;
       FirstRunParams: TStringList = nil;
-      SecondRunParams: TStringList = nil);
+      SecondRunParams: TStringList = nil; ExpExitCode: integer = 0);
   public
     constructor Create; override;
     property Format: TPas2JSPrecompileFormat read FFormat write FFormat;
@@ -70,9 +70,9 @@ end;
 
 { TCustomTestCLI_Precompile }
 
-procedure TCustomTestCLI_Precompile.CheckPrecompile(MainFile, UnitPaths: string;
-  SharedParams: TStringList; FirstRunParams: TStringList;
-  SecondRunParams: TStringList);
+procedure TCustomTestCLI_Precompile.CheckPrecompile(MainFile,
+  UnitPaths: string; SharedParams: TStringList; FirstRunParams: TStringList;
+  SecondRunParams: TStringList; ExpExitCode: integer);
 var
   UnitOutputDir, JSFilename, OrigSrc, NewSrc, s: String;
   JSFile: TCLIFile;
@@ -106,13 +106,16 @@ begin
       Params.Assign(SharedParams);
     if SecondRunParams<>nil then
       Params.AddStrings(SecondRunParams);
-    Compile([MainFile,'-Jc','-FU'+UnitOutputDir]);
-    NewSrc:=JSFile.Source;
-    if not CheckSrcDiff(OrigSrc,NewSrc,s) then
-    begin
-      WriteSources;
-      Fail('test1.js: '+s);
-    end;
+    Compile([MainFile,'-Jc','-FU'+UnitOutputDir],ExpExitCode);
+    if ExpExitCode=0 then
+      begin
+      NewSrc:=JSFile.Source;
+      if not CheckSrcDiff(OrigSrc,NewSrc,s) then
+      begin
+        WriteSources;
+        Fail('test1.js: '+s);
+      end;
+      end;
   finally
     SharedParams.Free;
     FirstRunParams.Free;

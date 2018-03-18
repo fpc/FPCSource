@@ -10052,10 +10052,10 @@ begin
   if Value=nil then
     RaiseNotSupported(El,AContext,20170910211948);
   case Value.Kind of
+  revkNil:
+    Result:=CreateLiteralNull(El);
   revkBool:
     Result:=CreateLiteralBoolean(El,TResEvalBool(Value).B);
-  revkEnum:
-    Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
   revkInt:
     Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
   revkUInt:
@@ -10066,6 +10066,8 @@ begin
     Result:=CreateLiteralString(El,TResEvalString(Value).S);
   revkUnicodeString:
     Result:=CreateLiteralJSString(El,TResEvalUTF16(Value).S);
+  revkEnum:
+    Result:=CreateReferencePathExpr(TResEvalEnum(Value).GetEnumValue,AContext);
   revkSetOfInt:
     if Value.IdentEl is TPasExpr then
       Result:=ConvertElement(Value.IdentEl,AContext)

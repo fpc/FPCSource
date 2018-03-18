@@ -14,7 +14,12 @@
  **********************************************************************
 
 Abstract:
-  Write and read a precompiled module (pcu).
+  Write and read a precompiled module (pcu, gzipped json).
+
+- Built-In symbols are collected in one array.
+- symbols of this module are stored in a tree
+- external references are stored in used module trees. They can refer
+  recursively to other external references, so they are collected in a Queue.
 
 Works:
 - store used source files and checksums
@@ -191,7 +196,7 @@ const
     'ObjectChecks'
     );
 
-  PCUDefaultConverterOptions: TPasToJsConverterOptions = [coStoreImplJS];
+  PCUDefaultConverterOptions: TPasToJsConverterOptions = [coUseStrict];
   PCUConverterOptions: array[TPasToJsConverterOption] of string = (
     'LowerCase',
     'SwitchStatement',
@@ -539,6 +544,7 @@ type
     Pending: TPCUFilerPendingElRef;
     Obj: TJSONObject;
     Elements: TJSONArray; // for external references
+    NextNewExt: TPCUFilerElementRef; // next new external reference
     procedure AddPending(Item: TPCUFilerPendingElRef);
     procedure Clear;
     destructor Destroy; override;
@@ -570,6 +576,7 @@ type
     function GetDefaultExprHasEvalValue(Expr: TPasExpr): boolean; virtual;
     function GetSrcCheckSum(aFilename: string): TPCUSourceFileChecksum; virtual;
     function GetElementReference(El: TPasElement; AutoCreate: boolean = true): TPCUFilerElementRef;
+    function CreateElementRef(El: TPasElement): TPCUFilerElementRef; virtual;
     procedure AddedBuiltInRef(Ref: TPCUFilerElementRef); virtual;
   public
     constructor Create; virtual;
@@ -645,6 +652,7 @@ type
     FInImplementation: boolean;
     FBuiltInSymbolsArr: TJSONArray;
   protected
+    FFirstNewExt, FLastNewExt: TPCUFilerElementRef; // not yet stored external references
     procedure RaiseMsg(Id: int64; const Msg: string = ''); override; overload;
     procedure ResolvePendingElRefs(Ref: TPCUFilerElementRef);
     function CheckElScope(El: TPasElement; NotNilId: int64; ScopeClass: TPasScopeClass): TPasScope; virtual;
@@ -654,6 +662,7 @@ type
     procedure AddReferenceToObj(Obj: TJSONObject; const PropName: string;
       El: TPasElement; WriteNil: boolean = false); virtual;
     procedure CreateElReferenceId(Ref: TPCUFilerElementRef); virtual;
+    function CreateElementRef(El: TPasElement): TPCUFilerElementRef; override;
     procedure AddedBuiltInRef(Ref: TPCUFilerElementRef); override;
   protected
     procedure WriteHeaderMagic(Obj: TJSONObject); virtual;
@@ -1469,18 +1478,23 @@ end;
 procedure TPCUFiler.RaiseMsg(Id: int64; El: TPasElement; const Msg: string);
 var
   Path, s: String;
+  CurEl: TPasElement;
 begin
   Path:='';
-  while El<>nil do
+  CurEl:=El;
+  while CurEl<>nil do
     begin
     if Path<>'' then Path:='.'+Path;
-    s:=El.Name;
+    s:=CurEl.Name;
     if s='' then
-      s:=El.ClassName;
+      s:=CurEl.ClassName;
     Path:=s+Path;
-    El:=El.Parent;
+    CurEl:=CurEl.Parent;
     end;
-  RaiseMsg(Id,Path+': '+Msg);
+  s:=Path+': '+Msg;
+  if El.GetModule<>Resolver.RootElement then
+    s:='This='+Resolver.RootElement.Name+' El='+s;
+  RaiseMsg(Id,s);
 end;
 
 function TPCUFiler.GetDefaultMemberVisibility(El: TPasElement
@@ -1599,19 +1613,25 @@ begin
     end
   else if El is TPasUnresolvedSymbolRef then
     RaiseMsg(20180215190054,El,GetObjName(El));
+
   Node:=FElementRefs.FindKey(El,@CompareElWithPCUFilerElementRef);
   if Node<>nil then
     Result:=TPCUFilerElementRef(Node.Data)
   else if AutoCreate then
     begin
-    Result:=TPCUFilerElementRef.Create;
-    Result.Element:=El;
-    FElementRefs.Add(Result);
+    Result:=CreateElementRef(El);
     if IsBuiltIn then
       AddedBuiltInRef(Result);
     end
   else
     Result:=nil;
+end;
+
+function TPCUFiler.CreateElementRef(El: TPasElement): TPCUFilerElementRef;
+begin
+  Result:=TPCUFilerElementRef.Create;
+  Result.Element:=El;
+  FElementRefs.Add(Result);
 end;
 
 procedure TPCUFiler.AddedBuiltInRef(Ref: TPCUFilerElementRef);
@@ -1799,6 +1819,19 @@ begin
   inc(FElementIdCounter);
   Ref.Id:=FElementIdCounter;
   Ref.Obj.Add('Id',Ref.Id);
+end;
+
+function TPCUWriter.CreateElementRef(El: TPasElement): TPCUFilerElementRef;
+begin
+  Result:=inherited CreateElementRef(El);
+  if El.GetModule<>Resolver.RootElement then
+    begin
+    if FFirstNewExt=nil then
+      FFirstNewExt:=Result
+    else
+      FLastNewExt.NextNewExt:=Result;
+    FLastNewExt:=Result;
+    end;
 end;
 
 procedure TPCUWriter.AddedBuiltInRef(Ref: TPCUFilerElementRef);
@@ -2092,6 +2125,7 @@ begin
     WImplBlock(aModule.FinalizationSection,'Final');
     end;
 
+  //writeln('TPCUWriter.WriteModule WriteExternalReferences of implementation ',Resolver.RootElement.Name,' aContext.Section=',GetObjName(aContext.Section));
   WriteExternalReferences(aContext);
 end;
 
@@ -2318,7 +2352,14 @@ begin
 
   WriteDeclarations(Obj,Section,aContext);
   if Section is TInterfaceSection then
+    begin
+    if aContext.SectionObj<>Obj then
+      RaiseMsg(20180318112544,Section);
+    {$IFDEF VerbosePJUFiler}
+    //writeln('TPCUWriter.WriteSection WriteExternalReferences of Interface ',Section.FullPath);
+    {$ENDIF}
     WriteExternalReferences(aContext);
+    end;
 end;
 
 procedure TPCUWriter.WriteDeclarations(ParentJSON: TJSONObject;
@@ -3417,6 +3458,7 @@ begin
       begin
       if aContext.SectionObj=nil then
         RaiseMsg(20180314154428,El);
+      //writeln('TPCUWriter.WriteExternalReference ',Resolver.RootElement.Name,' Section=',GetObjName(aContext.Section),' IndirectUses=',El.Name);
       aContext.IndirectUsesArr:=TJSONArray.Create;
       aContext.SectionObj.Add('IndirectUses',aContext.IndirectUsesArr);
       end;
@@ -3429,25 +3471,26 @@ end;
 
 procedure TPCUWriter.WriteExternalReferences(aContext: TPCUWriterContext);
 var
-  Node: TAVLTreeNode;
   Ref: TPCUFilerElementRef;
   El: TPasElement;
-  Data: TObject;
 begin
-  Node:=FElementRefs.FindLowest;
-  while Node<>nil do
+   while FFirstNewExt<>nil do
     begin
-    Ref:=TPCUFilerElementRef(Node.Data);
-    Node:=FElementRefs.FindSuccessor(Node);
+    Ref:=FFirstNewExt;
+    FFirstNewExt:=Ref.NextNewExt;
+    if FFirstNewExt=nil then
+      FLastNewExt:=nil;
     if Ref.Pending=nil then
-      continue; // not used
+      continue; // not used, e.g. when a child is written, its parents are
+                // written too, which might still be in the queue
     El:=Ref.Element;
     //writeln('TPCUWriter.WriteExternalReferences ',GetObjName(El),' ',El.FullPath);
-    Data:=El.CustomData;
-    if Data is TResElDataBuiltInSymbol then
+    {$IF defined(VerbosePJUFiler) or defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
+    if El.CustomData is TResElDataBuiltInSymbol then
       RaiseMsg(20180314120554,El);
     if El.GetModule=Resolver.RootElement then
-      continue;
+      RaiseMsg(20180318120511,El);
+    {$ENDIF}
     // external element
     if Ref.Obj=nil then
       WriteExternalReference(El,aContext);
@@ -3468,6 +3511,8 @@ end;
 
 procedure TPCUWriter.Clear;
 begin
+  FFirstNewExt:=nil;
+  FLastNewExt:=nil;
   FInitialFlags:=nil;
   FElementIdCounter:=0;
   FSourceFilesSorted:=nil;
