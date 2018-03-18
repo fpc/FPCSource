@@ -492,6 +492,8 @@ begin
   Log(etInfo,'Listening on port %d, serving files from directory: %s',[Port,D]);
 {$ifdef unix}
   MimeTypesFile:='/etc/mime.types';
+{$else}
+   MimeTypesFile:=ExtractFilePath(System.ParamStr(0))+'mime.types';
 {$endif}
   if Hasoption('P','project') then
     begin
