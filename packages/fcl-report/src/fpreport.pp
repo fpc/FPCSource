@@ -4621,28 +4621,37 @@ Var
   I : integer;
   N : TFPExprNode;
 
+  Procedure CheckVisibility;
+
+  begin
+    // visibility handling
+    if (moHideZeros in m.Options) then
+      begin
+      m.Visible:=Not TFPCustomReport.IsStringValueZero(m.Text);
+      if not M.Visible then
+        exit;
+      end;
+    if (moSuppressRepeated in m.Options) then
+      begin
+      m.Visible:=m.Original.FLastText <> m.Text;
+      if not M.Visible then
+        exit;
+      m.Original.FLastText := m.Text;
+      end;
+  end;
+
 begin
   Result:=Inherited PrepareObject(aRTParent);
   if Result=Nil then
     exit;
   m:=TFPReportCustomMemo(Result);
   if moDisableExpressions in m.Options then
+    begin
+    CheckVisibility;
     Exit; // nothing further to do
+    end;
   m.ExpandExpressions;
-  // visibility handling
-  if (moHideZeros in m.Options) then
-    begin
-    m.Visible:=Not TFPCustomReport.IsStringValueZero(m.Text);
-    if not M.Visible then
-      exit;
-    end;
-  if (moSuppressRepeated in m.Options) then
-    begin
-    m.Visible:=m.Original.FLastText <> m.Text;
-    if not M.Visible then
-      exit;
-    m.Original.FLastText := m.Text;
-    end;
+  CheckVisibility;
   // aggregate handling
   for I := 0 to Length(m.Original.ExpressionNodes)-1 do
     begin
@@ -8533,7 +8542,14 @@ begin
 end;
 
 procedure TFPReportCustomBand.RecalcLayout;
+
+Var
+  I : Integer;
+
 begin
+  For I:=ChildCount-1 downto 0 do
+    if Not Child[i].EvaluateVisibility then
+      RemoveChild(Child[i]);
   inherited RecalcLayout;
   if StretchMode <> smDontStretch then
     ApplyStretchMode;
