@@ -149,6 +149,7 @@ type
     procedure TestPC_Proc_Arg;
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
+    procedure TestPC_ClassConstructor;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
 
@@ -1801,6 +1802,37 @@ begin
   '  f: tfish;',
   '  bc: TBirdClass;',
   'implementation',
+  'end.'
+  ]);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_ClassConstructor;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  TObject = class',
+  '    constructor Create; virtual;',
+  '  end;',
+  '  TBird = class',
+  '    constructor Create; override;',
+  '  end;',
+  'procedure DoIt;',
+  'implementation',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'constructor TBird.Create;',
+  'begin',
+  '  inherited;',
+  'end;',
+  'procedure DoIt;',
+  'var b: TBird;',
+  'begin',
+  '  b:=TBird.Create;',
+  'end;',
   'end.'
   ]);
   WriteReadUnit;

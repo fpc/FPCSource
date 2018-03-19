@@ -55,6 +55,7 @@ type
     procedure TestPCU_Overloads;
     procedure TestPCU_UnitCycle;
     procedure TestPCU_ClassForward;
+    procedure TestPCU_ClassConstructor;
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -270,6 +271,46 @@ begin
     '  b:=TBird.Create;',
     '  b:=TBird.Create(1);',
     '  b:=TBird.Create(3.3);',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
+end;
+
+procedure TTestCLI_Precompile.TestPCU_ClassConstructor;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddUnit('src/unit1.pp',[
+    'type',
+    '  TObject = class',
+    '    constructor Create;',
+    '  end;',
+    '  TBird = class',
+    '    constructor Create; reintroduce;',
+    '  end;',
+    '  TCow = class',
+    '    constructor Create; reintroduce;',
+    '  end;',
+    ''],[
+    'constructor TObject.Create; begin end;',
+    'constructor TBird.Create; begin end;',
+    'constructor TCow.Create; begin end;',
+    '']);
+  AddUnit('src/unit2.pp',[
+    'uses unit1;',
+    'procedure DoIt;',
+    ''],[
+    'procedure DoIt;',
+    'begin',
+    '  TBird.Create;',
+    '  TCow.Create;',
+    'end;',
+    '']);
+  AddFile('test1.pas',[
+    'uses unit2;',
+    'begin',
+    '  DoIt;',
     'end.']);
   CheckPrecompile('test1.pas','src');
 end;
