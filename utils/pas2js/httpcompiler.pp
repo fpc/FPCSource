@@ -493,7 +493,7 @@ begin
 {$ifdef unix}
   MimeTypesFile:='/etc/mime.types';
 {$else}
-   MimeTypesFile:=ExtractFilePath(System.ParamStr(0))+'mime.types';
+  MimeTypesFile:=ExtractFilePath(System.ParamStr(0))+'mime.types';
 {$endif}
   if Hasoption('P','project') then
     begin
