@@ -518,20 +518,24 @@ var
   Scope: TPasScope absolute DeclScope;
 begin
   if Scope=nil then ;
-  case Ref.Access of
-    psraNone: ;
-    psraRead: UseElement(Ref.Element,rraRead,false);
-    psraWrite: UseElement(Ref.Element,rraAssign,false);
-    psraReadWrite: UseElement(Ref.Element,rraReadAndAssign,false);
-    psraWriteRead:
-      begin
-      UseElement(Ref.Element,rraAssign,false);
-      UseElement(Ref.Element,rraRead,false);
-      end;
-    psraTypeInfo: UsePublished(Ref.Element);
-  else
-    RaiseNotSupported(20180228191928,Ref.Element,dbgs(Ref.Access));
-  end;
+  while Ref<>nil do
+    begin
+    case Ref.Access of
+      psraNone: ;
+      psraRead: UseElement(Ref.Element,rraRead,false);
+      psraWrite: UseElement(Ref.Element,rraAssign,false);
+      psraReadWrite: UseElement(Ref.Element,rraReadAndAssign,false);
+      psraWriteRead:
+        begin
+        UseElement(Ref.Element,rraAssign,false);
+        UseElement(Ref.Element,rraRead,false);
+        end;
+      psraTypeInfo: UsePublished(Ref.Element);
+    else
+      RaiseNotSupported(20180228191928,Ref.Element,dbgs(Ref.Access));
+    end;
+    Ref:=Ref.NextSameName;
+    end;
 end;
 
 procedure TPasAnalyzer.RaiseInconsistency(const Id: int64; Msg: string);

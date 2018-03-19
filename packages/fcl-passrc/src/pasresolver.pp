@@ -2335,7 +2335,11 @@ var
   Ref: TPasScopeReference absolute Item;
   List: TFPList absolute aList;
 begin
-  List.Add(Ref);
+  while Ref<>nil do
+    begin
+    List.Add(Ref);
+    Ref:=Ref.NextSameName;
+    end;
 end;
 
 constructor TPasScopeReferences.Create(aScope: TPasScope);
@@ -2362,12 +2366,12 @@ function TPasScopeReferences.Add(El: TPasElement; Access: TPSRefAccess
   ): TPasScopeReference;
 var
   LoName: String;
-  OldItem, Item: TPasScopeReference;
-  Index: Integer;
+  OldItem, Item, LastItem: TPasScopeReference;
 begin
   LoName:=lowercase(El.Name);
   OldItem:=TPasScopeReference(References.Find(LoName));
   Item:=OldItem;
+  LastItem:=nil;
   while Item<>nil do
     begin
     if Item.Element=El then
@@ -2417,14 +2421,14 @@ begin
       end;
       exit(Item);
       end;
+    LastItem:=Item;
     Item:=Item.NextSameName;
     end;
   // new reference
   Item:=TPasScopeReference.Create;
   Item.Element:=El;
   Item.Access:=Access;
-  Index:=References.FindIndexOf(LoName);
-  if Index<0 then
+  if LastItem=nil then
     begin
     References.Add(LoName,Item);
     {$IFDEF VerbosePCUFiler}
@@ -2433,15 +2437,7 @@ begin
     {$ENDIF}
     end
   else
-    begin
-    OldItem:=TPasScopeReference(References.List^[Index].Data);
-    {$IFDEF VerbosePCUFiler}
-    if lowercase(OldItem.Element.Name)<>LoName then
-      raise EPasResolve.Create('20180219230055');
-    {$ENDIF}
-    Item.NextSameName:=OldItem;
-    References.List^[Index].Data:=Item;
-    end;
+    LastItem.NextSameName:=Item;
   Result:=Item;
 end;
 
