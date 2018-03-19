@@ -1679,6 +1679,7 @@ function GetClassAncestorsDbg(El: TPasClassType): string;
 function ResolverResultFlagsToStr(const Flags: TPasResolverResultFlags): string;
 function GetElementTypeName(El: TPasElement): string; overload;
 function GetElementTypeName(C: TPasElementBaseClass): string; overload;
+function GetElementFullPath(El: TPasElement): string; overload;
 
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
   BaseType: TResolverBaseType; IdentEl: TPasElement;
@@ -2014,8 +2015,31 @@ begin
     Result:='class procedure'
   else if C=TPasClassFunction then
     Result:='class function'
+  else if C=TInterfaceSection then
+    Result:='interfacesection'
+  else if C=TImplementationSection then
+    Result:='implementation'
+  else if C=TProgramSection then
+    Result:='ProgramSection'
+  else if C=TLibrarySection then
+    Result:='LibrarySection'
   else
-    Result:='?';
+    Result:=C.ClassName;
+end;
+
+function GetElementFullPath(El: TPasElement): string;
+begin
+  if El=nil then exit('nil');
+  Result:='';
+  while El<>nil do
+    begin
+    if Result<>'' then Result:='.'+Result;
+    if El.Name<>'' then
+      Result:=El.Name+Result
+    else
+      Result:=GetElementTypeName(El)+Result;
+    El:=El.Parent;
+    end;
 end;
 
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
