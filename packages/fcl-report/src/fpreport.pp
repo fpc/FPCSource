@@ -6633,7 +6633,7 @@ begin
     rtString  : Result := Res.ResString;
     rtInteger : Result := IntToStr(Res.ResInteger);
     rtFloat   : Result := FloatToStr(Res.ResFloat);
-    rtCurrency  : Result := FloatToStr(Res.ResFloat);
+    rtCurrency  : Result := CurrToStr(Res.ResCurrency);
     rtBoolean : Result := BoolToStr(Res.resBoolean, True);
     rtDateTime : Result := FormatDateTime(GetDateTimeFormat, Res.resDateTime);
   end;
