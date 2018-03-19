@@ -127,7 +127,7 @@ end;
 constructor TCustomTestCLI_Precompile.Create;
 begin
   inherited Create;
-  FFormat:=PrecompileFormats.FindExt('pcu');
+  FFormat:=PrecompileFormats[0];
 end;
 
 { TTestCLI_Precompile }

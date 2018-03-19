@@ -742,7 +742,7 @@ begin
     if Orig.BoolSwitches<>Rest.BoolSwitches then
       Fail(Path+'.BoolSwitches');
 
-    CheckRestoredIdentifierScope(Path,Orig,Rest);
+    //CheckRestoredIdentifierScope(Path,Orig,Rest);
     end
   else
     begin
@@ -1418,6 +1418,7 @@ begin
   RestScope:=Rest.CustomData as TPas2JSProcedureScope;
   CheckRestoredReference(Path+'.CustomData[TPas2JSProcedureScope].DeclarationProc',
     OrigScope.DeclarationProc,RestScope.DeclarationProc);
+  AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName',OrigScope.ResultVarName,RestScope.ResultVarName);
   if RestScope.DeclarationProc=nil then
     begin
     CheckRestoredElement(Path+'.ProcType',Orig.ProcType,Rest.ProcType);

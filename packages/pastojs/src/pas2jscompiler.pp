@@ -1149,21 +1149,24 @@ begin
       Log.LogPlain(PasModule.GetDeclaration(true));
     end;
 
-    // analyze
-    aPrecompileFormat:=Compiler.FileCache.PrecompileFormat;
-    if aPrecompileFormat<>nil then
-      UseAnalyzer.Options:=UseAnalyzer.Options+[paoImplReferences];
+    if PCUReader=nil then
+      begin
+      // analyze module
+      aPrecompileFormat:=Compiler.FileCache.PrecompileFormat;
+      if aPrecompileFormat<>nil then
+        UseAnalyzer.Options:=UseAnalyzer.Options+[paoImplReferences];
 
-    {$IFDEF VerboseUnitQueue}
-    writeln('TPas2jsCompilerFile.ReaderFinished analyzing ',PasFilename,' ...');
-    {$ENDIF}
-    UseAnalyzer.AnalyzeModule(FPasModule);
-    {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
-    writeln('TPas2jsCompilerFile.ReaderFinished analyzed ',PasFilename,' ScopeModule=',GetObjName(UseAnalyzer.ScopeModule));
-    {$ENDIF}
+      {$IFDEF VerboseUnitQueue}
+      writeln('TPas2jsCompilerFile.ReaderFinished analyzing ',PasFilename,' ...');
+      {$ENDIF}
+      UseAnalyzer.AnalyzeModule(FPasModule);
+      {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
+      writeln('TPas2jsCompilerFile.ReaderFinished analyzed ',PasFilename,' ScopeModule=',GetObjName(UseAnalyzer.ScopeModule));
+      {$ENDIF}
 
-    if (aPrecompileFormat<>nil) and (PCUReader=nil) then
-      WritePCU;
+      if (aPrecompileFormat<>nil) and (PCUReader=nil) then
+        WritePCU;
+      end;
   except
     on E: ECompilerTerminate do
       raise;
@@ -1374,7 +1377,11 @@ procedure TPas2jsCompilerFile.CreateJS;
 begin
   try
     // show hints only for units that are actually converted
-    UseAnalyzer.EmitModuleHints(PasModule);
+    if PCUReader=nil then
+      begin
+      //writeln('TPas2jsCompilerFile.CreateJS ',PasFilename);
+      UseAnalyzer.EmitModuleHints(PasModule);
+      end;
 
     // convert
     CreateConverter;
@@ -3934,7 +3941,7 @@ begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
   WriteVersionLine;
-  Log.LogPlain('Copyright (c) 2017 Mattias Gaertner and others');
+  Log.LogPlain('Copyright (c) 2018 Mattias Gaertner and others');
 end;
 
 procedure TPas2jsCompiler.WriteVersionLine;

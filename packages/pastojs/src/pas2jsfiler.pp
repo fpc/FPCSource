@@ -1918,6 +1918,7 @@ begin
     exit;
   // Element was not yet written -> add a pending item to the queue
   Item:=TPCUWriterPendingElRefArray.Create;
+  Item.ErrorEl:=El;
   Item.Arr:=Arr;
   Item.Index:=Arr.Count-1;
   Ref.AddPending(Item);
@@ -1944,6 +1945,7 @@ begin
     begin
     // Element was not yet written -> add a pending item to the queue
     Item:=TPCUWriterPendingElRefObj.Create;
+    Item.ErrorEl:=El;
     Item.Obj:=Obj;
     Item.PropName:=PropName;
     Ref.AddPending(Item);
@@ -2213,6 +2215,8 @@ procedure TPCUWriter.WriteModule(Obj: TJSONObject; aModule: TPasModule;
     if Section.Parent<>aModule then
       RaiseMsg(20180205153912,aModule,PropName);
     aContext.Section:=Section; // set Section before calling virtual method
+    aContext.SectionObj:=nil;
+    aContext.IndirectUsesArr:=nil;
     WriteSection(Obj,Section,PropName,aContext);
   end;
 
@@ -2227,8 +2231,35 @@ procedure TPCUWriter.WriteModule(Obj: TJSONObject; aModule: TPasModule;
     WriteScopeReferences(Obj,Scope.References,PropPrefix+'Refs',aContext);
   end;
 
+  procedure RaisePending(Ref: TPCUFilerElementRef);
+  {$IF defined(VerbosePJUFiler) or defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
+  var
+    PendObj: TPCUWriterPendingElRefObj;
+    PendArr: TPCUWriterPendingElRefArray;
+  {$ENDIF}
+  begin
+    {$IF defined(VerbosePJUFiler) or defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
+    {AllowWriteln}
+    writeln('TPCUWriter.WriteModule Ref.Element=',GetElementFullPath(Ref.Element),' Pending=',GetObjName(Ref.Pending),' ErrorEl=',GetElementFullPath(Ref.Pending.ErrorEl));
+    if Ref.Pending is TPCUWriterPendingElRefObj then
+      begin
+      PendObj:=TPCUWriterPendingElRefObj(Ref.Pending);
+      writeln('  Obj=',PendObj.Obj<>nil,' PropName=',PendObj.PropName);
+      end
+    else if Ref.Pending is TPCUWriterPendingElRefArray then
+      begin
+      PendArr:=TPCUWriterPendingElRefArray(Ref.Pending);
+      writeln('  Arr=',PendArr.Arr<>nil,' Index=',PendArr.Index);
+      end;
+    {AllowWriteln-}
+    {$ENDIF}
+    RaiseMsg(20180318225558,Ref.Element,GetObjName(Ref.Pending));
+  end;
+
 var
   ModScope: TPas2JSModuleScope;
+  Node: TAVLTreeNode;
+  Ref: TPCUFilerElementRef;
 begin
   FInImplementation:=false;
   WritePasElement(Obj,aModule,aContext);
@@ -2268,6 +2299,16 @@ begin
 
   //writeln('TPCUWriter.WriteModule WriteExternalReferences of implementation ',Resolver.RootElement.Name,' aContext.Section=',GetObjName(aContext.Section));
   WriteExternalReferences(aContext);
+
+  // consistency check
+  Node:=FElementRefs.FindLowest;
+  while Node<>nil do
+    begin
+    Ref:=TPCUFilerElementRef(Node.Data);
+    if Ref.Pending<>nil then
+      RaisePending(Ref);
+    Node:=FElementRefs.FindSuccessor(Node);
+    end;
 end;
 
 procedure TPCUWriter.WritePasScope(Obj: TJSONObject; Scope: TPasScope;
@@ -2429,6 +2470,7 @@ begin
   Obj:=TJSONObject.Create;
   ParentJSON.Add(PropName,Obj);
   aContext.SectionObj:=Obj;
+  aContext.IndirectUsesArr:=nil;
   WritePasElement(Obj,Section,aContext);
 
   Scope:=TPasSectionScope(CheckElScope(Section,20180206121825,TPasSectionScope));
@@ -2497,7 +2539,7 @@ begin
     if aContext.SectionObj<>Obj then
       RaiseMsg(20180318112544,Section);
     {$IFDEF VerbosePJUFiler}
-    //writeln('TPCUWriter.WriteSection WriteExternalReferences of Interface ',Section.FullPath);
+    //writeln('TPCUWriter.WriteSection WriteExternalReferences of Interface ',GetElementFullPath(Section));
     {$ENDIF}
     WriteExternalReferences(aContext);
     end;
@@ -3448,9 +3490,10 @@ end;
 procedure TPCUWriter.WriteProcedureScope(Obj: TJSONObject;
   Scope: TPas2JSProcedureScope; aContext: TPCUWriterContext);
 begin
-  WriteIdentifierScope(Obj,Scope,aContext);
+  // Not needed, contains only local stuff: WriteIdentifierScope(Obj,Scope,aContext);
   if Scope.ResultVarName<>'' then
     Obj.Add('ResultVarName',Scope.ResultVarName);
+
   if Scope.DeclarationProc<>nil then
     RaiseMsg(20180219135933,Scope.Element);
   AddReferenceToObj(Obj,'ImplProc',Scope.ImplProc);
@@ -3624,6 +3667,7 @@ begin
       ParentRef.Obj.Add('El',ParentRef.Elements);
       end;
     ParentRef.Elements.Add(Ref.Obj);
+    //writeln('TPCUWriter.WriteExternalReference ',GetObjName(El),' WriteExtRefSignature...');
     WriteExtRefSignature(Ref,aContext);
     end
   else if (El.ClassType=TPasModule) or (El is TPasUnitModule) then
@@ -3662,7 +3706,7 @@ begin
       continue; // not used, e.g. when a child is written, its parents are
                 // written too, which might still be in the queue
     El:=Ref.Element;
-    //writeln('TPCUWriter.WriteExternalReferences ',GetObjName(El),' ',El.FullPath);
+    //writeln('TPCUWriter.WriteExternalReferences ',GetObjName(El),' ',GetElementFullPath(El));
     {$IF defined(VerbosePJUFiler) or defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
     if El.CustomData is TResElDataBuiltInSymbol then
       RaiseMsg(20180314120554,El);
@@ -5624,7 +5668,7 @@ begin
 
   if not ReadBoolean(Obj,'Eval',NeedEvalValue,Expr) then
     NeedEvalValue:=GetDefaultExprHasEvalValue(Expr);
-  //writeln('TPCUReader.ReadExprCustomData ',Expr.FullPath,' ',GetObjName(Expr),' NeedEvalValue=',NeedEvalValue);
+  //writeln('TPCUReader.ReadExprCustomData ',GetElementFullPath(Expr),' ',GetObjName(Expr),' NeedEvalValue=',NeedEvalValue);
   if NeedEvalValue then
     begin
     Value:=Resolver.Eval(Expr,[refAutoConst]);
@@ -6731,7 +6775,7 @@ begin
   Scope.Flags:=ReadProcScopeFlags(Obj,Proc,'SFlags',[]);
   Scope.BoolSwitches:=ReadBoolSwitches(Obj,Proc,'BoolSwitches',aContext.BoolSwitches);
 
-  ReadIdentifierScope(Obj,Scope,aContext);
+  //ReadIdentifierScope(Obj,Scope,aContext);
 end;
 
 procedure TPCUReader.ReadProcScopeReferences(Obj: TJSONObject;
