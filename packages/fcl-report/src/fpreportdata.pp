@@ -698,10 +698,14 @@ begin
   else
     begin
     H:=TFPCustomReportDataManager.GetTypeHandler(DataType);
-    if H=Nil then
-      Result:=Format(SErrInvalidDataType,[DataType])
-    else
-      Result:=H.CheckConfig(Config);
+    try
+      if H=Nil then
+        Result:=Format(SErrInvalidDataType,[DataType])
+      else
+        Result:=H.CheckConfig(Config);
+    Finally
+      H.Free;
+    end;
     end;
 end;
 
