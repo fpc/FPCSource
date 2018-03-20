@@ -47,7 +47,6 @@ asm
   mov eax, fs:[rbp+01]  { mov еax, fs:5[locl]  }
 end;
 
-{ This version works in all i8086 memory models }
 function CompareCode(cp, cp2: CodePointer; sz: Integer): Boolean;
 var
   lastbyte: Byte;
@@ -58,12 +57,14 @@ begin
     exit;
   end;
   { check also that the last byte is a retn instruction }
+  { size differs at least between linux and windows, so leave the ret check away
   lastbyte:=PByte(cp)[sz-1];
   if lastbyte<>$C3 then
   begin
     CompareCode := False;
     exit;
   end;
+  }
   CompareCode := True;
 end;
 
