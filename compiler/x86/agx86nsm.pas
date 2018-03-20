@@ -82,37 +82,38 @@ interface
         {$i r8086nasm.inc}
 {$endif}
       );
+      { nasm 2.13 expects lowercase cpu names }
       nasm_cpu_name : array[tcputype] of string = (
 {$if defined(x86_64)}
-        'IA64',        // cpu_none,
-        'X64',         // cpu_athlon64,
-        'IA64',        // cpu_core_i,
-        'IA64',        // cpu_core_avx,
-        'IA64'         // cpu_core_avx2
+        'ia64',        // cpu_none,
+        'x64',         // cpu_athlon64,
+        'ia64',        // cpu_core_i,
+        'ia64',        // cpu_core_avx,
+        'ia64'         // cpu_core_avx2
 {$elseif defined(i386)}
-        'IA64',     // cpu_none,
+        'ia64',     // cpu_none,
         '386',      // cpu_386,
         '486',      // cpu_486,
-        'PENTIUM',  // cpu_Pentium,
-        'P2',       // cpu_Pentium2,
-        'P3',       // cpu_Pentium3,
-        'P4',       // cpu_Pentium4,
-        'P4',       // cpu_PentiumM,
-        'IA64',     // cpu_core_i,
-        'IA64',     // cpu_core_avx,
-        'IA64'      // cpu_core_avx2
+        'pentium',  // cpu_Pentium,
+        'p2',       // cpu_Pentium2,
+        'p3',       // cpu_Pentium3,
+        'p4',       // cpu_Pentium4,
+        'p4',       // cpu_PentiumM,
+        'ia64',     // cpu_core_i,
+        'ia64',     // cpu_core_avx,
+        'ia64'      // cpu_core_avx2
 {$elseif defined(i8086)}
-        'IA64',    // cpu_none
+        'ia64',    // cpu_none
         '8086',    // cpu_8086
         '186',     // cpu_186
         '286',     // cpu_286
         '386',     // cpu_386
         '486',     // cpu_486
-        'PENTIUM', // cpu_Pentium
-        'P2',      // cpu_Pentium2
-        'P3',      // cpu_Pentium3
-        'P4',      // cpu_Pentium4
-        'P4'       // cpu_PentiumM
+        'pentium', // cpu_Pentium
+        'p2',      // cpu_Pentium2
+        'p3',      // cpu_Pentium3
+        'p4',      // cpu_Pentium4
+        'p4'       // cpu_PentiumM
 {$endif}
       );
 
@@ -782,12 +783,18 @@ interface
                  aitconst_fardataseg:
                    writer.AsmWriteLn(#9'DW'#9+current_module.modulename^+'_DATA');
 {$endif i8086}
+{$ifdef x86_64}
+                 aitconst_rva_symbol,
+                 aitconst_secrel32_symbol: ;
+{$endif x86_64}
+{$ifdef i386}
+                 aitconst_rva_symbol,
+                 aitconst_secrel32_symbol,
+{$endif i386}
                  aitconst_64bit,
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
-                 aitconst_rva_symbol,
-                 aitconst_secrel32_symbol,
                  aitconst_16bit_unaligned,
                  aitconst_32bit_unaligned,
                  aitconst_64bit_unaligned:
