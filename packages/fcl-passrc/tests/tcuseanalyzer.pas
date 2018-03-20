@@ -130,6 +130,7 @@ type
     procedure TestWP_ProgramPublicDeclarations;
     procedure TestWP_ClassOverride;
     procedure TestWP_ClassDefaultProperty;
+    procedure TestWP_BeforeConstruction;
     procedure TestWP_Published;
     procedure TestWP_PublishedSetType;
     procedure TestWP_PublishedArrayType;
@@ -2044,6 +2045,39 @@ begin
   Add('  {#l_used}L: TObject;');
   Add('begin');
   Add('  L[0]:=''birdy'';');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_BeforeConstruction;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  ' {#tobject_used}TObject = class',
+  '    procedure {#oAfter_used}AfterConstruction; virtual;',
+  '    procedure {#oBefore_used}BeforeDestruction; virtual;',
+  '    procedure {#oFree_used}Free;',
+  '    constructor {#oCreate_used}Create;',
+  '    destructor {#oDestroy_used}Destroy; virtual;',
+  '    procedure {#oDoIt_notused}DoIt; virtual; abstract;',
+  '  end;',
+  '  TBird = class',
+  '    procedure {#bAfter_used}AfterConstruction; override;',
+  '    procedure {#bBefore_used}BeforeDestruction; override;',
+  '  end;',
+  'procedure TObject.AfterConstruction; begin end;',
+  'procedure TObject.BeforeDestruction; begin end;',
+  'procedure TObject.Free; begin Destroy; end;',
+  'constructor TObject.Create; begin end;',
+  'destructor TObject.Destroy; begin end;',
+  'procedure TBird.AfterConstruction; begin end;',
+  'procedure TBird.BeforeDestruction; begin end;',
+  'var',
+  '  {#b_used}b: TBird;',
+  'begin',
+  '  b:=TBird.Create;',
+  '  b.Free;',
+  '']);
   AnalyzeWholeProgram;
 end;
 

@@ -1372,6 +1372,10 @@ procedure TPasAnalyzer.UseProcedure(Proc: TPasProcedure);
 var
   ProcScope: TPasProcedureScope;
   ImplProc: TPasProcedure;
+  ClassScope: TPasClassScope;
+  Name: String;
+  Identifier: TPasIdentifier;
+  El: TPasElement;
 begin
   if Proc=nil then exit;
   // use declaration, not implementation
@@ -1399,6 +1403,32 @@ begin
   // mark overrides
   if [pmOverride,pmVirtual]*Proc.Modifiers<>[] then
     UseOverrides(Proc);
+
+  if ((Proc.ClassType=TPasConstructor) or (Proc.ClassType=TPasDestructor))
+      and (Proc.Parent is TPasClassType) then
+    begin
+    ClassScope:=Proc.Parent.CustomData as TPasClassScope;
+    if ClassScope.AncestorScope=nil then
+      begin
+      // root class constructor -> mark AfterConstruction
+      if Proc.ClassType=TPasConstructor then
+        Name:='AfterConstruction'
+      else
+        Name:='BeforeDestruction';
+      Identifier:=ClassScope.FindLocalIdentifier(Name);
+      while Identifier<>nil do
+        begin
+        El:=Identifier.Element;
+        if (El.ClassType=TPasProcedure)
+            and (TPasProcedure(El).ProcType.Args.Count=0) then
+          begin
+          UseProcedure(TPasProcedure(El));
+          break;
+          end;
+        Identifier:=Identifier.NextSameIdentifier;
+        end;
+      end;
+    end;
 end;
 
 procedure TPasAnalyzer.UseProcedureType(ProcType: TPasProcedureType;
