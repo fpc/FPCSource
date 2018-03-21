@@ -152,6 +152,7 @@ type
     procedure TestPC_ClassConstructor;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
+    procedure TestPC_IgnoreInterface;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -1107,6 +1108,7 @@ begin
     RestItem:=TObject(Rest[i]);
     if not (RestItem is TPasElement) then
       Fail(SubPath+' Rest='+GetObjName(RestItem));
+    SubPath:=Path+'['+IntToStr(i)+']"'+TPasElement(OrigItem).Name+'"';
     CheckRestoredElement(SubPath,TPasElement(OrigItem),TPasElement(RestItem));
     end;
 end;
@@ -1417,6 +1419,8 @@ begin
   CheckRestoredObject(Path+'.CustomData',Orig.CustomData,Rest.CustomData);
   OrigScope:=Orig.CustomData as TPas2JSProcedureScope;
   RestScope:=Rest.CustomData as TPas2JSProcedureScope;
+  if OrigScope=nil then
+    exit; // msIgnoreInterfaces
   CheckRestoredReference(Path+'.CustomData[TPas2JSProcedureScope].DeclarationProc',
     OrigScope.DeclarationProc,RestScope.DeclarationProc);
   AssertEquals(Path+'.CustomData[TPas2JSProcedureScope].ResultVarName',OrigScope.ResultVarName,RestScope.ResultVarName);
@@ -1879,6 +1883,24 @@ begin
   '{$C-}',
   'initialization',
   '{$R+}',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_IgnoreInterface;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '{$modeswitch ignoreinterfaces}',
+  'type',
+  '  TIntf = interface',
+  '    function GetItems(Index: longint): longint;',
+  '    procedure SetItems(Index: longint; Value: longint);',
+  '    property Items[Index: longint]: longint read GetItems write SetItems;',
+  '  end;',
+  'implementation',
   'end.',
   '']);
   WriteReadUnit;

@@ -363,10 +363,10 @@ type
       aName: String; out Value: string): boolean;
     function GetDefaultNamespace: String;
     function GetFileCount: integer;
-    function GetShowDebug: boolean; inline;
+    function GetShowDebug: boolean;
     function GetShowFullPaths: boolean;
     function GetShowLogo: Boolean; inline;
-    function GetShowTriedUsedFiles: boolean; inline;
+    function GetShowTriedUsedFiles: boolean;
     function GetShowUsedTools: boolean; inline;
     function GetSkipDefaultConfig: Boolean; inline;
     function GetSrcMapBaseDir: string;

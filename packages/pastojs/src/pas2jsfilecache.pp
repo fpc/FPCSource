@@ -69,7 +69,7 @@ type
     FPool: TPas2jsCachedDirectories;
     FRefCount: integer;
     FSorted: boolean;
-    function GetEntries(Index: integer): TPas2jsCachedDirectoryEntry;
+    function GetEntries(Index: integer): TPas2jsCachedDirectoryEntry; inline;
     procedure SetSorted(const AValue: boolean);
   protected
     procedure DoReadDir; virtual;
@@ -509,10 +509,28 @@ end;
 
 { TPas2jsCachedDirectory }
 
+// inline
+function TPas2jsCachedDirectory.IndexOfFile(const ShortFilename: String
+  ): integer;
+begin
+  {$IFDEF CaseInsensitiveFilenames}
+  Result:=IndexOfFileCaseInsensitive(ShortFilename);
+  {$ELSE}
+  Result:=IndexOfFileCaseSensitive(ShortFilename);
+  {$ENDIF}
+end;
+
+// inline
 function TPas2jsCachedDirectory.GetEntries(Index: integer
   ): TPas2jsCachedDirectoryEntry;
 begin
   Result:=TPas2jsCachedDirectoryEntry(FEntries[Index]);
+end;
+
+// inline
+function TPas2jsCachedDirectory.NeedsUpdate: boolean;
+begin
+  Result:=(Pool.ChangeStamp<>FChangeStamp) or (FChangeStamp=InvalidChangeStamp);
 end;
 
 procedure TPas2jsCachedDirectory.SetSorted(const AValue: boolean);
@@ -574,11 +592,6 @@ begin
     TObject(FEntries[i]).Free;
   FEntries.Clear;
   FSorted:=true;
-end;
-
-function TPas2jsCachedDirectory.NeedsUpdate: boolean;
-begin
-  Result:=(Pool.ChangeStamp<>FChangeStamp) or (FChangeStamp=InvalidChangeStamp);
 end;
 
 procedure TPas2jsCachedDirectory.Update;
@@ -717,16 +730,6 @@ begin
       exit(m);
   end;
   Result:=-1;
-end;
-
-function TPas2jsCachedDirectory.IndexOfFile(const ShortFilename: String
-  ): integer;
-begin
-  {$IFDEF CaseInsensitiveFilenames}
-  Result:=IndexOfFileCaseInsensitive(ShortFilename);
-  {$ELSE}
-  Result:=IndexOfFileCaseSensitive(ShortFilename);
-  {$ENDIF}
 end;
 
 function TPas2jsCachedDirectory.CountSameNamesCaseInsensitive(Index: integer

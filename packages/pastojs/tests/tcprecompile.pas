@@ -56,6 +56,7 @@ type
     procedure TestPCU_UnitCycle;
     procedure TestPCU_ClassForward;
     procedure TestPCU_ClassConstructor;
+    procedure TestPCU_IgnoreInterface;
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -311,6 +312,39 @@ begin
     'uses unit2;',
     'begin',
     '  DoIt;',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
+end;
+
+procedure TTestCLI_Precompile.TestPCU_IgnoreInterface;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddUnit('src/unit1.pp',[
+    'type',
+    '  TIntf = interface',
+    '    function GetItems: longint;',
+    '    procedure SetItems(Index: longint; Value: longint);',
+    '    property Items[Index: longint]: longint read GetItems write SetItems;',
+    '  end;',
+    ''],[
+    '']);
+  AddUnit('src/unit2.pp',[
+    'uses unit1;',
+    'type',
+    '  TAlias = TIntf;',
+    '  TObject = class end;',
+    '  TBird = class(TIntf) end;',
+    ''],[
+    '']);
+  AddFile('test1.pas',[
+    'uses unit2;',
+    'type TAlias2 = TAlias;',
+    'var b: TBird;',
+    'begin',
+    '  if b=nil then ;',
     'end.']);
   CheckPrecompile('test1.pas','src');
 end;

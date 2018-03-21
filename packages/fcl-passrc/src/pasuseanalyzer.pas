@@ -2191,7 +2191,7 @@ begin
   if El is TPasProcedure then
     begin
     ProcScope:=El.CustomData as TPasProcedureScope;
-    if ProcScope.DeclarationProc<>nil then
+    if (ProcScope<>nil) and (ProcScope.DeclarationProc<>nil) then
       El:=ProcScope.DeclarationProc;
     end;
   Result:=FindElement(El);

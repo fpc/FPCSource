@@ -3295,6 +3295,7 @@ var
   Arr: TJSONArray;
   i: Integer;
   Ref: TResolvedReference;
+  Scope: TPas2JSClassScope;
 begin
   WritePasElement(Obj,El,aContext);
   if El.PackMode<>pmNone then
@@ -3326,9 +3327,13 @@ begin
     end
   else
     begin
+    Scope:=El.CustomData as TPas2JSClassScope;
     WriteElementList(Obj,El,'Interfaces',El.Interfaces,aContext,true);
     WriteElementList(Obj,El,'Members',El.Members,aContext);
-    WriteClassScope(Obj,El.CustomData as TPas2JSClassScope,aContext);
+    if Scope<>nil then
+      WriteClassScope(Obj,Scope,aContext)
+    else
+      Obj.Add('Scope',false); // msIgnoreInterfaces
     end;
 end;
 
@@ -3437,7 +3442,10 @@ end;
 
 procedure TPCUWriter.WriteProperty(Obj: TJSONObject; El: TPasProperty;
   aContext: TPCUWriterContext);
+var
+  Scope: TPasPropertyScope;
 begin
+  Scope:=El.CustomData as TPasPropertyScope;
   WriteVariable(Obj,El,aContext);
   WriteExpr(Obj,El,'Index',El.IndexExpr,aContext);
   WriteExpr(Obj,El,'Read',El.ReadAccessor,aContext);
@@ -3458,7 +3466,10 @@ begin
   if El.IsNodefault then
     Obj.Add('NoDefault',true);
 
-  WritePropertyScope(Obj,El.CustomData as TPasPropertyScope,aContext);
+  if Scope<>nil then
+    WritePropertyScope(Obj,Scope,aContext)
+  else
+    Obj.Add('Scope',false); // msIgnoreInterfaces
 end;
 
 procedure TPCUWriter.WriteProcedureModifiers(Obj: TJSONObject;
@@ -3518,7 +3529,9 @@ var
 begin
   WritePasElement(Obj,El,aContext);
   Scope:=El.CustomData as TPas2JSProcedureScope;
-  if Scope.DeclarationProc=nil then
+  //writeln('TPCUWriter.WriteProcedure ',GetObjName(El),' ',GetObjName(Scope),' ',Resolver.GetElementSourcePosStr(El));
+  // BEWARE: Scope can be nil for ignored methods of an interface (msIgnoreInterfaces)
+  if (Scope=nil) or (Scope.DeclarationProc=nil) then
     begin
     WriteElementProperty(Obj,El,'ProcType',El.ProcType,aContext);
     WriteExpr(Obj,El,'Public',El.PublicName,aContext);
@@ -3537,6 +3550,11 @@ begin
         Obj.Add('MessageType',PCUProcedureMessageTypeNames[El.MessageType]);
       end;
 
+    if Scope=nil then
+      begin
+      Obj.Add('Scope',false); // msIgnoreInterfaces
+      exit;
+      end;
     WriteProcedureScope(Obj,Scope,aContext);
     end
   else
@@ -4008,6 +4026,7 @@ procedure TPCUReader.Set_ClassScope_DirectAncestor(RefEl: TPasElement;
   Data: TObject);
 var
   Scope: TPas2JSClassScope absolute Data;
+  AncestorScope: TPas2JSClassScope;
   aClassAncestor: TPasType;
 begin
   if not (RefEl is TPasType) then
@@ -4019,8 +4038,9 @@ begin
   aClassAncestor:=Resolver.ResolveAliasType(Scope.DirectAncestor);
   if not (aClassAncestor is TPasClassType) then
     RaiseMsg(20180214114322,Scope.Element,GetObjName(RefEl));
-  Scope.AncestorScope:=aClassAncestor.CustomData as TPas2JSClassScope;
-  if pcsfPublished in Scope.AncestorScope.Flags then
+  AncestorScope:=aClassAncestor.CustomData as TPas2JSClassScope;
+  Scope.AncestorScope:=AncestorScope;
+  if (AncestorScope<>nil) and (pcsfPublished in Scope.AncestorScope.Flags) then
     Include(Scope.Flags,pcsfPublished);
 end;
 
@@ -6424,8 +6444,13 @@ begin
     end
   else
     begin
-    Scope:=TPas2JSClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
-    El.CustomData:=Scope;
+    if Obj.Find('Scope') is TJSONBoolean then
+      Scope:=nil // msIgnoreInterfaces
+    else
+      begin
+      Scope:=TPas2JSClassScope(Resolver.CreateScope(El,Resolver.ScopeClass_Class));
+      El.CustomData:=Scope;
+      end;
     end;
 
   ReadPasElement(Obj,El,aContext);
@@ -6454,13 +6479,11 @@ begin
   ReadString(Obj,'ExternalName',El.ExternalName,El);
 
   if Scope<>nil then
-    begin
     ReadClassScope(Obj,Scope,aContext);
-    // read Members as last
-    ReadElementList(Obj,El,'Members',El.Members,aContext);
-
+  // read Members
+  ReadElementList(Obj,El,'Members',El.Members,aContext);
+  if Scope<>nil then
     ReadClassScopeAbstractProcs(Obj,Scope);
-    end;
 end;
 
 procedure TPCUReader.ReadArgument(Obj: TJSONObject; El: TPasArgument;
@@ -6652,8 +6675,13 @@ procedure TPCUReader.ReadProperty(Obj: TJSONObject; El: TPasProperty;
 var
   Scope: TPasPropertyScope;
 begin
-  Scope:=TPasPropertyScope(Resolver.CreateScope(El,TPasPropertyScope));
-  El.CustomData:=Scope;
+  if Obj.Find('Scope') is TJSONBoolean then
+    Scope:=nil // msIgnoreInterfaces
+  else
+    begin
+    Scope:=TPasPropertyScope(Resolver.CreateScope(El,TPasPropertyScope));
+    El.CustomData:=Scope;
+    end;
 
   ReadVariable(Obj,El,aContext);
   El.IndexExpr:=ReadExpr(Obj,El,'Index',aContext);
@@ -6672,7 +6700,8 @@ begin
   ReadBoolean(Obj,'Default',El.IsDefault,El);
   ReadBoolean(Obj,'NoDefault',El.IsNodefault,El);
 
-  ReadPropertyScope(Obj,Scope,aContext);
+  if Scope<>nil then
+    ReadPropertyScope(Obj,Scope,aContext);
 end;
 
 function TPCUReader.ReadProcedureModifiers(Obj: TJSONObject; El: TPasElement;
@@ -6840,8 +6869,13 @@ var
   Ref: TPCUFilerElementRef;
   DeclProc: TPasProcedure;
 begin
-  Scope:=TPas2JSProcedureScope(Resolver.CreateScope(El,Resolver.ScopeClass_Procedure));
-  El.CustomData:=Scope;
+  if Obj.Find('Scope') is TJSONBoolean then
+    Scope:=nil // msIgnoreInterfaces
+  else
+    begin
+    Scope:=TPas2JSProcedureScope(Resolver.CreateScope(El,Resolver.ScopeClass_Procedure));
+    El.CustomData:=Scope;
+    end;
 
   ReadPasElement(Obj,El,aContext);
 
@@ -6891,10 +6925,11 @@ begin
     El.ProcType:=TPasProcedureType(ReadElementProperty(
                                  Obj,El,'ProcType',TPasProcedureType,aContext));
 
-    ReadProcedureScope(Obj,Scope,aContext);
+    if Scope<>nil then
+      ReadProcedureScope(Obj,Scope,aContext);
     end;
 
-  if Obj.Find('ImplProc')=nil then
+  if (Scope<>nil) and (Obj.Find('ImplProc')=nil) then
     ReadProcScopeReferences(Obj,Scope);
 
   if Obj.Find('Body')<>nil then
