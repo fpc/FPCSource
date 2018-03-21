@@ -668,6 +668,8 @@ type
     function AddObject(const S: string; AObject: TObject): Integer; virtual; overload;
     function Add(const Fmt : string; const Args : Array of const): Integer; overload;
     function AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer; overload;
+    function AddPair(const AName, AValue: string): TStrings; overload; {$IFDEF CLASSESINLINE}inline;{$ENDIF}
+    function AddPair(const AName, AValue: string; AObject: TObject): TStrings; overload;
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(TheStrings: TStrings; ClearFirst : Boolean); overload;

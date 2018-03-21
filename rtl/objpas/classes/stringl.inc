@@ -758,6 +758,16 @@ begin
   Result:=AddObject(Format(Fmt,Args),AObject);
 end;
 
+function TStrings.AddPair(const AName, AValue: string): TStrings;
+begin
+  Result:=AddPair(AName,AValue,Nil);
+end;
+
+function TStrings.AddPair(const AName, AValue: string; AObject: TObject): TStrings;
+begin
+  Result := Self;
+  AddObject(Concat(AName, NameValueSeparator, AValue), AObject);
+end;
 
 Procedure TStrings.Append(const S: string);
 
