@@ -47,7 +47,9 @@ uses
   fpTTF;
 
 const
-  cDatabase = 'localhost:/usr/share/doc/firebird2.5-common-doc/examples/empbuild/employee.fdb';
+  // use alias, it is pre-defined in Firebird installations
+  cDatabase = 'localhost:employee';
+//  cDatabase = 'localhost:/usr/share/doc/firebird2.5-common-doc/examples/empbuild/employee.fdb';
 //  cDatabase = '/opt/firebird/examples/empbuild/employee.fdb';
 
 { TMasterDetailDatasetDemo }
@@ -104,6 +106,7 @@ begin
   MasterDataBand.Frame.Shape := fsRectangle;
   MasterDataBand.Frame.BackgroundColor := clDataBand;
   {$endif}
+  MasterDataBand.Data:=ReportMasterData;
 
   Memo := TFPReportMemo.Create(MasterDataBand);
   Memo.Layout.Left := 5;
@@ -122,6 +125,7 @@ begin
   DataHeader.Frame.Shape := fsRectangle;
   DataHeader.Frame.BackgroundColor := clDataHeaderFooter;
   {$endif}
+  DataHeader.Data:=ReportDetailData;
 
   Memo := TFPReportMemo.Create(DataHeader);
   Memo.Layout.Left := 15;
@@ -154,7 +158,6 @@ begin
   { associate this band with the MasterData band }
   DetailDataBand.MasterBand := MasterDataBand;
   { associate DataHeader band }
-  DetailDataBand.HeaderBand := DataHeader;
   DetailDataBand.DisplayPosition := 0;
   {$ifdef ColorBands}
   DetailDataBand.Frame.Shape := fsRectangle;
@@ -189,7 +192,8 @@ begin
   BudgetDataHeader.Frame.Shape := fsRectangle;
   BudgetDataHeader.Frame.BackgroundColor := clDataHeaderFooter;
   {$endif}
-
+  BudgetDataHeader.Data:=ReportBudgetData;
+   
   Memo := TFPReportMemo.Create(BudgetDataHeader);
   Memo.Layout.Left := 15;
   Memo.Layout.Top := 3;
@@ -221,7 +225,6 @@ begin
   ProjBudgetBand.Data := ReportBudgetData;
   { associate this band with the MasterData band }
   ProjBudgetBand.MasterBand := MasterDataBand;
-  ProjBudgetBand.HeaderBand := BudgetDataHeader;
   ProjBudgetBand.DisplayPosition := 1;
   {$ifdef ColorBands}
   ProjBudgetBand.Frame.Shape := fsRectangle;
@@ -316,6 +319,9 @@ begin
   ReportMasterData.DataSet:= qryProject;
   ReportDetailData.DataSet:= qryEmployee;
   ReportBudgetData.DataSet:= qryProjBudget;
+  rpt.ReportData.AddReportData(ReportMasterData);
+  rpt.ReportData.AddReportData(ReportDetailData);
+  rpt.ReportData.AddReportData(ReportBudgetData);
 end;
 
 constructor TMasterDetailDatasetDemo.Create(AOwner: TComponent);

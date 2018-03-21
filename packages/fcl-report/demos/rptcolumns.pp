@@ -250,6 +250,7 @@ begin
   DataHeader.Layout.Height := 10;
   DataHeader.Frame.Shape := fsRectangle;
   DataHeader.Frame.BackgroundColor := TFPReportColor($ffa500);
+  DataHeader.Data:=FDataPage2;
 
   Memo := TFPReportMemo.Create(DataHeader);
   Memo.Layout.Left := 5;
@@ -270,7 +271,8 @@ begin
   DataFooter.UseParentFont := False;
   DataFooter.Font.Name := 'LiberationSans-Bold';
   DataFooter.Font.Color := clWhite;
-
+  DataFooter.Data:=FDataPage2;
+  
   Memo := TFPReportMemo.Create(DataFooter);
   Memo.Layout.Left := 5;
   Memo.Layout.Top := 1.5;
@@ -286,11 +288,7 @@ begin
   DataBand.KeepTogetherWithChildren := False;
   DataBand.Frame.Shape := fsRectangle;
   DataBand.Frame.BackgroundColor := clDataBand;
-  { associated DataHeader band }
-  DataBand.HeaderBand := DataHeader;
-  { associated DataFooter band }
-  DataBand.FooterBand := DataFooter;
-
+  
   Memo := TFPReportMemo.Create(DataBand);
   Memo.Layout.Left := 5;
   Memo.Layout.Top := 1;

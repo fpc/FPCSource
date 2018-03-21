@@ -153,6 +153,7 @@ begin
   {$endif}
   DataHeader.UseParentFont := False;
   DataHeader.Font.Name := 'LiberationSans-Bold';
+  DataHeader.Data:=FReportData; 
 
   Memo := TFPReportMemo.Create(DataHeader);
   Memo.Layout.Left := 5;
@@ -185,12 +186,12 @@ begin
 
   DataBand := TFPReportDataBand.Create(p);
   DataBand.Layout.Height := 10;
-  DataBand.HeaderBand := DataHeader;
   {$ifdef ColorBands}
   DataBand.Frame.Shape := fsRectangle;
   DataBand.Frame.BackgroundColor := clDataBand;
   {$endif}
   DataBand.OnBeforePrint:=@DoBeforePrint;
+  DataBand.Data:=FReportData; 
 
   Memo := TFPReportMemo.Create(DataBand);
   Memo.Layout.Left := 5;
