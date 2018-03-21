@@ -1524,7 +1524,7 @@ type
      reStackOverflow, reVarTypeCast, reVarInvalidOp, reVarDispatch,
      reVarArrayCreate, reVarNotArray, reVarArrayBounds, reAssertionFailed,
      reExternalException, reIntfCastError, reSafeCallError, reQuit,
-     reCodesetConversion);
+     reCodesetConversion, reNoDynLibsSupport, reThreadError);
 
 Const
   // Please keep locations corresponding to location in array above
@@ -1535,7 +1535,7 @@ Const
      202, 220, 221, 222,
      223, 224, 225, 227,
      212, 228, 229, 233,
-     234);
+     234, 235, 236);
 
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}

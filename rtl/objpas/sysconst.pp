@@ -98,6 +98,7 @@ const
   SStackOverflow         = 'Stack overflow';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
+  SThreadError           = 'Thread error';
 
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';

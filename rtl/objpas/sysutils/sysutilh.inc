@@ -192,6 +192,7 @@ type
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
    EObjectCheck     = Class(Exception);
+   EThreadError     = Class(Exception);
 
    EPropReadOnly = class(Exception);
    EPropWriteOnly = class(Exception);

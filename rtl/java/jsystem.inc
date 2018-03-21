@@ -740,7 +740,7 @@ end;
 
 procedure fpc_threaderror; [public,alias:'FPC_THREADERROR'];
 begin
-  HandleErrorAddrFrameInd(6,get_pc_addr,get_frame);
+  HandleErrorAddrFrameInd(236{RuntimeErrorExitCodes[reThreadError]},get_pc_addr,get_frame);
 end;
 
 
