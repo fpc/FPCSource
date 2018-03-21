@@ -153,6 +153,7 @@ type
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
     procedure TestPC_IgnoreInterface;
+    procedure TestPC_IgnoreAttributes;
 
     procedure TestPC_UseUnit;
     procedure TestPC_UseUnit_Class;
@@ -1900,6 +1901,27 @@ begin
   '    procedure SetItems(Index: longint; Value: longint);',
   '    property Items[Index: longint]: longint read GetItems write SetItems;',
   '  end;',
+  'implementation',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_IgnoreAttributes;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '{$modeswitch ignoreattributes}',
+  'type',
+  '  [custom1, custom2(1+3,''foo'')] [mod1.custom3]',
+  '  TObject = class',
+  '    [custom5()] FS: string;',
+  '    [customProp] property S: string read FS;',
+  '  end;',
+  'var',
+  '  [custom6]',
+  '  o: TObject;',
   'implementation',
   'end.',
   '']);
