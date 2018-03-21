@@ -2283,7 +2283,7 @@ procedure unimplementedunicodestring;
       Writeln(StdErr,SRecompileWithUnicodestrings);
       end;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
-    HandleErrorAddrFrameInd(233,get_pc_addr,get_frame);
+    HandleErrorAddrFrameInd(234{RuntimeErrorExitCodes[reCodesetConversion]},get_pc_addr,get_frame);
   end;
 
 
