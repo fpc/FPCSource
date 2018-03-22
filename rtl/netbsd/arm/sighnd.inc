@@ -5,7 +5,7 @@
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 
-   Signalhandler for NetBSD/m68k
+   Signalhandler for NetBSD/arm
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY;without even the implied warranty of
@@ -18,6 +18,13 @@ function getfpustate(const Sigcontext:sigcontextRec):longint; {inline;}
 begin
   getfpustate:=0;
 end;
+
+procedure signal_trampoline; cdecl;
+begin
+{$WARNING fix me! - signal trampoline}
+end;
+
+
 
 procedure SignalToRunerror(Signo: longint;info : PSigInfo;SigContext: PSigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 var

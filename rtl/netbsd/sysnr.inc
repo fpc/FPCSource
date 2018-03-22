@@ -501,7 +501,7 @@ const
   { syscall: "__sigaction_sigtramp" ret: "int" args: "int" "const struct sigaction *"
              "struct sigaction *" "const void *" "int"  }
      syscall_nr___sigaction_sigtramp = syscall_nr_base + 340;
-{$ifdef CPUX86_64}
+{$if defined(CPUX86_64) or defined(CPUARM)}
   {$define USE_SIGACTION_SIGTRAMP}
 {$endif}
   { syscall: "kqueue" ret: "int" args: }
