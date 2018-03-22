@@ -7406,6 +7406,14 @@ packages/rtl-generics/examples/thashmapcaseinsensitive/thashmapcaseinsensitive.l
 packages/rtl-generics/examples/thashmapcaseinsensitive/thashmapcaseinsensitive.lpr svneol=native#text/pascal
 packages/rtl-generics/examples/thashmapextendedequalitycomparer/thashmapextendedequalitycomparer.lpi svneol=native#text/xml
 packages/rtl-generics/examples/thashmapextendedequalitycomparer/thashmapextendedequalitycomparer.lpr svneol=native#text/pascal
+packages/rtl-generics/examples/thashset/thashset_exceptwith.lpi svneol=native#text/xml
+packages/rtl-generics/examples/thashset/thashset_exceptwith.lpr svneol=native#text/pascal
+packages/rtl-generics/examples/thashset/thashset_intersectwith.lpi svneol=native#text/xml
+packages/rtl-generics/examples/thashset/thashset_intersectwith.lpr svneol=native#text/pascal
+packages/rtl-generics/examples/thashset/thashset_symmetricexceptwith.lpi svneol=native#text/xml
+packages/rtl-generics/examples/thashset/thashset_symmetricexceptwith.lpr svneol=native#text/pascal
+packages/rtl-generics/examples/thashset/thashset_unionwith.lpi svneol=native#text/xml
+packages/rtl-generics/examples/thashset/thashset_unionwith.lpr svneol=native#text/pascal
 packages/rtl-generics/examples/tobjectlist/tobjectlistproject.lpi svneol=native#text/xml
 packages/rtl-generics/examples/tobjectlist/tobjectlistproject.lpr svneol=native#text/pascal
 packages/rtl-generics/examples/tqueue/tqueueproject.lpi svneol=native#text/xml
