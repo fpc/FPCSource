@@ -667,6 +667,7 @@ type
     procedure SetVisible(const AValue: boolean);
     procedure SetVisibleExpr(AValue: String);
   protected
+    procedure ApplyStretchMode(const ADesiredHeight: TFPReportUnits);
     function GetDateTimeFormat: String; virtual;
     function ExpandMacro(const s: String; const AIsExpr: boolean): TFPReportString; virtual;
     function GetReportBand: TFPReportCustomBand; virtual;
@@ -904,12 +905,12 @@ type
     procedure ReassignParentFont;
     procedure   SetBandPosition(pBandPosition: TFPReportBandPosition); virtual;
     procedure   SetChildBand(AValue: TFPReportCustomChildBand);
-    procedure   ApplyStretchMode;
     procedure   SetFont(AValue: TFPReportFont);
     procedure   SetKeepTogetherWithChildren(pKeepTogetherWithChildren: Boolean); virtual;
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
+    function CalcDesiredHeight: TFPReportUnits; virtual;
     function    GetReportPage: TFPReportCustomPage; override;
     function    GetReportBandName: string; virtual;
     function    GetData: TFPReportData; virtual;
@@ -1077,6 +1078,7 @@ type
   published
     property    ChildBand;
     property    Font;
+    property    StretchMode;
     property    UseParentFont;
     property    VisibleOnPage;
     property    KeepTogetherWithChildren;
@@ -1094,6 +1096,7 @@ type
 
   TFPReportColumnHeaderBand = class(TFPReportCustomColumnHeaderBand)
   published
+    property    StretchMode;
     property    Data;
     property    Font;
     property    UseParentFont;
@@ -1118,6 +1121,7 @@ type
     property    BandPosition;
     property    UseParentFont;
     property    OnBeforePrint;
+    property    StretchMode;
   end;
 
 
@@ -1206,6 +1210,7 @@ type
     property    UseParentFont;
     property    KeepTogetherWithChildren;
     property    OnBeforePrint;
+    property    StretchMode;
     property    StartOnNewSection;
     property    ReprintedHeader;
     property    OverflowedFooterNeedsReprintedHeader;
@@ -1226,6 +1231,7 @@ type
 
   TFPReportTitleBand = class(TFPReportCustomTitleBand)
   published
+    property    StretchMode;
     property    ChildBand;
     property    Font;
     property    UseParentFont;
@@ -1252,6 +1258,7 @@ type
 
   TFPReportSummaryBand = class(TFPReportCustomSummaryBand)
   published
+    property    StretchMode;
     property    ChildBand;
     property    Font;
     property    StartNewPage;
@@ -1296,6 +1303,7 @@ type
     property    UseParentFont;
     property    KeepTogetherWithChildren;
     property    OnBeforePrint;
+    property    StretchMode;
   end;
 
 
@@ -1309,7 +1317,7 @@ type
 
   TFPReportDataHeaderBand = class(TFPReportCustomDataHeaderBand)
   published
-
+    property    StretchMode;
     property    Font;
     property    UseParentFont;
     property    OnBeforePrint;
@@ -1326,6 +1334,7 @@ type
 
   TFPReportDataFooterBand = class(TFPReportCustomDataFooterBand)
   published
+    property    StretchMode;
     property    Font;
     property    UseParentFont;
     property    OnBeforePrint;
@@ -1813,7 +1822,6 @@ type
     procedure   SetText(AValue: TFPReportString);
     procedure   SetUseParentFont(AValue: Boolean);
     procedure   WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
-    procedure   ApplyStretchMode(const AHeight: TFPReportUnits);
     procedure   ApplyHorzTextAlignment;
     procedure   ApplyVertTextAlignment;
     function    GetTextLines: TStrings;
@@ -3740,15 +3748,7 @@ begin
   AddLine(true);
 end;
 
-procedure TFPReportCustomMemo.ApplyStretchMode(const AHeight: TFPReportUnits);
-var
-  j: TFPReportUnits;
-
-  procedure CalcNeededHeight;
-
-  begin
-    j :=((AHeight + LineSpacing) * TextLines.Count) + TextAlignment.TopMargin + TextAlignment.BottomMargin;
-  end;
+procedure TFPReportElement.ApplyStretchMode(const ADesiredHeight: TFPReportUnits);
 
 begin
   if Not Assigned(RTLayout) then
@@ -3761,20 +3761,17 @@ begin
       end;
     smActualHeight:
       begin
-      CalcNeededHeight;
-      RTLayout.Height := j;
+      RTLayout.Height := aDesiredHeight;
       end;
     smActualHeightStretchOnly:
       begin
-      CalcNeededHeight;
-      if j>RTLayout.Height then { only grow height if needed. We don't shrink. }
-        RTLayout.Height := j;
+      if aDesiredHeight>RTLayout.Height then { only grow height if needed. We don't shrink. }
+        RTLayout.Height := aDesiredHeight;
       end;
     smActualHeightShrinkOnly:
       begin
-      CalcNeededHeight;
-      if j<RTLayout.Height then { only shrink height if needed. We don't grow. }
-        RTLayout.Height := j;
+      if aDesiredHeight<RTLayout.Height then { only shrink height if needed. We don't grow. }
+        RTLayout.Height := ADesiredHeight;
       end;
   end;
 end;
@@ -4555,8 +4552,17 @@ begin
 end;
 
 procedure TFPReportCustomMemo.RecalcLayout;
+
+  Function CalcNeededHeight(aHeight : TFPReportUnits) : TFPReportUnits;
+
+  begin
+    Result :=((AHeight + LineSpacing) * TextLines.Count) + TextAlignment.TopMargin + TextAlignment.BottomMargin;
+  end;
+
 var
   h: TFPReportUnits;
+
+
 begin
   FTextBlockList.Clear;
   FCurTextBlock := nil;
@@ -4571,7 +4577,7 @@ begin
     FTextLines.Add(Text);
 
   if StretchMode <> smDontStretch then
-    ApplyStretchMode(h);
+    ApplyStretchMode(CalcNeededHeight(h));
 
   PrepareTextBlocks;
   ApplyVertTextAlignment;
@@ -8443,20 +8449,23 @@ begin
     end;
 end;
 
-procedure TFPReportCustomBand.ApplyStretchMode;
+Function TFPReportCustomBand.CalcDesiredHeight : TFPReportUnits;
+
 var
-  h: TFPReportUnits;
+  R,H: TFPReportUnits;
   c: TFPReportElement;
   i: integer;
+
 begin
-  h := RTLayout.Height;
+  R := 0;
   for i := 0 to ChildCount-1 do
-  begin
-    c := Child[i];
-    if c.RTLayout.Top + c.RTLayout.Height > h then
-      h := c.RTLayout.Top + c.RTLayout.Height;
-  end;
-  RTLayout.Height := h;
+    begin
+    c:=Child[i];
+    h:=c.RTLayout.Top + c.RTLayout.Height;
+    if H>R then
+      R:=H;
+    end;
+  Result:=R;
 end;
 
 procedure TFPReportCustomBand.SetFont(AValue: TFPReportFont);
@@ -8576,7 +8585,7 @@ begin
       RemoveChild(Child[i]);
   inherited RecalcLayout;
   if StretchMode <> smDontStretch then
-    ApplyStretchMode;
+    ApplyStretchMode(CalcDesiredHeight);
 end;
 
 procedure TFPReportCustomBand.Assign(Source: TPersistent);
