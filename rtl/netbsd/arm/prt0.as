@@ -14,28 +14,38 @@
 #
 # NetBSD standard (shared) ELF/arm startup code for Free Pascal
 
+# r12/ip = ps_strings on entry
+
 .section .text
     .globl _start
 _start:
-#        move.l  %a2,-(%sp)              | ps_strings
-#        move.l  %a0,-(%sp)              | obj
-#        move.l  %a1,-(%sp)              | cleanup
+        mov     ip, r0
+        mov     r0, r2
+        mov     r2, ip
 
-#        move.l  0(%a2),operatingsystem_parameter_argv
-#        move.l  4(%a2),operatingsystem_parameter_argc
-#        move.l  8(%a2),operatingsystem_parameter_envp
-#        move.l  8(%a2),environ
+        ldr     r3, [r2, #0]
+        ldr     r4, =operatingsystem_parameter_argv
+        str     r3, [r4]
+        ldr     r3, [r2, #4]
+        ldr     r4, =operatingsystem_parameter_argc
+        str     r3, [r4]
+        ldr     r3, [r2, #8]
+        ldr     r4, =operatingsystem_parameter_envp
+        str     r3, [r4]
+        ldr     r4, =environ
+        str     r3, [r4]
 
-#        jsr     PASCALMAIN
-#        jmp     _haltproc
+# cache align, just in case
+        bic     sp, sp, #7
+
+        bl      PASCALMAIN
+        bl      _haltproc
 
     .globl _haltproc
 _haltproc:
-#        move.l  operatingsystem_result,-(%sp)
-#        move.l  #0,-(%sp)
-#        moveq.l #1,%d0
-#        trap    #0
-#        rts
+        ldr     r0,=operatingsystem_result
+        ldr     r0,[r0]
+        svc     0xa00001
 
 
 .section .data
