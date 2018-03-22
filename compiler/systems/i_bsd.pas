@@ -650,7 +650,7 @@ unit i_bsd;
             system       : system_arm_netbsd;
             name         : 'NetBSD for ARMHF';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources];
+            flags        : [tf_under_development,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -704,7 +704,7 @@ unit i_bsd;
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
             stackalign   : 16;
-            abi : abi_eabi;
+            abi : abi_eabihf;
             llvmdatalayout : 'todo';
           );
 
