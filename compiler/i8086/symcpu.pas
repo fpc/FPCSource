@@ -110,6 +110,7 @@ type
 
   tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte);override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
     function address_type:tdef;override;
     function size:asizeint;override;
     procedure declared_far;override;
@@ -130,6 +131,7 @@ type
     function default_far:boolean;
    public
     constructor create(level:byte;doregister:boolean);override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
     function address_type:tdef;override;
     function size:asizeint;override;
     procedure declared_far;override;
@@ -329,6 +331,16 @@ implementation
     end;
 
 
+  function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;
+    begin
+      result:=inherited;
+      if is_far then
+        include(tabstractprocdef(result).procoptions,po_far)
+      else
+        exclude(tabstractprocdef(result).procoptions,po_far);
+    end;
+
+
   function tcpuprocdef.address_type: tdef;
     begin
       if is_far then
@@ -395,6 +407,16 @@ implementation
       inherited create(level);
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
+    end;
+
+
+  function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;
+    begin
+      result:=inherited;
+      if is_far then
+        include(tabstractprocdef(result).procoptions,po_far)
+      else
+        exclude(tabstractprocdef(result).procoptions,po_far);
     end;
 
 
