@@ -110,6 +110,10 @@ type
 
   tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte);override;
+    function address_type:tdef;override;
+    function size:asizeint;override;
+    procedure declared_far;override;
+    procedure declared_near;override;
     function is_far:boolean;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
@@ -389,16 +393,65 @@ implementation
   constructor tcpuprocvardef.create(level: byte);
     begin
       inherited create(level);
-      { procvars are always far in the far code memory models }
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
     end;
 
 
+  function tcpuprocvardef.address_type:tdef;
+    begin
+      if is_addressonly then
+        if is_far then
+          result:=voidfarpointertype
+        else
+          begin
+            { near }
+            if current_settings.x86memorymodel=mm_tiny then
+              result:=voidnearpointertype
+            else
+              result:=voidnearcspointertype;
+          end
+      else
+        result:=inherited;
+    end;
+
+
+  function tcpuprocvardef.size:asizeint;
+    begin
+      if is_addressonly then
+        if is_far then
+          result:=4
+        else
+          result:=2
+      else
+        result:=inherited;
+    end;
+
+
+  procedure tcpuprocvardef.declared_far;
+    begin
+      if is_addressonly then
+        include(procoptions,po_far)
+      else
+        inherited;
+    end;
+
+
+  procedure tcpuprocvardef.declared_near;
+    begin
+      if is_addressonly then
+        exclude(procoptions,po_far)
+      else
+        inherited;
+    end;
+
+
   function tcpuprocvardef.is_far: boolean;
     begin
-      { procvars are always far in the far code memory models }
-      result:=current_settings.x86memorymodel in x86_far_code_models;
+      if is_addressonly then
+        result:=po_far in procoptions
+      else
+        result:=current_settings.x86memorymodel in x86_far_code_models;
     end;
 
 {****************************************************************************
