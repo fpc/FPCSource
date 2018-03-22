@@ -6530,6 +6530,8 @@ implementation
            s := s+' of object';
          if is_nested_pd(self) then
            s := s+' is nested';
+         if po_far in procoptions then
+           s := s+';far';
          GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
