@@ -111,7 +111,7 @@ type
   TFPReportFrameLines     = set of TFPReportFrameLine;
   TFPReportFrameShape     = (fsNone, fsRectangle, fsRoundedRect, fsDoubleRect, fsShadow);
   TFPReportFieldKind      = (rfkString, rfkBoolean, rfkInteger, rfkFloat, rfkDateTime, rfkStream, rfkCurrency);
-  TFPReportStretchMode    = (smDontStretch, smActualHeight, smMaxHeight);
+  TFPReportStretchMode    = (smDontStretch, smActualHeight, smActualHeightStretchOnly, smActualHeightShrinkOnly, smMaxHeight);
   TFPReportHTMLTag        = (htRegular, htBold, htItalic);
   TFPReportHTMLTagSet     = set of TFPReportHTMLTag;
   TFPReportColumnLayout   = (clVertical, clHorizontal);
@@ -3743,12 +3743,39 @@ end;
 procedure TFPReportCustomMemo.ApplyStretchMode(const AHeight: TFPReportUnits);
 var
   j: TFPReportUnits;
-begin
-  if Assigned(RTLayout) then
+
+  procedure CalcNeededHeight;
+
   begin
     j :=((AHeight + LineSpacing) * TextLines.Count) + TextAlignment.TopMargin + TextAlignment.BottomMargin;
-    if j > RTLayout.Height then { only grow height if needed. We don't shrink. }
+  end;
+
+begin
+  if Not Assigned(RTLayout) then
+    Exit;
+  Case StretchMode of
+    smMaxHeight:
+      begin
+      if Assigned(Parent) and Assigned(RTLayout) then
+        RTLayout.Height:=Parent.RTLayout.Height-RTLayout.Top;
+      end;
+    smActualHeight:
+      begin
+      CalcNeededHeight;
       RTLayout.Height := j;
+      end;
+    smActualHeightStretchOnly:
+      begin
+      CalcNeededHeight;
+      if j>RTLayout.Height then { only grow height if needed. We don't shrink. }
+        RTLayout.Height := j;
+      end;
+    smActualHeightShrinkOnly:
+      begin
+      CalcNeededHeight;
+      if j<RTLayout.Height then { only shrink height if needed. We don't grow. }
+        RTLayout.Height := j;
+      end;
   end;
 end;
 
