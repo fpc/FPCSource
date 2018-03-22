@@ -2237,7 +2237,8 @@ begin
   if Active then
     begin
     B.InitialiseSpareRecord(IntAllocRecordBuffer);
-    BuildIndex(B);
+    if (F.Fields<>'') then
+      BuildIndex(B);
     end
   else
     if (FIndexes.Count+2>FMaxIndexesCount) then
