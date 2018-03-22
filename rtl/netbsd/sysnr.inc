@@ -218,7 +218,7 @@ const
      syscall_nr_compat_43_osendmsg = syscall_nr_base + 114;
   { 115 is obsolete vtrace  }
   { syscall: "gettimeofday" ret: "int" args: "struct timeval  " "struct timezone  "  }
-     syscall_nr_gettimeofday = syscall_nr_base + 116;
+     syscall_nr_compat_50_gettimeofday = syscall_nr_base + 116;
   { syscall: "getrusage" ret: "int" args: "int" "struct rusage  "  }
      syscall_nr_getrusage = syscall_nr_base + 117;
   { syscall: "getsockopt" ret: "int" args: "int" "int" "int" "void  " "unsigned int  "  }
@@ -229,7 +229,7 @@ const
   { syscall: "writev" ret: "ssize_t" args: "int" "const struct iovec  " "int"  }
      syscall_nr_writev = syscall_nr_base + 121;
   { syscall: "settimeofday" ret: "int" args: "const struct timeval  " "const struct timezone  "  }
-     syscall_nr_settimeofday = syscall_nr_base + 122;
+     syscall_nr_compat_50_settimeofday = syscall_nr_base + 122;
   { syscall: "fchown" ret: "int" args: "int" "uid_t" "gid_t"  }
      syscall_nr_fchown = syscall_nr_base + 123;
   { syscall: "fchmod" ret: "int" args: "int" "mode_t"  }
@@ -517,6 +517,17 @@ const
   { syscall: "__lstat30" ret: "int" args: "const char *" "struct stat *" }
     syscall_nr___lstat30 = syscall_nr_base + 389;
 
+  { syscall: "__gettimeofday50" ret: "int" args: "struct timeval *" "void *" }
+    syscall_nr___gettimeofday50 = syscall_nr_base + 418;
+  { syscall: "__settimeofday50" ret: "int" args: "const struct timeval *" "const void *" }
+    syscall_nr___settimeofday50 = syscall_nr_base + 419;
+
+  { syscall: "__stat50" ret: "int" args: "const char *" "struct stat *" }
+    syscall_nr___stat50  = syscall_nr_base + 439;
+  { syscall: "__fstat50" ret: "int" args: "int" "struct stat *" }
+    syscall_nr___fstat50 = syscall_nr_base + 440;
+  { syscall: "__lstat50" ret: "int" args: "const char *" "struct stat *" }
+    syscall_nr___lstat50 = syscall_nr_base + 441;
 
      syscall_nr_MAXSYSCALL = syscall_nr_base + 390;
      syscall_nr_NSYSENT = syscall_nr_base + 512;
@@ -526,7 +537,17 @@ const
 { I checked the values of these constant
   and removed those who are equal
   and added some equivalents, unchecked PM }
+{$ifdef FPC_ABI_EABI}
+{$define NETBSD_USE_CALLS50}
+{$endif}
 
+{$ifdef NETBSD_USE_CALLS50}
+ syscall_nr_fstat                       = syscall_nr___fstat50;
+ syscall_nr_lstat                       = syscall_nr___lstat50;
+ syscall_nr_stat                        = syscall_nr___stat50;
+ syscall_nr_gettimeofday                = syscall_nr___gettimeofday50;
+ syscall_nr_settimeofday                = syscall_nr___settimeofday50;
+{$else}
 {$ifdef NETBSD_USE_STAT30}
 { syscall_nr_compat_12_fstat12 = 189 }
 { syscall_nr___fstat13 = 279 }
@@ -541,6 +562,9 @@ const
  syscall_nr_fstat                       = syscall_nr___fstat13;
  syscall_nr_lstat                       = syscall_nr___lstat13;
  syscall_nr_stat                        = syscall_nr___stat13;
+{$endif}
+ syscall_nr_gettimeofday                = syscall_nr_compat_50_gettimeofday;
+ syscall_nr_settimeofday                = syscall_nr_compat_50_settimeofday;
 {$endif}
 { syscall_nr_sigaction                   = 342; MISSING }
 { syscall: "__sigaction14" ret: "int" args: "int" "const struct sigaction  " "struct sigaction  "  }
