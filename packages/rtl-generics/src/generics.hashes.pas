@@ -1063,7 +1063,7 @@ end;
 {$ifdef CPUX64}
 function xxHash32(crc: cardinal; P: Pointer; len: integer): cardinal;
 asm
-        {$ifdef LINUX} // crc=rdi P=rsi len=rdx
+        {$ifndef WIN64} // crc=rdi P=rsi len=rdx
         mov     r8, rdi
         mov     rcx, rsi
         {$else} // crc=r8 P=rcx len=rdx
@@ -1150,7 +1150,7 @@ asm
         shr     edx, 16
         xor     eax, edx
         pop     rbx
-        {$ifndef LINUX}
+        {$ifdef WIN64}
         pop     rdi
         pop     rsi
         {$endif}
