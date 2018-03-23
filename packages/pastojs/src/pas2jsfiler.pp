@@ -68,6 +68,8 @@ uses
 const
   PCUMagic = 'Pas2JSCache';
   PCUVersion = 1;
+  // Version Changes:
+  // 1: initial version
 
   BuiltInNodeName = 'BuiltIn';
 
@@ -2169,7 +2171,7 @@ begin
   writeln('TPCUWriter.WritePasElement ',GetObjName(El));
   {$ENDIF}
   if El.Name<>'' then
-    Obj.Add('Name',El.Name);
+    Obj.Add('Name',Resolver.GetOverloadName(El));
 
   // Id
   Ref:=GetElementReference(El);
@@ -3504,6 +3506,7 @@ begin
   // Not needed, contains only local stuff: WriteIdentifierScope(Obj,Scope,aContext);
   if Scope.ResultVarName<>'' then
     Obj.Add('ResultVarName',Scope.ResultVarName);
+  // Scope.OverloadName is stored as 'Name' and ReadProcedureScope reverts it
 
   if Scope.DeclarationProc<>nil then
     RaiseMsg(20180219135933,Scope.Element);
@@ -3666,7 +3669,7 @@ begin
     if not (El is TPasModule) then
       RaiseMsg(20180308174440,El,GetObjName(El));
   // check name
-  Name:=El.Name;
+  Name:=Resolver.GetOverloadName(El);
   if Name='' then
     if El is TInterfaceSection then
       Name:='Interface'
@@ -4945,8 +4948,8 @@ begin
     if (Index<0) or (Index>=Members.Count) then
       RaiseMsg(20180309184718,El,IntToStr(Index)+' out of bounds 0-'+IntToStr(Members.Count));
     ChildEl:=TPasElement(Members[Index]);
-    if ChildEl.Name<>Name then
-      RaiseMsg(20180309200800,El,'Expected="'+Name+'", but found "'+ChildEl.Name+'"');
+    if Resolver.GetOverloadName(ChildEl)<>Name then
+      RaiseMsg(20180309200800,El,'Expected="'+Name+'", but found "'+Resolver.GetOverloadName(ChildEl)+'" ('+ChildEl.Name+')');
 
     // read child declarations
     ReadExternalReferences(SubObj,ChildEl);
@@ -6787,6 +6790,7 @@ var
 begin
   Proc:=Scope.Element as TPasProcedure;
   ReadString(Obj,'ResultVarName',Scope.ResultVarName,Proc);
+  // Scope.OverloadName is already set in ReadProcedure
   ReadElementReference(Obj,Scope,'ImplProc',@Set_ProcedureScope_ImplProc);
   ReadElementReference(Obj,Scope,'Overridden',@Set_ProcedureScope_Overridden);
   if Proc.Parent is TPasClassType then
@@ -6868,6 +6872,7 @@ var
   DeclProcId: integer;
   Ref: TPCUFilerElementRef;
   DeclProc: TPasProcedure;
+  p: SizeInt;
 begin
   if Obj.Find('Scope') is TJSONBoolean then
     Scope:=nil // msIgnoreInterfaces
@@ -6875,6 +6880,13 @@ begin
     begin
     Scope:=TPas2JSProcedureScope(Resolver.CreateScope(El,Resolver.ScopeClass_Procedure));
     El.CustomData:=Scope;
+    p:=Pos('$',El.Name);
+    if p>0 then
+      begin
+      // overload proc name$2 was stored in 'Name'
+      Scope.OverloadName:=El.Name;
+      El.Name:=LeftStr(El.Name,p-1);
+      end;
     end;
 
   ReadPasElement(Obj,El,aContext);

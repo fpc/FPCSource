@@ -842,6 +842,7 @@ type
 
   TPas2JSProcedureScope = class(TPasProcedureScope)
   public
+    OverloadName: string;
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
     BodyJS: string; // Option coStoreProcJS: stored in ImplScope
     GlobalJS: TStringList; // Option coStoreProcJS: stored in ImplScope
@@ -1047,6 +1048,7 @@ type
     function CreateElementData(DataClass: TPas2JsElementDataClass;
       El: TPasElement): TPas2JsElementData; virtual;
     // utility
+    function GetOverloadName(El: TPasElement): string;
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean=
       false): string; override;
     function HasTypeInfo(El: TPasType): boolean; override;
@@ -1100,15 +1102,15 @@ type
     ResourceStrings: TJSVarDeclaration;
   end;
 
-  { TFCLocalVar }
+  { TFCLocalIdentifier }
 
-  TFCLocalVar = class
+  TFCLocalIdentifier = class
   public
     Element: TPasElement;
     Name: string;
     constructor Create(const aName: string; TheEl: TPasElement);
   end;
-  TFCLocalVars = array of TFCLocalVar;
+  TFCLocalVars = array of TFCLocalIdentifier;
 
   { TFunctionContext
     Module Function: PasElement is TPasProcedure, ThisPas=nil
@@ -1124,8 +1126,8 @@ type
     function GetLocalName(El: TPasElement): string; override;
     function IndexOfLocalVar(const aName: string): integer;
     function IndexOfLocalVar(El: TPasElement): integer;
-    function FindLocalVar(const aName: string): TFCLocalVar;
-    function FindLocalVar(El: TPasElement): TFCLocalVar;
+    function FindLocalVar(const aName: string): TFCLocalIdentifier;
+    function FindLocalIdentifier(El: TPasElement): TFCLocalIdentifier;
     procedure DoWriteStack(Index: integer); override;
   end;
 
@@ -1260,6 +1262,8 @@ type
     Function CreatePrimitiveDotExpr(AName: string; Src: TPasElement): TJSElement;
     Function CreateSubDeclNameExpr(El: TPasElement; const Name: string;
       AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
+    Function CreateSubDeclNameExpr(El: TPasElement;
+      AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
     Function CreateIdentifierExpr(El: TPasElement; AContext: TConvertContext): TJSElement;
     Function CreateIdentifierExpr(AName: string; El: TPasElement; AContext: TConvertContext): TJSElement;
     Function CreateSwitchStatement(El: TPasImplCaseOf; AContext: TConvertContext): TJSElement;
@@ -1289,6 +1293,7 @@ type
     Function IsExternalClassConstructor(El: TPasElement): boolean;
     Function IsLiteralInteger(El: TJSElement; out Number: MaxPrecInt): boolean;
     // Name mangling
+    Function GetOverloadName(El: TPasElement; AContext: TConvertContext): string;
     Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
     Function TransformModuleName(El: TPasModule; AddModulesPrefix: boolean; AContext : TConvertContext) : String; virtual;
@@ -1584,9 +1589,9 @@ begin
   inherited Destroy;
 end;
 
-{ TFCLocalVar }
+{ TFCLocalIdentifier }
 
-constructor TFCLocalVar.Create(const aName: string; TheEl: TPasElement);
+constructor TFCLocalIdentifier.Create(const aName: string; TheEl: TPasElement);
 begin
   Name:=aName;
   Element:=TheEl;
@@ -1799,6 +1804,7 @@ var
 var
   NewName: String;
   Duplicate: TPasElement;
+  ProcScope: TPas2JSProcedureScope;
 begin
   // => count overloads in this section
   OverloadIndex:=GetOverloadIndex(El);
@@ -1823,7 +1829,17 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TPas2JSResolver.RenameOverload "',El.Name,'" has overload. NewName="',NewName,'"');
   {$ENDIF}
-  El.Name:=NewName;
+  if (El.CustomData is TPas2JSProcedureScope) then
+    begin
+    ProcScope:=TPas2JSProcedureScope(El.CustomData);
+    ProcScope.OverloadName:=NewName;
+    if ProcScope.DeclarationProc<>nil then
+      RaiseInternalError(20180322233222,El.FullPath);
+    if ProcScope.ImplProc<>nil then
+      TPas2JSProcedureScope(ProcScope.ImplProc.CustomData).OverloadName:=NewName;
+    end
+  else
+    El.Name:=NewName;
   Result:=true;
 end;
 
@@ -1855,7 +1871,7 @@ var
   i: Integer;
   El: TPasElement;
   Proc: TPasProcedure;
-  ProcScope: TPasProcedureScope;
+  ProcScope, OvrProcScope, ImplProcScope: TPas2JSProcedureScope;
 begin
   //IsExternalClass:=(DeclEl is TPasClassType) and (TPasClassType(DeclEl).IsExternal);
   if DeclEl=nil then;
@@ -1865,25 +1881,24 @@ begin
     if (El is TPasProcedure) then
       begin
       Proc:=TPasProcedure(El);
-      ProcScope:=Proc.CustomData as TPasProcedureScope;
+      ProcScope:=Proc.CustomData as TPas2JSProcedureScope;
       //writeln('TPas2JSResolver.RenameOverloads Proc=',Proc.Name,' DeclarationProc=',GetObjName(ProcScope.DeclarationProc),' ImplProc=',GetObjName(ProcScope.ImplProc),' ClassScope=',GetObjName(ProcScope.ClassScope));
       if ProcScope.DeclarationProc<>nil then
+        continue
+      else if Proc.IsOverride then
         begin
-        if ProcScope.ImplProc<>nil then
-          RaiseInternalError(20170221110853);
-        // proc implementation (not forward) -> skip
-        Proc.Name:=ProcScope.DeclarationProc.Name;
-        continue;
-        end;
-      if Proc.IsOverride then
-        begin
+        // override -> copy name from overridden proc
         if ProcScope.OverriddenProc=nil then
           RaiseInternalError(20171205183502);
-        if Proc.Name<>ProcScope.OverriddenProc.Name then
+        OvrProcScope:=TPas2JSProcedureScope(ProcScope.OverriddenProc.CustomData);
+        if OvrProcScope.OverloadName<>'' then
           begin
-          Proc.Name:=ProcScope.OverriddenProc.Name;
+          ProcScope.OverloadName:=OvrProcScope.OverloadName;
           if ProcScope.ImplProc<>nil then
-            ProcScope.ImplProc.Name:=Proc.Name;
+            begin
+            ImplProcScope:=TPas2JSProcedureScope(ProcScope.ImplProc.CustomData);
+            ImplProcScope.OverloadName:=ProcScope.OverloadName;
+            end;
           end;
         continue;
         end
@@ -1894,9 +1909,7 @@ begin
         continue;
         end;
       // proc declaration (header, not body)
-      if RenameOverload(Proc) then
-        if ProcScope.ImplProc<>nil then
-          ProcScope.ImplProc.Name:=Proc.Name;
+      RenameOverload(Proc);
       end;
     end;
   {$IFDEF VerbosePas2JS}
@@ -3481,6 +3494,19 @@ begin
   AddElementData(Result);
 end;
 
+function TPas2JSResolver.GetOverloadName(El: TPasElement): string;
+var
+  Data: TObject;
+begin
+  Data:=El.CustomData;
+  if Data is TPas2JSProcedureScope then
+    begin
+    Result:=TPas2JSProcedureScope(Data).OverloadName;
+    if Result<>'' then exit;
+    end;
+  Result:=El.Name;
+end;
+
 function TPas2JSResolver.GetBaseDescription(const R: TPasResolverResult;
   AddPath: boolean): string;
 begin
@@ -3633,18 +3659,18 @@ var
 begin
   l:=length(LocalVars);
   SetLength(LocalVars,l+1);
-  LocalVars[l]:=TFCLocalVar.Create(aName,El);
+  LocalVars[l]:=TFCLocalIdentifier.Create(aName,El);
 end;
 
 function TFunctionContext.ToString: string;
 var
-  V: TFCLocalVar;
+  V: TFCLocalIdentifier;
 begin
   Result:=inherited ToString;
   if ThisPas<>nil then
     begin
     Result:=Result+' this';
-    V:=FindLocalVar(ThisPas);
+    V:=FindLocalIdentifier(ThisPas);
     if V<>nil then
       Result:=Result+'="'+V.Name+'"';
     Result:=Result+'='+GetObjName(ThisPas);
@@ -3653,10 +3679,10 @@ end;
 
 function TFunctionContext.GetLocalName(El: TPasElement): string;
 var
-  V: TFCLocalVar;
+  V: TFCLocalIdentifier;
 begin
   if El=nil then exit('');
-  V:=FindLocalVar(El);
+  V:=FindLocalIdentifier(El);
   if V<>nil then
     Result:=V.Name
   else if ThisPas=El then
@@ -3684,7 +3710,7 @@ begin
   Result:=-1;
 end;
 
-function TFunctionContext.FindLocalVar(const aName: string): TFCLocalVar;
+function TFunctionContext.FindLocalVar(const aName: string): TFCLocalIdentifier;
 var
   i: Integer;
 begin
@@ -3695,7 +3721,7 @@ begin
     Result:=nil;
 end;
 
-function TFunctionContext.FindLocalVar(El: TPasElement): TFCLocalVar;
+function TFunctionContext.FindLocalIdentifier(El: TPasElement): TFCLocalIdentifier;
 var
   i: Integer;
 begin
@@ -4355,6 +4381,15 @@ begin
     end;
 end;
 
+function TPasToJSConverter.GetOverloadName(El: TPasElement;
+  AContext: TConvertContext): string;
+begin
+  if AContext.Resolver<>nil then
+    Result:=AContext.Resolver.GetOverloadName(El)
+  else
+    Result:=El.Name;
+end;
+
 function TPasToJSConverter.ConvertBinaryExpression(El: TBinaryExpr;
   AContext: TConvertContext): TJSElement;
 Const
@@ -4852,6 +4887,18 @@ begin
     ParentName:='this';
   CurName:=ParentName+'.'+CurName;
   Result:=CreatePrimitiveDotExpr(CurName,PosEl);
+end;
+
+function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
+  AContext: TConvertContext; PosEl: TPasElement): TJSElement;
+var
+  Name: String;
+begin
+  if AContext.Resolver<>nil then
+    Name:=AContext.Resolver.GetOverloadName(El)
+  else
+    Name:=El.Name;
+  Result:=CreateSubDeclNameExpr(El,Name,AContext,PosEl);
 end;
 
 function TPasToJSConverter.ConvertPrimitiveExpression(El: TPrimitiveExpr;
@@ -7976,17 +8023,17 @@ function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
 Var
   R :  TJSObjectLiteral;
   I : Integer;
-  It : TRecordValuesItem;
+  RVI : TRecordValuesItem;
   rel : TJSObjectLiteralElement;
 
 begin
   R:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
   For I:=0 to Length(El.Fields)-1 do
     begin
-    it:=El.Fields[i];
+    RVI:=El.Fields[i];
     Rel:=R.Elements.AddElement;
-    Rel.Name:=TJSString(it.Name);
-    Rel.Expr:=ConvertElement(it.ValueExp,AContext);
+    Rel.Name:=TJSString(RVI.Name);
+    Rel.Expr:=ConvertElement(RVI.ValueExp,AContext);
     end;
   Result:=R;
 end;
@@ -8132,7 +8179,7 @@ begin
     // create 'this.A=initvalue'
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
     Result:=AssignSt;
-    AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext);
+    AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
     AssignSt.Expr:=CreateVarInit(El,AContext);
     end
   else
@@ -8528,7 +8575,7 @@ var
               begin
               AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
               NewEl:=AssignSt;
-              AssignSt.LHS:=CreateSubDeclNameExpr(P,P.Name,New_FuncContext);
+              AssignSt.LHS:=CreateSubDeclNameExpr(P,New_FuncContext);
               AssignSt.Expr:=CreateLiteralUndefined(El);
               end;
             end;
@@ -8942,7 +8989,7 @@ begin
       begin
       // add 'this.TypeName = function(){}'
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-      AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext);
+      AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=Obj;
       Result:=AssignSt;
       end;
@@ -8990,7 +9037,7 @@ begin
       // add  enumtype: this.TypeName
       TIProp:=TIObj.Elements.AddElement;
       TIProp.Name:=TJSString(FBuiltInNames[pbivnRTTIEnum_EnumType]);
-      TIProp.Expr:=CreateSubDeclNameExpr(El,El.Name,AContext);
+      TIProp.Expr:=CreateSubDeclNameExpr(El,AContext);
       end;
 
     ok:=true;
@@ -9544,7 +9591,7 @@ begin
     exit;
 
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertProcedure "',El.Name,'" ',El.Parent.ClassName);
+  writeln('TPasToJSConverter.ConvertProcedure "',El.Name,'" Overload="',ProcScope.OverloadName,'" ',El.Parent.ClassName);
   {$ENDIF}
 
   ImplProc:=El;
@@ -9587,7 +9634,7 @@ begin
     begin
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ImplProc));
     Result:=AssignSt;
-    AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext,ImplProc);
+    AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext,ImplProc);
     end;
 
   FS:=CreateFunctionSt(ImplProc,ImplProc.Body<>nil);
@@ -13967,7 +14014,7 @@ begin
     // create 'this.A=initvalue'
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
     Result:=AssignSt;
-    AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext);
+    AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
     AssignSt.Expr:=CreateVarInit(El,AContext);
     end;
 end;
@@ -14304,7 +14351,7 @@ begin
       // add 'this.TypeName = function(){}'
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       Result:=AssignSt;
-      AssignSt.LHS:=CreateSubDeclNameExpr(El,El.Name,AContext);
+      AssignSt.LHS:=CreateSubDeclNameExpr(El,AContext);
       AssignSt.Expr:=FDS;
       end;
     FD:=FDS.AFunction;
@@ -14494,15 +14541,23 @@ end;
 
 function TPasToJSConverter.TransformVariableName(El: TPasElement;
   AContext: TConvertContext): String;
+var
+  aType: TPasType;
 begin
   if (El is TPasProcedure) and (TPasProcedure(El).LibrarySymbolName<>nil) then
     Result:=ComputeConstString(TPasProcedure(El).LibrarySymbolName,AContext,true)
   else if (El is TPasVariable) and (TPasVariable(El).ExportName<>nil) then
     Result:=ComputeConstString(TPasVariable(El).ExportName,AContext,true)
   else if (El is TPasType) then
-    Result:=TransformVariableName(El,AContext.Resolver.ResolveAliasType(TPasType(El)).Name,AContext)
+    begin
+    if AContext.Resolver<>nil then
+      aType:=AContext.Resolver.ResolveAliasType(TPasType(El))
+    else
+      aType:=TPasType(El);
+    Result:=TransformVariableName(El,aType.Name,AContext);
+    end
   else
-    Result:=TransformVariableName(El,El.Name,AContext);
+    Result:=TransformVariableName(El,GetOverloadName(El,AContext),AContext);
 end;
 
 function TPasToJSConverter.TransformModuleName(El: TPasModule;
