@@ -252,7 +252,7 @@ begin
   FSSLLastErrorString:='';
   FLastError:=ErrGetError;
   ErrClearError;
-  Result:=(FLastError>=1);
+  Result:=(FLastError<>0);
   if not Result then
     begin
     S:=StringOfChar(#0,256);
