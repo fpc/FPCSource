@@ -675,6 +675,11 @@ type
     okClassHelper,okRecordHelper,okTypeHelper,
     okDispInterface);
 
+  TPasClassInterfaceType = (
+    citCom, // default
+    citCorba
+    );
+
   { TPasClassType }
 
   TPasClassType = class(TPasType)
@@ -695,10 +700,11 @@ type
     GUIDExpr : TPasExpr;
     Members: TFPList;     // list of TPasElement
     Modifiers: TStringList;
-    Interfaces : TFPList; // list of TPasElement
+    Interfaces : TFPList; // list of TPasType
     GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
     ExternalNameSpace : String;
     ExternalName : String;
+    InterfaceType: TPasClassInterfaceType;
     Procedure SetGenericTemplates(AList : TFPList);
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : String) : TPasElement;

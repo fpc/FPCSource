@@ -80,6 +80,7 @@ const
   nErrRecordVariablesNotAllowed = 2053;
   nParserResourcestringsMustBeGlobal = 2054;
   nParserOnlyOneVariableCanBeAbsolute = 2055;
+  nParserXNotAllowedInY = 2056;
 
 // resourcestring patterns of messages
 resourcestring
@@ -138,6 +139,7 @@ resourcestring
   SParserNoConstRangeAllowed = 'Const ranges are not allowed';
   SParserResourcestringsMustBeGlobal = 'Resourcestrings can be only static or global';
   SParserOnlyOneVariableCanBeAbsolute = 'Only one variable can be absolute';
+  SParserXNotAllowedInY = '%s is not allowed in %s';
 
 type
   TPasScopeType = (
@@ -1161,11 +1163,23 @@ function TPasParser.TokenIsProcedureModifier(Parent: TPasElement;
   const S: String; out PM: TProcedureModifier): Boolean;
 begin
   Result:=IsProcModifier(S,PM);
-  if Result and (PM in [pmPublic,pmForward]) then
+  if not Result then exit;
+  While (Parent<>Nil) do
     begin
-    While (Parent<>Nil) and Not ((Parent is TPasClassType) or (Parent is TPasRecordType)) do
-      Parent:=Parent.Parent;
-    Result:=Not Assigned(Parent);
+    if Parent is TPasClassType then
+      begin
+      if PM in [pmPublic,pmForward] then exit(false);
+      case TPasClassType(Parent).ObjKind of
+      okInterface,okDispInterface:
+        if not (PM in [pmOverload, pmMessage,
+                        pmDispId,pmNoReturn,pmFar,pmFinal]) then exit(false);
+      end;
+      end
+    else if Parent is TPasRecordType then
+      begin
+      if PM in [pmVirtual,pmPublic,pmForward] then exit(false);
+      end;
+    Parent:=Parent.Parent;
     end;
 end;
 
@@ -4633,9 +4647,10 @@ begin
       // In Delphi mode, the implementation in the implementation section can be
       // without result as it was declared
       // We actually check if the function exists in the interface section.
-      else if (msDelphi in CurrentModeswitches) and
-              (Assigned(CurModule.ImplementationSection) or
-               (CurModule is TPasProgram)) then
+      else if (msDelphi in CurrentModeswitches)
+          and (Assigned(CurModule.ImplementationSection)
+            or (CurModule is TPasProgram))
+          then
         begin
         if Assigned(CurModule.InterfaceSection) then
           OK:=FindInSection(Parent.Name,CurModule.InterfaceSection)
@@ -4883,10 +4898,15 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
 
 var
   isArray , ok: Boolean;
+  ObjKind: TPasObjKind;
 begin
   Result:=TPasProperty(CreateElement(TPasProperty,AName,Parent,AVisibility));
   if IsClassField then
     Include(Result.VarModifiers,vmClass);
+  if (Parent<>nil) and (Parent.ClassType=TPasClassType) then
+    ObjKind:=TPasClassType(Parent).ObjKind
+  else
+    ObjKind:=okClass;
   ok:=false;
   try
     NextToken;
@@ -4925,15 +4945,16 @@ begin
       begin
       NextToken;
       Result.DispIDExpr := DoParseExpression(Result,Nil);
-      NextToken;
       end;
-    if CurTokenIsIdentifier('IMPLEMENTS') then
+    if (ObjKind in [okClass]) and CurTokenIsIdentifier('IMPLEMENTS') then
       begin
       Result.ImplementsName := GetAccessorName(Result,Result.ImplementsFunc);
       NextToken;
       end;
     if CurTokenIsIdentifier('STORED') then
       begin
+      if not (ObjKind in [okClass]) then
+        ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['STORED',ObjKindNames[ObjKind]]);
       NextToken;
       if CurToken = tkTrue then
         begin
@@ -4956,14 +4977,18 @@ begin
       end;
     if CurTokenIsIdentifier('DEFAULT') then
       begin
+      if not (ObjKind in [okClass]) then
+        ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['DEFAULT',ObjKindNames[ObjKind]]);
       if isArray then
         ParseExc(nParserArrayPropertiesCannotHaveDefaultValue,SParserArrayPropertiesCannotHaveDefaultValue);
       NextToken;
       Result.DefaultExpr := DoParseExpression(Result);
-//      NextToken;
+  //      NextToken;
       end
     else if CurtokenIsIdentifier('NODEFAULT') then
       begin
+      if not (ObjKind in [okClass]) then
+        ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['NODEFAULT',ObjKindNames[ObjKind]]);
       Result.IsNodefault:=true;
       if Result.DefaultExpr<>nil then
         ParseExcSyntaxError;
@@ -4971,23 +4996,29 @@ begin
       end;
     // Here the property ends. There can still be a 'default'
     if CurToken = tkSemicolon then
-      NextToken;
-    if CurTokenIsIdentifier('DEFAULT') then
       begin
-      if (Result.VarType<>Nil) and (not isArray) then
-        ParseExc(nParserDefaultPropertyMustBeArray,SParserDefaultPropertyMustBeArray);
       NextToken;
-      if CurToken = tkSemicolon then
+      if CurTokenIsIdentifier('DEFAULT') then
         begin
-        Result.IsDefault := True;
+        if (Result.VarType<>Nil) and (not isArray) then
+          ParseExc(nParserDefaultPropertyMustBeArray,SParserDefaultPropertyMustBeArray);
         NextToken;
-        end
-      end;
-    // Handle hints
-    while DoCheckHint(Result) do
-      NextToken;
-    if Result.Hints=[] then
-      UngetToken;
+        if CurToken = tkSemicolon then
+          begin
+          Result.IsDefault := True;
+          NextToken;
+          end
+        end;
+      // Handle hints
+      while DoCheckHint(Result) do
+        NextToken;
+      if Result.Hints=[] then
+        UngetToken;
+      end
+    else if CurToken=tkend then
+      // ok
+    else
+      CheckToken(tkSemicolon);
     ok:=true;
   finally
     if not ok then
@@ -6165,7 +6196,7 @@ Type
 Var
   CurVisibility : TPasMemberVisibility;
   CurSection : TSectionType;
-  haveClass : Boolean;
+  haveClass : Boolean; // true means last token was class keyword
   LastToken: TToken;
   PropEl: TPasProperty;
 
@@ -6181,19 +6212,41 @@ begin
     begin
     case CurToken of
       tkType:
+        begin
+        case AType.ObjKind of
+        okClass,okObject,okGeneric,
+        okClassHelper,okRecordHelper,okTypeHelper: ;
+        else
+          ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['TYPE',ObjKindNames[AType.ObjKind]]);
+        end;
         CurSection:=stType;
+        end;
       tkConst:
         begin
         if haveClass then
           ParseExc(nParserExpectToken2Error,SParserExpectToken2Error,
             ['Procedure','Var']);
+        case AType.ObjKind of
+        okClass,okObject,okGeneric,
+        okClassHelper,okRecordHelper,okTypeHelper: ;
+        else
+          ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['CONST',ObjKindNames[AType.ObjKind]]);
+        end;
         CurSection:=stConst;
         end;
       tkVar:
+        begin
+        case AType.ObjKind of
+        okClass,okObject,okGeneric,
+        okClassHelper,okRecordHelper,okTypeHelper: ;
+        else
+          ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['VAR',ObjKindNames[AType.ObjKind]]);
+        end;
         if LastToken=tkClass then
           CurSection:=stClassVar
         else
           CurSection:=stVar;
+        end;
       tkIdentifier:
         if CheckVisibility(CurtokenString,CurVisibility) then
           CurSection:=stNone
@@ -6224,13 +6277,20 @@ begin
         curSection:=stNone;
         if not haveClass then
           SaveComments;
-        if (Curtoken in [tkConstructor,tkDestructor]) and (AType.ObjKind in [okInterface,okDispInterface,okRecordHelper]) then
+        if (Curtoken in [tkConstructor,tkDestructor])
+            and (AType.ObjKind in [okInterface,okDispInterface,okRecordHelper]) then
           ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
         ProcessMethod(AType,HaveClass,CurVisibility);
         haveClass:=False;
         end;
       tkclass:
         begin
+        case AType.ObjKind of
+        okClass,okObject,okGeneric,
+        okClassHelper,okRecordHelper,okTypeHelper: ;
+        else
+          ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['CLASS',ObjKindNames[AType.ObjKind]]);
+        end;
         SaveComments;
         HaveClass:=True;
         curSection:=stNone;
@@ -6385,6 +6445,11 @@ begin
   try
     PCT.ObjKind := AObjKind;
     PCT.PackMode:=PackMode;
+    if AObjKind=okInterface then
+      begin
+      if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
+        PCT.InterfaceType:=citCorba;
+      end;
     if Assigned(GenericArgs) then
       PCT.SetGenericTemplates(GenericArgs);
     DoParseClassType(PCT);
