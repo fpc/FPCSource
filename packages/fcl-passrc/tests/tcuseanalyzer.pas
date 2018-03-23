@@ -77,7 +77,10 @@ type
     procedure TestM_Class_PropertyOverride;
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
+    {$IFDEF EnableInterfaces}
+    {$ELSE}
     procedure TestM_ClassInterface_Ignore;
+    {$ENDIF}
     procedure TestM_TryExceptStatement;
 
     // single module hints
@@ -1046,6 +1049,8 @@ begin
   AnalyzeProgram;
 end;
 
+{$IFDEF EnableInterfaces}
+{$ELSE}
 procedure TTestUseAnalyzer.TestM_ClassInterface_Ignore;
 begin
   StartProgram(false);
@@ -1074,6 +1079,7 @@ begin
   '']);
   AnalyzeProgram;
 end;
+{$ENDIF}
 
 procedure TTestUseAnalyzer.TestM_TryExceptStatement;
 begin

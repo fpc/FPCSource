@@ -707,16 +707,28 @@ type
     );
   TPasClassScopeFlags = set of TPasClassScopeFlag;
 
+  { TPasClassIntfMap }
+
+  TPasClassIntfMap = class
+  public
+    Intf: TPasClassType;
+    Procs: TFPList;// maps Intf.Members to TPasProcedure
+    AncestorMap: TPasClassIntfMap;
+    destructor Destroy; override;
+  end;
+
   { TPasClassScope }
 
   TPasClassScope = Class(TPasIdentifierScope)
   public
     AncestorScope: TPasClassScope;
     CanonicalClassOf: TPasClassOfType;
-    DirectAncestor: TPasType; // TPasClassType or TPasAliasType or TPasTypeAliasType
+    DirectAncestor: TPasType; // TPasClassType or TPasAliasType
     DefaultProperty: TPasProperty;
     Flags: TPasClassScopeFlags;
     AbstractProcs: TArrayOfPasProcedure;
+    Interfaces: TFPList; // list corresponds to TPasClassType(Element).Interfaces,
+      // elements: TPasProperty for 'implements', or TPasClassIntfMap
     destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
@@ -946,7 +958,7 @@ type
     property Declaration: TPasElement read FDeclaration write SetDeclaration;
   end;
 
-  { TResolvedRefCtxConstructor }
+  { TResolvedRefCtxConstructor - constructed class of a newinstance reference }
 
   TResolvedRefCtxConstructor = Class(TResolvedRefContext)
   public
@@ -1245,6 +1257,7 @@ type
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
+    procedure CreateClassIntfMap(El: TPasClassType; Index: integer);
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
     procedure CheckPendingForwardProcs(El: TPasElement);
@@ -1927,6 +1940,8 @@ begin
     Result:='unary '+OpcodeStrings[TUnaryExpr(El).OpCode]
   else if C=TBinaryExpr then
     Result:=ExprKindNames[TBinaryExpr(El).Kind]
+  else if C=TPasClassType then
+    Result:=ObjKindNames[TPasClassType(El).ObjKind]
   else
     begin
     Result:=GetElementTypeName(TPasElementBaseClass(C));
@@ -2271,6 +2286,16 @@ end;
 function dbgs(const a: TPSRefAccess): string;
 begin
   str(a,Result);
+end;
+
+{ TPasClassIntfMap }
+
+destructor TPasClassIntfMap.Destroy;
+begin
+  Intf:=nil;
+  FreeAndNil(Procs);
+  FreeAndNil(AncestorMap);
+  inherited Destroy;
 end;
 
 { TPasInitialFinalizationScope }
@@ -2626,7 +2651,24 @@ end;
 { TPasClassScope }
 
 destructor TPasClassScope.Destroy;
+var
+  i: Integer;
+  o: TObject;
 begin
+  if Interfaces<>nil then
+    begin
+    for i:=0 to Interfaces.Count-1 do
+      begin
+      o:=TObject(Interfaces[i]);
+      if o=nil then
+      else if o is TPasProperty then
+      else if o is TPasClassIntfMap then
+        o.Free
+      else
+        raise Exception.Create('[20180322132757] '+Element.FullPath+' i='+IntToStr(i)+' '+GetObjName(o));
+      end;
+    FreeAndNil(Interfaces);
+    end;
   ReleaseAndNil(TPasElement(CanonicalClassOf));
   inherited Destroy;
 end;
@@ -4359,8 +4401,8 @@ begin
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     begin
     aType:=ResolveAliasType(El);
-    if (aType is TPasClassType) and (TPasClassType(aType).ObjKind=okInterface) then
-      exit; // ToDo: msIgnoreInterfaces
+    if (aType is TPasClassType) and (aType.CustomData=nil) then
+      exit;
     EmitTypeHints(El,TPasAliasType(El).DestType);
     end
   else if (C=TPasPointerType) then
@@ -4485,7 +4527,69 @@ begin
 end;
 
 procedure TPasResolver.FinishClassType(El: TPasClassType);
+{$IFDEF EnableInterfaces}
+var
+  ClassScope: TPasClassScope;
+  i, j: Integer;
+  IntfType: TPasClassType;
+  Map: TPasClassIntfMap;
+  o: TObject;
+  Member: TPasElement;
+  IntfProc: TPasProcedure;
+  FindData: TFindOverloadProcData;
+  Abort: boolean;
+{$ENDIF}
 begin
+  {$IFDEF EnableInterfaces}
+  if El.CustomData is TPasClassScope then
+    begin
+    if TopScope.Element<>El then
+      RaiseInternalError(20180322142534,GetObjName(El)+'<>'+GetObjName(TopScope.Element));
+    ClassScope:=El.CustomData as TPasClassScope;
+
+    // check interfaces
+    for i:=0 to El.Interfaces.Count-1 do
+      begin
+      o:=TObject(ClassScope.Interfaces[i]);
+      //writeln('TPasResolver.FinishClassType class=',GetObjName(El),' i=',i,' Intf=',GetObjName(TObject(El.Interfaces[i])),' Map=',GetObjName(o));
+      if o is TPasProperty then
+        continue; // interface implemented via a property
+      if o=nil then
+        begin
+        CreateClassIntfMap(El,i);
+        o:=TObject(ClassScope.Interfaces[i]);
+        end;
+      Map:=TPasClassIntfMap(o);
+      while Map<>nil do
+        begin
+        IntfType:=Map.Intf;
+        for j:=0 to IntfType.Members.Count-1 do
+          begin
+          if Map.Procs[j]<>nil then
+            continue; // already set via "method resolution", e.g. "procedure i.p = b;"
+          Member:=TPasElement(IntfType.Members[j]);
+          if Member is TPasProcedure then
+            begin
+            // search interface method in class
+            IntfProc:=TPasProcedure(Member);
+            FindData:=Default(TFindOverloadProcData);
+            FindData.Proc:=IntfProc;
+            FindData.Args:=IntfProc.ProcType.Args;
+            FindData.Kind:=fopkSameSignature;
+            Abort:=false;
+            IterateElements(IntfProc.Name,@OnFindOverloadProc,@FindData,Abort);
+            if FindData.Found=nil then
+              RaiseMsg(20180322143202,nNoMatchingImplForIntfMethodXFound,
+                sNoMatchingImplForIntfMethodXFound,
+                [GetProcTypeDescription(IntfProc.ProcType,true,true)],El); // ToDo: jump to interface list
+            Map.Procs[j]:=FindData.Found;
+            end;
+          end;
+        Map:=Map.AncestorMap;
+        end;
+      end;
+    end;
+  {$ENDIF}
   if TopScope.Element=El then
     PopScope;
 end;
@@ -4496,7 +4600,7 @@ var
 begin
   TypeEl:=ResolveAliasType(El.DestType);
   if TypeEl is TUnresolvedPendingRef then exit;
-  if TypeEl is TPasClassType then exit;
+  if (TypeEl is TPasClassType) and (TPasClassType(TypeEl).ObjKind=okClass) then exit;
   RaiseMsg(20170216151602,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
     [El.DestType.Name,'class'],El);
 end;
@@ -4608,6 +4712,7 @@ var
   ParentScope: TPasScope;
   pm: TProcedureModifier;
   ptm: TProcTypeModifier;
+  ObjKind: TPasObjKind;
 begin
   if (El.Parent is TPasProcedure) and (TPasProcedure(El.Parent).ProcType=El) then
     begin
@@ -4662,6 +4767,16 @@ begin
     if Proc.Parent is TPasClassType then
       begin
       // method declaration
+      ObjKind:=TPasClassType(Proc.Parent).ObjKind;
+      case ObjKind of
+      okInterface,okDispInterface:
+        begin
+        if Proc.IsVirtual then
+          RaiseMsg(20180321234324,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'virtual'],Proc);
+        if Proc.IsOverride then
+          RaiseMsg(20180321234551,nInvalidXModifierY,sInvalidXModifierY,[ObjKindNames[ObjKind]+' '+GetElementTypeName(Proc),'override'],Proc);
+        end;
+      end;
       if Proc.IsAbstract then
         begin
         if not Proc.IsVirtual then
@@ -5613,15 +5728,35 @@ procedure TPasResolver.FinishAncestors(aClass: TPasClassType);
 // called when the ancestor and interface list of a class has been parsed,
 // before parsing the class elements
 var
-  AncestorEl: TPasClassType;
+  DirectAncestor: TPasType; // e.g. TPasAliasType or TPasClassType
+  AncestorClassEl: TPasClassType;
+
+  procedure FindDefaultAncestor(const DefAncestorName, Expected: string);
+  var
+    CurEl: TPasElement;
+  begin
+    AncestorClassEl:=nil;
+    if (CompareText(aClass.Name,DefAncestorName)=0) then exit;
+    CurEl:=FindElementWithoutParams(DefAncestorName,aClass,false);
+    if not (CurEl is TPasType) then
+      RaiseXExpectedButYFound(20180321150128,Expected,GetElementTypeName(CurEl),aClass);
+    DirectAncestor:=TPasType(CurEl);
+    CurEl:=ResolveAliasType(DirectAncestor);
+    if not (CurEl is TPasClassType) then
+      RaiseXExpectedButYFound(20170216151941,Expected,GetElementTypeName(DirectAncestor),aClass);
+    AncestorClassEl:=TPasClassType(CurEl);
+  end;
+
+var
   ClassScope, AncestorClassScope: TPasClassScope;
-  DirectAncestor, AncestorType, El: TPasType;
-  i: Integer;
-  aModifier: String;
+  AncestorType, El, IntfType, IntfTypeRes: TPasType;
+  i, j: Integer;
+  aModifier, DefAncestorName: String;
   IsSealed: Boolean;
   CanonicalSelf: TPasClassOfType;
   ParentDecls: TPasDeclarations;
   Decl: TPasElement;
+  ResIntfList: TFPList;
 begin
   if aClass.IsForward then
     begin
@@ -5638,13 +5773,32 @@ begin
     exit;
     end;
 
-  if aClass.ObjKind<>okClass then
+  case aClass.ObjKind of
+  okClass:
     begin
-    if (aClass.ObjKind=okInterface)
-        and (msIgnoreInterfaces in CurrentParser.CurrentModeswitches) then
-      exit;
-    RaiseNotYetImplemented(20161010174638,aClass,'Kind='+ObjKindNames[aClass.ObjKind]);
+    AncestorType:=ResolveAliasType(aClass.AncestorType);
+    if (AncestorType is TPasClassType)
+        and (TPasClassType(AncestorType).ObjKind=okInterface)
+        and not (msDelphi in CurrentParser.CurrentModeswitches) then
+      begin
+      // e.g. type c = class(intf)
+      aClass.Interfaces.Insert(0,aClass.AncestorType);
+      aClass.AncestorType:=nil;
+      end;
     end;
+  okInterface:
+    begin
+    if (msIgnoreInterfaces in CurrentParser.CurrentModeswitches) then
+      exit;
+    if aClass.IsExternal then
+      RaiseMsg(20180321115831,nIllegalQualifier,sIllegalQualifier,['external'],aClass);
+    if not (aClass.InterfaceType in [citCom,citCorba]) then
+      RaiseMsg(20180321143613,nIllegalQualifier,sIllegalQualifier,
+        [CurrentParser.Scanner.CurrentValueSwitch[vsInterfaces]],aClass);
+    end;
+  else
+    RaiseNotYetImplemented(20161010174638,aClass,'Kind='+ObjKindNames[aClass.ObjKind]);
+  end;
 
   IsSealed:=false;
   for i:=0 to aClass.Modifiers.Count-1 do
@@ -5657,23 +5811,54 @@ begin
     end;
     end;
 
+  AncestorClassEl:=nil;
   DirectAncestor:=aClass.AncestorType;
   AncestorType:=ResolveAliasType(DirectAncestor);
 
   if AncestorType=nil then
     begin
-    if (CompareText(aClass.Name,'TObject')=0) or aClass.IsExternal then
+    if DirectAncestor<>nil then
+      RaiseInternalError(20180321151851,GetObjName(DirectAncestor));
+    // use default ancestor
+    DefAncestorName:='';
+    case aClass.ObjKind of
+    okClass:
       begin
-        // ok, no ancestors
-        AncestorEl:=nil;
-      end else begin
+      DefAncestorName:='TObject';
+      if (CompareText(aClass.Name,DefAncestorName)=0) or aClass.IsExternal then
+        begin
+          // ok, no ancestor
+          AncestorClassEl:=nil;
+        end
+      else
+        begin
         // search default ancestor TObject
-        AncestorEl:=TPasClassType(FindElementWithoutParams('TObject',aClass,false));
-        if not (AncestorEl is TPasClassType) then
-          RaiseXExpectedButYFound(20170216151941,'class type',GetObjName(AncestorEl),aClass);
-        if DirectAncestor=nil then
-          DirectAncestor:=AncestorEl;
+        FindDefaultAncestor(DefAncestorName,'class type');
+        if TPasClassType(AncestorClassEl).ObjKind<>okClass then
+          RaiseXExpectedButYFound(20180321145626,'class type',GetElementTypeName(AncestorClassEl),aClass);
+        end;
       end;
+    okInterface:
+      begin
+      if aClass.InterfaceType=citCom then
+        begin
+        if msDelphi in CurrentParser.CurrentModeswitches then
+          DefAncestorName:='IInterface'
+        else
+          DefAncestorName:='IUnknown';
+        if SameText(DefAncestorName,aClass.Name) then
+          AncestorClassEl:=nil
+        else
+          begin
+          // search default ancestor interface
+          FindDefaultAncestor(DefAncestorName,'interface type');
+          if TPasClassType(AncestorClassEl).ObjKind<>okInterface then
+            RaiseXExpectedButYFound(20180321145725,'interface type',
+              GetElementTypeName(AncestorClassEl),aClass);
+          end;
+        end;
+      end;
+    end;
     end
   else if AncestorType.ClassType<>TPasClassType then
     RaiseXExpectedButYFound(20170216151944,'class type',GetTypeDescription(AncestorType),aClass)
@@ -5681,33 +5866,37 @@ begin
     RaiseMsg(20170525125854,nAncestorCycleDetected,sAncestorCycleDetected,[],aClass)
   else
     begin
-    AncestorEl:=TPasClassType(AncestorType);
-    if AncestorEl.ObjKind<>okClass then
-      AncestorEl:=nil
+    AncestorClassEl:=TPasClassType(AncestorType);
+    if AncestorClassEl.ObjKind<>aClass.ObjKind then
+      begin
+      RaiseXExpectedButYFound(20180321152107,GetElementTypeName(aClass)+' type',
+        GetElementTypeName(AncestorClassEl)+' type',aClass);
+      end
     else
-      EmitTypeHints(aClass,AncestorEl);
+      EmitTypeHints(aClass,AncestorClassEl);
     end;
 
   AncestorClassScope:=nil;
-  if AncestorEl=nil then
+  if AncestorClassEl=nil then
     begin
-    // root class e.g. TObject
+    // root class e.g. TObject, IUnknown
     end
   else
     begin
     // inherited class
-    if AncestorEl.IsForward then
+    if AncestorClassEl.IsForward then
       RaiseMsg(20170216151947,nCantUseForwardDeclarationAsAncestor,
-        sCantUseForwardDeclarationAsAncestor,[AncestorEl.Name],aClass);
-    if aClass.IsExternal and not AncestorEl.IsExternal then
+        sCantUseForwardDeclarationAsAncestor,[AncestorClassEl.Name],aClass);
+    if aClass.IsExternal and not AncestorClassEl.IsExternal then
       RaiseMsg(20170321144035,nAncestorIsNotExternal,sAncestorIsNotExternal,
-        [AncestorEl.Name],aClass);
-    AncestorClassScope:=AncestorEl.CustomData as TPasClassScope;
+        [AncestorClassEl.Name],aClass);
+    AncestorClassScope:=AncestorClassEl.CustomData as TPasClassScope;
     if pcsfSealed in AncestorClassScope.Flags then
-      RaiseMsg(20170320191735,nCannotCreateADescendantOfTheSealedClass,
-        sCannotCreateADescendantOfTheSealedClass,[AncestorEl.Name],aClass);
+      RaiseMsg(20170320191735,nCannotCreateADescendantOfTheSealedXY,
+        sCannotCreateADescendantOfTheSealedXY,
+        [GetElementTypeName(AncestorClassEl),AncestorClassEl.Name],aClass);
     // check for cycle
-    El:=AncestorEl;
+    El:=AncestorClassEl;
     repeat
       if El=aClass then
         RaiseMsg(20170216151949,nAncestorCycleDetected,sAncestorCycleDetected,[],aClass);
@@ -5731,7 +5920,7 @@ begin
   if IsSealed then
     Include(ClassScope.Flags,pcsfSealed);
   ClassScope.DirectAncestor:=DirectAncestor;
-  if AncestorEl<>nil then
+  if AncestorClassEl<>nil then
     begin
     ClassScope.AncestorScope:=AncestorClassScope;
     ClassScope.DefaultProperty:=AncestorClassScope.DefaultProperty;
@@ -5741,16 +5930,52 @@ begin
     end;
   if CurrentParser.Scanner.IsDefined(LetterSwitchNames['M']) then
     Include(ClassScope.Flags,pcsfPublished);
-  // create canonical class-of for the "Self" in class functions
-  CanonicalSelf:=TPasClassOfType.Create('Self',aClass);
-  ClassScope.CanonicalClassOf:=CanonicalSelf;
-  CanonicalSelf.DestType:=aClass;
-  aClass.AddRef; // for the CanonicalSelf.DestType
-  CanonicalSelf.Visibility:=visStrictPrivate;
-  CanonicalSelf.SourceFilename:=aClass.SourceFilename;
-  CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
+  if aClass.ObjKind=okClass then
+    begin
+    // create canonical class-of for the "Self" in class functions
+    CanonicalSelf:=TPasClassOfType.Create('Self',aClass);
+    ClassScope.CanonicalClassOf:=CanonicalSelf;
+    CanonicalSelf.DestType:=aClass;
+    aClass.AddRef; // for the CanonicalSelf.DestType
+    CanonicalSelf.Visibility:=visStrictPrivate;
+    CanonicalSelf.SourceFilename:=aClass.SourceFilename;
+    CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
+    end;
 
-  // ToDo: interfaces
+  // check interfaces
+  if aClass.Interfaces.Count>0 then
+    begin
+    if not (aClass.ObjKind in [okClass]) then
+      RaiseXExpectedButYFound(20180322001341,'one ancestor',
+        IntToStr(1+aClass.Interfaces.Count),aClass);
+    ResIntfList:=TFPList.Create;
+    try
+      for i:=0 to aClass.Interfaces.Count-1 do
+        begin
+        IntfType:=TPasType(aClass.Interfaces[i]);
+        IntfTypeRes:=ResolveAliasType(IntfType);
+        if IntfTypeRes=nil then
+          RaiseMsg(20180322140044,nCantUseForwardDeclarationAsAncestor,
+            sCantUseForwardDeclarationAsAncestor,[IntfType.Name],aClass);
+        if not (IntfTypeRes is TPasClassType) then
+          RaiseXExpectedButYFound(20180322001051,'interface type',
+            GetElementTypeName(IntfTypeRes)+' type',aClass);
+        if TPasClassType(IntfTypeRes).ObjKind<>okInterface then
+          RaiseXExpectedButYFound(20180322001143,'interface type',
+            GetElementTypeName(IntfTypeRes)+' type',aClass);
+        j:=ResIntfList.IndexOf(IntfTypeRes);
+        if j>=0 then
+          RaiseMsg(20180322001505,nDuplicateIdentifier,sDuplicateIdentifier,
+            [IntfType.Name,IntToStr(j+1)],aClass); // todo: jump to interface list
+        ResIntfList.Add(IntfTypeRes);
+        end;
+    finally
+      ResIntfList.Free;
+    end;
+    // create interfaces maps
+    ClassScope.Interfaces:=TFPList.Create;
+    ClassScope.Interfaces.Count:=aClass.Interfaces.Count;
+    end;
 end;
 
 procedure TPasResolver.FinishPropertyParamAccess(Params: TParamsExpr;
@@ -5885,6 +6110,37 @@ begin
     Identifier:=ImplProcScope.FindLocalIdentifier(ResolverResultVar);
     if Identifier.Element is TPasResultElement then
       Identifier.Element:=TPasFunction(DeclProc).FuncType.ResultEl;
+    end;
+end;
+
+procedure TPasResolver.CreateClassIntfMap(El: TPasClassType; Index: integer);
+var
+  IntfType: TPasClassType;
+  Map: TPasClassIntfMap;
+  ClassScope: TPasClassScope;
+begin
+  ClassScope:=El.CustomData as TPasClassScope;
+  if ClassScope.Interfaces[Index]<>nil then
+    RaiseInternalError(20180322141916,El.FullName+' '+IntToStr(Index)+' '+GetObjName(TObject(ClassScope.Interfaces[Index])));
+  IntfType:=TPasClassType(ResolveAliasType(TPasType(El.Interfaces[Index])));
+  Map:=nil;
+  while IntfType<>nil do
+    begin
+    if Map=nil then
+      begin
+      Map:=TPasClassIntfMap.Create;
+      if ClassScope.Interfaces[Index]=nil then
+        ClassScope.Interfaces[Index]:=Map;
+      end
+    else
+      begin
+      Map.AncestorMap:=TPasClassIntfMap.Create;
+      Map:=Map.AncestorMap;
+      end;
+    Map.Intf:=IntfType;
+    Map.Procs:=TFPList.Create;
+    Map.Procs.Count:=IntfType.Members.Count;
+    IntfType:=TPasClassType(ResolveAliasType(IntfType.AncestorType));
     end;
 end;
 
@@ -7479,6 +7735,7 @@ begin
   else if El.ClassType=TPasClassType then
     begin
     aClassType:=TPasClassType(El);
+    if aClassType.ObjKind in [okInterface,okDispInterface] then exit;
     for i:=0 to aClassType.Members.Count-1 do
       begin
       DeclEl:=TPasElement(aClassType.Members[i]);
@@ -7572,11 +7829,9 @@ begin
     //writeln('  Duplicate=',GetObjName(Duplicate.Element),' ',ord(Duplicate.Kind));
 
   if (Duplicate<>nil)
-      and (Duplicate.Kind=pikSimple)
-      and (Duplicate.Element<>nil)
-      and (Duplicate.Element.Parent=El.Parent)
       and (Duplicate.Element is TPasClassType)
       and TPasClassType(Duplicate.Element).IsForward
+      and (Duplicate.Element.Parent=El.Parent)
   then
     begin
     // forward declaration found
@@ -7711,6 +7966,7 @@ var
   CurClassType: TPasClassType;
   ProcScope: TPasProcedureScope;
   NeedPop, HasDot: Boolean;
+  CurEl: TPasElement;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProcedure ',GetObjName(El));
@@ -7758,12 +8014,19 @@ begin
       else
         NeedPop:=false;
 
-      CurClassType:=TPasClassType(FindElementWithoutParams(aClassName,El,false));
-      if not (CurClassType is TPasClassType) then
+      CurEl:=FindElementWithoutParams(aClassName,El,false);
+      if not (CurEl is TPasClassType) then
         begin
         aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
         RaiseXExpectedButYFound(20170216152557,
-          'class',aClassname+':'+GetElementTypeName(CurClassType),El);
+          'class',aClassname+':'+GetElementTypeName(CurEl),El);
+        end;
+      CurClassType:=TPasClassType(CurEl);
+      if CurClassType.ObjKind<>okClass then
+        begin
+        aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
+        RaiseXExpectedButYFound(20180321161722,
+          'class',aClassname+':'+GetElementTypeName(CurEl),El);
         end;
       if CurClassType.GetModule<>El.GetModule then
         begin
@@ -8215,6 +8478,9 @@ begin
         begin
         if (LeftResolved.IdentEl=nil) or (LeftResolved.IdentEl is TPasType) then
           RaiseIncompatibleTypeRes(20180204124638,nOperatorIsNotOverloadedAOpB,
+            [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
+        if TPasClassType(LeftTypeEl).ObjKind<>okClass then
+          RaiseIncompatibleTypeRes(20180321162004,nOperatorIsNotOverloadedAOpB,
             [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
         // left side is a class instance
         if (RightResolved.IdentEl is TPasType)
@@ -8764,11 +9030,15 @@ end;
 
 procedure TPasResolver.CheckIsClass(El: TPasElement;
   const ResolvedEl: TPasResolverResult);
+var
+  TypeEl: TPasType;
 begin
   if (ResolvedEl.BaseType<>btContext) then
     RaiseMsg(20170216152245,nXExpectedButYFound,sXExpectedButYFound,
       ['class',BaseTypeNames[ResolvedEl.BaseType]],El);
-  if (ResolvedEl.TypeEl.ClassType<>TPasClassType) then
+  TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
+  if (TypeEl.ClassType<>TPasClassType)
+      or (TPasClassType(TypeEl).ObjKind<>okClass) then
     RaiseMsg(20170216152246,nXExpectedButYFound,sXExpectedButYFound,
       ['class',GetElementTypeName(ResolvedEl.TypeEl)],El);
 end;
@@ -9166,6 +9436,8 @@ begin
     TypeEl:=ResolveAliasType(ResultResolved.TypeEl);
     if not (TypeEl is TPasClassType) then
       RaiseContextXExpectedButYFound(20171221193749,'function GetEnumerator','result class',GetTypeDescription(ResultResolved.TypeEl),Loop.StartExpr);
+    if (TPasClassType(TypeEl).ObjKind<>okClass) then
+      RaiseContextXExpectedButYFound(20180321163121,'function GetEnumerator','result class',GetTypeDescription(ResultResolved.TypeEl),Loop.StartExpr);
     if not (rrfReadable in ResultResolved.Flags) then
       RaiseContextXExpectedButYFound(20171221195506,'function GetEnumerator','result class instance',GetTypeDescription(ResultResolved.TypeEl),Loop.StartExpr);
 
@@ -9352,6 +9624,8 @@ begin
   El:=Identifier.Element;
   if not (El is TPasClassType) then
     RaiseXExpectedButYFound(20180119172517,'class '+aClassName,GetElementTypeName(El),ErrorEl);
+  if TPasClassType(El).ObjKind<>okClass then
+    RaiseXExpectedButYFound(20180321163200,'class '+aClassName,GetElementTypeName(El),ErrorEl);
   aClass:=TPasClassType(El);
 
   ClassScope:=NoNil(aClass.CustomData) as TPasClassScope;
@@ -11435,7 +11709,6 @@ begin
       begin
       NeedPop:=true;
       if CurScopeEl.ClassType=TPasClassType then
-        // check visibility
         PushClassDotScope(TPasClassType(CurScopeEl))
       else if CurScopeEl is TPasModule then
         PushModuleDotScope(TPasModule(CurScopeEl))
@@ -14033,29 +14306,47 @@ begin
   {$ENDIF}
   if not (rrfReadable in LHS.Flags) then
     begin
-    if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasClassType)
-        and (ResolveAliasTypeEl(LHS.IdentEl)=LHS.TypeEl) then
+    if (LHS.BaseType=btContext) then
       begin
-      if RHS.BaseType=btNil then
-        exit(cExact)
-      else if (RHS.BaseType=btContext) and (RHS.TypeEl.ClassType=TPasClassOfType)
-          and (rrfReadable in RHS.Flags) then
-        // for example  if TImage=ImageClass then
-        exit(cExact);
+      TypeEl:=ResolveAliasType(LHS.TypeEl);
+      if (TypeEl.ClassType=TPasClassType)
+        and (ResolveAliasTypeEl(LHS.IdentEl)=TypeEl) then
+        begin
+        if RHS.BaseType=btNil then
+          exit(cExact)
+        else if (RHS.BaseType=btContext) then
+          begin
+          RTypeEl:=ResolveAliasType(RHS.TypeEl);
+          if (RTypeEl.ClassType=TPasClassOfType)
+              and (rrfReadable in RHS.Flags)
+              and (TPasClassType(TypeEl).ObjKind=okClass) then
+            // for example  if TImage=ImageClass then
+            exit(cExact);
+          end;
+        end;
       end;
     RaiseMsg(20170216152438,nNotReadable,sNotReadable,[],LErrorEl);
     end;
   if not (rrfReadable in RHS.Flags) then
     begin
-    if (RHS.BaseType=btContext) and (RHS.TypeEl.ClassType=TPasClassType)
-        and (ResolveAliasTypeEl(RHS.IdentEl)=RHS.TypeEl) then
+    if (RHS.BaseType=btContext) then
       begin
-      if LHS.BaseType=btNil then
-        exit(cExact)
-      else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasClassOfType)
-          and (rrfReadable in LHS.Flags) then
-        // for example  if ImageClass=TImage then
-        exit(cExact);
+      RTypeEl:=ResolveAliasType(RHS.TypeEl);
+      if (RTypeEl.ClassType=TPasClassType)
+          and (ResolveAliasTypeEl(RHS.IdentEl)=RTypeEl) then
+        begin
+        if LHS.BaseType=btNil then
+          exit(cExact)
+        else if (LHS.BaseType=btContext) then
+          begin
+          TypeEl:=ResolveAliasType(LHS.TypeEl);
+          if (TypeEl.ClassType=TPasClassOfType)
+              and (rrfReadable in LHS.Flags)
+              and (TPasClassType(RTypeEl).ObjKind=okClass) then
+            // for example  if ImageClass=TImage then
+            exit(cExact);
+          end;
+        end;
       end;
     RaiseMsg(20170216152440,nNotReadable,sNotReadable,[],RErrorEl);
     end;
@@ -14662,7 +14953,8 @@ begin
       Result:=cExact
     else if (RTypeEl.ClassType=TPasClassOfType) then
       begin
-      if not (RHS.IdentEl is TPasClassOfType) then
+      if not ((RHS.IdentEl is TPasType)
+          and (ResolveAliasType(TPasType(RHS.IdentEl)).ClassType=TPasClassOfType)) then
         begin
         // e.g. ImageClass:=AnotherImageClass;
         Result:=CheckClassIsClass(TPasClassOfType(RTypeEl).DestType,
@@ -14679,9 +14971,8 @@ begin
             ['type class-of','class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
         end;
       end
-    else if (RHS.IdentEl is TPasClassType)
-        or ((RHS.IdentEl is TPasAliasType)
-          and (ResolveAliasType(TPasAliasType(RHS.IdentEl)).ClassType=TPasClassType)) then
+    else if (RHS.IdentEl is TPasType)
+        and (ResolveAliasType(TPasType(RHS.IdentEl)).ClassType=TPasClassType) then
       begin
       // e.g. ImageClass:=TFPMemoryImage;
       Result:=CheckClassIsClass(RTypeEl,TPasClassOfType(LTypeEl).DestType,ErrorEl);
@@ -15085,8 +15376,8 @@ begin
     RaiseInternalError(20161007223118);
   if (TypeB.TypeEl=nil) then
     RaiseInternalError(20161007223119);
-  ElA:=TypeA.TypeEl;
-  ElB:=TypeB.TypeEl;
+  ElA:=ResolveAliasType(TypeA.TypeEl);
+  ElB:=ResolveAliasType(TypeB.TypeEl);
   if ElA=ElB then
     exit(cExact);
 
@@ -15338,7 +15629,8 @@ begin
       // to class
       if FromResolved.BaseType=btContext then
         begin
-        if FromResolved.TypeEl.ClassType=TPasClassType then
+        FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+        if FromTypeEl.ClassType=TPasClassType then
           begin
           if FromResolved.IdentEl is TPasType then
             RaiseMsg(20170404162606,nCannotTypecastAType,sCannotTypecastAType,[],ErrorEl);
@@ -15479,16 +15771,20 @@ begin
     // FromResolved is not readable
     if FromResolved.BaseType=btContext then
       begin
-      if (FromResolved.TypeEl.ClassType=TPasClassType)
-          and (FromResolved.TypeEl=FromResolved.IdentEl)
-          and (ToResolved.BaseType=btContext)
-          and (ToResolved.TypeEl.ClassType=TPasClassOfType)
-          and (ToResolved.TypeEl=ToResolved.IdentEl) then
+      FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+      if (FromTypeEl.ClassType=TPasClassType)
+          and (FromTypeEl=FromResolved.IdentEl)
+          and (ToResolved.BaseType=btContext) then
         begin
-        // for example  class-of(Self) in a class function
-        ToClassType:=TPasClassOfType(ToTypeEl).DestType;
-        FromClassType:=TPasClassType(FromResolved.TypeEl);
-        Result:=CheckClassesAreRelated(ToClassType,FromClassType,ErrorEl);
+        ToTypeEl:=ResolveAliasType(ToResolved.TypeEl);
+        if (ToTypeEl.ClassType=TPasClassOfType)
+            and (ToTypeEl=ToResolved.IdentEl) then
+          begin
+          // for example  class-of(Self) in a class function
+          ToClassType:=TPasClassOfType(ToTypeEl).DestType;
+          FromClassType:=TPasClassType(FromTypeEl);
+          Result:=CheckClassesAreRelated(ToClassType,FromClassType,ErrorEl);
+          end;
         end;
       end;
     if (Result=cIncompatible) and RaiseOnError then
@@ -16830,10 +17126,15 @@ begin
 end;
 
 function TPasResolver.IsElementSkipped(El: TPasElement): boolean;
+{$IFNDEF EnableInterfaces}
 var
   C: TClass;
   aClass: TPasClassType;
+{$ENDIF}
 begin
+  {$IFDEF EnableInterfaces}
+  Result:=El=nil;
+  {$ELSE}
   while El<>nil do
     begin
     C:=El.ClassType;
@@ -16845,6 +17146,7 @@ begin
       end;
     El:=El.Parent;
     end;
+  {$ENDIF}
   Result:=false;
 end;
 

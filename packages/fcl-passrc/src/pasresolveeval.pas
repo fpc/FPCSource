@@ -118,7 +118,7 @@ const
   nCantAccessPrivateMember = 3045;
   nMustBeInsideALoop = 3046;
   nExpectXArrayElementsButFoundY = 3047;
-  nCannotCreateADescendantOfTheSealedClass = 3048;
+  nCannotCreateADescendantOfTheSealedXY = 3048;
   nAncestorIsNotExternal = 3049;
   nVirtualMethodXHasLowerVisibility = 3050; // FPC 3250
   nExternalClassInstanceCannotAccessStaticX = 3051;
@@ -157,6 +157,7 @@ const
   nIllegalQualifierInFrontOf = 3005;
   nIllegalQualifierWithin = 3006;
   nMethodClassXInOtherUnitY = 3007;
+  nNoMatchingImplForIntfMethodXFound = 3008;
 
 // resourcestring patterns of messages
 resourcestring
@@ -207,7 +208,7 @@ resourcestring
   sCantAccessPrivateMember = 'Can''t access %s member %s';
   sMustBeInsideALoop = '%s must be inside a loop';
   sExpectXArrayElementsButFoundY = 'Expect %s array elements, but found %s';
-  sCannotCreateADescendantOfTheSealedClass = 'Cannot create a descendant of the sealed class "%s"';
+  sCannotCreateADescendantOfTheSealedXY = 'Cannot create a descendant of the sealed %s "%s"';
   sAncestorIsNotExternal = 'Ancestor "%s" is not external';
   sVirtualMethodXHasLowerVisibility = 'Virtual method "%s" has a lower visibility (%s) than parent class %s (%s)';
   sExternalClassInstanceCannotAccessStaticX = 'External class instance cannot access static %s';
@@ -246,6 +247,7 @@ resourcestring
   sIllegalQualifierInFrontOf = 'illegal qualifier "%s" in front of "%s"';
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
   sMethodClassXInOtherUnitY = 'method class "%s" in other unit "%s"';
+  sNoMatchingImplForIntfMethodXFound = 'No matching implementation for interface method "%s" found';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

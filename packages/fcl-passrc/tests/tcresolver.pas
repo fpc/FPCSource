@@ -597,10 +597,31 @@ type
     Procedure TestMissingDefaultProperty;
 
     // class interfaces
+    {$IFDEF EnableInterfaces}
+    Procedure TestClassInterface;
+    Procedure TestClassInterfaceForward;
+    Procedure TestClassInterfaceVarFail;
+    Procedure TestClassInterfaceConstFail;
+    Procedure TestClassInterfaceClassMethodFail;
+    Procedure TestClassInterfaceNestedTypeFail;
+    Procedure TestClassInterfacePropertyStoredFail;
+    Procedure TestClassInterface_ConstructorFail;
+    Procedure TestClassInterface_DelphiClassAncestorIntfFail;
+    Procedure TestClassInterface_ObjFPCClassAncestorIntf;
+    Procedure TestClassInterface_MethodVirtualFail;
+    Procedure TestClassInterface_OverloadHint;
+    Procedure TestClassInterface_IntfListClassFail;
+    Procedure TestClassInterface_IntfListDuplicateFail;
+    Procedure TestClassInterface_MissingMethodFail;
+    Procedure TestClassInterface_DefaultProperty;
+    Procedure TestClassInterface_MethodResolution;
+    {$ELSE}
     Procedure TestIgnoreInterfaces;
-    Procedure TestInterfaceVarFail;
-    Procedure TestInterfaceArgFail;
-    Procedure TestInterfaceFunctionResultFail;
+    Procedure TestIgnoreInterfaceVarFail;
+    Procedure TestIgnoreInterfaceVar2Fail;
+    Procedure TestIgnoreInterfaceArgFail;
+    Procedure TestIgnoreInterfaceFunctionResultFail;
+    {$ENDIF}
 
     // with
     Procedure TestWithBlock1;
@@ -8531,8 +8552,8 @@ begin
   Add('  TNop = class(TObject)');
   Add('  end;');
   Add('begin');
-  CheckResolverException(sCannotCreateADescendantOfTheSealedClass,
-    nCannotCreateADescendantOfTheSealedClass);
+  CheckResolverException(sCannotCreateADescendantOfTheSealedXY,
+    nCannotCreateADescendantOfTheSealedXY);
 end;
 
 procedure TTestResolver.TestClass_VarExternal;
@@ -9995,6 +10016,265 @@ begin
     nIllegalQualifierAfter);
 end;
 
+{$IFDEF EnableInterfaces}
+procedure TTestResolver.TestClassInterface;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {$interfaces corba}',
+  '  ICorbaIntf = interface',
+  '  end;',
+  '  {$interfaces com}',
+  '  IUnknown = interface',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  IComIntf = interface',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterfaceForward;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IBird = interface;',
+  '  TObject = class',
+  '    Bird: IBird;',
+  '  end;',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterfaceVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    i: longint;',
+  '  end;',
+  'begin']);
+  CheckParserException(SParserNoFieldsAllowed,nParserNoFieldsAllowed);
+end;
+
+procedure TTestResolver.TestClassInterfaceConstFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    const i = 3;',
+  '  end;',
+  'begin']);
+  CheckParserException('CONST is not allowed in interface',nParserXNotAllowedInY);
+end;
+
+procedure TTestResolver.TestClassInterfaceClassMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    class procedure DoIt;',
+  '  end;',
+  'begin']);
+  CheckParserException('CLASS is not allowed in interface',nParserXNotAllowedInY);
+end;
+
+procedure TTestResolver.TestClassInterfaceNestedTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    type l = longint;',
+  '  end;',
+  'begin']);
+  CheckParserException('TYPE is not allowed in interface',nParserXNotAllowedInY);
+end;
+
+procedure TTestResolver.TestClassInterfacePropertyStoredFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    function GetSize: longint;',
+  '    property Size: longint read GetSize stored false;',
+  '  end;',
+  'begin']);
+  CheckParserException('STORED is not allowed in interface',nParserXNotAllowedInY);
+end;
+
+procedure TTestResolver.TestClassInterface_ConstructorFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    constructor Create;',
+  '  end;',
+  'begin']);
+  CheckParserException(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
+end;
+
+procedure TTestResolver.TestClassInterface_DelphiClassAncestorIntfFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  IInterface = interface',
+  '  end;',
+  '  TObject = class(IInterface)',
+  '  end;',
+  'begin']);
+  CheckResolverException('class type expected, but interface type found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestClassInterface_ObjFPCClassAncestorIntf;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_MethodVirtualFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt; virtual;',
+  '  end;',
+  'begin']);
+  CheckParserException(sParserNoFieldsAllowed,nParserNoFieldsAllowed);
+end;
+
+procedure TTestResolver.TestClassInterface_OverloadHint;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  IBird = interface',
+  '    procedure DoIt;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+  CheckResolverHint(mtInfo,nFunctionHidesIdentifier,'function hides identifier at "afile.pp(4,19)"');
+end;
+
+procedure TTestResolver.TestClassInterface_IntfListClassFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TAnimal = class',
+  '  end;',
+  '  TBird = class(TObject,TAnimal)',
+  '  end;',
+  'begin']);
+  CheckResolverException('interface type expected, but class type found',nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestClassInterface_IntfListDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IA = interface',
+  '  end;',
+  '  IB = IA;',
+  '  TObject = class(IA,IB)',
+  '  end;',
+  'begin']);
+  CheckResolverException('Duplicate identifier "IB" at 1',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestClassInterface_MissingMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '  end;',
+  'begin']);
+  CheckResolverException('No matching implementation for interface method "procedure IUnknown.DoIt of Object" found',
+    nNoMatchingImplForIntfMethodXFound);
+end;
+
+procedure TTestResolver.TestClassInterface_DefaultProperty;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IA = interface',
+  '    function GetItems(Index: longint): boolean;',
+  '    procedure SetItems(Index: longint; Value: boolean);',
+  '    property Items[IndeX: longint]: boolean read GetItems write SetItems; default;',
+  '  end;',
+  '  IB = IA;',
+  '  TObject = class(IB)',
+  '  strict private',
+  '    function GetItems(Index: longint): boolean; virtual; abstract;',
+  '    procedure SetItems(Index: longint; Value: boolean); virtual; abstract;',
+  '  end;',
+  'var',
+  '  a: IA;',
+  '  b: IB;',
+  'begin',
+  '  a[1]:=a[2];',
+  '  b[3]:=b[4];']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_MethodResolution;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '    function GetIt: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    procedure DoSome; virtual; abstract;',
+  '    procedure IUnknown.DoIt = DoIt;',
+  '    function GetSome: longint;',
+  '    function IUnknown.GetIt = GetSome;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+{$ELSE}
 procedure TTestResolver.TestIgnoreInterfaces;
 begin
   StartProgram(false);
@@ -10024,7 +10304,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestInterfaceVarFail;
+procedure TTestResolver.TestIgnoreInterfaceVarFail;
 begin
   StartProgram(false);
   Add([
@@ -10038,7 +10318,27 @@ begin
   CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
 end;
 
-procedure TTestResolver.TestInterfaceArgFail;
+procedure TTestResolver.TestIgnoreInterfaceVar2Fail;
+begin
+  AddModuleWithIntfImplSrc('unit1.pas',
+    LinesToStr([
+    '{$modeswitch ignoreinterfaces}',
+    'type',
+    '  IUnknown = interface',
+    '  end;',
+    '']),
+    '');
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'var i: IUnknown;',
+  'begin',
+  '']);
+  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
+end;
+
+procedure TTestResolver.TestIgnoreInterfaceArgFail;
 begin
   StartProgram(false);
   Add([
@@ -10052,7 +10352,7 @@ begin
   CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
 end;
 
-procedure TTestResolver.TestInterfaceFunctionResultFail;
+procedure TTestResolver.TestIgnoreInterfaceFunctionResultFail;
 begin
   StartProgram(false);
   Add([
@@ -10065,6 +10365,7 @@ begin
   '']);
   CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
 end;
+{$ENDIF}
 
 procedure TTestResolver.TestPropertyAssign;
 begin
