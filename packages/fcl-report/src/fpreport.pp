@@ -1031,7 +1031,7 @@ type
 
   { TFPReportCustomChildBand }
 
-  TFPReportCustomChildBand = class(TFPReportCustomBandWithData)
+  TFPReportCustomChildBand = class(TFPReportCustomBand)
   protected
     function GetReportBandName: string; override;
   Public
