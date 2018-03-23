@@ -341,6 +341,16 @@ const
                          bsHints,bsNotes,bsWarnings,bsMacro,bsScopedEnums];
 
 type
+  TValueSwitch = (
+    vsInterfaces
+    );
+  TValueSwitches = set of TValueSwitch;
+  TValueSwitchArray = array[TValueSwitch] of string;
+const
+  vsAllValueSwitches = [low(TValueSwitch)..high(TValueSwitch)];
+  DefaultVSInterfaces = 'com';
+
+type
   TTokenOption = (toForceCaret,toOperatorToken);
   TTokenOptions = Set of TTokenOption;
 
@@ -589,9 +599,11 @@ type
     FAllowedBoolSwitches: TBoolSwitches;
     FAllowedModes: TModeSwitches;
     FAllowedModeSwitches: TModeSwitches;
+    FAllowedValueSwitches: TValueSwitches;
     FConditionEval: TCondDirectiveEvaluator;
     FCurrentBoolSwitches: TBoolSwitches;
     FCurrentModeSwitches: TModeSwitches;
+    FCurrentValueSwitches: TValueSwitchArray;
     FCurTokenPos: TPasSourcePos;
     FLastMsg: string;
     FLastMsgArgs: TMessageArgs;
@@ -618,6 +630,7 @@ type
     FPreviousToken: TToken;
     FReadOnlyBoolSwitches: TBoolSwitches;
     FReadOnlyModeSwitches: TModeSwitches;
+    FReadOnlyValueSwitches: TValueSwitches;
     FSkipComments: Boolean;
     FSkipWhiteSpace: Boolean;
     FTokenOptions: TTokenOptions;
@@ -632,6 +645,7 @@ type
     PPSkipModeStack: array[0..255] of TPascalScannerPPSkipMode;
     PPIsSkippingStack: array[0..255] of Boolean;
     function GetCurColumn: Integer;
+    function GetCurrentValueSwitch(V: TValueSwitch): string;
     function GetForceCaret: Boolean;
     function GetMacrosOn: boolean;
     function OnCondEvalFunction(Sender: TCondDirectiveEvaluator; Name,
@@ -642,10 +656,12 @@ type
       Value: string): boolean;
     procedure SetAllowedBoolSwitches(const AValue: TBoolSwitches);
     procedure SetAllowedModeSwitches(const AValue: TModeSwitches);
+    procedure SetAllowedValueSwitches(const AValue: TValueSwitches);
     procedure SetMacrosOn(const AValue: boolean);
     procedure SetOptions(AValue: TPOptions);
     procedure SetReadOnlyBoolSwitches(const AValue: TBoolSwitches);
     procedure SetReadOnlyModeSwitches(const AValue: TModeSwitches);
+    procedure SetReadOnlyValueSwitches(const AValue: TValueSwitches);
   protected
     function FetchLine: boolean;
     procedure AddFile(aFilename: string); virtual;
@@ -675,6 +691,7 @@ type
     procedure HandleMode(const Param: String);virtual;
     procedure HandleModeSwitch(const Param: String);virtual;
     function HandleMacro(AIndex: integer): TToken;virtual;
+    procedure HandleInterfaces(const Param: String);virtual;
     procedure PushStackItem; virtual;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
@@ -683,6 +700,7 @@ type
     Procedure SetCurTokenString(AValue : string);
     procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches); virtual;
     procedure SetCurrentModeSwitches(AValue: TModeSwitches); virtual;
+    procedure SetCurrentValueSwitch(V: TValueSwitch; const AValue: string);
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
@@ -730,10 +748,14 @@ type
     property AllowedBoolSwitches: TBoolSwitches read FAllowedBoolSwitches Write SetAllowedBoolSwitches;
     property ReadOnlyBoolSwitches: TBoolSwitches read FReadOnlyBoolSwitches Write SetReadOnlyBoolSwitches;// cannot be changed by code
     property CurrentBoolSwitches: TBoolSwitches read FCurrentBoolSwitches Write SetCurrentBoolSwitches;
+    property AllowedValueSwitches: TValueSwitches read FAllowedValueSwitches Write SetAllowedValueSwitches;
+    property ReadOnlyValueSwitches: TValueSwitches read FReadOnlyValueSwitches Write SetReadOnlyValueSwitches;// cannot be changed by code
+    property CurrentValueSwitch[V: TValueSwitch]: string read GetCurrentValueSwitch Write SetCurrentValueSwitch;
     property Options : TPOptions read FOptions write SetOptions;
     Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
     Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
     property ForceCaret : Boolean read GetForceCaret;
+
     property LogEvents : TPScannerLogEvents read FLogEvents write FLogEvents;
     property OnLog : TPScannerLogHandler read FOnLog write FOnLog;
     property OnFormatPath: TPScannerFormatPathEvent read FOnFormatPath write FOnFormatPath;
@@ -977,6 +999,10 @@ const
     'Macro',
     'ScopedEnums',
     'ObjectChecks'
+    );
+
+  ValueSwitchNames: array[TValueSwitch] of string = (
+    'Interfaces'
     );
 
 const
@@ -2313,11 +2339,15 @@ begin
   FIncludeStack := TFPList.Create;
   FDefines := CS;
   FMacros:=CS;
+
   FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
   FCurrentBoolSwitches:=[];
   FAllowedBoolSwitches:=FPCModeBoolSwitches;
+  FAllowedValueSwitches:=vsAllValueSwitches;
+  FCurrentValueSwitches[vsInterfaces]:=DefaultVSInterfaces;
+
   FConditionEval:=TCondDirectiveEvaluator.Create;
   FConditionEval.OnLog:=@OnCondEvalLog;
   FConditionEval.OnEvalVariable:=@OnCondEvalVar;
@@ -2703,6 +2733,33 @@ begin
 //  Writeln(Result,Curtoken);
 end;
 
+procedure TPascalScanner.HandleInterfaces(const Param: String);
+var
+  s, NewValue: String;
+  p: SizeInt;
+begin
+  if not (vsInterfaces in AllowedValueSwitches) then
+    Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['interfaces']);
+  s:=Uppercase(Param);
+  p:=Pos(' ',s);
+  if p>0 then
+    s:=LeftStr(s,p-1);
+  case s of
+  'COM','DEFAULT': NewValue:='COM';
+  'CORBA': NewValue:='CORBA';
+  else
+    Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['interfaces '+s]);
+    exit;
+  end;
+  if SameText(NewValue,CurrentValueSwitch[vsInterfaces]) then exit;
+  if vsInterfaces in ReadOnlyValueSwitches then
+    begin
+    Error(nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['interfaces']);
+    exit;
+    end;
+  CurrentValueSwitch[vsInterfaces]:=NewValue;
+end;
+
 procedure TPascalScanner.HandleDefine(Param: String);
 
 Var
@@ -3082,6 +3139,8 @@ begin
           DoBoolDirective(bsHints);
         'I','INCLUDE':
           Result:=HandleInclude(Param);
+        'INTERFACES':
+          HandleInterfaces(Param);
         'MACRO':
           DoBoolDirective(bsMacro);
         'MESSAGE':
@@ -3645,6 +3704,11 @@ begin
     Result := 1;
 end;
 
+function TPascalScanner.GetCurrentValueSwitch(V: TValueSwitch): string;
+begin
+  Result:=FCurrentValueSwitches[V];
+end;
+
 function TPascalScanner.GetForceCaret: Boolean;
 begin
   Result:=toForceCaret in FTokenOptions;
@@ -3770,6 +3834,12 @@ begin
   CurrentModeSwitches:=FCurrentModeSwitches*AllowedModeSwitches;
 end;
 
+procedure TPascalScanner.SetAllowedValueSwitches(const AValue: TValueSwitches);
+begin
+  if FAllowedValueSwitches=AValue then Exit;
+  FAllowedValueSwitches:=AValue;
+end;
+
 procedure TPascalScanner.SetCurrentBoolSwitches(const AValue: TBoolSwitches);
 begin
   if FCurrentBoolSwitches=AValue then Exit;
@@ -3806,6 +3876,14 @@ begin
     UnDefine(LetterSwitchNames['H'],true);
     Exclude(FCurrentBoolSwitches,bsLongStrings);
     end;
+end;
+
+procedure TPascalScanner.SetCurrentValueSwitch(V: TValueSwitch;
+  const AValue: string);
+begin
+  if not (V in AllowedValueSwitches) then exit;
+  if FCurrentValueSwitches[V]=AValue then exit;
+  FCurrentValueSwitches[V]:=AValue;
 end;
 
 procedure TPascalScanner.SetMacrosOn(const AValue: boolean);
@@ -3871,6 +3949,12 @@ begin
   FReadOnlyModeSwitches:=AValue;
   FAllowedModeSwitches:=FAllowedModeSwitches+FReadOnlyModeSwitches;
   FCurrentModeSwitches:=FCurrentModeSwitches+FReadOnlyModeSwitches;
+end;
+
+procedure TPascalScanner.SetReadOnlyValueSwitches(const AValue: TValueSwitches);
+begin
+  if FReadOnlyValueSwitches=AValue then Exit;
+  FReadOnlyValueSwitches:=AValue;
 end;
 
 
