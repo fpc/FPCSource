@@ -961,7 +961,7 @@ begin
         FailMsg:=ComparisonMsg(SExceptionHelpContextCompare,IntToStr(AExceptionContext),IntToStr(E.HelpContext))
       end;
   end;
-  AssertTrue(AMessage + FailMsg, FailMsg='', AErrorAddr);
+  AssertTrue(AMessage + ': '+FailMsg, FailMsg='', AErrorAddr);
 end;
 
 
