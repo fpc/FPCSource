@@ -6,8 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, CustApp, zipper
-  { you can add units after this };
+  Classes, SysUtils, CustApp, zipper;
 
 type
 
