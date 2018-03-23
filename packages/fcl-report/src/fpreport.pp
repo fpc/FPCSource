@@ -703,6 +703,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure EndUpdate;
+    Procedure Validate(aErrors : TStrings); virtual;
     function EvaluateVisibility : boolean; virtual;
     property Parent: TFPReportElement read FParent write SetParent;
     Property Report : TFPCustomReport read GetReport;
@@ -735,6 +736,7 @@ type
     procedure RecalcLayout; override;
   public
     destructor  Destroy; override;
+    Procedure   Validate(aErrors : TStrings); override;
     // called when the designer starts editing this component .
     Procedure StartDesigning; override;
     // called when the designer ends editing this component .
@@ -852,7 +854,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
     Function    PageIndex : Integer;
-    Procedure   Validate(aErrors : TStrings);
     procedure   Assign(Source: TPersistent); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
     function    FindBand(ABand: TFPReportBandClass): TFPReportCustomBand;
@@ -941,7 +942,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    Procedure Validate(aErrors : TStrings); virtual;
+    Procedure   Validate(aErrors : TStrings); override;
     procedure   Assign(Source: TPersistent); override;
     procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
     Class Function ReportBandType : TFPReportBandType; virtual;
@@ -1028,10 +1029,13 @@ type
   end;
 
 
+  { TFPReportCustomChildBand }
+
   TFPReportCustomChildBand = class(TFPReportCustomBandWithData)
   protected
     function GetReportBandName: string; override;
   Public
+    Procedure   Validate(aErrors : TStrings); override;
     Class Function ReportBandType : TFPReportBandType; override;
   end;
 
@@ -2242,8 +2246,9 @@ resourcestring
   SErrFontNotFound       = 'Font not found: "%s"';
   SErrNeedPages = 'Need at least 1 report page.';
   SErrInvalidReport = 'Invalid report, detected %d errors:'+sLineBreak+'%s';
-  SErrEmptyGroupExpression = 'Group header %s needs a group expression';
-
+  SErrEmptyGroupExpression = 'Group header "%s" needs a group expression';
+  SErrNoPageForBand = 'No page for band "%s".';
+  SErrDanglingChild = 'Child band "%s" is not used by other bands.';
 
   SErrRegisterEmptyExporter     = 'Attempt to register empty exporter';
   SErrRegisterDuplicateExporter = 'Attempt to register duplicate exporter: "%s"';
@@ -5438,6 +5443,29 @@ begin
   Result := 'ChildBand';
 end;
 
+procedure TFPReportCustomChildBand.Validate(aErrors: TStrings);
+
+Var
+  I : integer;
+  B : TFPReportCustomBand;
+
+begin
+  inherited Validate(aErrors);
+  if Not Assigned(Page) then
+    exit;
+  I:=0;
+  B:=Nil;
+  While (B=Nil) and (I<Page.BandCount) do
+    begin
+    B:=Page.Bands[i];
+    if B.ChildBand<>Self then
+      B:=Nil;
+    Inc(I);
+    end;
+  if (B=Nil) then
+    aErrors.Add(SErrDanglingChild,[Name]);
+end;
+
 class function TFPReportCustomChildBand.ReportBandType: TFPReportBandType;
 begin
   Result:=btChild;
@@ -6790,6 +6818,11 @@ begin
     DoChanged;
 end;
 
+procedure TFPReportElement.Validate(aErrors: TStrings);
+begin
+  // Do nothing
+end;
+
 { TFPReportElementWithChildren }
 
 function TFPReportElementWithChildren.GetChild(AIndex: integer): TFPReportElement;
@@ -6882,6 +6915,17 @@ begin
     FreeAndNil(FChildren);
     end;
   inherited Destroy;
+end;
+
+procedure TFPReportElementWithChildren.Validate(aErrors: TStrings);
+
+Var
+  I : Integer;
+
+begin
+  inherited Validate(aErrors);
+  For I:=0 to ChildCount-1 do
+    Child[i].Validate(aErrors);
 end;
 
 procedure TFPReportElementWithChildren.StartDesigning;
@@ -7287,16 +7331,6 @@ begin
   Result:=-1;
   If (Owner<>Nil) then
     Result:=ComponentIndex;
-end;
-
-procedure TFPReportCustomPage.Validate(aErrors : TStrings);
-
-Var
-  I : integer;
-
-begin
-  For I:=0 to BandCount-1  do
-    Bands[i].Validate(aErrors);
 end;
 
 function TFPReportCustomPage.GetBand(AIndex: integer): TFPReportCustomBand;
@@ -8710,7 +8744,8 @@ end;
 
 procedure TFPReportCustomBand.Validate(AErrors : TStrings);
 begin
-  // Do nothing
+  if (Page=Nil) then
+    aErrors.Add(SErrNoPageForBand,[Name]);
 end;
 
 procedure TFPReportCustomBand.WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
