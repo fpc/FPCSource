@@ -278,7 +278,7 @@ begin
     Usage;
   { Win32 target }
   AddMask('*.ppw *.ow *.aw *.sw');
-  AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
+  AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.* *.fpm');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.dcu *.dcp *.bpl');
   AddMask('*.log *.bak *.~pas *.~pp *.*~');
