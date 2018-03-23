@@ -1,4 +1,4 @@
-Unit registry;
+Unit Registry;
 
 {$mode objfpc}
 {$H+}

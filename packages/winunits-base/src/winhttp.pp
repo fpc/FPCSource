@@ -23,7 +23,7 @@ Abstract:
     Contains manifests, macros, types and prototypes for Windows HTTP Services
 
 }	
-unit winhttp;
+unit WinHTTP;
 interface
 
 uses windows;

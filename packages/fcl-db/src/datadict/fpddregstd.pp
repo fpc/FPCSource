@@ -25,7 +25,7 @@
   are registered.
 
 }
-unit fpddregstd;
+unit FPDDRegStd;
 
 {$mode objfpc}{$H+}
 

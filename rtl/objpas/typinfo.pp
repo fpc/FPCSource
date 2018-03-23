@@ -16,7 +16,7 @@
 { This unit provides the same Functionality as the TypInfo Unit }
 { of Delphi                                                     }
 
-unit typinfo;
+unit TypInfo;
 
   interface
 

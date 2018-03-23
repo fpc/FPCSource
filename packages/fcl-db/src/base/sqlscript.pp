@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit sqlscript;
+unit SQLScript;
 
 {$mode objfpc}{$H+}
 

@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit fpddpq;
+unit FPDDPQ;
 
 {$mode objfpc}{$H+}
 

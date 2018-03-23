@@ -23,7 +23,7 @@
 {$inline on}
 {$define VARIANTINLINE}
 
-unit variants;
+unit Variants;
 
 interface
 

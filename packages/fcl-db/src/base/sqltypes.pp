@@ -1,4 +1,4 @@
-unit sqltypes;
+unit SQLTypes;
 
 interface
 

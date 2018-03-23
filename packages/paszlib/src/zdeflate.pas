@@ -1,4 +1,4 @@
-unit zdeflate;
+unit ZDeflate;
 
 {$goto on}
 

@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
-unit PNGcomn;
+unit PNGComn;
 
 interface
 

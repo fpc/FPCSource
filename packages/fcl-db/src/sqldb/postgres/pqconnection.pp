@@ -1,4 +1,4 @@
-unit pqconnection;
+unit PQConnection;
 
 {$mode objfpc}{$H+}
 

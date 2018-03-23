@@ -36,7 +36,7 @@
  3. This notice may not be removed or altered from any source distribution.
 ----------------------------------------------------------------------------}
 {
-  This unit is an equivalent to the Delphi math unit
+  This unit is an equivalent to the Delphi Math unit
   (with some improvements)
 
   What's to do:
@@ -47,7 +47,7 @@
 {$MODE objfpc}
 {$inline on }
 {$GOTO on}
-unit math;
+unit Math;
 interface
 
 

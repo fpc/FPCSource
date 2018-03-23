@@ -1,7 +1,7 @@
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
-unit png;
+unit PNG;
 
 interface
 

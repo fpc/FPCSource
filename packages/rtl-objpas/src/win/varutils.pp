@@ -19,7 +19,7 @@
 {$smartlink on}
 {$endif}
 
-Unit varutils;
+Unit VarUtils;
 
 Interface
 

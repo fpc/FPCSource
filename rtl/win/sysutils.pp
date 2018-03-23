@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Sysutils unit for win32
+    SysUtils unit for win32
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit sysutils;
+unit SysUtils;
 interface
 
 {$MODE objfpc}

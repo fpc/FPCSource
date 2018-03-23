@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$mode objfpc}
-unit winsysut;
+unit WinSysUt;
 
 Interface
 

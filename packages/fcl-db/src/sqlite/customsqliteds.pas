@@ -1,4 +1,4 @@
-unit CustomSqliteDS;
+unit CustomSQLiteDS;
 
 {
   This is TCustomSqliteDataset, a TDataset descendant class for use with fpc compiler

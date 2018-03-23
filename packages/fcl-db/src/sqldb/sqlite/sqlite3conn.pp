@@ -23,7 +23,7 @@
 
 } 
  
-unit sqlite3conn;
+unit SQLite3Conn;
 {$mode objfpc}
 {$h+}
 

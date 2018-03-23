@@ -1,4 +1,4 @@
-unit sqlite3dyn;
+unit SQLite3Dyn;
 
 {$DEFINE LOAD_DYNAMICALLY}
 

@@ -1,4 +1,4 @@
-unit zstream;
+unit ZStream;
 
 {**********************************************************************
     This file is part of the Free Pascal free component library.

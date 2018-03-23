@@ -19,7 +19,7 @@
 }
 
 
-unit maskutils;
+unit MaskUtils;
 
 {$mode objfpc}{$H+}
 {.$define debug_maskutils}

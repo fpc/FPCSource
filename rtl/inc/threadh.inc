@@ -153,10 +153,10 @@ function  GetCurrentThreadId : TThreadID;
 { it is also used to make the heap management      }
 { thread safe                                      }
 procedure InitCriticalSection(var cs : TRTLCriticalSection);
-procedure DoneCriticalsection(var cs : TRTLCriticalSection);
-procedure EnterCriticalsection(var cs : TRTLCriticalSection);
-procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
-function  TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
+procedure DoneCriticalSection(var cs : TRTLCriticalSection);
+procedure EnterCriticalSection(var cs : TRTLCriticalSection);
+procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
+function  TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 procedure basiceventdestroy(state:peventstate);
 procedure basiceventResetEvent(state:peventstate);

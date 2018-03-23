@@ -29,7 +29,7 @@
 
 {$mode objfpc}
 {$H+}
-unit rttiutils;
+unit RttiUtils;
 
 interface
 

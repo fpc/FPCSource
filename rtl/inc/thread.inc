@@ -211,25 +211,25 @@ begin
   CurrentTM.InitCriticalSection(cs);
 end;
 
-procedure DoneCriticalsection(var cs : TRTLCriticalSection);
+procedure DoneCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.DoneCriticalSection(cs);
 end;
 
-procedure EnterCriticalsection(var cs : TRTLCriticalSection);
+procedure EnterCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.EnterCriticalSection(cs);
 end;
 
-function TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
+function TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 
 begin
   result:=CurrentTM.TryEnterCriticalSection(cs);
 end;
 
-procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
+procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.LeaveCriticalSection(cs);

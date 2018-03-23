@@ -3,7 +3,7 @@
    Copyright (c) 2004 by Marco van de Voort
    member of the Free Pascal development team.
 
-   An implementation for unit convutils, which converts between
+   An implementation for unit ConvUtils, which converts between
    units and simple combinations of them.
 
    Based on a guessed interface derived from some programs on the web. (Like
@@ -18,7 +18,7 @@
 
 **********************************************************************}
 
-unit convutils;
+unit ConvUtils;
 
 interface
 

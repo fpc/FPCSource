@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit strings;
+unit Strings;
 {$S-}
 {$inline on}
 interface

@@ -1,4 +1,4 @@
-unit Sqlite3DS;
+unit SQLite3DS;
 
 {
   This is TSqlite3Dataset, a TDataset descendant class for use with fpc compiler

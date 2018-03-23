@@ -1,4 +1,4 @@
-unit winspool;
+unit Winspool;
 
 interface
 

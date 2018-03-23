@@ -12,7 +12,7 @@
 
  **********************************************************************}
 {$mode objfpc}
-unit sysconst;
+unit SysConst;
 
 interface
 

@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit fpimgbarcode;
+unit FPImgBarCode;
 
 {$mode objfpc}{$H+}
 

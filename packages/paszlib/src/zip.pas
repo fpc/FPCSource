@@ -1,4 +1,4 @@
-unit zip;
+unit Zip;
 
 { zip.c -- IO on .zip files using zlib
   zip.h -- IO for compress .zip files using zlib

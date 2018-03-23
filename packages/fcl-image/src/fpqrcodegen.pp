@@ -17,7 +17,7 @@
     https://www.nayuki.io/page/qr-code-generator-library
   **********************************************************************}
 {$mode objfpc}
-unit fpqrcodegen;
+unit FPQRCodeGen;
 
 interface
 

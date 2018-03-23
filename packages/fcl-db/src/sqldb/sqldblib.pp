@@ -1,4 +1,4 @@
-unit sqldblib;
+unit SQLDBLib;
 
 {$mode objfpc}{$H+}
 

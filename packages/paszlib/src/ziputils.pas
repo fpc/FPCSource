@@ -1,4 +1,4 @@
-unit ziputils;
+unit ZipUtils;
 
 { ziputils.pas - IO on .zip files using zlib
   - definitions, declarations and routines used by both

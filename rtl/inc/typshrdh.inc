@@ -64,7 +64,7 @@
    packed
   {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
-       x : Longint; y : Longint;
+       X : Longint; Y : Longint;
      public
        {$ifdef VER3}
        constructor Create(ax,ay:Longint); overload;

@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$h+}
 {$inline on}
-unit strutils;
+unit StrUtils;
 
 interface
 

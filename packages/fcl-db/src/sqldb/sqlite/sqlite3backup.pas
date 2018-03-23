@@ -1,4 +1,4 @@
-unit sqlite3backup;
+unit SQLite3Backup;
 
 { SQLite3 backup class.
 

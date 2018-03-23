@@ -34,7 +34,7 @@
                "TextSize=16777216" - set maximum size of text/image data returned
                "ApplicationName=YourAppName" - Set the app name for the connection. MSSQL 2000 and higher only
 }
-unit mssqlconn;
+unit MSSQLConn;
 
 {$mode objfpc}{$H+}
 
