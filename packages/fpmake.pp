@@ -4,7 +4,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmkunit, sysutils, Classes;
+uses {$ifdef unix}cthreads,{$endif} sysutils, Classes, fpmkunit;
 
 Var
   TBuild,T : TTarget;
