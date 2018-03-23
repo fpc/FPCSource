@@ -8934,16 +8934,17 @@ begin
   if FGroupHeader = AValue then
     Exit;
   if Assigned(FGroupHeader) then
-  begin
+    begin
     FGroupHeader.FGroupFooter := nil;
     FGroupHeader.RemoveFreeNotification(Self);
-  end;
+    end;
   FGroupHeader := AValue;
   if Assigned(FGroupHeader) then
-  begin
+    begin
     FGroupHeader.FGroupFooter := Self;
     FGroupHeader.FreeNotification(Self);
-  end;
+    Data:=FGroupHeader.Data;
+    end;
 end;
 
 procedure TFPReportCustomGroupFooterBand.FixupReference(PN, PV: String; C: TFPReportElement);
