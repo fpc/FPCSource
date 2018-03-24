@@ -1099,6 +1099,7 @@ type
 
   TFPReportColumnHeaderBand = class(TFPReportCustomColumnHeaderBand)
   published
+    property    ChildBand;
     property    StretchMode;
     property    Data;
     property    Font;
@@ -1120,6 +1121,7 @@ type
 
   TFPReportColumnFooterBand = class(TFPReportCustomColumnFooterBand)
   published
+  property    ChildBand;
     property    Font;
     property    BandPosition;
     property    UseParentFont;
@@ -1320,6 +1322,7 @@ type
 
   TFPReportDataHeaderBand = class(TFPReportCustomDataHeaderBand)
   published
+  property    ChildBand;
     property    StretchMode;
     property    Font;
     property    UseParentFont;
@@ -1337,6 +1340,7 @@ type
 
   TFPReportDataFooterBand = class(TFPReportCustomDataFooterBand)
   published
+    property    ChildBand;
     property    StretchMode;
     property    Font;
     property    UseParentFont;
