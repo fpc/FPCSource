@@ -4408,7 +4408,7 @@ begin
       AddFunction(bcConversion,'strtodatetime','D','S',@BuiltInStrToDateTime);
       AddFunction(bcConversion,'strtodatetimedef','D','SD',@BuiltInStrToDateTimeDef);
       AddFunction(bcConversion,'formatfloat','S','SF',@BuiltInFormatFloat);
-      AddFunction(bcDateTime,'formatdatetime','S','SD',@BuiltinFormatDateTime);
+      AddFunction(bcConversion,'formatdatetime','S','SD',@BuiltinFormatDateTime);
       end;
     if bcAggregate in Categories then
       begin
