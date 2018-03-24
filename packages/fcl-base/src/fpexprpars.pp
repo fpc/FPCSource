@@ -4376,7 +4376,6 @@ begin
       AddFunction(bcDateTime,'shortmonthname','S','I',@BuiltinShortMonthName);
       AddFunction(bcDateTime,'longdayname','S','I',@BuiltinLongDayName);
       AddFunction(bcDateTime,'longmonthname','S','I',@BuiltinLongMonthName);
-      AddFunction(bcDateTime,'formatdatetime','S','SD',@BuiltinFormatDateTime);
       end;
     if bcBoolean in Categories then
       begin
@@ -4409,6 +4408,7 @@ begin
       AddFunction(bcConversion,'strtodatetime','D','S',@BuiltInStrToDateTime);
       AddFunction(bcConversion,'strtodatetimedef','D','SD',@BuiltInStrToDateTimeDef);
       AddFunction(bcConversion,'formatfloat','S','SF',@BuiltInFormatFloat);
+      AddFunction(bcDateTime,'formatdatetime','S','SD',@BuiltinFormatDateTime);
       end;
     if bcAggregate in Categories then
       begin

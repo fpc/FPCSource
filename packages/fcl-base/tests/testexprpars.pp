@@ -6033,7 +6033,6 @@ begin
   AssertFunction('shortmonthname','S','I',bcDateTime);
   AssertFunction('longdayname','S','I',bcDateTime);
   AssertFunction('longmonthname','S','I',bcDateTime);
-  AssertFunction('formatdatetime','S','SD',bcDateTime);
   AssertFunction('shl','I','II',bcBoolean);
   AssertFunction('shr','I','II',bcBoolean);
   AssertFunction('IFS','S','BSS',bcBoolean);
@@ -6058,6 +6057,7 @@ begin
   AssertFunction('strtodatetime','D','S',bcConversion);
   AssertFunction('strtodatetimedef','D','SD',bcConversion);
   AssertFunction('formatfloat','S','SF',bcConversion);
+  AssertFunction('formatdatetime','S','SD',bcConversion);
   AssertFunction('sum','F','F',bcAggregate);
   AssertFunction('count','I','',bcAggregate);
   AssertFunction('avg','F','F',bcAggregate);
