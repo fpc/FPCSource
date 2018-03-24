@@ -557,13 +557,13 @@ Type
 
   PNativeInt 	      = ^NativeInt;
   PNativeUInt	      = ^NativeUint;
-  pInt8   	      = PShortInt;
-  pInt16  	      = PSmallint;
-  pInt32  	      = PLongint;
+  PInt8   	      = PShortInt;
+  PInt16  	      = PSmallint;
+  PInt32  	      = PLongint;
   PIntPtr 	      = PPtrInt;
-  pUInt8  	      = PByte;
-  pUInt16 	      = PWord;
-  pUInt32 	      = PDWord;
+  PUInt8  	      = PByte;
+  PUInt16 	      = PWord;
+  PUInt32 	      = PDWord;
   PUintPtr	      = PPtrUInt;
 
   PShortString        = ^ShortString;
@@ -656,10 +656,10 @@ const
   MaxUIntValue = High(ValUInt);
 
 { max. values for longint and int}
-  maxLongint  = $7fffffff;
-  maxSmallint = 32767;
+  MaxLongint  = $7fffffff;
+  MaxSmallint = 32767;
 
-  maxint   = maxsmallint;
+  MaxInt   = maxsmallint;
 
 type
 {$ifdef CPU16}
@@ -698,8 +698,8 @@ const
 
 { Exit Procedure handling consts and types  }
   ExitProc : codepointer = nil;
-  Erroraddr: codepointer = nil;
-  Errorcode: Word    = 0;
+  ErrorAddr: codepointer = nil;
+  ErrorCode: Word    = 0;
 
 { file input modes }
   fmClosed = $D7B0;
@@ -707,7 +707,7 @@ const
   fmOutput = $D7B2;
   fmInOut  = $D7B3;
   fmAppend = $D7B4;
-  Filemode : byte = 2;
+  FileMode : byte = 2;
 (* Value should be changed during system initialization as appropriate. *)
 
   { assume that this program will not spawn other threads, when the
@@ -754,7 +754,7 @@ var
 
 {$ifndef HAS_CMDLINE}
 {Value should be changed during system initialization as appropriate.}
-var cmdline:Pchar=nil;
+var CmdLine:Pchar=nil;
 {$endif}
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -822,7 +822,7 @@ function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
-procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];
+procedure Prefetch(const mem);[internproc:fpc_in_prefetch_var];
 procedure ReadBarrier;
 procedure ReadDependencyBarrier;
 procedure ReadWriteBarrier;
@@ -836,27 +836,27 @@ procedure MoveData(srcseg,srcoff,destseg,destoff:Word;n:Word);
                           Math Routines
 ****************************************************************************}
 
-Function  lo(B: Byte):Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  hi(b : Byte) : Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  lo(i : Integer) : byte;  [INTERNPROC: fpc_in_lo_Word];
-Function  lo(w : Word) : byte;     [INTERNPROC: fpc_in_lo_Word];
-Function  lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
-Function  lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
-Function  lo(i : Int64) : DWord;   [INTERNPROC: fpc_in_lo_qword];
-Function  lo(q : QWord) : DWord;   [INTERNPROC: fpc_in_lo_qword];
-Function  hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
-Function  hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
-Function  hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
-Function  hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
-Function  hi(i : Int64) : DWord;   [INTERNPROC: fpc_in_hi_qword];
-Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
+Function  Lo(B: Byte):Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Hi(b : Byte) : Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Lo(i : Integer) : byte;  [INTERNPROC: fpc_in_lo_Word];
+Function  Lo(w : Word) : byte;     [INTERNPROC: fpc_in_lo_Word];
+Function  Lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
+Function  Lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
+Function  Lo(i : Int64) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+Function  Lo(q : QWord) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+Function  Hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
+Function  Hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
+Function  Hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
+Function  Hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
+Function  Hi(i : Int64) : DWord;   [INTERNPROC: fpc_in_hi_qword];
+Function  Hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 
-Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
+Function Swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
 Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
-Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
+Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
 Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
 Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
+Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
 
 Function Align (Addr : PtrUInt; Alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Align (Addr : Pointer; Alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -873,52 +873,52 @@ Procedure Randomize;
 {$if defined(CPUINT8)}
   {$ifdef FPC_HAS_INTERNAL_ABS_SHORTINT}
   {$define FPC_SYSTEM_HAS_ABS_SHORTINT}
-  Function abs(l:shortint):shortint;[internproc:fpc_in_abs_long];
+  Function Abs(l:shortint):shortint;[internproc:fpc_in_abs_long];
   {$else FPC_SYSTEM_HAS_ABS_SHORTINT}
-  Function abs(l:shortint):shortint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+  Function Abs(l:shortint):shortint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
   {$endif FPC_SYSTEM_HAS_ABS_SHORTINT}
 {$endif CPUINT8}
 {$if defined(CPUINT16) or defined(CPUINT8)}
   {$ifdef FPC_HAS_INTERNAL_ABS_SMALLINT}
   {$define FPC_SYSTEM_HAS_ABS_SMALLINT}
-  Function abs(l:smallint):smallint;[internproc:fpc_in_abs_long];
+  Function Abs(l:smallint):smallint;[internproc:fpc_in_abs_long];
   {$else FPC_HAS_INTERNAL_ABS_LONG}
-  Function abs(l:smallint):smallint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+  Function Abs(l:smallint):smallint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
   {$endif FPC_HAS_INTERNAL_ABS_LONG}
 {$endif CPUINT16 or CPUINT8}
 {$ifdef FPC_HAS_INTERNAL_ABS_LONG}
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
+Function Abs(l:longint):longint;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_LONG}
-Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ABS_LONG}
 {$ifdef FPC_HAS_INTERNAL_ABS_INT64}
 {$define FPC_SYSTEM_HAS_ABS_INT64}
-Function abs(l:Int64):Int64;[internproc:fpc_in_abs_long];
+Function Abs(l:Int64):Int64;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_INT64}
-Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ABS_INT64}
 {$if defined(CPUINT8)}
-Function sqr(l:shortint):shortint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sqr(l:shortint):shortint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif CPUINT8}
 {$if defined(CPUINT16) or defined(CPUINT8)}
-Function sqr(l:smallint):smallint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sqr(l:smallint):smallint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif CPUINT16 or CPUINT8}
-Function sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$if defined(CPUINT8)}
-Function odd(l:shortint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:byte):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:shortint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:byte):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif CPUINT8}
 {$if defined(CPUINT16) or defined(CPUINT8)}
-Function odd(l:smallint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:word):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:smallint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:word):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif CPUINT16 or CPUINT8}
-Function odd(l:Longint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:Longint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 
 function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1161,17 +1161,17 @@ function PopCnt(Const AValue : QWord): QWord;[internproc:fpc_in_popcnt_x];
                          Addr/Pointer Handling
 ****************************************************************************}
 
-Function  ptr(sel,off:{$ifdef CPU16}Word{$else}Longint{$endif}):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Cseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Dseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Ptr(sel,off:{$ifdef CPU16}Word{$else}Longint{$endif}):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  CSeg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  DSeg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  SSeg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {****************************************************************************
                       PChar and String Handling
 ****************************************************************************}
 
-function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
-function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
+function StrPas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+function StrLen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 
 { result:
   <0: invalid sequence detected after processing "-result" bytes
@@ -1202,37 +1202,37 @@ Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(out S : Shortstring; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
-Function  upCase(const s:shortstring):shortstring;
-Function  lowerCase(const s:shortstring):shortstring; overload;
+Function  UpCase(const s:shortstring):shortstring;
+Function  LowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;
-Function  hexStr(Val:Longint;cnt:byte):shortstring;
+Function  HexStr(Val:Longint;cnt:byte):shortstring;
 Function  OctStr(Val:Longint;cnt:byte):shortstring;
-Function  binStr(Val:Longint;cnt:byte):shortstring;
-Function  hexStr(Val:int64;cnt:byte):shortstring;
+Function  BinStr(Val:Longint;cnt:byte):shortstring;
+Function  HexStr(Val:int64;cnt:byte):shortstring;
 Function  OctStr(Val:int64;cnt:byte):shortstring;
-Function  binStr(Val:int64;cnt:byte):shortstring;
-Function  hexStr(Val:qword;cnt:byte):shortstring;
+Function  BinStr(Val:int64;cnt:byte):shortstring;
+Function  HexStr(Val:qword;cnt:byte):shortstring;
 Function  OctStr(Val:qword;cnt:byte):shortstring;
-Function  binStr(Val:qword;cnt:byte):shortstring;
+Function  BinStr(Val:qword;cnt:byte):shortstring;
 {$ifdef CPUI8086}
-Function  hexStr(Val:NearPointer):shortstring;
-function  hexStr(Val:NearCsPointer):shortstring;
-function  hexStr(Val:NearDsPointer):shortstring;
-function  hexStr(Val:NearEsPointer):shortstring;
-function  hexStr(Val:NearSsPointer):shortstring;
-function  hexStr(Val:NearFsPointer):shortstring;
-function  hexStr(Val:NearGsPointer):shortstring;
-Function  hexStr(Val:FarPointer):shortstring;
-Function  hexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  HexStr(Val:NearPointer):shortstring;
+function  HexStr(Val:NearCsPointer):shortstring;
+function  HexStr(Val:NearDsPointer):shortstring;
+function  HexStr(Val:NearEsPointer):shortstring;
+function  HexStr(Val:NearSsPointer):shortstring;
+function  HexStr(Val:NearFsPointer):shortstring;
+function  HexStr(Val:NearGsPointer):shortstring;
+Function  HexStr(Val:FarPointer):shortstring;
+Function  HexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$else CPUI8086}
-Function  hexStr(Val:Pointer):shortstring;
+Function  HexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
 { Char functions }
-Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
-Function  upCase(c:Char):Char;
-Function  lowerCase(c:Char):Char; overload;
-function  pos(const substr : shortstring;c:char; Offset: Sizeint = 1): SizeInt;
+Function Chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+Function  UpCase(c:Char):Char;
+Function  LowerCase(c:Char):Char; overload;
+function  Pos(const substr : shortstring;c:char; Offset: Sizeint = 1): SizeInt;
 
 
 {****************************************************************************
@@ -1248,8 +1248,8 @@ Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : S
 Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 {$endif VER3_0}
 Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
-function  upcase(const s : ansistring) : ansistring;
-function  lowercase(const s : ansistring) : ansistring;
+function  UpCase(const s : ansistring) : ansistring;
+function  LowerCase(const s : ansistring) : ansistring;
 
 function StringCodePage(const S : RawByteString): TSystemCodePage; overload;
 function StringElementSize(const S : RawByteString): Word; overload;
@@ -1381,22 +1381,22 @@ procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure chdir(const s:shortstring); overload;
-Procedure mkdir(const s:shortstring); overload;
-Procedure rmdir(const s:shortstring); overload;
-Procedure getdir(drivenr:byte;var dir:shortstring);overload;
+Procedure ChDir(const s:shortstring); overload;
+Procedure MkDir(const s:shortstring); overload;
+Procedure RmDir(const s:shortstring); overload;
+Procedure GetDir(drivenr:byte;var dir:shortstring);overload;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure chdir(const s:rawbytestring); overload;
-Procedure mkdir(const s:rawbytestring); overload;
-Procedure rmdir(const s:rawbytestring); overload;
+Procedure ChDir(const s:rawbytestring); overload;
+Procedure MkDir(const s:rawbytestring); overload;
+Procedure RmDir(const s:rawbytestring); overload;
 // defaultrtlfilesystemcodepage is returned here
-Procedure getdir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+Procedure GetDir(drivenr:byte;var dir: rawbytestring);overload;{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-Procedure chdir(const s:unicodestring); overload;
-Procedure mkdir(const s:unicodestring); overload;
-Procedure rmdir(const s:unicodestring); overload;
-Procedure getdir(drivenr:byte;var dir: unicodestring);overload;
+Procedure ChDir(const s:unicodestring); overload;
+Procedure MkDir(const s:unicodestring); overload;
+Procedure RmDir(const s:unicodestring); overload;
+Procedure GetDir(drivenr:byte;var dir: unicodestring);overload;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -1431,7 +1431,7 @@ function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;
 procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 
 Function IOResult:Word;
-Function Sptr:Pointer;[internconst:fpc_in_const_ptr];
+Function SPtr:Pointer;[internconst:fpc_in_const_ptr];
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 Function GetProcessID:SizeUInt;
@@ -1445,69 +1445,69 @@ Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif}
 
 {$ifdef cpu16}
-function InterLockedIncrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDINCREMENT16';
-function InterLockedDecrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDDECREMENT16';
-function InterLockedExchange (var Target: smallint;Source : smallint) : smallint; public name 'FPC_INTERLOCKEDEXCHANGE16';
-function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint; public name 'FPC_INTERLOCKEDEXCHANGEADD16';
+function InterlockedIncrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDINCREMENT16';
+function InterlockedDecrement (var Target: smallint) : smallint; public name 'FPC_INTERLOCKEDDECREMENT16';
+function InterlockedExchange (var Target: smallint;Source : smallint) : smallint; public name 'FPC_INTERLOCKEDEXCHANGE16';
+function InterlockedExchangeAdd (var Target: smallint;Source : smallint) : smallint; public name 'FPC_INTERLOCKEDEXCHANGEADD16';
 function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint; public name 'FPC_INTERLOCKEDCOMPAREEXCHANGE16';
 {$endif cpu16}
-function InterLockedIncrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDINCREMENT';
-function InterLockedDecrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDDECREMENT';
-function InterLockedExchange (var Target: longint;Source : longint) : longint; public name 'FPC_INTERLOCKEDEXCHANGE';
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; public name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterlockedIncrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDINCREMENT';
+function InterlockedDecrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDDECREMENT';
+function InterlockedExchange (var Target: longint;Source : longint) : longint; public name 'FPC_INTERLOCKEDEXCHANGE';
+function InterlockedExchangeAdd (var Target: longint;Source : longint) : longint; public name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; public name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$ifdef cpu64}
-function InterLockedIncrement64 (var Target: int64) : int64; public name 'FPC_INTERLOCKEDINCREMENT64';
-function InterLockedDecrement64 (var Target: int64) : int64; public name 'FPC_INTERLOCKEDDECREMENT64';
-function InterLockedExchange64 (var Target: int64;Source : int64) : int64; public name 'FPC_INTERLOCKEDEXCHANGE64';
-function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; public name 'FPC_INTERLOCKEDEXCHANGEADD64';
+function InterlockedIncrement64 (var Target: int64) : int64; public name 'FPC_INTERLOCKEDINCREMENT64';
+function InterlockedDecrement64 (var Target: int64) : int64; public name 'FPC_INTERLOCKEDDECREMENT64';
+function InterlockedExchange64 (var Target: int64;Source : int64) : int64; public name 'FPC_INTERLOCKEDEXCHANGE64';
+function InterlockedExchangeAdd64 (var Target: int64;Source : int64) : int64; public name 'FPC_INTERLOCKEDEXCHANGEADD64';
 function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comperand: int64): int64; public name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
 {$endif cpu64}
 { Pointer overloads }
 {$if defined(FPC_HAS_EXPLICIT_INTERLOCKED_POINTER)}
 { Note: define FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER if the target platform defines
         these pointer overloads itself instead of using platform independant inline functions }
-function InterLockedIncrement (var Target: Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
-function InterLockedDecrement (var Target: Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
-function InterLockedExchange (var Target: Pointer;Source : Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
-function InterLockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
-function InterLockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer;  {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$else}public name 'FPC_INTERLOCKEDEXCHANGEPOINTER';{$endif}
+function InterlockedIncrement (var Target: Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
+function InterlockedDecrement (var Target: Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
+function InterlockedExchange (var Target: Pointer;Source : Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
+function InterlockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$endif}
+function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer;  {$ifndef FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER}inline;{$else}public name 'FPC_INTERLOCKEDEXCHANGEPOINTER';{$endif}
 { Note: in case of FPC_SYSTEM_HAS_EXPLICIT_INTERLOCKED_POINTER this is an alias for
-        InterLockedCompareExchange (this doesn't work with inline however) }
-function InterLockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; {$ifndef FPC_INTERLOCKED_POINTER_INLINE}inline;{$else}external name 'FPC_INTERLOCKEDEXCHANGEPOINTER';{$endif}
+        InterlockedCompareExchange (this doesn't work with inline however) }
+function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; {$ifndef FPC_INTERLOCKED_POINTER_INLINE}inline;{$else}external name 'FPC_INTERLOCKEDEXCHANGEPOINTER';{$endif}
 {$elseif defined(cpu64)}
-function InterLockedIncrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDINCREMENT64';
-function InterLockedDecrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDDECREMENT64';
-function InterLockedExchange (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGE64';
-function InterLockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGEADD64';
+function InterlockedIncrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDINCREMENT64';
+function InterlockedDecrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDDECREMENT64';
+function InterlockedExchange (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGE64';
+function InterlockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGEADD64';
 function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
 function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
 {$else not FPC_HAS_EXPLICIT_INTERLOCKED_POINTER and not CPU64}
-function InterLockedIncrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDINCREMENT';
-function InterLockedDecrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDDECREMENT';
-function InterLockedExchange (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGE';
-function InterLockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterlockedIncrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDINCREMENT';
+function InterlockedDecrement (var Target: Pointer) : Pointer; external name 'FPC_INTERLOCKEDDECREMENT';
+function InterlockedExchange (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGE';
+function InterlockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 function InterlockedCompareExchangePointer(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$endif FPC_HAS_EXPLICIT_INTERLOCKED_POINTER / CPU64}
 { unsigned overloads }
 {$ifdef cpu16}
-function InterLockedIncrement (var Target: word) : word; external name 'FPC_INTERLOCKEDINCREMENT16';
-function InterLockedDecrement (var Target: word) : word; external name 'FPC_INTERLOCKEDDECREMENT16';
-function InterLockedExchange (var Target: word;Source : word) : word; external name 'FPC_INTERLOCKEDEXCHANGE16';
-function InterLockedExchangeAdd (var Target: word;Source : word) : word; external name 'FPC_INTERLOCKEDEXCHANGEADD16';
+function InterlockedIncrement (var Target: word) : word; external name 'FPC_INTERLOCKEDINCREMENT16';
+function InterlockedDecrement (var Target: word) : word; external name 'FPC_INTERLOCKEDDECREMENT16';
+function InterlockedExchange (var Target: word;Source : word) : word; external name 'FPC_INTERLOCKEDEXCHANGE16';
+function InterlockedExchangeAdd (var Target: word;Source : word) : word; external name 'FPC_INTERLOCKEDEXCHANGEADD16';
 function InterlockedCompareExchange(var Target: word; NewValue: word; Comperand: word): word; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE16';
 {$endif cpu16}
-function InterLockedIncrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDINCREMENT';
-function InterLockedDecrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDDECREMENT';
-function InterLockedExchange (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGE';
-function InterLockedExchangeAdd (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterlockedIncrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDINCREMENT';
+function InterlockedDecrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDDECREMENT';
+function InterlockedExchange (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGE';
+function InterlockedExchangeAdd (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: cardinal; NewValue: cardinal; Comperand: cardinal): cardinal; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$ifdef cpu64}
-function InterLockedIncrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDINCREMENT64';
-function InterLockedDecrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDDECREMENT64';
-function InterLockedExchange64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGE64';
-function InterLockedExchangeAdd64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGEADD64';
+function InterlockedIncrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDINCREMENT64';
+function InterlockedDecrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDDECREMENT64';
+function InterlockedExchange64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGE64';
+function InterlockedExchangeAdd64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGEADD64';
 function InterlockedCompareExchange64(var Target: qword; NewValue: qword; Comperand: qword): int64; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
 {$endif cpu64}
 
@@ -1546,16 +1546,16 @@ Function  ParamStr(l:Longint):string;
 Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
 procedure Dump_Stack(var f : text;skipframes : longint);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-procedure DumpExceptionBackTrace(var f:text);
+procedure DumpExceptionBacktrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 Procedure RunError(w:Word);noreturn;
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
-Procedure halt(errnum:Longint);noreturn;
+Procedure Halt(errnum:Longint);noreturn;
 {$ifdef FPC_HAS_FEATURE_HEAP}
 Procedure AddExitProc(Proc:TProcedure);
 {$endif FPC_HAS_FEATURE_HEAP}
-Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
+Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}noreturn;
 
 { Need to be exported for threads unit }
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
@@ -1587,7 +1587,7 @@ Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
 procedure EmptyMethod;external name 'FPC_EMPTYMETHOD';
-Function  SysBackTraceStr(Addr:CodePointer): ShortString;
+Function  SysBacktraceStr(Addr:CodePointer): ShortString;
 Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 (* Supposed to return address of previous CtrlBreakHandler *)
 (* (may be nil), returned value of pointer (-1) means that *)
@@ -1596,7 +1596,7 @@ function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 
 { Error handlers }
 Type
-  TBackTraceStrFunc = Function (Addr: CodePointer): ShortString;
+  TBacktraceStrFunc = Function (Addr: CodePointer): ShortString;
   TErrorProc = Procedure (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
@@ -1604,7 +1604,7 @@ Type
 
 
 const
-  BackTraceStrFunc  : TBackTraceStrFunc = @SysBackTraceStr;
+  BacktraceStrFunc  : TBacktraceStrFunc = @SysBacktraceStr;
   ErrorProc         : TErrorProc = nil;
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
