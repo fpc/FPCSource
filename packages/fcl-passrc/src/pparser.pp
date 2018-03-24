@@ -218,10 +218,6 @@ type
     property Column: Integer read FColumn;
   end;
 
-  TProcType = (ptProcedure, ptFunction, ptOperator, ptClassOperator, ptConstructor, ptDestructor,
-               ptClassProcedure, ptClassFunction, ptClassConstructor, ptClassDestructor);
-
-
   TExprKind = (ek_Normal, ek_PropertyIndex);
   TIndentAction = (iaNone,iaIndent,iaUndent);
 
@@ -426,6 +422,7 @@ type
       EndToken: TToken);
     procedure ParseProcedureOrFunctionHeader(Parent: TPasElement; Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
     procedure ParseProcedureBody(Parent: TPasElement);
+    function ParseMethodResolution(Parent: TPasElement): TPasMethodResolution;
     // Properties for external access
     property FileResolver: TBaseFileResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
@@ -3829,7 +3826,7 @@ begin
   else
     Result:='';
   CheckToken(tkIdentifier);
-  Expr:=CreatePrimitiveExpr(Parent,pekIdent,Result);
+  Expr:=CreatePrimitiveExpr(Parent,pekIdent,CurTokenString);
   NextToken;
   while CurToken=tkDot do
     begin
@@ -4833,6 +4830,38 @@ begin
   ParseDeclarations(Body);
 end;
 
+function TPasParser.ParseMethodResolution(Parent: TPasElement
+  ): TPasMethodResolution;
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  Result:=TPasMethodResolution(CreateElement(TPasMethodResolution,'',Parent));
+  try
+    if CurToken=tkfunction then
+      Result.ProcType:=ptFunction
+    else
+      Result.ProcType:=ptProcedure;
+    ExpectToken(tkIdentifier);
+    Result.InterfaceName:=CreatePrimitiveExpr(Result,pekIdent,CurTokenString);
+    ExpectToken(tkDot);
+    ExpectToken(tkIdentifier);
+    Result.InterfaceProc:=CreatePrimitiveExpr(Result,pekIdent,CurTokenString);
+    ExpectToken(tkEqual);
+    ExpectToken(tkIdentifier);
+    Result.ImplementationProc:=CreatePrimitiveExpr(Result,pekIdent,CurTokenString);
+    NextToken;
+    if CurToken=tkSemicolon then
+    else if CurToken=tkend then
+      UngetToken
+    else
+      CheckToken(tkSemicolon);
+    ok:=true;
+  finally
+    if not ok then
+      Result.Release;
+  end;
+end;
 
 function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
   AVisibility: TPasMemberVisibility; IsClassField: boolean): TPasProperty;
@@ -4896,6 +4925,24 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
     until false;
   end;
 
+  procedure ParseImplements;
+  var
+    Identifier: String;
+    Expr: TPasExpr;
+    l: Integer;
+  begin
+    // comma list of identifiers
+    repeat
+      ExpectToken(tkIdentifier);
+      l:=length(Result.Implements);
+      Identifier:=ReadDottedIdentifier(Result,Expr,l=0);
+      if l=0 then
+        Result.ImplementsName := Identifier;
+      SetLength(Result.Implements,l+1);
+      Result.Implements[l]:=Expr;
+    until CurToken<>tkComma;
+  end;
+
 var
   isArray , ok: Boolean;
   ObjKind: TPasObjKind;
@@ -4947,10 +4994,7 @@ begin
       Result.DispIDExpr := DoParseExpression(Result,Nil);
       end;
     if (ObjKind in [okClass]) and CurTokenIsIdentifier('IMPLEMENTS') then
-      begin
-      Result.ImplementsName := GetAccessorName(Result,Result.ImplementsFunc);
-      NextToken;
-      end;
+      ParseImplements;
     if CurTokenIsIdentifier('STORED') then
       begin
       if not (ObjKind in [okClass]) then
@@ -6196,9 +6240,11 @@ Type
 Var
   CurVisibility : TPasMemberVisibility;
   CurSection : TSectionType;
-  haveClass : Boolean; // true means last token was class keyword
+  haveClass ,
+    IsMethodResolution: Boolean; // true means last token was class keyword
   LastToken: TToken;
   PropEl: TPasProperty;
+  MethodRes: TPasMethodResolution;
 
 begin
   CurSection:=stNone;
@@ -6272,15 +6318,43 @@ begin
             Raise Exception.Create('Internal error 201704251415');
           end;
           end;
-      tkProcedure,tkFunction,tkConstructor,tkDestructor:
+      tkConstructor,tkDestructor:
         begin
         curSection:=stNone;
         if not haveClass then
           SaveComments;
-        if (Curtoken in [tkConstructor,tkDestructor])
-            and (AType.ObjKind in [okInterface,okDispInterface,okRecordHelper]) then
+        if AType.ObjKind in [okInterface,okDispInterface,okRecordHelper] then
           ParseExc(nParserNoConstructorAllowed,SParserNoConstructorAllowed);
         ProcessMethod(AType,HaveClass,CurVisibility);
+        haveClass:=False;
+        end;
+      tkProcedure,tkFunction:
+        begin
+        curSection:=stNone;
+        IsMethodResolution:=false;
+        if not haveClass then
+          begin
+          SaveComments;
+          if AType.ObjKind=okClass then
+            begin
+            NextToken;
+            if CurToken=tkIdentifier then
+              begin
+              NextToken;
+              IsMethodResolution:=CurToken=tkDot;
+              UngetToken;
+              end;
+            UngetToken;
+            end;
+          end;
+        if IsMethodResolution then
+          begin
+          MethodRes:=ParseMethodResolution(AType);
+          AType.Members.Add(MethodRes);
+          Engine.FinishScope(stDeclaration,MethodRes);
+          end
+        else
+          ProcessMethod(AType,HaveClass,CurVisibility);
         haveClass:=False;
         end;
       tkclass:

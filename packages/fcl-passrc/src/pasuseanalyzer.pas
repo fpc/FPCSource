@@ -1727,7 +1727,7 @@ begin
       for i:=0 to Prop.Args.Count-1 do
         UseElType(Prop,TPasArgument(Prop.Args[i]).ArgType,paumElement);
       UseExpr(Prop.IndexExpr);
-      UseExpr(Prop.ImplementsFunc);
+      // ToDo: Prop.Implements
       // ToDo: UseExpr(Prop.DispIDExpr);
       // see UsePublished: Prop.StoredAccessor, Prop.DefaultExpr
       end;

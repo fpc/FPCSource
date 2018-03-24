@@ -615,6 +615,12 @@ type
     Procedure TestClassInterface_MissingMethodFail;
     Procedure TestClassInterface_DefaultProperty;
     Procedure TestClassInterface_MethodResolution;
+    Procedure TestClassInterface_MethodResolutionDuplicateFail;
+    Procedure TestClassInterface_DelegationIntf;
+    Procedure TestClassInterface_Delegation_DuplPropFail;
+    Procedure TestClassInterface_Delegation_MethodResFail;
+    Procedure TestClassInterface_DelegationClass;
+    Procedure TestClassInterface_DelegationFQN;
     {$ELSE}
     Procedure TestIgnoreInterfaces;
     Procedure TestIgnoreInterfaceVarFail;
@@ -10256,7 +10262,6 @@ end;
 
 procedure TTestResolver.TestClassInterface_MethodResolution;
 begin
-  exit;
   StartProgram(false);
   Add([
   'type',
@@ -10265,10 +10270,131 @@ begin
   '    function GetIt: longint;',
   '  end;',
   '  TObject = class(IUnknown)',
+  '    procedure IUnknown.DoIt = DoSome;',
+  '    function IUnknown.GetIt = GetIt;',
   '    procedure DoSome; virtual; abstract;',
-  '    procedure IUnknown.DoIt = DoIt;',
-  '    function GetSome: longint;',
-  '    function IUnknown.GetIt = GetSome;',
+  '    function GetIt: longint; virtual; abstract;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_MethodResolutionDuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    procedure IUnknown.DoIt = DoSome;',
+  '    procedure IUnknown.DoIt = DoMore;',
+  '    procedure DoSome; virtual; abstract;',
+  '    procedure DoMore; virtual; abstract;',
+  '  end;',
+  'begin']);
+  CheckResolverException('Duplicate identifier "DoMore" at afile.pp(7,14)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestClassInterface_DelegationIntf;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class(IUnknown, IBird)',
+  '    function GetI: IBird; virtual; abstract;',
+  '    property MyI: IBird read GetI implements IUnknown, IBird;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_Delegation_DuplPropFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class(IUnknown, IBird)',
+  '    function GetI: IBird; virtual; abstract;',
+  '    property MyI: IBird read GetI implements IBird;',
+  '    property MyJ: IBird read GetI implements IBird;',
+  '  end;',
+  'begin']);
+  CheckResolverException('Duplicate implements for interface "IBird" at afile.pp(10,17)',
+    nDuplicateImplementsForIntf);
+end;
+
+procedure TTestResolver.TestClassInterface_Delegation_MethodResFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class(IUnknown, IBird)',
+  '    function GetI: IBird; virtual; abstract;',
+  '    procedure IBird.DoIt = DoSome;',
+  '    procedure DoSome; virtual; abstract;',
+  '    property MyI: IBird read GetI implements IBird;',
+  '  end;',
+  'begin']);
+  CheckResolverException('Cannot mix method resolution and delegation at afile.pp(12,17)',
+    nCannotMixMethodResolutionAndDelegationAtX);
+end;
+
+procedure TTestResolver.TestClassInterface_DelegationClass;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(IBird)',
+  '    procedure DoIt; virtual; abstract;',
+  '  end;',
+  '  TEagle = class(IBird)',
+  '    FBird: TBird;',
+  '    property Bird: TBird read FBird implements IBird;',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_DelegationFQN;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(IUnknown)',
+  '    procedure DoIt; virtual; abstract;',
+  '  end;',
+  '  TEagle = class(IUnknown)',
+  '    FBird: TBird;',
+  '    property Bird: TBird read FBird implements afile.IUnknown;',
   '  end;',
   'begin']);
   ParseProgram;

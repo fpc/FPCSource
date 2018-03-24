@@ -890,7 +890,7 @@ type
     IndexExpr: TPasExpr;
     ReadAccessor: TPasExpr;
     WriteAccessor: TPasExpr;
-    ImplementsFunc: TPasExpr;
+    Implements: TPasExprArray;
     DispIDExpr : TPasExpr;   // Can be nil.
     StoredAccessor: TPasExpr;
     DefaultExpr: TPasExpr;
@@ -906,6 +906,12 @@ type
     Function IndexValue : String;
     Function DefaultValue : string;
   end;
+
+  TProcType = (ptProcedure, ptFunction,
+               ptOperator, ptClassOperator,
+               ptConstructor, ptDestructor,
+               ptClassProcedure, ptClassFunction,
+               ptClassConstructor, ptClassDestructor);
 
   { TPasProcedureBase }
 
@@ -1092,6 +1098,18 @@ Type
       const Arg: Pointer); override;
   public
     Body: TPasImplBlock;
+  end;
+
+  { TPasMethodResolution }
+
+  TPasMethodResolution = class(TPasElement)
+  public
+    destructor Destroy; override;
+  public
+    ProcType: TProcType;
+    InterfaceName: TPasExpr;
+    InterfaceProc: TPasExpr;
+    ImplementationProc: TPasExpr;
   end;
 
   { TPasProcedureImpl - used by mkxmlrpc, not by pparser }
@@ -1554,6 +1572,16 @@ begin
   {$IFDEF VerbosePasTreeMem}writeln('ReleaseAndNil ',El.Name,' ',El.ClassName);{$ENDIF}
   El.Release;
   El:=nil;
+end;
+
+{ TPasMethodResolution }
+
+destructor TPasMethodResolution.Destroy;
+begin
+  ReleaseAndNil(TPasElement(InterfaceName));
+  ReleaseAndNil(TPasElement(InterfaceProc));
+  ReleaseAndNil(TPasElement(ImplementationProc));
+  inherited Destroy;
 end;
 
 { TPasImplCommandBase }
@@ -2571,16 +2599,16 @@ var
 begin
   for i := 0 to Members.Count - 1 do
     TPasElement(Members[i]).Release;
+  FreeAndNil(Members);
   for i := 0 to Interfaces.Count - 1 do
     TPasElement(Interfaces[i]).Release;
-  FreeAndNil(Members);
+  FreeAndNil(Interfaces);
   if Assigned(AncestorType) then
     ReleaseAndNil(TPasElement(AncestorType));
   if Assigned(HelperForType) then
     ReleaseAndNil(TPasElement(HelperForType));
   ReleaseAndNil(TPasElement(GUIDExpr));
   FreeAndNil(Modifiers);
-  FreeAndNil(Interfaces);
   for i := 0 to GenericTemplateTypes.Count - 1 do
     TPasElement(GenericTemplateTypes[i]).Release;
   FreeAndNil(GenericTemplateTypes);
@@ -2872,7 +2900,9 @@ begin
   ReleaseAndNil(TPasElement(IndexExpr));
   ReleaseAndNil(TPasElement(ReadAccessor));
   ReleaseAndNil(TPasElement(WriteAccessor));
-  ReleaseAndNil(TPasElement(ImplementsFunc));
+  for i := 0 to length(Implements) - 1 do
+    TPasExpr(Implements[i]).Release;
+  SetLength(Implements,0);
   ReleaseAndNil(TPasElement(StoredAccessor));
   ReleaseAndNil(TPasElement(DefaultExpr));
   ReleaseAndNil(TPasElement(DispIDExpr));
@@ -3862,7 +3892,8 @@ begin
     ForEachChildCall(aMethodCall,Arg,TPasElement(Args[i]),false);
   ForEachChildCall(aMethodCall,Arg,ReadAccessor,false);
   ForEachChildCall(aMethodCall,Arg,WriteAccessor,false);
-  ForEachChildCall(aMethodCall,Arg,ImplementsFunc,false);
+  for i:=0 to length(Implements)-1 do
+    ForEachChildCall(aMethodCall,Arg,Implements[i],false);
   ForEachChildCall(aMethodCall,Arg,StoredAccessor,false);
   ForEachChildCall(aMethodCall,Arg,DefaultExpr,false);
 end;

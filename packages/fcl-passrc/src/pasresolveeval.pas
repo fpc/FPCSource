@@ -153,11 +153,18 @@ const
   nConstructingClassXWithAbstractMethodY = 3080;
   nXIsNotSupported = 3081;
   nOperatorIsNotOverloadedAOpB = 3082;
-  nIllegalQualifierAfter = 3004;
-  nIllegalQualifierInFrontOf = 3005;
-  nIllegalQualifierWithin = 3006;
-  nMethodClassXInOtherUnitY = 3007;
-  nNoMatchingImplForIntfMethodXFound = 3008;
+  nIllegalQualifierAfter = 3084;
+  nIllegalQualifierInFrontOf = 3085;
+  nIllegalQualifierWithin = 3086;
+  nMethodClassXInOtherUnitY = 3087;
+  nNoMatchingImplForIntfMethodXFound = 3088;
+  nCannotMixMethodResolutionAndDelegationAtX = 3089;
+  nImplementsDoesNotSupportArrayProperty = 3101;
+  nImplementsDoesNotSupportIndex = 3102;
+  nImplementsUsedOnUnimplIntf = 3103;
+  nDuplicateImplementsForIntf = 3103;
+  nImplPropMustHaveReadSpec = 3104;
+  nDoesNotImplementInterface = 3105;
 
 // resourcestring patterns of messages
 resourcestring
@@ -248,6 +255,13 @@ resourcestring
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
   sMethodClassXInOtherUnitY = 'method class "%s" in other unit "%s"';
   sNoMatchingImplForIntfMethodXFound = 'No matching implementation for interface method "%s" found';
+  sCannotMixMethodResolutionAndDelegationAtX = 'Cannot mix method resolution and delegation at %s';
+  sImplementsDoesNotSupportArrayProperty = '"implements" does dot support array property';
+  sImplementsDoesNotSupportIndex = '"implements" does not support "index"';
+  sImplementsUsedOnUnimplIntf = 'Implements-property used on unimplemented interface: "%"';
+  sDuplicateImplementsForIntf = 'Duplicate implements for interface "%s" at %s';
+  sImplPropMustHaveReadSpec = 'Implements-property must have read specifier';
+  sDoesNotImplementInterface = '"%s" does not implement interface "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

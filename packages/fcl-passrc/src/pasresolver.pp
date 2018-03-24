@@ -1249,6 +1249,7 @@ type
     procedure FinishPropertyOfClass(PropEl: TPasProperty); virtual;
     procedure FinishArgument(El: TPasArgument); virtual;
     procedure FinishAncestors(aClass: TPasClassType); virtual;
+    procedure FinishMethodResolution(El: TPasMethodResolution); virtual;
     procedure FinishPropertyParamAccess(Params: TParamsExpr;
       Prop: TPasProperty);
     procedure FinishCallArgAccess(Expr: TPasExpr; Access: TResolvedRefAccess);
@@ -1257,7 +1258,7 @@ type
     function EmitElementHints(PosEl, El: TPasElement): boolean; virtual;
     procedure StoreScannerFlagsInProc(ProcScope: TPasProcedureScope);
     procedure ReplaceProcScopeImplArgsWithDeclArgs(ImplProcScope: TPasProcedureScope);
-    procedure CreateClassIntfMap(El: TPasClassType; Index: integer);
+    function CreateClassIntfMap(El: TPasClassType; Index: integer): TPasClassIntfMap;
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
     procedure CheckPendingForwardProcs(El: TPasElement);
@@ -1586,7 +1587,7 @@ type
       RErrorEl: TPasElement = nil): integer;
     function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
-    // uility functions
+    // utility functions
     function GetProcTypeDescription(ProcType: TPasProcedureType; UseName: boolean = true; AddPaths: boolean = false): string;
     function GetResolverResultDescription(const T: TPasResolverResult; OnlyType: boolean = false): string;
     function GetTypeDescription(aType: TPasType; AddPath: boolean = false): string;
@@ -1600,6 +1601,7 @@ type
     function GetPasPropertyIndex(El: TPasProperty): TPasExpr;
     function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
+    function IndexOfImplementedInterface(ClassEl: TPasClassType; aType: TPasType): integer;
     function GetLoop(El: TPasElement): TPasImplElement;
     function ResolveAliasType(aType: TPasType): TPasType;
     function ResolveAliasTypeEl(El: TPasElement): TPasType; inline;
@@ -2030,14 +2032,16 @@ begin
     Result:='class procedure'
   else if C=TPasClassFunction then
     Result:='class function'
+  else if C=TPasMethodResolution then
+    Result:='method resolution'
   else if C=TInterfaceSection then
     Result:='interfacesection'
   else if C=TImplementationSection then
     Result:='implementation'
   else if C=TProgramSection then
-    Result:='ProgramSection'
+    Result:='program section'
   else if C=TLibrarySection then
-    Result:='LibrarySection'
+    Result:='library section'
   else
     Result:=C.ClassName;
 end;
@@ -3416,21 +3420,18 @@ var
   Value: TResEvalValue;
 begin
   if not (InFileExpr is TPrimitiveExpr) then
-    RaiseMsg(20180221234828,nXExpectedButYFound,sXExpectedButYFound,
-             ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
+    RaiseXExpectedButYFound(20180221234828,'string literal',GetElementTypeName(InFileExpr),InFileExpr);
   Value:=ExprEvaluator.Eval(TPrimitiveExpr(InFileExpr),[refConst]);
   try
     if (Value=nil) then
-      RaiseMsg(20180222000004,nXExpectedButYFound,sXExpectedButYFound,
-               ['string literal',GetElementTypeName(InFileExpr)],InFileExpr);
+      RaiseXExpectedButYFound(20180222000004,'string literal',GetElementTypeName(InFileExpr),InFileExpr);
     case Value.Kind of
     revkString:
       Result:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,InFileExpr);
     revkUnicodeString:
       Result:=UTF8Encode(TResEvalUTF16(Value).S);
     else
-      RaiseMsg(20180222000122,nXExpectedButYFound,sXExpectedButYFound,
-               ['string literal',Value.AsDebugString],InFileExpr);
+      RaiseXExpectedButYFound(20180222000122,'string literal',Value.AsDebugString,InFileExpr);
     end;
   finally
     ReleaseEvalValue(Value);
@@ -4530,14 +4531,17 @@ procedure TPasResolver.FinishClassType(El: TPasClassType);
 {$IFDEF EnableInterfaces}
 var
   ClassScope: TPasClassScope;
-  i, j: Integer;
+  i, j, k: Integer;
   IntfType: TPasClassType;
   Map: TPasClassIntfMap;
   o: TObject;
   Member: TPasElement;
-  IntfProc: TPasProcedure;
+  IntfProc, ImplProc: TPasProcedure;
   FindData: TFindOverloadProcData;
   Abort: boolean;
+  MethRes: TPasMethodResolution;
+  ResolvedEl: TPasResolverResult;
+  ProcScope: TPasProcedureScope;
 {$ENDIF}
 begin
   {$IFDEF EnableInterfaces}
@@ -4547,7 +4551,66 @@ begin
       RaiseInternalError(20180322142534,GetObjName(El)+'<>'+GetObjName(TopScope.Element));
     ClassScope:=El.CustomData as TPasClassScope;
 
-    // check interfaces
+    // check interfaces: explicit method resolutions, e.g. procedure intf.intfproc = implproc
+    for i:=0 to El.Members.Count-1 do
+      begin
+      Member:=TPasElement(El.Members[i]);
+      if not (Member is TPasMethodResolution) then continue;
+      MethRes:=TPasMethodResolution(Member);
+      // resolve implproc
+      PushClassDotScope(El);
+      ResolveExpr(MethRes.ImplementationProc,rraRead);
+      ComputeElement(MethRes.ImplementationProc,ResolvedEl,[rcNoImplicitProc]);
+      PopScope;
+      if not (ResolvedEl.IdentEl is TPasProcedure) then
+        RaiseXExpectedButYFound(20180323134222,'method',
+          GetResolverResultDescription(ResolvedEl,true),MethRes.ImplementationProc);
+      ImplProc:=TPasProcedure(ResolvedEl.IdentEl);
+      // check procs are compatible
+      ComputeElement(MethRes.InterfaceProc,ResolvedEl,[rcNoImplicitProc]);
+      IntfProc:=ResolvedEl.IdentEl as TPasProcedure;
+      CheckProcTypeCompatibility(IntfProc.ProcType,ImplProc.ProcType,false,
+                                 MethRes.ImplementationProc,true);
+      // get interface
+      ComputeElement(MethRes.InterfaceName,ResolvedEl,[rcNoImplicitProc]);
+      if not (ResolvedEl.IdentEl is TPasType) then
+        RaiseInternalError(20180323135729,GetResolverResultDbg(ResolvedEl));
+      j:=El.Interfaces.IndexOf(ResolvedEl.IdentEl);
+      if j<0 then
+        RaiseInternalError(20180323135900,GetResolverResultDbg(ResolvedEl));
+      // get class-interface-map
+      o:=TObject(ClassScope.Interfaces[j]);
+      if o is TPasProperty then
+        RaiseMsg(20180323140046,nCannotMixMethodResolutionAndDelegationAtX,
+          sCannotMixMethodResolutionAndDelegationAtX,
+          [GetElementSourcePosStr(TPasProperty(o))],MethRes.InterfaceName);
+      if o=nil then
+        o:=CreateClassIntfMap(El,j);
+      // map method and overridden ancestor methods
+      Map:=TPasClassIntfMap(o);
+      while Map<>nil do
+        begin
+        if Map.Intf=IntfProc.Parent then
+          begin
+          k:=Map.Intf.Members.IndexOf(IntfProc);
+          if k<0 then
+            RaiseInternalError(20180323141414);
+          if Map.Procs[k]<>nil then
+            RaiseMsg(20180323141815,nDuplicateIdentifier,sDuplicateIdentifier,
+              [ImplProc.Name,GetElementSourcePosStr(TPasElement(Map.Procs[k]))],
+              MethRes.InterfaceProc);
+          Map.Procs[k]:=MethRes;
+          ProcScope:=IntfProc.CustomData as TPasProcedureScope;
+          IntfProc:=ProcScope.OverriddenProc;
+          break;
+          end;
+        Map:=Map.AncestorMap;
+        end;
+      if IntfProc<>nil then
+        RaiseInternalError(20180323142835);
+      end;
+
+    // check interfaces: default method resolution
     for i:=0 to El.Interfaces.Count-1 do
       begin
       o:=TObject(ClassScope.Interfaces[i]);
@@ -4555,10 +4618,7 @@ begin
       if o is TPasProperty then
         continue; // interface implemented via a property
       if o=nil then
-        begin
-        CreateClassIntfMap(El,i);
-        o:=TObject(ClassScope.Interfaces[i]);
-        end;
+        o:=CreateClassIntfMap(El,i);
       Map:=TPasClassIntfMap(o);
       while Map<>nil do
         begin
@@ -4590,6 +4650,7 @@ begin
       end;
     end;
   {$ENDIF}
+
   if TopScope.Element=El then
     PopScope;
 end;
@@ -4810,8 +4871,7 @@ begin
       if (not HasDots)
           and (Proc.ClassType<>TPasProcedure)
           and (Proc.ClassType<>TPasFunction) then
-        RaiseMsg(20170419232724,nXExpectedButYFound,sXExpectedButYFound,
-          ['full method name','short name'],El);
+        RaiseXExpectedButYFound(20170419232724,'full method name','short name',El);
       end;
 
     if HasDots then
@@ -5143,6 +5203,8 @@ begin
     FinishPropertyOfClass(TPasProperty(El))
   else if C=TPasArgument then
     FinishArgument(TPasArgument(El))
+  else if C=TPasMethodResolution then
+    FinishMethodResolution(TPasMethodResolution(El))
   else
     begin
     {$IFDEF VerbosePasResolver}
@@ -5387,6 +5449,88 @@ var
           sWrongNumberOfParametersForCallTo,[Proc.Name],ErrorEl);
       ProcArg:=TPasArgument(Proc.ProcType.Args[ArgNo]);
       CheckIndexArg(ArgNo,IndexResolved,ProcArg,ErrorEl);
+      end;
+  end;
+
+  procedure CheckImplements;
+  var
+    i, j: Integer;
+    Expr: TPasExpr;
+    ResolvedEl: TPasResolverResult;
+    aClass, PropClassType: TPasClassType;
+    IntfType, OrigIntfType, PropTypeRes: TPasType;
+    o: TObject;
+  begin
+    if not (PropEl.Parent is TPasClassType) then
+      RaiseInternalError(20180323172125,PropEl.FullName);
+    aClass:=TPasClassType(PropEl.Parent);
+    if PropEl.Args.Count>0 then
+      RaiseMsg(20180323170952,nImplementsDoesNotSupportArrayProperty,
+        sImplementsDoesNotSupportArrayProperty,[],PropEl.Implements[0]);
+    if IndexExpr<>nil then
+      RaiseMsg(20180323171354,nImplementsDoesNotSupportIndex,
+        sImplementsDoesNotSupportIndex,[],PropEl.Implements[0]);
+    if GetPasPropertyGetter(PropEl)=nil then
+      RaiseMsg(20180323221322,nImplPropMustHaveReadSpec,
+        sImplPropMustHaveReadSpec,[],PropEl.Implements[0]);
+    for i:=0 to length(PropEl.Implements)-1 do
+      begin
+      // resolve expression
+      Expr:=PropEl.Implements[i];
+      ResolveExpr(Expr,rraRead);
+      // check expr is an interface type
+      ComputeElement(Expr,ResolvedEl,[rcType,rcNoImplicitProc]);
+      if not (ResolvedEl.IdentEl is TPasType) then
+        if ResolvedEl.IdentEl=nil then
+          RaiseXExpectedButYFound(20180323171911,'interface',
+            GetElementTypeName(ResolvedEl.TypeEl),Expr)
+        else
+          RaiseXExpectedButYFound(20180323224846,'interface',
+            GetElementTypeName(ResolvedEl.IdentEl),Expr);
+      OrigIntfType:=TPasType(ResolvedEl.IdentEl);
+      IntfType:=ResolveAliasType(OrigIntfType);
+      if (not (IntfType is TPasClassType))
+          or (TPasClassType(IntfType).ObjKind<>okInterface) then
+        RaiseXExpectedButYFound(20180323172904,'interface',
+          GetElementTypeName(OrigIntfType),Expr);
+      // check it is one of the implemented interfaces
+      j:=IndexOfImplementedInterface(aClass,IntfType);
+      if j<0 then
+        RaiseMsg(20180323172420,nImplementsUsedOnUnimplIntf,sImplementsUsedOnUnimplIntf,
+          [OrigIntfType.Name],Expr);
+      // check property type fits
+      PropTypeRes:=ResolveAliasType(PropType);
+      if not (PropTypeRes is TPasClassType) then
+        RaiseMsg(20180323222334,nDoesNotImplementInterface,sDoesNotImplementInterface,
+          [GetElementTypeName(PropType),GetElementTypeName(OrigIntfType)],Expr);
+      PropClassType:=TPasClassType(PropTypeRes);
+      case PropClassType.ObjKind of
+      okClass:
+        if IndexOfImplementedInterface(PropClassType,IntfType)<0 then
+          RaiseMsg(20180323223324,nDoesNotImplementInterface,sDoesNotImplementInterface,
+            [GetElementTypeName(PropType),GetElementTypeName(OrigIntfType)],Expr);
+      okInterface:
+        if CheckClassIsClass(PropType,IntfType,Expr)=cIncompatible then
+          RaiseIncompatibleType(20180323173746,nIncompatibleTypesGotExpected,
+            [],OrigIntfType,PropType,Expr);
+      else
+        RaiseMsg(20180323222821,nDoesNotImplementInterface,sDoesNotImplementInterface,
+          [GetElementTypeName(PropType),GetElementTypeName(OrigIntfType)],Expr);
+      end;
+      // map
+      o:=TObject(ClassScope.Interfaces[j]);
+      if o is TPasProperty then
+        RaiseMsg(20180323174240,nDuplicateImplementsForIntf,sDuplicateImplementsForIntf,
+          [OrigIntfType.Name,GetElementSourcePosStr(TPasProperty(o))],Expr)
+      else if o is TPasClassIntfMap then
+        begin
+        // properties are checked before method resolutions
+        RaiseInternalError(20180323175919,PropEl.FullName);
+        end
+      else if o<>nil then
+        RaiseInternalError(20180323174342,GetObjName(o))
+      else
+        ClassScope.Interfaces[j]:=PropEl;
       end;
   end;
 
@@ -5676,12 +5820,8 @@ begin
         RaiseXExpectedButYFound(20170216151921,'variable',GetElementTypeName(AccEl),PropEl.WriteAccessor);
       end;
 
-    if PropEl.ImplementsFunc<>nil then
-      begin
-      ResolveExpr(PropEl.ImplementsFunc,rraRead);
-      // ToDo: check compatibility
-      RaiseNotYetImplemented(20170409213850,PropEl.ImplementsFunc);
-      end;
+    if length(PropEl.Implements)>0 then
+      CheckImplements;
 
     if PropEl.StoredAccessor<>nil then
       begin
@@ -5978,6 +6118,47 @@ begin
     end;
 end;
 
+procedure TPasResolver.FinishMethodResolution(El: TPasMethodResolution);
+var
+  ResolvedEl: TPasResolverResult;
+  aClass, IntfType: TPasClassType;
+  i: Integer;
+  IntfProc: TPasProcedure;
+begin
+  ResolveExpr(El.InterfaceName,rraRead);
+  ComputeElement(El.InterfaceName,ResolvedEl,[rcType,rcNoImplicitProc]);
+  if not (ResolvedEl.IdentEl is TPasType) then
+    RaiseXExpectedButYFound(20180323132601,'interface type',
+      GetResolverResultDescription(ResolvedEl),El.InterfaceName);
+  aClass:=El.Parent as TPasClassType;
+  i:=aClass.Interfaces.IndexOf(ResolvedEl.IdentEl);
+  if i<0 then
+    RaiseXExpectedButYFound(20180323133055,'interface type',
+      GetResolverResultDescription(ResolvedEl),El.InterfaceName);
+  IntfType:=TPasClassType(ResolveAliasType(TPasClassType(aClass.Interfaces[i])));
+  PushClassDotScope(IntfType);
+  ResolveExpr(El.InterfaceProc,rraRead);
+  PopScope;
+  ComputeElement(El.InterfaceProc,ResolvedEl,[rcNoImplicitProc]);
+  if not (ResolvedEl.IdentEl is TPasProcedure) then
+    RaiseXExpectedButYFound(20180323133616,'interface method',
+      GetResolverResultDescription(ResolvedEl),El.InterfaceProc);
+  IntfProc:=TPasProcedure(ResolvedEl.IdentEl);
+  case El.ProcType of
+  ptProcedure:
+    if IntfProc.ClassType<>TPasProcedure then
+      RaiseXExpectedButYFound(20180323144107,'procedure',GetElementTypeName(IntfProc),El.InterfaceProc);
+  ptFunction:
+    if IntfProc.ClassType<>TPasFunction then
+      RaiseXExpectedButYFound(20180323144107,'function',GetElementTypeName(IntfProc),El.InterfaceProc);
+  else
+    RaiseNotYetImplemented(20180323144235,El);
+  end;
+  // Note: do not create map here. See CheckImplements in FinishPropertyOfClass.
+
+  // El.ImplementationProc is resolved in FinishClassType
+end;
+
 procedure TPasResolver.FinishPropertyParamAccess(Params: TParamsExpr;
   Prop: TPasProperty);
 var
@@ -6113,7 +6294,8 @@ begin
     end;
 end;
 
-procedure TPasResolver.CreateClassIntfMap(El: TPasClassType; Index: integer);
+function TPasResolver.CreateClassIntfMap(El: TPasClassType; Index: integer
+  ): TPasClassIntfMap;
 var
   IntfType: TPasClassType;
   Map: TPasClassIntfMap;
@@ -6129,8 +6311,8 @@ begin
     if Map=nil then
       begin
       Map:=TPasClassIntfMap.Create;
-      if ClassScope.Interfaces[Index]=nil then
-        ClassScope.Interfaces[Index]:=Map;
+      Result:=Map;
+      ClassScope.Interfaces[Index]:=Map;
       end
     else
       begin
@@ -6148,8 +6330,8 @@ procedure TPasResolver.CheckConditionExpr(El: TPasExpr;
   const ResolvedEl: TPasResolverResult);
 begin
   if ResolvedEl.BaseType<>btBoolean then
-    RaiseMsg(20170216152135,nXExpectedButYFound,sXExpectedButYFound,
-      [BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType]],El);
+    RaiseXExpectedButYFound(20170216152135,
+      BaseTypeNames[btBoolean],BaseTypeNames[ResolvedEl.BaseType],El);
 end;
 
 procedure TPasResolver.CheckProcSignatureMatch(DeclProc,
@@ -6735,14 +6917,14 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.ResolveImplRaise ',GetResolverResultDbg(ResolvedEl));
         {$ENDIF}
-        RaiseMsg(20170216152133,nXExpectedButYFound,sXExpectedButYFound,
-                 ['variable',GetElementTypeName(ResolvedEl.IdentEl)],El.ExceptObject);
+        RaiseXExpectedButYFound(20170216152133,
+                 'variable',GetElementTypeName(ResolvedEl.IdentEl),El.ExceptObject);
         end;
       end
     else if ResolvedEl.ExprEl<>nil then
     else
-      RaiseMsg(201702303145230,nXExpectedButYFound,sXExpectedButYFound,
-             ['variable',GetResolverResultDbg(ResolvedEl)],El.ExceptObject);
+      RaiseXExpectedButYFound(201702303145230,
+             'variable',GetResolverResultDbg(ResolvedEl),El.ExceptObject);
     if not (rrfReadable in ResolvedEl.Flags) then
       RaiseMsg(20170303145037,nNotReadable,sNotReadable,[],El.ExceptObject);
     end;
@@ -9034,13 +9216,11 @@ var
   TypeEl: TPasType;
 begin
   if (ResolvedEl.BaseType<>btContext) then
-    RaiseMsg(20170216152245,nXExpectedButYFound,sXExpectedButYFound,
-      ['class',BaseTypeNames[ResolvedEl.BaseType]],El);
+    RaiseXExpectedButYFound(20170216152245,'class',BaseTypeNames[ResolvedEl.BaseType],El);
   TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
   if (TypeEl.ClassType<>TPasClassType)
       or (TPasClassType(TypeEl).ObjKind<>okClass) then
-    RaiseMsg(20170216152246,nXExpectedButYFound,sXExpectedButYFound,
-      ['class',GetElementTypeName(ResolvedEl.TypeEl)],El);
+    RaiseXExpectedButYFound(20170216152246,'class',GetElementTypeName(ResolvedEl.TypeEl),El);
 end;
 
 function TPasResolver.CheckTypeCastClassInstanceToClass(const FromClassRes,
@@ -11039,8 +11219,8 @@ function TPasResolver.BI_Str_CheckParam(IsFunc: boolean; Param: TPasExpr;
     if not (ResolvedEl.BaseType in btAllInteger) then
       begin
       if RaiseOnError then
-        RaiseMsg(20170319221515,nXExpectedButYFound,sXExpectedButYFound,
-          ['integer',GetResolverResultDescription(ResolvedEl,true)],FormatExpr);
+        RaiseXExpectedButYFound(20170319221515,
+          'integer',GetResolverResultDescription(ResolvedEl,true),FormatExpr);
       exit;
       end;
     if not (rrfReadable in ResolvedEl.Flags) then
@@ -11608,6 +11788,7 @@ begin
     AddFunctionResult(TPasResultElement(El))
   else if AClass=TProcedureBody then
     AddProcedureBody(TProcedureBody(El))
+  else if AClass=TPasMethodResolution then
   else if AClass=TPasImplExceptOn then
     AddExceptOn(TPasImplExceptOn(El))
   else if AClass=TPasImplLabelMark then
@@ -11645,15 +11826,14 @@ begin
     begin
     InFilename:=GetUsesUnitInFilename(InFileExpr);
     if InFilename='' then
-      RaiseMsg(20180222001220,nXExpectedButYFound,sXExpectedButYFound,
-               ['file path','empty string'],InFileExpr);
+      RaiseXExpectedButYFound(20180222001220,
+               'file path','empty string',InFileExpr);
     if msDelphi in CurrentParser.CurrentModeswitches then
       begin
       // in delphi the last unit name must match the filename
       FileUnitName:=ChangeFileExt(ExtractFileName(InFilename),'');
       if CompareText(AName,FileUnitName)<>0 then
-        RaiseMsg(20180222230400,nXExpectedButYFound,sXExpectedButYFound,
-                 [AName,FileUnitName],InFileExpr);
+        RaiseXExpectedButYFound(20180222230400,AName,FileUnitName,InFileExpr);
       end;
     end;
   Result:=FindUnit(AName,InFilename,NameExpr,InFileExpr);
@@ -15237,8 +15417,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
         begin
         // common mistake: const requires () instead of []
         if RaiseOnIncompatible then
-          RaiseMsg(20170913181208,nXExpectedButYFound,sXExpectedButYFound,
-            ['(','['],ErrorEl);
+          RaiseXExpectedButYFound(20170913181208,'(','[',ErrorEl);
         exit;
         end;
       Impl:=ErrorEl;
@@ -16390,6 +16569,21 @@ begin
     else
       Result:=ClassScope.DirectAncestor;
     end;
+end;
+
+function TPasResolver.IndexOfImplementedInterface(ClassEl: TPasClassType;
+  aType: TPasType): integer;
+var
+  List: TFPList;
+  i: Integer;
+begin
+  if aType=nil then exit(-1);
+  aType:=ResolveAliasType(aType);
+  List:=ClassEl.Interfaces;
+  for i:=0 to List.Count-1 do
+    if ResolveAliasType(TPasType(List[i]))=aType then
+      exit(i);
+  Result:=-1;
 end;
 
 function TPasResolver.GetLoop(El: TPasElement): TPasImplElement;
