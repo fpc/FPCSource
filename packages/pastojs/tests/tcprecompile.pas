@@ -324,7 +324,7 @@ begin
     ['procedure Writeln; begin end;']);
   AddUnit('src/unit1.pp',[
     'type',
-    '  TIntf = interface',
+    '  IIntf = interface',
     '    function GetItems: longint;',
     '    procedure SetItems(Index: longint; Value: longint);',
     '    property Items[Index: longint]: longint read GetItems write SetItems;',
@@ -334,14 +334,14 @@ begin
   AddUnit('src/unit2.pp',[
     'uses unit1;',
     'type',
-    '  TAlias = TIntf;',
+    '  IAlias = IIntf;',
     '  TObject = class end;',
-    '  TBird = class(TIntf) end;',
+    '  TBird = class(IIntf) end;',
     ''],[
     '']);
   AddFile('test1.pas',[
     'uses unit2;',
-    'type TAlias2 = TAlias;',
+    'type IAlias2 = IAlias;',
     'var b: TBird;',
     'begin',
     '  if b=nil then ;',

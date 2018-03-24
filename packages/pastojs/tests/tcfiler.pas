@@ -1400,7 +1400,7 @@ begin
   CheckRestoredElement(Path+'.IndexExpr',Orig.IndexExpr,Rest.IndexExpr);
   CheckRestoredElement(Path+'.ReadAccessor',Orig.ReadAccessor,Rest.ReadAccessor);
   CheckRestoredElement(Path+'.WriteAccessor',Orig.WriteAccessor,Rest.WriteAccessor);
-  CheckRestoredElement(Path+'.ImplementsFunc',Orig.ImplementsFunc,Rest.ImplementsFunc);
+  CheckRestoredPasExprArray(Path+'.Implements',Orig.Implements,Rest.Implements);
   CheckRestoredElement(Path+'.DispIDExpr',Orig.DispIDExpr,Rest.DispIDExpr);
   CheckRestoredElement(Path+'.StoredAccessor',Orig.StoredAccessor,Rest.StoredAccessor);
   CheckRestoredElement(Path+'.DefaultExpr',Orig.DefaultExpr,Rest.DefaultExpr);

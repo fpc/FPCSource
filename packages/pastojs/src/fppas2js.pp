@@ -11251,11 +11251,10 @@ end;
 
 function TPasToJSConverter.ConvertProperty(El: TPasProperty;
   AContext: TConvertContext): TJSElement;
-
 begin
   Result:=Nil;
-  if El.ImplementsFunc<>nil then
-    RaiseNotSupported(El.ImplementsFunc,AContext,20170215102923,'property implements function');
+  if length(El.Implements)>0 then
+    RaiseNotSupported(El.Implements[0],AContext,20170215102923,'property implements specifier');
   if El.DispIDExpr<>nil then
     RaiseNotSupported(El.DispIDExpr,AContext,20170215103029,'property dispid expression');
   // does not need any declaration. Access is redirected to getter/setter.

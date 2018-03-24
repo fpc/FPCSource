@@ -67,9 +67,10 @@ uses
 
 const
   PCUMagic = 'Pas2JSCache';
-  PCUVersion = 1;
+  PCUVersion = 2;
   // Version Changes:
   // 1: initial version
+  // 2: TPasProperty.ImplementsFunc -> Implements array
 
   BuiltInNodeName = 'BuiltIn';
 
@@ -787,6 +788,7 @@ type
   public
     List: TFPList;
     Index: integer;
+    AddRef: boolean;
   end;
 
   { TPCUReaderPendingIdentifierScope }
@@ -845,8 +847,10 @@ type
     function CreateContext: TPCUReaderContext; virtual;
     function GetElReference(Id: integer; ErrorEl: TPasElement): TPCUFilerElementRef; virtual;
     function AddElReference(Id: integer; ErrorEl: TPasElement; El: TPasElement): TPCUFilerElementRef; virtual;
-    procedure PromiseSetElReference(Id: integer; const Setter: TOnSetElReference; Data: TObject; ErrorEl: TPasElement); virtual;
-    procedure PromiseSetElListReference(Id: integer; List: TFPList; Index: integer; ErrorEl: TPasElement); virtual;
+    procedure PromiseSetElReference(Id: integer; const Setter: TOnSetElReference;
+      Data: TObject; ErrorEl: TPasElement); virtual;
+    procedure PromiseSetElListReference(Id: integer; List: TFPList; Index: integer;
+      AddRef: boolean; ErrorEl: TPasElement); virtual;
     procedure ReadHeaderMagic(Obj: TJSONObject); virtual;
     procedure ReadHeaderVersion(Obj: TJSONObject); virtual;
     procedure ReadGUID(Obj: TJSONObject); virtual;
@@ -874,7 +878,8 @@ type
     procedure ReadElementReference(Obj: TJSONObject; Instance: TPasElementBase;
       const PropName: string; const Setter: TOnSetElReference); virtual;
     procedure ReadElementList(Obj: TJSONObject; Parent: TPasElement;
-      const PropName: string; ListOfElements: TFPList; aContext: TPCUReaderContext); virtual;
+      const PropName: string; ListOfElements: TFPList; AddRef: boolean;
+      aContext: TPCUReaderContext); virtual;
     procedure ReadElType(Obj: TJSONObject; const PropName: string; El: TPasElement;
       const Setter: TOnSetElReference; aContext: TPCUReaderContext); virtual;
     function ReadResolvedRefFlags(Obj: TJSONObject; El: TPasElement;
@@ -3452,7 +3457,7 @@ begin
   WriteExpr(Obj,El,'Index',El.IndexExpr,aContext);
   WriteExpr(Obj,El,'Read',El.ReadAccessor,aContext);
   WriteExpr(Obj,El,'Write',El.WriteAccessor,aContext);
-  WriteExpr(Obj,El,'Implements',El.ImplementsFunc,aContext);
+  WritePasExprArray(Obj,El,'Implements',El.Implements,aContext);
   WriteExpr(Obj,El,'DispId',El.DispIDExpr,aContext);
   WriteExpr(Obj,El,'Stored',El.StoredAccessor,aContext);
   WriteExpr(Obj,El,'DefaultValue',El.DefaultExpr,aContext);
@@ -4053,7 +4058,7 @@ var
   Scope: TPas2JSClassScope absolute Data;
 begin
   if RefEl is TPasProperty then
-    Scope.DefaultProperty:=TPasProperty(RefEl)
+    Scope.DefaultProperty:=TPasProperty(RefEl) // no AddRef
   else
     RaiseMsg(20180214115044,Scope.Element,GetObjName(RefEl));
 end;
@@ -4199,7 +4204,7 @@ var
   Scope: TPas2JSProcedureScope absolute Data;
 begin
   if RefEl is TPasProcedure then
-    Scope.ImplProc:=TPasProcedure(RefEl)
+    Scope.ImplProc:=TPasProcedure(RefEl) // no AddRef
   else
     RaiseMsg(20180219140043,Scope.Element,GetObjName(RefEl));
 end;
@@ -4210,7 +4215,7 @@ var
   Scope: TPas2JSProcedureScope absolute Data;
 begin
   if RefEl is TPasProcedure then
-    Scope.OverriddenProc:=TPasProcedure(RefEl)
+    Scope.OverriddenProc:=TPasProcedure(RefEl) // no AddRef
   else
     RaiseMsg(20180213215959,Scope.Element,GetObjName(RefEl));
 end;
@@ -4422,6 +4427,8 @@ begin
           begin
           PendingElListRef:=TPCUReaderPendingElListRef(RefItem);
           PendingElListRef.List[PendingElListRef.Index]:=Ref.Element;
+          if PendingElListRef.AddRef then
+            Ref.Element.AddRef;
           end
         else
           RaiseMsg(20180207153056,ErrorEl,RefItem.ClassName);
@@ -4459,7 +4466,7 @@ begin
 end;
 
 procedure TPCUReader.PromiseSetElListReference(Id: integer; List: TFPList;
-  Index: integer; ErrorEl: TPasElement);
+  Index: integer; AddRef: boolean; ErrorEl: TPasElement);
 var
   Ref: TPCUFilerElementRef;
   PendingItem: TPCUReaderPendingElListRef;
@@ -4469,6 +4476,8 @@ begin
     begin
     // element was already created -> set list item immediately
     List[Index]:=Ref.Element;
+    if AddRef then
+      Ref.Element.AddRef;
     end
   else
     begin
@@ -4476,6 +4485,7 @@ begin
     PendingItem:=TPCUReaderPendingElListRef.Create;
     PendingItem.List:=List;
     PendingItem.Index:=Index;
+    PendingItem.AddRef:=AddRef;
     PendingItem.ErrorEl:=ErrorEl;
     Ref.AddPending(PendingItem);
     end;
@@ -5506,7 +5516,8 @@ begin
 end;
 
 procedure TPCUReader.ReadElementList(Obj: TJSONObject; Parent: TPasElement;
-  const PropName: string; ListOfElements: TFPList; aContext: TPCUReaderContext);
+  const PropName: string; ListOfElements: TFPList; AddRef: boolean;
+  aContext: TPCUReaderContext);
 var
   Arr: TJSONArray;
   i, Id: Integer;
@@ -5523,7 +5534,7 @@ begin
       // reference
       Id:=Data.AsInteger;
       ListOfElements.Add(nil);
-      PromiseSetElListReference(Id,ListOfElements,ListOfElements.Count-1,Parent);
+      PromiseSetElListReference(Id,ListOfElements,ListOfElements.Count-1,AddRef,Parent);
       end
     else if Data is TJSONObject then
       begin
@@ -6192,7 +6203,7 @@ procedure TPCUReader.ReadSpecializeType(Obj: TJSONObject;
   El: TPasSpecializeType; aContext: TPCUReaderContext);
 begin
   ReadAliasType(Obj,El,aContext);
-  ReadElementList(Obj,El,'Params',El.Params,aContext);
+  ReadElementList(Obj,El,'Params',El.Params,true,aContext);
 end;
 
 procedure TPCUReader.ReadInlineTypeExpr(Obj: TJSONObject;
@@ -6268,7 +6279,7 @@ begin
 
   ReadPasElement(Obj,El,aContext);
   ReadEnumTypeScope(Obj,Scope,aContext);
-  ReadElementList(Obj,El,'Values',El.Values,aContext);
+  ReadElementList(Obj,El,'Values',El.Values,true,aContext);
 end;
 
 procedure TPCUReader.ReadSetType(Obj: TJSONObject; El: TPasSetType;
@@ -6297,7 +6308,7 @@ procedure TPCUReader.ReadRecordVariant(Obj: TJSONObject; El: TPasVariant;
   aContext: TPCUReaderContext);
 begin
   ReadPasElement(Obj,El,aContext);
-  ReadElementList(Obj,El,'Values',El.Values,aContext);
+  ReadElementList(Obj,El,'Values',El.Values,true,aContext);
   ReadElType(Obj,'Members',El,@Set_Variant_Members,aContext);
 end;
 
@@ -6319,7 +6330,7 @@ begin
 
   ReadPasElement(Obj,El,aContext);
   El.PackMode:=ReadPackedMode(Obj,'Packed',El);
-  ReadElementList(Obj,El,'Members',El.Members,aContext);
+  ReadElementList(Obj,El,'Members',El.Members,true,aContext);
 
   // VariantEl: TPasElement can be TPasVariable or TPasType
   Data:=Obj.Find('VariantEl');
@@ -6331,7 +6342,7 @@ begin
   else if Data is TJSONObject then
     El.VariantEl:=ReadElement(TJSONObject(Data),El,aContext);
 
-  ReadElementList(Obj,El,'Variants',El.Variants,aContext);
+  ReadElementList(Obj,El,'Variants',El.Variants,true,aContext);
 
   ReadRecordScope(Obj,Scope,aContext);
 end;
@@ -6394,7 +6405,7 @@ begin
       if (Ref=nil) or (Ref.Element=nil) then
         RaiseMsg(20180214121727,Scope.Element,'['+IntToStr(i)+'] missing Id '+IntToStr(Id));
       if Ref.Element is TPasProcedure then
-        Scope.AbstractProcs[i]:=TPasProcedure(Ref.Element)
+        Scope.AbstractProcs[i]:=TPasProcedure(Ref.Element) // no AddRef
       else
         RaiseMsg(20180214121902,Scope.Element,'['+IntToStr(i)+'] is '+GetObjName(Ref.Element));
       end
@@ -6477,14 +6488,14 @@ begin
       end;
     end;
 
-  ReadElementList(Obj,El,'Interfaces',El.Interfaces,aContext);
+  ReadElementList(Obj,El,'Interfaces',El.Interfaces,true,aContext);
   ReadString(Obj,'ExternalNameSpace',El.ExternalNameSpace,El);
   ReadString(Obj,'ExternalName',El.ExternalName,El);
 
   if Scope<>nil then
     ReadClassScope(Obj,Scope,aContext);
   // read Members
-  ReadElementList(Obj,El,'Members',El.Members,aContext);
+  ReadElementList(Obj,El,'Members',El.Members,true,aContext);
   if Scope<>nil then
     ReadClassScopeAbstractProcs(Obj,Scope);
 end;
@@ -6560,7 +6571,7 @@ var
   c: TCallingConvention;
 begin
   ReadPasElement(Obj,El,aContext);
-  ReadElementList(Obj,El,'Args',El.Args,aContext);
+  ReadElementList(Obj,El,'Args',El.Args,true,aContext);
 
   if ReadString(Obj,'Call',s,El) then
     begin
@@ -6677,6 +6688,7 @@ procedure TPCUReader.ReadProperty(Obj: TJSONObject; El: TPasProperty;
   aContext: TPCUReaderContext);
 var
   Scope: TPasPropertyScope;
+  Expr: TPasExpr;
 begin
   if Obj.Find('Scope') is TJSONBoolean then
     Scope:=nil // msIgnoreInterfaces
@@ -6690,11 +6702,21 @@ begin
   El.IndexExpr:=ReadExpr(Obj,El,'Index',aContext);
   El.ReadAccessor:=ReadExpr(Obj,El,'Read',aContext);
   El.WriteAccessor:=ReadExpr(Obj,El,'Write',aContext);
-  El.ImplementsFunc:=ReadExpr(Obj,El,'Implements',aContext);
+  if FileVersion<2 then
+    begin
+    if Obj.Find('Implements')<>nil then
+      begin
+      Expr:=ReadExpr(Obj,El,'Implements',aContext);
+      SetLength(El.Implements,1);
+      El.Implements[0]:=Expr;
+      end;
+    end
+  else
+    ReadPasExprArray(Obj,El,'Implements',El.Implements,aContext);
   El.DispIDExpr:=ReadExpr(Obj,El,'DispId',aContext);
   El.StoredAccessor:=ReadExpr(Obj,El,'Stored',aContext);
   El.DefaultExpr:=ReadExpr(Obj,El,'DefaultValue',aContext);
-  ReadElementList(Obj,El,'Args',El.Args,aContext);
+  ReadElementList(Obj,El,'Args',El.Args,true,aContext);
   //ReadAccessorName: string; // not used by resolver
   //WriteAccessorName: string; // not used by resolver
   //ImplementsName: string; // not used by resolver
@@ -6794,7 +6816,7 @@ begin
   ReadElementReference(Obj,Scope,'ImplProc',@Set_ProcedureScope_ImplProc);
   ReadElementReference(Obj,Scope,'Overridden',@Set_ProcedureScope_Overridden);
   if Proc.Parent is TPasClassType then
-    Scope.ClassScope:=Proc.Parent.CustomData as TPas2JSClassScope;
+    Scope.ClassScope:=Proc.Parent.CustomData as TPas2JSClassScope; // no AddRef
   // ClassScope: TPasClassScope; auto derived
   // Scope.SelfArg only valid for method implementation
 
@@ -6900,7 +6922,7 @@ begin
     if not (Ref.Element is TPasProcedure) then
       RaiseMsg(20180219140547,El,'DeclarationProc='+GetObjName(Ref.Element));
     DeclProc:=TPasProcedure(Ref.Element);
-    Scope.DeclarationProc:=DeclProc;
+    Scope.DeclarationProc:=DeclProc; // no AddRef
 
     El.ProcType:=TPasProcedureTypeClass(DeclProc.ProcType.ClassType).Create('',DeclProc);
     end
