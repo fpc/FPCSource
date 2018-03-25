@@ -68,11 +68,15 @@ Type
   end;
 
 
+  { TSQLDBReportDataHandler }
+
   TSQLDBReportDataHandler = Class(TFPReportDataHandler)
     Function CreateDataset(AOwner : TComponent; AConfig : TJSONObject) : TDataset; override;
     Class Function CheckConfig(AConfig: TJSONObject): String; override;
     Class Function DataType : String; override;
     Class Function DataTypeDescription : String; override;
+    Class Function AllowMasterDetail: Boolean; override;
+    Class Procedure SetMasterDataset(ADetail, AMaster: TDataset); override;
   end;
 
 
@@ -260,6 +264,28 @@ end;
 class function TSQLDBReportDataHandler.DataTypeDescription: String;
 begin
   Result:='SQL Database server';
+end;
+
+class function TSQLDBReportDataHandler.AllowMasterDetail: Boolean;
+begin
+  Result:=True;
+end;
+
+class procedure TSQLDBReportDataHandler.SetMasterDataset(ADetail, AMaster: TDataset);
+
+Var
+  Q : TSQLQuery;
+  DS : TDatasource;
+
+begin
+  Q:=(ADetail as TSQLQuery);
+  DS:=Q.DataSource;
+  if DS=Nil then
+    begin
+    DS:=TDatasource.Create(Q);
+    Q.Datasource:=DS;
+    end;
+  DS.Dataset:=AMaster;
 end;
 
 initialization

@@ -20,6 +20,10 @@ Type
     // Override this to return a dataset which is owned by AOwner, and configured by AConfig.
     // The dataset must not be opened.
     Function CreateDataset(AOwner : TComponent; AConfig : TJSONObject) : TDataset; virtual; abstract;
+    // By default, master-detail is not possible. Let this return 'True' indicate that a dataset allows master-detail.
+    Class Function AllowMasterDetail : Boolean; virtual;
+    // This is called to set the master dataset on Detail
+    Class Procedure SetMasterDataset(ADetail,AMaster : TDataset); virtual;
     // Check if the configuration is valid. Return a string that describes the error(s)
     // If the return is an empty string, the data designer will not close.
     Class Function CheckConfig(AConfig : TJSONObject) : String; virtual;
@@ -36,12 +40,14 @@ Type
   private
     FConfig: TJSONObject;
     FDataType: String;
+    FMaster: String;
     FName: String;
     FReportData: TFPReportDatasetData;
     FRunReportDataItem: TFPReportDataItem;
     function GetJSONConfig: TJSONStringType;
     procedure SetConfig(AValue: TJSONObject);
     procedure SetJSONConfig(AValue: TJSONStringType);
+    procedure SetMaster(AValue: String);
     procedure SetName(AValue: String);
   Protected
     // To hold temporary references
@@ -63,6 +69,7 @@ Type
   Published
     property Name : String Read FName Write SetName;
     Property DataType : String Read FDataType Write FDataType;
+    property Master : String Read FMaster Write SetMaster;
     Property JSONConfig : TJSONStringType Read GetJSONConfig Write SetJSONConfig;
   end;
 
@@ -75,6 +82,7 @@ Type
   Public
     Function IndexOfRunData(aData : TFPReportDatasetData) : integer;
     Function IndexOfName(const aName : String): Integer;
+    Procedure CheckCircularReference(aMasterName : String; aItem : TFPReportDataDefinitionItem);
     Function FindDataByName(const aName : String): TFPReportDataDefinitionItem;
     Function AddData(const aName : String) : TFPReportDataDefinitionItem;
     Procedure SaveToJSON(O : TJSONObject);
@@ -148,7 +156,10 @@ Resourcestring
   SErrInvalidDataType = 'Invalid data type: "%s"';
   SErrInvalidJSONConfig = '%s: Invalid JSON Configuration';
   SErrUnknownDataType =   'Unknown report data type: %s';
-
+  SErrNoMasterDetailSupport = 'No master-detail support for class "%s"';
+  SErrOpeningDataset = 'Error opening data "%s" : Exception %s with message %s';
+  SErrInvalidDatasourceName = 'Invalid data source name : "%s"';
+  SErrCircularReference = 'Invalid master data source "%s", circular references not allowed.';
 
 implementation
 
@@ -333,6 +344,7 @@ Var
   I : Integer;
 
 begin
+  aReport.SaveDataToNames;
   For I:=0 to DataDefinitions.Count-1 do
     begin
     DD:=DataDefinitions[i];
@@ -364,16 +376,17 @@ procedure TFPCustomReportDataManager.ApplyToReport(aReport : TFPReport; Errors: 
 
 Var
   I : Integer;
-  DesignD : TFPReportDataDefinitionItem;
+  MasterD,DesignD : TFPReportDataDefinitionItem;
   DatasetD : TFPReportDatasetData;
+  H : TFPReportDataHandler;
   L : TFPList;
   P : TComponent;
+  DDS,MDS : TDataset;
 
 begin
-  RemoveFromReport(aReport);
   P:=GetDatasetParent;
-  aReport.SaveDataToNames;
   aReport.ReportData.Clear;
+  // Create all datasets
   For I:=0 to DataDefinitions.Count-1 do
     begin
     DesignD:=DataDefinitions[i];
@@ -386,7 +399,7 @@ begin
     except
       On E : Exception do
         If Assigned(Errors) then
-          Errors.Add(Format('Error opening data "%s" : Exception %s with message %s',[DesignD.Name,E.ClassName,E.Message]))
+          Errors.Add(Format(SErrOpeningDataset, [DesignD.Name, E.ClassName, E.Message]))
         else
           Raise;
     end;
@@ -394,6 +407,19 @@ begin
     DatasetD.Dataset.Name:=DatasetNamePrefix+DesignD.Name;
     DatasetD.StartDesigning;    // set designing flag, or OI will not show reference to it.
     DesignD.RunReportDataItem:=aReport.ReportData.AddReportData(DatasetD);
+    end;
+  // Set master-detail relations
+  For I:=0 to DataDefinitions.Count-1 do
+    begin
+    DesignD:=DataDefinitions[i];
+    if (DesignD.Master<>'') then
+      begin
+      H:=TFPCustomReportDataManager.GetTypeHandler(DesignD.DataType);
+      MasterD:=DataDefinitions.FindDataByName(DesignD.Master);
+      DDS:=(DesignD.RunReportDataItem.Data as TFPReportDatasetData).DataSet;
+      MDS:=(MasterD.RunReportDataItem.Data as TFPReportDatasetData).DataSet;
+      H.SetMasterDataset(DDS,MDS);
+      end;
     end;
 end;
 
@@ -486,6 +512,24 @@ begin
     Dec(Result);
 end;
 
+procedure TFPReportDataDefinitions.CheckCircularReference(aMasterName: String; aItem: TFPReportDataDefinitionItem);
+
+Var
+  DD : TFPReportDataDefinitionItem;
+
+begin
+  While (aMasterName<>'') do
+    begin
+    DD:=FindDataByName(aMasterName);
+    if (DD=Nil) then
+      raise EReportDataError.CreateFmt(SErrInvalidDatasourceName, [aMasterName]);
+    If (DD=aItem) then
+      raise EReportDataError.CreateFmt(SErrCircularReference, [aMasterName]);
+    aMasterName:=DD.Master;
+    end;
+
+end;
+
 function TFPReportDataDefinitions.FindDataByName(const aName: String): TFPReportDataDefinitionItem;
 
 var
@@ -503,7 +547,7 @@ function TFPReportDataDefinitions.AddData(const aName: String): TFPReportDataDef
 
 begin
   if (IndexOfName(aName)<>-1) then
-    raise EReportError.CreateFmt(SErrDuplicateData, [aName]);
+    raise EReportDataError.CreateFmt(SErrDuplicateData, [aName]);
   Result:=add as TFPReportDataDefinitionItem;
   Result.Name:=aName;
 end;
@@ -562,6 +606,15 @@ begin
   TFPCustomReportDataManager.RegisterConfigFrameClass(DataType,aClass);
 end;
 
+class function TFPReportDataHandler.AllowMasterDetail: Boolean;
+begin
+  Result:=False;
+end;
+
+Class procedure TFPReportDataHandler.SetMasterDataset(ADetail, AMaster: TDataset);
+begin
+  Raise EReportDataError.CreateFmt(SErrNoMasterDetailSupport,[ADetail.ClassName]);
+end;
 
 
 class function TFPReportDataHandler.CheckConfig(AConfig: TJSONObject): String;
@@ -612,6 +665,12 @@ begin
     end;
 end;
 
+procedure TFPReportDataDefinitionItem.SetMaster(AValue: String);
+begin
+  if FMaster=AValue then Exit;
+  FMaster:=AValue;
+end;
+
 procedure TFPReportDataDefinitionItem.SetName(AValue: String);
 begin
   if FName=AValue then Exit;
@@ -638,6 +697,7 @@ begin
     Config:=D.Config;
     Name:=D.Name;
     DataType:=D.DataType;
+    Master:=D.Master;
     end
   else
     inherited Assign(Source);
@@ -648,6 +708,7 @@ begin
   O.Add('name',Name);
   O.Add('type',DataType);
   O.Add('config',Config.Clone);
+  O.Add('master',Master);
 end;
 
 procedure TFPReportDataDefinitionItem.LoadFromJSON(O: TJSONObject);
@@ -661,6 +722,7 @@ begin
   C:=O.Get('config',TJSONObject(Nil));
   if Assigned(C) then
     Config:=C;
+  Master:=O.Get('master','');
 end;
 
 function TFPReportDataDefinitionItem.Clone(aNewName: String): TFPReportDataDefinitionItem;
