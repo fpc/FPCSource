@@ -163,7 +163,13 @@ interface
          { the temp. needs no final sync instruction if it is located in a register,
            so there are no loops involved in the usage of the temp.
          }
-         ti_no_final_regsync
+         ti_no_final_regsync,
+         { this applied only to delete nodes: the single purpose of the temp. delete node is to clean up memory. In case
+           of cse it might happen that the tempcreate node is optimized away so tempinfo is never initialized properly but
+           the allocated memory must be disposed
+           If a temp. node has this flag set, the life time of the temp. data must be determined by reg. life, the temp.
+           location (in the sense of stack space/register) is never release }
+         ti_cleanup_only
          );
        ttempinfoflags = set of ttempinfoflag;
 

@@ -589,6 +589,9 @@ interface
 
         location_reset(location,LOC_VOID,OS_NO);
 
+        if ti_cleanup_only in tempflags then
+          exit;
+
         { see comments at ti_const declaration: if we initialised this temp with
           the value of another temp, that other temp was not freed because the
           ti_const flag was set }

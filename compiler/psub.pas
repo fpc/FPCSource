@@ -31,9 +31,6 @@ interface
       symdef,procinfo,optdfa;
 
     type
-
-      { tcgprocinfo }
-
       tcgprocinfo = class(tprocinfo)
       private
         procedure CreateInlineInfo;

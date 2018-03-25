@@ -284,6 +284,7 @@ unit optcse;
         nodes : tblocknode;
         creates,
         statements : tstatementnode;
+        deletetemp : ttempdeletenode;
         hp : ttempcreatenode;
         addrstored : boolean;
         hp2 : tnode;
@@ -414,6 +415,12 @@ unit optcse;
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
                         addstatement(creates,tnode(templist[i]));
+
+                        { the delete node has no semantic use yet, it is just used to clean up memory }
+                        deletetemp:=ctempdeletenode.create(ttempcreatenode(templist[i]));
+                        deletetemp.includetempflag(ti_cleanup_only);
+                        addstatement(tstatementnode(arg^),deletetemp);
+
                         { make debugging easier and set temp. location to the original location }
                         creates.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -505,16 +512,35 @@ unit optcse;
 
 
     function do_optcse(var rootnode : tnode) : tnode;
+      var
+        deletes,
+        statements : tstatementnode;
+        deleteblock,
+        rootblock : tblocknode;
       begin
 {$ifdef csedebug}
-         writeln('====================================================================================');
-         writeln('CSE optimization pass started');
-         writeln('====================================================================================');
-         printnode(rootnode);
-         writeln('====================================================================================');
-         writeln;
+        writeln('====================================================================================');
+        writeln('CSE optimization pass started');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
 {$endif csedebug}
-        foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,nil);
+        deleteblock:=internalstatements(deletes);
+        foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,@deletes);
+        rootblock:=internalstatements(statements);
+        addstatement(statements,rootnode);
+        addstatement(statements,deleteblock);
+        rootnode:=rootblock;
+        do_firstpass(rootnode);
+{$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('CSE optimization result');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+{$endif csedebug}
         result:=nil;
       end;
 
