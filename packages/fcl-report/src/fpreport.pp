@@ -2238,10 +2238,14 @@ Function ReportExportManager : TFPReportExportManager;
 { this should probably be more configurable or flexible per platform }
 
 Const
-{$IF Defined(UNIX) or Defined(WINDOWS)}
+{$IFDEF UNIX}
   cDefaultFont = 'LiberationSans';
 {$ELSE}
+{$IFDEF WINDOWS}
+  cDefaultFont = 'Arial';
+{$ELSE}
   cDefaultFont = 'Helvetica';
+{$ENDIF}
 {$ENDIF}
 
 Var
