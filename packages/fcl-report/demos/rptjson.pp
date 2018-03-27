@@ -45,6 +45,7 @@ procedure TJSONDemo.InitialiseData;
 begin
   FReportData.Path:='Data';
   FReportData.LoadFromFile('countries.json');
+  rpt.ReportData.AddReportData(FReportData);
 end;
 
 procedure TJSONDemo.CreateReportDesign;
@@ -88,7 +89,7 @@ begin
 
   GroupHeader := TFPReportGroupHeaderBand.Create(p);
   GroupHeader.Layout.Height := 15;
-  GroupHeader.GroupCondition := 'copy(''[Name]'',1,1)';
+  GroupHeader.GroupCondition := 'copy(Name,1,1)';
   {$ifdef ColorBands}
   GroupHeader.Frame.Shape := fsRectangle;
   GroupHeader.Frame.BackgroundColor := clGroupHeaderFooter;

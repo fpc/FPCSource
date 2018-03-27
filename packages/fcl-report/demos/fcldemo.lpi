@@ -31,13 +31,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-d masterdetaildataset -f pdf"/>
+        <CommandLineParams Value="-d jsondata -f pdf"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="-d masterdetaildataset -f pdf"/>
+            <CommandLineParams Value="-d jsondata -f pdf"/>
           </local>
         </Mode0>
       </Modes>
