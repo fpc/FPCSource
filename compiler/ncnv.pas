@@ -1009,6 +1009,7 @@ implementation
       begin
          n:=ttypeconvnode(inherited dogetcopy);
          n.convtype:=convtype;
+         n.convnodeflags:=convnodeflags;
          n.totypedef:=totypedef;
          n.assignment_side:=assignment_side;
          dogetcopy:=n;
