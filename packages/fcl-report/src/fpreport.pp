@@ -11110,6 +11110,8 @@ end;
 
 procedure TFPReportLayouter.ShowDataHeaderBand;
 begin
+  if Not assigned(CurrentLoop.FDataHeader) then
+    exit;
   if CurrentLoop.FDataHeaderPrinted then
     Exit; // nothing further to do
   if ShowBandWithChilds(CurrentLoop.FDataHeader) then
