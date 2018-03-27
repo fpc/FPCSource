@@ -403,7 +403,7 @@ procedure TFPCustomReportDataManager.EndRender;
 Var
   I : integer;
   D : TFPReportDataDefinitionItem;
-  H : TFPReportDataHandler;
+  H : TFPReportDataHandlerClass;
 
 begin
   // Create all datasets
@@ -412,7 +412,7 @@ begin
     D:=DataDefinitions[i];
     if Assigned(D.RunReportData) then
       begin
-      H:=TFPCustomReportDataManager.GetTypeHandler(D.DataType);
+      H:=TFPCustomReportDataManager.GetTypeHandlerClass(D.DataType);
       H.EndRender(D.RunReportData.DataSet);
       end;
     end;
