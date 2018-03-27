@@ -33,10 +33,18 @@ interface
        ;
 
     type
+       ttypeconvnodeflag = (
+          tcnf_dummyflag  { todo: remove this, when the first real typeconvnode
+                            flag is added (this is just a dummy element, because
+                            the enum cannot be empty) }
+       );
+       ttypeconvnodeflags = set of ttypeconvnodeflag;
+
        ttypeconvnode = class(tunarynode)
           totypedef   : tdef;
           totypedefderef : tderef;
           convtype : tconverttype;
+          convnodeflags : ttypeconvnodeflags;
           warn_pointer_to_signed,
           assignment_side: boolean;
           constructor create(node : tnode;def:tdef);virtual;
@@ -910,6 +918,7 @@ implementation
       begin
          inherited create(typeconvn,node);
          convtype:=tc_none;
+         convnodeflags:=[];
          totypedef:=def;
          if def=nil then
           internalerror(200103281);
@@ -967,6 +976,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(totypedefderef);
         convtype:=tconverttype(ppufile.getbyte);
+        ppufile.getsmallset(convnodeflags);
       end;
 
 
@@ -975,6 +985,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(totypedefderef);
         ppufile.putbyte(byte(convtype));
+        ppufile.putsmallset(convnodeflags);
       end;
 
 
