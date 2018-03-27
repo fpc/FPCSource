@@ -34,9 +34,14 @@ interface
 
     type
        ttypeconvnodeflag = (
-          tcnf_dummyflag  { todo: remove this, when the first real typeconvnode
-                            flag is added (this is just a dummy element, because
-                            the enum cannot be empty) }
+          { the typeconvnode is a proc_2_procvar, generated internally by an
+            address operator, such as @proc, Addr(proc), Ofs(proc) or Seg(proc),
+            which is then going to be converted to a void pointer. Why does it
+            matter? Because, on i8086 far code memory models you're allowed to
+            take the address of a _near_ procedure as a void pointer (which the
+            @ operator does in TP mode), but not as a procvar (in that case the
+            procedure must be far). }
+          tcnf_proc_2_procvar_2_voidpointer
        );
        ttypeconvnodeflags = set of ttypeconvnodeflag;
 
