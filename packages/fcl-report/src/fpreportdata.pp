@@ -27,6 +27,10 @@ Type
     // Check if the configuration is valid. Return a string that describes the error(s)
     // If the return is an empty string, the data designer will not close.
     Class Function CheckConfig(AConfig : TJSONObject) : String; virtual;
+    // Called before and after rendering of a report in the designer.
+    // Can be used to start/stop transactions
+    Class Procedure StartRender(ADataset : TDataset); virtual;
+    Class Procedure EndRender(ADataset : TDataset); virtual;
     // Configuration component. This is normally a visual class.
     Class Function ConfigFrameClass : TComponentClass; virtual;
     Class Function DataType : String; virtual; abstract;
@@ -139,6 +143,9 @@ Type
     procedure RemoveFromReport;
     procedure ApplyToReport(aReport: TFPReport; Errors: TStrings); virtual;
     Procedure ApplyToReport(Errors : TStrings);
+    // call this to start/stop a render, so dataset handlers can do cleanup, refetch data, reset transactions.
+    Procedure StartRender;
+    Procedure EndRender;
     Property Report : TFPReport Read FReport Write SetReport;
     Property DataParent : TComponent Read FDataParent Write SetDataParent;
   end;
@@ -369,6 +376,46 @@ procedure TFPCustomReportDataManager.ApplyToReport(Errors: TStrings);
 
 begin
   ApplyToReport(FReport,Errors);
+end;
+
+procedure TFPCustomReportDataManager.StartRender;
+
+Var
+  I : integer;
+  D : TFPReportDataDefinitionItem;
+  H : TFPReportDataHandler;
+
+begin
+  // Create all datasets
+  For I:=0 to DataDefinitions.Count-1 do
+    begin
+    D:=DataDefinitions[i];
+    if Assigned(D.RunReportData) then
+      begin
+      H:=TFPCustomReportDataManager.GetTypeHandler(D.DataType);
+      H.StartRender(D.RunReportData.DataSet);
+      end;
+    end;
+end;
+
+procedure TFPCustomReportDataManager.EndRender;
+
+Var
+  I : integer;
+  D : TFPReportDataDefinitionItem;
+  H : TFPReportDataHandler;
+
+begin
+  // Create all datasets
+  For I:=0 to DataDefinitions.Count-1 do
+    begin
+    D:=DataDefinitions[i];
+    if Assigned(D.RunReportData) then
+      begin
+      H:=TFPCustomReportDataManager.GetTypeHandler(D.DataType);
+      H.EndRender(D.RunReportData.DataSet);
+      end;
+    end;
 end;
 
 procedure TFPCustomReportDataManager.ApplyToReport(aReport : TFPReport; Errors: TStrings);
@@ -620,6 +667,16 @@ end;
 class function TFPReportDataHandler.CheckConfig(AConfig: TJSONObject): String;
 begin
   Result:='';
+end;
+
+class procedure TFPReportDataHandler.StartRender(ADataset: TDataset);
+begin
+  // Do nothing
+end;
+
+class procedure TFPReportDataHandler.EndRender(ADataset: TDataset);
+begin
+  // Do nothing
 end;
 
 class function TFPReportDataHandler.ConfigFrameClass: TComponentClass;

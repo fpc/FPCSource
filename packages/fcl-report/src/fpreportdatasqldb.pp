@@ -51,10 +51,12 @@ Type
       FPool : TStringList;
   Public
     Procedure LoadFromConfig(aConfig : TJSONObject);
-    class function CreateConnection(aConfig: TJSONObject): TFPReportConnector;
-    Class Function TestConnection (aConfig : TJSONObject) : string;
+    class function CreateConnection(aConfig: TJSONObject): TFPReportConnector; virtual;
+    Class Function TestConnection (aConfig : TJSONObject) : string; virtual;
     class function CreateDataset(aOwner: TComponent; aConfig: TJSONObject): TSQLQuery;
     class function CreateConfigHash(aConfig: TJSONObject): String;
+    Class Procedure StartRender(ADataset : TDataset); virtual;
+    Class Procedure EndRender(ADataset : TDataset); virtual;
     Class procedure CheckDBRelease;
     Property RefCount : Integer Read FRefCount;
   end;
@@ -67,11 +69,22 @@ Type
     Destructor Destroy; override;
   end;
 
+  { TReportSQLtransaction }
 
+  TFPReportSQLtransaction = Class(TSQLTransaction)
+  private
+    FStartRefCount: Integer;
+  Public
+    Procedure StartRender;
+    Procedure EndRender;
+    Property StartRefCount : Integer Read FStartRefCount;
+  end;
   { TSQLDBReportDataHandler }
 
   TSQLDBReportDataHandler = Class(TFPReportDataHandler)
     Function CreateDataset(AOwner : TComponent; AConfig : TJSONObject) : TDataset; override;
+    Class Procedure StartRender(ADataset : TDataset); override;
+    Class Procedure EndRender(ADataset : TDataset); override;
     Class Function CheckConfig(AConfig: TJSONObject): String; override;
     Class Function DataType : String; override;
     Class Function DataTypeDescription : String; override;
@@ -81,6 +94,30 @@ Type
 
 
 implementation
+
+{ TFPReportSQLtransaction }
+
+procedure TFPReportSQLtransaction.StartRender;
+
+Var
+  Start : Boolean;
+
+begin
+  Start:=(FStartRefCount=0);
+  Inc(FStartRefCount);
+  if Start and not Active then
+    StartTransaction;
+end;
+
+procedure TFPReportSQLtransaction.EndRender;
+begin
+  if FStartRefCount>0 then
+    begin
+    Dec(FStartRefCount);
+    If FStartRefCount=0 then
+      RollBack;
+    end;
+end;
 
 { TFPReportQuery }
 
@@ -147,6 +184,43 @@ begin
       AH(IntToStr(I),A.Strings[i]);
 end;
 
+
+class procedure TFPReportConnector.StartRender(ADataset: TDataset);
+
+var
+  Q : TFPReportQuery;
+  T : TFPReportSQLTransaction;
+
+begin
+  if (aDataset is TFPReportQuery) then
+    begin
+    Q:=aDataset as TFPReportQuery;
+    if Q.Transaction is TFPReportSQLTransaction then
+      begin
+      T:=Q.Transaction as TFPReportSQLTransaction;
+      T.StartRender;
+      end;
+    end;
+end;
+
+class procedure TFPReportConnector.EndRender(ADataset: TDataset);
+
+var
+  Q : TFPReportQuery;
+  T : TFPReportSQLTransaction;
+
+begin
+  if (aDataset is TFPReportQuery) then
+    begin
+    Q:=aDataset as TFPReportQuery;
+    if Q.Transaction is TFPReportSQLTransaction then
+      begin
+      T:=Q.Transaction as TFPReportSQLTransaction;
+      T.EndRender;
+      end;
+    end;
+end;
+
 class procedure TFPReportConnector.CheckDBRelease;
 
 Var
@@ -189,7 +263,7 @@ class function TFPReportConnector.CreateConnection(aConfig: TJSONObject): TFPRep
 begin
   Result:=Self.Create(Nil);
   Result.LoadFromConfig(aConfig);
-  Result.Transaction:=TSQLtransaction.Create(Result);
+  Result.Transaction:=TFPReportSQLtransaction.Create(Result);
 end;
 
 class function TFPReportConnector.TestConnection(aConfig: TJSONObject): string;
@@ -241,6 +315,16 @@ end;
 function TSQLDBReportDataHandler.CreateDataset(AOwner: TComponent; AConfig: TJSONObject): TDataset;
 begin
   Result:=TFPReportConnector.CreateDataset(aOwner,aConfig);
+end;
+
+class procedure TSQLDBReportDataHandler.StartRender(ADataset: TDataset);
+begin
+  TFPReportConnector.StartRender(aDataset);
+end;
+
+class procedure TSQLDBReportDataHandler.EndRender(ADataset: TDataset);
+begin
+  TFPReportConnector.EndRender(aDataset);
 end;
 
 class function TSQLDBReportDataHandler.CheckConfig(AConfig: TJSONObject): String;
