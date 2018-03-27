@@ -2238,7 +2238,7 @@ Function ReportExportManager : TFPReportExportManager;
 { this should probably be more configurable or flexible per platform }
 
 Const
-{$IFDEF UNIX}
+{$IF Defined(UNIX) or Defined(WINDOWS)}
   cDefaultFont = 'LiberationSans';
 {$ELSE}
   cDefaultFont = 'Helvetica';
@@ -11613,6 +11613,9 @@ begin
   //  write(': ',TFPReportCustomGroupFooterBand(aBand).GroupHeader.GroupCondition);
   //writeln(': Space = ', FormatFloat('#,##0.0', FSpaceLeft));
   Result := False;
+  if not Assigned(aBand) then
+    Exit;
+
   lHandledBands := TBandList.Create;
   try
     lBand := aBand;
