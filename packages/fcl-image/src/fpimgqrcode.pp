@@ -121,7 +121,36 @@ end;
 
 function TImageQRCodeGenerator.SaveToFile(const AFileName: String): Boolean;
 
+  {$IF NOT (FPC_FULLVERSION >= 30101)}
+  function FindWriterFromExtension(extension: String): TFPCustomImageWriterClass;
+  var
+    s: string;
+    r: integer;
+  begin
+    extension := lowercase (extension);
+    if (extension <> '') and (extension[1] = '.') then
+      system.delete (extension,1,1);
+    with ImageHandlers do
+      begin
+        r := count-1;
+        s := extension + ';';
+        while (r >= 0) do
+          begin
+          Result := ImageWriter[TypeNames[r]];
+          if (pos(s,{$if (FPC_FULLVERSION = 20604)}Extentions{$else}Extensions{$endif}[TypeNames[r]]+';') <> 0) then
+            Exit;
+          dec (r);
+          end;
+      end;
+    Result := nil;
+  end;
 
+  function FindWriterFromFileName(const filename: String): TFPCustomImageWriterClass;
+  begin
+    Result := FindWriterFromExtension(ExtractFileExt(filename));
+  end;
+  {$ENDIF}
+  
 Var
   WriterClass : TFPCustomImageWriterClass;
   Writer : TFPCustomImageWriter;
@@ -131,7 +160,7 @@ Var
 begin
   Result := Size>0;
   if not Result then exit;
-  WriterClass := TFPCustomImage.FindWriterFromFileName(AFileName);
+  WriterClass := {$IF (FPC_FULLVERSION >= 30101)}TFPCustomImage.{$ENDIF}FindWriterFromFileName(AFileName);
   if Assigned(WriterClass) then
   begin
     Writer := nil;
