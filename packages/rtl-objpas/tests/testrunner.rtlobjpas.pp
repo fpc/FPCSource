@@ -1,4 +1,5 @@
 { %CONFIGFILE=fpcunit-console-defaults.ini testdefaults.ini }
+{ %SKIPTARGET=embedded,nativent,msdos,win16,macos,palmos }
 
 program testrunner.rtlobjpas;
 
