@@ -180,7 +180,11 @@ begin
     begin
     PI:=GetPropInfo(O,AFieldName);
     if Assigned(PI) then
+      {$if FPC_FULLVERSION<=30000}
+      aValue:=GetPropValue(O,PI^.Name,True);
+      {$else}
       aValue:=GetPropValue(O,PI,True);
+      {$endif}
     end;
 end;
 
@@ -191,7 +195,7 @@ Const
   tkAllowed = tkProperties -
               [tkArray,tkRecord,tkInterface,tkClass,
                tkObject,tkDynArray,tkInterfaceRaw,tkProcVar,
-               tkHelper,tkFile,tkClassRef,tkPointer];
+               tkHelper{$if FPC_FULLVERSION>30000},tkFile,tkClassRef,tkPointer{$ENDIF}];
 
 Var
   C : TClass;

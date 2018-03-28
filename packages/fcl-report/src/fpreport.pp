@@ -5580,7 +5580,7 @@ begin
     Inc(I);
     end;
   if (B=Nil) then
-    aErrors.Add(SErrDanglingChild,[Name]);
+    aErrors.Add(Format(SErrDanglingChild,[Name]));
 end;
 
 class function TFPReportCustomChildBand.ReportBandType: TFPReportBandType;
@@ -5785,7 +5785,7 @@ procedure TFPReportCustomGroupHeaderBand.Validate(aErrors: TStrings);
 begin
   inherited Validate(aErrors);
   If (GroupCondition='') then
-    aErrors.Add(SErrEmptyGroupExpression,[Name]);
+    aErrors.Add(Format(SErrEmptyGroupExpression,[Name]));
 end;
 
 procedure TFPReportCustomGroupHeaderBand.Assign(Source: TPersistent);
@@ -8849,7 +8849,7 @@ end;
 procedure TFPReportCustomBand.Validate(AErrors : TStrings);
 begin
   if (Page=Nil) then
-    aErrors.Add(SErrNoPageForBand,[Name]);
+    aErrors.Add(Format(SErrNoPageForBand,[Name]));
 end;
 
 procedure TFPReportCustomBand.WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);

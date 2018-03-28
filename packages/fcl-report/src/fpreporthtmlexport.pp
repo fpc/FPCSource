@@ -682,8 +682,8 @@ begin
         if (AElement.Frame.Shape=fsRectangle) or (FL in AElement.Frame.Lines) then
           begin
           Style.Add(ColorToStyle(Format('border-%s-color',[FNames[FL]]),AElement.Frame.Color));
-          Style.Add('border-%s-width: %dpx;',[FNames[FL],AElement.Frame.Width]);
-          Style.Add('border-%s-style: %s;',[FNames[FL],FStyles[AElement.Frame.Pen]]);
+          Style.Add(Format('border-%s-width: %dpx;',[FNames[FL],AElement.Frame.Width]));
+          Style.Add(Format('border-%s-style: %s;',[FNames[FL],FStyles[AElement.Frame.Pen]]));
           end;
       end;
     if AExtra<>'' then

@@ -416,7 +416,7 @@ begin
     Canvas.TextOut(
         mmToPixels(lXPos),
         mmToPixels(lYPos),
-        txtblk.Text
+        {$if FPC_FULLVERSION>30000}txtblk.Text{$ELSE} UTF8Decode(txtblk.Text){$ENDIF}
     );
   end;
 end;

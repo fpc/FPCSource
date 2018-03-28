@@ -464,7 +464,11 @@ Var
 begin
   if Not Assigned(FStyleContent) then
     begin
+    {$if FPC_FULLVERSION<30000}
+    aStyle.Delimiter:=' ';
+    {$else}
     aStyle.LineBreak:=' ';
+    {$ENDIF}
     AElement['style']:=aStyle.text
     end
   else

@@ -65,6 +65,12 @@ resourcestring
   SErrInvalidJSONAtPath = 'Invalid JSON at Path. Need Array or Object';
   SErrInvalidPath = 'Path "%s" is not valid';
 
+{$if FPC_FULLVERSION<30000}
+Const
+  StructuredJSONTypes  = [jtArray,jtObject];
+{$ENDIF}
+
+
 { TFPReportJSONData }
 
 function TFPReportJSONData.GetJSON: TJSONStringType;
@@ -76,6 +82,7 @@ begin
 end;
 
 procedure TFPReportJSONData.SetRoot;
+
 
 Var
   d : TJSONData;
@@ -172,7 +179,9 @@ begin
       ntFloat : AValue:=D.AsFloat;
       ntInteger : AValue:=D.AsInteger;
       ntInt64 : AValue:=D.AsInt64;
+      {$if FPC_FULLVERSION>30000}
       ntQWord : AValue:=D.AsQWord;
+      {$ENDIF}
     end;
   jtBoolean:
     AValue:=D.AsBoolean;
