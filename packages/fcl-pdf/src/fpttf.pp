@@ -525,13 +525,23 @@ procedure TFPFontCacheList.ReadStandardFonts;
   {$ifdef mswindows}
   function GetWinFontsDir: string;
   var
+    {$if FPC_FULLVERSION < 30400}
+    w :  Array[0..MaxPathLen] of Char;
+    {$ELSE}
     w : pwidechar;
+    {$ENDIF}
   begin
+    {$if FPC_FULLVERSION < 30400}
+    SHGetSpecialFolderPath(0,w,CSIDL_FONTS,false);
+    {$else}
     SHGetKnownFolderPath(FOLDERID_Fonts,0,0,w);
+    {$endif}
     Result := w;
+    {$if FPC_FULLVERSION > 30400}
     CoTaskMemFree(w);
+    {$endif}
   end;
-  {$endif}
+{$endif}
 
 {$ifdef HasFontsConf}
 var
@@ -693,4 +703,5 @@ finalization
   uFontCacheList.Free;
 
 end.
+
 
