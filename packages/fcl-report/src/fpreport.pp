@@ -9028,7 +9028,7 @@ procedure TFPReportCustomBandWithData.Validate(aErrors: TStrings);
 begin
   inherited Validate(aErrors);
   if (Data=Nil) then
-    aErrors.Add('Band "%s" has no data assigned.',[Name]);
+    aErrors.Add(Format('Band "%s" has no data assigned.',[Name]));
 end;
 
 { TFPReportCustomGroupFooterBand }
