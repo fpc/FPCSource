@@ -210,7 +210,7 @@ implementation
     begin
       result:=
         inherited and
-        (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+        (tx86pointerdef(address_type).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
     end;
 
 
@@ -223,7 +223,7 @@ implementation
       begin
         result:=
           inherited and
-          (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+          (tx86pointerdef(address_type).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
       end;
 
 
