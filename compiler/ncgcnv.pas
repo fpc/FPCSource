@@ -548,18 +548,18 @@ interface
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
-            location_reset(location,LOC_REGISTER,def_cgsize(voidcodepointertype));
+            location_reset(location,LOC_REGISTER,def_cgsize(tabstractprocdef(resultdef).address_type));
             { only a code pointer? (when taking the address of classtype.method
               we also only get a code pointer even though the resultdef is a
               procedure of object, and hence is_addressonly would return false)
              }
-	    if left.location.size = def_cgsize(voidcodepointertype) then
+	    if left.location.size = def_cgsize(tabstractprocdef(resultdef).address_type) then
               begin
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       { the procedure symbol is encoded in reference.symbol -> take address }
-                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
+                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,tabstractprocdef(resultdef).address_type);
                       hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
                     end;
                   else
