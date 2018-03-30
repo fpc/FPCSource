@@ -357,55 +357,141 @@ var rtl = {
     return false;
   },
 
+  Exception: null,
   EInvalidCast: null,
+  EAbstractError: null,
+  ERangeError: null,
 
-  raiseEInvalidCast: function(){
-    if (rtl.EInvalidCast){
-      if (rtl.EInvalidCast.Create){
-        throw rtl.EInvalidCast.$create("Create");
-      } else {
-        throw rtl.EInvalidCast.$create("create");
+  raiseE: function(typename){
+    var t = rtl[typename];
+    if (t==null){
+      var mod = pas.SysUtils;
+      if (!mod) mod = pas.sysutils;
+      if (mod){
+        t = mod[typename];
+        if (!t) t = mod[typename.toLowerCase()];
+        if (!t) t = mod['Exception'];
+        if (!t) t = mod['exception'];
       }
-    } else {
-      throw "invalid type cast";
     }
+    if (t){
+      if (t.Create){
+        throw t.$create("Create");
+      } else if (t.create){
+        throw t.$create("create");
+      }
+    }
+    if (typename == "EInvalidCast") throw "invalid type cast";
+    if (typename == "EAbstractError") throw "Abstract method called";
+    if (typename == "ERangeError") throw "range error";
+    throw typename;
   },
 
   as: function(instance,type){
     if((instance === null) || rtl.is(instance,type)) return instance;
-    rtl.raiseEInvalidCast();
+    rtl.raiseE("EInvalidCast");
   },
 
   asExt: function(instance,type,mode){
     if((instance === null) || rtl.isExt(instance,type,mode)) return instance;
-    rtl.raiseEInvalidCast();
+    rtl.raiseE("EInvalidCast");
+  },
+
+  createInterface: function(module, name, guid, fnnames, ancestor, initfn){
+    //console.log('createInterface name="'+name+'" guid="'+guid+'" names='+fnnames);
+    var i = ancestor?Object.create(ancestor):{};
+    module[name] = i;
+    i.$name = name;
+    i.$fullname = module.$name+'.'+name;
+    i.$guid = guid;
+    i.$names = fnnames?fnnames:[];
+    if (rtl.isFunction(initfn)){
+      // rtti
+      if (rtl.debug_rtti) rtl.debug('createInterface '+i.$fullname);
+      var t = i.$module.$rtti.$Interface(name,{ "interface": i, module: module });
+      i.$rtti = t;
+      if (ancestor) t.ancestor = ancestor.$rtti;
+      if (!t.ancestor) t.ancestor = null;
+      initfn.call(i);
+    }
+    return i;
+  },
+
+  addIntf: function (aclass, intf, map){
+    'use strict';
+    if(!map) map = {};
+    var t = intf;
+    var item = Object.create(t);
+    aclass.$intfmaps[intf.$guid] = item;
+    do{
+      var names = t.$names;
+      if (!names) break;
+      for (var i=0; i<names.length; i++){
+        var intfname = names[i];
+        var fnname = map[intfname];
+        if (!fnname) fnname = intfname;
+        let fn = aclass[fnname];
+        console.log('addIntf: intftype='+t.$name+' index='+i+' intfname="'+intfname+'" fnname="'+fnname+'" proc='+typeof(fn));
+        if (typeof(fn)==="function"){
+          item[intfname] = function(){ return fn.apply(this.$o,arguments); };
+        } else {
+          item[intfname] = rtl.raiseE('EAbstractError');
+        }
+      }
+      t = Object.getPrototypeOf(t);
+    }while(t!=null);
+  },
+
+  getIntfG: function (obj, guid){
+    if (!obj) return null;
+    console.log('getIntfG: obj='+obj.$classname+' guid='+guid);
+    // search
+    var maps = obj.$class.$intfmaps;
+    if (!maps) return null;
+    var item = maps[guid];
+    if (!item) return null;
+    // check delegation
+    if (typeof item == 'function') return item.call(obj);
+    // check cache
+    if (obj.$interfaces){
+      intf = obj.$interfaces[guid];
+      console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' cache='+typeof(intf));
+      if (intf) return intf;
+    }
+    var intf = Object.create(item);
+    intf.$o = obj;
+    if (!obj.$interfaces) obj.$interfaces = {};
+    obj.$interfaces[guid] = intf;
+    return intf;
+  },
+
+  getIntfT: function(obj,intftype){
+    return rtl.getIntfG(obj,intftype.$guid);
+  },
+
+  intfIsClass: function(intf,classtype){
+    return (intf!=null) && (rtl.is(intf.$o,classtype));
+  },
+
+  intfAsClass: function(intf,classtype){
+    if (intf==null) return null;
+    return rtl.as(intf.$o,classtype);
+  },
+
+  intfToClass: function(intf,classtype){
+    if ((intf!=null) && rtl.is(intf.$o,classtype)) return intf.$o;
+    return null;
   },
 
   checkMethodCall: function(obj,type){
     if (rtl.isObject(obj) && rtl.is(obj,type)) return;
-    rtl.raiseEInvalidCast();
-  },
-
-  raiseRangeCheck: function(){
-    var m = pas.sysutils || pas.SysUtils;
-    if (m){
-      var t = m.ERangeError || m.erangeerror;
-      if (rtl.isPasClass(t)){
-        var f = 'Create';
-        if (rtl.isFunction(t[f])){
-          throw t.$create(f);
-        } else {
-          throw t.$create('create');
-        }
-      }
-    }
-    throw 'range error';
+    rtl.raiseE("EInvalidCast");
   },
 
   rc: function(i,minval,maxval){
     // range check integer
     if ((Math.floor(i)===i) && (i>=minval) && (i<=maxval)) return i;
-    rtl.raiseRangeCheck();
+    rtl.raiseE('ERangeError');
   },
 
   length: function(arr){
@@ -704,7 +790,7 @@ var rtl = {
     // base object for storing members: a simple object
     rtl.tTypeMembers = {};
 
-    // tTypeInfoStruct - base object for tTypeInfoClass and tTypeInfoRecord
+    // tTypeInfoStruct - base object for tTypeInfoClass, tTypeInfoRecord, tTypeInfoInterface
     var tis = newBaseTI("tTypeInfoStruct",0);
     tis.$addMember = function(name,ancestor,options){
       if (rtl.debug_rtti){
@@ -775,6 +861,7 @@ var rtl = {
     newBaseTI("tTypeInfoRecord",12 /* tkRecord */,rtl.tTypeInfoStruct);
     newBaseTI("tTypeInfoClass",13 /* tkClass */,rtl.tTypeInfoStruct);
     newBaseTI("tTypeInfoClassRef",14 /* tkClassRef */);
+    newBaseTI("tTypeInfoInterface",15 /* tkInterface */,rtl.tTypeInfoStruct);
   },
 
   tSectionRTTI: {
@@ -824,6 +911,7 @@ var rtl = {
     $Class: function(name,o){ return this.$Scope(name,rtl.tTypeInfoClass,o); },
     $ClassRef: function(name,o){ return this.$inherited(name,rtl.tTypeInfoClassRef,o); },
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
+    $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); },
   },
 
   newTIParam: function(param){
