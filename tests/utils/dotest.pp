@@ -115,12 +115,6 @@ const
   TargetCanCompileLibraries : boolean = true;
   UniqueSuffix: string = '';
 
-{ Constants used in IsAbsolute function }
-  TargetHasDosStyleDirectories : boolean = false;
-  TargetAmigaLike : boolean = false;
-  TargetIsMacOS : boolean = false;
-  TargetIsUnix : boolean = false;
-
 
 const
   NoSharedLibSupportPattern='$nosharedlib';
@@ -135,71 +129,6 @@ begin
   AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoSharedLibSupportPattern, TargetHasNoSharedLibSupport);
   AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingUnicodeSupport, TargetHasNoWorkingUnicodeSupport);
   AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
-end;
-
-{ extracted from rtl/macos/macutils.inc }
-
-function IsMacFullPath (const path: string): Boolean;
-  begin
-    if Pos(':', path) = 0 then    {its partial}
-      IsMacFullPath := false
-    else if path[1] = ':' then
-      IsMacFullPath := false
-    else
-      IsMacFullPath := true
-  end;
-
-
-Function IsAbsolute (Const F : String) : boolean;
-{
-  Returns True if the name F is a absolute file name
-}
-begin
-  IsAbsolute:=false;
-  if TargetHasDosStyleDirectories then
-    begin
-      if (F[1]='/') or (F[1]='\') then
-        IsAbsolute:=true;
-      if (Length(F)>2) and (F[2]=':') and ((F[3]='\') or (F[3]='/')) then
-        IsAbsolute:=true;
-    end
-  else if TargetAmigaLike then
-    begin
-      if (length(F)>0) and (Pos(':',F) <> 0) then
-        IsAbsolute:=true;
-    end
-  else if TargetIsMacOS then
-    begin
-      IsAbsolute:=IsMacFullPath(F);
-    end
-  { generic case }
-  else if (F[1]='/') then
-    IsAbsolute:=true;
-end;
-
-Function FileExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
-begin
-  FindFirst (F,anyfile,Info);
-  FileExists:=DosError=0;
-  FindClose (Info);
-end;
-
-
-Function PathExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
-begin
-  FindFirst (F,anyfile,Info);
-  PathExists:=(DosError=0) and (Info.Attr and Directory=Directory);
-  FindClose (Info);
 end;
 
 
@@ -276,60 +205,6 @@ begin
   else
     PPFileInfo.Insert(current,PPFile[current]);
   FindClose (Info);
-end;
-
-
-function SplitPath(const s:string):string;
-var
-  i : longint;
-begin
-  i:=Length(s);
-  while (i>0) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
-   dec(i);
-  SplitPath:=Copy(s,1,i);
-end;
-
-
-function SplitBasePath(const s:string): string;
-var
-  i : longint;
-begin
-  i:=1;
-  while (i<length(s)) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
-   inc(i);
-  if s[i] in  ['/','\'{$IFDEF MACOS},':'{$ENDIF}] then
-    dec(i);
-  SplitBasePath:=Copy(s,1,i);
-end;
-
-Function SplitFileName(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileName:=n+e;
-end;
-
-Function SplitFileBase(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileBase:=n;
-end;
-
-Function SplitFileExt(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileExt:=e;
 end;
 
 
@@ -1453,6 +1328,9 @@ begin
       {$I+}
       ioresult;
       s:=CurrDir+SplitFileName(TestExe);
+      { Add -Ssource_file_name for dosbox_wrapper }
+      if pos('dosbox_wrapper',EmulatorName)>0 then
+        s:=s+' -S'+PPFile[current];
       execres:=ExecuteEmulated(EmulatorName,s,FullExeLogFile,StartTicks,EndTicks);
       {$I-}
        ChDir(OldDir);
