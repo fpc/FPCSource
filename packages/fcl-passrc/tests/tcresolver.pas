@@ -371,6 +371,9 @@ type
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
+    {$IFDEF EnableInterfaces}
+    Procedure TestProcOverloadWithInterfaces;
+    {$ENDIF}
     Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcOverloadBaseProcNoHint;
     Procedure TestProcOverload_UnitOrderFail;
@@ -609,6 +612,7 @@ type
     Procedure TestClassInterface_DelphiClassAncestorIntfFail;
     Procedure TestClassInterface_ObjFPCClassAncestorIntf;
     Procedure TestClassInterface_MethodVirtualFail;
+    Procedure TestClassInterface_Overloads;
     Procedure TestClassInterface_OverloadHint;
     Procedure TestClassInterface_IntfListClassFail;
     Procedure TestClassInterface_IntfListDuplicateFail;
@@ -621,6 +625,13 @@ type
     Procedure TestClassInterface_Delegation_MethodResFail;
     Procedure TestClassInterface_DelegationClass;
     Procedure TestClassInterface_DelegationFQN;
+    Procedure TestClassInterface_Assign;
+    Procedure TestClassInterface_AssignObjVarIntfVarFail;
+    Procedure TestClassInterface_AssignDescendentFail;
+    Procedure TestClassInterface_Args;
+    Procedure TestClassInterface_Enumerator;
+    Procedure TestClassInterface_PassTypecastClassToIntfAsVarParamFail;
+    Procedure TestClassInterface_PassTypecastIntfToClassAsVarParamFail;
     {$ELSE}
     Procedure TestIgnoreInterfaces;
     Procedure TestIgnoreInterfaceVarFail;
@@ -5535,27 +5546,54 @@ end;
 procedure TTestResolver.TestProcOverloadWithInhAliasClassTypes;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TOBJ}TObject = class end;');
-  Add('  {#TA}TClassA = class end;');
-  Add('  {#TB}{=TA}TClassB = TClassA;');
-  Add('  {#TC}TClassC = class(TClassB) end;');
-  Add('procedure {#DoA}DoIt({=TA}p: TClassA); overload;');
-  Add('begin');
-  Add('end;');
-  Add('procedure {#DoC}DoIt({=TC}p: TClassC); overload;');
-  Add('begin');
-  Add('end;');
-  Add('var');
-  Add('  {#A}{=TA}A: TClassA;');
-  Add('  {#B}{=TB}B: TClassB;');
-  Add('  {#C}{=TC}C: TClassC;');
-  Add('begin');
-  Add('  {@DoA}DoIt({@A}A);');
-  Add('  {@DoA}DoIt({@B}B);');
-  Add('  {@DoC}DoIt({@C}C);');
+  Add([
+  'type',
+  '  {#TOBJ}TObject = class end;',
+  '  {#TA}TClassA = class end;',
+  '  {#TB}{=TA}TClassB = TClassA;',
+  '  {#TC}TClassC = class(TClassB) end;',
+  'procedure {#DoA}DoIt({=TA}p: TClassA); overload;',
+  'begin',
+  'end;',
+  'procedure {#DoC}DoIt({=TC}p: TClassC); overload;',
+  'begin',
+  'end;',
+  'var',
+  '  {#A}{=TA}A: TClassA;',
+  '  {#B}{=TB}B: TClassB;',
+  '  {#C}{=TC}C: TClassC;',
+  'begin',
+  '  {@DoA}DoIt({@A}A);',
+  '  {@DoA}DoIt({@B}B);',
+  '  {@DoC}DoIt({@C}C);']);
   ParseProgram;
 end;
+
+{$ifdef EnableInterfaces}
+procedure TTestResolver.TestProcOverloadWithInterfaces;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#IUnk}IUnknown = interface end;',
+  '  {#IBird}IBird = interface(IUnknown) end;',
+  '  {#TObj}TObject = class end;',
+  '  {#TBird}TBird = class(IBird) end;',
+  'procedure {#DoA}DoIt(o: TObject); overload; begin end;',
+  'procedure {#DoB}DoIt(b: IBird); overload; begin end;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  '  i: IBird;',
+  'begin',
+  '  {@DoA}DoIt(o);',
+  '  {@DoA}DoIt(b);',
+  '  {@DoB}DoIt(i);',
+  '']);
+  ParseProgram;
+end;
+{$ENDIF}
 
 procedure TTestResolver.TestProcOverloadBaseTypeOtherUnit;
 begin
@@ -6639,7 +6677,7 @@ begin
   Add([
   'type A = class(A)',
   'begin']);
-  CheckResolverException('Ancestor cycle detected',nAncestorCycleDetected);
+  CheckResolverException(sAncestorCycleDetected,nAncestorCycleDetected);
 end;
 
 procedure TTestResolver.TestClassDefaultVisibility;
@@ -7232,7 +7270,9 @@ begin
   '  end;',
   'procedure TObject.DoIt(p: pointer); begin end;',
   'procedure TBird.DoIt(i: longint); begin end;',
-  'begin']);
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(3);']);
   ParseProgram;
   CheckResolverHint(mtInfo,nFunctionHidesIdentifier,'function hides identifier at "afile.pp(4,19)"');
 end;
@@ -7712,7 +7752,7 @@ begin
   Add('  {#v}{=A}v: TClassA;');
   Add('begin');
   Add('  {@o}o:={@v}v as {@TObj}TObject;');
-  CheckResolverException(sTypesAreNotRelated,nTypesAreNotRelated);
+  CheckResolverException('Types are not related: "TClassA" and "class TObject" at afile.pp (11,16)',nTypesAreNotRelatedXY);
 end;
 
 procedure TTestResolver.TestClass_OperatorAsOnNonTypeFail;
@@ -10052,7 +10092,7 @@ begin
   '  end;',
   '  IUnknown = interface',
   '  end;',
-  '  IBird = interface',
+  '  IBird = interface(IUnknown)',
   '  end;',
   'begin']);
   ParseProgram;
@@ -10171,6 +10211,34 @@ begin
   CheckParserException(sParserNoFieldsAllowed,nParserNoFieldsAllowed);
 end;
 
+procedure TTestResolver.TestClassInterface_Overloads;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt(i: longint);',
+  '    procedure DoIt(s: string);',
+  '  end;',
+  '  IBird = interface',
+  '    procedure DoIt(b: boolean); overload;',
+  '  end;',
+  '  TObject = class end;',
+  '  TBird = class(TObject,IBird)',
+  '    procedure DoIt(i: longint); virtual; abstract;',
+  '    procedure DoIt(s: string); virtual; abstract;',
+  '    procedure DoIt(b: boolean); virtual; abstract;',
+  '  end;',
+  'var i: IBird;',
+  'begin',
+  '  i.DoIt(3);',
+  '  i.DoIt(''abc'');',
+  '  i.DoIt(true);',
+  '']);
+  ParseProgram;
+  CheckResolverUnexpectedHints();
+end;
+
 procedure TTestResolver.TestClassInterface_OverloadHint;
 begin
   StartProgram(false);
@@ -10266,14 +10334,18 @@ begin
   Add([
   'type',
   '  IUnknown = interface',
-  '    procedure DoIt;',
+  '    procedure DoIt(i: longint);',
+  '    procedure DoIt(s: string);',
+  '    function DoIt(b: boolean): boolean;',
   '    function GetIt: longint;',
   '  end;',
   '  TObject = class(IUnknown)',
   '    procedure IUnknown.DoIt = DoSome;',
   '    function IUnknown.GetIt = GetIt;',
-  '    procedure DoSome; virtual; abstract;',
+  '    procedure DoSome(i: longint); virtual; abstract;',
+  '    procedure DoSome(s: string); virtual; abstract;',
   '    function GetIt: longint; virtual; abstract;',
+  '    function DoIt(b: boolean): boolean; virtual; abstract;',
   '  end;',
   'begin']);
   ParseProgram;
@@ -10294,7 +10366,7 @@ begin
   '    procedure DoMore; virtual; abstract;',
   '  end;',
   'begin']);
-  CheckResolverException('Duplicate identifier "DoMore" at afile.pp(7,14)',nDuplicateIdentifier);
+  CheckResolverException('Duplicate identifier "procedure IUnknown.DoIt" at afile.pp(7,14) at afile.pp (8,24)',nDuplicateIdentifier);
 end;
 
 procedure TTestResolver.TestClassInterface_DelegationIntf;
@@ -10398,6 +10470,202 @@ begin
   '  end;',
   'begin']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_Assign;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface',
+  '    procedure Fly;',
+  '  end;',
+  '  IEagle = interface(IBird)',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(IBird)',
+  '    procedure Fly; virtual; abstract;',
+  '  end;',
+  '  TAlbatros = class(TBird)',
+  '  end;',
+  'var',
+  '  i: IUnknown = nil;',
+  '  e: IEagle;',
+  '  b: IBird;',
+  '  oBird,oBird2: TBird;',
+  '  o: TObject;',
+  '  a: TAlbatros;',
+  'begin',
+  '  if Assigned(i) then ;',
+  '  if TypeInfo(i)=nil then ;',
+  '  i:=nil;',
+  '  i:=i;',
+  '  i:=e;',
+  '  if i=nil then ;',
+  '  if i=e then ;',
+  '  if e=i then ;',
+  '  e:=IEagle(i);',
+  '  if i is IEagle then ;',
+  '  e:=i as IEagle;',
+  '  b:=oBird;',
+  '  b:=a;',
+  '  i:=IBird(oBird);', // FPC needs GUID
+  '  oBird2:=TBird(i);', // not supported by FPC
+  '  oBird2:=TBird(e);', // not supported by FPC
+  '  i:=o as IBird;', // FPC needs GUID
+  '  oBird2:=i as TBird;',
+  '  oBird2:=e as TBird;',
+  '  if o is IBird then ;', // FPC needs GUID
+  '  if i is TBird then ;',
+  '  if e is TBird then ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_AssignObjVarIntfVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  '  o: TObject;',
+  'begin',
+  '  o:=i;',
+  '']);
+  CheckResolverException('Incompatible types: got "IUnknown" expected "TObject"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestClassInterface_AssignDescendentFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class(IBird)',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  '  o: TObject;',
+  'begin',
+  '  i:=o;',
+  '']);
+  CheckResolverException('Incompatible types: got "TObject" expected "IUnknown"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestClassInterface_Args;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(IBird)',
+  '  end;',
+  'function GetIt(var u; i: IBird; const j: IBird): IBird;',
+  'begin',
+  '  Result:=IBird(u);',
+  '  Result:=i;',
+  '  Result:=j;',
+  'end;',
+  'procedure Change(var i: IBird; out j: IBird);',
+  'begin',
+  '  i:=GetIt(i,i,i);',
+  'end;',
+  'var',
+  '  i: IBird;',
+  '  o: TBird;',
+  'begin',
+  '  i:=GetIt(i,i,i);',
+  '  Change(i,i);',
+  '  GetIt(i,o,o);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_Enumerator;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TItem = TObject;',
+  '  TEnumerator = class',
+  '    FCurrent: TItem;',
+  '    property Current: TItem read FCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  IUnknown = interface end;',
+  '  IEnumerator = interface',
+  '    function GetCurrent: TItem;',
+  '    property Current: TItem read GetCurrent;',
+  '    function MoveNext: boolean;',
+  '  end;',
+  '  IEnumerable = interface',
+  '    function GetEnumerator: IEnumerator;',
+  '  end;',
+  '  IBird = interface',
+  '    function GetEnumerator: TEnumerator;',
+  '  end;',
+  'function TEnumerator.MoveNext: boolean;',
+  'begin',
+  'end;',
+  'var',
+  '  e: IEnumerable;',
+  '  b: IBird;',
+  '  i: TItem;',
+  '  {#i2}i2: TItem;',
+  'begin',
+  '  for i in e do {@i2}i2:=i;',
+  '  for i in b do {@i2}i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClassInterface_PassTypecastClassToIntfAsVarParamFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface end;',
+  '  TObject = class end;',
+  '  TBall = class(IUnknown) end;',
+  'procedure DoIt(var i: IUnknown); begin end;',
+  'var b: TBall;',
+  'begin',
+  '  DoIt(IUnknown(b));']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.
+  TestClassInterface_PassTypecastIntfToClassAsVarParamFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface end;',
+  '  TObject = class end;',
+  '  TBall = class(IUnknown) end;',
+  'procedure DoIt(var i: IUnknown); begin end;',
+  'var i: IUnknown;',
+  'begin',
+  '  DoIt(TBall(i));']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
 
 {$ELSE}

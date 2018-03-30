@@ -4839,9 +4839,9 @@ begin
   Result:=TPasMethodResolution(CreateElement(TPasMethodResolution,'',Parent));
   try
     if CurToken=tkfunction then
-      Result.ProcType:=ptFunction
+      Result.ProcClass:=TPasFunction
     else
-      Result.ProcType:=ptProcedure;
+      Result.ProcClass:=TPasProcedure;
     ExpectToken(tkIdentifier);
     Result.InterfaceName:=CreatePrimitiveExpr(Result,pekIdent,CurTokenString);
     ExpectToken(tkDot);

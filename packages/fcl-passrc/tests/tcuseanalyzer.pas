@@ -78,6 +78,9 @@ type
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
     {$IFDEF EnableInterfaces}
+    procedure TestM_ClassInterface;
+    procedure TestM_ClassInterface_NoHintsForMethod;
+    procedure TestM_ClassInterface_Delegation;
     {$ELSE}
     procedure TestM_ClassInterface_Ignore;
     {$ENDIF}
@@ -146,6 +149,9 @@ type
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
+    {$IFDEF EnableInterfaces}
+    procedure TestWP_ClassInterface;
+    {$ENDIF}
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -1033,10 +1039,10 @@ procedure TTestUseAnalyzer.TestM_Class_MethodOverride2;
 begin
   StartProgram(false);
   Add('type');
-  Add('  {tobject_used}TObject = class');
+  Add('  {#tobject_used}TObject = class');
   Add('    procedure {#obj_doa_used}DoA; virtual; abstract;');
   Add('  end;');
-  Add('  {tmobile_used}TMobile = class(TObject)');
+  Add('  {#tmobile_used}TMobile = class(TObject)');
   Add('    constructor {#mob_create_used}Create;');
   Add('    procedure {#mob_doa_used}DoA; override;');
   Add('  end;');
@@ -1050,6 +1056,93 @@ begin
 end;
 
 {$IFDEF EnableInterfaces}
+procedure TTestUseAnalyzer.TestM_ClassInterface;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#iunknown_used}IUnknown = interface',
+  '    procedure {#iunknown_run_used}Run;',
+  '    procedure {#iunknown_walk_notused}Walk;',
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    procedure IUnknown.Run = Fly;',
+  '    procedure {#tbird_fly_used}Fly; virtual; abstract;',
+  '    procedure {#tbird_walk_notused}Walk; virtual; abstract;',
+  '  end;',
+  '  {#teagle_used}TEagle = class(TBird)',
+  '  strict private',
+  '    procedure {#teagle_fly_used}Fly; override;',
+  '    procedure {#teagle_walk_used}Walk; override;',
+  '  end;',
+  'procedure TEagle.Fly; begin end;',
+  'procedure TEagle.Walk; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  i.Run;',
+  '']);
+  AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_ClassInterface_NoHintsForMethod;
+begin
+  StartUnit(false);
+  Add([
+  '{$interfaces corba}',
+  'interface',
+  'type',
+  '  {#iunknown_used}IUnknown = interface',
+  '    procedure {#iunknown_run_used}Run(i: longint);',
+  '    function {#iunknown_walk_used}Walk: boolean;',
+  '  end;',
+  'implementation',
+  '']);
+  AnalyzeUnit;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_ClassInterface_Delegation;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#iunknown_used}IUnknown = interface',
+  '    procedure {#iunknown_run_used}Run;',
+  '    procedure {#iunknown_walk_notused}Walk;',
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    procedure IUnknown.Run = Fly;',
+  '    procedure {#tbird_fly_used}Fly;',
+  '    procedure {#tbird_walk_notused}Walk;',
+  '  end;',
+  '  {#teagle_used}TEagle = class(TObject,IUnknown)',
+  '  strict private',
+  '    {#teagle_fbird_used}FBird: TBird;',
+  '    property {#teagle_bird_used}Bird: TBird read FBird implements IUnknown;',
+  '  end;',
+  'procedure TBird.Fly; begin end;',
+  'procedure TBird.Walk; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  i.Run;',
+  '']);
+  AnalyzeProgram;
+end;
+
 {$ELSE}
 procedure TTestUseAnalyzer.TestM_ClassInterface_Ignore;
 begin
@@ -2383,6 +2476,43 @@ begin
   '']);
   AnalyzeWholeProgram;
 end;
+
+{$IFDEF EnableInterfaces}
+procedure TTestUseAnalyzer.TestWP_ClassInterface;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#iunknown_used}IUnknown = interface',
+  '    procedure {#iunknown_run_used}Run;',
+  '    procedure {#iunknown_walk_notused}Walk;',
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    procedure IUnknown.Run = Fly;',
+  '    procedure {#tbird_fly_used}Fly; virtual; abstract;',
+  '    procedure {#tbird_walk_notused}Walk; virtual; abstract;',
+  '  end;',
+  '  {#teagle_used}TEagle = class(TBird)',
+  '  strict private',
+  '    procedure {#teagle_fly_used}Fly; override;',
+  '    procedure {#teagle_walk_notused}Walk; override;',
+  '  end;',
+  'procedure TEagle.Fly; begin end;',
+  'procedure TEagle.Walk; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  i.Run;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+{$ENDIF}
 
 procedure TTestUseAnalyzer.TestSR_Proc_UnitVar;
 begin

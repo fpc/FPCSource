@@ -890,8 +890,8 @@ type
     IndexExpr: TPasExpr;
     ReadAccessor: TPasExpr;
     WriteAccessor: TPasExpr;
-    Implements: TPasExprArray;
     DispIDExpr : TPasExpr;   // Can be nil.
+    Implements: TPasExprArray;
     StoredAccessor: TPasExpr;
     DefaultExpr: TPasExpr;
     ReadAccessorName: string; // not used by resolver
@@ -1106,7 +1106,7 @@ Type
   public
     destructor Destroy; override;
   public
-    ProcType: TProcType;
+    ProcClass: TPasProcedureClass;
     InterfaceName: TPasExpr;
     InterfaceProc: TPasExpr;
     ImplementationProc: TPasExpr;
@@ -1497,6 +1497,11 @@ const
   ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface', 'class',
     'class helper','record helper','type helper','dispinterface');
+
+  InterfaceTypeNames: array[TPasClassInterfaceType] of string = (
+    'COM',
+    'Corba'
+    );
 
   ExprKindNames : Array[TPasExprKind] of string = (
       'Ident',

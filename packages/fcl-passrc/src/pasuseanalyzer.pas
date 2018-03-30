@@ -124,7 +124,11 @@ type
   end;
   TPAElementClass = class of TPAElement;
 
-  { TPAOverrideList }
+  { TPAOverrideList
+    used for
+    - a method and its overrides
+    - an interface method and its implementations
+    - an interface and its delegations (property implements) }
 
   TPAOverrideList = class
   private
@@ -302,7 +306,7 @@ var
   aModule: TPasModule;
 begin
   if El=nil then exit('nil');
-  Result:=El.Name+':'+El.ClassName;
+  Result:=El.FullName+':'+El.ClassName;
   aModule:=El.GetModule;
   if aModule=El then exit;
   if aModule=nil then
@@ -463,6 +467,7 @@ var
   Node: TAVLTreeNode;
   Item: TPAOverrideList;
   OverriddenPAEl: TPAElement;
+  TypeEl: TPasType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.AddOverride OverriddenEl=',GetElModName(OverriddenEl),' OverrideEl=',GetElModName(OverrideEl));
@@ -486,7 +491,26 @@ begin
 
   OverriddenPAEl:=FindPAElement(OverriddenEl);
   if OverriddenPAEl<>nil then
-    UseElement(OverrideEl,rraNone,true);
+    begin
+    // OverriddenEl was already used -> use OverrideEl
+    if OverrideEl.ClassType=TPasProperty then
+      begin
+      if OverriddenEl is TPasType then
+        begin
+        TypeEl:=Resolver.ResolveAliasTypeEl(TPasType(OverriddenEl));
+        if (TypeEl.ClassType=TPasClassType)
+            and (TPasClassType(TypeEl).ObjKind=okInterface) then
+          begin
+          // interface was already used -> use delegation / property implements
+          UseVariable(TPasProperty(OverrideEl),rraRead,false);
+          exit;
+          end;
+        end;
+      RaiseNotSupported(20180328221736,OverrideEl,GetElModName(OverriddenEl));
+      end
+    else
+      UseElement(OverrideEl,rraNone,true);
+    end;
 end;
 
 procedure TPasAnalyzer.UpdateAccess(IsWrite: Boolean; IsRead: Boolean;
@@ -738,6 +762,8 @@ begin
       El:=El.Parent;
     until not (El is TPasType);
     end
+  else if C=TPasMethodResolution then
+    // nothing to do
   else if (C.InheritsFrom(TPasModule)) or (C=TPasUsesUnit) then
     // e.g. unitname.identifier -> the module is used by the identifier
   else
@@ -1401,7 +1427,9 @@ begin
     AddOverride(ProcScope.OverriddenProc,Proc);
 
   // mark overrides
-  if [pmOverride,pmVirtual]*Proc.Modifiers<>[] then
+  if ([pmOverride,pmVirtual]*Proc.Modifiers<>[])
+      or ((Proc.Parent.ClassType=TPasClassType)
+        and (TPasClassType(Proc.Parent).ObjKind=okInterface)) then
     UseOverrides(Proc);
 
   if ((Proc.ClassType=TPasConstructor) or (Proc.ClassType=TPasDestructor))
@@ -1544,6 +1572,25 @@ end;
 
 procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);
 // called by UseType
+
+  procedure UseDelegations;
+  var
+    OverrideList: TPAOverrideList;
+    i: Integer;
+    Prop: TPasProperty;
+  begin
+    OverrideList:=FindOverrideList(El);
+    if OverrideList=nil then exit;
+    // Note: while traversing the OverrideList it may grow
+    i:=0;
+    while i<OverrideList.Count do
+      begin
+      Prop:=TObject(OverrideList.Overrides[i]) as TPasProperty;
+      UseVariable(Prop,rraRead,false);
+      inc(i);
+      end;
+  end;
+
 var
   i: Integer;
   Member: TPasElement;
@@ -1551,10 +1598,12 @@ var
   ProcScope: TPasProcedureScope;
   ClassScope: TPasClassScope;
   Ref: TResolvedReference;
+  j: Integer;
+  List, ProcList: TFPList;
+  o: TObject;
+  Map: TPasClassIntfMap;
+  ImplProc, IntfProc: TPasProcedure;
 begin
-  if El.ObjKind=okInterface then
-    exit;
-
   FirstTime:=true;
   case Mode of
   paumAllExports: exit;
@@ -1584,13 +1633,17 @@ begin
     end;
 
   ClassScope:=El.CustomData as TPasClassScope;
+  if ClassScope=nil then
+    exit; // ClassScope can be nil if msIgnoreInterfaces
+
   if FirstTime then
     begin
     UseElType(El,ClassScope.DirectAncestor,paumElement);
     UseElType(El,El.HelperForType,paumElement);
     UseExpr(El.GUIDExpr);
-    for i:=0 to El.Interfaces.Count-1 do
-      UseElType(El,TPasType(El.Interfaces[i]),paumElement);
+    // El.Interfaces: using a class does not use automatically the interfaces
+    if El.ObjKind=okInterface then
+      UseDelegations;
     end;
   // members
   AllPublished:=(Mode<>paumAllExports);
@@ -1626,6 +1679,43 @@ begin
     else
       ; // else: class is in unit interface, mark all non private members
     UseElement(Member,rraNone,true);
+    end;
+
+  if FirstTime then
+    begin
+    // method resolution
+    List:=ClassScope.Interfaces;
+    if List<>nil then
+      for i:=0 to List.Count-1 do
+        begin
+        o:=TObject(List[i]);
+        if o is TPasProperty then
+          begin
+          // interface delegation
+          // Note: This class is used. When the intftype is used, this delegation is used.
+          AddOverride(TPasType(El.Interfaces[i]),TPasProperty(o));
+          end
+        else if o is TPasClassIntfMap then
+          begin
+          Map:=TPasClassIntfMap(o);
+          while Map<>nil do
+            begin
+            ProcList:=Map.Procs;
+            if ProcList<>nil then
+              for j:=0 to ProcList.Count-1 do
+                begin
+                ImplProc:=TPasProcedure(ProcList[j]);
+                if ImplProc=nil then continue;
+                IntfProc:=TObject(Map.Intf.Members[j]) as TPasProcedure;
+                // This class is used. When the interface method is used, this method is used.
+                AddOverride(IntfProc,ImplProc);
+                end;
+            Map:=Map.AncestorMap;
+            end;
+          end
+        else
+          RaiseNotSupported(20180328224632,El,GetObjName(o));
+        end;
     end;
 end;
 
@@ -1834,15 +1924,19 @@ begin
 end;
 
 procedure TPasAnalyzer.EmitElementHints(El: TPasElement);
+var
+  C: TClass;
 begin
   if El=nil then exit;
 
-  if El is TPasVariable then
+  C:=El.ClassType;
+  if C.InheritsFrom(TPasVariable) then
     EmitVariableHints(TPasVariable(El))
-  else if El is TPasType then
+  else if C.InheritsFrom(TPasType) then
     EmitTypeHints(TPasType(El))
-  else if El is TPasProcedure then
+  else if C.InheritsFrom(TPasProcedure) then
     EmitProcedureHints(TPasProcedure(El))
+  else if C=TPasMethodResolution then
   else
     RaiseInconsistency(20170312093126,'');
 end;
@@ -2035,6 +2129,10 @@ begin
 
   if [pmAbstract,pmAssembler,pmExternal]*DeclProc.Modifiers<>[] then exit;
   if [pmAssembler]*ImplProc.Modifiers<>[] then exit;
+  if El.Parent is TPasClassType then
+    begin
+    if TPasClassType(El.Parent).ObjKind=okInterface then exit;
+    end;
 
   if ProcScope.DeclarationProc=nil then
     begin

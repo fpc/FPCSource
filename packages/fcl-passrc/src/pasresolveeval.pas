@@ -99,7 +99,7 @@ const
   nExprTypeMustBeClassOrRecordTypeGot = 3026;
   nPropertyNotWritable = 3027;
   nIncompatibleTypesGotExpected = 3028;
-  nTypesAreNotRelated = 3029;
+  nTypesAreNotRelatedXY = 3029;
   nAbstractMethodsCannotBeCalledDirectly = 3030;
   nMissingParameterX = 3031;
   nCannotAccessThisMemberFromAX = 3032;
@@ -196,7 +196,7 @@ resourcestring
   sExprTypeMustBeClassOrRecordTypeGot = 'Expression type must be class or record type, got %s';
   sPropertyNotWritable = 'No member is provided to access property';
   sIncompatibleTypesGotExpected = 'Incompatible types: got "%s" expected "%s"';
-  sTypesAreNotRelated = 'Types are not related';
+  sTypesAreNotRelatedXY = 'Types are not related: "%s" and "%s"';
   sAbstractMethodsCannotBeCalledDirectly = 'Abstract methods cannot be called directly';
   sMissingParameterX = 'Missing parameter %s';
   sCannotAccessThisMemberFromAX = 'Cannot access this member from a %s';
