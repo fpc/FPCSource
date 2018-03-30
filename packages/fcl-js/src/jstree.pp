@@ -923,7 +923,7 @@ Type
   TJSTryFinallyStatement = Class(TJSTryStatement);
 
 
-  { TJSFunctionDeclarationStatement - as TJSFuncDef, except as a statement }
+  { TJSFunctionDeclarationStatement - same as TJSFuncDef, except as a TJSElement }
 
   TJSFunctionDeclarationStatement = Class(TJSElement)
   private
