@@ -116,6 +116,7 @@ type
     procedure CheckRestoredExportSymbol(const Path: string; Orig, Rest: TPasExportSymbol); virtual;
     procedure CheckRestoredConst(const Path: string; Orig, Rest: TPasConst); virtual;
     procedure CheckRestoredProperty(const Path: string; Orig, Rest: TPasProperty); virtual;
+    procedure CheckRestoredMethodResolution(const Path: string; Orig, Rest: TPasMethodResolution); virtual;
     procedure CheckRestoredProcedure(const Path: string; Orig, Rest: TPasProcedure); virtual;
     procedure CheckRestoredOperator(const Path: string; Orig, Rest: TPasOperator); virtual;
   public
@@ -152,7 +153,11 @@ type
     procedure TestPC_ClassConstructor;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
+    {$IFDEF EnableInterfaces}
+    procedure TestPC_ClassInterface;
+    {$ELSE}
     procedure TestPC_IgnoreInterface;
+    {$ENDIF}
     procedure TestPC_IgnoreAttributes;
 
     procedure TestPC_UseUnit;
@@ -692,7 +697,10 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredClassScope(const Path: string;
   Orig, Rest: TPas2JSClassScope);
 var
-  i: Integer;
+  i, j: Integer;
+  OrigObj, RestObj: TObject;
+  OrigMap, RestMap: TPasClassIntfMap;
+  SubPath: String;
 begin
   CheckRestoredScopeReference(Path+'.AncestorScope',Orig.AncestorScope,Rest.AncestorScope);
   CheckRestoredElement(Path+'.CanonicalClassOf',Orig.CanonicalClassOf,Rest.CanonicalClassOf);
@@ -703,7 +711,56 @@ begin
   AssertEquals(Path+'.AbstractProcs.length',length(Orig.AbstractProcs),length(Rest.AbstractProcs));
   for i:=0 to length(Orig.AbstractProcs)-1 do
     CheckRestoredReference(Path+'.AbstractProcs['+IntToStr(i)+']',Orig.AbstractProcs[i],Rest.AbstractProcs[i]);
+
   CheckRestoredReference(Path+'.NewInstanceFunction',Orig.NewInstanceFunction,Rest.NewInstanceFunction);
+  AssertEquals(Path+'.GUID',Orig.GUID,Rest.GUID);
+
+  CheckRestoredObject('.Interfaces',Orig.Interfaces,Rest.Interfaces);
+  if Orig.Interfaces<>nil then
+    begin
+    AssertEquals(Path+'.Interfaces.Count',Orig.Interfaces.Count,Rest.Interfaces.Count);
+    for i:=0 to Orig.Interfaces.Count-1 do
+      begin
+      SubPath:=Path+'.Interfaces['+IntToStr(i)+']';
+      OrigObj:=TObject(Orig.Interfaces[i]);
+      RestObj:=TObject(Rest.Interfaces[i]);
+      CheckRestoredObject(SubPath,OrigObj,RestObj);
+      if OrigObj is TPasProperty then
+        CheckRestoredReference(SubPath+'(TPasProperty)',
+          TPasProperty(OrigObj),TPasProperty(RestObj))
+      else if OrigObj is TPasClassIntfMap then
+        begin
+        OrigMap:=TPasClassIntfMap(OrigObj);
+        RestMap:=TPasClassIntfMap(RestObj);
+        repeat
+          AssertNotNull(SubPath+'.Intf Orig',OrigMap.Intf);
+          CheckRestoredObject(SubPath+'.Intf',OrigMap.Intf,RestMap.Intf);
+          SubPath:=SubPath+'.Map('+OrigMap.Intf.Name+')';
+          CheckRestoredObject(SubPath+'.Element',OrigMap.Element,RestMap.Element);
+          CheckRestoredObject(SubPath+'.Procs',OrigMap.Procs,RestMap.Procs);
+          if OrigMap.Procs=nil then
+            begin
+            if OrigMap.Intf.Members.Count>0 then
+              Fail(SubPath+' expected '+IntToStr(OrigMap.Intf.Members.Count)+' procs, but Procs=nil');
+            end
+          else
+            for j:=0 to OrigMap.Procs.Count-1 do
+              begin
+              OrigObj:=TObject(OrigMap.Procs[j]);
+              RestObj:=TObject(RestMap.Procs[j]);
+              CheckRestoredReference(SubPath+'.Procs['+IntToStr(j)+']',TPasElement(OrigObj),TPasElement(RestObj));
+              end;
+          AssertEquals(Path+'.Procs.Count',OrigMap.Procs.Count,RestMap.Procs.Count);
+
+          CheckRestoredObject(SubPath+'.AncestorMap',OrigMap.AncestorMap,RestMap.AncestorMap);
+          OrigMap:=OrigMap.AncestorMap;
+          RestMap:=RestMap.AncestorMap;
+        until OrigMap=nil;
+        end
+      else
+        Fail(SubPath+' unknown class '+GetObjName(OrigObj));
+      end;
+    end;
 
   CheckRestoredIdentifierScope(Path,Orig,Rest);
 end;
@@ -1066,6 +1123,8 @@ begin
     CheckRestoredConst(Path,TPasConst(Orig),TPasConst(Rest))
   else if C=TPasProperty then
     CheckRestoredProperty(Path,TPasProperty(Orig),TPasProperty(Rest))
+  else if C=TPasMethodResolution then
+    CheckRestoredMethodResolution(Path,TPasMethodResolution(Orig),TPasMethodResolution(Rest))
   else if (C=TPasProcedure)
       or (C=TPasFunction)
       or (C=TPasConstructor)
@@ -1109,6 +1168,7 @@ begin
     RestItem:=TObject(Rest[i]);
     if not (RestItem is TPasElement) then
       Fail(SubPath+' Rest='+GetObjName(RestItem));
+    //writeln('TCustomTestPrecompile.CheckRestoredElementList ',GetObjName(OrigItem),' ',GetObjName(RestItem));
     SubPath:=Path+'['+IntToStr(i)+']"'+TPasElement(OrigItem).Name+'"';
     CheckRestoredElement(SubPath,TPasElement(OrigItem),TPasElement(RestItem));
     end;
@@ -1316,6 +1376,8 @@ begin
     Fail(Path+'.PackMode Orig='+PCUPackModeNames[Orig.PackMode]+' Rest='+PCUPackModeNames[Rest.PackMode]);
   if Orig.ObjKind<>Rest.ObjKind then
     Fail(Path+'.ObjKind Orig='+PCUObjKindNames[Orig.ObjKind]+' Rest='+PCUObjKindNames[Rest.ObjKind]);
+  if Orig.InterfaceType<>Rest.InterfaceType then
+    Fail(Path+'.ObjKind Orig='+PCUClassInterfaceTypeNames[Orig.InterfaceType]+' Rest='+PCUClassInterfaceTypeNames[Rest.InterfaceType]);
   CheckRestoredReference(Path+'.AncestorType',Orig.AncestorType,Rest.AncestorType);
   CheckRestoredReference(Path+'.HelperForType',Orig.HelperForType,Rest.HelperForType);
   AssertEquals(Path+'.IsForward',Orig.IsForward,Rest.IsForward);
@@ -1400,8 +1462,8 @@ begin
   CheckRestoredElement(Path+'.IndexExpr',Orig.IndexExpr,Rest.IndexExpr);
   CheckRestoredElement(Path+'.ReadAccessor',Orig.ReadAccessor,Rest.ReadAccessor);
   CheckRestoredElement(Path+'.WriteAccessor',Orig.WriteAccessor,Rest.WriteAccessor);
-  CheckRestoredPasExprArray(Path+'.Implements',Orig.Implements,Rest.Implements);
   CheckRestoredElement(Path+'.DispIDExpr',Orig.DispIDExpr,Rest.DispIDExpr);
+  CheckRestoredPasExprArray(Path+'.Implements',Orig.Implements,Rest.Implements);
   CheckRestoredElement(Path+'.StoredAccessor',Orig.StoredAccessor,Rest.StoredAccessor);
   CheckRestoredElement(Path+'.DefaultExpr',Orig.DefaultExpr,Rest.DefaultExpr);
   CheckRestoredElementList(Path+'.Args',Orig.Args,Rest.Args);
@@ -1410,6 +1472,15 @@ begin
   AssertEquals(Path+'.IsDefault',Orig.IsDefault,Rest.IsDefault);
   AssertEquals(Path+'.IsNodefault',Orig.IsNodefault,Rest.IsNodefault);
   CheckRestoredVariable(Path,Orig,Rest);
+end;
+
+procedure TCustomTestPrecompile.CheckRestoredMethodResolution(
+  const Path: string; Orig, Rest: TPasMethodResolution);
+begin
+  AssertEquals(Path+'.ProcClass',Orig.ProcClass,Rest.ProcClass);
+  CheckRestoredElement(Path+'.InterfaceName',Orig.InterfaceName,Rest.InterfaceName);
+  CheckRestoredElement(Path+'.InterfaceProc',Orig.InterfaceProc,Rest.InterfaceProc);
+  CheckRestoredElement(Path+'.ImplementationProc',Orig.ImplementationProc,Rest.ImplementationProc);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredProcedure(const Path: string;
@@ -1889,6 +1960,44 @@ begin
   WriteReadUnit;
 end;
 
+{$IFDEF EnableInterfaces}
+procedure TTestPrecompile.TestPC_ClassInterface;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IFlying = interface',
+  '    procedure SetItems(Index: longint; Value: longint);',
+  '  end;',
+  '  IBird = interface(IFlying)',
+  '    [''{D44C1F80-44F9-4E88-8443-C518CCDC1FE8}'']',
+  '    function GetItems(Index: longint): longint;',
+  '    property Items[Index: longint]: longint read GetItems write SetItems;',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird)',
+  '  strict private',
+  '    function IBird.GetItems = RetItems;',
+  '    function RetItems(Index: longint): longint; virtual; abstract;',
+  '    procedure SetItems(Index: longint; Value: longint); virtual; abstract;',
+  '  end;',
+  '  TEagle = class(TObject,IBird)',
+  '  strict private',
+  '    FBird: IBird;',
+  '    property Bird: IBird read FBird implements IBird;',
+  '  end;',
+  'implementation',
+  'end.',
+  '']);
+  WriteReadUnit;
+end;
+
+{$ELSE}
 procedure TTestPrecompile.TestPC_IgnoreInterface;
 begin
   StartUnit(false);
@@ -1906,6 +2015,7 @@ begin
   '']);
   WriteReadUnit;
 end;
+{$ENDIF}
 
 procedure TTestPrecompile.TestPC_IgnoreAttributes;
 begin

@@ -56,7 +56,11 @@ type
     procedure TestPCU_UnitCycle;
     procedure TestPCU_ClassForward;
     procedure TestPCU_ClassConstructor;
+    {$IFDEF EnableInterfaces}
+    procedure TestPCU_ClassInterface;
+    {$ELSE}
     procedure TestPCU_IgnoreInterface;
+    {$ENDIF}
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -316,6 +320,75 @@ begin
   CheckPrecompile('test1.pas','src');
 end;
 
+{$IFDEF EnableInterfaces}
+procedure TTestCLI_Precompile.TestPCU_ClassInterface;
+begin
+  AddUnit('src/system.pp',[
+    '{$interfaces corba}',
+    'type',
+    '  integer = longint;',
+    '  IUnknown = interface',
+    '  end;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddUnit('src/unit1.pp',[
+    'type',
+    '  IIntf = interface',
+    '    function GetItems(Index: longint): longint;',
+    '    procedure SetItems(Index: longint; Value: longint);',
+    '    property Items[Index: longint]: longint read GetItems write SetItems; default;',
+    '  end;',
+    ''],[
+    '']);
+  AddUnit('src/unit2.pp',[
+    'uses unit1;',
+    'type',
+    '  IAlias = IIntf;',
+    '  TObject = class end;',
+    '  TBird = class(IIntf)',
+    '  strict private',
+    '    function IIntf.GetItems = FetchItems;',
+    '    function FetchItems(Index: longint): longint; virtual; abstract;',
+    '    procedure SetItems(Index: longint; Value: longint); virtual; abstract;',
+    '  end;',
+    ''],[
+    '']);
+  AddUnit('src/unit3.pp',[
+    'uses unit2;',
+    'type',
+    '  TEagle = class(TBird)',
+    '    function FetchItems(Index: longint): longint; override;',
+    '    procedure SetItems(Index: longint; Value: longint); override;',
+    '  end;',
+    '  TFlying = class(IAlias)',
+    '  strict private',
+    '    FEagle: TEagle;',
+    '    property Eagle: TEagle read FEagle implements IAlias;',
+    '  public',
+    '    constructor Create;',
+    '  end;',
+    ''],[
+    'function TEagle.FetchItems(Index: longint): longint; begin end;',
+    'procedure TEagle.SetItems(Index: longint; Value: longint); begin end;',
+    'constructor TFlying.Create;',
+    'begin',
+    '  FEagle:=nil;',
+    'end;',
+    '']);
+  AddFile('test1.pas',[
+    'uses unit2, unit3;',
+    'type IAlias2 = IAlias;',
+    'var',
+    '  f: TFlying;',
+    '  i: IAlias2;',
+    'begin',
+    '  f:=TFlying.Create;',
+    '  i:=f;',
+    '  i[2]:=i[3];',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
+end;
+{$ELSE}
 procedure TTestCLI_Precompile.TestPCU_IgnoreInterface;
 begin
   AddUnit('src/system.pp',[
@@ -336,7 +409,7 @@ begin
     'type',
     '  IAlias = IIntf;',
     '  TObject = class end;',
-    '  TBird = class(IIntf) end;',
+    '  TBird = class(TObject,IIntf) end;',
     ''],[
     '']);
   AddFile('test1.pas',[
@@ -348,6 +421,7 @@ begin
     'end.']);
   CheckPrecompile('test1.pas','src');
 end;
+{$ENDIF}
 
 Initialization
   RegisterTests([TTestCLI_Precompile]);

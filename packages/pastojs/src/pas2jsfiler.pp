@@ -68,9 +68,11 @@ uses
 const
   PCUMagic = 'Pas2JSCache';
   PCUVersion = 2;
-  // Version Changes:
-  // 1: initial version
-  // 2: TPasProperty.ImplementsFunc -> Implements array
+  { Version Changes:
+    1: initial version
+    2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
+       - pcsfAncestorResolved
+  }
 
   BuiltInNodeName = 'BuiltIn';
 
@@ -341,6 +343,11 @@ const
     'DispInterface'
     );
 
+  PCUClassInterfaceTypeNames: array[TPasClassInterfaceType] of string = (
+    'COM',
+    'CORBA'
+    );
+
   PCUClassScopeFlagNames: array[TPasClassScopeFlag] of string = (
     'AncestorResolved',
     'Sealed',
@@ -558,6 +565,7 @@ type
 
   TPCUFiler = class
   private
+    FFileVersion: longint;
     FGUID: TGUID;
     FInitialFlags: TPCUInitialFlags;
     FOnGetSrc: TPCUGetSrcEvent;
@@ -661,7 +669,7 @@ type
     function CheckElScope(El: TPasElement; NotNilId: int64; ScopeClass: TPasScopeClass): TPasScope; virtual;
     procedure AddArrayFlag(Obj: TJSONObject; var Arr: TJSONArray;
       const ArrName, Flag: string; Enable: boolean);
-    procedure AddReferenceToArray(Arr: TJSONArray; El: TPasElement); virtual;
+    procedure AddReferenceToArray(Arr: TJSONArray; El: TPasElement; WriteNull: boolean = true); virtual;
     procedure AddReferenceToObj(Obj: TJSONObject; const PropName: string;
       El: TPasElement; WriteNil: boolean = false); virtual;
     procedure CreateElReferenceId(Ref: TPCUFilerElementRef); virtual;
@@ -732,6 +740,7 @@ type
     procedure WriteRecordTypeScope(Obj: TJSONObject; Scope: TPasRecordScope; aContext: TPCUWriterContext); virtual;
     procedure WriteRecordType(Obj: TJSONObject; El: TPasRecordType; aContext: TPCUWriterContext); virtual;
     procedure WriteClassScopeFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TPasClassScopeFlags); virtual;
+    procedure WriteClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap); virtual;
     procedure WriteClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope; aContext: TPCUWriterContext); virtual;
     procedure WriteClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPCUWriterContext); virtual;
     procedure WriteArgument(Obj: TJSONObject; El: TPasArgument; aContext: TPCUWriterContext); virtual;
@@ -745,6 +754,7 @@ type
     procedure WriteConst(Obj: TJSONObject; El: TPasConst; aContext: TPCUWriterContext); virtual;
     procedure WritePropertyScope(Obj: TJSONObject; Scope: TPasPropertyScope; aContext: TPCUWriterContext); virtual;
     procedure WriteProperty(Obj: TJSONObject; El: TPasProperty; aContext: TPCUWriterContext); virtual;
+    procedure WriteMethodResolution(Obj: TJSONObject; El: TPasMethodResolution; aContext: TPCUWriterContext); virtual;
     procedure WriteProcedureModifiers(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TProcedureModifiers); virtual;
     procedure WriteProcScopeFlags(Obj: TJSONObject; const PropName: string; const Value, DefaultValue: TPasProcedureScopeFlags); virtual;
     procedure WriteProcedureScope(Obj: TJSONObject; Scope: TPas2JSProcedureScope; aContext: TPCUWriterContext); virtual;
@@ -804,7 +814,6 @@ type
   TPCUReader = class(TPCUCustomReader)
   private
     FElementRefsArray: TPCUFilerElementRefArray; // TPCUFilerElementRef by Id
-    FFileVersion: longint;
     FJSON: TJSONObject;
     FPendingIdentifierScopes: TObjectList; // list of TPCUReaderPendingIdentifierScope
     procedure Set_Variable_VarType(RefEl: TPasElement; Data: TObject);
@@ -820,6 +829,7 @@ type
     procedure Set_ClassScope_NewInstanceFunction(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassScope_DirectAncestor(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassScope_DefaultProperty(RefEl: TPasElement; Data: TObject);
+    procedure Set_ClassIntfMap_Intf(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassType_AncestorType(RefEl: TPasElement; Data: TObject);
     procedure Set_ClassType_HelperForType(RefEl: TPasElement; Data: TObject);
     procedure Set_ResultElement_ResultType(RefEl: TPasElement; Data: TObject);
@@ -854,6 +864,7 @@ type
     procedure ReadHeaderMagic(Obj: TJSONObject); virtual;
     procedure ReadHeaderVersion(Obj: TJSONObject); virtual;
     procedure ReadGUID(Obj: TJSONObject); virtual;
+    procedure ReadHeaderItem(const PropName: string; Data: TJSONData); virtual;
     procedure ReadArrayFlags(Data: TJSONData; El: TPasElement; const PropName: string; out Names: TStringDynArray; out Enable: TBooleanDynArray);
     function ReadParserOptions(Obj: TJSONObject; El: TPasElement; const PropName: string; const DefaultValue: TPOptions): TPOptions; virtual;
     function ReadModeSwitches(Obj: TJSONObject; El: TPasElement; const PropName: string; const DefaultValue: TModeSwitches): TModeSwitches; virtual;
@@ -923,9 +934,13 @@ type
     procedure ReadRecordVariant(Obj: TJSONObject; El: TPasVariant; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordScope(Obj: TJSONObject; Scope: TPasRecordScope; aContext: TPCUReaderContext); virtual;
     procedure ReadRecordType(Obj: TJSONObject; El: TPasRecordType; aContext: TPCUReaderContext); virtual;
+    function ReadClassInterfaceType(Obj: TJSONObject; const PropName: string; ErrorEl: TPasElement; DefaultValue: TPasClassInterfaceType): TPasClassInterfaceType;
     function ReadClassScopeFlags(Obj: TJSONObject; El: TPasElement;
       const PropName: string; const DefaultValue: TPasClassScopeFlags): TPasClassScopeFlags; virtual;
     procedure ReadClassScopeAbstractProcs(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
+    procedure ReadClassIntfMapProcs(Obj: TJSONObject; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
+    procedure ReadClassIntfMap(Obj: TJSONObject; Scope: TPas2JSClassScope; Map: TPasClassIntfMap; OrigIntfType: TPasType); virtual;
+    procedure ReadClassScopeInterfaces(Obj: TJSONObject; Scope: TPas2JSClassScope); virtual;
     procedure ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope; aContext: TPCUReaderContext); virtual;
     procedure ReadClassType(Obj: TJSONObject; El: TPasClassType; aContext: TPCUReaderContext); virtual;
     procedure ReadArgument(Obj: TJSONObject; El: TPasArgument; aContext: TPCUReaderContext); virtual;
@@ -942,6 +957,7 @@ type
     procedure ReadConst(Obj: TJSONObject; El: TPasConst; aContext: TPCUReaderContext); virtual;
     procedure ReadPropertyScope(Obj: TJSONObject; Scope: TPasPropertyScope; aContext: TPCUReaderContext); virtual;
     procedure ReadProperty(Obj: TJSONObject; El: TPasProperty; aContext: TPCUReaderContext); virtual;
+    procedure ReadMethodResolution(Obj: TJSONObject; El: TPasMethodResolution; aContext: TPCUReaderContext); virtual;
     function ReadProcedureModifiers(Obj: TJSONObject; El: TPasElement;
       const PropName: string; const DefaultValue: TProcedureModifiers): TProcedureModifiers; virtual;
     function ReadProcScopeFlags(Obj: TJSONObject; El: TPasElement;
@@ -1644,9 +1660,18 @@ end;
 
 function TPCUFiler.GetDefaultMemberVisibility(El: TPasElement
   ): TPasMemberVisibility;
+var
+  aClass: TPasClassType;
 begin
   if El=nil then ;
   Result:=visDefault;
+  if El.Parent is TPasClassType then
+    begin
+    aClass:=TPasClassType(El.Parent);
+    case aClass.ObjKind of
+    okInterface: Result:=visPublic;
+    end;
+    end;
 end;
 
 function TPCUFiler.GetDefaultPasScopeVisibilityContext(Scope: TPasScope
@@ -1677,7 +1702,10 @@ end;
 function TPCUFiler.GetDefaultClassScopeFlags(Scope: TPas2JSClassScope
   ): TPasClassScopeFlags;
 begin
-  Result:=[];
+  if FFileVersion<2 then
+    Result:=[]
+  else
+    Result:=[pcsfAncestorResolved];
   if Scope.AncestorScope<>nil then
     begin
     if pcsfPublished in Scope.AncestorScope.Flags then
@@ -1786,6 +1814,7 @@ end;
 
 constructor TPCUFiler.Create;
 begin
+  FFileVersion:=PCUVersion;
   FSourceFiles:=TObjectList.Create(true);
   FElementRefs:=TAVLTree.Create(@ComparePCUFilerElementRef);
   FElementRefs.SetNodeManager(TAVLTreeNodeMemManager.Create,true); // no shared manager, needed for multithreading
@@ -1911,12 +1940,18 @@ begin
     Arr.Add('-'+Flag);
 end;
 
-procedure TPCUWriter.AddReferenceToArray(Arr: TJSONArray; El: TPasElement);
+procedure TPCUWriter.AddReferenceToArray(Arr: TJSONArray; El: TPasElement;
+  WriteNull: boolean);
 var
   Ref: TPCUFilerElementRef;
   Item: TPCUWriterPendingElRefArray;
 begin
-  if El=nil then exit;
+  if El=nil then
+    begin
+    if WriteNull then
+      Arr.Add(CreateJSON);
+    exit;
+    end;
   Ref:=GetElementReference(El);
   if (Ref.Obj<>nil) and (Ref.Id=0) then
     CreateElReferenceId(Ref);
@@ -2821,6 +2856,11 @@ begin
     Obj.Add('Type','Property');
     WriteProperty(Obj,TPasProperty(El),aContext);
     end
+  else if C=TPasMethodResolution then
+    begin
+    Obj.Add('Type','MethodRes');
+    WriteMethodResolution(Obj,TPasMethodResolution(El),aContext);
+    end
   else if C.InheritsFrom(TPasProcedure) then
     begin
     if C.InheritsFrom(TPasOperator) then
@@ -3258,13 +3298,54 @@ begin
       AddArrayFlag(Obj,Arr,PropName,PCUClassScopeFlagNames[f],f in Value);
 end;
 
+procedure TPCUWriter.WriteClassIntfMapProcs(Obj: TJSONObject;
+  Map: TPasClassIntfMap);
+var
+  Procs: TFPList;
+  Arr: TJSONArray;
+  i: Integer;
+begin
+  Procs:=Map.Procs;
+  if Procs<>nil then
+    begin
+    Arr:=TJSONArray.Create;
+    Obj.Add('Procs',Arr);
+    for i:=0 to Procs.Count-1 do
+      AddReferenceToArray(Arr,TPasProcedure(Procs[i]));
+    end;
+end;
+
 procedure TPCUWriter.WriteClassScope(Obj: TJSONObject;
   Scope: TPas2JSClassScope; aContext: TPCUWriterContext);
+
+  procedure WriteMap(SubObj: TJSONObject; Map: TPasClassIntfMap);
+  var
+    AncObj: TJSONObject;
+  begin
+    if Map.Element=nil then
+      RaiseMsg(20180325131134,Scope.Element);
+    if Map.Intf=nil then
+      RaiseMsg(20180325131135,Scope.Element);
+    AddReferenceToObj(SubObj,'Intf',Map.Intf);
+    WriteClassIntfMapProcs(SubObj,Map);
+    if Map.AncestorMap<>nil then
+      begin
+      AncObj:=TJSONObject.Create;
+      SubObj.Add('AncestorMap',AncObj);
+      WriteMap(AncObj,Map.AncestorMap);
+      end;
+  end;
+
 var
   Arr: TJSONArray;
   i: Integer;
   aClass: TPasClassType;
   CanonicalClassOf: TPasClassOfType;
+  {$IFDEF EnableInterfaces}
+  ScopeIntf: TFPList;
+  o: TObject;
+  SubObj: TJSONObject;
+  {$ENDIF}
 begin
   WriteIdentifierScope(Obj,Scope,aContext);
   aClass:=Scope.Element as TPasClassType;
@@ -3272,16 +3353,23 @@ begin
   // AncestorScope can be derived from DirectAncestor
   // CanonicalClassOf is autogenerated
   CanonicalClassOf:=Scope.CanonicalClassOf;
-  if CanonicalClassOf.Name<>'Self' then
-    RaiseMsg(20180217143822,aClass);
-  if CanonicalClassOf.DestType<>aClass then
-    RaiseMsg(20180217143834,aClass);
-  if CanonicalClassOf.Visibility<>visStrictPrivate then
-    RaiseMsg(20180217143844,aClass);
-  if CanonicalClassOf.SourceFilename<>aClass.SourceFilename then
-    RaiseMsg(20180217143857,aClass);
-  if CanonicalClassOf.SourceLinenumber<>aClass.SourceLinenumber then
-    RaiseMsg(20180217143905,aClass);
+  if aClass.ObjKind=okClass then
+    begin
+    if CanonicalClassOf=nil then
+      RaiseMsg(20180217143821,aClass);
+    if CanonicalClassOf.Name<>'Self' then
+      RaiseMsg(20180217143822,aClass);
+    if CanonicalClassOf.DestType<>aClass then
+      RaiseMsg(20180217143834,aClass);
+    if CanonicalClassOf.Visibility<>visStrictPrivate then
+      RaiseMsg(20180217143844,aClass);
+    if CanonicalClassOf.SourceFilename<>aClass.SourceFilename then
+      RaiseMsg(20180217143857,aClass);
+    if CanonicalClassOf.SourceLinenumber<>aClass.SourceLinenumber then
+      RaiseMsg(20180217143905,aClass);
+    end
+  else if CanonicalClassOf<>nil then
+    RaiseMsg(20180329110817,aClass,GetObjName(CanonicalClassOf));
 
   AddReferenceToObj(Obj,'DirectAncestor',Scope.DirectAncestor);
   AddReferenceToObj(Obj,'DefaultProperty',Scope.DefaultProperty);
@@ -3294,6 +3382,36 @@ begin
     for i:=0 to length(Scope.AbstractProcs)-1 do
       AddReferenceToArray(Arr,Scope.AbstractProcs[i]);
     end;
+
+  {$IFDEF EnableInterfaces}
+  if Scope.GUID<>'' then
+    Obj.Add('SGUID',Scope.GUID);
+
+  ScopeIntf:=Scope.Interfaces;
+  if (ScopeIntf<>nil) and (ScopeIntf.Count>0) then
+    begin
+    Arr:=TJSONArray.Create;
+    Obj.Add('SInterfaces',Arr);
+    for i:=0 to ScopeIntf.Count-1 do
+      begin
+      o:=TObject(ScopeIntf[i]);
+      if o is TPasProperty then
+        begin
+        // delegation
+        AddReferenceToArray(Arr,TPasProperty(o));
+        end
+      else if o is TPasClassIntfMap then
+        begin
+        // method resolution
+        SubObj:=TJSONObject.Create;
+        Arr.Add(SubObj);
+        WriteMap(SubObj,TPasClassIntfMap(o));
+        end
+      else
+        RaiseMsg(20180325111939,aClass,IntToStr(i)+':'+GetObjName(TObject(aClass.Interfaces[i]))+' '+GetObjName(o));
+      end;
+    end;
+  {$ENDIF}
 end;
 
 procedure TPCUWriter.WriteClassType(Obj: TJSONObject; El: TPasClassType;
@@ -3308,6 +3426,8 @@ begin
   if El.PackMode<>pmNone then
     Obj.Add('Packed',PCUPackModeNames[El.PackMode]);
   // ObjKind is the 'Type'
+  if El.InterfaceType<>citCom then
+    Obj.Add('IntfType',PCUClassInterfaceTypeNames[El.InterfaceType]);
   WriteElType(Obj,El,'Ancestor',El.AncestorType,aContext);
   WriteElType(Obj,El,'HelperFor',El.HelperForType,aContext);
   if El.IsForward then
@@ -3477,6 +3597,21 @@ begin
     WritePropertyScope(Obj,Scope,aContext)
   else
     Obj.Add('Scope',false); // msIgnoreInterfaces
+end;
+
+procedure TPCUWriter.WriteMethodResolution(Obj: TJSONObject;
+  El: TPasMethodResolution; aContext: TPCUWriterContext);
+begin
+  WritePasElement(Obj,El,aContext);
+  if El.ProcClass=TPasProcedure then
+    Obj.Add('ProcClass','procedure')
+  else if El.ProcClass=TPasFunction then
+    // default value
+  else
+    RaiseMsg(20180329104205,El);
+  WriteExpr(Obj,El,'InterfaceName',El.InterfaceName,aContext);
+  WriteExpr(Obj,El,'InterfaceProc',El.InterfaceProc,aContext);
+  WriteExpr(Obj,El,'ImplementationProc',El.ImplementationProc,aContext);
 end;
 
 procedure TPCUWriter.WriteProcedureModifiers(Obj: TJSONObject;
@@ -4063,6 +4198,16 @@ begin
     RaiseMsg(20180214115044,Scope.Element,GetObjName(RefEl));
 end;
 
+procedure TPCUReader.Set_ClassIntfMap_Intf(RefEl: TPasElement; Data: TObject);
+var
+  Map: TPasClassIntfMap absolute Data;
+begin
+  if RefEl is TPasClassType then
+    Map.Intf:=TPasClassType(RefEl) // no AddRef
+  else
+    RaiseMsg(20180325125418,Map.Element,GetObjName(RefEl));
+end;
+
 procedure TPCUReader.Set_ClassType_AncestorType(RefEl: TPasElement;
   Data: TObject);
 var
@@ -4518,6 +4663,11 @@ var
 begin
   if ReadString(Obj,'GUID',s,nil) then
     FGUID:=StringToGUID(s);
+end;
+
+procedure TPCUReader.ReadHeaderItem(const PropName: string; Data: TJSONData);
+begin
+  RaiseMsg(20180202151706,'unknown property "'+PropName+'" '+GetObjName(Data));
 end;
 
 procedure TPCUReader.ReadArrayFlags(Data: TJSONData; El: TPasElement;
@@ -5450,6 +5600,11 @@ begin
       Result:=TPasProperty.Create(Name,Parent);
       ReadProperty(Obj,TPasProperty(Result),aContext);
       end;
+    'MethodRes':
+      begin
+      Result:=TPasMethodResolution.Create(Name,Parent);
+      ReadMethodResolution(Obj,TPasMethodResolution(Result),aContext);
+      end;
     'Procedure': ReadProc(TPasProcedure,Name);
     'ClassProcedure': ReadProc(TPasClassProcedure,Name);
     'Function': ReadProc(TPasFunction,Name);
@@ -6347,6 +6502,24 @@ begin
   ReadRecordScope(Obj,Scope,aContext);
 end;
 
+function TPCUReader.ReadClassInterfaceType(Obj: TJSONObject;
+  const PropName: string; ErrorEl: TPasElement;
+  DefaultValue: TPasClassInterfaceType): TPasClassInterfaceType;
+var
+  s: string;
+  cit: TPasClassInterfaceType;
+begin
+  if ReadString(Obj,PropName,s,ErrorEl) then
+    begin
+    for cit in TPasClassInterfaceType do
+      if s=PCUClassInterfaceTypeNames[cit] then
+        exit(cit);
+    RaiseMsg(20180329105126,ErrorEl,PropName+'='+s);
+    end
+  else
+    Result:=DefaultValue;
+end;
+
 function TPCUReader.ReadClassScopeFlags(Obj: TJSONObject; El: TPasElement;
   const PropName: string; const DefaultValue: TPasClassScopeFlags
   ): TPasClassScopeFlags;
@@ -6414,6 +6587,146 @@ begin
     end;
 end;
 
+procedure TPCUReader.ReadClassIntfMapProcs(Obj: TJSONObject;
+  Map: TPasClassIntfMap; OrigIntfType: TPasType);
+var
+  aClass: TPasClassType;
+  Arr: TJSONArray;
+  i, Id: Integer;
+  Data: TJSONData;
+  IntfMember: TPasElement;
+  Ref: TPCUFilerElementRef;
+begin
+  aClass:=Map.Element as TPasClassType;
+  if ReadArray(Obj,'Procs',Arr,aClass) then
+    begin
+    if Map.Procs<>nil then
+      RaiseMsg(20180329143122,aClass);
+    Map.Procs:=TFPList.Create;
+    if Arr.Count<>Map.Intf.Members.Count then
+      RaiseMsg(20180325130318,aClass,Map.Intf.FullPath+' Expected='+IntToStr(Map.Intf.Members.Count)+', but found '+IntToStr(Arr.Count));
+    for i:=0 to Arr.Count-1 do
+      begin
+      Data:=Arr[i];
+      IntfMember:=TPasElement(Map.Intf.Members[i]);
+      if (Data is TJSONIntegerNumber) then
+        begin
+        Id:=Data.AsInteger;
+        Ref:=AddElReference(Id,aClass,nil);
+        if Ref.Element=nil then
+          RaiseMsg(20180325125930,aClass,'missing method resolution of interface '+OrigIntfType.Name);
+        if not (Ref.Element is TPasProcedure) then
+          RaiseMsg(20180325130108,aClass,'['+IntToStr(i)+']='+OrigIntfType.Name+'.'+GetObjName(IntfMember)+' method expected, but found '+GetObjName(Ref.Element));
+        if not (IntfMember is TPasProcedure) then
+          RaiseMsg(20180329134354,aClass,'['+IntToStr(i)+']='+OrigIntfType.Name+'.'+GetObjName(IntfMember)+' intf member is not method, mapped proc='+GetObjName(Ref.Element));
+        Map.Procs.Add(Ref.Element);
+        end
+      else if Data is TJSONNull then
+        begin
+        if IntfMember is TPasProcedure then
+          RaiseMsg(20180329132957,aClass,'['+IntToStr(i)+']='+OrigIntfType.Name+'.'+GetObjName(IntfMember)+' intf method expects implementation');
+        Map.Procs.Add(nil);
+        end
+      else
+        RaiseMsg(20180325125851,aClass,IntToStr(i)+' '+GetObjName(Data));
+      end;
+    end
+  else if Map.Intf.Members.Count>0 then
+    RaiseMsg(20180325130720,aClass,Map.Intf.FullPath+' Expected='+IntToStr(Map.Intf.Members.Count)+', but found 0');
+end;
+
+procedure TPCUReader.ReadClassIntfMap(Obj: TJSONObject; Scope: TPas2JSClassScope;
+  Map: TPasClassIntfMap; OrigIntfType: TPasType);
+var
+  aClass: TPasClassType;
+  Id: Integer;
+  Data: TJSONData;
+  Ref: TPCUFilerElementRef;
+  AncObj: TJSONObject;
+begin
+  aClass:=Scope.Element as TPasClassType;
+  Map.Element:=aClass;
+
+  // Intf
+  Data:=Obj.Find('Intf');
+  if not (Data is TJSONIntegerNumber) then
+    RaiseMsg(20180325130226,aClass,OrigIntfType.Name);
+  Id:=Data.AsInteger;
+  Ref:=AddElReference(Id,aClass,nil);
+  if not (Ref.Element is TPasClassType) then
+    RaiseMsg(20180325131020,aClass,OrigIntfType.Name+' '+GetObjName(Ref.Element));
+  Map.Intf:=TPasClassType(Ref.Element);
+
+  // Procs
+  ReadClassIntfMapProcs(Obj,Map,OrigIntfType);
+
+  // AncestorMap
+  if ReadObject(Obj,'AncestorMap',AncObj,aClass) then
+    begin
+    Map.AncestorMap:=TPasClassIntfMap.Create;
+    ReadClassIntfMap(AncObj,Scope,Map.AncestorMap,OrigIntfType);
+    end;
+end;
+
+procedure TPCUReader.ReadClassScopeInterfaces(Obj: TJSONObject;
+  Scope: TPas2JSClassScope);
+var
+  aClass: TPasClassType;
+  Arr: TJSONArray;
+  i, Id: Integer;
+  Data: TJSONData;
+  Ref: TPCUFilerElementRef;
+  OrigIntfType, IntfType: TPasType;
+  SubObj: TJSONObject;
+  Map: TPasClassIntfMap;
+begin
+  aClass:=Scope.Element as TPasClassType;
+  if ReadArray(Obj,'SInterfaces',Arr,aClass) then
+    begin
+    if Arr.Count<>aClass.Interfaces.Count then
+      RaiseMsg(20180325124134,aClass);
+    if Scope.Interfaces=nil then
+      Scope.Interfaces:=TFPList.Create;
+    if Scope.Interfaces.Count>0 then
+      RaiseMsg(20180325124546,aClass);
+    for i:=0 to Arr.Count-1 do
+      begin
+      OrigIntfType:=TPasType(aClass.Interfaces[i]);
+      IntfType:=Resolver.ResolveAliasType(OrigIntfType);
+      if not (IntfType is TPasClassType) then
+        RaiseMsg(20180325124401,aClass,IntToStr(i)+' '+GetObjName(IntfType));
+      Data:=Arr[i];
+      if Data is TJSONIntegerNumber then
+        begin
+        // property, interface delegation
+        Id:=Data.AsInteger;
+        Ref:=AddElReference(Id,aClass,nil);
+        if Ref.Element=nil then
+          RaiseMsg(20180325124421,aClass,'missing delegation property of interface '+OrigIntfType.Name);
+        if not (Ref.Element is TPasProperty) then
+          RaiseMsg(20180325124616,aClass,OrigIntfType.Name+' delegate: '+GetObjName(Ref.Element));
+        Scope.Interfaces.Add(Ref.Element);
+        end
+      else if Data is TJSONObject then
+        begin
+        // map
+        SubObj:=TJSONObject(Data);
+        Map:=TPasClassIntfMap.Create;
+        Scope.Interfaces.Add(Map);
+        ReadClassIntfMap(SubObj,Scope,Map,OrigIntfType);
+        end
+      else
+        RaiseMsg(20180325124206,aClass,OrigIntfType.Name);
+      end;
+    end
+  else if aClass.Interfaces.Count>0 then
+    begin
+    {$IFDEF EnableInterfaces}
+    RaiseMsg(20180325131248,aClass);
+    {$ENDIF}
+    end;
+end;
+
 procedure TPCUReader.ReadClassScope(Obj: TJSONObject; Scope: TPas2JSClassScope;
   aContext: TPCUReaderContext);
 var
@@ -6422,18 +6735,23 @@ var
 begin
   aClass:=Scope.Element as TPasClassType;
 
-  CanonicalClassOf:=TPasClassOfType.Create('Self',aClass);
-  Scope.CanonicalClassOf:=CanonicalClassOf;
-  CanonicalClassOf.Visibility:=visStrictPrivate;
-  CanonicalClassOf.SourceFilename:=aClass.SourceFilename;
-  CanonicalClassOf.SourceLinenumber:=aClass.SourceLinenumber;
-  CanonicalClassOf.DestType:=aClass;
-  aClass.AddRef; // for the CanonicalClassOf.DestType
+  if aClass.ObjKind=okClass then
+    begin
+    CanonicalClassOf:=TPasClassOfType.Create('Self',aClass);
+    Scope.CanonicalClassOf:=CanonicalClassOf;
+    CanonicalClassOf.Visibility:=visStrictPrivate;
+    CanonicalClassOf.SourceFilename:=aClass.SourceFilename;
+    CanonicalClassOf.SourceLinenumber:=aClass.SourceLinenumber;
+    CanonicalClassOf.DestType:=aClass;
+    aClass.AddRef; // for the CanonicalClassOf.DestType
+    end;
 
   ReadElementReference(Obj,Scope,'NewInstanceFunction',@Set_ClassScope_NewInstanceFunction);
   ReadElementReference(Obj,Scope,'DirectAncestor',@Set_ClassScope_DirectAncestor);
   ReadElementReference(Obj,Scope,'DefaultProperty',@Set_ClassScope_DefaultProperty);
   Scope.Flags:=ReadClassScopeFlags(Obj,Scope.Element,'SFlags',GetDefaultClassScopeFlags(Scope));
+  if not ReadString(Obj,'SGUID',Scope.GUID,aClass) then
+    Scope.GUID:='';
 
   ReadIdentifierScope(Obj,Scope,aContext);
 end;
@@ -6470,6 +6788,9 @@ begin
   ReadPasElement(Obj,El,aContext);
   El.PackMode:=ReadPackedMode(Obj,'Packed',El);
   // ObjKind is the 'Type'
+
+  El.InterfaceType:=ReadClassInterfaceType(Obj,'IntfType',El,citCom);
+
   ReadElType(Obj,'Ancestor',El,@Set_ClassType_AncestorType,aContext);
   ReadElType(Obj,'HelperFor',El,@Set_ClassType_HelperForType,aContext);
   ReadBoolean(Obj,'External',El.IsExternal,El);
@@ -6497,7 +6818,10 @@ begin
   // read Members
   ReadElementList(Obj,El,'Members',El.Members,true,aContext);
   if Scope<>nil then
+    begin
     ReadClassScopeAbstractProcs(Obj,Scope);
+    ReadClassScopeInterfaces(Obj,Scope);
+    end;
 end;
 
 procedure TPCUReader.ReadArgument(Obj: TJSONObject; El: TPasArgument;
@@ -6727,6 +7051,25 @@ begin
 
   if Scope<>nil then
     ReadPropertyScope(Obj,Scope,aContext);
+end;
+
+procedure TPCUReader.ReadMethodResolution(Obj: TJSONObject;
+  El: TPasMethodResolution; aContext: TPCUReaderContext);
+var
+  s: string;
+begin
+  ReadPasElement(Obj,El,aContext);
+  if ReadString(Obj,'ProcClass',s,El) then
+    case s of
+    'procedure': El.ProcClass:=TPasProcedure;
+    else
+      RaiseMsg(20180329104616,El,s);
+    end
+  else
+    El.ProcClass:=TPasFunction;
+  El.InterfaceProc:=ReadExpr(Obj,El,'InterfaceProc',aContext);
+  El.InterfaceName:=ReadExpr(Obj,El,'InterfaceName',aContext);
+  El.ImplementationProc:=ReadExpr(Obj,El,'ImplementationProc',aContext);
 end;
 
 function TPCUReader.ReadProcedureModifiers(Obj: TJSONObject; El: TPasElement;
@@ -7214,7 +7557,7 @@ begin
     'FinalBoolSwitches': Scanner.CurrentBoolSwitches:=ReadBoolSwitches(Obj,nil,aName,InitialFlags.BoolSwitches);
     'Module': ReadModuleHeader(Data);
     else
-      RaiseMsg(20180202151706,'unknown property "'+aName+'"');
+      ReadHeaderItem(aName,Data);
     end;
     end;
   {$IFDEF VerbosePCUFiler}

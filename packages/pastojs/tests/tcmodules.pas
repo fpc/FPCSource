@@ -257,6 +257,7 @@ type
     Procedure TestNestedForwardProc;
     Procedure TestAssignFunctionResult;
     Procedure TestFunctionResultInCondition;
+    Procedure TestFunctionResultInForLoop;
     Procedure TestExit;
     Procedure TestBreak;
     Procedure TestBreakAsVar;
@@ -474,7 +475,22 @@ type
     Procedure TestExternalClass_BracketAccessor_Index;
 
     // class interfaces
+    {$IFDEF EnableInterfaces}
+    Procedure TestClassInterface_Corba;
+    Procedure TestClassInterface_ProcExternalFail;
+    Procedure TestClassInterface_Overloads;
+    Procedure TestClassInterface_AncestorImpl;
+    Procedure TestClassInterface_ImplReintroduce;
+    Procedure TestClassInterface_MethodResolution;
+    Procedure TestClassInterface_Delegation;
+    Procedure TestClassInterface_DelegationStatic;
+    Procedure TestClassInterface_Operators;
+    Procedure TestClassInterface_Args;
+    Procedure TestClassInterface_ForInCorbaIntf;
+    // ToDo: COM: _AddRef,_Release  :=, pass as arg, IEnumerable
+    {$ELSE}
     Procedure TestClassInterface_Ignore;
+    {$ENDIF}
 
     // proc types
     Procedure TestProcType;
@@ -566,6 +582,9 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
     Procedure TestRTTI_TypeInfo_FunctionClassType;
+    {$IFDEF EnableInterfaces}
+    Procedure TestRTTI_Interface;
+    {$ENDIF}
 
     // Resourcestring
     Procedure TestResourcestringProgram;
@@ -2672,6 +2691,38 @@ begin
     'if ($mod.Func2());',
     'if ($mod.i === $mod.Func1());',
     'if ($mod.i === $mod.Func1());'
+    ]));
+end;
+
+procedure TTestModule.TestFunctionResultInForLoop;
+begin
+  StartProgram(false);
+  Add([
+  'function Func1(a: array of longint): longint;',
+  'begin',
+  '  for Result:=High(a) downto Low(a) do if a[Result]=0 then exit;',
+  '  for Result in a do if a[Result]=0 then exit;',
+  'end;',
+  'begin',
+  '  Func1([1,2,3])']);
+  ConvertProgram;
+  CheckSource('TestFunctionResultInForLoop',
+    LinesToStr([ // statements
+    'this.Func1 = function (a) {',
+    '  var Result = 0;',
+    '  for (var $l1 = rtl.length(a) - 1; $l1 >= 0; $l1--) {',
+    '    Result = $l1;',
+    '    if (a[Result] === 0) return Result;',
+    '  };',
+    '  for (var $in2 = a, $l3 = 0, $end4 = rtl.length($in2) - 1; $l3 <= $end4; $l3++) {',
+    '    Result = $in2[$l3];',
+    '    if (a[Result] === 0) return Result;',
+    '  };',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    '$mod.Func1([1, 2, 3]);'
     ]));
 end;
 
@@ -5704,17 +5755,19 @@ end;
 procedure TTestModule.TestAsmBlock;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  vI: longint;');
-  Add('begin');
-  Add('  vi:=1;');
-  Add('  asm');
-  Add('    if (vI===1) {');
-  Add('      vI=2;');
-  Add('    }');
-  Add('    if (vI===2){ vI=3; }');
-  Add('  end;');
-  Add('  VI:=4;');
+  Add([
+  'var',
+  '  vI: longint;',
+  'begin',
+  '  vi:=1;',
+  '  asm',
+  '    if (vI===1) {',
+  '      vI=2;',
+  //'      console.log(''end;'');',  ToDo
+  '    }',
+  '    if (vI===2){ vI=3; }',
+  '  end;',
+  '  VI:=4;']);
   ConvertProgram;
   CheckSource('TestAsmBlock',
     LinesToStr([ // statements
@@ -11934,39 +11987,53 @@ end;
 procedure TTestModule.TestExternalClass_TypeCastToRootClass;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TObject = class');
-  Add('  end;');
-  Add('  TChild = class');
-  Add('  end;');
-  Add('  TExtRootA = class external name ''ExtRootA''');
-  Add('  end;');
-  Add('  TExtChildA = class external name ''ExtChildA''(TExtRootA)');
-  Add('  end;');
-  Add('  TExtRootB = class external name ''ExtRootB''');
-  Add('  end;');
-  Add('  TExtChildB = class external name ''ExtChildB''(TExtRootB)');
-  Add('  end;');
-  Add('var');
-  Add('  Obj: TObject;');
-  Add('  Child: TChild;');
-  Add('  RootA: TExtRootA;');
-  Add('  ChildA: TExtChildA;');
-  Add('  RootB: TExtRootB;');
-  Add('  ChildB: TExtChildB;');
-  Add('begin');
-  Add('  obj:=tobject(roota);');
-  Add('  obj:=tobject(childa);');
-  Add('  child:=tchild(tobject(roota));');
-  Add('  roota:=textroota(obj);');
-  Add('  roota:=textroota(child);');
-  Add('  roota:=textroota(rootb);');
-  Add('  roota:=textroota(childb);');
-  Add('  childa:=textchilda(textroota(obj));');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  {$IFDEF EnableInterfaces}
+  '  IUnknown = interface end;',
+  {$ENDIF}
+  '  TObject = class',
+  '  end;',
+  '  TChild = class',
+  '  end;',
+  '  TExtRootA = class external name ''ExtRootA''',
+  '  end;',
+  '  TExtChildA = class external name ''ExtChildA''(TExtRootA)',
+  '  end;',
+  '  TExtRootB = class external name ''ExtRootB''',
+  '  end;',
+  '  TExtChildB = class external name ''ExtChildB''(TExtRootB)',
+  '  end;',
+  'var',
+  '  Obj: TObject;',
+  '  Child: TChild;',
+  '  RootA: TExtRootA;',
+  '  ChildA: TExtChildA;',
+  '  RootB: TExtRootB;',
+  '  ChildB: TExtChildB;',
+  {$IFDEF EnableInterfaces}
+  '  i: IUnknown;',
+  {$ENDIF}
+  'begin',
+  '  obj:=tobject(roota);',
+  '  obj:=tobject(childa);',
+  '  child:=tchild(tobject(roota));',
+  '  roota:=textroota(obj);',
+  '  roota:=textroota(child);',
+  '  roota:=textroota(rootb);',
+  '  roota:=textroota(childb);',
+  '  childa:=textchilda(textroota(obj));',
+  {$IFDEF EnableInterfaces}
+  '  roota:=TExtRootA(i)',
+  {$ENDIF}
+  '']);
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToRootClass',
     LinesToStr([ // statements
+    {$IFDEF EnableInterfaces}
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    {$ENDIF}
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -11981,6 +12048,9 @@ begin
     'this.ChildA = null;',
     'this.RootB = null;',
     'this.ChildB = null;',
+    {$IFDEF EnableInterfaces}
+    'this.i = null;',
+    {$ENDIF}
     '']),
     LinesToStr([ // $mod.$main
     '$mod.Obj = $mod.RootA;',
@@ -11991,6 +12061,9 @@ begin
     '$mod.RootA = $mod.RootB;',
     '$mod.RootA = $mod.ChildB;',
     '$mod.ChildA = $mod.Obj;',
+    {$IFDEF EnableInterfaces}
+    '$mod.RootA = $mod.i;',
+    {$ENDIF}
     '']));
 end;
 
@@ -12271,6 +12344,711 @@ begin
     '']));
 end;
 
+{$IFDEF EnableInterfaces}
+procedure TTestModule.TestClassInterface_Corba;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface;',
+  '  IUnknown = interface',
+  '    [''{00000000-0000-0000-C000-000000000046}'']',
+  '  end;',
+  '  IInterface = IUnknown;',
+  '  IBird = interface(IInterface)',
+  '    function GetSize: longint;',
+  '    procedure SetSize(i: longint);',
+  '    property Size: longint read GetSize write SetSize;',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird)',
+  '    function GetSize: longint; virtual; abstract;',
+  '    procedure SetSize(i: longint); virtual; abstract;',
+  '    procedure DoIt(i: longint); virtual; abstract;',
+  '  end;',
+  'var',
+  '  BirdIntf: IBird;',
+  'begin',
+  '  BirdIntf.Size:=BirdIntf.Size;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Corba',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{00000000-0000-0000-C000-000000000046}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{B0AF836B-4E58-31BA-A735-D744B6DAA205}", ["GetSize", "SetSize", "DoIt"], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '});',
+    'this.BirdIntf = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '  $mod.BirdIntf.SetSize($mod.BirdIntf.GetSize());',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_ProcExternalFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt; external name ''foo'';',
+  '  end;',
+  'begin']);
+  SetExpectedParserError(
+    'Fields are not allowed in Interfaces at token "Identifier external" in file test1.pp at line 6 column 21',
+    nParserNoFieldsAllowed);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClassInterface_Overloads;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  integer = longint;',
+  '  IUnknown = interface',
+  '    procedure DoIt(i: integer);',
+  '    procedure DoIt(s: string);',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '    procedure DoIt(b: boolean); overload;',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird)',
+  '    procedure DoIt(o: TObject);',
+  '    procedure DoIt(s: string);',
+  '    procedure DoIt(i: integer);',
+  '    procedure DoIt(b: boolean);',
+  '  end;',
+  'procedure TBird.DoIt(o: TObject); begin end;',
+  'procedure TBird.DoIt(s: string); begin end;',
+  'procedure TBird.DoIt(i: integer); begin end;',
+  'procedure TBird.DoIt(b: boolean); begin end;',
+  'var',
+  '  BirdIntf: IBird;',
+  'begin',
+  '  BirdIntf.DoIt(3);',
+  '  BirdIntf.DoIt(''abc'');',
+  '  BirdIntf.DoIt(true);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Overloads',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E71-32CA-B8EF-650000000000}", ["DoIt", "DoIt$1"], null);',
+    'rtl.createInterface($mod, "IBird", "{D2E3FF4A-AF76-3468-AB38-EB26B77CE676}", ["DoIt$2"], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.DoIt = function (o) {',
+    '  };',
+    '  this.DoIt$1 = function (s) {',
+    '  };',
+    '  this.DoIt$2 = function (i) {',
+    '  };',
+    '  this.DoIt$3 = function (b) {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird, {',
+    '    DoIt$2: "DoIt$3",',
+    '    DoIt: "DoIt$2"',
+    '  });',
+    '});',
+    'this.BirdIntf = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.BirdIntf.DoIt(3);',
+    '$mod.BirdIntf.DoIt$1("abc");',
+    '$mod.BirdIntf.DoIt$2(true);',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_AncestorImpl;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  integer = longint;',
+  '  IUnknown = interface',
+  '    procedure DoIt(i: integer);',
+  '  end;',
+  '  IBird = interface',
+  '    procedure Fly(i: integer);',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    procedure DoIt(i: integer);',
+  '  end;',
+  '  TBird = class(IBird)',
+  '    procedure Fly(i: integer);',
+  '  end;',
+  'procedure TObject.DoIt(i: integer); begin end;',
+  'procedure TBird.Fly(i: integer); begin end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_AncestorIntf',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E71-32CA-8000-000000000000}", ["DoIt"], null);',
+    'rtl.createInterface($mod, "IBird", "{585952B8-2CC8-3000-8000-000000000000}", ["Fly"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (i) {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.Fly = function (i) {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_ImplReintroduce;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  integer = longint;',
+  '  IBird = interface',
+  '    procedure DoIt(i: integer);',
+  '  end;',
+  '  TObject = class',
+  '    procedure DoIt(i: integer);',
+  '  end;',
+  '  TBird = class(IBird)',
+  '    procedure DoIt(i: integer); virtual; reintroduce;',
+  '  end;',
+  'procedure TObject.DoIt(i: integer); begin end;',
+  'procedure TBird.DoIt(i: integer); begin end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_ImplReintroduce',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IBird", "{585952B8-EF65-3000-8000-000000000000}", ["DoIt"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (i) {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.DoIt$1 = function (i) {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird, {',
+    '    DoIt: "DoIt$1"',
+    '  });',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_MethodResolution;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '    procedure Walk(i: longint);',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '    procedure Walk(b: boolean); overload;',
+  '    procedure Fly(s: string);',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird)',
+  '    procedure IBird.Fly = Move;',
+  '    procedure IBird.Walk = Hop;',
+  '    procedure Hop(i: longint);',
+  '    procedure Move(s: string);',
+  '    procedure Hop(b: boolean);',
+  '  end;',
+  'procedure TBird.Move(s: string); begin end;',
+  'procedure TBird.Hop(i: longint); begin end;',
+  'procedure TBird.Hop(b: boolean); begin end;',
+  'var',
+  '  BirdIntf: IBird;',
+  'begin',
+  '  BirdIntf.Walk(3);',
+  '  BirdIntf.Walk(true);',
+  '  BirdIntf.Fly(''abc'');',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_MethodResolution',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E75-38F5-8000-000000000000}", ["Walk"], null);',
+    'rtl.createInterface($mod, "IBird", "{F8E3FF4A-AF76-3468-BB38-1CCFAB120092}", ["Walk$1", "Fly"], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.Hop = function (i) {',
+    '  };',
+    '  this.Move = function (s) {',
+    '  };',
+    '  this.Hop$1 = function (b) {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird, {',
+    '    Walk$1: "Hop$1",',
+    '    Fly: "Move",',
+    '    Walk: "Hop"',
+    '  });',
+    '});',
+    'this.BirdIntf = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.BirdIntf.Walk(3);',
+    '$mod.BirdIntf.Walk$1(true);',
+    '$mod.BirdIntf.Fly("abc");',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_Delegation;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '    procedure Fly(s: string);',
+  '  end;',
+  '  IEagle = interface(IBird)',
+  '  end;',
+  '  IDove = interface(IBird)',
+  '  end;',
+  '  ISwallow = interface(IBird)',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird,IEagle,IDove,ISwallow)',
+  '    procedure Fly(s: string); virtual; abstract;',
+  '  end;',
+  '  TBat = class(IBird,IEagle,IDove,ISwallow)',
+  '    FBirdIntf: IBird;',
+  '    property BirdIntf: IBird read FBirdIntf implements IBird;',
+  '    function GetEagleIntf: IEagle; virtual; abstract;',
+  '    property EagleIntf: IEagle read GetEagleIntf implements IEagle;',
+  '    FDoveObj: TBird;',
+  '    property DoveObj: TBird read FDoveObj implements IDove;',
+  '    function GetSwallowObj: TBird; virtual; abstract;',
+  '    property SwallowObj: TBird read GetSwallowObj implements ISwallow;',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Delegation',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D745ABE63074}", ["Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEagle", "{56CEF525-B037-3078-82F5-4C3CF0629879}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IDove", "{56CEF525-B037-3078-8169-F7ECF0629879}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "ISwallow", "{56CEF525-B037-3078-90A3-CCE44C629879}", [], $mod.IBird);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '  rtl.addIntf(this, $mod.IEagle);',
+    '  rtl.addIntf(this, $mod.IDove);',
+    '  rtl.addIntf(this, $mod.ISwallow);',
+    '});',
+    'rtl.createClass($mod, "TBat", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.FBirdIntf = null;',
+    '    this.FDoveObj = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FBirdIntf = undefined;',
+    '    this.FDoveObj = undefined;',
+    '    $mod.TObject.$final.call(this);',
+    '  };',
+    '  this.$intfmaps = {',
+    '    "{48E3FF4A-AF76-3465-A738-D745ABE63074}": function () {',
+    '        return this.FBirdIntf;',
+    '      },',
+    '    "{56CEF525-B037-3078-82F5-4C3CF0629879}": function () {',
+    '        return this.GetEagleIntf();',
+    '      },',
+    '    "{56CEF525-B037-3078-8169-F7ECF0629879}": function () {',
+    '        return rtl.getIntfT(this.FDoveObj, $mod.TBird);',
+    '      },',
+    '    "{56CEF525-B037-3078-90A3-CCE44C629879}": function () {',
+    '        return rtl.getIntfT(this.GetSwallowObj(), $mod.TBird);',
+    '      }',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_DelegationStatic;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '    procedure Fly(s: string);',
+  '  end;',
+  '  IEagle = interface(IBird)',
+  '  end;',
+  '  IDove = interface(IBird)',
+  '  end;',
+  '  ISwallow = interface(IBird)',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird,IEagle,IDove,ISwallow)',
+  '    procedure Fly(s: string); virtual; abstract;',
+  '  end;',
+  '  TBat = class(IBird,IEagle,IDove,ISwallow)',
+  '  private',
+  '    class var FBirdIntf: IBird;',
+  '    class var FDoveObj: TBird;',
+  '    class function GetEagleIntf: IEagle; virtual; abstract;',
+  '    class function GetSwallowObj: TBird; virtual; abstract;',
+  '  protected',
+  '    class property BirdIntf: IBird read FBirdIntf implements IBird;',
+  '    class property EagleIntf: IEagle read GetEagleIntf implements IEagle;',
+  '    class property DoveObj: TBird read FDoveObj implements IDove;',
+  '    class property SwallowObj: TBird read GetSwallowObj implements ISwallow;',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_DelegationStatic',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D745ABE63074}", ["Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEagle", "{56CEF525-B037-3078-82F5-4C3CF0629879}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IDove", "{56CEF525-B037-3078-8169-F7ECF0629879}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "ISwallow", "{56CEF525-B037-3078-90A3-CCE44C629879}", [], $mod.IBird);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '  rtl.addIntf(this, $mod.IEagle);',
+    '  rtl.addIntf(this, $mod.IDove);',
+    '  rtl.addIntf(this, $mod.ISwallow);',
+    '});',
+    'rtl.createClass($mod, "TBat", $mod.TObject, function () {',
+    '  this.FBirdIntf = null;',
+    '  this.FDoveObj = null;',
+    '  this.$intfmaps = {',
+    '    "{48E3FF4A-AF76-3465-A738-D745ABE63074}": function () {',
+    '        return this.FBirdIntf;',
+    '      },',
+    '    "{56CEF525-B037-3078-82F5-4C3CF0629879}": function () {',
+    '        return this.$class.GetEagleIntf();',
+    '      },',
+    '    "{56CEF525-B037-3078-8169-F7ECF0629879}": function () {',
+    '        return rtl.getIntfT(this.FDoveObj, $mod.TBird);',
+    '      },',
+    '    "{56CEF525-B037-3078-90A3-CCE44C629879}": function () {',
+    '        return rtl.getIntfT(this.$class.GetSwallowObj(), $mod.TBird);',
+    '      }',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_Operators;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '    function GetItems(Index: longint): longint;',
+  '    procedure SetItems(Index: longint; Value: longint);',
+  '    property Items[Index: longint]: longint read GetItems write SetItems; default;',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird)',
+  '    function GetItems(Index: longint): longint; virtual; abstract;',
+  '    procedure SetItems(Index: longint; Value: longint); virtual; abstract;',
+  '  end;',
+  'var',
+  '  IntfVar: IBird = nil;',
+  '  IntfVar2: IBird;',
+  '  ObjVar: TBird;',
+  '  v: JSValue;',
+  'begin',
+  '  IntfVar:=nil;',
+  '  IntfVar[3]:=IntfVar[4];',
+  '  if Assigned(IntfVar) then ;',
+  '  IntfVar:=IntfVar2;',
+  '  IntfVar:=ObjVar;',
+  '  if IntfVar=IntfVar2 then ;',
+  '  if IntfVar<>IntfVar2 then ;',
+  '  if IntfVar is IBird then ;',
+  '  if IntfVar is TBird then ;',
+  '  if ObjVar is IBird then ;',
+  '  IntfVar:=IntfVar2 as IBird;',
+  '  ObjVar:=IntfVar2 as TBird;',
+  '  IntfVar:=ObjVar as IBird;',
+  '  IntfVar:=IBird(IntfVar2);',
+  '  ObjVar:=TBird(IntfVar);',
+  '  IntfVar:=IBird(ObjVar);',
+  '  v:=IntfVar;',
+  '  IntfVar:=IBird(v);',
+  '  if v is IBird then ;',
+  '  v:=JSValue(IntfVar);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Operators',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{8E3C13AF-8080-3465-A738-D7460F8FE995}", ["GetItems", "SetItems"], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '});',
+    'this.IntfVar = null;',
+    'this.IntfVar2 = null;',
+    'this.ObjVar = null;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.IntfVar = null;',
+    '$mod.IntfVar.SetItems(3, $mod.IntfVar.GetItems(4));',
+    'if ($mod.IntfVar != null) ;',
+    '$mod.IntfVar = $mod.IntfVar2;',
+    '$mod.IntfVar = rtl.getIntfT($mod.ObjVar,$mod.IBird);',
+    'if ($mod.IntfVar === $mod.IntfVar2) ;',
+    'if ($mod.IntfVar !== $mod.IntfVar2) ;',
+    'if ($mod.IBird.isPrototypeOf($mod.IntfVar)) ;',
+    'if (rtl.intfIsClass($mod.IntfVar, $mod.TBird)) ;',
+    'if (rtl.getIntfT($mod.ObjVar, $mod.IBird) !== null) ;',
+    '$mod.IntfVar = rtl.as($mod.IntfVar2, $mod.IBird);',
+    '$mod.ObjVar = rtl.intfAsClass($mod.IntfVar2, $mod.TBird);',
+    '$mod.IntfVar = rtl.getIntfT($mod.ObjVar, $mod.IBird);',
+    '$mod.IntfVar = $mod.IntfVar2;',
+    '$mod.ObjVar = rtl.intfToClass($mod.IntfVar, $mod.TBird);',
+    '$mod.IntfVar = rtl.getIntfT($mod.ObjVar, $mod.IBird);',
+    '$mod.v = $mod.IntfVar;',
+    '$mod.IntfVar = rtl.getObject($mod.v);',
+    'if (rtl.isExt($mod.v, $mod.IBird, 1)) ;',
+    '$mod.v = rtl.getObject($mod.IntfVar);',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_Args;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird)',
+  '  end;',
+  'procedure DoIt(var u; i: IBird; const j: IBird);',
+  'begin',
+  '  DoIt(i,i,i);',
+  'end;',
+  'procedure Change(var i: IBird; out j: IBird);',
+  'begin',
+  '  DoIt(i,i,i);',
+  '  Change(i,i);',
+  'end;',
+  'var',
+  '  i: IBird;',
+  '  o: TBird;',
+  'begin',
+  '  DoIt(i,i,i);',
+  '  Change(i,i);',
+  '  DoIt(o,o,o);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Args',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D462ECC63074}", [], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '});',
+    'this.DoIt = function (u, i, j) {',
+    '  $mod.DoIt({',
+    '    get: function () {',
+    '        return i;',
+    '      },',
+    '    set: function (v) {',
+    '        i = v;',
+    '      }',
+    '  }, i, i);',
+    '};',
+    'this.Change = function (i, j) {',
+    '  $mod.DoIt(i, i.get(), i.get());',
+    '  $mod.Change(i, i);',
+    '};',
+    'this.i = null;',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '}, $mod.i, $mod.i);',
+    '$mod.Change({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '}, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.i = v;',
+    '    }',
+    '});',
+    '$mod.DoIt({',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.o;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.o = v;',
+    '    }',
+    '}, rtl.getIntfT($mod.o, $mod.IBird), rtl.getIntfT($mod.o, $mod.IBird));',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_ForInCorbaIntf;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface end;',
+  '  TObject = class',
+  '    Id: longint;',
+  '  end;',
+  '  IEnumerator = interface(IUnknown)',
+  '    function GetCurrent: TObject;',
+  '    function MoveNext: Boolean;',
+  '    property Current: TObject read GetCurrent;',
+  '  end;',
+  '  IEnumerable = interface(IUnknown)',
+  '    function GetEnumerator: IEnumerator;',
+  '  end;',
+  'var',
+  '  o: TObject;',
+  '  i: IEnumerable;',
+  'begin',
+  '  for o in i do o.Id:=3;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_ForInCorbaIntf',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Id = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createInterface($mod, "IEnumerator", "{D2FE11F3-D2CC-36BB-A5B2-66EB7FB5CB08}", ["GetCurrent", "MoveNext"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEnumerable", "{D20534CB-D9C0-3EA5-AA60-ACEB7D726308}", ["GetEnumerator"], $mod.IUnknown);',
+    'this.o = null;',
+    'this.i = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $in1 = $mod.i.GetEnumerator();',
+    'while ($in1.MoveNext()) {',
+    '  $mod.o = $in1.GetCurrent();',
+    '  $mod.o.Id = 3;',
+    '};',
+    '']));
+end;
+
+{$ELSE}
 procedure TTestModule.TestClassInterface_Ignore;
 begin
   StartProgram(false);
@@ -12325,6 +13103,7 @@ begin
     '$mod.i.RefCount = 3;',
     '']));
 end;
+{$ENDIF}
 
 procedure TTestModule.TestProcType;
 begin
@@ -16630,6 +17409,66 @@ begin
     '$mod.t = $mod.Obj.MyClass().$rtti;',
     '']));
 end;
+
+{$IFDEF EnableInterfaces}
+procedure TTestModule.TestRTTI_Interface;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  IUnknown = interface',
+  '  end;',
+  '  IBird = interface',
+  '    function GetItem: longint;',
+  '    procedure SetItem(Value: longint);',
+  '    property Item: longint read GetItem write SetItem;',
+  '  end;',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+  '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
+  'var',
+  '  i: IBird;',
+  '  t: TTypeInfoInterface;',
+  'begin',
+  '  t:=TypeInfo(IBird);',
+  '  t:=TypeInfo(i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_Interface',
+    LinesToStr([ // statements
+    'rtl.createInterface(',
+    '  $mod,',
+    '  "IUnknown",',
+    '  "{5D22E7CA-4E00-3000-8000-000000000000}",',
+    '  [],',
+    '  null,',
+    '  function () {',
+    '  }',
+    ');',
+    'rtl.createInterface(',
+    '  $mod,',
+    '  "IBird",',
+    '  "{585952B8-45B2-3E86-BAC5-B22E86800000}",',
+    '  ["GetItem", "SetItem"],',
+    '  null,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("GetItem", 1, null, rtl.longint);',
+    '    $r.addMethod("SetItem", 0, [["Value", rtl.longint]]);',
+    '    $r.addProperty("Item", 3, rtl.longint, "GetItem", "SetItem");',
+    '  }',
+    ');',
+    'this.i = null;',
+    'this.t = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.t = $mod.$rtti["IBird"];',
+    '$mod.t = $mod.i.$rtti;',
+    '']));
+end;
+{$ENDIF}
 
 procedure TTestModule.TestResourcestringProgram;
 begin
