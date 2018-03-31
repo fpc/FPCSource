@@ -2764,14 +2764,33 @@ end;
 
 Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
 
+  function WildisQuestionmark : boolean;
+begin
+    Result:=CWild <= MaxWilds;
+    if Result then
+      Result:= Wilds[CWild]='?';
+  end;
+
+  function WildisStar : boolean;
+  begin
+    Result:=CWild <= MaxWilds;
+    if Result then
+      Result:= Wilds[CWild]='*';
+  end;
+
 begin
   EOS:=False;
   Result:=True;
   repeat
-    if Wilds[CWild] = '*' then { handling of '*' }
+    if WildisStar then { handling of '*' }
       begin
       inc(CWild);
-      while Wilds[CWild] = '?' do { equal to '?' }
+      if CWild>MaxWilds then
+        begin
+          EOS:=true;
+          exit;
+        end;
+      while WildisQuestionmark do { equal to '?' }
         begin
         { goto next letter }
         inc(CWild);
@@ -2779,7 +2798,7 @@ begin
         end;
       { increase until a match }
       Repeat
-        while (inputStr[CinputWord]<>Wilds[CWild]) and (CinputWord <= MaxinputWord) do
+        while (CinputWord <= MaxinputWord) and (CWild <= MaxWilds) and (inputStr[CinputWord]<>Wilds[CWild]) do
           inc(CinputWord);
         Result:=isMatch(Level+1,inputstr,wilds,CWild, CinputWord,MaxInputword,maxwilds,EOS);
         if not Result then
@@ -2789,14 +2808,14 @@ begin
         Exit;
       Continue;
       end;
-    if Wilds[CWild] = '?' then { equal to '?' }
+    if WildisQuestionmark then { equal to '?' }
       begin
       { goto next letter }
       inc(CWild);
       inc(CinputWord);
       Continue;
       end;
-    if inputStr[CinputWord] = Wilds[CWild] then { equal letters }
+    if (CinputWord>MaxinputWord) or (CWild > MaxWilds) or (inputStr[CinputWord] = Wilds[CWild]) then { equal letters }
       begin
       { goto next letter }
       inc(CWild);
