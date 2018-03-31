@@ -118,10 +118,13 @@ type
   TFPReportBandPosition   = (bpNormal, bpStackAtBottom);
   TFPReportSection        = (rsNone, rsPage, rsColumn);
   TFPReportVisibleOnPage  = (vpAll, vpFirstOnly, vpLastOnly, vpFirstAndLastOnly, vpNotOnFirst, vpNotOnLast, vpNotOnFirstAndLast);
-  // For color coding
   TFPReportBandType       = (btUnknown,btPageHeader,btReportTitle,btColumnHeader,btDataHeader,btGroupHeader,btDataband,btGroupFooter,
                              btDataFooter,btColumnFooter,btReportSummary,btPageFooter,btChild);
   TFPReportBandTypes = Set of TFPReportBandType;
+
+  TFPReportBandMultiplicity = (bmUnrestricted,bmOncePerPage,bmOncePerDataloop);
+  TFPReportBandMultiplicities = Set of TFPReportBandMultiplicity;
+
   TFPReportMemoOption     = (
             moSuppressRepeated,
             moHideZeros,
@@ -217,6 +220,17 @@ const
     clDarkMoneyGreen,    // Page footer
     clDkGray             // Child
   );
+
+     {btUnknown,btPageHeader,btReportTitle,btColumnHeader,
+      btDataHeader,btGroupHeader,btDataband,btGroupFooter,
+      btDataFooter,btColumnFooter,btReportSummary,btPageFooter,
+      btChild}
+
+  FPReportBandMultiplicity : Array[TFPReportBandType] of TFPReportBandMultiplicity
+    = (bmUnrestricted,bmOncePerPage,bmOncePerPage,bmOncePerPage,
+       bmOncePerDataloop,bmUnrestricted,bmOncePerDataloop,bmUnrestricted,
+       bmOncePerDataloop,bmOncePerPage,bmOncePerPage,bmOncePerPage,
+       bmUnrestricted);
 
 const
   cMMperInch = 25.4;
@@ -849,12 +863,17 @@ type
     procedure PrepareObjects(aRTParent: TFPReportElement); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    Function GetPageIndex : Integer; Virtual;
+    Procedure SetPageIndex(aIndex : Integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    Function    PageIndex : Integer;
     procedure   Assign(Source: TPersistent); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
+    function    FindBandWithType(ABandType: TFPReportBandType): TFPReportCustomBand;
+    function    FindBandWithTypeAndData(ABandType: TFPReportBandType; aData: TFPReportData): TFPReportCustomBand;
+    Function    CheckBandMultiplicity(aBand : TFPReportCustomBand) : Boolean;
+    function CheckBandMultiplicity(aBandType: TFPReportBandType; aData: TFPReportData): Boolean;
     function    FindBand(ABand: TFPReportBandClass): TFPReportCustomBand;
     property    PageSize: TFPReportPageSize read FPageSize write SetPageSize;
     property    Margins: TFPReportMargins read FMargins write SetMargins;
@@ -868,7 +887,8 @@ type
     property    ColumnGap: TFPReportUnits read FColumnGap write SetColumnGap default 0;
     property    ColumnLayout: TFPReportColumnLayout read FColumnLayout write SetColumnLayout default clVertical;
     property    Font: TFPReportFont read FFont write SetFont;
-    Property OnPageSizeChange : TNotifyEvent Read FOnPageSizeChange Write FOnPageSizeChange;
+    Property    OnPageSizeChange : TNotifyEvent Read FOnPageSizeChange Write FOnPageSizeChange;
+    property    PageIndex : Integer Read GetPageIndex Write SetPageIndex;
   end;
   TFPReportCustomPageClass = Class of TFPReportCustomPage;
 
@@ -883,6 +903,7 @@ type
     property Margins;
     property PageSize;
     property Orientation;
+    Property PageIndex;
   end;
 
 
@@ -907,6 +928,7 @@ type
     procedure   SetChildBand(AValue: TFPReportCustomChildBand);
     procedure   SetFont(AValue: TFPReportFont);
     procedure   SetKeepTogetherWithChildren(pKeepTogetherWithChildren: Boolean); virtual;
+    procedure SetMainBand(AValue: TFPReportCustomBand);
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
@@ -917,7 +939,7 @@ type
     procedure   SetDataFromName(AName : String); virtual;
     procedure   SetParent(const AValue: TFPReportElement); override;
     procedure   CreateRTLayout; override;
-    Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    Procedure   Notification(AComponent: TComponent; Operation: TOperation); override;
     function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     { this is normally run against the runtime version of the Band instance. }
     procedure   RecalcLayout; override;
@@ -951,7 +973,7 @@ type
     function    EvaluateVisibility: boolean; override;
     property    ChildBand: TFPReportCustomChildBand read FChildBand write SetChildBand;
     property    ParentBand: TFPReportCustomBand read FParentBand;
-    property    MainBand: TFPReportCustomBand read FMainBand;
+    property    MainBand: TFPReportCustomBand read FMainBand Write SetMainBand;
     property    Page : TFPReportCustomPage read GetReportPage;
   end;
   TFPReportCustomBandClass = Class of TFPReportCustomBand;
@@ -1585,6 +1607,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
     class function ReportKindToResultType(const AType: TFPReportFieldKind): TResultType;
+    Function StreamToReportElements(aStream : TStream) : TFPObjectList;
     Procedure Clear;
     Procedure SaveDataToNames;
     Procedure RestoreDataFromNames;
@@ -1592,6 +1615,7 @@ type
     procedure ReadElement(AReader: TFPReportStreamer); override;
     procedure AddPage(APage: TFPReportCustomPage);
     procedure RemovePage(APage: TFPReportCustomPage);
+    function  IndexOfPage(aPage: TFPReportCustomPage): Integer;
     function  FindRecursive(const AName: string): TFPReportElement;
     procedure Validate;
     procedure Validate(aErrors: TStrings);
@@ -6047,12 +6071,27 @@ begin
 end;
 
 procedure TFPReportComponent.ReadElement(AReader: TFPReportStreamer);
+
+Var
+  N : String;
+  C : TComponent;
 begin
   try
-    Name := AReader.ReadString('Name', 'UnknownName');
+    N := AReader.ReadString('Name', 'UnknownName');
+    if Assigned(Owner) and (N<>'') then
+      begin
+      C:=Owner.FindComponent(N);
+      if (C<>Self) and (C<>Nil) then
+        begin
+        N:=AllocateName;
+        AReader.Modified;
+        end;
+      end;
+    Name:=N;
   except
     On E : EComponentError do
       begin
+      // This should never happen, but we leave it in place just in case.
       Name:=AllocateName;
       AReader.Modified;
       end;
@@ -7097,20 +7136,24 @@ var
   i: integer;
   c: TFPReportElement;
   lName: string;
+  o : TComponent;
+
 begin
   inherited ReadElement(AReader);
   E := AReader.FindChild('Children');
+  O:=Report;
+  if (O=Nil) then
+    O:=Self.Owner;
   if Assigned(E) then
   begin
     AReader.PushElement(E);
     for i := 0 to AReader.ChildCount-1 do
     begin
       E := AReader.GetChild(i);
-
       AReader.PushElement(E); // child index is the identifier
       try
         lName := AReader.CurrentElementName;
-        c := gElementFactory.CreateInstance(lName, Report);
+        c := gElementFactory.CreateInstance(lName,O);
         c.Parent:=Self;
         c.ReadElement(AReader);
       finally
@@ -7393,19 +7436,85 @@ begin
   inherited ReadElement(AReader);
 end;
 
-function TFPReportCustomPage.FindBand(ABand: TFPReportBandClass): TFPReportCustomBand;
+function TFPReportCustomPage.CheckBandMultiplicity(aBand: TFPReportCustomBand): Boolean;
+
+Var
+  D : TFPReportData;
+
+begin
+  if aBand is TFPReportCustomBandWithData then
+    D:=TFPReportCustomBandWithData(aBand).GetData
+  else
+    D:=Nil;
+  Result:=CheckBandMultiplicity(aBand.ReportBandType,D);
+end;
+
+function TFPReportCustomPage.CheckBandMultiplicity(aBandType: TFPReportBandType; aData: TFPReportData): Boolean;
+
+Var
+  M: TFPReportBandMultiplicity;
+
+begin
+  M:=FPReportBandMultiplicity[aBandType];
+  Case M of
+    bmUnrestricted : Result:=True;
+    bmOncePerPage : Result:=FindBandWithType(aBandType)=Nil;
+    bmOncePerDataLoop :
+      begin
+      Result:=aData=Nil;
+      if not Result then
+        Result:=FindBandWithTypeAndData(aBandType,aData)=Nil;
+      end;
+  end;
+end;
+
+function TFPReportCustomPage.FindBandWithType(ABandType: TFPReportBandType): TFPReportCustomBand;
+
 var
   i: integer;
+
 begin
   Result := nil;
-  for i := 0 to BandCount-1 do
-  begin
-    if Bands[i] is ABand then
+  I:=0;
+  While (Result=Nil) and (I<BandCount) do
     begin
+    if Bands[i].ReportBandType=ABandType then
       Result := Bands[i];
-      Break;
+    Inc(I);
     end;
-  end;
+end;
+
+function TFPReportCustomPage.FindBandWithTypeAndData(ABandType: TFPReportBandType; aData: TFPReportData): TFPReportCustomBand;
+var
+  i: integer;
+
+begin
+  Result := nil;
+  I:=0;
+  While (Result=Nil) and (I<BandCount) do
+    begin
+    if (Bands[i].ReportBandType=ABandType) then
+      if Bands[i] is TFPReportCustomBandWithData then
+        if TFPReportCustomBandWithData(Bands[i]).GetData=aData then
+          Result := Bands[i];
+    Inc(I);
+    end;
+end;
+
+function TFPReportCustomPage.FindBand(ABand: TFPReportBandClass): TFPReportCustomBand;
+
+var
+  i: integer;
+
+begin
+  Result := nil;
+  I:=0;
+  While (Result=Nil) and (I<BandCount) do
+    begin
+    if Bands[i] is ABand then
+      Result := Bands[i];
+    Inc(I);
+    end;
 end;
 
 procedure TFPReportCustomPage.Notification(AComponent: TComponent; Operation: TOperation);
@@ -7438,11 +7547,22 @@ begin
   end;
 end;
 
-function TFPReportCustomPage.PageIndex: Integer;
+function TFPReportCustomPage.GetPageIndex: Integer;
 begin
   Result:=-1;
-  If (Owner<>Nil) then
-    Result:=ComponentIndex;
+  If (Report<>Nil) then
+    Result:=Report.IndexOfPage(Self);
+end;
+
+procedure TFPReportCustomPage.SetPageIndex(aIndex: Integer);
+
+Var
+  I : Integer;
+
+begin
+  I:=PageIndex;
+  if Assigned(Report) then
+    Report.FPages.Move(I,aIndex);
 end;
 
 function TFPReportCustomPage.GetBandCount: integer;
@@ -7529,6 +7649,15 @@ begin
 end;
 
 { TFPCustomReport }
+
+function TFPCustomReport.IndexOfPage(aPage : TFPReportCustomPage) : Integer;
+
+begin
+  if Assigned(FPages) then
+    Result:=FPages.IndexOf(aPage)
+  else
+    Result:=-1;
+end;
 
 function TFPCustomReport.GetPage(AIndex: integer): TFPReportCustomPage;
 begin
@@ -7941,6 +8070,47 @@ begin
     rfkStream:      Result := rtString; //  TODO:  What do we do here?????
   else
     Result := rtString;
+  end;
+end;
+
+Function TFPCustomReport.StreamToReportElements(aStream: TStream): TFPObjectList;
+
+Var
+  I,aCount : Integer;
+  S : TFPReportJSONStreamer;
+  aName : String;
+  E : TObject;
+  C : TFPReportElement;
+
+begin
+  Result:=TFPObjectList.Create(True);
+  try
+    S:=TFPReportJSONStreamer.Create(Nil);
+    try
+      S.InitFromStream(aStream);
+      for i := 0 to S.ChildCount-1 do
+        begin
+        E:=S.GetChild(i);
+        S.PushElement(E); // child index is the identifier
+        try
+          aName := S.CurrentElementName;
+          if aName='Page' then
+            C:=TFPReportCustomPage.Create(Self)
+          else
+            c:=gElementFactory.CreateInstance(aName, Self);
+          c.Parent:=Nil;
+          c.ReadElement(S);
+          Result.Add(C);
+        finally
+          S.PopElement;
+        end;
+        end;
+    finally
+      S.Free;
+    end;
+  except
+     FreeAndNil(Result);
+     Raise;
   end;
 end;
 
@@ -8620,6 +8790,16 @@ begin
   FKeepTogetherWithChildren := pKeepTogetherWithChildren;
 end;
 
+procedure TFPReportCustomBand.SetMainBand(AValue: TFPReportCustomBand);
+begin
+  if FMainBand=AValue then Exit;
+  if Assigned(FMainBand) then
+    FMainBand.RemoveFreeNotification(Self);
+  FMainBand:=AValue;
+  if Assigned(FMainBand) then
+    FMainBand.FreeNotification(Self);
+end;
+
 procedure TFPReportCustomBand.SetUseParentFont(AValue: boolean);
 
 Var
@@ -8695,7 +8875,9 @@ begin
   if Operation=opRemove then
     begin
     if AComponent=FChildBand then
-      FChildBand:=Nil;
+      FChildBand:=Nil
+    else if AComponent=FMainband then
+      FMainBand:=nil;
     end;
 end;
 
@@ -8734,9 +8916,9 @@ begin
   if Source is TFPReportCustomBand then
   begin
     E := TFPReportCustomBand(Source);
-    FMainBand := E.MainBand;
+    MainBand := E.MainBand;
     FIsColumnType := E.FIsColumnType;
-    FChildBand := E.ChildBand;
+    ChildBand := E.ChildBand;
     FStretchMode := E.StretchMode;
     FVisibleOnPage := E.VisibleOnPage;
     FBandPosition := E.BandPosition;

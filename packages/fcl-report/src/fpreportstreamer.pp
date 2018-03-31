@@ -129,6 +129,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
+    Procedure   InitFromStream(aStream : TStream);
     function    StreamToHex(S: TStream): String;
     function    StreamsEqual(S1, S2: TStream): Boolean;
     function    HexToStringStream(S: String): TStringStream;
@@ -147,6 +148,7 @@ resourcestring
   SErrStackEmpty = 'Element stack is empty';
   SErrNoCurrentElement = 'No current element to find node %s below';
   SErrNodeNotElement = 'Node %s is not an element node';
+  SErrNotAValidJSONObject = 'Stream does not contain not a valid JSON object';
 
 const
   { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
@@ -589,6 +591,22 @@ begin
   If OwnsJSON then
     FreeAndNil(Fjson);
   inherited Destroy;
+end;
+
+procedure TFPReportJSONStreamer.InitFromStream(aStream: TStream);
+
+var
+  D : TJSONData;
+
+begin
+  D:=GetJSON(aStream);
+  if not (D is TJSONObject) then
+    begin
+    D.Free;
+    Raise EReportDOM.Create(SErrNotAValidJSONObject);
+    end;
+  OwnsJSON:=True;
+  JSON:=D as TJSONObject;
 end;
 
 function TFPReportJSONStreamer.StreamToHex(S: TStream): String;
