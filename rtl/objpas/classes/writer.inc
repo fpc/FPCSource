@@ -1288,3 +1288,10 @@ begin
   Driver.WriteUnicodeString(Value);
 end;
 
+{ TAbstractObjectWriter }
+
+procedure TAbstractObjectWriter.FlushBuffer;
+begin
+  // Do nothing
+end;
+

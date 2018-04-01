@@ -617,6 +617,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TReader.FlushBuffer;
+begin
+  Driver.FlushBuffer;
+end;
+
 function TReader.CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectReader;
 begin
   Result := TBinaryObjectReader.Create(Stream, BufSize);
@@ -1757,4 +1762,11 @@ begin
     raise EClassNotFound.CreateFmt(SClassNotFound, [AClassName]);
 end;
 
+
+{ TAbstractObjectReader }
+
+procedure TAbstractObjectReader.FlushBuffer;
+begin
+  // Do nothing
+end;
 
