@@ -100,8 +100,7 @@ type
     ssLeft, ssRight, ssMiddle, ssDouble,
     // Extra additions
     ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum,
-    ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2,
-    ssScrollH);
+    ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2);
 
 {$packset 1}
   TShiftState = set of TShiftStateEnum;
