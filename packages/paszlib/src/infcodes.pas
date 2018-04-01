@@ -155,8 +155,13 @@ begin
           if s.last then
           begin
             t := c^.sub.code.tree;
-            if t^.exop and 32 <> 0 then
-              break;
+            { update t (like as in following code), and check, if requested
+              bits are available }
+            Inc(t, cardinal(b) and inflate_mask[j]);
+            if k >= t^.bits then
+            { now, we can examine t^.exop value }
+              if t^.exop and 32 <> 0 then
+                break;
           end;
 
           exit;
