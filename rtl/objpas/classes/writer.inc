@@ -505,6 +505,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TWriter.FlushBuffer;
+begin
+  Driver.FlushBuffer;
+end;
+
 function TWriter.CreateDriver(Stream: TStream; BufSize: Integer): TAbstractObjectWriter;
 begin
   Result := TBinaryObjectWriter.Create(Stream, BufSize);

@@ -1493,6 +1493,7 @@ type
     constructor Create(ADriver: TAbstractObjectWriter);
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
+    Procedure FlushBuffer; override;
     procedure DefineProperty(const Name: string;
       ReadData: TReaderProc; AWriteData: TWriterProc;
       HasData: Boolean); override;
