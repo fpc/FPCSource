@@ -522,13 +522,8 @@ Type
   TNativeIntHelper = Type Helper for NativeInt
   public
     const
-{$IFDEF CPU64BITS}
-      MaxValue = 9223372036854775807;
-      MinValue = -9223372036854775808;
-{$ELSE !CPU64BITS}
-      MaxValue = 2147483647;
-      MinValue = -2147483648;
-{$ENDIF CPU64BITS}
+      MaxValue = High(NativeInt);
+      MinValue = Low(NativeUInt);
   Public
     Class Function Parse(const AString: string): NativeInt; inline; static;
     Class Function Size: Integer; inline; static;
@@ -547,11 +542,7 @@ Type
   TNativeUIntHelper = Type Helper for NativeUInt
   public
     const
-{$IFDEF CPU64BITS}
-      MaxValue = 18446744073709551615;
-{$ELSE !CPU64BITS}
-      MaxValue = 4294967295;
-{$ENDIF CPU64BITS}
+      MaxValue = High(NativeUInt);
       MinValue = 0;
   Public
     Class Function Parse(const AString: string): NativeUInt; inline; static;
