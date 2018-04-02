@@ -121,6 +121,9 @@ interface
           function docompare(p: tnode) : boolean; override;
           procedure changestringtype(def:tdef);
           function fullcompare(p: tstringconstnode): longint;
+          { returns whether this platform uses the nil pointer to represent
+            empty dynamic strings }
+          class function emptydynstrnil: boolean; virtual;
        end;
        tstringconstnodeclass = class of tstringconstnode;
 
@@ -1026,6 +1029,11 @@ implementation
           result:=comparewidestrings(pcompilerwidestring(value_str),pcompilerwidestring(p.value_str))
         else
           result:=compareansistrings(value_str,p.value_str,len,p.len);
+      end;
+
+    class function tstringconstnode.emptydynstrnil: boolean;
+      begin
+        result:=true;
       end;
 
 {*****************************************************************************

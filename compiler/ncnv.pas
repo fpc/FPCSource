@@ -2924,7 +2924,17 @@ implementation
                 resultdef:=left.resultdef;
                 left:=nil;
                 exit;
-              end;
+              end
+            else if
+              (convtype<>tc_cstring_2_pchar)  and
+              is_dynamicstring(left.resultdef) and
+              (tstringconstnode(left).len=0) and
+              (resultdef.typ=pointerdef) and
+              cstringconstnode.emptydynstrnil then
+            begin
+              result:=cnilnode.create;
+              exit;
+            end;
 
           realconstn :
             begin
