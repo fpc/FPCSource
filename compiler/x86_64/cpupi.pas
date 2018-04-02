@@ -171,9 +171,9 @@ implementation
     function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
       begin
         result:=
-           ((target_info.system=system_x86_64_win64) and
+          ((target_info.system=system_x86_64_win64) and
             not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
-            (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl,pocall_vectorcall]);
+          (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
       end;
 
 
