@@ -240,7 +240,7 @@ const
             fld         %st
             fabs
             fld1
-            fcomip
+            fcomip      %st(1),%st(0)
             fstp        %st
             jp          .L3               { NaN }
             jae         .L1               { |frac(z)| <= 1, good }
@@ -248,7 +248,7 @@ const
             fld         %st(1)
             fabs
             flds        large(%rip)
-            fcomip
+            fcomip      %st(1),%st(0)
             fstp        %st
             jb          .L3               { int(z) >= 24576 }
    .L0:
