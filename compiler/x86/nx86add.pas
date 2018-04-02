@@ -559,13 +559,39 @@ unit nx86add;
           end
         else
           begin
-            { left must be a register }
-            left_must_be_reg(opdef,opsize,noswap);
-            emit_generic_code(op,opsize,true,extra_not,false);
-            location_freetemp(current_asmdata.CurrAsmList,right.location);
+            { can we use the BMI1 instruction andn? }
+            if (op=A_AND) and extra_not and (CPUX86_HAS_BMI1 in cpu_capabilities[current_settings.cputype]) and
+              (resultdef.size in [4{$ifdef x86_64},8{$endif x86_64}]) then
+              begin
+                location_reset(location,LOC_REGISTER,left.location.size);
+                location.register:=cg.getintregister(current_asmdata.currAsmList,left.location.size);
+                if nf_swapped in flags then
+                  begin
+                    location_swap(left.location,right.location);
+                    toggleflag(nf_swapped);
+                  end;
+                hlcg.location_force_reg(current_asmdata.currAsmList,right.location,right.resultdef,opdef,true);
+                if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE]) then
+                  hlcg.location_force_reg(current_asmdata.currAsmList,left.location,left.resultdef,opdef,true);
+                case left.location.loc of
+                  LOC_CREGISTER,LOC_REGISTER:
+                    emit_reg_reg_reg(A_ANDN,TCGSize2Opsize[opsize],left.location.register,right.location.register,location.register);
+                  LOC_CREFERENCE,LOC_REFERENCE:
+                    emit_ref_reg_reg(A_ANDN,TCGSize2Opsize[opsize],left.location.reference,right.location.register,location.register);
+                  else
+                    Internalerror(2018040201);
+                end;
+              end
+            else
+              begin
+                { left must be a register }
+                left_must_be_reg(opdef,opsize,noswap);
+                emit_generic_code(op,opsize,true,extra_not,false);
+                location_freetemp(current_asmdata.CurrAsmList,right.location);
 
-            { left is always a register and contains the result }
-            location:=left.location;
+                { left is always a register and contains the result }
+                location:=left.location;
+              end;
           end;
 
         { fix the changed opsize we did above because of the missing btsb }
