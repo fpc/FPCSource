@@ -1021,54 +1021,9 @@ implementation
       end;
 
     procedure ttypeconvnode.printnodeinfo(var t : text);
-      const
-        convtyp2str : array[tconverttype] of pchar = (
-          'tc_none',
-          'tc_equal',
-          'tc_not_possible',
-          'tc_string_2_string',
-          'tc_char_2_string',
-          'tc_char_2_chararray',
-          'tc_pchar_2_string',
-          'tc_cchar_2_pchar',
-          'tc_cstring_2_pchar',
-          'tc_cstring_2_int',
-          'tc_ansistring_2_pchar',
-          'tc_string_2_chararray',
-          'tc_chararray_2_string',
-          'tc_array_2_pointer',
-          'tc_pointer_2_array',
-          'tc_int_2_int',
-          'tc_int_2_bool',
-          'tc_bool_2_bool',
-          'tc_bool_2_int',
-          'tc_real_2_real',
-          'tc_int_2_real',
-          'tc_real_2_currency',
-          'tc_proc_2_procvar',
-          'tc_nil_2_methodprocvar',
-          'tc_arrayconstructor_2_set',
-          'tc_set_2_set',
-          'tc_cord_2_pointer',
-          'tc_intf_2_string',
-          'tc_intf_2_guid',
-          'tc_class_2_intf',
-          'tc_char_2_char',
-          'tc_dynarray_2_openarray',
-          'tc_pwchar_2_string',
-          'tc_variant_2_dynarray',
-          'tc_dynarray_2_variant',
-          'tc_variant_2_enum',
-          'tc_enum_2_variant',
-          'tc_interface_2_variant',
-          'tc_variant_2_interface',
-          'tc_array_2_dynarray',
-          'tc_elem_2_openarray',
-          'tc_arrayconstructor_2_dynarray'
-        );
       begin
         inherited printnodeinfo(t);
-        write(t,', convtype = ',strpas(convtyp2str[convtype]));
+        write(t,', convtype = ',convtype);
       end;
 
 
