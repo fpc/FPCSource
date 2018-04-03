@@ -383,7 +383,7 @@ implementation
                   stringclass:=java_shortstring;
                   left:=caddrnode.create_internal(left);
                   { avoid useless typecheck when casting to shortstringclass }
-                  include(left.flags,nf_typedaddr);
+                  include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 end
               else
                 internalerror(2011052407);

@@ -170,14 +170,14 @@ interface
                is_emptyset(left)) then
           begin
             left:=caddrnode.create_internal(left);
-            include(left.flags,nf_typedaddr);
+            include(taddrnode(left).addrnodeflags,anf_typedaddr);
             if isenum then
               begin
                 inserttypeconv_explicit(left,java_juenumset);
                 if right.resultdef.typ=setdef then
                   begin
                     right:=caddrnode.create_internal(right);
-                    include(right.flags,nf_typedaddr);
+                    include(taddrnode(right).addrnodeflags,anf_typedaddr);
                     inserttypeconv_explicit(right,java_juenumset);
                   end;
               end
@@ -187,7 +187,7 @@ interface
                 if right.resultdef.typ=setdef then
                   begin
                     right:=caddrnode.create_internal(right);
-                    include(right.flags,nf_typedaddr);
+                    include(taddrnode(right).addrnodeflags,anf_typedaddr);
                     inserttypeconv_explicit(right,java_jubitset);
                   end;
               end;

@@ -2419,7 +2419,7 @@ implementation
                        begin
                          left.resultdef:=resultdef;
                          if (nf_explicit in flags) and (left.nodetype = addrn) then
-                           include(left.flags, nf_typedaddr);
+                           include(taddrnode(left).addrnodeflags,anf_typedaddr);
                          result:=left;
                          left:=nil;
                        end;

@@ -129,7 +129,7 @@ implementation
                   if not assigned(left) then
                     begin
                       left:=caddrnode.create_internal(cloadnode.create(tprocdef(symtableentry.owner.defowner).parentfpstruct,tprocdef(symtableentry.owner.defowner).parentfpstruct.owner));
-                      include(left.flags,nf_typedaddr);
+                      include(taddrnode(left).addrnodeflags,anf_typedaddr);
                     end;
                   typecheckpass(left);
                 end;

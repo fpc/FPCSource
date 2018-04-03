@@ -70,7 +70,7 @@ implementation
 
     procedure ti8086addrnode.set_absvarsym_resultdef;
       begin
-        if not(nf_typedaddr in flags) then
+        if not(anf_typedaddr in addrnodeflags) then
           resultdef:=voidfarpointertype
         else
           resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);

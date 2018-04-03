@@ -1328,7 +1328,7 @@ implementation
               if addrparam then
                 begin
                   initcode:=caddrnode.create_internal(initcode);
-                  include(initcode.flags,nf_typedaddr);
+                  include(taddrnode(initcode).addrnodeflags,anf_typedaddr);
                 end;
               initcode:=cassignmentnode.create(
                 csubscriptnode.create(result,cloadnode.create(pd.parentfpstruct,pd.parentfpstruct.owner)),

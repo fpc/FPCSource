@@ -3780,7 +3780,7 @@ implementation
                  p1:=caddrnode.create(p1);
                  p1.fileinfo:=filepos;
                  if cs_typed_addresses in current_settings.localswitches then
-                   include(p1.flags,nf_typedaddr);
+                   include(taddrnode(p1).addrnodeflags,anf_typedaddr);
                  { Store the procvar that we are expecting, the
                    addrn will use the information to find the correct
                    procdef or it will return an error }

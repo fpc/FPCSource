@@ -84,7 +84,7 @@ implementation
           exit;
         { otherwise call set helper }
         right:=caddrnode.create_internal(right);
-        include(right.flags,nf_typedaddr);
+        include(taddrnode(right).addrnodeflags,anf_typedaddr);
         if isenum then
           begin
             inserttypeconv_explicit(left,java_jlenum);

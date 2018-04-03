@@ -325,7 +325,7 @@ begin
       if is_shortstr then
         begin
           sn:=caddrnode.create(sn);
-          include(sn.flags,nf_typedaddr);
+          include(taddrnode(sn).addrnodeflags,anf_typedaddr);
           include(sn.flags,nf_internal);
         end;
       arrp:=carrayconstructornode.create(sn,arrp);

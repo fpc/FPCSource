@@ -109,7 +109,7 @@ implementation
         else
           begin
             result:=caddrnode.create_internal(cloadnode.create(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
-            include(result.flags,nf_typedaddr);
+            include(taddrnode(result).addrnodeflags,anf_typedaddr);
             currpi:=current_procinfo;
           end;
         { follow the chain of parentfpstructs until we arrive at the one we

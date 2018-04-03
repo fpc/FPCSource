@@ -374,7 +374,7 @@ implementation
                     setclassdef:=java_juenumset;
                   end;
                 left:=caddrnode.create_internal(left);
-                include(left.flags,nf_typedaddr);
+                include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 inserttypeconv_explicit(left,setclassdef);
                 result:=ccallnode.createinternmethod(
                   cloadvmtaddrnode.create(ctypenode.create(setclassdef)),

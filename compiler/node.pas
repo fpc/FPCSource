@@ -229,9 +229,6 @@ interface
            during simplify, the flag must be moved to another node }
          nf_usercode_entry,
 
-         { taddrnode }
-         nf_typedaddr,
-
          { tderefnode }
          nf_no_checkpointer,
 
@@ -277,7 +274,7 @@ interface
          { tloadvmtaddrnode }
          nf_ignore_for_wpo  { we know that this loadvmtaddrnode cannot be used to construct a class instance }
 
-         { WARNING: there are now 32 elements in this type, and a set of this
+         { WARNING: there are now 31 elements in this type, and a set of this
              type is written to the PPU. So before adding more than 32 elements,
              either move some flags to specific nodes, or stream a normalset
              to the ppu

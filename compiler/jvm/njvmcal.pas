@@ -267,7 +267,7 @@ implementation
               begin
                 { pass pointer to the struct }
                 left:=caddrnode.create_internal(left);
-                include(left.flags,nf_typedaddr);
+                include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 typecheckpass(left);
               end;
             { wrap the primitive type in an object container
@@ -551,7 +551,7 @@ implementation
       if not tprocvardef(right.resultdef).is_addressonly then
         begin
           right:=caddrnode.create_internal(right);
-          include(right.flags,nf_typedaddr);
+          include(taddrnode(right).addrnodeflags,anf_typedaddr);
         end;
       right:=ctypeconvnode.create_explicit(right,pdclass);
       include(right.flags,nf_load_procvar);

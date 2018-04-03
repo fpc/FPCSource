@@ -4840,7 +4840,7 @@ implementation
         if tabstractvarsym(para.parasym).varspez=vs_const then
           tempnode.includetempflag(ti_const);
         paraaddr:=caddrnode.create_internal(para.left);
-        include(paraaddr.flags,nf_typedaddr);
+        include(paraaddr.addrnodeflags,anf_typedaddr);
         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
           paraaddr));
         para.left:=cderefnode.create(ctemprefnode.create(tempnode));

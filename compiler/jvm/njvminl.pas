@@ -366,7 +366,7 @@ implementation
         tcallparanode(left).right:=nil;
         seteledef:=tsetdef(setpara.resultdef).elementdef;
         setpara:=caddrnode.create_internal(setpara);
-        include(setpara.flags,nf_typedaddr);
+        include(taddrnode(setpara).addrnodeflags,anf_typedaddr);
         if seteledef.typ=enumdef then
           begin
             inserttypeconv_explicit(setpara,java_juenumset);
