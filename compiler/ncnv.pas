@@ -3947,6 +3947,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           (convtype = ttypeconvnode(p).convtype) and
+          (convnodeflags = ttypeconvnode(p).convnodeflags) and
           equal_defs(totypedef,ttypeconvnode(p).totypedef);
       end;
 
