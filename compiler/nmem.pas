@@ -68,9 +68,17 @@ interface
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
 
+       taddrnodeflag = (
+          anf_dummyflag  { todo: remove this, when the first real addrnode flag
+                           is added (this is just a dummy element, because the
+                           enum cannot be empty) }
+       );
+       taddrnodeflags = set of taddrnodeflag;
+
        taddrnode = class(tunarynode)
           getprocvardef : tprocvardef;
           getprocvardefderef : tderef;
+          addrnodeflags : taddrnodeflags;
           constructor create(l : tnode);virtual;
           constructor create_internal(l : tnode); virtual;
           constructor create_internal_nomark(l : tnode); virtual;
@@ -412,6 +420,7 @@ implementation
       begin
          inherited create(addrn,l);
          getprocvardef:=nil;
+         addrnodeflags:=[];
          mark_read_written := true;
       end;
 
@@ -434,6 +443,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(getprocvardefderef);
+        ppufile.getsmallset(addrnodeflags);
       end;
 
 
@@ -441,6 +451,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(getprocvardefderef);
+        ppufile.putsmallset(addrnodeflags);
       end;
 
     procedure Taddrnode.mark_write;
@@ -468,7 +479,8 @@ implementation
       begin
         result:=
           inherited docompare(p) and
-          (taddrnode(p).getprocvardef=getprocvardef);
+          (taddrnode(p).getprocvardef=getprocvardef) and
+          (taddrnode(p).addrnodeflags=addrnodeflags);
       end;
 
 
@@ -478,6 +490,7 @@ implementation
       begin
          p:=taddrnode(inherited dogetcopy);
          p.getprocvardef:=getprocvardef;
+         p.addrnodeflags:=addrnodeflags;
          dogetcopy:=p;
       end;
 
