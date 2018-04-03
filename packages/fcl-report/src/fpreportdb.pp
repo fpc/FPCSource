@@ -30,6 +30,7 @@ Type
     FDataSet: TDataSet;
     procedure SetDataSet(AValue: TDataSet);
   protected
+    function GetIsOpened: boolean; override;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure DoGetValue(const AFieldName: string; var AValue: variant); override;
     procedure DoInitDataFields; override;
@@ -63,6 +64,13 @@ begin
   FDataSet:=AValue;
   if Assigned(FDataset) then
     FDataset.FreeNotification(Self);
+end;
+
+function TFPReportDatasetData.GetIsOpened: boolean;
+begin
+  Result:=inherited GetIsOpened;
+  if Result then
+    Result:=FDataset.Active; // Can be closed because of master-detail.
 end;
 
 procedure TFPReportDatasetData.Notification(AComponent: TComponent; Operation: TOperation);

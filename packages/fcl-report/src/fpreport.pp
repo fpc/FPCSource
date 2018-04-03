@@ -454,6 +454,7 @@ type
     function CreateDataFields: TFPReportDataFields; virtual;
     procedure DoGetValue(const AFieldName: string; var AValue: variant); virtual;
     // Fill Datafields Collection. Should not change after Open.
+    function GetIsOpened: boolean; virtual;
     procedure DoInitDataFields; virtual;
     procedure DoOpen; virtual;
     procedure DoFirst; virtual;
@@ -482,7 +483,7 @@ type
     property FieldTypes[AFieldName: string]: TFPReportFieldKind read GetFieldType;
     property FieldCount: integer read GetFieldCount;
     property RecNo: integer read FRecNo;
-    property IsOpened: boolean read FIsOpened;
+    property IsOpened: boolean read GetIsOpened;
   published
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
     property OnClose: TNotifyEvent read FOnClose write FOnClose;
@@ -10246,6 +10247,11 @@ begin
   Result := FDataFields.FieldByName(AFieldName).DisplayWidth;
 end;
 
+function TFPReportData.GetIsOpened: boolean;
+begin
+  Result:=FIsOpened;
+end;
+
 function TFPReportData.GetLastFieldValue(AFieldName: string): variant;
 begin
   Result := FDataFields.FieldByName(AFieldName).FPrevValue;
@@ -10336,10 +10342,10 @@ end;
 
 procedure TFPReportData.First;
 begin
+  FRecNo := 1;
   if Assigned(FOnFirst) then
     FOnFirst(Self);
   DoFirst;
-  FRecNo := 1;
   InitFieldValues(False);
 end;
 
