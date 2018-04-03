@@ -65,7 +65,7 @@ resourcestring
   SErrInvalidJSONAtPath = 'Invalid JSON at Path. Need Array or Object';
   SErrInvalidPath = 'Path "%s" is not valid';
 
-{$if FPC_FULLVERSION<30000}
+{$if FPC_FULLVERSION<=30000}
 Const
   StructuredJSONTypes  = [jtArray,jtObject];
 {$ENDIF}
