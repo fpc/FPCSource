@@ -241,7 +241,10 @@ asm
           subfe   r10,r10,r10
 
           {  count < 63 ? (32 + max. alignment (31) }
-          cmpwi   cr7,r5,63
+          { change to 64, because for overlap, we do not re-increment r5,
+            which could then lead to a counter being zero at start and thus
+            running forever }
+          cmpwi   cr7,r5,64
 
           {  if count <= 0, stop  }
           ble     cr0,.LMoveDone
@@ -288,7 +291,9 @@ asm
 {$endif non ppc603}
           { we are going to copy one byte again (the one at the newly }
           { aligned address), so increase count byte 1                }
-          addi    r5,r5,1
+          { This is only true if there is no overlap, thus            }
+          { use r5:=r5-r6; which does what is needed.                 }
+          sub    r5,r5,r6
           { count div 4 for number of dwords to copy }
           srwi    r0,r5,2
           {  if 11 <= count < 63, copy using dwords }
