@@ -1,11 +1,10 @@
 program app_test_core;
 
+{$H+}
 {$inline on}
 
 {$IFDEF MSWINDOWS}
   {$APPTYPE CONSOLE}
-{$ELSE !MSWINDOWS}
-  {$H+}
 {$ENDIF !MSWINDOWS}
 
 uses
