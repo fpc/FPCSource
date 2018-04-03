@@ -425,7 +425,7 @@ Var
   I : Integer;
   MasterD,DesignD : TFPReportDataDefinitionItem;
   DatasetD : TFPReportDatasetData;
-  H : TFPReportDataHandler;
+  H : TFPReportDataHandlerClass;
   L : TFPList;
   P : TComponent;
   DDS,MDS : TDataset;
@@ -461,7 +461,7 @@ begin
     DesignD:=DataDefinitions[i];
     if (DesignD.Master<>'') then
       begin
-      H:=TFPCustomReportDataManager.GetTypeHandler(DesignD.DataType);
+      H:=TFPCustomReportDataManager.GetTypeHandlerClass(DesignD.DataType);
       MasterD:=DataDefinitions.FindDataByName(DesignD.Master);
       DDS:=(DesignD.RunReportDataItem.Data as TFPReportDatasetData).DataSet;
       MDS:=(MasterD.RunReportDataItem.Data as TFPReportDatasetData).DataSet;
