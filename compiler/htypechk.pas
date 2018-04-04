@@ -99,10 +99,13 @@ interface
       tregableinfoflag = (
          // can be put in a register if it's the address of a var/out/const parameter
          ra_addr_regable,
-         // orthogonal to above flag: the address of the node is taken and may
-         // possibly escape the block in which this node is declared (e.g. a
-         // local variable is passed as var parameter to another procedure)
-         ra_addr_taken);
+         { orthogonal to above flag: the address of the node is taken and may
+           possibly escape the block in which this node is declared (e.g. a
+           local variable is passed as var parameter to another procedure)
+         }
+         ra_addr_taken,
+         { variable is accessed in a different scope }
+         ra_different_scope);
       tregableinfoflags = set of tregableinfoflag;
 
     const
