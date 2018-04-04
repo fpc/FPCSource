@@ -123,6 +123,8 @@ interface
       rough estimation how large the tree "node" is }
     function node_count(node : tnode) : dword;
 
+    function node_count_weighted(node : tnode) : dword;
+
     { returns true, if the value described by node is constant/immutable, this approximation is safe
       if no dirty tricks like buffer overflows or pointer magic are used }
     function is_const(node : tnode) : boolean;
@@ -1355,6 +1357,22 @@ implementation
       begin
         nodecount:=0;
         foreachnodestatic(node,@donodecount,nil);
+        result:=nodecount;
+      end;
+
+
+    function donodecount_weighted(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if not(n.nodetype in [blockn,statementn,callparan,nothingn]) then
+          inc(nodecount);
+        result:=fen_false;
+      end;
+
+
+    function node_count_weighted(node : tnode) : dword;
+      begin
+        nodecount:=0;
+        foreachnodestatic(node,@donodecount_weighted,nil);
         result:=nodecount;
       end;
 

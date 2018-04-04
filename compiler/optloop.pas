@@ -51,13 +51,17 @@ unit optloop;
 
     function number_unrolls(node : tnode) : cardinal;
       begin
+        { calculate how often a loop shall be unrolled.
+
+          The term (60*ord(node_count_weighted(node)<15)) is used to get small loops  unrolled more often as
+          the counter management takes more time in this case. }
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
         if current_settings.optimizecputype in [cpu_Pentium4] then
-          number_unrolls:=60 div node_count(node)
+          number_unrolls:=trunc(round((60+(60*ord(node_count_weighted(node)<15)))/max(node_count_weighted(node),1)))
         else
 {$endif i386}
-          number_unrolls:=30 div node_count(node);
+          number_unrolls:=trunc(round((30+(60*ord(node_count_weighted(node)<15)))/max(node_count_weighted(node),1)));
 
         if number_unrolls=0 then
           number_unrolls:=1;
