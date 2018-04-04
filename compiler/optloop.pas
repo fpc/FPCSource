@@ -126,7 +126,7 @@ unit optloop;
                   multiply unroll by two here because we can get rid
                   of the counter variable completely and replace it by a constant
                   if unrolls=counts }
-                if unrolls*2>counts then
+                if unrolls*2>=counts then
                   unrolls:=counts;
 
                 { create block statement }
