@@ -231,24 +231,6 @@ begin
    ForceExtension:=Copy(Hstr,1,j-1);
 end;
 
-type
-  TCharSet = set of char;
-
-function GetToken(var s: string; Delims: TCharSet = [' ']):string;
-var
-  i : longint;
-  p: PChar;
-begin
-  p:=PChar(s);
-  i:=0;
-  while (p^ <> #0) and not (p^ in Delims) do begin
-    Inc(p);
-    Inc(i);
-  end;
-  GetToken:=Copy(s,1,i);
-  Delete(s,1,i+1);
-end;
-
 procedure mkdirtree(const s:string);
 var
   SErr, hs : string;

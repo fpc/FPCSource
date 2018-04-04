@@ -12,6 +12,8 @@ uses
   ---------------------------------------------------------------------}
 
 type
+  TCharSet = set of char;
+
   TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug,V_SQL);
 
   TConfig = record
@@ -79,8 +81,24 @@ Function SplitFileExt(const s:string):string;
 Function FileExists (Const F : String) : Boolean;
 Function PathExists (Const F : String) : Boolean;
 Function IsAbsolute (Const F : String) : boolean;
+function GetToken(var s: string; Delims: TCharSet = [' ']):string;
 
 Implementation
+
+function GetToken(var s: string; Delims: TCharSet = [' ']):string;
+var
+  i : longint;
+  p: PChar;
+begin
+  p:=PChar(s);
+  i:=0;
+  while (p^ <> #0) and not (p^ in Delims) do begin
+    Inc(p);
+    Inc(i);
+  end;
+  GetToken:=Copy(s,1,i);
+  Delete(s,1,i+1);
+end;
 
 function SplitPath(const s:string):string;
 var
