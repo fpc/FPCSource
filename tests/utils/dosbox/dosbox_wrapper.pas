@@ -100,10 +100,10 @@ var
   Buf: array [0..4095] of Byte;
   BytesRead: Integer;
 begin
-  if not AnsiEndsText('.exe', ASrcFileName) and AnsiEndsText('.exe',ADestFileName) then
-    ASrcFileName := ASrcFileName + '.exe';
   if verbose then
     Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
+  if not AnsiEndsText('.exe', ASrcFileName) and AnsiEndsText('.EXE',ADestFileName) then
+    ASrcFileName := ASrcFileName + '.exe';
   OldFileMode := FileMode;
   try
     AssignFile(SrcF, ASrcFileName);
@@ -173,28 +173,22 @@ var
 
   function BuildFileList: TStringList;
     var
-      s      : string;
-      index  : longint;
+      dfl, fl  : string;
     begin
-      s:=Config.Files;
-      if (length(s) = 0) and (Config.ConfigFileSrc='') then
+      fl:=Trim(Config.Files);
+      dfl:=Trim(Config.DelFiles);
+      if (fl='') and (dfl='') and (Config.ConfigFileSrc='') then
         begin
           Result:=nil;
           exit;
         end;
       Result:=TStringList.Create;
-      if s<>'' then
-        repeat
-          index:=pos(' ',s);
-          if index=0 then
-            LocalFile:=s
-          else
-            LocalFile:=copy(s,1,index-1);
+      while fl<>'' do
+        begin
+          LocalFile:=Trim(GetToken(fl, [' ',',',';']));
           Result.Add(LocalFile);
-          if index=0 then
-            break;
-          s:=copy(s,index+1,length(s)-index);
-        until false;
+        end;
+
       if Config.ConfigFileSrc<>'' then
         begin
           if Config.ConfigFileSrc=Config.ConfigFileDst then
@@ -202,7 +196,12 @@ var
           else
             Result.AddObject(Config.ConfigFileSrc+'='+Config.ConfigFileDst,RelativeToConfigMarker);
         end;
-    end;
+      while dfl <> '' do
+        begin
+          LocalFile:=Trim(GetToken(dfl, [' ',',',';']));
+          Result.Add(LocalFile);
+        end;
+     end;
 
 var
   ddir : string;
@@ -212,7 +211,7 @@ begin
       ddir:=GetEnvironmentVariable('BASEDIR');
       if ddir='' then
         GetDir(0,ddir);
-      writeln('Start ddir=',ddir);
+      // writeln('Start ddir=',ddir);
       while (ddir<>'') do
         begin
           if FileExists(ddir+DirectorySeparator+SourceFileName) then
@@ -228,7 +227,7 @@ begin
                 ddir:=splitpath(ddir);
               if ddir[length(ddir)]=DirectorySeparator then
                 ddir:=copy(ddir,1,length(ddir)-1);
-              writeln('Next ddir=',ddir);
+              // writeln('Next ddir=',ddir);
             end;
         end;
      end;
@@ -236,7 +235,9 @@ begin
     begin
       writeln('File ',SourceFileName,' not found');
       exit;
-    end;
+    end
+  else if verbose then
+    writeln('Analyzing source file ',SourceFileName);
   if not GetConfig(SourceFileName,config) then
     exit;
 
