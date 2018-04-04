@@ -34,6 +34,7 @@ interface
     type
        ti8086addrnode = class(ti86addrnode)
         protected
+         procedure set_labelsym_resultdef; override;
          procedure set_absvarsym_resultdef; override;
          procedure pass_generate_code;override;
         public
@@ -67,6 +68,15 @@ implementation
 {*****************************************************************************
                              TI8086ADDRNODE
 *****************************************************************************}
+
+    procedure ti8086addrnode.set_labelsym_resultdef;
+      begin
+        if anf_ofs in addrnodeflags then
+          resultdef:=voidnearcspointertype
+        else
+          inherited;
+      end;
+
 
     procedure ti8086addrnode.set_absvarsym_resultdef;
       begin
