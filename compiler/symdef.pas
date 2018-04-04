@@ -634,6 +634,8 @@ interface
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;virtual;
           function address_type:tdef;virtual;
+          { address type, generated for ofs() }
+          function ofs_address_type:tdef;virtual;
           procedure declared_far;virtual;
           procedure declared_near;virtual;
        private
@@ -5219,6 +5221,12 @@ implementation
     function tabstractprocdef.address_type: tdef;
       begin
         result:=voidcodepointertype;
+      end;
+
+
+    function tabstractprocdef.ofs_address_type:tdef;
+      begin
+        result:=address_type;
       end;
 
 

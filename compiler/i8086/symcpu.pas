@@ -112,6 +112,7 @@ type
     constructor create(level:byte);override;
     function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
     function address_type:tdef;override;
+    function ofs_address_type:tdef;override;
     function size:asizeint;override;
     procedure declared_far;override;
     procedure declared_near;override;
@@ -133,6 +134,7 @@ type
     constructor create(level:byte;doregister:boolean);override;
     function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
     function address_type:tdef;override;
+    function ofs_address_type:tdef;override;
     function size:asizeint;override;
     procedure declared_far;override;
     procedure declared_near;override;
@@ -350,6 +352,12 @@ implementation
     end;
 
 
+  function tcpuprocdef.ofs_address_type:tdef;
+    begin
+      result:=voidnearpointertype;
+    end;
+
+
   function tcpuprocdef.size: asizeint;
     begin
       result:=address_type.size;
@@ -435,6 +443,12 @@ implementation
           end
       else
         result:=inherited;
+    end;
+
+
+  function tcpuprocvardef.ofs_address_type:tdef;
+    begin
+      result:=voidnearpointertype;
     end;
 
 
