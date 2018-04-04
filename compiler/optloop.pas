@@ -141,7 +141,11 @@ unit optloop;
                   begin
                     replaceinfo.node:=tfornode(node).left;
                     replaceinfo.value:=tordconstnode(tfornode(node).right).value;
-                  end;
+                  end
+                else
+                  { we consider currently unrolling not beneficial, if we cannot get rid of the for completely, this
+                    might change if a more sophisticated heuristics is used (FK) }
+                  exit;
 
                 { let's unroll (and rock of course) }
                 for i:=1 to unrolls do
