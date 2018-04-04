@@ -5,6 +5,7 @@ uses
 {$ifdef UseSignals}
   signals,
 {$endif def UseSignals}
+  testu, classes,
   Process;
 
 const
@@ -15,13 +16,14 @@ const
   do_exit : boolean = true;
   verbose : boolean = false;
   DosBoxProcess: TProcess = nil;
-
-  dosbox_timeout : integer = 100;  { default timeout in seconds }
+  dosbox_timeout : integer = 400;  { default timeout in seconds }
 var
   OutputFileName : String;
-  DosBoxDir: string;
+  SourceFileName : String;
+  StartDir, DosBoxDir: string;
   ExitCode: Integer = 255;
   DosBoxBinaryPath: string;
+  TmpFileList : TStringList;
 
 function GenerateTempDir: string;
 var
@@ -98,10 +100,10 @@ var
   Buf: array [0..4095] of Byte;
   BytesRead: Integer;
 begin
+  if not AnsiEndsText('.exe', ASrcFileName) and AnsiEndsText('.exe',ADestFileName) then
+    ASrcFileName := ASrcFileName + '.exe';
   if verbose then
     Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
-  if not AnsiEndsText('.exe', ASrcFileName) then
-    ASrcFileName := ASrcFileName + '.exe';
   OldFileMode := FileMode;
   try
     AssignFile(SrcF, ASrcFileName);
@@ -125,6 +127,149 @@ begin
   finally
     FileMode := OldFileMode;
   end;
+end;
+
+function ForceExtension(Const HStr,ext:String):String;
+{
+  Return a filename which certainly has the extension ext
+}
+var
+  j : longint;
+begin
+  j:=length(Hstr);
+  while (j>0) and (Hstr[j]<>'.') do
+    dec(j);
+  if j=0 then
+    j:=length(Hstr)+1;
+  if Ext<>'' then
+   begin
+     if Ext[1]='.' then
+       ForceExtension:=Copy(Hstr,1,j-1)+Ext
+     else
+       ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
+   end
+  else
+   ForceExtension:=Copy(Hstr,1,j-1);
+end;
+
+procedure CopyNeededFiles;
+var
+  Config : TConfig;
+  LocalFile, RemoteFile, s: string;
+  LocalPath: string;
+  i       : integer;
+  FileList   : TStringList;
+  RelativeToConfigMarker : TObject;
+
+  function SplitPath(const s:string):string;
+  var
+    i : longint;
+  begin
+    i:=Length(s);
+    while (i>0) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
+     dec(i);
+    SplitPath:=Copy(s,1,i);
+  end;
+
+  function BuildFileList: TStringList;
+    var
+      s      : string;
+      index  : longint;
+    begin
+      s:=Config.Files;
+      if (length(s) = 0) and (Config.ConfigFileSrc='') then
+        begin
+          Result:=nil;
+          exit;
+        end;
+      Result:=TStringList.Create;
+      if s<>'' then
+        repeat
+          index:=pos(' ',s);
+          if index=0 then
+            LocalFile:=s
+          else
+            LocalFile:=copy(s,1,index-1);
+          Result.Add(LocalFile);
+          if index=0 then
+            break;
+          s:=copy(s,index+1,length(s)-index);
+        until false;
+      if Config.ConfigFileSrc<>'' then
+        begin
+          if Config.ConfigFileSrc=Config.ConfigFileDst then
+            Result.AddObject(Config.ConfigFileSrc,RelativeToConfigMarker)
+          else
+            Result.AddObject(Config.ConfigFileSrc+'='+Config.ConfigFileDst,RelativeToConfigMarker);
+        end;
+    end;
+
+var
+  ddir : string;
+begin
+  if not IsAbsolute(SourceFileName) and not FileExists(SourceFileName) then
+    begin
+      ddir:=GetEnvironmentVariable('BASEDIR');
+      if ddir='' then
+        GetDir(0,ddir);
+      writeln('Start ddir=',ddir);
+      while (ddir<>'') do
+        begin
+          if FileExists(ddir+DirectorySeparator+SourceFileName) then
+            begin
+              SourceFileName:=ddir+DirectorySeparator+SourceFileName;
+              break;
+            end
+          else
+            begin
+              if ddir=splitpath(ddir) then
+                break
+              else
+                ddir:=splitpath(ddir);
+              if ddir[length(ddir)]=DirectorySeparator then
+                ddir:=copy(ddir,1,length(ddir)-1);
+              writeln('Next ddir=',ddir);
+            end;
+        end;
+     end;
+  if not FileExists(SourceFileName) then
+    begin
+      writeln('File ',SourceFileName,' not found');
+      exit;
+    end;
+  if not GetConfig(SourceFileName,config) then
+    exit;
+
+  RelativeToConfigMarker:=TObject.Create;
+  FileList:=BuildFileList;
+  TmpFileList:=TStringList.Create;
+  if assigned(FileList) then
+    begin
+      LocalPath:=SplitPath(SourceFileName);
+      if (Length(LocalPath) > 0) and (LocalPath[Length(LocalPath)]<>DirectorySeparator) then
+        LocalPath:=LocalPath+DirectorySeparator;
+      for i:=0 to FileList.count-1 do
+        begin
+          if FileList.Names[i]<>'' then
+            begin
+              LocalFile:=FileList.Names[i];
+              RemoteFile:=FileList.ValueFromIndex[i];
+            end
+          else
+            begin
+              LocalFile:=FileList[i];
+              RemoteFile:=LocalFile;
+            end;
+          if FileList.Objects[i]=RelativeToConfigMarker then
+            s:='config/'+LocalFile
+          else
+            s:=LocalPath+LocalFile;
+          CopyFile(s,DosBoxDir+DirectorySeparator+RemoteFile);
+          TmpFileList.Add(RemoteFile);
+        end;
+      FileList.Free;
+    end;
+  RelativeToConfigMarker.Free;
 end;
 
 { On modified dosbox executable it is possible to get
@@ -230,12 +375,22 @@ begin
 end;
 
 procedure Cleanup(const ADosBoxDir: string);
+var
+   i : longint;
 begin
   DeleteIfExists(ADosBoxDir + 'dosbox.conf');
   DeleteIfExists(ADosBoxDir + 'EXITCODE.TXT');
   DeleteIfExists(ADosBoxDir + 'EXITCODE.EXE');
   DeleteIfExists(ADosBoxDir + 'CWSDPMI.EXE');
   DeleteIfExists(ADosBoxDir + 'TEST.EXE');
+  if Assigned(TmpFileList) then
+    begin
+      for i:=0 to TmpFileList.count-1 do
+        if TmpFileList[i]<>'' then
+          DeleteIfExists(ADosBoxDir + TmpFileList[i]);
+    end;
+  TmpFileList.Free;
+  ChDir(StartDir);
   RmDir(ADosBoxDir);
 end;
 
@@ -313,7 +468,7 @@ begin
     end;
   if ParamCount = 0 then
   begin
-    Writeln('Usage: ' + ParamStr(0) + ' <executable>');
+    Writeln('Usage: ' + ParamStr(0) + ' <executable> (-Ssourcename)');
     Writeln('Set DOSBOX_NO_TEMPDIR env variable to 1 to avoid using a temporary directory');
     Writeln('Set DOSBOX_NO_HIDE to avoid running dosbox in an hidden window');
     Writeln('Set DOSBOX_NO_EXIT to avoid exiting dosbox after test has been run');
@@ -333,7 +488,16 @@ begin
 
   { DosBoxDir is used inside dosbox.conf as a MOUNT parameter }
   if use_temp_dir then
-    DosBoxDir := GenerateTempDir
+    begin
+      GetDir(0,StartDir);
+      DosBoxDir := GenerateTempDir;
+      { All executable test have t.*.pp pattern }
+      if (paramcount>1) and (copy(paramstr(2),1,2)='-S') then
+        SourceFileName:=copy(paramstr(2),3,length(paramstr(2)))
+      else
+        SourceFileName:=ForceExtension(Paramstr(1),'.pp');
+      CopyNeededFiles;
+    end
   else
     begin
       Writeln('Using ',ParamStr(1));
