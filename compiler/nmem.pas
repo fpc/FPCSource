@@ -94,6 +94,7 @@ interface
           function simplify(forinline : boolean) : tnode; override;
          protected
           mark_read_written: boolean;
+          procedure set_labelsym_resultdef; virtual;
           function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; virtual;
        end;
        taddrnodeclass = class of taddrnode;
@@ -646,6 +647,12 @@ implementation
       end;
 
 
+    procedure taddrnode.set_labelsym_resultdef;
+      begin
+        resultdef:=voidcodepointertype;
+      end;
+
+
     function taddrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
       var
          hp  : tnode;
@@ -657,7 +664,7 @@ implementation
         if (realsource.nodetype=loadn) and
            (tloadnode(realsource).symtableentry.typ=labelsym) then
           begin
-            resultdef:=voidcodepointertype;
+            set_labelsym_resultdef;
             result:=true;
           end
         else if (realsource.nodetype=loadn) and
