@@ -41,7 +41,9 @@ interface
             take the address of a _near_ procedure as a void pointer (which the
             @ operator does in TP mode), but not as a procvar (in that case the
             procedure must be far). }
-          tcnf_proc_2_procvar_2_voidpointer
+          tcnf_proc_2_procvar_2_voidpointer,
+          { proc_2_procvar, generated internally by Ofs() }
+          tcnf_proc_2_procvar_get_offset_only
        );
        ttypeconvnodeflags = set of ttypeconvnodeflag;
 

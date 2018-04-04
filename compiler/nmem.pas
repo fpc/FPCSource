@@ -566,6 +566,8 @@ implementation
                 left:=ctypeconvnode.create_proc_to_procvar(left);
                 if need_conv_to_voidptr then
                   include(ttypeconvnode(left).convnodeflags,tcnf_proc_2_procvar_2_voidpointer);
+                if anf_ofs in addrnodeflags then
+                  include(ttypeconvnode(left).convnodeflags,tcnf_proc_2_procvar_get_offset_only);
                 left.fileinfo:=fileinfo;
                 typecheckpass(left);
               end;
