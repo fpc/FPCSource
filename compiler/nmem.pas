@@ -87,6 +87,7 @@ interface
           procedure mark_write;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure printnodeinfo(var t: text); override;
           function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -473,6 +474,27 @@ implementation
       begin
         inherited derefimpl;
         getprocvardef:=tprocvardef(getprocvardefderef.resolve);
+      end;
+
+
+    procedure taddrnode.printnodeinfo(var t: text);
+      var
+        first: Boolean;
+        i: taddrnodeflag;
+      begin
+        inherited printnodeinfo(t);
+        write(t,', addrnodeflags = [');
+        first:=true;
+        for i:=low(taddrnodeflag) to high(taddrnodeflag) do
+          if i in addrnodeflags then
+            begin
+              if not first then
+                write(t,',')
+              else
+                first:=false;
+              write(t,i);
+            end;
+        write(t,']');
       end;
 
 
