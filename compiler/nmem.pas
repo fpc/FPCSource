@@ -579,7 +579,10 @@ implementation
               begin
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
-                    result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).address_type);
+                    if anf_ofs in addrnodeflags then
+                      result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).ofs_address_type)
+                    else
+                      result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).address_type);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
