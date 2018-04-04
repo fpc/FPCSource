@@ -1021,9 +1021,24 @@ implementation
       end;
 
     procedure ttypeconvnode.printnodeinfo(var t : text);
+      var
+        first: Boolean;
+        i: ttypeconvnodeflag;
       begin
         inherited printnodeinfo(t);
         write(t,', convtype = ',convtype);
+        write(t,', convnodeflags = [');
+        first:=true;
+        for i:=low(ttypeconvnodeflag) to high(ttypeconvnodeflag) do
+          if i in convnodeflags then
+            begin
+              if not first then
+                write(t,',')
+              else
+                first:=false;
+              write(t,i);
+            end;
+        write(t,']');
       end;
 
 
