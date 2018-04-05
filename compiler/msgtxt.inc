@@ -863,7 +863,7 @@ const msgtxt : array[0..000340,1..240] of char=(
   '06056_E_The function used, is not supported by the selected instructio'+
   'n set: $1'#000+
   '06057_F_Maximum number of units ($1) reached for the curr','ent target'#000+
-  '06058_H_Call to subroutine "$1" marked as inline is not inlined'#000+
+  '06058_N_Call to subroutine "$1" marked as inline is not inlined'#000+
   '07000_DL_Starting $1 styled assembler parsing'#000+
   '07001_DL_Finished $1 styled assembler parsing'#000+
   '07002_E_Non-label pattern contains @'#000+

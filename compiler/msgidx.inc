@@ -689,7 +689,7 @@ const
   cg_d_autoinlining=06055;
   cg_e_function_not_support_by_selected_instruction_set=06056;
   cg_f_max_units_reached=06057;
-  cg_h_no_inline=06058;
+  cg_n_no_inline=06058;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;

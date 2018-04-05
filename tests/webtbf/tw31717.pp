@@ -1,5 +1,5 @@
 { %fail }
-{ %OPT=-vh -Seh }
+{ %OPT=-vn -Sen }
 {$mode objfpc}
 program Project1;
 
