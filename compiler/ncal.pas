@@ -1378,15 +1378,12 @@ implementation
                     vs_constref:
                       begin
                         set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
-                        { constref takes also the address, but storing it is actually the compiler
-                          is not supposed to expect }
-                        if parasym.varspez=vs_var then
-                          { compilerprocs never capture the address of their
-                            parameters }
-                          if not(po_compilerproc in aktcallnode.procdefinition.procoptions) then
-                            make_not_regable(left,[ra_addr_regable,ra_addr_taken])
-                          else
-                            make_not_regable(left,[ra_addr_regable])
+                        { compilerprocs never capture the address of their
+                          parameters }
+                        if not(po_compilerproc in aktcallnode.procdefinition.procoptions) then
+                          make_not_regable(left,[ra_addr_regable,ra_addr_taken])
+                        else
+                          make_not_regable(left,[ra_addr_regable])
                       end;
                     else
                       set_varstate(left,vs_read,[vsf_must_be_valid]);

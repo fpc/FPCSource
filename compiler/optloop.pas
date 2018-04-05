@@ -113,7 +113,13 @@ unit optloop;
         if not(node.nodetype in [forn]) then
           exit;
         unrolls:=number_unrolls(tfornode(node).t2);
-        if unrolls>1 then
+        if (unrolls>1) and
+          ((tfornode(node).left.nodetype<>loadn) or
+           { the address of the counter variable might be taken if it is passed by constref to a
+             subroutine, so really check if it is not taken }
+           ((tfornode(node).left.nodetype=loadn) and (tloadnode(tfornode(node).left).symtableentry is tabstractvarsym) and
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).addr_taken))
+           ) then
           begin
             { number of executions known? }
             if (tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn) then
