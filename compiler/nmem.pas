@@ -582,7 +582,7 @@ implementation
                     if anf_ofs in addrnodeflags then
                       result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).ofs_address_type)
                     else
-                      result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).address_type);
+                      result:=ctypeconvnode.create_internal(left,voidcodepointertype);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
