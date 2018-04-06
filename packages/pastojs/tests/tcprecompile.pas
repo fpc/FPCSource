@@ -56,11 +56,7 @@ type
     procedure TestPCU_UnitCycle;
     procedure TestPCU_ClassForward;
     procedure TestPCU_ClassConstructor;
-    {$IFDEF EnableInterfaces}
     procedure TestPCU_ClassInterface;
-    {$ELSE}
-    procedure TestPCU_IgnoreInterface;
-    {$ENDIF}
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -320,7 +316,6 @@ begin
   CheckPrecompile('test1.pas','src');
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestCLI_Precompile.TestPCU_ClassInterface;
 begin
   AddUnit('src/system.pp',[
@@ -388,40 +383,6 @@ begin
     'end.']);
   CheckPrecompile('test1.pas','src');
 end;
-{$ELSE}
-procedure TTestCLI_Precompile.TestPCU_IgnoreInterface;
-begin
-  AddUnit('src/system.pp',[
-    'type integer = longint;',
-    'procedure Writeln; varargs;'],
-    ['procedure Writeln; begin end;']);
-  AddUnit('src/unit1.pp',[
-    'type',
-    '  IIntf = interface',
-    '    function GetItems: longint;',
-    '    procedure SetItems(Index: longint; Value: longint);',
-    '    property Items[Index: longint]: longint read GetItems write SetItems;',
-    '  end;',
-    ''],[
-    '']);
-  AddUnit('src/unit2.pp',[
-    'uses unit1;',
-    'type',
-    '  IAlias = IIntf;',
-    '  TObject = class end;',
-    '  TBird = class(TObject,IIntf) end;',
-    ''],[
-    '']);
-  AddFile('test1.pas',[
-    'uses unit2;',
-    'type IAlias2 = IAlias;',
-    'var b: TBird;',
-    'begin',
-    '  if b=nil then ;',
-    'end.']);
-  CheckPrecompile('test1.pas','src');
-end;
-{$ENDIF}
 
 Initialization
   RegisterTests([TTestCLI_Precompile]);

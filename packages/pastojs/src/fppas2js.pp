@@ -959,7 +959,6 @@ const
     msDelphi,msObjfpc,
     msHintDirective,msNestedComment,
     msExternalClass,
-    msIgnoreInterfaces,
     msIgnoreAttributes];
 
   msAllPas2jsBoolSwitches = [
@@ -2052,11 +2051,6 @@ begin
       begin
       ClassEl:=TPasClassType(El);
       if ClassEl.IsForward then continue;
-      {$IFDEF EnableInterfaces}
-      {$ELSE}
-      if ClassEl.ObjKind=okInterface then
-        continue;
-      {$ENDIF}
       ClassScope:=El.CustomData as TPas2JSClassScope;
       OldScopeCount:=FOverloadScopes.Count;
 
@@ -2352,11 +2346,9 @@ begin
 end;
 
 procedure TPas2JSResolver.FinishClassType(El: TPasClassType);
-{$IFDEF EnableInterfaces}
 var
   Scope, CurScope: TPas2JSClassScope;
   Value: TResEvalValue;
-{$ENDIF}
 begin
   inherited FinishClassType(El);
   if El.IsExternal then
@@ -2371,7 +2363,6 @@ begin
   if El.IsForward then
     exit;
 
-  {$IFDEF EnableInterfaces}
   //writeln('TPas2JSResolver.FinishClassType START ',GetObjName(El));
   Scope:=El.CustomData as TPas2JSClassScope;
   case El.ObjKind of
@@ -2412,7 +2403,6 @@ begin
     end;
   end;
   //writeln('TPas2JSResolver.FinishClassType END ',GetObjName(El));
-  {$ENDIF}
 end;
 
 procedure TPas2JSResolver.FinishArrayType(El: TPasArrayType);
@@ -9412,11 +9402,6 @@ var
   NeedInitFunction: Boolean;
 begin
   Result:=nil;
-  {$IFDEF EnableInterfaces}
-  {$ELSE}
-  if El.ObjKind=okInterface then
-    exit;
-  {$ENDIF}
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertClassType START ',GetObjName(El));
   {$ENDIF}

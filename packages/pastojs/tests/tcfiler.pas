@@ -153,11 +153,7 @@ type
     procedure TestPC_ClassConstructor;
     procedure TestPC_Initialization;
     procedure TestPC_BoolSwitches;
-    {$IFDEF EnableInterfaces}
     procedure TestPC_ClassInterface;
-    {$ELSE}
-    procedure TestPC_IgnoreInterface;
-    {$ENDIF}
     procedure TestPC_IgnoreAttributes;
 
     procedure TestPC_UseUnit;
@@ -1960,7 +1956,6 @@ begin
   WriteReadUnit;
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestPrecompile.TestPC_ClassInterface;
 begin
   StartUnit(false);
@@ -1996,26 +1991,6 @@ begin
   '']);
   WriteReadUnit;
 end;
-
-{$ELSE}
-procedure TTestPrecompile.TestPC_IgnoreInterface;
-begin
-  StartUnit(false);
-  Add([
-  'interface',
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  TIntf = interface',
-  '    function GetItems(Index: longint): longint;',
-  '    procedure SetItems(Index: longint; Value: longint);',
-  '    property Items[Index: longint]: longint read GetItems write SetItems;',
-  '  end;',
-  'implementation',
-  'end.',
-  '']);
-  WriteReadUnit;
-end;
-{$ENDIF}
 
 procedure TTestPrecompile.TestPC_IgnoreAttributes;
 begin

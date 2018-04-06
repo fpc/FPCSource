@@ -475,7 +475,6 @@ type
     Procedure TestExternalClass_BracketAccessor_Index;
 
     // class interfaces
-    {$IFDEF EnableInterfaces}
     Procedure TestClassInterface_Corba;
     Procedure TestClassInterface_ProcExternalFail;
     Procedure TestClassInterface_Overloads;
@@ -504,9 +503,6 @@ type
     Procedure TestClassInterface_COM_ArrayOfIntfFail;
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
-    {$ELSE}
-    Procedure TestClassInterface_Ignore;
-    {$ENDIF}
 
     // proc types
     Procedure TestProcType;
@@ -598,10 +594,8 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
     Procedure TestRTTI_TypeInfo_FunctionClassType;
-    {$IFDEF EnableInterfaces}
     Procedure TestRTTI_Interface_Corba;
     Procedure TestRTTI_Interface_COM;
-    {$ENDIF}
 
     // Resourcestring
     Procedure TestResourcestringProgram;
@@ -12009,9 +12003,7 @@ begin
   Add([
   '{$modeswitch externalclass}',
   'type',
-  {$IFDEF EnableInterfaces}
   '  IUnknown = interface end;',
-  {$ENDIF}
   '  TObject = class',
   '  end;',
   '  TChild = class',
@@ -12031,9 +12023,7 @@ begin
   '  ChildA: TExtChildA;',
   '  RootB: TExtRootB;',
   '  ChildB: TExtChildB;',
-  {$IFDEF EnableInterfaces}
   '  i: IUnknown;',
-  {$ENDIF}
   'begin',
   '  obj:=tobject(roota);',
   '  obj:=tobject(childa);',
@@ -12043,16 +12033,12 @@ begin
   '  roota:=textroota(rootb);',
   '  roota:=textroota(childb);',
   '  childa:=textchilda(textroota(obj));',
-  {$IFDEF EnableInterfaces}
   '  roota:=TExtRootA(i)',
-  {$ENDIF}
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToRootClass',
     LinesToStr([ // statements
-    {$IFDEF EnableInterfaces}
     'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
-    {$ENDIF}
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -12067,9 +12053,7 @@ begin
     'this.ChildA = null;',
     'this.RootB = null;',
     'this.ChildB = null;',
-    {$IFDEF EnableInterfaces}
     'this.i = null;',
-    {$ENDIF}
     '']),
     LinesToStr([ // $mod.$main
     '$mod.Obj = $mod.RootA;',
@@ -12080,9 +12064,7 @@ begin
     '$mod.RootA = $mod.RootB;',
     '$mod.RootA = $mod.ChildB;',
     '$mod.ChildA = $mod.Obj;',
-    {$IFDEF EnableInterfaces}
     '$mod.RootA = $mod.i;',
-    {$ENDIF}
     '']));
 end;
 
@@ -12363,7 +12345,6 @@ begin
     '']));
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestModule.TestClassInterface_Corba;
 begin
   StartProgram(false);
@@ -14073,63 +14054,6 @@ begin
     ''])
     );
 end;
-
-{$ELSE}
-procedure TTestModule.TestClassInterface_Ignore;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  TGUID = record end;',
-  '  IUnknown = interface;',
-  '  IUnknown = interface',
-  '    [''{00000000-0000-0000-C000-000000000046}'']',
-  '    function QueryInterface(const iid : tguid;out obj) : longint;',
-  '    function _AddRef : longint; cdecl;',
-  '    function _Release : longint; stdcall;',
-  '  end;',
-  '  IInterface = IUnknown;',
-  '  TObject = class',
-  '    ClassName: string;',
-  '  end;',
-  '  TInterfacedObject = class(TObject,IUnknown)',
-  '    RefCount : longint;',
-  '  end;',
-  'var i: TInterfacedObject;',
-  'begin',
-  '  i.ClassName:=''a'';',
-  '  i.RefCount:=3;',
-  '']);
-  ConvertProgram;
-  CheckSource('TestClassInterface_Ignore',
-    LinesToStr([ // statements
-    'this.TGUID = function (s) {',
-    '  this.$equal = function (b) {',
-    '    return true;',
-    '  };',
-    '};',
-    'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.$init = function () {',
-    '    this.ClassName = "";',
-    '  };',
-    '  this.$final = function () {',
-    '  };',
-    '});',
-    'rtl.createClass($mod, "TInterfacedObject", $mod.TObject, function () {',
-    '  this.$init = function () {',
-    '    $mod.TObject.$init.call(this);',
-    '    this.RefCount = 0;',
-    '  };',
-    '});',
-    'this.i = null;',
-    '']),
-    LinesToStr([ // $mod.$main
-    '$mod.i.ClassName = "a";',
-    '$mod.i.RefCount = 3;',
-    '']));
-end;
-{$ENDIF}
 
 procedure TTestModule.TestProcType;
 begin
@@ -18436,7 +18360,6 @@ begin
     '']));
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestModule.TestRTTI_Interface_Corba;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
@@ -18562,8 +18485,6 @@ begin
     '$mod.t = $mod.i.$rtti;',
     '']));
 end;
-
-{$ENDIF}
 
 procedure TTestModule.TestResourcestringProgram;
 begin

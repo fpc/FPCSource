@@ -72,6 +72,7 @@ const
     1: initial version
     2: - TPasProperty.ImplementsFunc:String -> Implements:TPasExprArray
        - pcsfAncestorResolved
+       - removed msIgnoreInterfaces
   }
 
   BuiltInNodeName = 'BuiltIn';
@@ -161,7 +162,6 @@ const
     'ISOLikeMod',
     'ExternalClass',
     'PrefixedAttributes',
-    'IgnoreInterfaces',
     'IgnoreAttributes'
     );
 
@@ -1360,7 +1360,7 @@ begin
     msISOLikeMod: Result:=43;
     msExternalClass: Result:=44;
     msPrefixedAttributes: Result:=45;
-    msIgnoreInterfaces: Result:=46;
+    // msIgnoreInterfaces: Result:=46;
     msIgnoreAttributes: Result:=47;
   end;
 end;
@@ -3341,11 +3341,9 @@ var
   i: Integer;
   aClass: TPasClassType;
   CanonicalClassOf: TPasClassOfType;
-  {$IFDEF EnableInterfaces}
   ScopeIntf: TFPList;
   o: TObject;
   SubObj: TJSONObject;
-  {$ENDIF}
 begin
   WriteIdentifierScope(Obj,Scope,aContext);
   aClass:=Scope.Element as TPasClassType;
@@ -3383,7 +3381,6 @@ begin
       AddReferenceToArray(Arr,Scope.AbstractProcs[i]);
     end;
 
-  {$IFDEF EnableInterfaces}
   if Scope.GUID<>'' then
     Obj.Add('SGUID',Scope.GUID);
 
@@ -3411,7 +3408,6 @@ begin
         RaiseMsg(20180325111939,aClass,IntToStr(i)+':'+GetObjName(TObject(aClass.Interfaces[i]))+' '+GetObjName(o));
       end;
     end;
-  {$ENDIF}
 end;
 
 procedure TPCUWriter.WriteClassType(Obj: TJSONObject; El: TPasClassType;
@@ -6721,9 +6717,7 @@ begin
     end
   else if aClass.Interfaces.Count>0 then
     begin
-    {$IFDEF EnableInterfaces}
     RaiseMsg(20180325131248,aClass);
-    {$ENDIF}
     end;
 end;
 
