@@ -74,8 +74,6 @@ const
   sPAPrivateConstXNeverUsed = 'Private const "%s" never used';
   nPAPrivatePropertyXNeverUsed = 5073;
   sPAPrivatePropertyXNeverUsed = 'Private property "%s" never used';
-  //nPAUnreachableCode = 6018;
-  //sPAUnreachableCode = 'unreachable code';
 
 type
   EPasAnalyzer = class(EPasResolve);
@@ -1591,10 +1589,39 @@ procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);
       end;
   end;
 
+  procedure MarkAllInterfaceImplementations(Scope: TPasClassScope);
+  var
+    i, j: Integer;
+    o: TObject;
+    Map: TPasClassIntfMap;
+  begin
+    if Scope.Interfaces=nil then exit;
+    for i:=0 to Scope.Interfaces.Count-1 do
+      begin
+      o:=TObject(Scope.Interfaces[i]);
+      if o is TPasProperty then
+        UseVariable(TPasProperty(o),rraRead,false)
+      else if o is TPasClassIntfMap then
+        begin
+        Map:=TPasClassIntfMap(o);
+        repeat
+          if Map.Intf<>nil then
+            UseClassType(TPasClassType(Map.Intf),paumElement);
+          if Map.Procs<>nil then
+            for j:=0 to Map.Procs.Count-1 do
+              UseProcedure(TPasProcedure(Map.Procs[j]));
+          Map:=Map.AncestorMap;
+        until Map=nil;
+        end
+      else
+        RaiseNotSupported(20180405190114,El,GetObjName(o));
+      end;
+  end;
+
 var
   i: Integer;
   Member: TPasElement;
-  AllPublished, FirstTime: Boolean;
+  AllPublished, FirstTime, IsCOMInterfaceRoot: Boolean;
   ProcScope: TPasProcedureScope;
   ClassScope: TPasClassScope;
   Ref: TResolvedReference;
@@ -1636,6 +1663,7 @@ begin
   if ClassScope=nil then
     exit; // ClassScope can be nil if msIgnoreInterfaces
 
+  IsCOMInterfaceRoot:=false;
   if FirstTime then
     begin
     UseElType(El,ClassScope.DirectAncestor,paumElement);
@@ -1643,7 +1671,15 @@ begin
     UseExpr(El.GUIDExpr);
     // El.Interfaces: using a class does not use automatically the interfaces
     if El.ObjKind=okInterface then
+      begin
       UseDelegations;
+      if (El.InterfaceType=citCom) and (El.AncestorType=nil) then
+        IsCOMInterfaceRoot:=true;
+      end;
+    if (El.ObjKind=okClass) and (ScopeModule<>nil)
+        and (ClassScope.Interfaces<>nil) then
+      // when checking a single unit, mark all method+properties implementing the interfaces
+      MarkAllInterfaceImplementations(ClassScope);
     end;
   // members
   AllPublished:=(Mode<>paumAllExports);
@@ -1660,9 +1696,33 @@ begin
         if ScopeModule<>nil then
           begin
           // when analyzing a single module, all overrides are assumed to be called
-          UseElement(Member,rraNone,true);
+          UseProcedure(TPasProcedure(Member));
           continue;
           end;
+        end;
+      if IsCOMInterfaceRoot then
+        begin
+        case lowercase(Member.Name) of
+        'queryinterface':
+          if (TPasProcedure(Member).ProcType.Args.Count=2) then
+            begin
+            UseProcedure(TPasProcedure(Member));
+            continue;
+            end;
+        '_addref':
+          if TPasProcedure(Member).ProcType.Args.Count=0 then
+            begin
+            UseProcedure(TPasProcedure(Member));
+            continue;
+            end;
+        '_release':
+          if TPasProcedure(Member).ProcType.Args.Count=0 then
+            begin
+            UseProcedure(TPasProcedure(Member));
+            continue;
+            end;
+        end;
+        //writeln('TPasAnalyzer.UseClassType ',El.FullName,' ',Mode,' ',Member.Name);
         end;
       end;
     if AllPublished and (Member.Visibility=visPublished) then

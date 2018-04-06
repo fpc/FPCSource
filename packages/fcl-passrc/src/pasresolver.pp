@@ -1642,6 +1642,9 @@ type
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsTypeCast(Params: TParamsExpr): boolean;
+    function IsInterfaceType(const ResolvedEl: TPasResolverResult;
+      IntfType: TPasClassInterfaceType): boolean; overload;
+    function IsInterfaceType(TypeEl: TPasType; IntfType: TPasClassInterfaceType): boolean; overload;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
@@ -4148,8 +4151,10 @@ begin
 
   ModScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
   if bsRangeChecks in ModScope.BoolSwitches then
+    begin
     Include(ModScope.Flags,pmsfRangeErrorNeeded);
-  FindRangeErrorConstructors(CurModule);
+    FindRangeErrorConstructors(CurModule);
+    end;
 
   if (CurModuleClass=TPasProgram) then
     begin
@@ -17066,6 +17071,23 @@ begin
   else if (C=TPasUnresolvedSymbolRef)
       and (Decl.CustomData is TResElDataBaseType) then
     exit(true);
+end;
+
+function TPasResolver.IsInterfaceType(const ResolvedEl: TPasResolverResult;
+  IntfType: TPasClassInterfaceType): boolean;
+begin
+  if ResolvedEl.BaseType<>btContext then exit(false);
+  Result:=IsInterfaceType(ResolvedEl.TypeEl,IntfType);
+end;
+
+function TPasResolver.IsInterfaceType(TypeEl: TPasType;
+  IntfType: TPasClassInterfaceType): boolean;
+begin
+  if TypeEl=nil then exit(false);
+  TypeEl:=ResolveAliasType(TypeEl);
+  Result:=(TypeEl.ClassType=TPasClassType)
+    and (TPasClassType(TypeEl).ObjKind=okInterface)
+    and (TPasClassType(TypeEl).InterfaceType=IntfType);
 end;
 
 function TPasResolver.ProcNeedsParams(El: TPasProcedureType): boolean;

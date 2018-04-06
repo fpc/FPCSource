@@ -78,9 +78,11 @@ type
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
     {$IFDEF EnableInterfaces}
-    procedure TestM_ClassInterface;
+    procedure TestM_ClassInterface_Corba;
     procedure TestM_ClassInterface_NoHintsForMethod;
+    procedure TestM_ClassInterface_NoHintsForImpl;
     procedure TestM_ClassInterface_Delegation;
+    procedure TestM_ClassInterface_COM;
     {$ELSE}
     procedure TestM_ClassInterface_Ignore;
     {$ENDIF}
@@ -1056,7 +1058,7 @@ begin
 end;
 
 {$IFDEF EnableInterfaces}
-procedure TTestUseAnalyzer.TestM_ClassInterface;
+procedure TTestUseAnalyzer.TestM_ClassInterface_Corba;
 begin
   StartProgram(false);
   Add([
@@ -1108,6 +1110,36 @@ begin
   CheckUseAnalyzerUnexpectedHints;
 end;
 
+procedure TTestUseAnalyzer.TestM_ClassInterface_NoHintsForImpl;
+begin
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    '{$interfaces corba}',
+    'type',
+    '  IBird = interface',
+    '    procedure DoIt;',
+    '  end;',
+    '']),
+    LinesToStr([
+    '']));
+
+  StartUnit(true);
+  Add([
+  '{$interfaces corba}',
+  'interface',
+  'uses unit2;',
+  'type',
+  '  {#tobject_used}TObject = class(IBird)',
+  '  strict private',
+  '    procedure {#tobject_doit_used}DoIt;',
+  '  end;',
+  'implementation',
+  'procedure TObject.DoIt; begin end;',
+  '']);
+  AnalyzeUnit;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
 procedure TTestUseAnalyzer.TestM_ClassInterface_Delegation;
 begin
   StartProgram(false);
@@ -1141,6 +1173,52 @@ begin
   '  i.Run;',
   '']);
   AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_ClassInterface_COM;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  {#tguid_used}TGuid = string;',
+  '  {#integer_used}integer = longint;',
+  '  {#iunknown_used}IUnknown = interface',
+  '    function {#iunknown_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
+  '    function {#iunknown_addref_used}_AddRef: Integer;',
+  '    function {#iunknown_release_used}_Release: Integer;',
+  '    procedure {#iunknown_doit_notused}DoIt;',
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    function {#tbird_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
+  '    function {#tbird_addref_used}_AddRef: Integer;',
+  '    function {#tbird_release_used}_Release: Integer;',
+  '    procedure {#tbird_doit_notused}DoIt;',
+  '  end;',
+  '  {#teagle_used}TEagle = class(TBird)',
+  '  end;',
+  'function TBird.QueryInterface(const iid: TGuid; out obj): Integer;',
+  'begin',
+  '  if iid='''' then obj:=nil;',
+  '  Result:=0;',
+  'end;',
+  'function TBird._AddRef: Integer; begin Result:=1; end;',
+  'function TBird._Release: Integer; begin Result:=2; end;',
+  'procedure TBird.DoIt; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  if i=nil then ;',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local procedure "DoIt" not used');
+  CheckUseAnalyzerHint(mtHint,nPAPrivateMethodIsNeverUsed,'Private method "TBird.DoIt" is never used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 {$ELSE}
