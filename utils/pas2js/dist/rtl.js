@@ -381,9 +381,9 @@ var rtl = {
         throw t.$create("create");
       }
     }
-    if (typename == "EInvalidCast") throw "invalid type cast";
-    if (typename == "EAbstractError") throw "Abstract method called";
-    if (typename == "ERangeError") throw "range error";
+    if (typename === "EInvalidCast") throw "invalid type cast";
+    if (typename === "EAbstractError") throw "Abstract method called";
+    if (typename === "ERangeError") throw "range error";
     throw typename;
   },
 
@@ -401,6 +401,7 @@ var rtl = {
     //console.log('createInterface name="'+name+'" guid="'+guid+'" names='+fnnames);
     var i = ancestor?Object.create(ancestor):{};
     module[name] = i;
+    i.$module = module;
     i.$name = name;
     i.$fullname = module.$name+'.'+name;
     i.$guid = guid;
@@ -431,42 +432,78 @@ var rtl = {
         var fnname = map[intfname];
         if (!fnname) fnname = intfname;
         let fn = aclass[fnname];
-        console.log('addIntf: intftype='+t.$name+' index='+i+' intfname="'+intfname+'" fnname="'+fnname+'" proc='+typeof(fn));
+        //console.log('addIntf: intftype='+t.$name+' index='+i+' intfname="'+intfname+'" fnname="'+fnname+'" proc='+typeof(fn));
         if (typeof(fn)==="function"){
           item[intfname] = function(){ return fn.apply(this.$o,arguments); };
         } else {
-          item[intfname] = rtl.raiseE('EAbstractError');
+          item[intfname] = function(){ rtl.raiseE('EAbstractError'); };
         }
       }
       t = Object.getPrototypeOf(t);
     }while(t!=null);
   },
 
-  getIntfG: function (obj, guid){
+  getIntfG: function (obj, guid, query){
     if (!obj) return null;
-    console.log('getIntfG: obj='+obj.$classname+' guid='+guid);
+    //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' query='+query);
     // search
     var maps = obj.$class.$intfmaps;
     if (!maps) return null;
     var item = maps[guid];
     if (!item) return null;
     // check delegation
-    if (typeof item == 'function') return item.call(obj);
+    //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' query='+query+' item='+typeof(item));
+    if (typeof item === 'function') return item.call(obj);
     // check cache
+    var intf = null;
     if (obj.$interfaces){
       intf = obj.$interfaces[guid];
-      console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' cache='+typeof(intf));
-      if (intf) return intf;
+      // intf can be undefined!
+      //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' cache='+typeof(intf));
     }
-    var intf = Object.create(item);
-    intf.$o = obj;
-    if (!obj.$interfaces) obj.$interfaces = {};
-    obj.$interfaces[guid] = intf;
+    if (!intf){
+      intf = Object.create(item);
+      intf.$o = obj;
+      if (!obj.$interfaces) obj.$interfaces = {};
+      obj.$interfaces[guid] = intf;
+    }
+    if (query===1){
+      var o = null;
+      if (intf.QueryInterface(guid,
+          {get:function(){ return o; }, set:function(v){ o=v; }}) === 0){
+        return o;
+      } else {
+        return null;
+      }
+    } else if(query===2){
+      intf._AddRef();
+    }
     return intf;
   },
 
   getIntfT: function(obj,intftype){
     return rtl.getIntfG(obj,intftype.$guid);
+  },
+
+  queryIntfG: function(obj,guid){
+    return rtl.getIntfG(obj,guid,1);
+  },
+
+  queryIntfT: function(obj,intftype){
+    return rtl.queryIntfG(obj,intftype.$guid);
+  },
+
+  queryIntfIsT: function(obj,intftype){
+    var i = rtl.queryIntfG(obj,intftype.$guid);
+    if (!i) return false;
+    if (i._Release) i._Release();
+    return true;
+  },
+
+  asIntfT: function (obj,intftype){
+    var i = getIntfG(obj,intftype.$guid);
+    if (i!==null) return i;
+    rtl.raiseEInvalidCast();
   },
 
   intfIsClass: function(intf,classtype){
@@ -479,8 +516,74 @@ var rtl = {
   },
 
   intfToClass: function(intf,classtype){
-    if ((intf!=null) && rtl.is(intf.$o,classtype)) return intf.$o;
+    if ((intf!==null) && rtl.is(intf.$o,classtype)) return intf.$o;
     return null;
+  },
+
+  // interface reference counting
+  intfRefs: { // base object for temporary interface variables
+    ref: function(id,intf){
+      // called for temporary interface references needing delayed release
+      var old = this[id];
+      //console.log('rtl.intfRefs.ref: id='+id+' old="'+(old?old.$name:'null')+'" intf="'+(intf?intf.$name:'null'));
+      if (old){
+        // called again, e.g. in a loop
+        delete this[id];
+        old._Release(); // may fail
+      }
+      this[id]=intf;
+      return intf;
+    },
+    free: function(){
+      //console.log('rtl.intfRefs.free...');
+      for (id in this){
+        if (this.hasOwnProperty(id)) this[id]._Release;
+      }
+    },
+  },
+
+  createIntfRefs: function(){
+    //console.log('rtl.createIntfRefs');
+    return Object.create(rtl.intfRefs);
+  },
+
+  setIntfP: function(path,name,value,skipAddRef){
+    var old = path[name];
+    //console.log('rtl.setIntfP path='+path+' name='+name+' old="'+(old?old.$name:'null')+'" value="'+(value?value.$name:'null')+'"');
+    if (old === value) return;
+    if (old !== null){
+      path[name]=null;
+      old._Release();
+    }
+    if (value !== null){
+      if (!skipAddRef) value._AddRef();
+      path[name]=value;
+    }
+  },
+
+  setIntfL: function(old,value,skipAddRef){
+    //console.log('rtl.setIntfL old="'+(old?old.$name:'null')+'" value="'+(value?value.$name:'null')+'"');
+    if (old !== value){
+      if (value!==null){
+        if (!skipAddRef) value._AddRef();
+      }
+      if (old!==null){
+        old._Release();  // Release after AddRef, to avoid double Release if Release creates an exception
+      }
+    }
+    return value;
+  },
+
+  _AddRef: function(intf){
+    //if (intf) console.log('rtl._AddRef intf="'+(intf?intf.$name:'null')+'"');
+    if (intf) intf._AddRef();
+    return intf;
+  },
+
+  _Release: function(intf){
+    //if (intf) console.log('rtl._Release intf="'+(intf?intf.$name:'null')+'"');
+    if (intf) intf._Release();
+    return intf;
   },
 
   checkMethodCall: function(obj,type){
@@ -536,7 +639,7 @@ var rtl = {
     // This function does not range check.
     if (rtl.isFunction(type)){
       for (; srcpos<end; srcpos++) dst[dstpos++] = new type(src[srcpos]); // clone record
-    } else if(isString(type) && (type === 'refSet')) {
+    } else if((typeof(type)==="string") && (type === 'refSet')) {
       for (; srcpos<end; srcpos++) dst[dstpos++] = refSet(src[srcpos]); // ref set
     }  else {
       for (; srcpos<end; srcpos++) dst[dstpos++] = src[srcpos]; // reference
