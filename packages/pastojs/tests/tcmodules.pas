@@ -349,6 +349,7 @@ type
     Procedure TestArray_Copy;
     Procedure TestArray_InsertDelete;
     Procedure TestArray_DynArrayConst;
+    Procedure TestArray_ForInArrOfString;
     Procedure TestExternalClass_TypeCastArrayToExternalArray;
     Procedure TestExternalClass_TypeCastArrayFromExternalArray;
 
@@ -7069,6 +7070,42 @@ begin
     'this.NameCount = (0 + (rtl.length($mod.Names) - 1)) + rtl.length($mod.Names);',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestArray_ForInArrOfString;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  'type',
+  '  TMonthNameArray = array [1..12] of string;',
+  '  TMonthNames = TMonthNameArray;',
+  '  TObject = class',
+  '  private',
+  '    function GetLongMonthNames: TMonthNames; virtual; abstract;',
+  '  public',
+  '    Property LongMonthNames : TMonthNames Read GetLongMonthNames;',
+  '  end;',
+  'var f: TObject;',
+  '  Month: string;',
+  'begin',
+  '  for Month in f.LongMonthNames do ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_ForInArrOfString',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.f = null;',
+    'this.Month = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    'for (var $in1 = $mod.f.GetLongMonthNames(), $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) $mod.Month = $in1[$l2];',
     '']));
 end;
 
