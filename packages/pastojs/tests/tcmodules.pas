@@ -479,15 +479,31 @@ type
     Procedure TestClassInterface_Corba;
     Procedure TestClassInterface_ProcExternalFail;
     Procedure TestClassInterface_Overloads;
+    Procedure TestClassInterface_DuplicateGUIInIntfListFail;
+    Procedure TestClassInterface_DuplicateGUIInAncestorFail;
     Procedure TestClassInterface_AncestorImpl;
     Procedure TestClassInterface_ImplReintroduce;
     Procedure TestClassInterface_MethodResolution;
-    Procedure TestClassInterface_Delegation;
-    Procedure TestClassInterface_DelegationStatic;
-    Procedure TestClassInterface_Operators;
-    Procedure TestClassInterface_Args;
-    Procedure TestClassInterface_ForInCorbaIntf;
-    // ToDo: COM: _AddRef,_Release  :=, pass as arg, IEnumerable
+    Procedure TestClassInterface_Corba_Delegation;
+    Procedure TestClassInterface_Corba_DelegationStatic;
+    Procedure TestClassInterface_Corba_Operators;
+    Procedure TestClassInterface_Corba_Args;
+    Procedure TestClassInterface_Corba_ForIn;
+    Procedure TestClassInterface_COM_AssignVar;
+    Procedure TestClassInterface_COM_AssignArg;
+    Procedure TestClassInterface_COM_FunctionResult;
+    Procedure TestClassInterface_COM_InheritedFuncResult;
+    Procedure TestClassInterface_COM_IsAsTypeCasts;
+    Procedure TestClassInterface_COM_PassAsArg;
+    Procedure TestClassInterface_COM_FunctionInExpr;
+    Procedure TestClassInterface_COM_Property;
+    Procedure TestClassInterface_COM_IntfProperty;
+    Procedure TestClassInterface_COM_Delegation;
+    Procedure TestClassInterface_COM_With;
+    Procedure TestClassInterface_COM_ForIn;
+    Procedure TestClassInterface_COM_ArrayOfIntfFail;
+    Procedure TestClassInterface_COM_RecordIntfFail;
+    Procedure TestClassInterface_COM_UnitInitialization;
     {$ELSE}
     Procedure TestClassInterface_Ignore;
     {$ENDIF}
@@ -583,7 +599,8 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
     Procedure TestRTTI_TypeInfo_FunctionClassType;
     {$IFDEF EnableInterfaces}
-    Procedure TestRTTI_Interface;
+    Procedure TestRTTI_Interface_Corba;
+    Procedure TestRTTI_Interface_COM;
     {$ENDIF}
 
     // Resourcestring
@@ -1454,6 +1471,8 @@ begin
     ExpectedSrc:=ImplStatements;
     end;
   //writeln('TTestModule.CheckSource InitStatements="',InitStatements,'"');
+  //writeln('TCustomTestModule.CheckSource Expected: ',ExpectedSrc);
+
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
@@ -12480,6 +12499,46 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClassInterface_DuplicateGUIInIntfListFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IBird = interface',
+  '    [''{4B3BA825-E0EC-4799-A19C-55F714A07959}'']',
+  '  end;',
+  '  IDog = interface',
+  '    [''{4B3BA825-E0EC-4799-A19C-55F714A07959}'']',
+  '  end;',
+  '  TObject = class(IBird,IDog)',
+  '  end;',
+  'begin']);
+  SetExpectedPasResolverError('Duplicate GUID {4B3BA825-E0EC-4799-A19C-55F714A07959} in IDog and IBird',
+    nDuplicateGUIDXInYZ);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClassInterface_DuplicateGUIInAncestorFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IAnimal = interface',
+  '    [''{4B3BA825-E0EC-4799-A19C-55F714A07959}'']',
+  '  end;',
+  '  IBird = interface(IAnimal)',
+  '  end;',
+  '  IHawk = interface(IBird)',
+  '    [''{4B3BA825-E0EC-4799-A19C-55F714A07959}'']',
+  '  end;',
+  'begin']);
+  SetExpectedPasResolverError('Duplicate GUID {4B3BA825-E0EC-4799-A19C-55F714A07959} in IHawk and IAnimal',
+    nDuplicateGUIDXInYZ);
+  ConvertProgram;
+end;
+
 procedure TTestModule.TestClassInterface_AncestorImpl;
 begin
   StartProgram(false);
@@ -12641,7 +12700,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_Delegation;
+procedure TTestModule.TestClassInterface_Corba_Delegation;
 begin
   StartProgram(false);
   Add([
@@ -12715,10 +12774,10 @@ begin
     '        return this.GetEagleIntf();',
     '      },',
     '    "{56CEF525-B037-3078-8169-F7ECF0629879}": function () {',
-    '        return rtl.getIntfT(this.FDoveObj, $mod.TBird);',
+    '        return rtl.getIntfT(this.FDoveObj, $mod.IDove);',
     '      },',
     '    "{56CEF525-B037-3078-90A3-CCE44C629879}": function () {',
-    '        return rtl.getIntfT(this.GetSwallowObj(), $mod.TBird);',
+    '        return rtl.getIntfT(this.GetSwallowObj(), $mod.ISwallow);',
     '      }',
     '  };',
     '});',
@@ -12727,7 +12786,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_DelegationStatic;
+procedure TTestModule.TestClassInterface_Corba_DelegationStatic;
 begin
   StartProgram(false);
   Add([
@@ -12795,10 +12854,10 @@ begin
     '        return this.$class.GetEagleIntf();',
     '      },',
     '    "{56CEF525-B037-3078-8169-F7ECF0629879}": function () {',
-    '        return rtl.getIntfT(this.FDoveObj, $mod.TBird);',
+    '        return rtl.getIntfT(this.FDoveObj, $mod.IDove);',
     '      },',
     '    "{56CEF525-B037-3078-90A3-CCE44C629879}": function () {',
-    '        return rtl.getIntfT(this.$class.GetSwallowObj(), $mod.TBird);',
+    '        return rtl.getIntfT(this.$class.GetSwallowObj(), $mod.ISwallow);',
     '      }',
     '  };',
     '});',
@@ -12807,7 +12866,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_Operators;
+procedure TTestModule.TestClassInterface_Corba_Operators;
 begin
   StartProgram(false);
   Add([
@@ -12854,7 +12913,7 @@ begin
   '  v:=JSValue(IntfVar);',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_Operators',
+  CheckSource('TestClassInterface_Corba_Operators',
     LinesToStr([ // statements
     'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
     'rtl.createInterface($mod, "IBird", "{8E3C13AF-8080-3465-A738-D7460F8FE995}", ["GetItems", "SetItems"], $mod.IUnknown);',
@@ -12897,7 +12956,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_Args;
+procedure TTestModule.TestClassInterface_Corba_Args;
 begin
   StartProgram(false);
   Add([
@@ -12929,7 +12988,7 @@ begin
   '  DoIt(o,o,o);',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_Args',
+  CheckSource('TestClassInterface_Corba_Args',
     LinesToStr([ // statements
     'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
     'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D462ECC63074}", [], $mod.IUnknown);',
@@ -12999,7 +13058,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_ForInCorbaIntf;
+procedure TTestModule.TestClassInterface_Corba_ForIn;
 begin
   StartProgram(false);
   Add([
@@ -13024,7 +13083,7 @@ begin
   '  for o in i do o.Id:=3;',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_ForInCorbaIntf',
+  CheckSource('TestClassInterface_Corba_ForIn',
     LinesToStr([ // statements
     'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
@@ -13046,6 +13105,973 @@ begin
     '  $mod.o.Id = 3;',
     '};',
     '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_AssignVar;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'var',
+  '  i: IUnknown;',
+  'procedure DoGlobal(o: TObject);',
+  'begin',
+  '  i:=nil;',
+  '  i:=o;',
+  '  i:=i;',
+  'end;',
+  'procedure DoLocal(o: TObject);',
+  'const k: IUnknown = nil;',
+  'var j: IUnknown;',
+  'begin',
+  '  k:=o;',
+  '  k:=i;',
+  '  j:=o;',
+  '  j:=i;',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  i:=nil;',
+  '  i:=o;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_AssignVar',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.i = null;',
+    'this.DoGlobal = function (o) {',
+    '  rtl.setIntfP($mod, "i", null);',
+    '  rtl.setIntfP($mod, "i", rtl.queryIntfT(o, $mod.IUnknown), true);',
+    '  rtl.setIntfP($mod, "i", $mod.i);',
+    '};',
+    'var k = null;',
+    'this.DoLocal = function (o) {',
+    '  var j = null;',
+    '  try{',
+    '    k = rtl.setIntfL(k, rtl.queryIntfT(o, $mod.IUnknown), true);',
+    '    k = rtl.setIntfL(k, $mod.i);',
+    '    j = rtl.setIntfL(j, rtl.queryIntfT(o, $mod.IUnknown), true);',
+    '    j = rtl.setIntfL(j, $mod.i);',
+    '  }finally{',
+    '    rtl._Release(j);',
+    '  };',
+    '};',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'rtl.setIntfP($mod, "i", null);',
+    'rtl.setIntfP($mod, "i", rtl.queryIntfT($mod.o, $mod.IUnknown), true);',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_AssignArg;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'procedure DoDefault(i, j: IUnknown);',
+  'begin',
+  '  i:=nil;',
+  '  i:=j;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_AssignArg',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoDefault = function (i, j) {',
+    '  rtl._AddRef(i);',
+    '  try {',
+    '    i = rtl.setIntfL(i, null);',
+    '    i = rtl.setIntfL(i, j);',
+    '  } finally {',
+    '    rtl._Release(i);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_FunctionResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'function DoDefault(i: IUnknown): IUnknown;',
+  'begin',
+  '  Result:=i;',
+  '  if Result<>nil then exit;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_FunctionResult',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoDefault = function (i) {',
+    '  var Result = null;',
+    '  var $ok = false;',
+    '  try {',
+    '    Result = rtl.setIntfL(Result, i);',
+    '    if(Result !== null){',
+    '      $ok = true;',
+    '      return Result;',
+    '    };',
+    '    $ok = true;',
+    '  } finally {',
+    '    if(!$ok) rtl._Release(Result);',
+    '  };',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_InheritedFuncResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    function GetIntf: IUnknown; virtual;',
+  '  end;',
+  '  TMouse = class',
+  '    function GetIntf: IUnknown; override;',
+  '  end;',
+  'function TObject.GetIntf: IUnknown; begin end;',
+  'function TMouse.GetIntf: IUnknown;',
+  'var i: IUnknown;',
+  'begin',
+  '  inherited;',
+  '  inherited GetIntf;',
+  '  inherited GetIntf();',
+  '  Result:=inherited GetIntf;',
+  '  Result:=inherited GetIntf();',
+  '  i:=inherited GetIntf;',
+  '  i:=inherited GetIntf();',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_InheritedFuncResult',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetIntf = function () {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'rtl.createClass($mod, "TMouse", $mod.TObject, function () {',
+    '  this.GetIntf = function () {',
+    '    var Result = null;',
+    '    var i = null;',
+    '    var $ir = rtl.createIntfRefs();',
+    '    var $ok = false;',
+    '    try {',
+    '      $ir.ref(1, $mod.TObject.GetIntf.apply(this, arguments));',
+    '      $ir.ref(2, $mod.TObject.GetIntf.call(this));',
+    '      $ir.ref(3, $mod.TObject.GetIntf.call(this));',
+    '      Result = rtl.setIntfL(Result, $mod.TObject.GetIntf.call(this), true);',
+    '      Result = rtl.setIntfL(Result, $mod.TObject.GetIntf.call(this), true);',
+    '      i = rtl.setIntfL(i, $mod.TObject.GetIntf.call(this), true);',
+    '      i = rtl.setIntfL(i, $mod.TObject.GetIntf.call(this), true);',
+    '      $ok = true;',
+    '    } finally {',
+    '      $ir.free();',
+    '      rtl._Release(i);',
+    '      if (!$ok) rtl._Release(Result);',
+    '    };',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_IsAsTypeCasts;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'procedure DoDefault(i, j: IUnknown; o: TObject);',
+  'begin',
+  '  if i is IUnknown then ;',
+  '  if o is IUnknown then ;',
+  '  if i is TObject then ;',
+  '  i:=j as IUnknown;',
+  '  i:=o as IUnknown;',
+  '  o:=j as TObject;',
+  '  i:=IUnknown(j);',
+  '  i:=IUnknown(o);', // no AddRef for the typecast
+  '  o:=TObject(i);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_IsAsTypeCasts',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoDefault = function (i, j, o) {',
+    '  rtl._AddRef(i);',
+    '  try {',
+    '    if ($mod.IUnknown.isPrototypeOf(i)) ;',
+    '    if (rtl.queryIntfIsT(o, $mod.IUnknown)) ;',
+    '    if (rtl.intfIsClass(i, $mod.TObject)) ;',
+    '    i = rtl.setIntfL(i, rtl.as(j, $mod.IUnknown));',
+    '    i = rtl.setIntfL(i, rtl.queryIntfT(o, $mod.IUnknown), true);',
+    '    o = rtl.intfAsClass(j, $mod.TObject);',
+    '    i = rtl.setIntfL(i, j);',
+    '    i = rtl.setIntfL(i, rtl.getIntfT(o, $mod.IUnknown));',
+    '    o = rtl.intfToClass(i, $mod.TObject);',
+    '  } finally {',
+    '    rtl._Release(i);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_PassAsArg;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'procedure DoIt(v: IUnknown; const j: IUnknown; var k: IUnknown; out l: IUnknown);',
+  'var o: TObject;',
+  'begin',
+  '  DoIt(v,v,v,v);',
+  '  DoIt(o,o,k,k);',
+  'end;',
+  'procedure DoSome;',
+  'var v: IUnknown;',
+  'begin',
+  '  DoIt(v,v,v,v);',
+  'end;',
+  'var i: IUnknown;',
+  'begin',
+  '  DoIt(i,i,i,i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_PassAsArg',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoIt = function (v, j, k, l) {',
+    '  var o = null;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  rtl._AddRef(v);',
+    '  try {',
+    '    $mod.DoIt(v, v, {',
+    '      get: function () {',
+    '          return v;',
+    '        },',
+    '      set: function (w) {',
+    '          v = rtl.setIntfL(v, w);',
+    '        }',
+    '    }, {',
+    '      get: function () {',
+    '          return v;',
+    '        },',
+    '      set: function (w) {',
+    '          v = rtl.setIntfL(v, w);',
+    '        }',
+    '    });',
+    '    $mod.DoIt($ir.ref(1, rtl.queryIntfT(o, $mod.IUnknown)), $ir.ref(2, rtl.queryIntfT(o, $mod.IUnknown)), k, k);',
+    '  } finally {',
+    '    $ir.free();',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    'this.DoSome = function () {',
+    '  var v = null;',
+    '  try {',
+    '    $mod.DoIt(v, v, {',
+    '      get: function () {',
+    '          return v;',
+    '        },',
+    '      set: function (w) {',
+    '          v = rtl.setIntfL(v, w);',
+    '        }',
+    '    }, {',
+    '      get: function () {',
+    '          return v;',
+    '        },',
+    '      set: function (w) {',
+    '          v = rtl.setIntfL(v, w);',
+    '        }',
+    '    });',
+    '  } finally {',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    'this.i = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.i, $mod.i, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.setIntfP(this.p, "i", v);',
+    '    }',
+    '}, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.i;',
+    '    },',
+    '  set: function (v) {',
+    '      rtl.setIntfP(this.p, "i", v);',
+    '    }',
+    '});',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_FunctionInExpr;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'function GetIt: IUnknown;',
+  'begin',
+  'end;',
+  'procedure DoSome;',
+  'var v: IUnknown;',
+  '  i: longint;',
+  'begin',
+  '  v:=GetIt;',
+  '  v:=GetIt();',
+  '  GetIt()._AddRef;',
+  '  i:=GetIt()._AddRef;',
+  'end;',
+  'var v: IUnknown;',
+  '  i: longint;',
+  'begin',
+  '  v:=GetIt;',
+  '  v:=GetIt();',
+  '  GetIt()._AddRef;',
+  '  i:=GetIt()._AddRef;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_FunctionInExpr',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.GetIt = function () {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.DoSome = function () {',
+    '  var v = null;',
+    '  var i = 0;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  try {',
+    '    v = rtl.setIntfL(v, $mod.GetIt(), true);',
+    '    v = rtl.setIntfL(v, $mod.GetIt(), true);',
+    '    $ir.ref(1, $mod.GetIt())._AddRef();',
+    '    i = $ir.ref(2, $mod.GetIt())._AddRef();',
+    '  } finally {',
+    '    $ir.free();',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    'this.v = null;',
+    'this.i = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $ir = rtl.createIntfRefs();',
+    'try {',
+    '  rtl.setIntfP($mod, "v", $mod.GetIt(), true);',
+    '  rtl.setIntfP($mod, "v", $mod.GetIt(), true);',
+    '  $ir.ref(1, $mod.GetIt())._AddRef();',
+    '  $mod.i = $ir.ref(2, $mod.GetIt())._AddRef();',
+    '} finally {',
+    '  $ir.free();',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_Property;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    FAnt: IUnknown;',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    function GetBird: IUnknown; virtual; abstract;',
+  '    procedure SetBird(Value: IUnknown); virtual; abstract;',
+  '    function GetItems(Index: longint): IUnknown; virtual; abstract;',
+  '    procedure SetItems(Index: longint; Value: IUnknown); virtual; abstract;',
+  '    property Ant: IUnknown read FAnt write FAnt;',
+  '    property Bird: IUnknown read GetBird write SetBird;',
+  '    property Items[Index: longint]: IUnknown read GetItems write SetItems; default;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  o: TObject;',
+  '  v: IUnknown;',
+  'begin',
+  '  v:=o.Ant;',
+  '  o.Ant:=v;',
+  '  o.Ant:=o.Ant;',
+  '  v:=o.Bird;',
+  '  o.Bird:=v;',
+  '  o.Bird:=o.Bird;',
+  '  v:=o.Items[1];',
+  '  o.Items[2]:=v;',
+  '  o.Items[3]:=o.Items[4];',
+  '  v:=o[5];',
+  '  o[6]:=v;',
+  '  o[7]:=o[8];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_Property',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FAnt = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FAnt = undefined;',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoIt = function () {',
+    '  var o = null;',
+    '  var v = null;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  try {',
+    '    v = rtl.setIntfL(v, o.FAnt);',
+    '    rtl.setIntfP(o, "FAnt", v);',
+    '    rtl.setIntfP(o, "FAnt", o.FAnt);',
+    '    v = rtl.setIntfL(v, o.GetBird(), true);',
+    '    o.SetBird(v);',
+    '    o.SetBird($ir.ref(1, o.GetBird()));',
+    '    v = rtl.setIntfL(v, o.GetItems(1), true);',
+    '    o.SetItems(2, v);',
+    '    o.SetItems(3, $ir.ref(2, o.GetItems(4)));',
+    '    v = rtl.setIntfL(v, o.GetItems(5), true);',
+    '    o.SetItems(6, v);',
+    '    o.SetItems(7, $ir.ref(3, o.GetItems(8)));',
+    '  } finally {',
+    '    $ir.free();',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_IntfProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '    function GetBird: IUnknown;',
+  '    procedure SetBird(Value: IUnknown);',
+  '    function GetItems(Index: longint): IUnknown;',
+  '    procedure SetItems(Index: longint; Value: IUnknown);',
+  '    property Bird: IUnknown read GetBird write SetBird;',
+  '    property Items[Index: longint]: IUnknown read GetItems write SetItems; default;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    function GetBird: IUnknown; virtual; abstract;',
+  '    procedure SetBird(Value: IUnknown); virtual; abstract;',
+  '    function GetItems(Index: longint): IUnknown; virtual; abstract;',
+  '    procedure SetItems(Index: longint; Value: IUnknown); virtual; abstract;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  o: TObject;',
+  '  v: IUnknown;',
+  'begin',
+  '  v:=v.Items[1];',
+  '  v.Items[2]:=v;',
+  '  v.Items[3]:=v.Items[4];',
+  '  v:=v[5];',
+  '  v[6]:=v;',
+  '  v[7]:=v[8];',
+  '  v[9].Bird.Bird:=v;',
+  '  v:=v.Bird[10].Bird',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_IntfProperty',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5406909F-9F0B-32A4-B98B-94CDDE493C91}", [',
+    '  "_AddRef",',
+    '  "_Release",',
+    '  "GetBird",',
+    '  "SetBird",',
+    '  "GetItems",',
+    '  "SetItems"',
+    '], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoIt = function () {',
+    '  var o = null;',
+    '  var v = null;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  try {',
+    '    v = rtl.setIntfL(v, v.GetItems(1), true);',
+    '    v.SetItems(2, v);',
+    '    v.SetItems(3, $ir.ref(1, v.GetItems(4)));',
+    '    v = rtl.setIntfL(v, v.GetItems(5), true);',
+    '    v.SetItems(6, v);',
+    '    v.SetItems(7, $ir.ref(2, v.GetItems(8)));',
+    '    $ir.ref(4, $ir.ref(3, v.GetItems(9)).GetBird()).SetBird(v);',
+    '    v = rtl.setIntfL(v, $ir.ref(6, v.$ir.ref(5, GetBird()).GetItems(10)).GetBird(), true);',
+    '  } finally {',
+    '    $ir.free();',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_Delegation;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  IBird = interface(IUnknown)',
+  '    procedure Fly(s: string);',
+  '  end;',
+  '  IEagle = interface(IBird) end;',
+  '  IDove = interface(IBird) end;',
+  '  ISwallow = interface(IBird) end;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class(TObject,IBird,IEagle,IDove,ISwallow)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    procedure Fly(s: string); virtual; abstract;',
+  '  end;',
+  '  TBat = class(IBird,IEagle,IDove,ISwallow)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    FBirdIntf: IBird;',
+  '    property BirdIntf: IBird read FBirdIntf implements IBird;',
+  '    function GetEagleIntf: IEagle; virtual; abstract;',
+  '    property EagleIntf: IEagle read GetEagleIntf implements IEagle;',
+  '    FDoveObj: TBird;',
+  '    property DoveObj: TBird read FDoveObj implements IDove;',
+  '    function GetSwallowObj: TBird; virtual; abstract;',
+  '    property SwallowObj: TBird read GetSwallowObj implements ISwallow;',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_Delegation',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IBird", "{174B9F1B-B1BC-3868-8338-1709AB763676}", ["Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEagle", "{95CDEE63-AD4B-322E-B6F5-6C42ECD29875}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IDove", "{95CDEE63-AD4B-322E-B569-17F2ECD29875}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "ISwallow", "{95CDEE63-AD4B-322E-84A4-ECEA48D29875}", [], $mod.IBird);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '  rtl.addIntf(this, $mod.IEagle);',
+    '  rtl.addIntf(this, $mod.IDove);',
+    '  rtl.addIntf(this, $mod.ISwallow);',
+    '});',
+    'rtl.createClass($mod, "TBat", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.FBirdIntf = null;',
+    '    this.FDoveObj = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    this.FBirdIntf = undefined;',
+    '    this.FDoveObj = undefined;',
+    '    $mod.TObject.$final.call(this);',
+    '  };',
+    '  this.$intfmaps = {',
+    '    "{174B9F1B-B1BC-3868-8338-1709AB763676}": function () {',
+    '        return rtl._AddRef(this.FBirdIntf);',
+    '      },',
+    '    "{95CDEE63-AD4B-322E-B6F5-6C42ECD29875}": function () {',
+    '        return this.GetEagleIntf();',
+    '      },',
+    '    "{95CDEE63-AD4B-322E-B569-17F2ECD29875}": function () {',
+    '        return rtl.queryIntfT(this.FDoveObj, $mod.IDove);',
+    '      },',
+    '    "{95CDEE63-AD4B-322E-84A4-ECEA48D29875}": function () {',
+    '        return rtl.queryIntfT(this.GetSwallowObj(), $mod.ISwallow);',
+    '      }',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_With;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '    function GetAnt: IUnknown;',
+  '    property Ant: IUnknown read GetAnt;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    function GetAnt: IUnknown; virtual; abstract;',
+  '    property Ant: IUnknown read GetAnt;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  i: IUnknown;',
+  'begin',
+  '  with i do ',
+  '    GetAnt;',
+  '  with i.Ant, Ant do ',
+  '    GetAnt;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_With',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{F1ACF9FE-4E77-3872-9406-776A86A09333}", ["_AddRef", "_Release", "GetAnt"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoIt = function () {',
+    '  var i = null;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  try {',
+    '    $ir.ref(1, i.GetAnt());',
+    '    var $with1 = $ir.ref(2, i.GetAnt());',
+    '    var $with2 = $ir.ref(3, $with1.GetAnt());',
+    '    $ir.ref(4, $with2.GetAnt());',
+    '  } finally {',
+    '    $ir.free();',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface end;',
+  '  TObject = class',
+  '    Id: longint;',
+  '  end;',
+  '  IEnumerator = interface(IUnknown)',
+  '    function GetCurrent: TObject;',
+  '    function MoveNext: Boolean;',
+  '    property Current: TObject read GetCurrent;',
+  '  end;',
+  '  IEnumerable = interface(IUnknown)',
+  '    function GetEnumerator: IEnumerator;',
+  '  end;',
+  'var',
+  '  o: TObject;',
+  '  i: IEnumerable;',
+  'begin',
+  '  for o in i do o.Id:=3;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ForIn',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Id = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createInterface($mod, "IEnumerator", "{D2FE11F3-D2CC-36BB-A5B2-66EB7FB5CB08}", ["GetCurrent", "MoveNext"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEnumerable", "{D20534CB-D9C0-3EA5-AA60-ACEB7D726308}", ["GetEnumerator"], $mod.IUnknown);',
+    'this.o = null;',
+    'this.i = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $in1 = $mod.i.GetEnumerator();',
+    'try {',
+    '  while ($in1.MoveNext()) {',
+    '    $mod.o = $in1.GetCurrent();',
+    '    $mod.o.Id = 3;',
+    '  }',
+    '} finally {',
+    '  rtl._Release($in1)',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntfFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TArrOfIntf = array of IUnknown;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: array of COM-interface',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClassInterface_COM_RecordIntfFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TRec = record',
+  '    i: IUnknown;',
+  '  end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: COM-interface as record member',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClassInterface_COM_UnitInitialization;
+begin
+  StartUnit(false);
+  Add([
+  '{$interfaces com}',
+  'interface',
+  'implementation',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint;',
+  '  end;',
+  'function TObject._AddRef: longint; begin end;',
+  'var i: IUnknown;',
+  '  o: TObject;',
+  'initialization',
+  '  i:=nil;',
+  '  i:=i;',
+  '  i:=o;',
+  '  if (o as IUnknown)=nil then ;',
+  '']);
+  ConvertUnit;
+  CheckSource('TestClassInterface_COM_UnitInitialization',
+    LinesToStr([ // statements
+    'var $impl = $mod.$impl;',
+    '']),
+    LinesToStr([ // this.$init
+    'var $ir = rtl.createIntfRefs();',
+    'try {',
+    '  rtl.setIntfP($impl, "i", null);',
+    '  rtl.setIntfP($impl, "i", $impl.i);',
+    '  rtl.setIntfP($impl, "i", rtl.queryIntfT($impl.o, $impl.IUnknown), true);',
+    '  if ($ir.ref(1, rtl.queryIntfT($impl.o, $impl.IUnknown)) === null) ;',
+    '} finally {',
+    '  $ir.free();',
+    '};',
+    '']),
+    LinesToStr([ // implementation
+    'rtl.createInterface($impl, "IUnknown", "{5D22E7CA-4E77-3872-9406-000000000000}", ["_AddRef"], null);',
+    'rtl.createClass($impl, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this._AddRef = function () {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $impl.IUnknown);',
+    '});',
+    '$impl.i = null;',
+    '$impl.o = null;',
+    ''])
+    );
 end;
 
 {$ELSE}
@@ -17411,7 +18437,7 @@ begin
 end;
 
 {$IFDEF EnableInterfaces}
-procedure TTestModule.TestRTTI_Interface;
+procedure TTestModule.TestRTTI_Interface_Corba;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
@@ -17436,7 +18462,7 @@ begin
   '  t:=TypeInfo(i);',
   '']);
   ConvertProgram;
-  CheckSource('TestRTTI_Interface',
+  CheckSource('TestRTTI_Interface_Corba',
     LinesToStr([ // statements
     'rtl.createInterface(',
     '  $mod,',
@@ -17468,6 +18494,75 @@ begin
     '$mod.t = $mod.i.$rtti;',
     '']));
 end;
+
+procedure TTestModule.TestRTTI_Interface_COM;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TGuid = string;',
+  '  integer = longint;',
+  '  IUnknown = interface',
+  '    function QueryInterface(const iid: TGuid; out obj): Integer;',
+  '    function _AddRef: Integer;',
+  '    function _Release: Integer;',
+  '  end;',
+  '  IBird = interface',
+  '    function GetItem: longint;',
+  '    procedure SetItem(Value: longint);',
+  '    property Item: longint read GetItem write SetItem;',
+  '  end;',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+  '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
+  'var',
+  '  i: IBird;',
+  '  t: TTypeInfoInterface;',
+  'begin',
+  '  t:=TypeInfo(IBird);',
+  '  t:=TypeInfo(i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_Interface_COM',
+    LinesToStr([ // statements
+    'rtl.createInterface(',
+    '  $mod,',
+    '  "IUnknown",',
+    '  "{06A53E33-DB48-3B02-9906-776A86A09333}",',
+    '  ["QueryInterface", "_AddRef", "_Release"],',
+    '  null,',
+    '  function () {',
+    '    this.$kind = "com";',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("QueryInterface", 1, [["iid", rtl.string, 2], ["obj", null, 4]], rtl.longint);',
+    '    $r.addMethod("_AddRef", 1, null, rtl.longint);',
+    '    $r.addMethod("_Release", 1, null, rtl.longint);',
+    '  }',
+    ');',
+    'rtl.createInterface(',
+    '  $mod,',
+    '  "IBird",',
+    '  "{FF135A0E-7B4C-35B8-8737-674A0E33EF92}",',
+    '  ["GetItem", "SetItem"],',
+    '  $mod.IUnknown,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("GetItem", 1, null, rtl.longint);',
+    '    $r.addMethod("SetItem", 0, [["Value", rtl.longint]]);',
+    '    $r.addProperty("Item", 3, rtl.longint, "GetItem", "SetItem");',
+    '  }',
+    ');',
+    'this.i = null;',
+    'this.t = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.t = $mod.$rtti["IBird"];',
+    '$mod.t = $mod.i.$rtti;',
+    '']));
+end;
+
 {$ENDIF}
 
 procedure TTestModule.TestResourcestringProgram;

@@ -282,13 +282,25 @@ Works:
     class field, class function
   - default property
   - Assigned(intfvar)
-  - IntfVar:=nil, IntfVar:=IntfVar, IntfVar:=ObjVar;
-  - IntfVar=IntfVar2, IntfVar<>IntfVar2,
-  - IntfVar is IBird, IntfVar is TBird, ObjVar is IBird
-  - IntfVar2 as IBird, IntfVar2 as TBird, ObjVar as IBird
-  - IntfVar:=IBird(IntfVar2);',
-  - pass IntfVar as argument, pass classinstvar to intf argument
-  - IEnumerable for corba interfaces
+  - CORBA: IntfVar:=nil, IntfVar:=IntfVar, IntfVar:=ObjVar;
+  - CORBA: IntfVar=IntfVar2, IntfVar<>IntfVar2,
+  - CORBA: IntfVar is IBird, IntfVar is TBird, ObjVar is IBird
+  - CORBA: IntfVar2 as IBird, IntfVar2 as TBird, ObjVar as IBird
+  - CORBA: IntfVar:=IBird(IntfVar2);',
+  - CORBA: pass IntfVar as argument, pass classinstvar to intf argument
+  - CORBA: IEnumerable
+  - COM: IntfVar:=nil, IntfVar:=IntfVar, IntfVar:=ObjVar, IntfArg:=, IntfLocalVar:=
+  - COM: IntfVar=IntfVar2, IntfVar<>IntfVar2,
+  - COM: IntfVar is IBird, IntfVar is TBird, ObjVar is IBird
+  - COM: IntfVar2 as IBird, IntfVar2 as TBird, ObjVar as IBird
+  - COM: IntfVar:=IBird(IntfVar2);',
+  - COM: pass IntfVar as argument, pass classinstvar to intf argument
+  - COM: function result, release on exception
+  - COM: addref/release for function call in expression
+  - COM: delegation
+  - COM: property in class, property in interface
+  - COM: with interface do
+  - COM: for interface in ... do
 
 ToDos:
 - 'new', 'Function' -> class var use .prototype
@@ -311,6 +323,7 @@ ToDos:
   - a[] of record
   - clone multi dim static array
 - RTTI
+  - inherit default value, inherit nodefault
   - class property
   - type alias type
   - documentation
@@ -407,6 +420,7 @@ const
   nTypeXCannotBePublished = 4021;
   nNestedInheritedNeedsParameters = 4022;
   nFreeNeedsVar = 4023;
+  nDuplicateGUIDXInYZ = 4024;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -432,6 +446,7 @@ resourcestring
   sTypeXCannotBePublished = 'Type "%s" cannot be published';
   sNestedInheritedNeedsParameters = 'nested inherited needs parameters';
   sFreeNeedsVar = 'Free needs a variable';
+  sDuplicateGUIDXInYZ = 'Duplicate GUID %s in %s and %s';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -456,12 +471,21 @@ type
     pbifnGetNumber,
     pbifnGetObject,
     pbifnGetResourcestring,
+    pbifnIntf_AddRef,
+    pbifnIntf_Release,
     pbifnIntfAddMap,
     pbifnIntfAsClass,
     pbifnIntfCreate,
-    pbifnIntfGetIntfTypeFromObj,
+    pbifnIntfExprRefsAdd,
+    pbifnIntfExprRefsCreate,
+    pbifnIntfExprRefsFree,
+    pbifnIntfGetIntfT,
     pbifnIntfIsClass,
     pbifnIntfToClass,
+    pbifnIntfSetIntfL,
+    pbifnIntfSetIntfP,
+    pbifnIntfQueryIntfIsT,
+    pbifnIntfQueryIntfT,
     pbifnIs,
     pbifnIsExt,
     pbifnFloatToStr,
@@ -508,8 +532,9 @@ type
     pbifnStringSetLength,
     pbifnUnitInit,
     pbivnExceptObject,
+    pbivnIntfExprRefs,
+    pbivnIntfKind,
     pbivnIntfMaps,
-    pbivnIntfAddMap,
     pbivnImplementation,
     pbivnLoop,
     pbivnLoopEnd,
@@ -517,6 +542,7 @@ type
     pbivnModule,
     pbivnModules,
     pbivnPtrClass,
+    pbivnProcOk,
     pbivnResourceStrings,
     pbivnResourceStringOrg,
     pbivnRTL,
@@ -577,12 +603,21 @@ const
     'getNumber', // rtl.getNumber
     'getObject', // rtl.getObject
     'getResStr', // rtl.getResStr
+    '_AddRef', // rtl._AddRef
+    '_Release', // rtl._Release
     'addIntf', // rtl.addIntf
     'intfAsClass', // rtl.intfAsClass
     'createInterface', // rtl.createInterface
+    'ref', // $ir.ref
+    'createIntfRefs', // rtl.createIntfRefs
+    'free', // $ir.free
     'getIntfT',   // rtl.getIntfT
     'intfIsClass', // rtl.intfIsClass
     'intfToClass', // rtl.intfToClass
+    'setIntfL', // rtl.setIntfL
+    'setIntfP', // rtl.setIntfP
+    'queryIntfIsT', // rtl.queryIntfIsT
+    'queryIntfT', // rtl.queryIntfT
     'is', // rtl.is
     'isExt', // rtl.isExt
     'floatToStr', // rtl.floatToStr
@@ -629,8 +664,9 @@ const
     'strSetLength', // rtl.strSetLength
     '$init',
     '$e',
+    '$ir',
+    '$kind',
     '$intfmaps',
-    'addIntf',
     '$impl',
     '$l',
     '$end',
@@ -638,6 +674,7 @@ const
     '$mod',
     'pas',
     '$class',
+    '$ok',
     '$resourcestrings',
     'org',
     'rtl',
@@ -1024,6 +1061,8 @@ type
     procedure FinishSetType(El: TPasSetType); override;
     procedure FinishRecordType(El: TPasRecordType); override;
     procedure FinishClassType(El: TPasClassType); override;
+    procedure FinishArrayType(El: TPasArrayType); override;
+    procedure FinishAncestors(aClass: TPasClassType); override;
     procedure FinishVariable(El: TPasVariable); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
     procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
@@ -1121,6 +1160,8 @@ type
     function GetFunctionContext: TFunctionContext;
     function GetLocalName(El: TPasElement): string; virtual;
     function GetSelfContext: TFunctionContext;
+    function GetContextOfPasElement(El: TPasElement): TConvertContext;
+    function GetFuncContextOfPasElement(El: TPasElement): TFunctionContext;
     function GetContextOfType(aType: TConvertContextClass): TConvertContext;
     function CreateLocalIdentifier(const Prefix: string): string;
     function CurrentModeSwitches: TModeSwitches;
@@ -1148,15 +1189,22 @@ type
   TFCLocalVars = array of TFCLocalIdentifier;
 
   { TFunctionContext
-    Module Function: PasElement is TPasProcedure, ThisPas=nil
-    Method: PasElement is TPasProcedure, ThisPas is TPasClassType }
+    Module Function: PasElement is TPasProcedure (ImplProc), ThisPas=nil
+    Method: PasElement is TPasProcedure (ImplProc), ThisPas is TPasClassType }
 
   TFunctionContext = Class(TConvertContext)
   public
     LocalVars: TFCLocalVars;
     ThisPas: TPasElement;
+    IntfElReleases: TFPList; // list of TPasElement, that needs rtl._Release(<El>)
+    ResultNeedsIntfRelease: boolean;
+    IntfExprReleaseCount: integer; // >0 means needs $ir
+    BodySt: TJSElement;
+    TrySt: TJSTryFinallyStatement;
+    FinallyFirst, FinallyLast: TJSStatementList;
     destructor Destroy; override;
     procedure AddLocalVar(const aName: string; El: TPasElement);
+    procedure Add_InterfaceRelease(El: TPasElement);
     function ToString: string; override;
     function GetLocalName(El: TPasElement): string; override;
     function IndexOfLocalVar(const aName: string): integer;
@@ -1366,7 +1414,8 @@ type
     Function CreateCallFromCharCode(Arg: TJSElement; El: TPasElement): TJSCallExpression; virtual;
     Function CreateUsesList(UsesSection: TPasSection; AContext : TConvertContext): TJSArrayLiteral;
     Procedure AddToStatementList(var First, Last: TJSStatementList;
-      Add: TJSElement; Src: TPasElement);
+      Add: TJSElement; Src: TPasElement); overload;
+    Procedure AddToStatementList(St: TJSStatementList; Add: TJSElement; Src: TPasElement); overload;
     Procedure AddToVarStatement(VarStat: TJSVariableStatement; Add: TJSElement;
       Src: TPasElement);
     Function CreateValInit(PasType: TPasType; Expr: TPasExpr; El: TPasElement;
@@ -1396,7 +1445,8 @@ type
       Full: boolean = false; Ref: TResolvedReference = nil): TJSElement; virtual;
     Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext);
-    Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement): TJSElement; virtual;
+    Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
+      CheckIntfRef: boolean = false): TJSElement; virtual;
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
     Function CreateCloneRecord(El: TPasElement; RecTypeEl: TPasRecordType;
       RecordExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
@@ -1419,13 +1469,26 @@ type
     Procedure CreateRTTIAnonymous(El: TPasType; AContext: TConvertContext;
       var First, Last: TJSStatementList); virtual;
     Procedure AddIntfDelegations(ClassEl: TPasElement; Prop: TPasProperty;
-      FinishedIntf: TFPList; ObjLit: TJSObjectLiteral; aContext: TFunctionContext);
+      FinishedGUIDs: TStringList; ObjLit: TJSObjectLiteral; aContext: TFunctionContext);
     Function CreateGetEnumeratorLoop(El: TPasImplForLoop;
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
     Function CreatePropertyGet(Prop: TPasProperty; Ref: TResolvedReference;
       AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
     Function CreatePrecompiledJS(El: TJSElement): string; virtual;
+    Function CreateAssignComIntfVar(const LeftResolved: TPasResolverResult;
+      var LHS, RHS: TJSElement; AContext: TConvertContext; PosEl: TPasElement): TJSElement; virtual;
+    Function IsInterfaceRef(Expr: TJSElement): boolean;
+    Function CreateIntfRef(Expr: TJSElement; aContext: TConvertContext;
+      PosEl: TPasElement): TJSCallExpression; virtual;
+    Function RemoveIntfRef(Call: TJSCallExpression; AContext: TConvertContext): TJSElement;
+    Procedure CreateFunctionTryFinally(FuncContext: TFunctionContext);
+    Procedure AddFunctionFinallySt(NewEl: TJSElement; PosEl: TPasElement;
+      FuncContext: TFunctionContext);
+    Procedure AddFunctionFinallyRelease(SubEl: TPasElement; FuncContext: TFunctionContext);
+    Procedure AddInFrontOfFunctionTry(NewEl: TJSElement; PosEl: TPasElement;
+      FuncContext: TFunctionContext);
+    Procedure AddInterfaceReleases(FuncContext: TFunctionContext; PosEl: TPasElement);
     // Statements
     Function ConvertImplBlockElements(El: TPasImplBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
     Function ConvertBeginEndStatement(El: TPasImplBeginBlock; AContext: TConvertContext; NilIfEmpty: boolean): TJSElement; virtual;
@@ -2291,7 +2354,7 @@ end;
 procedure TPas2JSResolver.FinishClassType(El: TPasClassType);
 {$IFDEF EnableInterfaces}
 var
-  Scope: TPas2JSClassScope;
+  Scope, CurScope: TPas2JSClassScope;
   Value: TResEvalValue;
 {$ENDIF}
 begin
@@ -2337,10 +2400,61 @@ begin
       // autogenerate GUID
       Scope.GUID:=GenerateGUID(El);
       end;
+
+    CurScope:=Scope;
+    repeat
+      CurScope:=TPas2JSClassScope(CurScope.AncestorScope);
+      if CurScope=nil then break;
+      if SameText(CurScope.GUID,Scope.GUID) then
+        RaiseMsg(20180330232206,nDuplicateGUIDXInYZ,sDuplicateGUIDXInYZ,
+          [Scope.GUID,El.Name,CurScope.Element.Name],El);
+    until false;
     end;
   end;
   //writeln('TPas2JSResolver.FinishClassType END ',GetObjName(El));
   {$ENDIF}
+end;
+
+procedure TPas2JSResolver.FinishArrayType(El: TPasArrayType);
+var
+  ElType: TPasType;
+begin
+  inherited FinishArrayType(El);
+  ElType:=ResolveAliasType(El.ElType);
+  while ElType is TPasArrayType do
+    ElType:=ResolveAliasType(TPasArrayType(ElType).ElType);
+  if IsInterfaceType(ElType,citCom) then
+    RaiseMsg(20180404134515,nNotSupportedX,sNotSupportedX,['array of COM-interface'],El);
+end;
+
+procedure TPas2JSResolver.FinishAncestors(aClass: TPasClassType);
+var
+  IntfList: TFPList;
+  i, j: Integer;
+  Scope, IntfScope: TPas2JSClassScope;
+  IntfType, OrigIntfType: TPasType;
+  GUIDs: TStringList;
+begin
+  inherited FinishAncestors(aClass);
+  Scope:=TPas2JSClassScope(aClass.CustomData);
+  if Scope=nil then exit;
+  IntfList:=aClass.Interfaces;
+  GUIDs:=TStringList.Create;
+  try
+    for i:=0 to IntfList.Count-1 do
+      begin
+      OrigIntfType:=TPasType(IntfList[i]);
+      IntfType:=ResolveAliasType(OrigIntfType);
+      IntfScope:=TPas2JSClassScope(IntfType.CustomData);
+      j:=GUIDs.IndexOf(IntfScope.GUID);
+      if j>=0 then
+        RaiseMsg(20180330231220,nDuplicateGUIDXInYZ,sDuplicateGUIDXInYZ,
+          [IntfScope.GUID,OrigIntfType.Name,TpasElement(GUIDs.Objects[j]).Name],aClass); // ToDo: jump to interface expr
+      GUIDs.AddObject(IntfScope.GUID,OrigIntfType);
+      end;
+  finally
+    GUIDs.Free;
+  end;
 end;
 
 procedure TPas2JSResolver.FinishVariable(El: TPasVariable);
@@ -2437,8 +2551,12 @@ begin
       end;
     end
   else if ParentC=TPasRecordType then
+    begin
     // record member
-    RaiseVarModifierNotSupported(RecordVarModifiersAllowed)
+    RaiseVarModifierNotSupported(RecordVarModifiersAllowed);
+    if IsInterfaceType(El.VarType,citCom) then
+      RaiseMsg(20180404135105,nNotSupportedX,sNotSupportedX,['COM-interface as record member'],El);
+    end
   else if ParentC=TProcedureBody then
     // local var
     RaiseVarModifierNotSupported(LocalVarModifiersAllowed)
@@ -2828,15 +2946,15 @@ var
   i, BytePos, BitPos, v: Integer;
   Member: TPasElement;
   Bytes: array[0..15] of byte;
-  AncestorType: TPasType;
   List: TStringList;
+  Scope: TPas2JSClassScope;
 begin
   Name:=El.FullName;
-  AncestorType:=ResolveAliasType(El.AncestorType);
-  if AncestorType<>nil then
+  Scope:=TPas2JSClassScope(El.CustomData);
+  if Scope.AncestorScope<>nil then
     begin
     // use ancestor GUID as start
-    Name:=TPas2JSClassScope(AncestorType.CustomData).GUID+Name;
+    Name:=TPas2JSClassScope(Scope.AncestorScope).GUID+Name;
     end;
   List:=TStringList.Create;
   for i:=0 to El.Members.Count-1 do
@@ -3812,6 +3930,7 @@ destructor TFunctionContext.Destroy;
 var
   i: Integer;
 begin
+  FreeAndNil(IntfElReleases);
   for i:=0 to length(LocalVars)-1 do
     FreeAndNil(LocalVars[i]);
   inherited Destroy;
@@ -3824,6 +3943,14 @@ begin
   l:=length(LocalVars);
   SetLength(LocalVars,l+1);
   LocalVars[l]:=TFCLocalIdentifier.Create(aName,El);
+end;
+
+procedure TFunctionContext.Add_InterfaceRelease(El: TPasElement);
+begin
+  if IntfElReleases=nil then
+    IntfElReleases:=TFPList.Create;
+  if IntfElReleases.IndexOf(El)>=0 then exit;
+  IntfElReleases.Add(El);
 end;
 
 function TFunctionContext.ToString: string;
@@ -3962,6 +4089,41 @@ begin
     Ctx:=Ctx.Parent;
     end;
   Result:=nil;
+end;
+
+function TConvertContext.GetContextOfPasElement(El: TPasElement
+  ): TConvertContext;
+var
+  ctx: TConvertContext;
+begin
+  Result:=nil;
+  ctx:=Self;
+  repeat
+    if ctx.PasElement=El then
+      exit(ctx);
+    ctx:=ctx.Parent;
+  until ctx=nil;
+end;
+
+function TConvertContext.GetFuncContextOfPasElement(El: TPasElement
+  ): TFunctionContext;
+var
+  ctx: TConvertContext;
+  Scope: TPas2JSProcedureScope;
+begin
+  Result:=nil;
+  if El is TPasProcedure then
+    begin
+    Scope:=TPas2JSProcedureScope(El.CustomData);
+    if Scope.ImplProc<>nil then
+      El:=Scope.ImplProc;
+    end;
+  ctx:=Self;
+  repeat
+    if (ctx.PasElement=El) and (ctx is TFunctionContext) then
+      exit(TFunctionContext(ctx));
+    ctx:=ctx.Parent;
+  until ctx=nil;
 end;
 
 function TConvertContext.GetContextOfType(aType: TConvertContextClass
@@ -4701,8 +4863,25 @@ begin
                     // otherwise -> "rtl.as(A,B)"
                     Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnAs],El);
                 okInterface:
-                  // ClassInstVar as IntfType  ->  rtl.getIntfT(objVar,intftype)
-                  Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetIntfTypeFromObj],El);
+                  begin
+                  // ClassInstVar as IntfType
+                  case TPasClassType(RightTypeEl).InterfaceType of
+                  citCom:
+                    begin
+                    // COM:  $ir.ref(rtl.queryIntfT(objVar,intftype),"id")
+                    Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfQueryIntfT],El);
+                    Call.AddArg(A);
+                    Call.AddArg(B);
+                    Call:=CreateIntfRef(Call,AContext,El);
+                    Result:=Call;
+                    exit;
+                    end;
+                  citCorba:
+                    // CORBA:  rtl.getIntfT(objVar,intftype)
+                    Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetIntfT],El);
+                  else RaiseNotSupported(El,AContext,20180401225752);
+                  end;
+                  end
                 else
                   NotSupportedRes(20180327214535);
                 end;
@@ -4942,13 +5121,27 @@ begin
             okClass: ;
             okInterface:
               begin
-              // ClassInstVar is IntfType ->  rtl.getIntfT(A,B)!==null
-              Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfTypeFromObj]]);
-              Call.AddArg(B); B:=nil;
-              SNE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,El));
-              Result:=SNE;
-              SNE.A:=Call;
-              SNE.B:=CreateLiteralNull(El);
+              // ClassInstVar is IntfType
+              case TPasClassType(RightTypeEl).InterfaceType of
+              citCom:
+                begin
+                // COM:  rtl.queryIntfIsT(A,B)
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfQueryIntfIsT]]);
+                Call.AddArg(B); B:=nil;
+                end;
+              citCorba:
+                begin
+                // CORBA:  rtl.getIntfT(A,B)!==null
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
+                Call.AddArg(B); B:=nil;
+                SNE:=TJSEqualityExpressionSNE(CreateElement(TJSEqualityExpressionSNE,El));
+                Result:=SNE;
+                SNE.A:=Call;
+                SNE.B:=CreateLiteralNull(El);
+                end;
+              else
+                RaiseNotSupported(El,AContext,20180401225502,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]);
+              end;
               exit;
               end;
             else
@@ -5105,7 +5298,7 @@ begin
       // unit prefix is automatically created -> omit
       Result:=ConvertElement(El.right,AContext);
       exit;
-      end;
+      end
     end;
   // convert left side
   OldAccess:=AContext.Access;
@@ -5113,6 +5306,7 @@ begin
   Left:=ConvertElement(El.left,AContext);
   if Left=nil then
     RaiseInconsistency(20170201140821,El);
+
   AContext.Access:=OldAccess;
   // convert right side
   DotContext:=TDotContext.Create(El,Left,AContext);
@@ -5130,8 +5324,9 @@ begin
     FreeAndNil(Left);
     exit(Right);
     end;
+
   // connect via dot
-  Result:=CreateDotExpression(El,Left,Right);
+  Result:=CreateDotExpression(El,Left,Right,true);
 end;
 
 function TPasToJSConverter.CreateIdentifierExpr(El: TPasElement;
@@ -5263,6 +5458,7 @@ function TPasToJSConverter.ConvertIdentifierExpr(El: TPasExpr;
     ProcType: TPasProcedureType;
     ResolvedEl: TPasResolverResult;
     Call: TJSCallExpression;
+    NeedIntfRef: Boolean;
   begin
     // create a call with default parameters
     ProcType:=nil;
@@ -5277,10 +5473,20 @@ function TPasToJSConverter.ConvertIdentifierExpr(El: TPasExpr;
         RaiseNotSupported(El,AContext,20170217005025);
       end;
 
+    NeedIntfRef:=false;
+    if (ProcType is TPasFunctionType)
+        and AContext.Resolver.IsInterfaceType(
+          TPasFunctionType(ProcType).ResultEl.ResultType,citCom)
+    then
+      NeedIntfRef:=true;
+
     Call:=nil;
     try
       CreateProcedureCall(Call,nil,ProcType,AContext);
       Call.Expr:=Result;
+      if NeedIntfRef then
+        // $ir.ref(id,fnname())
+        Call:=CreateIntfRef(Call,AContext,El);
       Result:=Call;
     finally
       if Result<>Call then
@@ -5303,6 +5509,7 @@ var
   Func: TPasFunction;
   FuncScope: TPas2JSProcedureScope;
   Value: TResEvalValue;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -5315,6 +5522,7 @@ begin
     exit;
     end;
 
+  aResolver:=AContext.Resolver;
   Ref:=TResolvedReference(El.CustomData);
   Decl:=Ref.Declaration;
 
@@ -5345,7 +5553,7 @@ begin
     exit;
     end;
 
-  if (Ref.WithExprScope<>nil) and AContext.Resolver.IsTObjectFreeMethod(El) then
+  if (Ref.WithExprScope<>nil) and aResolver.IsTObjectFreeMethod(El) then
     begin
     Result:=ConvertTObjectFree(nil,El,AContext);
     exit;
@@ -5362,7 +5570,7 @@ begin
     case AContext.Access of
       caAssign:
         begin
-        Decl:=AContext.Resolver.GetPasPropertySetter(Prop);
+        Decl:=aResolver.GetPasPropertySetter(Prop);
         if Decl is TPasProcedure then
           begin
           AssignContext:=AContext.AccessContext as TAssignContext;
@@ -5374,10 +5582,10 @@ begin
           Call:=CreateCallExpression(El);
           AssignContext.Call:=Call;
           Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
-          IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+          IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
           if IndexExpr<>nil then
             begin
-            Value:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+            Value:=aResolver.Eval(IndexExpr,[refConst]);
             try
               Call.AddArg(ConvertConstValue(Value,AssignContext,El));
             finally
@@ -5411,7 +5619,7 @@ begin
     begin
     if TPasConst(Decl).IsConst and (TPasConst(Decl).Expr<>nil) then
       begin
-      Value:=AContext.Resolver.Eval(TPasConst(Decl).Expr,[refConst]);
+      Value:=aResolver.Eval(TPasConst(Decl).Expr,[refConst]);
       if (Value<>nil)
           and (Value.Kind in [revkNil,revkBool,revkInt,revkUInt,revkFloat,revkEnum]) then
         try
@@ -5574,6 +5782,12 @@ function TPasToJSConverter.ConvertInheritedExpression(El: TInheritedExpr;
       else
         // "inherited Name(...)" -> pass the user arguments
         CreateProcedureCall(Call,ParamsExpr,AncestorProc.ProcType,AContext);
+
+      if (AncestorProc is TPasFunction)
+          and AContext.Resolver.IsInterfaceType(
+              TPasFunction(AncestorProc).FuncType.ResultEl.ResultType,citCom) then
+        Call:=CreateIntfRef(Call,AContext,El);
+
       Result:=Call;
     finally
       if Result=nil then
@@ -6123,15 +6337,18 @@ var
     IndexExpr: TPasExpr;
     Value: TResEvalValue;
     PropArgs: TFPList;
+    aResolver: TPas2JSResolver;
+    TypeEl: TPasType;
   begin
     Result:=nil;
     AssignContext:=nil;
+    aResolver:=AContext.Resolver;
     Call:=CreateCallExpression(El);
     try
       case AContext.Access of
       caAssign:
         begin
-        AccessEl:=AContext.Resolver.GetPasPropertySetter(Prop);
+        AccessEl:=aResolver.GetPasPropertySetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
             exit;
         AssignContext:=AContext.AccessContext as TAssignContext;
@@ -6141,7 +6358,7 @@ var
         end;
       caRead:
         begin
-        AccessEl:=AContext.Resolver.GetPasPropertyGetter(Prop);
+        AccessEl:=aResolver.GetPasPropertyGetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
           exit;
         end
@@ -6153,7 +6370,7 @@ var
       Elements:=Call.Args.Elements;
       OldAccess:=ArgContext.Access;
       // add params
-      PropArgs:=AContext.Resolver.GetPasPropertyArgs(Prop);
+      PropArgs:=aResolver.GetPasPropertyArgs(Prop);
       i:=0;
       while i<PropArgs.Count do
         begin
@@ -6179,10 +6396,10 @@ var
         inc(i);
         end;
       // add index specifier
-      IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+      IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
       if IndexExpr<>nil then
         begin
-        Value:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+        Value:=aResolver.Eval(IndexExpr,[refConst]);
         try
           Elements.AddElement.Expr:=ConvertConstValue(Value,ArgContext,El);
         finally
@@ -6197,6 +6414,15 @@ var
         end;
 
       ArgContext.Access:=OldAccess;
+
+      // add interface reference
+      if AContext.Access=caRead then
+        begin
+        TypeEl:=aResolver.GetPasPropertyType(Prop);
+        if aResolver.IsInterfaceType(TypeEl,citCom) then
+          Call:=CreateIntfRef(Call,AContext,El);
+        end;
+
       Result:=Call;
     finally
       if Result=nil then
@@ -6269,7 +6495,7 @@ var
       if Right=nil then
         Left.Free;
     end;
-    Result:=CreateDotExpression(El,Left,Right);
+    Result:=CreateDotExpression(El,Left,Right,true);
   end;
 
 Var
@@ -6279,6 +6505,7 @@ Var
   B: TJSBracketMemberExpression;
   OldAccess: TCtxAccess;
   aClass: TPasClassType;
+  aResolver: TPas2JSResolver;
 begin
   if El.Kind<>pekArrayParams then
     RaiseInconsistency(20170209113713,El);
@@ -6310,8 +6537,10 @@ begin
     end;
     exit;
     end;
+
   // has Resolver
-  AContext.Resolver.ComputeElement(El.Value,ResolvedEl,[]);
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(El.Value,ResolvedEl,[]);
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertArrayParams Value=',GetResolverResultDbg(ResolvedEl));
   {$ENDIF}
@@ -6319,12 +6548,12 @@ begin
     // astring[]
     ConvertStringBracket(ResolvedEl)
   else if (ResolvedEl.IdentEl is TPasProperty)
-      and (AContext.Resolver.GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
+      and (aResolver.GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
     // aproperty[]
     ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
   else if ResolvedEl.BaseType=btContext then
     begin
-    TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedEl.TypeEl);
+    TypeEl:=aResolver.ResolveAliasType(ResolvedEl.TypeEl);
     if TypeEl.ClassType=TPasClassType then
       begin
       aClass:=TPasClassType(TypeEl);
@@ -6338,7 +6567,7 @@ begin
     else if TypeEl.ClassType=TPasClassOfType then
       begin
       // aClass[]
-      DestType:=AContext.Resolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
+      DestType:=aResolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
       ClassScope:=DestType.CustomData as TPas2JSClassScope;
       if ClassScope.DefaultProperty=nil then
         RaiseInconsistency(20170206180503,DestType);
@@ -6371,11 +6600,14 @@ var
   C: TClass;
   aName: String;
   aClassTypeEl: TPasClassType;
-  ParamTypeEl: TPasType;
+  ParamTypeEl, TypeEl: TPasType;
+  aResolver: TPas2JSResolver;
+  NeedIntfRef: Boolean;
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
     RaiseInconsistency(20170209113515,El);
+  aResolver:=AContext.Resolver;
   //writeln('TPasToJSConverter.ConvertFuncParams START pekFuncParams ',GetObjName(El.CustomData),' ',GetObjName(El.Value.CustomData));
   Call:=nil;
   Elements:=nil;
@@ -6385,7 +6617,7 @@ begin
     Ref:=TResolvedReference(El.Value.CustomData);
     Decl:=Ref.Declaration;
     if Decl is TPasType then
-      Decl:=AContext.Resolver.ResolveAliasType(TPasType(Decl));
+      Decl:=aResolver.ResolveAliasType(TPasType(Decl));
     //writeln('TPasToJSConverter.ConvertFuncParams pekFuncParams TResolvedReference ',GetObjName(Ref.Declaration),' ',GetObjName(Ref.Declaration.CustomData));
     C:=Decl.ClassType;
 
@@ -6465,8 +6697,8 @@ begin
       // typecast
       // default is to simply replace  "aType(value)" with "value"
       Param:=El.Params[0];
-      AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
-      ParamTypeEl:=AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl);
+      aResolver.ComputeElement(Param,ParamResolved,[]);
+      ParamTypeEl:=aResolver.ResolveAliasType(ParamResolved.TypeEl);
 
       Result:=ConvertElement(Param,AContext);
 
@@ -6497,7 +6729,7 @@ begin
               begin
               // IntfType(ClassInstVar)  ->  getIntfT(ClassInstVar,IntfType)
               Call:=CreateCallExpression(El);
-              Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfTypeFromObj]]);
+              Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
               Call.AddArg(Result);
               Result:=Call;
               Call.AddArg(CreateReferencePathExpr(Decl,AContext));
@@ -6519,7 +6751,7 @@ begin
           begin
           // TObject(value) -> rtl.asExt(value,type,mode)
           if C=TPasClassOfType then
-            aClassTypeEl:=AContext.Resolver.ResolveAliasType(TPasClassOfType(Decl).DestType) as TPasClassType
+            aClassTypeEl:=aResolver.ResolveAliasType(TPasClassOfType(Decl).DestType) as TPasClassType
           else
             aClassTypeEl:=TPasClassType(Decl);
           aName:=CreateReferencePath(aClassTypeEl,AContext,rpkPathAndName);
@@ -6558,7 +6790,7 @@ begin
       end
     else if C.InheritsFrom(TPasVariable) then
       begin
-      AContext.Resolver.ComputeElement(Decl,DeclResolved,[rcType]);
+      aResolver.ComputeElement(Decl,DeclResolved,[rcType]);
       if DeclResolved.TypeEl is TPasProcedureType then
         TargetProcType:=TPasProcedureType(DeclResolved.TypeEl)
       else
@@ -6566,7 +6798,7 @@ begin
       end
     else if (C=TPasArgument) then
       begin
-      AContext.Resolver.ComputeElement(Decl,DeclResolved,[rcType]);
+      aResolver.ComputeElement(Decl,DeclResolved,[rcType]);
       if DeclResolved.TypeEl is TPasProcedureType then
         TargetProcType:=TPasProcedureType(DeclResolved.TypeEl)
       else
@@ -6575,9 +6807,9 @@ begin
     else if (C=TPasProcedureType)
         or (C=TPasFunctionType) then
       begin
-      AContext.Resolver.ComputeElement(El.Value,ValueResolved,[rcNoImplicitProc]);
+      aResolver.ComputeElement(El.Value,ValueResolved,[rcNoImplicitProc]);
       if (ValueResolved.IdentEl is TPasType)
-          and (AContext.Resolver.ResolveAliasType(TPasType(ValueResolved.IdentEl)) is TPasProcedureType) then
+          and (aResolver.ResolveAliasType(TPasType(ValueResolved.IdentEl)) is TPasProcedureType) then
         begin
         // type cast to proc type
         Param:=El.Params[0];
@@ -6601,6 +6833,19 @@ begin
       // call constructor, destructor
       Call:=CreateFreeOrNewInstanceExpr(Ref,AContext);
     end;
+
+  // BEWARE: TargetProcType can be nil, if called without resolver
+
+  NeedIntfRef:=false;
+  if (TargetProcType is TPasFunctionType) and (aResolver<>nil) then
+    begin
+    TypeEl:=aResolver.ResolveAliasType(TPasFunctionType(TargetProcType).ResultEl.ResultType);
+    if (TypeEl is TPasClassType)
+        and (TPasClassType(TypeEl).ObjKind=okInterface)
+        and (TPasClassType(TypeEl).InterfaceType=citCom) then
+      NeedIntfRef:=true;
+    end;
+
   if Call=nil then
     begin
     Call:=CreateCallExpression(El);
@@ -6633,6 +6878,10 @@ begin
       Call.Args.Free;
       Call.Args:=nil;
       end;
+    if NeedIntfRef then
+      // $ir.ref(id,path.fnname())
+      Call:=CreateIntfRef(Call,AContext,El);
+
     Result:=Call;
   finally
     AContext.Access:=OldAccess;
@@ -7366,7 +7615,13 @@ var
   ProcEl: TPasElement;
   Scope: TPas2JSProcedureScope;
   VarName: String;
+  FuncContext: TFunctionContext;
+  AssignSt: TJSSimpleAssignStatement;
+  St: TJSStatementList;
 begin
+  ProcEl:=El.Parent;
+  while (ProcEl<>nil) and not (ProcEl is TPasProcedure) do
+    ProcEl:=ProcEl.Parent;
   Result:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
   if (El is TParamsExpr) and (length(TParamsExpr(El).Params)>0) then
     begin
@@ -7375,10 +7630,7 @@ begin
     end
   else
     begin
-    // without parameter.
-    ProcEl:=El.Parent;
-    while (ProcEl<>nil) and not (ProcEl is TPasProcedure) do
-      ProcEl:=ProcEl.Parent;
+    // without parameter
     if ProcEl is TPasFunction then
       begin
       // in a function, "return result;"
@@ -7390,6 +7642,19 @@ begin
       end
     else
       ; // in a procedure, "return;" which means "return undefined;"
+    end;
+
+  FuncContext:=AContext.GetFunctionContext;
+  if (FuncContext<>nil) and FuncContext.ResultNeedsIntfRelease then
+    begin
+    // add "$ok = true;"
+    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+    AssignSt.LHS:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],El);
+    AssignSt.Expr:=CreateLiteralBoolean(El,true);
+    St:=TJSStatementList(CreateElement(TJSStatementList,El));
+    St.A:=AssignSt;
+    St.B:=Result;
+    Result:=St;
     end;
 end;
 
@@ -8249,7 +8514,8 @@ begin
     // typeinfo(classinstance) -> classinstance.$rtti
     // typeinfo(classof) -> classof.$rtti
     Result:=ConvertElement(Param,AContext);
-    Result:=CreateDotExpression(El,Result,CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTTI],Param));
+    Result:=CreateDotExpression(El,Result,
+                        CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTTI],Param));
     end
   else
     Result:=CreateTypeInfoRef(TypeEl,AContext,Param);
@@ -8583,19 +8849,14 @@ end;
 
 function TPasToJSConverter.ConvertDeclarations(El: TPasDeclarations;
   AContext: TConvertContext): TJSElement;
-
 Var
-  E : TJSElement;
   SLFirst, SLLast: TJSStatementList;
-  P: TPasElement;
   IsProcBody, IsFunction, IsAssembler, HasResult: boolean;
-  I : Integer;
   PasProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
   ProcBody: TPasImplBlock;
   ResultEl: TPasResultElement;
   ResultVarName: String;
-  C: TClass;
   ResStrVarEl: TJSVarDeclaration;
   ResStrVarElAdd: boolean;
 
@@ -8691,6 +8952,43 @@ Var
     ReleaseEvalValue(Value);
   end;
 
+  procedure AddResultInterfacRelease(FuncContext: TFunctionContext);
+  var
+    AssignSt: TJSSimpleAssignStatement;
+    IfSt: TJSIfStatement;
+    VarSt: TJSVariableStatement;
+    Call: TJSCallExpression;
+  begin
+    AddInterfaceReleases(FuncContext,ProcBody);
+    if FuncContext.ResultNeedsIntfRelease then
+      begin
+      // add in front of try "var $ok=false;"
+      VarSt:=CreateVarStatement(FBuiltInNames[pbivnProcOk],CreateLiteralBoolean(ProcBody,false),ProcBody);
+      AddInFrontOfFunctionTry(VarSt,ProcBody,FuncContext);
+      // add in front of finally "$ok=true;"
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,ProcBody));
+      AddToStatementList(FuncContext.TrySt.Block as TJSStatementList,AssignSt,ProcBody);
+      AssignSt.LHS:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],ProcBody);
+      AssignSt.Expr:=CreateLiteralBoolean(ProcBody,true);
+      // add finally: "if(!$ok) rtl._Release(Result);"
+      IfSt:=TJSIfStatement(CreateElement(TJSIfStatement,ProcBody));
+      AddFunctionFinallySt(IfSt,ProcBody,FuncContext);
+      // !$ok
+      IfSt.Cond:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,ProcBody));
+      TJSUnaryNotExpression(IfSt.Cond).A:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnProcOk],ProcBody);
+      // rtl._Release(Result)
+      Call:=CreateCallExpression(ProcBody);
+      IfSt.BTrue:=Call;
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntf_Release]]);
+      Call.AddArg(CreatePrimitiveDotExpr(ResultVarName,ProcBody));
+      end;
+  end;
+
+var
+  E, BodySt: TJSElement;
+  I : Integer;
+  P: TPasElement;
+  C: TClass;
 begin
   Result:=nil;
   {
@@ -8763,8 +9061,18 @@ begin
       ProcBody:=TProcedureBody(El).Body;
       if (ProcBody.Elements.Count>0) or IsAssembler then
         begin
-        E:=ConvertElement(ProcBody,aContext);
-        Add(E,ProcBody);
+        // convert body  (creates a TJSStatementList)
+        BodySt:=ConvertElement(ProcBody,aContext);
+
+        if AContext is TFunctionContext then
+          begin
+          TFunctionContext(AContext).BodySt:=BodySt;
+          // if needed add try..finally for COM interfaces
+          AddResultInterfacRelease(TFunctionContext(AContext));
+          BodySt:=TFunctionContext(AContext).BodySt;
+          end;
+
+        Add(BodySt,ProcBody);
         end;
       end;
 
@@ -8977,18 +9285,18 @@ var
     Call: TJSCallExpression;
     ObjLit: TJSObjectLiteral;
     i: Integer;
-    Scope: TPas2JSClassScope;
+    Scope, CurScope: TPas2JSClassScope;
     o: TObject;
     IntfMaps: TJSSimpleAssignStatement;
     MapsObj: TJSObjectLiteral;
     Map: TPasClassIntfMap;
-    FinishedIntf: TFPList;
+    FinishedGUIDs: TStringList;
     Intf: TPasType;
   begin
     if El.Interfaces.Count=0 then exit;
     IntfMaps:=nil;
 
-    FinishedIntf:=TFPList.Create;
+    FinishedGUIDs:=TStringList.Create;
     try
       ObjLit:=nil;
       Scope:=TPas2JSClassScope(El.CustomData);
@@ -9014,8 +9322,9 @@ var
               // add rtl.addIntf(this,intftype,{ intfprocname: "procname", ...});
               Map:=TPasClassIntfMap(o);
               Intf:=Map.Intf;
-              if FinishedIntf.IndexOf(Intf)>=0 then continue;
-              FinishedIntf.Add(Intf);
+              CurScope:=TPas2JSClassScope(Intf.CustomData);
+              if FinishedGUIDs.IndexOf(CurScope.GUID)>=0 then continue;
+              FinishedGUIDs.Add(CurScope.GUID);
               Call:=CreateCallExpression(El);
               AddToSourceElements(Src,Call);
               Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfAddMap],El);
@@ -9024,7 +9333,7 @@ var
               AddMapProcs(Map,Call,ObjLit,FuncContext);
               end
             else if o is TPasProperty then
-              AddIntfDelegations(El,TPasProperty(o),FinishedIntf,MapsObj,FuncContext)
+              AddIntfDelegations(El,TPasProperty(o),FinishedGUIDs,MapsObj,FuncContext)
             else
               RaiseNotSupported(El,FuncContext,20180326234026,GetObjName(o));
             end;
@@ -9032,7 +9341,7 @@ var
         Scope:=TPas2JSClassScope(Scope.AncestorScope);
       until Scope=nil;
     finally
-      FinishedIntf.Free;
+      FinishedGUIDs.Free;
     end;
   end;
 
@@ -9097,7 +9406,7 @@ var
   P: TPasElement;
   Scope: TPas2JSClassScope;
   Ancestor: TPasType;
-  AncestorPath, OwnerName, DestructorName, FnName: String;
+  AncestorPath, OwnerName, DestructorName, FnName, IntfKind: String;
   C: TClass;
   AssignSt: TJSSimpleAssignStatement;
   NeedInitFunction: Boolean;
@@ -9122,16 +9431,22 @@ begin
   if El.IsExternal then exit;
 
   if El.CustomData is TPas2JSClassScope then
-    Scope:=TPas2JSClassScope(El.CustomData)
+    begin
+    Scope:=TPas2JSClassScope(El.CustomData);
+    if Scope.AncestorScope<>nil then
+      Ancestor:=Scope.AncestorScope.Element as TPasType
+    else
+      begin
+      Ancestor:=nil;
+      IsTObject:=(El.ObjKind=okClass) and SameText(El.Name,'TObject');
+      end;
+    end
   else
+    begin
     Scope:=nil;
-
-  IsTObject:=(El.AncestorType=nil) and (El.ObjKind=okClass) and SameText(El.Name,'TObject');
-
-  if (Scope<>nil) and (Scope.AncestorScope<>nil) then
-    Ancestor:=Scope.AncestorScope.Element as TPasType
-  else
+    IsTObject:=(El.AncestorType=nil) and (El.ObjKind=okClass) and SameText(El.Name,'TObject');
     Ancestor:=El.AncestorType;
+    end;
 
   // create call 'rtl.createClass(' or 'rtl.createInterface('
   FuncContext:=nil;
@@ -9188,11 +9503,18 @@ begin
       end;
 
     NeedInitFunction:=true;
+    IntfKind:='';
     if El.ObjKind=okInterface then
       begin
-      NeedInitFunction:=pcsfPublished in Scope.Flags;
-      if not NeedInitFunction then
-        NeedInitFunction:=HasTypeInfo(El,AContext);
+      if (Scope.AncestorScope=nil) and (not (coNoTypeInfo in Options)) then
+        case El.InterfaceType of
+        citCom: IntfKind:='com';
+        citCorba: ; // default
+        else
+          RaiseNotSupported(El,AContext,20180405093512);
+        end;
+      NeedInitFunction:=(pcsfPublished in Scope.Flags) or HasTypeInfo(El,AContext)
+                        or (IntfKind<>'');
       end;
 
     if NeedInitFunction then
@@ -9206,6 +9528,15 @@ begin
       FuncContext:=TFunctionContext.Create(El,Src,AContext);
       FuncContext.IsGlobal:=true;
       FuncContext.ThisPas:=El;
+
+      if IntfKind<>'' then
+        begin
+        // add this.$kind="com";
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=CreatePrimitiveDotExpr('this.'+FBuiltInNames[pbivnIntfKind],El);
+        AssignSt.Expr:=CreateLiteralString(El,IntfKind);
+        AddToSourceElements(Src,AssignSt);
+        end;
 
       // add class members: types and class vars
       if El.ObjKind in [okClass] then
@@ -10320,6 +10651,10 @@ begin
       // Note: although the rtl sets 'this' as the module, the function can
       //   simply refer to $mod, so no need to set ThisPas here
       Body.A:=ConvertImplBlockElements(El,FuncContext,false);
+
+      FuncContext.BodySt:=Body.A;
+      AddInterfaceReleases(FuncContext,El);
+      Body.A:=FuncContext.BodySt;
       end;
     Result:=AssignSt;
   finally
@@ -10712,17 +11047,30 @@ begin
 end;
 
 function TPasToJSConverter.CreateDotExpression(aParent: TPasElement; Left,
-  Right: TJSElement): TJSElement;
+  Right: TJSElement; CheckIntfRef: boolean): TJSElement;
 var
   Dot: TJSDotMemberExpression;
-  RightParent: TJSElement;
+  RightParent, Expr: TJSElement;
   ok: Boolean;
+  Call: TJSCallExpression;
 begin
   Result:=nil;
   if Left=nil then
     RaiseInconsistency(20170201140827,aParent);
   if Right=nil then
     RaiseInconsistency(20170211192018,aParent);
+
+  if CheckIntfRef and IsInterfaceRef(Right) then
+    begin
+    // right was an implicit call
+    // convert "$ir.ref(id,Expr)"  ->  $ir.ref(id,Left.Expr)
+    Call:=TJSCallExpression(Right);
+    Expr:=Call.Args.Elements[1].Expr;
+    Call.Args.Elements[1].Expr:=CreateDotExpression(aParent,Left,Expr);
+    Result:=Call;
+    exit;
+    end;
+
   ok:=false;
   try
     // create a TJSDotMemberExpression of Left and the left-most identifier of Right
@@ -11456,7 +11804,7 @@ begin
 end;
 
 procedure TPasToJSConverter.AddIntfDelegations(ClassEl: TPasElement;
-  Prop: TPasProperty; FinishedIntf: TFPList; ObjLit: TJSObjectLiteral;
+  Prop: TPasProperty; FinishedGUIDs: TStringList; ObjLit: TJSObjectLiteral;
   aContext: TFunctionContext);
 var
   i: Integer;
@@ -11471,6 +11819,7 @@ var
   GetterJS: TJSElement;
   RetSt: TJSReturnStatement;
   Call: TJSCallExpression;
+  FunName: String;
 begin
   aResolver:=aContext.Resolver;
   GetterJS:=nil;
@@ -11484,12 +11833,12 @@ begin
       // mark interface as finished
       OrigIntfType:=TPasType(ResolvedEl.IdentEl);
       IntfType:=aResolver.ResolveAliasType(OrigIntfType) as TPasClassType;
-      if FinishedIntf.IndexOf(IntfType)>=0 then
-        continue;
-      FinishedIntf.Add(IntfType);
       Scope:=IntfType.CustomData as TPas2JSClassScope;
       if Scope.GUID='' then
         RaiseInconsistency(20180327184912,Expr);
+      if FinishedGUIDs.IndexOf(Scope.GUID)>=0 then
+        continue;
+      FinishedGUIDs.Add(Scope.GUID);
 
       // "guid" : function(){ return ...}
       LitEl:=ObjLit.Elements.AddElement;
@@ -11516,18 +11865,52 @@ begin
       case TPasClassType(PropType).ObjKind of
       okClass:
         begin
-        //'guid': function(){ return rtl.getIntfT(this.FField,IntfType); }
+        // delegate to class instance
+        case TPasClassType(IntfType).InterfaceType of
+        citCom:
+          // 'guid': function(){ return rtl.queryIntfT(this.FField,IntfType); }
+          // 'guid': function(){ return rtl.queryIntfT(this.GetObj(),IntfType); }
+          FunName:=FBuiltInNames[pbifnIntfQueryIntfT];
+        citCorba:
+          // 'guid': function(){ return rtl.getIntfT(this.FField,IntfType); }
+          // 'guid': function(){ return rtl.getIntfT(this.GetObj(),IntfType); }
+          FunName:=FBuiltInNames[pbifnIntfGetIntfT];
+        else
+          RaiseNotSupported(Prop,aContext,20180406085319,InterfaceTypeNames[TPasClassType(IntfType).InterfaceType]);
+        end;
         Call:=CreateCallExpression(Prop);
         RetSt.Expr:=Call;
-        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],
-                                 FBuiltInNames[pbifnIntfGetIntfTypeFromObj]]);
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FunName]);
         Call.AddArg(GetterJS);
         GetterJS:=nil;
-        Call.AddArg(CreateReferencePathExpr(PropType,aContext));
+        Call.AddArg(CreateReferencePathExpr(IntfType,aContext));
         end;
       okInterface:
         begin
-        //'guid': function(){ return this.FField; },
+        // delegate to interface
+        case TPasClassType(IntfType).InterfaceType of
+        citCom:
+          begin
+          if IsInterfaceRef(GetterJS) then
+            // 'guid': function(){ return this.GetIntf(); },
+            GetterJS:=RemoveIntfRef(TJSCallExpression(GetterJS),aContext)
+          else
+            begin
+            // 'guid': function(){ return rtl._AddRef(this.FField); },
+            Call:=CreateCallExpression(Prop);
+            Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntf_AddRef]]);
+            Call.AddArg(GetterJS);
+            GetterJS:=Call;
+            end;
+          end;
+        citCorba:
+          begin
+          // 'guid': function(){ return this.FField; },
+          // 'guid': function(){ return this.GetIntf(); },
+          end;
+        else
+          RaiseNotSupported(Prop,aContext,20180406085053,InterfaceTypeNames[TPasClassType(IntfType).InterfaceType]);
+        end;
         RetSt.Expr:=GetterJS;
         GetterJS:=nil;
         end;
@@ -11582,10 +11965,11 @@ var
   DotContext: TDotContext;
   ResolvedEl: TPasResolverResult;
   EnumeratorTypeEl: TPasType;
-  NeedTryFinally: Boolean;
+  NeedTryFinally, NeedIntfRef: Boolean;
 begin
   ForScope:=TPasForLoopScope(El.CustomData);
   NeedTryFinally:=true;
+  NeedIntfRef:=false;
 
   // find function GetEnumerator
   GetEnumeratorFunc:=ForScope.GetEnumerator;
@@ -11602,6 +11986,7 @@ begin
     okClass: ;
     okInterface:
       case TPasClassType(EnumeratorTypeEl).InterfaceType of
+      citCom: NeedIntfRef:=true;
       citCorba: NeedTryFinally:=false;
       else
         RaiseNotSupported(El.VariableName,AContext,20180328192842);
@@ -11641,7 +12026,8 @@ begin
     PosEl:=El.StartExpr;
     // List.GetEnumerator()
     Call:=TJSCallExpression(CreateElement(TJSCallExpression,PosEl));
-    Call.Expr:=CreateDotExpression(PosEl,List,CreateIdentifierExpr(GetEnumeratorFunc,AContext));
+    Call.Expr:=CreateDotExpression(PosEl,List,
+                         CreateIdentifierExpr(GetEnumeratorFunc,AContext),true);
     // var $in=
     CurInVarName:=FuncContext.CreateLocalIdentifier(FBuiltInNames[pbivnLoopIn]);
     VarSt.A:=CreateVarDecl(CurInVarName,Call,PosEl);
@@ -11664,9 +12050,10 @@ begin
     // $in.MoveNext()
     Call:=TJSCallExpression(CreateElement(TJSCallExpression,PosEl));
     WhileSt.Cond:=Call;
-    Call.Expr:=CreateDotExpression(PosEl,CreateInName,CreateIdentifierExpr(MoveNextFunc,AContext));
+    Call.Expr:=CreateDotExpression(PosEl,CreateInName,
+                                   CreateIdentifierExpr(MoveNextFunc,AContext));
 
-    // Item=$in.getCurrent;
+    // Item=$in.GetCurrent();
     AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
     WhileSt.Body:=AssignSt;
     AssignSt.LHS:=ConvertElement(El.VariableName,AContext); // beware: might fail
@@ -11674,7 +12061,7 @@ begin
     DotContext:=TDotContext.Create(El.StartExpr,nil,AContext);
     GetCurrent:=CreatePropertyGet(CurrentProp,nil,DotContext,PosEl); // beware: might fail
     FreeAndNil(DotContext);
-    AssignSt.Expr:=CreateDotExpression(PosEl,CreateInName,GetCurrent);
+    AssignSt.Expr:=CreateDotExpression(PosEl,CreateInName,GetCurrent,true);
 
     // add body
     if El.Body<>nil then
@@ -11693,7 +12080,15 @@ begin
     if TrySt<>nil then
       begin
       // finally{ $in=rtl.freeLoc($in) }
-      TrySt.BFinally:=CreateCallRTLFreeLoc(CreateInName,CreateInName,PosEl);
+      if NeedIntfRef then
+        begin
+        Call:=CreateCallExpression(PosEl);
+        TrySt.BFinally:=Call;
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntf_Release]]);
+        Call.AddArg(CreateInName);
+        end
+      else
+        TrySt.BFinally:=CreateCallRTLFreeLoc(CreateInName,CreateInName,PosEl);
       end;
 
     Result:=Statements;
@@ -11724,13 +12119,16 @@ function TPasToJSConverter.CreatePropertyGet(Prop: TPasProperty;
   Ref: TResolvedReference; AContext: TConvertContext; PosEl: TPasElement
   ): TJSElement;
 var
+  aResolver: TPas2JSResolver;
   Decl: TPasElement;
   IndexExpr: TPasExpr;
   Call: TJSCallExpression;
   Value: TResEvalValue;
   Name: String;
+  TypeEl: TPasType;
 begin
-  Decl:=AContext.Resolver.GetPasPropertyGetter(Prop);
+  aResolver:=AContext.Resolver;
+  Decl:=aResolver.GetPasPropertyGetter(Prop);
   if Decl is TPasFunction then
     begin
     // call function
@@ -11738,12 +12136,15 @@ begin
     Call:=CreateCallExpression(PosEl);
     try
       Call.Expr:=CreateReferencePathExpr(Decl,AContext,false,Ref);
-      IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+      IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
       if IndexExpr<>nil then
         begin
-        Value:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+        Value:=aResolver.Eval(IndexExpr,[refConst]);
         Call.AddArg(ConvertConstValue(Value,AContext.GetFunctionContext,PosEl));
         end;
+      TypeEl:=aResolver.GetPasPropertyType(Prop);
+      if aResolver.IsInterfaceType(TypeEl,citCom) then
+        Call:=CreateIntfRef(Call,AContext,PosEl);
       Result:=Call;
     finally
       ReleaseEvalValue(Value);
@@ -11777,9 +12178,294 @@ begin
   end;
 end;
 
+function TPasToJSConverter.CreateAssignComIntfVar(
+  const LeftResolved: TPasResolverResult; var LHS, RHS: TJSElement;
+  AContext: TConvertContext; PosEl: TPasElement): TJSElement;
+
+  procedure AddProcRelease(Proc: TPasProcedure; SubEl: TPasElement);
+  var
+    FuncContext: TFunctionContext;
+  begin
+    FuncContext:=AContext.GetFuncContextOfPasElement(Proc);
+    if FuncContext<>nil then
+      begin
+      if SubEl is TPasResultElement then
+        FuncContext.ResultNeedsIntfRelease:=true
+      else
+        FuncContext.Add_InterfaceRelease(SubEl);
+      end
+    else
+      begin
+      {$IFDEF VerbosePas2JS}
+      AContext.WriteStack;
+      {$ENDIF}
+      RaiseInconsistency(20180401164150,PosEl);
+      end;
+  end;
+
+var
+  Call: TJSCallExpression;
+  AssignSt: TJSSimpleAssignStatement;
+  Prim: TJSPrimaryExpressionIdent;
+  IdentEl: TPasElement;
+  Proc: TPasProcedure;
+  ok, SkipAddRef: Boolean;
+begin
+  Result:=nil;
+  ok:=false;
+  try
+    SkipAddRef:=false;
+    if IsInterfaceRef(RHS) then
+      begin
+      // simplify: $ir.ref(id,expr)  ->  expr
+      RHS:=RemoveIntfRef(TJSCallExpression(RHS),AContext);
+      SkipAddRef:=true;
+      end;
+
+    Call:=CreateCallExpression(PosEl);
+    Result:=Call;
+    if LHS is TJSDotMemberExpression then
+      begin
+      // path.name = RHS  ->  rtl.setIntfP(path,"IntfVar",RHS})
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfSetIntfP]]);
+      Call.AddArg(TJSDotMemberExpression(LHS).MExpr);
+      TJSDotMemberExpression(LHS).MExpr:=nil;
+      Call.AddArg(CreateLiteralJSString(PosEl,TJSDotMemberExpression(LHS).Name));
+      FreeAndNil(LHS);
+      Call.AddArg(RHS);
+      RHS:=nil;
+      if SkipAddRef then
+        Call.AddArg(CreateLiteralBoolean(PosEl,true));
+      end
+    else if LHS is TJSBracketMemberExpression then
+      begin
+      // path[index] = RHS  ->  rtl.setIntfP(path,index,RHS})
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfSetIntfP]]);
+      Call.AddArg(TJSBracketMemberExpression(LHS).MExpr);
+      TJSBracketMemberExpression(LHS).MExpr:=nil;
+      Call.AddArg(TJSBracketMemberExpression(LHS).Name);
+      FreeAndNil(LHS);
+      Call.AddArg(RHS);
+      RHS:=nil;
+      if SkipAddRef then
+        Call.AddArg(CreateLiteralBoolean(PosEl,true));
+      end
+    else if LHS is TJSPrimaryExpressionIdent then
+      begin
+      // name = RHS  -> name = rtl.setIntfL(name,RHS)
+      Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfSetIntfL]]);
+      // add parameter name
+      Prim:=TJSPrimaryExpressionIdent(CreateElement(TJSPrimaryExpressionIdent,PosEl));
+      Prim.Name:=TJSPrimaryExpressionIdent(LHS).Name;
+      Call.AddArg(Prim);
+      // add parameter RHS
+      Call.AddArg(RHS);
+      RHS:=nil;
+      if SkipAddRef then
+        Call.AddArg(CreateLiteralBoolean(PosEl,true));
+      // name = ...
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+      AssignSt.LHS:=LHS;
+      LHS:=nil;
+      AssignSt.Expr:=Call;
+      Result:=AssignSt;
+      end
+    else
+      RaiseNotSupported(PosEl,AContext,20180401105030,GetObjName(LHS));
+
+    IdentEl:=LeftResolved.IdentEl;
+    if (IdentEl<>nil) then
+      begin
+      if (IdentEl.ClassType=TPasVariable) and (IdentEl.Parent is TProcedureBody) then
+        begin
+        // local variable
+        Proc:=TPasProcedure(IdentEl.Parent.Parent);
+        AddProcRelease(Proc,IdentEl);
+        end
+      else if (IdentEl.ClassType=TPasArgument)
+          and (IdentEl.Parent is TPasProcedureType)
+          and (IdentEl.Parent.Parent is TPasProcedure) then
+        begin
+        // argument
+        Proc:=TPasProcedure(IdentEl.Parent.Parent);
+        AddProcRelease(Proc,IdentEl);
+        end
+      else if IdentEl.ClassType=TPasResultElement then
+        begin
+        // Result variable
+        Proc:=TPasFunction(TPasFunctionType(IdentEl.Parent).Parent);
+        AddProcRelease(Proc,IdentEl);
+        end;
+      end;
+
+    ok:=true;
+  finally
+    if not ok then Result.Free;
+  end;
+end;
+
+function TPasToJSConverter.IsInterfaceRef(Expr: TJSElement): boolean;
+var
+  Call: TJSCallExpression;
+  DotExpr: TJSDotMemberExpression;
+begin
+  Result:=false;
+  if Expr=nil then exit;
+  if Expr.ClassType<>TJSCallExpression then exit;
+  Call:=TJSCallExpression(Expr);
+  if Call.Expr.ClassType<>TJSDotMemberExpression then exit;
+  DotExpr:=TJSDotMemberExpression(Call.Expr);
+  Result:=(DotExpr.Name=TJSString(FBuiltInNames[pbifnIntfExprRefsAdd]))
+      and (DotExpr.MExpr is TJSPrimaryExpressionIdent)
+      and (TJSPrimaryExpressionIdent(DotExpr.MExpr).Name=TJSString(FBuiltInNames[pbivnIntfExprRefs]));
+end;
+
+function TPasToJSConverter.CreateIntfRef(Expr: TJSElement;
+  aContext: TConvertContext; PosEl: TPasElement): TJSCallExpression;
+// enclose Expr
+// ->  $ir.ref(id,Expr)
+var
+  FuncContext: TFunctionContext;
+  Call: TJSCallExpression;
+begin
+  FuncContext:=aContext.GetFunctionContext;
+  if FuncContext=nil then
+    RaiseNotSupported(PosEl,aContext,20180402183859);
+  if IsInterfaceRef(Expr) then
+    exit(TJSCallExpression(Expr));
+  inc(FuncContext.IntfExprReleaseCount);
+  Call:=CreateCallExpression(PosEl);
+  Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfExprRefs]+'.'+FBuiltInNames[pbifnIntfExprRefsAdd],PosEl);
+  Call.AddArg(CreateLiteralNumber(PosEl,FuncContext.IntfExprReleaseCount));
+  Call.AddArg(Expr);
+  Result:=Call;
+end;
+
+function TPasToJSConverter.RemoveIntfRef(Call: TJSCallExpression;
+  AContext: TConvertContext): TJSElement;
+var
+  Lit: TJSArrayLiteralElement;
+  LitValue: TJSValue;
+  FuncContext: TFunctionContext;
+begin
+  Lit:=Call.Args.Elements[1];
+  Result:=Lit.Expr;
+  Lit.Expr:=nil;
+
+  // check if $ir is still needed
+  Lit:=Call.Args.Elements[0];
+  if (Lit.Expr is TJSLiteral) then
+    begin
+    LitValue:=TJSLiteral(Lit.Expr).Value;
+    FuncContext:=AContext.GetFunctionContext;
+    if (FuncContext<>nil)
+        and (FuncContext.IntfExprReleaseCount=LitValue.AsNumber) then
+      dec(FuncContext.IntfExprReleaseCount);
+    end;
+
+  Call.Free;
+end;
+
+procedure TPasToJSConverter.CreateFunctionTryFinally(
+  FuncContext: TFunctionContext);
+begin
+  if FuncContext.TrySt<>nil then exit;
+  FuncContext.TrySt:=TJSTryFinallyStatement(CreateElement(TJSTryFinallyStatement,FuncContext.PasElement));
+  FuncContext.TrySt.Block:=FuncContext.BodySt;
+  FuncContext.BodySt:=FuncContext.TrySt;
+end;
+
+procedure TPasToJSConverter.AddFunctionFinallySt(NewEl: TJSElement;
+  PosEl: TPasElement; FuncContext: TFunctionContext);
+begin
+  CreateFunctionTryFinally(FuncContext);
+  AddToStatementList(FuncContext.FinallyFirst,FuncContext.FinallyLast,NewEl,PosEl);
+  FuncContext.TrySt.BFinally:=FuncContext.FinallyFirst;
+end;
+
+procedure TPasToJSConverter.AddFunctionFinallyRelease(SubEl: TPasElement;
+  FuncContext: TFunctionContext);
+var
+  Call: TJSCallExpression;
+begin
+  Call:=CreateCallExpression(SubEl);
+  AddFunctionFinallySt(Call,SubEl,FuncContext);
+  Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntf_Release]]);
+  Call.AddArg(CreateReferencePathExpr(SubEl,FuncContext));
+end;
+
+procedure TPasToJSConverter.AddInFrontOfFunctionTry(NewEl: TJSElement;
+  PosEl: TPasElement; FuncContext: TFunctionContext);
+var
+  St, OldSt: TJSStatementList;
+begin
+  CreateFunctionTryFinally(FuncContext);
+  if FuncContext.BodySt=FuncContext.TrySt then
+    begin
+    St:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
+    St.A:=NewEl;
+    St.B:=FuncContext.TrySt;
+    FuncContext.BodySt:=St;
+    end
+  else if FuncContext.BodySt is TJSStatementList then
+    begin
+    OldSt:=TJSStatementList(FuncContext.BodySt);
+    while OldSt.B is TJSStatementList do
+      OldSt:=TJSStatementList(OldSt.B);
+    St:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
+    St.A:=NewEl;
+    St.B:=OldSt.B;
+    OldSt.B:=St;
+    end
+  else
+    RaiseInconsistency(20180402103144,PosEl);
+end;
+
+procedure TPasToJSConverter.AddInterfaceReleases(FuncContext: TFunctionContext;
+  PosEl: TPasElement);
+var
+  i: Integer;
+  P: TPasElement;
+  Call: TJSCallExpression;
+  VarSt: TJSVariableStatement;
+begin
+  if FuncContext.IntfExprReleaseCount>0 then
+    begin
+    // add in front of try..finally "var $ir = rtl.createIntfRefs();"
+    Call:=CreateCallExpression(PosEl);
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfExprRefsCreate]]);
+    VarSt:=CreateVarStatement(FBuiltInNames[pbivnIntfExprRefs],Call,PosEl);
+    AddInFrontOfFunctionTry(VarSt,PosEl,FuncContext);
+    // add in finally: "$ir.free();"
+    Call:=CreateCallExpression(PosEl);
+    Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnIntfExprRefs],FBuiltInNames[pbifnIntfExprRefsFree]]);
+    AddFunctionFinallySt(Call,PosEl,FuncContext);
+    end;
+
+  if FuncContext.IntfElReleases<>nil then
+    for i:=0 to FuncContext.IntfElReleases.Count-1 do
+      begin
+      // enclose body in try..finally and add release statement
+      P:=TPasElement(FuncContext.IntfElReleases[i]);
+      if P.ClassType=TPasVariable then
+        AddFunctionFinallyRelease(P,FuncContext)
+      else if P.ClassType=TPasArgument then
+        begin
+        // add in front of try..finally "rtl._AddRef(arg);"
+        Call:=CreateCallExpression(P);
+        AddInFrontOfFunctionTry(Call,PosEl,FuncContext);
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntf_AddRef]]);
+        Call.AddArg(CreateReferencePathExpr(P,FuncContext));
+        // add in finally: "rtl._Release(arg);"
+        AddFunctionFinallyRelease(P,FuncContext);
+        end
+      else
+        RaiseInconsistency(20180401165742,P);
+      end;
+end;
+
 function TPasToJSConverter.ConvertImplBlock(El: TPasImplBlock;
   AContext: TConvertContext): TJSElement;
-
 begin
   //writeln('TPasToJSConverter.ConvertImplBlock ');
   Result:=Nil;
@@ -11801,18 +12487,6 @@ begin
     Result:=ConvertCaseOfStatement(TPasImplCaseOf(El),AContext)
   else
     RaiseNotSupported(El,AContext,20161024192156);
-(*
-  TPasImplBlock = class(TPasImplElement)
-  TPasImplCaseOf = class(TPasImplBlock)
-  TPasImplStatement = class(TPasImplBlock)
-  TPasImplCaseElse = class(TPasImplBlock)
-  TPasImplTry = class(TPasImplBlock)
-  TPasImplTryHandler = class(TPasImplBlock)
-  TPasImplTryFinally = class(TPasImplTryHandler)
-  TPasImplTryExcept = class(TPasImplTryHandler)
-  TPasImplTryExceptElse = class(TPasImplTryHandler)
-
-*)
 end;
 
 function TPasToJSConverter.ConvertPackage(El: TPasPackage;
@@ -11923,17 +12597,18 @@ Var
   Call: TJSCallExpression;
   MinVal, MaxVal: MaxPrecInt;
   RightTypeEl, LeftTypeEl: TPasType;
-
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   LHS:=nil;
+  aResolver:=AContext.Resolver;
   AssignContext:=TAssignContext.Create(El,nil,AContext);
   try
-    if AContext.Resolver<>nil then
+    if aResolver<>nil then
       begin
-      AContext.Resolver.ComputeElement(El.left,AssignContext.LeftResolved,[rcNoImplicitProc]);
+      aResolver.ComputeElement(El.left,AssignContext.LeftResolved,[rcNoImplicitProc]);
       Flags:=[];
-      LeftIsProcType:=AContext.Resolver.IsProcedureType(AssignContext.LeftResolved,true);
+      LeftIsProcType:=aResolver.IsProcedureType(AssignContext.LeftResolved,true);
       if LeftIsProcType then
         begin
         if msDelphi in AContext.CurrentModeSwitches then
@@ -11941,7 +12616,7 @@ begin
         else
           Include(Flags,rcNoImplicitProcType);
         end;
-      AContext.Resolver.ComputeElement(El.right,AssignContext.RightResolved,Flags);
+      aResolver.ComputeElement(El.right,AssignContext.RightResolved,Flags);
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertAssignStatement Left={',GetResolverResultDbg(AssignContext.LeftResolved),'} Right={',GetResolverResultDbg(AssignContext.RightResolved),'}');
       {$ENDIF}
@@ -11953,7 +12628,7 @@ begin
         end
       else if AssignContext.RightResolved.BaseType=btNil then
         begin
-        if AContext.Resolver.IsArrayType(AssignContext.LeftResolved) then
+        if aResolver.IsArrayType(AssignContext.LeftResolved) then
           begin
           // array:=nil -> array:=[]
           AssignContext.RightSide:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El.right));
@@ -11974,7 +12649,7 @@ begin
       end
     else if AssignContext.RightResolved.BaseType=btContext then
       begin
-      RightTypeEl:=AContext.Resolver.ResolveAliasType(AssignContext.RightResolved.TypeEl);
+      RightTypeEl:=aResolver.ResolveAliasType(AssignContext.RightResolved.TypeEl);
       if RightTypeEl.ClassType=TPasArrayType then
         begin
         if length(TPasArrayType(RightTypeEl).Ranges)>0 then
@@ -11989,7 +12664,7 @@ begin
         end
       else if RightTypeEl.ClassType=TPasClassType then
         begin
-        LeftTypeEl:=AContext.Resolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
+        LeftTypeEl:=aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
         if LeftTypeEl is TPasClassType then
           case TPasClassType(LeftTypeEl).ObjKind of
           okClass:
@@ -12005,15 +12680,32 @@ begin
               // IntfVar:=ClassInstVar
               if TPasClassType(RightTypeEl).IsExternal then
                 RaiseNotSupported(El.right,AContext,20180327210004,'external class instance');
-              // rtl.getIntfT(ClassInstVar,IntfVarType)
               if AssignContext.LeftResolved.TypeEl=nil then
                 RaiseNotSupported(El.right,AContext,20180327204021);
               Call:=CreateCallExpression(El.right);
-              Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfTypeFromObj]]);
-              Call.AddArg(AssignContext.RightSide);
-              AssignContext.RightSide:=Call;
-              Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
-                AContext));
+              case TPasClassType(LeftTypeEl).InterfaceType of
+              // COM: $ir.ref(id,rtl.queryIntfT(ClassInstVar,IntfVarType))
+              citCom:
+                begin
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfQueryIntfT]]);
+                Call.AddArg(AssignContext.RightSide);
+                AssignContext.RightSide:=Call;
+                Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
+                  AContext));
+                Call:=CreateIntfRef(Call,AContext,El);
+                AssignContext.RightSide:=Call;
+                end;
+              // CORBA: rtl.getIntfT(ClassInstVar,IntfVarType)
+              citCorba:
+                begin
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
+                Call.AddArg(AssignContext.RightSide);
+                AssignContext.RightSide:=Call;
+                Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
+                  AContext));
+                end;
+              else RaiseNotSupported(El,AContext,20180401225931,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]);
+              end;
               end;
             okInterface: ;// IntfVar:=IntfVar
             else
@@ -12033,7 +12725,9 @@ begin
                   TPasRecordType(RightTypeEl),AssignContext.RightSide,AContext);
         end;
       end;
+    // convert left side
     LHS:=ConvertElement(El.left,AssignContext);
+
     if AssignContext.Call<>nil then
       begin
       // left side is a Setter -> RightSide was already inserted as parameter
@@ -12043,7 +12737,22 @@ begin
       end
     else
       begin
-      // left side is a variable -> create normal assign statement
+      // left side is a variable
+      if AssignContext.LeftResolved.BaseType=btContext then
+        begin
+        LeftTypeEl:=aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
+        if (LeftTypeEl is TPasClassType)
+            and (TPasClassType(LeftTypeEl).ObjKind=okInterface)
+            and (TPasClassType(LeftTypeEl).InterfaceType=citCom) then
+          begin
+          // left side is a COM interface variable
+          Result:=CreateAssignComIntfVar(AssignContext.LeftResolved,
+                                  LHS,AssignContext.RightSide,AssignContext,El);
+          if Result<>nil then exit;
+          end;
+        end;
+
+      // create normal assign statement
       case El.Kind of
         akDefault: T:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
         akAdd: T:=TJSAddEqAssignStatement(CreateElement(TJSAddEqAssignStatement,El));
@@ -12062,9 +12771,9 @@ begin
         begin
         if AssignContext.LeftResolved.BaseType in btAllJSInteger then
           begin
-          if AContext.Resolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl) is TPasUnresolvedSymbolRef then
+          if aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl) is TPasUnresolvedSymbolRef then
             begin
-            if not AContext.Resolver.GetIntegerRange(AssignContext.LeftResolved.BaseType,MinVal,MaxVal) then
+            if not aResolver.GetIntegerRange(AssignContext.LeftResolved.BaseType,MinVal,MaxVal) then
               RaiseNotSupported(El.left,AContext,20180119154120);
             Call:=CreateCallExpression(El);
             Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
@@ -12586,7 +13295,7 @@ begin
     if (not HasLoopVar) and (HasEndVar or HasInVar) then
       begin
       // for example:
-      //   i:=<startexpr>;
+      //   i=<startexpr>;
       //   for (var $end = <endexpr>; $i<$end; $i++)...
       List:=TJSStatementList(CreateElement(TJSStatementList,El));
       SimpleAss:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El.VariableName));
@@ -13302,6 +14011,18 @@ begin
       Last.B:=Add;
       end;
     end;
+end;
+
+procedure TPasToJSConverter.AddToStatementList(St: TJSStatementList;
+  Add: TJSElement; Src: TPasElement);
+var
+  First, Last: TJSStatementList;
+begin
+  First:=St;
+  Last:=St;
+  while Last.B is TJSStatementList do
+    Last:=TJSStatementList(Last.B);
+  AddToStatementList(First,Last,Add,Src);
 end;
 
 procedure TPasToJSConverter.AddToVarStatement(VarStat: TJSVariableStatement;
@@ -14214,13 +14935,29 @@ begin
             okClass: ; // pass ClassInstVar to ClassType
             okInterface:
               begin
-              // pass ClassInstVar to IntfType  ->  rtl.getIntfT(Expr,IntfType)
+              // pass ClassInstVar to IntfType
               Call:=CreateCallExpression(El);
-              Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],
-                                 FBuiltInNames[pbifnIntfGetIntfTypeFromObj]]);
-              Call.AddArg(Result);
-              Result:=Call;
-              Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
+              case TPasClassType(ArgTypeEl).InterfaceType of
+              citCom:
+                begin
+                // COM:  $ir.ref(id,rtl.queryIntfT(Expr,IntfType))
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfQueryIntfT]]);
+                Call.AddArg(Result);
+                Result:=Call;
+                Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
+                Call:=CreateIntfRef(Call,AContext,El);
+                Result:=Call;
+                end;
+              citCorba:
+                begin
+                // CORBA:  rtl.getIntfT(Expr,IntfType)
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
+                Call.AddArg(Result);
+                Result:=Call;
+                Call.AddArg(CreateReferencePathExpr(ArgTypeEl,AContext));
+                end;
+              else RaiseNotSupported(El,AContext,20180401230251,InterfaceTypeNames[TPasClassType(ArgTypeEl).InterfaceType]);
+              end;
               end
             else
               RaiseNotSupported(El,AContext,20180328134244,ObjKindNames[TPasClassType(ArgTypeEl).ObjKind]);
@@ -14274,7 +15011,8 @@ var
 
 var
   ParamContext: TParamContext;
-  FullGetter, GetPathExpr, SetPathExpr, GetExpr, SetExpr, ParamExpr: TJSElement;
+  FullGetter, GetPathExpr, SetPathExpr, GetExpr, SetExpr, ParamExpr,
+    RHS: TJSElement;
   AssignSt: TJSSimpleAssignStatement;
   ObjLit: TJSObjectLiteralElement;
   FuncSt: TJSFunctionDeclarationStatement;
@@ -14284,6 +15022,7 @@ var
   BracketExpr: TJSBracketMemberExpression;
   DotExpr: TJSDotMemberExpression;
   SetterArgName: String;
+  TypeEl: TPasType;
 begin
   // pass reference -> create a temporary JS object with a FullGetter and setter
   Obj:=nil;
@@ -14342,11 +15081,9 @@ begin
         // Will create "{p:GetPathExpr, get:function(){return GetExpr;},
         //                              set:function(v){GetExpr = v;}}"
         GetPathExpr:=CreatePrimitiveDotExpr(LeftStr(GetPath,GetDotPos-1),El);
-        GetExpr:=CreateDotExpression(El,CreatePrimitiveDotExpr('this.'+GetPathName,El),
-            CreatePrimitiveDotExpr(copy(GetPath,GetDotPos+1),El));
+        GetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(GetPath,GetDotPos+1),El);
         if ParamContext.Setter=nil then
-          SetExpr:=CreateDotExpression(El,CreatePrimitiveDotExpr('this.'+GetPathName,El),
-            CreatePrimitiveDotExpr(copy(GetPath,GetDotPos+1),El));
+          SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(GetPath,GetDotPos+1),El);
         end
       else
         begin
@@ -14370,15 +15107,13 @@ begin
           if LeftStr(GetPath,GetDotPos)=LeftStr(SetPath,SetDotPos) then
             begin
             // use GetPathExpr for setter
-            SetExpr:=CreateDotExpression(El,CreatePrimitiveDotExpr('this.'+GetPathName,El),
-                CreatePrimitiveDotExpr(copy(SetPath,GetDotPos+1),El));
+            SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+copy(SetPath,GetDotPos+1),El);
             end
           else
             begin
             // setter needs its own SetPathExpr
             SetPathExpr:=CreatePrimitiveDotExpr(LeftStr(SetPath,SetDotPos-1),El);
-            SetExpr:=CreateDotExpression(El,CreatePrimitiveDotExpr('this.'+SetPathName,El),
-                CreatePrimitiveDotExpr(copy(SetPath,GetDotPos+1),El));
+            SetExpr:=CreatePrimitiveDotExpr('this.'+SetPathName+'.'+copy(SetPath,GetDotPos+1),El);
             end;
           end;
         end;
@@ -14400,9 +15135,7 @@ begin
       DotExpr.MExpr:=CreatePrimitiveDotExpr('this.'+GetPathName,El);
       GetExpr:=DotExpr;
       FullGetter:=nil;
-      SetExpr:=CreateDotExpression(El,
-        CreatePrimitiveDotExpr('this.'+GetPathName,El),
-        CreatePrimitiveDotExpr(String(DotExpr.Name),El));
+      SetExpr:=CreatePrimitiveDotExpr('this.'+GetPathName+'.'+String(DotExpr.Name),El);
       end
     else if FullGetter.ClassType=TJSBracketMemberExpression then
       begin
@@ -14434,7 +15167,6 @@ begin
       SetExpr:=BracketExpr;
       BracketExpr.MExpr:=CreatePrimitiveDotExpr('this.'+GetPathName,El);
       BracketExpr.Name:=CreatePrimitiveDotExpr('this.'+ParamName,El);
-
       end
     else
       begin
@@ -14449,11 +15181,24 @@ begin
         or (SetExpr.ClassType=TJSBracketMemberExpression) then
       begin
       // create   SetExpr = v;
-      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-      AssignSt.LHS:=SetExpr;
       FindAvailableLocalName(SetterArgName,SetExpr);
-      AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,El);
-      SetExpr:=AssignSt;
+      RHS:=CreatePrimitiveDotExpr(SetterArgName,El);
+      TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedEl.TypeEl);
+      if (TypeEl is TPasClassType)
+          and (TPasClassType(TypeEl).ObjKind=okInterface)
+          and (TPasClassType(TypeEl).InterfaceType=citCom) then
+        begin
+        // create   rtl.setIntfP(path,"IntfVar",v)
+        SetExpr:=CreateAssignComIntfVar(ResolvedEl,SetExpr,RHS,AContext,El);
+        end
+      else
+        begin
+        // create   SetExpr = v;
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+        AssignSt.LHS:=SetExpr;
+        AssignSt.Expr:=RHS;
+        SetExpr:=AssignSt;
+        end;
       end
     else if (SetExpr.ClassType=TJSCallExpression) then
       // has already the form  Func(v)
@@ -14473,7 +15218,7 @@ begin
     RetSt.Expr:=GetExpr;
     GetExpr:=nil;
 
-    // add   s:GetPathExpr
+    // add   s:SetPathExpr
     AddVar(SetPathName,SetPathExpr);
 
     // add   set:function(v){ SetExpr }
