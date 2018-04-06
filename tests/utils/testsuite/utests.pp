@@ -207,6 +207,10 @@ type
     ver_2_7_1,
     ver_3_0_0,
     ver_3_0_1,
+    ver_3_0_2,
+    ver_3_0_3,
+    ver_3_0_4,
+    ver_3_0_5,
     ver_3_1_1);
 
 const
@@ -248,6 +252,10 @@ const
    '2.7.1',
    '3.0.0',
    '3.0.1',
+   '3.0.2',
+   '3.0.3',
+   '3.0.4',
+   '3.0.5',
    '3.1.1'
   );
 
@@ -285,6 +293,10 @@ const
    'branches/fixes_2_6',
    'trunk',
    'branches/release_3_0_0',
+   'branches/release_3_0_2',
+   'branches/release_3_0_2',
+   'branches/release_3_0_4',
+   'branches/release_3_0_4',
    'branches/fixes_3_0',
    'trunk'
   );
