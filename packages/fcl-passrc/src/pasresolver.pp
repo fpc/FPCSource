@@ -6572,11 +6572,7 @@ begin
 
     if not EnumeratorFound then
       begin
-      VarRange:=EvalTypeRange(VarResolved.TypeEl,[]);
-      if VarRange=nil then
-        RaiseXExpectedButYFound(20171109191528,'range',
-                     GetResolverResultDescription(VarResolved),Loop.VariableName);
-      //writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
+      VarRange:=nil;
       InRange:=nil;
       try
         OrigStartResolved:=StartResolved;
@@ -6638,6 +6634,11 @@ begin
           begin
           // for v in <constant> do
           // -> check if same type
+          VarRange:=EvalTypeRange(VarResolved.TypeEl,[]);
+          if VarRange=nil then
+            RaiseXExpectedButYFound(20171109191528,'range',
+                         GetResolverResultDescription(VarResolved),Loop.VariableName);
+          //writeln('TPasResolver.ResolveImplForLoop ForIn VarRange=',VarRange.AsDebugString);
           //writeln('TPasResolver.ResolveImplForLoop ForIn InRange=',InRange.AsDebugString,' ElType=',GetResolverResultDbg(StartResolved));
           case InRange.Kind of
           revkRangeInt,revkSetOfInt:
@@ -6710,7 +6711,9 @@ begin
         if not EnumeratorFound then
           begin
           {$IFDEF VerbosePasResolver}
-          writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRange.AsDebugString,' StartResolved=',GetResolverResultDbg(StartResolved));
+          writeln('TPasResolver.ResolveImplForLoop StartResolved=',GetResolverResultDbg(StartResolved));
+          if VarRange<>nil then
+            writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRange.AsDebugString);
           {$ENDIF}
           RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
             [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);

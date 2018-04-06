@@ -519,6 +519,7 @@ type
     Procedure TestClass_ClassConstFail;
     Procedure TestClass_Enumerator;
     Procedure TestClass_EnumeratorFunc;
+    Procedure TestClass_ForInPropertyStaticArray;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
     // published
@@ -8763,6 +8764,27 @@ begin
   '  i, i2: TItem;',
   'begin',
   '  for i in GetIt do i2:=i;']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_ForInPropertyStaticArray;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TMonthNameArray = array [1..12] of string;',
+  '  TMonthNames = TMonthNameArray;',
+  '  TObject = class',
+  '  private',
+  '    function GetLongMonthNames: TMonthNames; virtual; abstract;',
+  '  public',
+  '    Property LongMonthNames : TMonthNames Read GetLongMonthNames;',
+  '  end;',
+  'var f: TObject;',
+  '  Month: string;',
+  'begin',
+  '  for Month in f.LongMonthNames do ;',
+  '']);
   ParseProgram;
 end;
 
