@@ -5247,7 +5247,7 @@ Const
           dwSize : DWORD;
           dwFlags : DWORD;
           dwHelpContext : DWORD;
-          lpData : LONG_PTR;
+          lData : LONG_PTR;
           hIcon : HICON;
           szName : array[0..31] of AnsiCHAR;
           szInfo : array[0..63] of AnsiCHAR;
