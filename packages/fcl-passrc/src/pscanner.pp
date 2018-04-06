@@ -264,7 +264,6 @@ type
     msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
     msExternalClass,       { Allow external class definitions }
     msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
-    msIgnoreInterfaces,    { workaround til resolver/converter supports interfaces }
     msIgnoreAttributes     { workaround til resolver/converter supports attributes }
   );
   TModeSwitches = Set of TModeSwitch;
@@ -935,7 +934,6 @@ const
     'ISOMOD',
     'EXTERNALCLASS',
     'PREFIXEDATTRIBUTES',
-    'IGNOREINTERFACES',
     'IGNOREATTRIBUTES'
     );
 

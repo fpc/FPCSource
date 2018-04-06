@@ -371,9 +371,7 @@ type
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
-    {$IFDEF EnableInterfaces}
     Procedure TestProcOverloadWithInterfaces;
-    {$ENDIF}
     Procedure TestProcOverloadBaseTypeOtherUnit;
     Procedure TestProcOverloadBaseProcNoHint;
     Procedure TestProcOverload_UnitOrderFail;
@@ -600,7 +598,6 @@ type
     Procedure TestMissingDefaultProperty;
 
     // class interfaces
-    {$IFDEF EnableInterfaces}
     Procedure TestClassInterface;
     Procedure TestClassInterfaceForward;
     Procedure TestClassInterfaceVarFail;
@@ -632,13 +629,6 @@ type
     Procedure TestClassInterface_Enumerator;
     Procedure TestClassInterface_PassTypecastClassToIntfAsVarParamFail;
     Procedure TestClassInterface_PassTypecastIntfToClassAsVarParamFail;
-    {$ELSE}
-    Procedure TestIgnoreInterfaces;
-    Procedure TestIgnoreInterfaceVarFail;
-    Procedure TestIgnoreInterfaceVar2Fail;
-    Procedure TestIgnoreInterfaceArgFail;
-    Procedure TestIgnoreInterfaceFunctionResultFail;
-    {$ENDIF}
 
     // with
     Procedure TestWithBlock1;
@@ -5569,7 +5559,6 @@ begin
   ParseProgram;
 end;
 
-{$ifdef EnableInterfaces}
 procedure TTestResolver.TestProcOverloadWithInterfaces;
 begin
   StartProgram(false);
@@ -5593,7 +5582,6 @@ begin
   '']);
   ParseProgram;
 end;
-{$ENDIF}
 
 procedure TTestResolver.TestProcOverloadBaseTypeOtherUnit;
 begin
@@ -10062,7 +10050,6 @@ begin
     nIllegalQualifierAfter);
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestResolver.TestClassInterface;
 begin
   StartProgram(false);
@@ -10667,99 +10654,6 @@ begin
   '  DoIt(TBall(i));']);
   CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
-
-{$ELSE}
-procedure TTestResolver.TestIgnoreInterfaces;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  TGUID = record end;',
-  '  IUnknown = interface;',
-  '  IUnknown = interface',
-  '    [''{00000000-0000-0000-C000-000000000046}'']',
-  '    function QueryInterface(const iid : tguid;out obj) : longint;',
-  '    function _AddRef : longint; cdecl;',
-  '    function _Release : longint; stdcall;',
-  '  end;',
-  '  IInterface = IUnknown;',
-  '  TObject = class',
-  '    ClassName: string;',
-  '  end;',
-  '  TInterfacedObject = class(TObject,IUnknown)',
-  '    RefCount : longint;',
-  '  end;',
-  'var i: TInterfacedObject;',
-  'begin',
-  '  i.ClassName:=''a'';',
-  '  i.RefCount:=3;',
-  '']);
-  ParseProgram;
-end;
-
-procedure TTestResolver.TestIgnoreInterfaceVarFail;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  IUnknown = interface',
-  '  end;',
-  'var i: IUnknown;',
-  'begin',
-  '']);
-  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
-end;
-
-procedure TTestResolver.TestIgnoreInterfaceVar2Fail;
-begin
-  AddModuleWithIntfImplSrc('unit1.pas',
-    LinesToStr([
-    '{$modeswitch ignoreinterfaces}',
-    'type',
-    '  IUnknown = interface',
-    '  end;',
-    '']),
-    '');
-
-  StartProgram(true);
-  Add([
-  'uses unit1;',
-  'var i: IUnknown;',
-  'begin',
-  '']);
-  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
-end;
-
-procedure TTestResolver.TestIgnoreInterfaceArgFail;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  IUnknown = interface',
-  '  end;',
-  'procedure DoIt(i: IUnknown); begin end;',
-  'begin',
-  '']);
-  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
-end;
-
-procedure TTestResolver.TestIgnoreInterfaceFunctionResultFail;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  IUnknown = interface',
-  '  end;',
-  'function DoIt: IUnknown; begin end;',
-  'begin',
-  '']);
-  CheckResolverException('not yet implemented: IUnknown:TPasClassType',nNotYetImplemented);
-end;
-{$ENDIF}
 
 procedure TTestResolver.TestPropertyAssign;
 begin

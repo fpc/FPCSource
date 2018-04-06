@@ -4552,7 +4552,6 @@ begin
 end;
 
 procedure TPasResolver.FinishClassType(El: TPasClassType);
-{$IFDEF EnableInterfaces}
 type
   TMethResolution = record
     InterfaceIndex: integer;
@@ -4577,9 +4576,7 @@ var
   ResolvedEl: TPasResolverResult;
   ProcName, IntfProcName: String;
   Expr: TPasExpr;
-{$ENDIF}
 begin
-  {$IFDEF EnableInterfaces}
   Resolutions:=nil;
   if El.CustomData is TPasClassScope then
     begin
@@ -4698,7 +4695,6 @@ begin
         end;
       end;
     end;
-  {$ENDIF}
 
   if TopScope.Element=El then
     PopScope;
@@ -5450,7 +5446,6 @@ var
       end;
   end;
 
-  {$IFDEF EnableInterfaces}
   procedure CheckImplements;
   var
     i, j: Integer;
@@ -5536,7 +5531,6 @@ var
         ClassScope.Interfaces[j]:=PropEl;
       end;
   end;
-  {$ENDIF}
 
   procedure CheckStoredAccessor(Expr: TPasExpr; const IndexVal: TResEvalValue;
     const IndexResolved: TPasResolverResult);
@@ -5824,10 +5818,8 @@ begin
         RaiseXExpectedButYFound(20170216151921,'variable',GetElementTypeName(AccEl),PropEl.WriteAccessor);
       end;
 
-    {$IFDEF EnableInterfaces}
     if length(PropEl.Implements)>0 then
       CheckImplements;
-    {$ENDIF}
 
     if PropEl.StoredAccessor<>nil then
       begin
@@ -5902,11 +5894,9 @@ var
   CanonicalSelf: TPasClassOfType;
   ParentDecls: TPasDeclarations;
   Decl: TPasElement;
-  {$IFDEF EnableInterfaces}
   j: integer;
   IntfType, IntfTypeRes: TPasType;
   ResIntfList: TFPList;
-  {$ENDIF}
 begin
   if aClass.IsForward then
     begin
@@ -5923,7 +5913,6 @@ begin
     exit;
     end;
 
-  {$IFDEF EnableInterfaces}
   case aClass.ObjKind of
   okClass:
     begin
@@ -5939,8 +5928,6 @@ begin
     end;
   okInterface:
     begin
-    if (msIgnoreInterfaces in CurrentParser.CurrentModeswitches) then
-      exit;
     if aClass.IsExternal then
       RaiseMsg(20180321115831,nIllegalQualifier,sIllegalQualifier,['external'],aClass);
     if not (aClass.InterfaceType in [citCom,citCorba]) then
@@ -5950,7 +5937,6 @@ begin
   else
     RaiseNotYetImplemented(20161010174638,aClass,'Kind='+ObjKindNames[aClass.ObjKind]);
   end;
-  {$ENDIF}
 
   IsSealed:=false;
   for i:=0 to aClass.Modifiers.Count-1 do
@@ -5992,7 +5978,6 @@ begin
       end;
     okInterface:
       begin
-      {$IFDEF EnableInterfaces}
       if aClass.InterfaceType=citCom then
         begin
         if msDelphi in CurrentParser.CurrentModeswitches then
@@ -6010,7 +5995,6 @@ begin
               GetElementTypeName(AncestorClassEl),aClass);
           end;
         end;
-      {$ENDIF}
       end;
     end;
     end
@@ -6097,7 +6081,6 @@ begin
     end;
 
   // check interfaces
-  {$IFDEF EnableInterfaces}
   if aClass.Interfaces.Count>0 then
     begin
     if not (aClass.ObjKind in [okClass]) then
@@ -6133,7 +6116,6 @@ begin
     ClassScope.Interfaces:=TFPList.Create;
     ClassScope.Interfaces.Count:=aClass.Interfaces.Count;
     end;
-  {$ENDIF}
 end;
 
 procedure TPasResolver.FinishMethodResolution(El: TPasMethodResolution);
@@ -17540,28 +17522,8 @@ begin
 end;
 
 function TPasResolver.IsElementSkipped(El: TPasElement): boolean;
-{$IFNDEF EnableInterfaces}
-var
-  C: TClass;
-  aClass: TPasClassType;
-{$ENDIF}
 begin
-  {$IFDEF EnableInterfaces}
   Result:=El=nil;
-  {$ELSE}
-  while El<>nil do
-    begin
-    C:=El.ClassType;
-    if C.ClassType=TPasClassType then
-      begin
-      aClass:=TPasClassType(El);
-      if aClass.ObjKind=okInterface then
-        exit(true);
-      end;
-    El:=El.Parent;
-    end;
-  {$ENDIF}
-  Result:=false;
 end;
 
 function TPasResolver.FindLocalBuiltInSymbol(El: TPasElement): TPasElement;

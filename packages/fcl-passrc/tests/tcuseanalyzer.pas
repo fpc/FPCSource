@@ -77,15 +77,11 @@ type
     procedure TestM_Class_PropertyOverride;
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
-    {$IFDEF EnableInterfaces}
     procedure TestM_ClassInterface_Corba;
     procedure TestM_ClassInterface_NoHintsForMethod;
     procedure TestM_ClassInterface_NoHintsForImpl;
     procedure TestM_ClassInterface_Delegation;
     procedure TestM_ClassInterface_COM;
-    {$ELSE}
-    procedure TestM_ClassInterface_Ignore;
-    {$ENDIF}
     procedure TestM_TryExceptStatement;
 
     // single module hints
@@ -151,9 +147,9 @@ type
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
-    {$IFDEF EnableInterfaces}
     procedure TestWP_ClassInterface;
-    {$ENDIF}
+    procedure TestWP_ClassInterface_Delegation;
+    procedure TestWP_ClassInterface_COM;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -1057,7 +1053,6 @@ begin
   AnalyzeProgram;
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestUseAnalyzer.TestM_ClassInterface_Corba;
 begin
   StartProgram(false);
@@ -1074,7 +1069,7 @@ begin
   '  strict private',
   '    procedure IUnknown.Run = Fly;',
   '    procedure {#tbird_fly_used}Fly; virtual; abstract;',
-  '    procedure {#tbird_walk_notused}Walk; virtual; abstract;',
+  '    procedure {#tbird_walk_used}Walk; virtual; abstract;',
   '  end;',
   '  {#teagle_used}TEagle = class(TBird)',
   '  strict private',
@@ -1156,7 +1151,7 @@ begin
   '  strict private',
   '    procedure IUnknown.Run = Fly;',
   '    procedure {#tbird_fly_used}Fly;',
-  '    procedure {#tbird_walk_notused}Walk;',
+  '    procedure {#tbird_walk_used}Walk;',
   '  end;',
   '  {#teagle_used}TEagle = class(TObject,IUnknown)',
   '  strict private',
@@ -1196,7 +1191,7 @@ begin
   '    function {#tbird_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
   '    function {#tbird_addref_used}_AddRef: Integer;',
   '    function {#tbird_release_used}_Release: Integer;',
-  '    procedure {#tbird_doit_notused}DoIt;',
+  '    procedure {#tbird_doit_used}DoIt;',
   '  end;',
   '  {#teagle_used}TEagle = class(TBird)',
   '  end;',
@@ -1217,40 +1212,8 @@ begin
   '']);
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local procedure "DoIt" not used');
-  CheckUseAnalyzerHint(mtHint,nPAPrivateMethodIsNeverUsed,'Private method "TBird.DoIt" is never used');
   CheckUseAnalyzerUnexpectedHints;
 end;
-
-{$ELSE}
-procedure TTestUseAnalyzer.TestM_ClassInterface_Ignore;
-begin
-  StartProgram(false);
-  Add([
-  '{$modeswitch ignoreinterfaces}',
-  'type',
-  '  TGUID = record end;',
-  '  IUnknown = interface;',
-  '  IUnknown = interface',
-  '    [''{00000000-0000-0000-C000-000000000046}'']',
-  '    function QueryInterface(const iid : tguid;out obj) : longint;',
-  '    function _AddRef : longint; cdecl;',
-  '    function _Release : longint; stdcall;',
-  '  end;',
-  '  IInterface = IUnknown;',
-  '  TObject = class',
-  '    ClassName: string;',
-  '  end;',
-  '  TInterfacedObject = class(TObject,IUnknown)',
-  '    RefCount : longint;',
-  '  end;',
-  'var i: TInterfacedObject;',
-  'begin',
-  '  i.ClassName:=''a'';',
-  '  i.RefCount:=3;',
-  '']);
-  AnalyzeProgram;
-end;
-{$ENDIF}
 
 procedure TTestUseAnalyzer.TestM_TryExceptStatement;
 begin
@@ -2555,7 +2518,6 @@ begin
   AnalyzeWholeProgram;
 end;
 
-{$IFDEF EnableInterfaces}
 procedure TTestUseAnalyzer.TestWP_ClassInterface;
 begin
   StartProgram(false);
@@ -2590,7 +2552,84 @@ begin
   '']);
   AnalyzeWholeProgram;
 end;
-{$ENDIF}
+
+procedure TTestUseAnalyzer.TestWP_ClassInterface_Delegation;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#iunknown_used}IUnknown = interface',
+  '    procedure {#iunknown_run_used}Run;',
+  '    procedure {#iunknown_walk_notused}Walk;',
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    procedure IUnknown.Run = Fly;',
+  '    procedure {#tbird_fly_used}Fly;',
+  '    procedure {#tbird_walk_notused}Walk;',
+  '  end;',
+  '  {#teagle_used}TEagle = class(TObject,IUnknown)',
+  '  strict private',
+  '    {#teagle_fbird_used}FBird: TBird;',
+  '    property {#teagle_bird_used}Bird: TBird read FBird implements IUnknown;',
+  '  end;',
+  'procedure TBird.Fly; begin end;',
+  'procedure TBird.Walk; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  i.Run;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassInterface_COM;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  {#tguid_used}TGuid = string;',
+  '  {#integer_used}integer = longint;',
+  '  {#iunknown_used}IUnknown = interface',
+  '    function {#iunknown_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
+  '    function {#iunknown_addref_used}_AddRef: Integer;',
+  '    function {#iunknown_release_used}_Release: Integer;',
+  '    procedure {#iunknown_doit_notused}DoIt;',
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    function {#tbird_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
+  '    function {#tbird_addref_used}_AddRef: Integer;',
+  '    function {#tbird_release_used}_Release: Integer;',
+  '    procedure {#tbird_doit_notused}DoIt;',
+  '  end;',
+  '  {#teagle_used}TEagle = class(TBird)',
+  '  end;',
+  'function TBird.QueryInterface(const iid: TGuid; out obj): Integer;',
+  'begin',
+  '  if iid='''' then obj:=nil;',
+  '  Result:=0;',
+  'end;',
+  'function TBird._AddRef: Integer; begin Result:=1; end;',
+  'function TBird._Release: Integer; begin Result:=2; end;',
+  'procedure TBird.DoIt; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  if i=nil then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
 
 procedure TTestUseAnalyzer.TestSR_Proc_UnitVar;
 begin
