@@ -1,3 +1,4 @@
+{ %cpu=i8086 }
 { test applies only to these memory models: }
 {$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
 
