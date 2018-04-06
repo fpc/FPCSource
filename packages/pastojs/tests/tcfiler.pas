@@ -1002,6 +1002,7 @@ var
 begin
   //writeln('TCustomTestPrecompile.CheckRestoredAnalyzerElement ',GetObjName(RestAnalyzer));
   if RestAnalyzer=nil then exit;
+  if Orig.ClassType=TPasArgument then exit;
   OrigUsed:=Analyzer.FindUsedElement(Orig);
   //writeln('TCustomTestPrecompile.CheckRestoredAnalyzerElement ',GetObjName(Orig),'=',OrigUsed<>nil,' ',GetObjName(Rest),'=',RestAnalyzer.FindUsedElement(Rest)<>nil);
   if OrigUsed<>nil then

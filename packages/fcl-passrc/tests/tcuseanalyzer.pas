@@ -150,6 +150,7 @@ type
     procedure TestWP_ClassInterface;
     procedure TestWP_ClassInterface_Delegation;
     procedure TestWP_ClassInterface_COM;
+    procedure TestWP_ClassInterface_Typeinfo;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -229,15 +230,21 @@ begin
 end;
 
 procedure TCustomTestUseAnalyzer.CheckUsedMarkers;
+type
+  TUsed = (
+    uUsed,
+    uNotUsed,
+    uTypeInfo,
+    uNoTypeinfo
+    );
 var
   aMarker: PSrcMarker;
   p: SizeInt;
   Postfix: String;
   Elements: TFPList;
   i: Integer;
-  El: TPasElement;
-  ExpectedUsed: Boolean;
-  FoundEl: TPAElement;
+  El, FoundEl: TPasElement;
+  ExpectedUsed: TUsed;
 begin
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
@@ -249,9 +256,13 @@ begin
       Postfix:=copy(aMarker^.Identifier,p+1);
 
       if Postfix='used' then
-        ExpectedUsed:=true
+        ExpectedUsed:=uUsed
       else if Postfix='notused' then
-        ExpectedUsed:=false
+        ExpectedUsed:=uNotUsed
+      else if Postfix='typeinfo' then
+        ExpectedUsed:=uTypeInfo
+      else if Postfix='notypeinfo' then
+        ExpectedUsed:=uNoTypeInfo
       else
         RaiseErrorAtSrcMarker('TCustomTestUseAnalyzer.CheckUsedMarkers unknown postfix "'+Postfix+'"',aMarker);
 
@@ -262,18 +273,34 @@ begin
           begin
           El:=TPasElement(Elements[i]);
           writeln('TCustomTestUseAnalyzer.CheckUsedMarkers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
-          FoundEl:=Analyzer.FindElement(El);
-          if FoundEl<>nil then break;
+          case ExpectedUsed of
+          uUsed,uNotUsed:
+            if Analyzer.IsUsed(El) then
+              begin
+              FoundEl:=El;
+              break;
+              end;
+          uTypeInfo,uNoTypeinfo:
+            if Analyzer.IsTypeInfoUsed(El) then
+              begin
+              FoundEl:=El;
+              break;
+              end;
+          end;
           end;
         if FoundEl<>nil then
-          begin
-          if not ExpectedUsed then
+          case ExpectedUsed of
+          uNotUsed:
             RaiseErrorAtSrcMarker('expected element to be *not* used, but it is marked',aMarker);
+          uNoTypeinfo:
+            RaiseErrorAtSrcMarker('expected element to have *no* typeinfo, but it is marked',aMarker);
           end
         else
-          begin
-          if ExpectedUsed then
+          case ExpectedUsed of
+          uUsed:
             RaiseErrorAtSrcMarker('expected element to be used, but it is not marked',aMarker);
+          uTypeInfo:
+            RaiseErrorAtSrcMarker('expected element to have typeinfo, but it is not marked',aMarker);
           end;
       finally
         Elements.Free;
@@ -2627,6 +2654,28 @@ begin
   'begin',
   '  i:=e;',
   '  if i=nil then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassInterface_Typeinfo;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#iunknown_typeinfo}IUnknown = interface',
+  '    function {#iunknown_getflag_typeinfo}GetFlag: boolean;',
+  '    procedure {#iunknown_setflag_typeinfo}SetFlag(Value: boolean);',
+  '    procedure {#iunknown_doit_notypeinfo}DoIt;',
+  '    property {#iunknown_flag_typeinfo}Flag: boolean read GetFlag write SetFlag;',
+  '  end;',
+  'var',
+  '  t: pointer;',
+  '  i: IUnknown;',
+  'begin',
+  '  t:=typeinfo(IUnknown);',
+  '  if i.Flag then ;',
   '']);
   AnalyzeWholeProgram;
 end;

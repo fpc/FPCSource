@@ -6711,9 +6711,11 @@ begin
         if not EnumeratorFound then
           begin
           {$IFDEF VerbosePasResolver}
+          {AllowWriteln}
           writeln('TPasResolver.ResolveImplForLoop StartResolved=',GetResolverResultDbg(StartResolved));
           if VarRange<>nil then
             writeln('TPasResolver.ResolveImplForLoop VarRange=',VarRange.AsDebugString);
+          {AllowWriteln-}
           {$ENDIF}
           RaiseMsg(20171108223818,nCannotFindEnumeratorForType,sCannotFindEnumeratorForType,
             [GetBaseDescription(OrigStartResolved)],Loop.StartExpr);
