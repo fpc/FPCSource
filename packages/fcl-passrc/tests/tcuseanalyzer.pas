@@ -148,6 +148,7 @@ type
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
     procedure TestWP_ClassInterface;
+    procedure TestWP_ClassInterface_OneWayIntfToObj;
     procedure TestWP_ClassInterface_Delegation;
     procedure TestWP_ClassInterface_COM;
     procedure TestWP_ClassInterface_Typeinfo;
@@ -2580,6 +2581,42 @@ begin
   AnalyzeWholeProgram;
 end;
 
+procedure TTestUseAnalyzer.TestWP_ClassInterface_OneWayIntfToObj;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  {#iunknown_used}IUnknown = interface',
+  '    procedure {#iunknown_run_used}Run;',
+  '    procedure {#iunknown_walk_notused}Walk;',// not used
+  '  end;',
+  '  {#tobject_used}TObject = class',
+  '  end;',
+  '  {#tbird_used}TBird = class(TObject,IUnknown)',
+  '  strict private',
+  '    procedure IUnknown.Run = Fly;',
+  '    procedure {#tbird_fly_used}Fly; virtual; abstract;',
+  '    procedure {#tbird_walk_notused}Walk; virtual; abstract;', // used
+  '  end;',
+  '  {#teagle_used}TEagle = class(TBird)',
+  '  private',
+  '    procedure {#teagle_fly_used}Fly; override;',
+  '    procedure {#teagle_walk_used}Walk; override;',
+  '  end;',
+  'procedure TEagle.Fly; begin end;',
+  'procedure TEagle.Walk; begin end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IUnknown;',
+  'begin',
+  '  i:=e;',
+  '  i.Run;',  // using IUnknown.Walk must mark TEagle.Walk
+  '  e.Walk;', // using TEagle.Walk must not mark IUnknown.Walk
+  '']);
+  AnalyzeWholeProgram;
+end;
+
 procedure TTestUseAnalyzer.TestWP_ClassInterface_Delegation;
 begin
   StartProgram(false);
@@ -2669,6 +2706,8 @@ begin
   '    procedure {#iunknown_setflag_typeinfo}SetFlag(Value: boolean);',
   '    procedure {#iunknown_doit_notypeinfo}DoIt;',
   '    property {#iunknown_flag_typeinfo}Flag: boolean read GetFlag write SetFlag;',
+  '  end;',
+  '  {#ibird_notused}IBird = interface(IUnknown)',
   '  end;',
   'var',
   '  t: pointer;',
