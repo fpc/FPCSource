@@ -4775,7 +4775,12 @@ begin
         break;
         end;
     if not Found then
-      RaiseMsg(20180202144054,El,'unknown ModeSwitch "'+s+'"');
+      begin
+      if (FileVersion<2) and (SameText(s,'ignoreinterfaces')) then
+        // ignore old switch
+      else
+        RaiseMsg(20180202144054,El,'unknown ModeSwitch "'+s+'"');
+      end;
     end;
 end;
 

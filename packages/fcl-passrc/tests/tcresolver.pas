@@ -3658,6 +3658,7 @@ begin
   '  {$scopedenums on}',
   '  TEnum = (red, green);',
   '  TFlags = set of (red,blue);',
+  '  ',
   'var e: TEnum;',
   '  f: TFlags;',
   'begin',
