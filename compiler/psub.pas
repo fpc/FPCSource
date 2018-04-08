@@ -127,7 +127,8 @@ implementation
        optloop,
        optconstprop,
        optdeadstore,
-       optloadmodifystore
+       optloadmodifystore,
+       optutils
 {$if defined(arm)}
        ,cpuinfo
 {$endif arm}
@@ -1477,6 +1478,8 @@ implementation
             { caller paraloc info is also necessary in the stackframe_entry
               code of the ppc (and possibly other processors)               }
             procdef.init_paraloc_info(callerside);
+
+            CalcExecutionWeights(code);
 
             { Print the node to tree.log }
             if paraprintnodetree=1 then

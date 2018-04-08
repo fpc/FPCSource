@@ -593,7 +593,7 @@ implementation
 {$endif cpu8bitalu or cpu16bitalu}
         fillchar(rg,sizeof(rg),0);
         add_reg_instruction_hook:=@add_reg_instruction;
-        executionweight:=1;
+        executionweight:=100;
       end;
 
 

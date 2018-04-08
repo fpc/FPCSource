@@ -63,7 +63,8 @@ implementation
 {$endif}
      globtype,verbose,
      globals,
-     aasmdata
+     aasmdata,
+     cgobj
 {$ifdef EXTDEBUG}
      ,cgbase
      ,aasmtai
@@ -192,6 +193,10 @@ implementation
             current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
             codegenerror:=false;
+            if assigned(p.optinfo) then
+              cg.executionweight:=p.optinfo^.executionweight
+            else
+              cg.executionweight:=100;
 {$ifdef EXTDEBUG}
             if (p.expectloc=LOC_INVALID) then
               Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
