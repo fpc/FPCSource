@@ -54,8 +54,9 @@ interface
          cnf_objc_id_call,       { the procedure is a member call via id -> any ObjC method of any ObjC type in scope is fair game }
          cnf_unit_specified,     { the unit in which the procedure has to be searched has been specified }
          cnf_call_never_returns, { information for the dfa that a subroutine never returns }
-         cnf_call_self_node_done { the call_self_node has been generated if necessary
+         cnf_call_self_node_done,{ the call_self_node has been generated if necessary
                                    (to prevent it from potentially happening again in a wrong context in case of constant propagation or so) }
+         cnf_ignore_visibility   { internally generated call that should ignore visibility checks }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -3596,7 +3597,8 @@ implementation
                      end;
                    { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
                    ignorevisibility:=(nf_isproperty in flags) or
-                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
+                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags)) or
+                                     (cnf_ignore_visibility in callnodeflags);
                    candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,
                      not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,
                      callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags,spezcontext);

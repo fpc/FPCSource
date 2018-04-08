@@ -70,7 +70,7 @@ interface
           procedure allprivatesused;
           procedure check_forwards;
           procedure checklabels;
-          function  needs_init_final : boolean;
+          function  needs_init_final : boolean; virtual;
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
           procedure register_children;
        end;
@@ -226,7 +226,9 @@ interface
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
           function findnamespace(const n:string):TSymEntry;virtual;
           function iscurrentunit:boolean;override;
+          function needs_init_final: boolean; override;
           procedure insertunit(sym:TSymEntry);
+          function has_class_condestructors: boolean;
        end;
 
        tglobalsymtable = class(tabstractuniTSymtable)
@@ -2420,6 +2422,23 @@ implementation
                 );
       end;
 
+
+    function tabstractuniTSymtable.needs_init_final: boolean;
+      begin
+        if not init_final_check_done then
+          begin
+            result:=inherited needs_init_final;
+            if not result then
+              begin
+                result:=has_class_condestructors;
+                if result then
+                  include(tableoptions,sto_needs_init_final);
+              end;
+          end;
+        result:=sto_needs_init_final in tableoptions;
+      end;
+
+
     procedure tabstractuniTSymtable.insertunit(sym:TSymEntry);
       var
         p:integer;
@@ -2442,6 +2461,32 @@ implementation
               insert(cnamespacesym.create(ns));
             p:=pos('.',n);
           end;
+      end;
+
+
+    procedure CheckForClassConDestructors(p:TObject;arg:pointer);
+      var
+        result: pboolean absolute arg;
+      begin
+        if result^ then
+          exit;
+        if (tdef(p).typ in [objectdef,recorddef]) and
+           not (df_generic in tdef(p).defoptions) then
+          begin
+            { first check the class... }
+            if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
+              result^:=true;;
+            { ... and then also check all subclasses }
+            if not result^ then
+              tabstractrecorddef(p).symtable.deflist.foreachcall(@CheckForClassConDestructors,arg);
+          end;
+      end;
+
+
+    function tabstractuniTSymtable.has_class_condestructors: boolean;
+      begin
+        result:=false;
+        deflist.foreachcall(@CheckForClassConDestructors,@result);
       end;
 
 {****************************************************************************

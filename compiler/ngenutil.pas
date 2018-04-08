@@ -48,6 +48,8 @@ interface
       class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
       class function finalize_data_node(p:tnode):tnode; virtual;
      strict protected
+      type
+        tstructinifinipotype = potype_class_constructor..potype_class_destructor;
       class procedure sym_maybe_initialize(p: TObject; arg: pointer);
       { generates the code for finalisation of local variables }
       class procedure local_varsyms_finalize(p:TObject;arg:pointer);
@@ -55,6 +57,7 @@ interface
         all local (static) typed consts }
       class procedure static_syms_finalize(p: TObject; arg: pointer);
       class procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
+      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
      public
       class procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
       class procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
@@ -421,6 +424,47 @@ implementation
     end;
 
 
+  procedure AddToStructInits(p:TObject;arg:pointer);
+    var
+      StructList: TFPList absolute arg;
+    begin
+      if (tdef(p).typ in [objectdef,recorddef]) and
+         not (df_generic in tdef(p).defoptions) then
+        begin
+          { first add the class... }
+          if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
+            StructList.Add(p);
+          { ... and then also add all subclasses }
+          tabstractrecorddef(p).symtable.deflist.foreachcall(@AddToStructInits,arg);
+        end;
+    end;
+
+
+  class procedure tnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+    var
+      structlist: tfplist;
+      i: integer;
+      pd: tprocdef;
+    begin
+      structlist:=tfplist.Create;
+      if assigned(u.globalsymtable) then
+        u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
+      u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
+      { write structures }
+      for i:=0 to structlist.Count-1 do
+        begin
+          pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(initfini);
+          if assigned(pd) then
+            begin
+              { class constructors are private -> ignore visibility checks }
+              addstatement(stat,
+                ccallnode.create(nil,tprocsym(pd.procsym),pd.owner,nil,[cnf_ignore_visibility],nil))
+            end;
+        end;
+      structlist.free;
+    end;
+
+
   class procedure tnodeutils.procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
     begin
       { initialize local data like ansistrings }
@@ -432,6 +476,9 @@ implementation
              if assigned(current_module.globalsymtable) then
                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
              TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+             { insert class constructors  }
+             if (current_module.flags and uf_classinits) <> 0 then
+               append_struct_initfinis(current_module, potype_class_constructor, stat);
            end;
          { units have seperate code for initilization and finalization }
          potype_unitfinalize: ;
@@ -453,6 +500,9 @@ implementation
       case current_procinfo.procdef.proctypeoption of
          potype_unitfinalize:
            begin
+             { insert class destructors  }
+             if (current_module.flags and uf_classinits) <> 0 then
+               append_struct_initfinis(current_module, potype_class_destructor, stat);
              { this is also used for initialization of variables in a
                program which does not have a globalsymtable }
              if assigned(current_module.globalsymtable) then
@@ -894,82 +944,16 @@ implementation
     end;
 
 
-  procedure AddToStructInits(p:TObject;arg:pointer);
-    var
-      StructList: TFPList absolute arg;
-    begin
-      if (tdef(p).typ in [objectdef,recorddef]) and
-         not (df_generic in tdef(p).defoptions) then
-        begin
-          { first add the class... }
-          if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-            StructList.Add(p);
-          { ... and then also add all subclasses }
-          tabstractrecorddef(p).symtable.deflist.foreachcall(@AddToStructInits,arg);
-        end;
-    end;
-
-
   class function tnodeutils.get_init_final_list:tfplist;
-
-    procedure append_struct_inits(u:tmodule);
-      var
-        i : integer;
-        structlist : tfplist;
-        pd : tprocdef;
-        entry : pinitfinalentry;
-      begin
-        structlist:=tfplist.Create;
-        if assigned(u.globalsymtable) then
-          u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-        u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-        { write structures }
-        for i:=0 to structlist.Count-1 do
-        begin
-          new(entry);
-          entry^.module:=u;
-          pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
-          if assigned(pd) then
-            begin
-              entry^.initfunc:=pd.mangledname;
-              entry^.initpd:=pd;
-            end
-          else
-            begin
-              entry^.initfunc:='';
-              entry^.initpd:=nil;
-            end;
-          pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
-          if assigned(pd) then
-            begin
-              entry^.finifunc:=pd.mangledname;
-              entry^.finipd:=pd;
-            end
-          else
-            begin
-              entry^.finifunc:='';
-              entry^.finipd:=nil;
-            end;
-          if assigned(entry^.finipd) or assigned(entry^.initpd) then
-            result.add(entry)
-          else
-            { AddToStructInits only adds structs that have either a class constructor or destructor or both }
-            internalerror(2017051902);
-        end;
-        structlist.free;
-      end;
-
     var
       hp : tused_unit;
       entry : pinitfinalentry;
     begin
       result:=tfplist.create;
+      { Insert initialization/finalization of the used units }
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
        begin
-         { insert class constructors/destructors of the unit }
-         if (hp.u.flags and uf_classinits) <> 0 then
-           append_struct_inits(hp.u);
          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
            begin
              new(entry);
@@ -989,8 +973,6 @@ implementation
          hp:=tused_unit(hp.next);
        end;
 
-      if (current_module.flags and uf_classinits) <> 0 then
-        append_struct_inits(current_module);
       { Insert initialization/finalization of the program }
       if (current_module.flags and (uf_init or uf_finalize))<>0 then
         begin
