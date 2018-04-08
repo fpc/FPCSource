@@ -484,6 +484,7 @@ type
     Procedure TestClassInterface_AncestorImpl;
     Procedure TestClassInterface_ImplReintroduce;
     Procedure TestClassInterface_MethodResolution;
+    Procedure TestClassInterface_AncestorMoreInterfaces;
     Procedure TestClassInterface_Corba_Delegation;
     Procedure TestClassInterface_Corba_DelegationStatic;
     Procedure TestClassInterface_Corba_Operators;
@@ -12715,6 +12716,52 @@ begin
     '$mod.BirdIntf.Walk(3);',
     '$mod.BirdIntf.Walk$1(true);',
     '$mod.BirdIntf.Fly("abc");',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_AncestorMoreInterfaces;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    procedure Walk;',
+  '  end;',
+  '  IBird = interface end;',
+  '  IDog = interface end;',
+  '  TObject = class(IBird,IDog)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    procedure Walk; virtual; abstract;',
+  '  end;',
+  '  TBird = class(IUnknown)',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_AncestorLess',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-7588F5800000}", ["_AddRef", "Walk"], null);',
+    'rtl.createInterface($mod, "IBird", "{136757F2-AF76-3468-8338-1526EC563676}", [], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IDog", "{136757F2-AF76-3468-8565-8D26EC563676}", [], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '  rtl.addIntf(this, $mod.IDog);',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '  rtl.addIntf(this, $mod.IBird);',
+    '  rtl.addIntf(this, $mod.IDog);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

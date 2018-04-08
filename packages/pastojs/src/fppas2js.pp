@@ -9282,9 +9282,11 @@ var
     Map: TPasClassIntfMap;
     FinishedGUIDs: TStringList;
     Intf: TPasType;
+    CurEl: TPasClassType;
   begin
     if El.Interfaces.Count=0 then exit;
     IntfMaps:=nil;
+
 
     FinishedGUIDs:=TStringList.Create;
     try
@@ -9295,7 +9297,8 @@ var
           begin
           for i:=0 to Scope.Interfaces.Count-1 do
             begin
-            if not IsMemberNeeded(TPasElement(El.Interfaces[i])) then continue;
+            CurEl:=TPasClassType(Scope.Element);
+            if not IsMemberNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
             if IntfMaps=nil then
               begin
               // add "this.$intfmaps = {};"
