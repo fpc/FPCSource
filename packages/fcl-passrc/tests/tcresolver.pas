@@ -3657,10 +3657,13 @@ begin
   'type',
   '  {$scopedenums on}',
   '  TEnum = (red, green);',
+  '  TFlags = set of (red,blue);',
   'var e: TEnum;',
+  '  f: TFlags;',
   'begin',
-  '  e:=TEnum.red;'
-  ]);
+  '  e:=TEnum.red;',
+  '  if red in f then ;',
+  '']);
   ParseProgram;
 end;
 
