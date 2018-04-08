@@ -4586,6 +4586,16 @@ begin
 
     if El.ObjKind=okClass then
       begin
+      if (El.Interfaces.Count>0) then
+        begin
+        if (ClassScope.Interfaces=nil) then
+          RaiseInternalError(20180408162725,'');
+        if (ClassScope.Interfaces.Count<>El.Interfaces.Count) then
+          RaiseInternalError(20180408162746,'');
+        end
+      else if ClassScope.Interfaces<>nil then
+        RaiseInternalError(20180408162803,'');
+
       // check explicit method resolutions, e.g. procedure intf.intfproc = implproc
       for i:=0 to El.Members.Count-1 do
         begin
