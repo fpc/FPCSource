@@ -447,7 +447,7 @@ var rtl = {
     if (!obj) return null;
     //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' query='+query);
     // search
-    var maps = obj.$class.$intfmaps;
+    var maps = obj.$intfmaps;
     if (!maps) return null;
     var item = maps[guid];
     if (!item) return null;
