@@ -388,7 +388,15 @@ unit optutils;
               Result:=fen_norecurse_false;
             end;
           else
-            n.optinfo^.executionweight:=AWord(arg);
+{$push}
+{ The code below emits two warnings if ptruint and aword are the same type }
+{$warn 4044 off}
+{$warn 6018 off}
+            if ptruint(arg) > high(aword) then
+              n.optinfo^.executionweight:=high(AWord)
+            else
+              n.optinfo^.executionweight:=AWord(ptruint(arg));
+{$pop}
         end;
       end;
 
@@ -396,7 +404,7 @@ unit optutils;
     procedure CalcExecutionWeights(p : tnode;Initial : AWord = 100);
       begin
         if assigned(p) then
-          foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(Initial));
+          foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(ptruint(Initial)));
       end;
 
 
