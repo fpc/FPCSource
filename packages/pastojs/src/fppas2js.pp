@@ -3204,6 +3204,7 @@ var
   jbt: TPas2jsBaseType;
   TypeEl: TPasType;
   FoundClass: TPasClassType;
+  ScopeDepth: Integer;
 begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
@@ -3302,6 +3303,7 @@ begin
         TIName:=Pas2JSBuiltInNames[pbitnTIEnum];
       end;
     end;
+  //writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName=',TIName);
   if TIName='' then
     begin
     {$IFDEF VerbosePas2JS}
@@ -3311,10 +3313,12 @@ begin
     end;
 
   // search for TIName
+  ResetSubScopes(ScopeDepth);
   FindData:=Default(TPRFindData);
   FindData.ErrorPosEl:=Params;
   Abort:=false;
   IterateElements(TIName,@OnFindFirstElement,@FindData,Abort);
+  RestoreSubScopes(ScopeDepth);
   {$IFDEF VerbosePas2JS}
   writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName="',TIName,'" FindData.Found="',GetObjName(FindData.Found),'"');
   {$ENDIF}

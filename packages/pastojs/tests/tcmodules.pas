@@ -18392,6 +18392,7 @@ begin
   'begin',
   '  t:=TypeInfo(Self);',
   '  t:=TypeInfo(Result);',
+  '  t:=TypeInfo(TObject);',
   'end;',
   'class function TObject.ClassType: TClass;',
   'var t: TTypeInfoClass;',
@@ -18424,6 +18425,7 @@ begin
     '    var t = null;',
     '    t = this.$rtti;',
     '    t = Result.$rtti;',
+    '    t = $mod.$rtti["TObject"];',
     '    return Result;',
     '  };',
     '  this.ClassType = function () {',
@@ -18461,12 +18463,15 @@ begin
   '  end;',
   '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
   '  TTypeInfoInterface = class external name ''rtl.tTypeInfoInterface''(TTypeInfo) end;',
+  'procedure DoIt(t: TTypeInfoInterface); begin end;',
   'var',
   '  i: IBird;',
   '  t: TTypeInfoInterface;',
   'begin',
   '  t:=TypeInfo(IBird);',
   '  t:=TypeInfo(i);',
+  '  DoIt(t);',
+  '  DoIt(TypeInfo(IBird));',
   '']);
   ConvertProgram;
   CheckSource('TestRTTI_Interface_Corba',
@@ -18493,12 +18498,16 @@ begin
     '    $r.addProperty("Item", 3, rtl.longint, "GetItem", "SetItem");',
     '  }',
     ');',
+    'this.DoIt = function (t) {',
+    '};    ',
     'this.i = null;',
     'this.t = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.t = $mod.$rtti["IBird"];',
     '$mod.t = $mod.i.$rtti;',
+    '$mod.DoIt($mod.t);',
+    '$mod.DoIt($mod.$rtti["IBird"]);',
     '']));
 end;
 
