@@ -3559,6 +3559,7 @@ var
   ok: Boolean;
 begin
   ok:=true;
+  //writeln('TPasResolver.OnFindFirstElement ',El.FullName);
   if (El is TPasProcedure)
       and ProcNeedsParams(TPasProcedure(El).ProcType) then
     // found a proc, but it needs parameters -> remember the first and continue
@@ -8895,15 +8896,6 @@ begin
                 and (not TPasClassType(LeftTypeEl).IsExternal) then
               begin
               // e.g. classinst as intftype
-              if msDelphi in CurrentParser.CurrentModeswitches then
-                begin
-                if GetClassImplementsIntf(TPasClassType(LeftTypeEl),TPasClassType(RightTypeEl))=nil then
-                  RaiseIncompatibleTypeRes(20180324190655,nTypesAreNotRelatedXY,[],LeftResolved,RightResolved,Bin);
-                end
-              else
-                begin
-                // objfpc: checked at runtime
-                end;
               SetResolverValueExpr(ResolvedEl,btContext,RightResolved.TypeEl,Bin,[rrfReadable]);
               exit;
               end;
