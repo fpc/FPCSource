@@ -742,7 +742,7 @@ interface
          function Getforwarddef: boolean;
          procedure Setforwarddef(AValue: boolean);
          function Getinterfacedef: boolean;
-         procedure Setinterfacedef(AValue: boolean);
+         procedure Setinterfacedef(AValue: boolean);virtual;
          function Gethasforward: boolean;
          procedure Sethasforward(AValue: boolean);
          function GetIsEmpty: boolean;

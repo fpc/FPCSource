@@ -130,6 +130,7 @@ type
       - it has no 'near' or 'far' specifiers
       - it is compiled in a $F- state }
     function default_far:boolean;
+    procedure Setinterfacedef(AValue: boolean);override;
    public
     constructor create(level:byte;doregister:boolean);override;
     function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp):tstoreddef;override;
@@ -393,6 +394,14 @@ implementation
       if is_methodpointer then
         exit(true);
       result:=not (visibility in [vis_private,vis_hidden]);
+    end;
+
+
+  procedure tcpuprocdef.Setinterfacedef(AValue: boolean);
+    begin
+      inherited;
+      if (current_settings.x86memorymodel in x86_far_code_models) and AValue then
+        include(procoptions,po_far);
     end;
 
 
