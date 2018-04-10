@@ -491,7 +491,9 @@ implementation
                    end;
                  arraydef :
                    begin
-                     if (m_mac in current_settings.modeswitches) and
+                     if (((m_mac in current_settings.modeswitches) and
+                          is_integer(def_to)) or
+                         is_widechar(def_to)) and
                         (fromtreetype=stringconstn) then
                        begin
                          eq:=te_convert_l3;

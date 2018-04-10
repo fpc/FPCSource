@@ -1624,11 +1624,20 @@ implementation
          result:=nil;
          if left.nodetype<>stringconstn then
            internalerror(200510012);
-         if tstringconstnode(left).len=4 then
+         if (m_mac in current_settings.modeswitches) and
+            is_integer(resultdef) and
+            (tstringconstnode(left).cst_type=cst_conststring) and
+            (tstringconstnode(left).len=4) then
            begin
              pb:=pbyte(tstringconstnode(left).value_str);
              fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
              result:=cordconstnode.create(fcc,u32inttype,false);
+           end
+         else if is_widechar(resultdef) and
+            (tstringconstnode(left).cst_type=cst_unicodestring) and
+            (pcompilerwidestring(tstringconstnode(left).value_str)^.len=1) then
+           begin
+             result:=cordconstnode.create(pcompilerwidestring(tstringconstnode(left).value_str)^.data[0], resultdef, false);
            end
          else
            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
