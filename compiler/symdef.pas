@@ -5852,6 +5852,8 @@ implementation
         else if po_is_block in procoptions then
           s:=s+' is block';
         s:=s+';';
+        if po_far in procoptions then
+          s:=s+' far;';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
           s:=s+' '+ProcCallOptionStr[proccalloption]+';';
