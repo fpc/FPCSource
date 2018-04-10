@@ -366,17 +366,13 @@ implementation
 
   procedure tcpuprocdef.declared_far;
     begin
-      if current_settings.x86memorymodel in x86_far_code_models then
-        include(procoptions,po_far)
-      else
-        inherited declared_far;
+      include(procoptions,po_far);
     end;
 
 
   procedure tcpuprocdef.declared_near;
     begin
-      if (current_settings.x86memorymodel in x86_far_code_models) and
-         not (cs_huge_code in current_settings.moduleswitches) then
+      if not (cs_huge_code in current_settings.moduleswitches) then
         exclude(procoptions,po_far)
       else
         inherited declared_near;
@@ -403,7 +399,8 @@ implementation
   function tcpuprocdef.is_far: boolean;
     begin
       result:=(po_exports in procoptions) or
-              ((current_settings.x86memorymodel in x86_far_code_models) and ((po_far in procoptions) or default_far));
+              (po_far in procoptions) or
+              ((current_settings.x86memorymodel in x86_far_code_models) and default_far);
     end;
 
 {****************************************************************************
