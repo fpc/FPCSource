@@ -505,6 +505,7 @@ type
     Procedure TestClassInterface_COM_ArrayOfIntfFail;
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
+    Procedure TestClassInterface_GUID;
 
     // proc types
     Procedure TestProcType;
@@ -14137,6 +14138,51 @@ begin
     '$impl.o = null;',
     ''])
     );
+end;
+
+procedure TTestModule.TestClassInterface_GUID;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '    [''{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}'']',
+  '  end;',
+  '  TObject = class end;',
+  '  TGUID = string;',
+  '  TAliasGUID = TGUID;',
+  'procedure DoIt(g: TAliasGUID);',
+  'begin end;',
+  'var i: IUnknown;',
+  '  g: TAliasGUID;',
+  'begin',
+  '  DoIt(IUnknown);',
+  '  DoIt(i);',
+  '  g:=i;',
+  '  g:=IUnknown;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_GUID',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}", [], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.DoIt = function (g) {',
+    '};',
+    'this.i = null;',
+    'this.g = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.IUnknown.$guid);',
+    '$mod.DoIt($mod.i.$guid);',
+    '$mod.g = $mod.i.$guid;',
+    '$mod.g = $mod.IUnknown.$guid;',
+    '']));
 end;
 
 procedure TTestModule.TestProcType;

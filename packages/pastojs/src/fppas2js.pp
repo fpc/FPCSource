@@ -303,6 +303,10 @@ Works:
   - COM: for interface in ... do
 
 ToDos:
+- interfaces:
+  - GUID
+  - for i in jsvalue do
+  - for i in tjsobject do
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -533,6 +537,7 @@ type
     pbifnUnitInit,
     pbivnExceptObject,
     pbivnIntfExprRefs,
+    pbivnIntfGUID,
     pbivnIntfKind,
     pbivnIntfMaps,
     pbivnImplementation,
@@ -665,6 +670,7 @@ const
     '$init',
     '$e',
     '$ir',
+    '$guid',
     '$kind',
     '$intfmaps',
     '$impl',
@@ -3014,8 +3020,10 @@ var
   LeftBaseType: TPas2jsBaseType;
   LArray: TPasArrayType;
   ElTypeResolved: TPasResolverResult;
+  LTypeEl, RTypeEl: TPasType;
 begin
   Result:=cIncompatible;
+  //writeln('TPas2JSResolver.CheckAssignCompatibilityCustom ',GetResolverResultDbg(LHS));
   if LHS.BaseType=btCustom then
     begin
     if not (LHS.TypeEl is TPasUnresolvedSymbolRef) then
@@ -3056,20 +3064,36 @@ begin
         end;
       end;
     end
-  else if (LHS.BaseType=btContext) and (LHS.TypeEl.ClassType=TPasArrayType)
-      and (rrfReadable in RHS.Flags) then
+  else if (LHS.BaseType=btContext) then
     begin
-    LArray:=TPasArrayType(LHS.TypeEl);
-    if length(LArray.Ranges)>0 then
-      exit;
-    if (RHS.BaseType<>btContext) or (RHS.TypeEl.ClassType<>TPasArrayType) then
-      exit;
-    ComputeElement(LArray.ElType,ElTypeResolved,[rcType]);
-    if IsJSBaseType(ElTypeResolved,pbtJSValue) then
+    LTypeEl:=ResolveAliasType(LHS.TypeEl);
+    RTypeEl:=ResolveAliasType(RHS.TypeEl);
+    if (LTypeEl.ClassType=TPasArrayType)
+        and (rrfReadable in RHS.Flags) then
       begin
-      // array of jsvalue := array
+      LArray:=TPasArrayType(LTypeEl);
+      if length(LArray.Ranges)>0 then
+        exit;
+      if (RHS.BaseType<>btContext) or (RTypeEl.ClassType<>TPasArrayType) then
+        exit;
+      ComputeElement(LArray.ElType,ElTypeResolved,[rcType]);
+      if IsJSBaseType(ElTypeResolved,pbtJSValue) then
+        begin
+        // array of jsvalue := array
+        Handled:=true;
+        Result:=cJSValueConversion;
+        end;
+      end;
+    end
+  else if LHS.BaseType=btString then
+    begin
+    RTypeEl:=ResolveAliasType(RHS.TypeEl);
+    if (RTypeEl is TPasClassType)
+        and (TPasClassType(RTypeEl).ObjKind=okInterface) then
+      begin
+      // string:=interface
       Handled:=true;
-      Result:=cJSValueConversion;
+      Result:=cLossyConversion;
       end;
     end;
 
@@ -12657,7 +12681,16 @@ begin
       else if RightTypeEl.ClassType=TPasClassType then
         begin
         LeftTypeEl:=aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
-        if LeftTypeEl is TPasClassType then
+        if AssignContext.LeftResolved.BaseType=btString then
+          begin
+          if TPasClassType(RightTypeEl).ObjKind=okInterface then
+            begin
+            // string:=interface  ->  string = interface.$guid
+            AssignContext.RightSide:=CreateDotExpression(El,AssignContext.RightSide,
+              CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El));
+            end;
+          end
+        else if LeftTypeEl is TPasClassType then
           case TPasClassType(LeftTypeEl).ObjKind of
           okClass:
             case TPasClassType(RightTypeEl).ObjKind of
@@ -14920,7 +14953,17 @@ begin
         end
       else if ExprTypeEl.ClassType=TPasClassType then
         begin
-        if ArgTypeEl is TPasClassType then
+        if ArgResolved.BaseType=btString then
+          begin
+          if TPasClassType(ExprTypeEl).ObjKind=okInterface then
+            begin
+            // interface to string  ->  intf.$guid
+            Result:=CreateDotExpression(El,Result,CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El));
+            end
+          else
+            RaiseNotSupported(El,AContext,20180410160008);
+          end
+        else if ArgTypeEl is TPasClassType then
           case TPasClassType(ExprTypeEl).ObjKind of
           okClass:
             case TPasClassType(ArgTypeEl).ObjKind of
