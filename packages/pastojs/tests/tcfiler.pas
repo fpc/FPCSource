@@ -1531,7 +1531,7 @@ procedure TTestPrecompile.Test_Base256VLQ;
   var
     s: String;
     p: PByte;
-    j: NativeInt;
+    j: MaxPrecInt;
   begin
     s:=EncodeVLQ(i);
     p:=PByte(s);
