@@ -78,9 +78,9 @@ interface
 
       tdpmiversioninfo = record
         major, minor: byte;
-	flags: word;
-	cpu: byte;
-	master_pic, slave_pic: byte;
+        flags: word;
+        cpu: byte;
+        master_pic, slave_pic: byte;
       end;
 
     { this works only with real DPMI }
@@ -1116,7 +1116,7 @@ interface
             pushf
             call test_int31
             movb %al,__RESULT
-	    popl %ecx
+            popl %ecx
             popl %ebx
          end;
       end;
@@ -1172,8 +1172,8 @@ interface
            pushl %edx
            pushl %esi
            pushw %es
-	   pushw %ds
-	   popw %es
+           pushw %ds
+           popw %es
            movl buf,%edx
            movl handle,%esi
            movl offset,%ebx
@@ -1183,12 +1183,12 @@ interface
            pushf
            call test_int31
            movb %al,__RESULT
-	   popw %es
+           popw %es
            popl %esi
            popl %edx
            popl %ecx
            popl %ebx
-	 end;
+         end;
       end;
 
     function set_page_attributes(handle, offset, pagecount: dword; buf: pointer): boolean;
@@ -1199,8 +1199,8 @@ interface
            pushl %edx
            pushl %esi
            pushw %es
-	   pushw %ds
-	   popw %es
+           pushw %ds
+           popw %es
            movl buf,%edx
            movl handle,%esi
            movl offset,%ebx
@@ -1210,12 +1210,12 @@ interface
            pushf
            call test_int31
            movb %al,__RESULT
-	   popw %es
+           popw %es
            popl %esi
            popl %edx
            popl %ecx
            popl %ebx
-	 end;
+         end;
       end;
 
     function get_dpmi_version(var version: tdpmiversioninfo): boolean;
@@ -1226,24 +1226,24 @@ interface
            movl $0x0400,%eax
            int $0x31
            pushf
-	   movw %ax,_version
-	   movw %bx,_flags
-	   movw %cx,_cpu
-	   movw %dx,_pic
+           movw %ax,_version
+           movw %bx,_flags
+           movw %cx,_cpu
+           movw %dx,_pic
            call test_int31
            movb %al,__RESULT
-	 end ['EAX','EBX','ECX','EDX'];
+         end ['EAX','EBX','ECX','EDX'];
 
-	 if get_dpmi_version then
-	 begin
-	   FillChar(version, SizeOf(version), 0);
-	   version.major := _version shr 8;
-	   version.minor := _version and $ff;
-	   version.flags := _flags;
-	   version.cpu := _cpu and $ff;
-	   version.master_pic := _pic shr 8;
-	   version.slave_pic := _pic and $ff;
-	 end;
+         if get_dpmi_version then
+         begin
+           FillChar(version, SizeOf(version), 0);
+           version.major := _version shr 8;
+           version.minor := _version and $ff;
+           version.flags := _flags;
+           version.cpu := _cpu and $ff;
+           version.master_pic := _pic shr 8;
+           version.slave_pic := _pic and $ff;
+         end;
       end;
 
 {*****************************************************************************
