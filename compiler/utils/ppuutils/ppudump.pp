@@ -1990,6 +1990,7 @@ const
      (mask:po_rtlproc;         str: 'RTL procedure'),
      (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
      (mask:po_far;             str: 'Far'),
+     (mask:po_hasnearfarcallmodel; str: 'Near/Far explicit'),
      (mask:po_noreturn;        str: 'No return'),
      (mask:po_is_function_ref; str: 'Function reference'),
      (mask:po_is_block;        str: 'C "Block"'),
