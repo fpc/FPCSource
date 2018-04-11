@@ -368,13 +368,17 @@ implementation
   procedure tcpuprocdef.declared_far;
     begin
       include(procoptions,po_far);
+      include(procoptions,po_hasnearfarcallmodel);
     end;
 
 
   procedure tcpuprocdef.declared_near;
     begin
       if not (cs_huge_code in current_settings.moduleswitches) then
-        exclude(procoptions,po_far)
+        begin
+          exclude(procoptions,po_far);
+          include(procoptions,po_hasnearfarcallmodel);
+        end
       else
         inherited declared_near;
     end;
@@ -473,7 +477,10 @@ implementation
   procedure tcpuprocvardef.declared_far;
     begin
       if is_addressonly then
-        include(procoptions,po_far)
+        begin
+          include(procoptions,po_far);
+          include(procoptions,po_hasnearfarcallmodel);
+        end
       else
         inherited;
     end;
@@ -482,7 +489,10 @@ implementation
   procedure tcpuprocvardef.declared_near;
     begin
       if is_addressonly then
-        exclude(procoptions,po_far)
+        begin
+          exclude(procoptions,po_far);
+          include(procoptions,po_hasnearfarcallmodel);
+        end
       else
         inherited;
     end;

@@ -400,6 +400,8 @@ type
     po_auto_raised_visibility,
     { procedure is far (x86 only) }
     po_far,
+    { near/far call model is specified explicitly (x86 only) }
+    po_hasnearfarcallmodel,
     { the procedure never returns, this information is usefull for dfa }
     po_noreturn,
     { procvar is a function reference }
