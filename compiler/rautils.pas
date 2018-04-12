@@ -1509,6 +1509,16 @@ Begin
   else
    begin
      asmsearchsym(base,sym,srsymtable);
+     { allow unitname.identifier }
+     if assigned(sym) and (sym.typ=unitsym) then
+       begin
+         i:=pos('.',s);
+         if i=0 then
+          i:=255;
+         base:=base+'.'+Copy(s,1,i-1);
+         delete(s,1,i);
+         asmsearchsym(base,sym,srsymtable);
+       end;
      st:=nil;
      { we can start with a var,type,typedconst }
      if assigned(sym) then
