@@ -6,14 +6,36 @@ program tcpstr19;
 // this test can be only run with the compiler built right now on the
 // same system
 
+{$ifdef go32v2}
+  {$define USE_INTERNAL_UNICODE}
+{$endif}
+
+{$ifdef USE_INTERNAL_UNICODE}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_CPALL_UNIT}
+{$endif}
+
 {$APPTYPE CONSOLE}
 {$ifdef fpc}
   {$MODE DELPHIUNICODE}
 {$endif}
 
 uses
-  {$ifdef unix} {$ifdef darwin}iosxwstr{$else}cwstring{$endif}, {$endif}
+{$ifdef unix}
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+{$endif}
+{$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+{$endif}
+{$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+{$endif}
+{$ifdef USE_CPALL_UNIT}
+  cpall,
+{$endif}
   SysUtils;
+
 var
   S: AnsiString;
   R: RawByteString;
