@@ -42,7 +42,6 @@ uses
    but simpifies the conditional construction
    for fpwidestring and unicodeducet use }
   strings;
-{$endif}
 {$endif def USE_INTERNAL_UNICODE}
 
 procedure test(value, required: longint);

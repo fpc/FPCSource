@@ -36,7 +36,6 @@ uses
    for fpwidestring and unicodeducet use }
   strings;
 {$endif def USE_INTERNAL_UNICODE}
-{$endif}
 
 procedure TestRawByte(const Source: RawByteString; cp: word; const reason: integer);
 begin

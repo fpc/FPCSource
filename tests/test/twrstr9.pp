@@ -26,7 +26,6 @@ uses
    but simpifies the conditional construction
    for fpwidestring and unicodeducet use }
   strings;
-{$endif}
 
 type
   ts866 = type ansistring( {$ifdef android} 1251 {$else} 866 {$endif} );
