@@ -585,6 +585,7 @@ clean_test:
 clean: clean_sources fpc_clean
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH)
         $(MAKE) -C tstunits clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH)
+	-$(DEL) filelisttest.lst filelisttbs.lst filelisttbf.lst filelistwebtbs.lst filelistwebtbf.lst
 
 distclean: clean fpc_distclean
         $(DELTREE) output
