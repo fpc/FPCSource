@@ -1,19 +1,28 @@
 program TestStrIComp;
 
 {$ifdef go32v2}
-  {$define USE_FPWIDESTRING_UNIT}
-  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_INTERNAL_UNICODE}
 {$endif}
 
-  uses
-{$ifdef USE_FPWIDESTRING_UNIT}
+{$ifdef USE_INTERNAL_UNICODE}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_CPALL_UNIT}
+{$endif}
+uses
+ {$ifndef USE_INTERNAL_UNICODE}
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+ {$endif ndef USE_INTERNAL_UNICODE}
+ {$ifdef USE_FPWIDESTRING_UNIT}
   fpwidestring,
-{$endif}
-{$ifdef USE_UNICODEDUCET_UNIT}
+ {$endif}
+ {$ifdef USE_UNICODEDUCET_UNIT}
   unicodeducet,
-{$endif}
-    {$ifdef unix}{$ifdef darwin}iosxwstr{$else}cwstring{$endif},{$endif}
-    SysUtils;
+ {$endif}
+ {$ifdef USE_CPALL_UNIT}
+  cpall,
+ {$endif}
+  SysUtils;
 
 var l: longint;
 begin

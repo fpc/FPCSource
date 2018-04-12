@@ -2,23 +2,27 @@ program concatenate_resourestrings_delphiunicode;
 
 {$mode delphiunicode}
 {$codepage cp1250}
-{$ifdef go32v2}
+{$ifdef USE_INTERNAL_UNICODE}
   {$define USE_FPWIDESTRING_UNIT}
   {$define USE_UNICODEDUCET_UNIT}
-uses
-{$ifdef USE_FPWIDESTRING_UNIT}
-  fpwidestring,
-{$endif}
-{$ifdef USE_UNICODEDUCET_UNIT}
-  unicodeducet;
+  {$define USE_CPALL_UNIT}
 {$endif}
 
-{$endif}
-
-{$ifdef unix}
+ {$ifndef USE_INTERNAL_UNICODE}
 uses
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
-{$endif}
+ {$else USE_INTERNAL_UNICODE}a
+uses
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+ {$endif}
+ {$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+ {$endif}
+ {$ifdef USE_CPALL_UNIT}
+  cpall;
+ {$endif}
+ {$endif def USE_FPWIDESTRING_UNIT}
 
 resourcestring
   res2 = 'ûluùouËk˝ ' + 'konÌËek';
