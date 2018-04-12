@@ -13,6 +13,9 @@
   {$define USE_CPALL_UNIT}
 {$endif}
 uses
+ {$ifdef unix}
+  cthreads,
+ {$endif}
  {$ifndef USE_INTERNAL_UNICODE}
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
  {$endif ndef USE_INTERNAL_UNICODE}
