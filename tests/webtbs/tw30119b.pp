@@ -7,7 +7,7 @@ program tw30119;
 //  fkdane,
  //  fkrecord;
 //uses
-// cwstring;
+// cwstringdisabled;
 {$H+}
 
 
