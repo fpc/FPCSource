@@ -19,7 +19,7 @@ programs_win64=prepup
 programs_go32v2=prepup
 
 [clean]
-programs=dbdigest dbconfig
+programs=dbdigest dbconfig dosbox/dosbox_wrapper
 
 [prerules]
 
