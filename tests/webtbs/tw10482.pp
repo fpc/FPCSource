@@ -2,9 +2,19 @@ program fpctest4;
 {$ifdef fpc}
 {$mode delphi}
 {$endif fpc}
+{$ifdef go32v2}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+{$endif}
 uses
 {$ifdef unix}
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+{$endif}
+{$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+{$endif}
+{$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
 {$endif}
   Classes,sysutils,variants,typinfo;
 

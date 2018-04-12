@@ -1,9 +1,19 @@
 { %norun }
 
+{$ifdef go32v2}
+  {$define use_fpwidestring_unit}
+  {$define use_unicodeducet_unit}
+{$endif}
 uses
   {$ifdef unix}
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
   {$endif}
+{$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+{$endif}
+{$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+{$endif}
   sysutils;
 
 { just to make sure that no all wide->shortstring compile time conversions }

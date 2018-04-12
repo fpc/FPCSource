@@ -1,5 +1,16 @@
 program tw4080;
 {$i+}
+{$ifdef go32v2}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+uses
+{$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+{$endif}
+{$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet;
+{$endif}
+{$endif}
 
 {$ifdef unix}
 uses
