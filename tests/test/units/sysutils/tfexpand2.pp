@@ -22,15 +22,34 @@ program TFExpand;
 {$DEFINE DEBUG}
 (* Defining DEBUG causes all the source and target strings *)
 (* to be written to the console to make debugging easier.  *)
+{$ifdef go32v2}
+  {$define USE_INTERNAL_UNICODE}
+{$endif}
 
+{$ifdef USE_INTERNAL_UNICODE}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_CPALL_UNIT}
+{$endif}
 uses
 {$ifdef FPC}
  PopupErr,
 {$endif FPC}
-{$ifdef unix}
- {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
-{$endif}
- SysUtils;
+{$ifndef USE_INTERNAL_UNICODE}
+ {$ifdef unix}
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+ {$endif unix}
+{$endif not USE_INTERNAL_UNICODE}
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+ {$endif}
+ {$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+ {$endif}
+ {$ifdef USE_CPALL_UNIT}
+  cpall,
+ {$endif}
+  SysUtils;
 
 {$IFDEF LINUX}
  {$IFNDEF UNIX}

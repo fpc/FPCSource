@@ -13,10 +13,12 @@ program tcpstr13;
 {$endif}
 {$mode delphi}
 
+{$ifndef USE_INTERNAL_UNICODE}
 {$ifdef unix}
 uses
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
-{$else}
+{$endif unix}
+{$else def USE_INTERNAL_UNICODE}
 uses
  {$ifdef USE_FPWIDESTRING_UNIT}
   fpwidestring,
@@ -31,7 +33,7 @@ uses
    but simpifies the conditional construction
    for fpwidestring and unicodeducet use }
   strings;
-{$endif}
+{$endif def USE_INTERNAL_UNICODE}
 
 
 type
