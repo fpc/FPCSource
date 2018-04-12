@@ -17,6 +17,7 @@
     {$else}
     cwstring
     {$endif};
+  {$endif unix}
  {$else def USE_INTERNAL_UNICODE}
 uses
  {$ifdef USE_FPWIDESTRING_UNIT}

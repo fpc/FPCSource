@@ -11,7 +11,7 @@ program concatenate_resourestrings_delphiunicode;
  {$ifndef USE_INTERNAL_UNICODE}
 uses
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
- {$else USE_INTERNAL_UNICODE}a
+ {$else USE_INTERNAL_UNICODE}
 uses
  {$ifdef USE_FPWIDESTRING_UNIT}
   fpwidestring,
