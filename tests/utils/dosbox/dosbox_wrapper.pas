@@ -100,10 +100,15 @@ var
   Buf: array [0..4095] of Byte;
   BytesRead: Integer;
 begin
-  if verbose then
-    Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
   if not AnsiEndsText('.exe', ASrcFileName) and AnsiEndsText('.EXE',ADestFileName) then
     ASrcFileName := ASrcFileName + '.exe';
+  if not FileExists(ASrcFileName) then
+    begin
+      ASrcFileName:=ASrcFileName+'.exe';
+      ADestFileName:=ADestFileName+'.exe';
+    end;
+  if verbose then
+    Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
   OldFileMode := FileMode;
   try
     AssignFile(SrcF, ASrcFileName);
