@@ -938,8 +938,8 @@ begin
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
   path:=pchar(r);
 {$endif}
-  dosregs.dx:=Ofs(path);
-  dosregs.ds:=Seg(path);
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
   if LFNSupport then
    begin
      dosregs.ax:=$7143;
