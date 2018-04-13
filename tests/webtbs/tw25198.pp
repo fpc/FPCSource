@@ -9,8 +9,10 @@ program concatenate_resourestrings_delphiunicode;
 {$endif}
 
  {$ifndef USE_INTERNAL_UNICODE}
+  {$ifdef unix}
 uses
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
+  {$endif unix}
  {$else USE_INTERNAL_UNICODE}
 uses
  {$ifdef USE_FPWIDESTRING_UNIT}

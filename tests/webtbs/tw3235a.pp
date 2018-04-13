@@ -11,7 +11,9 @@ program TestStrIComp;
 {$endif}
 uses
  {$ifndef USE_INTERNAL_UNICODE}
-  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+  {$ifdef unix}
+   {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+  {$endif unix}
  {$endif ndef USE_INTERNAL_UNICODE}
  {$ifdef USE_FPWIDESTRING_UNIT}
   fpwidestring,
