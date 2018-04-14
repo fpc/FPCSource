@@ -167,11 +167,14 @@ begin
 end;
 
 function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word;Decode : Boolean = True):  TURI;
+
 var
   s, Authority: String;
   i,j: Integer;
   PortValid: Boolean;
+  
 begin
+  Result:=Default(TURI);
   Result.Protocol := LowerCase(DefaultProtocol);
   Result.Port := DefaultPort;
 
