@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %TARGET=win32 }
 {$mode delphi}
 program controlc;
 
