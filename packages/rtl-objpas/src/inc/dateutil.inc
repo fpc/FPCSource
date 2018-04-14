@@ -364,6 +364,10 @@ Function CompareTime(const A, B: TDateTime): TValueRelationship;
 Function SameDateTime(const A, B: TDateTime): Boolean;
 Function SameDate(const A, B: TDateTime): Boolean;
 Function SameTime(const A, B: TDateTime): Boolean;
+function DateTimeInRange(ADateTime: TDateTime; AStartDateTime, AEndDateTime: TDateTime; aInclusive: Boolean = True): Boolean;
+function TimeInRange(ATime: TTime; AStartTime, AEndTime: TTime; AInclusive: Boolean = True): Boolean;
+function DateInRange(ADate: TDate; AStartDate, AEndDate: TDate; AInclusive: Boolean = True): Boolean;
+
 
 { For a given date these Functions tell you the which day of the week of the
   month (or year).  If its a Thursday, they will tell you if its the first,
@@ -1257,6 +1261,50 @@ Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSecond
 begin
   Result:=MilliSecondsBetween(ANow,AThen)<=AMilliSeconds;
 end;
+
+
+ 
+function DateTimeInRange(ADateTime: TDateTime; AStartDateTime, AEndDateTime: TDateTime; aInclusive: Boolean = True): Boolean;
+
+begin
+  if aInclusive then
+    Result:=(AStartDateTime<=ADateTime) and (ADateTime<=AEndDateTime)
+  else
+    Result:=(AStartDateTime<ADateTime) and (ADateTime<AEndDateTime);
+end;
+
+
+function TimeInRange(ATime: TTime; AStartTime, AEndTime: TTime; AInclusive: Boolean = True): Boolean;
+
+var
+ LTime, LStartTime, LEndTime: TTime;
+ 
+begin
+  LTime:=TimeOf(ATime);
+  LStartTime:=TimeOf(AStartTime);
+  LEndTime:=TimeOf(AEndTime);
+  if LEndTime<LStartTime then
+    if AInclusive then
+      Result:=(LStartTime<=LTime) or (LTime<=LEndTime)
+    else
+      Result:=(LStartTime<LTime) or (LTime<LEndTime)
+  else
+    if AInclusive then
+      Result:=(LStartTime<=LTime) and (LTime<=LEndTime)
+    else
+      Result:=(LStartTime<LTime) and (LTime<LEndTime);
+end;
+
+
+function DateInRange(ADate: TDate; AStartDate, AEndDate: TDate; AInclusive: Boolean = True): Boolean;
+
+begin
+  if AInclusive then
+    Result:=(DateOf(AStartDate)<=DateOf(ADate)) and (DateOf(ADate)<=DateOf(AEndDate))
+  else
+    Result:=(DateOf(AStartDate)<DateOf(ADate)) and (DateOf(ADate)<DateOf(AEndDate));
+end;
+
 
 
 { ---------------------------------------------------------------------
