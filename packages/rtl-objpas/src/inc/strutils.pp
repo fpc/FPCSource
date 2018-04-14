@@ -33,8 +33,8 @@ Function AnsiEndsText(const ASubText, AText: string): Boolean;
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
 Function AnsiMatchText(const AText: string; const AValues: array of string): Boolean;inline;
 Function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
-Function StartsText(const ASubText, AText: string): Boolean;
-Function EndsText(const ASubText, AText: string): Boolean;
+Function StartsText(const ASubText, AText: string): Boolean; inline;
+Function EndsText(const ASubText, AText: string): Boolean; inline;
 
 { ---------------------------------------------------------------------
     Case sensitive search/replace
@@ -906,39 +906,25 @@ end;
 
 function AnsiStartsText(const ASubText, AText: string): Boolean;
 begin
-  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
-    Result := AnsiStrLIComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
-  else
-    Result := False;
+  Result := (ASubText = '') or AnsiSameText(LeftStr(AText, Length(ASubText)), ASubText);
 end;
 
 
 function AnsiEndsText(const ASubText, AText: string): Boolean;
 begin
-  if Length(AText) >= Length(ASubText) then
-    Result := AnsiStrLIComp(PChar(ASubText),
-      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
-  else
-    Result := False;
+  Result := (ASubText = '') or AnsiSameText(RightStr(AText, Length(ASubText)), ASubText);
 end;
 
 
-function StartsText(const ASubText, AText: string): Boolean;
+function StartsText(const ASubText, AText: string): Boolean; inline;
 begin
-  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
-    Result := StrLIComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
-  else
-    Result := False;
+  Result := AnsiStartsText(ASubText, AText);
 end;
 
 
 function EndsText(const ASubText, AText: string): Boolean;
 begin
-  if Length(AText) >= Length(ASubText) then
-    Result := StrLIComp(PChar(ASubText),
-      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
-  else
-    Result := False;
+  Result := AnsiEndsText(ASubText, AText);
 end;
 
 
@@ -955,17 +941,11 @@ end;
 
 
 function AnsiIndexText(const AText: string; const AValues: array of string): Integer;
-
-var
-  i : Integer;
-
 begin
-  Result:=-1;
-  if (high(AValues)=-1) or (High(AValues)>MaxInt) Then
-    Exit;
-  for i:=low(AValues) to High(Avalues) do
-     if CompareText(avalues[i],atext)=0 Then
-       exit(i);  // make sure it is the first val.
+  for Result := Low(AValues) to High(AValues) do
+    if AnsiSameText(AValues[Result], AText) then
+      Exit;
+  Result := -1;
 end;
 
 
@@ -981,20 +961,13 @@ end;
 
 function AnsiStartsStr(const ASubText, AText: string): Boolean;
 begin
-  if (Length(AText) >= Length(ASubText)) and (ASubText <> '') then
-    Result := AnsiStrLComp(PChar(ASubText), PChar(AText), Length(ASubText)) = 0
-  else
-    Result := False;
+  Result := (ASubText = '') or (LeftStr(AText, Length(ASubText)) = ASubText);
 end;
 
 
 function AnsiEndsStr(const ASubText, AText: string): Boolean;
 begin
-  if Length(AText) >= Length(ASubText) then
-    Result := AnsiStrLComp(PChar(ASubText),
-      PChar(AText) + Length(AText) - Length(ASubText), Length(ASubText)) = 0
-  else
-    Result := False;
+  Result := (ASubText = '') or (RightStr(AText, Length(ASubText)) = AText);
 end;
 
 
@@ -1094,18 +1067,25 @@ end;
 
 function DupeString(const AText: string; ACount: Integer): string;
 
-var i,l : SizeInt;
-
+var
+  Len: SizeInt;
+  Source, Target: PByte;
+  
 begin
- result:='';
- if aCount>=0 then
-   begin
-     l:=length(atext);
-     SetLength(result,aCount*l);
-     for i:=0 to ACount-1 do
-       move(atext[1],Result[l*i+1],l);
-   end;
-end;
+  Len := Length(AText);
+  SetLength(Result, ACount * Len);
+  // Use PByte to skip implicit UniqueString, because SetLength always unique
+  Target := PByte(Result);
+  if Target = nil then // ACount = 0 or AText = ''
+    Exit;
+  // Now ACount > 0 and Len > 0
+  Source := PByte(AText);
+  repeat
+    Move(Source[0], Target[0], Len * SizeOf(Char));
+    Inc(Target, Len * SizeOf(Char));
+    Dec(ACount);
+  until ACount = 0;
+end;   
 
 function ReverseString(const AText: string): string;
 
