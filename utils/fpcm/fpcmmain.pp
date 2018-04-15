@@ -90,7 +90,7 @@ interface
       );
 
       ppcSuffix : array[TCpu] of string=(
-        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','aarch64','wasm','sparc64'
+        '386','m68k','ppc','sparc','x64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'jvm','8086','aarch64','wasm','sparc64'
       );
 
       OSStr : array[TOS] of string=(
