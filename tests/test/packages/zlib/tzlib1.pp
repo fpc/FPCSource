@@ -1,4 +1,4 @@
-{ %skiptarget=msdos go32v2 }
+{ %skiptarget=msdos,go32v2 }
 { %NOTE=This test requires an installed zlib1 shared library }
 { simple compilation test }
 uses
