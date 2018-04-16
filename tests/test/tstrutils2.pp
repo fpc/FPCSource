@@ -129,8 +129,8 @@ function TestOK: Boolean;
 begin
   TestOK :=
     // AnsiStartsText
-{1}    TestValue(not AnsiStartsText(a(Str_Empty), a(Str_Empty)),'not AnsiStartsText', Str_Empty, Str_Empty)
-{2}    and TestValue(not AnsiStartsText(a(Str_Empty), a(Str_ab)),'not AnsiStartsText', Str_Empty, Str_ab)
+{1}    TestValue( AnsiStartsText(a(Str_Empty), a(Str_Empty)),'not AnsiStartsText', Str_Empty, Str_Empty)
+{2}    and TestValue( AnsiStartsText(a(Str_Empty), a(Str_ab)),'not AnsiStartsText', Str_Empty, Str_ab)
 {3}    and TestValue(not AnsiStartsText(a(Str_ab), a(Str_Empty)),'not AnsiStartsText', Str_ab, Str_Empty)
 {4}    and TestValue(AnsiStartsText(a(Str_abc), a(Str_abc)),'AnsiStartsText',Str_abc, Str_abc)
 {5}    and TestValue(not AnsiStartsText(a(Str_abc), a(Str_def)),'not AnsiStartsText', Str_abc, Str_def)

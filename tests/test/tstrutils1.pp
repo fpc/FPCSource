@@ -48,29 +48,29 @@ function TestOK: Boolean;
 begin
   TestOK :=
     // AnsiStartsStr
-    not AnsiStartsStr('', '')
-    and not AnsiStartsStr('', 'ab')
-    and not AnsiStartsStr('ab', '')
-    and AnsiStartsStr('abc', 'abc')
-    and not AnsiStartsStr('abc', 'def')
-    and AnsiStartsStr('abc', 'abcedfg')
-    and not AnsiStartsStr('abc', 'ab')
-    and AnsiStartsStr('áéíç', 'áéíç')
-    and AnsiStartsStr('áé', 'áéíç')
-    and not AnsiStartsStr('áéíç', 'áé')
-    and not AnsiStartsStr('áéíç', 'áéio')
+    TestValue( AnsiStartsStr('', ''))
+    and TestValue(AnsiStartsStr('', 'ab'))
+    and TestValue(not AnsiStartsStr('ab', ''))
+    and TestValue(AnsiStartsStr('abc', 'abc'))
+    and TestValue(not AnsiStartsStr('abc', 'def'))
+    and TestValue(AnsiStartsStr('abc', 'abcedfg'))
+    and TestValue(not AnsiStartsStr('abc', 'ab'))
+    and TestValue(AnsiStartsStr('áéíç', 'áéíç'))
+    and TestValue(AnsiStartsStr('áé', 'áéíç'))
+    and TestValue(not AnsiStartsStr('áéíç', 'áé'))
+    and TestValue(not AnsiStartsStr('áéíç', 'áéio'))
     // AnsiEndsStr
-    and AnsiEndsStr('', '')
-    and AnsiEndsStr('', 'ab')
-    and not AnsiEndsStr('ab', '')
-    and AnsiEndsStr('abc', 'abc')
-    and not AnsiEndsStr('abc', 'def')
-    and AnsiEndsStr('dfg', 'abcedfg')
-    and not AnsiEndsStr('dfg', 'df')
-    and AnsiEndsStr('áéíç', 'áéíç')
-    and AnsiEndsStr('áé', 'íçáé')
-    and not AnsiEndsStr('áéíç', 'áé')
-    and not AnsiEndsStr('íçáé', 'ioáé');
+    and TestValue(AnsiEndsStr('', ''))
+    and TestValue(AnsiEndsStr('', 'ab'))
+    and TestValue(not AnsiEndsStr('ab', ''))
+    and TestValue(AnsiEndsStr('abc', 'abc'))
+    and TestValue(not AnsiEndsStr('abc', 'def'))
+    and TestValue(AnsiEndsStr('dfg', 'abcedfg'))
+    and TestValue(not AnsiEndsStr('dfg', 'df'))
+    and TestValue(AnsiEndsStr('áéíç', 'áéíç'))
+    and TestValue(AnsiEndsStr('áé', 'íçáé'))
+    and TestValue(not AnsiEndsStr('áéíç', 'áé'))
+    and TestValue(not AnsiEndsStr('íçáé', 'ioáé'));
 end;
 
 begin
