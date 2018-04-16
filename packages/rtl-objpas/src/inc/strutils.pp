@@ -967,7 +967,7 @@ end;
 
 function AnsiEndsStr(const ASubText, AText: string): Boolean;
 begin
-  Result := (ASubText = '') or (RightStr(AText, Length(ASubText)) = AText);
+  Result := (ASubText = '') or (RightStr(AText, Length(ASubText)) = ASubText);
 end;
 
 
