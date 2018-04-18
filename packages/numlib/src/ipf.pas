@@ -27,6 +27,7 @@
 {
  }
 unit ipf;
+{$modeswitch exceptions}
 {$I direct.inc}
 interface
 
