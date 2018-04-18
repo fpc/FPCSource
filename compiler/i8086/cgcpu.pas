@@ -1395,6 +1395,19 @@ unit cgcpu;
                 push_const(list,pushsize,a);
               end;
           end
+        else if (tcgsize2size[cgpara.Size]>2) and
+                (cgpara.location^.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+                (cgpara.location^.Next<>nil) then
+          begin
+            if (tcgsize2size[cgpara.Size]<>4) or
+               (tcgsize2size[cgpara.location^.Size]<>2) or
+                not (cgpara.location^.Next^.Loc in [LOC_REGISTER,LOC_CREGISTER]) or
+               (tcgsize2size[cgpara.location^.Next^.Size]<>2) or
+               (cgpara.location^.Next^.Next<>nil) then
+              internalerror(2018041801);
+            a_load_const_reg(list,cgpara.location^.size,a and $FFFF,cgpara.location^.register);
+            a_load_const_reg(list,cgpara.location^.Next^.size,a shr 16,cgpara.location^.Next^.register);
+          end
         else
           inherited a_load_const_cgpara(list,size,a,cgpara);
       end;
