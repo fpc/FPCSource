@@ -591,19 +591,41 @@ unit cpupara;
                     hp.paraloc[side].Alignment:=paraalign;
                     hp.paraloc[side].def:=paradef;
                     {
-                      EAX
-                      EDX
-                      ECX
+                      AX
+                      DX
+                      BX
                       Stack
                       Stack
 
-                      64bit values,floats,arrays and records are always
-                      on the stack.
+                      32/64bit values,far pointers,floats,arrays and records are
+                      always on the stack. The only exception is that Longints
+                      (but not far pointers) can be passed in DX:AX if these
+                      registers are unallocated.
 
                       In case of po_delphi_nested_cc, the parent frame pointer
                       is also always passed on the stack.
                     }
-                    if (parareg<=high(parasupregs)) and
+                    if (parareg=low(parasupregs)) and
+                       (paralen=4) and
+                       (hp.vardef.typ=orddef) then
+                      begin
+                        if pass=1 then
+                          begin
+                            paraloc:=hp.paraloc[side].add_location;
+                            paraloc^.size:=OS_16;
+                            paraloc^.def:=paradef;
+                            paraloc^.loc:=LOC_REGISTER;
+                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],R_SUBW);
+                            inc(parareg);
+                            paraloc:=hp.paraloc[side].add_location;
+                            paraloc^.size:=OS_16;
+                            paraloc^.def:=paradef;
+                            paraloc^.loc:=LOC_REGISTER;
+                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],R_SUBW);
+                            inc(parareg);
+                          end;
+                      end
+                    else if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
                        (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
                         pushaddr or
