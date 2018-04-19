@@ -135,6 +135,7 @@ Works:
   - init with expression
   - length(1-dim array)
   - low(1-dim array), high(1-dim array)
+  - "=" operator for records with static array fields
 - open arrays
   - as dynamic arrays
 - enums
@@ -204,6 +205,9 @@ Works:
   - class instances cannot access external class members (e.g. static class functions)
   - external class 'Array' bracket operator [integer] type jsvalue
   - external class 'Object' bracket operator [string] type jsvalue
+  - typecast class type to JS Object, e.g. TJSObject(TObject)
+  - typecast record type to JS Object, e.g. TJSObject(TPoint)
+  - typecast interface type to JS Object, e.g. TJSObject(IUnknown)
 - jsvalue
   - init as undefined
   - assign to jsvalue := integer, string, boolean, double, char
@@ -282,6 +286,13 @@ Works:
     class field, class function
   - default property
   - Assigned(intfvar)
+  - TGUID record
+    - GuidVar:='{guid}', StringVar:=GuidVar, GuidVar:=IntfTypeOrVar,
+    - GuidVar=IntfTypeOrVar, GuidVar=s
+    - pass IntfTypeOrVar to GuidVar parameter
+  - TGUIDString
+    - GuidString:=IntfTypeOrVar, GuidString=IntfTypeOrVar
+    - pass IntfTypeOrVar to GuidString parameter
   - CORBA: IntfVar:=nil, IntfVar:=IntfVar, IntfVar:=ObjVar;
   - CORBA: IntfVar=IntfVar2, IntfVar<>IntfVar2,
   - CORBA: IntfVar is IBird, IntfVar is TBird, ObjVar is IBird
@@ -303,10 +314,11 @@ Works:
   - COM: for interface in ... do
 
 ToDos:
-- interfaces:
-  - GUID
-  - for i in jsvalue do
-  - for i in tjsobject do
+- replace let in rtl.js
+- option to disable use strict
+- for i in jsvalue do
+- for i in tjsobject do
+- 1 as TEnum, ERangeError
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -461,6 +473,7 @@ type
   TPas2JSBuiltInName = (
     pbifnArray_Concat,
     pbifnArray_Copy,
+    pbifnArray_Equal,
     pbifnArray_Length,
     pbifnArray_SetLength,
     pbifnArray_Static_Clone,
@@ -480,14 +493,18 @@ type
     pbifnIntfAddMap,
     pbifnIntfAsClass,
     pbifnIntfCreate,
+    pbifnIntfCreateTGUID,
     pbifnIntfExprRefsAdd,
     pbifnIntfExprRefsCreate,
     pbifnIntfExprRefsFree,
+    pbifnIntfGetGUIDR,
     pbifnIntfGetIntfT,
+    pbifnIntfGuidRToStr,
     pbifnIntfIsClass,
     pbifnIntfToClass,
     pbifnIntfSetIntfL,
     pbifnIntfSetIntfP,
+    pbifnIntfStrToGUIDR,
     pbifnIntfQueryIntfIsT,
     pbifnIntfQueryIntfT,
     pbifnIs,
@@ -594,6 +611,7 @@ const
   Pas2JSBuiltInNames: array[TPas2JSBuiltInName] of string = (
     'arrayConcat', // rtl.arrayConcat
     'arrayCopy', // rtl.arrayCopy
+    'arrayEq', // rtl.arrayEq
     'length', // rtl.length
     'arraySetLength', // rtl.arraySetLength
     '$clone',
@@ -613,14 +631,18 @@ const
     'addIntf', // rtl.addIntf
     'intfAsClass', // rtl.intfAsClass
     'createInterface', // rtl.createInterface
+    'createTGUID', // rtl.createTGUID
     'ref', // $ir.ref
     'createIntfRefs', // rtl.createIntfRefs
     'free', // $ir.free
+    'getIntfGUIDR', // rtl.getIntfGUIDR
     'getIntfT',   // rtl.getIntfT
+    'guidrToStr', // rtl.guidrToStr
     'intfIsClass', // rtl.intfIsClass
     'intfToClass', // rtl.intfToClass
     'setIntfL', // rtl.setIntfL
     'setIntfP', // rtl.setIntfP
+    'strToGUIDR', // rtl.strToGUIDR
     'queryIntfIsT', // rtl.queryIntfIsT
     'queryIntfT', // rtl.queryIntfT
     'is', // rtl.is
@@ -1092,6 +1114,9 @@ type
     function CheckEqualCompatibilityCustomType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
+    procedure ComputeUnaryNot(El: TUnaryExpr;
+      var ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags);
+      override;
     procedure ComputeBinaryExprRes(Bin: TBinaryExpr; out
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       var LeftResolved, RightResolved: TPasResolverResult); override;
@@ -1120,6 +1145,8 @@ type
       const LeftResolved: TPasResolverResult; RValue: TResEvalValue;
       RHS: TPasExpr); override;
     function HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
+    function IsTGUID(TypeEl: TPasRecordType): boolean; override;
+    function GetAssignGUIDString(TypeEl: TPasRecordType; Expr: TPasExpr; out GUID: TGUID): boolean;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -1430,6 +1457,7 @@ type
       El: TPasElement): TJSVariableStatement; virtual;
     Function CreateVarDecl(const aName: String; Init: TJSElement; El: TPasElement): TJSVarDeclaration; virtual;
     Function CreateLiteralNumber(El: TPasElement; const n: TJSNumber): TJSLiteral; virtual;
+    Function CreateLiteralHexNumber(El: TPasElement; const n: int64; Digits: byte): TJSLiteral; virtual;
     Function CreateLiteralString(El: TPasElement; const s: string): TJSLiteral; virtual;
     Function CreateLiteralJSString(El: TPasElement; const s: TJSString): TJSLiteral; virtual;
     Function CreateLiteralBoolean(El: TPasElement; b: boolean): TJSLiteral; virtual;
@@ -1438,7 +1466,7 @@ type
     Function CreateSetLiteralElement(Expr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Procedure ConvertCharLiteralToInt(Lit: TJSLiteral; ErrorEl: TPasElement; AContext: TConvertContext); virtual;
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
-    Function CreateRecordInit(aRecord: TPasRecordType; Expr: TPasElement;
+    Function CreateRecordInit(aRecord: TPasRecordType; Expr: TPasExpr;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasExpr;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
@@ -1451,7 +1479,7 @@ type
     Function CreateImplementationSection(El: TPasModule; AContext: TConvertContext): TJSFunctionDeclarationStatement;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext);
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
-      CheckIntfRef: boolean = false): TJSElement; virtual;
+      CheckRightIntfRef: boolean = false): TJSElement; virtual;
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
     Function CreateCloneRecord(El: TPasElement; RecTypeEl: TPasRecordType;
       RecordExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
@@ -1475,6 +1503,8 @@ type
       var First, Last: TJSStatementList); virtual;
     Procedure AddIntfDelegations(ClassEl: TPasElement; Prop: TPasProperty;
       FinishedGUIDs: TStringList; ObjLit: TJSObjectLiteral; aContext: TFunctionContext);
+    Function CreateGUIDObjLit(aTGUIDRecord: TPasRecordType; const GUID: TGUID;
+      PosEl: TPasElement; AContext: TConvertContext): TJSObjectLiteral;
     Function CreateGetEnumeratorLoop(El: TPasImplForLoop;
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
@@ -2482,6 +2512,8 @@ var
   AbsExpr: TPasExpr;
   ResolvedAbsol: TPasResolverResult;
   AbsIdent: TPasElement;
+  TypeEl: TPasType;
+  GUID: TGUID;
 begin
   inherited FinishVariable(El);
 
@@ -2588,6 +2620,18 @@ begin
     if (El.Parent is TPasSection)
         or ((El.ClassType=TPasConst) and (El.Parent is TPasProcedure)) then
       AddExternalPath(ExtName,El.ExportName);
+    end;
+
+  if (El.VarType<>nil) and (El.Expr<>nil) then
+    begin
+    TypeEl:=ResolveAliasType(El.VarType);
+    if (TypeEl.ClassType=TPasRecordType) then
+      begin
+      if GetAssignGUIDString(TPasRecordType(TypeEl),El.Expr,GUID) then
+        // e.g. IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'
+      else
+        ;
+      end;
     end;
 end;
 
@@ -3084,17 +3128,6 @@ begin
         Result:=cJSValueConversion;
         end;
       end;
-    end
-  else if LHS.BaseType=btString then
-    begin
-    RTypeEl:=ResolveAliasType(RHS.TypeEl);
-    if (RTypeEl is TPasClassType)
-        and (TPasClassType(RTypeEl).ObjKind=okInterface) then
-      begin
-      // string:=interface
-      Handled:=true;
-      Result:=cLossyConversion;
-      end;
     end;
 
   if RaiseOnIncompatible then ;
@@ -3169,6 +3202,20 @@ begin
     exit(CheckEqualCompatibilityCustomType(RHS,LHS,ErrorEl,RaiseOnIncompatible))
   else
     RaiseInternalError(20170330005725);
+end;
+
+procedure TPas2JSResolver.ComputeUnaryNot(El: TUnaryExpr;
+  var ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags);
+begin
+  if ResolvedEl.BaseType=btCustom then
+    begin
+    if IsJSBaseType(ResolvedEl,pbtJSValue,true) then
+      begin
+      SetResolverValueExpr(ResolvedEl,btBoolean,BaseTypes[btBoolean],El,[rrfReadable]);
+      exit;
+      end;
+    end;
+  inherited ComputeUnaryNot(El, ResolvedEl, Flags);
 end;
 
 procedure TPas2JSResolver.ComputeBinaryExprRes(Bin: TBinaryExpr; out
@@ -3372,6 +3419,10 @@ var
   bt: TPas2jsBaseType;
 begin
   inherited;
+  // prefer overloads of GUID with string
+  cInterfaceToTGUID:=cTypeConversion+2;
+  cInterfaceToString:=cTypeConversion+1;
+
   ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   FExternalNames:=TFPHashList.Create;
   StoreSrcColumns:=true;
@@ -3446,49 +3497,47 @@ var
   JSBaseType: TPas2jsBaseType;
   C: TClass;
   ToClass: TPasClassType;
+  ToTypeEl, FromTypeEl: TPasType;
 begin
   Result:=cIncompatible;
   {$IFDEF VerbosePas2JS}
-  writeln('TPas2JSResolver.CheckTypeCastCustomBaseType To=',GetResolverResultDbg(ToResolved),' From=',GetResolverResultDbg(FromResolved));
+  writeln('TPas2JSResolver.CheckTypeCastRes To=',GetResolverResultDbg(ToResolved),' From=',GetResolverResultDbg(FromResolved));
   {$ENDIF}
   if rrfReadable in FromResolved.Flags then
     begin
     if (ToResolved.BaseType=btCustom) then
       begin
-      if not (ToResolved.TypeEl is TPasUnresolvedSymbolRef) then
+      ToTypeEl:=ResolveAliasType(ToResolved.TypeEl);
+      if not (ToTypeEl is TPasUnresolvedSymbolRef) then
         RaiseInternalError(20170325142826);
-      if (ToResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+      if (ToTypeEl.CustomData is TResElDataPas2JSBaseType) then
         begin
         // type cast to pas2js type, e.g. JSValue(V)
-        JSBaseType:=TResElDataPas2JSBaseType(ToResolved.TypeEl.CustomData).JSBaseType;
+        JSBaseType:=TResElDataPas2JSBaseType(ToTypeEl.CustomData).JSBaseType;
         if JSBaseType=pbtJSValue then
           begin
-          if rrfReadable in FromResolved.Flags then
+          if (FromResolved.BaseType in btAllJSValueSrcTypes) then
+            Result:=cExact+1 // type cast to JSValue
+          else if FromResolved.BaseType=btCustom then
             begin
-            if (FromResolved.BaseType in btAllJSValueSrcTypes) then
-              Result:=cExact+1 // type cast to JSValue
-            else if FromResolved.BaseType=btCustom then
-              begin
-              if IsJSBaseType(FromResolved,pbtJSValue) then
-                Result:=cExact;
-              end
-            else if FromResolved.BaseType=btContext then
-              Result:=cExact+1;
-            end;
+            if IsJSBaseType(FromResolved,pbtJSValue) then
+              Result:=cExact;
+            end
+          else if FromResolved.BaseType=btContext then
+            Result:=cExact+1;
           end;
         exit;
         end;
       end
     else if FromResolved.BaseType=btCustom then
       begin
-      if not (FromResolved.TypeEl is TPasUnresolvedSymbolRef) then
+      FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+      if not (FromTypeEl is TPasUnresolvedSymbolRef) then
         RaiseInternalError(20170325143016);
-      if (FromResolved.TypeEl.CustomData is TResElDataPas2JSBaseType) then
+      if (FromTypeEl.CustomData is TResElDataPas2JSBaseType) then
         begin
         // type cast a pas2js value, e.g. T(jsvalue)
-        if not (rrfReadable in FromResolved.Flags) then
-          exit;
-        JSBaseType:=TResElDataPas2JSBaseType(FromResolved.TypeEl.CustomData).JSBaseType;
+        JSBaseType:=TResElDataPas2JSBaseType(FromTypeEl.CustomData).JSBaseType;
         if JSBaseType=pbtJSValue then
           begin
           if (ToResolved.BaseType in btAllJSValueTypeCastTo) then
@@ -3504,30 +3553,76 @@ begin
       end
     else if ToResolved.BaseType=btContext then
       begin
-      C:=ToResolved.TypeEl.ClassType;
+      ToTypeEl:=ResolveAliasType(ToResolved.TypeEl);
+      C:=ToTypeEl.ClassType;
       if C=TPasClassType then
         begin
-        ToClass:=TPasClassType(ToResolved.TypeEl);
+        ToClass:=TPasClassType(ToTypeEl);
         if ToClass.IsExternal then
           begin
-          if IsExternalClassName(ToClass,'String')
-              and (FromResolved.BaseType in btAllJSStringAndChars) then
-            exit(cExact);
-          if IsExternalClassName(ToClass,'Array')
-              and (FromResolved.BaseType=btContext) then
-            exit(cExact);
+          if (FromResolved.BaseType in btAllJSStringAndChars) then
+            begin
+            if IsExternalClassName(ToClass,'String') then
+              // TJSString(aString)
+              exit(cExact);
+            end
+          else if (FromResolved.BaseType=btContext) then
+            begin
+            FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+            if FromTypeEl.ClassType=TPasArrayType then
+              begin
+              if IsExternalClassName(ToClass,'Array') then
+                // TJSArray(AnArray)
+                exit(cExact);
+              end
+            else if FromTypeEl.ClassType=TPasRecordType then
+              begin
+              if IsExternalClassName(ToClass,'Object') then
+                // TJSObject(aRecord)
+                exit(cExact);
+              end
+            else if FromTypeEl.ClassType=TPasClassOfType then
+              begin
+              if IsExternalClassName(ToClass,'Object') then
+                // TJSObject(ImgClass)
+                exit(cExact);
+              end;
+            end;
           end;
         end
       else if C=TPasArrayType then
         begin
-        if (FromResolved.BaseType=btContext)
-            and (FromResolved.TypeEl.ClassType=TPasClassType)
-            and TPasClassType(FromResolved.TypeEl).IsExternal
-            and IsExternalClassName(TPasClassType(FromResolved.TypeEl),'Array') then
+        if (FromResolved.BaseType=btContext) then
           begin
+          FromTypeEl:=ResolveAliasType(FromResolved.TypeEl);
+          if (FromTypeEl.ClassType=TPasClassType)
+              and TPasClassType(FromTypeEl).IsExternal
+              and IsExternalClassName(TPasClassType(FromTypeEl),'Array') then
+            begin
             // type cast external Array to an array
             exit(cExact+1);
+            end;
           end;
+        end;
+      end;
+    end
+  else if FromResolved.IdentEl is TPasType then
+    begin
+    // FromResolved is a type
+    FromTypeEl:=ResolveAliasType(TPasType(FromResolved.IdentEl));
+    if ToResolved.BaseType=btContext then
+      begin
+      ToTypeEl:=ResolveAliasType(ToResolved.TypeEl);
+      if (ToTypeEl.ClassType=TPasClassType)
+          and TPasClassType(ToTypeEl).IsExternal
+          and (TPasClassType(ToTypeEl).ExternalName='Object') // do not allow typecast to a descendant!
+          then
+        begin
+        // type cast to JS Object, not a descendant
+        if (FromTypeEl.ClassType=TPasClassType)
+            or (FromTypeEl.ClassType=TPasRecordType) then
+          // e.g. TJSObject(TObject)
+          exit(cTypeConversion+1);
         end;
       end;
     end;
@@ -3757,6 +3852,51 @@ begin
     Result:=true
   else
     Result:=false;
+end;
+
+function TPas2JSResolver.IsTGUID(TypeEl: TPasRecordType): boolean;
+var
+  Members: TFPList;
+  El: TPasElement;
+begin
+  Result:=false;
+  if not SameText(TypeEl.Name,'TGUID') then exit;
+  Members:=TypeEl.Members;
+  if Members.Count<4 then exit;
+  El:=TPasElement(Members[0]);
+  if not SameText(El.Name,'D1') then exit;
+  El:=TPasElement(Members[1]);
+  if not SameText(El.Name,'D2') then exit;
+  El:=TPasElement(Members[2]);
+  if not SameText(El.Name,'D3') then exit;
+  El:=TPasElement(Members[3]);
+  if not SameText(El.Name,'D4') then exit;
+  Result:=true;
+end;
+
+function TPas2JSResolver.GetAssignGUIDString(TypeEl: TPasRecordType;
+  Expr: TPasExpr; out GUID: TGUID): boolean;
+var
+  Value: TResEvalValue;
+  GUIDStr: String;
+begin
+  Result:=false;
+  if Expr=nil then exit;
+  if not IsTGUID(TypeEl) then exit;
+  Value:=Eval(Expr,[refAutoConst]);
+  try
+    case Value.Kind of
+    revkString: GUIDStr:=ExprEvaluator.GetUTF8Str(TResEvalString(Value).S,Expr);
+    revkUnicodeString: GUIDStr:=UTF8Encode(TResEvalString(Value).S);
+    else
+      RaiseXExpectedButYFound(20180415092350,'GUID string literal',Value.AsString,Expr);
+    end;
+    if not TryStringToGUID(GUIDStr,GUID) then
+      RaiseXExpectedButYFound(20180415092351,'GUID string literal',Value.AsString,Expr);
+    Result:=true;
+  finally
+    ReleaseEvalValue(Value);
+  end;
 end;
 
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
@@ -5031,6 +5171,7 @@ function TPasToJSConverter.ConvertBinaryExpressionRes(El: TBinaryExpr;
   end;
 
 var
+  aResolver: TPas2JSResolver;
   FunName: String;
   Call: TJSCallExpression;
   DotExpr: TJSDotMemberExpression;
@@ -5043,6 +5184,7 @@ begin
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
   {$ENDIF}
   Result:=nil;
+  aResolver:=AContext.Resolver;
   if LeftResolved.BaseType=btSet then
     begin
     // set operators -> rtl.operatorfunction(a,b)
@@ -5086,13 +5228,13 @@ begin
   else if (El.OpCode=eopIs) then
     begin
     // "A is B"
-    LeftTypeEl:=AContext.Resolver.ResolveAliasType(LeftResolved.TypeEl);
-    RightTypeEl:=AContext.Resolver.ResolveAliasType(RightResolved.TypeEl);
+    LeftTypeEl:=aResolver.ResolveAliasType(LeftResolved.TypeEl);
+    RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
     Call:=CreateCallExpression(El);
     Result:=Call;
     Call.AddArg(A); A:=nil;
     if (RightResolved.IdentEl is TPasType) then
-      TypeEl:=AContext.Resolver.ResolveAliasType(TPasType(RightResolved.IdentEl))
+      TypeEl:=aResolver.ResolveAliasType(TPasType(RightResolved.IdentEl))
     else
       TypeEl:=nil;
 
@@ -5100,7 +5242,7 @@ begin
       begin
       // "A is class-of-type" -> use the class
       FreeAndNil(B);
-      TypeEl:=AContext.Resolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
+      TypeEl:=aResolver.ResolveAliasType(TPasClassOfType(TypeEl).DestType);
       B:=CreateReferencePathExpr(TypeEl,AContext);
       end;
 
@@ -5193,62 +5335,206 @@ begin
     end
   else if (El.OpCode in [eopEqual,eopNotEqual]) then
     begin
-    if AContext.Resolver.IsProcedureType(LeftResolved,true) then
+    if aResolver.IsProcedureType(LeftResolved,true) then
       begin
       if RightResolved.BaseType=btNil then
-      else if AContext.Resolver.IsProcedureType(RightResolved,true)
-          or AContext.Resolver.IsJSBaseType(RightResolved,pbtJSValue,true) then
+      else if aResolver.IsProcedureType(RightResolved,true)
+          or aResolver.IsJSBaseType(RightResolved,pbtJSValue,true) then
         exit(CreateEqualCallback);
       end
-    else if AContext.Resolver.IsProcedureType(RightResolved,true) then
+    else if aResolver.IsProcedureType(RightResolved,true) then
       begin
       if LeftResolved.BaseType=btNil then
-      else if AContext.Resolver.IsJSBaseType(LeftResolved,pbtJSValue,true) then
+      else if aResolver.IsJSBaseType(LeftResolved,pbtJSValue,true) then
         exit(CreateEqualCallback);
       end
-    else if LeftResolved.TypeEl is TPasRecordType then
+    else if LeftResolved.BaseType=btNil then
       begin
-      // convert "recordA = recordB" to "recordA.$equal(recordB)"
-      Call:=CreateCallExpression(El);
-      Call.Expr:=CreateDotExpression(El,A,CreatePrimitiveDotExpr(FBuiltInNames[pbifnRecordEqual],El));
-      A:=nil;
-      Call.AddArg(B);
-      B:=nil;
-      if El.OpCode=eopNotEqual then
+      if RightResolved.BaseType=btContext then
         begin
-        // convert "recordA = recordB" to "!recordA.$equal(recordB)"
-        NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
-        NotEl.A:=Call;
-        Result:=NotEl;
+        RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
+        if RightTypeEl.ClassType=TPasArrayType then
+          begin
+          // convert "nil = array" to "rtl.length(array) > 0"
+          FreeAndNil(A);
+          Result:=CreateCmpArrayWithNil(El,B,El.OpCode);
+          B:=nil;
+          exit;
+          end;
+        end;
+      end
+    else if LeftResolved.BaseType in btAllStrings then
+      begin
+      if RightResolved.BaseType=btContext then
+        begin
+        RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
+        if RightTypeEl.ClassType=TPasRecordType then
+          begin
+          if aResolver.IsTGUID(TPasRecordType(RightTypeEl)) then
+            begin
+            // "aString=GuidVar"  ->  "GuidVar.$equal(rtl.createTGUID(aString))"
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfCreateTGUID],El);
+            Call.AddArg(A);
+            A:=Call;
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateDotExpression(El,B,CreatePrimitiveDotExpr(FBuiltInNames[pbifnRecordEqual],El));
+            B:=nil;
+            Call.AddArg(A);
+            A:=nil;
+            if El.OpCode=eopNotEqual then
+              begin
+              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+              NotEl.A:=Call;
+              Result:=NotEl;
+              end
+            else
+              Result:=Call;
+            exit;
+            end;
+          end
+        else if RightTypeEl.ClassType=TPasClassType then
+          begin
+          if TPasClassType(RightTypeEl).ObjKind=okInterface then
+            begin
+            // "aString=IntfTypeOrVar"  ->  "aString===IntfTypeOrVar.$guid"
+            B:=CreateDotExpression(El.left,B,CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El.left));
+            end;
+          end;
+        end;
+      end
+    else if LeftResolved.BaseType=btContext then
+      begin
+      LeftTypeEl:=aResolver.ResolveAliasType(LeftResolved.TypeEl);
+      if LeftTypeEl.ClassType=TPasRecordType then
+        begin
+        // LHS is a record
+        if RightResolved.BaseType=btContext then
+          begin
+          RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
+          if RightTypeEl.ClassType=TPasRecordType then
+            begin
+            // convert "recordA = recordB" to "recordA.$equal(recordB)"
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateDotExpression(El,A,CreatePrimitiveDotExpr(FBuiltInNames[pbifnRecordEqual],El));
+            A:=nil;
+            Call.AddArg(B);
+            B:=nil;
+            if El.OpCode=eopNotEqual then
+              begin
+              // convert "recordA <> recordB" to "!recordA.$equal(recordB)"
+              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+              NotEl.A:=Call;
+              Result:=NotEl;
+              end
+            else
+              Result:=Call;
+            exit;
+            end
+          else if (RightTypeEl.ClassType=TPasClassType)
+              and (TPasClassType(RightTypeEl).ObjKind=okInterface)
+              and aResolver.IsTGUID(TPasRecordType(LeftTypeEl)) then
+            begin
+            // "GuidVar = intfTypeOrVar"  ->  "GuidVar.$equal(rtl.getIntfGUIDR(intfTypeOrVar))"
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetGUIDR],El);
+            Call.AddArg(B);
+            B:=Call;
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreateDotExpression(El,A,CreatePrimitiveDotExpr(FBuiltInNames[pbifnRecordEqual],El));
+            A:=nil;
+            Call.AddArg(B);
+            B:=nil;
+            if El.OpCode=eopNotEqual then
+              begin
+              NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+              NotEl.A:=Call;
+              Result:=NotEl;
+              end
+            else
+              Result:=Call;
+            exit;
+            end;
+          end
+        else if (RightResolved.BaseType in btAllStrings)
+            and aResolver.IsTGUID(TPasRecordType(LeftTypeEl)) then
+          begin
+          // "GuidVar = aString"  ->  "GuidVar.$equal(rtl.createTGUID(aString))"
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfCreateTGUID],El);
+          Call.AddArg(B);
+          B:=Call;
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreateDotExpression(El,A,CreatePrimitiveDotExpr(FBuiltInNames[pbifnRecordEqual],El));
+          A:=nil;
+          Call.AddArg(B);
+          B:=nil;
+          if El.OpCode=eopNotEqual then
+            begin
+            NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+            NotEl.A:=Call;
+            Result:=NotEl;
+            end
+          else
+            Result:=Call;
+          exit;
+          end;
         end
-      else
-        Result:=Call;
-      exit;
-      end
-    else if LeftResolved.TypeEl is TPasArrayType then
-      begin
-      if RightResolved.BaseType=btNil then
+      else if LeftTypeEl.ClassType=TPasClassType then
         begin
-        // convert "array = nil" to "rtl.length(array) > 0"
-        FreeAndNil(B);
-        Result:=CreateCmpArrayWithNil(El,A,El.OpCode);
-        A:=nil;
-        exit;
-        end;
-      end
-    else if RightResolved.TypeEl is TPasArrayType then
-      begin
-      if LeftResolved.BaseType=btNil then
+        if RightResolved.BaseType in btAllStrings then
+          begin
+          if (TPasClassType(LeftTypeEl).ObjKind=okInterface) then
+            begin
+            // "IntfTypeOrVar=aString"  ->  "IntfTypeOrVar.$guid === aString"
+            A:=CreateDotExpression(El.left,A,CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El.left));
+            end;
+          end
+        else if RightResolved.BaseType=btContext then
+          begin
+          RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
+          if RightTypeEl.ClassType=TPasRecordType then
+            begin
+            if (TPasClassType(LeftTypeEl).ObjKind=okInterface)
+                and aResolver.IsTGUID(TPasRecordType(RightTypeEl)) then
+              begin
+              // "IntfTypeOrVar=GuidVar"  ->  "GuidVar.$equal(rtl.getIntfGUIDR(intfTypeOrVar))"
+              Call:=CreateCallExpression(El);
+              Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetGUIDR],El);
+              Call.AddArg(A);
+              A:=Call;
+              Call:=CreateCallExpression(El);
+              Call.Expr:=CreateDotExpression(El,B,CreatePrimitiveDotExpr(FBuiltInNames[pbifnRecordEqual],El));
+              B:=nil;
+              Call.AddArg(A);
+              A:=nil;
+              if El.OpCode=eopNotEqual then
+                begin
+                NotEl:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
+                NotEl.A:=Call;
+                Result:=NotEl;
+                end
+              else
+                Result:=Call;
+              exit;
+              end;
+            end;
+          end;
+        end
+      else if LeftTypeEl.ClassType=TPasArrayType then
         begin
-        // convert "nil = array" to "0 < rtl.length(array)"
-        FreeAndNil(A);
-        Result:=CreateCmpArrayWithNil(El,B,El.OpCode);
-        B:=nil;
-        exit;
+        if RightResolved.BaseType=btNil then
+          begin
+          // convert "array = nil" to "rtl.length(array) === 0"
+          FreeAndNil(B);
+          Result:=CreateCmpArrayWithNil(El,A,El.OpCode);
+          A:=nil;
+          exit;
+          end;
         end;
-      end
-    else if AContext.Resolver.IsJSBaseType(LeftResolved,pbtJSValue)
-        or AContext.Resolver.IsJSBaseType(RightResolved,pbtJSValue) then
+      end;
+    if aResolver.IsJSBaseType(LeftResolved,pbtJSValue)
+        or aResolver.IsJSBaseType(RightResolved,pbtJSValue) then
       begin
         // convert "jsvalue = something" to "jsvalue == something" (not strict)
         // Note: default "=" is converted to "===" (strict equal)
@@ -6745,12 +7031,29 @@ begin
             case TPasClassType(ParamTypeEl).ObjKind of
             okClass:
               begin
-              // IntfType(ClassInstVar)  ->  getIntfT(ClassInstVar,IntfType)
-              Call:=CreateCallExpression(El);
-              Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
-              Call.AddArg(Result);
-              Result:=Call;
-              Call.AddArg(CreateReferencePathExpr(Decl,AContext));
+              case TPasClassType(Decl).InterfaceType of
+              citCom:
+                // IntfType(ClassInstVar)  ->  queryIntfT(ClassInstVar,IntfType)
+                begin
+                Call:=CreateCallExpression(El);
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfQueryIntfT]]);
+                Call.AddArg(Result);
+                Result:=Call;
+                Call.AddArg(CreateReferencePathExpr(Decl,AContext));
+                Result:=CreateIntfRef(Result,AContext,El);
+                end;
+              citCorba:
+                // IntfType(ClassInstVar)  ->  getIntfT(ClassInstVar,IntfType)
+                begin
+                Call:=CreateCallExpression(El);
+                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
+                Call.AddArg(Result);
+                Result:=Call;
+                Call.AddArg(CreateReferencePathExpr(Decl,AContext));
+                end;
+              else
+                RaiseNotSupported(El,AContext,20180416102614,InterfaceTypeNames[TPasClassType(Decl).InterfaceType]);
+              end;
               exit; // bsObjectChecks not needed
               end;
             okInterface:;
@@ -9493,7 +9796,7 @@ begin
     if El.ObjKind=okInterface then
       begin
       // add parameter: string constant guid
-      Call.AddArg(CreateLiteralString(El,Scope.GUID));
+      Call.AddArg(CreateLiteralString(El,upcase(Scope.GUID)));
 
       // add parameter: array of function names
       AddInterfaceProcNames(Call);
@@ -11063,7 +11366,7 @@ begin
 end;
 
 function TPasToJSConverter.CreateDotExpression(aParent: TPasElement; Left,
-  Right: TJSElement; CheckIntfRef: boolean): TJSElement;
+  Right: TJSElement; CheckRightIntfRef: boolean): TJSElement;
 var
   Dot: TJSDotMemberExpression;
   RightParent, Expr: TJSElement;
@@ -11076,7 +11379,7 @@ begin
   if Right=nil then
     RaiseInconsistency(20170211192018,aParent);
 
-  if CheckIntfRef and IsInterfaceRef(Right) then
+  if CheckRightIntfRef and IsInterfaceRef(Right) then
     begin
     // right was an implicit call
     // convert "$ir.ref(id,Expr)"  ->  $ir.ref(id,Left.Expr)
@@ -11195,7 +11498,6 @@ var
 begin
   NewExpr:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
   NewExpr.MExpr:=CreateReferencePathExpr(RecTypeEl,AContext);
-  NewExpr.Args:=TJSArguments(CreateElement(TJSArguments,El));
   NewExpr.AddArg(RecordExpr);
   Result:=NewExpr;
 end;
@@ -11940,6 +12242,45 @@ begin
   end;
 end;
 
+function TPasToJSConverter.CreateGUIDObjLit(aTGUIDRecord: TPasRecordType;
+  const GUID: TGUID; PosEl: TPasElement; AContext: TConvertContext
+  ): TJSObjectLiteral;
+var
+  Members: TFPList;
+  PropEl: TJSObjectLiteralElement;
+  MemberEl: TPasElement;
+  ArrLit: TJSArrayLiteral;
+  i: Integer;
+begin
+  Members:=aTGUIDRecord.Members;
+  Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,PosEl));
+  // D1: 0x12345678
+  PropEl:=Result.Elements.AddElement;
+  MemberEl:=TPasElement(Members[0]);
+  if not SameText(MemberEl.Name,'D1') then
+    RaiseInconsistency(20180415094721,PosEl);
+  PropEl.Name:=TJSString(TransformVariableName(MemberEl,AContext));
+  PropEl.Expr:=CreateLiteralHexNumber(PosEl,GUID.D1,8);
+  // D2: 0x1234
+  PropEl:=Result.Elements.AddElement;
+  MemberEl:=TPasElement(Members[1]);
+  PropEl.Name:=TJSString(TransformVariableName(MemberEl,AContext));
+  PropEl.Expr:=CreateLiteralHexNumber(PosEl,GUID.D2,4);
+  // D3: 0x1234
+  PropEl:=Result.Elements.AddElement;
+  MemberEl:=TPasElement(Members[2]);
+  PropEl.Name:=TJSString(TransformVariableName(MemberEl,AContext));
+  PropEl.Expr:=CreateLiteralHexNumber(PosEl,GUID.D3,4);
+  // D4: [0x12,0x12,0x12,0x12,0x12,0x12,0x12,0x12]
+  PropEl:=Result.Elements.AddElement;
+  MemberEl:=TPasElement(Members[3]);
+  PropEl.Name:=TJSString(TransformVariableName(MemberEl,AContext));
+  ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,PosEl));
+  PropEl.Expr:=ArrLit;
+  for i:=0 to 7 do
+    ArrLit.AddElement(CreateLiteralHexNumber(PosEl,GUID.D4[i],2));
+end;
+
 function TPasToJSConverter.CreateGetEnumeratorLoop(El: TPasImplForLoop;
   AContext: TConvertContext): TJSElement;
 //  for Item in List do
@@ -12401,6 +12742,7 @@ end;
 
 procedure TPasToJSConverter.AddFunctionFinallyRelease(SubEl: TPasElement;
   FuncContext: TFunctionContext);
+// add to finally: rtl._Release(IntfVar)
 var
   Call: TJSCallExpression;
 begin
@@ -12609,11 +12951,14 @@ Var
   T: TJSAssignStatement;
   AssignContext: TAssignContext;
   Flags: TPasResolverComputeFlags;
-  LeftIsProcType: Boolean;
+  LeftIsProcType, NeedClone: Boolean;
   Call: TJSCallExpression;
   MinVal, MaxVal: MaxPrecInt;
   RightTypeEl, LeftTypeEl: TPasType;
   aResolver: TPas2JSResolver;
+  NewMemE, NewME: TJSNewMemberExpression;
+  ObjLit: TJSObjectLiteral;
+  GUID: TGUID;
 begin
   Result:=nil;
   LHS:=nil;
@@ -12649,6 +12994,25 @@ begin
           // array:=nil -> array:=[]
           AssignContext.RightSide:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El.right));
           end;
+        end
+      else if AssignContext.LeftResolved.BaseType=btContext then
+        begin
+        LeftTypeEl:=aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
+        if (LeftTypeEl.ClassType=TPasRecordType)
+            and (AssignContext.RightResolved.BaseType in btAllStrings) then
+          begin
+          if aResolver.GetAssignGUIDString(TPasRecordType(LeftTypeEl),El.right,GUID) then
+            begin
+            // guidvar:='{...}';  -> guidvar:=new TGUID(){ D1:x12345678, D2:0x1234,...}
+            NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+            AssignContext.RightSide:=NewMemE;
+            NewMemE.MExpr:=CreateReferencePathExpr(LeftTypeEl,AContext);
+            ObjLit:=CreateGUIDObjLit(TPasRecordType(LeftTypeEl),GUID,El,AContext);
+            NewMemE.AddArg(ObjLit);
+            end
+          else
+            RaiseNotSupported(El,AContext,20180415101516);
+          end;
         end;
       end;
     if AssignContext.RightSide=nil then
@@ -12680,74 +13044,111 @@ begin
         end
       else if RightTypeEl.ClassType=TPasClassType then
         begin
-        LeftTypeEl:=aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
-        if AssignContext.LeftResolved.BaseType=btString then
+        if AssignContext.LeftResolved.BaseType in btAllStrings then
           begin
           if TPasClassType(RightTypeEl).ObjKind=okInterface then
             begin
-            // string:=interface  ->  string = interface.$guid
-            AssignContext.RightSide:=CreateDotExpression(El,AssignContext.RightSide,
-              CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El));
+            // aString:=IntfTypeOrVar  ->  intfTypeOrVar.$guid
+            AssignContext.RightSide:=CreateDotExpression(El,
+              AssignContext.RightSide,CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El));
             end;
           end
-        else if LeftTypeEl is TPasClassType then
-          case TPasClassType(LeftTypeEl).ObjKind of
-          okClass:
-            case TPasClassType(RightTypeEl).ObjKind of
-            okClass: ; // ClassInstVar:=ClassInstVar
-            else
-              NotSupported(AssignContext,20180327202735);
-            end;
-          okInterface:
-            case TPasClassType(RightTypeEl).ObjKind of
-            okClass:
+        else if AssignContext.LeftResolved.BaseType=btContext then
+          begin
+          LeftTypeEl:=aResolver.ResolveAliasType(AssignContext.LeftResolved.TypeEl);
+          if LeftTypeEl.ClassType=TPasRecordType then
+            begin
+            if (TPasClassType(RightTypeEl).ObjKind=okInterface)
+                and SameText(LeftTypeEl.Name,'TGUID') then
               begin
-              // IntfVar:=ClassInstVar
-              if TPasClassType(RightTypeEl).IsExternal then
-                RaiseNotSupported(El.right,AContext,20180327210004,'external class instance');
-              if AssignContext.LeftResolved.TypeEl=nil then
-                RaiseNotSupported(El.right,AContext,20180327204021);
-              Call:=CreateCallExpression(El.right);
-              case TPasClassType(LeftTypeEl).InterfaceType of
-              // COM: $ir.ref(id,rtl.queryIntfT(ClassInstVar,IntfVarType))
-              citCom:
-                begin
-                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfQueryIntfT]]);
-                Call.AddArg(AssignContext.RightSide);
-                AssignContext.RightSide:=Call;
-                Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
-                  AContext));
-                Call:=CreateIntfRef(Call,AContext,El);
-                AssignContext.RightSide:=Call;
-                end;
-              // CORBA: rtl.getIntfT(ClassInstVar,IntfVarType)
-              citCorba:
-                begin
-                Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
-                Call.AddArg(AssignContext.RightSide);
-                AssignContext.RightSide:=Call;
-                Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
-                  AContext));
-                end;
-              else RaiseNotSupported(El,AContext,20180401225931,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]);
-              end;
-              end;
-            okInterface: ;// IntfVar:=IntfVar
+              // GUIDRecord:=IntfTypeOrVar  ->  new TGuid(rtl.getIntfGUIDR(IntfTypeOrVar))
+              NewME:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+              NewME.MExpr:=CreateReferencePathExpr(LeftTypeEl,AContext);
+              Call:=CreateCallExpression(El);
+              NewME.AddArg(Call);
+              Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetGUIDR],El);
+              Call.AddArg(AssignContext.RightSide);
+              AssignContext.RightSide:=NewME;
+              end
             else
-              NotSupported(AssignContext,20180327203326);
+              RaiseNotSupported(El,AContext,20180413194856);
+            end
+          else if LeftTypeEl.ClassType=TPasClassType then
+            case TPasClassType(LeftTypeEl).ObjKind of
+            okClass:
+              case TPasClassType(RightTypeEl).ObjKind of
+              okClass: ; // ClassInstVar:=ClassInstVar
+              else
+                NotSupported(AssignContext,20180327202735);
+              end;
+            okInterface:
+              case TPasClassType(RightTypeEl).ObjKind of
+              okClass:
+                begin
+                // IntfVar:=ClassInstVar
+                if TPasClassType(RightTypeEl).IsExternal then
+                  RaiseNotSupported(El.right,AContext,20180327210004,'external class instance');
+                if AssignContext.LeftResolved.TypeEl=nil then
+                  RaiseNotSupported(El.right,AContext,20180327204021);
+                Call:=CreateCallExpression(El.right);
+                case TPasClassType(LeftTypeEl).InterfaceType of
+                // COM: $ir.ref(id,rtl.queryIntfT(ClassInstVar,IntfVarType))
+                citCom:
+                  begin
+                  Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfQueryIntfT]]);
+                  Call.AddArg(AssignContext.RightSide);
+                  AssignContext.RightSide:=Call;
+                  Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
+                    AContext));
+                  Call:=CreateIntfRef(Call,AContext,El);
+                  AssignContext.RightSide:=Call;
+                  end;
+                // CORBA: rtl.getIntfT(ClassInstVar,IntfVarType)
+                citCorba:
+                  begin
+                  Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnIntfGetIntfT]]);
+                  Call.AddArg(AssignContext.RightSide);
+                  AssignContext.RightSide:=Call;
+                  Call.AddArg(CreateReferencePathExpr(AssignContext.LeftResolved.TypeEl,
+                    AContext));
+                  end;
+                else RaiseNotSupported(El,AContext,20180401225931,InterfaceTypeNames[TPasClassType(RightTypeEl).InterfaceType]);
+                end;
+                end;
+              okInterface: ;// IntfVar:=IntfVar
+              else
+                NotSupported(AssignContext,20180327203326);
+              end;
+            else
+              NotSupported(AssignContext,20180327203334);
             end;
-          else
-            NotSupported(AssignContext,20180327203334);
           end;
         end
       else if RightTypeEl.ClassType=TPasRecordType then
         begin
-        // right side is a record -> clone
-        {$IFDEF VerbosePas2JS}
-        writeln('TPasToJSConverter.ConvertAssignStatement RECORD variable Right={',GetResolverResultDbg(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
-        {$ENDIF}
-        AssignContext.RightSide:=CreateCloneRecord(El.right,
-                  TPasRecordType(RightTypeEl),AssignContext.RightSide,AContext);
+        // right side is a record
+        NeedClone:=true;
+        if AssignContext.LeftResolved.BaseType in btAllStrings then
+          begin
+          if aResolver.IsTGUID(TPasRecordType(RightTypeEl)) then
+            begin
+            // aString:=GUIDVar  ->  rtl.guidrToStr(GUIDVar)
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGuidRToStr],El);
+            Call.AddArg(AssignContext.RightSide);
+            AssignContext.RightSide:=Call;
+            NeedClone:=false;
+            end;
+          end;
+        if NeedClone then
+          begin
+          // -> clone
+          {$IFDEF VerbosePas2JS}
+          writeln('TPasToJSConverter.ConvertAssignStatement RECORD variable Right={',GetResolverResultDbg(AssignContext.RightResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(AssignContext.RightResolved.IdentEl));
+          {$ENDIF}
+          AssignContext.RightSide:=CreateCloneRecord(El.right,
+                    TPasRecordType(RightTypeEl),AssignContext.RightSide,AContext);
+          end;
         end;
       end;
     // convert left side
@@ -12899,35 +13300,46 @@ end;
 
 function TPasToJSConverter.ConvertRepeatStatement(El: TPasImplRepeatUntil;
   AContext: TConvertContext): TJSElement;
-Var
+// do{implblock}while(!untilcondition);
+var
   C : TJSElement;
   N : TJSUnaryNotExpression;
   W : TJSDoWhileStatement;
   B : TJSElement;
-  ok: Boolean;
-
 begin
   Result:=Nil;
   C:=Nil;
   B:=Nil;
-  ok:=false;
   try
-    C:=ConvertElement(EL.ConditionExpr,AContext);
-    N:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,EL.ConditionExpr));
-    N.A:=C;
+    C:=ConvertElement(El.ConditionExpr,AContext);
+    if C is TJSUnaryNotExpression then
+      begin
+      // Note: do..while(condition) checks for truthiness, same as the ! operator
+      // therefore  do..while(!!expr)  is the same as  do..while(expr)
+      B:=C;
+      C:=TJSUnaryNotExpression(B).A;
+      TJSUnaryNotExpression(B).A:=nil;
+      B.Free;
+      B:=nil;
+      end
+    else
+      begin
+      N:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El.ConditionExpr));
+      N.A:=C;
+      C:=N;
+      end;
     B:=ConvertImplBlockElements(El,AContext,false);
-    ok:=true;
+    W:=TJSDoWhileStatement(CreateElement(TJSDoWhileStatement,El));
+    W.Cond:=C;
+    W.Body:=B;
+    Result:=W;
   finally
-    if not ok then
+    if Result=nil then
       begin
       FreeAndNil(B);
       FreeAndNil(C);
       end;
   end;
-  W:=TJSDoWhileStatement(CreateElement(TJSDoWhileStatement,El));
-  W.Cond:=N;
-  W.Body:=B;
-  Result:=W;
 end;
 
 function TPasToJSConverter.ConvertForStatement(El: TPasImplForLoop;
@@ -14239,6 +14651,14 @@ begin
   Result.Value.AsNumber:=n;
 end;
 
+function TPasToJSConverter.CreateLiteralHexNumber(El: TPasElement;
+  const n: int64; Digits: byte): TJSLiteral;
+begin
+  Result:=TJSLiteral(CreateElement(TJSLiteral,El));
+  Result.Value.AsNumber:=n;
+  Result.Value.CustomValue:=TJSString('0x'+HexStr(n,Digits));
+end;
+
 function TPasToJSConverter.CreateLiteralString(El: TPasElement; const s: string
   ): TJSLiteral;
 begin
@@ -14385,16 +14805,37 @@ begin
 end;
 
 function TPasToJSConverter.CreateRecordInit(aRecord: TPasRecordType;
-  Expr: TPasElement; El: TPasElement; AContext: TConvertContext): TJSElement;
+  Expr: TPasExpr; El: TPasElement; AContext: TConvertContext): TJSElement;
 // new recordtype()
 var
   NewMemE: TJSNewMemberExpression;
+  aResolver: TPas2JSResolver;
+  ObjLit: TJSObjectLiteral;
+  GUID: TGUID;
 begin
-  if Expr<>nil then
-    RaiseNotSupported(Expr,AContext,20161024192747);
+  Result:=nil;
   NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-  Result:=NewMemE;
-  NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
+  try
+    NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
+    if Expr<>nil then
+      begin
+      aResolver:=AContext.Resolver;
+      if aResolver<>nil then
+        begin
+        if aResolver.GetAssignGUIDString(aRecord,Expr,GUID) then
+          begin
+          ObjLit:=CreateGUIDObjLit(aRecord,GUID,El,AContext);
+          NewMemE.AddArg(ObjLit);
+          end;
+        end;
+      if NewMemE.Args=nil then
+        RaiseNotSupported(Expr,AContext,20161024192747);
+      end;
+    Result:=NewMemE;
+  finally
+    if Result=nil then
+      NewMemE.Free;
+  end;
 end;
 
 function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
@@ -14873,6 +15314,7 @@ var
   NeedVar: Boolean;
   ArgTypeEl, ExprTypeEl: TPasType;
   Call: TJSCallExpression;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
   if TargetArg=nil then
@@ -14886,14 +15328,15 @@ begin
   if not (TargetArg.Access in [argDefault,argVar,argOut,argConst]) then
     DoError(20170213220927,nPasElementNotSupported,sPasElementNotSupported,
             [AccessNames[TargetArg.Access]],El);
+  aResolver:=AContext.Resolver;
 
   NeedVar:=TargetArg.Access in [argVar,argOut];
-  AContext.Resolver.ComputeElement(TargetArg,ArgResolved,[]);
-  ArgTypeEl:=AContext.Resolver.ResolveAliasType(ArgResolved.TypeEl);
+  aResolver.ComputeElement(TargetArg,ArgResolved,[]);
+  ArgTypeEl:=aResolver.ResolveAliasType(ArgResolved.TypeEl);
   ExprFlags:=[];
   if NeedVar then
     Include(ExprFlags,rcNoImplicitProc)
-  else if AContext.Resolver.IsProcedureType(ArgResolved,true) then
+  else if aResolver.IsProcedureType(ArgResolved,true) then
     Include(ExprFlags,rcNoImplicitProcType);
 
   if (ArgTypeEl is TPasArrayType)
@@ -14906,7 +15349,7 @@ begin
     exit;
     end;
 
-  AContext.Resolver.ComputeElement(El,ExprResolved,ExprFlags);
+  aResolver.ComputeElement(El,ExprResolved,ExprFlags);
 
   // consider TargetArg access
   if NeedVar then
@@ -14937,9 +15380,25 @@ begin
         Result:=CreateReferencedSet(El,Result);
         end;
       end
+    else if ExprResolved.BaseType in btAllStrings then
+      begin
+      if ArgTypeEl=nil then
+        // string to untyped
+      else if ArgTypeEl.ClassType=TPasRecordType then
+        begin
+        if aResolver.IsTGUID(TPasRecordType(ArgTypeEl)) then
+          begin
+          // pass aString to TGuid  ->  rtl.strToGUIDR(aString)
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfStrToGUIDR],El);
+          Call.AddArg(Result);
+          Result:=Call;
+          end;
+        end;
+      end
     else if ExprResolved.BaseType=btContext then
       begin
-      ExprTypeEl:=AContext.Resolver.ResolveAliasType(ExprResolved.TypeEl);
+      ExprTypeEl:=aResolver.ResolveAliasType(ExprResolved.TypeEl);
       if (ExprTypeEl.ClassType=TPasArrayType) then
         begin
         if length(TPasArrayType(ExprTypeEl).Ranges)>0 then
@@ -14953,17 +15412,40 @@ begin
         end
       else if ExprTypeEl.ClassType=TPasClassType then
         begin
-        if ArgResolved.BaseType=btString then
+        if ArgTypeEl=nil then
+          // class to untyped
+        else if ArgResolved.BaseType in btAllStrings then
           begin
           if TPasClassType(ExprTypeEl).ObjKind=okInterface then
             begin
-            // interface to string  ->  intf.$guid
-            Result:=CreateDotExpression(El,Result,CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El));
+            // pass IntfVarOrType to string  ->  IntfVarOrType.$guid
+            Result:=CreateDotExpression(El,Result,
+              CreatePrimitiveDotExpr(FBuiltInNames[pbivnIntfGUID],El));
+            end;
+          end
+        else if ArgTypeEl.ClassType=TPasRecordType then
+          begin
+          if (TPasClassType(ExprTypeEl).ObjKind=okInterface)
+              and aResolver.IsTGUID(TPasRecordType(ArgTypeEl)) then
+            begin
+            // pass IntfTypeOrVar to GUIDRecord  ->  rtl.getIntfGUIDR(IntfTypeOrVar)
+            Call:=CreateCallExpression(El);
+            Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetGUIDR],El);
+            Call.AddArg(Result);
+            Result:=Call;
+            if TargetArg.Access=argDefault then
+              begin
+              // pass record with argDefault ->  "new TGuid(RightRecord)"
+              {$IFDEF VerbosePas2JS}
+              writeln('TPasToJSConverter.CreateProcedureCallArg clone RECORD TGuid variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
+              {$ENDIF}
+              Result:=CreateCloneRecord(El,TPasRecordType(ArgTypeEl),Result,AContext);
+              end;
             end
           else
             RaiseNotSupported(El,AContext,20180410160008);
           end
-        else if ArgTypeEl is TPasClassType then
+        else if ArgTypeEl.ClassType=TPasClassType then
           case TPasClassType(ExprTypeEl).ObjKind of
           okClass:
             case TPasClassType(ArgTypeEl).ObjKind of
@@ -15010,6 +15492,16 @@ begin
       else if ExprTypeEl.ClassType=TPasRecordType then
         begin
         // right side is a record
+        if (ArgResolved.BaseType in btAllStrings)
+            and aResolver.IsTGUID(TPasRecordType(ExprTypeEl)) then
+          begin
+          // pass GuidVar to string  ->  rtl.guidrToStr(GuidVar)
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGuidRToStr],El);
+          Call.AddArg(Result);
+          Result:=Call;
+          exit;
+          end;
         if TargetArg.Access=argDefault then
           begin
           // pass record with argDefault ->  "new RightRecordType(RightRecord)"
@@ -15058,6 +15550,8 @@ var
   DotExpr: TJSDotMemberExpression;
   SetterArgName: String;
   TypeEl: TPasType;
+  FuncContext: TFunctionContext;
+  IsCOMIntf: Boolean;
 begin
   // pass reference -> create a temporary JS object with a FullGetter and setter
   Obj:=nil;
@@ -15215,13 +15709,14 @@ begin
         or (SetExpr.ClassType=TJSDotMemberExpression)
         or (SetExpr.ClassType=TJSBracketMemberExpression) then
       begin
-      // create   SetExpr = v;
+      // create setter
       FindAvailableLocalName(SetterArgName,SetExpr);
       RHS:=CreatePrimitiveDotExpr(SetterArgName,El);
       TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedEl.TypeEl);
-      if (TypeEl is TPasClassType)
+      IsCOMIntf:=(TypeEl is TPasClassType)
           and (TPasClassType(TypeEl).ObjKind=okInterface)
-          and (TPasClassType(TypeEl).InterfaceType=citCom) then
+          and (TPasClassType(TypeEl).InterfaceType=citCom);
+      if IsCOMIntf and (TargetArg.ArgType<>nil) then
         begin
         // create   rtl.setIntfP(path,"IntfVar",v)
         SetExpr:=CreateAssignComIntfVar(ResolvedEl,SetExpr,RHS,AContext,El);
@@ -15233,6 +15728,17 @@ begin
         AssignSt.LHS:=SetExpr;
         AssignSt.Expr:=RHS;
         SetExpr:=AssignSt;
+        if IsCOMIntf and (TargetArg.ArgType=nil) then
+          begin
+          // IntfVar is passed to an untyped parameter
+          // This must not call AddRef, but the IntfVar must still be
+          // released at the end of the function
+          FuncContext:=AContext.GetFunctionContext;
+          if ResolvedEl.IdentEl is TPasResultElement then
+            FuncContext.ResultNeedsIntfRelease:=true
+          else
+            FuncContext.Add_InterfaceRelease(ResolvedEl.IdentEl);
+          end;
         end;
       end
     else if (SetExpr.ClassType=TJSCallExpression) then
@@ -15739,6 +16245,17 @@ const
         Call:=CreateCallExpression(PasVar);
         Add_AndExpr_ToReturnSt(RetSt,PasVar,LastAndExpr,Call);
         Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnProcType_Equal]]);
+        Call.AddArg(CreateMemberExpression(['this',VarName]));
+        Call.AddArg(CreateMemberExpression([EqualParamName,VarName]));
+        end
+      else if (VarType.ClassType=TPasArrayType)
+          and (length(TPasArrayType(VarType).Ranges)>0) then
+        begin
+        // static array
+        // add "rtl.arrayEq(this.member,b.member)"
+        Call:=CreateCallExpression(PasVar);
+        Add_AndExpr_ToReturnSt(RetSt,PasVar,LastAndExpr,Call);
+        Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnArray_Equal]]);
         Call.AddArg(CreateMemberExpression(['this',VarName]));
         Call.AddArg(CreateMemberExpression([EqualParamName,VarName]));
         end

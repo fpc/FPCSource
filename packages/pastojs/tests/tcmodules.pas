@@ -276,6 +276,7 @@ type
     Procedure TestProc_OverloadUnitCycle;
     Procedure TestProc_Varargs;
     Procedure TestProc_ConstOrder;
+    Procedure TestProc_DuplicateConst;
     Procedure TestProc_LocalVarAbsolute;
 
     // enums, sets
@@ -366,6 +367,7 @@ type
     Procedure TestRecord_Equal;
     Procedure TestRecord_TypeCastJSValueToRecord;
     Procedure TestRecord_VariantFail;
+    Procedure TestRecord_FieldArray;
     // ToDo: const record
 
     // classes
@@ -466,6 +468,7 @@ type
     Procedure TestExternalClass_NewInstance_SecondParamTyped_Fail;
     Procedure TestExternalClass_PascalProperty;
     Procedure TestExternalClass_TypeCastToRootClass;
+    Procedure TestExternalClass_TypeCastToJSObject;
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketAccessor;
@@ -496,6 +499,7 @@ type
     Procedure TestClassInterface_COM_InheritedFuncResult;
     Procedure TestClassInterface_COM_IsAsTypeCasts;
     Procedure TestClassInterface_COM_PassAsArg;
+    Procedure TestClassInterface_COM_PassToUntypedParam;
     Procedure TestClassInterface_COM_FunctionInExpr;
     Procedure TestClassInterface_COM_Property;
     Procedure TestClassInterface_COM_IntfProperty;
@@ -506,6 +510,7 @@ type
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
     Procedure TestClassInterface_GUID;
+    Procedure TestClassInterface_GUIDProperty;
 
     // proc types
     Procedure TestProcType;
@@ -540,6 +545,7 @@ type
     Procedure TestJSValue_TypeCastToBaseType;
     Procedure TestJSValue_Equal;
     Procedure TestJSValue_If;
+    Procedure TestJSValue_Not;
     Procedure TestJSValue_Enum;
     Procedure TestJSValue_ClassInstance;
     Procedure TestJSValue_ClassOf;
@@ -3430,6 +3436,44 @@ begin
     'var D = 4 + 1;',
     'var E = ((5 + 4) + 4) + 3;',
     'this.DoIt = function () {',
+    '};',
+    '']),
+    LinesToStr([
+    ''
+    ]));
+end;
+
+procedure TTestModule.TestProc_DuplicateConst;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  'const A = 1;',
+  'procedure DoIt;',
+  'const A = 2;',
+  '  procedure SubIt;',
+  '  const A = 21;',
+  '  begin',
+  '  end;',
+  'begin',
+  'end;',
+  'procedure DoSome;',
+  'const A = 3;',
+  'begin',
+  'end;',
+  'begin'
+  ]);
+  ConvertProgram;
+  CheckSource('TestProc_DuplicateConst',
+    LinesToStr([ // statements
+    'this.A = 1;',
+    'var A$1 = 2;',
+    'var A$2 = 21;',
+    'this.DoIt = function () {',
+    '};',
+    'var A$3 = 3;',
+    'this.DoSome = function () {',
     '};',
     '']),
     LinesToStr([
@@ -7320,7 +7364,7 @@ begin
     '  };',
     '  this.$equal = function (b) {',
     '    return (this.Int === b.Int) && ((this.D === b.D) && ((this.Arr === b.Arr)',
-    ' && ((this.Arr2 === b.Arr2)',
+    ' && (rtl.arrayEq(this.Arr2, b.Arr2)',
     ' && (this.Small.$equal(b.Small) && rtl.eqSet(this.Enums, b.Enums)))));',
     '  };',
     '};',
@@ -7710,6 +7754,44 @@ begin
   SetExpectedPasResolverError('variant record is not supported',
     nXIsNotSupported);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestRecord_FieldArray;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArrInt = array[3..4] of longint;',
+  '  TArrArrInt = array[3..4] of longint;',
+  '  TRec = record',
+  '    a: array of longint;',
+  '    s: array[1..2] of longint;',
+  '    m: array[1..2,3..4] of longint;',
+  '    o: TArrArrInt;',
+  '  end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRecord_FieldArray',
+    LinesToStr([ // statements
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.a = s.a;',
+    '    this.s = s.s.slice(0);',
+    '    this.m = s.m.slice(0);',
+    '    this.o = s.o.slice(0);',
+    '  } else {',
+    '    this.a = [];',
+    '    this.s = rtl.arraySetLength(null, 0, 2);',
+    '    this.m = rtl.arraySetLength(null, 0, 2, 2);',
+    '    this.o = rtl.arraySetLength(null, 0, 2);',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.a === b.a) && (rtl.arrayEq(this.s, b.s) && (rtl.arrayEq(this.m, b.m) && rtl.arrayEq(this.o, b.o)));',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
 end;
 
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
@@ -12107,6 +12189,84 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestExternalClass_TypeCastToJSObject;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  IUnknown = interface end;',
+  '  IBird = interface(IUnknown) end;',
+  '  TClass = class of TObject;',
+  '  TObject = class',
+  '  end;',
+  '  TChild = class',
+  '  end;',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  '  TRec = record end;',
+  'var',
+  '  Obj: TObject;',
+  '  Child: TChild;',
+  '  i: IUnknown;',
+  '  Bird: IBird;',
+  '  j: TJSObject;',
+  '  r: TRec;',
+  '  c: TClass;',
+  'begin',
+  '  j:=tjsobject(IUnknown);',
+  '  j:=tjsobject(IBird);',
+  '  j:=tjsobject(TObject);',
+  '  j:=tjsobject(TChild);',
+  '  j:=tjsobject(TRec);',
+  '  j:=tjsobject(Obj);',
+  '  j:=tjsobject(Child);',
+  '  j:=tjsobject(i);',
+  '  j:=tjsobject(Bird);',
+  '  j:=tjsobject(r);',
+  '  j:=tjsobject(c);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastToJSObject',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D462ECC63074}", [], $mod.IUnknown);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TChild", $mod.TObject, function () {',
+    '});',
+    'this.TRec = function (s) {',
+    '  this.$equal = function (b) {',
+    '    return true;',
+    '  };',
+    '};',
+    'this.Obj = null;',
+    'this.Child = null;',
+    'this.i = null;',
+    'this.Bird = null;',
+    'this.j = null;',
+    'this.r = new $mod.TRec();',
+    'this.c = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.j = $mod.IUnknown;',
+    '$mod.j = $mod.IBird;',
+    '$mod.j = $mod.TObject;',
+    '$mod.j = $mod.TChild;',
+    '$mod.j = $mod.TRec;',
+    '$mod.j = $mod.Obj;',
+    '$mod.j = $mod.Child;',
+    '$mod.j = $mod.i;',
+    '$mod.j = $mod.Bird;',
+    '$mod.j = $mod.r;',
+    '$mod.j = $mod.c;',
+    '']));
+end;
+
 procedure TTestModule.TestExternalClass_TypeCastStringToExternalString;
 begin
   StartProgram(false);
@@ -12977,6 +13137,7 @@ begin
   '  IntfVar:=IBird(v);',
   '  if v is IBird then ;',
   '  v:=JSValue(IntfVar);',
+  '  v:=IBird;',
   '']);
   ConvertProgram;
   CheckSource('TestClassInterface_Corba_Operators',
@@ -13019,6 +13180,7 @@ begin
     '$mod.IntfVar = rtl.getObject($mod.v);',
     'if (rtl.isExt($mod.v, $mod.IBird, 1)) ;',
     '$mod.v = rtl.getObject($mod.IntfVar);',
+    '$mod.v = $mod.IBird;',
     '']));
 end;
 
@@ -13446,7 +13608,7 @@ begin
   '  i:=o as IUnknown;',
   '  o:=j as TObject;',
   '  i:=IUnknown(j);',
-  '  i:=IUnknown(o);', // no AddRef for the typecast
+  '  i:=IUnknown(o);',
   '  o:=TObject(i);',
   'end;',
   'begin',
@@ -13473,7 +13635,7 @@ begin
     '    i = rtl.setIntfL(i, rtl.queryIntfT(o, $mod.IUnknown), true);',
     '    o = rtl.intfAsClass(j, $mod.TObject);',
     '    i = rtl.setIntfL(i, j);',
-    '    i = rtl.setIntfL(i, rtl.getIntfT(o, $mod.IUnknown));',
+    '    i = rtl.setIntfL(i, rtl.queryIntfT(o, $mod.IUnknown), true);',
     '    o = rtl.intfToClass(i, $mod.TObject);',
     '  } finally {',
     '    rtl._Release(i);',
@@ -13593,6 +13755,101 @@ begin
     '      rtl.setIntfP(this.p, "i", v);',
     '    }',
     '});',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_PassToUntypedParam;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '  end;',
+  'procedure DoIt(out i);',
+  'begin end;',
+  'procedure DoSome;',
+  'var v: IUnknown;',
+  'begin',
+  '  DoIt(v);',
+  'end;',
+  'function GetIt: IUnknown;',
+  'begin',
+  '  DoIt(Result);',
+  'end;',
+  'var i: IUnknown;',
+  'begin',
+  '  DoIt(i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_PassToUntypedParam',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.DoIt = function (i) {',
+    '};',
+    'this.DoSome = function () {',
+    '  var v = null;',
+    '  try {',
+    '    $mod.DoIt({',
+    '      get: function () {',
+    '          return v;',
+    '        },',
+    '      set: function (w) {',
+    '          v = w;',
+    '        }',
+    '    });',
+    '  } finally {',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    'this.GetIt = function () {',
+    '  var Result = null;',
+    '  var $ok = false;',
+    '  try {',
+    '    $mod.DoIt({',
+    '      get: function () {',
+    '          return Result;',
+    '        },',
+    '      set: function (v) {',
+    '          Result = v;',
+    '        }',
+    '    });',
+    '    $ok = true;',
+    '  } finally {',
+    '    if (!$ok) rtl._Release(Result);',
+    '  };',
+    '  return Result;',
+    '};',
+    'this.i = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'try {',
+    '  $mod.DoIt({',
+    '    p: $mod,',
+    '    get: function () {',
+    '        return this.p.i;',
+    '      },',
+    '    set: function (v) {',
+    '        this.p.i = v;',
+    '      }',
+    '  });',
+    '} finally {',
+    '  rtl._Release($mod.i);',
+    '};',
     '']));
 end;
 
@@ -14147,20 +14404,49 @@ begin
   '{$interfaces corba}',
   'type',
   '  IUnknown = interface',
-  '    [''{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}'']',
+  '    [''{f31db68f-3010-D355-4EBA-CDD4EF4A737C}'']',
   '  end;',
   '  TObject = class end;',
-  '  TGUID = string;',
+  '  TGUID = record D1, D2, D3, D4: word; end;',
   '  TAliasGUID = TGUID;',
-  'procedure DoIt(g: TAliasGUID);',
+  '  TGUIDString = string;',
+  '  TAliasGUIDString = TGUIDString;',
+  'procedure DoConstGUIDIt(const g: TAliasGUID); overload;',
   'begin end;',
-  'var i: IUnknown;',
-  '  g: TAliasGUID;',
+  'procedure DoDefGUID(g: TAliasGUID); overload;',
+  'begin end;',
+  'procedure DoStr(const s: TAliasGUIDString); overload;',
+  'begin end;',
+  'var',
+  '  i: IUnknown;',
+  '  g: TAliasGUID = ''{d91c9af4-3C93-420F-A303-BF5BA82BFD23}'';',
+  '  s: TAliasGUIDString;',
   'begin',
-  '  DoIt(IUnknown);',
-  '  DoIt(i);',
+  '  DoConstGUIDIt(IUnknown);',
+  '  DoDefGUID(IUnknown);',
+  '  DoStr(IUnknown);',
+  '  DoConstGUIDIt(i);',
+  '  DoDefGUID(i);',
+  '  DoStr(i);',
+  '  DoConstGUIDIt(''{D91C9AF4-3c93-420f-A303-BF5BA82BFD23}'');',
+  '  DoDefGUID(''{D91C9AF4-3c93-420f-A303-BF5BA82BFD23}'');',
+  '  DoStr(g);',
   '  g:=i;',
   '  g:=IUnknown;',
+  '  g:=''{D91C9AF4-3C93-420F-A303-bf5ba82bfd23}'';',
+  '  s:=i;',
+  '  s:=IUnknown;',
+  '  s:=g;',
+  '  if g=i then ;',
+  '  if i=g then ;',
+  '  if g=IUnknown then ;',
+  '  if IUnknown=g then ;',
+  '  if s=i then ;',
+  '  if i=s then ;',
+  '  if s=IUnknown then ;',
+  '  if IUnknown=s then ;',
+  '  if s=g then ;',
+  '  if g=s then ;',
   '']);
   ConvertProgram;
   CheckSource('TestClassInterface_GUID',
@@ -14172,16 +14458,164 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'this.DoIt = function (g) {',
+    'this.TGUID = function (s) {',
+    '  if (s) {',
+    '    this.D1 = s.D1;',
+    '    this.D2 = s.D2;',
+    '    this.D3 = s.D3;',
+    '    this.D4 = s.D4;',
+    '  } else {',
+    '    this.D1 = 0;',
+    '    this.D2 = 0;',
+    '    this.D3 = 0;',
+    '    this.D4 = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.D1 === b.D1) && ((this.D2 === b.D2) && ((this.D3 === b.D3) && (this.D4 === b.D4)));',
+    '  };',
+    '};',
+    'this.DoConstGUIDIt = function (g) {',
+    '};',
+    'this.DoDefGUID = function (g) {',
+    '};',
+    'this.DoStr = function (s) {',
     '};',
     'this.i = null;',
-    'this.g = "";',
+    'this.g = new $mod.TGUID({',
+    '  D1: 0xD91C9AF4,',
+    '  D2: 0x3C93,',
+    '  D3: 0x420F,',
+    '  D4: [',
+    '      0xA3,',
+    '      0x03,',
+    '      0xBF,',
+    '      0x5B,',
+    '      0xA8,',
+    '      0x2B,',
+    '      0xFD,',
+    '      0x23',
+    '    ]',
+    '});',
+    'this.s = "";',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.IUnknown.$guid);',
-    '$mod.DoIt($mod.i.$guid);',
-    '$mod.g = $mod.i.$guid;',
-    '$mod.g = $mod.IUnknown.$guid;',
+    '$mod.DoConstGUIDIt(rtl.getIntfGUIDR($mod.IUnknown));',
+    '$mod.DoDefGUID(new $mod.TGUID(rtl.getIntfGUIDR($mod.IUnknown)));',
+    '$mod.DoStr($mod.IUnknown.$guid);',
+    '$mod.DoConstGUIDIt(rtl.getIntfGUIDR($mod.i));',
+    '$mod.DoDefGUID(new $mod.TGUID(rtl.getIntfGUIDR($mod.i)));',
+    '$mod.DoStr($mod.i.$guid);',
+    '$mod.DoConstGUIDIt(rtl.strToGUIDR("{D91C9AF4-3c93-420f-A303-BF5BA82BFD23}"));',
+    '$mod.DoDefGUID(rtl.strToGUIDR("{D91C9AF4-3c93-420f-A303-BF5BA82BFD23}"));',
+    '$mod.DoStr(rtl.guidrToStr($mod.g));',
+    '$mod.g = new $mod.TGUID(rtl.getIntfGUIDR($mod.i));',
+    '$mod.g = new $mod.TGUID(rtl.getIntfGUIDR($mod.IUnknown));',
+    '$mod.g = new $mod.TGUID({',
+    '  D1: 0xD91C9AF4,',
+    '  D2: 0x3C93,',
+    '  D3: 0x420F,',
+    '  D4: [',
+    '      0xA3,',
+    '      0x03,',
+    '      0xBF,',
+    '      0x5B,',
+    '      0xA8,',
+    '      0x2B,',
+    '      0xFD,',
+    '      0x23',
+    '    ]',
+    '});',
+    '$mod.s = $mod.i.$guid;',
+    '$mod.s = $mod.IUnknown.$guid;',
+    '$mod.s = rtl.guidrToStr($mod.g);',
+    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.i))) ;',
+    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.i))) ;',
+    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.IUnknown))) ;',
+    'if ($mod.g.$equal(rtl.getIntfGUIDR($mod.IUnknown))) ;',
+    'if ($mod.s === $mod.i.$guid) ;',
+    'if ($mod.i.$guid === $mod.s) ;',
+    'if ($mod.s === $mod.IUnknown.$guid) ;',
+    'if ($mod.IUnknown.$guid === $mod.s) ;',
+    'if ($mod.g.$equal(rtl.createTGUID($mod.s))) ;',
+    'if ($mod.g.$equal(rtl.createTGUID($mod.s))) ;',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_GUIDProperty;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '    [''{f31db68f-3010-D355-4EBA-CDD4EF4A737C}'']',
+  '  end;',
+  '  TGUID = record D1, D2, D3, D4: word; end;',
+  '  TAliasGUID = TGUID;',
+  '  TGUIDString = string;',
+  '  TAliasGUIDString = TGUIDString;',
+  '  TObject = class',
+  '    function GetG: TAliasGUID; virtual; abstract;',
+  '    procedure SetG(const Value: TAliasGUID); virtual; abstract;',
+  '    function GetS: TAliasGUIDString; virtual; abstract;',
+  '    procedure SetS(const Value: TAliasGUIDString); virtual; abstract;',
+  '    property g: TAliasGUID read GetG write SetG;',
+  '    property s: TAliasGUIDString read GetS write SetS;',
+  '  end;',
+  'var o: TObject;',
+  'begin',
+  '  o.g:=IUnknown;',
+  '  o.g:=''{D91C9AF4-3C93-420F-A303-bf5ba82bfd23}'';',
+  '  o.s:=IUnknown;',
+  '  o.s:=o.g;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_GUIDProperty',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}", [], null);',
+    'this.TGUID = function (s) {',
+    '  if (s) {',
+    '    this.D1 = s.D1;',
+    '    this.D2 = s.D2;',
+    '    this.D3 = s.D3;',
+    '    this.D4 = s.D4;',
+    '  } else {',
+    '    this.D1 = 0;',
+    '    this.D2 = 0;',
+    '    this.D3 = 0;',
+    '    this.D4 = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.D1 === b.D1) && ((this.D2 === b.D2) && ((this.D3 === b.D3) && (this.D4 === b.D4)));',
+    '  };',
+    '};',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.SetG(new $mod.TGUID(rtl.getIntfGUIDR($mod.IUnknown)));',
+    '$mod.o.SetG(new $mod.TGUID({',
+    '  D1: 0xD91C9AF4,',
+    '  D2: 0x3C93,',
+    '  D3: 0x420F,',
+    '  D4: [',
+    '      0xA3,',
+    '      0x03,',
+    '      0xBF,',
+    '      0x5B,',
+    '      0xA8,',
+    '      0x2B,',
+    '      0xFD,',
+    '      0x23',
+    '    ]',
+    '}));',
+    '$mod.o.SetS($mod.IUnknown.$guid);',
+    '$mod.o.SetS(rtl.guidrToStr($mod.o.GetG()));',
     '']));
 end;
 
@@ -15889,6 +16323,35 @@ begin
     '};',
     'do{',
     '} while(!$mod.v);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_Not;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v: jsvalue;',
+  '  b: boolean;',
+  'begin',
+  '  b:=not v;',
+  '  if not v then ;',
+  '  while not v do ;',
+  '  repeat until not v;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_If',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.b = false;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.b=!$mod.v;',
+    'if (!$mod.v) ;',
+    'while(!$mod.v){',
+    '};',
+    'do{',
+    '} while($mod.v);',
     '']));
 end;
 
@@ -18565,7 +19028,7 @@ begin
   '{$interfaces com}',
   '{$modeswitch externalclass}',
   'type',
-  '  TGuid = string;',
+  '  TGuid = record end;',
   '  integer = longint;',
   '  IUnknown = interface',
   '    function QueryInterface(const iid: TGuid; out obj): Integer;',
@@ -18589,6 +19052,12 @@ begin
   ConvertProgram;
   CheckSource('TestRTTI_Interface_COM',
     LinesToStr([ // statements
+    'this.TGuid = function (s) {',
+    '  this.$equal = function (b) {',
+    '    return true;',
+    '  };',
+    '};',
+    '$mod.$rtti.$Record("TGuid", {});',
     'rtl.createInterface(',
     '  $mod,',
     '  "IUnknown",',
@@ -18598,7 +19067,7 @@ begin
     '  function () {',
     '    this.$kind = "com";',
     '    var $r = this.$rtti;',
-    '    $r.addMethod("QueryInterface", 1, [["iid", rtl.string, 2], ["obj", null, 4]], rtl.longint);',
+    '    $r.addMethod("QueryInterface", 1, [["iid", $mod.$rtti["TGuid"], 2], ["obj", null, 4]], rtl.longint);',
     '    $r.addMethod("_AddRef", 1, null, rtl.longint);',
     '    $r.addMethod("_Release", 1, null, rtl.longint);',
     '  }',

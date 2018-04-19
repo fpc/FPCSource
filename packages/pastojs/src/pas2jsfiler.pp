@@ -7503,12 +7503,14 @@ begin
       Src:=aStream;
 
     {$IFDEF VerbosePCUUncompressed}
+    {AllowWriteln}
     writeln('TPCUReader.ReadPCU SRC START====================================');
     SetLength(FirstBytes,Src.Size);
     Src.read(FirstBytes[1],length(FirstBytes));
     writeln(FirstBytes);
     Src.Position:=0;
     writeln('TPCUReader.ReadPCU SRC END======================================');
+    {AllowWriteln-}
     {$ENDIF}
     JParser:=TJSONParser.Create(Src,[joUTF8,joStrict]);
     Data:=JParser.Parse;
