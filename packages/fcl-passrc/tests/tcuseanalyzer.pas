@@ -152,6 +152,7 @@ type
     procedure TestWP_ClassInterface_Delegation;
     procedure TestWP_ClassInterface_COM;
     procedure TestWP_ClassInterface_Typeinfo;
+    procedure TestWP_ClassInterface_TGUID;
 
     // scope references
     procedure TestSR_Proc_UnitVar;
@@ -2715,6 +2716,25 @@ begin
   'begin',
   '  t:=typeinfo(IUnknown);',
   '  if i.Flag then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassInterface_TGUID;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  TGuid = record',
+  '    {#d1_used}D1: longword;',
+  '    {#d2_used}D2: word;',
+  '    {#d3_used}D3: word;',
+  '    {#d4_used}D4: array[0..7] of byte;',
+  '  end;',
+  'var g,h: TGuid;',
+  'begin',
+  '  if g=h then ;',
   '']);
   AnalyzeWholeProgram;
 end;

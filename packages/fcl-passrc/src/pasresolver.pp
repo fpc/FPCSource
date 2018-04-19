@@ -1145,6 +1145,11 @@ type
       cLossyConversion = cExact+100000;
       cCompatibleWithDefaultParams = cLossyConversion+100000;
       cIncompatible = High(integer);
+    var
+      cTGUIDToString: integer;
+      cStringToTGUID: integer;
+      cInterfaceToTGUID: integer;
+      cInterfaceToString: integer;
     type
       TFindCallElData = record
         Params: TParamsExpr;
@@ -1279,6 +1284,8 @@ type
     procedure CheckConditionExpr(El: TPasExpr; const ResolvedEl: TPasResolverResult); virtual;
     procedure CheckProcSignatureMatch(DeclProc, ImplProc: TPasProcedure; CheckNames: boolean);
     procedure CheckPendingForwardProcs(El: TPasElement);
+    procedure ComputeUnaryNot(El: TUnaryExpr; var ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags); virtual;
     procedure ComputeBinaryExpr(Bin: TBinaryExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -1568,8 +1575,8 @@ type
       const ArrayResolved: TPasResolverResult; RaiseOnError: boolean;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil): integer;
     function CheckEqualCompatibilityUserType(
-      const TypeA, TypeB: TPasResolverResult; ErrorEl: TPasElement;
-      RaiseOnIncompatible: boolean): integer;
+      const LHS, RHS: TPasResolverResult; ErrorEl: TPasElement;
+      RaiseOnIncompatible: boolean): integer; // LHS.BaseType=btContext=RHS.BaseType and both rrfReadable
     function CheckTypeCast(El: TPasType; Params: TParamsExpr; RaiseOnError: boolean): integer;
     function CheckTypeCastRes(const FromResolved, ToResolved: TPasResolverResult;
       ErrorEl: TPasElement; RaiseOnError: boolean): integer; virtual;
@@ -1645,6 +1652,8 @@ type
     function IsInterfaceType(const ResolvedEl: TPasResolverResult;
       IntfType: TPasClassInterfaceType): boolean; overload;
     function IsInterfaceType(TypeEl: TPasType; IntfType: TPasClassInterfaceType): boolean; overload;
+    function IsTGUID(RecTypeEl: TPasRecordType): boolean; virtual;
+    function IsTGUIDString(const ResolvedEl: TPasResolverResult): boolean; virtual;
     function ProcNeedsParams(El: TPasProcedureType): boolean;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
@@ -8018,6 +8027,14 @@ begin
     end;
 end;
 
+procedure TPasResolver.ComputeUnaryNot(El: TUnaryExpr;
+  var ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags);
+begin
+  RaiseMsg(20180208121532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+    [OpcodeStrings[El.OpCode],GetResolverResultDescription(ResolvedEl)],El);
+  if Flags=[] then ;
+end;
+
 procedure TPasResolver.AddModule(El: TPasModule);
 var
   C: TClass;
@@ -9267,6 +9284,11 @@ begin
 
         ResolvedEl.BaseType:=ResolvedTypeEl.BaseType;
         ResolvedEl.TypeEl:=ResolvedTypeEl.TypeEl;
+        if not (rrfReadable in ResolvedEl.Flags) then
+          begin
+          // typecast a type to a value, e.g. Pointer(TObject)
+          ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable];
+          end;
         if (DeclEl is TPasClassType) and (ParamTypeEl is TPasClassType)
             and (TPasClassType(DeclEl).ObjKind<>TPasClassType(ParamTypeEl).ObjKind) then
           begin
@@ -11815,6 +11837,12 @@ begin
   FBaseTypeLength:=btInt64;
   FDynArrayMinIndex:=0;
   FDynArrayMaxIndex:=High(int64);
+
+  cTGUIDToString:=cTypeConversion+1;
+  cStringToTGUID:=cTypeConversion+1;
+  cInterfaceToTGUID:=cTypeConversion+1;
+  cInterfaceToString:=cTypeConversion+2;
+
   FScopeClass_Class:=TPasClassScope;
   FScopeClass_InitialFinalization:=TPasInitialFinalizationScope;
   FScopeClass_Module:=TPasModuleScope;
@@ -14158,7 +14186,7 @@ var
   Handled: Boolean;
   C: TClass;
   LBT, RBT: TResolverBaseType;
-  LRange, RValue: TResEvalValue;
+  LRange, RValue, Value: TResEvalValue;
   RightSubResolved: TPasResolverResult;
   wc: WideChar;
 begin
@@ -14260,28 +14288,47 @@ begin
         RaiseNotYetImplemented(20171108195216,ErrorEl);
         end;
       end
-    else if (LBT in btAllStrings)
-        and (RBT in btAllStringAndChars) then
-      case LBT of
-      btAnsiString:
-        if RBT in [btAnsiChar,btShortString,btRawByteString] then
-          Result:=cCompatible
+    else if (LBT in btAllStrings) then
+      begin
+      if (RBT in btAllStringAndChars) then
+        case LBT of
+        btAnsiString:
+          if RBT in [btAnsiChar,btShortString,btRawByteString] then
+            Result:=cCompatible
+          else
+            Result:=cLossyConversion;
+        btShortString:
+          if RBT=btAnsiChar then
+            Result:=cCompatible
+          else
+            Result:=cLossyConversion;
+        btWideString,btUnicodeString:
+          Result:=cCompatible;
+        btRawByteString:
+          if RBT in [btAnsiChar,btAnsiString,btShortString] then
+            Result:=cCompatible
+          else
+            Result:=cLossyConversion;
         else
-          Result:=cLossyConversion;
-      btShortString:
-        if RBT=btAnsiChar then
-          Result:=cCompatible
-        else
-          Result:=cLossyConversion;
-      btWideString,btUnicodeString:
-        Result:=cCompatible;
-      btRawByteString:
-        if RBT in [btAnsiChar,btAnsiString,btShortString] then
-          Result:=cCompatible
-        else
-          Result:=cLossyConversion;
-      else
-        RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
+          RaiseNotYetImplemented(20170417195208,ErrorEl,BaseTypeNames[LBT]);
+        end
+      else if RBT=btContext then
+        begin
+        RTypeEl:=ResolveAliasType(RHS.TypeEl);
+        if RTypeEl.ClassType=TPasClassType then
+          begin
+          if (TPasClassType(RTypeEl).ObjKind=okInterface)
+              and IsTGUIDString(LHS) then
+            // aGUIDString:=IntfTypeOrVar
+            exit(cInterfaceToString);  // no check for rrfReadable
+          end
+        else if RTypeEl.ClassType=TPasRecordType then
+          begin
+          if IsTGUID(TPasRecordType(RTypeEl)) then
+            // aString:=GUID
+            Result:=cTGUIDToString;
+          end;
+        end;
       end
     else if (LBT in btAllInteger)
         and (RBT in btAllInteger) then
@@ -14532,6 +14579,25 @@ begin
               end;
             end;
           end;
+        end
+      else if TypeEl.ClassType=TPasRecordType then
+        begin
+        if (RBT in btAllStrings) and IsTGUID(TPasRecordType(TypeEl))
+            and (rrfReadable in RHS.Flags) then
+          begin
+          // GUIDVar := string, e.g. IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'
+          Value:=Eval(RHS,[refConst]);
+          try
+            if Value=nil then
+              if RaiseOnIncompatible then
+                RaiseXExpectedButYFound(20180414105916,'string literal','string', ErrorEl)
+              else
+                exit(cIncompatible);
+          finally
+            ReleaseEvalValue(Value);
+          end;
+          Result:=cStringToTGUID;
+          end;
         end;
       end;
     end;
@@ -14621,7 +14687,7 @@ function TPasResolver.CheckEqualResCompatibility(const LHS,
   RHS: TPasResolverResult; LErrorEl: TPasElement; RaiseOnIncompatible: boolean;
   RErrorEl: TPasElement): integer;
 var
-  TypeEl, RTypeEl: TPasType;
+  LTypeEl, RTypeEl: TPasType;
   ResolvedEl: TPasResolverResult;
 begin
   Result:=cIncompatible;
@@ -14634,20 +14700,35 @@ begin
     begin
     if (LHS.BaseType=btContext) then
       begin
-      TypeEl:=ResolveAliasType(LHS.TypeEl);
-      if (TypeEl.ClassType=TPasClassType)
-        and (ResolveAliasTypeEl(LHS.IdentEl)=TypeEl) then
+      LTypeEl:=ResolveAliasType(LHS.TypeEl);
+      if (LTypeEl.ClassType=TPasClassType)
+          and (ResolveAliasTypeEl(LHS.IdentEl)=LTypeEl) then
         begin
+        // LHS is class type, e.g. TObject or IInterface
         if RHS.BaseType=btNil then
           exit(cExact)
+        else if RHS.BaseType in btAllStrings then
+          begin
+          if (rrfReadable in RHS.Flags)
+              and (TPasClassType(LTypeEl).ObjKind=okInterface)
+              and IsTGUIDString(RHS) then
+            // e.g.  IUnknown=aGUIDString
+            exit(cInterfaceToString);
+          end
         else if (RHS.BaseType=btContext) then
           begin
           RTypeEl:=ResolveAliasType(RHS.TypeEl);
           if (RTypeEl.ClassType=TPasClassOfType)
               and (rrfReadable in RHS.Flags)
-              and (TPasClassType(TypeEl).ObjKind=okClass) then
+              and (TPasClassType(LTypeEl).ObjKind=okClass) then
             // for example  if TImage=ImageClass then
-            exit(cExact);
+            exit(cExact)
+          else if (RTypeEl.ClassType=TPasRecordType)
+              and (rrfReadable in RHS.Flags)
+              and (TPasClassType(LTypeEl).ObjKind=okInterface)
+              and IsTGUID(TPasRecordType(RTypeEl)) then
+            // e.g.  if IUnknown=TGuidVar then
+            exit(cInterfaceToTGUID);
           end;
         end;
       end;
@@ -14661,16 +14742,31 @@ begin
       if (RTypeEl.ClassType=TPasClassType)
           and (ResolveAliasTypeEl(RHS.IdentEl)=RTypeEl) then
         begin
+        // RHS is class type, e.g. TObject or IInterface
         if LHS.BaseType=btNil then
           exit(cExact)
+        else if LHS.BaseType in btAllStrings then
+          begin
+          if (rrfReadable in LHS.Flags)
+              and (TPasClassType(RTypeEl).ObjKind=okInterface)
+              and IsTGUIDString(LHS) then
+            // e.g.  aGUIDString=IUnknown
+            exit(cInterfaceToString);
+          end
         else if (LHS.BaseType=btContext) then
           begin
-          TypeEl:=ResolveAliasType(LHS.TypeEl);
-          if (TypeEl.ClassType=TPasClassOfType)
+          LTypeEl:=ResolveAliasType(LHS.TypeEl);
+          if (LTypeEl.ClassType=TPasClassOfType)
               and (rrfReadable in LHS.Flags)
               and (TPasClassType(RTypeEl).ObjKind=okClass) then
             // for example  if ImageClass=TImage then
-            exit(cExact);
+            exit(cExact)
+          else if (LTypeEl.ClassType=TPasRecordType)
+              and (rrfReadable in LHS.Flags)
+              and (TPasClassType(RTypeEl).ObjKind=okInterface)
+              and IsTGUID(TPasRecordType(LTypeEl)) then
+            // e.g.  if TGuidVar=IUnknown then
+            exit(cInterfaceToTGUID);
           end;
         end;
       end;
@@ -14716,7 +14812,22 @@ begin
     if RHS.BaseType in btAllStringAndChars then
       exit(cCompatible)
     else if (RHS.BaseType=btRange) and (RHS.SubType in btAllChars) then
-      exit(cCompatible);
+      exit(cCompatible)
+    else if RHS.BaseType=btContext then
+      begin
+      RTypeEl:=ResolveAliasType(RHS.TypeEl);
+      if (RTypeEl.ClassType=TPasClassType) then
+        begin
+        if (TPasClassType(RTypeEl).ObjKind=okInterface)
+            and IsTGUIDString(LHS) then
+          // e.g. aGUIDString=IntfVar
+          exit(cInterfaceToString);
+        end
+      else if (RTypeEl.ClassType=TPasRecordType)
+          and IsTGUID(TPasRecordType(RTypeEl)) then
+        // e.g. aString=GuidVar
+        exit(cTGUIDToString);
+      end;
     end
   else if LHS.BaseType=btNil then
     begin
@@ -14724,12 +14835,12 @@ begin
         exit(cExact)
       else if RHS.BaseType=btContext then
         begin
-        TypeEl:=RHS.TypeEl;
-        if (TypeEl.ClassType=TPasClassType)
-            or (TypeEl.ClassType=TPasClassOfType)
-            or (TypeEl.ClassType=TPasPointerType)
-            or (TypeEl is TPasProcedureType)
-            or IsDynArray(TypeEl) then
+        LTypeEl:=RHS.TypeEl;
+        if (LTypeEl.ClassType=TPasClassType)
+            or (LTypeEl.ClassType=TPasClassOfType)
+            or (LTypeEl.ClassType=TPasPointerType)
+            or (LTypeEl is TPasProcedureType)
+            or IsDynArray(LTypeEl) then
           exit(cExact);
         end;
       if RaiseOnIncompatible then
@@ -14744,12 +14855,12 @@ begin
         exit(cExact)
       else if LHS.BaseType=btContext then
         begin
-        TypeEl:=LHS.TypeEl;
-        if (TypeEl.ClassType=TPasClassType)
-            or (TypeEl.ClassType=TPasClassOfType)
-            or (TypeEl.ClassType=TPasPointerType)
-            or (TypeEl is TPasProcedureType)
-            or IsDynArray(TypeEl) then
+        LTypeEl:=LHS.TypeEl;
+        if (LTypeEl.ClassType=TPasClassType)
+            or (LTypeEl.ClassType=TPasClassOfType)
+            or (LTypeEl.ClassType=TPasPointerType)
+            or (LTypeEl is TPasProcedureType)
+            or IsDynArray(LTypeEl) then
           exit(cExact);
         end;
       if RaiseOnIncompatible then
@@ -14806,19 +14917,19 @@ begin
       end
     else if LHS.SubType=btContext then
       begin
-      TypeEl:=ResolveAliasType(LHS.TypeEl);
-      if TypeEl.ClassType=TPasRangeType then
+      LTypeEl:=ResolveAliasType(LHS.TypeEl);
+      if LTypeEl.ClassType=TPasRangeType then
         begin
-        ComputeElement(TPasRangeType(TypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+        ComputeElement(TPasRangeType(LTypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
         if ResolvedEl.BaseType=btContext then
           begin
-          TypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
-          if TypeEl.ClassType=TPasEnumType then
+          LTypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
+          if LTypeEl.ClassType=TPasEnumType then
             begin
             if RHS.BaseType=btContext then
               begin
               RTypeEl:=ResolveAliasType(RHS.TypeEl);
-              if (TypeEl=RTypeEl) then
+              if (LTypeEl=RTypeEl) then
                 exit(cCompatible);
               end;
             end;
@@ -14828,8 +14939,8 @@ begin
     end
   else if LHS.BaseType=btContext then
     begin
-    TypeEl:=ResolveAliasType(LHS.TypeEl);
-    if TypeEl.ClassType=TPasEnumType then
+    LTypeEl:=ResolveAliasType(LHS.TypeEl);
+    if LTypeEl.ClassType=TPasEnumType then
       begin
       if RHS.BaseType=btRange then
         begin
@@ -14840,9 +14951,47 @@ begin
           if ResolvedEl.BaseType=btContext then
             begin
             RTypeEl:=ResolveAliasType(ResolvedEl.TypeEl);
-            if TypeEl=RTypeEl then
+            if LTypeEl=RTypeEl then
               exit(cCompatible);
             end;
+          end;
+        end;
+      end
+    else if LTypeEl.ClassType=TPasClassType then
+      begin
+      if TPasClassType(LTypeEl).ObjKind=okInterface then
+        begin
+        if RHS.BaseType in btAllStrings then
+          begin
+          if IsTGUIDString(RHS) then
+            // e.g. IntfVar=aGUIDString
+            exit(cInterfaceToString);
+          end
+        else if RHS.BaseType=btContext then
+          begin
+          RTypeEl:=ResolveAliasType(RHS.TypeEl);
+          if (RTypeEl.ClassType=TPasRecordType)
+              and IsTGUID(TPasRecordType(RTypeEl)) then
+            // e.g. IntfVar=GuidVar
+            exit(cInterfaceToTGUID);
+          end;
+        end;
+      end
+    else if LTypeEl.ClassType=TPasRecordType then
+      begin
+      if IsTGUID(TPasRecordType(LTypeEl)) then
+        begin
+        // LHS is TGUID
+        if (RHS.BaseType in btAllStrings) then
+          // GuidVar=aString
+          exit(cTGUIDToString)
+        else if RHS.BaseType=btContext then
+          begin
+          RTypeEl:=ResolveAliasType(RHS.TypeEl);
+          if (RTypeEl.ClassType=TPasClassType)
+              and (TPasClassType(RTypeEl).ObjKind=okInterface) then
+            // GUIDVar=IntfVar
+            exit(cInterfaceToTGUID);
           end;
         end;
       end;
@@ -15368,6 +15517,12 @@ begin
     end
   else if LTypeEl.ClassType=TPasRecordType then
     begin
+    if (RTypeEl is TPasClassType) and (TPasClassType(RTypeEl).ObjKind=okInterface)
+        and IsTGUID(TPasRecordType(LTypeEl)) then
+      begin
+      // GUIDVar := IntfTypeOrVar
+      exit(cInterfaceToTGUID);
+      end;
     // records of different type
     end
   else if LTypeEl.ClassType=TPasEnumType then
@@ -15696,11 +15851,12 @@ begin
     end;
 end;
 
-function TPasResolver.CheckEqualCompatibilityUserType(const TypeA,
-  TypeB: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
+function TPasResolver.CheckEqualCompatibilityUserType(const LHS,
+  RHS: TPasResolverResult; ErrorEl: TPasElement; RaiseOnIncompatible: boolean
   ): integer;
+// LHS.BaseType=btContext=RHS.BaseType and both rrfReadable
 var
-  ElA, ElB: TPasType;
+  LTypeEl, RTypeEl: TPasType;
   AResolved, BResolved: TPasResolverResult;
 
   function IncompatibleElements: integer;
@@ -15708,89 +15864,83 @@ var
     Result:=cIncompatible;
     if not RaiseOnIncompatible then exit;
     RaiseIncompatibleType(20170216152513,nIncompatibleTypesGotExpected,
-      [],ElA,ElB,ErrorEl);
+      [],LTypeEl,RTypeEl,ErrorEl);
   end;
 
 begin
-  if (TypeA.TypeEl=nil) then
+  if (LHS.TypeEl=nil) then
     RaiseInternalError(20161007223118);
-  if (TypeB.TypeEl=nil) then
+  if (RHS.TypeEl=nil) then
     RaiseInternalError(20161007223119);
-  ElA:=ResolveAliasType(TypeA.TypeEl);
-  ElB:=ResolveAliasType(TypeB.TypeEl);
-  if ElA=ElB then
+  LTypeEl:=ResolveAliasType(LHS.TypeEl);
+  RTypeEl:=ResolveAliasType(RHS.TypeEl);
+  if LTypeEl=RTypeEl then
     exit(cExact);
 
-  if ElA.ClassType=TPasClassType then
+  if LTypeEl.ClassType=TPasClassType then
     begin
-    if TypeA.IdentEl is TPasType then
-      begin
-      if (TypeB.IdentEl is TPasType) and (ElA=ElB) then
-        // e.g. if TFPMemoryImage=TFPMemoryImage then ;
-        exit(cExact);
-      if ElB.ClassType=TPasClassOfType then
-        begin
-        // e.g. if TFPMemoryImage=ImageClass then ;
-        Result:=CheckClassIsClass(ElA,TPasClassOfType(ElB).DestType,ErrorEl);
-        if (Result=cIncompatible) and RaiseOnIncompatible then
-          RaiseIncompatibleTypeRes(20180324190723,nTypesAreNotRelatedXY,[],TypeA,TypeB,ErrorEl);
-        exit;
-        end;
-      end
-    else if ElB.ClassType=TPasClassType then
+    if RTypeEl.ClassType=TPasClassType then
       begin
       // e.g. if Sender=Button1 then
-      Result:=CheckSrcIsADstType(TypeA,TypeB,ErrorEl);
+      Result:=CheckSrcIsADstType(LHS,RHS,ErrorEl);
       if Result=cIncompatible then
-        Result:=CheckSrcIsADstType(TypeB,TypeA,ErrorEl);
+        Result:=CheckSrcIsADstType(RHS,LHS,ErrorEl);
       if (Result=cIncompatible) and RaiseOnIncompatible then
-        RaiseIncompatibleTypeRes(20180324190757,nTypesAreNotRelatedXY,[],TypeA,TypeB,ErrorEl);
-      exit;
-      end;
-    exit(IncompatibleElements);
-    end
-  else if ElA.ClassType=TPasClassOfType then
-    begin
-    if ElB.ClassType=TPasClassOfType then
-      begin
-      // for example: if ImageClass=ImageClass then
-      Result:=CheckClassIsClass(TPasClassOfType(ElA).DestType,
-                                TPasClassOfType(ElB).DestType,ErrorEl);
-      if Result=cIncompatible then
-        Result:=CheckClassIsClass(TPasClassOfType(ElB).DestType,
-                                  TPasClassOfType(ElA).DestType,ErrorEl);
-      if (Result=cIncompatible) and RaiseOnIncompatible then
-        RaiseIncompatibleTypeRes(20180324190804,nTypesAreNotRelatedXY,[],TypeA,TypeB,ErrorEl);
+        RaiseIncompatibleTypeRes(20180324190757,nTypesAreNotRelatedXY,[],LHS,RHS,ErrorEl);
       exit;
       end
-    else if TypeB.IdentEl is TPasClassType then
+    else if RTypeEl.ClassType=TPasRecordType then
       begin
-      // for example: if ImageClass=TFPMemoryImage then
-      Result:=CheckClassIsClass(TPasClassType(TypeB.IdentEl),
-                                TPasClassOfType(ElA).DestType,ErrorEl);
+      if (TPasClassType(LTypeEl).ObjKind=okInterface)
+          and IsTGUID(TPasRecordType(RTypeEl)) then
+        // IntfVar=GuidVar
+        exit(cInterfaceToTGUID);
+      end;
+    exit(IncompatibleElements);
+    end
+  else if LTypeEl.ClassType=TPasClassOfType then
+    begin
+    if RTypeEl.ClassType=TPasClassOfType then
+      begin
+      // for example: if ImageClass=ImageClass then
+      Result:=CheckClassIsClass(TPasClassOfType(LTypeEl).DestType,
+                                TPasClassOfType(RTypeEl).DestType,ErrorEl);
+      if Result=cIncompatible then
+        Result:=CheckClassIsClass(TPasClassOfType(RTypeEl).DestType,
+                                  TPasClassOfType(LTypeEl).DestType,ErrorEl);
       if (Result=cIncompatible) and RaiseOnIncompatible then
-        RaiseIncompatibleTypeRes(20180324190827,nTypesAreNotRelatedXY,[],TypeA,TypeB,ErrorEl);
+        RaiseIncompatibleTypeRes(20180324190804,nTypesAreNotRelatedXY,[],LHS,RHS,ErrorEl);
       exit;
       end;
     exit(IncompatibleElements);
     end
-  else if ElA.ClassType=TPasEnumType then
+  else if LTypeEl.ClassType=TPasEnumType then
     begin
     // enums of different type
     if not RaiseOnIncompatible then
       exit(cIncompatible);
-    if ElB.ClassType=TPasEnumValue then
+    if RTypeEl.ClassType=TPasEnumValue then
       RaiseIncompatibleType(20170216152523,nIncompatibleTypesGotExpected,
-        [],TPasEnumType(ElA),TPasEnumType(ElB),ErrorEl)
+        [],TPasEnumType(LTypeEl),TPasEnumType(RTypeEl),ErrorEl)
     else
       exit(IncompatibleElements);
     end
-  else if ElA.ClassType=TPasSetType then
+  else if LTypeEl.ClassType=TPasRecordType then
     begin
-    if ElB.ClassType=TPasSetType then
+    if RTypeEl.ClassType=TPasClassType then
       begin
-      ComputeElement(TPasSetType(ElA).EnumType,AResolved,[]);
-      ComputeElement(TPasSetType(ElB).EnumType,BResolved,[]);
+      if (TPasClassType(RTypeEl).ObjKind=okInterface)
+          and IsTGUID(TPasRecordType(LTypeEl)) then
+        // GuidVar=IntfVar
+        exit(cInterfaceToTGUID);
+      end;
+    end
+  else if LTypeEl.ClassType=TPasSetType then
+    begin
+    if RTypeEl.ClassType=TPasSetType then
+      begin
+      ComputeElement(TPasSetType(LTypeEl).EnumType,AResolved,[]);
+      ComputeElement(TPasSetType(RTypeEl).EnumType,BResolved,[]);
       if (AResolved.TypeEl<>nil)
       and (AResolved.TypeEl=BResolved.TypeEl) then
         exit(cExact);
@@ -15807,12 +15957,12 @@ begin
     else
       exit(IncompatibleElements);
     end
-  else if (ElA is TPasProcedureType) and (rrfReadable in TypeA.Flags) then
+  else if (LTypeEl is TPasProcedureType) and (rrfReadable in LHS.Flags) then
     begin
-    if (ElB is TPasProcedureType) and (rrfReadable in TypeB.Flags) then
+    if (RTypeEl is TPasProcedureType) and (rrfReadable in RHS.Flags) then
       begin
       // e.g. ProcVar1 = ProcVar2
-      if CheckProcTypeCompatibility(TPasProcedureType(ElA),TPasProcedureType(ElB),
+      if CheckProcTypeCompatibility(TPasProcedureType(LTypeEl),TPasProcedureType(RTypeEl),
           false,nil,false) then
         exit(cExact);
       end
@@ -15987,19 +16137,7 @@ begin
                 and (not TPasClassType(FromTypeEl).IsExternal) then
               begin
               // e.g. intftype(classinstvar)
-              if msDelphi in CurrentParser.CurrentModeswitches then
-                begin
-                // delphi: classinstvar must implement intftype
-                if GetClassImplementsIntf(TPasClassType(FromTypeEl),TPasClassType(ToTypeEl))<>nil then
-                  Result:=cCompatible
-                else
-                  Result:=cIncompatible;
-                end
-              else
-                begin
-                // objfpc: is checked at runtime
-                Result:=cCompatible;
-                end;
+              Result:=cCompatible;
               end;
             end
           else if TPasClassType(FromTypeEl).ObjKind=okInterface then
@@ -16454,11 +16592,12 @@ begin
           RaiseMsg(20170216152532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
             [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
       eopNot:
-        if ResolvedEl.BaseType in (btAllInteger+btAllBooleans) then
-          exit
-        else
-          RaiseMsg(20180208121532,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
-            [OpcodeStrings[TUnaryExpr(El).OpCode],GetResolverResultDescription(ResolvedEl)],El);
+        begin
+          if ResolvedEl.BaseType in (btAllInteger+btAllBooleans) then
+          else
+            ComputeUnaryNot(TUnaryExpr(El),ResolvedEl,Flags);
+          exit;
+        end;
       eopAddress:
         if (ResolvedEl.BaseType=btProc) and (ResolvedEl.IdentEl is TPasProcedure) then
           begin
@@ -17079,6 +17218,65 @@ begin
   Result:=(TypeEl.ClassType=TPasClassType)
     and (TPasClassType(TypeEl).ObjKind=okInterface)
     and (TPasClassType(TypeEl).InterfaceType=IntfType);
+end;
+
+function TPasResolver.IsTGUID(RecTypeEl: TPasRecordType): boolean;
+var
+  Members: TFPList;
+  El: TPasElement;
+begin
+  Result:=false;
+  if not SameText(RecTypeEl.Name,'TGUID') then exit;
+  if SameText(RecTypeEl.GetModule.Name,'system') then exit(true);
+  Members:=RecTypeEl.Members;
+  if Members.Count<4 then exit;
+  El:=TPasElement(Members[0]);
+  if not SameText(El.Name,'D1') then exit;
+  El:=TPasElement(Members[1]);
+  if not SameText(El.Name,'D2') then exit;
+  El:=TPasElement(Members[2]);
+  if not SameText(El.Name,'D3') then exit;
+  El:=TPasElement(Members[3]);
+  if not SameText(El.Name,'D4') then exit;
+  Result:=true;
+end;
+
+function TPasResolver.IsTGUIDString(const ResolvedEl: TPasResolverResult
+  ): boolean;
+var
+  TypeEl: TPasType;
+  C: TClass;
+  IdentEl: TPasElement;
+begin
+  if not (ResolvedEl.BaseType in btAllStrings) then
+    exit(false);
+  if (ResolvedEl.ExprEl<>nil) and (ResolvedEl.TypeEl<>nil) then
+    exit(true); // untyped string literal
+  IdentEl:=ResolvedEl.IdentEl;
+  if IdentEl<>nil then
+    begin
+    C:=IdentEl.ClassType;
+    if C.InheritsFrom(TPasVariable) then
+      TypeEl:=TPasVariable(IdentEl).VarType
+    else if C=TPasArgument then
+      TypeEl:=TPasArgument(IdentEl).ArgType
+    else if C=TPasResultElement then
+      TypeEl:=TPasResultElement(IdentEl).ResultType
+    else
+      TypeEl:=nil;
+    while TypeEl<>nil do
+      begin
+      if TypeEl.ClassType=TPasAliasType then
+        begin
+        if SameText(TypeEl.Name,'TGUIDString') then
+          exit(true);
+        TypeEl:=TPasAliasType(TypeEl).DestType;
+        end
+      else
+        break;
+      end;
+    end;
+  Result:=false;
 end;
 
 function TPasResolver.ProcNeedsParams(El: TPasProcedureType): boolean;

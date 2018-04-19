@@ -630,6 +630,7 @@ type
     Procedure TestClassInterface_Enumerator;
     Procedure TestClassInterface_PassTypecastClassToIntfAsVarParamFail;
     Procedure TestClassInterface_PassTypecastIntfToClassAsVarParamFail;
+    Procedure TestClassInterface_GUID;
 
     // with
     Procedure TestWithBlock1;
@@ -10511,6 +10512,7 @@ begin
   '  oBird,oBird2: TBird;',
   '  o: TObject;',
   '  a: TAlbatros;',
+  '  p: pointer;',
   'begin',
   '  if Assigned(i) then ;',
   '  if TypeInfo(i)=nil then ;',
@@ -10534,6 +10536,7 @@ begin
   '  if o is IBird then ;', // FPC needs GUID
   '  if i is TBird then ;',
   '  if e is TBird then ;',
+  '  p:=i;',
   '']);
   ParseProgram;
 end;
@@ -10679,6 +10682,52 @@ begin
   'begin',
   '  DoIt(TBall(i));']);
   CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestClassInterface_GUID;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '    [''{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}'']',
+  '  end;',
+  '  TObject = class end;',
+  '  TGUID = record D1,D2,D3,D4: word; end;',
+  '  TAliasGUID = TGUID;',
+  '  TGUIDString = string;',
+  '  TAliasGUIDString = TGUIDString;',
+  'procedure {#A}DoIt(const g: TAliasGUID); overload;',
+  'begin end;',
+  'procedure {#B}DoIt(const s: TAliasGUIDString); overload;',
+  'begin end;',
+  'var',
+  '  i: IUnknown;',
+  '  g: TAliasGUID = ''{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'';',
+  '  s: TAliasGUIDString;',
+  'begin',
+  '  {@A}DoIt(IUnknown);',
+  '  {@A}DoIt(i);',
+  '  g:=i;',
+  '  g:=IUnknown;',
+  '  g:=''{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'';',
+  '  s:=g;',
+  '  s:=IUnknown;',
+  '  s:=i;',
+  '  {@B}DoIt(s);',
+  '  if s=IUnknown then ;',
+  '  if IUnknown=s then ;',
+  '  if s=i then ;',
+  '  if i=s then ;',
+  '  if g=IUnknown then ;',
+  '  if IUnknown=g then ;',
+  '  if g=i then ;',
+  '  if i=g then ;',
+  '  if s=g then ;',
+  '  if g=s then ;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestPropertyAssign;

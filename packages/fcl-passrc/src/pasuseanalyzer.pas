@@ -1585,9 +1585,12 @@ var
 begin
   if Mode=paumAllExports then exit;
   MarkElementAsUsed(El);
-  if (Mode=paumAllPublic) and not ElementVisited(El,Mode) then
-    for i:=0 to El.Members.Count-1 do
-      UseVariable(TObject(El.Members[i]) as TPasVariable,rraNone,true);
+  if not ElementVisited(El,Mode) then
+    begin
+    if (Mode=paumAllPublic) or Resolver.IsTGUID(El) then
+      for i:=0 to El.Members.Count-1 do
+        UseVariable(TObject(El.Members[i]) as TPasVariable,rraNone,true);
+    end;
 end;
 
 procedure TPasAnalyzer.UseClassType(El: TPasClassType; Mode: TPAUseMode);

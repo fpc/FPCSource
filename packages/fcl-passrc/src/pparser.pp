@@ -1868,7 +1868,7 @@ var
   Ref: TPasElement;
 begin
   Ref:=Nil;
-  SS:=(not (po_resolvestandardtypes in FOptions)) and isSimpleTypeToken(Name);
+  SS:=(not (po_ResolveStandardTypes in FOptions)) and isSimpleTypeToken(Name);
   if not SS then
     begin
     Ref:=Engine.FindElement(Name);
