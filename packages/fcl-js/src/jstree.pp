@@ -1635,6 +1635,8 @@ end;
 
 procedure TJSNewMemberExpression.AddArg(El: TJSElement);
 begin
+  if Args=nil then
+    Args:=TJSArguments.Create(Line,Column,Source);
   Args.Elements.AddElement.Expr:=El;
 end;
 
