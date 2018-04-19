@@ -312,9 +312,9 @@ Works:
   - COM: property in class, property in interface
   - COM: with interface do
   - COM: for interface in ... do
+  - COM: pass IntfVar to untyped parameter
 
 ToDos:
-- replace let in rtl.js
 - option to disable use strict
 - for i in jsvalue do
 - for i in tjsobject do

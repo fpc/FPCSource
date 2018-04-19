@@ -101,11 +101,12 @@ type
     coKeepNotUsedDeclarationsWPO,
     coSourceMapCreate,
     coSourceMapInclude,
-    coSourceMapXSSIHeader
+    coSourceMapXSSIHeader,
+    coUseStrict
     );
   TP2jsCompilerOptions = set of TP2jsCompilerOption;
 const
-  DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader];
+  DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
   coShowAll = [coShowErrors..coShowUsedTools];
   coO1Enable = [coEnumValuesAsNumbers];
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
@@ -136,7 +137,8 @@ const
     'Keep not used declarations (WPO)',
     'Create source map',
     'Include Pascal sources in source map',
-    'Prepend XSSI protection )]} to source map'
+    'Prepend XSSI protection )]} to source map',
+    'Use strict'
     );
 
 //------------------------------------------------------------------------------
@@ -786,9 +788,16 @@ end;
 function TPas2jsCompilerFile.
   GetInitialConverterOptions: TPasToJsConverterOptions;
 begin
-  Result:=DefaultPasToJSOptions+[coUseStrict];
+  Result:=DefaultPasToJSOptions;
+
+  if coUseStrict in Compiler.Options then
+    Include(Result,fppas2js.coUseStrict)
+  else
+    Exclude(Result,fppas2js.coUseStrict);
+
   if coEnumValuesAsNumbers in Compiler.Options then
     Include(Result,fppas2js.coEnumNumbers);
+
   if coLowerCase in Compiler.Options then
     Include(Result,fppas2js.coLowerCase)
   else
@@ -3154,8 +3163,10 @@ begin
                 Enable:=c='+';
                 Delete(Identifier,length(Identifier),1);
               end;
-              if CompareText(Identifier,'SearchLikeFPC')=0 then
+              if SameText(Identifier,'SearchLikeFPC') then
                 FileCache.SearchLikeFPC:=Enable
+              else if SameText(Identifier,'UseStrict') then
+                SetOption(coUseStrict,Enable)
               else
                 UnknownParam;
             end;
@@ -3874,6 +3885,7 @@ begin
   l('     -Jm- : disable generating source maps');
   l('   -Jo<x> : Enable or disable extra option. The x is case insensitive:');
   l('     -JoSearchLikeFPC : search source files like FPC, default: search case insensitive.');
+  l('     -JoUseStrict : add "use strict" to modules, default.');
   l('   -Ju<x> : Add <x> to foreign unit paths. Foreign units are not compiled.');
   if PrecompileFormats.Count>0 then
   begin

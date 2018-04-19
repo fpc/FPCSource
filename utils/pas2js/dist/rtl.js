@@ -470,7 +470,6 @@ var rtl = {
   },
 
   addIntf: function (aclass, intf, map){
-    'use strict';
     function jmp(fn){
       if (typeof(fn)==="function"){
         return function(){ return fn.apply(this.$o,arguments); };
