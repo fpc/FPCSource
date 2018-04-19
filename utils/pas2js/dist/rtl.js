@@ -99,12 +99,12 @@ var rtl = {
       $intfcode: intfcode,
       $implcode: implcode,
       $impl: null,
-      $rtti: Object.create(rtl.tSectionRTTI),
+      $rtti: Object.create(rtl.tSectionRTTI)
     };
     module.$rtti.$module = module;
     if (implcode) module.$impl = {
       $module: module,
-      $rtti: module.$rtti,
+      $rtti: module.$rtti
     };
   },
 
@@ -405,6 +405,7 @@ var rtl = {
     i.$name = name;
     i.$fullname = module.$name+'.'+name;
     i.$guid = guid;
+    i.$guidr = null;
     i.$names = fnnames?fnnames:[];
     if (rtl.isFunction(initfn)){
       // rtti
@@ -418,8 +419,65 @@ var rtl = {
     return i;
   },
 
+  strToGUIDR: function(s,g){
+    var p = 0;
+    function n(l){
+      var h = s.substr(p,l);
+      p+=l;
+      return parseInt(h,16);
+    }
+    p+=1; // skip {
+    g.D1 = n(8);
+    p+=1; // skip -
+    g.D2 = n(4);
+    p+=1; // skip -
+    g.D3 = n(4);
+    p+=1; // skip -
+    if (!g.D4) g.D4=[];
+    g.D4[0] = n(2);
+    g.D4[1] = n(2);
+    p+=1; // skip -
+    for(var i=2; i<8; i++) g.D4[i] = n(2);
+    return g;
+  },
+
+  guidrToStr: function(g){
+    if (g.$intf) return g.$intf.$guid;
+    function h(n,digits){
+      return ("0000000"+n.toString(16).toUpperCase()).slice(-digits);
+    }
+    var s='{'+h(g.D1,8)+'-'+h(g.D2,4)+'-'+h(g.D3,4)+'-'+h(g.D4[0],2)+h(g.D4[1],2)+'-';
+    for (var i=2; i<8; i++) s+=h(g.D4[i],2);
+    s+='}';
+    return s;
+  },
+
+  createTGUID: function(guid){
+    var TGuid = (pas.System)?pas.System.TGuid:pas.system.tguid;
+    var g = rtl.strToGUIDR(guid,new TGuid());
+    return g;
+  },
+
+  getIntfGUIDR: function(intfTypeOrVar){
+    if (!intfTypeOrVar) return null;
+    if (!intfTypeOrVar.$guidr){
+      var g = rtl.createTGUID(intfTypeOrVar.$guid);
+      if (!intfTypeOrVar.hasOwnProperty('$guid')) intfTypeOrVar = Object.getPrototypeOf(intfTypeOrVar);
+      g.$intf = intfTypeOrVar;
+      intfTypeOrVar.$guidr = g;
+    }
+    return intfTypeOrVar.$guidr;
+  },
+
   addIntf: function (aclass, intf, map){
     'use strict';
+    function jmp(fn){
+      if (typeof(fn)==="function"){
+        return function(){ return fn.apply(this.$o,arguments); };
+      } else {
+        return function(){ rtl.raiseE('EAbstractError'); };
+      }
+    }
     if(!map) map = {};
     var t = intf;
     var item = Object.create(t);
@@ -431,13 +489,8 @@ var rtl = {
         var intfname = names[i];
         var fnname = map[intfname];
         if (!fnname) fnname = intfname;
-        let fn = aclass[fnname];
         //console.log('addIntf: intftype='+t.$name+' index='+i+' intfname="'+intfname+'" fnname="'+fnname+'" proc='+typeof(fn));
-        if (typeof(fn)==="function"){
-          item[intfname] = function(){ return fn.apply(this.$o,arguments); };
-        } else {
-          item[intfname] = function(){ rtl.raiseE('EAbstractError'); };
-        }
+        item[intfname] = jmp(aclass[fnname]);
       }
       t = Object.getPrototypeOf(t);
     }while(t!=null);
@@ -453,30 +506,31 @@ var rtl = {
     if (!item) return null;
     // check delegation
     //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' query='+query+' item='+typeof(item));
-    if (typeof item === 'function') return item.call(obj);
+    if (typeof item === 'function') return item.call(obj); // COM: contains _AddRef
     // check cache
     var intf = null;
     if (obj.$interfaces){
       intf = obj.$interfaces[guid];
-      // intf can be undefined!
       //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' cache='+typeof(intf));
     }
-    if (!intf){
+    if (!intf){ // intf can be undefined!
       intf = Object.create(item);
       intf.$o = obj;
       if (!obj.$interfaces) obj.$interfaces = {};
       obj.$interfaces[guid] = intf;
     }
-    if (query===1){
+    if (typeof(query)==='object'){
+      // called by queryIntfT
       var o = null;
-      if (intf.QueryInterface(guid,
+      if (intf.QueryInterface(rtl.getIntfGUIDR(query),
           {get:function(){ return o; }, set:function(v){ o=v; }}) === 0){
         return o;
       } else {
         return null;
       }
     } else if(query===2){
-      intf._AddRef();
+      // called by TObject.GetInterfaceByStr
+      if (intf.$kind === 'com') intf._AddRef();
     }
     return intf;
   },
@@ -485,23 +539,19 @@ var rtl = {
     return rtl.getIntfG(obj,intftype.$guid);
   },
 
-  queryIntfG: function(obj,guid){
-    return rtl.getIntfG(obj,guid,1);
-  },
-
   queryIntfT: function(obj,intftype){
-    return rtl.queryIntfG(obj,intftype.$guid);
+    return rtl.getIntfG(obj,intftype.$guid,intftype);
   },
 
   queryIntfIsT: function(obj,intftype){
     var i = rtl.queryIntfG(obj,intftype.$guid);
     if (!i) return false;
-    if (i._Release) i._Release();
+    if (i.$kind === 'com') i._Release();
     return true;
   },
 
   asIntfT: function (obj,intftype){
-    var i = getIntfG(obj,intftype.$guid);
+    var i = rtl.getIntfG(obj,intftype.$guid);
     if (i!==null) return i;
     rtl.raiseEInvalidCast();
   },
@@ -536,10 +586,10 @@ var rtl = {
     },
     free: function(){
       //console.log('rtl.intfRefs.free...');
-      for (id in this){
+      for (var id in this){
         if (this.hasOwnProperty(id)) this[id]._Release;
       }
-    },
+    }
   },
 
   createIntfRefs: function(){
@@ -569,6 +619,10 @@ var rtl = {
       }
       if (old!==null){
         old._Release();  // Release after AddRef, to avoid double Release if Release creates an exception
+      }
+    } else if (skipAddRef){
+      if (old!==null){
+        old._Release();  // value has an AddRef
       }
     }
     return value;
@@ -633,6 +687,14 @@ var rtl = {
     return setLength(arr,2);
   },
 
+  arrayEq: function(a,b){
+    if (a===null) return b===null;
+    if (b===null) return false;
+    if (a.length!==b.length) return false;
+    for (var i=0; i<a.length; i++) if (a[i]!==b[i]) return false;
+    return true;
+  },
+
   arrayClone: function(type,src,srcpos,end,dst,dstpos){
     // type: 0 for references, "refset" for calling refSet(), a function for new type()
     // src must not be null
@@ -640,7 +702,7 @@ var rtl = {
     if (rtl.isFunction(type)){
       for (; srcpos<end; srcpos++) dst[dstpos++] = new type(src[srcpos]); // clone record
     } else if((typeof(type)==="string") && (type === 'refSet')) {
-      for (; srcpos<end; srcpos++) dst[dstpos++] = refSet(src[srcpos]); // ref set
+      for (; srcpos<end; srcpos++) dst[dstpos++] = rtl.refSet(src[srcpos]); // ref set
     }  else {
       for (; srcpos<end; srcpos++) dst[dstpos++] = src[srcpos]; // reference
     };
@@ -669,7 +731,7 @@ var rtl = {
     if (index < 0) index = 0;
     if (count === undefined) count=srcarray.length;
     var end = index+count;
-    if (end>scrarray.length) end = scrarray.length;
+    if (end>scrarray.length) end = srcarray.length;
     if (index>=end) return [];
     if (type===0){
       return srcarray.slice(index,end);
@@ -1014,7 +1076,7 @@ var rtl = {
     $Class: function(name,o){ return this.$Scope(name,rtl.tTypeInfoClass,o); },
     $ClassRef: function(name,o){ return this.$inherited(name,rtl.tTypeInfoClassRef,o); },
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
-    $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); },
+    $Interface: function(name,o){ return this.$Scope(name,rtl.tTypeInfoInterface,o); }
   },
 
   newTIParam: function(param){
@@ -1022,7 +1084,7 @@ var rtl = {
     var t = {
       name: param[0],
       typeinfo: param[1],
-      flags: (rtl.isNumber(param[2]) ? param[2] : 0),
+      flags: (rtl.isNumber(param[2]) ? param[2] : 0)
     };
     return t;
   },
