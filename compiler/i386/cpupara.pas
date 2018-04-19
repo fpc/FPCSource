@@ -40,6 +40,7 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
@@ -283,6 +284,14 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_mm_imreg-1];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        saveregs : array[0..3] of tsuperregister = (RS_EBX,RS_ESI,RS_EDI,RS_EBP);
+      begin
+        result:=saveregs;
       end;
 
 

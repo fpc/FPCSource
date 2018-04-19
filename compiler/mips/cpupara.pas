@@ -71,6 +71,7 @@ interface
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;override;
         function  get_volatile_registers_fpu(calloption : tproccalloption):TCpuRegisterSet;override;
+        function  get_saved_registers_int(calloption : tproccalloption):TCpuRegisterArray;override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -103,6 +104,15 @@ implementation
       begin
         { O32 ABI values }
         result:=[RS_F0..RS_F19];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):TCpuRegisterArray;
+      const
+        saved_regs : array[0..0] of tsuperregister =
+          (RS_NO);
+      begin
+        result:=saved_regs;
       end;
 
 

@@ -2523,15 +2523,21 @@ implementation
         href : treference;
         size : longint;
         r : integer;
+        regs_to_save_int,
+        regs_to_save_address,
+        regs_to_save_mm : tcpuregisterarray;
       begin
+        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
+        regs_to_save_address:=paramanager.get_saved_registers_address(current_procinfo.procdef.proccalloption);
+        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
         { calculate temp. size }
         size:=0;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+        for r:=low(regs_to_save_int) to high(regs_to_save_int) do
+          if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
             inc(size,sizeof(aint));
         if uses_registers(R_ADDRESSREGISTER) then
-          for r:=low(saved_address_registers) to high(saved_address_registers) do
-            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+          for r:=low(regs_to_save_int) to high(regs_to_save_int) do
+            if regs_to_save_int[r] in rg[R_ADDRESSREGISTER].used_in_proc then
               inc(size,sizeof(aint));
 
         { mm registers }
@@ -2542,8 +2548,8 @@ implementation
               of the temp is smaller than needed for an OS_VECTOR }
             inc(size,tcgsize2size[OS_VECTOR]);
 
-            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
-              if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+            for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
+              if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
                 inc(size,tcgsize2size[OS_VECTOR]);
           end;
 
@@ -2554,25 +2560,25 @@ implementation
 
             { Copy registers to temp }
             href:=current_procinfo.save_regs_ref;
-            for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+            for r:=low(regs_to_save_int) to high(regs_to_save_int) do
               begin
-                if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+                if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
                   begin
-                    a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),href);
+                    a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE),href);
                     inc(href.offset,sizeof(aint));
                   end;
-                include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
+                include(rg[R_INTREGISTER].preserved_by_proc,regs_to_save_int[r]);
               end;
 
             if uses_registers(R_ADDRESSREGISTER) then
-              for r:=low(saved_address_registers) to high(saved_address_registers) do
+              for r:=low(regs_to_save_address) to high(regs_to_save_address) do
                 begin
-                  if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+                  if regs_to_save_address[r] in rg[R_ADDRESSREGISTER].used_in_proc then
                     begin
-                      a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE),href);
+                      a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,regs_to_save_address[r],R_SUBWHOLE),href);
                       inc(href.offset,sizeof(aint));
                     end;
-                  include(rg[R_ADDRESSREGISTER].preserved_by_proc,saved_address_registers[r]);
+                  include(rg[R_ADDRESSREGISTER].preserved_by_proc,regs_to_save_address[r]);
                 end;
 
             if uses_registers(R_MMREGISTER) then
@@ -2580,20 +2586,20 @@ implementation
                 if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
                   inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
 
-                for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+                for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
                   begin
                     { the array has to be declared even if no MM registers are saved
                       (such as with SSE on i386), and since 0-element arrays don't
                       exist, they contain a single RS_INVALID element in that case
                     }
-                    if saved_mm_registers[r]<>RS_INVALID then
+                    if regs_to_save_mm[r]<>RS_INVALID then
                       begin
-                        if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                        if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
                           begin
-                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE),href,nil);
+                            a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,regs_to_save_mm[r],R_SUBMMWHOLE),href,nil);
                             inc(href.offset,tcgsize2size[OS_VECTOR]);
                           end;
-                        include(rg[R_MMREGISTER].preserved_by_proc,saved_mm_registers[r]);
+                        include(rg[R_MMREGISTER].preserved_by_proc,regs_to_save_mm[r]);
                       end;
                   end;
               end;
@@ -2606,15 +2612,21 @@ implementation
         href     : treference;
         r        : integer;
         hreg     : tregister;
+        regs_to_save_int,
+        regs_to_save_address,
+        regs_to_save_mm : tcpuregisterarray;
       begin
         if not(pi_has_saved_regs in current_procinfo.flags) then
           exit;
+        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
+        regs_to_save_address:=paramanager.get_saved_registers_address(current_procinfo.procdef.proccalloption);
+        regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
         { Copy registers from temp }
         href:=current_procinfo.save_regs_ref;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+        for r:=low(regs_to_save_int) to high(regs_to_save_int) do
+          if regs_to_save_int[r] in rg[R_INTREGISTER].used_in_proc then
             begin
-              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
+              hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
               { Allocate register so the optimizer does not remove the load }
               a_reg_alloc(list,hreg);
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
@@ -2622,10 +2634,10 @@ implementation
             end;
 
         if uses_registers(R_ADDRESSREGISTER) then
-          for r:=low(saved_address_registers) to high(saved_address_registers) do
-            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+          for r:=low(regs_to_save_address) to high(regs_to_save_address) do
+            if regs_to_save_address[r] in rg[R_ADDRESSREGISTER].used_in_proc then
               begin
-                hreg:=newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                hreg:=newreg(R_ADDRESSREGISTER,regs_to_save_address[r],R_SUBWHOLE);
                 { Allocate register so the optimizer does not remove the load }
                 a_reg_alloc(list,hreg);
                 a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
@@ -2637,11 +2649,11 @@ implementation
             if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
               inc(href.offset,tcgsize2size[OS_VECTOR]-(href.offset mod tcgsize2size[OS_VECTOR]));
 
-            for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+            for r:=low(regs_to_save_mm) to high(regs_to_save_mm) do
               begin
-                if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                if regs_to_save_mm[r] in rg[R_MMREGISTER].used_in_proc then
                   begin
-                    hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE);
+                    hreg:=newreg(R_MMREGISTER,regs_to_save_mm[r],R_SUBMMWHOLE);
                     { Allocate register so the optimizer does not remove the load }
                     a_reg_alloc(list,hreg);
                     a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);

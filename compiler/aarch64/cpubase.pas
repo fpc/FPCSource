@@ -306,25 +306,6 @@ unit cpubase;
       RS_DEFAULTFLAGS = RS_NZCV;
 
 {*****************************************************************************
-                       GCC /ABI linking information
-*****************************************************************************}
-
-    const
-      { Registers which must be saved when calling a routine declared as
-        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-        saved should be the ones as defined in the target ABI and / or GCC.
-
-        This value can be deduced from the CALLED_USED_REGISTERS array in the
-        GCC source.
-      }
-      saved_standard_registers : array[0..9] of tsuperregister =
-        (RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27,RS_X28);
-      saved_mm_registers : array[0..7] of tsuperregister = (RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15);
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-
-{*****************************************************************************
                                   Helpers
 *****************************************************************************}
 

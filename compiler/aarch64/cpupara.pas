@@ -37,6 +37,8 @@ unit cpupara;
           function get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset; override;
           function get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset; override;
           function get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset; override;
+          function get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray; override;
+          function get_saved_registers_mm(calloption: tproccalloption): tcpuregisterarray; override;
           function push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
           function ret_in_param(def: tdef; pd: tabstractprocdef):boolean;override;
           function create_paraloc_info(p: tabstractprocdef; side: tcallercallee):longint;override;
@@ -84,6 +86,23 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
       begin
         result:=VOLATILE_MMREGISTERS;
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
+      const
+        saved_regs : array[0..9] of tsuperregister =
+          (RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27,RS_X28);
+      begin
+        result:=saved_regs;
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_mm(calloption: tproccalloption): tcpuregisterarray;
+      const
+        saved_mm_regs : array[0..7] of tsuperregister = (RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15);
+      begin
+        result:=saved_mm_regs;
       end;
 
 

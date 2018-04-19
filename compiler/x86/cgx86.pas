@@ -3294,14 +3294,16 @@ unit cgx86;
         var
           r: longint;
           usedregs: tcpuregisterset;
+          regs_to_save_int: tcpuregisterarray;
         begin
           regsize:=0;
           usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-          for r := low(saved_standard_registers) to high(saved_standard_registers) do
-            if saved_standard_registers[r] in usedregs then
+          regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
+          for r := low(regs_to_save_int) to high(regs_to_save_int) do
+            if regs_to_save_int[r] in usedregs then
               begin
                 inc(regsize,sizeof(aint));
-                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE)));
+                list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE)));
               end;
         end;
 
@@ -3572,13 +3574,15 @@ unit cgx86;
         hreg: tregister;
         href: treference;
         usedregs: tcpuregisterset;
+        regs_to_save_int: tcpuregisterarray;
       begin
         href:=current_procinfo.save_regs_ref;
         usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-        for r:=high(saved_standard_registers) downto low(saved_standard_registers) do
-          if saved_standard_registers[r] in usedregs then
+        regs_to_save_int:=paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption);
+        for r:=high(regs_to_save_int) downto low(regs_to_save_int) do
+          if regs_to_save_int[r] in usedregs then
             begin
-              hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
+              hreg:=newreg(R_INTREGISTER,regs_to_save_int[r],R_SUBWHOLE);
               { Allocate register so the optimizer does not remove the load }
               a_reg_alloc(list,hreg);
               if use_pop then

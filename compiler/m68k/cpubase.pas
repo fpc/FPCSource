@@ -320,20 +320,6 @@ unit cpubase;
                        GCC /ABI linking information
 *****************************************************************************}
 
-      {# Registers which must be saved when calling a routine declared as
-         cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-         saved should be the ones as defined in the target ABI and / or GCC.
-
-         This value can be deduced from CALLED_USED_REGISTERS array in the
-         GCC source.
-      }
-      saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
-      saved_address_registers : array[0..4] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
-      saved_fpu_registers : array[0..5] of tsuperregister = (RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7);
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
-
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.

@@ -41,6 +41,7 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           { Returns the location for the nr-st 16 Bit int parameter
             if every parameter before is an 16 Bit int parameter as well
             and if the calling conventions for the helper routines of the
@@ -233,6 +234,14 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_mm_imreg-1];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        saveregs_pascal: array [0..0] of tsuperregister = (RS_BP);
+      begin
+        result:=saveregs_pascal;
       end;
 
 

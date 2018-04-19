@@ -35,6 +35,7 @@ interface
       { tcpuparamanager }
 
       tcpuparamanager=class(TParaManager)
+        function  get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
         function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -68,6 +69,14 @@ implementation
       begin
         { not yet implemented/used }
         internalerror(2010121001);
+      end;
+
+    function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
+      const
+        { dummy, not used for JVM }
+        saved_regs: array [0..0] of tsuperregister = (RS_NO);
+      begin
+        result:=saved_regs;
       end;
 
     function tcpuparamanager.push_high_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;

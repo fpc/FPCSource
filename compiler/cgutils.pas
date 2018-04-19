@@ -42,6 +42,7 @@ unit cgutils;
     type
       { Set type definition for cpuregisters }
       tcpuregisterset = set of 0..maxcpuregister;
+      tcpuregisterarray = array of tsuperregister;
 
 {$packset 1}
       { a reference may be volatile for reading, writing, or both. E.g., local variables

@@ -43,6 +43,8 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
+          function get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -56,7 +58,7 @@ unit cpupara;
        defutil,
        symtable,
        cpupi,
-       cgx86;
+       cgx86,cgobj,cgcpu;
 
     const
       paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
@@ -1361,6 +1363,30 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[RS_ST0..RS_ST7];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        win64_saved_std_regs : array[0..7] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
+        others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+      begin
+        if tcgx86_64(cg).use_ms_abi then
+          result:=win64_saved_std_regs
+        else
+          result:=others_saved_std_regs;
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_mm(calloption: tproccalloption):tcpuregisterarray;
+      const
+        win64_saved_xmm_regs : array[0..9] of tsuperregister = (RS_XMM6,RS_XMM7,
+          RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
+      begin
+        if tcgx86_64(cg).use_ms_abi then
+          result:=win64_saved_xmm_regs
+        else
+          SetLength(result,0);
       end;
 
 

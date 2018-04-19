@@ -278,17 +278,6 @@ unit cpubase;
 *****************************************************************************}
 
     const
-      { Registers which must be saved when calling a routine declared as
-        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-        saved should be the ones as defined in the target ABI and / or GCC.
-
-        This value can be deduced from the CALLED_USED_REGISTERS array in the
-        GCC source.
-      }
-      { on avr, gen_entry/gen_exit code saves/restores registers, so
-        we don't need this array }
-      saved_standard_registers : array[0..0] of tsuperregister =
-        (RS_INVALID);
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -297,9 +286,6 @@ unit cpubase;
         PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
       std_param_align = 4;
-
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
 {*****************************************************************************
                                   Helpers
