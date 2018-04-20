@@ -691,6 +691,7 @@ type
       var Abort: boolean); override;
     procedure WriteIdentifiers(Prefix: string); override;
   end;
+  TPasSectionScopeClass = class of TPasSectionScope;
 
   { TPasInitialFinalizationScope - e.g. TInitializationSection, TFinalizationSection }
 
@@ -1124,6 +1125,7 @@ type
     FScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass;
     FScopeClass_Module: TPasModuleScopeClass;
     FScopeClass_Proc: TPasProcedureScopeClass;
+    FScopeClass_Section: TPasSectionScopeClass;
     FScopeClass_WithExpr: TPasWithExprScopeClass;
     FScopeCount: integer;
     FScopes: array of TPasScope; // stack of scopes
@@ -1705,6 +1707,7 @@ type
     property ScopeClass_InitialFinalization: TPasInitialFinalizationScopeClass read FScopeClass_InitialFinalization write FScopeClass_InitialFinalization;
     property ScopeClass_Module: TPasModuleScopeClass read FScopeClass_Module write FScopeClass_Module;
     property ScopeClass_Procedure: TPasProcedureScopeClass read FScopeClass_Proc write FScopeClass_Proc;
+    property ScopeClass_Section: TPasSectionScopeClass read FScopeClass_Section write FScopeClass_Section;
     property ScopeClass_WithExpr: TPasWithExprScopeClass read FScopeClass_WithExpr write FScopeClass_WithExpr;
     // last element
     property LastElement: TPasElement read FLastElement;
@@ -3130,11 +3133,8 @@ end;
 // inline
 function TPasIdentifierScope.FindLocalIdentifier(const Identifier: String
   ): TPasIdentifier;
-var
-  LoName: String;
 begin
-  LoName:=lowercase(Identifier);
-  Result:=TPasIdentifier(FItems.Find(LoName));
+  Result:=TPasIdentifier(FItems.Find(lowercase(Identifier)));
 end;
 
 procedure TPasIdentifierScope.OnClearItem(Item, Dummy: pointer);
@@ -4200,7 +4200,7 @@ begin
   FPendingForwardProcs.Clear;
 
   // close all sections
-  while (TopScope<>nil) and (TopScope.ClassType=TPasSectionScope) do
+  while (TopScope<>nil) and (TopScope.ClassType=ScopeClass_Section) do
     PopScope;
   CheckTopScope(FScopeClass_Module);
   PopScope;
@@ -4223,7 +4223,7 @@ var
   p: SizeInt;
   OldIdentifier: TPasIdentifier;
 begin
-  CheckTopScope(TPasSectionScope);
+  CheckTopScope(ScopeClass_Section);
   Scope:=TPasSectionScope(TopScope);
   Section:=TPasSection(Scope.Element);
   {$IFDEF VerbosePasResolver}
@@ -8059,7 +8059,7 @@ begin
   if TopScope is TPasSectionScope then
     FinishSection(TPasSectionScope(TopScope).Element as TPasSection);
   FPendingForwardProcs.Add(El); // check forward declarations at the end
-  PushScope(El,TPasSectionScope);
+  PushScope(El,ScopeClass_Section);
 end;
 
 procedure TPasResolver.AddInitialFinalizationSection(El: TPasImplBlock);
@@ -11847,6 +11847,7 @@ begin
   FScopeClass_InitialFinalization:=TPasInitialFinalizationScope;
   FScopeClass_Module:=TPasModuleScope;
   FScopeClass_Proc:=TPasProcedureScope;
+  FScopeClass_Section:=TPasSectionScope;
   FScopeClass_WithExpr:=TPasWithExprScope;
   fExprEvaluator:=TResExprEvaluator.Create;
   fExprEvaluator.OnLog:=@OnExprEvalLog;
