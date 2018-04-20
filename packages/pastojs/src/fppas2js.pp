@@ -922,6 +922,21 @@ type
   public
   end;
 
+  { TPas2JSSectionScope }
+
+  TPas2JSSectionScope = class(TPasSectionScope)
+  private
+    FElevatedLocals: TFPHashList;
+    procedure InternalAddElevatedLocal(Item: TPasIdentifier);
+    procedure OnClearElevatedLocal(Item, Dummy: pointer);
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    function FindElevatedLocal(const Identifier: String): TPasIdentifier; inline;
+    function AddElevatedLocal(const Identifier: String; El: TPasElement): TPasIdentifier; virtual;
+    procedure WriteElevatedLocals(Prefix: string); virtual;
+  end;
+
   { TPas2JSInitialFinalizationScope }
 
   TPas2JSInitialFinalizationScope = class(TPasInitialFinalizationScope)
@@ -1709,6 +1724,100 @@ begin
   while (Result>0) and (s[Result]<>c) do dec(Result);
 end;
 
+{ TPas2JSSectionScope }
+
+procedure TPas2JSSectionScope.InternalAddElevatedLocal(Item: TPasIdentifier);
+var
+  Index: Integer;
+  OldItem: TPasIdentifier;
+  LoName: string;
+begin
+  LoName:=lowercase(Item.Identifier);
+  Index:=FElevatedLocals.FindIndexOf(LoName);
+  {$IFDEF VerbosePasResolver}
+  if Item.Owner<>nil then
+    raise Exception.Create('20160925184110');
+  Item.Owner:=Self;
+  {$ENDIF}
+  //writeln('  Index=',Index);
+  if Index>=0 then
+    begin
+    // insert LIFO - last in, first out
+    OldItem:=TPasIdentifier(FElevatedLocals.List^[Index].Data);
+    {$IFDEF VerbosePasResolver}
+    if lowercase(OldItem.Identifier)<>LoName then
+      raise Exception.Create('20160925183438');
+    {$ENDIF}
+    Item.NextSameIdentifier:=OldItem;
+    FElevatedLocals.List^[Index].Data:=Item;
+    end
+  else
+    begin
+    FElevatedLocals.Add(LoName, Item);
+    {$IFDEF VerbosePasResolver}
+    if FindIdentifier(Item.Identifier)<>Item then
+      raise Exception.Create('20160925183849');
+    {$ENDIF}
+    end;
+end;
+
+procedure TPas2JSSectionScope.OnClearElevatedLocal(Item, Dummy: pointer);
+var
+  PasIdentifier: TPasIdentifier absolute Item;
+  Ident: TPasIdentifier;
+begin
+  if Dummy=nil then ;
+  //writeln('TPasIdentifierScope.OnClearItem ',PasIdentifier.Identifier+':'+PasIdentifier.ClassName);
+  while PasIdentifier<>nil do
+    begin
+    Ident:=PasIdentifier;
+    PasIdentifier:=PasIdentifier.NextSameIdentifier;
+    Ident.Free;
+    end;
+end;
+
+constructor TPas2JSSectionScope.Create;
+begin
+  inherited Create;
+  FElevatedLocals:=TFPHashList.Create;
+end;
+
+destructor TPas2JSSectionScope.Destroy;
+begin
+  FElevatedLocals.ForEachCall(@OnClearElevatedLocal,nil);
+  FElevatedLocals.Clear;
+  FreeAndNil(FElevatedLocals);
+  inherited Destroy;
+end;
+
+// inline
+function TPas2JSSectionScope.FindElevatedLocal(const Identifier: String
+  ): TPasIdentifier;
+begin
+  Result:=TPasIdentifier(FElevatedLocals.Find(lowercase(Identifier)));
+end;
+
+function TPas2JSSectionScope.AddElevatedLocal(const Identifier: String;
+  El: TPasElement): TPasIdentifier;
+var
+  Item: TPasIdentifier;
+begin
+  //writeln('TPasIdentifierScope.AddIdentifier Identifier="',Identifier,'" El=',GetObjName(El));
+  Item:=TPasIdentifier.Create;
+  Item.Identifier:=Identifier;
+  Item.Element:=El;
+
+  InternalAddElevatedLocal(Item);
+  //writeln('TPasIdentifierScope.AddIdentifier END');
+  Result:=Item;
+end;
+
+procedure TPas2JSSectionScope.WriteElevatedLocals(Prefix: string);
+begin
+  Prefix:=Prefix+'  ';
+  FElevatedLocals.ForEachCall(@OnWriteItem,Pointer(Prefix));
+end;
+
 { TPas2JSProcedureScope }
 
 procedure TPas2JSProcedureScope.AddGlobalJS(const JS: string);
@@ -1799,6 +1908,11 @@ begin
   C:=El.ClassType;
   if C=TPasProperty then
     exit(false)
+  else if C=TPasConst then
+    begin
+    if El.Parent is TProcedureBody then
+      exit(false); // local const counted via TPas2JSSectionScope.FElevatedLocals
+    end
   else if C=TPasClassType then
     begin
     if TPasClassType(El).IsForward then
@@ -1888,14 +2002,36 @@ end;
 
 function TPas2JSResolver.GetOverloadIndex(El: TPasElement): integer;
 var
-  i: Integer;
+  i, j: Integer;
   Identifier: TPasIdentifier;
+  Scope: TPasIdentifierScope;
+  CurEl: TPasElement;
 begin
   Result:=0;
   for i:=FOverloadScopes.Count-1 downto 0 do
     begin
+    Scope:=TPasIdentifierScope(FOverloadScopes[i]);
+    if (Scope.ClassType=TPas2JSSectionScope) and (i<FOverloadScopes.Count-1) then
+      begin
+      // Note: the elevated locals are after the section scope and before the next deeper scope
+
+      // check elevated locals
+      Identifier:=TPas2JSSectionScope(Scope).FindElevatedLocal(El.Name);
+      j:=0;
+      // add count or index
+      while Identifier<>nil do
+        begin
+        CurEl:=Identifier.Element;
+        Identifier:=Identifier.NextSameIdentifier;
+        if CurEl=El then
+          j:=0
+        else
+          inc(j);
+        end;
+      inc(Result,j);
+      end;
     // find last added
-    Identifier:=TPasIdentifierScope(FOverloadScopes[i]).FindLocalIdentifier(El.Name);
+    Identifier:=Scope.FindLocalIdentifier(El.Name);
     // add count or index
     inc(Result,GetOverloadIndex(Identifier,El));
     end;
@@ -2514,6 +2650,8 @@ var
   AbsIdent: TPasElement;
   TypeEl: TPasType;
   GUID: TGUID;
+  i: Integer;
+  SectionScope: TPas2JSSectionScope;
 begin
   inherited FinishVariable(El);
 
@@ -2586,8 +2724,20 @@ begin
       RaiseMsg(20180404135105,nNotSupportedX,sNotSupportedX,['COM-interface as record member'],El);
     end
   else if ParentC=TProcedureBody then
+    begin
     // local var
-    RaiseVarModifierNotSupported(LocalVarModifiersAllowed)
+    RaiseVarModifierNotSupported(LocalVarModifiersAllowed);
+    if (El.ClassType=TPasConst) and TPasConst(El).IsConst then
+      begin
+      // local const
+      i:=ScopeCount-1;
+      while (i>=0) and not (Scopes[i] is TPas2JSSectionScope) do dec(i);
+      if i<0 then
+        RaiseNotYetImplemented(20180420131358,El);
+      SectionScope:=TPas2JSSectionScope(Scopes[i]);
+      SectionScope.AddElevatedLocal(El.Name,El);
+      end;
+    end
   else if ParentC=TImplementationSection then
     // implementation var
     RaiseVarModifierNotSupported(ImplementationVarModifiersAllowed)
@@ -3431,6 +3581,7 @@ begin
   ScopeClass_InitialFinalization:=TPas2JSInitialFinalizationScope;
   ScopeClass_Module:=TPas2JSModuleScope;
   ScopeClass_Procedure:=TPas2JSProcedureScope;
+  ScopeClass_Section:=TPas2JSSectionScope;
   ScopeClass_WithExpr:=TPas2JSWithExprScope;
   for bt in [pbtJSValue] do
     AddJSBaseType(Pas2jsBaseTypeNames[bt],bt);

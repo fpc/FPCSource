@@ -880,7 +880,7 @@ type
     procedure ReadExternalReferences(Obj: TJSONObject; El: TPasElement); virtual;
     procedure ReadUsedUnitsInit(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
     procedure ReadUsedUnitsFinish(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
-    procedure ReadSectionScope(Obj: TJSONObject; Scope: TPasSectionScope; aContext: TPCUReaderContext); virtual;
+    procedure ReadSectionScope(Obj: TJSONObject; Scope: TPas2JSSectionScope; aContext: TPCUReaderContext); virtual;
     procedure ReadSection(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
     procedure ReadDeclarations(Obj: TJSONObject; Section: TPasSection; aContext: TPCUReaderContext); virtual;
     function ReadElement(Obj: TJSONObject; Parent: TPasElement; aContext: TPCUReaderContext): TPasElement; virtual;
@@ -1587,14 +1587,14 @@ function TPCUCustomReader.ReadCanContinue: boolean;
 var
   Module: TPasModule;
   Section: TPasSection;
-  Scope: TPasSectionScope;
+  Scope: TPas2JSSectionScope;
 begin
   Result:=false;
   Module:=Resolver.RootElement;
   if Module=nil then exit(true); // not yet started
   Section:=Resolver.GetLastSection;
   if Section=nil then exit(true); // only header
-  Scope:=Section.CustomData as TPasSectionScope;
+  Scope:=Section.CustomData as TPas2JSSectionScope;
   if Scope.Finished then exit(false); // finished
   Result:=Section.PendingUsedIntf=nil;
 end;
@@ -2501,7 +2501,7 @@ procedure TPCUWriter.WriteSection(ParentJSON: TJSONObject;
   Section: TPasSection; const PropName: string; aContext: TPCUWriterContext);
 var
   Obj, SubObj: TJSONObject;
-  Scope, UsesScope: TPasSectionScope;
+  Scope, UsesScope: TPas2JSSectionScope;
   i, j: Integer;
   Arr: TJSONArray;
   UsesUnit: TPasUsesUnit;
@@ -2515,7 +2515,7 @@ begin
   aContext.IndirectUsesArr:=nil;
   WritePasElement(Obj,Section,aContext);
 
-  Scope:=TPasSectionScope(CheckElScope(Section,20180206121825,TPasSectionScope));
+  Scope:=TPas2JSSectionScope(CheckElScope(Section,20180206121825,TPas2JSSectionScope));
   if not Scope.Finished then
     RaiseMsg(20180206130333,Section);
   if Scope.UsesScopes.Count<>length(Section.UsesClause) then
@@ -2524,7 +2524,7 @@ begin
   for i:=0 to Scope.UsesScopes.Count-1 do
     begin
     UsesUnit:=Section.UsesClause[i];
-    UsesScope:=TPasSectionScope(Scope.UsesScopes[i]);
+    UsesScope:=TPas2JSSectionScope(Scope.UsesScopes[i]);
     if UsesScope.Element<>TPasModule(UsesUnit.Module).InterfaceSection then
       RaiseMsg(20180206122459,Section,'usesscope '+IntToStr(i)+' UsesScope.Element='+GetObjName(UsesScope.Element)+' Module='+GetObjName(Section.UsesClause[i].Module));
     if Arr=nil then
@@ -2574,6 +2574,8 @@ begin
       end;
     end;
   WriteIdentifierScope(Obj,Scope,aContext);
+
+  // not needed: Scope ElevatedLocals
 
   WriteDeclarations(Obj,Section,aContext);
   if Section is TInterfaceSection then
@@ -5224,7 +5226,7 @@ procedure TPCUReader.ReadUsedUnitsFinish(Obj: TJSONObject;
   Section: TPasSection; aContext: TPCUReaderContext);
 var
   Arr: TJSONArray;
-  Scope, UsedScope: TPasSectionScope;
+  Scope, UsedScope: TPas2JSSectionScope;
   i: Integer;
   Use: TPasUsesUnit;
   Module: TPasModule;
@@ -5232,11 +5234,11 @@ var
   UsesObj, ModuleObj: TJSONObject;
   Name: string;
 begin
-  Scope:=Section.CustomData as TPasSectionScope;
+  Scope:=Section.CustomData as TPas2JSSectionScope;
   // read external refs from used units
   if ReadArray(Obj,'Uses',Arr,Section) then
     begin
-    Scope:=Section.CustomData as TPasSectionScope;
+    Scope:=Section.CustomData as TPas2JSSectionScope;
     if Scope.UsesFinished then
       RaiseMsg(20180313133931,Section);
     if Section.PendingUsedIntf<>nil then
@@ -5252,7 +5254,7 @@ begin
       Use:=Section.UsesClause[i];
 
       Module:=Use.Module as TPasModule;
-      UsedScope:=Module.InterfaceSection.CustomData as TPasSectionScope;
+      UsedScope:=Module.InterfaceSection.CustomData as TPas2JSSectionScope;
       Scope.UsesScopes.Add(UsedScope);
       if ReadObject(UsesObj,'Module',ModuleObj,Use) then
         ReadExternalReferences(ModuleObj,Module);
@@ -5277,7 +5279,7 @@ begin
         RaiseMsg(20180314155840,Section,Name);
       if Module.InterfaceSection=nil then
         RaiseMsg(20180314155953,Section,'indirect unit "'+Name+'"');
-      UsedScope:=Module.InterfaceSection.CustomData as TPasSectionScope;
+      UsedScope:=Module.InterfaceSection.CustomData as TPas2JSSectionScope;
       if not UsedScope.Finished then
         RaiseMsg(20180314155953,Section,'indirect unit "'+Name+'"');
       ReadExternalReferences(UsesObj,Module);
@@ -5290,16 +5292,17 @@ begin
 end;
 
 procedure TPCUReader.ReadSectionScope(Obj: TJSONObject;
-  Scope: TPasSectionScope; aContext: TPCUReaderContext);
+  Scope: TPas2JSSectionScope; aContext: TPCUReaderContext);
 begin
   ReadIdentifierScope(Obj,Scope,aContext);
+  // not needed: Scope ElevatedLocals
 end;
 
 procedure TPCUReader.ReadSection(Obj: TJSONObject; Section: TPasSection;
   aContext: TPCUReaderContext);
 // Note: can be called twice for each section if there are pending used interfaces
 var
-  Scope: TPasSectionScope;
+  Scope: TPas2JSSectionScope;
 begin
   {$IFDEF VerbosePCUFiler}
   writeln('TPCUReader.ReadSection ',GetObjName(Section));
@@ -5307,13 +5310,13 @@ begin
   if Section.CustomData=nil then
     begin
     ReadPasElement(Obj,Section,aContext);
-    Scope:=TPasSectionScope(Resolver.CreateScope(Section,TPasSectionScope));
+    Scope:=TPas2JSSectionScope(Resolver.CreateScope(Section,TPas2JSSectionScope));
     ReadUsedUnitsInit(Obj,Section,aContext);
     if Section.PendingUsedIntf<>nil then exit;
     end
   else
     begin
-    Scope:=Section.CustomData as TPasSectionScope;
+    Scope:=Section.CustomData as TPas2JSSectionScope;
     if Scope.Finished then
       RaiseMsg(20180308160336,Section);
     if Section.PendingUsedIntf<>nil then

@@ -3445,8 +3445,6 @@ end;
 
 procedure TTestModule.TestProc_DuplicateConst;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   'const A = 1;',
@@ -3471,6 +3469,8 @@ begin
     'var A$1 = 2;',
     'var A$2 = 21;',
     'this.DoIt = function () {',
+    '  function SubIt() {',
+    '  };',
     '};',
     'var A$3 = 3;',
     'this.DoSome = function () {',

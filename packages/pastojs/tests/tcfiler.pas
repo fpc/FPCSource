@@ -66,7 +66,7 @@ type
     procedure CheckRestoredPasScope(const Path: string; Orig, Rest: TPasScope); virtual;
     procedure CheckRestoredModuleScope(const Path: string; Orig, Rest: TPas2JSModuleScope); virtual;
     procedure CheckRestoredIdentifierScope(const Path: string; Orig, Rest: TPasIdentifierScope); virtual;
-    procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPasSectionScope); virtual;
+    procedure CheckRestoredSectionScope(const Path: string; Orig, Rest: TPas2JSSectionScope); virtual;
     procedure CheckRestoredInitialFinalizationScope(const Path: string; Orig, Rest: TPas2JSInitialFinalizationScope); virtual;
     procedure CheckRestoredEnumTypeScope(const Path: string; Orig, Rest: TPasEnumTypeScope); virtual;
     procedure CheckRestoredRecordScope(const Path: string; Orig, Rest: TPasRecordScope); virtual;
@@ -649,18 +649,18 @@ begin
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredSectionScope(const Path: string;
-  Orig, Rest: TPasSectionScope);
+  Orig, Rest: TPas2JSSectionScope);
 var
   i: Integer;
-  OrigUses, RestUses: TPasSectionScope;
+  OrigUses, RestUses: TPas2JSSectionScope;
 begin
   AssertEquals(Path+' UsesScopes.Count',Orig.UsesScopes.Count,Rest.UsesScopes.Count);
   for i:=0 to Orig.UsesScopes.Count-1 do
     begin
-    OrigUses:=TPasSectionScope(Orig.UsesScopes[i]);
-    if not (TObject(Rest.UsesScopes[i]) is TPasSectionScope) then
+    OrigUses:=TPas2JSSectionScope(Orig.UsesScopes[i]);
+    if not (TObject(Rest.UsesScopes[i]) is TPas2JSSectionScope) then
       Fail(Path+'.UsesScopes['+IntToStr(i)+'] Rest='+GetObjName(TObject(Rest.UsesScopes[i])));
-    RestUses:=TPasSectionScope(Rest.UsesScopes[i]);
+    RestUses:=TPas2JSSectionScope(Rest.UsesScopes[i]);
     if OrigUses.ClassType<>RestUses.ClassType then
       Fail(Path+'.UsesScopes['+IntToStr(i)+'] Orig='+GetObjName(OrigUses)+' Rest='+GetObjName(RestUses));
     CheckRestoredReference(Path+'.UsesScopes['+IntToStr(i)+']',OrigUses.Element,RestUses.Element);
@@ -949,8 +949,8 @@ begin
     CheckRestoredResolvedReference(Path+'[TResolvedReference]',TResolvedReference(Orig),TResolvedReference(Rest))
   else if C=TPas2JSModuleScope then
     CheckRestoredModuleScope(Path+'[TPas2JSModuleScope]',TPas2JSModuleScope(Orig),TPas2JSModuleScope(Rest))
-  else if C=TPasSectionScope then
-    CheckRestoredSectionScope(Path+'[TPasSectionScope]',TPasSectionScope(Orig),TPasSectionScope(Rest))
+  else if C=TPas2JSSectionScope then
+    CheckRestoredSectionScope(Path+'[TPas2JSSectionScope]',TPas2JSSectionScope(Orig),TPas2JSSectionScope(Rest))
   else if C=TPas2JSInitialFinalizationScope then
     CheckRestoredInitialFinalizationScope(Path+'[TPas2JSInitialFinalizationScope]',TPas2JSInitialFinalizationScope(Orig),TPas2JSInitialFinalizationScope(Rest))
   else if C=TPasEnumTypeScope then
