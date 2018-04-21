@@ -970,6 +970,8 @@ type
     Procedure   Validate(aErrors : TStrings); override;
     procedure   Assign(Source: TPersistent); override;
     procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
+    Procedure SendToBack(El : TFPReportElement);
+    Procedure BringToFront(El : TFPReportElement);
     Class Function ReportBandType : TFPReportBandType; virtual;
     procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ReadElement(AReader: TFPReportStreamer); override;
@@ -9077,6 +9079,27 @@ begin
     end
   else
     inherited FixupReference(PN, PV, C);
+end;
+
+procedure TFPReportCustomBand.SendToBack(El: TFPReportElement);
+
+Var
+  I : integer;
+
+begin
+  I:=FChildren.IndexOf(El);
+  If I>0 then
+    FChildren.Move(I,0);
+end;
+
+procedure TFPReportCustomBand.BringToFront(El: TFPReportElement);
+Var
+  I : integer;
+
+begin
+  I:=FChildren.IndexOf(El);
+  If (I>=0) and (I<FChildren.Count-1) then
+    FChildren.Move(I,FChildren.Count-1);
 end;
 
 class function TFPReportCustomBand.ReportBandType: TFPReportBandType;
