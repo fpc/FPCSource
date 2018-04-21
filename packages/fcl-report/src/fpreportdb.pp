@@ -52,7 +52,8 @@ implementation
 resourcestring
   SErrNoDataSetAssigned  = 'No dataset has been assigned.';
   SErrDatasetNotOpen = 'Dataset has not been opened yet';
-
+  SErrFieldTypeMisMatch = 'Field type for field "%s" changed. Expected "%s", got "%s"';
+  SErrUnknownFieldInDataset = 'Unexpected field in dataset: "%s"';
 
 { TFPReportDatasetData }
 
@@ -161,18 +162,33 @@ var
   end;
 
 Var
-  B : Boolean;
+  B,AllowNew : Boolean;
+  F : TFPReportDataField;
+  Rfk  : TFPReportFieldKind;
+
 begin
   inherited DoInitDataFields;
   B:=FDataset.FieldDefs.Count=0;
   if B then
     FDataset.Open;
   try
-    DataFields.Clear;
+     if (DataFields.Count>0) and (DataFields.Count<>FDataset.FieldDefs.Count) then
+       // Reset totally
+       DataFields.Clear;
+    AllowNew:=(Datafields.Count=0);
     for i := 0 to FDataSet.FieldDefs.Count-1 do
-    begin
-      DataFields.AddField(FDataset.FieldDefs[i].Name, DatabaseKindToReportKind(FDataset.FieldDefs[i].DataType));
-    end;
+      begin
+      RFK:=DatabaseKindToReportKind(FDataset.FieldDefs[i].DataType);
+      F:=Datafields.FindField(FDataset.FieldDefs[i].Name);
+      if (F=Nil) then
+        if AllowNew then
+          DataFields.AddField(FDataset.FieldDefs[i].Name, RFK)
+        else
+          Raise EReportError.CreateFmt(SErrUnknownFieldInDataset,[F.FieldName])
+      else
+        if (F.FieldKind<>RFK) then
+          Raise EReportError.CreateFmt(SErrFieldTypeMisMatch,[F.FieldName,ReportFieldKindNames[F.FieldKind],ReportFieldKindNames[RFK]]);
+      end
   finally
     if B then
       FDataset.Close;
