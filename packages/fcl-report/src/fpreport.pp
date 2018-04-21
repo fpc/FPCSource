@@ -19,7 +19,10 @@ unit fpreport;
 {$mode objfpc}{$H+}
 {$inline on}
 
-{.$define gdebug}
+// Global debugging
+{ $define gdebug}
+// Separate for aggregate variables
+{ $define gdebuga}
 
 interface
 
@@ -1321,6 +1324,7 @@ type
     procedure AfterPrintWithChilds; override;
     property  GroupHeader: TFPReportCustomGroupHeaderBand read FGroupHeader write SetGroupHeader;
   public
+    Destructor Destroy; override;
     procedure ReadElement(AReader: TFPReportStreamer); override;
     Class Function ReportBandType : TFPReportBandType; override;
     property  BandPosition;
@@ -3462,10 +3466,14 @@ procedure TFPReportVariable.InitExpressionValue(aData: TFPReportData; IsFirstpas
 begin
   if not FIsAggregate then
     exit;
-  If not IsFirstPass then
-    exit;
   if Not SameText(aData.Name,FDataName) then
     exit;
+  If not IsFirstPass then
+    begin
+    FLastValue.ResultType:=rtFloat;
+    FLastValue.ResFloat:=0;
+    exit;
+    end;
   if (FResetValue=#0) then
     begin
     FResetValue:=#255;
@@ -3485,15 +3493,17 @@ Var
 begin
   if not FIsAggregate then
     exit;
-  if not IsFirstPass then
-    exit;
   if (FResetType=rtNone) then
+    exit;
+  if not IsFirstPass then
     exit;
   if Not SameText(aData.Name,FDataName) then
     exit;
+  If FResetValue=#255 then
+    Exit;
   lResult:= new(PFPExpressionResult);
   lResult^:=FAggregateValue;
-  {$ifdef gdebug}
+  {$ifdef gdebuga}
   Writeln('Variable : ',FName, ', Pushing value on stack ',DefExpressionResultToString(FAggregateValue),'aData: ',aData.Name);
   {$endif}
   FAggregateValues.Add(lResult);
@@ -3506,6 +3516,7 @@ var
   lResetValue: String;
   lResult: PFPExpressionResult;
   lValue: TFPExpressionResult;
+  IsReset : Boolean;
 
   Function NeedReset : Boolean;
 
@@ -3528,7 +3539,7 @@ begin
     exit;
   if (FResetType<>rtNone) then
     lResetValue:=DefExpressionResultToString(FResetValueExpressionNode.NodeValue);
-  {$ifdef gdebug}
+  {$ifdef gdebuga}
   Write('Aggregate ',Name,' (',IsFirstPass,', ',FResetType,'): xp: ',Expression,' reset: "',FResetValueExpression,'"');
   if FResetValueExpression<>'' then
     Write(' Current reset:',lResetValue,', saved reset: ',FResetValue,') ');
@@ -3538,12 +3549,12 @@ begin
     begin
     if NeedReset then
       begin
-      {$ifdef gdebug}
+      {$ifdef gdebuga}
       Writeln('Aggregate', Name,'Reset changed');
       {$endif}
       if (FResetValue<>#255) and (FResetValue<>#0) then
         begin
-        {$ifdef gdebug}
+        {$ifdef gdebuga}
         Writeln('Aggregate ',Name,'pushing to stack.');
         {$endif}
         DoneExpressionValue(aData,isFirstpass); // Push
@@ -3557,24 +3568,30 @@ begin
     end
   else if (FResetType<>rtNone) then
     begin
-    if NeedReset then
+    IsReset:=NeedReset;
+    if IsReset then
       begin
-      {$ifdef gdebug}
+      {$ifdef gdebuga}
       Writeln('Aggregate ',Name,'Reset changed');
       {$endif}
       if (FResetValue<>#255) and (FResetValue<>#0)  then
         begin
-        {$ifdef gdebug}
+        {$ifdef gdebuga}
         Writeln('Aggregate ',Name,'Retrieving next value ',FAggregateValuesIndex);
         {$endif}
         inc(FAggregateValuesIndex);
         end;
       FResetValue:=lResetValue;
+      FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
+      FLastValue:=FAggregateValue;
+      end
+    else
+      begin
+      FLastValue:=FAggregateValue;
+      FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
       end;
-    FLastValue:=FAggregateValue;
-    FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
     end;
-  {$ifdef gdebug}
+  {$ifdef gdebuga}
   Writeln('Aggregate ',Name,'---> current value: ',DefExpressionResultToString(FAggregateValue));
   {$endif}
 end;
@@ -9476,6 +9493,12 @@ begin
   end;
 end;
 
+destructor TFPReportCustomGroupFooterBand.Destroy;
+begin
+  GroupHeader:=Nil;
+  inherited Destroy;
+end;
+
 procedure TFPReportCustomGroupFooterBand.ReadElement(AReader: TFPReportStreamer);
 var
   s: string;
@@ -11580,7 +11603,6 @@ begin
       Writeln('detail Records done');
       {$endif}
       Report.DoneAggregates(lPage,lData);
-
       PrepareRecord(lData);
       CheckNewOrOverFlow;
       HandleLastGroupFooters;
