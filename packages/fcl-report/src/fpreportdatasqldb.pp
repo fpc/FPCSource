@@ -263,6 +263,7 @@ class function TFPReportConnector.CreateConnection(aConfig: TJSONObject): TFPRep
 begin
   Result:=Self.Create(Nil);
   Result.LoadFromConfig(aConfig);
+  Result.LogEvents:=LogAllEventsExtra;
   Result.Transaction:=TFPReportSQLtransaction.Create(Result);
 end;
 
@@ -307,6 +308,9 @@ begin
   Result:=TFPReportQuery.Create(aOwner);
   Result.Database:=C;
   Result.SQL.Text:=aConfig.get(keySQL,'');
+//  Result.UniDirectional:=True;
+  Result.PacketRecords:=-1;
+  Result.UsePrimaryKeyAsKey:=False;
   Inc(C.FRefCount);
 end;
 
