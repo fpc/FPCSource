@@ -221,6 +221,9 @@ const
     clDkGray             // Child
   );
 
+   ReportFieldKindNames : Array[TFPReportFieldKind] of string
+      = ('String', 'Boolean', 'Integer', 'Float', 'DateTime', 'Stream', 'Currency');
+
      {btUnknown,btPageHeader,btReportTitle,btColumnHeader,
       btDataHeader,btGroupHeader,btDataband,btGroupFooter,
       btDataFooter,btColumnFooter,btReportSummary,btPageFooter,
@@ -1439,6 +1442,7 @@ type
     FResetValue: String;
     FResetValueExpression: String;
     FResetValueExpressionNode: TFPExprNode;
+    FDataName : String;
     procedure CheckType(aType: TResultType);
     function GetAsBoolean: Boolean;
     function GetAsCurrency: Currency;
@@ -1464,13 +1468,19 @@ type
     Procedure RestoreValue; virtual;
   Protected
     Procedure ReleaseExpressionNodes;
+    procedure InitializeExpression(Expr: TFPExpressionParser; AData: TFPReportDataCollection; IsFirstpass: Boolean);
+    procedure ExtractDataName(aData: TFPReportDataCollection; ANode: TFPExprNode);
+    procedure ExtractDataName(aData: TFPReportDataCollection);
     Procedure GetRTValue(Var Result : TFPExpressionResult; ConstRef AName : ShortString); virtual;
     procedure GetRTExpressionValue(Var Result : TFPExpressionResult; ConstRef AName : ShortString); virtual;
   Public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     Procedure Assign(Source : TPersistent); override;
-    procedure PrepareExpressionValue;
+    // Init, update and finish aggregates. Called at pass start, open dataset, new record, EOF respectively
+    procedure InitExpressionValue(aData : TFPReportData; IsFirstpass : Boolean);
+    procedure UpdateExpressionValue(aData : TFPReportData; IsFirstpass : Boolean);
+    procedure DoneExpressionValue(aData : TFPReportData; IsFirstpass : Boolean);
     Procedure WriteElement(aWriter : TFPReportStreamer); virtual;
     Procedure ReadElement(aWriter : TFPReportStreamer); virtual;
     Property AsExpressionResult : TFPExpressionResult Read GetER Write SetER;
@@ -1498,7 +1508,10 @@ type
   Protected
   public
     Procedure ReleaseExpressionNodes;
-    procedure PrepareExpressionValues;
+    // Init, update and finish aggregates. Called at start, new record, EOF respectively
+    procedure InitExpressionValues(aData: TFPReportData; isFirstPass : Boolean);
+    procedure DoneExpressionValues(aData: TFPReportData; isFirstPass : Boolean);
+    procedure UpdateExpressionValues(aData: TFPReportData; isFirstPass: Boolean);
     Function IndexOfVariable(aName : String)  : Integer;
     Function FindVariable(aName : String)  : TFPReportVariable;
     Function AddVariable(aName : String)  : TFPReportVariable;
@@ -1560,7 +1573,10 @@ type
     { checks if children are visble, removes children if needed, and recalc Band.Layout bounds }
     procedure EmptyRTObjects;
     procedure ClearDataBandLastTextValues(ABand: TFPReportCustomBandWithData);
-    procedure ProcessAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
+    // Init, update and finish aggregates. Called at start, new record, EOF respectively
+    procedure InitAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
+    procedure UpdateAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
+    procedure DoneAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
 
     { these three methods are used to resolve references while reading a report from file. }
     procedure ClearReferenceList;
@@ -1589,7 +1605,7 @@ type
     procedure DoEndReport; virtual;
     procedure InitializeDefaultExpressions; virtual;
     procedure InitializeExpressionVariables; virtual;
-    procedure InitializePageAggregateData(const APage: TFPReportCustomPage; const AData: TFPReportData); virtual;
+    procedure InitializeAggregates(IsFirstPass: Boolean); virtual;
     procedure CacheMemoExpressions(const APage: TFPReportCustomPage); virtual;
     procedure StartRender; override;
     procedure EndRender; override;
@@ -1759,7 +1775,7 @@ type
     procedure InitBandList(aPage: TFPReportCustomPage); virtual;
     procedure InitDesignPage(aPageIdx: integer; APage : TFPReportCustomPage); virtual;
     procedure RunDataLoop(aPage: TFPReportCustomPage; aPageData: TFPReportData); virtual;
-    procedure PrepareRecord;
+    procedure PrepareRecord(aData: TFPReportData);
     procedure PrepareHeaderFooter(APage: TFPReportCustomPage);virtual;
     procedure PrepareBottomStackedFooters; virtual;
     procedure UpdateSpaceRemaining(const ABand: TFPReportCustomBand; const AUpdateYPos: boolean = True);virtual;
@@ -2335,8 +2351,8 @@ resourcestring
   SErrUnknownElementClass = 'Unknown element class : %s';
   SErrResetGroupMissing = 'ResetType is rtGroup but no ResetGroup specified';
   SErrEmptyResetValue = 'ResetType is specified, but no ResetExpression is provided';
-  SErrExprVarisbleAggregateOnWrongLevel= 'ExprVariable has Aggregate but not on highest level: %s';
-
+  SErrExprVariableAggregateOnWrongLevel= 'ExprVariable has Aggregate but not on highest level: %s';
+  SErrAggregateWithoutDataName = 'ExprVariable has Aggregate but cannot determine data source: %s';
 
 { includes Report Checkbox element images }
 {$I fpreportcheckbox.inc}
@@ -2347,6 +2363,28 @@ var
   uBandFactory : TFPReportBandFactory;
 
 { Auxiliary routines }
+
+Function SafeVariant(V : Variant) : String;
+
+begin
+  if VarIsNull(V) then
+    Result:='Null'
+  else
+    Result:=V;
+end;
+
+function DefExpressionResultToString(const Res : TFPExpressionResult): String;
+
+begin
+  case Res.ResultType of
+    rtString  : Result := Res.ResString;
+    rtInteger : Result := IntToStr(Res.ResInteger);
+    rtFloat   : Result := FloatToStr(Res.ResFloat);
+    rtCurrency  : Result := CurrToStr(Res.ResCurrency);
+    rtBoolean : Result := BoolToStr(Res.resBoolean, True);
+    rtDateTime : Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Res.resDateTime);
+  end;
+end;
 
 procedure ReportError(Msg: string); inline;
 begin
@@ -2956,12 +2994,30 @@ begin
     GetV(i).ReleaseExpressionNodes;
 end;
 
-procedure TFPReportVariables.PrepareExpressionValues;
+procedure TFPReportVariables.InitExpressionValues(aData: TFPReportData; isFirstPass: Boolean);
+
+var
+  i: Integer;
+
+begin
+  for i:=0 to Count-1 do
+    GetV(i).InitExpressionValue(aData,isFirstPass);
+end;
+
+procedure TFPReportVariables.DoneExpressionValues(aData: TFPReportData; isFirstPass: Boolean);
 var
   i: Integer;
 begin
   for i:=0 to Count-1 do
-    GetV(i).PrepareExpressionValue;
+    GetV(i).DoneExpressionValue(aData,isFirstPass);
+end;
+
+procedure TFPReportVariables.UpdateExpressionValues(aData : TFPReportData; isFirstPass: Boolean);
+var
+  i: Integer;
+begin
+  for i:=0 to Count-1 do
+    GetV(i).UpdateExpressionValue(aData,isFirstPass);
 end;
 
 function TFPReportVariables.IndexOfVariable(aName: String): Integer;
@@ -3111,8 +3167,7 @@ var
   lRpt: TFPCustomReport;
 begin
   lRpt := Collection.Owner as TFPCustomReport;
-
-  if lRpt.FRTUsePrevVariableValues or lRpt.FPageData.EOF then
+  if lRpt.FRTUsePrevVariableValues {or lRpt.FPageData.EOF} then
     Result:=FLastValue
   else
     Result:=FAggregateValue;
@@ -3156,6 +3211,80 @@ begin
   FreeAndNil(FExpressionNode);
   FreeAndNil(FResetValueExpressionNode);
   FResetValue:='';
+end;
+
+procedure TFPReportVariable.InitializeExpression(Expr : TFPExpressionParser; AData : TFPReportDataCollection; IsFirstpass : Boolean);
+
+begin
+  FResetValue:=#0;
+  fAggregateValuesIndex:=0;
+  if Not IsFirstPass then
+    exit;
+  Expr.Expression:=Expression;
+  Expr.ExtractNode(FExpressionNode);
+  FIsAggregate:=FExpressionNode.IsAggregate;
+  if FExpressionNode.HasAggregate and
+     not FExpressionNode.IsAggregate then
+    raise EReportError.CreateFmt(SErrExprVariableAggregateOnWrongLevel, [FExpressionNode.AsString]);
+  if FIsAggregate then
+    begin
+    if FDataName='' then
+      ExtractDataName(AData);
+    if (FDataName='') then
+      raise EReportError.CreateFmt(SErrAggregateWithoutDataName, [FExpressionNode.AsString]);
+    FExpressionNode.InitAggregate;
+    end
+  else
+    begin
+    FResetType:=rtNone;
+    FResetValueExpression:='';
+    end;
+  if ResetValueExpression<>'' then
+    begin
+    Expr.Expression := ResetValueExpression;
+    Expr.ExtractNode(FResetValueExpressionNode);
+    end;
+end;
+
+procedure TFPReportVariable.ExtractDataName(aData : TFPReportDataCollection; ANode : TFPExprNode);
+
+Var
+  L,I : Integer;
+  DS : String;
+
+begin
+  if (aNode is TFPExprVariable) then
+    begin
+    DS:=ExtractWord(1,TFPExprVariable(ANode).Identifier.Name,['.']);
+    If AData.FindReportData(DS)<>Nil then
+      FDataName:=DS;
+    end
+  else if (ANode is TFPExprFunction) then
+    begin
+    I:=0;
+    L:=Length(TFPExprFunction(ANode).ArgumentNodes);
+    While (I<L) and (FDataName='') do
+      begin
+      ExtractDataName(aData,TFPExprFunction(ANode).ArgumentNodes[i]);
+      Inc(I);
+      end;
+    end
+  else if (ANode is TFPBinaryOperation) then
+    begin
+    ExtractDataName(aData,TFPBinaryOperation(ANode).left);
+    if FDataName='' then
+      ExtractDataName(aData,TFPBinaryOperation(ANode).Right);
+    end
+  else if (ANode is TFPUnaryOperator) then
+    ExtractDataName(aData,TFPUnaryOperator(ANode).Operand);
+end;
+
+procedure TFPReportVariable.ExtractDataName(aData : TFPReportDataCollection);
+begin
+  ExtractDataName(aData,FExpressionNode);
+  {$ifdef gdebug}
+  Writeln('Expr ',Expression,'-> Data name ',FDataName);
+  {$endif}
 end;
 
 function TFPReportVariable.GetValue: String;
@@ -3325,104 +3454,127 @@ begin
     inherited Assign(Source);
 end;
 
-procedure TFPReportVariable.PrepareExpressionValue;
+
+procedure TFPReportVariable.InitExpressionValue(aData: TFPReportData; IsFirstpass: Boolean);
+
+begin
+  if not FIsAggregate then
+    exit;
+  If not IsFirstPass then
+    exit;
+  if Not SameText(aData.Name,FDataName) then
+    exit;
+  if (FResetValue=#0) then
+    begin
+    FResetValue:=#255;
+    FLastValue.ResultType:=rtFloat;
+    FLastValue.ResFloat:=0;
+    FAggregateValue.ResultType:=rtFloat;
+    FAggregateValue.ResFloat:=0;
+    FExpressionNode.InitAggregate;
+    end
+end;
+
+procedure TFPReportVariable.DoneExpressionValue(aData: TFPReportData; IsFirstpass: Boolean);
+
+Var
+  lResult: PFPExpressionResult;
+
+begin
+  if not FIsAggregate then
+    exit;
+  if not IsFirstPass then
+    exit;
+  if (FResetType=rtNone) then
+    exit;
+  if Not SameText(aData.Name,FDataName) then
+    exit;
+  lResult:= new(PFPExpressionResult);
+  lResult^:=FAggregateValue;
+  {$ifdef gdebug}
+  Writeln('Variable : ',FName, ', Pushing value on stack ',DefExpressionResultToString(FAggregateValue),'aData: ',aData.Name);
+  {$endif}
+  FAggregateValues.Add(lResult);
+  FResetValue:=#255;
+end;
+
+procedure TFPReportVariable.UpdateExpressionValue(aData: TFPReportData; IsFirstpass: Boolean);
 
 var
   lResetValue: String;
   lResult: PFPExpressionResult;
   lValue: TFPExpressionResult;
-  lRpt: TFPCustomReport;
+
+  Function NeedReset : Boolean;
+
+  begin
+    Result:= (FResetType<>rtNone) and (lResetValue<>FResetValue);
+  end;
+
 
 begin
   if FExpression='' then
     exit;
-
-  lRpt := Collection.Owner as TFPCustomReport;
-
   if not FIsAggregate then
-  begin
+    begin
     FLastValue:=FAggregateValue;
-    if not lRpt.FPageData.EOF then
+    if not aData.EOF then
       FAggregateValue:=FExpressionNode.NodeValue;
     exit;
-  end;
-
-  if lRpt.IsFirstPass then
-  begin
-    if lRpt.FPageData.EOF then
+    end;
+  if Not SameText(aData.Name,FDataName) then
+    exit;
+  if (FResetType<>rtNone) then
+    lResetValue:=DefExpressionResultToString(FResetValueExpressionNode.NodeValue);
+  {$ifdef gdebug}
+  Write('Aggregate ',Name,' (',IsFirstPass,', ',FResetType,'): xp: ',Expression,' reset: "',FResetValueExpression,'"');
+  if FResetValueExpression<>'' then
+    Write(' Current reset:',lResetValue,', saved reset: ',FResetValue,') ');
+  Writeln;
+  {$endif}
+  if IsFirstPass then
     begin
-      lResetValue := #255;
+    if NeedReset then
+      begin
+      {$ifdef gdebug}
+      Writeln('Aggregate', Name,'Reset changed');
+      {$endif}
+      if (FResetValue<>#255) and (FResetValue<>#0) then
+        begin
+        {$ifdef gdebug}
+        Writeln('Aggregate ',Name,'pushing to stack.');
+        {$endif}
+        DoneExpressionValue(aData,isFirstpass); // Push
+        end;
+      FExpressionNode.InitAggregate;
+      FResetValue:=lResetValue;
+      end;
+    FExpressionNode.UpdateAggregate;
+    FLastValue:=FAggregateValue;
+    FAggregateValue:=FExpressionNode.NodeValue;
     end
-    else
+  else if (FResetType<>rtNone) then
     begin
-      lResetValue:='?';
-      if FResetValueExpression<>'' then
-        lResetValue:=FResetValueExpressionNode.NodeValue.ResString;
-    end;
-    if lResetValue<>FResetValue then
-    begin
-      if FResetType <> rtNone then
+    if NeedReset then
       begin
-        if FResetValue<>'' then
+      {$ifdef gdebug}
+      Writeln('Aggregate ',Name,'Reset changed');
+      {$endif}
+      if (FResetValue<>#255) and (FResetValue<>#0)  then
         begin
-          lResult:= new(PFPExpressionResult);
-          lResult^:=FAggregateValue;
-          FAggregateValues.Add(lResult);
-          if lResetValue = #255 then
-          begin
-            // add last group Aggreagte
-            lResult:=new(PFPExpressionResult);
-            lResult^:=FAggregateValue;
-            FAggregateValues.Add(lResult);
-            // reset for second pass
-            FAggregateValuesIndex:=0;
-            FLastValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
-            FResetValue:='';
-          end;
+        {$ifdef gdebug}
+        Writeln('Aggregate ',Name,'Retrieving next value ',FAggregateValuesIndex);
+        {$endif}
+        inc(FAggregateValuesIndex);
         end;
+      FResetValue:=lResetValue;
       end;
-      if lResetValue <> #255 then
-      begin
-        FExpressionNode.InitAggregate;
-        FResetValue:=lResetValue;
-      end;
+    FLastValue:=FAggregateValue;
+    FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
     end;
-    if lResetValue <> #255 then
-    begin
-      FExpressionNode.UpdateAggregate;
-      lValue:=FExpressionNode.NodeValue;
-      FAggregateValue := lValue;
-      FLastValue := lValue;
-    end;
-  end
-  else
-  begin
-    if FResetType <> rtNone then
-    begin
-      if lRpt.FPageData.EOF then
-      begin
-        lResetValue := #255;
-      end
-      else
-      begin
-        lResetValue:='?';
-        if FResetValueExpression<>'' then
-          lResetValue:=FResetValueExpressionNode.NodeValue.ResString;
-      end;
-      if lResetValue<>FResetValue then
-      begin
-        if FResetValue='' then
-          fAggregateValuesIndex := 0;
-        FLastValue:=FAggregateValue;
-        if lResetValue < #255 then
-        begin
-          FAggregateValue:=PFPExpressionResult(FAggregateValues[FAggregateValuesIndex])^;
-          inc(FAggregateValuesIndex);
-        end;
-        FResetValue:=lResetValue;
-      end;
-    end;
-  end;
+  {$ifdef gdebug}
+  Writeln('Aggregate ',Name,'---> current value: ',DefExpressionResultToString(FAggregateValue));
+  {$endif}
 end;
 
 procedure TFPReportVariable.WriteElement(aWriter: TFPReportStreamer);
@@ -7796,13 +7948,24 @@ begin
   end;
 end;
 
+procedure TFPCustomReport.InitAggregates(APage: TFPReportCustomPage; const AData: TFPReportData);
+begin
+  Variables.InitExpressionValues(aData,IsFirstPass);
+end;
 
-procedure TFPCustomReport.ProcessAggregates(APage : TFPReportCustomPage; const AData: TFPReportData);
+procedure TFPCustomReport.DoneAggregates(APage: TFPReportCustomPage; const AData: TFPReportData);
+begin
+  Variables.DoneExpressionValues(aData,IsFirstPass);
+end;
+
+
+procedure TFPCustomReport.UpdateAggregates(APage: TFPReportCustomPage; const AData: TFPReportData);
 
 var
   i: integer;
 
 begin
+  Variables.UpdateExpressionValues(aData,IsFirstPass);
   for I := 0 to aPage.BandCount-1 do
     if (aPage.Bands[I] is TFPReportCustomBandWithData) then
       TFPReportCustomBandWithData(aPage.Bands[I]).ProcessAggregates(AData);
@@ -8012,50 +8175,26 @@ begin
     FExpr.Identifiers.AddFunction('PageCount', 'I', '', @BuiltinGetPageCount);
 end;
 
-procedure TFPCustomReport.InitializePageAggregateData(const APage: TFPReportCustomPage; const AData: TFPReportData);
+procedure TFPCustomReport.InitializeAggregates(IsFirstPass : Boolean);
 
 var
   i: Integer;
-  f: string;
-  r: TResultType;
-  d: string;
   v: TFPReportVariable;
-  df: TFPReportDataField;
 
 begin
-  // Sanity check
-  if Not (APage.Data = AData) then
-    exit;
   For I:=0 to FVariables.Count-1 do
     begin
     v:=FVariables[I];
-    v.ReleaseExpressionNodes;
-    if v.Expression<>'' then
-      begin
-      FExpr.Expression:=v.Expression;
-      FExpr.ExtractNode(v.FExpressionNode);
-      v.FIsAggregate:=v.FExpressionNode.IsAggregate;
-      if v.FExpressionNode.HasAggregate and
-      not v.FExpressionNode.IsAggregate then
-        raise EReportError.CreateFmt(SErrExprVarisbleAggregateOnWrongLevel, [v.FExpressionNode.AsString]);
-      if not v.FIsAggregate then
-        begin
-        v.FResetType:=rtNone;
-        v.FResetValueExpression:='';
-        end;
-      end;
-    if v.ResetValueExpression<>'' then
-      begin
-      FExpr.Expression := v.ResetValueExpression;
-      FExpr.ExtractNode(v.FResetValueExpressionNode);
-      end;
+    if (v.Expression<>'') then
+      v.InitializeExpression(FExpr,ReportData,IsFirstPass);
     end;
-  For I:=0 to FVariables.Count-1 do
-    begin
-    v:=FVariables[I];
-    if v.Expression<>'' then
-      FExpr.Identifiers.AddVariable(v.Name, v.DataType, @v.GetRTExpressionValue);
-    end;
+  if IsFirstPass then
+    For I:=0 to FVariables.Count-1 do
+      begin
+      v:=FVariables[I];
+      if v.Expression<>'' then
+        FExpr.Identifiers.AddVariable(v.Name, v.DataType, @v.GetRTExpressionValue);
+      end;
 end;
 
 
@@ -10085,6 +10224,8 @@ begin
     TFPReportDatafields(Collection).ReportData.DoGetValue(FieldName, Result);
 end;
 
+
+
 procedure TFPReportDataField.InitValue(SavePrevious: Boolean);
 begin
   if Not SavePrevious then
@@ -10092,6 +10233,7 @@ begin
   else
     FPrevValue := FValue;
   FValue:=GetValue;
+//  Writeln('Init ',Self.FieldName,' : ',safeVariant(FValue),' Previous : ',SafeVariant(FPrevValue));
 end;
 
 procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
@@ -10122,9 +10264,15 @@ procedure TFPReportDataField.GetRTValue(Var Result: TFPExpressionResult;
 
 begin
   if Assigned(FOnGetUsePrevValue) and FOnGetUsePrevValue() then
+    begin
+//    Writeln(FieldName,' Getting previous value : ',SafeVariant(FPrevValue));
     SetResult(FPrevValue)
+    end
   else
+    begin
+//    Writeln(FieldName,' Getting current value : ',SafeVariant(FValue));
     SetResult(FValue);
+    end;
 end;
 
 procedure TFPReportDataField.Assign(Source: TPersistent);
@@ -11351,6 +11499,17 @@ begin
     end;
 end;
 
+Procedure DumpData(lData : TFPReportData);
+
+Var
+  I : Integer;
+begin
+  Write('Fields [',Ldata.Name,']');
+  For i:=0 to lData.FieldCount-1 do
+    Write(', ',lData.FieldNames[i],': ',SafeVariant(LData.GetFieldValue(lData.FieldNames[i])));
+  Writeln();
+end;
+
 procedure TFPReportLayouter.ShowDetailBands;
 
 var
@@ -11370,29 +11529,36 @@ begin
       LD.FDataHeaderPrinted:=False;
       LD.ResetGroups;
       lData := LD.Data;
+      {$ifdef gdebug}
+      Writeln('Detail loop ',ldata.Name);
+      Writeln('-----------');
+      {$endif}
       if not lData.IsOpened then
-        begin
         lData.Open;
-        // Report.InitializeExpressionVariables;
-        Report.InitializePageAggregateData(lPage,lData);
-        // Report.CacheMemoExpressions(lPage);
-        end;
       lData.First;
+      Report.InitAggregates(lPage,lData);
       while not lData.EOF do
         begin
-        PrepareRecord;
+        {$ifdef gdebug}
+        Writeln('detail Record');
+        {$endif}
+        // DumpData(lData);
+        PrepareRecord(lData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
         // This must be done after the groups were handled.
-        Report.ProcessAggregates(lPage,lData);
-        Report.Variables.PrepareExpressionValues;
+        Report.UpdateAggregates(lPage,lData);
         ShowDataBand;
         lData.Next;
         end;  { while not lData.EOF }
-      Report.ProcessAggregates(lPage,lData);
-      PrepareRecord;
+      {$ifdef gdebug}
+      Writeln('detail Records done');
+      {$endif}
+      Report.DoneAggregates(lPage,lData);
+
+      PrepareRecord(lData);
       CheckNewOrOverFlow;
       HandleLastGroupFooters;
       // only print if we actually had data
@@ -11402,6 +11568,7 @@ begin
           ShowBandWithChilds(CurrentLoop.FDataFooter);
         end;
     Finally
+      lData.Close;
       PopLoop;
     end;
     end;
@@ -11532,6 +11699,11 @@ Var
   aLoop: TLoopData;
 
 begin
+  {$ifdef gdebug}
+  Writeln('------------------');
+  Writeln('Run loop ',IsFirstPass);
+  Writeln('------------------');
+  {$endif}
   aLoop:=TLoopData.Create(aPageData);
   try
     PushLoop(aLoop);
@@ -11550,29 +11722,38 @@ begin
     if IsFirstPass then
       begin
       Report.InitializeExpressionVariables;
-      if Assigned(aPageData) then
-        Report.InitializePageAggregateData(aPage, aPageData);
+      Report.InitializeAggregates(True);
       Report.CacheMemoExpressions(aPage);
-      end;
+      end
+    else
+      Report.InitializeAggregates(False);
     InitBandList(aPage);
+    Report.InitAggregates(aPage,aPageData);
     if Not Assigned(aPageData) then
       StartNewPage
     else
       begin
       while not aPageData.EOF do
         begin
-        PrepareRecord;
+        {$ifdef gdebug}
+        Writeln('*** Page Record');
+        {$endif}
+        // DumpData(aPageData);
+        PrepareRecord(aPageData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
         // This must be done after the groups were handled.
-        Report.ProcessAggregates(aPage,aPageData);
+        Report.UpdateAggregates(aPage,aPageData);
         ShowDataBand;
         aPageData.Next;
         end;
-      Report.ProcessAggregates(aPage,aPageData);
-      PrepareRecord;
+      {$ifdef gdebug}
+      Writeln('*** Page Record done');
+      {$endif}
+      Report.DoneAggregates(aPage,aPageData);
+      PrepareRecord(aPageData);
       end;
     CheckNewOrOverFlow(True);
     HandleLastGroupFooters;
@@ -11593,10 +11774,10 @@ begin
   end;
 end;
 
-procedure TFPReportLayouter.PrepareRecord;
+procedure TFPReportLayouter.PrepareRecord(aData : TFPReportData);
 
 begin
-  Report.Variables.PrepareExpressionValues;
+//  Report.Variables.PrepareExpressionValues(aData);
   if CurrentLoop.FGroupHeaderList.Count > 0 then
     TFPReportCustomGroupHeaderBand(CurrentLoop.FGroupHeaderList[0]).EvaluateGroupCondition;
 end;
