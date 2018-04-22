@@ -22,7 +22,7 @@ unit fpreport;
 // Global debugging
 { $define gdebug}
 // Separate for aggregate variables
-{ $define gdebuga}
+{$define gdebuga}
 
 interface
 
@@ -1450,6 +1450,7 @@ type
     FResetValueExpressionNode: TFPExprNode;
     FDataName : String;
     procedure CheckType(aType: TResultType);
+    procedure ClearAggregateValues;
     function GetAsBoolean: Boolean;
     function GetAsCurrency: Currency;
     function GetAsDateTime: TDateTime;
@@ -3190,8 +3191,18 @@ begin
 end;
 
 destructor TFPReportVariable.Destroy;
+begin
+  ClearAggregateValues;
+  FAggregateValues.Free;
+  ReleaseExpressionNodes;
+  inherited Destroy;
+end;
+
+procedure TFPReportVariable.ClearAggregateValues;
+
 var
   lResult: PFPExpressionResult;
+
 begin
   While FAggregateValues.Count >0 do
   begin
@@ -3199,9 +3210,6 @@ begin
     Dispose(lResult);
     FAggregateValues.Delete(FAggregateValues.Count-1);
   end;
-  FAggregateValues.Free;
-  ReleaseExpressionNodes;
-  inherited Destroy;
 end;
 
 procedure TFPReportVariable.SaveValue;
@@ -3228,6 +3236,7 @@ begin
   fAggregateValuesIndex:=0;
   if Not IsFirstPass then
     exit;
+  ClearAggregateValues;
   Expr.Expression:=Expression;
   Expr.ExtractNode(FExpressionNode);
   FIsAggregate:=FExpressionNode.IsAggregate;
