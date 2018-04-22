@@ -397,7 +397,8 @@ begin
     end;
   TmpFileList.Free;
   ChDir(StartDir);
-  RmDir(ADosBoxDir);
+  if not RemoveDir(ADosBoxDir) then
+    writeln('Failed to remove dir ',ADosBoxDir);
 end;
 
 
