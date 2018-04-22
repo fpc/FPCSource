@@ -2087,7 +2087,8 @@ type
   Protected
     FTestResult: Boolean;
     Procedure   RecalcLayout; override;
-    Function PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
+    Procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement=nil); override;
+    Function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     property    Expression: TFPReportString read FExpression write SetExpression;
   public
     constructor Create(AOwner: TComponent); override;
@@ -2099,6 +2100,7 @@ type
     Function    CreatePropertyHash: String; override;
     procedure   Assign(Source: TPersistent); override;
     procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
+    Procedure   ReadElement(AReader: TFPReportStreamer); override;
     Property    TrueImageID : Integer Read FTrueImageID Write FTrueImageID;
     Property    FalseImageID : Integer Read FFalseImageID Write FFalseImageID;
   end;
@@ -5497,6 +5499,12 @@ begin
   // Do nothing
 end;
 
+procedure TFPReportCustomCheckbox.DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement);
+begin
+  inherited DoWriteLocalProperties(AWriter, AOriginal);
+  AWriter.WriteString('Expression',Expression);
+end;
+
 function TFPReportCustomCheckbox.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
 
 Var
@@ -5595,6 +5603,12 @@ begin
   finally
     AWriter.PopElement;
   end;
+end;
+
+procedure TFPReportCustomCheckbox.ReadElement(AReader: TFPReportStreamer);
+begin
+  inherited ReadElement(AReader);
+  Expression:=AReader.ReadString('Expression','');
 end;
 
 
