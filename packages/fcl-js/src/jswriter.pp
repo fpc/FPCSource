@@ -709,7 +709,7 @@ begin
         end;
     jstObject : ;
     jstReference : ;
-    JSTCompletion : ;
+    jstCompletion : ;
   end;
   if S='' then exit;
   case S[1] of

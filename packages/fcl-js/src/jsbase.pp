@@ -23,7 +23,7 @@ uses
   Classes, SysUtils;
 
 Type
-  TJSType = (jstUNDEFINED,jstNull,jstBoolean,jstNumber,jstString,jstObject,jstReference,JSTCompletion);
+  TJSType = (jstUNDEFINED,jstNull,jstBoolean,jstNumber,jstString,jstObject,jstReference,jstCompletion);
 
   TJSString = UnicodeString;
   TJSChar = WideChar;
