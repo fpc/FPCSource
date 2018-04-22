@@ -283,6 +283,7 @@ type
   MaxPrecInt = int64;
   MaxPrecUInt = qword;
   MaxPrecFloat = extended;
+  MaxPrecCurrency = currency;
 const
   // Note: when FPC compares int64 with qword it converts the qword to an int64,
   //       possibly resulting in a range check error -> using a qword const instead
@@ -309,6 +310,7 @@ type
     revkInt,  // TResEvalInt
     revkUInt, // TResEvalUInt
     revkFloat, // TResEvalFloat
+    revkCurrency, // TResEvalCurrency
     revkString, // TResEvalString
     revkUnicodeString, // TResEvalUTF16
     revkEnum,     // TResEvalEnum
@@ -420,6 +422,19 @@ type
     function Clone: TResEvalValue; override;
     function AsString: string; override;
     function IsInt(out Int: MaxPrecInt): boolean;
+  end;
+
+  { TResEvalCurrency }
+
+  TResEvalCurrency = class(TResEvalValue)
+  public
+    Value: MaxPrecCurrency;
+    constructor Create; override;
+    constructor CreateValue(const aValue: MaxPrecCurrency);
+    function Clone: TResEvalValue; override;
+    function AsString: string; override;
+    function IsInt(out Int: MaxPrecInt): boolean;
+    function AsInt64: int64;
   end;
 
   { TResEvalString - Kind=revkString }
@@ -875,6 +890,45 @@ begin
     Result:=v.AsDebugString;
 end;
 
+{ TResEvalCurrency }
+
+constructor TResEvalCurrency.Create;
+begin
+  inherited Create;
+  Kind:=revkCurrency;
+end;
+
+constructor TResEvalCurrency.CreateValue(const aValue: MaxPrecCurrency);
+begin
+  Create;
+  Value:=aValue;
+end;
+
+function TResEvalCurrency.Clone: TResEvalValue;
+begin
+  Result:=inherited Clone;
+  TResEvalCurrency(Result).Value:=Value;
+end;
+
+function TResEvalCurrency.AsString: string;
+begin
+  str(Value,Result);
+end;
+
+function TResEvalCurrency.IsInt(out Int: MaxPrecInt): boolean;
+var
+  i: Int64;
+begin
+  i:=PInt64(@Value)^;
+  Result:=(i mod 10000)=0;
+  Int:=i div 10000;
+end;
+
+function TResEvalCurrency.AsInt64: int64;
+begin
+  Result:=PInt64(@Value)^;
+end;
+
 { TResEvalBool }
 
 constructor TResEvalBool.Create;
@@ -1056,7 +1110,14 @@ begin
         if Result.Element<>nil then
           Result:=Result.Clone;
         TResEvalFloat(Result).FloatValue:=-TResEvalFloat(Result).FloatValue;
-        end
+        end;
+      revkCurrency:
+        begin
+        if TResEvalCurrency(Result).Value=0 then exit;
+        if Result.Element<>nil then
+          Result:=Result.Clone;
+        TResEvalCurrency(Result).Value:=-TResEvalCurrency(Result).Value;
+        end;
       else
         begin
         if Result.Element=nil then
@@ -1347,6 +1408,7 @@ var
   Int: MaxPrecInt;
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
+  aCurrency: MaxPrecCurrency;
   LeftCP, RightCP: TSystemCodePage;
   LeftSet, RightSet: TResEvalSet;
   i: Integer;
@@ -1375,6 +1437,8 @@ begin
         IntAddUInt(Int,TResEvalUInt(RightValue).UInt);
       revkFloat: // int + float
         Result:=TResEvalFloat.CreateValue(Int + TResEvalFloat(RightValue).FloatValue);
+      revkCurrency: // int + currency
+        Result:=TResEvalCurrency.CreateValue(Int + TResEvalCurrency(RightValue).Value);
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryAddExpr int+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -1395,6 +1459,8 @@ begin
         end;
       revkFloat: // uint + float
         Result:=TResEvalFloat.CreateValue(UInt + TResEvalFloat(RightValue).FloatValue);
+      revkCurrency: // uint + currency
+        Result:=TResEvalCurrency.CreateValue(UInt + TResEvalCurrency(RightValue).Value);
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryAddExpr uint+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -1412,11 +1478,32 @@ begin
         Result:=TResEvalFloat.CreateValue(Flo + TResEvalUInt(RightValue).UInt);
       revkFloat: // float + float
         Result:=TResEvalFloat.CreateValue(Flo + TResEvalFloat(RightValue).FloatValue);
+      revkCurrency: // float + Currency
+        Result:=TResEvalCurrency.CreateValue(Flo + TResEvalCurrency(RightValue).Value);
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryAddExpr float+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
         {$ENDIF}
         RaiseNotYetImplemented(20170711145637,Expr);
+      end;
+      end;
+    revkCurrency:
+      begin
+      aCurrency:=TResEvalCurrency(LeftValue).Value;
+      case RightValue.Kind of
+      revkInt: // currency + int
+        Result:=TResEvalFloat.CreateValue(aCurrency + TResEvalInt(RightValue).Int);
+      revkUInt: // currency + uint
+        Result:=TResEvalFloat.CreateValue(aCurrency + TResEvalUInt(RightValue).UInt);
+      revkFloat: // currency + float
+        Result:=TResEvalFloat.CreateValue(aCurrency + TResEvalFloat(RightValue).FloatValue);
+      revkCurrency: // currency + currency
+        Result:=TResEvalCurrency.CreateValue(aCurrency + TResEvalCurrency(RightValue).Value);
+      else
+        {$IFDEF VerbosePasResolver}
+        writeln('TResExprEvaluator.EvalBinaryAddExpr currency+? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+        {$ENDIF}
+        RaiseNotYetImplemented(20180421163819,Expr);
       end;
       end;
     revkString:
@@ -1520,6 +1607,7 @@ var
   Int: MaxPrecInt;
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
+  aCurrency: MaxPrecCurrency;
   LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
@@ -1568,6 +1656,17 @@ begin
         on E: EOverflow do
           RaiseOverflowArithmetic(20170711151313,Expr);
       end;
+    revkCurrency:
+      // int - currency
+      try
+        {$Q+}
+        aCurrency:=MaxPrecCurrency(Int) - TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164011,Expr);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinarySubExpr sub int-? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -1611,6 +1710,17 @@ begin
       except
         on E: EOverflow do
           RaiseOverflowArithmetic(20170711151428,Expr);
+      end;
+    revkCurrency:
+      // uint - currency
+      try
+        {$Q+}
+        aCurrency:=MaxPrecCurrency(UInt) - TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164005,Expr);
       end;
     else
       {$IFDEF VerbosePasResolver}
@@ -1656,11 +1766,77 @@ begin
         on E: EOverflow do
           RaiseOverflowArithmetic(20170711151552,Expr);
       end;
+    revkCurrency:
+      // float - currency
+      try
+        {$Q+}
+        aCurrency:=aCurrency - TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164054,Expr);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinarySubExpr sub float-? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
       {$ENDIF}
       RaiseNotYetImplemented(20170711151600,Expr);
+    end;
+    end;
+  revkCurrency:
+    begin
+    aCurrency:=TResEvalCurrency(LeftValue).Value;
+    case RightValue.Kind of
+    revkInt:
+      // currency - int
+      try
+        {$Q+}
+        aCurrency:=aCurrency - TResEvalInt(RightValue).Int;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164200,Expr);
+      end;
+    revkUInt:
+      // currency - uint
+      try
+        {$Q+}
+        aCurrency:=aCurrency - TResEvalUInt(RightValue).UInt;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164218,Expr);
+      end;
+    revkFloat:
+      // currency - float
+      try
+        {$Q+}
+        aCurrency:=aCurrency - TResEvalFloat(RightValue).FloatValue;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164250,Expr);
+      end;
+    revkCurrency:
+      // currency - currency
+      try
+        {$Q+}
+        aCurrency:=aCurrency - TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164258,Expr);
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinarySubExpr sub currency-? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20180421164312,Expr);
     end;
     end;
   revkSetOfInt:
@@ -1708,6 +1884,7 @@ var
   Int: MaxPrecInt;
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
+  aCurrency: MaxPrecCurrency;
   LeftSet, RightSet: TResEvalSet;
   i: Integer;
 begin
@@ -1759,6 +1936,16 @@ begin
         Result:=TResEvalFloat.CreateValue(Flo);
       except
         RaiseOverflowArithmetic(20170711164541,Expr);
+      end;
+    revkCurrency:
+      // int * currency
+      try
+        {$Q+}
+        aCurrency:=Int * TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421164426,Expr);
       end;
     else
       {$IFDEF VerbosePasResolver}
@@ -1813,6 +2000,16 @@ begin
       except
         RaiseOverflowArithmetic(20170711164800,Expr);
       end;
+    revkCurrency:
+      // uint * currency
+      try
+        {$Q+}
+        aCurrency:=UInt * TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421164500,Expr);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryMulExpr mul uint*? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -1855,11 +2052,73 @@ begin
       except
         RaiseOverflowArithmetic(20170711164955,Expr);
       end;
+    revkCurrency:
+      // float * currency
+      try
+        {$Q+}
+        Flo:=Flo * TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20180421164542,Expr);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryMulExpr mul float*? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
       {$ENDIF}
       RaiseNotYetImplemented(20170711165004,Expr);
+    end;
+    end;
+  revkCurrency:
+    begin
+    aCurrency:=TResEvalCurrency(LeftValue).Value;
+    case RightValue.Kind of
+    revkInt:
+      // currency * int
+      try
+        {$Q+}
+        aCurrency:=aCurrency * TResEvalInt(RightValue).Int;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        on E: EOverflow do
+          RaiseOverflowArithmetic(20180421164636,Expr);
+      end;
+    revkUInt:
+      // currency * uint
+      try
+        {$Q+}
+        aCurrency:=aCurrency * TResEvalUInt(RightValue).UInt;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421164654,Expr);
+      end;
+    revkFloat:
+      // currency * float
+      try
+        {$Q+}
+        Flo:=aCurrency * TResEvalFloat(RightValue).FloatValue;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20180421164718,Expr);
+      end;
+    revkCurrency:
+      // currency * currency
+      try
+        {$Q+}
+        aCurrency:=aCurrency * TResEvalCurrency(RightValue).Value;
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421164806,Expr);
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryMulExpr mul currency*? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20180421164817,Expr);
     end;
     end;
   revkSetOfInt:
@@ -1907,6 +2166,7 @@ var
   Int: MaxPrecInt;
   UInt: MaxPrecUInt;
   Flo: MaxPrecFloat;
+  aCurrency: MaxPrecCurrency;
 begin
   Result:=nil;
   case LeftValue.Kind of
@@ -1935,7 +2195,17 @@ begin
         RaiseMsg(20170711144525,nDivByZero,sDivByZero,[],Expr);
       end;
       Result:=TResEvalFloat.CreateValue(Flo);
-      end
+      end;
+    revkCurrency:
+      begin
+      // int / currency
+      try
+        aCurrency:=Int / TResEvalCurrency(RightValue).Value;
+      except
+        RaiseMsg(20180421164915,nDivByZero,sDivByZero,[],Expr);
+      end;
+      Result:=TResEvalCurrency.CreateValue(aCurrency);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryDivideExpr int / ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -1968,7 +2238,17 @@ begin
         RaiseMsg(20170711144912,nDivByZero,sDivByZero,[],Expr);
       end;
       Result:=TResEvalFloat.CreateValue(Flo);
-      end
+      end;
+    revkCurrency:
+      begin
+      // uint / currency
+      try
+        aCurrency:=UInt / TResEvalCurrency(RightValue).Value;
+      except
+        RaiseMsg(20180421164959,nDivByZero,sDivByZero,[],Expr);
+      end;
+      Result:=TResEvalCurrency.CreateValue(aCurrency);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryDivideExpr uint / ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -2001,12 +2281,65 @@ begin
         RaiseMsg(20170711145040,nDivByZero,sDivByZero,[],Expr);
       end;
       Result:=TResEvalFloat.CreateValue(Flo);
-      end
+      end;
+    revkCurrency:
+      begin
+      // float / currency
+      try
+        aCurrency:=Flo / TResEvalCurrency(RightValue).Value;
+      except
+        RaiseMsg(20180421165058,nDivByZero,sDivByZero,[],Expr);
+      end;
+      Result:=TResEvalCurrency.CreateValue(aCurrency);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryDivideExpr float / ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
       {$ENDIF}
       RaiseNotYetImplemented(20170711145050,Expr);
+    end;
+    end;
+  revkCurrency:
+    begin
+    aCurrency:=TResEvalCurrency(LeftValue).Value;
+    case RightValue.Kind of
+    revkInt:
+      // currency / int
+      if TResEvalInt(RightValue).Int=0 then
+        RaiseDivByZero(20180421165154,Expr)
+      else
+        Result:=TResEvalCurrency.CreateValue(aCurrency / TResEvalInt(RightValue).Int);
+    revkUInt:
+      // currency / uint
+      if TResEvalUInt(RightValue).UInt=0 then
+        RaiseDivByZero(20180421165205,Expr)
+      else
+        Result:=TResEvalCurrency.CreateValue(aCurrency / TResEvalUInt(RightValue).UInt);
+    revkFloat:
+      begin
+      // currency / float
+      try
+        aCurrency:=aCurrency / TResEvalFloat(RightValue).FloatValue;
+      except
+        RaiseMsg(20180421165237,nDivByZero,sDivByZero,[],Expr);
+      end;
+      Result:=TResEvalCurrency.CreateValue(aCurrency);
+      end;
+    revkCurrency:
+      begin
+      // currency / currency
+      try
+        aCurrency:=aCurrency / TResEvalCurrency(RightValue).Value;
+      except
+        RaiseMsg(20180421165252,nDivByZero,sDivByZero,[],Expr);
+      end;
+      Result:=TResEvalCurrency.CreateValue(aCurrency);
+      end;
+    else
+      {$IFDEF VerbosePasResolver}
+      writeln('TResExprEvaluator.EvalBinaryDivideExpr currency / ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+      {$ENDIF}
+      RaiseNotYetImplemented(20180421165301,Expr);
     end;
     end;
   else
@@ -2350,6 +2683,8 @@ begin
         TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int=TResEvalUInt(RightValue).UInt;
       revkFloat:
         TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int=TResEvalFloat(RightValue).FloatValue;
+      revkCurrency:
+        TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int=TResEvalCurrency(RightValue).Value;
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryNEqualExpr int ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -2368,6 +2703,8 @@ begin
         TResEvalBool(Result).B:=UInt=TResEvalUInt(RightValue).UInt;
       revkFloat:
         TResEvalBool(Result).B:=UInt=TResEvalFloat(RightValue).FloatValue;
+      revkCurrency:
+        TResEvalBool(Result).B:=UInt=TResEvalCurrency(RightValue).Value;
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryNEqualExpr uint ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -2384,12 +2721,31 @@ begin
         TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue=TResEvalUInt(RightValue).UInt;
       revkFloat:
         TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue=TResEvalFloat(RightValue).FloatValue;
+      revkCurrency:
+        TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue=TResEvalCurrency(RightValue).Value;
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryNEqualExpr float ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
         {$ENDIF}
         Result.Free;
         RaiseNotYetImplemented(20170601122806,Expr);
+      end;
+    revkCurrency:
+      case RightValue.Kind of
+      revkInt:
+        TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value=TResEvalInt(RightValue).Int;
+      revkUInt:
+        TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value=TResEvalUInt(RightValue).UInt;
+      revkFloat:
+        TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value=TResEvalFloat(RightValue).FloatValue;
+      revkCurrency:
+        TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value=TResEvalCurrency(RightValue).Value;
+      else
+        {$IFDEF VerbosePasResolver}
+        writeln('TResExprEvaluator.EvalBinaryNEqualExpr currency ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+        {$ENDIF}
+        Result.Free;
+        RaiseNotYetImplemented(20180421165438,Expr);
       end;
     revkString:
       case RightValue.Kind of
@@ -2535,6 +2891,17 @@ begin
         eopGreaterThanEqual:
           TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int >= TResEvalFloat(RightValue).FloatValue;
         end;
+      revkCurrency:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int < TResEvalCurrency(RightValue).Value;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int > TResEvalCurrency(RightValue).Value;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int <= TResEvalCurrency(RightValue).Value;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalInt(LeftValue).Int >= TResEvalCurrency(RightValue).Value;
+        end;
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryLowerGreaterExpr int ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -2576,6 +2943,17 @@ begin
           TResEvalBool(Result).B:=TResEvalUInt(LeftValue).UInt <= TResEvalFloat(RightValue).FloatValue;
         eopGreaterThanEqual:
           TResEvalBool(Result).B:=TResEvalUInt(LeftValue).UInt >= TResEvalFloat(RightValue).FloatValue;
+        end;
+      revkCurrency:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalUInt(LeftValue).UInt < TResEvalCurrency(RightValue).Value;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalUInt(LeftValue).UInt > TResEvalCurrency(RightValue).Value;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalUInt(LeftValue).UInt <= TResEvalCurrency(RightValue).Value;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalUInt(LeftValue).UInt >= TResEvalCurrency(RightValue).Value;
         end;
       else
         {$IFDEF VerbosePasResolver}
@@ -2619,12 +2997,76 @@ begin
         eopGreaterThanEqual:
           TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue >= TResEvalFloat(RightValue).FloatValue;
         end;
+      revkCurrency:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue < TResEvalCurrency(RightValue).Value;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue > TResEvalCurrency(RightValue).Value;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue <= TResEvalCurrency(RightValue).Value;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalFloat(LeftValue).FloatValue >= TResEvalCurrency(RightValue).Value;
+        end;
       else
         {$IFDEF VerbosePasResolver}
         writeln('TResExprEvaluator.EvalBinaryLowerGreaterExpr float ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
         {$ENDIF}
         Result.Free;
         RaiseNotYetImplemented(20170601133421,Expr);
+      end;
+    revkCurrency:
+      case RightValue.Kind of
+      revkInt:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value < TResEvalInt(RightValue).Int;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value > TResEvalInt(RightValue).Int;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value <= TResEvalInt(RightValue).Int;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value >= TResEvalInt(RightValue).Int;
+        end;
+      revkUInt:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value < TResEvalUInt(RightValue).UInt;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value > TResEvalUInt(RightValue).UInt;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value <= TResEvalUInt(RightValue).UInt;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value >= TResEvalUInt(RightValue).UInt;
+        end;
+      revkFloat:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value < TResEvalFloat(RightValue).FloatValue;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value > TResEvalFloat(RightValue).FloatValue;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value <= TResEvalFloat(RightValue).FloatValue;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value >= TResEvalFloat(RightValue).FloatValue;
+        end;
+      revkCurrency:
+        case Expr.OpCode of
+        eopLessThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value < TResEvalCurrency(RightValue).Value;
+        eopGreaterThan:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value > TResEvalCurrency(RightValue).Value;
+        eopLessthanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value <= TResEvalCurrency(RightValue).Value;
+        eopGreaterThanEqual:
+          TResEvalBool(Result).B:=TResEvalCurrency(LeftValue).Value >= TResEvalCurrency(RightValue).Value;
+        end;
+      else
+        {$IFDEF VerbosePasResolver}
+        writeln('TResExprEvaluator.EvalBinaryLowerGreaterExpr currency ',Expr.OpCode,' ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
+        {$ENDIF}
+        Result.Free;
+        RaiseNotYetImplemented(20180421165752,Expr);
       end;
     revkString:
       case RightValue.Kind of
@@ -3121,6 +3563,7 @@ function TResExprEvaluator.EvalBinaryPowerExpr(Expr: TBinaryExpr; LeftValue,
 var
   Int: MaxPrecInt;
   Flo: MaxPrecFloat;
+  aCurrency: MaxPrecCurrency;
 begin
   Result:=nil;
   case LeftValue.Kind of
@@ -3158,6 +3601,17 @@ begin
         Result:=TResEvalFloat.CreateValue(Flo);
       except
         RaiseOverflowArithmetic(20170816154223,Expr);
+      end;
+    revkCurrency:
+      // int^^currency
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalInt(LeftValue).Int,TResEvalCurrency(RightValue).Value);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20180421165906,Expr);
       end;
     else
       {$IFDEF VerbosePasResolver}
@@ -3200,6 +3654,17 @@ begin
       except
         RaiseOverflowArithmetic(20170816154241,Expr);
       end;
+    revkCurrency:
+      // uint^^currency
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalUInt(LeftValue).UInt,TResEvalCurrency(RightValue).Value);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20180421165948,Expr);
+      end;
     else
       {$IFDEF VerbosePasResolver}
       writeln('TResExprEvaluator.EvalBinaryPowerExpr uint ^^ ? Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -3241,7 +3706,65 @@ begin
       except
         RaiseOverflowArithmetic(20170816154012,Expr);
       end;
-    end
+    revkCurrency:
+      // float ^^ currency
+      try
+        {$Q+}{$R+}
+        Flo:=Math.power(TResEvalFloat(LeftValue).FloatValue,TResEvalCurrency(RightValue).Value);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalFloat.CreateValue(Flo);
+      except
+        RaiseOverflowArithmetic(20180421170016,Expr);
+      end;
+    end;
+  revkCurrency:
+    case RightValue.Kind of
+    revkInt:
+      // currency ^^ int
+      try
+        {$Q+}{$R+}
+        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalInt(RightValue).Int);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421170235,Expr);
+      end;
+    revkUInt:
+      // currency ^^ uint
+      try
+        {$Q+}{$R+}
+        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalUInt(RightValue).UInt);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421170240,Expr);
+      end;
+    revkFloat:
+      // currency ^^ float
+      try
+        {$Q+}{$R+}
+        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalFloat(RightValue).FloatValue);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421170254,Expr);
+      end;
+    revkCurrency:
+      // currency ^^ currency
+      try
+        {$Q+}{$R+}
+        aCurrency:=Math.power(TResEvalCurrency(LeftValue).Value,TResEvalCurrency(RightValue).Value);
+        {$IFNDEF OverflowCheckOn}{$Q-}{$ENDIF}
+        {$IFNDEF RangeCheckOn}{$R-}{$ENDIF}
+        Result:=TResEvalCurrency.CreateValue(aCurrency);
+      except
+        RaiseOverflowArithmetic(20180421170311,Expr);
+      end;
+    end;
   else
     {$IFDEF VerbosePasResolver}
     writeln('TResExprEvaluator.EvalBinaryPowerExpr ^^ ?- Left=',LeftValue.AsDebugString,' Right=',RightValue.AsDebugString);
@@ -4034,6 +4557,13 @@ begin
           str(TResEvalFloat(Value).FloatValue:Format1,ValStr)
         else
           str(TResEvalFloat(Value).FloatValue:Format1:Format2,ValStr);
+      revkCurrency:
+        if Format1<0 then
+          str(TResEvalCurrency(Value).Value,ValStr)
+        else if Format2<0 then
+          str(TResEvalCurrency(Value).Value:Format1,ValStr)
+        else
+          str(TResEvalCurrency(Value).Value:Format1:Format2,ValStr);
       revkEnum:
         begin
         ValStr:=TResEvalEnum(Value).AsString;

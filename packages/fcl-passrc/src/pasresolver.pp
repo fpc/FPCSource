@@ -186,6 +186,10 @@ Works:
   - assigned()
   - IntfVar:=nil, IntfVar:=IntfVar, IntfVar:=ObjVar, ObjVar:=IntfVar
   - IntfVar=IntfVar2
+- currency
+  - eval type TResEvalCurrency
+  - eval +, -, *, /, ^^
+  - float*currency and currency*float computes to currency
 
 ToDo:
 - $pop, $push
@@ -5681,6 +5685,7 @@ begin
       revkBool,
       revkInt, revkUInt,
       revkFloat,
+      revkCurrency,
       revkString, revkUnicodeString,
       revkEnum: ; // ok
       else
@@ -8489,8 +8494,12 @@ begin
           eopShl, eopShr,
           eopAnd, eopOr, eopXor:
             begin
-            // use left type for result
-            SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,LeftResolved.TypeEl,Bin,[rrfReadable]);
+            if RightResolved.BaseType in btAllFloats then
+              // use right type for result
+              SetResolverValueExpr(ResolvedEl,RightResolved.BaseType,RightResolved.TypeEl,Bin,[rrfReadable])
+            else
+              // use left type for result
+              SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,LeftResolved.TypeEl,Bin,[rrfReadable]);
             exit;
             end;
           eopLessThan,
@@ -8664,7 +8673,14 @@ begin
       eopMultiply, eopDivide, eopMod,
       eopPower:
         begin
-        SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,LeftResolved.TypeEl,Bin,[rrfReadable]);
+        if (RightResolved.BaseType=btCurrency)
+            or ((RightResolved.BaseType in btAllFloats)
+                and (RightResolved.BaseType>LeftResolved.BaseType)) then
+          // use right side as result
+          SetResolverValueExpr(ResolvedEl,RightResolved.BaseType,RightResolved.TypeEl,Bin,[rrfReadable])
+        else
+          // use left side as result
+          SetResolverValueExpr(ResolvedEl,LeftResolved.BaseType,LeftResolved.TypeEl,Bin,[rrfReadable]);
         exit;
         end;
       eopLessThan,
@@ -10250,6 +10266,78 @@ end;
 
 function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
   bt: TResolverBaseType): TResEvalvalue;
+
+  procedure TCFloatToInt(Value: TResEvalValue; Flo: MaxPrecFloat);
+  var
+    Int, MinIntVal, MaxIntVal: MaxPrecInt;
+  begin
+    if bt in (btAllInteger-[btQWord]) then
+      begin
+      // float to int
+      GetIntegerRange(bt,MinIntVal,MaxIntVal);
+      if (Flo<MinIntVal) or (Flo>MaxIntVal) then
+        fExprEvaluator.EmitRangeCheckConst(20170711001228,
+          Value.AsString,MinIntVal,MaxIntVal,Params,mtError);
+      {$R-}
+      try
+        Int:=Round(Flo);
+      except
+        RaiseMsg(20170711002218,nRangeCheckError,sRangeCheckError,[],Params);
+      end;
+      case bt of
+        btByte: Result:=TResEvalInt.CreateValue(Int,reitByte);
+        btShortInt: Result:=TResEvalInt.CreateValue(Int,reitShortInt);
+        btWord: Result:=TResEvalInt.CreateValue(Int,reitWord);
+        btSmallInt: Result:=TResEvalInt.CreateValue(Int,reitSmallInt);
+        btUIntSingle: Result:=TResEvalInt.CreateValue(Int,reitUIntSingle);
+        btIntSingle: Result:=TResEvalInt.CreateValue(Int,reitIntSingle);
+        btLongWord: Result:=TResEvalInt.CreateValue(Int,reitLongWord);
+        btLongint: Result:=TResEvalInt.CreateValue(Int,reitLongInt);
+        btUIntDouble: Result:=TResEvalInt.CreateValue(Int,reitUIntDouble);
+        btIntDouble: Result:=TResEvalInt.CreateValue(Int,reitIntDouble);
+        btInt64: Result:=TResEvalInt.CreateValue(Int);
+      else
+        RaiseNotYetImplemented(20170711001513,Params);
+      end;
+      {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
+      exit;
+      end
+    else if bt=btSingle then
+      begin
+      // float to single
+      try
+        Result:=TResEvalFloat.CreateValue(single(Flo));
+      except
+        RaiseMsg(20170711002315,nRangeCheckError,sRangeCheckError,[],Params);
+      end;
+      end
+    else if bt=btDouble then
+      begin
+      // float to double
+      try
+        Result:=TResEvalFloat.CreateValue(double(Flo));
+      except
+        RaiseMsg(20170711002327,nRangeCheckError,sRangeCheckError,[],Params);
+      end;
+      end
+    else if bt=btCurrency then
+      begin
+      // float to currency
+      try
+        Result:=TResEvalCurrency.CreateValue(Currency(Flo));
+      except
+        RaiseMsg(20180421171840,nRangeCheckError,sRangeCheckError,[],Params);
+      end;
+      end
+    else
+      begin
+      {$IFDEF VerbosePasResEval}
+      writeln('TPasResolver.OnExprEvalParams typecast float to ',bt);
+      {$ENDIF}
+      RaiseNotYetImplemented(20170711002542,Params);
+      end;
+  end;
+
 var
   Value: TResEvalValue;
   Int: MaxPrecInt;
@@ -10358,6 +10446,12 @@ begin
         except
           RaiseMsg(20170711002016,nRangeCheckError,sRangeCheckError,[],Params);
         end
+      else if bt=btCurrency then
+        try
+          Result:=TResEvalCurrency.CreateValue(Currency(Int));
+        except
+          RaiseMsg(20180422093631,nRangeCheckError,sRangeCheckError,[],Params);
+        end
       else
         begin
         {$IFDEF VerbosePasResEval}
@@ -10369,63 +10463,21 @@ begin
     revkFloat:
       begin
       Flo:=TResEvalFloat(Value).FloatValue;
-      if bt in (btAllInteger-[btQWord]) then
+      TCFloatToInt(Value,Flo);
+      end;
+    revkCurrency:
+      begin
+      if bt=btCurrency then
         begin
-        // float to int
-        GetIntegerRange(bt,MinIntVal,MaxIntVal);
-        if (Flo<MinIntVal) or (Flo>MaxIntVal) then
-          fExprEvaluator.EmitRangeCheckConst(20170711001228,
-            Value.AsString,MinIntVal,MaxIntVal,Params,mtError);
-        {$R-}
-        try
-          Int:=Round(Flo);
-        except
-          RaiseMsg(20170711002218,nRangeCheckError,sRangeCheckError,[],Params);
-        end;
-        case bt of
-          btByte: Result:=TResEvalInt.CreateValue(Int,reitByte);
-          btShortInt: Result:=TResEvalInt.CreateValue(Int,reitShortInt);
-          btWord: Result:=TResEvalInt.CreateValue(Int,reitWord);
-          btSmallInt: Result:=TResEvalInt.CreateValue(Int,reitSmallInt);
-          btUIntSingle: Result:=TResEvalInt.CreateValue(Int,reitUIntSingle);
-          btIntSingle: Result:=TResEvalInt.CreateValue(Int,reitIntSingle);
-          btLongWord: Result:=TResEvalInt.CreateValue(Int,reitLongWord);
-          btLongint: Result:=TResEvalInt.CreateValue(Int,reitLongInt);
-          btUIntDouble: Result:=TResEvalInt.CreateValue(Int,reitUIntDouble);
-          btIntDouble: Result:=TResEvalInt.CreateValue(Int,reitIntDouble);
-          btInt64: Result:=TResEvalInt.CreateValue(Int);
-        else
-          RaiseNotYetImplemented(20170711001513,Params);
-        end;
-        {$IFDEF RangeCheckOn}{$R+}{$ENDIF}
-        exit;
-        end
-      else if bt=btSingle then
-        begin
-        // float to single
-        try
-          Result:=TResEvalFloat.CreateValue(single(Flo));
-        except
-          RaiseMsg(20170711002315,nRangeCheckError,sRangeCheckError,[],Params);
-        end;
-        end
-      else if bt=btDouble then
-        begin
-        // float to double
-        try
-          Result:=TResEvalFloat.CreateValue(double(Flo));
-        except
-          RaiseMsg(20170711002327,nRangeCheckError,sRangeCheckError,[],Params);
-        end;
+        Result:=Value;
+        Value:=nil;
         end
       else
         begin
-        {$IFDEF VerbosePasResEval}
-        writeln('TPasResolver.OnExprEvalParams typecast float to ',bt);
-        {$ENDIF}
-        RaiseNotYetImplemented(20170711002542,Params);
+        Flo:=TResEvalCurrency(Value).Value;
+        TCFloatToInt(Value,Flo);
         end;
-      end
+      end;
     else
       {$IFDEF VerbosePasResEval}
       writeln('TPasResolver.OnExprEvalParams typecast to ',bt);
@@ -14070,6 +14122,20 @@ begin
           {$ENDIF}
           RaiseRangeCheck(20170802133750,RHS);
           end;
+      revkCurrency:
+        if TResEvalCurrency(RValue).IsInt(Int) then
+          begin
+          if (MinVal>Int) or (MaxVal<Int) then
+            fExprEvaluator.EmitRangeCheckConst(20180421171325,
+              IntToStr(Int),MinVal,MaxVal,RHS,mtError);
+          end
+        else
+          begin
+          {$IFDEF VerbosePasResEval}
+          writeln('TPasResolver.CheckAssignExprRange ',Frac(TResEvalCurrency(RValue).Value),' ',TResEvalCurrency(RValue).Value,' ',high(MaxPrecInt));
+          {$ENDIF}
+          RaiseRangeCheck(20180421171438,RHS);
+          end;
       else
         {$IFDEF VerbosePasResEval}
         writeln('TPasResolver.CheckAssignExprRange ',RValue.AsDebugString);
@@ -14088,7 +14154,7 @@ begin
       end
     else if RValue.Kind in [revkNil,revkBool] then
       // simple type check is enough
-    else if LeftResolved.BaseType in [btSingle,btDouble] then
+    else if LeftResolved.BaseType in [btSingle,btDouble,btCurrency] then
       // simple type check is enough
       // ToDo: warn if precision loss
     else if LeftResolved.BaseType in btAllChars then

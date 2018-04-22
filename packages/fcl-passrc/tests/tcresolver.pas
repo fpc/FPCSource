@@ -206,6 +206,7 @@ type
     Procedure TestIntegerTypeCast;
     Procedure TestConstFloatOperators;
     Procedure TestFloatTypeCast;
+    Procedure TestCurrency;
 
     // boolean
     Procedure TestBoolTypeCast;
@@ -2584,6 +2585,37 @@ begin
   '  d=single(-1);',
   '  e=single(word(-1));',
   'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestCurrency;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  a: currency = -922337203685477.5808;',
+  '  b: currency = 922337203685477.5807;',
+  '  c=double(currency(-123456890123456));',
+  '  d=currency(-1);',
+  '  e=currency(word(-1));',
+  '  i: longint = 1;',
+  'begin',
+  '  a:=i;',
+  '  a:=i+a;',
+  '  a:=a+i;',
+  '  a:=-a+b;',
+  '  a:=a*b;',
+  '  a:=a/b;',
+  '  a:=a/1.23;',
+  '  a:=1.2345;',
+  '  a:=a-i;',
+  '  a:=i-a;',
+  '  a:=a*i;',
+  '  a:=i*a;',
+  '  a:=a/i;',
+  '  a:=i/a;',
+  '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
