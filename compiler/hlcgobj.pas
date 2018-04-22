@@ -4994,7 +4994,8 @@ implementation
                   g_concatcopy(list,tparavarsym(p).vardef,href,localcopyloc.reference);
                 end;
               { update localloc of varsym }
-              tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
+              if tparavarsym(p).localloc.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
               tparavarsym(p).localloc:=localcopyloc;
               tparavarsym(p).initialloc:=localcopyloc;
             end;
