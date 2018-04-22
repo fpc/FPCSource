@@ -382,7 +382,7 @@ implementation
              hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,fieldptrdef,href,hregister);
              hlcg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
 
-             hlcg.reference_reset_base(location.reference,fieldptrdef,hregister,0,location.reference.alignment,[]);
+             hlcg.reference_reset_base(location.reference,fieldptrdef,hregister,0,resultdef.alignment,[]);
            end;
        end;
 
