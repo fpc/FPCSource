@@ -35,7 +35,12 @@ unit parabase;
     type
        TCGParaReference = record
           index       : tregister;
-          offset      : aint;
+          { right now, the initial offset and the temppos of a para reference
+            is always the same; use separate names in case this would ever
+            change, or be different for a particular platform }
+          case byte of
+            0: (offset      : asizeint);
+            1: (temppos     : treftemppos);
        end;
 
        PCGParaLocation = ^TCGParaLocation;

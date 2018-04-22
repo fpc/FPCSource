@@ -405,7 +405,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -437,7 +437,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -526,7 +526,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint),[]);
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),reference.temppos,sizeof(pint),[]);
                     if is_shifter_const(ioffset,shift) then
                       a_op_const_ref(list,OP_SUB,size,ioffset,href)
                     else
@@ -582,7 +582,7 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment,[]);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,location^.reference.temppos,paraloc.alignment,[]);
                   { doubles in softemu mode have a strange order of registers and references }
                   if location^.size=OS_32 then
                     g_concatcopy(list,tmpref,ref,4)
@@ -1683,7 +1683,7 @@ unit cgcpu;
                 end;
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,hloc^.reference.temppos,paraloc.alignment,[]);
                   { concatcopy should choose the best way to copy the data }
                   g_concatcopy(list,href,href2,tcgsize2size[hloc^.size]);
                 end;
@@ -2796,7 +2796,7 @@ unit cgcpu;
             else
               begin
                 a_loadaddr_ref_reg(list,source,srcreg);
-                reference_reset_base(srcref,srcreg,0,source.alignment,source.volatility);
+                reference_reset_base(srcref,srcreg,0,source.temppos,source.alignment,source.volatility);
               end;
 
             while (len div 4 <> 0) and (tmpregi<maxtmpreg) do
@@ -2810,7 +2810,7 @@ unit cgcpu;
 
             destreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,dest,destreg);
-            reference_reset_base(dstref,destreg,0,dest.alignment,dest.volatility);
+            reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
             tmpregi2:=1;
             while (tmpregi2<=tmpregi) do
               begin
@@ -2878,11 +2878,11 @@ unit cgcpu;
               begin{unaligned & 4<len<helpsize **or** aligned/unaligned & len>helpsize}
                 destreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,dest,destreg);
-                reference_reset_base(dstref,destreg,0,dest.alignment,dest.volatility);
+                reference_reset_base(dstref,destreg,0,dest.temppos,dest.alignment,dest.volatility);
 
                 srcreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,source,srcreg);
-                reference_reset_base(srcref,srcreg,0,source.alignment,source.volatility);
+                reference_reset_base(srcref,srcreg,0,dest.temppos,source.alignment,source.volatility);
 
                 countreg:=getintregister(list,OS_32);
 
@@ -3788,7 +3788,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -3821,7 +3821,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -3935,7 +3935,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),sizeof(pint),[]);
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),reference.temppos,sizeof(pint),[]);
                     if is_thumb_imm(ioffset) then
                       a_op_const_ref(list,OP_SUB,size,ioffset,href)
                     else
@@ -4002,7 +4002,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
 
-            reference_reset_base(href,tmpreg,0,ref.alignment,ref.volatility);
+            reference_reset_base(href,tmpreg,0,ref.temppos,ref.alignment,ref.volatility);
           end
         else if (op=A_LDR) and
            (oppostfix in [PF_None]) and
@@ -4012,7 +4012,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
 
-            reference_reset_base(href,tmpreg,0,ref.alignment,ref.volatility);
+            reference_reset_base(href,tmpreg,0,ref.temppos,ref.alignment,ref.volatility);
           end
         else if (op=A_LDR) and
            ((oppostfix in [PF_SH,PF_SB]) or
@@ -4021,7 +4021,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
 
-            reference_reset_base(href,tmpreg,0,ref.alignment,ref.volatility);
+            reference_reset_base(href,tmpreg,0,ref.temppos,ref.alignment,ref.volatility);
           end;
 
         Result:=inherited handle_load_store(list, op, oppostfix, reg, href);
@@ -4339,7 +4339,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;
@@ -4371,7 +4371,7 @@ unit cgcpu;
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg2);
-                       reference_reset_base(usedtmpref,tmpreg2,0,ref.alignment,ref.volatility);
+                       reference_reset_base(usedtmpref,tmpreg2,0,ref.temppos,ref.alignment,ref.volatility);
                      end
                    else
                      usedtmpref:=ref;

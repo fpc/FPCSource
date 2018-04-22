@@ -86,7 +86,7 @@ implementation
             resptrdef:=cpointerdef.getreusable(resultdef);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
-            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment,location.reference.volatility);
+            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
           end;
       end;
 

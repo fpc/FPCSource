@@ -143,7 +143,7 @@ interface
               begin
                 hreg1:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,href,hreg1);
-                reference_reset_base(href,hreg1,0,href.alignment,href.volatility);
+                reference_reset_base(href,hreg1,0,href.temppos,href.alignment,href.volatility);
               end;
             inc(href.offset,4);
             a_load_reg_ref(list,OS_32,OS_32,register,href);

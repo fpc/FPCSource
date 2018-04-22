@@ -103,7 +103,7 @@ implementation
       var
         href : treference;
       begin
-        reference_reset_base(href,voidpointertype,NR_R3,0,sizeof(pint),[]);
+        reference_reset_base(href,voidpointertype,NR_R3,0,ctempposinvalid,sizeof(pint),[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
       end;
 
@@ -115,7 +115,7 @@ implementation
         if (procdef.extnumber=$ffff) then
           Internalerror(200006139);
         { call/jmp  vmtoffs(%eax) ; method offs }
-        reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint),[]);
+        reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
         if tcgppcgen(cg).hasLargeOffset(href) then
           begin
 {$ifdef cpu64}
@@ -134,7 +134,7 @@ implementation
            ((target_info.system = system_powerpc64_linux) and
             (target_info.abi=abi_powerpc_sysv)) then
           begin
-            reference_reset_base(href, voidpointertype, NR_R12, 0, sizeof(pint),[]);
+            reference_reset_base(href, voidpointertype, NR_R12, 0, ctempposinvalid, sizeof(pint),[]);
             cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
           end;
         list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
@@ -221,11 +221,11 @@ implementation
       }
       list.concat(taicpu.op_reg(A_MFLR, NR_R0));
       if target_info.abi=abi_powerpc_sysv then
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, 8, [])
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, [])
       else
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, 8, []);
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, ctempposinvalid, 8, []);
       cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R0,href);
-      reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, 8, []);
+      reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, ctempposinvalid, 8, []);
       list.concat(taicpu.op_reg_ref({$ifdef cpu64bitaddr}A_STDU{$else}A_STWU{$endif}, NR_STACK_POINTER_REG, href));
 
       cg.a_call_name(list,externalname,false);
@@ -234,9 +234,9 @@ implementation
 
 
       if target_info.abi=abi_powerpc_sysv then
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, 8, [])
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, [])
       else
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, 8, []);
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, ctempposinvalid, 8, []);
       cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
       list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       list.concat(taicpu.op_none(A_BLR));

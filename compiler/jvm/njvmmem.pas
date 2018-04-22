@@ -121,7 +121,7 @@ implementation
               kind of pointers) }
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
-            reference_reset_base(location.reference,left.location.register,0,4,[]);
+            reference_reset_base(location.reference,left.location.register,0,ctempposinvalid,4,[]);
             location.reference.arrayreftype:=art_indexconst;
             if (left.nodetype<>addrn) and
                not(resultdef.typ in [orddef,floatdef]) and

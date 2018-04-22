@@ -74,7 +74,7 @@ implementation
             begin
               if po_syscall in tprocdef(procdefinition).procoptions then
                 begin
-                  reference_reset_base(tmpref,NR_SP,0,2,[]);
+                  reference_reset_base(tmpref,NR_SP,0,ctempposinvalid,2,[]);
                   tmpref.direction:=dir_dec;
                   current_asmdata.CurrAsmList.concat(taicpu.op_const_ref(A_MOVE,S_W,tprocdef(procdefinition).import_nr,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_const(A_TRAP,S_NO,tprocdef(procdefinition).extnumber));
@@ -92,7 +92,7 @@ implementation
                     not used as FP on Amiga any more (we use A5), so we don't need to
                     save it. (KB)
                     http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node0290.html }
-                  reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber,4,[]);
+                  reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber,ctempposinvalid,4,[]);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
                 end
               else

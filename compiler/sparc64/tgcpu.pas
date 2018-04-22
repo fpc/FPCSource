@@ -33,8 +33,7 @@ unit tgcpu;
 
     type
       ttgsparc64 = class(ttgobj)
-      protected
-        procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);override;
+        procedure temp_to_ref(p: ptemprecord; out ref: treference); override;
       end;
 
 implementation
@@ -42,7 +41,7 @@ implementation
 uses
   cpubase;
 
-procedure ttgsparc64.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
+procedure ttgsparc64.temp_to_ref(p: ptemprecord; out ref: treference);
   begin
     inherited;
     inc(ref.offset,STACK_BIAS);

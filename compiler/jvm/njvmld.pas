@@ -288,7 +288,7 @@ procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tde
     { arrays are implicitly dereferenced }
     basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,ref,basereg);
-    reference_reset_base(ref,basereg,0,1,[]);
+    reference_reset_base(ref,basereg,0,ctempposinvalid,1,[]);
     ref.arrayreftype:=art_indexconst;
     ref.indexoffset:=0;
   end;

@@ -503,7 +503,7 @@ unit cgx86;
             else
               begin
                 { don't use add, as the flags may contain a value }
-                reference_reset_base(href,hreg,0,ref.alignment,[]);
+                reference_reset_base(href,hreg,0,ref.temppos,ref.alignment,[]);
                 href.index:=ref.index;
                 href.scalefactor:=ref.scalefactor;
                 list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
@@ -557,7 +557,7 @@ unit cgx86;
                 else
                   begin
                     { don't use add, as the flags may contain a value }
-                    reference_reset_base(href,ref.base,0,ref.alignment,[]);
+                    reference_reset_base(href,ref.base,0,ref.temppos,ref.alignment,[]);
                     href.index:=hreg;
                     ref.base:=getaddressregister(list);
                     list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
@@ -592,7 +592,7 @@ unit cgx86;
                       else
                         begin
                           { don't use add, as the flags may contain a value }
-                          reference_reset_base(href,ref.base,0,ref.alignment,[]);
+                          reference_reset_base(href,ref.base,0,ref.temppos,ref.alignment,[]);
                           href.index:=hreg;
                           ref.base:=getaddressregister(list);
                           list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,ref.base));
@@ -651,7 +651,7 @@ unit cgx86;
             else
               begin
                 { don't use add, as the flags may contain a value }
-                reference_reset_base(href,ref.base,0,ref.alignment,[]);
+                reference_reset_base(href,ref.base,0,ref.temppos,ref.alignment,[]);
                 href.index:=hreg;
                 list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
                 ref.base:=hreg;
@@ -706,7 +706,7 @@ unit cgx86;
             if ref.base<>NR_NO then
               begin
                 { fold symbol register into base register }
-                reference_reset_base(href,hreg,0,ref.alignment,[]);
+                reference_reset_base(href,hreg,0,ctempposinvalid,ref.alignment,[]);
                 href.index:=ref.base;
                 hreg:=getaddressregister(list);
                 a_loadaddr_ref_reg(list,href,hreg);
@@ -1117,13 +1117,13 @@ unit cgx86;
                           begin
                              reference_reset_base(tmpref,
                                g_indirect_sym_load(list,dirref.symbol.name,asmsym2indsymflags(dirref.symbol)),
-                               offset,sizeof(pint),[]);
+                               offset,ctempposinvalid,sizeof(pint),[]);
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end
                        else
                          begin
                            include(current_procinfo.flags,pi_needs_got);
-                           reference_reset_base(tmpref,current_procinfo.got,offset,dirref.alignment,[]);
+                           reference_reset_base(tmpref,current_procinfo.got,offset,dirref.temppos,dirref.alignment,[]);
                            tmpref.symbol:=symbol;
                            tmpref.relsymbol:=current_procinfo.CurrGOTLabel;
                            list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
@@ -2023,7 +2023,7 @@ unit cgx86;
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a-1),power) and (power in [1..3]) then
           begin
-            reference_reset_base(href,src,0,0,[]);
+            reference_reset_base(href,src,0,ctempposinvalid,0,[]);
             href.index:=src;
             href.scalefactor:=a-1;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
@@ -2032,7 +2032,7 @@ unit cgx86;
           not(cs_check_overflow in current_settings.localswitches) and
           (a>1) and ispowerof2(int64(a),power) and (power in [1..3]) then
           begin
-            reference_reset_base(href,NR_NO,0,0,[]);
+            reference_reset_base(href,NR_NO,0,ctempposinvalid,0,[]);
             href.index:=src;
             href.scalefactor:=a;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
@@ -2059,7 +2059,7 @@ unit cgx86;
 {$push} {$R-}{$Q-}
             al := longint (a);
 {$pop}
-            reference_reset_base(href,src,al,0,[]);
+            reference_reset_base(href,src,al,ctempposinvalid,0,[]);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
         else if (op=OP_SUB) and
@@ -2070,7 +2070,7 @@ unit cgx86;
           ) and
           not(cs_check_overflow in current_settings.localswitches) then
           begin
-            reference_reset_base(href,src,-a,0,[]);
+            reference_reset_base(href,src,-a,ctempposinvalid,0,[]);
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
         else if (op in [OP_ROR,OP_ROL]) and
@@ -2099,7 +2099,7 @@ unit cgx86;
         if (op=OP_ADD) and (size in [OS_32,OS_S32,OS_64,OS_S64]) and
           not(cs_check_overflow in current_settings.localswitches) then
           begin
-            reference_reset_base(href,src1,0,0,[]);
+            reference_reset_base(href,src1,0,ctempposinvalid,0,[]);
             href.index:=src2;
             list.concat(taicpu.op_ref_reg(A_LEA,TCgSize2OpSize[size],href,dst));
           end
@@ -3177,7 +3177,7 @@ unit cgx86;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,-a,0,[]);
+          reference_reset_base(href,NR_STACK_POINTER_REG,-a,ctempposinvalid,0,[]);
           { normally, lea is a better choice than a sub to adjust the stack pointer }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
@@ -3205,7 +3205,7 @@ unit cgx86;
                     decrease_sp(localsize-4);
                     for i:=1 to localsize div winstackpagesize do
                       begin
-                         reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize,4,[]);
+                         reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize,ctempposinvalid,4,[]);
                          list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                       end;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
@@ -3229,7 +3229,7 @@ unit cgx86;
                       list.concat(Taicpu.op_const_reg(A_SUB,S_L,1,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
                     decrease_sp(localsize mod winstackpagesize-4);
-                    reference_reset_base(href,NR_ESP,localsize-4,4,[]);
+                    reference_reset_base(href,NR_ESP,localsize-4,ctempposinvalid,4,[]);
                     list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
                     a_reg_dealloc(list,NR_EDI);
                  end
@@ -3249,10 +3249,10 @@ unit cgx86;
                     decrease_sp(localsize);
                     for i:=1 to localsize div winstackpagesize do
                       begin
-                         reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4,4,[]);
+                         reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4,ctempposinvalid,4,[]);
                          list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                       end;
-                    reference_reset_base(href,NR_RSP,0,4,[]);
+                    reference_reset_base(href,NR_RSP,0,ctempposinvalid,4,[]);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                  end
                else
@@ -3262,7 +3262,7 @@ unit cgx86;
                     list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
                     a_label(list,again);
                     decrease_sp(winstackpagesize);
-                    reference_reset_base(href,NR_RSP,0,4,[]);
+                    reference_reset_base(href,NR_RSP,0,ctempposinvalid,4,[]);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                     if UseIncDec then
                       list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10))
@@ -3543,7 +3543,7 @@ unit cgx86;
                 push_regs;
                 reference_reset_base(current_procinfo.save_regs_ref,
                   current_procinfo.framepointer,
-                  -(localsize+regsize),sizeof(aint),[]);
+                  -(localsize+regsize),ctempposinvalid,sizeof(aint),[]);
               end;
 {$endif i386}
           end;

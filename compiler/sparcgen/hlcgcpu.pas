@@ -40,9 +40,6 @@ interface
     thlcgcpu = class(thlcg2ll)
      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
-{$ifdef SPARC64}
-     procedure temp_to_ref(p: ptemprecord; out ref: treference);override;
-{$endif SPARC64}
     end;
 
   procedure create_hlcodegen;
@@ -114,10 +111,10 @@ implementation
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { load vmt }
-          reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(pint),[]);
+          reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
           { jmp to method }
-          reference_reset_base(href,voidpointertype,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint),[]);
+          reference_reset_base(href,voidpointertype,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
           list.concat(taicpu.op_reg(A_JMP,NR_G1));
           { Delay slot }
@@ -136,15 +133,6 @@ implementation
       list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));
       list.concat(taicpu.op_reg_reg(A_MOV,NR_G1,NR_O7));
     end;
-
-
-{$ifdef SPARC64}
-  procedure thlcgcpu.temp_to_ref(p : ptemprecord; out ref : treference);
-    begin
-      inherited;
-      inc(ref.offset,STACK_BIAS);
-    end;
-{$endif SPARC64}
 
 
   procedure create_hlcodegen;

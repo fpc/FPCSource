@@ -185,11 +185,11 @@ implementation
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { mov  0(%rdi),%rax ; load vmt}
-          reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(pint),[]);
+          reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(pint),[]);
           getcpuregister(list,NR_IP0);
           a_load_ref_reg(list,voidpointertype,voidpointertype,href,NR_IP0);
           { jmp *vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,voidpointertype,NR_IP0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint),[]);
+          reference_reset_base(href,voidpointertype,NR_IP0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
           op:=A_LDR;
           tcgaarch64(cg).make_simple_ref(list,op,OS_ADDR,PF_None,href,NR_IP0);
           list.concat(taicpu.op_reg_ref(op,NR_IP0,href));

@@ -518,7 +518,7 @@ Unit raavrgas;
                 begin
                   oper.opr.typ:=OPR_REFERENCE;
 
-                  reference_reset_base(oper.opr.ref,tempreg,0,1,[]);
+                  reference_reset_base(oper.opr.ref,tempreg,0,ctempposinvalid,1,[]);
 
                   { add a constant expression? }
                   if actasmtoken=AS_PLUS then

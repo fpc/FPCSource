@@ -73,7 +73,7 @@ unit rgcpu;
 {$endif}
 
             helplist.concat(taicpu.op_const_reg(A_MOVE,S_L,spilltemp.offset,hreg));
-            reference_reset_base(tmpref,spilltemp.base,0,sizeof(aint),[]);
+            reference_reset_base(tmpref,spilltemp.base,0,spilltemp.temppos,sizeof(aint),[]);
             tmpref.index:=hreg;
 
             helpins:=spilling_create_load(tmpref,tempreg);
@@ -105,7 +105,7 @@ unit rgcpu;
 {$endif}
 
             helplist.concat(taicpu.op_const_reg(A_MOVE,S_L,spilltemp.offset,hreg));
-            reference_reset_base(tmpref,spilltemp.base,0,sizeof(aint),[]);
+            reference_reset_base(tmpref,spilltemp.base,0,spilltemp.temppos,sizeof(aint),[]);
             tmpref.index:=hreg;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));

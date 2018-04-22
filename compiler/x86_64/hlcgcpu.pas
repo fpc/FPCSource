@@ -87,12 +87,12 @@ implementation
           { load vmt from first paramter }
           { win64 uses a different abi }
           if x86_64_use_ms_abi(procdef.proccalloption) then
-            reference_reset_base(href,voidpointertype,NR_RCX,0,sizeof(pint),[])
+            reference_reset_base(href,voidpointertype,NR_RCX,0,ctempposinvalid,sizeof(pint),[])
           else
-            reference_reset_base(href,voidpointertype,NR_RDI,0,sizeof(pint),[]);
+            reference_reset_base(href,voidpointertype,NR_RDI,0,ctempposinvalid,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
           { jmp *vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,voidpointertype,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint),[]);
+          reference_reset_base(href,voidpointertype,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
           list.concat(taicpu.op_ref(A_JMP,S_Q,href));
         end
       else

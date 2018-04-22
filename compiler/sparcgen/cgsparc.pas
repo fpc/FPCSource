@@ -212,7 +212,7 @@ implementation
                 list.concat(taicpu.op_ref_reg(A_SETHI,href,hreg));
                 href.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,href,hreg));
-                reference_reset_base(href,hreg,0,sizeof(pint),[]);
+                reference_reset_base(href,hreg,0,href.temppos,sizeof(pint),[]);
                 href.index:=current_procinfo.got;
               end
             else
@@ -338,8 +338,7 @@ implementation
                 a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment,[]);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,hloc^.reference.temppos,paraloc.alignment,[]);
                   { concatcopy should choose the best way to copy the data }
                   g_concatcopy(list,href,href2,tcgsize2size[hloc^.size]);
 
@@ -539,7 +538,7 @@ implementation
                 list.concat(taicpu.op_ref_reg(A_SETHI,href,r));
                 href.refaddr:=addr_low;
                 list.concat(taicpu.op_reg_ref_reg(A_OR,r,href,r));
-                reference_reset_base(href,r,0,sizeof(pint),[]);
+                reference_reset_base(href,r,0,ctempposinvalid,sizeof(pint),[]);
                 href.index:=current_procinfo.got;
               end
             else
@@ -1157,14 +1156,14 @@ implementation
               src:=source
             else
               begin
-                reference_reset_base(src,getintregister(list,OS_ADDR),0,sizeof(aint),source.volatility);
+                reference_reset_base(src,getintregister(list,OS_ADDR),0,source.temppos,sizeof(aint),source.volatility);
                 a_loadaddr_ref_reg(list,source,src.base);
               end;
             if (count<=4) and reference_is_reusable(dest) then
               dst:=dest
             else
               begin
-                reference_reset_base(dst,getintregister(list,OS_ADDR),0,sizeof(aint),dest.volatility);
+                reference_reset_base(dst,getintregister(list,OS_ADDR),0,dest.temppos,sizeof(aint),dest.volatility);
                 a_loadaddr_ref_reg(list,dest,dst.base);
               end;
             { generate a loop }

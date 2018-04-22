@@ -120,7 +120,7 @@ implementation
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
             { reference_reset_base kills the segment, so make sure we preserve it }
             saveseg:=location.reference.segment;
-            reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
+            reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             location.reference.segment:=saveseg;
           end;
          { insert the new index register and scalefactor or

@@ -388,7 +388,7 @@ interface
                 end
               else
             {$endif}
-                hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment,location.reference.volatility);
+                hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE,
@@ -399,7 +399,7 @@ interface
           LOC_CSUBSETREF:
             begin
               hlcg.reference_reset_base(location.reference,left.resultdef,
-                hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment,[]);
+                hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,[]);
               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
               if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then

@@ -187,7 +187,7 @@ implementation
            location_reset_ref(location,left.location.loc,def_cgsize(resultdef),left.location.reference.alignment,left.location.reference.volatility);
            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hregister);
-           hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef),hregister,0,left.location.reference.alignment,left.location.reference.volatility);
+           hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef),hregister,0,left.location.reference.temppos,left.location.reference.alignment,left.location.reference.volatility);
          end
         else
          begin
@@ -205,7 +205,7 @@ implementation
            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,cpointerdef.getreusable(lendef),OC_EQ,0,left.location.register,nillab);
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
-           hlcg.reference_reset_base(href,cpointerdef.getreusable(lendef),left.location.register,-lendef.size,lendef.alignment,[]);
+           hlcg.reference_reset_base(href,cpointerdef.getreusable(lendef),left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
            hregister:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then

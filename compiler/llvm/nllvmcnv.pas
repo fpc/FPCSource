@@ -146,7 +146,7 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
     { insert type conversion }
     hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef),location.reference,hreg);
-    reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
+    reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
   end;
 
 
@@ -284,7 +284,7 @@ procedure tllvmtypeconvnode.second_nothing;
         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
         location_reset_ref(location,left.location.loc,left.location.size,left.location.reference.alignment,left.location.reference.volatility);
-        reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
+        reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       end
     else
       location_copy(location,left.location);

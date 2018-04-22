@@ -831,7 +831,7 @@ implementation
         { store the data in the newly created array }
         basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,basereg);
-        reference_reset_base(arrayref,basereg,0,4,[]);
+        reference_reset_base(arrayref,basereg,0,ctempposinvalid,4,[]);
         arrayref.arrayreftype:=art_indexconst;
         arrayref.indexoffset:=0;
         hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);

@@ -166,7 +166,7 @@ interface
                           op.typ:=top_ref;
                           new(op.ref);
                           reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs,
-                            newalignment(sym.localloc.reference.alignment,sofs),[]);
+                            sym.localloc.reference.temppos,newalignment(sym.localloc.reference.alignment,sofs),[]);
 {$ifdef x86}
                           op.ref^.segment:=segment;
 {$endif x86}
@@ -177,7 +177,7 @@ interface
                       op.typ:=top_ref;
                       new(op.ref);
                       reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs,
-                        newalignment(sym.localloc.reference.alignment,sofs),[]);
+                        sym.localloc.reference.temppos,newalignment(sym.localloc.reference.alignment,sofs),[]);
                       op.ref^.index:=indexreg;
 {$ifdef x86}
                       op.ref^.segment:=segment;
@@ -201,7 +201,7 @@ interface
                       op.typ:=top_ref;
                       new(op.ref);
                       { no idea about the actual alignment }
-                      reference_reset_base(op.ref^,sym.localloc.register,sofs,1,[]);
+                      reference_reset_base(op.ref^,sym.localloc.register,sofs,ctempposinvalid,1,[]);
                       op.ref^.index:=indexreg;
 {$ifdef x86}
                       op.ref^.scalefactor:=scale;

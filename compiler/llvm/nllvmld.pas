@@ -131,7 +131,7 @@ procedure tllvmloadnode.pass_generate_code;
           current_asmdata.CurrAsmList.concat(
             taillvm.op_reg_tai_size(la_bitcast,selfreg,ai,voidcodepointertype)
           );
-          reference_reset_base(location.reference,selfreg,0,location.reference.alignment,location.reference.volatility);
+          reference_reset_base(location.reference,selfreg,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
         end;
     end;
   end;

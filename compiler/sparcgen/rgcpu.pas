@@ -123,7 +123,7 @@ implementation
               Internalerror(2017090901);
 {$endif SPARC}
 
-            reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
+            reference_reset_base(tmpref,hreg,0,spilltemp.temppos,sizeof(aint),[]);
             tmpref.index:=spilltemp.base;
 
             helpins:=spilling_create_load(tmpref,tempreg);
@@ -170,7 +170,7 @@ implementation
               Internalerror(2017090901);
 {$endif SPARC}
 
-            reference_reset_base(tmpref,hreg,0,sizeof(aint),[]);
+            reference_reset_base(tmpref,hreg,0,spilltemp.temppos,sizeof(aint),[]);
             tmpref.index:=spilltemp.base;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));

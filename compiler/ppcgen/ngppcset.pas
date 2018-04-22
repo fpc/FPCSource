@@ -121,7 +121,7 @@ implementation
 
         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-        reference_reset_base(href,hregister,0,4,[]);
+        reference_reset_base(href,hregister,0,href.temppos,4,[]);
         href.index:=indexreg;
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         { load table entry }

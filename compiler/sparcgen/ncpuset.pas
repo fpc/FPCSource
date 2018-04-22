@@ -142,7 +142,7 @@ unit ncpuset;
         cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,basereg,indexreg,basereg);
 
         jmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        reference_reset_base(href,NR_O7,0,sizeof(pint),[]);
+        reference_reset_base(href,NR_O7,0,ctempposinvalid,sizeof(pint),[]);
         href.index:=basereg;
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jmpreg);
         href.index:=jmpreg;

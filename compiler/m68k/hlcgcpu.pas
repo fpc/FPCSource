@@ -122,7 +122,7 @@ implementation
         href: treference;
       begin
         { move a0 which is self out of the way to the stack }
-        reference_reset_base(href,voidpointertype,NR_STACK_POINTER_REG,offs,4,[]);
+        reference_reset_base(href,voidpointertype,NR_STACK_POINTER_REG,offs,ctempposinvalid,4,[]);
         list.concat(taicpu.op_reg_ref(A_MOVE,S_L,NR_A0,href));
       end;
 
@@ -138,7 +138,7 @@ implementation
           selfoffsetfromsp:=sizeof(aint)
         else
           selfoffsetfromsp:=0;
-        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4,[]);
+        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 
@@ -147,7 +147,7 @@ implementation
         href : treference;
       begin
         { move.l  (%a0),%a0 ; load vmt}
-        reference_reset_base(href, voidpointertype, NR_A0,0,4,[]);
+        reference_reset_base(href, voidpointertype, NR_A0,0,ctempposinvalid,4,[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 
@@ -158,7 +158,7 @@ implementation
       begin
         if (procdef.extnumber=$ffff) then
           internalerror(2017061401);
-        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
+        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
 
         { handle-too-large-for-68k offsets }
         { I'm not even sure this is handled elsewhere in the compiler for VMTs, but lets play safe... (KB) }
@@ -169,12 +169,12 @@ implementation
           end;
 
         { push the method address to the stack }
-        reference_reset_base(href2,voidpointertype,NR_STACK_POINTER_REG,0,4,[]);
+        reference_reset_base(href2,voidpointertype,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
         href2.direction:=dir_dec;
         list.concat(taicpu.op_ref_ref(A_MOVE,S_L,href,href2));
 
         { restore A0 from the stack }
-        reference_reset_base(href2,voidpointertype,NR_STACK_POINTER_REG,offs+4,4,[]); { offs+4, because we used dir_dec above }
+        reference_reset_base(href2,voidpointertype,NR_STACK_POINTER_REG,offs+4,ctempposinvalid,4,[]); { offs+4, because we used dir_dec above }
         list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href2,NR_A0));
 
         { pop the method address from the stack, and jump to it }
@@ -187,9 +187,9 @@ implementation
       begin
         if (procdef.extnumber=$ffff) then
           Internalerror(2013100701);
-        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4,[]);
+        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,4,[]);
         list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
-        reference_reset_base(href,voidpointertype,NR_A0,0,4,[]);
+        reference_reset_base(href,voidpointertype,NR_A0,0,ctempposinvalid,4,[]);
         list.concat(taicpu.op_ref(A_JMP,S_NO,href));
       end;
 

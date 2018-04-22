@@ -425,6 +425,7 @@ implementation
                       fillchar(href,sizeof(href),0);
                       href.base:=paraloc^.reference.index;
                       href.offset:=paraloc^.reference.offset;
+                      href.temppos:=paraloc^.reference.temppos;
                       tg.ungetiftemp(list,href);
                     end;
                 end;

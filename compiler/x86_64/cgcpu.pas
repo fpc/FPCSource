@@ -234,7 +234,7 @@ unit cgcpu;
               begin
                 localsize:=align(localsize,target_info.stackalign)+xmmsize;
                 reference_reset_base(current_procinfo.save_regs_ref,NR_STACK_POINTER_REG,
-                  localsize-xmmsize,tcgsize2size[OS_VECTOR],[]);
+                  localsize-xmmsize,ctempposinvalid,tcgsize2size[OS_VECTOR],[]);
               end;
 
             { allocate stackframe space }
@@ -333,7 +333,7 @@ unit cgcpu;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,a,0,[]);
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,ctempposinvalid,0,[]);
           { normally, lea is a better choice than an add }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
@@ -381,7 +381,7 @@ unit cgcpu;
                   'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
                   the function epilog.
                   Neither 'leave' nor even 'mov %FPREG,%rsp' are allowed. }
-                reference_reset_base(href,current_procinfo.framepointer,0,sizeof(pint),[]);
+                reference_reset_base(href,current_procinfo.framepointer,0,ctempposinvalid,sizeof(pint),[]);
                 list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],href,NR_STACK_POINTER_REG));
                 list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
               end

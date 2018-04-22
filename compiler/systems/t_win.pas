@@ -527,7 +527,7 @@ implementation
                   {$ifdef ARM}
                     reference_reset_symbol(href,l5,0,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
-                    reference_reset_base(href,NR_R12,0,sizeof(pint),[]);
+                    reference_reset_base(href,NR_R12,0,ctempposinvalid,sizeof(pint),[]);
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
                     current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l5));
                     reference_reset_symbol(href,l4,0,sizeof(pint),[]);

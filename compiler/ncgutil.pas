@@ -805,7 +805,7 @@ implementation
                     LOC_REFERENCE:
                       begin
                         gen_alloc_regloc(list,destloc,vardef);
-                        reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,para.alignment,[]);
+                        reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,paraloc^.reference.temppos,para.alignment,[]);
                         cg128.a_load128_ref_reg(list,href,destloc.register128);
                         unget_para(paraloc^);
                       end;
@@ -936,7 +936,7 @@ implementation
                     LOC_REFERENCE:
                       begin
                         gen_alloc_regloc(list,destloc,vardef);
-                        reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,para.alignment,[]);
+                        reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,paraloc^.reference.temppos,para.alignment,[]);
                         cg64.a_load64_ref_reg(list,href,destloc.register64);
                         unget_para(paraloc^);
                       end;

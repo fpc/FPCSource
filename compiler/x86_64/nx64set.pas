@@ -123,13 +123,13 @@ implementation
         basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load table slot, 32-bit sign extended }
-        reference_reset_base(href,basereg,-aint(min_)*4,4,[]);
+        reference_reset_base(href,basereg,-aint(min_)*4,ctempposinvalid,4,[]);
         href.index:=indexreg;
         href.scalefactor:=4;
         jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,jumpreg);
         { add table address }
-        reference_reset_base(href,basereg,0,sizeof(pint),[]);
+        reference_reset_base(href,basereg,0,ctempposinvalid,sizeof(pint),[]);
         href.index:=jumpreg;
         href.scalefactor:=1;
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,jumpreg);

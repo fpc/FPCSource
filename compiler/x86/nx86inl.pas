@@ -670,7 +670,7 @@ implementation
                  begin
                    r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                    cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
-                   reference_reset_base(ref,r,0,left.location.reference.alignment,left.location.reference.volatility);
+                   reference_reset_base(ref,r,0,left.location.reference.temppos,left.location.reference.alignment,left.location.reference.volatility);
                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
                  end;
                else

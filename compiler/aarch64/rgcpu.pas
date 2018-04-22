@@ -83,7 +83,7 @@ implementation
               hreg:=cg.getaddressregister(helplist);
 
             cg.a_load_const_reg(helplist,OS_ADDR,spilltemp.offset,hreg);
-            reference_reset_base(tmpref,spilltemp.base,0,sizeof(pint),[]);
+            reference_reset_base(tmpref,spilltemp.base,0,spilltemp.temppos,sizeof(pint),[]);
             tmpref.index:=hreg;
             if isload then
               helpins:=spilling_create_load(tmpref,tempreg)

@@ -192,7 +192,7 @@ implementation
                 if hsym.localloc.loc<>LOC_REFERENCE then
                   internalerror(200309283);
 
-                hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,parentfpvoidpointertype.alignment,[]);
+                hlcg.reference_reset_base(href,parentfpvoidpointertype,location.register,hsym.localloc.reference.offset,ctempposinvalid,parentfpvoidpointertype.alignment,[]);
                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,parentfpvoidpointertype,parentfpvoidpointertype,href,location.register);
               end;
           end;
@@ -372,7 +372,7 @@ implementation
                           end
                         else
                       {$endif}
-                          hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment,location.reference.volatility);
+                          hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
                       end;
                     LOC_CREFERENCE,
                     LOC_REFERENCE,
@@ -383,7 +383,7 @@ implementation
                     LOC_CSUBSETREF:
                       begin
                          hlcg.reference_reset_base(location.reference,left.resultdef,
-                           hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment,location.reference.volatility);
+                           hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,location.reference.volatility);
                          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,location.reference.base);
                       end;
                     LOC_CONSTANT:
@@ -667,7 +667,7 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0,location.reference.alignment,location.reference.volatility);
+            reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             { insert new index register }
             location.reference.index:=maybe_const_reg;
           end;
@@ -901,17 +901,17 @@ implementation
                 LOC_REGISTER,
                 LOC_CREGISTER :
                   begin
-                    hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment,[]);
+                    hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,[]);
                   end;
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
-                    hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment,[]);
+                    hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,[]);
                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.reference.base);
                   end;
                 LOC_CONSTANT:
                   begin
-                    hlcg.reference_reset_base(location.reference,left.resultdef,NR_NO,left.location.value,location.reference.alignment,[]);
+                    hlcg.reference_reset_base(location.reference,left.resultdef,NR_NO,left.location.value,ctempposinvalid,location.reference.alignment,[]);
                   end;
                 else
                   internalerror(2002032218);
@@ -933,11 +933,11 @@ implementation
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_CREGISTER :
-                  hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,location.reference.alignment,[]);
+                  hlcg.reference_reset_base(location.reference,left.resultdef,left.location.register,0,ctempposinvalid,location.reference.alignment,[]);
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
                   begin
-                     hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,location.reference.alignment,[]);
+                     hlcg.reference_reset_base(location.reference,left.resultdef,hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef),0,ctempposinvalid,location.reference.alignment,[]);
                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                       left.location.reference,location.reference.base);
                   end;

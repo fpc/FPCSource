@@ -245,7 +245,7 @@ implementation
     if IsVirtual then
     begin
       { load VMT pointer }
-      reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(aint),[]);
+      reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(aint),[]);
       list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
 
       if (procdef.extnumber=$ffff) then
@@ -253,7 +253,7 @@ implementation
 
       { TODO: case of large VMT is not handled }
       { We have no reason not to use $t9 even in non-PIC mode. }
-      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint), []);
+      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), ctempposinvalid, sizeof(aint), []);
       list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
       list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
     end

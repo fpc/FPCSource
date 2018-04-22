@@ -173,7 +173,7 @@ implementation
               reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),sizeof(pint),2,[]);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
             cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-            hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment,[]);
+            hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,ctempposinvalid,location.reference.alignment,[]);
           end
         else
           inherited generate_threadvar_access(gvs);

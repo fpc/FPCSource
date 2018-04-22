@@ -320,7 +320,7 @@ begin
       LOC_REFERENCE:
         begin
           paraloc.check_simple_location;
-          reference_reset_base(href2,paraloc.location^.reference.index,paraloc.location^.reference.offset,paraloc.alignment,[]);
+          reference_reset_base(href2,paraloc.location^.reference.index,paraloc.location^.reference.offset,paraloc.location^.reference.temppos,paraloc.alignment,[]);
           { concatcopy should choose the best way to copy the data }
           g_concatcopy(list,ref,href2,tcgsize2size[size]);
         end;

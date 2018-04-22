@@ -1285,7 +1285,7 @@ unit cgcpu;
                a_load_reg_reg(list,paraloc^.size,paraloc^.size,r,paraloc^.register);
              LOC_REFERENCE,LOC_CREFERENCE:
                begin
-                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,2,[]);
+                  reference_reset_base(ref,paraloc^.reference.index,paraloc^.reference.offset,paraloc^.reference.temppos,2,[]);
                   a_load_reg_ref(list,paraloc^.size,paraloc^.size,r,ref);
                end;
              else
@@ -1478,7 +1478,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0,4,[]);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -2354,7 +2354,7 @@ unit cgcpu;
           { Restore SP position before SP change }
           if current_settings.x86memorymodel=mm_huge then
             stacksize:=stacksize + 2;
-          reference_reset_base(ref,NR_BP,-stacksize,2,[]);
+          reference_reset_base(ref,NR_BP,-stacksize,ctempposinvalid,2,[]);
           list.concat(Taicpu.op_ref_reg(A_LEA,S_W,ref,NR_SP));
           sp_moved:=true;
         end;
@@ -2722,16 +2722,16 @@ unit cgcpu;
                       list.concat(taicpu.op_reg_reg(A_MOV,S_W,reference.index,NR_DI));
 
                       if reference.index=NR_SP then
-                        reference_reset_base(href,NR_DI,reference.offset+return_address_size+2,sizeof(pint),[])
+                        reference_reset_base(href,NR_DI,reference.offset+return_address_size+2,reference.temppos,sizeof(pint),[])
                       else
-                        reference_reset_base(href,NR_DI,reference.offset+return_address_size,sizeof(pint),[]);
+                        reference_reset_base(href,NR_DI,reference.offset+return_address_size,reference.temppos,sizeof(pint),[]);
                       href.segment:=NR_SS;
                       a_op_const_ref(list,OP_SUB,size,ioffset,href);
                       list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
                     end
                   else
                     begin
-                      reference_reset_base(href,reference.index,reference.offset+return_address_size,sizeof(pint),[]);
+                      reference_reset_base(href,reference.index,reference.offset+return_address_size,reference.temppos,sizeof(pint),[]);
                       href.segment:=NR_SS;
                       a_op_const_ref(list,OP_SUB,size,ioffset,href);
                     end;

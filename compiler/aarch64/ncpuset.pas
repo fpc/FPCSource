@@ -128,7 +128,7 @@ implementation
         basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load table slot, 32-bit sign extended }
-        reference_reset_base(href,basereg,0,4,[]);
+        reference_reset_base(href,basereg,0,href.temppos,4,[]);
         href.index:=indexreg;
         href.shiftmode:=SM_LSL;
         href.shiftimm:=2;

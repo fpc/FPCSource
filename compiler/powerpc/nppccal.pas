@@ -89,7 +89,7 @@ implementation
             begin
               { one syscall convention for AmigaOS/PowerPC
                 which is very similar to basesysv (a.k.a basefirst) on MorphOS }
-              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber,sizeof(pint),[]);
+              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber,ctempposinvalid,sizeof(pint),[]);
               do_call_ref(tmpref);
             end;
           system_powerpc_morphos:
@@ -110,7 +110,7 @@ implementation
 
                   { R3 must contain the call offset }
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
-                  reference_reset_base(tmpref,NR_R2,100,4,[]); { 100 ($64) is EmulDirectCallOS offset }
+                  reference_reset_base(tmpref,NR_R2,100,ctempposinvalid,4,[]); { 100 ($64) is EmulDirectCallOS offset }
 
                   do_call_ref(tmpref);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R3);
