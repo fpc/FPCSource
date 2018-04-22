@@ -313,9 +313,18 @@ Works:
   - COM: with interface do
   - COM: for interface in ... do
   - COM: pass IntfVar to untyped parameter
+- option to disable use strict
+- currency:
+  - as nativeint*10000
+  - CurA+CurB -> CurA+CurB
+  - CurA*CurB -> CurA*CurB/10000
+  - CurA/CurB -> Math.floor(CurA/CurB*10000)
+  - CurA^^CurB -> Math.floor(Math.pow(CurA/10000,CurB/10000)*10000)
+  - Double:=Currency  ->  Double:=Currency/10000
+  - Currency:=Double  -> Currency:=Math.floor(Double*10000)
+- simplify Math.floor(number) to trunc(number)
 
 ToDos:
-- option to disable use strict
 - for i in jsvalue do
 - for i in tjsobject do
 - 1 as TEnum, ERangeError
@@ -1030,6 +1039,7 @@ const
     btString,
     btUnicodeString,
     btDouble,
+    btCurrency, // nativeint*10000
     btBoolean,
     btByteBool,
     btWordBool,
@@ -1053,7 +1063,7 @@ const
   btAllJSFloats = [btDouble];
   btAllJSBooleans = [btBoolean];
   btAllJSInteger = [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,
-    btIntDouble,btUIntDouble];
+    btIntDouble,btUIntDouble,btCurrency];
   btAllJSValueSrcTypes = [btNil,btUntyped,btPointer]+btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans;
   btAllJSValueTypeCastTo = btAllJSInteger
@@ -1481,6 +1491,9 @@ type
     Function CreateSetLiteralElement(Expr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Procedure ConvertCharLiteralToInt(Lit: TJSLiteral; ErrorEl: TPasElement; AContext: TConvertContext); virtual;
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
+    Function CreateMulNumber(El: TPasElement; JS: TJSElement; n: MaxPrecInt): TJSElement; virtual;
+    Function CreateDivideNumber(El: TPasElement; JS: TJSElement; n: MaxPrecInt): TJSElement; virtual;
+    Function CreateMathFloor(El: TPasElement; JS: TJSElement): TJSElement; virtual;
     Function CreateRecordInit(aRecord: TPasRecordType; Expr: TPasExpr;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasExpr;
@@ -3457,7 +3470,7 @@ begin
     else if TypeEl.CustomData is TResElDataBaseType then
       begin
       bt:=TResElDataBaseType(TypeEl.CustomData).BaseType;
-      if bt in btAllJSInteger then
+      if bt in (btAllJSInteger+[btCurrency]) then
         TIName:=Pas2JSBuiltInNames[pbitnTIInteger]
       else if bt in [btString,btChar,btDouble,btBoolean] then
         TIName:=Pas2JSBuiltInNames[pbitnTI]
@@ -5266,10 +5279,7 @@ begin
       if El.OpCode=eopDiv then
         begin
         // convert "a div b" to "Math.floor(a/b)"
-        Call:=CreateCallExpression(El);
-        Call.AddArg(R);
-        Call.Expr:=CreatePrimitiveDotExpr('Math.floor',El);
-        Result:=Call;
+        Result:=CreateMathFloor(El,Result);
         end;
       end;
   finally
@@ -5330,6 +5340,7 @@ var
   InOp: TJSRelationalExpressionIn;
   TypeEl, LeftTypeEl, RightTypeEl: TPasType;
   SNE: TJSEqualityExpressionSNE;
+  JSBinClass: TJSBinaryClass;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBinaryExpressionRes OpCode="',OpcodeStrings[El.OpCode],'" Left=',GetResolverResultDbg(LeftResolved),' Right=',GetResolverResultDbg(RightResolved));
@@ -5375,6 +5386,80 @@ begin
     B:=nil;
     Result:=InOp;
     exit;
+    end
+  else if (LeftResolved.BaseType=btCurrency) or (RightResolved.BaseType=btCurrency) then
+    begin
+    case El.OpCode of
+    eopAdd,eopSubtract,
+    eopEqual, eopNotEqual,  // Logical
+    eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual: // ordering
+      begin
+      // currency + currency  ->  currency + currency
+      // currency + number  ->  currency + number*10000
+      // number + currency  ->  number*10000 + currency
+      case El.OpCode of
+      eopAdd: JSBinClass:=TJSAdditiveExpressionPlus;
+      eopSubtract: JSBinClass:=TJSAdditiveExpressionMinus;
+      eopEqual: JSBinClass:=TJSEqualityExpressionSEQ;
+      eopNotEqual: JSBinClass:=TJSEqualityExpressionSNE;
+      eopLessThan: JSBinClass:=TJSRelationalExpressionLT;
+      eopGreaterThan: JSBinClass:=TJSRelationalExpressionGT;
+      eopLessthanEqual: JSBinClass:=TJSRelationalExpressionLE;
+      eopGreaterThanEqual: JSBinClass:=TJSRelationalExpressionGE;
+      end;
+      Result:=TJSBinary(CreateElement(JSBinClass,El));
+      if LeftResolved.BaseType<>btCurrency then
+        A:=CreateMulNumber(El,A,10000);
+      TJSBinary(Result).A:=A; A:=nil;
+      if RightResolved.BaseType<>btCurrency then
+        B:=CreateMulNumber(El,B,10000);
+      TJSBinary(Result).B:=B; B:=nil;
+      exit;
+      end;
+    eopMultiply:
+      begin
+      // currency * currency  ->  (currency * currency)/10000
+      // currency * number  ->  currency * number
+      // number * currency  ->  number * currency
+      Result:=TJSMultiplicativeExpressionMul(CreateElement(TJSMultiplicativeExpressionMul,El));
+      TJSBinaryExpression(Result).A:=A; A:=nil;
+      TJSBinaryExpression(Result).B:=B; B:=nil;
+      if (LeftResolved.BaseType=btCurrency) and (RightResolved.BaseType=btCurrency) then
+        Result:=CreateDivideNumber(El,Result,10000);
+      exit;
+      end;
+    eopDivide:
+      begin
+      // currency / currency  ->  Math.floor((currency/currency)*10000)
+      // currency / number  ->  Math.floor(currency/number)
+      // number / currency  ->  Math.floor(number/currency)
+      Result:=TJSMultiplicativeExpressionDiv(CreateElement(TJSMultiplicativeExpressionDiv,El));
+      TJSBinaryExpression(Result).A:=A; A:=nil;
+      TJSBinaryExpression(Result).B:=B; B:=nil;
+      if (LeftResolved.BaseType=btCurrency) and (RightResolved.BaseType=btCurrency) then
+        Result:=CreateMulNumber(El,Result,10000);
+      Result:=CreateMathFloor(El,Result);
+      exit;
+      end;
+    eopPower:
+      begin
+      // currency^^currency  ->  Math.floor(Math.pow(currency/10000,currency/10000)*10000)
+      // currency^^number  ->  Math.floor(Math.pow(currency/10000,number)*10000)
+      // number^^currency  ->  Math.floor(Math.pow(number,currency/10000)*10000)
+      if LeftResolved.BaseType=btCurrency then
+        A:=CreateDivideNumber(El,A,10000);
+      if RightResolved.BaseType=btCurrency then
+        B:=CreateDivideNumber(El,B,10000);
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreatePrimitiveDotExpr('Math.pow',El);
+      Call.AddArg(A); A:=nil;
+      Call.AddArg(B); B:=nil;
+      Result:=CreateMulNumber(El,Call,10000);
+      Result:=CreateMathFloor(El,Result);
+      end
+    else
+      RaiseNotSupported(El,AContext,20180422104215);
+    end;
     end
   else if (El.OpCode=eopIs) then
     begin
@@ -7576,16 +7661,22 @@ begin
       begin
       // integer to integer -> value
       Result:=ConvertElement(Param,AContext);
+      if to_bt=btCurrency then
+        // integer to currency -> value*10000
+        Result:=CreateMulNumber(Param,Result,10000);
       exit;
       end
     else if ParamResolved.BaseType in btAllJSBooleans then
       begin
       // boolean to integer -> value?1:0
       Result:=ConvertElement(Param,AContext);
-      // Note: convert value first in case it raises an exception
+      // Note: convert Param first in case it raises an exception
       CondExpr:=TJSConditionalExpression(CreateElement(TJSConditionalExpression,El));
       CondExpr.A:=Result;
-      CondExpr.B:=CreateLiteralNumber(El,1);
+      if to_bt=btCurrency then
+        CondExpr.B:=CreateLiteralNumber(El,10000)
+      else
+        CondExpr.B:=CreateLiteralNumber(El,1);
       CondExpr.C:=CreateLiteralNumber(El,0);
       Result:=CondExpr;
       exit;
@@ -7596,6 +7687,9 @@ begin
         begin
         // e.g. longint(TEnum) -> value
         Result:=ConvertElement(Param,AContext);
+        if to_bt=btCurrency then
+          // value*10000
+          Result:=CreateMulNumber(Param,Result,10000);
         exit;
         end;
       end
@@ -7605,13 +7699,20 @@ begin
         begin
         // convert jsvalue to integer -> Math.floor(value)
         Result:=ConvertElement(Param,AContext);
-        // Note: convert value first in case it raises an exception
-        Call:=CreateCallExpression(El);
-        Call.Expr:=CreateMemberExpression(['Math','floor']);
-        Call.AddArg(Result);
-        Result:=Call;
+        // Note: convert Param first in case it raises an exception
+        if to_bt=btCurrency then
+          // jsvalue to currency -> Math.floor(value*10000)
+          Result:=CreateMulNumber(Param,Result,10000);
+        Result:=CreateMathFloor(El,Result);
         exit;
         end;
+      end
+    else if (to_bt=btCurrency) and (ParamResolved.BaseType in btAllFloats) then
+      begin
+      // currency(double)  ->  currency*10000
+      Result:=ConvertElement(Param,AContext);
+      Result:=CreateMulNumber(Param,Result,10000);
+      exit;
       end;
     end
   else if to_bt in btAllJSBooleans then
@@ -7626,7 +7727,7 @@ begin
       begin
       // integer to boolean -> value!=0
       Result:=ConvertElement(Param,AContext);
-      // Note: convert value first in case it raises an exception
+      // Note: convert Param first in case it raises an exception
       NotEqual:=TJSEqualityExpressionNE(CreateElement(TJSEqualityExpressionNE,El));
       NotEqual.A:=Result;
       NotEqual.B:=CreateLiteralNumber(El,0);
@@ -7639,7 +7740,7 @@ begin
         begin
         // convert jsvalue to boolean -> !(value==false)
         Result:=ConvertElement(Param,AContext);
-        // Note: convert value first in case it raises an exception
+        // Note: convert Param first in case it raises an exception
         NotExpr:=TJSUnaryNotExpression(CreateElement(TJSUnaryNotExpression,El));
         NotExpr.A:=TJSEqualityExpressionEQ(CreateElement(TJSEqualityExpressionEQ,El));
         TJSEqualityExpressionEQ(NotExpr.A).A:=Result;
@@ -7653,8 +7754,11 @@ begin
     begin
     if ParamResolved.BaseType in (btAllJSFloats+btAllJSInteger) then
       begin
-      // double to double -> value
+      // int to double -> value
       Result:=ConvertElement(Param,AContext);
+      if ParamResolved.BaseType=btCurrency then
+        // currency to double  ->  value/10000
+        Result:=CreateDivideNumber(El,Result,10000);
       exit;
       end
     else if IsParamPas2JSBaseType then
@@ -7663,7 +7767,7 @@ begin
         begin
         // convert jsvalue to double -> rtl.getNumber(value)
         Result:=ConvertElement(Param,AContext);
-        // Note: convert value first in case it raises an exception
+        // Note: convert Param first in case it raises an exception
         Call:=CreateCallExpression(El);
         Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnGetNumber]]);
         Call.AddArg(Result);
@@ -13178,6 +13282,20 @@ begin
       // create  rtl.refSet(right)
       AssignContext.RightSide:=CreateReferencedSet(El.right,AssignContext.RightSide);
       end
+    else if AssignContext.LeftResolved.BaseType=btCurrency then
+      begin
+      if AssignContext.RightResolved.BaseType<>btCurrency then
+        begin
+        // currency := double  ->  currency := Math.floor(double*10000)
+        AssignContext.RightSide:=CreateMulNumber(El,AssignContext.RightSide,10000);
+        AssignContext.RightSide:=CreateMathFloor(El,AssignContext.RightSide);
+        end;
+      end
+    else if AssignContext.RightResolved.BaseType=btCurrency then
+      begin
+      // double := currency  ->  double := currency/10000
+      AssignContext.RightSide:=CreateDivideNumber(El,AssignContext.RightSide,10000);
+      end
     else if AssignContext.RightResolved.BaseType=btContext then
       begin
       RightTypeEl:=aResolver.ResolveAliasType(AssignContext.RightResolved.TypeEl);
@@ -14955,6 +15073,146 @@ begin
     TJSPrimaryExpressionIdent(Result).Name:=TJSPrimaryExpressionIdent(El).Name;
 end;
 
+function TPasToJSConverter.CreateMulNumber(El: TPasElement; JS: TJSElement;
+  n: MaxPrecInt): TJSElement;
+// create JS*n
+var
+  Mul: TJSMultiplicativeExpressionMul;
+  Value: TJSValue;
+begin
+  if JS is TJSLiteral then
+    begin
+    Value:=TJSLiteral(JS).Value;
+    case Value.ValueType of
+      jstUNDEFINED:
+        begin
+        // undefined * number  ->  NaN
+        Value.AsNumber:=NaN;
+        exit(JS);
+        end;
+      jstNull:
+        begin
+        // null*number -> 0
+        Value.AsNumber:=0;
+        exit(JS);
+        end;
+      jstBoolean:
+        begin
+        // true is 1, false is 0
+        if Value.AsBoolean then
+          Value.AsNumber:=n
+        else
+          Value.AsNumber:=0;
+        exit(JS);
+        end;
+      jstNumber:
+        if IsNan(Value.AsNumber) or IsInfinite(Value.AsNumber) then
+        else
+          begin
+          Value.AsNumber:=Value.AsNumber*n;
+          exit(JS);
+          end;
+    end;
+    end;
+  Mul:=TJSMultiplicativeExpressionMul(CreateElement(TJSMultiplicativeExpressionMul,El));
+  Result:=Mul;
+  Mul.A:=JS;
+  Mul.B:=CreateLiteralNumber(El,n);
+end;
+
+function TPasToJSConverter.CreateDivideNumber(El: TPasElement; JS: TJSElement;
+  n: MaxPrecInt): TJSElement;
+// create JS/n
+var
+  Mul: TJSMultiplicativeExpressionDiv;
+  Value: TJSValue;
+begin
+  if (n<>0) and (JS is TJSLiteral) then
+    begin
+    Value:=TJSLiteral(JS).Value;
+    case Value.ValueType of
+      jstUNDEFINED:
+        begin
+        // undefined / number  ->  NaN
+        Value.AsNumber:=NaN;
+        exit(JS);
+        end;
+      jstNull:
+        begin
+        // null / number -> 0
+        Value.AsNumber:=0;
+        exit(JS);
+        end;
+      jstBoolean:
+        begin
+        // true is 1, false is 0
+        if Value.AsBoolean then
+          Value.AsNumber:=1/n
+        else
+          Value.AsNumber:=0;
+        exit(JS);
+        end;
+      jstNumber:
+        if IsNan(Value.AsNumber) or IsInfinite(Value.AsNumber) then
+        else
+          begin
+          Value.AsNumber:=Value.AsNumber / n;
+          exit(JS);
+          end;
+    end;
+    end;
+  Mul:=TJSMultiplicativeExpressionDiv(CreateElement(TJSMultiplicativeExpressionDiv,El));
+  Result:=Mul;
+  Mul.A:=JS;
+  Mul.B:=CreateLiteralNumber(El,n);
+end;
+
+function TPasToJSConverter.CreateMathFloor(El: TPasElement; JS: TJSElement
+  ): TJSElement;
+// create Math.floor(JS)
+var
+  Value: TJSValue;
+begin
+  if JS is TJSLiteral then
+    begin
+    Value:=TJSLiteral(JS).Value;
+    case Value.ValueType of
+      jstUNDEFINED:
+        begin
+        // Math.floor(undefined)  ->  NaN
+        Value.AsNumber:=NaN;
+        exit(JS);
+        end;
+      jstNull:
+        begin
+        // Math.floor(null) -> 0
+        Value.AsNumber:=0;
+        exit(JS);
+        end;
+      jstBoolean:
+        begin
+        // true is 1, false is 0
+        if Value.AsBoolean then
+          Value.AsNumber:=1
+        else
+          Value.AsNumber:=0;
+        exit(JS);
+        end;
+      jstNumber:
+        if IsNan(Value.AsNumber) or IsInfinite(Value.AsNumber) then
+          exit(JS)
+        else
+          begin
+          Value.AsNumber:=Trunc(Value.AsNumber);
+          exit(JS);
+          end;
+    end;
+    end;
+  Result:=CreateCallExpression(El);
+  TJSCallExpression(Result).Expr:=CreatePrimitiveDotExpr('Math.floor',El);
+  TJSCallExpression(Result).AddArg(JS);
+end;
+
 function TPasToJSConverter.CreateRecordInit(aRecord: TPasRecordType;
   Expr: TPasExpr; El: TPasElement; AContext: TConvertContext): TJSElement;
 // new recordtype()
@@ -15521,7 +15779,7 @@ begin
 
     if (ExprResolved.BaseType=btSet) and (ExprResolved.IdentEl<>nil) then
       begin
-      // right side is a set variable
+      // pass a set variable
       if TargetArg.Access=argDefault then
         begin
         // pass set with argDefault  -> create reference   rtl.refSet(right)
@@ -15529,6 +15787,22 @@ begin
         writeln('TPasToJSConverter.CreateProcedureCallArg create reference of SET variable Right={',GetResolverResultDbg(ExprResolved),'} AssignContext.RightResolved.IdentEl=',GetObjName(ExprResolved.IdentEl));
         {$ENDIF}
         Result:=CreateReferencedSet(El,Result);
+        end;
+      end
+    else if ArgResolved.BaseType=btCurrency then
+      begin
+      if ExprResolved.BaseType<>btCurrency then
+        begin
+        // pass double to currency  ->  *10000
+        Result:=CreateMulNumber(El,Result,10000);
+        end;
+      end
+    else if ExprResolved.BaseType=btCurrency then
+      begin
+      if ArgResolved.BaseType<>btCurrency then
+        begin
+        // pass currency to double  -> /10000
+        Result:=CreateDivideNumber(El,Result,10000);
         end;
       end
     else if ExprResolved.BaseType in btAllStrings then
@@ -16807,6 +17081,11 @@ begin
         begin
         // create rtl.basename
         Result:=FBuiltInNames[pbivnRTL]+'.'+lowercase(AContext.Resolver.BaseTypeNames[bt]);
+        exit;
+        end;
+      btCurrency:
+        begin
+        Result:=FBuiltInNames[pbivnRTL]+'.'+lowercase(AContext.Resolver.BaseTypeNames[btIntDouble]);
         exit;
         end;
       btCustom:
