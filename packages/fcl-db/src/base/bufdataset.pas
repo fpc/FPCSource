@@ -525,7 +525,7 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
     FManualMergeChangeLog : Boolean;
-    
+    FRefreshing : Boolean;
     procedure ProcessFieldsToCompareStruct(const AFields, ADescFields, ACInsFields: TList;
       const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
     function BufferOffset: integer;
@@ -616,6 +616,7 @@ type
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
+    Property Refreshing : Boolean Read FRefreshing;
   public
     constructor Create(AOwner: TComponent); override;
     function GetFieldData(Field: TField; Buffer: Pointer;
@@ -1491,7 +1492,9 @@ begin
   if assigned(FParser) then FreeAndNil(FParser);
   For I:=FIndexes.Count-1 downto 0 do
     if (BufIndexDefs[i].IndexType in [itDefault,itCustom]) or (BufIndexDefs[i].DiscardOnClose) then
-       BufIndexDefs[i].Free;
+       BufIndexDefs[i].Free
+    else
+       FreeAndNil(BufIndexDefs[i].FBufferIndex);
 end;
 
 procedure TCustomBufDataset.InternalFirst;
@@ -2156,29 +2159,29 @@ procedure TCustomBufDataset.InitDefaultIndexes;
 }
 
 Var
-  F : TBufDatasetIndex;
+  FD,FC : TBufDatasetIndex;
 
 begin
+  // Default index
+  FD:=FIndexes.FindIndex(SDefaultIndex);
+  if (FD=Nil) then
+    begin
+    FD:=InternalAddIndex(SDefaultIndex,'',[],'','');
+    FD.IndexType:=itDefault;
+    FD.FDiscardOnClose:=True;
+    end;
+  FCurrentIndexDef:=FD;
   // Custom index
   if not IsUniDirectional then
     begin
-    F:=Findexes.FindIndex(SCustomIndex);
-    if (F=Nil) then
+    FC:=Findexes.FindIndex(SCustomIndex);
+    if (FC=Nil) then
       begin
-      F:=InternalAddIndex(SCustomIndex,'',[],'','');
-      F.IndexType:=itCustom;
-      F.FDiscardOnClose:=True;
+      FC:=InternalAddIndex(SCustomIndex,'',[],'','');
+      FC.IndexType:=itCustom;
+      FC.FDiscardOnClose:=True;
       end;
     end;
-  // Default index
-  F:=FIndexes.FindIndex(SDefaultIndex);
-  if (F=Nil) then
-    begin
-    F:=InternalAddIndex(SDefaultIndex,'',[],'','');
-    F.IndexType:=itDefault;
-    F.FDiscardOnClose:=True;
-    end;
-  FCurrentIndexDef:=F;
   BookmarkSize:=CurrentIndexBuf.BookmarkSize;
 end;
 
@@ -2223,7 +2226,8 @@ procedure TCustomBufDataset.InternalCreateIndex(F : TBufDataSetIndex);
 Var
   B : TBufIndex;
 begin
-  if Active then FetchAll;
+  if Active and not Refreshing then
+    FetchAll;
   if IsUniDirectional then
     B:=TUniDirectionalBufIndex.Create(self)
   else
@@ -3678,18 +3682,26 @@ begin
 end;
 
 procedure TCustomBufDataset.InternalRefresh;
-var StoreDefaultFields: boolean;
+
+var
+  StoreDefaultFields: boolean;
+
 begin
   if length(FUpdateBuffer)>0 then
     DatabaseError(SErrApplyUpdBeforeRefresh,Self);
-  StoreDefaultFields:=DefaultFields;
-  SetDefaultFields(False);
-  FreeFieldBuffers;
-  ClearBuffers;
-  InternalClose;
-  BeforeRefreshOpenCursor;
-  InternalOpen;
-  SetDefaultFields(StoreDefaultFields);
+  FRefreshing:=True;
+  try
+    StoreDefaultFields:=DefaultFields;
+    SetDefaultFields(False);
+    FreeFieldBuffers;
+    ClearBuffers;
+    InternalClose;
+    BeforeRefreshOpenCursor;
+    InternalOpen;
+    SetDefaultFields(StoreDefaultFields);
+  Finally
+    FRefreshing:=False;
+  end;
 end;
 
 procedure TCustomBufDataset.BeforeRefreshOpenCursor;
