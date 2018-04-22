@@ -4944,8 +4944,10 @@ begin
   '  c: TCoin = b;',
   '  i: nativeint;',
   '  d: double;',
+  '  j: jsvalue;',
   'function DoIt(c: currency): currency; begin end;',
   'function GetIt(d: double): double; begin end;',
+  'procedure Write(v: jsvalue); begin end;',
   'begin',
   '  c:=1.0;',
   '  c:=0.1;',
@@ -4983,6 +4985,8 @@ begin
   '  c:=DoIt(i);',
   '  c:=DoIt(d);',
   '  c:=GetIt(c);',
+  '  j:=c;',
+  '  Write(c);',
   '']);
   ConvertProgram;
   CheckSource('TestCurrency',
@@ -4994,6 +4998,7 @@ begin
     'this.c = $mod.b;',
     'this.i = 0;',
     'this.d = 0.0;',
+    'this.j = undefined;',
     'this.DoIt = function (c) {',
     '  var Result = 0;',
     '  return Result;',
@@ -5001,6 +5006,8 @@ begin
     'this.GetIt = function (d) {',
     '  var Result = 0.0;',
     '  return Result;',
+    '};',
+    'this.Write = function (v) {',
     '};',
     '']),
     LinesToStr([
@@ -5040,6 +5047,8 @@ begin
     '$mod.c = $mod.DoIt($mod.i * 10000);',
     '$mod.c = $mod.DoIt($mod.d * 10000);',
     '$mod.c = Math.floor($mod.GetIt($mod.c / 10000) * 10000);',
+    '$mod.j = $mod.c / 10000;',
+    '$mod.Write($mod.c / 10000);',
     '']));
 end;
 

@@ -290,13 +290,13 @@ const
   HighIntAsUInt = MaxPrecUInt(High(MaxPrecInt));
 
 const
-  MinSafeIntCurrency = -922337203685477;
-  MaxSafeIntCurrency =  922337203685477;
+  MinSafeIntCurrency = -922337203685477; // .5808
+  MaxSafeIntCurrency =  922337203685477; // .5807
   MinSafeIntSingle = -16777216;
   MaxSafeIntSingle =  16777216;
   MaskUIntSingle = $3fffff;
-  MinSafeIntDouble = -$10000000000000;
-  MaxSafeIntDouble =   $fffffffffffff;
+  MinSafeIntDouble = -$10000000000000; // -4503599627370496
+  MaxSafeIntDouble =   $fffffffffffff; //  4503599627370495
   MaskUIntDouble = $fffffffffffff;
 
 type

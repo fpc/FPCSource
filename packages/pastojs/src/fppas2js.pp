@@ -322,6 +322,7 @@ Works:
   - CurA^^CurB -> Math.floor(Math.pow(CurA/10000,CurB/10000)*10000)
   - Double:=Currency  ->  Double:=Currency/10000
   - Currency:=Double  -> Currency:=Math.floor(Double*10000)
+  - jsvalue := currency  ->  jsvalue:=currency/10000
 - simplify Math.floor(number) to trunc(number)
 
 ToDos:

@@ -38,6 +38,7 @@
     <a href="#variables">Translating variables</a><br>
     <a href="#string">Translating string</a><br>
     <a href="#resourcestrings">Translating resourcestrings</a><br>
+    <a href="#currency">Translating currency</a><br>
     <a href="#types">Translating types</a><br>
     <a href="#pointer">Translating pointer</a><br>
     <a href="#record">Translating record</a><br>
@@ -544,6 +545,25 @@ End.
         </tr>
       </tbody>
     </table>
+    </div>
+
+    <div class="section">
+    <h2 id="currency">Translating currency</h2>
+    <i>Currency</i> in Delphi/FPC is an int64 with a factor of 10000. This is
+    translated to a rounded double with factor 10000.
+    <ul>
+      <li><i>CurA := 1.1</i> -> <i>CurA = 11000</i></li>
+      <li><i>CurA + CurB</i> -> <i>CurA + CurB</i></li>
+      <li><i>CurA * CurB</i> -> <i>CurA * CurB/10000</i></li>
+      <li><i>CurA / CurB</i> -> <i>Math.floor(CurA/CurB * 10000)</i></li>
+      <li><i>CurA ^^ CurB</i> -> <i>Math.floor(Math.pow(CurA/10000,CurB/10000) * 10000)</i></li>
+      <li><i>Currency + Double</i> -> <i>Currency + (Double*10000)</i></li>
+      <li><i>Double := Currency</i> -> <i>Double = Currency/10000</i></li>
+      <li><i>Currency := Double</i> -> <i>Currency = Math.floor(Double*10000)</i></li>
+      <li><i>JSValue := Currency</i> -> <i>JSValue = Currency/10000</i></li>
+      <li>Keep in mind that a double has only 52 bits for the number, so calculating
+      values greater than 450,359,962,737 might give a different result than in Delphi/FPC.</li>
+    </ul>
     </div>
 
     <div class="section">
