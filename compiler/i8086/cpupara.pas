@@ -210,9 +210,10 @@ unit cpupara;
           pocall_internproc :
             result:=[];
           pocall_register,
+          pocall_cdecl:
+            result:=[RS_AX,RS_DX,RS_CX,RS_BX];
           pocall_safecall,
           pocall_stdcall,
-          pocall_cdecl,
           pocall_cppdecl,
           pocall_mwpascal,
           pocall_far16,
@@ -239,9 +240,25 @@ unit cpupara;
 
     function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
       const
+        saveregs_cdecl: array [0..2] of tsuperregister = (RS_BP,RS_SI,RS_DI);
         saveregs_pascal: array [0..0] of tsuperregister = (RS_BP);
       begin
-        result:=saveregs_pascal;
+        case calloption of
+          pocall_register,
+          pocall_cdecl:
+            result:=saveregs_cdecl;
+          pocall_internproc,
+          pocall_safecall,
+          pocall_stdcall,
+          pocall_cppdecl,
+          pocall_mwpascal,
+          pocall_far16,
+          pocall_pascal,
+          pocall_oldfpccall :
+            result:=saveregs_pascal;
+          else
+            internalerror(2018042301);
+        end;
       end;
 
 
