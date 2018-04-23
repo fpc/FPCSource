@@ -197,9 +197,19 @@ end;
 
 
 Procedure RegisterReportQRCode;
+Const
+  icon : Array[0..123] of byte = (
+     137, 80, 78, 71, 13, 10, 26, 10,  0,  0,  0, 13, 73, 72, 68, 82,  0,
+       0,  0, 16,  0,  0,  0, 16,  1,  3,  0,  0,  0, 37, 61,109, 34,  0,
+       0,  0,  6, 80, 76, 84, 69,  0,  0,  0,255,255,255,165,217,159,221,
+       0,  0,  0, 49, 73, 68, 65, 84,  8,215, 99, 96,108, 96,168,221,199,
+     224,186,  8,138,128,108,160,200,255,255, 12,255,101, 24, 24, 69, 24,
+     106,191, 48,184,178, 48,184,202, 48,184, 62, 97,168,149, 96, 96,148,
+       0,  0, 95, 30, 13, 78,141,201,223,244,  0,  0,  0,  0, 73, 69, 78,
+      68,174, 66, 96,130);
 
 begin
-  gElementFactory.RegisterClass('QRCode',TFPReportQRCode);
+  gElementFactory.RegisterClass('QRCode',TFPReportQRCode).SetIconFromBytes(Icon);
   // Fallback renderer
   gElementFactory.RegisterImageRenderer(TFPReportQRCode,@RenderQRCode);
 end;

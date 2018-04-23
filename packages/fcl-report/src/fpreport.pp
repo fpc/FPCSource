@@ -2147,19 +2147,26 @@ type
   TFPReportClassMapping = class(TObject)
   private
     FEditorClass: TFPReportElementEditorClass;
+    FIConData: TBytes;
     FImageRenderCallBack: TFPReportImageRenderCallBack;
     FMappingName: string;
     FReportElementClass: TFPReportElementClass;
     FRenderers : TFPReportElementRendererArray;
+    FStandard: Boolean;
   public
-    Function IndexOfExportRenderer(AClass : TFPReportExporterClass) : Integer;
     constructor Create(const AMappingName: string; AElementClass: TFPReportElementClass);
+    Procedure SetIconFromBytes(B : Array of Byte);
+    Function IndexOfExportRenderer(AClass : TFPReportExporterClass) : Integer;
     Function AddRenderer(aExporterClass : TFPReportExporterClass; aCallback : TFPReportElementExporterCallBack) : TFPReportElementExporterCallBack;
     Function FindRenderer(aClass : TFPReportExporterClass) : TFPReportElementExporterCallBack;
     property MappingName: string read FMappingName;
     Property ImageRenderCallback : TFPReportImageRenderCallBack Read FImageRenderCallBack Write FImageRenderCallBack;
     property ReportElementClass: TFPReportElementClass read FReportElementClass;
+    // Class to edit the element visually
     property EditorClass : TFPReportElementEditorClass Read FEditorClass Write FEditorClass;
+    // element Icon data in PNG format, will be shown in menu editor.
+    property IconData : TBytes Read FIConData Write FIconData;
+    Property Standard : Boolean Read FStandard;
   end;
 
 
@@ -2171,10 +2178,10 @@ type
   private
     FList: TFPObjectList;
     function GetM(Aindex : integer): TFPReportClassMapping;
+    function GetMappingCount: Integer;
   Protected
     function IndexOfElementClass(const AElementClass: TFPReportElementClass): Integer;
     Function IndexOfElementName(const AElementName: string) : Integer;
-    Property Mappings[Aindex : integer] : TFPReportClassMapping read GetM;
   public
     constructor Create;
     destructor  Destroy; override;
@@ -2186,12 +2193,14 @@ type
     procedure   RegisterEditorClass(AReportElementClass: TFPReportElementClass; AEditorClass: TFPReportElementEditorClass);
     procedure   UnRegisterEditorClass(const AElementName: string; AEditorClass: TFPReportElementEditorClass);
     procedure   UnRegisterEditorClass(AReportElementClass: TFPReportElementClass; AEditorClass: TFPReportElementEditorClass);
-    procedure   RegisterClass(const AElementName: string; AReportElementClass: TFPReportElementClass);
+    Function    RegisterClass(const AElementName: string; AReportElementClass: TFPReportElementClass) : TFPReportClassMapping;
     procedure   RemoveClass(const AElementName: string);
     function    CreateInstance(const AElementName: string; AOwner: TComponent): TFPReportElement; overload;
     Function    FindEditorClassForInstance(AInstance : TFPReportElement) : TFPReportElementEditorClass;
     Function    FindEditorClassForInstance(AClass : TFPReportElementClass) : TFPReportElementEditorClass ;
     procedure   AssignReportElementTypes(AStrings: TStrings);
+    Property  Mappings[Aindex : integer] : TFPReportClassMapping read GetM;
+    Property  MappingCount : Integer Read GetMappingCount;
   end;
 
   { TFPReportBandFactory }
@@ -9993,8 +10002,12 @@ Var
   Img : TFPCustomImage;
   H,W : Integer;
   R : TFPReportRect;
+  L : TFPReportLayout;
 
 begin
+  L:=aElement.RTLayout;
+  if (L=Nil) then
+    L:=aElement.Layout;
   // Actually, this could be cached using propertyhash...
   C:=gElementFactory.FindRenderer(TFPReportExporterClass(self.ClassType),TFPReportElementClass(aElement.ClassType));
   if (C<>Nil) then
@@ -10006,15 +10019,15 @@ begin
     IC:=gElementFactory.FindImageRenderer(TFPReportElementClass(aElement.ClassType));
     if Assigned(IC) then
       begin
-      H := Round(aElement.RTLayout.Height * (aDPI / cMMperInch));
-      W := Round(aElement.RTLayout.Width * (aDPI / cMMperInch));
+      H := Round(L.Height * (aDPI / cMMperInch));
+      W := Round(L.Width * (aDPI / cMMperInch));
       Img:=TFPCompactImgRGBA8Bit.Create(W,H);
       try
         IC(aElement,Img);
-        R.Left:=aBasePos.Left+AElement.RTLayout.Left;
-        R.Top:=aBasePos.Top+AElement.RTLayout.Top;
-        R.Width:=AElement.RTLayout.Width;
-        R.Height:=AElement.RTLayout.Height;
+        R.Left:=aBasePos.Left+L.Left;
+        R.Top:=aBasePos.Top+L.Top;
+        R.Width:=L.Width;
+        R.Height:=L.Height;
         RenderImage(R,Img);
       finally
         Img.Free;
@@ -10635,6 +10648,12 @@ begin
   FReportElementClass := AElementClass;
 end;
 
+procedure TFPReportClassMapping.SetIconFromBytes(B: array of Byte);
+begin
+  SetLength(FIConData,Length(B));
+  Move(B[0],FIconData[0],Length(B));
+end;
+
 function TFPReportClassMapping.AddRenderer(aExporterClass: TFPReportExporterClass; aCallback: TFPReportElementExporterCallBack ): TFPReportElementExporterCallBack;
 
 Var
@@ -10672,6 +10691,11 @@ end;
 function TFPReportElementFactory.GetM(Aindex : integer): TFPReportClassMapping;
 begin
   Result:=TFPReportClassMapping(FList[AIndex]);
+end;
+
+function TFPReportElementFactory.GetMappingCount: Integer;
+begin
+  Result:=FList.Count;
 end;
 
 function TFPReportElementFactory.IndexOfElementName(const AElementName: string): Integer;
@@ -10805,13 +10829,16 @@ begin
       Mappings[i].EditorClass:=nil;
 end;
 
-procedure TFPReportElementFactory.RegisterClass(const AElementName: string; AReportElementClass: TFPReportElementClass);
+function TFPReportElementFactory.RegisterClass(const AElementName: string; AReportElementClass: TFPReportElementClass
+  ): TFPReportClassMapping;
 var
   i: integer;
 begin
   I:=IndexOfElementName(AElementName);
-  if I<>-1 then exit;
-  FList.Add(TFPReportClassMapping.Create(AElementName, AReportElementClass));
+  if I<>-1 then
+    exit;
+  Result:=TFPReportClassMapping.Create(AElementName, AReportElementClass);
+  FList.Add(Result);
 end;
 
 procedure TFPReportElementFactory.RemoveClass(const AElementName: string);
@@ -12214,25 +12241,36 @@ begin
     DefaultBandRectangleColors[i] := fpgDarker(DefaultBandColors[i], 70);
 end;
 
+Procedure RegisterStandardReportClasses;
+
+  Procedure DoReg(N : String; C : TFPReportElementClass);
+
+  begin
+    gElementFactory.RegisterClass(N,C).FStandard:=true;
+  end;
+
+begin
+  DoReg('ReportTitleBand', TFPReportTitleBand);
+  DoReg('ReportSummaryBand', TFPReportSummaryBand);
+  DoReg('GroupHeaderBand', TFPReportGroupHeaderBand);
+  DoReg('GroupFooterBand', TFPReportGroupFooterBand);
+  DoReg('DataBand', TFPReportDataBand);
+  DoReg('ChildBand', TFPReportChildBand);
+  DoReg('PageHeaderBand', TFPReportPageHeaderBand);
+  DoReg('PageFooterBand', TFPReportPageFooterBand);
+  DoReg('DataHeaderBand', TFPReportDataHeaderBand);
+  DoReg('DataFooterBand', TFPReportDataFooterBand);
+  DoReg('ColumnHeaderBand', TFPReportColumnHeaderBand);
+  DoReg('ColumnFooterBand', TFPReportColumnFooterBand);
+  DoReg('Memo', TFPReportMemo);
+  DoReg('Image', TFPReportImage);
+  DoReg('Checkbox', TFPReportCheckbox);
+  DoReg('Shape', TFPReportShape);
+end;
 
 initialization
   uElementFactory := nil;
-  gElementFactory.RegisterClass('ReportTitleBand', TFPReportTitleBand);
-  gElementFactory.RegisterClass('ReportSummaryBand', TFPReportSummaryBand);
-  gElementFactory.RegisterClass('GroupHeaderBand', TFPReportGroupHeaderBand);
-  gElementFactory.RegisterClass('GroupFooterBand', TFPReportGroupFooterBand);
-  gElementFactory.RegisterClass('DataBand', TFPReportDataBand);
-  gElementFactory.RegisterClass('ChildBand', TFPReportChildBand);
-  gElementFactory.RegisterClass('PageHeaderBand', TFPReportPageHeaderBand);
-  gElementFactory.RegisterClass('PageFooterBand', TFPReportPageFooterBand);
-  gElementFactory.RegisterClass('DataHeaderBand', TFPReportDataHeaderBand);
-  gElementFactory.RegisterClass('DataFooterBand', TFPReportDataFooterBand);
-  gElementFactory.RegisterClass('ColumnHeaderBand', TFPReportColumnHeaderBand);
-  gElementFactory.RegisterClass('ColumnFooterBand', TFPReportColumnFooterBand);
-  gElementFactory.RegisterClass('Memo', TFPReportMemo);
-  gElementFactory.RegisterClass('Image', TFPReportImage);
-  gElementFactory.RegisterClass('Checkbox', TFPReportCheckbox);
-  gElementFactory.RegisterClass('Shape', TFPReportShape);
+  RegisterStandardReportClasses;
   SetupBandRectColors;
 
 finalization
