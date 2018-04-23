@@ -325,6 +325,9 @@ Works:
   - Currency:=Double  -> Currency:=Math.floor(Double*10000)
   - jsvalue := currency  ->  jsvalue:=currency/10000
 - simplify Math.floor(number) to trunc(number)
+- Pointer of record
+  - p:=@r, p^:=r
+  - p^.x, p.x
 
 ToDos:
 - for i in jsvalue do
@@ -1183,6 +1186,8 @@ type
     function CreateElementData(DataClass: TPas2JsElementDataClass;
       El: TPasElement): TPas2JsElementData; virtual;
     // utility
+    procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
+      Args: array of const; ErrorPosEl: TPasElement); override;
     function GetOverloadName(El: TPasElement): string;
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean=
       false): string; override;
@@ -2437,6 +2442,7 @@ var
   i: Integer;
   Decl: TPasElement;
   C: TClass;
+  TypeEl: TPasType;
 begin
   inherited FinishTypeSection(El);
   for i:=0 to El.Declarations.Count-1 do
@@ -2445,8 +2451,11 @@ begin
     C:=Decl.ClassType;
     if C=TPasPointerType then
       begin
-      // ToDo: pointer of record
-      RaiseMsg(20180423105726,nNotSupportedX,sNotSupportedX,['pointer of '+TPasPointerType(Decl).DestType.Name],El);
+      TypeEl:=ResolveAliasType(TPasPointerType(Decl).DestType);
+      if TypeEl.ClassType=TPasRecordType then
+        // ^record
+      else
+        RaiseMsg(20180423105726,nNotSupportedX,sNotSupportedX,['pointer of '+TPasPointerType(Decl).DestType.Name],Decl);
       end;
     end;
 end;
@@ -2684,7 +2693,7 @@ var
   AbsExpr: TPasExpr;
   ResolvedAbsol: TPasResolverResult;
   AbsIdent: TPasElement;
-  TypeEl: TPasType;
+  TypeEl, ElTypeEl: TPasType;
   GUID: TGUID;
   i: Integer;
   SectionScope: TPas2JSSectionScope;
@@ -2813,7 +2822,13 @@ begin
     TypeEl:=ResolveAliasType(El.VarType);
 
     if TypeEl.ClassType=TPasPointerType then
-      RaiseMsg(20180423110113,nNotSupportedX,sNotSupportedX,['pointer'],El);
+      begin
+      ElTypeEl:=ResolveAliasType(TPasPointerType(TypeEl).DestType);
+      if ElTypeEl.ClassType=TPasRecordType then
+        // ^record
+      else
+        RaiseMsg(20180423110113,nNotSupportedX,sNotSupportedX,['pointer'],El);
+      end;
 
     if El.Expr<>nil then
       begin
@@ -2830,7 +2845,7 @@ end;
 
 procedure TPas2JSResolver.FinishArgument(El: TPasArgument);
 var
-  TypeEl: TPasType;
+  TypeEl, ElTypeEl: TPasType;
 begin
   inherited FinishArgument(El);
   if El.ArgType<>nil then
@@ -2838,7 +2853,13 @@ begin
     TypeEl:=ResolveAliasType(El.ArgType);
 
     if TypeEl.ClassType=TPasPointerType then
-      RaiseMsg(20180423110239,nNotSupportedX,sNotSupportedX,['pointer'],El);
+      begin
+      ElTypeEl:=ResolveAliasType(TPasPointerType(TypeEl).DestType);
+      if ElTypeEl.ClassType=TPasRecordType then
+        // ^record
+      else
+        RaiseMsg(20180423110239,nNotSupportedX,sNotSupportedX,['pointer'],El);
+      end;
     end;
 end;
 
@@ -2851,7 +2872,7 @@ var
   AClass: TPasClassType;
   ClassScope: TPas2JSClassScope;
   ptm: TProcTypeModifier;
-  TypeEl: TPasType;
+  TypeEl, ElTypeEl: TPasType;
 begin
   inherited FinishProcedureType(El);
 
@@ -2859,7 +2880,13 @@ begin
     begin
     TypeEl:=ResolveAliasType(TPasFunctionType(El).ResultEl.ResultType);
     if TypeEl.ClassType=TPasPointerType then
-      RaiseMsg(20180423110824,nNotSupportedX,sNotSupportedX,['pointer'],El);
+      begin
+      ElTypeEl:=ResolveAliasType(TPasPointerType(TypeEl).DestType);
+      if ElTypeEl.ClassType=TPasRecordType then
+        // ^record
+      else
+        RaiseMsg(20180423110824,nNotSupportedX,sNotSupportedX,['pointer'],El);
+      end;
     end;
 
   if El.Parent is TPasProcedure then
@@ -4150,6 +4177,15 @@ begin
   AddElementData(Result);
 end;
 
+procedure TPas2JSResolver.RaiseMsg(const Id: int64; MsgNumber: integer;
+  const Fmt: String; Args: array of const; ErrorPosEl: TPasElement);
+begin
+  {$IFDEF VerbosePas2JS}
+  writeln('TPas2JSResolver.RaiseMsg [',Id,']');
+  {$ENDIF}
+  inherited RaiseMsg(Id, MsgNumber, Fmt, Args, ErrorPosEl);
+end;
+
 function TPas2JSResolver.GetOverloadName(El: TPasElement): string;
 var
   Data: TObject;
@@ -4898,19 +4934,30 @@ end;
 function TPasToJSConverter.ConvertUnaryExpression(El: TUnaryExpr;
   AContext: TConvertContext): TJSElement;
 
-  procedure NotSupported;
+  procedure NotSupported(Id: int64);
   var
     ResolvedEl: TPasResolverResult;
   begin
     if AContext.Resolver<>nil then
       begin
       AContext.Resolver.ComputeElement(El.Operand,ResolvedEl,[],El);
-      DoError(20180423111325,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+      DoError(Id,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
         [OpcodeStrings[El.OpCode],AContext.Resolver.GetResolverResultDescription(ResolvedEl)],El);
       end
     else
-      DoError(20170215134950,nUnaryOpcodeNotSupported,sUnaryOpcodeNotSupported,
+      DoError(Id,nUnaryOpcodeNotSupported,sUnaryOpcodeNotSupported,
               [OpcodeStrings[El.OpCode]],El);
+  end;
+
+  function DerefPointer(TypeEl: TPasType): boolean;
+  begin
+    if TypeEl.ClassType=TPasRecordType then
+      begin
+      // PRecordVar^ -> PRecordVar
+      ConvertUnaryExpression:=ConvertElement(El.Operand,AContext);
+      exit(true);
+      end;
+    Result:=false;
   end;
 
 Var
@@ -4918,9 +4965,11 @@ Var
   E : TJSElement;
   ResolvedOp, ResolvedEl: TPasResolverResult;
   BitwiseNot: Boolean;
-
+  aResolver: TPas2JSResolver;
+  TypeEl, SubTypeEl: TPasType;
 begin
   if AContext=nil then ;
+  aResolver:=AContext.Resolver;
   Result:=Nil;
   U:=nil;
   Case El.OpCode of
@@ -4940,9 +4989,9 @@ begin
       begin
       E:=ConvertElement(El.Operand,AContext);
       BitwiseNot:=true;
-      if AContext.Resolver<>nil then
+      if aResolver<>nil then
         begin
-        AContext.Resolver.ComputeElement(El.Operand,ResolvedOp,[]);
+        aResolver.ComputeElement(El.Operand,ResolvedOp,[]);
         BitwiseNot:=ResolvedOp.BaseType in btAllJSInteger;
         end;
       if BitwiseNot then
@@ -4953,9 +5002,9 @@ begin
       end;
     eopAddress:
       begin
-      if AContext.Resolver=nil then
-        NotSupported;
-      AContext.Resolver.ComputeElement(El.Operand,ResolvedEl,[rcNoImplicitProc]);
+      if aResolver=nil then
+        NotSupported(20180423162321);
+      aResolver.ComputeElement(El.Operand,ResolvedEl,[rcNoImplicitProc]);
       {$IFDEF VerbosePas2JS}
       writeln('TPasToJSConverter.ConvertUnaryExpression ',GetResolverResultDbg(ResolvedEl));
       {$ENDIF}
@@ -4965,6 +5014,36 @@ begin
           begin
           Result:=CreateCallback(El.Operand,ResolvedEl,AContext);
           exit;
+          end;
+        end
+      else if (ResolvedEl.BaseType=btContext) then
+        begin
+        TypeEl:=aResolver.ResolveAliasType(ResolvedEl.TypeEl);
+        if TypeEl.ClassType=TPasRecordType then
+          begin
+          // @RecVar -> RecVar
+          Result:=ConvertElement(El.Operand,AContext);
+          exit;
+          end;
+        end;
+      end;
+    eopDeref:
+      begin
+      if aResolver=nil then
+        NotSupported(20180423162350);
+      aResolver.ComputeElement(El.Operand,ResolvedEl,[rcNoImplicitProc]);
+      if ResolvedEl.BaseType=btPointer then
+        begin
+        TypeEl:=aResolver.ResolveAliasType(ResolvedEl.TypeEl);
+        if DerefPointer(TypeEl) then exit;
+        end
+      else if (ResolvedEl.BaseType=btContext) then
+        begin
+        TypeEl:=aResolver.ResolveAliasType(ResolvedEl.TypeEl);
+        if TypeEl.ClassType=TPasPointerType then
+          begin
+          SubTypeEl:=aResolver.ResolveAliasType(TPasPointerType(TypeEl).DestType);
+          if DerefPointer(SubTypeEl) then exit;
           end;
         end;
       end;
@@ -4976,7 +5055,7 @@ begin
       end;
   end;
   if U=nil then
-    NotSupported;
+    NotSupported(20180423162324);
   Result:=U;
 end;
 

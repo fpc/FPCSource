@@ -547,6 +547,8 @@ type
     Procedure TestPointer_ArrayParamsFail;
     Procedure TestPointer_PointerAddFail;
     Procedure TestPointer_IncPointerFail;
+    Procedure TestPointer_Record;
+    Procedure TestPointer_RecordArg;
 
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
@@ -16324,6 +16326,151 @@ begin
   SetExpectedPasResolverError('Incompatible type arg no. 1: Got "Pointer", expected "integer"',
     nIncompatibleTypeArgNo);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_Record;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record x: longint; end;',
+  '  PRec = ^TRec;',
+  'var',
+  '  r: TRec;',
+  '  p: PRec;',
+  'begin',
+  '  p:=@r;',
+  '  r:=p^;',
+  '  r.x:=p^.x;',
+  '  p^.x:=r.x;',
+  '  if p^.x=3 then ;',
+  '  if 4=p^.x then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestPointer_Record',
+    LinesToStr([ // statements
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '  } else {',
+    '    this.x = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.x === b.x;',
+    '  };',
+    '};',
+    'this.r = new $mod.TRec();',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.r;',
+    '$mod.r = new $mod.TRec($mod.p);',
+    '$mod.r.x = $mod.p.x;',
+    '$mod.p.x = $mod.r.x;',
+    'if ($mod.p.x === 3) ;',
+    'if (4 === $mod.p.x) ;',
+    '']));
+end;
+
+procedure TTestModule.TestPointer_RecordArg;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch autoderef}',
+  'type',
+  '  TRec = record x: longint; end;',
+  '  PRec = ^TRec;',
+  'function DoIt(const a: PRec; var b: PRec; out c: PRec): TRec;',
+  'begin',
+  '  a.x:=a.x;',
+  '  a^.x:=a^.x;',
+  '  with a^ do',
+  '    x:=x;',
+  'end;',
+  'function GetIt(p: PRec): PRec;',
+  'begin',
+  '  p.x:=p.x;',
+  '  p^.x:=p^.x;',
+  '  with p^ do',
+  '    x:=x;',
+  'end;',
+  'var',
+  '  r: TRec;',
+  '  p: PRec;',
+  'begin',
+  '  p:=GetIt(p);',
+  '  p^:=GetIt(@r)^;',
+  '  DoIt(p,p,p);',
+  '  DoIt(@r,p,p);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestPointer_Record',
+    LinesToStr([ // statements
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '  } else {',
+    '    this.x = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return this.x === b.x;',
+    '  };',
+    '};',
+    'this.DoIt = function (a, b, c) {',
+    '  var Result = new $mod.TRec();',
+    '  a.x = a.x;',
+    '  a.x = a.x;',
+    '  a.x = a.x;',
+    '  return Result;',
+    '};',
+    'this.GetIt = function (p) {',
+    '  var Result = null;',
+    '  p.x = p.x;',
+    '  p.x = p.x;',
+    '  p.x = p.x;',
+    '  return Result;',
+    '};',
+    'this.r = new $mod.TRec();',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.GetIt($mod.p);',
+    '$mod.p = new $mod.TRec($mod.GetIt($mod.r));',
+    '$mod.DoIt($mod.p, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.p;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.p = v;',
+    '    }',
+    '}, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.p;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.p = v;',
+    '    }',
+    '});',
+    '$mod.DoIt($mod.r, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.p;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.p = v;',
+    '    }',
+    '}, {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.p;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.p = v;',
+    '    }',
+    '});',
+    '']));
 end;
 
 procedure TTestModule.TestJSValue_AssignToJSValue;
