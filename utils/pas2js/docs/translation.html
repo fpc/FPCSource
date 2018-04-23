@@ -550,9 +550,9 @@ End.
     <div class="section">
     <h2 id="currency">Translating currency</h2>
     <i>Currency</i> in Delphi/FPC is an int64 with a factor of 10000. This is
-    translated to a rounded double with factor 10000.
+    translated to a double with factor 10000 and truncated.
     <ul>
-      <li><i>CurA := 1.1</i> -> <i>CurA = 11000</i></li>
+      <li><i>CurA := 1.12345</i> -> <i>CurA = 11234</i></li>
       <li><i>CurA + CurB</i> -> <i>CurA + CurB</i></li>
       <li><i>CurA * CurB</i> -> <i>CurA * CurB/10000</i></li>
       <li><i>CurA / CurB</i> -> <i>Math.floor(CurA/CurB * 10000)</i></li>
@@ -562,7 +562,8 @@ End.
       <li><i>Currency := Double</i> -> <i>Currency = Math.floor(Double*10000)</i></li>
       <li><i>JSValue := Currency</i> -> <i>JSValue = Currency/10000</i></li>
       <li>Keep in mind that a double has only 52 bits for the number, so calculating
-      values greater than 450,359,962,737 might give a different result than in Delphi/FPC.</li>
+      values greater than 450,359,962,737 might give a different result than in Delphi/FPC.
+      See SysUtils.MinCurrency/MaxCurrency</li>
     </ul>
     </div>
 
@@ -650,11 +651,13 @@ function(){
     <ul>
       <li>The record variable creates a JavaScript object.</li>
       <li>Variant records are not supported.</li>
-      <li>Supported: Assign, pass as argument, equal, not equal, array of record</li>
-      <li>Not yet implemented: Constants, pointer of record, advanced records, operators.</li>
+      <li>Supported: Assign, pass as argument, equal, not equal, array of record, pointer of record.</li>
+      <li>Not yet implemented: Constants, advanced records, operators.</li>
       <li>When assigning a record it is cloned. This is compatible with Delphi and FPC.</li>
       <li>Since record types are JS objects it is possible to typecast a record type
       to the JS Object, e.g. TJSObject(TPoint)</li>
+      <li>A pointer of record is simply a reference.
+      E.g. <i>p:=@r</i> translates to <i>p=r</i>, <i>p^.x</i> becomes <i>p.x</i>.</li>
     </ul>
     </div>
 
@@ -1884,7 +1887,9 @@ function(){
     </table>
     Notes:
     <ul>
-    <li>Not supported: IEnumerator, operator Enumerator, member modifier enumerator (i.e. custom Current and MoveNext)</li>
+    <li>Not supported: operator Enumerator, member modifier enumerator (i.e. custom Current and MoveNext)</li>
+    <li><i>for key in jsvalue do</i> translates to <i>for (key in jsvalue){}</i></li>
+    <li><i>for key in externalclass do</i> translates to <i>for (key in externalclass){}</i></li>
     </ul>
     </div>
 
