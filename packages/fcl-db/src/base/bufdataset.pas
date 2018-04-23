@@ -2238,9 +2238,10 @@ begin
     InitialiseIndex;
     F.SetIndexProperties;
     end;
-  if Active then
+  if Active  then
     begin
-    B.InitialiseSpareRecord(IntAllocRecordBuffer);
+    if not Refreshing then
+      B.InitialiseSpareRecord(IntAllocRecordBuffer);
     if (F.Fields<>'') then
       BuildIndex(B);
     end
