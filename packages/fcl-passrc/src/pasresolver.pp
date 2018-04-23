@@ -1331,6 +1331,8 @@ type
       var LHS: TPasResolverResult; const RHS: TPasResolverResult);
     procedure ConvertRangeToElement(var ResolvedEl: TPasResolverResult);
     function IsCharLiteral(const Value: string; ErrorPos: TPasElement): TResolverBaseType; virtual;
+    function CheckForIn(Loop: TPasImplForLoop;
+      const VarResolved, InResolved: TPasResolverResult): boolean; virtual;
     function CheckForInClass(Loop: TPasImplForLoop;
       const VarResolved, InResolved: TPasResolverResult): boolean; virtual;
     function CheckBuiltInMinParamCount(Proc: TResElDataBuiltInProc; Expr: TPasExpr;
@@ -6639,9 +6641,8 @@ begin
   ltIn:
     begin
     // check range
-    EnumeratorFound:=false;
-
-    if (StartResolved.BaseType=btContext) then
+    EnumeratorFound:=CheckForIn(Loop,VarResolved,StartResolved);
+    if (not EnumeratorFound) and (StartResolved.BaseType=btContext) then
       begin
       TypeEl:=ResolveAliasType(StartResolved.TypeEl);
       C:=TypeEl.ClassType;
@@ -9978,6 +9979,15 @@ begin
     if Result=BaseTypeChar then
       Result:=btChar;
     end;
+end;
+
+function TPasResolver.CheckForIn(Loop: TPasImplForLoop; const VarResolved,
+  InResolved: TPasResolverResult): boolean;
+begin
+  Result:=false;
+  if Loop=nil then ;
+  if VarResolved.BaseType=btCustom then ;
+  if InResolved.BaseType=btCustom then ;
 end;
 
 function TPasResolver.CheckForInClass(Loop: TPasImplForLoop; const VarResolved,

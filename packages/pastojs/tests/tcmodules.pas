@@ -478,6 +478,7 @@ type
     Procedure TestExternalClass_BracketAccessor_WriteOnly;
     Procedure TestExternalClass_BracketAccessor_MultiType;
     Procedure TestExternalClass_BracketAccessor_Index;
+    Procedure TestExternalClass_ForInJSObject;
 
     // class interfaces
     Procedure TestClassInterface_Corba;
@@ -573,6 +574,7 @@ type
     Procedure TestJSValue_OverloadString;
     Procedure TestJSValue_OverloadChar;
     Procedure TestJSValue_OverloadPointer;
+    Procedure TestJSValue_ForIn;
 
     // RTTI
     Procedure TestRTTI_ProcType;
@@ -12677,6 +12679,32 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestExternalClass_ForInJSObject;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  'var',
+  '  o: TJSObject;',
+  '  key: string;',
+  'begin',
+  '  for key in o do',
+  '    if key=''abc'' then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_ForInJSObject',
+    LinesToStr([ // statements
+    'this.o = null;',
+    'this.key = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    'for ($mod.key in $mod.o) if ($mod.key === "abc") ;',
+    '']));
+end;
+
 procedure TTestModule.TestClassInterface_Corba;
 begin
   StartProgram(false);
@@ -17601,6 +17629,31 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '$mod.DoIt($mod.o);',
+    '']));
+end;
+
+procedure TTestModule.TestJSValue_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  v: JSValue;',
+  '  key: string;',
+  'begin',
+  '  for key in v do begin',
+  '    if key=''abc'' then ;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestJSValue_ForIn',
+    LinesToStr([ // statements
+    'this.v = undefined;',
+    'this.key = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    'for ($mod.key in $mod.v) {',
+    '  if ($mod.key === "abc") ;',
+    '};',
     '']));
 end;
 

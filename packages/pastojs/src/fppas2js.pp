@@ -208,6 +208,7 @@ Works:
   - typecast class type to JS Object, e.g. TJSObject(TObject)
   - typecast record type to JS Object, e.g. TJSObject(TPoint)
   - typecast interface type to JS Object, e.g. TJSObject(IUnknown)
+  - for i in tjsobject do
 - jsvalue
   - init as undefined
   - assign to jsvalue := integer, string, boolean, double, char
@@ -228,6 +229,7 @@ Works:
   - operators equal, not equal
   - callback: assign to jsvalue, equal, not equal
   - jsvalue is class-type, jsvalue is class-of-type
+  - for i in jsvalue do
 - RTTI
   - base types
   - $mod.$rtti
@@ -330,8 +332,6 @@ Works:
   - p^.x, p.x
 
 ToDos:
-- for i in jsvalue do
-- for i in tjsobject do
 - 1 as TEnum, ERangeError
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
@@ -359,7 +359,6 @@ ToDos:
   - documentation
 - move local types to unit scope
 - make records more lightweight
-- pointer of record
 - nested classes
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - ifthen
@@ -1146,6 +1145,8 @@ type
     function CheckEqualCompatibilityCustomType(const LHS,
       RHS: TPasResolverResult; ErrorEl: TPasElement;
       RaiseOnIncompatible: boolean): integer; override;
+    function CheckForIn(Loop: TPasImplForLoop; const VarResolved,
+      InResolved: TPasResolverResult): boolean; override;
     procedure ComputeUnaryNot(El: TUnaryExpr;
       var ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags);
       override;
@@ -3444,6 +3445,35 @@ begin
     exit(CheckEqualCompatibilityCustomType(RHS,LHS,ErrorEl,RaiseOnIncompatible))
   else
     RaiseInternalError(20170330005725);
+end;
+
+function TPas2JSResolver.CheckForIn(Loop: TPasImplForLoop; const VarResolved,
+  InResolved: TPasResolverResult): boolean;
+var
+  TypeEl: TPasType;
+begin
+  if InResolved.BaseType=btCustom then
+    begin
+    if IsJSBaseType(InResolved,pbtJSValue,true) then
+      begin
+      // for string in jsvalue do ...
+      if not (VarResolved.BaseType in btAllStrings) then
+        RaiseXExpectedButYFound(20180423185800,'string',GetResolverResultDescription(VarResolved,true),Loop.StartExpr);
+      exit(true);
+      end;
+    end
+  else if InResolved.BaseType=btContext then
+    begin
+    TypeEl:=ResolveAliasType(InResolved.TypeEl);
+    if (TypeEl.ClassType=TPasClassType) and TPasClassType(TypeEl).IsExternal then
+      begin
+      // for key in JSObject do ...
+      if not (VarResolved.BaseType in btAllStrings) then
+        RaiseXExpectedButYFound(20180423191611,'string',GetResolverResultDescription(VarResolved,true),Loop.StartExpr);
+      exit(true);
+      end;
+    end;
+  Result:=false;
 end;
 
 procedure TPas2JSResolver.ComputeUnaryNot(El: TUnaryExpr;
@@ -13797,8 +13827,11 @@ type
     ikArray,
     ikSetInt,
     ikSetBool,
-    ikSetChar
+    ikSetChar,
+    ikSetString
   );
+var
+  aResolver: TPas2JSResolver;
 
   function ConvExpr(Expr: TPasExpr): TJSElement; overload;
   var
@@ -13823,9 +13856,9 @@ type
         Result.Free;
         RaiseNotSupported(Expr,AContext,20171112021222);
       end
-    else if AContext.Resolver<>nil then
+    else if aResolver<>nil then
       begin
-      AContext.Resolver.ComputeElement(Expr,ResolvedEl,[]);
+      aResolver.ComputeElement(Expr,ResolvedEl,[]);
       if (ResolvedEl.BaseType in btAllChars)
           or ((ResolvedEl.BaseType=btRange) and (ResolvedEl.SubType in btAllChars)) then
         begin
@@ -13849,7 +13882,7 @@ type
   begin
     if Value=nil then
       exit(0);
-    OrdValue:=AContext.Resolver.ExprEvaluator.OrdValue(Value,ErrorEl);
+    OrdValue:=aResolver.ExprEvaluator.OrdValue(Value,ErrorEl);
     case OrdValue.Kind of
     revkInt: Result:=TResEvalInt(OrdValue).Int;
     else
@@ -13882,18 +13915,18 @@ var
     TypeEl: TPasType;
   begin
     Result:=true;
-    AContext.Resolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
+    aResolver.ComputeElement(El.VariableName,ResolvedVar,[rcNoImplicitProc]);
     if (not (ResolvedVar.IdentEl is TPasVariable))
         and not (ResolvedVar.IdentEl is TPasResultElement) then
       DoError(20170213214404,nXExpectedButYFound,sXExpectedButYFound,['var',
-        AContext.Resolver.GetResolverResultDescription(ResolvedVar)],El.VariableName);
+        aResolver.GetResolverResultDescription(ResolvedVar)],El.VariableName);
 
     case El.LoopType of
     ltNormal,ltDown:
       begin
-      StartValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
+      StartValue:=aResolver.Eval(El.StartExpr,[],false);
       StartInt:=GetOrd(StartValue,El.StartExpr);
-      EndValue:=AContext.Resolver.Eval(El.EndExpr,[],false);
+      EndValue:=aResolver.Eval(El.EndExpr,[],false);
       EndInt:=GetOrd(EndValue,El.EndExpr);
       end;
     ltIn:
@@ -13904,21 +13937,21 @@ var
         exit(false);
         end;
 
-      AContext.Resolver.ComputeElement(El.StartExpr,ResolvedIn,[]);
+      aResolver.ComputeElement(El.StartExpr,ResolvedIn,[]);
       HasInVar:=true;
-      InValue:=AContext.Resolver.Eval(El.StartExpr,[],false);
+      InValue:=aResolver.Eval(El.StartExpr,[],false);
       if InValue=nil then
         begin
         if ResolvedIn.IdentEl is TPasType then
           begin
-          TypeEl:=AContext.Resolver.ResolveAliasType(TPasType(ResolvedIn.IdentEl));
+          TypeEl:=aResolver.ResolveAliasType(TPasType(ResolvedIn.IdentEl));
           if TypeEl is TPasArrayType then
             begin
             if length(TPasArrayType(TypeEl).Ranges)=1 then
-              InValue:=AContext.Resolver.Eval(TPasArrayType(TypeEl).Ranges[0],[refConst]);
+              InValue:=aResolver.Eval(TPasArrayType(TypeEl).Ranges[0],[refConst]);
             end
           else if TypeEl is TPasSetType then
-            InValue:=AContext.Resolver.EvalTypeRange(TPasSetType(TypeEl).EnumType,[refConst]);
+            InValue:=aResolver.EvalTypeRange(TPasSetType(TypeEl).EnumType,[refConst]);
           end;
         end;
       if InValue<>nil then
@@ -14001,10 +14034,22 @@ var
           InKind:=ikString;
           StartInt:=0;
           end
+        else if ResolvedIn.BaseType=btCustom then
+          begin
+          if aResolver.IsJSBaseType(ResolvedIn,pbtJSValue) then
+            begin
+            // for v in jsvalue do
+            InKind:=ikSetString;
+            HasInVar:=false;
+            HasLoopVar:=false;
+            HasEndVar:=false;
+            exit;
+            end;
+          end
         else if ResolvedIn.BaseType=btContext then
           begin
-          TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedIn.TypeEl);
-          if TypeEl is TPasArrayType then
+          TypeEl:=aResolver.ResolveAliasType(ResolvedIn.TypeEl);
+          if TypeEl.ClassType=TPasArrayType then
             begin
             if length(TPasArrayType(TypeEl).Ranges)<=1 then
               begin
@@ -14018,6 +14063,15 @@ var
               {$ENDIF}
               RaiseNotSupported(El.StartExpr,AContext,20171220010147);
               end;
+            end
+          else if (TypeEl.ClassType=TPasClassType) and TPasClassType(TypeEl).IsExternal then
+            begin
+            // for v in jsobject do
+            InKind:=ikSetString;
+            HasInVar:=false;
+            HasLoopVar:=false;
+            HasEndVar:=false;
+            exit;
             end
           else
             begin
@@ -14104,11 +14158,12 @@ begin
   Result:=Nil;
   if AContext.Access<>caRead then
     RaiseInconsistency(20170213213740,El);
+  aResolver:=AContext.Resolver;
   ForScope:=El.CustomData as TPasForLoopScope; // can be nil!
   case El.LoopType of
   ltNormal,ltDown: ;
   ltIn:
-    if AContext.Resolver=nil then
+    if aResolver=nil then
       RaiseNotSupported(El,AContext,20171112160707);
   else
     {$IFDEF VerbosePas2JS}
@@ -14133,7 +14188,7 @@ begin
     HasLoopVar:=true;
     HasEndVar:=true;
     HasInVar:=false;
-    if AContext.Resolver<>nil then
+    if aResolver<>nil then
       begin
       if not InitWithResolver then exit;
       end;
@@ -14152,7 +14207,7 @@ begin
       CurEndVarName:='';
 
     // add "for()"
-    if InKind in [ikSetInt,ikSetBool,ikSetChar] then
+    if InKind in [ikSetInt,ikSetBool,ikSetChar,ikSetString] then
       ForSt:=TJSForInStatement(CreateElement(TJSForInStatement,El))
     else
       ForSt:=TJSForStatement(CreateElement(TJSForStatement,El));
@@ -14316,7 +14371,7 @@ begin
       ForSt.Body:=SimpleAss;
       SimpleAss.LHS:=ConvertElement(El.VariableName,AContext);
       SimpleAss.Expr:=CreatePrimitiveDotExpr(CurLoopVarName,PosEl);
-      if AContext.Resolver<>nil then
+      if aResolver<>nil then
         begin
         if InKind<>ikNone then
           case InKind of
