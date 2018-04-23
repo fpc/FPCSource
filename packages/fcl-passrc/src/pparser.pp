@@ -2263,7 +2263,8 @@ begin
   end;
 end;
 
-function TPasParser.DoParseExpression(AParent : TPaselement;InitExpr: TPasExpr; AllowEqual : Boolean = True): TPasExpr;
+function TPasParser.DoParseExpression(AParent: TPasElement; InitExpr: TPasExpr;
+  AllowEqual : Boolean = True): TPasExpr;
 type
   TOpStackItem = record
     Token: TToken;
@@ -2281,7 +2282,7 @@ var
   NotBinary : Boolean;
 
 const
-  PrefixSym = [tkPlus, tkMinus, tknot, tkAt, tkAtAt]; // + - not @
+  PrefixSym = [tkPlus, tkMinus, tknot, tkAt, tkAtAt]; // + - not @ @@
   BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod,  tkDotDot,
                tkand, tkShl,tkShr, tkas, tkPower,
                tkPlus, tkMinus, tkor, tkxor, tkSymmetricalDifference,
@@ -2348,6 +2349,7 @@ const
 Var
   AllowedBinaryOps : Set of TToken;
   SrcPos: TPasSourcePos;
+  ArrParams: TParamsExpr;
 
 begin
   AllowedBinaryOps:=BinaryOP;
@@ -2364,19 +2366,8 @@ begin
       PrefixCnt:=0;
       if not Assigned(InitExpr) then
         begin
-        // the first part of the expression has been parsed externally.
-        // this is used by Constant Expression parser (CEP) parsing only,
-        // whenever it makes a false assuming on constant expression type.
-        // i.e: SI_PAD_SIZE = ((128/sizeof(longint)) - 3);
-        //
-        // CEP assumes that it's array or record, because the expression
-        // starts with "(". After the first part is parsed, the CEP meets "-"
-        // that assures, it's not an array expression. The CEP should give the
-        // first part back to the expression parser, to get the correct
-        // token tree according to the operations priority.
-        //
-        // quite ugly. type information is required for CEP to work clean
 
+        // parse prefix operators
         while CurToken in PrefixSym do
           begin
           PushOper(CurToken);
@@ -2388,6 +2379,8 @@ begin
           begin
           NextToken;
           x:=DoParseExpression(AParent);
+          if not Assigned(x) then
+            ParseExcSyntaxError;
           if (CurToken<>tkBraceClose) then
             begin
             x.Release;
@@ -2395,18 +2388,21 @@ begin
             end;
           NextToken;
           // for expressions like (ppdouble)^^;
-          while (x<>Nil) and (CurToken=tkCaret) do
+          while (CurToken=tkCaret) do
             begin
             x:=CreateUnaryExpr(AParent,x, TokenToExprOp(tkCaret));
             NextToken;
             end;
           // for expressions like (PChar(a)+10)[0];
-          if (x<>Nil) and (CurToken=tkSquaredBraceOpen) then
+          if (CurToken=tkSquaredBraceOpen) then
             begin
-            x:=ParseParams(x,pekArrayParams,False);
+            ArrParams:=ParseParams(AParent,pekArrayParams,False);
+            ArrParams.Value:=x;
+            x.Parent:=ArrParams;
+            x:=ArrParams;
             end;
           // for expressions like (TObject(m)).Free;
-          if (x<>Nil) and (CurToken=tkDot) then
+          if (CurToken=tkDot) then
             begin
             NextToken;
             x:=CreateBinaryExpr(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
@@ -2415,9 +2411,9 @@ begin
         else
           begin
           x:=ParseExpIdent(AParent);
+          if not Assigned(x) then
+            ParseExcSyntaxError;
           end;
-        if not Assigned(x) then
-          ParseExcSyntaxError;
         ExpStack.Add(x);
 
         for i:=1 to PrefixCnt do
@@ -2436,12 +2432,24 @@ begin
         end
       else
         begin
+        // the first part of the expression has been parsed externally.
+        // this is used by Constant Expression parser (CEP) parsing only,
+        // whenever it makes a false assuming on constant expression type.
+        // i.e: SI_PAD_SIZE = ((128/sizeof(longint)) - 3);
+        //
+        // CEP assumes that it's array or record, because the expression
+        // starts with "(". After the first part is parsed, the CEP meets "-"
+        // that assures, it's not an array expression. The CEP should give the
+        // first part back to the expression parser, to get the correct
+        // token tree according to the operations priority.
+        //
+        // quite ugly. type information is required for CEP to work clean
         ExpStack.Add(InitExpr);
         InitExpr:=nil;
         end;
       if (CurToken in AllowedBinaryOPs) then
         begin
-        // Adjusting order of the operations
+        // process operators of higher precedence than next operator
         NotBinary:=False;
         TempOp:=PeekOper;
         while (OpStackTop>=0) and (OpLevel(TempOp)>=OpLevel(CurToken)) do begin
@@ -2458,7 +2466,7 @@ begin
 
     while OpStackTop>=0 do PopAndPushOperator;
 
-    // only 1 expression should be on the OpStack, at the end of the correct expression
+    // only 1 expression should be left on the OpStack
     if ExpStack.Count<>1 then
       ParseExcSyntaxError;
     if ExpStack.Count=1 then
