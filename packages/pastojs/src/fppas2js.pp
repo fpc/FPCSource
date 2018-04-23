@@ -252,6 +252,7 @@ Works:
   - property default value
 - pointer
   - compare with and assign nil
+  - typecast class, class-of, interface, array
 - ECMAScript6:
   - use 0b for binary literals
   - use 0o for octal literals
@@ -995,22 +996,19 @@ const
     msClass,
     msResult,
     msRepeatForward,
-    // ToDo: msPointer2Procedure,
-    // ToDo: msAutoDeref,
     msInitFinal,
     msOut,
     msDefaultPara,
-    // ToDo: msDuplicateNames
     msProperty,
-    // ToDo: msDefaultInline
     msExcept,
-    // ToDo: msAdvancedRecords
     msDefaultUnicodestring,
     msCBlocks
     ];
   msAllPas2jsModeSwitches = msAllPas2jsModeSwitchesReadOnly+[
     msDelphi,msObjfpc,
-    msHintDirective,msNestedComment,
+    msAutoDeref,
+    msHintDirective,
+    msNestedComment,
     msExternalClass,
     msIgnoreAttributes];
 
@@ -1040,7 +1038,7 @@ const
     btString,
     btUnicodeString,
     btDouble,
-    btCurrency, // nativeint*10000
+    btCurrency, // nativeint*10000 truncated
     btBoolean,
     btByteBool,
     btWordBool,
@@ -1064,7 +1062,9 @@ const
   btAllJSFloats = [btDouble];
   btAllJSBooleans = [btBoolean];
   btAllJSInteger = [btByte,btShortInt,btWord,btSmallInt,btLongWord,btLongint,
-    btIntDouble,btUIntDouble,btCurrency];
+    btIntDouble,btUIntDouble,
+    btCurrency  // in pas2js currency is more like an integer, instead of float
+    ];
   btAllJSValueSrcTypes = [btNil,btUntyped,btPointer]+btAllJSInteger
       +btAllJSStringAndChars+btAllJSFloats+btAllJSBooleans;
   btAllJSValueTypeCastTo = btAllJSInteger
@@ -1079,7 +1079,8 @@ const
     proExtClassInstanceNoTypeMembers,
     proOpenAsDynArrays,
     proProcTypeWithoutIsNested,
-    proMethodAddrAsPointer
+    proMethodAddrAsPointer,
+    proNoPointerArithmetic
     ];
 type
   TPas2JSResolver = class(TPasResolver)
@@ -1109,6 +1110,7 @@ type
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
       Access: TResolvedRefAccess); override;
     procedure FinishInterfaceSection(Section: TPasSection); override;
+    procedure FinishTypeSection(El: TPasDeclarations); override;
     procedure FinishModule(CurModule: TPasModule); override;
     procedure FinishEnumType(El: TPasEnumType); override;
     procedure FinishSetType(El: TPasSetType); override;
@@ -1117,6 +1119,7 @@ type
     procedure FinishArrayType(El: TPasArrayType); override;
     procedure FinishAncestors(aClass: TPasClassType); override;
     procedure FinishVariable(El: TPasVariable); override;
+    procedure FinishArgument(El: TPasArgument); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
     procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
     procedure CheckConditionExpr(El: TPasExpr;
@@ -2429,6 +2432,25 @@ begin
     end;
 end;
 
+procedure TPas2JSResolver.FinishTypeSection(El: TPasDeclarations);
+var
+  i: Integer;
+  Decl: TPasElement;
+  C: TClass;
+begin
+  inherited FinishTypeSection(El);
+  for i:=0 to El.Declarations.Count-1 do
+    begin
+    Decl:=TPasElement(El.Declarations[i]);
+    C:=Decl.ClassType;
+    if C=TPasPointerType then
+      begin
+      // ToDo: pointer of record
+      RaiseMsg(20180423105726,nNotSupportedX,sNotSupportedX,['pointer of '+TPasPointerType(Decl).DestType.Name],El);
+      end;
+    end;
+end;
+
 procedure TPas2JSResolver.FinishModule(CurModule: TPasModule);
 var
   ModuleClass: TClass;
@@ -2786,16 +2808,37 @@ begin
       AddExternalPath(ExtName,El.ExportName);
     end;
 
-  if (El.VarType<>nil) and (El.Expr<>nil) then
+  if El.VarType<>nil then
     begin
     TypeEl:=ResolveAliasType(El.VarType);
-    if (TypeEl.ClassType=TPasRecordType) then
+
+    if TypeEl.ClassType=TPasPointerType then
+      RaiseMsg(20180423110113,nNotSupportedX,sNotSupportedX,['pointer'],El);
+
+    if El.Expr<>nil then
       begin
-      if GetAssignGUIDString(TPasRecordType(TypeEl),El.Expr,GUID) then
-        // e.g. IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'
-      else
-        ;
+      if (TypeEl.ClassType=TPasRecordType) then
+        begin
+        if GetAssignGUIDString(TPasRecordType(TypeEl),El.Expr,GUID) then
+          // e.g. IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}'
+        else
+          ;
+        end;
       end;
+    end;
+end;
+
+procedure TPas2JSResolver.FinishArgument(El: TPasArgument);
+var
+  TypeEl: TPasType;
+begin
+  inherited FinishArgument(El);
+  if El.ArgType<>nil then
+    begin
+    TypeEl:=ResolveAliasType(El.ArgType);
+
+    if TypeEl.ClassType=TPasPointerType then
+      RaiseMsg(20180423110239,nNotSupportedX,sNotSupportedX,['pointer'],El);
     end;
 end;
 
@@ -2808,8 +2851,17 @@ var
   AClass: TPasClassType;
   ClassScope: TPas2JSClassScope;
   ptm: TProcTypeModifier;
+  TypeEl: TPasType;
 begin
   inherited FinishProcedureType(El);
+
+  if El is TPasFunctionType then
+    begin
+    TypeEl:=ResolveAliasType(TPasFunctionType(El).ResultEl.ResultType);
+    if TypeEl.ClassType=TPasPointerType then
+      RaiseMsg(20180423110824,nNotSupportedX,sNotSupportedX,['pointer'],El);
+    end;
+
   if El.Parent is TPasProcedure then
     begin
     Proc:=TPasProcedure(El.Parent);
@@ -2964,7 +3016,6 @@ begin
       if Proc.Parent is TPasSection then
         AddExternalPath(ExtName,Proc.LibrarySymbolName);
 
-      exit;
       end;
     end;
 end;
@@ -4848,9 +4899,18 @@ function TPasToJSConverter.ConvertUnaryExpression(El: TUnaryExpr;
   AContext: TConvertContext): TJSElement;
 
   procedure NotSupported;
+  var
+    ResolvedEl: TPasResolverResult;
   begin
-    DoError(20170215134950,nUnaryOpcodeNotSupported,sUnaryOpcodeNotSupported,
-            [OpcodeStrings[El.OpCode]],El);
+    if AContext.Resolver<>nil then
+      begin
+      AContext.Resolver.ComputeElement(El.Operand,ResolvedEl,[],El);
+      DoError(20180423111325,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+        [OpcodeStrings[El.OpCode],AContext.Resolver.GetResolverResultDescription(ResolvedEl)],El);
+      end
+    else
+      DoError(20170215134950,nUnaryOpcodeNotSupported,sUnaryOpcodeNotSupported,
+              [OpcodeStrings[El.OpCode]],El);
   end;
 
 Var
@@ -5348,6 +5408,8 @@ begin
   {$ENDIF}
   Result:=nil;
   aResolver:=AContext.Resolver;
+  LeftTypeEl:=aResolver.ResolveAliasType(LeftResolved.TypeEl);
+  RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
   if LeftResolved.BaseType=btSet then
     begin
     // set operators -> rtl.operatorfunction(a,b)
@@ -5462,11 +5524,25 @@ begin
       RaiseNotSupported(El,AContext,20180422104215);
     end;
     end
+  else if (LeftResolved.BaseType=btPointer)
+      or ((LeftResolved.BaseType=btContext) and (LeftTypeEl.ClassType=TPasPointerType)) then
+    case El.OpCode of
+    eopEqual,eopNotEqual: ;
+    else
+      DoError(20180423114054,nIllegalQualifierAfter,sIllegalQualifierAfter,
+        [OpcodeStrings[El.OpCode],aResolver.GetResolverResultDescription(LeftResolved,true)],El);
+    end
+  else if (RightResolved.BaseType=btPointer)
+      or ((RightResolved.BaseType=btContext) and (RightTypeEl.ClassType=TPasPointerType)) then
+    case El.OpCode of
+    eopEqual,eopNotEqual: ;
+    else
+      DoError(20180423114246,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
+        [OpcodeStrings[El.OpCode],aResolver.GetResolverResultDescription(RightResolved,true)],El);
+    end
   else if (El.OpCode=eopIs) then
     begin
     // "A is B"
-    LeftTypeEl:=aResolver.ResolveAliasType(LeftResolved.TypeEl);
-    RightTypeEl:=aResolver.ResolveAliasType(RightResolved.TypeEl);
     Call:=CreateCallExpression(El);
     Result:=Call;
     Call.AddArg(A); A:=nil;
@@ -6454,6 +6530,12 @@ function TPasToJSConverter.ConvertArrayParams(El: TParamsExpr;
 var
   ArgContext: TConvertContext;
 
+  procedure RaiseIllegalBrackets(id: int64; const ResolvedEl: TPasResolverResult);
+  begin
+    DoError(id,nIllegalQualifierAfter,sIllegalQualifierAfter,
+      ['[',AContext.Resolver.GetResolverResultDescription(ResolvedEl,true)],El);
+  end;
+
   function GetValueReference: TResolvedReference;
   var
     Value: TPasExpr;
@@ -7118,10 +7200,10 @@ begin
       // anArray[]
       ConvertArray(TPasArrayType(TypeEl))
     else
-      RaiseNotSupported(El,AContext,20170206181220,GetResolverResultDbg(ResolvedEl));
+      RaiseIllegalBrackets(20170206181220,ResolvedEl);
     end
   else
-    RaiseNotSupported(El,AContext,20170206180222);
+    RaiseIllegalBrackets(20170206180222,ResolvedEl);
 end;
 
 function TPasToJSConverter.ConvertFuncParams(El: TParamsExpr;

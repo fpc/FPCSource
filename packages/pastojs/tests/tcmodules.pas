@@ -538,8 +538,15 @@ type
     Procedure TestPointer_Proc;
     Procedure TestPointer_AssignRecordFail;
     Procedure TestPointer_AssignStaticArrayFail;
-    Procedure TestPointer_ArrayParamsFail;
     Procedure TestPointer_TypeCastJSValueToPointer;
+    Procedure TestPointer_NonRecordFail;
+    Procedure TestPointer_AnonymousArgTypeFail;
+    Procedure TestPointer_AnonymousVarTypeFail;
+    Procedure TestPointer_AnonymousResultTypeFail;
+    Procedure TestPointer_AddrOperatorFail;
+    Procedure TestPointer_ArrayParamsFail;
+    Procedure TestPointer_PointerAddFail;
+    Procedure TestPointer_IncPointerFail;
 
     // jsvalue
     Procedure TestJSValue_AssignToJSValue;
@@ -16195,17 +16202,6 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestPointer_ArrayParamsFail;
-begin
-  StartProgram(false);
-  Add('var');
-  Add('  p: Pointer;');
-  Add('begin');
-  Add('  p:=p[1];');
-  SetExpectedPasResolverError('illegal qualifier "[" after "Pointer"',nIllegalQualifierAfter);
-  ConvertProgram;
-end;
-
 procedure TTestModule.TestPointer_TypeCastJSValueToPointer;
 begin
   StartProgram(false);
@@ -16231,6 +16227,103 @@ begin
     '$mod.DoIt([$mod.v]);',
     '$mod.DoAll($mod.v);',
     '']));
+end;
+
+procedure TTestModule.TestPointer_NonRecordFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  p = ^longint;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: pointer of Longint',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_AnonymousArgTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(p: ^longint); begin end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: pointer',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_AnonymousVarTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'var p: ^longint;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: pointer',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_AnonymousResultTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'function DoIt: ^longint; begin end;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: pointer',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_AddrOperatorFail;
+begin
+  StartProgram(false);
+  Add([
+  'var i: longint;',
+  'begin',
+  '  if @i=nil then ;',
+  '']);
+  SetExpectedConverterError('illegal qualifier "@" in front of "i:Longint"',nIllegalQualifierInFrontOf);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_ArrayParamsFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  p: Pointer;',
+  'begin',
+  '  p:=p[1];',
+  '']);
+  SetExpectedPasResolverError('illegal qualifier "[" after "Pointer"',nIllegalQualifierAfter);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_PointerAddFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  p: Pointer;',
+  'begin',
+  '  p:=p+1;',
+  '']);
+  SetExpectedPasResolverError('Operator is not overloaded: "Pointer" + "Longint"',nOperatorIsNotOverloadedAOpB);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestPointer_IncPointerFail;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  p: Pointer;',
+  'begin',
+  '  inc(p,1);',
+  '']);
+  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "Pointer", expected "integer"',
+    nIncompatibleTypeArgNo);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestJSValue_AssignToJSValue;
