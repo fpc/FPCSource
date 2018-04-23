@@ -729,6 +729,14 @@ type
     Procedure TestPointer_TypecastFromMethodTypeFail;
     Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
     Procedure TestPointer_OverloadSignature;
+    Procedure TestPointerTyped;
+    Procedure TestPointerTypedForwardMissingFail;
+    Procedure TestPointerTyped_CycleFail;
+    Procedure TestPointerTyped_AssignMismatchFail;
+    Procedure TestPointerTyped_AddrAddrFail;
+    Procedure TestPointerTyped_RecordObjFPC;
+    Procedure TestPointerTyped_RecordDelphi;
+    Procedure TestPointerTyped_Arithmetic;
 
     // resourcestrings
     Procedure TestResourcestring;
@@ -12738,6 +12746,176 @@ begin
   Add('  {@tclass}DoIt(c);');
   Add('  {@tobject}DoIt(b);');
   Add('  {@tclass}DoIt(bc);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointerTyped;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PBoolean = ^boolean;',
+  '  PPInteger = ^PInteger;',
+  '  PInteger = ^integer;',
+  '  integer = longint;',
+  'var',
+  '  i: integer;',
+  '  p1: PInteger;',
+  '  p2: ^Integer;',
+  '  p3: ^PInteger;',
+  '  a: array of integer;',
+  'begin',
+  '  p1:=@i;',
+  '  p1:=p2;',
+  '  p2:=@i;',
+  '  p3:=@p1;',
+  '  p1:=@a[1];',
+  '  p1^:=i;',
+  '  i:=(@i)^;',
+  '  i:=p1^;',
+  '  i:=p2^;',
+  '  i:=p3^^;',
+  '  i:=PInteger(p3)^;',
+  '  if p1=@i then ;',
+  '  if @i=p1 then ;',
+  '  if p1=p2 then ;',
+  '  if p2=p1 then ;',
+  '  if p2=@i then ;',
+  '  if @i=p2 then ;',
+  '  if p1=@a[2] then ;',
+  '  if @a[3]=p1 then ;',
+  '  if i=p1^ then ;',
+  '  if p1^=i then ;',
+  '  i:=p1[1];',
+  '  i:=(@i)[1];',
+  '  i:=p2[2];',
+  '  i:=p3[3][4];',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointerTypedForwardMissingFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PInteger = ^integer;',
+  'var',
+  '  i: integer;',
+  '  p1: PInteger;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "integer"',nIdentifierNotFound);
+end;
+
+procedure TTestResolver.TestPointerTyped_CycleFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PInteger = ^integer;',
+  '  integer = PInteger;',
+  'var',
+  '  i: integer;',
+  '  p1: PInteger;',
+  'begin',
+  '']);
+  CheckResolverException(sTypeCycleFound,nTypeCycleFound);
+end;
+
+procedure TTestResolver.TestPointerTyped_AssignMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PInt = ^longint;',
+  '  PBool = ^boolean;',
+  'var',
+  '  pi: Pint;',
+  '  pb: PBool;',
+  'begin',
+  '  pi:=pb;',
+  '']);
+  CheckResolverException('Incompatible types: got "PBool" expected "PInt"',nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestPointerTyped_AddrAddrFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PInt = ^longint;',
+  '  PPInt = ^PInt;',
+  'var',
+  '  i: longint;',
+  '  p: PPint;',
+  'begin',
+  '  p:=@(@i);',
+  '']);
+  CheckResolverException('illegal qualifier "@" in front of "Pointer"',nIllegalQualifierInFrontOf);
+end;
+
+procedure TTestResolver.TestPointerTyped_RecordObjFPC;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PRec = ^TRec;',
+  '  TRec = record x: longint; end;',
+  'var',
+  '  r: TRec;',
+  '  p: PRec;',
+  '  i: longint;',
+  'begin',
+  '  p:=@r;',
+  '  i:=p^.x;',
+  '  p^.x:=i;',
+  '  if i=p^.x then;',
+  '  if p^.x=i then;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointerTyped_RecordDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  PRec = ^TRec;',
+  '  TRec = record x: longint; end;',
+  'var',
+  '  r: TRec;',
+  '  p: PRec;',
+  '  i: longint;',
+  'begin',
+  '  i:=p.x;',
+  '  p.x:=i;',
+  '  if i=p.x then;',
+  '  if p.x=i then;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointerTyped_Arithmetic;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  PInt = ^longint;',
+  'var',
+  '  i: longint;',
+  '  p: PInt;',
+  'begin',
+  '  inc(p);',
+  '  inc(p,2);',
+  '  p:=p+3;',
+  '  p:=4+p;',
+  '  p:=@i+5;',
+  '  p:=6+@i;',
+  '  i:=(p+7)^;',
+  '  i:=(@i+8)^;',
+  '']);
   ParseProgram;
 end;
 

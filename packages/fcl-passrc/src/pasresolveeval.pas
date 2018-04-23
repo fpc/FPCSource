@@ -165,6 +165,8 @@ const
   nDuplicateImplementsForIntf = 3103;
   nImplPropMustHaveReadSpec = 3104;
   nDoesNotImplementInterface = 3105;
+  nTypeCycleFound = 3106;
+  nTypeXIsNotYetCompletelyDefined = 3107;
 
 // resourcestring patterns of messages
 resourcestring
@@ -262,6 +264,8 @@ resourcestring
   sDuplicateImplementsForIntf = 'Duplicate implements for interface "%s" at %s';
   sImplPropMustHaveReadSpec = 'Implements-property must have read specifier';
   sDoesNotImplementInterface = '"%s" does not implement interface "%s"';
+  sTypeCycleFound = 'Type cycle found';
+  sTypeXIsNotYetCompletelyDefined = 'type "%s" is not yet completely defined';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
