@@ -12884,6 +12884,12 @@ begin
   'type',
   '  PRec = ^TRec;',
   '  TRec = record x: longint; end;',
+  'procedure DoIt(const p: PRec);',
+  'begin',
+  '  p.x:=p.x;',
+  '  with p^ do',
+  '    x:=x;',
+  'end;',
   'var',
   '  r: TRec;',
   '  p: PRec;',
@@ -12893,6 +12899,7 @@ begin
   '  p.x:=i;',
   '  if i=p.x then;',
   '  if p.x=i then;',
+  '  DoIt(@r);',
   '']);
   ParseProgram;
 end;

@@ -1542,7 +1542,7 @@ type
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasResolverResult;
       out GotDesc, ExpDesc: String);
     procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
-      Args: Array of const; ErrorPosEl: TPasElement);
+      Args: Array of const; ErrorPosEl: TPasElement); virtual;
     procedure RaiseNotYetImplemented(id: int64; El: TPasElement; Msg: string = ''); virtual;
     procedure RaiseInternalError(id: int64; const Msg: string = '');
     procedure RaiseInvalidScopeForElement(id: int64; El: TPasElement; const Msg: string = '');
@@ -7372,6 +7372,7 @@ begin
       begin
       // a.b  ->  a^.b
       LTypeEl:=ResolveAliasType(TPasPointerType(LTypeEl).DestType);
+      Include(LeftResolved.Flags,rrfWritable);
       end;
 
     if LTypeEl.ClassType=TPasClassType then
@@ -14236,7 +14237,7 @@ begin
       if ErrorOnFalse then
         begin
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.CheckCanBeLHS ',GetResolverResultDbg(ResolvedEl));
+        writeln('TPasResolver.CheckCanBeLHS no identifier: ',GetResolverResultDbg(ResolvedEl));
         {$ENDIF}
         if (ResolvedEl.TypeEl<>nil) and (ResolvedEl.ExprEl<>nil) then
           RaiseXExpectedButYFound(20170216152727,'identifier',GetElementTypeName(ResolvedEl.TypeEl),ResolvedEl.ExprEl)
@@ -14250,6 +14251,9 @@ begin
     exit(true);
   // not writable
   if not ErrorOnFalse then exit;
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.CheckCanBeLHS not writable: ',GetResolverResultDbg(ResolvedEl));
+  {$ENDIF}
   if ResolvedEl.IdentEl is TPasProperty then
     RaiseMsg(20170216152427,nPropertyNotWritable,sPropertyNotWritable,[],ErrorEl)
   else
@@ -15391,8 +15395,7 @@ begin
     exit(true);
   if (ResolvedEl.IdentEl.ClassType=TPasConst) then
     begin
-    // typed const are writable
-    Result:=(TPasConst(ResolvedEl.IdentEl).VarType<>nil);
+    Result:=TPasConst(ResolvedEl.IdentEl).IsConst;
     exit;
     end;
   if (proPropertyAsVarParam in Options)
