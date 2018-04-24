@@ -635,6 +635,7 @@ type
     procedure TestRangeChecks_AssignIntRange;
     procedure TestRangeChecks_AssignEnum;
     procedure TestRangeChecks_AssignEnumRange;
+    procedure TestRangeChecks_AssignChar;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -19878,13 +19879,13 @@ begin
   'procedure DoIt(p: TEnum);',
   'begin',
   '  e:=p;',
-  '  p:=red;',
+  '  p:=TEnum(0);',
   '  p:=succ(e);',
   'end;',
   '{$R-}',
   'begin',
   '  DoIt(e);',
-  '  e:=green;',
+  '  e:=TEnum(1);',
   '  e:=pred(e);',
   '{$R+}',
   '']);
@@ -19901,13 +19902,13 @@ begin
     'this.DoIt = function (p) {',
     '  rtl.rc(p, 0, 1);',
     '  $mod.e = rtl.rc(p, 0, 1);',
-    '  p = rtl.rc($mod.TEnum.red, 0, 1);',
+    '  p = 0;',
     '  p = rtl.rc($mod.e + 1, 0, 1);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.DoIt($mod.e);',
-    '$mod.e = rtl.rc($mod.TEnum.green, 0, 1);',
+    '$mod.e = 1;',
     '$mod.e = rtl.rc($mod.e-1, 0, 1);',
     '']));
 end;
@@ -19925,13 +19926,13 @@ begin
   'procedure DoIt(p: TEnumRg);',
   'begin',
   '  e:=p;',
-  '  p:=red;',
+  '  p:=TEnumRg(0);',
   '  p:=succ(e);',
   'end;',
   '{$R-}',
   'begin',
   '  DoIt(e);',
-  '  e:=green;',
+  '  e:=TEnumRg(1);',
   '  e:=pred(e);',
   '{$R+}',
   '']);
@@ -19948,14 +19949,54 @@ begin
     'this.DoIt = function (p) {',
     '  rtl.rc(p, 0, 1);',
     '  $mod.e = rtl.rc(p, 0, 1);',
-    '  p = rtl.rc($mod.TEnum.red, 0, 1);',
+    '  p = 0;',
     '  p = rtl.rc($mod.e + 1, 0, 1);',
     '};',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.DoIt($mod.e);',
-    '$mod.e = rtl.rc($mod.TEnum.green, 0, 1);',
+    '$mod.e = 1;',
     '$mod.e = rtl.rc($mod.e-1, 0, 1);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignChar;
+begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type TLetter = char;',
+  'var',
+  '  b: TLetter = ''2'';',
+  '  w: TLetter = ''3'';',
+  'procedure DoIt(p: TLetter);',
+  'begin',
+  '  b:=w;',
+  '  b:=''1'';',
+  'end;',
+  '{$R-}',
+  'begin',
+  '  DoIt(w);',
+  '  b:=w;',
+  '  b:=''2'';',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignChar',
+    LinesToStr([ // statements
+    'this.b = "2";',
+    'this.w = "3";',
+    'this.DoIt = function (p) {',
+    '  rtl.rcc(p, 0, 65535);',
+    '  $mod.b = rtl.rcc($mod.w, 0, 65535);',
+    '  $mod.b = "1";',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.w);',
+    '$mod.b = rtl.rcc($mod.w, 0, 65535);',
+    '$mod.b = "2";',
     '']));
 end;
 

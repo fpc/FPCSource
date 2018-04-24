@@ -650,6 +650,15 @@ var rtl = {
     rtl.raiseE('ERangeError');
   },
 
+  rcc: function(c,minval,maxval){
+    // range check char
+    if (typeof(c)==='string') && (c.length===1)){
+      var i = c.charCodeAt(0);
+      if ((i>=minval) && (i<=maxval)) return c;
+    }
+    rtl.raiseE('ERangeError');
+  },
+
   length: function(arr){
     return (arr == null) ? 0 : arr.length;
   },

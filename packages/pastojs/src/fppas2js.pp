@@ -281,8 +281,9 @@ Works:
   - type cast to class-type and class-of-type, rtl.asExt, EInvalidCast
 - Range checks:
   - compile time: warnings to errors
-  - assign int:=, int+=, enum:=, enum+=, intrange:=, intrange+=, enumrange:=, enumrange+=
-  - procedure argument int, enum, intrange, enumrange
+  - assign int:=, int+=, enum:=, enum+=, intrange:=, intrange+=,
+      enumrange:=, enumrange+=, char:=, char+=
+  - procedure argument int, enum, intrange, enumrange, char
 - Interfaces:
   - autogenerate GUID
   - method resolution
@@ -341,7 +342,6 @@ ToDos:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - setlength(dynarray)  modeswitch to create a copy
 - range checks:
-  - char:=
   - proc(c: char)
   - string[index]
   - array[index,...]
@@ -533,6 +533,7 @@ type
     pbifnProcType_Equal,
     pbifnProgramMain,
     pbifnRangeCheckInt,
+    pbifnRangeCheckChar,
     pbifnRecordEqual,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
     pbifnRTTIAddFields, // typeinfos of tkclass and tkrecord have addFields
@@ -670,7 +671,8 @@ const
     'createCallback', // rtl.createCallback
     'eqCallback', // rtl.eqCallback
     '$main',
-    'rc',
+    'rc',  // rtl.rc
+    'rcc', // rtl.rcc
     '$equal',
     'addField',
     'addFields',
@@ -7342,6 +7344,7 @@ var
   ParamTypeEl, TypeEl: TPasType;
   aResolver: TPas2JSResolver;
   NeedIntfRef: Boolean;
+  DestRange, SrcRange: TResEvalValue;
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
@@ -7431,6 +7434,7 @@ begin
         or (C=TPasClassOfType)
         or (C=TPasRecordType)
         or (C=TPasEnumType)
+        or (C=TPasRangeType)
         or (C=TPasArrayType) then
       begin
       // typecast
@@ -7441,7 +7445,45 @@ begin
 
       Result:=ConvertElement(Param,AContext);
 
-      if C=TPasClassType then
+      if C=TPasRangeType then
+        begin
+        DestRange:=aResolver.EvalTypeRange(TPasRangeType(Decl),[refConst]);
+        SrcRange:=nil;
+        try
+          if DestRange=nil then
+            RaiseNotSupported(El,AContext,20180424124708);
+          SrcRange:=aResolver.EvalTypeRange(ParamResolved.TypeEl,[]);
+          if SrcRange=nil then
+            RaiseNotSupported(El,AContext,20180424125331);
+          case DestRange.Kind of
+          revkRangeInt:
+            case TResEvalRangeInt(DestRange).ElKind of
+            revskEnum, revskInt:
+              // type cast to integer-range
+              case SrcRange.Kind of
+              revkRangeInt:
+                case TResEvalRangeInt(SrcRange).ElKind of
+                  revskEnum, revskInt:
+                    ; // ToDo: higher precision to lower precision -> modulo
+                else
+                  RaiseNotSupported(El,AContext,20180424130705);
+                end;
+              revkRangeUInt: ;
+              else
+                RaiseNotSupported(El,AContext,20180424125608);
+              end;
+            else
+              RaiseNotSupported(El,AContext,20180424125419);
+            end;
+          else
+            RaiseNotSupported(El,AContext,20180424124814);
+          end;
+        finally
+          ReleaseEvalValue(SrcRange);
+          ReleaseEvalValue(DestRange);
+        end;
+        end
+      else if C=TPasClassType then
         begin
         if ParamTypeEl is TPasClassType then
           case TPasClassType(Decl).ObjKind of
@@ -7548,6 +7590,7 @@ begin
       begin
       aResolver.ComputeElement(Decl,DeclResolved,[rcType]);
       if DeclResolved.TypeEl is TPasProcedureType then
+        // e.g. OnClick()
         TargetProcType:=TPasProcedureType(DeclResolved.TypeEl)
       else
         RaiseNotSupported(El,AContext,20170217115244);
@@ -11238,13 +11281,14 @@ var
     BodyJS.A:=FirstSt;
   end;
 
-  procedure AddRangeCheckInt(Arg: TPasArgument; MinVal, MaxVal: MaxPrecInt);
+  procedure AddRangeCheck(Arg: TPasArgument; MinVal, MaxVal: MaxPrecInt;
+    RTLFunc: TPas2JSBuiltInName);
   var
     Call: TJSCallExpression;
   begin
     // use Arg as PosEl, so that user knows which Arg is out of range
     Call:=CreateCallExpression(Arg);
-    Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
+    Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[RTLFunc],El);
     AddBodyStatement(Call,Arg);
     Call.AddArg(CreateArgumentAccess(Arg,AContext,Arg));
     Call.AddArg(CreateLiteralNumber(Arg,MinVal));
@@ -11263,13 +11307,15 @@ var
       revkRangeInt:
         case TResEvalRangeInt(Value).ElKind of
           revskEnum, revskInt:
-            AddRangeCheckInt(Arg,TResEvalRangeInt(Value).RangeStart,
-              TResEvalRangeInt(Value).RangeEnd);
-          revskChar: ; // ToDo
+            AddRangeCheck(Arg,TResEvalRangeInt(Value).RangeStart,
+              TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckInt);
+          revskChar:
+            AddRangeCheck(Arg,TResEvalRangeInt(Value).RangeStart,
+              TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckChar);
         end;
       revkRangeUInt:
-        AddRangeCheckInt(Arg,TResEvalRangeUInt(Value).RangeStart,
-          TResEvalRangeUInt(Value).RangeEnd);
+        AddRangeCheck(Arg,TResEvalRangeUInt(Value).RangeStart,
+          TResEvalRangeUInt(Value).RangeEnd,pbifnRangeCheckInt);
       else
         RaiseNotSupported(Arg,AContext,20180424112010,'range checking '+Value.AsDebugString);
       end;
@@ -11400,11 +11446,13 @@ begin
               begin
               if not aResolver.GetIntegerRange(ArgResolved.BaseType,MinVal,MaxVal) then
                 RaiseNotSupported(Arg,AContext,20180119192608);
-              AddRangeCheckInt(Arg,MinVal,MaxVal);
+              AddRangeCheck(Arg,MinVal,MaxVal,pbifnRangeCheckInt);
               end
             else if ArgTypeEl.ClassType=TPasRangeType then
               AddRangeCheckType(Arg,ArgTypeEl);
             end
+          else if ArgResolved.BaseType in btAllJSChars then
+            AddRangeCheckType(Arg,ArgTypeEl)
           else if ArgResolved.BaseType=btContext then
             begin
             if ArgTypeEl.ClassType=TPasEnumType then
@@ -13676,13 +13724,13 @@ function TPasToJSConverter.ConvertAssignStatement(El: TPasImplAssign;
         +GetResolverResultDbg(AssignContext.RightResolved));
   end;
 
-  function CreateRangeCheckInt(AssignSt: TJSElement;
-    MinVal, MaxVal: MaxPrecInt): TJSElement;
+  function CreateRangeCheck(AssignSt: TJSElement;
+    MinVal, MaxVal: MaxPrecInt; RTLFunc: TPas2JSBuiltInName): TJSElement;
   var
     Call: TJSCallExpression;
   begin
     Call:=CreateCallExpression(El);
-    Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
+    Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[RTLFunc],El);
     if AssignSt.ClassType=TJSSimpleAssignStatement then
       begin
       // LHS:=rtl.rc(RHS,min,max)    check before assign
@@ -13713,13 +13761,15 @@ function TPasToJSConverter.ConvertAssignStatement(El: TPasImplAssign;
       revkRangeInt:
         case TResEvalRangeInt(Value).ElKind of
           revskEnum, revskInt:
-            Result:=CreateRangeCheckInt(AssignSt,TResEvalRangeInt(Value).RangeStart,
-              TResEvalRangeInt(Value).RangeEnd);
-          revskChar: ; // ToDo
+            Result:=CreateRangeCheck(AssignSt,TResEvalRangeInt(Value).RangeStart,
+              TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckInt);
+          revskChar:
+            Result:=CreateRangeCheck(AssignSt,TResEvalRangeInt(Value).RangeStart,
+              TResEvalRangeInt(Value).RangeEnd,pbifnRangeCheckChar);
         end;
       revkRangeUInt:
-        Result:=CreateRangeCheckInt(AssignSt,TResEvalRangeUInt(Value).RangeStart,
-          TResEvalRangeUInt(Value).RangeEnd);
+        Result:=CreateRangeCheck(AssignSt,TResEvalRangeUInt(Value).RangeStart,
+          TResEvalRangeUInt(Value).RangeEnd,pbifnRangeCheckInt);
       else
         RaiseNotSupported(El,AContext,20180424111037,'range checking '+Value.AsDebugString);
       end;
@@ -13997,11 +14047,13 @@ begin
             begin
             if not aResolver.GetIntegerRange(AssignContext.LeftResolved.BaseType,MinVal,MaxVal) then
               RaiseNotSupported(El.left,AContext,20180119154120);
-            Result:=CreateRangeCheckInt(Result,MinVal,MaxVal);
+            Result:=CreateRangeCheck(Result,MinVal,MaxVal,pbifnRangeCheckInt);
             end
           else if LeftTypeEl.ClassType=TPasRangeType then
             Result:=CreateRangeCheckType(Result,LeftTypeEl);
           end
+        else if AssignContext.LeftResolved.BaseType in btAllJSChars then
+          Result:=CreateRangeCheckType(Result,LeftTypeEl)
         else if AssignContext.LeftResolved.BaseType=btContext then
           begin
           if LeftTypeEl.ClassType=TPasEnumType then
