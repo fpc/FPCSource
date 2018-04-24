@@ -235,7 +235,7 @@ resourcestring
   sSymbolXIsDeprecatedY = 'Symbol "%s" is deprecated: %s';
   sRangeCheckError = 'Range check error';
   sHighRangeLimitLTLowRangeLimit = 'High range limit < low range limit';
-  sRangeCheckEvaluatingConstantsVMinMax = 'range check error while evaluating constants (%s must be between %s and %s)';
+  sRangeCheckEvaluatingConstantsVMinMax = 'range check error while evaluating constants (%s is not between %s and %s)';
   sIllegalChar = 'Illegal character';
   sOverflowInArithmeticOperation = 'Overflow in arithmetic operation';
   sDivByZero = 'Division by zero';
@@ -552,6 +552,8 @@ type
     Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue of object;
   TPasResEvalParamsHandler = function(Sender: TResExprEvaluator;
     Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue of object;
+  TPasResEvalRangeCheckElHandler = procedure(Sender: TResExprEvaluator;
+    El: TPasElement; var MsgType: TMessageType) of object;
 
   { TResExprEvaluator }
 
@@ -562,6 +564,7 @@ type
     FOnEvalIdentifier: TPasResEvalIdentHandler;
     FOnEvalParams: TPasResEvalParamsHandler;
     FOnLog: TPasResEvalLogHandler;
+    FOnRangeCheckEl: TPasResEvalRangeCheckElHandler;
   protected
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
       const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
@@ -638,6 +641,7 @@ type
     property OnLog: TPasResEvalLogHandler read FOnLog write FOnLog;
     property OnEvalIdentifier: TPasResEvalIdentHandler read FOnEvalIdentifier write FOnEvalIdentifier;
     property OnEvalParams: TPasResEvalParamsHandler read FOnEvalParams write FOnEvalParams;
+    property OnRangeCheckEl: TPasResEvalRangeCheckElHandler read FOnRangeCheckEl write FOnRangeCheckEl;
     property AllowedInts: TResEvalTypedInts read FAllowedInts write FAllowedInts;
     property DefaultStringCodePage: TSystemCodePage read FDefaultEncoding write FDefaultEncoding;
   end;
@@ -4352,6 +4356,8 @@ end;
 procedure TResExprEvaluator.EmitRangeCheckConst(id: int64; const aValue,
   MinVal, MaxVal: String; PosEl: TPasElement; MsgType: TMessageType);
 begin
+  if Assigned(OnRangeCheckEl) then
+    OnRangeCheckEl(Self,PosEl,MsgType);
   LogMsg(id,MsgType,nRangeCheckEvaluatingConstantsVMinMax,
     sRangeCheckEvaluatingConstantsVMinMax,[aValue,MinVal,MaxVal],PosEl);
 end;

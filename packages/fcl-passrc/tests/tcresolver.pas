@@ -686,6 +686,7 @@ type
 
     // static arrays
     Procedure TestArrayIntRange_OutOfRange;
+    Procedure TestArrayIntRange_OutOfRangeError;
     Procedure TestArrayCharRange_OutOfRange;
 
     // procedure types
@@ -2813,7 +2814,7 @@ begin
   '  i:=3;']);
   ParseProgram;
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
-    'range check error while evaluating constants (3 must be between 1 and 2)');
+    'range check error while evaluating constants (3 is not between 1 and 2)');
   CheckResolverUnexpectedHints;
 end;
 
@@ -2825,7 +2826,7 @@ begin
   'begin']);
   ParseProgram;
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
-    'range check error while evaluating constants (300 must be between 0 and 255)');
+    'range check error while evaluating constants (300 is not between 0 and 255)');
   CheckResolverUnexpectedHints;
 end;
 
@@ -2848,7 +2849,7 @@ begin
   'begin']);
   ParseProgram;
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
-    'range check error while evaluating constants (3 must be between 1 and 2)');
+    'range check error while evaluating constants (3 is not between 1 and 2)');
   CheckResolverUnexpectedHints;
 end;
 
@@ -11020,7 +11021,7 @@ begin
   Add('begin');
   ParseProgram;
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
-    'range check error while evaluating constants (300 must be between -128 and 127)');
+    'range check error while evaluating constants (300 is not between -128 and 127)');
 end;
 
 procedure TTestResolver.TestArrayOfArray;
@@ -11669,8 +11670,22 @@ begin
   '']);
   ParseProgram;
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
-    'range check error while evaluating constants (0 must be between 1 and 2)');
+    'range check error while evaluating constants (0 is not between 1 and 2)');
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestArrayIntRange_OutOfRangeError;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type TArr = array[1..2] of longint;',
+  'var a: TArr;',
+  'begin',
+  '  a[0]:=3;',
+  '']);
+  CheckResolverException('range check error while evaluating constants (0 is not between 1 and 2)',
+    nRangeCheckEvaluatingConstantsVMinMax);
 end;
 
 procedure TTestResolver.TestArrayCharRange_OutOfRange;
@@ -11684,7 +11699,7 @@ begin
   '']);
   ParseProgram;
   CheckResolverHint(mtWarning,nRangeCheckEvaluatingConstantsVMinMax,
-    'range check error while evaluating constants (''0'' must be between ''a'' and ''b'')');
+    'range check error while evaluating constants (''0'' is not between ''a'' and ''b'')');
   CheckResolverUnexpectedHints;
 end;
 

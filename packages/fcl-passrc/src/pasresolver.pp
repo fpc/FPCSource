@@ -1359,6 +1359,8 @@ type
       Expr: TPrimitiveExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
     function OnExprEvalParams(Sender: TResExprEvaluator;
       Params: TParamsExpr; Flags: TResEvalFlags): TResEvalValue; virtual;
+    procedure OnRangeCheckEl(Sender: TResExprEvaluator; El: TPasElement;
+      var MsgType: TMessageType); virtual;
     function EvalBaseTypeCast(Params: TParamsExpr; bt: TResolverBaseType): TResEvalvalue;
   protected
     // custom types (added by descendant resolvers)
@@ -10504,6 +10506,15 @@ begin
   if Flags=[] then ;
 end;
 
+procedure TPasResolver.OnRangeCheckEl(Sender: TResExprEvaluator;
+  El: TPasElement; var MsgType: TMessageType);
+begin
+  if El=nil then exit;
+  if (MsgType=mtWarning)
+      and (bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches) then
+    MsgType:=mtError;
+end;
+
 function TPasResolver.EvalBaseTypeCast(Params: TParamsExpr;
   bt: TResolverBaseType): TResEvalvalue;
 
@@ -12158,6 +12169,7 @@ begin
   fExprEvaluator.OnLog:=@OnExprEvalLog;
   fExprEvaluator.OnEvalIdentifier:=@OnExprEvalIdentifier;
   fExprEvaluator.OnEvalParams:=@OnExprEvalParams;
+  fExprEvaluator.OnRangeCheckEl:=@OnRangeCheckEl;
   PushScope(FDefaultScope);
 end;
 
