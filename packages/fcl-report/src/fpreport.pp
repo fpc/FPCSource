@@ -688,6 +688,7 @@ type
     procedure SetVisible(const AValue: boolean);
     procedure SetVisibleExpr(AValue: String);
   protected
+    Procedure ParentFontChanged; virtual;
     procedure ApplyStretchMode(const ADesiredHeight: TFPReportUnits);
     function GetDateTimeFormat: String; virtual;
     function ExpandMacro(const s: String; const AIsExpr: boolean): TFPReportString; virtual;
@@ -748,6 +749,7 @@ type
     function GetChild(AIndex: integer): TFPReportElement;
     function GetChildCount: integer;
   protected
+    Procedure NotifyFontChange;
     Procedure SaveDataToNames; override;
     Procedure RestoreDataFromNames; override;
     procedure RemoveChild(const AChild: TFPReportElement); virtual;
@@ -846,6 +848,7 @@ type
     function BandWidthFromColumnCount: TFPReportUnits;
     procedure ApplyBandWidth(ABand: TFPReportCustomBand);
     function  GetIsMultiColumn: Boolean; inline;
+    procedure HandleFontChange(Sender: TObject);
     procedure SetFont(AValue: TFPReportFont);
     procedure SetMargins(const AValue: TFPReportMargins);
     procedure SetOrientation(const AValue: TFPReportPaperOrientation);
@@ -939,6 +942,7 @@ type
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
+    procedure ParentFontChanged; override;
     function CalcDesiredHeight: TFPReportUnits; virtual;
     function    GetReportPage: TFPReportCustomPage; override;
     function    GetReportBandName: string; virtual;
@@ -1895,8 +1899,8 @@ type
     ExpressionNodes: array of TExprNodeInfoRec;
     FFont: TFPReportFont;
     FUseParentFont: Boolean;
-    function GetParentFont: TFPReportFont;
-    procedure HandleFontChange(Sender: TObject);
+    function    GetParentFont: TFPReportFont;
+    procedure   HandleFontChange(Sender: TObject);
     procedure   SetText(AValue: TFPReportString);
     procedure   SetUseParentFont(AValue: Boolean);
     procedure   WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
@@ -1923,6 +1927,7 @@ type
     procedure   SetFont(const AValue: TFPReportFont);
   protected
     procedure ReassignParentFont;
+    procedure ParentFontChanged; override;
     function    CreateTextAlignment: TFPReportTextAlignment; virtual;
     function    GetExpr: TFPExpressionParser; virtual;
     procedure   RecalcLayout; override;
@@ -5061,6 +5066,15 @@ begin
   end;
 end;
 
+procedure TFPReportCustomMemo.ParentFontChanged;
+begin
+  inherited ParentFontChanged;
+  if UseParentFont then
+    begin
+    ReassignParentFont;
+    end;
+end;
+
 constructor TFPReportCustomMemo.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -5096,9 +5110,8 @@ begin
   begin
     E := Source as TFPReportCustomMemo;
     Text := E.Text;
+    Font.Assign(E.Font);
     UseParentFont := E.UseParentFont;
-    if not UseParentFont then
-      Font.Assign(E.Font);
     LineSpacing := E.LineSpacing;
     LinkColor := E.LinkColor;
     TextAlignment.Assign(E.TextAlignment);
@@ -6828,6 +6841,11 @@ begin
   Changed;
 end;
 
+procedure TFPReportElement.ParentFontChanged;
+begin
+  // Do nothing;
+end;
+
 function TFPReportElement.ExpandMacro(const s: String; const AIsExpr: boolean): TFPReportString;
 
 var
@@ -7199,6 +7217,16 @@ begin
     Result := FChildren.Count
   else
     Result := 0;
+end;
+
+procedure TFPReportElementWithChildren.NotifyFontChange;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to ChildCount-1 do
+    Child[i].ParentFontChanged;
 end;
 
 procedure TFPReportElementWithChildren.SaveDataToNames;
@@ -7584,6 +7612,7 @@ begin
   FColumnCount := 1;
   FColumnLayout := clVertical;
   FFont := TFPReportFont.Create;
+  FFont.OnChanged:=@HandleFontChange;
   FBands:=TBandList.Create;
 end;
 
@@ -7822,12 +7851,15 @@ begin
   Result := FColumnCount > 1;
 end;
 
+procedure TFPReportCustomPage.HandleFontChange(Sender: TObject);
+begin
+  NotifyFontChange;
+  Changed;
+end;
+
 procedure TFPReportCustomPage.SetFont(AValue: TFPReportFont);
 begin
-  if Assigned(FFont) then
-    FreeAndNil(FFont);
-  FFont := AValue;
-  Changed;
+  FFont.Assign(AValue);
 end;
 
 procedure TFPReportCustomPage.SetMargins(const AValue: TFPReportMargins);
@@ -7846,6 +7878,7 @@ begin
 end;
 
 procedure TFPReportCustomPage.SetPageSize(const AValue: TFPReportPageSize);
+
 begin
   if FPageSize = AValue then
     Exit;
@@ -9013,6 +9046,16 @@ begin
   Changed;
 end;
 
+procedure TFPReportCustomBand.ParentFontChanged;
+begin
+  inherited ParentFontChanged;
+  if UseParentFont then
+    begin
+    ReassignParentFont;
+    NotifyFontChange;
+    end;
+end;
+
 function TFPReportCustomBand.GetReportBandName: string;
 begin
   Result := 'FPCustomReportBand';
@@ -9113,9 +9156,8 @@ begin
     FStretchMode := E.StretchMode;
     FVisibleOnPage := E.VisibleOnPage;
     FBandPosition := E.BandPosition;
+    Font.Assign(E.Font);
     UseParentFont := E.UseParentFont;
-    if not UseParentFont then
-      Font.Assign(E.Font);
   end;
 end;
 
@@ -10108,14 +10150,14 @@ end;
 
 procedure TFPReportFont.SetFontSize(const avalue: integer);
 begin
-  Changed;
   FFontSize := AValue;
+  Changed;
 end;
 
 procedure TFPReportFont.SetFontColor(const avalue: TFPReportColor);
 begin
-  Changed;
   FFontColor := AValue;
+  Changed;
 end;
 
 procedure TFPReportFont.Changed;
