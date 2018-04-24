@@ -55,6 +55,13 @@ Unit Rax86int;
          cseif_startingminus
        );
        tconstsymbolexpressioninputflags = set of tconstsymbolexpressioninputflag;
+       { output flags for BuildConstSymbolExpression }
+       tconstsymbolexpressionoutputflag = (
+         cseof_isseg,
+         cseof_is_farproc_entry,
+         cseof_hasofs
+       );
+       tconstsymbolexpressionoutputflags = set of tconstsymbolexpressionoutputflag;
        tx86intreader = class(tasmreader)
          actasmpattern_origcase : string;
          actasmtoken : tasmtoken;
@@ -74,7 +81,7 @@ Unit Rax86int;
          procedure AddReferences(dest,src : tx86operand);
          procedure SetSegmentOverride(oper:tx86operand;seg:tregister);
          procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
-         procedure BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
+         procedure BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -1021,7 +1028,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
+    Procedure tx86intreader.BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -1042,9 +1049,7 @@ Unit Rax86int;
         asmsym:='';
         asmsymtyp:=AT_DATA;
         size:=0;
-        isseg:=false;
-        is_farproc_entry:=FALSE;
-        hasofs:=FALSE;
+        out_flags:=[];
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
@@ -1141,7 +1146,7 @@ Unit Rax86int;
 {$ifdef i8086}
             AS_SEG:
               begin
-                isseg:=true;
+                include(out_flags,cseof_isseg);
                 Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
                  Message(asmr_e_seg_without_identifier);
@@ -1153,7 +1158,7 @@ Unit Rax86int;
                 if (actasmtoken = AS_OFFSET) then
                   begin
                     include(in_flags,cseif_needofs);
-                    hasofs:=true;
+                    include(out_flags,cseof_hasofs);
                   end
                 else
                   needvmtofs:=true;
@@ -1302,8 +1307,11 @@ Unit Rax86int;
                                 Message(asmr_w_calling_overload_func);
                                hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
 {$ifdef i8086}
-                               is_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
-                                    and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
+                               if is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                                  and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) then
+                                 include(out_flags,cseof_is_farproc_entry)
+                               else
+                                 exclude(out_flags,cseof_is_farproc_entry);
 {$endif i8086}
                                hssymtyp:=AT_FUNCTION;
                              end;
@@ -1436,9 +1444,9 @@ Unit Rax86int;
         l,size : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
-        isseg,is_farproc_entry,hasofs : boolean;
+        out_flags : tconstsymbolexpressionoutputflags;
       begin
-        BuildConstSymbolExpression([],l,hs,hssymtyp,size,isseg,is_farproc_entry,hasofs);
+        BuildConstSymbolExpression([],l,hs,hssymtyp,size,out_flags);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1451,12 +1459,12 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
         in_flags : tconstsymbolexpressioninputflags;
-        isseg,is_farproc_entry,hasofs : boolean;
+        out_flags : tconstsymbolexpressionoutputflags;
       begin
         in_flags:=[cseif_isref];
         if startingminus then
           include(in_flags,cseif_startingminus);
-        BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,isseg,is_farproc_entry,hasofs);
+        BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,out_flags);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1474,11 +1482,10 @@ Unit Rax86int;
         GotStar,GotOffset,HadVar,
         GotPlus,Negative,BracketlessReference : boolean;
         hl : tasmlabel;
-        isseg: boolean;
-        is_farproc_entry,hasofs,
         hastypecast: boolean;
         tmpoper: tx86operand;
         cse_in_flags: tconstsymbolexpressioninputflags;
+        cse_out_flags: tconstsymbolexpressionoutputflags;
       Begin
         if actasmtoken=AS_LBRACKET then
           begin
@@ -1820,7 +1827,7 @@ Unit Rax86int;
                 cse_in_flags:=[cseif_needofs,cseif_isref];
                 if GotPlus and negative then
                   include(cse_in_flags,cseif_startingminus);
-                BuildConstSymbolExpression(cse_in_flags,l,tempstr,tempsymtyp,size,isseg,is_farproc_entry,hasofs);
+                BuildConstSymbolExpression(cse_in_flags,l,tempstr,tempsymtyp,size,cse_out_flags);
                 { already handled by BuildConstSymbolExpression(); must be
                   handled there to avoid [reg-1+1] being interpreted as
                   [reg-(1+1)] }
@@ -1834,7 +1841,7 @@ Unit Rax86int;
                      begin
                        oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
 {$ifdef i8086}
-                       if isseg then
+                       if cseof_isseg in cse_out_flags then
                          begin
                            if not (oper.opr.ref.refaddr in [addr_fardataseg,addr_dgroup]) then
                              oper.opr.ref.refaddr:=addr_seg;
@@ -1941,21 +1948,21 @@ Unit Rax86int;
         l,size : tcgint;
         tempstr : string;
         tempsymtyp : tasmsymtype;
-        isseg,is_farproc_entry,hasofs : boolean;
+        cse_out_flags : tconstsymbolexpressionoutputflags;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,isseg,is_farproc_entry,hasofs);
+        BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,cse_out_flags);
 {$ifdef i8086}
         if tempstr='@DATA' then
           begin
-            if not isseg then
+            if not (cseof_isseg in cse_out_flags) then
               Message(asmr_e_CODE_or_DATA_without_SEG);
             oper.SetupData;
           end
         else if tempstr='@CODE' then
           begin
-            if not isseg then
+            if not (cseof_isseg in cse_out_flags) then
               Message(asmr_e_CODE_or_DATA_without_SEG);
             oper.SetupCode;
           end
@@ -1966,8 +1973,8 @@ Unit Rax86int;
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
             oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
-            oper.opr.symseg:=isseg;
-            oper.opr.sym_farproc_entry:=is_farproc_entry;
+            oper.opr.symseg:=cseof_isseg in cse_out_flags;
+            oper.opr.sym_farproc_entry:=cseof_is_farproc_entry in cse_out_flags;
           end
         else
           if oper.opr.typ=OPR_NONE then
@@ -2718,7 +2725,7 @@ Unit Rax86int;
         asmsym,
         expr: string;
         value,size : tcgint;
-        isseg,is_farproc_entry,hasofs : boolean;
+        cse_out_flags : tconstsymbolexpressionoutputflags;
       Begin
         Repeat
           Case actasmtoken of
@@ -2753,10 +2760,10 @@ Unit Rax86int;
 {$endif i8086}
             AS_ID :
               Begin
-                BuildConstSymbolExpression([],value,asmsym,asmsymtyp,size,isseg,is_farproc_entry,hasofs);
+                BuildConstSymbolExpression([],value,asmsym,asmsymtyp,size,cse_out_flags);
                 if asmsym<>'' then
                  begin
-                   if (not isseg) and
+                   if not (cseof_isseg in cse_out_flags) and
 {$ifdef i8086}
                       ((constsize<>2) and (constsize<>4))
 {$else i8086}
@@ -2770,7 +2777,7 @@ Unit Rax86int;
 {$ifdef i8086}
                    if asmsym='@DATA' then
                      begin
-                       if not isseg then
+                       if not (cseof_isseg in cse_out_flags) then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
                          Message1(asmr_e_const16bit_for_segment,asmsym);
@@ -2783,7 +2790,7 @@ Unit Rax86int;
                      end
                    else if asmsym='@CODE' then
                      begin
-                       if not isseg then
+                       if not (cseof_isseg in cse_out_flags) then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
                          Message1(asmr_e_const16bit_for_segment,asmsym);
@@ -2791,7 +2798,7 @@ Unit Rax86int;
                        if constsize>2 then
                          ConcatConstant(curlist,0,constsize-2);
                      end
-                   else if isseg then
+                   else if cseof_isseg in cse_out_flags then
                      begin
                        if constsize<2 then
                          Message1(asmr_e_const16bit_for_segment,asmsym);
@@ -2801,7 +2808,7 @@ Unit Rax86int;
                      end
                    else
 {$endif i8086}
-                     ConcatConstSymbol(curlist,asmsym,asmsymtyp,value,constsize,hasofs);
+                     ConcatConstSymbol(curlist,asmsym,asmsymtyp,value,constsize,cseof_hasofs in cse_out_flags);
                  end
                 else
                  ConcatConstant(curlist,value,constsize);
