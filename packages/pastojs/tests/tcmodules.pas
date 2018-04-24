@@ -16373,13 +16373,18 @@ begin
   'var',
   '  r: TRec;',
   '  p: PRec;',
+  '  q: ^TRec;',
   'begin',
+  '  new(p);',
   '  p:=@r;',
   '  r:=p^;',
   '  r.x:=p^.x;',
   '  p^.x:=r.x;',
   '  if p^.x=3 then ;',
   '  if 4=p^.x then ;',
+  '  dispose(p);',
+  '  new(q);',
+  '  dispose(q);',
   '']);
   ConvertProgram;
   CheckSource('TestPointer_Record',
@@ -16396,14 +16401,19 @@ begin
     '};',
     'this.r = new $mod.TRec();',
     'this.p = null;',
+    'this.q = null;',
     '']),
     LinesToStr([ // $mod.$main
+    '$mod.p = new $mod.TRec();',
     '$mod.p = $mod.r;',
     '$mod.r = new $mod.TRec($mod.p);',
     '$mod.r.x = $mod.p.x;',
     '$mod.p.x = $mod.r.x;',
     'if ($mod.p.x === 3) ;',
     'if (4 === $mod.p.x) ;',
+    '$mod.p = null;',
+    '$mod.q = new $mod.TRec();',
+    '$mod.q = null;',
     '']));
 end;
 

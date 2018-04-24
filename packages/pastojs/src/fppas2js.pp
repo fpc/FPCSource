@@ -336,6 +336,7 @@ Works:
   - p^.x, p.x
 
 ToDos:
+- dispose, new
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -1630,6 +1631,8 @@ type
     Function ConvertBuiltIn_DeleteArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_TypeInfo(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -7471,6 +7474,12 @@ begin
             begin
             Result:=ConvertBuiltIn_Assert(El,AContext);
             if Result=nil then exit;
+            end;
+          bfNew: Result:=ConvertBuiltIn_New(El,AContext);
+          bfDispose:
+            begin
+            Result:=ConvertBuiltIn_Dispose(El,AContext);
+            if Result=nil then exit;
             end
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
@@ -8368,7 +8377,7 @@ var
   Call: TJSCallExpression;
   ValInit: TJSElement;
   AssignContext: TAssignContext;
-  ElType: TPasType;
+  ElType, TypeEl: TPasType;
   i: Integer;
 begin
   Result:=nil;
@@ -8379,10 +8388,11 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasToJSConverter.ConvertBuiltInSetLength ',GetResolverResultDbg(ResolvedParam0));
   {$ENDIF}
-  if ResolvedParam0.TypeEl is TPasArrayType then
+  TypeEl:=AContext.Resolver.ResolveAliasType(ResolvedParam0.TypeEl);
+  if TypeEl is TPasArrayType then
     begin
     // SetLength(AnArray,dim1,dim2,...)
-    ArrayType:=TPasArrayType(ResolvedParam0.TypeEl);
+    ArrayType:=TPasArrayType(TypeEl);
     {$IFDEF VerbosePasResolver}
     writeln('TPasToJSConverter.ConvertBuiltInSetLength array');
     {$ENDIF}
@@ -9573,6 +9583,105 @@ begin
     Ref.Free;
     if Result=nil then
       IfSt.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_New(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// new(p)  ->  p=new TRecord();
+var
+  Param0: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  AssignContext: TAssignContext;
+  TypeEl, SubTypeEl: TPasType;
+  aResolveR: TPas2JSResolver;
+  RecType: TPasRecordType;
+  NewJS: TJSNewMemberExpression;
+begin
+  Result:=nil;
+  Param0:=El.Params[0];
+  aResolveR:=AContext.Resolver;
+  aResolveR.ComputeElement(Param0,ParamResolved,[]);
+  RecType:=nil;
+  if ParamResolved.BaseType=btContext then
+    begin
+    TypeEl:=aResolveR.ResolveAliasType(ParamResolved.TypeEl);
+    if TypeEl.ClassType=TPasPointerType then
+      begin
+      SubTypeEl:=aResolveR.ResolveAliasType(TPasPointerType(TypeEl).DestType);
+      if SubTypeEl.ClassType=TPasRecordType then
+        RecType:=TPasRecordType(SubTypeEl);
+      end;
+    end;
+  if RecType=nil then
+    DoError(20180425011901,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+      [aResolveR.GetResolverResultDescription(ParamResolved,true),'pointer of record'],Param0);
+
+  AssignContext:=TAssignContext.Create(El,nil,AContext);
+  try
+    aResolveR.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
+    AssignContext.RightResolved:=AssignContext.LeftResolved;
+
+    // create right side  new TRecord()
+    NewJS:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+    NewJS.MExpr:=CreateReferencePathExpr(RecType,AContext);
+    AssignContext.RightSide:=NewJS;
+
+    Result:=CreateAssignStatement(Param0,AssignContext);
+  finally
+    AssignContext.RightSide.Free;
+    AssignContext.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_Dispose(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// dispose(p)
+// if p is writable set to null
+var
+  Param0: TPasExpr;
+  aResolveR: TPas2JSResolver;
+  ParamResolved: TPasResolverResult;
+  TypeEl, SubTypeEl: TPasType;
+  RecType: TPasRecordType;
+  AssignContext: TAssignContext;
+begin
+  Result:=nil;
+  Param0:=El.Params[0];
+  aResolveR:=AContext.Resolver;
+  aResolveR.ComputeElement(Param0,ParamResolved,[]);
+  RecType:=nil;
+  if ParamResolved.BaseType=btContext then
+    begin
+    TypeEl:=aResolveR.ResolveAliasType(ParamResolved.TypeEl);
+    if TypeEl.ClassType=TPasPointerType then
+      begin
+      SubTypeEl:=aResolveR.ResolveAliasType(TPasPointerType(TypeEl).DestType);
+      if SubTypeEl.ClassType=TPasRecordType then
+        RecType:=TPasRecordType(SubTypeEl);
+      end;
+    end;
+  if RecType=nil then
+    DoError(20180425012910,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+      [aResolveR.GetResolverResultDescription(ParamResolved,true),'pointer of record'],Param0);
+
+  if not (rrfWritable in ParamResolved.Flags) then
+    // Param0 is no writable
+    exit(nil);
+
+  // Param0 is writable -> set to null
+  AssignContext:=TAssignContext.Create(El,nil,AContext);
+  try
+    aResolveR.ComputeElement(Param0,AssignContext.LeftResolved,[rcNoImplicitProc]);
+    AssignContext.RightResolved:=AssignContext.LeftResolved;
+
+    // create right side:  null
+    AssignContext.RightSide:=CreateLiteralNull(El);
+
+    Result:=CreateAssignStatement(Param0,AssignContext);
+  finally
+    AssignContext.RightSide.Free;
+    AssignContext.Free;
   end;
 end;
 
