@@ -631,7 +631,10 @@ type
     procedure TestAssert;
     procedure TestAssert_SysUtils;
     procedure TestObjectChecks;
-    procedure TestRangeChecks_Assign;
+    procedure TestRangeChecks_AssignInt;
+    procedure TestRangeChecks_AssignIntRange;
+    procedure TestRangeChecks_AssignEnum;
+    procedure TestRangeChecks_AssignEnumRange;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -19781,40 +19784,178 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestRangeChecks_Assign;
+procedure TTestModule.TestRangeChecks_AssignInt;
 begin
   Scanner.Options:=Scanner.Options+[po_CAssignments];
   StartProgram(false);
   Add([
   '{$R+}',
   'var',
-  '  b: byte;',
-  '  w: word;',
+  '  b: byte = 2;',
+  '  w: word = 3;',
   'procedure DoIt(p: byte);',
   'begin',
   '  b:=w;',
   '  b+=w;',
+  '  b:=1;',
   'end;',
   '{$R-}',
   'begin',
   '  DoIt(w);',
   '  b:=w;',
+  '  b:=2;',
   '{$R+}',
   '']);
   ConvertProgram;
-  CheckSource('TestRangeChecks_Assign',
+  CheckSource('TestRangeChecks_AssignInt',
     LinesToStr([ // statements
-    'this.b = 0;',
-    'this.w = 0;',
+    'this.b = 2;',
+    'this.w = 3;',
     'this.DoIt = function (p) {',
     '  rtl.rc(p, 0, 255);',
     '  $mod.b = rtl.rc($mod.w,0,255);',
     '  rtl.rc($mod.b += $mod.w, 0, 255);',
+    '  $mod.b = 1;',
     '};',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.DoIt($mod.w);',
     '$mod.b = rtl.rc($mod.w,0,255);',
+    '$mod.b = 2;',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignIntRange;
+begin
+  Scanner.Options:=Scanner.Options+[po_CAssignments];
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type Ten = 1..10;',
+  'var',
+  '  b: Ten = 2;',
+  '  w: Ten = 3;',
+  'procedure DoIt(p: Ten);',
+  'begin',
+  '  b:=w;',
+  '  b+=w;',
+  '  b:=1;',
+  'end;',
+  '{$R-}',
+  'begin',
+  '  DoIt(w);',
+  '  b:=w;',
+  '  b:=2;',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignIntRange',
+    LinesToStr([ // statements
+    'this.b = 2;',
+    'this.w = 3;',
+    'this.DoIt = function (p) {',
+    '  rtl.rc(p, 1, 10);',
+    '  $mod.b = rtl.rc($mod.w, 1, 10);',
+    '  rtl.rc($mod.b += $mod.w, 1, 10);',
+    '  $mod.b = 1;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.w);',
+    '$mod.b = rtl.rc($mod.w, 1, 10);',
+    '$mod.b = 2;',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignEnum;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type TEnum = (red,green);',
+  'var',
+  '  e: TEnum = red;',
+  'procedure DoIt(p: TEnum);',
+  'begin',
+  '  e:=p;',
+  '  p:=red;',
+  '  p:=succ(e);',
+  'end;',
+  '{$R-}',
+  'begin',
+  '  DoIt(e);',
+  '  e:=green;',
+  '  e:=pred(e);',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignEnum',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1',
+    '};',
+    'this.e = $mod.TEnum.red;',
+    'this.DoIt = function (p) {',
+    '  rtl.rc(p, 0, 1);',
+    '  $mod.e = rtl.rc(p, 0, 1);',
+    '  p = rtl.rc($mod.TEnum.red, 0, 1);',
+    '  p = rtl.rc($mod.e + 1, 0, 1);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.e);',
+    '$mod.e = rtl.rc($mod.TEnum.green, 0, 1);',
+    '$mod.e = rtl.rc($mod.e-1, 0, 1);',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignEnumRange;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type',
+  '  TEnum = (red,green);',
+  '  TEnumRg = red..green;',
+  'var',
+  '  e: TEnumRg = red;',
+  'procedure DoIt(p: TEnumRg);',
+  'begin',
+  '  e:=p;',
+  '  p:=red;',
+  '  p:=succ(e);',
+  'end;',
+  '{$R-}',
+  'begin',
+  '  DoIt(e);',
+  '  e:=green;',
+  '  e:=pred(e);',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignEnumRange',
+    LinesToStr([ // statements
+    'this.TEnum = {',
+    '  "0": "red",',
+    '  red: 0,',
+    '  "1": "green",',
+    '  green: 1',
+    '};',
+    'this.e = $mod.TEnum.red;',
+    'this.DoIt = function (p) {',
+    '  rtl.rc(p, 0, 1);',
+    '  $mod.e = rtl.rc(p, 0, 1);',
+    '  p = rtl.rc($mod.TEnum.red, 0, 1);',
+    '  p = rtl.rc($mod.e + 1, 0, 1);',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.e);',
+    '$mod.e = rtl.rc($mod.TEnum.green, 0, 1);',
+    '$mod.e = rtl.rc($mod.e-1, 0, 1);',
     '']));
 end;
 
