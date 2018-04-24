@@ -429,6 +429,7 @@ type
     Procedure TestRecord_WriteNestedConstParamFail;
     Procedure TestRecord_WriteNestedConstParamWithFail;
     Procedure TestRecord_TypeCast;
+    Procedure TestRecord_NewDispose;
 
     // class
     Procedure TestClass;
@@ -6681,6 +6682,27 @@ begin
   'begin',
   '  b:=TBird(a);',
   '  TAnimal(b).Size:=TBird(a).Length;',
+  '  ']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_NewDispose;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TBird = record',
+  '    Length: longint;',
+  '  end;',
+  '  PBird = ^TBird;',
+  'var',
+  '  p: PBird;',
+  '  q: ^TBird;',
+  'begin',
+  '  New(p);',
+  '  Dispose(p);',
+  '  New(q);',
+  '  Dispose(q);',
   '  ']);
   ParseProgram;
 end;

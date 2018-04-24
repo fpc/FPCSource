@@ -447,7 +447,9 @@ type
     bfInsertArray,
     bfDeleteArray,
     bfTypeInfo,
-    bfAssert
+    bfAssert,
+    bfNew,
+    bfDispose
     );
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
@@ -476,7 +478,9 @@ const
     'Insert',
     'Delete',
     'TypeInfo',
-    'Assert'
+    'Assert',
+    'New',
+    'Dispose'
     );
   bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
@@ -1462,6 +1466,14 @@ type
     function BI_Assert_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Assert_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
+    function BI_New_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_New_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr); virtual;
+    function BI_Dispose_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_Dispose_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
   public
     constructor Create;
@@ -11327,7 +11339,7 @@ begin
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.OnGetCallCompatibility_IncDec ParamResolved=',GetResolverResultDbg(ParamResolved));
+  writeln('TPasResolver.BI_IncDec_OnGetCallCompatibility ParamResolved=',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
   Result:=cIncompatible;
   // Expr must be a variable
@@ -12353,6 +12365,98 @@ procedure TPasResolver.BI_Assert_OnFinishParamsExpr(
   Proc: TResElDataBuiltInProc; Params: TParamsExpr);
 begin
   FinishAssertCall(Proc,Params);
+end;
+
+function TPasResolver.BI_New_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  TypeEl, SubTypeEl: TPasType;
+  ParamResolved: TPasResolverResult;
+begin
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit(cIncompatible);
+  Params:=TParamsExpr(Expr);
+
+  // first param: var PRecord
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.BI_New_OnGetCallCompatibility ParamResolved=',GetResolverResultDbg(ParamResolved));
+  {$ENDIF}
+  Result:=cIncompatible;
+  // Expr must be a variable
+  if not ResolvedElCanBeVarParam(ParamResolved) then
+    begin
+    if RaiseOnError then
+      RaiseMsg(20180425005303,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+    exit;
+    end;
+  if ParamResolved.BaseType=btContext then
+    begin
+    TypeEl:=ResolveAliasType(ParamResolved.TypeEl);
+    if TypeEl.ClassType=TPasPointerType then
+      begin
+      SubTypeEl:=ResolveAliasType(TPasPointerType(TypeEl).DestType);
+      if SubTypeEl.ClassType=TPasRecordType then
+        Result:=cExact;
+      end;
+    end;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20180425005421,1,Param,ParamResolved,'pointer of record',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_New_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+begin
+  if Proc=nil then ;
+  FinishCallArgAccess(Params.Params[0],rraOutParam);
+end;
+
+function TPasResolver.BI_Dispose_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  TypeEl, SubTypeEl: TPasType;
+  ParamResolved: TPasResolverResult;
+begin
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit(cIncompatible);
+  Params:=TParamsExpr(Expr);
+
+  // first param: var PRecord
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.BI_Dispose_OnGetCallCompatibility ParamResolved=',GetResolverResultDbg(ParamResolved));
+  {$ENDIF}
+  Result:=cIncompatible;
+  if (rrfReadable in ParamResolved.Flags) then
+    if ParamResolved.BaseType=btContext then
+      begin
+      TypeEl:=ResolveAliasType(ParamResolved.TypeEl);
+      if TypeEl.ClassType=TPasPointerType then
+        begin
+        SubTypeEl:=ResolveAliasType(TPasPointerType(TypeEl).DestType);
+        if SubTypeEl.ClassType=TPasRecordType then
+          Result:=cExact;
+        end;
+      end;
+  if Result=cIncompatible then
+    exit(CheckRaiseTypeArgNo(20180425010620,1,Param,ParamResolved,'pointer of record',RaiseOnError));
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_Dispose_OnFinishParamsExpr(
+  Proc: TResElDataBuiltInProc; Params: TParamsExpr);
+begin
+  if Proc=nil then ;
+  FinishCallArgAccess(Params.Params[0],rraRead);
 end;
 
 constructor TPasResolver.Create;
@@ -13420,6 +13524,14 @@ begin
     AddBuiltInProc('Assert','procedure Assert(bool[,string])',
         @BI_Assert_OnGetCallCompatibility,nil,nil,
         @BI_Assert_OnFinishParamsExpr,bfAssert,[bipfCanBeStatement]);
+  if bfNew in TheBaseProcs then
+    AddBuiltInProc('New','procedure New(out ^record)',
+        @BI_New_OnGetCallCompatibility,nil,nil,
+        @BI_New_OnFinishParamsExpr,bfNew,[bipfCanBeStatement]);
+  if bfDispose in TheBaseProcs then
+    AddBuiltInProc('Dispose','procedure Dispose(var ^record)',
+        @BI_Dispose_OnGetCallCompatibility,nil,nil,
+        @BI_Dispose_OnFinishParamsExpr,bfDispose,[bipfCanBeStatement]);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType
