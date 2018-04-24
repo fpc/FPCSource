@@ -167,6 +167,7 @@ const
   nDoesNotImplementInterface = 3105;
   nTypeCycleFound = 3106;
   nTypeXIsNotYetCompletelyDefined = 3107;
+  nDuplicateCaseValueXatY = 3108;
 
 // resourcestring patterns of messages
 resourcestring
@@ -266,6 +267,7 @@ resourcestring
   sDoesNotImplementInterface = '"%s" does not implement interface "%s"';
   sTypeCycleFound = 'Type cycle found';
   sTypeXIsNotYetCompletelyDefined = 'type "%s" is not yet completely defined';
+  sDuplicateCaseValueXatY = 'Duplicate case value "%s", other at %s';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -526,7 +528,8 @@ type
   public
     Ranges: TItems; // disjunct, sorted ascending
     constructor Create; override;
-    constructor CreateEmpty(aSet: TResEvalSet);
+    constructor CreateEmpty(const aElKind: TRESetElKind; aElType: TPasType = nil);
+    constructor CreateEmptySameKind(aSet: TResEvalSet);
     constructor CreateValue(const aElKind: TRESetElKind; aElType: TPasType;
       const aRangeStart, aRangeEnd: MaxPrecInt); override;
     function Clone: TResEvalValue; override;
@@ -1855,10 +1858,10 @@ begin
       LeftSet:=TResEvalSet(LeftValue);
       RightSet:=TResEvalSet(RightValue);
       if LeftSet.ElKind=revskNone then
-        Result:=TResEvalSet.CreateEmpty(RightSet)
+        Result:=TResEvalSet.CreateEmptySameKind(RightSet)
       else
         begin
-        Result:=TResEvalSet.CreateEmpty(LeftSet);
+        Result:=TResEvalSet.CreateEmptySameKind(LeftSet);
         // add elements, which exists only in LeftSet
         for i:=0 to length(LeftSet.Ranges)-1 do
           begin
@@ -2137,10 +2140,10 @@ begin
       LeftSet:=TResEvalSet(LeftValue);
       RightSet:=TResEvalSet(RightValue);
       if LeftSet.ElKind=revskNone then
-        Result:=TResEvalSet.CreateEmpty(RightSet)
+        Result:=TResEvalSet.CreateEmptySameKind(RightSet)
       else
         begin
-        Result:=TResEvalSet.CreateEmpty(LeftSet);
+        Result:=TResEvalSet.CreateEmptySameKind(LeftSet);
         // add elements, which exists in both
         for i:=0 to length(LeftSet.Ranges)-1 do
           begin
@@ -3262,7 +3265,7 @@ begin
         Result:=RightSet.Clone
       else
         begin
-        Result:=TResEvalSet.CreateEmpty(LeftSet);
+        Result:=TResEvalSet.CreateEmptySameKind(LeftSet);
         for i:=0 to length(LeftSet.Ranges)-1 do
           begin
           Int:=LeftSet.Ranges[i].RangeStart;
@@ -5259,7 +5262,15 @@ begin
   Kind:=revkSetOfInt;
 end;
 
-constructor TResEvalSet.CreateEmpty(aSet: TResEvalSet);
+constructor TResEvalSet.CreateEmpty(const aElKind: TRESetElKind;
+  aElType: TPasType);
+begin
+  Create;
+  ElKind:=aElKind;
+  ElType:=aElType;
+end;
+
+constructor TResEvalSet.CreateEmptySameKind(aSet: TResEvalSet);
 begin
   Create;
   IdentEl:=aSet.IdentEl;

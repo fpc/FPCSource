@@ -37,6 +37,7 @@ Works:
 - if..then..else
 - binary operators
 - case..of
+  - check duplicate values
 - try..finally..except, on, else, raise
 - for loop
 - spot duplicates
@@ -204,7 +205,6 @@ ToDo:
 - $RTTI inherited|explicit
 - range checking:
   - indexedprop[param]
-  - case-of unique
   - defaultvalue
 - fail to write a loop var inside the loop
 - nested classes
@@ -212,10 +212,10 @@ ToDo:
    - const  TRecordValues
    - function default(record type): record
    - pointer of record
+- dispose(pointerofrecord), new(pointerofrecord)
 - proc: check if forward and impl default values match
 - call array of proc without ()
 - array+array
-- pointer type, ^type, @ operator, [] operator
 - type alias type
 - set of CharRange
 - object
@@ -6544,6 +6544,200 @@ begin
 end;
 
 procedure TPasResolver.ResolveImplCaseOf(CaseOf: TPasImplCaseOf);
+type
+  TRangeItem = record
+    RangeStart, RangeEnd: MaxPrecInt;
+    Expr: TPasExpr;
+  end;
+  PRangeItem = ^TRangeItem;
+
+  function CreateValues(const ResolvedEl: TPasResolverResult;
+    var ValueSet: TResEvalSet; var ValueStrings: TStringList): boolean;
+  var
+    CaseExprType: TPasType;
+  begin
+    Result:=false;
+    if ResolvedEl.BaseType in btAllInteger then
+      begin
+      ValueSet:=TResEvalSet.CreateEmpty(revskInt);
+      Result:=true;
+      end
+    else if ResolvedEl.BaseType in btAllBooleans then
+      begin
+      ValueSet:=TResEvalSet.CreateEmpty(revskBool);
+      Result:=true;
+      end
+    else if ResolvedEl.BaseType in btAllChars then
+      begin
+      ValueSet:=TResEvalSet.CreateEmpty(revskChar);
+      Result:=true;
+      end
+    else if ResolvedEl.BaseType in btAllStrings then
+      begin
+      ValueStrings:=TStringList.Create;
+      Result:=true;
+      end
+    else if ResolvedEl.BaseType=btContext then
+      begin
+      CaseExprType:=ResolveAliasType(ResolvedEl.TypeEl);
+      if CaseExprType.ClassType=TPasEnumType then
+        begin
+        ValueSet:=TResEvalSet.CreateEmpty(revskEnum,CaseExprType);
+        Result:=true;
+        end;
+      end
+    else if ResolvedEl.BaseType=btRange then
+      begin
+      if ResolvedEl.SubType in btAllInteger then
+        begin
+        ValueSet:=TResEvalSet.CreateEmpty(revskInt);
+        Result:=true;
+        end
+      else if ResolvedEl.SubType in btAllBooleans then
+        begin
+        ValueSet:=TResEvalSet.CreateEmpty(revskBool);
+        Result:=true;
+        end
+      else if ResolvedEl.SubType in btAllChars then
+        begin
+        ValueSet:=TResEvalSet.CreateEmpty(revskChar);
+        Result:=true;
+        end
+      else if ResolvedEl.SubType=btContext then
+        begin
+        CaseExprType:=ResolveAliasType(ResolvedEl.TypeEl);
+        if CaseExprType.ClassType=TPasEnumType then
+          begin
+          ValueSet:=TResEvalSet.CreateEmpty(revskEnum,CaseExprType);
+          Result:=true;
+          end;
+        end;
+      end;
+
+  end;
+
+  function AddValue(Value: TResEvalValue; Values: TFPList; ValueSet: TResEvalSet;
+    ValueStrings: TStrings; Expr: TPasExpr): boolean;
+
+    procedure AddString(const s: string);
+    var
+      Dupl: TPasExpr;
+      i: Integer;
+    begin
+      if ValueStrings=nil then
+        RaiseNotYetImplemented(20180424215755,Expr,Value.AsDebugString);
+      for i:=0 to ValueStrings.Count-1 do
+        if ValueStrings[i]=s then
+          begin
+          Dupl:=TPasExpr(ValueStrings.Objects[i]);
+          RaiseMsg(20180424220139,nDuplicateCaseValueXatY,sDuplicateCaseValueXatY,
+            ['string',GetElementSourcePosStr(Dupl)],Expr);
+          end;
+      ValueStrings.AddObject(s,Expr);
+    end;
+
+  var
+    RangeStart, RangeEnd: MaxPrecInt;
+    i: Integer;
+    Item: PRangeItem;
+  begin
+    {$IFDEF VerbosePasResolver}
+    //writeln('TPasResolver.ResolveImplCaseOf.AddValue Value={',Value.AsDebugString,'} Values.Count=',Values.Count);
+    {$ENDIF}
+    Result:=true;
+    case Value.Kind of
+    revkBool:
+      begin
+      RangeStart:=ord(TResEvalBool(Value).B);
+      RangeEnd:=RangeStart;
+      end;
+    revkInt:
+      begin
+      RangeStart:=TResEvalInt(Value).Int;
+      RangeEnd:=RangeStart;
+      end;
+    revkUInt:
+      begin
+      // Note: when FPC compares int64 with qword it converts the qword to an int64
+      if TResEvalUInt(Value).UInt>HighIntAsUInt then
+        ExprEvaluator.EmitRangeCheckConst(20180424212414,Value.AsString,
+          '0',IntToStr(High(MaxPrecInt)),Expr,mtError);
+      RangeStart:=TResEvalUInt(Value).UInt;
+      RangeEnd:=RangeStart;
+      end;
+    revkString:
+      if ValueStrings<>nil then
+        begin
+        AddString(TResEvalString(Value).S);
+        exit(true);
+        end
+      else
+        begin
+        if length(TResEvalString(Value).S)<>1 then
+          exit(false);
+        RangeStart:=ord(TResEvalString(Value).S[1]);
+        RangeEnd:=RangeStart;
+        end;
+    revkUnicodeString:
+      if ValueStrings<>nil then
+        begin
+        AddString(UTF8Encode(TResEvalUTF16(Value).S));
+        exit(true);
+        end
+      else
+        begin
+        if length(TResEvalUTF16(Value).S)<>1 then
+          exit(false);
+        RangeStart:=ord(TResEvalUTF16(Value).S[1]);
+        RangeEnd:=RangeStart;
+        end;
+    revkEnum:
+      begin
+      RangeStart:=TResEvalEnum(Value).Index;
+      RangeEnd:=RangeStart;
+      end;
+    revkRangeInt:
+      begin
+      RangeStart:=TResEvalRangeInt(Value).RangeStart;
+      RangeEnd:=TResEvalRangeInt(Value).RangeEnd;
+      end;
+    revkRangeUInt:
+      begin
+      // Note: when FPC compares int64 with qword it converts the qword to an int64
+      if TResEvalRangeUInt(Value).RangeEnd>HighIntAsUInt then
+        ExprEvaluator.EmitRangeCheckConst(20180424212648,Value.AsString,
+          '0',IntToStr(High(MaxPrecInt)),Expr,mtError);
+      RangeStart:=TResEvalRangeUInt(Value).RangeStart;
+      RangeEnd:=TResEvalRangeUInt(Value).RangeEnd;
+      end;
+    else
+      Result:=false;
+    end;
+
+    if ValueSet=nil then
+      RaiseNotYetImplemented(20180424215728,Expr,Value.AsDebugString);
+    i:=ValueSet.Intersects(RangeStart,RangeEnd);
+    if i<0 then
+      begin
+      ValueSet.Add(RangeStart,RangeEnd);
+      New(Item);
+      Item^.RangeStart:=RangeStart;
+      Item^.RangeEnd:=RangeEnd;
+      Item^.Expr:=Expr;
+      Values.Add(Item);
+      exit(true);
+      end;
+    // duplicate value -> show where
+    for i:=0 to Values.Count-1 do
+      begin
+      Item:=PRangeItem(Values[i]);
+      if (Item^.RangeStart>RangeEnd) or (Item^.RangeEnd<RangeStart) then continue;
+      RaiseMsg(20180424214305,nDuplicateCaseValueXatY,sDuplicateCaseValueXatY,
+        [Value.AsString,GetElementSourcePosStr(Item^.Expr)],Expr);
+      end;
+    Result:=false;
+  end;
+
 var
   i, j: Integer;
   El: TPasElement;
@@ -6551,48 +6745,67 @@ var
   CaseExprResolved, OfExprResolved: TPasResolverResult;
   OfExpr: TPasExpr;
   ok: Boolean;
+  Values: TFPList; // list of PRangeItem
+  ValueSet: TResEvalSet;
+  ValueStrings: TStringList;
+  Value: TResEvalValue;
+  Item: PRangeItem;
 begin
   ResolveExpr(CaseOf.CaseExpr,rraRead);
   ComputeElement(CaseOf.CaseExpr,CaseExprResolved,[rcSetReferenceFlags]);
   ok:=false;
-  if (rrfReadable in CaseExprResolved.Flags) then
-    begin
-    if (CaseExprResolved.BaseType in (btAllInteger+btAllBooleans+btAllStringAndChars)) then
-      ok:=true
-    else if CaseExprResolved.BaseType=btContext then
-      begin
-      if CaseExprResolved.TypeEl.ClassType=TPasEnumType then
-        ok:=true;
-      end;
-    end;
-  if not ok then
-    RaiseXExpectedButYFound(20170216151952,'ordinal expression',
-               GetTypeDescription(CaseExprResolved.TypeEl),CaseOf.CaseExpr);
+  Values:=TFPList.Create;
+  ValueSet:=nil;
+  ValueStrings:=nil;
+  Value:=nil;
+  try
+    if (rrfReadable in CaseExprResolved.Flags) then
+      ok:=CreateValues(CaseExprResolved,ValueSet,ValueStrings);
+    if not ok then
+      RaiseXExpectedButYFound(20170216151952,'ordinal expression',
+                 GetTypeDescription(CaseExprResolved.TypeEl),CaseOf.CaseExpr);
 
-  for i:=0 to CaseOf.Elements.Count-1 do
-    begin
-    El:=TPasElement(CaseOf.Elements[i]);
-    if El.ClassType=TPasImplCaseStatement then
+    for i:=0 to CaseOf.Elements.Count-1 do
       begin
-      Stat:=TPasImplCaseStatement(El);
-      for j:=0 to Stat.Expressions.Count-1 do
+      El:=TPasElement(CaseOf.Elements[i]);
+      if El.ClassType=TPasImplCaseStatement then
         begin
-        //writeln('TPasResolver.ResolveImplCaseOf Stat.Expr[',j,']=',GetObjName(El));
-        OfExpr:=TPasExpr(Stat.Expressions[j]);
-        ResolveExpr(OfExpr,rraRead);
-        ComputeElement(OfExpr,OfExprResolved,[rcConstant,rcSetReferenceFlags]);
-        if OfExprResolved.BaseType=btRange then
-          ConvertRangeToElement(OfExprResolved);
-        CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
-        end;
-      ResolveImplElement(Stat.Body);
-      end
-    else if El.ClassType=TPasImplCaseElse then
-      ResolveImplBlock(TPasImplCaseElse(El))
-    else
-      RaiseNotYetImplemented(20160922163448,El);
-    end;
-  // Note: CaseOf.ElseBranch was already resolved via Elements
+        Stat:=TPasImplCaseStatement(El);
+        for j:=0 to Stat.Expressions.Count-1 do
+          begin
+          //writeln('TPasResolver.ResolveImplCaseOf Stat.Expr[',j,']=',GetObjName(El));
+          OfExpr:=TPasExpr(Stat.Expressions[j]);
+          ResolveExpr(OfExpr,rraRead);
+          ComputeElement(OfExpr,OfExprResolved,[rcConstant,rcSetReferenceFlags]);
+          if OfExprResolved.BaseType=btRange then
+            ConvertRangeToElement(OfExprResolved);
+          CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
+
+          Value:=Eval(OfExpr,[refConst]);
+          if Value<>nil then
+            if not AddValue(Value,Values,ValueSet,ValueStrings,OfExpr) then
+              RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
+                [],OfExprResolved,CaseExprResolved,OfExpr);
+          ReleaseEvalValue(Value);
+          end;
+        ResolveImplElement(Stat.Body);
+        end
+      else if El.ClassType=TPasImplCaseElse then
+        ResolveImplBlock(TPasImplCaseElse(El))
+      else
+        RaiseNotYetImplemented(20160922163448,El);
+      end;
+    // Note: CaseOf.ElseBranch was already resolved via Elements
+  finally
+    ReleaseEvalValue(Value);
+    ValueSet.Free;
+    ValueStrings.Free;
+    for i:=0 to Values.Count-1 do
+      begin
+      Item:=PRangeItem(Values[i]);
+      Dispose(Item);
+      end;
+  end;
 end;
 
 procedure TPasResolver.ResolveImplLabelMark(Mark: TPasImplLabelMark);
@@ -11528,9 +11741,9 @@ begin
       if length(aSet.Ranges)=0 then
         RaiseXExpectedButYFound(20170601201637,'ordinal value',Value.AsString,Param);
       if Proc.BuiltIn=bfLow then
-        Int:=aSet.Ranges[0].RangeStart
+        Int:=aSet.RangeStart
       else
-        Int:=aSet.Ranges[length(aSet.Ranges)-1].RangeEnd;
+        Int:=aSet.RangeEnd;
       case aSet.ElKind of
         revskEnum:
           begin

@@ -311,6 +311,11 @@ type
     Procedure TestForLoop;
     Procedure TestStatements;
     Procedure TestCaseStatement;
+    Procedure TestCaseStatementDuplicateIntFail;
+    Procedure TestCaseStatementDuplicateStringFail;
+    Procedure TestCaseOf;
+    Procedure TestCaseExprNonOrdFail;
+    Procedure TestCaseIncompatibleValueFail;
     Procedure TestTryStatement;
     Procedure TestTryExceptOnNonTypeFail;
     Procedure TestTryExceptOnNonClassFail;
@@ -325,9 +330,6 @@ type
     Procedure TestForLoopVarNonVarFail;
     Procedure TestForLoopStartIncompFail;
     Procedure TestForLoopEndIncompFail;
-    Procedure TestCaseOf;
-    Procedure TestCaseExprNonOrdFail;
-    Procedure TestCaseIncompatibleValueFail;
     Procedure TestSimpleStatement_VarFail;
 
     // units
@@ -4455,20 +4457,114 @@ begin
   StartProgram(false);
   Add('const');
   Add('  {#c1}c1=1;');
-  Add('  {#c2}c2=1;');
+  Add('  {#c2}c2=2;');
+  Add('  {#c3}c3=3;');
+  Add('  {#c4}c4=4;');
+  Add('  {#c5}c5=5;');
+  Add('  {#c6}c6=6;');
   Add('var');
   Add('  {#v1}v1,{#v2}v2,{#v3}v3:longint;');
   Add('begin');
   Add('  Case {@v1}v1+{@v2}v2 of');
   Add('  {@c1}c1:');
   Add('    {@v2}v2:={@v3}v3;');
-  Add('  {@c1}c1,{@c2}c2: ;');
-  Add('  {@c1}c1..{@c2}c2: ;');
-  Add('  {@c1}c1+{@c2}c2: ;');
+  Add('  {@c2}c2,{@c3}c3: ;');
+  Add('  {@c4}c4..5: ;');
+  Add('  {@c5}c5+{@c6}c6: ;');
   Add('  else');
   Add('    {@v1}v1:=3;');
   Add('  end;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestCaseStatementDuplicateIntFail;
+begin
+  StartProgram(false);
+  Add([
+  'var i: longint;',
+  'begin',
+  '  case i of',
+  '  2: ;',
+  '  1..3: ;',
+  '  end;',
+  '']);
+  CheckResolverException('Duplicate case value "1..3", other at afile.pp(5,3)',nDuplicateCaseValueXatY);
+end;
+
+procedure TTestResolver.TestCaseStatementDuplicateStringFail;
+begin
+  StartProgram(false);
+  Add([
+  'var s: string;',
+  'begin',
+  '  case s of',
+  '  ''a''#10''bc'': ;',
+  '  ''A''#10''BC'': ;',
+  '  ''a''#10''bc'': ;',
+  '  end;',
+  '']);
+  CheckResolverException('Duplicate case value "string", other at afile.pp(5,3)',nDuplicateCaseValueXatY);
+end;
+
+procedure TTestResolver.TestCaseOf;
+begin
+  StartProgram(false);
+  Add('type');
+  Add('  TFlag = (red,green,blue);');
+  Add('var');
+  Add('  i: longint;');
+  Add('  f: TFlag;');
+  Add('  b: boolean;');
+  Add('  c: char;');
+  Add('  s: string;');
+  Add('begin');
+  Add('  case i of');
+  Add('  1: ;');
+  Add('  2..3: ;');
+  Add('  4,5..6,7: ;');
+  Add('  else');
+  Add('  end;');
+  Add('  case f of');
+  Add('  red: ;');
+  Add('  green..blue: ;');
+  Add('  end;');
+  Add('  case b of');
+  Add('  true: ;');
+  Add('  false: ;');
+  Add('  end;');
+  Add('  case c of');
+  Add('  #0: ;');
+  Add('  #10,#13: ;');
+  Add('  ''0''..''9'',''a''..''z'': ;');
+  Add('  end;');
+  Add('  case s of');
+  Add('  #10: ;');
+  Add('  ''abc'': ;');
+  Add('  end;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestCaseExprNonOrdFail;
+begin
+  StartProgram(false);
+  Add('begin');
+  Add('  case longint of');
+  Add('  1: ;');
+  Add('  end;');
+  CheckResolverException('ordinal expression expected, but Longint found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolver.TestCaseIncompatibleValueFail;
+begin
+  StartProgram(false);
+  Add('var i: longint;');
+  Add('begin');
+  Add('  case i of');
+  Add('  ''1'': ;');
+  Add('  end;');
+  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
+    nIncompatibleTypesGotExpected);
 end;
 
 procedure TTestResolver.TestTryStatement;
@@ -4693,67 +4789,6 @@ begin
   Add('var i: longint;');
   Add('begin');
   Add('  for i:=1 to ''2'' do ;');
-  CheckResolverException('Incompatible types: got "Char" expected "Longint"',
-    nIncompatibleTypesGotExpected);
-end;
-
-procedure TTestResolver.TestCaseOf;
-begin
-  StartProgram(false);
-  Add('type');
-  Add('  TFlag = (red,green,blue);');
-  Add('var');
-  Add('  i: longint;');
-  Add('  f: TFlag;');
-  Add('  b: boolean;');
-  Add('  c: char;');
-  Add('  s: string;');
-  Add('begin');
-  Add('  case i of');
-  Add('  1: ;');
-  Add('  2..3: ;');
-  Add('  4,5..6,7: ;');
-  Add('  else');
-  Add('  end;');
-  Add('  case f of');
-  Add('  red: ;');
-  Add('  red..green: ;');
-  Add('  end;');
-  Add('  case b of');
-  Add('  true: ;');
-  Add('  false: ;');
-  Add('  end;');
-  Add('  case c of');
-  Add('  #0: ;');
-  Add('  #10,#13: ;');
-  Add('  ''0''..''9'',''a''..''z'': ;');
-  Add('  end;');
-  Add('  case s of');
-  Add('  #10: ;');
-  Add('  ''abc'': ;');
-  Add('  end;');
-  ParseProgram;
-end;
-
-procedure TTestResolver.TestCaseExprNonOrdFail;
-begin
-  StartProgram(false);
-  Add('begin');
-  Add('  case longint of');
-  Add('  1: ;');
-  Add('  end;');
-  CheckResolverException('ordinal expression expected, but Longint found',
-    nXExpectedButYFound);
-end;
-
-procedure TTestResolver.TestCaseIncompatibleValueFail;
-begin
-  StartProgram(false);
-  Add('var i: longint;');
-  Add('begin');
-  Add('  case i of');
-  Add('  ''1'': ;');
-  Add('  end;');
   CheckResolverException('Incompatible types: got "Char" expected "Longint"',
     nIncompatibleTypesGotExpected);
 end;
