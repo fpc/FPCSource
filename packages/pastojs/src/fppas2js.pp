@@ -282,8 +282,8 @@ Works:
 - Range checks:
   - compile time: warnings to errors
   - assign int:=, int+=, enum:=, enum+=, intrange:=, intrange+=,
-      enumrange:=, enumrange+=, char:=, char+=
-  - procedure argument int, enum, intrange, enumrange, char
+      enumrange:=, enumrange+=, char:=, char+=, charrange:=, charrange+=
+  - procedure argument int, enum, intrange, enumrange, char, charrange
 - Interfaces:
   - autogenerate GUID
   - method resolution
@@ -342,10 +342,8 @@ ToDos:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - setlength(dynarray)  modeswitch to create a copy
 - range checks:
-  - proc(c: char)
   - string[index]
   - array[index,...]
-  - prop[index,...]
   - case duplicates
 - typecast longint(highprecint) -> value & $ffffffff
 - static arrays
@@ -532,8 +530,10 @@ type
     pbifnProcType_Create,
     pbifnProcType_Equal,
     pbifnProgramMain,
-    pbifnRangeCheckInt,
+    pbifnRangeCheckArrayRead,
+    pbifnRangeCheckArrayWrite,
     pbifnRangeCheckChar,
+    pbifnRangeCheckInt,
     pbifnRecordEqual,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
     pbifnRTTIAddFields, // typeinfos of tkclass and tkrecord have addFields
@@ -671,8 +671,10 @@ const
     'createCallback', // rtl.createCallback
     'eqCallback', // rtl.eqCallback
     '$main',
-    'rc',  // rtl.rc
+    'rcArrR',  // rtl.rcArrR
+    'rcArrW',  // rtl.rcArrW
     'rcc', // rtl.rcc
+    'rc',  // rtl.rc
     '$equal',
     'addField',
     'addFields',
@@ -6801,9 +6803,9 @@ var
 
   procedure ConvertArray(ArrayEl: TPasArrayType);
   var
-    B, Sub: TJSBracketMemberExpression;
+    BracketEx, Sub: TJSBracketMemberExpression;
     i, ArgNo: Integer;
-    Arg: TJSElement;
+    Arg, ArrJS: TJSElement;
     OldAccess: TCtxAccess;
     Ranges: TPasExprArray;
     Int: MaxPrecInt;
@@ -6812,17 +6814,26 @@ var
     LowRg: TResEvalValue;
     JSUnaryPlus: TJSUnaryPlusExpression;
     w: WideChar;
+    IsRangeCheck, ok, NeedRangeCheck: Boolean;
+    CallEx: TJSCallExpression;
+    AssignContext: TAssignContext;
+    ArgList: TFPList;
   begin
     Arg:=nil;
-    B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+    BracketEx:=nil;
+    ArrJS:=nil;
+    CallEx:=nil;
+    ArgList:=TFPList.Create;
+    NeedRangeCheck:=false;
+
+    ok:=false;
     try
       // add read accessor
       OldAccess:=AContext.Access;
       AContext.Access:=caRead;
-      B.MExpr:=ConvertElement(El.Value,AContext);
+      ArrJS:=ConvertElement(El.Value,AContext);
       AContext.Access:=OldAccess;
 
-      Result:=B;
       ArgNo:=0;
       repeat
         // Note: dynamic array has length(ArrayEl.Ranges)=0
@@ -6834,6 +6845,8 @@ var
           ArgContext.Access:=caRead;
           Arg:=ConvertElement(Param,ArgContext);
           ArgContext.Access:=OldAccess;
+          if not (Arg is TJSLiteral) then
+            NeedRangeCheck:=true;
 
           if i<=length(Ranges) then
             begin
@@ -6947,14 +6960,7 @@ var
             ReleaseEvalValue(LowRg);
             end;
 
-          if B.Name<>nil then
-            begin
-            // nested [][]
-            Sub:=B;
-            B:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
-            B.MExpr:=Sub;
-            end;
-          B.Name:=Arg;
+          ArgList.Add(Arg);
           Arg:=nil;
           inc(ArgNo);
           if ArgNo>length(El.Params) then
@@ -6965,12 +6971,63 @@ var
         // continue in sub array
         ArrayEl:=AContext.Resolver.ResolveAliasType(ArrayEl.ElType) as TPasArrayType;
       until false;
-      Result:=B;
-    finally
-      if Result=nil then
+
+      IsRangeCheck:=NeedRangeCheck
+                and (bsRangeChecks in AContext.ScannerBoolSwitches)
+                and (AContext.Access in [caRead,caAssign]);
+
+      if IsRangeCheck then
         begin
+        // read a[i,j,k]  ->  rtl.rcArrR(a,i,j,k)
+        // assign a[i,j,k]=RHS  ->  rtl.rcArrW(a,i,j,k,RHS)
+        CallEx:=CreateCallExpression(El);
+        Result:=CallEx;
+        if AContext.Access=caRead then
+          CallEx.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckArrayRead],El)
+        else
+          CallEx.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckArrayWrite],El);
+        CallEx.AddArg(ArrJS); ArrJS:=nil;
+        for i:=0 to ArgList.Count-1 do
+         CallEx.AddArg(TJSElement(ArgList[i]));
+        ArgList.Clear;
+        if AContext.Access=caAssign then
+          begin
+          AssignContext:=AContext.AccessContext as TAssignContext;
+          if AssignContext.Call<>nil then
+            RaiseNotSupported(El,AContext,20180424192155);
+          CallEx.AddArg(AssignContext.RightSide);
+          AssignContext.RightSide:=nil;
+          AssignContext.Call:=CallEx;
+          end;
+        end
+      else
+        begin
+        BracketEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+        BracketEx.MExpr:=ArrJS; ArrJS:=nil;
+        for i:=0 to ArgList.Count-1 do
+          begin
+          if BracketEx.Name<>nil then
+            begin
+            // nested [][]
+            Sub:=BracketEx;
+            BracketEx:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+            BracketEx.MExpr:=Sub;
+            end;
+          BracketEx.Name:=TJSElement(ArgList[i]);
+          end;
+        Result:=BracketEx;
+        ArgList.Clear;
+        end;
+
+      ok:=true;
+    finally
+      if not ok then
+        begin
+        ArrJS.Free;
+        for i:=0 to ArgList.Count-1 do TJSElement(ArgList[i]).Free;
+        ArgList.Free;
         Arg.Free;
-        B.Free;
+        Result.Free;
         end;
     end;
   end;
@@ -11460,7 +11517,9 @@ begin
             end
           else if ArgResolved.BaseType=btRange then
             begin
-            if ArgResolved.SubType=btContext then
+            if ArgResolved.SubType in btAllJSChars then
+              AddRangeCheckType(Arg,ArgTypeEl)
+            else if ArgResolved.SubType=btContext then
               AddRangeCheckType(Arg,ArgTypeEl)
             else
               begin
@@ -14061,7 +14120,9 @@ begin
           end
         else if AssignContext.LeftResolved.BaseType=btRange then
           begin
-          if AssignContext.LeftResolved.SubType=btContext then
+          if AssignContext.LeftResolved.SubType in btAllJSChars then
+            Result:=CreateRangeCheckType(Result,LeftTypeEl)
+          else if AssignContext.LeftResolved.SubType=btContext then
             Result:=CreateRangeCheckType(Result,LeftTypeEl)
           else
             begin

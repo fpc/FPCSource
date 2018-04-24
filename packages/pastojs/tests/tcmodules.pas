@@ -636,6 +636,8 @@ type
     procedure TestRangeChecks_AssignEnum;
     procedure TestRangeChecks_AssignEnumRange;
     procedure TestRangeChecks_AssignChar;
+    procedure TestRangeChecks_AssignCharRange;
+    procedure TestRangeChecks_ArrayIndex;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -19962,7 +19964,6 @@ end;
 
 procedure TTestModule.TestRangeChecks_AssignChar;
 begin
-  Scanner.Options:=Scanner.Options+[po_CAssignments];
   StartProgram(false);
   Add([
   '{$R+}',
@@ -19997,6 +19998,107 @@ begin
     '$mod.DoIt($mod.w);',
     '$mod.b = rtl.rcc($mod.w, 0, 65535);',
     '$mod.b = "2";',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_AssignCharRange;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type TDigit = ''0''..''9'';',
+  'var',
+  '  b: TDigit = ''2'';',
+  '  w: TDigit = ''3'';',
+  'procedure DoIt(p: TDigit);',
+  'begin',
+  '  b:=w;',
+  '  b:=''1'';',
+  'end;',
+  '{$R-}',
+  'begin',
+  '  DoIt(w);',
+  '  b:=w;',
+  '  b:=''2'';',
+  '{$R+}',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignCharRange',
+    LinesToStr([ // statements
+    'this.b = "2";',
+    'this.w = "3";',
+    'this.DoIt = function (p) {',
+    '  rtl.rcc(p, 48, 57);',
+    '  $mod.b = rtl.rcc($mod.w, 48, 57);',
+    '  $mod.b = "1";',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.DoIt($mod.w);',
+    '$mod.b = rtl.rcc($mod.w, 48, 57);',
+    '$mod.b = "2";',
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_ArrayIndex;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'type',
+  '  Ten = 1..10;',
+  '  TArr = array of Ten;',
+  '  TArrArr = array of TArr;',
+  '  TArrByte = array[byte] of Ten;',
+  '  TArrChar = array[''0''..''9''] of Ten;',
+  '  TArrByteChar = array[byte,''0''..''9''] of Ten;',
+  'procedure DoIt;',
+  'var',
+  '  Arr: TArr;',
+  '  ArrArr: TArrArr;',
+  '  ArrByte: TArrByte;',
+  '  ArrChar: TArrChar;',
+  '  ArrByteChar: TArrByteChar;',
+  '  i: Ten;',
+  '  c: char;',
+  'begin',
+  '  i:=Arr[1];',
+  '  i:=ArrByteChar[1,''2''];',
+  '  Arr[1]:=Arr[1];',
+  '  Arr[i]:=Arr[i];',
+  '  ArrByte[3]:=ArrByte[3];',
+  '  ArrByte[i]:=ArrByte[i];',
+  '  ArrChar[''5'']:=ArrChar[''5''];',
+  '  ArrChar[c]:=ArrChar[c];',
+  '  ArrByteChar[7,''7'']:=ArrByteChar[7,''7''];',
+  '  ArrByteChar[i,c]:=ArrByteChar[i,c];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_AssignChar',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var Arr = [];',
+    '  var ArrArr = [];',
+    '  var ArrByte = rtl.arraySetLength(null, 1, 256);',
+    '  var ArrChar = rtl.arraySetLength(null, 1, 10);',
+    '  var ArrByteChar = rtl.arraySetLength(null, 1, 256, 10);',
+    '  var i = 1;',
+    '  var c = "";',
+    '  i = rtl.rc(Arr[1], 1, 10);',
+    '  i = rtl.rc(ArrByteChar[1][2], 1, 10);',
+    '  Arr[1] = rtl.rc(Arr[1], 1, 10);',
+    '  rtl.rcArrW(Arr, i, rtl.rcArrR(Arr, i));',
+    '  ArrByte[3] = rtl.rc(ArrByte[3], 1, 10);',
+    '  rtl.rcArrW(ArrByte, i, rtl.rcArrR(ArrByte, i));',
+    '  ArrChar[5] = rtl.rc(ArrChar[5], 1, 10);',
+    '  rtl.rcArrW(ArrChar, c.charCodeAt() - 48, rtl.rcArrR(ArrChar, c.charCodeAt() - 48));',
+    '  ArrByteChar[7][7] = rtl.rc(ArrByteChar[7][7], 1, 10);',
+    '  rtl.rcArrW(ArrByteChar, i, c.charCodeAt() - 48, rtl.rcArrR(ArrByteChar, i, c.charCodeAt() - 48));',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

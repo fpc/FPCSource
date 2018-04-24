@@ -659,6 +659,34 @@ var rtl = {
     rtl.raiseE('ERangeError');
   },
 
+  rcArrR: function(arr,index){
+    // range check read array
+    if (Array.isArray(arr) && (typeof(index)==='number') && (index>=0) && (index<arr.length)){
+      if (arguments.length>2){
+        // arr,index1,index2,...
+        arr=arr[index];
+        for (var i=2; i<arguments.length; i++) arr=rtl.rcArrR(arr,arguments[i]);
+        return arr;
+      }
+      return arr[index];
+    }
+    rtl.raiseE('ERangeError');
+  },
+
+  rcArrW: function(arr,index,value){
+    // range check write array
+    // arr,index1,index2,...,value
+    for (var i=3; i<arguments.length; i++){
+      arr=rcArrR(arr,index);
+      index=arguments[i-1];
+      value=arguments[i];
+    }
+    if (Array.isArray(arr) && (typeof(index)==='number') && (index>=0) && (index<arr.length)){
+      return arr[index]=value;
+    }
+    rtl.raiseE('ERangeError');
+  },
+
   length: function(arr){
     return (arr == null) ? 0 : arr.length;
   },
