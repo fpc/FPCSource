@@ -20108,7 +20108,7 @@ begin
   StartProgram(false);
   Add([
   '{$R+}',
-  'procedure DoIt;',
+  'procedure DoIt(var h: string);',
   'var',
   '  s: string;',
   '  i: longint;',
@@ -20116,18 +20116,20 @@ begin
   'begin',
   '  c:=s[1];',
   '  s[i]:=s[i];',
+  '  h[i]:=h[i];',
   'end;',
   'begin',
   '']);
   ConvertProgram;
   CheckSource('TestRangeChecks_StringIndex',
     LinesToStr([ // statements
-    'this.DoIt = function () {',
+    'this.DoIt = function (h) {',
     '  var s = "";',
     '  var i = 0;',
     '  var c = "";',
     '  c = rtl.rcc(rtl.rcCharAt(s, 0), 0, 65535);',
     '  s = rtl.rcSetCharAt(s, i - 1, rtl.rcCharAt(s, i - 1));',
+    '  h.set(rtl.rcSetCharAt(h.get(), i - 1, rtl.rcCharAt(h.get(), i - 1)));',
     '};',
     '']),
     LinesToStr([ // $mod.$main

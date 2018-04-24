@@ -285,6 +285,7 @@ Works:
       enumrange:=, enumrange+=, char:=, char+=, charrange:=, charrange+=
   - procedure argument int, enum, intrange, enumrange, char, charrange
   - array[index1,index2,...]  read and assign
+  - string[index]  read and assign
 - Interfaces:
   - autogenerate GUID
   - method resolution
@@ -343,9 +344,8 @@ ToDos:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - setlength(dynarray)  modeswitch to create a copy
 - range checks:
-  - string[index]
   - case duplicates
-- typecast longint(highprecint) -> value & $ffffffff
+- typecast byte(longword) -> value & $ff
 - static arrays
   - a[] of record
   - clone multi dim static array
