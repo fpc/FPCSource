@@ -284,6 +284,7 @@ Works:
   - assign int:=, int+=, enum:=, enum+=, intrange:=, intrange+=,
       enumrange:=, enumrange+=, char:=, char+=, charrange:=, charrange+=
   - procedure argument int, enum, intrange, enumrange, char, charrange
+  - array[index1,index2,...]  read and assign
 - Interfaces:
   - autogenerate GUID
   - method resolution
@@ -343,7 +344,6 @@ ToDos:
 - setlength(dynarray)  modeswitch to create a copy
 - range checks:
   - string[index]
-  - array[index,...]
   - case duplicates
 - typecast longint(highprecint) -> value & $ffffffff
 - static arrays
@@ -534,6 +534,8 @@ type
     pbifnRangeCheckArrayWrite,
     pbifnRangeCheckChar,
     pbifnRangeCheckInt,
+    pbifnRangeCheckGetCharAt,
+    pbifnRangeCheckSetCharAt,
     pbifnRecordEqual,
     pbifnRTTIAddField, // typeinfos of tkclass and tkrecord have addField
     pbifnRTTIAddFields, // typeinfos of tkclass and tkrecord have addFields
@@ -675,6 +677,8 @@ const
     'rcArrW',  // rtl.rcArrW
     'rcc', // rtl.rcc
     'rc',  // rtl.rc
+    'rcCharAt',  // rtl.rcCharAt
+    'rcSetCharAt',  // rtl.rcSetCharAt
     '$equal',
     'addField',
     'addFields',
@@ -6697,17 +6701,19 @@ var
 
   procedure ConvertStringBracket(const ResolvedValue: TPasResolverResult);
   var
-    NewValue, SetStrCall: TJSCallExpression;
+    CallEx, SetStrCall: TJSCallExpression;
     Param: TPasExpr;
     DotExpr: TJSDotMemberExpression;
     AssignContext: TAssignContext;
-    Elements: TJSArrayLiteralElements;
     AssignSt: TJSSimpleAssignStatement;
     OldAccess: TCtxAccess;
     IndexExpr: TJSElement;
     Arg: TPasArgument;
+    IsRangeCheck: Boolean;
   begin
     Result:=nil;
+    IsRangeCheck:=(bsRangeChecks in AContext.ScannerBoolSwitches)
+              and (AContext.Access in [caRead,caAssign]);
     Param:=El.Params[0];
     case AContext.Access of
     caAssign:
@@ -6719,22 +6725,25 @@ var
 
       AssignSt:=nil;
       SetStrCall:=nil;
-      NewValue:=nil;
+      CallEx:=nil;
       try
-        // NewValue: rtl.setCharAt(s,index,value)
+        // CallEx: rtl.setCharAt(s,index,value)
 
         // rtl.setCharAt
-        NewValue:=CreateCallExpression(El);
-        NewValue.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
+        CallEx:=CreateCallExpression(El);
+        if IsRangeCheck then
+          CallEx.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnRangeCheckSetCharAt]])
+        else
+          CallEx.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSetCharAt]]);
         // first param  s
         OldAccess:=AContext.Access;
         AContext.Access:=caRead;
-        NewValue.AddArg(ConvertElement(El.Value,AContext));
+        CallEx.AddArg(ConvertElement(El.Value,AContext));
         // second param  index-1
-        NewValue.AddArg(ConvertIndexMinus1(Param));
+        CallEx.AddArg(ConvertIndexMinus1(Param));
         AContext.Access:=OldAccess;
         // third param  value
-        NewValue.AddArg(AssignContext.RightSide);
+        CallEx.AddArg(AssignContext.RightSide);
         AssignContext.RightSide:=nil;
 
         if ResolvedValue.IdentEl is TPasArgument then
@@ -6743,12 +6752,12 @@ var
           if Arg.Access in [argVar,argOut] then
             begin
             // call by reference
-            // s[index] := value  ->  s.set(NewValue)
+            // s[index] := value  ->  s.set(CallEx)
             SetStrCall:=CreateCallExpression(El.Value);
             SetStrCall.Expr:=CreateMemberExpression([TransformVariableName(Arg,AContext),TempRefObjSetterName]);
-            SetStrCall.AddArg(NewValue);
-            AssignContext.Call:=NewValue;
-            NewValue:=nil;
+            SetStrCall.AddArg(CallEx);
+            AssignContext.Call:=CallEx;
+            CallEx:=nil;
             Result:=SetStrCall;
             end;
           end
@@ -6756,11 +6765,11 @@ var
           RaiseNotSupported(El,AContext,20180124115924);
         if Result=nil then
           begin
-          // s[index] := value  ->  s = NewValue
+          // s[index] := value  ->  s = CallEx
           AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
-          AssignSt.Expr:=NewValue;
-          AssignContext.Call:=NewValue;
-          NewValue:=nil;
+          AssignSt.Expr:=CallEx;
+          AssignContext.Call:=CallEx;
+          CallEx:=nil;
           OldAccess:=AContext.Access;
           AContext.Access:=caRead;
           AssignSt.LHS:=ConvertElement(El.Value,AContext);
@@ -6769,7 +6778,7 @@ var
       finally
         if Result=nil then
           begin
-          NewValue.Free;
+          CallEx.Free;
           SetStrCall.Free;
           AssignSt.Free;
           end;
@@ -6777,23 +6786,32 @@ var
       end;
     caRead:
       begin
-      NewValue:=CreateCallExpression(El);
-      Elements:=NewValue.Args.Elements;
+
+      CallEx:=CreateCallExpression(El);
       try
-        // s[index]  ->  s.charAt(index-1)
-        // add string accessor
-        DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-        NewValue.Expr:=DotExpr;
-        DotExpr.MExpr:=ConvertElement(El.Value,AContext);
-        DotExpr.Name:='charAt';
+        if IsRangeCheck then
+          begin
+          // read s[index]  ->  rtl.rcCharAt(s,index-1)
+          CallEx.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckGetCharAt],El);
+          CallEx.AddArg(ConvertElement(El.Value,AContext));
+          end
+        else
+          begin
+          // s[index]  ->  s.charAt(index-1)
+          // add string accessor
+          DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
+          CallEx.Expr:=DotExpr;
+          DotExpr.MExpr:=ConvertElement(El.Value,AContext);
+          DotExpr.Name:='charAt';
+          end;
 
         // add parameter "index-1"
         IndexExpr:=ConvertIndexMinus1(Param);
-        Elements.AddElement.Expr:=IndexExpr;
-        Result:=NewValue;
+        CallEx.AddArg(IndexExpr);
+        Result:=CallEx;
       finally
         if Result=nil then
-          NewValue.Free;
+          CallEx.Free;
       end;
       end;
     else
@@ -6819,10 +6837,9 @@ var
     AssignContext: TAssignContext;
     ArgList: TFPList;
   begin
+    Result:=nil;
     Arg:=nil;
-    BracketEx:=nil;
     ArrJS:=nil;
-    CallEx:=nil;
     ArgList:=TFPList.Create;
     NeedRangeCheck:=false;
 

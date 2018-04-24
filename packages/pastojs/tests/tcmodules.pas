@@ -638,6 +638,7 @@ type
     procedure TestRangeChecks_AssignChar;
     procedure TestRangeChecks_AssignCharRange;
     procedure TestRangeChecks_ArrayIndex;
+    procedure TestRangeChecks_StringIndex;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -20076,7 +20077,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestRangeChecks_AssignChar',
+  CheckSource('TestRangeChecks_ArrayIndex',
     LinesToStr([ // statements
     'this.DoIt = function () {',
     '  var Arr = [];',
@@ -20096,6 +20097,37 @@ begin
     '  rtl.rcArrW(ArrChar, c.charCodeAt() - 48, rtl.rcArrR(ArrChar, c.charCodeAt() - 48));',
     '  ArrByteChar[7][7] = rtl.rc(ArrByteChar[7][7], 1, 10);',
     '  rtl.rcArrW(ArrByteChar, i, c.charCodeAt() - 48, rtl.rcArrR(ArrByteChar, i, c.charCodeAt() - 48));',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_StringIndex;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'procedure DoIt;',
+  'var',
+  '  s: string;',
+  '  i: longint;',
+  '  c: char;',
+  'begin',
+  '  c:=s[1];',
+  '  s[i]:=s[i];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_StringIndex',
+    LinesToStr([ // statements
+    'this.DoIt = function () {',
+    '  var s = "";',
+    '  var i = 0;',
+    '  var c = "";',
+    '  c = rtl.rcc(rtl.rcCharAt(s, 0), 0, 65535);',
+    '  s = rtl.rcSetCharAt(s, i - 1, rtl.rcCharAt(s, i - 1));',
     '};',
     '']),
     LinesToStr([ // $mod.$main

@@ -659,6 +659,18 @@ var rtl = {
     rtl.raiseE('ERangeError');
   },
 
+  rcSetCharAt: function(s,index,c){
+    // range check setCharAt
+    if ((typeof(s)!=='string') || (index<0) || (index>=s.length)) rtl.raiseE('ERangeError');
+    return rtl.setCharAt(s,index,c);
+  },
+
+  rcCharAt: function(s,index){
+    // range check charAt
+    if ((typeof(s)!=='string') || (index<0) || (index>=s.length)) rtl.raiseE('ERangeError');
+    return s.charAt(index);
+  },
+
   rcArrR: function(arr,index){
     // range check read array
     if (Array.isArray(arr) && (typeof(index)==='number') && (index>=0) && (index<arr.length)){
