@@ -48,6 +48,13 @@ Unit Rax86int;
       AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL,AS_TARGET_DIRECTIVE);
 
     type
+       { input flags for BuildConstSymbolExpression }
+       tconstsymbolexpressioninputflag = (
+         cseif_needofs,
+         cseif_isref,
+         cseif_startingminus
+       );
+       tconstsymbolexpressioninputflags = set of tconstsymbolexpressioninputflag;
        tx86intreader = class(tasmreader)
          actasmpattern_origcase : string;
          actasmtoken : tasmtoken;
@@ -67,7 +74,7 @@ Unit Rax86int;
          procedure AddReferences(dest,src : tx86operand);
          procedure SetSegmentOverride(oper:tx86operand;seg:tregister);
          procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
+         procedure BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
          function BuildConstExpression:aint;
          function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
@@ -1014,7 +1021,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
+    Procedure tx86intreader.BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out isseg,is_farproc_entry,hasofs:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -1041,7 +1048,7 @@ Unit Rax86int;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
-        if startingminus then
+        if cseif_startingminus in in_flags then
           expr:='-';
         inexpression:=TRUE;
         parenlevel:=0;
@@ -1049,7 +1056,7 @@ Unit Rax86int;
         needvmtofs:=FALSE;
         Repeat
           { Support ugly delphi constructs like: [ECX].1+2[EDX] }
-          if isref and (actasmtoken=AS_LBRACKET) then
+          if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
             break;
           Case actasmtoken of
             AS_LPAREN:
@@ -1090,14 +1097,14 @@ Unit Rax86int;
             AS_STAR:
               Begin
                 Consume(AS_STAR);
-                if isref and (actasmtoken=AS_REGISTER) then
+                if (cseif_isref in in_flags) and (actasmtoken=AS_REGISTER) then
                  break;
                 expr:=expr + '*';
               end;
             AS_PLUS:
               Begin
                 Consume(AS_PLUS);
-                if isref and ((actasmtoken=AS_REGISTER) or (actasmtoken=AS_LBRACKET)) then
+                if (cseif_isref in in_flags) and ((actasmtoken=AS_REGISTER) or (actasmtoken=AS_LBRACKET)) then
                  break;
                 expr:=expr + '+';
               end;
@@ -1145,7 +1152,7 @@ Unit Rax86int;
               begin
                 if (actasmtoken = AS_OFFSET) then
                   begin
-                    needofs:=true;
+                    include(in_flags,cseif_needofs);
                     hasofs:=true;
                   end
                 else
@@ -1334,7 +1341,7 @@ Unit Rax86int;
                           delete(expr,length(expr),1);
                        end
                       else
-                       if needofs then
+                       if (cseif_needofs in in_flags) then
                          begin
                            if (prevtok<>AS_OFFSET) then
                              Message(asmr_e_need_offset);
@@ -1431,7 +1438,7 @@ Unit Rax86int;
         hssymtyp : TAsmsymtype;
         isseg,is_farproc_entry,hasofs : boolean;
       begin
-        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,size,isseg,is_farproc_entry,hasofs);
+        BuildConstSymbolExpression([],l,hs,hssymtyp,size,isseg,is_farproc_entry,hasofs);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1443,9 +1450,13 @@ Unit Rax86int;
         l : tcgint;
         hs : string;
         hssymtyp : TAsmsymtype;
+        in_flags : tconstsymbolexpressioninputflags;
         isseg,is_farproc_entry,hasofs : boolean;
       begin
-        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,size,isseg,is_farproc_entry,hasofs);
+        in_flags:=[cseif_isref];
+        if startingminus then
+          include(in_flags,cseif_startingminus);
+        BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,isseg,is_farproc_entry,hasofs);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1467,6 +1478,7 @@ Unit Rax86int;
         is_farproc_entry,hasofs,
         hastypecast: boolean;
         tmpoper: tx86operand;
+        cse_in_flags: tconstsymbolexpressioninputflags;
       Begin
         if actasmtoken=AS_LBRACKET then
           begin
@@ -1805,7 +1817,10 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,size,isseg,is_farproc_entry,hasofs);
+                cse_in_flags:=[cseif_needofs,cseif_isref];
+                if GotPlus and negative then
+                  include(cse_in_flags,cseif_startingminus);
+                BuildConstSymbolExpression(cse_in_flags,l,tempstr,tempsymtyp,size,isseg,is_farproc_entry,hasofs);
                 { already handled by BuildConstSymbolExpression(); must be
                   handled there to avoid [reg-1+1] being interpreted as
                   [reg-(1+1)] }
@@ -1930,7 +1945,7 @@ Unit Rax86int;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,size,isseg,is_farproc_entry,hasofs);
+        BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,isseg,is_farproc_entry,hasofs);
 {$ifdef i8086}
         if tempstr='@DATA' then
           begin
@@ -2738,7 +2753,7 @@ Unit Rax86int;
 {$endif i8086}
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,size,isseg,is_farproc_entry,hasofs);
+                BuildConstSymbolExpression([],value,asmsym,asmsymtyp,size,isseg,is_farproc_entry,hasofs);
                 if asmsym<>'' then
                  begin
                    if (not isseg) and
