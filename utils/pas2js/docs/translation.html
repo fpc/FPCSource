@@ -488,9 +488,19 @@ function(){
     <li>Type casting an <i>integer</i> to <i>boolean</i>, gives <i>false</i> for <i>0</i> and <i>true</i> otherwise.</li>
     <li>A <b>char</b> is translated to a JS string, because JS lacks a native char type.</li>
     <li>A <b>char</b> is a single JS char code. An UTF-16 codepoint can contain one or two <b>char</b>.</li>
-    <li>Integers overflows at runtime differ from Delphi/FPC, due to the double format.
-    For example adding <i>var i: byte = 200; ... i:=i+100;</i> will result in
-    <i>i=300</i> instead of <i>i=44</i> as in Delphi/FPC.</li>
+    <li><b>Integers overflows</b> at runtime differ from Delphi/FPC, due to the double format.
+      For example adding <i>var i: byte = 200; ... i:=i+100;</i> will result in
+      <i>i=300</i> instead of <i>i=44</i> as in Delphi/FPC.
+      When range checking <i>{$R+}</i> is enabled <i>i=300</i> will raise an ERangeError.</li>
+    <li><b>type cast integer to integer</b>, e.g. <i>byte(aLongInt)</i>
+      <ul>
+        <li>with range checking enabled: error if outside range</li>
+        <li>without range checking: emulates the FPC/Delphi behaviour:
+          e.g. <i>byte(value)</i> translates to <i>value &amp; 0xff</i>,
+          <i>shortint(value)</i> translates to <i>value &amp; 0xff &lt;&lt;24 &gt;&gt; 24.</i></li>
+      </ul>
+    </li>
+    <li>The <b>mod-operator</b> works 32-bit signed in JS.</li>
     </ul>
     </div>
 
