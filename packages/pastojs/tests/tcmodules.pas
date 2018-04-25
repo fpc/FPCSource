@@ -210,6 +210,7 @@ type
     Procedure TestDouble;
     Procedure TestInteger;
     Procedure TestIntegerRange;
+    Procedure TestIntegerTypecasts;
     Procedure TestCurrency;
     Procedure TestForBoolDo;
     Procedure TestForIntDo;
@@ -639,6 +640,7 @@ type
     procedure TestRangeChecks_AssignCharRange;
     procedure TestRangeChecks_ArrayIndex;
     procedure TestRangeChecks_StringIndex;
+    procedure TestRangeChecks_TypecastInt;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -4944,6 +4946,47 @@ begin
     LinesToStr([
     '$mod.i = $mod.i2;',
     'if ($mod.i === $mod.i2) ;',
+    '']));
+end;
+
+procedure TTestModule.TestIntegerTypecasts;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  i: nativeint;',
+  '  b: byte;',
+  '  sh: shortint;',
+  '  w: word;',
+  '  sm: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  'begin',
+  '  b:=byte(i);',
+  '  sh:=shortint(i);',
+  '  w:=word(i);',
+  '  sm:=smallint(i);',
+  '  lw:=longword(i);',
+  '  li:=longint(i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestIntegerTypecasts',
+    LinesToStr([
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.sh = 0;',
+    'this.w = 0;',
+    'this.sm = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    '']),
+    LinesToStr([
+    '$mod.b = $mod.i % 0xFF;',
+    '$mod.sh = (($mod.i % 0xFF) << 24) >> 24;',
+    '$mod.w = $mod.i % 0xFFFF;',
+    '$mod.sm = (($mod.i % 0xFFFF) << 16) >> 16;',
+    '$mod.lw = $mod.i >>> 0;',
+    '$mod.li = $mod.i % 0xFFFFFFFF;',
     '']));
 end;
 
@@ -20143,6 +20186,48 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRangeChecks_TypecastInt;
+begin
+  StartProgram(false);
+  Add([
+  '{$R+}',
+  'var',
+  '  i: nativeint;',
+  '  b: byte;',
+  '  sh: shortint;',
+  '  w: word;',
+  '  sm: smallint;',
+  '  lw: longword;',
+  '  li: longint;',
+  'begin',
+  '  b:=12+byte(i);',
+  '  sh:=12+shortint(i);',
+  '  w:=12+word(i);',
+  '  sm:=12+smallint(i);',
+  '  lw:=12+longword(i);',
+  '  li:=12+longint(i);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRangeChecks_TypecastInt',
+    LinesToStr([
+    'this.i = 0;',
+    'this.b = 0;',
+    'this.sh = 0;',
+    'this.w = 0;',
+    'this.sm = 0;',
+    'this.lw = 0;',
+    'this.li = 0;',
+    '']),
+    LinesToStr([
+    '$mod.b = rtl.rc(12 + rtl.rc($mod.i, 0, 255), 0, 255);',
+    '$mod.sh = rtl.rc(12 + rtl.rc($mod.i, -128, 127), -128, 127);',
+    '$mod.w = rtl.rc(12 + rtl.rc($mod.i, 0, 65535), 0, 65535);',
+    '$mod.sm = rtl.rc(12 + rtl.rc($mod.i, -32768, 32767), -32768, 32767);',
+    '$mod.lw = rtl.rc(12 + rtl.rc($mod.i, 0, 4294967295), 0, 4294967295);',
+    '$mod.li = rtl.rc(12 + rtl.rc($mod.i, -2147483648, 2147483647), -2147483648, 2147483647);',
     '']));
 end;
 

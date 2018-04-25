@@ -7962,6 +7962,43 @@ var
     JSBaseType:=JSBaseTypeData.JSBaseType;
   end;
 
+  function CreateModulo(Value: TJSElement; const Mask: MaxPrecInt; Sign: boolean): TJSElement;
+  // ig sign=false: Value & Mask
+  // if sign=true:  Value & Mask << ZeroBits >> ZeroBits
+  var
+    ModEx: TJSMultiplicativeExpressionMod;
+    Hex: String;
+    i: Integer;
+    ShiftEx: TJSShiftExpression;
+  begin
+    ModEx:=TJSMultiplicativeExpressionMod(CreateElement(TJSMultiplicativeExpressionMod,El));
+    Result:=ModEx;
+    ModEx.A:=Value;
+    ModEx.B:=CreateLiteralNumber(El,Mask);
+    Hex:=HexStr(Mask,8);
+    i:=1;
+    while i<8 do
+      if Hex[i]='0' then
+        inc(i)
+      else
+        break;
+    Hex:=Copy(Hex,i,8);
+    TJSLiteral(ModEx.B).Value.CustomValue:=TJSString('0x'+Hex);
+    if Sign then
+      begin
+      // value << ZeroBits
+      ShiftEx:=TJSLShiftExpression(CreateElement(TJSLShiftExpression,El));
+      ShiftEx.A:=Result;
+      Result:=ShiftEx;
+      ShiftEx.B:=CreateLiteralNumber(El,i*4-4);
+      // value << ZeroBits >> ZeroBits
+      ShiftEx:=TJSRShiftExpression(CreateElement(TJSRShiftExpression,El));
+      ShiftEx.A:=Result;
+      Result:=ShiftEx;
+      ShiftEx.B:=CreateLiteralNumber(El,i*4-4);
+      end;
+  end;
+
 var
   NotEqual: TJSEqualityExpressionNE;
   CondExpr: TJSConditionalExpression;
@@ -7970,11 +8007,14 @@ var
   AddExpr: TJSAdditiveExpressionPlus;
   TypeEl: TPasType;
   C: TClass;
-  Int: MaxPrecInt;
+  Int, MinVal, MaxVal: MaxPrecInt;
+  aResolver: TPas2JSResolver;
+  ShiftEx: TJSURShiftExpression;
 begin
   Result:=nil;
   Param:=El.Params[0];
-  AContext.Resolver.ComputeElement(Param,ParamResolved,[]);
+  aResolver:=AContext.Resolver;
+  aResolver.ComputeElement(Param,ParamResolved,[]);
   JSBaseTypeData:=nil;
   JSBaseType:=pbtNone;
 
@@ -7988,6 +8028,53 @@ begin
       if to_bt=btCurrency then
         // integer to currency -> value*10000
         Result:=CreateMulNumber(Param,Result,10000);
+      if (to_bt<>btIntDouble) and not (Result is TJSLiteral) then
+        begin
+        if bsRangeChecks in AContext.ScannerBoolSwitches then
+          begin
+          // rtl.rc(param,MinInt,MaxInt)
+          if not aResolver.GetIntegerRange(to_bt,MinVal,MaxVal) then
+            RaiseNotSupported(Param,AContext,20180425131839);
+          Call:=CreateCallExpression(El);
+          Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnRangeCheckInt],El);
+          Call.AddArg(Result);
+          Result:=Call;
+          Call.AddArg(CreateLiteralNumber(El,MinVal));
+          Call.AddArg(CreateLiteralNumber(El,MaxVal));
+          end
+        else
+          case to_bt of
+          btByte:
+            // value to byte  ->  value & 0xff
+            if ParamResolved.BaseType<>btByte then
+              Result:=CreateModulo(Result,$ff,false);
+          btShortInt:
+            // value to shortint  ->  value & 0xff << 24 >> 24
+            if ParamResolved.BaseType<>btShortInt then
+              Result:=CreateModulo(Result,$ff,true);
+          btWord:
+            // value to word  ->  value & 0xffff
+            if not (ParamResolved.BaseType in [btByte,btWord]) then
+              Result:=CreateModulo(Result,$ffff,false);
+          btSmallInt:
+            // value to smallint  ->  value & 0xffff << 16 >> 16
+            if not (ParamResolved.BaseType in [btShortInt,btSmallInt]) then
+              Result:=CreateModulo(Result,$ffff,true);
+          btLongWord:
+            // value to longword  ->  value >>> 0
+            if not (ParamResolved.BaseType in [btByte,btWord,btLongWord,btUIntSingle]) then
+              begin
+              ShiftEx:=TJSURShiftExpression(CreateElement(TJSURShiftExpression,El));
+              ShiftEx.A:=Result;
+              ShiftEx.B:=CreateLiteralNumber(El,0);
+              Result:=ShiftEx;
+              end;
+          btLongint:
+            // value to longint  ->  value & 0xffffffff
+            if not (ParamResolved.BaseType in [btShortInt,btSmallInt,btLongint,btIntSingle]) then
+              Result:=CreateModulo(Result,$ffffffff,false);
+          end;
+        end;
       exit;
       end
     else if ParamResolved.BaseType in btAllJSBooleans then
@@ -8133,7 +8220,7 @@ begin
       end
     else if (ParamResolved.BaseType in btAllJSInteger)
         or ((ParamResolved.BaseType=btContext)
-          and (AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl).ClassType=TPasEnumType))
+          and (aResolver.ResolveAliasType(ParamResolved.TypeEl).ClassType=TPasEnumType))
         then
       begin
       // Note: convert value first in case it raises an exception
@@ -8209,7 +8296,7 @@ begin
       // Note: convert value first in case it raises an exception
       if ParamResolved.BaseType=btContext then
         begin
-        TypeEl:=AContext.Resolver.ResolveAliasType(ParamResolved.TypeEl);
+        TypeEl:=aResolver.ResolveAliasType(ParamResolved.TypeEl);
         C:=TypeEl.ClassType;
         if C=TPasClassType then
           begin
@@ -8224,7 +8311,7 @@ begin
       end;
     end;
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',AContext.Resolver.BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDbg(ParamResolved));
+  writeln('TPasToJSConverter.ConvertTypeCastToBaseType BaseTypeData=',aResolver.BaseTypeNames[to_bt],' ParamResolved=',GetResolverResultDbg(ParamResolved));
   {$ENDIF}
   RaiseNotSupported(El,AContext,20170325161150);
 end;
