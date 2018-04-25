@@ -657,7 +657,13 @@ function(){
       <li>Since record types are JS objects it is possible to typecast a record type
       to the JS Object, e.g. TJSObject(TPoint)</li>
       <li>A pointer of record is simply a reference.
-      E.g. <i>p:=@r</i> translates to <i>p=r</i>, <i>p^.x</i> becomes <i>p.x</i>.</li>
+        <ul>
+          <li><i>p:=@r</i> translates to <i>p=r</i></li>
+          <li><i>p^.x</i> becomes <i>p.x</i>.</li>
+          <li><i>New(PointerOfRecord)</i> creates a new record</li>
+          <li><i>Dispose(PointerOfRecord)</i> Sets the variable to null if possible.</li>
+        </ul>
+      </li>
     </ul>
     </div>
 
@@ -2844,8 +2850,6 @@ End.
     <li>Resources</li>
     <li>RTTI extended, $RTTI</li>
     <li>Runtime checks: Overflow -Co, $Q</li>
-    <li>Runtime checks: Range -Cr, $R</li>
-    <li>Runtime checks: Typecast -CR</li>
     <li>Type alias, e.g. type TTranslateString = type string;</li>
     <li>Variant records</li>
     <li>Variants</li>

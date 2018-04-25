@@ -324,19 +324,20 @@ Works:
 - currency:
   - as nativeint*10000
   - CurA+CurB -> CurA+CurB
+  - CurA-CurB -> CurA-CurB
   - CurA*CurB -> CurA*CurB/10000
   - CurA/CurB -> Math.floor(CurA/CurB*10000)
   - CurA^^CurB -> Math.floor(Math.pow(CurA/10000,CurB/10000)*10000)
   - Double:=Currency  ->  Double:=Currency/10000
   - Currency:=Double  -> Currency:=Math.floor(Double*10000)
   - jsvalue := currency  ->  jsvalue:=currency/10000
-- simplify Math.floor(number) to trunc(number)
+- simplify Math.floor(constnumber) to truncated constnumber
 - Pointer of record
   - p:=@r, p^:=r
   - p^.x, p.x
+  - dispose, new
 
 ToDos:
-- dispose, new
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -344,8 +345,6 @@ ToDos:
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - setlength(dynarray)  modeswitch to create a copy
-- range checks:
-  - case duplicates
 - typecast byte(longword) -> value & $ff
 - static arrays
   - a[] of record

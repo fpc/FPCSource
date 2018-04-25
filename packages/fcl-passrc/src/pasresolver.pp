@@ -13376,6 +13376,11 @@ var
 begin
   if El=nil then exit('nil');
   UnmangleSourceLineNumber(El.SourceLinenumber,Line,Column);
+  if (Line=0) then
+    begin
+    if El is TPasUnresolvedSymbolRef then
+      exit('intrinsic');
+    end;
   Result:=CurrentParser.Scanner.FormatPath(El.SourceFilename)+'('+IntToStr(Line);
   if Column>0 then
     Result:=Result+','+IntToStr(Column);
