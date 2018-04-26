@@ -52,7 +52,11 @@ Unit Rax86int;
        tconstsymbolexpressioninputflag = (
          cseif_needofs,
          cseif_isref,
-         cseif_startingminus
+         cseif_startingminus,
+         { allows using full reference-like syntax for constsymbol expressions,
+           for example:
+           Rec.Str[5]  ->  Rec.Str+5 }
+         cseif_referencelike
        );
        tconstsymbolexpressioninputflags = set of tconstsymbolexpressioninputflag;
        { output flags for BuildConstSymbolExpression }
@@ -1063,6 +1067,23 @@ Unit Rax86int;
           { Support ugly delphi constructs like: [ECX].1+2[EDX] }
           if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
             break;
+          if (cseif_referencelike in in_flags) and
+             (actasmtoken in [AS_LBRACKET,AS_RBRACKET]) then
+            case actasmtoken of
+              AS_LBRACKET:
+                begin
+                  Consume(AS_LBRACKET);
+                  if (length(expr)>0) and
+                     not (expr[length(expr)] in ['+','-']) then
+                    expr:=expr+'+';
+                  expr:=expr+'[';
+                end;
+              AS_RBRACKET:
+                begin
+                  Consume(AS_RBRACKET);
+                  expr:=expr+']';
+                end;
+            end;
           Case actasmtoken of
             AS_LPAREN:
               Begin
@@ -2760,7 +2781,7 @@ Unit Rax86int;
 {$endif i8086}
             AS_ID :
               Begin
-                BuildConstSymbolExpression([],value,asmsym,asmsymtyp,size,cse_out_flags);
+                BuildConstSymbolExpression([cseif_referencelike],value,asmsym,asmsymtyp,size,cse_out_flags);
                 if asmsym<>'' then
                  begin
                    if not (cseof_isseg in cse_out_flags) and
