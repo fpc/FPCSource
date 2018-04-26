@@ -149,6 +149,7 @@ type
   {  '%' : modulo division                                              }
   {  nnn: longint numbers                                               }
   {  ( and ) parenthesis                                                }
+  {  [ and ] another kind of parenthesis                                }
   {**********************************************************************}
 
   TExprParse = class
@@ -377,7 +378,7 @@ Function TExprParse.Priority(_Operator : Char) : aint;
 begin
   Priority:=0;
   Case _Operator OF
-    '(' :
+    '(','[' :
       Priority:=0;
     '|','^','~' :             // the lowest priority: OR, XOR, NOT
       Priority:=0;
@@ -416,7 +417,7 @@ begin
          RPNCalc(Token,false);
       end
      else
-      if Expr[I] in ['+', '-', '*', '/', '(', ')','^','&','|','%','~','<','>'] then
+      if Expr[I] in ['+', '-', '*', '/', '(', ')','[',']','^','&','|','%','~','<','>'] then
        begin
          if Token <> '' then
           begin        { Send last built number to calc. }
@@ -425,6 +426,15 @@ begin
           end;
 
          Case Expr[I] OF
+          '[' : OpPush('[',false);
+          ']' : begin
+                  While (OpTop>0) and (OpStack[OpTop].ch <> '[') DO
+                   Begin
+                     OpPop(opr);
+                     RPNCalc(opr.ch,opr.is_prefix);
+                   end;
+                  OpPop(opr);                          { Pop off and ignore the '[' }
+                end;
           '(' : OpPush('(',false);
           ')' : begin
                   While (OpTop>0) and (OpStack[OpTop].ch <> '(') DO
