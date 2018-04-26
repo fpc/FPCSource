@@ -652,7 +652,7 @@ var rtl = {
 
   rcc: function(c,minval,maxval){
     // range check char
-    if (typeof(c)==='string') && (c.length===1)){
+    if ((typeof(c)==='string') && (c.length===1)){
       var i = c.charCodeAt(0);
       if ((i>=minval) && (i<=maxval)) return c;
     }
@@ -689,7 +689,7 @@ var rtl = {
     // range check write array
     // arr,index1,index2,...,value
     for (var i=3; i<arguments.length; i++){
-      arr=rcArrR(arr,index);
+      arr=rtl.rcArrR(arr,index);
       index=arguments[i-1];
       value=arguments[i];
     }
@@ -779,7 +779,7 @@ var rtl = {
     if (index < 0) index = 0;
     if (count === undefined) count=srcarray.length;
     var end = index+count;
-    if (end>scrarray.length) end = srcarray.length;
+    if (end>srcarray.length) end = srcarray.length;
     if (index>=end) return [];
     if (type===0){
       return srcarray.slice(index,end);
@@ -1153,5 +1153,5 @@ var rtl = {
       flags: flags
     };
     return s;
-  },
+  }
 }
