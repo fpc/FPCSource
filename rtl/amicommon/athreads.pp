@@ -20,6 +20,7 @@ unit athreads;
 interface
 
 procedure SetAThreadBaseName(s: String);
+function GetAThreadProcess(threadID: TThreadID): Pointer;
 
 
 implementation
@@ -275,6 +276,18 @@ begin
   ReleaseSemaphore(@AThreadListSemaphore);
 end;
 
+function GetAThreadProcess(threadID: TThreadID): Pointer;
+begin
+  GetAThreadProcess:=nil;
+  ObtainSemaphoreShared(@AThreadListSemaphore);
+  with PThreadInfo(threadID)^ do
+    begin
+      if not exited then
+        GetAThreadProcess:=threadPtr;
+    end;
+  ReleaseSemaphore(@AThreadListSemaphore);
+end;
+
 
 procedure AInitThreadvar(var offset : dword;size : dword);
 begin
@@ -472,6 +485,7 @@ begin
 {$endif}
   Forbid();
   threadInfo^.exited:=true;
+  threadInfo^.threadPtr:=nil;
 
   { Finally, Release our exit mutex. }
   ReleaseSemaphore(@threadInfo^.mutex);
