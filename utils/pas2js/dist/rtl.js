@@ -73,6 +73,10 @@ var rtl = {
     return (rtl.isObject(type) && rtl.isPasClass(type.$class));
   },
 
+  hexStr: function(n,digits){
+    return ("000000000000000"+n.toString(16).toUpperCase()).slice(-digits);
+  },
+
   m_loading: 0,
   m_loading_intf: 1,
   m_intf_loaded: 2,
@@ -443,9 +447,7 @@ var rtl = {
 
   guidrToStr: function(g){
     if (g.$intf) return g.$intf.$guid;
-    function h(n,digits){
-      return ("0000000"+n.toString(16).toUpperCase()).slice(-digits);
-    }
+    var h = rtl.hexStr;
     var s='{'+h(g.D1,8)+'-'+h(g.D2,4)+'-'+h(g.D3,4)+'-'+h(g.D4[0],2)+h(g.D4[1],2)+'-';
     for (var i=2; i<8; i++) s+=h(g.D4[i],2);
     s+='}';
