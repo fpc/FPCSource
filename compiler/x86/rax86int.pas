@@ -137,15 +137,12 @@ Unit Rax86int;
        firstoperator  = AS_BYTE;
        lastoperator   = AS___GOTPCREL;
 
-       _count_asmdirectives = longint(lastdirective)-longint(firstdirective);
-       _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
-
-       _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
+       _asmdirectives : array[firstdirective..lastdirective] of tasmkeyword =
        ('ALIGN','DB','DW','DD','DQ','PUBLIC','END');
 
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
-       _asmoperators : array[0.._count_asmoperators] of tasmkeyword = (
+       _asmoperators : array[firstoperator..lastoperator] of tasmkeyword = (
         'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','OWORD','XMMWORD','YWORD','YMMWORD','NEAR','FAR','HIGH',
         'LOW','OFFSET','SIZEOF','VMTOFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
         'OR','XOR','WRT','GOTPCREL');
@@ -225,12 +222,12 @@ Unit Rax86int;
 
     function tx86intreader.is_asmoperator(const s: string):boolean;
       var
-        i : longint;
+        i : tasmtoken;
       Begin
-        for i:=0 to _count_asmoperators do
+        for i:=firstoperator to lastoperator do
          if s=_asmoperators[i] then
           begin
-            actasmtoken:=tasmtoken(longint(firstoperator)+i);
+            actasmtoken:=i;
             is_asmoperator:=true;
             exit;
           end;
@@ -240,12 +237,12 @@ Unit Rax86int;
 
     Function tx86intreader.is_asmdirective(const s: string):boolean;
       var
-        i : longint;
+        i : tasmtoken;
       Begin
-        for i:=0 to _count_asmdirectives do
+        for i:=firstdirective to lastdirective do
          if s=_asmdirectives[i] then
           begin
-            actasmtoken:=tasmtoken(longint(firstdirective)+i);
+            actasmtoken:=i;
             is_asmdirective:=true;
             exit;
           end;
