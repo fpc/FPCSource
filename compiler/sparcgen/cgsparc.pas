@@ -338,7 +338,7 @@ implementation
                 a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,hloc^.reference.temppos,paraloc.alignment,[]);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
                   { concatcopy should choose the best way to copy the data }
                   g_concatcopy(list,href,href2,tcgsize2size[hloc^.size]);
 

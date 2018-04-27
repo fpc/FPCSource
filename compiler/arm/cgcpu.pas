@@ -526,7 +526,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),reference.temppos,sizeof(pint),[]);
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),ctempposinvalid,sizeof(pint),[]);
                     if is_shifter_const(ioffset,shift) then
                       a_op_const_ref(list,OP_SUB,size,ioffset,href)
                     else
@@ -582,7 +582,7 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,location^.reference.temppos,paraloc.alignment,[]);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
                   { doubles in softemu mode have a strange order of registers and references }
                   if location^.size=OS_32 then
                     g_concatcopy(list,tmpref,ref,4)
@@ -1683,7 +1683,7 @@ unit cgcpu;
                 end;
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,hloc^.reference.temppos,paraloc.alignment,[]);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,ctempposinvalid,paraloc.alignment,[]);
                   { concatcopy should choose the best way to copy the data }
                   g_concatcopy(list,href,href2,tcgsize2size[hloc^.size]);
                 end;
@@ -3935,7 +3935,7 @@ unit cgcpu;
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),reference.temppos,sizeof(pint),[]);
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint),ctempposinvalid,sizeof(pint),[]);
                     if is_thumb_imm(ioffset) then
                       a_op_const_ref(list,OP_SUB,size,ioffset,href)
                     else

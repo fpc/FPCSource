@@ -242,7 +242,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052906);
-                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,location^.reference.temppos,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
+                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -458,7 +458,7 @@ implementation
                         internalerror(2014012307)
                       else
                         begin
-                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.reference.temppos, paraloc^.def.alignment, []);
+                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
                           res:=getregisterfordef(list, paraloc^.def);
                           load_ref_anyreg(callpara^.def, href, res, callpara);
                         end;
