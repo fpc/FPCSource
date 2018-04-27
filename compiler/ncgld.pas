@@ -180,11 +180,11 @@ implementation
            { still used later on in initialisation/finalisation code }
            is_managed_type(n.resultdef) or
            { source and destination are temps (= not global variables) }
-           not tg.istemp(n.location.reference) or
-           not tg.istemp(newref) or
            { and both point to the start of a temp, and the source is a }
            { non-persistent temp (otherwise we need some kind of copy-  }
            { on-write support in case later on both are still used)     }
+           not tg.isstartoftemp(newref) or
+           not tg.isstartoftemp(n.location.reference) or
            (tg.gettypeoftemp(newref) <> tt_normal) or
            not (tg.gettypeoftemp(n.location.reference) in [tt_normal,tt_persistent]) or
            { and both have the same size }

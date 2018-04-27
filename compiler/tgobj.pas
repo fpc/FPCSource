@@ -103,6 +103,7 @@ unit tgobj;
           function sizeoftemp(list: TAsmList; const ref: treference): asizeint;
           function changetemptype(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
           function gettypeoftemp(const ref:treference): ttemptype;
+          function isstartoftemp(const ref: treference): boolean;
           {# Returns a reference corresponding to a temp }
           procedure temp_to_ref(p: ptemprecord; out ref: treference); virtual;
 
@@ -659,6 +660,31 @@ implementation
             hp:=hp^.next;
           end;
         result:=tt_none;
+      end;
+
+
+    function ttgobj.isstartoftemp(const ref: treference): boolean;
+      var
+        hp: ptemprecord;
+        tmpref: treference;
+      begin
+        hp:=templist;
+        if ref.temppos.val=ctempposinvalid.val then
+          begin
+            result:=false;
+            exit;
+          end;
+        while assigned(hp) do
+         begin
+           if (hp^.pos=ref.temppos.val) then
+            begin
+              temp_to_ref(hp, tmpref);
+              result:=references_equal(ref, tmpref);
+              exit;
+            end;
+           hp:=hp^.next;
+         end;
+        internalerror(2018042601);
       end;
 
 
