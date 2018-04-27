@@ -372,6 +372,7 @@ const
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}
 
+    {$ifdef ENABLE_RESTRICTED_SSE_FRAC}
     {$ifndef FPC_SYSTEM_HAS_FRAC}
     {$define FPC_SYSTEM_HAS_FRAC}
     function fpc_frac_real(d: ValReal) : ValReal;compilerproc; assembler; nostackframe;
@@ -383,5 +384,6 @@ const
         subsd       %xmm4,%xmm0
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
+    {$endif ENABLE_RESTRICTED_SSE_FRAC}
 
 {$endif FPC_HAS_TYPE_EXTENDED}
