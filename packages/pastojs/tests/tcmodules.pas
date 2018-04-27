@@ -380,6 +380,7 @@ type
     Procedure TestClass_Method;
     Procedure TestClass_Implementation;
     Procedure TestClass_Inheritance;
+    Procedure TestClass_TypeAlias;
     Procedure TestClass_AbstractMethod;
     Procedure TestClass_CallInherited_NoParams;
     Procedure TestClass_CallInherited_WithParams;
@@ -586,7 +587,6 @@ type
     Procedure TestRTTI_StaticArray;
     Procedure TestRTTI_DynArray;
     Procedure TestRTTI_ArrayNestedAnonymous;
-    // ToDo: Procedure TestRTTI_Pointer;
     Procedure TestRTTI_PublishedMethodOverloadFail;
     Procedure TestRTTI_PublishedMethodExternalFail;
     Procedure TestRTTI_PublishedClassPropertyFail;
@@ -611,6 +611,7 @@ type
     Procedure TestRTTI_RecordAnonymousArray;
     Procedure TestRTTI_LocalTypes;
     Procedure TestRTTI_TypeInfo_BaseTypes;
+    Procedure TestRTTI_TypeInfo_Type_BaseTypes;
     Procedure TestRTTI_TypeInfo_LocalFail;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses1;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
@@ -8314,6 +8315,49 @@ begin
     '$mod.oB = rtl.as($mod.oO, $mod.TClassB);',
     'rtl.as($mod.oO, $mod.TClassB).ProcB();'
     ]));
+end;
+
+procedure TTestModule.TestClass_TypeAlias;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IObject = interface',
+  '  end;',
+  '  IBird = type IObject;',
+  '  TObject = class',
+  '  end;',
+  '  TBird = type TObject;',
+  'var',
+  '  oObj: TObject;',
+  '  oBird: TBird;',
+  '  IntfObj: IObject;',
+  '  IntfBird: IBird;',
+  'begin',
+  '  oObj:=oBird;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_TypeAlias',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IObject", "{5B8AD21A-8000-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{48DF66C6-FD76-3B15-A738-D462ECC63074}", [], $mod.IObject);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '});',
+    'this.oObj = null;',
+    'this.oBird = null;',
+    'this.IntfObj = null;',
+    'this.IntfBird = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.oObj = $mod.oBird;',
+    '']));
 end;
 
 procedure TTestModule.TestClass_AbstractMethod;
@@ -19063,43 +19107,45 @@ procedure TTestModule.TestRTTI_TypeInfo_BaseTypes;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
-  Add('type');
-  Add('  TCaption = string;');
-  Add('  TYesNo = boolean;');
-  Add('  TLetter = char;');
-  Add('  TFloat = double;');
-  Add('  TPtr = pointer;');
-  Add('  TShortInt = shortint;');
-  Add('  TByte = byte;');
-  Add('  TSmallInt = smallint;');
-  Add('  TWord = word;');
-  Add('  TInt32 = longint;');
-  Add('  TDWord = longword;');
-  Add('  TValue = jsvalue;');
-  Add('var p: TPtr;');
-  Add('begin');
-  Add('  p:=typeinfo(string);');
-  Add('  p:=typeinfo(tcaption);');
-  Add('  p:=typeinfo(boolean);');
-  Add('  p:=typeinfo(tyesno);');
-  Add('  p:=typeinfo(char);');
-  Add('  p:=typeinfo(tletter);');
-  Add('  p:=typeinfo(double);');
-  Add('  p:=typeinfo(tfloat);');
-  Add('  p:=typeinfo(pointer);');
-  Add('  p:=typeinfo(tptr);');
-  Add('  p:=typeinfo(shortint);');
-  Add('  p:=typeinfo(tshortint);');
-  Add('  p:=typeinfo(byte);');
-  Add('  p:=typeinfo(tbyte);');
-  Add('  p:=typeinfo(smallint);');
-  Add('  p:=typeinfo(tsmallint);');
-  Add('  p:=typeinfo(word);');
-  Add('  p:=typeinfo(tword);');
-  Add('  p:=typeinfo(longword);');
-  Add('  p:=typeinfo(tdword);');
-  Add('  p:=typeinfo(jsvalue);');
-  Add('  p:=typeinfo(tvalue);');
+  Add([
+  'type',
+  '  TCaption = string;',
+  '  TYesNo = boolean;',
+  '  TLetter = char;',
+  '  TFloat = double;',
+  '  TPtr = pointer;',
+  '  TShortInt = shortint;',
+  '  TByte = byte;',
+  '  TSmallInt = smallint;',
+  '  TWord = word;',
+  '  TInt32 = longint;',
+  '  TDWord = longword;',
+  '  TValue = jsvalue;',
+  'var p: TPtr;',
+  'begin',
+  '  p:=typeinfo(string);',
+  '  p:=typeinfo(tcaption);',
+  '  p:=typeinfo(boolean);',
+  '  p:=typeinfo(tyesno);',
+  '  p:=typeinfo(char);',
+  '  p:=typeinfo(tletter);',
+  '  p:=typeinfo(double);',
+  '  p:=typeinfo(tfloat);',
+  '  p:=typeinfo(pointer);',
+  '  p:=typeinfo(tptr);',
+  '  p:=typeinfo(shortint);',
+  '  p:=typeinfo(tshortint);',
+  '  p:=typeinfo(byte);',
+  '  p:=typeinfo(tbyte);',
+  '  p:=typeinfo(smallint);',
+  '  p:=typeinfo(tsmallint);',
+  '  p:=typeinfo(word);',
+  '  p:=typeinfo(tword);',
+  '  p:=typeinfo(longword);',
+  '  p:=typeinfo(tdword);',
+  '  p:=typeinfo(jsvalue);',
+  '  p:=typeinfo(tvalue);',
+  '']);
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_BaseTypes',
     LinesToStr([ // statements
@@ -19128,6 +19174,79 @@ begin
     '$mod.p = rtl.longword;',
     '$mod.p = rtl.jsvalue;',
     '$mod.p = rtl.jsvalue;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_Type_BaseTypes;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TCaption = type string;',
+  '  TYesNo = type boolean;',
+  '  TLetter = type char;',
+  '  TFloat = type double;',
+  '  TPtr = type pointer;',
+  '  TShortInt = type shortint;',
+  '  TByte = type byte;',
+  '  TSmallInt = type smallint;',
+  '  TWord = type word;',
+  '  TInt32 = type longint;',
+  '  TDWord = type longword;',
+  '  TValue = type jsvalue;',
+  '  TAliasValue = type TValue;',
+  'var',
+  '  p: TPtr;',
+  '  a: TAliasValue;',
+  'begin',
+  '  p:=typeinfo(tcaption);',
+  '  p:=typeinfo(tyesno);',
+  '  p:=typeinfo(tletter);',
+  '  p:=typeinfo(tfloat);',
+  '  p:=typeinfo(tptr);',
+  '  p:=typeinfo(tshortint);',
+  '  p:=typeinfo(tbyte);',
+  '  p:=typeinfo(tsmallint);',
+  '  p:=typeinfo(tword);',
+  '  p:=typeinfo(tdword);',
+  '  p:=typeinfo(tvalue);',
+  '  p:=typeinfo(taliasvalue);',
+  '  p:=typeinfo(a);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_TypeInfo_Type_BaseTypes',
+    LinesToStr([ // statements
+    '$mod.$rtti.$inherited("TCaption", rtl.string, {});',
+    '$mod.$rtti.$inherited("TYesNo", rtl.boolean, {});',
+    '$mod.$rtti.$inherited("TLetter", rtl.char, {});',
+    '$mod.$rtti.$inherited("TFloat", rtl.double, {});',
+    '$mod.$rtti.$inherited("TPtr", rtl.pointer, {});',
+    '$mod.$rtti.$inherited("TShortInt", rtl.shortint, {});',
+    '$mod.$rtti.$inherited("TByte", rtl.byte, {});',
+    '$mod.$rtti.$inherited("TSmallInt", rtl.smallint, {});',
+    '$mod.$rtti.$inherited("TWord", rtl.word, {});',
+    '$mod.$rtti.$inherited("TInt32", rtl.longint, {});',
+    '$mod.$rtti.$inherited("TDWord", rtl.longword, {});',
+    '$mod.$rtti.$inherited("TValue", rtl.jsvalue, {});',
+    '$mod.$rtti.$inherited("TAliasValue", $mod.$rtti["TValue"], {});',
+    'this.p = null;',
+    'this.a = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TCaption"];',
+    '$mod.p = $mod.$rtti["TYesNo"];',
+    '$mod.p = $mod.$rtti["TLetter"];',
+    '$mod.p = $mod.$rtti["TFloat"];',
+    '$mod.p = $mod.$rtti["TPtr"];',
+    '$mod.p = $mod.$rtti["TShortInt"];',
+    '$mod.p = $mod.$rtti["TByte"];',
+    '$mod.p = $mod.$rtti["TSmallInt"];',
+    '$mod.p = $mod.$rtti["TWord"];',
+    '$mod.p = $mod.$rtti["TDWord"];',
+    '$mod.p = $mod.$rtti["TValue"];',
+    '$mod.p = $mod.$rtti["TAliasValue"];',
+    '$mod.p = $mod.$rtti["TAliasValue"];',
     '']));
 end;
 
