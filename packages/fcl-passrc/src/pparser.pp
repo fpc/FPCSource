@@ -192,6 +192,7 @@ type
       UseParentAsResultParent: Boolean; const ASrcPos: TPasSourcePos): TPasFunctionType;
     function FindElement(const AName: String): TPasElement; virtual; abstract;
     procedure FinishScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
+    procedure FinishTypeAlias(var aType: TPasType); virtual;
     function FindModule(const AName: String): TPasModule; virtual;
     function FindModule(const AName: String; NameExpr, InFileExpr: TPasExpr): TPasModule; virtual;
     function CheckPendingUsedInterface(Section: TPasSection): boolean; virtual; // true if changed
@@ -376,7 +377,7 @@ type
     function ParseProcedureType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; const PT: TProcType): TPasProcedureType;
     function ParseStringType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasAliasType;
     function ParseSimpleType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String; IsFull : Boolean = False): TPasType;
-    function ParseAliasType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasTypeAliasType;
+    function ParseAliasType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasType;
     function ParseTypeReference(Parent: TPasElement; NeedExpr: boolean; out Expr: TPasExpr): TPasType;
     function ParsePointerType(Parent: TPasElement; Const NamePos: TPasSourcePos; Const TypeName: String): TPasPointerType;
     Function ParseArrayType(Parent : TPasElement; Const NamePos: TPasSourcePos; Const TypeName : String; PackMode : TPackMode) : TPasArrayType;
@@ -763,6 +764,11 @@ begin
   if ScopeType=stModule then ; // avoid compiler warning
   if Assigned(El) and (CurrentParser<>nil) then
     El.SourceEndLinenumber := CurrentParser.CurSourcePos.Row;
+end;
+
+procedure TPasTreeContainer.FinishTypeAlias(var aType: TPasType);
+begin
+  if aType=nil then ;
 end;
 
 function TPasTreeContainer.FindModule(const AName: String): TPasModule;
@@ -1435,14 +1441,15 @@ end;
 
 // On entry, we're on the TYPE token
 function TPasParser.ParseAliasType(Parent: TPasElement;
-  const NamePos: TPasSourcePos; const TypeName: String): TPasTypeAliasType;
+  const NamePos: TPasSourcePos; const TypeName: String): TPasType;
 var
   ok: Boolean;
 begin
   Result := TPasTypeAliasType(CreateElement(TPasTypeAliasType, TypeName, Parent, NamePos));
   ok:=false;
   try
-    Result.DestType := ParseType(Result,NamePos,'');
+    TPasTypeAliasType(Result).DestType := ParseType(Result,NamePos,'');
+    Engine.FinishTypeAlias(Result);
     Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
@@ -1594,8 +1601,8 @@ Const
   // Parsing of these types already takes care of hints
   NoHintTokens = [tkProcedure,tkFunction];
 var
-  PM : TPackMode;
-  CH , isHelper,ok: Boolean; // Check hint ?
+  PM: TPackMode;
+  CH, isHelper, ok: Boolean;
 begin
   Result := nil;
   // NextToken and check pack mode
@@ -2263,8 +2270,8 @@ begin
   end;
 end;
 
-function TPasParser.DoParseExpression(AParent: TPasElement; InitExpr: TPasExpr;
-  AllowEqual : Boolean = True): TPasExpr;
+function TPasParser.DoParseExpression(AParent: TPaselement; InitExpr: TPasExpr;
+  AllowEqual: Boolean): TPasExpr;
 type
   TOpStackItem = record
     Token: TToken;

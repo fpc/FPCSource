@@ -826,7 +826,7 @@ begin
       begin
       Member:=TPasArrayType(El).Ranges[i];
       Resolver.ComputeElement(Member,MemberResolved,[rcConstant]);
-      UseSubEl(MemberResolved.TypeEl);
+      UseSubEl(MemberResolved.HiTypeEl);
       end;
     end
   else if C=TPasPointerType then
@@ -1315,7 +1315,7 @@ begin
     pekArrayParams:
       begin
       Resolver.ComputeElement(Params.Value,ValueResolved,[]);
-      if not Resolver.IsDynArray(ValueResolved.TypeEl) then
+      if not Resolver.IsDynArray(ValueResolved.LoTypeEl) then
         UseExprRef(El,Params.Value,Access,UseFull);
       end;
     pekSet: ;

@@ -184,7 +184,7 @@ type
     Procedure TestAliasType_UnitPrefix;
     Procedure TestAliasType_UnitPrefix_CycleFail;
     Procedure TestAliasTypeNotFoundPosition;
-    Procedure TestTypeAliasType; // ToDo
+    Procedure TestTypeAliasType;
 
     // vars, const
     Procedure TestVarLongint;
@@ -361,6 +361,7 @@ type
     Procedure TestProcParamAccess;
     Procedure TestFunctionResult;
     Procedure TestProcedureResultFail;
+    Procedure TestProc_ArgVarTypeAlias;
     Procedure TestProcOverload;
     Procedure TestProcOverloadImplDuplicateFail;
     Procedure TestProcOverloadImplDuplicate2Fail;
@@ -371,6 +372,8 @@ type
     Procedure TestProcCallLowPrecision;
     Procedure TestProcOverloadUntyped;
     Procedure TestProcOverloadMultiLowPrecisionFail;
+    Procedure TestProcOverload_TypeAlias;
+    Procedure TestProcOverload_TypeAliasLiteralFail;
     Procedure TestProcOverloadWithClassTypes;
     Procedure TestProcOverloadWithInhClassTypes;
     Procedure TestProcOverloadWithInhAliasClassTypes;
@@ -524,6 +527,7 @@ type
     Procedure TestClass_Enumerator;
     Procedure TestClass_EnumeratorFunc;
     Procedure TestClass_ForInPropertyStaticArray;
+    Procedure TestClass_TypeAlias;
     // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
     // published
@@ -2298,20 +2302,21 @@ end;
 
 procedure TTestResolver.TestTypeAliasType;
 begin
-  // ToDo
   StartProgram(false);
-  Add('type');
-  Add('  {#integer}integer = longint;');
-  Add('  {#tcolor}TColor = type integer;');
-  Add('var');
-  Add('  {=integer}i: integer;');
-  Add('  {=tcolor}c: TColor;');
-  Add('begin');
-  Add('  c:=i;');
-  Add('  i:=c;');
-  Add('  i:=integer(c);');
-  Add('  c:=TColor(i);');
-  // ParseProgram;
+  Add([
+  'type',
+  '  {#integer}integer = longint;',
+  '  {#tcolor}TColor = type integer;',
+  'var',
+  '  {=integer}i: integer;',
+  '  {=tcolor}c: TColor;',
+  'begin',
+  '  c:=i;',
+  '  i:=c;',
+  '  i:=integer(c);',
+  '  c:=TColor(i);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestVarLongint;
@@ -5365,6 +5370,7 @@ begin
   Add('var i: integer;');
   Add('begin');
   Add('  DoIt(i,i,i);');
+  Add('  DoIt(1,1,i);');
   ParseProgram;
 end;
 
@@ -5387,6 +5393,26 @@ begin
   Add('begin');
   CheckParserException('Expected ";"',
     nParserExpectTokenError);
+end;
+
+procedure TTestResolver.TestProc_ArgVarTypeAlias;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TColor = type longint;',
+  'procedure DoColor(var c: TColor); external;',
+  'procedure DoInt(var i: longint); external;',
+  'var',
+  '  i: longint;',
+  '  c: TColor;',
+  'begin',
+  '  DoColor(c);',
+  '  DoColor(i);',
+  '  DoInt(i);',
+  '  DoInt(c);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcOverload;
@@ -5566,6 +5592,44 @@ begin
   '  DoIt(i);',
   '']);
   CheckResolverException('Can''t determine which overloaded function to call, afile.pp(3,15), afile.pp(2,15)',
+    nCantDetermineWhichOverloadedFunctionToCall);
+end;
+
+procedure TTestResolver.TestProcOverload_TypeAlias;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TValue = type longint;',
+  '  TAliasValue = TValue;',
+  '  TColor = type TAliasValue;',
+  '  TAliasColor = TColor;',
+  'procedure DoIt(i: TAliasValue); external;',
+  'procedure DoIt(i: TAliasColor); external;',
+  'var',
+  '  v: TAliasValue;',
+  '  c: TAliasColor;',
+  'begin',
+  '  DoIt(v);',
+  '  DoIt(c);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverload_TypeAliasLiteralFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TValue = type longint;',
+  '  TAliasValue = TValue;',
+  'procedure DoIt(i: integer); external;',
+  'procedure DoIt(i: TAliasValue); external;',
+  'begin',
+  '  DoIt(1);',
+  '']);
+  CheckResolverException('Can''t determine which overloaded function to call, afile.pp(7,15), afile.pp(6,15)',
     nCantDetermineWhichOverloadedFunctionToCall);
 end;
 
@@ -8887,6 +8951,23 @@ begin
   '  Month: string;',
   'begin',
   '  for Month in f.LongMonthNames do ;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_TypeAlias;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = type TObject;',
+  'var',
+  '  o: TObject;',
+  '  b: TBird;',
+  'begin',
+  '  o:=b;',
   '']);
   ParseProgram;
 end;
