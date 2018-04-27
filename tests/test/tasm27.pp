@@ -23,6 +23,7 @@ asm
   dd 5[7]                       { dd 12 }
   dd 5+[7]                      { dd 12 }
   dd 5-[7]                      { dd -2 }
+  dd [5]                        { dd 5 }
 end;
 
 begin
