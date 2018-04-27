@@ -590,10 +590,12 @@ End.
 
     <div class="section">
     <h2 id="pointer">Translating pointer</h2>
-    A <i>pointer</i> is translated to a reference. It can be assigned a class,
-    a class reference, an array, a procedure var, a method var, a @proc address
-    or a @method address. There is no pointer arithmetic and no typed
-    pointers. You can find out its type using the functions <i>isArray</i>,
+    A <i>pointer</i> is translated to a JS reference. It can be assigned a class,
+    a class instance, a class-of, an array, a procedure var, a method var, a @proc address,
+    a @method address, or a pointer of record.
+    There is no pointer arithmetic, i.e. no p+1, and no typed pointers,
+    except for pointer of record.
+    You can find out its type using the functions <i>isArray</i>,
     <i>isClass</i>, <i>isClassRef</i>, <i>isCallback</i>, etc of unit <i>JS</i>.
     </div>
 
@@ -2816,7 +2818,7 @@ End.
     <ul>
     <li><b>break</b>, <b>continue</b>, <b>exit</b>, <b>exit()</b></li>
     <li><b>chr</b>, <b>ord</b></li>
-    <li>alias type, but not type alias type</li>
+    <li>alias type and type alias type</li>
     <li>inc()/dec() to += -=</li>
     <li>Converts "a div b" to "Math.floor(a / b)"</li>
     <li>and, or, xor, not: logical and bitwise</li>
@@ -2855,12 +2857,10 @@ End.
     <li>Nested classes</li>
     <li>Objects</li>
     <li>Operator overloading</li>
-    <li>Pointer of record</li>
     <li>Pointer arithmetic</li>
     <li>Resources</li>
     <li>RTTI extended, $RTTI</li>
     <li>Runtime checks: Overflow -Co, $Q</li>
-    <li>Type alias, e.g. type TTranslateString = type string;</li>
     <li>Variant records</li>
     <li>Variants</li>
     </ul>
