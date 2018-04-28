@@ -908,6 +908,7 @@ implementation
                not assigned(tloadnode(fromnode).left) then
               tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(fromnode).symtable.defowner))));
             fromnode:=ctypeconvnode.create_proc_to_procvar(fromnode);
+            ttypeconvnode(fromnode).totypedef:=todef;
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
             hp.free;
