@@ -823,7 +823,8 @@ implementation
               orddef:
                 case torddef(hdef).ordtype of
                   s8bit,
-                  u8bit:
+                  u8bit,
+                  pasbool8:
                     typename:=typename+'i8';
                   s16bit,
                   u16bit:
