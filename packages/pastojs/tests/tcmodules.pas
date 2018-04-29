@@ -370,7 +370,7 @@ type
     Procedure TestRecord_TypeCastJSValueToRecord;
     Procedure TestRecord_VariantFail;
     Procedure TestRecord_FieldArray;
-    // ToDo: const record
+    Procedure TestRecord_Const;
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -624,7 +624,6 @@ type
     Procedure TestResourcestringProgram;
     Procedure TestResourcestringUnit;
     Procedure TestResourcestringImplementation;
-    // ToDo: in unit interface and implementation
 
     // Attributes
     Procedure TestAtributes_Ignore;
@@ -7975,6 +7974,86 @@ begin
     '    return (this.a === b.a) && (rtl.arrayEq(this.s, b.s) && (rtl.arrayEq(this.m, b.m) && rtl.arrayEq(this.o, b.o)));',
     '  };',
     '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRecord_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArrInt = array[3..4] of longint;',
+  '  TPoint = record x,y: longint; end;',
+  '  TRec = record',
+  '    i: longint;',
+  '    a: array of longint;',
+  '    s: array[1..2] of longint;',
+  '    m: array[1..2,3..4] of longint;',
+  '    p: TPoint;',
+  '  end;',
+  '  TPoints = array of TPoint;',
+  'const',
+  '  r: TRec = (',
+  '    i:1;',
+  '    a:(2,3);',
+  '    s:(4,5);',
+  '    m:( (11,12), (13,14) );',
+  '    p: (x:21; y:22)',
+  '  );',
+  '  p: TPoints = ( (x:1;y:2), (x:3;y:4) );',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRecord_Const',
+    LinesToStr([ // statements
+    'this.TPoint = function (s) {',
+    '  if (s) {',
+    '    this.x = s.x;',
+    '    this.y = s.y;',
+    '  } else {',
+    '    this.x = 0;',
+    '    this.y = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.x === b.x) && (this.y === b.y);',
+    '  };',
+    '};',
+    'this.TRec = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '    this.a = s.a;',
+    '    this.s = s.s.slice(0);',
+    '    this.m = s.m.slice(0);',
+    '    this.p = new $mod.TPoint(s.p);',
+    '  } else {',
+    '    this.i = 0;',
+    '    this.a = [];',
+    '    this.s = rtl.arraySetLength(null, 0, 2);',
+    '    this.m = rtl.arraySetLength(null, 0, 2, 2);',
+    '    this.p = new $mod.TPoint();',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.i === b.i) && ((this.a === b.a) && (rtl.arrayEq(this.s, b.s) && (rtl.arrayEq(this.m, b.m) && this.p.$equal(b.p))));',
+    '  };',
+    '};',
+    'this.r = new $mod.TRec({',
+    '  i: 1,',
+    '  a: [2, 3],',
+    '  s: [4, 5],',
+    '  m: [[11, 12], [13, 14]],',
+    '  p: new $mod.TPoint({',
+    '      x: 21,',
+    '      y: 22',
+    '    })',
+    '});',
+    'this.p = [new $mod.TPoint({',
+    '  x: 1,',
+    '  y: 2',
+    '}), new $mod.TPoint({',
+    '  x: 3,',
+    '  y: 4',
+    '})];',
     '']),
     LinesToStr([ // $mod.$main
     '']));

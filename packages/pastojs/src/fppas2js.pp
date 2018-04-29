@@ -81,6 +81,8 @@ Works:
   - clone set member
   - clone when passing as argument
   - equal, not equal
+  - const
+  - array of record-const
 - classes
   - declare using createClass
   - constructor
@@ -373,7 +375,6 @@ Not in Version 1.0:
 - sets
   - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()
-- record const
 - enums with custom values
 - library
 - constref
@@ -1193,7 +1194,7 @@ type
       RHS: TPasExpr); override;
     function HasStaticArrayCloneFunc(Arr: TPasArrayType): boolean;
     function IsTGUID(TypeEl: TPasRecordType): boolean; override;
-    function GetAssignGUIDString(TypeEl: TPasRecordType; Expr: TPasExpr; out GUID: TGUID): boolean;
+    function GetAssignGUIDString(TypeEl: TPasRecordType; Expr: TPasExpr; out GUID: TGuid): boolean;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -4174,7 +4175,7 @@ begin
 end;
 
 function TPas2JSResolver.GetAssignGUIDString(TypeEl: TPasRecordType;
-  Expr: TPasExpr; out GUID: TGUID): boolean;
+  Expr: TPasExpr; out GUID: TGuid): boolean;
 var
   Value: TResEvalValue;
   GUIDStr: String;
@@ -9784,23 +9785,60 @@ end;
 
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
   AContext: TConvertContext): TJSElement;
-
-Var
-  R :  TJSObjectLiteral;
-  I : Integer;
-  RVI : TRecordValuesItem;
-  rel : TJSObjectLiteralElement;
-
+var
+  ObjLit: TJSObjectLiteral;
+  i: Integer;
+  RecFields: TRecordValuesItemArray;
+  Field: PRecordValuesItem;
+  Ref: TResolvedReference;
+  Member: TPasVariable;
+  NewMemE: TJSNewMemberExpression;
+  aResolver: TPas2JSResolver;
+  ResolvedEl: TPasResolverResult;
+  RecType: TPasRecordType;
+  ok: Boolean;
+  ObjLitEl: TJSObjectLiteralElement;
 begin
-  R:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
-  For I:=0 to Length(El.Fields)-1 do
-    begin
-    RVI:=El.Fields[i];
-    Rel:=R.Elements.AddElement;
-    Rel.Name:=TJSString(RVI.Name);
-    Rel.Expr:=ConvertElement(RVI.ValueExp,AContext);
-    end;
-  Result:=R;
+  Result:=nil;
+  aResolver:=AContext.Resolver;
+  ok:=false;
+  try
+    if aResolver<>nil then
+      begin
+      // with resolver:  new TRecord({...})
+      aResolver.ComputeElement(El,ResolvedEl,[]);
+      if (ResolvedEl.BaseType<>btContext)
+          or (ResolvedEl.LoTypeEl.ClassType<>TPasRecordType) then
+        RaiseNotSupported(El,AContext,20180429210932);
+      RecType:=TPasRecordType(ResolvedEl.LoTypeEl);
+
+      NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+      Result:=NewMemE;
+      NewMemE.MExpr:=CreateReferencePathExpr(RecType,AContext);
+      ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+      NewMemE.AddArg(ObjLit);
+      end
+    else
+      begin
+      // without resolver: {...}
+      ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+      Result:=ObjLit;;
+      end;
+    RecFields:=El.Fields;
+    for i:=0 to length(RecFields)-1 do
+      begin
+      Field:=@RecFields[i];
+      Ref:=Field^.NameExp.CustomData as TResolvedReference;
+      Member:=Ref.Declaration as TPasVariable;
+      ObjLitEl:=ObjLit.Elements.AddElement;
+      ObjLitEl.Name:=TJSString(TransformVariableName(Member,AContext));
+      ObjLitEl.Expr:=CreateValInit(Member.VarType,Field^.ValueExp,Field^.NameExp,AContext);
+      end;
+    ok:=true;
+  finally
+    if not ok then
+      Result.Free;
+  end;
 end;
 
 function TPasToJSConverter.ConvertArrayValues(El: TArrayValues;
@@ -16132,31 +16170,38 @@ var
   NewMemE: TJSNewMemberExpression;
   aResolver: TPas2JSResolver;
   ObjLit: TJSObjectLiteral;
-  GUID: TGUID;
+  GUID: TGuid;
 begin
   Result:=nil;
-  NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-  try
-    NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
-    if Expr<>nil then
+  if Expr<>nil then
+    begin
+    aResolver:=AContext.Resolver;
+    if aResolver<>nil then
       begin
-      aResolver:=AContext.Resolver;
-      if aResolver<>nil then
+      if aResolver.GetAssignGUIDString(aRecord,Expr,GUID) then
         begin
-        if aResolver.GetAssignGUIDString(aRecord,Expr,GUID) then
-          begin
-          ObjLit:=CreateGUIDObjLit(aRecord,GUID,El,AContext);
-          NewMemE.AddArg(ObjLit);
-          end;
+        // new TGuid({ D1:...})
+        ObjLit:=CreateGUIDObjLit(aRecord,GUID,El,AContext);
+        NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+        Result:=NewMemE;
+        NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
+        NewMemE.AddArg(ObjLit);
+        exit;
         end;
-      if NewMemE.Args=nil then
-        RaiseNotSupported(Expr,AContext,20161024192747);
       end;
-    Result:=NewMemE;
-  finally
+    if Expr is TRecordValues then
+      // new TRecord({...})
+      Result:=ConvertRecordValues(TRecordValues(Expr),AContext);
     if Result=nil then
-      NewMemE.Free;
-  end;
+      RaiseNotSupported(Expr,AContext,20161024192747);
+    end
+  else
+    begin
+    // new TRecord()
+    NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+    Result:=NewMemE;
+    NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
+    end;
 end;
 
 function TPasToJSConverter.CreateReferencePath(El: TPasElement;
