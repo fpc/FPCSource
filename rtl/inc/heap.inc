@@ -795,7 +795,7 @@ begin
       or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
     begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      entercriticalsection(heap_lock);
+      EnterCriticalSection(heap_lock);
 {$endif}
       finish_waitfixedlist(@orphaned_freelists);
       finish_waitvarlist(@orphaned_freelists);
@@ -821,7 +821,7 @@ begin
             end;
         end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      leavecriticalsection(heap_lock);
+      LeaveCriticalSection(heap_lock);
 {$endif}
     end;
   if poc = nil then
@@ -1105,24 +1105,24 @@ end;
 procedure waitfree_fixed(pmc: pmemchunk_fixed; poc: poschunk);
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   pmc^.next_fixed := poc^.freelists^.waitfixed;
   poc^.freelists^.waitfixed := pmc;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
 end;
 
 procedure waitfree_var(pmcv: pmemchunk_var);
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   pmcv^.next_var := pmcv^.freelists^.waitvar;
   pmcv^.freelists^.waitvar := pmcv;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
 end;
 
@@ -1246,11 +1246,11 @@ begin
   if loc_freelists^.waitfixed = nil then
     exit(false);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   finish_waitfixedlist(loc_freelists);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
   result := true;
 end;
@@ -1274,11 +1274,11 @@ begin
   if loc_freelists^.waitvar = nil then
     exit;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   finish_waitvarlist(loc_freelists);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
 end;
 
@@ -1518,9 +1518,9 @@ var
 begin
   if heap_lock_use > 0 then
   begin
-    entercriticalsection(heap_lock);
+    EnterCriticalSection(heap_lock);
     inc(heap_lock_use);
-    leavecriticalsection(heap_lock);
+    LeaveCriticalSection(heap_lock);
   end;
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
@@ -1589,7 +1589,7 @@ begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   if heap_lock_use > 0 then
   begin
-    entercriticalsection(heap_lock);
+    EnterCriticalSection(heap_lock);
     finish_waitfixedlist(loc_freelists);
     finish_waitvarlist(loc_freelists);
   end;
@@ -1622,9 +1622,9 @@ begin
     end;
     dec(heap_lock_use);
     last_thread := heap_lock_use = 0;
-    leavecriticalsection(heap_lock);
+    LeaveCriticalSection(heap_lock);
     if last_thread then
-      donecriticalsection(heap_lock);
+      DoneCriticalSection(heap_lock);
   end;
 {$endif}
 {$ifdef SHOW_MEM_USAGE}

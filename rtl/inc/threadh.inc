@@ -158,15 +158,15 @@ procedure EnterCriticalSection(var cs : TRTLCriticalSection);
 procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 function  TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
-procedure basiceventdestroy(state:peventstate);
-procedure basiceventResetEvent(state:peventstate);
-procedure basiceventSetEvent(state:peventstate);
-function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+procedure BasicEventDestroy(state:peventstate);
+procedure BasicEventResetEvent(state:peventstate);
+procedure BasicEventSetEvent(state:peventstate);
+function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 function  RTLEventCreate :PRTLEvent;
-procedure RTLeventdestroy(state:pRTLEvent);
-procedure RTLeventSetEvent(state:pRTLEvent);
-procedure RTLeventResetEvent(state:pRTLEvent);
-procedure RTLeventWaitFor(state:pRTLEvent);
-procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
+procedure RTLEventDestroy(state:pRTLEvent);
+procedure RTLEventSetEvent(state:pRTLEvent);
+procedure RTLEventResetEvent(state:pRTLEvent);
+procedure RTLEventWaitFor(state:pRTLEvent);
+procedure RTLEventWaitFor(state:pRTLEvent;timeout : longint);
 
