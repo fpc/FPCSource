@@ -148,6 +148,7 @@ Works:
   - TypedPointer:=@Some
   - pointer[index], (@i)[index]
   - dispose(pointerofrecord), new(pointerofrecord)
+  - $PointerMath on|off
 - emit hints
   - platform, deprecated, experimental, library, unimplemented
   - hiding ancestor method
@@ -201,13 +202,12 @@ Works:
   - eval +, -, *, /, ^^
   - float*currency and currency*float computes to currency
 - type alias type overloads
+- $writeableconst off $J-
 
 ToDo:
 - $pop, $push
-- $writableconst off $J-
 - $RTTI inherited|explicit
 - range checking:
-  - indexedprop[param]
   - defaultvalue
 - fail to write a loop var inside the loop
 - nested classes
@@ -14995,6 +14995,8 @@ begin
   {$ENDIF}
   if ResolvedEl.IdentEl is TPasProperty then
     RaiseMsg(20170216152427,nPropertyNotWritable,sPropertyNotWritable,[],ErrorEl)
+  else if ResolvedEl.IdentEl is TPasConst then
+    RaiseMsg(20180430012042,nCantAssignValuesToConstVariable,sCantAssignValuesToConstVariable,[],ErrorEl)
   else
     RaiseMsg(20170216152429,nVariableIdentifierExpected,sVariableIdentifierExpected,[],ErrorEl);
 end;
@@ -16485,7 +16487,12 @@ begin
       writeln('TPasResolver.CheckParamCompatibility NeedWritable: ',GetResolverResultDbg(ExprResolved));
       {$ENDIF}
       if RaiseOnError then
-        RaiseMsg(20170216152450,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+        begin
+        if ExprResolved.IdentEl is TPasConst then
+          RaiseMsg(20180430012609,nCantAssignValuesToConstVariable,sCantAssignValuesToConstVariable,[],Expr)
+        else
+          RaiseMsg(20180430012457,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+        end;
       exit;
       end;
     if (ParamResolved.BaseType=ExprResolved.BaseType) then
@@ -17871,12 +17878,15 @@ begin
     // e.g. 'var a:b' -> compute b, use a as IdentEl
     if TPasConst(El).VarType<>nil then
       begin
-      // typed const -> just like a var
-      if rcConstant in Flags then
+      // typed const
+      if (not TPasConst(El).IsConst) and ([rcConstant,rcType]*Flags<>[]) then
         RaiseConstantExprExp(20170216152739,StartEl);
       ComputeElement(TPasConst(El).VarType,ResolvedEl,Flags+[rcType],StartEl);
       ResolvedEl.IdentEl:=El;
-      ResolvedEl.Flags:=[rrfReadable,rrfWritable];
+      if TPasConst(El).IsConst then
+        ResolvedEl.Flags:=[rrfReadable]
+      else
+        ResolvedEl.Flags:=[rrfReadable,rrfWritable];
       end
     else
       begin

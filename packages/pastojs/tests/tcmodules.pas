@@ -1038,7 +1038,7 @@ begin
   aScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
 
   aScanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
-  aScanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings];
+  aScanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings,bsWriteableConst];
 end;
 
 procedure TCustomTestModule.TearDown;

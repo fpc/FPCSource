@@ -3649,6 +3649,8 @@ begin
     NextToken;
     if CurToken = tkColon then
       begin
+      if not (bsWriteableConst in Scanner.CurrentBoolSwitches) then
+        Result.IsConst:=true;
       OldForceCaret:=Scanner.SetForceCaret(True);
       try
         Result.VarType := ParseType(Result,CurSourcePos);

@@ -337,11 +337,11 @@ const
     );
 
   bsAll = [low(TBoolSwitch)..high(TBoolSwitch)];
-  bsFPCMode: TBoolSwitches = [bsPointerMath];
-  bsObjFPCMode: TBoolSwitches = [bsPointerMath];
-  bsDelphiMode: TBoolSwitches = [];
-  bsDelphiUnicodeMode: TBoolSwitches = [];
-  bsMacPasMode: TBoolSwitches = [bsPointerMath];
+  bsFPCMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
+  bsObjFPCMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
+  bsDelphiMode: TBoolSwitches = [bsWriteableConst];
+  bsDelphiUnicodeMode: TBoolSwitches = [bsWriteableConst];
+  bsMacPasMode: TBoolSwitches = [bsPointerMath,bsWriteableConst];
 
 type
   TValueSwitch = (
@@ -3150,6 +3150,8 @@ begin
           Result:=HandleInclude(Param);
         'INTERFACES':
           HandleInterfaces(Param);
+        'LONGSTRINGS':
+          DoBoolDirective(bsLongStrings);
         'MACRO':
           DoBoolDirective(bsMacro);
         'MESSAGE':
@@ -3162,8 +3164,16 @@ begin
           DoLog(mtNote,nUserDefined,SUserDefined,[Param]);
         'NOTES':
           DoBoolDirective(bsNotes);
+        'OBJECTCHECKS':
+          DoBoolDirective(bsObjectChecks);
+        'POINTERMATH':
+          DoBoolDirective(bsPointerMath);
+        'RANGECHECKS':
+          DoBoolDirective(bsRangeChecks);
         'SCOPEDENUMS':
           DoBoolDirective(bsScopedEnums);
+        'TYPEDADDRESS':
+          DoBoolDirective(bsTypedAddress);
         'TYPEINFO':
           DoBoolDirective(bsTypeInfo);
         'UNDEF':
@@ -3172,6 +3182,8 @@ begin
           DoLog(mtWarning,nUserDefined,SUserDefined,[Param]);
         'WARNINGS':
           DoBoolDirective(bsWarnings);
+        'WRITEABLECONST':
+          DoBoolDirective(bsWriteableConst);
       else
         Handled:=false;
       end;

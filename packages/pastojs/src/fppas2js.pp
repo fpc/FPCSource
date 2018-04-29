@@ -343,7 +343,7 @@ Works:
 
 ToDos:
 - option typecast checking -Ct
-- writable const
+- $writableconst
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -391,13 +391,14 @@ Not in Version 1.0:
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
   - nested procs without var, instead as "function name(){}"
   - combine multiple var a=0,b=0
+  - skip clone record for new record
+  - SetLength(scope.a,l) -> read scope only once, same for
+    Include, Exclude, Inc, Dec, +=, -=, *=, /=
   -O1 insert local/unit vars for global type references:
       at start of intf var $r1;
       at end of impl: $r1=path;
   -O1 insert unit vars for complex literals
   -O1 no function Result var when assigned only once
-  - SetLength(scope.a,l) -> read scope only once, same for
-    Include, Exclude, Inc, Dec, +=, -=, *=, /=
   -O1 replace constant expression with result
   -O1 pass array element by ref: when index is constant, use that directly
 - objects
@@ -1031,6 +1032,7 @@ const
   msAllPas2jsBoolSwitches = [
     bsAssertions,
     bsRangeChecks,
+    bsWriteableConst,
     bsTypeInfo,
     bsOverflowChecks,
     bsHints,

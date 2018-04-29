@@ -207,6 +207,9 @@ type
     Procedure TestConstFloatOperators;
     Procedure TestFloatTypeCast;
     Procedure TestCurrency;
+    Procedure TestWritableConst;
+    Procedure TestWritableConst_AssignFail;
+    Procedure TestWritableConst_PassVarFail;
 
     // boolean
     Procedure TestBoolTypeCast;
@@ -2644,6 +2647,42 @@ begin
   '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestWritableConst;
+begin
+  StartProgram(false);
+  Add([
+  '{$writeableconst off}',
+  'const i: longint = 3;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestWritableConst_AssignFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$writeableconst off}',
+  'const i: longint = 3;',
+  'begin',
+  '  i:=4;',
+  '']);
+  CheckResolverException(sCantAssignValuesToConstVariable,nCantAssignValuesToConstVariable);
+end;
+
+procedure TTestResolver.TestWritableConst_PassVarFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$writeableconst off}',
+  'const i: longint = 3;',
+  'procedure DoIt(var j: longint); external;',
+  'begin',
+  '  DoIt(i);',
+  '']);
+  CheckResolverException(sCantAssignValuesToConstVariable,nCantAssignValuesToConstVariable);
 end;
 
 procedure TTestResolver.TestBoolTypeCast;

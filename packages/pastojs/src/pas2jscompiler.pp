@@ -767,7 +767,7 @@ function TPas2jsCompilerFile.GetInitialBoolSwitches: TBoolSwitches;
 var
   bs: TBoolSwitches;
 begin
-  bs:=[];
+  bs:=[bsWriteableConst];
   if coOverflowChecks in Compiler.Options then
     Include(bs,bsOverflowChecks);
   if coRangeChecks in Compiler.Options then

@@ -169,6 +169,7 @@ const
   nTypeXIsNotYetCompletelyDefined = 3107;
   nDuplicateCaseValueXatY = 3108;
   nMissingFieldsX = 3109;
+  nCantAssignValuesToConstVariable = 3110;
 
 // resourcestring patterns of messages
 resourcestring
@@ -270,6 +271,7 @@ resourcestring
   sTypeXIsNotYetCompletelyDefined = 'type "%s" is not yet completely defined';
   sDuplicateCaseValueXatY = 'Duplicate case value "%s", other at %s';
   sMissingFieldsX = 'Missing fields: "%s"';
+  sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
