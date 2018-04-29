@@ -270,15 +270,18 @@ type
   { TRecordValues }
 
   TRecordValuesItem = record
-    Name      : AnsiString;
+    Name      : String;
+    NameExp   : TPrimitiveExpr;
     ValueExp  : TPasExpr;
   end;
+  PRecordValuesItem = ^TRecordValuesItem;
+  TRecordValuesItemArray = array of TRecordValuesItem;
 
   TRecordValues = class(TPasExpr)
-    Fields    : array of TRecordValuesItem;
+    Fields    : TRecordValuesItemArray;
     constructor Create(AParent : TPasElement); overload;
     destructor Destroy; override;
-    procedure AddField(const AName: AnsiString; Value: TPasExpr);
+    procedure AddField(AName: TPrimitiveExpr; Value: TPasExpr);
     function GetDeclaration(full : Boolean) : string; override;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
@@ -657,9 +660,9 @@ type
       const Arg: Pointer); override;
   public
     PackMode: TPackMode;
-    Members: TFPList;     // array of TPasVariable elements
-    VariantEl: TPasElement; // TPasVariable or TPasType
-    Variants: TFPList;	// array of TPasVariant elements, may be nil!
+    Members: TFPList;     // list of TPasVariable elements
+    VariantEl: TPasElement; // nil or TPasVariable or TPasType
+    Variants: TFPList;	// list of TPasVariant elements, may be nil!
     GenericTemplateTypes: TFPList; // list of TPasGenericTemplateType
     Function IsPacked: Boolean;
     Function IsBitPacked : Boolean;
@@ -3673,14 +3676,14 @@ var
   i: Integer;
 begin
   inherited ForEachCall(aMethodCall, Arg);
+  for i:=0 to GenericTemplateTypes.Count-1 do
+    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
   for i:=0 to Members.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
   ForEachChildCall(aMethodCall,Arg,VariantEl,false);
   if Variants<>nil then
     for i:=0 to Variants.Count-1 do
       ForEachChildCall(aMethodCall,Arg,TPasElement(Variants[i]),false);
-  for i:=0 to GenericTemplateTypes.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
 end;
 
 function TPasRecordType.IsPacked: Boolean;
@@ -4829,8 +4832,12 @@ begin
   inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to length(Fields)-1 do
     with Fields[i] do
+      begin
+      if NameExp<>nil then
+        ForEachChildCall(aMethodCall,Arg,NameExp,false);
       if ValueExp<>nil then
         ForEachChildCall(aMethodCall,Arg,ValueExp,false);
+      end;
 end;
 
 constructor TRecordValues.Create(AParent : TPasElement);
@@ -4848,13 +4855,15 @@ begin
   inherited Destroy;
 end;
 
-procedure TRecordValues.AddField(const AName:AnsiString;Value:TPasExpr);
+procedure TRecordValues.AddField(AName: TPrimitiveExpr; Value: TPasExpr);
 var
   i : Integer;
 begin
   i:=length(Fields);
   SetLength(Fields, i+1);
-  Fields[i].Name:=AName;
+  Fields[i].Name:=AName.Value;
+  Fields[i].NameExp:=AName;
+  AName.Parent:=Self;
   Fields[i].ValueExp:=Value;
   Value.Parent:=Self;
 end;

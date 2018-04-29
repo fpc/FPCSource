@@ -1523,6 +1523,7 @@ begin
   ok:=false;
   Try
     TPasPointerType(Result).DestType := ParseType(Result,CurSourcePos);
+    Engine.FinishScope(stTypeDef,Result);
     ok:=true;
   finally
     if not ok then
@@ -2540,7 +2541,7 @@ function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
         end;
       repeat
         NextToken;
-        a.AddValues(DoParseConstValueExpression(AParent));
+        a.AddValues(DoParseConstValueExpression(a));
       until CurToken<>tkComma;
       Result:=a;
     finally
@@ -2553,7 +2554,7 @@ function TPasParser.DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
   end;
 
 var
-  x : TPasExpr;
+  x , v: TPasExpr;
   n : AnsiString;
   r : TRecordValues;
 begin
@@ -2573,32 +2574,34 @@ begin
 
         tkColon: // record field (a:xxx;b:yyy;c:zzz);
           begin
-            r:=nil;
-            try
-              n:=GetExprIdent(x);
-              ReleaseAndNil(TPasElement(x));
-              r:=CreateRecordValues(AParent);
-              NextToken;
-              x:=DoParseConstValueExpression(AParent);
-              r.AddField(n, x);
-              x:=nil;
-              if not lastfield then
-                repeat
-                  n:=ExpectIdentifier;
-                  ExpectToken(tkColon);
-                  NextToken;
-                  x:=DoParseConstValueExpression(AParent);
-                  r.AddField(n, x);
-                  x:=nil;
-                until lastfield; // CurToken<>tkSemicolon;
-              Result:=r;
-            finally
-              if Result=nil then
-                begin
-                r.Free;
-                x.Free;
-                end;
-            end;
+          if not (x is TPrimitiveExpr) then
+            CheckToken(tkBraceClose);
+          r:=nil;
+          try
+            n:=GetExprIdent(x);
+            r:=CreateRecordValues(AParent);
+            NextToken;
+            v:=DoParseConstValueExpression(r);
+            r.AddField(TPrimitiveExpr(x), v);
+            x:=nil;
+            if not lastfield then
+              repeat
+                n:=ExpectIdentifier;
+                x:=CreatePrimitiveExpr(r,pekIdent,n);
+                ExpectToken(tkColon);
+                NextToken;
+                v:=DoParseConstValueExpression(AParent);
+                r.AddField(TPrimitiveExpr(x), v);
+                x:=nil;
+              until lastfield; // CurToken<>tkSemicolon;
+            Result:=r;
+          finally
+            if Result=nil then
+              begin
+              r.Free;
+              x.Free;
+              end;
+          end;
           end;
       else
         // Binary expression!  ((128 div sizeof(longint)) - 3);
