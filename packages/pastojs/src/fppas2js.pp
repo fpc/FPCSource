@@ -21,6 +21,7 @@ Works:
 - unit interface function
 - uses list
 - use $impl for implementation declarations, can be disabled
+- option to disable "use strict"
 - interface vars
   - only double, no other float type
   - only string, no other string type
@@ -28,7 +29,6 @@ Works:
 - implementation vars
 - external vars
 - initialization section
-- option to add "use strict";
 - procedures
   - params
   - local vars
@@ -114,6 +114,7 @@ Works:
   - bracket accessor, getter/setter has external name '[]'
   - TObject.Free sets variable to nil
   - property stored and index modifier
+  - option verify method calls -CR, bsObjectChecks
 - dynamic arrays
   - arrays can be null
   - init as "arr = []"  so typeof works
@@ -138,6 +139,7 @@ Works:
   - length(1-dim array)
   - low(1-dim array), high(1-dim array)
   - "=" operator for records with static array fields
+  - of record
 - open arrays
   - as dynamic arrays
 - enums
@@ -322,7 +324,6 @@ Works:
   - COM: with interface do
   - COM: for interface in ... do
   - COM: pass IntfVar to untyped parameter
-- option to disable use strict
 - currency:
   - as nativeint*10000
   - CurA+CurB -> CurA+CurB
@@ -338,8 +339,11 @@ Works:
   - p:=@r, p^:=r
   - p^.x, p.x
   - dispose, new
+- typecast byte(longword) -> value & $ff
 
 ToDos:
+- option typecast checking -Ct
+- writable const
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -347,14 +351,11 @@ ToDos:
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - setlength(dynarray)  modeswitch to create a copy
-- typecast byte(longword) -> value & $ff
 - static arrays
-  - a[] of record
   - clone multi dim static array
 - RTTI
   - inherit default value, inherit nodefault
   - class property
-  - type alias type
   - documentation
 - nested classes
 - asm: pas() - useful for overloads and protect an identifier from optimization
@@ -365,7 +366,7 @@ ToDos:
 Not in Version 1.0:
 - make records more lightweight
 - 1 as TEnum, ERangeError
-- ifthen
+- ifthen<T>
 - stdcall of methods: pass original 'this' as first parameter
 - move local types to unit scope
 - property read Arr[0]  https://bugs.freepascal.org/view.php?id=33416
@@ -378,10 +379,8 @@ Not in Version 1.0:
 - enums with custom values
 - library
 - constref
-- option typecast checking -Ct
-- option verify method calls -CR
-- option range checking -Cr
 - option overflow checking -Co
+  +, -, *, Succ, Pred, Inc, Dec
 - optimizations:
   - move rtl.js functions to system.pp
   - add $mod only if needed
@@ -1096,8 +1095,7 @@ const
     proExtClassInstanceNoTypeMembers,
     proOpenAsDynArrays,
     proProcTypeWithoutIsNested,
-    proMethodAddrAsPointer,
-    proNoPointerArithmetic
+    proMethodAddrAsPointer
     ];
 type
   TPas2JSResolver = class(TPasResolver)

@@ -1088,8 +1088,7 @@ type
     //ToDo: proStaticArrayCopy, // copy works with static arrays, returning a dynamic array
     //ToDo: proStaticArrayConcat, // concat works with static arrays, returning a dynamic array
     proProcTypeWithoutIsNested, // proc types can use nested procs without 'is nested'
-    proMethodAddrAsPointer,  // can assign @method to a pointer
-    proNoPointerArithmetic // forbid pointer+integer and pointer[]
+    proMethodAddrAsPointer  // can assign @method to a pointer
     );
   TPasResolverOptions = set of TPasResolverOption;
 
@@ -8106,9 +8105,8 @@ procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
     if not IsStringIndex then
       begin
       // pointer
-      if ([msFpc,msObjfpc]*CurrentParser.CurrentModeswitches=[])
-          or (proNoPointerArithmetic in Options) then
-        exit(false); // only mode fpc and objfpc allow pointer[]
+      if not (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
+        exit(false);
       end;
     Result:=true;
     if not (rrfReadable in ResolvedValue.Flags) then
@@ -9054,7 +9052,7 @@ begin
         else if RightResolved.BaseType=btPointer then
           begin
           if (Bin.OpCode in [eopAdd,eopSubtract])
-              and not (proNoPointerArithmetic in Options) then
+              and (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
             begin
             // integer+CanonicalPointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -9068,7 +9066,7 @@ begin
           if RightTypeEl.ClassType=TPasPointerType then
             begin
             if (Bin.OpCode in [eopAdd,eopSubtract])
-                and not (proNoPointerArithmetic in Options) then
+                and (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
               begin
               // integer+TypedPointer
               RightTypeEl:=TPasPointerType(RightTypeEl).DestType;
@@ -9261,7 +9259,7 @@ begin
       if (RightResolved.BaseType in btAllInteger) then
         case Bin.OpCode of
         eopAdd,eopSubtract:
-          if not (proNoPointerArithmetic in Options) then
+          if (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
             begin
             // pointer+integer -> pointer
             SetResolverValueExpr(ResolvedEl,btPointer,
@@ -9535,7 +9533,7 @@ begin
       case Bin.OpCode of
       eopAdd,eopSubtract:
         if (RightResolved.BaseType in btAllInteger)
-            and not (proNoPointerArithmetic in Options) then
+            and (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
           begin
           // TypedPointer+Integer
           SetLeftValueExpr([rrfReadable]);
@@ -11690,14 +11688,14 @@ begin
     Result:=cExact
   else if ParamResolved.BaseType=btPointer then
     begin
-    if not (proNoPointerArithmetic in Options) then
+    if (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
       Result:=cExact;
     end
   else if ParamResolved.BaseType=btContext then
     begin
     TypeEl:=ParamResolved.LoTypeEl;
     if (TypeEl.ClassType=TPasPointerType)
-        and not (proNoPointerArithmetic in Options) then
+        and (bsPointerMath in CurrentParser.Scanner.CurrentBoolSwitches) then
       Result:=cExact;
     end;
   if Result=cIncompatible then

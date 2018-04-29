@@ -302,7 +302,8 @@ type
     bsWarnings,
     bsMacro,
     bsScopedEnums,
-    bsObjectChecks    // check methods 'Self' and object type casts
+    bsObjectChecks,   // check methods 'Self' and object type casts
+    bsPointerMath     // pointer arithmetic
     );
   TBoolSwitches = set of TBoolSwitch;
 const
@@ -336,8 +337,11 @@ const
     );
 
   bsAll = [low(TBoolSwitch)..high(TBoolSwitch)];
-  FPCModeBoolSwitches = [bsAlign..bsReferenceInfo,
-                         bsHints,bsNotes,bsWarnings,bsMacro,bsScopedEnums];
+  bsFPCMode: TBoolSwitches = [bsPointerMath];
+  bsObjFPCMode: TBoolSwitches = [bsPointerMath];
+  bsDelphiMode: TBoolSwitches = [];
+  bsDelphiUnicodeMode: TBoolSwitches = [];
+  bsMacPasMode: TBoolSwitches = [bsPointerMath];
 
 type
   TValueSwitch = (
@@ -996,7 +1000,8 @@ const
     'Warnings',
     'Macro',
     'ScopedEnums',
-    'ObjectChecks'
+    'ObjectChecks',
+    'PointerMath'
     );
 
   ValueSwitchNames: array[TValueSwitch] of string = (
@@ -1027,6 +1032,7 @@ const
   // mode switches of $mode FPC, don't confuse with msAllFPCModeSwitches
   FPCModeSwitches = [msFpc,msStringPchar,msNestedComment,msRepeatForward,
     msCVarSupport,msInitFinal,msHintDirective,msProperty,msDefaultInline];
+  //FPCBoolSwitches bsObjectChecks
 
   OBJFPCModeSwitches =  [msObjfpc,msClass,msObjpas,msResult,msStringPchar,msNestedComment,
     msRepeatForward,msCVarSupport,msInitFinal,msOut,msDefaultPara,msHintDirective,
@@ -2341,8 +2347,8 @@ begin
   FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
   FAllowedModeSwitches:=msAllFPCModeSwitches;
-  FCurrentBoolSwitches:=[];
-  FAllowedBoolSwitches:=FPCModeBoolSwitches;
+  FCurrentBoolSwitches:=bsFPCMode;
+  FAllowedBoolSwitches:=bsAll;
   FAllowedValueSwitches:=vsAllValueSwitches;
   FCurrentValueSwitches[vsInterfaces]:=DefaultVSInterfaces;
 
@@ -2836,12 +2842,17 @@ end;
 
 procedure TPascalScanner.HandleMode(const Param: String);
 
-  procedure SetMode(const LangMode: TModeSwitch; const NewModeSwitches: TModeSwitches;
-    IsDelphi: boolean);
+  procedure SetMode(const LangMode: TModeSwitch;
+    const NewModeSwitches: TModeSwitches; IsDelphi: boolean;
+    const AddBoolSwitches: TBoolSwitches = [];
+    const RemoveBoolSwitches: TBoolSwitches = []
+    );
   begin
     if not (LangMode in AllowedModeSwitches) then
       Error(nErrInvalidMode,SErrInvalidMode,[Param]);
     CurrentModeSwitches:=(NewModeSwitches+ReadOnlyModeSwitches)*AllowedModeSwitches;
+    CurrentBoolSwitches:=CurrentBoolSwitches+(AddBoolSwitches*AllowedBoolSwitches)
+      -(RemoveBoolSwitches*AllowedBoolSwitches);
     if IsDelphi then
       FOptions:=FOptions+[po_delphi]
     else
@@ -2855,17 +2866,17 @@ begin
   P:=UpperCase(Param);
   Case P of
   'FPC','DEFAULT':
-    SetMode(msFpc,FPCModeSwitches,false);
+    SetMode(msFpc,FPCModeSwitches,false,bsFPCMode);
   'OBJFPC':
-    SetMode(msObjfpc,OBJFPCModeSwitches,true);
+    SetMode(msObjfpc,OBJFPCModeSwitches,true,bsObjFPCMode);
   'DELPHI':
-    SetMode(msDelphi,DelphiModeSwitches,true);
+    SetMode(msDelphi,DelphiModeSwitches,true,bsDelphiMode,[bsPointerMath]);
   'DELPHIUNICODE':
-    SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true);
+    SetMode(msDelphiUnicode,DelphiUnicodeModeSwitches,true,bsDelphiUnicodeMode,[bsPointerMath]);
   'TP':
     SetMode(msTP7,TPModeSwitches,false);
   'MACPAS':
-    SetMode(msMac,MacModeSwitches,false);
+    SetMode(msMac,MacModeSwitches,false,bsMacPasMode);
   'ISO':
     SetMode(msIso,ISOModeSwitches,false);
   'EXTENDED':
