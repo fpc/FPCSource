@@ -168,6 +168,7 @@ const
   nTypeCycleFound = 3106;
   nTypeXIsNotYetCompletelyDefined = 3107;
   nDuplicateCaseValueXatY = 3108;
+  nMissingFieldsX = 3109;
 
 // resourcestring patterns of messages
 resourcestring
@@ -268,6 +269,7 @@ resourcestring
   sTypeCycleFound = 'Type cycle found';
   sTypeXIsNotYetCompletelyDefined = 'type "%s" is not yet completely defined';
   sDuplicateCaseValueXatY = 'Duplicate case value "%s", other at %s';
+  sMissingFieldsX = 'Missing fields: "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

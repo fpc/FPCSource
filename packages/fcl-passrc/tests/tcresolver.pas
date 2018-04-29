@@ -421,7 +421,6 @@ type
     Procedure TestProc_TypeCastFunctionResult;
     Procedure TestProc_ImplicitCalls;
     Procedure TestProc_Absolute;
-    // ToDo: fail builtin functions in constant with non const param
 
     // record
     Procedure TestRecord;
@@ -433,6 +432,13 @@ type
     Procedure TestRecord_WriteNestedConstParamWithFail;
     Procedure TestRecord_TypeCast;
     Procedure TestRecord_NewDispose;
+    Procedure TestRecord_Const;
+    Procedure TestRecord_Const_DuplicateFail;
+    Procedure TestRecord_Const_ExprMismatchFail;
+    Procedure TestRecord_Const_MissingHint;
+    Procedure TestRecord_Const_UntypedFail;
+    Procedure TestRecord_Const_NestedRecord;
+    Procedure TestRecord_Const_Variant;
 
     // class
     Procedure TestClass;
@@ -528,7 +534,6 @@ type
     Procedure TestClass_EnumeratorFunc;
     Procedure TestClass_ForInPropertyStaticArray;
     Procedure TestClass_TypeAlias;
-    // Todo: Fail to use class.method in constant or type, e.g. const p = @o.doit;
 
     // published
     Procedure TestClass_PublishedClassVarFail;
@@ -655,6 +660,7 @@ type
     Procedure TestArrayOfArray_NameAnonymous;
     Procedure TestFunctionReturningArray;
     Procedure TestArray_LowHigh;
+    Procedure TestArray_LowVarFail;
     Procedure TestArray_AssignSameSignatureFail;
     Procedure TestArray_Assigned;
     Procedure TestPropertyOfTypeArray;
@@ -667,6 +673,9 @@ type
     Procedure TestArrayEnumTypeSetLengthFail;
     Procedure TestArrayEnumCustomRange;
     Procedure TestArray_DynArrayConst;
+    Procedure TestArray_Static_Const;
+    Procedure TestArray_Record_Const;
+    Procedure TestArray_MultiDim_Const;
     Procedure TestArray_AssignNilToStaticArrayFail1;
     Procedure TestArray_SetLengthProperty;
     Procedure TestStaticArray_SetlengthFail;
@@ -686,7 +695,6 @@ type
     Procedure TestArray_TypeCastWrongElTypeFail;
     Procedure TestArray_ConstDynArrayWrite;
     Procedure TestArray_ConstOpenArrayWriteFail;
-    Procedure TestArray_Static_Const;
 
     // array of const
     Procedure TestArrayOfConst;
@@ -732,6 +740,7 @@ type
 
     // pointer
     Procedure TestPointer;
+    Procedure TestPointer_AnonymousSetFail;
     Procedure TestPointer_AssignPointerToClassFail;
     Procedure TestPointer_TypecastToMethodTypeFail;
     Procedure TestPointer_TypecastFromMethodTypeFail;
@@ -6639,27 +6648,28 @@ end;
 procedure TTestResolver.TestRecordVariantNested;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TRec}TRec = record');
-  Add('    {#Size}Size: longint;');
-  Add('    case {#vari}vari: longint of');
-  Add('    0: ({#b}b: longint)');
-  Add('    1: ({#c}c:');
-  Add('          record');
-  Add('            {#d}d: longint;');
-  Add('            case {#e}e: longint of');
-  Add('            0: ({#f}f: longint)');
-  Add('          end)');
-  Add('  end;');
-  Add('var');
-  Add('  {#r}{=TRec}r: TRec;');
-  Add('begin');
-  Add('  {@r}r.{@Size}Size:=3;');
-  Add('  {@r}r.{@vari}vari:=4;');
-  Add('  {@r}r.{@b}b:=5;');
-  Add('  {@r}r.{@c}c.{@d}d:=6;');
-  Add('  {@r}r.{@c}c.{@e}e:=7;');
-  Add('  {@r}r.{@c}c.{@f}f:=8;');
+  Add([
+  'type',
+  '  {#TRec}TRec = record',
+  '    {#Size}Size: longint;',
+  '    case {#vari}vari: longint of',
+  '    0: ({#b}b: longint)',
+  '    1: ({#c}c:',
+  '          record',
+  '            {#d}d: longint;',
+  '            case {#e}e: longint of',
+  '            0: ({#f}f: longint)',
+  '          end)',
+  '  end;',
+  'var',
+  '  {#r}{=TRec}r: TRec;',
+  'begin',
+  '  {@r}r.{@Size}Size:=3;',
+  '  {@r}r.{@vari}vari:=4;',
+  '  {@r}r.{@b}b:=5;',
+  '  {@r}r.{@c}c.{@d}d:=6;',
+  '  {@r}r.{@c}c.{@e}e:=7;',
+  '  {@r}r.{@c}c.{@f}f:=8;']);
   ParseProgram;
 end;
 
@@ -6768,6 +6778,109 @@ begin
   '  New(q);',
   '  Dispose(q);',
   '  ']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'const r: TPoint = (x:1; y:2);',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_Const_DuplicateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'const r: TPoint = (x:1; x:2);',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "x" at afile.pp(4,20)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestRecord_Const_ExprMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'const r: TPoint = (x:1; x:2);',
+  'begin',
+  '']);
+  CheckResolverException('Duplicate identifier "x" at afile.pp(4,20)',nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestRecord_Const_MissingHint;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'const r: TPoint = (x:1);',
+  'begin',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtHint,nMissingFieldsX,'Missing fields: "y"');
+end;
+
+procedure TTestResolver.TestRecord_Const_UntypedFail;
+begin
+  StartProgram(false);
+  Add([
+  'const r = (x:1);',
+  'begin',
+  '']);
+  CheckResolverException('Syntax error, "const" expected but "record values" found',nSyntaxErrorExpectedButFound);
+end;
+
+procedure TTestResolver.TestRecord_Const_NestedRecord;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  '  TSrc = record',
+  '    Id: longint;',
+  '    XY: TPoint',
+  '  end;',
+  'const r: TSrc = (Id:1; XY: (x:2; y:3));',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecord_Const_Variant;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TRec}TRec = record',
+  '    {#Size}Size: longint;',
+  '    case {#vari}vari: longint of',
+  '    0: ({#b}b: longint);',
+  '    1: ({#c}c:',
+  '          record',
+  '            {#d}d: longint;',
+  '            case {#e}e: longint of',
+  '            0: ({#f}f: longint)',
+  '          end)',
+  '  end;',
+  'const',
+  '  {#r}r: TRec = (',
+  '    {@Size}Size:2;',
+  '    {@c}c:(',
+  '      {@d}d:3;',
+  '      {@f}f:4',
+  '    )',
+  '  );',
+  'begin']);
   ParseProgram;
 end;
 
@@ -11230,6 +11343,16 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestArray_LowVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'var a: array of longint;',
+  'const l = length(a);',
+  'begin']);
+  CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
+end;
+
 procedure TTestResolver.TestArray_AssignSameSignatureFail;
 begin
   StartProgram(false);
@@ -11468,6 +11591,61 @@ begin
   '']);
   ParseProgram;
   CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestArray_Static_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TIntArr = array[1..3] of longint;',
+  'const',
+  '  a = low(TIntArr)+high(TIntArr);',
+  '  b: array[1..3] of longint = (10,11,12);',
+  '  c: array[boolean] of TIntArr = ((21,22,23),(31,32,33));',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestArray_Record_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  '  TDynArray = array of TPoint;',
+  '  TStaticArray = array[1..2] of TPoint;',
+  '  TRecArr = record',
+  '    DA: TDynArray;',
+  '    SA: TStaticArray;',
+  '  end;',
+  'const',
+  '  sa: TStaticArray = ( (x:2; y:3), (x:12;y:14) );',
+  '  da: TDynArray = ( (x:22; y:23), (x:32;y:34) );',
+  '  ra: TRecArr = (',
+  '    DA: ( (x:42; y:43), (x:44;y:45) );',
+  '    SA: ( (x:51; y:52), (x:53;y:54) );',
+  '  );',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_MultiDim_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TDynArray = array of longint;',
+  '  TArrOfArr = array[1..2] of TDynArray;',
+  '  TMultiDimArr = array[1..2,3..4] of longint;',
+  'const',
+  '  AoA: TArrOfArr = ( (1,2), (2,3) );',
+  '  MultiDimArr: TMultiDimArr = ( (11,12), (13,14) );',
+  'begin',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestArray_AssignNilToStaticArrayFail1;
@@ -11770,21 +11948,6 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException('Variable identifier expected',nVariableIdentifierExpected);
-end;
-
-procedure TTestResolver.TestArray_Static_Const;
-begin
-  StartProgram(false);
-  Add([
-  'type',
-  '  TIntArr = array[1..3] of longint;',
-  'const',
-  '  a = low(TIntArr)+high(TIntArr);',
-  '  b: array[1..3] of longint = (10,11,12);',
-  '  c: array[boolean] of TIntArr = ((21,22,23),(31,32,33));',
-  'begin']);
-  ParseProgram;
-  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestArrayOfConst;
@@ -12817,6 +12980,16 @@ begin
   Add('  cl:=TClass(p);');
   Add('  a:=TArrInt(p);');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestPointer_AnonymousSetFail;
+begin
+  StartProgram(false);
+  Add([
+  'type p = ^(red, green);',
+  'begin']);
+  CheckResolverException('not yet implemented: pointer of anonymous type',
+    nNotYetImplemented);
 end;
 
 procedure TTestResolver.TestPointer_AssignPointerToClassFail;

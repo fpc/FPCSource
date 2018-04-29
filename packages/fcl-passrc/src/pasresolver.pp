@@ -47,6 +47,7 @@ Works:
 - record
   - variants
   - const param makes children const too
+  - const  TRecordValues
 - class:
   - forward declaration
   - instance.a
@@ -146,6 +147,7 @@ Works:
   - TypedPointer:=TypedPointer
   - TypedPointer:=@Some
   - pointer[index], (@i)[index]
+  - dispose(pointerofrecord), new(pointerofrecord)
 - emit hints
   - platform, deprecated, experimental, library, unimplemented
   - hiding ancestor method
@@ -210,10 +212,7 @@ ToDo:
 - fail to write a loop var inside the loop
 - nested classes
 - records - TPasRecordType,
-   - const  TRecordValues
    - function default(record type): record
-   - pointer of record
-- dispose(pointerofrecord), new(pointerofrecord)
 - proc: check if forward and impl default values match
 - call array of proc without ()
 - array+array
@@ -1269,6 +1268,7 @@ type
       Access: TResolvedRefAccess): boolean; virtual;
     procedure ResolveSetParamsExpr(Params: TParamsExpr); virtual;
     procedure ResolveArrayValues(El: TArrayValues); virtual;
+    procedure ResolveRecordValues(El: TRecordValues); virtual;
     function ResolveAccessor(Expr: TPasExpr): TPasElement;
     procedure SetResolvedRefAccess(Expr: TPasExpr; Ref: TResolvedReference;
       Access: TResolvedRefAccess); virtual;
@@ -1337,6 +1337,10 @@ type
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
     procedure ComputeDereference(El: TUnaryExpr; var ResolvedEl: TPasResolverResult);
+    procedure ComputeArrayValuesExpectedType(El: TArrayValues; out ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
+    procedure ComputeRecordValues(El: TRecordValues; out ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil);
     procedure CheckIsClass(El: TPasElement; const ResolvedEl: TPasResolverResult);
     function CheckTypeCastClassInstanceToClass(
       const FromClassRes, ToClassRes: TPasResolverResult;
@@ -4542,6 +4546,8 @@ begin
     FinishClassType(TPasClassType(El))
   else if C=TPasClassOfType then
     FinishClassOfType(TPasClassOfType(El))
+  else if C=TPasPointerType then
+    FinishPointerType(TPasPointerType(El))
   else if C=TPasArrayType then
     FinishArrayType(TPasArrayType(El))
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
@@ -4848,6 +4854,8 @@ var
 begin
   TypeEl:=ResolveAliasType(El.DestType);
   if TypeEl is TUnresolvedPendingRef then exit;
+  if El.DestType.Parent=El then
+    RaiseMsg(20180429094237,nNotYetImplemented,sNotYetImplemented,['pointer of anonymous type'],El.DestType);
   CheckPointerCycle(El);
 end;
 
@@ -7350,6 +7358,13 @@ begin
         [],El);
     ResolveArrayValues(TArrayValues(El));
     end
+  else if ElClass=TRecordValues then
+    begin
+    if Access<>rraRead then
+      RaiseMsg(20180429103024,nVariableIdentifierExpected,sVariableIdentifierExpected,
+        [],El);
+    ResolveRecordValues(TRecordValues(El));
+    end
   else
     RaiseNotYetImplemented(20170222184329,El);
 
@@ -8219,6 +8234,101 @@ var
 begin
   for i:=0 to length(El.Values)-1 do
     ResolveExpr(El.Values[i],rraRead);
+end;
+
+procedure TPasResolver.ResolveRecordValues(El: TRecordValues);
+
+  function GetMember(RecType: TPasRecordType; const aName: string): TPasElement;
+  var
+    i: Integer;
+  begin
+    for i:=0 to RecType.Members.Count-1 do
+      begin
+      Result:=TPasElement(RecType.Members[i]);
+      if SameText(Result.Name,aName) then
+        exit;
+      end;
+    if (RecType.VariantEl is TPasVariable) then
+      begin
+      Result:=TPasVariable(RecType.VariantEl);
+      if SameText(Result.Name,aName) then
+        exit;
+      end;
+    if RecType.Variants<>nil then
+      for i:=0 to RecType.Variants.Count-1 do
+        begin
+        Result:=GetMember(TPasVariant(RecType.Variants[i]).Members,aName);
+        if Result<>nil then
+          exit;
+        end;
+    Result:=nil;
+  end;
+
+var
+  i, j: Integer;
+  Member: TPasElement;
+  RecType: TPasRecordType;
+  Field: PRecordValuesItem;
+  s: String;
+  ResolvedEl: TPasResolverResult;
+begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.ResolveRecordValues ',El.Fields[0].Name,' ',GetObjName(El.Parent),' ',GetObjName(El.Parent.Parent));
+  {$ENDIF}
+  ComputeElement(El,ResolvedEl,[]);
+  if (ResolvedEl.BaseType<>btContext)
+      or (ResolvedEl.LoTypeEl.ClassType<>TPasRecordType) then
+    begin
+    RaiseIncompatibleTypeDesc(20180429104135,nIncompatibleTypesGotExpected,
+      [],'record value',GetTypeDescription(ResolvedEl),El);
+    end;
+  RecType:=TPasRecordType(ResolvedEl.LoTypeEl);
+  //writeln('TPasResolver.ResolveRecordValues ',GetObjName(El.Parent),' ',GetObjName(RecType));
+  for i:=0 to length(El.Fields)-1 do
+    begin
+    Field:=@El.Fields[i];
+    // check member exists
+    Member:=GetMember(RecType,Field^.Name);
+    if Member=nil then
+      RaiseIdentifierNotFound(20180429104703,Field^.Name,Field^.NameExp);
+    if not (Member is TPasVariable) then
+      RaiseMsg(20180429121933,nVariableIdentifierExpected,sVariableIdentifierExpected,
+        [],Field^.ValueExp);
+    CreateReference(Member,Field^.NameExp,rraAssign);
+    // check duplicates
+    for j:=0 to i-1 do
+      if SameText(Field^.Name,El.Fields[j].Name) then
+        RaiseMsg(20180429104942,nDuplicateIdentifier,sDuplicateIdentifier,
+          [Field^.Name,GetElementSourcePosStr(El.Fields[j].NameExp)],Field^.NameExp);
+    // resolve expression
+    ResolveExpr(El.Fields[i].ValueExp,rraRead);
+    // check compatible
+    CheckAssignCompatibility(Member,Field^.ValueExp);
+    end;
+  // hint for missing fields
+  s:='';
+  for i:=0 to RecType.Members.Count-1 do
+    begin
+    Member:=TPasElement(RecType.Members[i]);
+    if not (Member is TPasVariable) then continue;
+    j:=length(El.Fields)-1;
+    while (j>=0) and not SameText(Member.Name,El.Fields[j].Name) do
+      dec(j);
+    //writeln('TPasResolver.ResolveRecordValues ',GetObjName(Member),' ',j);
+    if j<0 then
+      begin
+      if s<>'' then s:=s+', ';
+      if length(s)>30 then
+        begin
+        s:=s+'...';
+        break;
+        end;
+      s:=s+Member.Name;
+      end;
+    end;
+  // ToDo: hint for missing variants
+  if s<>'' then
+    LogMsg(20180429121127,mtHint,nMissingFieldsX,sMissingFieldsX,[s],El);
 end;
 
 function TPasResolver.ResolveAccessor(Expr: TPasExpr): TPasElement;
@@ -9932,6 +10042,150 @@ begin
     end;
   RaiseMsg(20180422191139,nIllegalQualifierInFrontOf,sIllegalQualifierInFrontOf,
     [OpcodeStrings[eopDeref],GetResolverResultDescription(ResolvedEl)],El);
+end;
+
+procedure TPasResolver.ComputeArrayValuesExpectedType(El: TArrayValues; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+// (expr, expr, ...)
+var
+  Parent: TPasElement;
+  HiTypeEl, LoTypeEl: TPasType;
+  Field: PRecordValuesItem;
+  Ref: TResolvedReference;
+  Member: TPasVariable;
+  i: Integer;
+  ArrType: TPasArrayType;
+begin
+  Parent:=El.Parent;
+  if Parent is TPasVariable then
+    begin
+    HiTypeEl:=TPasVariable(Parent).VarType;
+    if HiTypeEl=nil then
+      RaiseMsg(20180429171628,nSyntaxErrorExpectedButFound,sSyntaxErrorExpectedButFound,
+        ['const','array values'],El);
+    LoTypeEl:=ResolveAliasType(HiTypeEl);
+    if LoTypeEl.ClassType=TPasArrayType then
+      // ok
+    else
+      RaiseIncompatibleTypeDesc(20180429171714,nIncompatibleTypesGotExpected,
+        [],'array value',GetTypeDescription(HiTypeEl),El);
+    SetResolverValueExpr(ResolvedEl,btContext,LoTypeEl,HiTypeEl,
+       El,[rrfReadable]);
+    end
+  else if Parent.ClassType=TRecordValues then
+    begin
+    // record field array
+    // get field
+    i:=length(TRecordValues(Parent).Fields)-1;
+    while (i>=0) and (TRecordValues(Parent).Fields[i].ValueExp<>El) do
+      dec(i);
+    if i<0 then
+      RaiseInternalError(20180429181150);
+    Field:=@TRecordValues(Parent).Fields[i];
+    // get member
+    Ref:=Field^.NameExp.CustomData as TResolvedReference;
+    Member:=Ref.Declaration as TPasVariable;
+    if Member=nil then
+      RaiseInternalError(20180429181210);
+    ComputeElement(Member,ResolvedEl,[],StartEl);
+    ResolvedEl.Flags:=[rrfReadable];
+    end
+  else if Parent.ClassType=TArrayValues then
+    begin
+    // array of array
+    ComputeArrayValuesExpectedType(TArrayValues(Parent),ResolvedEl,Flags,StartEl);
+    if (ResolvedEl.BaseType=btContext)
+        and (ResolvedEl.LoTypeEl.ClassType=TPasArrayType) then
+      begin
+      ArrType:=TPasArrayType(ResolvedEl.LoTypeEl);
+      if length(ArrType.Ranges)>1 then
+        RaiseNotYetImplemented(20180429180930,El);
+      HiTypeEl:=ArrType.ElType;
+      LoTypeEl:=ResolveAliasType(HiTypeEl);
+      if LoTypeEl.ClassType<>TPasArrayType then
+        RaiseIncompatibleTypeDesc(20180429180938,nIncompatibleTypesGotExpected,
+          [],'array values',GetTypeDescription(HiTypeEl),El);
+      SetResolverValueExpr(ResolvedEl,btContext,LoTypeEl,HiTypeEl,
+         El,[rrfReadable]);
+      end
+    else
+      RaiseIncompatibleTypeDesc(20180429173143,nIncompatibleTypesGotExpected,
+        [],'array values',GetTypeDescription(ResolvedEl),El);
+    end
+  else
+    SetResolverValueExpr(ResolvedEl,btSet,nil,nil,TArrayValues(El),[rrfReadable]);
+end;
+
+procedure TPasResolver.ComputeRecordValues(El: TRecordValues; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
+  StartEl: TPasElement);
+// (name:expr; name:expr; ...)
+var
+  Parent, Member: TPasElement;
+  LoTypeEl, HiTypeEl: TPasType;
+  i: Integer;
+  Field: PRecordValuesItem;
+  Ref: TResolvedReference;
+  ArrType: TPasArrayType;
+begin
+  Parent:=El.Parent;
+  if Parent is TPasVariable then
+    begin
+    HiTypeEl:=TPasVariable(Parent).VarType;
+    if HiTypeEl=nil then
+      RaiseMsg(20180429105451,nSyntaxErrorExpectedButFound,sSyntaxErrorExpectedButFound,
+        ['const','record values'],El);
+    LoTypeEl:=ResolveAliasType(HiTypeEl);
+    if LoTypeEl.ClassType<>TPasRecordType then
+      RaiseIncompatibleTypeDesc(20180429104135,nIncompatibleTypesGotExpected,
+        [],'record value',GetTypeDescription(HiTypeEl),El);
+    SetResolverValueExpr(ResolvedEl,btContext,LoTypeEl,HiTypeEl,
+       El,[rrfReadable]);
+    end
+  else if Parent.ClassType=TRecordValues then
+    begin
+    // nested record
+    // get field
+    i:=length(TRecordValues(Parent).Fields)-1;
+    while (i>=0) and (TRecordValues(Parent).Fields[i].ValueExp<>El) do
+      dec(i);
+    if i<0 then
+      RaiseInternalError(20180429130244);
+    Field:=@TRecordValues(Parent).Fields[i];
+    // get member
+    Ref:=Field^.NameExp.CustomData as TResolvedReference;
+    Member:=Ref.Declaration as TPasVariable;
+    if Member=nil then
+      RaiseInternalError(20180429130548);
+    ComputeElement(Member,ResolvedEl,[],StartEl);
+    ResolvedEl.Flags:=[rrfReadable];
+    end
+  else if Parent.ClassType=TArrayValues then
+    begin
+    // array of record
+    ComputeArrayValuesExpectedType(TArrayValues(Parent),ResolvedEl,Flags,StartEl);
+    if (ResolvedEl.BaseType=btContext)
+        and (ResolvedEl.LoTypeEl.ClassType=TPasArrayType) then
+      begin
+      ArrType:=TPasArrayType(ResolvedEl.LoTypeEl);
+      if length(ArrType.Ranges)>1 then
+        RaiseNotYetImplemented(20180429180450,El);
+      HiTypeEl:=ArrType.ElType;
+      LoTypeEl:=ResolveAliasType(HiTypeEl);
+      if LoTypeEl.ClassType<>TPasRecordType then
+        RaiseIncompatibleTypeDesc(20180429180642,nIncompatibleTypesGotExpected,
+          [],'record values',GetTypeDescription(HiTypeEl),El);
+      SetResolverValueExpr(ResolvedEl,btContext,LoTypeEl,HiTypeEl,
+         El,[rrfReadable]);
+      end
+    else
+      RaiseIncompatibleTypeDesc(20180429173143,nIncompatibleTypesGotExpected,
+        [],'array values',GetTypeDescription(ResolvedEl),El);
+    end
+  else
+    RaiseMsg(20180429110227,nSyntaxErrorExpectedButFound,sSyntaxErrorExpectedButFound,
+     ['const','(name:'],El);
 end;
 
 procedure TPasResolver.CheckIsClass(El: TPasElement;
@@ -14784,9 +15038,11 @@ var
   w: WideChar;
   LTypeEl: TPasType;
 begin
-  if (LeftResolved.LoTypeEl<>nil) and (LeftResolved.LoTypeEl.ClassType=TPasArrayType) then
-    exit; // arrays are checked by element, not by the whole value
   LTypeEl:=LeftResolved.LoTypeEl;
+  if (LTypeEl<>nil)
+      and ((LTypeEl.ClassType=TPasArrayType)
+        or (LTypeEl.ClassType=TPasRecordType)) then
+    exit; // arrays and records are checked by element, not by the whole value
   if LTypeEl is TPasClassOfType then
     exit; // class-of are checked only by type, not by value
   RValue:=Eval(RHS,[refAutoConst]);
@@ -17760,6 +18016,8 @@ begin
     SetResolverIdentifier(ResolvedEl,btContext,El,TPasArrayType(El),TPasArrayType(El),[])
   else if ElClass=TArrayValues then
     SetResolverValueExpr(ResolvedEl,btSet,nil,nil,TArrayValues(El),[rrfReadable])
+  else if ElClass=TRecordValues then
+    ComputeRecordValues(TRecordValues(El),ResolvedEl,Flags,StartEl)
   else if ElClass=TPasStringType then
     begin
     SetResolverTypeExpr(ResolvedEl,btShortString,
