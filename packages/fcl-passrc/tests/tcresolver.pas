@@ -548,7 +548,10 @@ type
     Procedure TestClass_PublishedOverloadFail;
 
     // nested class
-    Procedure TestNestedClass; // ToDo
+    Procedure TestNestedClass;
+    Procedure TestNestedClass_Forward;
+    procedure TestNestedClass_StrictPrivateFail;
+    procedure TestNestedClass_AccessStrictPrivate;
 
     // external class
     Procedure TestExternalClass;
@@ -9223,34 +9226,106 @@ end;
 
 procedure TTestResolver.TestNestedClass;
 begin
-  exit;
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBear = class',
+  '  type',
+  '    TNumber = byte;',
+  '    TLeg = class',
+  '      constructor Create(i: TNumber);',
+  '      function {#Walk}Walk(i: TNumber): TLeg;',
+  '    end;',
+  '    procedure Move(i: TNumber);',
+  '  end;',
+  'procedure TBear.Move(i: TNumber);',
+  'var Leg: TLeg;',
+  'begin',
+  '  Leg:=TLeg.Create(i);',
+  '  Leg:=TBear.TLeg.Create(i);',
+  'end;',
+  'constructor tBear.tLeg.Create(i: TNumber);',
+  'begin',
+  '  {@Walk}Walk(i);',
+  '  Self.{@Walk}Walk(i);',
+  'end;',
+  'function tBear.tLeg.walk(i: TNumber): TLeg;',
+  'begin',
+  '  Result:=Walk(3);',
+  'end;',
+  'var Leg: TBear.TLeg;',
+  'begin',
+  '  Leg:=TBear.TLeg.Create(2);',
+  '  Leg:=Leg.Walk(3);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestNestedClass_Forward;
+begin
   StartProgram(false);
   Add([
   'type',
   '  TObject = class',
   '  type',
+  '    TArm = class;',
   '    TLeg = class',
-  '      constructor Create(i: byte);',
-  '      procedure {#Walk}Walk(i: byte);',
+  '      procedure Send(Arm: TArm);',
   '    end;',
-  '    procedure Move(i: byte);',
+  '    TArm = class',
+  '      i: byte;',
+  '    end;',
   '  end;',
-  'procedure TObject.Move(i: byte);',
-  'var Leg: TLeg;',
+  'procedure tObject.tLeg.send(Arm: TArm);',
   'begin',
-  '  Leg:=TLeg.Create(i);',
-  '  Leg:=TObject.TLeg.Create(i);',
+  '  Arm.i:=3;',
   'end;',
-  'constructor tObject.tLeg.Create(i: byte);',
+  'var',
+  '  Leg: TObject.TLeg;',
+  '  Arm: TObject.TArm;',
   'begin',
-  '  {@Walk}Walk(i);',
-  '  Self.{@Walk}Walk(i);',
-  'end;',
-  'var Leg: TLeg;',
-  'begin',
-  '  Leg:=TObject.TLeg.Create(i);',
-  '  Leg.Walk;',
+  '  Leg.Send(Arm);',
   '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestNestedClass_StrictPrivateFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  strict private type',
+  '    TArm = class',
+  '      i: byte;',
+  '    end;',
+  '  end;',
+  'var',
+  '  Arm: TObject.TArm;',
+  'begin',
+  '']);
+  CheckResolverException('Can''t access strict private member TArm',nCantAccessPrivateMember);
+end;
+
+procedure TTestResolver.TestNestedClass_AccessStrictPrivate;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  public type',
+  '    TWing = class',
+  '      procedure Fly;',
+  '    end;',
+  '  strict private',
+  '    class var i: longint;',
+  '  end;',
+  'procedure TObject.TWing.Fly;',
+  'begin',
+  '  i:=3;',
+  'end;',
+  'begin']);
   ParseProgram;
 end;
 

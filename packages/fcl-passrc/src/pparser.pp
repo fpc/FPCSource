@@ -6223,7 +6223,6 @@ begin
     T:=ParseTypeDecl(AType);
     T.Visibility:=AVisibility;
     AType.Members.Add(t);
-    Engine.FinishScope(stTypeDef,T);
 //    Writeln(CurtokenString,' ',TokenInfos[Curtoken]);
     NextToken;
     Done:=(Curtoken<>tkIdentifier) or CheckVisibility(CurtokenString,AVisibility);

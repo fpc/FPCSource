@@ -1074,7 +1074,7 @@ type
     ErrorPosEl: TPasElement;
     Found: TPasElement;
     ElScope: TPasScope; // Where Found was found
-    StartScope: TPasScope; // where the searched started
+    StartScope: TPasScope; // where the search started
   end;
   PPRFindData = ^TPRFindData;
 
@@ -2701,21 +2701,51 @@ end;
 
 function TPasProcedureScope.FindIdentifier(const Identifier: String
   ): TPasIdentifier;
+var
+  CurScope: TPasIdentifierScope;
+  ParentEl: TPasElement;
 begin
   Result:=inherited FindIdentifier(Identifier);
   if Result<>nil then exit;
-  if ClassScope<>nil then
-    Result:=ClassScope.FindIdentifier(Identifier);
+  CurScope:=ClassScope;
+  if CurScope=nil then exit;
+  repeat
+    Result:=CurScope.FindIdentifier(Identifier);
+    if Result<>nil then exit;
+    ParentEl:=CurScope.Element.Parent;
+    if ParentEl=nil then exit;
+    if (ParentEl.ClassType=TPasClassType) then
+      CurScope:=TPasClassScope(ParentEl.CustomData)
+    else if (ParentEl.ClassType=TPasRecordType) then
+      CurScope:=TPasRecordScope(ParentEl.CustomData)
+    else
+      exit;
+  until false;
 end;
 
 procedure TPasProcedureScope.IterateElements(const aName: string;
   StartScope: TPasScope; const OnIterateElement: TIterateScopeElement;
   Data: Pointer; var Abort: boolean);
+var
+  CurScope: TPasIdentifierScope;
+  ParentEl: TPasElement;
 begin
   inherited IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
   if Abort then exit;
-  if ClassScope<>nil then
-    ClassScope.IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
+  CurScope:=ClassScope;
+  if CurScope=nil then exit;
+  repeat
+    CurScope.IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
+    if Abort then exit;
+    ParentEl:=CurScope.Element.Parent;
+    if ParentEl=nil then exit;
+    if (ParentEl.ClassType=TPasClassType) then
+      CurScope:=TPasClassScope(ParentEl.CustomData)
+    else if (ParentEl.ClassType=TPasRecordType) then
+      CurScope:=TPasRecordScope(ParentEl.CustomData)
+    else
+      exit;
+  until false;
 end;
 
 function TPasProcedureScope.GetSelfScope: TPasProcedureScope;
@@ -2736,7 +2766,7 @@ procedure TPasProcedureScope.WriteIdentifiers(Prefix: string);
 begin
   inherited WriteIdentifiers(Prefix);
   if ClassScope<>nil then
-    ClassScope.WriteIdentifiers(Prefix+'  ');
+    ClassScope.WriteIdentifiers(Prefix+'CS  ');
 end;
 
 destructor TPasProcedureScope.Destroy;
@@ -2816,7 +2846,7 @@ procedure TPasClassScope.WriteIdentifiers(Prefix: string);
 begin
   inherited WriteIdentifiers(Prefix);
   if AncestorScope<>nil then
-    AncestorScope.WriteIdentifiers(Prefix+'  ');
+    AncestorScope.WriteIdentifiers(Prefix+'AS  ');
 end;
 
 { TPasDotClassScope }
@@ -3206,7 +3236,7 @@ end;
 procedure TPasScope.WriteIdentifiers(Prefix: string);
 begin
   {AllowWriteln}
-  writeln(Prefix,'Element: ',GetObjName(Element));
+  writeln(Prefix,'(',ClassName,') Element: ',GetObjName(Element));
   {AllowWriteln-}
 end;
 
@@ -6042,19 +6072,23 @@ var
   aModifier, DefAncestorName: String;
   IsSealed: Boolean;
   CanonicalSelf: TPasClassOfType;
-  ParentDecls: TPasDeclarations;
   Decl: TPasElement;
   j: integer;
   IntfType, IntfTypeRes: TPasType;
-  ResIntfList: TFPList;
+  ResIntfList, Members: TFPList;
 begin
   if aClass.IsForward then
     begin
     // check for duplicate forwards
-    ParentDecls:=aClass.Parent as TPasDeclarations;
-    for i:=0 to ParentDecls.Declarations.Count-1 do
+    if aClass.Parent is TPasDeclarations then
+      Members:=TPasDeclarations(aClass.Parent).Declarations
+    else if aClass.Parent.ClassType=TPasClassType then
+      Members:=TPasClassType(aClass.Parent).Members
+    else
+      RaiseNotYetImplemented(20180430141934,aClass,GetObjName(aClass.Parent));
+    for i:=0 to Members.Count-1 do
       begin
-      Decl:=TPasElement(ParentDecls.Declarations[i]);
+      Decl:=TPasElement(Members[i]);
       if (CompareText(Decl.Name,aClass.Name)=0)
           and (Decl<>aClass) then
         RaiseMsg(20180212144132,nDuplicateIdentifier,sDuplicateIdentifier,
@@ -8608,9 +8642,11 @@ begin
 end;
 
 procedure TPasResolver.AddClassType(El: TPasClassType);
+// Note: IsForward is not yet set!
 var
   Duplicate: TPasIdentifier;
   ForwardDecl: TPasClassType;
+  CurScope: TPasIdentifierScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddClassType ',GetObjName(El),' Parent=',GetObjName(El.Parent),' ',GetElementSourcePosStr(El));
@@ -8618,10 +8654,8 @@ begin
   if not (TopScope is TPasIdentifierScope) then
     RaiseInvalidScopeForElement(20160922163510,El);
 
-  if not (TopScope is TPasSectionScope) then
-    RaiseNotYetImplemented(20171225110934,El,'nested classes');
-
-  Duplicate:=TPasIdentifierScope(TopScope).FindLocalIdentifier(El.Name);
+  CurScope:=TPasIdentifierScope(TopScope);
+  Duplicate:=CurScope.FindLocalIdentifier(El.Name);
   //if Duplicate<>nil then
     //writeln('  Duplicate=',GetObjName(Duplicate.Element),' ',ord(Duplicate.Kind));
 
@@ -8644,7 +8678,7 @@ begin
     Duplicate.Element:=El;
     end
   else
-    AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
+    AddIdentifier(CurScope,El.Name,El,pikSimple);
 
   FPendingForwardProcs.Add(El); // check forward declarations at the end
 end;
@@ -8764,8 +8798,10 @@ var
   p: SizeInt;
   CurClassType: TPasClassType;
   ProcScope: TPasProcedureScope;
-  NeedPop, HasDot: Boolean;
+  HasDot: Boolean;
   CurEl: TPasElement;
+  Identifier: TPasIdentifier;
+  CurClassScope: TPasClassScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddProcedure ',GetObjName(El));
@@ -8807,16 +8843,21 @@ begin
 
       if CurClassType<>nil then
         begin
-        NeedPop:=true;
-        PushClassDotScope(CurClassType);
+        CurClassScope:=TPasClassScope(CurClassType.CustomData);
+        Identifier:=CurClassScope.FindLocalIdentifier(aClassName);
+        if Identifier=nil then
+          RaiseIdentifierNotFound(20180430130635,aClassName,El);
+        CurEl:=Identifier.Element;
         end
       else
-        NeedPop:=false;
+        CurEl:=FindElementWithoutParams(aClassName,El,false);
 
-      CurEl:=FindElementWithoutParams(aClassName,El,false);
       if not (CurEl is TPasClassType) then
         begin
         aClassName:=LeftStr(El.Name,length(El.Name)-length(ProcName)-1);
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.AddProcedure searching class "',aClassName,'" ProcName="',ProcName,'" found: '+GetObjName(CurEl));
+        {$ENDIF}
         RaiseXExpectedButYFound(20170216152557,
           'class',aClassname+':'+GetElementTypeName(CurEl),El);
         end;
@@ -8833,10 +8874,6 @@ begin
         RaiseMsg(20180211230432,nMethodClassXInOtherUnitY,sMethodClassXInOtherUnitY,
           [aClassName,CurClassType.GetModule.Name],El);
         end;
-
-      // restore scope
-      if NeedPop then
-        PopScope;
     until false;
 
     if not IsValidIdent(ProcName) then
@@ -8872,7 +8909,7 @@ begin
     if ProcType.Parent is TPasProcedure then
       begin
       if TopScope.ClassType<>FScopeClass_Proc then
-        RaiseInvalidScopeForElement(20160922163529,El);
+        RaiseInvalidScopeForElement(20160922163529,El,GetObjName(TopScope));
       AddIdentifier(TPasIdentifierScope(TopScope),El.Name,El,pikSimple);
       end
     else
@@ -13000,7 +13037,7 @@ function TPasResolver.FindElement(const aName: String): TPasElement;
 // called by TPasParser for direct types, e.g. type t = ns1.unit1.tobj.tsub
 var
   p: SizeInt;
-  RightPath, CurName: String;
+  RightPath, CurName, LeftPath: String;
   NeedPop: Boolean;
   CurScopeEl, NextEl, ErrorEl, BestEl: TPasElement;
   CurSection: TPasSection;
@@ -13011,6 +13048,7 @@ begin
   ErrorEl:=nil; // use nil to use scanner position as error position
 
   RightPath:=aName;
+  LeftPath:='';
   p:=1;
   CurScopeEl:=nil;
   repeat
@@ -13027,6 +13065,10 @@ begin
       if RightPath='' then
         RaiseMsg(20170328003146,nIllegalExpression,sIllegalExpression,[],ErrorEl);
       end;
+    if LeftPath='' then
+      LeftPath:=CurName
+    else
+      LeftPath:=LeftPath+'.'+CurName;
     {$IFDEF VerbosePasResolver}
     {AllowWriteln}
     if RightPath<>'' then
@@ -13040,10 +13082,13 @@ begin
       NeedPop:=true;
       if CurScopeEl.ClassType=TPasClassType then
         PushClassDotScope(TPasClassType(CurScopeEl))
+      else if CurScopeEl.ClassType=TPasRecordType then
+        PushRecordDotScope(TPasRecordType(CurScopeEl))
       else if CurScopeEl is TPasModule then
         PushModuleDotScope(TPasModule(CurScopeEl))
       else
-        RaiseInternalError(20170504174021);
+        RaiseMsg(20170504174021,nIllegalQualifierAfter,sIllegalQualifierAfter,
+          ['.',LeftPath],ErrorEl);
       end
     else
       NeedPop:=false;
@@ -13106,13 +13151,10 @@ begin
       else
         CurScopeEl:=BestEl;
       end
-    else if RightPath<>'' then
-      begin
-      if (CurScopeEl is TPasClassType) then
-        CurScopeEl:=NextEl
-      else
-        RaiseIdentifierNotFound(20170328001941,CurName,ErrorEl);
-      end;
+    else if NextEl<>nil then
+      CurScopeEl:=NextEl
+    else
+      RaiseIdentifierNotFound(20170328001941,CurName,ErrorEl);
 
     // restore scope
     if NeedPop then
@@ -13288,24 +13330,23 @@ begin
   OnlyTypeMembers:=false;
   if StartScope is TPasDotIdentifierScope then
     begin
-    if Ref=nil then
-      begin
-      {$IFDEF VerbosePasResolver}
-      writeln('TPasResolver.CheckFoundElement FindData.Found=',GetObjName(FindData.Found),' StartScope=',GetObjName(StartScope));
-      {$ENDIF}
-      RaiseNotYetImplemented(20171225110626,FindData.ErrorPosEl);
-      end;
     OnlyTypeMembers:=TPasDotIdentifierScope(StartScope).OnlyTypeMembers;
-    Include(Ref.Flags,rrfDotScope);
-    if TPasDotIdentifierScope(StartScope).ConstParent then
-      Include(Ref.Flags,rrfConstInherited);
+    if Ref<>nil then
+      begin
+      Include(Ref.Flags,rrfDotScope);
+      if TPasDotIdentifierScope(StartScope).ConstParent then
+        Include(Ref.Flags,rrfConstInherited);
+      end;
     end
   else if StartScope.ClassType=ScopeClass_WithExpr then
     begin
     OnlyTypeMembers:=wesfOnlyTypeMembers in TPasWithExprScope(StartScope).Flags;
-    Include(Ref.Flags,rrfDotScope);
-    if wesfConstParent in TPasWithExprScope(StartScope).Flags then
-      Include(Ref.Flags,rrfConstInherited);
+    if Ref<>nil then
+      begin
+      Include(Ref.Flags,rrfDotScope);
+      if wesfConstParent in TPasWithExprScope(StartScope).Flags then
+        Include(Ref.Flags,rrfConstInherited);
+      end;
     end
   else if StartScope.ClassType=FScopeClass_Proc then
     begin
@@ -13333,6 +13374,8 @@ begin
     else if (FindData.Found is TPasVariable)
         and (vmClass in TPasVariable(FindData.Found).VarModifiers) then
       // class var/const/property: ok
+    else if (FindData.Found is TPasType) then
+      // local type: ok
     else
       begin
       RaiseMsg(20170216152348,nCannotAccessThisMemberFromAX,
