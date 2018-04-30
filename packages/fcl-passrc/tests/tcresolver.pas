@@ -337,6 +337,7 @@ type
     Procedure TestForLoopStartIncompFail;
     Procedure TestForLoopEndIncompFail;
     Procedure TestSimpleStatement_VarFail;
+    Procedure TestRecord_Default;
 
     // units
     Procedure TestUnitForwardOverloads;
@@ -4900,6 +4901,23 @@ begin
   Add('begin');
   Add('  i;');
   CheckResolverException('Illegal expression',nIllegalExpression);
+end;
+
+procedure TTestResolver.TestRecord_Default;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x, y: longint; end;',
+  'var',
+  '  i: longint;',
+  '  r: TPoint;',
+  'begin',
+  '  i:=Default(longint);',
+  '  r:=Default(r);',
+  '  r:=Default(TPoint);',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestUnitForwardOverloads;

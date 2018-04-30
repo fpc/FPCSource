@@ -49,6 +49,7 @@ Works:
   - variants
   - const param makes children const too
   - const  TRecordValues
+  - function default(record type): record
 - class:
   - forward declaration
   - instance.a
@@ -210,9 +211,6 @@ ToDo:
 - $RTTI inherited|explicit
 - range checking:
   - property defaultvalue
-- nested classes
-- records - TPasRecordType,
-   - function default(record type): record
 - proc: check if forward and impl default values match
 - call array of proc without ()
 - array+array
@@ -448,7 +446,8 @@ type
     bfTypeInfo,
     bfAssert,
     bfNew,
-    bfDispose
+    bfDispose,
+    bfDefault
     );
   TResolverBuiltInProcs = set of TResolverBuiltInProc;
 const
@@ -479,7 +478,8 @@ const
     'TypeInfo',
     'Assert',
     'New',
-    'Dispose'
+    'Dispose',
+    'Default'
     );
   bfAllStandardProcs = [Succ(bfCustom)..high(TResolverBuiltInProc)];
 
@@ -1492,6 +1492,12 @@ type
       Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
     procedure BI_Dispose_OnFinishParamsExpr(Proc: TResElDataBuiltInProc;
       Params: TParamsExpr); virtual;
+    function BI_Default_OnGetCallCompatibility(Proc: TResElDataBuiltInProc;
+      Expr: TPasExpr; RaiseOnError: boolean): integer; virtual;
+    procedure BI_Default_OnGetCallResult({%H-}Proc: TResElDataBuiltInProc;
+      {%H-}Params: TParamsExpr; out ResolvedEl: TPasResolverResult); virtual;
+    procedure BI_Default_OnEval({%H-}Proc: TResElDataBuiltInProc;
+      Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -11050,6 +11056,7 @@ begin
             bfConcatArray: Result:=nil;
             bfCopyArray: Result:=nil;
             bfTypeInfo: Result:=nil;
+            bfDefault: BI_Default_OnEval(BuiltInProc,Params,Flags,Result);
           else
             {$IFDEF VerbosePasResEval}
             writeln('TPasResolver.OnExprEvalParams Unhandled BuiltInProc ',Decl.Name,' ',ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
@@ -12839,6 +12846,155 @@ begin
   FinishCallArgAccess(Params.Params[0],rraRead);
 end;
 
+function TPasResolver.BI_Default_OnGetCallCompatibility(
+  Proc: TResElDataBuiltInProc; Expr: TPasExpr; RaiseOnError: boolean): integer;
+var
+  Params: TParamsExpr;
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  Decl: TPasElement;
+  aType: TPasType;
+begin
+  Result:=cIncompatible;
+  if not CheckBuiltInMinParamCount(Proc,Expr,1,RaiseOnError) then
+    exit;
+  Params:=TParamsExpr(Expr);
+
+  // check type or var
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  Decl:=ParamResolved.IdentEl;
+  aType:=nil;
+  if (Decl<>nil) and (ParamResolved.LoTypeEl<>nil) then
+    begin
+    if Decl is TPasType then
+      aType:=TPasType(Decl)
+    else if Decl is TPasVariable then
+      aType:=TPasVariable(Decl).VarType
+    else if Decl.ClassType=TPasArgument then
+      aType:=TPasArgument(Decl).ArgType;
+    {$IFDEF VerbosePasResolver}
+    {AllowWriteln}
+    if aType=nil then
+      writeln('TPasResolver.BI_Default_OnGetCallCompatibility Decl=',GetObjName(Decl));
+    {AllowWriteln-}
+    {$ENDIF}
+    end;
+  if aType=nil then
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.BI_Default_OnGetCallCompatibility ',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
+    RaiseMsg(20180501004009,nTypeIdentifierExpected,sTypeIdentifierExpected,[],Param);
+    end;
+
+  Result:=CheckBuiltInMaxParamCount(Proc,Params,1,RaiseOnError);
+end;
+
+procedure TPasResolver.BI_Default_OnGetCallResult(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; out ResolvedEl: TPasResolverResult);
+var
+  Param: TPasExpr;
+begin
+  Param:=Params.Params[0];
+  ComputeElement(Param,ResolvedEl,[rcNoImplicitProc]);
+  ResolvedEl.Flags:=[rrfReadable];
+  ResolvedEl.IdentEl:=nil;
+end;
+
+procedure TPasResolver.BI_Default_OnEval(Proc: TResElDataBuiltInProc;
+  Params: TParamsExpr; Flags: TResEvalFlags; out Evaluated: TResEvalValue);
+var
+  Param: TPasExpr;
+  ParamResolved: TPasResolverResult;
+  TypeEl: TPasType;
+  EnumType: TPasEnumType;
+  i: Integer;
+  ArrayEl: TPasArrayType;
+  bt: TResolverBaseType;
+  MinInt, MaxInt: MaxPrecInt;
+begin
+  Evaluated:=nil;
+  Param:=Params.Params[0];
+  ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
+  TypeEl:=ParamResolved.LoTypeEl;
+  if ParamResolved.BaseType=btContext then
+    begin
+    if TypeEl.ClassType=TPasArrayType then
+      begin
+      // array: []
+      RaiseNotYetImplemented(20180501005214,Param);
+      ArrayEl:=TPasArrayType(TypeEl);
+      if length(ArrayEl.Ranges)=0 then
+        begin
+        // dyn or open array
+        end
+      else
+        begin
+        // static array
+        end;
+      end
+    else if TypeEl.ClassType=TPasSetType then
+      begin
+      // set: first/last enum
+      TypeEl:=TPasSetType(TypeEl).EnumType;
+      if TypeEl.ClassType=TPasEnumType then
+        begin
+        EnumType:=TPasEnumType(TPasSetType(TypeEl).EnumType);
+        Evaluated:=TResEvalSet.CreateEmpty(revskEnum,EnumType);
+        end
+      else
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.BI_Default_OnEval ',GetResolverResultDbg(ParamResolved),' TypeEl=',TypeEl.ClassName);
+        {$ENDIF}
+        RaiseNotYetImplemented(20180501005348,Params);
+        end;
+      end
+    else if TypeEl.ClassType=TPasEnumType then
+      begin
+      EnumType:=TPasEnumType(TypeEl);
+      i:=0;
+      Evaluated:=TResEvalEnum.CreateValue(i,TPasEnumValue(EnumType.Values[i]))
+      end;
+    end
+  else if (TypeEl is TPasUnresolvedSymbolRef)
+      and (TypeEl.CustomData is TResElDataBaseType) then
+    begin
+    // default(base type)
+    bt:=TResElDataBaseType(TypeEl.CustomData).BaseType;
+    bt:=GetActualBaseType(bt);
+    if bt in btAllBooleans then
+      Evaluated:=TResEvalBool.CreateValue(false)
+    else if bt=btQWord then
+      Evaluated:=TResEvalInt.CreateValue(0)
+    else if (bt in (btAllInteger-[btQWord])) and GetIntegerRange(bt,MinInt,MaxInt) then
+      Evaluated:=TResEvalInt.CreateValue(MinInt)
+    else if bt in [btAnsiString,btShortString] then
+      Evaluated:=TResEvalString.CreateValue('')
+    else if bt in [btUnicodeString,btWideString] then
+      Evaluated:=TResEvalUTF16.CreateValue('')
+    else if bt in [btChar,btAnsiChar] then
+      Evaluated:=TResEvalString.CreateValue(#0)
+    else if bt=btWideChar then
+      Evaluated:=TResEvalUTF16.CreateValue(#0)
+    else
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.BI_Default_OnEval ',GetResolverResultDbg(ParamResolved));
+      {$ENDIF}
+      RaiseNotYetImplemented(20180501005645,Params);
+      end;
+    end
+  else if ParamResolved.LoTypeEl is TPasRangeType then
+    begin
+    // e.g. type t = 2..10;
+    Evaluated:=EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,FLags,true,Param);
+    end
+  else
+    RaiseNotYetImplemented(20180501004839,Param);
+end;
+
 constructor TPasResolver.Create;
 begin
   inherited Create;
@@ -13960,6 +14116,10 @@ begin
     AddBuiltInProc('Dispose','procedure Dispose(var ^record)',
         @BI_Dispose_OnGetCallCompatibility,nil,nil,
         @BI_Dispose_OnFinishParamsExpr,bfDispose,[bipfCanBeStatement]);
+  if bfDefault in TheBaseProcs then
+    AddBuiltInProc('Default','function Default(T): T',
+        @BI_Default_OnGetCallCompatibility,@BI_Default_OnGetCallResult,
+        @BI_Default_OnEval,nil,bfDefault,[]);
 end;
 
 function TPasResolver.AddBaseType(const aName: string; Typ: TResolverBaseType
