@@ -162,9 +162,9 @@ Type
     ins,outs,cfgs : TStream;
     Procedure Verbose (Const Msg : String);
     Procedure GetChar;
-    Procedure StoreNextChar(VAR lngth: INTEGER;
-                            VAR Value: Token);
-    Procedure SkipBlanks(VAR spacesbefore, crsbefore: INTEGER);
+    Procedure StoreNextChar(Var lngth: INTEGER;
+                            var Value: Token);
+    Procedure SkipBlanks(Out spacesbefore, crsbefore: INTEGER);
     Procedure GetComment(sym: symbolinfo);
     Procedure GetDoubleComment(sym: symbolinfo);
     Procedure GetDelphiComment(sym: symbolinfo);
@@ -175,8 +175,8 @@ Type
     Procedure GetNextSymbol(sym: symbolinfo);
     Procedure GetIdentifier(sym: symbolinfo);
     Procedure GetSymbol;
-    Procedure PopStack(VAR indentsymbol: keysymbol;
-                       VAR prevmargin: INTEGER);
+    Procedure PopStack(Out indentsymbol: keysymbol;
+                       Out prevmargin: INTEGER);
     Procedure PushStack(indentsymbol: keysymbol;
                         prevmargin: INTEGER );
     Procedure WriteCRs(numberofcrs: INTEGER);
@@ -208,16 +208,8 @@ Procedure GenerateCfgFile(S: TStream);
 
 Implementation
 
-CONST
-  version = '20 February 2005';  {was '11 October 1984','28 November 1989'; ..ancient stuff!}
-
-  NUL = 0;      { ASCII null character }
-  TAB = 9;      { ASCII tab character }
-  FF = 12;      { ASCII formfeed character }
-  CR = 13;      { ASCII carriage return }
-  ESC = 27;     { ASCII escape character }
+Const
   Blank = ' ';
-  MAXBYTE = 255;{ Largest value of 1 byte variable }
 
 
 VAR
@@ -354,8 +346,6 @@ Procedure ClassID(Value: Token;
     in it if it is a keyword, so we use the hash table. }
   VAR
     Keyvalue: String[MAXKEYLENGTH];
-    tabent: INTEGER;
-    found : Integer;
     Sym : keysymbol;
     
   BEGIN
@@ -385,7 +375,7 @@ Procedure ClassID(Value: Token;
     Functions to create options and set defaults.
   ---------------------------------------------------------------------}
 
-Procedure CreateOptions (Var Option : OptionTable);
+Procedure CreateOptions (Out Option : OptionTable);
 
 Var Sym : KeySymbol;
     T : TTokenScope;
@@ -660,7 +650,7 @@ Procedure TPrettyPrinter.StoreNextChar(VAR lngth: INTEGER;
   END; { of StoreNextChar }
 
 
-Procedure TPrettyPrinter.SkipBlanks(VAR spacesbefore, crsbefore: INTEGER);
+Procedure TPrettyPrinter.SkipBlanks(out spacesbefore, crsbefore: INTEGER);
   { Count the spaces between symbols }
   BEGIN
     spacesbefore := 0;
@@ -845,8 +835,8 @@ Procedure TprettyPrinter.GetSymbol;
   END;  {of GetSymbol}
 
 
-Procedure TprettyPrinter.PopStack(VAR indentsymbol: keysymbol;
-                                  VAR prevmargin: INTEGER);
+Procedure TprettyPrinter.PopStack(Out indentsymbol: keysymbol;
+                                  Out prevmargin: INTEGER);
   { Manage stack of indentation symbols and margins }
   BEGIN
     IF top > 0 THEN BEGIN
@@ -1104,6 +1094,9 @@ Procedure TPrettyPrinter.Gobble(terminators: keysymset);
 
 Function TPrettyPrinter.ReadConfigFile : Boolean;
 
+Type
+  TLineType = (ltNormal,ltIndent,ltGobble);
+
 Var
   I,J : Longint;
 
@@ -1143,16 +1136,16 @@ Var
     until k=0;
   end;
 
-  Procedure SetIndent(TheKey : KeySymbol; Var OptionList : String);
+  Function GetKeySimList(Const aType : String; Var OptionList : String) : keysymset;
 
   Var
       TheIndent : Keysymbol;
       Found : Boolean;
       K : longint;
       opt : string;
-      TS : TTokenScope;
 
   begin
+    Result:=[];
     Repeat
       K:=pos(',',optionlist);
       If k>0 then
@@ -1173,19 +1166,63 @@ Var
           end;
         If not found then
           begin
-          Verbose ('Unknown indent keysym on line '+inttostr(i)+': '+Opt);
+          Verbose ('Unknown indent '+aType+' on line '+inttostr(i)+': '+Opt);
           exit;
           end;
-        For TS:=Low(TTokenScope) to High(TTokenScope) do
-          Option[TS,TheKey]^.dindsym:=Option[TS,TheKey]^.dindsym+[Theindent];
+        Include(Result,Theindent);
         end;
     until k=0;
   end;
 
-Var TheKey : KeySymbol;
-    Found,DoIndent : Boolean;
-    Line, Name : String;
-    L : TStringList;
+  Procedure SetIndent(TheKey : KeySymbol; Var OptionList : String);
+
+  Var
+    TS : TTokenScope;
+    Syms : KeySymSet;
+
+  begin
+    Syms:=GetKeySimList('indent',OptionList);
+    For TS:=Low(TTokenScope) to High(TTokenScope) do
+      With Option[TS,TheKey]^ do
+         dindsym:=dindsym+Syms;
+  end;
+
+  Procedure SetGobble(TheKey : KeySymbol; Var OptionList : String);
+
+  Var
+    TS : TTokenScope;
+    Syms : KeySymSet;
+
+  begin
+    Syms:=GetKeySimList('gobble',OptionList);
+    For TS:=Low(TTokenScope) to High(TTokenScope) do
+      With Option[TS,TheKey]^ do
+         Terminators:=Terminators+Syms;
+  end;
+
+  Function CheckLineType (var Name : String) : TLineType;
+
+  begin
+    If (Name[1]='[') and (Name[Length(Name)]=']') then
+     begin
+     Name:=Copy(Name,2,Length(Name)-2);
+     Result:=ltIndent
+     end
+   else If (Name[1]='<') and (Name[Length(Name)]='>') then
+     begin
+     Name:=Copy(Name,2,Length(Name)-2);
+     Result:=ltgobble
+     end
+   else
+     Result:=ltNormal;
+  end;
+
+Var
+  TheKey : KeySymbol;
+  Found : Boolean;
+  Line, Name : String;
+  L : TStringList;
+  LT : TLineType;
     
 begin
   ReadConfigFile:=false;
@@ -1201,20 +1238,15 @@ begin
       If length(Line)<>0 then
         begin
         J:=Pos('=',Line);
-        If J>0 then
+        If J=0 then
+          verbose ('Error in config file on line '+IntToStr(i))
+        else
           begin
           Line:=LowerStr(Line);
           Name:=Copy(Line,1,j-1);
           Delete(Line,1,J);
           { indents or options ? }
-          If (Name[1]='[') and
-             (Name[Length(Name)]=']') then
-             begin
-             Name:=Copy(Name,2,Length(Name)-2);
-             Doindent:=True;
-             end
-          else
-             DoIndent:=False;
+          LT:=CheckLineType(Name);
           Strip(Name);
           found:=false;
           for thekey:=firstkey to lastkey do
@@ -1225,13 +1257,12 @@ begin
           If not found then
             Verbose ('Unknown keyword on line '+inttostr(i)+': '+Name)
           else
-            If DoIndent then
-              SetIndent(TheKey,Line)
-            else
-              SetOption(TheKey,Line)
-          end
-        else
-          verbose ('Error in config file on line '+IntToStr(i));
+            Case LT of
+             ltIndent: SetIndent(TheKey,Line);
+             ltNormal: SetOption(TheKey,Line);
+             ltGobble: SetGobble(TheKey,Line);
+            end;
+          end;
         end;
       end;
   Finally
