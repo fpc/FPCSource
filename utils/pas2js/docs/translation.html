@@ -2754,7 +2754,7 @@ End.
     <li>{$EndIf}: ends an $IfDef block</li>
     <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
     <li>{$modeswitch externalclass}: allow declaring external classes</li>
-    <li>{$macro on|off} enables macro replacements. Only macros with a custom value are replaced. Macros are never replaced inside directives.</li>
+    <li>{$macro on|off} enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
     <li>{$I filename} or {$include filename} - insert include file</li>
     <li>{$Warnings on|off}</li>
     <li>{$Notes on|off}</li>
@@ -2766,7 +2766,16 @@ End.
     <li>{$Message hint-text}</li>
     <li>{$Message hint|note|warn|error|fatal text}</li>
     <li>{$M+}, {$TypeInfo on}: switches default visibility for class members from public to published</li>
-    <li>{$ScopedEnums on|off} disabled/default: propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
+    <li>{$ScopedEnums on|off} disabled(default): propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
+    <li>{$R+}, {$RangeChecks on}: compile time range check hints become errors
+    and add runtime range checks for assignments.</li>
+    <li>{$ObjectChecks on|off}:
+      <ul>
+        <li>Verify method calls, i.e. check at runtime in every method if <i>Self</i> is a descendant class.</li>
+        <li>Check type casts, e.g. <i>TBird(AnObject)</i> becomes <i>AnObject as TBird</i></li>
+      </ul>
+    </li>
+    <li>{$J-}, {$WriteableConst off}: Typed const become readonly. For example <i>const i:byte=3; ... i:=4</i> creates a compile time error.</li>
     </ul>
     Defines:
     <ul>

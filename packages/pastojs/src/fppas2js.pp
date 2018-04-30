@@ -342,8 +342,6 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- option typecast checking -Ct
-- $writableconst
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -373,6 +371,8 @@ Not in Version 1.0:
 - write, writeln
 - arrays
   - array of const
+  - a:=[[],[]]
+  - copy, concat for static arrays, creating dynamic arrays
 - sets
   - set of char, boolean, integer range, char range, enum range
 - call array of proc element without ()
