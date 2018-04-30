@@ -40,6 +40,7 @@ Works:
   - check duplicate values
 - try..finally..except, on, else, raise
 - for loop
+  - fail to write a loop var inside the loop
 - spot duplicates
 - type cast base types
 - char
@@ -208,8 +209,7 @@ ToDo:
 - $pop, $push
 - $RTTI inherited|explicit
 - range checking:
-  - defaultvalue
-- fail to write a loop var inside the loop
+  - property defaultvalue
 - nested classes
 - records - TPasRecordType,
    - function default(record type): record
@@ -1662,7 +1662,9 @@ type
     function CheckEqualResCompatibility(const LHS, RHS: TPasResolverResult;
       LErrorEl: TPasElement; RaiseOnIncompatible: boolean;
       RErrorEl: TPasElement = nil): integer;
-    function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult): boolean;
+    function IsVariableConst(El, PosEl: TPasElement; RaiseIfConst: boolean): boolean; virtual;
+    function ResolvedElCanBeVarParam(const ResolvedEl: TPasResolverResult;
+      PosEl: TPasElement; RaiseIfConst: boolean = true): boolean;
     function ResolvedElIsClassInstance(const ResolvedEl: TPasResolverResult): boolean;
     // utility functions
     function GetProcTypeDescription(ProcType: TPasProcedureType;
@@ -6894,7 +6896,7 @@ begin
   // loop var
   ResolveExpr(Loop.VariableName,rraReadAndAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
-  if not ResolvedElCanBeVarParam(VarResolved) then
+  if not ResolvedElCanBeVarParam(VarResolved,Loop.VariableName) then
     RaiseMsg(20170216151955,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Loop.VariableName);
 
   // resolve start expression
@@ -11448,7 +11450,7 @@ begin
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   Result:=cIncompatible;
   DynArr:=nil;
-  if ResolvedElCanBeVarParam(ParamResolved) then
+  if ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if ParamResolved.BaseType in btAllStrings then
       Result:=cExact
@@ -11678,7 +11680,7 @@ begin
   {$ENDIF}
   Result:=cIncompatible;
   // Expr must be a variable
-  if not ResolvedElCanBeVarParam(ParamResolved) then
+  if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
       RaiseMsg(20170216152319,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
@@ -12329,7 +12331,7 @@ begin
   Param:=Params.Params[1];
   ComputeElement(Param,ParamResolved,[]);
   Result:=cIncompatible;
-  if ResolvedElCanBeVarParam(ParamResolved) then
+  if ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if ParamResolved.BaseType in btAllStrings then
       Result:=cExact;
@@ -12516,7 +12518,7 @@ begin
   // check Array
   Param:=Params.Params[1];
   ComputeElement(Param,ParamResolved,[]);
-  if not ResolvedElCanBeVarParam(ParamResolved) then
+  if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
       RaiseMsg(20170329171514,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Param);
@@ -12567,7 +12569,7 @@ begin
   // check Array
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[]);
-  if not ResolvedElCanBeVarParam(ParamResolved) then
+  if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
       RaiseMsg(20170329173421,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Param);
@@ -12727,7 +12729,7 @@ begin
   {$ENDIF}
   Result:=cIncompatible;
   // Expr must be a variable
-  if not ResolvedElCanBeVarParam(ParamResolved) then
+  if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
       RaiseMsg(20180425005303,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
@@ -14987,7 +14989,7 @@ begin
       end;
     end;
   if [rrfWritable,rrfAssignable]*ResolvedEl.Flags<>[] then
-    exit(true);
+    exit(not IsVariableConst(El,ErrorEl,ErrorOnFalse));
   // not writable
   if not ErrorOnFalse then exit;
   {$IFDEF VerbosePasResolver}
@@ -16127,30 +16129,81 @@ begin
     exit(cIncompatible);
 end;
 
+function TPasResolver.IsVariableConst(El, PosEl: TPasElement;
+  RaiseIfConst: boolean): boolean;
+var
+  CurEl: TPasElement;
+  VarResolved: TPasResolverResult;
+  Loop: TPasImplForLoop;
+begin
+  Result:=false;
+  CurEl:=PosEl;
+  while CurEl<>nil do
+    begin
+    if (CurEl.ClassType=TPasImplForLoop) then
+      begin
+      Loop:=TPasImplForLoop(CurEl);
+      if (Loop.VariableName<>PosEl) then
+        begin
+        ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc]);
+        if VarResolved.IdentEl=El then
+          begin
+          if RaiseIfConst then
+            RaiseMsg(20180430100719,nIllegalAssignmentToForLoopVar,
+              sIllegalAssignmentToForLoopVar,[El.Name],PosEl);
+          exit(true);
+          end;
+        end;
+      end;
+    CurEl:=CurEl.Parent;
+    end;
+end;
+
 function TPasResolver.ResolvedElCanBeVarParam(
-  const ResolvedEl: TPasResolverResult): boolean;
+  const ResolvedEl: TPasResolverResult; PosEl: TPasElement;
+  RaiseIfConst: boolean): boolean;
+
+  function NotLocked(El: TPasElement): boolean;
+  begin
+    Result:=not IsVariableConst(El,PosEl,RaiseIfConst);
+  end;
+
+var
+  IdentEl: TPasElement;
 begin
   Result:=false;
   if [rrfReadable,rrfWritable]*ResolvedEl.Flags<>[rrfReadable,rrfWritable] then
     exit;
   if ResolvedEl.IdentEl=nil then exit;
-  if ResolvedEl.IdentEl.ClassType=TPasVariable then
-    exit(true);
-  if (ResolvedEl.IdentEl.ClassType=TPasArgument) then
+  IdentEl:=ResolvedEl.IdentEl;
+  if IdentEl.ClassType=TPasVariable then
+    exit(NotLocked(IdentEl));
+  if (IdentEl.ClassType=TPasConst) then
     begin
-    Result:=(TPasArgument(ResolvedEl.IdentEl).Access in [argDefault, argVar, argOut]);
-    exit;
+    if TPasConst(IdentEl).IsConst then
+      begin
+      if RaiseIfConst then
+        RaiseMsg(20180430100719,nCantAssignValuesToConstVariable,sCantAssignValuesToConstVariable,[],PosEl);
+      exit(false);
+      end;
+    exit(NotLocked(IdentEl));
     end;
-  if ResolvedEl.IdentEl.ClassType=TPasResultElement then
-    exit(true);
-  if (ResolvedEl.IdentEl.ClassType=TPasConst) then
+  if (IdentEl.ClassType=TPasArgument) then
     begin
-    Result:=TPasConst(ResolvedEl.IdentEl).IsConst;
-    exit;
+    if TPasArgument(IdentEl).Access in [argConst,argConstRef] then
+      begin
+      if RaiseIfConst then
+        RaiseMsg(20180430100843,nCantAssignValuesToConstVariable,sCantAssignValuesToConstVariable,[],PosEl);
+      exit(false);
+      end;
+    Result:=(TPasArgument(IdentEl).Access in [argDefault, argVar, argOut]);
+    exit(Result and NotLocked(IdentEl));
     end;
+  if IdentEl.ClassType=TPasResultElement then
+    exit(NotLocked(IdentEl));
   if (proPropertyAsVarParam in Options)
-      and (ResolvedEl.IdentEl.ClassType=TPasProperty) then
-    exit(true);
+      and (IdentEl.ClassType=TPasProperty) then
+    exit(NotLocked(IdentEl));
 end;
 
 function TPasResolver.ResolvedElIsClassInstance(
@@ -16481,7 +16534,7 @@ begin
   if NeedVar then
     begin
     // Expr must be a variable
-    if not ResolvedElCanBeVarParam(ExprResolved) then
+    if not ResolvedElCanBeVarParam(ExprResolved,Expr) then
       begin
       {$IFDEF VerbosePasResolver}
       writeln('TPasResolver.CheckParamCompatibility NeedWritable: ',GetResolverResultDbg(ExprResolved));

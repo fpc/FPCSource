@@ -170,6 +170,7 @@ const
   nDuplicateCaseValueXatY = 3108;
   nMissingFieldsX = 3109;
   nCantAssignValuesToConstVariable = 3110;
+  nIllegalAssignmentToForLoopVar = 3111;
 
 // resourcestring patterns of messages
 resourcestring
@@ -272,6 +273,7 @@ resourcestring
   sDuplicateCaseValueXatY = 'Duplicate case value "%s", other at %s';
   sMissingFieldsX = 'Missing fields: "%s"';
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
+  sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

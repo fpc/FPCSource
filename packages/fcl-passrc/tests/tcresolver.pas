@@ -312,6 +312,9 @@ type
 
     // statements
     Procedure TestForLoop;
+    Procedure TestForLoop_NestedSameVarFail;
+    Procedure TestForLoop_AssignVarFail;
+    Procedure TestForLoop_PassVarFail;
     Procedure TestStatements;
     Procedure TestCaseStatement;
     Procedure TestCaseStatementDuplicateIntFail;
@@ -543,6 +546,9 @@ type
     Procedure TestClass_PublishedClassPropertyFail;
     Procedure TestClass_PublishedClassFunctionFail;
     Procedure TestClass_PublishedOverloadFail;
+
+    // nested class
+    Procedure TestNestedClass; // ToDo
 
     // external class
     Procedure TestExternalClass;
@@ -4482,6 +4488,43 @@ begin
   Add('    {@v2}v2');
   Add('    to {@v3}v3 do ;');
   ParseProgram;
+end;
+
+procedure TTestResolver.TestForLoop_NestedSameVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'var i: byte;',
+  'begin',
+  '  for i:=1 to 2 do',
+  '    for i:=1 to 2 do ;',
+  '']);
+  CheckResolverException('Illegal assignment to for-loop variable "i"',nIllegalAssignmentToForLoopVar);
+end;
+
+procedure TTestResolver.TestForLoop_AssignVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'var i: byte;',
+  'begin',
+  '  for i:=1 to 2 do',
+  '    i:=3;',
+  '']);
+  CheckResolverException('Illegal assignment to for-loop variable "i"',nIllegalAssignmentToForLoopVar);
+end;
+
+procedure TTestResolver.TestForLoop_PassVarFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure DoIt(var i: byte); external;',
+  'var i: byte;',
+  'begin',
+  '  for i:=1 to 2 do',
+  '    DoIt(i);',
+  '']);
+  CheckResolverException('Illegal assignment to for-loop variable "i"',nIllegalAssignmentToForLoopVar);
 end;
 
 procedure TTestResolver.TestStatements;
@@ -9176,6 +9219,39 @@ begin
   Add('procedure TObject.DoIt(i: longint); begin end;');
   Add('begin');
   CheckResolverException(sDuplicateIdentifier,nDuplicateIdentifier);
+end;
+
+procedure TTestResolver.TestNestedClass;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  type',
+  '    TLeg = class',
+  '      constructor Create(i: byte);',
+  '      procedure {#Walk}Walk(i: byte);',
+  '    end;',
+  '    procedure Move(i: byte);',
+  '  end;',
+  'procedure TObject.Move(i: byte);',
+  'var Leg: TLeg;',
+  'begin',
+  '  Leg:=TLeg.Create(i);',
+  '  Leg:=TObject.TLeg.Create(i);',
+  'end;',
+  'constructor tObject.tLeg.Create(i: byte);',
+  'begin',
+  '  {@Walk}Walk(i);',
+  '  Self.{@Walk}Walk(i);',
+  'end;',
+  'var Leg: TLeg;',
+  'begin',
+  '  Leg:=TObject.TLeg.Create(i);',
+  '  Leg.Walk;',
+  '']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestExternalClass;

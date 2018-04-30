@@ -287,7 +287,7 @@ type
                       // N
     bsOptimization,   // O   enable safe optimizations (-O1)
     bsOpenStrings,    // P   deprecated Delphi directive
-    bsOverflowChecks, // Q
+    bsOverflowChecks, // Q   or $OV
     bsRangeChecks,    // R
                       // S
     bsTypedAddress,   // T   enabled: @variable gives typed pointer, otherwise untyped pointer
@@ -3166,6 +3166,8 @@ begin
           DoBoolDirective(bsNotes);
         'OBJECTCHECKS':
           DoBoolDirective(bsObjectChecks);
+        'OVERFLOWCHECKS','OV':
+          DoBoolDirective(bsOverflowChecks);
         'POINTERMATH':
           DoBoolDirective(bsPointerMath);
         'RANGECHECKS':
