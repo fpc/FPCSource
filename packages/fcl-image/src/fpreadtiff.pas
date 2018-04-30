@@ -14,26 +14,29 @@
  **********************************************************************
 
  Working:
-   Black and white 1 bit,
-   Grayscale 8,16bit (optional alpha),
-   RGB 8,16bit (optional alpha),
-   Orientation,
-   skipping Thumbnail to read first image,
-   compression: packbits, LZW, deflate
-   endian
-   multiple images
-   strips and tiles
+   Sample bitdepth: 1, 4, 8, 12, 16
+   Color format: black and white, grayscale, RGB, colormap
+   Alpha channel: none, premultiplied, separated
+   Compression: packbits, LZW, deflate
+   Endian-ness: little endian and big endian
+   Orientation: any corner can be (0,0) and x/y can be flipped
+   Planar configuration: 1 (channels together)
+   Fill order: any (for 1 bit per sample images)
+   Skipping thumbnail by reading biggest image
+   Multiple images
+   Strips and tiles
 
  ToDo:
-   Compression: jpeg, ...
-   PlanarConfiguration 2
-   ColorMap
-   separate mask
-   fillorder - not needed by baseline tiff reader
+   Compression: FAX, Jpeg...
+   Color format: YCbCr, Lab...
+   PlanarConfiguration: 2 (one chunk for each channel)
    bigtiff 64bit offsets
    XMP tag 700
    ICC profile tag 34675
-   orientation with rotation
+
+ Not to do:
+   Separate mask (deprecated)
+
 }
 unit FPReadTiff;
 
@@ -66,11 +69,10 @@ type
     FFirstIFDStart: DWord;
     FOnCreateImage: TTiffCreateCompatibleImgEvent;
     FReverserEndian: boolean;
-    IFD: TTiffIFD;
     {$ifdef FPC_Debug_Image}
     FDebug: boolean;
     {$endif}
-    fIFDStarts: TFPList;
+    FIFDList: TFPList;
     FReverseEndian: Boolean;
     fStartPos: int64;
     s: TStream;
@@ -78,8 +80,8 @@ type
     procedure TiffError(Msg: string);
     procedure SetStreamPos(p: DWord);
     function ReadTiffHeader(QuickTest: boolean; out IFDStart: DWord): boolean; // returns IFD: offset to first IFD
-    function ReadIFD(Start: DWord): DWord;// Image File Directory
-    procedure ReadDirectoryEntry(var EntryTag: Word);
+    function ReadIFD(Start: DWord; IFD: TTiffIFD): DWord;// Image File Directory
+    procedure ReadDirectoryEntry(var EntryTag: Word; IFD: TTiffIFD);
     function ReadEntryUnsigned: DWord;
     function ReadEntrySigned: Cint32;
     function ReadEntryRational: TTiffRational;
@@ -94,15 +96,15 @@ type
                                     out Buffer: PDWord; out Count: DWord);
     procedure ReadShortValues(StreamPos: DWord;
                               out Buffer: PWord; out Count: DWord);
-    procedure ReadImageProperties(
-      out RedBits, GreenBits, BlueBits, GrayBits, AlphaBits: Word;
-      out ExtraSamples: PWord; out ExtraSampleCnt: DWord;
-      out SampleBits: PWord; out SampleBitsPerPixel: DWord);
-    procedure ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
-      Predictor: word; var LastValue: word; out Value: Word); inline;
+    procedure ReadImageSampleProperties(IFD: TTiffIFD; out AlphaChannel: integer; out PremultipliedAlpha: boolean;
+      out SampleCnt: DWord; out SampleBits: PWord; out SampleBitsPerPixel: DWord;
+      out PaletteCnt: DWord; out PaletteValues: PWord);
+    procedure ReadImgValue(BitCount: Word;
+      var Run: Pointer; var BitPos: Byte; FillOrder: DWord;
+      Predictor: word; var LastValue: word; out Value: Word);
     function FixEndian(w: Word): Word; inline;
     function FixEndian(d: DWord): DWord; inline;
-    procedure SetFPImgExtras(CurImg: TFPCustomImage);
+    procedure SetFPImgExtras(CurImg: TFPCustomImage; IFD: TTiffIFD);
     procedure DecodePackBits(var Buffer: Pointer; var Count: PtrInt);
     procedure DecodeLZW(var Buffer: Pointer; var Count: PtrInt);
     procedure DecodeDeflate(var Buffer: Pointer; var Count: PtrInt; ExpectedCount: PtrInt);
@@ -111,27 +113,32 @@ type
     function InternalCheck(Str: TStream): boolean; override;
     procedure DoCreateImage(ImgFileDir: TTiffIFD); virtual;
   public
-    ImageList: TFPList; // list of TTiffIFD
     constructor Create; override;
     destructor Destroy; override;
     procedure Clear;
-    procedure LoadFromStream(aStream: TStream; AutoClear: boolean = true);
-    procedure LoadHeaderFromStream(aStream: TStream);
-    procedure LoadIFDsFromStream; // requires LoadHeaderFromStream, creates Images
-    procedure LoadImageFromStream(Index: integer); // requires LoadIFDsFromStream
+
+    procedure LoadFromStream(aStream: TStream; AutoClear: boolean = true); //load all images (you need to handle OnCreateImage event and assign ImgFileDir.Img)
     {$ifdef FPC_Debug_Image}
     property Debug: boolean read FDebug write FDebug;
     {$endif}
-    property StartPos: int64 read fStartPos;
-    property ReverserEndian: boolean read FReverserEndian;
-    property TheStream: TStream read s;
     property OnCreateImage: TTiffCreateCompatibleImgEvent read FOnCreateImage
                                                           write FOnCreateImage;
-    property CheckIFDOrder: TTiffCheckIFDOrder read FCheckIFDOrder write FCheckIFDOrder;
+    property CheckIFDOrder: TTiffCheckIFDOrder read FCheckIFDOrder write FCheckIFDOrder; //check order of IFD entries or not
     function FirstImg: TTiffIFD;
     function GetBiggestImage: TTiffIFD;
     function ImageCount: integer;
     property Images[Index: integer]: TTiffIFD read GetImages; default;
+
+  public //advanced
+    ImageList: TFPList; // list of TTiffIFD
+    procedure LoadHeaderFromStream(aStream: TStream);
+    procedure LoadIFDsFromStream;                  // call LoadHeaderFromStream before
+    procedure LoadImageFromStream(Index: integer); // call LoadIFDsFromStream before
+    procedure LoadImageFromStream(IFD: TTiffIFD);  // call LoadIFDsFromStream before
+    procedure ReleaseStream;
+    property StartPos: int64 read fStartPos;
+    property ReverserEndian: boolean read FReverserEndian;
+    property TheStream: TStream read s;
     property FirstIFDStart: DWord read FFirstIFDStart;
   end;
 
@@ -167,145 +174,145 @@ begin
   Result:=TTiffIFD(ImageList[Index]);
 end;
 
-procedure TFPReaderTiff.ReadImageProperties(out RedBits, GreenBits, BlueBits,
-  GrayBits, AlphaBits: Word; out ExtraSamples: PWord; out
-  ExtraSampleCnt: DWord; out SampleBits: PWord; out SampleBitsPerPixel: DWord);
+procedure TFPReaderTiff.ReadImageSampleProperties(IFD: TTiffIFD;
+  out AlphaChannel: integer; out PremultipliedAlpha: boolean;
+  out SampleCnt: DWord; out SampleBits: PWord; out SampleBitsPerPixel: DWord;
+  out PaletteCnt: DWord; out PaletteValues: PWord);
 var
   BytesPerPixel: Word;
-  SampleCnt: DWord;
   i: Integer;
+  ExtraSampleCnt, RegularSampleCnt: DWord;
+  ExtraSamples: PWord;
 begin
   ReadShortValues(IFD.BitsPerSample, SampleBits, SampleCnt);
   if SampleCnt<>IFD.SamplesPerPixel then
+  begin
+    ReAllocMem(SampleBits, 0);
     TiffError('Samples='+IntToStr(SampleCnt)+' <> SamplesPerPixel='+IntToStr(IFD
       .SamplesPerPixel));
-  if IFD.ExtraSamples>0 then
-    ReadShortValues(IFD.ExtraSamples, ExtraSamples, ExtraSampleCnt);
-  if ExtraSampleCnt>=SampleCnt then
-    TiffError('Samples='+IntToStr(SampleCnt)+' ExtraSampleCnt='+IntToStr(
-      ExtraSampleCnt));
-
-  case IFD.PhotoMetricInterpretation of
-  0, 1: if SampleCnt-ExtraSampleCnt<>1 then
-    TiffError('gray images expect one sample per pixel, but found '+IntToStr(
-      SampleCnt));
-  2: if (SampleCnt-ExtraSampleCnt<>3) and (SampleCnt-ExtraSampleCnt<>4) then
-    TiffError('rgb(a) images expect three or four samples per pixel, but found '+IntToStr(
-      SampleCnt));
-  3: if SampleCnt-ExtraSampleCnt<>1 then
-    TiffError('palette images expect one sample per pixel, but found '+IntToStr(
-      SampleCnt));
-  4: if SampleCnt-ExtraSampleCnt<>1 then
-    TiffError('mask images expect one sample per pixel, but found '+IntToStr(
-      SampleCnt));
-  5: if SampleCnt-ExtraSampleCnt<>4 then
-    TiffError('cmyk images expect four samples per pixel, but found '+IntToStr(
-      SampleCnt));
   end;
 
-  GrayBits:=0;
-  RedBits:=0;
-  GreenBits:=0;
-  BlueBits:=0;
-  AlphaBits:=0;
   BytesPerPixel:=0;
   SampleBitsPerPixel:=0;
+  PaletteCnt:= 0;
+  PaletteValues:= nil;
+
+  AlphaChannel:= -1;
+  PremultipliedAlpha:= false;
+  IFD.AlphaBits:= 0;
+
+  //looking for alpha channel in extra samples
+  if IFD.ExtraSamples>0 then
+    ReadShortValues(IFD.ExtraSamples, ExtraSamples, ExtraSampleCnt)
+  else begin
+    ExtraSamples := nil;
+    ExtraSampleCnt:= 0;
+  end;
+
+  if ExtraSampleCnt>=SampleCnt then
+  begin
+    ReAllocMem(SampleBits, 0);
+    ReAllocMem(ExtraSamples, 0);
+    TiffError('Samples='+IntToStr(SampleCnt)+' ExtraSampleCnt='+IntToStr(
+      ExtraSampleCnt));
+  end;
+
+  RegularSampleCnt := SampleCnt - ExtraSampleCnt;
+
+  for i:=0 to ExtraSampleCnt-1 do begin
+    if ExtraSamples[i] in [1, 2] then begin
+      AlphaChannel := RegularSampleCnt+i;
+      PremultipliedAlpha:= ExtraSamples[i]=1;
+      IFD.AlphaBits:=SampleBits[AlphaChannel];
+    end;
+  end;
+
+  ReAllocMem(ExtraSamples, 0);  //end of extra samples
+
   for i:=0 to SampleCnt-1 do begin
-    if SampleBits[i]>64 then
-      TiffError('Samples bigger than 64 bit not supported');
-    if not (SampleBits[i] in [1, 8, 12, 16]) then
-      TiffError('Only samples of 1, 8, 12 and 16 bit are supported');
+    if SampleBits[i]>16 then
+      TiffError('Samples bigger than 16 bit not supported');
+    if not (SampleBits[i] in [1, 4, 8, 12, 16]) then
+      TiffError('Only samples of 1, 4, 8, 12 and 16 bit are supported');
+    if (i <> 0) and ((SampleBits[i] = 1) xor (SampleBits[0] = 1)) then
+      TiffError('Cannot mix 1 bit samples with other sample sizes');
     inc(SampleBitsPerPixel, SampleBits[i]);
   end;
-  case IFD.PhotoMetricInterpretation of
-  0, 1:
-    begin
-      GrayBits:=SampleBits[0];
-      IFD.GrayBits:=GrayBits;
-      for i:=0 to ExtraSampleCnt-1 do begin
-        if ExtraSamples[i] in [1, 2] then begin
-          AlphaBits:=SampleBits[1+i];
-          IFD.AlphaBits:=AlphaBits;
-        end;
-      end;
-      if not (GrayBits in [1, 8, 12, 16]) then
-        TiffError('gray image only supported with gray BitsPerSample 1, 8, 12 or 16');
-      if not (AlphaBits in [0, 8, 16]) then
-        TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
-    end;
-  2:
-    begin
-      RedBits:=SampleBits[0];
-      GreenBits:=SampleBits[1];
-      BlueBits:=SampleBits[2];
-      if SampleCnt=4 then
-        AlphaBits:=SampleBits[3];
-      IFD.RedBits:=RedBits;
-      IFD.GreenBits:=GreenBits;
-      IFD.BlueBits:=BlueBits;
-      if SampleCnt=4 then
-        IFD.AlphaBits:=AlphaBits
-      else
-        IFD.AlphaBits:=0;
-      for i:=0 to ExtraSampleCnt-1 do begin
-        //writeln('  ',i,'/',ExtraSampleCnt,' Type=',ExtraSamples[i],' Count=',SampleBits[3+i]);
-        if ExtraSamples[i] in [1, 2] then begin
-          AlphaBits:=SampleBits[3+i];
-          IFD.AlphaBits:=AlphaBits;
-        end;
-      end;
-      if not (RedBits in [8, 16]) then
-        TiffError('RGB image only supported with red BitsPerSample 8 or 16');
-      if not (GreenBits in [8, 16]) then
-        TiffError('RGB image only supported with green BitsPerSample 8 or 16');
-      if not (BlueBits in [8, 16]) then
-        TiffError('RGB image only supported with blue BitsPerSample 8 or 16');
-      if not (AlphaBits in [0, 8, 16]) then
-        TiffError('RGB image only supported with alpha BitsPerSample 8 or 16');
-    end;
-  5:
-    begin
-      RedBits:=SampleBits[0];
-      GreenBits:=SampleBits[1];
-      BlueBits:=SampleBits[2];
-      GrayBits:=SampleBits[3];
-      IFD.RedBits:=RedBits;
-      IFD.GreenBits:=GreenBits;
-      IFD.BlueBits:=BlueBits;
-      IFD.GrayBits:=GrayBits;
-      IFD.AlphaBits:=0;
-      for i:=0 to ExtraSampleCnt-1 do begin
-        if ExtraSamples[i] in [1, 2] then begin
-          AlphaBits:=SampleBits[4+i];
-          IFD.AlphaBits:=AlphaBits;
-        end;
-      end;
-      if not (RedBits in [8, 16]) then
-        TiffError('CMYK image only supported with cyan BitsPerSample 8 or 16');
-      if not (GreenBits in [8, 16]) then
-        TiffError('CMYK image only supported with magenta BitsPerSample 8 or 16'
-          );
-      if not (BlueBits in [8, 16]) then
-        TiffError('CMYK image only supported with yellow BitsPerSample 8 or 16'
-          );
-      if not (GrayBits in [8, 16]) then
-        TiffError('CMYK image only supported with black BitsPerSample 8 or 16');
-      if not (AlphaBits in [0, 8, 16]) then
-        TiffError('CMYK image only supported with alpha BitsPerSample 8 or 16');
-    end;
-  end;
-  BytesPerPixel:=(GrayBits+RedBits+GreenBits+BlueBits+AlphaBits) div 8;
+
+  BytesPerPixel:= SampleBitsPerPixel div 8;
   IFD.BytesPerPixel:=BytesPerPixel;
   {$ifdef FPC_Debug_Image}
   if Debug then
     writeln('BytesPerPixel=', BytesPerPixel);
   {$endif}
 
-  if not (IFD.FillOrder in [0, 1]) then
-    TiffError('FillOrder unsupported: '+IntToStr(IFD.FillOrder));
+  case IFD.PhotoMetricInterpretation of
+  0, 1:
+    begin
+      if RegularSampleCnt<>1 then
+        TiffError('gray images expect one sample per pixel, but found '+
+          IntToStr(SampleCnt));
+
+      IFD.GrayBits:=SampleBits[0];
+    end;
+  2:
+    begin
+      if (RegularSampleCnt<>3) and (RegularSampleCnt<>4) then
+        TiffError('rgb(a) images expect three or four samples per pixel, but found '+
+          IntToStr(SampleCnt));
+
+      IFD.RedBits:=SampleBits[0];
+      IFD.GreenBits:=SampleBits[1];
+      IFD.BlueBits:=SampleBits[2];
+      if RegularSampleCnt=4 then begin
+        if (AlphaChannel <> -1) then
+          TiffError('Alpha channel specified twice');
+        AlphaChannel:= 3;
+        PremultipliedAlpha:= false;
+        IFD.AlphaBits:=SampleBits[AlphaChannel];
+      end;
+    end;
+  3:
+    begin
+      if RegularSampleCnt<>1 then
+        TiffError('palette images expect one sample per pixel, but found '+
+          IntToStr(SampleCnt));
+
+      if IFD.ColorMap > 0 then
+      begin
+        ReadShortValues(IFD.ColorMap, PaletteValues, PaletteCnt);
+        if PaletteCnt <> (1 shl SampleBits[0])*3 then
+        begin
+          ReAllocMem(PaletteValues, 0);
+          TiffError('Palette size mismatch');
+        end;
+      end else
+        TiffError('Palette not supplied')
+    end;
+  4:
+    begin
+      if RegularSampleCnt<>1 then
+        TiffError('mask images expect one sample per pixel, but found '+
+          IntToStr(SampleCnt));
+      TiffError('Mask images not handled');
+    end;
+  5:
+    begin
+      if RegularSampleCnt<>4 then
+        TiffError('cmyk images expect four samples per pixel, but found '+
+          IntToStr(SampleCnt));
+
+      IFD.RedBits:=SampleBits[0];   //cyan
+      IFD.GreenBits:=SampleBits[1]; //magenta
+      IFD.BlueBits:=SampleBits[2];   //yellow
+      IFD.GrayBits:=SampleBits[3];  //black
+    end;
+  else
+    TiffError('Photometric interpretation not handled (' + inttostr(IFD.PhotoMetricInterpretation)+')');
+  end;
 end;
 
-procedure TFPReaderTiff.SetFPImgExtras(CurImg: TFPCustomImage);
+procedure TFPReaderTiff.SetFPImgExtras(CurImg: TFPCustomImage; IFD: TTiffIFD);
 begin
   ClearTiffExtras(CurImg);
   // set Tiff extra attributes
@@ -362,8 +369,9 @@ begin
   {$endif}
 end;
 
-procedure TFPReaderTiff.ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
-  Predictor: word; var LastValue: word; out Value: Word); inline;
+procedure TFPReaderTiff.ReadImgValue(BitCount: Word;
+  var Run: Pointer; var BitPos: Byte; FillOrder: DWord;
+  Predictor: word; var LastValue: word; out Value: Word);
 var
   BitNumber: byte;
   Byte1, Byte2: byte;
@@ -371,49 +379,69 @@ begin
   case BitCount of
   1:
     begin
-      //Get the value of the right bit depending on x value and scale it to dword.
-      BitNumber:=7-(x mod 8); //Leftmost pixel starts with bit 7
-      Value:=$ffff*((PCUInt8(Run)^) and (1 shl BitNumber) shr BitNumber);
-      if Predictor=2 then begin
-        TiffError('predictor 2 not supported for bilevel images');
-      end;
-      if ((x+1) mod 8)=0 then
+      if FillOrder = 2 then
+        BitNumber:=BitPos    //Leftmost pixel starts with bit 0
+      else
+        BitNumber:=7-BitPos; //Leftmost pixel starts with bit 7
+      Value:=((PCUInt8(Run)^) and (1 shl BitNumber) shr BitNumber);
+      inc(BitPos);
+      if BitPos = 8 then
+      begin
+        BitPos := 0;
         inc(Run); //next byte when all bits read
+      end;
+      if Predictor = 2 then Value := (LastValue+Value) and 1;
+      LastValue:=Value;
+      if Value > 0 then Value := $ffff;
+    end;
+  4:
+    begin
+      if BitPos = 0 then
+      begin
+        Value := PCUInt8(Run)^ shr 4;
+        BitPos := 4;
+      end
+      else
+      begin
+        Value := PCUInt8(Run)^ and 15;
+        BitPos := 0;
+        Inc(Run);
+      end;
+      if Predictor = 2 then Value := (LastValue+Value) and $f;
+      LastValue:=Value;
+      Value := Value + (value shl 4) + (value shl 8) + (value shl 12);
     end;
   8:
     begin
       Value:=PCUInt8(Run)^;
-      if Predictor=2 then begin
-        // horizontal difference
-        if x>0 then
-          Value:=(Value+LastValue) and $ff;
-        LastValue:=Value;
-      end;
-      Value:=Value shl 8+Value;
       inc(Run);
+      if Predictor = 2 then Value := (LastValue+Value) and $ff;
+      LastValue:=Value;
+      Value:=Value shl 8+Value;
     end;
   12:
     begin
       Byte1 := PCUInt8(Run)^;
       Byte2 := PCUInt8(Run+1)^;
-      if (x mod 2) = 0 then begin
-        Value := (((Byte1) shl 4) or (Byte2 shr 4)) * 16;
+      if BitPos = 0 then begin
+        Value := (Byte1 shl 4) or (Byte2 shr 4);
         inc(Run);
+        BitPos := 4;
       end else begin
-        Value := (((Byte1 and $0F) shl 8) or Byte2) * 16;
+        Value := ((Byte1 and $0F) shl 8) or Byte2;
         inc(Run, 2);
+        BitPos := 0;
       end;
+      if Predictor = 2 then Value := (LastValue+Value) and $fff;
+      LastValue:=Value;
+      Value := (Value shl 4) + (Value shr 8);
     end;
   16:
     begin
       Value:=FixEndian(PCUInt16(Run)^);
-      if Predictor=2 then begin
-        // horizontal difference
-        if x>0 then
-          Value:=(Value+LastValue) and $ffff;
-        LastValue:=Value;
-      end;
       inc(Run,2);
+      if Predictor = 2 then Value := (LastValue+Value) and $ffff;
+      LastValue:=Value;
     end;
   end;
 end;
@@ -430,7 +458,6 @@ end;
 
 procedure TFPReaderTiff.LoadFromStream(aStream: TStream; AutoClear: boolean);
 var
-  IFDStart: DWord;
   i: Integer;
   aContinue: Boolean;
 begin
@@ -440,21 +467,15 @@ begin
   Progress(psStarting, 0, False, Rect(0,0,0,0), '', aContinue);
   if not aContinue then exit;
   LoadHeaderFromStream(aStream);
-  try
-    IFDStart:=FirstIFDStart;
-    i:=0;
-    while IFDStart>0 do begin
-      if i=ImageCount then
-        ImageList.Add(TTiffIFD.Create);
-      IFD:=Images[i];
-      IFDStart:=ReadIFD(IFDStart);
-      LoadImageFromStream(i);
-      inc(i);
-    end;
-  finally
-    IFD:=nil;
+  LoadIFDsFromStream;
+  for i := 0 to ImageCount-1 do
+  begin
+    Progress(psRunning, (i+1)*100 div (ImageCount+1), False, Rect(0,0,0,0),
+             IntToStr(i+1)+'/'+IntToStr(ImageCount), aContinue);
+    LoadImageFromStream(i);
   end;
   Progress(psEnding, 100, False, Rect(0,0,0,0), '', aContinue);
+  ReleaseStream;
 end;
 
 procedure TFPReaderTiff.LoadHeaderFromStream(aStream: TStream);
@@ -467,21 +488,24 @@ end;
 
 procedure TFPReaderTiff.LoadIFDsFromStream;
 var
-  i: Integer;
+  i,j: Integer;
   IFDStart: DWord;
+  IFD: TTiffIFD;
 begin
-  try
-    IFDStart:=FirstIFDStart;
-    i:=0;
-    while IFDStart>0 do begin
-      if ImageCount=i then
-        ImageList.Add(TTiffIFD.Create);
+  IFDStart:=FirstIFDStart;
+  i:=0;
+  while IFDStart>0 do begin
+    for j := 0 to i-1 do
+      if Images[j].IFDStart = IFDStart then exit; //IFD cycle detected
+
+    if ImageCount=i then
+    begin
+      IFD := TTiffIFD.Create;
+      ImageList.Add(IFD);
+    end else
       IFD:=Images[i];
-      IFDStart:=ReadIFD(IFDStart);
-      inc(i);
-    end;
-  finally
-    IFD:=nil;
+    IFDStart:=ReadIFD(IFDStart, IFD);
+    inc(i);
   end;
 end;
 
@@ -495,18 +519,18 @@ end;
 function TFPReaderTiff.GetBiggestImage: TTiffIFD;
 var
   Size: Int64;
-  Img: TTiffIFD;
+  IFD: TTiffIFD;
   CurSize: int64;
   i: Integer;
 begin
   Result:=nil;
   Size:=0;
   for i:=0 to ImageCount-1 do begin
-    Img:=Images[i];
-    CurSize:=Int64(Img.ImageWidth)*Img.ImageHeight;
+    IFD:=Images[i];
+    CurSize:=Int64(IFD.ImageWidth)*IFD.ImageHeight;
     if CurSize<Size then continue;
     Size:=CurSize;
-    Result:=Img;
+    Result:=IFD;
   end;
 end;
 
@@ -553,7 +577,7 @@ begin
   Result:=true;
 end;
 
-function TFPReaderTiff.ReadIFD(Start: DWord): DWord;
+function TFPReaderTiff.ReadIFD(Start: DWord; IFD: TTiffIFD): DWord;
 var
   Count: Word;
   i: Integer;
@@ -564,9 +588,7 @@ begin
   if Debug then
     writeln('ReadIFD Start=',Start);
   {$endif}
-  // set default values if not read from file
-  IFD.RowsPerStrip := $FFFFFFFF;
-  
+
   Result:=0;
   SetStreamPos(Start);
   IFD.IFDStart:=Start;
@@ -574,24 +596,36 @@ begin
   EntryTag:=0;
   p:=s.Position;
   for i:=1 to Count do begin
-    ReadDirectoryEntry(EntryTag);
+    ReadDirectoryEntry(EntryTag, IFD);
     inc(p,12);
     s.Position:=p;
   end;
-  // read start of next IFD
-  Result:=ReadDWord;
-  IFD.IFDNext:=Result;
-  if (Result<>0) and (Result<Start) then begin
-    // backward jump: check for loops
-    if fIFDStarts=nil then
-      fIFDStarts:=TFPList.Create
-    else if fIFDStarts.IndexOf({%H-}Pointer(PtrUInt(Result)))>0 then
-      TiffError('endless loop in Image File Descriptors');
-    fIFDStarts.Add({%H-}Pointer(PtrUInt(Result)));
+
+  //fix IFD if it is supposed to use tiles but provide chunks as strips
+  if IFD.TileWidth > 0 then
+  begin
+    if (IFD.TileOffsets=0) and (IFD.StripOffsets <> 0) then
+    begin
+      IFD.TileOffsets := IFD.StripOffsets;
+      IFD.StripOffsets := 0;
+    end;
+    if (IFD.TileByteCounts=0) and (IFD.StripByteCounts <> 0) then
+    begin
+      IFD.TileByteCounts := IFD.StripByteCounts;
+      IFD.StripByteCounts:= 0;
+    end;
+  end else
+  begin
+    //if not specified, the strip is the whole image
+    if IFD.RowsPerStrip = 0 then IFD.RowsPerStrip:= IFD.ImageHeight;
   end;
+
+  // read start of next IFD
+  IFD.IFDNext:= ReadDWord;
+  Result:= IFD.IFDNext;
 end;
 
-procedure TFPReaderTiff.ReadDirectoryEntry(var EntryTag: Word);
+procedure TFPReaderTiff.ReadDirectoryEntry(var EntryTag: Word; IFD: TTiffIFD);
 var
   EntryType: Word;
   EntryCount: DWord;
@@ -742,16 +776,8 @@ begin
     begin
       // PhotometricInterpretation
       UValue:=ReadEntryUnsigned;
-      case UValue of
-      0: ; // bilevel grayscale 0 is white
-      1: ; // bilevel grayscale 0 is black
-      2: ; // RGB 0,0,0 is black
-      3: ; // Palette color
-      4: ; // Transparency Mask
-      5: ; // CMYK
-      else
+      if UValue > 65535 then
         TiffError('expected PhotometricInterpretation, but found '+IntToStr(UValue));
-      end;
       IFD.PhotoMetricInterpretation:=UValue;
       {$ifdef FPC_Debug_Image}
       if Debug then begin
@@ -1517,9 +1543,8 @@ begin
   Result:=FixEndian(s.ReadDWord);
 end;
 
-procedure TFPReaderTiff.ReadValues(StreamPos: DWord;
-  out EntryType: word; out EntryCount: DWord;
-  out Buffer: Pointer; out ByteCount: PtrUint);
+procedure TFPReaderTiff.ReadValues(StreamPos: DWord; out EntryType: word; out
+  EntryCount: DWord; out Buffer: Pointer; out ByteCount: PtrUInt);
 var
   EntryStart: DWord;
 begin
@@ -1616,6 +1641,92 @@ end;
 
 procedure TFPReaderTiff.LoadImageFromStream(Index: integer);
 var
+  IFD: TTiffIFD;
+begin
+  {$ifdef FPC_Debug_Image}
+  if Debug then
+    writeln('TFPReaderTiff.LoadImageFromStream Index=',Index);
+  {$endif}
+  IFD:=Images[Index];
+  LoadImageFromStream(IFD);
+end;
+
+procedure TFPReaderTiff.LoadImageFromStream(IFD: TTiffIFD);
+var
+  SampleCnt: DWord;
+  SampleBits: PWord;
+  ChannelValues, LastChannelValues: array of word;
+
+  PaletteCnt,PaletteStride: DWord;
+  PaletteValues: PWord;
+
+  AlphaChannel: integer;
+  PremultipliedAlpha: boolean;
+
+  procedure InitColor;
+  var Channel: DWord;
+  begin
+    SetLength(ChannelValues, SampleCnt);
+    SetLength(LastChannelValues, SampleCnt);
+    for Channel := 0 to SampleCnt-1 do
+      LastChannelValues[Channel] := 0;
+  end;
+
+  function ReadNextColor(var Run: Pointer; var BitPos: byte): TFPColor;
+  var Channel, PaletteIndex: DWord;
+    GrayValue: Word;
+  begin
+    for Channel := 0 to SampleCnt-1 do
+      ReadImgValue(SampleBits[Channel], Run,BitPos,IFD.FillOrder,
+                   IFD.Predictor,LastChannelValues[Channel],
+                   ChannelValues[Channel]);
+
+    case IFD.PhotoMetricInterpretation of
+    0,1: // 0:bilevel grayscale 0 is white; 1:0 is black
+      begin
+        GrayValue := ChannelValues[0];
+        if IFD.PhotoMetricInterpretation=0 then
+          GrayValue:=$ffff-GrayValue;
+        result:=FPColor(GrayValue,GrayValue,GrayValue);
+      end;
+
+    2: // RGB(A)
+       result:=FPColor(ChannelValues[0],ChannelValues[1],ChannelValues[2]);
+
+    3: //3 Palette/color map indexed
+      begin
+        PaletteIndex := ChannelValues[0] shr (16 - SampleBits[0]);
+        result:= FPColor(PaletteValues[PaletteIndex],PaletteValues[PaletteIndex+PaletteStride],PaletteValues[PaletteIndex+2*PaletteStride]);
+      end;
+
+    //4 Mask/holdout mask (obsolete by TIFF 6.0 specification)
+
+    5: // CMYK plus optional alpha
+      result:=CMYKToFPColor(ChannelValues[0],ChannelValues[1],ChannelValues[2],ChannelValues[3]);
+
+     //6: YCBCR: CCIR 601
+     //8: CIELAB: 1976 CIE L*a*b*
+     //9: ICCLAB: ICC L*a*b*. Introduced post TIFF rev 6.0 by Adobe TIFF Technote 4
+     //10: ITULAB: ITU L*a*b*
+     //32844: LOGL: CIE Log2(L)
+     //32845: LOGLUV: CIE Log2(L) (u',v')
+    else
+      TiffError('PhotometricInterpretation='+IntToStr(IFD.PhotoMetricInterpretation)+' not supported');
+    end;
+
+    if AlphaChannel >= 0 then
+    begin
+      result.alpha:= ChannelValues[AlphaChannel];
+      if PremultipliedAlpha and (result.alpha <> alphaOpaque) and (result.alpha <> 0) then
+      begin
+        result.red := (result.red * alphaOpaque + result.alpha div 2) div result.alpha;
+        result.green := (result.green * alphaOpaque + result.alpha div 2) div result.alpha;
+        result.blue := (result.blue * alphaOpaque + result.alpha div 2) div result.alpha;
+      end;
+    end;
+  end;
+
+var
   ChunkOffsets: PDWord;
   ChunkByteCounts: PDWord;
   Chunk: PByte;
@@ -1625,32 +1736,19 @@ var
   CurOffset: DWord;
   CurByteCnt: PtrInt;
   Run: PByte;
-  x, y, cx, cy, dx, dy, sx: integer;
-  SampleBits: PWord;
+  BitPos: Byte;
+  x, y, cx, cy, dx1,dy1, dx2,dy2, sx: integer;
   SampleBitsPerPixel: DWord;
-  ExtraSamples: PWord;
-  ExtraSampleCnt: DWord;
-  GrayBits, GrayValue, LastGrayValue: Word;
-  RedBits, RedValue, LastRedValue: Word;
-  GreenBits, GreenValue, LastGreenValue: Word;
-  BlueBits, BlueValue, LastBlueValue: Word;
-  AlphaBits, AlphaValue, LastAlphaValue: Word;
-  Col: TFPColor;
-  i: Integer;
   CurFPImg: TFPCustomImage;
   aContinue: Boolean;
   ExpectedChunkLength: PtrInt;
   ChunkType: TTiffChunkType;
   TilesAcross, TilesDown: DWord;
   ChunkLeft, ChunkTop, ChunkWidth, ChunkHeight: DWord;
-  CurImg: TTiffIFD;
   ChunkBytesPerLine: DWord;
 begin
-  {$ifdef FPC_Debug_Image}
-  if Debug then
-    writeln('TFPReaderTiff.LoadImageFromStream Index=',Index);
-  {$endif}
-  IFD:=Images[Index];
+  if (IFD.ImageWidth=0) or (IFD.ImageHeight=0) then
+    exit;
 
   if IFD.PhotoMetricInterpretation=High(IFD.PhotoMetricInterpretation) then
     TiffError('missing PhotometricInterpretation');
@@ -1674,12 +1772,8 @@ begin
       TiffError('missing StripByteCounts');
   end;
 
-  if (IFD.ImageWidth=0) or (IFD.ImageHeight=0) then
-    exit;
-
-  if Index=ImageCount then
-    ImageList.Add(TTiffIFD.Create);
-  CurImg:=Images[Index];
+  if IFD.PlanarConfiguration > 1 then
+     TiffError('Planar configuration not handled');
 
   {$ifdef FPC_Debug_Image}
   if Debug then
@@ -1689,9 +1783,7 @@ begin
   ChunkOffsets:=nil;
   ChunkByteCounts:=nil;
   Chunk:=nil;
-  ExtraSamples:=nil;
   SampleBits:=nil;
-  ExtraSampleCnt:=0;
   try
     // read chunk starts and sizes
     if ChunkType=tctTile then begin
@@ -1703,32 +1795,34 @@ begin
       {$endif}
       ChunkCount := TilesAcross * TilesDown;
       ReadShortOrLongValues(IFD.TileOffsets,ChunkOffsets,CurCount);
-      if CurCount<>ChunkCount then
+      if CurCount<ChunkCount then
         TiffError('number of TileCounts is wrong');
       ReadShortOrLongValues(IFD.TileByteCounts,ChunkByteCounts,CurCount);
-      if CurCount<>ChunkCount then
+      if CurCount<ChunkCount then
         TiffError('number of TileByteCounts is wrong');
     end else begin //strip
       ChunkCount:=((IFD.ImageHeight-1) div IFD.RowsPerStrip)+1;
       ReadShortOrLongValues(IFD.StripOffsets,ChunkOffsets,CurCount);
-      if CurCount<>ChunkCount then
+      if CurCount<ChunkCount then
         TiffError('number of StripCounts is wrong');
       ReadShortOrLongValues(IFD.StripByteCounts,ChunkByteCounts,CurCount);
-      if CurCount<>ChunkCount then
+      if CurCount<ChunkCount then
         TiffError('number of StripByteCounts is wrong');
     end;
 
-    // read image structure
-    ReadImageProperties(RedBits, GreenBits, BlueBits, GrayBits, AlphaBits,
-      ExtraSamples, ExtraSampleCnt, SampleBits, SampleBitsPerPixel);
-    CurImg.Assign(IFD);
+    // read image sample structure
+    ReadImageSampleProperties(IFD, AlphaChannel, PremultipliedAlpha,
+      SampleCnt, SampleBits, SampleBitsPerPixel,
+      PaletteCnt, PaletteValues);
+
+    PaletteStride := PaletteCnt div 3;
 
     // create FPimage
-    DoCreateImage(CurImg);
-    CurFPImg:=CurImg.Img;
+    DoCreateImage(IFD);
+    CurFPImg:=IFD.Img;
     if CurFPImg=nil then exit;
 
-    SetFPImgExtras(CurFPImg);
+    SetFPImgExtras(CurFPImg, IFD);
 
     case IFD.Orientation of
     0,1..4: CurFPImg.SetSize(IFD.ImageWidth,IFD.ImageHeight);
@@ -1801,20 +1895,22 @@ begin
       // Orientation
       if IFD.Orientation in [1..4] then begin
         x:=ChunkLeft; y:=ChunkTop;
+        dy1 := 0; dx2 := 0;
         case IFD.Orientation of
-        1: begin dx:=1; dy:=1; end;// 0,0 is left, top
-        2: begin x:=IFD.ImageWidth-x-1; dx:=-1; dy:=1; end;// 0,0 is right, top
-        3: begin x:=IFD.ImageWidth-x-1; dx:=-1; y:=IFD.ImageHeight-y-1; dy:=-1; end;// 0,0 is right, bottom
-        4: begin dx:=1; y:=IFD.ImageHeight-y-1; dy:=-1; end;// 0,0 is left, bottom
+        1: begin dx1:=1; dy2:=1; end;// 0,0 is left, top
+        2: begin x:=IFD.ImageWidth-x-1; dx1:=-1; dy2:=1; end;// 0,0 is right, top
+        3: begin x:=IFD.ImageWidth-x-1; dx1:=-1; y:=IFD.ImageHeight-y-1; dy2:=-1; end;// 0,0 is right, bottom
+        4: begin dx1:=1; y:=IFD.ImageHeight-y-1; dy2:=-1; end;// 0,0 is left, bottom
         end;
       end else begin
         // rotated
         x:=ChunkTop; y:=ChunkLeft;
+        dx1 := 0; dy2 := 0;
         case IFD.Orientation of
-        5: begin dx:=1; dy:=1; end;// 0,0 is top, left (rotated)
-        6: begin dx:=1; y:=IFD.ImageWidth-y-1; dy:=-1; end;// 0,0 is top, right (rotated)
-        7: begin x:=IFD.ImageHeight-x-1; dx:=-1; y:=IFD.ImageWidth-y-1; dy:=-1; end;// 0,0 is bottom, right (rotated)
-        8: begin x:=IFD.ImageHeight-x-1; dx:=-1; dy:=1; end;// 0,0 is bottom, left (rotated)
+        5: begin dy1:=1; dx2:=1; end;// 0,0 is top, left (rotated)
+        6: begin dy1:=1; x:=IFD.ImageWidth-x-1; dx2:=-1; end;// 0,0 is top, right (rotated)
+        7: begin y:=IFD.ImageHeight-y-1; dy1:=-1; x:=IFD.ImageHeight-x-1; dx2:=-1; end;// 0,0 is bottom, right (rotated)
+        8: begin y:=IFD.ImageHeight-y-1; dy1:=-1; dx2:=1; end;// 0,0 is bottom, left (rotated)
         end;
       end;
 
@@ -1823,94 +1919,35 @@ begin
       for cy:=0 to ChunkHeight-1 do begin
         //writeln('TFPReaderTiff.LoadImageFromStream y=',y);
         Run:=Chunk+ChunkBytesPerLine*cy;
-        LastRedValue:=0;
-        LastGreenValue:=0;
-        LastBlueValue:=0;
-        LastGrayValue:=0;
-        LastAlphaValue:=0;
+        BitPos := 0;
+        InitColor;
         x:=sx;
+
         for cx:=0 to ChunkWidth-1 do begin
-          case IFD.PhotoMetricInterpretation of
-          0,1: // 0:bilevel grayscale 0 is white; 1:0 is black
-            begin
-              ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
-              if IFD.PhotoMetricInterpretation=0 then
-                GrayValue:=$ffff-GrayValue;
-              AlphaValue:=alphaOpaque;
-              for i:=0 to ExtraSampleCnt-1 do begin
-                if ExtraSamples[i] in [1,2] then begin
-                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
-                end else begin
-                  inc(Run,ExtraSamples[i] div 8);
-                end;
-              end;
-              Col:=FPColor(GrayValue,GrayValue,GrayValue,AlphaValue);
-            end;
-
-          2: // RGB(A)
-            begin
-              ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
-              ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
-              ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
-              if SampleBitsPerPixel=32 then
-                ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue)
-              else
-                AlphaValue:=alphaOpaque;
-              for i:=0 to ExtraSampleCnt-1 do begin
-                if ExtraSamples[i] in [1,2] then begin
-                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
-                end else begin
-                  inc(Run,ExtraSamples[i] div 8);
-                end;
-              end;
-              Col:=FPColor(RedValue,GreenValue,BlueValue,AlphaValue);
-            end;
-          //3 Palette/color map indexed
-          //4 Mask/holdout mask (obsolete by TIFF 6.0 specification)
-          5: // CMYK plus optional alpha
-            begin
-              ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
-              ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
-              ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
-              ReadImgValue(GrayBits,Run,cx,IFD.Predictor,LastGrayValue,GrayValue);
-              AlphaValue:=alphaOpaque;
-              for i:=0 to ExtraSampleCnt-1 do begin
-                if ExtraSamples[i] in [1,2] then begin
-                  ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
-                end else begin
-                  inc(Run,ExtraSamples[i] div 8);
-                end;
-              end;
-              // CMYK to RGB
-              Col:=CMYKToFPColor(RedValue,GreenValue,BlueValue,GrayValue);
-            end;
-           //6: YCBCR: CCIR 601
-           //8: CIELAB: 1976 CIE L*a*b*
-           //9: ICCLAB: ICC L*a*b*. Introduced post TIFF rev 6.0 by Adobe TIFF Technote 4
-           //10: ITULAB: ITU L*a*b*
-           //32844: LOGL: CIE Log2(L)
-           //32845: LOGLUV: CIE Log2(L) (u',v')
-          else
-            TiffError('PhotometricInterpretation='+IntToStr(IFD.PhotoMetricInterpretation)+' not supported');
-          end;
-
-          CurFPImg.Colors[x,y]:=Col;
+          CurFPImg.Colors[x,y]:= ReadNextColor(Run,BitPos);
           // next column
-          inc(x,dx);
+          inc(x,dx1);
+          inc(y,dy1);
         end;
 
         // next line
-        inc(y,dy);
+        inc(x,dx2);
+        inc(y,dy2);
       end;
       // next chunk
     end;
   finally
-    ReAllocMem(ExtraSamples,0);
     ReAllocMem(SampleBits,0);
     ReAllocMem(ChunkOffsets,0);
     ReAllocMem(ChunkByteCounts,0);
     ReAllocMem(Chunk,0);
+    ReAllocMem(PaletteValues,0);
   end;
+end;
+
+procedure TFPReaderTiff.ReleaseStream;
+begin
+  s := nil;
 end;
 
 function TFPReaderTiff.FixEndian(w: Word): Word; inline;
@@ -1977,38 +2014,29 @@ end;
 procedure TFPReaderTiff.InternalRead(Str: TStream; AnImage: TFPCustomImage);
 // read the biggest image
 var
-  Img: TTiffIFD;
   aContinue: Boolean;
-  BestSize: PtrInt;
-  NewSize: PtrInt;
-  Best: integer;
-  CurImg: TTiffIFD;
-  i: Integer;
+  BestIFD: TTiffIFD;
 begin
   Clear;
+
   // read header
   aContinue:=true;
   Progress(psStarting, 0, False, Rect(0,0,0,0), '', aContinue);
   if not aContinue then exit;
   LoadHeaderFromStream(Str);
   LoadIFDsFromStream;
+
   // find the biggest image
-  BestSize:=-1;
-  Best:=-1;
-  for i:=0 to ImageCount-1 do begin
-    CurImg:=Images[i];
-    NewSize:=Int64(CurImg.ImageWidth)*CurImg.ImageHeight;
-    if (NewSize<=BestSize) then continue;
-    BestSize:=NewSize;
-    Best:=i;
-  end;
-  Progress(psRunning, 0, False, Rect(0,0,0,0), '', aContinue);
+  BestIFD := GetBiggestImage;
+  Progress(psRunning, 25, False, Rect(0,0,0,0), '', aContinue);
+  if not aContinue then exit;
+
   // read image
-  if Best>=0 then begin
-    Img:=Images[Best];
-    Img.Img:=AnImage;
-    LoadImageFromStream(Best);
+  if Assigned(BestIFD) then begin
+    BestIFD.Img := AnImage;
+    LoadImageFromStream(BestIFD);
   end;
+
   // end
   Progress(psEnding, 100, False, Rect(0,0,0,0), '', aContinue);
 end;
@@ -2053,11 +2081,10 @@ begin
   for i:=ImageCount-1 downto 0 do begin
     Img:=Images[i];
     ImageList.Delete(i);
-    if IFD=Img then IFD:=nil;
     Img.Free;
   end;
   FReverseEndian:=false;
-  FreeAndNil(fIFDStarts);
+  FreeAndNil(FIFDList);
 end;
 
 procedure DecompressPackBits(Buffer: Pointer; Count: PtrInt; out
@@ -2133,6 +2160,7 @@ type
   TLZWString = packed record
     Count: integer;
     Data: PByte;
+    ShortData: array[0..3] of byte;
   end;
   PLZWString = ^TLZWString;
 const
@@ -2144,8 +2172,7 @@ var
   SrcPosBit: integer;
   CurBitLength: integer;
   Code: Word;
-  Table: PLZWString;
-  TableCapacity: integer;
+  Table: array[0..4096-259-1] of TLZWString;
   TableCount: integer;
   OldCode: Word;
 
@@ -2164,7 +2191,11 @@ var
     // read two or three bytes
     if CurBitLength+SrcPosBit>16 then begin
       // read from three bytes
-      if SrcPos+3>Count then Error('LZW stream overrun');
+      if SrcPos+3>Count then
+      begin
+        result := EoiCode;
+        exit;
+      end;
       v:=PByte(Buffer)[SrcPos];
       inc(SrcPos);
       v:=(v shl 8)+PByte(Buffer)[SrcPos];
@@ -2173,7 +2204,11 @@ var
       v:=v shr (24-CurBitLength-SrcPosBit);
     end else begin
       // read from two bytes
-      if SrcPos+2>Count then Error('LZW stream overrun');
+      if SrcPos+2>Count then
+      begin
+        result := EoiCode;
+        exit;
+      end;
       v:=PByte(Buffer)[SrcPos];
       inc(SrcPos);
       v:=(v shl 8)+PByte(Buffer)[SrcPos];
@@ -2191,7 +2226,8 @@ var
     i: Integer;
   begin
     for i:=0 to TableCount-1 do
-      ReAllocMem(Table[i].Data,0);
+      if Table[i].Data <> @Table[i].ShortData then
+        ReAllocMem(Table[i].Data,0);
     TableCount:=0;
   end;
 
@@ -2209,13 +2245,12 @@ var
   procedure WriteStringFromCode(Code: integer; AddFirstChar: boolean = false);
   var
     s: TLZWString;
-    b: byte;
   begin
     //WriteLn('WriteStringFromCode Code=',Code,' AddFirstChar=',AddFirstChar,' x=',(NewCount div 4) mod IFD.ImageWidth,' y=',(NewCount div 4) div IFD.ImageWidth,' PixelByte=',NewCount mod 4);
     if Code<256 then begin
       // write byte
-      b:=Code;
-      s.Data:=@b;
+      s.ShortData[0] := code;
+      s.Data:=@s.ShortData;
       s.Count:=1;
     end else if Code>=258 then begin
       // write string
@@ -2242,23 +2277,18 @@ var
   procedure AddStringToTable(Code, AddFirstCharFromCode: integer);
   // add string from code plus first character of string from code as new string
   var
-    b1, b2: byte;
     s1, s2: TLZWString;
     p: PByte;
+    NewCount: integer;
   begin
-    //WriteLn('AddStringToTable Code=',Code,' FCFCode=',AddFirstCharFromCode,' TableCount=',TableCount,' TableCapacity=',TableCapacity);
+    //WriteLn('AddStringToTable Code=',Code,' FCFCode=',AddFirstCharFromCode,' TableCount=',TableCount);
     if TableCount=4096-259 then
       Error('LZW too many codes');
-    // grow table
-    if TableCount>=TableCapacity then begin
-      TableCapacity:=TableCapacity*2+128;
-      ReAllocMem(Table,TableCapacity*SizeOf(TLZWString));
-    end;
     // find string 1
     if Code<256 then begin
       // string is byte
-      b1:=Code;
-      s1.Data:=@b1;
+      s1.ShortData[0] := code;
+      s1.Data:=@s1.ShortData;
       s1.Count:=1;
     end else if Code>=258 then begin
       // normal string
@@ -2270,8 +2300,8 @@ var
     // find string 2
     if AddFirstCharFromCode<256 then begin
       // string is byte
-      b2:=AddFirstCharFromCode;
-      s2.Data:=@b2;
+      s2.ShortData[0] := AddFirstCharFromCode;
+      s2.Data:=@s2.ShortData;
       s2.Count:=1;
     end else begin
       // normal string
@@ -2280,9 +2310,14 @@ var
       s2:=Table[AddFirstCharFromCode-258];
     end;
     // set new table entry
-    Table[TableCount].Count:=s1.Count+1;
-    p:=nil;
-    GetMem(p,s1.Count+1);
+    NewCount := s1.Count+1;
+    Table[TableCount].Count:= NewCount;
+    if NewCount > 4 then
+    begin
+      p:=nil;
+      GetMem(p,NewCount);
+    end else
+      p := @Table[TableCount].ShortData;
     Table[TableCount].Data:=p;
     System.Move(s1.Data^,p^,s1.Count);
     // add first character from string 2
@@ -2311,9 +2346,7 @@ begin
   SrcPos:=0;
   SrcPosBit:=0;
   CurBitLength:=9;
-  Table:=nil;
   TableCount:=0;
-  TableCapacity:=0;
   try
     repeat
       Code:=GetNextCode;
@@ -2343,7 +2376,6 @@ begin
     until false;
   finally
     ClearTable;
-    ReAllocMem(Table,0);
   end;
 
   ReAllocMem(NewBuffer,NewCount);
@@ -2357,6 +2389,7 @@ var
   err : integer;
 begin
   Result:=false;
+
   //writeln('DecompressDeflate START');
   Decompressed:=nil;
   if CompressedCount=0 then begin
@@ -2423,7 +2456,7 @@ begin
 end;
 
 initialization
-  if ImageHandlers.ImageReader[TiffHandlerName]=nil then
-    ImageHandlers.RegisterImageReader (TiffHandlerName, 'tif;tiff', TFPReaderTiff);
+  DefaultBGRAImageReader[ifTiff] := TFPReaderTiff;
+
 end.
 
