@@ -38,7 +38,7 @@
    Separate mask (deprecated)
 
 }
-unit FPReadTiff;
+unit fpreadtiff;
 
 {$mode objfpc}{$H+}
 
@@ -2162,7 +2162,6 @@ type
     Data: PByte;
     ShortData: array[0..3] of byte;
   end;
-  PLZWString = ^TLZWString;
 const
   ClearCode = 256; // clear table, start with 9bit codes
   EoiCode = 257; // end of input
@@ -2456,7 +2455,8 @@ begin
 end;
 
 initialization
-  DefaultBGRAImageReader[ifTiff] := TFPReaderTiff;
+  if ImageHandlers.ImageReader[TiffHandlerName]=nil then
+    ImageHandlers.RegisterImageReader (TiffHandlerName, 'tif;tiff', TFPReaderTiff);
 
 end.
 
