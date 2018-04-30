@@ -441,7 +441,9 @@ type
     Procedure TestClassOf_Const;
 
     // nested class
-    Procedure TestNestedClass_Fail;
+    Procedure TestNestedClass_Alias;
+    Procedure TestNestedClass_Record;
+    Procedure TestNestedClass_Class;
 
     // external class
     Procedure TestExternalClass_Var;
@@ -10523,12 +10525,12 @@ begin
     '      Self.SetSize(Self.GetSize() + 8);',
     '    };',
     '    Sub();',
-    '    this.Key = this.Key + 12;',
+    '    Self.Key = Self.Key + 12;',
     '    Self.Key = Self.Key + 13;',
-    '    this.$class.State = this.State + 14;',
+    '    Self.$class.State = Self.State + 14;',
     '    Self.$class.State = Self.State + 15;',
     '    $mod.TObject.State = $mod.TObject.State + 16;',
-    '    this.SetSize(this.GetSize() + 17);',
+    '    Self.SetSize(Self.GetSize() + 17);',
     '    Self.SetSize(Self.GetSize() + 18);',
     '  };',
     '});',
@@ -11470,18 +11472,191 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestNestedClass_Fail;
+procedure TTestModule.TestNestedClass_Alias;
 begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
   Add([
   'type',
   '  TObject = class',
-  '    type TNested = longint;',
+  '    type TNested = type longint;',
   '  end;',
-  'begin']);
-  SetExpectedPasResolverError('not yet implemented: TNested:TPasAliasType [20170608232534] nested types',
-    nNotYetImplemented);
+  'type TAlias = type tobject.tnested;',
+  'var i: tobject.tnested = 3;',
+  'var j: TAlias = 4;',
+  'begin',
+  '  if typeinfo(TAlias)=nil then ;',
+  '  if typeinfo(tobject.tnested)=nil then ;',
+  '']);
   ConvertProgram;
+  CheckSource('TestNestedClass_Alias',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  $mod.$rtti.$inherited("TObject.TNested", rtl.longint, {});',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    '$mod.$rtti.$inherited("TAlias", $mod.$rtti["TObject.TNested"], {});',
+    'this.i = 3;',
+    'this.j = 4;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.$rtti["TAlias"] === null) ;',
+    'if ($mod.$rtti["TObject.TNested"] === null) ;',
+    '']));
+end;
+
+procedure TTestModule.TestNestedClass_Record;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    type TPoint = record',
+  '       x,y: byte;',
+  '    end;',
+  '    procedure DoIt(t: TPoint);',
+  '  end;',
+  'procedure tobject.DoIt(t: TPoint);',
+  'var p: TPoint;',
+  'begin',
+  '  t.x:=t.y;',
+  '  p:=t;',
+  'end;',
+  'var',
+  '  p: tobject.tpoint = (x:2; y:4);',
+  '  o: TObject;',
+  'begin',
+  '  p:=p;',
+  '  o.doit(p);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestNestedClass_Record',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.TPoint = function (s) {',
+    '    if (s) {',
+    '      this.x = s.x;',
+    '      this.y = s.y;',
+    '    } else {',
+    '      this.x = 0;',
+    '      this.y = 0;',
+    '    };',
+    '    this.$equal = function (b) {',
+    '      return (this.x === b.x) && (this.y === b.y);',
+    '    };',
+    '  };',
+    '  $mod.$rtti.$Record("TObject.TPoint", {}).addFields("x", rtl.byte, "y", rtl.byte);',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (t) {',
+    '    var p = new this.TPoint();',
+    '    t.x = t.y;',
+    '    p = new this.TPoint(t);',
+    '  };',
+    '});',
+    'this.p = new $mod.TObject.TPoint({',
+    '  x: 2,',
+    '  y: 4',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = new $mod.TObject.TPoint($mod.p);',
+    '$mod.o.DoIt(new $mod.TObject.TPoint($mod.p));',
+    '']));
+end;
+
+procedure TTestModule.TestNestedClass_Class;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '    type TLeg = class',
+  '      FId: longint;',
+  '      constructor Create;',
+  '      function Create(i: longint): TLeg;',
+  '    end;',
+  '    function DoIt(b: TBird): Tleg;',
+  '  end;',
+  'constructor tbird.tleg.create;',
+  'begin',
+  '  FId:=3;',
+  'end;',
+  'function tbird.tleg.Create(i: longint): TLeg;',
+  'begin',
+  '  Create;',
+  '  Result:=TLeg.Create;',
+  '  Result:=TBird.TLeg.Create;',
+  '  Result:=Create(3);',
+  '  FId:=i;',
+  'end;',
+  'function tbird.DoIt(b: tbird): tleg;',
+  'begin',
+  '  Result.Create;',
+  '  Result:=TLeg.Create;',
+  '  Result:=TBird.TLeg.Create;',
+  '  Result:=Result.Create(3);',
+  'end;',
+  'var',
+  '  b: Tbird.tleg;',
+  'begin',
+  '  b.Create;',
+  '  b:=TBird.TLeg.Create;',
+  '  b:=b.Create(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestNestedClass_Class',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  rtl.createClass(this, "TLeg", $mod.TObject, function () {',
+    '    this.$init = function () {',
+    '      $mod.TObject.$init.call(this);',
+    '      this.FId = 0;',
+    '    };',
+    '    this.Create = function () {',
+    '      this.FId = 3;',
+    '    };',
+    '    this.Create$1 = function (i) {',
+    '      var Result = null;',
+    '      this.Create();',
+    '      Result = $mod.TBird.TLeg.$create("Create");',
+    '      Result = $mod.TBird.TLeg.$create("Create");',
+    '      Result = this.Create$1(3);',
+    '      this.FId = i;',
+    '      return Result;',
+    '    };',
+    '  });',
+    '  this.DoIt = function (b) {',
+    '    var Result = null;',
+    '    Result.Create();',
+    '    Result = this.TLeg.$create("Create");',
+    '    Result = $mod.TBird.TLeg.$create("Create");',
+    '    Result = Result.Create$1(3);',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.b = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.b.Create();',
+    '$mod.b = $mod.TBird.TLeg.$create("Create");',
+    '$mod.b = $mod.b.Create$1(3);',
+    '']));
 end;
 
 procedure TTestModule.TestExternalClass_Var;

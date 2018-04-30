@@ -2308,8 +2308,6 @@ end;
 procedure TPas2JSResolver.AddType(El: TPasType);
 begin
   inherited AddType(El);
-  if (El.Name<>'') and (TopScope is TPasClassScope) then
-    RaiseNotYetImplemented(20170608232534,El,'nested types');
 end;
 
 procedure TPas2JSResolver.ResolveImplAsm(El: TPasImplAsmStatement);
@@ -4446,7 +4444,11 @@ begin
   else if ThisPas=El then
     Result:='this'
   else
+    begin
     Result:=inherited GetLocalName(El);
+    if Result='this' then
+      Result:='';
+    end;
 end;
 
 function TFunctionContext.IndexOfLocalVar(const aName: string): integer;
@@ -4636,17 +4638,23 @@ end;
 
 procedure TConvertContext.WriteStack;
 {AllowWriteln}
+var
+  SelfCtx: TFunctionContext;
 
   procedure W(Index: integer; AContext: TConvertContext);
   begin
+    if AContext=SelfCtx then
+      writeln('  SelfContext:');
     AContext.DoWriteStack(Index);
     if AContext.Parent<>nil then
       W(Index+1,AContext.Parent);
   end;
 
 begin
-  writeln('TConvertContext.WriteStack: ');
+  SelfCtx:=GetSelfContext;
+  writeln('TConvertContext.WriteStack: START');
   W(1,Self);
+  writeln('TConvertContext.WriteStack: END');
 end;
 {AllowWriteln-}
 
@@ -10683,10 +10691,12 @@ begin
     Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FnName]);
 
     // add parameter: owner. For top level class, the module is the owner.
-    if (El.Parent<>nil) and (El.Parent.ClassType=TImplementationSection) then
-      OwnerName:=AContext.GetLocalName(El.Parent)
+    if (El.Parent=nil)
+        or ((El.Parent is TPasSection)
+          and (El.Parent.ClassType<>TImplementationSection)) then
+      OwnerName:=AContext.GetLocalName(El.GetModule)
     else
-      OwnerName:=AContext.GetLocalName(El.GetModule);
+      OwnerName:=AContext.GetLocalName(El.Parent);
     if OwnerName='' then
       OwnerName:='this';
     Call.AddArg(CreatePrimitiveDotExpr(OwnerName,El));
@@ -10782,10 +10792,7 @@ begin
           else if C=TPasConst then
             NewEl:=ConvertConst(TPasConst(P),aContext)
           else if C=TPasProperty then
-            begin
-            NewEl:=ConvertProperty(TPasProperty(P),AContext);
-            if NewEl=nil then continue;
-            end
+            NewEl:=ConvertProperty(TPasProperty(P),AContext)
           else if C.InheritsFrom(TPasType) then
             NewEl:=CreateTypeDecl(TPasType(P),aContext)
           else if C.InheritsFrom(TPasProcedure) then
@@ -10794,9 +10801,8 @@ begin
             continue
           else
             RaiseNotSupported(P,FuncContext,20161221233338);
-          if NewEl=nil then
-            RaiseNotSupported(P,FuncContext,20170204223922);
-          AddToSourceElements(Src,NewEl);
+          if NewEl<>nil then
+            AddToSourceElements(Src,NewEl);
           end;
         end;
 
@@ -11810,35 +11816,40 @@ begin
       if ProcScope.ClassScope<>nil then
         begin
         // method or class method
-        FuncContext.ThisPas:=ProcScope.ClassScope.Element;
-        if bsObjectChecks in FuncContext.ScannerBoolSwitches then
+        if El.Parent is TProcedureBody then
           begin
-          // rtl.checkMethodCall(this,<class>)
-          Call:=CreateCallExpression(PosEl);
-          AddBodyStatement(Call,PosEl);
-          Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],
-                                          FBuiltInNames[pbifnCheckMethodCall]]);
-          Call.AddArg(CreatePrimitiveDotExpr('this',PosEl));
-          ClassPath:=CreateReferencePath(ProcScope.ClassScope.Element,AContext,rpkPathAndName);
-          Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
-          end;
-
-        if ImplProc.Body.Functions.Count>0 then
-          begin
-          // has nested procs -> add "var self = this;"
-          FuncContext.AddLocalVar(FBuiltInNames[pbivnSelf],FuncContext.ThisPas);
-          SelfSt:=CreateVarStatement(FBuiltInNames[pbivnSelf],
-                              CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
-          AddBodyStatement(SelfSt,PosEl);
-          if ImplProcScope.SelfArg<>nil then
-            begin
-            // redirect Pascal-Self to JS-Self
-            FuncContext.AddLocalVar(FBuiltInNames[pbivnSelf],ImplProcScope.SelfArg);
-            end;
+          // nested sub procedure  ->  no 'this'
+          FuncContext.ThisPas:=nil;
           end
         else
           begin
-          if ImplProcScope.SelfArg<>nil then
+          FuncContext.ThisPas:=ProcScope.ClassScope.Element;
+          if bsObjectChecks in FuncContext.ScannerBoolSwitches then
+            begin
+            // rtl.checkMethodCall(this,<class>)
+            Call:=CreateCallExpression(PosEl);
+            AddBodyStatement(Call,PosEl);
+            Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],
+                                            FBuiltInNames[pbifnCheckMethodCall]]);
+            Call.AddArg(CreatePrimitiveDotExpr('this',PosEl));
+            ClassPath:=CreateReferencePath(ProcScope.ClassScope.Element,AContext,rpkPathAndName);
+            Call.AddArg(CreatePrimitiveDotExpr(ClassPath,PosEl));
+            end;
+
+          if ImplProc.Body.Functions.Count>0 then
+            begin
+            // has nested procs -> add "var self = this;"
+            FuncContext.AddLocalVar(FBuiltInNames[pbivnSelf],FuncContext.ThisPas);
+            SelfSt:=CreateVarStatement(FBuiltInNames[pbivnSelf],
+                                CreatePrimitiveDotExpr('this',ImplProc),ImplProc);
+            AddBodyStatement(SelfSt,PosEl);
+            if ImplProcScope.SelfArg<>nil then
+              begin
+              // redirect Pascal-Self to JS-Self
+              FuncContext.AddLocalVar(FBuiltInNames[pbivnSelf],ImplProcScope.SelfArg);
+              end;
+            end
+          else if ImplProcScope.SelfArg<>nil then
             begin
             // no nested procs ->  redirect Pascal-Self to JS-this
             FuncContext.AddLocalVar('this',ImplProcScope.SelfArg);
@@ -16267,12 +16278,41 @@ function TPasToJSConverter.CreateReferencePath(El: TPasElement;
     Result:=CreateReferencePath(AbsolResolved.IdentEl,AContext,Kind,Full,Ref);
   end;
 
+  function ImplToDecl(El: TPasElement): TPasElement;
+  var
+    ProcScope: TPasProcedureScope;
+  begin
+    Result:=El;
+    if El.CustomData is TPasProcedureScope then
+      begin
+      // proc: always use the declaration, not the body
+      ProcScope:=TPasProcedureScope(El.CustomData);
+      if ProcScope.DeclarationProc<>nil then
+        Result:=ProcScope.DeclarationProc;
+      end;
+  end;
+
+  function IsA(SrcType, DstType: TPasType): boolean;
+  begin
+    while SrcType<>nil do
+      begin
+      if SrcType=DstType then exit(true);
+      if SrcType.ClassType=TPasClassType then
+        SrcType:=TPas2JSClassScope(SrcType.CustomData).DirectAncestor
+      else if (SrcType.ClassType=TPasAliasType)
+          or (SrcType.ClassType=TPasTypeAliasType) then
+        SrcType:=TPasAliasType(SrcType).DestType
+      else
+        exit(false);
+      end;
+    Result:=false;
+  end;
+
 var
   FoundModule: TPasModule;
   ParentEl: TPasElement;
   Dot: TDotContext;
   WithData: TPas2JSWithExprScope;
-  ProcScope: TPasProcedureScope;
   ShortName: String;
   SelfContext: TFunctionContext;
   ElClass: TClass;
@@ -16346,7 +16386,7 @@ begin
     end
   else if (ElClass=TPasClassType) and TPasClassType(El).IsExternal then
     begin
-    // an external var -> use the literal
+    // an external class -> use the literal
     Result:=TPasClassType(El).ExternalName;
     exit;
     end
@@ -16355,24 +16395,12 @@ begin
     // need full path
     if El.Parent=nil then
       RaiseNotSupported(El,AContext,20170201172141,GetObjName(El));
-    if (El.CustomData is TPasProcedureScope) then
-      begin
-      // proc: always use the declaration, not the body
-      ProcScope:=TPasProcedureScope(El.CustomData);
-      if ProcScope.DeclarationProc<>nil then
-        El:=ProcScope.DeclarationProc;
-      end;
+    El:=ImplToDecl(El);
 
     ParentEl:=El.Parent;
     while ParentEl<>nil do
       begin
-      if (ParentEl.CustomData is TPasProcedureScope) then
-        begin
-        // proc: always use the the declaration, not the body
-        ProcScope:=TPasProcedureScope(ParentEl.CustomData);
-        if ProcScope.DeclarationProc<>nil then
-          ParentEl:=ProcScope.DeclarationProc;
-        end;
+      ParentEl:=ImplToDecl(ParentEl);
 
       // check if there is a local var
       ShortName:=AContext.GetLocalName(ParentEl);
@@ -16410,37 +16438,62 @@ begin
           Prepend(Result,ParentEl.Name)
         else
           begin
-          // Pascal and JS have similar scoping rules (we are not in a dotscope),
-          // so 'this' can be used.
+          // Not in a Pascal dotscope and accessing a class member.
+          // Possible results: this.v, module.path.path.v, this.path.v
+          //    In nested proc 'this' can have another name, e.g. '$Self'
           SelfContext:=AContext.GetSelfContext;
           if ShortName<>'' then
-            Result:=ShortName
-          else if AContext.GetFunctionContext.ThisPas<>nil then
-            Result:='this'
-          else if SelfContext<>nil then
-            Result:=SelfContext.GetLocalName(SelfContext.ThisPas)
+            Prepend(Result,ShortName)
+          else if (El.Parent<>ParentEl) or (El is TPasType) then
+            Prepend(Result,ParentEl.Name)
+          else if (SelfContext<>nil)
+              and IsA(TPasType(SelfContext.ThisPas),TPasType(ParentEl)) then
+            begin
+            ShortName:=SelfContext.GetLocalName(SelfContext.ThisPas);
+            Prepend(Result,ShortName);
+            end
           else
+            begin
+            // missing JS var for Self
+            {$IFDEF VerbosePas2JS}
+            writeln('TPasToJSConverter.CreateReferencePath missing JS var for Self: El=',El.FullName,':',El.ClassName,' CurParentEl=',ParentEl.FullName,':',ParentEl.ClassName,' AContext:');
+            AContext.WriteStack;
+            {$ENDIF}
             RaiseNotSupported(El,AContext,20180125004049);
-          if (SelfContext<>nil) and not IsClassFunction(SelfContext.PasElement) then
+            end;
+          if (El.Parent=ParentEl) and (SelfContext<>nil)
+              and not IsClassFunction(SelfContext.PasElement) then
             begin
             // inside a method -> Self is a class instance
             if El is TPasVariable then
               begin
               //writeln('TPasToJSConverter.CreateReferencePath class var ',GetObjName(El),' This=',GetObjName(This));
+              // Note: reading a class var does not need accessing the class
+              //   For example: read v   ->  this.v
+              //                write v  ->  this.$class.v
               if (ClassVarModifiersType*TPasVariable(El).VarModifiers<>[])
                   and (AContext.Access=caAssign) then
                 begin
-                  Append_GetClass(El); // writing a class var
+                Append_GetClass(El); // writing a class var
                 end;
               end
             else if IsClassFunction(El) then
               Append_GetClass(El); // accessing a class function
             end;
-          break;
+          if ShortName<>'' then
+            break;
           end;
         end
       else if ParentEl.ClassType=TPasEnumType then
-        Prepend(Result,ParentEl.Name);
+        begin
+        if (ShortName<>'') and not Full then
+          begin
+          Prepend(Result,ShortName);
+          break;
+          end
+        else
+          Prepend(Result,ParentEl.Name);
+        end;
       ParentEl:=ParentEl.Parent;
       end;
     end;
