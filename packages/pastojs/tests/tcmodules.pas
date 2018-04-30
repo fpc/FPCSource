@@ -7515,6 +7515,8 @@ begin
   Add('  r, s: TBigRec;');
   Add('begin');
   Add('  r:=s;');
+  Add('  r:=default(TBigRec);');
+  Add('  r:=default(s);');
   ConvertProgram;
   CheckSource('TestRecord_Assign',
     LinesToStr([ // statements
@@ -7561,6 +7563,8 @@ begin
     ]),
     LinesToStr([ // $mod.$main
     '$mod.r = new $mod.TBigRec($mod.s);',
+    '$mod.r = new $mod.TBigRec();',
+    '$mod.r = new $mod.TBigRec();',
     '']));
 end;
 

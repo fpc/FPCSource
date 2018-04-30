@@ -1528,6 +1528,8 @@ type
     Function CreateDotExpression(aParent: TPasElement; Left, Right: TJSElement;
       CheckRightIntfRef: boolean = false): TJSElement; virtual;
     Function CreateReferencedSet(El: TPasElement; SetExpr: TJSElement): TJSElement; virtual;
+    Function CreateNewRecord(El: TPasElement; RecTypeEl: TPasRecordType;
+      AContext: TConvertContext): TJSNewMemberExpression; virtual;
     Function CreateCloneRecord(El: TPasElement; RecTypeEl: TPasRecordType;
       RecordExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallback(El: TPasElement; ResolvedEl: TPasResolverResult;
@@ -1633,6 +1635,7 @@ type
     Function ConvertBuiltIn_Assert(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_New(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_Dispose(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertBuiltIn_Default(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertRecordValues(El: TRecordValues; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertSelfExpression(El: TSelfExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBinaryExpression(El: TBinaryExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -1744,6 +1747,8 @@ var
 function CodePointToJSString(u: longword): TJSString;
 function PosLast(c: char; const s: string): integer;
 
+function JSEquals(A, B: TJSElement): boolean;
+
 implementation
 
 const
@@ -1764,6 +1769,27 @@ function PosLast(c: char; const s: string): integer;
 begin
   Result:=length(s);
   while (Result>0) and (s[Result]<>c) do dec(Result);
+end;
+
+function JSEquals(A, B: TJSElement): boolean;
+begin
+  if A=nil then
+    exit(B=nil)
+  else if B=nil then
+    exit(false)
+  else if A.ClassType<>B.ClassType then
+    exit(false);
+  if A.ClassType=TJSPrimaryExpressionIdent then
+    exit(TJSPrimaryExpressionIdent(A).Name=TJSPrimaryExpressionIdent(B).Name)
+  else if A.ClassType=TJSPrimaryExpressionThis then
+  else if A.ClassType=TJSDotMemberExpression then
+    Result:=JSEquals(TJSDotMemberExpression(A).MExpr,TJSDotMemberExpression(B).MExpr)
+        and (TJSDotMemberExpression(A).Name=TJSDotMemberExpression(B).Name)
+  else if A.ClassType=TJSBracketMemberExpression then
+    Result:=JSEquals(TJSBracketMemberExpression(A).MExpr,TJSBracketMemberExpression(B).MExpr)
+        and (TJSBracketMemberExpression(A).Name=TJSBracketMemberExpression(B).Name)
+  else
+    exit(false);
 end;
 
 { TPas2JSSectionScope }
@@ -7495,7 +7521,8 @@ begin
             begin
             Result:=ConvertBuiltIn_Dispose(El,AContext);
             if Result=nil then exit;
-            end
+            end;
+          bfDefault: Result:=ConvertBuiltIn_Default(El,AContext);
         else
           RaiseNotSupported(El,AContext,20161130164955,'built in proc '+ResolverBuiltInProcNames[BuiltInProc.BuiltIn]);
         end;
@@ -9700,7 +9727,6 @@ var
   TypeEl, SubTypeEl: TPasType;
   aResolveR: TPas2JSResolver;
   RecType: TPasRecordType;
-  NewJS: TJSNewMemberExpression;
 begin
   Result:=nil;
   Param0:=El.Params[0];
@@ -9727,9 +9753,7 @@ begin
     AssignContext.RightResolved:=AssignContext.LeftResolved;
 
     // create right side  new TRecord()
-    NewJS:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-    NewJS.MExpr:=CreateReferencePathExpr(RecType,AContext);
-    AssignContext.RightSide:=NewJS;
+    AssignContext.RightSide:=CreateNewRecord(El,RecType,AContext);
 
     Result:=CreateAssignStatement(Param0,AssignContext);
   finally
@@ -9789,6 +9813,115 @@ begin
   end;
 end;
 
+function TPasToJSConverter.ConvertBuiltIn_Default(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+
+  procedure CreateEnumValue(TypeEl: TPasEnumType);
+  var
+    EnumValue: TPasEnumValue;
+  begin
+    EnumValue:=TPasEnumValue(TypeEl.Values[0]);
+    Result:=CreateReferencePathExpr(EnumValue,AContext);
+  end;
+
+var
+  ResolvedEl: TPasResolverResult;
+  Param: TPasExpr;
+  TypeEl: TPasType;
+  Value: TResEvalValue;
+  MinVal, MaxVal: MaxPrecInt;
+begin
+  Result:=nil;
+  if AContext.Resolver=nil then
+    RaiseInconsistency(20180501011029,El);
+  Param:=El.Params[0];
+  AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
+  case ResolvedEl.BaseType of
+    btContext:
+      begin
+      TypeEl:=ResolvedEl.LoTypeEl;
+      if TypeEl.ClassType=TPasEnumType then
+        begin
+        CreateEnumValue(TPasEnumType(TypeEl));
+        exit;
+        end
+      else if (TypeEl.ClassType=TPasSetType) then
+        begin
+        Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+        exit;
+        end
+      else if TypeEl.ClassType=TPasArrayType then
+        begin
+        Result:=CreateArrayInit(TPasArrayType(TypeEl),nil,El,AContext);
+        exit;
+        end
+      else if TypeEl.ClassType=TPasRecordType then
+        begin
+        Result:=CreateRecordInit(TPasRecordType(TypeEl),nil,El,AContext);
+        exit;
+        end
+      else if (TypeEl.ClassType=TPasRangeType) then
+        // a custom range without initial value -> use first value
+        begin
+        Value:=AContext.Resolver.Eval(TPasRangeType(TypeEl).RangeExpr.left,[refConst]);
+        try
+          Result:=ConvertConstValue(Value,AContext,El);
+        finally
+          ReleaseEvalValue(Value);
+        end;
+        end;
+      end;
+    btBoolean,btByteBool,btWordBool,btLongBool:
+      begin
+      Result:=CreateLiteralBoolean(El,LowJSBoolean);
+      exit;
+      end;
+    btChar,
+    btWideChar:
+      begin
+      Result:=CreateLiteralJSString(El,#0);
+      exit;
+      end;
+    btByte..btInt64:
+      begin
+      TypeEl:=ResolvedEl.LoTypeEl;
+      if TypeEl.ClassType=TPasUnresolvedSymbolRef then
+        begin
+        if TypeEl.CustomData is TResElDataBaseType then
+          begin
+          AContext.Resolver.GetIntegerRange(ResolvedEl.BaseType,MinVal,MaxVal);
+          Result:=CreateLiteralNumber(El,MinVal);
+          exit;
+          end;
+        end
+      else if TypeEl.ClassType=TPasRangeType then
+        begin
+        Value:=AContext.Resolver.EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,
+                                                [refConst],true,El);
+        try
+          case Value.Kind of
+          revkInt:
+            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+          revkUInt:
+            Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
+          else
+            RaiseNotSupported(El,AContext,20180501011646);
+          end;
+          exit;
+        finally
+          ReleaseEvalValue(Value);
+        end;
+        end;
+      {$IFDEF VerbosePas2JS}
+      writeln('TPasToJSConverter.ConvertBuiltIn_Default ',GetResolverResultDbg(ResolvedEl));
+      {$ENDIF}
+      RaiseNotSupported(El,AContext,20180501011649);
+      end;
+  end;
+  DoError(20180501011723,nXExpectedButYFound,sXExpectedButYFound,['record',
+    AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
+end;
+
 function TPasToJSConverter.ConvertRecordValues(El: TRecordValues;
   AContext: TConvertContext): TJSElement;
 var
@@ -9818,9 +9951,8 @@ begin
         RaiseNotSupported(El,AContext,20180429210932);
       RecType:=TPasRecordType(ResolvedEl.LoTypeEl);
 
-      NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+      NewMemE:=CreateNewRecord(El,RecType,AContext);
       Result:=NewMemE;
-      NewMemE.MExpr:=CreateReferencePathExpr(RecType,AContext);
       ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
       NewMemE.AddArg(ObjLit);
       end
@@ -12477,15 +12609,37 @@ begin
   Result:=Call;
 end;
 
+function TPasToJSConverter.CreateNewRecord(El: TPasElement;
+  RecTypeEl: TPasRecordType; AContext: TConvertContext): TJSNewMemberExpression;
+var
+  Expr: TJSElement;
+begin
+  Expr:=CreateReferencePathExpr(RecTypeEl,AContext);
+  Result:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+  Result.MExpr:=Expr;
+end;
+
 function TPasToJSConverter.CreateCloneRecord(El: TPasElement;
   RecTypeEl: TPasRecordType; RecordExpr: TJSElement; AContext: TConvertContext
   ): TJSElement;
 // create  "new RecordType(RecordExpr)
 var
   NewExpr: TJSNewMemberExpression;
+  Expr: TJSElement;
 begin
+  Expr:=CreateReferencePathExpr(RecTypeEl,AContext);
+  if RecordExpr is TJSNewMemberExpression then
+    begin
+    if JSEquals(Expr,TJSNewMemberExpression(RecordExpr).MExpr) then
+      begin
+      // RecordExpr is already a new RecordType(...)  -> skip clone
+      Expr.Free;
+      exit(RecordExpr);
+      end;
+    end;
+
   NewExpr:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-  NewExpr.MExpr:=CreateReferencePathExpr(RecTypeEl,AContext);
+  NewExpr.MExpr:=Expr;
   NewExpr.AddArg(RecordExpr);
   Result:=NewExpr;
 end;
@@ -14188,9 +14342,8 @@ begin
           if aResolver.GetAssignGUIDString(TPasRecordType(LeftTypeEl),El.right,GUID) then
             begin
             // guidvar:='{...}';  -> guidvar:=new TGUID(){ D1:x12345678, D2:0x1234,...}
-            NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+            NewMemE:=CreateNewRecord(El,TPasRecordType(LeftTypeEl),AContext);
             AssignContext.RightSide:=NewMemE;
-            NewMemE.MExpr:=CreateReferencePathExpr(LeftTypeEl,AContext);
             ObjLit:=CreateGUIDObjLit(TPasRecordType(LeftTypeEl),GUID,El,AContext);
             NewMemE.AddArg(ObjLit);
             end
@@ -14260,8 +14413,7 @@ begin
                 and SameText(LeftTypeEl.Name,'TGUID') then
               begin
               // GUIDRecord:=IntfTypeOrVar  ->  new TGuid(rtl.getIntfGUIDR(IntfTypeOrVar))
-              NewME:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-              NewME.MExpr:=CreateReferencePathExpr(LeftTypeEl,AContext);
+              NewME:=CreateNewRecord(El,TPasRecordType(LeftTypeEl),AContext);
               Call:=CreateCallExpression(El);
               NewME.AddArg(Call);
               Call.Expr:=CreatePrimitiveDotExpr(FBuiltInNames[pbivnRTL]+'.'+FBuiltInNames[pbifnIntfGetGUIDR],El);
@@ -15429,7 +15581,7 @@ var
       else if C=TJSNewMemberExpression then
         with TJSNewMemberExpression(El).Args.Elements do
           for i:=0 to Count-1 do
-            Find(Elements[i].Expr)
+            Find(Elements[i].Expr);
       end
     else if C=TJSCallExpression then
       begin
@@ -16194,9 +16346,8 @@ begin
         begin
         // new TGuid({ D1:...})
         ObjLit:=CreateGUIDObjLit(aRecord,GUID,El,AContext);
-        NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
+        NewMemE:=CreateNewRecord(El,aRecord,AContext);
         Result:=NewMemE;
-        NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
         NewMemE.AddArg(ObjLit);
         exit;
         end;
@@ -16210,9 +16361,7 @@ begin
   else
     begin
     // new TRecord()
-    NewMemE:=TJSNewMemberExpression(CreateElement(TJSNewMemberExpression,El));
-    Result:=NewMemE;
-    NewMemE.MExpr:=CreateReferencePathExpr(aRecord,AContext);
+    Result:=CreateNewRecord(El,aRecord,AContext);
     end;
 end;
 
