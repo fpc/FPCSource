@@ -599,6 +599,7 @@ type
     Procedure TestRTTI_DefaultValue;
     Procedure TestRTTI_DefaultValueSet;
     Procedure TestRTTI_DefaultValueRangeType;
+    Procedure TestRTTI_DefaultValueInherit;
     Procedure TestRTTI_Class_Field;
     Procedure TestRTTI_Class_Method;
     Procedure TestRTTI_Class_MethodArgFlags;
@@ -18781,6 +18782,53 @@ begin
     '      Default: -1',
     '    }',
     '  );',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_DefaultValueInherit;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    FA, FB: byte;',
+  '    property A: byte read FA default 1;',
+  '    property B: byte read FB default 2;',
+  '  end;',
+  '  TBird = class',
+  '  published',
+  '    property A;',
+  '    property B nodefault;',
+  '  end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestRTTI_DefaultValueInherit',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FA = 0;',
+    '    this.FB = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty(',
+    '    "A",',
+    '    0,',
+    '    rtl.byte,',
+    '    "FA",',
+    '    "",',
+    '    {',
+    '      Default: 1',
+    '    }',
+    '  );',
+    '  $r.addProperty("B", 0, rtl.byte, "FB", "");',
     '});',
     '']),
     LinesToStr([ // $mod.$main

@@ -213,6 +213,7 @@ Works:
   - typecast record type to JS Object, e.g. TJSObject(TPoint)
   - typecast interface type to JS Object, e.g. TJSObject(IUnknown)
   - for i in tjsobject do
+  - nested classes
 - jsvalue
   - init as undefined
   - assign to jsvalue := integer, string, boolean, double, char
@@ -255,7 +256,7 @@ Works:
   - WPO skip not used typeinfo
   - open array param
   - property stored and index modifier
-  - property default value
+  - property default value, nodefault
 - pointer
   - compare with and assign nil
   - typecast class, class-of, interface, array
@@ -352,10 +353,7 @@ ToDos:
 - static arrays
   - clone multi dim static array
 - RTTI
-  - inherit default value, inherit nodefault
   - class property
-  - documentation
-- nested classes
 - asm: pas() - useful for overloads and protect an identifier from optimization
 - interfaces
   - array of interface
@@ -13360,11 +13358,13 @@ var
   GetterPas, SetterPas, DeclEl: TPasElement;
   ResultTypeInfo, DefValue: TJSElement;
   VarType: TPasType;
-  StoredExpr, IndexExpr: TPasExpr;
+  StoredExpr, IndexExpr, DefaultExpr: TPasExpr;
   StoredResolved, VarTypeResolved: TPasResolverResult;
   StoredValue, PasValue, IndexValue: TResEvalValue;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
   OptionsEl:=nil;
   try
     // $r.addProperty
@@ -13377,19 +13377,20 @@ begin
 
     // add flags
     Flags:=0;
-    GetterPas:=AContext.Resolver.GetPasPropertyGetter(Prop);
+    GetterPas:=aResolver.GetPasPropertyGetter(Prop);
     if GetterPas is TPasProcedure then
       inc(Flags,pfGetFunction);
-    SetterPas:=AContext.Resolver.GetPasPropertySetter(Prop);
+    SetterPas:=aResolver.GetPasPropertySetter(Prop);
     if SetterPas is TPasProcedure then
       inc(Flags,pfSetProcedure);
-    StoredExpr:=AContext.Resolver.GetPasPropertyStoredExpr(Prop);
-    IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+    StoredExpr:=aResolver.GetPasPropertyStoredExpr(Prop);
+    IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
     if IndexExpr<>nil then
       inc(Flags,pfHasIndex);
+    DefaultExpr:=aResolver.GetPasPropertyDefaultExpr(Prop);
     if StoredExpr<>nil then
       begin
-      AContext.Resolver.ComputeElement(StoredExpr,StoredResolved,[rcNoImplicitProc]);
+      aResolver.ComputeElement(StoredExpr,StoredResolved,[rcNoImplicitProc]);
       if StoredResolved.IdentEl is TPasProcedure then
         // stored <function>
         inc(Flags,pfStoredFunction)
@@ -13399,7 +13400,7 @@ begin
           begin
           // could be a const boolean
           // -> try evaluating const boolean
-          StoredValue:=AContext.Resolver.Eval(StoredExpr,[]);
+          StoredValue:=aResolver.Eval(StoredExpr,[]);
           if StoredValue<>nil then
             try
               // stored <const bool>
@@ -13422,8 +13423,8 @@ begin
     Call.AddArg(CreateLiteralNumber(Prop,Flags));
 
     // add type
-    VarType:=AContext.Resolver.GetPasPropertyType(Prop);
-    AContext.Resolver.ComputeElement(VarType,VarTypeResolved,[rcType]);
+    VarType:=aResolver.GetPasPropertyType(Prop);
+    aResolver.ComputeElement(VarType,VarTypeResolved,[rcType]);
     ResultTypeInfo:=CreateTypeInfoRef(VarType,AContext,Prop);
     if ResultTypeInfo<>nil then
       Call.AddArg(ResultTypeInfo)
@@ -13443,10 +13444,10 @@ begin
       Call.AddArg(CreateLiteralString(Prop,GetAccessorName(SetterPas)));
 
     // add option "index"
-    IndexExpr:=AContext.Resolver.GetPasPropertyIndex(Prop);
+    IndexExpr:=aResolver.GetPasPropertyIndex(Prop);
     if IndexExpr<>nil then
       begin
-      IndexValue:=AContext.Resolver.Eval(IndexExpr,[refConst]);
+      IndexValue:=aResolver.Eval(IndexExpr,[refConst]);
       try
         AddOption(FBuiltInNames[pbivnRTTIPropIndex],
           ConvertConstValue(IndexValue,AContext,Prop));
@@ -13464,13 +13465,13 @@ begin
       end;
 
     // add option "defaultvalue"
-    if Prop.DefaultExpr<>nil then
+    if DefaultExpr<>nil then
       begin
-      PasValue:=AContext.Resolver.Eval(Prop.DefaultExpr,[refConst],false);
+      PasValue:=aResolver.Eval(DefaultExpr,[refConst],false);
       try
         DefValue:=nil;
         if VarTypeResolved.BaseType=btSet then
-          DefValue:=CreateValInit(VarType,Prop.DefaultExpr,Prop.DefaultExpr,AContext);
+          DefValue:=CreateValInit(VarType,DefaultExpr,DefaultExpr,AContext);
         if DefValue=nil then
           DefValue:=ConvertConstValue(PasValue,AContext,Prop);
         AddOption(FBuiltInNames[pbivnRTTIPropDefault],DefValue);

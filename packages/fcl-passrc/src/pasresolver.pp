@@ -1680,6 +1680,7 @@ type
     function GetPasPropertySetter(El: TPasProperty): TPasElement;
     function GetPasPropertyIndex(El: TPasProperty): TPasExpr;
     function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
+    function GetPasPropertyDefaultExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
     function IndexOfImplementedInterface(ClassEl: TPasClassType; aType: TPasType): integer;
     function GetLoop(El: TPasElement): TPasImplElement;
@@ -16517,6 +16518,23 @@ begin
       Result:=El.StoredAccessor;
       exit;
       end;
+    El:=GetPasPropertyAncestor(El);
+    end;
+end;
+
+function TPasResolver.GetPasPropertyDefaultExpr(El: TPasProperty): TPasExpr;
+// search the stored expression of a property
+begin
+  Result:=nil;
+  while El<>nil do
+    begin
+    if El.DefaultExpr<>nil then
+      begin
+      Result:=El.DefaultExpr;
+      exit;
+      end
+    else if El.IsNodefault then
+      exit(nil);
     El:=GetPasPropertyAncestor(El);
     end;
 end;
