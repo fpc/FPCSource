@@ -316,12 +316,13 @@ type
     Procedure TestForLoop_AssignVarFail;
     Procedure TestForLoop_PassVarFail;
     Procedure TestStatements;
-    Procedure TestCaseStatement;
-    Procedure TestCaseStatementDuplicateIntFail;
-    Procedure TestCaseStatementDuplicateStringFail;
-    Procedure TestCaseOf;
-    Procedure TestCaseExprNonOrdFail;
-    Procedure TestCaseIncompatibleValueFail;
+    Procedure TestCaseOfInt;
+    Procedure TestCaseIntDuplicateFail;
+    Procedure TestCaseOfStringDuplicateFail;
+    Procedure TestCaseOfStringRangeDuplicateFail;
+    Procedure TestCaseOfBaseType;
+    Procedure TestCaseOfExprNonOrdFail;
+    Procedure TestCaseOfIncompatibleValueFail;
     Procedure TestTryStatement;
     Procedure TestTryExceptOnNonTypeFail;
     Procedure TestTryExceptOnNonClassFail;
@@ -4553,7 +4554,7 @@ begin
   AssertEquals('3 declarations',3,PasProgram.ProgramSection.Declarations.Count);
 end;
 
-procedure TTestResolver.TestCaseStatement;
+procedure TTestResolver.TestCaseOfInt;
 begin
   StartProgram(false);
   Add('const');
@@ -4578,7 +4579,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestCaseStatementDuplicateIntFail;
+procedure TTestResolver.TestCaseIntDuplicateFail;
 begin
   StartProgram(false);
   Add([
@@ -4592,7 +4593,7 @@ begin
   CheckResolverException('Duplicate case value "1..3", other at afile.pp(5,3)',nDuplicateCaseValueXatY);
 end;
 
-procedure TTestResolver.TestCaseStatementDuplicateStringFail;
+procedure TTestResolver.TestCaseOfStringDuplicateFail;
 begin
   StartProgram(false);
   Add([
@@ -4607,45 +4608,61 @@ begin
   CheckResolverException('Duplicate case value "string", other at afile.pp(5,3)',nDuplicateCaseValueXatY);
 end;
 
-procedure TTestResolver.TestCaseOf;
+procedure TTestResolver.TestCaseOfStringRangeDuplicateFail;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TFlag = (red,green,blue);');
-  Add('var');
-  Add('  i: longint;');
-  Add('  f: TFlag;');
-  Add('  b: boolean;');
-  Add('  c: char;');
-  Add('  s: string;');
-  Add('begin');
-  Add('  case i of');
-  Add('  1: ;');
-  Add('  2..3: ;');
-  Add('  4,5..6,7: ;');
-  Add('  else');
-  Add('  end;');
-  Add('  case f of');
-  Add('  red: ;');
-  Add('  green..blue: ;');
-  Add('  end;');
-  Add('  case b of');
-  Add('  true: ;');
-  Add('  false: ;');
-  Add('  end;');
-  Add('  case c of');
-  Add('  #0: ;');
-  Add('  #10,#13: ;');
-  Add('  ''0''..''9'',''a''..''z'': ;');
-  Add('  end;');
-  Add('  case s of');
-  Add('  #10: ;');
-  Add('  ''abc'': ;');
-  Add('  end;');
+  Add([
+  'var s: string;',
+  'begin',
+  '  case s of',
+  '  ''c'': ;',
+  '  ''a''..''z'': ;',
+  '  end;',
+  '']);
+  CheckResolverException('Duplicate case value "string", other at afile.pp(5,3)',nDuplicateCaseValueXatY);
+end;
+
+procedure TTestResolver.TestCaseOfBaseType;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TFlag = (red,green,blue);',
+  'var',
+  '  i: longint;',
+  '  f: TFlag;',
+  '  b: boolean;',
+  '  c: char;',
+  '  s: string;',
+  'begin',
+  '  case i of',
+  '  1: ;',
+  '  2..3: ;',
+  '  4,5..6,7: ;',
+  '  else',
+  '  end;',
+  '  case f of',
+  '  red: ;',
+  '  green..blue: ;',
+  '  end;',
+  '  case b of',
+  '  true: ;',
+  '  false: ;',
+  '  end;',
+  '  case c of',
+  '  #0: ;',
+  '  #10,#13: ;',
+  '  ''0''..''9'',''a''..''z'': ;',
+  '  end;',
+  '  case s of',
+  '  #10: ;',
+  '  ''abc'': ;',
+  '  ''a''..''z'': ;',
+  '  end;']);
   ParseProgram;
 end;
 
-procedure TTestResolver.TestCaseExprNonOrdFail;
+procedure TTestResolver.TestCaseOfExprNonOrdFail;
 begin
   StartProgram(false);
   Add('begin');
@@ -4656,7 +4673,7 @@ begin
     nXExpectedButYFound);
 end;
 
-procedure TTestResolver.TestCaseIncompatibleValueFail;
+procedure TTestResolver.TestCaseOfIncompatibleValueFail;
 begin
   StartProgram(false);
   Add('var i: longint;');

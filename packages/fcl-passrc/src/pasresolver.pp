@@ -6656,11 +6656,15 @@ type
   TRangeItem = record
     RangeStart, RangeEnd: MaxPrecInt;
     Expr: TPasExpr;
+    aString: UnicodeString;
+    // Note: for case-of-string:
+    //  single values are stored in aString and RangeStart=1, RangeEnd=0
+    //  ranges are stored as aString='', RangeStart, RangeEnd
   end;
   PRangeItem = ^TRangeItem;
 
   function CreateValues(const ResolvedEl: TPasResolverResult;
-    var ValueSet: TResEvalSet; var ValueStrings: TStringList): boolean;
+    var ValueSet: TResEvalSet): boolean;
   var
     CaseExprType: TPasType;
   begin
@@ -6681,10 +6685,7 @@ type
       Result:=true;
       end
     else if ResolvedEl.BaseType in btAllStrings then
-      begin
-      ValueStrings:=TStringList.Create;
-      Result:=true;
-      end
+      Result:=true
     else if ResolvedEl.BaseType=btContext then
       begin
       CaseExprType:=ResolvedEl.LoTypeEl;
@@ -6721,27 +6722,74 @@ type
           end;
         end;
       end;
+  end;
 
+  function AddRangeItem(Values: TFPList; const RangeStart, RangeEnd: MaxPrecInt;
+    Expr: TPasExpr): PRangeItem;
+  begin
+    New(Result);
+    Result^.RangeStart:=RangeStart;
+    Result^.RangeEnd:=RangeEnd;
+    Result^.Expr:=Expr;
+    Values.Add(Result);
   end;
 
   function AddValue(Value: TResEvalValue; Values: TFPList; ValueSet: TResEvalSet;
-    ValueStrings: TStrings; Expr: TPasExpr): boolean;
+    Expr: TPasExpr): boolean;
 
-    procedure AddString(const s: string);
+    function AddString(const s: UnicodeString): boolean;
     var
       Dupl: TPasExpr;
-      i: Integer;
+      i, o: Integer;
+      Item: PRangeItem;
     begin
-      if ValueStrings=nil then
-        RaiseNotYetImplemented(20180424215755,Expr,Value.AsDebugString);
-      for i:=0 to ValueStrings.Count-1 do
-        if ValueStrings[i]=s then
+      if length(s)=1 then
+        o:=ord(s[1])
+      else
+        o:=-1;
+      for i:=0 to Values.Count-1 do
+        begin
+        Item:=PRangeItem(Values[i]);
+        if (Item^.aString=s)
+            or ((o>=Item^.RangeStart) and (o<=Item^.RangeEnd)) then
           begin
-          Dupl:=TPasExpr(ValueStrings.Objects[i]);
+          Dupl:=PRangeItem(Values[i])^.Expr;
           RaiseMsg(20180424220139,nDuplicateCaseValueXatY,sDuplicateCaseValueXatY,
             ['string',GetElementSourcePosStr(Dupl)],Expr);
           end;
-      ValueStrings.AddObject(s,Expr);
+        end;
+      Item:=AddRangeItem(Values,1,0,Expr);
+      Item^.aString:=s;
+      Result:=true;
+    end;
+
+    function AddStringRange(CharStart, CharEnd: MaxPrecInt): boolean;
+    var
+      i, o: Integer;
+      s: UnicodeString;
+      Item: PRangeItem;
+      Dupl: TPasExpr;
+    begin
+      if CharEnd>$ffff then
+        RaiseNotYetImplemented(20180501221359,Expr,Value.AsDebugString);
+      for i:=0 to Values.Count-1 do
+        begin
+        Item:=PRangeItem(Values[i]);
+        s:=Item^.aString;
+        if length(s)=1 then
+          o:=ord(s[1])
+        else
+          o:=-1;
+        if ((o>=CharStart) and (o<=CharEnd))
+            or ((Item^.RangeStart<=CharEnd) and (Item^.RangeEnd>=CharStart)) then
+          begin
+          Dupl:=PRangeItem(Values[i])^.Expr;
+          RaiseMsg(20180501223914,nDuplicateCaseValueXatY,sDuplicateCaseValueXatY,
+            ['string',GetElementSourcePosStr(Dupl)],Expr);
+          end;
+        end;
+      AddRangeItem(Values,CharStart,CharEnd,Expr);
+      Result:=true;
     end;
 
   var
@@ -6774,11 +6822,8 @@ type
       RangeEnd:=RangeStart;
       end;
     revkString:
-      if ValueStrings<>nil then
-        begin
-        AddString(TResEvalString(Value).S);
-        exit(true);
-        end
+      if ValueSet=nil then
+        exit(AddString(ExprEvaluator.GetUnicodeStr(TResEvalString(Value).S,Expr)))
       else
         begin
         if length(TResEvalString(Value).S)<>1 then
@@ -6787,11 +6832,8 @@ type
         RangeEnd:=RangeStart;
         end;
     revkUnicodeString:
-      if ValueStrings<>nil then
-        begin
-        AddString(UTF8Encode(TResEvalUTF16(Value).S));
-        exit(true);
-        end
+      if ValueSet=nil then
+        exit(AddString(TResEvalUTF16(Value).S))
       else
         begin
         if length(TResEvalUTF16(Value).S)<>1 then
@@ -6805,10 +6847,13 @@ type
       RangeEnd:=RangeStart;
       end;
     revkRangeInt:
-      begin
-      RangeStart:=TResEvalRangeInt(Value).RangeStart;
-      RangeEnd:=TResEvalRangeInt(Value).RangeEnd;
-      end;
+      if ValueSet=nil then
+        exit(AddStringRange(TResEvalRangeInt(Value).RangeStart,TResEvalRangeInt(Value).RangeEnd))
+      else
+        begin
+        RangeStart:=TResEvalRangeInt(Value).RangeStart;
+        RangeEnd:=TResEvalRangeInt(Value).RangeEnd;
+        end;
     revkRangeUInt:
       begin
       // Note: when FPC compares int64 with qword it converts the qword to an int64
@@ -6828,11 +6873,7 @@ type
     if i<0 then
       begin
       ValueSet.Add(RangeStart,RangeEnd);
-      New(Item);
-      Item^.RangeStart:=RangeStart;
-      Item^.RangeEnd:=RangeEnd;
-      Item^.Expr:=Expr;
-      Values.Add(Item);
+      AddRangeItem(Values,RangeStart,RangeEnd,Expr);
       exit(true);
       end;
     // duplicate value -> show where
@@ -6855,7 +6896,6 @@ var
   ok: Boolean;
   Values: TFPList; // list of PRangeItem
   ValueSet: TResEvalSet;
-  ValueStrings: TStringList;
   Value: TResEvalValue;
   Item: PRangeItem;
 begin
@@ -6864,11 +6904,10 @@ begin
   ok:=false;
   Values:=TFPList.Create;
   ValueSet:=nil;
-  ValueStrings:=nil;
   Value:=nil;
   try
     if (rrfReadable in CaseExprResolved.Flags) then
-      ok:=CreateValues(CaseExprResolved,ValueSet,ValueStrings);
+      ok:=CreateValues(CaseExprResolved,ValueSet);
     if not ok then
       RaiseXExpectedButYFound(20170216151952,'ordinal expression',
                  GetTypeDescription(CaseExprResolved.LoTypeEl),CaseOf.CaseExpr);
@@ -6891,7 +6930,7 @@ begin
 
           Value:=Eval(OfExpr,[refConst]);
           if Value<>nil then
-            if not AddValue(Value,Values,ValueSet,ValueStrings,OfExpr) then
+            if not AddValue(Value,Values,ValueSet,OfExpr) then
               RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
                 [],OfExprResolved,CaseExprResolved,OfExpr);
           ReleaseEvalValue(Value);
@@ -6907,7 +6946,6 @@ begin
   finally
     ReleaseEvalValue(Value);
     ValueSet.Free;
-    ValueStrings.Free;
     for i:=0 to Values.Count-1 do
       begin
       Item:=PRangeItem(Values[i]);
