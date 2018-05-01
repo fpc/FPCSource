@@ -817,6 +817,7 @@ type
   TPasWithExprScopeFlag = (
     wesfNeedTmpVar,
     wesfOnlyTypeMembers,
+    wesfIsClassOf,
     wesfConstParent // not writable
     );
   TPasWithExprScopeFlags = set of TPasWithExprScopeFlag;
@@ -926,6 +927,7 @@ type
     procedure SetClassScope(AValue: TPasClassScope);
   public
     InheritedExpr: boolean; // this is 'inherited <name>' instead of '.<name'
+    IsClassOf: boolean; // true if aClassOf.
     property ClassScope: TPasClassScope read FClassScope write SetClassScope;
   end;
 
@@ -7183,7 +7185,7 @@ var
   WithScope: TPasWithScope;
   WithExprScope: TPasWithExprScope;
   ExprScope: TPasScope;
-  OnlyTypeMembers: Boolean;
+  OnlyTypeMembers, IsClassOf: Boolean;
   ClassEl: TPasClassType;
 begin
   OldScopeCount:=ScopeCount;
@@ -7205,6 +7207,7 @@ begin
         [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
 
     OnlyTypeMembers:=false;
+    IsClassOf:=false;
     if TypeEl.ClassType=TPasRecordType then
       begin
       ExprScope:=NoNil(TPasRecordType(TypeEl).CustomData) as TPasRecordScope;
@@ -7225,6 +7228,7 @@ begin
       ClassEl:=ResolveAliasType(TPasClassOfType(TypeEl).DestType) as TPasClassType;
       ExprScope:=ClassEl.CustomData as TPasClassScope;
       OnlyTypeMembers:=true;
+      IsClassOf:=true;
       end
     else
       RaiseMsg(20170216152007,nExprTypeMustBeClassOrRecordTypeGot,sExprTypeMustBeClassOrRecordTypeGot,
@@ -7238,6 +7242,8 @@ begin
       Include(WithExprScope.Flags,wesfNeedTmpVar);
     if OnlyTypeMembers then
       Include(WithExprScope.Flags,wesfOnlyTypeMembers);
+    if IsClassOf then
+      Include(WithExprScope.Flags,wesfIsClassOf);
     if (not (rrfWritable in ExprResolved.Flags))
         and (ExprResolved.BaseType=btContext)
         and (ExprResolved.LoTypeEl.ClassType=TPasRecordType) then
@@ -7764,6 +7770,7 @@ begin
       ClassEl:=ResolveAliasType(TPasClassOfType(LTypeEl).DestType) as TPasClassType;
       ClassScope:=PushClassDotScope(ClassEl);
       ClassScope.OnlyTypeMembers:=true;
+      ClassScope.IsClassOf:=true;
       ResolveExpr(El.right,Access);
       PopScope;
       exit;
@@ -13544,7 +13551,7 @@ var
   Context: TPasElement;
   FoundContext: TPasClassType;
   StartScope: TPasScope;
-  OnlyTypeMembers: Boolean;
+  OnlyTypeMembers, IsClassOf: Boolean;
   TypeEl: TPasType;
   C: TClass;
   ClassScope: TPasClassScope;
@@ -13552,9 +13559,12 @@ var
 begin
   StartScope:=FindData.StartScope;
   OnlyTypeMembers:=false;
+  IsClassOf:=false;
   if StartScope is TPasDotIdentifierScope then
     begin
     OnlyTypeMembers:=TPasDotIdentifierScope(StartScope).OnlyTypeMembers;
+    if StartScope.ClassType=TPasDotClassScope then
+      IsClassOf:=TPasDotClassScope(StartScope).IsClassOf;
     if Ref<>nil then
       begin
       Include(Ref.Flags,rrfDotScope);
@@ -13565,6 +13575,7 @@ begin
   else if StartScope.ClassType=ScopeClass_WithExpr then
     begin
     OnlyTypeMembers:=wesfOnlyTypeMembers in TPasWithExprScope(StartScope).Flags;
+    IsClassOf:=wesfIsClassOf in TPasWithExprScope(StartScope).Flags;
     if Ref<>nil then
       begin
       Include(Ref.Flags,rrfDotScope);
@@ -13671,12 +13682,17 @@ begin
         RaiseInternalError(20170131150855,GetObjName(StartScope));
       TypeEl:=ClassScope.Element as TPasType;
       TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
-      if length(ClassScope.AbstractProcs)>0 then
+      if (length(ClassScope.AbstractProcs)>0) then
         begin
-        for i:=0 to length(ClassScope.AbstractProcs)-1 do
-          LogMsg(20171227110746,mtNote,nConstructingClassXWithAbstractMethodY,
-            sConstructingClassXWithAbstractMethodY,
-            [TypeEl.Name,ClassScope.AbstractProcs[i].Name],FindData.ErrorPosEl);
+        if Proc.IsVirtual and IsClassOf then
+          begin
+          // virtual constructor called with aClass.Create: do not warn
+          end
+        else
+          for i:=0 to length(ClassScope.AbstractProcs)-1 do
+            LogMsg(20171227110746,mtNote,nConstructingClassXWithAbstractMethodY,
+              sConstructingClassXWithAbstractMethodY,
+              [TypeEl.Name,ClassScope.AbstractProcs[i].Name],FindData.ErrorPosEl);
         end;
       end;
     {$IFDEF VerbosePasResolver}

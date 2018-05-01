@@ -489,6 +489,7 @@ type
     Procedure TestClass_ConstructorOverride;
     Procedure TestClass_ConstructorAccessHiddenAncestorFail;
     Procedure TestClass_ConstructorNoteAbstractMethods;
+    Procedure TestClass_ConstructorNoNoteAbstractMethods;
     Procedure TestClass_MethodScope;
     Procedure TestClass_IdentifierSelf;
     Procedure TestClassCallInherited;
@@ -7808,7 +7809,7 @@ begin
   'type',
   '  TObject = class',
   '    procedure DoIt; virtual; abstract;',
-  '    constructor Create;',
+  '    constructor Create; virtual;',
   '  end;',
   'constructor TObject.Create;',
   'begin',
@@ -7817,6 +7818,28 @@ begin
   '  TObject.Create;']);
   ParseProgram;
   CheckResolverHint(mtNote,nConstructingClassXWithAbstractMethodY,'Constructing a class "TObject" with abstract method "DoIt"');
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestClass_ConstructorNoNoteAbstractMethods;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt; virtual; abstract;',
+  '    constructor Create; virtual;',
+  '  end;',
+  '  TClass = class of TObject;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'var c: TClass;',
+  'begin',
+  '  c.Create;',
+  '  with c do Create;',
+  '']);
+  ParseProgram;
   CheckResolverUnexpectedHints;
 end;
 
