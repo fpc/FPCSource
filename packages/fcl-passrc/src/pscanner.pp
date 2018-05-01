@@ -574,7 +574,7 @@ type
     po_CheckModeSwitches,    // error on unknown modeswitch with an error
     po_CheckCondFunction,    // error on unknown function in conditional expression, default: return '0'
     po_StopOnErrorDirective, // error on user $Error, $message error|fatal
-    po_ExtClassConstWithoutExpr, // allow const without expression in external class
+    po_ExtConstWithoutExpr,  // allow typed const without expression in external class and with external modifier
     po_StopOnUnitInterface   // parse only a unit name and stop at interface keyword
     );
   TPOptions = set of TPOption;

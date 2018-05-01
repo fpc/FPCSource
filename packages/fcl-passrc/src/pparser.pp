@@ -3674,11 +3674,49 @@ begin
         ParseExc(nParserNoConstRangeAllowed,SParserNoConstRangeAllowed);
       end
     else if (Result.VarType<>nil)
-        and (po_ExtClassConstWithoutExpr in Options)
-        and (Parent is TPasClassType)
-        and TPasClassType(Parent).IsExternal
-        and (TPasClassType(Parent).ObjKind=okClass) then
-      // const without expression is allowed in external class
+        and (po_ExtConstWithoutExpr in Options) then
+      begin
+      if (Parent is TPasClassType)
+          and TPasClassType(Parent).IsExternal
+          and (TPasClassType(Parent).ObjKind=okClass) then
+        // typed const without expression is allowed in external class
+      else if CurToken=tkSemicolon then
+        begin
+        NextToken;
+        if CurTokenIsIdentifier('external') then
+          begin
+          // typed external const without expression is allowed
+          Result.IsConst:=true;
+          Include(Result.VarModifiers,vmExternal);
+          NextToken;
+          if CurToken in [tkString,tkIdentifier] then
+            begin
+            // external LibraryName;
+            // external LibraryName name ExportName;
+            // external name ExportName;
+            if not CurTokenIsIdentifier('name') then
+              Result.LibraryName:=DoParseExpression(Result);
+            if not CurTokenIsIdentifier('name') then
+              ParseExcSyntaxError;
+            NextToken;
+            if not (CurToken in [tkChar,tkString,tkIdentifier]) then
+              ParseExcTokenError(TokenInfos[tkString]);
+            Result.ExportName:=DoParseExpression(Parent);
+            end
+          else if CurToken=tkSemicolon then
+            // external;
+          else
+            ParseExcSyntaxError;
+          end
+        else
+          begin
+          UngetToken;
+          CheckToken(tkEqual);
+          end;
+        end
+      else
+        CheckToken(tkEqual);
+      end
     else
       CheckToken(tkEqual);
     UngetToken;
