@@ -2176,6 +2176,9 @@ begin
   else if Usage.Access=paiaWrite then
     begin
     // write without read
+    if (vmExternal in El.VarModifiers)
+        or ((El.Parent is TPasClassType) and (TPasClassType(El.Parent).IsExternal)) then
+      exit;
     if El.Visibility in [visPrivate,visStrictPrivate] then
       EmitMessage(20170311234159,mtHint,nPAPrivateFieldIsAssignedButNeverUsed,
         sPAPrivateFieldIsAssignedButNeverUsed,[El.FullName],El)

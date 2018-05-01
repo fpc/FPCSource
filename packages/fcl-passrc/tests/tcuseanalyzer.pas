@@ -105,6 +105,7 @@ type
     procedure TestM_Hint_LocalXYNotUsed;
     procedure TestM_Hint_PrivateFieldIsNeverUsed;
     procedure TestM_Hint_PrivateFieldIsAssignedButNeverUsed;
+    procedure TestM_Hint_PrivateFieldExtClassNoIsAssignedButNeverUsed;
     procedure TestM_Hint_PrivateMethodIsNeverUsed;
     procedure TestM_Hint_LocalDestructor_No_IsNeverUsed;
     procedure TestM_Hint_PrivateTypeNeverUsed;
@@ -1666,6 +1667,27 @@ begin
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPAPrivateFieldIsAssignedButNeverUsed,
     'Private field "TMobile.a" is assigned but never used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.
+  TestM_Hint_PrivateFieldExtClassNoIsAssignedButNeverUsed;
+begin
+  StartProgram(false,[]);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TMobile = class external name ''foo''',
+  '  private',
+  '    FA: longint;',
+  '  public',
+  '    property A: longint write FA;',
+  '  end;',
+  'var m: TMobile;',
+  'begin',
+  '  m.A:=3;',
+  '']);
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
