@@ -205,6 +205,7 @@ type
     Procedure TestVarExternal;
     Procedure TestVarExternalOtherUnit;
     Procedure TestVarAbsoluteFail;
+    Procedure TestConstExternal;
 
     // numbers
     Procedure TestDouble;
@@ -4767,6 +4768,25 @@ begin
   'begin']);
   SetExpectedPasResolverError('Invalid variable modifier "absolute"',nInvalidVariableModifier);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestConstExternal;
+begin
+  StartProgram(false);
+  Add([
+  'const',
+  '  NaN: double; external name ''Global.NaN'';',
+  'var d: double;',
+  'begin',
+  '  d:=NaN;']);
+  ConvertProgram;
+  CheckSource('TestConstExternal',
+    LinesToStr([
+    'this.d = 0.0;'
+    ]),
+    LinesToStr([
+    '$mod.d = Global.NaN;'
+    ]));
 end;
 
 procedure TTestModule.TestDouble;

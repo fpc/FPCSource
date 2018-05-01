@@ -343,6 +343,7 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
+- external const (global, in class)
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -381,13 +382,13 @@ Not in Version 1.0:
   +, -, *, Succ, Pred, Inc, Dec
 - optimizations:
   - move rtl.js functions to system.pp
+  - less brackets on logical and/or/xor, add
   - add $mod only if needed
   - add Self only if needed
   - use a number for small sets
   - put set literals into constants
   - shortcut for test set is empty  a=[]  a<>[]
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
-  - nested procs without var, instead as "function name(){}"
   - combine multiple var a=0,b=0
   - skip clone record for new record
   - SetLength(scope.a,l) -> read scope only once, same for
@@ -1045,7 +1046,7 @@ const
   po_Pas2js = po_Resolver+[
     po_AsmWhole,
     po_ResolveStandardTypes,
-    po_ExtClassConstWithoutExpr,
+    po_ExtConstWithoutExpr,
     po_StopOnUnitInterface];
 
   btAllJSBaseTypes = [
@@ -10129,6 +10130,8 @@ begin
     begin
     // create 'var A=initvalue'
     C:=ConvertVariable(El,AContext);
+    if C=nil then
+      RaiseInconsistency(20180501114300,El);
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
     V.A:=C;
     Result:=V;
@@ -17388,6 +17391,8 @@ begin
   Result:=nil;
   if El.AbsoluteExpr<>nil then
     exit; // absolute: do not add a declaration
+  if vmExternal in El.VarModifiers then
+    exit; // external: do not add a declaration
   if not AContext.IsGlobal then
     begin
     // local const are stored in interface/implementation
@@ -17401,6 +17406,8 @@ begin
       end;
     Src:=TJSSourceElements(ConstContext.JSElement);
     C:=ConvertVariable(El,AContext);
+    if C=nil then
+      RaiseInconsistency(20180501114422,El);
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
     V.A:=C;
     AddToSourceElements(Src,V);
