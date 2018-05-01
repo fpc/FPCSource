@@ -83,6 +83,7 @@ Works:
   - equal, not equal
   - const
   - array of record-const
+  - skip clone record of new record
 - classes
   - declare using createClass
   - constructor
@@ -343,7 +344,9 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- external const (global, in class)
+- case of string range
+- change Math.NaN to const
+- check rtl initialization sections for unneeded inits
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -390,11 +393,11 @@ Not in Version 1.0:
   - shortcut for test set is empty  a=[]  a<>[]
   - set operators on literals without temporary arrays, a in [b], [a]*b<>[]
   - combine multiple var a=0,b=0
-  - skip clone record for new record
+  - skip clone array for new array and arraysetlength
   - SetLength(scope.a,l) -> read scope only once, same for
     Include, Exclude, Inc, Dec, +=, -=, *=, /=
   -O1 insert local/unit vars for global type references:
-      at start of intf var $r1;
+      at start of intf var $r1=null;
       at end of impl: $r1=path;
   -O1 insert unit vars for complex literals
   -O1 no function Result var when assigned only once
@@ -402,7 +405,8 @@ Not in Version 1.0:
   -O1 pass array element by ref: when index is constant, use that directly
 - objects
 - advanced records
-- class helpers, type helpers, record helpers,
+  - TPasClassRecordType as ancestor
+- class helpers, type helpers, record helpers, array helpers
 - generics
 - operator overloading
   - operator enumerator
@@ -12229,7 +12233,7 @@ function TPasToJSConverter.ConvertCaseOfStatement(El: TPasImplCaseOf;
 var
   SubEl: TPasImplElement;
   St: TPasImplCaseStatement;
-  ok: Boolean;
+  ok, IsCaseOfString: Boolean;
   i, j: Integer;
   JSExpr: TJSElement;
   StList: TJSStatementList;
@@ -12243,8 +12247,20 @@ var
   JSLEExpr: TJSRelationalExpressionLE;
   JSGEExpr: TJSRelationalExpressionGE;
   JSEQExpr: TJSEqualityExpressionSEQ;
+  aResolver: TPas2JSResolver;
+  CaseResolved: TPasResolverResult;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
+
+  IsCaseOfString:=false;
+  if aResolver<>nil then
+    begin
+    aResolver.ComputeElement(El.CaseExpr,CaseResolved,[]);
+    if CaseResolved.BaseType in btAllStrings then
+      IsCaseOfString:=true;
+    end;
+
   if UseSwitchStatement then
     begin
     // convert to switch statement
@@ -12321,10 +12337,23 @@ begin
             JSAndExpr.B:=JSLEExpr;
             JSLEExpr.A:=CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext);
             JSLEExpr.B:=ConvertExpression(TBinaryExpr(Expr).right,AContext);
+            if IsCaseOfString then
+              begin
+              // case of string, range  ->  "(tmp.length===1) &&"
+              JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
+              JSEQExpr.A:=CreateDotExpression(Expr,
+                            CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext),
+                            CreatePrimitiveDotExpr('length',Expr));
+              JSEQExpr.B:=CreateLiteralNumber(Expr,1);
+              JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
+              JSAndExpr.A:=JSEQExpr;
+              JSAndExpr.B:=JSExpr;
+              JSExpr:=JSAndExpr;
+              end;
             end
           else
             begin
-            // value -> create (tmp==Expr)
+            // value -> create (tmp===Expr)
             JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
             JSExpr:=JSEQExpr;
             JSEQExpr.A:=CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext);

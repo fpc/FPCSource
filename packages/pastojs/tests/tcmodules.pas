@@ -329,6 +329,7 @@ type
     Procedure TestCaseOfNoElse;
     Procedure TestCaseOfNoElse_UseSwitch;
     Procedure TestCaseOfRange;
+    Procedure TestCaseOfString;
 
     // arrays
     Procedure TestArray_Dynamic;
@@ -6343,6 +6344,31 @@ begin
     '  $mod.vI = 16',
     '} else if ((($tmp1 >= 6) && ($tmp1 <= 7)) || (($tmp1 >= 9) && ($tmp1 <= 10))) ;'
     ]));
+end;
+
+procedure TTestModule.TestCaseOfString;
+begin
+  StartProgram(false);
+  Add([
+  'var s,h: string;',
+  'begin',
+  '  case s of',
+  '  ''foo'': s:=h;',
+  '  ''a''..''z'': h:=s;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestCaseOfString',
+    LinesToStr([ // statements
+    'this.s = "";',
+    'this.h = "";',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $tmp1 = $mod.s;',
+    'if ($tmp1 === "foo") {',
+    '  $mod.s = $mod.h}',
+    ' else if (($tmp1.length === 1) && (($tmp1 >= "a") && ($tmp1 <= "z"))) $mod.h = $mod.s;',
+    '']));
 end;
 
 procedure TTestModule.TestArray_Dynamic;
