@@ -9831,6 +9831,7 @@ var
   TypeEl: TPasType;
   Value: TResEvalValue;
   MinVal, MaxVal: MaxPrecInt;
+  C: TClass;
 begin
   Result:=nil;
   if AContext.Resolver=nil then
@@ -9838,87 +9839,130 @@ begin
   Param:=El.Params[0];
   AContext.Resolver.ComputeElement(Param,ResolvedEl,[]);
   case ResolvedEl.BaseType of
-    btContext:
+  btBoolean,btByteBool,btWordBool,btLongBool:
+    begin
+    Result:=CreateLiteralBoolean(El,LowJSBoolean);
+    exit;
+    end;
+  btChar,
+  btWideChar:
+    begin
+    Result:=CreateLiteralJSString(El,#0);
+    exit;
+    end;
+  btString,btUnicodeString:
+    begin
+    Result:=CreateLiteralJSString(El,'');
+    exit;
+    end;
+  btByte..btInt64:
+    begin
+    TypeEl:=ResolvedEl.LoTypeEl;
+    if TypeEl.ClassType=TPasUnresolvedSymbolRef then
       begin
-      TypeEl:=ResolvedEl.LoTypeEl;
-      if TypeEl.ClassType=TPasEnumType then
+      if TypeEl.CustomData is TResElDataBaseType then
         begin
-        CreateEnumValue(TPasEnumType(TypeEl));
+        AContext.Resolver.GetIntegerRange(ResolvedEl.BaseType,MinVal,MaxVal);
+        Result:=CreateLiteralNumber(El,MinVal);
         exit;
-        end
-      else if (TypeEl.ClassType=TPasSetType) then
-        begin
-        Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
-        exit;
-        end
-      else if TypeEl.ClassType=TPasArrayType then
-        begin
-        Result:=CreateArrayInit(TPasArrayType(TypeEl),nil,El,AContext);
-        exit;
-        end
-      else if TypeEl.ClassType=TPasRecordType then
-        begin
-        Result:=CreateRecordInit(TPasRecordType(TypeEl),nil,El,AContext);
-        exit;
-        end
-      else if (TypeEl.ClassType=TPasRangeType) then
-        // a custom range without initial value -> use first value
-        begin
-        Value:=AContext.Resolver.Eval(TPasRangeType(TypeEl).RangeExpr.left,[refConst]);
-        try
-          Result:=ConvertConstValue(Value,AContext,El);
-        finally
-          ReleaseEvalValue(Value);
         end;
+      end
+    else if TypeEl.ClassType=TPasRangeType then
+      begin
+      Value:=AContext.Resolver.EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,
+                                              [refConst],true,El);
+      try
+        case Value.Kind of
+        revkInt:
+          Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
+        revkUInt:
+          Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
+        else
+          RaiseNotSupported(El,AContext,20180501011646);
         end;
+        exit;
+      finally
+        ReleaseEvalValue(Value);
       end;
-    btBoolean,btByteBool,btWordBool,btLongBool:
+      end;
+    {$IFDEF VerbosePas2JS}
+    writeln('TPasToJSConverter.ConvertBuiltIn_Default ',GetResolverResultDbg(ResolvedEl));
+    {$ENDIF}
+    RaiseNotSupported(El,AContext,20180501011649);
+    end;
+  btSingle,btDouble:
+    begin
+    Result:=CreateLiteralNumber(El,0);
+    TJSLiteral(Result).Value.CustomValue:='0.0';
+    exit;
+    end;
+  btCurrency:
+    begin
+    Result:=CreateLiteralNumber(El,0);
+    exit;
+    end;
+  btContext:
+    begin
+    TypeEl:=ResolvedEl.LoTypeEl;
+    C:=TypeEl.ClassType;
+    if C=TPasEnumType then
       begin
-      Result:=CreateLiteralBoolean(El,LowJSBoolean);
+      CreateEnumValue(TPasEnumType(TypeEl));
+      exit;
+      end
+    else if C=TPasSetType then
+      begin
+      Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+      exit;
+      end
+    else if C=TPasArrayType then
+      begin
+      Result:=CreateArrayInit(TPasArrayType(TypeEl),nil,El,AContext);
+      exit;
+      end
+    else if C=TPasRecordType then
+      begin
+      Result:=CreateRecordInit(TPasRecordType(TypeEl),nil,El,AContext);
+      exit;
+      end
+    else if C=TPasRangeType then
+      // a custom range without initial value -> use first value
+      begin
+      Value:=AContext.Resolver.Eval(TPasRangeType(TypeEl).RangeExpr.left,[refConst]);
+      try
+        Result:=ConvertConstValue(Value,AContext,El);
+      finally
+        ReleaseEvalValue(Value);
+      end;
+      end
+    else if (C=TPasClassType) or (C=TPasPointerType) then
+      begin
+      Result:=CreateLiteralNull(El);
       exit;
       end;
-    btChar,
-    btWideChar:
+    end;
+  btRange:
+    begin
+    if ResolvedEl.LoTypeEl is TPasRangeType then
       begin
-      Result:=CreateLiteralJSString(El,#0);
+      Value:=AContext.Resolver.Eval(TPasRangeType(ResolvedEl.LoTypeEl).RangeExpr.left,[refConst]);
+      try
+        Result:=ConvertConstValue(Value,AContext,El);
+      finally
+        ReleaseEvalValue(Value);
+      end;
       exit;
       end;
-    btByte..btInt64:
-      begin
-      TypeEl:=ResolvedEl.LoTypeEl;
-      if TypeEl.ClassType=TPasUnresolvedSymbolRef then
-        begin
-        if TypeEl.CustomData is TResElDataBaseType then
-          begin
-          AContext.Resolver.GetIntegerRange(ResolvedEl.BaseType,MinVal,MaxVal);
-          Result:=CreateLiteralNumber(El,MinVal);
-          exit;
-          end;
-        end
-      else if TypeEl.ClassType=TPasRangeType then
-        begin
-        Value:=AContext.Resolver.EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,
-                                                [refConst],true,El);
-        try
-          case Value.Kind of
-          revkInt:
-            Result:=CreateLiteralNumber(El,TResEvalInt(Value).Int);
-          revkUInt:
-            Result:=CreateLiteralNumber(El,TResEvalUInt(Value).UInt);
-          else
-            RaiseNotSupported(El,AContext,20180501011646);
-          end;
-          exit;
-        finally
-          ReleaseEvalValue(Value);
-        end;
-        end;
-      {$IFDEF VerbosePas2JS}
-      writeln('TPasToJSConverter.ConvertBuiltIn_Default ',GetResolverResultDbg(ResolvedEl));
-      {$ENDIF}
-      RaiseNotSupported(El,AContext,20180501011649);
-      end;
+    end;
+  btSet:
+    begin
+    Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+    exit;
+    end;
   end;
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.ConvertBuiltIn_Default ',GetResolverResultDbg(ResolvedEl));
+  {$ENDIF}
   DoError(20180501011723,nXExpectedButYFound,sXExpectedButYFound,['record',
     AContext.Resolver.GetResolverResultDescription(ResolvedEl)],Param);
 end;

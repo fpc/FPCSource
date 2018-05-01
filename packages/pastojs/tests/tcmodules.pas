@@ -3553,6 +3553,7 @@ begin
   Add('var f: TMyEnum = Blue;');
   Add('begin');
   Add('  e:=green;');
+  Add('  e:=default(TMyEnum);');
   ConvertProgram;
   CheckSource('TestEnumName',
     LinesToStr([ // statements
@@ -3568,7 +3569,8 @@ begin
     'this.f = $mod.TMyEnum.Blue;'
     ]),
     LinesToStr([
-    '$mod.e=$mod.TMyEnum.Green;'
+    '$mod.e=$mod.TMyEnum.Green;',
+    '$mod.e=$mod.TMyEnum.Red;'
     ]));
 end;
 
@@ -3896,9 +3898,11 @@ begin
   '  s:=[Red..Blue];',
   '  s:=[Red,Green..Blue];',
   '  s:=[Red,c];',
-  '  s:=t;']);
+  '  s:=t;',
+  '  s:=default(TColors);',
+  '']);
   ConvertProgram;
-  CheckSource('TestEnumName',
+  CheckSource('TestSet',
     LinesToStr([ // statements
     'this.TColor = {',
     '  "0":"Red",',
@@ -3921,6 +3925,7 @@ begin
     '$mod.s=rtl.createSet($mod.TColor.Red,null,$mod.TColor.Green,$mod.TColor.Blue);',
     '$mod.s=rtl.createSet($mod.TColor.Red,$mod.c);',
     '$mod.s=rtl.refSet($mod.t);',
+    '$mod.s={};',
     '']));
 end;
 
@@ -4843,6 +4848,7 @@ begin
   '  d:=mindouble;',
   '  d:=MinSafeIntDouble;',
   '  d:=MaxSafeIntDouble;',
+  '  d:=default(double);',
   '']);
   ConvertProgram;
   CheckSource('TestDouble',
@@ -4894,6 +4900,7 @@ begin
     '$mod.d = -1.7E308;',
     '$mod.d = -4503599627370496;',
     '$mod.d = 4503599627370495;',
+    '$mod.d = 0.0;',
     '']));
 end;
 
@@ -4911,7 +4918,8 @@ begin
   'var',
   '  i: TMyInt;',
   'begin',
-  '  i:=-MinInt;']);
+  '  i:=-MinInt;',
+  '  i:=default(TMyInt);']);
   ConvertProgram;
   CheckSource('TestIntegerRange',
     LinesToStr([
@@ -4922,6 +4930,7 @@ begin
     '']),
     LinesToStr([
     '$mod.i = - -4503599627370496;',
+    '$mod.i = -4503599627370496;',
     '']));
 end;
 
@@ -4949,6 +4958,7 @@ begin
   '  i2: TInt2;',
   'begin',
   '  i:=i2;',
+  '  i:=default(TMyInt);',
   '  if i=i2 then ;']);
   ConvertProgram;
   CheckSource('TestIntegerRange',
@@ -4968,6 +4978,7 @@ begin
     '']),
     LinesToStr([
     '$mod.i = $mod.i2;',
+    '$mod.i = -1;',
     'if ($mod.i === $mod.i2) ;',
     '']));
 end;
@@ -5071,6 +5082,7 @@ begin
   '  c:=GetIt(c);',
   '  j:=c;',
   '  Write(c);',
+  '  c:=default(currency);',
   '']);
   ConvertProgram;
   CheckSource('TestCurrency',
@@ -5133,6 +5145,7 @@ begin
     '$mod.c = Math.floor($mod.GetIt($mod.c / 10000) * 10000);',
     '$mod.j = $mod.c / 10000;',
     '$mod.Write($mod.c / 10000);',
+    '$mod.c = 0;',
     '']));
 end;
 
@@ -5253,6 +5266,7 @@ begin
   Add('  c:=#$0b;');
   Add('  c:=^A;');
   Add('  c:=''"'';');
+  Add('  c:=default(char);');
   ConvertProgram;
   CheckSource('TestCharConst',
     LinesToStr([
@@ -5271,7 +5285,8 @@ begin
     '$mod.c="\x0B";',
     '$mod.c="\x0B";',
     '$mod.c="\x01";',
-    '$mod.c=''"'';'
+    '$mod.c=''"'';',
+    '$mod.c="\x00";'
     ]));
 end;
 
@@ -5374,6 +5389,7 @@ begin
   '  s:=''foo''#13''bar'';',
   '  s:=''"'';',
   '  s:=''"''''"'';',
+  '  s:=default(string);',
   '']);
   ConvertProgram;
   CheckSource('TestStringConst',
@@ -5387,7 +5403,8 @@ begin
     '$mod.s="©";',
     '$mod.s="foo\rbar";',
     '$mod.s=''"'';',
-    '$mod.s=''"\''"'';'
+    '$mod.s=''"\''"'';',
+    '$mod.s="";'
     ]));
 end;
 
@@ -5652,6 +5669,7 @@ begin
   '  if crg=crg2 then ;',
   '  if c in s then ;',
   '  if crg2 in s then ;',
+  '  c:=default(TCharRg);',
   '']);
   ConvertProgram;
   CheckSource('TestCharSet_Custom',
@@ -5670,6 +5688,7 @@ begin
     'if ($mod.crg === $mod.crg2) ;',
     'if ($mod.c.charCodeAt() in $mod.s) ;',
     'if ($mod.crg2.charCodeAt() in $mod.s) ;',
+    '$mod.c = "a";',
     '']));
 end;
 
@@ -6344,6 +6363,7 @@ begin
   Add('  i:=low(arr);');
   Add('  i:=high(arr);');
   Add('  b:=Assigned(arr);');
+  Add('  Arr:=default(TArrayInt);');
   ConvertProgram;
   CheckSource('TestArray_Dynamic',
     LinesToStr([ // statements
@@ -6360,6 +6380,7 @@ begin
     '$mod.i = 0;',
     '$mod.i = rtl.length($mod.Arr) - 1;',
     '$mod.b = rtl.length($mod.Arr) > 0;',
+    '$mod.Arr = [];',
     '']));
 end;
 
@@ -6463,6 +6484,7 @@ begin
   Add('  i:=low(arr);');
   Add('  i:=high(arr);');
   Add('  b:=arr[2]=arr[3];');
+  Add('  arr:=default(TArrayInt);');
   ConvertProgram;
   CheckSource('TestArray_StaticInt',
     LinesToStr([ // statements
@@ -6479,6 +6501,7 @@ begin
     '$mod.i = 2;',
     '$mod.i = 4;',
     '$mod.b = $mod.Arr[0] === $mod.Arr[1];',
+    '$mod.Arr = rtl.arraySetLength(null,0,3).slice(0);',
     '']));
 end;
 

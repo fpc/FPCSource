@@ -12978,6 +12978,8 @@ begin
       Evaluated:=TResEvalString.CreateValue(#0)
     else if bt=btWideChar then
       Evaluated:=TResEvalUTF16.CreateValue(#0)
+    else if bt in btAllFloats then
+      Evaluated:=TResEvalFloat.CreateValue(0.0)
     else
       begin
       {$IFDEF VerbosePasResolver}
@@ -12991,8 +12993,35 @@ begin
     // e.g. type t = 2..10;
     Evaluated:=EvalRangeLimit(TPasRangeType(TypeEl).RangeExpr,FLags,true,Param);
     end
+  else if ParamResolved.BaseType=btSet then
+    begin
+    if ParamResolved.SubType=btContext then
+      begin
+      if ParamResolved.LoTypeEl.ClassType=TPasEnumType then
+        Evaluated:=TResEvalSet.CreateEmpty(revskEnum,TPasEnumType(ParamResolved.LoTypeEl))
+      else
+        begin
+        {$IFDEF VerbosePasResolver}
+        writeln('TPasResolver.BI_Default_OnEval ',GetResolverResultDbg(ParamResolved));
+        {$ENDIF}
+        RaiseNotYetImplemented(20180501125138,Param);
+        end;
+      end
+    else
+      begin
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.BI_Default_OnEval ',GetResolverResultDbg(ParamResolved));
+      {$ENDIF}
+      RaiseNotYetImplemented(20180501125014,Param);
+      end;
+    end
   else
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.BI_Default_OnEval ',GetResolverResultDbg(ParamResolved));
+    {$ENDIF}
     RaiseNotYetImplemented(20180501004839,Param);
+    end;
 end;
 
 constructor TPasResolver.Create;
