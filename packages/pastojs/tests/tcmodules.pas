@@ -5017,10 +5017,10 @@ begin
     'this.li = 0;',
     '']),
     LinesToStr([
-    '$mod.b = $mod.i % 0xFF;',
-    '$mod.sh = (($mod.i % 0xFF) << 24) >> 24;',
-    '$mod.w = $mod.i % 0xFFFF;',
-    '$mod.sm = (($mod.i % 0xFFFF) << 16) >> 16;',
+    '$mod.b = $mod.i % 256;',
+    '$mod.sh = (($mod.i % 256) << 24) >> 24;',
+    '$mod.w = $mod.i % 65536;',
+    '$mod.sm = (($mod.i % 65536) << 16) >> 16;',
     '$mod.lw = $mod.i >>> 0;',
     '$mod.li = $mod.i % 0xFFFFFFFF;',
     '']));
