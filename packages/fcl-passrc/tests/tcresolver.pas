@@ -7828,7 +7828,7 @@ begin
   'type',
   '  TObject = class',
   '    procedure DoIt; virtual; abstract;',
-  '    constructor Create; virtual;',
+  '    constructor Create;',
   '  end;',
   '  TClass = class of TObject;',
   'constructor TObject.Create;',

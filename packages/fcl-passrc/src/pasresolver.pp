@@ -13684,10 +13684,8 @@ begin
       TResolvedRefCtxConstructor(Ref.Context).Typ:=TypeEl;
       if (length(ClassScope.AbstractProcs)>0) then
         begin
-        if Proc.IsVirtual and IsClassOf then
-          begin
-          // virtual constructor called with aClass.Create: do not warn
-          end
+        if IsClassOf then
+          // aClass.Create: do not warn
         else
           for i:=0 to length(ClassScope.AbstractProcs)-1 do
             LogMsg(20171227110746,mtNote,nConstructingClassXWithAbstractMethodY,
