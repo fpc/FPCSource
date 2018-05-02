@@ -344,7 +344,6 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- case of string range
 - change Math.NaN to const
 - check rtl initialization sections for unneeded inits
 - 'new', 'Function' -> class var use .prototype
@@ -7412,6 +7411,7 @@ begin
     // astring[]
     ConvertStringBracket(ResolvedEl)
   else if (ResolvedEl.IdentEl is TPasProperty)
+      and (El.Value is TPrimitiveExpr)
       and (aResolver.GetPasPropertyArgs(TPasProperty(ResolvedEl.IdentEl)).Count>0) then
     // aproperty[]
     ConvertIndexedProperty(TPasProperty(ResolvedEl.IdentEl),AContext)
@@ -16682,8 +16682,12 @@ begin
             begin
             // missing JS var for Self
             {$IFDEF VerbosePas2JS}
+            {AllowWriteln}
             writeln('TPasToJSConverter.CreateReferencePath missing JS var for Self: El=',El.FullName,':',El.ClassName,' CurParentEl=',ParentEl.FullName,':',ParentEl.ClassName,' AContext:');
             AContext.WriteStack;
+            if Ref<>nil then
+              writeln('TPasToJSConverter.CreateReferencePath Ref=',GetObjName(Ref.Element),' at ',AContext.Resolver.GetElementSourcePosStr(Ref.Element));
+            {AllowWriteln-}
             {$ENDIF}
             RaiseNotSupported(El,AContext,20180125004049);
             end;

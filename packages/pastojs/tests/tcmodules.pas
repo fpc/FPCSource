@@ -395,6 +395,7 @@ type
     Procedure TestClass_Property_IndexSpec;
     Procedure TestClass_PropertyOfTypeArray;
     Procedure TestClass_PropertyDefault;
+    Procedure TestClass_PropertyDefault2;
     Procedure TestClass_PropertyOverride;
     Procedure TestClass_PropertyIncVisibility;
     Procedure TestClass_Assigned;
@@ -9273,29 +9274,31 @@ end;
 procedure TTestModule.TestClass_PropertyDefault;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TArray = array of longint;');
-  Add('  TObject = class');
-  Add('    FItems: TArray;');
-  Add('    function GetItems(Index: longint): longint;');
-  Add('    procedure SetItems(Index, Value: longint);');
-  Add('    property Items[Index: longint]: longint read getitems write setitems; default;');
-  Add('  end;');
-  Add('function tobject.getitems(index: longint): longint;');
-  Add('begin');
-  Add('end;');
-  Add('procedure tobject.setitems(index, value: longint);');
-  Add('begin');
-  Add('  Self[1]:=2;');
-  Add('  Self[3]:=Self[index];');
-  Add('  Self[index]:=Self[Self[value]];');
-  Add('  Self[Self[4]]:=value;');
-  Add('end;');
-  Add('var Obj: tobject;');
-  Add('begin');
-  Add('  obj[11]:=12;');
-  Add('  obj[13]:=obj[14];');
-  Add('  obj[obj[15]]:=obj[obj[15]];');
+  Add([
+  'type',
+  '  TArray = array of longint;',
+  '  TObject = class',
+  '    FItems: TArray;',
+  '    function GetItems(Index: longint): longint;',
+  '    procedure SetItems(Index, Value: longint);',
+  '    property Items[Index: longint]: longint read getitems write setitems; default;',
+  '  end;',
+  'function tobject.getitems(index: longint): longint;',
+  'begin',
+  'end;',
+  'procedure tobject.setitems(index, value: longint);',
+  'begin',
+  '  Self[1]:=2;',
+  '  Self[3]:=Self[index];',
+  '  Self[index]:=Self[Self[value]];',
+  '  Self[Self[4]]:=value;',
+  'end;',
+  'var Obj: tobject;',
+  'begin',
+  '  obj[11]:=12;',
+  '  obj[13]:=obj[14];',
+  '  obj[obj[15]]:=obj[obj[15]];',
+  '  TObject(obj)[16]:=TObject(obj)[17];']);
   ConvertProgram;
   CheckSource('TestClass_PropertyDefault',
     LinesToStr([ // statements
@@ -9322,8 +9325,69 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.Obj.SetItems(11, 12);',
     '$mod.Obj.SetItems(13, $mod.Obj.GetItems(14));',
-    '$mod.Obj.SetItems($mod.Obj.GetItems(15), $mod.Obj.GetItems($mod.Obj.GetItems(15)));'
-    ]));
+    '$mod.Obj.SetItems($mod.Obj.GetItems(15), $mod.Obj.GetItems($mod.Obj.GetItems(15)));',
+    '$mod.Obj.SetItems(16, $mod.Obj.GetItems(17));',
+    '']));
+end;
+
+procedure TTestModule.TestClass_PropertyDefault2;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TAlphaList = class',
+  '    function GetAlphas(Index: longint): Pointer; virtual; abstract;',
+  '    procedure SetAlphas(Index: longint; Value: Pointer); virtual; abstract;',
+  '    property Alphas[Index: longint]: Pointer read getAlphas write setAlphas; default;',
+  '  end;',
+  '  TBetaList = class',
+  '    function GetBetas(Index: longint): Pointer; virtual; abstract;',
+  '    procedure SetBetas(Index: longint; Value: Pointer); virtual; abstract;',
+  '    property Betas[Index: longint]: Pointer read getBetas write setBetas; default;',
+  '  end;',
+  '  TBird = class',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure TBird.DoIt;',
+  'var',
+  '  List: TAlphaList;',
+  'begin',
+  '  if TBetaList(List[2])[3]=nil then ;',
+  '  TBetaList(List[4])[5]:=nil;',
+  'end;',
+  'var',
+  '  List: TAlphaList;',
+  'begin',
+  '  if TBetaList(List[2])[3]=nil then ;',
+  '  TBetaList(List[4])[5]:=nil;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClass_PropertyDefault2',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "TAlphaList", $mod.TObject, function () {',
+    '});',
+    'rtl.createClass($mod, "TBetaList", $mod.TObject, function () {',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.DoIt = function () {',
+    '    var List = null;',
+    '    if (List.GetAlphas(2).GetBetas(3) === null) ;',
+    '    List.GetAlphas(4).SetBetas(5, null);',
+    '  };',
+    '});',
+    'this.List = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'if ($mod.List.GetAlphas(2).GetBetas(3) === null) ;',
+    '$mod.List.GetAlphas(4).SetBetas(5, null);',
+    '']));
 end;
 
 procedure TTestModule.TestClass_PropertyOverride;
