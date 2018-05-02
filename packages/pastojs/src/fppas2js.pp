@@ -344,8 +344,6 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- change Math.NaN to const
-- check rtl initialization sections for unneeded inits
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -8010,29 +8008,31 @@ var
     JSBaseType:=JSBaseTypeData.JSBaseType;
   end;
 
-  function CreateModulo(Value: TJSElement; const Mask: MaxPrecInt; Shift: integer): TJSElement;
+  function CreateBitWiseAnd(Value: TJSElement; const Mask: MaxPrecInt; Shift: integer): TJSElement;
   // ig sign=false: Value & Mask
   // if sign=true:  Value & Mask << ZeroBits >> ZeroBits
   var
-    ModEx: TJSMultiplicativeExpressionMod;
+    AndEx: TJSBitwiseAndExpression;
     Hex: String;
     i: Integer;
     ShiftEx: TJSShiftExpression;
   begin
-    ModEx:=TJSMultiplicativeExpressionMod(CreateElement(TJSMultiplicativeExpressionMod,El));
-    Result:=ModEx;
-    ModEx.A:=Value;
-    ModEx.B:=CreateLiteralNumber(El,Mask);
-    Hex:=HexStr(Mask,8);
-    i:=1;
-    while i<8 do
-      if Hex[i]='0' then
-        inc(i)
-      else
-        break;
-    Hex:=Copy(Hex,i,8);
-    if Mask>99999 then
-      TJSLiteral(ModEx.B).Value.CustomValue:=TJSString('0x'+Hex);
+    AndEx:=TJSBitwiseAndExpression(CreateElement(TJSBitwiseAndExpression,El));
+    Result:=AndEx;
+    AndEx.A:=Value;
+    AndEx.B:=CreateLiteralNumber(El,Mask);
+    if Mask>999999 then
+      begin
+      Hex:=HexStr(Mask,8);
+      i:=1;
+      while i<8 do
+        if Hex[i]='0' then
+          inc(i)
+        else
+          break;
+      Hex:=Copy(Hex,i,8);
+      TJSLiteral(AndEx.B).Value.CustomValue:=TJSString('0x'+Hex);
+      end;
     if Shift>0 then
       begin
       // value << ZeroBits
@@ -8094,21 +8094,21 @@ begin
         else
           case to_bt of
           btByte:
-            // value to byte  ->  value & 256
+            // value to byte  ->  value & 255
             if ParamResolved.BaseType<>btByte then
-              Result:=CreateModulo(Result,256,0);
+              Result:=CreateBitWiseAnd(Result,255,0);
           btShortInt:
-            // value to shortint  ->  value & 256 << 24 >> 24
+            // value to shortint  ->  value & 255 << 24 >> 24
             if ParamResolved.BaseType<>btShortInt then
-              Result:=CreateModulo(Result,256,24);
+              Result:=CreateBitWiseAnd(Result,255,24);
           btWord:
-            // value to word  ->  value & 65536
+            // value to word  ->  value & 65535
             if not (ParamResolved.BaseType in [btByte,btWord]) then
-              Result:=CreateModulo(Result,65536,0);
+              Result:=CreateBitWiseAnd(Result,65535,0);
           btSmallInt:
-            // value to smallint  ->  value & 65536 << 16 >> 16
+            // value to smallint  ->  value & 65535 << 16 >> 16
             if not (ParamResolved.BaseType in [btShortInt,btSmallInt]) then
-              Result:=CreateModulo(Result,65536,16);
+              Result:=CreateBitWiseAnd(Result,65535,16);
           btLongWord:
             // value to longword  ->  value >>> 0
             if not (ParamResolved.BaseType in [btByte,btWord,btLongWord,btUIntSingle]) then
@@ -8121,7 +8121,7 @@ begin
           btLongint:
             // value to longint  ->  value & 0xffffffff
             if not (ParamResolved.BaseType in [btShortInt,btSmallInt,btLongint,btIntSingle]) then
-              Result:=CreateModulo(Result,$ffffffff,0);
+              Result:=CreateBitWiseAnd(Result,$ffffffff,0);
           end;
         end;
       exit;
