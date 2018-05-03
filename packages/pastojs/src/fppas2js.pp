@@ -344,6 +344,7 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
+- TRecType(anotherRec).field
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;

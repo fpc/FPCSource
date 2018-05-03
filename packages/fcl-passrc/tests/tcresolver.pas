@@ -369,7 +369,10 @@ type
     Procedure TestProcParamAccess;
     Procedure TestFunctionResult;
     Procedure TestProcedureResultFail;
-    Procedure TestProc_ArgVarTypeAlias;
+    Procedure TestProc_ArgVarPrecisionLossFail;
+    Procedure TestProc_ArgVarTypeAliasObjFPC;
+    Procedure TestProc_ArgVarTypeAliasDelphi; // ToDo
+    Procedure TestProc_ArgVarTypeAliasDelphiMismatchFail; // ToDo
     Procedure TestProcOverload;
     Procedure TestProcOverloadImplDuplicateFail;
     Procedure TestProcOverloadImplDuplicate2Fail;
@@ -5525,24 +5528,90 @@ begin
     nParserExpectTokenError);
 end;
 
-procedure TTestResolver.TestProc_ArgVarTypeAlias;
+procedure TTestResolver.TestProc_ArgVarPrecisionLossFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TColor = type longint;',
+  '  TByte = byte;',
+  'procedure DoColor(var c: TColor); external;',
+  'var',
+  '  b: TByte;',
+  'begin',
+  '  DoColor(TColor(b));',
+  '']);
+  CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestProc_ArgVarTypeAliasObjFPC;
 begin
   StartProgram(false);
   Add([
   'type',
   '  TColor = type longint;',
   'procedure DoColor(var c: TColor); external;',
+  'procedure TakeColor(c: TColor); external;',
   'procedure DoInt(var i: longint); external;',
   'var',
   '  i: longint;',
   '  c: TColor;',
   'begin',
   '  DoColor(c);',
+  '  DoColor(longint(c));',
   '  DoColor(i);',
+  '  DoColor(TColor(i));',
+  '  TakeColor(c);',
+  '  TakeColor(longint(c));',
+  '  TakeColor(i);',
+  '  TakeColor(TColor(i));',
   '  DoInt(i);',
+  '  DoInt(TColor(i));',
   '  DoInt(c);',
+  '  DoInt(longint(c));',
   '']);
   ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ArgVarTypeAliasDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TColor = type longint;',
+  'procedure DoColor(var c: TColor); external;',
+  'procedure TakeColor(c: TColor); external;',
+  'procedure DoInt(var i: longint); external;',
+  'var',
+  '  i: longint;',
+  '  c: TColor;',
+  'begin',
+  '  DoColor(c);',
+  '  DoColor(TColor(i));',
+  '  TakeColor(i);',
+  '  TakeColor(longint(c));',
+  '  DoInt(i);',
+  '  DoInt(longint(c));',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProc_ArgVarTypeAliasDelphiMismatchFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TColor = type longint;',
+  'procedure DoColor(var c: TColor); external;',
+  'var',
+  '  i: longint;',
+  'begin',
+  '  DoColor(i);',
+  '']);
+  CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "TColor". Var param must match exactly.',
+    nIncompatibleTypeArgNoVarParamMustMatchExactly);
 end;
 
 procedure TTestResolver.TestProcOverload;

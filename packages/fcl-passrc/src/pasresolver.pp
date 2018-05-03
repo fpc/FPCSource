@@ -1334,6 +1334,10 @@ type
     procedure ComputeFuncParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
+    procedure ComputeTypeCast(ToLoType, ToHiType: TPasType;
+      Param: TPasExpr; const ParamResolved: TPasResolverResult;
+      out ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags); virtual;
     procedure ComputeSetParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -9887,9 +9891,10 @@ var
   BuiltInProc: TResElDataBuiltInProc;
   Proc: TPasProcedure;
   aClass: TPasClassType;
-  ResolvedTypeEl: TPasResolverResult;
+  ParamResolved: TPasResolverResult;
   Ref: TResolvedReference;
-  ParamTypeEl: TPasType;
+  DeclType: TPasType;
+  Param0: TPasExpr;
 begin
   if Params.Value.CustomData is TResolvedReference then
     begin
@@ -9913,16 +9918,18 @@ begin
       else if DeclEl.CustomData is TResElDataBaseType then
         begin
         // type cast to base type
-        if TResElDataBaseType(DeclEl.CustomData).BaseType=btCustom then
-          // custom base type
-          SetResolverValueExpr(ResolvedEl,btCustom,
-            TPasUnresolvedSymbolRef(DeclEl),TPasUnresolvedSymbolRef(DeclEl),
-            Params.Params[0],[rrfReadable])
-        else
-          SetResolverValueExpr(ResolvedEl,
-            TResElDataBaseType(DeclEl.CustomData).BaseType,
-            TPasUnresolvedSymbolRef(DeclEl),TPasUnresolvedSymbolRef(DeclEl),
-            Params.Params[0],[rrfReadable]);
+        DeclType:=TPasUnresolvedSymbolRef(DeclEl);
+        if length(Params.Params)<>1 then
+          begin
+          {$IFDEF VerbosePasResolver}
+          writeln('TPasResolver.ComputeFuncParams DeclEl=',GetObjName(DeclEl));
+          {$ENDIF}
+          RaiseMsg(20180503105409,nWrongNumberOfParametersForTypeCast,
+            sWrongNumberOfParametersForTypeCast,[DeclType.Name],Params);
+          end;
+        Param0:=Params.Params[0];
+        ComputeElement(Param0,ParamResolved,[]);
+        ComputeTypeCast(DeclType,DeclType,Param0,ParamResolved,ResolvedEl,Flags);
         end
       else
         RaiseNotYetImplemented(20161006133040,Params,GetResolverResultDbg(ResolvedEl));
@@ -9978,7 +9985,7 @@ begin
           end
         else
           begin
-          // typecast proctype
+          // typecast to proctype
           if length(Params.Params)<>1 then
             begin
             {$IFDEF VerbosePasResolver}
@@ -9987,32 +9994,19 @@ begin
             RaiseMsg(20170416185211,nWrongNumberOfParametersForTypeCast,
               sWrongNumberOfParametersForTypeCast,[ResolvedEl.LoTypeEl.Name],Params);
             end;
-          SetResolverValueExpr(ResolvedEl,btContext,
-            ResolvedEl.LoTypeEl,ResolvedEl.HiTypeEl,
-            Params.Params[0],[rrfReadable]);
+          Param0:=Params.Params[0];
+          ComputeElement(Param0,ParamResolved,[]);
+          ComputeTypeCast(ResolvedEl.LoTypeEl,ResolvedEl.HiTypeEl,Param0,
+                          ParamResolved,ResolvedEl,Flags);
           end;
         end
       else if (DeclEl is TPasType) then
         begin
         // type cast
-        ResolvedTypeEl:=ResolvedEl;
-        ComputeElement(Params.Params[0],ResolvedEl,Flags,StartEl);
-        ParamTypeEl:=ResolvedEl.LoTypeEl;
-
-        ResolvedEl.BaseType:=ResolvedTypeEl.BaseType;
-        ResolvedEl.LoTypeEl:=ResolvedTypeEl.LoTypeEl;
-        ResolvedEl.HiTypeEl:=ResolvedTypeEl.HiTypeEl;
-        if not (rrfReadable in ResolvedEl.Flags) then
-          begin
-          // typecast a type to a value, e.g. Pointer(TObject)
-          ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable];
-          end;
-        if (DeclEl is TPasClassType) and (ParamTypeEl is TPasClassType)
-            and (TPasClassType(DeclEl).ObjKind<>TPasClassType(ParamTypeEl).ObjKind) then
-          begin
-          // e.g. IntfType(ClassInstVar)
-          ResolvedEl.Flags:=ResolvedEl.Flags-[rrfWritable,rrfAssignable];
-          end;
+        Param0:=Params.Params[0];
+        ComputeElement(Param0,ParamResolved,[]);
+        ComputeTypeCast(ResolvedEl.LoTypeEl,ResolvedEl.HiTypeEl,Param0,
+                        ParamResolved,ResolvedEl,Flags);
         end
       else
         RaiseNotYetImplemented(20160928180048,Params,GetResolverResultDbg(ResolvedEl));
@@ -10020,6 +10014,138 @@ begin
     end
   else
     RaiseNotYetImplemented(20160928174124,Params);
+end;
+
+procedure TPasResolver.ComputeTypeCast(ToLoType, ToHiType: TPasType;
+  Param: TPasExpr; const ParamResolved: TPasResolverResult; out
+  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags);
+
+  function ParamIsVar: boolean;
+  var
+    IdentEl: TPasElement;
+  begin
+    IdentEl:=ParamResolved.IdentEl;
+    if IdentEl=nil then exit(false);
+    if [rcConstant,rcType]*Flags<>[] then
+      Result:=(IdentEl.ClassType=TPasConst) and (TPasConst(IdentEl).IsConst)
+    else
+      Result:=(IdentEl is TPasVariable)
+           or (IdentEl.ClassType=TPasArgument)
+           or (IdentEl.ClassType=TPasResultElement);
+  end;
+
+var
+  WriteFlags: TPasResolverResultFlags;
+  KeepWriteFlags: Boolean;
+  bt: TResolverBaseType;
+  Expr: TPasExpr;
+begin
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.ComputeFuncParams START ToLoType=',GetObjName(ToLoType),' ',BoolToStr(ToLoType<>ToHiType,'ToHiType='+GetObjName(ToHiType),''),' ',GetResolverResultDbg(ParamResolved));
+  {$ENDIF}
+  if ToLoType.CustomData is TResElDataBaseType then
+    begin
+    // type cast to base type (or alias of base type)
+    bt:=GetActualBaseType(TResElDataBaseType(ToLoType.CustomData).BaseType);
+    SetResolverValueExpr(ResolvedEl,
+      TResElDataBaseType(ToLoType.CustomData).BaseType,
+      ToLoType,ToHiType,
+      Param,[rrfReadable]);
+    ResolvedEl.IdentEl:=ParamResolved.IdentEl;
+
+    WriteFlags:=ParamResolved.Flags*[rrfWritable,rrfAssignable];
+    if (WriteFlags<>[]) and ParamIsVar then
+      begin
+      KeepWriteFlags:=false;
+      // Param is writable -> check if typecast keeps this
+      if (bt=btPointer) then
+        begin
+        // typecast to pointer
+        if (ParamResolved.BaseType=btPointer)
+        or (ParamResolved.BaseType in [btString,btUnicodeString,btWideString])
+        or (ParamResolved.LoTypeEl=nil) // untyped
+        or (ParamResolved.LoTypeEl.ClassType=TPasClassType)
+        or IsDynArray(ParamResolved.LoTypeEl)
+        then
+          // e.g. pointer(ObjVar)
+          KeepWriteFlags:=true;
+        end
+      else if IsSameType(ToLoType,ParamResolved.LoTypeEl,prraNone) then
+        // e.g. Byte(TAliasByte)
+        KeepWriteFlags:=true;
+      if KeepWriteFlags then
+        ResolvedEl.Flags:=ResolvedEl.Flags+WriteFlags;
+      end;
+    end
+  else if ToLoType is TPasProcedureType then
+    begin
+    // typecast to proctype
+    if ParamIsVar then
+      WriteFlags:=ParamResolved.Flags*[rrfWritable,rrfAssignable]
+    else
+      WriteFlags:=[];
+    SetResolverValueExpr(ResolvedEl,btContext,
+      ToLoType,ToHiType,
+      Param,[rrfReadable]+WriteFlags);
+    ResolvedEl.IdentEl:=ParamResolved.IdentEl;
+    end
+  else
+    begin
+    // typecast to custom type, e.g. to classtype, recordtype, arraytype, range, set
+    if (Param.Parent is TParamsExpr) then
+      Expr:=TParamsExpr(Param.Parent)
+    else
+      Expr:=Param;
+    ComputeElement(ToHiType,ResolvedEl,Flags,Expr);
+    ResolvedEl.ExprEl:=Expr;
+    ResolvedEl.IdentEl:=ParamResolved.IdentEl;
+    ResolvedEl.Flags:=[rrfReadable];
+
+    WriteFlags:=ParamResolved.Flags*[rrfWritable,rrfAssignable];
+    if (WriteFlags<>[]) and ParamIsVar then
+      begin
+      KeepWriteFlags:=false;
+      if (rrfReadable in ResolvedEl.Flags) then
+        begin
+        // typecast a value
+        if ParamResolved.BaseType=btPointer then
+          begin
+          if (ToLoType.ClassType=TPasClassType)
+              or IsDynArray(ParamResolved.LoTypeEl) then
+            // aClassType(aPointer)
+            KeepWriteFlags:=true;
+          end
+        else if ParamResolved.LoTypeEl=nil then
+          // e.g. TAliasType(untyped)
+          KeepWriteFlags:=true
+        else if ToLoType=ParamResolved.LoTypeEl then
+          // e.g. TAliasType(ActualType)
+          KeepWriteFlags:=true
+        else if (ToLoType.ClassType=TPasClassType)
+            and (ParamResolved.LoTypeEl.ClassType=TPasClassType) then
+          begin
+          // e.g. aClassType(ObjVar)
+          if (TPasClassType(ToLoType).ObjKind<>TPasClassType(ParamResolved.LoTypeEl).ObjKind) then
+            // e.g. IntfType(ObjVar)
+          else
+            KeepWriteFlags:=true;
+          end
+        else if (ToLoType.ClassType=TPasRecordType)
+            and (ParamResolved.LoTypeEl.ClassType=TPasRecordType) then
+          // typecast record
+          KeepWriteFlags:=true;
+        end
+      else
+        begin
+        // typecast a type to a value, e.g. Pointer(TObject)
+        end;
+      if KeepWriteFlags then
+        ResolvedEl.Flags:=ResolvedEl.Flags+WriteFlags;
+      end;
+    end;
+  {$IFDEF VerbosePasResolver}
+  writeln('TPasResolver.ComputeFuncParams END ToLoType=',GetObjName(ToLoType),' ',BoolToStr(ToLoType<>ToHiType,'ToHiType='+GetObjName(ToHiType),''),' ',GetResolverResultDbg(ParamResolved),' Result=',GetResolverResultDbg(ResolvedEl));
+  {$ENDIF}
 end;
 
 procedure TPasResolver.ComputeSetParams(Params: TParamsExpr; out
@@ -14789,11 +14915,15 @@ begin
     begin
     GotDesc:=GetTypeDescription(GotType);
     ExpDesc:=GetTypeDescription(ExpType);
-    if GotDesc=ExpDesc then
+    if GotDesc<>ExpDesc then exit;
+    if GotType.HiTypeEl<>ExpType.HiTypeEl then
       begin
-      GotDesc:=GetTypeDescription(GotType,true);
-      ExpDesc:=GetTypeDescription(ExpType,true);
+      GotDesc:=GetTypeDescription(GotType.HiTypeEl);
+      ExpDesc:=GetTypeDescription(ExpType.HiTypeEl);
+      if GotDesc<>ExpDesc then exit;
       end;
+    GotDesc:=GetTypeDescription(GotType,true);
+    ExpDesc:=GetTypeDescription(ExpType,true);
     end
   else
     begin
@@ -16459,7 +16589,9 @@ begin
   Result:=false;
   if [rrfReadable,rrfWritable]*ResolvedEl.Flags<>[rrfReadable,rrfWritable] then
     exit;
-  if ResolvedEl.IdentEl=nil then exit;
+  if ResolvedEl.IdentEl=nil then
+    exit(true);
+
   IdentEl:=ResolvedEl.IdentEl;
   if IdentEl.ClassType=TPasVariable then
     exit(NotLocked(IdentEl));
@@ -16846,13 +16978,19 @@ begin
         if ExprResolved.IdentEl is TPasConst then
           RaiseMsg(20180430012609,nCantAssignValuesToConstVariable,sCantAssignValuesToConstVariable,[],Expr)
         else
-          RaiseMsg(20180430012457,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+          RaiseMsg(20180430012457,nVariableIdentifierExpected,sVariableIdentifierExpected,
+            [],Expr);
         end;
       exit;
       end;
     if (ParamResolved.BaseType=ExprResolved.BaseType) then
       begin
-      if IsSameType(ParamResolved.LoTypeEl,ExprResolved.LoTypeEl,prraNone) then
+      if msDelphi in CurrentParser.CurrentModeswitches then
+        begin
+        if IsSameType(ParamResolved.HiTypeEl,ExprResolved.HiTypeEl,prraSimple) then
+          exit(cExact);
+        end
+      else if IsSameType(ParamResolved.LoTypeEl,ExprResolved.LoTypeEl,prraNone) then
         exit(cExact);
       end;
     if (Param.ArgType=nil) then
