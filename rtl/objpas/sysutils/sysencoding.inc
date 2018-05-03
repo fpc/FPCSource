@@ -148,7 +148,7 @@ begin
   try
 {$endif}
     for E := Low(FStandardEncodings) to High(FStandardEncodings) do
-      FStandardEncodings[E].Free;
+      FreeAndNil(FStandardEncodings[E]);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(FLock);
