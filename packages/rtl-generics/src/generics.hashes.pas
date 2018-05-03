@@ -927,6 +927,16 @@ begin
   Result := Int32(c);
 end;
 
+{$ifdef FPC_PIC}
+  {$define DISABLE_X86_CPUINTEL}
+{$endif FPC_PIC}
+
+{$if defined(OPENBSD) or defined(EMX) or defined(OS2)}
+  { These targets have old GNU assemblers that }
+  { do not support all instructions used in assembler code below }
+  {$define DISABLE_X86_CPUINTEL}
+{$endif}
+
 {$ifdef CPU64}
   {$define PUREPASCAL}
   {$ifdef CPUX64}
@@ -935,7 +945,7 @@ end;
   {$endif CPUX64}
 {$else}
   {$ifdef CPUX86}
-    {$ifndef FPC_PIC}
+    {$ifndef DISABLE_X86_CPUINTEL}
       {$define CPUINTEL}
       {$ASMMODE INTEL}
     {$else}
