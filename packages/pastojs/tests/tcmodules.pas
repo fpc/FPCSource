@@ -373,6 +373,7 @@ type
     Procedure TestRecord_VariantFail;
     Procedure TestRecord_FieldArray;
     Procedure TestRecord_Const;
+    Procedure TestRecord_TypecastFail;
 
     // classes
     Procedure TestClass_TObjectDefaultConstructor;
@@ -8134,6 +8135,21 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestModule.TestRecord_TypecastFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPoint = record x,y: longint; end;',
+  '  TRec = record l: longint end;',
+  'var p: TPoint;',
+  'begin',
+  '  if TRec(p).l=2 then ;']);
+  SetExpectedPasResolverError('Illegal type conversion: "TPoint" to "record TRec"',
+    nIllegalTypeConversionTo);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestClass_TObjectDefaultConstructor;

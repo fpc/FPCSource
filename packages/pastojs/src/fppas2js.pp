@@ -344,7 +344,7 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- TRecType(anotherRec).field
+- forbid typecast record to record
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
@@ -3818,6 +3818,15 @@ end;
 function TPas2JSResolver.CheckTypeCastRes(const FromResolved,
   ToResolved: TPasResolverResult; ErrorEl: TPasElement; RaiseOnError: boolean
   ): integer;
+
+  function Incompatible(Id: int64): integer;
+  begin
+    if RaiseOnError then
+      RaiseIncompatibleTypeRes(Id,nIllegalTypeConversionTo,
+        [],FromResolved,ToResolved,ErrorEl);
+    Result:=cIncompatible;
+  end;
+
 var
   JSBaseType: TPas2jsBaseType;
   C: TClass;
@@ -3842,14 +3851,14 @@ begin
         if JSBaseType=pbtJSValue then
           begin
           if (FromResolved.BaseType in btAllJSValueSrcTypes) then
-            Result:=cExact+1 // type cast to JSValue
+            Result:=cCompatible // type cast to JSValue
           else if FromResolved.BaseType=btCustom then
             begin
             if IsJSBaseType(FromResolved,pbtJSValue) then
               Result:=cExact;
             end
           else if FromResolved.BaseType=btContext then
-            Result:=cExact+1;
+            Result:=cCompatible;
           end;
         exit;
         end;
@@ -3866,11 +3875,11 @@ begin
         if JSBaseType=pbtJSValue then
           begin
           if (ToResolved.BaseType in btAllJSValueTypeCastTo) then
-            Result:=cExact+1 // type cast JSValue to simple base type
+            Result:=cCompatible // type cast JSValue to simple base type
           else if ToResolved.BaseType=btContext then
             begin
             // typecast JSValue to user type
-            Result:=cExact+1;
+            Result:=cCompatible;
             end;
           end;
         exit;
@@ -3925,9 +3934,26 @@ begin
               and IsExternalClassName(TPasClassType(FromTypeEl),'Array') then
             begin
             // type cast external Array to an array
-            exit(cExact+1);
+            exit(cCompatible);
             end;
           end;
+        end
+      else if C=TPasRecordType then
+        begin
+        // typecast to recordtype
+        if FromResolved.BaseType=btNone then
+          // recordtype(untyped) -> ok
+        else if FromResolved.BaseType=btContext then
+          begin
+          FromTypeEl:=FromResolved.LoTypeEl;
+          if FromTypeEl=ToTypeEl then
+            exit(cAliasExact)
+          else
+            // FPC/Delphi allow typecasting records of same size, pas2js does not
+            exit(Incompatible(20180503134526));
+          end
+        else
+          exit(Incompatible(20180503134528));
         end;
       end;
     end
