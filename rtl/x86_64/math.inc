@@ -372,18 +372,23 @@ const
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}
 
-    {$ifdef ENABLE_RESTRICTED_SSE_FRAC}
     {$ifndef FPC_SYSTEM_HAS_FRAC}
     {$define FPC_SYSTEM_HAS_FRAC}
     function fpc_frac_real(d: ValReal) : ValReal;compilerproc; assembler; nostackframe;
       asm
-        cvttsd2si   %xmm0,%rax
         { Windows defines %xmm4 and %xmm5 as first non-parameter volatile registers;
           on SYSV systems all are considered as such, so use %xmm4 }
-        cvtsi2sd    %rax,%xmm4
-        subsd       %xmm4,%xmm0
+        movq      %xmm0,  %rax
+        movapd    %xmm0,  %xmm4
+        shr       $48,    %rax
+        and       $0x7ff0,%ax
+        cmp       $0x4330,%ax
+        jge       .L0
+        cvttsd2si %xmm0,  %rax
+        cvtsi2sd  %rax,   %xmm4
+  .L0:
+        subsd     %xmm4,  %xmm0
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
-    {$endif ENABLE_RESTRICTED_SSE_FRAC}
 
 {$endif FPC_HAS_TYPE_EXTENDED}
