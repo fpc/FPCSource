@@ -291,7 +291,22 @@ unit cpupara;
       const
         saveregs : array[0..3] of tsuperregister = (RS_EBX,RS_ESI,RS_EDI,RS_EBP);
       begin
-        result:=saveregs;
+        case calloption of
+          pocall_internproc,
+          pocall_register,
+          pocall_safecall,
+          pocall_stdcall,
+          pocall_cdecl,
+          pocall_syscall,
+          pocall_cppdecl,
+          pocall_mwpascal,
+          pocall_far16,
+          pocall_pascal,
+          pocall_oldfpccall :
+            result:=saveregs;
+          else
+            internalerror(2018050401);
+        end;
       end;
 
 
