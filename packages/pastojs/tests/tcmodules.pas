@@ -1994,29 +1994,31 @@ begin
   Add('  i5: nativeint = -4503599627370496;');
   Add('  i6: nativeint =   $fffffffffffff;');
   Add('  i7: nativeint = -$10000000000000;');
+  Add('  i8: byte = 00;');
   Add('  u8: nativeuint =  $fffffffffffff;');
   Add('  u9: nativeuint =  $0000000000000;');
   Add('begin');
   ConvertProgram;
   CheckSource('TestVarBaseTypes',
     LinesToStr([
-    'this.i=0;',
-    'this.s="";',
-    'this.c="";',
-    'this.b=false;',
-    'this.d=0.0;',
-    'this.i2=3;',
-    'this.s2="foo";',
-    'this.c2="4";',
-    'this.b2=true;',
-    'this.d2=5.6;',
-    'this.i3=0x707;',
-    'this.i4= 4503599627370495;',
-    'this.i5= -4503599627370496;',
-    'this.i6= 0xfffffffffffff;',
-    'this.i7=-0x10000000000000;',
-    'this.u8= 0xfffffffffffff;',
-    'this.u9= 0x0000000000000;'
+    'this.i = 0;',
+    'this.s = "";',
+    'this.c = "";',
+    'this.b = false;',
+    'this.d = 0.0;',
+    'this.i2 = 3;',
+    'this.s2 = "foo";',
+    'this.c2 = "4";',
+    'this.b2 = true;',
+    'this.d2 = 5.6;',
+    'this.i3 = 0x707;',
+    'this.i4 = 4503599627370495;',
+    'this.i5 = -4503599627370496;',
+    'this.i6 = 0xfffffffffffff;',
+    'this.i7 =-0x10000000000000;',
+    'this.i8 = 0;',
+    'this.u8 = 0xfffffffffffff;',
+    'this.u9 = 0x0000000000000;'
     ]),
     '');
 end;
@@ -4831,6 +4833,10 @@ begin
   '  d:=1/3;',
   '  d:=5.0E-324;',
   '  d:=1.7E308;',
+  '  d:=001.00E00;',
+  '  d:=002.00E001;',
+  '  d:=-003.00E-00;',
+  '  d:=-004.00E-001;',
   '  d:=10**3;',
   '  d:=10 mod 3;',
   '  d:=10 div 3;',
@@ -4883,6 +4889,10 @@ begin
     '$mod.d = 1 / 3;',
     '$mod.d = 5.0E-324;',
     '$mod.d = 1.7E308;',
+    '$mod.d = 1.00E0;',
+    '$mod.d = 2.00E1;',
+    '$mod.d = -3.00E-0;',
+    '$mod.d = -4.00E-1;',
     '$mod.d = Math.pow(10, 3);',
     '$mod.d = 10 % 3;',
     '$mod.d = Math.floor(10 / 3);',

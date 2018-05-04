@@ -6185,6 +6185,23 @@ end;
 function TPasToJSConverter.ConvertPrimitiveExpression(El: TPrimitiveExpr;
   AContext: TConvertContext): TJSElement;
 
+  function DeleteLeadingZeroes(const s: string): string;
+  // Note: 01 is in JS octal, and in strict mode forbidden
+  var
+    i: Integer;
+  begin
+    Result:=s;
+    i:=1;
+    while i<length(Result) do
+      begin
+      if (Result[i]='0') and (Result[i+1] in ['0'..'9'])
+          and ((i=1) or not (Result[i-1] in ['.','0'..'9'])) then
+        Delete(Result,i,1)
+      else
+        inc(i);
+      end;
+  end;
+
 Var
   L : TJSLiteral;
   Number : TJSNumber;
@@ -6219,7 +6236,7 @@ begin
         if ConversionError<>0 then
           DoError(20161024191248,nInvalidNumber,sInvalidNumber,[El.Value],El);
         L:=CreateLiteralNumber(El,Number);
-        L.Value.CustomValue:=TJSString(El.Value);
+        L.Value.CustomValue:=TJSString(DeleteLeadingZeroes(El.Value));
         end;
       '$','&','%':
         begin
@@ -6231,7 +6248,7 @@ begin
             // number was rounded -> we lost precision
             DoError(20161024230812,nInvalidNumber,sInvalidNumber,[El.Value],El);
           L:=CreateLiteralNumber(El,Number);
-          S:=copy(El.Value,2,length(El.Value));
+          S:=DeleteLeadingZeroes(copy(El.Value,2,length(El.Value)));
           case El.Value[1] of
           '$': S:='0x'+S;
           '&': if TargetProcessor=ProcessorECMAScript5 then
@@ -6239,7 +6256,7 @@ begin
                else
                  S:='0o'+S;
           '%': if TargetProcessor=ProcessorECMAScript5 then
-                 S:=''
+                 S:='' // use decimal
                else
                  S:='0b'+S;
           end;
@@ -16006,7 +16023,7 @@ begin
   else if C=TPasRecordType then
     Result:=CreateRecordInit(TPasRecordType(T),Expr,El,AContext)
   else if Assigned(Expr) then
-    // if there is an expression then simply convert the it
+    // if there is an expression then simply convert it
     Result:=ConvertElement(Expr,AContext)
   else if C=TPasSetType then
     // a "set" without initial value
