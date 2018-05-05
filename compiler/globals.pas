@@ -280,6 +280,8 @@ interface
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
+       { list of default namespaces }
+       namespacelist : TCmdStrList;
        { contains tpackageentry entries }
        packagelist : TFPHashList;
        autoloadunits      : string;
@@ -1492,6 +1494,7 @@ implementation
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
        packagesearchpath.Free;
+       namespacelist.Free;
      end;
 
    procedure InitGlobals;
@@ -1528,6 +1531,7 @@ implementation
         objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
+        namespacelist:=TCmdStrList.Create;
 
         { Def file }
         usewindowapi:=false;
