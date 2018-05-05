@@ -883,8 +883,9 @@ type
     function    FindBandWithType(ABandType: TFPReportBandType): TFPReportCustomBand;
     function    FindBandWithTypeAndData(ABandType: TFPReportBandType; aData: TFPReportData): TFPReportCustomBand;
     Function    CheckBandMultiplicity(aBand : TFPReportCustomBand) : Boolean;
-    function CheckBandMultiplicity(aBandType: TFPReportBandType; aData: TFPReportData): Boolean;
+    function    CheckBandMultiplicity(aBandType: TFPReportBandType; aData: TFPReportData): Boolean;
     function    FindBand(ABand: TFPReportBandClass): TFPReportCustomBand;
+    Function    FindMainDataloop : TFPReportData;
     property    PageSize: TFPReportPageSize read FPageSize write SetPageSize;
     property    Margins: TFPReportMargins read FMargins write SetMargins;
     property    Report: TFPCustomReport read FReport write SetReport;
@@ -1563,7 +1564,7 @@ type
     FOnAfterRenderReport: TNotifyEvent;
     FTwoPass: boolean;
     FIsFirstPass: boolean;
-    FPageData: TFPReportData;
+    FLoopData: TFPReportData;
     FPerDesignerPageCount: array of UInt32;
     FUsePageCountMarker: Boolean;
     FVariables : TFPReportVariables;
@@ -1764,6 +1765,7 @@ type
     function GetRTCurPageIdx: Integer;
     function GetRTIsLastColumn: Boolean;
     function GetRTObjects: TFPList;
+    procedure InitReportData(aMainData: TFPReportData);
     procedure SetGetPerDesignerPageCount(Index : Cardinal; AValue: Cardinal);
     Function GetPageNumberPerDesignerPage : Integer;
     procedure SetRTCurDsgnPageIdx(pPageIdx: Integer);
@@ -1786,7 +1788,7 @@ type
     procedure InitPass(aPassIdx: Integer); virtual;
     procedure InitBandList(aPage: TFPReportCustomPage); virtual;
     procedure InitDesignPage(aPageIdx: integer; APage : TFPReportCustomPage); virtual;
-    procedure RunDataLoop(aPage: TFPReportCustomPage; aPageData: TFPReportData); virtual;
+    procedure RunDataLoop(aPage: TFPReportCustomPage; aData: TFPReportData); virtual;
     procedure PrepareRecord(aData: TFPReportData);
     procedure PrepareHeaderFooter(APage: TFPReportCustomPage);virtual;
     procedure PrepareBottomStackedFooters; virtual;
@@ -3191,7 +3193,7 @@ var
   lRpt: TFPCustomReport;
 begin
   lRpt := Collection.Owner as TFPCustomReport;
-  if lRpt.FRTUsePrevVariableValues {or lRpt.FPageData.EOF} then
+  if lRpt.FRTUsePrevVariableValues {or lRpt.FLoopData.EOF} then
     Result:=FLastValue
   else
     Result:=FAggregateValue;
@@ -6105,7 +6107,7 @@ end;
 procedure TFPReportCustomGroupHeaderBand.InternalEvaluateGroupCondition;
 begin
   FLastGroupConditionValue := FGroupConditionValue;
-  if Report.FPageData.EOF then
+  if Data.EOF then
     FGroupConditionValue := #255
   else
     FGroupConditionValue := EvaluateExpressionAsText(GroupCondition);
@@ -7751,6 +7753,27 @@ begin
     end;
 end;
 
+function TFPReportCustomPage.FindMainDataloop: TFPReportData;
+
+Var
+  I : Integer;
+  B : TFPReportCustomDataBand;
+
+begin
+  Result:=Nil;
+  I:=0;
+  While (Result=Nil) and (I<BandCount) do
+    begin
+    if Bands[i] is TFPReportCustomDataBand then
+      begin
+      B:=TFPReportCustomDataBand(Bands[i]);
+      if (B.MasterBand=Nil) then
+        Result:=B.Data;
+      end;
+    Inc(I);
+    end;
+end;
+
 procedure TFPReportCustomPage.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   if (Operation = opRemove) then
@@ -7923,8 +7946,23 @@ begin
 end;
 
 procedure TFPCustomReport.BuiltinExprRecNo(var Result: TFPExpressionResult; const Args: TExprParameterArray);
+
+Var
+  S : String;
+  D : TFPReportData;
+
 begin
-  Result.ResInteger := FPageData.RecNo;
+  S:='';
+  if Length(Args)=1 then
+    S:=Args[0].ResString;
+  if (S<>'') then
+    D:=ReportData.FindReportData(S)
+  else
+    D:=FLoopData;
+  if Assigned(D) then
+    Result.ResInteger:=D.RecNo
+  else
+    Result.ResInteger:=-1;
 end;
 
 procedure TFPCustomReport.BuiltinGetPageNumber(var Result: TFPExpressionResult; const Args: TExprParameterArray);
@@ -8219,7 +8257,7 @@ begin
   Idents.AddDateTimeVariable('TODAY', Date);
   Idents.AddStringVariable('AUTHOR', Author);
   Idents.AddStringVariable('TITLE', Title);
-  Idents.AddFunction('RecNo', 'I', '', @BuiltinExprRecNo);
+  Idents.AddFunction('RecNo', 'I', 'S', @BuiltinExprRecNo);
   Idents.AddFunction('PageNo', 'I', '', @BuiltinGetPageNumber);
   Idents.AddFunction('ColNo', 'I', '', @BuiltinGetColumnNumber);
   Idents.AddFunction('PageNoPerDesignerPage', 'I', '', @BuiltInGetPageNoPerDesignerPage);
@@ -10614,7 +10652,7 @@ end;
 
 procedure TFPReportData.InitFieldDefs;
 begin
-  if FIsOpened then
+  if IsOpened then
     ReportError(SErrInitFieldsNotAllowedAfterOpen);
   DoInitDataFields;
 end;
@@ -10665,8 +10703,8 @@ procedure TFPReportData.Close;
 begin
   if Assigned(FOnClose) then
     FOnClose(Self);
-  DoClose;
   FIsOpened := False;
+  DoClose;
   FRecNo := -1;
 end;
 
@@ -11856,12 +11894,37 @@ begin
     HandleOverflowed;
 end;
 
-procedure TFPReportLayouter.RunDataLoop(aPage: TFPReportCustomPage; aPageData: TFPReportData);
+procedure TFPReportLayouter.InitReportData(aMainData : TFPReportData);
+
+Var
+  I : Integer;
+  oData : TFPReportData;
+
+begin
+  if Assigned(aMainData) and not aMainData.IsOpened then
+    aMainData.Open;
+  For I:=0 to Report.ReportData.Count-1 do
+    begin
+    oData:=Report.ReportData[i].Data;
+    if Assigned(oData) and (oData<>aMainData) and (not odata.IsOpened) then
+      oData.Open;
+    end;
+  if Assigned(aMainData) then
+    aMainData.First;
+  if IsFirstPass then
+    begin
+    Report.InitializeExpressionVariables;
+    Report.InitializeAggregates(True);
+    end
+  else
+    Report.InitializeAggregates(False);
+end;
+
+procedure TFPReportLayouter.RunDataLoop(aPage: TFPReportCustomPage; aData: TFPReportData);
 
 Var
   I : integer;
   lBand : TFPReportCustomBand;
-  oData : TFPReportData;
   g : TFPReportCustomDataFooterBand;
   aLoop: TLoopData;
 
@@ -11871,67 +11934,51 @@ begin
   Writeln('Run loop ',IsFirstPass);
   Writeln('------------------');
   {$endif}
-  aLoop:=TLoopData.Create(aPageData);
+  Report.FLoopData:=aData;
+  aLoop:=TLoopData.Create(aData);
   try
     PushLoop(aLoop);
-    if Assigned(aPageData) then
-      begin
-      if not aPageData.IsOpened then
-        aPageData.Open;
-      For I:=0 to Report.ReportData.Count-1 do
-        begin
-        oData:=Report.ReportData[i].Data;
-        if Assigned(oData) and (oData<>aPageData) and (not odata.IsOpened) then
-          oData.Open;
-        end;
-      aPageData.First;
-      end;
-    if IsFirstPass then
-      begin
-      Report.InitializeExpressionVariables;
-      Report.InitializeAggregates(True);
-      Report.CacheMemoExpressions(aPage);
-      end
-    else
-      Report.InitializeAggregates(False);
     InitBandList(aPage);
-    Report.InitAggregates(aPage,aPageData);
-    if Not Assigned(aPageData) then
+    Report.InitAggregates(aPage,aData);
+    if Not Assigned(aData) then
       StartNewPage
     else
       begin
-      while not aPageData.EOF do
+      If not aData.IsOpened then
+        aData.Open;
+      aData.First;
+      while not aData.EOF do
         begin
         {$ifdef gdebug}
         Writeln('*** Page Record');
         {$endif}
         // DumpData(aPageData);
-        PrepareRecord(aPageData);
+        PrepareRecord(aData);
         if FNewPage then
           StartNewPage;
         ShowDataHeaderBand;
         HandleGroupBands;
         // This must be done after the groups were handled.
-        Report.UpdateAggregates(aPage,aPageData);
+        Report.UpdateAggregates(aPage,aData);
         ShowDataBand;
-        aPageData.Next;
+        aData.Next;
         end;
       {$ifdef gdebug}
       Writeln('*** Page Record done');
       {$endif}
-      Report.DoneAggregates(aPage,aPageData);
-      PrepareRecord(aPageData);
+      Report.DoneAggregates(aPage,aData);
+      PrepareRecord(aData);
       end;
     CheckNewOrOverFlow(True);
     HandleLastGroupFooters;
     // only print if we actually had data
-    if assigned(aPageData) and (aPageData.RecNo > 1) then
+    if assigned(aData) and (aData.RecNo > 1) then
       begin
       if Assigned(CurrentLoop.FDataFooter) then
         ShowBandWithChilds(CurrentLoop.FDataFooter);
       end;
-    if Assigned(aPageData) and (not TwoPass or not IsFirstPass) then
-      aPageData.Close;
+    if Assigned(aData) and not (TwoPass and IsFirstPass) then
+      aData.Close;
     HandleReportSummaryBands;
     EndPage;
     if (PopLoop<>aLoop) then
@@ -12217,7 +12264,7 @@ Var
   lPageIdx : Integer;
   lPassIdx : Integer;
   lPage : TFPReportCustomPage;
-  lPageData: TFPReportData;
+  lPageData,iData, lMainData: TFPReportData;
   aPassCount : Integer;
 
 begin
@@ -12234,9 +12281,28 @@ begin
       begin
       lPage:=Pages[lPageIdx];
       lPageData:=Pages[lPageIdx].Data;
-      Report.FPageData:=lPagedata;
+      lMainData:=lPage.FindMainDataloop;
+      if (lPageData<>Nil) and (lPageData=lMainData) then
+        lPageData:=Nil;
+      iData:=lPageData;
+      If iData=Nil then
+        iData:=lMainData;
       InitDesignPage(lPageIdx,lPage);
-      RunDataLoop(lPage,lPageData);
+      InitReportData(IData);
+      if lPassIdx=1 then
+        Report.CacheMemoExpressions(lPage);
+      if (lPageData=Nil) then
+        RunDataLoop(lPage,lMainData)
+      else
+        begin
+        lPageData.First;
+        While not lPageData.EOF do
+          begin
+          RunDataLoop(lPage,lMainData);
+          lPageData.Next;
+          FNewPage:=True;
+          end;
+        end;
       end;
     SetPageCount(RTObjects.Count);
     end;
