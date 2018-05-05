@@ -1610,6 +1610,7 @@ type
     function CreateReportData: TFPReportDataCollection; virtual;
     function CreateLayouter : TFPReportLayouter; virtual;
 
+    procedure CollectReportData; virtual;
     procedure RestoreDefaultVariables; virtual;
     procedure DoPrepareReport; virtual;
     procedure DoBeginReport; virtual;
@@ -8757,10 +8758,39 @@ begin
   end;
 end;
 
+procedure TFPCustomReport.CollectReportData;
+
+  Procedure CheckData(D : TFPReportData);
+
+  begin
+    if (D<>Nil) and (ReportData.FindReportDataItem(D)=Nil) then
+      ReportData.AddReportData(D);
+  end;
+
+Var
+  I,J : integer;
+  P : TFPReportCustomPage;
+  B : TFPReportCustomBandWithData;
+
+begin
+  For i:=0 to PageCount-1 do
+    begin
+    P:=Pages[i];
+    CheckData(P.Data);
+    For J:=0 to P.BandCount-1 do
+      if (P.Bands[J] is TFPReportCustomBandWithData) then
+        begin
+        B:=TFPReportCustomBandWithData(P.Bands[J]);
+        CheckData(B.Data);
+        end;
+    end;
+end;
+
 procedure TFPCustomReport.RunReport;
 begin
   DoBeginReport;
   StartLayout;
+  CollectReportData;
   Validate;
   FExpr := TFPexpressionParser.Create(nil);
   try
