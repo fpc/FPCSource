@@ -89,8 +89,8 @@ interface
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean):boolean;
-    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean;sympattern:TSymStr):boolean;
+    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean;sympattern:TSymStr):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
 
@@ -205,7 +205,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true);
+        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true,pattern);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -238,7 +238,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true);
+        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true,pattern);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -254,7 +254,7 @@ implementation
       end;
 
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean;sympattern:TSymStr):boolean;
       var
         hmodule: tmodule;
         ns:ansistring;
@@ -360,11 +360,11 @@ implementation
       end;
 
 
-    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
+    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean;sympattern:TSymStr):boolean;
       var
         dummy: Boolean;
       begin
-        result:=try_consume_unitsym(srsym,srsymtable,tokentoconsume,consume_id,false,dummy);
+        result:=try_consume_unitsym(srsym,srsymtable,tokentoconsume,consume_id,false,dummy,sympattern);
       end;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;

@@ -2810,7 +2810,7 @@ implementation
                  searchsym(pattern,srsym,srsymtable);
                { handle unit specification like System.Writeln }
                if not isspecialize then
-                 unit_found:=try_consume_unitsym(srsym,srsymtable,t,true,allowspecialize,isspecialize)
+                 unit_found:=try_consume_unitsym(srsym,srsymtable,t,true,allowspecialize,isspecialize,pattern)
                else
                  begin
                    unit_found:=false;

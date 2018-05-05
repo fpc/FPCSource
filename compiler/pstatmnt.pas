@@ -948,7 +948,7 @@ implementation
                                  with "e: Exception" the e is not necessary }
 
                                { support unit.identifier }
-                               unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,false);
+                               unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,false,objname);
                                if srsym=nil then
                                  begin
                                    identifier_not_found(orgpattern);
