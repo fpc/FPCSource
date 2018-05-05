@@ -188,7 +188,7 @@ implementation
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=cunitsym.create(s,hp,true);
+        unitsym:=cunitsym.create(hp.modulename^,hp,true);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         if addasused then
