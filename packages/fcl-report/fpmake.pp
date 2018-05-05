@@ -95,6 +95,15 @@ begin
       AddUnit('fpreport');
       AddUnit('fpreportdata');
       end; 
+
+    T:=P.Targets.AddUnit('fplazreport.pp');
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('fpreport');
+      AddUnit('fpjsonreport');
+      AddUnit('fpreportdb');
+      end; 
       
     T:=P.Targets.AddUnit('fpreportjson.pp');
     T.ResourceStrings := True;

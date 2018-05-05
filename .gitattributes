@@ -2706,6 +2706,7 @@ packages/fcl-report/demos/wmreports.pp svneol=native#text/plain
 packages/fcl-report/fpmake.pp svneol=native#text/plain
 packages/fcl-report/src/fpextfuncs.pp svneol=native#text/plain
 packages/fcl-report/src/fpjsonreport.pp svneol=native#text/plain
+packages/fcl-report/src/fplazreport.pp svneol=native#text/plain
 packages/fcl-report/src/fprepexprpars.pp svneol=native#text/plain
 packages/fcl-report/src/fpreport.pp svneol=native#text/plain
 packages/fcl-report/src/fpreportbarcode.pp svneol=native#text/plain
