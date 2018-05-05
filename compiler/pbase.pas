@@ -259,10 +259,51 @@ implementation
         hmodule: tmodule;
         ns:ansistring;
         nssym:tsym;
+        nsitem : TCmdStrListItem;
+
+        procedure consume_namespace;
+          begin
+            while assigned(srsym) and (srsym.typ=namespacesym) do
+              begin
+                { we have a namespace. the next identifier should be either a namespace or a unit }
+                searchsym_in_module(hmodule,ns+'.'+pattern,srsym,srsymtable);
+                if assigned(srsym) and (srsym.typ in [namespacesym,unitsym]) then
+                  begin
+                    ns:=ns+'.'+pattern;
+                    nssym:=srsym;
+                    consume(_ID);
+                    consume(_POINT);
+                  end;
+              end;
+            { check if there is a hidden unit with this pattern in the namespace }
+            if not assigned(srsym) and
+               assigned(nssym) and (nssym.typ=namespacesym) and assigned(tnamespacesym(nssym).unitsym) then
+              srsym:=tnamespacesym(nssym).unitsym;
+          end;
+
       begin
         result:=false;
         tokentoconsume:=_ID;
         is_specialize:=false;
+
+        if not assigned(srsym) and (pattern<>'') and (namespacelist.count>0) then
+          begin
+            hmodule:=get_module(current_filepos.moduleindex);
+            if not assigned(hmodule) then
+              internalerror(2018050301);
+
+            nsitem:=TCmdStrListItem(namespacelist.first);
+            while assigned(nsitem) do
+              begin
+                ns:=upper(nsitem.str)+'.'+sympattern;
+
+                if searchsym_in_module(hmodule,ns,srsym,srsymtable) and
+                    (srsym.typ in [unitsym,namespacesym]) then
+                  break;
+
+                nsitem:=TCmdStrListItem(nsitem.next);
+              end;
+          end;
 
         if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
           begin
@@ -284,22 +325,24 @@ implementation
                   begin
                     ns:=srsym.name;
                     nssym:=srsym;
-                    while assigned(srsym) and (srsym.typ=namespacesym) do
+                    consume_namespace;
+                    if not assigned(srsym) and (namespacelist.count>0) then
                       begin
-                        { we have a namespace. the next identifier should be either a namespace or a unit }
-                        searchsym_in_module(hmodule,ns+'.'+pattern,srsym,srsymtable);
-                        if assigned(srsym) and (srsym.typ in [namespacesym,unitsym]) then
+                        nsitem:=TCmdStrListItem(namespacelist.first);
+                        while assigned(nsitem) do
                           begin
-                            ns:=ns+'.'+pattern;
-                            nssym:=srsym;
-                            consume(_ID);
-                            consume(_POINT);
+                            ns:=upper(nsitem.str)+'.'+nssym.name;
+
+                            if searchsym_in_module(hmodule,ns,srsym,srsymtable) and
+                                (srsym.typ in [unitsym,namespacesym]) then
+                              begin
+                                consume_namespace;
+                                break;
+                              end;
+
+                            nsitem:=TCmdStrListItem(nsitem.next);
                           end;
                       end;
-                    { check if there is a hidden unit with this pattern in the namespace }
-                    if not assigned(srsym) and
-                       assigned(nssym) and (nssym.typ=namespacesym) and assigned(tnamespacesym(nssym).unitsym) then
-                      srsym:=tnamespacesym(nssym).unitsym;
                     if assigned(srsym) and (srsym.typ<>unitsym) then
                       internalerror(201108260);
                     if not assigned(srsym) then
