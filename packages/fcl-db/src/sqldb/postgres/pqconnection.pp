@@ -1011,8 +1011,10 @@ begin
               s := FormatDateTime('yyyy"-"mm"-"dd', AParams[i].AsDateTime);
             ftTime:
               s := FormatTimeInterval(AParams[i].AsDateTime);
-            ftFloat, ftBCD:
+            ftFloat:
               Str(AParams[i].AsFloat, s);
+            ftBCD:
+              Str(AParams[i].AsCurrency, s);
             ftCurrency:
               begin
                 cash:=NtoBE(round(AParams[i].AsCurrency*100));
