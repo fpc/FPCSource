@@ -583,8 +583,11 @@ begin
   if lowercase(ExtractFileExt(aFileName)) = '.lrf' then
     begin
       ReadXMLFile(LazReport, aFileName);
-      LoadFromXML(LazReport);
-      LazReport.Free;
+      try
+        LoadFromXML(LazReport);
+      finally
+        LazReport.Free;
+      end;
     end
   else inherited;
 end;
