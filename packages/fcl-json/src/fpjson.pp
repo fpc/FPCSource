@@ -470,6 +470,7 @@ Type
       ObjEndSeps     : Array[Boolean] of TJSONStringType = (' }','}');
     Class var FUnquotedMemberNames: Boolean;
     Class var FObjStartSep,FObjEndSep,FElementEnd,FElementStart : TJSONStringType;
+    function DoAdd(const AName: TJSONStringType; AValue: TJSONData; FreeOnError: Boolean=True): Integer;
     Class procedure DetermineElementQuotes;
   Private
     FHash : TFPHashObjectList; // Careful : Names limited to 255 chars.
@@ -638,6 +639,7 @@ Resourcestring
   SErrOddNumber = 'TJSONObject must be constructed with name,value pairs';
   SErrNameMustBeString = 'TJSONObject constructor element name at pos %d is not a string';
   SErrNonexistentElement = 'Unknown object member: "%s"';
+  SErrDuplicateValue = 'Duplicate object member: "%s"';
   SErrPathElementNotFound = 'Path "%s" invalid: element "%s" not found.';
   SErrWrongInstanceClass = 'Cannot set instance class: %s does not descend from %s.';
   SErrNoParserHandler = 'No JSON parser handler installed. Recompile your project with the jsonparser unit included';
@@ -2943,58 +2945,69 @@ begin
   FHash.Clear;
 end;
 
+function TJSONObject.DoAdd(const AName: TJSONStringType; AValue: TJSONData; FreeOnError : Boolean = True): Integer;
+begin
+  if (IndexOfName(aName)<>-1) then
+    begin
+    if FreeOnError then
+      FreeAndNil(AValue);
+    DoError(SErrDuplicateValue,[aName]);
+    end;
+  Result:=FHash.Add(AName,AValue);
+end;
+
 function TJSONObject.Add(const AName: TJSONStringType; AValue: TJSONData
   ): Integer;
 begin
-  Result:=FHash.Add(AName,AValue);
+  Result:=DoAdd(aName,AValue,False);
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; AValue: Boolean
   ): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; AValue: TJSONFloat): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName, AValue: TJSONStringType): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName: String; AValue: TJSONUnicodeStringType
   ): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; Avalue: Integer): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; Avalue: Int64): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; Avalue: QWord): Integer;
 begin
-  Result:=Add(AName,CreateJSON(AValue));
+  Result:=DoAdd(AName,CreateJSON(AValue));
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType): Integer;
 begin
-  Result:=Add(AName,CreateJSON);
+  Result:=DoAdd(AName,CreateJSON);
 end;
 
 function TJSONObject.Add(const AName: TJSONStringType; AValue: TJSONArray
   ): Integer;
 begin
-  Result:=Add(AName,TJSONData(AValue));
+  Result:=DoAdd(AName,TJSONData(AValue),False);
 end;
 
 procedure TJSONObject.Delete(Index: Integer);
