@@ -689,7 +689,7 @@ type
     procedure SetVisibleExpr(AValue: String);
   protected
     Procedure ParentFontChanged; virtual;
-    procedure ApplyStretchMode(const ADesiredHeight: TFPReportUnits);
+    procedure ApplyStretchMode(const ADesiredHeight: TFPReportUnits); virtual;
     function GetDateTimeFormat: String; virtual;
     function ExpandMacro(const s: String; const AIsExpr: boolean): TFPReportString; virtual;
     function GetReportBand: TFPReportCustomBand; virtual;
@@ -757,6 +757,7 @@ type
     procedure PrepareObjects(aRTParent: TFPReportElement); virtual;
     { This should run against the runtime version of the children }
     procedure RecalcLayout; override;
+    procedure ApplyStretchMode(const ADesiredHeight: TFPReportUnits);override;
   public
     destructor  Destroy; override;
     Procedure   Validate(aErrors : TStrings); override;
@@ -4409,8 +4410,10 @@ end;
 { package the text into TextBlock objects. We don't apply Memo Margins here - that
   gets done in the Apply*TextAlignment() methods. }
 procedure TFPReportCustomMemo.PrepareTextBlocks;
+
 var
   i: integer;
+
 begin
   { blockstate is cleared outside the FOR loop because the font state could
     roll over to multiple lines. }
@@ -4419,13 +4422,11 @@ begin
   FLastURL := '';
   FLastFGColor := clNone;
   FLastBGColor := clNone;
-
   for i := 0 to FTextLines.Count-1 do
   begin
     FTextBlockXOffset := 0;
     if Assigned(FCurTextBlock) then
       FTextBlockYOffset := FTextBlockYOffset + FCurTextBlock.Height + FCurTextBlock.Descender + LineSpacing;
-
     if moAllowHTML in Options then
     begin
       FParser := THTMLParser.Create(FTextLines[i]);
@@ -7290,6 +7291,27 @@ begin
   if Assigned(FChildren) then
     for i := 0 to FChildren.Count -1 do
       Child[i].RecalcLayout;
+end;
+
+procedure TFPReportElementWithChildren.ApplyStretchMode(const ADesiredHeight: TFPReportUnits);
+
+var
+   OldH,H: TFPReportUnits;
+   i: Integer;
+   c: TFPReportElement;
+
+begin
+  OldH:=RTLayout.Height;
+  inherited ApplyStretchMode(ADesiredHeight);
+  H:=RTLayout.Height;
+  // If the height changed, recalc for smMaxheight.
+  if (H<>OldH) then
+    for i := 0 to ChildCount-1 do
+      begin
+      c := Child[i];
+      if (c.StretchMode = smMaxHeight) then
+        C.RecalcLayout;
+      end;
 end;
 
 destructor TFPReportElementWithChildren.Destroy;
