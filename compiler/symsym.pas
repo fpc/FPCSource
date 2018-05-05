@@ -80,7 +80,7 @@ interface
 
        tunitsym = class(Tstoredsym)
           module : tobject; { tmodule }
-          constructor create(const n : string;amodule : tobject);virtual;
+          constructor create(const n : string;amodule : tobject;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           { do not override this routine in platform-specific subclasses,
@@ -690,9 +690,9 @@ implementation
                                   TUNITSYM
 ****************************************************************************}
 
-    constructor tunitsym.create(const n : string;amodule : tobject);
+    constructor tunitsym.create(const n : string;amodule : tobject;doregister:boolean);
       begin
-         inherited create(unitsym,n,true);
+         inherited create(unitsym,n,doregister);
          module:=amodule;
       end;
 

@@ -188,7 +188,7 @@ implementation
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=cunitsym.create(s,hp);
+        unitsym:=cunitsym.create(s,hp,true);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         if addasused then
@@ -487,7 +487,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               current_tokenpos:=filepos;
-              unitsym:=cunitsym.create(sorg,nil);
+              unitsym:=cunitsym.create(sorg,nil,true);
               tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
@@ -895,7 +895,7 @@ type
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
 
          { load default system unit, it must be loaded before interface is parsed
            else we cannot use e.g. feature switches before the next real token }
@@ -1644,7 +1644,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
@@ -2073,7 +2073,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module,true));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
