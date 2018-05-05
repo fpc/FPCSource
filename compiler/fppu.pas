@@ -50,6 +50,7 @@ interface
           ppufile    : tcompilerppufile; { the PPU file }
           sourcefn   : TPathStr; { Source specified with "uses .. in '..'" }
           comments   : TCmdStrList;
+          nsprefix   : TCmdStr; { Namespace prefix the unit was found with }
 {$ifdef Test_Double_checksum}
           crc_array  : pointer;
           crc_size   : longint;
@@ -582,6 +583,8 @@ var
 
                      nsitem:=TCmdStrListItem(nsitem.next);
                    end;
+                 if assigned(nsitem) then
+                   nsprefix:=nsitem.str;
                end;
            end;
          search_unit:=fnd;
