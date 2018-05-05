@@ -50,6 +50,7 @@ Type
     ParaLibraryPath,
     ParaFrameworkPath,
     parapackagepath : TSearchPathList;
+    paranamespaces : TCmdStrList;
     ParaAlignment   : TAlignmentInfo;
     parapackages : tfphashobjectlist;
     paratarget        : tsystem;
@@ -1590,6 +1591,13 @@ begin
                        ParaDynamicLinker:=More
                      else
                        IllegalPara(opt);
+                   end;
+                 'N' :
+                   begin
+                     if more<>'' then
+                       paranamespaces.insert(more)
+                     else
+                       illegalpara(opt);
                    end;
                  'o' :
                    begin
@@ -3265,6 +3273,7 @@ begin
   ParaFrameworkPath:=TSearchPathList.Create;
   parapackagepath:=TSearchPathList.Create;
   parapackages:=TFPHashObjectList.Create;
+  paranamespaces:=TCmdStrList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
   paratarget:=system_none;
@@ -3285,6 +3294,7 @@ begin
   ParaFrameworkPath.Free;
   parapackagepath.Free;
   ParaPackages.Free;
+  paranamespaces.free;
 end;
 
 
@@ -3619,6 +3629,7 @@ var
   i : tfeature;
   j : longint;
   abi : tabi;
+  cmditem: TCmdStrListItem;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
   hs : string;
@@ -3825,6 +3836,14 @@ begin
   packagesearchpath.addlist(option.parapackagepath,true);
   for j:=0 to option.parapackages.count-1 do
     add_package(option.parapackages.NameOfIndex(j),true,true);
+
+  { add default namespaces }
+  cmditem:=TCmdStrListItem(option.paranamespaces.First);
+  while assigned(cmditem) do
+    begin
+      namespacelist.insert(cmditem.Str);
+      cmditem:=TCmdStrListItem(cmditem.Next);
+    end;
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then
