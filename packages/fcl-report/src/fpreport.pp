@@ -2051,7 +2051,7 @@ type
   protected
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     Procedure   RecalcLayout; override;
-    function PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
+    function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     property    Image: TFPCustomImage read GetImage write SetImage;
     property    ImageID: integer read FImageID write SetImageID;
     property    Stretched: boolean read FStretched write SetStretched;
@@ -2065,6 +2065,7 @@ type
     procedure   ReadElement(AReader: TFPReportStreamer); override;
     procedure   WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   LoadFromFile(const AFileName: string);
+    Procedure   LoadFromStream(const AStream: TStream; aHandler: TFPCustomImageReaderClass);
     procedure   LoadPNGFromStream(AStream: TStream);
     procedure   LoadImage(const AImageData: Pointer; const AImageDataSize: LongWord);
   end;
@@ -5448,6 +5449,17 @@ var
 begin
   R:=Report;
   I:=R.Images.AddFromFile(AFileName,True);
+  ImageID:=R.Images[I].ID;
+end;
+
+procedure TFPReportCustomImage.LoadFromStream(const AStream: TStream; aHandler: TFPCustomImageReaderClass);
+
+var
+  R : TFPCustomReport;
+  i : integer;
+begin
+  R:=Report;
+  I:=R.Images.AddFromStream(aStream,aHandler,True);
   ImageID:=R.Images[I].ID;
 end;
 
