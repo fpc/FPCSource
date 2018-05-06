@@ -164,9 +164,7 @@ unit cpupara;
               else
                 result:=
                   (not(calloption in (cdecl_pocalls)) and
-                   (def.size>sizeof(aint))) or
-                  ((calloption = pocall_mwpascal) and
-                   (varspez=vs_const));
+                   (def.size>sizeof(aint)));
             end;
           arraydef :
             begin
@@ -215,7 +213,6 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cppdecl,
-          pocall_mwpascal,
           pocall_far16,
           pocall_pascal :
             result:=[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI,RS_BX];
@@ -250,7 +247,6 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cppdecl,
-          pocall_mwpascal,
           pocall_far16,
           pocall_pascal :
             result:=saveregs_pascal;
