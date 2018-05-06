@@ -1376,9 +1376,7 @@ implementation
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
 
-        { oldfpccall expects all registers to be destroyed }
-        if current_procinfo.procdef.proccalloption<>pocall_oldfpccall then
-            cg.g_save_registers(list);
+        cg.g_save_registers(list);
       end;
 
 
@@ -1388,9 +1386,7 @@ implementation
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
 
-        { oldfpccall expects all registers to be destroyed }
-        if current_procinfo.procdef.proccalloption<>pocall_oldfpccall then
-          cg.g_restore_registers(list);
+        cg.g_restore_registers(list);
       end;
 
 
