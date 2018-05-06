@@ -3629,7 +3629,10 @@ var
   i : tfeature;
   j : longint;
   abi : tabi;
-  cmditem: TCmdStrListItem;
+  tmplist : TCmdStrList;
+  cmditem,
+  tmpcmditem : TCmdStrListItem;
+  cmdstr : TCmdStr;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
   hs : string;
@@ -3838,12 +3841,33 @@ begin
     add_package(option.parapackages.NameOfIndex(j),true,true);
 
   { add default namespaces }
+  tmplist:=TCmdStrList.Create;
   cmditem:=TCmdStrListItem(option.paranamespaces.First);
   while assigned(cmditem) do
     begin
-      namespacelist.insert(cmditem.Str);
+      { use a temporary list cause if ";" are involved we need to reverse the
+        order due to how TCmdStrList behaves }
+      cmdstr:=cmditem.str;
+      repeat
+        j:=Pos(';',cmdstr);
+        if j>0 then
+          begin
+            tmplist.insert(copy(cmdstr,1,j-1));
+            delete(cmdstr,1,j);
+          end
+        else
+          tmplist.insert(cmdstr);
+      until j=0;
+      tmpcmditem:=TCmdStrListItem(tmplist.First);
+      while assigned(tmpcmditem) do
+        begin
+          namespacelist.insert(tmpcmditem.Str);
+          tmpcmditem:=TCmdStrListItem(tmpcmditem.Next);
+        end;
+      tmplist.clear;
       cmditem:=TCmdStrListItem(cmditem.Next);
     end;
+  tmplist.Free;
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then

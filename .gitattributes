@@ -13735,6 +13735,7 @@ tests/test/tudots2.pp svneol=native#text/pascal
 tests/test/tudots3.pp svneol=native#text/pascal
 tests/test/tudots4.pp svneol=native#text/pascal
 tests/test/tudots5.pp svneol=native#text/pascal
+tests/test/tudots6.pp svneol=native#text/pascal
 tests/test/tuglylabels1.pp svneol=native#text/plain
 tests/test/tunaligned1.pp svneol=native#text/plain
 tests/test/tunistr1.pp svneol=native#text/plain
