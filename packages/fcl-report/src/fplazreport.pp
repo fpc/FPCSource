@@ -20,7 +20,7 @@ unit fplazreport;
 interface
 
 uses
-  Classes, SysUtils, fpreport, DOM, FPCanvas, fpTTF, fpreportdb;
+  Classes, SysUtils, fpreport, DOM, FPCanvas, fpTTF, fpreportdb, fpreportbarcode;
 
 Type
   TCustomPropEvent = procedure(Sender: TObject;Data : TDOMNode) of object;
@@ -60,6 +60,7 @@ Type
     function ConvertPage(aPageNode: TDOMNode): TFPReportPage; virtual;
     function ConvertLine(ObjNode: TDOMNode; APage: TFPReportCustomPage): TFPReportShape; virtual;
     function ConvertImage(ObjNode: TDOMNode; APage: TFPReportCustomPage): TFPReportImage; virtual;
+    function ConvertBarcode(ObjNode : TDOMNode; APage : TFPReportCustomPage) : TFPReportBarcode; virtual;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     Procedure DoLog(Const Msg : String);
     Procedure DoLog(Const Fmt : String; Const Args : Array of const);
@@ -82,7 +83,7 @@ Type
 
 implementation
 
-uses dateutils, XMLRead,FPReadPNG,FPimage,FPReadGif,FPReadJPEG;
+uses dateutils, XMLRead,FPReadPNG,FPimage,FPReadGif,FPReadJPEG,fpbarcode;
 
 Resourcestring
   SLogUnknownClass = 'Ignoring unknown lazreport class type for object "%s": "%s".';
@@ -91,6 +92,9 @@ Resourcestring
   SFontSubstitution = 'FontSubstitution';
   SErrUnknownImageType = 'Unknown image type encountered: "%s"';
   SWarnConvertName = 'Name conversion: "%s" to "%s"';
+  SUnknownBarcodeType = 'Unknown barcode type: "%s"';
+  SIgnoringAngleOnBarcode = 'Igoring angle on barcode';
+  SIgnoringShowTextOnBarcode = 'Igoring showtext on barcode';
 
 function PixelsToMM(Const Dist: double) : TFPReportUnits;
 begin
@@ -508,6 +512,52 @@ begin
   end;
 end;
 
+function TFPLazReport.ConvertBarcode(ObjNode: TDOMNode; APage: TFPReportCustomPage): TFPReportBarcode;
+
+  Function StringToEncoding (s : String): TBarcodeEncoding;
+
+  begin
+    Case s of
+      'bcCode39' : Result:=be39;
+      'bcCode93' : Result:=be93;
+      'bcCodeCodabar' : Result:=beCodabar;
+      'bcCode39Extended' : Result:=be39Extended;
+      'bcCode128A' : Result:=be128A;
+      'bcCode128B' : Result:=be128B;
+      'bcCode128C' : Result:=be128C;
+      'bcCodeEAN13' : Result:=beEAN13;
+      'bcCodeEAN8' : Result:=beEAN8;
+      'bcCode_2_5_interleaved' : Result:=be2of5interleaved;
+      'bcCodeMSI' : Result:=beMSI;
+    else
+      DoLog(SUnknownBarcodeType,[s]);
+    end;
+  end;
+
+
+Var
+  aDataNode : TDomNode;
+  BT : String;
+  cd : integer;
+  D :double;
+
+begin
+  Result:=TFPReportBarcode.Create(Self);
+  Result.Encoding:=StringToEncoding(GetProperty(ObjNode,'BarCode','BarType'));
+  if GetProperty(ObjNode,'BarCode','Angle')<>'0' then
+    DoLog(SIgnoringAngleOnBarcode);
+  if GetProperty(ObjNode,'BarCode','ShowText')<>'0' then
+    DoLog(SIgnoringShowTextOnBarcode);
+  val(GetProperty(ObjNode,'BarCode','Zoom'),D,CD);
+  if CD=0 then
+    Result.Weight:=D
+  else
+    Result.Weight:=1;
+  aDataNode:=ObjNode.FindNode('Data');
+  if ADataNode<>Nil then
+    Result.Expression:=GetProperty(aDataNode,'Memo');
+end;
+
 Procedure TFPLazReport.SizeToLayout(aDataNode : TDOMNode; aObj: TFPReportElement);
 
 Var
@@ -521,7 +571,8 @@ begin
     OffsetTop := 0;
   OffsetLeft :=0;
   if not (aObj is TFPReportCustomBand) then
-    OffsetLeft := aObj.Page.Margins.Left;
+    if Assigned(aObj.Page) then
+      OffsetLeft := aObj.Page.Margins.Left;
   With aObj.Layout do
     begin
     Top:=PixelsToMM(StrToFloatDef(GetProperty(aDataNode,'Top'),Top))-OffsetTop;
@@ -669,6 +720,8 @@ begin
         aObj:=ConvertLine(ObjNode,aPage);
       'TfrPictureView':
         aObj:=ConvertImage(ObjNode,aPage);
+      'TfrBarCodeView':
+        aObj:=ConvertBarcode(ObjNode,aPage);
       else
         DoLog(SLogUnknownClass,[NodeName,CT]);
         aObj:=Nil;
