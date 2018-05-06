@@ -146,8 +146,6 @@ implementation
 
 resourcestring
   SErrStackEmpty = 'Element stack is empty';
-  SErrNoCurrentElement = 'No current element to find node %s below';
-  SErrNodeNotElement = 'Node %s is not an element node';
   SErrNotAValidJSONObject = 'Stream does not contain not a valid JSON object';
 
 const

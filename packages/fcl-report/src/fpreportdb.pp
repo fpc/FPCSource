@@ -230,19 +230,23 @@ begin
   Result := FDataSet.EOF;
 end;
 
+Type
+  TMyDataset = Class(TDataset);
+
 procedure TFPReportDatasetData.StartDesigning;
+
 begin
   Inherited;
   if Assigned(DataSet) then
     // Dirty hack!!
-    TFPReportDatasetData(Dataset).SetDesigning(True,True);
+    TMyDataset(Dataset).SetDesigning(True,True);
 end;
 
 procedure TFPReportDatasetData.EndDesigning;
 begin
   if Assigned(DataSet) then
     // Dirty hack!!
-    TFPReportDatasetData(Dataset).SetDesigning(False,True);
+    TMyDataset(Dataset).SetDesigning(False,True);
   Inherited;
 end;
 

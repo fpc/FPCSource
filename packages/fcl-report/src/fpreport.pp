@@ -347,10 +347,11 @@ type
     procedure StartRender; virtual;
     // called when the renderer ends its job on the report.
     procedure EndRender; virtual;
+  Protected
+    Procedure FixupReference(PN,PV : String; C : TFPReportElement); virtual;
   public
     Function AllocateName : String;
     // Called when done reading
-    Procedure FixupReference(PN,PV : String; C : TFPReportElement); virtual;
     procedure WriteElement(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); virtual;
     procedure ReadElement(AReader: TFPReportStreamer); virtual;
     // called when the designer starts editing this component .
@@ -944,6 +945,7 @@ type
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
+    procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
     procedure ParentFontChanged; override;
     function CalcDesiredHeight: TFPReportUnits; virtual;
     function    GetReportPage: TFPReportCustomPage; override;
@@ -978,7 +980,6 @@ type
     destructor  Destroy; override;
     Procedure   Validate(aErrors : TStrings); override;
     procedure   Assign(Source: TPersistent); override;
-    procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
     Procedure SendToBack(El : TFPReportElement);
     Procedure BringToFront(El : TFPReportElement);
     Class Function ReportBandType : TFPReportBandType; virtual;
@@ -1653,8 +1654,8 @@ type
     procedure RunReport;
     Procedure ClearPreparedReport; virtual;
     Function  Prepared : Boolean;
-    Procedure StartDesigning; virtual;
-    Procedure EndDesigning; virtual;
+    Procedure StartDesigning; override;
+    Procedure EndDesigning; override;
     procedure RenderReport(const AExporter: TFPReportExporter);
     procedure AddBuiltinsToExpressionIdentifiers(Idents: TFPExprIdentifierDefs); virtual;
     Property Variables : TFPReportVariables Read FVariables Write SetVariables;
@@ -1708,7 +1709,6 @@ type
     FData: TFPReportData;
     FParentLoop: TLoopData;
     FDataHeaderPrinted: boolean;
-    FLastGroupCondition: string;
     FDataHeader : TFPReportCustomDataHeaderBand;
     FDataFooter : TFPReportCustomDataFooterBand;
     FDataBand : TFPReportCustomDataBand;
@@ -2358,7 +2358,7 @@ resourcestring
   SErrRegisterUnknownElement = 'Unable to find registered report element <%s>.';
   SErrUnknownExporter = 'Unknown exporter: "%s"';
   SErrMultipleDataBands = 'A report page may not have more than one master databand.';
-  SErrCantAssignReportFont = 'Can''t Assign() report font - Source is not TFPReportFont.';
+  // SErrCantAssignReportFont = 'Can''t Assign() report font - Source is not TFPReportFont.';
   SErrNoStreamInstanceWasSupplied = 'No valid TStream instance was supplied.';
   SErrIncorrectDescendant = 'AElement is not a TFPReportElementWithChildren descendant.';
 
@@ -3544,8 +3544,6 @@ procedure TFPReportVariable.UpdateExpressionValue(aData: TFPReportData; IsFirstp
 
 var
   lResetValue: String;
-  lResult: PFPExpressionResult;
-  lValue: TFPExpressionResult;
   IsReset : Boolean;
 
   Function NeedReset : Boolean;
@@ -3958,9 +3956,6 @@ begin
 end;
 
 procedure TFPReportCustomMemo.SetUseParentFont(AValue: Boolean);
-
-Var
-  R : TFPReportFont;
 
 begin
   if FUseParentFont = AValue then
@@ -5129,8 +5124,6 @@ procedure TFPReportCustomMemo.ReadElement(AReader: TFPReportStreamer);
 
 var
   E: TObject;
-  F : TFPReportFont;
-
 begin
   inherited ReadElement(AReader);
   E := AReader.FindChild('TextAlignment');
@@ -8373,7 +8366,7 @@ end;
 Function TFPCustomReport.StreamToReportElements(aStream: TStream): TFPObjectList;
 
 Var
-  I,aCount : Integer;
+  I : Integer;
   S : TFPReportJSONStreamer;
   aName : String;
   E : TObject;
@@ -8418,7 +8411,6 @@ var
   f: string;
   r: TResultType;
   d: string;
-  v: TFPReportVariable;
   df: TFPReportDataField;
   aData : TFPReportData;
 
@@ -9128,9 +9120,6 @@ end;
 
 procedure TFPReportCustomBand.SetUseParentFont(AValue: boolean);
 
-Var
-  F : TFPReportFont;
-
 begin
   if FUseParentFont = AValue then
     Exit;
@@ -9407,10 +9396,10 @@ begin
 end;
 
 procedure TFPReportCustomBand.ReadElement(AReader: TFPReportStreamer);
+
 var
   E: TObject;
   s: string;
-  F : TFPReportFont;
 
 begin
   E := AReader.FindChild(GetReportBandName);
@@ -11957,9 +11946,6 @@ end;
 procedure TFPReportLayouter.RunDataLoop(aPage: TFPReportCustomPage; aData: TFPReportData);
 
 Var
-  I : integer;
-  lBand : TFPReportCustomBand;
-  g : TFPReportCustomDataFooterBand;
   aLoop: TLoopData;
 
 begin
@@ -12061,10 +12047,6 @@ begin
 end;
 
 procedure TFPReportLayouter.HandleReportSummaryBands;
-
-Var
-  I : integer;
-  lBand : TFPReportCustomBand;
 
 begin
   if not Assigned(FSummary) then
