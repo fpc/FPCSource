@@ -42,11 +42,12 @@ Type
     FOnSetCustomProps: TCustomPropEvent;
     FOnSubstituteFont: TFontSubstitutionEvent;
     FCounter : Integer;
+    FNullBand : TFPReportChildBand;
   Protected
     class function Red(rgb: Integer): BYTE; virtual;
     class function Green(rgb: Integer): BYTE; virtual;
     class function Blue(rgb: Integer): BYTE; virtual;
-    class function FindBand(aPage: TFPReportCustomPage; aTop: double): TFPReportCustomBand; virtual;
+    function FindBand(aPage: TFPReportCustomPage; aTop: double; AElement: TFPReportElement=Nil): TFPReportCustomBand; virtual;
     class function GetProperty(aNode: TDOMNode; const aName: String; const aValue: string='Value'): UTF8String; virtual;
     function ApplyFrame(aDataNode: TDOMNode; aFrame: TFPReportFrame): Boolean; virtual;
     procedure ApplyObjectProperties(ObjNode: TDOMNode; aObj: TFPReportElement); virtual;
@@ -95,6 +96,7 @@ Resourcestring
   SUnknownBarcodeType = 'Unknown barcode type: "%s"';
   SIgnoringAngleOnBarcode = 'Igoring angle on barcode';
   SIgnoringShowTextOnBarcode = 'Igoring showtext on barcode';
+  SLogNullBandAssigned = 'Null (child) band assigned for element of type "%s" at pos %5.3f';
 
 function PixelsToMM(Const Dist: double) : TFPReportUnits;
 begin
@@ -228,9 +230,11 @@ begin
       Result := UTF8Encode(bNode.Attributes.GetNamedItem(aValue).NodeValue);
 end;
 
-Class function TFPLazReport.FindBand(aPage : TFPReportCustomPage;aTop : double) : TFPReportCustomBand;
+function TFPLazReport.FindBand(aPage : TFPReportCustomPage;aTop : double; AElement : TFPReportElement = Nil) : TFPReportCustomBand;
 var
   b : Integer;
+  S : String;
+
 begin
   Result := nil;
   for b := 0 to aPage.BandCount-1 do
@@ -241,6 +245,25 @@ begin
           Result := aPage.Bands[b];
           break;
         end;
+    end;
+  if (Result=Nil) then
+    begin
+    if (FNullBand=Nil) then
+      begin
+      FNullBand:=TFPReportChildBand.Create(Self);
+      FNullBand.Name:='NullBand';
+      FNullBand.Layout.Height:=aPage.Layout.Height;
+      FNullBand.Parent:=aPage;
+      end;
+    Result:=FNullBand;
+    end;
+  if (Result=FNullBand) and Assigned(FOnLog) then
+    begin
+    if aElement = Nil then
+      S:='<unknown>'
+    else
+      S:=aElement.ClassName;
+    DoLog(SLogNullBandAssigned,[S,aTop]);
     end;
 end;
 
