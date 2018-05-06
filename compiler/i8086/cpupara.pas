@@ -213,7 +213,6 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cppdecl,
-          pocall_far16,
           pocall_pascal :
             result:=[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI,RS_BX];
           else
@@ -247,7 +246,6 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cppdecl,
-          pocall_far16,
           pocall_pascal :
             result:=saveregs_pascal;
           else

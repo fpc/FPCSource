@@ -103,7 +103,6 @@ Const
      pocall_stdcall,
      pocall_cdecl,
      pocall_cppdecl,
-     pocall_far16,
      pocall_pascal
    ];
 
