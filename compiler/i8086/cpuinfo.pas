@@ -105,7 +105,6 @@ Const
      pocall_cppdecl,
      pocall_far16,
      pocall_pascal,
-     pocall_oldfpccall,
      pocall_mwpascal
    ];
 

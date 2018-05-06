@@ -217,8 +217,7 @@ unit cpupara;
           pocall_cppdecl,
           pocall_mwpascal,
           pocall_far16,
-          pocall_pascal,
-          pocall_oldfpccall :
+          pocall_pascal :
             result:=[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI,RS_BX];
           else
             internalerror(200309071);
@@ -253,8 +252,7 @@ unit cpupara;
           pocall_cppdecl,
           pocall_mwpascal,
           pocall_far16,
-          pocall_pascal,
-          pocall_oldfpccall :
+          pocall_pascal :
             result:=saveregs_pascal;
           else
             internalerror(2018042301);
