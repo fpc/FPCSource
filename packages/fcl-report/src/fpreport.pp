@@ -348,7 +348,7 @@ type
     // called when the renderer ends its job on the report.
     procedure EndRender; virtual;
   Protected
-    Procedure FixupReference(PN,PV : String; C : TFPReportElement); virtual;
+    Procedure FixupReference(Const PN,PV : String; C : TFPReportElement); virtual;
   public
     Function AllocateName : String;
     // Called when done reading
@@ -945,7 +945,7 @@ type
     procedure   SetUseParentFont(AValue: boolean);
     procedure   SetVisibleOnPage(AValue: TFPReportVisibleOnPage);
   protected
-    procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
+    procedure FixupReference(Const PN, PV: String; C: TFPReportElement); override;
     procedure ParentFontChanged; override;
     function CalcDesiredHeight: TFPReportUnits; virtual;
     function    GetReportPage: TFPReportCustomPage; override;
@@ -1031,7 +1031,7 @@ type
     procedure SetHeaderBand(AValue: TFPReportCustomDataHeaderBand);
     procedure SetMasterBand(AValue: TFPReportCustomDataBand);
   protected
-    Procedure FixupReference(PN,PV : String; C : TFPReportElement); override;
+    Procedure FixupReference(Const PN,PV : String; C : TFPReportElement); override;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     property  DisplayPosition: Integer read FDisplayPosition write FDisplayPosition default 0;
     // No longer used, set the FooterBand.Data or HeaderBand.Data properties instead.
@@ -1200,7 +1200,7 @@ type
     function    GetReportBandName: string; override;
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   Notification(AComponent: TComponent; Operation: TOperation); override;
-    Procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
+    Procedure   FixupReference(Const PN, PV: String; C: TFPReportElement); override;
     procedure   BeforePrintWithChilds; override;
     procedure   MovedToNextPageWithChilds; override;
     procedure   AfterPrintWithChilds; override;
@@ -1319,7 +1319,7 @@ type
     FDoNotConsiderInFooterSpaceNeeded: Boolean;
     procedure SetGroupHeader(const AValue: TFPReportCustomGroupHeaderBand);
   protected
-    procedure FixupReference(PN, PV: String; C: TFPReportElement); override;
+    procedure FixupReference(Const PN, PV: String; C: TFPReportElement); override;
     procedure SetBandPosition(pBandPosition: TFPReportBandPosition); override;
     function  GetReportBandName: string; override;
     procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
@@ -5724,7 +5724,7 @@ begin
     FMasterBand.FreeNotification(Self);
 end;
 
-procedure TFPReportCustomDataBand.FixupReference(PN, PV: String; C: TFPReportElement);
+procedure TFPReportCustomDataBand.FixupReference(const PN, PV: String; C: TFPReportElement);
 begin
   If SameText('FooterBand',PN) and (C is TFPReportCustomDataFooterBand) then
     FooterBand:=TFPReportCustomDataFooterBand(C)
@@ -5942,7 +5942,7 @@ begin
 
 end;
 
-procedure TFPReportCustomGroupHeaderBand.FixupReference(PN, PV: String; C: TFPReportElement);
+procedure TFPReportCustomGroupHeaderBand.FixupReference(const PN, PV: String; C: TFPReportElement);
 begin
   if SameText(PN,'ParentGroupHeader') then
     ParentGroupHeader:=TFPReportCustomGroupHeaderBand(C)
@@ -6274,7 +6274,7 @@ begin
   Until (Owner=Nil) or (Owner.FindComponent(Result)=Nil);
 end;
 
-procedure TFPReportComponent.FixupReference(PN, PV: String; C: TFPReportElement);
+procedure TFPReportComponent.FixupReference(const PN, PV: String; C: TFPReportElement);
 begin
   // Do nothing
 end;
@@ -9252,7 +9252,7 @@ begin
   end;
 end;
 
-procedure TFPReportCustomBand.FixupReference(PN, PV: String; C: TFPReportElement);
+procedure TFPReportCustomBand.FixupReference(const PN, PV: String; C: TFPReportElement);
 begin
   if SameText(PN,'ChildBand') then
     begin
@@ -9578,7 +9578,7 @@ begin
     end;
 end;
 
-procedure TFPReportCustomGroupFooterBand.FixupReference(PN, PV: String; C: TFPReportElement);
+procedure TFPReportCustomGroupFooterBand.FixupReference(const PN, PV: String; C: TFPReportElement);
 begin
   if SameText(PN,'Groupheader') then
     GroupHeader:=TFPReportCustomGroupHeaderBand(C)
