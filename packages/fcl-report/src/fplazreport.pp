@@ -537,12 +537,13 @@ function TFPLazReport.ConvertBarcode(ObjNode: TDOMNode; APage: TFPReportCustomPa
 
 Var
   aDataNode : TDomNode;
-  BT : String;
   cd : integer;
   D :double;
 
 begin
   Result:=TFPReportBarcode.Create(Self);
+  aDataNode:=ObjNode.FindNode('Size');
+  Result.Parent:=FindBand(APage,PixelsToMM(StrToFloatDef(GetProperty(aDataNode,'Top'),0)));
   Result.Encoding:=StringToEncoding(GetProperty(ObjNode,'BarCode','BarType'));
   if GetProperty(ObjNode,'BarCode','Angle')<>'0' then
     DoLog(SIgnoringAngleOnBarcode);
