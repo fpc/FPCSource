@@ -2662,6 +2662,8 @@ packages/fcl-report/demos/fonts/LiberationSerif-Bold.ttf -text
 packages/fcl-report/demos/fonts/LiberationSerif-BoldItalic.ttf -text
 packages/fcl-report/demos/fonts/LiberationSerif-Italic.ttf -text
 packages/fcl-report/demos/fonts/LiberationSerif-Regular.ttf -text
+packages/fcl-report/demos/laz2fpreport.lpi svneol=native#text/plain
+packages/fcl-report/demos/laz2fpreport.pp svneol=native#text/plain
 packages/fcl-report/demos/pictures/man01.png -text svneol=unset#image/png
 packages/fcl-report/demos/pictures/man02.png -text svneol=unset#image/png
 packages/fcl-report/demos/pictures/man03.png -text svneol=unset#image/png

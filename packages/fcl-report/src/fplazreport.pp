@@ -20,14 +20,15 @@ unit fplazreport;
 interface
 
 uses
-  Classes, SysUtils, fpreport, fpjsonreport, DOM, XMLRead,
-  FPReadPNG,FPimage,FPCanvas,fpreportdb;
+  Classes, SysUtils, fpreport, DOM, FPCanvas, fpTTF, fpreportdb;
 
 Type
   TCustomPropEvent = procedure(Sender: TObject;Data : TDOMNode) of object;
+  TConvertLogEvent = Procedure(Sender: TOBject;Const Msg : String) of Object;
+  TNameConvertEvent = Procedure(Sender: TOBject;Const aName : UnicodeString; Var aNewName : String) of Object;
+  TFontSubstitutionEvent = Procedure(Sender: TOBject;Const aFontName : String; Const aBold,aItalic: Boolean; var aFont : TFPFontCacheItem) of Object;
 
   { TFPLazReport }
-
   TFPLazReport = class(TFPReport)
   private
     FData: TComponent;
@@ -36,24 +37,32 @@ Type
     FDetailFooter : TFPReportDataFooterBand;
     FDetailBand: TFPReportDataBand;
     FMemoClass: TFPReportElementClass;
+    FOnConvertName: TNameConvertEvent;
+    FOnLog: TConvertLogEvent;
     FOnSetCustomProps: TCustomPropEvent;
+    FOnSubstituteFont: TFontSubstitutionEvent;
+    FCounter : Integer;
   Protected
     class function Red(rgb: Integer): BYTE; virtual;
     class function Green(rgb: Integer): BYTE; virtual;
     class function Blue(rgb: Integer): BYTE; virtual;
     class function FindBand(aPage: TFPReportCustomPage; aTop: double): TFPReportCustomBand; virtual;
-    class function GetProperty(aNode: TDOMNode; aName: string; aValue: string='Value'): string; virtual;
+    class function GetProperty(aNode: TDOMNode; const aName: String; const aValue: string='Value'): UTF8String; virtual;
     function ApplyFrame(aDataNode: TDOMNode; aFrame: TFPReportFrame): Boolean; virtual;
     procedure ApplyObjectProperties(ObjNode: TDOMNode; aObj: TFPReportElement); virtual;
     procedure ConvertPageProperties(aPage: TFPReportPage; aPageNode: TDOMNode); virtual;
     procedure SetData(AValue: TComponent);virtual;
     procedure SizeToLayout(aDataNode: TDOMNode; aObj: TFPReportElement);virtual;
+    Function ConvertComponentName(Const aName : UnicodeString;Const AClassName : String) : String; virtual;
+    function ConvertFont(aDataNode: TDomNode): TFPFontCacheItem; virtual;
     function ConvertBand(aBandNode: TDomNode;aPage: TFPReportCustomPage): TFPReportCustomBand; virtual;
     function ConvertMemo(ObjNode: TDOMNode; aPage: TFPReportCustomPage): TFPReportMemo; virtual;
     function ConvertPage(aPageNode: TDOMNode): TFPReportPage; virtual;
     function ConvertLine(ObjNode: TDOMNode; APage: TFPReportCustomPage): TFPReportShape; virtual;
     function ConvertImage(ObjNode: TDOMNode; APage: TFPReportCustomPage): TFPReportImage; virtual;
     Procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    Procedure DoLog(Const Msg : String);
+    Procedure DoLog(Const Fmt : String; Const Args : Array of const);
   Public
     constructor Create(AOwner: TComponent); override;
     function FixDataFields(aFieldName : string) : string;
@@ -63,6 +72,9 @@ Type
   Published
     property DataContainer : TComponent read FData write SetData;
     property OnSetCustomproperties : TCustomPropEvent read FOnSetCustomProps write FOnSetCustomProps;
+    Property OnLog : TConvertLogEvent Read FOnLog Write FOnLog;
+    Property OnSubstituteFont : TFontSubstitutionEvent Read FOnSubstituteFont Write FOnSubstituteFont;
+    Property OnConvertName : TNameConvertEvent Read FOnConvertName Write FOnConvertName;
   end;
 
   function MMToPixels(Const Dist: double) : Integer;
@@ -70,7 +82,15 @@ Type
 
 implementation
 
-uses fpTTF,dateutils,base64,FPReadGif,FPReadJPEG;
+uses dateutils, XMLRead,FPReadPNG,FPimage,FPReadGif,FPReadJPEG;
+
+Resourcestring
+  SLogUnknownClass = 'Ignoring unknown lazreport class type for object "%s": "%s".';
+  SErrUnknownBandType = 'Unknown band type: "%s", substituting child band';
+  SErrWrongEncoding = 'Unknown image encoding at pos %d : %s';
+  SFontSubstitution = 'FontSubstitution';
+  SErrUnknownImageType = 'Unknown image type encountered: "%s"';
+  SWarnConvertName = 'Name conversion: "%s" to "%s"';
 
 function PixelsToMM(Const Dist: double) : TFPReportUnits;
 begin
@@ -106,6 +126,27 @@ begin
       FData:=Nil;
 end;
 
+procedure TFPLazReport.DoLog(const Msg: String);
+begin
+  If Assigned(FOnLog) then
+    FOnLog(Self,Msg);
+end;
+
+procedure TFPLazReport.DoLog(const Fmt: String; const Args: array of const);
+
+Var
+  S : String;
+
+begin
+  try
+    S:=Format(Fmt,Args);
+  except
+    on E : Exception do
+      S:=Format('Failed to format error message "%s" with %d arguments',[Fmt,Length(Args)]);
+  end;
+  DoLog(S);
+end;
+
 constructor TFPLazReport.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -114,9 +155,10 @@ begin
 end;
 
 function TFPLazReport.FixDataFields(aFieldName: string): string;
+
 var
   k : Integer = 0;
-  atmp : string;
+
 begin
   Result := aFieldName;
   if Assigned(FData) then
@@ -149,7 +191,6 @@ procedure TFPLazReport.LoadFromXML(LazReport: TXMLDocument);
 
 var
   i: Integer;
-  j: Integer;
   BaseNode,lPages : TDOMNode;
  aPage: TFPReportPage;
 
@@ -170,15 +211,17 @@ begin
         end;
 end;
 
-Class function TFPLazReport.GetProperty(aNode : TDOMNode;aName : string;aValue : string = 'Value') : string;
+Class function TFPLazReport.GetProperty(aNode : TDOMNode;Const aName : String; Const aValue : string = 'Value') : UTF8String;
+
 var
   bNode: TDOMNode;
+
 begin
   Result := '';
   bNode := aNode.FindNode(aName);
   if Assigned(bNode) then
     if Assigned(bNode.Attributes.GetNamedItem(aValue)) then
-      Result := bNode.Attributes.GetNamedItem(aValue).NodeValue;
+      Result := UTF8Encode(bNode.Attributes.GetNamedItem(aValue).NodeValue);
 end;
 
 Class function TFPLazReport.FindBand(aPage : TFPReportCustomPage;aTop : double) : TFPReportCustomBand;
@@ -259,7 +302,7 @@ begin
       if Assigned(FDetailBand) then
         TFPReportDataHeaderBand(aBand).Data := FDetailBand.Data
       else
-        FDetailHeader := TFPReportDataHeaderBand(Self);
+        FDetailHeader:=TFPReportDataHeaderBand(aBand);
     end;
   'btDetailFooter':
     begin
@@ -285,7 +328,10 @@ begin
   'btGroupFooter':
     aBand := TFPReportGroupFooterBand.Create(Self);
   else
-    aBand := TFPReportCustomBand.Create(Self);
+    begin
+    DoLog(SErrUnknownBandType,[Tmp]);
+    aBand := TFPReportChildBand.Create(Self);
+    end;
   end;
   if Assigned(aBand) then
     begin
@@ -295,13 +341,66 @@ begin
   Result:=aBand;
 end;
 
+Function TFPLazReport.ConvertFont(aDataNode : TDomNode) : TFPFontCacheItem;
+
+Var
+  i : Integer;
+  FontFound, aBold, aItalic : Boolean;
+  aFont : TFPFontCacheItem;
+  RealFont,FontName : String;
+
+begin
+  aBold := pos('fsBold',GetProperty(aDataNode,'Style'))>0;
+  aItalic := pos('fsItalic',GetProperty(aDataNode,'Style'))>0;
+  FontName:=GetProperty(aDataNode,'Name');
+  aFont := gTTFontCache.Find(FontName,aBold,aItalic);
+  FontFound := not Assigned(aFont);
+  if not Assigned(aFont) then
+    aFont := gTTFontCache.Find('LiberationSans',aBold,aItalic);
+  if not Assigned(aFont) then
+    aFont := gTTFontCache.Find('Arial',aBold,aItalic);
+  if not Assigned(aFont) then
+    aFont := gTTFontCache.Find('DejaVu',aBold,aItalic);
+  with gTTFontCache do
+    begin
+    i:=0;
+    While (aFont=Nil) and (i<Count) do
+      begin
+      aFont := Items[i];
+      if Not ((pos('sans',lowercase(aFont.FamilyName)) > 0) and (aFont.IsItalic = AItalic)
+          and (aFont.IsBold = ABold)) then
+         aFont:=nil;
+      Inc(i);
+      end;
+    end;
+  if Not FontFound then
+    begin
+    // Allow user to override
+    If Assigned(FOnSubstituteFont) then
+      FOnSubstituteFont(Self,FontName,aBold,aItalic,aFont);
+    // Log it
+    if Assigned(FOnLog) then
+      begin
+      if Assigned(aFont) then
+        RealFont:=aFont.FamilyName
+      else
+        RealFont:='<nil>';
+      if aBold then
+        RealFont:=RealFont+'[Bold]';
+      if aItalic then
+        RealFont:=RealFont+'[Italic]';
+      DoLog(SFontSubstitution,[FOntName,RealFont]);
+      end;
+    end;
+  Result:=aFont;
+end;
+
 Function TFPLazReport.ConvertMemo(ObjNode : TDOMNode;aPage : TFPReportCustomPage) : TFPReportMemo;
 
 Var
   aDataNode: TDOMNode;
   aBand: TFPReportCustomBand;
-  i,aColor,aSize,aFlag : Integer;
-  FontFound, aBold, aItalic : Boolean;
+  aColor,aSize,aFlag : Integer;
   aFont: TFPFontCacheItem;
 
 begin
@@ -331,32 +430,8 @@ begin
   Result.Text:=FixDataFields(GetProperty(aDataNode,'Memo'));
   Result.UseParentFont := False;
   aDataNode := ObjNode.FindNode('Font');
-  aBold := pos('fsBold',GetProperty(aDataNode,'Style'))>0;
-  aItalic := pos('fsItalic',GetProperty(aDataNode,'Style'))>0;
-  aFont := gTTFontCache.Find(GetProperty(aDataNode,'Name'),aBold,aItalic);
-  FontFound := not Assigned(aFont);
-  if not Assigned(aFont) then
-    aFont := gTTFontCache.Find('LiberationSans',aBold,aItalic);
-  if not Assigned(aFont) then
-    aFont := gTTFontCache.Find('Arial',aBold,aItalic);
-  if not Assigned(aFont) then
-    aFont := gTTFontCache.Find('DejaVu',aBold,aItalic);
-  with gTTFontCache do
-    begin
-    i:=0;
-    While (aFont=Nil) and (i<Count) do
-      begin
-      aFont := Items[i];
-      if Not ((pos('sans',lowercase(aFont.FamilyName)) > 0) and (aFont.IsItalic = AItalic)
-          and (aFont.IsBold = ABold)) then
-         aFont:=nil;
-      Inc(i);
-      end;
-    end;
-  {$ifdef UNIX}
-  if (not FontFound) and Assigned(aFont) then
-    writeln('using Font "'+aFont.FamilyName+'" instead "'+GetProperty(aDataNode,'Name')+'"');
-  {$endif}
+  if Assigned(aDataNode) then
+    aFont:=ConvertFont(aDataNode);
   if Assigned(aFont) then
     Result.Font.Name:=aFont.PostScriptName
   else
@@ -389,7 +464,7 @@ Function TFPLazReport.ConvertImage(ObjNode : TDOMNode; APage : TFPReportCustomPa
 Var
   aDataNode: TDOMNode;
   aBand: TFPReportCustomBand;
-  tmp : String;
+  tmp,e : String;
   SS: TStream;
   aReaderClass : TFPCustomImageReaderClass;
   B : Byte;
@@ -401,13 +476,17 @@ begin
   Result := TFPReportImage.Create(aBand);
   aDataNode := ObjNode.FindNode('Picture');
   aReaderClass:=nil;
-  case lowercase(GetProperty(aDataNode,'Type','Ext')) of
+  tmp:=lowercase(GetProperty(aDataNode,'Type','Ext'));
+  case tmp of
    'jpeg','jpg': aReaderClass := TFPReaderJPEG;
    'png': aReaderClass := TFPReaderPNG;
    'gif': aReaderClass := TFPReaderGif;
   end;
   if Not Assigned(aReaderClass) then
+    begin
+    DoLog(SErrUnknownImageType,[tmp]);
     exit;
+    end;
   tmp:=GetProperty(aDataNode,'Data');
   if Tmp='' then
     Exit;
@@ -415,7 +494,10 @@ begin
   try
     for i:=1 to (system.length(tmp) div 2) do
       begin
-      Val('$'+tmp[i*2-1]+tmp[i*2], B, cd);
+      e:=tmp[i*2-1]+tmp[i*2];
+      Val('$'+E, B, cd);
+      if cd<>0 then
+        DoLog(SErrWrongEncoding,[i*2-1,E]);
       ss.Write(B, 1);
       end;
     ss.Position:=0;
@@ -447,6 +529,24 @@ begin
     Width:=PixelsToMM(StrToFloatDef(GetProperty(aDataNode,'Width'),Width));
     Height:=PixelsToMM(StrToFloatDef(GetProperty(aDataNode,'Height'),Height));
     end;
+end;
+
+function TFPLazReport.ConvertComponentName(const aName: UnicodeString; const AClassName: String): String;
+begin
+  if IsValidIdent(aName) then
+    Result:=aName
+  else
+    begin
+    Repeat
+      Inc(FCounter);
+      Result:=aClassName+IntToStr(FCounter);
+    Until FindComponent(Result)=Nil;
+    if Assigned(FOnConvertName) then
+      FOnConvertName(Self,aName,Result);
+    DoLog(SWarnConvertName,[aName,Result]);
+    end;
+
+
 end;
 
 Function TFPLazReport.ApplyFrame(aDataNode : TDOMNode; aFrame: TFPReportFrame) : Boolean;
@@ -489,7 +589,7 @@ Var
   aColor : Integer;
 
 begin
-  aObj.Name:=GetProperty(ObjNode,'Name');
+  aObj.Name:=ConvertComponentName(GetProperty(ObjNode,'Name'),aObj.ClassName);
   aDataNode := ObjNode.FindNode('Size');
   if Assigned(aDataNode) then
     SizeToLayout(aDataNode,aObj);
@@ -514,7 +614,7 @@ begin
     end;
 end;
 
-Procedure TFPLazReport.ConvertPageProperties(aPage : TFPReportPage; aPageNode : TDOMNode) ;
+procedure TFPLazReport.ConvertPageProperties(aPage: TFPReportPage; aPageNode: TDOMNode);
 
 Var
   aDataNode: TDOMNode;
@@ -540,9 +640,10 @@ Function TFPLazReport.ConvertPage(aPageNode : TDOMNode) : TFPReportPage;
 
 var
   aPage: TFPReportPage;
-  nPage, lPages,ObjNode,BaseNode, aDataNode: TDOMNode;
+  ObjNode : TDOMNode;
   aObj: TFPReportElement;
   J : Integer;
+  NodeName,CT : String;
 
 begin
   FMasterData := nil;
@@ -555,9 +656,11 @@ begin
   for j := 0 to aPageNode.ChildNodes.Count-1 do
     begin
     ObjNode:=aPageNode.ChildNodes.Item[j];
-    if copy(ObjNode.NodeName,0,6)='Object' then
+    NodeName:=ObjNode.NodeName;
+    if (copy(NodeName,0,6)='Object') and (NodeName<>'ObjectCount') then
       begin
-      case GetProperty(ObjNode,'ClassName') of
+      CT:=GetProperty(ObjNode,'ClassName');
+      case CT of
       'TfrBandView':
         aObj:=ConvertBand(ObjNode,aPage);
       'TfrMemoView':
@@ -567,6 +670,7 @@ begin
       'TfrPictureView':
         aObj:=ConvertImage(ObjNode,aPage);
       else
+        DoLog(SLogUnknownClass,[NodeName,CT]);
         aObj:=Nil;
       end;
       if Assigned(aObj) then
@@ -577,19 +681,17 @@ end;
 
 
 procedure TFPLazReport.LoadFromFile(const aFileName: String);
+
 var
   LazReport: TXMLDocument;
+
 begin
-  if lowercase(ExtractFileExt(aFileName)) = '.lrf' then
-    begin
-      ReadXMLFile(LazReport, aFileName);
-      try
-        LoadFromXML(LazReport);
-      finally
-        LazReport.Free;
-      end;
-    end
-  else inherited;
+  ReadXMLFile(LazReport, aFileName);
+  try
+    LoadFromXML(LazReport);
+  finally
+    LazReport.Free;
+  end;
 end;
 
 end.
