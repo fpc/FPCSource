@@ -6940,7 +6940,10 @@ end;
 
 function TFPReportElement.GetReportPage: TFPReportCustomPage;
 begin
-  Result := Band.Page;
+  if Assigned(Band) then
+    Result := Band.Page
+  else
+    Result:=Nil;
 end;
 
 procedure TFPReportElement.SaveDataToNames;
