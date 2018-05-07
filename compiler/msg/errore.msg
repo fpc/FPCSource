@@ -3858,7 +3858,7 @@ J*2Cv_Var/out parameter copy-out checking
 **2FL<x>_Use <x> as dynamic linker
 **2Fm<x>_Load unicode conversion table from <x>.txt in the compiler dir
 **2FM<x>_Set the directory where to search for unicode binary files
-**2FN<x>_Add <x> to list of default namespaces
+**2FN<x>_Add <x> to list of default unit scopes (namespaces)
 **2Fo<x>_Add <x> to object path
 **2Fr<x>_Load error message file <x>
 **2FR<x>_Set resource (.res) linker to <x>
