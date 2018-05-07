@@ -2018,7 +2018,7 @@ begin
     'this.i7 =-0x10000000000000;',
     'this.i8 = 0;',
     'this.u8 = 0xfffffffffffff;',
-    'this.u9 = 0x0000000000000;'
+    'this.u9 = 0x0;'
     ]),
     '');
 end;

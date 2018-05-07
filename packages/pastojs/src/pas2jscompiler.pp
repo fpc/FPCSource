@@ -3056,6 +3056,8 @@ begin
           'e': Log.OutputFilename:=String(p);
           'i': if not FileCache.AddIncludePaths(String(p),FromCmdLine,ErrorMsg) then
                  ParamFatal('invalid include path (-Fi) "'+ErrorMsg+'"');
+          'N': if not FileCache.AddNamespaces(String(p),FromCmdLine,ErrorMsg) then
+                 ParamFatal('invalid namespace (-FN) "'+ErrorMsg+'"');
           'u': if not FileCache.AddUnitPaths(String(p),FromCmdLine,ErrorMsg) then
                  ParamFatal('invalid unit path (-Fu) "'+ErrorMsg+'"');
           'U': FileCache.UnitOutputPath:=String(p);
@@ -3203,8 +3205,12 @@ begin
         begin
           inc(p);
           case p^ of
-          'S': if not FileCache.AddNamespaces(String(p+1),FromCmdLine,ErrorMsg) then
-                 ParamFatal('invalid namespace (-NS) "'+ErrorMsg+'"');
+          'S':
+            begin
+            Log.Log(mtWarning,'obsolete option -NS, use -FN instead');
+            if not FileCache.AddNamespaces(String(p+1),FromCmdLine,ErrorMsg) then
+              ParamFatal('invalid namespace (-NS) "'+ErrorMsg+'"');
+            end;
           else UnknownParam;
           end;
         end;
@@ -3865,6 +3871,8 @@ begin
   l('  -F...   Set file names and paths:');
   l('   -Fe<x> : Redirect output to <x>. UTF-8 encoded.');
   l('   -Fi<x> : Add <x> to include paths');
+  l('   -FN<x> : add <x> to namespaces. Namespaces with trailing - are removed.');
+  l('            Delphi calls this flag "unit scope names".');
   l('   -Fu<x> : Add <x> to unit paths');
   l('   -FU<x> : Set unit output path to <x>');
   l('  -I<x>   : Add <x> to include paths, same as -Fi');
@@ -3898,8 +3906,7 @@ begin
   l('  -l      : Write logo');
   l('  -MDelphi: Delphi 7 compatibility mode');
   l('  -MObjFPC: FPC''s Object Pascal compatibility mode (default)');
-  l('  -NS<x>  : add <x> to namespaces. Namespaces with trailing - are removed.');
-  l('            Delphi calls this flag "unit scope names".');
+  l('  -NS<x>  : obsolete: add <x> to namespaces. Same as -FN<x>');
   l('  -n      : Do not read the default config files');
   l('  -o<x>   : Change main JavaScript file to <x>, "." means stdout');
   l('  -O<x>   : Optimizations:');

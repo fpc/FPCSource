@@ -344,7 +344,7 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- forbid typecast record to record
+- check rtl.js version
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;

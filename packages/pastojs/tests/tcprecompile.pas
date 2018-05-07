@@ -171,7 +171,7 @@ begin
     'begin',
     '  i:=3;',
     'end.']);
-  CheckPrecompile('test1.pas','src',LinesToList(['-NSfoo']));
+  CheckPrecompile('test1.pas','src',LinesToList(['-FNfoo']));
 end;
 
 procedure TTestCLI_Precompile.TestPCU_Overloads;
