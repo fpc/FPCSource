@@ -267,6 +267,7 @@ begin
        WriteCmdStrList(general_t_includepath,includesearchpath);
        WriteCmdStrList(general_t_librarypath,librarysearchpath);
        WriteCmdStrList(general_t_objectpath,objectsearchpath);
+       WriteCmdStrList(general_t_unitscope,namespacelist);
 
        { Compile the program }
   {$ifdef PREPROCWRITE}
