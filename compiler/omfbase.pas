@@ -481,6 +481,22 @@ interface
       property PhysOffset: DWord read FPhysOffset write FPhysOffset;
     end;
 
+    { TOmfRecord_LINNUM }
+
+    TOmfRecord_LINNUM = class(TOmfParsedRecord)
+    private
+      FIs32Bit: Boolean;
+      FBaseGroup: Integer;
+      FBaseSegment: Integer;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
+      property BaseGroup: Integer read FBaseGroup write FBaseGroup;
+      property BaseSegment: Integer read FBaseSegment write FBaseSegment;
+    end;
+
     { TOmfSubRecord_FIXUP }
 
     TOmfSubRecord_FIXUP = class
@@ -1925,6 +1941,40 @@ implementation
                 end;
             end;
         end;
+      RawRecord.RecordLength:=NextOfs+1;
+      RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfRecord_LINNUM }
+
+  procedure TOmfRecord_LINNUM.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+    begin
+      if not (RawRecord.RecordType in [RT_LINNUM,RT_LINNUM32]) then
+        internalerror(2018050801);
+      Is32Bit:=RawRecord.RecordType=RT_LINNUM32;
+
+      NextOfs:=RawRecord.ReadIndexedRef(0,FBaseGroup);
+      NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FBaseSegment);
+
+      { todo: read debugger style-specific info here }
+    end;
+
+  procedure TOmfRecord_LINNUM.EncodeTo(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+    begin
+      if Is32Bit then
+        RawRecord.RecordType:=RT_LINNUM32
+      else
+        RawRecord.RecordType:=RT_LINNUM;
+
+      NextOfs:=RawRecord.WriteIndexedRef(0,BaseGroup);
+      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,BaseSegment);
+
+      { todo: write debugger style-specific info here }
+
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
     end;
