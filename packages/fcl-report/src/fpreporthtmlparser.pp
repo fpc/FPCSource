@@ -104,7 +104,7 @@
              the old ExecUpcase
 
  0.5     -  Graeme Geldenhuys <graeme@geldenhuys.co.uk>
-             New functions to extract attibute details from the tags.
+             New functions to extract attribute details from the tags.
                                                                                                                                                           //
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

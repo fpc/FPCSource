@@ -1973,7 +1973,7 @@ type
     function    SubStr(const ASource, AStartDelim, AEndDelim: string; AIndex: integer; out AStartPos: integer): string;
     { Count the number of blocks of text in AValue separated by AToken }
     function    TokenCount(const AValue: string; const AToken: string = '['): integer;
-    { Return the n-th token defined by APos. APas is 1-based. }
+    { Return the n-th token defined by APos. APos is 1-based. }
     function    Token(const AValue, AToken: string; const APos: integer): string;
     // --------------->  End  <-----------------
 
