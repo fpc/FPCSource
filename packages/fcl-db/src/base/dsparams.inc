@@ -840,6 +840,7 @@ Var
   VT : Integer;
 
 begin
+  if FDataType=AValue then Exit;
   FDataType:=AValue;
   VT:=FieldTypetoVariantMap[AValue];
   If (VT=varError) then
