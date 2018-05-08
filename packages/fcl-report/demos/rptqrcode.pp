@@ -11,9 +11,7 @@ uses
   SysUtils,
   fpreport,
   fpreportcontnr,
-  fpqrcodegen,
   fpreportqrcode,
-  contnrs,
   udapp;
 
 type

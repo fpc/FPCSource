@@ -12,7 +12,6 @@ uses
   fpreport,
   fpreportcontnr,
   fpreportbarcode,
-  contnrs,
   udapp;
 
 type
