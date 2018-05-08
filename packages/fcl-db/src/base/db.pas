@@ -2112,7 +2112,7 @@ const
       {ftCursor} varError,
       {ftFixedChar} varOleStr,
       {ftWideString} varOleStr,
-      {ftLargeint} varError,
+      {ftLargeint} varint64,
       {ftADT} varError,
       {ftArray} varError,
       {ftReference} varError,
