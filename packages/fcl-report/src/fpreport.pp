@@ -48,6 +48,7 @@ type
   TFPReportUnits  = single; // Units are defined as Millimetres
   TFPReportScale  = single;
   TFPReportColor  = type UInt32;
+  TFPReportCullThreshold = 1..100;
 
   // A position in report units
   TFPReportPoint = record
@@ -1877,10 +1878,10 @@ type
     ExprNode: TFPExprNode;
   end;
 
-  { TFPReportCustomMemo }
 
   TFPReportCustomMemo = class(TFPReportElement)
   private
+    FCullThreshold: TFPReportCullThreshold;
     FText: TFPReportString;
     FIsExpr: boolean;
     FTextAlignment: TFPReportTextAlignment;
@@ -1905,6 +1906,7 @@ type
     FUseParentFont: Boolean;
     function    GetParentFont: TFPReportFont;
     procedure   HandleFontChange(Sender: TObject);
+    procedure   SetCullThreshold(AValue: TFPReportCullThreshold);
     procedure   SetText(AValue: TFPReportString);
     procedure   SetUseParentFont(AValue: Boolean);
     procedure   WrapText(const AText: String; var ALines: TStrings; const ALineWidth: TFPReportUnits; out AHeight: TFPReportUnits);
@@ -1929,9 +1931,10 @@ type
     procedure   AddMultipleTextBlocks(const AText: string);
     function    IsExprAtArrayPos(const APos: integer): Boolean;
     procedure   SetFont(const AValue: TFPReportFont);
+    procedure   CullTextOutOfBounds;
   protected
-    procedure ReassignParentFont;
-    procedure ParentFontChanged; override;
+    procedure   ReassignParentFont;
+    procedure   ParentFontChanged; override;
     function    CreateTextAlignment: TFPReportTextAlignment; virtual;
     function    GetExpr: TFPExpressionParser; virtual;
     procedure   RecalcLayout; override;
@@ -1939,7 +1942,7 @@ type
     procedure   ExpandExpressions;
     procedure   UpdateAggregates;
     function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
-    Procedure SetParent(const AValue: TFPReportElement); override;
+    procedure   SetParent(const AValue: TFPReportElement); override;
     property    Text: TFPReportString read FText write SetText;
     property    Font: TFPReportFont read FFont write SetFont;
     property    TextAlignment: TFPReportTextAlignment read FTextAlignment write SetTextAlignment;
@@ -1951,6 +1954,8 @@ type
     { Used by Runtime Memos - this is a reference back to the original design memo. }
     property    Original: TFPReportCustomMemo read FOriginal write FOriginal;
     property    UseParentFont: Boolean read FUseParentFont write SetUseParentFont default True;
+    { % of line height that should be visible, otherwise it's culled if StretchMode = smDontStretch. Valid range is 1-100% and default is 75%}
+    property    CullThreshold: TFPReportCullThreshold read FCullThreshold write SetCullThreshold default 75;
   protected
     // *****************************
     //   This block is made Protected simply for Unit Testing purposes.
@@ -1987,6 +1992,7 @@ type
 
   TFPReportMemo = class(TFPReportCustomMemo)
   published
+    property  CullThreshold;
     property  Font;
     property  LineSpacing;
     property  LinkColor;
@@ -3946,6 +3952,14 @@ begin
   Changed;
 end;
 
+procedure TFPReportCustomMemo.SetCullThreshold(AValue: TFPReportCullThreshold);
+begin
+  if FCullThreshold = AValue then
+    Exit;
+  FCullThreshold := AValue;
+  Changed;
+end;
+
 function TFPReportCustomMemo.GetParentFont: TFPReportFont;
 
 begin
@@ -4406,10 +4420,8 @@ end;
 { package the text into TextBlock objects. We don't apply Memo Margins here - that
   gets done in the Apply*TextAlignment() methods. }
 procedure TFPReportCustomMemo.PrepareTextBlocks;
-
 var
   i: integer;
-
 begin
   { blockstate is cleared outside the FOR loop because the font state could
     roll over to multiple lines. }
@@ -4818,6 +4830,41 @@ begin
   Changed;
 end;
 
+{ Only called if StretchMode = smDontStretch. This methods removes text that
+  will not fit in the space allocated for the Memo. }
+procedure TFPReportCustomMemo.CullTextOutOfBounds;
+var
+  i: integer;
+  lBlock: TFPTextBlock;
+  lRemainingHeight: single;
+  d: single;
+begin
+  for i := FTextBlockList.Count-1 downto 0 do
+  begin
+    lBlock := FTextBlockList[i];
+
+    if lBlock.Pos.Top >= Layout.Height then // completely out of bounds
+    begin
+      FTextBlockList.Delete(i);
+    end
+    else if (lBlock.Pos.Top + lBlock.Height + lBlock.Descender) > Layout.Height then // partially out of bounds
+    begin
+      lRemainingHeight :=  Layout.Height - lBlock.Pos.Top;
+      { calculate % of text [height] that falls inside the bounderies of the Memo. }
+      d := (lRemainingHeight / (lBlock.Height + lBlock.Descender)) * 100;
+
+      {$IFDEF gDEBUG}
+      writeln(Format('Memo Culling: %2.2f%% of line height is visible', [d]));
+      {$ENDIF}
+
+      if CullThreshold > d then
+      begin
+        FTextBlockList.Delete(i);
+      end;
+    end;
+  end;
+end;
+
 function TFPReportCustomMemo.CreateTextAlignment: TFPReportTextAlignment;
 begin
   Result := TFPReportTextAlignment.Create(self);
@@ -4897,15 +4944,12 @@ end;
 procedure TFPReportCustomMemo.RecalcLayout;
 
   Function CalcNeededHeight(aHeight : TFPReportUnits) : TFPReportUnits;
-
   begin
     Result :=((AHeight + LineSpacing) * TextLines.Count) + TextAlignment.TopMargin + TextAlignment.BottomMargin;
   end;
 
 var
   h: TFPReportUnits;
-
-
 begin
   FTextBlockList.Clear;
   FCurTextBlock := nil;
@@ -4923,6 +4967,8 @@ begin
     ApplyStretchMode(CalcNeededHeight(h));
 
   PrepareTextBlocks;
+  if StretchMode = smDontStretch then
+    CullTextOutOfBounds;
   ApplyVertTextAlignment;
   ApplyHorzTextAlignment;
 end;
@@ -4931,6 +4977,7 @@ procedure TFPReportCustomMemo.DoWriteLocalProperties(AWriter: TFPReportStreamer;
 begin
   inherited DoWriteLocalProperties(AWriter, AOriginal);
   AWriter.WriteString('Text', Text);
+  AWriter.WriteInteger('CullThreshold', CullThreshold);
 
   AWriter.WriteBoolean('UseParentFont', UseParentFont);
   if not UseParentFont then
@@ -5049,7 +5096,7 @@ begin
     ReassignParentFont;
 end;
 
-Procedure TFPReportCustomMemo.ReassignParentFont;
+procedure TFPReportCustomMemo.ReassignParentFont;
 
 Var
   F : TFPReportFont;
@@ -5089,6 +5136,7 @@ begin
   FUseParentFont := True;
   FFont := TFPReportFont.Create;
   FFont.OnChanged:=@HandleFontChange;
+  FCullThreshold := 75;
 end;
 
 destructor TFPReportCustomMemo.Destroy;
@@ -5110,6 +5158,7 @@ begin
   begin
     E := Source as TFPReportCustomMemo;
     Text := E.Text;
+    CullThreshold := E.CullThreshold;
     Font.Assign(E.Font);
     UseParentFont := E.UseParentFont;
     LineSpacing := E.LineSpacing;
@@ -5137,6 +5186,7 @@ begin
     end;
   end;
   FText := AReader.ReadString('Text', '');
+  FCullThreshold := AReader.ReadInteger('CullThreshold', CullThreshold);
   UseParentFont := AReader.ReadBoolean('UseParentFont', UseParentFont);
   if not UseParentFont then
     begin
