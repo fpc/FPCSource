@@ -2399,9 +2399,10 @@ function(){
 type
   TWrapper = class
   private
-    // let's assume this object has a $Handle and an $id
+    // let's assume this object has the properties "$Handle", "$id", and "0"
   public
     Id: NativeInt; external name '$Id';
+    x: NativeInt; external name '[0]';
     function GetState(typ: longint): NativeInt; external name '$Handle.GetState';
     procedure DoIt;
   end;
@@ -2413,7 +2414,8 @@ var
   W: TWrapper;
 Begin
   W.Id := 2;
-  W.GetState(3);
+  W.x := 3;
+  W.GetState(4);
 End.
 </pre>
           </td>
@@ -2430,7 +2432,8 @@ function(){
   this.W = null;
   $mod.$main = function(){
     $mod.W.$Id = 2;
-    $mod.W.$Handle.GetState(3);
+    $mod.W[0] = 3;
+    $mod.W.$Handle.GetState(4);
   };
 },
 []);
@@ -2439,6 +2442,9 @@ function(){
         </tr>
       </tbody>
     </table>
+    <ul>
+      <li>Non identifiers like "0" or "A B" must be enclosed in brackets.</li>
+    </ul>
     </div>
 
     <div class="section">

@@ -10381,35 +10381,40 @@ begin
     '  TObject = class',
     '  public',
     '    Intern: longint external name ''$Intern'';',
+    '    Bracket: longint external name ''["A B"]'';',
     '  end;',
     '']),
     LinesToStr([
     '']));
 
   StartUnit(true);
-  Add('interface');
-  Add('uses unit2;');
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TCar = class(tobject)');
-  Add('  public');
-  Add('    Intern2: longint external name ''$Intern2'';');
-  Add('    procedure DoIt;');
-  Add('  end;');
-  Add('implementation');
-  Add('procedure tcar.doit;');
-  Add('begin');
-  Add('  Intern:=Intern+1;');
-  Add('  Intern2:=Intern2+2;');
-  Add('end;');
-  Add('var Obj: TCar;');
-  Add('begin');
-  Add('  obj.intern:=obj.intern+1;');
-  Add('  obj.intern2:=obj.intern2+2;');
-  Add('  with obj do begin');
-  Add('    intern:=intern+1;');
-  Add('    intern2:=intern2+2;');
-  Add('  end;');
+  Add([
+  'interface',
+  'uses unit2;',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TCar = class(tobject)',
+  '  public',
+  '    Intern2: longint external name ''$Intern2'';',
+  '    procedure DoIt;',
+  '  end;',
+  'implementation',
+  'procedure tcar.doit;',
+  'begin',
+  '  Intern:=Intern+1;',
+  '  Intern2:=Intern2+2;',
+  '  Bracket:=Bracket+3;',
+  'end;',
+  'var Obj: TCar;',
+  'begin',
+  '  obj.intern:=obj.intern+1;',
+  '  obj.intern2:=obj.intern2+2;',
+  '  obj.Bracket:=obj.Bracket+3;',
+  '  with obj do begin',
+  '    intern:=intern+1;',
+  '    intern2:=intern2+2;',
+  '    Bracket:=Bracket+3;',
+  '  end;']);
   ConvertUnit;
   CheckSource('TestClass_ExternalVar',
     LinesToStr([
@@ -10418,15 +10423,18 @@ begin
     '    this.DoIt = function () {',
     '      this.$Intern = this.$Intern + 1;',
     '      this.$Intern2 = this.$Intern2 + 2;',
+    '      this["A B"] = this["A B"] + 3;',
     '    };',
     '  });',
     '']),
     LinesToStr([
     '$impl.Obj.$Intern = $impl.Obj.$Intern + 1;',
     '$impl.Obj.$Intern2 = $impl.Obj.$Intern2 + 2;',
+    '$impl.Obj["A B"] = $impl.Obj["A B"] + 3;',
     'var $with1 = $impl.Obj;',
     '$with1.$Intern = $with1.$Intern + 1;',
     '$with1.$Intern2 = $with1.$Intern2 + 2;',
+    '$with1["A B"] = $with1["A B"] + 3;',
     '']),
     LinesToStr([ // implementation
     '$impl.Obj = null;',

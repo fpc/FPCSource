@@ -1333,6 +1333,8 @@ type
   TDotContext = Class(TConvertContext)
   public
     LeftResolved: TPasResolverResult;
+    // created by ConvertElement if subident needs special translation:
+    JS: TJSElement;
   end;
 
   { TAssignContext - used for left side of an assign statement }
@@ -1343,7 +1345,7 @@ type
     LeftResolved: TPasResolverResult;
     RightResolved: TPasResolverResult;
     RightSide: TJSElement;
-    // created by ConvertElement:
+    // created by ConvertElement if assign needs a call:
     PropertyEl: TPasProperty;
     Setter: TPasElement;
     Call: TJSCallExpression;
@@ -1531,6 +1533,7 @@ type
     Function CreateLiteralBoolean(El: TPasElement; b: boolean): TJSLiteral; virtual;
     Function CreateLiteralNull(El: TPasElement): TJSLiteral; virtual;
     Function CreateLiteralUndefined(El: TPasElement): TJSLiteral; virtual;
+    Function CreateLiteralCustomValue(El: TPasElement; const s: TJSString): TJSLiteral; virtual;
     Function CreateSetLiteralElement(Expr: TPasExpr; AContext: TConvertContext): TJSElement; virtual;
     Procedure ConvertCharLiteralToInt(Lit: TJSLiteral; ErrorEl: TPasElement; AContext: TConvertContext); virtual;
     Function ClonePrimaryExpression(El: TJSPrimaryExpression; Src: TPasElement): TJSPrimaryExpression;
@@ -6087,6 +6090,7 @@ var
   RightRef: TResolvedReference;
   ParamsExpr: TParamsExpr;
   RightEl: TPasExpr;
+  RightRefDecl: TPasElement;
 begin
   Result:=nil;
 
@@ -6098,11 +6102,14 @@ begin
     RightEl:=ParamsExpr.Value;
     end;
 
+  RightRef:=nil;
+  RightRefDecl:=nil;
   if (RightEl.ClassType=TPrimitiveExpr)
       and (RightEl.CustomData is TResolvedReference) then
     begin
     RightRef:=TResolvedReference(RightEl.CustomData);
-    if IsExternalClassConstructor(RightRef.Declaration) then
+    RightRefDecl:=RightRef.Declaration;
+    if IsExternalClassConstructor(RightRefDecl) then
       begin
       if ParamsExpr<>nil then
         begin
@@ -6137,14 +6144,20 @@ begin
   Left:=ConvertElement(El.left,AContext);
   if Left=nil then
     RaiseInconsistency(20170201140821,El);
-
   AContext.Access:=OldAccess;
+
   // convert right side
   DotContext:=TDotContext.Create(El,Left,AContext);
   Right:=nil;
   try
     DotContext.LeftResolved:=LeftResolved;
     Right:=ConvertElement(El.right,DotContext);
+    if DotContext.JS<>nil then
+      begin
+      Left:=nil;
+      Right:=nil;
+      exit(DotContext.JS);
+      end;
   finally
     DotContext.Free;
     if Right=nil then
@@ -6358,6 +6371,7 @@ var
   FuncScope: TPas2JSProcedureScope;
   Value: TResEvalValue;
   aResolver: TPas2JSResolver;
+  BracketExpr: TJSBracketMemberExpression;
 begin
   Result:=nil;
   if not (El.CustomData is TResolvedReference) then
@@ -6467,6 +6481,7 @@ begin
     begin
     if TPasConst(Decl).IsConst and (TPasConst(Decl).Expr<>nil) then
       begin
+      // const with expression
       Value:=aResolver.Eval(TPasConst(Decl).Expr,[refConst]);
       if (Value<>nil)
           and (Value.Kind in [revkNil,revkBool,revkInt,revkUInt,revkFloat,revkEnum]) then
@@ -6478,7 +6493,7 @@ begin
         end;
       if vmExternal in TPasConst(Decl).VarModifiers then
         begin
-        // external constant are always added by value, not by reference
+        // external constant with expression is always added by value, not by reference
         Result:=ConvertElement(TPasConst(Decl).Expr,AContext);
         exit;
         end;
@@ -6550,8 +6565,28 @@ begin
     Name:=AContext.GetLocalName(Decl)
   else
     Name:=CreateReferencePath(Decl,AContext,rpkPathAndName,false,Ref);
+  if Name='' then
+    RaiseNotSupported(El,AContext,20180509134804,GetObjName(Decl));
+
   if Result=nil then
+    begin
+    if (Name[1]='[') and (Name[length(Name)]=']')
+        and (AContext is TDotContext)
+        and (AContext.JSElement<>nil) then
+      begin
+      // e.g. Obj.A  and A is defined as: A: t external name '["name"]';
+      // -> Obj["name"]
+      if IsImplicitCall then
+        RaiseNotSupported(El,AContext,20180509134951,Name);
+      BracketExpr:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+      TDotContext(AContext).JS:=BracketExpr;
+      BracketExpr.MExpr:=AContext.JSElement;
+      Result:=CreateLiteralCustomValue(El,TJSString(copy(Name,2,length(Name)-2)));
+      BracketExpr.Name:=Result;
+      exit;
+      end;
     Result:=CreatePrimitiveDotExpr(Name,El);
+    end;
 
   if IsImplicitCall then
     CallImplicit(Decl);
@@ -7272,7 +7307,7 @@ var
         begin
         AccessEl:=aResolver.GetPasPropertySetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
-            exit;
+          exit;
         AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
         AssignContext.Setter:=AccessEl;
@@ -7410,6 +7445,8 @@ var
       DotContext:=TDotContext.Create(El.Value,Left,AContext);
       DotContext.LeftResolved:=ResolvedEl;
       ConvertIndexedProperty(Prop,DotContext);
+      if DotContext.JS<>nil then
+        RaiseNotSupported(El,AContext,20180509134226,GetObjName(DotContext.JS));
       Right:=Result;
       Result:=nil;
     finally
@@ -13057,8 +13094,13 @@ begin
     AssignSt.LHS:=ConvertElement(El.VariableName,AContext); // beware: might fail
 
     DotContext:=TDotContext.Create(El.StartExpr,nil,AContext);
-    GetCurrent:=CreatePropertyGet(CurrentProp,nil,DotContext,PosEl); // beware: might fail
-    FreeAndNil(DotContext);
+    try
+      GetCurrent:=CreatePropertyGet(CurrentProp,nil,DotContext,PosEl); // beware: might fail
+      if DotContext.JS<>nil then
+        RaiseNotSupported(El,AContext,20180509134302,GetObjName(DotContext.JS));
+    finally
+      FreeAndNil(DotContext);
+    end;
     AssignSt.Expr:=CreateDotExpression(PosEl,CreateInName,GetCurrent,true);
 
     // add body
@@ -16213,6 +16255,13 @@ begin
   Result.Value.IsUndefined:=true;
 end;
 
+function TPasToJSConverter.CreateLiteralCustomValue(El: TPasElement;
+  const s: TJSString): TJSLiteral;
+begin
+  Result:=TJSLiteral(CreateElement(TJSLiteral,El));
+  Result.Value.CustomValue:=s;
+end;
+
 function TPasToJSConverter.CreateSetLiteralElement(Expr: TPasExpr;
   AContext: TConvertContext): TJSElement;
 var
@@ -16533,7 +16582,7 @@ function TPasToJSConverter.CreateReferencePath(El: TPasElement;
 
   procedure Prepend(var aPath: string; Prefix: string);
   begin
-    if aPath<>'' then
+    if (aPath<>'') and (aPath[1]<>'[') then
       aPath:='.'+aPath;
     aPath:=Prefix+aPath;
   end;
@@ -16789,10 +16838,21 @@ begin
       ParentEl:=ParentEl.Parent;
       end;
     end;
-  if (Result<>'') and (Kind in [rpkPathWithDot,rpkPathAndName]) then
-    Result:=Result+'.';
-  if Kind=rpkPathAndName then
-    Result:=Result+TransformVariableName(El,AContext);
+
+  case Kind of
+  rpkPathWithDot:
+    if Result<>'' then Result:=Result+'.';
+  rpkPathAndName:
+    begin
+    ShortName:=TransformVariableName(El,AContext);
+    if Result='' then
+      Result:=ShortName
+    else if (ShortName<>'') and (ShortName[1] in ['[','(']) then
+      Result:=Result+ShortName
+    else
+      Result:=Result+'.'+ShortName;
+    end;
+  end;
 end;
 
 function TPasToJSConverter.CreateReferencePathExpr(El: TPasElement;
