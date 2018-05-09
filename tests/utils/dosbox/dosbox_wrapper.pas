@@ -93,6 +93,17 @@ begin
   end;
 end;
 
+{ File names in Config entries assume that
+  executables have no suffix }
+function TargetFileExists(AName : string) : boolean;
+begin
+  result:=SysUtils.FileExists(AName);
+  if not result then
+    result:=SysUtils.FileExists(AName+'.exe');
+  if not result then
+    result:=SysUtils.FileExists(AName+'.EXE');
+end;
+
 procedure CopyFile(ASrcFileName, ADestFileName: string);
 var
   SrcF, DestF: File;
@@ -108,29 +119,34 @@ begin
       ADestFileName:=ADestFileName+'.exe';
     end;
   if verbose then
-    Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
+    Writeln('CopyFile "', ASrcFileName, '" -> "', ADestFileName,'"');
   OldFileMode := FileMode;
   try
-    AssignFile(SrcF, ASrcFileName);
-    AssignFile(DestF, ADestFileName);
-    FileMode := fmOpenRead;
-    Reset(SrcF, 1);
     try
-      FileMode := fmOpenWrite;
+      AssignFile(SrcF, ASrcFileName);
+      AssignFile(DestF, ADestFileName);
+      FileMode := fmOpenRead;
+      Reset(SrcF, 1);
       try
-        Rewrite(DestF, 1);
-        repeat
-          BlockRead(SrcF, Buf, SizeOf(Buf), BytesRead);
-          BlockWrite(DestF, Buf, BytesRead);
-        until BytesRead < SizeOf(Buf);
+        FileMode := fmOpenWrite;
+        try
+          Rewrite(DestF, 1);
+          repeat
+            BlockRead(SrcF, Buf, SizeOf(Buf), BytesRead);
+            BlockWrite(DestF, Buf, BytesRead);
+          until BytesRead < SizeOf(Buf);
+        finally
+          CloseFile(DestF);
+        end;
       finally
-        CloseFile(DestF);
+        CloseFile(SrcF);
       end;
     finally
-      CloseFile(SrcF);
+      FileMode := OldFileMode;
     end;
-  finally
-    FileMode := OldFileMode;
+  except
+   on E : Exception do
+     writeln('Error: '+ E.ClassName + #13#10 + E.Message );
   end;
 end;
 
@@ -192,6 +208,8 @@ var
         begin
           LocalFile:=Trim(GetToken(fl, [' ',',',';']));
           Result.Add(LocalFile);
+          if verbose then
+            writeln('Adding file ',LocalFile,' from Config.Files');
         end;
 
       if Config.ConfigFileSrc<>'' then
@@ -200,18 +218,24 @@ var
             Result.AddObject(Config.ConfigFileSrc,RelativeToConfigMarker)
           else
             Result.AddObject(Config.ConfigFileSrc+'='+Config.ConfigFileDst,RelativeToConfigMarker);
+          if verbose then
+            writeln('Adding config file Src=',Config.ConfigFileSrc,' Dst=',Config.ConfigFileDst);
         end;
       while dfl <> '' do
         begin
           LocalFile:=Trim(GetToken(dfl, [' ',',',';']));
           Result.Add(LocalFile);
+          if verbose then
+            writeln('Adding file ',LocalFile,' from Config.DelFiles');
         end;
      end;
 
 var
   ddir : string;
+  param1_dir : string;
 begin
-  if not IsAbsolute(SourceFileName) and not FileExists(SourceFileName) then
+  param1_dir:=ExtractFilePath(ParamStr(1));
+  if not IsAbsolute(SourceFileName) and not TargetFileExists(SourceFileName) then
     begin
       ddir:=GetEnvironmentVariable('BASEDIR');
       if ddir='' then
@@ -219,7 +243,7 @@ begin
       // writeln('Start ddir=',ddir);
       while (ddir<>'') do
         begin
-          if FileExists(ddir+DirectorySeparator+SourceFileName) then
+          if TargetFileExists(ddir+DirectorySeparator+SourceFileName) then
             begin
               SourceFileName:=ddir+DirectorySeparator+SourceFileName;
               break;
@@ -235,8 +259,8 @@ begin
               // writeln('Next ddir=',ddir);
             end;
         end;
-     end;
-  if not FileExists(SourceFileName) then
+    end;
+  if not TargetFileExists(SourceFileName) then
     begin
       writeln('File ',SourceFileName,' not found');
       exit;
@@ -270,7 +294,10 @@ begin
             s:='config/'+LocalFile
           else
             s:=LocalPath+LocalFile;
-          CopyFile(s,DosBoxDir+DirectorySeparator+RemoteFile);
+          if not TargetFileExists(s) then
+            if TargetFileExists(param1_dir+DirectorySeparator+LocalFile) then
+              s:=param1_dir+DirectorySeparator+LocalFile;
+          CopyFile(s,DosBoxDir+RemoteFile);
           TmpFileList.Add(RemoteFile);
         end;
       FileList.Free;
@@ -374,10 +401,54 @@ begin
 end;
 
 
-procedure DeleteIfExists(const AFileName: string);
+function DeleteIfExists(const AFileName: string) : boolean;
 begin
+  result:=false;
   if FileExists(AFileName) then
-    DeleteFile(AFileName);
+    result:=DeleteFile(AFileName);
+  if not result and FileExists(AFileName+'.exe') then
+    result:=DeleteFile(AFileName+'.exe');
+  if not result and FileExists(AFileName+'.EXE') then
+    result:=DeleteFile(AFileName+'.EXE');
+end;
+
+{ RemoveDir, with removal of files or subdirectories inside first.
+  ADirName is supposed to finish with DirectorySeparator }
+function RemoveDir(const ADirName: string) : boolean;
+var
+  Info : TSearchRec;
+begin
+  Result:=true;
+  If FindFirst (AdirName+'*',faAnyFile and faDirectory,Info)=0 then
+    begin
+      repeat
+        with Info do
+          begin
+           If (Attr and faDirectory) = faDirectory then
+             begin
+               { Skip present and parent directory }
+               if (Name<>'..') and (Name<>'.') then
+                 if not RemoveDir(ADirName+Name+DirectorySeparator) then
+                   begin
+                     writeln('Failed to remove dir '+ADirName+Name+DirectorySeparator);
+                     result:=false;
+                     FindClose(Info);
+                     exit;
+                   end;
+             end
+          else
+            if not DeleteFile(ADirName+Name) then
+              begin
+                writeln('Failed to remove file '+ADirName+Name);
+                result:=false;
+                FindClose(Info);
+                exit;
+              end;
+        end;
+    Until FindNext(info)<>0;
+    end;
+  FindClose(Info);
+  RemoveDir:=SysUtils.RemoveDir(ADirName);
 end;
 
 procedure Cleanup(const ADosBoxDir: string);
