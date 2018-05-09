@@ -750,7 +750,7 @@ begin
             end
           else
             // *path/const
-            if not ((VPat='') and (VLeftPat='')) and (VPat<>VVal) then
+            if not ((VPat='') and (VLeftPat='')) and Not SameText(VPat,VVal) then
               Exit;
           // Check if we already done
           if (VLeftPat='') or (VLeftVal='') then
@@ -767,7 +767,7 @@ begin
         end
       else
         // const
-        if (VPat <> VVal) then
+        if Not SameText(VPat,VVal) then
           Exit;
     // Check if we already done
     if (VRightPat='') or (VRightVal='') then
