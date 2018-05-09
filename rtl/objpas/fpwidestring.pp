@@ -742,7 +742,7 @@ begin
   end;
   if (l2=0) then
     exit(-l1);
-  Result := InternalCompareStrAnsiString(@S1[1],@S2[2],l1,l2);
+  Result := InternalCompareStrAnsiString(@S1[1],@S2[1],l1,l2);
 end;
 
 function CompareTextAnsiString(const S1, S2: ansistring): PtrInt;
