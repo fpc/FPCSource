@@ -72,6 +72,7 @@ const
   nSrcMapSourceRootIs = 134; sSrcMapSourceRootIs = 'source map "sourceRoot" is %s';
   nSrcMapBaseDirIs = 135; sSrcMapBaseDirIs = 'source map "local base directory" is %s';
   nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found "%s"';
+  // Note: error numbers 201+ are used by Pas2jsFileCache
 
 //------------------------------------------------------------------------------
 // Options
@@ -79,6 +80,7 @@ type
   TP2jsCompilerOption = (
     coSkipDefaultConfigs,
     coBuildAll,
+    // verbosity
     coShowLogo,
     coShowErrors,
     coShowWarnings,
@@ -86,25 +88,33 @@ type
     coShowHints,
     coShowInfos,
     coShowLineNumbers,
+    coShowTriedUsedFiles,
     coShowConditionals,
     coShowUsedTools,
     coShowMessageNumbers, // not in "show all"
     coShowDebug,    // not in "show all"
+    // checks
     coOverflowChecks,
     coRangeChecks,
     coObjectChecks,
     coAssertions,
+    // features
     coAllowCAssignments,
+    // output
     coLowerCase,
+    coUseStrict,
+    coWriteMsgToStdErr,
+    // optimizations
     coEnumValuesAsNumbers,
     coKeepNotUsedPrivates,
     coKeepNotUsedDeclarationsWPO,
+    // source map
     coSourceMapCreate,
     coSourceMapInclude,
-    coSourceMapXSSIHeader,
-    coUseStrict
+    coSourceMapXSSIHeader
     );
   TP2jsCompilerOptions = set of TP2jsCompilerOption;
+  TP2jsOptimization = coEnumValuesAsNumbers..coKeepNotUsedDeclarationsWPO;
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
   coShowAll = [coShowErrors..coShowUsedTools];
@@ -112,7 +122,7 @@ const
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
 
   p2jscoCaption: array[TP2jsCompilerOption] of string = (
-    // only used by experts, no need for resourcestrings
+    // only used by experts or programs parsing the pas2js output, no need for resourcestrings
     'Skip default configs',
     'Build all',
     'Show logo',
@@ -122,6 +132,7 @@ const
     'Show hints',
     'Show infos',
     'Show line numbers',
+    'Show tried/used files',
     'Show conditionals',
     'Show used tools',
     'Show message numbers',
@@ -132,13 +143,14 @@ const
     'Assertions',
     'Allow C assignments',
     'Lowercase identifiers',
+    'Use strict',
+    'Write messages to StdErr',
     'Enum values as numbers',
     'Keep not used private declarations',
     'Keep not used declarations (WPO)',
     'Create source map',
     'Include Pascal sources in source map',
-    'Prepend XSSI protection )]} to source map',
-    'Use strict'
+    'Prepend XSSI protection )]} to source map'
     );
 
 //------------------------------------------------------------------------------
@@ -375,6 +387,7 @@ type
     function GetSrcMapEnable: boolean;
     function GetSrcMapInclude: boolean;
     function GetSrcMapXSSIHeader: boolean;
+    function GetWriteMsgToStdErr: boolean;
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
     function OnMacroEnv(Sender: TObject; var Params: string; Lvl: integer
@@ -395,6 +408,7 @@ type
     procedure SetSrcMapXSSIHeader(const AValue: boolean);
     procedure SetTargetPlatform(const AValue: TPasToJsPlatform);
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
+    procedure SetWriteMsgToStdErr(const AValue: boolean);
   private
     FPrecompileInitialFlags: TPCUInitialFlags;
     procedure AddDefinesForTargetPlatform;
@@ -497,6 +511,7 @@ type
     property TargetPlatform: TPasToJsPlatform read FTargetPlatform write SetTargetPlatform;
     property TargetProcessor: TPasToJsProcessor read FTargetProcessor write SetTargetProcessor;
     property WPOAnalyzer: TPas2JSWPOptimizer read FWPOAnalyzer; // Whole Program Optimization
+    property WriteMsgToStdErr: boolean read GetWriteMsgToStdErr write SetWriteMsgToStdErr;
     property ExitCode: longint read GetExitCode write SetExitCode;
   end;
 
@@ -1098,7 +1113,8 @@ begin
     HandleEPCUReader(EPas2JsReadError(E))
   else if E is EFileNotFoundError then
   begin
-    Log.Log(mtFatal,E.Message);
+    if (E.Message<>'') or (Log.LastMsgType<>mtFatal) then
+      Log.Log(mtFatal,E.Message);
     Compiler.Terminate(ExitCodeFileNotFound);
   end
   else if E is EPas2jsFileCache then
@@ -2334,7 +2350,15 @@ begin
     if (aFile.JSFilename='') and (FileCache.MainJSFile='.') then
     begin
       // write to stdout
-      Log.LogRaw(aFileWriter.AsAnsistring);
+      if FreeWriter then
+      begin
+        Log.WriteMsgToStdErr:=false;
+        try
+          Log.LogRaw(aFileWriter.AsAnsistring);
+        finally
+          Log.WriteMsgToStdErr:=coWriteMsgToStdErr in Options;
+        end;
+      end;
     end else if FreeWriter then
     begin
       // write to file
@@ -2504,7 +2528,7 @@ end;
 
 function TPas2jsCompiler.GetShowTriedUsedFiles: boolean;
 begin
-  Result:=FileCache.ShowTriedUsedFiles;
+  Result:=coShowTriedUsedFiles in FOptions;
 end;
 
 function TPas2jsCompiler.GetShowUsedTools: boolean;
@@ -2537,6 +2561,11 @@ begin
   Result:=coSourceMapXSSIHeader in FOptions;
 end;
 
+function TPas2jsCompiler.GetWriteMsgToStdErr: boolean;
+begin
+  Result:=coWriteMsgToStdErr in FOptions;
+end;
+
 procedure TPas2jsCompiler.SetCompilerExe(AValue: string);
 begin
   if AValue<>'' then
@@ -2561,6 +2590,7 @@ begin
   FOptions:=AValue;
   Log.ShowMsgNumbers:=coShowMessageNumbers in FOptions;
   Log.ShowMsgTypes:=GetShownMsgTypes;
+  FileCache.ShowTriedUsedFiles:=coShowTriedUsedFiles in FOptions;
 end;
 
 procedure TPas2jsCompiler.SetShowDebug(AValue: boolean);
@@ -2584,6 +2614,7 @@ end;
 procedure TPas2jsCompiler.SetShowTriedUsedFiles(AValue: boolean);
 begin
   FileCache.ShowTriedUsedFiles:=AValue;
+  SetOption(coShowTriedUsedFiles,AValue);
 end;
 
 procedure TPas2jsCompiler.SetShowUsedTools(AValue: boolean);
@@ -2632,6 +2663,12 @@ begin
   RemoveDefine(PasToJsProcessorNames[TargetProcessor]);
   FTargetProcessor:=AValue;
   AddDefinesForTargetProcessor;
+end;
+
+procedure TPas2jsCompiler.SetWriteMsgToStdErr(const AValue: boolean);
+begin
+  SetOption(coWriteMsgToStdErr,AValue);
+  Log.WriteMsgToStdErr:=AValue;
 end;
 
 procedure TPas2jsCompiler.AddDefinesForTargetPlatform;
@@ -2923,9 +2960,9 @@ var
   EnabledFlags, DisabledFlags, Identifier, Value, aFilename, ErrorMsg: string;
   i: Integer;
   c: Char;
-  aProc: TPasToJsProcessor;
+  aProc, pr: TPasToJsProcessor;
   Enable, Found: Boolean;
-  aPlatform: TPasToJsPlatform;
+  aPlatform, pl: TPasToJsPlatform;
   PF: TPas2JSPrecompileFormat;
 begin
   //writeln('TPas2jsCompiler.ReadParam ',Param,' ',Quick,' ',FromCmdLine);
@@ -2998,12 +3035,28 @@ begin
                 ParamFatal('unknown info option S"'+p^+'" in "'+Param+'".');
               end;
               end;
+            'c':
+              // write list of supported JS processors
+              for pr in TPasToJsProcessor do
+                Log.LogPlain(PasToJsProcessorNames[pr]);
+            'o':
+              begin
+              // write list of optimizations
+              Log.LogPlain('EnumNumbers');
+              Log.LogPlain('RemoveNotUsedPrivates');
+              Log.LogPlain('RemoveNotUsedDeclarations');
+              end;
+            't':
+              // write list of supported targets
+              for pl in TPasToJsPlatform do
+                Log.LogPlain(PasToJsPlatformNames[pl]);
             else
               ParamFatal('unknown info option "'+p^+'" in "'+Param+'".');
             end;
             inc(p);
           until false;
-          Log.LogPlain(Value);
+          if Value<>'' then
+            Log.LogPlain(Value);
           Terminate(0);
         end;
       'B','l','n':
@@ -3332,10 +3385,8 @@ begin
       if not FromCmdLine then
         CfgSyntaxError('invalid parameter');
       if FileCache.MainSrcFile<>'' then
-        ParamFatal('Two Pascal files. Only one Pascal file is supported.');
+        ParamFatal('Only one Pascal file is supported, but got "'+FileCache.MainSrcFile+'" and "'+Param+'".');
       aFilename:=ExpandFileNameUTF8(Param,FileCache.BaseDirectory);
-      if not DirectoryCache.FileExists(aFilename) then
-        ParamFatal('Pascal file not found: "'+Param+'"');
       FileCache.MainSrcFile:=aFilename;
     end;
   end;
@@ -3468,6 +3519,7 @@ begin
     'd': ShowDebug:=true;
     'q': Options:=Options+[coShowMessageNumbers];
     'x': Options:=Options+[coShowUsedTools];
+    'z': WriteMsgToStdErr:=true;
     end;
   end;
   for i:=1 to length(Disabled) do begin
@@ -3486,6 +3538,7 @@ begin
     'd': ShowDebug:=false;
     'q': Options:=Options-[coShowMessageNumbers];
     'x': Options:=Options-[coShowUsedTools];
+    'z': WriteMsgToStdErr:=false;
     end;
   end;
 end;
@@ -3704,6 +3757,7 @@ begin
   AddDefinesForTargetProcessor;
   // add FPC compatibility flags
   AddDefine('FPC_HAS_FEATURE_CLASSES');
+  AddDefine('FPC_HAS_FEATURE_INIT');
   AddDefine('FPC_HAS_FEATURE_DYNARRAYS');
   AddDefine('FPC_HAS_FEATURE_EXCEPTIONS');
   AddDefine('FPC_HAS_FEATURE_EXITCODE');
@@ -3769,6 +3823,8 @@ begin
 
   if FileCache.MainSrcFile='' then
     ParamFatal('No source file name in command line');
+  if not DirectoryCache.FileExists(FileCache.MainSrcFile) then
+    ParamFatal('Pascal file not found: "'+FileCache.MainSrcFile+'"');
 
   // compile
   try
@@ -3857,19 +3913,24 @@ begin
   l('  -B      : Rebuild all');
   l('  -d<x>   : Defines the symbol <x>. Optional: -d<x>:=<value>');
   l('  -i<x>   : Write information and halt. <x> is a combination of the following:');
-  l('    D     : Write compiler date');
-  l('    SO    : Write compiler OS');
-  l('    SP    : Write compiler host processor');
-  l('    TO    : Write target platform');
-  l('    TP    : Write target processor');
-  l('    V     : Write short compiler version');
-  l('    W     : Write full compiler version');
+  l('    -iD   : Write compiler date');
+  l('    -iSO  : Write compiler OS');
+  l('    -iSP  : Write compiler host processor');
+  l('    -iTO  : Write target platform');
+  l('    -iTP  : Write target processor');
+  l('    -iV   : Write short compiler version');
+  l('    -iW   : Write full compiler version');
+  l('    -ic   : Write list of supported JS processors usable by -P<x>');
+  l('    -io   : Write list of supported optimizations usable by -Oo<x>');
+  l('    -it   : Write list of supported targets usable by -T<x>');
   l('  -C<x>   : Code generation options. <x> is a combination of the following letters:');
-  l('    o     : Overflow checking');
+  // -C3        Turn on ieee error checking for constants
+  l('    o     : Overflow checking of integer operations');
+  // -CO        Check for possible overflow of integer operations
   l('    r     : Range checking');
   l('    R     : Object checks. Verify method calls and object type casts.');
   l('  -F...   Set file names and paths:');
-  l('   -Fe<x> : Redirect output to <x>. UTF-8 encoded.');
+  l('   -Fe<x> : Redirect output to file <x>. UTF-8 encoded.');
   l('   -Fi<x> : Add <x> to include paths');
   l('   -FN<x> : add <x> to namespaces. Namespaces with trailing - are removed.');
   l('            Delphi calls this flag "unit scope names".');
@@ -3944,6 +4005,7 @@ begin
   l('    d     : show debug notes and info, enables -vni');
   l('    q     : show message numbers');
   l('    x     : show used tools');
+  l('    z     : write messages to stderr, -o. still uses stdout.');
   l('  -vm<x>,<y>: Do not show messages numbered <x> and <y>.');
   l('  -?      : Show this help');
   l('  -h      : Show this help');
@@ -4029,6 +4091,8 @@ begin
     WriteFolder('foreign unit path',FileCache.ForeignUnitPaths[i]);
   for i:=0 to FileCache.UnitPaths.Count-1 do
     WriteFolder('unit path',FileCache.UnitPaths[i]);
+  for i:=0 to FileCache.Namespaces.Count-1 do
+    Log.LogMsgIgnoreFilter(nUsingPath,['unit scope',FileCache.Namespaces[i]]);
   for i:=0 to FileCache.IncludePaths.Count-1 do
     WriteFolder('include path',FileCache.IncludePaths[i]);
   WriteFolder('unit output path',FileCache.UnitOutputPath);

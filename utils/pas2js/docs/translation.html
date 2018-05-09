@@ -122,20 +122,23 @@ Put + after a boolean switch option to enable it, - to disable it
   @&lt;x&gt;    : Read compiler options from file &lt;x&gt; in addition to the default pas2js.cfg
   -B      : Rebuild all
   -d&lt;x&gt;   : Defines the symbol &lt;x&gt;. Optional: -d&lt;x&gt;:=&lt;value&gt;
-  -i&lt;x&gt;   : Write information and halt. &lt;x&gt; is a combination of the following letters:
-    D     : Write compiler date
-    SO    : Write compiler OS
-    SP    : Write compiler host processor
-    TO    : Write target platform
-    TP    : Write target processor
-    V     : Write short compiler version
-    W     : Write full compiler version
+  -i&lt;x&gt;   : Write information and halt. &lt;x&gt; is a combination of the following:
+    -iD   : Write compiler date
+    -iSO  : Write compiler OS
+    -iSP  : Write compiler host processor
+    -iTO  : Write target platform
+    -iTP  : Write target processor
+    -iV   : Write short compiler version
+    -iW   : Write full compiler version
+    -ic   : Write list of supported JS processors usable by -P&lt;x&gt;
+    -io   : Write list of supported optimizations usable by -Oo&lt;x&gt;
+    -it   : Write list of supported targets usable by -T&lt;x&gt;
   -C&lt;x&gt;   : Code generation options. &lt;x&gt; is a combination of the following letters:
     o     : Overflow checking
     r     : Range checking
     R     : Object checks. Verify method calls and object type casts.
   -F...   Set file names and paths:
-   -Fe&lt;x&gt; : Redirect output to &lt;x&gt;
+   -Fe&lt;x&gt; : Redirect output to file &lt;x&gt;. UTF-8 encoded.
    -Fi&lt;x&gt; : Add &lt;x&gt; to include paths
    -FN&lt;x&gt; : add &lt;x&gt; to namespaces. Namespaces with trailing - are removed.
                   Delphi calls this flag "unit scope names".
@@ -148,6 +151,7 @@ Put + after a boolean switch option to enable it, - to disable it
      -Jeconsole : Console codepage. Default.
      -Jesystem  : System codepage. On non Windows console and system are the same.
      -Jeutf-8   : Unicode UTF-8. Default when using -Fe.
+     -JeJSON    : Output compiler messages as JSON. Logo etc are outputted as-is.
    -Ji&lt;x&gt; : Insert JS file &lt;x&gt; into main JS file. E.g. -Jirtl.js. Can be given multiple times.
    -Jl    : lower case identifiers
    -Jm    : generate source maps
@@ -201,6 +205,7 @@ Put + after a boolean switch option to enable it, - to disable it
     d     : show debug notes and info, enables -vni
     q     : show message numbers
     x     : show used tools
+    z     : write messages to stderr, -o. still uses stdout.
   -vm&lt;x&gt;,&lt;y&gt;: Do not show messages numbered &lt;x&gt; and &lt;y&gt;.
   -?      : Show this help
   -h      : Show this help

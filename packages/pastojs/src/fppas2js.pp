@@ -344,6 +344,13 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
+- -SI<x>     Set interface style to <x>
+         -SIcom     COM compatible interface (default)
+         -SIcorba   CORBA compatible interface
+-Sm        Support macros like C (global)
+-Sy        @<pointer> returns a typed pointer, same as $T+
+- writestr(out s: string; args); varargs;
+- widestrings + FPC_HAS_FEATURE_WIDESTRINGS + FPC_WIDESTRING_EQUAL_UNICODESTRING
 - check rtl.js version
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
@@ -360,6 +367,7 @@ ToDos:
 - interfaces
   - array of interface
   - record member interface
+- remove cmsIgnoreInterfaces from codetools
 
 Not in Version 1.0:
 - make records more lightweight
@@ -381,6 +389,9 @@ Not in Version 1.0:
 - constref
 - option overflow checking -Co
   +, -, *, Succ, Pred, Inc, Dec
+  -Co   : Overflow checking of integer operations
+  -CO   : Check for possible overflow of integer operations
+-C3 : Turn on ieee error checking for constants
 - optimizations:
   - move rtl.js functions to system.pp
   - less brackets on logical and/or/xor, add
@@ -394,6 +405,8 @@ Not in Version 1.0:
   - skip clone array for new array and arraysetlength
   - SetLength(scope.a,l) -> read scope only once, same for
     Include, Exclude, Inc, Dec, +=, -=, *=, /=
+  - inline  -Si
+  - autoinline
   -O1 insert local/unit vars for global type references:
       at start of intf var $r1=null;
       at end of impl: $r1=path;
@@ -401,6 +414,10 @@ Not in Version 1.0:
   -O1 no function Result var when assigned only once
   -O1 replace constant expression with result
   -O1 pass array element by ref: when index is constant, use that directly
+  -O1 case-of with 6+ elements as binary tree
+  -O2 removeemptyprocs
+  -O2 CSE
+  -O3 DFA
 - objects
 - advanced records
   - TPasClassRecordType as ancestor

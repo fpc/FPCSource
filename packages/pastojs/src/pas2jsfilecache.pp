@@ -35,6 +35,7 @@ const // Messages
   nSearchingFileFound = 203; sSearchingFileFound = 'Searching file: %s... found';
   nSearchingFileNotFound = 204; sSearchingFileNotFound = 'Searching file: %s... not found';
   nDuplicateFileFound = 205; sDuplicateFileFound = 'Duplicate file found: "%s" and "%s"';
+  nCustomJSFileNotFound = 206; sCustomJSFileNotFound = 'custom JS file not found: "%s"';
 
 type
   EPas2jsFileCache = class(Exception);
@@ -271,6 +272,7 @@ type
     FMainJSFile: string;
     FMainJSFileResolved: string; // only valid if cfsMainJSFileResolved in FStates
     FMainSrcFile: string;
+    FMainSrcFileShort: string;
     FNamespaces: TStringList;
     FNamespacesFromCmdLine: integer;
     FOnReadFile: TPas2jsReadFileEvent;
@@ -338,6 +340,7 @@ type
     property InsertFilenames: TStringList read FInsertFilenames;
     property Log: TPas2jsLogger read FLog;
     property MainJSFile: string read FMainJSFile write SetMainJSFile;
+    property MainSrcFileShort: string read FMainSrcFileShort write FMainSrcFileShort;
     property MainSrcFile: string read FMainSrcFile write FMainSrcFile;
     property Namespaces: TStringList read FNamespaces;
     property NamespacesFromCmdLine: integer read FNamespacesFromCmdLine;
@@ -1505,6 +1508,7 @@ begin
   Log.RegisterMsg(mtInfo,nSearchingFileFound,sSearchingFileFound);
   Log.RegisterMsg(mtInfo,nSearchingFileNotFound,sSearchingFileNotFound);
   Log.RegisterMsg(mtFatal,nDuplicateFileFound,sDuplicateFileFound);
+  Log.RegisterMsg(mtFatal,nCustomJSFileNotFound,sCustomJSFileNotFound);
 end;
 
 function TPas2jsFilesCache.GetAllJSIntoMainJS: Boolean;
@@ -1977,7 +1981,10 @@ begin
     for i:=0 to InsertFilenames.Count-1 do begin
       Filename:=FileResolver.FindCustomJSFileName(ResolveDots(InsertFilenames[i]));
       if Filename='' then
-        raise EFileNotFoundError.Create('invalid custom JS file name "'+InsertFilenames[i]+'"');
+      begin
+        Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
+        raise EFileNotFoundError.Create('');
+      end;
       aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;
       aWriter.WriteFile(aFile.Source,Filename);

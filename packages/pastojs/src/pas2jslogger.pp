@@ -76,6 +76,7 @@ type
     FShowMsgNumbers: boolean;
     FShowMsgTypes: TMessageTypes;
     FSorted: boolean;
+    FWriteMsgToStdErr: boolean;
     function GetMsgCount: integer;
     function GetMsgNumberDisabled(MsgNumber: integer): boolean;
     function GetMsgs(Index: integer): TPas2jsMessage; inline;
@@ -124,6 +125,7 @@ type
     property OutputFilename: string read FOutputFilename write SetOutputFilename;
     property ShowMsgNumbers: boolean read FShowMsgNumbers write FShowMsgNumbers;
     property ShowMsgTypes: TMessageTypes read FShowMsgTypes write FShowMsgTypes;
+    property WriteMsgToStdErr: boolean read FWriteMsgToStdErr write FWriteMsgToStdErr;
     property Sorted: boolean read FSorted write SetSorted;
     property OnLog: TPas2jsLogEvent read FOnLog write FOnLog;
     property LastMsgType: TMessageType read FLastMsgType write FLastMsgType;
@@ -541,7 +543,10 @@ begin
     // prevent codepage conversion magic
     SetCodePage(RawByteString(S), CP_OEMCP, False);
     {AllowWriteln}
-    writeln(S);
+    if WriteMsgToStdErr then
+      writeln(StdErr,S)
+    else
+      writeln(S);
     {AllowWriteln-}
     end;
 end;
