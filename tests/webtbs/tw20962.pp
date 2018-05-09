@@ -21,11 +21,11 @@ uses
    {$endif ndef USE_INTERNAL_UNICODE}
   {$endif}
  {$endif}
- {$ifdef USE_FPWIDESTRING_UNIT}
-  fpwidestring,
- {$endif}
  {$ifdef USE_UNICODEDUCET_UNIT}
   unicodeducet,
+ {$endif}
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
  {$endif}
  {$ifdef USE_CPALL_UNIT}
   cpall,

@@ -18,11 +18,11 @@ uses
   {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$else}
 uses
- {$ifdef USE_FPWIDESTRING_UNIT}
-  fpwidestring,
- {$endif}
  {$ifdef USE_UNICODEDUCET_UNIT}
   unicodeducet,
+ {$endif}
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
  {$endif}
  {$ifdef USE_CPALL_UNIT}
   cpall,
