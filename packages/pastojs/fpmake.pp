@@ -36,10 +36,12 @@ begin
 
     P.Options.Add('-S2h');
 
+    T:=P.Targets.AddUnit('pas2jsfiler.pp');
     T:=P.Targets.AddUnit('fppas2js.pp');
     T:=P.Targets.AddUnit('fppjssrcmap.pp');
     T:=P.Targets.AddUnit('pas2jsfilecache.pp');
     T:=P.Targets.AddUnit('pas2jsfileutils.pp');
+    T.Dependencies.AddInclude('pas2js_defines.inc');
     T.Dependencies.AddInclude('pas2jsfileutilsunix.inc',AllUnixOSes);
     T.Dependencies.AddInclude('pas2jsfileutilswin.inc',AllWindowsOSes);
     T:=P.Targets.AddUnit('pas2jslogger.pp');
