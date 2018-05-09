@@ -488,6 +488,9 @@ interface
       FIs32Bit: Boolean;
       FBaseGroup: Integer;
       FBaseSegment: Integer;
+    protected
+      procedure DebugFormatSpecific_DecodeFrom(RawRecord:TOmfRawRecord;NextOfs:Integer);virtual;abstract;
+      procedure DebugFormatSpecific_EncodeTo(RawRecord:TOmfRawRecord;var NextOfs:Integer);virtual;abstract;
     public
       procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
@@ -495,6 +498,41 @@ interface
       property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
       property BaseGroup: Integer read FBaseGroup write FBaseGroup;
       property BaseSegment: Integer read FBaseSegment write FBaseSegment;
+    end;
+
+    TOmfSubRecord_LINNUM_MsLink_LineNumber = 0..$7fff;
+
+    { TOmfSubRecord_LINNUM_MsLink_Entry }
+
+    TOmfSubRecord_LINNUM_MsLink_Entry = class
+    private
+      FLineNumber: TOmfSubRecord_LINNUM_MsLink_LineNumber;
+      FOffset: DWord;
+    public
+      constructor Create(ALineNumber: TOmfSubRecord_LINNUM_MsLink_LineNumber; AOffset: DWord);
+      property LineNumber: TOmfSubRecord_LINNUM_MsLink_LineNumber read FLineNumber write FLineNumber;
+      property Offset: DWord read FOffset write FOffset;
+    end;
+
+    { TOmfRecord_LINNUM_MsLink }
+
+    TOmfRecord_LINNUM_MsLink = class(TOmfRecord_LINNUM)
+    private
+      FLineNumbers: TFPObjectList;
+      function GetCount: Integer;
+      function GetItem(Index: Integer): TOmfSubRecord_LINNUM_MsLink_Entry;
+      procedure SetCount(AValue: Integer);
+      procedure SetItem(Index: Integer; AValue: TOmfSubRecord_LINNUM_MsLink_Entry);
+    protected
+      procedure DebugFormatSpecific_DecodeFrom(RawRecord:TOmfRawRecord;NextOfs:Integer);override;
+      procedure DebugFormatSpecific_EncodeTo(RawRecord:TOmfRawRecord;var NextOfs:Integer);override;
+    public
+      constructor Create;
+      destructor Destroy;override;
+
+      property Count: Integer read GetCount write SetCount;
+      function Add(AObject: TOmfSubRecord_LINNUM_MsLink_Entry): Integer;
+      property Items[Index: Integer]: TOmfSubRecord_LINNUM_MsLink_Entry read GetItem write SetItem; default;
     end;
 
     { TOmfSubRecord_FIXUP }
@@ -1958,7 +1996,7 @@ implementation
       NextOfs:=RawRecord.ReadIndexedRef(0,FBaseGroup);
       NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FBaseSegment);
 
-      { todo: read debugger style-specific info here }
+      DebugFormatSpecific_DecodeFrom(RawRecord,NextOfs);
     end;
 
   procedure TOmfRecord_LINNUM.EncodeTo(RawRecord: TOmfRawRecord);
@@ -1973,10 +2011,117 @@ implementation
       NextOfs:=RawRecord.WriteIndexedRef(0,BaseGroup);
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,BaseSegment);
 
-      { todo: write debugger style-specific info here }
+      DebugFormatSpecific_EncodeTo(RawRecord,NextOfs);
 
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfSubRecord_LINNUM_MsLink_Entry }
+
+  constructor TOmfSubRecord_LINNUM_MsLink_Entry.Create(ALineNumber: TOmfSubRecord_LINNUM_MsLink_LineNumber; AOffset: DWord);
+    begin
+      LineNumber:=ALineNumber;
+      Offset:=AOffset;
+    end;
+
+  { TOmfRecord_LINNUM_MsLink }
+
+  function TOmfRecord_LINNUM_MsLink.GetItem(Index: Integer): TOmfSubRecord_LINNUM_MsLink_Entry;
+    begin
+      result:=TOmfSubRecord_LINNUM_MsLink_Entry(FLineNumbers[Index]);
+    end;
+
+  function TOmfRecord_LINNUM_MsLink.GetCount: Integer;
+    begin
+      result:=FLineNumbers.Count;
+    end;
+
+  procedure TOmfRecord_LINNUM_MsLink.SetCount(AValue: Integer);
+    begin
+      FLineNumbers.Count:=AValue;
+    end;
+
+  procedure TOmfRecord_LINNUM_MsLink.SetItem(Index: Integer; AValue: TOmfSubRecord_LINNUM_MsLink_Entry);
+    begin
+      FLineNumbers[Index]:=AValue;
+    end;
+
+  procedure TOmfRecord_LINNUM_MsLink.DebugFormatSpecific_DecodeFrom(
+    RawRecord: TOmfRawRecord; NextOfs: Integer);
+    var
+      RecordSize: Integer;
+      LineNumber: Word;
+      Offset: DWord;
+    begin
+      FLineNumbers.Clear;
+      if Is32Bit then
+        RecordSize:=6
+      else
+        RecordSize:=4;
+      while (NextOfs+RecordSize)<RawRecord.RecordLength do
+        begin
+          LineNumber:=RawRecord.RawData[NextOfs]+
+                     (RawRecord.RawData[NextOfs+1] shl 8);
+          if Is32Bit then
+            Offset:=RawRecord.RawData[NextOfs+2]+
+                   (RawRecord.RawData[NextOfs+3] shl 8)+
+                   (RawRecord.RawData[NextOfs+4] shl 16)+
+                   (RawRecord.RawData[NextOfs+5] shl 24)
+          else
+            Offset:=RawRecord.RawData[NextOfs+2]+
+                   (RawRecord.RawData[NextOfs+3] shl 8);
+          Add(TOmfSubRecord_LINNUM_MsLink_Entry.Create(LineNumber,Offset));
+          Inc(NextOfs,RecordSize);
+        end;
+    end;
+
+  procedure TOmfRecord_LINNUM_MsLink.DebugFormatSpecific_EncodeTo(
+    RawRecord: TOmfRawRecord; var NextOfs: Integer);
+    var
+      I: Integer;
+    begin
+      for I:=0 to Count-1 do
+        with Items[I] do
+          begin
+            RawRecord.RawData[NextOfs]:=byte(LineNumber);
+            RawRecord.RawData[NextOfs+1]:=byte(LineNumber shr 8);
+            Inc(NextOfs,2);
+            if Is32Bit then
+              begin
+                RawRecord.RawData[NextOfs]:=byte(Offset);
+                RawRecord.RawData[NextOfs+1]:=byte(Offset shr 8);
+                RawRecord.RawData[NextOfs+2]:=byte(Offset shr 16);
+                RawRecord.RawData[NextOfs+3]:=byte(Offset shr 24);
+                Inc(NextOfs,4);
+              end
+            else
+              begin
+                if Offset>High(Word) then
+                  internalerror(2018050901);
+                RawRecord.RawData[NextOfs]:=byte(Offset);
+                RawRecord.RawData[NextOfs+1]:=byte(Offset shr 8);
+                Inc(NextOfs,2);
+              end;
+          end;
+    end;
+
+  constructor TOmfRecord_LINNUM_MsLink.Create;
+    begin
+      inherited;
+      FLineNumbers:=TFPObjectList.Create(true);
+    end;
+
+  destructor TOmfRecord_LINNUM_MsLink.Destroy;
+    begin
+      FLineNumbers.Free;
+      inherited Destroy;
+    end;
+
+  function TOmfRecord_LINNUM_MsLink.Add(
+    AObject: TOmfSubRecord_LINNUM_MsLink_Entry): Integer;
+    begin
+      Result:=FLineNumbers.Add(AObject);
     end;
 
   { TOmfSubRecord_FIXUP }
