@@ -530,6 +530,7 @@ interface
       constructor Create;
       destructor Destroy;override;
 
+      procedure Clear;
       function Add(AObject: TOmfSubRecord_LINNUM_MsLink_Entry): Integer;
       property Count: Integer read GetCount write SetCount;
       property Items[Index: Integer]: TOmfSubRecord_LINNUM_MsLink_Entry read GetItem write SetItem; default;
@@ -2084,6 +2085,11 @@ implementation
     begin
       FLineNumbers.Free;
       inherited Destroy;
+    end;
+
+  procedure TOmfSubRecord_LINNUM_MsLink_LineNumberList.Clear;
+    begin
+      FLineNumbers.Clear;
     end;
 
   function TOmfSubRecord_LINNUM_MsLink_LineNumberList.Add(
