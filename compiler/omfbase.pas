@@ -233,15 +233,18 @@ interface
 
     TOmfOrderedNameCollection = class
     private
+      FAllowDuplicates: Boolean;
       FStringList: array of string;
       function GetCount: Integer;
       function GetString(Index: Integer): string;
       procedure SetString(Index: Integer; AValue: string);
     public
+      constructor Create(AAllowDuplicates: Boolean);
       function Add(const S: string): Integer;
       procedure Clear;
       property Strings [Index: Integer]: string read GetString write SetString; default;
       property Count: Integer read GetCount;
+      property AllowDuplicates: Boolean read FAllowDuplicates;
     end;
 
     { TOmfRawRecord }
@@ -1190,8 +1193,21 @@ implementation
       FStringList[Index-1]:=AValue;
     end;
 
-  function TOmfOrderedNameCollection.Add(const S: string): Integer;
+  constructor TOmfOrderedNameCollection.Create(AAllowDuplicates: Boolean);
     begin
+      FAllowDuplicates:=AAllowDuplicates;
+    end;
+
+  function TOmfOrderedNameCollection.Add(const S: string): Integer;
+    var
+      I: Integer;
+    begin
+      if not AllowDuplicates then
+        begin
+          for I:=Low(FStringList) to High(FStringList) do
+            if FStringList[I]=S then
+              exit(I+1);
+        end;
       Result:=Length(FStringList)+1;
       SetLength(FStringList,Result);
       FStringList[Result-1]:=S;

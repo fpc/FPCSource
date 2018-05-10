@@ -1021,7 +1021,7 @@ implementation
       begin
         inherited create(AWriter);
         cobjdata:=TOmfObjData;
-        FLNames:=TOmfOrderedNameCollection.Create;
+        FLNames:=TOmfOrderedNameCollection.Create(False);
         FSegments:=TFPHashObjectList.Create;
         FSegments.Add('',nil);
         FGroups:=TFPHashObjectList.Create;
@@ -1784,7 +1784,7 @@ implementation
       begin
         inherited create;
         cobjdata:=TOmfObjData;
-        FLNames:=TOmfOrderedNameCollection.Create;
+        FLNames:=TOmfOrderedNameCollection.Create(True);
         FExtDefs:=TFPHashObjectList.Create;
         FPubDefs:=TFPHashObjectList.Create;
         FRawRecord:=TOmfRawRecord.Create;
