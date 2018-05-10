@@ -42,6 +42,7 @@ Type
   Public
     procedure   Assign(Source: TPersistent); override;
     Constructor Create(AOwner: TComponent); override;
+    Class Function ElementType : String; override;
     // Will calculate the value to display. Either Value or evaluated expression.
     Function BarcodeValue : String;
     Procedure ReadElement(AReader: TFPReportStreamer); override;
@@ -109,6 +110,11 @@ begin
   FEncoding:=be128A;
   FUnitWidth:=1;
   FWeight:=2.0;
+end;
+
+class function TFPReportBarcode.ElementType: String;
+begin
+  Result:='BarCode';
 end;
 
 procedure TFPReportBarcode.BeforePrint;
@@ -221,7 +227,7 @@ Const
 
 
 begin
-  gElementFactory.RegisterClass('Barcode',TFPReportBarcode).SetIconFromBytes(Icon);
+  TFPReportBarcode.RegisterElement.SetIconFromBytes(Icon);
   // Fallback renderer
   gElementFactory.RegisterImageRenderer(TFPReportBarcode,@RenderBarcode);
 end;
@@ -229,7 +235,7 @@ end;
 Procedure UnRegisterReportBarcode;
 
 begin
-  gElementFactory.RemoveClass('Barcode');
+  TFPReportBarcode.UnRegisterElement;
 end;
 
 initialization

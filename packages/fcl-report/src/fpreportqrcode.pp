@@ -40,6 +40,7 @@ Type
     procedure RecalcLayout; override;
     Procedure DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement=nil); override;
   Public
+    Class Function ElementType : String; override;
     procedure Assign(Source: TPersistent); override;
     // Will calculate the value to display. Either Value or evaluated expression.
     Function QRCodeValue : String;
@@ -83,6 +84,11 @@ begin
   AWriter.WriteString('Mask',GetEnumName(TypeInfo(TQRMask),Ord(Mask)));
   AWriter.WriteString('ErrorCorrectionLevel',GetEnumName(TypeInfo(TQRErrorLevelCorrection),Ord(ErrorCorrectionLevel)));
   AWriter.WriteBoolean('Center',Center);
+end;
+
+class function TFPReportQRCode.ElementType: String;
+begin
+  Result:='QRCode';
 end;
 
 procedure TFPReportQRCode.Assign(Source: TPersistent);
@@ -209,7 +215,7 @@ Const
       68,174, 66, 96,130);
 
 begin
-  gElementFactory.RegisterClass('QRCode',TFPReportQRCode).SetIconFromBytes(Icon);
+  TFPReportQRCode.RegisterElement.SetIconFromBytes(Icon);
   // Fallback renderer
   gElementFactory.RegisterImageRenderer(TFPReportQRCode,@RenderQRCode);
 end;
@@ -217,7 +223,7 @@ end;
 Procedure UnRegisterReportQRCode;
 
 begin
-  gElementFactory.RemoveClass('QRCode');
+  TFPReportElement.UnRegisterElement;
 end;
 
 initialization
