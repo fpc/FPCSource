@@ -40,39 +40,40 @@ const
   nSyntaxModeIs = 102; sSyntaxModeIs = 'Syntax mode is %s';
   nMacroDefined = 103; sMacroDefined = 'Macro defined: %s';
   nUsingPath = 104; sUsingPath = 'Using %s: "%s"';
-  nFolderNotFound = 105; sFolderNotFound = '%s not found: "%s"';
-  nNameValue = 106; sNameValue = '%s: "%s"';
-  nReadingOptionsFromFile = 107; sReadingOptionsFromFile = 'Reading options from file "%s"';
-  nEndOfReadingConfigFile = 108; sEndOfReadingConfigFile = 'End of reading config file "%s"';
-  nInterpretingFileOption = 109; sInterpretingFileOption = 'interpreting file option "%s"';
-  nSourceFileNotFound = 110; sSourceFileNotFound = 'source file not found "%s"';
-  nFileIsFolder = 111; sFileIsFolder = 'expected file, but found directory "%s"';
+  nFolderNotFound = 105; sFolderNotFound = '%s not found: %s';
+  nNameValue = 106; sNameValue = '%s: %s';
+  nReadingOptionsFromFile = 107; sReadingOptionsFromFile = 'Reading options from file %s';
+  nEndOfReadingConfigFile = 108; sEndOfReadingConfigFile = 'End of reading config file %s';
+  nInterpretingFileOption = 109; sInterpretingFileOption = 'interpreting file option %s';
+  nSourceFileNotFound = 110; sSourceFileNotFound = 'source file not found %s';
+  nFileIsFolder = 111; sFileIsFolder = 'expected file, but found directory %s';
   nConfigFileSearch = 112; sConfigFileSearch = 'Configfile search: %s';
-  nHandlingOption = 113; sHandlingOption = 'handling option "%s"';
-  nQuickHandlingOption = 114; sQuickHandlingOption = 'quick handling option "%s"';
-  nOutputDirectoryNotFound = 115; sOutputDirectoryNotFound = 'output directory not found: "%s"';
-  nUnableToWriteFile = 116; sUnableToWriteFile = 'Unable to write file "%s"';
-  nWritingFile = 117; sWritingFile = 'Writing file "%s" ...';
+  nHandlingOption = 113; sHandlingOption = 'handling option %s';
+  nQuickHandlingOption = 114; sQuickHandlingOption = 'quick handling option %s';
+  nOutputDirectoryNotFound = 115; sOutputDirectoryNotFound = 'output directory not found: %s';
+  nUnableToWriteFile = 116; sUnableToWriteFile = 'Unable to write file %s';
+  nWritingFile = 117; sWritingFile = 'Writing file %s ...';
   nCompilationAborted = 118; sCompilationAborted = 'Compilation aborted';
-  nCfgDirective = 119; sCfgDirective = 'cfg directive "%s": %s';
+  nCfgDirective = 119; sCfgDirective = 'cfg directive %s: %s';
   nUnitCycle = 120; sUnitCycle = 'Unit cycle found %s';
   nOptionForbidsCompile = 121; sOptionForbidsCompile = 'Option -Ju forbids to compile unit "%s"';
   nUnitNeedsCompileDueToUsedUnit = 122; sUnitsNeedCompileDueToUsedUnit = 'Unit "%s" needs compile due to used unit "%s"';
   nUnitNeedsCompileDueToOption = 123; sUnitsNeedCompileDueToOption = 'Unit "%s" needs compile due to option "%s"';
   nUnitNeedsCompileJSMissing = 124; sUnitsNeedCompileJSMissing = 'Unit "%s" needs compile, js file missing "%s"';
-  nUnitNeedsCompilePasHasChanged = 125; sUnitsNeedCompilePasHasChanged = 'Unit "%s" needs compile, Pascal file has changed, js is "%s"';
-  nParsingFile = 126; sParsingFile = 'Parsing "%s" ...';
-  nCompilingFile = 127; sCompilingFile = 'Compiling "%s" ...';
+  nUnitNeedsCompilePasHasChanged = 125; sUnitsNeedCompilePasHasChanged = 'Unit "%s" needs compile, Pascal file has changed, js is %s';
+  nParsingFile = 126; sParsingFile = 'Parsing %s ...';
+  nCompilingFile = 127; sCompilingFile = 'Compiling %s ...';
   nExpectedButFound = 128; sExpectedButFound = 'Illegal unit name: Expected "%s", but found "%s"';
   nLinesInFilesCompiled = 129; sLinesInFilesCompiled = '%s lines in %s files compiled, %s sec';
   nTargetPlatformIs = 130; sTargetPlatformIs = 'Target platform is %s';
   nTargetProcessorIs = 131; sTargetProcessorIs = 'Target processor is %s';
   nMessageEncodingIs = 132; sMessageEncodingIs = 'Message encoding is %s';
-  nUnableToTranslatePathToDir = 133; sUnableToTranslatePathToDir = 'Unable to translate path "%s" to directory "%s"';
+  nUnableToTranslatePathToDir = 133; sUnableToTranslatePathToDir = 'Unable to translate path %s to directory %s';
   nSrcMapSourceRootIs = 134; sSrcMapSourceRootIs = 'source map "sourceRoot" is %s';
   nSrcMapBaseDirIs = 135; sSrcMapBaseDirIs = 'source map "local base directory" is %s';
-  nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found "%s"';
-  nInterfaceStyleIs = 137; sInterfaceStyleIs = 'Interface style is %s';
+  nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found %s';
+  nClassInterfaceStyleIs = 137; sClassInterfaceStyleIs = 'Class interface style is %s';
+  nMacroXSetToY = 138; sMacroXSetToY = 'Macro %s set to %s';
   // Note: error numbers 201+ are used by Pas2jsFileCache
 
 //------------------------------------------------------------------------------
@@ -892,6 +893,8 @@ begin
     RaiseInternalError(20180312142954,'');
   FPCUReader:=PCUFormat.ReaderClass.Create;
 
+  if ShowDebug then
+    Log.LogMsg(nParsingFile,[QuoteStr(PCUFilename)]);
   aFile:=Compiler.FileCache.LoadFile(PCUFilename,true);
   if aFile=nil then
     RaiseInternalError(20180312145941,PCUFilename);
@@ -1264,7 +1267,7 @@ begin
     writeln('TPas2jsCompilerFile.WritePCU precompiled ',PCUFilename);
     {$ENDIF}
 
-    Log.LogMsg(nWritingFile,[Compiler.FileCache.FormatPath(PCUFilename)],'',0,0,
+    Log.LogMsg(nWritingFile,[QuoteStr(Compiler.FileCache.FormatPath(PCUFilename))],'',0,0,
                not (coShowLineNumbers in Compiler.Options));
 
     // check output directory
@@ -1274,7 +1277,7 @@ begin
       {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('TPas2jsCompilerFile.WritePCU output dir not found "',DestDir,'"');
       {$ENDIF}
-      Log.LogMsg(nOutputDirectoryNotFound,[Compiler.FileCache.FormatPath(DestDir)]);
+      Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(Compiler.FileCache.FormatPath(DestDir))]);
       Compiler.Terminate(ExitCodeFileNotFound);
     end;
     if Compiler.DirectoryExists(PCUFilename) then
@@ -1282,7 +1285,7 @@ begin
       {$IF defined(VerboseUnitQueue) or defined(VerbosePCUFiler)}
       writeln('TPas2jsCompilerFile.WritePCU file is folder "',DestDir,'"');
       {$ENDIF}
-      Log.LogMsg(nFileIsFolder,[Compiler.FileCache.FormatPath(PCUFilename)]);
+      Log.LogMsg(nFileIsFolder,[QuoteStr(Compiler.FileCache.FormatPath(PCUFilename))]);
       Compiler.Terminate(ExitCodeWriteError);
     end;
 
@@ -1314,7 +1317,7 @@ end;
 procedure TPas2jsCompilerFile.ReadUnit;
 begin
   if ShowDebug then
-    Log.LogPlain(['Debug: Parsing Pascal "',PasFilename,'"...']);
+    Log.LogMsg(nParsingFile,[QuoteStr(PasFilename)]);
   if FPasModule<>nil then
     Compiler.RaiseInternalError(20180305190321,PasFilename);
   FReaderState:=prsReading;
@@ -2129,7 +2132,7 @@ begin
     else if (aFile.JSFilename<>'')
     and (DirectoryCache.FileAge(aFile.PasFilename)>DirectoryCache.FileAge(aFile.JSFilename))
     then begin
-      Mark(nUnitNeedsCompilePasHasChanged,[aFile.GetModuleName,FileCache.FormatPath(aFile.JSFilename)])
+      Mark(nUnitNeedsCompilePasHasChanged,[aFile.GetModuleName,QuoteStr(FileCache.FormatPath(aFile.JSFilename))])
     end;
   end;
 
@@ -2193,7 +2196,7 @@ begin
   if Checked.Find(aFile)<>nil then exit;
   Checked.Add(aFile);
 
-  Log.LogMsg(nCompilingFile,[FileCache.FormatPath(aFile.PasFilename)],'',0,0,
+  Log.LogMsg(nCompilingFile,[QuoteStr(FileCache.FormatPath(aFile.PasFilename))],'',0,0,
     not (coShowLineNumbers in Options));
 
   // convert dependencies
@@ -2231,8 +2234,8 @@ begin
         if not SrcMapInclude then
         begin
           Log.Log(mtError,
-            SafeFormat(sUnableToTranslatePathToDir,[LocalFilename,BaseDir]),
-            nUnableToTranslatePathToDir);
+            SafeFormat(sUnableToTranslatePathToDir,[QuoteStr(LocalFilename),QuoteStr(BaseDir)]),
+                       nUnableToTranslatePathToDir);
           Terminate(ExitCodeConverterError);
         end;
         // the source is included, do not translate the filename
@@ -2373,19 +2376,19 @@ begin
       // write to file
 
       //writeln('TPas2jsCompiler.WriteJSFiles ',aFile.PasFilename,' ',aFile.JSFilename);
-      Log.LogMsg(nWritingFile,[FileCache.FormatPath(DestFilename)],'',0,0,
+      Log.LogMsg(nWritingFile,[QuoteStr(FileCache.FormatPath(DestFilename))],'',0,0,
                  not (coShowLineNumbers in Options));
 
       // check output directory
       DestDir:=ChompPathDelim(ExtractFilePath(DestFilename));
       if (DestDir<>'') and not DirectoryExists(DestDir) then
       begin
-        Log.LogMsg(nOutputDirectoryNotFound,[FileCache.FormatPath(DestDir)]);
+        Log.LogMsg(nOutputDirectoryNotFound,[QuoteStr(FileCache.FormatPath(DestDir))]);
         Terminate(ExitCodeFileNotFound);
       end;
       if DirectoryExists(DestFilename) then
       begin
-        Log.LogMsg(nFileIsFolder,[FileCache.FormatPath(DestFilename)]);
+        Log.LogMsg(nFileIsFolder,[QuoteStr(FileCache.FormatPath(DestFilename))]);
         Terminate(ExitCodeWriteError);
       end;
 
@@ -2417,7 +2420,7 @@ begin
       except
         on E: Exception do begin
           Log.LogPlain('Error: '+E.Message);
-          Log.LogMsg(nUnableToWriteFile,[FileCache.FormatPath(DestFilename)]);
+          Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
           Terminate(ExitCodeWriteError);
         end;
       end;
@@ -2425,7 +2428,7 @@ begin
       // write source map
       if aFileWriter.SrcMap<>nil then
       begin
-        Log.LogMsg(nWritingFile,[FileCache.FormatPath(MapFilename)],'',0,0,
+        Log.LogMsg(nWritingFile,[QuoteStr(FileCache.FormatPath(MapFilename))],'',0,0,
                    not (coShowLineNumbers in Options));
         FinishSrcMap(aFileWriter.SrcMap);
         try
@@ -2441,7 +2444,7 @@ begin
         except
           on E: Exception do begin
             Log.LogPlain('Error: '+E.Message);
-            Log.LogMsg(nUnableToWriteFile,[FileCache.FormatPath(MapFilename)]);
+            Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
             Terminate(ExitCodeWriteError);
           end;
         end;
@@ -2745,7 +2748,7 @@ var
 
   procedure DebugCfgDirective(const s: string);
   begin
-    Log.LogMsg(nCfgDirective,[Line,s],CurrentCfgFilename,CurrentCfgLineNumber,1,false);
+    Log.LogMsg(nCfgDirective,[QuoteStr(Line),s],CurrentCfgFilename,CurrentCfgLineNumber,1,false);
   end;
 
 var
@@ -2756,7 +2759,7 @@ var
   CacheFile: TPas2jsCachedFile;
 begin
   if ShowTriedUsedFiles then
-    Log.LogMsgIgnoreFilter(nReadingOptionsFromFile,[CfgFilename]);
+    Log.LogMsgIgnoreFilter(nReadingOptionsFromFile,[QuoteStr(CfgFilename)]);
   IfLvl:=0;
   SkipLvl:=0;
   Skip:=skipNone;
@@ -2771,7 +2774,7 @@ begin
       Line:=aFile.ReadLine;
       FCurrentCfgLineNumber:=aFile.LineNumber;
       if ShowDebug then
-        Log.LogMsgIgnoreFilter(nInterpretingFileOption,[Line]);
+        Log.LogMsgIgnoreFilter(nInterpretingFileOption,[QuoteStr(Line)]);
       if Line='' then continue;
       p:=PChar(Line);
       while (p^ in [' ',#9]) do inc(p);
@@ -2909,7 +2912,7 @@ begin
     aFile.Free;
   end;
   if ShowTriedUsedFiles then
-    Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[CfgFilename]);
+    Log.LogMsgIgnoreFilter(nEndOfReadingConfigFile,[QuoteStr(CfgFilename)]);
 end;
 
 procedure TPas2jsCompiler.LoadDefaultConfig;
@@ -2987,9 +2990,9 @@ begin
   //writeln('TPas2jsCompiler.ReadParam ',Param,' ',Quick,' ',FromCmdLine);
   if ShowDebug then
     if Quick then
-      Log.LogMsgIgnoreFilter(nQuickHandlingOption,[Param])
+      Log.LogMsgIgnoreFilter(nQuickHandlingOption,[QuoteStr(Param)])
     else
-      Log.LogMsgIgnoreFilter(nHandlingOption,[Param]);
+      Log.LogMsgIgnoreFilter(nHandlingOption,[QuoteStr(Param)]);
   if Param='' then exit;
   ParamMacros.Substitute(Param,Self);
   if Param='' then exit;
@@ -3630,7 +3633,8 @@ begin
   r(mtInfo,nSrcMapSourceRootIs,sSrcMapSourceRootIs);
   r(mtInfo,nSrcMapBaseDirIs,sSrcMapBaseDirIs);
   r(mtFatal,nUnitFileNotFound,sUnitFileNotFound);
-  r(mtInfo,nInterfaceStyleIs,sInterfaceStyleIs);
+  r(mtInfo,nClassInterfaceStyleIs,sClassInterfaceStyleIs);
+  r(mtInfo,nMacroXSetToY,sMacroXSetToY);
   Pas2jsPParser.RegisterMessages(Log);
 end;
 
@@ -4081,7 +4085,7 @@ begin
   Log.LogMsgIgnoreFilter(nTargetProcessorIs,[PasToJsProcessorNames[TargetProcessor]]);
   // default syntax mode
   Log.LogMsgIgnoreFilter(nSyntaxModeIs,[p2jscModeNames[Mode]]);
-  Log.LogMsgIgnoreFilter(nInterfaceStyleIs,[InterfaceTypeNames[InterfaceType]]);
+  Log.LogMsgIgnoreFilter(nClassInterfaceStyleIs,[InterfaceTypeNames[InterfaceType]]);
   // boolean options
   for co in TP2jsCompilerOption do
     Log.LogMsgIgnoreFilter(nOptionIsEnabled,
@@ -4093,8 +4097,8 @@ begin
   // source map options
   if SrcMapEnable then
   begin
-    Log.LogMsgIgnoreFilter(nSrcMapSourceRootIs,[SrcMapSourceRoot]);
-    Log.LogMsgIgnoreFilter(nSrcMapBaseDirIs,[SrcMapBaseDir]);
+    Log.LogMsgIgnoreFilter(nSrcMapSourceRootIs,[QuoteStr(SrcMapSourceRoot)]);
+    Log.LogMsgIgnoreFilter(nSrcMapBaseDirIs,[QuoteStr(SrcMapBaseDir)]);
   end;
 end;
 
@@ -4109,8 +4113,9 @@ begin
     S:=Defines[i];
     M:=TMacroDef(Defines.Objects[i]);
     if M<>nil then
-      S:=S+'='+M.Value;
-    Log.LogMsgIgnoreFilter(nMacroDefined,[S]);
+      Log.LogMsgIgnoreFilter(nMacroXSetToY,[S,QuoteStr(M.Value)])
+    else
+      Log.LogMsgIgnoreFilter(nMacroDefined,[S]);
     end;
 end;
 
@@ -4121,7 +4126,7 @@ procedure TPas2jsCompiler.WriteFoldersAndSearchPaths;
     if Folder='' then exit;
     Log.LogMsgIgnoreFilter(nUsingPath,[aName,Folder]);
     if not DirectoryExists(ChompPathDelim(Folder)) then
-      Log.LogMsgIgnoreFilter(nFolderNotFound,[aName,Folder]);
+      Log.LogMsgIgnoreFilter(nFolderNotFound,[aName,QuoteStr(Folder)]);
   end;
 
 var
@@ -4136,7 +4141,7 @@ begin
   for i:=0 to FileCache.IncludePaths.Count-1 do
     WriteFolder('include path',FileCache.IncludePaths[i]);
   WriteFolder('unit output path',FileCache.UnitOutputPath);
-  Log.LogMsgIgnoreFilter(nNameValue,['output file',FileCache.MainJSFile]);
+  Log.LogMsgIgnoreFilter(nNameValue,['output file',QuoteStr(FileCache.MainJSFile)]);
 end;
 
 procedure TPas2jsCompiler.WriteInfo;
@@ -4220,16 +4225,16 @@ begin
   if (UnitFilename='') or not DirectoryCache.FileExists(UnitFilename) then
   begin
     if aFormat=nil then
-      Log.LogMsg(nSourceFileNotFound,[UnitFilename])
+      Log.LogMsg(nSourceFileNotFound,[QuoteStr(UnitFilename)])
     else
-      Log.LogMsg(nUnitFileNotFound,[UnitFilename]);
+      Log.LogMsg(nUnitFileNotFound,[QuoteStr(UnitFilename)]);
     Terminate(ExitCodeFileNotFound);
   end;
 
   UnitFilename:=ExpandFileNameUTF8(UnitFilename,FileCache.BaseDirectory);
   if DirectoryCache.DirectoryExists(UnitFilename) then
   begin
-    Log.LogMsg(nFileIsFolder,[UnitFilename]);
+    Log.LogMsg(nFileIsFolder,[QuoteStr(UnitFilename)]);
     Terminate(ExitCodeFileNotFound);
   end;
 

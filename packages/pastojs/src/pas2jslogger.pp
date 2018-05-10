@@ -143,6 +143,8 @@ type
 
 function CompareP2JMessage(Item1, Item2: Pointer): Integer;
 
+function QuoteStr(const s: string): string;
+function DeQuoteStr(const s: string): string;
 function AsString(Element: TPasElement; Full: boolean = true): string; overload;
 function AsString(Element: TJSElement): string; overload;
 function DbgString(Element: TJSElement; Indent: integer): string; overload;
@@ -161,6 +163,16 @@ var
   Msg2: TPas2jsMessage absolute Item2;
 begin
   Result:=Msg1.Number-Msg2.Number;
+end;
+
+function QuoteStr(const s: string): string;
+begin
+  Result:=AnsiQuotedStr(S,'"');
+end;
+
+function DeQuoteStr(const s: string): string;
+begin
+  Result:=AnsiDequotedStr(S,'"');
 end;
 
 function AsString(Element: TPasElement; Full: boolean): string;
