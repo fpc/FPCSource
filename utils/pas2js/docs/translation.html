@@ -186,6 +186,9 @@ Put + after a boolean switch option to enable it, - to disable it
     c     : Support operators like C (*=,+=,/= and -=)
     d     : Same as -Mdelphi
     2     : Same as -Mobjfpc (default)
+  -SI&lt;x&gt;   : Set interface style to &lt;x&gt;
+    -SIcom   : COM compatible interface (default)
+    -SIcorba : CORBA compatible interface
   -T&lt;x&gt;   : Set target platform, case insensitive.
     -Tbrowser : default
     -Tnodejs  : add pas.run(), includes -Jc
@@ -2403,6 +2406,7 @@ type
   public
     Id: NativeInt; external name '$Id';
     x: NativeInt; external name '[0]';
+    y: NativeInt; external name '["A B"]';
     function GetState(typ: longint): NativeInt; external name '$Handle.GetState';
     procedure DoIt;
   end;
@@ -2415,7 +2419,8 @@ var
 Begin
   W.Id := 2;
   W.x := 3;
-  W.GetState(4);
+  W.y := 4;
+  W.GetState(5);
 End.
 </pre>
           </td>
@@ -2433,7 +2438,8 @@ function(){
   $mod.$main = function(){
     $mod.W.$Id = 2;
     $mod.W[0] = 3;
-    $mod.W.$Handle.GetState(4);
+    $mod.W["A B"] = 4;
+    $mod.W.$Handle.GetState(5);
   };
 },
 []);

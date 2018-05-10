@@ -72,6 +72,7 @@ const
   nSrcMapSourceRootIs = 134; sSrcMapSourceRootIs = 'source map "sourceRoot" is %s';
   nSrcMapBaseDirIs = 135; sSrcMapBaseDirIs = 'source map "local base directory" is %s';
   nUnitFileNotFound = 136; sUnitFileNotFound = 'unit file not found "%s"';
+  nInterfaceStyleIs = 137; sInterfaceStyleIs = 'Interface style is %s';
   // Note: error numbers 201+ are used by Pas2jsFileCache
 
 //------------------------------------------------------------------------------
@@ -410,6 +411,7 @@ type
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
     procedure SetWriteMsgToStdErr(const AValue: boolean);
   private
+    FInterfaceType: TPasClassInterfaceType;
     FPrecompileInitialFlags: TPCUInitialFlags;
     procedure AddDefinesForTargetPlatform;
     procedure AddDefinesForTargetProcessor;
@@ -490,6 +492,7 @@ type
     property FileCache: TPas2jsFilesCache read FFileCache write SetFileCache;
     property FileCacheAutoFree: boolean read FFileCacheAutoFree write FFileCacheAutoFree;
     property FileCount: integer read GetFileCount;
+    property InterfaceType: TPasClassInterfaceType read FInterfaceType write FInterfaceType;
     property Log: TPas2jsLogger read FLog;
     property MainFile: TPas2jsCompilerFile read FMainFile;
     property Mode: TP2jsMode read FMode write SetMode;
@@ -842,6 +845,11 @@ begin
   Scanner.CurrentModeSwitches:=GetInitialModeSwitches;
   Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
   Scanner.CurrentBoolSwitches:=GetInitialBoolSwitches;
+  Scanner.CurrentValueSwitch[vsInterfaces]:=InterfaceTypeNames[Compiler.InterfaceType];
+  if coAllowCAssignments in Compiler.Options then
+    Scanner.Options:=Scanner.Options+[po_cassignments];
+  if Compiler.Mode=p2jmDelphi then
+    Scanner.Options:=Scanner.Options+[po_delphi];
   // Note: some Scanner.Options are set by TPasResolver
   for i:=0 to Compiler.Defines.Count-1 do
     begin
@@ -851,10 +859,6 @@ begin
     else
       Scanner.AddMacro(M.Name,M.Value);
     end;
-  if coAllowCAssignments in Compiler.Options then
-    Scanner.Options:=Scanner.Options+[po_cassignments];
-  if Compiler.Mode=p2jmDelphi then
-    Scanner.Options:=Scanner.Options+[po_delphi];
 
   // parser
   Parser.LogEvents:=PascalResolver.ParserLogEvents;
@@ -3320,7 +3324,7 @@ begin
         inc(p);
         Identifier:=String(p);
         for aProc in TPasToJsProcessor do
-          if CompareText(Identifier,PasToJsProcessorNames[aProc])=0 then
+          if SameText(Identifier,PasToJsProcessorNames[aProc]) then
             begin
             TargetProcessor:=aProc;
             Identifier:='';
@@ -3332,14 +3336,25 @@ begin
       'S': // Syntax
         begin
           inc(p);
-          ReadSyntaxFlags(Param,p);
+          if p^='I' then
+            begin
+            Identifier:=String(p);
+            if SameText(Identifier,'com') then
+              InterfaceType:=citCom
+            else if SameText(Identifier,'corba') then
+              InterfaceType:=citCorba
+            else
+              ParamFatal('invalid interface style (-SI) "'+Identifier+'"');
+            end
+          else
+            ReadSyntaxFlags(Param,p);
         end;
       'T': // target platform
         begin
         inc(p);
         Identifier:=String(p);
         for aPlatform in TPasToJsPlatform do
-          if CompareText(Identifier,PasToJsPlatformNames[aPlatform])=0 then
+          if SameText(Identifier,PasToJsPlatformNames[aPlatform]) then
             begin
             TargetPlatform:=aPlatform;
             Identifier:='';
@@ -3598,6 +3613,7 @@ begin
   r(mtInfo,nSrcMapSourceRootIs,sSrcMapSourceRootIs);
   r(mtInfo,nSrcMapBaseDirIs,sSrcMapBaseDirIs);
   r(mtFatal,nUnitFileNotFound,sUnitFileNotFound);
+  r(mtInfo,nInterfaceStyleIs,sInterfaceStyleIs);
   Pas2jsPParser.RegisterMessages(Log);
 end;
 
@@ -3986,6 +4002,9 @@ begin
   l('    c     : Support operators like C (*=,+=,/= and -=)');
   l('    d     : Same as -Mdelphi');
   l('    2     : Same as -Mobjfpc (default)');
+  l('  -SI<x>   : Set interface style to <x>');
+  l('    -SIcom   : COM compatible interface (default)');
+  l('    -SIcorba : CORBA compatible interface');
   l('  -T<x>   : Set target platform');
   l('    -Tbrowser : default');
   l('    -Tnodejs  : add pas.run(), includes -Jc');
@@ -4035,6 +4054,14 @@ var
   co: TP2jsCompilerOption;
   fco: TP2jsFileCacheOption;
 begin
+  // message encoding
+  Log.LogMsgIgnoreFilter(nMessageEncodingIs,[IntToStr(Log.MsgCount)]);
+  // target platform
+  Log.LogMsgIgnoreFilter(nTargetPlatformIs,[PasToJsPlatformNames[TargetPlatform]]);
+  Log.LogMsgIgnoreFilter(nTargetProcessorIs,[PasToJsProcessorNames[TargetProcessor]]);
+  // default syntax mode
+  Log.LogMsgIgnoreFilter(nSyntaxModeIs,[p2jscModeNames[Mode]]);
+  Log.LogMsgIgnoreFilter(nInterfaceStyleIs,[InterfaceTypeNames[InterfaceType]]);
   // boolean options
   for co in TP2jsCompilerOption do
     Log.LogMsgIgnoreFilter(nOptionIsEnabled,
@@ -4043,13 +4070,6 @@ begin
     Log.LogMsgIgnoreFilter(nOptionIsEnabled,
       [p2jsfcoCaption[fco],BoolToStr(fco in FileCache.Options,'enabled','disabled')]);
 
-  // default syntax mode
-  Log.LogMsgIgnoreFilter(nSyntaxModeIs,[p2jscModeNames[Mode]]);
-  // target platform
-  Log.LogMsgIgnoreFilter(nTargetPlatformIs,[PasToJsPlatformNames[TargetPlatform]]);
-  Log.LogMsgIgnoreFilter(nTargetProcessorIs,[PasToJsProcessorNames[TargetProcessor]]);
-  // message encoding
-  Log.LogMsgIgnoreFilter(nMessageEncodingIs,[IntToStr(Log.MsgCount)]);
   // source map options
   if SrcMapEnable then
   begin
