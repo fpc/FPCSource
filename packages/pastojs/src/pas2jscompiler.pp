@@ -92,8 +92,8 @@ type
     coShowTriedUsedFiles,
     coShowConditionals,
     coShowUsedTools,
+    coShowDebug,
     coShowMessageNumbers, // not in "show all"
-    coShowDebug,    // not in "show all"
     // checks
     coOverflowChecks,
     coRangeChecks,
@@ -104,6 +104,7 @@ type
     // output
     coLowerCase,
     coUseStrict,
+    coWriteDebugLog,
     coWriteMsgToStdErr,
     // optimizations
     coEnumValuesAsNumbers,
@@ -118,7 +119,7 @@ type
   TP2jsOptimization = coEnumValuesAsNumbers..coKeepNotUsedDeclarationsWPO;
 const
   DefaultP2jsCompilerOptions = [coShowErrors,coSourceMapXSSIHeader,coUseStrict];
-  coShowAll = [coShowErrors..coShowUsedTools];
+  coShowAll = [coShowErrors..coShowDebug];
   coO1Enable = [coEnumValuesAsNumbers];
   coO1Disable = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
 
@@ -136,8 +137,8 @@ const
     'Show tried/used files',
     'Show conditionals',
     'Show used tools',
-    'Show message numbers',
     'Show debug',
+    'Show message numbers',
     'Overflow checking',
     'Range checking',
     'Method call checking',
@@ -145,6 +146,7 @@ const
     'Allow C assignments',
     'Lowercase identifiers',
     'Use strict',
+    'Write pas2jsdebug.log',
     'Write messages to StdErr',
     'Enum values as numbers',
     'Keep not used private declarations',
@@ -388,6 +390,7 @@ type
     function GetSrcMapEnable: boolean;
     function GetSrcMapInclude: boolean;
     function GetSrcMapXSSIHeader: boolean;
+    function GetWriteDebugLog: boolean;
     function GetWriteMsgToStdErr: boolean;
     function OnMacroCfgDir(Sender: TObject; var Params: string; Lvl: integer
       ): boolean;
@@ -409,6 +412,7 @@ type
     procedure SetSrcMapXSSIHeader(const AValue: boolean);
     procedure SetTargetPlatform(const AValue: TPasToJsPlatform);
     procedure SetTargetProcessor(const AValue: TPasToJsProcessor);
+    procedure SetWriteDebugLog(const AValue: boolean);
     procedure SetWriteMsgToStdErr(const AValue: boolean);
   private
     FInterfaceType: TPasClassInterfaceType;
@@ -514,6 +518,7 @@ type
     property TargetPlatform: TPasToJsPlatform read FTargetPlatform write SetTargetPlatform;
     property TargetProcessor: TPasToJsProcessor read FTargetProcessor write SetTargetProcessor;
     property WPOAnalyzer: TPas2JSWPOptimizer read FWPOAnalyzer; // Whole Program Optimization
+    property WriteDebugLog: boolean read GetWriteDebugLog write SetWriteDebugLog;
     property WriteMsgToStdErr: boolean read GetWriteMsgToStdErr write SetWriteMsgToStdErr;
     property ExitCode: longint read GetExitCode write SetExitCode;
   end;
@@ -1172,10 +1177,10 @@ begin
   try
     Compiler.RemoveReadingModule(Self);
 
-    if ShowDebug then
+    if coWriteDebugLog in Compiler.Options then
     begin
-      Log.LogPlain('Pas-Module:');
-      Log.LogPlain(PasModule.GetDeclaration(true));
+      Log.DebugLogWriteLn('Pas-Module:');
+      Log.DebugLogWriteLn(PasModule.GetDeclaration(true));
     end;
 
     if PCUReader=nil then
@@ -2565,6 +2570,11 @@ begin
   Result:=coSourceMapXSSIHeader in FOptions;
 end;
 
+function TPas2jsCompiler.GetWriteDebugLog: boolean;
+begin
+  Result:=coWriteDebugLog in FOptions;
+end;
+
 function TPas2jsCompiler.GetWriteMsgToStdErr: boolean;
 begin
   Result:=coWriteMsgToStdErr in FOptions;
@@ -2667,6 +2677,11 @@ begin
   RemoveDefine(PasToJsProcessorNames[TargetProcessor]);
   FTargetProcessor:=AValue;
   AddDefinesForTargetProcessor;
+end;
+
+procedure TPas2jsCompiler.SetWriteDebugLog(const AValue: boolean);
+begin
+  SetOption(coWriteDebugLog,AValue);
 end;
 
 procedure TPas2jsCompiler.SetWriteMsgToStdErr(const AValue: boolean);
@@ -3517,7 +3532,7 @@ begin
   end;
 
   // read other flags
-  ReadSingleLetterOptions(Param,p,'ewnhila0bctdqxz',Enabled,Disabled);
+  ReadSingleLetterOptions(Param,p,'ewnhila0bctdqxvz',Enabled,Disabled);
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
     'e': Options:=Options+[coShowErrors];
@@ -3534,6 +3549,7 @@ begin
     'd': ShowDebug:=true;
     'q': Options:=Options+[coShowMessageNumbers];
     'x': Options:=Options+[coShowUsedTools];
+    'v': Options:=Options+[coWriteDebugLog];
     'z': WriteMsgToStdErr:=true;
     end;
   end;
@@ -3553,6 +3569,7 @@ begin
     'd': ShowDebug:=false;
     'q': Options:=Options-[coShowMessageNumbers];
     'x': Options:=Options-[coShowUsedTools];
+    'v': Options:=Options+[coWriteDebugLog];
     'z': WriteMsgToStdErr:=false;
     end;
   end;
@@ -3813,6 +3830,8 @@ begin
   // quick check command line params
   for i:=0 to ParamList.Count-1 do
     ReadParam(ParamList[i],true,true);
+  if WriteDebugLog then
+    Log.OpenDebugLog;
   if ShowLogo then
     WriteLogo;
 
@@ -4010,21 +4029,22 @@ begin
   l('    -Tnodejs  : add pas.run(), includes -Jc');
   l('  -u<x>   : Undefines the symbol <x>');
   l('  -v<x>   : Be verbose. <x> is a combination of the following letters:');
-  l('    e     : show errors (default)');
-  l('    w     : show warnings');
-  l('    n     : show notes');
-  l('    h     : show hints');
-  l('    i     : show info');
-  l('    l     : show line numbers');
-  l('    a     : show everything');
-  l('    0     : show nothing (except errors)');
-  l('    b     : show file names with full path');
-  l('    c     : show conditionals');
-  l('    t     : show tried/used files');
-  l('    d     : show debug notes and info, enables -vni');
-  l('    q     : show message numbers');
-  l('    x     : show used tools');
-  l('    z     : write messages to stderr, -o. still uses stdout.');
+  l('    e     : Show errors (default)');
+  l('    w     : Show warnings');
+  l('    n     : Show notes');
+  l('    h     : Show hints');
+  l('    i     : Show info');
+  l('    l     : Show line numbers');
+  l('    a     : Show everything');
+  l('    0     : Show nothing (except errors)');
+  l('    b     : Show file names with full path');
+  l('    c     : Show conditionals');
+  l('    t     : Show tried/used files');
+  l('    d     : Show debug notes and info, enables -vni');
+  l('    q     : Show message numbers');
+  l('    x     : Show used tools');
+  l('    v     : Write pas2jsdebug.log with lots of debugging info');
+  l('    z     : Write messages to stderr, -o. still uses stdout.');
   l('  -vm<x>,<y>: Do not show messages numbered <x> and <y>.');
   l('  -?      : Show this help');
   l('  -h      : Show this help');
@@ -4055,7 +4075,7 @@ var
   fco: TP2jsFileCacheOption;
 begin
   // message encoding
-  Log.LogMsgIgnoreFilter(nMessageEncodingIs,[IntToStr(Log.MsgCount)]);
+  Log.LogMsgIgnoreFilter(nMessageEncodingIs,[BoolToStr(Log.Encoding<>'',Log.Encoding,'system')]);
   // target platform
   Log.LogMsgIgnoreFilter(nTargetPlatformIs,[PasToJsPlatformNames[TargetPlatform]]);
   Log.LogMsgIgnoreFilter(nTargetProcessorIs,[PasToJsProcessorNames[TargetProcessor]]);

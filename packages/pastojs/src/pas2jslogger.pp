@@ -59,6 +59,7 @@ type
 
   TPas2jsLogger = class
   private
+    FDebugLog: TStream;
     FEncoding: string;
     FLastMsgCol: integer;
     FLastMsgFile: string;
@@ -116,6 +117,9 @@ type
     procedure CloseOutputFile;
     procedure Reset;
     procedure ClearLastMsg;
+    procedure OpenDebugLog;
+    procedure CloseDebugLog;
+    procedure DebugLogWriteLn(Msg: string); overload;
   public
     property Encoding: string read FEncoding write SetEncoding; // normalized
     property MsgCount: integer read GetMsgCount;
@@ -134,6 +138,7 @@ type
     property LastMsgCol: integer read FLastMsgCol write FLastMsgCol;
     property LastMsgTxt: string read FLastMsgTxt write FLastMsgTxt;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
+    property DebugLog: TStream read FDebugLog write FDebugLog;
   end;
 
 function CompareP2JMessage(Item1, Item2: Pointer): Integer;
@@ -511,35 +516,32 @@ begin
 end;
 
 procedure TPas2jsLogger.DoLogRaw(const Msg: string; SkipEncoding : Boolean);
-
-Var
-  S : String;
-
+var
+  S: String;
 begin
   if SkipEncoding then
     S:=Msg
-  else
-    begin
+  else begin
     if (Encoding='utf8') or (Encoding='json') then
       S:=Msg
     else if Encoding='console' then
       S:=UTF8ToConsole(Msg)
     else if Encoding='system' then
       S:=UTF8ToSystemCP(Msg)
-    else
-      begin
+    else begin
       // default: write UTF-8 to outputfile and console codepage to console
       if FOutputFile=nil then
         S:=UTF8ToConsole(Msg);
-      end;
     end;
+  end;
   //writeln('TPas2jsLogger.LogPlain "',Encoding,'" "',DbgStr(S),'"');
+  if DebugLog<>nil then
+    DebugLogWriteLn(S);
   if FOnLog<>Nil then
     FOnLog(Self,S)
   else if FOutputFile<>nil then
     FOutputFile.Write(S+LineEnding)
-  else
-    begin
+  else begin
     // prevent codepage conversion magic
     SetCodePage(RawByteString(S), CP_OEMCP, False);
     {AllowWriteln}
@@ -548,7 +550,7 @@ begin
     else
       writeln(S);
     {AllowWriteln-}
-    end;
+  end;
 end;
 
 function TPas2jsLogger.Concatenate(Args: array of const): string;
@@ -597,6 +599,7 @@ var
   i: Integer;
 begin
   CloseOutputFile;
+  CloseDebugLog;
   for i:=0 to FMsg.Count-1 do
     TObject(FMsg[i]).Free;
   FreeAndNil(FMsg);
@@ -693,6 +696,13 @@ end;
 procedure TPas2jsLogger.LogLn;
 begin
   LogRaw('');
+end;
+
+procedure TPas2jsLogger.DebugLogWriteLn(Msg: string);
+begin
+  if FDebugLog=nil then exit;
+  Msg:=Msg+LineEnding;
+  FDebugLog.Write(Msg[1],length(Msg));
 end;
 
 procedure TPas2jsLogger.LogPlain(const Msg: string);
@@ -865,6 +875,18 @@ begin
   FLastMsgFile:='';
   FLastMsgLine:=0;
   FLastMsgCol:=0;
+end;
+
+procedure TPas2jsLogger.OpenDebugLog;
+const
+  DbgLogFilename = 'pas2jsdebug.log';
+begin
+  FDebugLog:=TFileStream.Create(DbgLogFilename,fmCreate or fmShareDenyNone);
+end;
+
+procedure TPas2jsLogger.CloseDebugLog;
+begin
+  FreeAndNil(FDebugLog);
 end;
 
 end.
