@@ -467,6 +467,7 @@ const
   nNestedInheritedNeedsParameters = 4022;
   nFreeNeedsVar = 4023;
   nDuplicateGUIDXInYZ = 4024;
+  nCantCallExtBracketAccessor = 4025;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -493,6 +494,7 @@ resourcestring
   sNestedInheritedNeedsParameters = 'nested inherited needs parameters';
   sFreeNeedsVar = 'Free needs a variable';
   sDuplicateGUIDXInYZ = 'Duplicate GUID %s in %s and %s';
+  sCantCallExtBracketAccessor = 'cannot call external bracket accessor, use a property instead';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -1253,6 +1255,7 @@ type
     ScannerBoolSwitches: TBoolSwitches;
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); virtual;
     function GetRootModule: TPasModule;
+    function GetNonDotContext: TConvertContext;
     function GetFunctionContext: TFunctionContext;
     function GetLocalName(El: TPasElement): string; virtual;
     function GetSelfContext: TFunctionContext;
@@ -1553,6 +1556,7 @@ type
       RecordExpr: TJSElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallback(El: TPasElement; ResolvedEl: TPasResolverResult;
       AContext: TConvertContext): TJSElement; virtual;
+    Function ConvertExternalBracketAccessorCall(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function CreateAssignStatement(LeftEl: TPasElement; AssignContext: TAssignContext): TJSElement; virtual;
     Function CreateGetEnumeratorLoop(El: TPasImplForLoop;
       AContext: TConvertContext): TJSElement; virtual;
@@ -4602,6 +4606,13 @@ begin
     Result:=nil;
 end;
 
+function TConvertContext.GetNonDotContext: TConvertContext;
+begin
+  Result:=Self;
+  while Result is TDotContext do
+    Result:=Result.Parent;
+end;
+
 function TConvertContext.GetFunctionContext: TFunctionContext;
 begin
   Result:=TFunctionContext(GetContextOfType(TFunctionContext));
@@ -6087,10 +6098,13 @@ var
   ParamsExpr: TParamsExpr;
   RightEl: TPasExpr;
   RightRefDecl: TPasElement;
+  aResolver: TPas2JSResolver;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
 
   ParamsExpr:=nil;
+  // a.(RightEl.(b.c))
   RightEl:=El.right;
   while RightEl.ClassType=TParamsExpr do
     begin
@@ -6116,16 +6130,16 @@ begin
         Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
       exit;
       end
-    else if AContext.Resolver.IsTObjectFreeMethod(RightEl) then
+    else if aResolver.IsTObjectFreeMethod(RightEl) then
       begin
       Result:=ConvertTObjectFree(El,RightEl,AContext);
       exit;
       end;
     end;
 
-  if AContext.Resolver<>nil then
+  if aResolver<>nil then
     begin
-    AContext.Resolver.ComputeElement(El.left,LeftResolved,[]);
+    aResolver.ComputeElement(El.left,LeftResolved,[]);
     if LeftResolved.BaseType=btModule then
       begin
       // e.g. System.ExitCode
@@ -6390,6 +6404,8 @@ begin
     Result:=ConvertExternalConstructor(nil,Ref,nil,AContext);
     exit;
     end;
+  if aResolver.IsExternalBracketAccessor(Decl) then
+    DoError(20180511154132,nCantCallExtBracketAccessor,sCantCallExtBracketAccessor,[],El);
 
   if [rrfNewInstance,rrfFreeInstance]*Ref.Flags<>[] then
     begin
@@ -7464,9 +7480,7 @@ Var
 begin
   if El.Kind<>pekArrayParams then
     RaiseInconsistency(20170209113713,El);
-  ArgContext:=AContext;
-  while ArgContext is TDotContext do
-    ArgContext:=ArgContext.Parent;
+  ArgContext:=AContext.GetNonDotContext;
   if AContext.Resolver=nil then
     begin
     // without Resolver
@@ -7651,7 +7665,11 @@ begin
       exit;
       end
     else if C.InheritsFrom(TPasProcedure) then
-      TargetProcType:=TPasProcedure(Decl).ProcType
+      begin
+      TargetProcType:=TPasProcedure(Decl).ProcType;
+      if aResolver.IsExternalBracketAccessor(Decl) then
+        exit(ConvertExternalBracketAccessorCall(El,AContext));
+      end
     else if (C=TPasClassType)
         or (C=TPasClassOfType)
         or (C=TPasRecordType)
@@ -8484,9 +8502,7 @@ begin
   else
     begin
     Result:=nil;
-    ArgContext:=AContext;
-    while ArgContext is TDotContext do
-      ArgContext:=ArgContext.Parent;
+    ArgContext:=AContext.GetNonDotContext;
     Call:=CreateCallExpression(El);
     try
       Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],FBuiltInNames[pbifnSet_Create]]);
@@ -12927,6 +12943,63 @@ begin
   end;
 end;
 
+function TPasToJSConverter.ConvertExternalBracketAccessorCall(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+var
+  Ref: TResolvedReference;
+  ArgContext: TConvertContext;
+  ok: Boolean;
+  AssignSt: TJSSimpleAssignStatement;
+  IndexJS: TJSElement;
+  WithData: TPas2JSWithExprScope;
+  Path: String;
+  BracketJS: TJSBracketMemberExpression;
+begin
+  Result:=nil;
+  if length(El.Params)<1 then
+    RaiseInconsistency(20180511151259,El);
+  if not (El.Value.CustomData is TResolvedReference) then
+    RaiseInconsistency(20180511144445,El);
+  Ref:=TResolvedReference(El.Value.CustomData);
+  ArgContext:=AContext.GetNonDotContext;
+  ok:=false;
+  try
+    // First convert index, because it may raise an exception
+    IndexJS:=ConvertElement(El.Params[0],ArgContext);
+
+    if Ref.WithExprScope<>nil then
+      begin
+      // with path do GetItems(astring) -> withtmp1[astring]
+      WithData:=Ref.WithExprScope as TPas2JSWithExprScope;
+      Path:=WithData.WithVarName;
+      end
+    else
+      begin
+      // GetItems(astring) -> this[astring]
+      Path:='this';
+      end;
+    BracketJS:=TJSBracketMemberExpression(CreateElement(TJSBracketMemberExpression,El));
+    Result:=BracketJS;
+    BracketJS.Name:=IndexJS;
+    BracketJS.MExpr:=CreatePrimitiveDotExpr(Path,El);
+
+    if length(El.Params)>1 then
+      begin
+      // SetItems(astring,value) -> this[astring]:=value
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AssignSt.LHS:=Result;
+      Result:=AssignSt;
+      AssignSt.Expr:=ConvertElement(El.Params[1],ArgContext); // may raise an exception
+      end;
+
+    if length(El.Params)>2 then
+      DoError(20180511144047,nCantCallExtBracketAccessor,sCantCallExtBracketAccessor,[],El);
+    ok:=true;
+  finally
+    if not ok then Result.Free;
+  end;
+end;
+
 function TPasToJSConverter.CreateAssignStatement(LeftEl: TPasElement;
   AssignContext: TAssignContext): TJSElement;
 var
@@ -16896,9 +16969,7 @@ var
   OldAccess: TCtxAccess;
 begin
   // get context
-  ArgContext:=AContext;
-  while ArgContext is TDotContext do
-    ArgContext:=ArgContext.Parent;
+  ArgContext:=AContext.GetNonDotContext;
   i:=0;
   OldAccess:=ArgContext.Access;
   if TargetProc<>nil then

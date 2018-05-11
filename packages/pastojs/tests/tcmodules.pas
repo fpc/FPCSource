@@ -481,6 +481,7 @@ type
     Procedure TestExternalClass_TypeCastStringToExternalString;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketAccessor;
+    Procedure TestExternalClass_BracketAccessor_Call;
     Procedure TestExternalClass_BracketAccessor_2ParamsFail;
     Procedure TestExternalClass_BracketAccessor_ReadOnly;
     Procedure TestExternalClass_BracketAccessor_WriteOnly;
@@ -12971,30 +12972,36 @@ end;
 procedure TTestModule.TestExternalClass_BracketAccessor;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TJSArray = class external name ''Array2''');
-  Add('    function GetItems(Index: longint): jsvalue; external name ''[]'';');
-  Add('    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';');
-  Add('    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;');
-  Add('  end;');
-  Add('procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);');
-  Add('begin end;');
-  Add('var');
-  Add('  Arr: tjsarray;');
-  Add('  s: string;');
-  Add('  i: longint;');
-  Add('  v: jsvalue;');
-  Add('begin');
-  Add('  v:=arr[0];');
-  Add('  v:=arr.items[1];');
-  Add('  arr[2]:=s;');
-  Add('  arr.items[3]:=s;');
-  Add('  arr[4]:=i;');
-  Add('  arr[5]:=arr[6];');
-  Add('  arr.items[7]:=arr.items[8];');
-  Add('  with arr do items[9]:=items[10];');
-  Add('  doit(arr[7],arr[8],arr[9],arr[10]);');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSArray = class external name ''Array2''',
+  '    function GetItems(Index: longint): jsvalue; external name ''[]'';',
+  '    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';',
+  '    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;',
+  '  end;',
+  'procedure DoIt(vI: JSValue; const vJ: jsvalue; var vK: jsvalue; out vL: jsvalue);',
+  'begin end;',
+  'var',
+  '  Arr: tjsarray;',
+  '  s: string;',
+  '  i: longint;',
+  '  v: jsvalue;',
+  'begin',
+  '  v:=arr[0];',
+  '  v:=arr.items[1];',
+  '  arr[2]:=s;',
+  '  arr.items[3]:=s;',
+  '  arr[4]:=i;',
+  '  arr[5]:=arr[6];',
+  '  arr.items[7]:=arr.items[8];',
+  '  with arr do items[9]:=items[10];',
+  '  doit(arr[7],arr[8],arr[9],arr[10]);',
+  '  with arr do begin',
+  '    v:=GetItems(14);',
+  '    setitems(15,16);',
+  '  end;',
+  '']);
   ConvertProgram;
   CheckSource('TestExternalClass_BracketAccessor',
     LinesToStr([ // statements
@@ -13034,6 +13041,81 @@ begin
     '      this.p[this.a] = v;',
     '    }',
     '});',
+    'var $with2 = $mod.Arr;',
+    '$mod.v = $with2[14];',
+    '$with2[15] = 16;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_BracketAccessor_Call;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSArray = class external name ''Array2''',
+  '    function GetItems(Index: longint): jsvalue; external name ''[]'';',
+  '    procedure SetItems(Index: longint; Value: jsvalue); external name ''[]'';',
+  '    property Items[Index: longint]: jsvalue read GetItems write SetItems; default;',
+  '  end;',
+  '  TMyArr = class(TJSArray)',
+  '    procedure DoIt;',
+  '  end;',
+  'procedure tmyarr.DoIt;',
+  'begin',
+  '  Items[1]:=Items[2];',
+  '  SetItems(3,getItems(4));',
+  'end;',
+  'var',
+  '  Arr: tmyarr;',
+  '  s: string;',
+  '  i: longint;',
+  '  v: jsvalue;',
+  'begin',
+  '  v:=arr[0];',
+  '  v:=arr.items[1];',
+  '  arr[2]:=s;',
+  '  arr.items[3]:=s;',
+  '  arr[4]:=i;',
+  '  arr[5]:=arr[6];',
+  '  arr.items[7]:=arr.items[8];',
+  '  with arr do items[9]:=items[10];',
+  '  with arr do begin',
+  '    v:=GetItems(14);',
+  '    setitems(15,16);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_BracketAccessor_Call',
+    LinesToStr([ // statements
+    'rtl.createClassExt($mod, "TMyArr", Array2, "", function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function () {',
+    '    this[1] = this[2];',
+    '    this[3] = this[4];',
+    '  };',
+    '});',
+    'this.Arr = null;',
+    'this.s = "";',
+    'this.i = 0;',
+    'this.v = undefined;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.v = $mod.Arr[0];',
+    '$mod.v = $mod.Arr[1];',
+    '$mod.Arr[2] = $mod.s;',
+    '$mod.Arr[3] = $mod.s;',
+    '$mod.Arr[4] = $mod.i;',
+    '$mod.Arr[5] = $mod.Arr[6];',
+    '$mod.Arr[7] = $mod.Arr[8];',
+    'var $with1 = $mod.Arr;',
+    '$with1[9] = $with1[10];',
+    'var $with2 = $mod.Arr;',
+    '$mod.v = $with2[14];',
+    '$with2[15] = 16;',
     '']));
 end;
 
