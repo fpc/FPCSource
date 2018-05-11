@@ -128,6 +128,10 @@ function do_isdevice(handle:thandle):boolean;forward;
 ****************************************************************************}
 
 {$ifdef FPC_USE_LIBC}
+{$ifdef USE_CPU_MOVE}
+  { Avoid use of generic C code for move procedure }
+  {$define FPC_SYSTEM_HAS_MOVE}
+{$endif}
 { Under Haiku, bcopy cause a problem when searching for include file
   in the compiler. So, we use the internal implementation for now
   under BeOS and Haiku.  }
@@ -136,6 +140,10 @@ function do_isdevice(handle:thandle):boolean;forward;
 {$i cgeneric.inc}
 { is now declared as external reference to another routine in the interface }
 {$i cgenstr.inc}
+{$endif}
+{$ifdef USE_CPU_MOVE}
+  { Avoid use of generic C code for move procedure }
+  {$undef FPC_SYSTEM_HAS_MOVE}
 {$endif}
 {$endif FPC_USE_LIBC}
 
