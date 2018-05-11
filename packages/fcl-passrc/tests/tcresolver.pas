@@ -13296,6 +13296,7 @@ begin
   Add('  obj:=TObject(p);');
   Add('  cl:=TClass(p);');
   Add('  a:=TArrInt(p);');
+  Add('  p:=Pointer(a);');
   ParseProgram;
 end;
 

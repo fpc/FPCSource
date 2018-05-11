@@ -487,6 +487,7 @@ type
     Procedure TestExternalClass_BracketAccessor_MultiType;
     Procedure TestExternalClass_BracketAccessor_Index;
     Procedure TestExternalClass_ForInJSObject;
+    Procedure TestExternalClass_IncompatibleArgDuplicateIdentifier;
 
     // class interfaces
     Procedure TestClassInterface_Corba;
@@ -8522,8 +8523,8 @@ begin
   ConvertProgram;
   CheckSource('TestClass_TypeAlias',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IObject", "{5B8AD21A-8000-3000-8000-000000000000}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{48DF66C6-FD76-3B15-A738-D462ECC63074}", [], $mod.IObject);',
+    'rtl.createInterface($mod, "IObject", "{B92D5841-6F2A-306A-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{4B0D080B-C0F6-387B-AE88-F10981585074}", [], $mod.IObject);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -12814,7 +12815,7 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToRootClass',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -12884,8 +12885,8 @@ begin
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastToJSObject',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D462ECC63074}", [], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{4B0D080B-C0F6-396E-AE88-000B87785074}", [], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13207,22 +13208,65 @@ begin
   'type',
   '  TJSObject = class external name ''Object''',
   '  end;',
+  '  TJSArray = class external name ''Array''',
+  '  end;',
   'var',
   '  o: TJSObject;',
+  '  a: TJSArray;',
   '  key: string;',
   'begin',
   '  for key in o do',
   '    if key=''abc'' then ;',
+  '  for key in a do',
+  '    if key=''123'' then ;',
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_ForInJSObject',
     LinesToStr([ // statements
     'this.o = null;',
+    'this.a = null;',
     'this.key = "";',
     '']),
     LinesToStr([ // $mod.$main
     'for ($mod.key in $mod.o) if ($mod.key === "abc") ;',
+    'for ($mod.key in $mod.a) if ($mod.key === "123") ;',
     '']));
+end;
+
+procedure TTestModule.TestExternalClass_IncompatibleArgDuplicateIdentifier;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TJSBufferSource = class external name ''BufferSource''',
+    '  end;',
+    'procedure DoIt(s: TJSBufferSource); external name ''DoIt'';',
+    '']),
+    '');
+  AddModuleWithIntfImplSrc('unit3.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TJSBufferSource = class external name ''BufferSource''',
+    '  end;',
+    '']),
+    '');
+
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit2, unit3;',
+  'procedure DoSome(s: TJSBufferSource);',
+  'implementation',
+  'procedure DoSome(s: TJSBufferSource);',
+  'begin',
+  '  DoIt(s);',
+  'end;',
+  '']);
+  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "unit3.TJSBufferSource", expected "unit2.TJSBufferSource"',
+    nIncompatibleTypeArgNo);
+  ConvertUnit;
 end;
 
 procedure TTestModule.TestClassInterface_Corba;
@@ -13258,7 +13302,7 @@ begin
   CheckSource('TestClassInterface_Corba',
     LinesToStr([ // statements
     'rtl.createInterface($mod, "IUnknown", "{00000000-0000-0000-C000-000000000046}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{B0AF836B-4E58-31BA-A735-D744B6DAA205}", ["GetSize", "SetSize", "DoIt"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IBird", "{5BD1A53B-69BB-37EE-AF32-BEFB86D85B03}", ["GetSize", "SetSize", "DoIt"], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13328,8 +13372,8 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_Overloads',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E71-32CA-B8EF-650000000000}", ["DoIt", "DoIt$1"], null);',
-    'rtl.createInterface($mod, "IBird", "{D2E3FF4A-AF76-3468-AB38-EB26B77CE676}", ["DoIt$2"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-BDC4-8A2AE2C59400}", ["DoIt", "DoIt$1"], null);',
+    'rtl.createInterface($mod, "IBird", "{8285DD5E-EA3E-396E-AE88-000B86AABF05}", ["DoIt$2"], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13426,8 +13470,8 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_AncestorIntf',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E71-32CA-8000-000000000000}", ["DoIt"], null);',
-    'rtl.createInterface($mod, "IBird", "{585952B8-2CC8-3000-8000-000000000000}", ["Fly"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-BDC4-8A2800000000}", ["DoIt"], null);',
+    'rtl.createInterface($mod, "IBird", "{B92D5841-6264-3AE3-BF20-000000000000}", ["Fly"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13473,7 +13517,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_ImplReintroduce',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IBird", "{585952B8-EF65-3000-8000-000000000000}", ["DoIt"], null);',
+    'rtl.createInterface($mod, "IBird", "{B92D5841-6264-3AE2-8594-000000000000}", ["DoIt"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13530,8 +13574,8 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_MethodResolution',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E75-38F5-8000-000000000000}", ["Walk"], null);',
-    'rtl.createInterface($mod, "IBird", "{F8E3FF4A-AF76-3468-BB38-1CCFAB120092}", ["Walk$1", "Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-BDD7-23D600000000}", ["Walk"], null);',
+    'rtl.createInterface($mod, "IBird", "{CF8A4986-80F6-396E-AE88-000B86AAE208}", ["Walk$1", "Fly"], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13584,9 +13628,9 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_AncestorLess',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-7588F5800000}", ["_AddRef", "Walk"], null);',
-    'rtl.createInterface($mod, "IBird", "{136757F2-AF76-3468-8338-1526EC563676}", [], $mod.IUnknown);',
-    'rtl.createInterface($mod, "IDog", "{136757F2-AF76-3468-8565-8D26EC563676}", [], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IUnknown", "{8F2D5841-758A-322B-BDDF-21CD521DD723}", ["_AddRef", "Walk"], null);',
+    'rtl.createInterface($mod, "IBird", "{CCE11D4C-6504-3AEE-AE88-000B86AAE675}", [], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IDog", "{CCE11D4C-6504-3AEE-AE88-000B8E5FC675}", [], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13644,11 +13688,11 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_Delegation',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D745ABE63074}", ["Fly"], $mod.IUnknown);',
-    'rtl.createInterface($mod, "IEagle", "{56CEF525-B037-3078-82F5-4C3CF0629879}", [], $mod.IBird);',
-    'rtl.createInterface($mod, "IDove", "{56CEF525-B037-3078-8169-F7ECF0629879}", [], $mod.IBird);',
-    'rtl.createInterface($mod, "ISwallow", "{56CEF525-B037-3078-90A3-CCE44C629879}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{478D080B-C0F6-396E-AE88-000B87785B07}", ["Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEagle", "{489289DE-FDE2-34A6-8288-39119022B1B4}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IDove", "{489289DE-FDE2-34A6-8288-39118EF16074}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "ISwallow", "{B89289DE-FDE2-34A6-8288-3911CBDCB359}", [], $mod.IBird);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13674,16 +13718,16 @@ begin
     '    $mod.TObject.$final.call(this);',
     '  };',
     '  this.$intfmaps = {',
-    '    "{48E3FF4A-AF76-3465-A738-D745ABE63074}": function () {',
+    '    "{478D080B-C0F6-396E-AE88-000B87785B07}": function () {',
     '        return this.FBirdIntf;',
     '      },',
-    '    "{56CEF525-B037-3078-82F5-4C3CF0629879}": function () {',
+    '    "{489289DE-FDE2-34A6-8288-39119022B1B4}": function () {',
     '        return this.GetEagleIntf();',
     '      },',
-    '    "{56CEF525-B037-3078-8169-F7ECF0629879}": function () {',
+    '    "{489289DE-FDE2-34A6-8288-39118EF16074}": function () {',
     '        return rtl.getIntfT(this.FDoveObj, $mod.IDove);',
     '      },',
-    '    "{56CEF525-B037-3078-90A3-CCE44C629879}": function () {',
+    '    "{B89289DE-FDE2-34A6-8288-3911CBDCB359}": function () {',
     '        return rtl.getIntfT(this.GetSwallowObj(), $mod.ISwallow);',
     '      }',
     '  };',
@@ -13732,11 +13776,11 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_DelegationStatic',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D745ABE63074}", ["Fly"], $mod.IUnknown);',
-    'rtl.createInterface($mod, "IEagle", "{56CEF525-B037-3078-82F5-4C3CF0629879}", [], $mod.IBird);',
-    'rtl.createInterface($mod, "IDove", "{56CEF525-B037-3078-8169-F7ECF0629879}", [], $mod.IBird);',
-    'rtl.createInterface($mod, "ISwallow", "{56CEF525-B037-3078-90A3-CCE44C629879}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{478D080B-C0F6-396E-AE88-000B87785B07}", ["Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEagle", "{489289DE-FDE2-34A6-8288-39119022B1B4}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IDove", "{489289DE-FDE2-34A6-8288-39118EF16074}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "ISwallow", "{B89289DE-FDE2-34A6-8288-3911CBDCB359}", [], $mod.IBird);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13754,16 +13798,16 @@ begin
     '  this.FBirdIntf = null;',
     '  this.FDoveObj = null;',
     '  this.$intfmaps = {',
-    '    "{48E3FF4A-AF76-3465-A738-D745ABE63074}": function () {',
+    '    "{478D080B-C0F6-396E-AE88-000B87785B07}": function () {',
     '        return this.FBirdIntf;',
     '      },',
-    '    "{56CEF525-B037-3078-82F5-4C3CF0629879}": function () {',
+    '    "{489289DE-FDE2-34A6-8288-39119022B1B4}": function () {',
     '        return this.$class.GetEagleIntf();',
     '      },',
-    '    "{56CEF525-B037-3078-8169-F7ECF0629879}": function () {',
+    '    "{489289DE-FDE2-34A6-8288-39118EF16074}": function () {',
     '        return rtl.getIntfT(this.FDoveObj, $mod.IDove);',
     '      },',
-    '    "{56CEF525-B037-3078-90A3-CCE44C629879}": function () {',
+    '    "{B89289DE-FDE2-34A6-8288-3911CBDCB359}": function () {',
     '        return rtl.getIntfT(this.$class.GetSwallowObj(), $mod.ISwallow);',
     '      }',
     '  };',
@@ -13823,8 +13867,8 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_Corba_Operators',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{8E3C13AF-8080-3465-A738-D7460F8FE995}", ["GetItems", "SetItems"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{D53FED90-DE59-3202-B1AE-000B87785B08}", ["GetItems", "SetItems"], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13899,8 +13943,8 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_Corba_Args',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
-    'rtl.createInterface($mod, "IBird", "{48E3FF4A-AF76-3465-A738-D462ECC63074}", [], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IBird", "{4B0D080B-C0F6-396E-AE88-000B87785074}", [], $mod.IUnknown);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -13994,7 +14038,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_Corba_ForIn',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Id = 0;',
@@ -14002,8 +14046,8 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createInterface($mod, "IEnumerator", "{D2FE11F3-D2CC-36BB-A5B2-66EB7FB5CB08}", ["GetCurrent", "MoveNext"], $mod.IUnknown);',
-    'rtl.createInterface($mod, "IEnumerable", "{D20534CB-D9C0-3EA5-AA60-ACEB7D726308}", ["GetEnumerator"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEnumerator", "{95D7745D-ED61-3F13-BBE4-07708161999E}", ["GetCurrent", "MoveNext"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEnumerable", "{8CC9D45D-ED7D-3B73-96B6-290B931BB19E}", ["GetEnumerator"], $mod.IUnknown);',
     'this.o = null;',
     'this.i = null;',
     '']),
@@ -14055,7 +14099,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_AssignVar',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14114,7 +14158,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_AssignArg',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14161,7 +14205,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_FunctionResult',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14225,7 +14269,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_InheritedFuncResult',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14297,7 +14341,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_IsAsTypeCasts',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14359,7 +14403,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_PassAsArg',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14471,7 +14515,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_PassToUntypedParam',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14571,7 +14615,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_FunctionInExpr',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14659,7 +14703,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_Property',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.FAnt = null;',
@@ -14741,7 +14785,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_IntfProperty',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5406909F-9F0B-32A4-B98B-94CDDE493C91}", [',
+    'rtl.createInterface($mod, "IUnknown", "{385F5482-571B-338C-8130-4E97F330543B}", [',
     '  "_AddRef",',
     '  "_Release",',
     '  "GetBird",',
@@ -14821,11 +14865,11 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_Delegation',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E77-3872-9406-776A86A09328}", ["_AddRef", "_Release"], null);',
-    'rtl.createInterface($mod, "IBird", "{174B9F1B-B1BC-3868-8338-1709AB763676}", ["Fly"], $mod.IUnknown);',
-    'rtl.createInterface($mod, "IEagle", "{95CDEE63-AD4B-322E-B6F5-6C42ECD29875}", [], $mod.IBird);',
-    'rtl.createInterface($mod, "IDove", "{95CDEE63-AD4B-322E-B569-17F2ECD29875}", [], $mod.IBird);',
-    'rtl.createInterface($mod, "ISwallow", "{95CDEE63-AD4B-322E-84A4-ECEA48D29875}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'rtl.createInterface($mod, "IBird", "{CC440C7F-7623-3DEE-AE88-000B86AAF108}", ["Fly"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEagle", "{4B6A41C9-B020-3D7C-B688-96D19022B1B4}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "IDove", "{4B6A41C9-B020-3D7C-B688-96D18EF16074}", [], $mod.IBird);',
+    'rtl.createInterface($mod, "ISwallow", "{BB6A41C9-B020-3D7C-B688-96D1CBDCB359}", [], $mod.IBird);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14851,16 +14895,16 @@ begin
     '    $mod.TObject.$final.call(this);',
     '  };',
     '  this.$intfmaps = {',
-    '    "{174B9F1B-B1BC-3868-8338-1709AB763676}": function () {',
+    '    "{CC440C7F-7623-3DEE-AE88-000B86AAF108}": function () {',
     '        return rtl._AddRef(this.FBirdIntf);',
     '      },',
-    '    "{95CDEE63-AD4B-322E-B6F5-6C42ECD29875}": function () {',
+    '    "{4B6A41C9-B020-3D7C-B688-96D19022B1B4}": function () {',
     '        return this.GetEagleIntf();',
     '      },',
-    '    "{95CDEE63-AD4B-322E-B569-17F2ECD29875}": function () {',
+    '    "{4B6A41C9-B020-3D7C-B688-96D18EF16074}": function () {',
     '        return rtl.queryIntfT(this.FDoveObj, $mod.IDove);',
     '      },',
-    '    "{95CDEE63-AD4B-322E-84A4-ECEA48D29875}": function () {',
+    '    "{BB6A41C9-B020-3D7C-B688-96D1CBDCB359}": function () {',
     '        return rtl.queryIntfT(this.GetSwallowObj(), $mod.ISwallow);',
     '      }',
     '  };',
@@ -14902,7 +14946,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_With',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{F1ACF9FE-4E77-3872-9406-776A86A09333}", ["_AddRef", "_Release", "GetAnt"], null);',
+    'rtl.createInterface($mod, "IUnknown", "{D7ADB00D-C6B6-39FB-BDDF-21CD521DDFA9}", ["_AddRef", "_Release", "GetAnt"], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -14955,7 +14999,7 @@ begin
   ConvertProgram;
   CheckSource('TestClassInterface_COM_ForIn',
     LinesToStr([ // statements
-    'rtl.createInterface($mod, "IUnknown", "{5D22E7CA-4E00-3000-8000-000000000000}", [], null);',
+    'rtl.createInterface($mod, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
     'rtl.createClass($mod, "TObject", null, function () {',
     '  this.$init = function () {',
     '    this.Id = 0;',
@@ -14963,8 +15007,8 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
-    'rtl.createInterface($mod, "IEnumerator", "{D2FE11F3-D2CC-36BB-A5B2-66EB7FB5CB08}", ["GetCurrent", "MoveNext"], $mod.IUnknown);',
-    'rtl.createInterface($mod, "IEnumerable", "{D20534CB-D9C0-3EA5-AA60-ACEB7D726308}", ["GetEnumerator"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEnumerator", "{95D7745D-ED61-3F13-BBE4-07708161999E}", ["GetCurrent", "MoveNext"], $mod.IUnknown);',
+    'rtl.createInterface($mod, "IEnumerable", "{8CC9D45D-ED7D-3B73-96B6-290B931BB19E}", ["GetEnumerator"], $mod.IUnknown);',
     'this.o = null;',
     'this.i = null;',
     '']),
@@ -15059,7 +15103,7 @@ begin
     '};',
     '']),
     LinesToStr([ // implementation
-    'rtl.createInterface($impl, "IUnknown", "{5D22E7CA-4E77-3872-9406-000000000000}", ["_AddRef"], null);',
+    'rtl.createInterface($impl, "IUnknown", "{B92D5841-758A-322B-BDDF-21CD52180000}", ["_AddRef"], null);',
     'rtl.createClass($impl, "TObject", null, function () {',
     '  this.$init = function () {',
     '  };',
@@ -16653,7 +16697,9 @@ begin
   '  obj:=TObject(p);',
   '  c:=TClass(p);',
   '  a:=TArrInt(p);',
-  '  p:=n;']);
+  '  p:=n;',
+  '  p:=Pointer(a);',
+  '']);
   ConvertProgram;
   CheckSource('TestPointer',
     LinesToStr([ // statements
@@ -16685,6 +16731,7 @@ begin
     '$mod.C = $mod.p;',
     '$mod.a = $mod.p;',
     '$mod.p = null;',
+    '$mod.p = $mod.a;',
     '']));
 end;
 
@@ -20057,7 +20104,7 @@ begin
     'rtl.createInterface(',
     '  $mod,',
     '  "IUnknown",',
-    '  "{5D22E7CA-4E00-3000-8000-000000000000}",',
+    '  "{B92D5841-758A-322B-B800-000000000000}",',
     '  [],',
     '  null,',
     '  function () {',
@@ -20066,7 +20113,7 @@ begin
     'rtl.createInterface(',
     '  $mod,',
     '  "IBird",',
-    '  "{585952B8-45B2-3E86-BAC5-B22E86800000}",',
+    '  "{D32D5841-6264-3AE3-A2C9-B91CE922C9B9}",',
     '  ["GetItem", "SetItem"],',
     '  null,',
     '  function () {',
@@ -20130,7 +20177,7 @@ begin
     'rtl.createInterface(',
     '  $mod,',
     '  "IUnknown",',
-    '  "{06A53E33-DB48-3B02-9906-776A86A09333}",',
+    '  "{D7ADB00D-1A9B-3EDC-B123-730E661DDFA9}",',
     '  ["QueryInterface", "_AddRef", "_Release"],',
     '  null,',
     '  function () {',
@@ -20144,7 +20191,7 @@ begin
     'rtl.createInterface(',
     '  $mod,',
     '  "IBird",',
-    '  "{FF135A0E-7B4C-35B8-8737-674A0E33EF92}",',
+    '  "{9CC77572-0E45-3594-9A88-9E8D865C9E0A}",',
     '  ["GetItem", "SetItem"],',
     '  $mod.IUnknown,',
     '  function () {',

@@ -344,11 +344,7 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
-- -SI<x>     Set interface style to <x>
-         -SIcom     COM compatible interface (default)
-         -SIcorba   CORBA compatible interface
 -Sm        Support macros like C (global)
--Sy        @<pointer> returns a typed pointer, same as $T+
 - writestr(out s: string; args); varargs;
 - widestrings + FPC_HAS_FEATURE_WIDESTRINGS + FPC_WIDESTRING_EQUAL_UNICODESTRING
 - check rtl.js version
@@ -2196,7 +2192,7 @@ begin
     ProcScope:=TPas2JSProcedureScope(El.CustomData);
     ProcScope.OverloadName:=NewName;
     if ProcScope.DeclarationProc<>nil then
-      RaiseInternalError(20180322233222,El.FullPath);
+      RaiseInternalError(20180322233222,GetElementDbgPath(El));
     if ProcScope.ImplProc<>nil then
       TPas2JSProcedureScope(ProcScope.ImplProc.CustomData).OverloadName:=NewName;
     end
@@ -3298,7 +3294,7 @@ var
   List: TStringList;
   Scope: TPas2JSClassScope;
 begin
-  Name:=El.FullName;
+  Name:=El.PathName;
   Scope:=TPas2JSClassScope(El.CustomData);
   if Scope.AncestorScope<>nil then
     begin
@@ -3744,7 +3740,7 @@ begin
         begin
         // use external class definition
         {$IFDEF VerbosePas2JS}
-        writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult FindData.Found="',FindData.Found.FullName,'"');
+        writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult FindData.Found="',FindData.Found.ParentPath,'"');
         {$ENDIF}
         SetResolverTypeExpr(ResolvedEl,btContext,FoundClass,TPasType(FindData.Found),[rrfReadable]);
         exit;
@@ -16794,7 +16790,7 @@ begin
             // missing JS var for Self
             {$IFDEF VerbosePas2JS}
             {AllowWriteln}
-            writeln('TPasToJSConverter.CreateReferencePath missing JS var for Self: El=',El.FullName,':',El.ClassName,' CurParentEl=',ParentEl.FullName,':',ParentEl.ClassName,' AContext:');
+            writeln('TPasToJSConverter.CreateReferencePath missing JS var for Self: El=',GetElementDbgPath(El),':',El.ClassName,' CurParentEl=',GetElementDbgPath(ParentEl),':',ParentEl.ClassName,' AContext:');
             AContext.WriteStack;
             if Ref<>nil then
               writeln('TPasToJSConverter.CreateReferencePath Ref=',GetObjName(Ref.Element),' at ',AContext.Resolver.GetElementSourcePosStr(Ref.Element));
@@ -18077,7 +18073,7 @@ var
 begin
   E:=EPas2JS.CreateFmt(MsgPattern,Args);
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.DoError ',id,' ',El.FullName,':',El.ClassName,' Msg="',E.Message,'"');
+  writeln('TPasToJSConverter.DoError ',id,' ',GetElementDbgPath(El),':',El.ClassName,' Msg="',E.Message,'"');
   {$ENDIF}
   E.PasElement:=El;
   E.MsgNumber:=MsgNumber;
@@ -18093,7 +18089,7 @@ var
   E: EPas2JS;
 begin
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.RaiseNotSupported ',id,' ',El.FullName,':',El.ClassName,' Msg="',Msg,'"');
+  writeln('TPasToJSConverter.RaiseNotSupported ',id,' ',GetElementDbgPath(El),':',El.ClassName,' Msg="',Msg,'"');
   {$ENDIF}
   if AContext=nil then ;
   E:=EPas2JS.CreateFmt(sPasElementNotSupported,[GetObjName(El)+' ['+IntToStr(Id)+']']);
@@ -18130,7 +18126,7 @@ begin
   s:='TPasToJSConverter.RaiseInconsistency['+IntToStr(Id)+']: you found a bug';
   if El<>nil then
     begin
-    s:=s+El.FullName;
+    s:=s+GetElementDbgPath(El);
     if El.Name<>'' then
       s:=s+El.Name
     else

@@ -3133,6 +3133,8 @@ begin
                  ParamFatal('invalid include path (-Fi) "'+ErrorMsg+'"');
           'N': if not FileCache.AddNamespaces(String(p),FromCmdLine,ErrorMsg) then
                  ParamFatal('invalid namespace (-FN) "'+ErrorMsg+'"');
+          'r': if not Quick then
+                 Log.Log(mtNote,'-Fr not yet implemented');
           'u': if not FileCache.AddUnitPaths(String(p),FromCmdLine,ErrorMsg) then
                  ParamFatal('invalid unit path (-Fu) "'+ErrorMsg+'"');
           'U': FileCache.UnitOutputPath:=String(p);
@@ -3973,6 +3975,7 @@ begin
   l('   -Fi<x> : Add <x> to include paths');
   l('   -FN<x> : add <x> to namespaces. Namespaces with trailing - are removed.');
   l('            Delphi calls this flag "unit scope names".');
+  //l('   -Fr<x> : Load error message file <x>');
   l('   -Fu<x> : Add <x> to unit paths');
   l('   -FU<x> : Set unit output path to <x>');
   l('  -I<x>   : Add <x> to include paths, same as -Fi');

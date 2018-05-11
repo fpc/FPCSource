@@ -2283,7 +2283,7 @@ procedure TPCUWriter.WriteModule(Obj: TJSONObject; aModule: TPasModule;
   begin
     {$IF defined(VerbosePJUFiler) or defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
     {AllowWriteln}
-    writeln('TPCUWriter.WriteModule Ref.Element=',GetElementFullPath(Ref.Element),' Pending=',GetObjName(Ref.Pending),' ErrorEl=',GetElementFullPath(Ref.Pending.ErrorEl));
+    writeln('TPCUWriter.WriteModule Ref.Element=',GetElementDbgPath(Ref.Element),' Pending=',GetObjName(Ref.Pending),' ErrorEl=',GetElementDbgPath(Ref.Pending.ErrorEl));
     if Ref.Pending is TPCUWriterPendingElRefObj then
       begin
       PendObj:=TPCUWriterPendingElRefObj(Ref.Pending);

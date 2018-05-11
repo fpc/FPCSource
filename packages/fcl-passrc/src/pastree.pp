@@ -147,10 +147,10 @@ type
       const Arg: Pointer); virtual;
     procedure ForEachChildCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer; Child: TPasElement; CheckParent: boolean); virtual;
-    function FullPath: string;
-    function ParentPath: string;
-    function FullName: string; virtual;         // Name including parent's names
-    function PathName: string; virtual;         // = Module.Name + FullName
+    function FullPath: string;                  // parent's names, if parent is not TPasDeclarations
+    function ParentPath: string;                // parent's names
+    function FullName: string; virtual;         // FullPath + Name
+    function PathName: string; virtual;         // = Module.Name + ParentPath
     function GetModule: TPasModule;
     function ElementTypeName: string; virtual;
     Function HintsString : String;
@@ -2256,7 +2256,7 @@ begin
   p := Parent;
   while Assigned(p) and not p.InheritsFrom(TPasDeclarations) do
   begin
-    if (not (p is TPasOverloadedProc)) and (Length(p.Name) > 0) then
+    if (p.Name<>'') and (Not (p is TPasOverloadedProc)) then
       if Length(Result) > 0 then
         Result := p.Name + '.' + Result
       else
@@ -2285,7 +2285,7 @@ begin
   p := Parent;
   while Assigned(p) do
   begin
-    if (Not (p is TPasOverloadedProc)) and (Length(p.Name) > 0) then
+    if (p.Name<>'') and (Not (p is TPasOverloadedProc)) then
       if Length(Result) > 0 then
         Result := p.Name + '.' + Result
       else

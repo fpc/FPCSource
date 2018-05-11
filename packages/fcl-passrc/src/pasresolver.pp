@@ -1586,7 +1586,9 @@ type
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
       const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasResolverResult;
-      out GotDesc, ExpDesc: String);
+      out GotDesc, ExpDesc: String); overload;
+    procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasType;
+      out GotDesc, ExpDesc: String); overload;
     procedure RaiseMsg(const Id: int64; MsgNumber: integer; const Fmt: String;
       Args: Array of const; ErrorPosEl: TPasElement); virtual;
     procedure RaiseNotYetImplemented(id: int64; El: TPasElement; Msg: string = ''); virtual;
@@ -1793,7 +1795,7 @@ function GetClassAncestorsDbg(El: TPasClassType): string;
 function ResolverResultFlagsToStr(const Flags: TPasResolverResultFlags): string;
 function GetElementTypeName(El: TPasElement): string; overload;
 function GetElementTypeName(C: TPasElementBaseClass): string; overload;
-function GetElementFullPath(El: TPasElement): string; overload;
+function GetElementDbgPath(El: TPasElement): string; overload;
 function ResolveSimpleAliasType(aType: TPasType): TPasType;
 
 procedure SetResolverIdentifier(out ResolvedType: TPasResolverResult;
@@ -1998,7 +2000,7 @@ function GetClassAncestorsDbg(El: TPasClassType): string;
     Module:=C.GetModule;
     if Module<>nil then
       Result:=Result+Module.Name+'.';
-    Result:=Result+C.FullName;
+    Result:=Result+GetElementDbgPath(C);
   end;
 
 var
@@ -2153,7 +2155,7 @@ begin
     Result:=C.ClassName;
 end;
 
-function GetElementFullPath(El: TPasElement): string;
+function GetElementDbgPath(El: TPasElement): string;
 begin
   if El=nil then exit('nil');
   Result:='';
@@ -2828,7 +2830,7 @@ begin
       else if o is TPasClassIntfMap then
         o.Free
       else
-        raise Exception.Create('[20180322132757] '+Element.FullPath+' i='+IntToStr(i)+' '+GetObjName(o));
+        raise Exception.Create('[20180322132757] '+GetElementDbgPath(Element)+' i='+IntToStr(i)+' '+GetObjName(o));
       end;
     FreeAndNil(Interfaces);
     end;
@@ -3693,7 +3695,7 @@ var
   ok: Boolean;
 begin
   ok:=true;
-  //writeln('TPasResolver.OnFindFirstElement ',El.FullName);
+  //writeln('TPasResolver.OnFindFirstElement ',El.PathName);
   if (El is TPasProcedure)
       and ProcNeedsParams(TPasProcedure(El).ProcType) then
     // found a proc, but it needs parameters -> remember the first and continue
@@ -5648,7 +5650,7 @@ var
     o: TObject;
   begin
     if not (PropEl.Parent is TPasClassType) then
-      RaiseInternalError(20180323172125,PropEl.FullName);
+      RaiseInternalError(20180323172125,GetElementDbgPath(PropEl));
     aClass:=TPasClassType(PropEl.Parent);
     if PropEl.Args.Count>0 then
       RaiseMsg(20180323170952,nImplementsDoesNotSupportArrayProperty,
@@ -5715,7 +5717,7 @@ var
       else if o is TPasClassIntfMap then
         begin
         // properties are checked before method resolutions
-        RaiseInternalError(20180323175919,PropEl.FullName);
+        RaiseInternalError(20180323175919,GetElementDbgPath(PropEl));
         end
       else if o<>nil then
         RaiseInternalError(20180323174342,GetObjName(o))
@@ -6516,7 +6518,7 @@ var
 begin
   ClassScope:=El.CustomData as TPasClassScope;
   if ClassScope.Interfaces[Index]<>nil then
-    RaiseInternalError(20180322141916,El.FullName+' '+IntToStr(Index)+' '+GetObjName(TObject(ClassScope.Interfaces[Index])));
+    RaiseInternalError(20180322141916,GetElementDbgPath(El)+' '+IntToStr(Index)+' '+GetObjName(TObject(ClassScope.Interfaces[Index])));
   IntfType:=TPasClassType(ResolveAliasType(TPasType(El.Interfaces[Index])));
   Map:=nil;
   while IntfType<>nil do
@@ -14937,6 +14939,16 @@ begin
     end;
 end;
 
+procedure TPasResolver.GetIncompatibleTypeDesc(const GotType,
+  ExpType: TPasType; out GotDesc, ExpDesc: String);
+begin
+  GotDesc:=GetTypeDescription(GotType);
+  ExpDesc:=GetTypeDescription(ExpType);
+  if GotDesc<>ExpDesc then exit;
+  GotDesc:=GetTypeDescription(GotType,true);
+  ExpDesc:=GetTypeDescription(ExpType,true);
+end;
+
 function TPasResolver.CheckCallProcCompatibility(ProcType: TPasProcedureType;
   Params: TParamsExpr; RaiseOnError: boolean; SetReferenceFlags: boolean
   ): integer;
@@ -16753,9 +16765,9 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
       Result:=aType.ElementTypeName;
     if AddPath then
       begin
-      s:=aType.FullPath;
+      s:=aType.ParentPath;
       if (s<>'') and (s<>'.') then
-        Result:=s+':'+Result;
+        Result:=s+'.'+Result;
       end;
   end;
 
@@ -17015,6 +17027,7 @@ var
   RTypeEl, LTypeEl: TPasType;
   SrcResolved, DstResolved: TPasResolverResult;
   LArray, RArray: TPasArrayType;
+  GotDesc, ExpDesc: String;
 
   function RaiseIncompatType: integer;
   begin
@@ -17072,22 +17085,27 @@ begin
       Result:=cExact
     else if (RTypeEl.ClassType=TPasClassOfType) then
       begin
-      if not ((RHS.IdentEl is TPasType)
-          and (ResolveAliasType(TPasType(RHS.IdentEl)).ClassType=TPasClassOfType)) then
+      if RHS.IdentEl is TPasType then
+        begin
+        Result:=cIncompatible;
+        if RaiseOnIncompatible then
+          begin
+          if ResolveAliasType(TPasType(RHS.IdentEl)) is TPasClassOfType then
+            RaiseMsg(20180317103206,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+              ['type class-of','class of '+TPasClassOfType(LTypeEl).DestType.Name],ErrorEl)
+          else
+            RaiseMsg(20180511123859,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+              [GetResolverResultDescription(RHS),'class of '+TPasClassOfType(LTypeEl).DestType.Name],ErrorEl)
+          end;
+        end
+      else
         begin
         // e.g. ImageClass:=AnotherImageClass;
         Result:=CheckClassIsClass(TPasClassOfType(RTypeEl).DestType,
           TPasClassOfType(LTypeEl).DestType,ErrorEl);
         if (Result=cIncompatible) and RaiseOnIncompatible then
           RaiseMsg(20170216152500,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-            ['class of '+TPasClassOfType(RTypeEl).DestType.FullName,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
-        end
-      else
-        begin
-        Result:=cIncompatible;
-        if (Result=cIncompatible) and RaiseOnIncompatible then
-          RaiseMsg(20180317103206,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-            ['type class-of','class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
+            ['class of '+TPasClassOfType(RTypeEl).DestType.PathName,'class of '+TPasClassOfType(LTypeEl).DestType.PathName],ErrorEl);
         end;
       end
     else if (RHS.IdentEl is TPasType)
@@ -17097,7 +17115,7 @@ begin
       Result:=CheckClassIsClass(RTypeEl,TPasClassOfType(LTypeEl).DestType,ErrorEl);
       if (Result=cIncompatible) and RaiseOnIncompatible then
         RaiseMsg(20170216152501,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [RTypeEl.Name,'class of '+TPasClassOfType(LTypeEl).DestType.FullName],ErrorEl);
+          [RTypeEl.Name,'class of '+TPasClassOfType(LTypeEl).DestType.PathName],ErrorEl);
       // do not check rrfReadable -> exit
       exit;
       end;
@@ -17136,9 +17154,12 @@ begin
         if CheckElTypeCompatibility(LArray.ElType,RArray.ElType,prraAlias) then
           Result:=cExact
         else if RaiseOnIncompatible then
+          begin
+          GetIncompatibleTypeDesc(LArray.ElType,RArray.ElType,GotDesc,ExpDesc);
           RaiseMsg(20170328110050,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-            ['array of '+LArray.ElType.FullName,
-             'array of '+RArray.ElType.FullName],ErrorEl)
+            ['array of '+GotDesc,
+             'array of '+ExpDesc],ErrorEl)
+          end
         else
           exit(cIncompatible);
         end;
