@@ -467,6 +467,8 @@ type
     Procedure TestExternalClass_New;
     Procedure TestExternalClass_ClassOf_New;
     Procedure TestExternalClass_FuncClassOf_New;
+    Procedure TestExternalClass_New_PasClassFail;
+    Procedure TestExternalClass_New_PasClassBracketsFail;
     Procedure TestExternalClass_LocalConstSameName;
     Procedure TestExternalClass_ReintroduceOverload;
     Procedure TestExternalClass_Inherited;
@@ -12467,27 +12469,28 @@ end;
 procedure TTestModule.TestExternalClass_FuncClassOf_New;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TExtAClass = class of TExtA;');
-  Add('  TExtA = class external name ''ExtA''');
-  Add('    constructor New;');
-  Add('  end;');
-  Add('function GetCreator: TExtAClass;');
-  Add('begin');
-  Add('  Result:=TExtA;');
-  Add('end;');
-  Add('var');
-  Add('  A: texta;');
-  Add('begin');
-  Add('  a:=getcreator.new;');
-  Add('  a:=getcreator().new;');
-  Add('  a:=getcreator().new();');
-  Add('  a:=getcreator.new();');
-  Add('  with getcreator do begin');
-  Add('    a:=new;');
-  Add('    a:=new();');
-  Add('  end;');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtAClass = class of TExtA;',
+  '  TExtA = class external name ''ExtA''',
+  '    constructor New;',
+  '  end;',
+  'function GetCreator: TExtAClass;',
+  'begin',
+  '  Result:=TExtA;',
+  'end;',
+  'var',
+  '  A: texta;',
+  'begin',
+  '  a:=getcreator.new;',
+  '  a:=getcreator().new;',
+  '  a:=getcreator().new();',
+  '  a:=getcreator.new();',
+  '  with getcreator do begin',
+  '    a:=new;',
+  '    a:=new();',
+  '  end;']);
   ConvertProgram;
   CheckSource('TestExternalClass_FuncClassOf_New',
     LinesToStr([ // statements
@@ -12507,6 +12510,42 @@ begin
     '$mod.A = new $with1();',
     '$mod.A = new $with1();',
     '']));
+end;
+
+procedure TTestModule.TestExternalClass_New_PasClassFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '    constructor New;',
+  '  end;',
+  '  TBird = class(TExtA)',
+  '  end;',
+  'begin',
+  '  TBird.new;',
+  '']);
+  SetExpectedPasResolverError(sJSNewNotSupported,nJSNewNotSupported);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestExternalClass_New_PasClassBracketsFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtA''',
+  '    constructor New;',
+  '  end;',
+  '  TBird = class(TExtA)',
+  '  end;',
+  'begin',
+  '  TBird.new();',
+  '']);
+  SetExpectedPasResolverError(sJSNewNotSupported,nJSNewNotSupported);
+  ConvertProgram;
 end;
 
 procedure TTestModule.TestExternalClass_LocalConstSameName;

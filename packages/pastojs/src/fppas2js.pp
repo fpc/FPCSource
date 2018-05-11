@@ -468,6 +468,7 @@ const
   nFreeNeedsVar = 4023;
   nDuplicateGUIDXInYZ = 4024;
   nCantCallExtBracketAccessor = 4025;
+  nJSNewNotSupported = 4026;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -495,6 +496,7 @@ resourcestring
   sFreeNeedsVar = 'Free needs a variable';
   sDuplicateGUIDXInYZ = 'Duplicate GUID %s in %s and %s';
   sCantCallExtBracketAccessor = 'cannot call external bracket accessor, use a property instead';
+  sJSNewNotSupported = 'Pascal class does not support the "new" constructor';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -1142,6 +1144,8 @@ type
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
     procedure ResolveNameExpr(El: TPasExpr; const aName: string;
       Access: TResolvedRefAccess); override;
+    procedure ResolveFuncParamsExpr(Params: TParamsExpr;
+      Access: TResolvedRefAccess); override;
     procedure FinishInterfaceSection(Section: TPasSection); override;
     procedure FinishTypeSection(El: TPasDeclarations); override;
     procedure FinishModule(CurModule: TPasModule); override;
@@ -1155,6 +1159,7 @@ type
     procedure FinishArgument(El: TPasArgument); override;
     procedure FinishProcedureType(El: TPasProcedureType); override;
     procedure FinishPropertyOfClass(PropEl: TPasProperty); override;
+    procedure CheckExternalClassConstructor(Ref: TResolvedReference); virtual;
     procedure CheckConditionExpr(El: TPasExpr;
       const ResolvedEl: TPasResolverResult); override;
     procedure CheckNewInstanceFunction(ClassScope: TPas2JSClassScope); virtual;
@@ -1226,6 +1231,7 @@ type
     function HasTypeInfo(El: TPasType): boolean; override;
     function IsTObjectFreeMethod(El: TPasExpr): boolean; virtual;
     function IsExternalBracketAccessor(El: TPasElement): boolean;
+    Function IsExternalClassConstructor(El: TPasElement): boolean;
   end;
 
 //------------------------------------------------------------------------------
@@ -1474,7 +1480,6 @@ type
     Function GetExpressionValueType(El: TPasExpr; AContext: TConvertContext ): TJSType; virtual;
     Function GetPasIdentValueType(AName: String; AContext: TConvertContext): TJSType; virtual;
     Function ComputeConstString(Expr: TPasExpr; AContext: TConvertContext; NotEmpty: boolean): String; virtual;
-    Function IsExternalClassConstructor(El: TPasElement): boolean;
     Function IsLiteralInteger(El: TJSElement; out Number: MaxPrecInt): boolean;
     // Name mangling
     Function GetOverloadName(El: TPasElement; AContext: TConvertContext): string;
@@ -2490,7 +2495,25 @@ begin
     if (CompareText(aName,'free')=0) then
       CheckTObjectFree(Ref)
     else if (Ref.Declaration is TPasResultElement) then
-      CheckResultEl(Ref);
+      CheckResultEl(Ref)
+    else if IsExternalClassConstructor(Ref.Declaration) then
+      CheckExternalClassConstructor(Ref);
+    end;
+end;
+
+procedure TPas2JSResolver.ResolveFuncParamsExpr(Params: TParamsExpr;
+  Access: TResolvedRefAccess);
+var
+  Value: TPasExpr;
+  Ref: TResolvedReference;
+begin
+  inherited ResolveFuncParamsExpr(Params, Access);
+  Value:=Params.Value;
+  if Value.CustomData is TResolvedReference then
+    begin
+    Ref:=TResolvedReference(Value.CustomData);
+    if IsExternalClassConstructor(Ref.Declaration) then
+      CheckExternalClassConstructor(Ref);
     end;
 end;
 
@@ -3171,6 +3194,32 @@ begin
       RaiseMsg(20170403090628,nIncompatibleTypesGotExpected,
         sIncompatibleTypesGotExpected,
         [GetResolverResultDescription(ArgResolved,true),'string'],Arg);
+    end;
+end;
+
+procedure TPas2JSResolver.CheckExternalClassConstructor(Ref: TResolvedReference
+  );
+var
+  TypeEl: TPasType;
+begin
+  if not (Ref.Context is TResolvedRefCtxConstructor) then
+    RaiseMsg(20180511165144,nJSNewNotSupported,sJSNewNotSupported,[],Ref.Element);
+  TypeEl:=TResolvedRefCtxConstructor(Ref.Context).Typ;
+  if TypeEl.ClassType=TPasClassType then
+    begin
+    // ClassType.new
+    if not TPasClassType(TypeEl).IsExternal then
+      RaiseMsg(20180511165316,nJSNewNotSupported,sJSNewNotSupported,[],Ref.Element);
+    end
+  else if TypeEl.ClassType=TPasClassOfType then
+    begin
+    TypeEl:=ResolveAliasType(TPasClassOfType(TypeEl).DestType);
+    if TypeEl.ClassType=TPasClassType then
+      begin
+      // ClassOfVar.new
+      if not TPasClassType(TypeEl).IsExternal then
+        RaiseMsg(20180511175309,nJSNewNotSupported,sJSNewNotSupported,[],Ref.Element);
+      end;
     end;
 end;
 
@@ -4377,6 +4426,20 @@ begin
   Result:=ExtName=ExtClassBracketAccessor;
 end;
 
+function TPas2JSResolver.IsExternalClassConstructor(El: TPasElement): boolean;
+var
+  P: TPasElement;
+begin
+  if (El.ClassType=TPasConstructor)
+      and (pmExternal in TPasConstructor(El).Modifiers) then
+    begin
+    P:=El.Parent;
+    if (P<>nil) and (P.ClassType=TPasClassType) and TPasClassType(P).IsExternal then
+      exit(true);
+    end;
+  Result:=false;
+end;
+
 { TParamContext }
 
 constructor TParamContext.Create(PasEl: TPasElement; JSEl: TJSElement;
@@ -5286,20 +5349,6 @@ begin
     end;
 end;
 
-function TPasToJSConverter.IsExternalClassConstructor(El: TPasElement): boolean;
-var
-  P: TPasElement;
-begin
-  if (El.ClassType=TPasConstructor)
-      and (pmExternal in TPasConstructor(El).Modifiers) then
-    begin
-    P:=El.Parent;
-    if (P<>nil) and (P.ClassType=TPasClassType) and TPasClassType(P).IsExternal then
-      exit(true);
-    end;
-  Result:=false;
-end;
-
 function TPasToJSConverter.IsLiteralInteger(El: TJSElement; out
   Number: MaxPrecInt): boolean;
 begin
@@ -6119,7 +6168,7 @@ begin
     begin
     RightRef:=TResolvedReference(RightEl.CustomData);
     RightRefDecl:=RightRef.Declaration;
-    if IsExternalClassConstructor(RightRefDecl) then
+    if aResolver.IsExternalClassConstructor(RightRefDecl) then
       begin
       if ParamsExpr<>nil then
         begin
@@ -6127,6 +6176,7 @@ begin
         Result:=ConvertParamsExpression(El.right as TParamsExpr,AContext);
         end
       else
+        // e.g. ExtClass.new;
         Result:=ConvertExternalConstructor(El.left,RightRef,nil,AContext);
       exit;
       end
@@ -6398,7 +6448,7 @@ begin
   Ref:=TResolvedReference(El.CustomData);
   Decl:=Ref.Declaration;
 
-  if IsExternalClassConstructor(Decl) then
+  if aResolver.IsExternalClassConstructor(Decl) then
     begin
     // create external object/function
     Result:=ConvertExternalConstructor(nil,Ref,nil,AContext);
@@ -7650,10 +7700,10 @@ begin
       else
         RaiseNotSupported(El,AContext,20170325160624);
       end
-    else if IsExternalClassConstructor(Decl) then
+    else if aResolver.IsExternalClassConstructor(Decl) then
       begin
       // create external object/function
-      // -> check if there is complex left side, e.g. TExtA.Create(params)
+      // -> check if there is complex left side, e.g. TExtA.new(params)
       Left:=El;
       while (Left.Parent.ClassType=TParamsExpr) do
         Left:=Left.Parent;
@@ -7983,6 +8033,8 @@ begin
       else
         // use external class name
         ExtName:=(Proc.Parent as TPasClassType).ExternalName;
+      if ExtName='' then
+        DoError(20180511163944,nJSNewNotSupported,sJSNewNotSupported,[],ParamsExpr);
       ExtNameEl:=CreatePrimitiveDotExpr(ExtName,Ref.Element);
       end;
 
