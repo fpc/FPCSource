@@ -303,7 +303,7 @@ end;
 procedure Ansi2UnicodeMove(source:PAnsiChar; cp:TSystemCodePage; var dest:UnicodeString; len:SizeInt);
 var
   locMap : punicodemap;
-  destLen : SizeInt;
+  destLen : SizeUInt;
 begin
   if (len<=0) then
     begin
@@ -313,12 +313,12 @@ begin
 
   if (cp=CP_UTF8) then
     begin
-      destLen:=Utf8ToUnicode(nil,source,len);
+      destLen:=Utf8ToUnicode(nil,high(SizeUint),source,len);
       if destLen > 0 then
         SetLength(dest,destLen-1)
       else
         SetLength(dest,0);
-      Utf8ToUnicode(@dest[1],source,len);
+      Utf8ToUnicode(@dest[1],destLen,source,len);
       exit;
     end;
   if (cp=CP_UTF16) then
@@ -521,13 +521,12 @@ end;
 function UpperAnsiString(const s : ansistring) : ansistring;
 var
   p        : PAnsiChar;
-  i, slen,
-  resindex : SizeInt;
+  i,resindex : SizeInt;
   mblen    : SizeInt;
   us,usl   : UnicodeString;
   locMap   : punicodemap;
-  ulen,k,
-  aalen,ai : SizeInt;
+  ulen,slen : SizeUint;
+  k,aalen,ai : SizeInt;
   aa       : array[0..8] of AnsiChar;
 begin
   if (Length(s)=0) then
@@ -535,14 +534,14 @@ begin
   if (DefaultSystemCodePage=CP_UTF8) then
     begin
       //convert to UnicodeString,uppercase,convert back to utf8
-      ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
+      ulen:=Utf8ToUnicode(nil,high(SizeUint),@s[1],Length(s));
       if ulen>0 then
         SetLength(us,ulen-1);
-      Utf8ToUnicode(@us[1],@s[1],Length(s));
+      Utf8ToUnicode(@us[1],ulen,@s[1],Length(s));
       us:=UpperUnicodeString(us);
 
       ulen:=Length(us);
-      slen:=UnicodeToUtf8(nil,0,@us[1],ulen);
+      slen:=UnicodeToUtf8(nil,high(SizeUInt),@us[1],ulen);
       SetLength(Result,slen);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;
@@ -588,13 +587,12 @@ end;
 function LowerAnsiString(const s : ansistring) : ansistring;
 var
   p        : PAnsiChar;
-  i, slen,
-  resindex : SizeInt;
+  i,resindex : SizeInt;
   mblen    : SizeInt;
   us,usl   : UnicodeString;
   locMap   : punicodemap;
-  ulen,k,
-  aalen,ai : SizeInt;
+  k,aalen,ai : SizeInt;
+  slen, ulen : SizeUInt;
   aa       : array[0..8] of AnsiChar;
 begin
   if (Length(s)=0) then
@@ -602,14 +600,14 @@ begin
   if (DefaultSystemCodePage=CP_UTF8) then
     begin
       //convert to UnicodeString,lowercase,convert back to utf8
-      ulen:=Utf8ToUnicode(nil,@s[1],Length(s));
+      ulen:=Utf8ToUnicode(nil,high(SizeUInt),@s[1],Length(s));
       if ulen>0 then
         SetLength(us,ulen-1);
-      Utf8ToUnicode(@us[1],@s[1],Length(s));
+      Utf8ToUnicode(@us[1],ulen,@s[1],Length(s));
       us:=LowerUnicodeString(us);
 
       ulen:=Length(us);
-      slen:=UnicodeToUtf8(nil,0,@us[1],ulen);
+      slen:=UnicodeToUtf8(nil,high(SizeUInt),@us[1],ulen);
       SetLength(Result,slen);
       UnicodeToUtf8(@Result[1],slen,@us[1],ulen);
       exit;
@@ -735,13 +733,8 @@ begin
     exit(0);
   l1:=Length(S1);
   l2:=Length(S2);
-  if (l1=0) then begin
-    if (l2=0) then
-      exit(0);
-    exit(-l2);
-  end;
-  if (l2=0) then
-    exit(-l1);
+  if (l1=0) or (l2=0) then
+    exit(l1-l2);
   Result := InternalCompareStrAnsiString(@S1[1],@S2[1],l1,l2);
 end;
 
