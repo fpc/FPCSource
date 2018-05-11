@@ -51,6 +51,8 @@ begin
   if StringCodePage(Copy(UTF8Encode('Test'), 1, 2)) <> CP_UTF8 then
     halt(3);
   R := 'Test';
+{$if not defined(FPC_CROSSCOMPILING) and not defined(FPC_CPUCROSSCOMPILING)}
   if StringCodePage(R) <> DefaultSystemCodePage then
     halt(4);
+{$endif}
 end.
