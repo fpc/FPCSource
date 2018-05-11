@@ -479,10 +479,59 @@ procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure Debugger(s : WideString);
 procedure Debugger();
 
+//*******************************************************
+// Attributes
+//*******************************************************
+const
+  EFI_BLACK = $00;
+  EFI_BLUE = $01;
+  EFI_GREEN = $02;
+  EFI_CYAN = $03;
+  EFI_RED = $04;
+  EFI_MAGENTA = $05;
+  EFI_BROWN = $06;
+  EFI_LIGHTGRAY = $07;
+  EFI_BRIGHT = $08;
+  EFI_DARKGRAY = $08; // (EFI_BLACK | EFI_BRIGHT)
+  EFI_LIGHTBLUE = $09;
+  EFI_LIGHTGREEN = $0A;
+  EFI_LIGHTCYAN = $0B;
+  EFI_LIGHTRED = $0C;
+  EFI_LIGHTMAGENTA = $0D;
+  EFI_YELLOW = $0E;
+  EFI_WHITE = $0F;
+  EFI_BACKGROUND_BLACK = $00;
+  EFI_BACKGROUND_BLUE = $10;
+  EFI_BACKGROUND_GREEN = $20;
+  EFI_BACKGROUND_CYAN = $30;
+  EFI_BACKGROUND_RED = $40;
+  EFI_BACKGROUND_MAGENTA = $50;
+  EFI_BACKGROUND_BROWN = $60;
+  EFI_BACKGROUND_LIGHTGRAY = $70;
+//
+// Macro to accept color values in their raw form to create
+// a value that represents both a foreground and background
+// color in a single byte.
+// For Foreground, and EFI_* value is valid from EFI_BLACK(0x00)
+// to EFI_WHITE (0x0F).
+// For Background, only EFI_BLACK, EFI_BLUE, EFI_GREEN,
+// EFI_CYAN, EFI_RED, EFI_MAGENTA, EFI_BROWN, and EFI_LIGHTGRAY
+// are acceptable.
+//
+// Do not use EFI_BACKGROUND_xxx values with this macro.
+//#define EFI_TEXT_ATTR(Foreground,Background) \
+//((Foreground) | ((Background) << 4))
+function EFI_TEXT_ATTR(Foreground, Background : integer) : integer;
+
 implementation
 
 { include system independent routines }
 {$I system.inc}
+
+function EFI_TEXT_ATTR(Foreground, Background : integer) : integer;
+begin
+  Result := Foreground or (Background shl 4);
+end;
 
 function paramcount : longint;
 begin
@@ -639,6 +688,30 @@ begin
   {$endif}
 end;
 
+procedure TestQueryMode;
+var
+  x, y : integer;
+begin
+  SysTable.ConOut^.QueryMode(SysTable.ConOut, 0, @x, @y);
+  WriteLn(HexStr(x, 8) + ', ' + HexStr(y, 8));
+  SysTable.ConOut^.QueryMode(SysTable.ConOut, 1, @x, @y);
+  WriteLn(HexStr(x, 8) + ', ' + HexStr(y, 8));
+  SysTable.ConOut^.QueryMode(SysTable.ConOut, 2, @x, @y);
+  WriteLn(HexStr(x, 8) + ', ' + HexStr(y, 8));
+  SysTable.ConOut^.QueryMode(SysTable.ConOut, 3, @x, @y);
+  WriteLn(HexStr(x, 8) + ', ' + HexStr(y, 8));
+  SysTable.ConOut^.QueryMode(SysTable.ConOut, 4, @x, @y);
+  WriteLn(HexStr(x, 8) + ', ' + HexStr(y, 8));
+  SysTable.ConOut^.QueryMode(SysTable.ConOut, 5, @x, @y);
+  WriteLn(HexStr(x, 8) + ', ' + HexStr(y, 8));
+  SysTable.ConOut^.SetMode(SysTable.ConOut, 2);
+
+  WriteLn(HexStr(SysTable.ConOut^.Mode^.MaxMode, 8));
+
+  SysTable.ConOut^.SetCursorPosition(SysTable.ConOut, 10, 10);
+  SysTable.ConOut^.EnableCursor(SysTable.ConOut, False);
+end;
+
 var
   s : WideString;
   s1 : string;
@@ -746,9 +819,21 @@ begin
     Debugger('Error in HandleProtocol');
   end;
 
+  SysTable.ConOut^.Reset(SysTable.ConOut, False);
+
   PascalMain;
   WriteLn('End of EFI_MAIN...');
- //except
+
+//  SysTable.ConOut^.Reset(SysTable.ConOut, True);
+  SysTable.ConOut^.SetAttribute(SysTable.ConOut, EFI_TEXT_ATTR(EFI_GREEN, EFI_BLACK) );
+  if SysTable.ConOut^.TestString(SysTable.ConOut, 'Text to test...') = EFI_SUCCESS then
+  begin
+    WriteLn('TestString OK');
+  end;
+
+  TestQueryMode;
+
+//except
 //   Result := EFI_INVALID_PARAMETER;
 //   WriteLn('Exception in EFI_MAIN');
  //end;
