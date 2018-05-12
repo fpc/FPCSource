@@ -172,6 +172,7 @@ const
   nCantAssignValuesToConstVariable = 3110;
   nIllegalAssignmentToForLoopVar = 3111;
   nFunctionHidesIdentifier_NonProc = 3112;
+  // Note: use one of the free IDs above
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250;
@@ -286,7 +287,6 @@ resourcestring
   sMissingFieldsX = 'Missing fields: "%s"';
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
-  // sFunctionHidesIdentifier_NonProc = sFunctionHidesIdentifier
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

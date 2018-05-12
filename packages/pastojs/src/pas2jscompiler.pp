@@ -3129,6 +3129,7 @@ begin
           inc(p);
           case c of
           'e': Log.OutputFilename:=String(p);
+          'E': FileCache.MainOutputPath:=String(p);
           'i': if not FileCache.AddIncludePaths(String(p),FromCmdLine,ErrorMsg) then
                  ParamFatal('invalid include path (-Fi) "'+ErrorMsg+'"');
           'N': if not FileCache.AddNamespaces(String(p),FromCmdLine,ErrorMsg) then
@@ -3972,6 +3973,7 @@ begin
   l('    R     : Object checks. Verify method calls and object type casts.');
   l('  -F...   Set file names and paths:');
   l('   -Fe<x> : Redirect output to file <x>. UTF-8 encoded.');
+  l('   -FE<x> : Set main output path to <x>');
   l('   -Fi<x> : Add <x> to include paths');
   l('   -FN<x> : add <x> to namespaces. Namespaces with trailing - are removed.');
   l('            Delphi calls this flag "unit scope names".');
@@ -4144,6 +4146,7 @@ begin
   for i:=0 to FileCache.IncludePaths.Count-1 do
     WriteFolder('include path',FileCache.IncludePaths[i]);
   WriteFolder('unit output path',FileCache.UnitOutputPath);
+  WriteFolder('main output path',FileCache.MainOutputPath);
   Log.LogMsgIgnoreFilter(nNameValue,['output file',QuoteStr(FileCache.MainJSFile)]);
 end;
 

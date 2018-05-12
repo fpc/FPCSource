@@ -261,6 +261,7 @@ type
   TPas2jsFilesCache = class
   private
     FBaseDirectory: string;
+    FDefaultOutputPath: string;
     FDirectoryCache: TPas2jsCachedDirectories;
     FFiles: TAVLTree; // tree of TPas2jsCachedFile sorted for Filename
     FForeignUnitPaths: TStringList;
@@ -295,6 +296,7 @@ type
     procedure SetBaseDirectory(AValue: string);
     function AddSearchPaths(const Paths: string; Kind: TPas2jsSearchPathKind;
       FromCmdLine: boolean; var List: TStringList; var CmdLineCount: integer): string;
+    procedure SetDefaultOutputPath(AValue: string);
     procedure SetMainJSFile(AValue: string);
     procedure SetOptions(AValue: TP2jsFileCacheOptions);
     procedure SetSearchLikeFPC(const AValue: boolean);
@@ -332,6 +334,7 @@ type
   public
     property AllJSIntoMainJS: Boolean read GetAllJSIntoMainJS write SetAllJSIntoMainJS;
     property BaseDirectory: string read FBaseDirectory write SetBaseDirectory; // includes trailing pathdelim
+    property MainOutputPath: string read FDefaultOutputPath write SetDefaultOutputPath; // includes trailing pathdelim
     property DirectoryCache: TPas2jsCachedDirectories read FDirectoryCache;
     property ForeignUnitPaths: TStringList read FForeignUnitPaths;
     property ForeignUnitPathsFromCmdLine: integer read FForeignUnitPathsFromCmdLine;
@@ -1651,6 +1654,13 @@ begin
   end;
 end;
 
+procedure TPas2jsFilesCache.SetDefaultOutputPath(AValue: string);
+begin
+  AValue:=ExpandDirectory(AValue,BaseDirectory);
+  if FDefaultOutputPath=AValue then Exit;
+  FDefaultOutputPath:=AValue;
+end;
+
 procedure TPas2jsFilesCache.SetMainJSFile(AValue: string);
 begin
   if FMainJSFile=AValue then Exit;
@@ -1904,21 +1914,31 @@ begin
       FMainJSFileResolved:=''
     else begin
       FMainJSFileResolved:=MainJSFile;
-      if FMainJSFileResolved='' then
+      if FMainJSFileResolved<>'' then
       begin
-        // no option -o
-        if UnitOutputPath<>'' then
+        // has option -o
+        if ExtractFilePath(FMainJSFileResolved)='' then
         begin
-          // option -FU and no -o => put into UnitOutputPath
-          FMainJSFileResolved:=UnitOutputPath+ChangeFileExt(ExtractFilename(MainSrcFile),'.js')
-        end else begin
-          // no -FU and no -o => put into source directory
-          FMainJSFileResolved:=ChangeFileExt(MainSrcFile,'.js');
+          // -o<FileWithoutPath>
+          if MainOutputPath<>'' then
+            FMainJSFileResolved:=MainOutputPath+FMainJSFileResolved
+          else if UnitOutputPath<>'' then
+            FMainJSFileResolved:=UnitOutputPath+FMainJSFileResolved;
         end;
       end else begin
-        // has option -o
-        if (ExtractFilePath(FMainJSFileResolved)='') and (UnitOutputPath<>'') then
-          FMainJSFileResolved:=UnitOutputPath+FMainJSFileResolved;
+        // no option -o
+        FMainJSFileResolved:=ChangeFileExt(MainSrcFile,'.js');
+        if MainOutputPath<>'' then
+        begin
+          // option -FE and no -o => put into MainOutputPath
+          FMainJSFileResolved:=MainOutputPath+ExtractFilename(FMainJSFileResolved)
+        end else if UnitOutputPath<>'' then
+        begin
+          // option -FU and no -o => put into UnitOutputPath
+          FMainJSFileResolved:=UnitOutputPath+ExtractFilename(FMainJSFileResolved)
+        end else begin
+          // no -FU and no -o => put into source directory
+        end;
       end;
     end;
     Include(FStates,cfsMainJSFileResolved);
