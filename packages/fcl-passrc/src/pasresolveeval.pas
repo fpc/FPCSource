@@ -91,7 +91,7 @@ const
   nCallingConventionMismatch = 3018;
   nResultTypeMismatchExpectedButFound = 3019;
   nFunctionHeaderMismatchForwardVarName = 3020;
-  nFunctionHidesIdentifier = 3021;
+  nFunctionHidesIdentifier_NonVirtualMethod = 3021;
   nNoMethodInAncestorToOverride = 3022;
   nInheritedOnlyWorksInMethods = 3023;
   nInheritedNeedsAncestor = 3024;
@@ -120,7 +120,7 @@ const
   nExpectXArrayElementsButFoundY = 3047;
   nCannotCreateADescendantOfTheSealedXY = 3048;
   nAncestorIsNotExternal = 3049;
-  nVirtualMethodXHasLowerVisibility = 3050; // FPC 3250
+  // free 3050
   nExternalClassInstanceCannotAccessStaticX = 3051;
   nXModifierMismatchY = 3052;
   nSymbolCannotBePublished = 3053;
@@ -128,12 +128,12 @@ const
   nTypeIdentifierExpected = 3055;
   nCannotNestAnonymousX = 3056;
   nFoundCallCandidateX = 3057;
-  nSymbolXIsNotPortable = 3058;
-  nSymbolXIsExperimental = 3059;
-  nSymbolXIsNotImplemented = 3060;
-  nSymbolXBelongsToALibrary = 3061;
-  nSymbolXIsDeprecated = 3062;
-  nSymbolXIsDeprecatedY = 3063;
+  // free 3058
+  // free 3059
+  // free 3060
+  // free 3061
+  // free 3062
+  // free 3063
   nRangeCheckError = 3064;
   nHighRangeLimitLTLowRangeLimit = 3065;
   nRangeCheckEvaluatingConstantsVMinMax = 3066;
@@ -150,7 +150,7 @@ const
   nMethodHidesMethodOfBaseType = 3077;
   nContextExpectedXButFoundY = 3078;
   nContextXInvalidY = 3079;
-  nConstructingClassXWithAbstractMethodY = 3080;
+  // free 3080;
   nXIsNotSupported = 3081;
   nOperatorIsNotOverloadedAOpB = 3082;
   nIllegalQualifierAfter = 3084;
@@ -171,6 +171,17 @@ const
   nMissingFieldsX = 3109;
   nCantAssignValuesToConstVariable = 3110;
   nIllegalAssignmentToForLoopVar = 3111;
+  nFunctionHidesIdentifier_NonProc = 3112;
+
+  // using same IDs as FPC
+  nVirtualMethodXHasLowerVisibility = 3250;
+  nConstructingClassXWithAbstractMethodY = 4046;
+  nSymbolXIsDeprecated = 5043;
+  nSymbolXBelongsToALibrary = 5065;
+  nSymbolXIsDeprecatedY = 5066;
+  nSymbolXIsNotPortable = 5076;
+  nSymbolXIsNotImplemented = 5078;
+  nSymbolXIsExperimental = 5079;
 
 // resourcestring patterns of messages
 resourcestring
@@ -194,7 +205,7 @@ resourcestring
   sCallingConventionMismatch = 'Calling convention mismatch';
   sResultTypeMismatchExpectedButFound = 'Result type mismatch, expected %s, but found %s';
   sFunctionHeaderMismatchForwardVarName = 'function header "%s" doesn''t match forward : var name changes %s => %s';
-  sFunctionHidesIdentifier = 'function hides identifier at "%s"';
+  sFunctionHidesIdentifier = 'function hides identifier at "%s". Use overload or reintroduce';
   sNoMethodInAncestorToOverride = 'There is no method in an ancestor class to be overridden "%s"';
   sInheritedOnlyWorksInMethods = 'Inherited works only in methods';
   sInheritedNeedsAncestor = 'inherited needs an ancestor';
@@ -274,6 +285,7 @@ resourcestring
   sMissingFieldsX = 'Missing fields: "%s"';
   sCantAssignValuesToConstVariable = 'Can''t assign values to const variable';
   sIllegalAssignmentToForLoopVar = 'Illegal assignment to for-loop variable "%s"';
+  // sFunctionHidesIdentifier_NonProc = sFunctionHidesIdentifier
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }

@@ -643,6 +643,7 @@ type
     Procedure TestClassInterface_MethodVirtualFail;
     Procedure TestClassInterface_Overloads;
     Procedure TestClassInterface_OverloadHint;
+    Procedure TestClassInterface_OverloadNoHint;
     Procedure TestClassInterface_IntfListClassFail;
     Procedure TestClassInterface_IntfListDuplicateFail;
     Procedure TestClassInterface_MissingMethodFail;
@@ -7733,7 +7734,8 @@ begin
   'begin',
   '  b.DoIt(3);']);
   ParseProgram;
-  CheckResolverHint(mtInfo,nFunctionHidesIdentifier,'function hides identifier at "afile.pp(4,19)"');
+  CheckResolverHint(mtHint,nFunctionHidesIdentifier_NonVirtualMethod,
+   'function hides identifier at "afile.pp(4,19)". Use overload or reintroduce');
 end;
 
 procedure TTestResolver.TestClass_MethodReintroduce;
@@ -10875,7 +10877,21 @@ begin
   '  end;',
   'begin']);
   ParseProgram;
-  CheckResolverHint(mtInfo,nFunctionHidesIdentifier,'function hides identifier at "afile.pp(4,19)"');
+  CheckResolverHint(mtHint,nFunctionHidesIdentifier_NonVirtualMethod,'function hides identifier at "afile.pp(4,19)". Use overload or reintroduce');
+end;
+
+procedure TTestResolver.TestClassInterface_OverloadNoHint;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  'begin']);
+  ParseProgram;
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestClassInterface_IntfListClassFail;

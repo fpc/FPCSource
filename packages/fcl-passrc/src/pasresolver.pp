@@ -4030,7 +4030,7 @@ begin
             [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType)
         else
           // give a hint
-          LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
+          LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
             [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
       fopkMethod:
         // method hides a non proc
@@ -4125,8 +4125,9 @@ begin
               [Data^.Proc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
           else
             // Delphi/FPC do not give a message when hiding a non virtual method
-            // -> emit only an Info
-            LogMsg(20171118214523,mtInfo,nFunctionHidesIdentifier,sFunctionHidesIdentifier,
+            // -> emit Hint with other message id
+            LogMsg(20171118214523,mtHint,
+              nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
               [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
           Abort:=true;
           end;

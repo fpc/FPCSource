@@ -48,6 +48,7 @@ uses
   PasTree, PScanner, PasResolveEval, PasResolver;
 
 const
+  // use same IDs as fpc
   nPAUnitNotUsed = 5023;
   sPAUnitNotUsed = 'Unit "%s" not used in %s';
   nPAParameterNotUsed = 5024;
