@@ -34,6 +34,31 @@ const
   po_tcmodules = po_Pas2js+[po_KeepScannerError];
   co_tcmodules = [coNoTypeInfo];
 type
+  TSrcMarkerKind = (
+    mkLabel,
+    mkResolverReference,
+    mkDirectReference
+    );
+  PSrcMarker = ^TSrcMarker;
+  TSrcMarker = record
+    Kind: TSrcMarkerKind;
+    Filename: string;
+    Row: integer;
+    StartCol, EndCol: integer; // token start, end column
+    Identifier: string;
+    Next: PSrcMarker;
+  end;
+
+  { TTestResolverMessage }
+
+  TTestResolverMessage = class
+  public
+    Id: int64;
+    MsgType: TMessageType;
+    MsgNumber: integer;
+    Msg: string;
+    SourcePos: TPasSourcePos;
+  end;
 
   { TTestPasParser }
 
@@ -92,14 +117,19 @@ type
     FModules: TObjectList;// list of TTestEnginePasResolver
     FParser: TTestPasParser;
     FPasProgram: TPasProgram;
+    FResolverMsgs: TObjectList; // list of TTestResolverMessage
+    FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
     FJSRegModuleCall: TJSCallExpression;
     FScanner: TPascalScanner;
     FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
+    function GetMsgCount: integer;
+    function GetMsgs(Index: integer): TTestResolverMessage;
     function GetResolverCount: integer;
     function GetResolvers(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
+    procedure OnPasResolverLog(Sender: TObject; const Msg: String);
   protected
     procedure SetUp; override;
     function CreateConverter: TPasToJSConverter; virtual;
@@ -132,6 +162,9 @@ type
       ImplStatements: string = ''); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
     procedure CheckUnit(Filename, ExpectedSrc: string); virtual;
+    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer;
+      Msg: string; Marker: PSrcMarker = nil); virtual;
+    procedure CheckResolverUnexpectedHints(WithSourcePos: boolean = false); virtual;
     procedure SetExpectedScannerError(Msg: string; MsgNumber: integer);
     procedure SetExpectedParserError(Msg: string; MsgNumber: integer);
     procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
@@ -169,10 +202,14 @@ type
     property ExpectedErrorNumber: integer read FExpectedErrorNumber write FExpectedErrorNumber;
     property SkipTests: boolean read FSkipTests write FSkipTests;
   public
+    constructor Create; override;
+    destructor Destroy; override;
     property Source: TStringList read FSource;
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
     property Parser: TTestPasParser read FParser;
+    property MsgCount: integer read GetMsgCount;
+    property Msgs[Index: integer]: TTestResolverMessage read GetMsgs;
   end;
 
   { TTestModule }
@@ -457,6 +494,7 @@ type
     Procedure TestExternalClass_Method;
     Procedure TestExternalClass_ClassMethod;
     Procedure TestExternalClass_NonExternalOverride;
+    Procedure TestExternalClass_OverloadHint;
     Procedure TestExternalClass_Property;
     Procedure TestExternalClass_ClassProperty;
     Procedure TestExternalClass_ClassOf;
@@ -928,6 +966,16 @@ end;
 
 { TCustomTestModule }
 
+function TCustomTestModule.GetMsgCount: integer;
+begin
+  Result:=FResolverMsgs.Count;
+end;
+
+function TCustomTestModule.GetMsgs(Index: integer): TTestResolverMessage;
+begin
+  Result:=TTestResolverMessage(FResolverMsgs[Index]);
+end;
+
 function TCustomTestModule.GetResolverCount: integer;
 begin
   Result:=FModules.Count;
@@ -958,6 +1006,25 @@ begin
   if Result<>nil then exit;
   writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
   Fail('can''t find unit "'+aUnitName+'"');
+end;
+
+procedure TCustomTestModule.OnPasResolverLog(Sender: TObject; const Msg: String
+  );
+var
+  aResolver: TTestEnginePasResolver;
+  Item: TTestResolverMessage;
+begin
+  aResolver:=Sender as TTestEnginePasResolver;
+  Item:=TTestResolverMessage.Create;
+  Item.Id:=aResolver.LastMsgId;
+  Item.MsgType:=aResolver.LastMsgType;
+  Item.MsgNumber:=aResolver.LastMsgNumber;
+  Item.Msg:=Msg;
+  Item.SourcePos:=aResolver.LastSourcePos;
+  {$IFDEF VerbosePas2JS}
+  writeln('TCustomTestModule.OnPasResolverLog ',GetObjName(Sender),' ',Item.MsgType,' (',Item.MsgNumber,') {',Msg,'}');
+  {$ENDIF}
+  FResolverMsgs.Add(Item);
 end;
 
 function TCustomTestModule.LoadUnit(const aUnitName: String): TPasModule;
@@ -1054,6 +1121,8 @@ end;
 
 procedure TCustomTestModule.TearDown;
 begin
+  FResolverMsgs.Clear;
+  FResolverGoodMsgs.Clear;
   FSkipTests:=false;
   FJSModule:=nil;
   FJSRegModuleCall:=nil;
@@ -1213,6 +1282,7 @@ begin
   Result.Filename:=aFilename;
   Result.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
   Result.OnFindUnit:=@OnPasResolverFindUnit;
+  Result.OnLog:=@OnPasResolverLog;
   FModules.Add(Result);
 end;
 
@@ -1553,6 +1623,73 @@ begin
   end;
 end;
 
+procedure TCustomTestModule.CheckResolverHint(MsgType: TMessageType;
+  MsgNumber: integer; Msg: string; Marker: PSrcMarker);
+var
+  i: Integer;
+  Item: TTestResolverMessage;
+  Expected,Actual: string;
+begin
+  //writeln('TCustomTestModule.CheckResolverHint MsgCount=',MsgCount);
+  for i:=0 to MsgCount-1 do
+    begin
+    Item:=Msgs[i];
+    if (Item.MsgNumber<>MsgNumber) or (Item.Msg<>Msg) then continue;
+    if (Marker<>nil) then
+      begin
+      if Item.SourcePos.Row<>Marker^.Row then continue;
+      if (Item.SourcePos.Column<Marker^.StartCol)
+          or (Item.SourcePos.Column>Marker^.EndCol) then continue;
+      end;
+    // found
+    FResolverGoodMsgs.Add(Item);
+    str(Item.MsgType,Actual);
+    str(MsgType,Expected);
+    AssertEquals('MsgType',Expected,Actual);
+    exit;
+    end;
+
+  // needed message missing -> show emitted messages
+  WriteSources('',0,0);
+  for i:=0 to MsgCount-1 do
+    begin
+    Item:=Msgs[i];
+    write('TCustomTestModule.CheckResolverHint ',i,'/',MsgCount,' ',Item.MsgType,
+      ' ('+IntToStr(Item.MsgNumber),')');
+    if Marker<>nil then
+      write(' '+ExtractFileName(Item.SourcePos.FileName),'(',Item.SourcePos.Row,',',Item.SourcePos.Column,')');
+    writeln(' {',Item.Msg,'}');
+    end;
+  str(MsgType,Expected);
+  Actual:='Missing '+Expected+' ('+IntToStr(MsgNumber)+')';
+  if Marker<>nil then
+    Actual:=Actual+' '+ExtractFileName(Marker^.Filename)+'('+IntToStr(Marker^.Row)+','+IntToStr(Marker^.StartCol)+'..'+IntToStr(Marker^.EndCol)+')';
+  Actual:=Actual+' '+Msg;
+  Fail(Actual);
+end;
+
+procedure TCustomTestModule.CheckResolverUnexpectedHints(WithSourcePos: boolean
+  );
+var
+  i: Integer;
+  s, Txt: String;
+  Msg: TTestResolverMessage;
+begin
+  for i:=0 to MsgCount-1 do
+    begin
+    Msg:=Msgs[i];
+    if FResolverGoodMsgs.IndexOf(Msg)>=0 then continue;
+    s:='';
+    str(Msg.MsgType,s);
+    Txt:='Unexpected resolver message found ['+IntToStr(Msg.Id)+'] '
+      +s+': ('+IntToStr(Msg.MsgNumber)+')';
+    if WithSourcePos then
+      Txt:=Txt+' '+ExtractFileName(Msg.SourcePos.FileName)+'('+IntToStr(Msg.SourcePos.Row)+','+IntToStr(Msg.SourcePos.Column)+')';
+    Txt:=Txt+' {'+Msg.Msg+'}';
+    Fail(Txt);
+    end;
+end;
+
 procedure TCustomTestModule.SetExpectedScannerError(Msg: string;
   MsgNumber: integer);
 begin
@@ -1769,6 +1906,20 @@ begin
   C:=FModule.ClassType;
   if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
     Result:=Engine.DefaultNameSpace;
+end;
+
+constructor TCustomTestModule.Create;
+begin
+  inherited Create;
+  FResolverMsgs:=TObjectList.Create(true);
+  FResolverGoodMsgs:=TFPList.Create;
+end;
+
+destructor TCustomTestModule.Destroy;
+begin
+  FreeAndNil(FResolverMsgs);
+  FreeAndNil(FResolverGoodMsgs);
+  inherited Destroy;
 end;
 
 { TTestModule }
@@ -12083,6 +12234,27 @@ begin
     '$mod.A.ProcA();',
     '$mod.B.ProcA();',
     '$mod.C.ProcA();',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_OverloadHint;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TExtA = class external name ''ExtObjA''',
+  '    procedure DoIt;',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckResolverUnexpectedHints(true);
+  CheckSource('TestExternalClass_OverloadHint',
+    LinesToStr([ // statements
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
