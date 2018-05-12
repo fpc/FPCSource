@@ -157,7 +157,7 @@ const
   nIllegalQualifierInFrontOf = 3085;
   nIllegalQualifierWithin = 3086;
   nMethodClassXInOtherUnitY = 3087;
-  nNoMatchingImplForIntfMethodXFound = 3088;
+  // free 3088
   nCannotMixMethodResolutionAndDelegationAtX = 3089;
   nImplementsDoesNotSupportArrayProperty = 3101;
   nImplementsDoesNotSupportIndex = 3102;
@@ -176,6 +176,7 @@ const
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250;
   nConstructingClassXWithAbstractMethodY = 4046;
+  nNoMatchingImplForIntfMethodXFound = 5042;
   nSymbolXIsDeprecated = 5043;
   nSymbolXBelongsToALibrary = 5065;
   nSymbolXIsDeprecatedY = 5066;
