@@ -50,6 +50,7 @@ begin
     T:=P.Targets.AddUnit('picasso96api.pas');
     T:=P.Targets.AddUnit('cybergraphics.pas');
     T:=P.Targets.AddUnit('locale.pas');
+    T:=P.Targets.AddUnit('datatypes.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
