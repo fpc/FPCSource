@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2014 by Free Pascal development team
+    Copyright (c) 2018 by Free Pascal development team
 
-    asl.library functions
+    datatypes.library functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -385,13 +385,13 @@ type
     dtg_AttrList: PTagItem; // Additional attributes
   end;
 
-  //* DTM_TRIGGER */
+  // DTM_TRIGGER
   PdtTrigger = ^TdtTrigger;
   TdtTrigger = record
-    MethodID        : ULONG;
-    dtt_GInfo       : PGadgetInfo;
-    dtt_Function    : ULONG;
-    dtt_Data        : APTR;
+    MethodID: PtrUInt;
+    dtt_GInfo: PGadgetInfo;
+    dtt_Function: LongWord;
+    dtt_Data: APTR;
   end;
 
 const
@@ -481,7 +481,7 @@ const
 const
   PICTUREDTCLASS = 'picture.datatype';
 
-Type
+type
   PBitMapHeader = ^TBitMapHeader;
   TBitMapHeader = record
     bmh_Width: Word;
