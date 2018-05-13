@@ -1257,186 +1257,113 @@ const
   DATATYPESNAME : PChar = 'datatypes.library';
 
 
-function ObtainDataTypeA(type_ : CARDINAL location 'd0'; handle : POINTER location 'a0'; attrs : pTagItem location 'a1') : pDataType;
-SysCall DataTypesBase 036;
+function ObtainDataTypeA(Typ: LongWord location 'd0'; Handle: POINTER location 'a0'; Attrs: PTagItem location 'a1'): PDataType; SysCall DataTypesBase 036;
+procedure ReleaseDataType(Dt: PDataType location 'a0'); SysCall DataTypesBase 042;
+function NewDTObjectA(name: STRPTR location 'd0'; Attrs: PTagItem location 'a0'): Pointer; SysCall DataTypesBase 048;
+procedure DisposeDTObject(o: PObject_ location 'a0'); SysCall DataTypesBase 054;
+function SetDTAttrsA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; Attrs: PTagItem location 'a3'): LongWord; SysCall DataTypesBase 060;
+function GetDTAttrsA(o: PObject_ location 'a0'; Attrs: PTagItem location 'a2'): LongWord; SysCall DataTypesBase 066;
+function AddDTObject(Win: PWindow location 'a0'; Req: pRequester location 'a1'; o: PObject_ location 'a2'; Pos: LongInt location 'd0'): LongInt; SysCall DataTypesBase 072;
+procedure RefreshDTObjectA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: pRequester location 'a2'; Attrs: PTagItem location 'a3'); SysCall DataTypesBase 078;
+function DoAsyncLayout(o: PObject_ location 'a0'; Gpl: PgpLayout location 'a1'): LongWord; SysCall DataTypesBase 084;
+function DoDTMethodA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; Msg: PLongInt location 'a3'): LongWord; SysCall DataTypesBase 090;
+function RemoveDTObject(Win: PWindow location 'a0'; o: PObject_ location 'a1'): LongInt; SysCall DataTypesBase 096;
+function GetDTMethods(o: PObject_ location 'a0'): Pointer; SysCall DataTypesBase 102;
+function GetDTTriggerMethods(o: PObject_ location 'a0'): PDTMethod; SysCall DataTypesBase 108;
+function PrintDTObjectA(o: PObject_ location 'a0'; w: PWindow location 'a1'; r: PRequester location 'a2'; Msg: PdtPrint location 'a3'): LongWord; SysCall DataTypesBase 114;
+function ObtainDTDrawInfoA(o: PObject_ location 'a0'; Attrs: PTagItem location 'a1'): Pointer; SysCall DataTypesBase 120;
+function DrawDTObjectA(Rp: PRastPort location 'a0'; o: PObject_ location 'a1'; x: LongInt location 'd0'; y: LongInt location 'd1'; w: LongInt location 'd2'; h: LongInt location 'd3'; th: LongInt location 'd4'; tv: LongInt location 'd5'; Attrs: PTagItem location 'a2'): LongInt; SysCall DataTypesBase 126;
+procedure ReleaseDTDrawInfo(o: PObject_ location 'a0'; Handle: Pointer location 'a1'); SysCall DataTypesBase 132;
+function GetDTString(Id: LongWord location 'd0'): STRPTR; SysCall DataTypesBase 138;
+procedure LockDataType(Dt: PDataType location 'a0'); SysCall DataTypesBase 240;
+function FindToolNodeA(Tl: PList location 'a0'; Attrs: PTagItem location 'a1'): PToolNode; SysCall DataTypesBase 246;
+function LaunchToolA(t: PTool location 'a0'; Project: PShortInt location 'a1'; Attrs: PTagItem location 'a2'): LongWord; SysCall DataTypesBase 252;
+function FindMethod(Methods: LongWord location 'a0'; Id: LongWord location 'a1'): PLongWord; SysCall DataTypesBase 258;
+function FindTriggerMethod(TriggerMethods: PDTMethod location 'a0'; Command: PShortInt location 'a1'; Method: LongWord location 'd0'): PDTMethod; SysCall DataTypesBase 264;
+function CopyDTMethods(Src: LongWord location 'a0'; Include: LongWord location 'a1'; Exclude: LongWord location 'a2'): PLongWord; SysCall DataTypesBase 270;
+function CopyDTTriggerMethods(Src: PDTMethod location 'a0'; Include: PDTMethod location 'a1'; Exclude: PDTMethod location 'a2'): PDTMethod; SysCall DataTypesBase 276;
+procedure FreeDTMethods(m: Pointer location 'a0'); SysCall DataTypesBase 282;
+function GetDTTriggerMethodDataFlags(TriggerMethod: LongWord location 'd0'): LongWord; SysCall DataTypesBase 288;
+function SaveDTObjectA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; File_: PChar location 'a3'; Mode: LongWord location 'd0'; SaveIcon: BOOLEAN location 'd1'; Attrs: PTagItem location 'a4'): LongWord; SysCall DataTypesBase 294;
+function StartDragSelect(o: PObject_ location 'a0'): LongWord; SysCall DataTypesBase 300;
+function DoDTDomainA(o: PObject_ location 'a0'; Win: PWindow location 'a1'; Req: PRequester location 'a2'; RPort: PRastPort location 'a3'; Which: LongWord location 'd0'; Domain: PIBox location 'a4'; Attrs: PTagItem location 'a5'): LongWord; SysCall DataTypesBase 306;
 
-function ObtainDataType(type_ : CARDINAL; handle : POINTER; attrs : array of LongWord) : pDataType; Inline;
+function ObtainDataType(Typ: LongWord; Handle: Pointer; const Attrs: array of LongWord): PDataType; Inline;
+function NewDTObject(Name: PChar; const attrs: array of LongWord): Pointer; Inline;
+function SetDTAttrs(o: PObject_; Win: PWindow; Req: PRequester; const Attrs: array of LongWord): LongWord; Inline;
+function GetDTAttrs(o: PObject_; const Attrs: array of LongWord): LongWord; Inline;
+procedure RefreshDTObject(o: PObject_; Win: PWindow; Req: PRequester; const Attrs: array of LongWord); Inline;
+function DoDTMethod(o: PObject_; Win: PWindow; Req: PRequester; const Msg: array of LongWord): LongWord; Inline;
+function ObtainDTDrawInfo(o: PObject_; const Attrs: array of LongWord): Pointer; Inline;
+function DrawDTObject(Rp: PRastPort; o: PObject_; x: LongInt; y: LongInt; w: LongInt; h: LongInt; th: LongInt; tv: LongInt; const Attrs: array of LongWord): LongInt; Inline;
+function FindToolNode(Tl: PList; const Attrs: array of LongWord): PToolNode; Inline;
+function LaunchTool(t: PTool; Project: PShortInt; const Attrs: array of LongWord): LongWord; Inline;
+function SaveDTObject(o: PObject_; Win: PWindow; Req: PRequester; File_: PChar; Mode: LongWord; SaveIcon: BOOLEAN; const Attrs: array of LongWord): LongWord; Inline;
+function DoDTDomain(o: PObject_; Win: PWindow; Req: PRequester; RPort: PRastPort; Which: LongWord; Domain: PIBox; const Attrs: array of LongWord): LongWord; Inline;
 
-procedure ReleaseDataType(dt : pDataType location 'a0');
-SysCall DataTypesBase 042;
-
-function NewDTObjectA(name : PChar location 'd0'; attrs : pTagItem location 'a0') : CARDINAL;
-SysCall DataTypesBase 048;
-
-function NewDTObject(name : PChar; attrs : array of LongWord) : CARDINAL; Inline;
-
-procedure DisposeDTObject(o : CARDINAL location 'a0');
-SysCall DataTypesBase 054;
-
-function SetDTAttrsA(o : CARDINAL location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; attrs : pTagItem location 'a3') : CARDINAL;
-SysCall DataTypesBase 060;
-
-function SetDTAttrs(o : CARDINAL; win : pWindow; req : pRequester; attrs : array of LongWord) : CARDINAL; Inline;
-
-function GetDTAttrsA(o : CARDINAL location 'a0'; attrs : pTagItem location 'a2') : CARDINAL;
-SysCall DataTypesBase 066;
-
-function GetDTAttrs(o : CARDINAL; attrs : array of LongWord) : CARDINAL; Inline;
-
-function AddDTObject(win : pWindow location 'a0'; req : pRequester location 'a1'; o : CARDINAL location 'a2'; pos : LongInt location 'd0') : LongInt;
-SysCall DataTypesBase 072;
-
-procedure RefreshDTObjectA(o : CARDINAL location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; attrs : pTagItem location 'a3');
-SysCall DataTypesBase 078;
-
-procedure RefreshDTObject(o : CARDINAL; win : pWindow; req : pRequester; attrs : array of LongWord); Inline;
-
-function DoAsyncLayout(o : CARDINAL location 'a0'; gpl : pgpLayout location 'a1') : CARDINAL;
-SysCall DataTypesBase 084;
-
-function DoDTMethodA(o : CARDINAL location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; msg : pLongInt location 'a3') : CARDINAL;
-SysCall DataTypesBase 090;
-
-function DoDTMethod(o : CARDINAL; win : pWindow; req : pRequester; msg : array of LongInt) : CARDINAL; Inline;
-
-function RemoveDTObject(win : pWindow location 'a0'; o : CARDINAL location 'a1') : LongInt;
-SysCall DataTypesBase 096;
-
-function GetDTMethods(o : CARDINAL location 'a0') : pCARDINAL;
-SysCall DataTypesBase 102;
-
-function GetDTTriggerMethods(o : CARDINAL location 'a0') : pDTMethod;
-SysCall DataTypesBase 108;
-
-function PrintDTObjectA(o : CARDINAL location 'a0'; w : pWindow location 'a1'; r : pRequester location 'a2'; msg : pdtPrint location 'a3') : CARDINAL;
-SysCall DataTypesBase 114;
-
-function ObtainDTDrawInfoA(o : CARDINAL location 'a0'; attrs : pTagItem location 'a1') : POINTER;
-SysCall DataTypesBase 120;
-
-function ObtainDTDrawInfo(o : CARDINAL; attrs : array of LongWord) : POINTER; Inline;
-
-function DrawDTObjectA(rp : pRastPort location 'a0'; o : CARDINAL location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1'; w : LongInt location 'd2'; h : LongInt location 'd3'; th : LongInt location 'd4'; tv : LongInt location 'd5'; attrs : pTagItem location 'a2') : LongInt;
-SysCall DataTypesBase 126;
-
-function DrawDTObject(rp : pRastPort; o : CARDINAL; x : LongInt; y : LongInt; w : LongInt; h : LongInt; th : LongInt; tv : LongInt; attrs : array of LongWord) : LongInt; Inline;
-
-procedure ReleaseDTDrawInfo(o : CARDINAL location 'a0'; handle : POINTER location 'a1');
-SysCall DataTypesBase 132;
-
-function GetDTString(id : CARDINAL location 'd0') : pSHORTINT;
-SysCall DataTypesBase 138;
-
-procedure LockDataType(dt : pDataType location 'a0');
-SysCall DataTypesBase 240;
-
-function FindToolNodeA(tl : pList location 'a0'; attrs : pTagItem location 'a1') : pToolNode;
-SysCall DataTypesBase 246;
-
-function FindToolNode(tl : pList; attrs : array of LongWord) : pToolNode; Inline;
-
-function LaunchToolA(t : pTool location 'a0'; project : pSHORTINT location 'a1'; attrs : pTagItem location 'a2') : CARDINAL;
-SysCall DataTypesBase 252;
-
-function LaunchTool(t : pTool; project : pSHORTINT; attrs : array of LongWord) : CARDINAL; Inline;
-
-function FindMethod(methods : CARDINAL location 'a0'; id : CARDINAL location 'a1') : pCARDINAL;
-SysCall DataTypesBase 258;
-
-function FindTriggerMethod(triggermethods : pDTMethod location 'a0'; command : pSHORTINT location 'a1'; method : CARDINAL location 'd0') : pDTMethod;
-SysCall DataTypesBase 264;
-
-function CopyDTMethods(src : CARDINAL location 'a0'; include : CARDINAL location 'a1'; exclude : CARDINAL location 'a2') : pCARDINAL;
-SysCall DataTypesBase 270;
-
-function CopyDTTriggerMethods(src : pDTMethod location 'a0'; include : pDTMethod location 'a1'; exclude : pDTMethod location 'a2') : pDTMethod;
-SysCall DataTypesBase 276;
-
-procedure FreeDTMethods(m : POINTER location 'a0');
-SysCall DataTypesBase 282;
-
-function GetDTTriggerMethodDataFlags(triggermethod : CARDINAL location 'd0') : CARDINAL;
-SysCall DataTypesBase 288;
-
-function SaveDTObjectA(o : CARDINAL location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; file_ : PChar location 'a3'; mode : CARDINAL location 'd0'; saveicon : BOOLEAN location 'd1'; attrs : pTagItem location 'a4') : CARDINAL;
-SysCall DataTypesBase 294;
-
-function SaveDTObject(o : CARDINAL; win : pWindow; req : pRequester; file_ : PChar; mode : CARDINAL; saveicon : BOOLEAN; attrs : array of LongWord) : CARDINAL; Inline;
-
-function StartDragSelect(o : CARDINAL location 'a0') : CARDINAL;
-SysCall DataTypesBase 300;
-
-function DoDTDomainA(o : CARDINAL location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; rport : pRastPort location 'a3'; which : CARDINAL location 'd0'; domain : pIBox location 'a4'; attrs : pTagItem location 'a5') : CARDINAL;
-SysCall DataTypesBase 306;
-
-function DoDTDomain(o : CARDINAL; win : pWindow; req : pRequester; rport : pRastPort; which : CARDINAL; domain : pIBox; attrs : array of LongWord) : CARDINAL; Inline;
-
-
-
-function InitDatatypesLibrary : boolean;
+function InitDatatypesLibrary: boolean;
 
 
 implementation
 
-
-function ObtainDataType(type_ : CARDINAL; handle : POINTER; attrs : array of LongWord) : pDataType; Inline;
+function ObtainDataType(Typ: LongWord; Handle: Pointer; const Attrs: array of LongWord): PDataType; Inline;
 begin
-  ObtainDataType:=ObtainDataTypeA(type_, handle, @attrs);
+  ObtainDataType := ObtainDataTypeA(typ, Handle, @Attrs);
 end;
 
-function NewDTObject(name : PChar; attrs : array of LongWord) : CARDINAL; Inline;
+function NewDTObject(Name: PChar; const Attrs: array of LongWord): Pointer; Inline;
 begin
-  NewDTObject:=NewDTObjectA(name, @attrs);
+  NewDTObject := NewDTObjectA(Name, @Attrs);
 end;
 
-function SetDTAttrs(o : CARDINAL; win : pWindow; req : pRequester; attrs : array of LongWord) : CARDINAL; Inline;
+function SetDTAttrs(o: PObject_; Win: PWindow; Req: PRequester; const Attrs: array of LongWord): LongWord; Inline;
 begin
-  SetDTAttrs:=SetDTAttrsA(o, win, req, @attrs);
+  SetDTAttrs := SetDTAttrsA(o, Win, Req, @Attrs);
 end;
 
-function GetDTAttrs(o : CARDINAL; attrs : array of LongWord) : CARDINAL; Inline;
+function GetDTAttrs(o: PObject_; const Attrs: array of LongWord): LongWord; Inline;
 begin
-  GetDTAttrs:=GetDTAttrsA(o, @attrs);
+  GetDTAttrs := GetDTAttrsA(o, @Attrs);
 end;
 
-function DoDTMethod(o : CARDINAL; win : pWindow; req : pRequester; msg : array of LongInt) : CARDINAL; Inline;
+function DoDTMethod(o: PObject_; Win: PWindow; Req: PRequester; const Msg: array of LongWord): LongWord; Inline;
 begin
-  DoDTMethod:=DoDTMethodA(o, win, req, @msg);
+  DoDTMethod:=DoDTMethodA(o, Win, Req, @Msg);
 end;
 
-procedure RefreshDTObject(o : CARDINAL; win : pWindow; req : pRequester; attrs : array of LongWord); Inline;
+procedure RefreshDTObject(o: PObject_; Win: PWindow; Req: PRequester; const Attrs: array of LongWord); Inline;
 begin
-  RefreshDTObjectA(o, win, req, @attrs);
+  RefreshDTObjectA(o, Win, Req, @Attrs);
 end;
 
-function ObtainDTDrawInfo(o : CARDINAL; attrs : array of LongWord) : POINTER; Inline;
+function ObtainDTDrawInfo(o: PObject_; const Attrs: array of LongWord): Pointer; Inline;
 begin
-  ObtainDTDrawInfo:=ObtainDTDrawInfoA(o, @attrs);
+  ObtainDTDrawInfo := ObtainDTDrawInfoA(o, @Attrs);
 end;
 
-function DrawDTObject(rp : pRastPort; o : CARDINAL; x : LongInt; y : LongInt; w : LongInt; h : LongInt; th : LongInt; tv : LongInt; attrs : array of LongWord) : LongInt; Inline;
+function DrawDTObject(Rp: PRastPort; o: PObject_; x: LongInt; y: LongInt; w: LongInt; h: LongInt; th: LongInt; tv: LongInt; const Attrs: array of LongWord): LongInt; Inline;
 begin
-  DrawDTObject:=DrawDTObjectA(rp, o, x, y, w, h, th, tv, @attrs);
+  DrawDTObject := DrawDTObjectA(rp, o, x, y, w, h, th, tv, @Attrs);
 end;
 
-function FindToolNode(tl : pList; attrs : array of LongWord) : pToolNode; Inline;
+function FindToolNode(Tl: PList; const Attrs: array of LongWord): PToolNode; Inline;
 begin
-  FindToolNode:=FindToolNodeA(tl, @attrs);
+  FindToolNode := FindToolNodeA(Tl, @Attrs);
 end;
 
-function LaunchTool(t : pTool; project : pSHORTINT; attrs : array of LongWord) : CARDINAL; Inline;
+function LaunchTool(t: PTool; Project: PShortInt; const Attrs: array of LongWord): LongWord; Inline;
 begin
-  LaunchTool:=LaunchToolA(t, project, @attrs);
+  LaunchTool:=LaunchToolA(t, Project, @Attrs);
 end;
 
-function SaveDTObject(o : CARDINAL; win : pWindow; req : pRequester; file_ : PChar; mode : CARDINAL; saveicon : BOOLEAN; attrs : array of LongWord) : CARDINAL; Inline;
+function SaveDTObject(o: PObject_; Win: PWindow; Req: PRequester; File_: PChar; Mode: LongWord; SaveIcon: BOOLEAN; const Attrs: array of LongWord): LongWord; Inline;
 begin
-  SaveDTObject:=SaveDTObjectA(o, win, req, file_, mode, saveicon, @attrs);
+  SaveDTObject:=SaveDTObjectA(o, Win, Req, File_, Mode, Saveicon, @Attrs);
 end;
 
-function DoDTDomain(o : CARDINAL; win : pWindow; req : pRequester; rport : pRastPort; which : CARDINAL; domain : pIBox; attrs : array of LongWord) : CARDINAL; Inline;
+function DoDTDomain(o: PObject_; Win: PWindow; Req: PRequester; RPort: PRastPort; Which: LongWord; Domain: PIBox; const Attrs: array of LongWord): LongWord; Inline;
 begin
-  DoDTDomain:=DoDTDomainA(o, win, req, rport, which, domain, @attrs);
+  DoDTDomain:=DoDTDomainA(o, Win, Req, RPort, Which, Domain, @Attrs);
 end;
 
 const
