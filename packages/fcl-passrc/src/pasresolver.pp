@@ -13817,7 +13817,7 @@ begin
           // aClass.Create: do not warn
         else
           for i:=0 to length(ClassScope.AbstractProcs)-1 do
-            LogMsg(20171227110746,mtNote,nConstructingClassXWithAbstractMethodY,
+            LogMsg(20171227110746,mtWarning,nConstructingClassXWithAbstractMethodY,
               sConstructingClassXWithAbstractMethodY,
               [TypeEl.Name,ClassScope.AbstractProcs[i].Name],FindData.ErrorPosEl);
         end;

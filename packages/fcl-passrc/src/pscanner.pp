@@ -32,7 +32,7 @@ const
   nErrInvalidPPElse = 1005;
   nErrInvalidPPEndif = 1006;
   nLogOpeningFile = 1007;
-  nLogLineNumber = 1008;
+  nLogLineNumber = 1008; // same as FPC
   nLogIFDefAccepted = 1009;
   nLogIFDefRejected = 1010;
   nLogIFNDefAccepted = 1011;
