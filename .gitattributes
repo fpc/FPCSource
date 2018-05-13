@@ -1095,6 +1095,7 @@ packages/arosunits/src/asl.pas svneol=native#text/plain
 packages/arosunits/src/clipboard.pas svneol=native#text/plain
 packages/arosunits/src/commodities.pas svneol=native#text/pascal
 packages/arosunits/src/cybergraphics.pas svneol=native#text/plain
+packages/arosunits/src/datatypes.pas svneol=native#text/pascal
 packages/arosunits/src/diskfont.pas svneol=native#text/plain
 packages/arosunits/src/exec.pas svneol=native#text/plain
 packages/arosunits/src/gadtools.pas svneol=native#text/plain
