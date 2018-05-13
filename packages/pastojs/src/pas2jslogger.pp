@@ -120,6 +120,7 @@ type
     procedure OpenDebugLog;
     procedure CloseDebugLog;
     procedure DebugLogWriteLn(Msg: string); overload;
+    function GetEncodingCaption: string;
   public
     property Encoding: string read FEncoding write SetEncoding; // normalized
     property MsgCount: integer read GetMsgCount;
@@ -717,17 +718,37 @@ begin
   FDebugLog.Write(Msg[1],length(Msg));
 end;
 
+function TPas2jsLogger.GetEncodingCaption: string;
+begin
+  Result:=Encoding;
+  if Result='' then
+  begin
+    if FOutputFile=nil then
+      Result:='console'
+    else
+      Result:='utf-8';
+  end;
+  if Result='console' then
+  begin
+    {$IFDEF Unix}
+    if not IsNonUTF8System then
+      Result:='utf-8';
+    {$ENDIF}
+  end;
+  if Result='utf8' then
+    Result:='utf-8';
+end;
+
 procedure TPas2jsLogger.LogPlain(const Msg: string);
 var
   s: String;
 begin
   ClearLastMsg;
   if Encoding='json' then
-    begin
+  begin
     s:=FormatJSONMsg(mtInfo,Msg,0,'',0,0);
     DoLogRaw(s,True);
-    end
-  else
+  end else
     DoLogRaw(Msg,False);
 end;
 

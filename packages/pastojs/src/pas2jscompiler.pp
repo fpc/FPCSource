@@ -64,7 +64,7 @@ const
   nParsingFile = 126; sParsingFile = 'Parsing %s ...';
   nCompilingFile = 127; sCompilingFile = 'Compiling %s ...';
   nExpectedButFound = 128; sExpectedButFound = 'Illegal unit name: Expected "%s", but found "%s"';
-  nLinesInFilesCompiled = 129; sLinesInFilesCompiled = '%s lines in %s files compiled, %s sec';
+  nLinesInFilesCompiled = 129; sLinesInFilesCompiled = '%s lines in %s files compiled, %s sec%s';
   nTargetPlatformIs = 130; sTargetPlatformIs = 'Target platform is %s';
   nTargetProcessorIs = 131; sTargetProcessorIs = 'Target processor is %s';
   nMessageEncodingIs = 132; sMessageEncodingIs = 'Message encoding is %s';
@@ -363,6 +363,7 @@ type
     FFileCacheAutoFree: boolean;
     FFiles: TAVLTree; // tree of TPas2jsCompilerFile sorted for PasFilename
     FReadingModules: TFPList; // list of TPas2jsCompilerFile ordered by uses sections
+    FHasShownEncoding: boolean;
     FHasShownLogo: boolean;
     FLog: TPas2jsLogger;
     FMainFile: TPas2jsCompilerFile;
@@ -466,6 +467,7 @@ type
     class function GetVersion(ShortVersion: boolean): string;
     procedure WriteHelp;
     procedure WriteLogo;
+    procedure WriteEncoding;
     procedure WriteVersionLine;
     procedure WriteOptions;
     procedure WriteDefines;
@@ -1989,7 +1991,7 @@ begin
       Seconds:=(Now-StartTime)*86400;
       Log.LogMsgIgnoreFilter(nLinesInFilesCompiled,
              [IntToStr(FileCache.ReadLineCounter),IntToStr(SrcFileCount),
-              FormatFloat('0.0',Seconds)]);
+              FormatFloat('0.0',Seconds),'s']);
       ok:=true;
     end;
   finally
@@ -3170,7 +3172,14 @@ begin
             begin
             Identifier:=NormalizeEncoding(String(p));
             case Identifier of
-            'console','system','utf8', 'json': Log.Encoding:=Identifier;
+            'console','system','utf8', 'json':
+              if Log.Encoding<>Identifier then begin
+                Log.Encoding:=Identifier;
+                if FHasShownEncoding then begin
+                  FHasShownEncoding:=false;
+                  WriteEncoding;
+                end;
+              end;
             else ParamFatal('invalid encoding (-Je) "'+String(p)+'"');
             end;
             end;
@@ -3814,6 +3823,7 @@ begin
   AddDefine('UNICODE');
 
   FHasShownLogo:=false;
+  FHasShownEncoding:=false;
   FFileCache.Reset;
 end;
 
@@ -4071,11 +4081,26 @@ begin
   FHasShownLogo:=true;
   WriteVersionLine;
   Log.LogPlain('Copyright (c) 2018 Mattias Gaertner and others');
+  if coShowInfos in Options then
+    WriteEncoding;
+end;
+
+procedure TPas2jsCompiler.WriteEncoding;
+begin
+  if FHasShownEncoding then exit;
+  FHasShownEncoding:=true;
+  Log.LogMsgIgnoreFilter(nMessageEncodingIs,[Log.GetEncodingCaption]);
 end;
 
 procedure TPas2jsCompiler.WriteVersionLine;
+var
+  s: String;
 begin
-  Log.LogPlain('Pas2JS Compiler version '+GetVersion(false));
+  s:='Pas2JS Compiler version '+GetVersion(false);
+  s:=s+' ['+{$i %Date%}+'] for '+{$i %FPCTargetOS%}+' '+{$i %FPCTargetCPU%};
+  Log.LogPlain(s);
+  if coShowInfos in Options then
+    WriteEncoding;
 end;
 
 procedure TPas2jsCompiler.WriteOptions;
@@ -4084,7 +4109,7 @@ var
   fco: TP2jsFileCacheOption;
 begin
   // message encoding
-  Log.LogMsgIgnoreFilter(nMessageEncodingIs,[BoolToStr(Log.Encoding<>'',Log.Encoding,'system')]);
+  WriteEncoding;
   // target platform
   Log.LogMsgIgnoreFilter(nTargetPlatformIs,[PasToJsPlatformNames[TargetPlatform]]);
   Log.LogMsgIgnoreFilter(nTargetProcessorIs,[PasToJsProcessorNames[TargetProcessor]]);
