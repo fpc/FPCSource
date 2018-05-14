@@ -1426,6 +1426,17 @@ begin
   end;
 end;
 
+procedure FuncLeft(Param: PExpressionRec);
+var
+  srcLen,  count: Integer;
+begin
+  srcLen := StrLen(Param^.Args[0]);
+  count := PInteger(Param^.Args[1])^;
+  if  count > srcLen then
+    count := srcLen;
+  Param^.Res.Append(Param^.Args[0], count)
+end;
+
 procedure FuncUppercase(Param: PExpressionRec);
 var
   dest: PChar;
@@ -2336,6 +2347,7 @@ initialization
 {$ifdef SUPPORT_INT64}
     Add(TFunction.Create('STR',       '',      'LII', 1, etString, FuncInt64ToStr, ''));
 {$endif}
+    Add(TFunction.Create('LEFT',      '',  'SI',  2, etString, FuncLeft, ''));
     Add(TFunction.Create('DTOS',      '',      'D',   1, etString, FuncDateToStr, ''));
     Add(TFunction.Create('SUBSTR',    'SUBS',  'SII', 3, etString, FuncSubString, ''));
     Add(TFunction.Create('UPPERCASE', 'UPPER', 'S',   1, etString, FuncUppercase, ''));
