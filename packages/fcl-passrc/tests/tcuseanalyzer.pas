@@ -145,6 +145,7 @@ type
     procedure TestWP_PublishedProperty;
     procedure TestWP_BuiltInFunctions;
     procedure TestWP_TypeInfo;
+    procedure TestWP_TypeInfo_PropertyEnumType;
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
@@ -2463,6 +2464,33 @@ begin
   '  p:=typeinfo(c);',
   '  p:=typeinfo(c.ClassType);',
   '  p:=typeinfo(GetBirdClass);',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_TypeInfo_PropertyEnumType;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  {#talign_typeinfo}TAlign = (alLeft,alRight);',
+  '  {$M+}',
+  '  TPersistent = class',
+  '  private',
+  '    FAlign: TAlign;',
+  '  public',
+  '    property {#tpersistent_align_notypeinfo}Align: TAlign read FAlign write FAlign;',
+  '  end;',
+  '  {$M-}',
+  '  {#tbutton_typeinfo}TButton = class(TPersistent)',
+  '  published',
+  '    property {#tbutton_align_typeinfo}Align;',
+  '  end;',
+  'var',
+  '  {#p_notypeinfo}p: pointer;',
+  'begin',
+  '  p:=typeinfo(TButton);',
   '']);
   AnalyzeWholeProgram;
 end;

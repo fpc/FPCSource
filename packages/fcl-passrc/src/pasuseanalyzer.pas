@@ -781,7 +781,7 @@ procedure TPasAnalyzer.UseTypeInfo(El: TPasElement);
 
 var
   C: TClass;
-  Members: TFPList;
+  Members, Args: TFPList;
   i: Integer;
   Member: TPasElement;
   MemberResolved: TPasResolverResult;
@@ -804,15 +804,16 @@ begin
     begin
     // published property
     Prop:=TPasProperty(El);
-    for i:=0 to Prop.Args.Count-1 do
-      UseSubEl(TPasArgument(Prop.Args[i]).ArgType);
-    UseSubEl(Prop.VarType);
+    Args:=Resolver.GetPasPropertyArgs(Prop);
+    for i:=0 to Args.Count-1 do
+      UseSubEl(TPasArgument(Args[i]).ArgType);
+    UseSubEl(Resolver.GetPasPropertyType(Prop));
     UseElement(Resolver.GetPasPropertyGetter(Prop),rraRead,false);
     UseElement(Resolver.GetPasPropertySetter(Prop),rraRead,false);
     UseElement(Resolver.GetPasPropertyIndex(Prop),rraRead,false);
     // stored and defaultvalue are only used when published -> mark as used
     UseElement(Resolver.GetPasPropertyStoredExpr(Prop),rraRead,false);
-    UseElement(Prop.DefaultExpr,rraRead,false);
+    UseElement(Resolver.GetPasPropertyDefaultExpr(Prop),rraRead,false);
     end
   else if (C=TPasAliasType) or (C=TPasTypeAliasType) then
     UseSubEl(TPasAliasType(El).DestType)
@@ -1707,6 +1708,7 @@ begin
       // when checking a single unit, mark all method+properties implementing the interfaces
       MarkAllInterfaceImplementations(ClassScope);
     end;
+
   // members
   AllPublished:=(Mode<>paumAllExports);
   for i:=0 to El.Members.Count-1 do

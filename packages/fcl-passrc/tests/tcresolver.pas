@@ -7888,7 +7888,7 @@ begin
   'begin',
   '  TObject.Create;']);
   ParseProgram;
-  CheckResolverHint(mtNote,nConstructingClassXWithAbstractMethodY,'Constructing a class "TObject" with abstract method "DoIt"');
+  CheckResolverHint(mtWarning,nConstructingClassXWithAbstractMethodY,'Constructing a class "TObject" with abstract method "DoIt"');
   CheckResolverUnexpectedHints;
 end;
 
