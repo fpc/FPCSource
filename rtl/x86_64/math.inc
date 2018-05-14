@@ -356,6 +356,21 @@ const
 
 {$else FPC_HAS_TYPE_EXTENDED}
 
+    {$ifndef FPC_SYSTEM_HAS_INT}
+    {$define FPC_SYSTEM_HAS_INT}
+    function fpc_int_real(d : ValReal) : ValReal;compilerproc; assembler; nostackframe;
+      asm
+        movq      %xmm0,  %rax
+        shr       $48,    %rax
+        and       $0x7ff0,%ax
+        cmp       $0x4330,%ax
+        jge       .L0
+        cvttsd2si %xmm0,  %rax
+        cvtsi2sd  %rax,   %xmm0
+    .L0:
+      end;
+    {$endif FPC_SYSTEM_HAS_INT}
+
     {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
