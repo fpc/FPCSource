@@ -1093,7 +1093,7 @@ var rtl = {
       } else {
         t = Object.create(ancestor);
         t.name = name;
-        t.module = this.module;
+        t.$module = this.$module;
         this[name] = t;
       }
       if (o){
