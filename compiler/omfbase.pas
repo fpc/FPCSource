@@ -491,6 +491,7 @@ interface
       FIs32Bit: Boolean;
       FBaseGroup: Integer;
       FBaseSegment: Integer;
+      FNextIndex: Integer;
     protected
       procedure DebugFormatSpecific_DecodeFrom(RawRecord:TOmfRawRecord;NextOfs:Integer);virtual;abstract;
       procedure DebugFormatSpecific_EncodeTo(RawRecord:TOmfRawRecord;var NextOfs:Integer);virtual;abstract;
@@ -501,6 +502,7 @@ interface
       property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
       property BaseGroup: Integer read FBaseGroup write FBaseGroup;
       property BaseSegment: Integer read FBaseSegment write FBaseSegment;
+      property NextIndex: Integer read FNextIndex write FNextIndex;
     end;
 
     TOmfSubRecord_LINNUM_MsLink_LineNumber = 0..$7fff;
@@ -2130,10 +2132,25 @@ implementation
 
   procedure TOmfRecord_LINNUM_MsLink.DebugFormatSpecific_EncodeTo(
     RawRecord: TOmfRawRecord; var NextOfs: Integer);
+    const
+      RecordLengthLimit = 1024;
     var
-      I: Integer;
+      I, Len, LastIncludedIndex, RecordSize: Integer;
     begin
-      for I:=0 to LineNumberList.Count-1 do
+      { find out how many line number records can we include until we reach the length limit }
+      if Is32Bit then
+        RecordSize:=6
+      else
+        RecordSize:=4;
+      Len:=NextOfs;
+      LastIncludedIndex:=NextIndex-1;
+      repeat
+        Inc(LastIncludedIndex);
+        Inc(Len,RecordSize);
+      until (LastIncludedIndex>=(LineNumberList.Count-1)) or ((Len+RecordSize)>=RecordLengthLimit);
+
+      { write the line number info... }
+      for I:=NextIndex to LastIncludedIndex do
         with LineNumberList.Items[I] do
           begin
             RawRecord.RawData[NextOfs]:=byte(LineNumber);
@@ -2156,6 +2173,9 @@ implementation
                 Inc(NextOfs,2);
               end;
           end;
+
+      { update NextIndex }
+      NextIndex:=LastIncludedIndex+1;
     end;
 
   { TOmfSubRecord_FIXUP }
