@@ -1388,6 +1388,8 @@ begin
   end else begin
     if Cache.UnitOutputPath<>'' then
       Result:=Cache.UnitOutputPath+ChangeFileExt(ExtractFileName(aUnitFilename),'.js')
+    else if Cache.MainOutputPath<>'' then
+      Result:=Cache.MainOutputPath+ChangeFileExt(ExtractFileName(aUnitFilename),'.js')
     else
       Result:=ChangeFileExt(aUnitFilename,'.js');
   end;
