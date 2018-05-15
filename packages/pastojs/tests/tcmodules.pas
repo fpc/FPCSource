@@ -298,6 +298,7 @@ type
     Procedure TestAssignFunctionResult;
     Procedure TestFunctionResultInCondition;
     Procedure TestFunctionResultInForLoop;
+    Procedure TestFunctionResultInTypeCast;
     Procedure TestExit;
     Procedure TestBreak;
     Procedure TestBreakAsVar;
@@ -493,6 +494,7 @@ type
     Procedure TestExternalClass_DuplicateVarFail;
     Procedure TestExternalClass_Method;
     Procedure TestExternalClass_ClassMethod;
+    Procedure TestExternalClass_FunctionResultInTypeCast;
     Procedure TestExternalClass_NonExternalOverride;
     Procedure TestExternalClass_OverloadHint;
     Procedure TestExternalClass_Property;
@@ -2930,6 +2932,29 @@ begin
     '']),
     LinesToStr([
     '$mod.Func1([1, 2, 3]);'
+    ]));
+end;
+
+procedure TTestModule.TestFunctionResultInTypeCast;
+begin
+  StartProgram(false);
+  Add([
+  'function GetInt: longint;',
+  'begin',
+  'end;',
+  'begin',
+  '  if Byte(GetInt)=0 then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestFunctionResultInTypeCast',
+    LinesToStr([ // statements
+    'this.GetInt = function () {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([
+    'if (($mod.GetInt() & 255) === 0) ;'
     ]));
 end;
 
@@ -5435,6 +5460,9 @@ begin
   Add('  c:=^A;');
   Add('  c:=''"'';');
   Add('  c:=default(char);');
+  Add('  c:=#$00E4;'); // ä
+  Add('  c:=''ä'';');
+  Add('  c:=#$E4;'); // ä
   ConvertProgram;
   CheckSource('TestCharConst',
     LinesToStr([
@@ -5454,8 +5482,11 @@ begin
     '$mod.c="\x0B";',
     '$mod.c="\x01";',
     '$mod.c=''"'';',
-    '$mod.c="\x00";'
-    ]));
+    '$mod.c="\x00";',
+    '$mod.c = "ä";',
+    '$mod.c = "ä";',
+    '$mod.c = "ä";',
+    '']));
 end;
 
 procedure TTestModule.TestChar_Compare;
@@ -12179,6 +12210,51 @@ begin
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(1);',
     'ExtObj.$Execute(5);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_FunctionResultInTypeCast;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TBird = class external name ''Array''',
+  '  end;',
+  'function GetPtr: Pointer;',
+  'begin',
+  'end;',
+  'procedure Write(const p);',
+  'begin',
+  'end;',
+  'procedure WriteLn; varargs;',
+  'begin',
+  'end;',
+  'begin',
+  '  if TBird(GetPtr)=nil then ;',
+  '  Write(GetPtr);',
+  '  WriteLn(GetPtr);',
+  '  Write(TBird(GetPtr));',
+  '  WriteLn(TBird(GetPtr));',
+  '']);
+  ConvertProgram;
+  CheckSource('TestFunctionResultInTypeCast',
+    LinesToStr([ // statements
+    'this.GetPtr = function () {',
+    '  var Result = null;',
+    '  return Result;',
+    '};',
+    'this.Write = function (p) {',
+    '};',
+    'this.WriteLn = function () {',
+    '};',
+    '']),
+    LinesToStr([
+    'if ($mod.GetPtr() === null) ;',
+    '$mod.Write($mod.GetPtr());',
+    '$mod.WriteLn($mod.GetPtr());',
+    '$mod.Write($mod.GetPtr());',
+    '$mod.WriteLn($mod.GetPtr());',
     '']));
 end;
 

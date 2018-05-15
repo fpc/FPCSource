@@ -7890,6 +7890,7 @@ procedure TPasResolver.ResolveFuncParamsExpr(Params: TParamsExpr;
   var
     i: Integer;
   begin
+    if ParamAccess=rraParamToUnknownProc then exit;
     for i:=0 to length(Params.Params)-1 do
       FinishCallArgAccess(Params.Params[i],ParamAccess);
   end;
@@ -8533,7 +8534,7 @@ begin
     case Params.Kind of
     pekFuncParams:
       if IsTypeCast(Params) then
-        AccessExpr(Params.Params[0],Access)
+        FinishCallArgAccess(Params.Params[0],Access)
       else
         AccessExpr(Params.Value,Access);
     pekArrayParams:
@@ -14958,14 +14959,12 @@ var
   i, ParamCnt, ParamCompatibility: Integer;
   Param: TPasExpr;
   ParamResolved: TPasResolverResult;
-  IsVarArgs: Boolean;
   Flags: TPasResolverComputeFlags;
 begin
   Result:=cExact;
   ProcArgs:=ProcType.Args;
   // check args
   ParamCnt:=length(Params.Params);
-  IsVarArgs:=false;
   i:=0;
   while i<ParamCnt do
     begin
@@ -14982,8 +14981,7 @@ begin
       end
     else
       begin
-      IsVarArgs:=IsVarArgs or (ptmVarargs in ProcType.Modifiers);
-      if IsVarArgs then
+      if ptmVarargs in ProcType.Modifiers then
         begin
         if SetReferenceFlags then
           Flags:=[rcNoImplicitProcType,rcSetReferenceFlags]
