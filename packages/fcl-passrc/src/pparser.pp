@@ -4457,6 +4457,7 @@ begin
       end;
     if CurToken = EndToken then
       break;
+    CheckToken(tkSemicolon);
   end;
 end;
 

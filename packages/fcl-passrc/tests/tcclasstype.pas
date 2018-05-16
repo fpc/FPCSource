@@ -1513,7 +1513,7 @@ Var
   A : TPasArgument;
 begin
   StartVisibility(visPublished);
-  AddMember('Property Somethings[ACol : Integer,ARow : Integer] : integer Read GetF; default');
+  AddMember('Property Somethings[ACol : Integer; ARow : Integer] : integer Read GetF; default');
   ParseClass;
   AssertProperty(Property1,visPublished,'Somethings','GetF','','','',2,True,False);
   AssertEquals('Published property',vispublished,Property1.Visibility);

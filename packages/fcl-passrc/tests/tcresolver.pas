@@ -371,8 +371,9 @@ type
     Procedure TestProcedureResultFail;
     Procedure TestProc_ArgVarPrecisionLossFail;
     Procedure TestProc_ArgVarTypeAliasObjFPC;
-    Procedure TestProc_ArgVarTypeAliasDelphi; // ToDo
-    Procedure TestProc_ArgVarTypeAliasDelphiMismatchFail; // ToDo
+    Procedure TestProc_ArgVarTypeAliasDelphi;
+    Procedure TestProc_ArgVarTypeAliasDelphiMismatchFail;
+    Procedure TestProc_ArgMissingSemicolonFail;
     Procedure TestProcOverload;
     Procedure TestProcOverloadImplDuplicateFail;
     Procedure TestProcOverloadImplDuplicate2Fail;
@@ -5613,6 +5614,17 @@ begin
   '']);
   CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "TColor". Var param must match exactly.',
     nIncompatibleTypeArgNoVarParamMustMatchExactly);
+end;
+
+procedure TTestResolver.TestProc_ArgMissingSemicolonFail;
+begin
+  StartProgram(false);
+  Add([
+  'type TScalar = double;',
+  'procedure SinCos (var sinus: TScalar var cosinus: TScalar);',
+  'begin end;',
+  'begin']);
+  CheckParserException('Expected ";" at token "var" in file afile.pp at line 3 column 38',nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestProcOverload;
