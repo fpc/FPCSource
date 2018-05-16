@@ -1237,7 +1237,7 @@ begin
   // aliases listed here are commonly used, but not recognized by CodePageNameToCodePage()
   ConnectionCharSet := LowerCase(GetConnectionCharSet);
   case ConnectionCharSet of
-    'utf8','utf-8':
+    'utf8','utf-8','utf8mb4':
       FCodePage := CP_UTF8;
     'win1250','cp1250':
       FCodePage := 1250;
