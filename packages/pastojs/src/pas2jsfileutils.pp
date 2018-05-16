@@ -51,6 +51,7 @@ function GetPhysicalFilename(const Filename: string;
 function ResolveSymLinks(const Filename: string;
                  {%H-}ExceptionOnError: boolean): string; // if a link is broken returns ''
 function MatchGlobbing(Mask, Name: string): boolean;
+function FileIsWritable(const AFilename: string): boolean;
 
 function GetEnvironmentVariableCountUTF8: Integer;
 function GetEnvironmentStringUTF8(Index: Integer): string;

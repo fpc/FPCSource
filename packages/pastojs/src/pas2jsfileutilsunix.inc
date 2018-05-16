@@ -143,6 +143,11 @@ begin
     Result:='';
 end;
 
+function FileIsWritable(const AFilename: string): boolean;
+begin
+  Result := BaseUnix.FpAccess(AFilename, BaseUnix.W_OK) = 0;
+end;
+
 function GetEnvironmentVariableCountUTF8: Integer;
 begin
   Result:=GetEnvironmentVariableCount;

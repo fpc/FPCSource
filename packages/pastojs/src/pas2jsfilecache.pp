@@ -2081,6 +2081,7 @@ procedure TPas2jsFilesCache.SaveToFile(ms: TMemoryStream; Filename: string);
 var
   s: string;
   l: Int64;
+  i: Integer;
 begin
   if Assigned(OnWriteFile) then
   begin
@@ -2095,7 +2096,20 @@ begin
     OnWriteFile(Filename,s);
   end else
   begin
-    ms.SaveToFile(Filename);
+    try
+      ms.SaveToFile(Filename);
+    except
+      on E: Exception do begin
+        i:=GetLastOSError;
+        if i<>0 then
+          Log.LogPlain('Note: '+SysErrorMessage(i));
+        if not SysUtils.DirectoryExists(ChompPathDelim(ExtractFilePath(Filename))) then
+          Log.LogPlain('Note: file cache inconsistency: folder does not exist "'+ChompPathDelim(ExtractFilePath(Filename))+'"');
+        if SysUtils.FileExists(Filename) and not FileIsWritable(Filename) then
+          Log.LogPlain('Note: file is not writable "'+Filename+'"');
+        raise;
+      end;
+    end;
   end;
 end;
 

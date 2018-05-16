@@ -411,6 +411,16 @@ begin
   Result:=Filename;
 end;
 
+function FileGetAttrUTF8(const FileName: String): Longint;
+begin
+  Result:=Integer(Windows.GetFileAttributesW(PWideChar(UTF8Decode(FileName))));
+end;
+
+function FileIsWritable(const AFilename: string): boolean;
+begin
+  Result:=((FileGetAttrUTF8(AFilename) and faReadOnly) = 0);
+end;
+
 function GetEnvironmentVariableCountUTF8: Integer;
 var
   hp,p : PWideChar;

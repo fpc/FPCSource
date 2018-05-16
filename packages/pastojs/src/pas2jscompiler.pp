@@ -21,10 +21,10 @@ unit Pas2jsCompiler;
 interface
 
 uses
-  Classes, SysUtils, AVL_Tree, contnrs,
-  PScanner, PParser, PasTree, PasResolver, PasUseAnalyzer, PasResolveEval,
-  jstree, jswriter, JSSrcMap, FPPas2Js, FPPJsSrcMap,
-  Pas2jsFileUtils, Pas2jsLogger, Pas2jsFileCache, Pas2jsPParser, Pas2JsFiler;
+  Classes, SysUtils, RtlConsts, AVL_Tree, contnrs, PScanner, PParser, PasTree,
+  PasResolver, PasUseAnalyzer, PasResolveEval, jstree, jswriter, JSSrcMap,
+  FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger, Pas2jsFileCache,
+  Pas2jsPParser, Pas2JsFiler;
 
 const
   VersionMajor = 0;
@@ -2421,7 +2421,8 @@ begin
         end;
       except
         on E: Exception do begin
-          Log.LogPlain('Error: '+E.Message);
+          if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
+            Log.LogPlain('Error: '+E.Message);
           Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
           Terminate(ExitCodeWriteError);
         end;
@@ -2445,7 +2446,8 @@ begin
           end;
         except
           on E: Exception do begin
-            Log.LogPlain('Error: '+E.Message);
+            if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
+              Log.LogPlain('Error: '+E.Message);
             Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
             Terminate(ExitCodeWriteError);
           end;
@@ -3624,7 +3626,7 @@ begin
   r(mtDebug,nHandlingOption,sHandlingOption);
   r(mtDebug,nQuickHandlingOption,sQuickHandlingOption);
   r(mtFatal,nOutputDirectoryNotFound,sOutputDirectoryNotFound);
-  r(mtInfo,nUnableToWriteFile,sUnableToWriteFile);
+  r(mtError,nUnableToWriteFile,sUnableToWriteFile);
   r(mtInfo,nWritingFile,sWritingFile);
   r(mtFatal,nCompilationAborted,sCompilationAborted);
   r(mtDebug,nCfgDirective,sCfgDirective);
