@@ -60,7 +60,7 @@ name=fbembedtest.fdb
 user=sysdba
 password=masterkey
 hostname=
-charset=utf8
+charset=
 
 [mysql55]
 ; MySQL 5.5 database:
@@ -105,6 +105,7 @@ password=
 ; hostname=127.0.0.1\SQLEXPRESS
 ; See mssqlconn documentation
 hostname=127.0.0.1
+charset=utf8
 
 [odbc]
 ; ODBC database:

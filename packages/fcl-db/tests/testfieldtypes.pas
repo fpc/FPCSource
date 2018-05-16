@@ -934,6 +934,7 @@ var
   i             : integer;
 
 begin
+  // Firebird has limit 32765 bytes, so this is 8191 characters when using UNICODE character set
   CreateTableWithFieldType(ftString,'VARCHAR(9000)');
   TestFieldDeclaration(ftString,9000*DBConnector.CharSize+1);
 
