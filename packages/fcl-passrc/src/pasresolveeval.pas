@@ -175,15 +175,15 @@ const
   // Note: use one of the free IDs above
 
   // using same IDs as FPC
-  nVirtualMethodXHasLowerVisibility = 3250;
-  nConstructingClassXWithAbstractMethodY = 4046;
-  nNoMatchingImplForIntfMethodXFound = 5042;
-  nSymbolXIsDeprecated = 5043;
-  nSymbolXBelongsToALibrary = 5065;
-  nSymbolXIsDeprecatedY = 5066;
-  nSymbolXIsNotPortable = 5076;
-  nSymbolXIsNotImplemented = 5078;
-  nSymbolXIsExperimental = 5079;
+  nVirtualMethodXHasLowerVisibility = 3250; // was 3050
+  nConstructingClassXWithAbstractMethodY = 4046; // was 3080
+  nNoMatchingImplForIntfMethodXFound = 5042;  // was 3088
+  nSymbolXIsDeprecated = 5043;   // was 3062
+  nSymbolXBelongsToALibrary = 5065; // was 3061
+  nSymbolXIsDeprecatedY = 5066;   // 3063
+  nSymbolXIsNotPortable = 5076; // was 3058
+  nSymbolXIsNotImplemented = 5078; // was  3060
+  nSymbolXIsExperimental = 5079;  // was 3059
 
 // resourcestring patterns of messages
 resourcestring
