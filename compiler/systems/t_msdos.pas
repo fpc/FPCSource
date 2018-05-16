@@ -267,6 +267,8 @@ begin
 
   if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf')
+  else if target_dbg.id=dbg_codeview then
+    LinkRes.Add('debug codeview')
   else if cs_debuginfo in current_settings.moduleswitches then
     LinkRes.Add('debug watcom all');
 

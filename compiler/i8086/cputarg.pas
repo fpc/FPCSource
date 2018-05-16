@@ -85,6 +85,9 @@ implementation
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}
+  {$ifndef NoDbgCodeView}
+      ,dbgcodeview
+  {$endif NoDbgCodeView}
 
       ;
 

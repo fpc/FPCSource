@@ -96,6 +96,7 @@ interface
 
       TOmfObjData = class(TObjData)
       private
+        FMainSource: TPathStr;
         class function CodeSectionName(const aname:string): string;
       public
         constructor create(const n:string);override;
@@ -106,6 +107,7 @@ interface
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         function reffardatasection:TObjSection;
         procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        property MainSource: TPathStr read FMainSource;
       end;
 
       { TOmfObjOutput }
@@ -532,6 +534,7 @@ implementation
         CObjSymbol:=TOmfObjSymbol;
         CObjSection:=TOmfObjSection;
         createsectiongroup('DGROUP');
+        FMainSource:=current_module.mainsource;
       end;
 
     function TOmfObjData.sectiontype2options(atype: TAsmSectiontype): TObjSectionOptions;
@@ -907,6 +910,7 @@ implementation
         RawRecord: TOmfRawRecord;
         Header: TOmfRecord_THEADR;
         Translator_COMENT: TOmfRecord_COMENT;
+        DebugFormat_COMENT: TOmfRecord_COMENT;
         LinkPassSeparator_COMENT: TOmfRecord_COMENT;
         LNamesRec: TOmfRecord_LNAMES;
         ModEnd: TOmfRecord_MODEND;
@@ -926,7 +930,10 @@ implementation
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
         Header:=TOmfRecord_THEADR.Create;
-        Header.ModuleName:=Data.Name;
+        if cs_debuginfo in current_settings.moduleswitches then
+          Header.ModuleName:=TOmfObjData(Data).MainSource
+        else
+          Header.ModuleName:=Data.Name;
         Header.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Header.Free;
@@ -939,6 +946,16 @@ implementation
         Translator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
+
+        if target_dbg.id=dbg_codeview then
+          begin
+            DebugFormat_COMENT:=TOmfRecord_COMENT.Create;
+            DebugFormat_COMENT.CommentClass:=CC_NewOmfExtension;
+            DebugFormat_COMENT.CommentString:='';
+            DebugFormat_COMENT.EncodeTo(RawRecord);
+            RawRecord.WriteTo(FWriter);
+            DebugFormat_COMENT.Free;
+          end;
 
         LNames.Clear;
         LNames.Add('');  { insert an empty string, which has index 1 }

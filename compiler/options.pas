@@ -1706,6 +1706,10 @@ begin
                          else
                            include(init_settings.globalswitches,cs_use_lineinfo);
                        end;
+                     'm' :
+                       begin
+                         paratargetdbg:=dbg_codeview;
+                       end;
                      'o' :
                        begin
                          if not UpdateDebugStr(copy(more,j+1,length(more)),init_settings.debugswitches) then

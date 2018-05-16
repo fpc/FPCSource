@@ -164,6 +164,7 @@ compiler/cstreams.pas svneol=native#text/plain
 compiler/cutils.pas svneol=native#text/plain
 compiler/cwindirs.pp svneol=native#text/plain
 compiler/dbgbase.pas svneol=native#text/plain
+compiler/dbgcodeview.pas svneol=native#text/plain
 compiler/dbgdwarf.pas svneol=native#text/plain
 compiler/dbgstabs.pas svneol=native#text/plain
 compiler/dbgstabx.pas svneol=native#text/plain

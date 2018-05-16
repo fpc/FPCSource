@@ -295,6 +295,7 @@
 
        tdbg = (dbg_none
             ,dbg_stabs,dbg_stabx,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_jasmin
+            ,dbg_codeview
        );
 
        tscripttype = (script_none
