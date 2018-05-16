@@ -438,7 +438,7 @@ var
 
 begin
   CreateTableWithFieldType(ftString,'VARCHAR(10)');
-  TestFieldDeclaration(ftString,11);
+  TestFieldDeclaration(ftString,10*DBConnector.CharSize+1);
 
   for i := 0 to testValuesCount-1 do
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
@@ -935,7 +935,7 @@ var
 
 begin
   CreateTableWithFieldType(ftString,'VARCHAR(9000)');
-  TestFieldDeclaration(ftString,9001);
+  TestFieldDeclaration(ftString,9000*DBConnector.CharSize+1);
 
   setlength(s,9000);
   for i := 1 to 9000 do

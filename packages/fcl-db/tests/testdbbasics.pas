@@ -2684,7 +2684,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestFieldDefinition(ftString,11,ds,Fld);
+  TestFieldDefinition(ftString, 10*DBConnector.CharSize+1, ds, Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
@@ -2872,7 +2872,7 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestFieldDefinition(ftFixedChar,11,ds,Fld);
+  TestFieldDefinition(ftFixedChar, 10*DBConnector.CharSize+1, ds, Fld);
 
   for i := 0 to testValuesCount-1 do
     begin

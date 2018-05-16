@@ -26,6 +26,7 @@ type
        FLogTimeFormat: TFormatSettings; //for error logging only
        FFormatSettings: TFormatSettings;
        FChangedFieldDataset : boolean;
+       function GetCharSize: integer;
      protected
        FChangedDatasets : array[0..MaxDataSet] of boolean;
        FUsedDatasets : TFPList;
@@ -78,6 +79,7 @@ type
        procedure StopTest(TestName: string);
        property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
        property FormatSettings: TFormatSettings read FFormatSettings;
+       property CharSize: integer read GetCharSize;
      end;
 
   { TTestDataLink }
@@ -241,6 +243,7 @@ function TimeStringToDateTime(d: String): TDateTime;
 function StringToByteArray(const s: ansistring): Variant;
 function StringToBytes(const s: ansistring): TBytes;
 
+
 implementation
 
 uses
@@ -292,7 +295,7 @@ begin
   raise exception.create('Connector does not support tests for unidirectional datasets');
 end;
 
-procedure TDBConnector.DataEvent(dataset : tdataset);
+procedure TDBConnector.DataEvent(dataset: TDataset);
 begin
   DataEvents := DataEvents + 'DataEvent' + ';';
 end;
@@ -380,6 +383,16 @@ begin
       // ignore log file errors
     end;
     end;
+end;
+
+function TDBConnector.GetCharSize: integer;
+begin
+  case LowerCase(dbcharset) of
+    'utf8','utf-8','utf8mb4':
+      Result := 4;
+    else
+      Result := 1;
+  end;
 end;
 
 
