@@ -765,12 +765,15 @@ begin
       else
         NewType := ftString;
 {$IFDEF MYSQL50_UP}
-      if AField^.charsetnr = 63 then //BINARY vs. CHAR, VARBINARY vs. VARCHAR
+      if AField^.charsetnr = 63 then begin //BINARY vs. CHAR, VARBINARY vs. VARCHAR
         if NewType = ftFixedChar then
           NewType := ftBytes
         else
           NewType := ftVarBytes;
-      NewSize := ASize div FConnectionCharsetInfo.mbmaxlen;
+        NewSize := ASize;
+      end
+      else
+        NewSize := ASize div FConnectionCharsetInfo.mbmaxlen;
 {$ELSE}
       NewSize := ASize;
 {$ENDIF}
