@@ -546,7 +546,7 @@ interface
     protected
       procedure DebugFormatSpecific_DecodeFrom(RawRecord:TOmfRawRecord;NextOfs:Integer);override;
       procedure DebugFormatSpecific_EncodeTo(RawRecord:TOmfRawRecord;var NextOfs:Integer);override;
-
+    public
       property LineNumberList: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLineNumberList write FLineNumberList;
     end;
 

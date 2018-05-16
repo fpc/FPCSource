@@ -78,9 +78,11 @@ interface
         FPrimaryGroup: string;
         FSortOrder: Integer;
         FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
+        FLinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList;
         function GetOmfAlignment: TOmfSegmentAlignment;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
+        destructor destroy;override;
         function MemPosStr(AImageBase: qword): string;override;
         property ClassName: string read FClassName;
         property OverlayName: string read FOverlayName;
@@ -90,6 +92,7 @@ interface
         property PrimaryGroup: string read FPrimaryGroup;
         property SortOrder: Integer read FSortOrder write FSortOrder;
         property MZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment read FMZExeUnifiedLogicalSegment write FMZExeUnifiedLogicalSegment;
+        property LinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLinNumEntries;
       end;
 
       { TOmfObjData }
@@ -124,6 +127,7 @@ interface
         procedure AddGroup(const groupname: string; seglist: TSegmentList);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
+        procedure WriteLinNumRecords(sec: TOmfObjSection);
 
         procedure section_count_sections(p:TObject;arg:pointer);
         procedure WritePUBDEFs(Data: TObjData);
@@ -501,6 +505,13 @@ implementation
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
         FUse:=suUse16;
+        FLinNumEntries:=TOmfSubRecord_LINNUM_MsLink_LineNumberList.Create;
+      end;
+
+    destructor TOmfObjSection.destroy;
+      begin
+        FLinNumEntries.Free;
+        inherited destroy;
       end;
 
     function TOmfObjSection.MemPosStr(AImageBase: qword): string;
@@ -735,6 +746,7 @@ implementation
           begin
             sec:=TObjSection(Data.ObjSectionList[i]);
             WriteSectionContentAndFixups(sec);
+            WriteLinNumRecords(TOmfObjSection(sec));
           end;
       end;
 
@@ -806,6 +818,36 @@ implementation
               ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
               ChunkFixupStart:=ChunkFixupEnd+1;
             end;
+            RawRecord.Free;
+          end;
+      end;
+
+    procedure TOmfObjOutput.WriteLinNumRecords(sec: TOmfObjSection);
+      var
+        SegIndex: Integer;
+        RawRecord: TOmfRawRecord;
+        LinNumRec: TOmfRecord_LINNUM_MsLink;
+      begin
+        if (oso_data in sec.SecOptions) then
+          begin
+            if sec.Data=nil then
+              internalerror(200403073);
+            if sec.LinNumEntries.Count=0 then
+              exit;
+            SegIndex:=Segments.FindIndexOf(sec.Name);
+            RawRecord:=TOmfRawRecord.Create;
+            LinNumRec:=TOmfRecord_LINNUM_MsLink.Create;
+            LinNumRec.BaseGroup:=0;
+            LinNumRec.BaseSegment:=SegIndex;
+            LinNumRec.LineNumberList:=sec.LinNumEntries;
+
+            while LinNumRec.NextIndex<sec.LinNumEntries.Count do
+              begin
+                LinNumRec.EncodeTo(RawRecord);
+                RawRecord.WriteTo(FWriter);
+              end;
+
+            LinNumRec.Free;
             RawRecord.Free;
           end;
       end;
