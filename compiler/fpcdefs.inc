@@ -67,6 +67,7 @@
   {$define VOLATILE_ES}
   {$define SUPPORT_GET_FRAME}
   {$define cpucg64shiftsupport}
+  {$define OMFOBJSUPPORT}
 {$endif i8086}
 
 {$ifdef i386}

@@ -191,6 +191,10 @@ interface
 implementation
 
     uses
+      globtype,
+      cutils,
+      aasmtai,
+      fmodule,
       systems;
 
 {****************************************************************************
@@ -198,9 +202,57 @@ implementation
 ****************************************************************************}
 
     procedure TDebugInfoCodeView.insertlineinfo(list: TAsmList);
+      var
+        currfileinfo,
+        lastfileinfo : tfileposinfo;
+        nolineinfolevel : Integer;
+        currfuncname : pshortstring;
+        hp : tai;
       begin
-        { todo: implement }
-        inherited insertlineinfo(list);
+        FillChar(lastfileinfo,sizeof(lastfileinfo),0);
+        hp:=Tai(list.first);
+        nolineinfolevel:=0;
+        while assigned(hp) do
+          begin
+            case hp.typ of
+              ait_function_name :
+                begin
+                  currfuncname:=tai_function_name(hp).funcname;
+                  list.concat(tai_comment.Create(strpnew('function: '+currfuncname^)));
+                end;
+              ait_force_line :
+                begin
+                  lastfileinfo.line:=-1;
+                end;
+              ait_marker :
+                begin
+                  case tai_marker(hp).kind of
+                    mark_NoLineInfoStart:
+                      inc(nolineinfolevel);
+                    mark_NoLineInfoEnd:
+                      dec(nolineinfolevel);
+                  end;
+                end;
+            end;
+
+            { OMF LINNUM records do not support multiple source files }
+            if (hp.typ=ait_instruction) and
+               (nolineinfolevel=0) and
+               (tailineinfo(hp).fileinfo.fileindex=main_module.unit_index) then
+              begin
+                currfileinfo:=tailineinfo(hp).fileinfo;
+
+                { line changed ? }
+                if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
+                  begin
+                    { line directive }
+                    list.insertbefore(tai_directive.Create(asd_omf_linnum_line,tostr(currfileinfo.line)),hp);
+                  end;
+                lastfileinfo:=currfileinfo;
+              end;
+
+            hp:=tai(hp.next);
+          end;
       end;
 
 {****************************************************************************

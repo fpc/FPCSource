@@ -1225,6 +1225,10 @@ interface
                            end;
                        end;
                    end;
+{$ifdef OMFOBJSUPPORT}
+                 asd_omf_linnum_line :
+                   writer.AsmWriteLn('; OMF LINNUM Line '+tai_directive(hp).name);
+{$endif OMFOBJSUPPORT}
                  else
                    internalerror(200509191);
                end;

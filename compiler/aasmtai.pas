@@ -357,7 +357,9 @@ interface
           available on the specified CPU; this represents directives such as
           NASM's 'CPU 686' or MASM/TASM's '.686p'. Might not be supported by
           all assemblers. }
-        asd_cpu
+        asd_cpu,
+        { for the OMF object format }
+        asd_omf_linnum_line
       );
 
       TAsmSehDirective=(
@@ -395,7 +397,9 @@ interface
         { ARM }
         'thumb_func',
         'code',
-        'cpu'
+        'cpu',
+        { for the OMF object format }
+        'omf_line'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',

@@ -1630,6 +1630,11 @@ Implementation
                              break;
                            end;
                      end;
+{$ifdef OMFOBJSUPPORT}
+                   asd_omf_linnum_line:
+                     { ignore for now, but should be added}
+                     ;
+{$endif OMFOBJSUPPORT}
 {$ifdef ARM}
                    asd_thumb_func:
                      ObjData.ThumbFunc:=true;
@@ -1783,6 +1788,11 @@ Implementation
                    asd_code:
                      { ignore for now, but should be added}
                      ;
+{$ifdef OMFOBJSUPPORT}
+                   asd_omf_linnum_line:
+                     { ignore for now, but should be added}
+                     ;
+{$endif OMFOBJSUPPORT}
                    asd_cpu:
                      begin
                        ObjData.CPUType:=cpu_none;
