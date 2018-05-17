@@ -32,12 +32,14 @@ type
     Procedure TestLoad2fieldsFirstLineAsNames;
     Procedure TestLoad2fields;
     Procedure TestLoad2Records2fields;
+    Procedure TestLoad2Records2fieldsTabDelim;
     Procedure TestSaveEmptyDefault;
     Procedure TestSaveEmptyFirstLineAsNames;
     Procedure TestSaveOneRecordDefault;
     Procedure TestSaveOneRecordFirstLineAsNames;
     Procedure TestSaveTwoRecordsDefault;
     Procedure TestSaveTwoRecordsFirstLineAsNames;
+    Procedure TestSaveTwoRecordsFirstLineAsNamesTabDelim;
     Procedure TestSaveOneRecord2FieldsDefault;
     Procedure TestSaveOneRecord2FieldsFirstLineAsNames;
     Procedure TestLoadPriorFieldDefs;
@@ -72,7 +74,7 @@ begin
     end;
 end;
 
-Procedure TTestCSVDataset.LoadFromLines(Const Lines : Array of string);
+procedure TTestCSVDataset.LoadFromLines(const Lines: array of string);
 
 Var
   L : TStringList;
@@ -90,7 +92,7 @@ begin
   end;
 end;
 
-Procedure TTestCSVDataset.SaveToLines(Const Lines: TStrings);
+procedure TTestCSVDataset.SaveToLines(const Lines: TStrings);
 
 Var
   S : TStringStream;
@@ -110,7 +112,7 @@ begin
   end;
 end;
 
-Procedure TTestCSVDataset.AssertLines(Const Lines: Array of string);
+procedure TTestCSVDataset.AssertLines(const Lines: array of string);
 
 Var
   L : TStrings;
@@ -127,7 +129,7 @@ begin
   end;
 end;
 
-Procedure TTestCSVDataset.TestLoadEmptyDefault;
+procedure TTestCSVDataset.TestLoadEmptyDefault;
 begin
   LoadFromLines(['a']);
   AssertEquals('Active',True,CSVDataset.Active);
@@ -138,7 +140,7 @@ begin
   AssertEquals('field contents','a',CSVDataset.Fields[0].AsString);
 end;
 
-Procedure TTestCSVDataset.TestLoadEmptyFirstLineAsNames;
+procedure TTestCSVDataset.TestLoadEmptyFirstLineAsNames;
 
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
@@ -151,7 +153,7 @@ begin
   AssertEquals('Empty',True,CSVDataset.EOF and CSVDataset.BOF);
 end;
 
-Procedure TTestCSVDataset.TestLoad2fieldsFirstLineAsNames;
+procedure TTestCSVDataset.TestLoad2fieldsFirstLineAsNames;
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.CSVOptions.DefaultFieldLength:=128;
@@ -165,7 +167,7 @@ begin
   AssertEquals('Empty',True,CSVDataset.EOF and CSVDataset.BOF);
 end;
 
-Procedure TTestCSVDataset.TestLoad2fields;
+procedure TTestCSVDataset.TestLoad2fields;
 
 begin
   CSVDataset.CSVOptions.DefaultFieldLength:=128;
@@ -182,7 +184,7 @@ begin
   AssertEquals('field 1 contents','b',CSVDataset.Fields[1].AsString);
 end;
 
-Procedure TTestCSVDataset.TestLoad2Records2fields;
+procedure TTestCSVDataset.TestLoad2Records2fields;
 begin
   CSVDataset.CSVOptions.DefaultFieldLength:=128;
   LoadFromLines(['a,b','c,d']);
@@ -204,14 +206,35 @@ begin
   AssertEquals('At EOF',True,CSVDataset.EOF);
 end;
 
-Procedure TTestCSVDataset.TestSaveEmptyDefault;
+procedure TTestCSVDataset.TestLoad2Records2fieldsTabDelim;
+begin
+  CSVDataset.CSVOptions.Delimiter:=#9;
+  CSVDataset.CSVOptions.DefaultFieldLength:=10;
+  CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
+  LoadFromLines(['f_a'#9'f_b','a1'#9'b1','a2'#9'b2']);
+  AssertEquals('Active',True,CSVDataset.Active);
+  AssertEquals('field count',2,CSVDataset.FieldDefs.Count);
+  AssertEquals('field 0 name','f_a',CSVDataset.FieldDefs[0].Name);
+  AssertEquals('field 0 size',CSVDataset.CSVOptions.DefaultFieldLength,CSVDataset.FieldDefs[0].Size);
+  AssertEquals('field 1 name','f_b',CSVDataset.FieldDefs[1].Name);
+  AssertEquals('field 1 size',CSVDataset.CSVOptions.DefaultFieldLength,CSVDataset.FieldDefs[1].Size);
+  AssertEquals('field 0 contents','a1',CSVDataset.Fields[0].AsString);
+  AssertEquals('field 1 contents','b1',CSVDataset.Fields[1].AsString);
+  CSVDataset.Next;
+  AssertEquals('field 0 contents','a2',CSVDataset.Fields[0].AsString);
+  AssertEquals('field 1 contents','b2',CSVDataset.Fields[1].AsString);
+  CSVDataset.Next;
+  AssertEquals('At EOF',True,CSVDataset.EOF);
+end;
+
+procedure TTestCSVDataset.TestSaveEmptyDefault;
 begin
   CSVDataset.FieldDefs.Add('a',ftString);
   CSVDataset.CreateDataset;
   AssertLines([]);
 end;
 
-Procedure TTestCSVDataset.TestSaveEmptyFirstLineAsNames;
+procedure TTestCSVDataset.TestSaveEmptyFirstLineAsNames;
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.FieldDefs.Add('a',ftString);
@@ -219,7 +242,7 @@ begin
   AssertLines(['a']);
 end;
 
-Procedure TTestCSVDataset.TestSaveOneRecordDefault;
+procedure TTestCSVDataset.TestSaveOneRecordDefault;
 begin
 //  CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.FieldDefs.Add('a',ftString,20);
@@ -230,7 +253,7 @@ begin
   AssertLines(['b']);
 end;
 
-Procedure TTestCSVDataset.TestSaveOneRecordFirstLineAsNames;
+procedure TTestCSVDataset.TestSaveOneRecordFirstLineAsNames;
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.FieldDefs.Add('a',ftString,20);
@@ -241,7 +264,7 @@ begin
   AssertLines(['a','b']);
 end;
 
-Procedure TTestCSVDataset.TestSaveTwoRecordsDefault;
+procedure TTestCSVDataset.TestSaveTwoRecordsDefault;
 begin
   CSVDataset.FieldDefs.Add('a',ftString,20);
   CSVDataset.CreateDataset;
@@ -254,7 +277,7 @@ begin
   AssertLines(['b','c']);
 end;
 
-Procedure TTestCSVDataset.TestSaveTwoRecordsFirstLineAsNames;
+procedure TTestCSVDataset.TestSaveTwoRecordsFirstLineAsNames;
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.FieldDefs.Add('a',ftString,20);
@@ -268,7 +291,19 @@ begin
   AssertLines(['a','b','c']);
 end;
 
-Procedure TTestCSVDataset.TestSaveOneRecord2FieldsDefault;
+procedure TTestCSVDataset.TestSaveTwoRecordsFirstLineAsNamesTabDelim;
+begin
+  CSVDataset.CSVOptions.Delimiter:=#9;
+  CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
+  CSVDataset.FieldDefs.Add('f_a',ftString,2);
+  CSVDataset.FieldDefs.Add('f_b',ftString,2);
+  CSVDataset.CreateDataset;
+  CSVDataset.InsertRecord(['a2','b2']);
+  CSVDataset.InsertRecord(['a1','b1']);
+  AssertLines(['f_a'#9'f_b','a1'#9'b1','a2'#9'b2']);
+end;
+
+procedure TTestCSVDataset.TestSaveOneRecord2FieldsDefault;
 begin
   CSVDataset.FieldDefs.Add('a',ftString,20);
   CSVDataset.FieldDefs.Add('b',ftString,20);
@@ -280,7 +315,7 @@ begin
   AssertLines(['c,d']);
 end;
 
-Procedure TTestCSVDataset.TestSaveOneRecord2FieldsFirstLineAsNames;
+procedure TTestCSVDataset.TestSaveOneRecord2FieldsFirstLineAsNames;
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.FieldDefs.Add('a',ftString,20);
@@ -293,7 +328,7 @@ begin
   AssertLines(['a,b','c,d']);
 end;
 
-Procedure TTestCSVDataset.TestLoadPriorFieldDefs;
+procedure TTestCSVDataset.TestLoadPriorFieldDefs;
 begin
   CSVDataset.CSVOptions.FirstLineAsFieldNames:=True;
   CSVDataset.FieldDefs.Add('a',ftString,20);
@@ -310,7 +345,7 @@ begin
   AssertEquals('field 1 contents',2,CSVDataset.Fields[1].AsInteger);
 end;
 
-Procedure TTestCSVDataset.TestLoadPriorFieldDefsNoFieldNames;
+procedure TTestCSVDataset.TestLoadPriorFieldDefsNoFieldNames;
 begin
   CSVDataset.FieldDefs.Add('a',ftString,20);
   CSVDataset.FieldDefs.Add('b',ftInteger,4);
@@ -326,7 +361,7 @@ begin
   AssertEquals('field 1 contents',2,CSVDataset.Fields[1].AsInteger);
 end;
 
-Procedure TTestCSVDataset.TestLoadPriorFieldDefsNoFieldNamesWrongCount;
+procedure TTestCSVDataset.TestLoadPriorFieldDefsNoFieldNamesWrongCount;
 
 Var
   OK : Boolean;
@@ -343,7 +378,7 @@ begin
     Fail('Expected exception, but none raised');
 end;
 
-Procedure TTestCSVDataset.TestLoadPriorFieldDefsFieldNamesWrongCount;
+procedure TTestCSVDataset.TestLoadPriorFieldDefsFieldNamesWrongCount;
 
 const
   EM = 'DS : CSV File Field count (1) does not match dataset field count (2).';
@@ -365,7 +400,7 @@ begin
     Fail(OK);
 end;
 
-Procedure TTestCSVDataset.TestLoadPriorFieldDefsFieldNamesWrongNames;
+procedure TTestCSVDataset.TestLoadPriorFieldDefsFieldNamesWrongNames;
 const
   EM = 'DS : CSV File field 1: name "c" does not match dataset field name "b".';
 Var

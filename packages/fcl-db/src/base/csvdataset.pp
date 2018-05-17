@@ -217,6 +217,7 @@ Var
 
 begin
   FBuilder:=TCSVBuilder.Create;
+  FBuilder.Assign(FOptions);
   FBuilder.SetOutput(Stream);
   if FOptions.FirstLineAsFieldNames then
     begin
@@ -375,7 +376,7 @@ Var
 begin
   First;
   MergeChangeLog;
-  P:=TCSVDataPacketReader.Create(Self,AStream,FCSVOPtions);
+  P:=TCSVDataPacketReader.Create(Self,AStream,FCSVOptions);
   try
     GetDatasetPacket(P);
   finally
@@ -388,7 +389,7 @@ Var
   F : TFileStream;
 
 begin
-  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  F:=TFileStream.Create(AFileName, fmCreate);
   try
     SaveToCSVStream(F);
   finally
