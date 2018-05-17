@@ -2154,6 +2154,7 @@ begin
   Add('  i8: byte = 00;');
   Add('  u8: nativeuint =  $fffffffffffff;');
   Add('  u9: nativeuint =  $0000000000000;');
+  Add('  u10: nativeuint = $00ff00;');
   Add('begin');
   ConvertProgram;
   CheckSource('TestVarBaseTypes',
@@ -2175,7 +2176,8 @@ begin
     'this.i7 =-0x10000000000000;',
     'this.i8 = 0;',
     'this.u8 = 0xfffffffffffff;',
-    'this.u9 = 0x0;'
+    'this.u9 = 0x0;',
+    'this.u10 = 0xff00;'
     ]),
     '');
 end;
