@@ -3321,7 +3321,7 @@ cg_f_internal_type_does_not_match=10066_F_Internal type "$1" does not look as ex
 #
 #  Options
 #
-# 11060 is the last used one
+# 11061 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -3476,6 +3476,7 @@ option_invalid_target_architecture=11059_E_Unsupported target architecture -P$1,
 option_features_only_for_system_unit=11060_E_Feature switches are only supported while compiling the system unit.
 % To selected a certain feature, the system unit must be compiled with this feature enabled. All other units inherited the features set by the
 % system unit through the ppu of the system unit.
+option_debug_info_requires_external_linker=11061_N_The selected debug format is not supported by the internal linker, switching to external linking
 %\end{description}
 # EndOfTeX
 

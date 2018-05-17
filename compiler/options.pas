@@ -3213,6 +3213,14 @@ begin
     end;
 {$endif i8086}
 
+  if (cs_debuginfo in init_settings.moduleswitches) and
+     (target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
+     not (cs_link_extern in init_settings.globalswitches) then
+    begin
+      Message(option_debug_info_requires_external_linker);
+      include(init_settings.globalswitches,cs_link_extern);
+    end;
+
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
      not(target_info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) then
     begin
