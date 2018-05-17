@@ -245,14 +245,10 @@ begin
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
       // note: test database should have case-insensitive collation
-      // todo: SQL Server 2008 and later supports DATE, TIME and DATETIME2 data types,
-      //       but these are not supported by FreeTDS yet
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
       FieldtypeDefinitions[ftFloat]   := 'FLOAT';
       FieldtypeDefinitions[ftCurrency]:= 'MONEY';
-      FieldtypeDefinitions[ftDate]    := 'DATETIME';
-      FieldtypeDefinitions[ftTime]    := '';
       FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
       FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
@@ -392,10 +388,7 @@ begin
   if SQLServerType in [ssMSSQL, ssSybase] then
     // Some DB's do not support datetime values before 1753-01-01
     for i := 18 to testValuesCount-1 do
-      begin
-      testValues[ftDate,i] := testValues[ftDate,0];
       testValues[ftDateTime,i] := testValues[ftDateTime,0];
-      end;
 
   // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
   // Here we assume, that locale on client side is same as locale on server
