@@ -411,7 +411,11 @@ interface
         optimizerswitches : [];
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
+{$ifdef i8086}
+        debugswitches : [ds_dwarf_sets,ds_dwarf_omf_linnum];
+{$else i8086}
         debugswitches : [ds_dwarf_sets];
+{$endif i8086}
 
         setalloc : 0;
         packenum : 4;
