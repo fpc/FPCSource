@@ -4029,9 +4029,12 @@ begin
           RaiseMsg(20170216151649,nDuplicateIdentifier,sDuplicateIdentifier,
             [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType)
         else
+          begin
           // give a hint
-          LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
-            [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+          if Data^.Proc.Parent is TPasClassType then
+            LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
+              [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+          end;
       fopkMethod:
         // method hides a non proc
         RaiseMsg(20171118232543,nDuplicateIdentifier,sDuplicateIdentifier,
@@ -4124,11 +4127,14 @@ begin
               sMethodHidesMethodOfBaseType,
               [Data^.Proc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
           else
+            begin
             // Delphi/FPC do not give a message when hiding a non virtual method
             // -> emit Hint with other message id
-            LogMsg(20171118214523,mtHint,
-              nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
-              [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+            if Data^.Proc.Parent is TPasClassType then
+              LogMsg(20171118214523,mtHint,
+                nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
+                [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+            end;
           Abort:=true;
           end;
         end;
