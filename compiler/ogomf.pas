@@ -989,7 +989,9 @@ implementation
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
 
-        if target_dbg.id=dbg_codeview then
+        if (target_dbg.id=dbg_codeview) or
+           ((ds_dwarf_omf_linnum in current_settings.debugswitches) and
+            (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) then
           begin
             DebugFormat_COMENT:=TOmfRecord_COMENT.Create;
             DebugFormat_COMENT.CommentClass:=CC_NewOmfExtension;

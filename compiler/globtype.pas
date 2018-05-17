@@ -232,7 +232,15 @@ interface
           ds_dwarf_method_class_prefix,
           { Simulate C++ debug information in DWARF. It can be used for }
           { debuggers, which do not support Pascal.                     }
-          ds_dwarf_cpp
+          ds_dwarf_cpp,
+          { emit line number information in LINNUM/LINNUM32 records,    }
+          { using the MS LINK format, for targets that use the OMF      }
+          { object format. This option is useful for compatibility with }
+          { the Open Watcom Debugger and the Open Watcom Linker. Even   }
+          { though, they support and use dwarf debug information in the }
+          { final executable file, they expect LINNUM records in the    }
+          { object modules for the line number information.             }
+          ds_dwarf_omf_linnum
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -350,7 +358,7 @@ interface
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
-         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP');
+         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP','DWARFOMFLINNUM');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
          (name: '';                    hasvalue: false; isglobal: true ; define: ''),

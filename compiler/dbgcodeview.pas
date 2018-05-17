@@ -188,6 +188,8 @@ interface
         procedure insertlineinfo(list:TAsmList);override;
       end;
 
+    procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList);
+
 implementation
 
     uses
@@ -197,11 +199,7 @@ implementation
       fmodule,
       systems;
 
-{****************************************************************************
-                             TDebugInfoCodeView
-****************************************************************************}
-
-    procedure TDebugInfoCodeView.insertlineinfo(list: TAsmList);
+    procedure InsertLineInfo_OMF_LINNUM_MsLink(list: TAsmList);
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
@@ -253,6 +251,16 @@ implementation
 
             hp:=tai(hp.next);
           end;
+      end;
+
+
+{****************************************************************************
+                             TDebugInfoCodeView
+****************************************************************************}
+
+    procedure TDebugInfoCodeView.insertlineinfo(list: TAsmList);
+      begin
+        InsertLineInfo_OMF_LINNUM_MsLink(list);
       end;
 
 {****************************************************************************

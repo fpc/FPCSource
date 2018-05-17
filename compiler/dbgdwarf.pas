@@ -461,6 +461,9 @@ implementation
       cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
       defutil,symtable,ppu
+{$ifdef OMFOBJSUPPORT}
+      ,dbgcodeview
+{$endif OMFOBJSUPPORT}
       ;
 
     const
@@ -3455,6 +3458,10 @@ implementation
         prevlabel,
         currlabel     : tasmlabel;
       begin
+{$ifdef OMFOBJSUPPORT}
+        if ds_dwarf_omf_linnum in current_settings.debugswitches then
+          dbgcodeview.InsertLineInfo_OMF_LINNUM_MsLink(list);
+{$endif OMFOBJSUPPORT}
         { this function will always terminate the lineinfo block }
         generated_lineinfo := true;
         { if this unit only contains code without debug info (implicit init

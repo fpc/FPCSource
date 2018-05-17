@@ -3880,6 +3880,7 @@ J*2Cv_Var/out parameter copy-out checking
 *g3gostabsabsincludes_ Store absolute/full include file paths in Stabs
 *g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
 *g3godwarfcpp_ Simulate C++ debug information in DWARF
+*g3godwarfomflinnum_ Generate line number information in OMF LINNUM records in MS LINK format in addition to the DWARF debug information (Open Watcom Debugger/Linker compatibility)
 *g2gp_Preserve case in stabs symbol names
 *g2gs_Generate Stabs debug information
 *g2gt_Trash local variables (to detect uninitialized uses; multiple 't' changes the trashing value)
