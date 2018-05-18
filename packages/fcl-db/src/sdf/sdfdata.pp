@@ -562,12 +562,13 @@ function TFixedFormatDataSet.GetRecNo: Longint;
 var
   RecBuf: TRecordBuffer;
 begin
-  Result := 0;
   if GetActiveRecBuf(RecBuf) and (State <> dsInsert) then
   begin
-    InternalSetToRecord(RecBuf);
+    UpdateCursorPos;
     Result := FCurRec + 1 - FDataOffset;
-  end;
+  end
+  else
+    Result := 0;
 end;
 
 procedure TFixedFormatDataSet.SetRecNo(Value: Integer);
