@@ -64,8 +64,6 @@ type
   end;
 
 
-  { TCustomBufDataset }
-
   PBufRecLinkItem = ^TBufRecLinkItem;
   TBufRecLinkItem = record
     prior   : PBufRecLinkItem;
@@ -442,8 +440,7 @@ type
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
 
-  { TBufDatasetIndex }
-
+  { TCustomBufDataset }
 
   TCustomBufDataset = class(TDBDataSet)
   Private
@@ -477,7 +474,6 @@ type
       end;
 
       { TBufDatasetIndexDefs }
-
       TBufDatasetIndexDefs = Class(TIndexDefs)
       private
         function GetBufDatasetIndex(AIndex : Integer): TBufDatasetIndex;
@@ -489,6 +485,7 @@ type
         Property BufIndexdefs [AIndex : Integer] : TBufDatasetIndex Read GetBufDatasetIndex;
         Property BufIndexes [AIndex : Integer] : TBufIndex Read GetBufferIndex;
       end;
+
     procedure BuildCustomIndex;
     function GetBufIndex(Aindex : Integer): TBufIndex;
     function GetBufIndexDef(Aindex : Integer): TBufDatasetIndex;
@@ -526,6 +523,7 @@ type
     FUpdateBlobBuffers: array of PBlobBuffer;
     FManualMergeChangeLog : Boolean;
     FRefreshing : Boolean;
+
     procedure ProcessFieldsToCompareStruct(const AFields, ADescFields, ACInsFields: TList;
       const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
     function BufferOffset: integer;
@@ -3503,7 +3501,7 @@ end;
 
 function TCustomBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
 begin
-  Result:=Assigned(CurrentIndexDef) and CurrentIndexBuf.BookmarkValid(pointer(ABookmark));
+  Result:=Assigned(CurrentIndexBuf) and CurrentIndexBuf.BookmarkValid(pointer(ABookmark));
 end;
 
 function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
