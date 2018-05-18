@@ -368,6 +368,7 @@ type
     Procedure TestCaseOfNoElse_UseSwitch;
     Procedure TestCaseOfRange;
     Procedure TestCaseOfString;
+    Procedure TestCaseOfExternalClassConst;
 
     // arrays
     Procedure TestArray_Dynamic;
@@ -376,7 +377,7 @@ type
     Procedure TestArray_StaticInt;
     Procedure TestArray_StaticBool;
     Procedure TestArray_StaticChar;
-    Procedure TestArray_StaticMultiDim; // ToDo
+    Procedure TestArray_StaticMultiDim;
     Procedure TestArrayOfRecord;
     // ToDo: Procedure TestArrayOfSet;
     Procedure TestArray_DynAsParam;
@@ -6423,14 +6424,17 @@ end;
 procedure TTestModule.TestCaseOf;
 begin
   StartProgram(false);
-  Add('var vI: longint;');
-  Add('begin');
-  Add('  case vi of');
-  Add('  1: ;');
-  Add('  2: vi:=3;');
-  Add('  else');
-  Add('    VI:=4');
-  Add('  end;');
+  Add([
+  'const e: longint; external name ''$e'';',
+  'var vI: longint;',
+  'begin',
+  '  case vi of',
+  '  1: ;',
+  '  2: vi:=3;',
+  '  e: ;',
+  '  else',
+  '    VI:=4',
+  '  end;']);
   ConvertProgram;
   CheckSource('TestCaseOf',
     LinesToStr([ // statements
@@ -6438,7 +6442,11 @@ begin
     ]),
     LinesToStr([ // $mod.$main
     'var $tmp1 = $mod.vI;',
-    'if ($tmp1 === 1) {} else if ($tmp1 === 2){ $mod.vI = 3 }else {',
+    'if ($tmp1 === 1) {}',
+    'else if ($tmp1 === 2) {',
+    '  $mod.vI = 3}',
+    ' else if ($tmp1 === $e) {}',
+    'else {',
     '  $mod.vI = 4;',
     '};'
     ]));
@@ -6569,6 +6577,34 @@ begin
     '  $mod.s = $mod.h}',
     ' else if (($tmp1.length === 1) && (($tmp1 >= "a") && ($tmp1 <= "z"))) $mod.h = $mod.s;',
     '']));
+end;
+
+procedure TTestModule.TestCaseOfExternalClassConst;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TBird = class external name ''Bird''',
+  '    const e: longint;',
+  '  end;',
+  'var vI: longint;',
+  'begin',
+  '  case vi of',
+  '  1: vi:=3;',
+  '  TBird.e: ;',
+  '  end;']);
+  ConvertProgram;
+  CheckSource('TestCaseOfExternalClassConst',
+    LinesToStr([ // statements
+    'this.vI = 0;'
+    ]),
+    LinesToStr([ // $mod.$main
+    'var $tmp1 = $mod.vI;',
+    'if ($tmp1 === 1) {',
+    '  $mod.vI = 3}',
+    ' else if ($tmp1 === Bird.e) ;'
+    ]));
 end;
 
 procedure TTestModule.TestArray_Dynamic;
