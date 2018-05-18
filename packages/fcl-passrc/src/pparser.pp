@@ -3680,6 +3680,7 @@ begin
           and TPasClassType(Parent).IsExternal
           and (TPasClassType(Parent).ObjKind=okClass) then
         // typed const without expression is allowed in external class
+        Result.IsConst:=true
       else if CurToken=tkSemicolon then
         begin
         NextToken;
@@ -3702,6 +3703,7 @@ begin
             if not (CurToken in [tkChar,tkString,tkIdentifier]) then
               ParseExcTokenError(TokenInfos[tkString]);
             Result.ExportName:=DoParseExpression(Parent);
+            Result.IsConst:=true; // external const is readonly
             end
           else if CurToken=tkSemicolon then
             // external;

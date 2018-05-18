@@ -6943,12 +6943,19 @@ begin
             ConvertRangeToElement(OfExprResolved);
           CheckEqualResCompatibility(CaseExprResolved,OfExprResolved,OfExpr,true);
 
-          Value:=Eval(OfExpr,[refConst]);
+          Value:=Eval(OfExpr,[]); // allow external const, no refConst
           if Value<>nil then
+            begin
             if not AddValue(Value,Values,ValueSet,OfExpr) then
               RaiseIncompatibleTypeRes(20180424210815,nIncompatibleTypesGotExpected,
                 [],OfExprResolved,CaseExprResolved,OfExpr);
-          ReleaseEvalValue(Value);
+            ReleaseEvalValue(Value);
+            end
+          else if (OfExprResolved.IdentEl is TPasConst)
+              and (TPasConst(OfExprResolved.IdentEl).Expr=nil) then
+            // externl const
+          else
+            RaiseMsg(20180518102047,nConstantExpressionExpected,sConstantExpressionExpected,[],OfExpr);
           end;
         ResolveImplElement(Stat.Body);
         end

@@ -203,6 +203,7 @@ type
     Procedure TestVarNoSemicolonBeginFail;
     Procedure TestConstIntOperators;
     Procedure TestConstBitwiseOps;
+    Procedure TestConstExternal;
     Procedure TestIntegerTypeCast;
     Procedure TestConstFloatOperators;
     Procedure TestFloatTypeCast;
@@ -317,6 +318,7 @@ type
     Procedure TestForLoop_PassVarFail;
     Procedure TestStatements;
     Procedure TestCaseOfInt;
+    Procedure TestCaseOfIntExtConst;
     Procedure TestCaseIntDuplicateFail;
     Procedure TestCaseOfStringDuplicateFail;
     Procedure TestCaseOfStringRangeDuplicateFail;
@@ -2584,6 +2586,15 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestConstExternal;
+begin
+  Parser.Options:=Parser.Options+[po_ExtConstWithoutExpr];
+  StartProgram(false);
+  Add('const NaN: double; external name ''Global.Nan'';');
+  Add('begin');
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestIntegerTypeCast;
 begin
   StartProgram(false);
@@ -4582,6 +4593,23 @@ begin
   Add('  else');
   Add('    {@v1}v1:=3;');
   Add('  end;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestCaseOfIntExtConst;
+begin
+  Parser.Options:=Parser.Options+[po_ExtConstWithoutExpr];
+  StartProgram(false);
+  Add([
+  'const e: longint; external;',
+  'var i: longint;',
+  'begin',
+  '  case i of',
+  '  2: ;',
+  '  e: ;',
+  '  1: ;',
+  '  end;',
+  '']);
   ParseProgram;
 end;
 
