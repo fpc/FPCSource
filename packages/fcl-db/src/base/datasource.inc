@@ -654,7 +654,7 @@ Const
 
 Var
   NeedDataChange : Boolean;
-  FLastState : TdataSetState;
+  FLastState : TDataSetState;
 
 begin
   // Special UpdateState handling.
@@ -672,17 +672,18 @@ begin
     end
   else
     NeedDataChange:=True;
+  if (Event<>deUpdateState) and (FState=dsInactive) then
+    Exit;
   DistributeEvent(Event,Info);
   // Extra handlers
   If Not (csDestroying in ComponentState) then
     begin
     If (Event=deUpdateState) then
       DoStateChange;
-    If (Event in OnDataChangeEvents) and
-       NeedDataChange Then
+    If (Event in OnDataChangeEvents) and NeedDataChange Then
       DoDataChange(Nil);
     If (Event = deFieldChange) Then
-      DoDataCHange(Pointer(Info));
+      DoDataChange(Pointer(Info));
     If (Event=deUpdateRecord) then
       DoUpdateData;
     end;
