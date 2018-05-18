@@ -2047,7 +2047,7 @@ implementation
    procedure tlowleveltypedconstplaceholder.replace(ai: tai; d: tdef);
      begin
        if d<>def then
-         internalerror(2015091001);
+         internalerror(2015091007);
        list.insertafter(ai,insertpos);
        list.remove(insertpos);
        insertpos.free;
