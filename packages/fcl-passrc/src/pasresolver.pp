@@ -6018,7 +6018,9 @@ begin
         end
       else
         RaiseXExpectedButYFound(20170216151921,'variable',GetElementTypeName(AccEl),PropEl.WriteAccessor);
-      end;
+      end
+    else if (PropEl.ReadAccessor=nil) and (PropEl.VarType<>nil) then
+      RaiseMsg(20180519173551,nPropertyMustHaveReadOrWrite,sPropertyMustHaveReadOrWrite,[],PropEl);
 
     if length(PropEl.Implements)>0 then
       CheckImplements;
@@ -18447,8 +18449,11 @@ begin
         Include(ResolvedEl.Flags,rrfCanBeStatement);
       end
     else
-      // index property
+      begin
+      // index property without name
+      // Note: computing the pekArrayParams TParamsExpr will convert this to the type
       SetResolverIdentifier(ResolvedEl,btContext,El,nil,nil,[]);
+      end;
     end
   else if ElClass=TPasArgument then
     begin

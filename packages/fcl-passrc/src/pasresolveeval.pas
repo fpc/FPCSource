@@ -120,7 +120,7 @@ const
   nExpectXArrayElementsButFoundY = 3047;
   nCannotCreateADescendantOfTheSealedXY = 3048;
   nAncestorIsNotExternal = 3049;
-  // free 3050
+  nPropertyMustHaveReadOrWrite = 3050;
   nExternalClassInstanceCannotAccessStaticX = 3051;
   nXModifierMismatchY = 3052;
   nSymbolCannotBePublished = 3053;
@@ -236,6 +236,7 @@ resourcestring
   sExpectXArrayElementsButFoundY = 'Expect %s array elements, but found %s';
   sCannotCreateADescendantOfTheSealedXY = 'Cannot create a descendant of the sealed %s "%s"';
   sAncestorIsNotExternal = 'Ancestor "%s" is not external';
+  sPropertyMustHaveReadOrWrite = 'Property must have read or write accessor';
   sVirtualMethodXHasLowerVisibility = 'Virtual method "%s" has a lower visibility (%s) than parent class %s (%s)';
   sExternalClassInstanceCannotAccessStaticX = 'External class instance cannot access static %s';
   sXModifierMismatchY = '%s modifier "%s" mismatch';

@@ -596,6 +596,7 @@ type
     // property
     Procedure TestProperty1;
     Procedure TestPropertyAccessorNotInFront;
+    Procedure TestPropertyReadAndWriteMissingFail;
     Procedure TestPropertyReadAccessorVarWrongType;
     Procedure TestPropertyReadAccessorProcNotFunc;
     Procedure TestPropertyReadAccessorFuncWrongResult;
@@ -10157,6 +10158,18 @@ begin
   CheckResolverException('identifier not found "FB"',nIdentifierNotFound);
 end;
 
+procedure TTestResolver.TestPropertyReadAndWriteMissingFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    property B: longint;',
+  '  end;',
+  'begin']);
+  CheckResolverException(sPropertyMustHaveReadOrWrite,nPropertyMustHaveReadOrWrite);
+end;
+
 procedure TTestResolver.TestPropertyReadAccessorVarWrongType;
 begin
   StartProgram(false);
@@ -10625,7 +10638,7 @@ begin
   Add('end;');
   Add('var Obj: tobject;');
   Add('begin');
-  Add('  obj.Items[3]:=4;');
+  Add('  obj.Items[3]:=''4'';');
   CheckResolverException('Incompatible type arg no. 1: Got "Longint", expected "String"',
     nIncompatibleTypeArgNo);
 end;
