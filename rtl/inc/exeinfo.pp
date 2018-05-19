@@ -60,7 +60,7 @@ implementation
 uses
   strings{$ifdef windows},windows{$endif windows};
 
-{$ifdef unix}
+{$if defined(unix)}
 
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
@@ -73,8 +73,7 @@ uses
         end;
     end;
 
-{$else unix}
-{$ifdef windows}
+{$elseif defined(windows)}
 
   var
     Tmm: TMemoryBasicInformation;
@@ -101,7 +100,7 @@ uses
         end;
     end;
 
-{$else windows}
+{$else}
 
 {$ifdef morphos}
   procedure startsymbol; external name '_start';
@@ -121,8 +120,7 @@ uses
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
     end;
 
-{$endif windows}
-{$endif unix}
+{$endif}
 
 {****************************************************************************
                              Executable Loaders
