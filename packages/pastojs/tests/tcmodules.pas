@@ -531,6 +531,7 @@ type
     Procedure TestExternalClass_BracketAccessor_MultiType;
     Procedure TestExternalClass_BracketAccessor_Index;
     Procedure TestExternalClass_ForInJSObject;
+    Procedure TestExternalClass_ForInJSArray;
     Procedure TestExternalClass_IncompatibleArgDuplicateIdentifier;
 
     // class interfaces
@@ -13615,28 +13616,56 @@ begin
   'type',
   '  TJSObject = class external name ''Object''',
   '  end;',
-  '  TJSArray = class external name ''Array''',
-  '  end;',
   'var',
   '  o: TJSObject;',
-  '  a: TJSArray;',
   '  key: string;',
   'begin',
   '  for key in o do',
   '    if key=''abc'' then ;',
-  '  for key in a do',
-  '    if key=''123'' then ;',
   '']);
   ConvertProgram;
   CheckSource('TestExternalClass_ForInJSObject',
     LinesToStr([ // statements
     'this.o = null;',
-    'this.a = null;',
     'this.key = "";',
     '']),
     LinesToStr([ // $mod.$main
     'for ($mod.key in $mod.o) if ($mod.key === "abc") ;',
-    'for ($mod.key in $mod.a) if ($mod.key === "123") ;',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_ForInJSArray;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSInt8Array = class external name ''Int8Array''',
+  '  private',
+  '    flength: NativeInt external name ''length'';',
+  '    function getValue(Index: NativeInt): shortint; external name ''[]'';',
+  '  public',
+  '    property values[Index: NativeInt]: Shortint Read getValue; default;',
+  '    property Length: NativeInt read flength;',
+  '  end;',
+  'var',
+  '  a: TJSInt8Array;',
+  '  value: shortint;',
+  'begin',
+  '  for value in a do',
+  '    if value=3 then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_ForInJSArray',
+    LinesToStr([ // statements
+    'this.a = null;',
+    'this.value = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'for (var $in1 = $mod.a, $l2 = 0, $end3 = rtl.length($in1) - 1; $l2 <= $end3; $l2++) {',
+    '  $mod.value = $in1[$l2];',
+    '  if ($mod.value === 3) ;',
+    '};',
     '']));
 end;
 
