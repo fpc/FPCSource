@@ -976,6 +976,10 @@ procedure ReadAbbrevTable;
 
 function ParseCompilationUnitForDebugInfoOffset(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var debug_info_offset : QWord; var found : Boolean) : QWord;
+{$ifndef CPUI8086}
+const
+  arange_segment = 0;
+{$endif CPUI8086}
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugArangesHeader64;
@@ -1033,9 +1037,9 @@ begin
 {$endif CPUI8086}
   arange_size:=ReadAddress(header64.address_size);
 
-  while not((arange_start=0) and (arange_size=0)) and (not found) do
+  while not((arange_start=0) and (arange_segment=0) and (arange_size=0)) and (not found) do
     begin
-      if (addr>=arange_start) and (addr<=arange_start+arange_size) then
+      if (segment=arange_segment) and (addr>=arange_start) and (addr<=arange_start+arange_size) then
         begin
           found:=true;
           debug_info_offset:=header64.debug_info_offset;
