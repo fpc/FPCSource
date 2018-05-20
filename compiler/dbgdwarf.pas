@@ -2244,6 +2244,10 @@ implementation
               begin
                 current_asmdata.asmlists[al_dwarf_aranges].Concat(
                   tai_const.create_type_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION)));
+{$ifdef i8086}
+                { segment }
+                current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_seg_name(procentry));
+{$endif i8086}
                 current_asmdata.asmlists[al_dwarf_aranges].Concat(
                   tai_const.Create_rel_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION),procendlabel));
               end;
@@ -3236,7 +3240,11 @@ implementation
             { address_size }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(sizeof(pint)));
             { segment_size }
+{$ifdef i8086}
+            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(2));
+{$else i8086}
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(0));
+{$endif i8086}
             { alignment }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_32bit_unaligned(0));
 
@@ -3346,6 +3354,10 @@ implementation
           begin
             { end of aranges table }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
+{$ifdef i8086}
+            { segment }
+            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_16bit_unaligned(0));
+{$endif i8086}
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_symbol.createname(target_asm.labelprefix+'earanges0',AT_METADATA,0,voidpointertype));
           end;
