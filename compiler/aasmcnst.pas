@@ -444,6 +444,12 @@ type
        supported this is equal to the header size }
      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
 
+     { returns the offset of the array data relatve to dynamic array constant
+       labels. On most platforms, this is 0 (with the header at a negative
+       offset), but on some platforms such negative offsets are not supported
+       and thus this is equal to the header size }
+     class function get_dynarray_symofs:pint;virtual;
+
      { set the fieldvarsym whose data we will emit next; needed
        in case of variant records, so we know which part of the variant gets
        initialised. Also in case of objects, because the fieldvarsyms are spread
@@ -1115,6 +1121,16 @@ implementation
          result:=0
        else
          result:=get_string_header_size(typ,winlikewidestring);
+     end;
+
+
+   class function ttai_typedconstbuilder.get_dynarray_symofs:pint;
+     begin
+       { darwin's linker does not support negative offsets }
+       if not (target_info.system in systems_darwin) then
+         result:=0
+       else
+         result:=get_dynarray_header_size;
      end;
 
 
