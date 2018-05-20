@@ -88,7 +88,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     if realp^.refcount=0 then
       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
 
-    if declocked(realp^.refcount) then
+    if (realp^.refcount>0) and declocked(realp^.refcount) then
       begin
 {$ifdef VER3_0}
         ti:=aligntoptr(ti+2+PByte(ti)[1]);
@@ -115,9 +115,9 @@ procedure fpc_dynarray_incr_ref(p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_RE
 
      realp:=pdynarray(p-sizeof(tdynarray));
      if realp^.refcount=0 then
-       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
-
-     inclocked(realp^.refcount);
+       HandleErrorAddrFrameInd(204,get_pc_addr,get_frame)
+     else if realp^.refcount>0 then
+       inclocked(realp^.refcount);
   end;
 
 { provide local access to dynarr_decr_ref for dynarr_setlength }
