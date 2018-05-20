@@ -3169,6 +3169,7 @@ var
 
 begin
   isRecord:=AParent is TPasRecordType;
+  CodeEl:=nil;
   if Members.Count > 0 then
     begin
     wt:=False;
@@ -3290,12 +3291,15 @@ begin
     end;
     CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
   end;
-  AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
-  If AddEnd then
-    begin
-    AppendKw(CodeEl, 'end');
-    AppendSym(CodeEl, ';');
-    end;
+  if assigned(CodeEl) Then
+     begin
+        AppendText(CodeEl, ' '); // !!!: Dirty trick, necessary for current XML writer
+        If AddEnd then
+          begin
+          AppendKw(CodeEl, 'end');
+          AppendSym(CodeEl, ';');
+          end;
+     end;
 end;
 
 procedure THTMLWriter.CreateClassPageBody(AClass: TPasClassType;
