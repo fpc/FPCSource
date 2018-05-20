@@ -1196,6 +1196,7 @@ begin
   end;
 
   DEBUG_WRITELN('debug_abbrev_offset: ',header64.debug_abbrev_offset);
+  DEBUG_WRITELN('address_size: ',header64.address_size);
 
   { not nice, but we have to read the abbrev section after the start of the debug_info section has been read }
   prev_limit:=limit;
