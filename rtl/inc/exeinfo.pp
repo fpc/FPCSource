@@ -165,7 +165,7 @@ uses
                               DOS Stub
 ****************************************************************************}
 
-{$if defined(EMX) or defined(PE32) or defined(PE32PLUS) or defined(GO32V2)}
+{$if defined(EMX) or defined(PE32) or defined(PE32PLUS) or defined(GO32V2) or defined(MSDOS)}
 type
   tdosheader = packed record
      e_magic : word;
@@ -924,13 +924,35 @@ end;
 {$endif FIND_BASEADDR_ELF}
 
 function OpenElf(var e:TExeFile):boolean;
+{$ifdef MSDOS}
+const
+  ParagraphSize = 512;
+{$endif MSDOS}
 var
   elfheader : telfheader;
   elfsec    : telfsechdr;
   phdr      : telfproghdr;
   i         : longint;
+{$ifdef MSDOS}
+  DosHeader : tdosheader;
+  BRead     : cardinal;
+{$endif MSDOS}
 begin
   OpenElf:=false;
+{$ifdef MSDOS}
+  { read and check header }
+  if E.Size < SizeOf (DosHeader) then
+   Exit;
+  BlockRead (E.F, DosHeader, SizeOf (DosHeader), BRead);
+  if BRead <> SizeOf (DosHeader) then
+   Exit;
+  if DosHeader.E_Magic = $5A4D then
+  begin
+   E.ImgOffset := DosHeader.e_cp * ParagraphSize;
+   if DosHeader.e_cblp > 0 then
+    E.ImgOffset := E.ImgOffset + DosHeader.e_cblp - ParagraphSize;
+  end;
+{$endif MSDOS}
   { read and check header }
   if e.size<(sizeof(telfheader)+e.ImgOffset) then
    exit;
