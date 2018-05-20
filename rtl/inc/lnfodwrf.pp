@@ -1109,8 +1109,8 @@ procedure SkipAttr(form : QWord);
 
 var
   i : PtrInt;
-  prev_base,prev_limit : SizeInt;
-  prev_pos : Int64;
+  prev_base,prev_limit : TFilePos;
+  prev_pos : TFilePos;
 
 begin
   found := false;
