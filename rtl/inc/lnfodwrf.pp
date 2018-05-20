@@ -96,6 +96,11 @@ const
   DW_LNE_END_SEQUENCE = 1;
   DW_LNE_SET_ADDRESS = 2;
   DW_LNE_DEFINE_FILE = 3;
+{$ifdef CPUI8086}
+  { non-standard Open Watcom extension; might conflict with future versions of
+    the DWARF standard }
+  DW_LNE_SET_SEGMENT = 4;
+{$endif CPUI8086}
   { Standard opcodes }
   DW_LNS_COPY = 1;
   DW_LNS_ADVANCE_PC = 2;
@@ -139,6 +144,9 @@ type
   { state record for the line info state machine }
   TMachineState = record
     address : QWord;
+{$ifdef CPUI8086}
+    segment : Word;
+{$endif CPUI8086}
     file_id : DWord;
     line : QWord;
     column : DWord;
@@ -449,6 +457,15 @@ begin
 end;
 
 
+{$ifdef CPUI8086}
+{ Reads a segment from the current input stream }
+function ReadSegment() : Word;
+begin
+  ReadNext(ReadSegment, sizeof(ReadSegment));
+end;
+{$endif CPUI8086}
+
+
 { Reads a zero-terminated string from the current input stream. If the
   string is larger than 255 chars (maximum allowed number of elements in
   a ShortString, excess characters will be chopped off. }
@@ -510,6 +527,9 @@ procedure InitStateRegisters(var state : TMachineState; const aIs_Stmt : Bool8);
 begin
   with state do begin
     address := 0;
+{$ifdef CPUI8086}
+    segment := 0;
+{$endif CPUI8086}
     file_id := 1;
     line := 1;
     column := 0;
@@ -721,6 +741,12 @@ begin
             state.address := ReadAddress();
             DEBUG_WRITELN('DW_LNE_SET_ADDRESS (', hexstr(state.address, sizeof(state.address)*2), ')');
           end;
+{$ifdef CPUI8086}
+          DW_LNE_SET_SEGMENT : begin
+            state.segment := ReadSegment();
+            DEBUG_WRITELN('DW_LNE_SET_SEGMENT (', hexstr(state.segment, sizeof(state.segment)*2), ')');
+          end;
+{$endif CPUI8086}
           DW_LNE_DEFINE_FILE : begin
             {$ifdef DEBUG_DWARF_PARSER}s := {$endif}ReadString();
             SkipLEB128();
@@ -811,6 +837,9 @@ begin
 
     if (state.append_row) then begin
       DEBUG_WRITELN('Current state : address = ', hexstr(state.address, sizeof(state.address) * 2),
+{$ifdef CPUI8086}
+      DEBUG_COMMENT ' segment = ', hexstr(state.segment, sizeof(state.segment) * 2),
+{$endif CPUI8086}
       DEBUG_COMMENT ' file_id = ', state.file_id, ' line = ', state.line, ' column = ', state.column,
       DEBUG_COMMENT  ' is_stmt = ', state.is_stmt, ' basic_block = ', state.basic_block,
       DEBUG_COMMENT  ' end_sequence = ', state.end_sequence, ' prolouge_end = ', state.prolouge_end,
