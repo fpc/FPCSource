@@ -1168,15 +1168,64 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         ca  : pbyte;
         int_const: tai_const;
         char_size: integer;
+        dyncount,
         oldoffset: asizeint;
         dummy : byte;
+        sectype : tasmsectiontype;
+        oldtcb,
+        datatcb : ttai_typedconstbuilder;
+        ll : tasmlabel;
+        dyncountloc : ttypedconstplaceholder;
+        llofs : tasmlabofs;
+        dynarrdef : tdef;
       begin
-        { dynamic array nil }
+        { dynamic array }
         if is_dynamic_array(def) then
           begin
-            { Only allow nil initialization }
-            consume(_NIL);
-            ftcb.emit_tai(Tai_const.Create_sym(nil),def);
+            if try_to_consume(_NIL) then
+              begin
+                ftcb.emit_tai(Tai_const.Create_sym(nil),def);
+              end
+            else if try_to_consume(_LKLAMMER) then
+              begin
+                if try_to_consume(_RKLAMMER) then
+                  begin
+                    ftcb.emit_tai(tai_const.create_sym(nil),def);
+                  end
+                else
+                  begin
+                    if fsym.varspez=vs_const then
+                      sectype:=sec_rodata
+                    else
+                      sectype:=sec_data;
+                    ftcb.start_internal_data_builder(fdatalist,sectype,'',datatcb,ll);
+
+                    llofs:=datatcb.begin_dynarray_const(def,ll,dyncountloc);
+
+                    dyncount:=0;
+
+                    oldtcb:=ftcb;
+                    ftcb:=datatcb;
+                    while true do
+                      begin
+                        read_typed_const_data(def.elementdef);
+                        inc(dyncount);
+                        if try_to_consume(_RKLAMMER) then
+                          break
+                        else
+                          consume(_COMMA);
+                      end;
+                    ftcb:=oldtcb;
+
+                    dynarrdef:=datatcb.end_dynarray_const(def,dyncount,dyncountloc);
+
+                    ftcb.finish_internal_data_builder(datatcb,ll,dynarrdef,sizeof(pint));
+
+                    ftcb.emit_dynarray_offset(llofs,dyncount,def);
+                  end;
+              end
+            else
+              consume(_LKLAMMER);
           end
         { packed array constant }
         else if is_packed_array(def) and
