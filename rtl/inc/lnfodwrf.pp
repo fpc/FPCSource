@@ -67,6 +67,12 @@ uses
 { some type definitions }
 type
   Bool8 = ByteBool;
+{$ifdef CPUI8086}
+  TOffset = Word;
+{$else CPUI8086}
+  TOffset = PtrUInt;
+{$endif CPUI8086}
+  TSegment = Word;
 
 const
   EBUF_SIZE = 100;
@@ -654,7 +660,7 @@ begin
 end;
 
 
-function ParseCompilationUnit(const addr : PtrUInt; const file_offset : QWord;
+function ParseCompilationUnit(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var source : String; var line : longint; var found : Boolean) : QWord;
 var
   state : TMachineState;
@@ -968,7 +974,7 @@ procedure ReadAbbrevTable;
   end;
 
 
-function ParseCompilationUnitForDebugInfoOffset(const addr : PtrUInt; const file_offset : QWord;
+function ParseCompilationUnitForDebugInfoOffset(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var debug_info_offset : QWord; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -1041,7 +1047,7 @@ begin
     end;
 end;
 
-function ParseCompilationUnitForFunctionName(const addr : PtrUInt; const file_offset : QWord;
+function ParseCompilationUnitForFunctionName(const addr : TOffset; const segment : TSegment; const file_offset : QWord;
   var func : String; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -1264,6 +1270,7 @@ function GetLineInfo(addr : codeptruint; var func, source : string; var line : l
 var
   current_offset,
   end_offset, debug_info_offset_from_aranges : QWord;
+  segment : Word = 0;
 
   found, found_aranges : Boolean;
 
@@ -1271,6 +1278,15 @@ begin
   func := '';
   source := '';
   GetLineInfo:=false;
+
+{$ifdef CPUI8086}
+  {$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+    segment := addr shr 16;
+    addr := Word(addr);
+  {$else}
+    segment := CSeg;
+  {$endif}
+{$endif CPUI8086}
 
   if not OpenDwarf(codepointer(addr)) then
     exit;
@@ -1283,7 +1299,7 @@ begin
   found := false;
   while (current_offset < end_offset) and (not found) do begin
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnit(addr, current_offset,
+    current_offset := ParseCompilationUnit(addr, segment, current_offset,
       source, line, found);
   end;
 
@@ -1293,7 +1309,7 @@ begin
   found_aranges := false;
   while (current_offset < end_offset) and (not found_aranges) do begin
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForDebugInfoOffset(addr, current_offset, debug_info_offset_from_aranges, found_aranges);
+    current_offset := ParseCompilationUnitForDebugInfoOffset(addr, segment, current_offset, debug_info_offset_from_aranges, found_aranges);
   end;
 
   { no function name found yet }
@@ -1308,7 +1324,7 @@ begin
       DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
       Init(current_offset, end_offset - current_offset);
-      current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
+      current_offset := ParseCompilationUnitForFunctionName(addr, segment, current_offset, func, found);
       if found then
         DEBUG_WRITELN('Found .debug_info entry by using .debug_aranges information');
     end
@@ -1322,7 +1338,7 @@ begin
     DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
     Init(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
+    current_offset := ParseCompilationUnitForFunctionName(addr, segment, current_offset, func, found);
   end;
 
   if not AllowReuseOfLineInfoData then
