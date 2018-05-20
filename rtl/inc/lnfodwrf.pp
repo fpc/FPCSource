@@ -210,7 +210,9 @@ type
     debug_info_offset : QWord;
     address_size : Byte;
     segment_size : Byte;
+{$ifndef CPUI8086}
     padding : DWord;
+{$endif CPUI8086}
   end;
 
   TDebugArangesHeader32= packed record
@@ -219,7 +221,9 @@ type
     debug_info_offset : DWord;
     address_size : Byte;
     segment_size : Byte;
+{$ifndef CPUI8086}
     padding : DWord;
+{$endif CPUI8086}
   end;
 
 {---------------------------------------------------------------------------

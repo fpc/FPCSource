@@ -3248,14 +3248,15 @@ implementation
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(4));
             { segment_size }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(2));
+            { no alignment/padding bytes on i8086 for Open Watcom compatibility }
 {$else i8086}
             { address_size }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(sizeof(pint)));
             { segment_size }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(0));
-{$endif i8086}
             { alignment }
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_32bit_unaligned(0));
+{$endif i8086}
 
             { start ranges section }
             new_section(current_asmdata.asmlists[al_dwarf_ranges],sec_debug_ranges,'',0);
