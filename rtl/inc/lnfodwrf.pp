@@ -214,9 +214,16 @@ type
  I/O utility functions
 ---------------------------------------------------------------------------}
 
+type
+{$ifdef cpui8086}
+  TFilePos = LongInt;
+{$else cpui8086}
+  TFilePos = SizeInt;
+{$endif cpui8086}
+
 var
-  base, limit : SizeInt;
-  index : SizeInt;
+  base, limit : TFilePos;
+  index : TFilePos;
   baseaddr : pointer;
   filename,
   dbgfn : string;
@@ -316,7 +323,7 @@ begin
 end;
 
 
-function Pos() : SizeInt;
+function Pos() : TFilePos;
 begin
   Pos := index;
 end;
