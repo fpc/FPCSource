@@ -348,6 +348,12 @@ type
      { emits a tasmlabofs as returned by emit_*string_const }
      procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
 
+     { emits a tasmlabofs as returned by begin_dynarray_const }
+     procedure emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tdef);virtual;
+     { starts a dynamic array constant so that its data can be emitted directly afterwards }
+     function begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;virtual;
+     function end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;virtual;
+
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
      { emit a pchar string constant (the characters, not a pointer to them), and return its def }
@@ -1698,6 +1704,53 @@ implementation
    procedure ttai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
      begin
        emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),get_dynstring_def_for_type(st,winlikewidestring));
+     end;
+
+
+   procedure ttai_typedconstbuilder.emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tdef);
+     begin
+       emit_tai(tai_const.create_sym_offset(ll.lab,ll.ofs),arrdef);
+     end;
+
+
+   function ttai_typedconstbuilder.begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;
+     var
+       dynarray_symofs: asizeint;
+       elesize: word;
+     begin
+       result.lab:=startlab;
+       result.ofs:=0;
+       { pack the data, so that we don't add unnecessary null bytes after the
+         constant string }
+       begin_anonymous_record('',1,sizeof(TConstPtrUInt),1,1);
+       dynarray_symofs:=get_dynarray_symofs;
+       { what to do if ptrsinttype <> sizesinttype??? }
+       emit_tai(tai_const.create_sizeint(-1),ptrsinttype);
+       inc(result.ofs,ptrsinttype.size);
+       arrlengthloc:=emit_placeholder(sizesinttype);
+       inc(result.ofs,sizesinttype.size);
+       if dynarray_symofs=0 then
+         begin
+           { results in slightly more efficient code }
+           emit_tai(tai_label.create(result.lab),arrdef);
+           result.ofs:=0;
+           { create new label of the same kind (including whether or not the
+             name starts with target_asm.labelprefix in case it's AB_LOCAL,
+             so we keep the difference depending on whether the original was
+             allocated via getstatic/getlocal/getglobal datalabel) }
+           startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$dynarrlab',startlab.bind,startlab.typ);
+         end;
+       { sanity check }
+       if result.ofs<>dynarray_symofs then
+         internalerror(2018020601);
+     end;
+
+
+   function ttai_typedconstbuilder.end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;
+     begin
+       { we emit the high value, not the count }
+       arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
+       result:=end_anonymous_record;
      end;
 
 
