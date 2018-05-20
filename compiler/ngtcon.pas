@@ -1197,6 +1197,16 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   end
                 else
                   begin
+                    { Delphi does not correctly parse static array constants
+                      inside dynamic array constants. Additionally static and
+                      dynamic array constants use different syntaxes ("(...)"
+                      vs. "[...]"), so it's safer we simply disallow it until
+                      the Delphi developers clears up this mess if ever }
+                    if (m_delphi in current_settings.modeswitches) and
+                        (def.elementdef.typ=arraydef) and
+                        not is_dynamic_array(def.elementdef) then
+                      Message(parser_e_no_static_array_const_in_dynarray_const);
+
                     if fsym.varspez=vs_const then
                       sectype:=sec_rodata
                     else
