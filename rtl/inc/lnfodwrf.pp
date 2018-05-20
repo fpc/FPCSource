@@ -1328,7 +1328,7 @@ begin
   BackTraceStrFunc := @SysBackTraceStr;
   Success:=GetLineInfo(codeptruint(addr), func, source, line);
   { create string }
-  DwarfBackTraceStr :='  $' + HexStr(ptruint(addr), sizeof(ptruint) * 2);
+  DwarfBackTraceStr :='  $' + HexStr(addr);
   if Success then
   begin
     if func<>'' then
