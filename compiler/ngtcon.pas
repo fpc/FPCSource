@@ -1160,6 +1160,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.parse_arraydef(def:tarraydef);
+      const
+        LKlammerToken: array[Boolean] of TToken = (_LKLAMMER, _LECKKLAMMER);
+        RKlammerToken: array[Boolean] of TToken = (_RKLAMMER, _RECKKLAMMER);
       var
         n : tnode;
         i : longint;
@@ -1186,9 +1189,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 ftcb.emit_tai(Tai_const.Create_sym(nil),def);
               end
-            else if try_to_consume(_LKLAMMER) then
+            else if try_to_consume(LKlammerToken[m_delphi in current_settings.modeswitches]) then
               begin
-                if try_to_consume(_RKLAMMER) then
+                if try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
                   begin
                     ftcb.emit_tai(tai_const.create_sym(nil),def);
                   end
@@ -1210,7 +1213,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         read_typed_const_data(def.elementdef);
                         inc(dyncount);
-                        if try_to_consume(_RKLAMMER) then
+                        if try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
                           break
                         else
                           consume(_COMMA);
