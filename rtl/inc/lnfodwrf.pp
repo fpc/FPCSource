@@ -316,7 +316,7 @@ begin
 end;
 
 
-function Pos() : Int64;
+function Pos() : SizeInt;
 begin
   Pos := index;
 end;
