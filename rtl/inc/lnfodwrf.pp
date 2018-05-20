@@ -31,7 +31,7 @@ type
   CodePointer = Pointer;
 {$ENDIF}
 
-function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
+function GetLineInfo(addr:codeptruint;var func,source:string;var line:longint) : boolean;
 function DwarfBackTraceStr(addr: CodePointer): string;
 procedure CloseDwarf;
 
@@ -1218,7 +1218,7 @@ begin
 end;
 
 
-function GetLineInfo(addr : ptruint; var func, source : string; var line : longint) : boolean;
+function GetLineInfo(addr : codeptruint; var func, source : string; var line : longint) : boolean;
 var
   current_offset,
   end_offset, debug_info_offset_from_aranges : QWord;
@@ -1306,7 +1306,7 @@ begin
   Success:=false;
   Store := BackTraceStrFunc;
   BackTraceStrFunc := @SysBackTraceStr;
-  Success:=GetLineInfo(ptruint(addr), func, source, line);
+  Success:=GetLineInfo(codeptruint(addr), func, source, line);
   { create string }
   DwarfBackTraceStr :='  $' + HexStr(ptruint(addr), sizeof(ptruint) * 2);
   if Success then
