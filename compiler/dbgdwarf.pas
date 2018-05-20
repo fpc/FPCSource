@@ -679,6 +679,9 @@ implementation
       DW_LNE_end_sequence = $01;
       DW_LNE_set_address  = $02;
       DW_LNE_define_file  = $03;
+      { DW_LNE_set_segment is a non-standard Open Watcom extension. It might
+        create conflicts with future versions of the DWARF standard. }
+      DW_LNE_set_segment  = $04;
       DW_LNE_lo_user      = $80;
       DW_LNE_hi_user      = $ff;
 
