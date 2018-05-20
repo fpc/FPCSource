@@ -36,11 +36,11 @@ type
     isopen    : boolean;
     nsects    : longint;
     sechdrofs,
-    secstrofs : ptruint;
+    secstrofs : {$ifdef cpui8086}longword{$else}ptruint{$endif};
     processaddress : ptruint;
     FunctionRelative: boolean;
     // Offset of the binary image forming permanent offset to all retrieved values
-    ImgOffset: ptruint;
+    ImgOffset: {$ifdef cpui8086}longword{$else}ptruint{$endif};
     filename  : string;
     // Allocate static buffer for reading data
     buf       : array[0..4095] of byte;
