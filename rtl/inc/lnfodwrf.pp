@@ -1051,6 +1051,9 @@ begin
         end;
 
       arange_start:=ReadAddress(header64.address_size);
+{$ifdef CPUI8086}
+      arange_segment:=ReadSegment();
+{$endif CPUI8086}
       arange_size:=ReadAddress(header64.address_size);
     end;
 end;
