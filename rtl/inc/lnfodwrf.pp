@@ -470,18 +470,30 @@ begin
 end;
 
 
+{$ifdef CPUI8086}
 { Reads an address from the current input stream }
-function ReadAddress(addr_size: smallint) : PtrUInt;
+function ReadAddress(addr_size: smallint) : LongWord;
 begin
-  ReadNext(ReadAddress, sizeof(ReadAddress));
+  if addr_size = 4 then
+    ReadNext(ReadAddress, 4)
+  else if addr_size = 2 then begin
+    ReadAddress := 0;
+    ReadNext(ReadAddress, 2);
+  end
+  else
+    ReadAddress := 0;
 end;
 
-
-{$ifdef CPUI8086}
 { Reads a segment from the current input stream }
 function ReadSegment() : Word;
 begin
   ReadNext(ReadSegment, sizeof(ReadSegment));
+end;
+{$else CPUI8086}
+{ Reads an address from the current input stream }
+function ReadAddress(addr_size: smallint) : PtrUInt;
+begin
+  ReadNext(ReadAddress, sizeof(ReadAddress));
 end;
 {$endif CPUI8086}
 
