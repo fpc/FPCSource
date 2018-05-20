@@ -973,7 +973,7 @@ begin
    Exit;
   if DosHeader.E_Magic = $5A4D then
   begin
-   E.ImgOffset := DosHeader.e_cp * ParagraphSize;
+   E.ImgOffset := LongWord(DosHeader.e_cp) * ParagraphSize;
    if DosHeader.e_cblp > 0 then
     E.ImgOffset := E.ImgOffset + DosHeader.e_cblp - ParagraphSize;
   end;
