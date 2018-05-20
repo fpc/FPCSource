@@ -962,19 +962,25 @@ function THTMLWriter.ResolveLinkID(const Name: String; Level : Integer = 0): DOM
 var
   i: Integer;
   ThisPackage: TLinkNode;
+  s:String;
 begin
   Result:=Engine.ResolveLink(Module,Name, True);
+  // engine can return backslashes on Windows
   if Length(Result) > 0 then
-    if Copy(Result, 1, Length(CurDirectory) + 1) = CurDirectory + '/' then
+   begin
+     s:=Copy(Result, 1, Length(CurDirectory) + 1);
+    if (S= CurDirectory + '/') or (s= CurDirectory + '\') then
       Result := Copy(Result, Length(CurDirectory) + 2, Length(Result))
     else if not IsLinkAbsolute(Result) then
       Result := BaseDirectory + Result;
+   end;
 end;
 
 function THTMLWriter.ResolveLinkWithinPackage(AElement: TPasElement;
   ASubpageIndex: Integer): String;
 var
   ParentEl: TPasElement;
+  s : String;
 begin
   ParentEl := AElement;
   while Assigned(ParentEl) and not (ParentEl.ClassType = TPasPackage) do
@@ -982,7 +988,9 @@ begin
   if Assigned(ParentEl) and (TPasPackage(ParentEl) = Engine.Package) then
   begin
     Result := Allocator.GetFilename(AElement, ASubpageIndex);
-    if Copy(Result, 1, Length(CurDirectory) + 1) = CurDirectory + '/' then
+    // engine/allocator can return backslashes on Windows
+    s:=Copy(Result, 1, Length(CurDirectory) + 1);
+    if (S= CurDirectory + '/') or (s= CurDirectory + '\') then
       Result := Copy(Result, Length(CurDirectory) + 2, Length(Result))
     else
       Result := BaseDirectory + Result;
