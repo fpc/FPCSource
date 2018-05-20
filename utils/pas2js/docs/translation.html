@@ -1865,10 +1865,11 @@ function(){
     <li><i>for key in jsvalue do</i> translates to <i>for (key in jsvalue){}</i></li>
     <li><i>for key in ExternalClass do</i><br>
       <ul>
-        <li>if the externalclass has a ''length'' and a default property e.g.
-          <i>for value in TJSArray do</i> translates same as for-in PascalArray,
-          i.e. it enumerates the values of the array, not the index.</li>
-        <li>otherwise translates to <i>for (key in externalclass){}</i>,
+        <li>If the externalclass has a ''length'' and a matching default property
+        it uses the enumeration of an array. For example
+          <i>for value in TJSArray do</i> enumerates the values of the array, not the index.
+          It checks if the array is nil.</li>
+        <li>Otherwise it translates to <i>for (key in externalclass){}</i>,
         which enumerates the keys (property names) of the JS object.</li>
        </ul>
     </ul>

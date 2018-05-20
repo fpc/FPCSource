@@ -394,8 +394,8 @@ type
     Procedure TestArray_InsertDelete;
     Procedure TestArray_DynArrayConst;
     Procedure TestArray_ForInArrOfString;
-    Procedure TestExternalClass_TypeCastArrayToExternalArray;
-    Procedure TestExternalClass_TypeCastArrayFromExternalArray;
+    Procedure TestExternalClass_TypeCastArrayToExternalClass;
+    Procedure TestExternalClass_TypeCastArrayFromExternalClass;
 
     // record
     Procedure TestRecord_Empty;
@@ -7649,12 +7649,14 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestExternalClass_TypeCastArrayToExternalArray;
+procedure TTestModule.TestExternalClass_TypeCastArrayToExternalClass;
 begin
   StartProgram(false);
   Add([
   '{$modeswitch externalclass}',
   'type',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
   '  TJSArray = class external name ''Array''',
   '    class function isArray(Value: JSValue) : boolean;',
   '    function concat() : TJSArray; varargs;',
@@ -7662,44 +7664,56 @@ begin
   'var',
   '  aObj: TJSArray;',
   '  a: array of longint;',
+  '  o: TJSObject;',
   'begin',
   '  if TJSArray.isArray(65) then ;',
-  '  aObj:=TJSArray(a).concat(a);']);
+  '  aObj:=TJSArray(a).concat(a);',
+  '  o:=TJSObject(a);']);
   ConvertProgram;
-  CheckSource('TestExternalClass_TypeCastArrayToExternalArray',
+  CheckSource('TestExternalClass_TypeCastArrayToExternalClass',
     LinesToStr([ // statements
     'this.aObj = null;',
     'this.a = [];',
+    'this.o = null;',
     '']),
     LinesToStr([ // $mod.$main
     'if (Array.isArray(65)) ;',
     '$mod.aObj = $mod.a.concat($mod.a);',
+    '$mod.o = $mod.a;',
     '']));
 end;
 
-procedure TTestModule.TestExternalClass_TypeCastArrayFromExternalArray;
+procedure TTestModule.TestExternalClass_TypeCastArrayFromExternalClass;
 begin
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TArrStr = array of string;');
-  Add('  TJSArray = class external name ''Array''');
-  Add('  end;');
-  Add('var');
-  Add('  aObj: TJSArray;');
-  Add('  a: TArrStr;');
-  Add('begin');
-  Add('  a:=TArrStr(aObj);');
-  Add('  TArrStr(aObj)[1]:=TArrStr(aObj)[2];');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TArrStr = array of string;',
+  '  TJSArray = class external name ''Array''',
+  '  end;',
+  '  TJSObject = class external name ''Object''',
+  '  end;',
+  'var',
+  '  aObj: TJSArray;',
+  '  a: TArrStr;',
+  '  jo: TJSObject;',
+  'begin',
+  '  a:=TArrStr(aObj);',
+  '  TArrStr(aObj)[1]:=TArrStr(aObj)[2];',
+  '  a:=TarrStr(jo);',
+  '']);
   ConvertProgram;
-  CheckSource('TestExternalClass_TypeCastArrayFromExternalArray',
+  CheckSource('TestExternalClass_TypeCastArrayFromExternalClass',
     LinesToStr([ // statements
     'this.aObj = null;',
     'this.a = [];',
+    'this.jo = null;',
     '']),
     LinesToStr([ // $mod.$main
     '$mod.a = $mod.aObj;',
     '$mod.aObj[1] = $mod.aObj[2];',
+    '$mod.a = $mod.jo;',
     '']));
 end;
 

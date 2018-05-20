@@ -3984,8 +3984,9 @@ begin
             FromTypeEl:=FromResolved.LoTypeEl;
             if FromTypeEl.ClassType=TPasArrayType then
               begin
-              if IsExternalClassName(ToClass,'Array') then
-                // TJSArray(AnArray)
+              if IsExternalClassName(ToClass,'Array')
+                  or IsExternalClassName(ToClass,'Object') then
+                // TJSArray(AnArray)  or  TJSObject(AnArray)
                 exit(cExact);
               end
             else if FromTypeEl.ClassType=TPasRecordType then
@@ -4010,9 +4011,10 @@ begin
           FromTypeEl:=FromResolved.LoTypeEl;
           if (FromTypeEl.ClassType=TPasClassType)
               and TPasClassType(FromTypeEl).IsExternal
-              and IsExternalClassName(TPasClassType(FromTypeEl),'Array') then
+              and (IsExternalClassName(TPasClassType(FromTypeEl),'Array')
+                or IsExternalClassName(TPasClassType(FromTypeEl),'Object')) then
             begin
-            // type cast external Array to an array
+            // type cast external Array/Object to an array
             exit(cCompatible);
             end;
           end;
