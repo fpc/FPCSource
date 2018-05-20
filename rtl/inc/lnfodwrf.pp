@@ -1281,10 +1281,10 @@ begin
 
 {$ifdef CPUI8086}
   {$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
-    segment := addr shr 16;
+    segment := (addr shr 16) - e.processsegment;
     addr := Word(addr);
   {$else}
-    segment := CSeg;
+    segment := CSeg - e.processsegment;
   {$endif}
 {$endif CPUI8086}
 
