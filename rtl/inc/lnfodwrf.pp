@@ -269,7 +269,7 @@ begin
   // Get filename by address using GetModuleByAddr
   GetModuleByAddr(tofar(addr),baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
-  writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
+  writeln(stderr,filename,' Baseaddr: ',hexstr(baseaddr));
 {$endif DEBUG_LINEINFO}
 
   // Check if GetModuleByAddr has worked
