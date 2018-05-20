@@ -453,9 +453,10 @@ type
        record (also if that field is a nested anonymous record) }
      property next_field_name: TIDString write set_next_field_name;
     protected
-     { this one always return the actual offset, called by the above (and
+     { these ones always return the actual offset, called by the above (and
        overridden versions) }
      class function get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
+     class function get_dynarray_header_size:pint;
    end;
    ttai_typedconstbuilderclass = class of ttai_typedconstbuilder;
 
@@ -1149,6 +1150,16 @@ implementation
          else
            result:=0;
        end;
+     end;
+
+
+   class function ttai_typedconstbuilder.get_dynarray_header_size:pint;
+     begin
+       result:=
+         { reference count }
+         ptrsinttype.size +
+         { high value }
+         sizesinttype.size;
      end;
 
 
