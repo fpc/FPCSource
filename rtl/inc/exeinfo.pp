@@ -103,19 +103,25 @@ uses
         end;
     end;
 
-{$else}
+{$elseif defined(morphos)}
 
-{$ifdef morphos}
   procedure startsymbol; external name '_start';
-{$endif}
 
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
-{$ifdef morphos}
       baseaddr:= @startsymbol;
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+      filename:=ParamStr(0);
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+      filename:='';
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
+    end;
+
 {$else}
+
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+    begin
       baseaddr:= nil;
-{$endif}
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
       filename:=ParamStr(0);
 {$else FPC_HAS_FEATURE_COMMANDARGS}
