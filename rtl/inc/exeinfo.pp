@@ -37,7 +37,10 @@ type
     nsects    : longint;
     sechdrofs,
     secstrofs : {$ifdef cpui8086}longword{$else}ptruint{$endif};
-    processaddress : ptruint;
+    processaddress : {$ifdef cpui8086}word{$else}ptruint{$endif};
+{$ifdef cpui8086}
+    processsegment : word;
+{$endif cpui8086}
     FunctionRelative: boolean;
     // Offset of the binary image forming permanent offset to all retrieved values
     ImgOffset: {$ifdef cpui8086}longword{$else}ptruint{$endif};
@@ -969,6 +972,10 @@ begin
   e.sechdrofs:=elfheader.e_shoff;
   e.nsects:=elfheader.e_shnum;
 
+{$ifdef MSDOS}
+  { e.processaddress is already initialized to 0 }
+  e.processsegment:=PrefixSeg+16;
+{$else MSDOS}
   { scan program headers to find the image base address }
   e.processaddress:=High(e.processaddress);
   seek(e.f,e.ImgOffset+elfheader.e_phoff);
@@ -981,6 +988,7 @@ begin
 
   if e.processaddress = High(e.processaddress) then
     e.processaddress:=0;
+{$endif MSDOS}
 
   OpenElf:=true;
 end;
