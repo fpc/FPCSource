@@ -438,7 +438,7 @@ begin
   end;
   { extend sign. Note that we can not use shl/shr since the latter does not
     translate to arithmetic shifting for signed types }
-  ReadLEB128 := (not ((ReadLEB128 and (1 shl (shift-1)))-1)) or ReadLEB128;
+  ReadLEB128 := (not ((ReadLEB128 and (Int64(1) shl (shift-1)))-1)) or ReadLEB128;
 end;
 
 
