@@ -121,6 +121,14 @@ uses
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
     end;
 
+{$elseif defined(msdos)}
+
+  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+    begin
+      baseaddr:=Ptr(PrefixSeg+16,0);
+      filename:=ParamStr(0);
+    end;
+
 {$else}
 
 {$ifdef CPUI8086}
