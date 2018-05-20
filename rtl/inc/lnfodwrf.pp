@@ -977,7 +977,12 @@ var
   isdwarf64 : boolean;
   temp_length : DWord;
   unit_length : QWord;
+{$ifdef CPUI8086}
+  arange_start, arange_size: DWord;
+  arange_segment: Word;
+{$else CPUI8086}
   arange_start, arange_size: PtrUInt;
+{$endif CPUI8086}
 begin
   found := false;
 
@@ -1017,6 +1022,9 @@ begin
   DEBUG_WRITELN('address_size: ', header64.address_size);
   DEBUG_WRITELN('segment_size: ', header64.segment_size);
   arange_start:=ReadAddress(header64.address_size);
+{$ifdef CPUI8086}
+  arange_segment:=ReadSegment();
+{$endif CPUI8086}
   arange_size:=ReadAddress(header64.address_size);
 
   while not((arange_start=0) and (arange_size=0)) and (not found) do
