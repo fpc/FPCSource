@@ -1002,6 +1002,8 @@ begin
     end;
 
   DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
+  DEBUG_WRITELN('address_size: ', header64.address_size);
+  DEBUG_WRITELN('segment_size: ', header64.segment_size);
   arange_start:=ReadAddress;
   arange_size:=ReadAddress;
 
