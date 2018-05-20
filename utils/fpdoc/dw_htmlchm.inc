@@ -21,6 +21,7 @@ type
     FAutoIndex: Boolean;
     FOtherFiles: String;
     procedure ProcessOptions;
+    function ResolveLinkIDAbs(const Name: String; Level : Integer = 0): DOMString;
     function RetrieveOtherFiles(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
     procedure GenerateTOC;
@@ -37,6 +38,13 @@ type
 {$ELSE} // implementation
 
 { TCHMHTMLWriter }
+
+function TCHMHTMLWriter.ResolveLinkIDAbs(const Name: String; Level : Integer = 0): DOMString;
+
+begin
+  Result:=FixHTMLpath(Engine.ResolveLink(Module,Name, True));
+  // for global index: don't make it relative to the current document.
+end;
 
 procedure TCHMHTMLWriter.ProcessOptions;
 var
@@ -284,6 +292,7 @@ var
   ParentElement: TPasElement;
   MemberItem: TChmSiteMapItem;
   Stream: TMemoryStream;
+  s: string;
 begin
   DoLog('Generating Index...');
 
@@ -310,7 +319,11 @@ begin
         for k := 0 to TPasClassType(ParentElement).Members.Count-1 do
         begin
           TmpElement := TPasElement(TPasClassType(ParentElement).Members.Items[k]);
-          if Engine.HidePrivate and(TmpElement.Visibility = visPrivate) then
+          if TmpElement is TPasEnumValue then
+             s := ResolveLinkIDAbs(tmpElement.Parent.PathName)
+           else
+             s := ResolveLinkIDAbs(tmpElement.PathName);
+           if Engine.HidePrivate and(TmpElement.Visibility = visPrivate) then
             continue;
           if Engine.HideProtected and(TmpElement.Visibility = visProtected) then
             continue;
@@ -326,6 +339,12 @@ begin
             cmtUnknown     : TmpItem.Text := TmpElement.Name;
           end;
           TmpItem.Local := FixHTMLpath(Allocator.GetFilename(TmpElement, 0));
+          if (trim(s)<>'') and (tmpitem.local<>s) then
+            begin
+              writeln('Hint: Index: Resolved:',tmpitem.local,' to ',s);
+              tmpitem.local:=s;
+            end;
+
           {
           ParentElement = Class
              TmpElement = Member
