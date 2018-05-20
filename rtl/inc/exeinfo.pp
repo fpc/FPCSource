@@ -815,7 +815,7 @@ type
 
 {$ifdef FIND_BASEADDR_ELF}
 var
-  LocalJmpBuf : Jmp_Buf;  
+  LocalJmpBuf : Jmp_Buf;
 procedure LocalError;
 begin
   Longjmp(LocalJmpBuf,1);
@@ -928,15 +928,16 @@ var
 begin
   OpenElf:=false;
   { read and check header }
-  if e.size<sizeof(telfheader) then
+  if e.size<(sizeof(telfheader)+e.ImgOffset) then
    exit;
+  seek(e.f,e.ImgOffset);
   blockread(e.f,elfheader,sizeof(telfheader));
  if elfheader.magic0123<>{$ifdef ENDIAN_LITTLE}$464c457f{$else}$7f454c46{$endif} then
    exit;
   if elfheader.e_shentsize<>sizeof(telfsechdr) then
    exit;
   { read section names }
-  seek(e.f,elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telfsechdr)));
+  seek(e.f,e.ImgOffset+elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telfsechdr)));
   blockread(e.f,elfsec,sizeof(telfsechdr));
   e.secstrofs:=elfsec.sh_offset;
   e.sechdrofs:=elfheader.e_shoff;
@@ -944,7 +945,7 @@ begin
 
   { scan program headers to find the image base address }
   e.processaddress:=High(e.processaddress);
-  seek(e.f,elfheader.e_phoff);
+  seek(e.f,e.ImgOffset+elfheader.e_phoff);
   for i:=1 to elfheader.e_phnum do
     begin
       blockread(e.f,phdr,sizeof(phdr));
@@ -968,19 +969,19 @@ var
   bufsize,i  : longint;
 begin
   FindSectionElf:=false;
-  seek(e.f,e.sechdrofs);
+  seek(e.f,e.ImgOffset+e.sechdrofs);
   for i:=1 to e.nsects do
    begin
      blockread(e.f,elfsec,sizeof(telfsechdr));
      fillchar(secnamebuf,sizeof(secnamebuf),0);
      oldofs:=filepos(e.f);
-     seek(e.f,e.secstrofs+elfsec.sh_name);
+     seek(e.f,e.ImgOffset+e.secstrofs+elfsec.sh_name);
      blockread(e.f,secnamebuf,sizeof(secnamebuf)-1,bufsize);
      seek(e.f,oldofs);
      secname:=strpas(secnamebuf);
      if asecname=secname then
        begin
-         secofs:=elfsec.sh_offset;
+         secofs:=e.ImgOffset+elfsec.sh_offset;
          seclen:=elfsec.sh_size;
          FindSectionElf:=true;
          exit;
