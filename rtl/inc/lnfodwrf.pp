@@ -150,9 +150,7 @@ type
   { state record for the line info state machine }
   TMachineState = record
     address : QWord;
-{$ifdef CPUI8086}
-    segment : Word;
-{$endif CPUI8086}
+    segment : TSegment;
     file_id : DWord;
     line : QWord;
     column : DWord;
@@ -565,9 +563,7 @@ procedure InitStateRegisters(var state : TMachineState; const aIs_Stmt : Bool8);
 begin
   with state do begin
     address := 0;
-{$ifdef CPUI8086}
     segment := 0;
-{$endif CPUI8086}
     file_id := 1;
     line := 1;
     column := 0;
@@ -884,14 +880,18 @@ begin
       DEBUG_COMMENT  ' epilouge_begin = ', state.epilouge_begin, ' isa = ', state.isa);
 
       if (first_row) then begin
-        if (state.address > addr) then
+        if (state.segment > segment) or
+           ((state.segment = segment) and
+            (state.address > addr)) then
           break;
         first_row := false;
       end;
 
       { when we have found the address we need to return the previous
         line because that contains the call instruction }
-      if (state.address >= addr) then
+      if (state.segment > segment) or
+         ((state.segment = segment) and
+          (state.address >= addr)) then
         found:=true
       else
         begin
