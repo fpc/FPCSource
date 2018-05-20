@@ -2571,7 +2571,7 @@ implementation
         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
           result:=4;
         sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
-          result:=4;
+          result:=1;
         sec_stack,
         sec_heap:
           result:=16;
