@@ -56,7 +56,11 @@ function FindExeSection(var e:TExeFile;const secname:string;var secofs,seclen:lo
 function CloseExeFile(var e:TExeFile):boolean;
 function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
 
+{$ifdef CPUI8086}
+procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+{$else CPUI8086}
 procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+{$endif CPUI8086}
 
 implementation
 
@@ -119,7 +123,11 @@ uses
 
 {$else}
 
+{$ifdef CPUI8086}
+  procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: string);
+{$else CPUI8086}
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+{$endif CPUI8086}
     begin
       baseaddr:= nil;
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}

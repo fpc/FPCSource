@@ -232,13 +232,33 @@ type
 var
   base, limit : TFilePos;
   index : TFilePos;
-  baseaddr : pointer;
+  baseaddr : {$ifdef cpui8086}farpointer{$else}pointer{$endif};
   filename,
   dbgfn : string;
   lastfilename: string;   { store last processed file }
   lastopendwarf: Boolean; { store last result of processing a file }
 
-function OpenDwarf(addr : pointer) : boolean;
+{$ifdef cpui8086}
+function tofar(fp: FarPointer): FarPointer; inline;
+begin
+  tofar:=fp;
+end;
+
+function tofar(cp: NearCsPointer): FarPointer; inline;
+begin
+  tofar:=Ptr(CSeg,Word(cp));
+end;
+
+function tofar(cp: NearPointer): FarPointer; inline;
+begin
+  tofar:=Ptr(DSeg,Word(cp));
+end;
+{$else cpui8086}
+type
+  tofar=Pointer;
+{$endif cpui8086}
+
+function OpenDwarf(addr : codepointer) : boolean;
 begin
   // False by default
   OpenDwarf:=false;
@@ -247,7 +267,7 @@ begin
   filename := '';
 
   // Get filename by address using GetModuleByAddr
-  GetModuleByAddr(addr,baseaddr,filename);
+  GetModuleByAddr(tofar(addr),baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
   writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
 {$endif DEBUG_LINEINFO}
@@ -1230,7 +1250,7 @@ begin
   source := '';
   GetLineInfo:=false;
 
-  if not OpenDwarf(pointer(addr)) then
+  if not OpenDwarf(codepointer(addr)) then
     exit;
 
   addr := addr - e.processaddress;
