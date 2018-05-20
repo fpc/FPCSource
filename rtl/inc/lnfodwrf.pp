@@ -471,7 +471,7 @@ end;
 
 
 { Reads an address from the current input stream }
-function ReadAddress() : PtrUInt;
+function ReadAddress(addr_size: smallint) : PtrUInt;
 begin
   ReadNext(ReadAddress, sizeof(ReadAddress));
 end;
@@ -758,7 +758,7 @@ begin
             DEBUG_WRITELN('DW_LNE_END_SEQUENCE');
           end;
           DW_LNE_SET_ADDRESS : begin
-            state.address := ReadAddress();
+            state.address := ReadAddress(extended_opcode_length-1);
             DEBUG_WRITELN('DW_LNE_SET_ADDRESS (', hexstr(state.address, sizeof(state.address)*2), ')');
           end;
 {$ifdef CPUI8086}
@@ -1004,8 +1004,8 @@ begin
   DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
   DEBUG_WRITELN('address_size: ', header64.address_size);
   DEBUG_WRITELN('segment_size: ', header64.segment_size);
-  arange_start:=ReadAddress;
-  arange_size:=ReadAddress;
+  arange_start:=ReadAddress(header64.address_size);
+  arange_size:=ReadAddress(header64.address_size);
 
   while not((arange_start=0) and (arange_size=0)) and (not found) do
     begin
@@ -1016,8 +1016,8 @@ begin
           DEBUG_WRITELN('Matching aranges entry $',hexStr(arange_start,header64.address_size*2),', $',hexStr(arange_size,header64.address_size*2));
         end;
 
-      arange_start:=ReadAddress;
-      arange_size:=ReadAddress;
+      arange_start:=ReadAddress(header64.address_size);
+      arange_size:=ReadAddress(header64.address_size);
     end;
 end;
 
