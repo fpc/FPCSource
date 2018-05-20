@@ -5,13 +5,12 @@
 main=rtl
 [target]
 loaders=prt0s prt0t prt0m prt0c prt0l prt0h # exceptn fpu
-units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
+units=system uuchar objpas strings dos heaptrc lnfodwrf sysconst sysutils \
       math macpas iso7185 extpas rtlconsts typinfo cpu types \
       getopts fgl classes \
       msmouse ports  \
       charset cpall ctypes \
       fpwidestring character unicodedata unicodenumtable
-#      lnfodwrf
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx \
@@ -192,15 +191,11 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 	$(EXECPPAS)
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp exeinfo$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) $(INC)/lineinfo.pp
-	$(EXECPPAS)
-
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/lnfodwrf.pp
 	$(EXECPPAS)
 
-exeinfo$(PPUEXT) : $(INC)/exeinfo.pp sysutils$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+exeinfo$(PPUEXT) : $(INC)/exeinfo.pp strings$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/exeinfo.pp
 	$(EXECPPAS)
 
