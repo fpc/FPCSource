@@ -196,6 +196,8 @@ interface
        oscs_largest
      );
 
+     TObjSectionOfs = PUInt;
+
      TObjSectionGroup = class;
 
      TObjSymbol = class(TFPHashObject)
@@ -209,7 +211,7 @@ interface
        symidx     : longint;
        objsection : TObjSection;
        offset,
-       size       : PUInt;
+       size       : TObjSectionOfs;
        { Used for external and common solving during linking }
        exesymbol  : TExeSymbol;
 
@@ -278,7 +280,7 @@ interface
        SecAlign   : longint;   { alignment of the section }
        { section Data }
        Size,
-       DataPos    : PUInt;
+       DataPos    : TObjSectionOfs;
        MemPos     : qword;
        Group      : TObjSectionGroup;
        AssociativeSection : TObjSection;
@@ -292,19 +294,19 @@ interface
        VTRefList : TFPObjectList;
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
-       function  write(const d;l:PUInt):PUInt;
+       function  write(const d;l:TObjSectionOfs):TObjSectionOfs;
        { writes string plus zero byte }
-       function  writestr(const s:string):PUInt;
-       function  WriteZeros(l:longword):PUInt;
+       function  writestr(const s:string):TObjSectionOfs;
+       function  WriteZeros(l:longword):TObjSectionOfs;
        { writes content of s without null termination }
-       function  WriteBytes(const s:string):PUInt;
+       function  WriteBytes(const s:string):TObjSectionOfs;
        procedure writeReloc_internal(aTarget:TObjSection;offset:aword;len:byte;reltype:TObjRelocationType);virtual;
        function  setmempos(mpos:qword):qword;
-       procedure setDatapos(var dpos:PUInt);
-       procedure alloc(l:PUInt);
-       procedure addsymReloc(ofs:PUInt;p:TObjSymbol;Reloctype:TObjRelocationType);
-       procedure addsectionReloc(ofs:PUInt;aobjsec:TObjSection;Reloctype:TObjRelocationType);
-       procedure addrawReloc(ofs:PUInt;p:TObjSymbol;RawReloctype:byte);
+       procedure setDatapos(var dpos:TObjSectionOfs);
+       procedure alloc(l:TObjSectionOfs);
+       procedure addsymReloc(ofs:TObjSectionOfs;p:TObjSymbol;Reloctype:TObjRelocationType);
+       procedure addsectionReloc(ofs:TObjSectionOfs;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+       procedure addrawReloc(ofs:TObjSectionOfs;p:TObjSymbol;RawReloctype:byte);
        procedure ReleaseData;
        function  FullName:string;
        { string representation for the linker map file }
@@ -948,7 +950,7 @@ implementation
       end;
 
 
-    function TObjSection.write(const d;l:PUInt):PUInt;
+    function TObjSection.write(const d;l:TObjSectionOfs):TObjSectionOfs;
       begin
         result:=size;
         if assigned(Data) then
@@ -967,7 +969,7 @@ implementation
       end;
 
 
-    function TObjSection.writestr(const s:string):PUInt;
+    function TObjSection.writestr(const s:string):TObjSectionOfs;
       var
         b: byte;
       begin
@@ -977,13 +979,13 @@ implementation
       end;
 
 
-    function TObjSection.WriteBytes(const s:string):PUInt;
+    function TObjSection.WriteBytes(const s:string):TObjSectionOfs;
       begin
         result:=Write(s[1],length(s));
       end;
 
 
-    function TObjSection.WriteZeros(l:longword):PUInt;
+    function TObjSection.WriteZeros(l:longword):TObjSectionOfs;
       var
         empty : array[0..1023] of byte;
       begin
@@ -1015,7 +1017,7 @@ implementation
       end;
 
 
-    procedure TObjSection.setDatapos(var dpos:PUInt);
+    procedure TObjSection.setDatapos(var dpos:TObjSectionOfs);
       begin
         if oso_Data in secoptions then
           begin
@@ -1038,7 +1040,7 @@ implementation
       end;
 
 
-    procedure TObjSection.alloc(l:PUInt);
+    procedure TObjSection.alloc(l:TObjSectionOfs);
       begin
 {$ifndef cpu64bitalu}
         if (qword(size)+l)>high(size) then
@@ -1051,19 +1053,19 @@ implementation
       end;
 
 
-    procedure TObjSection.addsymReloc(ofs:PUInt;p:TObjSymbol;Reloctype:TObjRelocationType);
+    procedure TObjSection.addsymReloc(ofs:TObjSectionOfs;p:TObjSymbol;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSymbol(ofs,p,reloctype));
       end;
 
 
-    procedure TObjSection.addsectionReloc(ofs:PUInt;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+    procedure TObjSection.addsectionReloc(ofs:TObjSectionOfs;aobjsec:TObjSection;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSection(ofs,aobjsec,reloctype));
       end;
 
 
-    procedure TObjSection.addrawReloc(ofs:PUInt;p:TObjSymbol;RawReloctype:byte);
+    procedure TObjSection.addrawReloc(ofs:TObjSectionOfs;p:TObjSymbol;RawReloctype:byte);
       begin
         ObjRelocations.Add(TObjRelocation.CreateRaw(ofs,p,RawReloctype));
       end;
