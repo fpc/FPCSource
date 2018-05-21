@@ -357,6 +357,9 @@ interface
         procedure append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
         procedure append_labelentry_dataptr_common(attr : tdwarf_attribute);
+{$ifdef i8086}
+        procedure append_seg_name(const name:string);
+{$endif i8086}
 
         procedure beforeappenddef(list:TAsmList;def:tdef);override;
         procedure afterappenddef(list:TAsmList;def:tdef);override;
@@ -1317,6 +1320,16 @@ implementation
       end;
 
 
+{$ifdef i8086}
+    procedure TDebugInfoDwarf.append_seg_name(const name:string);
+      begin
+        append_block1(DW_AT_segment,3);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_const2u)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_seg_name(name));
+      end;
+{$endif i8086}
+
+
     procedure TDebugInfoDwarf.append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
         {
@@ -2242,6 +2255,9 @@ implementation
             else
               procentry := def.mangledname;
 
+{$ifdef i8086}
+            append_seg_name(procentry);
+{$endif i8086}
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
