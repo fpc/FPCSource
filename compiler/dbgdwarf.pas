@@ -3615,6 +3615,13 @@ implementation
                         asmline.concat(tai_const.create_uleb128bit(1+sizeof(pint)));
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
                         asmline.concat(tai_const.create_type_sym(aitconst_ptr_unaligned,currlabel));
+{$ifdef i8086}
+                        { on i8086 we also emit an Open Watcom-specific 'set segment' op }
+                        asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
+                        asmline.concat(tai_const.create_uleb128bit(3));
+                        asmline.concat(tai_const.create_8bit(DW_LNE_set_segment));
+                        asmline.concat(tai_const.Create_seg_name(currlabel.Name));
+{$endif i8086}
                       end
                     else
                       begin
