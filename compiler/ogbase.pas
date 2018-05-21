@@ -395,7 +395,7 @@ interface
        procedure afteralloc;virtual;
        procedure afterwrite;virtual;
        procedure resetsections;
-       procedure layoutsections(var datapos:PUInt);
+       procedure layoutsections(var datapos:TObjSectionOfs);
        property Name:TString80 read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TObjSymbolList read FObjSymbolList;
@@ -1520,7 +1520,7 @@ implementation
       end;
 
 
-    procedure TObjData.layoutsections(var DataPos:PUInt);
+    procedure TObjData.layoutsections(var DataPos:TObjSectionOfs);
       var
         i: longint;
       begin
