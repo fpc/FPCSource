@@ -2422,6 +2422,10 @@ implementation
         tag : tdwarf_tag;
         has_high_reg : boolean;
         dreg,dreghigh : byte;
+{$ifdef i8086}
+        has_segment_sym_name : boolean=false;
+        segment_sym_name : TSymStr='';
+{$endif i8086}
       begin
         blocksize:=0;
         dreghigh:=0;
@@ -2509,6 +2513,10 @@ implementation
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
                         templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
+{$ifdef i8086}
+                        segment_sym_name:=sym.mangledname;
+                        has_segment_sym_name:=true;
+{$endif i8086}
                       end;
                   end;
                 paravarsym,
@@ -2625,6 +2633,10 @@ implementation
         if (vo_is_self in sym.varoptions) then
           append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
+{$ifdef i8086}
+        if has_segment_sym_name then
+          append_seg_name(segment_sym_name);
+{$endif i8086}
 
         templist.free;
 
