@@ -12504,7 +12504,6 @@ tests/test/tarray13.pp svneol=native#text/pascal
 tests/test/tarray14.pp svneol=native#text/pascal
 tests/test/tarray15.pp svneol=native#text/pascal
 tests/test/tarray16.pp svneol=native#text/pascal
-tests/test/tarray17.pp svneol=native#text/pascal
 tests/test/tarray2.pp svneol=native#text/plain
 tests/test/tarray3.pp svneol=native#text/plain
 tests/test/tarray4.pp svneol=native#text/plain

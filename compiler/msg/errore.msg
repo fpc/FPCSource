@@ -436,7 +436,7 @@ scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified co
 #
 # Parser
 #
-# 03347 is the last used one
+# 03346 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1575,11 +1575,6 @@ parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345_E_The HardFloat d
 parser_e_invalid_internal_function_index=03346_E_Index $1 is not a valid internal function index
 % The index specified for the \var{compilerproc} directive is not an index that's recognized
 % by the compiler.
-parser_e_no_static_array_const_in_dynarray_const=03347_E_Static array constants are not allowed inside dynamic array constants for Delphi modes
-% Delphi does not correctly parse static array constants inside dynamic array constants. As it
-% is also using different syntaxes for static array constants and dynamic array constants it isn't
-% clear either how the syntax would look like. Thus static array constants inside dynamic array
-% constants are prohibited for Delphi modes.
 %
 %
 % \end{description}
