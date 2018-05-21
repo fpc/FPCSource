@@ -74,9 +74,9 @@ unit optloop;
       end;
       preplaceinfo = ^treplaceinfo;
 
-    function checkbreakcontinue(var n:tnode; arg: pointer): foreachnoderesult;
+    function checkcontrollflowstatements(var n:tnode; arg: pointer): foreachnoderesult;
       begin
-        if n.nodetype in [breakn,continuen] then
+        if n.nodetype in [breakn,continuen,goton,labeln,exitn,raisen] then
           result:=fen_norecurse_true
         else
           result:=fen_false;
@@ -105,7 +105,7 @@ unit optloop;
         unrollblock : tblocknode;
         getridoffor : boolean;
         replaceinfo : treplaceinfo;
-        usesbreakcontinue : boolean;
+        hascontrollflowstatements : boolean;
       begin
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
@@ -129,7 +129,7 @@ unit optloop;
                 else
                   counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
 
-                usesbreakcontinue:=foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil);
+                hascontrollflowstatements:=foreachnodestatic(tfornode(node).t2,@checkcontrollflowstatements,nil);
 
                 { don't unroll more than we need,
 
@@ -143,7 +143,7 @@ unit optloop;
                 unrollblock:=internalstatements(unrollstatement);
 
                 { can we get rid completly of the for ? }
-                getridoffor:=(unrolls=counts) and not(usesbreakcontinue) and
+                getridoffor:=(unrolls=counts) and not(hascontrollflowstatements) and
                   { TP/Macpas allows assignments to the for-variables, so we cannot get rid of the for }
                   ([m_tp7,m_mac]*current_settings.modeswitches=[]);
 
