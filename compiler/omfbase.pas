@@ -2303,7 +2303,7 @@ implementation
       FixData: Byte;
     begin
       if (DataRecordOffset<0) or (DataRecordOffset>1023) then
-        internalerror(2015040501);
+        internalerror(2015040505);
       Locat:=$8000+(Ord(Mode) shl 14)+(Ord(LocationType) shl 10)+DataRecordOffset;
       { unlike other fields in the OMF format, this one is big endian }
       RawRecord.RawData[Offset]:=Byte(Locat shr 8);
