@@ -354,6 +354,8 @@ interface
       procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
 
+      procedure MaybeGo32;
+
       property Alignment: TOmfSegmentAlignment read FAlignment write FAlignment;
       property Combination: TOmfSegmentCombination read FCombination write FCombination;
       property Use: TOmfSegmentUse read FUse write FUse;
@@ -1568,6 +1570,7 @@ implementation
       Big: Boolean;
       NextOfs: Integer;
     begin
+      MaybeGo32;
       if Is32Bit then
         begin
           RawRecord.RecordType:=RT_SEGDEF32;
@@ -1610,6 +1613,12 @@ implementation
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,OverlayNameIndex);
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
+    end;
+
+  procedure TOmfRecord_SEGDEF.MaybeGo32;
+    begin
+      if SegmentLength>65536 then
+        Is32Bit:=true;
     end;
 
   { TOmfRecord_GRPDEF }
