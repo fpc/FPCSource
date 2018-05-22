@@ -196,7 +196,13 @@ interface
        oscs_largest
      );
 
+{$ifdef i8086}
+     { allow 32-bit sections on i8086. Useful for the dwarf debug info, as well
+       as to allow linking 32-bit obj modules. }
+     TObjSectionOfs = LongWord;
+{$else i8086}
      TObjSectionOfs = PUInt;
+{$endif i8086}
 
      TObjSectionGroup = class;
 
@@ -271,6 +277,7 @@ interface
        FSecOptions : TObjSectionOptions;
        FComdatSelection : TObjSectionComdatSelection;
        FCachedFullName : pshortstring;
+       FSizeLimit : TObjSectionOfs;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
        procedure SectionTooLargeError;
      public
@@ -313,6 +320,7 @@ interface
        function  MemPosStr(AImageBase: qword): string;virtual;
        property  Data:TDynamicArray read FData;
        property  SecOptions:TObjSectionOptions read FSecOptions write SetSecOptions;
+       property  SizeLimit:TObjSectionOfs read FSizeLimit write FSizeLimit;
      end;
      TObjSectionClass = class of TObjSection;
 
@@ -921,6 +929,11 @@ implementation
         Datapos:=0;
         mempos:=0;
         FData:=Nil;
+{$ifdef i8086}
+        FSizeLimit:=high(word);
+{$else i8086}
+        FSizeLimit:=high(TObjSectionOfs);
+{$endif i8086}
         { Setting the secoptions allocates Data if needed }
         secoptions:=Aoptions;
         secalign:=Aalign;
@@ -968,7 +981,7 @@ implementation
             if Size<>Data.size then
               internalerror(200602281);
 {$ifndef cpu64bitalu}
-            if (qword(size)+l)>high(size) then
+            if (qword(size)+l)>SizeLimit then
               SectionTooLargeError;
 {$endif}
             Data.write(d,l);
@@ -1053,7 +1066,7 @@ implementation
     procedure TObjSection.alloc(l:TObjSectionOfs);
       begin
 {$ifndef cpu64bitalu}
-        if (qword(size)+l)>high(size) then
+        if (qword(size)+l)>SizeLimit then
           SectionTooLargeError;
 {$endif}
         if oso_sparse_data in SecOptions then
