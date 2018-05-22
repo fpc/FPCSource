@@ -271,6 +271,8 @@ begin
     LinkRes.Add('debug codeview')
   else if cs_debuginfo in current_settings.moduleswitches then
     LinkRes.Add('debug watcom all');
+  if cs_link_separate_dbg_file in current_settings.globalswitches then
+    LinkRes.Add('option symfile');
 
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
