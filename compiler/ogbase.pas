@@ -696,6 +696,7 @@ interface
 
     function align_aword(v:aword;a:longword):aword;
     function align_qword(v:qword;a:longword):qword;
+    function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
 
 implementation
 
@@ -726,6 +727,15 @@ implementation
 
 
     function align_qword(v:qword;a:longword):qword;
+      begin
+        if a<=1 then
+          result:=v
+        else
+          result:=((v+a-1) div a) * a;
+      end;
+
+
+    function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
       begin
         if a<=1 then
           result:=v
@@ -1421,14 +1431,14 @@ implementation
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402253);
-        CurrObjSec.alloc(align_aword(CurrObjSec.size,len)-CurrObjSec.size);
+        CurrObjSec.alloc(align_objsecofs(CurrObjSec.size,len)-CurrObjSec.size);
       end;
 
 
     procedure TObjData.section_afteralloc(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
-          alloc(align_aword(size,secalign)-size);
+          alloc(align_objsecofs(size,secalign)-size);
       end;
 
 
@@ -1437,7 +1447,7 @@ implementation
         with TObjSection(p) do
           begin
             if assigned(Data) then
-              writezeros(align_aword(size,secalign)-size);
+              writezeros(align_objsecofs(size,secalign)-size);
           end;
       end;
 
