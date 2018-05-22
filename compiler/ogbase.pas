@@ -255,18 +255,18 @@ interface
         procedure SetType(v:TObjRelocationType);
      public
         DataOffset,
-        orgsize    : aword;  { COFF: original size of the symbol to relocate }
-                             { ELF: explicit addend }
+        orgsize    : TObjSectionOfs;  { COFF: original size of the symbol to relocate }
+                                      { ELF: explicit addend }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
         group      : TObjSectionGroup; { only used if symbol=nil and objsection=nil }
         ftype      : byte;
         size       : byte;
         flags      : byte;
-        constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
-        constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
-        constructor CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
-        constructor CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
+        constructor CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
+        constructor CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        constructor CreateGroup(ADataOffset:TObjSectionOfs;grp:TObjSectionGroup;Atyp:TObjRelocationType);
+        constructor CreateRaw(ADataOffset:TObjSectionOfs;s:TObjSymbol;ARawType:byte);
         function TargetName:TSymStr;
         property typ: TObjRelocationType read GetType write SetType;
      end;
@@ -838,7 +838,7 @@ implementation
                               TObjRelocation
 ****************************************************************************}
 
-    constructor TObjRelocation.CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSymbol(ADataOffset:TObjSectionOfs;s:TObjSymbol;Atyp:TObjRelocationType);
       begin
         if not assigned(s) then
           internalerror(200603034);
@@ -851,7 +851,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSection(ADataOffset:TObjSectionOfs;aobjsec:TObjSection;Atyp:TObjRelocationType);
       begin
         if not assigned(aobjsec) then
           internalerror(200603036);
@@ -864,7 +864,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateGroup(ADataOffset:aword;grp:TObjSectionGroup;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateGroup(ADataOffset:TObjSectionOfs;grp:TObjSectionGroup;Atyp:TObjRelocationType);
       begin
         if not assigned(grp) then
           internalerror(2015111201);
@@ -877,7 +877,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateRaw(ADataOffset:aword;s:TObjSymbol;ARawType:byte);
+    constructor TObjRelocation.CreateRaw(ADataOffset:TObjSectionOfs;s:TObjSymbol;ARawType:byte);
       begin
         { nil symbol is allowed here }
         DataOffset:=ADataOffset;
