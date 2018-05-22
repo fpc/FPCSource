@@ -586,7 +586,10 @@ implementation
         if atype=sec_stack then
           TOmfObjSection(Result).FCombination:=scStack
         else if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges] then
-          TOmfObjSection(Result).FUse:=suUse32;
+          begin
+            TOmfObjSection(Result).FUse:=suUse32;
+            TOmfObjSection(Result).SizeLimit:=high(longword);
+          end;
         if section_belongs_to_dgroup(atype) then
           TOmfObjSection(Result).FPrimaryGroup:='DGROUP';
       end;
