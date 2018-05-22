@@ -410,6 +410,8 @@ interface
       procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
 
+      procedure MaybeGo32;
+
       property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
       property BaseGroupIndex: Integer read FBaseGroupIndex write FBaseGroupIndex;
       property BaseSegmentIndex: Integer read FBaseSegmentIndex write FBaseSegmentIndex;
@@ -1718,6 +1720,7 @@ implementation
       Len,LastIncludedIndex,NextOfs,I: Integer;
       PubName: TOmfPublicNameElement;
     begin
+      MaybeGo32;
       if Is32Bit then
         RawRecord.RecordType:=RT_PUBDEF32
       else
@@ -1768,6 +1771,22 @@ implementation
 
       { update NextIndex }
       NextIndex:=LastIncludedIndex+1;
+    end;
+
+  procedure TOmfRecord_PUBDEF.MaybeGo32;
+    var
+      I: Integer;
+      PubName: TOmfPublicNameElement;
+    begin
+      for I:=0 to PublicNames.Count-1 do
+        begin
+          PubName:=TOmfPublicNameElement(PublicNames[I]);
+          if PubName.PublicOffset>$ffff then
+            begin
+              Is32Bit:=true;
+              exit;
+            end;
+        end;
     end;
 
   { TOmfExternalNameElement }
