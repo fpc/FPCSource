@@ -762,6 +762,7 @@ implementation
         ChunkFixupStart,ChunkFixupEnd: Integer;
         SegIndex: Integer;
         NextOfs: Integer;
+        Is32BitLEDATA: Boolean;
         I: Integer;
       begin
         if (oso_data in sec.SecOptions) then
@@ -792,11 +793,28 @@ implementation
                   Dec(ChunkFixupEnd);
                 end;
               { write LEDATA record }
-              RawRecord.RecordType:=RT_LEDATA;
+              Is32BitLEDATA:=TOmfObjSection(sec).Use=suUse32;
+              if Is32BitLEDATA then
+                RawRecord.RecordType:=RT_LEDATA32
+              else
+                RawRecord.RecordType:=RT_LEDATA;
               NextOfs:=RawRecord.WriteIndexedRef(0,SegIndex);
-              RawRecord.RawData[NextOfs]:=Byte(ChunkStart);
-              RawRecord.RawData[NextOfs+1]:=Byte(ChunkStart shr 8);
-              Inc(NextOfs,2);
+              if Is32BitLEDATA then
+                begin
+                  RawRecord.RawData[NextOfs]:=Byte(ChunkStart);
+                  RawRecord.RawData[NextOfs+1]:=Byte(ChunkStart shr 8);
+                  RawRecord.RawData[NextOfs+2]:=Byte(ChunkStart shr 16);
+                  RawRecord.RawData[NextOfs+3]:=Byte(ChunkStart shr 24);
+                  Inc(NextOfs,4);
+                end
+              else
+                begin
+                  if ChunkStart>$ffff then
+                    internalerror(2018052201);
+                  RawRecord.RawData[NextOfs]:=Byte(ChunkStart);
+                  RawRecord.RawData[NextOfs+1]:=Byte(ChunkStart shr 8);
+                  Inc(NextOfs,2);
+                end;
               sec.data.read(RawRecord.RawData[NextOfs], ChunkLen);
               Inc(NextOfs, ChunkLen);
               RawRecord.RecordLength:=NextOfs+1;
