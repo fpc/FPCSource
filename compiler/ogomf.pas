@@ -122,7 +122,7 @@ interface
         FGroups: TFPHashObjectList;
         procedure AddSegment(const name,segclass,ovlname: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
-          Use: TOmfSegmentUse; Size: aword);
+          Use: TOmfSegmentUse; Size: TObjSectionOfs);
         procedure AddGroup(const groupname: string; seglist: array of const);
         procedure AddGroup(const groupname: string; seglist: TSegmentList);
         procedure WriteSections(Data:TObjData);
@@ -687,7 +687,7 @@ implementation
 
     procedure TOmfObjOutput.AddSegment(const name, segclass, ovlname: string;
         Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
-        Use: TOmfSegmentUse; Size: aword);
+        Use: TOmfSegmentUse; Size: TObjSectionOfs);
       var
         s: TOmfRecord_SEGDEF;
       begin
