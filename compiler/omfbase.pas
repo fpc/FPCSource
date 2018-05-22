@@ -1572,7 +1572,7 @@ implementation
         begin
           RawRecord.RecordType:=RT_SEGDEF32;
           if SegmentLength>4294967296 then
-            internalerror(2015040302);
+            internalerror(2015040307);
           Big:=SegmentLength=4294967296;
         end
       else
