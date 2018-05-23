@@ -1767,7 +1767,7 @@ implementation
             end;
             if RelocType=RELOC_NONE then
               begin
-                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with mode '+tostr(ord(Fixup.Mode))+' in external reference to '+sym.Name);
+                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with mode '+tostr(ord(Fixup.Mode)));
                 exit;
               end;
             reloc:=TOmfRelocation.CreateSection(Fixup.LocationOffset,target_section,RelocType);
@@ -1832,7 +1832,7 @@ implementation
             end;
             if RelocType=RELOC_NONE then
               begin
-                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with mode '+tostr(ord(Fixup.Mode))+' in external reference to '+sym.Name);
+                InputError('Unsupported fixup location type '+tostr(Ord(Fixup.LocationType))+' with mode '+tostr(ord(Fixup.Mode)));
                 exit;
               end;
             reloc:=TOmfRelocation.CreateGroup(Fixup.LocationOffset,target_group,RelocType);
