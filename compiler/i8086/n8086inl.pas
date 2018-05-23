@@ -69,7 +69,7 @@ implementation
            in_faraddr_x:
              result:=typecheck_faraddr;
            else
-             inherited;
+             result:=inherited;
          end;
        end;
 
