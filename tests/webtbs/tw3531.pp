@@ -1,4 +1,4 @@
-{ %fail }
+{ %NORUN }
 
 { Source provided for Free Pascal Bug Report 3531 }
 { Submitted by "Christian Iversen" on  2005-01-07 }
