@@ -41,6 +41,7 @@ interface
 
     uses
       cclasses,globtype,
+      cgbase,
       aasmbase,aasmtai,aasmdata,
       symbase,symconst,symtype,symdef,symsym,
       finput,
@@ -360,6 +361,7 @@ interface
         procedure append_pointerclass(list:TAsmList;def:tpointerdef);
 {$ifdef i8086}
         procedure append_seg_name(const name:string);
+        procedure append_seg_reg(const segment_register:tregister);
 {$endif i8086}
 
         procedure beforeappenddef(list:TAsmList;def:tdef);override;
@@ -462,7 +464,7 @@ implementation
     uses
       sysutils,cutils,cfileutl,constexp,
       version,globals,verbose,systems,
-      cpubase,cpuinfo,cgbase,paramgr,
+      cpubase,cpuinfo,paramgr,
       fmodule,
       defutil,symtable,symcpu,ppu
 {$ifdef OMFOBJSUPPORT}
@@ -1351,6 +1353,22 @@ implementation
         append_block1(DW_AT_segment,3);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_const2u)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_seg_name(name));
+      end;
+
+    procedure TDebugInfoDwarf.append_seg_reg(const segment_register: tregister);
+      var
+        dreg: longint;
+        blocksize: longint;
+        templist: TAsmList;
+      begin
+        dreg:=dwarf_reg(segment_register);
+        templist:=TAsmList.create;
+        templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+        templist.concat(tai_const.create_uleb128bit(dreg));
+        blocksize:=1+Lengthuleb128(dreg);
+        append_block1(DW_AT_segment,blocksize);
+        current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
+        templist.free;
       end;
 {$endif i8086}
 
@@ -2451,6 +2469,7 @@ implementation
 {$ifdef i8086}
         has_segment_sym_name : boolean=false;
         segment_sym_name : TSymStr='';
+        segment_reg: TRegister=NR_NO;
 {$endif i8086}
       begin
         blocksize:=0;
@@ -2568,6 +2587,9 @@ implementation
                             templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
                             blocksize:=1+Lengthuleb128(dreg)+LengthSleb128(sym.localloc.reference.offset+offset);
                           end;
+{$ifdef i8086}
+                        segment_reg:=sym.localloc.reference.segment;
+{$endif i8086}
 {$ifndef gdb_supports_DW_AT_variable_parameter}
                         { Parameters which are passed by reference. (var and the like)
                           Hide the reference-pointer and dereference the pointer
@@ -2671,7 +2693,9 @@ implementation
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
 {$ifdef i8086}
         if has_segment_sym_name then
-          append_seg_name(segment_sym_name);
+          append_seg_name(segment_sym_name)
+        else if segment_reg<>NR_NO then
+          append_seg_reg(segment_reg);
 {$endif i8086}
 
         templist.free;
