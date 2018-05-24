@@ -362,6 +362,8 @@ interface
 
         function get_def_dwarf_labs(def:tdef): PDwarfHashSetItem;
 
+        function is_fbreg(reg:tregister):boolean;
+
         { Convenience version of the method below, so the compiler creates the
           tvarrec for us (must only pass one element in the last parameter).  }
         procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const values: array of const);
@@ -1037,6 +1039,16 @@ implementation
               deftowritelist.Add(def);
             defnumberlist.Add(def);
           end;
+      end;
+
+    function TDebugInfoDwarf.is_fbreg(reg: tregister): boolean;
+      begin
+{$ifdef i8086}
+        result:=reg=NR_BP;
+{$else i8086}
+        { always return false, because we don't emit DW_AT_frame_base attributes yet }
+        result:=false;
+{$endif i8086}
       end;
 
     function TDebugInfoDwarf.def_dwarf_lab(def: tdef): tasmsymbol;
@@ -2589,19 +2601,28 @@ implementation
                     }
                     if sym.localloc.loc<> LOC_INVALID then
                       begin
-                        dreg:=dwarf_reg(sym.localloc.reference.base);
-                        if dreg<=31 then
+                        if is_fbreg(sym.localloc.reference.base) then
                           begin
-                            templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_fbreg)));
                             templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
                             blocksize:=1+Lengthsleb128(sym.localloc.reference.offset+offset);
                           end
                         else
                           begin
-                            templist.concat(tai_const.create_8bit(ord(DW_OP_bregx)));
-                            templist.concat(tai_const.create_uleb128bit(dreg));
-                            templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
-                            blocksize:=1+Lengthuleb128(dreg)+LengthSleb128(sym.localloc.reference.offset+offset);
+                            dreg:=dwarf_reg(sym.localloc.reference.base);
+                            if dreg<=31 then
+                              begin
+                                templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
+                                templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
+                                blocksize:=1+Lengthsleb128(sym.localloc.reference.offset+offset);
+                              end
+                            else
+                              begin
+                                templist.concat(tai_const.create_8bit(ord(DW_OP_bregx)));
+                                templist.concat(tai_const.create_uleb128bit(dreg));
+                                templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
+                                blocksize:=1+Lengthuleb128(dreg)+LengthSleb128(sym.localloc.reference.offset+offset);
+                              end;
                           end;
 {$ifdef i8086}
                         segment_reg:=sym.localloc.reference.segment;
