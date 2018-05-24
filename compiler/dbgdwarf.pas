@@ -197,6 +197,11 @@ interface
         DW_AT_HP_all_variables_modifiable := $2019,
         DW_AT_HP_linkage_name := $201a,DW_AT_HP_prof_flags := $201b,
 
+        { WATCOM extensions. }
+        DW_AT_WATCOM_memory_model := $2082,
+        DW_AT_WATCOM_references_start := $2083,
+        DW_AT_WATCOM_parm_entry := $2084,
+
         { GNU extensions.   }
         DW_AT_sf_names := $2101,DW_AT_src_info := $2102,
         DW_AT_mac_info := $2103,DW_AT_src_coords := $2104,
