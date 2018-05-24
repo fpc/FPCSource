@@ -357,6 +357,7 @@ interface
         procedure append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
         procedure append_labelentry_dataptr_common(attr : tdwarf_attribute);
+        procedure append_pointerclass(list:TAsmList;def:tpointerdef);
 {$ifdef i8086}
         procedure append_seg_name(const name:string);
 {$endif i8086}
@@ -463,7 +464,7 @@ implementation
       version,globals,verbose,systems,
       cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
-      defutil,symtable,ppu
+      defutil,symtable,symcpu,ppu
 {$ifdef OMFOBJSUPPORT}
       ,dbgcodeview
 {$endif OMFOBJSUPPORT}
@@ -1319,6 +1320,30 @@ implementation
           AddConstToAbbrev(ord(DW_FORM_data4));
       end;
 
+    procedure TDebugInfoDwarf.append_pointerclass(list: TAsmList;
+      def: tpointerdef);
+      begin
+{$ifdef i8086}
+        case tcpupointerdef(def).x86pointertyp of
+          x86pt_near,
+          { todo: is there a way to specify these somehow? }
+          x86pt_near_cs,x86pt_near_ds,x86pt_near_ss,
+          x86pt_near_es,x86pt_near_fs,x86pt_near_gs:
+            append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_near16]);
+          x86pt_far:
+            append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_far16]);
+          x86pt_huge:
+            append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_huge16]);
+          else
+            internalerror(2018052401);
+        end;
+{$else i8086}
+        { Theoretically, we could do this, but it might upset some debuggers, }
+        { even though it's part of the DWARF standard. }
+        { append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_none]); }
+{$endif i8086}
+      end;
+
 
 {$ifdef i8086}
     procedure TDebugInfoDwarf.append_seg_name(const name:string);
@@ -1813,6 +1838,7 @@ implementation
     procedure TDebugInfoDwarf.appenddef_pointer(list:TAsmList;def:tpointerdef);
       begin
         append_entry(DW_TAG_pointer_type,false,[]);
+        append_pointerclass(list,def);
         if not(is_voidpointer(def)) then
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.pointeddef));
         finish_entry;
@@ -3502,7 +3528,7 @@ implementation
       end;
 
 
-    procedure tdebuginfodwarf.append_visibility(vis: tvisibility);
+        procedure TDebugInfoDwarf.append_visibility(vis: tvisibility);
       begin
         case vis of
           vis_private,
