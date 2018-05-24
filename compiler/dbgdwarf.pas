@@ -2533,14 +2533,14 @@ implementation
                           begin
                             templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
                             templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
-                            blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+                            blocksize:=1+Lengthsleb128(sym.localloc.reference.offset+offset);
                           end
                         else
                           begin
                             templist.concat(tai_const.create_8bit(ord(DW_OP_bregx)));
                             templist.concat(tai_const.create_uleb128bit(dreg));
-                            templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset));
-                            blocksize:=1+Lengthuleb128(dreg)+LengthSleb128(sym.localloc.reference.offset);
+                            templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
+                            blocksize:=1+Lengthuleb128(dreg)+LengthSleb128(sym.localloc.reference.offset+offset);
                           end;
 {$ifndef gdb_supports_DW_AT_variable_parameter}
                         { Parameters which are passed by reference. (var and the like)
