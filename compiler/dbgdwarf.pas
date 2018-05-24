@@ -377,6 +377,7 @@ interface
         procedure append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
         procedure append_labelentry_dataptr_common(attr : tdwarf_attribute);
         procedure append_pointerclass(list:TAsmList;def:tpointerdef);
+        procedure append_proc_frame_base(list:TAsmList;def:tprocdef);
 {$ifdef i8086}
         procedure append_seg_name(const name:string);
         procedure append_seg_reg(const segment_register:tregister);
@@ -1374,6 +1375,39 @@ implementation
 {$endif i8086}
       end;
 
+    procedure TDebugInfoDwarf.append_proc_frame_base(list: TAsmList;
+      def: tprocdef);
+{$ifdef i8086}
+      var
+        dreg: longint;
+        blocksize: longint;
+        templist: TAsmList;
+      begin
+        dreg:=dwarf_reg(NR_BP);
+        templist:=TAsmList.create;
+        if dreg<=31 then
+          begin
+            templist.concat(tai_const.create_8bit(ord(DW_OP_reg0)+dreg));
+            blocksize:=1;
+          end
+        else
+          begin
+            templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+            templist.concat(tai_const.create_uleb128bit(dreg));
+            blocksize:=1+Lengthuleb128(dreg);
+          end;
+        append_block1(DW_AT_frame_base,blocksize);
+        current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
+        templist.free;
+      end;
+{$else i8086}
+      begin
+        { problem: base reg isn't known here
+          DW_AT_frame_base,DW_FORM_block1,1
+        }
+      end;
+{$endif i8086}
+
 
 {$ifdef i8086}
     procedure TDebugInfoDwarf.append_seg_name(const name:string);
@@ -2258,20 +2292,12 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
         if not is_objc_class_or_protocol(def.struct) then
           append_entry(DW_TAG_subprogram,true,
-            [DW_AT_name,DW_FORM_string,symname(def.procsym, false)+#0
-            { data continues below }
-            { problem: base reg isn't known here
-              DW_AT_frame_base,DW_FORM_block1,1
-            }
-            ])
+            [DW_AT_name,DW_FORM_string,symname(def.procsym, false)+#0])
         else
           append_entry(DW_TAG_subprogram,true,
-            [DW_AT_name,DW_FORM_string,def.mangledname+#0
-            { data continues below }
-            { problem: base reg isn't known here
-              DW_AT_frame_base,DW_FORM_block1,1
-            }
-            ]);
+            [DW_AT_name,DW_FORM_string,def.mangledname+#0]);
+
+        append_proc_frame_base(list,def);
 
         { Append optional flags. }
 
