@@ -256,6 +256,17 @@ interface
         DW_ADDR_far32 := 5
       );
 
+      { values of DW_AT_WATCOM_memory_model }
+      Tdwarf_watcom_memory_model = (
+        DW_WATCOM_MEMORY_MODEL_none := 0,
+        DW_WATCOM_MEMORY_MODEL_flat := 1,
+        DW_WATCOM_MEMORY_MODEL_small := 2,
+        DW_WATCOM_MEMORY_MODEL_medium := 3,
+        DW_WATCOM_MEMORY_MODEL_compact := 4,
+        DW_WATCOM_MEMORY_MODEL_large := 5,
+        DW_WATCOM_MEMORY_MODEL_huge := 6
+      );
+
       TDwarfFile = record
         Index: integer;
         Name: PChar;
