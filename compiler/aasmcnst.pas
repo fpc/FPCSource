@@ -960,7 +960,14 @@ implementation
            new_section(prelist,section,secname,alignment);
          end
        else if tcalo_new_section in options then
-         new_section(prelist,section,secname,alignment)
+         begin
+           { insert ait_cutobject for smart-linking on targets
+             that do not support smarlinking based on sections,
+             like msdos }
+           if not (tf_smartlink_sections in target_info.flags) then
+             maybe_new_object_file(prelist);
+           new_section(prelist,section,secname,alignment);
+         end
        else
          prelist.concat(cai_align.Create(alignment));
 
