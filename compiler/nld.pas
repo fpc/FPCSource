@@ -596,6 +596,14 @@ implementation
         if codegenerror then
           exit;
 
+        { just in case the typecheckpass of right optimized something here }
+        if nf_assign_done_in_right in flags then
+          begin
+            result:=right;
+            right:=nil;
+            exit;
+          end;
+
         { tp procvar support, when we don't expect a procvar
           then we need to call the procvar }
         if (left.resultdef.typ<>procvardef) then
