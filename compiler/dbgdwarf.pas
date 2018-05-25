@@ -2307,6 +2307,13 @@ implementation
         cc:=dwarf_calling_convention(def);
         if (cc<>DW_CC_normal) then
           append_attribute(DW_AT_calling_convention,DW_FORM_data1,[ord(cc)]);
+{$ifdef i8086}
+        { Call model (near or far). Open Watcom compatible. }
+        if tcpuprocdef(def).is_far then
+          append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_far16])
+        else
+          append_attribute(DW_AT_address_class,DW_FORM_data1,[DW_ADDR_none]);
+{$endif i8086}
         { Externally visible.  }
         if (po_global in def.procoptions) and
            (def.parast.symtablelevel<=normal_function_level) then
