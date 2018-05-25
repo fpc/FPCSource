@@ -295,6 +295,7 @@ interface
         procedure FillHeaderData;
         function writeExe:boolean;
         function writeCom:boolean;
+        function writeDebugElf:boolean;
         property ExeUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
         property Header: TMZExeHeader read FHeader;
@@ -320,7 +321,7 @@ implementation
        SysUtils,
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
-       ogmap,owomflib,
+       ogmap,owomflib,elfbase,
        version
        ;
 
@@ -2513,6 +2514,39 @@ implementation
                   end;
               end;
           end;
+        Result:=True;
+      end;
+
+    function TMZExeOutput.writeDebugElf: boolean;
+      var
+        ElfHeader: TElf32header;
+      begin
+        FillChar(ElfHeader,SizeOf(ElfHeader),0);
+        ElfHeader.e_ident[EI_MAG0]:=ELFMAG0; { = #127'ELF' }
+        ElfHeader.e_ident[EI_MAG1]:=ELFMAG1;
+        ElfHeader.e_ident[EI_MAG2]:=ELFMAG2;
+        ElfHeader.e_ident[EI_MAG3]:=ELFMAG3;
+        ElfHeader.e_ident[EI_CLASS]:=ELFCLASS32;
+        ElfHeader.e_ident[EI_DATA]:=ELFDATA2LSB;
+        ElfHeader.e_ident[EI_VERSION]:=1;
+        ElfHeader.e_ident[EI_OSABI]:=ELFOSABI_NONE;
+        ElfHeader.e_ident[EI_ABIVERSION]:=0;
+        ElfHeader.e_type:=ET_EXEC;
+        ElfHeader.e_machine:=EM_386;
+        ElfHeader.e_version:=1;
+        ElfHeader.e_entry:=0;
+        ElfHeader.e_phoff:=0;
+        ElfHeader.e_shoff:=SizeOf(ElfHeader);
+        ElfHeader.e_flags:=0;
+        ElfHeader.e_ehsize:=SizeOf(ElfHeader);
+        ElfHeader.e_phentsize:=SizeOf(TElf32proghdr);
+        ElfHeader.e_phnum:=0;
+        ElfHeader.e_shentsize:=SizeOf(TElf32sechdr);
+        ElfHeader.e_shnum:=6;
+        ElfHeader.e_shstrndx:=5;
+
+        {todo: implement}
+
         Result:=True;
       end;
 
