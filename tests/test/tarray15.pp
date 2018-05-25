@@ -2,7 +2,7 @@ program tarray15;
 
 {$define target_supports_rodata}
 {$if defined(msdos)}
-{$undefine target_supports_rodata}
+{$undef target_supports_rodata}
 {$endif}
 
 {$mode  objfpc}
