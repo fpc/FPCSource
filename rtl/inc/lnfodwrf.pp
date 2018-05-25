@@ -1298,6 +1298,9 @@ begin
   source := '';
   GetLineInfo:=false;
 
+  if not OpenDwarf(codepointer(addr)) then
+    exit;
+
 {$ifdef CPUI8086}
   {$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
     segment := (addr shr 16) - e.processsegment;
@@ -1306,9 +1309,6 @@ begin
     segment := CSeg - e.processsegment;
   {$endif}
 {$endif CPUI8086}
-
-  if not OpenDwarf(codepointer(addr)) then
-    exit;
 
   addr := addr - e.processaddress;
 
