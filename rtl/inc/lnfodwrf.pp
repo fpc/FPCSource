@@ -1135,7 +1135,14 @@ procedure SkipAttr(form : QWord);
               ReadNext(dummy,4);
           end
         else
-          ReadNext(dummy,header64.address_size);
+          begin
+            { address size for DW_FORM_ref_addr must be at least 32 bits }
+            { this is compatible with Open Watcom on i8086 }
+            if header64.address_size<4 then
+              ReadNext(dummy,4)
+            else
+              ReadNext(dummy,header64.address_size);
+          end;
       DW_FORM_strp,
       DW_FORM_sec_offset:
         if isdwarf64 then
