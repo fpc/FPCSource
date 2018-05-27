@@ -3944,13 +3944,21 @@ begin
           'A'..'F': u:=u*16+ord(c)-ord('A')+10;
           else break;
           end;
-          if u>$ffff then
+          if u>$10FFFF then
             RangeError(20170523115712);
           inc(p);
         until false;
         if p=StartP then
           RaiseInternalError(20170207164956);
-        AddHash(u);
+        if u>$ffff then
+          begin
+          // split into two
+          dec(u,$10000);
+          AddHash($D800+(u shr 10));
+          AddHash($DC00+(u and $3ff));
+          end
+        else
+          AddHash(u);
         end
       else
         begin

@@ -4083,25 +4083,27 @@ end;
 procedure TTestResolver.TestStringOperators;
 begin
   StartProgram(false);
-  Add('var');
-  Add('  i,j:string;');
-  Add('  k:char;');
-  Add('  w:widechar;');
-  Add('begin');
-  Add('  i:='''';');
-  Add('  i:=''''+'''';');
-  Add('  i:=k+'''';');
-  Add('  i:=''''+k;');
-  Add('  i:=''a''+j;');
-  Add('  i:=''abc''+j;');
-  Add('  k:=#65;');
-  Add('  k:=#$42;');
-  Add('  k:=''a'';');
-  Add('  k:='''''''';');
-  Add('  k:=j[1];');
-  Add('  w:=k;');
-  Add('  w:=#66;');
-  Add('  w:=#6666;');
+  Add([
+  'var',
+  '  i,j:string;',
+  '  k:char;',
+  '  w:widechar;',
+  'begin',
+  '  i:='''';',
+  '  i:=''''+'''';',
+  '  i:=k+'''';',
+  '  i:=''''+k;',
+  '  i:=''a''+j;',
+  '  i:=''abc''+j;',
+  '  k:=#65;',
+  '  k:=#$42;',
+  '  k:=''a'';',
+  '  k:='''''''';',
+  '  k:=j[1];',
+  '  w:=k;',
+  '  w:=#66;',
+  '  w:=#6666;',
+  '']);
   ParseProgram;
 end;
 
