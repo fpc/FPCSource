@@ -3537,16 +3537,18 @@ end;
 procedure TTestResolver.TestEnum_Str;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TFlag = (red, green, blue);');
-  Add('var');
-  Add('  f: TFlag;');
-  Add('  i: longint;');
-  Add('  aString: string;');
-  Add('begin');
-  Add('  aString:=str(f);');
-  Add('  aString:=str(f:3);');
-  Add('  str(f,aString);');
+  Add([
+  'type',
+  '  TFlag = (red, green, blue);',
+  'var',
+  '  f: TFlag;',
+  '  i: longint;',
+  '  aString: string;',
+  'begin',
+  '  aString:=str(f);',
+  '  aString:=str(f:3);',
+  '  str(f,aString);',
+  '  writestr(astring,f,i);']);
   ParseProgram;
 end;
 

@@ -2019,7 +2019,7 @@ function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
       begin
       N:=LowerCase(TPrimitiveExpr(P).Value);
       // We should actually resolve this to system.NNN
-      Result:=(N='write') or (N='str') or (N='writeln');
+      Result:=(N='write') or (N='str') or (N='writeln') or (N='writestr');
       end;
   end;
 
