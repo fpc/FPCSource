@@ -3811,36 +3811,39 @@ end;
 procedure TTestModule.TestEnum_Functions;
 begin
   StartProgram(false);
-  Add('type TMyEnum = (Red, Green);');
-  Add('var');
-  Add('  e: TMyEnum;');
-  Add('  i: longint;');
-  Add('  s: string;');
-  Add('  b: boolean;');
-  Add('begin');
-  Add('  i:=ord(red);');
-  Add('  i:=ord(green);');
-  Add('  i:=ord(e);');
-  Add('  i:=ord(b);');
-  Add('  e:=low(tmyenum);');
-  Add('  e:=low(e);');
-  Add('  b:=low(boolean);');
-  Add('  e:=high(tmyenum);');
-  Add('  e:=high(e);');
-  Add('  b:=high(boolean);');
-  Add('  e:=pred(green);');
-  Add('  e:=pred(e);');
-  Add('  b:=pred(b);');
-  Add('  e:=succ(red);');
-  Add('  e:=succ(e);');
-  Add('  b:=succ(b);');
-  Add('  e:=tmyenum(1);');
-  Add('  e:=tmyenum(i);');
-  Add('  s:=str(e);');
-  Add('  str(e,s);');
-  Add('  s:=str(e:3);');
-  Add('  e:=TMyEnum(i);');
-  Add('  i:=longint(e);');
+  Add([
+  'type TMyEnum = (Red, Green);',
+  'var',
+  '  e: TMyEnum;',
+  '  i: longint;',
+  '  s: string;',
+  '  b: boolean;',
+  'begin',
+  '  i:=ord(red);',
+  '  i:=ord(green);',
+  '  i:=ord(e);',
+  '  i:=ord(b);',
+  '  e:=low(tmyenum);',
+  '  e:=low(e);',
+  '  b:=low(boolean);',
+  '  e:=high(tmyenum);',
+  '  e:=high(e);',
+  '  b:=high(boolean);',
+  '  e:=pred(green);',
+  '  e:=pred(e);',
+  '  b:=pred(b);',
+  '  e:=succ(red);',
+  '  e:=succ(e);',
+  '  b:=succ(b);',
+  '  e:=tmyenum(1);',
+  '  e:=tmyenum(i);',
+  '  s:=str(e);',
+  '  str(e,s);',
+  '  str(red,s);',
+  '  s:=str(e:3);',
+  '  writestr(s,e:3,red);',
+  '  e:=TMyEnum(i);',
+  '  i:=longint(e);']);
   ConvertProgram;
   CheckSource('TestEnum_Functions',
     LinesToStr([ // statements
@@ -3876,7 +3879,9 @@ begin
     '$mod.e=$mod.i;',
     '$mod.s = $mod.TMyEnum[$mod.e];',
     '$mod.s = $mod.TMyEnum[$mod.e];',
+    '$mod.s = $mod.TMyEnum[$mod.TMyEnum.Red];',
     '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3);',
+    '$mod.s = rtl.spaceLeft($mod.TMyEnum[$mod.e], 3)+$mod.TMyEnum[$mod.TMyEnum.Red];',
     '$mod.e=$mod.i;',
     '$mod.i=$mod.e;',
     '']));

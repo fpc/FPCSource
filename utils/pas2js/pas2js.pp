@@ -1,4 +1,4 @@
-{ Author: Mattias Gaertner  2017  mattias@freepascal.org
+{ Author: Mattias Gaertner  2018  mattias@freepascal.org
 
   Abstract:
     Command line interface for the pas2js compiler.

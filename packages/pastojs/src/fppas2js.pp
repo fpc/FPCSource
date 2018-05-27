@@ -146,7 +146,7 @@ Works:
 - enums
   - type with values and names
   - option to write numbers instead of variables
-  - ord(), low(), high(), pred(), succ()
+  - ord(), low(), high(), pred(), succ(), str(), writestr()
   - type cast alias to enumtype
   - type cast number to enumtype, enumtype to number
   - const aliasname = enumvalue
@@ -346,9 +346,6 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
--Sm        Support macros like C (global)
-- writestr(out s: string; args); varargs;
-- widestrings + FPC_HAS_FEATURE_WIDESTRINGS + FPC_WIDESTRING_EQUAL_UNICODESTRING
 - check rtl.js version
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
@@ -365,7 +362,6 @@ ToDos:
 - interfaces
   - array of interface
   - record member interface
-- remove cmsIgnoreInterfaces from codetools
 
 Not in Version 1.0:
 - make records more lightweight
@@ -1660,6 +1656,7 @@ type
     Function ConvertBuiltIn_StrProc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_StrFunc(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltInStrParam(El: TPasExpr; AContext: TConvertContext; IsStrFunc, IsFirst: boolean): TJSElement; virtual;
+    Function ConvertBuiltIn_WriteStr(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_ConcatArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_CopyArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertBuiltIn_InsertArray(El: TParamsExpr; AContext: TConvertContext): TJSElement; virtual;
@@ -7796,6 +7793,7 @@ begin
           bfSucc: Result:=ConvertBuiltIn_PredSucc(El,AContext,false);
           bfStrProc: Result:=ConvertBuiltIn_StrProc(El,AContext);
           bfStrFunc: Result:=ConvertBuiltIn_StrFunc(El,AContext);
+          bfWriteStr: Result:=ConvertBuiltIn_WriteStr(El,AContext);
           bfConcatArray: Result:=ConvertBuiltIn_ConcatArray(El,AContext);
           bfCopyArray: Result:=ConvertBuiltIn_CopyArray(El,AContext);
           bfInsertArray: Result:=ConvertBuiltIn_InsertArray(El,AContext);
@@ -9714,6 +9712,51 @@ begin
     Bracket.Free;
     if Result=nil then
       Add.Free;
+  end;
+end;
+
+function TPasToJSConverter.ConvertBuiltIn_WriteStr(El: TParamsExpr;
+  AContext: TConvertContext): TJSElement;
+// convert 'writestr(aString,v:width,p)' to 'aString = <string of v> + (<string of p>+"")'
+// for the conversion see ConvertBuiltInStrParam
+var
+  AssignContext: TAssignContext;
+  StrVar: TPasExpr;
+  TypeEl: TPasType;
+  JS: TJSElement;
+  AddJS: TJSAdditiveExpressionPlus;
+  i: Integer;
+begin
+  Result:=nil;
+  AssignContext:=TAssignContext.Create(El,nil,AContext);
+  try
+    StrVar:=El.Params[0];
+    AContext.Resolver.ComputeElement(StrVar,AssignContext.LeftResolved,[rcNoImplicitProc]);
+
+    // create right side
+    for i:=1 to length(El.Params)-1 do
+      begin
+      JS:=ConvertBuiltInStrParam(El.Params[i],AContext,false,true);
+      if AssignContext.RightSide=nil then
+        AssignContext.RightSide:=JS
+      else
+        begin
+        AddJS:=TJSAdditiveExpressionPlus(CreateElement(TJSAdditiveExpressionPlus,El));
+        AddJS.A:=AssignContext.RightSide;
+        AssignContext.RightSide:=AddJS;
+        AddJS.B:=JS;
+        end;
+      end;
+
+    TypeEl:=AContext.Resolver.BaseTypes[btString];
+    SetResolverValueExpr(AssignContext.RightResolved,btString,
+      TypeEl,TypeEl,El,[rrfReadable]);
+
+    // create 'StrVar = rightside'
+    Result:=CreateAssignStatement(StrVar,AssignContext);
+  finally
+    AssignContext.RightSide.Free;
+    AssignContext.Free;
   end;
 end;
 

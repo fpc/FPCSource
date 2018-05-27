@@ -102,6 +102,7 @@ type
     coAssertions,
     // features
     coAllowCAssignments,
+    coAllowMacros,
     // output
     coLowerCase,
     coUseStrict,
@@ -145,6 +146,7 @@ const
     'Method call checking',
     'Assertions',
     'Allow C assignments',
+    'Allow macros',
     'Lowercase identifiers',
     'Use strict',
     'Write pas2jsdebug.log',
@@ -794,6 +796,8 @@ var
   bs: TBoolSwitches;
 begin
   bs:=[bsWriteableConst];
+  if coAllowMacros in Compiler.Options then
+    Include(bs,bsMacro);
   if coOverflowChecks in Compiler.Options then
     Include(bs,bsOverflowChecks);
   if coRangeChecks in Compiler.Options then
@@ -3505,17 +3509,19 @@ begin
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
     'a': Options:=Options+[coAssertions];
-    '2': Mode:=p2jmObjFPC;
     'c': Options:=Options+[coAllowCAssignments];
     'd': Mode:=p2jmDelphi;
+    'm': Options:=Options+[coAllowMacros];
+    '2': Mode:=p2jmObjFPC;
     end;
   end;
   for i:=1 to length(Disabled) do begin
     case Disabled[i] of
     'a': Options:=Options-[coAssertions];
-    '2': ;
     'c': Options:=Options-[coAllowCAssignments];
     'd': ;
+    'm': Options:=Options-[coAllowMacros];
+    '2': ;
     end;
   end;
 end;
@@ -4041,6 +4047,7 @@ begin
   l('    a     : Turn on assertions');
   l('    c     : Support operators like C (*=,+=,/= and -=)');
   l('    d     : Same as -Mdelphi');
+  l('    m     : Support macros');
   l('    2     : Same as -Mobjfpc (default)');
   l('  -SI<x>   : Set interface style to <x>');
   l('    -SIcom   : COM compatible interface (default)');

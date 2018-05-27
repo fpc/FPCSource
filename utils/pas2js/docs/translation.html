@@ -186,6 +186,7 @@ Put + after a boolean switch option to enable it, - to disable it
     a     : Turn on assertions
     c     : Support operators like C (*=,+=,/= and -=)
     d     : Same as -Mdelphi
+    m     : Support macros
     2     : Same as -Mobjfpc (default)
   -SI&lt;x&gt;   : Set interface style to &lt;x&gt;
     -SIcom   : COM compatible interface (default)
@@ -2868,12 +2869,13 @@ End.
     e.g. <i>uses unit1 in 'sub/Unit1.pas'</i>.<br>
     In <i>$mode objfpc</i> units can use in-filenames too and
     alias are allowed, e.g. <i>uses foo in 'bar.pas'</i>.</li>
-    <li>The built-in procedure <b>str</b> works with boolean, integer, float and enumvalue.<br>
+    <li>The intrinsic procedure <b>str</b> works with boolean, integer, float and enumvalue.<br>
     Additionally there is <b>str</b> function, that takes an arbitrary number of
     arguments and returns a concatenated string. It supports string as parameter too.
     For example s:=str(i,' ',d:1:5).<br>
     Width and precision is supported. str(i:10) will add spaces to the left to fill up to 10 characters.</b>
     str(aDouble:1:5) returns a string in decimal format with 5 digits for the fraction.</li>
+    <li>Intrinsic procedure WriteStr(out s: string; params...)</li>
     </ul>
     </div>
 
