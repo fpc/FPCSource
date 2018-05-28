@@ -245,7 +245,14 @@ function IsNan(const d : Double): Boolean; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function IsNan(const d : Extended): Boolean; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
-function IsInfinite(const d : Double): Boolean;
+
+function IsInfinite(const d : Single): Boolean; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsInfinite(const d : Double): Boolean; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsInfinite(const d : Extended): Boolean; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended): Boolean;inline; overload;
@@ -2252,7 +2259,13 @@ function IsNan(const d : Extended): Boolean; overload;
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function IsInfinite(const d : Double): Boolean;
+function IsInfinite(const d : Single): Boolean; overload;
+  begin
+    result:=(longword(d) and $7fffffff)=$7f800000;
+  end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsInfinite(const d : Double): Boolean; overload;
   var
     fraczero, expMaximal: boolean;
   begin
@@ -2267,6 +2280,23 @@ function IsInfinite(const d : Double): Boolean;
 {$endif FPC_BIG_ENDIAN}
     Result:=expMaximal and fraczero;
   end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsInfinite(const d : Extended): Boolean; overload;
+  var
+    fraczero, expMaximal: boolean;
+  begin
+{$ifdef FPC_BIG_ENDIAN}
+  {$error no support for big endian extended type yet}
+{$else FPC_BIG_ENDIAN}
+    expMaximal := (TSplitExtended(d).w and $7fff) = 32767;
+    fraczero := (TSplitExtended(d).cards[0] = 0) and
+                    ((TSplitExtended(d).cards[1] and $7fffffff) = 0);
+{$endif FPC_BIG_ENDIAN}
+    Result:=expMaximal and fraczero;
+  end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 function copysign(x,y: float): float;
 begin
