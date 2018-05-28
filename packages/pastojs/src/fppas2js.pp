@@ -346,13 +346,15 @@ Works:
 - typecast byte(longword) -> value & $ff
 
 ToDos:
+- bug:
+  v:=a[0]  gives Local variable "a" is assigned but never used
+- bug:
+  exit(something) gives function result not set
 - check rtl.js version
 - 'new', 'Function' -> class var use .prototype
 - btArrayLit
   a: array of jsvalue;
   a:=[];
-- bug:
-  v:=a[0]  gives Local variable "a" is assigned but never used
 - setlength(dynarray)  modeswitch to create a copy
 - static arrays
   - clone multi dim static array

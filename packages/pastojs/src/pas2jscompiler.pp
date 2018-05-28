@@ -9,9 +9,6 @@ Compiler-ToDos:
   -Fa<x>[,y] (for a program) load units <x> and [y] before uses is parsed
   Add Windows macros, see InitMacros.
   add options for names of globals like 'pas' and 'rtl'
-
-FileCache:
-  uses 'in'
 }
 unit Pas2jsCompiler;
 
@@ -29,7 +26,7 @@ uses
 const
   VersionMajor = 0;
   VersionMinor = 9;
-  VersionRelease = 22;
+  VersionRelease = 23;
   VersionExtra = '+beta';
   DefaultConfigFile = 'pas2js.cfg';
 
