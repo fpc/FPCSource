@@ -1754,47 +1754,54 @@ procedure TPas2jsFilesCache.FindMatchingFiles(Mask: string; MaxCount: integer;
     raise EListError.Create('found too many files "'+Mask+'". Max='+IntToStr(MaxCount)+' ['+IntToStr(id)+']');
   end;
 
-var
-  p, StartP, i: Integer;
-  Filename, CurMask: String;
-  Dir: TPas2jsCachedDirectory;
-  Entry: TPas2jsCachedDirectoryEntry;
+  procedure Find(aMask: string; p: integer);
+  var
+    Dir: TPas2jsCachedDirectory;
+    StartP, i: Integer;
+    CurMask, Filename: String;
+    Entry: TPas2jsCachedDirectoryEntry;
+  begin
+    while p<=length(aMask) do begin
+      if aMask[p] in ['*','?'] then
+      begin
+        while (p>1) and not (aMask[p-1] in AllowDirectorySeparators) do dec(p);
+        Dir:=DirectoryCache.GetDirectory(LeftStr(aMask,p-1),true,false);
+        StartP:=p;
+        while (p<=length(aMask)) and not (aMask[p] in AllowDirectorySeparators) do
+          inc(p);
+        CurMask:=copy(aMask,StartP,p-StartP);
+        for i:=0 to Dir.Count-1 do begin
+          Entry:=Dir.Entries[i];
+          if (Entry.Name='') or (Entry.Name='.') or (Entry.Name='..') then continue;
+          if not MatchGlobbing(CurMask,Entry.Name) then continue;
+          Filename:=Dir.Path+Entry.Name;
+          if p>length(aMask) then
+          begin
+            // e.g. /path/unit*.pas
+            if Files.Count>=MaxCount then
+              TooMany(20180126091916);
+            Files.Add(Filename);
+          end else begin
+            // e.g. /path/sub*path/...
+            Find(Filename+copy(aMask,p,length(aMask)),length(Filename)+1);
+          end;
+        end;
+        exit;
+      end;
+      inc(p);
+    end;
+    // mask has no placeholder -> search directly
+    if DirectoryCache.FileExists(aMask) then
+    begin
+      if Files.Count>=MaxCount then
+        TooMany(20180126091913);
+      Files.Add(aMask);
+    end;
+  end;
+
 begin
   Mask:=ResolveDots(Mask);
-  p:=1;
-  while p<=length(Mask) do begin
-    if Mask[p] in ['*','?'] then
-    begin
-      while (p>1) and not (Mask[p-1] in AllowDirectorySeparators) do dec(p);
-      Dir:=DirectoryCache.GetDirectory(LeftStr(Mask,p-1),true,false);
-      StartP:=p;
-      while (p<=length(Mask)) and not (Mask[p] in AllowDirectorySeparators) do inc(p);
-      CurMask:=copy(Mask,StartP,p-StartP);
-      for i:=0 to Dir.Count-1 do begin
-        Entry:=Dir.Entries[i];
-        if not MatchGlobbing(CurMask,Entry.Name) then continue;
-        Filename:=Dir.Path+Entry.Name;
-        if p>length(Mask) then
-        begin
-          // e.g. /path/unit*.pas
-          if Files.Count>=MaxCount then
-            TooMany(20180126091916);
-          Files.Add(Filename);
-        end else begin
-          // e.g. /path/sub*path/...
-          FindMatchingFiles(Filename+copy(Mask,p,length(Mask)),MaxCount,Files);
-        end;
-      end;
-      exit;
-    end;
-    inc(p);
-  end;
-  if DirectoryCache.FileExists(Mask) then
-  begin
-    if Files.Count>=MaxCount then
-      TooMany(20180126091913);
-    Files.Add(Mask);
-  end;
+  Find(Mask,1);
 end;
 
 constructor TPas2jsFilesCache.Create(aLog: TPas2jsLogger);
