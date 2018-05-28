@@ -216,6 +216,9 @@ implementation
         firsttemp:=0;
         lasttemp:=0;
         alignmismatch:=0;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (ResetTempGen) all temps freed');
+{$endif}
       end;
 
 
@@ -231,6 +234,9 @@ implementation
            internalerror(200204221);
          firsttemp:=l;
          lasttemp:=l;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (SetFirstTempGen) set to '+tostr(l));
+{$endif}
       end;
 
 
@@ -280,7 +286,7 @@ implementation
              begin
 {$ifdef EXTDEBUG}
                if not(hp^.temptype in FreeTempTypes) then
-                 Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to tt_free !');
+                 Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to  a free temp type !');
 {$endif}
                { Check only slots that are
                   - free
@@ -430,6 +436,9 @@ implementation
                   CGMessage(cg_e_localsize_too_big);
                 lasttemp:=tl^.pos+size;
               end;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (AllocTemp) lasttemp set to '+tostr(lasttemp));
+{$endif}
 {$pop}
             tl^.fini:=fini;
             tl^.alignment:=alignment;
@@ -444,6 +453,7 @@ implementation
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]+' for def '+tl^.def.typename))
          else
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]));
+         Comment(V_Note,'tgobj: (AllocTemp) temp of size '+tostr(size)+' type '+TempTypeStr[tl^.temptype]+' requested, allocated at offset '+tostr(tl^.pos));
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
@@ -458,6 +468,9 @@ implementation
          hp:=templist;
          hprev:=nil;
          hprevfree:=nil;
+{$ifdef EXTDEBUG}
+         Comment(V_Note,'tgobj: (FreeTemp) freeing of temp at pos '+tostr(pos.val)+' requested');
+{$endif}
          while assigned(hp) do
           begin
             if (hp^.pos=pos.val) then
@@ -475,7 +488,7 @@ implementation
                if not(hp^.temptype in temptypes) then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Debug,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
+                  Comment(V_Warning,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp has wrong type ('+TempTypeStr[hp^.temptype]+') not releasing'));
 {$endif}
                   exit;
