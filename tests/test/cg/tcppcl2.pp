@@ -1,3 +1,4 @@
+{ %FILES=cpptcl2.o }
 { Test the C++ class renaming }
 program tcppcl2;
 
