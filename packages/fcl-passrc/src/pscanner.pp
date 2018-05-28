@@ -3220,7 +3220,7 @@ begin
     if bs in FReadOnlyBoolSwitches then
       begin
       DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,
-        [Letter]);
+        [Letter+BoolToStr(Enable,'+','-')]);
       exit;
       end;
     if Enable then
