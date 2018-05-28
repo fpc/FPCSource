@@ -1,6 +1,6 @@
 { *********************************************************************
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 2015 Mattias Gaertner.
+    Copyright (c) 2018 Mattias Gaertner.
 
     Javascript Source Map
 
