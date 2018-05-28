@@ -1425,9 +1425,17 @@ implementation
       begin
         dreg:=dwarf_reg(segment_register);
         templist:=TAsmList.create;
-        templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
-        templist.concat(tai_const.create_uleb128bit(dreg));
-        blocksize:=1+Lengthuleb128(dreg);
+        if dreg<=31 then
+          begin
+            templist.concat(tai_const.create_8bit(ord(DW_OP_reg0)+dreg));
+            blocksize:=1;
+          end
+        else
+          begin
+            templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+            templist.concat(tai_const.create_uleb128bit(dreg));
+            blocksize:=1+Lengthuleb128(dreg);
+          end;
         append_block1(DW_AT_segment,blocksize);
         current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
         templist.free;
