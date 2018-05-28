@@ -27,10 +27,10 @@ const
 
 {$ifdef cpu68k}
   {$define use_small}
-{endif}
+{$endif}
 {$ifdef cpui8086}
   {$define use_small}
-{endif}
+{$endif}
 {$ifdef use_small}
  MAX_DISP = 32767;
 {$else}
