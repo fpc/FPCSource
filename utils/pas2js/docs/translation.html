@@ -186,7 +186,7 @@ Put + after a boolean switch option to enable it, - to disable it
     a     : Turn on assertions
     c     : Support operators like C (*=,+=,/= and -=)
     d     : Same as -Mdelphi
-    m     : Support macros
+    m     : Enables macro replacements
     2     : Same as -Mobjfpc (default)
   -SI&lt;x&gt;   : Set interface style to &lt;x&gt;
     -SIcom   : COM compatible interface (default)
@@ -2779,7 +2779,7 @@ End.
       </ul>
     </li>
     <li>{$IfOpt <i>Letter+,-</i>}: if <i>expression</i> evaluates to true (not '0'), skip to next $Else or $EndIf. Can be nested.</li>
-    <li>{$Else}: If previous $IfDef was skipped, execute next block, otherwise skip.</li>
+    <li>{$Else}: If previous $IfDef, $If or $IfOpt was skipped, execute next block, otherwise skip.</li>
     <li>{$ElseIf <i>boolean expression</i>}: As $Else, except with an extra expression like $if to test. There can be multiple $elseif.</li>
     <li>{$EndIf}: ends an $IfDef block</li>
     <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
@@ -2789,14 +2789,19 @@ End.
     <li>{$Warnings on|off}</li>
     <li>{$Notes on|off}</li>
     <li>{$Hints on|off}</li>
-    <li>{$Error text}</li>
-    <li>{$Warning text}</li>
-    <li>{$Note text}</li>
-    <li>{$Hint text}</li>
-    <li>{$Message hint-text}</li>
-    <li>{$Message hint|note|warn|error|fatal text}</li>
+    <li>{$Error text} : emit an error</li>
+    <li>{$Warning text} : emit a warning</li>
+    <li>{$Note text} : emit a note</li>
+    <li>{$Hint text} : emit a hint</li>
+    <li>{$Message hint-text} :  emit a hint</li>
+    <li>{$Message hint|note|warn|error|fatal text} : emit a message</li>
     <li>{$M+}, {$TypeInfo on}: switches default visibility for class members from public to published</li>
     <li>{$ScopedEnums on|off} disabled(default): propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
+    <li>{$C+} generate code for assertions</li>
+    <li>{$H+}, but not {$H-}</li>
+    <li>{$J-}, {$WriteableConst off}: Typed const become readonly. For example <i>const i:byte=3; ... i:=4</i> creates a compile time error.</li>
+    <li>{$M+} : allow published members
+    <li>{$Q+} :  not yet supported, ignored
     <li>{$R+}, {$RangeChecks on}: compile time range check hints become errors
     and add runtime range checks for assignments.</li>
     <li>{$ObjectChecks on|off}:
@@ -2805,7 +2810,6 @@ End.
         <li>Check type casts, e.g. <i>TBird(AnObject)</i> becomes <i>AnObject as TBird</i></li>
       </ul>
     </li>
-    <li>{$J-}, {$WriteableConst off}: Typed const become readonly. For example <i>const i:byte=3; ... i:=4</i> creates a compile time error.</li>
     </ul>
     Defines:
     <ul>
@@ -2886,7 +2890,6 @@ End.
     <li>Anonymous functions</li>
     <li>Array of const</li>
     <li>Attributes</li>
-    <li>Currency</li>
     <li>Enums with custom values</li>
     <li>Generics</li>
     <li>Global properties</li>
@@ -2897,6 +2900,7 @@ End.
     <li>Objects</li>
     <li>Operator overloading</li>
     <li>Pointer arithmetic</li>
+    <li>Package</li>
     <li>Resources</li>
     <li>RTTI extended, $RTTI</li>
     <li>Runtime checks: Overflow -Co, $Q</li>

@@ -49,9 +49,9 @@ type
     Next: PSrcMarker;
   end;
 
-  { TTestResolverMessage }
+  { TTestHintMessage }
 
-  TTestResolverMessage = class
+  TTestHintMessage = class
   public
     Id: int64;
     MsgType: TMessageType;
@@ -117,19 +117,21 @@ type
     FModules: TObjectList;// list of TTestEnginePasResolver
     FParser: TTestPasParser;
     FPasProgram: TPasProgram;
-    FResolverMsgs: TObjectList; // list of TTestResolverMessage
-    FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
+    FHintMsgs: TObjectList; // list of TTestHintMessage
+    FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
     FJSRegModuleCall: TJSCallExpression;
     FScanner: TPascalScanner;
     FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
     function GetMsgCount: integer;
-    function GetMsgs(Index: integer): TTestResolverMessage;
+    function GetMsgs(Index: integer): TTestHintMessage;
     function GetResolverCount: integer;
     function GetResolvers(Index: integer): TTestEnginePasResolver;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
+    procedure OnParserLog(Sender: TObject; const Msg: String);
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
+    procedure OnScannerLog(Sender: TObject; const Msg: String);
   protected
     procedure SetUp; override;
     function CreateConverter: TPasToJSConverter; virtual;
@@ -162,7 +164,7 @@ type
       ImplStatements: string = ''); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
     procedure CheckUnit(Filename, ExpectedSrc: string); virtual;
-    procedure CheckResolverHint(MsgType: TMessageType; MsgNumber: integer;
+    procedure CheckHint(MsgType: TMessageType; MsgNumber: integer;
       Msg: string; Marker: PSrcMarker = nil); virtual;
     procedure CheckResolverUnexpectedHints(WithSourcePos: boolean = false); virtual;
     procedure SetExpectedScannerError(Msg: string; MsgNumber: integer);
@@ -209,7 +211,7 @@ type
     property Scanner: TPascalScanner read FScanner;
     property Parser: TTestPasParser read FParser;
     property MsgCount: integer read GetMsgCount;
-    property Msgs[Index: integer]: TTestResolverMessage read GetMsgs;
+    property Msgs[Index: integer]: TTestHintMessage read GetMsgs;
   end;
 
   { TTestModule }
@@ -265,6 +267,7 @@ type
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
     Procedure TestString_CharAt;
+    Procedure TestStringHMinusFail;
     Procedure TestStr;
     Procedure TestBaseType_AnsiStringFail;
     Procedure TestBaseType_WideStringFail;
@@ -972,12 +975,12 @@ end;
 
 function TCustomTestModule.GetMsgCount: integer;
 begin
-  Result:=FResolverMsgs.Count;
+  Result:=FHintMsgs.Count;
 end;
 
-function TCustomTestModule.GetMsgs(Index: integer): TTestResolverMessage;
+function TCustomTestModule.GetMsgs(Index: integer): TTestHintMessage;
 begin
-  Result:=TTestResolverMessage(FResolverMsgs[Index]);
+  Result:=TTestHintMessage(FHintMsgs[Index]);
 end;
 
 function TCustomTestModule.GetResolverCount: integer;
@@ -1008,18 +1011,38 @@ begin
     end;
   Result:=LoadUnit(aUnitName);
   if Result<>nil then exit;
+  {$IFDEF VerbosePas2JS}
   writeln('TTestModule.OnPasResolverFindUnit missing unit "',aUnitName,'"');
+  {$ENDIF}
   Fail('can''t find unit "'+aUnitName+'"');
+end;
+
+procedure TCustomTestModule.OnParserLog(Sender: TObject; const Msg: String);
+var
+  aParser: TPasParser;
+  Item: TTestHintMessage;
+begin
+  aParser:=Sender as TPasParser;
+  Item:=TTestHintMessage.Create;
+  Item.Id:=aParser.LastMsgNumber;
+  Item.MsgType:=aParser.LastMsgType;
+  Item.MsgNumber:=aParser.LastMsgNumber;
+  Item.Msg:=Msg;
+  Item.SourcePos:=aParser.Scanner.CurSourcePos;
+  {$IFDEF VerbosePas2JS}
+  writeln('TCustomTestModule.OnParserLog ',GetObjName(Sender),' ',Item.MsgType,' (',Item.MsgNumber,') {',Msg,'}');
+  {$ENDIF}
+  FHintMsgs.Add(Item);
 end;
 
 procedure TCustomTestModule.OnPasResolverLog(Sender: TObject; const Msg: String
   );
 var
   aResolver: TTestEnginePasResolver;
-  Item: TTestResolverMessage;
+  Item: TTestHintMessage;
 begin
   aResolver:=Sender as TTestEnginePasResolver;
-  Item:=TTestResolverMessage.Create;
+  Item:=TTestHintMessage.Create;
   Item.Id:=aResolver.LastMsgId;
   Item.MsgType:=aResolver.LastMsgType;
   Item.MsgNumber:=aResolver.LastMsgNumber;
@@ -1028,7 +1051,25 @@ begin
   {$IFDEF VerbosePas2JS}
   writeln('TCustomTestModule.OnPasResolverLog ',GetObjName(Sender),' ',Item.MsgType,' (',Item.MsgNumber,') {',Msg,'}');
   {$ENDIF}
-  FResolverMsgs.Add(Item);
+  FHintMsgs.Add(Item);
+end;
+
+procedure TCustomTestModule.OnScannerLog(Sender: TObject; const Msg: String);
+var
+  Item: TTestHintMessage;
+  aScanner: TPascalScanner;
+begin
+  aScanner:=Sender as TPascalScanner;
+  Item:=TTestHintMessage.Create;
+  Item.Id:=aScanner.LastMsgNumber;
+  Item.MsgType:=aScanner.LastMsgType;
+  Item.MsgNumber:=aScanner.LastMsgNumber;
+  Item.Msg:=Msg;
+  Item.SourcePos:=aScanner.CurSourcePos;
+  {$IFDEF VerbosePas2JS}
+  writeln('TCustomTestModule.OnScannerLog ',GetObjName(Sender),' ',Item.MsgType,' (',Item.MsgNumber,') {',Msg,'}');
+  {$ENDIF}
+  FHintMsgs.Add(Item);
 end;
 
 function TCustomTestModule.LoadUnit(const aUnitName: String): TPasModule;
@@ -1098,6 +1139,7 @@ begin
   FEngine.Scanner:=FScanner;
 
   FParser:=TTestPasParser.Create(FScanner,FFileResolver,FEngine);
+  FParser.OnLog:=@OnParserLog;
   FEngine.Parser:=FParser;
   Parser.Options:=po_tcmodules;
 
@@ -1120,13 +1162,16 @@ begin
   aScanner.CurrentModeSwitches:=OBJFPCModeSwitches*msAllPas2jsModeSwitches+msAllPas2jsModeSwitchesReadOnly;
 
   aScanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
-  aScanner.CurrentBoolSwitches:=[bsHints,bsNotes,bsWarnings,bsWriteableConst];
+  aScanner.ReadOnlyBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly;
+  aScanner.CurrentBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly+[bsHints,bsNotes,bsWarnings,bsWriteableConst];
+
+  aScanner.OnLog:=@OnScannerLog;
 end;
 
 procedure TCustomTestModule.TearDown;
 begin
-  FResolverMsgs.Clear;
-  FResolverGoodMsgs.Clear;
+  FHintMsgs.Clear;
+  FHintMsgsGood.Clear;
   FSkipTests:=false;
   FJSModule:=nil;
   FJSRegModuleCall:=nil;
@@ -1627,14 +1672,14 @@ begin
   end;
 end;
 
-procedure TCustomTestModule.CheckResolverHint(MsgType: TMessageType;
+procedure TCustomTestModule.CheckHint(MsgType: TMessageType;
   MsgNumber: integer; Msg: string; Marker: PSrcMarker);
 var
   i: Integer;
-  Item: TTestResolverMessage;
+  Item: TTestHintMessage;
   Expected,Actual: string;
 begin
-  //writeln('TCustomTestModule.CheckResolverHint MsgCount=',MsgCount);
+  //writeln('TCustomTestModule.CheckHint MsgCount=',MsgCount);
   for i:=0 to MsgCount-1 do
     begin
     Item:=Msgs[i];
@@ -1646,7 +1691,7 @@ begin
           or (Item.SourcePos.Column>Marker^.EndCol) then continue;
       end;
     // found
-    FResolverGoodMsgs.Add(Item);
+    FHintMsgsGood.Add(Item);
     str(Item.MsgType,Actual);
     str(MsgType,Expected);
     AssertEquals('MsgType',Expected,Actual);
@@ -1658,7 +1703,7 @@ begin
   for i:=0 to MsgCount-1 do
     begin
     Item:=Msgs[i];
-    write('TCustomTestModule.CheckResolverHint ',i,'/',MsgCount,' ',Item.MsgType,
+    write('TCustomTestModule.CheckHint ',i,'/',MsgCount,' ',Item.MsgType,
       ' ('+IntToStr(Item.MsgNumber),')');
     if Marker<>nil then
       write(' '+ExtractFileName(Item.SourcePos.FileName),'(',Item.SourcePos.Row,',',Item.SourcePos.Column,')');
@@ -1677,12 +1722,12 @@ procedure TCustomTestModule.CheckResolverUnexpectedHints(WithSourcePos: boolean
 var
   i: Integer;
   s, Txt: String;
-  Msg: TTestResolverMessage;
+  Msg: TTestHintMessage;
 begin
   for i:=0 to MsgCount-1 do
     begin
     Msg:=Msgs[i];
-    if FResolverGoodMsgs.IndexOf(Msg)>=0 then continue;
+    if FHintMsgsGood.IndexOf(Msg)>=0 then continue;
     s:='';
     str(Msg.MsgType,s);
     Txt:='Unexpected resolver message found ['+IntToStr(Msg.Id)+'] '
@@ -1915,14 +1960,14 @@ end;
 constructor TCustomTestModule.Create;
 begin
   inherited Create;
-  FResolverMsgs:=TObjectList.Create(true);
-  FResolverGoodMsgs:=TFPList.Create;
+  FHintMsgs:=TObjectList.Create(true);
+  FHintMsgsGood:=TFPList.Create;
 end;
 
 destructor TCustomTestModule.Destroy;
 begin
-  FreeAndNil(FResolverMsgs);
-  FreeAndNil(FResolverGoodMsgs);
+  FreeAndNil(FHintMsgs);
+  FreeAndNil(FHintMsgsGood);
   inherited Destroy;
 end;
 
@@ -5587,6 +5632,7 @@ procedure TTestModule.TestStringConst;
 begin
   StartProgram(false);
   Add([
+  '{$H+}',
   'var',
   '  s: string = ''abc'';',
   'begin',
@@ -5598,7 +5644,7 @@ begin
   '  s:=''"'';',
   '  s:=''"''''"'';',
   '  s:=#$20AC;', // euro
-  '  s:=#$10437;', //
+  '  s:=#$10437;', // outside BMP
   '  s:=default(string);',
   '']);
   ConvertProgram;
@@ -5757,6 +5803,17 @@ begin
     '$mod.s = rtl.setCharAt($mod.s, 0, $mod.c);',
     '$mod.s = rtl.setCharAt($mod.s, (2 + 3) - 1, $mod.c);',
     '']));
+end;
+
+procedure TTestModule.TestStringHMinusFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$H-}',
+  'var s: string;',
+  'begin']);
+  ConvertProgram;
+  CheckHint(mtWarning,nWarnIllegalCompilerDirectiveX,'Warning: test1.pp(3,6) : Illegal compiler directive "H-"');
 end;
 
 procedure TTestModule.TestStr;

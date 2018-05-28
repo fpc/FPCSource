@@ -795,7 +795,7 @@ function TPas2jsCompilerFile.GetInitialBoolSwitches: TBoolSwitches;
 var
   bs: TBoolSwitches;
 begin
-  bs:=[bsWriteableConst];
+  bs:=[bsLongStrings,bsWriteableConst];
   if coAllowMacros in Compiler.Options then
     Include(bs,bsMacro);
   if coOverflowChecks in Compiler.Options then
@@ -856,6 +856,7 @@ begin
   Scanner.ReadOnlyModeSwitches:=msAllPas2jsModeSwitchesReadOnly;
   Scanner.CurrentModeSwitches:=GetInitialModeSwitches;
   Scanner.AllowedBoolSwitches:=msAllPas2jsBoolSwitches;
+  Scanner.ReadOnlyBoolSwitches:=msAllPas2jsBoolSwitchesReadOnly;
   Scanner.CurrentBoolSwitches:=GetInitialBoolSwitches;
   Scanner.CurrentValueSwitch[vsInterfaces]:=InterfaceTypeNames[Compiler.InterfaceType];
   if coAllowCAssignments in Compiler.Options then
@@ -3505,23 +3506,23 @@ var
   Enabled, Disabled: string;
   i: Integer;
 begin
-  ReadSingleLetterOptions(Param,p,'a2cd',Enabled,Disabled);
+  ReadSingleLetterOptions(Param,p,'2acdm',Enabled,Disabled);
   for i:=1 to length(Enabled) do begin
     case Enabled[i] of
+    '2': Mode:=p2jmObjFPC;
     'a': Options:=Options+[coAssertions];
     'c': Options:=Options+[coAllowCAssignments];
     'd': Mode:=p2jmDelphi;
     'm': Options:=Options+[coAllowMacros];
-    '2': Mode:=p2jmObjFPC;
     end;
   end;
   for i:=1 to length(Disabled) do begin
     case Disabled[i] of
+    '2': ;
     'a': Options:=Options-[coAssertions];
     'c': Options:=Options-[coAllowCAssignments];
     'd': ;
     'm': Options:=Options-[coAllowMacros];
-    '2': ;
     end;
   end;
 end;
@@ -4047,7 +4048,7 @@ begin
   l('    a     : Turn on assertions');
   l('    c     : Support operators like C (*=,+=,/= and -=)');
   l('    d     : Same as -Mdelphi');
-  l('    m     : Support macros');
+  l('    m     : Enables macro replacements');
   l('    2     : Same as -Mobjfpc (default)');
   l('  -SI<x>   : Set interface style to <x>');
   l('    -SIcom   : COM compatible interface (default)');

@@ -1045,7 +1045,10 @@ const
     msExternalClass,
     msIgnoreAttributes];
 
-  msAllPas2jsBoolSwitches = [
+  msAllPas2jsBoolSwitchesReadOnly = [
+    bsLongStrings
+    ];
+  msAllPas2jsBoolSwitches = msAllPas2jsBoolSwitchesReadOnly+[
     bsAssertions,
     bsRangeChecks,
     bsWriteableConst,
