@@ -23,7 +23,7 @@ var
   Rec: TRec;
 
 const
-  x_size = 8*4+1;
+  x_size = 4*8*4+1;
 procedure x; assembler;
 asm
   dd Rec.Str                    { dd Rec.Str }
@@ -34,6 +34,33 @@ asm
   dd 5+[7]                      { dd 12 }
   dd 5-[7]                      { dd -2 }
   dd [5]                        { dd 5 }
+
+  dd byte ptr Rec.Str           { dd Rec.Str }
+  dd byte ptr Rec.Str[0]        { dd Rec.Str }
+  dd byte ptr Rec.Arr           { dd Rec.Arr }
+  dd byte ptr Rec.Arr[2]        { dd Rec.Arr+2 }
+  dd byte ptr 5[7]              { dd 12 }
+  dd byte ptr 5+[7]             { dd 12 }
+  dd byte ptr 5-[7]             { dd -2 }
+  dd byte ptr [5]               { dd 5 }
+
+  dd word ptr Rec.Str           { dd Rec.Str }
+  dd word ptr Rec.Str[0]        { dd Rec.Str }
+  dd word ptr Rec.Arr           { dd Rec.Arr }
+  dd word ptr Rec.Arr[2]        { dd Rec.Arr+2 }
+  dd word ptr 5[7]              { dd 12 }
+  dd word ptr 5+[7]             { dd 12 }
+  dd word ptr 5-[7]             { dd -2 }
+  dd word ptr [5]               { dd 5 }
+
+  dd dword ptr Rec.Str          { dd Rec.Str }
+  dd dword ptr Rec.Str[0]       { dd Rec.Str }
+  dd dword ptr Rec.Arr          { dd Rec.Arr }
+  dd dword ptr Rec.Arr[2]       { dd Rec.Arr+2 }
+  dd dword ptr 5[7]             { dd 12 }
+  dd dword ptr 5+[7]            { dd 12 }
+  dd dword ptr 5-[7]            { dd -2 }
+  dd dword ptr [5]              { dd 5 }
 end;
 procedure x_verify; assembler;
 asm
@@ -45,6 +72,33 @@ asm
   dd 12                         { dd 5+[7] }
   dd -2                         { dd 5-[7] }
   dd 5                          { dd [5] }
+
+  dd Rec.Str                    { dd byte ptr Rec.Str }
+  dd Rec.Str                    { dd byte ptr Rec.Str[0] }
+  dd Rec.Arr                    { dd byte ptr Rec.Arr }
+  dd Rec.Arr+2                  { dd byte ptr Rec.Arr[2] }
+  dd 12                         { dd byte ptr 5[7] }
+  dd 12                         { dd byte ptr 5+[7] }
+  dd -2                         { dd byte ptr 5-[7] }
+  dd 5                          { dd byte ptr [5] }
+
+  dd Rec.Str                    { dd word ptr Rec.Str }
+  dd Rec.Str                    { dd word ptr Rec.Str[0] }
+  dd Rec.Arr                    { dd word ptr Rec.Arr }
+  dd Rec.Arr+2                  { dd word ptr Rec.Arr[2] }
+  dd 12                         { dd word ptr 5[7] }
+  dd 12                         { dd word ptr 5+[7] }
+  dd -2                         { dd word ptr 5-[7] }
+  dd 5                          { dd word ptr [5] }
+
+  dd Rec.Str                    { dd dword ptr Rec.Str }
+  dd Rec.Str                    { dd dword ptr Rec.Str[0] }
+  dd Rec.Arr                    { dd dword ptr Rec.Arr }
+  dd Rec.Arr+2                  { dd dword ptr Rec.Arr[2] }
+  dd 12                         { dd dword ptr 5[7] }
+  dd 12                         { dd dword ptr 5+[7] }
+  dd -2                         { dd dword ptr 5-[7] }
+  dd 5                          { dd dword ptr [5] }
 end;
 
 function CompareCode(cp, cp2: CodePointer; sz: Integer): Boolean;

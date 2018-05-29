@@ -1065,6 +1065,13 @@ Unit Rax86int;
           if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
             break;
           if (cseif_referencelike in in_flags) and
+             (actasmtoken in [AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD]) then
+            begin
+              { Support ugly tp7 and delphi constructs like 'DD DWORD PTR 5' }
+              Consume(actasmtoken);
+              Consume(AS_PTR);
+            end;
+          if (cseif_referencelike in in_flags) and
              (actasmtoken in [AS_LBRACKET,AS_RBRACKET]) then
             case actasmtoken of
               AS_LBRACKET:
@@ -2767,6 +2774,16 @@ Unit Rax86int;
                 end;
                 ConcatString(curlist,expr);
               end;
+            AS_BYTE,
+            AS_WORD,
+            AS_DWORD,
+            AS_TBYTE,
+            AS_DQWORD,
+            AS_QWORD,
+            AS_OWORD,
+            AS_XMMWORD,
+            AS_YWORD,
+            AS_YMMWORD,
             AS_PLUS,
             AS_MINUS,
             AS_LPAREN,
