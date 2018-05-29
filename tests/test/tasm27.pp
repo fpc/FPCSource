@@ -42,6 +42,33 @@ asm
   dd word ptr 5+[7]             { dd 12 }
   dd word ptr 5-[7]             { dd -2 }
   dd word ptr [5]               { dd 5 }
+
+  dd dword ptr Rec.Str          { dd Rec.Str }
+  dd dword ptr Rec.Str[0]       { dd Rec.Str }
+  dd dword ptr Rec.Arr          { dd Rec.Arr }
+  dd dword ptr Rec.Arr[2]       { dd Rec.Arr+2 }
+  dd dword ptr 5[7]             { dd 12 }
+  dd dword ptr 5+[7]            { dd 12 }
+  dd dword ptr 5-[7]            { dd -2 }
+  dd dword ptr [5]              { dd 5 }
+
+  dd qword ptr Rec.Str          { dd Rec.Str }
+  dd qword ptr Rec.Str[0]       { dd Rec.Str }
+  dd qword ptr Rec.Arr          { dd Rec.Arr }
+  dd qword ptr Rec.Arr[2]       { dd Rec.Arr+2 }
+  dd qword ptr 5[7]             { dd 12 }
+  dd qword ptr 5+[7]            { dd 12 }
+  dd qword ptr 5-[7]            { dd -2 }
+  dd qword ptr [5]              { dd 5 }
+
+  dd tbyte ptr Rec.Str          { dd Rec.Str }
+  dd tbyte ptr Rec.Str[0]       { dd Rec.Str }
+  dd tbyte ptr Rec.Arr          { dd Rec.Arr }
+  dd tbyte ptr Rec.Arr[2]       { dd Rec.Arr+2 }
+  dd tbyte ptr 5[7]             { dd 12 }
+  dd tbyte ptr 5+[7]            { dd 12 }
+  dd tbyte ptr 5-[7]            { dd -2 }
+  dd tbyte ptr [5]              { dd 5 }
 end;
 
 begin
