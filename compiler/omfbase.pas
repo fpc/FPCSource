@@ -228,6 +228,9 @@ interface
       ftmGroupIndexNoDisp    = 5,  { GI(<group name>) }
       ftmExternalIndexNoDisp = 6,  { EI(<symbol name>) }
       ftmFrameNumberNoDisp   = 7); { <FRAME NUMBER> }
+    TOmfThreadType = (
+      ttTarget,
+      ttFrame);
 
     { TOmfOrderedNameCollection }
 
@@ -552,6 +555,26 @@ interface
       procedure DebugFormatSpecific_EncodeTo(RawRecord:TOmfRawRecord;var NextOfs:Integer);override;
     public
       property LineNumberList: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLineNumberList write FLineNumberList;
+    end;
+
+    { TOmfSubRecord_THREAD }
+
+    TOmfSubRecord_THREAD = class
+    private
+      FThreadNumber: TOmfFixupThread;
+      FThreadType: TOmfThreadType;
+      FTargetMethod: TOmfFixupTargetMethod;
+      FFrameMethod: TOmfFixupFrameMethod;
+      FDatum: Integer;
+    public
+      function ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+      function WriteAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+
+      property ThreadNumber: TOmfFixupThread read FThreadNumber write FThreadNumber;
+      property ThreadType: TOmfThreadType read FThreadType write FThreadType;
+      property TargetMethod: TOmfFixupTargetMethod read FTargetMethod write FTargetMethod;
+      property FrameMethod: TOmfFixupFrameMethod read FFrameMethod write FFrameMethod;
+      property Datum: Integer read FDatum write FDatum;
     end;
 
     { TOmfSubRecord_FIXUP }
@@ -2204,6 +2227,64 @@ implementation
 
       { update NextIndex }
       NextIndex:=LastIncludedIndex+1;
+    end;
+
+  { TOmfSubRecord_THREAD }
+
+  function TOmfSubRecord_THREAD.ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+    var
+      B, Method: Byte;
+    begin
+      if Offset>=RawRecord.RecordLength then
+        internalerror(2018052901);
+      B:=RawRecord.RawData[Offset];
+      Inc(Offset);
+      if (B and $A0)<>0 then
+        internalerror(2018052902);
+      ThreadNumber:=TOmfFixupThread(B and 3);
+      Method:=(B shr 2) and 7;
+      if (B and $40)<>0 then
+        begin
+          ThreadType:=ttFrame;
+          FrameMethod:=TOmfFixupFrameMethod(Method);
+        end
+      else
+        begin
+          ThreadType:=ttTarget;
+          if Method>3 then
+            internalerror(2018052903);
+          TargetMethod:=TOmfFixupTargetMethod(Method);
+        end;
+      if Method<=3 then
+        Offset:=RawRecord.ReadIndexedRef(Offset,FDatum)
+      else
+        Datum:=0;
+      Result:=Offset;
+    end;
+
+  function TOmfSubRecord_THREAD.WriteAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+    var
+      B, Method: Byte;
+    begin
+      if ThreadType=ttFrame then
+        begin
+          B:=$40;
+          Method:=Byte(FrameMethod) and 7;
+        end
+      else
+        begin
+          B:=0;
+          Method:=Byte(TargetMethod) and 7;
+          if Method>3 then
+            internalerror(2018052904);
+        end;
+      Inc(B,Byte(ThreadNumber) and 3);
+      Inc(B,Method shl 2);
+      RawRecord.RawData[Offset]:=B;
+      Inc(Offset);
+      if Method<=3 then
+        Offset:=RawRecord.WriteIndexedRef(Offset,Datum);
+      Result:=Offset;
     end;
 
   { TOmfSubRecord_FIXUP }
