@@ -288,7 +288,7 @@ begin
   Inc(FNesting);
   if FNesting >= Length(FNodes) then
     SetLength(FNodes, FNesting+8);
-  if Length(FIndent) < 2 * FNesting then
+  if (Length(FIndent)-Length(FLineBreak)) < 2 * FNesting then
   begin
     OldLen := Length(FIndent);
     NewLen := 4 * FNesting;
