@@ -557,6 +557,52 @@ interface
       property LineNumberList: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLineNumberList write FLineNumberList;
     end;
 
+    { TOmfThread }
+
+    TOmfThread = class
+    private
+      FDatum: Integer;
+      FInitialized: Boolean;
+    public
+      constructor Create;
+      property Datum: Integer read FDatum write FDatum;
+      property Initialized: Boolean read FInitialized write FInitialized;
+    end;
+
+    { TOmfTargetThread }
+
+    TOmfTargetThread = class(TOmfThread)
+    private
+      FTargetMethod: TOmfFixupTargetMethod;
+    public
+      property TargetMethod: TOmfFixupTargetMethod read FTargetMethod write FTargetMethod;
+    end;
+
+    { TOmfFrameThread }
+
+    TOmfFrameThread = class(TOmfThread)
+    private
+      FFrameMethod: TOmfFixupFrameMethod;
+    public
+      property FrameMethod: TOmfFixupFrameMethod read FFrameMethod write FFrameMethod;
+    end;
+
+    { TOmfThreads }
+
+    TOmfThreads = class
+    private
+      FTargetThreads: array [TOmfFixupThread] of TOmfTargetThread;
+      FFrameThreads: array [TOmfFixupThread] of TOmfFrameThread;
+      function GetTargetThread(Index: TOmfFixupThread): TOmfTargetThread;
+      function GetFrameThread(Index: TOmfFixupThread): TOmfFrameThread;
+    public
+      constructor Create;
+      destructor Destroy; override;
+
+      property TargetThread[Index: TOmfFixupThread]: TOmfTargetThread read GetTargetThread;
+      property FrameThread[Index: TOmfFixupThread]: TOmfFrameThread read GetFrameThread;
+    end;
+
     { TOmfSubRecord_THREAD }
 
     TOmfSubRecord_THREAD = class
@@ -2227,6 +2273,49 @@ implementation
 
       { update NextIndex }
       NextIndex:=LastIncludedIndex+1;
+    end;
+
+  { TOmfThread }
+
+  constructor TOmfThread.Create;
+    begin
+      FInitialized:=False;
+      FDatum:=-1;
+    end;
+
+  { TOmfThreads }
+
+  function TOmfThreads.GetTargetThread(Index: TOmfFixupThread): TOmfTargetThread;
+    begin
+      Result:=FTargetThreads[Index];
+    end;
+
+  function TOmfThreads.GetFrameThread(Index: TOmfFixupThread): TOmfFrameThread;
+    begin
+      Result:=FFrameThreads[Index];
+    end;
+
+  constructor TOmfThreads.Create;
+    var
+      t: TOmfFixupThread;
+    begin
+      for t in TOmfFixupThread do
+        begin
+          FTargetThreads[t]:=TOmfTargetThread.Create;
+          FFrameThreads[t]:=TOmfFrameThread.Create;
+        end;
+    end;
+
+  destructor TOmfThreads.Destroy;
+    var
+      t: TOmfFixupThread;
+    begin
+      for t in TOmfFixupThread do
+        begin
+          FTargetThreads[t].Free;
+          FFrameThreads[t].Free;
+        end;
+      inherited Destroy;
     end;
 
   { TOmfSubRecord_THREAD }
