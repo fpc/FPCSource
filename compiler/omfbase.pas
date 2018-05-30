@@ -616,6 +616,8 @@ interface
       function ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
       function WriteAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
 
+      procedure ApplyTo(AThreads: TOmfThreads);
+
       property ThreadNumber: TOmfFixupThread read FThreadNumber write FThreadNumber;
       property ThreadType: TOmfThreadType read FThreadType write FThreadType;
       property TargetMethod: TOmfFixupTargetMethod read FTargetMethod write FTargetMethod;
@@ -2374,6 +2376,26 @@ implementation
       if Method<=3 then
         Offset:=RawRecord.WriteIndexedRef(Offset,Datum);
       Result:=Offset;
+    end;
+
+  procedure TOmfSubRecord_THREAD.ApplyTo(AThreads: TOmfThreads);
+    begin
+      case ThreadType of
+        ttFrame:
+          begin
+            AThreads.FrameThread[ThreadNumber].Datum:=Datum;
+            AThreads.FrameThread[ThreadNumber].FrameMethod:=FrameMethod;
+            AThreads.FrameThread[ThreadNumber].Initialized:=True;
+          end;
+        ttTarget:
+          begin
+            AThreads.TargetThread[ThreadNumber].Datum:=Datum;
+            AThreads.TargetThread[ThreadNumber].TargetMethod:=TargetMethod;
+            AThreads.TargetThread[ThreadNumber].Initialized:=True;
+          end;
+        else
+          internalerror(2018053001);
+      end;
     end;
 
   { TOmfSubRecord_FIXUP }
