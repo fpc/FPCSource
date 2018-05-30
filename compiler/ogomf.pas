@@ -1495,6 +1495,7 @@ implementation
         objsec: TOmfObjSection;
         FixupRawRec: TOmfRawRecord;
         Fixup: TOmfSubRecord_FIXUP;
+        Thread: TOmfSubRecord_THREAD;
       begin
         Result:=False;
         if not (RawRec.RecordType in [RT_LEDATA,RT_LEDATA32]) then
@@ -1561,22 +1562,35 @@ implementation
                 exit;
               end;
             NextOfs:=0;
+            Thread:=TOmfSubRecord_THREAD.Create;
             Fixup:=TOmfSubRecord_FIXUP.Create;
             Fixup.Is32Bit:=FixupRawRec.RecordType=RT_FIXUPP32;
             Fixup.DataRecordStartOffset:=EnumeratedDataOffset;
             while NextOfs<(FixupRawRec.RecordLength-1) do
               begin
-                NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
-                if Fixup.FrameDeterminedByThread or Fixup.TargetDeterminedByThread then
+                if (FixupRawRec.RawData[NextOfs] and $80)<>0 then
                   begin
-                    InputError('Fixups determined by thread not supported');
-                    Fixup.Free;
-                    FixupRawRec.Free;
-                    exit;
+                    { FIXUP subrecord }
+                    NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
+                    if Fixup.FrameDeterminedByThread or Fixup.TargetDeterminedByThread then
+                      begin
+                        InputError('Fixups determined by thread not supported');
+                        Fixup.Free;
+                        Thread.Free;
+                        FixupRawRec.Free;
+                        exit;
+                      end;
+                    ImportOmfFixup(objdata,objsec,Fixup);
+                  end
+                else
+                  begin
+                    { THREAD subrecord }
+                    NextOfs:=Thread.ReadAt(FixupRawRec,NextOfs);
+                    Thread.ApplyTo(FFixupThreads);
                   end;
-                ImportOmfFixup(objdata,objsec,Fixup);
               end;
             Fixup.Free;
+            Thread.Free;
             FixupRawRec.Free;
           end;
         Result:=True;
