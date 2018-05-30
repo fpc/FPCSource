@@ -151,6 +151,7 @@ interface
         FLNames: TOmfOrderedNameCollection;
         FExtDefs: TFPHashObjectList;
         FPubDefs: TFPHashObjectList;
+        FFixupThreads: TOmfThreads;
         FRawRecord: TOmfRawRecord;
         FCaseSensitiveSegments: Boolean;
         FCaseSensitiveSymbols: Boolean;
@@ -1870,6 +1871,7 @@ implementation
         FLNames:=TOmfOrderedNameCollection.Create(True);
         FExtDefs:=TFPHashObjectList.Create;
         FPubDefs:=TFPHashObjectList.Create;
+        FFixupThreads:=TOmfThreads.Create;
         FRawRecord:=TOmfRawRecord.Create;
         CaseSensitiveSegments:=False;
         CaseSensitiveSymbols:=True;
@@ -1878,6 +1880,7 @@ implementation
     destructor TOmfObjInput.destroy;
       begin
         FRawRecord.Free;
+        FFixupThreads.Free;
         FPubDefs.Free;
         FExtDefs.Free;
         FLNames.Free;
