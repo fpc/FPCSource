@@ -1572,14 +1572,7 @@ implementation
                   begin
                     { FIXUP subrecord }
                     NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
-                    if Fixup.FrameDeterminedByThread or Fixup.TargetDeterminedByThread then
-                      begin
-                        InputError('Fixups determined by thread not supported');
-                        Fixup.Free;
-                        Thread.Free;
-                        FixupRawRec.Free;
-                        exit;
-                      end;
+                    Fixup.ResolveByThread(FFixupThreads);
                     ImportOmfFixup(objdata,objsec,Fixup);
                   end
                 else

@@ -651,6 +651,8 @@ interface
       function ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
       function WriteAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
 
+      procedure ResolveByThread(AThreads: TOmfThreads);
+
       property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
       property Mode: TOmfFixupMode read FMode write FMode;
       property LocationType: TOmfFixupLocationType read FLocationType write FLocationType;
@@ -2551,6 +2553,28 @@ implementation
       Result:=Offset;
     end;
 
+  procedure TOmfSubRecord_FIXUP.ResolveByThread(AThreads: TOmfThreads);
+    begin
+      if TargetDeterminedByThread then
+        begin
+          if not AThreads.TargetThread[TargetThread].Initialized then
+            internalerror(2018053002);
+          TargetDatum:=AThreads.TargetThread[TargetThread].Datum;
+          TargetMethod:=AThreads.TargetThread[TargetThread].TargetMethod;
+          if not TargetThreadDisplacementPresent then
+            Inc(FTargetMethod,4);
+          TargetThreadDisplacementPresent:=False;
+          TargetDeterminedByThread:=False;
+        end;
+      if FrameDeterminedByThread then
+        begin
+          if not AThreads.FrameThread[FrameThread].Initialized then
+            internalerror(2018053003);
+          FrameDatum:=AThreads.FrameThread[FrameThread].Datum;
+          FrameMethod:=AThreads.FrameThread[FrameThread].FrameMethod;
+          FrameDeterminedByThread:=False;
+        end;
+    end;
 
   { TOmfRecord_LIBHEAD }
 
