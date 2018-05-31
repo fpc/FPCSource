@@ -8,12 +8,14 @@ main=rtl
 [target]
 loaders=
 units=system uuchar strings objpas iso7185 heaptrc getopts macostp macutils \
-      unixutil dos extpas cmem charset cpall ctypes
+      unixutil dos extpas cmem charset cpall ctypes sysconst \
+	  softfpu macpas
+#	   sysutils 
 #     macpas \
 #      exec  \
 #      printer \
 #      lineinfo lnfodwrf  graph \
-#      sysutils math typinfo
+#      math typinfo
 # rsts=math
 # implicitunits=exeinfo \
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -22,6 +24,9 @@ implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
       cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 
+rsts=sysconst
+# math typinfo sysconst rtlconsts
+  
 [require]
 nortl=y
 
@@ -108,17 +113,24 @@ strings$(PPUEXT) : $(INC)/strings.pp system$(PPUEXT)
 #
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
 	$(COPY) $(OBJPASDIR)/objpas.pp .
 	$(COMPILER) objpas $(REDIR)
 	$(DEL) objpas.pp
 
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sysconst$(PPUEXT)
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(COMPILER) sysutils $(REDIR)
-#$(DEL) sysutils.pp
+sysutils$(PPUEXT) : sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sysconst$(PPUEXT) macostp$(PPUEXT) macutils$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+	
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) softfpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) 
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+		
+softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $(INC)/softfpu.pp
 
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 #
 # Mac Pascal Model
 #
@@ -147,6 +159,12 @@ dos$(PPUEXT) : $(DOSDEPS) unixutil$(PPUEXT) system$(PPUEXT)
 # Other system-independent RTL Units
 #
 
+iso7185$(PPUEXT) : $(INC)/iso7185.pp heaptrc$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
+
 getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(INC)/getopts.pp $(REDIR)
 
@@ -156,14 +174,17 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 unixutil$(PPUEXT) : ../unix/unixutil.pp
         $(COMPILER) ../unix/unixutil.pp $(REDIR)
 
-charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $(INC)/charset.pp
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 
-cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/cmem.pp
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/ctypes.pp
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
