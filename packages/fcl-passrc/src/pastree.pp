@@ -147,7 +147,7 @@ type
       const Arg: Pointer); virtual;
     procedure ForEachChildCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer; Child: TPasElement; CheckParent: boolean); virtual;
-    function FullPath: string;                  // parent's names, if parent is not TPasDeclarations
+    function FullPath: string;                  // parent's names, until parent is not TPasDeclarations
     function ParentPath: string;                // parent's names
     function FullName: string; virtual;         // FullPath + Name
     function PathName: string; virtual;         // = Module.Name + ParentPath
@@ -311,8 +311,15 @@ type
   public
     Declarations: TFPList; // list of TPasElement
     // Declarations contains all the following:
-    ResStrings, Types, Consts, Classes,
-    Functions, Variables, Properties, ExportSymbols: TFPList;
+    ResStrings, // TPasResString
+    Types,      // TPasType, except TPasClassType, TPasRecordType
+    Consts,     // TPasConst
+    Classes,    // TPasClassType, TPasRecordType
+    Functions,  // TPasProcedure
+    Variables,  // TPasVariable, not descendants
+    Properties, // TPasProperty
+    ExportSymbols  // TPasExportSymbol
+      : TFPList;
   end;
 
   { TPasUsesUnit - Parent is TPasSection }
