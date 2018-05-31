@@ -1026,13 +1026,19 @@ end;
 function TPas2jsCompilerFile.OnPCUConverterIsElementUsed(Sender: TObject;
   El: TPasElement): boolean;
 begin
-  Result:=UseAnalyzer.IsUsed(El);
+  if (coKeepNotUsedPrivates in Compiler.Options) then
+    Result:=true
+  else
+    Result:=UseAnalyzer.IsUsed(El);
 end;
 
 function TPas2jsCompilerFile.OnPCUConverterIsTypeInfoUsed(Sender: TObject;
   El: TPasElement): boolean;
 begin
-  Result:=UseAnalyzer.IsTypeInfoUsed(El);
+  if (coKeepNotUsedPrivates in Compiler.Options) then
+    Result:=true
+  else
+    Result:=UseAnalyzer.IsTypeInfoUsed(El);
 end;
 
 procedure TPas2jsCompilerFile.OnScannerLog(Sender: TObject; const Msg: String);
@@ -2345,7 +2351,7 @@ begin
 
     // write JavaScript
     aJSWriter:=TJSWriter.Create(aFileWriter);
-    aJSWriter.Options:=[woUseUTF8,woCompactArrayLiterals,woCompactObjectLiterals,woCompactArguments];
+    aJSWriter.Options:=DefaultJSWriterOptions;
     aJSWriter.IndentSize:=2;
     try
       aJSWriter.WriteJS(aFile.JSModule);

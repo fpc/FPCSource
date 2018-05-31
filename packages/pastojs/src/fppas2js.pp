@@ -1393,6 +1393,7 @@ type
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
   DefaultPasToJSOptions = [coLowerCase];
+  DefaultJSWriterOptions = [woUseUTF8,woCompactArrayLiterals,woCompactObjectLiterals,woCompactArguments];
 type
 
   TPas2JSIsElementUsedEvent = function(Sender: TObject; El: TPasElement): boolean of object;
@@ -13507,6 +13508,7 @@ begin
   aWriter:=TBufferWriter.Create(1000);
   try
     aJSWriter:=TJSWriter.Create(aWriter);
+    aJSWriter.Options:=DefaultJSWriterOptions;
     aJSWriter.IndentSize:=2;
     aJSWriter.WriteJS(El);
     Result:=aWriter.AsAnsistring;
