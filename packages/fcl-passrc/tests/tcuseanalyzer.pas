@@ -74,6 +74,7 @@ type
     procedure TestM_Class;
     procedure TestM_ClassForward;
     procedure TestM_Class_Property;
+    procedure TestM_Class_PropertyProtected;
     procedure TestM_Class_PropertyOverride;
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
@@ -1019,6 +1020,31 @@ begin
   Add('  Obj.A:=Obj.A;');
   Add('  Obj.C:=Obj.C;');
   AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_Class_PropertyProtected;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  {#integer_used}integer = longint;',
+  '  {tobject_used}TObject = class',
+  '  private',
+  '    {#fb_used}Fb: integer;',
+  '    {#fc_used}Fc: integer;',
+  '    {#fd_used}Fd: integer;',
+  '    {#fe_notused}Fe: integer;',
+  '    function {#iscstored_used}IsCStored: boolean;',
+  '  protected',
+  '    property {#C_used}C: integer read FC write FD stored IsCStored;',
+  '  end;',
+  'implementation',
+  'function TObject.IsCStored: boolean;',
+  'begin',
+  '  Result:=Fb<>0;',
+  'end;']);
+  AnalyzeUnit;
 end;
 
 procedure TTestUseAnalyzer.TestM_Class_PropertyOverride;

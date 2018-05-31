@@ -153,7 +153,7 @@ type
 
   TPAUseMode = (
     paumElement, // Mark element. Do not descend into children.
-    paumAllPublic, // Mark element and descend into children and mark public identifiers
+    paumAllPasUsable, // Mark element and descend into children and mark non private identifiers
     paumAllExports, // Do not mark element. Descend into children and mark exports.
     paumTypeInfo // Mark element and its type and descend into children and mark published identifiers
     );
@@ -185,7 +185,7 @@ type
     function FindOverrideList(El: TPasElement): TPAOverrideList;
     procedure SetOptions(AValue: TPasAnalyzerOptions);
     procedure UpdateAccess(IsWrite: Boolean; IsRead: Boolean; Usage: TPAElement);
-    procedure OnUseScopeRef(data, DeclScope: pointer);
+    procedure OnUseScopeRef(Data, DeclScope: pointer);
   protected
     procedure RaiseInconsistency(const Id: int64; Msg: string);
     procedure RaiseNotSupported(const Id: int64; El: TPasElement; const Msg: string = '');
@@ -535,7 +535,7 @@ begin
     end;
 end;
 
-procedure TPasAnalyzer.OnUseScopeRef(data, DeclScope: pointer);
+procedure TPasAnalyzer.OnUseScopeRef(Data, DeclScope: pointer);
 var
   Ref: TPasScopeReference absolute data;
   Scope: TPasScope absolute DeclScope;
@@ -903,7 +903,7 @@ begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseModule ',GetElModName(aModule),' Mode=',Mode);
   {$ENDIF}
-  if Mode in [paumAllExports,paumAllPublic] then
+  if Mode in [paumAllExports,paumAllPasUsable] then
     begin
     if aModule is TPasProgram then
       UseSection(TPasProgram(aModule).ProgramSection,Mode)
@@ -947,7 +947,7 @@ begin
 
   OnlyExports:=Mode=paumAllExports;
 
-  if Mode=paumAllPublic then
+  if Mode=paumAllPasUsable then
     MarkElementAsUsed(Section);
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseSection ',GetElModName(Section),' Mode=',Mode);
@@ -1589,7 +1589,7 @@ begin
   MarkElementAsUsed(El);
   if not ElementVisited(El,Mode) then
     begin
-    if (Mode=paumAllPublic) or Resolver.IsTGUID(El) then
+    if (Mode=paumAllPasUsable) or Resolver.IsTGUID(El) then
       for i:=0 to El.Members.Count-1 do
         UseVariable(TObject(El.Members[i]) as TPasVariable,rraNone,true);
     end;
@@ -1661,7 +1661,7 @@ begin
   FirstTime:=true;
   case Mode of
   paumAllExports: exit;
-  paumAllPublic:
+  paumAllPasUsable:
     begin
     if MarkElementAsUsed(El) then
       ElementVisited(El,Mode)
@@ -1764,6 +1764,11 @@ begin
     else if IsModuleInternal(Member) then
       // private or strict private
       continue
+    else if (Mode=paumAllPasUsable) and FirstTime and (Member.ClassType=TPasProperty) then
+      begin
+      // non private property can be used by typeinfo by descendants in other units
+      UseTypeInfo(Member);
+      end
     else
       ; // else: class is in unit interface, mark all non private members
     UseElement(Member,rraNone,true);
@@ -1917,7 +1922,6 @@ begin
       for i:=0 to Prop.Args.Count-1 do
         UseElType(Prop,TPasArgument(Prop.Args[i]).ArgType,paumElement);
       UseExpr(Prop.IndexExpr);
-      // ToDo: Prop.Implements
       // ToDo: UseExpr(Prop.DispIDExpr);
       // see UseTypeInfo: Prop.StoredAccessor, Prop.DefaultExpr
       end;
@@ -2330,7 +2334,7 @@ begin
   if (aModule is TPasProgram) or (aModule is TPasLibrary) then
     Mode:=paumAllExports
   else
-    Mode:=paumAllPublic;
+    Mode:=paumAllPasUsable;
   UseModule(aModule,Mode);
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.AnalyzeModule END ',GetElModName(aModule));
