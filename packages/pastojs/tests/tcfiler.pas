@@ -388,6 +388,7 @@ begin
 
     // convert using the precompiled procs
     RestConverter:=CreateConverter;
+    RestConverter.Options:=Converter.Options;
     RestConverter.OnIsElementUsed:=@OnRestConverterIsElementUsed;
     RestConverter.OnIsTypeInfoUsed:=@OnRestConverterIsTypeInfoUsed;
     try
@@ -1857,11 +1858,13 @@ end;
 
 procedure TTestPrecompile.TestPC_ClassForward;
 begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartUnit(false);
   Add([
   'interface',
   'type',
   '  TObject = class end;',
+  '  TFish = class;',
   '  TBird = class;',
   '  TBirdClass = class of TBird;',
   '  TFish = class',
@@ -1870,10 +1873,12 @@ begin
   '  TBird = class',
   '    F: TFish;',
   '  end;',
+  '  TFishClass = class of TFish;',
   'var',
   '  b: tbird;',
   '  f: tfish;',
   '  bc: TBirdClass;',
+  '  fc: TFishClass;',
   'implementation',
   'end.'
   ]);

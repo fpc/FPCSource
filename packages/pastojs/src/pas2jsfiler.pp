@@ -5341,6 +5341,7 @@ var
   i: Integer;
   Data: TJSONData;
   El: TPasElement;
+  C: TClass;
 begin
   if not ReadArray(Obj,'Declarations',Arr,Section) then exit;
   {$IFDEF VerbosePCUFiler}
@@ -5353,6 +5354,26 @@ begin
       RaiseMsg(20180207182304,Section,IntToStr(i)+' '+GetObjName(Data));
     El:=ReadElement(TJSONObject(Data),Section,aContext);
     Section.Declarations.Add(El);
+    C:=El.ClassType;
+    if C=TPasResString then
+      Section.ResStrings.Add(El)
+    else if C=TPasConst then
+      Section.Consts.Add(El)
+    else if C=TPasClassType then
+      Section.Classes.Add(El)
+    else if C=TPasRecordType then
+      Section.Classes.Add(El)
+    else if C.InheritsFrom(TPasType) then
+      // not TPasClassType, TPasRecordType !
+      Section.Types.Add(El)
+    else if C.InheritsFrom(TPasProcedure) then
+      Section.Functions.Add(El)
+    else if C=TPasVariable then
+      Section.Variables.Add(El)
+    else if C=TPasProperty then
+      Section.Properties.Add(El)
+    else if C=TPasExportSymbol then
+      Section.ExportSymbols.Add(El);
     end;
 end;
 

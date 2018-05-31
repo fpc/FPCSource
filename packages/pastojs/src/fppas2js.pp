@@ -15984,31 +15984,33 @@ function TPasToJSConverter.IsClassRTTICreatedBefore(aClass: TPasClassType;
 var
   Decls: TPasDeclarations;
   i: Integer;
-  Types: TFPList;
-  T: TPasType;
+  List: TFPList;
   C: TClass;
+  aParent, Decl: TPasElement;
 begin
   Result:=false;
-  if aClass.Parent=nil then exit;
-  if not aClass.Parent.InheritsFrom(TPasDeclarations) then
+  aParent:=aClass.Parent;
+  if aParent<>Before.Parent then
+    exit(true);
+  if not aParent.InheritsFrom(TPasDeclarations) then
     RaiseInconsistency(20170412101457,aClass);
-  Decls:=TPasDeclarations(aClass.Parent);
-  Types:=Decls.Types;
-  for i:=0 to Types.Count-1 do
+  Decls:=TPasDeclarations(aParent);
+  List:=Decls.Declarations;
+  for i:=0 to List.Count-1 do
     begin
-    T:=TPasType(Types[i]);
-    if T=Before then exit;
-    if T=aClass then exit(true);
-    C:=T.ClassType;
+    Decl:=TPasElement(List[i]);
+    if Decl=Before then exit;
+    if Decl=aClass then exit(true);
+    C:=Decl.ClassType;
     if C=TPasClassType then
       begin
-      if TPasClassType(T).IsForward and (T.CustomData is TResolvedReference)
-          and (TResolvedReference(T.CustomData).Declaration=aClass) then
+      if TPasClassType(Decl).IsForward and (Decl.CustomData is TResolvedReference)
+          and (TResolvedReference(Decl.CustomData).Declaration=aClass) then
         exit(true);
       end
     else if C=TPasClassOfType then
       begin
-      if AConText.Resolver.ResolveAliasType(TPasClassOfType(T).DestType)=aClass then
+      if AConText.Resolver.ResolveAliasType(TPasClassOfType(Decl).DestType)=aClass then
         exit(true);
       end;
     end;
