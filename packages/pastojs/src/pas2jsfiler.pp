@@ -5331,7 +5331,10 @@ begin
   ReadDeclarations(Obj,Section,aContext);
   Scope.Finished:=true;
   if Section is TInterfaceSection then
+    begin
+    ResolvePending;
     Resolver.NotifyPendingUsedInterfaces;
+    end;
 end;
 
 procedure TPCUReader.ReadDeclarations(Obj: TJSONObject; Section: TPasSection;
@@ -7374,6 +7377,7 @@ begin
     PendingIdentifierScope:=TPCUReaderPendingIdentifierScope(FPendingIdentifierScopes[i]);
     ReadIdentifierScopeArray(PendingIdentifierScope.Arr,PendingIdentifierScope.Scope);
     end;
+  FPendingIdentifierScopes.Clear;
 
   Node:=FElementRefs.FindLowest;
   while Node<>nil do
@@ -7556,13 +7560,13 @@ var
   Data: TJSONData;
   i: Integer;
 begin
-  {$IFDEF VerbosePCUFiler}
-  writeln('TPCUReader.ReadJSONHeader START ');
-  {$ENDIF}
   FResolver:=aResolver;
   FParser:=Resolver.CurrentParser;
   FScanner:=FParser.Scanner;
   FJSON:=Obj;
+  {$IF defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
+  writeln('TPCUReader.ReadJSONHeader START ');
+  {$ENDIF}
 
   ReadHeaderMagic(Obj);
   ReadHeaderVersion(Obj);
@@ -7604,8 +7608,8 @@ var
   Obj, SubObj: TJSONObject;
   aContext: TPCUReaderContext;
 begin
-  {$IFDEF VerbosePCUFiler}
-  writeln('TPCUReader.ReadJSONContinue START');
+  {$IF defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
+  writeln('TPCUReader.ReadContinue START ',Resolver.RootElement.Name);
   {$ENDIF}
   Obj:=JSON;
   if not ReadObject(Obj,'Module',SubObj,nil) then
@@ -7616,8 +7620,8 @@ begin
   finally
     aContext.Free;
   end;
-  {$IFDEF VerbosePCUFiler}
-  writeln('TPCUReader.ReadJSONContinue END');
+  {$IF defined(VerbosePCUFiler) or defined(VerboseUnitQueue)}
+  writeln('TPCUReader.ReadContinue END');
   {$ENDIF}
 end;
 
