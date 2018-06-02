@@ -677,6 +677,7 @@ type
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); override;
     procedure WriteIdentifiers(Prefix: string); override;
+    procedure WriteLocalIdentifiers(Prefix: string); virtual;
     function GetLocalIdentifiers: TFPList; virtual;
   end;
 
@@ -3110,7 +3111,7 @@ procedure TPasSectionScope.IterateElements(const aName: string;
   Data: Pointer; var Abort: boolean);
 var
   i: Integer;
-  UsesScope: TPasIdentifierScope;
+  UsesScope: TPasSectionScope;
   FilterData: TPasIterateFilterData;
 begin
   inherited IterateElements(aName, StartScope, OnIterateElement, Data, Abort);
@@ -3119,9 +3120,9 @@ begin
   FilterData.Data:=Data;
   for i:=UsesScopes.Count-1 downto 0 do
     begin
-    UsesScope:=TPasIdentifierScope(UsesScopes[i]);
+    UsesScope:=TPasSectionScope(UsesScopes[i]);
     {$IFDEF VerbosePasResolver}
-    writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',GetObjName(UsesScope.Element));
+    writeln('TPasSectionScope.IterateElements "',aName,'" in used unit ',UsesScope.Element.ParentPath,':',GetObjName(UsesScope.Element));
     {$ENDIF}
     UsesScope.IterateLocalElements(aName,StartScope,@OnInternalIterate,@FilterData,Abort);
     if Abort then exit;
@@ -3484,7 +3485,11 @@ end;
 procedure TPasIdentifierScope.WriteIdentifiers(Prefix: string);
 begin
   inherited WriteIdentifiers(Prefix);
-  Prefix:=Prefix+'  ';
+  WriteLocalIdentifiers(Prefix+'  ');
+end;
+
+procedure TPasIdentifierScope.WriteLocalIdentifiers(Prefix: string);
+begin
   FItems.ForEachCall(@OnWriteItem,Pointer(Prefix));
 end;
 
