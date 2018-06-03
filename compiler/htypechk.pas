@@ -1050,6 +1050,8 @@ implementation
                   begin
                     if (ra_addr_taken in how) then
                       tabstractvarsym(tloadnode(p).symtableentry).addr_taken:=true;
+                    if (ra_different_scope in how) then
+                      tabstractvarsym(tloadnode(p).symtableentry).different_scope:=true;
                     if (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
                        ((not records_only) or
                         (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then

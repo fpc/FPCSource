@@ -172,11 +172,13 @@ interface
           varspez       : tvarspez;  { sets the type of access }
           varregable    : tvarregable;
           varstate      : tvarstate;
-          { Has the address of this variable potentially escaped the }
-          { block in which is was declared?                          }
-          { could also be part of tabstractnormalvarsym, but there's }
-          { one byte left here till the next 4 byte alignment        }
+          { Has the address of this variable potentially escaped the
+            block in which is was declared?
+            could also be part of tabstractnormalvarsym, but there's
+            one byte left here till the next 4 byte alignment        }
           addr_taken     : boolean;
+          { true if the variable is accessed in a different scope }
+          different_scope  : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions;doregister:boolean);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1601,6 +1603,7 @@ implementation
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
          addr_taken:=ppufile.getboolean;
+         different_scope:=ppufile.getboolean;
          ppufile.getderef(vardefderef);
          ppufile.getsmallset(varoptions);
       end;
@@ -1633,6 +1636,7 @@ implementation
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
          ppufile.putboolean(addr_taken);
+         ppufile.putboolean(different_scope);
          ppufile.do_crc:=oldintfcrc;
          ppufile.putderef(vardefderef);
          ppufile.putsmallset(varoptions);

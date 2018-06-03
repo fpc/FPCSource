@@ -118,7 +118,8 @@ unit optloop;
            { the address of the counter variable might be taken if it is passed by constref to a
              subroutine, so really check if it is not taken }
            ((tfornode(node).left.nodetype=loadn) and (tloadnode(tfornode(node).left).symtableentry is tabstractvarsym) and
-            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).addr_taken))
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).addr_taken) and
+            not(tabstractvarsym(tloadnode(tfornode(node).left).symtableentry).different_scope))
            ) then
           begin
             { number of executions known? }

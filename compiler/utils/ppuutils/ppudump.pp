@@ -2117,6 +2117,7 @@ begin
   writeln([space,'         Spez : ',Varspez2Str(i)]);
   writeln([space,'      Regable : ',Varregable2Str(ppufile.getbyte)]);
   writeln([space,'   Addr Taken : ',(ppufile.getbyte<>0)]);
+  writeln([space,'Escaped Scope : ',(ppufile.getbyte<>0)]);
   write  ([space,'     Var Type : ']);
   if VarDef <> nil then
     readderef('',VarDef.VarType)
