@@ -2169,11 +2169,14 @@ implementation
                begin
                  { addr }
                  typecheckpass(right);
+                 set_varstate(right,vs_read,[vsf_must_be_valid]);
                  inserttypeconv(right,voidcodepointertype);
+
                  { frame }
                  if assigned(third) then
                   begin
                     typecheckpass(third);
+                    set_varstate(third,vs_read,[vsf_must_be_valid]);
                     inserttypeconv(third,voidpointertype);
                   end;
                end;
