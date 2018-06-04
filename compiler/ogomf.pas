@@ -1498,57 +1498,62 @@ implementation
         Thread: TOmfSubRecord_THREAD;
       begin
         Result:=False;
-        if not (RawRec.RecordType in [RT_LEDATA,RT_LEDATA32]) then
-          internalerror(2015040301);
-        Is32Bit:=RawRec.RecordType=RT_LEDATA32;
-        NextOfs:=RawRec.ReadIndexedRef(0,SegmentIndex);
-        if Is32Bit then
-          begin
-            if (NextOfs+3)>=RawRec.RecordLength then
-              internalerror(2015040504);
-            EnumeratedDataOffset := RawRec.RawData[NextOfs]+
-                                   (RawRec.RawData[NextOfs+1] shl 8)+
-                                   (RawRec.RawData[NextOfs+2] shl 16)+
-                                   (RawRec.RawData[NextOfs+3] shl 24);
-            Inc(NextOfs,4);
-          end
-        else
-          begin
-            if (NextOfs+1)>=RawRec.RecordLength then
-              internalerror(2015040504);
-            EnumeratedDataOffset := RawRec.RawData[NextOfs]+
-                                   (RawRec.RawData[NextOfs+1] shl 8);
-            Inc(NextOfs,2);
-          end;
-        BlockLength:=RawRec.RecordLength-NextOfs-1;
-        if BlockLength<0 then
-          internalerror(2015060501);
-        if BlockLength>1024 then
-          begin
-            InputError('LEDATA contains more than 1024 bytes of data');
-            exit;
-          end;
+        case RawRec.RecordType of
+          RT_LEDATA,RT_LEDATA32:
+            begin
+              Is32Bit:=RawRec.RecordType=RT_LEDATA32;
+              NextOfs:=RawRec.ReadIndexedRef(0,SegmentIndex);
+              if Is32Bit then
+                begin
+                  if (NextOfs+3)>=RawRec.RecordLength then
+                    internalerror(2015040504);
+                  EnumeratedDataOffset := RawRec.RawData[NextOfs]+
+                                         (RawRec.RawData[NextOfs+1] shl 8)+
+                                         (RawRec.RawData[NextOfs+2] shl 16)+
+                                         (RawRec.RawData[NextOfs+3] shl 24);
+                  Inc(NextOfs,4);
+                end
+              else
+                begin
+                  if (NextOfs+1)>=RawRec.RecordLength then
+                    internalerror(2015040504);
+                  EnumeratedDataOffset := RawRec.RawData[NextOfs]+
+                                         (RawRec.RawData[NextOfs+1] shl 8);
+                  Inc(NextOfs,2);
+                end;
+              BlockLength:=RawRec.RecordLength-NextOfs-1;
+              if BlockLength<0 then
+                internalerror(2015060501);
+              if BlockLength>1024 then
+                begin
+                  InputError('LEDATA contains more than 1024 bytes of data');
+                  exit;
+                end;
 
-        if (SegmentIndex<1) or (SegmentIndex>objdata.ObjSectionList.Count) then
-          begin
-            InputError('Segment index in LEDATA field is out of range');
-            exit;
-          end;
-        objsec:=TOmfObjSection(objdata.ObjSectionList[SegmentIndex-1]);
+              if (SegmentIndex<1) or (SegmentIndex>objdata.ObjSectionList.Count) then
+                begin
+                  InputError('Segment index in LEDATA field is out of range');
+                  exit;
+                end;
+              objsec:=TOmfObjSection(objdata.ObjSectionList[SegmentIndex-1]);
 
-        objsec.SecOptions:=objsec.SecOptions+[oso_Data];
-        if (objsec.Data.Size>EnumeratedDataOffset) then
-          begin
-            InputError('LEDATA enumerated data offset field out of sequence');
-            exit;
-          end;
-        if (EnumeratedDataOffset+BlockLength)>objsec.Size then
-          begin
-            InputError('LEDATA goes beyond the segment size declared in the SEGDEF record');
-            exit;
-          end;
-        objsec.Data.seek(EnumeratedDataOffset);
-        objsec.Data.write(RawRec.RawData[NextOfs],BlockLength);
+              objsec.SecOptions:=objsec.SecOptions+[oso_Data];
+              if (objsec.Data.Size>EnumeratedDataOffset) then
+                begin
+                  InputError('LEDATA enumerated data offset field out of sequence');
+                  exit;
+                end;
+              if (EnumeratedDataOffset+BlockLength)>objsec.Size then
+                begin
+                  InputError('LEDATA goes beyond the segment size declared in the SEGDEF record');
+                  exit;
+                end;
+              objsec.Data.seek(EnumeratedDataOffset);
+              objsec.Data.write(RawRec.RawData[NextOfs],BlockLength);
+            end;
+          else
+            internalerror(2015040301);
+        end;
 
         { also read all the FIXUPP records that may follow }
         while PeekNextRecordType in [RT_FIXUPP,RT_FIXUPP32] do
