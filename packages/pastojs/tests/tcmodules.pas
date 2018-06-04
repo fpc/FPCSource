@@ -635,6 +635,7 @@ type
 
     // RTTI
     Procedure TestRTTI_IntRange;
+    Procedure TestRTTI_Double;
     Procedure TestRTTI_ProcType;
     Procedure TestRTTI_ProcType_ArgFromOtherUnit;
     Procedure TestRTTI_EnumAndSetType;
@@ -18784,6 +18785,34 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.p = $mod.$rtti["TGraphicsColor"];',
     '$mod.p = $mod.$rtti["TColor"];',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Double;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
+  '  end;',
+  '  TFloat = type double;',
+  'var',
+  '  p: TTypeInfo;',
+  'begin',
+  '  p:=typeinfo(double);',
+  '  p:=typeinfo(TFloat);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_Double',
+    LinesToStr([ // statements
+    '$mod.$rtti.$inherited("TFloat", rtl.double, {});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = rtl.double;',
+    '$mod.p = $mod.$rtti["TFloat"];',
     '']));
 end;
 
