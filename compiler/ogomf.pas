@@ -1552,6 +1552,11 @@ implementation
               objsec.Data.seek(EnumeratedDataOffset);
               objsec.Data.write(RawRec.RawData[NextOfs],BlockLength);
             end;
+          RT_LIDATA,RT_LIDATA32:
+            begin
+              InputError('LIDATA records are not supported');
+              exit;
+            end;
           RT_FIXUPP,RT_FIXUPP32:
             begin
               FixuppWithoutLeOrLiData:=True;
@@ -1987,14 +1992,10 @@ implementation
               if not ReadPubDef(FRawRecord,objdata) then
                 exit;
             RT_LEDATA,RT_LEDATA32,
+            RT_LIDATA,RT_LIDATA32,
             RT_FIXUPP,RT_FIXUPP32:
               if not ReadLeOrLiDataAndFixups(FRawRecord,objdata) then
                 exit;
-            RT_LIDATA,RT_LIDATA32:
-              begin
-                InputError('LIDATA records are not supported');
-                exit;
-              end;
             RT_MODEND,RT_MODEND32:
               if not ReadModEnd(FRawRecord,objdata) then
                 exit;
