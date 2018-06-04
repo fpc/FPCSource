@@ -592,6 +592,9 @@ Type
   PUnicodeChar        = ^UnicodeChar;
   PUnicodeString      = ^UnicodeString;
 
+  PMarshaledString    = ^PWideChar;
+  PMarshaledAString   = ^PAnsiChar;
+
   MarshaledString     = PWideChar;
   MarshaledAString    = PAnsiChar;
 
