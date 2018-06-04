@@ -264,22 +264,25 @@ begin
   result := FExtra.count;
 end;
 
+const dumchar = ';';
 class function TFPCustomImage.FindHandlerFromExtension(extension: String
   ): TIHData;
 var s : string;
     r : integer;
 begin
+  if extension='' then
+    Exit(nil);
   extension := lowercase (extension);
   if (extension <> '') and (extension[1] = '.') then
     delete (extension,1,1);
   with ImageHandlers do
     begin
       r := count-1;
-      s := extension + ';';
+      s := dumchar  + extension + dumchar;
       while (r >= 0) do
         begin
         Result := GetData(r);
-        if (pos(s,Result.Fextension+';') <> 0) then
+        if (pos(s, dumchar+Result.Fextension+dumchar) <> 0) then
           Exit;
         dec (r);
         end;
