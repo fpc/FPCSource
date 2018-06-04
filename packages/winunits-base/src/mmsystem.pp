@@ -2535,7 +2535,7 @@ Function mixerGetControlDetails(x1: HMIXEROBJ; x2: LPMIXERCONTROLDETAILS; x3: DW
  {$ifdef UNICODE}'mixerGetControlDetailsW' {$else}'mixerGetControlDetailsA' {$endif};
 Function timeGetSystemTime(x1: LPMMTIME; x2: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'timeGetSystemTime';
 Function timeGetTime: DWORD;stdcall; external 'winmm.dll' name 'timeGetTime';
-Function timeSetEvent(x1: UINT; x2: UINT; x3: LPTIMECALLBACK; x4: DWORD; x5: UINT):MMRESULT;stdcall; external 'winmm.dll' name 'timeSetEvent';
+Function timeSetEvent(x1: UINT; x2: UINT; x3: LPTIMECALLBACK; x4: DWORD_PTR; x5: UINT):MMRESULT;stdcall; external 'winmm.dll' name 'timeSetEvent';
 Function timeKillEvent(x1: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'timeKillEvent';
 Function timeGetDevCaps(x1: LPTIMECAPS; x2: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'timeGetDevCaps';
 Function timeBeginPeriod(x1: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'timeBeginPeriod';
