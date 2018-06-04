@@ -3756,7 +3756,7 @@ begin
         TIName:=Pas2JSBuiltInNames[pbitnTIDynArray];
       end
     else if C=TPasPointerType then
-      TIName:=Pas2JSBuiltInNames[pbitnTIPointer]
+      TIName:=Pas2JSBuiltInNames[pbitnTIPointer];
     end
   else if ParamResolved.BaseType=btSet then
     begin
@@ -3768,6 +3768,8 @@ begin
     ConvertRangeToElement(ParamResolved);
     if ParamResolved.BaseType in btAllJSInteger then
       TIName:=Pas2JSBuiltInNames[pbitnTIInteger]
+    else if ParamResolved.BaseType in [btChar,btBoolean] then
+      TIName:=Pas2JSBuiltInNames[pbitnTI]
     else if ParamResolved.BaseType=btContext then
       begin
       TypeEl:=ParamResolved.LoTypeEl;
@@ -3775,6 +3777,13 @@ begin
       if C=TPasEnumType then
         TIName:=Pas2JSBuiltInNames[pbitnTIEnum];
       end;
+    end
+  else if C=TPasRangeType then
+    begin
+    if ParamResolved.BaseType in btAllJSInteger then
+      TIName:=Pas2JSBuiltInNames[pbitnTIInteger]
+    else if ParamResolved.BaseType in [btChar,btBoolean] then
+      TIName:=Pas2JSBuiltInNames[pbitnTI]
     end;
   //writeln('TPas2JSResolver.BI_TypeInfo_OnGetCallResult TIName=',TIName);
   if TIName='' then

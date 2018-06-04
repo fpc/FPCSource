@@ -634,6 +634,7 @@ type
     Procedure TestJSValue_ForIn;
 
     // RTTI
+    Procedure TestRTTI_IntRange;
     Procedure TestRTTI_ProcType;
     Procedure TestRTTI_ProcType_ArgFromOtherUnit;
     Procedure TestRTTI_EnumAndSetType;
@@ -18747,6 +18748,42 @@ begin
     'for ($mod.key in $mod.v) {',
     '  if ($mod.key === "abc") ;',
     '};',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_IntRange;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
+  '  end;',
+  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
+  '  end;',
+  '  TGraphicsColor = -$7FFFFFFF-1..$7FFFFFFF;',
+  '  TColor = type TGraphicsColor;',
+  'var',
+  '  p: TTypeInfo;',
+  'begin',
+  '  p:=typeinfo(TGraphicsColor);',
+  '  p:=typeinfo(TColor);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_IntRange',
+    LinesToStr([ // statements
+    '$mod.$rtti.$Int("TGraphicsColor", {',
+    '  minvalue: -2147483648,',
+    '  maxvalue: 2147483647,',
+    '  ordtype: 4',
+    '});',
+    '$mod.$rtti.$inherited("TColor", $mod.$rtti["TGraphicsColor"], {});',
+    'this.p = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TGraphicsColor"];',
+    '$mod.p = $mod.$rtti["TColor"];',
     '']));
 end;
 
