@@ -1493,9 +1493,10 @@ implementation
         EnumeratedDataOffset: DWord;
         BlockLength: Integer;
         objsec: TOmfObjSection;
-        FixupRawRec: TOmfRawRecord;
+        FixupRawRec: TOmfRawRecord=nil;
         Fixup: TOmfSubRecord_FIXUP;
         Thread: TOmfSubRecord_THREAD;
+        FixuppWithoutLeOrLiData: Boolean=False;
       begin
         Result:=False;
         case RawRec.RecordType of
@@ -1551,20 +1552,32 @@ implementation
               objsec.Data.seek(EnumeratedDataOffset);
               objsec.Data.write(RawRec.RawData[NextOfs],BlockLength);
             end;
+          RT_FIXUPP,RT_FIXUPP32:
+            begin
+              FixuppWithoutLeOrLiData:=True;
+              { a hack, used to indicate, that we must process this record       }
+              { (RawRec) first in the FIXUPP record processing loop that follows }
+              FixupRawRec:=RawRec;
+            end;
           else
             internalerror(2015040301);
         end;
 
-        { also read all the FIXUPP records that may follow }
-        while PeekNextRecordType in [RT_FIXUPP,RT_FIXUPP32] do
+        { also read all the FIXUPP records that may follow;                     }
+        { (FixupRawRec=RawRec) indicates that we must process RawRec first, but }
+        { without freeing it                                                    }
+        while (FixupRawRec=RawRec) or (PeekNextRecordType in [RT_FIXUPP,RT_FIXUPP32]) do
           begin
-            FixupRawRec:=TOmfRawRecord.Create;
-            FixupRawRec.ReadFrom(FReader);
-            if not FRawRecord.VerifyChecksumByte then
+            if FixupRawRec<>RawRec then
               begin
-                InputError('Invalid checksum in OMF record');
-                FixupRawRec.Free;
-                exit;
+                FixupRawRec:=TOmfRawRecord.Create;
+                FixupRawRec.ReadFrom(FReader);
+                if not FRawRecord.VerifyChecksumByte then
+                  begin
+                    InputError('Invalid checksum in OMF record');
+                    FixupRawRec.Free;
+                    exit;
+                  end;
               end;
             NextOfs:=0;
             Thread:=TOmfSubRecord_THREAD.Create;
@@ -1576,6 +1589,15 @@ implementation
                 if (FixupRawRec.RawData[NextOfs] and $80)<>0 then
                   begin
                     { FIXUP subrecord }
+                    if FixuppWithoutLeOrLiData then
+                      begin
+                        InputError('FIXUP subrecord without previous LEDATA or LIDATA record');
+                        Fixup.Free;
+                        Thread.Free;
+                        if FixupRawRec<>RawRec then
+                          FixupRawRec.Free;
+                        exit;
+                      end;
                     NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
                     Fixup.ResolveByThread(FFixupThreads);
                     ImportOmfFixup(objdata,objsec,Fixup);
@@ -1589,7 +1611,12 @@ implementation
               end;
             Fixup.Free;
             Thread.Free;
-            FixupRawRec.Free;
+            if FixupRawRec<>RawRec then
+              FixupRawRec.Free;
+            { always set it to null, so that we read the next record on the next }
+            { loop iteration (this ensures that FixupRawRec<>RawRec, without     }
+            { freeing RawRec)                                                    }
+            FixupRawRec:=nil;
           end;
         Result:=True;
       end;
@@ -1959,17 +1986,13 @@ implementation
             RT_PUBDEF,RT_PUBDEF32:
               if not ReadPubDef(FRawRecord,objdata) then
                 exit;
-            RT_LEDATA,RT_LEDATA32:
+            RT_LEDATA,RT_LEDATA32,
+            RT_FIXUPP,RT_FIXUPP32:
               if not ReadLEDataAndFixups(FRawRecord,objdata) then
                 exit;
             RT_LIDATA,RT_LIDATA32:
               begin
                 InputError('LIDATA records are not supported');
-                exit;
-              end;
-            RT_FIXUPP,RT_FIXUPP32:
-              begin
-                InputError('FIXUPP record is invalid, because it does not follow a LEDATA or LIDATA record');
                 exit;
               end;
             RT_MODEND,RT_MODEND32:
