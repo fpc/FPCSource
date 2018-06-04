@@ -164,7 +164,7 @@ interface
         function ReadExtDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadPubDef(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ReadModEnd(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
-        function ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
+        function ReadLeOrLiDataAndFixups(RawRec: TOmfRawRecord; objdata:TObjData): Boolean;
         function ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
 
         property LNames: TOmfOrderedNameCollection read FLNames;
@@ -1485,7 +1485,7 @@ implementation
         Result:=True;
       end;
 
-    function TOmfObjInput.ReadLEDataAndFixups(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
+    function TOmfObjInput.ReadLeOrLiDataAndFixups(RawRec: TOmfRawRecord; objdata: TObjData): Boolean;
       var
         Is32Bit: Boolean;
         NextOfs: Integer;
@@ -1988,7 +1988,7 @@ implementation
                 exit;
             RT_LEDATA,RT_LEDATA32,
             RT_FIXUPP,RT_FIXUPP32:
-              if not ReadLEDataAndFixups(FRawRecord,objdata) then
+              if not ReadLeOrLiDataAndFixups(FRawRecord,objdata) then
                 exit;
             RT_LIDATA,RT_LIDATA32:
               begin
