@@ -504,10 +504,16 @@ begin
       exit;
     end;
   FN:=ChangeFileExt(FN,'.log');
+  { packages tests have ../ replaced by root/ }
+  if not FileExists(FN) and (Copy(FN,1,3)='../') then
+    FN:='root/'+Copy(FN,4,length(FN));
   If FileExists(FN) then
     Result:=GetFileContents(FN)
   else
-    Result:='';
+    begin
+      Verbose(V_Warning,'File "'+FN+'" not found');
+      Result:='';
+    end;
 end;
 
 Function GetExecuteLog(Line, FN : String) : String;
@@ -519,10 +525,16 @@ begin
       exit;
     end;
   FN:=ChangeFileExt(FN,'.elg');
+  { packages tests have ../ replaced by root/ }
+  if not FileExists(FN) and (Copy(FN,1,3)='../') then
+    FN:='root/'+Copy(FN,4,length(FN));
   If FileExists(FN) then
     Result:=GetFileContents(FN)
   else
-    Result:='';
+    begin
+      Verbose(V_Warning,'File "'+FN+'" not found');
+      Result:='';
+    end;
 end;
 
 Procedure Processfile (FN: String);
