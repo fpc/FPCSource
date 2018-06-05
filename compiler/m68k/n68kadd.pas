@@ -470,10 +470,13 @@ implementation
             exit;
           end;
 
-        location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        if isaddressregister(left.location.register) and (nodetype in [addn,subn]) then
+           location.register := cg.getaddressregister(current_asmdata.CurrAsmList)
+        else
+           location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
         cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
 
-        if (location.size <> right.location.size) or
+        if ((location.size <> right.location.size) and not (right.location.loc in [LOC_CONSTANT])) or
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
            (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
