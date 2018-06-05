@@ -545,12 +545,12 @@ var
   TS,PrevTS : TTestStatus;
   ID,PrevID : integer;
   Testlog : string;
-  is_new : boolean;
+  count_test : boolean;
 begin
   Assign(logfile,FN);
   PrevId:=-1;
   PrevLine:='';
-  is_new:=false;
+  count_test:=false;
   PrevTS:=low(TTestStatus);
 {$i-}
   reset(logfile);
@@ -574,7 +574,7 @@ begin
               is not followed by any other line about the same test }
             TestLog:='';
             AddTestResult(PrevID,TestRunId,ord(PrevTS),
-              TestOK[PrevTS],TestSkipped[PrevTS],TestLog,is_new);
+              TestOK[PrevTS],TestSkipped[PrevTS],TestLog,count_test);
             Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
           end;
         PrevID:=-1;
@@ -591,9 +591,9 @@ begin
           { AddTestResult can fail for test that contain %recompile
             as the same }
           if AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],
-               TestSkipped[TS],TestLog,is_new) <> -1 then
+               TestSkipped[TS],TestLog,count_test) <> -1 then
             begin
-              if is_new then
+              if count_test then
                 Inc(StatusCount[TS])
               else
                 Verbose(V_Debug,'Test: "'+line+'" was updated');
