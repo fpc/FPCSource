@@ -539,8 +539,8 @@ end;
 Procedure InsertRunsIntoConfigAndHistory(var GlobalRes : TSQLQuery);
 
 var
-  i,fid, num_fields : Integer;
-  Row : PPchar;
+  i,fid,num_fields,row_count : Integer;
+  Row : Variant;
   s : string;
   runid,previd : Integer;
 begin
@@ -548,11 +548,14 @@ begin
     begin
       num_fields:=FieldCount;
       First;
+      Last; { be sure to read all }
+      row_count:=RecordCount;
       Writeln('Row count=',row_count);
+      First;
       for i:=0 to row_count-1 do
         begin
-          row:=mysql_fetch_row(GlobalRes);
-          runid:=StrToIntDef(strpas(Row[0]),-1);
+          row:=FieldValues['TR_ID'];
+          runid:=StrToIntDef(Row,-1);
           previd:=GetTestPreviousRunHistoryID(RunID);
           if previd>=0 then
             begin
@@ -568,6 +571,7 @@ begin
               else
                 UpdateTestConfigID(RunID);
             end;
+          Next;
         end;
     end;
 end;
