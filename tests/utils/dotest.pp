@@ -1779,7 +1779,7 @@ begin
           { ToDo: check relative paths on MACOS }
           PPPrefix:=Copy(PPDir,1,3);
           if (PPPrefix='../') or (PPPrefix='..\') then
-            PPDir:='root/'+Copy(PPDir,4);
+            PPDir:='root/'+Copy(PPDir,4,length(PPDir));
           TestOutputDir:=OutputDir+'/'+PPDir;
           if UniqueSuffix<>'' then
             TestOutputDir:=TestOutputDir+'/'+UniqueSuffix;
