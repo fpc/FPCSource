@@ -11020,24 +11020,25 @@ var
     Lit: TJSObjectLiteralElement;
   begin
     Intf:=Map.Intf;
-    for i:=0 to Map.Procs.Count-1 do
-      begin
-      MapItem:=TObject(Map.Procs[i]);
-      if not (MapItem is TPasProcedure) then continue;
-      Proc:=TPasProcedure(MapItem);
-      ProcName:=TransformVariableName(Proc,FuncContext);
-      IntfProc:=TObject(Intf.Members[i]) as TPasProcedure;
-      IntfProcName:=TransformVariableName(IntfProc,FuncContext);
-      if IntfProcName=ProcName then continue;
-      if ObjLit=nil then
+    if Map.Procs<>nil then
+      for i:=0 to Map.Procs.Count-1 do
         begin
-        ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
-        Call.AddArg(ObjLit);
+        MapItem:=TObject(Map.Procs[i]);
+        if not (MapItem is TPasProcedure) then continue;
+        Proc:=TPasProcedure(MapItem);
+        ProcName:=TransformVariableName(Proc,FuncContext);
+        IntfProc:=TObject(Intf.Members[i]) as TPasProcedure;
+        IntfProcName:=TransformVariableName(IntfProc,FuncContext);
+        if IntfProcName=ProcName then continue;
+        if ObjLit=nil then
+          begin
+          ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
+          Call.AddArg(ObjLit);
+          end;
+        Lit:=ObjLit.Elements.AddElement;
+        Lit.Name:=TJSString(IntfProcName);
+        Lit.Expr:=CreateLiteralString(El,ProcName);
         end;
-      Lit:=ObjLit.Elements.AddElement;
-      Lit.Name:=TJSString(IntfProcName);
-      Lit.Expr:=CreateLiteralString(El,ProcName);
-      end;
     if Map.AncestorMap<>nil then
       AddMapProcs(Map.AncestorMap,Call,ObjLit,FuncContext);
   end;
