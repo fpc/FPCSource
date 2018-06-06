@@ -154,6 +154,7 @@ type
     procedure TestWP_ClassInterface_OneWayIntfToObj;
     procedure TestWP_ClassInterface_Delegation;
     procedure TestWP_ClassInterface_COM;
+    procedure TestWP_ClassInterface_COM_Unit;
     procedure TestWP_ClassInterface_Typeinfo;
     procedure TestWP_ClassInterface_TGUID;
 
@@ -2768,6 +2769,63 @@ begin
   'begin',
   '  i:=e;',
   '  if i=nil then ;',
+  '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_ClassInterface_COM_Unit;
+begin
+  AddModuleWithIntfImplSrc('SysUtils.pas',
+    LinesToStr([
+    '{$interfaces com}',
+    'type',
+    '  {#tguid_used}TGuid = string;',
+    '  {#integer_used}integer = longint;',
+    '  {#iunknown_used}IUnknown = interface',
+    '    function {#iunknown_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
+    '    function {#iunknown_addref_used}_AddRef: Integer;',
+    '    function {#iunknown_release_used}_Release: Integer;',
+    '    procedure {#iunknown_doit_notused}DoIt;',
+    '  end;',
+    '  IBird = interface(IUnknown)',
+    '    procedure {#ibird_fly_used}Fly;',
+    '  end;',
+    '  {#tobject_used}TObject = class',
+    '  end;',
+    '  {#tbird_used}TBird = class(TObject,IBird)',
+    '  strict private',
+    '    function {#tbird_queryintf_used}QueryInterface(const iid: TGuid; out obj): Integer;',
+    '    function {#tbird_addref_used}_AddRef: Integer;',
+    '    function {#tbird_release_used}_Release: Integer;',
+    '    procedure {#tbird_doit_notused}DoIt;',
+    '    procedure {#tbird_fly_used}Fly;',
+    '  end;',
+    '']),
+    LinesToStr([
+    'function TBird.QueryInterface(const iid: TGuid; out obj): Integer;',
+    'begin',
+    '  if iid='''' then obj:=nil;',
+    '  Result:=0;',
+    'end;',
+    'function TBird._AddRef: Integer; begin Result:=1; end;',
+    'function TBird._Release: Integer; begin Result:=2; end;',
+    'procedure TBird.DoIt; begin end;',
+    'procedure TBird.Fly; begin end;',
+    '']) );
+
+  StartProgram(true);
+  Add([
+  'uses sysutils;',
+  'type',
+  '  {#teagle_used}TEagle = class(TBird)',
+  '  end;',
+  'var',
+  '  e: TEagle;',
+  '  i: IBird;',
+  'begin',
+  '  i:=e;',
+  '  if i=nil then ;',
+  '  i.Fly;',
   '']);
   AnalyzeWholeProgram;
 end;

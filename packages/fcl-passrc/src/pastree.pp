@@ -702,8 +702,9 @@ type
   public
     PackMode: TPackMode;
     ObjKind: TPasObjKind;
-    AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
-    HelperForType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
+    AncestorType: TPasType;   // TPasClassType or TPasUnresolvedTypeRef or TPasAliasType or TPasTypeAliasType
+                              // Note: AncestorType can be nil even though it has a default ancestor
+    HelperForType: TPasType;  // TPasClassType or TPasUnresolvedTypeRef
     IsForward: Boolean;
     IsExternal : Boolean;
     IsShortDefinition: Boolean;//class(anchestor); without end

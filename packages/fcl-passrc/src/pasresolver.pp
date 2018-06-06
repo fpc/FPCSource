@@ -745,7 +745,7 @@ type
     Element: TPasElement;
     Intf: TPasClassType;
     Procs: TFPList;// maps Interface-member-index to TPasProcedure
-    AncestorMap: TPasClassIntfMap;
+    AncestorMap: TPasClassIntfMap;// AncestorMap.Element=Element, AncestorMap.Intf=DirectAncestor
     destructor Destroy; override;
   end;
 
@@ -755,7 +755,7 @@ type
   public
     AncestorScope: TPasClassScope;
     CanonicalClassOf: TPasClassOfType;
-    DirectAncestor: TPasType; // TPasClassType or TPasAliasType
+    DirectAncestor: TPasType; // TPasClassType or TPasAliasType, see GetPasClassAncestor
     DefaultProperty: TPasProperty;
     Flags: TPasClassScopeFlags;
     AbstractProcs: TArrayOfPasProcedure;
@@ -4860,6 +4860,7 @@ begin
         while Map<>nil do
           begin
           IntfType:=Map.Intf;
+          //writeln('TPasResolver.FinishClassType ',GetObjName(Map),' ',GetObjName(IntfType),' Count=',IntfType.Members.Count);
           for j:=0 to IntfType.Members.Count-1 do
             begin
             Member:=TPasElement(IntfType.Members[j]);
@@ -6559,7 +6560,7 @@ begin
     Map.Intf:=IntfType;
     Map.Procs:=TFPList.Create;
     Map.Procs.Count:=IntfType.Members.Count;
-    IntfType:=TPasClassType(ResolveAliasType(IntfType.AncestorType));
+    IntfType:=GetPasClassAncestor(IntfType,true) as TPasClassType;
     end;
 end;
 
@@ -19675,17 +19676,13 @@ end;
 
 function TPasResolver.GetClassImplementsIntf(ClassEl, Intf: TPasClassType
   ): TPasClassType;
-var
-  AncestorType: TPasType;
 begin
   Result:=nil;
   while ClassEl<>nil do
     begin
     if IndexOfImplementedInterface(ClassEl,Intf)>=0 then
       exit(ClassEl);
-    AncestorType:=ResolveAliasType(ClassEl.AncestorType);
-    if AncestorType=nil then exit;
-    ClassEl:=TPasClassType(AncestorType);
+    ClassEl:=GetPasClassAncestor(ClassEl,true) as TPasClassType;
     end;
 end;
 

@@ -651,6 +651,7 @@ type
     Procedure TestClassInterface_IntfListClassFail;
     Procedure TestClassInterface_IntfListDuplicateFail;
     Procedure TestClassInterface_MissingMethodFail;
+    Procedure TestClassInterface_MissingAncestorMethodFail;
     Procedure TestClassInterface_DefaultProperty;
     Procedure TestClassInterface_MethodResolution;
     Procedure TestClassInterface_MethodResolutionDuplicateFail;
@@ -10991,6 +10992,23 @@ begin
   '    procedure DoIt;',
   '  end;',
   '  TObject = class(IUnknown)',
+  '  end;',
+  'begin']);
+  CheckResolverException('No matching implementation for interface method "procedure IUnknown.DoIt of Object" found',
+    nNoMatchingImplForIntfMethodXFound);
+end;
+
+procedure TTestResolver.TestClassInterface_MissingAncestorMethodFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  IUnknown = interface',
+  '    procedure DoIt;',
+  '  end;',
+  '  IBird = interface',
+  '  end;',
+  '  TObject = class(IBird)',
   '  end;',
   'begin']);
   CheckResolverException('No matching implementation for interface method "procedure IUnknown.DoIt of Object" found',
