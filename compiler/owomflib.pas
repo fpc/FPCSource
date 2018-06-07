@@ -78,6 +78,7 @@ type
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
     function TryPageSize(aPageSize: Integer): Boolean;
+    procedure DeterminePageSize;
     procedure WriteLib;
     function WriteDictionary: Word;
     function TryWriteDictionaryWithSize(nblocks: Word): Boolean;
@@ -185,7 +186,7 @@ implementation
 
     constructor TOmfLibObjectWriter.createAr(const Aarfn: string);
       begin
-        createAr(Aarfn,512);
+        createAr(Aarfn,-1);
       end;
 
     constructor TOmfLibObjectWriter.createAr(const Aarfn: string;PageSize: Integer);
@@ -319,6 +320,19 @@ implementation
         Result:=True;
       end;
 
+    procedure TOmfLibObjectWriter.DeterminePageSize;
+      var
+        I: Integer;
+      begin
+        if (FPageSize<>-1) and TryPageSize(FPageSize) then
+          { success }
+          exit;
+        for I:=4 to 15 do
+          if TryPageSize(1 shl I) then
+            exit;
+        internalerror(2018060703);
+      end;
+
     procedure TOmfLibObjectWriter.WriteLib;
       var
         libf: TCCustomFileStream;
@@ -327,7 +341,7 @@ implementation
         I: Integer;
         buf: array [0..1023] of Byte;
       begin
-        TryPageSize(512);
+        DeterminePageSize;
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
           begin
