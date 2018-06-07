@@ -35,20 +35,22 @@ uses
 
 type
 
-  { TOmfLibDictionaryEntry }
-
-  TOmfLibDictionaryEntry=class(TFPHashObject)
-  private
-    FPageNum: Word;
-  public
-    constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
-    property PageNum: Word read FPageNum write FPageNum;
-  end;
-
   { TOmfLibObjectWriter }
 
   TOmfLibObjectWriter=class(TObjectWriter)
-  private
+  strict private
+    type
+
+      { TOmfLibDictionaryEntry }
+
+      TOmfLibDictionaryEntry=class(TFPHashObject)
+      strict private
+        FPageNum: Word;
+      public
+        constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
+        property PageNum: Word read FPageNum write FPageNum;
+      end;
+  strict private
     FPageSize: Integer;
     FLibName: string;
     FLibData: TDynamicArray;
@@ -75,7 +77,19 @@ type
   { TOmfLibObjectReader }
 
   TOmfLibObjectReader=class(TObjectReader)
-  private
+  strict private
+    type
+
+      { TOmfLibDictionaryEntry }
+
+      TOmfLibDictionaryEntry=class(TFPHashObject)
+      strict private
+        FPageNum: Word;
+      public
+        constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
+        property PageNum: Word read FPageNum write FPageNum;
+      end;
+  strict private
     LibSymbols : TFPHashObjectList;
     islib: boolean;
     CurrMemberPos : longint;
@@ -122,10 +136,11 @@ implementation
       end;
 
 {*****************************************************************************
-                                TOmfLibDictionaryEntry
+                 TOmfLibObjectWriter.TOmfLibDictionaryEntry
 *****************************************************************************}
 
-    constructor TOmfLibDictionaryEntry.Create(HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
+    constructor TOmfLibObjectWriter.TOmfLibDictionaryEntry.Create(
+        HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
       begin
         inherited Create(HashObjectList,aName);
         PageNum:=aPageNum;
@@ -352,6 +367,17 @@ implementation
         FLibData.write(blocks[0],nblocks*SizeOf(TBlock));
         Result:=true;
       end;
+
+{*****************************************************************************
+                 TOmfLibObjectReader.TOmfLibDictionaryEntry
+*****************************************************************************}
+
+  constructor TOmfLibObjectReader.TOmfLibDictionaryEntry.Create(
+      HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
+    begin
+      inherited Create(HashObjectList,aName);
+      PageNum:=aPageNum;
+    end;
 
 {*****************************************************************************
                                 TOmfLibObjectReader
