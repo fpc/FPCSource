@@ -487,6 +487,7 @@ type
     procedure AddUsedUnit(aFile: TPas2jsCompilerFile);
 
     function DirectoryExists(const Filename: string): boolean;
+    function ExpandFileName(const Filename: string): string;
   public
     property CompilerExe: string read FCompilerExe write SetCompilerExe;
     property ConditionEvaluator: TCondDirectiveEvaluator read FConditionEval;
@@ -2598,7 +2599,7 @@ end;
 procedure TPas2jsCompiler.SetCompilerExe(AValue: string);
 begin
   if AValue<>'' then
-    AValue:=ExpandFileNameUTF8(AValue,FileCache.BaseDirectory);
+    AValue:=ExpandFileName(AValue);
   if FCompilerExe=AValue then Exit;
   FCompilerExe:=AValue;
 end;
@@ -2933,7 +2934,7 @@ procedure TPas2jsCompiler.LoadDefaultConfig;
   begin
     Result:=false;
     if aFilename='' then exit;
-    aFilename:=ExpandFileNameUTF8(aFilename,FileCache.BaseDirectory);
+    aFilename:=ExpandFileName(aFilename);
     if ShowTriedUsedFiles then
       Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
     if not DirectoryCache.FileExists(aFilename) then exit;
@@ -3251,6 +3252,7 @@ begin
               end;
           'o':
             begin
+              // -Jo<flag>
               Identifier:=String(p);
               if Identifier='' then
                 ParamFatal('missing value of -Jo option');
@@ -3314,7 +3316,16 @@ begin
       'o': // output file, main JavaScript file
         begin
           inc(p);
-          FileCache.MainJSFile:=String(p);
+          aFilename:=String(p);
+          if aFilename='' then
+            ParamFatal('invalid empty output file (-o)')
+          else if aFilename='..' then
+            ParamFatal('invalid output file (-o) "'+aFilename+'"')
+          else if aFilename='.' then
+            // ok, stdout
+          else
+            aFilename:=ExpandFileName(aFilename);
+          FileCache.MainJSFile:=aFilename;
         end;
       'O': // optimizations
         begin
@@ -3428,7 +3439,7 @@ begin
       aFilename:=copy(Param,2,length(Param));
       if aFilename='' then
         ParamFatal('invalid config file at param position '+IntToStr(i));
-      aFilename:=ExpandFileNameUTF8(aFilename,FileCache.BaseDirectory);
+      aFilename:=ExpandFileName(aFilename);
       if not DirectoryCache.FileExists(aFilename) then
         ParamFatal('config file not found: "'+copy(Param,2,length(Param))+'"');
       LoadConfig(aFilename);
@@ -3441,7 +3452,7 @@ begin
         CfgSyntaxError('invalid parameter');
       if FileCache.MainSrcFile<>'' then
         ParamFatal('Only one Pascal file is supported, but got "'+FileCache.MainSrcFile+'" and "'+Param+'".');
-      aFilename:=ExpandFileNameUTF8(Param,FileCache.BaseDirectory);
+      aFilename:=ExpandFileName(Param);
       FileCache.MainSrcFile:=aFilename;
     end;
   end;
@@ -4275,7 +4286,7 @@ begin
     Terminate(ExitCodeFileNotFound);
   end;
 
-  UnitFilename:=ExpandFileNameUTF8(UnitFilename,FileCache.BaseDirectory);
+  UnitFilename:=ExpandFileName(UnitFilename);
   if DirectoryCache.DirectoryExists(UnitFilename) then
   begin
     Log.LogMsg(nFileIsFolder,[QuoteStr(UnitFilename)]);
@@ -4354,6 +4365,11 @@ end;
 function TPas2jsCompiler.DirectoryExists(const Filename: string): boolean;
 begin
   Result:=FileCache.DirectoryCache.DirectoryExists(Filename);
+end;
+
+function TPas2jsCompiler.ExpandFileName(const Filename: string): string;
+begin
+  Result:=ExpandFileNameUTF8(Filename,FileCache.BaseDirectory);
 end;
 
 end.

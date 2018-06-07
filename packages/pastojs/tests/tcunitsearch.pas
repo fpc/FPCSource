@@ -132,6 +132,10 @@ type
   published
     procedure TestUS_Program;
     procedure TestUS_UsesEmptyFileFail;
+    procedure TestUS_Program_o;
+    procedure TestUS_Program_FU;
+    procedure TestUS_Program_FU_o;
+    procedure TestUS_Program_FE_o;
 
     procedure TestUS_UsesInFile;
     procedure TestUS_UsesInFile_Duplicate;
@@ -556,6 +560,7 @@ begin
     'begin',
     'end.']);
   Compile(['test1.pas','-va']);
+  AssertNotNull('test1.js not found',FindFile('test1.js'));
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesEmptyFileFail;
@@ -564,8 +569,53 @@ begin
   AddFile('test1.pas',[
     'begin',
     'end.']);
-  Compile(['test1.pas',''],ExitCodeSyntaxError);
+  Compile(['test1.pas'],ExitCodeSyntaxError);
   AssertEquals('ErrorMsg','Expected "unit"',ErrorMsg);
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_Program_o;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  Compile(['test1.pas','-obla.js']);
+  AssertNotNull('bla.js not found',FindFile('bla.js'));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_Program_FU;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  AddDir('lib');
+  Compile(['test1.pas','-FUlib']);
+  AssertNotNull('lib/test1.js not found',FindFile('lib/test1.js'));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_Program_FU_o;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  AddDir('lib');
+  Compile(['test1.pas','-FUlib','-ofoo.js']);
+  AssertNotNull('lib/system.js not found',FindFile('lib/system.js'));
+  AssertNotNull('foo.js not found',FindFile('foo.js'));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_Program_FE_o;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  AddDir('lib');
+  Compile(['test1.pas','-FElib','-ofoo.js']);
+  AssertNotNull('lib/system.js not found',FindFile('lib/system.js'));
+  AssertNotNull('foo.js not found',FindFile('foo.js'));
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_UsesInFile;
