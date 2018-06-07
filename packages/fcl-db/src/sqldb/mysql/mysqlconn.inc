@@ -1185,7 +1185,7 @@ begin
       begin
       Name := trim(qry.FieldByName('Key_name').AsString);
       Fields := trim(qry.FieldByName('Column_name').AsString);
-      If Name = 'PRIMARY' then options := options + [ixPrimary];
+      If Name = 'PRIMARY' then Options := Options + [ixPrimary];
       If qry.FieldByName('Non_unique').AsInteger = 0 then Options := Options + [ixUnique];
       qry.Next;
       while (Name = trim(qry.FieldByName('Key_name').AsString)) and (not qry.Eof) do
