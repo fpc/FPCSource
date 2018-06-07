@@ -41,6 +41,19 @@ type
   strict private
     type
 
+      { TOmfLibObjectModule }
+
+      TOmfLibObjectModule=class
+      strict private
+        FObjFileName: string;
+        FObjData: TDynamicArray;
+      public
+        constructor Create(const fn:string);
+        destructor Destroy; override;
+
+        property ObjData: TDynamicArray read FObjData;
+      end;
+
       { TOmfLibDictionaryEntry }
 
       TOmfLibDictionaryEntry=class(TFPHashObject)
@@ -54,10 +67,10 @@ type
     FPageSize: Integer;
     FLibName: string;
     FLibData: TDynamicArray;
-    FObjFileName: string;
-    FObjData: TDynamicArray;
     FObjStartPage: Word;
     FDictionary: TFPHashObjectList;
+    FObjectModules: TFPObjectList;
+    FCurrentModule: TOmfLibObjectModule;
 
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
@@ -136,6 +149,22 @@ implementation
       end;
 
 {*****************************************************************************
+                 TOmfLibObjectWriter.TOmfLibObjectModule
+*****************************************************************************}
+
+    constructor TOmfLibObjectWriter.TOmfLibObjectModule.Create(const fn: string);
+      begin
+        FObjFileName:=fn;
+        FObjData:=TDynamicArray.Create(objbufsize);
+      end;
+
+    destructor TOmfLibObjectWriter.TOmfLibObjectModule.Destroy;
+      begin
+        FObjData.Free;
+        inherited Destroy;
+      end;
+
+{*****************************************************************************
                  TOmfLibObjectWriter.TOmfLibDictionaryEntry
 *****************************************************************************}
 
@@ -161,6 +190,8 @@ implementation
         FLibName:=Aarfn;
         FLibData:=TDynamicArray.Create(libbufsize);
         FDictionary:=TFPHashObjectList.Create;
+        FObjectModules:=TFPObjectList.Create(True);
+        FCurrentModule:=nil;
         { header is at page 0, so first module starts at page 1 }
         FObjStartPage:=1;
       end;
@@ -171,7 +202,7 @@ implementation
         if Errorcount=0 then
           WriteLib;
         FLibData.Free;
-        FObjData.Free;
+        FObjectModules.Free;
         FDictionary.Free;
         inherited destroy;
       end;
@@ -179,9 +210,8 @@ implementation
 
     function TOmfLibObjectWriter.createfile(const fn: string): boolean;
       begin
-        FObjFileName:=fn;
-        FreeAndNil(FObjData);
-        FObjData:=TDynamicArray.Create(objbufsize);
+        FCurrentModule:=TOmfLibObjectModule.Create(fn);
+        FObjectModules.Add(FCurrentModule);
         createfile:=true;
         fobjsize:=0;
       end;
@@ -193,10 +223,10 @@ implementation
         ObjHeader: TOmfRecord_THEADR;
       begin
         FLibData.seek(FObjStartPage*FPageSize);
-        FObjData.seek(0);
+        FCurrentModule.ObjData.seek(0);
         RawRec:=TOmfRawRecord.Create;
         repeat
-          RawRec.ReadFrom(FObjData);
+          RawRec.ReadFrom(FCurrentModule.ObjData);
           if RawRec.RecordType=RT_THEADR then
             begin
               ObjHeader:=TOmfRecord_THEADR.Create;
@@ -224,7 +254,7 @@ implementation
       begin
         inc(fobjsize,len);
         inc(fsize,len);
-        FObjData.write(b,len);
+        FCurrentModule.ObjData.write(b,len);
       end;
 
     procedure TOmfLibObjectWriter.WriteHeader(DictStart: DWord; DictBlocks: Word);
