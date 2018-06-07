@@ -69,7 +69,7 @@ type
     FPageSize: Integer;
     FLibName: string;
     FLibData: TDynamicArray;
-    FObjStartPage: Word;
+    FFooterPos: LongWord;
     FDictionary: TFPHashObjectList;
     FObjectModules: TFPObjectList;
     FCurrentModule: TOmfLibObjectModule;
@@ -77,6 +77,7 @@ type
 
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
+    function TryPageSize(aPageSize: Integer): Boolean;
     procedure WriteLib;
     function WriteDictionary: Word;
     function TryWriteDictionaryWithSize(nblocks: Word): Boolean;
@@ -131,7 +132,7 @@ implementation
 
     uses
       SysUtils,
-      cstreams,
+      cstreams,cutils,
       verbose,
       omfbase;
 
@@ -195,8 +196,6 @@ implementation
         FDictionary:=TFPHashObjectList.Create;
         FObjectModules:=TFPObjectList.Create(True);
         FCurrentModule:=nil;
-        { header is at page 0, so first module starts at page 1 }
-        FObjStartPage:=1;
       end;
 
 
@@ -215,7 +214,6 @@ implementation
       begin
         FCurrentModule:=TOmfLibObjectModule.Create(fn);
         FCurrentModuleIndex:=FObjectModules.Add(FCurrentModule);
-        FCurrentModule.PageNum:=FObjStartPage;
         createfile:=true;
         fobjsize:=0;
       end;
@@ -226,7 +224,6 @@ implementation
         RawRec: TOmfRawRecord;
         ObjHeader: TOmfRecord_THEADR;
       begin
-        FLibData.seek(FObjStartPage*FPageSize);
         FCurrentModule.ObjData.seek(0);
         RawRec:=TOmfRawRecord.Create;
         repeat
@@ -239,11 +236,8 @@ implementation
               TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FCurrentModuleIndex);
               ObjHeader.Free;
             end;
-          RawRec.WriteTo(FLibData);
         until RawRec.RecordType in [RT_MODEND,RT_MODEND32];
         RawRec.Free;
-        { calculate start page of next module }
-        FObjStartPage:=(FLibData.Pos+FPageSize-1) div FPageSize;
         fobjsize:=0;
       end;
 
@@ -287,7 +281,7 @@ implementation
         Footer: TOmfRecord_LIBEND;
         RawRec: TOmfRawRecord;
       begin
-        FLibData.seek(FObjStartPage*FPageSize);
+        FLibData.seek(FFooterPos);
         Footer:=TOmfRecord_LIBEND.Create;
         Footer.CalculatePaddingBytes(FLibData.Pos);
         RawRec:=TOmfRawRecord.Create;
@@ -297,18 +291,60 @@ implementation
         RawRec.Free;
       end;
 
+    function TOmfLibObjectWriter.TryPageSize(aPageSize: Integer): Boolean;
+      var
+        I: Integer;
+        CurrentPage: Integer;
+        CurrentPos: LongWord;
+        pow: longint;
+      begin
+        if not IsPowerOf2(aPageSize,pow) then
+          internalerror(2018060701);
+        if (pow<4) or (pow>15) then
+          internalerror(2018060702);
+        FPageSize:=aPageSize;
+        { header is at page 0, so first module starts at page 1 }
+        CurrentPage:=1;
+        for I:=0 to FObjectModules.Count-1 do
+          with TOmfLibObjectModule(FObjectModules[I]) do
+            begin
+              if CurrentPage>high(word) then
+                exit(False);
+              PageNum:=CurrentPage;
+              { calculate next page }
+              CurrentPos:=CurrentPage*FPageSize+ObjData.Size;
+              CurrentPage:=(CurrentPos+FPageSize-1) div FPageSize;
+            end;
+        FFooterPos:=CurrentPage*FPageSize;
+        Result:=True;
+      end;
+
     procedure TOmfLibObjectWriter.WriteLib;
       var
         libf: TCCustomFileStream;
-        DictStart: LongWord;
+        DictStart, bytes: LongWord;
         DictBlocks: Word;
+        I: Integer;
+        buf: array [0..1023] of Byte;
       begin
+        TryPageSize(512);
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
           begin
             Message1(exec_e_cant_create_archivefile,FLibName);
             exit;
           end;
+        for I:=0 to FObjectModules.Count-1 do
+          with TOmfLibObjectModule(FObjectModules[I]) do
+            begin
+              FLibData.seek(PageNum*FPageSize);
+              ObjData.seek(0);
+              while ObjData.Pos<ObjData.size do
+                begin
+                  bytes:=ObjData.read(buf,Min(SizeOf(buf),ObjData.size-ObjData.Pos));
+                  FLibData.write(buf,bytes);
+                end;
+            end;
         WriteFooter;
         DictStart:=FLibData.Pos;
         DictBlocks:=WriteDictionary;
