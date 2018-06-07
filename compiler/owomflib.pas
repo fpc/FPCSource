@@ -47,21 +47,23 @@ type
       strict private
         FObjFileName: string;
         FObjData: TDynamicArray;
+        FPageNum: Word;
       public
         constructor Create(const fn:string);
         destructor Destroy; override;
 
         property ObjData: TDynamicArray read FObjData;
+        property PageNum: Word read FPageNum write FPageNum;
       end;
 
       { TOmfLibDictionaryEntry }
 
       TOmfLibDictionaryEntry=class(TFPHashObject)
       strict private
-        FPageNum: Word;
+        FModuleIndex: Integer;
       public
-        constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
-        property PageNum: Word read FPageNum write FPageNum;
+        constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aModuleIndex:Integer);
+        property ModuleIndex: Integer read FModuleIndex write FModuleIndex;
       end;
   strict private
     FPageSize: Integer;
@@ -71,6 +73,7 @@ type
     FDictionary: TFPHashObjectList;
     FObjectModules: TFPObjectList;
     FCurrentModule: TOmfLibObjectModule;
+    FCurrentModuleIndex: Integer;
 
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
@@ -169,10 +172,10 @@ implementation
 *****************************************************************************}
 
     constructor TOmfLibObjectWriter.TOmfLibDictionaryEntry.Create(
-        HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
+        HashObjectList: TFPHashObjectList; const aName: TSymStr; aModuleIndex:Integer);
       begin
         inherited Create(HashObjectList,aName);
-        PageNum:=aPageNum;
+        ModuleIndex:=aModuleIndex;
       end;
 
 {*****************************************************************************
@@ -211,7 +214,8 @@ implementation
     function TOmfLibObjectWriter.createfile(const fn: string): boolean;
       begin
         FCurrentModule:=TOmfLibObjectModule.Create(fn);
-        FObjectModules.Add(FCurrentModule);
+        FCurrentModuleIndex:=FObjectModules.Add(FCurrentModule);
+        FCurrentModule.PageNum:=FObjStartPage;
         createfile:=true;
         fobjsize:=0;
       end;
@@ -232,7 +236,7 @@ implementation
               ObjHeader:=TOmfRecord_THEADR.Create;
               ObjHeader.DecodeFrom(RawRec);
               { create a dictionary entry with the module name }
-              TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FObjStartPage);
+              TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FCurrentModuleIndex);
               ObjHeader.Free;
             end;
           RawRec.WriteTo(FLibData);
@@ -246,7 +250,7 @@ implementation
 
     procedure TOmfLibObjectWriter.writesym(const sym: string);
       begin
-        TOmfLibDictionaryEntry.Create(FDictionary,sym,FObjStartPage);
+        TOmfLibDictionaryEntry.Create(FDictionary,sym,FCurrentModuleIndex);
       end;
 
 
@@ -355,7 +359,7 @@ implementation
         for i:=0 to FDictionary.Count-1 do
           begin
             N:=TOmfLibDictionaryEntry(FDictionary[i]).Name;
-            PageNum:=TOmfLibDictionaryEntry(FDictionary[i]).PageNum;
+            PageNum:=TOmfLibObjectModule(FObjectModules[TOmfLibDictionaryEntry(FDictionary[i]).ModuleIndex]).PageNum;
             length_of_string:=Length(N);
             h:=compute_omf_lib_hash(N,nblocks);
             start_block:=h.block_x;
