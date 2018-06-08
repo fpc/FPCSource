@@ -17,6 +17,7 @@ const
   verbose : boolean = false;
   DosBoxProcess: TProcess = nil;
   dosbox_timeout : integer = 400;  { default timeout in seconds }
+  DosBoxExitStatus : integer = -1;
 var
   OutputFileName : String;
   SourceFileName : String;
@@ -365,15 +366,18 @@ begin
     CloseFile(F);
   except
     Writeln('Unable to read exitcode value');
+    if (DosBoxExitStatus <> 0) then
+      Writeln('DosBox exit status = ',DosBoxExitStatus);
     ReadExitCode:=127*256;
   end;
 end;
 
-procedure ExecuteDosBox(const ADosBoxBinaryPath, ADosBoxDir: string);
+function ExecuteDosBox(const ADosBoxBinaryPath, ADosBoxDir: string) : Integer;
 var
   Time: Integer = 0;
 begin
   DosBoxProcess := TProcess.Create(nil);
+  result:=-1;
   try
     DosBoxProcess.Executable := ADosBoxBinaryPath;
     DosBoxProcess.Parameters.Add('-conf');
@@ -394,6 +398,7 @@ begin
       Sleep(100);
     end;
   finally
+    result:=DosBoxProcess.ExitStatus;
     DosBoxProcess.Free;
     DosBoxProcess:=nil;
     EchoOutput;
@@ -603,7 +608,7 @@ begin
         else if verbose then
           writeln('cwsdpmi executable missing');
       end;
-    ExecuteDosBox(DosBoxBinaryPath, DosBoxDir);
+    DosBoxExitStatus:=ExecuteDosBox(DosBoxBinaryPath, DosBoxDir);
   finally
     ExitProc;
   end;
