@@ -57,7 +57,7 @@ var
 
 function formatop(s:string;allowsizeonly:boolean):string;
    const
-     replaces=28;
+     replaces=29;
      replacetab : array[1..replaces,1..2] of string[32]=(
        (':',' or ot_colon'),
        ('reg','regnorm'),
@@ -73,6 +73,7 @@ function formatop(s:string;allowsizeonly:boolean):string;
        ('mem64','memory or ot_bits64'),
        ('mem128','memory or ot_bits128'),
        ('mem256','memory or ot_bits256'),
+       ('mem512','memory or ot_bits512'),
        ('mem80','memory or ot_bits80'),
        ('mem','memory'),
        ('memory_offs','mem_offs'),
@@ -282,6 +283,7 @@ begin
      begin
         { handle comment }
         readln(infile,s);
+
         while (s[1]=' ') do
          delete(s,1,1);
         if (s='') or (s[1]=';') then

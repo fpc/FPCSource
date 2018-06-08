@@ -88,4 +88,12 @@ tregister($040D0003),
 tregister($040D0004),
 tregister($040D0005),
 tregister($040D0006),
-tregister($040D0007)
+tregister($040D0007),
+tregister($040E0000),
+tregister($040E0001),
+tregister($040E0002),
+tregister($040E0003),
+tregister($040E0004),
+tregister($040E0005),
+tregister($040E0006),
+tregister($040E0007)

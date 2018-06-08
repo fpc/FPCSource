@@ -17,7 +17,7 @@
 program mkx86reg;
 
 const Version = '1.00';
-      max_regcount = 200;
+      max_regcount = 255;
 
 var s : string;
     i : longint;
@@ -246,7 +246,7 @@ var infile:text;
 
 begin
    { open dat file }
-   assign(infile,'x86reg.dat');
+   assign(infile,'../x86/x86reg.dat');
    reset(infile);
    while not(eof(infile)) do
      begin

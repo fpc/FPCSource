@@ -195,6 +195,7 @@ begin
   case _size of
     16: size := OS_M128;
     32: size := OS_M256;
+    64: size := OS_M512;
   end;
 
 {$ifdef i8086}
@@ -420,6 +421,7 @@ begin
                                S_Q   : memrefsize := 64;
                                S_XMM : memrefsize := 128;
                                S_YMM : memrefsize := 256;
+                               S_ZMM : memrefsize := 512;
                                   else Internalerror(777200);
                              end;
                              break;
@@ -579,6 +581,21 @@ begin
 
                                Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"256 bit memory operand"');
                              end;
+                    msiMem512:
+                             begin
+                               tx86operand(operands[i]).opsize := S_ZMM;
+                               tx86operand(operands[i]).size   := OS_M512;
+                               opsize := S_ZMM;
+                             end;
+                    msiMultiple512:
+                             begin
+                               tx86operand(operands[i]).opsize := S_ZMM;
+                               tx86operand(operands[i]).size   := OS_M512;
+                               opsize := S_ZMM;
+
+                               Message2(asmr_w_check_mem_operand_automap_multiple_size, std_op2str[opcode], '"512 bit memory operand"');
+                             end;
+
                   msiMemRegSize:
                              begin
                                // mem-ref-size = register size
@@ -750,7 +767,9 @@ begin
                         // in this case is we need the old handling ("S_NO")
                         // =>> ignore
                         if (tx86operand(operands[operand2]).opsize <> S_XMM) and
-                           (tx86operand(operands[operand2]).opsize <> S_YMM) then
+                           (tx86operand(operands[operand2]).opsize <> S_YMM) and
+                           (tx86operand(operands[operand2]).opsize <> S_ZMM) then
+
                           tx86operand(operands[i]).opsize:=tx86operand(operands[operand2]).opsize
                         else tx86operand(operands[operand2]).opsize := S_NO;
                       end;

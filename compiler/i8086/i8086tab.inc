@@ -11386,14 +11386,21 @@
     opcode  : A_VPADDSB;
     ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
-    code    : #241#242#248#1#236#61#80;
+    code    : #232#241#242#248#1#236#61#80;
     flags   : [if_avx,if_sandybridge]
   ),
   (
     opcode  : A_VPADDSB;
     ops     : 3;
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
-    code    : #241#242#244#248#1#236#61#80;
+    code    : #232#241#242#244#248#1#236#61#80;
+    flags   : [if_avx2]
+  ),
+  (
+    opcode  : A_VPADDSB;
+    ops     : 3;
+    optypes : (ot_zmmreg,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#248#1#236#61#80;
     flags   : [if_avx2]
   ),
   (
