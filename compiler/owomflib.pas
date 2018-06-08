@@ -227,17 +227,17 @@ implementation
       begin
         FCurrentModule.ObjData.seek(0);
         RawRec:=TOmfRawRecord.Create;
-        repeat
-          RawRec.ReadFrom(FCurrentModule.ObjData);
-          if RawRec.RecordType=RT_THEADR then
-            begin
-              ObjHeader:=TOmfRecord_THEADR.Create;
-              ObjHeader.DecodeFrom(RawRec);
-              { create a dictionary entry with the module name }
-              TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FCurrentModuleIndex);
-              ObjHeader.Free;
-            end;
-        until RawRec.RecordType in [RT_MODEND,RT_MODEND32];
+        RawRec.ReadFrom(FCurrentModule.ObjData);
+        if RawRec.RecordType<>RT_THEADR then
+          begin
+            RawRec.Free;
+            InternalError(2018060801);
+          end;
+        ObjHeader:=TOmfRecord_THEADR.Create;
+        ObjHeader.DecodeFrom(RawRec);
+        { create a dictionary entry with the module name }
+        TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FCurrentModuleIndex);
+        ObjHeader.Free;
         RawRec.Free;
         fobjsize:=0;
       end;
