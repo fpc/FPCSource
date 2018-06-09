@@ -80,6 +80,7 @@ Type
     FOnRedirect: TRedirectEvent;
     FPassword: String;
     FIOTimeout: Integer;
+    FConnectTimeout: Integer;
     FSentCookies,
     FCookies: TStrings;
     FHTTPVersion: String;
@@ -100,6 +101,7 @@ Type
     function GetCookies: TStrings;
     function GetProxy: TProxyData;
     Procedure ResetResponse;
+    procedure SetConnectTimeout(AValue: Integer);
     Procedure SetCookies(const AValue: TStrings);
     procedure SetHTTPVersion(const AValue: String);
     procedure SetKeepConnection(AValue: Boolean);
@@ -273,6 +275,7 @@ Type
   Protected
     // Timeouts
     Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
+    Property ConnectTimeout : Integer read FConnectTimeout write SetConnectTimeout;
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
@@ -332,6 +335,7 @@ Type
     Property KeepConnection;
     Property Connected;
     Property IOTimeout;
+    Property ConnectTimeout;
     Property RequestHeaders;
     Property RequestBody;
     Property ResponseHeaders;
@@ -502,6 +506,12 @@ begin
     FSocket.IOTimeout:=AValue;
 end;
 
+procedure TFPCustomHTTPClient.SetConnectTimeout(AValue: Integer);
+begin
+  if FConnectTimeout = AValue then Exit;
+  FConnectTimeout := AValue;
+end;
+
 function TFPCustomHTTPClient.IsConnected: Boolean;
 begin
   Result := Assigned(FSocket);
@@ -605,6 +615,8 @@ begin
   try
     if FIOTimeout<>0 then
       FSocket.IOTimeout:=FIOTimeout;
+    if FConnectTimeout<>0 then
+      FSocket.ConnectTimeout:=FConnectTimeout;
     FSocket.Connect;
   except
     FreeAndNil(FSocket);
@@ -1199,7 +1211,6 @@ Procedure TFPCustomHTTPClient.DoNormalRequest(const AURI: TURI;
   const AMethod: string; AStream: TStream;
   const AAllowedResponseCodes: array of Integer;
   AHeadersOnly, AIsHttps: Boolean);
-
 Var
   CHost: string;
   CPort: Word;
@@ -1220,7 +1231,6 @@ Procedure TFPCustomHTTPClient.DoKeepConnectionRequest(const AURI: TURI;
   const AMethod: string; AStream: TStream;
   const AAllowedResponseCodes: array of Integer;
   AHeadersOnly, AIsHttps: Boolean);
-
 Var
   T: Boolean;
   CHost: string;
@@ -1276,6 +1286,7 @@ begin
   inherited Create(AOwner);
   // Infinite timeout on most platforms
   FIOTimeout:=0;
+  FConnectTimeout:=3000;
   FRequestHeaders:=TStringList.Create;
   FRequestHeaders.NameValueSeparator:=':';
   FResponseHeaders:=TStringList.Create;
@@ -1360,7 +1371,6 @@ begin
   FServerHTTPVersion:='';
   FBuffer:='';
 end;
-
 
 procedure TFPCustomHTTPClient.HTTPMethod(const AMethod, AURL: String;
   Stream: TStream; const AllowedResponseCodes: array of Integer);
