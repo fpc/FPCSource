@@ -4043,6 +4043,7 @@ begin
   Case StretchMode of
     smMaxHeight:
       begin
+      RTLayout.Height := aDesiredHeight;
       if Assigned(Parent) and Assigned(RTLayout) then
         RTLayout.Height:=Parent.RTLayout.Height-RTLayout.Top;
       end;
