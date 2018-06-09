@@ -701,6 +701,8 @@ begin
     aPage.PageSize.Width := round(PageToMM(StrToFloatDef(GetProperty(aPageNode,'Width'),aPage.PageSize.Width)));
   if GetProperty(aPageNode,'Height')<>'' then
     aPage.PageSize.Height := round(PageToMM(StrToFloatDef(GetProperty(aPageNode,'Height'),aPage.PageSize.Width)));
+  if GetProperty(aPageNode,'Orientation') = 'poLandscape' then
+    aPage.Orientation:=poLandscape;
   aDataNode := aPageNode.FindNode('Margins');
   if Assigned(aDataNode) then
     begin
