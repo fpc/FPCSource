@@ -264,8 +264,7 @@ uses
 {$ifdef windows}
   winsock2, windows,
 {$endif}
-  resolve,
-  math;
+  resolve;
 
 Const
   SocketWouldBlock = -2;
