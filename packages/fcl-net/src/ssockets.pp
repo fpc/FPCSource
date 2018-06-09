@@ -221,13 +221,19 @@ type
   TBlockingMode = (bmBlocking,bmNonBlocking);
   TBlockingModes = Set of TBlockingMode;
 
+{$if defined(unix) or defined(windows)}
+{$DEFINE HAVENONBLOCKING}
+{$endif}
+
   TInetSocket = Class(TSocketStream)
   Private
     FHost : String;
     FPort : Word;
   Protected
+{$IFDEF HAVENONBLOCKING}
     function SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Integer; virtual;
     function CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): Integer; virtual;
+{$ENDIF}
   Public
     Constructor Create(const AHost: String; APort: Word; AHandler : TSocketHandler = Nil); Overload;
     Procedure Connect; Virtual;
@@ -977,6 +983,7 @@ begin
     Connect;
 end;
 
+{$IFDEF HAVENONBLOCKING}
 function TInetSocket.SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Integer;
 
 Const
@@ -984,17 +991,13 @@ Const
                   (SocketBlockingMode, SocketNonBlockingMode);
 
 
-{$if defined(unix) or defined(windows)}
 var
   locFDS: PFDSet;
-{$endif}
 {$ifdef unix}
   flags: Integer;
 {$endif}
 begin
-  {$if defined(unix) or defined(windows)}
   locFDS := PFDSet(AFDSPtr);
-  {$endif}
   if (AblockMode = bmNonBlocking) then
     begin
 {$ifdef unix}
@@ -1022,20 +1025,18 @@ begin
 end;
 
 function TInetSocket.CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): Integer;
-{$if defined(unix) or defined(windows)}
+
 var
   Err: LongInt = 1;
   ErrLen: LongInt;
   locTimeVal: PTimeVal;
   locFDS: PFDSet;
-{$endif}
+
 begin
   locTimeVal := PTimeVal(ATimeVPtr);
   locFDS := PFDSet(AFDSPtr);
-  {$if defined(unix) or defined(windows)}
-      locTimeVal^.tv_usec := 0;
-      locTimeVal^.tv_sec := FConnectTimeout div 1000;
-  {$endif}
+  locTimeVal^.tv_usec := 0;
+  locTimeVal^.tv_sec := FConnectTimeout div 1000;
   {$ifdef unix}
     Result := fpSelect(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
     if Result > 0 then
@@ -1064,6 +1065,7 @@ begin
   {$endif}
   {$endif}
 end;
+{$ENDIF HAVENONBLOCKING}
 
 procedure TInetSocket.Connect;
 
@@ -1071,10 +1073,11 @@ Var
   A : THostAddr;
   addr: TInetSockAddr;
   Res : Integer;
-  {$if defined(unix) or defined(windows)}
+{$IFDEF HAVENONBLOCKING}
   FDS: TFDSet;
   TimeV: TTimeVal;
-  {$endif}
+{$endif}
+
 
 begin
   A := StrToHostAddr(FHost);
@@ -1090,18 +1093,22 @@ begin
   addr.sin_family := AF_INET;
   addr.sin_port := ShortHostToNet(FPort);
   addr.sin_addr.s_addr := HostToNet(a.s_addr);
+{$IFDEF HAVENONBLOCKING}
   if ConnectTimeOut>0 then
     SetSocketBlockingMode(Handle, bmNonBlocking, @FDS) ;
+{$ENDIF}
   {$ifdef unix}
   Res:=ESysEINTR;
     While (Res=ESysEINTR) do
   {$endif}
       Res:=fpConnect(Handle, @addr, sizeof(addr));
-      if (ConnectTimeOut>0) then
-        begin
-        Res:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
-        SetSocketBlockingMode(Handle, bmBlocking, @FDS);
-        end;
+{$IFDEF HAVENONBLOCKING}
+  if (ConnectTimeOut>0) then
+      begin
+      Res:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
+      SetSocketBlockingMode(Handle, bmBlocking, @FDS);
+      end;
+{$ENDIF}
   If Not (Res<0) then
     if not FHandler.Connect then
       begin
