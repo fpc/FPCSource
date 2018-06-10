@@ -1116,8 +1116,10 @@ begin
       end;
   If (Res<0) then
     Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
+{$IFDEF HAVENONBLOCKING}
   If (Res=0) then
     Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FHost, FPort])]);
+{$ENDIF}
 end;
 
 { ---------------------------------------------------------------------
