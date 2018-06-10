@@ -22,7 +22,7 @@ const Version = '1.00';
 var s : string;
     i : longint;
     line : longint;
-    regcount:byte;
+    regcount:longint;
     regcount_bsstart:byte;
     names,numbers,stdnames,intnames,nasmnames,attnames,stabs,dwarf32,dwarf64,ots,ops:
         array[0..max_regcount-1] of string[63];
