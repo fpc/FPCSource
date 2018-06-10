@@ -525,6 +525,7 @@ type
     Procedure TestExternalClass_TypeCastToRootClass;
     Procedure TestExternalClass_TypeCastToJSObject;
     Procedure TestExternalClass_TypeCastStringToExternalString;
+    Procedure TestExternalClass_TypeCastToJSFunction;
     Procedure TestExternalClass_CallClassFunctionOfInstanceFail;
     Procedure TestExternalClass_BracketAccessor;
     Procedure TestExternalClass_BracketAccessor_Call;
@@ -13356,6 +13357,84 @@ begin
     '$mod.s = String.fromCharCode(65, 66);',
     '$mod.s = $mod.s.anchor($mod.s);',
     '$mod.s = "foo".anchor($mod.s);',
+    '']));
+end;
+
+procedure TTestModule.TestExternalClass_TypeCastToJSFunction;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object'' end;',
+  '  TJSFunction = class external name ''Function''',
+  '    function bind(thisArg: TJSObject): TJSFunction; varargs;',
+  '    function call(thisArg: TJSObject): JSValue; varargs;',
+  '  end;',
+  '  TObject = class',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  '  TFuncInt = function(o: TObject): longint;',
+  'function GetIt(o: TObject): longint;',
+  '  procedure Sub; begin end;',
+  'var',
+  '  f: TJSFunction;',
+  '  fi: TFuncInt;',
+  'begin',
+  '  fi:=TFuncInt(f);',
+  '  f:=TJSFunction(fi);',
+  '  f:=TJSFunction(@GetIt);',
+  '  f:=TJSFunction(@GetIt).bind(nil,3);',
+  '  f:=TJSFunction(@Sub);',
+  '  f:=TJSFunction(@o.doit);',
+  '  f:=TJSFunction(fi).bind(nil,4)',
+  'end;',
+  'procedure TObject.DoIt(i: longint);',
+  '  procedure Sub; begin end;',
+  'var f: TJSFunction;',
+  'begin',
+  '  f:=TJSFunction(@DoIt);',
+  '  f:=TJSFunction(@DoIt).bind(nil,13);',
+  '  f:=TJSFunction(@Sub);',
+  '  f:=TJSFunction(@GetIt);',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_TypeCastToJSFunction',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoIt = function (i) {',
+    '    var Self = this;',
+    '    function Sub() {',
+    '    };',
+    '    var f = null;',
+    '    f = rtl.createCallback(Self, "DoIt");',
+    '    f = rtl.createCallback(Self, "DoIt").bind(null, 13);',
+    '    f = Sub;',
+    '    f = $mod.GetIt;',
+    '  };',
+    '});',
+    'this.GetIt = function (o) {',
+    '  var Result = 0;',
+    '  function Sub() {',
+    '  };',
+    '  var f = null;',
+    '  var fi = null;',
+    '  fi = f;',
+    '  f = fi;',
+    '  f = $mod.GetIt;',
+    '  f = $mod.GetIt.bind(null, 3);',
+    '  f = Sub;',
+    '  f = rtl.createCallback(o, "DoIt");',
+    '  f = fi.bind(null, 4);',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 

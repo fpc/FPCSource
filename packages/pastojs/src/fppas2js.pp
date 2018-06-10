@@ -344,6 +344,7 @@ Works:
   - p^.x, p.x
   - dispose, new
 - typecast byte(longword) -> value & $ff
+- typecast TJSFunction(func)
 
 ToDos:
 - bug:
@@ -4012,6 +4013,13 @@ begin
               if IsExternalClassName(ToClass,'Object') then
                 // TJSObject(ImgClass)
                 exit(cExact);
+              end
+            else if FromTypeEl.InheritsFrom(TPasProcedureType) then
+              begin
+              if IsExternalClassName(ToClass,'Function')
+                  or IsExternalClassName(ToClass,'Object') then
+                // TJSFunction(@Proc) or TJSFunction(ProcVar)
+                exit(cExact);
               end;
             end;
           end;
@@ -4047,6 +4055,20 @@ begin
           end
         else
           exit(Incompatible(20180503134528));
+        end
+      else if C.InheritsFrom(TPasProcedureType) then
+        begin
+        // typecast to proctype
+        if FromResolved.BaseType=btContext then
+          begin
+          FromTypeEl:=FromResolved.LoTypeEl;
+          if FromTypeEl.ClassType=TPasClassType then
+            begin
+            if IsExternalClassName(TPasClassType(FromTypeEl),'Function') then
+              // TProcType(aJSFunction)
+              exit(cCompatible);
+            end;
+          end;
         end;
       end;
     end
@@ -14812,8 +14834,8 @@ begin
       if LeftIsProcType and (msDelphi in AContext.CurrentModeSwitches)
           and (AssignContext.RightResolved.BaseType=btProc) then
         begin
-          // Delphi allows assigning a proc without @: proctype:=proc
-          AssignContext.RightSide:=CreateCallback(El.right,AssignContext.RightResolved,AContext);
+        // Delphi allows assigning a proc without @: proctype:=proc
+        AssignContext.RightSide:=CreateCallback(El.right,AssignContext.RightResolved,AContext);
         end
       else if AssignContext.RightResolved.BaseType=btNil then
         begin
