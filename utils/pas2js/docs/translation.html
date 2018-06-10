@@ -2540,6 +2540,10 @@ End.
       <li>An external class can descend from another external class.</li>
       <li>Since class types are JS objects it is possible to typecast a class type
       to the JS Object, e.g. TJSObject(TObject)</li>
+      <li>You can typecast function addresses and function references to JS
+      function, e.g. <i>TJSFunction(@SomeProc)</i>, <i>TJSFunction(OnClick)</i>.
+      Keep in mind that typecasting a method address creates a function wrapper
+      to bind the Self argument.</li>
     </ul>
     </div>
 
