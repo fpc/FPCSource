@@ -393,11 +393,13 @@ interface
     private
       FPublicOffset: DWord;
       FTypeIndex: Integer;
+      FIsLocal: Boolean;
     public
       function GetLengthInFile(Is32Bit: Boolean): Integer;
 
       property PublicOffset: DWord read FPublicOffset write FPublicOffset;
       property TypeIndex: Integer read FTypeIndex write FTypeIndex;
+      property IsLocal: Boolean read FIsLocal write FIsLocal;
     end;
 
     { TOmfRecord_PUBDEF }
@@ -405,6 +407,7 @@ interface
     TOmfRecord_PUBDEF = class(TOmfParsedRecord)
     private
       FIs32Bit: Boolean;
+      FIsLocal: Boolean;
       FBaseGroupIndex: Integer;
       FBaseSegmentIndex: Integer;
       FBaseFrame: Word;
@@ -418,6 +421,7 @@ interface
       procedure MaybeGo32;
 
       property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
+      property IsLocal: Boolean read FIsLocal write FIsLocal;
       property BaseGroupIndex: Integer read FBaseGroupIndex write FBaseGroupIndex;
       property BaseSegmentIndex: Integer read FBaseSegmentIndex write FBaseSegmentIndex;
       property BaseFrame: Word read FBaseFrame write FBaseFrame;
@@ -1754,9 +1758,10 @@ implementation
       PublicOffset: DWord;
       PubName: TOmfPublicNameElement;
     begin
-      if not (RawRecord.RecordType in [RT_PUBDEF,RT_PUBDEF32]) then
+      if not (RawRecord.RecordType in [RT_PUBDEF,RT_PUBDEF32,RT_LPUBDEF,RT_LPUBDEF32]) then
         internalerror(2015040301);
-      Is32Bit:=RawRecord.RecordType=RT_PUBDEF32;
+      Is32Bit:=RawRecord.RecordType in [RT_PUBDEF32,RT_LPUBDEF32];
+      IsLocal:=RawRecord.RecordType in [RT_LPUBDEF,RT_LPUBDEF32];
 
       NextOfs:=RawRecord.ReadIndexedRef(0,FBaseGroupIndex);
       NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FBaseSegmentIndex);
@@ -1790,6 +1795,7 @@ implementation
             end;
           NextOfs:=RawRecord.ReadIndexedRef(NextOfs,TypeIndex);
           PubName:=TOmfPublicNameElement.Create(PublicNames,Name);
+          PubName.IsLocal:=IsLocal;
           PubName.PublicOffset:=PublicOffset;
           PubName.TypeIndex:=TypeIndex;
         end;
@@ -1802,11 +1808,20 @@ implementation
       Len,LastIncludedIndex,NextOfs,I: Integer;
       PubName: TOmfPublicNameElement;
     begin
+      if NextIndex>=PublicNames.Count then
+        internalerror(2018061101);
       MaybeGo32;
-      if Is32Bit then
-        RawRecord.RecordType:=RT_PUBDEF32
+      IsLocal:=TOmfPublicNameElement(PublicNames[NextIndex]).IsLocal;
+      if IsLocal then
+        if Is32Bit then
+          RawRecord.RecordType:=RT_LPUBDEF32
+        else
+          RawRecord.RecordType:=RT_LPUBDEF
       else
-        RawRecord.RecordType:=RT_PUBDEF;
+        if Is32Bit then
+          RawRecord.RecordType:=RT_PUBDEF32
+        else
+          RawRecord.RecordType:=RT_PUBDEF;
 
       NextOfs:=RawRecord.WriteIndexedRef(0,BaseGroupIndex);
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,BaseSegmentIndex);
@@ -1823,7 +1838,9 @@ implementation
       repeat
         Inc(LastIncludedIndex);
         Inc(Len,TOmfPublicNameElement(PublicNames[LastIncludedIndex]).GetLengthInFile(Is32Bit));
-      until (LastIncludedIndex>=(PublicNames.Count-1)) or ((Len+TOmfPublicNameElement(PublicNames[LastIncludedIndex+1]).GetLengthInFile(Is32Bit))>=RecordLengthLimit);
+      until (LastIncludedIndex>=(PublicNames.Count-1)) or
+            ((Len+TOmfPublicNameElement(PublicNames[LastIncludedIndex+1]).GetLengthInFile(Is32Bit))>=RecordLengthLimit) or
+            (TOmfPublicNameElement(PublicNames[LastIncludedIndex+1]).IsLocal<>IsLocal);
 
       { write the public names... }
       for I:=NextIndex to LastIncludedIndex do

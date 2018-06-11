@@ -903,7 +903,14 @@ implementation
               begin
                 PublicNameElem:=TOmfPublicNameElement.Create(PubNamesForSection[objsym.objsection.index-1],objsym.Name);
                 PublicNameElem.PublicOffset:=objsym.offset;
-              end;
+                PublicNameElem.IsLocal:=False;
+              end
+            else if objsym.bind=AB_LOCAL then
+              begin
+                PublicNameElem:=TOmfPublicNameElement.Create(PubNamesForSection[objsym.objsection.index-1],objsym.Name);
+                PublicNameElem.PublicOffset:=objsym.offset;
+                PublicNameElem.IsLocal:=True;
+              end
           end;
 
         for i:=0 to Data.ObjSectionList.Count-1 do
@@ -984,6 +991,7 @@ implementation
         GrpDef: TOmfRecord_GRPDEF;
         DGroupSegments: TSegmentList;
         nsections: Integer;
+        objsym: TObjSymbol;
       begin
         { calc amount of sections we have and set their index, starting with 1 }
         nsections:=1;
@@ -1396,7 +1404,10 @@ implementation
             if not CaseSensitiveSymbols then
               symname:=UpCase(symname);
             objsym:=objdata.CreateSymbol(symname);
-            objsym.bind:=AB_GLOBAL;
+            if PubDefElem.IsLocal then
+              objsym.bind:=AB_LOCAL
+            else
+              objsym.bind:=AB_GLOBAL;
             objsym.typ:=AT_FUNCTION;
             objsym.group:=basegroup;
             objsym.objsection:=objsec;
@@ -1988,6 +1999,7 @@ implementation
             RT_EXTDEF:
               if not ReadExtDef(FRawRecord,objdata) then
                 exit;
+            RT_LPUBDEF,RT_LPUBDEF32,
             RT_PUBDEF,RT_PUBDEF32:
               if not ReadPubDef(FRawRecord,objdata) then
                 exit;
