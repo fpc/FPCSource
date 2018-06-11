@@ -41,9 +41,14 @@ unit i_msdos;
             system       : system_i8086_msdos;
             name         : 'MS-DOS 16-bit real mode';
             shortname    : 'MSDOS';
-            flags        : [tf_use_8_3,tf_smartlink_library,
-                            tf_no_objectfiles_when_smartlinking,tf_cld,
-                            tf_no_generic_stackcheck,tf_emit_stklen];
+            flags        : [tf_use_8_3,
+{$ifdef I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_sections,
+{$else I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,
+{$endif I8086_SMARTLINK_SECTIONS}
+                            tf_cld,tf_no_generic_stackcheck,tf_emit_stklen];
             cpu          : cpu_i8086;
             unit_env     : 'MSDOSUNITS';
             extradefines : '';

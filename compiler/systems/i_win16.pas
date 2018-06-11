@@ -41,9 +41,14 @@ unit i_win16;
             system       : system_i8086_win16;
             name         : 'Win16 for x86';
             shortname    : 'Win16';
-            flags        : [tf_use_8_3,tf_smartlink_library,
-                            tf_no_objectfiles_when_smartlinking,tf_cld,
-                            tf_no_generic_stackcheck,tf_emit_stklen,
+            flags        : [tf_use_8_3,
+{$ifdef I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_sections,
+{$else I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,
+{$endif I8086_SMARTLINK_SECTIONS}
+                            tf_cld,tf_no_generic_stackcheck,tf_emit_stklen,
                             tf_x86_far_procs_push_odd_bp];
             cpu          : cpu_i8086;
             unit_env     : 'WIN16UNITS';

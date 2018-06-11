@@ -570,15 +570,35 @@ implementation
       end;
 
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+      var
+        sep : string[3];
+        secname : string;
       begin
         if (atype=sec_user) then
           Result:=aname
-        else if omf_secnames[atype]=omf_secnames[sec_code] then
-          Result:=CodeSectionName(aname)
-        else if omf_segclass(atype)='FAR_DATA' then
-          Result:=current_module.modulename^ + '_DATA'
         else
-          Result:=omf_secnames[atype];
+          begin
+            if omf_secnames[atype]=omf_secnames[sec_code] then
+              secname:=CodeSectionName(aname)
+            else if omf_segclass(atype)='FAR_DATA' then
+              secname:=current_module.modulename^ + '_DATA'
+            else
+              secname:=omf_secnames[atype];
+            if create_smartlink_sections and (aname<>'') then
+              begin
+                case aorder of
+                  secorder_begin :
+                    sep:='.b_';
+                  secorder_end :
+                    sep:='.z_';
+                  else
+                    sep:='.n_';
+                end;
+                result:=secname+sep+aname
+              end
+            else
+              result:=secname;
+          end;
       end;
 
     function TOmfObjData.createsection(atype: TAsmSectionType; const aname: string; aorder: TAsmSectionOrder): TObjSection;
@@ -2910,7 +2930,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_i8086_msdos,system_i8086_embedded];
-            flags : [af_outputbinary,af_no_debug];
+            flags : [af_outputbinary,af_no_debug,af_smartlink_sections];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
