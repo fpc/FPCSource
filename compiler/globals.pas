@@ -213,6 +213,12 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+      tpendingstateflag = (
+        psf_alignment_changed,
+        psf_verbosity_full_switched,
+        psf_local_switches_changed
+      );
+      tpendingstateflags = set of tpendingstateflag;
 
       tpendingstate = record
         nextverbositystr : shortstring;
@@ -221,9 +227,7 @@ interface
         nextcallingstr : shortstring;
         nextmessagerecord : pmessagestaterecord;
         nextalignment : talignmentinfo;
-        alignmentchanged,
-        verbosityfullswitched,
-        localswitcheschanged : boolean;
+        flags : tpendingstateflags;
       end;
 
 
