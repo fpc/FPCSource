@@ -594,7 +594,7 @@ implementation
                   else
                     sep:='.n_';
                 end;
-                result:=secname+sep+aname
+                result:=UpCase(secname+sep+aname);
               end
             else
               result:=secname;
