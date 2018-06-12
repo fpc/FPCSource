@@ -216,7 +216,10 @@ interface
       tpendingstateflag = (
         psf_alignment_changed,
         psf_verbosity_full_switched,
-        psf_local_switches_changed
+        psf_local_switches_changed,
+        psf_packenum_changed,
+        psf_packrecords_changed,
+        psf_setalloc_changed
       );
       tpendingstateflags = set of tpendingstateflag;
 
@@ -227,6 +230,9 @@ interface
         nextcallingstr : shortstring;
         nextmessagerecord : pmessagestaterecord;
         nextalignment : talignmentinfo;
+        nextpackenum : shortint;
+        nextpackrecords : shortint;
+        nextsetalloc : shortint;
         flags : tpendingstateflags;
       end;
 

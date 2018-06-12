@@ -38,6 +38,9 @@ unit scandir;
         verbosity: longint;
         pmessage : pmessagestaterecord;
         alignment : talignmentinfo;
+        setalloc,
+        packenum,
+        packrecords : shortint;
       end;
 
     type
@@ -1178,6 +1181,9 @@ unit scandir;
       recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
       recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
+      recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
+      recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
+      recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
       pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
       { Reset verbosity and forget previous pmeesage }
       RestoreLocalVerbosity(nil);
@@ -1216,6 +1222,9 @@ unit scandir;
       switchesstatestack[switchesstatestackpos].pmessage:= current_settings.pmessage;
       switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
       switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
+      switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
+      switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
+      switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
       Inc(switchesstatestackpos);
     end;
 

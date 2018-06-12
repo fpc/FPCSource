@@ -38,6 +38,9 @@ procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
 procedure recordpendingverbosityfullswitch(verbosity: longint);
 procedure recordpendingcallingswitch(const str: shortstring);
 procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
+procedure recordpendingsetalloc(alloc:shortint);
+procedure recordpendingpackenum(size:shortint);
+procedure recordpendingpackrecords(size:shortint);
 procedure flushpendingswitchesstate;
 
 implementation
@@ -354,6 +357,27 @@ procedure recordpendingcallingswitch(const str: shortstring);
   end;
 
 
+procedure recordpendingsetalloc(alloc:shortint);
+  begin
+    pendingstate.nextsetalloc:=alloc;
+    include(pendingstate.flags,psf_setalloc_changed);
+  end;
+
+
+procedure recordpendingpackenum(size:shortint);
+  begin
+    pendingstate.nextpackenum:=size;
+    include(pendingstate.flags,psf_packenum_changed);
+  end;
+
+
+procedure recordpendingpackrecords(size:shortint);
+  begin
+    pendingstate.nextpackrecords:=size;
+    include(pendingstate.flags,psf_packrecords_changed);
+  end;
+
+
 procedure flushpendingswitchesstate;
   var
     tmpproccal: tproccalloption;
@@ -375,6 +399,21 @@ procedure flushpendingswitchesstate;
       begin
         current_settings.alignment:=pendingstate.nextalignment;
         exclude(pendingstate.flags,psf_alignment_changed);
+      end;
+    if psf_packenum_changed in pendingstate.flags then
+      begin
+        current_settings.packenum:=pendingstate.nextpackenum;
+        exclude(pendingstate.flags,psf_packenum_changed);
+      end;
+    if psf_packrecords_changed in pendingstate.flags then
+      begin
+        current_settings.packrecords:=pendingstate.nextpackrecords;
+        exclude(pendingstate.flags,psf_packrecords_changed);
+      end;
+    if psf_setalloc_changed in pendingstate.flags then
+      begin
+        current_settings.setalloc:=pendingstate.nextsetalloc;
+        exclude(pendingstate.flags,psf_setalloc_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
     if pendingstate.nextverbositystr<>'' then
