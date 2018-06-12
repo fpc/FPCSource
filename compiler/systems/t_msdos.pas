@@ -469,6 +469,7 @@ begin
   LinkScript.Concat('EXESECTION .MZ_flat_content');
   if current_settings.x86memorymodel=mm_tiny then
     begin
+      LinkScript.Concat('  OBJSECTION _TEXT||CODE');
       LinkScript.Concat('  OBJSECTION *||CODE');
       LinkScript.Concat('  OBJSECTION *||DATA');
       LinkScript.Concat('  SYMBOL _edata');
