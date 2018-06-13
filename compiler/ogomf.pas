@@ -2589,9 +2589,80 @@ implementation
       end;
 
     function TMZExeOutput.writeDebugElf: boolean;
+      label
+        cleanup;
       var
+        debugsections: array of TMZExeSection;
+        debugsections_count: Word;
+        elfsections_count: Word;
+        elfsechdrs: array of TElf32sechdr;
+        shstrndx: Word;
+        next_section_ofs: LongWord;
         ElfHeader: TElf32header;
+        shstrtabsect_data: TDynamicArray=Nil;
+        I, elfsecidx, J: Integer;
+        ObjSec: TOmfObjSection;
       begin
+        { count the debug sections }
+        debugsections_count:=0;
+        for I:=0 to ExeSectionList.Count-1 do
+          if oso_debug in TMZExeSection(ExeSectionList[I]).SecOptions then
+            Inc(debugsections_count);
+
+        { extract them into the debugsections array }
+        SetLength(debugsections,debugsections_count);
+        debugsections_count:=0;
+        for I:=0 to ExeSectionList.Count-1 do
+          if oso_debug in TMZExeSection(ExeSectionList[I]).SecOptions then
+            begin
+              debugsections[debugsections_count]:=TMZExeSection(ExeSectionList[I]);
+              Inc(debugsections_count);
+            end;
+
+        { prepare/allocate elf section headers }
+        elfsections_count:=debugsections_count+2;
+        SetLength(elfsechdrs,elfsections_count);
+        for I:=0 to elfsections_count-1 do
+          FillChar(elfsechdrs[I],SizeOf(elfsechdrs[I]),0);
+        shstrndx:=elfsections_count-1;
+        shstrtabsect_data:=tdynamicarray.Create(SectionDataMaxGrow);
+        shstrtabsect_data.writestr(#0);
+        next_section_ofs:=SizeOf(ElfHeader)+elfsections_count*SizeOf(TElf32sechdr);
+        for I:=0 to debugsections_count-1 do
+          begin
+            elfsecidx:=I+1;
+            with elfsechdrs[elfsecidx] do
+              begin
+                sh_name:=shstrtabsect_data.Pos;
+                sh_type:=SHT_PROGBITS;
+                sh_flags:=0;
+                sh_addr:=0;
+                sh_offset:=next_section_ofs;
+                sh_size:=debugsections[I].Size;
+                sh_link:=0;
+                sh_info:=0;
+                sh_addralign:=0;
+                sh_entsize:=0;
+              end;
+            Inc(next_section_ofs,debugsections[I].Size);
+            shstrtabsect_data.writestr(debugsections[I].Name+#0);
+          end;
+        with elfsechdrs[shstrndx] do
+          begin
+            sh_name:=shstrtabsect_data.Pos;
+            shstrtabsect_data.writestr('.shstrtab'#0);
+            sh_type:=SHT_STRTAB;
+            sh_flags:=0;
+            sh_addr:=0;
+            sh_offset:=next_section_ofs;
+            sh_size:=shstrtabsect_data.Size;
+            sh_link:=0;
+            sh_info:=0;
+            sh_addralign:=0;
+            sh_entsize:=0;
+          end;
+
+        { write header }
         FillChar(ElfHeader,SizeOf(ElfHeader),0);
         ElfHeader.e_ident[EI_MAG0]:=ELFMAG0; { = #127'ELF' }
         ElfHeader.e_ident[EI_MAG1]:=ELFMAG1;
@@ -2613,12 +2684,39 @@ implementation
         ElfHeader.e_phentsize:=SizeOf(TElf32proghdr);
         ElfHeader.e_phnum:=0;
         ElfHeader.e_shentsize:=SizeOf(TElf32sechdr);
-        ElfHeader.e_shnum:=6;
-        ElfHeader.e_shstrndx:=5;
+        ElfHeader.e_shnum:=elfsections_count;
+        ElfHeader.e_shstrndx:=shstrndx;
+        {todo: MaybeSwapHeader(ElfHeader);}
+        Writer.write(ElfHeader,sizeof(ElfHeader));
 
-        {todo: implement}
+        { write section headers }
+        for I:=0 to elfsections_count-1 do
+          begin
+            {todo: MaybeSwapSecHeader(elfsechdrs[I]);}
+            Writer.write(elfsechdrs[I],SizeOf(elfsechdrs[I]));
+          end;
+
+        { write section data }
+        for J:=0 to debugsections_count-1 do
+          begin
+            debugsections[J].DataPos:=Writer.Size;
+            for i:=0 to debugsections[J].ObjSectionList.Count-1 do
+              begin
+                ObjSec:=TOmfObjSection(debugsections[J].ObjSectionList[i]);
+                if ObjSec.MemPos<Header.LoadableImageSize then
+                  begin
+                    FWriter.WriteZeros(max(0,ObjSec.MemPos-FWriter.Size+debugsections[J].DataPos));
+                    if assigned(ObjSec.Data) then
+                      FWriter.writearray(ObjSec.Data);
+                  end;
+              end;
+          end;
+        { write .shstrtab section data }
+        Writer.writearray(shstrtabsect_data);
 
         Result:=True;
+cleanup:
+        shstrtabsect_data.Free;
       end;
 
     procedure TMZExeOutput.Load_Symbol(const aname: string);

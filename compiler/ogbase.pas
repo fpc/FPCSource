@@ -699,6 +699,9 @@ interface
       end;
       TExeOutputClass=class of TExeOutput;
 
+    const
+      SectionDataMaxGrow = 4096;
+
     var
       exeoutput : TExeOutput;
 
@@ -711,9 +714,6 @@ implementation
     uses
       SysUtils,
       globals,verbose,ogmap;
-
-    const
-      SectionDataMaxGrow = 4096;
 
 {$ifdef MEMDEBUG}
     var
