@@ -497,16 +497,16 @@ begin
      (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       LinkScript.Concat('EXESECTION .debug_info');
-      LinkScript.Concat('  OBJSECTION .debug_info||DWARF');
+      LinkScript.Concat('  OBJSECTION .DEBUG_INFO||DWARF');
       LinkScript.Concat('ENDEXESECTION');
       LinkScript.Concat('EXESECTION .debug_abbrev');
-      LinkScript.Concat('  OBJSECTION .debug_abbrev||DWARF');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ABBREV||DWARF');
       LinkScript.Concat('ENDEXESECTION');
       LinkScript.Concat('EXESECTION .debug_line');
-      LinkScript.Concat('  OBJSECTION .debug_line||DWARF');
+      LinkScript.Concat('  OBJSECTION .DEBUG_LINE||DWARF');
       LinkScript.Concat('ENDEXESECTION');
       LinkScript.Concat('EXESECTION .debug_aranges');
-      LinkScript.Concat('  OBJSECTION .debug_aranges||DWARF');
+      LinkScript.Concat('  OBJSECTION .DEBUG_ARANGES||DWARF');
       LinkScript.Concat('ENDEXESECTION');
     end;
 
