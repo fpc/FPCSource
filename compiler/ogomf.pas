@@ -1302,6 +1302,8 @@ implementation
             exit;
           end;
         objsec.Size:=SegDefRec.SegmentLength;
+        if SegClassName='DWARF' then
+          objsec.SecOptions:=objsec.SecOptions+[oso_debug];
         if (SegClassName='HEAP') or
            (SegClassName='STACK') or (SegDefRec.Combination=scStack) or
            (SegClassName='BEGDATA') or
