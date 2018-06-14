@@ -280,8 +280,10 @@ interface
         FMZFlatContentSection: TMZExeSection;
         FExeUnifiedLogicalSegments: TFPHashObjectList;
         FExeUnifiedLogicalGroups: TFPHashObjectList;
+        FDwarfUnifiedLogicalSegments: TFPHashObjectList;
         FHeader: TMZExeHeader;
         function GetMZFlatContentSection: TMZExeSection;
+        procedure CalcDwarfUnifiedLogicalSegmentsForSection(const SecName: TSymStr);
         procedure CalcExeUnifiedLogicalSegments;
         procedure CalcExeGroups;
         procedure CalcSegments_MemBasePos;
@@ -299,6 +301,7 @@ interface
         function writeDebugElf:boolean;
         property ExeUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property ExeUnifiedLogicalGroups: TFPHashObjectList read FExeUnifiedLogicalGroups;
+        property DwarfUnifiedLogicalSegments: TFPHashObjectList read FExeUnifiedLogicalSegments;
         property Header: TMZExeHeader read FHeader;
       protected
         procedure Load_Symbol(const aname:string);override;
@@ -2277,6 +2280,32 @@ implementation
         result:=FMZFlatContentSection;
       end;
 
+    procedure TMZExeOutput.CalcDwarfUnifiedLogicalSegmentsForSection(const SecName: TSymStr);
+      var
+        ExeSec: TMZExeSection;
+        ObjSec: TOmfObjSection;
+        UniSeg: TMZExeUnifiedLogicalSegment;
+        i: Integer;
+      begin
+        ExeSec:=TMZExeSection(FindExeSection(SecName));
+        for i:=0 to ExeSec.ObjSectionList.Count-1 do
+          begin
+            ObjSec:=TOmfObjSection(ExeSec.ObjSectionList[i]);
+            UniSeg:=TMZExeUnifiedLogicalSegment(DwarfUnifiedLogicalSegments.Find(ObjSec.Name));
+            if not assigned(UniSeg) then
+              begin
+                UniSeg:=TMZExeUnifiedLogicalSegment.Create(DwarfUnifiedLogicalSegments,ObjSec.Name);
+                UniSeg.MemPos:=0;
+              end;
+            UniSeg.AddObjSection(ObjSec);
+          end;
+        for i:=0 to DwarfUnifiedLogicalSegments.Count-1 do
+          begin
+            UniSeg:=TMZExeUnifiedLogicalSegment(DwarfUnifiedLogicalSegments[i]);
+            UniSeg.CalcMemPos;
+          end;
+      end;
+
     procedure TMZExeOutput.CalcExeUnifiedLogicalSegments;
       var
         ExeSec: TMZExeSection;
@@ -2968,14 +2997,23 @@ cleanup:
         if assigned(CurrExeSec) then
           SecName:=CurrExeSec.Name;
         inherited MemPos_EndExeSection;
-        if SecName='.MZ_flat_content' then
-          begin
-            CalcExeUnifiedLogicalSegments;
-            CalcExeGroups;
-            CalcSegments_MemBasePos;
-            if assigned(exemap) then
-              WriteMap_SegmentsAndGroups;
-          end;
+        case SecName of
+          '.MZ_flat_content':
+            begin
+              CalcExeUnifiedLogicalSegments;
+              CalcExeGroups;
+              CalcSegments_MemBasePos;
+              if assigned(exemap) then
+                WriteMap_SegmentsAndGroups;
+            end;
+          '.debug_info',
+          '.debug_abbrev',
+          '.debug_line',
+          '.debug_aranges':
+            CalcDwarfUnifiedLogicalSegmentsForSection(SecName);
+          else
+            internalerror(2018061401);
+        end;
       end;
 
     function TMZExeOutput.writeData: boolean;
@@ -3008,12 +3046,14 @@ cleanup:
         MaxMemPos:=$9FFFF;
         FExeUnifiedLogicalSegments:=TFPHashObjectList.Create;
         FExeUnifiedLogicalGroups:=TFPHashObjectList.Create;
+        FDwarfUnifiedLogicalSegments:=TFPHashObjectList.Create;
         FHeader:=TMZExeHeader.Create;
       end;
 
     destructor TMZExeOutput.destroy;
       begin
         FHeader.Free;
+        FDwarfUnifiedLogicalSegments.Free;
         FExeUnifiedLogicalGroups.Free;
         FExeUnifiedLogicalSegments.Free;
         inherited destroy;
