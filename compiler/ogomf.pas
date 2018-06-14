@@ -3010,7 +3010,11 @@ cleanup:
           '.debug_abbrev',
           '.debug_line',
           '.debug_aranges':
-            CalcDwarfUnifiedLogicalSegmentsForSection(SecName);
+            begin
+              CalcDwarfUnifiedLogicalSegmentsForSection(SecName);
+              with TMZExeSection(FindExeSection(SecName)) do
+                SecOptions:=SecOptions+[oso_debug];
+            end;
           else
             internalerror(2018061401);
         end;
