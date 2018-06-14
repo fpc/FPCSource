@@ -2978,10 +2978,22 @@ cleanup:
 
     function TMZExeOutput.writeData: boolean;
       begin
-        if apptype=app_com then
-          Result:=WriteCom
-        else
-          Result:=WriteExe;
+        Result:=False;
+        if ExeWriteMode in [ewm_exefull,ewm_exeonly] then
+          begin
+            if apptype=app_com then
+              Result:=WriteCom
+            else
+              Result:=WriteExe;
+            if not Result then
+              exit;
+          end;
+        if ((cs_debuginfo in current_settings.moduleswitches) and
+            (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) and
+           ((ExeWriteMode=ewm_dbgonly) or
+            ((ExeWriteMode=ewm_exefull) and
+              not(cs_link_strip in current_settings.globalswitches))) then
+          Result:=writeDebugElf;
       end;
 
     constructor TMZExeOutput.create;
@@ -3028,7 +3040,7 @@ cleanup:
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_i8086_msdos,system_i8086_embedded];
-            flags : [af_outputbinary,af_no_debug,af_smartlink_sections];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';
