@@ -2734,12 +2734,8 @@ implementation
             for i:=0 to debugsections[J].ObjSectionList.Count-1 do
               begin
                 ObjSec:=TOmfObjSection(debugsections[J].ObjSectionList[i]);
-                if ObjSec.MemPos<Header.LoadableImageSize then
-                  begin
-                    FWriter.WriteZeros(max(0,ObjSec.MemPos-FWriter.Size+debugsections[J].DataPos));
-                    if assigned(ObjSec.Data) then
-                      FWriter.writearray(ObjSec.Data);
-                  end;
+                if assigned(ObjSec.Data) then
+                  FWriter.writearray(ObjSec.Data);
               end;
           end;
         { write .shstrtab section data }
