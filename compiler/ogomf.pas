@@ -3015,6 +3015,8 @@ cleanup:
               with TMZExeSection(FindExeSection(SecName)) do
                 SecOptions:=SecOptions+[oso_debug];
             end;
+          '':
+            {nothing to do};
           else
             internalerror(2018061401);
         end;
