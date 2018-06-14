@@ -2686,13 +2686,13 @@ implementation
         ElfHeader.e_shentsize:=SizeOf(TElf32sechdr);
         ElfHeader.e_shnum:=elfsections_count;
         ElfHeader.e_shstrndx:=shstrndx;
-        {todo: MaybeSwapHeader(ElfHeader);}
+        MaybeSwapHeader(ElfHeader);
         Writer.write(ElfHeader,sizeof(ElfHeader));
 
         { write section headers }
         for I:=0 to elfsections_count-1 do
           begin
-            {todo: MaybeSwapSecHeader(elfsechdrs[I]);}
+            MaybeSwapSecHeader(elfsechdrs[I]);
             Writer.write(elfsechdrs[I],SizeOf(elfsechdrs[I]));
           end;
 
