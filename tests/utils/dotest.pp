@@ -24,6 +24,7 @@ uses
 {$ifdef macos}
   macutils,
 {$endif}
+  strutils,
   teststr,
   testu,
   redir,
@@ -114,75 +115,20 @@ const
   TargetCanCompileLibraries : boolean = true;
   UniqueSuffix: string = '';
 
-{ Constants used in IsAbsolute function }
-  TargetHasDosStyleDirectories : boolean = false;
-  TargetAmigaLike : boolean = false;
-  TargetIsMacOS : boolean = false;
-  TargetIsUnix : boolean = false;
 
-{ extracted from rtl/macos/macutils.inc }
+const
+  NoSharedLibSupportPattern='$nosharedlib';
+  TargetHasNoSharedLibSupport = 'msdos,go32v2';
+  NoWorkingUnicodeSupport='$nounicode';
+  TargetHasNoWorkingUnicodeSupport = 'msdos';
+  NoWorkingThread='$nothread';
+  TargetHasNoWorkingThreadSupport = 'go32v2,msdos';
 
-function IsMacFullPath (const path: string): Boolean;
-  begin
-    if Pos(':', path) = 0 then    {its partial}
-      IsMacFullPath := false
-    else if path[1] = ':' then
-      IsMacFullPath := false
-    else
-      IsMacFullPath := true
-  end;
-
-
-Function IsAbsolute (Const F : String) : boolean;
-{
-  Returns True if the name F is a absolute file name
-}
+procedure TranslateConfig(var AConfig: TConfig);
 begin
-  IsAbsolute:=false;
-  if TargetHasDosStyleDirectories then
-    begin
-      if (F[1]='/') or (F[1]='\') then
-        IsAbsolute:=true;
-      if (Length(F)>2) and (F[2]=':') and ((F[3]='\') or (F[3]='/')) then
-        IsAbsolute:=true;
-    end
-  else if TargetAmigaLike then
-    begin
-      if (length(F)>0) and (Pos(':',F) <> 0) then
-        IsAbsolute:=true;
-    end
-  else if TargetIsMacOS then
-    begin
-      IsAbsolute:=IsMacFullPath(F);
-    end
-  { generic case }
-  else if (F[1]='/') then
-    IsAbsolute:=true;
-end;
-
-Function FileExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
-begin
-  FindFirst (F,anyfile,Info);
-  FileExists:=DosError=0;
-  FindClose (Info);
-end;
-
-
-Function PathExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
-begin
-  FindFirst (F,anyfile,Info);
-  PathExists:=(DosError=0) and (Info.Attr and Directory=Directory);
-  FindClose (Info);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoSharedLibSupportPattern, TargetHasNoSharedLibSupport);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingUnicodeSupport, TargetHasNoWorkingUnicodeSupport);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
 end;
 
 
@@ -262,60 +208,6 @@ begin
 end;
 
 
-function SplitPath(const s:string):string;
-var
-  i : longint;
-begin
-  i:=Length(s);
-  while (i>0) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
-   dec(i);
-  SplitPath:=Copy(s,1,i);
-end;
-
-
-function SplitBasePath(const s:string): string;
-var
-  i : longint;
-begin
-  i:=1;
-  while (i<length(s)) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
-   inc(i);
-  if s[i] in  ['/','\'{$IFDEF MACOS},':'{$ENDIF}] then
-    dec(i);
-  SplitBasePath:=Copy(s,1,i);
-end;
-
-Function SplitFileName(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileName:=n+e;
-end;
-
-Function SplitFileBase(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileBase:=n;
-end;
-
-Function SplitFileExt(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileExt:=e;
-end;
-
-
 function ForceExtension(Const HStr,ext:String):String;
 {
   Return a filename which certainly has the extension ext
@@ -337,24 +229,6 @@ begin
    end
   else
    ForceExtension:=Copy(Hstr,1,j-1);
-end;
-
-type
-  TCharSet = set of char;
-
-function GetToken(var s: string; Delims: TCharSet = [' ']):string;
-var
-  i : longint;
-  p: PChar;
-begin
-  p:=PChar(s);
-  i:=0;
-  while (p^ <> #0) and not (p^ in Delims) do begin
-    Inc(p);
-    Inc(i);
-  end;
-  GetToken:=Copy(s,1,i);
-  Delete(s,1,i+1);
 end;
 
 procedure mkdirtree(const s:string);
@@ -1254,6 +1128,7 @@ var
   EndTicks,
   StartTicks : int64;
   FileList   : TStringList;
+  RelativeToConfigMarker : TObject;
 
   function BuildFileList: TStringList;
     var
@@ -1261,44 +1136,61 @@ var
       index  : longint;
     begin
       s:=Config.Files;
-      if length(s) = 0 then
+      if (length(s) = 0) and (Config.ConfigFileSrc='') then
         begin
           Result:=nil;
           exit;
         end;
       Result:=TStringList.Create;
-      repeat
-        index:=pos(' ',s);
-        if index=0 then
-          LocalFile:=s
-        else
-          LocalFile:=copy(s,1,index-1);
-        Result.Add(LocalFile);
-        if index=0 then
-          break;
-        s:=copy(s,index+1,length(s)-index);
-      until false;
+      if s<>'' then
+        repeat
+          index:=pos(' ',s);
+          if index=0 then
+            LocalFile:=s
+          else
+            LocalFile:=copy(s,1,index-1);
+          Result.Add(LocalFile);
+          if index=0 then
+            break;
+          s:=copy(s,index+1,length(s)-index);
+        until false;
+      if Config.ConfigFileSrc<>'' then
+        begin
+          if Config.ConfigFileSrc=Config.ConfigFileDst then
+            Result.AddObject(Config.ConfigFileSrc,RelativeToConfigMarker)
+          else
+            Result.AddObject(Config.ConfigFileSrc+'='+Config.ConfigFileDst,RelativeToConfigMarker);
+        end;
     end;
 
 begin
+  RelativeToConfigMarker:=TObject.Create;
   if RemoteAddr='' then
     begin
       If UniqueSuffix<>'' then
         begin
           FileList:=BuildFileList;
           if assigned(FileList) then
+           for i:=0 to FileList.Count-1 do 
             begin
-              LocalPath:=SplitPath(PPFile[current]);
-              if Length(LocalPath) > 0 then
-                LocalPath:=LocalPath+'/';
-              for i:=0 to FileList.count-1 do
+              if FileList.Names[i]<>'' then
+                begin
+                  LocalFile:=FileList.Names[i];
+                  RemoteFile:=FileList.ValueFromIndex[i];
+                end
+              else
                 begin
                   LocalFile:=FileList[i];
-                  CopyFile(LocalPath+LocalFile,TestOutputDir+'/'+LocalFile,false);
+                  RemoteFile:=LocalFile;
                 end;
-              FileList.Free;
+              if FileList.Objects[i]=RelativeToConfigMarker then
+                s:='config/'+LocalFile
+              else
+                s:=LocalPath+LocalFile;
+              CopyFile(s,TestOutputDir+'/'+RemoteFile,false);
             end;
         end;
+      RelativeToConfigMarker.Free;
       exit(true);
     end;
   execres:=true;
@@ -1321,6 +1213,7 @@ begin
   if not execres then
   begin
     Verbose(V_normal, 'Could not copy executable '+FileToCopy);
+    RelativeToConfigMarker.Free;
     exit(execres);
   end;
   FileList:=BuildFileList;
@@ -1331,9 +1224,21 @@ begin
       LocalPath:=LocalPath+'/';
     for i:=0 to FileList.count-1 do
       begin
-        LocalFile:=FileList[i];
-        RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
-        LocalFile:=LocalPath+LocalFile;
+        if FileList.Names[i]<>'' then
+          begin
+            LocalFile:=FileList.Names[i];
+            RemoteFile:=FileList.ValueFromIndex[i];
+          end
+        else
+          begin
+            LocalFile:=FileList[i];
+            RemoteFile:=LocalFile;
+          end;
+        RemoteFile:=RemotePath+'/'+SplitFileName(RemoteFile);
+        if FileList.Objects[i]=RelativeToConfigMarker then
+          LocalFile:='config/'+LocalFile
+        else
+          LocalFile:=LocalPath+LocalFile;
         if DoVerbose and (rcpprog='pscp') then
           pref:='-v '
         else
@@ -1344,12 +1249,14 @@ begin
         begin
           Verbose(V_normal, 'Could not copy required file '+LocalFile);
           FileList.Free;
+          RelativeToConfigMarker.Free;
           exit(false);
         end;
       end;
   end;
   FileList.Free;
   MaybeCopyFiles:=execres;
+  RelativeToConfigMarker.Free;
 end;
 
 function RunExecutable:boolean;
@@ -1386,6 +1293,9 @@ begin
       {$I+}
       ioresult;
       s:=CurrDir+SplitFileName(TestExe);
+      { Add -Ssource_file_name for dosbox_wrapper }
+      if pos('dosbox_wrapper',EmulatorName)>0 then
+        s:=s+' -S'+PPFile[current];
       execres:=ExecuteEmulated(EmulatorName,s,FullExeLogFile,StartTicks,EndTicks);
       {$I-}
        ChDir(OldDir);

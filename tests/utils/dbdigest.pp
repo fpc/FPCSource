@@ -402,7 +402,8 @@ Var
   ConfigID : Integer;
 
 Procedure GetIDs;
-
+var
+  qry : string;
 begin
   TestCPUID := GetCPUId(TestCPU);
   If TestCPUID=-1 then
@@ -425,11 +426,15 @@ begin
   If (TestRunID=-1) then
     begin
     TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestCategoryID,TestDate);
-    If TestRUnID=-1 then
+    If TestRunID=-1 then
       Verbose(V_Error,'Could not insert new testrun record!');
     end
   else
     CleanTestRun(TestRunID);
+  { Add known infomration at start }
+  qry:=format('UPDATE TESTRUN SET TU_SUBMITTER=''%s'', TU_MACHINE=''%s'', TU_COMMENT=''%s'', TU_DATE=''%s''',[Submitter,Machine,Comment,SqlDate(TestDate)]);
+  qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
+  ExecuteQuery(Qry,False);
 end;
 
 
@@ -467,7 +472,8 @@ begin
               { End of file marker }
               if eof(LongLogFile) or (pos('>>>>>>>>>>>',S)=1) then
                 exit;
-              Result:=Result+S+LineEnding;
+              if length(Result)<MaxLogSize then
+                Result:=Result+S+LineEnding;
             end;
         end
       else if IsFirst then
