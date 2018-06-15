@@ -1682,6 +1682,9 @@ implementation
 
             { add definition to procsym }
             proc_add_definition(result);
+
+            if result.is_generic then
+              astruct.symtable.includeoption(sto_has_generic);
           end;
 
         maybe_parse_hint_directives(result);

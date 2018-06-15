@@ -2222,7 +2222,12 @@ implementation
                  begin
                    MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                    tprocsym(pd.procsym).write_parameter_lists(pd);
-                 end;
+                 end
+                else
+                  begin
+                    if pd.is_generic and not assigned(pd.struct) then
+                      tprocsym(pd.procsym).owner.includeoption(sto_has_generic);
+                  end;
               end;
            end;
 

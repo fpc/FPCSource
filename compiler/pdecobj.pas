@@ -936,6 +936,9 @@ implementation
                   if (po_virtualmethod in result.procoptions) then
                     include(astruct.objectoptions,oo_has_virtual);
 
+                  if result.is_generic then
+                    astruct.symtable.includeoption(sto_has_generic);
+
                   chkcpp(result);
                   chkobjc(result);
                   chkjava(result);
