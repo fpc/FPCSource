@@ -2408,30 +2408,49 @@ implementation
 
     procedure TMZExeOutput.WriteMap_SegmentsAndGroups;
       var
-        i: Integer;
+        i, LongestGroupName, LongestSegmentName, LongestClassName: Integer;
         UniSeg: TMZExeUnifiedLogicalSegment;
         UniGrp: TMZExeUnifiedLogicalGroup;
+        GroupColumnSize, SegmentColumnSize, ClassColumnSize: LongInt;
       begin
+        LongestGroupName:=0;
+        for i:=0 to ExeUnifiedLogicalGroups.Count-1 do
+          begin
+            UniGrp:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups[i]);
+            LongestGroupName:=max(LongestGroupName,Length(UniGrp.Name));
+          end;
+        LongestSegmentName:=0;
+        LongestClassName:=0;
+        for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
+          begin
+            UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
+            LongestSegmentName:=max(LongestSegmentName,Length(UniSeg.SegName));
+            LongestClassName:=max(LongestClassName,Length(UniSeg.SegClass));
+          end;
+        GroupColumnSize:=max(32,LongestGroupName+1);
+        SegmentColumnSize:=max(23,LongestSegmentName+1);
+        ClassColumnSize:=max(15,LongestClassName+1);
         exemap.AddHeader('Groups list');
         exemap.Add('');
-        exemap.Add(PadSpace('Group',32)+PadSpace('Address',21)+'Size');
-        exemap.Add(PadSpace('=====',32)+PadSpace('=======',21)+'====');
+        exemap.Add(PadSpace('Group',GroupColumnSize)+PadSpace('Address',21)+'Size');
+        exemap.Add(PadSpace('=====',GroupColumnSize)+PadSpace('=======',21)+'====');
         exemap.Add('');
         for i:=0 to ExeUnifiedLogicalGroups.Count-1 do
           begin
             UniGrp:=TMZExeUnifiedLogicalGroup(ExeUnifiedLogicalGroups[i]);
-            exemap.Add(PadSpace(UniGrp.Name,32)+PadSpace(UniGrp.MemPosStr,21)+HexStr(UniGrp.Size,8));
+            exemap.Add(PadSpace(UniGrp.Name,GroupColumnSize)+PadSpace(UniGrp.MemPosStr,21)+HexStr(UniGrp.Size,8));
           end;
         exemap.Add('');
+        GroupColumnSize:=max(15,LongestGroupName+1);
         exemap.AddHeader('Segments list');
         exemap.Add('');
-        exemap.Add(PadSpace('Segment',23)+PadSpace('Class',15)+PadSpace('Group',15)+PadSpace('Address',16)+'Size');
-        exemap.Add(PadSpace('=======',23)+PadSpace('=====',15)+PadSpace('=====',15)+PadSpace('=======',16)+'====');
+        exemap.Add(PadSpace('Segment',SegmentColumnSize)+PadSpace('Class',ClassColumnSize)+PadSpace('Group',GroupColumnSize)+PadSpace('Address',16)+'Size');
+        exemap.Add(PadSpace('=======',SegmentColumnSize)+PadSpace('=====',ClassColumnSize)+PadSpace('=====',GroupColumnSize)+PadSpace('=======',16)+'====');
         exemap.Add('');
         for i:=0 to ExeUnifiedLogicalSegments.Count-1 do
           begin
             UniSeg:=TMZExeUnifiedLogicalSegment(ExeUnifiedLogicalSegments[i]);
-            exemap.Add(PadSpace(UniSeg.SegName,23)+PadSpace(UniSeg.SegClass,15)+PadSpace(UniSeg.PrimaryGroup,15)+PadSpace(UniSeg.MemPosStr,16)+HexStr(UniSeg.Size,8));
+            exemap.Add(PadSpace(UniSeg.SegName,SegmentColumnSize)+PadSpace(UniSeg.SegClass,ClassColumnSize)+PadSpace(UniSeg.PrimaryGroup,GroupColumnSize)+PadSpace(UniSeg.MemPosStr,16)+HexStr(UniSeg.Size,8));
           end;
         exemap.Add('');
       end;
