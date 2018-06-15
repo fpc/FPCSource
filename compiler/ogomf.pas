@@ -348,6 +348,34 @@ implementation
       $20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20,$20);
 
 {****************************************************************************
+                                TTISTrailer
+****************************************************************************}
+
+    const
+      TIS_TRAILER_SIGNATURE: array[1..4] of char='TIS'#0;
+      TIS_TRAILER_VENDOR_TIS=0;
+      TIS_TRAILER_TYPE_TIS_DWARF=0;
+
+    type
+      TTISTrailer=record
+        tis_signature: array[1..4] of char;
+        tis_vendor,
+        tis_type,
+        tis_size: LongWord;
+      end;
+
+    procedure MayBeSwapTISTrailer(var h: TTISTrailer);
+      begin
+        if source_info.endian<>target_info.endian then
+          with h do
+            begin
+              tis_vendor:=swapendian(tis_vendor);
+              tis_type:=swapendian(tis_type);
+              tis_size:=swapendian(tis_size);
+            end;
+      end;
+
+{****************************************************************************
                                 TOmfObjSymbol
 ****************************************************************************}
 
@@ -2647,12 +2675,16 @@ implementation
         elfsections_count: Word;
         elfsechdrs: array of TElf32sechdr;
         shstrndx: Word;
-        next_section_ofs: LongWord;
+        next_section_ofs, elf_start_pos, elf_end_pos: LongWord;
         ElfHeader: TElf32header;
         shstrtabsect_data: TDynamicArray=Nil;
         I, elfsecidx, J: Integer;
         ObjSec: TOmfObjSection;
+        tis_trailer: TTISTrailer;
       begin
+        { mark the offset of the start of the ELF image }
+        elf_start_pos:=Writer.Size;
+
         { count the debug sections }
         debugsections_count:=0;
         for I:=0 to ExeSectionList.Count-1 do
@@ -2759,6 +2791,21 @@ implementation
           end;
         { write .shstrtab section data }
         Writer.writearray(shstrtabsect_data);
+
+        { mark the offset past the end of the ELF image }
+        elf_end_pos:=Writer.Size;
+
+        { write TIS trailer (not part of the ELF image) }
+        FillChar(tis_trailer,sizeof(tis_trailer),0);
+        with tis_trailer do
+          begin
+            tis_signature:=TIS_TRAILER_SIGNATURE;
+            tis_vendor:=TIS_TRAILER_VENDOR_TIS;
+            tis_type:=TIS_TRAILER_TYPE_TIS_DWARF;
+            tis_size:=(elf_end_pos-elf_start_pos)+sizeof(tis_trailer);
+          end;
+        MayBeSwapTISTrailer(tis_trailer);
+        Writer.write(tis_trailer,sizeof(tis_trailer));
 
         Result:=True;
 cleanup:
