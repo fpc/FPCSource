@@ -307,6 +307,7 @@ interface
         procedure Load_Symbol(const aname:string);override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
+        procedure MemPos_ExeSection(const aname:string);override;
         procedure MemPos_EndExeSection;override;
         function writeData:boolean;override;
       public
@@ -3058,6 +3059,19 @@ cleanup:
         for i:=0 to ObjSectionList.Count-1 do
           TOmfObjSection(ObjSectionList[i]).SortOrder:=i;
         ObjSectionList.Sort(@IOmfObjSectionClassNameCompare);
+      end;
+
+    procedure TMZExeOutput.MemPos_ExeSection(const aname: string);
+      begin
+        { overlay all .exe sections on top of each other. In practice, the MZ
+          formats doesn't have sections, so really, everything goes to a single
+          section, called .MZ_flat_content. All the remaining sections, that we
+          use are the debug sections, which go to a separate ELF file, appended
+          after the end of the .exe. They live in a separate address space, with
+          each section starting at virtual offset 0. So, that's why we always
+          set CurrMemPos to 0 before each section here. }
+        CurrMemPos:=0;
+        inherited MemPos_ExeSection(aname);
       end;
 
     procedure TMZExeOutput.MemPos_EndExeSection;
