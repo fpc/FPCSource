@@ -2837,8 +2837,7 @@ implementation
 
                if isspecialize then
                  begin
-                   if not assigned(srsym) or
-                       (srsym.typ<>typesym) then
+                   if not assigned(srsym) then
                      begin
                        identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
