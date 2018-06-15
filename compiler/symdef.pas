@@ -1475,10 +1475,13 @@ implementation
           last one in the list }
         for i:=0 to st.symlist.count-1 do
           begin
-            if not (st.symlist[i] is ttypesym) then
-              continue;
-            def:=ttypesym(st.SymList[i]).typedef;
             sym:=tsym(st.symlist[i]);
+            if not (sym.typ in [typesym,procsym]) then
+              continue;
+            if sym.typ=typesym then
+              def:=ttypesym(st.SymList[i]).typedef
+            else
+              def:=nil;
             if is_objectpascal_helper(def) then
               begin
                 s:=generate_objectpascal_helper_key(tobjectdef(def).extendeddef);
@@ -1496,7 +1499,8 @@ implementation
                 if addgenerics then
                   add_generic_dummysym(sym);
                 { add nested helpers as well }
-                if (def.typ in [recorddef,objectdef]) and
+                if assigned(def) and
+                    (def.typ in [recorddef,objectdef]) and
                     (sto_has_helper in tabstractrecorddef(def).symtable.tableoptions) then
                   add_helpers_and_generics(tabstractrecorddef(def).symtable,false);
               end;
