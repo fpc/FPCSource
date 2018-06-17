@@ -105,8 +105,15 @@ unit aoptx86;
       and having an offset }
     function MatchReferenceWithOffset(const ref : treference;base,index : TRegister) : Boolean;
 
+{$ifdef DEBUG_AOPTCPU}
   const
-    SPeepholeOptimization: string = 'Peephole Optimization: ';
+    SPeepholeOptimization: shortstring = 'Peephole Optimization: ';
+{$else DEBUG_AOPTCPU}
+  { Empty strings help the optimizer to remove string concatenations that won't
+    ever appear to the user on release builds. [Kit] }
+  const
+    SPeepholeOptimization = '';
+{$endif DEBUG_AOPTCPU}
 
   implementation
 
@@ -485,9 +492,90 @@ unit aoptx86;
       begin
         asml.insertbefore(tai_comment.Create(strpnew(s)), p);
       end;
+
+    function debug_tostr(i: tcgint): string; inline;
+      begin
+        Result := tostr(i);
+      end;
+
+    function debug_regname(r: TRegister): string; inline;
+      begin
+        Result := '%' + std_regname(r);
+      end;
+
+    { Debug output function - creates a string representation of an operator }
+    function debug_operstr(oper: TOper): string;
+      begin
+        case oper.typ of
+          top_const:
+            Result := '$' + debug_tostr(oper.val);
+          top_reg:
+            Result := debug_regname(oper.reg);
+          top_ref:
+            begin
+              if oper.ref^.offset <> 0 then
+                Result := debug_tostr(oper.ref^.offset) + '('
+              else
+                Result := '(';
+
+              if (oper.ref^.base <> NR_INVALID) and (oper.ref^.base <> NR_NO) then
+                begin
+                  Result := Result + debug_regname(oper.ref^.base);
+                  if (oper.ref^.index <> NR_INVALID) and (oper.ref^.index <> NR_NO) then
+                    Result := Result + ',' + debug_regname(oper.ref^.index);
+                end
+              else
+                if (oper.ref^.index <> NR_INVALID) and (oper.ref^.index <> NR_NO) then
+                  Result := Result + debug_regname(oper.ref^.index);
+
+              if (oper.ref^.scalefactor > 1) then
+                Result := Result + ',' + debug_tostr(oper.ref^.scalefactor) + ')'
+              else
+                Result := Result + ')';
+            end;
+          else
+            Result := '[UNKNOWN]';
+        end;
+      end;
+
+    function debug_op2str(opcode: tasmop): string; inline;
+      begin
+        Result := std_op2str[opcode];
+      end;
+
+    function debug_opsize2str(opsize: topsize): string; inline;
+      begin
+        Result := gas_opsize2str[opsize];
+      end;
+
 {$else DEBUG_AOPTCPU}
     procedure TX86AsmOptimizer.DebugMsg(const s: string;p : tai);inline;
       begin
+      end;
+
+    function debug_tostr(i: tcgint): string; inline;
+      begin
+        Result := '';
+      end;
+
+    function debug_regname(r: TRegister): string; inline;
+      begin
+        Result := '';
+      end;
+
+    function debug_operstr(oper: TOper): string; inline;
+      begin
+        Result := '';
+      end;
+
+    function debug_op2str(opcode: tasmop): string; inline;
+      begin
+        Result := '';
+      end;
+
+    function debug_opsize2str(opsize: topsize): string; inline;
+      begin
+        Result := '';
       end;
 {$endif DEBUG_AOPTCPU}
 
@@ -890,9 +978,9 @@ unit aoptx86;
             If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
               begin
                 DebugMsg(SPeepholeOptimization + 'MovapXOpMovapX2Op ('+
-                      std_op2str[taicpu(p).opcode]+' '+
-                      std_op2str[taicpu(hp1).opcode]+' '+
-                      std_op2str[taicpu(hp2).opcode]+') done',p);
+                      debug_op2str(taicpu(p).opcode)+' '+
+                      debug_op2str(taicpu(hp1).opcode)+' '+
+                      debug_op2str(taicpu(hp2).opcode)+') done',p);
                 { we cannot eliminate the first move if
                   the operations uses the same register for source and dest }
                 if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
@@ -1118,12 +1206,8 @@ unit aoptx86;
               (getsupreg(taicpu(p).oper[1]^.reg) = getsupreg(taicpu(hp1).oper[1]^.reg))
               then
               begin
-                if taicpu(p).oper[0]^.typ = top_reg then
-                  InputVal := '%' + std_regname(taicpu(p).oper[0]^.reg)
-                else
-                  InputVal := 'x';
-
-                MaskNum := tostr(taicpu(hp1).oper[0]^.val);
+                InputVal := debug_operstr(taicpu(p).oper[0]^);
+                MaskNum := debug_tostr(taicpu(hp1).oper[0]^.val);
 
                 case taicpu(p).opsize of
                   S_B:
@@ -1137,8 +1221,8 @@ unit aoptx86;
 
                           (Identical registers, just different sizes)
                         }
-                        RegName1 := std_regname(taicpu(p).oper[1]^.reg); { 8-bit register name }
-                        RegName2 := std_regname(taicpu(hp1).oper[1]^.reg); { 16/32-bit register name }
+                        RegName1 := debug_regname(taicpu(p).oper[1]^.reg); { 8-bit register name }
+                        RegName2 := debug_regname(taicpu(hp1).oper[1]^.reg); { 16/32-bit register name }
 
                         case taicpu(hp1).opsize of
                           S_W: NewSize := S_BW;
@@ -1163,8 +1247,8 @@ unit aoptx86;
 
                           (Identical registers, just different sizes)
                         }
-                        RegName1 := std_regname(taicpu(p).oper[1]^.reg); { 16-bit register name }
-                        RegName2 := std_regname(taicpu(hp1).oper[1]^.reg); { 32-bit register name }
+                        RegName1 := debug_regname(taicpu(p).oper[1]^.reg); { 16-bit register name }
+                        RegName2 := debug_regname(taicpu(hp1).oper[1]^.reg); { 32-bit register name }
 
                         case taicpu(hp1).opsize of
                           S_L: NewSize := S_WL;
@@ -1183,7 +1267,7 @@ unit aoptx86;
 
                 if NewSize <> S_NO then
                   begin
-                    PreMessage := 'mov' + gas_opsize2str[taicpu(p).opsize] + ' ' + InputVal + ',%' + RegName1;
+                    PreMessage := 'mov' + debug_opsize2str(taicpu(p).opsize) + ' ' + InputVal + ',' + RegName1;
 
                     { The actual optimization }
                     taicpu(p).opcode := A_MOVZX;
@@ -1201,12 +1285,12 @@ unit aoptx86;
                           Peephole Optimizer. [Kit] }
 
                         DebugMsg(SPeepholeOptimization + PreMessage +
-                          ' -> movz' + gas_opsize2str[NewSize] + ' ' + InputVal + ',%' + RegName2, p);
+                          ' -> movz' + debug_opsize2str(NewSize) + ' ' + InputVal + ',' + RegName2, p);
                       end
                     else
                       begin
-                        DebugMsg(SPeepholeOptimization + PreMessage + '; and' + gas_opsize2str[taicpu(hp1).opsize] + ' $' + MaskNum + ',%' + RegName2 +
-                          ' -> movz' + gas_opsize2str[NewSize] + ' ' + InputVal + ',%' + RegName2, p);
+                        DebugMsg(SPeepholeOptimization + PreMessage + '; and' + debug_opsize2str(taicpu(hp1).opsize) + ' $' + MaskNum + ',' + RegName2 +
+                          ' -> movz' + debug_opsize2str(NewSize) + ' ' + InputVal + ',' + RegName2, p);
 
                         asml.Remove(hp1);
                         hp1.Free;
@@ -1667,9 +1751,9 @@ unit aoptx86;
                     movw    %ax,%si         movw    %ax,%si       hp2
                 }
                 DebugMsg(SPeepholeOptimization + 'MovOpMov2Op ('+
-                      std_op2str[taicpu(p).opcode]+gas_opsize2str[taicpu(p).opsize]+' '+
-                      std_op2str[taicpu(hp1).opcode]+gas_opsize2str[taicpu(hp1).opsize]+' '+
-                      std_op2str[taicpu(hp2).opcode]+gas_opsize2str[taicpu(hp2).opsize],p);
+                      debug_op2str(taicpu(p).opcode)+debug_opsize2str(taicpu(p).opsize)+' '+
+                      debug_op2str(taicpu(hp1).opcode)+debug_opsize2str(taicpu(hp1).opsize)+' '+
+                      debug_op2str(taicpu(hp2).opcode)+debug_opsize2str(taicpu(hp2).opsize),p);
                 taicpu(hp1).changeopsize(taicpu(hp2).opsize);
                 {
                   ->
@@ -3014,14 +3098,14 @@ unit aoptx86;
                 case taicpu(p).opsize of
                 S_Q:
                   begin
-                    RegName := std_regname(taicpu(p).oper[1]^.reg); { 64-bit register name }
-                    Value := tostr(taicpu(p).oper[0]^.val);
+                    RegName := debug_regname(taicpu(p).oper[1]^.reg); { 64-bit register name }
+                    Value := debug_tostr(taicpu(p).oper[0]^.val);
 
                     { The actual optimization }
                     setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
                     taicpu(p).changeopsize(S_L);
 
-                    DebugMsg(SPeepholeOptimization + 'movq $' + Value + ',%' + RegName + ' -> movl $' + Value + ',%' + std_regname(taicpu(p).oper[1]^.reg) + ' (immediate can be represented with just 32 bits)', p);
+                    DebugMsg(SPeepholeOptimization + 'movq $' + Value + ',' + RegName + ' -> movl $' + Value + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' (immediate can be represented with just 32 bits)', p);
                     Result := True;
                   end;
                 end;
@@ -3203,7 +3287,7 @@ unit aoptx86;
         then
           begin
             { Has 64-bit register name and opcode suffix }
-            PreMessage := 'movz' + gas_opsize2str[taicpu(p).opsize] + ' x,%' + std_regname(taicpu(p).oper[1]^.reg) + ' -> movz';
+            PreMessage := 'movz' + debug_opsize2str(taicpu(p).opsize) + ' ' + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' -> movz';
 
             { The actual optimization }
             setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
@@ -3213,7 +3297,7 @@ unit aoptx86;
               taicpu(p).changeopsize(S_WL);
 
             DebugMsg(SPeepholeOptimization + PreMessage +
-              gas_opsize2str[taicpu(p).opsize] + ' x,%' + std_regname(taicpu(p).oper[1]^.reg) + ' (removes REX prefix)', p);
+              debug_opsize2str(taicpu(p).opsize) + ' ' + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg) + ' (removes REX prefix)', p);
           end;
       end;
 
@@ -3238,17 +3322,17 @@ unit aoptx86;
         S_Q:
           if (getsupreg(taicpu(p).oper[0]^.reg) in [RS_RAX, RS_RCX, RS_RDX, RS_RBX, RS_RSI, RS_RDI, RS_RBP, RS_RSP]) then
             begin
-              RegName := std_regname(taicpu(p).oper[0]^.reg); { 64-bit register name }
-              PreMessage := 'xorq %' + RegName + ',%' + RegName + ' -> xorl %';
+              RegName := debug_regname(taicpu(p).oper[0]^.reg); { 64-bit register name }
+              PreMessage := 'xorq ' + RegName + ',' + RegName + ' -> xorl ';
 
               { The actual optimization }
               setsubreg(taicpu(p).oper[0]^.reg, R_SUBD);
               setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
               taicpu(p).changeopsize(S_L);
 
-              RegName := std_regname(taicpu(p).oper[0]^.reg); { 32-bit register name }
+              RegName := debug_regname(taicpu(p).oper[0]^.reg); { 32-bit register name }
 
-              DebugMsg(SPeepholeOptimization + PreMessage + RegName + ',%' + RegName + ' (removes REX prefix)', p);
+              DebugMsg(SPeepholeOptimization + PreMessage + RegName + ',' + RegName + ' (removes REX prefix)', p);
             end;
         end;
       end;
