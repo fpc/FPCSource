@@ -694,6 +694,7 @@ type
     Procedure SetDatabase (Value : TDatabase); virtual;
     Procedure SetTransaction(Value : TDBTransaction); virtual;
     Procedure CheckDatabase;
+    function CreateQuery: TCustomSQLQuery; virtual;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
@@ -3319,11 +3320,16 @@ begin
     DatabaseError(SErrNoDatabaseAvailable,Self)
 end;
 
+function TSQLScript.CreateQuery: TCustomSQLQuery;
+begin
+  Result := TCustomSQLQuery.Create(nil);
+  Result.ParamCheck := false; // Do not parse for parameters; breaks use of e.g. select bla into :bla in Firebird procedures
+end;
+
 constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FQuery := TCustomSQLQuery.Create(nil);
-  FQuery.ParamCheck := false; // Do not parse for parameters; breaks use of e.g. select bla into :bla in Firebird procedures
+  FQuery := CreateQuery;
 end;
 
 destructor TSQLScript.Destroy;
