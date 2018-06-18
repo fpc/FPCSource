@@ -153,6 +153,7 @@ interface
         FPubDefs: TFPHashObjectList;
         FFixupThreads: TOmfThreads;
         FRawRecord: TOmfRawRecord;
+        FCOMENTRecord: TOmfRecord_COMENT;
         FCaseSensitiveSegments: Boolean;
         FCaseSensitiveSymbols: Boolean;
 
@@ -1988,6 +1989,7 @@ implementation
 
     destructor TOmfObjInput.destroy;
       begin
+        FCOMENTRecord.Free;
         FRawRecord.Free;
         FFixupThreads.Free;
         FPubDefs.Free;
@@ -2036,6 +2038,7 @@ implementation
               InputError('Invalid checksum in OMF record');
               exit;
             end;
+          FreeAndNil(FCOMENTRecord);
           case FRawRecord.RecordType of
             RT_LNAMES:
               if not ReadLNames(FRawRecord) then
@@ -2048,7 +2051,47 @@ implementation
                 exit;
             RT_COMENT:
               begin
-                {todo}
+                FCOMENTRecord:=TOmfRecord_COMENT.Create;
+                FCOMENTRecord.DecodeFrom(FRawRecord);
+                case FCOMENTRecord.CommentClass of
+                  CC_OmfExtension:
+                    begin
+                      {todo: handle these as well...}
+                    end;
+                  CC_LIBMOD:
+                    begin
+                      {todo: do we need to read the module name here?}
+                    end;
+                  CC_EXESTR:
+                    begin
+                      InputError('EXESTR record (Executable String Record) is not supported');
+                      exit;
+                    end;
+                  CC_INCERR:
+                    begin
+                      InputError('Invalid object file (contains indication of error encountered during incremental compilation)');
+                      exit;
+                    end;
+                  CC_NOPAD:
+                    begin
+                      InputError('NOPAD (No Segment Padding) record is not supported');
+                      exit;
+                    end;
+                  CC_WKEXT:
+                    begin
+                      InputError('Weak externals are not supported');
+                      exit;
+                    end;
+                  CC_LZEXT:
+                    begin
+                      InputError('Lazy externals are not supported');
+                      exit;
+                    end;
+                  else
+                    begin
+                      {the rest are ignored for now...}
+                    end;
+                end;
               end;
             RT_EXTDEF:
               if not ReadExtDef(FRawRecord,objdata) then
