@@ -193,7 +193,6 @@ end;
 procedure TBits.notbits(bitset : TBits);
 var
    n : longint;
-   jj : cardinal;
    loop : longint;
 begin
    if FSize < bitset.getFSize then
@@ -202,10 +201,7 @@ begin
       n := bitset.getFSize - 1;
 
    for loop := 0 to n do
-   begin
-      jj := FBits^[loop];
-      FBits^[loop] := FBits^[loop] and (jj xor bitset.FBits^[loop]);
-   end;
+      FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
 end;
 
 procedure TBits.orbits(bitset : TBits);
