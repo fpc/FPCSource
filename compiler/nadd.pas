@@ -127,6 +127,7 @@ implementation
 {$ENDIF}
       globtype,systems,constexp,compinnr,
       cutils,verbose,globals,widestr,
+      tokens,
       symconst,symdef,symsym,symcpu,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
@@ -1316,6 +1317,13 @@ implementation
 
          { allow operator overloading }
          hp:=self;
+
+         if is_dynamic_array(left.resultdef) and is_dynamic_array(right.resultdef) and
+             (nodetype=addn) and
+             (m_array_operators in current_settings.modeswitches) and
+             isbinaryoverloaded(hp,[ocf_check_non_overloadable,ocf_check_only]) then
+           message3(parser_w_operator_overloaded_hidden_3,left.resultdef.typename,arraytokeninfo[_PLUS].str,right.resultdef.typename);
+
          if isbinaryoverloaded(hp,[]) then
            begin
               result:=hp;
