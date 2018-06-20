@@ -3161,7 +3161,7 @@ implementation
                            else
                              begin
                                hp:=self;
-                               if isunaryoverloaded(hp) then
+                               if isunaryoverloaded(hp,[]) then
                                  begin
                                    { inc(rec) and dec(rec) assigns result value to argument }
                                    result:=cassignmentnode.create(tcallparanode(left).left.getcopy,hp);

@@ -227,7 +227,7 @@ implementation
 
          { allow operator overloading }
          t:=self;
-         if isbinaryoverloaded(t) then
+         if isbinaryoverloaded(t,[]) then
            begin
               result:=t;
               exit;
@@ -787,7 +787,7 @@ implementation
 
          { allow operator overloading }
          t:=self;
-         if isbinaryoverloaded(t) then
+         if isbinaryoverloaded(t,[]) then
            begin
               result:=t;
               exit;
@@ -1004,7 +1004,7 @@ implementation
            begin
              { allow operator overloading }
              t:=self;
-             if isunaryoverloaded(t) then
+             if isunaryoverloaded(t,[]) then
                begin
                   result:=t;
                   exit;
@@ -1136,7 +1136,7 @@ implementation
           begin
             { allow operator overloading }
             t:=self;
-            if isunaryoverloaded(t) then
+            if isunaryoverloaded(t,[]) then
               begin
                 result:=t;
                 exit;
@@ -1315,7 +1315,7 @@ implementation
            begin
              { allow operator overloading }
              t:=self;
-             if isunaryoverloaded(t) then
+             if isunaryoverloaded(t,[]) then
                begin
                   result:=t;
                   exit;

@@ -239,7 +239,7 @@ implementation
            internalerror(20021126);
 
          t:=self;
-         if isbinaryoverloaded(t) then
+         if isbinaryoverloaded(t,[]) then
            begin
              result:=t;
              exit;

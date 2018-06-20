@@ -1316,7 +1316,7 @@ implementation
 
          { allow operator overloading }
          hp:=self;
-         if isbinaryoverloaded(hp) then
+         if isbinaryoverloaded(hp,[]) then
            begin
               result:=hp;
               exit;
