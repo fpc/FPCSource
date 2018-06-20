@@ -35,9 +35,24 @@ interface
       { TX86NasmAssembler }
 
       TX86NasmAssembler = class(texternalassembler)
+      strict private
+        type
+
+          { TX86NasmSection }
+
+          TX86NasmSection=class(TFPHashObject)
+          end;
+
+          { TX86NasmGroup }
+
+          TX86NasmGroup=class(TFPHashObject)
+            Sections: TFPHashObjectList;
+            constructor Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
+            destructor Destroy;override;
+          end;
       private
-        FSectionsUsed: TFPHashList;
-        FSectionsInDGROUP: TFPHashList;
+        FSections: TFPHashObjectList;
+        FGroups: TFPHashObjectList;
         using_relative : boolean;
         function CodeSectionName(const aname:string): string;
         procedure WriteReference(var ref : treference);
@@ -45,6 +60,9 @@ interface
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : longint);
         procedure ResetSectionsList;
+        procedure AddGroup(const grpname: string);
+        procedure AddSegmentToGroup(const grpname,segname: string);
+        procedure WriteGroup(data:TObject;arg:pointer);
         procedure WriteGroups;
       protected
         function single2str(d: single): string; override;
@@ -182,8 +200,8 @@ interface
 
     destructor TX86NasmAssembler.Destroy;
       begin
-        FSectionsUsed.Free;
-        FSectionsInDGROUP.Free;
+        FSections.Free;
+        FGroups.Free;
         inherited Destroy;
       end;
 
@@ -253,6 +271,26 @@ interface
          PadTabs:=s+#9#9
         else
          PadTabs:=s+#9;
+      end;
+
+
+
+{****************************************************************************
+                       TX86NasmAssembler.TX86NasmGroup
+ ****************************************************************************}
+
+
+    constructor TX86NasmAssembler.TX86NasmGroup.Create(HashObjectList: TFPHashObjectList; const s: TSymStr);
+      begin
+        inherited;
+        Sections:=TFPHashObjectList.Create;
+      end;
+
+
+    destructor TX86NasmAssembler.TX86NasmGroup.Destroy;
+      begin
+        Sections.Free;
+        inherited Destroy;
       end;
 
 
@@ -373,7 +411,7 @@ interface
                 begin
                   writer.AsmWrite('DGROUP');
                   { Make sure GROUP DGROUP is generated }
-                  FSectionsInDGROUP.Add('',Pointer(self));
+                  AddGroup('DGROUP');
                 end
               else if o.ref^.refaddr=addr_fardataseg then
                 begin
@@ -546,7 +584,7 @@ interface
               secname:=omf_secnames[atype];
             writer.AsmWrite(secname);
             { first use of this section in the object file? }
-            if FSectionsUsed.FindIndexOf(secname)=-1 then
+            if FSections.Find(secname)=nil then
               begin
                 { yes -> write the section attributes as well }
                 if atype=sec_stack then
@@ -557,9 +595,9 @@ interface
                   writer.AsmWrite(' use16');
                 writer.AsmWrite(' class='+omf_segclass(atype)+
                   ' align='+tostr(omf_sectiontype2align(atype)));
-                FSectionsUsed.Add(secname,Pointer(self));
+                TX86NasmSection.Create(FSections,secname);
                 if section_belongs_to_dgroup(atype) then
-                  FSectionsInDGROUP.Add(secname,Pointer(self));
+                  AddSegmentToGroup('DGROUP',secname);
               end;
           end
         else if secnames[atype]='.text' then
@@ -585,10 +623,38 @@ interface
 
     procedure TX86NasmAssembler.ResetSectionsList;
       begin
-        FSectionsUsed.Free;
-        FSectionsUsed:=TFPHashList.Create;
-        FSectionsInDGROUP.Free;
-        FSectionsInDGROUP:=TFPHashList.Create;
+        FSections.Free;
+        FSections:=TFPHashObjectList.Create;
+        FGroups.Free;
+        FGroups:=TFPHashObjectList.Create;
+      end;
+
+    procedure TX86NasmAssembler.AddGroup(const grpname: string);
+      begin
+        if FGroups.Find(grpname)=nil then
+          TX86NasmGroup.Create(FGroups,grpname);
+      end;
+
+    procedure TX86NasmAssembler.AddSegmentToGroup(const grpname, segname: string);
+      var
+        grp: TX86NasmGroup;
+      begin
+        grp:=TX86NasmGroup(FGroups.Find(grpname));
+        if grp=nil then
+          grp:=TX86NasmGroup.Create(FGroups,grpname);
+        TX86NasmSection.Create(grp.Sections,segname);
+      end;
+
+    procedure TX86NasmAssembler.WriteGroup(data: TObject; arg: pointer);
+      var
+        grp: TX86NasmGroup;
+        i: Integer;
+      begin
+        grp:=TX86NasmGroup(data);
+        writer.AsmWrite('GROUP '+grp.Name);
+        for i:=0 to grp.Sections.Count-1 do
+          writer.AsmWrite(' '+grp.Sections.NameOfIndex(i));
+        writer.AsmLn;
       end;
 
     procedure TX86NasmAssembler.WriteGroups;
@@ -603,13 +669,7 @@ interface
             if current_settings.x86memorymodel=mm_huge then
               WriteSection(sec_data,'',2);
             writer.AsmLn;
-            if FSectionsInDGROUP.Count>0 then
-              begin
-                writer.AsmWrite('GROUP DGROUP');
-                for i:=0 to FSectionsInDGROUP.Count-1 do
-                  writer.AsmWrite(' '+FSectionsInDGROUP.NameOfIndex(i));
-                writer.AsmLn;
-              end;
+            FGroups.ForEachCall(@WriteGroup,nil);
           end;
 {$endif i8086}
       end;
