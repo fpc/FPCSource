@@ -14,13 +14,6 @@
 
 { Run-Time type information routines }
 
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  {$define USE_PACKED}
-{$endif}
-{$ifdef VER2_6}
-  {$define USE_PACKED}
-{$endif}
-
 type
   PRecordElement=^TRecordElement;
   TRecordElement=

@@ -16,6 +16,14 @@
  **********************************************************************}
 
 
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define USE_PACKED}
+{$endif}
+{$ifdef VER2_6}
+  {$define USE_PACKED}
+{$endif}
+
+
 type
   PTypeKind = ^TTypeKind;
 
