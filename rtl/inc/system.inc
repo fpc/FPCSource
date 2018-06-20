@@ -468,6 +468,7 @@ function aligntoqword(p : pointer) : pointer;inline;
                   Run-Time Type Information (RTTI) declarations
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_RTTI}
 type
   PTypeKind = ^TTypeKind;
 
@@ -475,6 +476,7 @@ const
   // all potentially managed types
   tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
                      tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
+{$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
                         Dynamic Array support
