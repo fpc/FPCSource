@@ -77,7 +77,6 @@ type
 
   PRecordInfoInit=^TRecordInfoInit;
 {$ifndef VER3_0}
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
   TRTTIRecVarOp=procedure(ARec: Pointer);
   TRTTIRecCopyOp=procedure(ASrc, ADest: Pointer);
   TRTTIRecOpType=(rotAny, rotInitialize, rotFinalize, rotAddRef, rotCopy);
@@ -92,7 +91,6 @@ type
     AddRef: TRTTIRecVarOp;
     Copy: TRTTIRecCopyOp;
   end;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
 
 {$ifndef VER3_0}
 {$push}
@@ -120,10 +118,10 @@ type
   record
     Terminator: Pointer;
     Size: Longint;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
     Flags: TRecordInfoInitFlags;
     RecordOp: PRTTIRecordOpVMT;
-{$endif FPC_HAS_MANAGEMENT_OPERATORS}
+{$endif VER3_0}
     Count: Longint;
     { Elements: array[count] of TRecordElement }
   end;

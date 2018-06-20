@@ -436,7 +436,7 @@ unit TypInfo;
       record
         Terminator: Pointer;
         Size: Integer;
-{$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+{$ifndef VER3_0}
         Flags: TRecordInfoInitFlags;
         ManagementOp: Pointer;
 {$endif}
