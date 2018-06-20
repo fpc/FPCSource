@@ -23,6 +23,16 @@
   {$define USE_PACKED}
 {$endif}
 
+{$ifndef VER3_0}
+{ 3.1.1 and newer also (re)stores $MinEnumSize and $PackSet upon $Push/$Pop }
+{$push}
+{$endif}
+
+{$MINENUMSIZE 1   this saves a lot of memory }
+{$ifdef FPC_RTTI_PACKSET1}
+{ for Delphi compatibility }
+{$packset 1}
+{$endif}
 
 type
   PTypeKind = ^TTypeKind;
@@ -118,3 +128,10 @@ type
     Dims:array[0..255] of Pointer;
   end;
 
+
+{$ifdef VER3_0}
+{$MINENUMSIZE DEFAULT}
+{$PACKSET DEFAULT}
+{$else}
+{$pop}
+{$endif}
