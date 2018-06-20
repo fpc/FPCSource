@@ -421,7 +421,7 @@ implementation
         { keep this in sync with the type declaration of TRecordInfoInitFlag(s)
           in both rttidecl.inc and typinfo.pp }
         if target_info.endian=endian_big then
-          value:=reverse_byte(value);
+          value:=reverse_longword(value);
         tcb.emit_ord_const(value,u32inttype);
       end;
 
