@@ -635,8 +635,11 @@ type
     sto_has_helper,       { contains at least one helper symbol }
     sto_has_generic,      { contains at least one generic symbol }
     sto_has_operator,     { contains at least one operator overload }
-    sto_needs_init_final  { the symtable needs initialization and/or
+    sto_needs_init_final, { the symtable needs initialization and/or
                             finalization of variables/constants }
+    sto_has_non_trivial_init { contains at least on managed type that is not
+                               initialized to zero (e.g. a record with management
+                               operators }
   );
   tsymtableoptions = set of tsymtableoption;
 
