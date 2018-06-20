@@ -3436,7 +3436,7 @@ implementation
          { Can we optimize multiple dyn. array additions into a single call?
            This need to be done on a complete tree to detect the multiple
            add nodes and is therefor done before the subtrees are processed }
-         if canbemultidynarrayadd(self) then
+         if (m_array_operators in current_settings.modeswitches) and canbemultidynarrayadd(self) then
            begin
              result:=genmultidynarrayadd(self);
              exit;

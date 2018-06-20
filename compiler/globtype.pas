@@ -438,7 +438,8 @@ interface
          m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
          m_isolike_io,          { I/O as it required by an ISO compatible compiler }
          m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
-         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
+         m_isolike_mod,         { mod operation as it is required by an iso compatible compiler }
+         m_array_operators      { use Delphi compatible array operators instead of custom ones ("+") }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -626,7 +627,8 @@ interface
          'CBLOCKS',
          'ISOIO',
          'ISOPROGRAMPARAS',
-         'ISOMOD'
+         'ISOMOD',
+         'ARRAYOPERATORS'
          );
 
 
