@@ -88,6 +88,8 @@ interface
          function  getsymtable(t:tgetsymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
+         { contains a (managed) child that is not initialized to 0/Nil }
+         function  has_non_trivial_init_child(check_parent:boolean):boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
          procedure ChangeOwner(st:TSymtable);
          function getreusablesymtab: tsymtable;
