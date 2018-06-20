@@ -408,6 +408,26 @@ unit TypInfo;
         Entries: array[0..0] of TVmtMethodEntry;
       end;
 
+
+{$ifndef VER3_0}
+{$push}
+
+{ better alignment for TRecordInfoInit }
+{ keep in sync with ncgrtti.TRTTIWriter.write_record_init_flag() and rttidecl.inc }
+{ ToDo: different values for 8/16-bit platforms? }
+{$minenumsize 4}
+{$packset 4}
+
+      TRecordInfoInitFlag = (
+        riifNonTrivialChild,
+        { only relevant for classes }
+        riifParentHasNonTrivialChild
+      );
+      TRecordInfoInitFlags = set of TRecordInfoInitFlag;
+
+{$pop}
+{$endif}
+
       PRecInitData = ^TRecInitData;
       TRecInitData =
       {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -417,6 +437,7 @@ unit TypInfo;
         Terminator: Pointer;
         Size: Integer;
 {$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+        Flags: TRecordInfoInitFlags;
         ManagementOp: Pointer;
 {$endif}
         ManagedFieldCount: Integer;

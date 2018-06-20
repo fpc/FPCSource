@@ -65,6 +65,7 @@ interface
         procedure write_callconv(tcb:ttai_typedconstbuilder;def:tabstractprocdef);
         procedure write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
         procedure write_param_flag(tcb:ttai_typedconstbuilder;parasym:tparavarsym);
+        procedure write_record_init_flag(tcb:ttai_typedconstbuilder;value:longword);
       public
         constructor create;
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -412,6 +413,16 @@ implementation
           paraspec:=reverse_word(paraspec);
         { write flags for current parameter }
         tcb.emit_ord_const(paraspec,u16inttype);
+      end;
+
+
+    procedure TRTTIWriter.write_record_init_flag(tcb:ttai_typedconstbuilder;value:longword);
+      begin
+        { keep this in sync with the type declaration of TRecordInfoInitFlag(s)
+          in both rttidecl.inc and typinfo.pp }
+        if target_info.endian=endian_big then
+          value:=reverse_byte(value);
+        tcb.emit_ord_const(value,u32inttype);
       end;
 
 
@@ -1176,6 +1187,8 @@ implementation
             tcb.free;
           end;
 
+        var
+          riif : byte;
         begin
            write_header(tcb,def,tkRecord);
            { need extra reqalign record, because otherwise the u32 int will
@@ -1199,12 +1212,18 @@ implementation
 
            { store rtti management operators only for init table }
            if (rt=initrtti) then
-             if (trecordsymtable(def.symtable).managementoperators=[]) then
-               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
-             else
-               tcb.emit_tai(Tai_const.Createname(
-                 internaltypeprefixName[itp_init_record_operators]+def.rtti_mangledname(rt),
-                 AT_DATA_FORCEINDIRECT,0),voidpointertype);
+             begin
+               riif:=0;
+               if def.has_non_trivial_init_child(false) then
+                 riif:=riif or riifNonTrivialChild;
+               write_record_init_flag(tcb,riif);
+               if (trecordsymtable(def.symtable).managementoperators=[]) then
+                 tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
+               else
+                 tcb.emit_tai(Tai_const.Createname(
+                   internaltypeprefixName[itp_init_record_operators]+def.rtti_mangledname(rt),
+                   AT_DATA_FORCEINDIRECT,0),voidpointertype);
+             end;
 
            fields_write_rtti_data(tcb,def,rt);
            tcb.end_anonymous_record;
@@ -1327,6 +1346,8 @@ implementation
         procedure objectdef_rtti(def: tobjectdef);
 
           procedure objectdef_rtti_fields(def:tobjectdef);
+          var
+            riif : byte;
           begin
             { - for compatiblity with record RTTI we need to write a terminator-
                 Nil pointer for initrtti as well for objects
@@ -1347,7 +1368,15 @@ implementation
             tcb.emit_ord_const(def.size, u32inttype);
             { pointer to management operators available only for initrtti }
             if (rt=initrtti) then
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              begin
+                riif:=0;
+                if def.has_non_trivial_init_child(false) then
+                  riif:=riif or riifNonTrivialChild;
+                if assigned(def.childof) and def.childof.has_non_trivial_init_child(true) then
+                  riif:=riif or riifParentHasNonTrivialChild;
+                write_record_init_flag(tcb,riif);
+                tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              end;
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);
           end;

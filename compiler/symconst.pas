@@ -111,6 +111,9 @@ const
   pfVmt      = 1024;
   pfResult   = 2048;
 
+  riifNonTrivialChild          = 1;
+  riifParentHasNonTrivialChild = 2;
+
   unknown_level         = 0;
   main_program_level    = 1;
   normal_function_level = 2;

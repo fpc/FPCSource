@@ -94,6 +94,25 @@ type
   end;
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
 
+{$ifndef VER3_0}
+{$push}
+
+{ better alignment for TRecordInfoInit }
+{ keep in sync with ncgrtti.TRTTIWriter.write_record_init_flag() and typinfo.pp }
+{ ToDo: different values for 8/16-bit platforms? }
+{$minenumsize 4}
+{$packset 4}
+
+  TRecordInfoInitFlag = (
+    riifNonTrivialChild,
+    { only relevant for classes }
+    riifParentHasNonTrivialChild
+  );
+  TRecordInfoInitFlags = set of TRecordInfoInitFlag;
+
+{$pop}
+{$endif}
+
   TRecordInfoInit=
 {$ifdef USE_PACKED}
   packed
@@ -102,6 +121,7 @@ type
     Terminator: Pointer;
     Size: Longint;
 {$ifdef FPC_HAS_MANAGEMENT_OPERATORS}
+    Flags: TRecordInfoInitFlags;
     RecordOp: PRTTIRecordOpVMT;
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
     Count: Longint;
