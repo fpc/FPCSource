@@ -137,6 +137,15 @@ begin
 end;
 
 
+{$ifndef VER3_0}
+function RecordRTTIInitFlags(ti: Pointer): TRecordInfoInitFlags;
+begin
+  ti:=aligntoqword(ti+2+PByte(ti)[1]);
+  Result:=PRecordInfoInit(ti)^.Flags;
+end;
+{$endif VER3_0}
+
+
 { if you modify this procedure, fpc_copy must be probably modified as well }
 {$ifdef VER2_6}
 procedure ArrayRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);

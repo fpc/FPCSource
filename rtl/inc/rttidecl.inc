@@ -149,6 +149,10 @@ type
   end;
 
 
+{$ifndef VER3_0}
+function RecordRTTIInitFlags(ti: Pointer): TRecordInfoInitFlags; forward;
+{$endif VER3_0}
+
 {$ifdef VER3_0}
 {$MINENUMSIZE DEFAULT}
 {$PACKSET DEFAULT}

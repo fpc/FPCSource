@@ -383,6 +383,7 @@
         var
            vmt  : PVmt;
            temp : pointer;
+           flags : TRecordInfoInitFlags;
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
         begin
            { the size is saved at offset 0 }
@@ -399,10 +400,19 @@
            while vmt<>nil do
              begin
                Temp:= vmt^.vInitTable;
-               { The RTTI format matches one for records, except the type is tkClass.
-                 Since RecordRTTI does not check the type, calling it yields the desired result. }
-               if Assigned(Temp) then
-                 RecordRTTI(Instance,Temp,@int_initialize);
+               if assigned(Temp) then
+                 begin
+                   flags:=RecordRTTIInitFlags(Temp);
+                   if riifNonTrivialChild in flags then
+                     { The RTTI format matches one for records, except the type
+                       is tkClass. Since RecordRTTI does not check the type,
+                       calling it yields the desired result. }
+                     RecordRTTI(Instance,Temp,@int_initialize);
+                   { no need to continue complex initializing up the inheritance
+                     tree if none of the parents require it anyway }
+                   if not (riifParentHasNonTrivialChild in flags) then
+                     break;
+                 end;
                vmt:= vmt^.vParent;
              end;
 {$endif FPC_HAS_MANAGEMENT_OPERATORS}
