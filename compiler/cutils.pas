@@ -69,6 +69,8 @@ interface
     function reverse_byte(b: byte): byte;
     {# Return @var(w) with the bit order reversed }
     function reverse_word(w: word): word;
+    {# Return @var(l) with the bit order reversed }
+    function reverse_longword(l: longword): longword;
 
     function next_prime(l: longint): longint;
 
@@ -291,6 +293,21 @@ implementation
         TWordRec(reverse_word).hi := reverse_byte(TWordRec(w).lo);
         TWordRec(reverse_word).lo := reverse_byte(TWordRec(w).hi);
       end;
+
+
+    function reverse_longword(l: longword): longword;
+      type
+        TLongWordRec = packed record
+          b: array[0..3] of Byte;
+        end;
+
+      begin
+        TLongWordRec(reverse_longword).b[0] := reverse_byte(TLongWordRec(l).b[3]);
+        TLongWordRec(reverse_longword).b[1] := reverse_byte(TLongWordRec(l).b[2]);
+        TLongWordRec(reverse_longword).b[2] := reverse_byte(TLongWordRec(l).b[1]);
+        TLongWordRec(reverse_longword).b[3] := reverse_byte(TLongWordRec(l).b[0]);
+      end;
+
 
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {
