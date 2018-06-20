@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$modeswitch arrayoperators}
 procedure p1;
   var
     A: array of Integer;

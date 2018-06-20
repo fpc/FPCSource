@@ -1,6 +1,7 @@
 program tarray17;
 
 {$mode objfpc}
+{$modeswitch arrayoperators}
 {$COperators on}
 
 function CheckArray(aArr, aExpected: array of LongInt): Boolean;
