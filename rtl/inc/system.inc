@@ -469,13 +469,7 @@ function aligntoqword(p : pointer) : pointer;inline;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_RTTI}
-type
-  PTypeKind = ^TTypeKind;
-
-const
-  // all potentially managed types
-  tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
-                     tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
+{$i rttidecl.inc}
 {$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
