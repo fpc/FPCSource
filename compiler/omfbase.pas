@@ -383,6 +383,8 @@ interface
       procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
 
+      procedure AddSegmentIndex(segidx: Integer);
+
       property GroupNameIndex: Integer read FGroupNameIndex write FGroupNameIndex;
       property SegmentList: TSegmentList read FSegmentList write FSegmentList;
     end;
@@ -1737,9 +1739,15 @@ implementation
       RawRecord.CalculateChecksumByte;
     end;
 
+  procedure TOmfRecord_GRPDEF.AddSegmentIndex(segidx: Integer);
+    begin
+      SetLength(FSegmentList,Length(FSegmentList)+1);
+      FSegmentList[High(FSegmentList)]:=segidx;
+    end;
+
   { TOmfPublicNameElement }
 
-    function TOmfPublicNameElement.GetLengthInFile(Is32Bit: Boolean): Integer;
+  function TOmfPublicNameElement.GetLengthInFile(Is32Bit: Boolean): Integer;
     begin
       Result:=1+Length(Name)+2+1;
       if Is32Bit then

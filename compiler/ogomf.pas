@@ -123,8 +123,7 @@ interface
         procedure AddSegment(const name,segclass,ovlname: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse; Size: TObjSectionOfs);
-        procedure AddGroup(const groupname: string; seglist: array of const);
-        procedure AddGroup(const groupname: string; seglist: TSegmentList);
+        procedure AddSegmentToGroup(const groupname: string; segindex: Integer);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
         procedure WriteLinNumRecords(sec: TOmfObjSection);
@@ -757,42 +756,18 @@ implementation
         s.SegmentLength:=Size;
       end;
 
-    procedure TOmfObjOutput.AddGroup(const groupname: string; seglist: array of const);
+    procedure TOmfObjOutput.AddSegmentToGroup(const groupname: string; segindex: Integer);
       var
         g: TOmfRecord_GRPDEF;
-        I: Integer;
-        SegListStr: TSegmentList;
       begin
-        g:=TOmfRecord_GRPDEF.Create;
-        Groups.Add(groupname,g);
-        g.GroupNameIndex:=LNames.Add(groupname);
-        SetLength(SegListStr,Length(seglist));
-        for I:=0 to High(seglist) do
+        g:=TOmfRecord_GRPDEF(Groups.Find(groupname));
+        if g=nil then
           begin
-            case seglist[I].VType of
-              vtString:
-                SegListStr[I]:=Segments.FindIndexOf(seglist[I].VString^);
-              vtAnsiString:
-                SegListStr[I]:=Segments.FindIndexOf(AnsiString(seglist[I].VAnsiString));
-              vtWideString:
-                SegListStr[I]:=Segments.FindIndexOf(AnsiString(WideString(seglist[I].VWideString)));
-              vtUnicodeString:
-                SegListStr[I]:=Segments.FindIndexOf(AnsiString(UnicodeString(seglist[I].VUnicodeString)));
-              else
-                internalerror(2015040402);
-            end;
+            g:=TOmfRecord_GRPDEF.Create;
+            Groups.Add(groupname,g);
+            g.GroupNameIndex:=LNames.Add(groupname);
           end;
-        g.SegmentList:=SegListStr;
-      end;
-
-    procedure TOmfObjOutput.AddGroup(const groupname: string; seglist: TSegmentList);
-      var
-        g: TOmfRecord_GRPDEF;
-      begin
-        g:=TOmfRecord_GRPDEF.Create;
-        Groups.Add(groupname,g);
-        g.GroupNameIndex:=LNames.Add(groupname);
-        g.SegmentList:=Copy(seglist);
+        g.AddSegmentIndex(segindex);
       end;
 
     procedure TOmfObjOutput.WriteSections(Data: TObjData);
@@ -1042,7 +1017,6 @@ implementation
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
-        DGroupSegments: TSegmentList;
         nsections: Integer;
         objsym: TObjSymbol;
       begin
@@ -1094,19 +1068,11 @@ implementation
 
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
-            AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
-
-
-        { create group "DGROUP" }
-        SetLength(DGroupSegments,0);
-        for i:=0 to Data.ObjSectionList.Count-1 do
-          with TOmfObjSection(Data.ObjSectionList[I]) do
-            if PrimaryGroup='DGROUP' then
-              begin
-                SetLength(DGroupSegments,Length(DGroupSegments)+1);
-                DGroupSegments[High(DGroupSegments)]:=index;
-              end;
-        AddGroup('DGROUP',DGroupSegments);
+            begin
+              AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
+              if PrimaryGroup<>'' then
+                AddSegmentToGroup(PrimaryGroup,index);
+            end;
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
