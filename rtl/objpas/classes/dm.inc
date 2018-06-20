@@ -89,7 +89,8 @@ procedure TDataModule.DefineProperties(Filer: TFiler);
 
 var
   Ancestor : TDataModule;
-  HaveData : Boolean;
+  HaveData,
+  HavePPIData: Boolean;
 
 begin
   inherited DefineProperties(Filer);
@@ -98,13 +99,14 @@ begin
             (FDSize.X<>Ancestor.FDSize.X) or
             (FDSize.Y<>Ancestor.FDSize.Y) or
             (FDPos.Y<>Ancestor.FDPos.Y) or
-            (FDPos.X<>Ancestor.FDPos.X) or
-            (FDPPI<>Ancestor.FDPPI);
+            (FDPos.X<>Ancestor.FDPos.X);
+  HavePPIData:=(Assigned(Ancestor) and (FDPPI<>Ancestor.FDPPI)) or
+               (not Assigned(Ancestor) and (FDPPI<>96));
   Filer.DefineProperty('Height', @ReadH, @WriteH, HaveData);
   Filer.DefineProperty('HorizontalOffset', @ReadL, @WriteL, HaveData);
   Filer.DefineProperty('VerticalOffset', @ReadT,@WriteT, HaveData);
   Filer.DefineProperty('Width', @ReadW, @WriteW, HaveData);
-  Filer.DefineProperty('PPI', @ReadP, @WriteP, HaveData);
+  Filer.DefineProperty('PPI', @ReadP, @WriteP,HavePPIData);
 end;
 
 procedure TDataModule.GetChildren(Proc: TGetChildProc; Root: TComponent);
