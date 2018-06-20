@@ -40,6 +40,7 @@ interface
        private
           init_final_check_done : boolean;
           procedure _needs_init_final(sym:TObject;arg:pointer);
+          procedure do_init_final_check;
           procedure check_forward(sym:TObject;arg:pointer);
           procedure check_block_valid(def: TObject;arg:pointer);
           procedure register_defs(def:tobject;arg:pointer);
@@ -1089,8 +1090,7 @@ implementation
       end;
 
 
-    { returns true, if p contains data which needs init/final code }
-    function tstoredsymtable.needs_init_final : boolean;
+    procedure tstoredsymtable.do_init_final_check;
       begin
          if not init_final_check_done then
            begin
@@ -1098,6 +1098,12 @@ implementation
              SymList.ForEachCall(@_needs_init_final,nil);
              init_final_check_done:=true;
            end;
+      end;
+
+    { returns true, if p contains data which needs init/final code }
+    function tstoredsymtable.needs_init_final : boolean;
+      begin
+         do_init_final_check;
          result:=sto_needs_init_final in tableoptions;
       end;
 
