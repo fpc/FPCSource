@@ -1263,6 +1263,7 @@ interface
   { returns whether the specified section type belongs to the group DGROUP in
     the current memory model. DGROUP is the segment group pointed by DS }
   function section_belongs_to_dgroup(atype:TAsmSectiontype): Boolean;
+  function omf_section_primary_group(atype:TAsmSectiontype):string;
 
 implementation
 
@@ -2869,6 +2870,18 @@ implementation
       end;
 {$else i8086}
       result:=false;
+{$endif i8086}
+    end;
+
+  function omf_section_primary_group(atype: TAsmSectiontype): string;
+    begin
+{$ifdef i8086}
+      if section_belongs_to_dgroup(atype) then
+        result:='DGROUP'
+      else
+        result:='';
+{$else i8086}
+      result:='';
 {$endif i8086}
     end;
 

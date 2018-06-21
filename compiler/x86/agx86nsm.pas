@@ -559,7 +559,7 @@ interface
           '.heap'
         );
       var
-        secname: string;
+        secname,secgroup: string;
       begin
         writer.AsmLn;
         writer.AsmWrite('SECTION ');
@@ -596,8 +596,9 @@ interface
                 writer.AsmWrite(' class='+omf_segclass(atype)+
                   ' align='+tostr(omf_sectiontype2align(atype)));
                 TX86NasmSection.Create(FSections,secname);
-                if section_belongs_to_dgroup(atype) then
-                  AddSegmentToGroup('DGROUP',secname);
+                secgroup:=omf_section_primary_group(atype);
+                if secgroup<>'' then
+                  AddSegmentToGroup(secgroup,secname);
               end;
           end
         else if secnames[atype]='.text' then

@@ -644,8 +644,7 @@ implementation
             TOmfObjSection(Result).FUse:=suUse32;
             TOmfObjSection(Result).SizeLimit:=high(longword);
           end;
-        if section_belongs_to_dgroup(atype) then
-          TOmfObjSection(Result).FPrimaryGroup:='DGROUP';
+        TOmfObjSection(Result).FPrimaryGroup:=omf_section_primary_group(atype);
       end;
 
     function TOmfObjData.reffardatasection: TObjSection;
