@@ -63,7 +63,7 @@ function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 
 { Tries to write "Count" bytes from "Buffer".
   Result: Number of bytes written. }
-function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
+function SerWrite(Handle: TSerialHandle; Const Buffer; Count: LongInt): LongInt;
 
 procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
   ByteSize: Integer; Parity: TParityType; StopBits: Integer;
@@ -156,7 +156,7 @@ begin
   Result := fpRead(Handle, Buffer, Count);
 end;
 
-function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
+function SerWrite(Handle: TSerialHandle; Const Buffer; Count: LongInt): LongInt;
 begin
   Result := fpWrite(Handle, Buffer, Count);
 end;
