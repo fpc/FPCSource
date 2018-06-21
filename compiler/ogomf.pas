@@ -124,7 +124,6 @@ interface
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse; Size: TObjSectionOfs);
         procedure AddGroup(group: TObjSectionGroup);
-        procedure AddSegmentToGroup(const groupname: string; segindex: Integer);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
         procedure WriteLinNumRecords(sec: TOmfObjSection);
@@ -637,31 +636,36 @@ implementation
 
     function TOmfObjData.createsection(atype: TAsmSectionType; const aname: string; aorder: TAsmSectionOrder): TObjSection;
       var
+        is_new: Boolean;
         primary_group: String;
         grp: TObjSectionGroup;
       begin
+        is_new:=TObjSection(ObjSectionList.Find(sectionname(atype,aname,aorder)))=nil;
         Result:=inherited createsection(atype, aname, aorder);
-        TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
-        if atype=sec_stack then
-          TOmfObjSection(Result).FCombination:=scStack
-        else if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges] then
+        if is_new then
           begin
-            TOmfObjSection(Result).FUse:=suUse32;
-            TOmfObjSection(Result).SizeLimit:=high(longword);
-          end;
-        primary_group:=omf_section_primary_group(atype);
-        if primary_group<>'' then
-          begin
-            { find the primary group, if it already exists, else create it }
-            grp:=nil;
-            if GroupsList<>nil then
-              grp:=TObjSectionGroup(GroupsList.Find(primary_group));
-            if grp=nil then
-              grp:=createsectiongroup(primary_group);
-            { add the current section to the group }
-            SetLength(grp.members,Length(grp.members)+1);
-            grp.members[High(grp.members)]:=Result;
-            TOmfObjSection(Result).FPrimaryGroup:=grp;
+            TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
+            if atype=sec_stack then
+              TOmfObjSection(Result).FCombination:=scStack
+            else if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges] then
+              begin
+                TOmfObjSection(Result).FUse:=suUse32;
+                TOmfObjSection(Result).SizeLimit:=high(longword);
+              end;
+            primary_group:=omf_section_primary_group(atype);
+            if primary_group<>'' then
+              begin
+                { find the primary group, if it already exists, else create it }
+                grp:=nil;
+                if GroupsList<>nil then
+                  grp:=TObjSectionGroup(GroupsList.Find(primary_group));
+                if grp=nil then
+                  grp:=createsectiongroup(primary_group);
+                { add the current section to the group }
+                SetLength(grp.members,Length(grp.members)+1);
+                grp.members[High(grp.members)]:=Result;
+                TOmfObjSection(Result).FPrimaryGroup:=grp;
+              end;
           end;
       end;
 
@@ -776,18 +780,16 @@ implementation
     procedure TOmfObjOutput.AddGroup(group: TObjSectionGroup);
       var
         g: TOmfRecord_GRPDEF;
+        seglist: TSegmentList;
+        I: Integer;
       begin
         g:=TOmfRecord_GRPDEF.Create;
         Groups.Add(group.Name,g);
         g.GroupNameIndex:=LNames.Add(group.Name);
-      end;
-
-    procedure TOmfObjOutput.AddSegmentToGroup(const groupname: string; segindex: Integer);
-      var
-        g: TOmfRecord_GRPDEF;
-      begin
-        g:=TOmfRecord_GRPDEF(Groups.Find(groupname));
-        g.AddSegmentIndex(segindex);
+        SetLength(seglist,Length(group.members));
+        for I:=Low(group.members) to High(group.members) do
+          seglist[I]:=group.members[I].index;
+        g.SegmentList:=seglist;
       end;
 
     procedure TOmfObjOutput.WriteSections(Data: TObjData);
@@ -1100,11 +1102,7 @@ implementation
           AddGroup(TObjSectionGroup(Data.GroupsList[I]));
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
-            begin
-              AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
-              if PrimaryGroup<>nil then
-                AddSegmentToGroup(PrimaryGroup.Name,index);
-            end;
+            AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
