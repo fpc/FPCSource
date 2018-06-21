@@ -75,7 +75,7 @@ interface
         FOverlayName: string;
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
-        FPrimaryGroup: string;
+        FPrimaryGroup: TObjSectionGroup;
         FSortOrder: Integer;
         FMZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment;
         FLinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList;
@@ -89,7 +89,7 @@ interface
         property OmfAlignment: TOmfSegmentAlignment read GetOmfAlignment;
         property Combination: TOmfSegmentCombination read FCombination;
         property Use: TOmfSegmentUse read FUse;
-        property PrimaryGroup: string read FPrimaryGroup;
+        property PrimaryGroup: TObjSectionGroup read FPrimaryGroup;
         property SortOrder: Integer read FSortOrder write FSortOrder;
         property MZExeUnifiedLogicalSegment: TMZExeUnifiedLogicalSegment read FMZExeUnifiedLogicalSegment write FMZExeUnifiedLogicalSegment;
         property LinNumEntries: TOmfSubRecord_LINNUM_MsLink_LineNumberList read FLinNumEntries;
@@ -438,10 +438,10 @@ implementation
               begin
                 FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
                 FOmfFixup.TargetDatum:=ObjSection.Index;
-                if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
+                if TOmfObjSection(ObjSection).PrimaryGroup<>nil then
                   begin
                     FOmfFixup.FrameMethod:=ffmGroupIndex;
-                    FOmfFixup.FrameDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup);
+                    FOmfFixup.FrameDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup.Name);
                   end
                 else
                   FOmfFixup.FrameMethod:=ffmTarget;
@@ -449,10 +449,10 @@ implementation
             else
               begin
                 FOmfFixup.FrameMethod:=ffmTarget;
-                if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
+                if TOmfObjSection(ObjSection).PrimaryGroup<>nil then
                   begin
                     FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
-                    FOmfFixup.TargetDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup);
+                    FOmfFixup.TargetDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup.Name);
                   end
                 else
                   begin
@@ -661,7 +661,7 @@ implementation
             { add the current section to the group }
             SetLength(grp.members,Length(grp.members)+1);
             grp.members[High(grp.members)]:=Result;
-            TOmfObjSection(Result).FPrimaryGroup:=primary_group;
+            TOmfObjSection(Result).FPrimaryGroup:=grp;
           end;
       end;
 
@@ -949,7 +949,6 @@ implementation
         PublicNameElem: TOmfPublicNameElement;
         RawRecord: TOmfRawRecord;
         PubDefRec: TOmfRecord_PUBDEF;
-        PrimaryGroupName: string;
       begin
         RawRecord:=TOmfRawRecord.Create;
         SetLength(PubNamesForSection,Data.ObjSectionList.Count);
@@ -978,9 +977,8 @@ implementation
             begin
               PubDefRec:=TOmfRecord_PUBDEF.Create;
               PubDefRec.BaseSegmentIndex:=i+1;
-              PrimaryGroupName:=TOmfObjSection(Data.ObjSectionList[i]).PrimaryGroup;
-              if PrimaryGroupName<>'' then
-                PubDefRec.BaseGroupIndex:=Groups.FindIndexOf(PrimaryGroupName)
+              if TOmfObjSection(Data.ObjSectionList[i]).PrimaryGroup<>nil then
+                PubDefRec.BaseGroupIndex:=Groups.FindIndexOf(TOmfObjSection(Data.ObjSectionList[i]).PrimaryGroup.Name)
               else
                 PubDefRec.BaseGroupIndex:=0;
               PubDefRec.PublicNames:=PubNamesForSection[i];
@@ -1111,8 +1109,8 @@ implementation
           with TOmfObjSection(Data.ObjSectionList[I]) do
             begin
               AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
-              if PrimaryGroup<>'' then
-                AddSegmentToGroup(PrimaryGroup,index);
+              if PrimaryGroup<>nil then
+                AddSegmentToGroup(PrimaryGroup.Name,index);
             end;
 
         { write LNAMES record(s) }
