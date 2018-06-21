@@ -787,12 +787,6 @@ implementation
         g: TOmfRecord_GRPDEF;
       begin
         g:=TOmfRecord_GRPDEF(Groups.Find(groupname));
-        if g=nil then
-          begin
-            g:=TOmfRecord_GRPDEF.Create;
-            Groups.Add(groupname,g);
-            g.GroupNameIndex:=LNames.Add(groupname);
-          end;
         g.AddSegmentIndex(segindex);
       end;
 
