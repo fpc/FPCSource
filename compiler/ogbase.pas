@@ -326,6 +326,7 @@ interface
 
      TObjSectionGroup = class(TFPHashObject)
      public
+       index: longword;  { index of group in group headers }
        members: array of TObjSection;
        iscomdat: boolean;
      end;

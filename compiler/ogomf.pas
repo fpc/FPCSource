@@ -123,12 +123,14 @@ interface
         procedure AddSegment(const name,segclass,ovlname: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse; Size: TObjSectionOfs);
+        procedure AddGroup(const groupname: string);
         procedure AddSegmentToGroup(const groupname: string; segindex: Integer);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
         procedure WriteLinNumRecords(sec: TOmfObjSection);
 
         procedure section_count_sections(p:TObject;arg:pointer);
+        procedure group_count_groups(p:TObject;arg:pointer);
         procedure WritePUBDEFs(Data: TObjData);
         procedure WriteEXTDEFs(Data: TObjData);
 
@@ -755,6 +757,15 @@ implementation
         s.SegmentLength:=Size;
       end;
 
+    procedure TOmfObjOutput.AddGroup(const groupname: string);
+      var
+        g: TOmfRecord_GRPDEF;
+      begin
+        g:=TOmfRecord_GRPDEF.Create;
+        Groups.Add(groupname,g);
+        g.GroupNameIndex:=LNames.Add(groupname);
+      end;
+
     procedure TOmfObjOutput.AddSegmentToGroup(const groupname: string; segindex: Integer);
       var
         g: TOmfRecord_GRPDEF;
@@ -908,6 +919,12 @@ implementation
         inc(pinteger(arg)^);
       end;
 
+    procedure TOmfObjOutput.group_count_groups(p: TObject; arg: pointer);
+      begin
+        TObjSectionGroup(p).index:=pinteger(arg)^;
+        inc(pinteger(arg)^);
+      end;
+
     procedure TOmfObjOutput.WritePUBDEFs(Data: TObjData);
       var
         PubNamesForSection: array of TFPHashObjectList;
@@ -1016,15 +1033,21 @@ implementation
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
-        nsections: Integer;
+        nsections,ngroups: Integer;
         objsym: TObjSymbol;
       begin
         { calc amount of sections we have and set their index, starting with 1 }
         nsections:=1;
         data.ObjSectionList.ForEachCall(@section_count_sections,@nsections);
+        { calc amount of groups we have and set their index, starting with 1 }
+        ngroups:=1;
+        data.GroupsList.ForEachCall(@group_count_groups,@ngroups);
         { maximum amount of sections supported in the omf format is $7fff }
         if (nsections-1)>$7fff then
           internalerror(2015040701);
+        { maximum amount of groups supported in the omf format is $7fff }
+        if (ngroups-1)>$7fff then
+          internalerror(2018062101);
 
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
@@ -1065,6 +1088,9 @@ implementation
         FGroups.Clear;
         FGroups.Add('',nil);
 
+        for i:=0 to Data.GroupsList.Count-1 do
+          with TObjSectionGroup(Data.GroupsList[I]) do
+            AddGroup(Name);
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
             begin
