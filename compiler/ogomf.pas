@@ -123,7 +123,7 @@ interface
         procedure AddSegment(const name,segclass,ovlname: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse; Size: TObjSectionOfs);
-        procedure AddGroup(const groupname: string);
+        procedure AddGroup(group: TObjSectionGroup);
         procedure AddSegmentToGroup(const groupname: string; segindex: Integer);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
@@ -773,13 +773,13 @@ implementation
         s.SegmentLength:=Size;
       end;
 
-    procedure TOmfObjOutput.AddGroup(const groupname: string);
+    procedure TOmfObjOutput.AddGroup(group: TObjSectionGroup);
       var
         g: TOmfRecord_GRPDEF;
       begin
         g:=TOmfRecord_GRPDEF.Create;
-        Groups.Add(groupname,g);
-        g.GroupNameIndex:=LNames.Add(groupname);
+        Groups.Add(group.Name,g);
+        g.GroupNameIndex:=LNames.Add(group.Name);
       end;
 
     procedure TOmfObjOutput.AddSegmentToGroup(const groupname: string; segindex: Integer);
@@ -1097,8 +1097,7 @@ implementation
         FGroups.Add('',nil);
 
         for i:=0 to Data.GroupsList.Count-1 do
-          with TObjSectionGroup(Data.GroupsList[I]) do
-            AddGroup(Name);
+          AddGroup(TObjSectionGroup(Data.GroupsList[I]));
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
             begin
