@@ -56,6 +56,10 @@ program tb0627b;
 
 {------------------------------------------------------------------------------}
 
+{ Explicitly disable overflow and range checks }
+{$Q-}
+{$R-}
+
 var
   SideEffectsHappened: Boolean = False;
 
