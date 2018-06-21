@@ -636,6 +636,9 @@ implementation
       end;
 
     function TOmfObjData.createsection(atype: TAsmSectionType; const aname: string; aorder: TAsmSectionOrder): TObjSection;
+      var
+        primary_group: String;
+        grp: TObjSectionGroup;
       begin
         Result:=inherited createsection(atype, aname, aorder);
         TOmfObjSection(Result).FClassName:=sectiontype2class(atype);
@@ -646,7 +649,20 @@ implementation
             TOmfObjSection(Result).FUse:=suUse32;
             TOmfObjSection(Result).SizeLimit:=high(longword);
           end;
-        TOmfObjSection(Result).FPrimaryGroup:=omf_section_primary_group(atype);
+        primary_group:=omf_section_primary_group(atype);
+        if primary_group<>'' then
+          begin
+            { find the primary group, if it already exists, else create it }
+            grp:=nil;
+            if GroupsList<>nil then
+              grp:=TObjSectionGroup(GroupsList.Find(primary_group));
+            if grp=nil then
+              grp:=createsectiongroup(primary_group);
+            { add the current section to the group }
+            SetLength(grp.members,Length(grp.members)+1);
+            grp.members[High(grp.members)]:=Result;
+            TOmfObjSection(Result).FPrimaryGroup:=primary_group;
+          end;
       end;
 
     function TOmfObjData.reffardatasection: TObjSection;
