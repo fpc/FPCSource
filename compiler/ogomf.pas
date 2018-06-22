@@ -55,7 +55,6 @@ interface
       private
         FFrameGroup: string;
         FOmfFixup: TOmfSubRecord_FIXUP;
-        function GetGroupIndex(const groupname: string): Integer;
       public
         destructor Destroy; override;
 
@@ -396,14 +395,6 @@ implementation
                                 TOmfRelocation
 ****************************************************************************}
 
-    function TOmfRelocation.GetGroupIndex(const groupname: string): Integer;
-      begin
-        if groupname='DGROUP' then
-          Result:=1
-        else
-          internalerror(2014040703);
-      end;
-
     destructor TOmfRelocation.Destroy;
       begin
         FOmfFixup.Free;
@@ -440,7 +431,7 @@ implementation
                 if TOmfObjSection(ObjSection).PrimaryGroup<>nil then
                   begin
                     FOmfFixup.FrameMethod:=ffmGroupIndex;
-                    FOmfFixup.FrameDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup.Name);
+                    FOmfFixup.FrameDatum:=TOmfObjSection(ObjSection).PrimaryGroup.index;
                   end
                 else
                   FOmfFixup.FrameMethod:=ffmTarget;
@@ -451,7 +442,7 @@ implementation
                 if TOmfObjSection(ObjSection).PrimaryGroup<>nil then
                   begin
                     FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
-                    FOmfFixup.TargetDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup.Name);
+                    FOmfFixup.TargetDatum:=TOmfObjSection(ObjSection).PrimaryGroup.index;
                   end
                 else
                   begin
@@ -504,7 +495,7 @@ implementation
               internalerror(2015041401);
             FOmfFixup.FrameMethod:=ffmTarget;
             FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
-            FOmfFixup.TargetDatum:=GetGroupIndex(group.Name);
+            FOmfFixup.TargetDatum:=group.index;
           end
         else
          internalerror(2015040702);
