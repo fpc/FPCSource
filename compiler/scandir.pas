@@ -976,8 +976,10 @@ unit scandir;
             current_scanner.skipspace;
             current_scanner.readstring;
             s:=pattern;
-            if c in ['+','-'] then
-              s:=s+current_scanner.readstate;
+            { don't combine the assignments to s as the method call will be
+              done before "pattern" is assigned to s and the method changes
+              "pattern" }
+            s:=s+current_scanner.readoptionalstate('+');
             if not SetCompileModeSwitch(s,false) then
               Message1(scan_w_illegal_switch,s)
           end;
