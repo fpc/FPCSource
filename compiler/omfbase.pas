@@ -1263,14 +1263,15 @@ interface
   { returns whether the specified section type belongs to the group DGROUP in
     the current memory model. DGROUP is the segment group pointed by DS }
   function section_belongs_to_dgroup(atype:TAsmSectiontype): Boolean;
-  function omf_section_primary_group(atype:TAsmSectiontype):string;
+  function omf_section_primary_group(atype:TAsmSectiontype;const aname:string):string;
 
 implementation
 
   uses
     cutils,globtype,globals,
     cpuinfo,
-    verbose;
+    verbose,
+    fmodule;
 
   { TOmfOrderedNameCollection }
 
@@ -2873,11 +2874,28 @@ implementation
 {$endif i8086}
     end;
 
-  function omf_section_primary_group(atype: TAsmSectiontype): string;
+  function omf_section_primary_group(atype: TAsmSectiontype;const aname:string): string;
     begin
 {$ifdef i8086}
       if section_belongs_to_dgroup(atype) then
         result:='DGROUP'
+      else if create_smartlink_sections and (aname<>'') then
+        begin
+          case omf_segclass(atype) of
+            'CODE':
+              if current_settings.x86memorymodel in x86_far_code_models then
+                begin
+                  if cs_huge_code in current_settings.moduleswitches then
+                    result:=''
+                  else
+                    result:='CGROUP_'+current_module.modulename^;
+                end
+              else
+                result:='CGROUP';
+            else
+              result:='';
+          end;
+        end
       else
         result:='';
 {$else i8086}

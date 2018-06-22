@@ -596,7 +596,7 @@ interface
                 writer.AsmWrite(' class='+omf_segclass(atype)+
                   ' align='+tostr(omf_sectiontype2align(atype)));
                 TX86NasmSection.Create(FSections,secname);
-                secgroup:=omf_section_primary_group(atype);
+                secgroup:=omf_section_primary_group(atype,aname);
                 if secgroup<>'' then
                   AddSegmentToGroup(secgroup,secname);
               end;

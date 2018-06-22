@@ -643,7 +643,7 @@ implementation
                 TOmfObjSection(Result).FUse:=suUse32;
                 TOmfObjSection(Result).SizeLimit:=high(longword);
               end;
-            primary_group:=omf_section_primary_group(atype);
+            primary_group:=omf_section_primary_group(atype,aname);
             if primary_group<>'' then
               begin
                 { find the primary group, if it already exists, else create it }
