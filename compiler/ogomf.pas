@@ -2005,6 +2005,11 @@ implementation
         InputFileName:=AReader.FileName;
         objdata:=CObjData.Create(InputFileName);
         result:=false;
+        { the TOmfObjData constructor creates a group 'DGROUP', which is to be
+          used by the code generator, when writing files. When reading object
+          files, however, we need to start with an empty list of groups, so
+          let's clear the group list now. }
+        objdata.GroupsList.Clear;
         LNames.Clear;
         ExtDefs.Clear;
         FRawRecord.ReadFrom(FReader);
