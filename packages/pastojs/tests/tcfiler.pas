@@ -148,6 +148,7 @@ type
     procedure TestPC_Proc_LocalConst;
     procedure TestPC_Proc_UTF8;
     procedure TestPC_Proc_Arg;
+    procedure TestPC_ProcType;
     procedure TestPC_Class;
     procedure TestPC_ClassForward;
     procedure TestPC_ClassConstructor;
@@ -1821,6 +1822,32 @@ begin
   'procedure DoIt(var a; out b,c: longint; const e,f: array of byte; g: boolean = true);',
   'implementation',
   'procedure DoIt(var a; out b,c: longint; const e,f: array of byte; g: boolean = true);',
+  'begin',
+  'end;',
+  '']);
+  WriteReadUnit;
+end;
+
+procedure TTestPrecompile.TestPC_ProcType;
+begin
+  StartUnit(false);
+  Add([
+  '{$modeswitch arrayoperators}',
+  'interface',
+  'type',
+  '  TProc = procedure;',
+  '  TArrProc = array of tproc;',
+  'procedure Mark;',
+  'procedure DoIt(const a: TArrProc);',
+  'implementation',
+  'procedure Mark;',
+  'var',
+  '  p: TProc;',
+  '  a: TArrProc;',
+  'begin',
+  '  DoIt([@Mark,p]+a);',
+  'end;',
+  'procedure DoIt(const a: TArrProc);',
   'begin',
   'end;',
   '']);

@@ -160,6 +160,7 @@ const
     'ISOLikeIO',
     'ISOLikeProgramsPara',
     'ISOLikeMod',
+    'ArrayOperators',
     'ExternalClass',
     'PrefixedAttributes',
     'IgnoreAttributes'
@@ -587,6 +588,7 @@ type
     function GetDefaultProcTypeModifiers(ProcType: TPasProcedureType): TProcTypeModifiers; virtual;
     function GetDefaultExprHasEvalValue(Expr: TPasExpr): boolean; virtual;
     function GetSrcCheckSum(aFilename: string): TPCUSourceFileChecksum; virtual;
+    function GetDefaultRefName(El: TPasElement): string; virtual;
     function GetElementReference(El: TPasElement; AutoCreate: boolean = true): TPCUFilerElementRef;
     function CreateElementRef(El: TPasElement): TPCUFilerElementRef; virtual;
     procedure AddedBuiltInRef(Ref: TPCUFilerElementRef); virtual;
@@ -1766,6 +1768,24 @@ begin
   Result:=ComputeChecksum(p,Cnt);
 end;
 
+function TPCUFiler.GetDefaultRefName(El: TPasElement): string;
+var
+  C: TClass;
+begin
+  Result:=El.Name;
+  if Result<>'' then exit;
+  // some elements without name can be referred to:
+  C:=El.ClassType;
+  if C=TInterfaceSection then
+    Result:='Interface'
+  else if C=TPasArrayType then
+    Result:='Array' // anonymous array
+  else if C.InheritsFrom(TPasProcedureType) and (El.Parent is TPasProcedure) then
+    Result:='Type'
+  else
+    Result:='';
+end;
+
 function TPCUFiler.GetElementReference(El: TPasElement; AutoCreate: boolean
   ): TPCUFilerElementRef;
 var
@@ -2014,6 +2034,10 @@ begin
     else
       FLastNewExt.NextNewExt:=Result;
     FLastNewExt:=Result;
+    {$IF defined(VerbosePCUFiler) or defined(VerbosePJUFiler) or defined(VerbosePas2JS)}
+    if (El.Name='') and (GetDefaultRefName(El)='') then
+      RaiseMsg(20180623091608,El);
+    {$ENDIF}
     end;
 end;
 
@@ -3760,13 +3784,14 @@ procedure TPCUWriter.WriteExtRefSignature(Ref: TPCUFilerElementRef;
   end;
 
 var
-  Parent: TPasElement;
+  Parent, El: TPasElement;
   C: TClass;
 begin
   //writeln('TPCUWriter.WriteExtRefSignature START ',GetObjName(Ref.Element));
   if aContext=nil then ;
   // write member index
-  Parent:=Ref.Element.Parent;
+  El:=Ref.Element;
+  Parent:=El.Parent;
   C:=Parent.ClassType;
   if C.InheritsFrom(TPasDeclarations) then
     WriteMemberIndex(TPasDeclarations(Parent).Declarations,Ref.Element,Ref.Obj)
@@ -3810,10 +3835,11 @@ begin
   // check name
   Name:=Resolver.GetOverloadName(El);
   if Name='' then
-    if El is TInterfaceSection then
-      Name:='Interface'
-    else
+    begin
+    Name:=GetDefaultRefName(El);
+    if Name='' then
       RaiseMsg(20180308174850,El,GetObjName(El));
+    end;
   // write
   Ref.Obj:=TJSONObject.Create;
   Ref.Obj.Add('Name',Name);
