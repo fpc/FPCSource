@@ -1785,6 +1785,8 @@ implementation
                      fieldvs:=tfieldvarsym(sc[i]);
                      fieldvs.visibility:=visibility;
                      hstaticvs:=make_field_static(recst,fieldvs);
+                     if vd_threadvar in options then
+                       include(hstaticvs.varoptions,vo_is_thread_var);
                      if not parse_generic then
                        cnodeutils.insertbssdata(hstaticvs);
                      if vd_final in options then
