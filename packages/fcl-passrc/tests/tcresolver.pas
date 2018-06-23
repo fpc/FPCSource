@@ -143,6 +143,7 @@ type
     procedure CheckResolverException(Msg: string; MsgNumber: integer);
     procedure CheckParserException(Msg: string; MsgNumber: integer);
     procedure CheckAccessMarkers; virtual;
+    procedure CheckParamsExpr_pkSet_Markers; virtual;
     procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
     function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;// list of TPasElement
     function FindElementsAt(aMarker: PSrcMarker; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
@@ -685,7 +686,8 @@ type
     Procedure TestFunctionReturningArray;
     Procedure TestArray_LowHigh;
     Procedure TestArray_LowVarFail;
-    Procedure TestArray_AssignSameSignatureFail;
+    Procedure TestArray_AssignDiffElTypeFail;
+    Procedure TestArray_AssignSameSignatureDelphiFail;
     Procedure TestArray_Assigned;
     Procedure TestPropertyOfTypeArray;
     Procedure TestArrayElementFromFuncResult_AsParams;
@@ -696,7 +698,8 @@ type
     Procedure TestArrayEnumTypeConstNonConstFail;
     Procedure TestArrayEnumTypeSetLengthFail;
     Procedure TestArrayEnumCustomRange;
-    Procedure TestArray_DynArrayConst;
+    Procedure TestArray_DynArrayConstObjFPC;
+    Procedure TestArray_DynArrayConstDelphi;
     Procedure TestArray_Static_Const;
     Procedure TestArray_Record_Const;
     Procedure TestArray_MultiDim_Const;
@@ -708,10 +711,12 @@ type
     Procedure TestArray_OpenArrayOfString_IntFail;
     Procedure TestArray_OpenArrayOverride;
     Procedure TestArray_OpenArrayAsDynArraySetLengthFail;
+    Procedure TestArray_OpenArrayAsDynArray;
     Procedure TestArray_CopyConcat;
     Procedure TestStaticArray_CopyConcat;// ToDo
     Procedure TestArray_CopyMismatchFail;
-    Procedure TestArray_InsertDelete;
+    Procedure TestArray_InsertDeleteAccess;
+    Procedure TestArray_InsertArray;
     Procedure TestStaticArray_InsertFail;
     Procedure TestStaticArray_DeleteFail;
     Procedure TestArray_InsertItemMismatchFail;
@@ -719,6 +724,7 @@ type
     Procedure TestArray_TypeCastWrongElTypeFail;
     Procedure TestArray_ConstDynArrayWrite;
     Procedure TestArray_ConstOpenArrayWriteFail;
+    Procedure TestArray_ForIn;
 
     // array of const
     Procedure TestArrayOfConst;
@@ -1592,6 +1598,73 @@ begin
           end;
         if ActualAccess<>ExpectedAccess then
           RaiseErrorAtSrcMarker('expected "'+AccessNames[ExpectedAccess]+'" at "#'+aMarker^.Identifier+'", but got "'+AccessNames[ActualAccess]+'"',aMarker);
+      finally
+        Elements.Free;
+      end;
+      end;
+    aMarker:=aMarker^.Next;
+    end;
+end;
+
+procedure TCustomTestResolver.CheckParamsExpr_pkSet_Markers;
+var
+  aMarker: PSrcMarker;
+  p: SizeInt;
+  AccessPostfix: String;
+  Elements: TFPList;
+  i: Integer;
+  El: TPasElement;
+  Ref: TResolvedReference;
+  ParamsExpr: TParamsExpr;
+  NeedArray: Boolean;
+begin
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    //writeln('TTestResolver.CheckParamsExpr_pkSet_Markers ',aMarker^.Identifier,' ',aMarker^.StartCol,' ',aMarker^.EndCol);
+    p:=RPos('_',aMarker^.Identifier);
+    if p>1 then
+      begin
+      AccessPostfix:=copy(aMarker^.Identifier,p+1);
+      if SameText(AccessPostfix,'set') then
+        NeedArray:=false
+      else if SameText(AccessPostfix,'array') then
+        NeedArray:=true
+      else
+        RaiseErrorAtSrcMarker('unknown set/array postfix of [] expression at "#'+aMarker^.Identifier+'"',aMarker);
+
+      Elements:=FindElementsAt(aMarker);
+      try
+        ParamsExpr:=nil;
+        for i:=0 to Elements.Count-1 do
+          begin
+          El:=TPasElement(Elements[i]);
+          //writeln('TTestResolver.CheckParamsExpr_pkSet_Markers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+          if El.ClassType<>TParamsExpr then continue;
+          if ParamsExpr<>nil then
+            RaiseErrorAtSrcMarker('multiple paramsexpr found at "#'+aMarker^.Identifier+'"',aMarker);
+
+          ParamsExpr:=TParamsExpr(El);
+
+          if NeedArray then
+            begin
+            if not (El.CustomData is TResolvedReference) then
+              RaiseErrorAtSrcMarker('array expr has no TResolvedReference at "#'+aMarker^.Identifier+'"',aMarker);
+            Ref:=TResolvedReference(El.CustomData);
+            if not (Ref.Declaration is TPasArrayType) then
+              RaiseErrorAtSrcMarker('array expr Ref.Decl is not TPasArrayType (is '+GetObjName(Ref.Declaration)+') at "#'+aMarker^.Identifier+'"',aMarker);
+            end
+          else
+            begin
+            if not (El.CustomData is TResolvedReference) then
+              continue; // good
+            Ref:=TResolvedReference(El.CustomData);
+            if Ref.Declaration is TPasArrayType then
+              RaiseErrorAtSrcMarker('set expr Ref.Decl is '+GetObjName(Ref.Declaration)+' at "#'+aMarker^.Identifier+'"',aMarker);
+            end;
+          end;
+        if TParamsExpr=nil then
+          RaiseErrorAtSrcMarker('missing paramsexpr at "#'+aMarker^.Identifier+'"',aMarker);
       finally
         Elements.Free;
       end;
@@ -3688,8 +3761,12 @@ begin
   'const',
   '  a: TFiveSet = [2..3,5]+[4];',
   '  b = low(TIntRg)+high(TIntRg);',
+  '  c = [low(TIntRg)..high(TIntRg)];',
+  'var',
+  '  s: TFiveSet;',
   'begin',
-  '  if 3 in a then ;']);
+  '  if 3 in a then ;',
+  '  s:=c;']);
   ParseProgram;
   CheckResolverUnexpectedHints;
 end;
@@ -11761,9 +11838,25 @@ begin
   CheckResolverException(sConstantExpressionExpected,nConstantExpressionExpected);
 end;
 
-procedure TTestResolver.TestArray_AssignSameSignatureFail;
+procedure TTestResolver.TestArray_AssignDiffElTypeFail;
 begin
   StartProgram(false);
+  Add('type');
+  Add('  TArrA = array of longint;');
+  Add('  TArrB = array of byte;');
+  Add('var');
+  Add('  a: TArrA;');
+  Add('  b: TArrB;');
+  Add('begin');
+  Add('  a:=b;');
+  CheckResolverException('Incompatible types: got "array of Longint" expected "array of Byte"',
+    nIncompatibleTypesGotExpected);
+end;
+
+procedure TTestResolver.TestArray_AssignSameSignatureDelphiFail;
+begin
+  StartProgram(false);
+  Add('{$mode delphi}');
   Add('type');
   Add('  TArrA = array of longint;');
   Add('  TArrB = array of longint;');
@@ -11980,10 +12073,13 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestArray_DynArrayConst;
+procedure TTestResolver.TestArray_DynArrayConstObjFPC;
 begin
+  Parser.Options:=Parser.Options+[po_cassignments];
+  Scanner.Options:=Scanner.Options+[po_cassignments];
   StartProgram(false);
   Add([
+  '{$modeswitch arrayoperators}',
   'type',
   '  integer = longint;',
   '  TArrInt = array of integer;',
@@ -11993,11 +12089,59 @@ begin
   '  Names: array of string = (''a'',''foo'');',
   '  Aliases: TarrStr = (''foo'',''b'');',
   '  OneInt: TArrInt = (7);',
-  '  OneStr: array of integer = (7);',
+  '  OneInt2: array of integer = (7);',
   '  Chars: array of char = ''aoc'';',
+  '  NameCount = low(Names)+high(Names)+length(Names);',
+  'procedure DoIt(Ints: TArrInt);',
   'begin',
+  'end;',
+  'var i: integer;',
+  'begin',
+  '  Ints:= {#a_array}[1,i];',
+  '  Ints:= {#b1_array}[1,1]+ {#b2_array}[2]+ {#b3_array}[i];',
+  '  Ints:= {#c_array}[i]+ {#d_array}[2,2];',
+  '  Ints:=Ints+ {#e_array}[1];',
+  '  Ints:= {#f_array}[1]+Ints;',
+  '  Ints:=Ints+OneInt+OneInt2;',
+  '  Ints+= {#g_array}[i];',
+  '  Ints+= {#h_array}[1,1];',
+  '  DoIt( {#i_array}[1,1]);',
+  '  DoIt( {#j_array}[i]);',
   '']);
   ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestArray_DynArrayConstDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'const c= {#c_set}[1,2];',
+  'type',
+  '  integer = longint;',
+  '  TArrInt = array of integer;',
+  '  TArrStr = array of string;',
+  '  TArrInt2 = array of TArrInt;',
+  '  TSetOfEnum = set of (red,blue);',
+  '  TArrOfSet = array of TSetOfEnum;',
+  'const',
+  '  Ints: TArrInt = {#ints_array}[1,2,1];',
+  '  Names: array of string = {#names_array}[''a'',''a''];',
+  '  Aliases: TarrStr = {#aliases_array}[''foo'',''b'',''b''];',
+  '  OneInt: TArrInt = {#oneint_array}[7];',
+  '  TwoInt: array of integer = {#twoint1_array}[7]+{#twoint2_array}[8];',
+  '  Chars: array of char = ''aoc'';',
+  '  NameCount = low(Names)+high(Names)+length(Names);',
+  'procedure {#DoArrOfSet}DoIt(const s: TArrOfSet); overload; begin end;',
+  'procedure {#DoArrOfArrInt}DoIt(const a: TArrInt2); overload; begin end;',
+  'begin',
+  '  {@DoArrOfSet}DoIt( {#a1_array}[ {#a2_set}[blue], {#a3_set}[red] ]);',
+  '  {@DoArrOfArrInt}DoIt( {#b1_array}[ {#b2_array}[1], {#b3_array}[2] ]);',
+  '']);
+  ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
   CheckResolverUnexpectedHints;
 end;
 
@@ -12044,16 +12188,32 @@ procedure TTestResolver.TestArray_MultiDim_Const;
 begin
   StartProgram(false);
   Add([
+  '{$modeswitch arrayoperators}',
   'type',
   '  TDynArray = array of longint;',
+  '  TDynArray2 = array of TDynArray;',
   '  TArrOfArr = array[1..2] of TDynArray;',
   '  TMultiDimArr = array[1..2,3..4] of longint;',
   'const',
   '  AoA: TArrOfArr = ( (1,2), (2,3) );',
   '  MultiDimArr: TMultiDimArr = ( (11,12), (13,14) );',
+  '  A2: TDynArray2 = ( (1,2), (2,3) );',
+  'var',
+  '  A: TDynArray;',
+  'procedure DoIt(const a: TDynArray2); begin end;',
+  'var i: longint;',
   'begin',
+  '  AoA:= {#a1_array}[ {#a2_array}[1], {#a3_array}[i] ];',
+  '  AoA:= {#b1_array}[ {#b2_array}[i], A ];',
+  '  AoA:= {#c1_array}[ {#c2_array}[i,2], {#c3_array}[2,i] ];',
+  '  MultiDimArr:= {#d1_array}[ {#d2_array}[11,12], [13,14] ];',
+  '  A2:= {#e1_array}[ {#e2_array}[1,2], {#e3_array}[2,3], {#e4_array}[i] ];',
+  '  DoIt( {#f1_array}[ {#f2_array}[i,32], {#f3_array}[32,i] ]);',
+  '  A2:= A2+ {#g1_array}[A];',
+  '  A2:= {#h1_array}[A]+A2;',
   '']);
   ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
 end;
 
 procedure TTestResolver.TestArray_AssignNilToStaticArrayFail1;
@@ -12065,7 +12225,7 @@ begin
   Add('  a: array[TEnum] of longint;');
   Add('begin');
   Add('  a:=nil;');
-  CheckResolverException('Incompatible types: got "Nil" expected "array type"',
+  CheckResolverException('Incompatible types: got "Nil" expected "array"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -12115,6 +12275,7 @@ procedure TTestResolver.TestArray_OpenArrayOfString;
 begin
   StartProgram(false);
   Add([
+  'type TArrStr = array of string;',
   'procedure DoIt(const a: array of String);',
   'var',
   '  i: longint;',
@@ -12127,7 +12288,8 @@ begin
   'begin',
   '  DoIt([]);',
   '  DoIt([s,''foo'','''',s+s]);',
-  '  DoIt(arr);']);
+  '  DoIt(arr);',
+  '']);
   ParseProgram;
 end;
 
@@ -12166,7 +12328,6 @@ end;
 
 procedure TTestResolver.TestArray_OpenArrayAsDynArraySetLengthFail;
 begin
-  ResolverEngine.Options:=ResolverEngine.Options+[proOpenAsDynArrays];
   StartProgram(false);
   Add([
   'procedure DoIt(a: array of byte);',
@@ -12174,29 +12335,71 @@ begin
   '  SetLength(a,3);',
   'end;',
   'begin']);
-  CheckResolverException('Incompatible type arg no. 1: Got "array of Byte", expected "string or dynamic array variable"',
+  CheckResolverException('Incompatible type arg no. 1: Got "open array of Byte", expected "string or dynamic array variable"',
     nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestArray_OpenArrayAsDynArray;
+begin
+  ResolverEngine.Options:=ResolverEngine.Options+[proOpenAsDynArrays];
+  StartProgram(false);
+  Add([
+  '{$modeswitch arrayoperators}',
+  'type TArrStr = array of string;',
+  'procedure DoStr(const a: TArrStr); forward;',
+  'procedure DoIt(a: array of String);',
+  'var',
+  '  i: longint;',
+  '  s: string;',
+  'begin',
+  '  SetLength(a,3);',
+  '  DoStr(a);',
+  '  DoStr(a+[s]);',
+  '  DoStr([s]+a);',
+  'end;',
+  'procedure DoStr(const a: TArrStr);',
+  'var s: string;',
+  'begin',
+  '  DoIt(a);',
+  '  DoIt(a+[s]);',
+  '  DoIt([s]+a);',
+  'end;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestArray_CopyConcat;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TArrayInt = array of integer;');
-  Add('function Get(A: TArrayInt): TArrayInt; begin end;');
-  Add('var');
-  Add('  i: integer;');
-  Add('  A: TArrayInt;');
-  Add('begin');
-  Add('  A:=Copy(A);');
-  Add('  A:=Copy(A,1);');
-  Add('  A:=Copy(A,2,3);');
-  Add('  A:=Copy(Get(A),2,3);');
-  Add('  Get(Copy(A));');
-  Add('  A:=Concat(A);');
-  Add('  A:=Concat(A,Get(A));');
+  Add([
+  '{$modeswitch arrayoperators}',
+  'type',
+  '  integer = longint;',
+  '  TArrayInt = array of integer;',
+  '  TFlag = (red, blue);',
+  '  TArrayFlag = array of TFlag;',
+  'function Get(A: TArrayInt): TArrayInt; begin end;',
+  'var',
+  '  i: integer;',
+  '  A: TArrayInt;',
+  '  FA: TArrayFlag;',
+  'begin',
+  '  A:=Copy(A);',
+  '  A:=Copy(A,1);',
+  '  A:=Copy(A,2,3);',
+  '  A:=Copy(Get(A),2,3);',
+  '  Get(Copy(A));',
+  '  A:=Concat(A);',
+  '  A:=Concat(A,Get(A));',
+  '  A:=Copy( {#a_array}[1]);',
+  '  A:=Copy( {#b1_array}[1]+ {#b2_array}[2,3]);',
+  '  A:=Concat( {#c_array}[1]);',
+  '  A:=Concat( {#d1_array}[1], {#d2_array}[2,3]);',
+  '  FA:=concat([red]);',
+  '  FA:=concat([red],FA);',
+  '']);
   ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
 end;
 
 procedure TTestResolver.TestStaticArray_CopyConcat;
@@ -12204,21 +12407,22 @@ begin
   exit;
   //ResolverEngine.Options:=ResolverEngine.Options+[proStaticArrayCopy,proStaticArrayConcat];
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TArrayInt = array of integer;');
-  Add('  TThreeInts = array[1..3] of integer;');
-  Add('function Get(A: TThreeInts): TThreeInts; begin end;');
-  Add('var');
-  Add('  i: integer;');
-  Add('  A: TArrayInt;');
-  Add('  S: TThreeInts;');
-  Add('begin');
-  Add('  A:=Copy(S);');
-  Add('  A:=Copy(S,1);');
-  Add('  A:=Copy(S,2,3);');
-  Add('  A:=Copy(Get(S),2,3);');
-  Add('  A:=Concat(S,Get(S));');
+  Add([
+  'type',
+  '  integer = longint;',
+  '  TArrayInt = array of integer;',
+  '  TThreeInts = array[1..3] of integer;',
+  'function Get(A: TThreeInts): TThreeInts; begin end;',
+  'var',
+  '  i: integer;',
+  '  A: TArrayInt;',
+  '  S: TThreeInts;',
+  'begin',
+  '  A:=Copy(S);',
+  '  A:=Copy(S,1);',
+  '  A:=Copy(S,2,3);',
+  '  A:=Copy(Get(S),2,3);',
+  '  A:=Concat(S,Get(S));']);
   ParseProgram;
 end;
 
@@ -12235,24 +12439,61 @@ begin
   Add('  B: TArrayStr;');
   Add('begin');
   Add('  A:=Copy(B);');
-  CheckResolverException('Incompatible types: got "TArrayStr" expected "TArrayInt"',
+  CheckResolverException('Incompatible types: got "array of integer" expected "array of String"',
     nIncompatibleTypesGotExpected);
 end;
 
-procedure TTestResolver.TestArray_InsertDelete;
+procedure TTestResolver.TestArray_InsertDeleteAccess;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TArrayInt = array of integer;');
-  Add('var');
-  Add('  i: integer;');
-  Add('  A: TArrayInt;');
-  Add('begin');
-  Add('  Insert({#a1_read}i+1,{#a2_var}A,{#a3_read}i+2);');
-  Add('  Delete({#b1_var}A,{#b2_read}i+3,{#b3_read}i+4);');
+  Add([
+  '{$modeswitch arrayoperators}',
+  'type',
+  '  integer = longint;',
+  '  TArrayInt = array of integer;',
+  '  TArrArrInt = array of TArrayInt;',
+  'var',
+  '  i: integer;',
+  '  A: TArrayInt;',
+  '  A2: TArrArrInt;',
+  'begin',
+  '  Insert({#a1_read}i+1,{#a2_var}A,{#a3_read}i+2);',
+  '  Insert([i],A2,i+2);',
+  '  Insert(A+[1],A2,i+2);',
+  '  Delete({#b1_var}A,{#b2_read}i+3,{#b3_read}i+4);']);
   ParseProgram;
   CheckAccessMarkers;
+end;
+
+procedure TTestResolver.TestArray_InsertArray;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch arrayoperators}',
+  'type',
+  '  integer = longint;',
+  '  TArrayInt = array of integer;',
+  '  TArrArrInt = array of TArrayInt;',
+  '  TCol = (red,blue);',
+  '  TSetCol = set of TCol;',
+  '  TArrayCol = array of TCol;',
+  '  TArrArrCol = array of TArrayCol;',
+  '  TArrSetCol = array of TSetCol;',
+  'var',
+  '  i: integer;',
+  '  ArrInt: TArrayInt;',
+  '  ArrArrInt: TArrArrInt;',
+  '  ArrArrCol: TArrArrCol;',
+  '  ArrSetCol: TArrSetCol;',
+  'begin',
+  '  Insert( {#a_array}[1], ArrArrInt, i+2);',
+  '  Insert( {#b_array}[i], ArrArrInt, 3);',
+  '  Insert( ArrInt+ {#c_array}[1], ArrArrInt, 4);',
+  '  Insert( {#d_set}[red], ArrSetCol, 5);',
+  '  Insert( {#e_array}[red], ArrArrCol, 6);',
+  '']);
+  ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
 end;
 
 procedure TTestResolver.TestStaticArray_InsertFail;
@@ -12356,6 +12597,26 @@ begin
   Add('end;');
   Add('begin');
   CheckResolverException('Variable identifier expected',nVariableIdentifierExpected);
+end;
+
+procedure TTestResolver.TestArray_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch arrayoperators}',
+  'var',
+  '  a: array of longint;',
+  '  s: array[1,2] of longint;',
+  '  i: longint;',
+  'begin',
+  '  for i in a do ;',
+  '  for i in s do ;',
+  '  for i in a+ {#a_array}[1] do ;',
+  '  for i in {#b1_set}[1]+ {#b2_set}[2] do ;',
+  '  for i in {#c_set}[1,2] do ;',
+  '']);
+  ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
 end;
 
 procedure TTestResolver.TestArrayOfConst;
@@ -12864,28 +13125,36 @@ end;
 procedure TTestResolver.TestArrayOfProc;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class end;');
-  Add('  TNotifyProc = function(Sender: TObject = nil): longint;');
-  Add('  TProcArray = array of TNotifyProc;');
-  Add('function ProcA(Sender: TObject): longint;');
-  Add('begin end;');
-  Add('var');
-  Add('  a: TProcArray;');
-  Add('  p: TNotifyProc;');
-  Add('begin');
-  Add('  a[0]:=@ProcA;');
-  Add('  if a[1]=@ProcA then ;');
-  Add('  if @ProcA=a[2] then ;');
-  // Add('  a[3];'); ToDo
-  Add('  a[3](nil);');
-  Add('  if a[4](nil)=5 then ;');
-  Add('  if 6=a[7](nil) then ;');
-  Add('  a[8]:=a[9];');
-  Add('  p:=a[10];');
-  Add('  a[11]:=p;');
-  Add('  if a[12]=p then ;');
-  Add('  if p=a[13] then ;');
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TNotifyProc = function(Sender: TObject = nil): longint;',
+  '  TProcArray = array of TNotifyProc;',
+  'function ProcA(Sender: TObject): longint;',
+  'begin end;',
+  'procedure DoIt(const a: TProcArray);',
+  'begin end;',
+  'var',
+  '  a: TProcArray;',
+  '  p: TNotifyProc;',
+  'begin',
+  '  a[0]:=@ProcA;',
+  '  if a[1]=@ProcA then ;',
+  '  if @ProcA=a[2] then ;',
+  // '  a[3];', ToDo
+  '  a[3](nil);',
+  '  if a[4](nil)=5 then ;',
+  '  if 6=a[7](nil) then ;',
+  '  a[8]:=a[9];',
+  '  p:=a[10];',
+  '  a[11]:=p;',
+  '  if a[12]=p then ;',
+  '  if p=a[13] then ;',
+  '  DoIt([@ProcA]);',
+  '  DoIt([nil]);',
+  '  DoIt([nil,@ProcA]);',
+  '  DoIt([p]);',
+  '']);
   ParseProgram;
 end;
 

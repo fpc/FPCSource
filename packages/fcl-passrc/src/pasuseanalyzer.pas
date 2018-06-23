@@ -717,6 +717,9 @@ procedure TPasAnalyzer.MarkImplScopeRef(El, RefEl: TPasElement;
     if ElImplScope=nil then exit;
     RefElImplScope:=FindTopImplScope(RefEl);
     if RefElImplScope=ElImplScope then exit;
+
+    if (RefEl.Name='') and not (RefEl is TInterfaceSection) then
+      exit; // reference to anonymous type -> not needed
     if ElImplScope is TPasProcedureScope then
       TPasProcedureScope(ElImplScope).AddReference(RefEl,Access)
     else if ElImplScope is TPasInitialFinalizationScope then
