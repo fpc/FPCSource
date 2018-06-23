@@ -30,22 +30,22 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('webidldefs.pp');
-    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('webidlscanner.pp');
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('webidlparser.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('webidldefs');
-          AddUnit('webidlscanner');
-        end;
+    T.ResourceStrings := True;
+    with T.Dependencies do
+      begin
+      AddUnit('webidldefs');
+      AddUnit('webidlscanner');
+      end;
     T:=P.Targets.AddUnit('webidltopas.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('webidldefs');
-          AddUnit('webidlscanner');
-          AddUnit('webidlparser');
-        end;
+    with T.Dependencies do
+      begin
+      AddUnit('webidldefs');
+      AddUnit('webidlscanner');
+      AddUnit('webidlparser');
+      end;
 {$ifndef ALLPACKAGES}
     Run;
     end;
