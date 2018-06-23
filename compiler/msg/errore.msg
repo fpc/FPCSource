@@ -436,7 +436,7 @@ scan_n_changecputype=02105_N_Changed CPU type to be consistent with specified co
 #
 # Parser
 #
-# 03347 is the last used one
+# 03348 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1580,6 +1580,8 @@ parser_w_operator_overloaded_hidden_3=03347_W_Operator overload hidden by intern
 % takes precedence. This only happens for operators that had been overloadable before (e.g. dynamic array + dynamic array),
 % but aren't anymore due to an internal operator being defined while this behavior is controllable by a modeswitch
 % (in case of dynamic arrays that is the modeswitch \var{ArrayOperators}).
+parser_e_threadvar_must_be_class=03348_E_Thread variables inside classes or records must be class variables
+% A \var{threadvar} section inside a class or record was started without it being prefixed by \var{class}.
 %
 %
 % \end{description}
