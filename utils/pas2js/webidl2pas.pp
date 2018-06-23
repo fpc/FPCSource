@@ -1,13 +1,23 @@
+{
+    This file is part of the Free Component Library
+
+    WEBIDL to pascal code converter program
+    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 program webidl2pas;
 
 {$mode objfpc}{$H+}
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-  {$ENDIF}{$ENDIF}
-  Classes, SysUtils, CustApp, webidltopas, pascodegen
-  { you can add units after this };
+  Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen,typinfo;
 
 type
 
@@ -89,12 +99,13 @@ procedure TWebIDLToPasApplication.DoRun;
 var
   A,ErrorMsg: String;
   O : TConversionOptions;
+  I : Integer;
 
 begin
 
   Terminate;
   // quick check parameters
-  ErrorMsg:=CheckOptions('hi:o:u:m:n:vx:t:ced::p', ['help','input:','output:','unitname:','include:','implementation:','verbose','extra:','typealiases:','constexternal','expandunionargs','dicttoclass::','optionsinheader']);
+  ErrorMsg:=CheckOptions('hi:o:u:m:n:vx:t:ced::pw:', ['help','input:','output:','unitname:','include:','implementation:','verbose','extra:','typealiases:','constexternal','expandunionargs','dicttoclass::','optionsinheader','webidlversion:']);
   if (ErrorMsg<>'') or HasOption('h','help') then
     begin
     WriteHelp(ErrorMsg);
@@ -111,6 +122,15 @@ begin
   OutputFileName:=GetOptionValue('o','output');
   UnitName:=GetOptionValue('u','unitname');
   FWebIDLToPas.Verbose:=HasOption('v','verbose');
+  if HasOption('w','webidlversion') then
+    begin
+    A:=GetOptionValue('w','webidlversion');
+    I:=GetEnumValue(TypeInfo(TWebIDLVersion),A);
+    if (I<>-1) then
+      FWebIDLToPas.WebIDLVersion:=TWebIDLVersion(I)
+    else
+      Raise EConvertError.CreateFmt('Invalid webidl version: %s',[A]);
+    end;
   if hasoption('n','include') then
     FWebIDLToPas.IncludeInterfaceCode.LoadFromFile(GetOptionValue('n','include'));
   if hasoption('m','implementation') then
