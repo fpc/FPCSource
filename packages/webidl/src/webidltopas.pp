@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Component Library
+
+    WEBIDL to pascal code converter
+    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit webidltopas;
 
 {$mode objfpc}{$H+}
@@ -60,6 +74,9 @@ Type
     Function AllocatePasName(D: TIDLDefinition; ParentName: String='') : TPasData;virtual;
     procedure EnsureUniqueNames(ML: TIDLDefinitionList);virtual;
     function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer;virtual;
+    function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer;virtual;
+    function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer;virtual;
+    function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function GetName(ADef: TIDLDefinition): String;virtual;
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String;virtual;
     function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String;virtual;
@@ -341,24 +358,24 @@ begin
            Inc(Result);
 end;
 
+function TWebIDLToPas.AddSequenceDef(ST: TIDLSequenceTypeDefDefinition
+  ): Boolean;
+
+var
+  TN : String;
+begin
+  TN:=GetTypeName(ST);
+  Result:=FAutoTypes.IndexOf(TN)=-1;
+  if Result then
+    begin
+    FAutoTypes.Add(TN);
+    DoLog('Automatically adding %s sequence definition.',[TN]);
+    AddLn('%s = Array of %s;',[TN,GetTypeName(ST.ElementType)]);
+    ST.Data:=CreatePasName(TN);
+    end;
+end;
+
 function TWebIDLToPas.WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer;
-
-
-  Procedure AddSequenceDef (ST : TIDLSequenceTypeDefDefinition);
-
-  var
-    TN : String;
-  begin
-    TN:=GetTypeName(ST);
-    if FAutoTypes.IndexOf(TN)=-1 then
-      begin
-      FAutoTypes.Add(TN);
-      DoLog('Automatically adding %s sequence definition.',[TN]);
-      AddLn('%s = Array of %s;',[TN,GetTypeName(ST.ElementType)]);
-      ST.Data:=CreatePasName(TN);
-      Inc(Result);
-      end;
-  end;
 
 Var
   D,D2,D3 : TIDLDefinition;
@@ -373,21 +390,57 @@ begin
       if Not (foCallBack in FD.Options) then
         begin
         if (FD.ReturnType is TIDLSequenceTypeDefDefinition) then
-          AddSequenceDef(FD.ReturnType as TIDLSequenceTypeDefDefinition);
+          if AddSequenceDef(FD.ReturnType as TIDLSequenceTypeDefDefinition) then
+            Inc(Result);
         For D2 in FD.Arguments do
           if (DA.ArgumentType is TIDLSequenceTypeDefDefinition) then
-            AddSequenceDef(DA.ArgumentType as TIDLSequenceTypeDefDefinition)
+            begin
+            if AddSequenceDef(DA.ArgumentType as TIDLSequenceTypeDefDefinition) then
+              Inc(Result);
+            end
           else
             begin
             UT:=CheckUnionTypeDefinition(DA.ArgumentType);
             if Assigned(UT) then
               For D3 in UT.Union do
                 if (D3 is TIDLSequenceTypeDefDefinition) then
-                  AddSequenceDef(D3 as TIDLSequenceTypeDefDefinition);
+                  if AddSequenceDef(D3 as TIDLSequenceTypeDefDefinition) then
+                    Inc(Result);
             end;
         end;
   if Result>0 then
     AddLn('');
+end;
+
+function TWebIDLToPas.WriteAttributeImplicitTypes(aList: TIDLDefinitionList
+  ): Integer;
+Var
+  D : TIDLDefinition;
+  FA : TIDLAttributeDefinition absolute D;
+
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLAttributeDefinition then
+      if (FA.AttributeType is TIDLSequenceTypeDefDefinition) then
+        if AddSequenceDef(FA.AttributeType as TIDLSequenceTypeDefDefinition) then
+          Inc(Result);
+end;
+
+function TWebIDLToPas.WriteDictionaryMemberImplicitTypes(
+  aList: TIDLDefinitionList): Integer;
+
+Var
+  D : TIDLDefinition;
+  FD : TIDLDictionaryMemberDefinition absolute D;
+
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLDictionaryMemberDefinition then
+      if (FD.MemberType is TIDLSequenceTypeDefDefinition) then
+        if AddSequenceDef(FD.MemberType as TIDLSequenceTypeDefDefinition) then
+          Inc(Result);
 end;
 
 procedure TWebIDLToPas.EnsureUniqueNames(ML : TIDLDefinitionList);
@@ -470,6 +523,7 @@ begin
     CN:=GetName(Intf);
     ClassHeader(CN);
     WriteFunctionImplicitTypes(ML);
+    WriteAttributeImplicitTypes(ML);
     Decl:=Format('%s = class external name %s ',[CN,MakePascalString(Intf.Name,True)]);
     if Assigned(Intf.ParentInterface) then
       PN:=GetName(Intf.ParentInterface)
@@ -526,6 +580,7 @@ begin
     if CP='' then
       CP:='TJSObject';
     ClassHeader(CN);
+    WriteDictionaryMemberImplicitTypes(ML);
     if (coDictionaryAsClass in Options) then
       Addln('%s = class(%s)',[CN,CP])
     else
@@ -685,12 +740,16 @@ function TWebIDLToPas.WriteReadonlyProperty(aAttr: TIDLAttributeDefinition
   ): Boolean;
 
 Var
-  N : String;
+  TN,N,PN : String;
 
 begin
   Result:=True;
   N:=GetName(aAttr);
-  AddLn('Property %s : %s Read %s%s; ',[N,GetTypeName(aAttr.AttributeType),FieldPrefix,N]);
+  PN:=N;
+  TN:=GetTypeName(aAttr.AttributeType);
+  if SameText(PN,TN) then
+    PN:='_'+PN;
+  AddLn('Property %s : %s Read %s%s; ',[PN,TN,FieldPrefix,N]);
 end;
 
 

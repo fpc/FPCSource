@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Component Library
+
+    WEBIDL source parser
+    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit webidlparser;
 
 {$mode objfpc}{$H+}
@@ -93,8 +107,9 @@ Type
     function ParseEnum(aParent : TIDLBaseObject): TIDLEnumDefinition; virtual;
     function ParseTypeDef(aParent : TIDLBaseObject): TIDLTypeDefDefinition; virtual;
     function ParsePartial(aParent : TIDLBaseObject): TIDLStructuredDefinition; virtual;
-    function ParseImplements(aParent : TIDLBaseObject): TIDLImplementsDefinition; virtual;
-    function ParseIncludes(aParent : TIDLBaseObject): TIDLIncludesDefinition; virtual;
+    function ParseImplementsOrIncludes(aParent: TIDLBaseObject): TIDLImplementsOrIncludesDefinition; virtual;
+    function ParseImplements(Const aName : UTF8String; aParent : TIDLBaseObject): TIDLImplementsDefinition; virtual;
+    function ParseIncludes(Const aName : UTF8String; aParent : TIDLBaseObject): TIDLIncludesDefinition; virtual;
     function ParseDefinition(aParent : TIDLBaseObject): TIDLDefinition; virtual;
     procedure ParseDefinitions(aParent : TIDLBaseObject); virtual;
   Public
@@ -718,7 +733,7 @@ begin
     end
   else
     begin
-    F:=ParseFunction(aParent);
+    F:=ParseOperation(aParent);
     F.Options:=F.Options+[foStatic];
     Result:=F;
     end;
@@ -877,6 +892,26 @@ begin
     Error(SErrInvalidTokenList,[GetTokenNames([tkInterface,tkDictionary]),CurrentTokenString]);
   end;
   Result.IsPartial:=True;
+end;
+
+function TWebIDLParser.ParseImplementsOrIncludes(aParent: TIDLBaseObject): TIDLImplementsOrIncludesDefinition;
+
+Var
+  aName : UTF8String;
+
+begin
+  if version=v1 then
+    Result:=ParseImplements('',aParent)
+  else
+    begin
+    aName:=CurrentTokenString;
+    ExpectTokens([tkImplements,tkIncludes]);
+    case CurrentToken of
+     tkIncludes: Result:=ParseIncludes(aName,aParent);
+     tkImplements: Result:=ParseImplements(aName,aParent);
+    end;
+    end;
+
 end;
 
 function TWebIDLParser.ParseEnum(aParent : TIDLBaseObject): TIDLEnumDefinition;
@@ -1055,7 +1090,7 @@ function TWebIDLParser.ParseType(aParent : TIDLBaseObject; FetchFirst : Boolean 
 
 Const
   SimplePrefixTokens = [tkUnsigned,tkLong,tkUnrestricted];
-  ComplexPrefixTokens = [tkSequence,tkPromise,tkBracketOpen,tkRecord];
+  ComplexPrefixTokens = [tkSequence,tkPromise,tkBracketOpen,tkRecord,tkFrozenArray];
   PrefixTokens  = ComplexPrefixTokens+SimplePrefixTokens;
   PrimitiveTokens = [tkBoolean,tkByte,tkOctet,tkFloat,tkDouble,tkShort,tkAny,tkObject];
   IdentifierTokens = [tkIdentifier,tkByteString,tkUSVString,tkDOMString];
@@ -1092,6 +1127,7 @@ begin
       begin
       Case tk of
         tkRecord : Result:=ParseRecordTypeDef(aParent);
+        tkFrozenArray,
         tkSequence : Result:=ParseSequenceTypeDef(aParent);
         tkPromise : Result:=ParsePromiseTypeDef(aParent);
         tkBracketOpen : Result:=ParseUnionTypeDef(aParent);
@@ -1131,13 +1167,23 @@ begin
   end;
 end;
 
-function TWebIDLParser.ParseImplements(aParent : TIDLBaseObject): TIDLImplementsDefinition;
-(* On entry, we're on the identifier. On Exit, we're on the last identifier *)
+function TWebIDLParser.ParseImplements(const aName: UTF8String;
+  aParent: TIDLBaseObject): TIDLImplementsDefinition;
+(* On entry, we're on the identifier for V1, we're. On Exit, we're on the last identifier *)
+
+Var
+  N : UTF8String;
 
 begin
-  Result:=TIDLImplementsDefinition(Context.Add(aParent,TIDLImplementsDefinition,CurrentTokenString));
-  try
+  if Version=V1 then
+    begin
+    N:=CurrentTokenString;
     ExpectToken(tkImplements);
+    end
+  else
+    N:=aName;
+  Result:=TIDLImplementsDefinition(Context.Add(aParent,TIDLImplementsDefinition,N));
+  try
     ExpectToken(tkIdentifier);
     Result.ImplementedInterface:=CurrentTokenString;
   except
@@ -1145,14 +1191,14 @@ begin
   end;
 end;
 
-function TWebIDLParser.ParseIncludes(aParent: TIDLBaseObject): TIDLIncludesDefinition;
+function TWebIDLParser.ParseIncludes(const aName: UTF8String;
+  aParent: TIDLBaseObject): TIDLIncludesDefinition;
 
 (* On entry, we're on the identifier. On Exit, we're on the last identifier *)
 
 begin
-  Result:=TIDLIncludesDefinition(Context.Add(aParent,TIDLIncludesDefinition,CurrentTokenString));
+  Result:=TIDLIncludesDefinition(Context.Add(aParent,TIDLIncludesDefinition,aName));
   try
-    ExpectToken(tkIncludes);
     ExpectToken(tkIdentifier);
     Result.IncludedInterface:=CurrentTokenString;
   except
@@ -1185,10 +1231,7 @@ begin
       tkEnum : Result:=ParseEnum(aParent);
       tkTypeDef : Result:=ParseTypeDef(aParent);
       tkIdentifier :
-        if version=v1 then
-          Result:=ParseImplements(aParent)
-        else
-          Result:=ParseIncludes(aParent);
+        Result:=ParseImplementsOrIncludes(aParent);
       tkEOF : exit;
     else
       Error(SErrUnExpectedToken,[CurrentTokenString]);
@@ -1303,9 +1346,8 @@ begin
     if (D is TIDLInterfaceDefinition) and (ID.IsPartial) then
       begin
       OD:=FindInterface(ID.Name);
-      If (OD=Nil) then
-        Raise EWebIDLParser.CreateFmt(SErrInterfaceNotFound,[ID.Name]);
-      OD.Partials.Add(ID);
+      If (OD<>Nil) then
+        OD.Partials.Add(ID);
       end;
 end;
 

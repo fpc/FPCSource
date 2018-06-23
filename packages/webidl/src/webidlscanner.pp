@@ -82,6 +82,7 @@ type
     tkTypedef,
     tkUnrestricted,
     tkPromise,
+    tkFrozenArray,
     tkByteString,
     tkDOMString,
     tkUSVString,
@@ -108,8 +109,8 @@ type
   EWebIDLScanner = class(EParserError);
 
 Const
-  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike];
-  V1Tokens = [tkImplements];
+  V2Tokens = [tkMixin,tkIncludes,tkMapLike,tkRecord,tkSetLike,tkFrozenArray];
+  V1Tokens = [];
   VersionNonTokens : Array[TWebIDLVersion] of TIDLTokens = (V2Tokens,V1Tokens);
 
 Type
@@ -212,6 +213,7 @@ const
   'typedef',
   'unrestricted',
   'Promise',
+  'FrozenArray',
   'ByteString',
   'DOMString',
   'USVString',
@@ -577,7 +579,7 @@ end;
 function TWebIDLScanner.DetermineToken2 : TIDLToken;
 
 Const
-  InfTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise];
+  InfTokens = [tkNan,tkInfinity,tkNegInfinity,tkByteString,tkUSVString,tkDOMString,tkPromise,tkFrozenArray];
 
 begin
   For Result in InfTokens do

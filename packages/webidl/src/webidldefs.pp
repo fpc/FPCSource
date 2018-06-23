@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Component Library
+
+    WEBIDL definition containers
+    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit webidldefs;
 
 {$mode objfpc}{$H+}
@@ -393,8 +407,9 @@ Type
   end;
 
   { TIDLImplementsDefinition }
+  TIDLImplementsOrIncludesDefinition = Class(TIDLDefinition);
 
-  TIDLImplementsDefinition = Class(TIDLDefinition)
+  TIDLImplementsDefinition = Class(TIDLImplementsOrIncludesDefinition)
   private
     FImplementedInterface: UTF8String;
   Public
@@ -405,7 +420,7 @@ Type
 
   { TIDLIncludesDefinition }
 
-  TIDLIncludesDefinition = Class(TIDLDefinition)
+  TIDLIncludesDefinition = Class(TIDLImplementsOrIncludesDefinition)
   private
     FIncludedInterface : UTF8String;
   Public
