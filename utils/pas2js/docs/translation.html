@@ -1442,8 +1442,10 @@ function(){
     <ul>
     <li>Supported features of dynamic arrays: SetLength(), Length(), equal/notequal nil, low(), high(),
     assigned(), concat(), copy(), insert(), delete(), multi dimensional, array of record</li>
-    <li>Dynamic array constants. E.g. const a: array of byte = (1,2)</li>
-    <li>Supported features of static arrays: length(), low(), high(), assigned(), concat(), copy(), const, except const records </li>
+    <li>Dynamic array constants. E.g. in mode ObjFPC <i>const a: array of byte = (1,2)</i>.
+      In mode Delphi you must use square brackets, <i>... = [1,2]</i></li>
+    <li>Supported features of static arrays: length(), low(), high(),
+      assigned(), concat(), copy(), const, const records </li>
     <li>Open arrays are implemented as dynamic arrays.</li>
     <li>Calling <i>Concat()</i> with only one array simply returns the array
      (no cloning). Calling it with multiple arrays creates a clone.
@@ -1452,6 +1454,9 @@ function(){
      For compatibility comparing an array with <i>nil</i> checks for <i>length(a)>0</i>.</li>
     <li><i>function Assigned(array): boolean</i>  results true iff <i>length(array)>0</i>.</li>
     <li>Not yet implemented: array of const.</li>
+    <li>Assignation using constant array, e.g. <i>a:=[1,1,2];</i></li>
+    <li>String like operation: + operator concatenates arrays. e.g. <i>a:=[1]+[2];</i>.
+      This is controlled by modeswitch arrayoperators, which is enabled in mode delphi.</li>
     <li><i>function copy(array,start=0,count=max): array</i></li>
     <li><i>procedure insert(item,var array,const position)</i></li>
     <li><i>procedure delete(var array,const start,count)</i></li>
@@ -2762,24 +2767,24 @@ End.
     <li>{$IfDef <i>MacroName</i>}: if <i>MacroName</i> is not defined, skip to next $Else or $EndIf. Can be nested.</li>
     <li>{$IfNDef <i>MacroName</i>}: as $IfDef, except negated.</li>
     <li>{$If <i>boolean expression</i>}: if <i>expression</i> evaluates to true
-    (not '0'), skip to next $Else or $EndIf. Can be nested.<br>
-    Supported functions and operators:<br>
+      (not '0'), skip to next $Else or $EndIf. Can be nested.<br>
+      Supported functions and operators:<br>
       <ul>
-      <li>macro - replaced by its value, a simple define has value '1'</li>
-      <li>defined(macro) - '1' if defined, '0' otherwise</li>
-      <li>undefined(macro) - as <i>not defined(macro)</i></li>
-      <li>option(letter) - same as <i>{$IFOpt letter+}</i></li>
-      <li>not - first level of precedence</li>
-      <li>*, /, div, mod, and, shl, shr - second level of precedence</li>
-      <li>+, -, or, xor - third level of precedence</li>
-      <li>=, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;= - fourth level of precedence</li>
-      <li>If the operands can be converted to numbers they are combined as numbers, otherwise as strings.</li>
+        <li>macro - replaced by its value, a simple define has value '1'</li>
+        <li>defined(macro) - '1' if defined, '0' otherwise</li>
+        <li>undefined(macro) - as <i>not defined(macro)</i></li>
+        <li>option(letter) - same as <i>{$IFOpt letter+}</i></li>
+        <li>not - first level of precedence</li>
+        <li>*, /, div, mod, and, shl, shr - second level of precedence</li>
+        <li>+, -, or, xor - third level of precedence</li>
+        <li>=, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;= - fourth level of precedence</li>
+        <li>If the operands can be converted to numbers they are combined as numbers, otherwise as strings.</li>
       </ul>
-    Not supported functions and operators:<br>
+      Not supported functions and operators:<br>
       <ul>
-      <li>defined(Pascal identifier), undefined(Pascal identifier)</li>
-      <li>declared(Pascal identifier)</li>
-      <li>in operator</li>
+        <li>defined(Pascal identifier), undefined(Pascal identifier)</li>
+        <li>declared(Pascal identifier)</li>
+        <li>in operator</li>
       </ul>
     </li>
     <li>{$IfOpt <i>Letter+,-</i>}: if <i>expression</i> evaluates to true (not '0'), skip to next $Else or $EndIf. Can be nested.</li>
@@ -2788,6 +2793,7 @@ End.
     <li>{$EndIf}: ends an $IfDef block</li>
     <li>{$mode delphi} or {$mode objfpc}: Same as -Mdelphi or -Mobjfpc, but only for this unit. You can use units of both modes in a program. If present must be at the top of the unit, or after the module name.</li>
     <li>{$modeswitch externalclass}: allow declaring external classes</li>
+    <li>{$modeswitch arrayoperators}: allow + operator to concatenate arrays, default in mode delphi</li>
     <li>{$macro on|off} enables macro replacements. Only macros with a value are replaced. Macros are never replaced inside directives.</li>
     <li>{$I filename} or {$include filename} - insert include file</li>
     <li>{$Warnings on|off}</li>
@@ -2807,7 +2813,7 @@ End.
     <li>{$M+} : allow published members
     <li>{$Q+} :  not yet supported, ignored
     <li>{$R+}, {$RangeChecks on}: compile time range check hints become errors
-    and add runtime range checks for assignments.</li>
+      and add runtime range checks for assignments.</li>
     <li>{$ObjectChecks on|off}:
       <ul>
         <li>Verify method calls, i.e. check at runtime in every method if <i>Self</i> is a descendant class.</li>
