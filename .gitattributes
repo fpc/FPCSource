@@ -1979,6 +1979,7 @@ packages/fcl-base/src/netwlibc/custapp.inc svneol=native#text/plain
 packages/fcl-base/src/nullstream.pp svneol=native#text/plain
 packages/fcl-base/src/os2/custapp.inc svneol=native#text/plain
 packages/fcl-base/src/os2/eventlog.inc svneol=native#text/plain
+packages/fcl-base/src/pascodegen.pp svneol=native#text/plain
 packages/fcl-base/src/pooledmm.pp svneol=native#text/plain
 packages/fcl-base/src/rtfdata.inc svneol=native#text/plain
 packages/fcl-base/src/rtfpars.pp svneol=native#text/plain
