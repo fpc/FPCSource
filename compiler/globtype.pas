@@ -123,6 +123,12 @@ interface
            0 : (bytes:array[0..7] of byte);
            1 : (value:double);
        end;
+       { Use a variant record to be sure that the array if aligned correctly }
+       tcompsinglerec=record
+         case byte of
+           0 : (bytes:array[0..3] of byte);
+           1 : (value:single);
+       end;
        tcompextendedrec=record
          case byte of
            0 : (bytes:array[0..9] of byte);

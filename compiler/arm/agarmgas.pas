@@ -318,6 +318,11 @@ unit agarmgas;
                   if srF in o.specialflags then getopstr:=getopstr+'f';
                   if srS in o.specialflags then getopstr:=getopstr+'s';
                 end;
+            end;
+          top_realconst:
+            begin
+              str(o.val_real,Result);
+              Result:='#'+Result;
             end
           else
             internalerror(2002070604);

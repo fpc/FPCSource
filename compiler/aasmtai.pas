@@ -232,6 +232,7 @@ interface
 {$if defined(arm) or defined(aarch64)}
        ,top_conditioncode
        ,top_shifterop
+       ,top_realconst
 {$endif defined(arm) or defined(aarch64)}
 {$ifdef m68k}
        { m68k only }
@@ -435,6 +436,7 @@ interface
         {$if defined(arm) or defined(aarch64)}
             top_shifterop : (shifterop : pshifterop);
             top_conditioncode : (cc : TAsmCond);
+            top_realconst : (val_real:bestreal);
         {$endif defined(arm) or defined(aarch64)}
         {$ifdef m68k}
             top_regset : (dataregset,addrregset,fpuregset: tcpuregisterset);

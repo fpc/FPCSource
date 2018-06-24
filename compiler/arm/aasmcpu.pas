@@ -76,6 +76,7 @@ uses
       OT_IMMTINY   = $00002100;
       OT_IMMSHIFTER= $00002200;
       OT_IMMEDIATEZERO = $10002200;
+      OT_IMMEDIATEMM     = $00002400;
       OT_IMMEDIATE24 = OT_IMM24;
       OT_SHIFTIMM  = OT_SHIFTEROP or OT_IMMSHIFTER;
       OT_SHIFTIMMEDIATE = OT_SHIFTIMM;
@@ -200,6 +201,8 @@ uses
          procedure loadconditioncode(opidx:longint;const cond:tasmcond);
          procedure loadmodeflags(opidx:longint;const flags:tcpumodeflags);
          procedure loadspecialreg(opidx:longint;const areg:tregister; const aflags:tspecialregflags);
+         procedure loadrealconst(opidx:longint;const _value:bestreal);
+
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -236,6 +239,8 @@ uses
 
          { *M*LL }
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+
+         constructor op_reg_realconst(op : tasmop;_op1: tregister;_op2: bestreal);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -328,6 +333,19 @@ implementation
             typ:=top_shifterop;
             if assigned(add_reg_instruction_hook) then
               add_reg_instruction_hook(self,shifterop^.rs);
+          end;
+      end;
+
+
+    procedure taicpu.loadrealconst(opidx:longint;const _value:bestreal);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            val_real:=_value;
+            typ:=top_realconst;
           end;
       end;
 
@@ -501,6 +519,15 @@ implementation
          loadreg(1,_op2);
          loadreg(2,_op3);
          loadreg(3,_op4);
+      end;
+
+
+    constructor taicpu.op_reg_realconst(op : tasmop; _op1 : tregister; _op2 : bestreal);
+      begin
+         inherited create(op);
+         ops:=2;
+         loadreg(0,_op1);
+         loadrealconst(1,_op2);
       end;
 
 
@@ -2363,6 +2390,10 @@ implementation
                 begin
                   ot:=OT_MODEFLAGS;
                 end;
+              top_realconst:
+                begin
+                  ot:=OT_IMMEDIATEMM;
+                end;
               else
                 internalerror(2004022623);
             end;
@@ -2719,6 +2750,8 @@ implementation
         refoper : poper;
         msb : longint;
         r: byte;
+        singlerec : tcompsinglerec;
+        doublerec : tcompdoublerec;
 
       procedure setshifterop(op : byte);
         var
@@ -3881,35 +3914,73 @@ implementation
                   end;
                 PF_F32:
                   begin
-                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) or
-                       (getregtype(oper[1]^.reg)<>R_MMREGISTER) then
+                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) then
                       Message(asmw_e_invalid_opcode_and_operands);
 
+                    case oper[1]^.typ of
+                      top_realconst:
+                        begin
+                          if not(IsVFPFloatImmediate(s32real,oper[1]^.val_real)) then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          singlerec.value:=oper[1]^.val_real;
+                          singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
+
+                          bytes:=bytes or ((singlerec.bytes[2] shr 3) and $f);
+                          bytes:=bytes or (DWord((singlerec.bytes[2] shr 7) and $1) shl 16) or (DWord(singlerec.bytes[3] and $3) shl 17) or (DWord((singlerec.bytes[3] shr 7) and $1) shl 19);
+                        end;
+                      top_reg:
+                        begin
+                          if getregtype(oper[1]^.reg)<>R_MMREGISTER then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          Rm:=getmmreg(oper[1]^.reg);
+                          bytes:=bytes or (((Rm and $1E) shr 1) shl 0);
+                          bytes:=bytes or ((Rm and $1) shl 5);
+                        end;
+                      else
+                        Message(asmw_e_invalid_opcode_and_operands);
+                    end;
                     Rd:=getmmreg(oper[0]^.reg);
-                    Rm:=getmmreg(oper[1]^.reg);
 
                     bytes:=bytes or (((Rd and $1E) shr 1) shl 12);
                     bytes:=bytes or ((Rd and $1) shl 22);
 
-                    bytes:=bytes or (((Rm and $1E) shr 1) shl 0);
-                    bytes:=bytes or ((Rm and $1) shl 5);
                   end;
                 PF_F64:
                   begin
-                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) or
-                       (getregtype(oper[1]^.reg)<>R_MMREGISTER) then
+                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) then
                       Message(asmw_e_invalid_opcode_and_operands);
 
+                    case oper[1]^.typ of
+                      top_realconst:
+                        begin
+                          if not(IsVFPFloatImmediate(s64real,oper[1]^.val_real)) then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          doublerec.value:=oper[1]^.val_real;
+                          doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
+
+                          //      32c:       eeb41b00        vmov.f64        d1, #64 ; 0x40
+
+                          // 32c:       eeb61b00        vmov.f64        d1, #96 ; 0x60
+                          bytes:=bytes or (doublerec.bytes[6] and $f);
+                          bytes:=bytes or (DWord((doublerec.bytes[6] shr 4) and $7) shl 16) or (DWord((doublerec.bytes[7] shr 7) and $1) shl 19);
+                        end;
+                      top_reg:
+                        begin
+                          if getregtype(oper[1]^.reg)<>R_MMREGISTER then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          Rm:=getmmreg(oper[1]^.reg);
+                          bytes:=bytes or (Rm and $F);
+                          bytes:=bytes or ((Rm and $10) shl 1);
+                        end;
+                      else
+                        Message(asmw_e_invalid_opcode_and_operands);
+                    end;
                     Rd:=getmmreg(oper[0]^.reg);
-                    Rm:=getmmreg(oper[1]^.reg);
 
                     bytes:=bytes or (1 shl 8);
 
                     bytes:=bytes or ((Rd and $F) shl 12);
                     bytes:=bytes or (((Rd and $10) shr 4) shl 22);
-
-                    bytes:=bytes or (Rm and $F);
-                    bytes:=bytes or ((Rm and $10) shl 1);
                   end;
               end;
             end;

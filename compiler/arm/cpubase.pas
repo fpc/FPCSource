@@ -387,6 +387,8 @@ unit cpubase;
     function GenerateThumbCode : boolean;
     function GenerateThumb2Code : boolean;
 
+    function IsVFPFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
+
   implementation
 
     uses
@@ -733,6 +735,33 @@ unit cpubase;
     function GenerateThumb2Code : boolean;
       begin
         Result:=(current_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
+    function IsVFPFloatImmediate(ft : tfloattype;value : bestreal) : boolean;
+      var
+        singlerec : tcompsinglerec;
+        doublerec : tcompdoublerec;
+      begin
+        Result:=false;
+        case ft of
+          s32real:
+            begin
+              singlerec.value:=value;
+              singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
+              Result:=(singlerec.bytes[0]=0) and (singlerec.bytes[1]=0) and ((singlerec.bytes[2] and 7)=0)  and
+                (((singlerec.bytes[3] and $7e)=$40) or ((singlerec.bytes[3] and $7e)=$3e));
+            end;
+          s64real:
+            begin
+              doublerec.value:=value;
+              doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
+              Result:=(doublerec.bytes[0]=0) and (doublerec.bytes[1]=0) and (doublerec.bytes[2]=0) and
+                      (doublerec.bytes[3]=0) and (doublerec.bytes[4]=0) and (doublerec.bytes[5]=0) and
+                      ((((doublerec.bytes[6] and $7f)=$40) and ((doublerec.bytes[7] and $c0)=0)) or
+                       (((doublerec.bytes[6] and $7f)=$3f) and ((doublerec.bytes[7] and $c0)=$c0)));
+            end;
+        end;
       end;
 
 

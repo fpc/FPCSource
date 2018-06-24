@@ -1473,6 +1473,20 @@
   (
     opcode  : A_VMOV;
     ops     : 2;
+    optypes : (ot_vreg,ot_immediatemm,ot_none,ot_none,ot_none,ot_none);
+    code    : #144#238#176#10#0;
+    flags   : if_thumb32 or if_vfpv3
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 2;
+    optypes : (ot_vreg,ot_immediatemm,ot_none,ot_none,ot_none,ot_none);
+    code    : #64#14#176#10#0;
+    flags   : if_arm32 or if_vfpv3
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 2;
     optypes : (ot_reg32,ot_vreg,ot_none,ot_none,ot_none,ot_none);
     code    : #144#238#16#10#16;
     flags   : if_thumb32 or if_vfpv2

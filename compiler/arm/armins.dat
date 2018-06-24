@@ -428,7 +428,9 @@ reg32,immshifter       \xB\x1\xE0                       ARM32,ARMv4
 
 [VMOVcc]
 vreg,vreg         \x90\xEE\xB0\xA\x40            THUMB32,VFPv2
-vreg,vreg         \x40\xE\xB0\xA\x40            ARM32,VFPv2
+vreg,vreg         \x40\xE\xB0\xA\x40             ARM32,VFPv2
+vreg,immmm         \x90\xEE\xB0\xA\x0             THUMB32,VFPv3
+vreg,immmm         \x40\xE\xB0\xA\x0              ARM32,VFPv3
 
 reg32,vreg        \x90\xEE\x10\xA\x10            THUMB32,VFPv2
 vreg,reg32        \x90\xEE\x00\xA\x10            THUMB32,VFPv2
