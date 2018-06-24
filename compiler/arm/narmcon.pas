@@ -26,10 +26,11 @@ unit narmcon;
 interface
 
     uses
-      ncgcon,cpubase;
+      node,ncgcon,cpubase;
 
     type
       tarmrealconstnode = class(tcgrealconstnode)
+        function pass_1 : tnode;override;
         procedure pass_generate_code;override;
       end;
 
@@ -39,15 +40,27 @@ interface
       verbose,
       globtype,globals,
       cpuinfo,
-      aasmbase,aasmtai,aasmdata,symdef,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
+      symdef,
       defutil,
-      cgbase,cgutils,
+      cgbase,cgutils,cgobj,
       procinfo,
       ncon;
 
 {*****************************************************************************
                            TARMREALCONSTNODE
 *****************************************************************************}
+
+    function tarmrealconstnode.pass_1 : tnode;
+      begin
+        result:=nil;
+        if (current_settings.fputype in [fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) and
+           IsVFPFloatImmediate(tfloatdef(resultdef).floattype,value_real) then
+           expectloc:=LOC_MMREGISTER
+         else
+           expectloc:=LOC_CREFERENCE;
+      end;
+
 
     procedure tarmrealconstnode.pass_generate_code;
       { I suppose the parser/pass_1 must make sure the generated real  }
@@ -59,75 +72,91 @@ interface
          lastlabel : tasmlabel;
          realait : tairealconsttype;
          hiloswapped : boolean;
+         pf : TOpPostfix;
 
       begin
-        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),4,[]);
-        lastlabel:=nil;
-        realait:=floattype2ait[tfloatdef(resultdef).floattype];
-        hiloswapped:=is_double_hilo_swapped;
-        { const already used ? }
-        if not assigned(lab_real) then
+        if (current_settings.fputype in [fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) and
+          IsVFPFloatImmediate(tfloatdef(resultdef).floattype,value_real) then
           begin
-            current_asmdata.getjumplabel(lastlabel);
-            lab_real:=lastlabel;
-            current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
-            location.reference.symboldata:=current_procinfo.aktlocaldata.last;
-            case realait of
-              aitrealconst_s32bit :
-                begin
-                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s32real(ts32real(value_real)));
-                  { range checking? }
-                  if floating_point_range_check_error and
-                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s32val=MathInf.Value) then
-                    Message(parser_e_range_check_error);
-                end;
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            if tfloatdef(resultdef).floattype=s32real then
+              pf:=PF_F32
+            else
+              pf:=PF_F64;
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_realconst(A_VMOV,
+               location.register,value_real),pf));
+          end
+        else
+          begin
+            location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),4,[]);
+            lastlabel:=nil;
+            realait:=floattype2ait[tfloatdef(resultdef).floattype];
+            hiloswapped:=is_double_hilo_swapped;
+            { const already used ? }
+            if not assigned(lab_real) then
+              begin
+                current_asmdata.getjumplabel(lastlabel);
+                lab_real:=lastlabel;
+                current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
+                location.reference.symboldata:=current_procinfo.aktlocaldata.last;
+                case realait of
+                  aitrealconst_s32bit :
+                    begin
+                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s32real(ts32real(value_real)));
+                      { range checking? }
+                      if floating_point_range_check_error and
+                        (tai_realconst(current_procinfo.aktlocaldata.last).value.s32val=MathInf.Value) then
+                        Message(parser_e_range_check_error);
+                    end;
 
-              aitrealconst_s64bit :
-                begin
-                  if hiloswapped then
-                    current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
-                  else
-                    current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real(ts64real(value_real)));
+                  aitrealconst_s64bit :
+                    begin
+                      if hiloswapped then
+                        current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real_hiloswapped(ts64real(value_real)))
+                      else
+                        current_procinfo.aktlocaldata.concat(tai_realconst.create_s64real(ts64real(value_real)));
 
-                  { range checking? }
-                  if floating_point_range_check_error and
-                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s64val=MathInf.Value) then
-                    Message(parser_e_range_check_error);
-               end;
+                      { range checking? }
+                      if floating_point_range_check_error and
+                        (tai_realconst(current_procinfo.aktlocaldata.last).value.s64val=MathInf.Value) then
+                        Message(parser_e_range_check_error);
+                   end;
 
-              aitrealconst_s80bit :
-                begin
-                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
+                  aitrealconst_s80bit :
+                    begin
+                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s80real(value_real,tfloatdef(resultdef).size));
 
-                  { range checking? }
-                  if floating_point_range_check_error and
-                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s80val=MathInf.Value) then
-                    Message(parser_e_range_check_error);
-                end;
+                      { range checking? }
+                      if floating_point_range_check_error and
+                        (tai_realconst(current_procinfo.aktlocaldata.last).value.s80val=MathInf.Value) then
+                        Message(parser_e_range_check_error);
+                    end;
 {$ifdef cpufloat128}
-              aitrealconst_s128bit :
-                begin
-                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s128real(value_real));
+                  aitrealconst_s128bit :
+                    begin
+                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s128real(value_real));
 
-                  { range checking? }
-                  if floating_point_range_check_error and
-                    (tai_realconst(current_procinfo.aktlocaldata.last).value.s128val=MathInf.Value) then
-                    Message(parser_e_range_check_error);
-                end;
+                      { range checking? }
+                      if floating_point_range_check_error and
+                        (tai_realconst(current_procinfo.aktlocaldata.last).value.s128val=MathInf.Value) then
+                        Message(parser_e_range_check_error);
+                    end;
 {$endif cpufloat128}
 
-              { the round is necessary for native compilers where comp isn't a float }
-              aitrealconst_s64comp :
-                if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
-                  message(parser_e_range_check_error)
+                  { the round is necessary for native compilers where comp isn't a float }
+                  aitrealconst_s64comp :
+                    if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
+                      message(parser_e_range_check_error)
+                    else
+                      current_procinfo.aktlocaldata.concat(tai_realconst.create_s64compreal(round(value_real)));
                 else
-                  current_procinfo.aktlocaldata.concat(tai_realconst.create_s64compreal(round(value_real)));
-            else
-              internalerror(2005092401);
-            end;
+                  internalerror(2005092401);
+                end;
+              end;
+            location.reference.symbol:=lab_real;
+            location.reference.base:=NR_R15;
           end;
-        location.reference.symbol:=lab_real;
-        location.reference.base:=NR_R15;
       end;
 
 begin
