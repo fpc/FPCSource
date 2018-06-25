@@ -917,32 +917,6 @@ begin
                   A_SHL, A_SAL:
                     if OptPass1SHLSAL(p) then
                       Continue;
-                  A_SETcc :
-                    { changes
-                        setcc (funcres)             setcc reg
-                        movb (funcres), reg      to leave/ret
-                        leave/ret                               }
-                    begin
-                      if (taicpu(p).oper[0]^.typ = top_ref) and
-                         GetNextInstruction(p, hp1) and
-                         GetNextInstruction(hp1, hp2) and
-                         IsExitCode(hp2) and
-                         (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
-                         (taicpu(p).oper[0]^.ref^.index = NR_NO) and
-                         not(assigned(current_procinfo.procdef.funcretsym) and
-                             (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
-                         (hp1.typ = ait_instruction) and
-                         (taicpu(hp1).opcode = A_MOV) and
-                         (taicpu(hp1).opsize = S_B) and
-                         (taicpu(hp1).oper[0]^.typ = top_ref) and
-                         RefsEqual(taicpu(hp1).oper[0]^.ref^, taicpu(p).oper[0]^.ref^) then
-                        begin
-                          taicpu(p).loadReg(0,taicpu(hp1).oper[1]^.reg);
-                          DebugMsg('Peephole optimizer SetccMovbLeaveRet2SetccLeaveRet',p);
-                          asml.remove(hp1);
-                          hp1.free;
-                        end
-                    end;
                   A_SUB:
                     if OptPass1Sub(p) then
                       continue;
