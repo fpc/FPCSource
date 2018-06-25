@@ -60,12 +60,12 @@ unit aoptx86;
 
         function OptPass1AND(var p : tai) : boolean;
         function OptPass1VMOVAP(var p : tai) : boolean;
-        function OptPass1VOP(const p : tai) : boolean;
+        function OptPass1VOP(var p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
         function OptPass1Movx(var p : tai) : boolean;
         function OptPass1MOVAP(var p : tai) : boolean;
         function OptPass1MOVXX(var p : tai) : boolean;
-        function OptPass1OP(const p : tai) : boolean;
+        function OptPass1OP(var p : tai) : boolean;
         function OptPass1LEA(var p : tai) : boolean;
         function OptPass1Sub(var p : tai) : boolean;
         function OptPass1SHLSAL(var p : tai) : boolean;
@@ -75,15 +75,15 @@ unit aoptx86;
         function OptPass2Jmp(var p : tai) : boolean;
         function OptPass2Jcc(var p : tai) : boolean;
 
-        function PostPeepholeOptMov(const p : tai) : Boolean;
+        function PostPeepholeOptMov(var p : tai) : Boolean;
 {$ifdef x86_64} { These post-peephole optimisations only affect 64-bit registers. [Kit] }
-        function PostPeepholeOptMovzx(const p : tai) : Boolean;
+        function PostPeepholeOptMovzx(var p : tai) : Boolean;
         function PostPeepholeOptXor(var p : tai) : Boolean;
 {$endif}
         function PostPeepholeOptCmp(var p : tai) : Boolean;
         function PostPeepholeOptTestOr(var p : tai) : Boolean;
         function PostPeepholeOptCall(var p : tai) : Boolean;
-        function PostPeepholeOptLea(const p : tai) : Boolean;
+        function PostPeepholeOptLea(var p : tai) : Boolean;
 
         procedure OptReferences;
       end;
@@ -1077,7 +1077,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.OptPass1VOP(const p : tai) : boolean;
+    function TX86AsmOptimizer.OptPass1VOP(var p : tai) : boolean;
       var
         TmpUsedRegs : TAllUsedRegs;
         hp1 : tai;
@@ -1874,7 +1874,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.OptPass1OP(const p : tai) : boolean;
+    function TX86AsmOptimizer.OptPass1OP(var p : tai) : boolean;
       var
         TmpUsedRegs : TAllUsedRegs;
         hp1 : tai;
@@ -3176,7 +3176,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.PostPeepholeOptLea(const p : tai) : Boolean;
+    function TX86AsmOptimizer.PostPeepholeOptLea(var p : tai) : Boolean;
       begin
         Result:=false;
         if not (RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) and
@@ -3203,7 +3203,7 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.PostPeepholeOptMov(const p : tai) : Boolean;
+    function TX86AsmOptimizer.PostPeepholeOptMov(var p : tai) : Boolean;
       var
         Value, RegName: string;
       begin
@@ -3405,7 +3405,7 @@ unit aoptx86;
 
 
 {$ifdef x86_64}
-    function TX86AsmOptimizer.PostPeepholeOptMovzx(const p : tai) : Boolean;
+    function TX86AsmOptimizer.PostPeepholeOptMovzx(var p : tai) : Boolean;
       var
         PreMessage: string;
       begin
