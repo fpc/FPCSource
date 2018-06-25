@@ -211,6 +211,8 @@ Works:
 - $writeableconst off $J-
 
 ToDo:
+- $warn identifier ON|off|error|default
+- $H-hintpos$H+
 - $pop, $push
 - $RTTI inherited|explicit
 - range checking:
@@ -231,7 +233,6 @@ ToDo:
 - anonymous functions
 - TPasFileType
 - labels
-- $warn identifier ON|off|error|default
 - $zerobasedstrings on|off
 
 Debug flags: -d<x>

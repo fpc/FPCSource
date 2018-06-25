@@ -17,7 +17,7 @@ program webidl2pas;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen,typinfo;
+  Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen, typinfo;
 
 type
 
@@ -28,7 +28,7 @@ type
     FWebIDLToPas: TWebIDLToPas;
     function Checkoption(Var O: TCOnversionOPtions; C: TCOnversionOPtion;
       const AShort: Char; const aLong: String): Boolean;
-    procedure DoConvertLog(Sender: TObject; LogType: TCodegenLogType; const Msg: String);
+    procedure DoConvertLog(Sender: TObject; {%H-}LogType: TCodegenLogType; const Msg: String);
     function GetInputFileName: String;
     function GetOutputFileName: String;
     function GetUnitName: String;
@@ -58,7 +58,9 @@ end;
 procedure TWebIDLToPasApplication.DoConvertLog(Sender: TObject;
   LogType: TCodegenLogType; const Msg: String);
 begin
+  {AllowWriteln}
   Writeln(Msg);
+  {AllowWriteln-}
 end;
 
 function TWebIDLToPasApplication.GetOutputFileName: String;
@@ -176,7 +178,7 @@ end;
 
 procedure TWebIDLToPasApplication.WriteHelp(const Msg: string);
 begin
-  { add your help code here }
+  {AllowWriteln}
   if (Msg<>'') then
     Writeln(StdErr,'Error : ',Msg);
   writeln(StdErr,'Usage: ', ExeName, ' [options]');
@@ -197,6 +199,7 @@ begin
   Writeln(StdErr,'-v  --verbose              Output some diagnostic information');
   Writeln(StdErr,'-x  --extra=units          Extra units to put in uses clause (comma separated list)');
   ExitCode:=Ord(Msg<>'');
+  {AllowWriteln-}
 end;
 
 var
