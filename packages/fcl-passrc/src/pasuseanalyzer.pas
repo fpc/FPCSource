@@ -48,7 +48,10 @@ uses
   PasTree, PScanner, PasResolveEval, PasResolver;
 
 const
-  // use same IDs as fpc
+  // non fpc hints
+  nPAParameterInOverrideNotUsed = 4501;
+  sPAParameterInOverrideNotUsed = 'Parameter "%s" not used';
+  // fpc hints: use same IDs as fpc
   nPAUnitNotUsed = 5023;
   sPAUnitNotUsed = 'Unit "%s" not used in %s';
   nPAParameterNotUsed = 5024;
@@ -2253,9 +2256,16 @@ begin
       Arg:=TPasArgument(Args[i]);
       Usage:=FindPAElement(Arg);
       if (Usage=nil) or (Usage.Access=paiaNone) then
+        begin
         // parameter was never used
-        EmitMessage(20170312094401,mtHint,nPAParameterNotUsed,
-          sPAParameterNotUsed,[Arg.Name],Arg)
+        if (Arg.Parent is TPasProcedureType) and (Arg.Parent.Parent is TPasProcedure)
+            and ([pmVirtual,pmOverride]*TPasProcedure(Arg.Parent.Parent).Modifiers<>[]) then
+          EmitMessage(20180625153623,mtHint,nPAParameterInOverrideNotUsed,
+            sPAParameterInOverrideNotUsed,[Arg.Name],Arg)
+        else
+          EmitMessage(20170312094401,mtHint,nPAParameterNotUsed,
+            sPAParameterNotUsed,[Arg.Name],Arg);
+        end
       else
         begin
         // parameter was used
@@ -2522,7 +2532,7 @@ begin
     exit;
     end;
   {$IFDEF VerbosePasAnalyzer}
-  writeln('TPasAnalyzer.EmitMessage [',Msg.Id,'] ',Msg.MsgType,': (',Msg.MsgNumber,') ',Msg.MsgText,' ScopeModule=',GetObjName(ScopeModule));
+  writeln('TPasAnalyzer.EmitMessage [',Msg.Id,'] ',Msg.MsgType,': (',Msg.MsgNumber,') "',Msg.MsgText,'" at ',Resolver.GetElementSourcePosStr(Msg.PosEl),' ScopeModule=',GetObjName(ScopeModule));
   {$ENDIF}
   try
     OnMessage(Self,Msg);

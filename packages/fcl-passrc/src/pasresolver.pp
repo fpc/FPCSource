@@ -1702,6 +1702,7 @@ type
     function GetTypeDescription(aType: TPasType; AddPath: boolean = false): string;
     function GetTypeDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean = false): string; virtual;
+    function GetProcFirstImplEl(Proc: TPasProcedure): TPasImplElement;
     function GetPasPropertyAncestor(El: TPasProperty; WithRedeclarations: boolean = false): TPasProperty;
     function GetPasPropertyType(El: TPasProperty): TPasType;
     function GetPasPropertyArgs(El: TPasProperty): TFPList;
@@ -4013,6 +4014,7 @@ var
   Data: PFindOverloadProcData absolute FindOverloadData;
   Proc: TPasProcedure;
   Store, SameScope: Boolean;
+  ProcScope: TPasProcedureScope;
 
   procedure CountProcInSameModule;
   begin
@@ -4142,8 +4144,8 @@ begin
             or ((Data^.FoundInSameScope=1) // missing 'overload' hints only for the first proc in a scope
                and not ProcHasGroupOverload(Data^.Proc)) then
           begin
-          // give a hint, that proc is hiding a proc in other scope
           if (Data^.Kind=fopkMethod) and (Proc.IsVirtual or Proc.IsOverride) then
+            // give a hint, that method hides a virtual method in ancestor
             LogMsg(20170216151712,mtWarning,nMethodHidesMethodOfBaseType,
               sMethodHidesMethodOfBaseType,
               [Data^.Proc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
@@ -4151,10 +4153,19 @@ begin
             begin
             // Delphi/FPC do not give a message when hiding a non virtual method
             // -> emit Hint with other message id
-            if Data^.Proc.Parent is TPasClassType then
-              LogMsg(20171118214523,mtHint,
-                nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
-                [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+            if (Data^.Proc.Parent is TPasClassType) then
+              begin
+              ProcScope:=Proc.CustomData as TPasProcedureScope;
+              if (ProcScope.ImplProc<>nil)  // not abstract, external
+                  and (GetProcFirstImplEl(ProcScope.ImplProc)=nil) then
+                // hidden method has implementation, but no statements -> useless
+                // -> do not give a hint for hiding this useless method
+                // Note: if this happens in the same unit, the body was not yet parsed
+              else
+                LogMsg(20171118214523,mtHint,
+                  nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
+                  [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+              end;
             end;
           Abort:=true;
           end;
@@ -17196,6 +17207,29 @@ begin
     Result:='^'+GetTypeDescription(R,AddPath)
   else
     Result:=BaseTypeNames[R.BaseType];
+end;
+
+function TPasResolver.GetProcFirstImplEl(Proc: TPasProcedure): TPasImplElement;
+var
+  Scope: TPasProcedureScope;
+  Body: TPasImplBlock;
+begin
+  Result:=nil;
+  if Proc=nil then exit;
+  if Proc.Body<>nil then
+    Body:=Proc.Body.Body;
+  if Body=nil then
+    begin
+    if Proc.CustomData=nil then exit;
+    Scope:=Proc.CustomData as TPasProcedureScope;
+    if Scope.ImplProc=nil then exit;
+    Proc:=Scope.ImplProc;
+    if Proc.Body<>nil then
+      Body:=Proc.Body.Body;
+    if Body=nil then exit;
+    end;
+  if Body.Elements.Count=0 then exit;
+  Result:=TPasImplElement(Body.Elements[0]);
 end;
 
 function TPasResolver.GetPasPropertyAncestor(El: TPasProperty;

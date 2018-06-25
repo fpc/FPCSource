@@ -91,6 +91,7 @@ type
     procedure TestM_Hint_UnitUsed;
     procedure TestM_Hint_UnitUsedVarArgs;
     procedure TestM_Hint_ParameterNotUsed;
+    procedure TestM_Hint_ParameterInOverrideNotUsed;
     procedure TestM_Hint_ParameterAssignedButNotReadVarParam;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
     procedure TestM_Hint_ParameterNotUsedTypecast;
@@ -1390,6 +1391,32 @@ begin
   Add('  DoIt(1);');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ParameterInOverrideNotUsed;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  TObject = class',
+  '    procedure DoIt(i: longint); virtual;',
+  '  end;',
+  '  TBird = class',
+  '    procedure DoIt(j: longint); override;',
+  '  end;',
+  'procedure TObject.DoIt(i: longint);',
+  'begin',
+  'end;',
+  'procedure TBird.DoIt(j: longint);',
+  'begin',
+  'end;',
+  'var b: TBird;',
+  'begin',
+  '  TObject(b).DoIt(1);']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPAParameterInOverrideNotUsed,'Parameter "i" not used');
+  CheckUseAnalyzerHint(mtHint,nPAParameterInOverrideNotUsed,'Parameter "j" not used');
   CheckUseAnalyzerUnexpectedHints;
 end;
 

@@ -454,6 +454,7 @@ type
     Procedure TestRecord_Const_UntypedFail;
     Procedure TestRecord_Const_NestedRecord;
     Procedure TestRecord_Const_Variant;
+    Procedure TestRecord_VarExternal; // ToDo
 
     // class
     Procedure TestClass;
@@ -489,7 +490,8 @@ type
     Procedure TestClass_MethodOverloadMissingInDelphi;
     Procedure TestClass_MethodOverloadAncestor;
     Procedure TestClass_MethodOverloadUnit;
-    Procedure TestClass_MethodOverloadNonVirtualInfo;
+    Procedure TestClass_HintMethodHidesNonVirtualMethod;
+    Procedure TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
     Procedure TestClass_MethodReintroduce;
     Procedure TestClass_MethodOverloadArrayOfTClass;
     Procedure TestClass_ConstructorHidesAncestorWarning;
@@ -7198,6 +7200,19 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestRecord_VarExternal;
+begin
+  exit;
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record',
+  '    Id: longint external name ''$Id'';',
+  '  end;',
+  'begin']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClass;
 begin
   StartProgram(false);
@@ -7840,7 +7855,7 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
-procedure TTestResolver.TestClass_MethodOverloadNonVirtualInfo;
+procedure TTestResolver.TestClass_HintMethodHidesNonVirtualMethod;
 begin
   StartProgram(false);
   Add([
@@ -7851,7 +7866,10 @@ begin
   '  TBird = class',
   '    procedure DoIt(i: longint);',
   '  end;',
-  'procedure TObject.DoIt(p: pointer); begin end;',
+  'procedure TObject.DoIt(p: pointer);',
+  'begin',
+  '  if p=nil then ;',
+  'end;',
   'procedure TBird.DoIt(i: longint); begin end;',
   'var b: TBird;',
   'begin',
@@ -7859,6 +7877,38 @@ begin
   ParseProgram;
   CheckResolverHint(mtHint,nFunctionHidesIdentifier_NonVirtualMethod,
    'function hides identifier at "afile.pp(4,19)". Use overload or reintroduce');
+end;
+
+procedure TTestResolver.
+  TestClass_HintMethodHidesNonVirtualMethodWithoutBody_NoHint;
+begin
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'type',
+    '  TObject = class',
+    '  public',
+    '    procedure DoIt(p: pointer);',
+    '  end;',
+    '']),
+    LinesToStr([
+    'procedure TObject.DoIt(p: pointer);',
+    'begin',
+    'end;',
+    '']) );
+
+  StartProgram(true);
+  Add([
+  'uses unit2;',
+  'type',
+  '  TBird = class',
+  '    procedure DoIt(i: longint);',
+  '  end;',
+  'procedure TBird.DoIt(i: longint); begin end;',
+  'var b: TBird;',
+  'begin',
+  '  b.DoIt(3);']);
+  ParseProgram;
+  CheckResolverUnexpectedHints(true);
 end;
 
 procedure TTestResolver.TestClass_MethodReintroduce;
@@ -8623,6 +8673,7 @@ begin
   Add('  if o.vpublic=12 then ;');
   Add('  if o.vautomated=13 then ;');
   Add('  if o.vpublished=14 then ;');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestClass_PrivateInMainBeginFail;

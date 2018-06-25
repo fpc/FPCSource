@@ -264,7 +264,9 @@ type
     procedure DumpCurToken(Const Msg : String; IndentAction : TIndentAction = iaNone);
     function GetCurrentModeSwitches: TModeSwitches;
     Procedure SetCurrentModeSwitches(AValue: TModeSwitches);
-    function GetVariableModifiers(Parent: TPasElement; Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr; ExternalClass : Boolean): string;
+    function GetVariableModifiers(Parent: TPasElement;
+      Out VarMods: TVariableModifiers; Out LibName, ExportName: TPasExpr;
+      const AllowedMods: TVariableModifiers): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value: TPasExpr; Out AbsoluteExpr: TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
     procedure HandleProcedureTypeModifier(ProcType: TPasProcedureType; ptm : TProcTypeModifier);
@@ -4063,7 +4065,7 @@ end;
 
 function TPasParser.GetVariableModifiers(Parent: TPasElement; out
   VarMods: TVariableModifiers; out LibName, ExportName: TPasExpr;
-  ExternalClass: Boolean): string;
+  const AllowedMods: TVariableModifiers): string;
 
 Var
   S : String;
@@ -4074,7 +4076,7 @@ begin
   ExportName := nil;
   VarMods := [];
   NextToken;
-  If CurTokenIsIdentifier('cvar') and not ExternalClass then
+  If (vmCVar in AllowedMods) and CurTokenIsIdentifier('cvar') then
     begin
     Result:=';cvar';
     Include(VarMods,vmcvar);
@@ -4082,11 +4084,11 @@ begin
     NextToken;
     end;
   s:=LowerCase(CurTokenText);
-  if s='external' then
+  if (vmExternal in AllowedMods) and (s='external') then
     ExtMod:=vmExternal
-  else if (s='public') and not ExternalClass then
+  else if (vmPublic in AllowedMods) and (s='public') then
     ExtMod:=vmPublic
-  else if (s='export') and not ExternalClass then
+  else if (vmExport in AllowedMods) and (s='export') then
     ExtMod:=vmExport
   else
     begin
@@ -4111,7 +4113,7 @@ begin
   // external libname name exportname;
   // external name exportname;
   if (ExtMod=vmExternal) and (CurToken in [tkString,tkIdentifier])
-      and Not (CurTokenIsIdentifier('name')) and not ExternalClass then
+      and Not (CurTokenIsIdentifier('name')) then
     begin
     Result := Result + ' ' + CurTokenText;
     LibName:=DoParseExpression(Parent);
@@ -4137,9 +4139,9 @@ var
   VarType: TPasType;
   VarEl: TPasVariable;
   H : TPasMemberHints;
-  VarMods: TVariableModifiers;
+  VarMods, AllowedVarMods: TVariableModifiers;
   D,Mods,AbsoluteLocString: string;
-  OldForceCaret,ok,ExternalClass: Boolean;
+  OldForceCaret,ok,ExternalStruct: Boolean;
 
 begin
   Value:=Nil;
@@ -4195,17 +4197,22 @@ begin
     Value:=nil;
 
     // Note: external members are allowed for non external classes too
-    ExternalClass:=(msExternalClass in CurrentModeSwitches)
+    ExternalStruct:=(msExternalClass in CurrentModeSwitches)
                     and (Parent is TPasClassType);
 
     H:=H+CheckHint(Nil,False);
-    if Full or Externalclass then
+    if Full or ExternalStruct then
       begin
       NextToken;
       If Curtoken<>tkSemicolon then
         UnGetToken;
       VarEl:=TPasVariable(VarList[0]);
-      Mods:=GetVariableModifiers(VarEl,VarMods,aLibName,aExpName,ExternalClass);
+      AllowedVarMods:=[];
+      if ExternalStruct then
+        AllowedVarMods:=[vmExternal]
+      else
+        AllowedVarMods:=[vmCVar,vmExternal,vmPublic,vmExport];
+      Mods:=GetVariableModifiers(VarEl,VarMods,aLibName,aExpName,AllowedVarMods);
       if (mods='') and (CurToken<>tkSemicolon) then
         NextToken;
       end
@@ -4573,7 +4580,7 @@ begin
     else
       begin
       AddModifier;
-      NextToken;  // Should be export name string.
+      NextToken;  // Should be "public name string".
       if not (CurToken in [tkString,tkIdentifier]) then
         ParseExcTokenError(TokenInfos[tkString]);
       E:=DoParseExpression(Parent);
