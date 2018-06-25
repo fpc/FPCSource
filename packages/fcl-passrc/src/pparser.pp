@@ -4198,7 +4198,7 @@ begin
 
     // Note: external members are allowed for non external classes too
     ExternalStruct:=(msExternalClass in CurrentModeSwitches)
-                    and (Parent is TPasClassType);
+                    and ((Parent is TPasClassType) or (Parent is TPasRecordType));
 
     H:=H+CheckHint(Nil,False);
     if Full or ExternalStruct then

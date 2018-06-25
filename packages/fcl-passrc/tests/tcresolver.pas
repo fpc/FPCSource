@@ -7202,9 +7202,9 @@ end;
 
 procedure TTestResolver.TestRecord_VarExternal;
 begin
-  exit;
   StartProgram(false);
   Add([
+  '{$modeswitch externalclass}',
   'type',
   '  TRec = record',
   '    Id: longint external name ''$Id'';',
