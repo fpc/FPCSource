@@ -956,6 +956,9 @@ begin
                   A_MOVSS:
                     if OptPass1MOVXX(p) then
                       continue;
+                  A_SETcc:
+                   if OptPass1SETcc(p) then
+                     continue;
                 end;
             end; { if is_jmp }
           end;

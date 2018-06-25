@@ -69,6 +69,7 @@ unit aoptx86;
         function OptPass1LEA(var p : tai) : boolean;
         function OptPass1Sub(var p : tai) : boolean;
         function OptPass1SHLSAL(var p : tai) : boolean;
+        function OptPass1SETcc(var p: tai): boolean;
 
         function OptPass2MOV(var p : tai) : boolean;
         function OptPass2Imul(var p : tai) : boolean;
@@ -2233,6 +2234,72 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.OptPass1SETcc(var p: tai): boolean;
+      var
+        TmpUsedRegs : TAllUsedRegs;
+        hp1,hp2,next: tai; SetC, JumpC: TAsmCond;
+      begin
+        Result:=false;
+        if MatchOpType(taicpu(p),top_reg) and
+          GetNextInstruction(p, hp1) and
+          MatchInstruction(hp1, A_TEST, [S_B]) and
+          MatchOpType(taicpu(hp1),top_reg,top_reg) and
+          (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
+          (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2, A_Jcc, []) then
+          { Change from:             To:
+
+            set(C) %reg              j(~C) label
+            test   %reg,%reg
+            je     label
+
+
+            set(C) %reg              j(C)  label
+            test   %reg,%reg
+            jne    label
+          }
+          begin
+            next := tai(p.Next);
+
+            CopyUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, next);
+            UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
+            UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
+
+            asml.Remove(hp1);
+            hp1.Free;
+
+            JumpC := taicpu(hp2).condition;
+
+            if conditions_equal(JumpC, C_E) then
+              SetC := inverse_cond(taicpu(p).condition)
+            else if conditions_equal(JumpC, C_NE) then
+              SetC := taicpu(p).condition
+            else
+              InternalError(2018061400);
+
+            if SetC = C_NONE then
+              InternalError(2018061401);
+
+            taicpu(hp2).SetCondition(SetC);
+
+            if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp2, TmpUsedRegs) then
+              begin
+                asml.Remove(p);
+                UpdateUsedRegs(next);
+                p.Free;
+                Result := True;
+                p := hp2;
+              end;
+
+            ReleaseUsedRegs(TmpUsedRegs);
+
+            DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
+          end;
+      end;
+
+
     function TX86AsmOptimizer.OptPass2MOV(var p : tai) : boolean;
       var
        TmpUsedRegs : TAllUsedRegs;
@@ -2560,60 +2627,77 @@ unit aoptx86;
         l : Longint;
         condition : TAsmCond;
       begin
-        { jb @@1                            cmc
-          inc/dec operand           -->     adc/sbb operand,0
-	@@1:
-
-	... and ...
-
-          jnb @@1
-          inc/dec operand           -->     adc/sbb operand,0
-	@@1: }
         result:=false;
-        if GetNextInstruction(p,hp1) and (hp1.typ=ait_instruction) and
-           GetNextInstruction(hp1,hp2) and (hp2.typ=ait_label) and
-           (Tasmlabel(Taicpu(p).oper[0]^.ref^.symbol)=Tai_label(hp2).labsym) then
+        if GetNextInstruction(p,hp1) then
           begin
-            carryadd_opcode:=A_NONE;
-            if Taicpu(p).condition in [C_NAE,C_B] then
+            if (hp1.typ=ait_instruction) and
+               GetNextInstruction(hp1,hp2) and (hp2.typ=ait_label) and
+               (Tasmlabel(Taicpu(p).oper[0]^.ref^.symbol)=Tai_label(hp2).labsym) then
+                 { jb @@1                            cmc
+                   inc/dec operand           -->     adc/sbb operand,0
+         	@@1:
+
+         	... and ...
+
+                   jnb @@1
+                   inc/dec operand           -->     adc/sbb operand,0
+         	@@1: }
               begin
-                if Taicpu(hp1).opcode=A_INC then
-                  carryadd_opcode:=A_ADC;
-                if Taicpu(hp1).opcode=A_DEC then
-                  carryadd_opcode:=A_SBB;
-                if carryadd_opcode<>A_NONE then
+                carryadd_opcode:=A_NONE;
+                if Taicpu(p).condition in [C_NAE,C_B] then
                   begin
-                    Taicpu(p).clearop(0);
-                    Taicpu(p).ops:=0;
-                    Taicpu(p).is_jmp:=false;
-                    Taicpu(p).opcode:=A_CMC;
-                    Taicpu(p).condition:=C_NONE;
-                    Taicpu(hp1).ops:=2;
-                    Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
-                    Taicpu(hp1).loadconst(0,0);
-                    Taicpu(hp1).opcode:=carryadd_opcode;
-                    result:=true;
-                    exit;
+                    if Taicpu(hp1).opcode=A_INC then
+                      carryadd_opcode:=A_ADC;
+                    if Taicpu(hp1).opcode=A_DEC then
+                      carryadd_opcode:=A_SBB;
+                    if carryadd_opcode<>A_NONE then
+                      begin
+                        Taicpu(p).clearop(0);
+                        Taicpu(p).ops:=0;
+                        Taicpu(p).is_jmp:=false;
+                        Taicpu(p).opcode:=A_CMC;
+                        Taicpu(p).condition:=C_NONE;
+                        Taicpu(hp1).ops:=2;
+                        Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
+                        Taicpu(hp1).loadconst(0,0);
+                        Taicpu(hp1).opcode:=carryadd_opcode;
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+                if Taicpu(p).condition in [C_AE,C_NB] then
+                  begin
+                    if Taicpu(hp1).opcode=A_INC then
+                      carryadd_opcode:=A_ADC;
+                    if Taicpu(hp1).opcode=A_DEC then
+                      carryadd_opcode:=A_SBB;
+                    if carryadd_opcode<>A_NONE then
+                      begin
+                        asml.remove(p);
+                        p.free;
+                        Taicpu(hp1).ops:=2;
+                        Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
+                        Taicpu(hp1).loadconst(0,0);
+                        Taicpu(hp1).opcode:=carryadd_opcode;
+                        p:=hp1;
+                        result:=true;
+                        exit;
+                      end;
                   end;
               end;
-            if Taicpu(p).condition in [C_AE,C_NB] then
+
+            if (hp1.typ=ait_label) and (TAsmLabel(taicpu(p).oper[0]^.ref^.symbol) = tai_label(hp1).labsym) then
               begin
-                if Taicpu(hp1).opcode=A_INC then
-                  carryadd_opcode:=A_ADC;
-                if Taicpu(hp1).opcode=A_DEC then
-                  carryadd_opcode:=A_SBB;
-                if carryadd_opcode<>A_NONE then
-                  begin
-                    asml.remove(p);
-                    p.free;
-                    Taicpu(hp1).ops:=2;
-                    Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
-                    Taicpu(hp1).loadconst(0,0);
-                    Taicpu(hp1).opcode:=carryadd_opcode;
-                    p:=hp1;
-                    result:=true;
-                    exit;
-                  end;
+                { If Jcc is immediately followed by the label that it's supposed to jump to, remove it }
+                UpdateUsedRegs(tai(p.next));
+
+                DebugMsg(SPeepholeOptimization + 'Removed conditional jump whose destination was immediately after it', p);
+
+                asml.remove(p);
+                p.free;
+                Result := True;
+                p := hp1;
+                Exit;
               end;
           end;
 {$ifndef i8086}
