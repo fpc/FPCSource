@@ -621,8 +621,8 @@ type
     FCurToken: TToken;
     FCurTokenString: string;
     FCurLine: string;
-    FMacros,
-    FDefines: TStrings;
+    FModuleRow: Integer;
+    FMacros, FDefines: TStrings;
     FNonTokens: TTokens;
     FOnDirective: TPScannerDirectiveEvent;
     FOnEvalFunction: TCEEvalFunctionEvent;
@@ -710,6 +710,7 @@ type
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
     procedure OpenFile(AFilename: string);
+    procedure FinishedModule; virtual;
     function FormatPath(const aFilename: string): string; virtual;
     Procedure SetNonToken(aToken : TToken);
     Procedure UnsetNonToken(aToken : TToken);
@@ -740,6 +741,7 @@ type
     property CurTokenString: string read FCurTokenString;
     property CurTokenPos: TPasSourcePos read FCurTokenPos;
     Property PreviousToken : TToken Read FPreviousToken;
+    property ModuleRow: Integer read FModuleRow;
     Property NonTokens : TTokens Read FNonTokens;
     Property TokenOptions : TTokenOptions Read FTokenOptions Write FTokenOptions;
     property Defines: TStrings read FDefines;
@@ -2383,6 +2385,7 @@ begin
   FIncludeStack.Clear;
   FreeAndNil(FCurSourceFile);
   FFiles.Clear;
+  FModuleRow:=0;
 end;
 
 procedure TPascalScanner.ClearMacros;
@@ -2410,6 +2413,14 @@ begin
   FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(FCurFilename));
   if LogEvent(sleFile) then
     DoLog(mtInfo,nLogOpeningFile,SLogOpeningFile,[FormatPath(AFileName)],True);
+end;
+
+procedure TPascalScanner.FinishedModule;
+begin
+  if (sleLineNumber in LogEvents)
+      and (not CurSourceFile.IsEOF)
+      and ((FCurRow Mod 100) > 0) then
+    DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[CurRow],True);
 end;
 
 function TPascalScanner.FormatPath(const aFilename: string): string;
@@ -3982,7 +3993,6 @@ begin
   FReadOnlyValueSwitches:=AValue;
 end;
 
-
 function TPascalScanner.FetchLine: boolean;
 begin
   if CurSourceFile.IsEOF then
@@ -3992,6 +4002,7 @@ begin
       FCurLine := '';
       FTokenStr := nil;
       inc(FCurRow); // set CurRow to last line+1
+      inc(FModuleRow);
       end;
     Result := false;
   end else
@@ -4000,7 +4011,10 @@ begin
     FTokenStr := PChar(CurLine);
     Result := true;
     Inc(FCurRow);
-    if LogEvent(sleLineNumber) and ((FCurRow Mod 100) = 0) then
+    inc(FModuleRow);
+    if LogEvent(sleLineNumber)
+        and (((FCurRow Mod 100) = 0)
+          or CurSourceFile.IsEOF) then
       DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True);
   end;
 end;

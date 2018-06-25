@@ -339,6 +339,7 @@ type
     function AddUseUnit(ASection: TPasSection; const NamePos: TPasSourcePos;
       AUnitName : string; NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
     procedure CheckImplicitUsedUnits(ASection: TPasSection);
+    procedure FinishedModule; virtual;
     // Overload handling
     procedure AddProcOrFunction(Decs: TPasDeclarations; AProc: TPasProcedure);
     function  CheckIfOverloaded(AParent: TPasElement; const AName: String): TPasElement;
@@ -2786,7 +2787,7 @@ begin
       {$ENDIF}
       end;
     if HasFinished then
-      Engine.FinishScope(stModule,Module);
+      FinishedModule;
   finally
     if HasFinished then
       FCurModule:=nil; // clear module if there is an error or finished parsing
@@ -2883,7 +2884,7 @@ begin
     if Section.PendingUsedIntf<>nil then
       HasFinished:=false;
     if HasFinished then
-      Engine.FinishScope(stModule,CurModule);
+      FinishedModule;
   finally
     if HasFinished then
       FCurModule:=nil; // clear module if there is an error or finished parsing
@@ -2966,7 +2967,7 @@ begin
       exit;
       end;
     ParseDeclarations(Section);
-    Engine.FinishScope(stModule,Module);
+    FinishedModule;
   finally
     if HasFinished then
       FCurModule:=nil; // clear module if there is an error or finished parsing
@@ -3014,7 +3015,7 @@ begin
     if not HasFinished then
       exit;
     ParseDeclarations(Section);
-    Engine.FinishScope(stModule,Module);
+    FinishedModule;
   finally
     if HasFinished then
       FCurModule:=nil; // clear module if there is an error or finished parsing
@@ -3573,6 +3574,13 @@ begin
     end;
 end;
 
+procedure TPasParser.FinishedModule;
+begin
+  if Scanner<>nil then
+    Scanner.FinishedModule;
+  Engine.FinishScope(stModule,CurModule);
+end;
+
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
 var
@@ -4076,9 +4084,9 @@ begin
   s:=LowerCase(CurTokenText);
   if s='external' then
     ExtMod:=vmExternal
-  else if (s='public') and not externalclass then
+  else if (s='public') and not ExternalClass then
     ExtMod:=vmPublic
-  else if (s='export') and not externalclass then
+  else if (s='export') and not ExternalClass then
     ExtMod:=vmExport
   else
     begin
@@ -4179,9 +4187,9 @@ begin
       begin
       // multiple variables
       if Value<>nil then
-        ParseExc(nParserOnlyOneVariableCanBeAbsolute,SParserOnlyOneVariableCanBeAbsolute);
-      if Value<>nil then
         ParseExc(nParserOnlyOneVariableCanBeInitialized,SParserOnlyOneVariableCanBeInitialized);
+      if AbsoluteExpr<>nil then
+        ParseExc(nParserOnlyOneVariableCanBeAbsolute,SParserOnlyOneVariableCanBeAbsolute);
       end;
     TPasVariable(VarList[OldListCount]).Expr:=Value;
     Value:=nil;
