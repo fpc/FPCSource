@@ -1199,7 +1199,9 @@ begin
 
     if PCUReader=nil then
       begin
-      // analyze module
+      // read source module (instead of precompiled module)
+
+      // -> analyze module
       aPrecompileFormat:=Compiler.FileCache.PrecompileFormat;
       if aPrecompileFormat<>nil then
         UseAnalyzer.Options:=UseAnalyzer.Options+[paoImplReferences];
@@ -4077,7 +4079,7 @@ begin
   l('    n     : Show notes');
   l('    h     : Show hints');
   l('    i     : Show info');
-  l('    l     : Show line numbers');
+  l('    l     : Show line numbers, needs -vi');
   l('    a     : Show everything');
   l('    0     : Show nothing (except errors)');
   l('    b     : Show file names with full path');
