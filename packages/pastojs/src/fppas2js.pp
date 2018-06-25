@@ -2782,7 +2782,7 @@ end;
 procedure TPas2JSResolver.FinishVariable(El: TPasVariable);
 const
   ClassFieldModifiersAllowed = [vmClass,vmStatic,vmExternal,vmPublic];
-  RecordVarModifiersAllowed = [];
+  RecordVarModifiersAllowed = [vmExternal];
   LocalVarModifiersAllowed = [];
   ImplementationVarModifiersAllowed = [vmExternal];
   SectionVarModifiersAllowed = [vmExternal,vmPublic];
@@ -2882,6 +2882,9 @@ begin
     RaiseVarModifierNotSupported(RecordVarModifiersAllowed);
     if IsInterfaceType(El.VarType,citCom) then
       RaiseMsg(20180404135105,nNotSupportedX,sNotSupportedX,['COM-interface as record member'],El);
+    if (El.ClassType=TPasConst) and (TPasConst(El).Expr<>nil) then
+      // external const with expression is not writable
+      TPasConst(El).IsConst:=true;
     end
   else if ParentC=TProcedureBody then
     begin
@@ -18348,6 +18351,7 @@ const
     First, Last: TJSStatementList;
     VarDotExpr: TJSDotMemberExpression;
     PasVarType: TPasType;
+    VarName: String;
   begin
     // init members with s
     First:=nil;
@@ -18357,15 +18361,16 @@ const
       PasVar:=TPasVariable(El.Members[i]);
       if not IsElementUsed(PasVar) then continue;
       // create 'this.A = s.A;'
+      VarName:=TransformVariableName(PasVar,FuncContext);
       VarAssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PasVar));
       AddToStatementList(First,Last,VarAssignSt,PasVar);
       if IfSt.BTrue=nil then
         IfSt.BTrue:=First;
-      VarAssignSt.LHS:=CreateSubDeclNameExpr(PasVar,PasVar.Name,FuncContext);
+      VarAssignSt.LHS:=CreateSubDeclNameExpr(PasVar,VarName,FuncContext);
       VarDotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,PasVar));
       VarAssignSt.Expr:=VarDotExpr;
       VarDotExpr.MExpr:=CreatePrimitiveDotExpr(SrcParamName,PasVar);
-      VarDotExpr.Name:=TJSString(TransformVariableName(PasVar,FuncContext));
+      VarDotExpr.Name:=TJSString(VarName);
       if (AContext.Resolver<>nil) then
         begin
         PasVarType:=AContext.Resolver.ResolveAliasType(PasVar.VarType);

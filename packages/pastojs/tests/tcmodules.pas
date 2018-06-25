@@ -409,6 +409,7 @@ type
     // record
     Procedure TestRecord_Empty;
     Procedure TestRecord_Var;
+    Procedure TestRecord_VarExternal;
     Procedure TestWithRecordDo;
     Procedure TestRecord_Assign;
     Procedure TestRecord_PassAsArgClone;
@@ -8192,6 +8193,41 @@ begin
     ]),
     LinesToStr([ // $mod.$main
     '$mod.Rec.Bold = 123;'
+    ]));
+end;
+
+procedure TTestModule.TestRecord_VarExternal;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TRecA = record',
+  '    i: byte;',
+  '    length_: longint external name ''length'';',
+  '  end;',
+  'var Rec: TRecA;',
+  'begin',
+  '  rec.length_ := rec.length_',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRecord_VarExternal',
+    LinesToStr([ // statements
+    'this.TRecA = function (s) {',
+    '  if (s) {',
+    '    this.i = s.i;',
+    '    this.length = s.length;',
+    '  } else {',
+    '    this.i = 0;',
+    '  };',
+    '  this.$equal = function (b) {',
+    '    return (this.i === b.i) && (this.length === b.length);',
+    '  };',
+    '};',
+    'this.Rec = new $mod.TRecA();',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Rec.length = $mod.Rec.length;'
     ]));
 end;
 
