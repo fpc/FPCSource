@@ -3452,6 +3452,7 @@ var
   LArray: TPasArrayType;
   ElTypeResolved: TPasResolverResult;
   LTypeEl, RTypeEl: TPasType;
+  TIName: String;
 begin
   Result:=cIncompatible;
   //writeln('TPas2JSResolver.CheckAssignCompatibilityCustom ',GetResolverResultDbg(LHS));
@@ -3513,6 +3514,20 @@ begin
         // array of jsvalue := array
         Handled:=true;
         Result:=cJSValueConversion;
+        end;
+      end
+    else if (LTypeEl.ClassType=TPasClassType)
+        and (rrfReadable in RHS.Flags)
+        and (RHS.BaseType=btPointer)
+        and IsSameType(RTypeEl,BaseTypes[btPointer],prraNone)
+        then
+      begin
+      TIName:=Pas2JSBuiltInNames[pbivnRTL]+'.'+Pas2JSBuiltInNames[pbitnTI];
+      if IsExternalClass_Name(TPasClassType(LTypeEl),TIName) then
+        begin
+        // aTTypeInfo:=aPointer
+        Handled:=true;
+        Result:=cTypeConversion;
         end;
       end;
     end;
@@ -4008,7 +4023,7 @@ begin
           begin
           if (FromResolved.BaseType in btAllJSStringAndChars) then
             begin
-            if IsExternalClassName(ToClass,'String') then
+            if IsExternalClass_Name(ToClass,'String') then
               // TJSString(aString)
               exit(cExact);
             end
@@ -4017,27 +4032,27 @@ begin
             FromTypeEl:=FromResolved.LoTypeEl;
             if FromTypeEl.ClassType=TPasArrayType then
               begin
-              if IsExternalClassName(ToClass,'Array')
-                  or IsExternalClassName(ToClass,'Object') then
+              if IsExternalClass_Name(ToClass,'Array')
+                  or IsExternalClass_Name(ToClass,'Object') then
                 // TJSArray(AnArray)  or  TJSObject(AnArray)
                 exit(cExact);
               end
             else if FromTypeEl.ClassType=TPasRecordType then
               begin
-              if IsExternalClassName(ToClass,'Object') then
+              if IsExternalClass_Name(ToClass,'Object') then
                 // TJSObject(aRecord)
                 exit(cExact);
               end
             else if FromTypeEl.ClassType=TPasClassOfType then
               begin
-              if IsExternalClassName(ToClass,'Object') then
+              if IsExternalClass_Name(ToClass,'Object') then
                 // TJSObject(ImgClass)
                 exit(cExact);
               end
             else if FromTypeEl.InheritsFrom(TPasProcedureType) then
               begin
-              if IsExternalClassName(ToClass,'Function')
-                  or IsExternalClassName(ToClass,'Object') then
+              if IsExternalClass_Name(ToClass,'Function')
+                  or IsExternalClass_Name(ToClass,'Object') then
                 // TJSFunction(@Proc) or TJSFunction(ProcVar)
                 exit(cExact);
               end;
@@ -4051,8 +4066,8 @@ begin
           FromTypeEl:=FromResolved.LoTypeEl;
           if (FromTypeEl.ClassType=TPasClassType)
               and TPasClassType(FromTypeEl).IsExternal
-              and (IsExternalClassName(TPasClassType(FromTypeEl),'Array')
-                or IsExternalClassName(TPasClassType(FromTypeEl),'Object')) then
+              and (IsExternalClass_Name(TPasClassType(FromTypeEl),'Array')
+                or IsExternalClass_Name(TPasClassType(FromTypeEl),'Object')) then
             begin
             // type cast external Array/Object to an array
             exit(cCompatible);
@@ -4084,7 +4099,7 @@ begin
           FromTypeEl:=FromResolved.LoTypeEl;
           if FromTypeEl.ClassType=TPasClassType then
             begin
-            if IsExternalClassName(TPasClassType(FromTypeEl),'Function') then
+            if IsExternalClass_Name(TPasClassType(FromTypeEl),'Function') then
               // TProcType(aJSFunction)
               exit(cCompatible);
             end;

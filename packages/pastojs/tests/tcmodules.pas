@@ -684,6 +684,7 @@ type
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses2;
     Procedure TestRTTI_TypeInfo_ExtTypeInfoClasses3;
     Procedure TestRTTI_TypeInfo_FunctionClassType;
+    Procedure TestRTTI_TypeInfo_MixedUnits_PointerAndClass;
     Procedure TestRTTI_Interface_Corba;
     Procedure TestRTTI_Interface_COM;
 
@@ -20894,33 +20895,34 @@ procedure TTestModule.TestRTTI_TypeInfo_ExtTypeInfoClasses1;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
   StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TTypeInfo = class external name ''rtl.tTypeInfo'' end;');
-  Add('  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo) end;');
-  Add('  TFlag = (up,down);');
-  Add('  TTypeInfoEnum = class external name ''rtl.tTypeInfoEnum''(TTypeInfoInteger) end;');
-  Add('  TFlags = set of TFlag;');
-  Add('  TTypeInfoSet = class external name ''rtl.tTypeInfoSet''(TTypeInfo) end;');
-  Add('var');
-  Add('  ti: TTypeInfo;');
-  Add('  tiInt: TTypeInfoInteger;');
-  Add('  tiEnum: TTypeInfoEnum;');
-  Add('  tiSet: TTypeInfoSet;');
-  Add('begin');
-  Add('  ti:=typeinfo(string);');
-  Add('  ti:=typeinfo(boolean);');
-  Add('  ti:=typeinfo(char);');
-  Add('  ti:=typeinfo(double);');
-  Add('  tiInt:=typeinfo(shortint);');
-  Add('  tiInt:=typeinfo(byte);');
-  Add('  tiInt:=typeinfo(smallint);');
-  Add('  tiInt:=typeinfo(word);');
-  Add('  tiInt:=typeinfo(longint);');
-  Add('  tiInt:=typeinfo(longword);');
-  Add('  ti:=typeinfo(jsvalue);');
-  Add('  tiEnum:=typeinfo(tflag);');
-  Add('  tiSet:=typeinfo(tflags);');
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo) end;',
+  '  TFlag = (up,down);',
+  '  TTypeInfoEnum = class external name ''rtl.tTypeInfoEnum''(TTypeInfoInteger) end;',
+  '  TFlags = set of TFlag;',
+  '  TTypeInfoSet = class external name ''rtl.tTypeInfoSet''(TTypeInfo) end;',
+  'var',
+  '  ti: TTypeInfo;',
+  '  tiInt: TTypeInfoInteger;',
+  '  tiEnum: TTypeInfoEnum;',
+  '  tiSet: TTypeInfoSet;',
+  'begin',
+  '  ti:=typeinfo(string);',
+  '  ti:=typeinfo(boolean);',
+  '  ti:=typeinfo(char);',
+  '  ti:=typeinfo(double);',
+  '  tiInt:=typeinfo(shortint);',
+  '  tiInt:=typeinfo(byte);',
+  '  tiInt:=typeinfo(smallint);',
+  '  tiInt:=typeinfo(word);',
+  '  tiInt:=typeinfo(longint);',
+  '  tiInt:=typeinfo(longword);',
+  '  ti:=typeinfo(jsvalue);',
+  '  tiEnum:=typeinfo(tflag);',
+  '  tiSet:=typeinfo(tflags);']);
   ConvertProgram;
   CheckSource('TestRTTI_TypeInfo_ExtTypeInfoClasses1',
     LinesToStr([ // statements
@@ -21170,6 +21172,86 @@ begin
     '$mod.t = $mod.Obj.$class.ClassType().$rtti;',
     '$mod.t = $mod.Obj.MyClass().$rtti;',
     '']));
+end;
+
+procedure TTestModule.TestRTTI_TypeInfo_MixedUnits_PointerAndClass;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  AddModuleWithIntfImplSrc('typinfo.pas',
+    LinesToStr([
+    '{$modeswitch externalclass}',
+    'type',
+    '  TTypeInfo = class external name ''rtl.tTypeInfo'' end;',
+    '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo) end;',
+    '']),
+    '');
+  AddModuleWithIntfImplSrc('unit2.pas',
+    LinesToStr([
+    'uses typinfo;',
+    'type PTypeInfo = TTypeInfo;', // delphi compatibility code
+    'procedure DoPtr(p: PTypeInfo);',
+    'procedure DoInfo(t: TTypeInfo);',
+    'procedure DoInt(t: TTypeInfoInteger);',
+    '']),
+    LinesToStr([
+    'procedure DoPtr(p: PTypeInfo);',
+    'begin end;',
+    'procedure DoInfo(t: TTypeInfo);',
+    'begin end;',
+    'procedure DoInt(t: TTypeInfoInteger);',
+    'begin end;',
+    '']));
+  StartUnit(true);
+  Add([
+  'interface',
+  'uses unit2;', // does not use unit typinfo
+  'implementation',
+  'var',
+  '  i: byte;',
+  '  p: pointer;',
+  '  t: PTypeInfo;',
+  'initialization',
+  '  p:=typeinfo(i);',
+  '  t:=typeinfo(i);',
+  '  if p=t then ;',
+  '  if p=typeinfo(i) then ;',
+  '  if typeinfo(i)=p then ;',
+  '  if t=typeinfo(i) then ;',
+  '  if typeinfo(i)=t then ;',
+  '  DoPtr(p);',
+  '  DoPtr(t);',
+  '  DoPtr(typeinfo(i));',
+  '  DoInfo(p);',
+  '  DoInfo(t);',
+  '  DoInfo(typeinfo(i));',
+  '  DoInt(typeinfo(i));',
+  '']);
+  ConvertUnit;
+  CheckSource('TestRTTI_TypeInfo_MixedUnits_PointerAndClass',
+    LinesToStr([ // statements
+    'var $impl = $mod.$impl;',
+    '']),
+    LinesToStr([ // this.$init
+    '$impl.p = rtl.byte;',
+    '$impl.t = rtl.byte;',
+    'if ($impl.p === $impl.t) ;',
+    'if ($impl.p === rtl.byte) ;',
+    'if (rtl.byte === $impl.p) ;',
+    'if ($impl.t === rtl.byte) ;',
+    'if (rtl.byte === $impl.t) ;',
+    'pas.unit2.DoPtr($impl.p);',
+    'pas.unit2.DoPtr($impl.t);',
+    'pas.unit2.DoPtr(rtl.byte);',
+    'pas.unit2.DoInfo($impl.p);',
+    'pas.unit2.DoInfo($impl.t);',
+    'pas.unit2.DoInfo(rtl.byte);',
+    'pas.unit2.DoInt(rtl.byte);',
+    '']),
+    LinesToStr([ // implementation
+    '$impl.i = 0;',
+    '$impl.p = null;',
+    '$impl.t = null;',
+    '']) );
 end;
 
 procedure TTestModule.TestRTTI_Interface_Corba;
