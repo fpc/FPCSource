@@ -355,6 +355,7 @@ Works:
 - typecast TJSFunction(func)
 
 ToDos:
+- bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
 - bug:

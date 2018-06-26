@@ -702,6 +702,7 @@ type
     Procedure TestArrayEnumCustomRange;
     Procedure TestArray_DynArrayConstObjFPC;
     Procedure TestArray_DynArrayConstDelphi;
+    Procedure TestArray_DynArrAssignStaticDelphiFail;
     Procedure TestArray_Static_Const;
     Procedure TestArray_Record_Const;
     Procedure TestArray_MultiDim_Const;
@@ -714,6 +715,7 @@ type
     Procedure TestArray_OpenArrayOverride;
     Procedure TestArray_OpenArrayAsDynArraySetLengthFail;
     Procedure TestArray_OpenArrayAsDynArray;
+    Procedure TestArray_OpenArrayDelphi;
     Procedure TestArray_CopyConcat;
     Procedure TestStaticArray_CopyConcat;// ToDo
     Procedure TestArray_CopyMismatchFail;
@@ -12196,6 +12198,22 @@ begin
   CheckResolverUnexpectedHints;
 end;
 
+procedure TTestResolver.TestArray_DynArrAssignStaticDelphiFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TIntArr = array[1..3] of longint;',
+  'var',
+  '  dyn: array of longint;',
+  '  sta: TIntArr;',
+  'begin',
+  '  dyn:=sta;']);
+  CheckResolverException('Incompatible types: got "static array" expected "dynamic array"',
+    nIncompatibleTypesGotExpected);
+end;
+
 procedure TTestResolver.TestArray_Static_Const;
 begin
   StartProgram(false);
@@ -12276,7 +12294,7 @@ begin
   Add('  a: array[TEnum] of longint;');
   Add('begin');
   Add('  a:=nil;');
-  CheckResolverException('Incompatible types: got "Nil" expected "array"',
+  CheckResolverException('Incompatible types: got "Nil" expected "static array"',
     nIncompatibleTypesGotExpected);
 end;
 
@@ -12416,6 +12434,30 @@ begin
   '  DoIt([s]+a);',
   'end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestArray_OpenArrayDelphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TDynArrInt = array of byte;',
+  '  TStaArrInt = array[1..2] of byte;',
+  'procedure DoIt(a: array of byte);',
+  'var',
+  '  d: TDynArrInt;',
+  '  s: TStaArrInt;',
+  'begin',
+  '  DoIt(a);',
+  '  // d:=s; forbidden in delphi', // see TestArray_DynArrAssignStaticDelphiFail
+  '  // d:=a; forbidden in delphi',
+  '  DoIt(d);',
+  '  DoIt(s);',
+  'end;',
+  'begin',
+  '']);
   ParseProgram;
 end;
 

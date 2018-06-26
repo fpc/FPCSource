@@ -17161,7 +17161,19 @@ function TPasResolver.GetTypeDescription(aType: TPasType; AddPath: boolean): str
   begin
     Result:=aType.Name;
     if Result='' then
-      Result:=GetElementTypeName(aType);
+      begin
+      if aType is TPasArrayType then
+        begin
+        if length(TPasArrayType(aType).Ranges)>0 then
+          Result:='static array'
+        else if IsOpenArray(aType) then
+          Result:='open array'
+        else
+          Result:='dynamic array';
+        end
+      else
+        Result:=GetElementTypeName(aType);
+      end;
     if AddPath then
       begin
       s:=aType.ParentPath;
@@ -17566,14 +17578,17 @@ begin
         // DynOrOpenArr:=MultiDimStaticArr  -> no
         if RaiseOnIncompatible then
           RaiseIncompatibleTypeDesc(20180620115235,nIncompatibleTypesGotExpected,
-            [],'static array','dynamic array',ErrorEl);
+            [],'multi dimensional static array','dynamic array',ErrorEl);
         exit(cIncompatible);
         end
       else if length(RArray.Ranges)>0 then
         begin
         // DynOrOpenArr:=SingleDimStaticArr
-        if msDelphi in CurrentParser.CurrentModeswitches then
+        if (msDelphi in CurrentParser.CurrentModeswitches)
+            and not IsOpenArray(LArray) then
           begin
+          // DynArr:=SingleDimStaticArr  forbidden in Delphi
+          // Note: OpenArr:=StaticArr is allowed in Delphi
           if RaiseOnIncompatible then
             RaiseIncompatibleTypeDesc(20180620115341,nIncompatibleTypesGotExpected,
               [],'static array','dynamic array',ErrorEl);
