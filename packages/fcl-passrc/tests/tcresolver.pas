@@ -780,6 +780,7 @@ type
     Procedure TestPointer_TypecastFromMethodTypeFail;
     Procedure TestPointer_TypecastMethod_proMethodAddrAsPointer;
     Procedure TestPointer_OverloadSignature;
+    Procedure TestPointer_Assign;
     Procedure TestPointerTyped;
     Procedure TestPointerTypedForwardMissingFail;
     Procedure TestPointerTyped_CycleFail;
@@ -9663,53 +9664,59 @@ end;
 procedure TTestResolver.TestClassOf;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  {#TClass}{=TObj}TClass = class of TObject;');
-  Add('  {#TOBJ}TObject = class');
-  Add('    ClassType: TClass; ');
-  Add('  end;');
-  Add('type');
-  Add('  {#TMobile}TMobile = class');
-  Add('  end;');
-  Add('  {#TMobiles}{=TMobile}TMobiles = class of TMobile;');
-  Add('type');
-  Add('  {#TCars}{=TCar}TCars = class of TCar;');
-  Add('  {#TShips}{=TShip}TShips = class of TShip;');
-  Add('  {#TCar}TCar = class(TMobile)');
-  Add('  end;');
-  Add('  {#TShip}TShip = class(TMobile)');
-  Add('  end;');
-  Add('var');
-  Add('  o: TObject;');
-  Add('  c: TClass;');
-  Add('  mobile: TMobile;');
-  Add('  mobiletype: TMobiles;');
-  Add('  car: TCar;');
-  Add('  cartype: TCars;');
-  Add('  ship: TShip;');
-  Add('  shiptype: TShips;');
-  Add('begin');
-  Add('  c:=nil;');
-  Add('  c:=o.ClassType;');
-  Add('  if c=nil then;');
-  Add('  if nil=c then;');
-  Add('  if c=o.ClassType then ;');
-  Add('  if c<>o.ClassType then ;');
-  Add('  if Assigned(o) then ;');
-  Add('  if Assigned(o.ClassType) then ;');
-  Add('  if Assigned(c) then ;');
-  Add('  mobiletype:=TMobile;');
-  Add('  mobiletype:=TCar;');
-  Add('  mobiletype:=TShip;');
-  Add('  mobiletype:=cartype;');
-  Add('  if mobiletype=nil then ;');
-  Add('  if nil=mobiletype then ;');
-  Add('  if mobiletype=TShip then ;');
-  Add('  if TShip=mobiletype then ;');
-  Add('  if mobiletype<>TShip then ;');
-  Add('  if mobile is mobiletype then ;');
-  Add('  if car is mobiletype then ;');
-  Add('  if mobile is cartype then ;');
+  Add([
+  'type',
+  '  {#TClass}{=TObj}TClass = class of TObject;',
+  '  {#TOBJ}TObject = class',
+  '    ClassType: TClass; ',
+  '  end;',
+  'type',
+  '  {#TMobile}TMobile = class',
+  '  end;',
+  '  {#TMobiles}{=TMobile}TMobiles = class of TMobile;',
+  'type',
+  '  {#TCars}{=TCar}TCars = class of TCar;',
+  '  {#TShips}{=TShip}TShips = class of TShip;',
+  '  {#TCar}TCar = class(TMobile)',
+  '  end;',
+  '  {#TShip}TShip = class(TMobile)',
+  '  end;',
+  'var',
+  '  o: TObject;',
+  '  c: TClass;',
+  '  mobile: TMobile;',
+  '  mobiletype: TMobiles;',
+  '  car: TCar;',
+  '  cartype: TCars;',
+  '  ship: TShip;',
+  '  shiptype: TShips;',
+  '  p: pointer;',
+  'begin',
+  '  c:=nil;',
+  '  c:=o.ClassType;',
+  '  if c=nil then;',
+  '  if nil=c then;',
+  '  if c=o.ClassType then ;',
+  '  if c<>o.ClassType then ;',
+  '  if Assigned(o) then ;',
+  '  if Assigned(o.ClassType) then ;',
+  '  if Assigned(c) then ;',
+  '  mobiletype:=TMobile;',
+  '  mobiletype:=TCar;',
+  '  mobiletype:=TShip;',
+  '  mobiletype:=cartype;',
+  '  if mobiletype=nil then ;',
+  '  if nil=mobiletype then ;',
+  '  if mobiletype=TShip then ;',
+  '  if TShip=mobiletype then ;',
+  '  if mobiletype<>TShip then ;',
+  '  if mobile is mobiletype then ;',
+  '  if car is mobiletype then ;',
+  '  if mobile is cartype then ;',
+  '  p:=c;',
+  '  if p=c then ;',
+  '  if c=p then ;',
+  '']);
   ParseProgram;
 end;
 
@@ -11367,6 +11374,8 @@ begin
   '  if i is TBird then ;',
   '  if e is TBird then ;',
   '  p:=i;',
+  '  if p=i then ;',
+  '  if i=p then ;',
   '']);
   ParseProgram;
 end;
@@ -13843,6 +13852,29 @@ begin
   Add('  {@tclass}DoIt(c);');
   Add('  {@tobject}DoIt(b);');
   Add('  {@tclass}DoIt(bc);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestPointer_Assign;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TPtr = pointer;',
+  '  TClass = class of TObject;',
+  '  TObject = class end;',
+  'var',
+  '  p: TPtr;',
+  '  o: TObject;',
+  '  c: TClass;',
+  'begin',
+  '  p:=o;',
+  '  if p=o then ;',
+  '  if o=p then ;',
+  '  p:=c;',
+  '  if p=c then ;',
+  '  if c=p then ;',
+  '']);
   ParseProgram;
 end;
 

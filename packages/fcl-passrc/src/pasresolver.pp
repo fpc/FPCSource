@@ -1732,7 +1732,7 @@ type
     function IsVarInit(Expr: TPasExpr): boolean;
     function IsEmptyArrayExpr(const ResolvedEl: TPasResolverResult): boolean;
     function IsClassMethod(El: TPasElement): boolean;
-    function IsExternalClassName(aClass: TPasClassType; const ExtName: string): boolean;
+    function IsExternalClass_Name(aClass: TPasClassType; const ExtName: string): boolean;
     function IsProcedureType(const ResolvedEl: TPasResolverResult; HasValue: boolean): boolean;
     function IsArrayType(const ResolvedEl: TPasResolverResult): boolean;
     function IsArrayExpr(Expr: TParamsExpr): TPasArrayType;
@@ -16775,7 +16775,13 @@ begin
       RTypeEl:=RHS.LoTypeEl;
       if RTypeEl.ClassType=TPasPointerType then
         // @Something=TypedPointer
-        exit(cExact);
+        exit(cExact)
+      else if RTypeEl.ClassType=TPasClassType then
+        // @Something=ClassOrInterface
+        exit(cCompatible)
+      else if RTypeEl.ClassType=TPasClassOfType then
+        // @Something=ClassOf
+        exit(cCompatible);
       end;
     end
   else if LHS.BaseType in [btSet,btArrayOrSet] then
@@ -16868,7 +16874,9 @@ begin
       end
     else if LTypeEl.ClassType=TPasClassType then
       begin
-      if TPasClassType(LTypeEl).ObjKind=okInterface then
+      if RHS.BaseType=btPointer then
+        exit(cCompatible)
+      else if TPasClassType(LTypeEl).ObjKind=okInterface then
         begin
         if RHS.BaseType in btAllStrings then
           begin
@@ -16885,6 +16893,11 @@ begin
             exit(cInterfaceToTGUID);
           end;
         end;
+      end
+    else if LTypeEl.ClassType=TPasClassOfType then
+      begin
+      if RHS.BaseType=btPointer then
+        exit(cCompatible);
       end
     else if LTypeEl.ClassType=TPasRecordType then
       begin
@@ -19484,7 +19497,7 @@ begin
        or (C=TPasClassOperator);
 end;
 
-function TPasResolver.IsExternalClassName(aClass: TPasClassType;
+function TPasResolver.IsExternalClass_Name(aClass: TPasClassType;
   const ExtName: string): boolean;
 var
   AncestorScope: TPasClassScope;
