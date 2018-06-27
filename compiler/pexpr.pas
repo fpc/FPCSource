@@ -2738,7 +2738,7 @@ implementation
                          Factor_read_id
          ---------------------------------------------}
 
-       procedure factor_read_id(out p1:tnode;var again:boolean);
+       procedure factor_read_id(out p1:tnode;out again:boolean);
 
          function findwithsymtable : boolean;
            var
