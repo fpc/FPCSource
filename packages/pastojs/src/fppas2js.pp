@@ -4524,7 +4524,6 @@ end;
 function TPas2JSResolver.IsForInExtArray(Loop: TPasImplForLoop;
   const VarResolved, InResolved: TPasResolverResult; out ArgResolved,
   LengthResolved, PropResultResolved: TPasResolverResult): boolean;
-{$DEFINE VerboseIsForInExtArray}
 var
   TypeEl: TPasType;
   aClass: TPasClassType;

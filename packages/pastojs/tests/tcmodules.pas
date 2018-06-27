@@ -6897,30 +6897,32 @@ end;
 procedure TTestModule.TestArray_StaticChar;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TChars = array[char] of char;');
-  Add('  TChars2 = array[''a''..''z''] of char;');
-  Add('var');
-  Add('  Arr: TChars;');
-  Add('  Arr2: TChars2;');
-  Add('  Arr3: array[2..4] of char = (''p'',''a'',''s'');');
-  Add('  Arr4: array[11..13] of char = ''pas'';');
-  Add('  Arr5: array[21..22] of char = ''äö'';');
-  Add('  c: char;');
-  Add('  b: boolean;');
-  Add('begin');
-  Add('  c:=low(arr);');
-  Add('  c:=high(arr);');
-  Add('  arr[''B'']:=''a'';');
-  Add('  arr[''D'']:=arr[c];');
-  Add('  arr[c]:=arr[''d''];');
-  Add('  arr[arr[c]]:=arr[high(arr)];');
-  Add('  b:=arr[low(arr)]=arr[''e''];');
-  Add('  c:=low(arr2);');
-  Add('  c:=high(arr2);');
-  Add('  arr2[''b'']:=''f'';');
-  Add('  arr2[''a'']:=arr2[c];');
-  Add('  arr2[c]:=arr2[''g''];');
+  Add([
+  'type',
+  '  TChars = array[char] of char;',
+  '  TChars2 = array[''a''..''z''] of char;',
+  'var',
+  '  Arr: TChars;',
+  '  Arr2: TChars2;',
+  '  Arr3: array[2..4] of char = (''p'',''a'',''s'');',
+  '  Arr4: array[11..13] of char = ''pas'';',
+  '  Arr5: array[21..22] of char = ''äö'';',
+  '  Arr6: array[31..32] of char = ''ä''+''ö'';',
+  '  c: char;',
+  '  b: boolean;',
+  'begin',
+  '  c:=low(arr);',
+  '  c:=high(arr);',
+  '  arr[''B'']:=''a'';',
+  '  arr[''D'']:=arr[c];',
+  '  arr[c]:=arr[''d''];',
+  '  arr[arr[c]]:=arr[high(arr)];',
+  '  b:=arr[low(arr)]=arr[''e''];',
+  '  c:=low(arr2);',
+  '  c:=high(arr2);',
+  '  arr2[''b'']:=''f'';',
+  '  arr2[''a'']:=arr2[c];',
+  '  arr2[c]:=arr2[''g''];']);
   ConvertProgram;
   CheckSource('TestArray_StaticChar',
     LinesToStr([ // statements
@@ -6929,6 +6931,7 @@ begin
     'this.Arr3 = ["p", "a", "s"];',
     'this.Arr4 = ["p", "a", "s"];',
     'this.Arr5 = ["ä", "ö"];',
+    'this.Arr6 = ["ä", "ö"];',
     'this.c = "";',
     'this.b = false;',
     '']),
