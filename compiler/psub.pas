@@ -677,8 +677,7 @@ implementation
 
      destructor tcgprocinfo.destroy;
        begin
-         if assigned(code) then
-           code.free;
+         code.free;
          if not final_used then
            final_asmnode.free;
          inherited destroy;
