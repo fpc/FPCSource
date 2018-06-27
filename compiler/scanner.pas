@@ -2524,6 +2524,9 @@ type
               if (not found) then
                found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
             end;
+           { if the name ends in dot, try without the dot }
+           if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
+             found:=findincludefile(path,Copy(name,1,Length(name)-1),foundfile);
            if current_scanner.inputfilecount<max_include_nesting then
              begin
                inc(current_scanner.inputfilecount);
