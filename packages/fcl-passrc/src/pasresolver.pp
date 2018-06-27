@@ -17823,7 +17823,7 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
           exit;
           end;
         end
-      else if IsArrayOperatorAdd(Expr) then
+      else if IsArrayOperatorAdd(Expr) and not (Values.BaseType in btAllStrings) then
         begin
         // a:=left+right
         if length(ArrType.Ranges)>0 then

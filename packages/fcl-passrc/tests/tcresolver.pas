@@ -682,6 +682,7 @@ type
     Procedure TestDynArrayOfLongint;
     Procedure TestStaticArray;
     Procedure TestStaticArrayOfChar;
+    Procedure TestStaticArrayOfCharDelphi;
     Procedure TestStaticArrayOfRangeElCheckFail;
     Procedure TestArrayOfArray;
     Procedure TestArrayOfArray_NameAnonymous;
@@ -801,6 +802,7 @@ type
     Procedure TestHint_ElementHints;
     Procedure TestHint_ElementHintsMsg;
     Procedure TestHint_ElementHintsAlias;
+    Procedure TestHint_ElementHints_WarnOff_SymbolDeprecated;
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -11795,19 +11797,44 @@ procedure TTestResolver.TestStaticArrayOfChar;
 begin
   ResolverEngine.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   StartProgram(false);
-  Add('type');
-  Add('  TArrA = array[1..3] of char;');
-  Add('const');
-  Add('  A: TArrA = (''p'',''a'',''p'');'); // duplicate allowed, this bracket is not a set
-  Add('  B: TArrA = ''pas'';');
-  Add('  Three = length(TArrA);');
-  Add('  C: array[1..Three] of char = ''pas'';');
-  Add('  D = ''pp'';');
-  Add('  E: array[length(D)..Three] of char = D;');
-  Add('  F: array[1..2] of widechar = ''äö'';');
-  Add('  G: array[1..2] of char = ''ä'';');
-  Add('  H: array[1..4] of char = ''äö'';');
-  Add('begin');
+  Add([
+  'type',
+  '  TArrA = array[1..3] of char;',
+  'const',
+  '  A: TArrA = (''p'',''a'',''p'');', // duplicate allowed, this bracket is not a set
+  '  B: TArrA = ''pas'';',
+  '  Three = length(TArrA);',
+  '  C: array[1..Three] of char = ''pas'';',
+  '  D = ''pp'';',
+  '  E: array[length(D)..Three] of char = D;',
+  '  F: array[1..2] of widechar = ''äö'';',
+  '  G: array[1..2] of char = ''ä'';',
+  '  H: array[1..4] of char = ''äö'';',
+  '  I: array[1..4] of char = ''ä''+''ö'';',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestStaticArrayOfCharDelphi;
+begin
+  ResolverEngine.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TArrA = array[1..3] of char;',
+  'const',
+  '  A: TArrA = (''p'',''a'',''p'');', // duplicate allowed, this bracket is not a set
+  '  B: TArrA = ''pas'';',
+  '  Three = length(TArrA);',
+  '  C: array[1..Three] of char = ''pas'';',
+  '  D = ''pp'';',
+  '  E: array[length(D)..Three] of char = D;',
+  '  F: array[1..2] of widechar = ''äö'';',
+  '  G: array[1..2] of char = ''ä'';',
+  '  H: array[1..4] of char = ''äö'';',
+  '  I: array[1..4] of char = ''ä''+''ö'';',
+  'begin']);
   ParseProgram;
 end;
 
@@ -14184,7 +14211,7 @@ begin
   'begin',
   '']);
   ParseProgram;
-  WriteSources('afile.pp',3,4);
+  //WriteSources('afile.pp',3,4);
 
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
@@ -14194,6 +14221,20 @@ begin
     aMarker:=aMarker^.Next;
     end;
 
+  CheckResolverUnexpectedHints(true);
+end;
+
+procedure TTestResolver.TestHint_ElementHints_WarnOff_SymbolDeprecated;
+begin
+  exit;  // ToDo
+  StartProgram(false);
+  Add([
+  '{$warn symbol_deprecated off}',
+  'type',
+  '  i: byte; deprecated;',
+  'begin',
+  '']);
+  ParseProgram;
   CheckResolverUnexpectedHints(true);
 end;
 

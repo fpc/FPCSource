@@ -53,6 +53,7 @@ const
   nLogMacroDefined = 1026; // FPC=3101
   nLogMacroUnDefined = 1027; // FPC=3102
   nWarnIllegalCompilerDirectiveX = 1028;
+  nIllegalStateForWarnDirective = 1027;
 
 // resourcestring patterns of messages
 resourcestring
@@ -77,13 +78,14 @@ resourcestring
   SErrInvalidMode = 'Invalid mode: "%s"';
   SErrInvalidModeSwitch = 'Invalid mode switch: "%s"';
   SErrXExpectedButYFound = '"%s" expected, but "%s" found';
-  sErrRangeCheck = 'range check failed';
-  sErrDivByZero = 'division by zero';
-  sErrOperandAndOperatorMismatch = 'operand and operator mismatch';
+  SErrRangeCheck = 'range check failed';
+  SErrDivByZero = 'division by zero';
+  SErrOperandAndOperatorMismatch = 'operand and operator mismatch';
   SUserDefined = 'User defined: "%s"';
-  sLogMacroDefined = 'Macro defined: %s';
-  sLogMacroUnDefined = 'Macro undefined: %s';
-  sWarnIllegalCompilerDirectiveX = 'Illegal compiler directive "%s"';
+  SLogMacroDefined = 'Macro defined: %s';
+  SLogMacroUnDefined = 'Macro undefined: %s';
+  SWarnIllegalCompilerDirectiveX = 'Illegal compiler directive "%s"';
+  SIllegalStateForWarnDirective = 'Illegal state "%s" for $WARN directive';
 
 type
   TMessageType = (
@@ -355,6 +357,14 @@ const
   DefaultVSInterfaces = 'com';
 
 type
+  TWarnMsgState = (
+    wmsDefault,
+    wmsOn,
+    wmsOff,
+    wmsError
+  );
+
+type
   TTokenOption = (toForceCaret,toOperatorToken);
   TTokenOptions = Set of TTokenOption;
 
@@ -600,6 +610,13 @@ type
 
   TPascalScanner = class
   private
+    type
+      TWarnMsgNumberState = record
+        Number: integer;
+        State: TWarnMsgState;
+      end;
+      TWarnMsgNumberStateArr = array of TWarnMsgNumberState;
+  private
     FAllowedBoolSwitches: TBoolSwitches;
     FAllowedModes: TModeSwitches;
     FAllowedModeSwitches: TModeSwitches;
@@ -641,6 +658,7 @@ type
     FTokenStr: PChar;
     FIncludeStack: TFPList;
     FFiles: TStrings;
+    FWarnMsgStates: TWarnMsgNumberStateArr;
 
     // Preprocessor $IFxxx skipping data
     PPSkipMode: TPascalScannerPPSkipMode;
@@ -652,6 +670,7 @@ type
     function GetCurrentValueSwitch(V: TValueSwitch): string;
     function GetForceCaret: Boolean;
     function GetMacrosOn: boolean;
+    function IndexOfWarnMsgState(Number: integer; InsertPos: boolean): integer;
     function OnCondEvalFunction(Sender: TCondDirectiveEvaluator; Name,
       Param: String; out Value: string): boolean;
     procedure OnCondEvalLog(Sender: TCondDirectiveEvaluator;
@@ -690,12 +709,14 @@ type
     procedure HandleError(Param: String); virtual;
     procedure HandleMessageDirective(Param: String); virtual;
     procedure HandleIncludeFile(Param: String); virtual;
-    procedure HandleUnDefine(Param: String);virtual;
-    function HandleInclude(const Param: String): TToken;virtual;
-    procedure HandleMode(const Param: String);virtual;
-    procedure HandleModeSwitch(const Param: String);virtual;
-    function HandleMacro(AIndex: integer): TToken;virtual;
-    procedure HandleInterfaces(const Param: String);virtual;
+    procedure HandleUnDefine(Param: String); virtual;
+    function HandleInclude(const Param: String): TToken; virtual;
+    procedure HandleMode(const Param: String); virtual;
+    procedure HandleModeSwitch(const Param: String); virtual;
+    function HandleMacro(AIndex: integer): TToken; virtual;
+    procedure HandleInterfaces(const Param: String); virtual;
+    procedure HandleWarn(Param: String); virtual;
+    procedure HandleWarnIdentifier(IdentifierLoCase, ValueLoCase: String); virtual;
     procedure PushStackItem; virtual;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
@@ -705,6 +726,8 @@ type
     procedure SetCurrentBoolSwitches(const AValue: TBoolSwitches); virtual;
     procedure SetCurrentModeSwitches(AValue: TModeSwitches); virtual;
     procedure SetCurrentValueSwitch(V: TValueSwitch; const AValue: string);
+    procedure SetWarnMsgState(Number: integer; State: TWarnMsgState); virtual;
+    function GetWarnMsgState(Number: integer): TWarnMsgState; virtual;
     function LogEvent(E : TPScannerLogEvent) : Boolean; inline;
   public
     constructor Create(AFileResolver: TBaseFileResolver);
@@ -757,6 +780,7 @@ type
     property AllowedValueSwitches: TValueSwitches read FAllowedValueSwitches Write SetAllowedValueSwitches;
     property ReadOnlyValueSwitches: TValueSwitches read FReadOnlyValueSwitches Write SetReadOnlyValueSwitches;// cannot be changed by code
     property CurrentValueSwitch[V: TValueSwitch]: string read GetCurrentValueSwitch Write SetCurrentValueSwitch;
+    property WarnMsgState[Number: integer]: TWarnMsgState read GetWarnMsgState write SetWarnMsgState;
     property Options : TPOptions read FOptions write SetOptions;
     Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
     Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
@@ -2777,6 +2801,79 @@ begin
   CurrentValueSwitch[vsInterfaces]:=NewValue;
 end;
 
+procedure TPascalScanner.HandleWarn(Param: String);
+// $warn identifier on|off|default|error
+var
+  p, StartPos: Integer;
+  Identifier, Value: String;
+begin
+  Param:=lowercase(Param);
+  p:=1;
+  while (p<=length(Param)) and (Param[p] in [' ',#9]) do inc(p);
+  StartPos:=p;
+  while (p<=length(Param)) and (Param[p] in ['a'..'z','0'..'9','_']) do inc(p);
+  Identifier:=copy(Param,StartPos,p-StartPos);
+  while (p<=length(Param)) and (Param[p] in [' ',#9]) do inc(p);
+  StartPos:=p;
+  while (p<=length(Param)) and (Param[p] in ['a'..'z']) do inc(p);
+  Value:=copy(Param,StartPos,p-StartPos);
+  HandleWarnIdentifier(Identifier,Value);
+end;
+
+procedure TPascalScanner.HandleWarnIdentifier(IdentifierLoCase,
+  ValueLoCase: String);
+var
+  Number: LongInt;
+  State: TWarnMsgState;
+begin
+  if IdentifierLoCase='' then
+    Error(nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,['']);
+  if IdentifierLoCase[1] in ['0'..'9'] then
+    begin
+    // fpc number
+    Number:=StrToIntDef(IdentifierLoCase,-1);
+    if Number<0 then
+      begin
+      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[IdentifierLoCase]);
+      exit;
+      end;
+    end
+  else if (IdentifierLoCase[1]='w') and (msDelphi in CurrentModeSwitches) then
+    begin
+    // delphi W number
+    Number:=StrToIntDef(copy(IdentifierLoCase,2,10),-1);
+    if Number<0 then
+      begin
+      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[IdentifierLoCase]);
+      exit;
+      end;
+    Number:=-1;
+    end
+  else
+    begin
+    DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[IdentifierLoCase]);
+    exit;
+    end;
+
+  if ValueLoCase='' then
+    begin
+    DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,['']);
+    exit;
+    end;
+  case ValueLoCase of
+  'on': State:=wmsOn;
+  'off': State:=wmsOff;
+  'default': State:=wmsDefault;
+  'error': State:=wmsError;
+  else
+    DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[ValueLoCase]);
+    exit;
+  end;
+
+  if Number>=0 then
+    SetWarnMsgState(Number,State);
+end;
+
 procedure TPascalScanner.HandleDefine(Param: String);
 
 Var
@@ -3193,6 +3290,8 @@ begin
           DoBoolDirective(bsTypeInfo);
         'UNDEF':
           HandleUnDefine(Param);
+        'WARN':
+          HandleWarn(Param);
         'WARNING':
           DoLog(mtWarning,nUserDefined,SUserDefined,[Param]);
         'WARNINGS':
@@ -3755,6 +3854,34 @@ begin
   Result:=bsMacro in FCurrentBoolSwitches;
 end;
 
+function TPascalScanner.IndexOfWarnMsgState(Number: integer; InsertPos: boolean
+  ): integer;
+var
+  l, r, m, CurNumber: Integer;
+begin
+  l:=0;
+  r:=length(FWarnMsgStates)-1;
+  m:=0;
+  while l<=r do
+    begin
+    m:=(l+r) div 2;
+    CurNumber:=FWarnMsgStates[m].Number;
+    if Number>CurNumber then
+      l:=m+1
+    else if Number<CurNumber then
+      r:=m-1
+    else
+      exit(m);
+    end;
+  if not InsertPos then
+    exit(-1);
+  if length(FWarnMsgStates)=0 then
+    exit(0);
+  if (m<length(FWarnMsgStates)) and (FWarnMsgStates[m].Number<=Number) then
+    inc(m);
+  Result:=m;
+end;
+
 function TPascalScanner.OnCondEvalFunction(Sender: TCondDirectiveEvaluator;
   Name, Param: String; out Value: string): boolean;
 begin
@@ -3920,6 +4047,70 @@ begin
   if not (V in AllowedValueSwitches) then exit;
   if FCurrentValueSwitches[V]=AValue then exit;
   FCurrentValueSwitches[V]:=AValue;
+end;
+
+procedure TPascalScanner.SetWarnMsgState(Number: integer; State: TWarnMsgState);
+
+  {$IF FPC_FULLVERSION<30101}
+  procedure Delete(var A: TWarnMsgNumberStateArr; Index, Count: integer); overload;
+  var
+    i: Integer;
+  begin
+    if Index<0 then
+      Error(nErrDivByZero,'[20180627142123]');
+    if Index+Count>length(A) then
+      Error(nErrDivByZero,'[20180627142127]');
+    for i:=Index+Count to length(A)-1 do
+      A[i-Count]:=A[i];
+    SetLength(A,length(A)-Count);
+  end;
+
+  procedure Insert(Item: TWarnMsgNumberState; var A: TWarnMsgNumberStateArr; Index: integer); overload;
+  var
+    i: Integer;
+  begin
+    if Index<0 then
+      Error(nErrDivByZero,'[20180627142133]');
+    if Index>length(A) then
+      Error(nErrDivByZero,'[20180627142137]');
+    SetLength(A,length(A)+1);
+    for i:=length(A)-1 downto Index+1 do
+      A[i]:=A[i-1];
+    A[Index]:=Item;
+  end;
+  {$ENDIF}
+
+var
+  i: Integer;
+  Item: TWarnMsgNumberState;
+begin
+  i:=IndexOfWarnMsgState(Number,true);
+  if (i<length(FWarnMsgStates)) and (FWarnMsgStates[i].Number=Number) then
+    begin
+    // already exists
+    if State=wmsDefault then
+      Delete(FWarnMsgStates,i,1)
+    else
+      FWarnMsgStates[i].State:=State;
+    end
+  else if State<>wmsDefault then
+    begin
+    // new state
+    Item.Number:=Number;
+    Item.State:=State;
+    Insert(Item,FWarnMsgStates,i);
+    end;
+end;
+
+function TPascalScanner.GetWarnMsgState(Number: integer): TWarnMsgState;
+var
+  i: Integer;
+begin
+  i:=IndexOfWarnMsgState(Number,false);
+  if i<0 then
+    Result:=wmsDefault
+  else
+    Result:=FWarnMsgStates[i].State;
 end;
 
 procedure TPascalScanner.SetMacrosOn(const AValue: boolean);
