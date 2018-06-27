@@ -44,7 +44,7 @@ unit PasUseAnalyzer;
 interface
 
 uses
-  Classes, SysUtils, AVL_Tree,
+  Classes, SysUtils, Types, AVL_Tree,
   PasTree, PScanner, PasResolveEval, PasResolver;
 
 const
@@ -247,9 +247,11 @@ type
     function IsExport(El: TPasElement): boolean;
     function IsIdentifier(El: TPasElement): boolean;
     function IsImplBlockEmpty(El: TPasImplBlock): boolean;
-    procedure EmitMessage(const Id: int64; const MsgType: TMessageType;
+    procedure EmitMessage(Id: int64; MsgType: TMessageType;
       MsgNumber: integer; Fmt: String; const Args: array of const; PosEl: TPasElement);
     procedure EmitMessage(Msg: TPAMessage);
+    class function GetWarnIdentifierNumbers(Identifier: string;
+      out MsgNumbers: TIntegerDynArray): boolean; virtual;
     function GetUsedElements: TFPList; virtual; // list of TPAElement
     property OnMessage: TPAMessageEvent read FOnMessage write FOnMessage;
     property Options: TPasAnalyzerOptions read FOptions write SetOptions;
@@ -2469,19 +2471,21 @@ begin
   Result:=false;
 end;
 
-procedure TPasAnalyzer.EmitMessage(const Id: int64;
-  const MsgType: TMessageType; MsgNumber: integer; Fmt: String;
-  const Args: array of const; PosEl: TPasElement);
+procedure TPasAnalyzer.EmitMessage(Id: int64; MsgType: TMessageType;
+  MsgNumber: integer; Fmt: String; const Args: array of const;
+  PosEl: TPasElement);
 var
   Msg: TPAMessage;
   El: TPasElement;
   ProcScope: TPasProcedureScope;
   ModScope: TPasModuleScope;
+  Scanner: TPascalScanner;
+  State: TWarnMsgState;
 begin
   {$IFDEF VerbosePasAnalyzer}
   //writeln('TPasAnalyzer.EmitMessage [',Id,'] ',MsgType,': (',MsgNumber,') Fmt={',Fmt,'} PosEl='+GetElModName(PosEl));
   {$ENDIF}
-  if MsgType in [mtHint,mtNote,mtWarning] then
+  if MsgType>=mtWarning then
     begin
     El:=PosEl;
     while El<>nil do
@@ -2509,6 +2513,25 @@ begin
         break;
         end;
       El:=El.Parent;
+      end;
+    if (Resolver<>nil) and (Resolver.CurrentParser<>nil) then
+      begin
+      Scanner:=Resolver.CurrentParser.Scanner;
+      if Scanner<>nil then
+        begin
+        State:=Scanner.WarnMsgState[MsgNumber];
+        case State of
+        wmsOff:
+          begin
+          {$IFDEF VerbosePasAnalyzer}
+          writeln('TPasAnalyzer.EmitMessage ignoring [',Id,'] ',MsgType,': (',MsgNumber,') Fmt={',Fmt,'} PosEl='+GetElModName(PosEl));
+          {$ENDIF}
+          exit;
+          end;
+        wmsError:
+          MsgType:=mtError;
+        end;
+        end;
       end;
     end;
   Msg:=TPAMessage.Create;
@@ -2538,6 +2561,32 @@ begin
     OnMessage(Self,Msg);
   finally
     Msg.Release;
+  end;
+end;
+
+class function TPasAnalyzer.GetWarnIdentifierNumbers(Identifier: string; out
+  MsgNumbers: TIntegerDynArray): boolean;
+
+  procedure SetNumber(Number: integer);
+  begin
+    {$IF FPC_FULLVERSION>=30101}
+    MsgNumbers:=[Number];
+    {$ELSE}
+    Setlength(MsgNumbers,1);
+    MsgNumbers[0]:=Number;
+    {$ENDIF}
+  end;
+
+begin
+  if Identifier='' then exit(false);
+  if Identifier[1] in ['0'..'9'] then exit(false);
+
+  Result:=true;
+  case UpperCase(Identifier) of
+  // Delphi+FPC
+  'NO_RETVAL': SetNumber(nPAFunctionResultDoesNotSeemToBeSet); // Function result is not set.
+  else
+    Result:=false;
   end;
 end;
 

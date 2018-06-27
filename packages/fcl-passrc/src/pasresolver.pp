@@ -263,7 +263,7 @@ unit PasResolver;
 interface
 
 uses
-  Classes, SysUtils, Math, contnrs,
+  Classes, SysUtils, Math, Types, contnrs,
   PasTree, PScanner, PParser, PasResolveEval;
 
 const
@@ -1232,6 +1232,8 @@ type
       OnlyScope: TPasScope): TPasProcedure;
   protected
     procedure SetCurrentParser(AValue: TPasParser); override;
+    procedure ScannerWarnDirective(Sender: TObject; Identifier: string;
+      State: TWarnMsgState; var Handled: boolean); virtual;
     procedure SetRootElement(const AValue: TPasModule); virtual;
     procedure CheckTopScope(ExpectedClass: TPasScopeClass; AllowDescendants: boolean = false);
     function AddIdentifier(Scope: TPasIdentifierScope;
@@ -1602,6 +1604,8 @@ type
       Const Fmt : String; Args : Array of const; PosEl: TPasElement);
     procedure LogMsg(const id: int64; MsgType: TMessageType; MsgNumber: integer;
       const Fmt: String; Args: Array of const; PosEl: TPasElement); overload;
+    class function GetWarnIdentifierNumbers(Identifier: string;
+      out MsgNumbers: TIntegerDynArray): boolean; virtual;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasResolverResult;
       out GotDesc, ExpDesc: String); overload;
     procedure GetIncompatibleTypeDesc(const GotType, ExpType: TPasType;
@@ -4225,7 +4229,23 @@ begin
   Clear;
   inherited SetCurrentParser(AValue);
   if CurrentParser<>nil then
+    begin
     CurrentParser.Options:=CurrentParser.Options+po_Resolver;
+    if (CurrentParser.Scanner<>nil) and (CurrentParser.Scanner.OnWarnDirective=nil) then
+      CurrentParser.Scanner.OnWarnDirective:=@ScannerWarnDirective;
+    end;
+end;
+
+procedure TPasResolver.ScannerWarnDirective(Sender: TObject;
+  Identifier: string; State: TWarnMsgState; var Handled: boolean);
+var
+  MsgNumbers: TIntegerDynArray;
+  i: Integer;
+begin
+  if not GetWarnIdentifierNumbers(Identifier,MsgNumbers) then exit;
+  Handled:=true;
+  for i:=0 to length(MsgNumbers)-1 do
+    TPascalScanner(Sender).WarnMsgState[MsgNumbers[i]]:=State;
 end;
 
 procedure TPasResolver.CheckTopScope(ExpectedClass: TPasScopeClass;
@@ -15232,17 +15252,97 @@ end;
 procedure TPasResolver.LogMsg(const id: int64; MsgType: TMessageType;
   MsgNumber: integer; const Fmt: String; Args: array of const;
   PosEl: TPasElement);
+var
+  Scanner: TPascalScanner;
+  State: TWarnMsgState;
+  {$IFDEF VerbosePasResolver}
+  s: String;
+  {$ENDIF}
 begin
-  if (FStep<prsFinishingModule)
-      and (CurrentParser.Scanner<>nil)
-      and (CurrentParser.Scanner.IgnoreMsgType(MsgType)) then
-    exit; // during parsing consider directives like $Hints on|off
+  Scanner:=CurrentParser.Scanner;
+  if (Scanner<>nil) then
+    begin
+    if (FStep<prsFinishingModule)
+        and (Scanner.IgnoreMsgType(MsgType)) then
+      exit; // during parsing consider directives like $Hints on|off
+    if MsgType>=mtWarning then
+      begin
+      State:=Scanner.WarnMsgState[MsgNumber];
+      case State of
+      wmsOff:
+        begin
+        {$IFDEF VerbosePasResolver}
+        {AllowWriteln}
+        write('TPasResolver.LogMsg ignoring ',id,' ',GetElementSourcePosStr(PosEl),' ');
+        s:='';
+        str(MsgType,s);
+        write(s);
+        writeln(': [',MsgNumber,'] ',SafeFormat(Fmt,Args));
+        {AllowWriteln-}
+        {$ENDIF}
+        exit; // ignore
+        end;
+      wmsError:
+        begin
+        RaiseMsg(id,MsgNumber,Fmt,Args,PosEl);
+        exit;
+        end;
+      end;
+      end;
+    end;
 
   SetLastMsg(id,MsgType,MsgNumber,Fmt,Args,PosEl);
   if Assigned(OnLog) then
     OnLog(Self,FLastMsg)
   else if Assigned(CurrentParser.OnLog) then
     CurrentParser.OnLog(Self,FLastMsg);
+end;
+
+class function TPasResolver.GetWarnIdentifierNumbers(Identifier: string; out
+  MsgNumbers: TIntegerDynArray): boolean;
+
+  procedure SetNumber(Number: integer);
+  begin
+    {$IF FPC_FULLVERSION>=30101}
+    MsgNumbers:=[Number];
+    {$ELSE}
+    Setlength(MsgNumbers,1);
+    MsgNumbers[0]:=Number;
+    {$ENDIF}
+  end;
+
+begin
+  if Identifier='' then exit(false);
+  if Identifier[1] in ['0'..'9'] then exit(false);
+
+  Result:=true;
+  case UpperCase(Identifier) of
+  // FPC:
+  'CONSTRUCTING_ABSTRACT': SetNumber(nConstructingClassXWithAbstractMethodY); //  Constructing an instance of a class with abstract methods.
+  //'IMPLICIT_VARIANTS': ; //  Implicit use of the variants unit.
+  // useanalyzer: 'NO_RETVAL': ; // Function result is not set.
+  'SYMBOL_DEPRECATED': SetNumber(nSymbolXIsDeprecated); //   Deprecated symbol.
+  'SYMBOL_EXPERIMENTAL': SetNumber(nSymbolXIsExperimental); //   Experimental symbol
+  'SYMBOL_LIBRARY': SetNumber(nSymbolXBelongsToALibrary); //   Not used.
+  'SYMBOL_PLATFORM': SetNumber(nSymbolXIsNotPortable); //   Platform-dependent symbol.
+  'SYMBOL_UNIMPLEMENTED': SetNumber(nSymbolXIsNotImplemented); //   Unimplemented symbol.
+  //'UNIT_DEPRECATED': ; //   Deprecated unit.
+  //'UNIT_EXPERIMENTAL': ; //   Experimental unit.
+  //'UNIT_LIBRARY': ; //
+  //'UNIT_PLATFORM': ; //   Platform dependent unit.
+  //'UNIT_UNIMPLEMENTED': ; //   Unimplemented unit.
+  //'ZERO_NIL_COMPAT': ; //   Converting 0 to NIL
+  //'IMPLICIT_STRING_CAST': ; // Implicit string type conversion
+  //'IMPLICIT_STRING_CAST_LOSS': ; // Implicit string typecast with potential data loss from ”$1” to ”$2”
+  //'EXPLICIT_STRING_CAST': ; //   Explicit string type conversion
+  //'EXPLICIT_STRING_CAST_LOSS': ; //   Explicit string typecast with potential data loss from ”$1” to ”$2”
+  //'CVT_NARROWING_STRING_LOST': ; //   Unicode constant cast with potential data loss
+
+  // Delphi:
+  'HIDDEN_VIRTUAL': SetNumber(nMethodHidesMethodOfBaseType); // method hides virtual method of ancestor
+  else
+    Result:=false;
+  end;
 end;
 
 procedure TPasResolver.GetIncompatibleTypeDesc(const GotType,

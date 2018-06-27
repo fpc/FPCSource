@@ -14226,14 +14226,13 @@ end;
 
 procedure TTestResolver.TestHint_ElementHints_WarnOff_SymbolDeprecated;
 begin
-  exit;  // ToDo
   StartProgram(false);
   Add([
   '{$warn symbol_deprecated off}',
-  'type',
-  '  i: byte; deprecated;',
+  'var',
+  '  i: byte deprecated;',
   'begin',
-  '']);
+  '  if i=3 then ;']);
   ParseProgram;
   CheckResolverUnexpectedHints(true);
 end;

@@ -2805,6 +2805,21 @@ End.
     <li>{$Hint text} : emit a hint</li>
     <li>{$Message hint-text} :  emit a hint</li>
     <li>{$Message hint|note|warn|error|fatal text} : emit a message</li>
+    <li>{$Warn identifier on|off|default|error} : enable or disable a specific hint.<br>
+      Note, that some hints like "Parameter %s not used" are currently using the enable state at the end of the module, not the state at the hint source position.<br>
+      Identifier can be a message number as written by -vq or one of the following case insensitive:<br>
+      <ul>
+        <li>CONSTRUCTING_ABSTRACT: Constructing an instance of a class with abstract methods.</li>
+        <li>IMPLICIT_VARIANTS: Implicit use of the variants unit.</li>
+        <li>NO_RETVAL: Function result is not set</li>
+        <li>SYMBOL_DEPRECATED: Deprecated symbol.</li>
+        <li>SYMBOL_EXPERIMENTAL: Experimental symbol</li>
+        <li>SYMBOL_LIBRARY</li>
+        <li>SYMBOL_PLATFORM:  Platform-dependent symbol.</li>
+        <li>SYMBOL_UNIMPLEMENTED:  Unimplemented symbol.</li>
+        <li>HIDDEN_VIRTUAL: method hides virtual method of ancestor</li>
+      </ul>
+      </li>
     <li>{$M+}, {$TypeInfo on}: switches default visibility for class members from public to published</li>
     <li>{$ScopedEnums on|off} disabled(default): propagate enums to global scope, enable: needs fqn e.g. TEnumType.EnumValue.</li>
     <li>{$C+} generate code for assertions</li>

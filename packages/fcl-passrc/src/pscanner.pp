@@ -607,6 +607,7 @@ type
   TPScannerDirectiveEvent = procedure(Sender: TObject; Directive, Param: String;
     var Handled: boolean) of object;
   TPScannerFormatPathEvent = function(const aPath: string): string of object;
+  TPScannerWarnEvent = procedure(Sender: TObject; Identifier: string; State: TWarnMsgState; var Handled: boolean) of object;
 
   TPascalScanner = class
   private
@@ -645,6 +646,7 @@ type
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
     FOnFormatPath: TPScannerFormatPathEvent;
+    FOnWarnDirective: TPScannerWarnEvent;
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
     FOnLog: TPScannerLogHandler;
@@ -716,7 +718,7 @@ type
     function HandleMacro(AIndex: integer): TToken; virtual;
     procedure HandleInterfaces(const Param: String); virtual;
     procedure HandleWarn(Param: String); virtual;
-    procedure HandleWarnIdentifier(IdentifierLoCase, ValueLoCase: String); virtual;
+    procedure HandleWarnIdentifier(Identifier, Value: String); virtual;
     procedure PushStackItem; virtual;
     function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
@@ -792,6 +794,7 @@ type
     property ConditionEval: TCondDirectiveEvaluator read FConditionEval;
     property OnEvalVariable: TCEEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
     property OnEvalFunction: TCEEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
+    property OnWarnDirective: TPScannerWarnEvent read FOnWarnDirective write FOnWarnDirective;
 
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
@@ -2807,68 +2810,71 @@ var
   p, StartPos: Integer;
   Identifier, Value: String;
 begin
-  Param:=lowercase(Param);
   p:=1;
   while (p<=length(Param)) and (Param[p] in [' ',#9]) do inc(p);
   StartPos:=p;
-  while (p<=length(Param)) and (Param[p] in ['a'..'z','0'..'9','_']) do inc(p);
+  while (p<=length(Param)) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do inc(p);
   Identifier:=copy(Param,StartPos,p-StartPos);
   while (p<=length(Param)) and (Param[p] in [' ',#9]) do inc(p);
   StartPos:=p;
-  while (p<=length(Param)) and (Param[p] in ['a'..'z']) do inc(p);
+  while (p<=length(Param)) and (Param[p] in ['a'..'z','A'..'Z','_']) do inc(p);
   Value:=copy(Param,StartPos,p-StartPos);
   HandleWarnIdentifier(Identifier,Value);
 end;
 
-procedure TPascalScanner.HandleWarnIdentifier(IdentifierLoCase,
-  ValueLoCase: String);
+procedure TPascalScanner.HandleWarnIdentifier(Identifier,
+  Value: String);
 var
   Number: LongInt;
   State: TWarnMsgState;
+  Handled: Boolean;
 begin
-  if IdentifierLoCase='' then
+  if Identifier='' then
     Error(nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,['']);
-  if IdentifierLoCase[1] in ['0'..'9'] then
-    begin
-    // fpc number
-    Number:=StrToIntDef(IdentifierLoCase,-1);
-    if Number<0 then
-      begin
-      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[IdentifierLoCase]);
-      exit;
-      end;
-    end
-  else if (IdentifierLoCase[1]='w') and (msDelphi in CurrentModeSwitches) then
-    begin
-    // delphi W number
-    Number:=StrToIntDef(copy(IdentifierLoCase,2,10),-1);
-    if Number<0 then
-      begin
-      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[IdentifierLoCase]);
-      exit;
-      end;
-    Number:=-1;
-    end
-  else
-    begin
-    DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[IdentifierLoCase]);
-    exit;
-    end;
-
-  if ValueLoCase='' then
+  if Value='' then
     begin
     DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,['']);
     exit;
     end;
-  case ValueLoCase of
+  case lowercase(Value) of
   'on': State:=wmsOn;
   'off': State:=wmsOff;
   'default': State:=wmsDefault;
   'error': State:=wmsError;
   else
-    DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[ValueLoCase]);
+    DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[Value]);
     exit;
   end;
+
+  if Assigned(OnWarnDirective) then
+    begin
+    Handled:=false;
+    OnWarnDirective(Self,Identifier,State,Handled);
+    if Handled then
+      exit;
+    end;
+
+  if Identifier[1] in ['0'..'9'] then
+    begin
+    // fpc number
+    Number:=StrToIntDef(Identifier,-1);
+    if Number<0 then
+      begin
+      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[Identifier]);
+      exit;
+      end;
+    end
+  else if (Identifier[1] in ['w','W']) and (msDelphi in CurrentModeSwitches) then
+    begin
+    // delphi W number
+    Number:=StrToIntDef(copy(Identifier,2,10),-1);
+    if Number<0 then
+      begin
+      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[Identifier]);
+      exit;
+      end;
+    Number:=-1;
+    end;
 
   if Number>=0 then
     SetWarnMsgState(Number,State);

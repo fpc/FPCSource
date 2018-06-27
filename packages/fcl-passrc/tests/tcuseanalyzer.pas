@@ -91,6 +91,7 @@ type
     procedure TestM_Hint_UnitUsed;
     procedure TestM_Hint_UnitUsedVarArgs;
     procedure TestM_Hint_ParameterNotUsed;
+    procedure TestM_Hint_ParameterNotUsedOff;
     procedure TestM_Hint_ParameterInOverrideNotUsed;
     procedure TestM_Hint_ParameterAssignedButNotReadVarParam;
     procedure TestM_Hint_ParameterNotUsed_Abstract;
@@ -1391,6 +1392,18 @@ begin
   Add('  DoIt(1);');
   AnalyzeProgram;
   CheckUseAnalyzerHint(mtHint,nPAParameterNotUsed,'Parameter "i" not used');
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ParameterNotUsedOff;
+begin
+  StartProgram(true);
+  Add('{$warn '+IntToStr(nPAParameterNotUsed)+' off}');
+  Add('procedure DoIt(i: longint);');
+  Add('begin end;');
+  Add('begin');
+  Add('  DoIt(1);');
+  AnalyzeProgram;
   CheckUseAnalyzerUnexpectedHints;
 end;
 
