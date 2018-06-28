@@ -117,12 +117,12 @@ Type
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL: PMySQL);
     procedure ExecuteDirectMySQL(const query : string);
-    function EscapeString(const Str : string) : string;
   protected
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
     function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
+    function EscapeString(const Str : string) : string;
 
     // SQLConnection methods
     procedure DoInternalConnect; override;
