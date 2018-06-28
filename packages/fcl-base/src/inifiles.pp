@@ -244,9 +244,12 @@ type
     property CacheUpdates : Boolean read FCacheUpdates write SetCacheUpdates;
   end;
 
+  { TMemIniFile }
+
   TMemIniFile = class(TIniFile)
   public
-    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); overload; override;
+    constructor Create(const AFileName: string; AOptions : TIniFileoptions = []); overload; override;
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean); overload; override;
     procedure Clear;
     procedure GetStrings(List: TStrings);
     procedure Rename(const AFileName: string; Reload: Boolean);
@@ -1396,7 +1399,13 @@ end;
 
 { TMemIniFile }
 
-constructor TMemIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
+constructor TMemIniFile.Create(const AFileName: string; AOptions: TIniFileoptions);
+begin
+  inherited;
+  FCacheUpdates:=True;
+end;
+
+constructor TMemIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean);
 
 begin
   Inherited;
