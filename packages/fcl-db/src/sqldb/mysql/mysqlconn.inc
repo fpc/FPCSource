@@ -894,77 +894,121 @@ begin
   ABlobBuf^.BlobBuffer^.Size := len;
 end;
 
-function InternalStrToInt(const S: string): integer;
-begin
-  if S = '' then
-    Result := 0
-  else
-    Result := StrToInt(S);
-end;
-
-function InternalStrToFloat(const S: string): Extended;
-
+function InternalStrToInt(C: pchar; Len: integer): integer;
+  procedure r;
+  begin
+    raise EConvertError.CreateFmt('"%s" is not a valid digit', [C^]);
+  end;
 var
   I: Integer;
+begin
+  Result := 0;
+  for I := 1 to Len do
+  begin
+    case C^ of
+      '0'..'9': Result := Result*10 + Ord(C^)-Ord('0');
+      #0: break;
+    else
+      r;
+    end;
+    Inc(C);
+  end;
+end;
+
+function InternalStrToInt64(C: pchar; Len: integer): LargeInt;
+  procedure r;
+  begin
+    raise EConvertError.CreateFmt('"%s" is not a valid digit', [C^]);
+  end;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 1 to Len do
+  begin
+    case C^ of
+      '0'..'9': Result := Result*10 + Ord(C^)-Ord('0');
+      #0: break;
+    else
+      r;
+    end;
+    Inc(C);
+  end;
+end;
+
+function InternalStrToFloat(C: pchar; Len: integer; const Format: TFormatSettings): Extended;
+
+var
   Tmp: string;
 
 begin
-  Tmp := '';
-  for I := 1 to Length(S) do
-    begin
-    if not (S[I] in ['0'..'9', '+', '-', 'E', 'e']) then
-      Tmp := Tmp + FormatSettings.DecimalSeparator
-    else
-      Tmp := Tmp + S[I];
-    end;
-  Result := StrToFloat(Tmp);
+  SetString(Tmp, C, Len);
+  if Tmp='' then
+    Exit(0);
+  Result := StrToFloat(Tmp, Format);
 end;
 
-function InternalStrToCurrency(const S: string): Currency;
+function InternalStrToCurrency(C: pchar; Len: integer; const Format: TFormatSettings): Currency;
 
 var
-  I: Integer;
   Tmp: string;
 
 begin
-  Tmp := '';
-  for I := 1 to Length(S) do
-    begin
-    if not (S[I] in ['0'..'9', '+', '-', 'E', 'e']) then
-      Tmp := Tmp + FormatSettings.DecimalSeparator
-    else
-      Tmp := Tmp + S[I];
-    end;
-  Result := StrToCurr(Tmp);
+  SetString(Tmp, C, Len);
+  if Tmp='' then
+    Exit(0);
+  Result := StrToCurr(Tmp, Format);
 end;
 
-function InternalStrToDate(const S: string): TDateTime;
+function InternalStrToBCD(C: pchar; Len: integer; const Format: TFormatSettings): tBCD;
+
+var
+  Tmp: string;
+
+begin
+  SetString(Tmp, C, Len);
+  if Tmp='' then
+    Exit(0);
+  Result := StrToBCD(Tmp, Format);
+end;
+
+function InternalStrToDate(C: pchar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
 
 begin
-  EY := StrToInt(Copy(S,1,4));
-  EM := StrToInt(Copy(S,6,2));
-  ED := StrToInt(Copy(S,9,2));
+  if Len=0 then
+    Exit(0);
+  if Len<10 then
+    raise EConvertError.Create('Invalid date string');
+  EY := InternalStrToInt(C,4);
+  EM := InternalStrToInt(C+5,2);
+  ED := InternalStrToInt(C+8,2);
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result:=0
   else
     Result:=EncodeDate(EY, EM, ED);
 end;
 
-function StrToMSecs(const S: string): Word;
-var C: char;
+function StrToMSecs(C: pchar; Len: integer): Word;
+{$IFDEF MYSQL56_UP}
+var I: Integer;
     d, MSecs: double;
+{$ENDIF}
 begin
 {$IFDEF MYSQL56_UP}
   // datetime(n), where n is fractional seconds precision (between 0 and 6)
   MSecs := 0;
   d := 100;
-  for C in S do
+  for I := 1 to Len do
     begin
-    MSecs := MSecs + (ord(C)-ord('0'))*d;
+    case C^ of
+      '0'..'9': MSecs := MSecs + (ord(C^)-ord('0'))*d;
+      #0: break;
+    end;
     d := d / 10;
+    Inc(C);
     end;
   Result := Round(MSecs);
 {$ELSE}
@@ -972,20 +1016,27 @@ begin
 {$ENDIF}
 end;
 
-function InternalStrToDateTime(const S: string): TDateTime;
+function InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
   EH, EN, ES, EMS: Word;
 
 begin
-  EY := StrToInt(Copy(S, 1, 4));
-  EM := StrToInt(Copy(S, 6, 2));
-  ED := StrToInt(Copy(S, 9, 2));
-  EH := StrToInt(Copy(S, 12, 2));
-  EN := StrToInt(Copy(S, 15, 2));
-  ES := StrToInt(Copy(S, 18, 2));
-  EMS:= StrToMSecs(Copy(S, 21, 6));
+  if Len=0 then
+    Exit(0);
+  if Len<19 then
+    raise EConvertError.Create('Invalid datetime string');
+  EY := InternalStrToInt(C,4);
+  EM := InternalStrToInt(C+5,2);
+  ED := InternalStrToInt(C+8,2);
+  EH := InternalStrToInt(C+11, 2);
+  EN := InternalStrToInt(C+14, 2);
+  ES := InternalStrToInt(C+17, 2);
+  if Len>20 then
+    EMS := StrToMSecs(C+20, Len-20)
+  else
+    EMS := 0;
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
@@ -993,51 +1044,64 @@ begin
   Result := ComposeDateTime(Result, EncodeTime(EH, EN, ES, EMS));
 end;
 
-function InternalStrToTime(const S: string): TDateTime;
+function InternalStrToTime(C: pchar; Len: integer): TDateTime;
 
 var
   EH, EM, ES, EMS: Word;
-  p: integer;
+  M: PChar;
+  I: Integer;
 
 begin
-  p := 1;
-  EH := StrToInt(ExtractSubstr(S, p, [':'])); //hours can be 2 or 3 digits
-  EM := StrToInt(ExtractSubstr(S, p, [':']));
-  ES := StrToInt(ExtractSubstr(S, p, ['.']));
-  EMS:= StrToMSecs(Copy(S, p, 6));
+  if Len=0 then
+    Exit(0);
+  if Len<8 then
+    raise EConvertError.Create('Invalid time string');
+  //hours can be 2 or 3 digits
+  M:=C;
+  for I := 1 to Len do
+  begin
+    if M^=':' then
+      break;
+    Inc(M);
+  end;
+  if M^<>':' then
+    raise EConvertError.Create('Invalid time string');
+
+  EH := InternalStrToInt(C, NativeInt(M-C));
+  EM := InternalStrToInt(M+1, 2);
+  ES := InternalStrToInt(M+4, 2);
+  if Len>NativeInt(M-C)+7 then
+    EMS := StrToMSecs(M+7, Len-(NativeInt(M-C)+7))
+  else
+    EMS := 0;
   Result := EncodeTimeInterval(EH, EM, ES, EMS);
 end;
 
-function InternalStrToTimeStamp(const S: string): TDateTime;
+{$IFDEF mysql40}
+function InternalStrToTimeStamp(C: pchar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
-  EH, EN, ES, EMS: Word;
+  EH, EN, ES: Word;
 
 begin
-{$IFNDEF mysql40}
-  EY := StrToInt(Copy(S, 1, 4));
-  EM := StrToInt(Copy(S, 6, 2));
-  ED := StrToInt(Copy(S, 9, 2));
-  EH := StrToInt(Copy(S, 12, 2));
-  EN := StrToInt(Copy(S, 15, 2));
-  ES := StrToInt(Copy(S, 18, 2));
-  EMS:= StrToMSecs(Copy(S, 21, 6));
-{$ELSE}
-  EY := StrToInt(Copy(S, 1, 4));
-  EM := StrToInt(Copy(S, 5, 2));
-  ED := StrToInt(Copy(S, 7, 2));
-  EH := StrToInt(Copy(S, 9, 2));
-  EN := StrToInt(Copy(S, 11, 2));
-  ES := StrToInt(Copy(S, 13, 2));
-  EMS:= 0;
-{$ENDIF}
+  if Len=0 then
+    Exit(0);
+  if Len<14 then
+    raise EConvertError.Create('Invalid timestamp string');
+  EY := InternalStrToInt(C, 4);
+  EM := InternalStrToInt(C+4, 2));
+  ED := InternalStrToInt(C+6, 2));
+  EH := InternalStrToInt(C+8, 2));
+  EN := InternalStrToInt(C+10, 2));
+  ES := InternalStrToInt(C+12, 2));
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := Result + EncodeTime(EH, EN, ES, EMS);
+  Result := ComposeDateTime(Result, EncodeTime(EH, EN, ES, 0));
 end;
+{$ENDIF}
 
 function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
 
@@ -1050,29 +1114,27 @@ var
   VC: Currency;
   VD: TDateTime;
   VB: TBCD;
-  Src : String;
 
 begin
   Result := False;
   CreateBlob := False;
   if Source = Nil then // If the pointer is NULL, the field is NULL
     exit;
-  SetString(Src, Source, Len);
 
   case FieldDef.DataType of
     ftSmallint:
       begin
-      VS := InternalStrToInt(Src);
+      VS := InternalStrToInt(Source, Len);
       Move(VS, Dest^, SizeOf(Smallint));
       end;
     ftWord:
       begin
-      VW := InternalStrToInt(Src);
+      VW := InternalStrToInt(Source, Len);
       Move(VW, Dest^, SizeOf(Word));
       end;
     ftInteger, ftAutoInc:
       begin
-      VI := InternalStrToInt(Src);
+      VI := InternalStrToInt(Source, Len);
       Move(VI, Dest^, SizeOf(Integer));
       end;
     ftLargeInt:
@@ -1086,55 +1148,42 @@ begin
         end
       else
       {$ENDIF}
-        if Src <> '' then
-          VL := StrToInt64(Src)
-        else
-          VL := 0;
+      VL := InternalStrToInt64(Source, Len);
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
     ftFloat:
       begin
-      if Src <> '' then
-        VF := InternalStrToFloat(Src)
-      else
-        VF := 0;
+      VF := InternalStrToFloat(Source, Len, FSQLFormatSettings);
       Move(VF, Dest^, SizeOf(Double));
       end;
     ftBCD:
       begin
-      VC := InternalStrToCurrency(Src);
+      VC := InternalStrToCurrency(Source, Len, FSQLFormatSettings);
       Move(VC, Dest^, SizeOf(Currency));
       end;
     ftFmtBCD:
       begin
-      VB := StrToBCD(Src, FSQLFormatSettings);
+      VB := InternalStrToBCD(Source, Len, FSQLFormatSettings);
       Move(VB, Dest^, SizeOf(TBCD));
       end;
     ftDate:
       begin
-      if Src <> '' then
-        VD := InternalStrToDate(Src)
-      else
-        VD := 0;
+      VD := InternalStrToDate(Source, Len);
       Move(VD, Dest^, SizeOf(TDateTime));
       end;
     ftTime:
       begin
-      if Src <> '' then
-        VD := InternalStrToTime(Src)
-      else
-        VD := 0;
+      VD := InternalStrToTime(Source, Len);
       Move(VD, Dest^, SizeOf(TDateTime));
       end;
     ftDateTime:
       begin
-      if Src <> '' then
-        if AField^.ftype = FIELD_TYPE_TIMESTAMP then
-          VD := InternalStrToTimeStamp(Src)
-        else
-          VD := InternalStrToDateTime(Src)
+      {$IFDEF mysql40}
+      if AField^.ftype = FIELD_TYPE_TIMESTAMP then
+        VD := InternalStrToTimeStamp(Source, Len)
       else
-        VD := 0;
+      {$ENDIF}
+        VD := InternalStrToDateTime(Source, Len);
       Move(VD, Dest^, SizeOf(TDateTime));
       end;
     ftString, ftFixedChar:
