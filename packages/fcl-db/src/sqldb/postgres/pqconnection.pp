@@ -974,8 +974,10 @@ end;
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
 var ar  : array of PAnsiChar;
+    handled : boolean;
     l,i : integer;
     s   : RawByteString;
+    bd : TBlobData;
     lengths,formats : array of integer;
     ParamNames,
     ParamValues : array of string;
@@ -1004,6 +1006,7 @@ begin
         setlength(formats,l);
         for i := 0 to AParams.Count -1 do if not AParams[i].IsNull then
           begin
+          handled:=False;
           case AParams[i].DataType of
             ftDateTime:
               s := FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss.zzz', AParams[i].AsDateTime);
@@ -1024,13 +1027,28 @@ begin
             ftFmtBCD:
               s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
             ftBlob, ftGraphic:
-              s := AParams[i].AsBlob;
+              begin
+              Handled:=true;
+              bd:= AParams[i].AsBlob;
+              l:=length(BD);
+              if l>0 then
+                begin
+                GetMem(ar[i],l+1);
+                ar[i][l]:=#0;
+                Move(BD[0],ar[i]^, L);
+                lengths[i]:=l;
+                end;
+              end
             else
               s := GetAsString(AParams[i]);
           end; {case}
-          GetMem(ar[i],length(s)+1);
-          StrMove(PAnsiChar(ar[i]), PAnsiChar(s), Length(S)+1);
-          lengths[i]:=Length(s);
+          if not handled then
+            begin
+            l:=length(s);
+            GetMem(ar[i],l+1);
+            StrMove(PAnsiChar(ar[i]), PAnsiChar(s), L+1);
+            lengths[i]:=L;
+            end;
           if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency]) then
             Formats[i]:=1
           else

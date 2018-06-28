@@ -693,7 +693,7 @@ procedure TOracleConnection.SetParameters(cursor : TSQLCursor; ATransaction : TS
 var i         : integer;
     year, month, day, hour, min, sec, msec : word;
     s         : string;
-    LobBuffer : string;
+    LobBuffer : TBytes;
     LobLength : ub4;
 
 begin
@@ -736,15 +736,15 @@ begin
                             // create empty temporary LOB with zero length
                             if OciLobCreateTemporary(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, OCI_DEFAULT, OCI_DEFAULT, OCI_TEMP_BLOB, False, OCI_DURATION_SESSION) = OCI_ERROR then
                               HandleError;
-                            if (LobLength > 0) and (OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, @LobLength, 1, @LobBuffer[1], LobLength, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR) then
+                            if (LobLength > 0) and (OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, @LobLength, 1, @LobBuffer[0], LobLength, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR) then
                               HandleError;
                             end;
         ftMemo            : begin
-                            LobBuffer := AsString;
+                            LobBuffer := AsBytes;
                             LobLength := length(LobBuffer);
                             if LobLength > 65531 then LobLength := 65531;
                             PInteger(ParamBuffers[i].Buffer)^ := LobLength;
-                            Move(LobBuffer[1], (ParamBuffers[i].Buffer+sizeof(integer))^, LobLength);
+                            Move(LobBuffer[0], (ParamBuffers[i].Buffer+sizeof(integer))^, LobLength);
                             end;
         else
           DatabaseErrorFmt(SUnsupportedParameter,[DataType],self);

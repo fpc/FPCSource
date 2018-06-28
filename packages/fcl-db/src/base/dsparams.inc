@@ -700,6 +700,12 @@ begin
   Value:=AValue;
 end;
 
+procedure TParam.SetAsBlobData(const AValue: TBlobData);
+begin
+  FDataType:=ftBlob;
+  Value:=AValue;
+end;
+
 Procedure TParam.SetAsCurrency(const AValue: Currency);
 begin
   FDataType:=ftCurrency;
@@ -1150,7 +1156,7 @@ end;
 Procedure TParam.SetBlobData(Buffer: Pointer; ASize: Integer);
 
 Var
-  Temp : String;
+  Temp : TBlobData;
 
 begin
   SetLength(Temp,ASize);
