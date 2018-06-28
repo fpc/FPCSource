@@ -404,14 +404,14 @@ begin
 end;
 
 procedure TCSVDocument.LoadFromStream(AStream: TStream);
+
 var
   I, J, MaxCol: Integer;
+
 begin
   Clear;
-
-  if not Assigned(FParser) then
-    FParser := TCSVParser.Create;
-
+  FreeAndNil(FParser);
+  FParser:=TCSVParser.Create;
   FParser.AssignCSVProperties(Self);
   with FParser do
   begin
