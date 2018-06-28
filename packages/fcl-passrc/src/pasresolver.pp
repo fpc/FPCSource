@@ -4392,6 +4392,14 @@ begin
   PopScope;
 
   FStep:=prsFinishedModule;
+
+  if (CurrentParser<>nil) and (CurrentParser.Scanner<>nil) then
+    begin
+    CurrentParser.NextToken;
+    if CurrentParser.Scanner.CurToken<>tkEOF then
+      LogMsg(20180628131456,mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored,
+        [],nil);
+    end;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishModule END ',CurModule.Name);
   {$ENDIF}

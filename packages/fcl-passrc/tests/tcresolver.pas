@@ -804,6 +804,7 @@ type
     Procedure TestHint_ElementHintsMsg;
     Procedure TestHint_ElementHintsAlias;
     Procedure TestHint_ElementHints_WarnOff_SymbolDeprecated;
+    Procedure TestHint_Garbage;
 
     // attributes
     Procedure TestAttributes_Ignore;
@@ -14252,6 +14253,17 @@ begin
   'begin',
   '  if i=3 then ;']);
   ParseProgram;
+  CheckResolverUnexpectedHints(true);
+end;
+
+procedure TTestResolver.TestHint_Garbage;
+begin
+  StartProgram(false);
+  Add([
+  'begin',
+  'end.']);
+  ParseProgram;
+  CheckResolverHint(mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored);
   CheckResolverUnexpectedHints(true);
 end;
 

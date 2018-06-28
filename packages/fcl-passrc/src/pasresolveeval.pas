@@ -128,7 +128,7 @@ const
   nTypeIdentifierExpected = 3055;
   nCannotNestAnonymousX = 3056;
   nFoundCallCandidateX = 3057;
-  // free 3058
+  nTextAfterFinalIgnored = 3058;
   // free 3059
   // free 3060
   // free 3061
@@ -245,6 +245,7 @@ resourcestring
   sTypeIdentifierExpected = 'Type identifier expected';
   sCannotNestAnonymousX = 'Cannot nest anonymous %s';
   sFoundCallCandidateX = 'Found call candidate %s';
+  sTextAfterFinalIgnored = 'Text after final ''end.''. ignored by compiler';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
   sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';

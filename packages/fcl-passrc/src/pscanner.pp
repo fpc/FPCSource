@@ -735,7 +735,7 @@ type
     constructor Create(AFileResolver: TBaseFileResolver);
     destructor Destroy; override;
     procedure OpenFile(AFilename: string);
-    procedure FinishedModule; virtual;
+    procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: string): string; virtual;
     Procedure SetNonToken(aToken : TToken);
     Procedure UnsetNonToken(aToken : TToken);
@@ -2863,17 +2863,6 @@ begin
       DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[Identifier]);
       exit;
       end;
-    end
-  else if (Identifier[1] in ['w','W']) and (msDelphi in CurrentModeSwitches) then
-    begin
-    // delphi W number
-    Number:=StrToIntDef(copy(Identifier,2,10),-1);
-    if Number<0 then
-      begin
-      DoLog(mtWarning,nIllegalStateForWarnDirective,SIllegalStateForWarnDirective,[Identifier]);
-      exit;
-      end;
-    Number:=-1;
     end;
 
   if Number>=0 then
