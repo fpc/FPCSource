@@ -1023,6 +1023,8 @@ begin
               end;
             ftFmtBCD:
               s := BCDToStr(AParams[i].AsFMTBCD, FSQLFormatSettings);
+            ftBlob, ftGraphic:
+              s := AParams[i].AsBlob;
             else
               s := GetAsString(AParams[i]);
           end; {case}
