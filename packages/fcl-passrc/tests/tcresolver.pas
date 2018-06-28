@@ -383,6 +383,7 @@ type
     Procedure TestProcOverloadOtherUnit;
     Procedure TestProcOverloadWithBaseTypes;
     Procedure TestProcOverloadWithBaseTypes2;
+    Procedure TestProcOverloadWithDefaultArgs;
     Procedure TestProcOverloadNearestHigherPrecision;
     Procedure TestProcCallLowPrecision;
     Procedure TestProcOverloadUntyped;
@@ -5867,6 +5868,23 @@ begin
   Add('  {@shortstring}DoIt(ss);');
   Add('  {@unicodestring}DoIt(us);');
   Add('  {@rawbytestring}DoIt(rs);');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadWithDefaultArgs;
+begin
+  StartProgram(false);
+  Add([
+  'type float = type single;',
+  'type integer = longint;',
+  'procedure {#float}DoIt(s: float); external;',
+  'procedure {#longint}DoIt(i: integer; Scale: float = 1.0); external;',
+  'var i: integer;',
+  'begin',
+  '  {@float}DoIt(1.0);',
+  '  {@longint}DoIt(2);',
+  '  {@longint}DoIt(i);',
+  '']);
   ParseProgram;
 end;
 

@@ -1184,7 +1184,6 @@ type
       cToFloatConversion = 2*cIntToIntConversion;
       cTypeConversion = cExact+10000; // e.g. TObject to Pointer
       cLossyConversion = cExact+100000;
-      cCompatibleWithDefaultParams = cLossyConversion+100000;
       cIncompatible = High(integer);
     var
       cTGUIDToString: integer;
@@ -3960,9 +3959,8 @@ begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.OnFindCallElements Found another candidate, but it is incompatible -> ignore')
     {$ENDIF}
-  else if (Distance>=cCompatibleWithDefaultParams)
-        or (Data^.Distance=Distance)
-        or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)) then
+  else if (Data^.Distance=Distance)
+      or ((Distance>=cLossyConversion) and (Data^.Distance>=cLossyConversion)) then
     begin
     // found another compatible one -> collect
     {$IFDEF VerbosePasResolver}
@@ -15471,7 +15469,6 @@ begin
     else
       begin
       // the rest are default params
-      Result:=cCompatibleWithDefaultParams;
       end;
 end;
 
