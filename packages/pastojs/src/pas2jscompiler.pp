@@ -1036,10 +1036,10 @@ end;
 function TPas2jsCompilerFile.OnPCUConverterIsTypeInfoUsed(Sender: TObject;
   El: TPasElement): boolean;
 begin
-  if (coKeepNotUsedPrivates in Compiler.Options) then
-    Result:=true
-  else
-    Result:=UseAnalyzer.IsTypeInfoUsed(El);
+  if Sender=nil then ;
+  if El=nil then ;
+  // PCU does not need precompiled typeinfo
+  Result:=false;
 end;
 
 procedure TPas2jsCompilerFile.OnScannerLog(Sender: TObject; const Msg: String);

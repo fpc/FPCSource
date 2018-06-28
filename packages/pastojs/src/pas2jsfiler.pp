@@ -5544,7 +5544,7 @@ begin
       end;
     'TypeAlias':
       begin
-      Result:=TPasPointerType.Create(Name,Parent);
+      Result:=TPasTypeAliasType.Create(Name,Parent);
       ReadAliasType(Obj,TPasTypeAliasType(Result),aContext);
       end;
     'ClassOf':
