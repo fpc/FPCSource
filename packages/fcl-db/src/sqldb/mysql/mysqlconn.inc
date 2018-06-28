@@ -702,7 +702,9 @@ begin
 end;
 
 function TConnectionName.MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
-var ASize, ADecimals: integer;
+var
+  ASize: culong;
+  ADecimals: cuint;
 begin
   Result := True;
   ASize := AField^.length;
