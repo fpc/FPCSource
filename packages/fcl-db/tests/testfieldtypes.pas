@@ -135,19 +135,11 @@ type
     procedure TestStringsReplace;
   end;
 
-Function  ToTBytes( S : AnsiString) : TBytes;
 
 implementation
 
 uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils, dbconst, FmtBCD;
 
-Function ToTBytes( S : AnsiString) : TBytes;
-
-begin
-  SetLength(Result,Length(S));
-  if length(Result)>0 then
-    Move(S[1],Result[0],Length(Result));
-end;
 
 Type HackedDataset = class(TDataset);
 
@@ -1629,7 +1621,7 @@ begin
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
         ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(ParamValues[i], DBConnector.FormatSettings);
-        ftBlob    : Params.ParamByName('field1').AsBlob := ToTBytes(testBlobValues[i]);
+        ftBlob    : Params.ParamByName('field1').AsBlob := BytesOf(testBlobValues[i]);
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                     else
@@ -1700,7 +1692,7 @@ begin
       begin
       case asWhat of
         0: Params.ParamByName('blobParam').AsMemo   := TestBlobValues[i];
-        1: Params.ParamByName('blobParam').AsBlob   := ToTBytes(TestBlobValues[i]);
+        1: Params.ParamByName('blobParam').AsBlob   := BytesOf(TestBlobValues[i]);
         2: Params.ParamByName('blobParam').AsString := TestBlobValues[i];
       end;
       ExecSQL;
