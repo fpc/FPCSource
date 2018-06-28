@@ -61,6 +61,7 @@ type
     procedure TestM_RepeatUntilStatement;
     procedure TestM_TryFinallyStatement;
     procedure TestM_TypeAlias;
+    procedure TestM_TypeAliasTypeInfo;
     procedure TestM_RangeType;
     procedure TestM_Unary;
     procedure TestM_Const;
@@ -149,6 +150,7 @@ type
     procedure TestWP_BuiltInFunctions;
     procedure TestWP_TypeInfo;
     procedure TestWP_TypeInfo_PropertyEnumType;
+    procedure TestWP_TypeInfo_Alias;
     procedure TestWP_ForInClass;
     procedure TestWP_AssertSysUtils;
     procedure TestWP_RangeErrorSysUtils;
@@ -742,6 +744,24 @@ begin
   Add('begin');
   Add('  DoIt;');
   AnalyzeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestM_TypeAliasTypeInfo;
+begin
+  StartUnit(false);
+  Add([
+  'interface',
+  'type',
+  '  {#integer_typeinfo}integer = type longint;',
+  '  {tobject_used}TObject = class',
+  '  private',
+  '    type {#tcolor_notypeinfo}tcolor = type longint;',
+  '  protected',
+  '    type {#tsize_typeinfo}tsize = type longint;',
+  '  end;',
+  'implementation',
+  '']);
+  AnalyzeUnit;
 end;
 
 procedure TTestUseAnalyzer.TestM_RangeType;
@@ -2559,6 +2579,52 @@ begin
   'begin',
   '  p:=typeinfo(TButton);',
   '']);
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_TypeInfo_Alias;
+begin
+  AddModuleWithIntfImplSrc('mysystem.pp',
+    LinesToStr([
+    'type',
+    '  integer = longint;',
+    '  PTypeInfo = pointer;',
+    '  {#tdatetime_typeinfo}TDateTime = type double;',
+    '']),
+    '');
+  AddModuleWithIntfImplSrc('unit1.pp',
+    LinesToStr([
+    'uses mysystem;',
+    'type',
+    '  {#ttime_typeinfo}TTime = type TDateTime;',
+    '  TDate = TDateTime;',
+    'var',
+    '  dt: TDateTime;',
+    '  t: TTime;',
+    '  d: TDate;',
+    '  TI: PTypeInfo;',
+    '']),'');
+  AddModuleWithIntfImplSrc('unit2.pp',
+    LinesToStr([
+    'uses unit1;',
+    '']),
+    LinesToStr([
+    'initialization',
+    '  dt:=1.0;',
+    '  t:=2.0;',
+    '  d:=3.0;',
+    '  ti:=typeinfo(dt);',
+    '  ti:=typeinfo(t);',
+    '  ti:=typeinfo(d);',
+    '']));
+  StartProgram(true);
+  Add([
+    'uses mysystem, unit2;',
+    'var',
+    '  PInfo: PTypeInfo;',
+    'begin',
+    '  PInfo:=typeinfo(TDateTime);',
+    'end.']);
   AnalyzeWholeProgram;
 end;
 

@@ -234,6 +234,20 @@ ToDo:
 - TPasFileType
 - labels
 - $zerobasedstrings on|off
+- FOR_LOOP_VAR_VARPAR  passing a loop var to a var parameter gives a warning
+- FOR_VARIABLE  warning if using a global var as loop var
+- COMPARISON_FALSE COMPARISON_TRUE Comparison always evaluates to False
+- USE_BEFORE_DEF Variable '%s' might not have been initialized
+- FOR_LOOP_VAR_UNDEF FOR-Loop variable '%s' may be undefined after loop
+- TYPEINFO_IMPLICITLY_ADDED Published caused RTTI ($M+) to be added to type '%s'
+- IMPLICIT_STRING_CAST Implicit string cast from '%s' to '%s'
+- IMPLICIT_STRING_CAST_LOSS Implicit string cast with potential data loss from '%s' to '%s'
+- off by default: EXPLICIT_STRING_CAST Explicit string cast from '%s' to '%s'
+- off by default: EXPLICIT_STRING_CAST_LOSS Explicit string cast with potential data loss from '%s' to '%s'
+- IMPLICIT_INTEGER_CAST_LOSS Implicit integer cast with potential data loss from '%s' to '%s'
+- IMPLICIT_CONVERSION_LOSS Implicit conversion may lose significant digits from '%s' to '%s'
+- COMBINING_SIGNED_UNSIGNED64 Combining signed type and unsigned 64-bit type - treated as an unsigned type
+-
 
 Debug flags: -d<x>
   VerbosePasResolver
@@ -15317,6 +15331,15 @@ class function TPasResolver.GetWarnIdentifierNumbers(Identifier: string; out
     {$ENDIF}
   end;
 
+  procedure SetNumbers(Numbers: array of integer);
+  var
+    i: Integer;
+  begin
+    Setlength(MsgNumbers,length(Numbers));
+    for i:=0 to high(Numbers) do
+      MsgNumbers[i]:=Numbers[i];
+  end;
+
 begin
   if Identifier='' then exit(false);
   if Identifier[1] in ['0'..'9'] then exit(false);
@@ -15346,6 +15369,12 @@ begin
 
   // Delphi:
   'HIDDEN_VIRTUAL': SetNumber(nMethodHidesMethodOfBaseType); // method hides virtual method of ancestor
+  'GARBAGE': SetNumber(nTextAfterFinalIgnored); // text after final end.
+  'BOUNDS_ERROR': SetNumbers([nRangeCheckError,
+      nHighRangeLimitLTLowRangeLimit,
+      nRangeCheckEvaluatingConstantsVMinMax,
+      nRangeCheckInSetConstructor]);
+  'MESSAGE_DIRECTIVE': SetNumber(nUserDefined); // $message directive
   else
     Result:=false;
   end;

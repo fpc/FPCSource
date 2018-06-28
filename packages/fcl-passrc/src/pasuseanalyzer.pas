@@ -865,7 +865,6 @@ begin
       begin
       Member:=TPasElement(Members[i]);
       UseSubEl(Member);
-      UseElement(Member,rraNone,true);
       end;
     end
   else if C.InheritsFrom(TPasProcedure) then
@@ -885,6 +884,8 @@ begin
     {$ENDIF}
     RaiseNotSupported(20170414153904,El);
     end;
+
+  UseElement(El,rraNone,true);
 end;
 
 procedure TPasAnalyzer.UseModule(aModule: TPasModule; Mode: TPAUseMode);
@@ -1236,6 +1237,8 @@ begin
           {$IFDEF VerbosePasAnalyzer}
           writeln('TPasAnalyzer.UseExpr typeinfo ',GetResolverResultDbg(ParamResolved));
           {$ENDIF}
+          if ParamResolved.IdentEl=nil then
+            RaiseNotSupported(20180628155107,Params[0]);
           if ParamResolved.IdentEl is TPasFunction then
             begin
             SubEl:=TPasFunction(ParamResolved.IdentEl).FuncType.ResultEl.ResultType;
@@ -1548,6 +1551,8 @@ begin
       begin
       if not MarkElementAsUsed(El) then exit;
       UseElType(El,TPasAliasType(El).DestType,Mode);
+      if C=TPasTypeAliasType then
+        UseExpr(TPasTypeAliasType(El).Expr);
       end
     else if C=TPasArrayType then
       begin
@@ -1585,6 +1590,9 @@ begin
       UseProcedureType(TPasProcedureType(El),true)
     else
       RaiseNotSupported(20170306170315,El);
+
+    if Mode=paumAllPasUsable then
+      UseTypeInfo(El);
     end;
 end;
 
@@ -1772,7 +1780,8 @@ begin
     else if IsModuleInternal(Member) then
       // private or strict private
       continue
-    else if (Mode=paumAllPasUsable) and FirstTime and (Member.ClassType=TPasProperty) then
+    else if (Mode=paumAllPasUsable) and FirstTime
+        and ((Member.ClassType=TPasProperty) or (Member is TPasType)) then
       begin
       // non private property can be used by typeinfo by descendants in other units
       UseTypeInfo(Member);
