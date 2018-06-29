@@ -534,6 +534,8 @@ begin
     Result:=nil
   else if VarIsArray(FValue) then
     Result:=FValue
+  else if VarIsStr(FValue) then
+    Result:=BytesOf(VarToStr(FValue))
   else
     // todo: conversion from other variant types to TBytes
     Result:=FValue;
