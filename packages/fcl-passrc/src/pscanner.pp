@@ -54,6 +54,7 @@ const
   nLogMacroUnDefined = 1027; // FPC=3102
   nWarnIllegalCompilerDirectiveX = 1028;
   nIllegalStateForWarnDirective = 1027;
+  nErrIncludeLimitReached = 1028;
 
 // resourcestring patterns of messages
 resourcestring
@@ -86,6 +87,7 @@ resourcestring
   SLogMacroUnDefined = 'Macro undefined: %s';
   SWarnIllegalCompilerDirectiveX = 'Illegal compiler directive "%s"';
   SIllegalStateForWarnDirective = 'Illegal state "%s" for $WARN directive';
+  SErrIncludeLimitReached = 'Include file limit reached';
 
 type
   TMessageType = (
@@ -355,6 +357,7 @@ type
 const
   vsAllValueSwitches = [low(TValueSwitch)..high(TValueSwitch)];
   DefaultVSInterfaces = 'com';
+  DefaultMaxIncludeStackDepth = 20;
 
 type
   TWarnMsgState = (
@@ -636,9 +639,11 @@ type
     FCurSourceFile: TLineReader;
     FCurFilename: string;
     FCurRow: Integer;
+    FCurColumnOffset: integer;
     FCurToken: TToken;
     FCurTokenString: string;
     FCurLine: string;
+    FMaxIncludeStackDepth: integer;
     FModuleRow: Integer;
     FMacros, FDefines: TStrings;
     FNonTokens: TTokens;
@@ -786,6 +791,7 @@ type
     property Options : TPOptions read FOptions write SetOptions;
     Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
     Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
+    property MaxIncludeStackDepth: integer read FMaxIncludeStackDepth write FMaxIncludeStackDepth default DefaultMaxIncludeStackDepth;
     property ForceCaret : Boolean read GetForceCaret;
 
     property LogEvents : TPScannerLogEvents read FLogEvents write FLogEvents;
@@ -1233,6 +1239,7 @@ type
     TokenString: string;
     Line: string;
     Row: Integer;
+    ColumnOffset: integer;
     TokenStr: PChar;
   end;
 
@@ -2374,6 +2381,7 @@ begin
   FIncludeStack := TFPList.Create;
   FDefines := CS;
   FMacros:=CS;
+  FMaxIncludeStackDepth:=DefaultMaxIncludeStackDepth;
 
   FAllowedModes:=AllLanguageModes;
   FCurrentModeSwitches:=FPCModeSwitches;
@@ -2509,6 +2517,7 @@ begin
         FCurTokenString := IncludeStackItem.TokenString;
         FCurLine := IncludeStackItem.Line;
         FCurRow := IncludeStackItem.Row;
+        FCurColumnOffset := IncludeStackItem.ColumnOffset;
         FTokenStr := IncludeStackItem.TokenStr;
         IncludeStackItem.Free;
         Result := FCurToken;
@@ -2727,6 +2736,8 @@ Var
   SI: TIncludeStackItem;
 
 begin
+  if FIncludeStack.Count>=MaxIncludeStackDepth then
+    Error(nErrIncludeLimitReached,SErrIncludeLimitReached);
   SI := TIncludeStackItem.Create;
   SI.SourceFile := CurSourceFile;
   SI.Filename := CurFilename;
@@ -2734,10 +2745,12 @@ begin
   SI.TokenString := CurTokenString;
   SI.Line := CurLine;
   SI.Row := CurRow;
+  SI.ColumnOffset := FCurColumnOffset;
   SI.TokenStr := FTokenStr;
   FIncludeStack.Add(SI);
   FTokenStr:=Nil;
   FCurRow := 0;
+  FCurColumnOffset := 1;
 end;
 
 procedure TPascalScanner.HandleIncludeFile(Param: String);
@@ -2765,15 +2778,18 @@ function TPascalScanner.HandleMacro(AIndex : integer) : TToken;
 Var
   M : TMacroDef;
   ML : TMacroReader;
+  OldRow, OldCol: Integer;
 
 begin
+  OldRow:=CurRow;
+  OldCol:=CurColumn;
   PushStackItem;
   M:=FMacros.Objects[AIndex] as TMacroDef;
   ML:=TMacroReader.Create(FCurFileName,M.Value);
-  ML.CurRow:=FCurRow;
-  ML.CurCol:=CurColumn;
+  ML.CurRow:=OldRow;
+  ML.CurCol:=OldCol-length(M.Name);
   FCurSourceFile:=ML;
-  Result:=DofetchToken;
+  Result:=DoFetchToken;
 //  Writeln(Result,Curtoken);
 end;
 
@@ -3806,7 +3822,7 @@ begin
         FCurToken := Result;
         if MacrosOn then
           begin
-          Index:=FMacros.IndexOf(CurtokenString);
+          Index:=FMacros.IndexOf(CurTokenString);
           if Index>=0 then
             Result:=HandleMacro(Index);
           end;
@@ -3829,9 +3845,9 @@ end;
 function TPascalScanner.GetCurColumn: Integer;
 begin
   If (FTokenStr<>Nil) then
-    Result := FTokenStr - PChar(CurLine) + 1
+    Result := FTokenStr - PChar(CurLine) + FCurColumnOffset
   else
-    Result := 1;
+    Result := FCurColumnOffset;
 end;
 
 function TPascalScanner.GetCurrentValueSwitch(V: TValueSwitch): string;
@@ -4189,6 +4205,7 @@ begin
       FTokenStr := nil;
       inc(FCurRow); // set CurRow to last line+1
       inc(FModuleRow);
+      FCurColumnOffset:=1;
       end;
     Result := false;
   end else
@@ -4198,10 +4215,16 @@ begin
     Result := true;
     Inc(FCurRow);
     inc(FModuleRow);
+    FCurColumnOffset:=1;
+    if (FCurSourceFile is TMacroReader) and (FCurRow=1) then
+    begin
+      FCurRow:=TMacroReader(FCurSourceFile).CurRow;
+      FCurColumnOffset:=TMacroReader(FCurSourceFile).CurCol;
+    end;
     if LogEvent(sleLineNumber)
         and (((FCurRow Mod 100) = 0)
           or CurSourceFile.IsEOF) then
-      DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True);
+      DoLog(mtInfo,nLogLineNumber,SLogLineNumber,[FCurRow],True); // log last line
   end;
 end;
 
