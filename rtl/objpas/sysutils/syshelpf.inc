@@ -151,24 +151,13 @@ end;
 Procedure TFLOATHELPER.BuildUp(const ASignFlag: Boolean; const AMantissa: QWord; const AExponent: Integer);
 
 begin
-  Self := 0.0;
-  SetS(ASignFlag);
-  SetE(AExponent + $3FF);
-  SetF(AMantissa and $000FFFFFFFFFFFFF);
+  TFloatRec(Self).BuildUp(ASignFlag, AMantissa, AExponent);
 end;
 
 Function TFLOATHELPER.Exponent: Integer;
 
-var
-  F,E : QWord;
 begin
-  Result:=0; // Zero, inf, Nan
-  E:=GetE;
-  F:=GetF;
-  if (0<E) and (E<$77FF) then
-    Result:=E-$3FF
-  else if (E=0) and (F<>0) then
-    Result:=-1022
+  Result:=TFloatRec(Self).Exponent;
 end;
 
 Function TFLOATHELPER.Fraction: Extended;
@@ -204,7 +193,7 @@ end;
 Function TFLOATHELPER.Mantissa: QWord;
 
 begin
-  Result:=TFLoatRec(Self).Mantissa;
+  Result:=TFLoatRec(Self).Mantissa(True);
 end;
 
 Function TFLOATHELPER.SpecialType: TFloatSpecial;
