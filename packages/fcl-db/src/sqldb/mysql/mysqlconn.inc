@@ -897,45 +897,29 @@ begin
 end;
 
 function InternalStrToInt(C: pchar; Len: integer): integer;
-  procedure r;
-  begin
-    raise EConvertError.CreateFmt('"%s" is not a valid digit', [C^]);
-  end;
-var
-  I: Integer;
+
+Var
+  S : String;
+
 begin
   Result := 0;
-  for I := 1 to Len do
-  begin
-    case C^ of
-      '0'..'9': Result := Result*10 + Ord(C^)-Ord('0');
-      #0: break;
-    else
-      r;
-    end;
-    Inc(C);
-  end;
+  if (Len=0) or (C=Nil) then
+    exit;
+  SetString(S,C,Len);
+  Result:=StrToInt(S);
 end;
 
-function InternalStrToInt64(C: pchar; Len: integer): LargeInt;
-  procedure r;
-  begin
-    raise EConvertError.CreateFmt('"%s" is not a valid digit', [C^]);
-  end;
-var
-  I: Integer;
+function InternalStrToInt64(C: pchar; Len: integer): Int64;
+
+Var
+  S : String;
+
 begin
   Result := 0;
-  for I := 1 to Len do
-  begin
-    case C^ of
-      '0'..'9': Result := Result*10 + Ord(C^)-Ord('0');
-      #0: break;
-    else
-      r;
-    end;
-    Inc(C);
-  end;
+  if (Len=0) or (C=Nil) then
+    exit;
+  SetString(S,C,Len);
+  Result:=StrToInt64(S);
 end;
 
 function InternalStrToFloat(C: pchar; Len: integer; const Format: TFormatSettings): Extended;
