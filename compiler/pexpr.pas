@@ -2767,7 +2767,7 @@ implementation
            wasgenericdummy,
            allowspecialize,
            isspecialize,
-           unit_found : boolean;
+           unit_found, tmpgetaddr: boolean;
            dummypos,
            tokenpos: tfileposinfo;
            spezcontext : tspecializationcontext;
@@ -3182,8 +3182,13 @@ implementation
                           callflags:=[]
                         else
                           callflags:=[cnf_unit_specified];
-                        do_proc_call(srsym,srsymtable,nil,
-                                     (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
+                        { TP7 uglyness: @proc^ is parsed as (@proc)^,
+                          but @notproc^ is parsed as @(notproc^) }
+                        if m_tp_procvar in current_settings.modeswitches then
+                          tmpgetaddr:=getaddr and not(token in [_POINT,_LECKKLAMMER])
+                        else
+                          tmpgetaddr:=getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER]);
+                        do_proc_call(srsym,srsymtable,nil,tmpgetaddr,
                                      again,p1,callflags,spezcontext);
                         spezcontext:=nil;
                       end;
@@ -3416,6 +3421,11 @@ implementation
                    sub_expr if necessary }
                  dopostfix:=not could_be_generic(idstr);
                end;
+           { TP7 uglyness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
+             as @(notproc^) }
+           if (m_tp_procvar in current_settings.modeswitches) and (token=_CARET) and
+              getaddr and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym) then
+             dopostfix:=false;
            { maybe an additional parameter instead of misusing hadspezialize? }
            if dopostfix and not (ef_had_specialize in flags) then
              updatefpos:=postfixoperators(p1,again,getaddr);
@@ -3770,7 +3780,15 @@ implementation
                   end
                  else
                   p1:=factor(true,[]);
-                 if token in postfixoperator_tokens then
+                 if (token in postfixoperator_tokens) and
+                   { TP7 uglyness: @proc^ is parsed as (@proc)^, but @notproc^
+                     is parsed as @(notproc^) }
+                    not
+                    (
+                     (m_tp_procvar in current_settings.modeswitches) and
+                     (token=_CARET) and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym)
+                    )
+                   then
                   begin
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -3786,6 +3804,11 @@ implementation
                  if assigned(getprocvardef) and
                     (taddrnode(p1).left.nodetype = loadn) then
                    taddrnode(p1).getprocvardef:=getprocvardef;
+                 if (token in postfixoperator_tokens) then
+                  begin
+                    again:=true;
+                    postfixoperators(p1,again,getaddr);
+                  end;
                end;
 
              _LKLAMMER :
