@@ -16,7 +16,7 @@
 interface
 
 uses
-  Classes, SysUtils,bufdataset,sqldb,db,ctypes,
+  Classes, SysUtils,bufdataset,sqldb,db,ctypes,fmtbcd,
 {$IFDEF mysql57}
   mysql57dyn;
 {$ELSE}
@@ -117,6 +117,18 @@ Type
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL: PMySQL);
     procedure ExecuteDirectMySQL(const query : string);
+    function InternalStrToBCD(C: pchar; Len: integer): tBCD;
+    function InternalStrToCurrency(C: pchar; Len: integer): Currency;
+    function InternalStrToDate(C: pchar; Len: integer): TDateTime;
+    function InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
+    function InternalStrToFloat(C: pchar; Len: integer): Extended;
+    function InternalStrToInt(C: pchar; Len: integer): integer;
+    function InternalStrToInt64(C: pchar; Len: integer): Int64;
+    function InternalStrToTime(C: pchar; Len: integer): TDateTime;
+    function StrToMSecs(C: pchar; Len: integer): Word;
+{$IFDEF MYSQL40}
+    function InternalStrToTimeStamp(C: pchar; Len: integer): TDateTime;
+{$ENDIF}
   protected
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
@@ -245,8 +257,7 @@ implementation
 uses
   dbconst,
   StrUtils,
-  DateUtils,
-  FmtBCD;
+  DateUtils;
 
 const
   Mysql_Option_Names : array[mysql_option] of string = ('MYSQL_OPT_CONNECT_TIMEOUT','MYSQL_OPT_COMPRESS',
@@ -896,7 +907,7 @@ begin
   ABlobBuf^.BlobBuffer^.Size := len;
 end;
 
-function InternalStrToInt(C: pchar; Len: integer): integer;
+function TConnectionName.InternalStrToInt(C: pchar; Len: integer): integer;
 
 Var
   S : String;
@@ -909,7 +920,7 @@ begin
   Result:=StrToInt(S);
 end;
 
-function InternalStrToInt64(C: pchar; Len: integer): Int64;
+function TConnectionName.InternalStrToInt64(C: pchar; Len: integer): Int64;
 
 Var
   S : String;
@@ -922,7 +933,7 @@ begin
   Result:=StrToInt64(S);
 end;
 
-function InternalStrToFloat(C: pchar; Len: integer; const Format: TFormatSettings): Extended;
+function TConnectionName.InternalStrToFloat(C: pchar; Len: integer): Extended;
 
 var
   Tmp: string;
@@ -931,10 +942,10 @@ begin
   SetString(Tmp, C, Len);
   if Tmp='' then
     Exit(0);
-  Result := StrToFloat(Tmp, Format);
+  Result := StrToFloat(Tmp, FSQLFormatSettings);
 end;
 
-function InternalStrToCurrency(C: pchar; Len: integer; const Format: TFormatSettings): Currency;
+function TConnectionName.InternalStrToCurrency(C: pchar; Len: integer): Currency;
 
 var
   Tmp: string;
@@ -943,10 +954,10 @@ begin
   SetString(Tmp, C, Len);
   if Tmp='' then
     Exit(0);
-  Result := StrToCurr(Tmp, Format);
+  Result := StrToCurr(Tmp, FSQLFormatSettings);
 end;
 
-function InternalStrToBCD(C: pchar; Len: integer; const Format: TFormatSettings): tBCD;
+function TConnectionName.InternalStrToBCD(C: pchar; Len: integer): tBCD;
 
 var
   Tmp: string;
@@ -955,10 +966,10 @@ begin
   SetString(Tmp, C, Len);
   if Tmp='' then
     Exit(0);
-  Result := StrToBCD(Tmp, Format);
+  Result := StrToBCD(Tmp, FSQLFormatSettings);
 end;
 
-function InternalStrToDate(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToDate(C: pchar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -977,7 +988,7 @@ begin
     Result:=EncodeDate(EY, EM, ED);
 end;
 
-function StrToMSecs(C: pchar; Len: integer): Word;
+function TConnectionName.StrToMSecs(C: pchar; Len: integer): Word;
 {$IFDEF MYSQL56_UP}
 var I: Integer;
     d, MSecs: double;
@@ -1002,7 +1013,7 @@ begin
 {$ENDIF}
 end;
 
-function InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToDateTime(C: pchar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -1030,7 +1041,7 @@ begin
   Result := ComposeDateTime(Result, EncodeTime(EH, EN, ES, EMS));
 end;
 
-function InternalStrToTime(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToTime(C: pchar; Len: integer): TDateTime;
 
 var
   EH, EM, ES, EMS: Word;
@@ -1052,7 +1063,6 @@ begin
   end;
   if M^<>':' then
     raise EConvertError.Create('Invalid time string');
-
   EH := InternalStrToInt(C, NativeInt(M-C));
   EM := InternalStrToInt(M+1, 2);
   ES := InternalStrToInt(M+4, 2);
@@ -1064,7 +1074,7 @@ begin
 end;
 
 {$IFDEF mysql40}
-function InternalStrToTimeStamp(C: pchar; Len: integer): TDateTime;
+function TConnectionName.InternalStrToTimeStamp(C: pchar; Len: integer): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -1139,17 +1149,17 @@ begin
       end;
     ftFloat:
       begin
-      VF := InternalStrToFloat(Source, Len, FSQLFormatSettings);
+      VF := InternalStrToFloat(Source, Len);
       Move(VF, Dest^, SizeOf(Double));
       end;
     ftBCD:
       begin
-      VC := InternalStrToCurrency(Source, Len, FSQLFormatSettings);
+      VC := InternalStrToCurrency(Source, Len);
       Move(VC, Dest^, SizeOf(Currency));
       end;
     ftFmtBCD:
       begin
-      VB := InternalStrToBCD(Source, Len, FSQLFormatSettings);
+      VB := InternalStrToBCD(Source, Len);
       Move(VB, Dest^, SizeOf(TBCD));
       end;
     ftDate:
