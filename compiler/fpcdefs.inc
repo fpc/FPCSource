@@ -68,6 +68,12 @@
   {$define SUPPORT_GET_FRAME}
   {$define cpucg64shiftsupport}
   {$define OMFOBJSUPPORT}
+  {$ifdef go32v2}
+    { go32v2 uses cwsdpmi extender which is incompatible with watcom extender
+      thus we use the internal smartlink sections by default in that case. }
+    {$define I8086_SMARTLINK_SECTIONS}
+    {$define i8086_link_intern_debuginfo}
+  {$endif go32v2}
 {$endif i8086}
 
 {$ifdef i386}
