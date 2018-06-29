@@ -1625,11 +1625,11 @@ begin
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
                     else
-                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
+                      Params.ParamByName('field1').AsBytes := BytesOf(testBytesValues[i]);
         ftVarBytes: if cross then
                       Params.ParamByName('field1').AsString := testBytesValues[i]
                     else
-                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
+                      Params.ParamByName('field1').AsBytes := BytesOf(testBytesValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
