@@ -1,4 +1,4 @@
-// Generic types for FreeSparta.com and FreePascal!
+// Generic types for NewPascal.org and FPC!
 // by Maciej Izak (hnb), 2014
 
 program THashMapCaseInsensitive;

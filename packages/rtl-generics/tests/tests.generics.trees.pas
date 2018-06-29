@@ -1,7 +1,9 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2018 by Maciej Izak (hnb),
-    member of the Free Pascal development team
+    member of the NewPascal development team (http://newpascal.org)
+
+    Copyright(c) 2004-2018 DaThoX
 
     It contains tests for the Free Pascal generics library
 

@@ -7428,6 +7428,7 @@ packages/rtl-generics/examples/tqueue/tqueueproject.lpr svneol=native#text/pasca
 packages/rtl-generics/examples/tstack/tstackproject.lpi svneol=native#text/xml
 packages/rtl-generics/examples/tstack/tstackproject.lpr svneol=native#text/pascal
 packages/rtl-generics/fpmake.pp svneol=native#text/pascal
+packages/rtl-generics/readme.txt svneol=native#text/plain
 packages/rtl-generics/src/generics.collections.pas svneol=native#text/pascal
 packages/rtl-generics/src/generics.defaults.pas svneol=native#text/pascal
 packages/rtl-generics/src/generics.hashes.pas svneol=native#text/pascal

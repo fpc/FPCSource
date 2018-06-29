@@ -1,11 +1,11 @@
 {
-    This file is part of the Free Pascal run time library.
+    This file is part of the Free Pascal/NewPascal run time library.
     Copyright (c) 2014 by Maciej Izak (hnb)
-    member of the Free Sparta development team (http://freesparta.com)
+    member of the NewPascal development team (http://newpascal.org)
 
-    Copyright(c) 2004-2014 DaThoX
+    Copyright(c) 2004-2018 DaThoX
 
-    It contains the Free Pascal generics library
+    It contains the generics collections library
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -302,6 +302,7 @@ type
     class procedure UInt8        (constref AValue: UInt8        ; AHashList: PUInt32); overload;
     class procedure UInt16       (constref AValue: UInt16       ; AHashList: PUInt32); overload;
     class procedure UInt32       (constref AValue: UInt32       ; AHashList: PUInt32); overload;
+
     class procedure UInt64       (constref AValue: UInt64       ; AHashList: PUInt32); overload;
     class procedure Single       (constref AValue: Single       ; AHashList: PUInt32); overload;
     class procedure Double       (constref AValue: Double       ; AHashList: PUInt32); overload;
@@ -865,7 +866,25 @@ type
     class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
   end;
 
-  TmORMotHashFactory = class(THashFactory)
+  { TGenericsHashFactory }
+
+  TGenericsHashFactory = class(THashFactory)
+  public
+    class function GetHashService: THashServiceClass; override;
+    class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
+  end;
+
+  { TxxHash32HashFactory }
+
+  TxxHash32HashFactory = class(THashFactory)
+  public
+    class function GetHashService: THashServiceClass; override;
+    class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
+  end;
+
+  { TxxHash32PascalHashFactory }
+
+  TxxHash32PascalHashFactory = class(THashFactory)
   public
     class function GetHashService: THashServiceClass; override;
     class function GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32 = 0): UInt32; override;
@@ -936,7 +955,7 @@ type
     class procedure GetHashList(AKey: Pointer; ASize: SizeInt; AHashList: PUInt32; AOptions: TGetHashListOptions = []); override;
   end;
 
-  TDefaultHashFactory = TmORMotHashFactory;
+  TDefaultHashFactory = TDelphiQuadrupleHashFactory;
 
   TDefaultGenericInterface = (giComparer, giEqualityComparer, giExtendedEqualityComparer);
 
@@ -2796,16 +2815,42 @@ begin
   Result := DelphiHashLittle(AKey, ASize, AInitVal);
 end;
 
-{ TmORMotHashFactory }
+{ TGenericsHashFactory }
 
-class function TmORMotHashFactory.GetHashService: THashServiceClass;
+class function TGenericsHashFactory.GetHashService: THashServiceClass;
 begin
-  Result := THashService<TmORMotHashFactory>;
+  Result := THashService<TGenericsHashFactory>;
 end;
 
-class function TmORMotHashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32): UInt32;
+class function TGenericsHashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt; AInitVal: UInt32): UInt32;
 begin
   Result := mORMotHasher(AInitVal, AKey, ASize);
+end;
+
+{ TxxHash32HashFactory }
+
+class function TxxHash32HashFactory.GetHashService: THashServiceClass;
+begin
+  Result := THashService<TxxHash32HashFactory>;
+end;
+
+class function TxxHash32HashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt;
+  AInitVal: UInt32): UInt32;
+begin
+  Result := xxHash32(AInitVal, AKey, ASize);
+end;
+
+{ TxxHash32PascalHashFactory }
+
+class function TxxHash32PascalHashFactory.GetHashService: THashServiceClass;
+begin
+  Result := THashService<TxxHash32PascalHashFactory>;
+end;
+
+class function TxxHash32PascalHashFactory.GetHashCode(AKey: Pointer; ASize: SizeInt;
+  AInitVal: UInt32): UInt32;
+begin
+  Result := xxHash32Pascal(AInitVal, AKey, ASize);
 end;
 
 { TAdler32HashFactory }

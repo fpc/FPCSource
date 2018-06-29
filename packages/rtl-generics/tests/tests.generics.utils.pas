@@ -1,3 +1,21 @@
+{
+    This file is part of the Free Pascal/NewPascal run time library.
+    Copyright (c) 2014 by Maciej Izak (hnb)
+    member of the NewPascal development team (http://newpascal.org)
+
+    Copyright(c) 2004-2018 DaThoX
+
+    It contains tests for the Free Pascal generics library
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 unit tests.generics.utils;
 
 {$mode delphi}
