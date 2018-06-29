@@ -1212,7 +1212,6 @@ type
     Procedure SetAsBlob(const AValue: TBlobData); virtual;
     Procedure SetAsBoolean(AValue: Boolean); virtual;
     Procedure SetAsBytes(const AValue: TBytes); virtual;
-    Procedure SetAsBlobData(const AValue: TBlobData); virtual;
     Procedure SetAsCurrency(const AValue: Currency); virtual;
     Procedure SetAsDate(const AValue: TDateTime); virtual;
     Procedure SetAsDateTime(const AValue: TDateTime); virtual;
@@ -1248,7 +1247,7 @@ type
     Procedure SetBlobData(Buffer: Pointer; ASize: Integer);
     Procedure SetData(Buffer: Pointer);
     Property AsBCD : Currency read GetAsCurrency write SetAsBCD;
-    Property AsBlob : TBlobData read GetAsBytes write SetAsBlobData;
+    Property AsBlob : TBlobData read GetAsBytes write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
     Property AsBytes : TBytes read GetAsBytes write SetAsBytes;
     Property AsCurrency : Currency read GetAsCurrency write SetAsCurrency;

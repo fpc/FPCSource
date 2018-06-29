@@ -593,7 +593,7 @@ var P: Pointer;
 begin
   If IsNull then
     Result:=''
-  else if (FDataType in [ftBytes, ftVarBytes]) and VarIsArray(FValue) then
+  else if (FDataType in [ftBytes, ftVarBytes, ftBlob]) and VarIsArray(FValue) then
   begin
     SetLength(Result, (VarArrayHighBound(FValue, 1) + 1) div SizeOf(Char));
     P := VarArrayLock(FValue);
@@ -697,12 +697,6 @@ end;
 Procedure TParam.SetAsBytes(const AValue: TBytes);
 begin
   FDataType:=ftVarBytes;
-  Value:=AValue;
-end;
-
-procedure TParam.SetAsBlobData(const AValue: TBlobData);
-begin
-  FDataType:=ftBlob;
   Value:=AValue;
 end;
 
@@ -887,7 +881,7 @@ begin
     AssignParam(TParam(Source))
   else if (Source is TField) then
     AssignField(TField(Source))
-  else if (source is TStrings) then
+  else if (Source is TStrings) then
     AsMemo:=TStrings(Source).Text
   else
     inherited Assign(Source);
@@ -1119,7 +1113,6 @@ begin
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;
-
 
 end;
 
