@@ -234,6 +234,7 @@ implementation
         stringVal: string;
         pWideStringVal: pcompilerwidestring;
       begin
+        stringVal:='';
         if is_constcharnode(p) then
           begin
             SetLength(stringVal,1);

@@ -615,6 +615,7 @@ implementation
           s : string;
         begin
           l := c-b;
+          s:='';
           if (l > 0) or AddEmptyStrings then
             begin
               setlength(s, l);

@@ -418,6 +418,7 @@ Implementation
         s: ansistring;
       begin
         MaybeAddLinePrefix;
+        s:='';
         setlength(s,len);
         move(p^,s[1],len);
         AsmWriteAnsiStringUnfiltered(decorator.LineFilter(s));

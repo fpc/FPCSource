@@ -333,6 +333,7 @@ implementation
     TheSize : Longint;
     P : PByte ;
   begin
+    Result:='';
     ReadBuffer (TheSize,SizeOf(TheSize));
     SetLength(Result,TheSize);
     // Illegal typecast if no AnsiStrings defined.

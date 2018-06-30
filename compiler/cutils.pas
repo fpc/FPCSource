@@ -637,6 +637,7 @@ implementation
       var
         i  : longint;
       begin
+        Result:='';
         setlength(upper,length(s));
         for i:=1 to length(s) do
           upper[i]:=uppertbl[s[i]];
@@ -672,6 +673,7 @@ implementation
       var
         i : longint;
       begin
+        Result:='';
         setlength(lower,length(s));
         for i:=1 to length(s) do
           lower[i]:=lowertbl[s[i]];
@@ -1077,6 +1079,7 @@ implementation
         t: string;
         ch: Char;
     begin
+      t:='';
       DePascalQuote:= false;
       len:= length(s);
       if (len >= 1) and (s[1] = '''') then

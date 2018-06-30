@@ -1032,6 +1032,7 @@ implementation
         end;
 
       begin
+        labelarray:=nil;
         SetLength(labelarray,case_count_labels(root));
         nextarrayentry:=0;
         addarrayentry(root);

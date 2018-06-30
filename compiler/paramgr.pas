@@ -734,6 +734,7 @@ implementation
       begin
         c:=0;
         tmploc:=paralocs;
+        result:=nil;
         while assigned(tmploc) do
           begin
             inc(c);

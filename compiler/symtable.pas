@@ -719,6 +719,9 @@ implementation
         builtdefderefs,
         builtsymderefs: array of boolean;
       begin
+        newbuiltdefderefs:=nil;
+        builtdefderefs:=nil;
+        builtsymderefs:=nil;
         { tdefs for which we already built the deref }
         setlength(builtdefderefs,deflist.count);
         { tdefs for which we built the deref in this iteration }

@@ -1211,6 +1211,7 @@ implementation
         exprtype : tdef;
       begin
          result:=nil;
+         sa:='';
          if (left.nodetype=ordconstn) and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring]) or
              (torddef(left.resultdef).ordtype in [uchar,uwidechar])) then

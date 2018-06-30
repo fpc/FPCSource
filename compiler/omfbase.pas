@@ -1342,6 +1342,7 @@ implementation
     var
       len: Byte;
     begin
+      s:='';
       len:=RawData[Offset];
       Result:=Offset+len+1;
       if result>RecordLength then

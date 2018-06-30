@@ -2895,6 +2895,7 @@ begin
   Message1(option_using_env,envname);
   env:=GetEnvPChar(envname);
   pc:=env;
+  hs:='';
   if assigned(pc) then
    begin
      repeat

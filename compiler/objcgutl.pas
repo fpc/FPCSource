@@ -213,6 +213,7 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
         if (refsec=sec_objc_cls_refs) and
            not(target_info.system in systems_objc_nfabi) then
           begin
+            classname:='';
             setlength(classname,entry^.keylength);
             move(entry^.key^,classname[1],entry^.keylength);
             { no way to express this in LLVM either, they also just emit
@@ -307,6 +308,7 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
   begin
     methodslabel:=nil;
     mcnt:=0;
+    defs:=nil;
     { collect all instance/class methods }
     SetLength(defs,objccls.vmtentries.count);
     for i:=0 to objccls.vmtentries.count-1 do
@@ -643,6 +645,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_ivars(list: TAsmList; objccls: tobjec
     ivarslabel:=nil;
 
     vcnt:=0;
+    vars:=nil;
     setLength(vars,objccls.symtable.SymList.Count);
 
     for i:=0 to objccls.symtable.SymList.Count-1 do
@@ -1208,6 +1211,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
     prefix:='';
 
     vcnt:=0;
+    vars:=nil;
     setLength(vars,objccls.symtable.SymList.Count);
 
     tcb:=nil;

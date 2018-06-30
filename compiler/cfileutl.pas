@@ -495,6 +495,7 @@ end;
       var
          i : longint;
       begin
+        Result:='';
         setlength(bstoslash,length(s));
         for i:=1to length(s) do
          if s[i]='\' then
