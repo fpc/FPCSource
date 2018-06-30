@@ -1300,6 +1300,7 @@ end;
         GetShortName:=n;
 {$ifdef win32}
         hs:=n+#0;
+        hs2:='';
         { may become longer in case of e.g. ".a" -> "a~1" or so }
         setlength(hs2,length(hs)*2);
         i:=Windows.GetShortPathName(@hs[1],@hs2[1],length(hs)*2);
