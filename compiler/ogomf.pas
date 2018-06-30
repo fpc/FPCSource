@@ -774,6 +774,7 @@ implementation
         seglist: TSegmentList;
         I: Integer;
       begin
+        seglist:=nil;
         g:=TOmfRecord_GRPDEF.Create;
         Groups.Add(group.Name,g);
         g.GroupNameIndex:=LNames.Add(group.Name);
@@ -937,6 +938,7 @@ implementation
         RawRecord: TOmfRawRecord;
         PubDefRec: TOmfRecord_PUBDEF;
       begin
+        PubNamesForSection:=nil;
         RawRecord:=TOmfRawRecord.Create;
         SetLength(PubNamesForSection,Data.ObjSectionList.Count);
         for i:=0 to Data.ObjSectionList.Count-1 do
@@ -2718,6 +2720,9 @@ implementation
         ObjSec: TOmfObjSection;
         tis_trailer: TTISTrailer;
       begin
+        debugsections:=nil;
+        elfsechdrs:=nil;
+        
         { mark the offset of the start of the ELF image }
         elf_start_pos:=Writer.Size;
 

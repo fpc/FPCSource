@@ -399,6 +399,7 @@ implementation
         store_at: Integer;
         PageNum: Word;
       begin
+        blocks:=nil;
         SetLength(blocks,nblocks);
         for i:=0 to nblocks-1 do
           begin
@@ -500,6 +501,8 @@ implementation
       name: string;
       PageNum: Integer;
     begin
+      blocks:=nil;
+      name:='';
       seek(DictionaryOffset);
       SetLength(blocks,DictionarySizeInBlocks);
       read(blocks[0],DictionarySizeInBlocks*SizeOf(TBlock));
