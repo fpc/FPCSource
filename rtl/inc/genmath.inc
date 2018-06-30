@@ -1923,13 +1923,13 @@ function FPower10(val: Extended; Power: Longint): Extended;
 {$endif SUPPORT_EXTENDED}
 
 {$if defined(SUPPORT_EXTENDED) or defined(FPC_SOFT_FPUX80)}
-{$PUSH}
-{$WARN 5024 off : Parameter "$1" not used}
 function TExtended80Rec.Mantissa(IncludeHiddenBit: Boolean = False) : QWord;
   begin
-    Result:=Frac //no hidden bit, the mantissa _is_ the full 64-bit;
+    if IncludeHiddenbit then
+      Result:=Frac
+    else
+      Result:=Frac and $7fffffffffffffff;
   end;
-{$POP}
 
 function TExtended80Rec.Fraction : Extended;
   begin
