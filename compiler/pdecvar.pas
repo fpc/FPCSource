@@ -666,7 +666,7 @@ implementation
                   end;
               end;
            end;
-         if has_implicit_default(p) then
+         if has_implicit_default(p) and not assigned(p.overriddenpropsym) then
            begin
               p.default:=0;
            end;
