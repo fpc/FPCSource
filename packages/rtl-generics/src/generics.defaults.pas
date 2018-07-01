@@ -955,7 +955,7 @@ type
     class procedure GetHashList(AKey: Pointer; ASize: SizeInt; AHashList: PUInt32; AOptions: TGetHashListOptions = []); override;
   end;
 
-  TDefaultHashFactory = TDelphiQuadrupleHashFactory;
+  TDefaultHashFactory = TGenericsHashFactory;
 
   TDefaultGenericInterface = (giComparer, giEqualityComparer, giExtendedEqualityComparer);
 
