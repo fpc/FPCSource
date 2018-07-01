@@ -1671,7 +1671,6 @@ Unit AoptObj;
         ClearUsedRegs;
         while (p <> BlockEnd) Do
           begin
-            UpdateUsedRegs(tai(p.next));
             if PeepHoleOptPass2Cpu(p) then
               continue;
             if assigned(p) then

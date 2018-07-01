@@ -2240,6 +2240,7 @@ unit aoptx86;
         hp1,hp2,next: tai; SetC, JumpC: TAsmCond;
       begin
         Result:=false;
+
         if MatchOpType(taicpu(p),top_reg) and
           GetNextInstruction(p, hp1) and
           MatchInstruction(hp1, A_TEST, [S_B]) and
@@ -2622,26 +2623,30 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass2Jcc(var p : tai) : boolean;
       var
-        hp1,hp2,hp3: tai;
+        hp1,hp2,hp3,hp4,hpmov2: tai;
         carryadd_opcode : TAsmOp;
         l : Longint;
         condition : TAsmCond;
+        symbol: TAsmSymbol;
       begin
         result:=false;
+        symbol:=nil;
         if GetNextInstruction(p,hp1) then
           begin
+            symbol := TAsmLabel(taicpu(p).oper[0]^.ref^.symbol);
+
             if (hp1.typ=ait_instruction) and
                GetNextInstruction(hp1,hp2) and (hp2.typ=ait_label) and
-               (Tasmlabel(Taicpu(p).oper[0]^.ref^.symbol)=Tai_label(hp2).labsym) then
+               (Tasmlabel(symbol) = Tai_label(hp2).labsym) then
                  { jb @@1                            cmc
                    inc/dec operand           -->     adc/sbb operand,0
-         	@@1:
+                   @@1:
 
-         	... and ...
+                   ... and ...
 
                    jnb @@1
                    inc/dec operand           -->     adc/sbb operand,0
-         	@@1: }
+                   @@1: }
               begin
                 carryadd_opcode:=A_NONE;
                 if Taicpu(p).condition in [C_NAE,C_B] then
@@ -2686,20 +2691,49 @@ unit aoptx86;
                   end;
               end;
 
-            if (hp1.typ=ait_label) and (TAsmLabel(taicpu(p).oper[0]^.ref^.symbol) = tai_label(hp1).labsym) then
+            if ((hp1.typ = ait_label) and (symbol = tai_label(hp1).labsym))
+                or ((hp1.typ = ait_align) and GetNextInstruction(hp1, hp2) and (hp2.typ = ait_label) and (symbol = tai_label(hp2).labsym)) then
               begin
                 { If Jcc is immediately followed by the label that it's supposed to jump to, remove it }
-                UpdateUsedRegs(tai(p.next));
-
                 DebugMsg(SPeepholeOptimization + 'Removed conditional jump whose destination was immediately after it', p);
+                UpdateUsedRegs(hp1);
+
+                TAsmLabel(symbol).decrefs;
+                { if the label refs. reach zero, remove any alignment before the label }
+                if (hp1.typ = ait_align) then
+                  begin
+                    UpdateUsedRegs(hp2);
+                    if (TAsmLabel(symbol).getrefs = 0) then
+                    begin
+                      asml.Remove(hp1);
+                      hp1.Free;
+                    end;
+                    hp1 := hp2; { Set hp1 to the label }
+                  end;
 
                 asml.remove(p);
                 p.free;
-                Result := True;
-                p := hp1;
+
+                if (TAsmLabel(symbol).getrefs = 0) then
+                  begin
+                    GetNextInstruction(hp1, p); { Instruction following the label }
+                    asml.remove(hp1);
+                    hp1.free;
+
+                    UpdateUsedRegs(p);
+                    Result := True;
+                  end
+                else
+                  begin
+                    { We don't need to set the result to True because we know hp1
+                      is a label and won't trigger any optimisation routines. [Kit] }
+                    p := hp1;
+                  end;
+
                 Exit;
               end;
           end;
+
 {$ifndef i8086}
         if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
           begin
@@ -2720,33 +2754,79 @@ unit aoptx86;
                end;
              if assigned(hp1) then
                begin
-                  if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
+                  if FindLabel(tasmlabel(symbol),hp1) then
                     begin
                       if (l<=4) and (l>0) then
                         begin
                           condition:=inverse_cond(taicpu(p).condition);
-                          hp2:=p;
                           GetNextInstruction(p,hp1);
-                          p:=hp1;
                           repeat
+                            if not Assigned(hp1) then
+                              InternalError(2018062900);
+
                             taicpu(hp1).opcode:=A_CMOVcc;
                             taicpu(hp1).condition:=condition;
+                            UpdateUsedRegs(hp1);
                             GetNextInstruction(hp1,hp1);
-                          until not(assigned(hp1)) or
-                            not(CanBeCMOV(hp1));
-                          { wait with removing else GetNextInstruction could
-                            ignore the label if it was the only usage in the
-                            jump moved away }
-                          tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).decrefs;
+                          until not(CanBeCMOV(hp1));
+
+                          { Don't decrement the reference count on the label yet, otherwise
+                            GetNextInstruction might skip over the label if it drops to
+                            zero. }
+                          GetNextInstruction(hp1,hp2);
+
                           { if the label refs. reach zero, remove any alignment before the label }
-                          if (hp1.typ=ait_align) and (tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).getrefs=0) then
+                          if (hp1.typ = ait_align) and (hp2.typ = ait_label) then
                             begin
-                              asml.Remove(hp1);
-                              hp1.Free;
+                              { Ref = 1 means it will drop to zero }
+                              if (tasmlabel(symbol).getrefs=1) then
+                                begin
+                                  asml.Remove(hp1);
+                                  hp1.Free;
+                                end;
+                            end
+                          else
+                            hp2 := hp1;
+
+                          if not Assigned(hp2) then
+                            InternalError(2018062910);
+
+                          if (hp2.typ <> ait_label) then
+                            begin
+                              { There's something other than CMOVs here.  Move the original jump
+                                to right before this point, then break out.
+
+                                Originally this was part of the above internal error, but it got
+                                triggered on the bootstrapping process sometimes. Investigate. [Kit] }
+                              asml.remove(p);
+                              asml.insertbefore(p, hp2);
+                              DebugMsg('Jcc/CMOVcc drop-out', p);
+                              UpdateUsedRegs(p);
+                              Result := True;
+                              Exit;
                             end;
-                          asml.remove(hp2);
-                          hp2.free;
-                          result:=true;
+
+                          { Now we can safely decrement the reference count }
+                          tasmlabel(symbol).decrefs;
+
+                          { Remove the original jump }
+                          asml.Remove(p);
+                          p.Free;
+
+                          GetNextInstruction(hp2, p); { Instruction after the label }
+
+                          { Remove the label if this is its final reference }
+                          if (tasmlabel(symbol).getrefs=0) then
+                            begin
+                              asml.remove(hp2);
+                              hp2.free;
+                            end;
+
+                          if Assigned(p) then
+                            begin
+                              UpdateUsedRegs(p);
+                              result:=true;
+                            end;
                           exit;
                         end;
                     end
@@ -2762,8 +2842,9 @@ unit aoptx86;
                        }
                       { hp2 points to jmp yyy }
                       hp2:=hp1;
-                      { skip hp1 to xxx }
+                      { skip hp1 to xxx (or an align right before it) }
                       GetNextInstruction(hp1, hp1);
+
                       if assigned(hp2) and
                         assigned(hp1) and
                         (l<=3) and
@@ -2772,59 +2853,110 @@ unit aoptx86;
                         (taicpu(hp2).condition=C_None) and
                         { real label and jump, no further references to the
                           label are allowed }
-                        (tasmlabel(taicpu(p).oper[0]^.ref^.symbol).getrefs=1) and
-                        FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol),hp1) then
+                        (tasmlabel(symbol).getrefs=1) and
+                        FindLabel(tasmlabel(symbol),hp1) then
                          begin
                            l:=0;
                            { skip hp1 to <several moves 2> }
-                           GetNextInstruction(hp1, hp1);
+                           if (hp1.typ = ait_align) then
+                             GetNextInstruction(hp1, hp1);
+
+                           GetNextInstruction(hp1, hpmov2);
+
+                           hp1 := hpmov2;
                            while assigned(hp1) and
                              CanBeCMOV(hp1) do
                              begin
                                inc(l);
                                GetNextInstruction(hp1, hp1);
                              end;
-                           { hp1 points to yyy: }
+                           { hp1 points to yyy (or an align right before it) }
+                           hp3 := hp1;
                            if assigned(hp1) and
                              FindLabel(tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol),hp1) then
                              begin
                                 condition:=inverse_cond(taicpu(p).condition);
                                 GetNextInstruction(p,hp1);
-                                hp3:=p;
-                                p:=hp1;
                                 repeat
                                   taicpu(hp1).opcode:=A_CMOVcc;
                                   taicpu(hp1).condition:=condition;
+                                  UpdateUsedRegs(hp1);
                                   GetNextInstruction(hp1,hp1);
                                 until not(assigned(hp1)) or
                                   not(CanBeCMOV(hp1));
-                                { hp2 is still at jmp yyy }
-                                GetNextInstruction(hp2,hp1);
-                                { hp2 is now at xxx: }
+
                                 condition:=inverse_cond(condition);
-                                GetNextInstruction(hp1,hp1);
+                                hp1 := hpmov2;
                                 { hp1 is now at <several movs 2> }
-                                repeat
-                                  taicpu(hp1).opcode:=A_CMOVcc;
-                                  taicpu(hp1).condition:=condition;
-                                  GetNextInstruction(hp1,hp1);
-                                until not(assigned(hp1)) or
-                                  not(CanBeCMOV(hp1));
-                                {
-                                asml.remove(hp1.next)
-                                hp1.next.free;
+                                while Assigned(hp1) and CanBeCMOV(hp1) do
+                                  begin
+                                    taicpu(hp1).opcode:=A_CMOVcc;
+                                    taicpu(hp1).condition:=condition;
+                                    UpdateUsedRegs(hp1);
+                                    GetNextInstruction(hp1,hp1);
+                                  end;
+
+                                hp1 := p;
+
+                                { Get first instruction after label }
+                                GetNextInstruction(hp3, p);
+
+                                if assigned(p) and (hp3.typ = ait_align) then
+                                  GetNextInstruction(p, p);
+
+                                { Don't dereference yet, as doing so will cause
+                                  GetNextInstruction to skip the label and
+                                  optional align marker. [Kit] }
+                                GetNextInstruction(hp2, hp4);
+
+                                { remove jCC }
                                 asml.remove(hp1);
                                 hp1.free;
-                                }
-                                { remove jCC }
-                                tasmlabel(taicpu(hp3).oper[0]^.ref^.symbol).decrefs;
-                                asml.remove(hp3);
-                                hp3.free;
+
+                                { Remove label xxx (it will have a ref of zero due to the initial check }
+                                if (hp4.typ = ait_align) then
+                                  begin
+                                    { Account for alignment as well }
+                                    GetNextInstruction(hp4, hp1);
+                                    asml.remove(hp1);
+                                    hp1.free;
+                                  end;
+
+                                asml.remove(hp4);
+                                hp4.free;
+
+                                { Now we can safely decrement it }
+                                tasmlabel(symbol).decrefs;
+
                                 { remove jmp }
-                                tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol).decrefs;
+                                symbol := taicpu(hp2).oper[0]^.ref^.symbol;
+
                                 asml.remove(hp2);
                                 hp2.free;
-                                result:=true;
+
+                                { Remove label yyy (and the optional alignment) if its reference will fall to zero }
+                                if tasmlabel(symbol).getrefs = 1 then
+                                  begin
+                                    if (hp3.typ = ait_align) then
+                                      begin
+                                        { Account for alignment as well }
+                                        GetNextInstruction(hp3, hp1);
+                                        asml.remove(hp1);
+                                        hp1.free;
+                                      end;
+
+                                    asml.remove(hp3);
+                                    hp3.free;
+
+                                    { As before, now we can safely decrement it }
+                                    tasmlabel(symbol).decrefs;
+                                  end;
+
+                                if Assigned(p) then
+                                  begin
+                                    UpdateUsedRegs(p);
+                                    result:=true;
+                                  end;
                                 exit;
                              end;
                          end;

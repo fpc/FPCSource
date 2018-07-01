@@ -1351,6 +1351,9 @@ implementation
       begin
         if assigned(asmsym) then
           begin
+            if asmsym.typ = AT_NONE then
+              InternalError(2018062800);
+
             if not assigned(asmsym.cachedObjSymbol) then
               begin
                 result:=symboldefine(asmsym.name,asmsym.bind,asmsym.typ);
