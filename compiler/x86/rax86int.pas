@@ -40,12 +40,15 @@ Unit Rax86int;
       AS_COMMA,AS_LBRACKET,AS_RBRACKET,AS_LPAREN,
       AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
       AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,
+      AS_LOPMASK,AS_VOPMASK,AS_LOPZEROMASK,AS_VOPZEROMASK,
        {------------------ Assembler directives --------------------}
       AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_PUBLIC,AS_END,
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_OWORD,AS_XMMWORD,AS_YWORD,AS_YMMWORD,AS_ZWORD,AS_ZMMWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
-      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL,AS_TARGET_DIRECTIVE);
+      AS_AND,AS_OR,AS_XOR,AS_WRT,AS___GOTPCREL,AS_TARGET_DIRECTIVE
+      ,AS_BROADCAST
+      );
 
     type
        { input flags for BuildConstSymbolExpression }
@@ -66,9 +69,13 @@ Unit Rax86int;
          cseof_hasofs
        );
        tconstsymbolexpressionoutputflags = set of tconstsymbolexpressionoutputflag;
+
+       { tx86intreader }
+
        tx86intreader = class(tasmreader)
          actasmpattern_origcase : string;
          actasmtoken : tasmtoken;
+         actoperextention: string;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
          inexpression : boolean;
@@ -79,8 +86,9 @@ Unit Rax86int;
          function is_register(const s:string):boolean;
          function is_locallabel(const s:string):boolean;
          function Assemble: tlinkedlist;override;
-         procedure GetToken;
-         function consume(t : tasmtoken):boolean;
+         procedure GetToken(check_operand_extention: boolean = false);
+         function consume(t : tasmtoken; check_operand_extention: boolean = false):boolean;
+         //procedure ConsumeOperExtention(oper: tx86operand; const aOperExtention: string);
          procedure RecoverConsume(allowcomma:boolean);
          procedure AddReferences(dest,src : tx86operand);
          procedure SetSegmentOverride(oper:tx86operand;seg:tregister);
@@ -93,6 +101,8 @@ Unit Rax86int;
          procedure BuildConstantOperand(oper: tx86operand);
          procedure BuildOpCode(instr : tx86instruction);
          procedure BuildConstant(constsize: byte);
+         procedure consume_voperand_ext(aop: tx86operand);
+
 
          function is_targetdirective(const s: string): boolean;virtual;
          procedure HandleTargetDirective;virtual;
@@ -123,6 +133,9 @@ Unit Rax86int;
        rautils,itx86int,
        { codegen }
        procinfo,paramgr
+
+       //TG TODO delete
+       ,aasmtai
        ;
 
     type
@@ -152,12 +165,12 @@ Unit Rax86int;
         ',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
+        '','','','',
         '','','','','','','END',
         '','','','','','','','','','','','','','',
         '','','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
-        'and','or','xor','wrt','..gotpcrel',''
+        'and','or','xor','wrt','..gotpcrel','', '{1to8}'
       );
-
 
     constructor tx86intreader.create;
       var
@@ -167,6 +180,8 @@ Unit Rax86int;
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
           iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+
+        actoperextention := '';
       end;
 
 
@@ -236,7 +251,7 @@ Unit Rax86int;
       end;
 
 
-    Function tx86intreader.is_asmdirective(const s: string):boolean;
+        function tx86intreader.is_asmdirective(const s: string): boolean;
       var
         i : tasmtoken;
       Begin
@@ -262,15 +277,6 @@ Unit Rax86int;
           begin
             is_register:=true;
             actasmtoken:=AS_REGISTER;
-
-            //TG TODO CHECK
-            if getregtype(actasmregister) = R_MMREGISTER then
-            begin
-//                      actasmpattern:=actasmpattern + c;
-//                       c:=current_scanner.asmgetchar;
-            end;
-
-
           end;
       end;
 
@@ -287,18 +293,23 @@ Unit Rax86int;
       end;
 
 
-    procedure tx86intreader.handletargetdirective;
+        procedure tx86intreader.HandleTargetDirective;
       begin
       end;
 
 
-    Procedure tx86intreader.GetToken;
+        procedure tx86intreader.GetToken(check_operand_extention: boolean);
       var
         len : longint;
         forcelabel : boolean;
         srsym : tsym;
         srsymtable : TSymtable;
+        scomment: string;
+        schar: char;
+        old_commentstyle: tcommentstyle;
       begin
+        actoperextention := '';
+
         c:=scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
@@ -448,6 +459,40 @@ Unit Rax86int;
                      Begin
                        actasmpattern:=actasmpattern + c;
                        c:=current_scanner.asmgetchar;
+                     end;
+                  end;
+                 if prevasmtoken in [AS_LOPMASK,AS_LOPZEROMASK] then
+                  begin
+                    { allow spaces }
+                    while (c in [' ',#9]) do
+                      c:=current_scanner.asmgetchar;
+
+                    if c = '}' then
+                     begin
+                       current_scanner.readchar;
+                       case prevasmtoken of
+                         AS_LOPMASK: if (length(actasmpattern) = 2) and
+                                        (actasmpattern[2] in ['1'..'7']) then
+                                      begin
+                                        actasmtoken := AS_VOPMASK;
+                                        exit;
+                                      end;
+                         AS_LOPZEROMASK:
+                                      if (actasmpattern = 'z') or
+                                         (actasmpattern = 'Z') then
+                                      begin
+                                        actasmtoken := AS_VOPZEROMASK;
+                                        exit;
+                                      end;
+                                 else ; // is completely comment =>> nothing todo
+
+                       end;
+                       exit;
+                     end
+                    else
+                     begin
+                       if c = '{' then current_scanner.inc_comment_level;
+                       current_scanner.skipcomment(false); // is comment
                      end;
                   end;
                  if is_asmdirective(actasmpattern) then
@@ -786,7 +831,31 @@ Unit Rax86int;
 
              '{':
                begin
-                 current_scanner.skipcomment(true);
+                 if not(check_operand_extention) then current_scanner.skipcomment(true)
+                  else  // exists operand extention e.g. AVX512 {k1..k7} or {z} or {1to8}
+                  begin
+                    case current_scanner.asmgetchar of
+                      '{': begin
+                             current_scanner.inc_comment_level;
+                             current_scanner.skipcomment(true);
+                           end;
+                      '}': ; // local comment closed
+                      'k',
+                      'K': begin
+                             actasmtoken := AS_LOPMASK;
+                             exit;
+                           end;
+                      'z',
+                      'Z': begin
+                             actasmtoken := AS_LOPZEROMASK;
+                             exit;
+                           end;
+                      else begin
+                             current_scanner.skipcomment(false);
+                           end;
+                    end;
+                  end;
+
                  GetToken;
                end;
 
@@ -797,7 +866,7 @@ Unit Rax86int;
       end;
 
 
-  function tx86intreader.consume(t : tasmtoken):boolean;
+  function tx86intreader.consume(t : tasmtoken; check_operand_extention: boolean):boolean;
     begin
       Consume:=true;
       if t<>actasmtoken then
@@ -806,10 +875,38 @@ Unit Rax86int;
          Consume:=false;
        end;
       repeat
-        gettoken;
+        gettoken(check_operand_extention);
       until actasmtoken<>AS_NONE;
     end;
 
+  //procedure tx86intreader.ConsumeOperExtention(oper: tx86operand; const aOperExtention: string);
+  //begin
+  //  //if oper.reg
+  //end;
+
+  procedure tx86intreader.consume_voperand_ext(aop: tx86operand);
+  var
+    kreg: tregister;
+  begin
+    Consume(actasmtoken);
+    if actasmtoken in [AS_VOPMASK, AS_VOPZEROMASK] then
+    begin
+      case actasmtoken of
+            AS_VOPMASK: begin
+                          kreg := masm_regnum_search(lower(actasmpattern));
+                          if (kreg >= NR_K1) and
+                             (kreg <= NR_K7) then
+                          begin
+                            aop.vopext := aop.vopext or (tregisterrec(kreg).supreg  and $07); //TG TODO check
+                            aop.vopext := aop.vopext or OTVE_VECTORMASK_WRITEMASK;
+                          end;
+                        end;
+        AS_VOPZEROMASK: aop.vopext := aop.vopext or OTVE_VECTORMASK_ZERO;
+      end;
+
+      Consume(actasmtoken, true);
+    end;
+  end;
 
   procedure tx86intreader.RecoverConsume(allowcomma:boolean);
     begin
@@ -1010,7 +1107,9 @@ Unit Rax86int;
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
-    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
+        procedure tx86intreader.BuildRecordOffsetSize(const expr: string; out
+      offset: tcgint; out size: tcgint; out mangledname: string;
+      needvmtofs: boolean; out hastypecast: boolean);
       var
         s: string;
       Begin
@@ -1039,7 +1138,10 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
+        procedure tx86intreader.BuildConstSymbolExpression(
+      in_flags: tconstsymbolexpressioninputflags; out value: tcgint; out
+      asmsym: string; out asmsymtyp: TAsmsymtype; out size: tcgint; out
+      out_flags: tconstsymbolexpressionoutputflags);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -1467,7 +1569,7 @@ Unit Rax86int;
       end;
 
 
-    Function tx86intreader.BuildConstExpression:aint;
+        function tx86intreader.BuildConstExpression: aint;
       var
         l,size : tcgint;
         hs : string;
@@ -1481,7 +1583,8 @@ Unit Rax86int;
       end;
 
 
-    Function tx86intreader.BuildRefConstExpression(out size:tcgint;startingminus:boolean):aint;
+        function tx86intreader.BuildRefConstExpression(out size: tcgint;
+      startingminus: boolean): aint;
       var
         l : tcgint;
         hs : string;
@@ -1773,7 +1876,14 @@ Unit Rax86int;
             AS_REGISTER :
               begin
                 hreg:=actasmregister;
-                Consume(AS_REGISTER);
+                Consume(AS_REGISTER, true);
+
+                //TG TODO check
+                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK] do
+                begin
+                  consume_voperand_ext(oper);
+                end;
+
                 if actasmtoken=AS_COLON then
                   begin
                     Consume(AS_COLON);
@@ -1937,7 +2047,16 @@ Unit Rax86int;
               begin
                 if GotPlus or GotStar or BracketlessReference then
                   Message(asmr_e_invalid_reference_syntax);
-                Consume(AS_RBRACKET);
+
+                Consume(AS_RBRACKET, true);
+                //TG TODO check
+                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK] do
+                begin
+                  consume_voperand_ext(oper);
+                end;
+
+
+
                 if actasmtoken=AS_LBRACKET then
                   begin
                     tmpoper:=Tx86Operand.create;
@@ -1971,7 +2090,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstantOperand(oper: tx86operand);
+        procedure tx86intreader.BuildConstantOperand(oper: tx86operand);
       var
         l,size : tcgint;
         tempstr : string;
@@ -2015,7 +2134,8 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildOperand(oper: tx86operand;istypecast:boolean);
+        procedure tx86intreader.BuildOperand(oper: tx86operand; istypecast: boolean
+      );
 
         procedure AddLabelOperand(hl:tasmlabel);
         begin
@@ -2037,6 +2157,7 @@ Unit Rax86int;
            end;
         end;
 
+
       var
         expr,
         hs      : string;
@@ -2046,7 +2167,10 @@ Unit Rax86int;
         toffset,
         tsize   : tcgint;
         hastypecast: boolean;
+
       begin
+        oper.vopext := 0;
+
         expr:='';
         repeat
           if actasmtoken=AS_DOT then
@@ -2340,7 +2464,17 @@ Unit Rax86int;
               begin
                 { save the type of register used. }
                 tempreg:=actasmregister;
-                Consume(AS_REGISTER);
+                Consume(AS_REGISTER, true);
+
+                //TG TODO check
+                if (getregtype(tempreg) = R_MMREGISTER) then
+                 begin
+                  while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK] do
+                  begin
+                    consume_voperand_ext(oper);
+                  end;
+                end;
+
                 if actasmtoken = AS_COLON then
                  Begin
                    Consume(AS_COLON);
@@ -2438,6 +2572,9 @@ Unit Rax86int;
               end;
           end;
         until false;
+
+
+
         { End of operand, update size if a typecast is forced }
         if (oper.typesize<>0) and
            (oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL]) then
@@ -2453,7 +2590,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildOpCode(instr : tx86instruction);
+        procedure tx86intreader.BuildOpCode(instr: tx86instruction);
       var
         PrefixOp,OverrideOp: tasmop;
         operandnum : longint;
@@ -2752,7 +2889,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstant(constsize: byte);
+        procedure tx86intreader.BuildConstant(constsize: byte);
       var
         asmsymtyp : tasmsymtype;
         asmsym,

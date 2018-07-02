@@ -214,4 +214,12 @@ tregister($040E001B),
 tregister($040E001C),
 tregister($040E001D),
 tregister($040E001E),
-tregister($040E001F)
+tregister($040E001F),
+tregister($06000000),
+tregister($06000001),
+tregister($06000002),
+tregister($06000003),
+tregister($06000004),
+tregister($06000005),
+tregister($06000006),
+tregister($06000007)

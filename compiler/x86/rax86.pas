@@ -42,6 +42,7 @@ Procedure FWaitWarning;
 type
   Tx86Operand=class(TOperand)
     opsize  : topsize;
+    vopext  : byte;      // bitmask: vector-operand extention AVX512 (e.g. vaddps xmm0 {k1} {z})
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
     Function CheckOperand: boolean; override;
@@ -1034,9 +1035,11 @@ end;
 
 function Tx86Instruction.ConcatInstruction(p : TAsmList) : tai;
 var
-  siz  : topsize;
-  i,asize : longint;
+  siz   : topsize;
+  i     : longint;
+  asize : int64;
   ai   : taicpu;
+
 begin
   ConcatInstruction:=nil;
 
@@ -1245,6 +1248,9 @@ begin
   ai.Ops:=Ops;
   ai.Allocate_oper(Ops);
   for i:=1 to Ops do
+  begin
+    ai.oper[i-1]^.vopext := (operands[i] as tx86operand).vopext;
+
     case operands[i].opr.typ of
        OPR_CONSTANT :
          ai.loadconst(i-1,operands[i].opr.val);
@@ -1311,12 +1317,18 @@ begin
                      asize := OT_BITS128;
                    OS_M256,OS_MS256:
                      asize := OT_BITS256;
+                   OS_M512,OS_MS512:
+                     asize := OT_BITS512;
+
                  end;
                if asize<>0 then
                  ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
              end;
          end;
     end;
+
+
+  end;
 
  { Condition ? }
   if condition<>C_None then

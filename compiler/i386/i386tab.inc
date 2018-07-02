@@ -13807,8 +13807,8 @@
   (
     opcode  : A_VPERMD;
     ops     : 3;
-    optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
-    code    : #241#242#244#249#1#54#61#80;
+    optypes : (ot_ymmregmz,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#236#241#242#244#249#1#54#61#80;
     flags   : [if_avx2]
   ),
   (
