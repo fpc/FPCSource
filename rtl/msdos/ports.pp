@@ -16,6 +16,8 @@
 
 unit ports;
 
+{$inline on}
+
 interface
 
 type
