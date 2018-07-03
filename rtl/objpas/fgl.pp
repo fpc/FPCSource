@@ -153,7 +153,7 @@ type
     property List: PTypeList read GetList;
   end;
 
-  generic TFPGObjectList<T> = class(TFPSList)
+  generic TFPGObjectList<T: TObject> = class(TFPSList)
   private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
@@ -330,7 +330,7 @@ type
     property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
   end;
 
-  generic TFPGMapObject<TKey, TData> = class(TFPSMap)
+  generic TFPGMapObject<TKey; TData: TObject> = class(TFPSMap)
   private
     type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
