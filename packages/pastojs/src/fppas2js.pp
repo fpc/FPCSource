@@ -13914,6 +13914,7 @@ var
   aModule: TPasModule;
   Bracket: TJSBracketMemberExpression;
 begin
+  El:=ResolveSimpleAliasType(El);
   aName:=GetTypeInfoName(El,AContext,ErrorEl);
   if aName=FBuiltInNames[pbivnRTTILocal] then
     Result:=CreatePrimitiveDotExpr(aName,El)

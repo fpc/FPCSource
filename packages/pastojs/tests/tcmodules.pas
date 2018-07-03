@@ -660,17 +660,18 @@ type
     Procedure TestRTTI_PublishedClassPropertyFail;
     Procedure TestRTTI_PublishedClassFieldFail;
     Procedure TestRTTI_PublishedFieldExternalFail;
+    Procedure TestRTTI_Class_Field;
+    Procedure TestRTTI_Class_Method;
+    Procedure TestRTTI_Class_MethodArgFlags;
+    Procedure TestRTTI_Class_Property;
+    Procedure TestRTTI_Class_PropertyParams;
+    Procedure TestRTTI_Class_OtherUnit_TypeAlias;
     Procedure TestRTTI_IndexModifier;
     Procedure TestRTTI_StoredModifier;
     Procedure TestRTTI_DefaultValue;
     Procedure TestRTTI_DefaultValueSet;
     Procedure TestRTTI_DefaultValueRangeType;
     Procedure TestRTTI_DefaultValueInherit;
-    Procedure TestRTTI_Class_Field;
-    Procedure TestRTTI_Class_Method;
-    Procedure TestRTTI_Class_MethodArgFlags;
-    Procedure TestRTTI_Class_Property;
-    Procedure TestRTTI_Class_PropertyParams;
     Procedure TestRTTI_OverrideMethod;
     Procedure TestRTTI_OverloadProperty;
     // ToDo: array argument
@@ -19785,6 +19786,303 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestRTTI_Class_Field;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    FPropA: string;');
+  Add('  published');
+  Add('    VarLI: longint;');
+  Add('    VarC: char;');
+  Add('    VarS: string;');
+  Add('    VarD: double;');
+  Add('    VarB: boolean;');
+  Add('    VarLW: longword;');
+  Add('    VarSmI: smallint;');
+  Add('    VarW: word;');
+  Add('    VarShI: shortint;');
+  Add('    VarBy: byte;');
+  Add('    VarExt: longint external name ''VarExt'';');
+  Add('  end;');
+  Add('var p: pointer;');
+  Add('  Obj: tobject;');
+  Add('begin');
+  Add('  p:=typeinfo(tobject);');
+  Add('  p:=typeinfo(p);');
+  Add('  p:=typeinfo(obj);');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_Field',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FPropA = "";',
+    '    this.VarLI = 0;',
+    '    this.VarC = "";',
+    '    this.VarS = "";',
+    '    this.VarD = 0.0;',
+    '    this.VarB = false;',
+    '    this.VarLW = 0;',
+    '    this.VarSmI = 0;',
+    '    this.VarW = 0;',
+    '    this.VarShI = 0;',
+    '    this.VarBy = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addField("VarLI", rtl.longint);',
+    '  $r.addField("VarC", rtl.char);',
+    '  $r.addField("VarS", rtl.string);',
+    '  $r.addField("VarD", rtl.double);',
+    '  $r.addField("VarB", rtl.boolean);',
+    '  $r.addField("VarLW", rtl.longword);',
+    '  $r.addField("VarSmI", rtl.smallint);',
+    '  $r.addField("VarW", rtl.word);',
+    '  $r.addField("VarShI", rtl.shortint);',
+    '  $r.addField("VarBy", rtl.byte);',
+    '  $r.addField("VarExt", rtl.longint);',
+    '});',
+    'this.p = null;',
+    'this.Obj = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.$rtti["TObject"];',
+    '$mod.p = rtl.pointer;',
+    '$mod.p = $mod.Obj.$rtti;',
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_Method;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    procedure Internal; external name ''$intern'';');
+  Add('  published');
+  Add('    procedure Click; virtual; abstract;');
+  Add('    procedure Notify(Sender: TObject); virtual; abstract;');
+  Add('    function GetNotify: boolean; external name ''GetNotify'';');
+  Add('    procedure Println(a,b: longint); varargs; virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_Method',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addMethod("Click", 0, null);',
+    '  $r.addMethod("Notify", 0, [["Sender", $r]]);',
+    '  $r.addMethod("GetNotify", 1, null, rtl.boolean,{flags: 4});',
+    '  $r.addMethod("Println", 0, [["a", rtl.longint], ["b", rtl.longint]], null, {',
+    '    flags: 2',
+    '  });',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_MethodArgFlags;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('type');
+  Add('  TObject = class');
+  Add('  published');
+  Add('    procedure OpenArray(const Args: array of string); virtual; abstract;');
+  Add('    procedure ByRef(var Value: longint; out Item: longint); virtual; abstract;');
+  Add('    procedure Untyped(var Value; out Item); virtual; abstract;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_MethodOpenArray',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '$r.addMethod("OpenArray", 0, [["Args", rtl.string, 10]]);',
+    '$r.addMethod("ByRef", 0, [["Value", rtl.longint, 1], ["Item", rtl.longint, 4]]);',
+    '$r.addMethod("Untyped", 0, [["Value", null, 1], ["Item", null, 4]]);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_Property;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    FColor: longint;');
+  Add('    FColorStored: boolean;');
+  Add('    procedure SetColor(Value: longint); virtual; abstract;');
+  Add('    function GetColor: longint; virtual; abstract;');
+  Add('    function GetColorStored: boolean; virtual; abstract;');
+  Add('    FExtSize: longint external name ''$extSize'';');
+  Add('    FExtSizeStored: boolean external name ''$extSizeStored'';');
+  Add('    procedure SetExtSize(Value: longint); external name ''$setSize'';');
+  Add('    function GetExtSize: longint; external name ''$getSize'';');
+  Add('    function GetExtSizeStored: boolean; external name ''$getExtSizeStored'';');
+  Add('  published');
+  Add('    property ColorA: longint read FColor;');
+  Add('    property ColorB: longint write FColor;');
+  Add('    property ColorC: longint read GetColor write SetColor;');
+  Add('    property ColorD: longint read FColor write FColor stored FColorStored;');
+  Add('    property ExtSizeA: longint read FExtSize write FExtSize;');
+  Add('    property ExtSizeB: longint read GetExtSize write SetExtSize stored FExtSizeStored;');
+  Add('    property ExtSizeC: longint read FExtSize write FExtSize stored GetExtSizeStored;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_Property',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FColor = 0;',
+    '    this.FColorStored = false;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("ColorA", 0, rtl.longint, "FColor", "");',
+    '  $r.addProperty("ColorB", 0, rtl.longint, "", "FColor");',
+    '  $r.addProperty("ColorC", 3, rtl.longint, "GetColor", "SetColor");',
+    '  $r.addProperty(',
+    '    "ColorD",',
+    '    8,',
+    '    rtl.longint,',
+    '    "FColor",',
+    '    "FColor",',
+    '    {',
+    '      stored: "FColorStored"',
+    '    }',
+    '  );',
+    '  $r.addProperty("ExtSizeA", 0, rtl.longint, "$extSize", "$extSize");',
+    '  $r.addProperty(',
+    '    "ExtSizeB",',
+    '    11,',
+    '    rtl.longint,',
+    '    "$getSize",',
+    '    "$setSize",',
+    '    {',
+    '      stored: "$extSizeStored"',
+    '    }',
+    '  );',
+    '  $r.addProperty(',
+    '    "ExtSizeC",',
+    '    12,',
+    '    rtl.longint,',
+    '    "$extSize",',
+    '    "$extSize",',
+    '    {',
+    '      stored: "$getExtSizeStored"',
+    '    }',
+    '  );',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_PropertyParams;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  StartProgram(false);
+  Add('{$modeswitch externalclass}');
+  Add('type');
+  Add('  integer = longint;');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    function GetItems(i: integer): tobject; virtual; abstract;');
+  Add('    procedure SetItems(i: integer; value: tobject); virtual; abstract;');
+  Add('    function GetValues(const i: integer; var b: boolean): char; virtual; abstract;');
+  Add('    procedure SetValues(const i: integer; var b: boolean; value: char); virtual; abstract;');
+  Add('  published');
+  Add('    property Items[Index: integer]: tobject read getitems write setitems;');
+  Add('    property Values[const keya: integer; var keyb: boolean]: char read getvalues write setvalues;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_PropertyParams',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("Items", 3, $r, "GetItems", "SetItems");',
+    '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues");',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_OtherUnit_TypeAlias;
+begin
+  Converter.Options:=Converter.Options-[coNoTypeInfo];
+  AddModuleWithIntfImplSrc('unit1.pas',
+    'type TColor = -5..5;',
+    '');
+
+  StartProgram(true);
+  Add([
+  'uses unit1;',
+  'type',
+  '  TColorAlias = TColor;',
+  '  TColorTypeAlias = type TColor;',
+  '  TObject = class',
+  '  private',
+  '    fColor: TColor;',
+  '    fAlias: TColorAlias;',
+  '    fTypeAlias: TColorTypeAlias;',
+  '  published',
+  '    property Color: TColor read fcolor;',
+  '    property Alias: TColorAlias read falias;',
+  '    property TypeAlias: TColorTypeAlias read ftypealias;',
+  '  end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_OtherUnit_TypeAlias',
+    LinesToStr([ // statements
+    '$mod.$rtti.$inherited("TColorTypeAlias", pas.unit1.$rtti["TColor"], {});',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.fColor = -5;',
+    '    this.fAlias = -5;',
+    '    this.fTypeAlias = -5;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty("Color", 0, pas.unit1.$rtti["TColor"], "fColor", "");',
+    '  $r.addProperty("Alias", 0, pas.unit1.$rtti["TColor"], "fAlias", "");',
+    '  $r.addProperty("TypeAlias", 0, $mod.$rtti["TColorTypeAlias"], "fTypeAlias", "");',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestRTTI_IndexModifier;
 begin
   Converter.Options:=Converter.Options-[coNoTypeInfo];
@@ -20235,256 +20533,6 @@ begin
     '    }',
     '  );',
     '  $r.addProperty("B", 0, rtl.byte, "FB", "");',
-    '});',
-    '']),
-    LinesToStr([ // $mod.$main
-    '']));
-end;
-
-procedure TTestModule.TestRTTI_Class_Field;
-begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TObject = class');
-  Add('  private');
-  Add('    FPropA: string;');
-  Add('  published');
-  Add('    VarLI: longint;');
-  Add('    VarC: char;');
-  Add('    VarS: string;');
-  Add('    VarD: double;');
-  Add('    VarB: boolean;');
-  Add('    VarLW: longword;');
-  Add('    VarSmI: smallint;');
-  Add('    VarW: word;');
-  Add('    VarShI: shortint;');
-  Add('    VarBy: byte;');
-  Add('    VarExt: longint external name ''VarExt'';');
-  Add('  end;');
-  Add('var p: pointer;');
-  Add('  Obj: tobject;');
-  Add('begin');
-  Add('  p:=typeinfo(tobject);');
-  Add('  p:=typeinfo(p);');
-  Add('  p:=typeinfo(obj);');
-  ConvertProgram;
-  CheckSource('TestRTTI_Class_Field',
-    LinesToStr([ // statements
-    'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.$init = function () {',
-    '    this.FPropA = "";',
-    '    this.VarLI = 0;',
-    '    this.VarC = "";',
-    '    this.VarS = "";',
-    '    this.VarD = 0.0;',
-    '    this.VarB = false;',
-    '    this.VarLW = 0;',
-    '    this.VarSmI = 0;',
-    '    this.VarW = 0;',
-    '    this.VarShI = 0;',
-    '    this.VarBy = 0;',
-    '  };',
-    '  this.$final = function () {',
-    '  };',
-    '  var $r = this.$rtti;',
-    '  $r.addField("VarLI", rtl.longint);',
-    '  $r.addField("VarC", rtl.char);',
-    '  $r.addField("VarS", rtl.string);',
-    '  $r.addField("VarD", rtl.double);',
-    '  $r.addField("VarB", rtl.boolean);',
-    '  $r.addField("VarLW", rtl.longword);',
-    '  $r.addField("VarSmI", rtl.smallint);',
-    '  $r.addField("VarW", rtl.word);',
-    '  $r.addField("VarShI", rtl.shortint);',
-    '  $r.addField("VarBy", rtl.byte);',
-    '  $r.addField("VarExt", rtl.longint);',
-    '});',
-    'this.p = null;',
-    'this.Obj = null;',
-    '']),
-    LinesToStr([ // $mod.$main
-    '$mod.p = $mod.$rtti["TObject"];',
-    '$mod.p = rtl.pointer;',
-    '$mod.p = $mod.Obj.$rtti;',
-    '']));
-end;
-
-procedure TTestModule.TestRTTI_Class_Method;
-begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  private');
-  Add('    procedure Internal; external name ''$intern'';');
-  Add('  published');
-  Add('    procedure Click; virtual; abstract;');
-  Add('    procedure Notify(Sender: TObject); virtual; abstract;');
-  Add('    function GetNotify: boolean; external name ''GetNotify'';');
-  Add('    procedure Println(a,b: longint); varargs; virtual; abstract;');
-  Add('  end;');
-  Add('begin');
-  ConvertProgram;
-  CheckSource('TestRTTI_Class_Method',
-    LinesToStr([ // statements
-    'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.$init = function () {',
-    '  };',
-    '  this.$final = function () {',
-    '  };',
-    '  var $r = this.$rtti;',
-    '  $r.addMethod("Click", 0, null);',
-    '  $r.addMethod("Notify", 0, [["Sender", $r]]);',
-    '  $r.addMethod("GetNotify", 1, null, rtl.boolean,{flags: 4});',
-    '  $r.addMethod("Println", 0, [["a", rtl.longint], ["b", rtl.longint]], null, {',
-    '    flags: 2',
-    '  });',
-    '});',
-    '']),
-    LinesToStr([ // $mod.$main
-    '']));
-end;
-
-procedure TTestModule.TestRTTI_Class_MethodArgFlags;
-begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  published');
-  Add('    procedure OpenArray(const Args: array of string); virtual; abstract;');
-  Add('    procedure ByRef(var Value: longint; out Item: longint); virtual; abstract;');
-  Add('    procedure Untyped(var Value; out Item); virtual; abstract;');
-  Add('  end;');
-  Add('begin');
-  ConvertProgram;
-  CheckSource('TestRTTI_Class_MethodOpenArray',
-    LinesToStr([ // statements
-    'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.$init = function () {',
-    '  };',
-    '  this.$final = function () {',
-    '  };',
-    '  var $r = this.$rtti;',
-    '$r.addMethod("OpenArray", 0, [["Args", rtl.string, 10]]);',
-    '$r.addMethod("ByRef", 0, [["Value", rtl.longint, 1], ["Item", rtl.longint, 4]]);',
-    '$r.addMethod("Untyped", 0, [["Value", null, 1], ["Item", null, 4]]);',
-    '});',
-    '']),
-    LinesToStr([ // $mod.$main
-    '']));
-end;
-
-procedure TTestModule.TestRTTI_Class_Property;
-begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  TObject = class');
-  Add('  private');
-  Add('    FColor: longint;');
-  Add('    FColorStored: boolean;');
-  Add('    procedure SetColor(Value: longint); virtual; abstract;');
-  Add('    function GetColor: longint; virtual; abstract;');
-  Add('    function GetColorStored: boolean; virtual; abstract;');
-  Add('    FExtSize: longint external name ''$extSize'';');
-  Add('    FExtSizeStored: boolean external name ''$extSizeStored'';');
-  Add('    procedure SetExtSize(Value: longint); external name ''$setSize'';');
-  Add('    function GetExtSize: longint; external name ''$getSize'';');
-  Add('    function GetExtSizeStored: boolean; external name ''$getExtSizeStored'';');
-  Add('  published');
-  Add('    property ColorA: longint read FColor;');
-  Add('    property ColorB: longint write FColor;');
-  Add('    property ColorC: longint read GetColor write SetColor;');
-  Add('    property ColorD: longint read FColor write FColor stored FColorStored;');
-  Add('    property ExtSizeA: longint read FExtSize write FExtSize;');
-  Add('    property ExtSizeB: longint read GetExtSize write SetExtSize stored FExtSizeStored;');
-  Add('    property ExtSizeC: longint read FExtSize write FExtSize stored GetExtSizeStored;');
-  Add('  end;');
-  Add('begin');
-  ConvertProgram;
-  CheckSource('TestRTTI_Class_Property',
-    LinesToStr([ // statements
-    'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.$init = function () {',
-    '    this.FColor = 0;',
-    '    this.FColorStored = false;',
-    '  };',
-    '  this.$final = function () {',
-    '  };',
-    '  var $r = this.$rtti;',
-    '  $r.addProperty("ColorA", 0, rtl.longint, "FColor", "");',
-    '  $r.addProperty("ColorB", 0, rtl.longint, "", "FColor");',
-    '  $r.addProperty("ColorC", 3, rtl.longint, "GetColor", "SetColor");',
-    '  $r.addProperty(',
-    '    "ColorD",',
-    '    8,',
-    '    rtl.longint,',
-    '    "FColor",',
-    '    "FColor",',
-    '    {',
-    '      stored: "FColorStored"',
-    '    }',
-    '  );',
-    '  $r.addProperty("ExtSizeA", 0, rtl.longint, "$extSize", "$extSize");',
-    '  $r.addProperty(',
-    '    "ExtSizeB",',
-    '    11,',
-    '    rtl.longint,',
-    '    "$getSize",',
-    '    "$setSize",',
-    '    {',
-    '      stored: "$extSizeStored"',
-    '    }',
-    '  );',
-    '  $r.addProperty(',
-    '    "ExtSizeC",',
-    '    12,',
-    '    rtl.longint,',
-    '    "$extSize",',
-    '    "$extSize",',
-    '    {',
-    '      stored: "$getExtSizeStored"',
-    '    }',
-    '  );',
-    '});',
-    '']),
-    LinesToStr([ // $mod.$main
-    '']));
-end;
-
-procedure TTestModule.TestRTTI_Class_PropertyParams;
-begin
-  Converter.Options:=Converter.Options-[coNoTypeInfo];
-  StartProgram(false);
-  Add('{$modeswitch externalclass}');
-  Add('type');
-  Add('  integer = longint;');
-  Add('  TObject = class');
-  Add('  private');
-  Add('    function GetItems(i: integer): tobject; virtual; abstract;');
-  Add('    procedure SetItems(i: integer; value: tobject); virtual; abstract;');
-  Add('    function GetValues(const i: integer; var b: boolean): char; virtual; abstract;');
-  Add('    procedure SetValues(const i: integer; var b: boolean; value: char); virtual; abstract;');
-  Add('  published');
-  Add('    property Items[Index: integer]: tobject read getitems write setitems;');
-  Add('    property Values[const keya: integer; var keyb: boolean]: char read getvalues write setvalues;');
-  Add('  end;');
-  Add('begin');
-  ConvertProgram;
-  CheckSource('TestRTTI_Class_PropertyParams',
-    LinesToStr([ // statements
-    'rtl.createClass($mod, "TObject", null, function () {',
-    '  this.$init = function () {',
-    '  };',
-    '  this.$final = function () {',
-    '  };',
-    '  var $r = this.$rtti;',
-    '  $r.addProperty("Items", 3, $r, "GetItems", "SetItems");',
-    '  $r.addProperty("Values", 3, rtl.char, "GetValues", "SetValues");',
     '});',
     '']),
     LinesToStr([ // $mod.$main
