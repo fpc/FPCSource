@@ -15,6 +15,7 @@
  **********************************************************************}
 
  const
+  {$I cpuinnr.inc}
    { will be detected at startup }
   { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
   Test8086 : byte = 0; public name '__Test8086';

@@ -15,6 +15,7 @@
  **********************************************************************}
 
 const
+  {$I cpuinnr.inc}
   { Always i386 or newer }
   Test8086 : byte = 2;
   { Always 387 or newer. Emulated if needed. }

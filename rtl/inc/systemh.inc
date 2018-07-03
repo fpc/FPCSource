@@ -692,6 +692,9 @@ type
 (* means that default handling should be used. *)
   TCtrlBreakHandler = function (CtrlBreak: boolean): boolean;
 
+{ Numbers for routines that have compiler magic }
+{$I innr.inc}
+
 { CPU specific stuff }
 {$i cpuh.inc}
 
@@ -790,9 +793,6 @@ Var
   WriteErrorsToStdErr : Boolean = True;
 
 function StackTop: Pointer;
-
-{ Numbers for routines that have compiler magic }
-{$I innr.inc}
 
 
 {****************************************************************************
