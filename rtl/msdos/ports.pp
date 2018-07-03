@@ -47,38 +47,31 @@ var
    portw : tportw;
    portl : tportl;
 
-function inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
-function inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
-//function inportl(port : word) : longint;[internproc:fpc_in_x86_inportl];
-procedure outportb(port : word;data : byte);[internproc:fpc_in_x86_outportb];
-procedure outportw(port : word;data : word);[internproc:fpc_in_x86_outportw];
-//procedure outportl(port : word;data : longint);[internproc:fpc_in_x86_outportl];
-
   implementation
 
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : word;data : byte);inline;
 begin
-  outportb(p,data);
+  fpc_x86_outportb(p,data);
 end;
 
 
 function tport.readport(p : word) : byte;inline;
 begin
-  readport:=inportb(p);
+  readport:=fpc_x86_inportb(p);
 end;
 
 
 procedure tportw.writeport(p : word;data : word);inline;
 begin
-  outportw(p,data);
+  fpc_x86_outportw(p,data);
 end;
 
 
 function tportw.readport(p : word) : word;inline;
 begin
-  readport:=inportw(p);
+  readport:=fpc_x86_inportw(p);
 end;
 
 
