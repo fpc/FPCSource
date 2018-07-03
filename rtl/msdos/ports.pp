@@ -20,14 +20,14 @@ interface
 
 type
    tport = object
-      procedure writeport(p : word;data : byte);
-      function  readport(p : word) : byte;
+      procedure writeport(p : word;data : byte);inline;
+      function  readport(p : word) : byte;inline;
       property pp[w : word] : byte read readport write writeport;default;
    end;
 
    tportw = object
-      procedure writeport(p : word;data : word);
-      function  readport(p : word) : word;
+      procedure writeport(p : word;data : word);inline;
+      function  readport(p : word) : word;inline;
       property pp[w : word] : word read readport write writeport;default;
    end;
 
