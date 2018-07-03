@@ -355,6 +355,7 @@ Works:
 - typecast TJSFunction(func)
 
 ToDos:
+- do not rename property Date
 - bug: DoIt(typeinfo(i))  where DoIt is in another unit and has TTypeInfo
 - bug:
   v:=a[0]  gives Local variable "a" is assigned but never used
@@ -798,7 +799,72 @@ const
     'NativeUInt'
     );
 
-  JSReservedWords: array[0..113] of string = (
+  // reserved words, not usable as identifiers, not even as sub identifiers
+  JSReservedWords: array[0..59] of string = (
+     // keep sorted, first uppercase, then lowercase !
+     '__extends',
+     '_super',
+     'anonymous',
+     'apply',
+     'array',
+     'await',
+     'bind',
+     'break',
+     'call',
+     'case',
+     'catch',
+     'class',
+     'constructor',
+     'continue',
+     'default',
+     'delete',
+     'do',
+     'each',
+     'else',
+     'enum',
+     'escape',
+     'eval',
+     'export',
+     'extends',
+     'false',
+     'for',
+     'function',
+     'getPrototypeOf',
+     'hasOwnProperty',
+     'if',
+     'implements',
+     'import',
+     'in',
+     'instanceof',
+     'interface',
+     'isPrototypeOf',
+     'let',
+     'new',
+     'null',
+     'package',
+     'private',
+     'propertyIsEnumerable',
+     'protected',
+     'prototype',
+     'public',
+     'return',
+     'static',
+     'super',
+     'switch',
+     'this',
+     'throw',
+     'toLocaleString',
+     'toString',
+     'true',
+     'try',
+     'undefined',
+     'var',
+     'while',
+     'with',
+     'yield'
+    );
+  // reserved words, not usable as global identifiers, can be used as sub identifiers
+  JSReservedGlobalWords: array[0..51] of string = (
      // keep sorted, first uppercase, then lowercase !
      'Array',
      'ArrayBuffer',
@@ -840,80 +906,18 @@ const
      'Uint8ClampedArray',
      'WeakMap',
      'WeakSet',
-     '__extends',
-     '_super',
-     'anonymous',
-     'apply',
      'arguments',
-     'array',
-     'await',
-     'bind',
-     'break',
-     'call',
-     'case',
-     'catch',
-     'charAt',
-     'charCodeAt',
-     'class',
-     'constructor',
-     'continue',
      'decodeURI',
      'decodeURIComponent',
-     'default',
-     'delete',
-     'do',
-     'each',
-     'else',
      'encodeURI',
      'encodeURIComponent',
-     'enum',
-     'escape',
-     'eval',
-     'export',
-     'extends',
-     'false',
-     'for',
-     'function',
-     'getPrototypeOf',
-     'hasOwnProperty',
-     'if',
-     'implements',
-     'import',
-     'in',
-     'instanceof',
-     'interface',
      'isFinite',
      'isNaN',
-     'isPrototypeOf',
-     'let',
-     'new',
-     'null',
-     'package',
      'parseFloat',
      'parseInt',
-     'private',
-     'propertyIsEnumerable',
-     'protected',
-     'prototype',
-     'public',
-     'return',
-     'static',
-     'super',
-     'switch',
-     'this',
-     'throw',
-     'toLocaleString',
-     'toString',
-     'true',
-     'try',
-     'undefined',
      'unescape',
      'uneval',
-     'valueOf',
-     'var',
-     'while',
-     'with',
-     'yield'
+     'valueOf'
     );
 
 const
@@ -1461,7 +1465,7 @@ type
     FOnIsElementUsed: TPas2JSIsElementUsedEvent;
     FOnIsTypeInfoUsed: TPas2JSIsElementUsedEvent;
     FOptions: TPasToJsConverterOptions;
-    FPreservedWords: TJSReservedWordList; // sorted with CompareStr
+    FReservedWords: TJSReservedWordList; // sorted with CompareStr
     FTargetPlatform: TPasToJsPlatform;
     FTargetProcessor: TPasToJsProcessor;
     Function CreatePrimitiveDotExpr(AName: string; Src: TPasElement): TJSElement;
@@ -1470,7 +1474,7 @@ type
     Function CreateSubDeclNameExpr(El: TPasElement;
       AContext: TConvertContext; PosEl: TPasElement = nil): TJSElement;
     Function CreateIdentifierExpr(El: TPasElement; AContext: TConvertContext): TJSElement;
-    Function CreateIdentifierExpr(AName: string; El: TPasElement; AContext: TConvertContext): TJSElement;
+    Function CreateIdentifierExpr(AName: string; CheckGlobal: boolean; PosEl: TPasElement; AContext: TConvertContext): TJSElement;
     Function CreateSwitchStatement(El: TPasImplCaseOf; AContext: TConvertContext): TJSElement;
     Function CreateTypeDecl(El: TPasType; AContext: TConvertContext): TJSElement;
     Function CreateVarDecl(El: TPasVariable; AContext: TConvertContext): TJSElement;
@@ -1479,7 +1483,7 @@ type
       El: TJSElement);
     function GetBuildInNames(bin: TPas2JSBuiltInName): string;
     procedure SetBuildInNames(bin: TPas2JSBuiltInName; const AValue: string);
-    procedure SetPreservedWords(const AValue: TJSReservedWordList);
+    procedure SetReservedWords(const AValue: TJSReservedWordList);
     procedure SetUseEnumNumbers(const AValue: boolean);
     procedure SetUseLowerCase(const AValue: boolean);
     procedure SetUseSwitchStatement(const AValue: boolean);
@@ -1499,10 +1503,11 @@ type
     Function IsLiteralNumber(El: TJSElement; out n: TJSNumber): boolean;
     // Name mangling
     Function GetOverloadName(El: TPasElement; AContext: TConvertContext): string;
-    Function TransformVariableName(El: TPasElement; Const AName: String; AContext : TConvertContext): String; virtual;
+    Function CanClashWithGlobal(El: TPasElement): boolean;
+    Function TransformVariableName(ErrorEl: TPasElement; Const AName: String; CheckGlobal: boolean; AContext : TConvertContext): String; virtual;
     Function TransformVariableName(El: TPasElement; AContext : TConvertContext) : String; virtual;
     Function TransformModuleName(El: TPasModule; AddModulesPrefix: boolean; AContext : TConvertContext) : String; virtual;
-    Function IsPreservedWord(const aName: string): boolean; virtual;
+    Function IsReservedWord(const aName: string; CheckGlobal: boolean): boolean; virtual;
     Function GetTypeInfoName(El: TPasType; AContext: TConvertContext;
       ErrorEl: TPasElement): String; virtual;
     // utility functions for creating stuff
@@ -1781,7 +1786,7 @@ type
     Property UseEnumNumbers: boolean read GetUseEnumNumbers write SetUseEnumNumbers; // default false
     Property OnIsElementUsed: TPas2JSIsElementUsedEvent read FOnIsElementUsed write FOnIsElementUsed;
     Property OnIsTypeInfoUsed: TPas2JSIsElementUsedEvent read FOnIsTypeInfoUsed write FOnIsTypeInfoUsed;
-    Property PreservedWords: TJSReservedWordList read FPreservedWords write SetPreservedWords;
+    Property ReservedWords: TJSReservedWordList read FReservedWords write SetReservedWords;
     // names
     Property BuildInNames[bin: TPas2JSBuiltInName]: string read GetBuildInNames write SetBuildInNames;
   end;
@@ -5069,16 +5074,16 @@ begin
   FBuiltInNames[bin]:=AValue;
 end;
 
-procedure TPasToJSConverter.SetPreservedWords(const AValue: TJSReservedWordList
+procedure TPasToJSConverter.SetReservedWords(const AValue: TJSReservedWordList
   );
 var
   i: Integer;
 begin
-  if FPreservedWords=AValue then Exit;
+  if FReservedWords=AValue then Exit;
   for i:=0 to length(AValue)-2 do
     if CompareStr(AValue[i],AValue[i+1])>=0 then
       raise Exception.Create('TPasToJSConverter.SetPreservedWords "'+AValue[i]+'" >= "'+AValue[i+1]+'"');
-  FPreservedWords:=AValue;
+  FReservedWords:=AValue;
 end;
 
 function TPasToJSConverter.ConvertModule(El: TPasModule;
@@ -5565,6 +5570,21 @@ begin
     Result:=AContext.Resolver.GetOverloadName(El)
   else
     Result:=El.Name;
+end;
+
+function TPasToJSConverter.CanClashWithGlobal(El: TPasElement): boolean;
+var
+  C: TClass;
+begin
+  C:=El.ClassType;
+  if C=TPasArgument then
+    Result:=true
+  else if El.Parent is TProcedureBody then
+    Result:=true
+  else if El.Parent is TPasImplExceptOn then
+    Result:=true
+  else
+    Result:=false;
 end;
 
 function TPasToJSConverter.ConvertBinaryExpression(El: TBinaryExpr;
@@ -6468,10 +6488,12 @@ begin
   Result:=CreatePrimitiveDotExpr(TransformVariableName(El,AContext),El);
 end;
 
-function TPasToJSConverter.CreateIdentifierExpr(AName: string; El: TPasElement;
-  AContext: TConvertContext): TJSElement;
+function TPasToJSConverter.CreateIdentifierExpr(AName: string;
+  CheckGlobal: boolean; PosEl: TPasElement; AContext: TConvertContext
+  ): TJSElement;
+// CheckGlobal: check name clashes with global identifiers too
 begin
-  Result:=CreatePrimitiveDotExpr(TransformVariableName(El,AName,AContext),El);
+  Result:=CreatePrimitiveDotExpr(TransformVariableName(PosEl,AName,CheckGlobal,AContext),PosEl);
 end;
 
 function TPasToJSConverter.CreateSubDeclNameExpr(El: TPasElement;
@@ -6481,7 +6503,7 @@ var
   CurName, ParentName: String;
 begin
   if PosEl=nil then PosEl:=El;
-  CurName:=TransformVariableName(El,Name,AContext);
+  CurName:=TransformVariableName(El,Name,false,AContext);
   ParentName:=AContext.GetLocalName(El.Parent);
   if ParentName='' then
     ParentName:='this';
@@ -6686,7 +6708,7 @@ begin
       RaiseIdentifierNotFound(aName,El,20161024191306)
     else
       // simple mode
-      Result:=CreateIdentifierExpr(aName,El,AContext);
+      Result:=CreateIdentifierExpr(aName,true,El,AContext);
     exit;
     end;
 
@@ -12770,19 +12792,19 @@ begin
             // create "tmp>=left"
             JSGEExpr:=TJSRelationalExpressionGE(CreateElement(TJSRelationalExpressionGE,Expr));
             JSAndExpr.A:=JSGEExpr;
-            JSGEExpr.A:=CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext);
+            JSGEExpr.A:=CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr);
             JSGEExpr.B:=ConvertExpression(TBinaryExpr(Expr).left,AContext);
             // create "tmp<=right"
             JSLEExpr:=TJSRelationalExpressionLE(CreateElement(TJSRelationalExpressionLE,Expr));
             JSAndExpr.B:=JSLEExpr;
-            JSLEExpr.A:=CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext);
+            JSLEExpr.A:=CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr);
             JSLEExpr.B:=ConvertExpression(TBinaryExpr(Expr).right,AContext);
             if IsCaseOfString then
               begin
               // case of string, range  ->  "(tmp.length===1) &&"
               JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
               JSEQExpr.A:=CreateDotExpression(Expr,
-                            CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext),
+                            CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr),
                             CreatePrimitiveDotExpr('length',Expr));
               JSEQExpr.B:=CreateLiteralNumber(Expr,1);
               JSAndExpr:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression,Expr));
@@ -12796,7 +12818,7 @@ begin
             // value -> create (tmp===Expr)
             JSEQExpr:=TJSEqualityExpressionSEQ(CreateElement(TJSEqualityExpressionSEQ,Expr));
             JSExpr:=JSEQExpr;
-            JSEQExpr.A:=CreateIdentifierExpr(TmpVarName,El.CaseExpr,AContext);
+            JSEQExpr.A:=CreatePrimitiveDotExpr(TmpVarName,El.CaseExpr);
             JSEQExpr.B:=ConvertExpression(Expr,AContext);
             end;
           if IfSt.Cond=nil then
@@ -13959,7 +13981,7 @@ begin
   Param:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Arg));
   TargetParams.Elements.AddElement.Expr:=Param;
   // add "argname"
-  ArgName:=TransformVariableName(Arg,Arg.Name,AContext);
+  ArgName:=TransformVariableName(Arg,Arg.Name,true,AContext);
   Param.Elements.AddElement.Expr:=CreateLiteralString(Arg,ArgName);
   Flags:=0;
   // add "argtype"
@@ -14205,7 +14227,7 @@ begin
     Call.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTTILocal],FBuiltInNames[pbifnRTTIAddProperty]]);
 
     // param "propname"
-    PropName:=TransformVariableName(Prop,Prop.Name,AContext);
+    PropName:=TransformVariableName(Prop,Prop.Name,false,AContext);
     Call.AddArg(CreateLiteralString(Prop,PropName));
 
     // add flags
@@ -18083,7 +18105,7 @@ begin
         // create arg.get()
         Call:=CreateCallExpression(PosEl);
         Call.Expr:=CreateDotExpression(PosEl,
-          CreateIdentifierExpr(Arg.Name,PosEl,AContext),
+          CreateIdentifierExpr(Arg.Name,true,PosEl,AContext),
           CreatePrimitiveDotExpr(TempRefObjGetterName,PosEl));
         Result:=Call;
         exit;
@@ -18097,7 +18119,7 @@ begin
         Call:=CreateCallExpression(PosEl);
         AssignContext.Call:=Call;
         Call.Expr:=CreateDotExpression(PosEl,
-                      CreateIdentifierExpr(Arg.Name,PosEl,AContext),
+                      CreateIdentifierExpr(Arg.Name,true,PosEl,AContext),
                       CreatePrimitiveDotExpr(TempRefObjSetterName,PosEl));
         Call.AddArg(AssignContext.RightSide);
         AssignContext.RightSide:=nil;
@@ -18109,7 +18131,7 @@ begin
         // simply pass the reference
         ParamContext:=AContext.AccessContext as TParamContext;
         ParamContext.ReusingReference:=true;
-        Result:=CreateIdentifierExpr(Arg.Name,PosEl,AContext);
+        Result:=CreateIdentifierExpr(Arg.Name,true,PosEl,AContext);
         exit;
         end;
       else
@@ -18119,7 +18141,7 @@ begin
   if (CompareText(Arg.Name,'Self')=0) and (AContext.GetSelfContext<>nil) then
     Name:=AContext.GetLocalName(Arg)
   else
-    Name:=TransformVariableName(Arg,Arg.Name,AContext);
+    Name:=TransformVariableName(Arg,Arg.Name,true,AContext);
   Result:=CreatePrimitiveDotExpr(Name,PosEl);
 end;
 
@@ -18154,7 +18176,7 @@ begin
       ListFirst:=TJSStatementList(CreateElement(TJSStatementList,El.Body));
       ListLast:=ListFirst;
       IfSt.BTrue:=ListFirst;
-      V:=CreateVarStatement(TransformVariableName(El,El.VariableName,AContext),
+      V:=CreateVarStatement(TransformVariableName(El,El.VariableName,true,AContext),
         CreatePrimitiveDotExpr(FBuiltInNames[pbivnExceptObject],El),El);
       ListFirst.A:=V;
       // add statements
@@ -18768,20 +18790,21 @@ begin
   raise Exception.Create(s);
 end;
 
-function TPasToJSConverter.TransformVariableName(El: TPasElement;
-  const AName: String; AContext: TConvertContext): String;
+function TPasToJSConverter.TransformVariableName(ErrorEl: TPasElement;
+  const AName: String; CheckGlobal: boolean; AContext: TConvertContext): String;
+// CheckGlobal: check name clashes with global identifiers too
 var
   i: Integer;
   c: Char;
 begin
   if AContext=nil then ;
   if Pos('.',AName)>0 then
-    RaiseInconsistency(20170203164711,El);
+    RaiseInconsistency(20170203164711,ErrorEl);
   if UseLowerCase then
     Result:=LowerCase(AName)
   else
     Result:=AName;
-  if not IsPreservedWord(Result) then
+  if not IsReservedWord(Result,CheckGlobal) then
     exit;
   for i:=1 to length(Result) do
     begin
@@ -18790,12 +18813,12 @@ begin
     'a'..'z','A'..'Z':
       begin
       Result[i]:=chr(ord(c) xor 32);
-      if not IsPreservedWord(Result) then
+      if not IsReservedWord(Result,CheckGlobal) then
         exit;
       end;
     end;
     end;
-  RaiseNotSupported(El,AContext,20170203131832);
+  RaiseNotSupported(ErrorEl,AContext,20170203131832);
 end;
 
 function TPasToJSConverter.TransformVariableName(El: TPasElement;
@@ -18813,10 +18836,11 @@ begin
       aType:=AContext.Resolver.ResolveAliasType(TPasType(El))
     else
       aType:=TPasType(El);
-    Result:=TransformVariableName(El,aType.Name,AContext);
+    Result:=TransformVariableName(El,aType.Name,CanClashWithGlobal(aType),AContext);
     end
   else
-    Result:=TransformVariableName(El,GetOverloadName(El,AContext),AContext);
+    Result:=TransformVariableName(El,GetOverloadName(El,AContext),
+                                  CanClashWithGlobal(El),AContext);
 end;
 
 function TPasToJSConverter.TransformModuleName(El: TPasModule;
@@ -18837,7 +18861,7 @@ begin
       StartP:=p;
       while (p<=length(aName)) and (aName[p]<>'.') do inc(p);
       Part:=copy(aName,StartP,p-StartP);
-      Part:=TransformVariableName(El,Part,AContext);
+      Part:=TransformVariableName(El,Part,false,AContext);
       if Result<>'' then Result:=Result+'.';
       Result:=Result+Part;
       inc(p);
@@ -18852,7 +18876,8 @@ begin
     end;
 end;
 
-function TPasToJSConverter.IsPreservedWord(const aName: string): boolean;
+function TPasToJSConverter.IsReservedWord(const aName: string;
+  CheckGlobal: boolean): boolean;
 var
   l, r, m, cmp: Integer;
 begin
@@ -18867,7 +18892,7 @@ begin
     begin
     m:=(l+r) div 2;
     cmp:=CompareStr(aName,JSReservedWords[m]);
-    //writeln('TPasToJSConverter.IsPreservedWord Name="',aName,'" l=',l,' r=',r,' m=',m,' JSReservedWords[m]=',JSReservedWords[m],' cmp=',cmp);
+    //writeln('TPasToJSConverter.IsReservedWord Name="',aName,'" l=',l,' r=',r,' m=',m,' JSReservedWords[m]=',JSReservedWords[m],' cmp=',cmp);
     if cmp>0 then
       l:=m+1
     else if cmp<0 then
@@ -18878,18 +18903,37 @@ begin
 
   // search user list
   l:=0;
-  r:=length(FPreservedWords)-1;
+  r:=length(FReservedWords)-1;
   while l<=r do
     begin
     m:=(l+r) div 2;
-    cmp:=CompareStr(aName,FPreservedWords[m]);
-    //writeln('TPasToJSConverter.IsPreservedWord Name="',aName,'" l=',l,' r=',r,' m=',m,' FReservedWords[m]=',FReservedWords[m],' cmp=',cmp);
+    cmp:=CompareStr(aName,FReservedWords[m]);
+    //writeln('TPasToJSConverter.IsReservedWord Name="',aName,'" l=',l,' r=',r,' m=',m,' FReservedWords[m]=',FReservedWords[m],' cmp=',cmp);
     if cmp>0 then
       l:=m+1
     else if cmp<0 then
       r:=m-1
     else
       exit;
+    end;
+
+  if CheckGlobal then
+    begin
+    // search default global list
+    l:=low(JSReservedGlobalWords);
+    r:=high(JSReservedGlobalWords);
+    while l<=r do
+      begin
+      m:=(l+r) div 2;
+      cmp:=CompareStr(aName,JSReservedGlobalWords[m]);
+      //writeln('TPasToJSConverter.IsReservedWord Name="',aName,'" l=',l,' r=',r,' m=',m,' JSReservedGlobalWords[m]=',JSReservedGlobalWords[m],' cmp=',cmp);
+      if cmp>0 then
+        l:=m+1
+      else if cmp<0 then
+        r:=m-1
+      else
+        exit;
+      end;
     end;
 
   Result:=false;
@@ -19007,7 +19051,7 @@ begin
       if CurEl.Name<>'' then
         begin
         if CurEl.ClassType=TPasTypeAliasType then
-          aName:=TransformVariableName(CurEl,CurEl.Name,AContext)
+          aName:=TransformVariableName(CurEl,CurEl.Name,true,AContext)
         else
           aName:=TransformVariableName(CurEl,AContext);
         if aName='' then
@@ -19073,6 +19117,9 @@ initialization
   for i:=low(JSReservedWords) to High(JSReservedWords)-1 do
     if CompareStr(JSReservedWords[i],JSReservedWords[i+1])>=0 then
       raise Exception.Create('20170203135442 '+JSReservedWords[i]+' >= '+JSReservedWords[i+1]);
+  for i:=low(JSReservedGlobalWords) to High(JSReservedGlobalWords)-1 do
+    if CompareStr(JSReservedGlobalWords[i],JSReservedGlobalWords[i+1])>=0 then
+      raise Exception.Create('20170203135443 '+JSReservedGlobalWords[i]+' >= '+JSReservedGlobalWords[i+1]);
 
 end.
 

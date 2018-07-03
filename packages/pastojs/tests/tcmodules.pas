@@ -322,6 +322,7 @@ type
     Procedure TestProc_ConstOrder;
     Procedure TestProc_DuplicateConst;
     Procedure TestProc_LocalVarAbsolute;
+    Procedure TestProc_ReservedWords;
 
     // enums, sets
     Procedure TestEnum_Name;
@@ -365,6 +366,7 @@ type
     Procedure TestAsmPas_Impl; // ToDo
     Procedure TestTryFinally;
     Procedure TestTryExcept;
+    Procedure TestTryExcept_ReservedWords;
     Procedure TestCaseOf;
     Procedure TestCaseOf_UseSwitch;
     Procedure TestCaseOfNoElse;
@@ -3791,6 +3793,39 @@ begin
     ]));
 end;
 
+procedure TTestModule.TestProc_ReservedWords;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Date(ArrayBuffer: longint);',
+  'const',
+  '  NaN: longint = 3;',
+  'var',
+  '  &Boolean: longint;',
+  '  procedure Error(ArrayBuffer: longint);',
+  '  begin',
+  '  end;',
+  'begin',
+  '  Nan:=&bOolean;',
+  'end;',
+  'begin',
+  ' Date(1);']);
+  ConvertProgram;
+  CheckSource('TestProc_ReservedWords',
+    LinesToStr([ // statements
+    'var naN = 3;',
+    'this.Date = function (arrayBuffer) {',
+    '  var boolean = 0;',
+    '  function error(arrayBuffer) {',
+    '  };',
+    '  naN = boolean;',
+    '};',
+    '']),
+    LinesToStr([
+    '  $mod.Date(1);'
+    ]));
+end;
+
 procedure TTestModule.TestEnum_Name;
 begin
   StartProgram(false);
@@ -6495,6 +6530,54 @@ begin
     '  $mod.vI = 6;',
     '} catch ($e) {',
     '  if ($mod.EInvalidCast.isPrototypeOf($e)){' ,
+    '  } else throw $e',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestTryExcept_ReservedWords;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  Exception = class',
+  '    Symbol: string;',
+  '  end;',
+  'var &try: longint;',
+  'begin',
+  '  try',
+  '    &try:=4;',
+  '  except',
+  '    on Error: exception do',
+  '      if errOR.symBol='''' then',
+  '        raise ERRor;',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestTryExcept_ReservedWords',
+    LinesToStr([ // statements
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass($mod, "Exception", $mod.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.Symbol = "";',
+    '  };',
+    '});',
+    'this.Try = 0;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'try {',
+    '  $mod.Try = 4;',
+    '} catch ($e) {',
+    '  if ($mod.Exception.isPrototypeOf($e)) {',
+    '    var error = $e;',
+    '    if (error.Symbol === "") throw error;',
     '  } else throw $e',
     '};',
     '']));

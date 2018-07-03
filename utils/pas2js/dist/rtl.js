@@ -490,7 +490,7 @@ var rtl = {
         var intfname = names[i];
         var fnname = map[intfname];
         if (!fnname) fnname = intfname;
-        //console.log('addIntf: intftype='+t.$name+' index='+i+' intfname="'+intfname+'" fnname="'+fnname+'" proc='+typeof(fn));
+        //console.log('addIntf: intftype='+t.$name+' index='+i+' intfname="'+intfname+'" fnname="'+fnname+'" old='+typeof(item[intfname]));
         item[intfname] = jmp(aclass[fnname]);
       }
       t = Object.getPrototypeOf(t);
@@ -507,7 +507,7 @@ var rtl = {
     if (!item) return null;
     // check delegation
     //console.log('getIntfG: obj='+obj.$classname+' guid='+guid+' query='+query+' item='+typeof(item));
-    if (typeof item === 'function') return item.call(obj); // COM: contains _AddRef
+    if (typeof item === 'function') return item.call(obj); // delegate. Note: COM contains _AddRef
     // check cache
     var intf = null;
     if (obj.$interfaces){
@@ -576,7 +576,7 @@ var rtl = {
     ref: function(id,intf){
       // called for temporary interface references needing delayed release
       var old = this[id];
-      //console.log('rtl.intfRefs.ref: id='+id+' old="'+(old?old.$name:'null')+'" intf="'+(intf?intf.$name:'null'));
+      //console.log('rtl.intfRefs.ref: id='+id+' old="'+(old?old.$name:'null')+'" intf="'+(intf?intf.$name:'null')+' $o='+(intf?intf.$o:'null'));
       if (old){
         // called again, e.g. in a loop
         delete this[id];
@@ -588,7 +588,10 @@ var rtl = {
     free: function(){
       //console.log('rtl.intfRefs.free...');
       for (var id in this){
-        if (this.hasOwnProperty(id)) this[id]._Release;
+        if (this.hasOwnProperty(id)){
+          //console.log('rtl.intfRefs.free: id='+id+' '+this[id].$name+' $o='+this[id].$o.$classname);
+          this[id]._Release();
+        }
       }
     }
   },
