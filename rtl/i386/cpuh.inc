@@ -26,3 +26,9 @@ const
   has_sse3_support : boolean = false;
   has_mmx_support : boolean = false;
 
+function fpc_x86_inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
+function fpc_x86_inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
+function fpc_x86_inportl(port : word) : longint;[internproc:fpc_in_x86_inportl];
+procedure fpc_x86_outportb(port : word;data : byte);[internproc:fpc_in_x86_outportb];
+procedure fpc_x86_outportw(port : word;data : word);[internproc:fpc_in_x86_outportw];
+procedure fpc_x86_outportl(port : word;data : longint);[internproc:fpc_in_x86_outportl];
