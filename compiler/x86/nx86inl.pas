@@ -33,10 +33,13 @@ interface
          protected
           procedure maybe_remove_round_trunc_typeconv; virtual;
          public
+          function pass_typecheck_cpu:tnode;override;
+
           { first pass override
             so that the code generator will actually generate
             these nodes.
           }
+          function first_cpu: tnode;override;
           function first_pi: tnode ; override;
           function first_arctan_real: tnode; override;
           function first_abs_real: tnode; override;
@@ -55,6 +58,7 @@ interface
           function simplify(forinline : boolean) : tnode; override;
 
           { second pass override to generate these nodes }
+          procedure pass_generate_code_cpu;override;
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
           procedure second_arctan_real; override;
@@ -88,9 +92,10 @@ implementation
       aasmbase,aasmdata,aasmcpu,
       symconst,symtype,symdef,symcpu,
       ncnv,
+      htypechk,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,nutils,
-      ncal,ncgutil,
+      ncal,ncgutil,nld,
       tgobj,
       cga,cgutils,cgx86,cgobj,hlcgobj;
 
@@ -102,6 +107,56 @@ implementation
      procedure tx86inlinenode.maybe_remove_round_trunc_typeconv;
        begin
          { only makes a difference for x86_64 }
+       end;
+
+
+     function tx86inlinenode.pass_typecheck_cpu: tnode;
+       begin
+         Result:=nil;
+         case inlinenumber of
+           in_x86_inportb:
+             begin
+               CheckParameters(1);
+               resultdef:=u8inttype;
+             end;
+           in_x86_inportw:
+             begin
+               CheckParameters(1);
+               resultdef:=u16inttype;
+             end;
+           in_x86_inportl:
+             begin
+               CheckParameters(1);
+               resultdef:=s32inttype;
+             end;
+           in_x86_outportb,
+           in_x86_outportw,
+           in_x86_outportl:
+             begin
+               CheckParameters(2);
+               resultdef:=voidtype;
+             end;
+           else
+             Result:=inherited pass_typecheck_cpu;
+         end;
+       end;
+
+
+     function tx86inlinenode.first_cpu: tnode;
+       begin
+         Result:=nil;
+         case inlinenumber of
+           in_x86_inportb,
+           in_x86_inportw,
+           in_x86_inportl:
+             expectloc:=LOC_REGISTER;
+           in_x86_outportb,
+           in_x86_outportw,
+           in_x86_outportl:
+             expectloc:=LOC_VOID;
+           else
+             Result:=inherited first_cpu;
+         end;
        end;
 
 
@@ -328,6 +383,55 @@ implementation
            end
          else
            Result:=inherited simplify(forinline);
+       end;
+
+
+     procedure tx86inlinenode.pass_generate_code_cpu;
+
+       procedure inport(dreg:TRegister;dsize:topsize;dtype:tdef);
+         begin
+           secondpass(left);
+           hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,u16inttype,left.location,NR_DX);
+           hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_IN,dsize,NR_DX,dreg));
+           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+           location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+           hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
+           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+         end;
+
+       procedure outport(dreg:TRegister;dsize:topsize;dtype:tdef);
+         begin
+           secondpass(tcallparanode(left).left);
+           secondpass(tcallparanode(tcallparanode(left).right).left);
+           hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
+           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.resultdef,dtype,tcallparanode(left).left.location,dreg);
+           hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.resultdef,u16inttype,tcallparanode(tcallparanode(left).right).left.location,NR_DX);
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OUT,dsize,dreg,NR_DX));
+           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+         end;
+
+       begin
+         case inlinenumber of
+           in_x86_inportb:
+             inport(NR_AL,S_B,u8inttype);
+           in_x86_inportw:
+             inport(NR_AX,S_W,u16inttype);
+           in_x86_inportl:
+             inport(NR_EAX,S_L,s32inttype);
+           in_x86_outportb:
+             outport(NR_AL,S_B,u8inttype);
+           in_x86_outportw:
+             outport(NR_AX,S_W,u16inttype);
+           in_x86_outportl:
+             outport(NR_EAX,S_L,s32inttype);
+           else
+             inherited pass_generate_code_cpu;
+         end;
        end;
 
 

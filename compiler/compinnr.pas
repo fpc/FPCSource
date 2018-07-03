@@ -164,6 +164,10 @@ type
 
      { SSE }
 
+{$if defined(X86)}
+     ,
+     {$i x86/cx86innr.inc}
+{$endif }
 {$if defined(AVR)}
      ,
      {$i ccpuinnr.inc}

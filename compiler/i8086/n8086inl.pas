@@ -34,6 +34,7 @@ interface
 
        ti8086inlinenode = class(tx86inlinenode)
          function pass_typecheck_cpu: tnode; override;
+         procedure pass_generate_code_cpu;override;
          function typecheck_faraddr: tnode;
          function typecheck_seg: tnode; override;
          function first_seg: tnode; override;
@@ -70,6 +71,17 @@ implementation
              result:=typecheck_faraddr;
            else
              result:=inherited;
+         end;
+       end;
+
+     procedure ti8086inlinenode.pass_generate_code_cpu;
+       begin
+         case inlinenumber of
+           in_x86_inportl,
+           in_x86_outportl:
+             internalerror(2018070302);
+           else
+             inherited pass_generate_code_cpu;
          end;
        end;
 

@@ -45,37 +45,46 @@ var
    portw : tportw;
    portl : tportl;
 
+const
+  fpc_in_x86_inportb = fpc_in_cpu_first;
+  fpc_in_x86_inportw = fpc_in_cpu_first+1;
+//  fpc_in_x86_inportl = fpc_in_cpu_first+2;
+  fpc_in_x86_outportb = fpc_in_cpu_first+3;
+  fpc_in_x86_outportw = fpc_in_cpu_first+4;
+//  fpc_in_x86_outportl = fpc_in_cpu_first+5;
+
+function inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
+function inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
+//function inportl(port : word) : longint;[internproc:fpc_in_x86_inportl];
+procedure outportb(port : word;data : byte);[internproc:fpc_in_x86_outportb];
+procedure outportw(port : word;data : word);[internproc:fpc_in_x86_outportw];
+//procedure outportl(port : word;data : longint);[internproc:fpc_in_x86_outportl];
+
   implementation
 
 { to give easy port access like tp with port[] }
 
-procedure tport.writeport(p : word;data : byte);assembler;
-asm
-  mov dx, p
-  mov al, data
-  out dx, al
+procedure tport.writeport(p : word;data : byte);inline;
+begin
+  outportb(p,data);
 end;
 
 
-function tport.readport(p : word) : byte;assembler;
-asm
-  mov dx, p
-  in al, dx
+function tport.readport(p : word) : byte;inline;
+begin
+  readport:=inportb(p);
 end;
 
 
-procedure tportw.writeport(p : word;data : word);assembler;
-asm
-  mov dx, p
-  mov ax, data
-  out dx, ax
+procedure tportw.writeport(p : word;data : word);inline;
+begin
+  outportw(p,data);
 end;
 
 
-function tportw.readport(p : word) : word;assembler;
-asm
-  mov dx, p
-  in ax, dx
+function tportw.readport(p : word) : word;inline;
+begin
+  readport:=inportw(p);
 end;
 
 
