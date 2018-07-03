@@ -389,29 +389,57 @@ implementation
      procedure tx86inlinenode.pass_generate_code_cpu;
 
        procedure inport(dreg:TRegister;dsize:topsize;dtype:tdef);
+         var
+           portnumber: tnode;
          begin
-           secondpass(left);
-           hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
-           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,u16inttype,left.location,NR_DX);
-           hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_IN,dsize,NR_DX,dreg));
-           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
-           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-           location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-           hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
-           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+           portnumber:=left;
+           secondpass(portnumber);
+           if (portnumber.location.loc=LOC_CONSTANT) and
+              (portnumber.location.value>=0) and
+              (portnumber.location.value<=255) then
+             begin
+               hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
+               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_IN,dsize,portnumber.location.value,dreg));
+               location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+               location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+               hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
+               hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+             end
+           else
+             begin
+               hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,u16inttype,portnumber.location,NR_DX);
+               hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_IN,dsize,NR_DX,dreg));
+               hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+               location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+               location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+               hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
+               hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+             end;
          end;
 
        procedure outport(dreg:TRegister;dsize:topsize;dtype:tdef);
+         var
+           portnumber, portdata: tnode;
          begin
-           secondpass(tcallparanode(left).left);
-           secondpass(tcallparanode(tcallparanode(left).right).left);
+           portnumber:=tcallparanode(tcallparanode(left).right).left;
+           portdata:=tcallparanode(left).left;
+           secondpass(portdata);
+           secondpass(portnumber);
            hlcg.getcpuregister(current_asmdata.CurrAsmList,dreg);
-           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,tcallparanode(left).left.resultdef,dtype,tcallparanode(left).left.location,dreg);
-           hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
-           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.resultdef,u16inttype,tcallparanode(tcallparanode(left).right).left.location,NR_DX);
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OUT,dsize,dreg,NR_DX));
-           hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portdata.resultdef,dtype,portdata.location,dreg);
+           if (portnumber.location.loc=LOC_CONSTANT) and
+              (portnumber.location.value>=0) and
+              (portnumber.location.value<=255) then
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_OUT,dsize,dreg,portnumber.location.value))
+           else
+             begin
+               hlcg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,portnumber.resultdef,u16inttype,portnumber.location,NR_DX);
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OUT,dsize,dreg,NR_DX));
+               hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
+             end;
            hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
          end;
 
