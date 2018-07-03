@@ -17,24 +17,26 @@ unit x86;
 
 interface
 
+{$inline on}
+
 Uses BaseUnix;
 
-function ReadPortB (Port : Longint): Byte;
-function ReadPortW (Port : Longint): Word;
-function ReadPortL (Port : Longint): Longint;
-Procedure ReadPort (Port : Longint; Var Value : Byte);
-Procedure ReadPort (Port : Longint; Var Value : Longint);
-Procedure ReadPort (Port : Longint; Var Value : Word);
+function ReadPortB (Port : Longint): Byte;inline;
+function ReadPortW (Port : Longint): Word;inline;
+function ReadPortL (Port : Longint): Longint;inline;
+Procedure ReadPort (Port : Longint; Var Value : Byte);inline;
+Procedure ReadPort (Port : Longint; Var Value : Longint);inline;
+Procedure ReadPort (Port : Longint; Var Value : Word);inline;
 Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
-Procedure WritePort (Port : Longint; Value : Byte);
-Procedure WritePort (Port : Longint; Value : Longint);
-Procedure WritePort (Port : Longint; Value : Word);
-Procedure WritePortB (Port : Longint; Value : Byte);
+Procedure WritePort (Port : Longint; Value : Byte);inline;
+Procedure WritePort (Port : Longint; Value : Longint);inline;
+Procedure WritePort (Port : Longint; Value : Word);inline;
+Procedure WritePortB (Port : Longint; Value : Byte);inline;
 Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
-Procedure WritePortL (Port : Longint; Value : Longint);
-Procedure WritePortW (Port : Longint; Value : Word);
+Procedure WritePortL (Port : Longint; Value : Longint);inline;
+Procedure WritePortW (Port : Longint; Value : Word);inline;
 Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 
@@ -46,126 +48,73 @@ implementation
 
 Uses Syscall;
 
-Procedure WritePort (Port : Longint; Value : Byte);
+{$IFDEF VER3_0}
+{ Bootstrapping kludge. Note that these do nothing, but since I/O ports are not
+  necessary for bootstrapping, these are only added to make the rtl compile
+  with 3.0.
+}
+procedure fpc_x86_outportb(p:longint;v:byte); begin end;
+procedure fpc_x86_outportw(p:longint;v:word); begin end;
+procedure fpc_x86_outportl(p:longint;v:longint); begin end;
+function fpc_x86_inportb(p:word):byte; begin fpc_x86_inportb:=0; end;
+function fpc_x86_inportw(p:word):word; begin fpc_x86_inportw:=0; end;
+function fpc_x86_inportl(p:word):longint; begin fpc_x86_inportl:=0; end;
+{$ENDIF VER3_0}
+
+Procedure WritePort (Port : Longint; Value : Byte);inline;
 {
   Writes 'Value' to port 'Port'
 }
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-{$endif CPUX86_64}        
-  end;
+  fpc_x86_outportb(Port,Value);
 end;
 
-Procedure WritePort (Port : Longint; Value : Word);
+Procedure WritePort (Port : Longint; Value : Word);inline;
 {
   Writes 'Value' to port 'Port'
 }
 
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-{$endif CPUX86_64}        
-  end;
+  fpc_x86_outportw(Port,Value);
 end;
 
 
 
-Procedure WritePort (Port : Longint; Value : Longint);
+Procedure WritePort (Port : Longint; Value : Longint);inline;
 {
   Writes 'Value' to port 'Port'
 }
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-{$endif CPUX86_64}        
-  end;
+  fpc_x86_outportl(Port,Value);
 end;
 
 
-Procedure WritePortB (Port : Longint; Value : Byte);
+Procedure WritePortB (Port : Longint; Value : Byte);inline;
 {
   Writes 'Value' to port 'Port'
 }
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        movb value,%al
-        outb %al,%dx
-{$endif CPUX86_64}        
-  end;
+  fpc_x86_outportb(Port,Value);
 end;
 
-Procedure WritePortW (Port : Longint; Value : Word);
+Procedure WritePortW (Port : Longint; Value : Word);inline;
 {
   Writes 'Value' to port 'Port'
 }
 
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        movw value,%ax
-        outw %ax,%dx
-{$endif CPUX86_64}        
-  end;
+  fpc_x86_outportw(Port,Value);
 end;
 
 
 
-Procedure WritePortL (Port : Longint; Value : Longint);
+Procedure WritePortL (Port : Longint; Value : Longint);inline;
 {
   Writes 'Value' to port 'Port'
 }
 
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        movl value,%eax
-        outl %eax,%dx
-{$endif CPUX86_64}        
-  end;
+  fpc_x86_outportl(Port,Value);
 end;
 
 
@@ -251,122 +200,58 @@ end;
 
 
 
-Procedure ReadPort (Port : Longint; Var Value : Byte);
+Procedure ReadPort (Port : Longint; Var Value : Byte);inline;
 {
   Reads 'Value' from port 'Port'
 }
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        inb %dx,%al
-        movl value,%edx
-        movb %al,(%edx)
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        inb %dx,%al
-        movq value,%rdx
-        movb %al,(%rdx)
-{$endif CPUX86_64}        
-  end;
+  Value:=fpc_x86_inportb(Port);
 end;
 
 
 
-Procedure ReadPort (Port : Longint; Var Value : Word);
+Procedure ReadPort (Port : Longint; Var Value : Word);inline;
 {
   Reads 'Value' from port 'Port'
 }
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        inw %dx,%ax
-        movl value,%edx
-        movw %ax,(%edx)
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        inw %dx,%ax
-        movq value,%rdx
-        movw %ax,(%rdx)
-{$endif CPUX86_64}        
-  end;
+  Value:=fpc_x86_inportw(Port);
 end;
 
 
 
-Procedure ReadPort (Port : Longint; Var Value : Longint);
+Procedure ReadPort (Port : Longint; Var Value : Longint);inline;
 {
   Reads 'Value' from port 'Port'
 }
 begin
-  asm
-{$ifdef CPU386}        
-        movl port,%edx
-        inl %dx,%eax
-        movl value,%edx
-        movl %eax,(%edx)
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-        movl port,%edx
-        inl %dx,%eax
-        movq value,%rdx
-        movl %eax,(%rdx)
-{$endif CPUX86_64}        
-  end;
+  Value:=fpc_x86_inportl(Port);
 end;
 
 
 
-function ReadPortB (Port : Longint): Byte; assembler;
+function ReadPortB (Port : Longint): Byte;inline;
 {
   Reads a byte from port 'Port'
 }
-asm
-{$ifdef CPU386}        
-  movl port,%edx
-  xorl %eax,%eax
-  inb %dx,%al
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-  movl port,%edx
-  xorl %eax,%eax
-  inb %dx,%al
-{$endif CPUX86_64}        
+begin
+  ReadPortB:=fpc_x86_inportb(Port);
 end;
 
-function ReadPortW (Port : Longint): Word; assembler;
+function ReadPortW (Port : Longint): Word;inline;
 {
   Reads a word from port 'Port'
 }
-asm
-{$ifdef CPU386}        
-  movl port,%edx
-  xorl %eax,%eax
-  inw %dx,%ax
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-  movl port,%edx
-  xorl %eax,%eax
-  inw %dx,%ax
-{$endif CPUX86_64}        
+begin
+  ReadPortW:=fpc_x86_inportw(Port);
 end;
 
-function ReadPortL (Port : Longint): LongInt; assembler;
+function ReadPortL (Port : Longint): LongInt;inline;
 {
   Reads a LongInt from port 'Port'
 }
-asm
-{$ifdef CPU386}        
-  movl port,%edx
-  inl %dx,%eax
-{$endif CPU386}        
-{$ifdef CPUX86_64}        
-  movl port,%edx
-  inl %dx,%eax
-{$endif CPUX86_64}        
+begin
+  ReadPortL:=fpc_x86_inportl(Port);
 end;
 
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
