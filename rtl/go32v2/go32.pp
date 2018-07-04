@@ -156,11 +156,11 @@ interface
     function unlock_data(var data;size : longint) : boolean;
     function unlock_code(functionaddr : pointer;size : longint) : boolean;
 
+{$ifdef VER3_0}
     { disables and enables interrupts }
     procedure disable;
     procedure enable;
 
-{$ifdef VER3_0}
     function inportb(port : word) : byte;
     function inportw(port : word) : word;
     function inportl(port : word) : longint;
@@ -169,6 +169,10 @@ interface
     procedure outportw(port : word;data : word);
     procedure outportl(port : word;data : longint);
 {$else VER3_0}
+    { disables and enables interrupts }
+    procedure disable;inline;
+    procedure enable;inline;
+
     function inportb(port : word) : byte;inline;
     function inportw(port : word) : word;inline;
     function inportl(port : word) : longint;inline;
@@ -1164,6 +1168,7 @@ interface
          end;
       end;
 
+{$ifdef VER3_0}
     procedure disable;assembler;
 
       asm
@@ -1175,6 +1180,19 @@ interface
       asm
          sti
       end;
+{$else VER3_0}
+    procedure disable;inline;
+
+      begin
+         fpc_x86_cli;
+      end;
+
+    procedure enable;inline;
+
+      begin
+         fpc_x86_sti;
+      end;
+{$endif VER3_0}
 
 
     var
