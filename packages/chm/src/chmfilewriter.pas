@@ -933,6 +933,8 @@ begin
                        Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk',2);
                  end;
              except
+               on e:EDomError do
+                  Error(ChmError,'Html parsing '+fn+', failed with a DOM error: '+e.Message);
                on e:exception do
                   Error(ChmError,'Html parsing '+fn+', failed. Please submit a bug.');
                end;
@@ -943,6 +945,29 @@ begin
              Error(chmnote,'Can''t find file '+fn+' to scan it.',5);
            end;
         end
+     else if FileExists(fn) and (uppercase(ExtractFileExt(fn))='.CSS') then
+       begin
+         tmplst:=TStringList.Create;
+         try
+           tmplst.LoadFromFile(fn);
+
+           for i:=0 to tmplst.Count-1 do
+             begin
+               s:=tmplst[i];
+               if pos('url(''', tmplst[i])>0 then
+                 begin
+                   delete(s,1,pos('url(''', tmplst[i])+4);
+                   s:=trim(copy(s,1,pos('''',s)-1));
+
+                   if not trypath(s) then
+//                     if not trypath(localpath+s) then
+                       Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk',2);
+                 end;
+             end;
+         finally
+           tmplst.Free;
+         end;
+       end
      else
        Error(chmnote,'Not scanning file because of unknown extension '+fn,5);
    end;

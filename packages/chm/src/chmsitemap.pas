@@ -169,8 +169,15 @@ begin
 end;
 
 procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: string);
+    procedure NewSiteMapItem;
+    begin
+      FCurrentItems.Add(TChmSiteMapItem.Create(FCurrentItems));
+    end;
     function ActiveItem: TChmSiteMapItem;
     begin
+      if FCurrentItems.Count=0 then
+        NewSiteMapItem;
+
       Result := FCurrentItems.Item[FCurrentItems.Count-1]
     end;
     procedure IncreaseULevel;
@@ -188,10 +195,6 @@ procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: string);
         FCurrentItems := FCurrentItems.ParentItem.Owner
       else FCurrentItems := nil;
       Dec(FLevel);
-    end;
-    procedure NewSiteMapItem;
-    begin
-      FCurrentItems.Add(TChmSiteMapItem.Create(FCurrentItems));
     end;
 var
   TagName,
