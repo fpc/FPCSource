@@ -33,6 +33,18 @@ unit Generics.Hashes;
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
 
+interface
+
+uses
+  Classes, SysUtils;
+
+{ Warning: the following set of macro code
+  that decides to use assembler or normal code
+  needs to stay after the _INTERFACE keyword
+  because FPC_PIC macro is only set after this keyword,
+  as it can be modified before by the global $PIC preprocessor directive. 
+  Pierre Muller 2018/07/04 }
+
 {$ifdef FPC_PIC}
   {$define DISABLE_X86_CPUINTEL}
 {$endif FPC_PIC}
@@ -63,11 +75,6 @@ unit Generics.Hashes;
   {$define PUREPASCAL}
   {$endif}
 {$endif CPU64}
-
-interface
-
-uses
-  Classes, SysUtils;
 
 // Original version of Bob Jenkins Hash
 // http://burtleburtle.net/bob/c/lookup3.c
