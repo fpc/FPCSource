@@ -18,10 +18,10 @@ unit Pas2jsCompiler;
 interface
 
 uses
-  Classes, SysUtils, RtlConsts, AVL_Tree, contnrs, PScanner, PParser, PasTree,
-  PasResolver, PasUseAnalyzer, PasResolveEval, jstree, jswriter, JSSrcMap,
-  FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger, Pas2jsFileCache,
-  Pas2jsPParser, Pas2JsFiler;
+  Classes, SysUtils, RtlConsts, AVL_Tree, contnrs, PScanner, PParser,
+  PasTree, PasResolver, PasUseAnalyzer, PasResolveEval, jstree, jswriter,
+  JSSrcMap, FPPas2Js, FPPJsSrcMap, Pas2jsFileUtils, Pas2jsLogger,
+  Pas2jsFileCache, Pas2jsPParser, Pas2JsFiler;
 
 const
   VersionMajor = 0;

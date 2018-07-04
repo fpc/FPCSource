@@ -3950,17 +3950,20 @@ begin
     {$ENDIF}
     Pas2jsFiler.WriteJSON(aJSON,TargetStream,Compressed);
     if Compressed then
-      begin
-      {$IFDEF VerbosePCUFiler}
-      writeln('TPCUWriter.WritePCU zip...');
-      {$ENDIF}
-      Comp:=Tcompressionstream.create(cldefault,aStream);
       try
-        Comp.WriteDWord(TargetStream.Size);
-        Comp.Write(TMemoryStream(TargetStream).Memory^,TargetStream.Size);
-      finally
-        Comp.Free;
-      end;
+        {$IFDEF VerbosePCUFiler}
+        writeln('TPCUWriter.WritePCU zip...');
+        {$ENDIF}
+        Comp:=Tcompressionstream.create(cldefault,aStream);
+        try
+          Comp.WriteDWord(TargetStream.Size);
+          Comp.Write(TMemoryStream(TargetStream).Memory^,TargetStream.Size);
+        finally
+          Comp.Free;
+        end;
+      except
+        on E: Ecompressionerror do
+          RaiseMsg(20180704163113,'compression error: '+E.Message);
       end;
     {$IFDEF VerbosePCUFiler}
     writeln('TPCUWriter.WritePCU END');
@@ -7541,16 +7544,21 @@ begin
   try
     if Compressed then
       begin
-      Decomp:=Tdecompressionstream.create(aStream);
       try
-        Count:=Decomp.ReadDWord;
-        if Count>123456789 then
-          RaiseMsg(20180313233209,'too big, invalid format');
-        Src:=TMemoryStream.Create;
-        Src.Size:=Count;
-        Decomp.read(TMemoryStream(Src).Memory^,Src.Size);
-      finally
-        Decomp.Free;
+        Decomp:=Tdecompressionstream.create(aStream);
+        try
+          Count:=Decomp.ReadDWord;
+          if Count>123456789 then
+            RaiseMsg(20180313233209,'too big, invalid format');
+          Src:=TMemoryStream.Create;
+          Src.Size:=Count;
+          Decomp.read(TMemoryStream(Src).Memory^,Src.Size);
+        finally
+          Decomp.Free;
+        end;
+      except
+        on E: Edecompressionerror do
+          RaiseMsg(20180704162214,'decompression error: '+E.Message);
       end;
       Src.Position:=0;
       end
