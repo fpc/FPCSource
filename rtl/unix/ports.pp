@@ -14,35 +14,35 @@
 
 Unit ports;
 
-{$mode objfpc}
+{$inline on}
 
 { Implements the
      port[] portw[] and portl[]
-  constructs using Delphi classes }
+  constructs using objects }
 
 Interface
 
 type
-   tport = class
+   tport = object
      protected
-       procedure writeport(p : longint;data : byte);
-       function  readport(p : longint) : byte;
+       procedure writeport(p : longint;data : byte);inline;
+       function  readport(p : longint) : byte;inline;
      public
        property pp[w : longint] : byte read readport write writeport;default;
    end;
 
-   tportw = class
+   tportw = object
      protected
-       procedure writeport(p : longint;data : word);
-       function  readport(p : longint) : word;
+       procedure writeport(p : longint;data : word);inline;
+       function  readport(p : longint) : word;inline;
      public
        property pp[w : longint] : word read readport write writeport;default;
    end;
 
-   tportl = class
+   tportl = object
      Protected
-       procedure writeport(p : longint;data : longint);
-       function  readport(p : longint) : longint;
+       procedure writeport(p : longint;data : longint);inline;
+       function  readport(p : longint) : longint;inline;
      Public
       property pp[w : Longint] : longint read readport write writeport;default;
    end;
@@ -60,44 +60,55 @@ var
 
 implementation
 
-uses x86;
+{$IFDEF VER3_0}
+{ Bootstrapping kludge. Note that these do nothing, but since I/O ports are not
+  necessary for bootstrapping, these are only added to make the rtl compile
+  with 3.0.
+}
+procedure fpc_x86_outportb(p:longint;v:byte); begin end;
+procedure fpc_x86_outportw(p:longint;v:word); begin end;
+procedure fpc_x86_outportl(p:longint;v:longint); begin end;
+function fpc_x86_inportb(p:word):byte; begin fpc_x86_inportb:=0; end;
+function fpc_x86_inportw(p:word):word; begin fpc_x86_inportw:=0; end;
+function fpc_x86_inportl(p:word):longint; begin fpc_x86_inportl:=0; end;
+{$ENDIF VER3_0}
 
 { to give easy port access like tp with port[] }
 
-procedure tport.writeport(p : Longint;data : byte);
+procedure tport.writeport(p : Longint;data : byte);inline;
 
 begin
-  x86.writeport (p,data)
+  fpc_x86_outportb(p,data)
 end;
 
-function tport.readport(p : Longint) : byte;
+function tport.readport(p : Longint) : byte;inline;
 
 begin
-  readport := x86.readportb (p);
+  readport := fpc_x86_inportb(p);
 end;
 
-procedure tportw.writeport(p : longint;data : word);
+procedure tportw.writeport(p : longint;data : word);inline;
 
 begin
-  x86.writeport (p,data)
+  fpc_x86_outportw(p,data)
 end;
 
-function tportw.readport(p : longint) : word;
+function tportw.readport(p : longint) : word;inline;
 
 begin
-  readport := x86.readportw(p);
+  readport := fpc_x86_inportw(p);
 end;
 
-procedure tportl.writeport(p : longint;data : longint);
+procedure tportl.writeport(p : longint;data : longint);inline;
 
 begin
-  x86.writeport (p,data)
+  fpc_x86_outportl(p,data)
 end;
 
-function tportl.readport(p : longint) : longint;
+function tportl.readport(p : longint) : longint;inline;
 
 begin
-  readPort := x86.readportl(p);
+  readPort := fpc_x86_inportl(p);
 end;
 
 end.
