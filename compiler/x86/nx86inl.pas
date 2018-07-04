@@ -136,6 +136,9 @@ implementation
                CheckParameters(2);
                resultdef:=voidtype;
              end;
+           in_x86_cli,
+           in_x86_sti:
+             resultdef:=voidtype;
            else
              Result:=inherited pass_typecheck_cpu;
          end;
@@ -152,7 +155,9 @@ implementation
              expectloc:=LOC_REGISTER;
            in_x86_outportb,
            in_x86_outportw,
-           in_x86_outportl:
+           in_x86_outportl,
+           in_x86_cli,
+           in_x86_sti:
              expectloc:=LOC_VOID;
            else
              Result:=inherited first_cpu;
@@ -457,6 +462,10 @@ implementation
              outport(NR_AX,S_W,u16inttype);
            in_x86_outportl:
              outport(NR_EAX,S_L,s32inttype);
+           in_x86_cli:
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
+           in_x86_sti:
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_STI));
            else
              inherited pass_generate_code_cpu;
          end;

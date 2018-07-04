@@ -18,3 +18,5 @@
   fpc_in_x86_outportb = fpc_in_cpu_first+3;
   fpc_in_x86_outportw = fpc_in_cpu_first+4;
 //  fpc_in_x86_outportl = fpc_in_cpu_first+5;
+  fpc_in_x86_cli      = fpc_in_cpu_first+6;
+  fpc_in_x86_sti      = fpc_in_cpu_first+7;

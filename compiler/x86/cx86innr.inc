@@ -17,4 +17,6 @@
   in_x86_inportl = fpc_in_cpu_first+2,
   in_x86_outportb = fpc_in_cpu_first+3,
   in_x86_outportw = fpc_in_cpu_first+4,
-  in_x86_outportl = fpc_in_cpu_first+5
+  in_x86_outportl = fpc_in_cpu_first+5,
+  in_x86_cli      = fpc_in_cpu_first+6,
+  in_x86_sti      = fpc_in_cpu_first+7

@@ -32,3 +32,5 @@ function fpc_x86_inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
 procedure fpc_x86_outportb(port : word;data : byte);[internproc:fpc_in_x86_outportb];
 procedure fpc_x86_outportw(port : word;data : word);[internproc:fpc_in_x86_outportw];
 //procedure fpc_x86_outportl(port : word;data : longint);[internproc:fpc_in_x86_outportl];
+procedure fpc_x86_cli;[internproc:fpc_in_x86_cli];
+procedure fpc_x86_sti;[internproc:fpc_in_x86_sti];
