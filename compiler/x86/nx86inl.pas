@@ -402,8 +402,8 @@ implementation
                current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_IN,dsize,portnumber.location.value,dreg));
                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
                location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-               hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
                hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+               hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
              end
            else
              begin
@@ -414,8 +414,8 @@ implementation
                hlcg.ungetcpuregister(current_asmdata.CurrAsmList,NR_DX);
                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
                location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-               hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
                hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
+               hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dtype,resultdef,dreg,location.register);
              end;
          end;
 
