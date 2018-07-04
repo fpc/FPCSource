@@ -7558,7 +7558,7 @@ begin
         end;
       except
         on E: Edecompressionerror do
-          RaiseMsg(20180704162214,'decompression error: '+E.Message);
+          RaiseMsg(20180704162214,'decompression error, file corrupt: '+E.Message);
       end;
       Src.Position:=0;
       end

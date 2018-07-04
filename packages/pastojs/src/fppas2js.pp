@@ -16587,11 +16587,13 @@ var
   bt: TResolverBaseType;
   JSBaseType: TPas2jsBaseType;
   C: TClass;
+  aResolver: TPas2JSResolver;
   Value: TResEvalValue;
 begin
   T:=PasType;
-  if AContext.Resolver<>nil then
-    T:=AContext.Resolver.ResolveAliasType(T);
+  aResolver:=AContext.Resolver;
+  if aResolver<>nil then
+    T:=aResolver.ResolveAliasType(T);
 
   //writeln('START TPasToJSConverter.CreateValInit PasType=',GetObjName(PasType),' El=',GetObjName(El),' T=',GetObjName(T),' Expr=',GetObjName(Expr));
   if T=nil then
@@ -16599,7 +16601,7 @@ begin
     // untyped var/const
     if Expr=nil then
       begin
-      if AContext.Resolver=nil then
+      if aResolver=nil then
         exit(CreateLiteralUndefined(El));
       RaiseInconsistency(20170415185745,El);
       end;
@@ -16625,12 +16627,17 @@ begin
   else if C=TPasSetType then
     // a "set" without initial value
     Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El))
-  else if (C=TPasRangeType) and (AContext.Resolver<>nil) then
-    // a custom range without initial value -> use first value
+  else if (C=TPasRangeType) and (aResolver<>nil) then
     begin
+    // a custom range without initial value
+    // -> for FPC/Delphi compatibility use 0 even if it is out of range
     Value:=AContext.Resolver.Eval(TPasRangeType(T).RangeExpr.left,[refConst]);
     try
-      Result:=ConvertConstValue(Value,AContext,El);
+      case Value.Kind of
+      revkInt,revkUInt: Result:=CreateLiteralNumber(El,0);
+      else
+        Result:=ConvertConstValue(Value,AContext,El);
+      end;
     finally
       ReleaseEvalValue(Value);
     end;
@@ -16674,12 +16681,12 @@ begin
         else
           begin
           {$IFDEF VerbosePas2JS}
-          writeln('TPasToJSConverter.CreateVarInit unknown PasType T=',GetObjName(T),' basetype=',AContext.Resolver.BaseTypeNames[bt]);
+          writeln('TPasToJSConverter.CreateVarInit unknown PasType T=',GetObjName(T),' basetype=',aResolver.BaseTypeNames[bt]);
           {$ENDIF}
           RaiseNotSupported(PasType,AContext,20170208162121);
           end;
         end
-      else if AContext.Resolver<>nil then
+      else if aResolver<>nil then
         begin
         {$IFDEF VerbosePas2JS}
         writeln('TPasToJSConverter.CreateValInit PasType=',GetObjName(PasType),' El=',GetObjName(El),' T=',GetObjName(T),' Expr=',GetObjName(Expr));
