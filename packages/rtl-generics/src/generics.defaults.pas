@@ -229,8 +229,8 @@ type
       _Release: CodePointer;
       Equals: CodePointer;
       GetHashCode: CodePointer;
-      __Reserved: Pointer; // initially or TExtendedEqualityComparerVMT compatibility
-                           // (important when ExtendedEqualityComparer is calling Binary method)
+      __Reserved: CodePointer; // initially or TExtendedEqualityComparerVMT compatibility
+                               // (important when ExtendedEqualityComparer is calling Binary method)
       __ClassRef: THashFactoryClass; // hidden field in VMT. For class ref THashFactoryClass
     end;
 
@@ -513,6 +513,7 @@ type
 
   TExtendedHashService = class(THashService)
   public
+    class function LookupEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; override;
     class function LookupExtendedEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer; virtual; abstract;
   end;
 
@@ -2185,6 +2186,13 @@ class function TComparerService.TInstance.CreateSelector(ASelectorInstance: Code
 begin
   Result.Selector := True;
   Result.SelectorInstance := ASelectorInstance;
+end;
+
+{ TExtendedHashService }
+
+class function TExtendedHashService.LookupEqualityComparer(ATypeInfo: PTypeInfo; ASize: SizeInt): Pointer;
+begin
+  Result := LookupExtendedEqualityComparer(ATypeInfo, ASize);
 end;
 
 { THashService }
