@@ -874,6 +874,13 @@ begin
   Create(AString,TEncoding.GetEncoding(ACodePage),true);
 end;
 
+destructor TStringStream.Destroy;
+begin
+  If FOwnsEncoding then
+    FreeAndNil(FEncoding);
+  inherited Destroy;
+end;
+
 
 function TStringStream.ReadString(Count: Longint): string;
 

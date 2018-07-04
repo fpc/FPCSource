@@ -1039,6 +1039,7 @@ type
     constructor Create(const AString: UnicodeString); overload;
     constructor Create(const AString: UnicodeString; AEncoding: TEncoding; AOwnsEncoding: Boolean = True); overload;
     constructor Create(const AString: UnicodeString; ACodePage: Integer); overload;
+    Destructor Destroy; override;
     function ReadUnicodeString(Count: Longint): UnicodeString;
     procedure WriteUnicodeString(const AString: UnicodeString);
     function ReadAnsiString(Count: Longint): AnsiString;
