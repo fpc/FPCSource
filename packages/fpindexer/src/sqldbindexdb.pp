@@ -26,10 +26,8 @@ type
   TCachedQueryType = (cqtInsertWord, cqtGetWordID, cqtInsertFile, cqtGetFileID,
     cqtInsertLanguage, cqtGetLanguageID, cqtInsertMatch);
 
-// Interbase specific
-const
-  {$note @MvC, TIndexTable is defined as: itWords, itLanguages, itFiles, itMatches, below order seems to be wrong}
-  DefaultGeneratorNames: array[TIndexTable] of string = ('GEN_WORDS', 'GEN_MATCHES', 'GEN_LANGUAGES', 'GEN_FILES');
+Const
+  DefaultGeneratorNames: array[TIndexTable] of string = ('GEN_WORDS','GEN_LANGUAGES', 'GEN_FILES', 'GEN_MATCHES');
 
 type
 
@@ -38,28 +36,32 @@ type
   TSQLDBIndexDB = class(TSQLIndexDB)
   private
     // SQLDB specific
-    db: TSQLConnection;
+    FDB: TSQLConnection;
     FLastURLID: int64;
     FLastURL: string;
     FLastLanguageID: int64;
     FLastLanguage: string;
     FLastWordID: int64;
     FLastWord: string;
+    FProps : Array [0..3] of UTF8String;
     FQueries: array [TCachedQueryType] of TSQLQuery;
+    function GetS(AIndex: integer): UTF8String;
+    procedure SetS(AIndex: integer; const AValue: UTF8String);
+    Procedure EnsureDB;
   protected
     // SQLDB Specific statements
-    procedure Execute(const sql: string; ignoreErrors: boolean = True); override;
-    function GetLanguageID(const ALanguage: string): int64;
-    function GetWordID(const AWord: string): int64;
-    function GetURLID(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean = True): int64; override;
-    function CreateQuery(const ASQL: string): TSQLQuery;
-    function CreateCachedQuery(QueryType: TCachedQueryType; const ASQL: string): TSQLQuery;
+    procedure Execute(const sql: UTF8string; ignoreErrors: boolean = True); override;
+    function GetLanguageID(const ALanguage: UTF8string): int64;
+    function GetWordID(const AWord: UTF8String): int64;
+    function GetURLID(const URL: UTF8String; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean = True): int64; override;
+    function CreateQuery(const ASQL: UTF8String): TSQLQuery;
+    function CreateCachedQuery(QueryType: TCachedQueryType; const ASQL: UTF8String): TSQLQuery;
     // Connection specific, need to be overridden
-    function GetConnection: TSQLConnection; virtual; abstract;
+    function CreateConnection: TSQLConnection; virtual; abstract;
     procedure InsertMatch(AWordID, aFileID, aLanguageID: int64; const ASearchData: TSearchWordData); virtual; abstract;
-    function InsertWord(const AWord: string): int64; virtual; abstract;
-    function InsertURL(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64): int64; virtual; abstract;
-    function InsertLanguage(const ALanguage: string): int64; virtual; abstract;
+    function InsertWord(const AWord: UTF8String): int64; virtual; abstract;
+    function InsertURL(const URL: UTF8String; ATimeStamp: TDateTime; ALanguageID: int64): int64; virtual; abstract;
+    function InsertLanguage(const ALanguage: UTF8String): int64; virtual; abstract;
   public
     destructor Destroy; override;
     procedure Connect; override;
@@ -70,14 +72,53 @@ type
     procedure CompactDB; override;
     procedure AddSearchData(ASearchData: TSearchWordData); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
-    procedure DeleteWordsFromFile(URL: string); override;
+    procedure DeleteWordsFromFile(URL: UTF8String); override;
+    Property NativeConnection : TSQLConnection Read FDB;
+  published
+    property DatabasePath: UTF8String Index 0 read GetS write SetS;
+    property UserName: UTF8String Index 1 read GetS write SetS;
+    property Password: UTF8String Index 2 read GetS write SetS;
+    property HostName : UTF8String Index 3 read GetS write SetS;
   end;
 
 implementation
 
 { TSQLDBIndexDB }
 
-function TSQLDBIndexDB.GetLanguageID(const ALanguage: string): int64;
+function TSQLDBIndexDB.GetS(AIndex: integer): UTF8String;
+begin
+  Result:=FProps[aIndex];
+end;
+
+procedure TSQLDBIndexDB.SetS(AIndex: integer; const AValue: UTF8String);
+begin
+  FProps[aIndex]:=aValue;
+  if Assigned(FDB) then
+    case Aindex of
+      0: FDB.DatabaseName := AValue;
+      1: FDB.UserName := AValue;
+      2: FDB.Password := AValue;
+      3: FDB.HostName := AValue;
+    end;
+end;
+
+procedure TSQLDBIndexDB.EnsureDB;
+begin
+  if FDB=Nil then
+    begin
+    FDB:=CreateConnection;
+    FDB.UserName:=UserName;
+    FDB.Password:=Password;
+    FDB.HostName:=HostName;
+    FDB.DatabaseName:=DatabasePath;
+    end;
+  if FDB.Transaction = nil then
+    FDB.Transaction := TSQLTransaction.Create(FDB);
+  FDB.LogEvents:=LogAllEventsExtra;
+end;
+
+
+function TSQLDBIndexDB.GetLanguageID(const ALanguage: UTF8String): int64;
 var
   Q: TSQLQuery;
 begin
@@ -101,7 +142,7 @@ begin
   end;
 end;
 
-function TSQLDBIndexDB.GetWordID(const AWord: string): int64;
+function TSQLDBIndexDB.GetWordID(const AWord: UTF8String): int64;
 var
   Q: TSQLQuery;
 begin
@@ -125,16 +166,18 @@ begin
   end;
 end;
 
-function TSQLDBIndexDB.CreateQuery(const ASQL: string): TSQLQuery;
+function TSQLDBIndexDB.CreateQuery(const ASQL: UTF8String): TSQLQuery;
 begin
   Result := TSQLQuery.Create(Self);
-  Result.Database := Self.db;
-  Result.Transaction := Self.db.Transaction;
+  Result.Database := Self.FDB;
+  Result.Transaction := Self.FDB.Transaction;
   Result.SQL.Text := ASQL;
+  Result.UsePrimaryKeyAsKey:=False;
+  Result.UniDirectional:=True;
   //Writeln('SQL  :',ASQL);
 end;
 
-function TSQLDBIndexDB.GetURLID(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean = True): int64;
+function TSQLDBIndexDB.GetURLID(const URL: UTF8String; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean = True): int64;
 var
   Q: TSQLQuery;
 begin
@@ -165,7 +208,7 @@ begin
   end;
 end;
 
-function TSQLDBIndexDB.CreateCachedQuery(QueryType: TCachedQueryType; const ASQL: string): TSQLQuery;
+function TSQLDBIndexDB.CreateCachedQuery(QueryType: TCachedQueryType; const ASQL: UTF8String): TSQLQuery;
 begin
   if FQueries[QueryType] = nil then
   begin
@@ -191,7 +234,7 @@ var
   Q: TSQLQuery;
   FN, FP, FD, FW, FC: TField;
   Res: TSearchWordData;
-  S,WW : String;
+  S,WW : UTF8String;
   I,L : Integer;
 
 begin
@@ -233,31 +276,32 @@ begin
   end;
 end;
 
-procedure TSQLDBIndexDB.DeleteWordsFromFile(URL: string);
+procedure TSQLDBIndexDB.DeleteWordsFromFile(URL: UTF8String);
 begin
   inherited DeleteWordsFromFile(URL);
   FLastURL := '';
 end;
 
-procedure TSQLDBIndexDB.Execute(const sql: string; ignoreErrors: boolean = True);
+procedure TSQLDBIndexDB.Execute(const sql: UTF8String; ignoreErrors: boolean = True);
 begin
   if SQL = '' then
     exit;
   try
-    DB.ExecuteDirect(sql);
+    FDB.ExecuteDirect(sql);
   except
-    if not IgnoreErrors then
-      raise;
+    on E : exception do
+      if not IgnoreErrors then
+        raise
+      else
+        Writeln(E.ClassName,' : ',E.Message);
+
   end;
 end;
 
 procedure TSQLDBIndexDB.Connect;
 begin
-  if (DB = nil) then
-    db := GetConnection;
-  if DB.Transaction = nil then
-    DB.Transaction := TSQLTransaction.Create(db);
-  DB.Connected := True;
+  EnsureDB;
+  FDB.Connected := True;
 end;
 
 procedure TSQLDBIndexDB.Disconnect;
@@ -267,14 +311,13 @@ Var
 begin
   For T:=Low(TCachedQueryType) to High(TCachedQueryType) do
     FreeAndNil(FQueries[T]);
-  FreeAndNil(DB);
+  FreeAndNil(FDB);
 end;
 
 procedure TSQLDBIndexDB.CreateDB;
 begin
-  if DB = nil then
-    DB := GetConnection;
-  DB.CreateDB;
+  EnsureDB;
+  FDB.CreateDB;
   Connect;
   CreateIndexerTables;
 end;
@@ -287,12 +330,12 @@ end;
 
 procedure TSQLDBIndexDB.BeginTrans;
 begin
-  DB.Transaction.StartTransaction;
+  FDB.Transaction.StartTransaction;
 end;
 
 procedure TSQLDBIndexDB.CommitTrans;
 begin
-  DB.Transaction.Commit;
+  FDB.Transaction.Commit;
 end;
 
 procedure TSQLDBIndexDB.CompactDB;

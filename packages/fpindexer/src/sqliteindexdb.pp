@@ -24,7 +24,7 @@ uses
 type
   TDatabaseID = record
     ID: int64;
-    Name: string;
+    Name: UTF8string;
   end;
 
   { TSQLiteIndexDB }
@@ -32,24 +32,24 @@ type
   TSQLiteIndexDB = class(TSQLIndexDB)
   private
     db: Psqlite3;
-    FFileName: string;
+    FFileName: UTF8string;
     Frow: integer;
     FSearchClass: TFPSearch;
     LanguageID: TDatabaseID;
-    QueryResult: string;
+    QueryResult: UTF8string;
     SearchWordID: TDatabaseID;
     URLID: TDatabaseID;
     procedure CheckSQLite(Rc: cint; pzErrMsg: PChar);
   protected
     class function AllowForeignKeyInTable: boolean; override;
-    function GetFieldType(FieldType: TIndexField): string; override;
-    function GetLanguageID(const ALanguage: string): int64;
-    function GetURLID(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean = True): int64; override;
-    function GetWordID(const AWord: string): int64; virtual;
-    function InsertLanguage(const ALanguage: string): int64; virtual;
-    function InsertURL(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64): int64;
-    function InsertWord(const AWord: string): int64; virtual;
-    procedure Execute(const sql: string; ignoreErrors: boolean = True); override;
+    function GetFieldType(FieldType: TIndexField): UTF8string; override;
+    function GetLanguageID(const ALanguage: UTF8string): int64;
+    function GetURLID(const URL: UTF8string; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean = True): int64; override;
+    function GetWordID(const AWord: UTF8string): int64; virtual;
+    function InsertLanguage(const ALanguage: UTF8string): int64; virtual;
+    function InsertURL(const URL: UTF8string; ATimeStamp: TDateTime; ALanguageID: int64): int64;
+    function InsertWord(const AWord: UTF8string): int64; virtual;
+    procedure Execute(const sql: UTF8string; ignoreErrors: boolean = True); override;
   public
     destructor Destroy; override;
     procedure AddSearchData(ASearchData: TSearchWordData); override;
@@ -58,10 +58,10 @@ type
     procedure CompactDB; override;
     procedure Connect; override;
     procedure CreateDB; override;
-    procedure DeleteWordsFromFile(URL: string); override;
+    procedure DeleteWordsFromFile(URL: UTF8string); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
   published
-    property FileName: string read FFileName write FFileName;
+    property FileName: UTF8string read FFileName write FFileName;
   end;
 
 implementation
@@ -99,7 +99,7 @@ end;
 
 { TSQLiteIndexDB }
 
-procedure TSQLiteIndexDB.Execute(const sql: string; ignoreErrors: boolean = True);
+procedure TSQLiteIndexDB.Execute(const sql: UTF8string; ignoreErrors: boolean = True);
 var
   pzErrMsg: PChar;
   rc: cint;
@@ -111,9 +111,9 @@ begin
     CheckSQLite(rc, pzErrMsg);
 end;
 
-function TSQLiteIndexDB.GetURLID(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean): int64;
+function TSQLiteIndexDB.GetURLID(const URL: UTF8string; ATimeStamp: TDateTime; ALanguageID: int64; DoCreate: boolean): int64;
 var
-  SQL: string;
+  SQL: UTF8string;
 begin
   if (URL = URLID.Name) then
     Result := URLID.ID
@@ -129,9 +129,9 @@ begin
   end;
 end;
 
-function TSQLiteIndexDB.GetLanguageID(const ALanguage: string): int64;
+function TSQLiteIndexDB.GetLanguageID(const ALanguage: UTF8string): int64;
 var
-  SQL: string;
+  SQL: UTF8string;
 begin
   if (ALanguage = LanguageID.Name) then
     Result := LanguageID.ID
@@ -147,9 +147,9 @@ begin
   end;
 end;
 
-function TSQLiteIndexDB.GetWordID(const AWord: string): int64;
+function TSQLiteIndexDB.GetWordID(const AWord: UTF8string): int64;
 var
-  SQL: string;
+  SQL: UTF8string;
 begin
   if (AWord = SearchWordID.Name) then
     Result := SearchWordID.ID
@@ -165,26 +165,26 @@ begin
   end;
 end;
 
-function TSQLiteIndexDB.InsertWord(const AWord: string): int64;
+function TSQLiteIndexDB.InsertWord(const AWord: UTF8string): int64;
 begin
   Execute(Format(InsertSQL(itWords, False), ['Null', QuoteString(AWord)]), False);
   Result := sqlite3_last_insert_rowid(db);
 end;
 
-function TSQLiteIndexDB.InsertURL(const URL: string; ATimeStamp: TDateTime; ALanguageID: int64): int64;
+function TSQLiteIndexDB.InsertURL(const URL: UTF8string; ATimeStamp: TDateTime; ALanguageID: int64): int64;
 begin
   // ifFilesID,ifFilesURL,ifFilesReindex,ifFilesUpdated,ifFilesTimeStamp,ifFilesLanguageID
   Execute(Format(InsertSQL(itFiles, False), ['Null', QuoteString(URL), '0', '0', QuoteString(DateToISO8601(ATimeStamp)), IntToStr(AlanguageID)]), False);
   Result := sqlite3_last_insert_rowid(db);
 end;
 
-function TSQLiteIndexDB.InsertLanguage(const ALanguage: string): int64;
+function TSQLiteIndexDB.InsertLanguage(const ALanguage: UTF8string): int64;
 begin
   Execute(Format(InsertSQL(itLanguages, False), ['Null', QuoteString(ALanguage)]), False);
   Result := sqlite3_last_insert_rowid(db);
 end;
 
-function TSQLiteIndexDB.GetFieldType(FieldType: TIndexField): string;
+function TSQLiteIndexDB.GetFieldType(FieldType: TIndexField): UTF8string;
 begin
   Result := inherited GetFieldType(FieldType);
   if (Result = PrimaryFieldType) then
@@ -196,7 +196,7 @@ begin
   Result := True;
 end;
 
-procedure TSQLiteIndexDB.DeleteWordsFromFile(URL: string);
+procedure TSQLiteIndexDB.DeleteWordsFromFile(URL: UTF8string);
 begin
   inherited DeleteWordsFromFile(URL);
 
@@ -247,7 +247,7 @@ end;
 procedure TSQLiteIndexDB.AddSearchData(ASearchData: TSearchWordData);
 var
   WID, LID, FID: int64;
-  SQL: string;
+  SQL: UTF8string;
 begin
   WID := GetWordID(ASearchData.SearchWord);
   LID := GetLanguageID(ASearchData.Language);
@@ -262,7 +262,7 @@ end;
 
 procedure TSQLiteIndexDB.CheckSQLite(Rc: cint; pzErrMsg: PChar);
 var
-  S: string;
+  S: UTF8string;
 begin
   if (rc <> SQLITE_OK) then
   begin
@@ -276,7 +276,7 @@ procedure TSQLiteIndexDB.FindSearchData(SearchWord: TWordParser; FPSearch: TFPSe
 var
   pzErrMsg: PChar;
   rc: cint;
-  sql: string;
+  sql: UTF8string;
 begin
   FSearchClass := FPSearch;
   Frow := 0;

@@ -12,38 +12,38 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit fbIndexdb;
+unit pgindexdb;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, fpIndexer, sqldbIndexDB ,sqldb, ibconnection;
+  Classes, SysUtils, fpIndexer, sqldbIndexDB ,sqldb, pqconnection;
 
 type
-  { TFBIndexDB }
+  { TPGIndexDB }
 
-  TFBIndexDB = class(TSQLDBIndexDB)
+  TPGIndexDB = class(TSQLDBIndexDB)
   private
     FGenQuery: Array[TIndexTable] of TSQLQuery;
     Function GetGenQuery(ATable : TIndexTable) : TSQLQuery;
   protected
     procedure InsertMatch(AWordID, aFileID, aLanguageID: int64; const ASearchData: TSearchWordData); override;
-    function InsertWord(const AWord: UTF8string): int64; override;
-    function InsertURL(const URL: UTF8string; ATimeStamp: TDateTime; ALanguageID: int64): int64; override;
-    function InsertLanguage(const ALanguage: UTF8string): int64; override;
+    function InsertWord(const AWord: UTF8String): int64; override;
+    function InsertURL(const URL: UTF8String; ATimeStamp: TDateTime; ALanguageID: int64): int64; override;
+    function InsertLanguage(const ALanguage: UTF8String): int64; override;
     function CreateConnection: TSQLConnection; override;
     function GetID(TableType: TIndexTable): int64;
     procedure FinishCreateTable(const TableType: TIndexTable); override;
-    procedure FinishDropTable(const TableType: TIndexTable);override;
+    procedure FinishDropTable(const TableType: TIndexTable); override;
   end;
 
 implementation
 
-{ TFBIndexDB }
+{ TPGIndexDB }
 
-function TFBIndexDB.GetID(TableType: TIndexTable): int64;
+function TPGIndexDB.GetID(TableType: TIndexTable): int64;
 
 var
   Q: TSQLQuery;
@@ -60,7 +60,7 @@ begin
   end;
 end;
 
-function TFBIndexDB.InsertLanguage(const ALanguage: UTF8string): int64;
+function TPGIndexDB.InsertLanguage(const ALanguage: UTF8String): int64;
 var
   Q: TSQLQuery;
 begin
@@ -71,7 +71,7 @@ begin
   Q.ExecSQL;
 end;
 
-function TFBIndexDB.InsertWord(const AWord: UTF8string): int64;
+function TPGIndexDB.InsertWord(const AWord: UTF8String): int64;
 var
   Q: TSQLQuery;
 begin
@@ -82,7 +82,7 @@ begin
   Q.ExecSQL;
 end;
 
-function TFBIndexDB.InsertURL(const URL: UTF8string; ATimeStamp: TDateTime; ALanguageID: int64): int64;
+function TPGIndexDB.InsertURL(const URL: UTF8String; ATimeStamp: TDateTime; ALanguageID: int64): int64;
 var
   Q: TSQLQuery;
 begin
@@ -97,7 +97,7 @@ begin
   Q.ExecSQL;
 end;
 
-procedure TFBIndexDB.InsertMatch(AWordID, aFileID, aLanguageID: int64; const ASearchData: TSearchWordData);
+procedure TPGIndexDB.InsertMatch(AWordID, aFileID, aLanguageID: int64; const ASearchData: TSearchWordData);
 var
   Q: TSQLQuery;
 begin
@@ -107,11 +107,12 @@ begin
   Q.ParamByName(GetFieldName(ifMatchesWordID)).AsLargeInt := aWordID;
   Q.ParamByName(GetFieldName(ifMatchesFileID)).AsLargeInt := aFileID;
   Q.ParamByName(GetFieldName(ifMatchesPosition)).AsLargeInt := ASearchData.Position;
-  Q.ParamByName(GetFieldName(ifMatchesContext)).AsString := Copy(ASearchData.Context,1,MaxContextLen);
+  Q.ParamByName(GetFieldName(ifMatchesContext)).AsString := Copy(ASearchData.Context,1,255);
   Q.ExecSQL;
 end;
 
-function TFBIndexDB.CreateConnection: TSQLConnection;
+function TPGIndexDB.CreateConnection: TSQLConnection;
+
 Var
   T : TIndexTable;
 
@@ -119,28 +120,31 @@ begin
   // So they are recreated
   for T in TIndexTable do
     FreeAndNil(FGenQuery[T]);
-  Result := TIBConnection.Create(Self);
+  Result := TPQConnection.Create(Self);
 end;
 
-procedure TFBIndexDB.FinishCreateTable(const TableType: TIndexTable);
+procedure TPGIndexDB.FinishCreateTable(const TableType: TIndexTable);
 begin
-  Execute('CREATE GENERATOR ' + DefaultGeneratorNames[TableType], True);
+  Execute('CREATE SEQUENCE ' + DefaultGeneratorNames[TableType], True);
 end;
 
-procedure TFBIndexDB.FinishDropTable(const TableType: TIndexTable);
+procedure TPGIndexDB.FinishDropTable(const TableType: TIndexTable);
 begin
-  Execute('DROP GENERATOR ' + DefaultGeneratorNames[TableType], True);
+  Execute('DROP SEQUENCE ' + DefaultGeneratorNames[TableType], True);
 end;
 
-function TFBIndexDB.GetGenQuery(ATable: TIndexTable): TSQLQuery;
+
+function TPGIndexDB.GetGenQuery(ATable: TIndexTable): TSQLQuery;
 begin
   If (FGenQuery[ATable]=Nil) then
     begin
-    FGenQuery[ATable]:=CreateQuery(Format('SELECT GEN_ID(%S,1) FROM RDB$DATABASE', [DefaultGeneratorNames[ATable]]));
+    FGenQuery[ATable]:=CreateQuery(Format('select nextval(''%s'')', [DefaultGeneratorNames[ATable]]));
+    FGenQuery[ATable].ParseSQL:=False;
     FGenQuery[ATable].Prepare;
     end;
   Result:=FGenQuery[ATable];
 end;
+
 
 end.
 

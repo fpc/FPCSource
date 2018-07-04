@@ -3472,6 +3472,7 @@ packages/fpindexer/src/ireaderhtml.pp svneol=native#text/plain
 packages/fpindexer/src/ireaderpas.pp svneol=native#text/plain
 packages/fpindexer/src/ireadertxt.pp svneol=native#text/plain
 packages/fpindexer/src/memindexdb.pp svneol=native#text/plain
+packages/fpindexer/src/pgindexdb.pp svneol=native#text/plain
 packages/fpindexer/src/sqldbindexdb.pp svneol=native#text/plain
 packages/fpindexer/src/sqliteindexdb.pp svneol=native#text/plain
 packages/fpmake.pp svneol=native#text/plain

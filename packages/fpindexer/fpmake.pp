@@ -61,6 +61,9 @@ begin
       T:=P.Targets.AddUnit('fbindexdb.pp',SqliteOSes);
       T.Dependencies.AddUnit('fpindexer');
       
+      T:=P.Targets.AddUnit('pgindexdb.pp',SqldbConnectionOSes);
+      T.Dependencies.AddUnit('fpindexer');
+      
       T:=P.Targets.AddUnit('dbindexer.pp',SqldbConnectionOSes);
       T.Dependencies.AddUnit('fpindexer');
       T.Dependencies.AddUnit('ireadertxt');
