@@ -38,6 +38,7 @@ type
   TTestBugs = class(TTestCase)
   published
     procedure Test_QuadraticProbing_InfinityLoop;
+    procedure Test_GetEqualityComparer;
   end;
 
 implementation
@@ -56,6 +57,11 @@ begin
   LMap.Add(#148#159#199#71#198#97#69#201#116#45#195#184#178#129#200, nil);
   CheckEquals(false, LMap.ContainsKey(#$E6'h=fzb'#$E5#$B4#$A0#$C4#$E6'B6r>'));
   LMap.Free;
+end;
+
+procedure TTestBugs.Test_GetEqualityComparer;
+begin
+  TDelphiQuadrupleHashFactory.GetHashService.LookupEqualityComparer(TypeInfo(Integer), SizeOf(Integer));
 end;
 
 begin
