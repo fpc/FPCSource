@@ -248,7 +248,7 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT)
 x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-ports$(PPUEXT) : $(UNIXINC)/ports.pp x86$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+ports$(PPUEXT) : $(UNIXINC)/ports.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 ifneq ($(findstring $(ARCH),x86_64 i386),)

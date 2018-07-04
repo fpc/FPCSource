@@ -120,7 +120,7 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # System Dependent Units
 #
 
-ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
+ports$(PPUEXT) : ports.pp system$(PPUEXT)
 	$(COMPILER) ports.pp
 	$(EXECPPAS)
 #
