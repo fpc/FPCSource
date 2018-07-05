@@ -1613,6 +1613,8 @@ procedure getargs;
 
      'L' : begin
              UniqueSuffix:=Para;
+             if UniqueSuffix='' then
+               UniqueSuffix:=toStr(system.GetProcessID);
            end;
 
      'M' : EmulatorName:=Para;
