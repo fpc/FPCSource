@@ -5,6 +5,7 @@
 {$mode TP}
 
 {$F-}
+{$hugecode off}
 
 { should be near, since we are in $F- mode }
 procedure myproc;
