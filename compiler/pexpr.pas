@@ -3698,7 +3698,15 @@ implementation
                     postfixoperators(p1,again,getaddr);
                   end
                  else
-                  p1:=ctypenode.create(hdef);
+                   begin
+                     p1:=ctypenode.create(hdef);
+                     if token=_POINT then
+                       begin
+                         again:=true;
+                         { handle type helpers here }
+                         postfixoperators(p1,again,getaddr);
+                       end;
+                   end;
                end;
 
              _FILE :
