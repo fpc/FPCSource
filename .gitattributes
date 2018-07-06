@@ -9317,6 +9317,8 @@ rtl/i386/makefile.cpu svneol=native#text/plain
 rtl/i386/math.inc svneol=native#text/plain
 rtl/i386/mathu.inc svneol=native#text/plain
 rtl/i386/mmx.pp svneol=native#text/plain
+rtl/i386/ports.inc svneol=native#text/plain
+rtl/i386/portsh.inc svneol=native#text/plain
 rtl/i386/readme -text
 rtl/i386/set.inc svneol=native#text/plain
 rtl/i386/setjump.inc svneol=native#text/plain
