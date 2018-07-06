@@ -20,76 +20,10 @@ unit ports;
 
 interface
 
-type
-   tport = object
-      procedure writeport(p : word;data : byte);inline;
-      function  readport(p : word) : byte;inline;
-      property pp[w : word] : byte read readport write writeport;default;
-   end;
+{$I portsh.inc}
 
-   tportw = object
-      procedure writeport(p : word;data : word);inline;
-      function  readport(p : word) : word;inline;
-      property pp[w : word] : word read readport write writeport;default;
-   end;
+implementation
 
-   tportl = object
-      procedure writeport(p : word;data : longint);
-      function  readport(p : word) : longint;
-      property pp[w : word] : longint read readport write writeport;default;
-   end;
-
-var
-{ we don't need to initialize port, because neither member
-  variables nor virtual methods are accessed }
-   port,
-   portb : tport;
-   portw : tportw;
-   portl : tportl;
-
-  implementation
-
-{ to give easy port access like tp with port[] }
-
-procedure tport.writeport(p : word;data : byte);inline;
-begin
-  fpc_x86_outportb(p,data);
-end;
-
-
-function tport.readport(p : word) : byte;inline;
-begin
-  readport:=fpc_x86_inportb(p);
-end;
-
-
-procedure tportw.writeport(p : word;data : word);inline;
-begin
-  fpc_x86_outportw(p,data);
-end;
-
-
-function tportw.readport(p : word) : word;inline;
-begin
-  readport:=fpc_x86_inportw(p);
-end;
-
-
-{$asmcpu 80386}
-procedure tportl.writeport(p : word;data : longint);assembler;
-asm
-  mov dx, p
-  mov eax, data
-  out dx, eax
-end;
-
-
-function tportl.readport(p : word) : longint;assembler;
-asm
-  mov dx, p
-  in eax, dx
-  mov edx, eax
-  shr edx, 16
-end;
+{$I ports.inc}
 
 end.
