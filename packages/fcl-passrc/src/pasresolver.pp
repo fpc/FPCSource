@@ -209,14 +209,17 @@ Works:
   - float*currency and currency*float computes to currency
 - type alias type overloads
 - $writeableconst off $J-
+- $warn identifier ON|off|error|default
 
 ToDo:
-- $warn identifier ON|off|error|default
 - $H-hintpos$H+
 - $pop, $push
 - $RTTI inherited|explicit
 - range checking:
   - property defaultvalue
+  - IntSet:=[-1]
+  - CharSet:=[#13]
+- Include/Exclude for set of int/char/bool
 - proc: check if forward and impl default values match
 - call array of proc without ()
 - array+array
@@ -4701,7 +4704,7 @@ var
   C: TClass;
   EnumType: TPasType;
 begin
-  EnumType:=El.EnumType;
+  EnumType:=ResolveAliasType(El.EnumType);
   C:=EnumType.ClassType;
   if C=TPasEnumType then
     begin
@@ -12028,7 +12031,8 @@ begin
     exit(cIncompatible);
   Params:=TParamsExpr(Expr);
 
-  // first param: variable of set of enumtype
+  // first param: set variable
+  // todo set of int, set of char, set of bool
   Param:=Params.Params[0];
   ComputeElement(Param,ParamResolved,[rcNoImplicitProc]);
   EnumType:=nil;
@@ -16489,7 +16493,19 @@ begin
             and HasExactType(RHS) then
           Result:=cExact
         else if LHS.SubType=RHS.SubType then
-          Result:=cAliasExact;
+          Result:=cAliasExact
+        else if (LHS.SubType in btAllBooleans) and (RHS.SubType in btAllBooleans) then
+          Result:=cCompatible
+        else if (LHS.SubType in btAllInteger) and (RHS.SubType in btAllInteger) then
+          begin
+          // ToDo: range check
+          Result:=cCompatible;
+          end
+        else if (LHS.SubType in btAllChars) and (RHS.SubType in btAllChars) then
+          begin
+          // ToDo: range check
+          Result:=cCompatible;
+          end;
         end;
       end
     else if LBT in [btArrayLit,btArrayOrSet,btModule,btProc] then

@@ -333,7 +333,7 @@ type
     Procedure TestEnumRange_Array;
     Procedure TestEnum_ForIn;
     Procedure TestEnum_ScopedNumber;
-    Procedure TestSet;
+    Procedure TestSet_Enum;
     Procedure TestSet_Operators;
     Procedure TestSet_Operator_In;
     Procedure TestSet_Functions;
@@ -341,6 +341,7 @@ type
     Procedure TestSet_AsParams;
     Procedure TestSet_Property;
     Procedure TestSet_EnumConst;
+    Procedure TestSet_IntConst;
     Procedure TestSet_AnonymousEnumType;
     Procedure TestSet_AnonymousEnumTypeChar; // ToDo
     Procedure TestSet_ConstEnum;
@@ -4166,7 +4167,7 @@ begin
     '$mod.e = 1;']));
 end;
 
-procedure TTestModule.TestSet;
+procedure TTestModule.TestSet_Enum;
 begin
   StartProgram(false);
   Add([
@@ -4554,21 +4555,22 @@ end;
 procedure TTestModule.TestSet_EnumConst;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TEnum = (Red,Blue);');
-  Add('  TEnums = set of TEnum;');
-  Add('const');
-  Add('  Orange = red;');
-  Add('var');
-  Add('  Enum: tenum;');
-  Add('  Enums: tenums;');
-  Add('begin');
-  Add('  Include(enums,orange);');
-  Add('  Exclude(enums,orange);');
-  Add('  if orange in enums then;');
-  Add('  if orange in [orange,red] then;');
+  Add([
+  'type',
+  '  TEnum = (Red,Blue);',
+  '  TEnums = set of TEnum;',
+  'const',
+  '  Orange = red;',
+  'var',
+  '  Enum: tenum;',
+  '  Enums: tenums;',
+  'begin',
+  '  Include(enums,orange);',
+  '  Exclude(enums,orange);',
+  '  if orange in enums then;',
+  '  if orange in [orange,red] then;']);
   ConvertProgram;
-  CheckSource('TestEnumConst',
+  CheckSource('TestSet_EnumConst',
     LinesToStr([ // statements
     'this.TEnum = {',
     '  "0": "Red",',
@@ -4585,6 +4587,41 @@ begin
     '$mod.Enums = rtl.excludeSet($mod.Enums, $mod.TEnum.Red);',
     'if ($mod.TEnum.Red in $mod.Enums) ;',
     'if ($mod.TEnum.Red in rtl.createSet($mod.TEnum.Red, $mod.TEnum.Red)) ;',
+    '']));
+end;
+
+procedure TTestModule.TestSet_IntConst;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TEnums = set of Byte;',
+  'const',
+  '  Orange = 0;',
+  'var',
+  '  Enum: byte;',
+  '  Enums: tenums;',
+  'begin',
+  '  Enums:=[];',
+  '  Enums:=[0];',
+  '  Enums:=[1..2];',
+  //'  Include(enums,orange);',
+  //'  Exclude(enums,orange);',
+  '  if orange in enums then;',
+  '  if orange in [orange,1] then;']);
+  ConvertProgram;
+  CheckSource('TestSet_IntConst',
+    LinesToStr([ // statements
+    'this.Orange = 0;',
+    'this.Enum = 0;',
+    'this.Enums = {};',
+    '']),
+    LinesToStr([
+    '$mod.Enums = {};',
+    '$mod.Enums = rtl.createSet(0);',
+    '$mod.Enums = rtl.createSet(null, 1, 2);',
+    'if (0 in $mod.Enums) ;',
+    'if (0 in rtl.createSet(0, 1)) ;',
     '']));
 end;
 

@@ -270,6 +270,7 @@ type
     Procedure TestEnumSet_AnonymousEnumtypeName;
     Procedure TestEnumSet_Const;
     Procedure TestSet_IntRange_Const;
+    Procedure TestSet_Byte_Const;
     Procedure TestEnumRange;
     Procedure TestEnum_ForIn;
     Procedure TestEnum_ForInRangeFail;
@@ -1616,6 +1617,7 @@ begin
 end;
 
 procedure TCustomTestResolver.CheckParamsExpr_pkSet_Markers;
+// e.g. {#a_set}  {#b_array}
 var
   aMarker: PSrcMarker;
   p: SizeInt;
@@ -3768,15 +3770,49 @@ begin
   '  TIntRg = 2..6;',
   '  TFiveSet = set of TIntRg;',
   'const',
-  '  a: TFiveSet = [2..3,5]+[4];',
+  '  Three = 3;',
+  '  a: TFiveSet = [2..Three,5]+[4];',
   '  b = low(TIntRg)+high(TIntRg);',
   '  c = [low(TIntRg)..high(TIntRg)];',
   'var',
   '  s: TFiveSet;',
   'begin',
+  '  s:= {#s1_set}[];',
+  '  s:= {#s2_set}[3];',
+  '  s:= {#s3_set}[3..4];',
+  '  s:= {#s4_set}[Three];',
   '  if 3 in a then ;',
   '  s:=c;']);
   ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
+  CheckResolverUnexpectedHints;
+end;
+
+procedure TTestResolver.TestSet_Byte_Const;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TIntRg = byte;',
+  '  TFiveSet = set of TIntRg;',
+  'const',
+  '  Three = 3;',
+  '  a: TFiveSet = [2..Three,5]+[4];',
+  '  b = low(TIntRg)+high(TIntRg);',
+  '  c = [low(TIntRg)..high(TIntRg)];',
+  'var',
+  '  s: TFiveSet;',
+  'begin',
+  '  s:= {#s1_set}[];',
+  '  s:= {#s2_set}[3];',
+  '  s:= {#s3_set}[3..4];',
+  '  s:= {#s4_set}[Three];',
+  '  if 3 in a then ;',
+  '  s:=c;',
+  //'  Include(s,Three);', // ToDo
+  '']);
+  ParseProgram;
+  CheckParamsExpr_pkSet_Markers;
   CheckResolverUnexpectedHints;
 end;
 

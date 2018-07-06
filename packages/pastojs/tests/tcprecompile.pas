@@ -34,15 +34,18 @@ type
 
   TCustomTestCLI_Precompile = class(TCustomTestCLI)
   private
-    FFormat: TPas2JSPrecompileFormat;
+    FPCUFormat: TPas2JSPrecompileFormat;
+    FUnitOutputDir: string;
   protected
+    procedure SetUp; override;
     procedure CheckPrecompile(MainFile, UnitPaths: string;
       SharedParams: TStringList = nil;
       FirstRunParams: TStringList = nil;
       SecondRunParams: TStringList = nil; ExpExitCode: integer = 0);
   public
     constructor Create; override;
-    property Format: TPas2JSPrecompileFormat read FFormat write FFormat;
+    property PCUFormat: TPas2JSPrecompileFormat read FPCUFormat write FPCUFormat;
+    property UnitOutputDir: string read FUnitOutputDir write FUnitOutputDir;
   end;
 
   { TTestCLI_Precompile }
@@ -57,6 +60,7 @@ type
     procedure TestPCU_ClassForward;
     procedure TestPCU_ClassConstructor;
     procedure TestPCU_ClassInterface;
+    procedure TestPCU_Namespace;
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -73,15 +77,20 @@ end;
 
 { TCustomTestCLI_Precompile }
 
+procedure TCustomTestCLI_Precompile.SetUp;
+begin
+  inherited SetUp;
+  UnitOutputDir:='units';
+end;
+
 procedure TCustomTestCLI_Precompile.CheckPrecompile(MainFile,
   UnitPaths: string; SharedParams: TStringList; FirstRunParams: TStringList;
   SecondRunParams: TStringList; ExpExitCode: integer);
 var
-  UnitOutputDir, JSFilename, OrigSrc, NewSrc, s: String;
+  JSFilename, OrigSrc, NewSrc, s: String;
   JSFile: TCLIFile;
 begin
   try
-    UnitOutputDir:='units';
     AddDir(UnitOutputDir);
     // compile, create  .pcu files
     {$IFDEF VerbosePCUFiler}
@@ -92,8 +101,8 @@ begin
       Params.Assign(SharedParams);
     if FirstRunParams<>nil then
       Params.AddStrings(FirstRunParams);
-    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JU'+Format.Ext,'-FU'+UnitOutputDir]);
-    AssertFileExists('units/system.'+Format.Ext);
+    Compile([MainFile,'-Jc','-Fu'+UnitPaths,'-JU'+PCUFormat.Ext,'-FU'+UnitOutputDir]);
+    AssertFileExists(UnitOutputDir+'/system.'+PCUFormat.Ext);
     JSFilename:=UnitOutputDir+PathDelim+ExtractFilenameOnly(MainFile)+'.js';
     AssertFileExists(JSFilename);
     JSFile:=FindFile(JSFilename);
@@ -129,7 +138,7 @@ end;
 constructor TCustomTestCLI_Precompile.Create;
 begin
   inherited Create;
-  FFormat:=PrecompileFormats[0];
+  FPCUFormat:=PrecompileFormats[0];
 end;
 
 { TTestCLI_Precompile }
@@ -382,6 +391,35 @@ begin
     '  i[2]:=i[3];',
     'end.']);
   CheckPrecompile('test1.pas','src');
+end;
+
+procedure TTestCLI_Precompile.TestPCU_Namespace;
+begin
+  AddUnit('src/system.pp',[
+    'type integer = longint;',
+    'procedure Writeln; varargs;'],
+    ['procedure Writeln; begin end;']);
+  AddUnit('src/Web.Unit1.pp',[
+    'var i: integer;',
+    ''],[
+    '']);
+  AddUnit('src/Unit2.pp',[
+    'uses WEB.uNit1;',
+    'procedure DoIt;',
+    ''],[
+    'procedure DoIt;',
+    'begin',
+    '  writeln(i);',
+    'end;',
+    '']);
+  AddFile('test1.pas',[
+    'uses unIT2;',
+    'begin',
+    '  DoIt;',
+    'end.']);
+  CheckPrecompile('test1.pas','src');
+  AssertFileExists(UnitOutputDir+'/Unit2.'+PCUFormat.Ext);
+  AssertFileExists(UnitOutputDir+'/Web.Unit1.'+PCUFormat.Ext);
 end;
 
 Initialization
