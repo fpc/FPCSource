@@ -968,6 +968,13 @@ var
    eend : ptruint; external name '_end';
 {$endif}
 
+{$ifdef freebsd}
+var
+   text_start: ptruint; external name '__executable_start';
+   etext: ptruint; external name '_etext';
+   eend : ptruint; external name '_end';
+{$endif}
+
 {$ifdef os2}
 (* Currently still EMX based - possibly to be changed in the future. *)
 var
@@ -1081,6 +1088,15 @@ begin
     exit;
 {$endif linux}
 
+{$ifdef freebsd}
+  { inside stack ? }
+  if (ptruint(p)>ptruint(get_frame)) and
+     (ptruint(p)<ptruint(StackTop)) then
+    exit;
+  { inside data or bss ? }
+  if (ptruint(p)>=ptruint(@text_start)) and (ptruint(p)<ptruint(@eend)) then
+    exit;
+{$endif linux}
 {$ifdef morphos}
   { inside stack ? }
   if (ptruint(p)<ptruint(StackTop)) and (ptruint(p)>ptruint(StackBottom)) then
