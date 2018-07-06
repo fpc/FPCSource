@@ -78,10 +78,12 @@ endif
 
 ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
+ASTARGET=--32
 endif
 
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu
+ASTARGET=--64
 endif
 
 # Use new feature from 1.0.5 version
@@ -117,16 +119,16 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 #
 
 prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(CPU_TARGET)/prt0.as
 
 cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
 
 gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
 
 dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 #
 # System Units (System, Objpas, Strings)
