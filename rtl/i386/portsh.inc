@@ -17,20 +17,20 @@
 type
 {$ifdef VER3_0}
    tport = object
-      procedure writeport(p : word;data : byte);
-      function  readport(p : word) : byte;
+      procedure writeport(p : word;data : byte);stdcall;
+      function  readport(p : word) : byte;stdcall;
       property pp[w : word] : byte read readport write writeport;default;
    end;
 
    tportw = object
-      procedure writeport(p : word;data : word);
-      function  readport(p : word) : word;
+      procedure writeport(p : word;data : word);stdcall;
+      function  readport(p : word) : word;stdcall;
       property pp[w : word] : word read readport write writeport;default;
    end;
 
    tportl = object
-      procedure writeport(p : word;data : longint);
-      function  readport(p : word) : longint;
+      procedure writeport(p : word;data : longint);stdcall;
+      function  readport(p : word) : longint;stdcall;
       property pp[w : word] : longint read readport write writeport;default;
    end;
 {$else VER3_0}

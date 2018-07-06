@@ -16,10 +16,6 @@
 
 unit ports;
 
-{$ifdef VER3_0}
-{$Calling StdCall}
-{$endif VER3_0}
-
 {$inline ON}
 
 interface
