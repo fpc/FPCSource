@@ -266,17 +266,17 @@ begin
     exit;
     end;
   FN:=MapFileName(RFN);
-  if (FN='') or not FileExists(FN) then
-    begin
-    AResponse.Code:=404;
-    AResponse.CodeText:='Not found';
-    AResponse.SendContent;
-    exit;
-    end;
-  if not AllowFile(FN) then  
+  if (FN='') or not AllowFile(FN) then  
     begin
     AResponse.Code:=403;
     AResponse.CodeText:='Forbidden';
+    AResponse.SendContent;
+    exit;
+    end;
+  if  not FileExists(FN) then
+    begin
+    AResponse.Code:=404;
+    AResponse.CodeText:='Not found';
     AResponse.SendContent;
     exit;
     end;
