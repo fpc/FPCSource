@@ -1098,6 +1098,7 @@ type
     Eval: TOnEvalBIFunction;
     FinishParamsExpression: TOnFinishParamsExpr;
     Flags: TBuiltInProcFlags;
+    destructor Destroy; override;
   end;
 
   { TPRFindData }
@@ -2461,6 +2462,14 @@ end;
 function dbgs(const a: TPSRefAccess): string;
 begin
   str(a,Result);
+end;
+
+{ TResElDataBuiltInProc }
+
+destructor TResElDataBuiltInProc.Destroy;
+begin
+  ReleaseAndNil(TPasElement(Proc));
+  inherited Destroy;
 end;
 
 { TPasClassIntfMap }
@@ -14583,6 +14592,7 @@ begin
   {$ENDIF}
   FreeAndNil(FPendingForwardProcs);
   FreeAndNil(fExprEvaluator);
+  ClearBuiltInIdentifiers;
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasResolver.Destroy END ',ClassName);
@@ -14605,7 +14615,7 @@ var
 begin
   ClearResolveDataList(lkBuiltIn);
   for bt in TResolverBaseType do
-    FBaseTypes[bt]:=nil;
+    ReleaseAndNil(TPasElement(FBaseTypes[bt]));
   for bp in TResolverBuiltInProc do
     FBuiltInProcs[bp]:=nil;
 end;
@@ -19912,6 +19922,7 @@ begin
         else
           Result:=TResEvalBool.CreateValue(TResEvalRangeInt(Range).RangeEnd<>0);
     else
+      ReleaseEvalValue(Range);
       RaiseNotYetImplemented(20170601195240,ErrorEl);
     end;
   revkRangeUInt:
@@ -19920,8 +19931,10 @@ begin
     else
       Result:=TResEvalUInt.CreateValue(TResEvalRangeUInt(Range).RangeEnd);
   else
+    ReleaseEvalValue(Range);
     RaiseNotYetImplemented(20170601195336,ErrorEl);
   end;
+  ReleaseEvalValue(Range);
 end;
 
 function TPasResolver.EvalTypeRange(Decl: TPasType; Flags: TResEvalFlags

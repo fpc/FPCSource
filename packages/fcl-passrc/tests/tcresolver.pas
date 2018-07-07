@@ -386,6 +386,7 @@ type
     Procedure TestProcOverloadWithBaseTypes2;
     Procedure TestProcOverloadWithDefaultArgs;
     Procedure TestProcOverloadNearestHigherPrecision;
+    Procedure TestProcOverloadStringArgCount;
     Procedure TestProcCallLowPrecision;
     Procedure TestProcOverloadUntyped;
     Procedure TestProcOverloadMultiLowPrecisionFail;
@@ -5935,6 +5936,22 @@ begin
   'var w: word;',
   'begin',
   '  {@longint}DoIt(w);',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadStringArgCount;
+begin
+  StartProgram(false);
+  Add([
+  'function {#a}StrToDate(const a: String): double; begin end;',
+  'function {#b}StrToDate(const a: String; const b: string): double; begin end;',
+  'function {#c}StrToDate(const a: String; const b: string; c: char): double; begin end;',
+  'var d: double;',
+  'begin',
+  '  d:={@a}StrToDate('''');',
+  '  d:={@b}StrToDate('''','''');',
+  '  d:={@c}StrToDate('''','''',''x'');',
   '']);
   ParseProgram;
 end;

@@ -3872,7 +3872,7 @@ function TResExprEvaluator.EvalPrimitiveExprString(Expr: TPrimitiveExpr
       // switch to unicodestring
       h:=TResEvalString(Result).S;
       Result.Free;
-      Result:=nil;
+      Result:=nil; // in case of exception in GetUnicodeStr
       Result:=TResEvalUTF16.CreateValue(GetUnicodeStr(h,Expr));
       end;
     if Result.Kind=revkString then

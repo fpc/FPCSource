@@ -2404,7 +2404,8 @@ begin
   FreeAndNil(FMacros);
   FreeAndNil(FDefines);
   ClearFiles;
-  FIncludeStack.Free;
+  FreeAndNil(FFiles);
+  FreeAndNil(FIncludeStack);
   inherited Destroy;
 end;
 

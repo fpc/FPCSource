@@ -1578,6 +1578,10 @@ const
 
 procedure ReleaseAndNil(var El: TPasElement); overload;
 
+{$IFDEF HasPTDumpStack}
+function PTDumpStack: string;
+{$ENDIF}
+
 implementation
 
 uses SysUtils;
@@ -1589,6 +1593,32 @@ begin
   El.Release;
   El:=nil;
 end;
+
+{$IFDEF HasPTDumpStack}
+function PTDumpStack: string;
+var
+  bp: Pointer;
+  addr: Pointer;
+  oldbp: Pointer;
+  CurAddress: Shortstring;
+begin
+  Result:='';
+  { retrieve backtrace info }
+  bp:=get_caller_frame(get_frame);
+  while bp<>nil do begin
+    addr:=get_caller_addr(bp);
+    CurAddress:=BackTraceStrFunc(addr);
+    {AllowWriteln}
+    writeln();
+    {AllowWriteln-}
+    Result:=Result+CurAddress+LineEnding;
+    oldbp:=bp;
+    bp:=get_caller_frame(bp);
+    if (bp<=oldbp) or (bp>(StackBottom + StackLength)) then
+      bp:=nil;
+  end;
+end;
+{$ENDIF}
 
 { TPasMethodResolution }
 

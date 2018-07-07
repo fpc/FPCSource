@@ -339,7 +339,7 @@ type
     function DoParseConstValueExpression(AParent: TPasElement): TPasExpr;
     function CheckPackMode: TPackMode;
     function AddUseUnit(ASection: TPasSection; const NamePos: TPasSourcePos;
-      AUnitName : string; NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasElement;
+      AUnitName : string; NameExpr: TPasExpr; InFileExpr: TPrimitiveExpr): TPasUsesUnit;
     procedure CheckImplicitUsedUnits(ASection: TPasSection);
     procedure FinishedModule; virtual;
     // Overload handling
@@ -433,11 +433,11 @@ type
     property Engine: TPasTreeContainer read FEngine;
     property CurToken: TToken read FCurToken;
     property CurTokenString: String read FCurTokenString;
-    Property Options : TPOptions Read FOptions Write SetOptions;
-    Property CurrentModeswitches : TModeSwitches Read GetCurrentModeSwitches Write SetCurrentModeSwitches;
-    Property CurModule : TPasModule Read FCurModule;
-    Property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
-    Property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
+    property Options : TPOptions Read FOptions Write SetOptions;
+    property CurrentModeswitches : TModeSwitches Read GetCurrentModeSwitches Write SetCurrentModeSwitches;
+    property CurModule : TPasModule Read FCurModule;
+    property LogEvents : TPParserLogEvents Read FLogEvents Write FLogEvents;
+    property OnLog : TPasParserLogHandler Read FOnLog Write FOnLog;
     property ImplicitUses: TStrings read FImplicitUses;
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
@@ -3498,7 +3498,7 @@ end;
 
 function TPasParser.AddUseUnit(ASection: TPasSection;
   const NamePos: TPasSourcePos; AUnitName: string; NameExpr: TPasExpr;
-  InFileExpr: TPrimitiveExpr): TPasElement;
+  InFileExpr: TPrimitiveExpr): TPasUsesUnit;
 
   procedure CheckDuplicateInUsesList(AUnitName : string; UsesClause: TPasUsesClause);
   var
@@ -3558,6 +3558,8 @@ begin
         NameExpr.Release;
       if InFileExpr<>nil then
         InFileExpr.Release;
+      if UnitRef<>nil then
+        UnitRef.Release;
       end;
   end;
 end;
