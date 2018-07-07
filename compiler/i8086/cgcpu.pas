@@ -1778,8 +1778,8 @@ unit cgcpu;
                       getcpuregister(list, NR_AX);
                       list.concat(taicpu.op_ref_reg(A_MOV, S_B, tmpref, NR_AL));
                       list.concat(taicpu.op_none(A_CBW));
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
                       ungetcpuregister(list, NR_AX);
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
                     end;
                 end;
               OS_16,OS_S16:
@@ -1810,10 +1810,10 @@ unit cgcpu;
                   getcpuregister(list, NR_DX);
                   list.concat(taicpu.op_none(A_CBW));
                   list.concat(taicpu.op_none(A_CWD));
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
                   ungetcpuregister(list, NR_AX);
-                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg));
                   ungetcpuregister(list, NR_DX);
+                  add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg)));
                 end;
               OS_16:
                 begin
@@ -1905,8 +1905,8 @@ unit cgcpu;
                           getcpuregister(list, NR_AX);
                           add_mov(taicpu.op_reg_reg(A_MOV, S_B, reg1, NR_AL));
                           list.concat(taicpu.op_none(A_CBW));
-                          add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
                           ungetcpuregister(list, NR_AX);
+                          add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
                         end;
                     end;
                   OS_16,OS_S16:
@@ -1941,10 +1941,10 @@ unit cgcpu;
                       getcpuregister(list, NR_DX);
                       list.concat(taicpu.op_none(A_CBW));
                       list.concat(taicpu.op_none(A_CWD));
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
                       ungetcpuregister(list, NR_AX);
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
                       ungetcpuregister(list, NR_DX);
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                     end;
                   OS_16:
                     begin
@@ -1958,11 +1958,11 @@ unit cgcpu;
                       add_mov(taicpu.op_reg_reg(A_MOV, S_W, reg1, NR_AX));
                       getcpuregister(list, NR_DX);
                       list.concat(taicpu.op_none(A_CWD));
+                      ungetcpuregister(list, NR_AX);
                       if reg1<>reg2 then
                         add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_AX, reg2));
-                      ungetcpuregister(list, NR_AX);
-                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                       ungetcpuregister(list, NR_DX);
+                      add_mov(taicpu.op_reg_reg(A_MOV, S_W, NR_DX, GetNextReg(reg2)));
                     end;
                   OS_32,OS_S32:
                     begin
