@@ -772,15 +772,15 @@ begin
     FreeAndNil(FUsedBy[ub]);
   FreeAndNil(FJSModule);
   FreeAndNil(FConverter);
+  FreeAndNil(FParser);
+  FreeAndNil(FScanner);
+  FreeAndNil(FFileResolver);
+  FreeAndNil(FPasResolver);
   if FPasModule<>nil then
   begin
     FPasModule.Release;
     FPasModule:=nil;
   end;
-  FreeAndNil(FParser);
-  FreeAndNil(FScanner);
-  FreeAndNil(FFileResolver);
-  FreeAndNil(FPasResolver);
   inherited Destroy;
 end;
 
@@ -840,6 +840,8 @@ var
 begin
   FFileResolver:=aFileResolver;
   // scanner
+  if FScanner<>nil then
+    RaiseInternalError(20180707193258,PasFilename);
   FScanner := TPascalScanner.Create(FileResolver);
   Scanner.LogEvents:=PascalResolver.ScannerLogEvents;
   Scanner.OnLog:=@OnScannerLog;

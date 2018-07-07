@@ -66,7 +66,7 @@ type
   private
     FChangeStamp: TChangeStamp;
     FPath: string;
-    FEntries: TFPList; // if Sorted=true
+    FEntries: TFPList; // list of TPas2jsCachedDirectoryEntry
     FPool: TPas2jsCachedDirectories;
     FRefCount: integer;
     FSorted: boolean;
@@ -581,6 +581,7 @@ end;
 
 destructor TPas2jsCachedDirectory.Destroy;
 begin
+  Clear;
   FreeAndNil(FEntries);
   inherited Destroy;
 end;
@@ -886,6 +887,7 @@ end;
 destructor TPas2jsCachedDirectories.Destroy;
 begin
   Clear;
+  FreeAndNil(FDirectories);
   inherited Destroy;
 end;
 
