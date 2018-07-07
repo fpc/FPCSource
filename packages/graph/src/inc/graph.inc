@@ -674,6 +674,7 @@ var
     xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
       plxpyp, plxmyp, plxpym, plxmym: smallint;
     BackupColor, TmpAngle, OldLineWidth: word;
+    CounterClockwise : Boolean;
   Begin
    If LineInfo.ThickNess = ThickWidth Then
     { first draw the two outer ellipses using normwidth and no filling (JM) }
@@ -718,7 +719,10 @@ var
        TmpAngle:=EndAngle;
        EndAngle:=StAngle;
        Stangle:=TmpAngle;
-     end;
+       CounterClockwise:=true;
+     end
+   else
+     CounterClockwise:=false;
    { approximate the number of pixels required by using the circumference }
    { equation of an ellipse.                                              }
    { Changed this formula a it (trial and error), but the net result is that }
@@ -765,22 +769,22 @@ var
      plxmyp := -maxsmallint-1;
      plxpym := maxsmallint;
      plxmym := -maxsmallint-1;
-     If (j >= StAngle) and (j <= EndAngle) then
+     If ((j >= StAngle) and (j <= EndAngle)) xor CounterClockwise then
        begin
          plxpyp := xp;
          PutPixel(xp,yp,CurrentColor);
        end;
-     If ((180-j) >= StAngle) and ((180-j) <= EndAngle) then
+     If (((180-j) >= StAngle) and ((180-j) <= EndAngle)) xor CounterClockwise then
        begin
          plxmyp := xm;
          PutPixel(xm,yp,CurrentColor);
        end;
-     If ((j+180) >= StAngle) and ((j+180) <= EndAngle) then
+     If (((j+180) >= StAngle) and ((j+180) <= EndAngle)) xor CounterClockwise then
        begin
          plxmym := xm;
          PutPixel(xm,ym,CurrentColor);
        end;
-     If ((360-j) >= StAngle) and ((360-j) <= EndAngle) then
+     If (((360-j) >= StAngle) and ((360-j) <= EndAngle)) xor CounterClockwise then
        begin
          plxpym := xp;
          PutPixel(xp,ym,CurrentColor);
@@ -1518,7 +1522,18 @@ end;
  end;
 
  procedure Sector(x, y: smallint; StAngle,EndAngle, XRadius, YRadius: Word);
+  var
+    TmpAngle : Word;
   begin
+     { sector does not draw counter-clock wise }
+     StAngle := StAngle mod 361;
+     EndAngle := EndAngle mod 361;
+     if Endangle < StAngle then
+       Begin
+         TmpAngle:=EndAngle;
+         EndAngle:=StAngle;
+         StAngle:=TmpAngle;
+       end;
      internalellipse(x,y,XRadius, YRadius, StAngle, EndAngle, {$ifdef fpc}@{$endif}SectorPL);
      Line(ArcCall.XStart, ArcCall.YStart, x,y);
      Line(x,y,ArcCall.Xend,ArcCall.YEnd);
