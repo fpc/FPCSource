@@ -3073,7 +3073,7 @@ const
            { check if method and directive not for record/class helper }
            if is_objectpascal_helper(tprocdef(pd).struct) and
              (pd_nothelper in proc_direcdata[p].pd_flags) then
-              { TODO: Missing exit? [Kit] }
+             exit;
          end;
 
         { Check the pd_flags if the directive should be allowed }
