@@ -1435,6 +1435,7 @@ Function TLinkerLinux.MakeSharedLibrary:boolean;
 var
   InitStr,
   FiniStr,
+  GCSectionsStr,
   SoNameStr : string[80];
   binstr,
   cmdstr  : TCmdStr;
@@ -1443,6 +1444,11 @@ begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
+  if (cs_link_smart in current_settings.globalswitches) and
+     create_smartlink_sections then
+   GCSectionsStr:='--gc-sections'
+  else
+    GCSectionsStr:='';
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -1461,6 +1467,7 @@ begin
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
