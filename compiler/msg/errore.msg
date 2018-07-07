@@ -842,7 +842,7 @@ parser_f_assembler_reader_not_supported=03127_F_Selected assembler reader not su
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=03128_E_Procedure directive "$1" has conflicts with other directives
+parser_e_proc_dir_conflict=03128_E_Procedure directive "$1" cannot be used with $2
 % You specified a procedure directive that conflicts with other directives.
 % For instance \var{cdecl} and \var{pascal} are mutually exclusive.
 parser_e_call_convention_dont_match_forward=03129_E_Calling convention doesn't match forward

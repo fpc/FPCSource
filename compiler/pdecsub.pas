@@ -128,6 +128,25 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
+    { get_first_proc_str - returns the token string of the first option that
+      appears in the list }
+    function get_first_proc_str(Options: TProcOptions): ShortString;
+      var
+        X: TProcOption;
+      begin
+        if Options = [] then
+          InternalError(2018051700);
+
+        get_first_proc_str := '';
+
+        for X := Low(TProcOption) to High(TProcOption) do
+          if X in Options then
+            begin
+              get_first_proc_str := ProcOptionKeywords[X];
+              Exit;
+            end;
+      end;
+
     function push_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
@@ -1922,7 +1941,7 @@ begin
   if (not assigned(pd.owner.defowner) or
       not is_java_class_or_interface(tdef(pd.owner.defowner))) and
      (po_external in pd.procoptions) then
-    Message1(parser_e_proc_dir_conflict,'EXTERNAL');
+    Message2(parser_e_proc_dir_conflict,'EXTERNAL','"VIRTUAL"');
 
   if pd.typ<>procdef then
     internalerror(2003042610);
@@ -2007,7 +2026,7 @@ begin
           not is_objc_class_or_protocol(tprocdef(pd).struct) and
           not is_cppclass(tprocdef(pd).struct) and
           not is_java_class_or_interface(tprocdef(pd).struct) then
-    Message1(parser_e_proc_dir_conflict,'OVERRIDE');
+    Message2(parser_e_proc_dir_conflict,'OVERRIDE','"EXTERNAL"');
 end;
 
 procedure pd_overload(pd:tabstractprocdef);
@@ -2039,7 +2058,7 @@ begin
   if not is_objc_class_or_protocol(tprocdef(pd).struct) then
     begin
       if po_external in pd.procoptions then
-        Message1(parser_e_proc_dir_conflict,'MESSAGE');
+        Message2(parser_e_proc_dir_conflict,'MESSAGE','"EXTERNAL"');
       paracnt:=0;
       pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
       if paracnt<>1 then
@@ -2899,7 +2918,10 @@ const
       }
       var
         p     : longint;
-        name  : TIDString;
+        name,
+        other : TIDString;
+        po_comp : tprocoptions;
+        tokenloc : TFilePosInfo;
       begin
         parse_proc_direc:=false;
         name:=tokeninfo^[idtoken].str;
@@ -2919,7 +2941,6 @@ const
                    { could the new token still be a directive? }
                    if token<>_ID then
                      exit;
-                   name:=tokeninfo^[idtoken].str;
                  end
                else
                  exit;
@@ -2970,28 +2991,46 @@ const
            is_javainterface(tdef(symtablestack.top.defowner)) then
           exit;
 
-        { Conflicts between directives ? }
-        if (pd.proctypeoption in proc_direcdata[p].mutexclpotype) or
-           (pd.proccalloption in proc_direcdata[p].mutexclpocall) or
-           ((pd.procoptions*proc_direcdata[p].mutexclpo)<>[]) then
-         begin
-           Message1(parser_e_proc_dir_conflict,name);
-           exit;
-         end;
+        { Keep track of the token's position in the file so it's correctly indicated if an error occurs. }
+        tokenloc := current_tokenpos;
+
+        { consume directive, and turn flag on }
+        consume(token);
+        parse_proc_direc:=true;
+
+        { Conflicts between directives? }
+        if (pd.proctypeoption in proc_direcdata[p].mutexclpotype) then
+          begin
+            MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,ProcTypeOptionKeywords[pd.proctypeoption]);
+            exit;
+          end;
+
+        if (pd.proccalloption in proc_direcdata[p].mutexclpocall) then
+          begin
+            MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,'"' + UpCase(proccalloptionStr[pd.proccalloption]) + '"');
+            exit;
+          end;
+
+        po_comp := (pd.procoptions*proc_direcdata[p].mutexclpo);
+        if (po_comp<>[]) then
+          begin
+            MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,get_first_proc_str(po_comp));
+            exit;
+          end;
 
         { set calling convention }
         if proc_direcdata[p].pocall<>pocall_none then
          begin
            if (po_hascallingconvention in pd.procoptions) then
             begin
-              Message2(parser_w_proc_overriding_calling,
+              MessagePos2(tokenloc, parser_w_proc_overriding_calling,
                 proccalloptionStr[pd.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
            { check if the target processor supports this calling convention }
            if not(proc_direcdata[p].pocall in supported_calling_conventions) then
              begin
-               Message1(parser_e_illegal_calling_convention,proccalloptionStr[proc_direcdata[p].pocall]);
+               MessagePos1(tokenloc, parser_e_illegal_calling_convention,proccalloptionStr[proc_direcdata[p].pocall]);
                { recover }
                proc_direcdata[p].pocall:=pocall_stdcall;
              end;
@@ -3034,29 +3073,26 @@ const
            { check if method and directive not for record/class helper }
            if is_objectpascal_helper(tprocdef(pd).struct) and
              (pd_nothelper in proc_direcdata[p].pd_flags) then
+              { TODO: Missing exit? [Kit] }
          end;
-
-        { consume directive, and turn flag on }
-        consume(token);
-        parse_proc_direc:=true;
 
         { Check the pd_flags if the directive should be allowed }
         if (pd_interface in pdflags) and
            not(pd_interface in proc_direcdata[p].pd_flags) then
           begin
-            Message1(parser_e_proc_dir_not_allowed_in_interface,name);
+            MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_interface,name);
             exit;
           end;
         if (pd_implemen in pdflags) and
            not(pd_implemen in proc_direcdata[p].pd_flags) then
           begin
-            Message1(parser_e_proc_dir_not_allowed_in_implementation,name);
+            MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_implementation,name);
             exit;
           end;
         if (pd_procvar in pdflags) and
            not(pd_procvar in proc_direcdata[p].pd_flags) then
           begin
-            Message1(parser_e_proc_dir_not_allowed_in_procvar,name);
+            MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_procvar,name);
             exit;
           end;
 
@@ -3725,8 +3761,9 @@ const
                            if virtualdirinfo=-1 then
                              internalerror(2018010101);
                          end;
-                       if (proc_direcdata[virtualdirinfo].mutexclpo * currpd.procoptions)<>[] then
-                         MessagePos1(currpd.fileinfo,parser_e_proc_dir_conflict,tokeninfo^[_VIRTUAL].str);
+                       po_comp := (proc_direcdata[virtualdirinfo].mutexclpo * currpd.procoptions);
+                       if po_comp<>[] then
+                         MessagePos2(currpd.fileinfo,parser_e_proc_dir_conflict,tokeninfo^[_VIRTUAL].str,get_first_proc_str(po_comp));
                      end;
                     { Check parameters }
                    if (m_repeat_forward in current_settings.modeswitches) or
