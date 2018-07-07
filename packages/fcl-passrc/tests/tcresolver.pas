@@ -636,7 +636,8 @@ type
     Procedure TestProperty_Option_ClassPropertyNonStatic;
     Procedure TestDefaultProperty;
     Procedure TestDefaultPropertyIncVisibility;
-    Procedure TestMissingDefaultProperty;
+    Procedure TestProperty_MissingDefault;
+    Procedure TestProperty_DefaultDotFail;
 
     // class interfaces
     Procedure TestClassInterface;
@@ -10927,7 +10928,7 @@ begin
   ParseProgram;
 end;
 
-procedure TTestResolver.TestMissingDefaultProperty;
+procedure TTestResolver.TestProperty_MissingDefault;
 begin
   StartProgram(false);
   Add('type');
@@ -10937,6 +10938,24 @@ begin
   Add('begin');
   Add('  if o[5]=6 then;');
   CheckResolverException('illegal qualifier "[" after "TObject"',
+    nIllegalQualifierAfter);
+end;
+
+procedure TTestResolver.TestProperty_DefaultDotFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    function GetItems(Index: byte): byte;',
+  '    property Items[Index: byte]: byte read GetItems; default;',
+  '  end;',
+  'function TObject.GetItems(Index: byte): byte; begin end;',
+  'var o: TObject;',
+  'begin',
+  '  if o.Items.i=6 then;',
+  '']);
+  CheckResolverException('illegal qualifier "." after "Items:array property"',
     nIllegalQualifierAfter);
 end;
 

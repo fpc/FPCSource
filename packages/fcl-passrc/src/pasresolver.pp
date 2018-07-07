@@ -298,7 +298,7 @@ type
   TResolverBaseType = (
     btNone,        // undefined
     btCustom,      // provided by descendant resolver
-    btContext,     // a class or record
+    btContext,     // any source declared type with LoTypeEl/HiTypeEl
     btModule,
     btUntyped,     // TPasArgument without ArgType
     btChar,        // char
@@ -339,7 +339,8 @@ type
     btVariant,     // variant
     btNil,         // nil = pointer, class, procedure, method, ...
     btProc,        // TPasProcedure
-    btBuiltInProc,
+    btBuiltInProc, // TPasUnresolvedSymbolRef with CustomData is TResElDataBuiltInProc
+    btArrayProperty,// IdentEl is TPasProperty with Args.Count>0, LoTypeEl=nil
     btSet,         // set of '', see SubType
     btArrayLit,    // []  array literal (TParamsExpr, TArrayValues, TBinaryExpr), see SubType
     btArrayOrSet,  // []  can be set or array literal, see SubType
@@ -437,6 +438,7 @@ const
     'Nil',
     'Procedure/Function',
     'BuiltInProc',
+    'array property',
     'set',
     'array',
     'set or array literal',
@@ -17433,11 +17435,11 @@ function TPasResolver.GetPasPropertyArgs(El: TPasProperty): TFPList;
 begin
   while El<>nil do
     begin
-    Result:=El.Args;
     if El.VarType<>nil then
-      exit;
+      exit(El.Args);
     El:=GetPasPropertyAncestor(El);
     end;
+  Result:=nil;
 end;
 
 function TPasResolver.GetPasPropertyGetter(El: TPasProperty): TPasElement;
@@ -19167,7 +19169,7 @@ begin
     begin
     if rcConstant in Flags then
       RaiseConstantExprExp(20170216152741,StartEl);
-    if TPasProperty(El).Args.Count=0 then
+    if GetPasPropertyArgs(TPasProperty(El)).Count=0 then
       begin
       ComputeElement(GetPasPropertyType(TPasProperty(El)),ResolvedEl,
         Flags+[rcType],StartEl);
@@ -19184,7 +19186,7 @@ begin
       begin
       // index property without name
       // Note: computing the pekArrayParams TParamsExpr will convert this to the type
-      SetResolverIdentifier(ResolvedEl,btContext,El,nil,nil,[]);
+      SetResolverIdentifier(ResolvedEl,btArrayProperty,El,nil,nil,[]);
       end;
     end
   else if ElClass=TPasArgument then
