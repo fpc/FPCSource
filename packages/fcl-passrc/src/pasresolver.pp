@@ -212,6 +212,7 @@ Works:
 - $warn identifier ON|off|error|default
 
 ToDo:
+- error if property method resolution is not used
 - $H-hintpos$H+
 - $pop, $push
 - $RTTI inherited|explicit
@@ -2884,7 +2885,11 @@ begin
       end;
     FreeAndNil(Interfaces);
     end;
-  ReleaseAndNil(TPasElement(CanonicalClassOf));
+  if CanonicalClassOf<>nil then
+    begin
+    CanonicalClassOf.Parent:=nil;
+    ReleaseAndNil(TPasElement(CanonicalClassOf));
+    end;
   inherited Destroy;
 end;
 
@@ -3256,6 +3261,8 @@ begin
   AssertClass:=nil;
   AssertDefConstructor:=nil;
   AssertMsgConstructor:=nil;
+  RangeErrorClass:=nil;
+  RangeErrorConstructor:=nil;
   FreeAndNil(PendingResolvers);
   inherited Destroy;
 end;
@@ -4582,7 +4589,8 @@ procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
     OldDestType:=DestType;
     DestType:=TPasType(Data.Found);
     DestType.AddRef;
-    OldDestType.Release;
+    OldDestType.Release; // once for the create in TPasResolver
+    OldDestType.Release; // and once for the reference in TPasParser
     // check cycles
     if Decl is TPasPointerType then
       CheckPointerCycle(TPasPointerType(Decl));
@@ -4826,7 +4834,7 @@ type
     InterfaceName: string;
     ImplementName: string;
     ResolutionEl: TPasMethodResolution;
-    Count: integer;
+    Count: integer; // needed to check if method resolution is used
   end;
 var
   ClassScope: TPasClassScope;
@@ -4971,6 +4979,8 @@ begin
           Map:=Map.AncestorMap;
           end;
         end;
+
+      // ToDo: hint if method resolution is not used
       end;
     end;
 
@@ -5552,6 +5562,7 @@ procedure TPasResolver.FinishVariable(El: TPasVariable);
 var
   ResolvedAbs: TPasResolverResult;
   C: TClass;
+  Value: TResEvalValue;
 begin
   if (El.Visibility=visPublished) then
     begin
@@ -5566,7 +5577,10 @@ begin
       CheckAssignCompatibility(El,El.Expr,true);
     end
   else if El.Expr<>nil then
-    Eval(El.Expr,[refConst]);
+    begin
+    Value:=Eval(El.Expr,[refConst]);
+    ReleaseEvalValue(Value);
+    end;
   if El.AbsoluteExpr<>nil then
     begin
     if El.ClassType=TPasConst then
@@ -7379,6 +7393,7 @@ var
   LeftResolved, RightResolved: TPasResolverResult;
   Flags: TPasResolverComputeFlags;
   Access: TResolvedRefAccess;
+  Value: TResEvalValue;
 begin
   if El.Kind=akDefault then
     Access:=rraAssign
@@ -7472,7 +7487,8 @@ begin
     else
       RaiseIncompatibleTypeRes(20180208115707,nOperatorIsNotOverloadedAOpB,[AssignKindNames[El.Kind]],LeftResolved,RightResolved,El);
     // store const expression result
-    Eval(El.right,[]);
+    Value:=Eval(El.right,[]);
+    ReleaseEvalValue(Value);
     end;
   else
     RaiseNotYetImplemented(20160927143649,El,'AssignKind '+AssignKindNames[El.Kind]);

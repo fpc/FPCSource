@@ -381,6 +381,7 @@ begin
   for i:=0 to FOverrides.Count-1 do
     TPasElement(FOverrides[i]).Release;
   FreeAndNil(FOverrides);
+  Element:=nil;
   inherited Destroy;
 end;
 
