@@ -1194,7 +1194,8 @@ implementation
          end;
 
         { constant folding }
-        if (left.nodetype=ordconstn) then
+        if (left.nodetype=ordconstn) and
+          (left.resultdef.typ=orddef) then
           begin
              v:=tordconstnode(left).value;
              def:=left.resultdef;
