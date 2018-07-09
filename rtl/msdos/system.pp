@@ -32,6 +32,7 @@ interface
 
 {$I systemh.inc}
 {$I tnyheaph.inc}
+{$I portsh.inc}
 
 const
   LineEnding = #13#10;
@@ -264,6 +265,8 @@ Procedure SysInitFPU;
 {$I system.inc}
 
 {$I tinyheap.inc}
+
+{$I ports.inc}
 
 procedure DebugWrite(const S: string);
 begin
