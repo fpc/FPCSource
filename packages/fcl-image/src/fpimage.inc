@@ -108,6 +108,7 @@ var r : integer;
     d : TIHData;
     startPos: Int64;
 begin
+  msg := '';
   startPos := str.Position;
   with ImageHandlers do
     try
@@ -116,7 +117,9 @@ begin
         begin
         d := GetData(r);
         if assigned (d) then
-          h := d.FReader;
+          h := d.FReader
+        else
+          h := nil;
         if assigned (h) then
           begin
           reader := h.Create;
@@ -127,6 +130,7 @@ begin
                   FStream := str;
                   FImage := self;
                   InternalRead (str, self);
+                  msg := '';
                   break;
                 except
                   on e : exception do
