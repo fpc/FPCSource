@@ -15,20 +15,26 @@
 
 type
    tport = object
+   private
       procedure writeport(p : word;data : byte);inline;
       function  readport(p : word) : byte;inline;
+   public
       property pp[w : word] : byte read readport write writeport;default;
    end;
 
    tportw = object
+   private
       procedure writeport(p : word;data : word);inline;
       function  readport(p : word) : word;inline;
+   public
       property pp[w : word] : word read readport write writeport;default;
    end;
 
    tportl = object
+   private
       procedure writeport(p : word;data : longint);
       function  readport(p : word) : longint;
+   public
       property pp[w : word] : longint read readport write writeport;default;
    end;
 

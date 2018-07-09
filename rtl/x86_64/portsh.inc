@@ -18,7 +18,7 @@
 
 type
    tport = object
-     protected
+     private
        procedure writeport(p : longint;data : byte);inline;
        function  readport(p : longint) : byte;inline;
      public
@@ -26,7 +26,7 @@ type
    end;
 
    tportw = object
-     protected
+     private
        procedure writeport(p : longint;data : word);inline;
        function  readport(p : longint) : word;inline;
      public
@@ -34,7 +34,7 @@ type
    end;
 
    tportl = object
-     Protected
+     Private
        procedure writeport(p : longint;data : longint);inline;
        function  readport(p : longint) : longint;inline;
      Public
