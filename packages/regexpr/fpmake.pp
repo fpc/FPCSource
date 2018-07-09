@@ -25,6 +25,7 @@ begin
 
     // Sorokin's RegExpr
     T:=P.Targets.AddUnit('regexpr.pas');
+    T:=P.Targets.AddUnit('uregexpr.pp');
 
     // RegEx from Joost
     T:=P.Targets.AddUnit('oldregexpr.pp');

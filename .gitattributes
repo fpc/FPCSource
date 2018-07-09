@@ -7258,6 +7258,7 @@ packages/regexpr/src/old/regexpr.pp svneol=native#text/plain
 packages/regexpr/src/oldregexpr.pp svneol=native#text/pascal
 packages/regexpr/src/regex.pp svneol=native#text/plain
 packages/regexpr/src/regexpr.pas svneol=native#text/pascal
+packages/regexpr/src/uregexpr.pp svneol=native#text/plain
 packages/rexx/Makefile svneol=native#text/plain
 packages/rexx/Makefile.fpc svneol=native#text/plain
 packages/rexx/Makefile.fpc.fpcmake svneol=native#text/plain
