@@ -129,6 +129,8 @@ type
       destructor destroy; override;
       procedure Assign(Source: TPersistent); override;
       // Image handlers
+      class function FindHandlerFromStream(Str:TStream): TIHData;
+      class function FindReaderFromStream(Str:TStream): TFPCustomImageReaderClass;
       class function FindHandlerFromExtension(extension:String): TIHData;
       class function FindReaderFromFileName(const filename:String): TFPCustomImageReaderClass;
       class function FindReaderFromExtension(const extension:String): TFPCustomImageReaderClass;

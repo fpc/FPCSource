@@ -290,6 +290,32 @@ begin
   Result := nil;
 end;
 
+class function TFPCustomImage.FindHandlerFromStream(Str: TStream): TIHData;
+var r : integer;
+    p: Int64;
+    reader: TFPCustomImageReader;
+begin
+  r := ImageHandlers.Count-1;
+  p := Str.Position;
+  while (r >= 0) do
+    begin
+    Result := ImageHandlers.GetData(r);
+    if Result.Reader<>nil then
+      begin
+      reader := Result.Reader.Create;
+      try
+        if reader.CheckContents(Str) then
+          Exit;
+      finally
+        reader.free;
+        Str.Position := p;
+      end;
+      end;
+    dec (r);
+    end;
+  Result := nil;
+end;
+
 class function TFPCustomImage.FindReaderFromExtension(const extension: String
   ): TFPCustomImageReaderClass;
 var d : TIHData;
@@ -305,6 +331,17 @@ class function TFPCustomImage.FindReaderFromFileName(const filename: String
   ): TFPCustomImageReaderClass;
 begin
   Result := FindReaderFromExtension(ExtractFileExt(filename));
+end;
+
+class function TFPCustomImage.FindReaderFromStream(
+  Str: TStream): TFPCustomImageReaderClass;
+var d : TIHData;
+begin
+  d := FindHandlerFromStream(Str);
+  if d<>nil then
+    Result := d.FReader
+  else
+    Result := nil;
 end;
 
 class function TFPCustomImage.FindWriterFromExtension(const extension: String
