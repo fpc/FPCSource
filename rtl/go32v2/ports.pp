@@ -16,14 +16,23 @@
 
 unit ports;
 
-{$inline ON}
-
 interface
 
-{$I portsh.inc}
+{ Since this platform has port access built into the System unit, this unit just
+  creates aliases, for compatibility for programs, that already use the ports
+  unit.  }
+
+type
+  tport = System.tport;
+  tportw = System.tportw;
+  tportl = System.tportl;
+
+var
+   port  : tport absolute System.port;
+   portb : tport absolute System.portb;
+   portw : tportw absolute System.portw;
+   portl : tportl absolute System.portl;
 
 implementation
-
-{$I ports.inc}
 
 end.
