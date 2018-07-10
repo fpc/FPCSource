@@ -198,6 +198,8 @@ type
     function CheckPendingUsedInterface(Section: TPasSection): boolean; virtual; // true if changed
     function NeedArrayValues(El: TPasElement): boolean; virtual;
     function GetDefaultClassVisibility(AClass: TPasClassType): TPasMemberVisibility; virtual;
+    procedure ModeChanged(Sender: TObject; NewMode: TModeSwitch;
+      Before: boolean; var Handled: boolean); virtual;
     property Package: TPasPackage read FPackage;
     property InterfaceOnly : Boolean Read FInterfaceOnly Write FInterFaceOnly;
     property ScannerLogEvents : TPScannerLogEvents Read FScannerLogEvents Write FScannerLogEvents;
@@ -274,6 +276,8 @@ type
     procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
     procedure SetOptions(AValue: TPOptions);
+    procedure OnScannerModeChanged(Sender: TObject; NewMode: TModeSwitch;
+      Before: boolean; var Handled: boolean);
   protected
     Function SaveComments : String;
     Function SaveComments(Const AValue : String) : String;
@@ -808,6 +812,15 @@ begin
   if AClass=nil then ;  // avoid compiler warning
 end;
 
+procedure TPasTreeContainer.ModeChanged(Sender: TObject; NewMode: TModeSwitch;
+  Before: boolean; var Handled: boolean);
+begin
+  if Sender=nil then ;
+  if NewMode=msDelphi then ;
+  if Before then ;
+  if Handled then ;
+end;
+
 { ---------------------------------------------------------------------
   EParserError
   ---------------------------------------------------------------------}
@@ -874,6 +887,8 @@ constructor TPasParser.Create(AScanner: TPascalScanner;
 begin
   inherited Create;
   FScanner := AScanner;
+  if FScanner.OnModeChanged=nil then
+    FScanner.OnModeChanged:=@OnScannerModeChanged;
   FFileResolver := AFileResolver;
   FTokenRingCur:=High(FTokenRing);
   FEngine := AEngine;
@@ -891,6 +906,8 @@ destructor TPasParser.Destroy;
 var
   i: Integer;
 begin
+  if FScanner.OnModeChanged=@OnScannerModeChanged then
+    FScanner.OnModeChanged:=nil;
   if Assigned(FEngine) then
     begin
     FEngine.CurrentParser:=Nil;
@@ -3196,7 +3213,8 @@ begin
     else
       Scanner.UnSetTokenOption(toOperatorToken);
     NextToken;
-  //  writeln('TPasParser.ParseSection Token=',CurTokenString,' ',CurToken, ' ',scanner.CurFilename);
+    Scanner.SkipGlobalSwitches:=true;
+  //  writeln('TPasParser.ParseDeclarations Token=',CurTokenString,' ',CurToken, ' ',scanner.CurFilename);
     case CurToken of
       tkend:
         begin
@@ -3516,6 +3534,7 @@ var
 begin
   Result:=nil;
   UsesUnit:=nil;
+  UnitRef:=nil;
   try
     {$IFDEF VerbosePasParser}
     writeln('TPasParser.AddUseUnit AUnitName=',AUnitName,' CurModule.Name=',CurModule.Name);
@@ -3595,6 +3614,7 @@ var
   NamePos, SrcPos: TPasSourcePos;
   aModule: TPasModule;
 begin
+  Scanner.SkipGlobalSwitches:=true;
   NameExpr:=nil;
   InFileExpr:=nil;
   FreeExpr:=true;
@@ -4276,6 +4296,12 @@ begin
   FOptions:=AValue;
   If Assigned(FScanner) then
     FScanner.Options:=AValue;
+end;
+
+procedure TPasParser.OnScannerModeChanged(Sender: TObject;
+  NewMode: TModeSwitch; Before: boolean; var Handled: boolean);
+begin
+  Engine.ModeChanged(Self,NewMode,Before,Handled);
 end;
 
 function TPasParser.SaveComments: String;

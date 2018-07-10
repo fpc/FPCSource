@@ -55,6 +55,7 @@ const
   nWarnIllegalCompilerDirectiveX = 1028;
   nIllegalStateForWarnDirective = 1027;
   nErrIncludeLimitReached = 1028;
+  nMisplacedGlobalCompilerSwitch = 1029;
 
 // resourcestring patterns of messages
 resourcestring
@@ -88,6 +89,7 @@ resourcestring
   SWarnIllegalCompilerDirectiveX = 'Illegal compiler directive "%s"';
   SIllegalStateForWarnDirective = 'Illegal state "%s" for $WARN directive';
   SErrIncludeLimitReached = 'Include file limit reached';
+  SMisplacedGlobalCompilerSwitch = 'Misplaced global compiler switch, ignored';
 
 type
   TMessageType = (
@@ -611,6 +613,7 @@ type
     var Handled: boolean) of object;
   TPScannerFormatPathEvent = function(const aPath: string): string of object;
   TPScannerWarnEvent = procedure(Sender: TObject; Identifier: string; State: TWarnMsgState; var Handled: boolean) of object;
+  TPScannerModeDirective = procedure(Sender: TObject; NewMode: TModeSwitch; Before: boolean; var Handled: boolean) of object;
 
   TPascalScanner = class
   private
@@ -651,6 +654,7 @@ type
     FOnEvalFunction: TCEEvalFunctionEvent;
     FOnEvalVariable: TCEEvalVarEvent;
     FOnFormatPath: TPScannerFormatPathEvent;
+    FOnModeChanged: TPScannerModeDirective;
     FOnWarnDirective: TPScannerWarnEvent;
     FOptions: TPOptions;
     FLogEvents: TPScannerLogEvents;
@@ -660,6 +664,7 @@ type
     FReadOnlyModeSwitches: TModeSwitches;
     FReadOnlyValueSwitches: TValueSwitches;
     FSkipComments: Boolean;
+    FSkipGlobalSwitches: boolean;
     FSkipWhiteSpace: Boolean;
     FTokenOptions: TTokenOptions;
     FTokenStr: PChar;
@@ -742,11 +747,11 @@ type
     procedure OpenFile(AFilename: string);
     procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: string): string; virtual;
-    Procedure SetNonToken(aToken : TToken);
-    Procedure UnsetNonToken(aToken : TToken);
-    Procedure SetTokenOption(aOption : TTokenoption);
-    Procedure UnSetTokenOption(aOption : TTokenoption);
-    Function CheckToken(aToken : TToken; const ATokenString : String) : TToken;
+    procedure SetNonToken(aToken : TToken);
+    procedure UnsetNonToken(aToken : TToken);
+    procedure SetTokenOption(aOption : TTokenoption);
+    procedure UnSetTokenOption(aOption : TTokenoption);
+    function CheckToken(aToken : TToken; const ATokenString : String) : TToken;
     function FetchToken: TToken;
     function ReadNonPascalTillEndToken(StopAtLineEnd: boolean): TToken;
     function AddDefine(const aName: String; Quiet: boolean = false): boolean;
@@ -756,9 +761,9 @@ type
     function IfOpt(Letter: Char): boolean;
     function AddMacro(const aName, aValue: String; Quiet: boolean = false): boolean;
     function RemoveMacro(const aName: String; Quiet: boolean = false): boolean;
-    Procedure SetCompilerMode(S : String);
+    procedure SetCompilerMode(S : String);
     function CurSourcePos: TPasSourcePos;
-    Function SetForceCaret(AValue : Boolean) : Boolean; // returns old state
+    function SetForceCaret(AValue : Boolean) : Boolean; // returns old state
     function IgnoreMsgType(MsgType: TMessageType): boolean; virtual;
     property FileResolver: TBaseFileResolver read FFileResolver;
     property Files: TStrings read FFiles;
@@ -770,9 +775,9 @@ type
     property CurToken: TToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
     property CurTokenPos: TPasSourcePos read FCurTokenPos;
-    Property PreviousToken : TToken Read FPreviousToken;
+    property PreviousToken : TToken Read FPreviousToken;
     property ModuleRow: Integer read FModuleRow;
-    Property NonTokens : TTokens Read FNonTokens;
+    property NonTokens : TTokens Read FNonTokens;
     Property TokenOptions : TTokenOptions Read FTokenOptions Write FTokenOptions;
     property Defines: TStrings read FDefines;
     property Macros: TStrings read FMacros;
@@ -789,8 +794,9 @@ type
     property CurrentValueSwitch[V: TValueSwitch]: string read GetCurrentValueSwitch Write SetCurrentValueSwitch;
     property WarnMsgState[Number: integer]: TWarnMsgState read GetWarnMsgState write SetWarnMsgState;
     property Options : TPOptions read FOptions write SetOptions;
-    Property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
-    Property SkipComments : Boolean Read FSkipComments Write FSkipComments;
+    property SkipWhiteSpace : Boolean Read FSkipWhiteSpace Write FSkipWhiteSpace;
+    property SkipComments : Boolean Read FSkipComments Write FSkipComments;
+    property SkipGlobalSwitches: Boolean read FSkipGlobalSwitches write FSkipGlobalSwitches;
     property MaxIncludeStackDepth: integer read FMaxIncludeStackDepth write FMaxIncludeStackDepth default DefaultMaxIncludeStackDepth;
     property ForceCaret : Boolean read GetForceCaret;
 
@@ -801,6 +807,7 @@ type
     property OnEvalVariable: TCEEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
     property OnEvalFunction: TCEEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
     property OnWarnDirective: TPScannerWarnEvent read FOnWarnDirective write FOnWarnDirective;
+    property OnModeChanged: TPScannerModeDirective read FOnModeChanged write FOnModeChanged; // set by TPasParser
 
     property LastMsg: string read FLastMsg write FLastMsg;
     property LastMsgNumber: integer read FLastMsgNumber write FLastMsgNumber;
@@ -1091,6 +1098,9 @@ const
     msISOLikeMod];
 
 function StrToModeSwitch(aName: String): TModeSwitch;
+function ModeSwitchesToStr(Switches: TModeSwitches): string;
+function BoolSwitchesToStr(Switches: TBoolSwitches): string;
+
 function FilenameIsAbsolute(const TheFilename: string):boolean;
 function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
@@ -1252,6 +1262,26 @@ begin
   for ms in TModeSwitch do
     if SModeSwitchNames[ms]=aName then exit(ms);
   Result:=msNone;
+end;
+
+function ModeSwitchesToStr(Switches: TModeSwitches): string;
+var
+  ms: TModeSwitch;
+begin
+  Result:='';
+  for ms in Switches do
+    Result:=Result+SModeSwitchNames[ms]+',';
+  Result:='['+LeftStr(Result,length(Result)-1)+']';
+end;
+
+function BoolSwitchesToStr(Switches: TBoolSwitches): string;
+var
+  bs: TBoolSwitch;
+begin
+  Result:='';
+  for bs in Switches do
+    Result:=Result+BoolSwitchNames[bs]+',';
+  Result:='['+LeftStr(Result,length(Result)-1)+']';
 end;
 
 function FilenameIsAbsolute(const TheFilename: string):boolean;
@@ -2969,22 +2999,37 @@ procedure TPascalScanner.HandleMode(const Param: String);
     const AddBoolSwitches: TBoolSwitches = [];
     const RemoveBoolSwitches: TBoolSwitches = []
     );
+  var
+    Handled: Boolean;
   begin
     if not (LangMode in AllowedModeSwitches) then
       Error(nErrInvalidMode,SErrInvalidMode,[Param]);
-    CurrentModeSwitches:=(NewModeSwitches+ReadOnlyModeSwitches)*AllowedModeSwitches;
-    CurrentBoolSwitches:=CurrentBoolSwitches+(AddBoolSwitches*AllowedBoolSwitches)
-      -(RemoveBoolSwitches*AllowedBoolSwitches);
-    if IsDelphi then
-      FOptions:=FOptions+[po_delphi]
-    else
-      FOptions:=FOptions-[po_delphi];
+    Handled:=false;
+    if Assigned(OnModeChanged) then
+      OnModeChanged(Self,LangMode,true,Handled);
+    if not Handled then
+      begin
+      CurrentModeSwitches:=(NewModeSwitches+ReadOnlyModeSwitches)*AllowedModeSwitches;
+      CurrentBoolSwitches:=CurrentBoolSwitches+(AddBoolSwitches*AllowedBoolSwitches)
+        -(RemoveBoolSwitches*AllowedBoolSwitches);
+      if IsDelphi then
+        FOptions:=FOptions+[po_delphi]
+      else
+        FOptions:=FOptions-[po_delphi];
+      end;
+    Handled:=false;
+    if Assigned(OnModeChanged) then
+      OnModeChanged(Self,LangMode,false,Handled);
   end;
 
 Var
   P : String;
-
 begin
+  if SkipGlobalSwitches then
+    begin
+    DoLog(mtWarning,nMisplacedGlobalCompilerSwitch,SMisplacedGlobalCompilerSwitch,[]);
+    exit;
+    end;
   P:=UpperCase(Param);
   Case P of
   'FPC','DEFAULT':

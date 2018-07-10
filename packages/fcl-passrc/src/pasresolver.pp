@@ -726,6 +726,8 @@ type
     UsesScopes: TFPList; // list of TPasSectionScope
     UsesFinished: boolean;
     Finished: boolean;
+    BoolSwitches: TBoolSwitches;
+    ModeSwitches: TModeSwitches;
     constructor Create; override;
     destructor Destroy; override;
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
@@ -813,8 +815,8 @@ type
     ClassScope: TPasClassScope;
     SelfArg: TPasArgument;
     Flags: TPasProcedureScopeFlags;
-    BoolSwitches: TBoolSwitches;
-    Mode: TModeSwitch;
+    BoolSwitches: TBoolSwitches; // if Body<>nil then body start, otherwise when FinishProc
+    ModeSwitches: TModeSwitches; // at proc start
     function FindIdentifier(const Identifier: String): TPasIdentifier; override;
     procedure IterateElements(const aName: string; StartScope: TPasScope;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
@@ -1581,6 +1583,8 @@ type
     function NeedArrayValues(El: TPasElement): boolean; override;
     function GetDefaultClassVisibility(AClass: TPasClassType
       ): TPasMemberVisibility; override;
+    procedure ModeChanged(Sender: TObject; NewMode: TModeSwitch;
+      Before: boolean; var Handled: boolean); override;
     // built in types and functions
     procedure ClearBuiltInIdentifiers; virtual;
     procedure AddObjFPCBuiltInIdentifiers(
@@ -3816,7 +3820,7 @@ begin
       // there is already a previous proc
       PrevProc:=TPasProcedure(Data^.Found);
 
-      if TPasProcedureScope(Data^.LastProc.CustomData).Mode=msDelphi then
+      if msDelphi in TPasProcedureScope(Data^.LastProc.CustomData).ModeSwitches then
         begin
         if (not Data^.LastProc.IsOverload) or (not Proc.IsOverload) then
           begin
@@ -3856,7 +3860,7 @@ begin
         end;
       end;
 
-    if (ProcScope.Mode=msDelphi) and not Proc.IsOverload then
+    if (msDelphi in ProcScope.ModeSwitches) and not Proc.IsOverload then
       Abort:=true; // stop searching after this proc
 
     CandidateFound:=true;
@@ -4380,8 +4384,7 @@ begin
   CurModuleClass:=CurModule.ClassType;
   ModScope:=CurModule.CustomData as TPasModuleScope;
 
-  ModScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
-  if bsRangeChecks in ModScope.BoolSwitches then
+  if bsRangeChecks in CurrentParser.Scanner.CurrentBoolSwitches then
     begin
     Include(ModScope.Flags,pmsfRangeErrorNeeded);
     FindRangeErrorConstructors(CurModule);
@@ -8897,16 +8900,23 @@ begin
     FDefaultNameSpace:=ChompDottedIdentifier(El.Name)
   else
     FDefaultNameSpace:='';
+  ModScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
 end;
 
 procedure TPasResolver.AddSection(El: TPasSection);
 // TInterfaceSection, TImplementationSection, TProgramSection, TLibrarySection
 // Note: implementation scope is within the interface scope
+var
+  Scope: TPasSectionScope;
 begin
   if TopScope is TPasSectionScope then
     FinishSection(TPasSectionScope(TopScope).Element as TPasSection);
+  if TopScope is TPasModuleScope then
+    TPasModuleScope(TopScope).BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
   FPendingForwardProcs.Add(El); // check forward declarations at the end
-  PushScope(El,ScopeClass_Section);
+  Scope:=TPasSectionScope(PushScope(El,ScopeClass_Section));
+  Scope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+  Scope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
 end;
 
 procedure TPasResolver.AddInitialFinalizationSection(El: TPasImplBlock);
@@ -9114,10 +9124,7 @@ begin
   if not HasDot then
     AddIdentifier(TPasIdentifierScope(TopScope),ProcName,El,pikProc);
   ProcScope:=TPasProcedureScope(PushScope(El,FScopeClass_Proc));
-  if msDelphi in CurrentParser.CurrentModeswitches then
-    ProcScope.Mode:=msDelphi
-  else
-    ProcScope.Mode:=msObjfpc;
+  ProcScope.ModeSwitches:=CurrentParser.CurrentModeswitches;
   if HasDot then
     begin
     // method implementation -> search class
@@ -13676,6 +13683,7 @@ function TPasResolver.CreateElement(AClass: TPTreeElement; const AName: String;
 var
   El: TPasElement;
   SrcY: integer;
+  SectionScope: TPasSectionScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.CreateElement ',AClass.ClassName,' Name=',AName,' Parent=',GetObjName(AParent),' (',ASrcPos.Row,',',ASrcPos.Column,')');
@@ -13697,7 +13705,7 @@ begin
   // create element
   El:=AClass.Create(AName,AParent);
   FLastElement:=El;
-  Result:=FLastElement;
+  Result:=El;
   El.Visibility:=AVisibility;
   El.SourceFilename:=ASrcPos.FileName;
   El.SourceLinenumber:=SrcY;
@@ -13706,6 +13714,13 @@ begin
     RootElement:=NoNil(Result) as TPasModule;
     if FStep=prsInit then
       FStep:=prsParsing;
+    end
+  else if (AParent is TPasSection) and (TPasSection(AParent).Declarations.Count=0) then
+    begin
+    // first element of section
+    SectionScope:=TPasSectionScope(AParent.CustomData);
+    SectionScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+    SectionScope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
     end;
 
   if IsElementSkipped(El) then exit;
@@ -14550,6 +14565,17 @@ begin
     Result:=visPublished
   else
     Result:=visPublic;
+end;
+
+procedure TPasResolver.ModeChanged(Sender: TObject; NewMode: TModeSwitch;
+  Before: boolean; var Handled: boolean);
+begin
+  inherited ModeChanged(Sender, NewMode, Before, Handled);
+  if not Before then
+    begin
+    if LastElement is TPasSection then
+      TPasSectionScope(LastElement.CustomData).ModeSwitches:=CurrentParser.CurrentModeswitches;
+    end;
 end;
 
 class procedure TPasResolver.UnmangleSourceLineNumber(LineNumber: integer; out
@@ -17206,13 +17232,22 @@ begin
 end;
 
 function TPasResolver.GetElModeSwitches(El: TPasElement): TModeSwitches;
+var
+  C: TClass;
 begin
-  Result:=CurrentParser.CurrentModeswitches;
   while El<>nil do
     begin
-    // ToDo
+    if El.CustomData<>nil then
+      begin
+      C:=El.CustomData.ClassType;
+      if C.InheritsFrom(TPasProcedureScope) then
+        exit(TPasProcedureScope(El.CustomData).ModeSwitches)
+      else if C.InheritsFrom(TPasSectionScope) then
+        exit(TPasSectionScope(El.CustomData).ModeSwitches);
+      end;
     El:=El.Parent;
     end;
+  Result:=CurrentParser.CurrentModeswitches;
 end;
 
 function TPasResolver.GetElBoolSwitches(El: TPasElement): TBoolSwitches;
@@ -17227,6 +17262,8 @@ begin
       C:=El.CustomData.ClassType;
       if C.InheritsFrom(TPasProcedureScope) then
         exit(TPasProcedureScope(El.CustomData).BoolSwitches)
+      else if C.InheritsFrom(TPasSectionScope) then
+        exit(TPasSectionScope(El.CustomData).BoolSwitches)
       else if C.InheritsFrom(TPasModuleScope) then
         exit(TPasModuleScope(El.CustomData).BoolSwitches);
       end;
