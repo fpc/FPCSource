@@ -127,8 +127,61 @@ table.bar {
   background-color: #a0c0ff;
 }
 
+td p {
+ margin: 0;
+}
+
 span.bartitle {
   font-weight: bold;
   font-style: italic;
   color: darkblue
 }
+
+span.footer {
+  font-style: italic;
+  color: darkblue
+}
+
+/* definition list */
+dl {
+ border: 3px double #ccc;
+ padding: 0.5em;
+}
+
+/* definition list: term */
+dt {
+ float: left;
+ clear: left;
+ width: auto; /* normally browsers default width of largest item */
+ padding-right: 20px;
+ font-weight: bold;
+ color: darkgreen;
+}
+
+/* definition list: description */
+dd {
+ margin: 0 0 0 110px;
+ padding: 0 0 0.5em 0;
+}
+
+/* for browsers in standards compliance mode */
+td p {
+  margin: 0;
+}
+
+span.toggletreeclose {
+    background: url(minus.png) center left no-repeat;
+    padding-left: 20px;
+}
+span.toggletreeopen {
+    background: url(plus.png) center left no-repeat;
+    padding-left: 20px;
+}
+
+ul.classtreelist li { padding-left: 0px; }
+
+ul.classtreelist { list-style-type:none; }
+
+li.classtree ul { display: block; }
+ 
+li.classtreeclosed ul { display: none; }
