@@ -1,3 +1,5 @@
+{$mode objfpc}
+{$h+}
 program simpleserver;
 
 uses sysutils,custhttpapp, fpwebfile;
