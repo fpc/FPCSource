@@ -1278,6 +1278,7 @@ type
     AccessContext: TConvertContext;
     TmpVarCount: integer;
     ScannerBoolSwitches: TBoolSwitches;
+    ScannerModeSwitches: TModeSwitches;
     constructor Create(PasEl: TPasElement; JSEl: TJSElement; aParent: TConvertContext); virtual;
     function GetRootModule: TPasModule;
     function GetNonDotContext: TConvertContext;
@@ -4848,6 +4849,7 @@ begin
     Access:=aParent.Access;
     AccessContext:=aParent.AccessContext;
     ScannerBoolSwitches:=aParent.ScannerBoolSwitches;
+    ScannerModeSwitches:=aParent.ScannerModeSwitches;
     end;
 end;
 
@@ -10876,6 +10878,7 @@ var
   I : Integer;
   P: TPasElement;
   C: TClass;
+  SectionScope: TPas2JSSectionScope;
 begin
   Result:=nil;
   {
@@ -10892,6 +10895,14 @@ begin
   IsFunction:=IsProcBody and (El.Parent is TPasFunction);
   IsAssembler:=IsProcBody and (TProcedureBody(El).Body is TPasImplAsmStatement);
   HasResult:=IsFunction and not IsAssembler;
+
+  if (AContext.Resolver<>nil) and (El is TPasSection) then
+    begin
+    SectionScope:=El.CustomData as TPas2JSSectionScope;
+    AContext.ScannerBoolSwitches:=SectionScope.BoolSwitches;
+    AContext.ScannerModeSwitches:=SectionScope.ModeSwitches;
+    end;
+
   SLFirst:=nil;
   SLLast:=nil;
   ResultEl:=nil;

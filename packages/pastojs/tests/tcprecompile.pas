@@ -56,6 +56,7 @@ type
     procedure TestPCU_UTF8BOM;
     procedure TestPCU_ParamNS;
     procedure TestPCU_Overloads;
+    procedure TestPCU_Overloads_MDelphi_ModeObjFPC;
     procedure TestPCU_UnitCycle;
     procedure TestPCU_ClassForward;
     procedure TestPCU_ClassConstructor;
@@ -218,6 +219,44 @@ begin
     '  DoIt(3.3);',
     'end.']);
   CheckPrecompile('test1.pas','src');
+end;
+
+procedure TTestCLI_Precompile.TestPCU_Overloads_MDelphi_ModeObjFPC;
+var
+  SharedParams: TStringList;
+begin
+  AddUnit('src/system.pp',[
+  'type',
+  '  integer = longint;',
+  '  TDateTime = type double;'],
+  ['']);
+  AddFile('src/unit1.pp',
+    LinesToStr([
+    'unit unit1;',
+    '{$mode objfpc}',
+    'interface',
+    'function DoIt(i: integer): TDateTime;', // no overload needed in ObjFPC
+    'function DoIt(i, j: integer): TDateTime;',
+    'implementation',
+    'function DoIt(i: integer): TDateTime;',
+    'begin',
+    '  Result:=i;',
+    'end;',
+    'function DoIt(i, j: integer): TDateTime;',
+    'begin',
+    '  Result:=i+j;',
+    'end;',
+    'end.']));
+  AddFile('test1.pas',[
+    'uses unit1;',
+    'var d: TDateTime;',
+    'begin',
+    '  d:=DoIt(3);',
+    '  d:=DoIt(4,5);',
+    'end.']);
+  SharedParams:=TStringList.Create;
+  SharedParams.Add('-MDelphi');
+  CheckPrecompile('test1.pas','src',SharedParams);
 end;
 
 procedure TTestCLI_Precompile.TestPCU_UnitCycle;

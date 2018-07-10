@@ -2543,6 +2543,12 @@ begin
   Scope:=TPas2JSSectionScope(CheckElScope(Section,20180206121825,TPas2JSSectionScope));
   if not Scope.Finished then
     RaiseMsg(20180206130333,Section);
+
+  WriteBoolSwitches(Obj,'BoolSwitches',Scope.BoolSwitches,aContext.BoolSwitches);
+  aContext.BoolSwitches:=Scope.BoolSwitches;
+  WriteModeSwitches(Obj,'ModeSwitches',Scope.ModeSwitches,aContext.ModeSwitches);
+  aContext.ModeSwitches:=Scope.ModeSwitches;
+
   if Scope.UsesScopes.Count<>length(Section.UsesClause) then
     RaiseMsg(20180206122222,Section);
   Arr:=nil;
@@ -3681,6 +3687,7 @@ begin
   // Mode: TModeSwitch: auto derived
   WriteProcScopeFlags(Obj,'SFlags',Scope.Flags,[]);
   WriteBoolSwitches(Obj,'BoolSwitches',Scope.BoolSwitches,aContext.BoolSwitches);
+  WriteModeSwitches(Obj,'ModeSwitches',Scope.ModeSwitches,aContext.ModeSwitches);
 end;
 
 procedure TPCUWriter.WriteProcedure(Obj: TJSONObject; El: TPasProcedure;
@@ -5326,6 +5333,8 @@ procedure TPCUReader.ReadSectionScope(Obj: TJSONObject;
 begin
   ReadIdentifierScope(Obj,Scope,aContext);
   // not needed: Scope ElevatedLocals
+  Scope.BoolSwitches:=ReadBoolSwitches(Obj,Scope.Element,'BoolSwitches',aContext.BoolSwitches);
+  Scope.ModeSwitches:=ReadModeSwitches(Obj,Scope.Element,'ModeSwitches',aContext.ModeSwitches);
 end;
 
 procedure TPCUReader.ReadSection(Obj: TJSONObject; Section: TPasSection;
@@ -5356,8 +5365,11 @@ begin
   ReadUsedUnitsFinish(Obj,Section,aContext);
   // read scope, needs external refs
   ReadSectionScope(Obj,Scope,aContext);
+  aContext.BoolSwitches:=Scope.BoolSwitches;
+  aContext.ModeSwitches:=Scope.ModeSwitches;
   // read declarations, needs external refs
   ReadDeclarations(Obj,Section,aContext);
+
   Scope.Finished:=true;
   if Section is TInterfaceSection then
     begin
@@ -6260,6 +6272,7 @@ var
   OldBoolSwitches: TBoolSwitches;
   Prog: TPasProgram;
   Lib: TPasLibrary;
+  OldModeSwitches: TModeSwitches;
 begin
   Result:=false;
   {$IFDEF VerbosePCUFiler}
@@ -6270,6 +6283,7 @@ begin
 
   OldBoolSwitches:=aContext.BoolSwitches;
   aContext.BoolSwitches:=ModScope.BoolSwitches;
+  OldModeSwitches:=aContext.ModeSwitches;
   try
     // read sections
     if aModule.ClassType=TPasProgram then
@@ -6315,6 +6329,7 @@ begin
       end;
   finally
     aContext.BoolSwitches:=OldBoolSwitches;
+    aContext.ModeSwitches:=OldModeSwitches;
   end;
 
   ResolvePending;
@@ -7219,15 +7234,9 @@ begin
   // ClassScope: TPasClassScope; auto derived
   // Scope.SelfArg only valid for method implementation
 
-  if msDelphi in aContext.ModeSwitches then
-    Scope.Mode:=msDelphi
-  else if msObjfpc in aContext.ModeSwitches then
-    Scope.Mode:=msObjfpc
-  else
-    RaiseMsg(20180213220335,Scope.Element);
-
   Scope.Flags:=ReadProcScopeFlags(Obj,Proc,'SFlags',[]);
   Scope.BoolSwitches:=ReadBoolSwitches(Obj,Proc,'BoolSwitches',aContext.BoolSwitches);
+  Scope.ModeSwitches:=ReadModeSwitches(Obj,Proc,'ModeSwitches',aContext.ModeSwitches);
 
   //ReadIdentifierScope(Obj,Scope,aContext);
 end;

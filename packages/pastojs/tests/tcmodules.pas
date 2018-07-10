@@ -21850,10 +21850,13 @@ begin
   '  b:=1;',
   'end;',
   '{$R-}',
+  'procedure DoSome;',
   'begin',
   '  DoIt(w);',
   '  b:=w;',
   '  b:=2;',
+  'end;',
+  'begin',
   '{$R+}',
   '']);
   ConvertProgram;
@@ -21867,11 +21870,13 @@ begin
     '  rtl.rc($mod.b += $mod.w, 0, 255);',
     '  $mod.b = 1;',
     '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.w);',
+    '  $mod.b = $mod.w;',
+    '  $mod.b = 2;',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.w);',
-    '$mod.b = rtl.rc($mod.w,0,255);',
-    '$mod.b = 2;',
     '']));
 end;
 
@@ -21892,10 +21897,13 @@ begin
   '  b:=1;',
   'end;',
   '{$R-}',
+  'procedure DoSome;',
   'begin',
   '  DoIt(w);',
   '  b:=w;',
   '  b:=2;',
+  'end;',
+  'begin',
   '{$R+}',
   '']);
   ConvertProgram;
@@ -21909,11 +21917,13 @@ begin
     '  rtl.rc($mod.b += $mod.w, 1, 10);',
     '  $mod.b = 1;',
     '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.w);',
+    '  $mod.b = $mod.w;',
+    '  $mod.b = 2;',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.w);',
-    '$mod.b = rtl.rc($mod.w, 1, 10);',
-    '$mod.b = 2;',
     '']));
 end;
 
@@ -21932,10 +21942,13 @@ begin
   '  p:=succ(e);',
   'end;',
   '{$R-}',
+  'procedure DoSome;',
   'begin',
   '  DoIt(e);',
   '  e:=TEnum(1);',
   '  e:=pred(e);',
+  'end;',
+  'begin',
   '{$R+}',
   '']);
   ConvertProgram;
@@ -21954,11 +21967,13 @@ begin
     '  p = 0;',
     '  p = rtl.rc($mod.e + 1, 0, 1);',
     '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.e);',
+    '  $mod.e = 1;',
+    '  $mod.e = $mod.e - 1;',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.e);',
-    '$mod.e = 1;',
-    '$mod.e = rtl.rc($mod.e-1, 0, 1);',
     '']));
 end;
 
@@ -21979,10 +21994,13 @@ begin
   '  p:=succ(e);',
   'end;',
   '{$R-}',
+  'procedure DoSome;',
   'begin',
   '  DoIt(e);',
-  '  e:=TEnumRg(1);',
+  '  e:=TEnum(1);',
   '  e:=pred(e);',
+  'end;',
+  'begin',
   '{$R+}',
   '']);
   ConvertProgram;
@@ -22001,11 +22019,13 @@ begin
     '  p = 0;',
     '  p = rtl.rc($mod.e + 1, 0, 1);',
     '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.e);',
+    '  $mod.e = 1;',
+    '  $mod.e = $mod.e - 1;',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.e);',
-    '$mod.e = 1;',
-    '$mod.e = rtl.rc($mod.e-1, 0, 1);',
     '']));
 end;
 
@@ -22024,10 +22044,13 @@ begin
   '  b:=''1'';',
   'end;',
   '{$R-}',
+  'procedure DoSome;',
   'begin',
   '  DoIt(w);',
   '  b:=w;',
   '  b:=''2'';',
+  'end;',
+  'begin',
   '{$R+}',
   '']);
   ConvertProgram;
@@ -22040,11 +22063,13 @@ begin
     '  $mod.b = rtl.rcc($mod.w, 0, 65535);',
     '  $mod.b = "1";',
     '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.w);',
+    '  $mod.b = $mod.w;',
+    '  $mod.b = "2";',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.w);',
-    '$mod.b = rtl.rcc($mod.w, 0, 65535);',
-    '$mod.b = "2";',
     '']));
 end;
 
@@ -22063,10 +22088,13 @@ begin
   '  b:=''1'';',
   'end;',
   '{$R-}',
+  'procedure DoSome;',
   'begin',
   '  DoIt(w);',
   '  b:=w;',
   '  b:=''2'';',
+  'end;',
+  'begin',
   '{$R+}',
   '']);
   ConvertProgram;
@@ -22079,11 +22107,13 @@ begin
     '  $mod.b = rtl.rcc($mod.w, 48, 57);',
     '  $mod.b = "1";',
     '};',
+    'this.DoSome = function () {',
+    '  $mod.DoIt($mod.w);',
+    '  $mod.b = $mod.w;',
+    '  $mod.b = "2";',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.DoIt($mod.w);',
-    '$mod.b = rtl.rcc($mod.w, 48, 57);',
-    '$mod.b = "2";',
     '']));
 end;
 

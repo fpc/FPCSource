@@ -656,6 +656,10 @@ var
   i: Integer;
   OrigUses, RestUses: TPas2JSSectionScope;
 begin
+  if Orig.BoolSwitches<>Rest.BoolSwitches then
+    Fail(Path+'.BoolSwitches Orig='+BoolSwitchesToStr(Orig.BoolSwitches)+' Rest='+BoolSwitchesToStr(Rest.BoolSwitches));
+  if Orig.ModeSwitches<>Rest.ModeSwitches then
+    Fail(Path+'.ModeSwitches');
   AssertEquals(Path+' UsesScopes.Count',Orig.UsesScopes.Count,Rest.UsesScopes.Count);
   for i:=0 to Orig.UsesScopes.Count-1 do
     begin
@@ -794,11 +798,12 @@ begin
 
     CheckRestoredScopeReference(Path+'.ClassScope',Orig.ClassScope,Rest.ClassScope);
     CheckRestoredElement(Path+'.SelfArg',Orig.SelfArg,Rest.SelfArg);
-    AssertEquals(Path+'.Mode',PCUModeSwitchNames[Orig.Mode],PCUModeSwitchNames[Rest.Mode]);
     if Orig.Flags<>Rest.Flags then
       Fail(Path+'.Flags');
     if Orig.BoolSwitches<>Rest.BoolSwitches then
       Fail(Path+'.BoolSwitches');
+    if Orig.ModeSwitches<>Rest.ModeSwitches then
+      Fail(Path+'.ModeSwitches');
 
     //CheckRestoredIdentifierScope(Path,Orig,Rest);
     end
