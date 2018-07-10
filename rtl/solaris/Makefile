@@ -353,7 +353,7 @@ endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
-override FPCOPT+=-dFPC_USE_LIBC -dNOMOUSE
+override FPCOPT+=-dFPC_USE_LIBC
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifndef USELIBGGI

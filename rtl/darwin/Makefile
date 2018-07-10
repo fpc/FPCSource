@@ -351,7 +351,6 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-override FPCOPT+=-dNOMOUSE
 else
 SYSTEMUNIT="Error: Darwin is not supported for 1.0"
 endif

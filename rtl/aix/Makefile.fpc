@@ -85,8 +85,8 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
-# AIX requires libc, no syscalls, no mouse
-override FPCOPT+=-dFPC_USE_LIBC -dNOMOUSE
+# AIX requires libc, no syscalls
+override FPCOPT+=-dFPC_USE_LIBC
 
 # Paths
 OBJPASDIR=$(RTL)/objpas

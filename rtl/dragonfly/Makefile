@@ -346,11 +346,10 @@ UNITPREFIX=rtl
 CPU_UNITS=
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-override FPCOPT+=-dNOMOUSE
 loaders+=gprt0
 else
 SYSTEMUNIT=sysbsd
-override FPCOPT+=-dUNIX -dNOMOUSE
+override FPCOPT+=-dUNIX
 endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports cpu

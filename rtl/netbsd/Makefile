@@ -346,7 +346,6 @@ TARGETPROCINC=$(RTL)/netbsd/$(CPU_TARGET)
 SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
-override FPCOPT+=-dNOMOUSE
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif

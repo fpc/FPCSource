@@ -68,7 +68,6 @@ TARGETPROCINC=$(RTL)/netbsd/$(CPU_TARGET)
 SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
-override FPCOPT+=-dNOMOUSE
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
