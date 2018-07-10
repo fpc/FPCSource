@@ -39,6 +39,7 @@ type
     QueryResult: UTF8string;
     SearchWordID: TDatabaseID;
     URLID: TDatabaseID;
+    FMatchList : TUTF8StringArray;
     procedure CheckSQLite(Rc: cint; pzErrMsg: PChar);
   protected
     class function AllowForeignKeyInTable: boolean; override;
@@ -60,6 +61,7 @@ type
     procedure CreateDB; override;
     procedure DeleteWordsFromFile(URL: UTF8string); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
+    function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;override;
   published
     property FileName: UTF8string read FFileName write FFileName;
   end;
@@ -89,6 +91,26 @@ begin
   end;
   Result := 0;
 end;
+
+function WordListCallback(_para1: pointer; plArgc: longint; argv: PPchar; argcol: PPchar): longint; cdecl;
+
+var
+  PVal: ^PChar;
+  S : UTF8String;
+
+begin
+  PVal := argv;
+  S:=PVal^;
+  with TSQLiteIndexDB(_para1) do
+    begin
+    if Length(FMatchList)<=FRow then
+      SetLength(FMatchList,Length(FMatchList)+10);
+    FMatchList[FRow]:=S;
+    Inc(Frow);
+    end;
+  Result := 0;
+end;
+
 
 function IndexCallback(_para1: pointer; plArgc: longint; argv: PPchar; argcol: PPchar): longint; cdecl;
 begin
@@ -285,6 +307,35 @@ begin
   //sql := Format(sql, [SearchWord]);
   rc := sqlite3_exec(db, PChar(sql), @SearchCallback, self, @pzErrMsg);
   CheckSQLite(rc, pzErrMsg);
+end;
+
+function TSQLiteIndexDB.GetAvailableWords(out aList: TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch): integer;
+
+Var
+  st,sql: UTF8string;
+  rc: cint;
+  pzErrMsg: PChar;
+
+begin
+  Result:=0;
+  FRow:=0;
+  SetLength(FMatchList,0);
+  aContaining:=LowerCase(aContaining);
+  sql := AvailableWordsSQL(aContaining,Partial);
+  aContaining:=StringReplace(aContaining,'''','''''',[rfReplaceAll]);
+  case Partial of
+    amExact : st:=aContaining;
+    amContains : st:='%'+aContaining+'%';
+    amStartsWith  : st:=aContaining+'%';
+  else
+    ST:='';
+  end;
+  sql:=StringReplace(SQL,':'+SearchTermParam,''''+ST+'''',[]);
+  rc := sqlite3_exec(db, PChar(sql), @WordListCallback, self, @pzErrMsg);
+  CheckSQLite(rc, pzErrMsg);
+  SetLength(FMatchList,FRow);
+  aList:=FMatchList;
+  FMatchList:=Nil;
 end;
 
 end.

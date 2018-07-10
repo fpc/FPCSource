@@ -72,6 +72,7 @@ type
     procedure CompactDB; override;
     procedure AddSearchData(ASearchData: TSearchWordData); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
+    function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;override;
     procedure DeleteWordsFromFile(URL: UTF8String); override;
     Property NativeConnection : TSQLConnection Read FDB;
   published
@@ -173,7 +174,7 @@ begin
   Result.Transaction := Self.FDB.Transaction;
   Result.SQL.Text := ASQL;
   Result.UsePrimaryKeyAsKey:=False;
-  Result.UniDirectional:=True;
+//  Result.UniDirectional:=True;
   //Writeln('SQL  :',ASQL);
 end;
 
@@ -186,8 +187,6 @@ begin
   else
   begin
     Q := CreateCachedQuery(cqtGetFileID, GetSearchFileSQL);
-    If Length(URL)>255 then
-      Writeln('URL Length : ',Length(URL),' : ',URL);
     Q.ParamByName(GetFieldName(ifFilesURL)).AsString := URL;
     Q.Open;
     try
@@ -240,7 +239,6 @@ var
 begin
   Q := CreateQuery(GetMatchSQL(SearchOptions,SearchWord,True));
   try
-    Writeln(Q.SQL.Text);
     WW := getFieldName(ifWordsWord);
     for i := 0 to SearchWord.Count - 1 do
       If SearchWord.Token[i].TokenType=wtWord then
@@ -261,6 +259,7 @@ begin
     FC := Q.FieldByName(GetFieldName(ifMatchesContext));
     FP := Q.FieldByName(GetFieldName(ifMatchesPosition));
     FW := Q.FieldByName(GetFieldName(ifWordsWord));
+    I:=0;
     while not Q.EOF do
     begin
       Res.FileDate := FD.AsDateTime;
@@ -268,9 +267,45 @@ begin
       Res.SearchWord := FW.AsString;
       Res.Position := FP.AsInteger;
       Res.Context:=FC.aSString;
-      FPSearch.AddResult(Q.RecNo, Res);
+      Res.Rank:=0;
+      FPSearch.AddResult(i, Res);
+      Inc(I);
       Q.Next;
     end;
+  finally
+    Q.Free;
+  end;
+end;
+
+Function TSQLDBIndexDB.GetAvailableWords(out aList : TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch) : Integer;
+
+Var
+  Q : TSQLQuery;
+
+begin
+  Result:=0;
+  Q := CreateQuery(AvailableWordsSQL(aContaining,Partial));
+  try
+    Q.PacketRecords:=-1;
+    if (aContaining<>'') or (Partial<>amall) then
+      With Q.ParamByName(SearchTermParam) do
+        case Partial of
+          amExact : AsString:=aContaining;
+          amContains : AsString:='%'+aContaining+'%';
+          amStartsWith  : AsString:=aContaining+'%';
+        end;
+    Q.Open;
+    SetLength(aList,Q.RecordCount);
+    Q.First;
+    While not Q.EOF do
+      begin
+      If Length(aList)<=Result then
+        SetLength(aList,Result+100);
+      aList[Result]:=Q.Fields[0].AsUTF8String;
+      Inc(Result);
+      Q.Next;
+      end;
+    SetLength(aList,Result);
   finally
     Q.Free;
   end;
@@ -293,8 +328,7 @@ begin
       if not IgnoreErrors then
         raise
       else
-        Writeln(E.ClassName,' : ',E.Message);
-
+        // Writeln(E.ClassName,' : ',E.Message);
   end;
 end;
 

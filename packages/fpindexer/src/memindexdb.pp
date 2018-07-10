@@ -85,7 +85,10 @@ Type
 
   { TWordItem }
 
-  TWordItem = Class(TMatchedItem);
+  TWordItem = Class(TMatchedItem)
+  Public
+    Function IsAvailableMatch(aContaining : UTF8string; aPartial : TAvailableMatch) : Boolean;
+  end;
 
   { TURLItem }
 
@@ -170,6 +173,7 @@ Type
     procedure DeleteWordsFromFile(URL: UTF8string); override;
     procedure AddSearchData(ASearchData: TSearchWordData); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
+    Function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;override;
     procedure CreateIndexerTables; override;
     Property Stream : TStream Read FStream Write FStream;
   end;
@@ -198,7 +202,7 @@ uses bufstream;
 { TMemIndexDB }
 
 Resourcestring
-  SErrNoStream = 'No stream assigned';
+  // SErrNoStream = 'No stream assigned';
   SInvalidStreamData = 'Invalid data at offset %d. Got %d, expected %d.';
 
 { TFileIndexDB }
@@ -210,6 +214,18 @@ Const
   WordBlock      = 3;
   MatchBlock     = 4;
 
+{ TWordItem }
+
+function TWordItem.IsAvailableMatch(aContaining: UTF8string; aPartial: TAvailableMatch): Boolean;
+begin
+  case aPartial of
+    amAll   : Result:=True;
+    amExact : Result:=(Description=AContaining);
+    amContains : Result:=Pos(aContaining,Description)>0;
+    amStartsWith : Result:=Pos(aContaining,Description)=1;
+  end;
+end;
+
 { TURLItem }
 
 function TURLItem.BlockSize: Integer;
@@ -220,8 +236,6 @@ end;
 
 procedure TURLItem.WriteToStream(S: TStream);
 
-Var
-  I : Integer;
 
 begin
   inherited WriteToStream(S);
@@ -282,6 +296,7 @@ function TDescrItem.ReadStringFromStream(Astream: TStream): UTF8string;
 Var
   L : Integer;
 begin
+  L:=0;
   AStream.ReadBuffer(L,SizeOf(L));
   SetLength(Result,L);
   if (L>0) then
@@ -291,6 +306,7 @@ end;
 function TDescrItem.ReadFromStream(S: TStream) : Integer;
 
 begin
+  Result:=0;
   S.ReadBuffer(Result,SizeOf(Result));
   Description:=ReadStringFromStream(S);
 end;
@@ -367,8 +383,6 @@ procedure TFileIndexDB.SaveToStream;
 
 Var
   I : Integer;
-  L : Integer;
-  U : TURLItem;
 
 begin
   Stream.WriteDWord(FileVersion);
@@ -551,16 +565,13 @@ end;
 procedure TMemIndexDB.IntersectMatches(ListA,ListB : TFPList);
 
 Var
-  L : TFPList;
   URL : TURLItem;
   I,J : Integer;
-  OK : Boolean;
 
 begin
   For I:=ListA.Count-1 downto 0 do
     begin
     URL:=TMatch(ListA[i]).URL;
-    OK:=False;
     J:=ListB.Count-1;
     While (J>=0) and (TMatch(ListB[i]).URL<>URL) do
       Dec(J);
@@ -655,6 +666,24 @@ begin
   end;
 end;
 
+function TMemIndexDB.GetAvailableWords(out aList: TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch): integer;
+
+Var
+  I : integer;
+
+begin
+  Result:=0;
+  aContaining:=LowerCase(aContaining);
+  SetLength(aList,FWords.Count);
+  For I:=0 to FWords.Count-1 do
+    if TWordItem(FWords[i]).IsAvailableMatch(aContaining,Partial) then
+      begin
+      aList[Result]:=FWords[i].Description;
+      Inc(Result);
+      end;
+  SetLength(aList,Result);
+end;
+
 procedure TMemIndexDB.CreateIndexerTables;
 begin
   Clear;
@@ -718,9 +747,6 @@ begin
 end;
 
 procedure TMatch.WriteToStream(S: TStream);
-
-Var
-  L : Integer;
 
 begin
   inherited WriteToStream(S);
@@ -851,7 +877,7 @@ end;
 
 function TMatchedItem.AddMatch(AMatch: TMatch): Integer;
 begin
-  FList.Add(AMatch);
+  Result:=FList.Add(AMatch);
 end;
 
 procedure TMatchedItem.RemoveMatch(AMatch: TMatch);

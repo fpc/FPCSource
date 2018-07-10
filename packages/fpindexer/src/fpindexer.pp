@@ -32,6 +32,8 @@ type
     TokenType: TWordTokenType;
   end;
 
+  TUTF8StringArray = Array of UTF8String;
+
   TIgnoreListDef = class;
 
   { TWordParser }
@@ -70,6 +72,7 @@ type
 
   { TCustomIndexDB }
 
+  TAvailableMatch = (amAll,amExact,amContains,amStartsWith);
   TCustomIndexDB = class(TComponent)
   public
     procedure CreateDB; virtual; abstract;
@@ -81,6 +84,7 @@ type
     procedure DeleteWordsFromFile(URL: UTF8String); virtual; abstract;
     procedure AddSearchData(ASearchData: TSearchWordData); virtual; abstract;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); virtual; abstract;
+    Function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;virtual; abstract;
     procedure CreateIndexerTables; virtual; abstract;
   end;
 
@@ -112,7 +116,7 @@ const
     itMatches, itMatches, itMatches, itMatches, itMatches, itMatches,
     itLanguages, itLanguages,
     itFiles, itFiles, itFiles, itFiles, itFiles, itFiles);
-
+  SearchTermParam = 'SearchTerm';
   DefaultTableNames: array[TIndexTable] of UTF8String = ('WORDS', 'FILELANGUAGES', 'FILENAMES', 'WORDMATCHES');
   DefaultIndexNames: array[TIndexIndex] of UTF8String = ('I_WORDS', 'I_WORDMATCHES', 'I_FILELANGUAGES', 'I_FILENAMES');
   DefaultFieldNames: array[TIndexField] of UTF8String = (
@@ -162,6 +166,7 @@ type
     function GetUrlSQL(UseParams: boolean = True): UTF8String; virtual;
     function GetWordSQL(UseParams: boolean = True): UTF8String; virtual;
     function InsertSQL(const TableType: TIndexTable; UseParams: boolean = True): UTF8String; virtual;
+    Function AvailableWordsSQL(aContaining : UTF8String; Partial : TAvailableMatch) : UTF8String; virtual;
     procedure FinishCreateTable(const TableType: TIndexTable); virtual;
     procedure FinishDropTable(const TableType: TIndexTable); virtual;
   protected
@@ -259,6 +264,7 @@ type
     FOnProgress: TIndexProgressEvent;
     FSearchPath: UTF8String;
     FSearchRecursive: boolean;
+    FStripPath: String;
     FUseIgnoreList: boolean;
     ExcludeMaskPatternList: TStrings;
     MaskPatternList: TStrings;
@@ -292,6 +298,7 @@ type
     property SearchRecursive: boolean read FSearchRecursive write FSearchRecursive;
     property DetectLanguage: boolean read FDetectLanguage write FDetectLanguage;
     Property CodePage : TSystemCodePage Read FCodePage Write FCodePage;
+    Property StripPath : String Read FStripPath Write FStripPath;
   end;
 
   { TFileReaderDef }
@@ -349,7 +356,6 @@ type
   end;
 
   { TFPSearch }
-
   TFPSearch = class (TComponent)
   private
     FCount: integer;
@@ -375,6 +381,7 @@ type
     property Results[index: integer]: TSearchWordData read GetResults;
     property RankedResults[index: integer]: TSearchWordData read GetRankedResults;
     procedure SetSearchWord(AValue: UTF8String);
+    Function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : Integer;
   published
     property Database: TCustomIndexDB read FDatabase write SetDatabase;
     property Options: TSearchOptions read FOptions write FOptions;
@@ -821,6 +828,12 @@ begin
     FreeAndNil(FSearchWord);
   FSearchWord := TWordParser.Create(AValue);
   FSearchWord.WildCardChar := '%';   //should come from DataBase
+end;
+
+Function TFPSearch.GetAvailableWords(out aList : TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch) : Integer;
+begin
+  Database.Connect;
+  Result:=Database.GetAvailableWords(aList, aContaining, Partial);
 end;
 
 function TFPSearch.GetResults(index: integer): TSearchWordData;
@@ -1302,12 +1315,16 @@ Var
   i: integer;
   Stub: TAddWordStub;
   AWord: TSearchWordData;
+  U : String;
 
 begin
   // If reader must detect language, the stub cannot be used.
+  U:=AURL;
+  If (StripPath<>'') and (Pos(StripPath,aURL)=1) then
+    Delete(U,1,Length(StripPath));
   if not DetectLanguage then
   begin
-    Stub := TAddWordStub.Create(AURL, ADateTime, Database);
+    Stub := TAddWordStub.Create(U, ADateTime, Database);
     try
       Reader.OnAddSearchWord := @Stub.DoAddWord;
       Reader.LoadFromStream(S);
@@ -1322,7 +1339,7 @@ begin
     for i := 0 to Reader.Count - 1 do
     begin
       AWord := Reader.SearchWord[i];
-      AWord.URL := AURL;
+      AWord.URL := U;
       AWord.FileDate := ADateTime;
       AWord.Language := Reader.Language;
       AWord.SearchWord := LowerCase(AWord.SearchWord);
@@ -1625,6 +1642,17 @@ begin
         VL := VL + '%s';
     end;
   Result := Format('INSERT INTO %s (%s) VALUES (%s)', [GetTableName(TableType), FL, VL]);
+end;
+
+function TSQLIndexDB.AvailableWordsSQL(aContaining: UTF8String; Partial: TAvailableMatch): UTF8String;
+
+begin
+  Result:=Format('SELECT %s from %s ',[GetFieldName(ifWordsWord),GetTableName(itWords)]);
+  if not ((aContaining='') or (Partial=amAll)) then
+     if Partial = amExact then
+      Result:=Result+Format(' WHERE (%s = :%s)',[GetFieldName(ifWordsWord),SearchTermParam])
+    else
+      Result:=Result+Format(' WHERE (%s LIKE :%s)',[GetFieldName(ifWordsWord),SearchTermParam]);
 end;
 
 function TSQLIndexDB.CreateTableIndex(IndexType: TIndexIndex): UTF8String;
