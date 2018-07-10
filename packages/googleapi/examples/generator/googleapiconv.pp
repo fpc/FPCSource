@@ -17,7 +17,7 @@ uses
 {$ELSE}
   fphttpwebclient,
 {$ENDIF}
-  googlediscoverytopas, googleservice, restbase, restcodegen;
+  googlediscoverytopas, googleservice, restbase, pascodegen, restcodegen;
 
 Const
   BaseDiscoveryURL = 'https://www.googleapis.com/discovery/v1/apis/';

@@ -122,7 +122,7 @@ Type
     Class Function WTOA(Const S : UnicodeString) : String;
     Function is26Only(P: TPasProcedure): Boolean;
     Function BaseUnits : String; override;
-    Class function IndentStrings(S: TStrings; indent: Integer): string;
+    Class function IndentStrings(S: TStrings; aindent: Integer): string;
     Class Function ODataVersion : TODataVersion; virtual; abstract;
   Published
     Property BaseComplexType : String Read FBaseComplexType Write FBaseComplexType;
@@ -209,7 +209,7 @@ begin
   Result:=P is TSetArrayLength;
 end;
 
-class function TODataCodeGenerator.IndentStrings(S: TStrings; indent: Integer
+class function TODataCodeGenerator.IndentStrings(S: TStrings; aindent: Integer
   ): string;
 
 Var
@@ -225,8 +225,8 @@ begin
     CurrLen:=Length(S[i]);
     If (CurrLen+CurrPos)>72 then
       begin
-      Result:=Result+LineEnding+StringOfChar(' ',Indent);
-      CurrPos:=Indent;
+      Result:=Result+LineEnding+StringOfChar(' ',aIndent);
+      CurrPos:=aIndent;
       end;
     Result:=Result+S[i];
     CurrPos:=CurrPos+CurrLen;
