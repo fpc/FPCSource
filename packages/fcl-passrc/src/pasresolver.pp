@@ -19864,7 +19864,8 @@ begin
       TypeEl:=nil;
     while TypeEl<>nil do
       begin
-      if TypeEl.ClassType=TPasAliasType then
+      if (TypeEl.ClassType=TPasAliasType)
+          or (TypeEl.ClassType=TPasTypeAliasType) then
         begin
         if SameText(TypeEl.Name,'TGUIDString') then
           exit(true);

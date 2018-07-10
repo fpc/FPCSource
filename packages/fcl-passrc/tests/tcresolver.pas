@@ -11628,7 +11628,7 @@ begin
   '  TObject = class end;',
   '  TGUID = record D1,D2,D3,D4: word; end;',
   '  TAliasGUID = TGUID;',
-  '  TGUIDString = string;',
+  '  TGUIDString = type string;',
   '  TAliasGUIDString = TGUIDString;',
   'procedure {#A}DoIt(const g: TAliasGUID); overload;',
   'begin end;',
