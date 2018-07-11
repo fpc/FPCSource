@@ -226,6 +226,7 @@ end;
 
 function TBufferWriter.GetAsAnsistring: AnsiString;
 begin
+  Result:='';
   SetLength(Result,BufferLength);
   if (BufferLength>0) then
     Move(FBuffer[0],Result[1],BufferLength);
@@ -248,6 +249,7 @@ Var
 
 begin
   SL:=BufferLength div SizeOf(UnicodeChar); // Silently ignores last byte
+  Result:='';
   SetLength(Result,SL);
   if (SL>0) then
     Move(FBuffer[0],Result[1],SL*SizeOf(UnicodeChar));

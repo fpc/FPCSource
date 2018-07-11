@@ -953,6 +953,7 @@ var
   P: TJSONParser;
   Data: TJSONData;
 begin
+  s:='';
   SetLength(s,aStream.Size-aStream.Position);
   if s<>'' then
     aStream.Read(s[1],length(s));
