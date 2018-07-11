@@ -1105,7 +1105,7 @@ var
   // For compatibility with previous versions of this file
   function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
   // New version of the previous deprecated routine
-  function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
+  function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): cint;
   //
   function RSA_check_key(arsa: PRSA): cint;
   // Next 4 return -1 on error
@@ -1330,6 +1330,8 @@ Var
   SSLCS : TRTLCriticalSection;
   Locks: Array of TRTLCriticalSection;
 
+resourcestring
+  SFailedToLoadOpenSSL = 'Failed to load OpenSSL library';
 
 function Islibealoaded: Boolean; deprecated;
 begin
@@ -1524,7 +1526,7 @@ type
   TRSA_new_method = function (method: PENGINE): PRSA; cdecl;
   TRSA_size = function (arsa: PRSA): cint; cdecl;
   TRsaGenerateKey = function(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA; cdecl;
-  TRSA_generate_key_ex = function (arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA; cdecl;
+  TRSA_generate_key_ex = function (arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): cint; cdecl;
   TRSA_check_key = function (arsa: PRSA): cint; cdecl;
   TRSA_public_encrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
   TRSA_private_encrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
@@ -2394,7 +2396,9 @@ end;
 procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
 begin
   if InitSSLInterface and Assigned(_ErrErrorString) then
-    _ErrErrorString(e, Pointer(buf), len);
+    _ErrErrorString(e, @buf[1], len)
+  else
+    buf := SFailedToLoadOpenSSL;
   buf := PChar(Buf);
 end;
 
@@ -2850,12 +2854,12 @@ begin
     Result := nil;
 end;
 
-function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
+function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): cint;
 begin
   if InitSSLInterface and Assigned(_RSA_generate_key_ex) then
     Result := _RSA_generate_key_ex(arsa, bits, e, cb)
   else
-    Result := nil;
+    Result := 0;
 end;
 
 function RSA_check_key(arsa: PRSA): cint;
