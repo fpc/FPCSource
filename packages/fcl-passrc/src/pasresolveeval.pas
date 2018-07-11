@@ -129,7 +129,7 @@ const
   nCannotNestAnonymousX = 3056;
   nFoundCallCandidateX = 3057;
   nTextAfterFinalIgnored = 3058;
-  // free 3059
+  nNoMemberIsProvidedToAccessProperty = 3059;
   // free 3060
   // free 3061
   // free 3062
@@ -246,6 +246,7 @@ resourcestring
   sCannotNestAnonymousX = 'Cannot nest anonymous %s';
   sFoundCallCandidateX = 'Found call candidate %s';
   sTextAfterFinalIgnored = 'Text after final ''end.''. ignored by compiler';
+  sNoMemberIsProvidedToAccessProperty = 'No member is provided to access property';
   sSymbolXIsNotPortable = 'Symbol "%s" is not portable';
   sSymbolXIsExperimental = 'Symbol "%s" is experimental';
   sSymbolXIsNotImplemented = 'Symbol "%s" is not implemented';

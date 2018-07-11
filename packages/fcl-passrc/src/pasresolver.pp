@@ -1644,6 +1644,7 @@ type
     procedure RaiseContextXExpectedButYFound(id: int64; const C,X,Y: string; El: TPasElement);
     procedure RaiseContextXInvalidY(id: int64; const X,Y: string; El: TPasElement);
     procedure RaiseConstantExprExp(id: int64; ErrorEl: TPasElement);
+    procedure RaiseVarExpected(id: int64; ErrorEl: TPasElement; IdentEl: TPasElement);
     procedure RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
     procedure RaiseIncompatibleTypeDesc(id: int64; MsgNumber: integer;
       const Args: array of const; const GotDesc, ExpDesc: String; ErrorEl: TPasElement);
@@ -5601,7 +5602,7 @@ begin
     ComputeElement(El.AbsoluteExpr,ResolvedAbs,[rcNoImplicitProc]);
     if (not (rrfReadable in ResolvedAbs.Flags))
         or (ResolvedAbs.IdentEl=nil) then
-      RaiseMsg(20171225234734,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+      RaiseVarExpected(20171225234734,El.AbsoluteExpr,ResolvedAbs.IdentEl);
     C:=ResolvedAbs.IdentEl.ClassType;
     if (C=TPasVariable)
         or (C=TPasArgument)
@@ -5609,7 +5610,7 @@ begin
     else
       RaiseMsg(20171225235203,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
     if not (rrfReadable in ResolvedAbs.Flags) then
-      RaiseMsg(20171225235249,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
+      RaiseVarExpected(20171225235249,El.AbsoluteExpr,ResolvedAbs.IdentEl);
     // check for cycles
     if ResolvedAbs.IdentEl=El then
       RaiseMsg(20171226000703,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
@@ -7105,7 +7106,7 @@ begin
   ResolveExpr(Loop.VariableName,rraReadAndAssign);
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
   if not ResolvedElCanBeVarParam(VarResolved,Loop.VariableName) then
-    RaiseMsg(20170216151955,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Loop.VariableName);
+    RaiseVarExpected(20170216151955,Loop.VariableName,VarResolved.IdentEl);
 
   // resolve start expression
   ResolveExpr(Loop.StartExpr,rraRead);
@@ -12236,7 +12237,7 @@ begin
   if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
-      RaiseMsg(20170216152319,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+      RaiseVarExpected(20170216152319,Expr,ParamResolved.IdentEl);
     exit;
     end;
   if ParamResolved.BaseType in btAllInteger then
@@ -13147,7 +13148,7 @@ begin
   if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
-      RaiseMsg(20170329171514,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Param);
+      RaiseVarExpected(20170329171514,Param,ParamResolved.IdentEl);
     exit;
     end;
   if (ParamResolved.BaseType<>btContext)
@@ -13215,7 +13216,7 @@ begin
   if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
-      RaiseMsg(20170329173421,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Param);
+      RaiseVarExpected(20170329173421,Param,ParamResolved.IdentEl);
     exit;
     end;
   if (ParamResolved.BaseType<>btContext)
@@ -13375,7 +13376,7 @@ begin
   if not ResolvedElCanBeVarParam(ParamResolved,Expr) then
     begin
     if RaiseOnError then
-      RaiseMsg(20180425005303,nVariableIdentifierExpected,sVariableIdentifierExpected,[],Expr);
+      RaiseVarExpected(20180425005303,Expr,ParamResolved.IdentEl);
     exit;
     end;
   if ParamResolved.BaseType=btContext then
@@ -15242,6 +15243,16 @@ begin
   RaiseMsg(id,nConstantExpressionExpected,sConstantExpressionExpected,[],ErrorEl);
 end;
 
+procedure TPasResolver.RaiseVarExpected(id: int64; ErrorEl: TPasElement;
+  IdentEl: TPasElement);
+begin
+  if IdentEl is TPasProperty then
+    RaiseMsg(id,nNoMemberIsProvidedToAccessProperty,
+      sNoMemberIsProvidedToAccessProperty,[],ErrorEl)
+  else
+    RaiseMsg(id,nVariableIdentifierExpected,sVariableIdentifierExpected,[],ErrorEl);
+end;
+
 procedure TPasResolver.RaiseRangeCheck(id: int64; ErrorEl: TPasElement);
 begin
   RaiseMsg(id,nRangeCheckError,sRangeCheckError,[],ErrorEl);
@@ -15533,8 +15544,7 @@ begin
         if not (rrfReadable in ParamResolved.Flags) then
           begin
           if RaiseOnError then
-            RaiseMsg(20170318234957,nVariableIdentifierExpected,
-              sVariableIdentifierExpected,[],Param);
+            RaiseVarExpected(20180712001415,Param,ParamResolved.IdentEl);
           exit(cIncompatible);
           end;
         ParamCompatibility:=cExact;
@@ -15950,7 +15960,7 @@ begin
         if (ResolvedEl.LoTypeEl<>nil) and (ResolvedEl.ExprEl<>nil) then
           RaiseXExpectedButYFound(20170216152727,'identifier',GetElementTypeName(ResolvedEl.LoTypeEl),ResolvedEl.ExprEl)
         else
-          RaiseMsg(20170216152426,nVariableIdentifierExpected,sVariableIdentifierExpected,[],ErrorEl);
+          RaiseVarExpected(20170216152426,ErrorEl,ResolvedEl.IdentEl);
         end;
       exit;
       end;
@@ -16715,8 +16725,7 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.CheckAssignResCompatibility RHS not readable. LHS='+GetResolverResultDbg(LHS)+' RHS='+GetResolverResultDbg(RHS));
         {$ENDIF}
-        RaiseMsg(20170318235637,nVariableIdentifierExpected,
-          sVariableIdentifierExpected,[],ErrorEl);
+        RaiseVarExpected(20170318235637,ErrorEl,RHS.IdentEl);
         end;
       exit(cIncompatible);
       end;
@@ -17635,8 +17644,7 @@ begin
         if ExprResolved.IdentEl is TPasConst then
           RaiseMsg(20180430012609,nCantAssignValuesToConstVariable,sCantAssignValuesToConstVariable,[],Expr)
         else
-          RaiseMsg(20180430012457,nVariableIdentifierExpected,sVariableIdentifierExpected,
-            [],Expr);
+          RaiseVarExpected(20180430012457,Expr,ExprResolved.IdentEl);
         end;
       exit;
       end;

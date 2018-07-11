@@ -1826,8 +1826,10 @@ begin
 end;
 
 function TPCUFiler.CreateElementRef(El: TPasElement): TPCUFilerElementRef;
+{$IFDEF MemCheck}
 var
   Node: TAVLTreeNode;
+{$ENDIF}
 begin
   Result:=TPCUFilerElementRef.Create;
   Result.Element:=El;
