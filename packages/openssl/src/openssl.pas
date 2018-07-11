@@ -833,6 +833,29 @@ const
   RSA_NO_PADDING         = 3;
   RSA_PKCS1_OAEP_PADDING = 4;
 
+
+  // BN
+{$ifdef cpu64}
+// * 64-bit processor with LP64 ABI
+type
+  BN_ULONG = culong;
+const
+  BN_BYTES = 8;
+{$else}
+{$ifdef SIXTY_FOUR_BIT}
+// * 64-bit processor other than LP64 ABI
+type
+  BN_ULONG = culonglong;
+const
+  BN_BYTES = 8;
+{$else}
+type
+  BN_ULONG = cuint;
+const
+  BN_BYTES = 4;
+{$endif}
+{$endif}
+
   // BIO
 
   BIO_NOCLOSE	        = $00;
@@ -1301,6 +1324,55 @@ var
   function BIO_new_PKCS7(_out:PBIO; p7:PPKCS7):PBIO;
   procedure ERR_load_PKCS7_strings;
 
+  // BN functions
+  function BN_new:PBIGNUM;
+  function BN_secure_new:PBIGNUM;
+  procedure BN_clear_free(a:PBIGNUM);
+  function BN_copy(a:PBIGNUM; b:PBIGNUM):PBIGNUM;
+  procedure BN_swap(a:PBIGNUM; b:PBIGNUM);
+  function BN_bin2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
+  function BN_bn2bin(a:PBIGNUM; _to:pcuchar):cint;
+  function BN_bn2binpad(a:PBIGNUM; _to:pcuchar; tolen:cint):cint;
+  function BN_lebin2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
+  function BN_bn2lebinpad(a:PBIGNUM; _to:pcuchar; tolen:cint):cint;
+  function BN_mpi2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
+  function BN_bn2mpi(a:PBIGNUM; _to:pcuchar):cint;
+  function BN_sub(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_usub(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_uadd(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_add(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_mul(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_sqr(r:PBIGNUM; a:PBIGNUM; ctx:PBN_CTX):cint;
+  // BN_set_negative sets sign of a BIGNUM
+  // \param  b  pointer to the BIGNUM object
+  // \param  n  0 if the BIGNUM b should be positive and a value != 0 otherwise
+  procedure BN_set_negative(b:PBIGNUM; n:cint);
+  // BN_is_negative returns 1 if the BIGNUM is negative
+  // \param  b  pointer to the BIGNUM object
+  // \return 1 if a < 0 and 0 otherwise
+  function BN_is_negative(b:PBIGNUM):cint;
+  function BN_div(dv:PBIGNUM; rem:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod(rem: PBIGNUM; a:PBIGNUM; m: PBIGNUM; ctx : PBN_CTX) : cint;
+  function BN_nnmod(r:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_add(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_add_quick(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint;
+  function BN_mod_sub(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_sub_quick(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint;
+  function BN_mod_mul(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_sqr(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_lshift1(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_lshift1_quick(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM):cint;
+  function BN_mod_lshift(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_lshift_quick(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM):cint;
+  function BN_mod_word(a:PBIGNUM; w:BN_ULONG):BN_ULONG;
+  function BN_div_word(a:PBIGNUM; w:BN_ULONG):BN_ULONG;
+  function BN_mul_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_add_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_sub_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_set_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_get_word(a:PBIGNUM):BN_ULONG;
+  function BN_cmp(a:PBIGNUM; b:PBIGNUM):cint;
+  procedure BN_free(a:PBIGNUM);
 
 function IsSSLloaded: Boolean;
 function InitSSLInterface: Boolean; overload;
@@ -1929,6 +2001,50 @@ var
   _BIO_new_PKCS7 : function(_out:PBIO; p7:PPKCS7):PBIO;
   _ERR_load_PKCS7_strings : procedure;
 
+  // BN
+  _BN_new : function():PBIGNUM; cdecl;
+  _BN_secure_new : function():PBIGNUM; cdecl;
+  _BN_clear_free : procedure(a:PBIGNUM); cdecl;
+  _BN_copy : function(a:PBIGNUM; b:PBIGNUM):PBIGNUM; cdecl;
+  _BN_swap : procedure(a:PBIGNUM; b:PBIGNUM); cdecl;
+  _BN_bin2bn : function(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM; cdecl;
+  _BN_bn2bin : function(a:PBIGNUM; _to:pcuchar):cint; cdecl;
+  _BN_bn2binpad : function(a:PBIGNUM; _to:pcuchar; tolen:cint):cint; cdecl;
+  _BN_lebin2bn : function(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM; cdecl;
+  _BN_bn2lebinpad : function(a:PBIGNUM; _to:pcuchar; tolen:cint):cint; cdecl;
+  _BN_mpi2bn : function(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM; cdecl;
+  _BN_bn2mpi : function(a:PBIGNUM; _to:pcuchar):cint;cdecl;
+  _BN_sub : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_usub : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_uadd : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_add : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_mul : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_sqr : function(r:PBIGNUM; a:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_set_negative : procedure(b:PBIGNUM; n:cint);cdecl;
+  _BN_is_negative : function(b:PBIGNUM):cint;cdecl;
+  _BN_div : function(dv:PBIGNUM; rem:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod : function(rem: PBIGNUM; a:PBIGNUM; m: PBIGNUM; ctx : PBN_CTX) : cint; cdecl;
+  _BN_nnmod : function(r:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_add : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_add_quick : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint; cdecl;
+  _BN_mod_sub : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_sub_quick : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint; cdecl;
+  _BN_mod_mul : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_sqr : function(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_lshift1 : function(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_lshift1_quick : function(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM):cint; cdecl;
+  _BN_mod_lshift : function(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_lshift_quick : function(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM):cint; cdecl;
+  _BN_mod_word : function(a:PBIGNUM; w:BN_ULONG):BN_ULONG; cdecl;
+  _BN_div_word : function(a:PBIGNUM; w:BN_ULONG):BN_ULONG; cdecl;
+  _BN_mul_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_add_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_sub_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_set_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_get_word : function(a:PBIGNUM):BN_ULONG; cdecl;
+  _BN_cmp : function(a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_free : procedure(a:PBIGNUM); cdecl;
+
 // libssl.dll
 
 function SslGetError(s: PSSL; ret_code: cInt):cInt;
@@ -2547,7 +2663,7 @@ begin
   if InitSSLInterface and Assigned(_X509GetPubkey) then
     Result := _X509GetPubkey(x)
   else
-   Result := 0;
+   Result := Nil;
 end;
 
 
@@ -4035,6 +4151,336 @@ begin
     _ERR_load_PKCS7_strings
 end;
 
+// BN
+
+function BN_new: PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_new) then
+    Result:=_BN_new()
+  else
+    Result:=Nil;
+end;
+
+function BN_secure_new: PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BIO_new_PKCS7) then
+    Result:=_BN_secure_new()
+  else
+    Result:=Nil;
+end;
+
+procedure BN_clear_free(a: PBIGNUM);
+begin
+  if InitSSLInterface and Assigned(_BN_clear_free) then
+    _BN_clear_free(a)
+end;
+
+function BN_copy(a: PBIGNUM; b: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_copy) then
+    Result:=_BN_copy(a, b)
+  else
+    Result:=Nil;
+end;
+
+procedure BN_swap(a: PBIGNUM; b: PBIGNUM);
+begin
+  if InitSSLInterface and Assigned(_BN_swap) then
+    _BN_swap(a, b);
+end;
+
+function BN_bin2bn(s: pcuchar; len: cint; ret: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_bin2bn) then
+    Result:=_BN_bin2bn(s, len, ret)
+  else
+    Result:=Nil;
+end;
+
+function BN_bn2bin(a: PBIGNUM; _to: pcuchar): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2bin) then
+    Result:=_BN_bn2bin(a, _to)
+  else
+    Result:=-1;
+end;
+
+function BN_bn2binpad(a: PBIGNUM; _to: pcuchar; tolen: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2binpad) then
+    Result:=_BN_bn2binpad(a, _to, tolen)
+  else
+    Result:=-1;
+end;
+
+function BN_lebin2bn(s: pcuchar; len: cint; ret: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_lebin2bn) then
+    Result:=_BN_lebin2bn(s, len, ret)
+  else
+    Result:=Nil;
+end;
+
+function BN_bn2lebinpad(a: PBIGNUM; _to: pcuchar; tolen: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2lebinpad) then
+    Result:=_BN_bn2lebinpad(a, _to, tolen)
+  else
+    Result:=-1;
+end;
+
+function BN_mpi2bn(s: pcuchar; len: cint; ret: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_mpi2bn) then
+    Result:=_BN_mpi2bn(s, len, ret)
+  else
+    Result:=Nil;
+end;
+
+function BN_bn2mpi(a: PBIGNUM; _to: pcuchar): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2mpi) then
+    Result:=_BN_bn2mpi(a, _to)
+  else
+    Result:=-1;
+end;
+
+function BN_sub(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_sub) then
+    Result:=_BN_sub(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_usub(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_usub) then
+    Result:=_BN_usub(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_uadd(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_uadd) then
+    Result:=_BN_uadd(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_add(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_add) then
+    Result:=_BN_add(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_mul(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mul) then
+    Result:=_BN_mul(r, a, b, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_sqr(r: PBIGNUM; a: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_sqr) then
+    Result:=_BN_sqr(r, a, ctx)
+  else
+    Result:=-1;
+end;
+
+procedure BN_set_negative(b: PBIGNUM; n: cint);
+begin
+  if InitSSLInterface and Assigned(_BN_set_negative) then
+    _BN_set_negative(b, n);
+end;
+
+function BN_is_negative(b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_is_negative) then
+    Result:=_BN_is_negative(b)
+  else
+    Result:=-1;
+end;
+
+function BN_div(dv: PBIGNUM; rem: PBIGNUM; m: PBIGNUM; d: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_div) then
+    Result:=_BN_div(dv, rem, m, d, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod(rem: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod) then
+    Result:=_BN_mod(rem, a, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_nnmod(r: PBIGNUM; m: PBIGNUM; d: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_nnmod) then
+    Result:=_BN_nnmod(r, m, d, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_add(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_add) then
+    Result:=_BN_mod_add(r, a, b, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_add_quick(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_add_quick) then
+    Result:=_BN_mod_add_quick(r, a, b, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_sub(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_sub) then
+    Result:=_BN_mod_sub(r, a, b, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_sub_quick(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_sub_quick) then
+    Result:=_BN_mod_sub_quick(r, a, b, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_mul(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_mul) then
+    Result:=_BN_mod_mul(r, a, b, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_sqr(r: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_sqr) then
+    Result:=_BN_mod_sqr(r, a, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift1(r: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift1) then
+    Result:=_BN_mod_lshift1(r, a, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift1_quick(r: PBIGNUM; a: PBIGNUM; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift1_quick) then
+    Result:=_BN_mod_lshift1_quick(r, a, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift(r: PBIGNUM; a: PBIGNUM; n: cint; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift) then
+    Result:=_BN_mod_lshift(r, a, n, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift_quick(r: PBIGNUM; a: PBIGNUM; n: cint; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift_quick) then
+    Result:=_BN_mod_lshift_quick(r, a, n, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_word(a: PBIGNUM; w: BN_ULONG): BN_ULONG;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_word) then
+    Result:=_BN_mod_word(a, w)
+  else
+    Result:=0;
+end;
+
+function BN_div_word(a: PBIGNUM; w: BN_ULONG): BN_ULONG;
+begin
+  if InitSSLInterface and Assigned(_BN_div_word) then
+    Result:=_BN_div_word(a, w)
+  else
+    Result:=0;
+end;
+
+function BN_mul_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mul_word) then
+    Result:=_BN_mul_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_add_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_add_word) then
+    Result:=_BN_add_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_sub_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_sub_word) then
+    Result:=_BN_sub_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_set_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_set_word) then
+    Result:=_BN_set_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_get_word(a: PBIGNUM): BN_ULONG;
+begin
+  if InitSSLInterface and Assigned(_BN_get_word) then
+    Result:=_BN_get_word(a)
+  else
+    Result:=0;
+end;
+
+function BN_cmp(a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_cmp) then
+    Result:=_BN_cmp(a, b)
+  else
+    Result:=-1;
+end;
+
+procedure BN_free(a: PBIGNUM);
+begin
+  if InitSSLInterface and Assigned(_BN_free) then
+    _BN_free(a);
+end;
+
 
 procedure CRYPTOcleanupAllExData;
 begin
@@ -4381,6 +4827,49 @@ begin
   _BIO_new_PKCS7:=GetProcAddr(SSLUtilHandle,'BIO_new_PKCS7');
   _ERR_load_PKCS7_strings:=GetProcAddr(SSLUtilHandle,'ERR_load_PKCS7_strings');
 
+  // BN
+  _BN_new:=GetProcAddr(SSLUtilHandle,'BN_new');
+  _BN_secure_new:=GetProcAddr(SSLUtilHandle,'BN_secure_new');
+  _BN_clear_free:=GetProcAddr(SSLUtilHandle,'BN_clear_free');
+  _BN_copy:=GetProcAddr(SSLUtilHandle,'BN_copy');
+  _BN_swap:=GetProcAddr(SSLUtilHandle,'BN_swap');
+  _BN_bin2bn:=GetProcAddr(SSLUtilHandle,'BN_bin2bn');
+  _BN_bn2bin:=GetProcAddr(SSLUtilHandle,'BN_bn2bin');
+  _BN_bn2binpad:=GetProcAddr(SSLUtilHandle,'BN_bn2binpad');
+  _BN_lebin2bn:=GetProcAddr(SSLUtilHandle,'BN_lebin2bn');
+  _BN_bn2lebinpad:=GetProcAddr(SSLUtilHandle,'BN_bn2lebinpad');
+  _BN_mpi2bn:=GetProcAddr(SSLUtilHandle,'BN_mpi2bn');
+  _BN_bn2mpi:=GetProcAddr(SSLUtilHandle,'BN_bn2mpi');
+  _BN_sub:=GetProcAddr(SSLUtilHandle,'BN_sub');
+  _BN_usub:=GetProcAddr(SSLUtilHandle,'BN_usub');
+  _BN_uadd:=GetProcAddr(SSLUtilHandle,'BN_uadd');
+  _BN_add:=GetProcAddr(SSLUtilHandle,'BN_add');
+  _BN_mul:=GetProcAddr(SSLUtilHandle,'BN_mul');
+  _BN_sqr:=GetProcAddr(SSLUtilHandle,'BN_sqr');
+  _BN_set_negative:=GetProcAddr(SSLUtilHandle,'BN_set_negative');
+  _BN_is_negative:=GetProcAddr(SSLUtilHandle,'BN_is_negative');
+  _BN_div:=GetProcAddr(SSLUtilHandle,'BN_div');
+  _BN_mod:=GetProcAddr(SSLUtilHandle,'BN_mod');
+  _BN_nnmod:=GetProcAddr(SSLUtilHandle,'BN_nnmod');
+  _BN_mod_add:=GetProcAddr(SSLUtilHandle,'BN_mod_add');
+  _BN_mod_add_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_add_quick');
+  _BN_mod_sub:=GetProcAddr(SSLUtilHandle,'BN_mod_sub');
+  _BN_mod_sub_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_sub_quick');
+  _BN_mod_mul:=GetProcAddr(SSLUtilHandle,'BN_mod_mul');
+  _BN_mod_sqr:=GetProcAddr(SSLUtilHandle,'BN_mod_sqr');
+  _BN_mod_lshift1:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift1');
+  _BN_mod_lshift1_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift1_quick');
+  _BN_mod_lshift:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift');
+  _BN_mod_lshift_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift_quick');
+  _BN_mod_word:=GetProcAddr(SSLUtilHandle,'BN_mod_word');
+  _BN_div_word:=GetProcAddr(SSLUtilHandle,'BN_div_word');
+  _BN_mul_word:=GetProcAddr(SSLUtilHandle,'BN_mul_word');
+  _BN_add_word:=GetProcAddr(SSLUtilHandle,'BN_add_word');
+  _BN_sub_word:=GetProcAddr(SSLUtilHandle,'BN_sub_word');
+  _BN_set_word:=GetProcAddr(SSLUtilHandle,'BN_set_word');
+  _BN_get_word:=GetProcAddr(SSLUtilHandle,'BN_get_word');
+  _BN_cmp:=GetProcAddr(SSLUtilHandle,'BN_cmp');
+  _BN_free:=GetProcAddr(SSLUtilHandle,'BN_free');
 end;
 
 Function LoadUtilLibrary : Boolean;
@@ -4507,6 +4996,50 @@ begin
   _PKCS7_add1_attrib_digest:=nil;
   _BIO_new_PKCS7:=nil;
   _ERR_load_PKCS7_strings:=nil;
+
+  // BN
+  _BN_new:=nil;
+  _BN_secure_new:=nil;
+  _BN_clear_free:=nil;
+  _BN_copy:=nil;
+  _BN_swap:=nil;
+  _BN_bin2bn:=nil;
+  _BN_bn2bin:=nil;
+  _BN_bn2binpad:=nil;
+  _BN_lebin2bn:=nil;
+  _BN_bn2lebinpad:=nil;
+  _BN_mpi2bn:=nil;
+  _BN_bn2mpi:=nil;
+  _BN_sub:=nil;
+  _BN_usub:=nil;
+  _BN_uadd:=nil;
+  _BN_add:=nil;
+  _BN_mul:=nil;
+  _BN_sqr:=nil;
+  _BN_set_negative:=nil;
+  _BN_is_negative:=nil;
+  _BN_div:=nil;
+  _BN_mod:=nil;
+  _BN_nnmod:=nil;
+  _BN_mod_add:=nil;
+  _BN_mod_add_quick:=nil;
+  _BN_mod_sub:=nil;
+  _BN_mod_sub_quick:=nil;
+  _BN_mod_mul:=nil;
+  _BN_mod_sqr:=nil;
+  _BN_mod_lshift1:=nil;
+  _BN_mod_lshift1_quick:=nil;
+  _BN_mod_lshift:=nil;
+  _BN_mod_lshift_quick:=nil;
+  _BN_mod_word:=nil;
+  _BN_div_word:=nil;
+  _BN_mul_word:=nil;
+  _BN_add_word:=nil;
+  _BN_sub_word:=nil;
+  _BN_set_word:=nil;
+  _BN_get_word:=nil;
+  _BN_cmp:=nil;
+  _BN_free:=nil;
 end;
 
 Procedure UnloadSSLLib;
