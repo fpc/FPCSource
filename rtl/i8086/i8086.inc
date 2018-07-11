@@ -518,21 +518,21 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_CSEG}
-function CSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
-asm
-  mov ax, cs
+function CSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  CSeg:=fpc_x86_get_cs;
 end;
 
 {$define FPC_SYSTEM_HAS_DSEG}
-function DSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
-asm
-  mov ax, ds
+function DSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  DSeg:=fpc_x86_get_ds;
 end;
 
 {$define FPC_SYSTEM_HAS_SSEG}
-function SSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}assembler;nostackframe;
-asm
-  mov ax, ss
+function SSeg: Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  SSeg:=fpc_x86_get_ss;
 end;
 
 {$IFNDEF INTERNAL_BACKTRACE}
