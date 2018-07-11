@@ -139,6 +139,17 @@ implementation
            in_x86_cli,
            in_x86_sti:
              resultdef:=voidtype;
+           in_x86_get_cs,
+           in_x86_get_ss,
+           in_x86_get_ds,
+           in_x86_get_es,
+           in_x86_get_fs,
+           in_x86_get_gs:
+{$ifdef i8086}
+             resultdef:=u16inttype;
+{$else i8086}
+             resultdef:=s32inttype;
+{$endif i8086}
            else
              Result:=inherited pass_typecheck_cpu;
          end;
@@ -151,7 +162,13 @@ implementation
          case inlinenumber of
            in_x86_inportb,
            in_x86_inportw,
-           in_x86_inportl:
+           in_x86_inportl,
+           in_x86_get_cs,
+           in_x86_get_ss,
+           in_x86_get_ds,
+           in_x86_get_es,
+           in_x86_get_fs,
+           in_x86_get_gs:
              expectloc:=LOC_REGISTER;
            in_x86_outportb,
            in_x86_outportw,
@@ -448,6 +465,13 @@ implementation
            hlcg.ungetcpuregister(current_asmdata.CurrAsmList,dreg);
          end;
 
+       procedure get_segreg(segreg:tregister);
+         begin
+           location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+           location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,TCGSize2OpSize[def_cgsize(resultdef)],segreg,location.register));
+         end;
+
        begin
          case inlinenumber of
            in_x86_inportb:
@@ -466,6 +490,18 @@ implementation
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLI));
            in_x86_sti:
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_STI));
+           in_x86_get_cs:
+             get_segreg(NR_CS);
+           in_x86_get_ss:
+             get_segreg(NR_SS);
+           in_x86_get_ds:
+             get_segreg(NR_DS);
+           in_x86_get_es:
+             get_segreg(NR_ES);
+           in_x86_get_fs:
+             get_segreg(NR_FS);
+           in_x86_get_gs:
+             get_segreg(NR_GS);
            else
              inherited pass_generate_code_cpu;
          end;

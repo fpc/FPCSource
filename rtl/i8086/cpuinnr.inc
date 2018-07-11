@@ -20,3 +20,9 @@
 //  fpc_in_x86_outportl = fpc_in_cpu_first+5;
   fpc_in_x86_cli      = fpc_in_cpu_first+6;
   fpc_in_x86_sti      = fpc_in_cpu_first+7;
+  fpc_in_x86_get_cs   = fpc_in_cpu_first+8;
+  fpc_in_x86_get_ss   = fpc_in_cpu_first+9;
+  fpc_in_x86_get_ds   = fpc_in_cpu_first+10;
+  fpc_in_x86_get_es   = fpc_in_cpu_first+11;
+  fpc_in_x86_get_fs   = fpc_in_cpu_first+12;
+  fpc_in_x86_get_gs   = fpc_in_cpu_first+13;
