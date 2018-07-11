@@ -3833,10 +3833,10 @@ var
 begin
   inherited ForEachCall(aMethodCall, Arg);
   for i:=0 to GenericTemplateTypes.Count-1 do
-    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),false);
+    ForEachChildCall(aMethodCall,Arg,TPasElement(GenericTemplateTypes[i]),true);
   for i:=0 to Members.Count-1 do
     ForEachChildCall(aMethodCall,Arg,TPasElement(Members[i]),false);
-  ForEachChildCall(aMethodCall,Arg,VariantEl,false);
+  ForEachChildCall(aMethodCall,Arg,VariantEl,true);
   if Variants<>nil then
     for i:=0 to Variants.Count-1 do
       ForEachChildCall(aMethodCall,Arg,TPasElement(Variants[i]),false);
@@ -4723,7 +4723,7 @@ procedure TPasImplExceptOn.ForEachCall(const aMethodCall: TOnForEachPasElement;
   const Arg: Pointer);
 begin
   ForEachChildCall(aMethodCall,Arg,VarEl,false);
-  ForEachChildCall(aMethodCall,Arg,TypeEl,false);
+  ForEachChildCall(aMethodCall,Arg,TypeEl,true);
   if Elements.IndexOf(Body)<0 then
     ForEachChildCall(aMethodCall,Arg,Body,false);
   inherited ForEachCall(aMethodCall, Arg);

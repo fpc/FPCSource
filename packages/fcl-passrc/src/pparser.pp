@@ -587,6 +587,7 @@ var
     s: String;
   begin
     l := CurPos - Start;
+    s:='';
     SetLength(s, l);
     if l > 0 then
       Move(Start^, s[1], l)
