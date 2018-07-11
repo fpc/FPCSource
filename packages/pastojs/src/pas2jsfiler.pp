@@ -563,6 +563,10 @@ type
   end;
   TPCUFilerElementRefArray = array of TPCUFilerElementRef;
 
+  TPCUFilerElementRef2 = class(TPCUFilerElementRef)
+    s: string;
+  end;
+
   { TPCUFiler - base class TPCUWriter/TPCUReader}
 
   TPCUFiler = class
@@ -1822,10 +1826,18 @@ begin
 end;
 
 function TPCUFiler.CreateElementRef(El: TPasElement): TPCUFilerElementRef;
+var
+  Node: TAVLTreeNode;
 begin
   Result:=TPCUFilerElementRef.Create;
   Result.Element:=El;
+  {$IFDEF MemCheck}
+  Node:=FElementRefs.Add(Result);
+  if Node<>FElementRefs.FindKey(El,@CompareElWithPCUFilerElementRef) then
+    RaiseMsg(20180711222046,El);
+  {$ELSE}
   FElementRefs.Add(Result);
+  {$ENDIF}
 end;
 
 procedure TPCUFiler.AddedBuiltInRef(Ref: TPCUFilerElementRef);
@@ -4063,7 +4075,8 @@ begin
   if RefEl is TPasType then
     begin
     El.VarType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121809,El,GetObjName(RefEl));
@@ -4076,7 +4089,8 @@ begin
   if RefEl is TPasType then
     begin
     El.DestType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121801,El,GetObjName(RefEl));
@@ -4090,7 +4104,8 @@ begin
   if RefEl is TPasType then
     begin
     El.DestType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121757,El,GetObjName(RefEl));
@@ -4104,7 +4119,8 @@ begin
   if RefEl is TPasType then
     begin
     El.DestType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121750,El,GetObjName(RefEl));
@@ -4117,7 +4133,8 @@ begin
   if RefEl is TPasType then
     begin
     El.ElType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121732,El,GetObjName(RefEl));
@@ -4130,7 +4147,8 @@ begin
   if RefEl is TPasType then
     begin
     El.ElType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121726,El,GetObjName(RefEl));
@@ -4143,7 +4161,8 @@ begin
   if RefEl is TPasType then
     begin
     El.EnumType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121714,El,GetObjName(RefEl));
@@ -4156,7 +4175,8 @@ begin
   if RefEl is TPasRecordType then
     begin
     El.Members:=TPasRecordType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121657,El,GetObjName(RefEl));
@@ -4170,7 +4190,8 @@ begin
   if (RefEl is TPasType) or (RefEl.ClassType=TPasVariable) then
     begin
     El.VariantEl:=RefEl;
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180210205031,El,GetObjName(RefEl));
@@ -4183,7 +4204,8 @@ begin
   if RefEl is TPasType then
     begin
     El.ArgType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121643,El,GetObjName(RefEl));
@@ -4251,7 +4273,8 @@ begin
   if RefEl is TPasType then
     begin
     El.AncestorType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121632,El,GetObjName(RefEl));
@@ -4265,7 +4288,8 @@ begin
   if RefEl is TPasType then
     begin
     El.HelperForType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121612,El,GetObjName(RefEl));
@@ -4279,7 +4303,8 @@ begin
   if RefEl is TPasType then
     begin
     El.ResultType:=TPasType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180211121537,El,GetObjName(RefEl));
@@ -4358,7 +4383,8 @@ begin
     begin
     Scope:=El.CustomData as TPasEnumTypeScope;
     Scope.CanonicalSet:=TPasSetType(RefEl);
-    RefEl.AddRef;
+    if RefEl.Parent<>El then
+      RefEl.AddRef;
     end
   else
     RaiseMsg(20180316215238,Scope.Element,GetObjName(RefEl));
@@ -4555,6 +4581,9 @@ var
   RefItem: TPCUFilerPendingElRef;
   PendingElRef: TPCUReaderPendingElRef;
   PendingElListRef: TPCUReaderPendingElListRef;
+  {$IF defined(VerbosePCUFiler) or defined(memcheck)}
+  Node: TAVLTreeNode;
+  {$ENDIF}
 begin
   if Id<=0 then
     RaiseMsg(20180207151233,ErrorEl);
@@ -4580,18 +4609,30 @@ begin
       end
     else
       begin
-      Ref:=TPCUFilerElementRef.Create;
+      Ref:=TPCUFilerElementRef2.Create;
+      TPCUFilerElementRef2(Ref).s:=IntToStr(Id);
       Ref.Id:=Id;
       end;
+    {$IF defined(VerbosePCUFiler) or defined(memcheck)}
+    if FElementRefsArray[Id]<>nil then
+      RaiseMsg(20180711212859,ErrorEl,IntToStr(Id)+' is not FElementRefsArray[Id]');
+    {$ENDIF}
     FElementRefsArray[Id]:=Ref;
     end;
   Result:=Ref;
 
-  if El=nil then exit;
-
-  if Ref.Element=nil then
+  if El=nil then
+    exit
+  else if Ref.Element=nil then
     begin
     Ref.Element:=El;
+    {$IF defined(VerbosePCUFiler) or defined(memcheck)}
+    Node:=FElementRefs.FindKey(El,@CompareElWithPCUFilerElementRef);
+    if Node<>nil then
+      RaiseMsg(20180711231646,El,GetObjName(TPCUFilerElementRef2(Node.Data).Element));
+    {$ENDIF}
+    FElementRefs.Add(Ref);
+
     if Ref.Pending<>nil then
       begin
       // resolve pending references
@@ -7520,13 +7561,19 @@ end;
 
 destructor TPCUReader.Destroy;
 begin
+  FreeAndNil(FJSON);
   inherited Destroy;
   FreeAndNil(FPendingIdentifierScopes);
   FreeAndNil(FInitialFlags);
 end;
 
 procedure TPCUReader.Clear;
+var
+  i: Integer;
 begin
+  for i:=0 to length(FElementRefsArray)-1 do
+    if (FElementRefsArray[i]<>nil) and (FElementRefsArray[i].Element=nil) then
+      FElementRefsArray[i].Free;
   FElementRefsArray:=nil;
   FPendingIdentifierScopes.Clear;
   inherited Clear;
@@ -7543,6 +7590,7 @@ var
   Count: Cardinal;
   Src: TStream;
 begin
+  FirstBytes:='';
   SetLength(FirstBytes,4);
   if aStream.Read(FirstBytes[1],4)<4 then
     RaiseMsg(20180313232754,nil);

@@ -2097,6 +2097,7 @@ begin
     l:=ms.Size-ms.Position;
     if l>0 then
     begin
+      s:='';
       SetLength(s,l);
       ms.Read(s[1],l);
     end

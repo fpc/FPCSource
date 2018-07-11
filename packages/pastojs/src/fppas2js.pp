@@ -18545,7 +18545,6 @@ const
     AssignSt.Expr:=FDS;
     FD:=FDS.AFunction;
     FD.Params.Add(EqualParamName);
-    FD.Body:=TJSFunctionBody(CreateElement(TJSFunctionBody,El));
     // add "return "
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
     FD.Body.A:=RetSt;
