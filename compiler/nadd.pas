@@ -157,7 +157,8 @@ implementation
                 { when a comp or currency is used, use always the
                   best float type to calculate the result }
                 if (tfloatdef(t2).floattype in [s64comp,s64currency]) or
-                  (tfloatdef(t2).floattype in [s64comp,s64currency]) then
+                  (tfloatdef(t2).floattype in [s64comp,s64currency]) or
+                  (cs_excessprecision in current_settings.localswitches) then
                   result:=pbestrealtype^
                 else
                   if floatweight[tfloatdef(t2).floattype]>floatweight[tfloatdef(t1).floattype] then
@@ -1384,7 +1385,12 @@ implementation
            if (right.resultdef.typ=floatdef) and
               (left.resultdef.typ=floatdef) and
               (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) then
-             resultrealdef:=left.resultdef
+             begin
+               if cs_excessprecision in current_settings.localswitches then
+                 resultrealdef:=pbestrealtype^
+               else
+                 resultrealdef:=left.resultdef
+             end
            { when there is a currency type then use currency, but
              only when currency is defined as float }
            else

@@ -430,6 +430,12 @@ unit scandir;
       end;
 
 
+    procedure dir_excessprecision;
+      begin
+        do_localswitch(cs_excessprecision);
+      end;
+
+
     procedure dir_objectchecks;
       begin
         do_localswitch(cs_check_object);
@@ -1909,6 +1915,7 @@ unit scandir;
         AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
         AddDirective('ERRORC',directive_mac, @dir_error);
+        AddDirective('EXCESSPRECISION',directive_all, @dir_excessprecision);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
         AddDirective('F',directive_all, @dir_forcefarcalls);
