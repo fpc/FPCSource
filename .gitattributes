@@ -10467,6 +10467,7 @@ rtl/win16/glbheap.inc svneol=native#text/plain
 rtl/win16/glbheaph.inc svneol=native#text/plain
 rtl/win16/locheap.inc svneol=native#text/plain
 rtl/win16/locheaph.inc svneol=native#text/plain
+rtl/win16/ports.pp svneol=native#text/plain
 rtl/win16/prt0c.asm svneol=native#text/plain
 rtl/win16/prt0comn.asm svneol=native#text/plain
 rtl/win16/prt0h.asm svneol=native#text/plain
