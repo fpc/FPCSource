@@ -672,6 +672,7 @@ begin
       Add('    *(.strings)');
       Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
+      Add('    . = ALIGN(4);');
       Add('    _etext = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
         begin
