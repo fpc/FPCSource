@@ -769,9 +769,11 @@ implementation
          maybe_call_procvar(left,true);
 
          if left.resultdef.typ=pointerdef then
-          resultdef:=tpointerdef(left.resultdef).pointeddef
+           resultdef:=tpointerdef(left.resultdef).pointeddef
+         else if left.resultdef.typ=undefineddef then
+           resultdef:=cundefineddef.create(true)
          else
-          CGMessage(parser_e_invalid_qualifier);
+           CGMessage(parser_e_invalid_qualifier);
       end;
 
     procedure Tderefnode.mark_write;

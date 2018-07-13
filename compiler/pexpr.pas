@@ -2034,7 +2034,7 @@ implementation
                        end;
                    end;
                  end
-               else if (p1.resultdef.typ<>pointerdef) then
+               else if not(p1.resultdef.typ in [pointerdef,undefineddef]) then
                  begin
                     { ^ as binary operator is a problem!!!! (FK) }
                     again:=false;
