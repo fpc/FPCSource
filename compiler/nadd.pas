@@ -156,7 +156,7 @@ implementation
               begin
                 { when a comp or currency is used, use always the
                   best float type to calculate the result }
-                if (tfloatdef(t2).floattype in [s64comp,s64currency]) or
+                if (tfloatdef(t1).floattype in [s64comp,s64currency]) or
                   (tfloatdef(t2).floattype in [s64comp,s64currency]) or
                   (cs_excessprecision in current_settings.localswitches) then
                   result:=pbestrealtype^
