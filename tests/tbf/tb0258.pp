@@ -1,5 +1,5 @@
 { %fail% }
-{ %opt=-Sew -vw }
+{ %opt=-Sew -vw -O- }
 
 procedure p;
 var
