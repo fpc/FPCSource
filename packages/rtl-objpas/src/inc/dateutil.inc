@@ -409,8 +409,8 @@ Function TryModifiedJulianDateToDateTime(const AValue: Double; out ADateTime: TD
     Unix timestamp support.
   ---------------------------------------------------------------------}
 
-Function DateTimeToUnix(const AValue: TDateTime): Int64;
-Function UnixToDateTime(const AValue: Int64): TDateTime;
+Function DateTimeToUnix(const AValue: TDateTime; AInputIsUTC: Boolean = True): Int64;
+Function UnixToDateTime(const AValue: Int64; aReturnUTC : Boolean = true): TDateTime;
 Function UnixTimeStampToMac(const AValue: Int64): Int64;
 
 { ---------------------------------------------------------------------
@@ -2228,16 +2228,25 @@ end;
     Unix timestamp support.
   ---------------------------------------------------------------------}
 
-Function DateTimeToUnix(const AValue: TDateTime): Int64;
+Function DateTimeToUnix(const AValue: TDateTime; AInputIsUTC: Boolean = True): Int64;
+
+Var
+  T : TDateTime;
 
 begin
-  Result:=Round(DateTimeDiff(RecodeMillisecond(AValue,0),UnixEpoch)*SecsPerDay);
+  T:=aValue;
+  if Not aInputisUTC then
+    T:=IncMinute(T,GetLocalTimeOffset);
+  Result:=Round(DateTimeDiff(RecodeMillisecond(T,0),UnixEpoch)*SecsPerDay);
 end;
 
 
-Function UnixToDateTime(const AValue: Int64): TDateTime;
+Function UnixToDateTime(const AValue: Int64; aReturnUTC : Boolean = true): TDateTime;
+
 begin
   Result:=IncSecond(UnixEpoch, AValue);
+  if Not aReturnUTC then
+    Result:=IncMinute(Result,-GetLocalTimeOffset);
 end;
 
 
