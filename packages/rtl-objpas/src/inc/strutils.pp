@@ -1,4 +1,4 @@
-﻿{
+{
     Delphi/Kylix compatibility unit: String handling routines.
 
     This file is part of the Free Pascal run time library.
