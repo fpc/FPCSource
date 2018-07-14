@@ -536,9 +536,9 @@ end;
 {$macro on}
 {$define INUNICODESTRINGREPLACE}
 {$define SRString:=UnicodeString}
-{$define SRUpperCase:=WideUppercase}
-{$define SRPCHAR:=PChar}
-{$define SRCHAR:=Char}
+{$define SRUpperCase:=UnicodeUppercase}
+{$define SRPCHAR:=PUnicodeChar}
+{$define SRCHAR:=UnicodeChar}
 
 function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
 {$i syssr.inc}
