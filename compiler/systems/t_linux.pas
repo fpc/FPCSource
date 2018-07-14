@@ -352,8 +352,8 @@ begin
 {$endif powerpc64}
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared $GCSECTIONS -L. -o $EXE';
+     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME $MAP -shared $GCSECTIONS -L. -o $EXE';
      { when we want to cross-link we need to override default library paths;
        when targeting binutils 2.19 or later, we use the "INSERT" command to
        augment the default linkerscript, which also requires -T (normally that
@@ -1354,7 +1354,8 @@ function TLinkerLinux.MakeExecutable:boolean;
 var
   i : longint;
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  mapstr : TCmdStr;
   success : boolean;
   DynLinkStr : string;
   GCSectionsStr,
@@ -1369,13 +1370,14 @@ begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
+  mapstr:='';
   if (cs_link_staticflag in current_settings.globalswitches) then
    StaticStr:='-static';
   if (cs_link_strip in current_settings.globalswitches) and
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+   mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if (cs_link_smart in current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
@@ -1401,6 +1403,7 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  Replace(cmdstr,'$MAP',mapstr);
 
   { create dynamic symbol table? }
   if HasExports then
@@ -1438,10 +1441,12 @@ var
   GCSectionsStr,
   SoNameStr : string[80];
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  mapstr : TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
+  mapstr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
   if (cs_link_smart in current_settings.globalswitches) and
@@ -1458,6 +1463,8 @@ begin
   InitStr:='-init FPC_SHARED_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
+  if (cs_link_map in current_settings.globalswitches) then
+     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
@@ -1467,6 +1474,7 @@ begin
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
+  Replace(cmdstr,'$MAP',mapstr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
