@@ -65,6 +65,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure ReleaseUsedUnits;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASrcPos: TPasSourcePos): TPasElement;
@@ -110,6 +111,7 @@ type
 
   TCustomTestResolver = Class(TTestParser)
   Private
+    FStartElementRefCount: int64;
     FFirstStatement: TPasImplBlock;
     FModules: TObjectList;// list of TTestEnginePasResolver
     FResolverEngine: TTestEnginePasResolver;
@@ -347,6 +349,7 @@ type
     // units
     Procedure TestUnitForwardOverloads;
     Procedure TestUnitIntfInitialization;
+    Procedure TestUnitUseSystem;
     Procedure TestUnitUseIntf;
     Procedure TestUnitUseImplFail;
     Procedure TestUnit_DuplicateUsesFail;
@@ -843,10 +846,12 @@ procedure TTestEnginePasResolver.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
   if Module<>nil then
-    Module.Release;
+    Module.Release{$IFDEF CheckPasTreeRefCount}('TTestEnginePasResolver.Module'){$ENDIF};
   FModule:=AValue;
+  {$IFDEF CheckPasTreeRefCount}
   if Module<>nil then
-    Module.AddRef;
+    Module.ChangeRefId('CreateElement','TTestEnginePasResolver.Module');
+  {$ENDIF}
 end;
 
 constructor TTestEnginePasResolver.Create;
@@ -858,10 +863,16 @@ end;
 destructor TTestEnginePasResolver.Destroy;
 begin
   FStreamResolver:=nil;
-  Module:=nil;
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
   inherited Destroy;
+  Module:=nil;
+end;
+
+procedure TTestEnginePasResolver.ReleaseUsedUnits;
+begin
+  if Module<>nil then
+    Module.ReleaseUsedUnits;
 end;
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
@@ -890,6 +901,9 @@ end;
 
 procedure TCustomTestResolver.SetUp;
 begin
+  {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
+  FStartElementRefCount:=TPasElement.GlobalRefCount;
+  {$ENDIF}
   FModules:=TObjectList.Create(true);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
@@ -897,6 +911,12 @@ begin
 end;
 
 procedure TCustomTestResolver.TearDown;
+{$IFDEF CheckPasTreeRefCount}
+var El: TPasElement;
+{$ENDIF}
+{$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
+var i: Integer;
+{$ENDIF}
 begin
   FResolverMsgs.Clear;
   FResolverGoodMsgs.Clear;
@@ -915,6 +935,8 @@ begin
     {$IFDEF VerbosePasResolverMem}
     writeln('TTestResolver.TearDown FModules');
     {$ENDIF}
+    for i:=0 to FModules.Count-1 do
+      TTestEnginePasResolver(FModules[i]).ReleaseUsedUnits;
     FModules.OwnsObjects:=false;
     FModules.Remove(ResolverEngine); // remove reference
     FModules.OwnsObjects:=true;
@@ -923,8 +945,27 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown inherited');
   {$ENDIF}
+  if Module<>nil then
+    Module.AddRef{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF}; // for the Release in ancestor TTestParser
   inherited TearDown;
   FResolverEngine:=nil;
+  {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
+  if FStartElementRefCount<>TPasElement.GlobalRefCount then
+    begin
+    writeln('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    {$IFDEF CheckPasTreeRefCount}
+    El:=TPasElement.FirstRefEl;
+    while El<>nil do
+      begin
+      writeln('  ',GetObjName(El),' RefIds.Count=',El.RefIds.Count,':');
+      for i:=0 to El.RefIds.Count-1 do
+        writeln('    ',El.RefIds[i]);
+      El:=El.NextRefEl;
+      end;
+    {$ENDIF}
+    //Fail('TCustomTestResolver.TearDown Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    end;
+  {$ENDIF}
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown END');
   {$ENDIF}
@@ -1137,6 +1178,7 @@ var
     StartP:=p;
     inc(p);
     while p^ in ['a'..'z','A'..'Z','_','0'..'9'] do inc(p);
+    Result:='';
     SetLength(Result,p-StartP);
     Move(StartP^,Result[1],length(Result));
   end;
@@ -2002,6 +2044,8 @@ function TCustomTestResolver.OnPasResolverFindUnit(SrcResolver: TPasResolver;
 
   function InitUnit(CurEngine: TTestEnginePasResolver): TPasModule;
   begin
+    if CurEngine.Module<>nil then
+      Fail('InitUnit '+GetObjName(CurEngine.Module));
     CurEngine.StreamResolver:=Resolver;
     //writeln('TTestResolver.OnPasResolverFindUnit SOURCE=',CurEngine.Source);
     CurEngine.StreamResolver.AddStream(CurEngine.FileName,
@@ -2517,7 +2561,7 @@ begin
   StartProgram(false);
   Add('const');
   Add('  c1 = 3');
-  Add('  c2: longint=c1;'); // defined in system.pp
+  Add('  c2: longint=c1;');
   Add('begin');
   CheckResolverUnexpectedHints;
 end;
@@ -5216,6 +5260,15 @@ begin
   AssertEquals('other unit assign var',TPasVariable,DeclEl.ClassType);
   AssertEquals('other unit assign var exitcode','exitcode',lowercase(DeclEl.Name));
   AssertSame('other unit assign var exitcode',(OtherUnit as TPasUsesUnit).Module,DeclEl.GetModule);
+end;
+
+procedure TTestResolver.TestUnitUseSystem;
+begin
+  StartProgram(true);
+  Add('type number = system.integer;');
+  Add('begin');
+  Add('  if ExitCode=2 then ;');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestUnitUseIntf;
@@ -10274,15 +10327,16 @@ begin
     '  TObject = class',
     '  end;',
     '  TCar = class',
-    '  end;']),
+    '  end;',
+    '  TCarry = TCar;']),
     LinesToStr([
     '']));
 
   StartProgram(true);
   Add('uses unit2;');
   Add('type');
-  Add('  {#C}{=A}TCars = class of TCar;');
-  Add('  {#A}TCar = class');
+  Add('  {#C}{=A}TCars = class of TCarry;');
+  Add('  {#A}TCarry = class');
   Add('    class var {#B}B: longint;');
   Add('  end;');
   Add('begin');

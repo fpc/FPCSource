@@ -1337,7 +1337,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -1454,7 +1454,7 @@ begin
     if Result=nil then
       begin
       Expr.Free;
-      ReleaseAndNil(TPasElement(Ref));
+      ReleaseAndNil(TPasElement(Ref){$IFDEF CheckPasTreeRefCount},'ResolveTypeReference'{$ENDIF});
       ST.Free;
       end;
   end;
@@ -1475,7 +1475,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -1527,10 +1527,10 @@ begin
       begin
       // simple type reference
       if not NeedExpr then
-        ReleaseAndNil(TPasElement(Expr));
+        ReleaseAndNil(TPasElement(Expr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
       end;
   finally
-    if ST<>nil then St.Release;
+    if ST<>nil then St.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -1548,7 +1548,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -1588,7 +1588,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
   Engine.FinishScope(stTypeDef,Result);
 end;
@@ -1608,7 +1608,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
   Engine.FinishScope(stTypeDef,Result);
 end;
@@ -1706,7 +1706,7 @@ begin
   finally
     if not ok then
       if Result<>nil then
-        Result.Release;
+        Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -1809,7 +1809,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
   Engine.FinishScope(stTypeDef,Result);
 end;
@@ -1920,7 +1920,7 @@ begin
     Result:=TPasUnresolvedTypeRef(CreateElement(TPasUnresolvedTypeRef,Name,Parent))
   else
     begin
-    Ref.AddRef;
+    Ref.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
     Result:=TPasType(Ref);
     end;
 end;
@@ -1988,7 +1988,8 @@ begin
     NextToken;
     Result:=Params;
   finally
-    if not Assigned(Result) then Params.Release;
+    if Result=nil then
+      Params.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -2059,7 +2060,7 @@ function TPasParser.ParseExpIdent(AParent: TPasElement): TPasExpr;
       b:=CreateBinaryExpr(AParent,Last, ParseExpIdent(AParent), TokenToExprOp(optk));
       if not Assigned(b.right) then
         begin
-        b.Release;
+        b.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
         ParseExcExpectedIdentifier;
         end;
       Last:=b;
@@ -2162,7 +2163,7 @@ begin
         Bin:=CreateBinaryExpr(AParent,Last,ParseExpIdent(AParent),eopNone,SrcPos);
         if not Assigned(Bin.right) then
           begin
-          Bin.Release;
+          Bin.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
           ParseExcExpectedIdentifier;
           end;
         Result:=Bin;
@@ -2268,7 +2269,7 @@ begin
   finally
     if not ok then
       begin
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       ISE.Free;
       end;
   end;
@@ -2301,7 +2302,7 @@ type
   end;
 
 var
-  ExpStack  : TFPList;
+  ExpStack  : TFPList; // list of TPasExpr
   OpStack   : array of TOpStackItem;
   OpStackTop: integer;
   PrefixCnt : Integer;
@@ -2412,7 +2413,7 @@ begin
             ParseExcSyntaxError;
           if (CurToken<>tkBraceClose) then
             begin
-            x.Release;
+            x.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
             CheckToken(tkBraceClose);
             end;
           NextToken;
@@ -2498,11 +2499,8 @@ begin
     // only 1 expression should be left on the OpStack
     if ExpStack.Count<>1 then
       ParseExcSyntaxError;
-    if ExpStack.Count=1 then
-      begin
-      Result:=TPasExpr(ExpStack[0]);
-      Result.Parent:=AParent;
-      end;
+    Result:=TPasExpr(ExpStack[0]);
+    Result.Parent:=AParent;
 
   finally
     {if Not Assigned(Result) then
@@ -2512,7 +2510,7 @@ begin
     if not Assigned(Result) then begin
       // expression error!
       for i:=0 to ExpStack.Count-1 do
-        TPasExpr(ExpStack[i]).Release;
+        TPasExpr(ExpStack[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
     end;
     SetLength(OpStack,0);
     ExpStack.Free;
@@ -2629,7 +2627,7 @@ begin
         Result:=DoParseExpression(AParent,x);
         if CurToken<>tkBraceClose then
           begin
-          ReleaseAndNil(TPasElement(Result));
+          ReleaseAndNil(TPasElement(Result){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
           ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
           end;
         NextToken;
@@ -2640,7 +2638,7 @@ begin
       end;
     if CurToken<>tkBraceClose then
       begin
-      ReleaseAndNil(TPasElement(Result));
+      ReleaseAndNil(TPasElement(Result){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
       ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
       end;
     NextToken;
@@ -2777,7 +2775,7 @@ begin
       begin
       Module.PackageName := Engine.Package.Name;
       Engine.Package.Modules.Add(Module);
-      Module.AddRef;
+      Module.AddRef{$IFDEF CheckPasTreeRefCount}('TPasPackage.Modules'){$ENDIF};
       end;
     CheckHint(Module,True);
     ExpectToken(tkInterface);
@@ -3344,7 +3342,7 @@ begin
                             Declarations.Declarations.Delete(j);
                             break;
                           end;
-                        ClassEl.Release;
+                        ClassEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
                         break;
                       end;
                     end;
@@ -3365,7 +3363,7 @@ begin
                 finally
                   if not ok then
                     for i := 0 to List.Count - 1 do
-                      TPasExportSymbol(List[i]).Release;
+                      TPasExportSymbol(List[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
                 end;
                 for i := 0 to List.Count - 1 do
                 begin
@@ -3448,7 +3446,7 @@ begin
                  ParseExc(nParserGenericArray1Element,sParserGenericArray1Element);
                ArrEl:=TPasArrayType(ParseArrayType(Declarations,NamePos,TypeName,pmNone));
                CheckHint(ArrEl,True);
-               ArrEl.ElType.Release;
+               ArrEl.ElType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
                ArrEl.ElType:=TPasGenericTemplateType(List[0]);
                Declarations.Declarations.Add(ArrEl);
                Declarations.Types.Add(ArrEl);
@@ -3552,7 +3550,7 @@ begin
 
     UnitRef := Engine.FindModule(AUnitName,NameExpr,InFileExpr);
     if Assigned(UnitRef) then
-      UnitRef.AddRef
+      UnitRef.AddRef{$IFDEF CheckPasTreeRefCount}('TPasUsesUnit.Module'){$ENDIF}
     else
       UnitRef := TPasUnresolvedUnitRef(CreateElement(TPasUnresolvedUnitRef,
         AUnitName, ASection, NamePos));
@@ -3573,13 +3571,13 @@ begin
     if Result=nil then
       begin
       if UsesUnit<>nil then
-        UsesUnit.Release;
+        UsesUnit.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       if NameExpr<>nil then
-        NameExpr.Release;
+        NameExpr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       if InFileExpr<>nil then
-        InFileExpr.Release;
+        InFileExpr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       if UnitRef<>nil then
-        UnitRef.Release;
+        UnitRef.Release{$IFDEF CheckPasTreeRefCount}('FindModule'){$ENDIF};
       end;
   end;
 end;
@@ -3660,8 +3658,8 @@ begin
   finally
     if FreeExpr then
       begin
-      ReleaseAndNil(TPasElement(NameExpr));
-      ReleaseAndNil(TPasElement(InFileExpr));
+      ReleaseAndNil(TPasElement(NameExpr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
+      ReleaseAndNil(TPasElement(InFileExpr){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
       end;
   end;
 end;
@@ -3759,7 +3757,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      ReleaseAndNil(TPasElement(Result));
+      ReleaseAndNil(TPasElement(Result){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   end;
 end;
 
@@ -3780,7 +3778,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      ReleaseAndNil(TPasElement(Result));
+      ReleaseAndNil(TPasElement(Result){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   end;
 end;
 
@@ -3903,8 +3901,8 @@ begin
     until false;
   finally
     Expr.Free;
-    if Ref<>nil then Ref.Release;
-    if NestedSpec<>nil then NestedSpec.Release;
+    if Ref<>nil then Ref.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    if NestedSpec<>nil then NestedSpec.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -3955,7 +3953,7 @@ begin
     PE:=DoParseExpression(Result,Nil,False);
     if not ((PE is TBinaryExpr) and (TBinaryExpr(PE).Kind=pekRange)) then
       begin
-      PE.Release;
+      PE.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       ParseExc(nRangeExpressionExpected,SRangeExpressionExpected);
       end;
     Result.RangeExpr:=PE as TBinaryExpr;
@@ -3963,7 +3961,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
   Engine.FinishScope(stTypeDef,Result);
 end;
@@ -4020,7 +4018,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -4202,7 +4200,7 @@ begin
       VarEl.VarType := VarType;
       //VarType.Parent := VarEl; // this is wrong for references
       if (i>OldListCount) then
-        VarType.AddRef;
+        VarType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
       end;
 
     H:=CheckHint(Nil,False);
@@ -4278,15 +4276,15 @@ begin
       end;
     ok:=true;
   finally
-    if aLibName<>nil then aLibName.Release;
-    if aExpName<>nil then aExpName.Release;
-    if AbsoluteExpr<>nil then AbsoluteExpr.Release;
     if not ok then
       begin
-        if Value<>nil then Value.Release;
-        for i:=OldListCount to VarList.Count-1 do
-          TPasElement(VarList[i]).Release;
-        VarList.Count:=OldListCount;
+      if aLibName<>nil then aLibName.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      if aExpName<>nil then aExpName.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      if AbsoluteExpr<>nil then AbsoluteExpr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      if Value<>nil then Value.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      for i:=OldListCount to VarList.Count-1 do
+        TPasElement(VarList[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      VarList.Count:=OldListCount;
       end;
   end;
 end;
@@ -4456,7 +4454,7 @@ begin
           begin
           if (Args.Count>OldArgCount+1) then
             begin
-            ArgType.Release;
+            ArgType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
             ArgType:=nil;
             ParseExc(nParserOnlyOneArgumentCanHaveDefault,SParserOnlyOneArgumentCanHaveDefault);
             end;
@@ -4475,7 +4473,7 @@ begin
         ok:=true;
       finally
         if (not ok) and (ArgType<>nil) then
-          ArgType.Release;
+          ArgType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       end;
       end;
 
@@ -4486,7 +4484,7 @@ begin
       if Assigned(ArgType) then
         begin
         if (i > OldArgCount) then
-          ArgType.AddRef;
+          ArgType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
         end;
       Arg.ValueExpr := Value;
       Value:=Nil; // Only the first gets a value. OK, since Var A,B : Integer = 1 is not allowed.
@@ -4964,7 +4962,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -5171,7 +5169,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -5526,7 +5524,7 @@ begin
           ok:=true;
         finally
           if not ok then
-            El.Release;
+            El.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
         end;
         CreateBlock(TPasImplForLoop(El));
         //WriteLn(i,'FOR "',VarName,'" := ',StartValue,' to ',EndValue,' Token=',CurTokenText);
@@ -5774,7 +5772,7 @@ begin
               TPasImplExceptOn(El).VarEl:=TPasVariable(CreateElement(TPasVariable,
                                     Name,El,SrcPos));
               TPasImplExceptOn(El).VarEl.VarType:=TypeEl;
-              TypeEl.AddRef;
+              TypeEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
               end
             else
               begin
@@ -5897,7 +5895,7 @@ function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement; ProcType: 
             ReadGenericArguments(L,Parent);
           finally
             For I:=0 to L.Count-1 do
-              TPasElement(L[i]).Release;
+              TPasElement(L[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
             L.Free;
           end;
           end
@@ -5970,7 +5968,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -6185,7 +6183,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 
@@ -6635,7 +6633,7 @@ begin
     ok:=true;
   finally
     if not ok then
-      Result.Release;
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 

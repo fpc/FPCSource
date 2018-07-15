@@ -510,6 +510,7 @@ var
 var
   i: Integer;
 begin
+  Entries:=nil;
   SetLength(Entries,High(RefNames)-low(RefNames)+1);
   for i:=low(RefNames) to high(RefNames) do
     begin

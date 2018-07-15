@@ -2474,7 +2474,7 @@ end;
 
 destructor TResElDataBuiltInProc.Destroy;
 begin
-  ReleaseAndNil(TPasElement(Proc));
+  ReleaseAndNil(TPasElement(Proc){$IFDEF CheckPasTreeRefCount},'TResElDataBuiltInProc.Proc'{$ENDIF});
   inherited Destroy;
 end;
 
@@ -2511,10 +2511,10 @@ procedure TPasScopeReference.SetElement(const AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
   if FElement<>nil then
-    FElement.Release;
+    FElement.Release{$IFDEF CheckPasTreeRefCount}('TPasScopeReference.SetElement'){$ENDIF};
   FElement:=AValue;
   if FElement<>nil then
-    FElement.AddRef;
+    FElement.AddRef{$IFDEF CheckPasTreeRefCount}('TPasScopeReference.SetElement'){$ENDIF};
 end;
 
 destructor TPasScopeReference.Destroy;
@@ -2680,7 +2680,7 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasPropertyScope.Destroy START ',ClassName);
   {$ENDIF}
-  ReleaseAndNil(TPasElement(AncestorProp));
+  AncestorProp:=nil;
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasPropertyScope.Destroy END',ClassName);
@@ -2694,7 +2694,7 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasEnumTypeScope.Destroy START ',ClassName);
   {$ENDIF}
-  ReleaseAndNil(TPasElement(CanonicalSet));
+  ReleaseAndNil(TPasElement(CanonicalSet){$IFDEF CheckPasTreeRefCount},'TPasEnumTypeScope.CanonicalSet'{$ENDIF});
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasEnumTypeScope.Destroy END ',ClassName);
@@ -2847,7 +2847,7 @@ begin
   writeln('TPasProcedureScope.Destroy START ',ClassName);
   {$ENDIF}
   inherited Destroy;
-  ReleaseAndNil(TPasElement(SelfArg));
+  ReleaseAndNil(TPasElement(SelfArg){$IFDEF CheckPasTreeRefCount},'TPasProcedureScope.SelfArg'{$ENDIF});
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasProcedureScope.Destroy END ',ClassName);
   {$ENDIF}
@@ -2893,7 +2893,7 @@ begin
   if CanonicalClassOf<>nil then
     begin
     CanonicalClassOf.Parent:=nil;
-    ReleaseAndNil(TPasElement(CanonicalClassOf));
+    ReleaseAndNil(TPasElement(CanonicalClassOf){$IFDEF CheckPasTreeRefCount},'TPasClassScope.CanonicalClassOf'{$ENDIF});
     end;
   inherited Destroy;
 end;
@@ -2939,10 +2939,10 @@ procedure TPasIdentifier.SetElement(AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
   if Element<>nil then
-    Element.Release;
+    Element.Release{$IFDEF CheckPasTreeRefCount}('TPasIdentifier.SetElement'){$ENDIF};
   FElement:=AValue;
   if Element<>nil then
-    Element.AddRef;
+    Element.AddRef{$IFDEF CheckPasTreeRefCount}('TPasIdentifier.SetElement'){$ENDIF};
 end;
 
 destructor TPasIdentifier.Destroy;
@@ -2963,10 +2963,10 @@ procedure EPasResolve.SetPasElement(AValue: TPasElement);
 begin
   if FPasElement=AValue then Exit;
   if PasElement<>nil then
-    PasElement.Release;
+    PasElement.Release{$IFDEF CheckPasTreeRefCount}('EPasResolve.SetPasElement'){$ENDIF};
   FPasElement:=AValue;
   if PasElement<>nil then
-    PasElement.AddRef;
+    PasElement.AddRef{$IFDEF CheckPasTreeRefCount}('EPasResolve.SetPasElement'){$ENDIF};
 end;
 
 destructor EPasResolve.Destroy;
@@ -2987,10 +2987,10 @@ procedure TResolvedReference.SetDeclaration(AValue: TPasElement);
 begin
   if FDeclaration=AValue then Exit;
   if Declaration<>nil then
-    Declaration.Release;
+    Declaration.Release{$IFDEF CheckPasTreeRefCount}('TResolvedReference.SetDeclaration'){$ENDIF};
   FDeclaration:=AValue;
   if Declaration<>nil then
-    Declaration.AddRef;
+    Declaration.AddRef{$IFDEF CheckPasTreeRefCount}('TResolvedReference.SetDeclaration'){$ENDIF};
 end;
 
 destructor TResolvedReference.Destroy;
@@ -3030,10 +3030,10 @@ procedure TPasModuleDotScope.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
   if Module<>nil then
-    Module.Release;
+    Module.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleDotScope.SetModule'){$ENDIF};
   FModule:=AValue;
   if Module<>nil then
-    Module.AddRef;
+    Module.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleDotScope.SetModule'){$ENDIF};
 end;
 
 destructor TPasModuleDotScope.Destroy;
@@ -3202,25 +3202,25 @@ end;
 
 { TPasModuleScope }
 
+procedure TPasModuleScope.SetAssertClass(const AValue: TPasClassType);
+begin
+  if FAssertClass=AValue then Exit;
+  if FAssertClass<>nil then
+    FAssertClass.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertClass'){$ENDIF};
+  FAssertClass:=AValue;
+  if FAssertClass<>nil then
+    FAssertClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertClass'){$ENDIF};
+end;
+
 procedure TPasModuleScope.SetAssertDefConstructor(const AValue: TPasConstructor
   );
 begin
   if FAssertDefConstructor=AValue then Exit;
   if FAssertDefConstructor<>nil then
-    FAssertDefConstructor.Release;
+    FAssertDefConstructor.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertDefConstructor'){$ENDIF};
   FAssertDefConstructor:=AValue;
   if FAssertDefConstructor<>nil then
-    FAssertDefConstructor.AddRef;
-end;
-
-procedure TPasModuleScope.SetAssertClass(const AValue: TPasClassType);
-begin
-  if FAssertClass=AValue then Exit;
-  if FAssertClass<>nil then
-    FAssertClass.Release;
-  FAssertClass:=AValue;
-  if FAssertClass<>nil then
-    FAssertClass.AddRef;
+    FAssertDefConstructor.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertDefConstructor'){$ENDIF};
 end;
 
 procedure TPasModuleScope.SetAssertMsgConstructor(const AValue: TPasConstructor
@@ -3228,20 +3228,20 @@ procedure TPasModuleScope.SetAssertMsgConstructor(const AValue: TPasConstructor
 begin
   if FAssertMsgConstructor=AValue then Exit;
   if FAssertMsgConstructor<>nil then
-    FAssertMsgConstructor.Release;
+    FAssertMsgConstructor.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertMsgConstructor'){$ENDIF};
   FAssertMsgConstructor:=AValue;
   if FAssertMsgConstructor<>nil then
-    FAssertMsgConstructor.AddRef;
+    FAssertMsgConstructor.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertMsgConstructor'){$ENDIF};
 end;
 
 procedure TPasModuleScope.SetRangeErrorClass(const AValue: TPasClassType);
 begin
   if FRangeErrorClass=AValue then Exit;
   if FRangeErrorClass<>nil then
-    FRangeErrorClass.Release;
+    FRangeErrorClass.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorClass'){$ENDIF};
   FRangeErrorClass:=AValue;
   if FRangeErrorClass<>nil then
-    FRangeErrorClass.AddRef;
+    FRangeErrorClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorClass'){$ENDIF};
 end;
 
 procedure TPasModuleScope.SetRangeErrorConstructor(const AValue: TPasConstructor
@@ -3249,10 +3249,10 @@ procedure TPasModuleScope.SetRangeErrorConstructor(const AValue: TPasConstructor
 begin
   if FRangeErrorConstructor=AValue then Exit;
   if FRangeErrorConstructor<>nil then
-    FRangeErrorConstructor.Release;
+    FRangeErrorConstructor.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorConstructor'){$ENDIF};
   FRangeErrorConstructor:=AValue;
   if FRangeErrorConstructor<>nil then
-    FRangeErrorConstructor.AddRef;
+    FRangeErrorConstructor.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorConstructor'){$ENDIF};
 end;
 
 constructor TPasModuleScope.Create;
@@ -4567,7 +4567,8 @@ end;
 procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
 
   function ReplaceDestType(Decl: TPasType; var DestType: TPasType;
-    const DestName: string; MustExist: boolean; ErrorEl: TPasElement): boolean;
+    const DestName: string; MustExist: boolean; ErrorEl: TPasElement
+    {$IFDEF CheckPasTreeRefCount}; const RefId: string{$ENDIF}): boolean;
   // returns true if replaces
   var
     Abort: boolean;
@@ -4584,6 +4585,7 @@ procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
         RaiseIdentifierNotFound(20170216151543,DestName,ErrorEl)
       else
         exit(false);
+    if Data.Found=DestType then exit;
     if Decl is TPasClassOfType then
       begin
       if Data.Found.ClassType<>TPasClassType then
@@ -4592,9 +4594,10 @@ procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
     // replace unresolved
     OldDestType:=DestType;
     DestType:=TPasType(Data.Found);
-    DestType.AddRef;
-    OldDestType.Release; // once for the create in TPasResolver
-    OldDestType.Release; // and once for the reference in TPasParser
+    DestType.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
+    if OldDestType is TUnresolvedPendingRef then
+      OldDestType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    OldDestType.Release{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
     // check cycles
     if Decl is TPasPointerType then
       CheckPointerCycle(TPasPointerType(Decl));
@@ -4632,7 +4635,8 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.FinishTypeSection resolving "',ClassOfEl.Name,'" = class of unresolved "',TypeEl.Name,'"');
         {$ENDIF}
-        ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,true,UnresolvedEl);
+        ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,true,UnresolvedEl
+          {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
         end
       else if TypeEl.ClassType=TPasClassType then
         begin
@@ -4645,7 +4649,8 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.FinishTypeSection improving "',ClassOfEl.Name,'" = class of resolved "',TypeEl.Name,'"');
         {$ENDIF}
-        ReplaceDestType(ClassOfEl,ClassOfEl.DestType,TypeEl.Name,false,ClassOfEl);
+        ReplaceDestType(ClassOfEl,ClassOfEl.DestType,ClassOfEl.DestType.Name,false,ClassOfEl
+          {$IFDEF CheckPasTreeRefCount},'TPasAliasType.DestType'{$ENDIF});
         end;
       end
     else if C=TPasPointerType then
@@ -4659,7 +4664,8 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.FinishTypeSection resolving "',PtrType.Name,'" = pointer of unresolved "',TypeEl.Name,'"');
         {$ENDIF}
-        ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,true,UnresolvedEl);
+        ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,true,UnresolvedEl
+          {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
         end
       else
         begin
@@ -4671,7 +4677,8 @@ begin
         {$IFDEF VerbosePasResolver}
         writeln('TPasResolver.FinishTypeSection improving "',PtrType.Name,'" = pointer of resolved "',TypeEl.Name,'"');
         {$ENDIF}
-        ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,false,PtrType);
+        ReplaceDestType(PtrType,PtrType.DestType,TypeEl.Name,false,PtrType
+          {$IFDEF CheckPasTreeRefCount},'TPasPointerType.DestType'{$ENDIF});
         end;
       end;
     end;
@@ -4773,7 +4780,7 @@ begin
   {$ENDIF}
   Decl:=TPasDeclarations(Parent.Parent);
   Decl.Declarations.Add(El);
-  El.AddRef;
+  El.AddRef{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Declarations'){$ENDIF};
   El.Parent:=Decl;
   Decl.Types.Add(El);
   if (El.ClassType=TPasEnumType) and (Parent.ClassType=TPasSetType) then
@@ -4785,9 +4792,9 @@ begin
       // When a TPasEnumType is created a CanonicalSet is created.
       // Release the autocreated CanonicalSet and use the parent.
       if EnumScope.CanonicalSet<>nil then
-        EnumScope.CanonicalSet.Release;
+        EnumScope.CanonicalSet.Release{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
       EnumScope.CanonicalSet:=TPasSetType(Parent);
-      Parent.AddRef;
+      Parent.AddRef{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
       end;
     end;
 end;
@@ -5498,9 +5505,10 @@ begin
         // 'Self' in a class proc is the hidden classtype argument
         SelfArg:=TPasArgument.Create('Self',DeclProc);
         ImplProcScope.SelfArg:=SelfArg;
+        {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
         SelfArg.Access:=argConst;
         SelfArg.ArgType:=CurClassScope.CanonicalClassOf;
-        SelfArg.ArgType.AddRef;
+        SelfArg.ArgType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
         AddIdentifier(ImplProcScope,'Self',SelfArg,pikSimple);
         end;
       end
@@ -5509,9 +5517,10 @@ begin
       // 'Self' in a proc is the hidden instance argument
       SelfArg:=TPasArgument.Create('Self',DeclProc);
       ImplProcScope.SelfArg:=SelfArg;
+      {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
       SelfArg.Access:=argConst;
       SelfArg.ArgType:=CurClassType;
-      CurClassType.AddRef;
+      CurClassType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
       AddIdentifier(ImplProcScope,'Self',SelfArg,pikSimple);
       end;
     end;
@@ -5639,7 +5648,6 @@ var
       // override or redeclaration property
       AncestorProp:=TPasProperty(AncEl);
       TPasPropertyScope(PropEl.CustomData).AncestorProp:=AncestorProp;
-      AncestorProp.AddRef;
       if proFixCaseOfOverrides in Options then
         PropEl.Name:=AncestorProp.Name;
       end
@@ -6387,8 +6395,9 @@ begin
     // create canonical class-of for the "Self" in class functions
     CanonicalSelf:=TPasClassOfType.Create('Self',aClass);
     ClassScope.CanonicalClassOf:=CanonicalSelf;
+    {$IFDEF CheckPasTreeRefCount}CanonicalSelf.RefIds.Add('TPasClassScope.CanonicalClassOf');{$ENDIF}
     CanonicalSelf.DestType:=aClass;
-    aClass.AddRef; // for the CanonicalSelf.DestType
+    aClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasAliasType.DestType'){$ENDIF};
     CanonicalSelf.Visibility:=visStrictPrivate;
     CanonicalSelf.SourceFilename:=aClass.SourceFilename;
     CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
@@ -9034,14 +9043,16 @@ begin
   // add canonical set
   if El.Parent is TPasSetType then
     begin
+    // anonymous enumtype, e.g. "set of ()"
     CanonicalSet:=TPasSetType(El.Parent);
-    CanonicalSet.AddRef;
+    CanonicalSet.AddRef{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
     end
   else
     begin
     CanonicalSet:=TPasSetType.Create('',El);
+    {$IFDEF CheckPasTreeRefCount}CanonicalSet.RefIds.Add('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
     CanonicalSet.EnumType:=El;
-    El.AddRef;
+    El.AddRef{$IFDEF CheckPasTreeRefCount}('TPasSetType.EnumType'){$ENDIF};
     end;
   TPasEnumTypeScope(TopScope).CanonicalSet:=CanonicalSet;
 end;
@@ -13705,6 +13716,7 @@ begin
 
   // create element
   El:=AClass.Create(AName,AParent);
+  {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('CreateElement');{$ENDIF}
   FLastElement:=El;
   Result:=El;
   El.Visibility:=AVisibility;
@@ -14407,10 +14419,11 @@ begin
     OldType := TPasTypeAliasType(NewType);
     NewType := aClass;
     TPasTypeAliasType(OldType).DestType:=nil; // clear reference
-    OldType.Release;
+    OldType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
 
     // set ancestor
     aClass.AncestorType := DestType;
+    {$IFDEF CheckPasTreeRefCount}DestType.ChangeRefId('TPasAliasType.DestType','TPasClassType.AncestorType');{$ENDIF}
     FinishScope(stAncestors,aClass);
     end;
 end;
@@ -14658,7 +14671,7 @@ var
 begin
   ClearResolveDataList(lkBuiltIn);
   for bt in TResolverBaseType do
-    ReleaseAndNil(TPasElement(FBaseTypes[bt]));
+    ReleaseAndNil(TPasElement(FBaseTypes[bt]){$IFDEF CheckPasTreeRefCount},'TPasResolver.AddBaseType'{$ENDIF});
   for bp in TResolverBuiltInProc do
     FBuiltInProcs[bp]:=nil;
 end;
@@ -14787,6 +14800,7 @@ var
   El: TPasUnresolvedSymbolRef;
 begin
   El:=TPasUnresolvedSymbolRef.Create(aName,nil);
+  {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('TPasResolver.AddBaseType');{$ENDIF}
   if not (Typ in [btNone,btCustom]) then
     FBaseTypes[Typ]:=El;
   Result:=TResElDataBaseType.Create;
@@ -14801,6 +14815,7 @@ var
   CustomData: TResElDataBaseType;
 begin
   Result:=TPasUnresolvedSymbolRef.Create(aName,nil);
+  {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('TPasResolver.AddCustomBaseType');{$ENDIF}
   CustomData:=aClass.Create;
   CustomData.BaseType:=btCustom;
   AddResolveData(Result,CustomData,lkBuiltIn);
@@ -14830,6 +14845,7 @@ begin
   El:=TPasUnresolvedSymbolRef.Create(aName,nil);
   Result:=TResElDataBuiltInProc.Create;
   Result.Proc:=El;
+  {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('TResElDataBuiltInProc.Proc');{$ENDIF}
   Result.Signature:=Signature;
   Result.BuiltIn:=BuiltIn;
   Result.GetCallCompatibility:=GetCallCompatibility;
