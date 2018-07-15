@@ -563,10 +563,6 @@ type
   end;
   TPCUFilerElementRefArray = array of TPCUFilerElementRef;
 
-  TPCUFilerElementRef2 = class(TPCUFilerElementRef)
-    s: string;
-  end;
-
   { TPCUFiler - base class TPCUWriter/TPCUReader}
 
   TPCUFiler = class
@@ -4611,8 +4607,7 @@ begin
       end
     else
       begin
-      Ref:=TPCUFilerElementRef2.Create;
-      TPCUFilerElementRef2(Ref).s:=IntToStr(Id);
+      Ref:=TPCUFilerElementRef.Create;
       Ref.Id:=Id;
       end;
     {$IF defined(VerbosePCUFiler) or defined(memcheck)}
@@ -4631,7 +4626,7 @@ begin
     {$IF defined(VerbosePCUFiler) or defined(memcheck)}
     Node:=FElementRefs.FindKey(El,@CompareElWithPCUFilerElementRef);
     if Node<>nil then
-      RaiseMsg(20180711231646,El,GetObjName(TPCUFilerElementRef2(Node.Data).Element));
+      RaiseMsg(20180711231646,El,GetObjName(TPCUFilerElementRef(Node.Data).Element));
     {$ENDIF}
     FElementRefs.Add(Ref);
 
