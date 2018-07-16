@@ -1108,5 +1108,6 @@
 'rdrand',
 'rdseed',
 'xgetbv',
-'prefetchwt1'
+'prefetchwt1',
+'kandb'
 );

@@ -485,7 +485,12 @@ implementation
 {$endif x86_64}
               else
                 reg_cgsize:=OS_32
-            end
+            end;
+          R_ADDRESSREGISTER:
+            case reg of
+              NR_K0..NR_K7: reg_cgsize:=OS_64;
+                       else internalerror(2003031801);
+            end;
           else
             internalerror(2003031801);
           end;

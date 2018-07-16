@@ -420,7 +420,7 @@ interface
         toper = record
           ot : longint;
         {$ifdef x86}
-          vopext: byte;
+          vopext: smallint;
         {$ENDIF}
           case typ : toptype of
             top_none   : ();

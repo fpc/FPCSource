@@ -1126,5 +1126,6 @@ attsufNONE,
 attsufNONE,
 attsufNONE,
 attsufNONE,
-attsufINT
+attsufINT,
+attsufNONE
 );

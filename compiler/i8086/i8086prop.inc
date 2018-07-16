@@ -1126,5 +1126,6 @@
 (Ch: [Ch_Wop1, Ch_WFlags]),
 (Ch: [Ch_Wop1, Ch_WFlags]),
 (Ch: [Ch_WEAX, Ch_WEDX, Ch_RECX]),
-(Ch: [Ch_All])
+(Ch: [Ch_All]),
+(Ch: [Ch_Mop3, Ch_Rop2, Ch_Rop1])
 );
