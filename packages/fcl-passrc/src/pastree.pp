@@ -545,7 +545,7 @@ type
     function GetDeclaration(full: boolean) : string; override;
   end;
 
-  { TPasSpecializeType }
+  { TPasSpecializeType DestType<Params> }
 
   TPasSpecializeType = class(TPasAliasType)
   public
@@ -569,7 +569,7 @@ type
       const Arg: Pointer); override;
     procedure ClearTypeReferences(aType: TPasElement); override;
   public
-    DestType: TPasType;
+    DestType: TPasType; // TPasSpecializeType
   end;
 
   { TInlineSpecializeExpr - A<B,C> }
@@ -1619,7 +1619,8 @@ const
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF}); overload;
 
 {$IFDEF HasPTDumpStack}
-function PTDumpStack: string;
+procedure PTDumpStack;
+function GetPTDumpStack: string;
 {$ENDIF}
 
 implementation
@@ -1635,7 +1636,14 @@ begin
 end;
 
 {$IFDEF HasPTDumpStack}
-function PTDumpStack: string;
+procedure PTDumpStack;
+begin
+  {AllowWriteln}
+  writeln(GetPTDumpStack);
+  {AllowWriteln-}
+end;
+
+function GetPTDumpStack: string;
 var
   bp: Pointer;
   addr: Pointer;
@@ -2359,8 +2367,13 @@ begin
   {$IFDEF CheckPasTreeRefCount}
   if SameText(aId,'CreateElement') and (RefIds.IndexOf('CreateElement')>=0) then
     begin
+    {AllowWriteln}
     writeln('TPasElement.AddRef ',Name,':',ClassName,' RefCount=',RefCount,' RefIds={',RefIds.Text,'}');
-    raise Exception.Create('TPasElement.AddRef duplicate CreateElement');
+    {AllowWriteln-}
+    {$IFDEF HasPTDumpStack}
+    PTDumpStack;
+    {$ENDIF}
+    Halt;
     end;
   RefIds.Add(aId);
   {$ENDIF}
@@ -2622,7 +2635,7 @@ end;
 procedure TPasPointerType.SetParent(const AValue: TPasElement);
 begin
   if (AValue=nil) and (Parent<>nil) and (DestType<>nil)
-      and (DestType.Parent=Parent) then
+      and ((DestType.Parent=Parent) or (DestType=Self)) then
     begin
     // DestType in same type section can create a loop
     // -> break loop when type section is closed
@@ -2641,7 +2654,7 @@ end;
 procedure TPasAliasType.SetParent(const AValue: TPasElement);
 begin
   if (AValue=nil) and (Parent<>nil) and (DestType<>nil)
-      and (DestType.Parent=Parent) then
+      and ((DestType.Parent=Parent) or (DestType=Self)) then
     begin
     // DestType in same type section can create a loop
     // -> break loop when type section is closed
@@ -2820,6 +2833,10 @@ begin
     // parent is cleared
     // -> clear all child references to this class (releasing loops)
     ForEachCall(@ClearChildReferences,nil);
+    if AncestorType=Self then
+      ReleaseAndNil(TPasElement(AncestorType){$IFDEF CheckPasTreeRefCount},'TPasClassType.AncestorType'{$ENDIF});
+    if HelperForType=Self then
+      ReleaseAndNil(TPasElement(HelperForType){$IFDEF CheckPasTreeRefCount},'TPasClassType.HelperForType'{$ENDIF});
     end;
   inherited SetParent(AValue);
 end;

@@ -124,6 +124,9 @@ type
     FSkipTests: boolean;
     FSource: TStringList;
     FFirstPasStatement: TPasImplBlock;
+    {$IFDEF EnablePasTreeGlobalRefCount}
+    FElementRefCountAtSetup: int64;
+    {$ENDIF}
     function GetMsgCount: integer;
     function GetMsgs(Index: integer): TTestHintMessage;
     function GetResolverCount: integer;
@@ -1163,6 +1166,10 @@ begin
   FConverter:=CreateConverter;
 
   FExpectedErrorClass:=nil;
+
+  {$IFDEF EnablePasTreeGlobalRefCount}
+  FElementRefCountAtSetup:=FModule.GlobalRefCount;
+  {$ENDIF}
 end;
 
 function TCustomTestModule.CreateConverter: TPasToJSConverter;
@@ -1214,6 +1221,24 @@ begin
     end;
 
   inherited TearDown;
+  {$IFDEF EnablePasTreeGlobalRefCount}
+  if FElementRefCountAtSetup<>TPasElement.GlobalRefCount then
+    begin
+    writeln('TCustomTestModule.TearDown GlobalRefCount Was='+IntToStr(FElementRefCountAtSetup)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    {$IFDEF CheckPasTreeRefCount}
+    El:=TPasElement.FirstRefEl;
+    while El<>nil do
+      begin
+      writeln('  ',GetObjName(El),' RefIds.Count=',El.RefIds.Count,':');
+      for i:=0 to El.RefIds.Count-1 do
+        writeln('    ',El.RefIds[i]);
+      El:=El.NextRefEl;
+      end;
+    {$ENDIF}
+    Fail('TCustomTestModule.TearDown Was='+IntToStr(FElementRefCountAtSetup)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    end;
+  {$ENDIF}
+  {$ENDIF}
 end;
 
 procedure TCustomTestModule.Add(Line: string);

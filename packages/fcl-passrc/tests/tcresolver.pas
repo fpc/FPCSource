@@ -111,7 +111,9 @@ type
 
   TCustomTestResolver = Class(TTestParser)
   Private
+    {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
     FStartElementRefCount: int64;
+    {$ENDIF}
     FFirstStatement: TPasImplBlock;
     FModules: TObjectList;// list of TTestEnginePasResolver
     FResolverEngine: TTestEnginePasResolver;
@@ -963,7 +965,8 @@ begin
       El:=El.NextRefEl;
       end;
     {$ENDIF}
-    //Fail('TCustomTestResolver.TearDown Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    //Halt;
+    Fail('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
     end;
   {$ENDIF}
   {$IFDEF VerbosePasResolverMem}

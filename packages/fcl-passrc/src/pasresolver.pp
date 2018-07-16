@@ -4582,7 +4582,11 @@ procedure TPasResolver.FinishTypeSection(El: TPasDeclarations);
       TopScope,@OnFindFirstElement,@Data,Abort);
     if (Data.Found=nil) then
       if MustExist then
-        RaiseIdentifierNotFound(20170216151543,DestName,ErrorEl)
+        begin
+        if DestType is TUnresolvedPendingRef then
+          DestType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+        RaiseIdentifierNotFound(20170216151543,DestName,ErrorEl);
+        end
       else
         exit(false);
     if Data.Found=DestType then exit;
@@ -13718,95 +13722,101 @@ begin
   El:=AClass.Create(AName,AParent);
   {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('CreateElement');{$ENDIF}
   FLastElement:=El;
-  Result:=El;
-  El.Visibility:=AVisibility;
-  El.SourceFilename:=ASrcPos.FileName;
-  El.SourceLinenumber:=SrcY;
-  if FRootElement=nil then
-    begin
-    RootElement:=NoNil(Result) as TPasModule;
-    if FStep=prsInit then
-      FStep:=prsParsing;
-    end
-  else if (AParent is TPasSection) and (TPasSection(AParent).Declarations.Count=0) then
-    begin
-    // first element of section
-    SectionScope:=TPasSectionScope(AParent.CustomData);
-    SectionScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
-    SectionScope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
-    end;
+  Result:=nil;
+  try
+    El.Visibility:=AVisibility;
+    El.SourceFilename:=ASrcPos.FileName;
+    El.SourceLinenumber:=SrcY;
+    if FRootElement=nil then
+      begin
+      RootElement:=El as TPasModule;
+      if FStep=prsInit then
+        FStep:=prsParsing;
+      end
+    else if (AParent is TPasSection) and (TPasSection(AParent).Declarations.Count=0) then
+      begin
+      // first element of section
+      SectionScope:=TPasSectionScope(AParent.CustomData);
+      SectionScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+      SectionScope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
+      end;
 
-  if IsElementSkipped(El) then exit;
+    if IsElementSkipped(El) then exit;
 
-  // create scope
-  if (AClass=TPasVariable)
-      or (AClass=TPasConst) then
-    AddVariable(TPasVariable(El))
-  else if AClass=TPasResString then
-    AddResourceString(TPasResString(El))
-  else if (AClass=TPasProperty) then
-    AddProperty(TPasProperty(El))
-  else if AClass=TPasArgument then
-    AddArgument(TPasArgument(El))
-  else if AClass=TPasEnumType then
-    AddEnumType(TPasEnumType(El))
-  else if AClass=TPasEnumValue then
-    AddEnumValue(TPasEnumValue(El))
-  else if (AClass=TUnresolvedPendingRef) then
-  else if (AClass=TPasAliasType)
-      or (AClass=TPasTypeAliasType)
-      or (AClass=TPasClassOfType)
-      or (AClass=TPasPointerType)
-      or (AClass=TPasArrayType)
-      or (AClass=TPasProcedureType)
-      or (AClass=TPasFunctionType)
-      or (AClass=TPasSetType)
-      or (AClass=TPasRangeType) then
-    AddType(TPasType(El))
-  else if AClass=TPasStringType then
-    begin
-    AddType(TPasType(El));
-    if BaseTypes[btShortString]=nil then
-      RaiseMsg(20170419203043,nIllegalQualifier,sIllegalQualifier,['['],El);
-    end
-  else if AClass=TPasRecordType then
-    AddRecordType(TPasRecordType(El))
-  else if AClass=TPasClassType then
-    AddClassType(TPasClassType(El))
-  else if AClass=TPasVariant then
-  else if AClass.InheritsFrom(TPasProcedure) then
-    AddProcedure(TPasProcedure(El))
-  else if AClass=TPasResultElement then
-    AddFunctionResult(TPasResultElement(El))
-  else if AClass=TProcedureBody then
-    AddProcedureBody(TProcedureBody(El))
-  else if AClass=TPasMethodResolution then
-  else if AClass=TPasImplExceptOn then
-    AddExceptOn(TPasImplExceptOn(El))
-  else if AClass=TPasImplLabelMark then
-  else if AClass=TPasOverloadedProc then
-  else if (AClass=TInterfaceSection)
-      or (AClass=TImplementationSection)
-      or (AClass=TProgramSection)
-      or (AClass=TLibrarySection) then
-    AddSection(TPasSection(El))
-  else if (AClass=TPasModule)
-      or (AClass=TPasProgram)
-      or (AClass=TPasLibrary) then
-    AddModule(TPasModule(El))
-  else if AClass=TPasUsesUnit then
-  else if AClass.InheritsFrom(TPasExpr) then
-    // resolved when finished
-  else if AClass=TInitializationSection then
-    AddInitialFinalizationSection(TInitializationSection(El))
-  else if AClass=TFinalizationSection then
-    AddInitialFinalizationSection(TFinalizationSection(El))
-  else if AClass.InheritsFrom(TPasImplBlock) then
-    // resolved when finished
-  else if AClass=TPasUnresolvedUnitRef then
-    RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
-  else
-    RaiseNotYetImplemented(20160922163544,El);
+    // create scope
+    if (AClass=TPasVariable)
+        or (AClass=TPasConst) then
+      AddVariable(TPasVariable(El))
+    else if AClass=TPasResString then
+      AddResourceString(TPasResString(El))
+    else if (AClass=TPasProperty) then
+      AddProperty(TPasProperty(El))
+    else if AClass=TPasArgument then
+      AddArgument(TPasArgument(El))
+    else if AClass=TPasEnumType then
+      AddEnumType(TPasEnumType(El))
+    else if AClass=TPasEnumValue then
+      AddEnumValue(TPasEnumValue(El))
+    else if (AClass=TUnresolvedPendingRef) then
+    else if (AClass=TPasAliasType)
+        or (AClass=TPasTypeAliasType)
+        or (AClass=TPasClassOfType)
+        or (AClass=TPasPointerType)
+        or (AClass=TPasArrayType)
+        or (AClass=TPasProcedureType)
+        or (AClass=TPasFunctionType)
+        or (AClass=TPasSetType)
+        or (AClass=TPasRangeType) then
+      AddType(TPasType(El))
+    else if AClass=TPasStringType then
+      begin
+      AddType(TPasType(El));
+      if BaseTypes[btShortString]=nil then
+        RaiseMsg(20170419203043,nIllegalQualifier,sIllegalQualifier,['['],El);
+      end
+    else if AClass=TPasRecordType then
+      AddRecordType(TPasRecordType(El))
+    else if AClass=TPasClassType then
+      AddClassType(TPasClassType(El))
+    else if AClass=TPasVariant then
+    else if AClass.InheritsFrom(TPasProcedure) then
+      AddProcedure(TPasProcedure(El))
+    else if AClass=TPasResultElement then
+      AddFunctionResult(TPasResultElement(El))
+    else if AClass=TProcedureBody then
+      AddProcedureBody(TProcedureBody(El))
+    else if AClass=TPasMethodResolution then
+    else if AClass=TPasImplExceptOn then
+      AddExceptOn(TPasImplExceptOn(El))
+    else if AClass=TPasImplLabelMark then
+    else if AClass=TPasOverloadedProc then
+    else if (AClass=TInterfaceSection)
+        or (AClass=TImplementationSection)
+        or (AClass=TProgramSection)
+        or (AClass=TLibrarySection) then
+      AddSection(TPasSection(El))
+    else if (AClass=TPasModule)
+        or (AClass=TPasProgram)
+        or (AClass=TPasLibrary) then
+      AddModule(TPasModule(El))
+    else if AClass=TPasUsesUnit then
+    else if AClass.InheritsFrom(TPasExpr) then
+      // resolved when finished
+    else if AClass=TInitializationSection then
+      AddInitialFinalizationSection(TInitializationSection(El))
+    else if AClass=TFinalizationSection then
+      AddInitialFinalizationSection(TFinalizationSection(El))
+    else if AClass.InheritsFrom(TPasImplBlock) then
+      // resolved when finished
+    else if AClass=TPasUnresolvedUnitRef then
+      RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
+    else
+      RaiseNotYetImplemented(20160922163544,El);
+    Result:=El;
+  finally
+    if Result=nil then
+      El.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+  end;
 end;
 
 function TPasResolver.FindModule(const AName: String; NameExpr,
