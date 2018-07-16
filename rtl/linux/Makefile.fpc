@@ -145,6 +145,8 @@ ifeq ($(ARCH),sparc)
   ifneq ($(findstring -fPIC ,$(COMPILER)),)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
+  ASTARGET+=-32
+  ASSHAREDOPT=-KPIC
 endif
 
 ifeq ($(ARCH),arm)
