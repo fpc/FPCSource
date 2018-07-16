@@ -2331,7 +2331,7 @@ begin
     if (FRefCount>0) and (FRefCount<high(FRefCount)) then
       begin
       {AllowWriteln}
-      writeln('TPasElement.Destroy ',Name,':',ClassName,' fRefIds.Count=',RefIds.Count);
+      writeln('TPasElement.Destroy ',Name,':',ClassName,' RefIds.Count=',RefIds.Count);
       writeln(RefIds.Text);
       {AllowWriteln-}
       end;
@@ -2380,7 +2380,6 @@ begin
 end;
 
 procedure TPasElement.Release{$IFDEF CheckPasTreeRefCount}(const aId: string){$ENDIF};
-
 {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}
 Var
   Cn : String;
@@ -2388,7 +2387,6 @@ Var
 {$IFDEF CheckPasTreeRefCount}
 var i: integer;
 {$ENDIF}
-
 begin
   {$if defined(debugrefcount) or defined(VerbosePasTreeMem)}
   {AllowWriteln}
@@ -3594,13 +3592,6 @@ begin
   if ImplementationSection<>nil then
     ImplementationSection.ReleaseUsedUnits;
 end;
-
-{
-function TPas.GetDeclaration : string;
-begin
-  Result:=Name;
-end;
-}
 
 function TPasResString.GetDeclaration(full: Boolean): string;
 begin

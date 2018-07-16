@@ -78,7 +78,6 @@ type
     FStreamResolver: TStreamResolver;
     FScanner: TPascalScanner;
     FSource: string;
-    procedure SetModule(AValue: TPasModule);
   public
     destructor Destroy; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
@@ -90,7 +89,7 @@ type
     property Scanner: TPascalScanner read FScanner write FScanner;
     property Parser: TTestPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
-    property Module: TPasModule read FModule write SetModule;
+    property Module: TPasModule read FModule;
   end;
 
   { TCustomTestModule }
@@ -231,6 +230,7 @@ type
     Procedure TestDottedUnitExpr;
     Procedure Test_ModeFPCFail;
     Procedure Test_ModeSwitchCBlocksFail;
+    Procedure TestUnit_UseSystem;
     Procedure TestUnit_Intf1Impl2Intf1;
 
     // vars/const
@@ -952,23 +952,17 @@ end;
 
 { TTestEnginePasResolver }
 
-procedure TTestEnginePasResolver.SetModule(AValue: TPasModule);
-begin
-  if FModule=AValue then Exit;
-  if Module<>nil then
-    Module.Release;
-  FModule:=AValue;
-  if Module<>nil then
-    Module.AddRef;
-end;
-
 destructor TTestEnginePasResolver.Destroy;
 begin
   FreeAndNil(FStreamResolver);
-  Module:=nil;
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
   FreeAndNil(FStreamResolver);
+  if Module<>nil then
+    begin
+    Module.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    FModule:=nil;
+    end;
   inherited Destroy;
 end;
 
@@ -1142,6 +1136,9 @@ end;
 
 procedure TCustomTestModule.SetUp;
 begin
+  {$IFDEF EnablePasTreeGlobalRefCount}
+  FElementRefCountAtSetup:=FModule.GlobalRefCount;
+  {$ENDIF}
   inherited SetUp;
   FSkipTests:=false;
   FSource:=TStringList.Create;
@@ -1166,10 +1163,6 @@ begin
   FConverter:=CreateConverter;
 
   FExpectedErrorClass:=nil;
-
-  {$IFDEF EnablePasTreeGlobalRefCount}
-  FElementRefCountAtSetup:=FModule.GlobalRefCount;
-  {$ENDIF}
 end;
 
 function TCustomTestModule.CreateConverter: TPasToJSConverter;
@@ -1192,6 +1185,13 @@ begin
 end;
 
 procedure TCustomTestModule.TearDown;
+{$IFDEF CheckPasTreeRefCount}
+var
+  El: TPasElement;
+{$ENDIF}
+var
+  i: Integer;
+  CurModule: TPasModule;
 begin
   FHintMsgs.Clear;
   FHintMsgsGood.Clear;
@@ -1207,16 +1207,27 @@ begin
   FreeAndNil(FJSModule);
   FreeAndNil(FConverter);
   Engine.Clear;
-  if Assigned(FModule) then
-    begin
-    FModule.Release;
-    FModule:=nil;
-    end;
   FreeAndNil(FSource);
   FreeAndNil(FFileResolver);
   if FModules<>nil then
     begin
+    for i:=0 to FModules.Count-1 do
+      begin
+      CurModule:=TTestEnginePasResolver(FModules[i]).Module;
+      if CurModule=nil then continue;
+      //writeln('TCustomTestModule.TearDown ReleaseUsedUnits ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
+      CurModule.ReleaseUsedUnits;
+      end;
+    if FModule<>nil then
+      FModule.ReleaseUsedUnits;
+    for i:=0 to FModules.Count-1 do
+      begin
+      CurModule:=TTestEnginePasResolver(FModules[i]).Module;
+      if CurModule=nil then continue;
+      //writeln('TCustomTestModule.TearDown UsesReleased ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
+      end;
     FreeAndNil(FModules);
+    ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
     FEngine:=nil;
     end;
 
@@ -1235,9 +1246,9 @@ begin
       El:=El.NextRefEl;
       end;
     {$ENDIF}
+    //Halt;
     Fail('TCustomTestModule.TearDown Was='+IntToStr(FElementRefCountAtSetup)+' Now='+IntToStr(TPasElement.GlobalRefCount));
     end;
-  {$ENDIF}
   {$ENDIF}
 end;
 
@@ -1318,7 +1329,7 @@ begin
   end;
   if SkipTests then exit;
 
-  AssertNotNull('Module resulted in Module',FModule);
+  AssertNotNull('Module resulted in Module',Module);
   AssertEquals('modulename',lowercase(ChangeFileExt(FFileName,'')),lowercase(Module.Name));
   TAssert.AssertSame('Has resolver',Engine,Parser.Engine);
 end;
@@ -2182,6 +2193,22 @@ begin
   Add('begin');
   SetExpectedScannerError('Invalid mode switch: "cblocks-"',nErrInvalidModeSwitch);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestUnit_UseSystem;
+begin
+  StartUnit(true);
+  Add([
+  'interface',
+  'var i: integer;',
+  'implementation']);
+  ConvertUnit;
+  CheckSource('TestUnit_UseSystem',
+    LinesToStr([
+    'this.i = 0;',
+    '']),
+    LinesToStr([
+    '']) );
 end;
 
 procedure TTestModule.TestUnit_Intf1Impl2Intf1;

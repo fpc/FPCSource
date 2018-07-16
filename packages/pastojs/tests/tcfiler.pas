@@ -424,8 +424,14 @@ begin
     FreeAndNil(FRestAnalyzer);
     RestParser.Free;
     RestScanner.Free;
+    if (RestResolver<>nil) and (RestResolver.RootElement<>nil) then
+      begin
+      RestResolver.RootElement.ReleaseUsedUnits;
+      RestResolver.RootElement.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      end;
     RestResolver.Free; // free parser before resolver
     RestFileResolver.Free;
+
     ms.Free;
   end;
 end;
@@ -1589,8 +1595,8 @@ begin
   '  FourPlusFive: longint = 4+5 deprecated ''deprtext'';',
   '  Four: byte = +6-2*2 platform;',
   '  Affirmative = true;',
-  '  Negative = false;', // bool lit
-  '  NotNegative = not Negative;', // boolconst
+  '  BFalse = false;', // bool lit
+  '  NotBFalse = not BFalse;', // boolconst
   '  UnaryMinus = -3;', // unary minus
   '  FloatA = -31.678E-012;', // float lit
   '  HighInt = High(longint);', // func params, built-in function

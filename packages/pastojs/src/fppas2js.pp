@@ -3913,7 +3913,7 @@ var
 begin
   inherited ClearBuiltInIdentifiers;
   for bt in TPas2jsBaseType do
-    ReleaseAndNil(TPasElement(FJSBaseTypes[bt]));
+    ReleaseAndNil(TPasElement(FJSBaseTypes[bt]){$IFDEF CheckPasTreeRefCount},'TPasResolver.AddCustomBaseType'{$ENDIF});
 end;
 
 function TPas2JSResolver.IsJSBaseType(TypeEl: TPasType; Typ: TPas2jsBaseType
@@ -4668,12 +4668,12 @@ begin
         raise EPas2JS.Create('');
         end;
     Data.CustomData:=CustomData;
-    TPasElement(FElement).Release;
+    TPasElement(FElement).Release{$IFDEF CheckPasTreeRefCount}('TPas2JsElementData.SetElement'){$ENDIF};
     end;
   FElement:=AValue;
   if FElement<>nil then
     begin
-    TPasElement(FElement).AddRef;
+    TPasElement(FElement).AddRef{$IFDEF CheckPasTreeRefCount}('TPas2JsElementData.SetElement'){$ENDIF};
     Data:=FElement;
     while Data.CustomData is TPasElementBase do
       Data:=TPasElementBase(Data.CustomData);
