@@ -7094,6 +7094,7 @@ begin
       Item:=PRangeItem(Values[i]);
       Dispose(Item);
       end;
+    Values.Free;
   end;
 end;
 
@@ -19952,13 +19953,17 @@ begin
   Range:=Eval(RangeExpr,[refConst]);
   if Range=nil then
     RaiseNotYetImplemented(20170910210416,RangeExpr);
-  case Range.Kind of
-  revkRangeInt:
-    Result:=TResEvalRangeInt(Range).RangeEnd-TResEvalRangeInt(Range).RangeStart+1;
-  revkRangeUInt:
-    Result:=TResEvalRangeUInt(Range).RangeEnd-TResEvalRangeUInt(Range).RangeStart+1;
-  else
-    RaiseNotYetImplemented(20170910210554,RangeExpr);
+  try
+    case Range.Kind of
+    revkRangeInt:
+      Result:=TResEvalRangeInt(Range).RangeEnd-TResEvalRangeInt(Range).RangeStart+1;
+    revkRangeUInt:
+      Result:=TResEvalRangeUInt(Range).RangeEnd-TResEvalRangeUInt(Range).RangeStart+1;
+    else
+      RaiseNotYetImplemented(20170910210554,RangeExpr);
+    end;
+  finally
+    ReleaseEvalValue(Range);
   end;
   {$IFDEF VerbosePasResolver}
   {AllowWriteln}
@@ -20089,7 +20094,6 @@ begin
         TResEvalRangeInt(Result).ElKind:=revskInt;
         GetIntegerRange(BaseTypeData.BaseType,
           TResEvalRangeInt(Result).RangeStart,TResEvalRangeInt(Result).RangeEnd);
-        exit;
         end;
       end;
       end;

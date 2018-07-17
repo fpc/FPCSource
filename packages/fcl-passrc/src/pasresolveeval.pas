@@ -3573,6 +3573,7 @@ begin
           sRangeCheckInSetConstructor,[],El);
         end;
       Result.Add(RangeStart,RangeEnd);
+      ReleaseEvalValue(Value);
       end;
     ok:=OnlyConstElements;
   finally

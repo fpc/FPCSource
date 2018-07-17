@@ -2920,6 +2920,7 @@ begin
     TPasElement(AList[i]).Parent:=Self;
     GenericTemplateTypes.Add(AList[i]);
     end;
+  AList.Clear;
   ObjKind:=okGeneric;
 end;
 
@@ -3225,6 +3226,7 @@ begin
   ReleaseAndNil(TPasElement(PublicName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.PublicName'{$ENDIF});
   ReleaseAndNil(TPasElement(LibraryExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibraryExpr'{$ENDIF});
   ReleaseAndNil(TPasElement(LibrarySymbolName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibrarySymbolName'{$ENDIF});
+  ReleaseAndNil(TPasElement(DispIDExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.DispIDExpr'{$ENDIF});
   inherited Destroy;
 end;
 
@@ -3999,6 +4001,7 @@ begin
     TPasElement(AList[i]).Parent:=Self;
     GenericTemplateTypes.Add(AList[i]);
     end;
+  AList.Clear;
 end;
 
 procedure TPasProcedureType.GetArguments(List : TStrings);

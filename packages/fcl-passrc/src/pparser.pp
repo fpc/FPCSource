@@ -3476,6 +3476,8 @@ begin
             ParseExc(nParserGenericClassOrArray,SParserGenericClassOrArray);
           end;
         finally
+          for i:=0 to List.Count-1 do
+            TPasElement(List[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
           List.Free;
         end;
       end;
@@ -4058,6 +4060,7 @@ var
   NamePos: TPasSourcePos;
   OldForceCaret : Boolean;
   List : TFPList;
+  i: Integer;
 
 begin
   TypeName := CurTokenString;
@@ -4075,7 +4078,12 @@ begin
     Result:=ParseType(Parent,NamePos,TypeName,True,List);
   finally
     Scanner.SetForceCaret(OldForceCaret);
-    List.Free;
+    if List<>nil then
+      begin
+      for i:=0 to List.Count-1 do
+        TPasElement(List[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      List.Free;
+      end;
   end;
 end;
 
@@ -5868,6 +5876,7 @@ begin
               // label mark. todo: check mark identifier in the list of labels
               El:=TPasImplLabelMark(CreateElement(TPasImplLabelMark,'', CurBlock,SrcPos));
               TPasImplLabelMark(El).LabelId:=TPrimitiveExpr(Left).Value;
+              ReleaseAndNil(TPasElement(Left){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
               CurBlock.AddElement(El);
               CmdElem:=TPasImplLabelMark(El);
               El:=nil;
@@ -5875,7 +5884,7 @@ begin
           else
             // simple statement (function call)
             El:=TPasImplSimple(CreateElement(TPasImplSimple,'',CurBlock,SrcPos));
-            TPasImplSimple(El).expr:=Left;
+            TPasImplSimple(El).Expr:=Left;
             Left:=nil;
             AddStatement(El);
             El:=nil;
