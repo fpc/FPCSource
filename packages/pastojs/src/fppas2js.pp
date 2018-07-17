@@ -5137,117 +5137,123 @@ Var
   ModuleName, ModVarName: String;
   IntfContext: TSectionContext;
   ImplVarSt: TJSVariableStatement;
-  HasImplUsesClause: Boolean;
+  HasImplUsesClause, ok: Boolean;
   UsesClause: TPasUsesClause;
 begin
   Result:=Nil;
   OuterSrc:=TJSSourceElements(CreateElement(TJSSourceElements, El));
   Result:=OuterSrc;
-
-  // create 'rtl.module(...)'
-  RegModuleCall:=CreateCallExpression(El);
-  AddToSourceElements(OuterSrc,RegModuleCall);
-  RegModuleCall.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],'module']);
-  ArgArray := RegModuleCall.Args;
-  RegModuleCall.Args:=ArgArray;
-
-  // add unitname parameter: unitname
-  ModuleName:=TransformModuleName(El,false,AContext);
-  ArgArray.Elements.AddElement.Expr:=CreateLiteralString(El,ModuleName);
-
-  // add interface-uses-section parameter: [<interface uses1>,<uses2>, ...]
-  UsesSection:=nil;
-  if (El is TPasProgram) then
-    UsesSection:=TPasProgram(El).ProgramSection
-  else if (El is TPasLibrary) then
-    UsesSection:=TPasLibrary(El).LibrarySection
-  else
-    UsesSection:=El.InterfaceSection;
-  ArgArray.Elements.AddElement.Expr:=CreateUsesList(UsesSection,AContext);
-
-  // add interface parameter: function(){}
-  FunDecl:=CreateFunctionSt(El,true,true);
-  ArgArray.AddElement(FunDecl);
-  Src:=FunDecl.AFunction.Body.A as TJSSourceElements;
-
-  if coUseStrict in Options then
-    // "use strict" must be the first statement in a function
-    AddToSourceElements(Src,CreateLiteralString(El,'use strict'));
-
-  ImplVarSt:=nil;
-  HasImplUsesClause:=false;
-
-  IntfContext:=TSectionContext.Create(El,Src,AContext);
+  ok:=false;
   try
-    // add "var $mod = this;"
-    IntfContext.ThisPas:=El;
-    if El.CustomData is TPasModuleScope then
-      IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).BoolSwitches;
-    ModVarName:=FBuiltInNames[pbivnModule];
-    IntfContext.AddLocalVar(ModVarName,El);
-    AddToSourceElements(Src,CreateVarStatement(ModVarName,
-      CreatePrimitiveDotExpr('this',El),El));
+    // create 'rtl.module(...)'
+    RegModuleCall:=CreateCallExpression(El);
+    AddToSourceElements(OuterSrc,RegModuleCall);
+    RegModuleCall.Expr:=CreateMemberExpression([FBuiltInNames[pbivnRTL],'module']);
+    ArgArray := RegModuleCall.Args;
+    RegModuleCall.Args:=ArgArray;
 
+    // add unitname parameter: unitname
+    ModuleName:=TransformModuleName(El,false,AContext);
+    ArgArray.Elements.AddElement.Expr:=CreateLiteralString(El,ModuleName);
+
+    // add interface-uses-section parameter: [<interface uses1>,<uses2>, ...]
+    UsesSection:=nil;
     if (El is TPasProgram) then
-      begin // program
-      if Assigned(TPasProgram(El).ProgramSection) then
-        AddToSourceElements(Src,ConvertDeclarations(TPasProgram(El).ProgramSection,IntfContext));
-      CreateInitSection(El,Src,IntfContext);
-      end
-    else if El is TPasLibrary then
-      begin // library
-      if Assigned(TPasLibrary(El).LibrarySection) then
-        AddToSourceElements(Src,ConvertDeclarations(TPasLibrary(El).LibrarySection,IntfContext));
-      CreateInitSection(El,Src,IntfContext);
-      end
+      UsesSection:=TPasProgram(El).ProgramSection
+    else if (El is TPasLibrary) then
+      UsesSection:=TPasLibrary(El).LibrarySection
     else
-      begin // unit
-      if Assigned(El.ImplementationSection) then
-        begin
-        // add var $impl = $mod.$impl
-        ImplVarSt:=CreateVarStatement(FBuiltInNames[pbivnImplementation],
-          CreateMemberExpression([ModVarName,FBuiltInNames[pbivnImplementation]]),El);
-        AddToSourceElements(Src,ImplVarSt);
-        // register local var $impl
-        IntfContext.AddLocalVar(FBuiltInNames[pbivnImplementation],El.ImplementationSection);
-        end;
-      if Assigned(El.InterfaceSection) then
-        AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
-      CreateInitSection(El,Src,IntfContext);
+      UsesSection:=El.InterfaceSection;
+    ArgArray.Elements.AddElement.Expr:=CreateUsesList(UsesSection,AContext);
 
-      // add optional implementation uses list: [<implementation uses1>,<uses2>, ...]
-      if Assigned(El.ImplementationSection) then
-        begin
-        UsesClause:=El.ImplementationSection.UsesClause;
-        if length(UsesClause)>0 then
+    // add interface parameter: function(){}
+    FunDecl:=CreateFunctionSt(El,true,true);
+    ArgArray.AddElement(FunDecl);
+    Src:=FunDecl.AFunction.Body.A as TJSSourceElements;
+
+    if coUseStrict in Options then
+      // "use strict" must be the first statement in a function
+      AddToSourceElements(Src,CreateLiteralString(El,'use strict'));
+
+    ImplVarSt:=nil;
+    HasImplUsesClause:=false;
+
+    IntfContext:=TSectionContext.Create(El,Src,AContext);
+    try
+      // add "var $mod = this;"
+      IntfContext.ThisPas:=El;
+      if El.CustomData is TPasModuleScope then
+        IntfContext.ScannerBoolSwitches:=TPasModuleScope(El.CustomData).BoolSwitches;
+      ModVarName:=FBuiltInNames[pbivnModule];
+      IntfContext.AddLocalVar(ModVarName,El);
+      AddToSourceElements(Src,CreateVarStatement(ModVarName,
+        CreatePrimitiveDotExpr('this',El),El));
+
+      if (El is TPasProgram) then
+        begin // program
+        if Assigned(TPasProgram(El).ProgramSection) then
+          AddToSourceElements(Src,ConvertDeclarations(TPasProgram(El).ProgramSection,IntfContext));
+        CreateInitSection(El,Src,IntfContext);
+        end
+      else if El is TPasLibrary then
+        begin // library
+        if Assigned(TPasLibrary(El).LibrarySection) then
+          AddToSourceElements(Src,ConvertDeclarations(TPasLibrary(El).LibrarySection,IntfContext));
+        CreateInitSection(El,Src,IntfContext);
+        end
+      else
+        begin // unit
+        if Assigned(El.ImplementationSection) then
           begin
-          ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
-          HasImplUsesClause:=true;
+          // add var $impl = $mod.$impl
+          ImplVarSt:=CreateVarStatement(FBuiltInNames[pbivnImplementation],
+            CreateMemberExpression([ModVarName,FBuiltInNames[pbivnImplementation]]),El);
+          AddToSourceElements(Src,ImplVarSt);
+          // register local var $impl
+          IntfContext.AddLocalVar(FBuiltInNames[pbivnImplementation],El.ImplementationSection);
           end;
+        if Assigned(El.InterfaceSection) then
+          AddToSourceElements(Src,ConvertDeclarations(El.InterfaceSection,IntfContext));
+        CreateInitSection(El,Src,IntfContext);
+
+        // add optional implementation uses list: [<implementation uses1>,<uses2>, ...]
+        if Assigned(El.ImplementationSection) then
+          begin
+          UsesClause:=El.ImplementationSection.UsesClause;
+          if length(UsesClause)>0 then
+            begin
+            ArgArray.AddElement(CreateUsesList(El.ImplementationSection,AContext));
+            HasImplUsesClause:=true;
+            end;
+          end;
+
         end;
-
-      end;
-  finally
-    IntfContext.Free;
-  end;
-
-  // add implementation function
-  if ImplVarSt<>nil then
-    begin
-    ImplFunc:=CreateImplementationSection(El,AContext);
-    if ImplFunc=nil then
-      begin
-      // remove unneeded $impl from interface
-      RemoveFromSourceElements(Src,ImplVarSt);
-      end
-    else
-      begin
-      // add param
-      if not HasImplUsesClause then
-        ArgArray.AddElement(CreateLiteralNull(El));
-      ArgArray.AddElement(ImplFunc);
-      end;
+    finally
+      IntfContext.Free;
     end;
+
+    // add implementation function
+    if ImplVarSt<>nil then
+      begin
+      ImplFunc:=CreateImplementationSection(El,AContext);
+      if ImplFunc=nil then
+        begin
+        // remove unneeded $impl from interface
+        RemoveFromSourceElements(Src,ImplVarSt);
+        end
+      else
+        begin
+        // add param
+        if not HasImplUsesClause then
+          ArgArray.AddElement(CreateLiteralNull(El));
+        ArgArray.AddElement(ImplFunc);
+        end;
+      end;
+    ok:=true;
+  finally
+    if not ok then
+      FreeAndNil(Result);
+  end;
 end;
 
 function TPasToJSConverter.CreateElement(C: TJSElementClass; Src: TPasElement
@@ -7653,7 +7659,10 @@ var
         begin
         AccessEl:=aResolver.GetPasPropertySetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
+          begin
+          FreeAndNil(Call);
           exit;
+          end;
         AssignContext:=AContext.AccessContext as TAssignContext;
         AssignContext.PropertyEl:=Prop;
         AssignContext.Setter:=AccessEl;
@@ -7663,7 +7672,10 @@ var
         begin
         AccessEl:=aResolver.GetPasPropertyGetter(Prop);
         if IsJSBracketAccessorAndConvert(Prop,AccessEl,AContext,true) then
+          begin
+          FreeAndNil(Call);
           exit;
+          end;
         end
       else
         RaiseNotSupported(El,AContext,20170213213317);

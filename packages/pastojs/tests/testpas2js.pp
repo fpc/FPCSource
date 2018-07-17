@@ -17,6 +17,7 @@ program testpas2js;
 {$mode objfpc}{$H+}
 
 uses
+  //MemCheck,
   Classes, consoletestrunner, tcconverter, tcmodules, tcoptimizations, tcsrcmap,
   tcfiler, Pas2JsFiler, tcunitsearch, tcprecompile;
 

@@ -1139,6 +1139,13 @@ begin
   {$IFDEF EnablePasTreeGlobalRefCount}
   FElementRefCountAtSetup:=TPasElement.GlobalRefCount;
   {$ENDIF}
+
+  if FModules<>nil then
+    begin
+    writeln('TCustomTestModule.SetUp FModules<>nil');
+    Halt;
+    end;
+
   inherited SetUp;
   FSkipTests:=false;
   FSource:=TStringList.Create;
@@ -1196,7 +1203,6 @@ begin
   FHintMsgs.Clear;
   FHintMsgsGood.Clear;
   FSkipTests:=false;
-  FJSModule:=nil;
   FJSRegModuleCall:=nil;
   FJSModuleCallArgs:=nil;
   FJSImplentationUses:=nil;
@@ -1704,6 +1710,7 @@ begin
   writeln('CheckUnit '+Filename+' converting ...');
   {$ENDIF}
   aConverter:=CreateConverter;
+  aJSModule:=nil;
   try
     try
       aJSModule:=aConverter.ConvertPasElement(aResolver.Module,aResolver) as TJSSourceElements;
@@ -1720,6 +1727,7 @@ begin
     {$ENDIF}
     CheckDiff('Converted unit: "'+ChangeFileExt(Filename,'.js')+'"',ExpectedSrc,ActualSrc);
   finally
+    aJSModule.Free;
     aConverter.Free;
   end;
 end;
