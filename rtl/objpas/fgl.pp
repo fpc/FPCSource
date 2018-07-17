@@ -96,9 +96,9 @@ type
 
 const
 {$ifdef cpu16}
-  MaxGListSize = {MaxInt div} 1024;
+  MaxGListSize = {MaxInt div} 1024 deprecated;
 {$else cpu16}
-  MaxGListSize = MaxInt div 1024;
+  MaxGListSize = MaxInt div 1024 deprecated;
 {$endif cpu16}
 
 type
