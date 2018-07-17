@@ -27,7 +27,8 @@ interface
 uses
   Classes, SysUtils, contnrs,
   fpcunit, testregistry,
-  PScanner, Pas2jsFileUtils, Pas2jsCompiler, Pas2jsFileCache, Pas2jsLogger,
+  PScanner, PasTree, PasResolveEval,
+  Pas2jsFileUtils, Pas2jsCompiler, Pas2jsFileCache, Pas2jsLogger,
   tcmodules;
 
 type
@@ -84,6 +85,9 @@ type
     FFiles: TObjectList; // list of TCLIFile
     FLogMsgs: TObjectList; // list ot TCLILogMsg
     FParams: TStringList;
+    {$IFDEF EnablePasTreeGlobalRefCount}
+    FElementRefCountAtSetup: int64;
+    {$ENDIF}
     function GetExitCode: integer;
     function GetFiles(Index: integer): TCLIFile;
     function GetLogMsgs(Index: integer): TCLILogMsg;
@@ -211,6 +215,9 @@ end;
 
 procedure TCustomTestCLI.SetUp;
 begin
+  {$IFDEF EnablePasTreeGlobalRefCount}
+  FElementRefCountAtSetup:=TPasElement.GlobalRefCount;
+  {$ENDIF}
   inherited SetUp;
   FDefaultFileAge:=DateTimeToFileDate(Now);
   {$IFDEF Windows}
@@ -228,6 +235,11 @@ begin
 end;
 
 procedure TCustomTestCLI.TearDown;
+{$IFDEF CheckPasTreeRefCount}
+var
+  El: TPasElement;
+  i: integer;
+{$ENDIF}
 begin
   FreeAndNil(FCompiler);
   FParams.Clear;
@@ -239,6 +251,24 @@ begin
   FErrorCol:=0;
   FErrorNumber:=0;
   inherited TearDown;
+  {$IFDEF EnablePasTreeGlobalRefCount}
+  if FElementRefCountAtSetup<>TPasElement.GlobalRefCount then
+    begin
+    writeln('TCustomTestCLI.TearDown GlobalRefCount Was='+IntToStr(FElementRefCountAtSetup)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    {$IFDEF CheckPasTreeRefCount}
+    El:=TPasElement.FirstRefEl;
+    while El<>nil do
+      begin
+      writeln('  ',GetObjName(El),' RefIds.Count=',El.RefIds.Count,':');
+      for i:=0 to El.RefIds.Count-1 do
+        writeln('    ',El.RefIds[i]);
+      El:=El.NextRefEl;
+      end;
+    {$ENDIF}
+    Halt;
+    Fail('TCustomTestCLI.TearDown Was='+IntToStr(FElementRefCountAtSetup)+' Now='+IntToStr(TPasElement.GlobalRefCount));
+    end;
+  {$ENDIF}
 end;
 
 procedure TCustomTestCLI.DoLog(Sender: TObject; const Msg: String);

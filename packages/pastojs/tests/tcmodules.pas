@@ -1137,7 +1137,7 @@ end;
 procedure TCustomTestModule.SetUp;
 begin
   {$IFDEF EnablePasTreeGlobalRefCount}
-  FElementRefCountAtSetup:=FModule.GlobalRefCount;
+  FElementRefCountAtSetup:=TPasElement.GlobalRefCount;
   {$ENDIF}
   inherited SetUp;
   FSkipTests:=false;
@@ -1246,7 +1246,7 @@ begin
       El:=El.NextRefEl;
       end;
     {$ENDIF}
-    //Halt;
+    Halt;
     Fail('TCustomTestModule.TearDown Was='+IntToStr(FElementRefCountAtSetup)+' Now='+IntToStr(TPasElement.GlobalRefCount));
     end;
   {$ENDIF}

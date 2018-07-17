@@ -776,6 +776,8 @@ begin
   FreeAndNil(FScanner);
   FreeAndNil(FFileResolver);
   FreeAndNil(FPasResolver);
+  if FPasModule<>nil then
+    FPasModule.ReleaseUsedUnits;
   ReleaseAndNil(TPasElement(FPasModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
   inherited Destroy;
 end;

@@ -14433,7 +14433,7 @@ begin
 
     // set ancestor
     aClass.AncestorType := DestType;
-    {$IFDEF CheckPasTreeRefCount}DestType.ChangeRefId('TPasAliasType.DestType','TPasClassType.AncestorType');{$ENDIF}
+    {$IFDEF CheckPasTreeRefCount}DestType.ChangeRefId('ResolveTypeReference','TPasClassType.AncestorType');{$ENDIF}
     FinishScope(stAncestors,aClass);
     end;
 end;

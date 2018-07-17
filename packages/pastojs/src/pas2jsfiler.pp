@@ -4398,10 +4398,7 @@ var
   Scope: TPasPropertyScope absolute Data;
 begin
   if RefEl is TPasProperty then
-    begin
-    Scope.AncestorProp:=TPasProperty(RefEl);
-    RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasPropertyScope.AncestorProp'){$ENDIF};
-    end
+    Scope.AncestorProp:=TPasProperty(RefEl)
   else
     RaiseMsg(20180213214723,Scope.Element,GetObjName(RefEl));
 end;
