@@ -3470,6 +3470,7 @@ begin
              CheckHint(ArrEl,True);
              ArrEl.ElType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
              ArrEl.ElType:=TPasGenericTemplateType(List[0]);
+             List.Clear;
              Engine.FinishScope(stTypeDef,ArrEl);
              end;
           else

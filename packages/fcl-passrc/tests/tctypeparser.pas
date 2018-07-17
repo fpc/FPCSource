@@ -2989,8 +2989,8 @@ begin
   ParseDeclarations;
   AssertEquals('One type definition',1,Declarations.Types.Count);
   AssertEquals('First declaration is type definition.',TPasArrayType,TObject(Declarations.Types[0]).ClassType);
-  AssertEquals('First declaration has correct name.','TArray',TPasType(Declarations.Types[0]).Name);
   FType:=TPasType(Declarations.Types[0]);
+  AssertEquals('First declaration has correct name.','TArray',FType.Name);
   AssertEquals('Array type','',TPasArrayType(TheType).IndexRange);
   AssertEquals('Generic Array type',True,TPasArrayType(TheType).IsGenericArray);
 end;

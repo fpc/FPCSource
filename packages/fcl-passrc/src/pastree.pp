@@ -3723,7 +3723,7 @@ end;
 
 function TPasArrayType.IsGenericArray: Boolean;
 begin
-  Result:=elType is TPasGenericTemplateType;
+  Result:=ElType is TPasGenericTemplateType;
 end;
 
 function TPasArrayType.IsPacked: Boolean;
