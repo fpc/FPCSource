@@ -27,7 +27,8 @@ interface
 uses
   Classes, SysUtils, contnrs,
   fpcunit, testregistry,
-  PScanner, PasTree, PasResolveEval,
+  PScanner, PasTree,
+  {$IFDEF CheckPasTreeRefCount}PasResolveEval,{$ENDIF}
   Pas2jsFileUtils, Pas2jsCompiler, Pas2jsFileCache, Pas2jsLogger,
   tcmodules;
 
