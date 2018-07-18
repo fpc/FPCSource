@@ -1331,30 +1331,45 @@ end;
 
 procedure TDataSet.SetName(const Value: TComponentName);
 
-function CheckName(const FieldName: string): string;
-var i,j: integer;
-begin
-  Result := FieldName;
-  i := 0;
-  j := 0;
-  while (i < Fields.Count) do begin
-    if Result = Fields[i].FieldName then begin
-      inc(j);
-      Result := FieldName + IntToStr(j);
-    end else Inc(i);
+  function CheckName(const FieldName: string): string;
+
+  var i,j: integer;
+
+  begin
+    Result := FieldName;
+    i := 0;
+    j := 0;
+    // Check if fieldname exists.
+    while (i < Fields.Count) do
+      if Not SameText(Result,Fields[i].Name) then
+        inc(i)
+      else
+        begin
+        inc(j);
+        Result := FieldName + IntToStr(j);
+        i := 0;
+        end;
+    // Check if component with the same name exists.
+    if Assigned(Owner) then
+      While Owner.FindComponent(Result)<>Nil do
+        begin
+        Inc(J);
+        Result := FieldName + IntToStr(j);
+        end;
   end;
-end;
-var i: integer;
-    nm: string;
-    old: string;
+
+var
+  i: integer;
+  OldName, OldFieldName: string;
+
 begin
   if Self.Name = Value then Exit;
-  old := Self.Name;
+  OldName := Self.Name;
   inherited SetName(Value);
   if (csDesigning in ComponentState) then
     for i := 0 to Fields.Count - 1 do begin
-      nm := old + Fields[i].FieldName;
-      if Copy(Fields[i].Name, 1, Length(nm)) = nm then
+      OldFieldName := OldName + Fields[i].FieldName;
+      if Copy(Fields[i].Name, 1, Length(OldFieldName)) = OldFieldName then
         Fields[i].Name := CheckName(Value + Fields[i].FieldName);
     end;
 end;
