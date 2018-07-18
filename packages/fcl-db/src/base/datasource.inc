@@ -63,8 +63,8 @@ begin
     Result := DataSource.DataSet.FActiveRecord - (FFirstRecord + Index + FBufferCount - 1)
   else if DataSource.DataSet.FActiveRecord < FFirstRecord + Index then
     Result := DataSource.DataSet.FActiveRecord - (FFirstRecord + Index)
-  else Result := 0;
-  
+  else
+    Result := 0;
   Inc(FFirstRecord, Index + Result);
 end;
 
@@ -578,6 +578,16 @@ begin
         If VisualControl Then
           DataEvent(Event,Info);
     end;
+end;
+
+function TDataSource.GetLink(AIndex : Integer): TDataLink;
+begin
+  Result:=TDataLink(FDataLinks[aindex]);
+end;
+
+function TDataSource.GetLinkCount: Integer;
+begin
+  Result:=FDataLinks.Count;
 end;
 
 procedure TDatasource.RegisterDataLink(DataLink: TDataLink);

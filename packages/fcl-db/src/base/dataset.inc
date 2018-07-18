@@ -52,12 +52,9 @@ begin
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
-  With FDataSources do
-    begin
-    While Count>0 do
-      TDataSource(Items[Count - 1]).DataSet:=Nil;
-    Free;
-    end;
+  While MyDatasourceCount>0 do
+    MyDataSources[MyDatasourceCount - 1].DataSet:=Nil;
+  FDatasources.Free;
   for i := 0 to FBufferCount do
     FreeRecordBuffer(FBuffers[i]);
   FConstraints.Free;
@@ -270,8 +267,8 @@ begin
   end;
 
   if not ControlsDisabled and (FState <> dsBlockRead) then begin
-    for i := 0 to FDataSources.Count - 1 do
-      TDataSource(FDataSources[i]).ProcessEvent(Event, Info);
+    for i := 0 to MyDataSourceCount - 1 do
+      MyDataSources[i].ProcessEvent(Event, Info);
   end;
 end;
 
@@ -474,6 +471,16 @@ function TDataSet.GetBuffer(Index: longint): TRecordBuffer;
 
 begin
   Result:=FBuffers[Index];
+end;
+
+function TDataSet.GetDatasourceCount: Integer;
+begin
+  Result:=FDataSources.Count;
+end;
+
+function TDataSet.GetDatasources(aIndex : integer): TDatasource;
+begin
+  Result:=TDatasource(FDataSources[aIndex]);
 end;
 
 procedure TDataSet.GetCalcFields(Buffer: TRecordBuffer);
@@ -1135,10 +1142,10 @@ begin
   else
     ABufferCount := DefaultBufferCount;
 
-  for i := 0 to FDataSources.Count - 1 do
-    for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
+  for i := 0 to MyDataSourceCount - 1 do
+    for j := 0 to MyDataSources[i].DataLinkCount - 1 do
       begin
-      DataLink:=TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
+      DataLink:=MyDataSources[i].DataLink[j];
       if ABufferCount<DataLink.BufferCount then
         ABufferCount:=DataLink.BufferCount;
       end;
@@ -1167,6 +1174,9 @@ begin
     ' FBufferCount= ',FBufferCount,
     ' FRecordCount=',FRecordCount);
 {$Endif}
+  for i := 0 to MyDataSourceCount - 1 do
+    for j := 0 to MyDataSources[i].DataLinkCount - 1 do
+       MyDataSources[i].DataLink[j].CalcRange;
 end;
 
 procedure TDataSet.SetBookmarkStr(const Value: TBookmarkStr);
