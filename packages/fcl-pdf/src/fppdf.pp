@@ -65,6 +65,7 @@ type
   TPDFPaperType = (ptCustom, ptA4, ptA5, ptLetter, ptLegal, ptExecutive, ptComm10, ptMonarch, ptDL, ptC5, ptB5);
   TPDFPaperOrientation = (ppoPortrait,ppoLandscape);
   TPDFPenStyle = (ppsSolid,ppsDash,ppsDot,ppsDashDot,ppsDashDotDot);
+  TPDFLineCapStyle = (plcsButtCap, plcsRoundCap, plcsProjectingSquareCap);
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
@@ -143,6 +144,7 @@ type
   TPDFDocumentObject = Class(TPDFObject)
   Private
     FDocument : TPDFDocument;
+    FLineCapStyle: TPDFLineCapStyle;
   Public
     Constructor Create(Const ADocument : TPDFDocument); override; overload;
     Procedure SetWidth(AWidth : TPDFFloat; AStream : TStream);
@@ -953,6 +955,7 @@ type
     FCatalogue: integer;
     FCurrentColor: string;
     FCurrentWidth: string;
+    FLineCapStyle: TPDFLineCapStyle;
     FDefaultOrientation: TPDFPaperOrientation;
     FDefaultPaperType: TPDFPaperType;
     FFontDirectory: string;
@@ -1070,6 +1073,7 @@ type
     Property FontDirectory: string Read FFontDirectory Write FFontDirectory;
     Property Sections : TPDFSectionList Read FSections;
     Property ObjectCount : Integer Read FObjectCount;
+    Property LineCapStyle: TPDFLineCapStyle Read FLineCapStyle Write FLineCapStyle;
   Published
     Property Options : TPDFOptions Read FOptions Write FOPtions;
     Property LineStyles : TPDFLineStyleDefs Read FLineStyleDefs Write SetLineStyles;
@@ -2557,6 +2561,7 @@ constructor TPDFDocumentObject.Create(const ADocument: TPDFDocument);
 begin
   inherited Create(ADocument);
   FDocument:=ADocument;
+  FLineCapStyle := FDocument.LineCapStyle;
 end;
 
 procedure TPDFDocumentObject.SetWidth(AWidth: TPDFFloat; AStream : TStream);
@@ -2567,7 +2572,7 @@ begin
   S:=FloatStr(AWidth)+' w'; // stroke width
   if (S<>Document.CurrentWidth) then
     begin
-    WriteString('1 J'+CRLF, AStream); // line cap set to rounded edge
+    WriteString(IntToStr(Ord(FLineCapStyle))+' J'+CRLF, AStream); //set line cap
     WriteString(S+CRLF, AStream);
     Document.CurrentWidth:=S;
     end;
@@ -4886,6 +4891,7 @@ begin
   FZoomValue:='100';
   FOptions := [poCompressFonts, poCompressImages];
   FUnitOfMeasure:=uomMillimeters;
+  FLineCapStyle := plcsRoundCap;
 end;
 
 procedure TPDFDocument.StartDocument;
