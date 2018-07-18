@@ -170,8 +170,11 @@ begin
   // strike-through text
   P.WriteText(25, 64, 'Strike-Through text', 0, false, true);
 
-  // strike-through text
+  // underline text
   P.WriteText(65, 64, 'Underlined text', 0, true);
+
+  // underline and strikethrough text
+  P.WriteText(120, 64, 'Underlined and strikethrough text', 0, true, true);
 
   // rotated text
   P.SetColor(clBlue, false);

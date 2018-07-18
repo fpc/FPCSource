@@ -2561,7 +2561,8 @@ constructor TPDFDocumentObject.Create(const ADocument: TPDFDocument);
 begin
   inherited Create(ADocument);
   FDocument:=ADocument;
-  FLineCapStyle := FDocument.LineCapStyle;
+  if Assigned(FDocument) then
+    FLineCapStyle := FDocument.LineCapStyle;
 end;
 
 procedure TPDFDocumentObject.SetWidth(AWidth: TPDFFloat; AStream : TStream);
@@ -3348,8 +3349,8 @@ begin
 
   { line segment is relative to matrix translation coordinate, set above }
   if Underline then
-    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream)
-  else
+    WriteString(Format('0 -1.5 m %s -1.5 l S', [FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
+  if StrikeThrough then
     WriteString(Format('0 %s m %s %0:s l S', [FloatStr(mmToPDF(lTextHeightInMM) / 2), FloatStr(mmToPDF(lTextWidthInMM))]) + CRLF, AStream);
 
   { restore graphics state to before the translation matrix adjustment }
