@@ -4295,15 +4295,16 @@ begin
     M := TMemoryStream.Create;
     X.FStream.Write(M);
     d := M.Size;
-    X.Dict.AddInteger('Length', M.Size);
 
     if poCompressText in Options then
     begin
       MCompressed := TMemoryStream.Create;
       CompressStream(M, MCompressed);
       X.Dict.AddName('Filter', 'FlateDecode');
-      X.Dict.AddInteger('Length1', MCompressed.Size);
+      //X.Dict.AddInteger('Length1', MCompressed.Size); //Missing 'endstream' or incorrect stream length|stream Length incorrect
+      d :=  MCompressed.Size;
     end;
+    X.Dict.AddInteger('Length', d);
 
     X.Dict.Write(AStream);
 
