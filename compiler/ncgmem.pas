@@ -1074,8 +1074,8 @@ implementation
               if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
                  not valid_index_size(right.location.size) then
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
-                  indexdef:=ptruinttype
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,sizeuinttype,true);
+                  indexdef:=sizeuinttype
                 end
               else
                 indexdef:=right.resultdef;
