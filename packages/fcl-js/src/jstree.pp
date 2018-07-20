@@ -1621,7 +1621,7 @@ end;
 
 destructor TJSArrayLiteralElement.Destroy;
 begin
-  FreeAndNil(Fexpr);
+  FreeAndNil(FExpr);
   inherited Destroy;
 end;
 

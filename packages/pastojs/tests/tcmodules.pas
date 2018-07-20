@@ -9048,22 +9048,25 @@ end;
 procedure TTestModule.TestClass_TObjectDefaultConstructor;
 begin
   StartProgram(false);
-  Add('type');
-  Add('  TObject = class');
-  Add('  public');
-  Add('    constructor Create;');
-  Add('    destructor Destroy;');
-  Add('  end;');
-  Add('  TBird = TObject;');
-  Add('constructor tobject.create;');
-  Add('begin end;');
-  Add('destructor tobject.destroy;');
-  Add('begin end;');
-  Add('var Obj: tobject;');
-  Add('begin');
-  Add('  obj:=tobject.create;');
-  Add('  obj:=tbird.create;');
-  Add('  obj.destroy;');
+  Add(['type',
+  '  TObject = class',
+  '  public',
+  '    constructor Create;',
+  '    destructor Destroy;',
+  '  end;',
+  '  TBird = TObject;',
+  'constructor tobject.create;',
+  'begin end;',
+  'destructor tobject.destroy;',
+  'begin end;',
+  'var Obj: tobject;',
+  'begin',
+  '  obj:=tobject.create;',
+  '  obj:=tobject.create();',
+  '  obj:=tbird.create;',
+  '  obj:=tbird.create();',
+  '  obj.destroy;',
+  '']);
   ConvertProgram;
   CheckSource('TestClass_TObjectDefaultConstructor',
     LinesToStr([ // statements
@@ -9080,6 +9083,8 @@ begin
     'this.Obj = null;'
     ]),
     LinesToStr([ // $mod.$main
+    '$mod.Obj = $mod.TObject.$create("Create");',
+    '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj = $mod.TObject.$create("Create");',
     '$mod.Obj.$destroy("Destroy");',

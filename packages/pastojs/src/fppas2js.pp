@@ -5282,7 +5282,6 @@ var
   ClassScope: TPasClassScope;
   aClass: TPasElement;
   ArgEx: TJSLiteral;
-  ArgElems: TJSArrayLiteralElements;
   FunName: String;
 begin
   Result:=nil;
@@ -5308,10 +5307,9 @@ begin
       FunName:=FBuiltInNames[pbifnClassInstanceFree];
     FunName:=CreateReferencePath(Proc,AContext,rpkPathWithDot,false,Ref)+FunName;
     C.Expr:=CreatePrimitiveDotExpr(FunName,Ref.Element);
-    ArgElems:=C.Args.Elements;
     // parameter: "funcname"
     ArgEx := CreateLiteralString(Ref.Element,TransformVariableName(Proc,AContext));
-    ArgElems.AddElement.Expr:=ArgEx;
+    C.AddArg(ArgEx);
     ok:=true;
   finally
     if not ok then
@@ -6757,7 +6755,7 @@ begin
         // insert array parameter [], e.g. this.TObject.$create("create",[])
         ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
         CreateProcedureCallArgs(ArrLit.Elements,nil,TargetProcType,AContext);
-        Call.Args.Elements.AddElement.Expr:=ArrLit;
+        Call.AddArg(ArrLit);
         end;
       end;
     exit;
@@ -7908,7 +7906,7 @@ var
   TargetProcType: TPasProcedureType;
   Call: TJSCallExpression;
   Elements: TJSArrayLiteralElements;
-  E: TJSArrayLiteral;
+  JsArrLit: TJSArrayLiteral;
   OldAccess: TCtxAccess;
   DeclResolved, ParamResolved, ValueResolved: TPasResolverResult;
   Param: TPasExpr;
@@ -7920,6 +7918,7 @@ var
   aResolver: TPas2JSResolver;
   NeedIntfRef: Boolean;
   DestRange, SrcRange: TResEvalValue;
+  LastArg: TJSArrayLiteralElement;
 begin
   Result:=nil;
   if El.Kind<>pekFuncParams then
@@ -8216,8 +8215,19 @@ begin
       RaiseNotSupported(El,AContext,20170215114337);
       end;
     if [rrfNewInstance,rrfFreeInstance]*Ref.Flags<>[] then
+      begin
       // call constructor, destructor
       Call:=CreateFreeOrNewInstanceExpr(Ref,AContext);
+      if rrfNewInstance in Ref.Flags then
+        begin
+        // insert array parameter [], e.g. this.TObject.$create("create",[])
+        JsArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
+        Call.AddArg(JsArrLit);
+        Elements:=JsArrLit.Elements;
+        end
+      else
+        Elements:=Call.Args.Elements;
+      end;
     end;
 
   // BEWARE: TargetProcType can be nil, if called without resolver
@@ -8251,15 +8261,21 @@ begin
       Elements:=Call.Args.Elements;
       end
     else if Elements=nil then
-      begin
-      // insert array parameter [], e.g. this.TObject.$create("create",[])
-      Elements:=Call.Args.Elements;
-      E:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-      Elements.AddElement.Expr:=E;
-      Elements:=TJSArrayLiteral(E).Elements;
-      end;
+      RaiseInconsistency(20180720154413,El);
     CreateProcedureCallArgs(Elements,El,TargetProcType,AContext);
-    if Elements.Count=0 then
+    if (Elements.Count=0)
+        and (Call.Args.Elements.Count>0)
+        then
+      begin
+      LastArg:=Call.Args.Elements[Call.Args.Elements.Count-1];
+      if not (LastArg.Expr is TJSArrayLiteral) then
+        RaiseNotSupported(El,AContext,20180720161317);
+      JsArrLit:=TJSArrayLiteral(LastArg.Expr);
+      if JsArrLit.Elements<>Elements then
+        RaiseNotSupported(El,AContext,20180720161324);
+      LastArg.Free;
+      end;
+    if Call.Args.Elements.Count=0 then
       begin
       Call.Args.Free;
       Call.Args:=nil;
