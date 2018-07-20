@@ -367,6 +367,51 @@ Type
   FarPointer = Pointer;
 {$endif CPUAARCH64}
 
+{$ifdef CPURISCV32}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPURISCV32}
+
+{$ifdef CPURISCV64}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_MUL}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  {$ifndef FPUNONE}
+    {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+    ValReal = Double;
+  {$endif}
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPURISCV64}
+
 
 {$ifdef CPU64}
   SizeInt = Int64;

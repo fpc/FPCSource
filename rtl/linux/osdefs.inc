@@ -94,6 +94,16 @@
   {$define FPC_USEGETTIMEOFDAY}
 {$endif cpusparc64}
 
+{$ifdef cpuriscv32}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuriscv32}
+
+{$ifdef cpuriscv64}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuriscv64}
+
 {$ifdef android}
   {$undef usestime}
   {$undef OLDMMAP}

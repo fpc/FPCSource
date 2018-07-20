@@ -168,6 +168,14 @@ program fpc;
      processorname:='mips';
   {$endif mips}
 {$endif not mipsel}
+{$ifdef riscv32}
+     ppcbin:='ppcrv32';
+     processorname:='riscv32';
+{$endif riscv32}
+{$ifdef riscv64}
+     ppcbin:='ppcrv64';
+     processorname:='riscv64';
+{$endif riscv64}
      versionstr:='';                      { Default is just the name }
      if ParamCount = 0 then
        begin

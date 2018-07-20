@@ -93,6 +93,14 @@ interface
          addr_low_call,    // counterpart of two above, generate call_hi16 and call_lo16 relocs
          addr_high_call
          {$ENDIF}
+         {$if defined(RISCV32) or defined(RISCV64)}
+         ,
+         addr_hi20,
+         addr_lo12,
+         addr_pcrel_hi20,
+         addr_pcrel_lo12,
+         addr_pcrel
+         {$endif RISCV}
          {$IFDEF AVR}
          ,addr_lo8
          ,addr_lo8_gs

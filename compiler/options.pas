@@ -695,6 +695,12 @@ begin
 {$ifdef sparc64}
       's',
 {$endif}
+{$ifdef riscv32}
+      'R',
+{$endif}
+{$ifdef riscv64}
+      'r',
+{$endif}
 {$ifdef avr}
       'V',
 {$endif}
@@ -3581,6 +3587,23 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_COMP_IS_INT64');
       {$endif aarch64}
 
+      {$ifdef riscv32}
+        def_system_macro('CPURISCV');
+        def_system_macro('CPURISCV32');
+        def_system_macro('CPU32');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+      {$endif riscv32}
+      {$ifdef riscv64}
+        def_system_macro('CPURISCV');
+        def_system_macro('CPURISCV64');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+      {$endif riscv64}
+
       {$if defined(cpu8bitalu)}
         def_system_macro('CPUINT8');
       {$elseif defined(cpu16bitalu)}
@@ -4012,12 +4035,13 @@ begin
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,
          system_m68k_amiga,system_m68k_atari,
-         system_arm_nds,system_arm_embedded])
+         system_arm_nds,system_arm_embedded,
+         system_riscv32_embedded,system_riscv64_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$if defined(arm) or defined (m68k)}
+{$if defined(arm) or defined(riscv32) or defined(riscv64) or defined (m68k)}
      or (init_settings.fputype=fpu_soft)
 {$endif arm or m68k}
   then
