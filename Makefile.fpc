@@ -85,6 +85,12 @@ endif
 ifeq ($(CPU_TARGET),aarch64)
 PPSUF=a64
 endif
+ifeq ($(CPU_TARGET),riscv32)
+PPSUF=rv32
+endif
+ifeq ($(CPU_TARGET),riscv64)
+PPSUF=rv64
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)

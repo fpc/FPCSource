@@ -212,11 +212,7 @@ unit agrvgas;
     function TRVGNUAssembler.MakeCmdLine: TCmdStr;
       begin
         result := inherited MakeCmdLine;
-{$ifdef cpu64bitaddr}
-        Replace(result,'$ARCH','-m64')
-{$else cpu64bitaddr}
-        Replace(result,'$ARCH','-m32');
-{$endif cpu64bitaddr}
+        Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
       end;
 
 
@@ -227,7 +223,7 @@ unit agrvgas;
 
          idtxt  : 'AS';
          asmbin : 'as';
-         asmcmd : '-o $OBJ $EXTRAOPT $ARCH $ASM';
+         asmcmd : '-o $OBJ $EXTRAOPT -march=$ARCH $ASM';
          supported_targets : [system_riscv32_linux,system_riscv64_linux];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';

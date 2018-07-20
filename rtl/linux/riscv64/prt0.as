@@ -20,14 +20,14 @@ _dynamic_start:
 	.type	_start, function
 _start:
 1:
-  auipc gp, %pcrel_hi(__bss_start+0x800)
-  addi  gp, gp, %pcrel_lo(1b)
+	auipc gp, %pcrel_hi(__bss_start+0x800)
+	addi  gp, gp, %pcrel_lo(1b)
   
 	/* Get argc, argv, envp */
 	ld		x5,(x2)
 	addi	x6,x2,8
 	addi	x7,x5,1
-	slli  x7,x7,3
+	slli    x7,x7,3
 	add 	x7,x6,x7
 
 	/* Save argc, argv, envp, and initial stack pointer */

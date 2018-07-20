@@ -45,63 +45,79 @@
         .globl _start
         .type _start,function
 _start:
+        .option push
+        .option norelax
+1:auipc gp, %pcrel_hi(__global_pointer$)
+        addi  gp, gp, %pcrel_lo(1b)
+        .option pop
+        
         /* Clear the frame pointer since this is the outermost frame.  */
-        mov fp, #0
-        ldmia   sp!, {a2}
+        addi fp, x0, 0
+        ld   a2, 0(sp)
+        addi sp, sp, 8
 
         /* Pop argc off the stack and save a pointer to argv */
-        ldr ip,=operatingsystem_parameter_argc
-        ldr a3,=operatingsystem_parameter_argv
-        str a2,[ip]
+1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argc)
+	sd	a2,%pcrel_lo(1b)(x8)
+1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argv)
+	sd	sp,%pcrel_lo(1b)(x8)
 
-        /* calc envp */
-        add a4,a2,#1
-        add a4,sp,a4,LSL #2
-        ldr ip,=operatingsystem_parameter_envp
+        addi a4, a2, 1
+        slli a4, a4, 3
+        add  a4, sp, a4
 
-        str sp,[a3]
-        str a4,[ip]
+1:auipc	x8,%pcrel_hi(operatingsystem_parameter_envp)
+	sd	a4,%pcrel_lo(1b)(x8)
 
         /* Save initial stackpointer */
-        ldr ip,=__stkptr
-        str sp,[ip]
+1:auipc	x8,%pcrel_hi(__stkptr)
+	sd	sp,%pcrel_lo(1b)(x8)
 
         /* Fetch address of fini */
-        ldr ip, =_fini
+1:auipc	x8,%pcrel_hi(_fini)
+	addi	a2,x8,%pcrel_lo(1b)
 
         /* argc already loaded to a2*/
 
         /* load argv */
-        mov a3, sp
+        addi a3, sp, 0
 
         /* Push stack limit */
-        str a3, [sp, #-4]!
+        sd   a3, -8(sp)
+        addi sp, sp, -8
 
         /* Push rtld_fini */
-        str a1, [sp, #-4]!
+        sd   a1, -8(sp)
+        addi sp, sp, -8
 
         /* Set up the other arguments in registers */
-        ldr a1, =PASCALMAIN
-        ldr a4, =_init
+1:auipc	x8,%pcrel_hi(PASCALMAIN)
+	addi a1, x8, %pcrel_lo(1b)
+1:auipc	x8,%pcrel_hi(_init)
+	addi a4, x8, %pcrel_lo(1b)
 
         /* Push fini */
-        str ip, [sp, #-4]!
+        sd   a2, -8(sp)
+        addi sp, sp, -8
 
         /* __libc_start_main (main, argc, argv, init, fini, rtld_fini, stack_end) */
 
         /* Let the libc call main and exit with its return code.  */
-        bl __libc_start_main
+1:auipc	x8,%pcrel_hi(__libc_start_main)
+        jalr ra, x8, %pcrel_lo(1b)
 
         /* should never get here....*/
-        bl abort
+1:auipc	x8,%pcrel_hi(abort)
+        jalr ra, x8, %pcrel_lo(1b)
 
         .globl  _haltproc
     .type   _haltproc,function
 _haltproc:
-        ldr r0,=operatingsystem_result
-        ldrb r0,[r0]
-        swi 0x900001
-        b _haltproc
+1:auipc	x8,%pcrel_hi(operatingsystem_result)
+	lbu	x1,%pcrel_lo(1b)(x8)
+	addi	x17, x0, 94
+	ecall
+        jal x0, _haltproc
 
         /* Define a symbol for the first piece of initialized data.  */
         .data

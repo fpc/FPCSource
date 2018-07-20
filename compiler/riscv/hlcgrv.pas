@@ -34,11 +34,15 @@ uses
   cgbase,cgutils,hlcgobj,hlcg2ll, parabase;
 
 type
+
+  { thlcgriscv }
+
   thlcgriscv = class(thlcg2ll)
    protected
     procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
    public
     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+    procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean); override;
   end;
 
 implementation
@@ -211,6 +215,45 @@ implementation
       current_procinfo:=nil;
 
       list.concat(Tai_symbol_end.Createname(labelname));
+    end;
+
+  procedure thlcgriscv.g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean);
+    var
+      sym: tasmsymbol;   
+      ai: taicpu;
+      href: treference;
+      tmpreg: TRegister;
+      l: TAsmLabel;
+    begin
+      maybe_new_object_file(list);
+      new_section(list,sec_code,wrappername,target_info.alignment.procalign);
+      if global then
+        begin
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
+          list.concat(Tai_symbol.Create_global(sym,0));
+        end
+      else
+        begin
+          sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_LOCAL,AT_FUNCTION,procdef);
+          list.concat(Tai_symbol.Create(sym,0));
+        end;
+
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION),0,0,[]);
+
+      tmpreg:=NR_X5;
+
+      current_asmdata.getjumplabel(l);
+      a_label(list,l);
+
+      href.refaddr:=addr_pcrel_hi20;
+      list.concat(taicpu.op_reg_ref(A_AUIPC,tmpreg,href));
+      reference_reset_symbol(href,l,0,0,[]);
+      href.refaddr:=addr_pcrel_lo12;
+      ai:=taicpu.op_reg_reg_ref(A_JALR,NR_X0,tmpreg,href);
+      ai.is_jmp:=true;
+      list.concat(ai);
+
+      list.concat(Tai_symbol_end.Create(sym));
     end;
 
 end.
