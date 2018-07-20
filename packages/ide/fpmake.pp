@@ -231,6 +231,10 @@ begin
               P.Options.Add('-Fu'+CompilerDir+'/sparcgen');
               P.Options.add('-Fi'+CompilerDir+'/sparcgen');
           end;
+        if CompilerTarget in [riscv32, riscv64] then
+          begin
+              P.Options.Add('-Fu'+CompilerDir+'/riscv');
+          end;
         
         if CompilerTarget = mipsel then
           P.Options.Add('-Fu'+CompilerDir+'/mips');

@@ -32,9 +32,9 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;nostackframe;[Public, a
     sd sp,  13*8(a0)
 
 {$if defined(FPUFD) or defined(FPUD)}
-    frcsr s0
+    frcsr t0
 
-    sd s0,   14*8(a0)
+    sd t0,   14*8(a0)
 
     fsd f8,  15*8(a0)
     fsd f9,  16*8(a0)
@@ -50,9 +50,9 @@ function fpc_setjmp(var S : jmp_buf) : longint;assembler;nostackframe;[Public, a
     fsd f27, 26*8(a0)
 {$endif FPUFD or FPUD}
 {$if defined(FPUF)}
-    frcsr s0
+    frcsr t0
                  
-    sd s0,   14*8(a0)
+    sd t0,   14*8(a0)
 
     fsw f8,  30*4(a0)
     fsw f9,  31*4(a0)
@@ -88,7 +88,7 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;nostackframe;[P
     ld s10,11*8(a0)
     ld s11,12*8(a0)
 
-{$if defined(FPUFD) or defined(FPUD)}     
+{$if defined(FPUFD) or defined(FPUD)}
     ld sp,   14*8(a0)
 
     fld f8,  15*8(a0)
@@ -126,7 +126,13 @@ procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;nostackframe;[P
 {$endif FPUF}     
     ld sp, 13*8(a0)
 
-    sltiu a0, a1, 1
-    add a0, a0, a1
+    beq a1, x0, .Lone
+    jal x0, .Lzero
+  .Lone:
+    addi a0, x0, 1
+    jal x0, .Lexit
+  .Lzero:
+    addi a0, a1, 0
+  .Lexit:
   end;
 

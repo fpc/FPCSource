@@ -19,9 +19,11 @@ _dynamic_start:
 	.globl	_start
 	.type	_start, function
 _start:
-1:
-	auipc gp, %pcrel_hi(__bss_start+0x800)
+	.option push
+	.option norelax
+1:  auipc gp, %pcrel_hi(__bss_start+0x800)
 	addi  gp, gp, %pcrel_lo(1b)
+	.option pop
   
 	/* Get argc, argv, envp */
 	ld		x5,(x2)
