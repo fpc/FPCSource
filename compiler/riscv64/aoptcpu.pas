@@ -164,10 +164,6 @@ implementation
                       result:=true;
                     end;
                 end;
-              A_ANDI:
-                begin
-
-                end;
             end;
           end;
       end;

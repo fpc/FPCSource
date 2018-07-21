@@ -121,12 +121,8 @@ unit nrv64cnv;
           begin
             { Load memory in fpu register }
             hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F32, OS_F32, left.location.reference, location.Register);
+            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, location.size, location.size, left.location.reference, location.Register);
             tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
-
-            case restype of
-              s64real: cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList, OS_F32, OS_F64, location.register, location.Register);
-            end;
           end;
       end;
 

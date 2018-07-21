@@ -1154,7 +1154,7 @@ unit i_linux;
                 recordalignmax  : 16;
                 maxCrecordalign : 16
               );
-            first_parm_offset : 8;
+            first_parm_offset : 16;
             stacksize    : 10*1024*1024;
             stackalign   : 16;
             abi : abi_default;

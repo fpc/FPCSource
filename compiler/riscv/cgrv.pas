@@ -32,6 +32,9 @@ unit cgrv;
        parabase;
 
     type
+
+      { tcgrv }
+
       tcgrv = class(tcg)
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
@@ -40,6 +43,7 @@ unit cgrv;
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean); override;
 
+        procedure a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference); override;
         procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize; reg: tregister; const ref: treference); override;
         procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; register: tregister); override;            
@@ -122,6 +126,15 @@ unit cgrv;
        { not assigned while generating external wrappers }
        if assigned(current_procinfo) then
          include(current_procinfo.flags,pi_do_call);
+      end;
+
+
+    procedure tcgrv.a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference);
+      begin
+        if a=0 then
+          a_load_reg_ref(list,size,size,NR_X0,ref)
+        else
+          inherited a_load_const_ref(list, size, a, ref);
       end;
 
 
@@ -226,20 +239,6 @@ unit cgrv;
         if (not assigned(href.symbol)) and
            (href.offset=0) then
           a_load_reg_reg(list,OS_ADDR,OS_ADDR,href.base,r)
-        {else if (assigned(href.symbol) or
-            (not is_imm12(href.offset))) and
-           (href.base<>NR_NO) then
-          begin
-            b:= href.base;
-
-            href.base:=NR_NO;
-            href.refaddr:=addr_hi20;
-            list.concat(taicpu.op_reg_ref(A_LUI,r,href));
-            href.refaddr:=addr_lo12;
-            list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,href));
-
-            list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,b));
-          end}
         else if (assigned(href.symbol) or
             (not is_imm12(href.offset))) and
            (href.base<>NR_NO) then
@@ -253,7 +252,7 @@ unit cgrv;
             href.refaddr:=addr_pcrel_hi20;
             list.concat(taicpu.op_reg_ref(A_AUIPC,r,href));
 
-            reference_reset_symbol(href,l,0,0,[]);
+            reference_reset_symbol(href,l,0,0,ref.volatility);
             href.refaddr:=addr_pcrel_lo12;
             list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,href));
 
@@ -264,26 +263,6 @@ unit cgrv;
           begin
             list.concat(taicpu.op_reg_reg_const(A_ADDI,r,href.base,href.offset));
           end
-        {else if (href.refaddr=addr_pcrel) then
-          begin
-            tmpreg:=getintregister(list,OS_ADDR);
-
-            current_asmdata.getaddrlabel(l);
-
-            a_label(list,l);
-
-            b:=href.base;
-            href.base:=NR_NO;
-
-            href.refaddr:=addr_hi20;
-            href.relsymbol:=l;
-            list.concat(taicpu.op_reg_ref(A_LUI,tmpreg,href));
-            href.refaddr:=addr_lo12;
-            list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,tmpreg,href));
-
-            if b<>NR_NO then
-              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,b));
-          end}
         else if (href.refaddr=addr_pcrel) then
           begin                     
             tmpreg:=getintregister(list,OS_ADDR);
@@ -297,7 +276,7 @@ unit cgrv;
             href.refaddr:=addr_pcrel_hi20;
             list.concat(taicpu.op_reg_ref(A_AUIPC,tmpreg,href));
 
-            reference_reset_symbol(href,l,0,0,[]);
+            reference_reset_symbol(href,l,0,0,ref.volatility);
             href.refaddr:=addr_pcrel_lo12;
             list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,tmpreg,href));
 
@@ -310,25 +289,9 @@ unit cgrv;
 
 
     procedure tcgrv.a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
-      var
-        reg1: TRegister;
-        ai: taicpu;
       begin
         if a=0 then
-          begin
-            reg1:=NR_X0;
-            if TOpCmp2AsmCond[cmp_op]=C_None then
-              begin
-                cmp_op:=swap_opcmp(cmp_op);
-                reg1:=reg;
-                reg:=NR_X0;
-              end;
-
-            ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,reg,reg1,l,0);
-            ai.is_jmp:=true;
-            ai.condition:=TOpCmp2AsmCond[cmp_op];
-            list.concat(ai);
-          end
+          a_cmp_reg_reg_label(list,size,cmp_op,NR_X0,reg,l)
         else
           inherited;
       end;
@@ -469,7 +432,7 @@ unit cgrv;
           begin
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,href,tmpreg);
-            reference_reset_base(href,tmpreg,0,ctempposinvalid,0,[]);
+            reference_reset_base(href,tmpreg,0,ctempposinvalid,0,ref.volatility);
           end;
 
         case fromsize of
@@ -558,7 +521,7 @@ unit cgrv;
           begin
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,href,tmpreg);
-            reference_reset_base(href,tmpreg,0,ctempposinvalid,0,[]);
+            reference_reset_base(href,tmpreg,0,ctempposinvalid,0,ref.volatility);
           end;
 
         if fromsize=OS_F32 then
@@ -586,7 +549,7 @@ unit cgrv;
           begin
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,href,tmpreg);
-            reference_reset_base(href,tmpreg,0,ctempposinvalid,0,[]);
+            reference_reset_base(href,tmpreg,0,ctempposinvalid,0,ref.volatility);
           end;
 
         if fromsize<>tosize then
@@ -614,13 +577,11 @@ unit cgrv;
         result:=true;
 
         if ref.refaddr=addr_pcrel then
-          begin
-            exit;
-          end;
+          exit;
 
         if assigned(ref.symbol) then
           begin
-            reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,[]);
+            reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
             ref.symbol:=nil;
             ref.offset:=0;
 
@@ -631,7 +592,7 @@ unit cgrv;
 
             href.refaddr:=addr_pcrel_hi20;
             list.concat(taicpu.op_reg_ref(A_AUIPC,tmpreg,href));
-            reference_reset_symbol(href,l,0,0,[]);
+            reference_reset_symbol(href,l,0,0,ref.volatility);
             href.refaddr:=addr_pcrel_lo12;
             list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,href));
 
@@ -654,7 +615,7 @@ unit cgrv;
 
             a_load_const_reg(list, OS_ADDR,ref.offset,tmpreg);
 
-            reference_reset_base(ref,tmpreg,0,ctempposinvalid,ref.alignment,[]);
+            reference_reset_base(ref,tmpreg,0,ctempposinvalid,ref.alignment,ref.volatility);
           end;
 
         if (ref.index<>NR_NO) and

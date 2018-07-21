@@ -536,8 +536,8 @@ interface
         fputype : fpu_fd;
   {$endif riscv32}
   {$ifdef riscv64}
-        cputype : cpu_rv64imafd;
-        optimizecputype : cpu_rv64imafd;
+        cputype : cpu_rv64imafdc;
+        optimizecputype : cpu_rv64imafdc;
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}

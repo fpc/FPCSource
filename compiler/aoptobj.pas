@@ -1342,7 +1342,12 @@ Unit AoptObj;
 {$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
 {$endif arm or aarch64}
+{$if defined(riscv32) or defined(riscv64)}          
           (hp.ops>0) and
+          (hp.oper[0]^.reg=NR_X0) and
+{$else riscv}
+          (hp.ops>0) and
+{$endif riscv}
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
       end;

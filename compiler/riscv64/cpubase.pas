@@ -37,6 +37,7 @@ uses
 
 type
       TAsmOp=(A_None,
+        { Pseudo instructions }
         A_NOP,
         { normal opcodes }
         A_LUI,A_AUIPC,A_JAL,A_JALR,
@@ -290,7 +291,7 @@ const
          The value of this constant is equal to the constant
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
-      std_param_align = 4;  { for 32-bit version only }
+      std_param_align = 8;  { for 32-bit version only }
 
 
 {*****************************************************************************
@@ -379,7 +380,7 @@ implementation
       begin
         case getregtype(reg) of
           R_INTREGISTER :
-            result:=OS_32;
+            result:=OS_64;
           R_MMREGISTER:
             result:=OS_M128;
           R_FPUREGISTER:

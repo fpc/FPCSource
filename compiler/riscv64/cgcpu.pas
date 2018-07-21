@@ -104,10 +104,10 @@ implementation
             list.concat(ai);
             rg[R_INTREGISTER].add_move_instruction(ai);
           end
-        else if (fromsize=OS_S32) then
+        {else if (fromsize=OS_S32) then
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
         else if (fromsize=OS_8) then
-          list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
+          list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))}
         else
           begin
             if tcgsize2size[tosize]<tcgsize2size[fromsize] then
@@ -138,7 +138,8 @@ implementation
               list.concat(taicpu.op_reg_reg_const(A_ADDI,register,NR_X0,a))
             else if is_lui_imm(a) then
               list.concat(taicpu.op_reg_const(A_LUI,register,(a shr 12) and $FFFFF))
-            else if sarlongint(a shl 32,32)=a then
+            else if (qword(longint(a))=a) and
+                    (size in [OS_32,OS_S32]) then
               begin
                 if (a and $800)<>0 then
                   list.concat(taicpu.op_reg_const(A_LUI,register,((a shr 12)+1) and $FFFFF))
@@ -149,7 +150,7 @@ implementation
               end
             else
               begin
-                reference_reset(hr,4,[]);
+                reference_reset(hr,8,[]);
 
                 current_asmdata.getjumplabel(l);
                 current_procinfo.aktlocaldata.Concat(cai_align.Create(8));
@@ -305,7 +306,7 @@ implementation
         regs, fregs: tcpuregisterset;
         r: TSuperRegister;
         href: treference;
-        stackcount: longint;
+        stackcount, stackAdjust: longint;
       begin
         if not(nostackframe) then
           begin
@@ -333,19 +334,29 @@ implementation
             fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
             for r:=RS_F0 to RS_F31 do
               if r in fregs then
-                inc(stackcount,8);
+                inc(stackcount,8);  
 
             inc(localsize,stackcount);
-            if not is_imm12(-localsize) then
+            if not is_imm12(-(localsize-stackcount)) then
               begin
                 if not (RS_RETURN_ADDRESS_REG in regs) then
                   begin
                     include(regs,RS_RETURN_ADDRESS_REG);
                     inc(localsize,8);
+                    inc(stackcount,8);
                   end;
               end;
 
-            stackcount:=0;
+            stackAdjust:=0;
+            if (CPURV_HAS_COMPACT in cpu_capabilities[current_settings.cputype]) and
+               (stackcount>0) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-stackcount));
+                inc(href.offset,stackcount);
+                stackAdjust:=stackcount;
+                dec(localsize,stackcount);
+              end;
+
             for r:=RS_X0 to RS_X31 do
               if r in regs then
                 begin
@@ -362,7 +373,7 @@ implementation
                 end;   
 
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,0));
+              list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,stackAdjust));
 
             if localsize>0 then
               begin
@@ -384,7 +395,7 @@ implementation
       var
         r: tsuperregister;
         regs, fregs: tcpuregisterset;
-        stackcount, localsize: longint;
+        localsize: longint;
         href: treference;
       begin
         if not(nostackframe) then
@@ -397,7 +408,6 @@ implementation
             if (pi_do_call in current_procinfo.flags) then
               regs:=regs+[RS_RETURN_ADDRESS_REG];
 
-            stackcount:=0;
             reference_reset_base(href,NR_STACK_POINTER_REG,-8,ctempposinvalid,0,[]);
             for r:=RS_X31 downto RS_X0 do
               if r in regs then
@@ -407,7 +417,7 @@ implementation
             fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
             for r:=RS_F0 to RS_F31 do
               if r in fregs then
-                dec(stackcount,8);
+                dec(href.offset,8);
 
             localsize:=current_procinfo.calc_stackframe_size+(-href.offset-8);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -445,7 +455,6 @@ implementation
                 begin
                   inc(href.offset,8);
                   list.concat(taicpu.op_reg_ref(A_LD,newreg(R_INTREGISTER,r,R_SUBWHOLE),href));
-                  inc(stackcount);
                 end;
           end;
 
@@ -517,8 +526,8 @@ implementation
           g_concatcopy_move(list, src2, dst2, len)
         else
         begin
-          Count := len div 4;
-          if (count<=4) and reference_is_reusable(src2) then
+          Count := len div 8;
+          if (count<=8) and reference_is_reusable(src2) then
             src:=src2
           else
             begin
@@ -527,7 +536,7 @@ implementation
               src.base := GetAddressRegister(list);
               a_loadaddr_ref_reg(list, src2, src.base);
             end;
-          if (count<=4) and reference_is_reusable(dst2) then
+          if (count<=8) and reference_is_reusable(dst2) then
             dst:=dst2
           else
             begin
@@ -544,27 +553,27 @@ implementation
             a_load_const_reg(list, OS_INT, Count, countreg);
             current_asmdata.getjumplabel(lab);
             a_label(list, lab);
-            list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
-            list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
-            list.concat(taicpu.op_reg_reg_const(A_ADDI, src.base, src.base, 4));
-            list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 4));
+            list.concat(taicpu.op_reg_ref(A_LD, tmpreg1, src));
+            list.concat(taicpu.op_reg_ref(A_SD, tmpreg1, dst));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI, src.base, src.base, 8));
+            list.concat(taicpu.op_reg_reg_const(A_ADDI, dst.base, dst.base, 8));
             list.concat(taicpu.op_reg_reg_const(A_ADDI, countreg, countreg, -1));
             a_cmp_reg_reg_label(list,OS_INT,OC_GT,NR_X0,countreg,lab);
-            len := len mod 4;
+            len := len mod 8;
           end;
           { unrolled loop }
-          Count := len div 4;
+          Count := len div 8;
           if Count > 0 then
           begin
             tmpreg1 := GetIntRegister(list, OS_INT);
             for count2 := 1 to Count do
             begin
-              list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
-              list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
-              Inc(src.offset, 4);
-              Inc(dst.offset, 4);
+              list.concat(taicpu.op_reg_ref(A_LD, tmpreg1, src));
+              list.concat(taicpu.op_reg_ref(A_SD, tmpreg1, dst));
+              Inc(src.offset, 8);
+              Inc(dst.offset, 8);
             end;
-            len := len mod 4;
+            len := len mod 8;
           end;
           if (len and 4) <> 0 then
           begin

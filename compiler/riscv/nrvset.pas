@@ -143,6 +143,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_JALR,NR_X0, indexreg));
 
         { generate jump table }
+        current_asmdata.CurrAsmList.concat(cai_align.Create(4));
         current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
         genitem(current_asmdata.CurrAsmList,hp);
       end;
