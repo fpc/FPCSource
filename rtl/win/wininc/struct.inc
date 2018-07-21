@@ -8072,13 +8072,16 @@ Const
      ENUMFONTSPROC = function (_para1:LPLOGFONT; _para2:LPTEXTMETRIC; _para3:DWORD; _para4:LPARAM):longint;stdcall;
      ENUMFONTSPROCA= function (_para1:LPLOGFONTA; _para2:LPTEXTMETRICA; _para3:DWORD; _para4:LPARAM):longint;stdcall;
      ENUMFONTSPROCW= function (_para1:LPLOGFONTW; _para2:LPTEXTMETRICW; _para3:DWORD; _para4:LPARAM):longint;stdcall;
+     ENUMFONTSEXPROC = function (_para1:PENUMLOGFONTEX;  _para2:LPNEWTEXTMETRICEX; _para3:DWORD; _para4:LPARAM):longint;stdcall;
+     ENUMFONTSEXPROCA= function (_para1:PENUMLOGFONTEXA; _para2:LPNEWTEXTMETRICEXA; _para3:DWORD; _para4:LPARAM):longint;stdcall;
+     ENUMFONTSEXPROCW= function (_para1:PENUMLOGFONTEXW; _para2:LPNEWTEXTMETRICEXW; _para3:DWORD; _para4:LPARAM):longint;stdcall;
 
      FONTENUMPROC   = function (var _para1:ENUMLOGFONT; var _para2:NEWTEXTMETRIC; _para3:longint; _para4:LPARAM):longint;stdcall;
      FONTENUMPROCA  = function (var _para1:ENUMLOGFONTA; var _para2:NEWTEXTMETRICA; _para3:longint; _para4:LPARAM):longint;stdcall;
      FONTENUMPROCW  = function (var _para1:ENUMLOGFONTW; var _para2:NEWTEXTMETRICW; _para3:longint; _para4:LPARAM):longint;stdcall;
      FONTENUMEXPROC = function (var _para1:ENUMLOGFONTEX;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
-     FONTENUMEXPROCA= function (var _para1:ENUMLOGFONTEXA;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
-     FONTENUMEXPROCW= function (var _para1:ENUMLOGFONTEXW;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMEXPROCA= function (var _para1:ENUMLOGFONTEXA;var _para2:NEWTEXTMETRICEXA; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMEXPROCW= function (var _para1:ENUMLOGFONTEXW;var _para2:NEWTEXTMETRICEXW; _para3:longint; _para4:LPARAM):longint;stdcall;
 
      LPOVERLAPPED_COMPLETION_ROUTINE = procedure (_para1:DWORD; _para2:DWORD; _para3:LPOVERLAPPED);stdcall;
 
