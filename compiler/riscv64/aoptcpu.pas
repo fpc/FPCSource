@@ -37,7 +37,9 @@ uses
   aasmtai, aasmcpu;
 
 type
+
   TCpuAsmOptimizer = class(TAsmOptimizer)
+    function InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean; override;
     function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean; override;
     Function GetNextInstructionUsingReg(Current: tai; Out Next: tai; reg: TRegister): Boolean;
     { outputs a debug message into the assembler file }
@@ -63,6 +65,32 @@ implementation
 {$endif DEBUG_AOPTCPU}
 
 
+  function TCpuAsmOptimizer.InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
+    var
+      p: taicpu;
+      i: longint;
+    begin
+      result:=false;
+      if not (assigned(hp) and (hp.typ=ait_instruction)) then
+        exit;
+      p:=taicpu(hp);
+
+      i:=0;
+      while(i<p.ops) do
+        begin
+          case p.oper[I]^.typ of
+            top_reg:
+              result:=(p.oper[I]^.reg=reg) and (p.spilling_get_operation_type(i)<>operand_write);
+            top_ref:
+              result:=
+                (p.oper[I]^.ref^.base=reg);
+          end;
+          if result then exit; {Bailout if we found something}
+          Inc(I);
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
     begin
       result:=
@@ -70,7 +98,7 @@ implementation
         (taicpu(hp).ops>1) and
         (taicpu(hp).oper[0]^.typ=top_reg) and
         (taicpu(hp).oper[0]^.reg=reg) and
-        (taicpu(hp).spilling_get_operation_type(0)=operand_write);
+        (taicpu(hp).spilling_get_operation_type(0)<>operand_read);
     end;
 
 

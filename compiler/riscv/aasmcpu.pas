@@ -527,14 +527,6 @@ uses cutils, cclasses;
     function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
       begin
         result := operand_read;
-        case opcode of
-{$ifdef RISCV64}
-          A_SD,
-{$endif RISCV64}
-          A_SB,A_SH,A_SW:
-            if opnr=1 then
-              result:=operand_write;
-        end;
       end;
 
 
