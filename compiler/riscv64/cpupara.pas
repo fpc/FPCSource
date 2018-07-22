@@ -172,15 +172,7 @@ implementation
             result := true;
           procvardef,
           recorddef:
-            result :=
-              (varspez = vs_const) and
-              (
-               (
-                (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
-                (def.size > 8))
-               ) or
-               (calloption = pocall_mwpascal)
-              );
+            result := (def.size > 8);
           arraydef:
             result := (tarraydef(def).highrange >= tarraydef(def).lowrange) or
               is_open_array(def) or

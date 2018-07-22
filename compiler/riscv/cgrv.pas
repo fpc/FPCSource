@@ -71,6 +71,7 @@ unit cgrv;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
       protected
         function  fixref(list: TAsmList; var ref: treference): boolean;
+        procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
       end;
 
   const
@@ -202,7 +203,10 @@ unit cgrv;
 
         if (TOpCG2AsmConstOp[op]<>A_None) and
            is_imm12(a) then
-          list.concat(taicpu.op_reg_reg_const(TOpCG2AsmConstOp[op],dst,src,a))
+          begin
+            list.concat(taicpu.op_reg_reg_const(TOpCG2AsmConstOp[op],dst,src,a));
+            maybeadjustresult(list,op,size,dst);
+          end
         else
           begin
             tmpreg:=getintregister(list,size);
@@ -216,13 +220,20 @@ unit cgrv;
       begin
         case op of
           OP_NOT:
-            list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src1,-1));
+            begin
+              list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src1,-1));
+              maybeadjustresult(list,op,size,dst);
+            end;
           OP_NEG:
-            list.concat(taicpu.op_reg_reg_reg(A_SUB,dst,NR_X0,src1));
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_SUB,dst,NR_X0,src1));
+              maybeadjustresult(list,op,size,dst);
+            end;
           OP_MOVE:
             a_load_reg_reg(list,size,size,src1,dst);
         else
           list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
+          maybeadjustresult(list,op,size,dst);
         end;
       end;
 
@@ -650,6 +661,16 @@ unit cgrv;
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end;
+      end;
+
+
+    procedure tcgrv.maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
+      const
+        overflowops = [OP_MUL,OP_IMUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+      begin
+        if (op in overflowops) and
+           (size in [OS_8,OS_S8,OS_16,OS_S16{$ifdef RISCV64},OS_32,OS_S32{$endif RISCV64}]) then
+          a_load_reg_reg(list,OS_INT,size,dst,dst)
       end;
 
 end.
