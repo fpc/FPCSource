@@ -1011,7 +1011,7 @@ implementation
                     end;
                   end
                 { short to full boolean evalution possible and useful? }
-                else if not(might_have_sideeffects(right)) and not(cs_full_boolean_eval in localswitches) then
+                else if not(might_have_sideeffects(right,[mhs_exceptions])) and not(cs_full_boolean_eval in localswitches) then
                   begin
                     case nodetype of
                       andn,orn:
