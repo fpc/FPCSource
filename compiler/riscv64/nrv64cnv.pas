@@ -113,17 +113,9 @@ unit nrv64cnv;
         restype:=tfloatdef(resultdef).floattype;
 
         location.Register := cg.getfpuregister(current_asmdata.CurrAsmList, tfloat2tcgsize[restype]);
-        if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-          begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(ops[is_64bit(left.resultdef),is_signed(left.resultdef),restype], location.register, left.location.register));
-          end
-        else
-          begin
-            { Load memory in fpu register }
-            hlcg.location_force_mem(current_asmdata.CurrAsmList, left.location, left.resultdef);
-            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, location.size, location.size, left.location.reference, location.Register);
-            tg.ungetiftemp(current_asmdata.CurrAsmList, left.location.reference);
-          end;
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, true);
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(ops[is_64bit(left.resultdef),is_signed(left.resultdef),restype], location.register, left.location.register));
       end;
 
 begin
