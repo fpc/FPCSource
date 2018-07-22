@@ -223,7 +223,7 @@ implementation
                   jump if not sum<x
                 }
                 tmpreg:=getintregister(list,OS_INT);
-                list.Concat(taicpu.op_reg_reg_reg(A_SLTIU,tmpreg,dst,src));
+                list.Concat(taicpu.op_reg_reg_reg(A_SLTU,tmpreg,dst,src));
                                                                         
                 ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,NR_X0,l,0);
                 ai.condition:=C_EQ;
