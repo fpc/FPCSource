@@ -112,6 +112,7 @@ implementation
                      (hp1.typ=ait_instruction) and         
                      (taicpu(hp1).opcode=A_ADDI) and
                      (taicpu(hp1).ops=3) and
+                     (taicpu(p).oper[0]^.reg=taicpu(hp1).oper[1]^.reg) and
                      (taicpu(p).oper[2]^.typ=top_const) and
                      is_imm12(taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val) and
                      (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
