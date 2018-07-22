@@ -201,6 +201,27 @@ unit cgrv;
             a:=-a;
           end;
 
+{$ifdef RISCV64}
+        if (op=OP_SHL) and
+           (size in [OS_32,OS_S32]) then
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SLLIW,dst,src,a));
+            maybeadjustresult(list,op,size,dst);
+          end
+        else if (op=OP_SHR) and
+           (size in [OS_32,OS_S32]) then
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SRLIW,dst,src,a));
+            maybeadjustresult(list,op,size,dst);
+          end
+        else if (op=OP_SAR) and
+           (size in [OS_32,OS_S32]) then
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SRAIW,dst,src,a));
+            maybeadjustresult(list,op,size,dst);
+          end
+        else
+{$endif RISCV64}
         if (TOpCG2AsmConstOp[op]<>A_None) and
            is_imm12(a) then
           begin
@@ -232,8 +253,31 @@ unit cgrv;
           OP_MOVE:
             a_load_reg_reg(list,size,size,src1,dst);
         else
-          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
-          maybeadjustresult(list,op,size,dst);
+{$ifdef RISCV64}
+          if (op=OP_SHL) and
+             (size in [OS_32,OS_S32]) then
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_SLLW,dst,src2,src1));
+              maybeadjustresult(list,op,size,dst);
+            end
+          else if (op=OP_SHR) and
+             (size in [OS_32,OS_S32]) then
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_SRLW,dst,src2,src1));
+              maybeadjustresult(list,op,size,dst);
+            end
+          else if (op=OP_SAR) and
+             (size in [OS_32,OS_S32]) then
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_SRAW,dst,src2,src1));
+              maybeadjustresult(list,op,size,dst);
+            end
+          else
+{$endif RISCV64}
+            begin
+              list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
+              maybeadjustresult(list,op,size,dst);
+            end;
         end;
       end;
 
