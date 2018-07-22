@@ -23,9 +23,6 @@
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
@@ -74,7 +71,8 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-driscv64"/>
+      <CustomOptions Value="-driscv64
+-Sew"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

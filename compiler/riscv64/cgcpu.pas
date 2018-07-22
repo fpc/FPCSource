@@ -566,13 +566,15 @@ implementation
           if Count > 0 then
           begin
             tmpreg1 := GetIntRegister(list, OS_INT);
-            for count2 := 1 to Count do
-            begin
-              list.concat(taicpu.op_reg_ref(A_LD, tmpreg1, src));
-              list.concat(taicpu.op_reg_ref(A_SD, tmpreg1, dst));
-              Inc(src.offset, 8);
-              Inc(dst.offset, 8);
-            end;
+            count2 := 1;
+            while count2 <= Count do
+              begin
+                list.concat(taicpu.op_reg_ref(A_LD, tmpreg1, src));
+                list.concat(taicpu.op_reg_ref(A_SD, tmpreg1, dst));
+                Inc(src.offset, 8);
+                Inc(dst.offset, 8);
+                Inc(count2);
+              end;
             len := len mod 8;
           end;
           if (len and 4) <> 0 then

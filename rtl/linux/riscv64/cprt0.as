@@ -50,9 +50,9 @@ _start:
 1:auipc gp, %pcrel_hi(__global_pointer$)
         addi  gp, gp, %pcrel_lo(1b)
         .option pop
-        
+
         /* Clear the frame pointer since this is the outermost frame.  */
-        addi fp, x0, 0
+        addi x8, x0, 0
         ld   a2, 0(sp)
         addi sp, sp, 8
 
