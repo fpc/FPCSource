@@ -74,7 +74,7 @@ _start:
 	sd	sp,%pcrel_lo(1b)(x8)
 
         /* Fetch address of fini */
-1:auipc	x8,%pcrel_hi(_fini)
+1:auipc	x8,%pcrel_hi(__libc_csu_fini)
 	addi	a2,x8,%pcrel_lo(1b)
 
         /* argc already loaded to a2*/
@@ -93,7 +93,7 @@ _start:
         /* Set up the other arguments in registers */
 1:auipc	x8,%pcrel_hi(PASCALMAIN)
 	addi a1, x8, %pcrel_lo(1b)
-1:auipc	x8,%pcrel_hi(_init)
+1:auipc	x8,%pcrel_hi(__libc_csu_init)
 	addi a4, x8, %pcrel_lo(1b)
 
         /* Push fini */

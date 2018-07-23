@@ -215,7 +215,13 @@ implementation
                   jump if t0=t1
                 }
                 tmpreg:=getintregister(list,OS_INT);
-                list.Concat(taicpu.op_reg_reg_const(A_SLTI,tmpreg,dst,a));
+                if is_imm12(a) then
+                  list.Concat(taicpu.op_reg_reg_const(A_SLTI,tmpreg,dst,a))
+                else
+                  begin
+                    a_load_const_reg(list,OS_INT,a,tmpreg);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg,dst,tmpreg));
+                  end;
 
                 ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,NR_X0,l,0);
                 if a<0 then

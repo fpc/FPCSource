@@ -557,7 +557,9 @@ begin
     emtia64   : begin fMachineTypeInt:=EM_IA_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtx86_64 : begin fMachineTypeInt:=EM_X86_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtmips   : begin fMachineTypeInt:=EM_MIPS; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
-    emtmipsel : begin fMachineTypeInt:=EM_MIPS; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end
+    emtmipsel : begin fMachineTypeInt:=EM_MIPS; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
+    emtriscv32: begin fMachineTypeInt:=EM_RISCV; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
+    emtriscv64: begin fMachineTypeInt:=EM_RISCV; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end
     else
       raise EElfResourceWriterUnknownMachineException.Create('');
   end;
