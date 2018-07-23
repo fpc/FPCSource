@@ -233,9 +233,15 @@ unit cgrv;
     procedure tcgrv.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
       begin
         if op=OP_NOT then
-          a_op_const_reg_reg(list,OP_XOR,size,-1,src1,dst)
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src1,-1));
+            maybeadjustresult(list,op,size,dst);
+          end
         else if op=OP_NEG then
-          a_op_reg_reg_reg(list,OP_SUB,size,src1,NR_X0,dst)
+          begin
+            list.concat(taicpu.op_reg_reg_reg(A_SUB,dst,NR_X0,src1));
+            maybeadjustresult(list,op,size,dst);
+          end
         else
           case op of
             OP_MOVE:
