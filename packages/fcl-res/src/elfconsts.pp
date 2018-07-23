@@ -79,6 +79,13 @@ const
   //machine-specific flags
   EF_IA_64_ABI64 = $10;  //wow, this is really a 64-bit object file!
 
+  // riscv flags
+  EF_RISCV_RVC = 1;
+
+  //  bitfield of 2 indicating the largest float abi supported
+  EF_RISCV_FLOAT_ABI_SINGLE = 2;
+  EF_RISCV_FLOAT_ABI_DOUBLE = 4;
+
   //section type
   SHT_NULL     =  0;
   SHT_PROGBITS =  1;

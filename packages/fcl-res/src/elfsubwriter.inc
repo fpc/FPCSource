@@ -442,6 +442,7 @@ begin
   fDataAlignment:=4;
   {$ENDIF}
   if aMachineType=EM_IA_64 then fMachineFlags:=EF_IA_64_ABI64
+  else if aMachineType=EM_RISCV then fMachineFlags:=EF_RISCV_FLOAT_ABI_DOUBLE or EF_RISCV_RVC // This is the default class for now
   else fMachineFlags:=0;
 end;
 
