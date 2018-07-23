@@ -96,7 +96,11 @@ implementation
       var
         ai: taicpu;
       begin
-        if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
+        if (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S32) then
+          list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
+        else if (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_8) then
+          list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
+        else if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
           ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or
           { do we need to mask out the sign when loading from smaller signed to larger unsigned type? }
           ((tcgsize2unsigned[fromsize]<>fromsize) and ((tcgsize2unsigned[tosize]=tosize)) and
@@ -142,8 +146,7 @@ implementation
               list.concat(taicpu.op_reg_reg_const(A_ADDI,register,NR_X0,a))
             else if is_lui_imm(a) then
               list.concat(taicpu.op_reg_const(A_LUI,register,(a shr 12) and $FFFFF))
-            else if (qword(longint(a))=a) and
-                    (size in [OS_32,OS_S32]) then
+            else if (int64(longint(a))=a) then
               begin
                 if (a and $800)<>0 then
                   list.concat(taicpu.op_reg_const(A_LUI,register,((a shr 12)+1) and $FFFFF))
@@ -227,6 +230,11 @@ implementation
                   jump if not sum<x
                 }
                 tmpreg:=getintregister(list,OS_INT);
+                if size in [OS_S32,OS_32] then
+                  begin
+                    a_load_reg_reg(list,size,OS_64,dst,tmpreg);
+                    dst:=tmpreg;
+                  end;
                 list.Concat(taicpu.op_reg_reg_reg(A_SLTU,tmpreg,dst,src));
                                                                         
                 ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg,NR_X0,l,0);
@@ -286,6 +294,12 @@ implementation
                 {
                   jump if not sum<x
                 }
+                tmpreg:=getintregister(list,OS_INT);
+                if size in [OS_S32,OS_32] then
+                  begin
+                    a_load_reg_reg(list,size,OS_64,dst,tmpreg);
+                    dst:=tmpreg;
+                  end;
                 tmpreg:=getintregister(list,OS_INT);
                 list.Concat(taicpu.op_reg_reg_reg(A_SLTU,tmpreg,dst,src2));
 

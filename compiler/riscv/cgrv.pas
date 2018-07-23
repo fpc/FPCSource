@@ -76,7 +76,7 @@ unit cgrv;
 
   const
     TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_NONE,
-                         C_LT,C_GE,C_None,C_NE,C_NONE,C_LT,C_GE,C_NONE);         
+                         C_LT,C_GE,C_None,C_NE,C_NONE,C_LTU,C_GEU,C_NONE);
 
   const
     TOpCG2AsmConstOp: Array[topcg] of TAsmOp = (A_NONE,
@@ -98,7 +98,6 @@ unit cgrv;
 
     procedure tcgrv.a_call_name(list : TAsmList;const s : string; weak: boolean);
       var
-        tmpreg: TRegister;
         href: treference;
         l: TAsmLabel;
       begin
@@ -107,26 +106,20 @@ unit cgrv;
         else
           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
 
-        tmpreg:=getintregister(list,OS_ADDR);
-
         current_asmdata.getjumplabel(l);
 
         a_label(list,l);
 
         href.refaddr:=addr_pcrel_hi20;
-        list.concat(taicpu.op_reg_ref(A_AUIPC,tmpreg,href));
+        list.concat(taicpu.op_reg_ref(A_AUIPC,NR_RETURN_ADDRESS_REG,href));
 
         reference_reset_symbol(href,l,0,0,[]);
         href.refaddr:=addr_pcrel_lo12;
-        list.concat(taicpu.op_reg_reg_ref(A_JALR,NR_RETURN_ADDRESS_REG,tmpreg,href));
+        list.concat(taicpu.op_reg_reg_ref(A_JALR,NR_RETURN_ADDRESS_REG,NR_RETURN_ADDRESS_REG,href));
 
-         {if not(weak) then
-           list.concat(taicpu.op_reg_sym(A_JAL,NR_RETURN_ADDRESS_REG,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
-         else
-           list.concat(taicpu.op_reg_sym(A_JAL,NR_RETURN_ADDRESS_REG,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));}
-       { not assigned while generating external wrappers }
-       if assigned(current_procinfo) then
-         include(current_procinfo.flags,pi_do_call);
+        { not assigned while generating external wrappers }
+        if assigned(current_procinfo) then
+          include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -239,46 +232,41 @@ unit cgrv;
 
     procedure tcgrv.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
       begin
-        case op of
-          OP_NOT:
-            begin
-              list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src1,-1));
-              maybeadjustresult(list,op,size,dst);
-            end;
-          OP_NEG:
-            begin
-              list.concat(taicpu.op_reg_reg_reg(A_SUB,dst,NR_X0,src1));
-              maybeadjustresult(list,op,size,dst);
-            end;
-          OP_MOVE:
-            a_load_reg_reg(list,size,size,src1,dst);
+        if op=OP_NOT then
+          a_op_const_reg_reg(list,OP_XOR,size,-1,src1,dst)
+        else if op=OP_NEG then
+          a_op_reg_reg_reg(list,OP_SUB,size,src1,NR_X0,dst)
         else
-{$ifdef RISCV64}
-          if (op=OP_SHL) and
-             (size in [OS_32,OS_S32]) then
-            begin
-              list.concat(taicpu.op_reg_reg_reg(A_SLLW,dst,src2,src1));
-              maybeadjustresult(list,op,size,dst);
-            end
-          else if (op=OP_SHR) and
-             (size in [OS_32,OS_S32]) then
-            begin
-              list.concat(taicpu.op_reg_reg_reg(A_SRLW,dst,src2,src1));
-              maybeadjustresult(list,op,size,dst);
-            end
-          else if (op=OP_SAR) and
-             (size in [OS_32,OS_S32]) then
-            begin
-              list.concat(taicpu.op_reg_reg_reg(A_SRAW,dst,src2,src1));
-              maybeadjustresult(list,op,size,dst);
-            end
+          case op of
+            OP_MOVE:
+              a_load_reg_reg(list,size,size,src1,dst);
           else
+{$ifdef RISCV64}
+            if (op=OP_SHL) and
+               (size in [OS_32,OS_S32]) then
+              begin
+                list.concat(taicpu.op_reg_reg_reg(A_SLLW,dst,src2,src1));
+                maybeadjustresult(list,op,size,dst);
+              end
+            else if (op=OP_SHR) and
+               (size in [OS_32,OS_S32]) then
+              begin
+                list.concat(taicpu.op_reg_reg_reg(A_SRLW,dst,src2,src1));
+                maybeadjustresult(list,op,size,dst);
+              end
+            else if (op=OP_SAR) and
+               (size in [OS_32,OS_S32]) then
+              begin
+                list.concat(taicpu.op_reg_reg_reg(A_SRAW,dst,src2,src1));
+                maybeadjustresult(list,op,size,dst);
+              end
+            else
 {$endif RISCV64}
-            begin
-              list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
-              maybeadjustresult(list,op,size,dst);
-            end;
-        end;
+              begin
+                list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
+                maybeadjustresult(list,op,size,dst);
+              end;
+          end;
       end;
 
 
@@ -509,6 +497,8 @@ unit cgrv;
         end;
 
         list.concat(taicpu.op_reg_ref(op,reg,href));
+        if fromsize<>tosize then
+          a_load_reg_reg(list,fromsize,tosize,reg,reg);
       end;
 
 

@@ -32,14 +32,14 @@ function get_frame:pointer;assembler;nostackframe;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
-    ld a0, -8*2(a0)
+    ld a0, -8*1(a0)
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
-    ld a0, -8*1(a0)
+    ld a0, -8*2(a0)
   end;
 
 
