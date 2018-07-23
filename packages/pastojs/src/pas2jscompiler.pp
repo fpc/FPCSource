@@ -24,10 +24,10 @@ uses
   Pas2jsFileCache, Pas2jsPParser, Pas2JsFiler;
 
 const
-  VersionMajor = 0;
-  VersionMinor = 9;
-  VersionRelease = 32;
-  VersionExtra = '+beta';
+  VersionMajor = 1;
+  VersionMinor = 1;
+  VersionRelease = 1;
+  VersionExtra = '';
   DefaultConfigFile = 'pas2js.cfg';
 
 //------------------------------------------------------------------------------
@@ -4106,7 +4106,7 @@ begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
   WriteVersionLine;
-  Log.LogPlain('Copyright (c) 2018 Mattias Gaertner and others');
+  Log.LogPlain('Copyright (c) 2018 Free Pascal Team');
   if coShowInfos in Options then
     WriteEncoding;
 end;
