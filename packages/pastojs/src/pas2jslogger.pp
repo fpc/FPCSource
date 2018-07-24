@@ -106,6 +106,7 @@ type
       const Filename: string = ''; Line: integer = 0; Col: integer = 0;
       UseFilter: boolean = true);
     procedure LogMsgIgnoreFilter(MsgNumber: integer; Args: array of const);
+    procedure LogExceptionBackTrace;
     function MsgTypeToStr(MsgType: TMessageType): string;
     function GetMsgText(MsgNumber: integer; Args: array of const): string;
     function FormatMsg(MsgType: TMessageType; Msg: string; MsgNumber: integer = 0;
@@ -791,6 +792,21 @@ procedure TPas2jsLogger.LogMsgIgnoreFilter(MsgNumber: integer;
   Args: array of const);
 begin
   LogMsg(MsgNumber,Args,'',0,0,false);
+end;
+
+procedure TPas2jsLogger.LogExceptionBackTrace;
+var
+  lErrorAddr: CodePointer;
+  FrameCount: LongInt;
+  Frames: PCodePointer;
+  FrameNumber: Integer;
+begin
+  lErrorAddr:=ExceptAddr;
+  FrameCount:=ExceptFrameCount;
+  Frames:=ExceptFrames;
+  Log(mtDebug,BackTraceStrFunc(lErrorAddr));
+  for FrameNumber := 0 to FrameCount-1 do
+    Log(mtDebug,BackTraceStrFunc(Frames[FrameNumber]));
 end;
 
 function TPas2jsLogger.MsgTypeToStr(MsgType: TMessageType): string;

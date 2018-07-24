@@ -1121,6 +1121,8 @@ end;
 
 procedure TPas2jsCompilerFile.HandleException(E: Exception);
 begin
+  if ShowDebug then
+    Log.LogExceptionBackTrace;
   if E is EScannerError then
   begin
     Log.Log(Scanner.LastMsgType,Scanner.LastMsg,Scanner.LastMsgNumber,
@@ -2360,6 +2362,8 @@ begin
       aJSWriter.WriteJS(aFile.JSModule);
     except
       on E: Exception do begin
+        if ShowDebug then
+          Log.LogExceptionBackTrace;
         Log.LogPlain('[20180204193420] Error while creating JavaScript "'+FileCache.FormatPath(DestFilename)+'": '+E.Message);
         Terminate(ExitCodeErrorInternal);
       end;
@@ -2432,6 +2436,8 @@ begin
         end;
       except
         on E: Exception do begin
+          if ShowDebug then
+            Log.LogExceptionBackTrace;
           if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
             Log.LogPlain('Error: '+E.Message);
           Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(DestFilename))]);
@@ -2457,6 +2463,8 @@ begin
           end;
         except
           on E: Exception do begin
+            if ShowDebug then
+              Log.LogExceptionBackTrace;
             if E.Message<>SafeFormat(SFCreateError,[DestFileName]) then
               Log.LogPlain('Error: '+E.Message);
             Log.LogMsg(nUnableToWriteFile,[QuoteStr(FileCache.FormatPath(MapFilename))]);
@@ -3688,8 +3696,6 @@ begin
   FDirectoryCache:=FFileCache.DirectoryCache;
   FLog.OnFormatPath:=@FileCache.FormatPath;
 
-  FDirectoryCache.GetDirectory('/home/mattias/pascal/mypas2js/examples/',true,false).CheckConsistency;
-
   FDefines:=TStringList.Create;
   // Done by Reset: TStringList(FDefines).Sorted:=True;
   // Done by Reset: TStringList(FDefines).Duplicates:=dupError;
@@ -3709,28 +3715,43 @@ begin
 end;
 
 destructor TPas2jsCompiler.Destroy;
+
+  procedure FreeStuff;
+  begin
+    FreeAndNil(FPrecompileInitialFlags);
+    FreeAndNil(FWPOAnalyzer);
+
+    FMainFile:=nil;
+    FreeAndNil(FUnits);
+    FreeAndNil(FReadingModules);
+    FFiles.FreeAndClear;
+    FreeAndNil(FFiles);
+
+    ClearDefines;
+    FreeAndNil(FDefines);
+    FreeAndNil(FConditionEval);
+
+    FLog.OnFormatPath:=nil;
+    if FFileCacheAutoFree then
+      FreeAndNil(FFileCache)
+    else
+      FFileCache:=nil;
+    FDirectoryCache:=nil;
+
+    FreeAndNil(FParamMacros);
+  end;
+
 begin
-  FreeAndNil(FPrecompileInitialFlags);
-  FreeAndNil(FWPOAnalyzer);
-
-  FMainFile:=nil;
-  FreeAndNil(FUnits);
-  FreeAndNil(FReadingModules);
-  FFiles.FreeAndClear;
-  FreeAndNil(FFiles);
-
-  ClearDefines;
-  FreeAndNil(FDefines);
-  FreeAndNil(FConditionEval);
-
-  FLog.OnFormatPath:=nil;
-  if FFileCacheAutoFree then
-    FreeAndNil(FFileCache)
+  if ShowDebug then
+    try
+      FreeStuff;
+    except
+      on E: Exception do
+        Log.LogExceptionBackTrace;
+    end
   else
-    FFileCache:=nil;
-  FDirectoryCache:=nil;
+    FreeStuff;
 
-  FreeAndNil(FParamMacros);
   FreeAndNil(FLog);
   inherited Destroy;
 end;
@@ -3907,7 +3928,13 @@ begin
   try
     Compile(StartTime);
   except
-    on E: ECompilerTerminate do ;
+    on E: ECompilerTerminate do
+    begin
+    end else begin
+      if ShowDebug then
+        Log.LogExceptionBackTrace;
+      raise;
+    end;
   end;
 end;
 
@@ -4106,7 +4133,7 @@ begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
   WriteVersionLine;
-  Log.LogPlain('Copyright (c) 2018 Free Pascal Team');
+  Log.LogPlain('Copyright (c) 2018 Mattias Gaertner and others');
   if coShowInfos in Options then
     WriteEncoding;
 end;

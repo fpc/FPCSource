@@ -14654,6 +14654,7 @@ begin
   writeln('TPasResolver.Destroy PopScope...');
   {$ENDIF}
   PopScope; // free default scope
+  raise EInvalidArgument.Create('AAA1');
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasResolver.Destroy FPendingForwards...');
   {$ENDIF}
