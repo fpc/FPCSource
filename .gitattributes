@@ -11948,13 +11948,13 @@ tests/test/cg/obj/linux/powerpc64/tcext3.o -text
 tests/test/cg/obj/linux/powerpc64/tcext4.o -text
 tests/test/cg/obj/linux/powerpc64/tcext5.o -text
 tests/test/cg/obj/linux/powerpc64/tcext6.o -text
-tests/test/cg/obj/linux/riscv64/cpptcl1.o -text svneol=unset#application/octet-stream
-tests/test/cg/obj/linux/riscv64/cpptcl2.o -text svneol=unset#application/octet-stream
-tests/test/cg/obj/linux/riscv64/ctest.o -text svneol=unset#application/octet-stream
-tests/test/cg/obj/linux/riscv64/tcext3.o -text svneol=unset#application/octet-stream
-tests/test/cg/obj/linux/riscv64/tcext4.o -text svneol=unset#application/octet-stream
-tests/test/cg/obj/linux/riscv64/tcext5.o -text svneol=unset#application/octet-stream
-tests/test/cg/obj/linux/riscv64/tcext6.o -text svneol=unset#application/octet-stream
+tests/test/cg/obj/linux/riscv64/cpptcl1.o -text
+tests/test/cg/obj/linux/riscv64/cpptcl2.o -text
+tests/test/cg/obj/linux/riscv64/ctest.o -text
+tests/test/cg/obj/linux/riscv64/tcext3.o -text
+tests/test/cg/obj/linux/riscv64/tcext4.o -text
+tests/test/cg/obj/linux/riscv64/tcext5.o -text
+tests/test/cg/obj/linux/riscv64/tcext6.o -text
 tests/test/cg/obj/linux/riscv64/ttasm1.obj -text svneol=unset#application/octet-stream
 tests/test/cg/obj/linux/sparc/cpptcl1.o -text
 tests/test/cg/obj/linux/sparc/cpptcl2.o -text
