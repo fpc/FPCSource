@@ -30,6 +30,7 @@ interface
 
     const
       gas_op2str: array[tasmop] of string[14] = ('<none>',
+        'nop',
         'lui','auipc','jal','jalr',
         'b','lb','lh','lw','lbu','lhu',
         'sb','sh','sw',

@@ -52,7 +52,7 @@ Unit rarv32gas;
       { aasm }
       cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
-      symconst,symsym,
+      symconst,symdef,symsym,
       { parser }
       procinfo,
       rabase,rautils,
@@ -62,7 +62,7 @@ Unit rarv32gas;
     procedure trv32attreader.ReadSym(oper : trvoperand);
       var
          tempstr, mangledname : string;
-         typesize,l,k : aint;
+         l,k,typesize : tcgint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
@@ -139,7 +139,7 @@ Unit rarv32gas;
         end;
 
       var
-        l : aint;
+        l : tcgint;
         relsym: string;
         asmsymtyp: tasmsymtype;
         isflags: tindsymflags;
@@ -201,7 +201,7 @@ Unit rarv32gas;
                     if (relsym<>'') then
                       begin
                         if (oper.opr.typ = OPR_REFERENCE) then
-                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym)
+                          oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym,AT_DATA)
                         else
                           begin
                             Message(asmr_e_invalid_reference_syntax);
@@ -256,7 +256,7 @@ Unit rarv32gas;
     Procedure trv32attreader.BuildOperand(oper : trvoperand);
       var
         expr : string;
-        typesize,l : aint;
+        typesize,l : tcgint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -281,7 +281,7 @@ Unit rarv32gas;
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : aint;
+            tsize   : tcgint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;
@@ -319,7 +319,7 @@ Unit rarv32gas;
                     if (oper.opr.val<>0) then
                       Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
-                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION);
+                    oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,voidcodepointertype);
                   end
                 else
                   inc(oper.opr.val,l);

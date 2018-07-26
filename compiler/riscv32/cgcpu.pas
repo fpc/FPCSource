@@ -163,7 +163,7 @@ unit cgcpu;
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
-            reference_reset_base(href,NR_STACK_POINTER_REG,-4,0);
+            reference_reset_base(href,NR_STACK_POINTER_REG,-4,ctempposinvalid,0,[]);
 
             { Int registers }
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
@@ -248,7 +248,7 @@ unit cgcpu;
               regs:=regs+[RS_RETURN_ADDRESS_REG];
 
             stackcount:=0;
-            reference_reset_base(href,NR_STACK_POINTER_REG,-4,0);
+            reference_reset_base(href,NR_STACK_POINTER_REG,-4,ctempposinvalid,0,[]);
             for r:=RS_X31 downto RS_X0 do
               if r in regs then
                 dec(href.offset,4);
@@ -373,7 +373,7 @@ unit cgcpu;
             src:=src2
           else
             begin
-              reference_reset(src,sizeof(aint));
+              reference_reset(src,sizeof(aint),[]);
               { load the address of src2 into src.base }
               src.base := GetAddressRegister(list);
               a_loadaddr_ref_reg(list, src2, src.base);
@@ -382,7 +382,7 @@ unit cgcpu;
             dst:=dst2
           else
             begin
-              reference_reset(dst,sizeof(aint));
+              reference_reset(dst,sizeof(aint),[]);
               { load the address of dst2 into dst.base }
               dst.base := GetAddressRegister(list);
               a_loadaddr_ref_reg(list, dst2, dst.base);

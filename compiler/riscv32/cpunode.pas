@@ -43,8 +43,8 @@ unit cpunode;
        nrvset,
        nrvinl,
        nrv32mat,
-       nrv32cnv,
-       nrvcon
+       nrv32cnv
+//       ,nrvcon
        ;
 
 end.
