@@ -467,7 +467,6 @@ implementation
 
             paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
             inc(nextintreg);
-            inc(nextfloatreg);
             dec(paralen, tcgsize2size[paraloc^.size]);
           end else if (loc = LOC_FPUREGISTER) and
             (nextfloatreg <= RS_F17) then begin
@@ -476,13 +475,15 @@ implementation
             paraloc^.def := locdef;
             paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
             { the RiscV ABI says that the GPR index is increased for every parameter, no matter
-            which type it is stored in }
-            inc(nextintreg);
+              which type it is stored in
+
+               not really, https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#hardware-floating-point-calling-convention says
+               otherwise, gcc doesn't do it either }
             inc(nextfloatreg);
             dec(paralen, tcgsize2size[paraloc^.size]);
           end else if (loc = LOC_MMREGISTER) then begin
-            { Altivec not supported }
-            internalerror(200510192);
+            { no mm registers }
+            internalerror(2018072601);
           end else begin
             { either LOC_REFERENCE, or one of the above which must be passed on the
             stack because of insufficient registers }
