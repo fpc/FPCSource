@@ -123,6 +123,7 @@ Type
     Function Terminate (AExitCode : Integer): Boolean; virtual;
     Function WaitOnExit : Boolean;
     Function WaitOnExit(Timeout : DWord) : Boolean;
+    function ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var Data:string;MaxLoops:integer=10):boolean;
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;
@@ -475,10 +476,33 @@ end;
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
 
+function TProcess.ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var data:string;MaxLoops:integer=10):boolean;
+var Available, NumBytes: integer;
+begin
+    Available:=P.NumBytesAvailable;
+    result:=Available>0;
+    if not result then
+     exit;
+    while (available > 0) and (MaxLoops>0) do
+      begin
+        if (BytesRead + available > DataLength) then
+          begin
+            DataLength:=BytesRead + READ_BYTES;
+            Setlength(Data,DataLength);
+          end;
+        NumBytes := p.Read(data[1+BytesRead], Available);
+        if NumBytes > 0 then
+          Inc(BytesRead, NumBytes);
+        Available:=P.NumBytesAvailable;
+        dec(MaxLoops);
+      end;
+end;
+
+
 // helperfunction that does the bulk of the work.
 // We need to also collect stderr output in order to avoid
 // lock out if the stderr pipe is full.
-function internalRuncommand(p:TProcess;out outputstring:string;
+function internalRuncommand(out outputstring:string;
                             out stderrstring:string; out exitstatus:integer):integer;
 var
     numbytes,bytesread,available : integer;
@@ -500,62 +524,17 @@ begin
         // is already available, otherwise, on  linux, the read call
         // is blocking, and thus it is not possible to be sure to handle
         // big data amounts bboth on output and stderr pipes. PM.
-        available:=P.Output.NumBytesAvailable;
-        if  available > 0 then
-          begin
-            if (BytesRead + available > outputlength) then
-              begin
-                outputlength:=BytesRead + READ_BYTES;
-                Setlength(outputstring,outputlength);
-              end;
-            NumBytes := p.Output.Read(outputstring[1+bytesread], available);
-            if NumBytes > 0 then
-              Inc(BytesRead, NumBytes);
-          end
-        // The check for assigned(P.stderr) is mainly here so that
-        // if we use poStderrToOutput in p.Options, we do not access invalid memory.
-        else if assigned(P.stderr) and (P.StdErr.NumBytesAvailable > 0) then
-          begin
-            available:=P.StdErr.NumBytesAvailable;
-            if (StderrBytesRead + available > stderrlength) then
-              begin
-                stderrlength:=StderrBytesRead + READ_BYTES;
-                Setlength(stderrstring,stderrlength);
-              end;
-            StderrNumBytes := p.StdErr.Read(stderrstring[1+StderrBytesRead], available);
-            if StderrNumBytes > 0 then
-              Inc(StderrBytesRead, StderrNumBytes);
-          end
-        else
-          Sleep(100);
+        if not p.ReadInputStream(p.output,BytesRead,OutputLength,OutputString,1) then
+          // The check for assigned(P.stderr) is mainly here so that
+          // if we use poStderrToOutput in p.Options, we do not access invalid memory.
+          if assigned(p.stderr) then
+            if not p.ReadInputStream(p.StdErr,StdErrBytesRead,StdErrLength,StdErrString,1) then
+              sleep(100);
       end;
     // Get left output after end of execution
-    available:=P.Output.NumBytesAvailable;
-    while available > 0 do
-      begin
-        if (BytesRead + available > outputlength) then
-          begin
-            outputlength:=BytesRead + READ_BYTES;
-            Setlength(outputstring,outputlength);
-          end;
-        NumBytes := p.Output.Read(outputstring[1+bytesread], available);
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes);
-        available:=P.Output.NumBytesAvailable;
-      end;
+    p.ReadInputStream(p.output,BytesRead,OutputLength,OutputString,250);
     setlength(outputstring,BytesRead);
-    while assigned(P.stderr) and (P.Stderr.NumBytesAvailable > 0) do
-      begin
-        available:=P.Stderr.NumBytesAvailable;
-        if (StderrBytesRead + available > stderrlength) then
-          begin
-            stderrlength:=StderrBytesRead + READ_BYTES;
-            Setlength(stderrstring,stderrlength);
-          end;
-        StderrNumBytes := p.StdErr.Read(stderrstring[1+StderrBytesRead], available);
-        if StderrNumBytes > 0 then
-          Inc(StderrBytesRead, StderrNumBytes);
-      end;
+    p.ReadInputStream(p.StdErr,StdErrBytesRead,StdErrLength,StdErrString,250);
     setlength(stderrstring,StderrBytesRead);
     exitstatus:=p.exitstatus;
     result:=0; // we came to here, document that.
@@ -564,6 +543,7 @@ begin
          begin
            result:=1;
            setlength(outputstring,BytesRead);
+           setlength(stderrstring,StderrBytesRead);
          end;
      end;
   finally
