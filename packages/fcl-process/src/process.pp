@@ -502,7 +502,7 @@ end;
 // helperfunction that does the bulk of the work.
 // We need to also collect stderr output in order to avoid
 // lock out if the stderr pipe is full.
-function internalRuncommand(out outputstring:string;
+function internalRuncommand(p:TProcess;out outputstring:string;
                             out stderrstring:string; out exitstatus:integer):integer;
 var
     numbytes,bytesread,available : integer;
