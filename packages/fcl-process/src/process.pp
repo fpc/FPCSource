@@ -46,15 +46,14 @@ Type
   TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
 
-  TOnRunCommandIdleEvent = procedure(Sender : TObject) of object;
-  TOnRunCommandException = procedure(Sender : TObject;message:string) of object;
+  TRunCommandEventCode = (RunCommandIdle,RunCommandFinished,RunCommandException);
+  TOnRunCommandEvent = procedure(Sender : TObject;Status:TRunCommandEventCode;const Message:string) of object;
 
   { TProcess }
 
   TProcess = Class (TComponent)
   Private
-    FOnRunCommandIdleEvent: TOnRunCommandIdleEvent;
-    FOnRunCommandException: TOnRunCommandException;
+    FOnRunCommandEvent: TOnRunCommandEvent;
     FProcessOptions : TProcessOptions;
     FRunCommandSleepTime: Integer;
     FStartupOptions : TStartupOptions;
@@ -107,7 +106,7 @@ Type
     procedure SetEnvironment(const Value: TStrings);
     Procedure ConvertCommandLine;
     function  PeekExitStatus: Boolean;
-    Procedure IntOnIdleSleep(Sender:TObject);
+    Procedure IntOnIdleSleep(Sender : TObject;Status:TRunCommandEventCode;const Message:String);
   Protected
     FRunning : Boolean;
     FExitCode : Cardinal;
@@ -145,8 +144,7 @@ Type
     Property ExitStatus : Integer Read GetExitStatus;
     Property ExitCode : Integer Read GetExitCode;
     Property InheritHandles : Boolean Read FInheritHandles Write FInheritHandles;
-    Property OnRunCommandIdleEvent : TOnRunCommandIdleEvent  Read FOnRunCommandIdleEvent Write FOnRunCommandIdleEvent;
-    Property OnRunCommandException : TOnRunCommandException  Read FOnRunCommandException Write FOnRunCommandException;
+    Property OnRunCommandEvent : TOnRunCommandEvent Read FOnRunCommandEvent Write FOnRunCommandEvent;
     Property RunCommandSleepTime : Integer read FRunCommandSleepTime write FRunCommandSleepTime;
     {$ifdef UNIX}
     property OnForkEvent : TProcessForkEvent Read FForkEvent Write FForkEvent;
@@ -272,7 +270,7 @@ begin
   FEnvironment:=TStringList.Create;
   FParameters:=TStringList.Create;
   FRunCommandSleepTime:=100;
-  FOnRunCommandIdleEvent:=@IntOnIdleSleep;
+  FOnRunCommandEvent:=@IntOnIdleSleep;
 end;
 
 Destructor TProcess.Destroy;
@@ -512,9 +510,10 @@ begin
       end;
 end;
 
-procedure TProcess.IntOnIdleSleep(Sender:TObject);
+procedure TProcess.IntOnIdleSleep(Sender : TObject;status:TRunCommandEventCode;const message:string);
 begin
-  sleep(FRunCommandSleepTime);
+  if status=RunCommandIdle then
+    sleep(FRunCommandSleepTime);
 end;
 
 // helperfunction that does the bulk of the work.
@@ -546,8 +545,8 @@ begin
           // if we use poStderrToOutput in p.Options, we do not access invalid memory.
           if assigned(stderr) then
             if not ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1) then
-              if Assigned(FOnRunCommandIdleEvent) Then
-                FOnRunCommandIdleEvent(self);
+              if Assigned(FOnRunCommandEvent) Then
+                FOnRunCommandEvent(self,RunCommandIdle,'');
       end;
     // Get left output after end of execution
     ReadInputStream(output,BytesRead,OutputLength,OutputString,250);
@@ -556,14 +555,17 @@ begin
     setlength(stderrstring,StderrBytesRead);
     anexitstatus:=exitstatus;
     result:=0; // we came to here, document that.
+    if Assigned(FOnRunCommandEvent) then          // allow external apps to react to that and finish GUI
+      FOnRunCommandEvent(self,RunCommandFinished,'');
+
     except
       on e : Exception do
          begin
            result:=1;
            setlength(outputstring,BytesRead);
            setlength(stderrstring,StderrBytesRead);
-           if Assigned(FOnRunCommandException) then
-             FOnRunCommandException(self,e.Message);
+           if Assigned(FOnRunCommandEvent) then
+             FOnRunCommandEvent(self,RunCommandException,e.Message);
          end;
      end;
 end;
