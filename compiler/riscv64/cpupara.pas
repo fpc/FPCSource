@@ -172,7 +172,7 @@ implementation
             result := true;
           procvardef,
           recorddef:
-            result := (def.size > 8);
+            result := (def.size > 16);
           arraydef:
             result := (tarraydef(def).highrange >= tarraydef(def).lowrange) or
               is_open_array(def) or
@@ -196,13 +196,6 @@ implementation
 
         { general rule: passed in registers -> returned in registers }
         result:=push_addr_param(vs_value,def,pd.proccalloption);
-
-        case def.typ of
-          procvardef:
-            result:=def.size>8;
-          recorddef:
-            result:=true;
-        end;
       end;
 
     procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
@@ -224,41 +217,14 @@ implementation
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
 
-        paraloc:=result.add_location;
-        { Return in FPU register? }
-        if result.def.typ=floatdef then
-          begin
-            if (p.proccalloption in [pocall_softfloat]) or
-               (cs_fp_emulation in current_settings.moduleswitches) or
-               (current_settings.fputype in [fpu_soft]) then
-              begin
-                paraloc^.loc:=LOC_REGISTER;
-                if side=callerside then
-                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
-                else
-                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
-                paraloc^.size:=retcgsize;
-                paraloc^.def:=result.def;
-              end
-            else
-              begin
-                paraloc^.loc:=LOC_FPUREGISTER;
-                paraloc^.register:=NR_FPU_RESULT_REG;
-                paraloc^.size:=retcgsize;
-                paraloc^.def:=result.def;
-              end;
-          end
-        else
-         { Return in register }
-          begin
-            paraloc^.loc:=LOC_REGISTER;
-            if side=callerside then
-              paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
-            else
-              paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
-            paraloc^.size:=retcgsize;
-            paraloc^.def:=result.def;
-          end;
+         { in this case, it must be returned in registers as if it were passed
+           as the first parameter }
+         init_values(nextintreg,nextfloatreg,nextmmreg,stack_offset);
+         create_paraloc_for_def(result,vs_value,result.def,nextfloatreg,nextintreg,stack_offset,false,false,side,p);
+         { sanity check (LOC_VOID for empty records) }
+         if not assigned(result.location) or
+            not(result.location^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_VOID]) then
+           internalerror(2014113001);
       end;
 
     function tcpuparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint;
@@ -415,6 +381,15 @@ implementation
             paracgsize:=def_cgsize(locdef);
           end;
         firstparaloc:=true;
+
+        // Parameters passed in 2 registers are passed in a register starting with an even number.
+        if isVararg and
+           (paralen > 8) and
+           (loc = LOC_REGISTER) and
+           (nextintreg <= RS_X17) and
+           odd(nextintreg) then
+          inc(nextintreg);
+
         { can become < 0 for e.g. 3-byte records }
         while (paralen > 0) do begin
           paraloc := para.add_location;

@@ -1002,7 +1002,7 @@ implementation
       begin
         tg:=tgobjclass.create;
 
-{$if defined(i386) or defined(x86_64) or defined(arm) or defined(riscv32) or defined(riscv64)}
+{$if defined(i386) or defined(x86_64) or defined(arm)}
 {$if defined(arm)}
         { frame and stack pointer must be always the same on arm thumb so it makes no
           sense to fiddle with a frame pointer }
@@ -1100,7 +1100,7 @@ implementation
 {$endif defined(arm)}
               end;
           end;
-{$endif defined(x86) or defined(arm) or defined(riscv32) or defined(riscv64)}
+{$endif defined(x86) or defined(arm)}
         { set the start offset to the start of the temp area in the stack }
         set_first_temp_offset;
       end;

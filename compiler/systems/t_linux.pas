@@ -238,7 +238,7 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
   const defdynlinker='/lib32/ld.so.1';
 {$endif riscv32}
 {$ifdef riscv64}
-  const defdynlinker='/lib/ld.so.1';
+  const defdynlinker='/lib/ld-linux-riscv64-lp64d.so.1';
 {$endif riscv64}
 
 
