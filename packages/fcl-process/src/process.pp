@@ -46,11 +46,17 @@ Type
   TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
 
+  TOnRunCommandIdleEvent = procedure(Sender : TObject) of object;
+  TOnRunCommandException = procedure(Sender : TObject;message:string) of object;
+
   { TProcess }
 
   TProcess = Class (TComponent)
   Private
+    FOnRunCommandIdleEvent: TOnRunCommandIdleEvent;
+    FOnRunCommandException: TOnRunCommandException;
     FProcessOptions : TProcessOptions;
+    FRunCommandSleepTime: Integer;
     FStartupOptions : TStartupOptions;
     FProcessID : Integer;
     FTerminalProgram: String;
@@ -101,6 +107,7 @@ Type
     procedure SetEnvironment(const Value: TStrings);
     Procedure ConvertCommandLine;
     function  PeekExitStatus: Boolean;
+    Procedure IntOnIdleSleep(Sender:TObject);
   Protected
     FRunning : Boolean;
     FExitCode : Cardinal;
@@ -124,7 +131,7 @@ Type
     Function WaitOnExit : Boolean;
     Function WaitOnExit(Timeout : DWord) : Boolean;
     function ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var Data:string;MaxLoops:integer=10):boolean;
-    function intRuncommand(out outputstring:string;out stderrstring:string; out anexitstatus:integer):integer;
+    function RunCommandLoop(out outputstring:string;out stderrstring:string; out anexitstatus:integer):integer;
 
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
@@ -138,6 +145,9 @@ Type
     Property ExitStatus : Integer Read GetExitStatus;
     Property ExitCode : Integer Read GetExitCode;
     Property InheritHandles : Boolean Read FInheritHandles Write FInheritHandles;
+    Property OnRunCommandIdleEvent : TOnRunCommandIdleEvent  Read FOnRunCommandIdleEvent Write FOnRunCommandIdleEvent;
+    Property OnRunCommandException : TOnRunCommandException  Read FOnRunCommandException Write FOnRunCommandException;
+    Property RunCommandSleepTime : Integer read FRunCommandSleepTime write FRunCommandSleepTime;
     {$ifdef UNIX}
     property OnForkEvent : TProcessForkEvent Read FForkEvent Write FForkEvent;
     {$endif UNIX}
@@ -261,6 +271,8 @@ begin
   FPipeBufferSize := 1024;
   FEnvironment:=TStringList.Create;
   FParameters:=TStringList.Create;
+  FRunCommandSleepTime:=100;
+  FOnRunCommandIdleEvent:=@IntOnIdleSleep;
 end;
 
 Destructor TProcess.Destroy;
@@ -500,11 +512,15 @@ begin
       end;
 end;
 
+procedure TProcess.IntOnIdleSleep(Sender:TObject);
+begin
+  sleep(FRunCommandSleepTime);
+end;
 
 // helperfunction that does the bulk of the work.
 // We need to also collect stderr output in order to avoid
 // lock out if the stderr pipe is full.
-function TProcess.intRuncommand(out outputstring:string;
+function TProcess.RunCommandLoop(out outputstring:string;
                             out stderrstring:string; out anexitstatus:integer):integer;
 var
     numbytes,bytesread,available : integer;
@@ -530,7 +546,8 @@ begin
           // if we use poStderrToOutput in p.Options, we do not access invalid memory.
           if assigned(stderr) then
             if not ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1) then
-              sleep(100);
+              if Assigned(FOnRunCommandIdleEvent) Then
+                FOnRunCommandIdleEvent(self);
       end;
     // Get left output after end of execution
     ReadInputStream(output,BytesRead,OutputLength,OutputString,250);
@@ -545,6 +562,8 @@ begin
            result:=1;
            setlength(outputstring,BytesRead);
            setlength(stderrstring,StderrBytesRead);
+           if Assigned(FOnRunCommandException) then
+             FOnRunCommandException(self,e.Message);
          end;
      end;
 end;
@@ -570,7 +589,7 @@ begin
    for i:=low(commands) to high(commands) do
      p.Parameters.add(commands[i]);
   try
-    result:=p.intRuncommand(outputstring,errorstring,exitstatus);
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus);
   finally
     p.free;
   end;
@@ -587,7 +606,7 @@ begin
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
   try
-    result:=p.intRuncommand(outputstring,errorstring,exitstatus)=0;
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus)=0;
   finally
     p.free;
   end;
@@ -611,7 +630,7 @@ begin
    for i:=low(commands) to high(commands) do
      p.Parameters.add(commands[i]);
   try
-    result:=p.intRuncommand(outputstring,errorstring,exitstatus)=0;
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus)=0;
   finally
     p.free;
   end;
@@ -627,7 +646,7 @@ begin
   p:=TProcess.create(nil);
   p.setcommandline(cmdline);
   try
-    result:=p.intRuncommand(outputstring,errorstring,exitstatus)=0;
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus)=0;
   finally
     p.free;
   end;
@@ -649,7 +668,7 @@ begin
    for i:=low(commands) to high(commands) do
      p.Parameters.add(commands[i]);
   try
-    result:=p.intRuncommand(outputstring,errorstring,exitstatus)=0;
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus)=0;
   finally
     p.free;
   end;
