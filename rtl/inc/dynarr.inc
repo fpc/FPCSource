@@ -820,7 +820,12 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
         a := PPointerArray(a)^[indices[i]];
 
       { skip kind and name }
-      typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+{$ifdef VER3_0}
+      typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+      typeInfo:=aligntoqword(typeInfo+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
+
       { store the last element size for the index calculation }
       elsize:=pdynarraytypedata(typeInfo)^.elSize;
       { element type info}
@@ -833,9 +838,6 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
       if typeInfo=nil then
         exit(nil);
     end;
-
-    { skip kind and name }
-    typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
 
     result:=@(PByte(a)[indices[h]*elsize]);
   end;
