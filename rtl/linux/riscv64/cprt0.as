@@ -26,17 +26,17 @@
 
         At this entry point, most registers' values are unspecified, except:
 
-   a1           Contains a function pointer to be registered with `atexit'.
+   a0           Contains a function pointer to be registered with `atexit'.
                 This is how the dynamic linker arranges to have DT_FINI
                 functions called for shared libraries that have been loaded
                 before this code runs.
 
    sp           The stack contains the arguments and environment:
                 0(sp)                   argc
-                4(sp)                   argv[0]
+                8(sp)                   argv[0]
                 ...
-                (4*argc)(sp)            NULL
-                (4*(argc+1))(sp)        envp[0]
+                (8*argc)(sp)            NULL
+                (8*(argc+1))(sp)        envp[0]
                 ...
                                         NULL
 */
@@ -51,21 +51,23 @@ _start:
         addi  gp, gp, %pcrel_lo(1b)
         .option pop
 
+        /* Store rtld_fini in a5 */
+        addi a5, a0, 0
+
         /* Clear the frame pointer since this is the outermost frame.  */
         addi x8, x0, 0
-        ld   a2, 0(sp)
-        addi sp, sp, 8
 
-        /* Pop argc off the stack and save a pointer to argv */
-1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argc)
-	sd	a2,%pcrel_lo(1b)(x8)
-1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argv)
-	sd	sp,%pcrel_lo(1b)(x8)
-
-        addi a4, a2, 1
+        /* Pop argc off the stack, and save argc, argv and envp */
+        ld   a1, 0(sp)
+        addi a2, sp, 8
+        addi a4, a1, 1
         slli a4, a4, 3
-        add  a4, sp, a4
+        add  a4, a2, a4
 
+1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argc)
+	sd	a1,%pcrel_lo(1b)(x8)
+1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argv)
+	sd	a2,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_envp)
 	sd	a4,%pcrel_lo(1b)(x8)
 
@@ -75,30 +77,15 @@ _start:
 
         /* Fetch address of fini */
 1:auipc	x8,%pcrel_hi(__libc_csu_fini)
-	addi	a2,x8,%pcrel_lo(1b)
+	addi	a4,x8,%pcrel_lo(1b)
 
-        /* argc already loaded to a2*/
-
-        /* load argv */
-        addi a3, sp, 0
-
-        /* Push stack limit */
-        sd   a3, -8(sp)
-        addi sp, sp, -8
-
-        /* Push rtld_fini */
-        sd   a1, -8(sp)
-        addi sp, sp, -8
+        addi a6, sp, 0
 
         /* Set up the other arguments in registers */
 1:auipc	x8,%pcrel_hi(PASCALMAIN)
-	addi a1, x8, %pcrel_lo(1b)
+	addi a0, x8, %pcrel_lo(1b)
 1:auipc	x8,%pcrel_hi(__libc_csu_init)
-	addi a4, x8, %pcrel_lo(1b)
-
-        /* Push fini */
-        sd   a2, -8(sp)
-        addi sp, sp, -8
+	addi a3, x8, %pcrel_lo(1b)
 
         /* __libc_start_main (main, argc, argv, init, fini, rtld_fini, stack_end) */
 
@@ -111,7 +98,7 @@ _start:
         jalr ra, x8, %pcrel_lo(1b)
 
         .globl  _haltproc
-    .type   _haltproc,function
+        .type   _haltproc,function
 _haltproc:
 1:auipc	x8,%pcrel_hi(operatingsystem_result)
 	lbu	x1,%pcrel_lo(1b)(x8)
@@ -128,11 +115,11 @@ __data_start:
         data_start = __data_start
 
 .bss
-        .comm __stkptr,4
+        .comm __stkptr,8
 
-        .comm operatingsystem_parameter_envp,4
-        .comm operatingsystem_parameter_argc,4
-        .comm operatingsystem_parameter_argv,4
+        .comm operatingsystem_parameter_envp,8
+        .comm operatingsystem_parameter_argc,8
+        .comm operatingsystem_parameter_argv,8
 
         .section ".comment"
         .byte 0

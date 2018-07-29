@@ -181,6 +181,12 @@ begin
 {$ifdef sparc64}
       LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/sparc64-linux-gnu',true);
 {$endif sparc64}
+{$ifdef riscv32}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/riscv32-linux-gnu',true);
+{$endif riscv32}
+{$ifdef riscv64}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/riscv64-linux-gnu',true);
+{$endif riscv64}
     end;
 end;
 

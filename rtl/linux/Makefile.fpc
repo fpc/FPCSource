@@ -91,7 +91,7 @@ SYSINIT_UNITS=si_prc si_c si_g si_dll
 endif
 
 ifeq ($(ARCH),riscv64)
-override LOADERS=prt0 cprt0
+override LOADERS=prt0 cprt0 dllprt0
 endif
 
 # mipsel reuses mips files by including so some file names exist
