@@ -58,7 +58,6 @@ Type
     FRunCommandSleepTime: Integer;
     FStartupOptions : TStartupOptions;
     FProcessID : Integer;
-    FTerminalProgram: String;
     FThreadID : Integer;
     FProcessHandle : Thandle;
     FThreadHandle : Thandle;
