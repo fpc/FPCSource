@@ -45,7 +45,7 @@ type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
             OPR_REFERENCE,OPR_REGISTER,OPR_COND,OPR_REGSET,
             OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_SPECIALREG,
-            OPR_REGPAIR);
+            OPR_REGPAIR,OPR_FENCEFLAGS);
 
   TOprRec = record
     case typ:TOprType of
@@ -81,6 +81,9 @@ type
 {$ifdef aarch64}
       OPR_SHIFTEROP : (shifterop : tshifterop);
       OPR_COND      : (cc : tasmcond);
+{$endif aarch64}
+{$if defined(riscv32) or defined(riscv64)}
+      OPR_FENCEFLAGS: (fenceflags : TFenceFlags);
 {$endif aarch64}
   end;
 
@@ -1295,6 +1298,10 @@ end;
              OPR_COND:
                ai.loadconditioncode(i-1,cc);
 {$endif arm or aarch64}
+{$if defined(riscv32) or defined(riscv64)}
+             OPR_FENCEFLAGS:
+               ai.loadfenceflags(i-1,fenceflags);
+{$endif riscv32 or riscv64}
               { ignore wrong operand }
               OPR_NONE:
                 ;

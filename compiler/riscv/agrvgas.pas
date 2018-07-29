@@ -167,6 +167,14 @@ unit agrvgas;
             end
           else
             getopstr:=getreferencestring(asminfo,o.ref^);
+        top_fenceflags:
+          begin
+            getopstr:='';
+            if ffI in o.fenceflags then getopstr:=getopstr+'i';
+            if ffO in o.fenceflags then getopstr:=getopstr+'o';
+            if ffR in o.fenceflags then getopstr:=getopstr+'r';
+            if ffW in o.fenceflags then getopstr:=getopstr+'w';
+          end
         else
           internalerror(2002070604);
       end;
@@ -183,6 +191,13 @@ unit agrvgas;
 
       if taicpu(hp).condition<>C_None then
         s:=s+cond2str[taicpu(hp).condition];
+
+      if taicpu(hp).memoryordering<>[] then
+        begin
+          s:=s+'.';
+          if moAq in taicpu(hp).memoryordering then s:=s+'aq';
+          if moRl in taicpu(hp).memoryordering then s:=s+'rl';
+        end;
 
       if taicpu(hp).ops<>0 then
         begin

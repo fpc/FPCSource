@@ -26,10 +26,12 @@ unit rarv64gas;
   interface
 
     uses
-      raatt, rarv;
+      raatt, rarv,
+      cpubase;
 
     type
       trv64attreader = class(tattreader)
+        actmemoryordering: TMemoryOrdering;
         function is_register(const s: string): boolean; override;
         function is_asmopcode(const s: string):boolean;override;
         procedure handleopcode;override;
@@ -49,7 +51,7 @@ unit rarv64gas;
       globtype,globals,verbose,
       systems,
       { aasm }
-      cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,symdef,
       { parser }
@@ -372,6 +374,40 @@ unit rarv64gas;
           end;
 
 
+        function is_fenceflag(hs : string): boolean;
+          var
+            i: longint;
+            flags: TFenceFlags;
+          begin
+            is_fenceflag := false;
+
+            flags:=[];
+            hs:=lower(hs);
+
+            if (actopcode in [A_FENCE]) and (length(hs) >= 1) then
+              begin
+                for i:=1 to length(hs) do
+                  begin
+                    case hs[i] of
+                      'i':
+                        Include(flags,ffi);
+                      'o':
+                        Include(flags,ffo);
+                      'r':
+                        Include(flags,ffr);
+                      'w':
+                        Include(flags,ffw);
+                    else
+                      exit;
+                    end;
+                  end;
+                oper.opr.typ := OPR_FENCEFLAGS;
+                oper.opr.fenceflags := flags;
+                exit(true);
+              end;
+          end;
+
+
       var
         tempreg : tregister;
         hl : tasmlabel;
@@ -438,6 +474,11 @@ unit rarv64gas;
 
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
+              if is_fenceflag(actasmpattern) then
+                begin
+                  consume(AS_ID);
+                end
+              else
               { Local Label ? }
               if is_locallabel(actasmpattern) then
                begin
@@ -586,6 +627,7 @@ unit rarv64gas;
           begin
             Opcode:=ActOpcode;
             condition:=ActCondition;
+            ordering:=actmemoryordering;
           end;
 
         { We are reading operands, so opcode will be an AS_ID }
@@ -641,10 +683,10 @@ unit rarv64gas;
           (name: 'A1'; reg : NR_X11),
           (name: 'A2'; reg : NR_X12),
           (name: 'A3'; reg : NR_X13),
-          (name: 'A5'; reg : NR_X14),
-          (name: 'A6'; reg : NR_X15),
-          (name: 'A7'; reg : NR_X16),
-          (name: 'A8'; reg : NR_X17),
+          (name: 'A4'; reg : NR_X14),
+          (name: 'A5'; reg : NR_X15),
+          (name: 'A6'; reg : NR_X16),
+          (name: 'A7'; reg : NR_X17),
           (name: 'RA'; reg : NR_X1),
           (name: 'SP'; reg : NR_X2),
           (name: 'GP'; reg : NR_X3),
@@ -697,8 +739,8 @@ unit rarv64gas;
     function trv64attreader.is_asmopcode(const s: string):boolean;
       var
         cond  : tasmcond;
-        hs : string;
-
+        hs, postfix : string;
+        l: longint;
       Begin
         { making s a value parameter would break other assembler readers }
         hs:=s;
@@ -732,6 +774,33 @@ unit rarv64gas;
                   exit;
                 end;
           end;
+
+        { check atomic instructions }
+        if (pos('AMO',hs)=1) or
+           (pos('LR', hs)=1) or
+           (pos('SC', hs)=1) then
+          begin
+            l := length(hs)-1;
+            while l>1 do
+              begin
+                actopcode := tasmop(ptruint(iasmops.find(copy(hs,1,l))));
+                if actopcode <> A_None then
+                  begin
+                    postfix := copy(hs,l+1,length(hs)-l);
+
+                    if postfix='.AQRL' then actmemoryordering:=[moAq,moRl]
+                    else if postfix='.RL' then actmemoryordering:=[moRl]
+                    else if postfix='.AQ' then actmemoryordering:=[moAq]
+                    else
+                      exit;
+
+                    actasmtoken:=AS_OPCODE;
+                    is_asmopcode:=true;
+                    exit;
+                  end;
+                dec(l);
+              end;
+          end;
       end;
 
 
@@ -749,6 +818,7 @@ unit rarv64gas;
         }
         instr.ConcatInstruction(curlist);
         instr.Free;
+        actmemoryordering:=[];
       end;
 
 

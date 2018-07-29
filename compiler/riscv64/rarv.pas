@@ -34,9 +34,17 @@ type
   end;
 
   TRVInstruction = class(TInstruction)
+    ordering: TMemoryOrdering;
+    function ConcatInstruction(p: TAsmList): tai; override;
   end;
 
 implementation
+
+  function TRVInstruction.ConcatInstruction(p: TAsmList): tai;
+    begin
+      Result:=inherited ConcatInstruction(p);
+      (result as taicpu).memoryordering:=ordering;
+    end;
 
 end.
 

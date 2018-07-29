@@ -330,6 +330,22 @@ unit raatt;
                end;
            end;
 {$endif aarch64}
+{$if defined(riscv32) or defined(riscv64)}
+           {
+             amo* instructions contain a postfix with size, and optionally memory ordering
+             fence* can contain memory type identifier
+             floating point instructions contain size, and optionally rounding mode
+           }
+           case c of
+             '.':
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z','.']);
+               end;
+           end;
+{$endif riscv}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
