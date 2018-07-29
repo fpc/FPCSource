@@ -266,6 +266,8 @@ type
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
 
+generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
+
 
 Var
    OnShowException : Procedure (Msg : ShortString);

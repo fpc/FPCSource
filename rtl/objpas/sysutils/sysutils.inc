@@ -801,3 +801,14 @@ begin
   result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ComLineA);
 end;
 {$endif}
+
+
+// generic ifthen..
+
+generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
+begin
+  if val then 
+    Result := ifTrue
+  else
+    Result:=ifFalse;  
+end;
