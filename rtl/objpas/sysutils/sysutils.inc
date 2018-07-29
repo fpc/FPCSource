@@ -804,7 +804,7 @@ end;
 
 
 // generic ifthen..
-
+{$IFNDEF VER3_0}
 generic function IfThen<T>(val:boolean;const iftrue:T; const iffalse:T) :T; inline; overload;
 begin
   if val then 
@@ -812,3 +812,4 @@ begin
   else
     Result:=ifFalse;  
 end;
+{$ENDIF}
