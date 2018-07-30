@@ -1228,19 +1228,40 @@ destructor TRegExpr.Destroy;
  end; { of destructor TRegExpr.Destroy
 --------------------------------------------------------------}
 
+{$IFDEF FPC}
+{$IFDEF UNICODE}
+function AnsiUpperCase(const s: RegExprString): RegExprString;inline;
+
+begin
+  Result:=WideUpperCase(S);
+end;
+
+function AnsiLowerCase(const s: RegExprString): RegExprString;inline;
+
+begin
+  Result:=WideLowerCase(S);
+end;
+{$ENDIF}
+{$ENDIF}
+
 class function TRegExpr.InvertCaseFunction (const Ch : REChar) : REChar;
- begin
-  {$IFDEF UniCode}
-  if Ch >= #128
-   then Result := Ch
-  else
+begin
+{$IFDEF FPC}
+  Result := AnsiUpperCase(Ch)[1];
+  if Result = Ch then
+    Result := AnsiLowerCase(Ch)[1];
+{$ELSE}
+  {$IFDEF SYN_WIN32}
+    Result := REChar (CharUpper (PChar (Ch)));
+    if Result = Ch then
+      Result := REChar (CharLower (PChar (Ch)));
+  {$ELSE}
+    Result := REChar (toupper (integer (Ch)));
+    if Result = Ch then
+      Result := REChar(tolower (integer (Ch)));
   {$ENDIF}
-   begin
-    Result := {$IFDEF FPC}AnsiUpperCase (Ch) [1]{$ELSE} {$IFDEF SYN_WIN32}REChar (CharUpper (PChar (Ch))){$ELSE}REChar (toupper (integer (Ch))){$ENDIF} {$ENDIF};
-    if Result = Ch
-     then Result := {$IFDEF FPC}AnsiLowerCase (Ch) [1]{$ELSE} {$IFDEF SYN_WIN32}REChar (CharLower (PChar (Ch))){$ELSE}REChar(tolower (integer (Ch))){$ENDIF} {$ENDIF};
-   end;
- end; { of function TRegExpr.InvertCaseFunction
+{$ENDIF}
+end; { of function TRegExpr.InvertCaseFunction
 --------------------------------------------------------------}
 
 function TRegExpr.GetExpression : RegExprString;
@@ -3886,8 +3907,7 @@ begin
           smodeOneLower, smodeAllLower:
             begin
               Ch := p0^;
-              if Ch < #128 then
-                Ch := AnsiLowerCase(Ch)[1];
+              Ch := AnsiLowerCase(Ch)[1];
               ResultPtr^ := Ch;
               if Mode = smodeOneLower then
                 Mode := smodeNormal;
@@ -3895,8 +3915,7 @@ begin
           smodeOneUpper, smodeAllUpper:
             begin
               Ch := p0^;
-              if Ch < #128 then
-                Ch := AnsiUpperCase(Ch)[1];
+              Ch := AnsiUpperCase(Ch)[1];
               ResultPtr^ := Ch;
               if Mode = smodeOneUpper then
                 Mode := smodeNormal;

@@ -7257,6 +7257,7 @@ packages/regexpr/examples/Makefile.fpc svneol=native#text/plain
 packages/regexpr/examples/splitwords.lpi svneol=native#text/plain
 packages/regexpr/examples/splitwords.pp svneol=native#text/plain
 packages/regexpr/examples/testreg1.pp svneol=native#text/plain
+packages/regexpr/examples/testure.pp svneol=native#text/plain
 packages/regexpr/fpmake.pp svneol=native#text/plain
 packages/regexpr/src/old/regexpr.pp svneol=native#text/plain
 packages/regexpr/src/oldregexpr.pp svneol=native#text/pascal
