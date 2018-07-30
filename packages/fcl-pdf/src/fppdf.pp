@@ -4130,7 +4130,7 @@ begin
   end;
 
   AStream.WriteBuffer(ba[0], Length(ba));
-  WriteString(CRLF, AStream);
+  //WriteString(CRLF, AStream);
   SetLength(ba, 0);
 end;
 
@@ -4161,7 +4161,7 @@ begin
     ba[gid] := ba[gid] or mask;
   end;
   AStream.WriteBuffer(ba[0], Length(ba));
-  WriteString(CRLF, AStream);
+  //WriteString(CRLF, AStream);
   SetLength(ba, 0);
 end;
 
@@ -4326,6 +4326,7 @@ begin
     end;
 
     M.Free;
+    TPDFObject.WriteString(CRLF, AStream);
     TPDFObject.WriteString('endstream', AStream);
   end;
   TPDFObject.WriteString(CRLF+'endobj'+CRLF+CRLF, AStream);
