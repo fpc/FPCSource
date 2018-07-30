@@ -4111,12 +4111,12 @@ var
   i: integer;
   cid, gid: uint16;
   ba: TBytes;
-  lMaxCharID: integer;
+  lMaxCID: integer;
 begin
   lst := Document.Fonts[FontNum].TextMapping;
   lst.Sort;
-  lMaxCharID := lst.GetMaxCharID;
-  SetLength(ba, (lMaxCharID * 2)+1);
+  lMaxCID := lst.GetMaxGlyphID;
+  SetLength(ba, (lMaxCID + 1)*2);
   // initialize array to 0's
   for i := 0 to Length(ba)-1 do
     ba[i] := 0;
