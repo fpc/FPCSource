@@ -519,13 +519,20 @@ type
 
 
   { TCustomSession }
+  TSessionState = (ssNew,ssExpired,ssActive,ssResponseInitialized);
+  TSessionStates = set of TSessionState;
 
   TCustomSession = Class(TComponent)
   Private
+    FOnSessionStateChange: TNotifyEvent;
     FSessionCookie: String;
     FSessionCookiePath: String;
+    FStates: TSessionStates;
     FTimeOut: Integer;
+    Procedure SetSessionState(aValue : TSessionStates);
   Protected
+    Procedure AddToSessionState(aValue : TSessionState);
+    Procedure RemoveFromSessionState(aValue : TSessionState);
     // Can be overridden to provide custom behaviour.
     procedure SetSessionCookie(const AValue: String); virtual;
     procedure SetSessionCookiePath(const AValue: String); virtual;
@@ -556,6 +563,10 @@ type
     Property SessionCookiePath : String Read FSessionCookiePath write SetSessionCookiePath;
     // Variables, tracked in session.
     Property Variables[VarName : String] : String Read GetSessionVariable Write SetSessionVariable;
+    // Session state
+    Property SessionState : TSessionStates Read FStates;
+    // Called when state changes
+    Property OnSessionStateChange : TNotifyEvent Read FOnSessionStateChange Write FOnSessionStateChange;
   end;
 
   TRequestEvent = Procedure (Sender: TObject; ARequest : TRequest) of object;
@@ -2261,6 +2272,36 @@ end;
   TCustomSession
   ---------------------------------------------------------------------}
 
+procedure TCustomSession.SetSessionState(aValue: TSessionStates);
+
+begin
+  if FStates=aValue then exit;
+  If Assigned(OnSessionStateChange) then
+    OnSessionStateChange(Self);
+  FStates:=AValue;
+end;
+
+procedure TCustomSession.AddToSessionState(aValue: TSessionState);
+
+Var
+  S: TSessionStates;
+
+begin
+  S:=SessionState;
+  Include(S,AValue);
+  SetSessionState(S);
+end;
+
+procedure TCustomSession.RemoveFromSessionState(aValue: TSessionState);
+Var
+  S: TSessionStates;
+
+begin
+  S:=SessionState;
+  Exclude(S,AValue);
+  SetSessionState(S);
+end;
+
 procedure TCustomSession.SetSessionCookie(const AValue: String);
 begin
   FSessionCookie:=AValue;
@@ -2286,6 +2327,7 @@ constructor TCustomSession.Create(AOwner: TComponent);
 begin
   FTimeOut:=DefaultTimeOut;
   inherited Create(AOwner);
+  FStates:=[];
 end;
 
 procedure TCustomSession.InitResponse(AResponse: TResponse);
