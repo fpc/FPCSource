@@ -134,6 +134,9 @@ Type
     Function ExtractDateTime(S : String): TDateTime;
     function GetObject(AInstance : TObject; const APropName: TJSONStringType; D: TJSONObject; PropInfo: PPropInfo): TObject;
     procedure DoRestoreProperty(AObject: TObject; PropInfo: PPropInfo;  PropData: TJSONData); virtual;
+    function DoMapProperty(AObject: TObject; PropInfo: PPropInfo; JSON: TJSONObject): TJSONData; virtual;
+    procedure DoBeforeReadObject(Const JSON: TJSONObject; AObject: TObject); virtual;
+    procedure DoAfterReadObject(Const JSON: TJSONObject; AObject: TObject); virtual;
     Function ObjectFromString(Const JSON : TJSONStringType) : TJSONData; virtual;
     procedure RestoreProperty(AObject: TObject; PropInfo: PPropInfo; PropData: TJSONData);
   Public
@@ -240,6 +243,10 @@ Var
 
 begin
   D:=ObjectFromString(JSON);
+
+  if not Assigned(D) then
+    Exit;
+
   try
     If D.JSONType=jtObject then
       JSONToObject(D as TJSONObject,AObject)
@@ -505,15 +512,38 @@ begin
   end;
 end;
 
-procedure TJSONDeStreamer.JSONToObject(const JSON: TJSONObject; AObject: TObject
-  );
-Var
-  I,J : Integer;
-  PIL : TPropInfoList;
+function TJSONDeStreamer.DoMapProperty(AObject: TObject; PropInfo: PPropInfo; JSON: TJSONObject): TJSONData;
+var
+  J: Integer;
+begin
+  J := JSON.IndexOfName(PropInfo^.Name,(jdoCaseInsensitive in Options));
+  if J > -1 then
+    Result := JSON.Items[J]
+  else
+    Result := nil;
+end;
 
+procedure TJSONDeStreamer.DoBeforeReadObject(Const JSON: TJSONObject; AObject: TObject);
 begin
   If Assigned(FBeforeReadObject) then
     FBeforeReadObject(Self,AObject,JSON);
+end;
+
+procedure TJSONDeStreamer.DoAfterReadObject(Const JSON: TJSONObject; AObject: TObject);
+begin
+  If Assigned(FAfterReadObject) then
+    FAfterReadObject(Self,AObject,JSON)
+end;
+
+procedure TJSONDeStreamer.JSONToObject(const JSON: TJSONObject; AObject: TObject
+  );
+Var
+  I : Integer;
+  PIL : TPropInfoList;
+  JD: TJSONData;
+
+begin
+  DoBeforeReadObject(JSON, AObject);
   If (AObject is TStrings) then
     JSONToStrings(JSON,AObject as TStrings)
   else If (AObject is TCollection) then
@@ -524,16 +554,15 @@ begin
     try
       For I:=0 to PIL.Count-1 do
         begin
-        J:=JSON.IndexOfName(Pil.Items[i]^.Name,(jdoCaseInsensitive in Options));
-        If (J<>-1) then
-          RestoreProperty(AObject,PIL.Items[i],JSON.Items[J]);
+        JD:=DoMapProperty(AObject, Pil.Items[i], JSON);
+        If Assigned(JD) then
+          RestoreProperty(AObject,PIL.Items[i],JD);
         end;
     finally
       FreeAndNil(PIL);
     end;
     end;
-  If Assigned(FAfterReadObject) then
-    FAfterReadObject(Self,AObject,JSON)
+  DoAfterReadObject(JSON, AObject);
 end;
 
 procedure TJSONDeStreamer.JSONToCollection(const JSON: TJSONStringType;
@@ -544,7 +573,8 @@ Var
 begin
   D:=ObjectFromString(JSON);
   try
-    JSONToCollection(D,ACollection);
+    if Assigned(D) then
+      JSONToCollection(D,ACollection);
   finally
     D.Free;
   end;
