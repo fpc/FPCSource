@@ -1108,11 +1108,11 @@ begin
       if Res < 0 then
         Err:=socketerror;
       {$else}
-      Err:=Res;
+        Err:=Res;
       {$endif}
     end;
 {$IFDEF HAVENONBLOCKING}
-  if (Err=ESysEINPROGRESS) and (ConnectTimeOut>0) then
+  if {(Err=ESysEINPROGRESS) and} (ConnectTimeOut>0) then
     begin
       Res:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
       SetSocketBlockingMode(Handle, bmBlocking, @FDS);
