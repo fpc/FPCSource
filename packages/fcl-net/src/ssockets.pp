@@ -1045,7 +1045,9 @@ begin
        begin
          fpgetsockopt(ASocket, SOL_SOCKET, SO_ERROR, @Err, @ErrLen);
          if Err <> 0 then // 0 -> connected
-           Result := Err;
+           // We are not interested in the real error-code (ESysEAGAIN,
+           // ESysEINTR etc, which values are positive)
+           Result := -1;
        end;
      end;
   {$else}
@@ -1072,12 +1074,11 @@ Var
   A : THostAddr;
   addr: TInetSockAddr;
   Res : Integer;
+  Err: Integer;
 {$IFDEF HAVENONBLOCKING}
   FDS: TFDSet;
   TimeV: TTimeVal;
 {$endif}
-
-
 begin
   A := StrToHostAddr(FHost);
   if A.s_bytes[1] = 0 then
@@ -1097,16 +1098,25 @@ begin
     SetSocketBlockingMode(Handle, bmNonBlocking, @FDS) ;
 {$ENDIF}
   {$ifdef unix}
-  Res:=ESysEINTR;
-    While (Res=ESysEINTR) do
+  Err:=ESysEINTR;
+  Res:=-1;
+  While (Res<0) and (Err in [ESysEINTR, ESysEAGAIN]) do
   {$endif}
+    begin
       Res:=fpConnect(Handle, @addr, sizeof(addr));
+      {$ifdef unix}
+      if Res < 0 then
+        Err:=socketerror;
+      {$else}
+      Err:=Res;
+      {$endif}
+    end;
 {$IFDEF HAVENONBLOCKING}
-  if (ConnectTimeOut>0) then
-      begin
+  if (Err=ESysEINPROGRESS) and (ConnectTimeOut>0) then
+    begin
       Res:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
       SetSocketBlockingMode(Handle, bmBlocking, @FDS);
-      end;
+    end;
 {$ENDIF}
   If Not (Res<0) then
     if not FHandler.Connect then
