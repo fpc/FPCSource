@@ -4690,11 +4690,16 @@ end;
 procedure TPDFDocument.CreateFontFileEntry(const AFontNum: integer);
 var
   FDict: TPDFDictionary;
+  Len: Integer;
 begin
   FDict:=CreateGlobalXRef.Dict;
   if poCompressFonts in Options then
     FDict.AddName('Filter','FlateDecode');
-  FDict.AddInteger('Length1 '+IntToStr(AFontNum), Fonts[AFontNum].FTrueTypeFile.OriginalSize);
+  if poSubsetFont in Options then
+    Len := Fonts[AFontNum].SubsetFont.Size
+  else
+    Len := Fonts[AFontNum].FTrueTypeFile.OriginalSize;
+  FDict.AddInteger('Length1 '+IntToStr(AFontNum), Len);
 end;
 
 procedure TPDFDocument.CreateCIDSet(const AFontNum: integer);
