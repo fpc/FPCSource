@@ -42,6 +42,8 @@ type
   TGIDListEnumerator = class;
 
 
+  { TFontSubsetter }
+
   TFontSubsetter = class(TObject)
   private
     FPrefix: string;
@@ -58,7 +60,7 @@ type
     function    ToUInt32(const ABytes: AnsiString): UInt32;
     function    GetRawTable(const ATableName: AnsiString): TMemoryStream;
     function    WriteFileHeader(AOutStream: TStream; const nTables: integer): uint32;
-    function    WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32; const AData: TStream): int64;
+    function    WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32; const AData: TStream): UInt32;
     function    GetNewGlyphId(const OldGid: integer): Integer;
     procedure   WriteTableBodies(AOutStream: TStream; const ATables: TStringList);
     procedure   UpdateOrigGlyphIDList;
@@ -251,21 +253,28 @@ begin
 end;
 
 function TFontSubsetter.WriteTableHeader(AOutStream: TStream; const ATag: AnsiString; const AOffset: UInt32;
-  const AData: TStream): int64;
+  const AData: TStream): UInt32;
 var
-  checksum: Int64;
+  checksum, w: UInt32;
   n: integer;
   lByte: Byte;
 begin
   AData.Position := 0;
   checksum := 0;
+  w := 0;
 
   for n := 0 to AData.Size-1 do
   begin
     lByte := AData.ReadByte;
-    checksum := checksum + (((lByte and $FF) shl 24) - n mod 4 * 8);
+    //checksum := checksum + (((lByte and $FF) shl 24) - n mod 4 * 8);
+    w := w or (lByte shl ((3 - (n mod 4))*8));
+    if n mod 4 = 3 then begin
+      Inc(checksum, w);
+      w := 0;
+    end;
   end;
-  checksum := checksum and $FFFFFFFF;
+  Inc(checksum, w);
+  //checksum := checksum and $FFFFFFFF;
 
   AOutStream.WriteBuffer(Pointer(ATag)^, 4); // Tag is always 4 bytes - written as-is, no NtoBE() required
   WriteUInt32(AOutStream, checksum);
@@ -1011,7 +1020,7 @@ end;
 
 procedure TFontSubsetter.SaveToStream(const AStream: TStream);
 var
-  checksum: int64;
+  checksum: UInt32;
   offset: int64;
   head: TStream;
   hhea: TStream;
@@ -1088,11 +1097,11 @@ begin
       offset := offset + o;
     end;
   end;
-  checksum := $B1B0AFBA - (checksum and $ffffffff);
+  checksum := UInt32($B1B0AFBA) - checksum;
 
   // update head.ChecksumAdjustment field
   head.Seek(8, soBeginning);
-  WriteInt32(head, Int32(checksum));
+  WriteUInt32(head, checksum);
 
   // write table bodies
   WriteTableBodies(AStream, tables);
