@@ -1212,7 +1212,7 @@ begin
   try
     AFrom.Position := 0;
     c.CopyFrom(AFrom, AFrom.Size);
-    c.Flush;
+    //c.Flush; called in c.Free
   finally
     c.Free;
   end;
