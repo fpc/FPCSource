@@ -1125,7 +1125,7 @@ begin
 {$IFDEF HAVENONBLOCKING}
   if (ConnectTimeOut>0) then
     begin
-    if IsError and (Err=ESysEINPROGRESS) then
+    if IsError and (Err=ErrWouldBlock) then
       begin
       TimeOutResult:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
       IsError:=(TimeOutResult<>ctrOK);
