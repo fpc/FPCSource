@@ -133,8 +133,9 @@ Function ProcessArgs: longint;
                 readln(responsefile,s);
                 { Avoid problem with GNU make version 4
                   which adds lines containing
-                  make[X] Entering/leaving ... }
-                if not (copy(s,1,5)='make[') then
+                  make[X] Entering/leaving ...
+                  Modified to also accept gmake }
+                if pos('make[',s)=0 then
                   AddFile(s);
               end;
             close(responsefile);
