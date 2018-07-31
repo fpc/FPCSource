@@ -220,22 +220,23 @@ type
   { TInetSocket }
   TBlockingMode = (bmBlocking,bmNonBlocking);
   TBlockingModes = Set of TBlockingMode;
+  TCheckTimeoutResult = (ctrTimeout,ctrError,ctrOK);
 
 {$if defined(unix) or defined(windows)}
 {$DEFINE HAVENONBLOCKING}
 {$endif}
-
   TInetSocket = Class(TSocketStream)
   Private
     FHost : String;
     FPort : Word;
   Protected
 {$IFDEF HAVENONBLOCKING}
-    function SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Integer; virtual;
-    function CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): Integer; virtual;
+    function SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): boolean; virtual;
+    function CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): TCheckTimeoutResult; virtual;
 {$ENDIF}
   Public
     Constructor Create(const AHost: String; APort: Word; AHandler : TSocketHandler = Nil); Overload;
+    Constructor Create(const AHost: String; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil); Overload;
     Procedure Connect; Virtual;
     Property Host : String Read FHost;
     Property Port : Word Read FPort;
@@ -970,12 +971,18 @@ end;
   ---------------------------------------------------------------------}
 
 Constructor TInetSocket.Create(const AHost: String; APort: Word;AHandler : TSocketHandler = Nil);
+begin
+  Create(AHost,aPort,0,AHandler);
+end;
+
+Constructor TInetSocket.Create(const AHost: String; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil);
 Var
   S : Longint;
 
 begin
   FHost:=AHost;
   FPort:=APort;
+  ConnectTimeout:=aConnectTimeout;
   S:=fpSocket(AF_INET,SOCK_STREAM,0);
   Inherited Create(S,AHandler);
   if (AHandler=Nil) then // Backwards compatible behaviour.
@@ -983,7 +990,7 @@ begin
 end;
 
 {$IFDEF HAVENONBLOCKING}
-function TInetSocket.SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Integer;
+function TInetSocket.SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Boolean;
 
 Const
     BlockingModes : Array[TBlockingMode] of DWord =
@@ -1014,20 +1021,21 @@ begin
 {$ifdef unix}
   flags := FpFcntl(ASocket, F_GetFl, 0);
   if (AblockMode = bmNonBlocking) then
-    result := FpFcntl(ASocket, F_SetFl, flags or O_NONBLOCK)
+    result := FpFcntl(ASocket, F_SetFl, flags or O_NONBLOCK) = 0
   else
-    result := FpFcntl(ASocket, F_SetFl, flags and (not O_NONBLOCK));
+    result := FpFcntl(ASocket, F_SetFl, flags and (not O_NONBLOCK)) = 0;
 {$endif}
 {$ifdef windows}
-  result := ioctlsocket(ASocket,FIONBIO,@ABlockMode);
+  result := ioctlsocket(ASocket,FIONBIO,@ABlockMode) = 0;
 {$endif}
 end;
 
-function TInetSocket.CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): Integer;
+// Return true if a timeout happened. Will only be called in case of eWouldBlock.
+function TInetSocket.CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): TCheckTimeoutResult;
 
 var
-  Err: LongInt = 1;
-  ErrLen: LongInt;
+  Err,ErrLen : Longint;
+  Res : LongInt;
   locTimeVal: PTimeVal;
   locFDS: PFDSet;
 
@@ -1036,44 +1044,50 @@ begin
   locFDS := PFDSet(AFDSPtr);
   locTimeVal^.tv_usec := 0;
   locTimeVal^.tv_sec := FConnectTimeout div 1000;
+  Res:=-1;
   {$ifdef unix}
-    Result := fpSelect(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
-    if Result > 0 then
-     begin
-       ErrLen := SizeOf(Err);
-       if fpFD_ISSET(ASocket, locFDS^) = 1 then
-       begin
-         fpgetsockopt(ASocket, SOL_SOCKET, SO_ERROR, @Err, @ErrLen);
-         if Err <> 0 then // 0 -> connected
-           // We are not interested in the real error-code (ESysEAGAIN,
-           // ESysEINTR etc, which values are positive)
-           Result := -1;
-       end;
-     end;
-  {$else}
+    Res:=fpSelect(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
+  {$ENDIF}
   {$ifdef windows}
-    Result := select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
-    if Result > 0 then
-     begin
-       ErrLen := SizeOf(Err);
-       if FD_ISSET(ASocket, locFDS^) then
-       begin
-         fpgetsockopt(ASocket, SOL_SOCKET, SO_ERROR, @Err, @ErrLen);
-         if Err <> 0 then // 0 -> connected
-           Result := Err;
-       end;
-     end;
-  {$endif}
-  {$endif}
+    Res:=select(ASocket + 1, nil, locFDS, nil, locTimeVal); // 0 -> TimeOut
+  {$ENDIF}
+  if (Res=0) then
+    Result:=ctrTimeout
+  else if (Res<0) then
+    Result:=ctrError
+  else if (Res>0) then
+    begin
+    Result:=ctrError;
+    ErrLen := SizeOf(Err);
+    {$ifdef unix}
+    if fpFD_ISSET(ASocket, locFDS^)=1 then
+    {$ENDIF}
+    {$ifdef windows}
+    if FD_ISSET(ASocket, locFDS^) then
+    {$ENDIF}
+      begin
+      fpGetSockOpt(ASocket, SOL_SOCKET, SO_ERROR, @Err, @ErrLen);
+      if Err=0 then // 0 -> connected
+        Result:=ctrOK
+      end;
+    end;
 end;
 {$ENDIF HAVENONBLOCKING}
 
 procedure TInetSocket.Connect;
 
+Const
+ {$IFDEF UNIX}
+    ErrWouldBlock = ESysEInprogress;
+ {$ELSE}
+    ErrWouldBlock = WSAEWOULDBLOCK;
+ {$ENDIF}
+
 Var
   A : THostAddr;
   addr: TInetSockAddr;
-  Res : Integer;
+  IsError : Boolean;
+  TimeOutResult : TCheckTimeOutResult;
   Err: Integer;
 {$IFDEF HAVENONBLOCKING}
   FDS: TFDSet;
@@ -1097,39 +1111,39 @@ begin
   if ConnectTimeOut>0 then
     SetSocketBlockingMode(Handle, bmNonBlocking, @FDS) ;
 {$ENDIF}
+  IsError:=True;
+  TimeOutResult:=ctrError;
   {$ifdef unix}
   Err:=ESysEINTR;
-  Res:=-1;
-  While (Res<0) and (Err in [ESysEINTR, ESysEAGAIN]) do
+  While IsError and (Err in [ESysEINTR, ESysEAGAIN]) do
   {$endif}
     begin
-      Res:=fpConnect(Handle, @addr, sizeof(addr));
-      {$ifdef unix}
-      if Res < 0 then
-        Err:=socketerror;
-      {$else}
-        Err:=Res;
-      {$endif}
+    IsError:=fpConnect(Handle, @addr, sizeof(addr))<>0;
+    if IsError then
+      Err:=Socketerror;
     end;
 {$IFDEF HAVENONBLOCKING}
-  if {(Err=ESysEINPROGRESS) and} (ConnectTimeOut>0) then
+  if (ConnectTimeOut>0) then
     begin
-      Res:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
-      SetSocketBlockingMode(Handle, bmBlocking, @FDS);
+    if IsError and (Err=ESysEINPROGRESS) then
+      begin
+      TimeOutResult:=CheckSocketConnectTimeout(Handle, @FDS, @TimeV);
+      IsError:=(TimeOutResult<>ctrOK);
+      end;
+    SetSocketBlockingMode(Handle, bmBlocking, @FDS);
     end;
 {$ENDIF}
-  If Not (Res<0) then
-    if not FHandler.Connect then
-      begin
-      if Res<>0 then Res:=-1;
+  If Not IsError then
+    begin
+    IsError:=Not FHandler.Connect;
+    if IsError then
       CloseSocket(Handle);
-      end;
-  If (Res<0) then
-    Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
-{$IFDEF HAVENONBLOCKING}
-  If (Res=0) and (ConnectTimeOut>0) then
-    Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FHost, FPort])]);
-{$ENDIF}
+    end;
+  If IsError then
+    if TimeoutResult=ctrTimeout then
+      Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FHost, FPort])])
+    else
+      Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
 end;
 
 { ---------------------------------------------------------------------
