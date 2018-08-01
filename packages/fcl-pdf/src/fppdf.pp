@@ -1184,6 +1184,9 @@ const
   // see http://paste.lisp.org/display/1105
   BEZIER: single = 0.5522847498; // = 4/3 * (sqrt(2) - 1);
 
+Var
+  PDFFormatSettings : TFormatSettings;
+
 
 function DateToPdfDate(const ADate: TDateTime): string;
 begin
@@ -2166,12 +2169,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     R := Document.CreateRectangle(0, 0, p2.X, p2.Y, ALineWidth, AFill, AStroke);
   end
@@ -2209,12 +2213,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     R := Document.CreateRoundedRectangle(0, 0, p2.X, p2.Y, p3.X, ALineWidth, AFill, AStroke);
   end
@@ -2239,12 +2244,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     AddObject(Document.CreateImage(0, 0, APixelWidth, APixelHeight, ANumber));
   end
@@ -2277,12 +2283,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     AddObject(Document.CreateImage(0, 0, p2.X, p2.Y, ANumber));
   end
@@ -2315,12 +2322,13 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad));
-    t2 := FormatFloat('0.###;;0', -Sin(rad));
-    t3 := FormatFloat('0.###;;0', Sin(rad));
+    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
-    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm', [t1, t2, t3, t1, p1.X, p1.Y]) + CRLF));
+    AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
+      [t1, t2, t3, t1, p1.X, p1.Y], PDFFormatSettings) + CRLF));
     // co-ordinates are now based on the newly transformed matrix co-ordinates.
     AddObject(TPDFEllipse.Create(Document, 0, 0, p2.X, p2.Y, ALineWidth, AFill, AStroke));
   end
@@ -5350,6 +5358,11 @@ begin
 end;
 
 
-
+initialization
+  PDFFormatSettings:= DefaultFormatSettings;
+  PDFFormatSettings.DecimalSeparator := '.';
+  PDFFormatSettings.ThousandSeparator := ',';
+  PDFFormatSettings.DateSeparator := '/';
+  PDFFormatSettings.TimeSeparator := ':';
 end.
 
