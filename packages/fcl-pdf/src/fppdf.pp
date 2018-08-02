@@ -69,7 +69,7 @@ type
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop, poSubsetFont, poMetadataEntry);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop, poSubsetFont, poMetadataEntry, poNoTrailerID);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -5059,7 +5059,8 @@ begin
   CreateInfoEntry;
   if poMetadataEntry in Options then
     CreateMetadataEntry;
-  CreateTrailerID;
+  if not (poNoTrailerID in Options) then
+    CreateTrailerID;
   CreatePreferencesEntry;
   if (FontDirectory = '') then
     FontDirectory:=ExtractFilePath(ParamStr(0));
