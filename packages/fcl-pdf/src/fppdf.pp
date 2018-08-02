@@ -4182,11 +4182,11 @@ var
 begin
   lst := Document.Fonts[FontNum].TextMapping;
   lst.Sort;
-  lSize := (lst.GetMaxCharID div 8) + 1;
+  lSize := (lst.GetMaxGlyphID div 8) + 1;
   SetLength(ba, lSize);
   for i := 0 to lst.Count-1 do
   begin
-    cid := lst[i].CharID;
+    cid := lst[i].GlyphID;
     mask := 1 shl (7 - (cid mod 8));
     if cid = 0 then
       gid := 0
