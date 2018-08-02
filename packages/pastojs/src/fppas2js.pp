@@ -11221,9 +11221,14 @@ var
     Intf: TPasType;
     CurEl: TPasClassType;
   begin
-    if El.Interfaces.Count=0 then exit;
-    IntfMaps:=nil;
+    CurEl:=El;
+    while CurEl.Interfaces.Count=0 do
+      begin
+      CurEl:=TPasClassType(AContext.Resolver.GetPasClassAncestor(CurEl,true));
+      if CurEl=nil then exit; // class and ancestor has no interfaces
+      end;
 
+    IntfMaps:=nil;
 
     FinishedGUIDs:=TStringList.Create;
     try

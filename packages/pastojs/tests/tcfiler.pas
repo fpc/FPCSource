@@ -339,6 +339,7 @@ begin
     end;
 
     try
+      PCU:='';
       SetLength(PCU,ms.Size);
       System.Move(ms.Memory^,PCU[1],length(PCU));
 

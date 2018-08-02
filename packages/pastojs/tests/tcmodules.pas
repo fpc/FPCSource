@@ -561,6 +561,7 @@ type
     Procedure TestClassInterface_ImplReintroduce;
     Procedure TestClassInterface_MethodResolution;
     Procedure TestClassInterface_AncestorMoreInterfaces;
+    Procedure TestClassInterface_MethodOverride;
     Procedure TestClassInterface_Corba_Delegation;
     Procedure TestClassInterface_Corba_DelegationStatic;
     Procedure TestClassInterface_Corba_Operators;
@@ -14822,6 +14823,68 @@ begin
     '  rtl.addIntf(this, $mod.IUnknown);',
     '  rtl.addIntf(this, $mod.IBird);',
     '  rtl.addIntf(this, $mod.IDog);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_MethodOverride;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface',
+  '    [''{D6D98E5B-8A10-4FEC-856A-7BFC847FE74B}'']',
+  '    procedure Go;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    procedure Go; virtual; abstract;',
+  '  end;',
+  '  TBird = class',
+  '    procedure Go; override;',
+  '  end;',
+  '  TCat = class(TObject)',
+  '    procedure Go; override;',
+  '  end;',
+  '  TDog = class(TObject, IUnknown)',
+  '    procedure Go; override;',
+  '  end;',
+  'procedure TBird.Go; begin end;',
+  'procedure TCat.Go; begin end;',
+  'procedure TDog.Go; begin end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_MethodOverride',
+    LinesToStr([ // statements
+    'rtl.createInterface($mod, "IUnknown", "{D6D98E5B-8A10-4FEC-856A-7BFC847FE74B}", ["Go"], null);',
+    'rtl.createClass($mod, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'rtl.createClass($mod, "TBird", $mod.TObject, function () {',
+    '  this.Go = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'rtl.createClass($mod, "TCat", $mod.TObject, function () {',
+    '  this.Go = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'rtl.createClass($mod, "TDog", $mod.TObject, function () {',
+    '  this.Go = function () {',
+    '  };',
+    '  this.$intfmaps = {};',
+    '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
