@@ -11220,16 +11220,27 @@ var
     FinishedGUIDs: TStringList;
     Intf: TPasType;
     CurEl: TPasClassType;
+    NeedIntfMap, HasInterfaces: Boolean;
   begin
+    HasInterfaces:=false;
+    NeedIntfMap:=true;
     CurEl:=El;
-    while CurEl.Interfaces.Count=0 do
+    while CurEl<>nil do
       begin
+      if CurEl.Interfaces.Count>0 then
+        begin
+        HasInterfaces:=true;
+        if CurEl<>El then
+          begin
+          NeedIntfMap:=false;
+          break;
+          end;
+        end;
       CurEl:=TPasClassType(AContext.Resolver.GetPasClassAncestor(CurEl,true));
-      if CurEl=nil then exit; // class and ancestor has no interfaces
       end;
+    if not HasInterfaces then exit;
 
     IntfMaps:=nil;
-
     FinishedGUIDs:=TStringList.Create;
     try
       ObjLit:=nil;
@@ -11241,7 +11252,7 @@ var
             begin
             CurEl:=TPasClassType(Scope.Element);
             if not IsMemberNeeded(TPasElement(CurEl.Interfaces[i])) then continue;
-            if IntfMaps=nil then
+            if NeedIntfMap then
               begin
               // add "this.$intfmaps = {};"
               IntfMaps:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
@@ -11249,6 +11260,7 @@ var
               IntfMaps.LHS:=CreatePrimitiveDotExpr('this.'+FBuiltInNames[pbivnIntfMaps],El);
               MapsObj:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
               IntfMaps.Expr:=MapsObj;
+              NeedIntfMap:=false;
               end;
 
             o:=TObject(Scope.Interfaces[i]);
