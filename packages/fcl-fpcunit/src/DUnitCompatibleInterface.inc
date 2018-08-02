@@ -90,32 +90,42 @@ end;
 class procedure TAssert.CheckNotEquals(expected, actual: string; msg: string);
 begin
   if AnsiCompareStr(Expected, Actual) = 0 then
-    Fail(msg + ComparisonMsg(Expected, Actual, false));
+    Fail(msg + ComparisonMsg(Expected, Actual, false))
+  else
+    Inc(AssertCount);
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: unicodestring; msg: string);
 begin
   if (Expected=Actual) then
-    Fail(msg + ComparisonMsg(Expected, Actual, false));
+    Fail(msg + ComparisonMsg(Expected, Actual, false))
+  else
+    Inc(AssertCount);
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: integer; msg: string);
 begin
   if (expected = actual) then
-    Fail(msg + ComparisonMsg(IntToStr(expected), IntToStr(actual), false));
+    Fail(msg + ComparisonMsg(IntToStr(expected), IntToStr(actual), false))
+  else
+    Inc(AssertCount);
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: boolean; msg: string);
 begin
   if (expected = actual) then
-    Fail(msg + ComparisonMsg(BoolToStr(expected), BoolToStr(actual), false));
+    Fail(msg + ComparisonMsg(BoolToStr(expected), BoolToStr(actual), false))
+  else
+    Inc(AssertCount);
 end;
 
 class procedure TAssert.CheckNotEquals(expected: extended; actual: extended;
   delta: extended; msg: string);
 begin
   if (abs(expected-actual) <= delta) then
-      FailNotEquals(FloatToStr(expected), FloatToStr(actual), msg, nil);
+    FailNotEquals(FloatToStr(expected), FloatToStr(actual), msg, nil)
+  else
+    Inc(AssertCount);
 end;
 
 class procedure TAssert.CheckNull(obj: IUnknown; msg: string);
@@ -155,13 +165,17 @@ end;
 class procedure TAssert.CheckTrue(condition: Boolean; msg: string);
 begin
   if (not condition) then
-      FailNotEquals(BoolToStr(true, true), BoolToStr(false, true), msg, nil);
+    FailNotEquals(BoolToStr(true, true), BoolToStr(false, true), msg, nil)
+  else
+    Inc(AssertCount);
 end;
 
 class procedure TAssert.CheckFalse(condition: Boolean; msg: string);
 begin
   if (condition) then
-      FailNotEquals(BoolToStr(false, true), BoolToStr(true, true), msg, nil);
+    FailNotEquals(BoolToStr(false, true), BoolToStr(true, true), msg, nil)
+  else
+    Inc(AssertCount);
 end;
 
 
