@@ -69,7 +69,7 @@ type
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop, poSubsetFont);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts, poPageOriginAtTop, poSubsetFont, poMetadataEntry);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -327,6 +327,7 @@ type
 
   TPDFStream = class(TPDFDocumentObject)
   private
+    FCompressionProhibited: Boolean;
     FItems: TFPObjectList;
   protected
     procedure Write(const AStream: TStream); override;
@@ -334,6 +335,7 @@ type
   public
     constructor Create(Const ADocument : TPDFDocument; OwnsObjects : Boolean = True); overload;
     destructor Destroy; override;
+    property CompressionProhibited: Boolean read FCompressionProhibited write FCompressionProhibited;
   end;
 
 
@@ -910,6 +912,9 @@ type
     Property Owner: TPDFDocument read FOwner;
   end;
 
+  TXMPStream = class(TPDFDocumentObject)
+    procedure Write(const AStream: TStream); override;
+  end;
 
   TPDFFontNumBaseObject = class(TPDFDocumentObject)
   protected
@@ -1017,6 +1022,7 @@ type
     function CreateContentsEntry(const APageNum: integer): integer;virtual;
     function CreateCatalogEntry: integer;virtual;
     procedure CreateInfoEntry;virtual;
+    procedure CreateMetadataEntry;virtual;
     procedure CreateTrailerID;virtual;
     procedure CreatePreferencesEntry;virtual;
     function CreatePagesEntry(Parent: integer): integer;virtual;
@@ -1200,10 +1206,32 @@ const
 Var
   PDFFormatSettings : TFormatSettings;
 
+//Works correctly ony with Now (problem with DST depended on time)
+//Is used only for CreationDate and it is usualy Now
+function GetLocalTZD(ISO8601: Boolean): string;
+var
+  i: Integer;
+  fmt: string;
+begin
+  if ISO8601 then
+    fmt := '%.2d:%.2d'
+  else
+    fmt := '%.2d''%.2d''';
+  i := GetLocalTimeOffset; //min
+  if i < 0 then
+    Result := '+'
+  else if i = 0 then begin
+    Result := 'Z';
+    Exit;
+  end else
+    Result := '-';
+  i := Abs(i);
+  Result := Result + Format(fmt, [i div 60, i mod 60]);
+end;
 
 function DateToPdfDate(const ADate: TDateTime): string;
 begin
-  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate);
+  Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate)+GetLocalTZD(False);
 end;
 
 function FormatPDFInt(const Value: integer; PadLen: integer): string;
@@ -1341,6 +1369,62 @@ end;
 function PDFtoInches(APixels: TPDFFloat): single;
 begin
   Result := APixels / cDefaultDPI;
+end;
+
+{ TXMPStream }
+
+procedure TXMPStream.Write(const AStream: TStream);
+
+  procedure Add(const Tag, Value: string);
+  begin
+    WriteString('<'+Tag+'>', AStream);
+    WriteString(Value, AStream);
+    WriteString('</'+Tag+'>'+CRLF, AStream);
+  end;
+
+  function DateToISO8601Date(t: TDateTime): string;
+  begin
+    Result := FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', t) + GetLocalTZD(True);
+  end;
+
+var
+  i: integer;
+const
+    NBSP: UnicodeChar = UnicodeChar($FEFF);
+begin
+  WriteString('<?xpacket begin="'+UnicodeCharToString(@NBSP)+'" id="W5M0MpCehiHzreSzNTczkc9d"?>'+CRLF, AStream);
+  WriteString('<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'+CRLF, AStream);
+  WriteString('<rdf:Description rdf:about=""', AStream);
+  WriteString(' xmlns:dc="http://purl.org/dc/elements/1.1/"', AStream);
+  WriteString(' xmlns:xmp="http://ns.adobe.com/xap/1.0/"', AStream);
+  WriteString(' xmlns:pdf="http://ns.adobe.com/pdf/1.3/"', AStream);
+  WriteString(' xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"', AStream);
+  WriteString('>'+CRLF, AStream);
+
+  //Native metadata
+  if (Document.Infos.Title <> '') or (Document.Infos.Author <> '') then begin
+    if Document.Infos.Title <> '' then
+      Add('dc:title', '<rdf:Alt><rdf:li xml:lang="x-default">'+Document.Infos.Title+'</rdf:li></rdf:Alt>');
+    if Document.Infos.Author <> '' then
+      Add('dc:creator', Document.Infos.Author);
+  end;
+  if Document.Infos.ApplicationName <> '' then
+    Add('xmp:CreatorTool', Document.Infos.ApplicationName);
+  if Document.Infos.CreationDate <> 0 then
+    Add('xmp:CreateDate', DateToISO8601Date(Document.Infos.CreationDate));
+  Add('pdf:Producer', Document.Infos.Producer);
+  //PDF/A
+  Add('pdfaid:part', '1');
+  Add('pdfaid:conformance', 'B');
+
+
+  WriteString('</rdf:Description>'+CRLF, AStream);
+  WriteString('</rdf:RDF>'+CRLF, AStream);
+
+  //Recomended whitespace padding for inplace editing
+  for i := 1 to 5 do
+    WriteString('                                                                                                   '+CRLF, AStream);
+  WriteString('<?xpacket end="w"?>', AStream);
 end;
 
 { TPDFRawHexString }
@@ -4330,7 +4414,7 @@ begin
     X.FStream.Write(M);
     d := M.Size;
 
-    if poCompressText in Options then
+    if (poCompressText in Options) and not X.FStream.CompressionProhibited then
     begin
       MCompressed := TMemoryStream.Create;
       CompressStream(M, MCompressed);
@@ -4346,7 +4430,7 @@ begin
     CurrentColor:='';
     CurrentWidth:='';
     TPDFObject.WriteString(CRLF+'stream'+CRLF, AStream);
-    if poCompressText in Options then
+    if (poCompressText in Options) and not X.FStream.CompressionProhibited  then
     begin
       MCompressed.Position := 0;
       MCompressed.SaveToStream(AStream);
@@ -4409,7 +4493,22 @@ begin
   if Infos.ApplicationName <> '' then
     IDict.AddString('Creator',Infos.ApplicationName);
   IDict.AddString('Producer',Infos.Producer);
-  IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
+  if Infos.CreationDate <> 0 then
+    IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
+end;
+
+procedure TPDFDocument.CreateMetadataEntry;
+var
+  lXRef: TPDFXRef;
+begin
+  lXRef := CreateGlobalXRef;
+  lXRef.Dict.AddName('Subtype', 'XML');
+  lXRef.Dict.AddName('Type','Metadata');
+  lXRef.FStream := CreateStream(True);
+  lXRef.FStream.AddItem(TXMPStream.Create(self));
+  lXRef.FStream.CompressionProhibited := True;
+
+  GlobalXRefs[Catalogue].Dict.AddReference('Metadata', GLobalXRefCount-1)
 end;
 
 procedure TPDFDocument.CreateTrailerID;
@@ -4958,6 +5057,8 @@ begin
   CreateTrailer;
   FCatalogue:=CreateCatalogEntry;
   CreateInfoEntry;
+  if poMetadataEntry in Options then
+    CreateMetadataEntry;
   CreateTrailerID;
   CreatePreferencesEntry;
   if (FontDirectory = '') then

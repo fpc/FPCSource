@@ -35,6 +35,7 @@ type
     FTextCompression,
     FFontCompression: boolean;
     FNoFontEmbedding: boolean;
+    FAddMetadata : Boolean;
     FSubsetFontEmbedding: boolean;
     FDoc: TPDFDocument;
     function    SetUpDocument: TPDFDocument;
@@ -93,6 +94,8 @@ begin
     Include(lOpts,poCompressImages);
   if FRawJPEG then
     Include(lOpts,poUseRawJPEG);
+  if FAddMetadata then
+    Include(lOpts,poMetadataEntry);  
   Result.Options := lOpts;
 
   Result.StartDocument;
@@ -778,7 +781,7 @@ begin
   StopOnException:=True;
   inherited DoRun;
   // quick check parameters
-  ErrorMsg := CheckOptions('hp:f:t:i:j:ns', '');
+  ErrorMsg := CheckOptions('hp:f:t:i:j:nsm:', '');
   if ErrorMsg <> '' then
   begin
     WriteLn('ERROR:  ' + ErrorMsg);
@@ -813,6 +816,7 @@ begin
   FFontCompression := BoolFlag('f',true);
   FTextCompression := BoolFlag('t',False);
   FImageCompression := BoolFlag('i',False);
+  FAddMetadata :=  BoolFlag('m',False);
   FRawJPEG:=BoolFlag('j',False);
 
   gTTFontCache.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
@@ -866,6 +870,7 @@ begin
           '                generated.', [cPageCount]));
   writeln('    -n          If specified, no fonts will be embedded.');
   writeln('    -s          If specified, subset TTF font embedding will occur.');
+  writeln('    -m <0|1>    Toggle metadata generation.');
   writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
           '                disables compression. A value of 1 enables compression.' + LineEnding +
           '                If -n is specified, this option is ignored.');
