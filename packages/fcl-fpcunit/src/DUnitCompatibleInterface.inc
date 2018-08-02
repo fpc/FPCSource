@@ -10,11 +10,15 @@
     class procedure CheckEquals(expected, actual: integer; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: boolean; msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: TClass; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: int64; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: QWord; msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: string; msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: unicodestring; msg: string = ''); overload;
     class procedure CheckNotEquals(expected, actual: integer; msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected, actual: boolean; msg: string = ''); overload; virtual;
     class procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0; msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected, actual: int64; msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected, actual: QWord; msg: string = ''); overload; virtual;
     class procedure CheckNull(obj: IUnknown; msg: string = ''); overload;
     class procedure CheckNull(obj: TObject; msg: string = ''); overload;
     class procedure CheckNotNull(obj: TObject; msg: string = ''); overload;
@@ -87,6 +91,18 @@ begin
   AssertEquals(msg, expected, actual);
 end;
 
+class procedure TAssert.CheckEquals(expected, actual: QWord;
+  msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+class procedure TAssert.CheckEquals(expected, actual: int64;
+  msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
 class procedure TAssert.CheckNotEquals(expected, actual: string; msg: string);
 begin
   if AnsiCompareStr(Expected, Actual) = 0 then
@@ -124,6 +140,24 @@ class procedure TAssert.CheckNotEquals(expected: extended; actual: extended;
 begin
   if (abs(expected-actual) <= delta) then
     FailNotEquals(FloatToStr(expected), FloatToStr(actual), msg, nil)
+  else
+    Inc(AssertCount);
+end;
+
+class procedure TAssert.CheckNotEquals(expected, actual: QWord;
+  msg: string);
+begin
+  if (expected = actual) then
+    Fail(msg + ComparisonMsg(IntToStr(expected), IntToStr(actual), false))
+  else
+    Inc(AssertCount);
+end;
+
+class procedure TAssert.CheckNotEquals(expected, actual: int64;
+  msg: string);
+begin
+  if (expected = actual) then
+    Fail(msg + ComparisonMsg(IntToStr(expected), IntToStr(actual), false))
   else
     Inc(AssertCount);
 end;

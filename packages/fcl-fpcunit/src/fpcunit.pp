@@ -108,6 +108,8 @@ type
     class procedure AssertEquals(Expected, Actual: integer); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: int64); overload;
     class procedure AssertEquals(Expected, Actual: int64); overload;
+    class procedure AssertEquals(const AMessage: string; Expected, Actual: QWord); overload;
+    class procedure AssertEquals(Expected, Actual: QWord); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: currency); overload;
     class procedure AssertEquals(Expected, Actual: currency); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual, Delta: double); overload;
@@ -736,6 +738,18 @@ end;
 
 
 class procedure TAssert.AssertEquals(Expected, Actual: int64);
+begin
+  AssertTrue(ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual,CallerAddr);
+end;
+
+
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: QWord);
+begin
+  AssertTrue(ComparisonMsg(AMessage,IntToStr(Expected), IntToStr(Actual)), Expected = Actual,CallerAddr);
+end;
+
+
+class procedure TAssert.AssertEquals(Expected, Actual: QWord);
 begin
   AssertTrue(ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual,CallerAddr);
 end;
