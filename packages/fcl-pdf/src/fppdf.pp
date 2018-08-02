@@ -272,6 +272,17 @@ type
     property    Value: AnsiString read FValue;
   end;
 
+  { TPDFRawHexString }
+
+  TPDFRawHexString = class(TPDFDocumentObject)
+  private
+    FValue: String;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(Const ADocument : TPDFDocument; const AValue: String); overload;
+    property    Value: String read FValue;
+  end;
 
   TPDFUTF8String = class(TPDFAbstractString)
   private
@@ -1006,6 +1017,7 @@ type
     function CreateContentsEntry(const APageNum: integer): integer;virtual;
     function CreateCatalogEntry: integer;virtual;
     procedure CreateInfoEntry;virtual;
+    procedure CreateTrailerID;virtual;
     procedure CreatePreferencesEntry;virtual;
     function CreatePagesEntry(Parent: integer): integer;virtual;
     function CreatePageEntry(Parent, PageNum: integer): integer;virtual;
@@ -1148,6 +1160,7 @@ implementation
 
 uses
   math,
+  md5,
   fpttf;
 
 
@@ -1328,6 +1341,19 @@ end;
 function PDFtoInches(APixels: TPDFFloat): single;
 begin
   Result := APixels / cDefaultDPI;
+end;
+
+{ TPDFRawHexString }
+
+procedure TPDFRawHexString.Write(const AStream: TStream);
+begin
+  WriteString('<'+FValue+'>', AStream);
+end;
+
+constructor TPDFRawHexString.Create(const ADocument: TPDFDocument; const AValue: String);
+begin
+  inherited Create(ADocument);
+  FValue := AValue;
 end;
 
 { TPDFMatrix }
@@ -4386,6 +4412,20 @@ begin
   IDict.AddString('CreationDate',DateToPdfDate(Infos.CreationDate));
 end;
 
+procedure TPDFDocument.CreateTrailerID;
+var
+  s: string;
+  ID: TPDFArray;
+begin
+  s := DateToPdfDate(Now) + IntToStr(GLobalXRefCount) +
+    Infos.Title + Infos.Author + Infos.ApplicationName + Infos.Producer + DateToPdfDate(Infos.CreationDate);
+  s := MD5Print(MD5String(s));
+  ID := CreateArray;
+  ID.AddItem(TPDFRawHexString.Create(Self, s));
+  ID.AddItem(TPDFRawHexString.Create(Self, s));
+  Trailer.AddElement('ID', ID);
+end;
+
 procedure TPDFDocument.CreatePreferencesEntry;
 
 var
@@ -4918,6 +4958,7 @@ begin
   CreateTrailer;
   FCatalogue:=CreateCatalogEntry;
   CreateInfoEntry;
+  CreateTrailerID;
   CreatePreferencesEntry;
   if (FontDirectory = '') then
     FontDirectory:=ExtractFilePath(ParamStr(0));
