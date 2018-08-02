@@ -420,11 +420,15 @@ end;
 function DecodeStringBase64(const s:string;strict:boolean=false):String;
 
 var 
+  SD : String;
   Instream, 
   Outstream : TStringStream;
   Decoder   : TBase64DecodingStream;
 begin
-  Instream:=TStringStream.Create(s);
+  SD:=S;
+  while Length(Sd) mod 4 > 0 do 
+    SD := SD + '=';
+  Instream:=TStringStream.Create(SD);
   try
     Outstream:=TStringStream.Create('');
     try 
