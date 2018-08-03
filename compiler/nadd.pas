@@ -1303,21 +1303,33 @@ implementation
            if not (nodetype in [equaln,unequaln]) then
              InternalError(2013091601);
 
-         { convert array constructors to sets, because there is no other operator
-           possible for array constructors }
-         if not(is_dynamic_array(right.resultdef)) and is_array_constructor(left.resultdef) then
-          begin
-            arrayconstructor_to_set(left);
-            typecheckpass(left);
-          end;
-         if not(is_dynamic_array(left.resultdef)) and is_array_constructor(right.resultdef) then
-          begin
-            arrayconstructor_to_set(right);
-            typecheckpass(right);
-          end;
-
          { allow operator overloading }
          hp:=self;
+
+         if is_array_constructor(left.resultdef) or is_array_constructor(right.resultdef) then
+           begin
+             { check whether there is a suitable operator for the array constructor
+               (but only if the "+" array operator isn't used), if not fall back to sets }
+             if (
+                   (nodetype<>addn) or
+                   not (m_array_operators in current_settings.modeswitches) or
+                   (is_array_constructor(left.resultdef) and not is_dynamic_array(right.resultdef)) or
+                   (not is_dynamic_array(left.resultdef) and is_array_constructor(right.resultdef))
+                 ) and
+                 not isbinaryoverloaded(hp,[ocf_check_only]) then
+               begin
+                 if is_array_constructor(left.resultdef) then
+                   begin
+                     arrayconstructor_to_set(left);
+                     typecheckpass(left);
+                   end;
+                 if is_array_constructor(right.resultdef) then
+                   begin
+                     arrayconstructor_to_set(right);
+                     typecheckpass(right);
+                   end;
+               end;
+           end;
 
          if is_dynamic_array(left.resultdef) and is_dynamic_array(right.resultdef) and
              (nodetype=addn) and
