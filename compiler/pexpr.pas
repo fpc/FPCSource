@@ -4119,6 +4119,7 @@ implementation
                   internalerror(2015092703);
               end;
               do_member_read(structdef,getaddr,gensym,result,again,[],spezcontext);
+              spezcontext:=nil;
             end
           else
             begin
