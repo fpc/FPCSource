@@ -710,7 +710,7 @@ const
 
 function StrPCopy (Dest: PRegExprChar; const Source: RegExprString): PRegExprChar;
  var
-  i, Len : PtrInt;
+  Len : PtrInt;
  begin
   Len := length (Source); //###0.932
   if Len>0 then
@@ -721,55 +721,63 @@ function StrPCopy (Dest: PRegExprChar; const Source: RegExprString): PRegExprCha
 --------------------------------------------------------------}
 
 function StrLCopy (Dest, Source: PRegExprChar; MaxLen: PtrUInt): PRegExprChar;
- var i: PtrInt;
- begin
-   if MaxLen>0 then
-     move(Source[0],Dest[0],MaxLen*sizeof(ReChar));
+
+begin
+  if MaxLen>0 then
+    move(Source[0],Dest[0],MaxLen*sizeof(ReChar));
   Result := Dest;
- end; { of function StrLCopy
+end; { of function StrLCopy
 --------------------------------------------------------------}
 
 function StrLen (Str: PRegExprChar): PtrUInt;
- begin
+
+begin
   Result:=0;
-  while Str [result] <> #0
-   do Inc (Result);
- end; { of function StrLen
+  while Str [result] <> #0 do
+     Inc (Result);
+end; { of function StrLen
 --------------------------------------------------------------}
 
 function StrPos (Str1, Str2: PRegExprChar): PRegExprChar;
- var n: PtrInt;
- begin
+
+var
+  n: PtrInt;
+
+begin
   Result := nil;
   n := Pos (RegExprString (Str2), RegExprString (Str1));
-  if n = 0
-   then EXIT;
+  if n = 0 then
+    EXIT;
   Result := Str1 + n - 1;
- end; { of function StrPos
+end; { of function StrPos
 --------------------------------------------------------------}
 
 function StrLComp (Str1, Str2: PRegExprChar; MaxLen: PtrUInt): PtrInt;
- var S1, S2: RegExprString;
- begin
+
+var
+  S1, S2: RegExprString;
+
+begin
   S1 := Str1;
   S2 := Str2;
-  if Copy (S1, 1, MaxLen) > Copy (S2, 1, MaxLen)
-   then Result := 1
-   else
-    if Copy (S1, 1, MaxLen) < Copy (S2, 1, MaxLen)
-     then Result := -1
-     else Result := 0;
- end; { function StrLComp
+  if Copy (S1, 1, MaxLen) > Copy (S2, 1, MaxLen) then
+    Result := 1
+  else if Copy (S1, 1, MaxLen) < Copy (S2, 1, MaxLen) then
+    Result := -1
+  else
+    Result := 0;
+end; { function StrLComp
 --------------------------------------------------------------}
 
 function StrScan (Str: PRegExprChar; Chr: WideChar): PRegExprChar;
- begin
+
+begin
   Result := nil;
-  while (Str^ <> #0) and (Str^ <> Chr)
-   do Inc (Str);
-  if (Str^ <> #0)
-   then Result := Str;
- end; { of function StrScan
+  while (Str^ <> #0) and (Str^ <> Chr) do
+    Inc (Str);
+  if (Str^ <> #0) then
+    Result := Str;
+end; { of function StrScan
 --------------------------------------------------------------}
 
 {$ENDIF}
@@ -780,39 +788,43 @@ function StrScan (Str: PRegExprChar; Chr: WideChar): PRegExprChar;
 {=============================================================}
 
 function ExecRegExpr (const ARegExpr, AInputStr : RegExprString) : boolean;
- var r : TRegExpr;
- begin
-  r := TRegExpr.Create;
-  try
-    r.Expression := ARegExpr;
-    Result := r.Exec (AInputStr);
-    finally r.Free;
-   end;
+
+begin
+  With TRegExpr.Create do
+    try
+      Expression := ARegExpr;
+      Result := Exec (AInputStr);
+    finally
+      Free;
+    end;
  end; { of function ExecRegExpr
 --------------------------------------------------------------}
 
 procedure SplitRegExpr (const ARegExpr, AInputStr : RegExprString; APieces : TStrings);
- var r : TRegExpr;
- begin
+
+begin
   APieces.Clear;
-  r := TRegExpr.Create;
-  try
-    r.Expression := ARegExpr;
-    r.Split (AInputStr, APieces);
-    finally r.Free;
+  With TRegExpr.Create do
+   try
+      Expression := ARegExpr;
+      Split (AInputStr, APieces);
+   finally
+     Free;
    end;
- end; { of procedure SplitRegExpr
+end; { of procedure SplitRegExpr
 --------------------------------------------------------------}
 
 function ReplaceRegExpr (const ARegExpr, AInputStr, AReplaceStr : RegExprString;
       AUseSubstitution : boolean{$IFDEF DefParam}= False{$ENDIF}) : RegExprString;
- begin
-  with TRegExpr.Create do try
-    Expression := ARegExpr;
-    Result := Replace (AInputStr, AReplaceStr, AUseSubstitution);
-    finally Free;
-   end;
- end; { of function ReplaceRegExpr
+begin
+  with TRegExpr.Create do
+    try
+      Expression := ARegExpr;
+      Result := Replace (AInputStr, AReplaceStr, AUseSubstitution);
+    finally
+      Free;
+    end;
+end; { of function ReplaceRegExpr
 --------------------------------------------------------------}
 
 function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
@@ -823,7 +835,7 @@ function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
   // !Any changes in META array must be synchronized with this set.
  var
   i, i0, Len : PtrInt;
- begin
+begin
   Result := '';
   Len := length (AStr);
   i := 1;
@@ -837,7 +849,7 @@ function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
     inc (i);
    end;
   Result := Result + System.Copy (AStr, i0, MaxInt); // Tail
- end; { of function QuoteRegExprMetaChars
+end; { of function QuoteRegExprMetaChars
 --------------------------------------------------------------}
 
 function RegExprSubExpressions (const ARegExpr : string;
