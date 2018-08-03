@@ -1125,6 +1125,9 @@ implementation
                  tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
               end;
             insert_generic_parameter_types(pd,nil,genericparams);
+            { the list is no longer required }
+            genericparams.free;
+            genericparams:=nil;
             symtablestack.pop(pd.parast);
             freegenericparams:=false;
             parse_generic:=true;
@@ -1151,9 +1154,8 @@ implementation
             { start token recorder for the declaration }
             pd.init_genericdecl;
             current_scanner.startrecordtokens(pd.genericdecltokenbuf);
-          end;
-
-        if assigned(genericdef) and not assigned(genericparams) then
+          end
+        else if assigned(genericdef) then
           insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist);
 
         { methods inherit df_generic or df_specialization from the objectdef }
