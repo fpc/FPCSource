@@ -1626,6 +1626,7 @@ implementation
          call_self_node.free;
          call_vmt_node.free;
          vmt_entry.free;
+         spezcontext.free;
 {$ifndef symansistr}
          stringdispose(fforcedprocname);
 {$endif symansistr}
