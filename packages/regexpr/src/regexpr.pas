@@ -52,6 +52,7 @@ interface
 
 {$IFDEF FPC}
  {$MODE DELPHI} // Delphi-compatible mode in FreePascal
+ {$INLINE ON}
 {$ENDIF}
 
 // ======== Determine compiler
@@ -209,6 +210,8 @@ type
 
  TRegExprReplaceFunction = function (ARegExpr : TRegExpr): RegExprString of object;
 
+ { TRegExpr }
+
  TRegExpr = class
    private
     startp : array [0 .. NSUBEXP - 1] of PRegExprChar; // founded expr starting points
@@ -289,6 +292,7 @@ type
     {$IFNDEF UniCode}
     fLineSeparatorsSet : set of REChar;
     {$ENDIF}
+    Function IsSpaceChar(AChar : PRegExprChar) : Boolean; inline;
 
     // Mark programm as having to be [re]compiled
     procedure InvalidateProgramm;
@@ -1473,6 +1477,11 @@ procedure TRegExpr.SetModifier (AIndex : integer; ASet : boolean);
 {=============================================================}
 {==================== Compiler section =======================}
 {=============================================================}
+
+function TRegExpr.IsSpaceChar(AChar: PRegExprChar): Boolean;
+begin
+  Result:=Pos(AChar^,fSpaceChars)>0;
+end;
 
 procedure TRegExpr.InvalidateProgramm;
  begin
@@ -2798,13 +2807,13 @@ function TRegExpr.regrepeat (p : PRegExprChar; AMax : PtrInt) : PtrInt;
        end;
     ANYSPACE:
       while (Result < TheMax) and
-         (Pos (scan^, fSpaceChars) > 0) do begin
+         IsSpaceChar(scan) do begin
         inc (Result);
         inc (scan);
        end;
     NOTSPACE:
       while (Result < TheMax) and
-         (Pos (scan^, fSpaceChars) <= 0) do begin
+         Not IsSpaceChar(scan) do begin
         inc (Result);
         inc (scan);
        end;
@@ -3004,12 +3013,12 @@ function TRegExpr.MatchPrim (prog : PRegExprChar) : boolean;
             inc (reginput);
            end;
          ANYSPACE: begin
-            if (reginput^ = #0) or not (Pos (reginput^, fSpaceChars) > 0) //###0.943
+            if (reginput^ = #0) or not IsSpaceChar(reginput) //###0.943
              then EXIT;
             inc (reginput);
            end;
          NOTSPACE: begin
-            if (reginput^ = #0) or (Pos (reginput^, fSpaceChars) > 0) //###0.943
+            if (reginput^ = #0) or IsSpaceChar(reginput) //###0.943
              then EXIT;
             inc (reginput);
            end;
@@ -3651,6 +3660,7 @@ function TRegExpr.ExecPrim (AOffset: PtrInt) : boolean;
   // Failure
  end; { of function TRegExpr.ExecPrim
 --------------------------------------------------------------}
+
 
 function TRegExpr.ExecNext : boolean;
  var offset : PtrInt;
