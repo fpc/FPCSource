@@ -868,7 +868,7 @@ function RegExprSubExpressions (const ARegExpr : string;
   StackIdx, StackSz : PtrInt;
  begin
   Result := 0; // no unbalanced brackets found at this very moment
-
+  Modif:=0;
   ASubExprs.Clear; // I don't think that adding to non empty list
   // can be useful, so I simplified algorithm to work only with empty list
 
@@ -1339,6 +1339,7 @@ function TRegExpr.GetMatchLen (Idx : integer) : PtrInt;
 
 function TRegExpr.GetMatch (Idx : integer) : RegExprString;
  begin
+  Result:='';
   if (Idx >= 0) and (Idx < NSUBEXP) and Assigned (fInputString)
      and Assigned (startp [Idx]) and Assigned (endp [Idx])
      and (endp [Idx] > startp[Idx])
@@ -1705,7 +1706,7 @@ function TRegExpr.CompileRegExpr (exp : PRegExprChar) : boolean;
   flags : integer;
  begin
   Result := false; // life too dark
-
+  flags:=0;
   regparse := nil; // for correct error handling
   regexpbeg := exp;
   try
@@ -1811,6 +1812,7 @@ function TRegExpr.ParseReg (paren : integer; var flagp : integer) : PRegExprChar
   flags : integer;
   SavedModifiers : integer;
  begin
+  flags:=0;
   Result := nil;
   flagp := HASWIDTH; // Tentatively.
   parno := 0; // eliminate compiler stupid warning
@@ -1891,6 +1893,7 @@ function TRegExpr.ParseBranch (var flagp : integer) : PRegExprChar;
   ret, chain, latest : PRegExprChar;
   flags : integer;
  begin
+  flags:=0;
   flagp := WORST; // Tentatively.
 
   ret := EmitNode (BRANCH);
@@ -1997,6 +2000,7 @@ function TRegExpr.ParsePiece (var flagp : integer) : PRegExprChar;
   end;
 
  begin
+  flags:=0;
   Result := ParseAtom (flags);
   if Result = nil
    then EXIT;
@@ -2360,6 +2364,7 @@ function TRegExpr.ParseAtom (var flagp : integer) : PRegExprChar;
 
  begin
   Result := nil;
+  flags:=0;
   flagp := WORST; // Tentatively.
 
   inc (regparse);
@@ -2885,6 +2890,9 @@ function TRegExpr.MatchPrim (prog : PRegExprChar) : boolean;
 // recursion, in particular by going through "ordinary" nodes (that don't
 // need to know whether the rest of the match failed) by a loop instead of
 // by recursion.
+ Type
+   TLoopStack = array [1 .. LoopStackMax] of integer;
+
  var
   scan : PRegExprChar; // Current node.
   next : PRegExprChar; // Next node.
@@ -2895,13 +2903,13 @@ function TRegExpr.MatchPrim (prog : PRegExprChar) : boolean;
   nextch : REChar;
   BracesMin, BracesMax : PtrInt; // we use integer instead of TREBracesArg for better support */+
   {$IFDEF ComplexBraces}
-  SavedLoopStack : array [1 .. LoopStackMax] of integer; // :(( very bad for recursion
+  SavedLoopStack : TloopStack; // :(( very bad for recursion
   SavedLoopStackIdx : integer; //###0.925
   {$ENDIF}
  begin
   Result := false;
   scan := prog;
-
+  SavedLoopStack:=Default(TLoopStack);
   while scan <> nil do begin
      len := PRENextOff (AlignToPtr(scan + 1))^; //###0.932 inlined regnext
      if len = 0
