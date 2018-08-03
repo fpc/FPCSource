@@ -1342,6 +1342,7 @@ implementation
         tempinfo^.withnode.free;
         tempinfo^.tempinitcode.free;
         dispose(tempinfo);
+        inherited destroy;
       end;
 
     procedure ttempdeletenode.printnodedata(var t:text);
