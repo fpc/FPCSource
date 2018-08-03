@@ -583,7 +583,6 @@ implementation
         index : longint;
         hadspecialize,
         firstpart,
-        freegenericparams,
         found,
         searchagain : boolean;
         st,
@@ -671,7 +670,7 @@ implementation
           begin
             lasttoken:=token;
             lastidtoken:=idtoken;
-            if assigned(genericparams) and freegenericparams then
+            if assigned(genericparams) then
               for i:=0 to genericparams.count-1 do
                 begin
                   sym:=ttypesym(genericparams[i]);
@@ -873,7 +872,6 @@ implementation
         aprocsym:=nil;
         srsym:=nil;
         genericparams:=nil;
-        freegenericparams:=true;
         hadspecialize:=false;
 
         if not assigned(genericdef) then
@@ -1129,7 +1127,6 @@ implementation
             genericparams.free;
             genericparams:=nil;
             symtablestack.pop(pd.parast);
-            freegenericparams:=false;
             parse_generic:=true;
             { also generate a dummy symbol if none exists already }
             if assigned(astruct) then
