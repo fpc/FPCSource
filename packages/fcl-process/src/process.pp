@@ -18,7 +18,8 @@ interface
 
 Uses Classes,
      pipes,
-     SysUtils;
+     SysUtils,
+     Math;
 
 Type
   TProcessOption = (poRunSuspended,poWaitOnExit,
