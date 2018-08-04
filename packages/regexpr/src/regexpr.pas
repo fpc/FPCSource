@@ -51,37 +51,13 @@ interface
 {off $DEFINE DebugSynRegExpr}
 {$DEFINE UnicodeWordDetection}
 
-{$IFDEF FPC}
- {$MODE DELPHI} // Delphi-compatible mode in FreePascal
- {$INLINE ON}
-{$ENDIF}
-
-// ======== Determine compiler
-{$IFDEF VER80} Sorry, TRegExpr is for 32-bits Delphi only. Delphi 1 is not supported (and whos really care today?!). {$ENDIF}
-{$IFDEF VER90} {$DEFINE D2} {$ENDIF} // D2
-{$IFDEF VER93} {$DEFINE D2} {$ENDIF} // CPPB 1
-{$IFDEF VER100} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D3
-{$IFDEF VER110} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // CPPB 3
-{$IFDEF VER120} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D4
-{$IFDEF VER130} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D5
-{$IFDEF VER140} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D6
-{$IFDEF VER150} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D7
+{$MODE DELPHI} // Delphi-compatible mode in FreePascal
+{$INLINE ON}
 
 // ======== Define base compiler options
 {$BOOLEVAL OFF}
 {$EXTENDEDSYNTAX ON}
 {$LONGSTRINGS ON}
-{$IFNDEF FPC}
-{$OPTIMIZATION ON}
-{$ENDIF}
-{$IFDEF D6}
-  {$WARN SYMBOL_PLATFORM OFF} // Suppress .Net warnings
-{$ENDIF}
-{$IFDEF D7}
-  {$WARN UNSAFE_CAST OFF} // Suppress .Net warnings
-  {$WARN UNSAFE_TYPE OFF} // Suppress .Net warnings
-  {$WARN UNSAFE_CODE OFF} // Suppress .Net warnings
-{$ENDIF}
 
 // ======== Define options for TRegExpr engine
 {.$DEFINE UniCode} // Unicode support
@@ -89,9 +65,6 @@ interface
   {$define UNICODE}
 {$endif}
 {$DEFINE RegExpPCodeDump} // p-code dumping (see Dump method)
-{$IFNDEF FPC} // the option is not supported in FreePascal
- {$DEFINE reRealExceptionAddr} // exceptions will point to appropriate source line, not to Error procedure
-{$ENDIF}
 {$DEFINE ComplexBraces} // support braces in complex cases
 {$IFNDEF UniCode} // the option applicable only for non-UniCode mode
  {$IFNDEF FPC_REQUIRES_PROPER_ALIGNMENT}  //sets have to be aligned
@@ -110,14 +83,8 @@ interface
 // Define 'UseAsserts' option (do not edit this definitions).
 // Asserts used to catch 'strange bugs' in TRegExpr implementation (when something goes
 // completely wrong). You can swith asserts on/off with help of {$C+}/{$C-} compiler options.
-{$IFDEF D3} {$DEFINE UseAsserts} {$ENDIF}
 {$IFDEF FPC} {$DEFINE UseAsserts} {$ENDIF}
-
-// Define 'use subroutine parameters default values' option (do not edit this definition).
-{$IFDEF D4} {$DEFINE DefParam} {$ENDIF}
-
 // Define 'OverMeth' options, to use method overloading (do not edit this definitions).
-{$IFDEF D5} {$DEFINE OverMeth} {$ENDIF}
 {$IFDEF FPC} {$DEFINE OverMeth} {$ENDIF}
 
 uses
@@ -462,12 +429,9 @@ type
     // For Delphi 5 and higher available overloaded versions - first without
     // parameter (uses already assigned to InputString property value)
     // and second that has PtrInt parameter and is same as ExecPos
-    function Exec (const AInputString : RegExprString) : boolean; {$IFDEF OverMeth} overload;
-    {$IFNDEF FPC} // I do not know why FreePascal cannot overload methods with empty param list
+    function Exec (const AInputString : RegExprString) : boolean; overload;
     function Exec : boolean; overload; //###0.949
-    {$ENDIF}
     function Exec (AOffset: PtrInt) : boolean; overload; //###0.949
-    {$ENDIF}
 
     // find next match:
     //    ExecNext;
@@ -508,11 +472,10 @@ type
     function Replace (Const AInputStr : RegExprString;
       const AReplaceStr : RegExprString;
       AUseSubstitution : boolean{$IFDEF DefParam}= False{$ENDIF}) //###0.946
-     : RegExprString; {$IFDEF OverMeth} overload;
+     : RegExprString;  overload;
     function Replace (Const AInputStr : RegExprString;
       AReplaceFunc : TRegExprReplaceFunction)
      : RegExprString; overload;
-    {$ENDIF}
     // Returns AInputStr with r.e. occurencies replaced by AReplaceStr
     // If AUseSubstitution is true, then AReplaceStr will be used
     // as template for Substitution methods.
@@ -620,7 +583,7 @@ type
 
 const
   // default for InvertCase property:
-  RegExprInvertCaseFunction : TRegExprInvertCaseFunction = {$IFDEF FPC} nil {$ELSE} TRegExpr.InvertCaseFunction{$ENDIF};
+  RegExprInvertCaseFunction : TRegExprInvertCaseFunction = nil ;
 
 // true if string AInputString match regular expression ARegExpr
 // ! will raise exeption if syntax errors in ARegExpr
@@ -673,18 +636,9 @@ function RegExprSubExpressions (const ARegExpr : string;
 
 implementation
 
-{$IFDEF FPC}
 {$IFDEF UnicodeWordDetection}
 uses
   UnicodeData;
-{$ENDIF}
-{$ELSE}
-uses
-{$IFDEF SYN_WIN32}
- Windows; // CharUpper/Lower
-{$ELSE}
-  Libc; //Qt.pas from Borland does not expose char handling functions
-{$ENDIF}
 {$ENDIF}
 
 const
@@ -705,7 +659,7 @@ const
  XIgnoredChars = [' ', #9, #$d, #$a];
  {$ENDIF}
 
- function AlignToPtr(const p: Pointer): Pointer;
+ function AlignToPtr(const p: Pointer): Pointer; inline;
  begin
  {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
    Result := Align(p, SizeOf(Pointer));
@@ -714,7 +668,7 @@ const
  {$ENDIF}
  end;
 
- function AlignToInt(const p: Pointer): Pointer;
+ function AlignToInt(const p: Pointer): Pointer; inline;
  begin
  {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
    Result := Align(p, SizeOf(integer));
@@ -1267,7 +1221,6 @@ destructor TRegExpr.Destroy;
  end; { of destructor TRegExpr.Destroy
 --------------------------------------------------------------}
 
-{$IFDEF FPC}
 {$IFDEF UNICODE}
 function AnsiUpperCase(const s: RegExprString): RegExprString;inline;
 
@@ -1281,25 +1234,12 @@ begin
   Result:=WideLowerCase(S);
 end;
 {$ENDIF}
-{$ENDIF}
 
 class function TRegExpr.InvertCaseFunction (const Ch : REChar) : REChar;
 begin
-{$IFDEF FPC}
   Result := AnsiUpperCase(Ch)[1];
   if Result = Ch then
     Result := AnsiLowerCase(Ch)[1];
-{$ELSE}
-  {$IFDEF SYN_WIN32}
-    Result := REChar (CharUpper (PChar (Ch)));
-    if Result = Ch then
-      Result := REChar (CharLower (PChar (Ch)));
-  {$ELSE}
-    Result := REChar (toupper (integer (Ch)));
-    if Result = Ch then
-      Result := REChar(tolower (integer (Ch)));
-  {$ENDIF}
-{$ENDIF}
 end; { of function TRegExpr.InvertCaseFunction
 --------------------------------------------------------------}
 
@@ -3551,20 +3491,18 @@ function TRegExpr.Exec (const AInputString : RegExprString) : boolean;
  end; { of function TRegExpr.Exec
 --------------------------------------------------------------}
 
-{$IFDEF OverMeth}
-{$IFNDEF FPC}
 function TRegExpr.Exec : boolean;
  begin
   Result := ExecPrim (1);
  end; { of function TRegExpr.Exec
 --------------------------------------------------------------}
-{$ENDIF}
+
 function TRegExpr.Exec (AOffset: PtrInt) : boolean;
  begin
   Result := ExecPrim (AOffset);
  end; { of function TRegExpr.Exec
 --------------------------------------------------------------}
-{$ENDIF}
+
 
 function TRegExpr.ExecPos (AOffset: PtrInt {$IFDEF DefParam}= 1{$ENDIF}) : boolean;
  begin
@@ -4238,19 +4176,7 @@ function TRegExpr.Dump : RegExprString;
 --------------------------------------------------------------}
 {$ENDIF}
 
-{$IFDEF reRealExceptionAddr}
-{$OPTIMIZATION ON}
-// ReturnAddr works correctly only if compiler optimization is ON
-// I placed this method at very end of unit because there are no
-// way to restore compiler optimization flag ...
-{$ENDIF}
 procedure TRegExpr.Error (AErrorID : integer);
-{$IFDEF reRealExceptionAddr}
- function ReturnAddr : pointer; //###0.938
-  asm
-   mov  eax,[ebp+4]
-  end;
-{$ENDIF}
  var
   e : ERegExpr;
  begin
@@ -4262,10 +4188,7 @@ procedure TRegExpr.Error (AErrorID : integer);
   e.ErrorCode := AErrorID;
   e.CompilerErrorPos := CompilerErrorPos;
   raise e
-   {$IFDEF reRealExceptionAddr}
-   At ReturnAddr; //###0.938
-   {$ENDIF}
- end; { of procedure TRegExpr.Error
+end; { of procedure TRegExpr.Error
 --------------------------------------------------------------}
 
 (*
@@ -4278,13 +4201,10 @@ procedure TRegExpr.Error (AErrorID : integer);
    fExprIsCompiled
 *)
 
-// be carefull - placed here code will be always compiled with
-// compiler optimization flag
 
-{$IFDEF FPC}
+
 initialization
  RegExprInvertCaseFunction := TRegExpr.InvertCaseFunction;
 
-{$ENDIF}
 end.
 
