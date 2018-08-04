@@ -129,6 +129,7 @@ Type
     Function WaitOnExit : Boolean;
     Function WaitOnExit(Timeout : DWord) : Boolean;
     function ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var Data:string;MaxLoops:integer=10):boolean;
+    function ReadInputStream(p:TInputPipeStream;data:TStream;MaxLoops:integer=10):boolean;
     function RunCommandLoop(out outputstring:string;out stderrstring:string; out anexitstatus:integer):integer;
 
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
@@ -507,6 +508,27 @@ begin
         Available:=P.NumBytesAvailable;
         dec(MaxLoops);
       end;
+end;
+
+function TProcess.ReadInputStream(p:TInputPipeStream;data:TStream;MaxLoops:integer=10):boolean;
+const
+  BufSize = 4096;
+var
+  Buffer: array[0..BufSize - 1] of byte;
+  ReadBytes: integer;
+  Available : integer;
+begin
+  Available:=P.NumBytesAvailable;
+  result:=Available>0;
+  if not result then
+    Exit;
+  while (available > 0) and (MaxLoops>0) do
+  begin
+    ReadBytes := Output.Read({%H-}Buffer, min(BufSize,Available));
+    data.Write(Buffer, ReadBytes);
+    Available:=P.NumBytesAvailable;
+    dec(MaxLoops);
+  end;
 end;
 
 procedure TProcess.IntOnIdleSleep(Sender : TObject;status:TRunCommandEventCode;const message:string);
