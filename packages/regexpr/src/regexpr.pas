@@ -49,6 +49,7 @@ unit RegExpr;
 interface
 
 {off $DEFINE DebugSynRegExpr}
+{$DEFINE UnicodeWordDetection}
 
 {$IFDEF FPC}
  {$MODE DELPHI} // Delphi-compatible mode in FreePascal
@@ -101,6 +102,9 @@ interface
  {$DEFINE UseFirstCharSet} // Fast skip between matches for r.e. that starts with determined set of chars
 {$ENDIF}
 {$DEFINE UseOsLineEndOnReplace} // On Replace if replace-with has "\n", use System.LineEnding (#10 #13 or #13#10); else use #10
+{$IFNDEF UNICODE}
+{$UNDEF UnicodeWordDetection}
+{$ENDIF}
 
 // ======== Define Pascal-language options
 // Define 'UseAsserts' option (do not edit this definitions).
@@ -292,7 +296,12 @@ type
     {$IFNDEF UniCode}
     fLineSeparatorsSet : set of REChar;
     {$ENDIF}
-    Function IsSpaceChar(AChar : PRegExprChar) : Boolean; inline;
+    {$IFDEF UnicodeWordDetection}
+    FUseUnicodeWordDetection : Boolean;
+    function IsUnicodeWordChar(AChar : REChar) : Boolean;
+    {$ENDIF}
+    function IsWordChar(AChar : REChar) : Boolean; inline;
+    function IsSpaceChar(AChar : PRegExprChar) : Boolean; inline;
 
     // Mark programm as having to be [re]compiled
     procedure InvalidateProgramm;
@@ -574,6 +583,10 @@ type
     // global constant)
     property WordChars : RegExprString read fWordChars write fWordChars; //###0.929
 
+    {$IFDEF UnicodeWordDetection}
+    // If set to true, in addition to using WordChars, a heuristic to detect unicode word letters is used for \w
+    Property UseUnicodeWordDetection : Boolean Read FUseUnicodeWordDetection Write FUseUnicodeWordDetection;
+    {$ENDIF}
     // line separators (like \n in Unix)
     property LineSeparators : RegExprString read fLineSeparators write SetLineSeparators; //###0.941
 
@@ -661,6 +674,10 @@ function RegExprSubExpressions (const ARegExpr : string;
 implementation
 
 {$IFDEF FPC}
+{$IFDEF UnicodeWordDetection}
+uses
+  UnicodeData;
+{$ENDIF}
 {$ELSE}
 uses
 {$IFDEF SYN_WIN32}
@@ -1205,6 +1222,9 @@ constructor TRegExpr.Create;
 
   regexpbeg := nil;
   fExprIsCompiled := false;
+  {$IFDEF UnicodeWordDetection}
+  FUseUnicodeWordDetection:=False;
+  {$ENDIF}
 
   ModifierI := RegExprModifierI;
   ModifierR := RegExprModifierR;
@@ -1480,6 +1500,35 @@ procedure TRegExpr.SetModifier (AIndex : integer; ASet : boolean);
 {=============================================================}
 {==================== Compiler section =======================}
 {=============================================================}
+
+{$IFDEF UnicodeWordDetection}
+function TRegExpr.IsUnicodeWordChar(AChar: REChar): Boolean;
+var
+  NType: byte;
+begin
+  if Ord(AChar)<128 then
+    exit(false)
+  else
+  if Ord(AChar)>=LOW_SURROGATE_BEGIN then
+    exit(false)
+  else
+  begin
+    NType:= GetProps(Ord(AChar))^.Category;
+    Result:= (NType<=UGC_OtherNumber);
+  end;
+end;
+{$ENDIF}
+
+
+function TRegExpr.IsWordChar(AChar: REChar): Boolean; inline;
+begin
+  Result := Pos(AChar, fWordChars)>0;
+  {$IFDEF UnicodeWordDetection}
+  If Not Result and UseUnicodeWordDetection then
+    Result:=IsUnicodeWordChar(aChar);
+  {$ENDIF}
+end;
+
 
 function TRegExpr.IsSpaceChar(AChar: PRegExprChar): Boolean;
 begin
@@ -2793,7 +2842,7 @@ function TRegExpr.regrepeat (p : PRegExprChar; AMax : PtrInt) : PtrInt;
     {$IFNDEF UseSetOfChar} //###0.929
     ANYLETTER:
       while (Result < TheMax) and
-       (Pos (scan^, fWordChars) > 0) //###0.940
+         IsWordChar(scan^) //###0.940
      {  ((scan^ >= 'a') and (scan^ <= 'z') !! I've forgotten (>='0') and (<='9')
        or (scan^ >= 'A') and (scan^ <= 'Z') or (scan^ = '_'))} do begin
         inc (Result);
@@ -2801,7 +2850,7 @@ function TRegExpr.regrepeat (p : PRegExprChar; AMax : PtrInt) : PtrInt;
        end;
     NOTLETTER:
       while (Result < TheMax) and
-       (Pos (scan^, fWordChars) <= 0)  //###0.940
+         not IsWordChar(scan^)  //###0.940
      {   not ((scan^ >= 'a') and (scan^ <= 'z') !! I've forgotten (>='0') and (<='9')
          or (scan^ >= 'A') and (scan^ <= 'Z')
          or (scan^ = '_'))} do begin
@@ -2933,11 +2982,11 @@ function TRegExpr.MatchPrim (prog : PRegExprChar) : boolean;
          BOUND:
          if (scan^ = BOUND)
           xor (
-          ((reginput = fInputStart) or (Pos ((reginput - 1)^, fWordChars) <= 0))
-            and (reginput^ <> #0) and (Pos (reginput^, fWordChars) > 0)
+          ((reginput = fInputStart) or not IsWordChar((reginput - 1)^))
+            and (reginput^ <> #0) and IsWordChar(reginput^)
            or
-            (reginput <> fInputStart) and (Pos ((reginput - 1)^, fWordChars) > 0)
-            and ((reginput^ = #0) or (Pos (reginput^, fWordChars) <= 0)))
+            (reginput <> fInputStart) and IsWordChar((reginput - 1)^)
+            and ((reginput^ = #0) or not IsWordChar(reginput^)))
           then EXIT;
 
          BOL: if reginput <> fInputStart
@@ -3006,12 +3055,12 @@ function TRegExpr.MatchPrim (prog : PRegExprChar) : boolean;
            end;
          {$IFNDEF UseSetOfChar} //###0.929
          ANYLETTER: begin
-            if (reginput^ = #0) or (Pos (reginput^, fWordChars) <= 0) //###0.943
+            if (reginput^ = #0) or not IsWordChar(reginput^) //###0.943
              then EXIT;
             inc (reginput);
            end;
          NOTLETTER: begin
-            if (reginput^ = #0) or (Pos (reginput^, fWordChars) > 0) //###0.943
+            if (reginput^ = #0) or IsWordChar(reginput^) //###0.943
              then EXIT;
             inc (reginput);
            end;
