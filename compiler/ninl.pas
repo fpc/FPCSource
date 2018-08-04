@@ -1095,7 +1095,7 @@ implementation
             in_writeln_x:
               name:='fpc_writeln_end';
           end;
-          addstatement(Tstatementnode(newstatement),ccallnode.createintern(name,filepara));
+          addstatement(Tstatementnode(newstatement),ccallnode.createintern(name,filepara.getcopy));
         end;
       handle_text_read_write:=found_error;
     end;
@@ -1206,8 +1206,6 @@ implementation
           para := nextpara;
         end;
 
-      { free the file parameter }
-      filepara.free;
       handle_typed_read_write:=found_error;
     end;
 
@@ -1422,6 +1420,9 @@ implementation
           found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),tnode(newstatement))
         else
           found_error:=handle_text_read_write(filepara,Ttertiarynode(params),tnode(newstatement));
+
+        { free the file parameter (it's copied inside the handle_*_read_write methods) }
+        filepara.free;
 
         { if we found an error, simply delete the generated blocknode }
         if found_error then
