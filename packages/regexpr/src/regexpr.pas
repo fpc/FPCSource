@@ -760,13 +760,16 @@ function StrLComp (Str1, Str2: PRegExprChar; MaxLen: PtrUInt): PtrInt;
 
 var
   S1, S2: RegExprString;
-
 begin
   S1 := Str1;
   S2 := Str2;
-  if Copy (S1, 1, MaxLen) > Copy (S2, 1, MaxLen) then
+  if Length(S1) > MaxLen then
+    SetLength(S1, MaxLen);
+  if Length(S2) > MaxLen then
+    SetLength(S2, MaxLen);
+  if S1 > S2 then
     Result := 1
-  else if Copy (S1, 1, MaxLen) < Copy (S2, 1, MaxLen) then
+  else if S2 < S2 then
     Result := -1
   else
     Result := 0;
