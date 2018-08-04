@@ -1076,12 +1076,14 @@ end;
 
 procedure TInetSocket.Connect;
 
+{$IFDEF HAVENONBLOCKING}
 Const
  {$IFDEF UNIX}
     ErrWouldBlock = ESysEInprogress;
  {$ELSE}
     ErrWouldBlock = WSAEWOULDBLOCK;
  {$ENDIF}
+{$ENDIF}
 
 Var
   A : THostAddr;
