@@ -1426,7 +1426,15 @@ implementation
 
         { if we found an error, simply delete the generated blocknode }
         if found_error then
-          newblock.free
+          begin
+            { ensure that the tempinfo is freed correctly by destroying a
+              delete node for it
+              Note: this might happen legitimately whe parsing a generic that
+                    passes a undefined type to Write/Read }
+            if assigned(filetemp) then
+              ctempdeletenode.create(filetemp).free;
+            newblock.free
+          end
         else
           begin
             { deallocate the temp for the file para if we used one }
