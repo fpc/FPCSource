@@ -1017,6 +1017,7 @@ type
     ResultVarName: string; // valid in implementation ProcScope, empty means use ResolverResultVar
     BodyJS: string; // Option coStoreProcJS: stored in ImplScope
     GlobalJS: TStringList; // Option coStoreProcJS: stored in ImplScope
+    EmptyJS: boolean; // Option coStoreProcJS: stored in ImplScope, true if Body.Body=nil
     procedure AddGlobalJS(const JS: string);
     destructor Destroy; override;
   end;
@@ -1245,6 +1246,7 @@ type
     function GetBaseDescription(const R: TPasResolverResult; AddPath: boolean=
       false): string; override;
     function HasTypeInfo(El: TPasType): boolean; override;
+    function ProcHasImplElements(Proc: TPasProcedure): boolean; override;
     function IsTObjectFreeMethod(El: TPasExpr): boolean; virtual;
     function IsExternalBracketAccessor(El: TPasElement): boolean;
     function IsExternalClassConstructor(El: TPasElement): boolean;
@@ -4490,6 +4492,20 @@ begin
     exit(false);
   if El.Parent is TProcedureBody then
     Result:=false;
+end;
+
+function TPas2JSResolver.ProcHasImplElements(Proc: TPasProcedure): boolean;
+var
+  Scope: TPas2JSProcedureScope;
+begin
+  Result:=inherited ProcHasImplElements(Proc);
+  if Result then exit;
+  // no body elements found -> check precompiled
+  Scope:=Proc.CustomData as TPas2JSProcedureScope;
+  if Scope.ImplProc<>nil then
+    Scope:=Scope.ImplProc.CustomData as TPas2JSProcedureScope;
+  if Scope.BodyJS<>'' then
+    Result:=not Scope.EmptyJS;
 end;
 
 function TPas2JSResolver.IsTObjectFreeMethod(El: TPasExpr): boolean;
@@ -12582,7 +12598,10 @@ begin
   if (coStoreImplJS in Options) and (aResolver<>nil) then
     begin
     if aResolver.GetTopLvlProc(El)=El then
+      begin
       ImplProcScope.BodyJS:=CreatePrecompiledJS(Result);
+      ImplProcScope.EmptyJS:=BodyPas.Body=nil;
+      end;
     end;
 end;
 

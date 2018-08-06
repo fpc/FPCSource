@@ -3771,6 +3771,7 @@ begin
           Arr.Add(Scope.GlobalJS[i]);
         end;
       Obj.Add('Body',Scope.BodyJS);
+      Obj.Add('Empty',Scope.EmptyJS);
       end;
     end;
   if (Scope.BodyJS<>'') and (Scope.ImplProc<>nil) then
@@ -7347,6 +7348,7 @@ begin
     RaiseMsg(20180228231511,El);
   if not ReadString(Obj,'Body',s,El) then
     RaiseMsg(20180228131232,El);
+  ReadBoolean(Obj,'Empty',ImplScope.EmptyJS,El);
   ImplScope.BodyJS:=s;
   if ReadArray(Obj,'Globals',Arr,El) then
     begin
