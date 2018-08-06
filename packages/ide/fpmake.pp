@@ -180,9 +180,11 @@ begin
       does not depend on C libs }
     if ((GDBMIOption or NoGDBOption) and
         ((Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU)
-         or (Defaults.OS in [go32v2,win32,win64,linux,freebsd]))) or
+         or (Defaults.OS in [go32v2,win32,win64,linux,freebsd])
+         or not Defaults.SkipCrossPrograms)) or
        { This is the list of native targets that can be compiled natively with gdbint packages }
-       ((Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU) and
+       ((((Defaults.BuildOS=Defaults.OS) and (Defaults.BuildCPU=Defaults.CPU)) or
+          not Defaults.SkipCrossPrograms) and
         (Defaults.OS in [go32v2,win32,win64,linux,freebsd,os2,emx,beos,haiku])
        ) then
       begin
