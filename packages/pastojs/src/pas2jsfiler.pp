@@ -622,10 +622,13 @@ type
   { TPCUCustomReader }
 
   TPCUCustomReader = class(TPCUFiler)
+  private
+    FSourceFilename: string;
   public
     procedure ReadPCU(aResolver: TPas2JSResolver; aStream: TStream); virtual; abstract;
     function ReadContinue: boolean; virtual; abstract;  // true=finished
     function ReadCanContinue: boolean; virtual; // true=not finished and no pending used interface
+    property SourceFilename: string read FSourceFilename write FSourceFilename; // default value for TPasElement.SourceFilename
   end;
   TPCUReaderClass = class of TPCUCustomReader;
 
@@ -5469,6 +5472,7 @@ function TPCUReader.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement): TPasElement;
 begin
   Result:=AClass.Create(AName,AParent);
+  Result.SourceFilename:=SourceFilename;
   {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('CreateElement');{$ENDIF}
 end;
 

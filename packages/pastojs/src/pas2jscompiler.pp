@@ -897,6 +897,7 @@ begin
   if PCUFormat=nil then
     RaiseInternalError(20180312142954,'');
   FPCUReader:=PCUFormat.ReaderClass.Create;
+  FPCUReader.SourceFilename:=ExtractFileName(PCUFilename);
 
   if ShowDebug then
     Log.LogMsg(nParsingFile,[QuoteStr(PCUFilename)]);
