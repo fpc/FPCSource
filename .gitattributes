@@ -10282,6 +10282,8 @@ rtl/symbian/Makefile svneol=native#text/plain
 rtl/symbian/Makefile.fpc svneol=native#text/plain
 rtl/symbian/bindings/pbeexe.cpp -text
 rtl/symbian/buildrtl.pp svneol=native#text/plain
+rtl/symbian/classes.pp svneol=native#text/plain
+rtl/symbian/dos.pp svneol=native#text/plain
 rtl/symbian/rtldefs.inc svneol=native#text/plain
 rtl/symbian/symbian.pas svneol=native#text/plain
 rtl/symbian/symbianinc/e32def.inc svneol=native#text/plain
@@ -10293,6 +10295,8 @@ rtl/symbian/sysheap.inc svneol=native#text/plain
 rtl/symbian/sysos.inc svneol=native#text/plain
 rtl/symbian/sysosh.inc svneol=native#text/plain
 rtl/symbian/system.pp svneol=native#text/plain
+rtl/symbian/sysutils.pp svneol=native#text/plain
+rtl/symbian/tthread.inc svneol=native#text/plain
 rtl/symbian/uiq.pas svneol=native#text/plain
 rtl/symbian/uiqclasses.pas svneol=native#text/plain
 rtl/symbian/uiqinc/qikapplication.inc svneol=native#text/plain

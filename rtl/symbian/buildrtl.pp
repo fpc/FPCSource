@@ -3,7 +3,7 @@ unit buildrtl;
   interface
 
     uses
-      ctypes, strings,
+      ctypes, strings, classes,
       symbian, uiq, uiqclasses;
 
   implementation
