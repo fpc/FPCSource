@@ -1742,6 +1742,7 @@ type
     function GetPasPropertyStoredExpr(El: TPasProperty): TPasExpr;
     function GetPasPropertyDefaultExpr(El: TPasProperty): TPasExpr;
     function GetPasClassAncestor(ClassEl: TPasClassType; SkipAlias: boolean): TPasType;
+    function ProcHasImplElements(Proc: TPasProcedure): boolean; virtual;
     function IndexOfImplementedInterface(ClassEl: TPasClassType; aType: TPasType): integer;
     function GetLoop(El: TPasElement): TPasImplElement;
     function ResolveAliasType(aType: TPasType): TPasType;
@@ -4200,7 +4201,7 @@ begin
               begin
               ProcScope:=Proc.CustomData as TPasProcedureScope;
               if (ProcScope.ImplProc<>nil)  // not abstract, external
-                  and (GetProcFirstImplEl(ProcScope.ImplProc)=nil) then
+                  and (not ProcHasImplElements(ProcScope.ImplProc)) then
                 // hidden method has implementation, but no statements -> useless
                 // -> do not give a hint for hiding this useless method
                 // Note: if this happens in the same unit, the body was not yet parsed
@@ -17494,17 +17495,20 @@ begin
   Result:=nil;
   if Proc=nil then exit;
   if Proc.Body<>nil then
-    Body:=Proc.Body.Body;
+    Body:=Proc.Body.Body
+  else
+    Body:=nil;
   if Body=nil then
     begin
     if Proc.CustomData=nil then exit;
     Scope:=Proc.CustomData as TPasProcedureScope;
-    if Scope.ImplProc=nil then exit;
     Proc:=Scope.ImplProc;
-    if Proc.Body<>nil then
-      Body:=Proc.Body.Body;
+    if Proc=nil then exit;
+    if Proc.Body=nil then exit;
+    Body:=Proc.Body.Body;
     if Body=nil then exit;
     end;
+  if Body.Elements=nil then exit;
   if Body.Elements.Count=0 then exit;
   Result:=TPasImplElement(Body.Elements[0]);
 end;
@@ -19514,6 +19518,11 @@ begin
     else
       Result:=ClassScope.DirectAncestor;
     end;
+end;
+
+function TPasResolver.ProcHasImplElements(Proc: TPasProcedure): boolean;
+begin
+  Result:=GetProcFirstImplEl(Proc)<>nil;
 end;
 
 function TPasResolver.IndexOfImplementedInterface(ClassEl: TPasClassType;
