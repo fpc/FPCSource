@@ -8,14 +8,15 @@ main=rtl
 [target]
 loaders=prt0 cprt0 func dllprt
 units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
-#      beos \
       errors dos dl cthreads \
       sysconst sysutils \
       types charset cpall typinfo classes fgl math \
       cpu mmx getopts heaptrc lineinfo lnfodwrf \
       rtlconsts syscall unix unixutil termio initc \
+      character fpwidestring unicodedata unicodenumtable \
       cmem \
       dynlibs cwstring unixcp
+#      beos
 rsts=math typinfo sysconst rtlconsts 
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -240,6 +241,18 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/character.pas
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) unixcp$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
+
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 
