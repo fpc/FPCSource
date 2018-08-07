@@ -401,7 +401,11 @@ procedure fpc_dynarray_delete(var p : pointer;source,count : SizeInt;pti : point
        end;
 
      { skip kind and name }
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
      ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
      elesize:=pdynarraytypedata(ti)^.elSize;
      eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -498,7 +502,11 @@ procedure fpc_dynarray_insert(var p : pointer;source : SizeInt;data : pointer;co
       source:=0;
 
     { skip kind and name }
-    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
     eletype:=pdynarraytypedata(ti)^.elType2^;
@@ -622,7 +630,11 @@ procedure fpc_dynarray_concat_multi(var dest : pointer; pti: pointer; const sarr
       end;
 
     { skip kind and name }
-    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
 
@@ -690,7 +702,11 @@ procedure fpc_dynarray_concat(var dest : pointer; pti: pointer; const src1,src2 
       end;
 
     { skip kind and name }
-    ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$ifdef VER3_0}
+     ti:=aligntoptr(Pointer(pti)+2+PByte(pti)[1]);
+{$else VER3_0}
+     ti:=aligntoqword(Pointer(pti)+2+PByte(pti)[1]);
+{$endif VER3_0}
 
     elesize:=pdynarraytypedata(ti)^.elSize;
 
@@ -820,7 +836,11 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
         a := PPointerArray(a)^[indices[i]];
 
       { skip kind and name }
-      typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+{$ifdef VER3_0}
+      typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+      typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
       { store the last element size for the index calculation }
       elsize:=pdynarraytypedata(typeInfo)^.elSize;
       { element type info}
@@ -835,7 +855,11 @@ function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Po
     end;
 
     { skip kind and name }
-    typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+{$ifdef VER3_0}
+      typeInfo:=aligntoptr(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$else VER3_0}
+      typeInfo:=aligntoqword(Pointer(typeInfo)+2+PByte(typeInfo)[1]);
+{$endif VER3_0}
 
     result:=@(PByte(a)[indices[h]*elsize]);
   end;
