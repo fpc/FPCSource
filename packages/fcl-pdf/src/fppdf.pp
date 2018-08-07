@@ -1126,6 +1126,7 @@ const
   PDF_MAX_GEN_NUM = 65535;
   PDF_UNICODE_HEADER = 'FEFF001B%s001B';
   PDF_LANG_STRING = 'en';
+  PDF_NUMBER_MASK = '0.####';
 
   { Info from http://www.papersizes.org/a-sizes-all-units.htm }
   PDFPaperSizes : Array[TPDFPaperType,0..1] of Integer = (
@@ -2313,9 +2314,9 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2357,9 +2358,9 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2388,9 +2389,9 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2427,9 +2428,9 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
@@ -2466,9 +2467,9 @@ begin
   if ADegrees <> 0.0 then
   begin
     rad := DegToRad(-ADegrees);
-    t1 := FormatFloat('0.###;;0', Cos(rad), PDFFormatSettings);
-    t2 := FormatFloat('0.###;;0', -Sin(rad), PDFFormatSettings);
-    t3 := FormatFloat('0.###;;0', Sin(rad), PDFFormatSettings);
+    t1 := FormatFloat(PDF_NUMBER_MASK, Cos(rad), PDFFormatSettings);
+    t2 := FormatFloat(PDF_NUMBER_MASK, -Sin(rad), PDFFormatSettings);
+    t3 := FormatFloat(PDF_NUMBER_MASK, Sin(rad), PDFFormatSettings);
     AddObject(TPDFPushGraphicsStack.Create(Document));
     // PDF v1.3 page 132 & 143
     AddObject(TPDFFreeFormString.Create(Document, Format('%s %s %s %s %.4f %.4f cm',
