@@ -665,8 +665,7 @@ implementation
         inc(ps.refs);
         st.insert(ps);
         pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
-        { We don't need is a local symtable. Change it into the static
-          symtable }
+        { We don't need a local symtable, change it into the static symtable }
         if not (potype in [potype_mainstub,potype_pkgstub]) then
           begin
             pd.localst.free;
@@ -2441,7 +2440,7 @@ type
 
                  { add all directly used packages as libraries }
                  add_package_libs(linker);
-                 { finally we can create a executable }
+                 { finally we can create an executable }
                  if current_module.islibrary then
                    linker.MakeSharedLibrary
                  else
