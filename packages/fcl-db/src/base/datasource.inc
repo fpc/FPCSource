@@ -73,6 +73,12 @@ Procedure TDataLink.CalcRange;
 var
     aMax, aMin: integer;
 begin
+  // During loading, dataset may not be set yet.
+  If (Dataset=Nil) then
+    begin
+    FFirstRecord:=0; 
+    exit;
+    end;
   aMin:= DataSet.FActiveRecord - FBufferCount + 1;
   If aMin < 0 Then aMin:= 0;
   aMax:= Dataset.FBufferCount - FBufferCount;
@@ -609,8 +615,8 @@ begin
     End;
   If ADataset<>Nil Then
     begin
-    ADataset.RegisterDatasource(Self);
     FDataSet:=ADataset;
+    ADataset.RegisterDatasource(Self);
     ProcessEvent(deUpdateState,0);
     End;
 end;
