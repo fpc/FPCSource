@@ -30,7 +30,7 @@ begin
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('paszlib');
-    P.Dependencies.add('winunits-base',AllWindowsOSes);
+    P.Dependencies.add('winunits-base',AllWindowsOSes-[wince]);
     P.Version:='3.1.1';
     T:=P.Targets.AddUnit('src/fpttfencodings.pp');
     T:=P.Targets.AddUnit('src/fpparsettf.pp');
