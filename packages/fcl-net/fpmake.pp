@@ -19,7 +19,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('openssl',AllOSes - AllAmigaLikeOSes);
+    P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd,dragonfly]);
