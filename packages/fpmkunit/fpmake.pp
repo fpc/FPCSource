@@ -34,7 +34,7 @@ begin
       D.Version:='3.1.1';
     D:=P.Dependencies.Add('paszlib');
       D.Version:='3.1.1';
-    D:=P.Dependencies.Add('fcl-process');
+    D:=P.Dependencies.Add('fcl-process',AllOSes-[morphos,aros,amiga,go32v2,os2]);
       D.Version:='3.1.1';
     D:=P.Dependencies.Add('libtar');
       D.Version:='3.1.1';

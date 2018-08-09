@@ -29,7 +29,7 @@ begin
     P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
-    P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-process',AllOSes-[go32v2,os2]);
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fpmkunit');
 
