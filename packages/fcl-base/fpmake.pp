@@ -152,8 +152,6 @@ begin
       T:=P.Targets.AddExampleProgram('fpdoc.dtd');
       T:=P.Targets.AddExampleProgram('fstream.pp');
       T:=P.Targets.AddExampleProgram('htdump.pp');
-      T:=P.Targets.AddExampleProgram('ipcclient.pp');
-      T:=P.Targets.AddExampleProgram('ipcserver.pp');
       T:=P.Targets.AddExampleProgram('isockcli.pp');
       T:=P.Targets.AddExampleProgram('isocksvr.pp');
       T:=P.Targets.AddExampleProgram('istream.pp');

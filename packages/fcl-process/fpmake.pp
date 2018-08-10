@@ -58,6 +58,9 @@ begin
       T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('dbugintf.pp');
       T.ResourceStrings:=True;
+    P.ExamplePath.Add('examples');
+      T:=P.Targets.AddExampleProgram('ipcclient.pp');
+      T:=P.Targets.AddExampleProgram('ipcserver.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
