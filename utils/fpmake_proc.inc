@@ -36,3 +36,5 @@
 
 {$include unicode/fpmake.pp}
 
+{$include pas2js/fpmake.pp}
+

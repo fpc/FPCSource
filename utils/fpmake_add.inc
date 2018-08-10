@@ -17,3 +17,4 @@
   add_rmwait(ADirectory+IncludeTrailingPathDelimiter('rmwait'));
   add_tply(ADirectory+IncludeTrailingPathDelimiter('tply'));
   add_unicode(ADirectory+IncludeTrailingPathDelimiter('unicode'));
+  add_pas2js(ADirectory+IncludeTrailingPathDelimiter('pas2js'));
