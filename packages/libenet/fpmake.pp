@@ -49,8 +49,10 @@ begin
       AddUnit('enettime');
       AddUnit('enetprotocol');
       end;
-    P.Targets.AddExampleProgram('serverapp.pp');
-    P.Targets.AddExampleProgram('clientapp.pp');
+    // Examples
+    P.ExamplePath.Add('examples');
+      P.Targets.AddExampleProgram('serverapp.pp');
+      P.Targets.AddExampleProgram('clientapp.pp');
 
 {$ifndef ALLPACKAGES}
     Run;
