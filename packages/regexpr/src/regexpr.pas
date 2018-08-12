@@ -3719,13 +3719,8 @@ var
    if (p < TemplateEnd) and (p^ = '&')
     then inc (p) // this is '$&' or '${&}'
     else
-     while (p < TemplateEnd) and
-      {$IFDEF UniCode} //###0.935
-      (ord (p^) < 256) and (char (p^) in Digits)
-      {$ELSE}
-      (p^ in Digits)
-      {$ENDIF}
-       do begin
+     while (p < TemplateEnd) and IsDigit(p) do
+       begin
        Result := Result * 10 + (ord (p^) - ord ('0')); //###0.939
        inc (p);
       end;
