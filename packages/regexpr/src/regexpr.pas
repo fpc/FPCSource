@@ -2105,17 +2105,16 @@ function TRegExpr.ParseAtom (var flagp : integer) : PRegExprChar;
   end;
 
  function HexDig (ch : REChar) : PtrInt;
+
   begin
-   Result := 0;
-   if (ch >= 'a') and (ch <= 'f')
-    then ch := REChar (ord (ch) - (ord ('a') - ord ('A')));
-   if (ch < '0') or (ch > 'F') or ((ch > '9') and (ch < 'A')) then begin
+   Result := Ord(Ch);
+   Case Result of
+     Ord('A')..Ord('F') : Result:=10+Result-Ord('A');
+     Ord('a')..Ord('f') : Result:=10+Result-Ord('a');
+     Ord('0')..Ord('9') : Result:=Result-Ord('0');
+   else
      Error (reeBadHexDigit);
-     EXIT;
-    end;
-   Result := ord (ch) - ord ('0');
-   if ch >= 'A'
-    then Result := Result - (ord ('A') - ord ('9') - 1);
+   end;
   end;
 
  function EmitRange (AOpCode : REChar) : PRegExprChar;
