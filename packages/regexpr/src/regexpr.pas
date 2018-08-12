@@ -269,6 +269,7 @@ type
     {$ENDIF}
     function IsWordChar(AChar : REChar) : Boolean; inline;
     function IsSpaceChar(AChar : PRegExprChar) : Boolean; inline;
+    function IsDigit(AChar : PRegExprChar) : Boolean; inline;
 
     // Mark programm as having to be [re]compiled
     procedure InvalidateProgramm;
@@ -1389,6 +1390,12 @@ end;
 function TRegExpr.IsSpaceChar(AChar: PRegExprChar): Boolean;
 begin
   Result:=Pos(AChar^,fSpaceChars)>0;
+end;
+
+function TRegExpr.IsDigit(AChar: PRegExprChar): Boolean;
+begin
+  // Avoid Unicode char-> ansi char conversion in case of unicode regexp.
+  Result:=Ord(AChar^) in [Ord('0')..Ord('9')]
 end;
 
 procedure TRegExpr.InvalidateProgramm;
@@ -2684,17 +2691,17 @@ function TRegExpr.regrepeat (p : PRegExprChar; AMax : PtrInt) : PtrInt;
       UNTIL Result >= AMax;
      end;
     ANYDIGIT:
-      while (Result < TheMax) and
-         (scan^ >= '0') and (scan^ <= '9') do begin
+      while (Result < TheMax) and isDigit(Scan) do
+        begin
         inc (Result);
         inc (scan);
-       end;
+        end;
     NOTDIGIT:
-      while (Result < TheMax) and
-         ((scan^ < '0') or (scan^ > '9')) do begin
+      while (Result < TheMax) and not IsDigit(Scan) do
+        begin
         inc (Result);
         inc (scan);
-       end;
+        end;
     {$IFNDEF UseSetOfChar} //###0.929
     ANYLETTER:
       while (Result < TheMax) and IsWordChar(scan^) do //###0.940
@@ -2895,13 +2902,13 @@ function TRegExpr.MatchPrim (prog : PRegExprChar) : boolean;
             inc (reginput);
            end;
          ANYDIGIT: begin
-            if (reginput^ = #0) or (reginput^ < '0') or (reginput^ > '9')
-             then EXIT;
+            if (reginput^ = #0) or Not IsDigit(reginput) then
+              EXIT;
             inc (reginput);
            end;
          NOTDIGIT: begin
-            if (reginput^ = #0) or ((reginput^ >= '0') and (reginput^ <= '9'))
-             then EXIT;
+            if (reginput^ = #0) or IsDigit(reginput) then
+              EXIT;
             inc (reginput);
            end;
          {$IFNDEF UseSetOfChar} //###0.929
@@ -3561,6 +3568,7 @@ function TRegExpr.ExecPrim (AOffset: PtrInt) : boolean;
   // Failure
  end; { of function TRegExpr.ExecPrim
 --------------------------------------------------------------}
+
 
 
 function TRegExpr.ExecNext : boolean;
