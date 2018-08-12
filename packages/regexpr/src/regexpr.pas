@@ -2697,34 +2697,29 @@ function TRegExpr.regrepeat (p : PRegExprChar; AMax : PtrInt) : PtrInt;
        end;
     {$IFNDEF UseSetOfChar} //###0.929
     ANYLETTER:
-      while (Result < TheMax) and
-         IsWordChar(scan^) //###0.940
-     {  ((scan^ >= 'a') and (scan^ <= 'z') !! I've forgotten (>='0') and (<='9')
-       or (scan^ >= 'A') and (scan^ <= 'Z') or (scan^ = '_'))} do begin
+      while (Result < TheMax) and IsWordChar(scan^) do //###0.940
+        begin
         inc (Result);
         inc (scan);
-       end;
+        end;
     NOTLETTER:
-      while (Result < TheMax) and
-         not IsWordChar(scan^)  //###0.940
-     {   not ((scan^ >= 'a') and (scan^ <= 'z') !! I've forgotten (>='0') and (<='9')
-         or (scan^ >= 'A') and (scan^ <= 'Z')
-         or (scan^ = '_'))} do begin
+      while (Result < TheMax) and  not IsWordChar(scan^) do //###0.940
+        begin
         inc (Result);
         inc (scan);
-       end;
+        end;
     ANYSPACE:
-      while (Result < TheMax) and
-         IsSpaceChar(scan) do begin
+      while (Result < TheMax) and IsSpaceChar(scan) do
+        begin
         inc (Result);
         inc (scan);
-       end;
+        end;
     NOTSPACE:
-      while (Result < TheMax) and
-         Not IsSpaceChar(scan) do begin
+      while (Result < TheMax) and Not IsSpaceChar(scan) do
+        begin
         inc (Result);
         inc (scan);
-       end;
+        end;
     {$ENDIF}
     ANYOFTINYSET: begin
       while (Result < TheMax) and //!!!TinySet
