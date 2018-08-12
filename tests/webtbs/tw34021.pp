@@ -1,6 +1,6 @@
 { %NORUN }
 
-program thelloworld;
+program tw34021;
 
 {$mode objfpc}{$H+}
 {$COperators On}
