@@ -172,7 +172,7 @@ Const
     DRV_MCI_LAST = (DRV_RESERVED+$FFF);
 
 Type
-  PDRVCALLBACK = Procedure (hdrvr: tHandle; uMsg: UINT; dwUser, dw1, dw2: DWORD);  stdcall;
+  PDRVCALLBACK = Procedure (hdrvr: tHandle; uMsg: UINT; dwUser, dw1, dw2: DWORD_PTR);  stdcall;
 
 Function sndPlaySoundA(Name: LPCSTR; flags: UINT): BOOL; stdcall; external 'winmm.dll' name 'sndPlaySoundA';
 
@@ -221,6 +221,7 @@ Const
     WAVE_MAPPED = 4;
     WAVE_FORMAT_DIRECT = 8;
     WAVE_FORMAT_DIRECT_QUERY = (WAVE_FORMAT_QUERY Or WAVE_FORMAT_DIRECT);
+    WAVE_MAPPED_DEFAULT_COMMUNICATION_DEVICE = $10;
     MIM_OPEN = MM_MIM_OPEN;
     MIM_CLOSE = MM_MIM_CLOSE;
     MIM_DATA = MM_MIM_DATA;
@@ -2498,7 +2499,7 @@ Function waveOutSetPitch(x1: HWAVEOUT; x2: DWORD): MMRESULT;stdcall; external 'w
 Function waveOutGetPlaybackRate(x1: HWAVEOUT; x2: LPDWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutGetPlaybackRate';
 Function waveOutSetPlaybackRate(x1: HWAVEOUT; x2: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutSetPlaybackRate';
 Function waveOutGetID(x1: HWAVEOUT; x2: LPUINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutGetID';
-Function waveOutMessage(x1: HWAVEOUT; x2: UINT; x3: DWORD; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutMessage';
+Function waveOutMessage(x1: HWAVEOUT; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutMessage';
 Function waveInGetNumDevs: UINT;stdcall; external 'winmm.dll' name 'waveInGetNumDevs';
 Function waveInGetDevCapsA(x1: UINT; x2: LPWAVEINCAPSA; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetDevCapsA';
 Function waveInGetDevCapsW(x1: UINT; x2: LPWAVEINCAPSW; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetDevCapsW';
@@ -2518,7 +2519,7 @@ Function waveInStop(x1: HWAVEIN): MMRESULT;stdcall; external 'winmm.dll' name 'w
 Function waveInReset(x1: HWAVEIN): MMRESULT;stdcall; external 'winmm.dll' name 'waveInReset';
 Function waveInGetPosition(x1: HWAVEIN; x2: LPMMTIME; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetPosition';
 Function waveInGetID(x1: HWAVEIN; x2: LPUINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetID';
-Function waveInMessage(x1: HWAVEIN; x2: UINT; x3: DWORD; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveInMessage';
+Function waveInMessage(x1: HWAVEIN; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MMRESULT;stdcall; external 'winmm.dll' name 'waveInMessage';
 Function mixerGetLineControlsA(x1: HMIXEROBJ; x2: LPMIXERLINECONTROLSA; x3: DWORD):MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetLineControlsA';
 Function mixerGetLineControlsW(x1: HMIXEROBJ; x2: LPMIXERLINECONTROLSW; x3: DWORD):MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetLineControlsW';
 Function mixerGetLineControls(x1: HMIXEROBJ; x2: LPMIXERLINECONTROLS; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name
@@ -2554,9 +2555,9 @@ Function auxGetDevCaps(x1: UINT; x2: LPAUXCAPS ; x3: UINT): MMRESULT;stdcall; ex
  {$ifdef UNICODE}'auxGetDevCapsW' {$else}'auxGetDevCapsA' {$endif};
 Function auxSetVolume(x1: UINT; x2: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'auxSetVolume';
 Function auxGetVolume(x1: UINT; x2: LPDWORD): MMRESULT;stdcall; external 'winmm.dll' name 'auxGetVolume';
-Function auxOutMessage(x1: UINT; x2: UINT; x3: DWORD; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'auxOutMessage';
+Function auxOutMessage(x1: UINT; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MMRESULT;stdcall; external 'winmm.dll' name 'auxOutMessage';
 Function midiOutGetNumDevs: UINT;stdcall; external 'winmm.dll' name 'midiOutGetNumDevs';
-Function midiStreamOpen(x1: LPHMIDISTRM; x2: LPUINT; x3: DWORD; x4: DWORD; x5: DWORD; x6:
+Function midiStreamOpen(x1: LPHMIDISTRM; x2: LPUINT; x3: DWORD; x4: DWORD_PTR; x5: DWORD_PTR; x6:
                         DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiStreamOpen';
 Function midiStreamClose(x1: HMIDISTRM): MMRESULT;stdcall; external 'winmm.dll' name 'midiStreamClose';
 Function midiStreamProperty(x1: HMIDISTRM; x2: LPBYTE; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiStreamProperty';
@@ -2577,7 +2578,7 @@ Function midiOutGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdca
 Function midiOutGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutGetErrorTextW';
 Function midiOutGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'midiOutGetErrorTextW' {$else}'midiOutGetErrorTextA' {$endif};
-Function midiOutOpen(x1: LPHMIDIOUT; x2: UINT; x3: DWORD; x4: DWORD; x5: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutOpen';
+Function midiOutOpen(x1: LPHMIDIOUT; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR; x5: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutOpen';
 Function midiOutClose(x1: HMIDIOUT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutClose';
 Function midiOutPrepareHeader(x1: HMIDIOUT; x2: LPMIDIHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutPrepareHeader';
 Function midiOutUnprepareHeader(x1: HMIDIOUT; x2: LPMIDIHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutUnprepareHeader';
@@ -2587,7 +2588,7 @@ Function midiOutReset(x1: HMIDIOUT): MMRESULT;stdcall; external 'winmm.dll' name
 Function midiOutCachePatches(x1: HMIDIOUT; x2: UINT; x3: LPWORD; x4: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutCachePatches';
 Function midiOutCacheDrumPatches(x1: HMIDIOUT; x2: UINT; x3: LPWORD; x4: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutCacheDrumPatches';
 Function midiOutGetID(x1: HMIDIOUT; x2: LPUINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutGetID';
-Function midiOutMessage(x1: HMIDIOUT; x2: UINT; x3: DWORD; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutMessage';
+Function midiOutMessage(x1: HMIDIOUT; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MMRESULT;stdcall; external 'winmm.dll' name 'midiOutMessage';
 Function midiInGetNumDevs: UINT;stdcall; external 'winmm.dll' name 'midiInGetNumDevs';
 Function midiInGetDevCapsA(x1: UINT; x2: LPMIDIINCAPSA; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInGetDevCapsA';
 Function midiInGetDevCapsW(x1: UINT; x2: LPMIDIINCAPSW; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInGetDevCapsW';
@@ -2597,7 +2598,7 @@ Function midiInGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdcal
 Function midiInGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInGetErrorTextW';
 Function midiInGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'midiInGetErrorTextW' {$else}'midiInGetErrorTextA' {$endif};
-Function midiInOpen(x1: LPHMIDIIN; x2: UINT; x3: DWORD; x4: DWORD; x5: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiInOpen';
+Function midiInOpen(x1: LPHMIDIIN; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR; x5: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiInOpen';
 Function midiInClose(x1: HMIDIIN): MMRESULT;stdcall; external 'winmm.dll' name 'midiInClose';
 Function midiInPrepareHeader(x1: HMIDIIN; x2: LPMIDIHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInPrepareHeader';
 Function midiInUnprepareHeader(x1: HMIDIIN; x2: LPMIDIHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInUnprepareHeader';
@@ -2606,7 +2607,7 @@ Function midiInStart(x1: HMIDIIN): MMRESULT;stdcall; external 'winmm.dll' name '
 Function midiInStop(x1: HMIDIIN): MMRESULT;stdcall; external 'winmm.dll' name 'midiInStop';
 Function midiInReset(x1: HMIDIIN): MMRESULT;stdcall; external 'winmm.dll' name 'midiInReset';
 Function midiInGetID(x1: HMIDIIN; x2: LPUINT): MMRESULT;stdcall; external 'winmm.dll' name 'midiInGetID';
-Function midiInMessage(x1: HMIDIIN; x2: UINT; x3: DWORD; x4: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'midiInMessage';
+Function midiInMessage(x1: HMIDIIN; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MMRESULT;stdcall; external 'winmm.dll' name 'midiInMessage';
 Function mixerGetLineInfoA(x1: HMIXEROBJ; x2: LPMIXERLINEA; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetLineInfoA';
 Function mixerGetLineInfoW(x1: HMIXEROBJ; x2: LPMIXERLINEW; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'mixerGetLineInfoW';
 Function mixerGetLineInfo(x1: HMIXEROBJ; x2: LPMIXERLINE; x3: DWORD): MMRESULT;stdcall; external 'winmm.dll' name
