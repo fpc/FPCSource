@@ -186,9 +186,9 @@ class procedure TAssert.CheckIs(obj: TObject; pClass: TClass; msg: string);
 begin
   Assert(pClass <> nil);
   if obj = nil then
-    Fail(ComparisonMsg(pClass.ClassName, 'nil'))
+    Fail(ComparisonMsg(msg, pClass.ClassName, 'nil'))
   else if not obj.ClassType.InheritsFrom(pClass) then
-    Fail(ComparisonMsg(pClass.ClassName, obj.ClassName));
+    Fail(ComparisonMsg(msg, pClass.ClassName, obj.ClassName));
 end;
 
 class procedure TAssert.CheckSame(expected, actual: TObject; msg: string);
