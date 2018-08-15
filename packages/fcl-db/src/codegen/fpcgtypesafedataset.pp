@@ -61,6 +61,7 @@ Type
     Property ConnectionClass : String Read GetConnectionClass Write FConnectionClass;
     Property TransactionClass : String Read GetTransactionClass Write FTransactionClass;
     Property QueryClass : String Read GetQueryClass Write FQueryClass;
+    Property AncestorClass;
   end;
 
   { TTSAFieldPropDef }
