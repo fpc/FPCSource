@@ -4287,9 +4287,9 @@ function TPascalScanner.GetMacroName(const Param: String): String;
 var
   p: Integer;
 begin
-  Result:=Param;
+  Result:=Trim(Param);
   p:=1;
-  while (p<=length(Param)) and (Param[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
+  while (p<=length(Result)) and (Result[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
     inc(p);
   SetLength(Result,p-1);
 end;

@@ -200,6 +200,8 @@ type
     Procedure TestTokenSeriesComments;
     Procedure TestTokenSeriesNoComments;
     Procedure TestDefine0;
+    procedure TestDefine0Spaces;
+    procedure TestDefine0Spaces2;
     procedure TestDefine01;
     Procedure TestDefine1;
     Procedure TestDefine2;
@@ -1371,15 +1373,25 @@ end;
 procedure TTestScanner.TestDefine0;
 begin
   TestTokens([tkComment],'{$DEFINE NEVER}');
-  If FSCanner.Defines.IndexOf('NEVER')=-1 then
-    Fail('Define not defined');
+  AssertTrue('Define not defined', FSCanner.Defines.IndexOf('NEVER')<>-1);
+end;
+
+procedure TTestScanner.TestDefine0Spaces;
+begin
+  TestTokens([tkComment],'{$DEFINE  NEVER}');
+  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
+end;
+
+procedure TTestScanner.TestDefine0Spaces2;
+begin
+  TestTokens([tkComment],'{$DEFINE NEVER }');
+  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine01;
 begin
   TestTokens([tkComment],'(*$DEFINE NEVER*)');
-  If FSCanner.Defines.IndexOf('NEVER')=-1 then
-    Fail('Define not defined');
+  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine1;
