@@ -573,7 +573,8 @@ begin
     // Get left output after end of execution
     ReadInputStream(output,BytesRead,OutputLength,OutputString,250);
     setlength(outputstring,BytesRead);
-    ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,250);
+    if assigned(stderr) then
+      ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,250);
     setlength(stderrstring,StderrBytesRead);
     anexitstatus:=exitstatus;
     result:=0; // we came to here, document that.
