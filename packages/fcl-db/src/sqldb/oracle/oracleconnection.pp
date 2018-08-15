@@ -1203,7 +1203,7 @@ begin
     qry.next;
     while (name = qry.fields[0].asstring) and (not qry.eof) do
       begin
-      Fields := Fields + ';' + trim(qry.Fields[2].asstring);
+      Fields := Fields + ';' + trim(qry.Fields[1].asstring);
       qry.next;
       end;
     end;
