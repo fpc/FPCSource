@@ -134,6 +134,9 @@ begin
 
     T:=P.Targets.AddUnit('sqlscript.pp');
     T.ResourceStrings:=true;
+    
+    T:=P.Targets.AddUnit('fieldmap.pp');
+    T.ResourceStrings:=true;
 
     T:=P.Targets.AddUnit('dbwhtml.pp');
     with T.Dependencies do
@@ -335,7 +338,18 @@ begin
         begin
           AddUnit('fpddcodegen');
         end;
-    T.ResourceStrings:=true;
+    T.ResourceStrings:=true;    
+    T:=P.Targets.AddUnit('fpcgfieldmap.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('fpddcodegen');
+        end;
+    T:=P.Targets.AddUnit('fpcgtypesafedataset.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('fpddcodegen');
+          AddUnit('fpcgfieldmap');
+        end;
     T:=P.Targets.AddUnit('fpcgtiopf.pp', DatadictOSes);
       with T.Dependencies do
         begin
@@ -440,6 +454,22 @@ begin
           AddUnit('fpdatadict');
           AddUnit('fpddsqldb');
           AddUnit('mysql55conn');
+        end;
+    T:=P.Targets.AddUnit('fpddmysql56.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mysql56conn');
+        end;
+    T:=P.Targets.AddUnit('fpddmysql57.pp', DatadictOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mysql57conn');
         end;
     T:=P.Targets.AddUnit('fpddodbc.pp', DatadictOSes);
       with T.Dependencies do

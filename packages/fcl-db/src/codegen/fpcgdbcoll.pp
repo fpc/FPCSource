@@ -68,11 +68,10 @@ Type
   { TDDDBCollCodeGenerator }
 
   TDDDBCollCodeGenerator = Class(TDDClassCodeGenerator)
-    procedure CreateObjectAssign(Strings: TStrings;
-      const ObjectClassName: String);
   private
     function GetOpt: TDBColLOptions;
   Protected
+    procedure CreateObjectAssign(Strings: TStrings; const ObjectClassName: String); virtual;
     // Not to be overridden.
     procedure CreateFieldMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
     procedure CreateListImplementation(Strings: TStrings; ListMode: TListMode;  const ObjectClassName, ListClassName: String);
