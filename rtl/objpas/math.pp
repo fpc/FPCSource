@@ -1021,8 +1021,8 @@ function lnxp1(x : float) : float;
       end;
   end;
 
-function power(base,exponent : float) : float;
 
+function power(base,exponent : float) : float;
   begin
     if Exponent=0.0 then
       result:=1.0
@@ -1034,6 +1034,7 @@ function power(base,exponent : float) : float;
       result:=exp(exponent * ln (base));
   end;
 
+
 function intpower(base : float;const exponent : Integer) : float;
   var
      i : longint;
@@ -1042,6 +1043,8 @@ function intpower(base : float;const exponent : Integer) : float;
        result:=1
      else
        begin
+         if exponent<0 then
+           base:=1.0/base;
          i:=abs(exponent);
          intpower:=1.0;
          while i>0 do
@@ -1054,8 +1057,6 @@ function intpower(base : float;const exponent : Integer) : float;
               i:=i-1;
               intpower:=intpower*base;
            end;
-         if exponent<0 then
-           intpower:=1.0/intpower;
        end;
   end;
 
