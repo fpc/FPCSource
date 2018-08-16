@@ -359,11 +359,12 @@ unit optutils;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
-        Weight : AWord absolute arg;
+        Weight : AWord;
         i : Integer;
       begin
         Result:=fen_false;
         n.allocoptinfo;
+        Weight:=PAWord(arg)^;
         case n.nodetype of
           casen:
             begin
@@ -392,10 +393,10 @@ unit optutils;
 { The code below emits two warnings if ptruint and aword are the same type }
 {$warn 4044 off}
 {$warn 6018 off}
-            if ptruint(arg) > high(aword) then
+            if PAWord(arg)^ > high(aword) then
               n.optinfo^.executionweight:=high(AWord)
             else
-              n.optinfo^.executionweight:=AWord(ptruint(arg));
+              n.optinfo^.executionweight:=PAWord(arg)^;
 {$pop}
         end;
       end;
@@ -404,7 +405,7 @@ unit optutils;
     procedure CalcExecutionWeights(p : tnode;Initial : AWord = 100);
       begin
         if assigned(p) then
-          foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(ptruint(Initial)));
+          foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(@Initial));
       end;
 
 
