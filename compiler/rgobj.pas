@@ -830,8 +830,12 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
-              // if aweight>weight then
-              inc(weight,aweight);
+              { avoid overflow }
+              if high(weight)-aweight<weight then
+                weight:=high(weight)
+              else
+                inc(weight,aweight);
+
               if (live_range_direction=rad_forward) then
                 begin
                   if not assigned(live_start) then
