@@ -27,7 +27,7 @@ Const
                       (HIGH_PRIORITY_CLASS,IDLE_PRIORITY_CLASS,
                        NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS);
 
-procedure TProcess.CloseProcessHandles;
+procedure TProcessnamemacro.CloseProcessHandles;
 begin
   if (FProcessHandle<>0) then
     CloseHandle(FProcessHandle);
@@ -35,12 +35,12 @@ begin
     CloseHandle(FThreadHandle);
 end;
 
-Function TProcess.PeekExitStatus : Boolean;
+Function TProcessnamemacro.PeekExitStatus : Boolean;
 begin
   Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
 end;
 
-Function GetStartupFlags (P : TProcess): Cardinal;
+Function GetStartupFlags (P : TProcessnamemacro): Cardinal;
 
 begin
   With P do
@@ -61,7 +61,7 @@ begin
     end;
 end;
 
-Function GetCreationFlags(P : TProcess) : Cardinal;
+Function GetCreationFlags(P : TProcessnamemacro) : Cardinal;
 
 begin
   With P do
@@ -94,7 +94,7 @@ begin
     Result:=nil;
 end;
 
-Function StringsToWChars(List : TStrings): pointer;
+Function StringsToWChars(List : TProcessStrings): pointer;
 
 var
   EnvBlock: UnicodeString;
@@ -109,21 +109,21 @@ begin
   CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
 end;
 
-Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
+Procedure InitProcessAttributes(P : TProcessnamemacro; Var PA : TSecurityAttributes);
 
 begin
   FillChar(PA,SizeOf(PA),0);
   PA.nLength := SizeOf(PA);
 end;
 
-Procedure InitThreadAttributes(P : TProcess; Var TA : TSecurityAttributes);
+Procedure InitThreadAttributes(P : TProcessnamemacro; Var TA : TSecurityAttributes);
 
 begin
   FillChar(TA,SizeOf(TA),0);
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOW);
+Procedure InitStartupInfo(P : TProcessnamemacro; Var SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -212,7 +212,7 @@ begin
     end;
 end;
 
-Function MaybeQuote(Const S : String) : String;
+{Function MaybeQuote(Const S : String) : String;
 
 begin
   If (Pos(' ',S)<>0) then
@@ -220,8 +220,8 @@ begin
   else
      Result:=S;
 end;
-
-Function MaybeQuoteIfNotQuoted(Const S : String) : String;
+}
+Function MaybeQuoteIfNotQuoted(Const S : TProcessString) : TProcessString;
 
 begin
   If (Pos(' ',S)<>0) and (pos('"',S)=0) then
@@ -231,7 +231,7 @@ begin
 end;
 
 
-Procedure TProcess.Execute;
+Procedure TProcessnamemacro.Execute;
 Var
   i : Integer;
   WName,WDir,WCommandLine : UnicodeString;
@@ -243,7 +243,7 @@ Var
   FProcessInformation : TProcessInformation;
   FStartupInfo : STARTUPINFOW;
   HI,HO,HE : THandle;
-  Cmd : String;
+  Cmd : TProcessString;
 
  begin
   WName:='';
@@ -313,7 +313,7 @@ Var
     WaitOnExit;
 end;
 
-Function TProcess.WaitOnExit : Boolean;
+Function TProcessnamemacro.WaitOnExit : Boolean;
 Var
   R : DWord;
 begin
@@ -324,7 +324,7 @@ begin
   FRunning:=False;
 end;
 
-Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
+Function TProcessnamemacro.WaitOnExit(Timeout : DWord) : Boolean;
 Var
   R : DWord;
 begin
@@ -337,19 +337,19 @@ begin
     end;
 end;
 
-Function TProcess.Suspend : Longint;
+Function TProcessnamemacro.Suspend : Longint;
 
 begin
   Result:=SuspendThread(ThreadHandle);
 end;
 
-Function TProcess.Resume : LongInt;
+Function TProcessnamemacro.Resume : LongInt;
 
 begin
   Result:=ResumeThread(ThreadHandle);
 end;
 
-Function TProcess.Terminate(AExitCode : Integer) : Boolean;
+Function TProcessnamemacro.Terminate(AExitCode : Integer) : Boolean;
 
 begin
   Result:=False;
@@ -357,8 +357,7 @@ begin
     Result:=TerminateProcess(Handle,AexitCode);
 end;
 
-Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
-
+Procedure TProcessnamemacro.SetShowWindow (Value : TShowWindowOptions);
 
 begin
   FShowWindow:=Value;
