@@ -10,39 +10,36 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-{$h+}
-unit process;
-
-interface
-
-Uses Classes,
-     pipes,
-     SysUtils,
-     Math;
 
 Type
-  TProcessOption = (poRunSuspended,poWaitOnExit,
-                    poUsePipes,poStderrToOutPut,
-                    poNoConsole,poNewConsole,
-                    poDefaultErrorMode,poNewProcessGroup,
-                    poDebugProcess,poDebugOnlyThisProcess,
-                    poPassInput);
+   {$ifdef processunicodestring}
+   TProcessString = Unicodestring;
+   TprocessChar   = UnicodeChar;
 
-  TShowWindowOptions = (swoNone,swoHIDE,swoMaximize,swoMinimize,swoRestore,swoShow,
-                        swoShowDefault,swoShowMaximized,swoShowMinimized,
-                        swoshowMinNOActive,swoShowNA,swoShowNoActivate,swoShowNormal);
+   { TProcessStrings }
 
-  TStartupOption = (suoUseShowWindow,suoUseSize,suoUsePosition,
-                    suoUseCountChars,suoUseFillAttribute);
+   TProcessStrings = Class(TPersistent)
+                private
+                   name   : array of unicodestring;
+                   function getcount: Integer;
+                   function getname( index: integer): Unicodestring;
+                public
+                   procedure AssignTo(Dest: TPersistent); override;
+                   procedure add(const s : Unicodestring);
+                   procedure Clear;
+                   procedure Delete(i:integer);
 
-  TProcessPriority = (ppHigh,ppIdle,ppNormal,ppRealTime);
+                   property Names[ index:integer]:Unicodestring read getname; default;
+                   property Count : Integer read getcount;
+   end;
+   TProcessStringList = TProcessStrings;
+   {$else}
+   TprocessChar   = {Ansi}Char;
+   TProcessString = {Ansi}String;
+   TProcessStrings = TStrings;
+   TProcessStringList = TStringList;
+   {$endif}
 
-  TProcessOptions = set of TProcessOption;
-  TStartupOptions = set of TStartupOption;
-
-
-Type
   {$ifdef UNIX}
   TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
@@ -52,7 +49,7 @@ Type
 
   { TProcess }
 
-  TProcess = Class (TComponent)
+  TProcessnamemacro = Class (TComponent)
   Private
     FOnRunCommandEvent: TOnRunCommandEvent;
     FProcessOptions : TProcessOptions;
@@ -63,14 +60,14 @@ Type
     FProcessHandle : Thandle;
     FThreadHandle : Thandle;
     FFillAttribute : Cardinal;
-    FApplicationName : string;
-    FConsoleTitle : String;
-    FCommandLine : String;
-    FCurrentDirectory : String;
+    FApplicationName : TProcessString;
+    FConsoleTitle : TProcessString;
+    FCommandLine : TProcessString;
+    FCurrentDirectory : TProcessString;
     FDesktop : String;
-    FEnvironment : Tstrings;
-    FExecutable : String;
-    FParameters : TStrings;
+    FEnvironment : TProcessStrings;
+    FExecutable : TProcessString;
+    FParameters : TProcessStrings;
     FShowWindow : TShowWindowOptions;
     FInherithandles : Boolean;
     {$ifdef UNIX}
@@ -90,8 +87,8 @@ Type
     Function  GetExitCode : Integer;
     Function  GetRunning : Boolean;
     Function  GetWindowRect : TRect;
-    procedure SetCommandLine(const AValue: String);
-    procedure SetParameters(const AValue: TStrings);
+    procedure SetCommandLine(const AValue: TProcessString);
+    procedure SetParameters(const AValue: TProcessStrings);
     Procedure SetWindowRect (Value : TRect);
     Procedure SetShowWindow (Value : TShowWindowOptions);
     Procedure SetWindowColumns (Value : Cardinal);
@@ -100,10 +97,10 @@ Type
     Procedure SetWindowRows (Value : Cardinal);
     Procedure SetWindowTop (Value : Cardinal);
     Procedure SetWindowWidth (Value : Cardinal);
-    procedure SetApplicationName(const Value: String);
+    procedure SetApplicationName(const Value: TProcessString);
     procedure SetProcessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
-    procedure SetEnvironment(const Value: TStrings);
+    procedure SetEnvironment(const Value: TProcessStrings);
     Procedure ConvertCommandLine;
     function  PeekExitStatus: Boolean;
     Procedure IntOnIdleSleep(Sender : TObject;Status:TRunCommandEventCode;const Message:String);
@@ -153,14 +150,14 @@ Type
   Published
     property PipeBufferSize : cardinal read FPipeBufferSize write FPipeBufferSize default 1024;
     Property Active : Boolean Read GetRunning Write SetActive;
-    Property ApplicationName : String Read FApplicationName Write SetApplicationName; deprecated;
-    Property CommandLine : String Read FCommandLine Write SetCommandLine ; deprecated;
-    Property Executable : String Read FExecutable Write FExecutable;
-    Property Parameters : TStrings Read FParameters Write SetParameters;
-    Property ConsoleTitle : String Read FConsoleTitle Write FConsoleTitle;
-    Property CurrentDirectory : String Read FCurrentDirectory Write FCurrentDirectory;
+    Property ApplicationName : TProcessString Read FApplicationName Write SetApplicationName; deprecated;
+    Property CommandLine : TProcessString Read FCommandLine Write SetCommandLine ; deprecated;
+    Property Executable : TProcessString Read FExecutable Write FExecutable;
+    Property Parameters : TProcessStrings Read FParameters Write SetParameters;
+    Property ConsoleTitle : TProcessString Read FConsoleTitle Write FConsoleTitle;
+    Property CurrentDirectory : TProcessString Read FCurrentDirectory Write FCurrentDirectory;
     Property Desktop : String Read FDesktop Write FDesktop;
-    Property Environment : TStrings Read FEnvironment Write SetEnvironment;
+    Property Environment : TProcessStrings Read FEnvironment Write SetEnvironment;
     Property Options : TProcessOptions Read FProcessOptions Write SetProcessOptions;
     Property Priority : TProcessPriority Read FProcessPriority Write FProcessPriority;
     Property StartupOptions : TStartupOptions Read FStartupOptions Write FStartupOptions;
@@ -176,10 +173,10 @@ Type
     Property XTermProgram : String Read FXTermProgram Write FXTermProgram;
   end;
 
-  TProcessClass = Class of TProcess;
+  TProcessClass = Class of TProcessnamemacro;
   EProcess = Class(Exception);
 
-Procedure CommandToList(S : String; List : TStrings);
+Procedure CommandToList(S : TProcessString; List : TProcessStrings);
 
 {$ifdef unix}
 Var
@@ -188,23 +185,24 @@ Var
   Function DetectXTerm : String;
 {$endif unix}
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; out exitstatus:integer; Options : TProcessOptions = []):integer;
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
-function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommandIndir(const curdir:TProcessString;const exename:TProcessString;const commands:array of TProcessString;out outputstring:string; out exitstatus:integer; Options : TProcessOptions = []):integer;
+function RunCommandIndir(const curdir:TProcessString;const exename:TProcessString;const commands:array of TProcessString;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommand(const exename:TProcessString;const commands:array of TProcessString;out outputstring:string; Options : TProcessOptions = []):boolean;
 
-function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
-function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommandInDir(const curdir,cmdline:TProcessString;out outputstring:string):boolean; deprecated;
+function RunCommand(const cmdline:TProcessString;out outputstring:string):boolean; deprecated;
 
 // Allows override of the class instantiated for RunCommand*.
-var DefaultTProcess :TProcessClass = TProcess;
+
+var DefaultTProcess : TProcessClass = TProcessnamemacro;
 
 implementation
 
 {$i process.inc}
 
-Procedure CommandToList(S : String; List : TStrings);
+Procedure CommandToList(S : TProcessString; List : TProcessStrings);
 
-  Function GetNextWord : String;
+  Function GetNextWord : TProcessString;
 
   Const
     WhiteSpace = [' ',#9,#10,#13];
@@ -213,18 +211,18 @@ Procedure CommandToList(S : String; List : TStrings);
   Var
     Wstart,wend : Integer;
     InLiteral : Boolean;
-    LastLiteral : char;
+    LastLiteral : TProcessChar;
 
   begin
     WStart:=1;
-    While (WStart<=Length(S)) and (S[WStart] in WhiteSpace) do
+    While (WStart<=Length(S)) and charinset(S[WStart],WhiteSpace) do
       Inc(WStart);
     WEnd:=WStart;
     InLiteral:=False;
     LastLiteral:=#0;
-    While (Wend<=Length(S)) and (Not (S[Wend] in WhiteSpace) or InLiteral) do
+    While (Wend<=Length(S)) and (Not charinset(S[Wend],WhiteSpace) or InLiteral) do
       begin
-      if S[Wend] in Literals then
+      if charinset(S[Wend],Literals) then
         If InLiteral then
           InLiteral:=Not (S[Wend]=LastLiteral)
         else
@@ -249,7 +247,7 @@ Procedure CommandToList(S : String; List : TStrings);
   end;
 
 Var
-  W : String;
+  W : TProcessString;
 
 begin
   While Length(S)>0 do
@@ -260,7 +258,7 @@ begin
     end;
 end;
 
-Constructor TProcess.Create (AOwner : TComponent);
+Constructor TProcessnamemacro.Create (AOwner : TComponent);
 begin
   Inherited;
   FProcessPriority:=ppNormal;
@@ -270,13 +268,13 @@ begin
   FForkEvent:=nil;
   {$endif UNIX}
   FPipeBufferSize := 1024;
-  FEnvironment:=TStringList.Create;
-  FParameters:=TStringList.Create;
+  FEnvironment:=TProcessStringList.Create;
+  FParameters:=TProcessStringList.Create;
   FRunCommandSleepTime:=100;
   FOnRunCommandEvent:=@IntOnIdleSleep;
 end;
 
-Destructor TProcess.Destroy;
+Destructor TProcessnamemacro.Destroy;
 
 begin
   FParameters.Free;
@@ -286,7 +284,7 @@ begin
   Inherited Destroy;
 end;
 
-Procedure TProcess.FreeStreams;
+Procedure TProcessnamemacro.FreeStreams;
 begin
   If FStderrStream<>FOutputStream then
     FreeStream(THandleStream(FStderrStream));
@@ -295,7 +293,7 @@ begin
 end;
 
 
-Function TProcess.GetExitStatus : Integer;
+Function TProcessnamemacro.GetExitStatus : Integer;
 
 begin
   GetRunning;
@@ -303,7 +301,7 @@ begin
 end;
 
 {$IFNDEF OS_HASEXITCODE}
-Function TProcess.GetExitCode : Integer;
+Function TProcessnamemacro.GetExitCode : Integer;
 
 begin
   if Not Running then
@@ -313,7 +311,7 @@ begin
 end;
 {$ENDIF}
 
-Function TProcess.GetRunning : Boolean;
+Function TProcessnamemacro.GetRunning : Boolean;
 
 begin
   IF FRunning then
@@ -322,7 +320,7 @@ begin
 end;
 
 
-Procedure TProcess.CreateStreams(InHandle,OutHandle,ErrHandle : Longint);
+Procedure TProcessnamemacro.CreateStreams(InHandle,OutHandle,ErrHandle : Longint);
 
 begin
   FreeStreams;
@@ -332,35 +330,35 @@ begin
     FStderrStream:=TInputPipeStream.Create(ErrHandle);
 end;
 
-procedure TProcess.FreeStream(var AStream: THandleStream);
+procedure TProcessnamemacro.FreeStream(var AStream: THandleStream);
 begin
   if AStream = nil then exit;
   FreeAndNil(AStream);
 end;
 
-procedure TProcess.Loaded;
+procedure TProcessnamemacro.Loaded;
 begin
   inherited Loaded;
   If (csDesigning in ComponentState) and (FCommandLine<>'') then
     ConvertCommandLine;
 end;
 
-procedure TProcess.CloseInput;
+procedure TProcessnamemacro.CloseInput;
 begin
   FreeStream(THandleStream(FInputStream));
 end;
 
-procedure TProcess.CloseOutput;
+procedure TProcessnamemacro.CloseOutput;
 begin
   FreeStream(THandleStream(FOutputStream));
 end;
 
-procedure TProcess.CloseStderr;
+procedure TProcessnamemacro.CloseStderr;
 begin
   FreeStream(THandleStream(FStderrStream));
 end;
 
-Procedure TProcess.SetWindowColumns (Value : Cardinal);
+Procedure TProcessnamemacro.SetWindowColumns (Value : Cardinal);
 
 begin
   if Value<>0 then
@@ -369,7 +367,7 @@ begin
 end;
 
 
-Procedure TProcess.SetWindowHeight (Value : Cardinal);
+Procedure TProcessnamemacro.SetWindowHeight (Value : Cardinal);
 
 begin
   if Value<>0 then
@@ -377,7 +375,7 @@ begin
   dwYSize:=Value;
 end;
 
-Procedure TProcess.SetWindowLeft (Value : Cardinal);
+Procedure TProcessnamemacro.SetWindowLeft (Value : Cardinal);
 
 begin
   if Value<>0 then
@@ -385,7 +383,7 @@ begin
   dwx:=Value;
 end;
 
-Procedure TProcess.SetWindowTop (Value : Cardinal);
+Procedure TProcessnamemacro.SetWindowTop (Value : Cardinal);
 
 begin
   if Value<>0 then
@@ -393,14 +391,14 @@ begin
   dwy:=Value;
 end;
 
-Procedure TProcess.SetWindowWidth (Value : Cardinal);
+Procedure TProcessnamemacro.SetWindowWidth (Value : Cardinal);
 begin
   If (Value<>0) then
     Include(FStartupOptions,suoUseSize);
   dwXSize:=Value;
 end;
 
-Function TProcess.GetWindowRect : TRect;
+Function TProcessnamemacro.GetWindowRect : TRect;
 begin
   With Result do
     begin
@@ -411,7 +409,7 @@ begin
     end;
 end;
 
-procedure TProcess.SetCommandLine(const AValue: String);
+procedure TProcessnamemacro.SetCommandLine(const AValue: TProcessString);
 begin
   if FCommandLine=AValue then exit;
   FCommandLine:=AValue;
@@ -419,12 +417,12 @@ begin
     ConvertCommandLine;
 end;
 
-procedure TProcess.SetParameters(const AValue: TStrings);
+procedure TProcessnamemacro.SetParameters(const AValue: TProcessStrings);
 begin
   FParameters.Assign(AValue);
 end;
 
-Procedure TProcess.SetWindowRect (Value : Trect);
+Procedure TProcessnamemacro.SetWindowRect (Value : Trect);
 begin
   Include(FStartupOptions,suoUseSize);
   Include(FStartupOptions,suoUsePosition);
@@ -438,7 +436,7 @@ begin
 end;
 
 
-Procedure TProcess.SetWindowRows (Value : Cardinal);
+Procedure TProcessnamemacro.SetWindowRows (Value : Cardinal);
 
 begin
   if Value<>0 then
@@ -446,7 +444,7 @@ begin
   dwYCountChars:=Value;
 end;
 
-procedure TProcess.SetApplicationName(const Value: String);
+procedure TProcessnamemacro.SetApplicationName(const Value: TProcessString);
 begin
   FApplicationName := Value;
   If (csDesigning in ComponentState) and
@@ -454,7 +452,7 @@ begin
     FCommandLine:=Value;
 end;
 
-procedure TProcess.SetProcessOptions(const Value: TProcessOptions);
+procedure TProcessnamemacro.SetProcessOptions(const Value: TProcessOptions);
 begin
   FProcessOptions := Value;
   If poNewConsole in FProcessOptions then
@@ -463,7 +461,7 @@ begin
     Exclude(FProcessOptions,poWaitOnExit);
 end;
 
-procedure TProcess.SetActive(const Value: Boolean);
+procedure TProcessnamemacro.SetActive(const Value: Boolean);
 begin
   if (Value<>GetRunning) then
     If Value then
@@ -472,12 +470,12 @@ begin
       Terminate(0);
 end;
 
-procedure TProcess.SetEnvironment(const Value: TStrings);
+procedure TProcessnamemacro.SetEnvironment(const Value: TProcessStrings);
 begin
   FEnvironment.Assign(Value);
 end;
 
-procedure TProcess.ConvertCommandLine;
+procedure TProcessnamemacro.ConvertCommandLine;
 begin
   FParameters.Clear;
   CommandToList(FCommandLine,FParameters);
@@ -491,7 +489,7 @@ end;
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
 
-function TProcess.ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var data:string;MaxLoops:integer=10):boolean;
+function TProcessnamemacro.ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var data:string;MaxLoops:integer=10):boolean;
 var Available, NumBytes: integer;
 begin
     Available:=P.NumBytesAvailable;
@@ -513,7 +511,7 @@ begin
       end;
 end;
 
-function TProcess.ReadInputStream(p:TInputPipeStream;data:TStream;MaxLoops:integer=10):boolean;
+function TProcessnamemacro.ReadInputStream(p:TInputPipeStream;data:TStream;MaxLoops:integer=10):boolean;
 const
   BufSize = 4096;
 var
@@ -534,7 +532,7 @@ begin
   end;
 end;
 
-procedure TProcess.IntOnIdleSleep(Sender : TObject;status:TRunCommandEventCode;const message:string);
+procedure TProcessnamemacro.IntOnIdleSleep(Sender : TObject;status:TRunCommandEventCode;const message:string);
 begin
   if status=RunCommandIdle then
     sleep(FRunCommandSleepTime);
@@ -543,7 +541,7 @@ end;
 // helperfunction that does the bulk of the work.
 // We need to also collect stderr output in order to avoid
 // lock out if the stderr pipe is full.
-function TProcess.RunCommandLoop(out outputstring:string;
+function TProcessnamemacro.RunCommandLoop(out outputstring:string;
                             out stderrstring:string; out anexitstatus:integer):integer;
 var
     bytesread : integer;
@@ -603,9 +601,9 @@ end;
 Const
   ForbiddenOptions = [poRunSuspended,poWaitOnExit];
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string;out exitstatus:integer; Options : TProcessOptions = []):integer;
+function RunCommandIndir(const curdir:TProcessString;const exename:TProcessString;const commands:array of TProcessString;out outputstring:string;out exitstatus:integer; Options : TProcessOptions = []):integer;
 Var
-    p : TProcess;
+    p : TProcessnamemacro;
     i : integer;
     ErrorString : String;
 begin
@@ -625,9 +623,9 @@ begin
   end;
 end;
 
-function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommandInDir(const curdir,cmdline:TProcessString;out outputstring:string):boolean; deprecated;
 Var
-    p : TProcess;
+    p : TProcessnamemacro;
     exitstatus : integer;
     ErrorString : String;
 begin
@@ -643,9 +641,9 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommandIndir(const curdir:TProcessString;const exename:TProcessString;const commands:array of TProcessString;out outputstring:string; Options : TProcessOptions = []):boolean;
 Var
-    p : TProcess;
+    p : TProcessnamemacro;
     i,
     exitstatus : integer;
     ErrorString : String;
@@ -667,9 +665,9 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommand(const cmdline:TProcessString;out outputstring:String):boolean; deprecated;
 Var
-    p : TProcess;
+    p : TProcessnamemacro;
     exitstatus : integer;
     ErrorString : String;
 begin
@@ -683,9 +681,9 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommand(const exename:TProcessString;const commands:array of TProcessString;out outputstring:string; Options : TProcessOptions = []):boolean;
 Var
-    p : TProcess;
+    p : TProcessnamemacro;
     i,
     exitstatus : integer;
     ErrorString : String;
@@ -705,5 +703,64 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
+{$ifdef processunicodestring}
+// dummy subset of tstrings.
+{ TProcessStrings }
+
+function TProcessStrings.getname( index: integer): Unicodestring;
+begin
+  if index<length(name) then
+     result:=name[index]
+  else
+     result:='';
+end;
+
+function TProcessStrings.getcount: Integer;
+begin
+  result:=length(name);
+end;
+
+procedure TProcessStrings.AssignTo(Dest: TPersistent);
+var i : integer;
+begin
+  inherited assign(dest);
+  if dest is TStrings then
+    begin
+      setlength(name,tstrings(dest).count);
+      for i:=0 to length(name)-1 do
+        name[i]:=tstrings(dest)[i];
+    end;
+  if dest is tprocessstrings then
+     name:=copy(tprocessstrings(dest).name);
+end;
+
+procedure TProcessStrings.add(const s: Unicodestring);
+var len : integer;
+begin
+  len:=length(name);
+  setlength(name, len+1);
+  name[len]:=s;
+end;
+
+procedure TProcessStrings.Clear;
+begin
+ setlength(name,0);
+end;
+
+procedure TProcessStrings.Delete(i: integer);
+var len,j : integer;
+begin
+  len:=length(name);
+  if len=0 then exit;
+  if (i<>len-1) and (len<>1) then
+     begin
+       for j:=i+1 to len-1 do
+         name[j-1]:=name[j];
+       setlength(name,len-1)
+     end
+  else
+    setlength(name,len-1)
+end;
+{$endif}
 
 end.
