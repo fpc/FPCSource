@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='3.1.1';
+    P.Version:='3.2.0-beta';
     P.OSes:=AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-js');

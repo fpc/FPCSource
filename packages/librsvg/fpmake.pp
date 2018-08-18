@@ -20,7 +20,7 @@ begin
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
-    P.Version:='3.1.1';
+    P.Version:='3.2.0-beta';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.Dependencies.Add('gtk2');

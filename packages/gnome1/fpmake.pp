@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.2.0-beta';
     P.OSes:=AllUnixOSes-[darwin,iphonesim,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];

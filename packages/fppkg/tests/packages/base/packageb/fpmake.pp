@@ -10,7 +10,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('PackageB');
-    P.Version:='4.5.6';
+    P.Version:='3.2.0-beta';
 
     P.Author := 'Joost vam der Sluis';
     P.License := 'GPL';

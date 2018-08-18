@@ -25,7 +25,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.2.0-beta';
 
     P.Dependencies.Add('fcl-process');
     P.Options.Add('-S2h');
