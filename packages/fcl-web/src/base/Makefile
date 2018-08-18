@@ -332,7 +332,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-web
-override PACKAGE_VERSION=3.1.1
+override PACKAGE_VERSION=3.2.0-beta
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-web/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile fpapache24  custfcgi fpfcgi

@@ -332,7 +332,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-db
-override PACKAGE_VERSION=3.1.1
+override PACKAGE_VERSION=3.2.0-beta
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll sqlscript xmldatapacketreader

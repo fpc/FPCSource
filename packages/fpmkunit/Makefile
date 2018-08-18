@@ -332,7 +332,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fpmkunit
-override PACKAGE_VERSION=3.1.1
+override PACKAGE_VERSION=3.2.0-beta
 TARGET_UNITDIRBS=units_bs/$(SOURCESUFFIX)
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/fpmkunit.ppu units_bs/$(SOURCESUFFIX)/fpmkunit.rst units_bs/$(SOURCESUFFIX)/fpmkunit.o
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/adler.ppu units_bs/$(SOURCESUFFIX)/adler.o units_bs/$(SOURCESUFFIX)/crc.o units_bs/$(SOURCESUFFIX)/crc.ppu
