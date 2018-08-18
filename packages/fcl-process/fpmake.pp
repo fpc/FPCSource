@@ -46,8 +46,13 @@ begin
     T:=P.Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');
     T:=P.Targets.AddUnit('process.pp');
+      T.Dependencies.AddInclude('processbody.inc');
       T.Dependencies.AddInclude('process.inc');
-    T.ResourceStrings:=True;
+      T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('processunicode.pp',[win32,win64]);
+      T.Dependencies.AddInclude('processbody.inc');
+      T.Dependencies.AddInclude('process.inc');
+      T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('simpleipc.pp');
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;
