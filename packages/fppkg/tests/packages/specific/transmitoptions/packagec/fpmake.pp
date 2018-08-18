@@ -13,7 +13,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('packagec');
-    P.Version:='4.5.6';
+    P.Version:='3.3.1';
 
     P.Author := 'Joost van der Sluis';
     P.License := 'GPL';

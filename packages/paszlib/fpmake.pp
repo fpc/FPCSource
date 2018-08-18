@@ -19,11 +19,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes := P.OSes - [embedded,nativent,msdos,win16,macos,palmos];
 
     D:=P.Dependencies.Add('hash');
-      D.Version:='3.1.1';
+      D.Version:='3.3.1';
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

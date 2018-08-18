@@ -26,7 +26,7 @@ begin
     P.OSes:=P.OSes-[embedded,win16,macos,palmos];
     P.Dependencies.Add('rtl-objpas');
 
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     T:=P.Targets.AddUnit('src/md5.pp');
     T.Dependencies.AddInclude('src/md5i386.inc', [i386], AllOSes-[darwin]);
     T:=P.Targets.AddUnit('src/sha1.pp');
