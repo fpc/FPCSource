@@ -129,9 +129,9 @@ Type
     Function Terminate (AExitCode : Integer): Boolean; virtual;
     Function WaitOnExit : Boolean;
     Function WaitOnExit(Timeout : DWord) : Boolean;
-    function ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var Data:string;MaxLoops:integer=10):boolean;
-    function ReadInputStream(p:TInputPipeStream;data:TStream;MaxLoops:integer=10):boolean;
-    function RunCommandLoop(out outputstring:string;out stderrstring:string; out anexitstatus:integer):integer;
+    function ReadInputStream(p:TInputPipeStream;var BytesRead:integer;var DataLength:integer;var Data:string;MaxLoops:integer=10):boolean; virtual;
+    function ReadInputStream(p:TInputPipeStream;data:TStream;MaxLoops:integer=10):boolean; virtual;
+    function RunCommandLoop(out outputstring:string;out stderrstring:string; out anexitstatus:integer):integer; virtual;
 
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
@@ -176,6 +176,7 @@ Type
     Property XTermProgram : String Read FXTermProgram Write FXTermProgram;
   end;
 
+  TProcessClass = Class of TProcess;
   EProcess = Class(Exception);
 
 Procedure CommandToList(S : String; List : TStrings);
@@ -191,10 +192,11 @@ function RunCommandIndir(const curdir:string;const exename:string;const commands
 function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
 function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
 
-
 function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
 function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
 
+// Allows override of the class instantiated for RunCommand*.
+var DefaultTProcess :TProcessClass = TProcess;
 
 implementation
 
@@ -544,9 +546,10 @@ end;
 function TProcess.RunCommandLoop(out outputstring:string;
                             out stderrstring:string; out anexitstatus:integer):integer;
 var
-    numbytes,bytesread,available : integer;
+    bytesread : integer;
     outputlength, stderrlength : integer;
-    stderrnumbytes,stderrbytesread : integer;
+    stderrbytesread : integer;
+    gotoutput,gotoutputstderr : boolean;
 begin
   result:=-1;
     try
@@ -562,13 +565,15 @@ begin
         // is already available, otherwise, on  linux, the read call
         // is blocking, and thus it is not possible to be sure to handle
         // big data amounts bboth on output and stderr pipes. PM.
-        if not ReadInputStream(output,BytesRead,OutputLength,OutputString,1) then
-          // The check for assigned(P.stderr) is mainly here so that
-          // if we use poStderrToOutput in p.Options, we do not access invalid memory.
-          if assigned(stderr) then
-            if not ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1) then
-              if Assigned(FOnRunCommandEvent) Then
-                FOnRunCommandEvent(self,RunCommandIdle,'');
+        gotoutput:=ReadInputStream(output,BytesRead,OutputLength,OutputString,1);
+        // The check for assigned(P.stderr) is mainly here so that
+        // if we use poStderrToOutput in p.Options, we do not access invalid memory.
+        gotoutputstderr:=false;
+        if assigned(stderr) then
+            gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
+ 
+        if not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
+          FOnRunCommandEvent(self,RunCommandIdle,'');
       end;
     // Get left output after end of execution
     ReadInputStream(output,BytesRead,OutputLength,OutputString,250);
@@ -604,7 +609,7 @@ Var
     i : integer;
     ErrorString : String;
 begin
-  p:=TProcess.create(nil);
+  p:=DefaultTProcess.create(nil);
   if Options<>[] then
     P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
@@ -626,7 +631,7 @@ Var
     exitstatus : integer;
     ErrorString : String;
 begin
-  p:=TProcess.create(nil);
+  p:=DefaultTProcess.create(nil);
   p.setcommandline(cmdline);
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
@@ -645,7 +650,7 @@ Var
     exitstatus : integer;
     ErrorString : String;
 begin
-  p:=TProcess.create(nil);
+  p:=DefaultTProcess.create(nil);
   if Options<>[] then
     P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
@@ -668,7 +673,7 @@ Var
     exitstatus : integer;
     ErrorString : String;
 begin
-  p:=TProcess.create(nil);
+  p:=DefaultTProcess.create(nil);
   p.setcommandline(cmdline);
   try
     result:=p.RunCommandLoop(outputstring,errorstring,exitstatus)=0;
@@ -685,7 +690,7 @@ Var
     exitstatus : integer;
     ErrorString : String;
 begin
-  p:=TProcess.create(nil);
+  p:=DefaultTProcess.create(nil);
   if Options<>[] then
     P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
