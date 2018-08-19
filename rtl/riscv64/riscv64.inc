@@ -15,10 +15,6 @@
 
  **********************************************************************}
 
-procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-  end;
-
 {****************************************************************************
                        fpu exception related stuff
 ****************************************************************************}
@@ -85,6 +81,11 @@ procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
       RaisePendingExceptions;
   end;
 
+
+procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    softfloat_exception_mask:=[exPrecision,exUnderflow];
+  end;
 
 {****************************************************************************
                        stack frame related stuff

@@ -545,7 +545,10 @@ unit cgrv;
 
       begin
         if fromsize<>tosize then
-          list.concat(taicpu.op_reg_reg(convOp[fromsize,tosize],reg2,reg1))
+          begin
+            list.concat(taicpu.op_reg_reg(convOp[fromsize,tosize],reg2,reg1));
+            g_check_for_fpu_exception(list);
+          end
         else
           begin
             if tosize=OS_F32 then
@@ -557,7 +560,6 @@ unit cgrv;
             list.concat(ai);
             rg[R_FPUREGISTER].add_move_instruction(ai);
           end;
-        g_check_for_fpu_exception(list);
       end;
 
 

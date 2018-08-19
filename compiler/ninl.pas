@@ -4019,7 +4019,7 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_arctan_real := ccallnode.createintern('fpc_arctan_real',
+        result := ccallnode.createintern('fpc_arctan_real',
                 ccallparanode.create(left,nil));
         left := nil;
       end;
@@ -4028,8 +4028,9 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_abs_real := ctypeconvnode.create(ccallnode.createintern('fpc_abs_real',
+        result := ctypeconvnode.create(ccallnode.createintern('fpc_abs_real',
                 ccallparanode.create(left,nil)),resultdef);
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4042,8 +4043,9 @@ implementation
 {$endif cpufpemu}
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_sqr_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqr_real',
+        result := ctypeconvnode.create(ccallnode.createintern('fpc_sqr_real',
                 ccallparanode.create(left,nil)),resultdef);
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4075,15 +4077,16 @@ implementation
             else
               internalerror(2014052101);
             end;
-            first_sqrt_real:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
                ctypeconvnode.create_internal(left,fdef),nil)),resultdef);
           end
         else
           begin
             { create the call to the helper }
             { on entry left node contains the parameter }
-            first_sqrt_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
+            result := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
                 ccallparanode.create(left,nil)),resultdef);
+            include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
           end;
         left := nil;
       end;
@@ -4092,8 +4095,9 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_ln_real := ccallnode.createintern('fpc_ln_real',
+        result := ccallnode.createintern('fpc_ln_real',
                 ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4101,8 +4105,9 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_cos_real := ccallnode.createintern('fpc_cos_real',
+        result := ccallnode.createintern('fpc_cos_real',
                 ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4110,8 +4115,9 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_sin_real := ccallnode.createintern('fpc_sin_real',
+        result := ccallnode.createintern('fpc_sin_real',
                 ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4120,6 +4126,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         result := ccallnode.createintern('fpc_exp_real',ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4128,6 +4135,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         result := ccallnode.createintern('fpc_int_real',ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4136,6 +4144,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         result := ccallnode.createintern('fpc_frac_real',ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4144,6 +4153,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         result := ccallnode.createintern('fpc_round_real',ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
@@ -4152,6 +4162,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         result := ccallnode.createintern('fpc_trunc_real',ccallparanode.create(left,nil));
+        include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         left := nil;
       end;
 
