@@ -1607,7 +1607,7 @@ begin
 
                        if gas_needsuffix[opcode] in [attsufFPU,attsufFPUint] then
                          asize:=OT_BITS64
-                          else if MemRefInfo(opcode).ExistsSSEAVX then asize:=OT_BITS64;
+                          else if MemRefInfo(opcode).ExistsSSEAVX then asize:=OT_BITS64
 {$ifdef i386}
                        else
                          asize:=OT_BITS32
