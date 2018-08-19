@@ -2702,7 +2702,7 @@ implementation
           end;
       end;
 
-    function process_ea_ref_16(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref_16(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
       var
         sym   : tasmsymbol;
         md,s,rv  : byte;
@@ -3663,7 +3663,7 @@ implementation
           begin
             needed_EVEX := false;
 
-            //if (EVEXr and EVEXv and EVEXx) = 0 then
+
             if CheckUseEVEX then
             begin
               // EVEX-Flags r,v,x indicate extended-MMregister
@@ -3674,9 +3674,6 @@ implementation
 
               needed_VEX := false;
               needed_VEX_Extension := false;  //TG TODO check
-
-              //TG TODO Dest-Register-Extention {k1..k7} or {z}
-              //        Broadcast  Disp
             end;
           end;
 
@@ -3717,37 +3714,15 @@ implementation
                                  else EVEXll := 0;
                  end;
                end;
-
-
-               //TG TODO ER, SAE
-               //break;
              end;
 
-            // if (insentry.optypes[i] and OT_VECTORMASK) = OT_VECTORMASK then
-            // begin
-            //   if oper[opidx]^.ot and OT_VECTORMASK = OT_VECTORMASK then
-            //   begin
-            //
-            //   end;
-            // end;
 
             bytes[0] := $62;
 
-            i := rex and 7;
-            //bytes[1] := ((VEXmmmmm and $03) shl 0)  or ((not(rex) and $07) shl 4) and EVEXr and EVEXb;
             bytes[1] := ((EVEXmm   and $03) shl 0)  or
                         ((not(rex) and $05) shl 5)  or
                         ((EVEXr    and $01) shl 4)  or
                         ((EVEXx    and $01) shl 6);
-
-                        i := 0;
-                        i := i or ((EVEXmm   and $03) shl 0);
-                        i := i or ((not(rex) and $05) shl 5);
-                        i := i or ((EVEXr    and $01) shl 4);
-                        i := i or ((EVEXx    and $01) shl 6);
-
-
-
 
             bytes[2] := ((EVEXpp   and $03) shl 0)  or
                         ((1        and $01) shl 2)  or  // fixed in AVX512
