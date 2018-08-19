@@ -753,7 +753,7 @@ implementation
       );
 {$elseif defined(i386)}
        { Intel style operands ! }
-       opsize_2_type:array[0..2,topsize] of longint=(
+       opsize_2_type:array[0..2,topsize] of int64=(
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
@@ -794,7 +794,7 @@ implementation
       );
 {$elseif defined(i8086)}
        { Intel style operands ! }
-       opsize_2_type:array[0..2,topsize] of longint=(
+       opsize_2_type:array[0..2,topsize] of int64=(
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
@@ -3720,7 +3720,9 @@ implementation
             bytes[0] := $62;
 
             bytes[1] := ((EVEXmm   and $03) shl 0)  or
+                      {$ifdef x86_64}
                         ((not(rex) and $05) shl 5)  or
+                      {$endif x86_64}
                         ((EVEXr    and $01) shl 4)  or
                         ((EVEXx    and $01) shl 6);
 
