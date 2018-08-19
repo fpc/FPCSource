@@ -69,6 +69,8 @@ unit cgrv;
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
+        procedure g_check_for_fpu_exception(list: TAsmList); override;
       protected
         function  fixref(list: TAsmList; var ref: treference): boolean;
         procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
@@ -555,6 +557,7 @@ unit cgrv;
             list.concat(ai);
             rg[R_FPUREGISTER].add_move_instruction(ai);
           end;
+        g_check_for_fpu_exception(list);
       end;
 
 
@@ -711,6 +714,29 @@ unit cgrv;
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16{$ifdef RISCV64},OS_32,OS_S32{$endif RISCV64}]) then
           a_load_reg_reg(list,OS_INT,size,dst,dst)
+      end;
+
+
+    procedure tcgrv.g_check_for_fpu_exception(list: TAsmList);
+      var
+        r : TRegister;
+        ai: taicpu;
+        l: TAsmLabel;
+      begin
+        if cs_check_fpu_exceptions in current_settings.localswitches then
+          begin
+            r:=getintregister(list,OS_INT);
+            list.concat(taicpu.op_reg(A_FRFLAGS,r));
+            current_asmdata.getjumplabel(l);
+            ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,r,NR_X0,l,0);
+            ai.is_jmp:=true;
+            ai.condition:=C_EQ;
+            list.concat(ai);
+            alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_THROWFPUEXCEPTION',false);
+            dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            a_label(list,l);
+          end;
       end;
 
 end.

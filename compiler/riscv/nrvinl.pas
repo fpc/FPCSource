@@ -125,11 +125,17 @@ implementation
         load_fpu_location;
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_S,location.register,
-              left.location.register));
+            begin
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_S,location.register,
+                left.location.register));
+              cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+            end;
           OS_F64:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_D,location.register,
-              left.location.register));
+            begin
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT_D,location.register,
+                left.location.register));
+              cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+             end
           else
             inherited;
         end;
@@ -161,7 +167,9 @@ implementation
          else
            op := A_FMUL_D;
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
+         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
+
 
      procedure trvinlinenode.second_fma;
        const
@@ -233,6 +241,7 @@ implementation
              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_reg(op[def_cgsize(resultdef), negproduct,negop3],location.register,paraarray[1].location.register,paraarray[2].location.register,paraarray[2].location.register));
+             cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
            end
          else
            internalerror(2014032301);
