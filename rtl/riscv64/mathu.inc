@@ -12,13 +12,15 @@
 
 **********************************************************************}
 
-function getfpcr: dword; nostackframe; assembler;
+function getrm: dword; nostackframe; assembler;
   asm
+    frrm a0
   end;
 
 
-procedure setfpcr(val: dword); nostackframe; assembler;
+procedure setrm(val: dword); nostackframe; assembler;
   asm
+    fsrm a0
   end;
 
 
@@ -36,19 +38,19 @@ procedure setfflags(flags : dword); nostackframe; assembler;
 
 function GetRoundMode: TFPURoundingMode;
   const
-    bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmUp,rmDown,rmTruncate);
+    bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmTruncate,rmDown,rmUp);
   begin
-    result:=TFPURoundingMode(bits2rm[(getfpcr shr 22) and 3])
+    result:=TFPURoundingMode(bits2rm[getrm])
   end;
 
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   const
-    rm2bits: array[TFPURoundingMode] of byte = (0,2,1,3);
+    rm2bits : array[TFPURoundingMode] of byte = (0,2,3,1);
   begin
     softfloat_rounding_mode:=RoundMode;
     SetRoundMode:=RoundMode;
-    setfpcr((getfpcr and $ff3fffff) or (rm2bits[RoundMode] shl 22));
+    setrm(rm2bits[RoundMode]);
   end;
 
 
