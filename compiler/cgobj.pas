@@ -446,6 +446,10 @@ unit cgobj;
             generic version is suitable for 3-address CPUs }
           procedure g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister); virtual;
 
+          { some CPUs do not support hardware fpu exceptions, this procedure is called after instructions which
+            might set FPU exception related flags, so it has to check these flags if needed and throw an exeception }
+          procedure g_check_for_fpu_exception(list: TAsmList); virtual;
+
          protected
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
        end;
@@ -2873,6 +2877,12 @@ implementation
           end
         else
           InternalError(2014060601);
+      end;
+
+
+    procedure tcg.g_check_for_fpu_exception(list: TAsmList);
+      begin
+        { empty by default }
       end;
 
 
