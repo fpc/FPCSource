@@ -2571,7 +2571,7 @@ implementation
          begin
            { 16 bit address? }
 
-           if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY,]R_SUBMMZ) and
+           if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY,R_SUBMMZ]) and
                (br<>NR_NO) and (bsub=R_SUBD)
               ) then
            begin
