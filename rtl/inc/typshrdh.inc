@@ -112,19 +112,11 @@
        procedure setSize(AValue: TSize);
        procedure setWidth (AValue: Longint);
      public
-{$IFDEF VER3_0_0}
-       class function Create(Origin: TPoint): TRect; static; // empty rect at given origin
-       class function Create(Origin: TPoint; AWidth, AHeight: Longint): TRect; static;
-       class function Create(ALeft, ATop, ARight, ABottom: Longint): TRect; static;   
-       class function Create(P1, P2: TPoint; Normalize: Boolean = False): TRect; static;
-       class function Create(R: TRect; Normalize: Boolean = False): TRect; static;
-{$ELSE}       
        constructor Create(Origin: TPoint); // empty rect at given origin
        constructor Create(Origin: TPoint; AWidth, AHeight: Longint);
        constructor Create(ALeft, ATop, ARight, ABottom: Longint);
        constructor Create(P1, P2: TPoint; Normalize: Boolean = False);
        constructor Create(R: TRect; Normalize: Boolean = False);
-{$ENDIF}       
        class operator = (L, R: TRect): Boolean;
        class operator <> (L, R: TRect): Boolean;
        class operator + (L, R: TRect): TRect; // union

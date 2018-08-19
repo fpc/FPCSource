@@ -326,9 +326,7 @@ Type
   {$i systhrdh.inc}
 
   { Type Helpers}
-  {$IFNDEF VER2_6}
   {$i syshelph.inc}
-  {$ENDIF}
   
   procedure FreeAndNil(var obj);
   procedure FreeMemAndNil(var p);
