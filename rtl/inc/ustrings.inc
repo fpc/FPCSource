@@ -599,11 +599,7 @@ end;
 
 {$ifndef FPC_HAS_UCHAR_TO_SHORTSTR}
 {$define FPC_HAS_UCHAR_TO_SHORTSTR}
-{$ifdef VER2_6}
-procedure fpc_UChar_To_ShortStr(out result : shortstring;const c : WideChar); compilerproc;
-{$else}
 function fpc_UChar_To_ShortStr(const c : WideChar): shortstring; compilerproc;
-{$endif}
 {
   Converts a WideChar to a ShortString;
 }
@@ -959,9 +955,6 @@ Var
   nl,lens, lena : SizeUInt;
 begin
   nl:=l;
-{$IFDEF VER2_6}
-  nl:=nl*2;
-{$ENDIF}
    if (l>0) then
     begin
       if Pointer(S)=nil then

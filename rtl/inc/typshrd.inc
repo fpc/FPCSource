@@ -200,45 +200,6 @@ begin
     (L.Top = R.Top) and (L.Bottom = R.Bottom);
 end;
 
-{$IFDEF VER3_0_0}
-class function TRect.Create(ALeft, ATop, ARight, ABottom: Longint): TRect;
-begin
-  Result.Left := ALeft;
-  Result.Top := ATop;
-  Result.Right := ARight;
-  Result.Bottom := ABottom;
-end;
-
-class function TRect.Create(P1, P2: TPoint; Normalize: Boolean): TRect;
-begin
-  Result.TopLeft := P1;
-  Result.BottomRight := P2;
-  if Normalize then
-    Result.NormalizeRect;
-end;
-
-class function TRect.Create(Origin: TPoint): TRect;
-begin
-  Result.TopLeft := Origin;
-  Result.BottomRight := Origin;
-end;
-
-class function TRect.Create(Origin: TPoint; AWidth, AHeight: Longint): TRect;
-begin
-  Result.TopLeft := Origin;
-  Result.Width := AWidth;
-  Result.Height := AHeight;
-end;
-
-class function TRect.Create(R: TRect; Normalize: Boolean): TRect;
-begin
-  Result := R;
-  if Normalize then
-    Result.NormalizeRect;
-end;
-
-{$ELSE}
-
 constructor TRect.Create(ALeft, ATop, ARight, ABottom: Longint);
 begin
   Left := ALeft;
@@ -274,7 +235,6 @@ begin
   if Normalize then
     NormalizeRect;
 end;
-{$ENDIF}
 
 function TRect.CenterPoint: TPoint;
 begin

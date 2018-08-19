@@ -1619,11 +1619,7 @@ begin
   if Result then
     AData := TData(inherited GetData(I)^)
   else
-{$IFDEF VER2_6}  
-    FillChar(AData,SizeOf(TData),0);
-{$ELSE}
     AData := Default(TData);
-{$ENDIF}    
 end;
 
 procedure TFPGMap.AddOrSetData(const AKey: TKey; const AData: TData);
@@ -1805,11 +1801,7 @@ begin
   if Result then
     AData := TData(inherited GetData(I)^)
   else
-{$IFDEF VER2_6}
-    FillChar(AData,SizeOf(TData),0);
-{$ELSE}
     AData := Default(TData);
-{$ENDIF}
 end;
 
 procedure TFPGMapObject.AddOrSetData(const AKey: TKey; const AData: TData);
@@ -1987,11 +1979,7 @@ begin
   if Result then
     AData := TData(inherited GetData(I)^)
   else
-{$IFDEF VER2_6}
-    FillChar(AData,SizeOf(TData),0);
-{$ELSE}
     AData := Default(TData);
-{$ENDIF}
 end;
 
 procedure TFPGMapInterfacedObjectData.AddOrSetData(const AKey: TKey;
