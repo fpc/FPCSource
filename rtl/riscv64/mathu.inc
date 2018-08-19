@@ -22,13 +22,15 @@ procedure setfpcr(val: dword); nostackframe; assembler;
   end;
 
 
-function getfpsr: dword; nostackframe; assembler;
+function getfflags: dword; nostackframe; assembler;
   asm
+    frflags a0
   end;
 
 
-procedure setfpsr(val: dword); nostackframe; assembler;
+procedure setfflags(flags : dword); nostackframe; assembler;
   asm
+    fsflags a0
   end;
 
 
@@ -61,91 +63,56 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
     result:=pmDouble;
   end;
 
-
 const
-  fpu_ioe = 1 shl 8;
-  fpu_dze = 1 shl 9;
-  fpu_ofe = 1 shl 10;
-  fpu_ufe = 1 shl 11;
-  fpu_ixe = 1 shl 12;
-  fpu_ide = 1 shl 15;
-  fpu_exception_mask = fpu_ioe or fpu_dze or fpu_ofe or fpu_ufe or fpu_ixe or fpu_ide;
-  fpu_exception_mask_to_status_mask_shift = 8;
+  fpu_nx = 1 shl 0;
+  fpu_uf = 1 shl 1;
+  fpu_of = 1 shl 2;
+  fpu_dz = 1 shl 3;
+  fpu_nv = 1 shl 4;
 
 
 function GetExceptionMask: TFPUExceptionMask;
-  var
-    fpcr: dword;
   begin
-    fpcr:=getfpcr;
-    result:=[];
-    if ((fpcr and fpu_ioe)=0) then
-      result := result+[exInvalidOp];
-    if ((fpcr and fpu_ofe)=0) then
-      result := result+[exOverflow];
-    if ((fpcr and fpu_ufe)=0) then
-      result := result+[exUnderflow];
-    if ((fpcr and fpu_dze)=0) then
-      result := result+[exZeroDivide];
-    if ((fpcr and fpu_ixe)=0) then
-      result := result+[exPrecision];
-    if ((fpcr and fpu_ide)=0) then
-      result := result+[exDenormalized];
+    Result:=softfloat_exception_mask;
   end;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
-  var
-    newfpcr: dword;
   begin
-    softfloat_exception_mask:=mask;
-    newfpcr:=fpu_exception_mask;
-    if exInvalidOp in Mask then
-      newfpcr:=newfpcr and not(fpu_ioe);
-    if exOverflow in Mask then
-      newfpcr:=newfpcr and not(fpu_ofe);
-    if exUnderflow in Mask then
-      newfpcr:=newfpcr and not(fpu_ufe);
-    if exZeroDivide in Mask then
-      newfpcr:=newfpcr and not(fpu_dze);
-    if exPrecision in Mask then
-      newfpcr:=newfpcr and not(fpu_ixe);
-    if exDenormalized in Mask then
-      newfpcr:=newfpcr and not(fpu_ide);
+    Result:=softfloat_exception_mask;
     { clear "exception happened" flags }
     ClearExceptions(false);
-    { set new exception mask }
-    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
-    { unsupported mask bits will remain 0 -> read exception mask again }
-    result:=GetExceptionMask;
-    softfloat_exception_mask:=result;
+    softfloat_exception_mask:=Mask;
+  end;
+
+
+procedure RaisePendingExceptions;
+  var
+    fflags : dword;
+    f: TFPUException;
+  begin
+    fflags:=getfflags;
+    if (fflags and fpu_dz) <> 0 then
+      float_raise(exZeroDivide);
+    if (fflags and fpu_of) <> 0 then
+      float_raise(exOverflow);
+    if (fflags and fpu_uf) <> 0 then
+      float_raise(exUnderflow);
+    if (fflags and fpu_nv) <> 0 then
+      float_raise(exInvalidOp);
+    if (fflags and fpu_nx) <> 0 then
+      float_raise(exPrecision);
+    { now the soft float exceptions }
+    for f in softfloat_exception_flags do
+      float_raise(f);
   end;
 
 
 procedure ClearExceptions(RaisePending: Boolean);
-  var
-    fpsr: dword;
-    f: TFPUException;
   begin
-    fpsr:=getfpsr;
     if raisepending then
-      begin
-        if (fpsr and (fpu_dze shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
-          float_raise(exZeroDivide);
-        if (fpsr and (fpu_ofe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
-          float_raise(exOverflow);
-        if (fpsr and (fpu_ufe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
-          float_raise(exUnderflow);
-        if (fpsr and (fpu_ioe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
-          float_raise(exInvalidOp);
-        if (fpsr and (fpu_ixe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
-          float_raise(exPrecision);
-        if (fpsr and (fpu_ide shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
-          float_raise(exDenormalized);
-        { now the soft float exceptions }
-        for f in  softfloat_exception_flags do
-          float_raise(f);
-      end;
+      RaisePendingExceptions;
     softfloat_exception_flags:=[];
-    setfpsr(fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
+    setfflags(0);
   end;
+

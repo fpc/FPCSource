@@ -19,6 +19,76 @@ procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
   end;
 
+{****************************************************************************
+                       fpu exception related stuff
+****************************************************************************}
+
+const
+  fpu_nx = 1 shl 0;
+  fpu_uf = 1 shl 1;
+  fpu_of = 1 shl 2;
+  fpu_dz = 1 shl 3;
+  fpu_nv = 1 shl 4;
+
+function getfflags: dword; nostackframe; assembler;
+  asm
+    frflags a0
+  end;
+
+
+procedure setfflags(flags : dword); nostackframe; assembler;
+  asm
+    fsflags a0
+  end;
+
+
+procedure RaisePendingExceptions;
+  var
+    fflags : dword;
+    f: TFPUException;
+  begin
+    fflags:=getfflags;
+    if (fflags and fpu_dz) <> 0 then
+      float_raise(exZeroDivide);
+    if (fflags and fpu_of) <> 0 then
+      float_raise(exOverflow);
+    if (fflags and fpu_uf) <> 0 then
+      float_raise(exUnderflow);
+    if (fflags and fpu_nv) <> 0 then
+      float_raise(exInvalidOp);
+    if (fflags and fpu_nx) <> 0 then
+      float_raise(exPrecision);
+    { now the soft float exceptions }
+    for f in softfloat_exception_flags do
+      float_raise(f);
+  end;
+
+
+procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
+  var
+    fflags : dword;
+  begin
+    fflags:=getfflags;
+    { check, if the exception is masked }
+    if ((fflags and fpu_dz) <> 0) and (exZeroDivide in softfloat_exception_mask) then
+      fflags:=fflags and not(fpu_dz);
+    if ((fflags and fpu_of) <> 0) and (exOverflow in softfloat_exception_mask) then
+      fflags:=fflags and not(fpu_of);
+    if ((fflags and fpu_uf) <> 0) and (exUnderflow in softfloat_exception_mask) then
+      fflags:=fflags and not(fpu_uf);
+    if ((fflags and fpu_nv) <> 0) and (exInvalidOp in softfloat_exception_mask) then
+      fflags:=fflags and not(fpu_nv);
+    if ((fflags and fpu_nx) <> 0) and (exPrecision in softfloat_exception_mask) then
+      fflags:=fflags and not(fpu_nx);
+    setfflags(fflags);
+    if fflags<>0 then
+      RaisePendingExceptions;
+  end;
+
+
+{****************************************************************************
+                       stack frame related stuff
+****************************************************************************}
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
