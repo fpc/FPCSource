@@ -1996,10 +1996,11 @@ Unit Rax86int;
             AS_REGISTER :
               begin
                 hreg:=actasmregister;
+
                 Consume(AS_REGISTER, true);
 
                 //TG TODO check
-                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK] do
+                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
                 begin
                   consume_voperand_ext(oper);
                 end;
@@ -2170,7 +2171,7 @@ Unit Rax86int;
 
                 Consume(AS_RBRACKET, true);
                 //TG TODO check
-                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST] do
+                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST, AS_LOPSAE, AS_LOPER] do
                 begin
                   consume_voperand_ext(oper);
                 end;
@@ -2288,6 +2289,8 @@ Unit Rax86int;
         tsize   : tcgint;
         hastypecast: boolean;
 
+        //TG TODO delete
+        t: tasmtoken;
       begin
         oper.vopext := 0;
 
@@ -2595,7 +2598,7 @@ Unit Rax86int;
                 Consume(AS_REGISTER, true);
 
                 //TG TODO check
-                if (getregtype(tempreg) = R_MMREGISTER) then
+                if (getregtype(tempreg) in [R_MMREGISTER, R_ADDRESSREGISTER]) then
                  begin
                   while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
                   begin
@@ -2694,6 +2697,8 @@ Unit Rax86int;
 
             else
               begin
+                t := actasmtoken;
+
                 Message(asmr_e_syn_operand);
                 RecoverConsume(true);
                 break;

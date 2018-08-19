@@ -182,6 +182,7 @@ interface
 
       OT_XMMREG_M   = OT_XMMREG or OT_VECTORMASK;
       OT_XMMREG_MZ  = OT_XMMREG or OT_VECTORMASK or OT_VECTORZERO;
+      OT_XMMRM_MZ   = OT_XMMRM  or OT_VECTORMASK or OT_VECTORZERO;
       OT_XMMREG_SAE = OT_XMMREG or OT_VECTORSAE;
       OT_XMMRM_SAE  = OT_XMMRM  or OT_VECTORSAE;
       OT_XMMREG_ER  = OT_XMMREG or OT_VECTORER;
@@ -197,6 +198,7 @@ interface
 
       OT_YMMREG_M   = OT_YMMREG or OT_VECTORMASK;
       OT_YMMREG_MZ  = OT_YMMREG or OT_VECTORMASK or OT_VECTORZERO;
+      OT_YMMRM_MZ   = OT_YMMRM  or OT_VECTORMASK or OT_VECTORZERO;
       OT_YMMREG_SAE = OT_YMMREG or OT_VECTORSAE;
       OT_YMMRM_SAE  = OT_YMMRM  or OT_VECTORSAE;
       OT_YMMREG_ER  = OT_YMMREG or OT_VECTORER;
@@ -211,6 +213,7 @@ interface
 
       OT_ZMMREG_M   = OT_ZMMREG or OT_VECTORMASK;
       OT_ZMMREG_MZ  = OT_ZMMREG or OT_VECTORMASK or OT_VECTORZERO;
+      OT_ZMMRM_MZ   = OT_ZMMRM  or OT_VECTORMASK or OT_VECTORZERO;
       OT_ZMMREG_SAE = OT_ZMMREG or OT_VECTORSAE;
       OT_ZMMRM_SAE  = OT_ZMMRM  or OT_VECTORSAE;
       OT_ZMMREG_ER  = OT_ZMMREG or OT_VECTORER;
@@ -218,6 +221,7 @@ interface
 
 
       OT_KREG       = OT_REGNORM or otf_reg_k;
+      OT_KREG_M     = OT_KREG or OT_VECTORMASK;
 
       { Vector-Memory operands }
       OT_VMEM_ANY  = OT_XMEM32 or OT_XMEM64 or OT_YMEM32 or OT_YMEM64 or OT_ZMEM32 or OT_ZMEM64;
@@ -226,12 +230,19 @@ interface
       OT_MEM8      = OT_MEMORY or OT_BITS8;
       OT_MEM16     = OT_MEMORY or OT_BITS16;
       OT_MEM32     = OT_MEMORY or OT_BITS32;
+      OT_MEM32_M   = OT_MEMORY or OT_BITS32 or OT_VECTORMASK;
       OT_BMEM32    = OT_MEMORY or OT_BITS32 or OT_VECTORBCST;
+      OT_BMEM32_SAE= OT_MEMORY or OT_BITS32 or OT_VECTORBCST or OT_VECTORSAE;
       OT_MEM64     = OT_MEMORY or OT_BITS64;
+      OT_MEM64_M   = OT_MEMORY or OT_BITS64 or OT_VECTORMASK;
       OT_BMEM64    = OT_MEMORY or OT_BITS64 or OT_VECTORBCST;
+      OT_BMEM64_SAE= OT_MEMORY or OT_BITS64 or OT_VECTORBCST or OT_VECTORSAE;
       OT_MEM128    = OT_MEMORY or OT_BITS128;
+      OT_MEM128_M  = OT_MEMORY or OT_BITS128 or OT_VECTORMASK;
       OT_MEM256    = OT_MEMORY or OT_BITS256;
+      OT_MEM256_M  = OT_MEMORY or OT_BITS256 or OT_VECTORMASK;
       OT_MEM512    = OT_MEMORY or OT_BITS512;
+      OT_MEM512_M  = OT_MEMORY or OT_BITS512 or OT_VECTORMASK;
       OT_MEM80     = OT_MEMORY or OT_BITS80;
 
 
@@ -280,7 +291,7 @@ interface
 {$elseif defined(i8086)}
       instabentries = {$i i8086nop.inc}
 {$endif}
-      maxinfolen    = 9;
+      maxinfolen    = 10;
 
     type
       { What an instruction can change. Needed for optimizer and spilling code.
@@ -339,12 +350,14 @@ interface
       TMemRefSizeInfo = (msiUnkown, msiUnsupported, msiNoSize,
                          msiMultiple, msiMultiple8, msiMultiple16, msiMultiple32,
                          msiMultiple64, msiMultiple128, msiMultiple256, msiMultiple512,
-                         msiMemRegSize, msiMemRegx16y32, msiMemRegx32y64, msiMemRegx64y128, msiMemRegx64y256,
+                         msiMemRegSize, msiMemRegx16y32, msiMemRegx16y32z64, msiMemRegx32y64, msiMemRegx32y64z128, msiMemRegx64y128, msiMemRegx64y128z256,
+                         msiMemRegx64y256, msiMemRegx64y256z512,
                          msiMem8, msiMem16, msiMem32, msiBMem32, msiMem64, msiBMem64, msiMem128, msiMem256, msiMem512,
                          msiXMem32, msiXMem64, msiYMem32, msiYMem64, msiZMem32, msiZMem64,
-                         msiVMemMultiple, msiVMemRegSize);
+                         msiVMemMultiple, msiVMemRegSize,
+                         msiMemRegConst128,msiMemRegConst256,msiMemRegConst512);
 
-      TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64);
+      TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64, msbMultiple);
 
       TConstSizeInfo  = (csiUnkown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
 
@@ -1466,6 +1479,7 @@ implementation
 {$endif x86_64}
                      then
                     begin
+
                       { create ot field }
                       if (reg_ot_table[findreg_by_number(ref^.base)] and OT_REG_GPR = OT_REG_GPR) and
                          ((reg_ot_table[findreg_by_number(ref^.index)] = OT_XMMREG) or
@@ -2244,7 +2258,7 @@ implementation
 
 
 
-    function process_ea_ref_64_32(const input:toper;var output:ea;rfield:longint):boolean;
+    function process_ea_ref_64_32(const input:toper;var output:ea;rfield:longint; uselargeoffset: boolean):boolean;
       var
         sym   : tasmsymbol;
         md,s  : byte;
@@ -2493,7 +2507,7 @@ implementation
               ((br<>NR_RBP) and (br<>NR_R13) and (br<>NR_EBP) and (br<>NR_R13D) and (o=0) and (sym=nil)) then
             md:=0
            else
-            if ((o>=-128) and (o<=127) and (sym=nil)) then
+            if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset) or (o = 0))) then
              md:=1
             else
              md:=2;
@@ -2521,7 +2535,7 @@ implementation
 
 {$elseif defined(i386) or defined(i8086)}
 
-    function process_ea_ref_32(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref_32(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
       var
         sym   : tasmsymbol;
         md,s  : byte;
@@ -2647,7 +2661,7 @@ implementation
               ((br<>NR_EBP) and (o=0) and (sym=nil)) then
             md:=0
            else
-            if ((o>=-128) and (o<=127) and (sym=nil)) then
+            if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset))) then
              md:=1
             else
              md:=2;
@@ -2749,7 +2763,7 @@ implementation
               exit;
             if (base<>6) and (o=0) and (sym=nil) then
               md:=0
-            else if ((o>=-128) and (o<=127) and (sym=nil)) then
+            else if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset))) then
               md:=1
             else
               md:=2;
@@ -2762,7 +2776,7 @@ implementation
       end;
 {$endif}
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
       var
         rv  : byte;
       begin
@@ -2784,12 +2798,12 @@ implementation
         if input.typ<>top_ref then
           internalerror(200409263);
 {$if defined(x86_64)}
-        result:=process_ea_ref_64_32(input,output,rfield);
+        result:=process_ea_ref_64_32(input,output,rfield, uselargeoffset);
 {$elseif defined(i386) or defined(i8086)}
         if is_16_bit_ref(input.ref^) then
-          result:=process_ea_ref_16(input,output,rfield)
+          result:=process_ea_ref_16(input,output,rfield, uselargeoffset)
         else
-          result:=process_ea_ref_32(input,output,rfield);
+          result:=process_ea_ref_32(input,output,rfield, uselargeoffset);
 {$endif}
       end;
 
@@ -2980,7 +2994,7 @@ implementation
                   end;
 
 {$endif x86_64}
-                if not process_ea(oper[(c shr 3) and 7]^, ea_data, 0) then
+                if not process_ea(oper[(c shr 3) and 7]^, ea_data, 0, exists_evex) then
                   Message(asmw_e_invalid_effective_address)
                 else
                   inc(len,ea_data.size);
@@ -2995,7 +3009,6 @@ implementation
               end;
             &351: ; // EVEX length bit 512
             &352: ; // EVEX W1
-            &354: ; // EVEX brc-memoperand
             &362: // VEX prefix for AVX (length = 2 or 3 bytes, dependens on REX.XBW or opcode-prefix ($0F38 or $0F3A))
                   // =>> DEFAULT = 2 Bytes
               begin
@@ -3198,7 +3211,6 @@ implementation
        * \350          - EVEX prefix for AVX instructions
        * \351          - EVEX Vector length 512
        * \352          - EVEX W1
-       * \354          - EVEX brc-memoperand
 
        * \361          - 0x66 prefix for SSE instructions
 
@@ -3358,6 +3370,7 @@ implementation
         needed_VEX_Extension: boolean;
         needed_VEX: boolean;
         needed_EVEX: boolean;
+        needed_VSIB: boolean;
         opmode: integer;
         VEXvvvv: byte;
         VEXmmmmm: byte;
@@ -3377,7 +3390,10 @@ implementation
         EVEXb   : byte;
         EVEXmm  : byte;
 
+        uselargeoffset: boolean;
+
         pins: tinsentry;
+        t: toptype;
       begin
         { safety check }
 
@@ -3386,6 +3402,7 @@ implementation
 
         if objdata.currobjsec.size<>longword(insoffset) then
         begin
+          //TG TODO delete
           Message1(asmw_e_invalid_opcode_and_operands,GetString);
 
           internalerror(200130121);
@@ -3472,6 +3489,7 @@ implementation
         needed_VEX    := false;
         needed_EVEX   := false;
         needed_VEX_Extension := false;
+        needed_VSIB   := false;
         opmode   := -1;
         VEXvvvv  := 0;
         VEXmmmmm := 0;
@@ -3491,6 +3509,8 @@ implementation
         EVEXaaa  := 0;
         EVEXb    := 0;
         EVEXmm   := 0;
+
+        pins := insentry^;
 
         repeat
           c:=ord(codes^);
@@ -3513,19 +3533,36 @@ implementation
 
                    // TODO delete
                    pins := insentry^;
+                   i := ord(c);
 
+                   if (c shr 6) = 1 then
+                   begin
+                     opidx := c and 7;
+                     if ops > opidx then
+                     begin
+                       t := oper[opidx]^.typ;
 
-
-                   opidx := c and 7;
-                   if ops > opidx then
-                    if (oper[opidx]^.typ=top_reg) then
-                     if getsupreg(oper[opidx]^.reg) and $10 = $0 then EVEXr := 1;  //TG TODO check
-
+                       if (oper[opidx]^.typ=top_reg) then
+                        if getsupreg(oper[opidx]^.reg) and $10 = $0 then EVEXr := 1;  //TG TODO check
+                     end
+                   end
+                   else EVEXr := 1; // modrm:reg not used =>> 1
 
                    opidx := (c shr 3) and 7;
                    if ops > opidx then
-                    if (oper[opidx]^.typ=top_reg) then
-                     if getsupreg(oper[opidx]^.reg) and $10 = $0 then EVEXx := 1;  //TG TODO check
+                    case oper[opidx]^.typ of
+                      top_reg: if getsupreg(oper[opidx]^.reg) and $10 = $0 then EVEXx := 1;  //TG TODO check
+                      top_ref: begin
+                                 if getsupreg(oper[opidx]^.ref^.index) and $08 = $0 then EVEXx := 1;  //TG TODO check
+                                 if getsubreg(oper[opidx]^.ref^.index) in [R_SUBMMX,R_SUBMMY,R_SUBMMZ] then
+                                 begin
+                                   // VSIB memory addresing
+                                   if getsupreg(oper[opidx]^.ref^.index) and $10 = $0 then EVEXv := 1; // VECTOR-Index
+                                   needed_VSIB := true;
+                                 end;
+                               end;
+                    end;
+
 
                  end;
            &333: begin
@@ -3595,8 +3632,8 @@ implementation
           else if opmode = -1 then
           begin
             VEXvvvv  := VEXvvvv or ($0F shl 3); // set VEXvvvv bits (bits 6-3) to 1
-            EVEXvvvv := $0F; //TG TODO check
-            EVEXv    := 1;   //TG TODO check
+            EVEXvvvv := $0F;
+            if not(needed_vsib) then EVEXv    := 1;
           end
           else if oper[opmode]^.typ = top_reg then
           begin
@@ -3703,6 +3740,15 @@ implementation
                         ((EVEXr    and $01) shl 4)  or
                         ((EVEXx    and $01) shl 6);
 
+                        i := 0;
+                        i := i or ((EVEXmm   and $03) shl 0);
+                        i := i or ((not(rex) and $05) shl 5);
+                        i := i or ((EVEXr    and $01) shl 4);
+                        i := i or ((EVEXx    and $01) shl 6);
+
+
+
+
             bytes[2] := ((EVEXpp   and $03) shl 0)  or
                         ((1        and $01) shl 2)  or  // fixed in AVX512
                         ((EVEXvvvv and $0F) shl 3)  or
@@ -3770,7 +3816,7 @@ implementation
 
         { load data to write }
         codes:=insentry^.code;
-
+        uselargeoffset := false; // AVX512
         repeat
           c:=ord(codes^);
           inc(codes);
@@ -4133,8 +4179,9 @@ implementation
                 else
                   Internalerror(2014032001);
               end;
-            &350..&352: ; // EVEX flags =>> nothing todo
-            &354: ;       // EVEX flags =>> nothing todo
+            &350: uselargeoffset := true;
+            &351,
+            &352: ; // EVEX flags =>> nothing todo
             &370..&372: ; // VEX flags =>> nothing todo
             &37:
               begin
@@ -4167,7 +4214,7 @@ implementation
                    else
                     rfield:=c and 7;
                    opidx:=(c shr 3) and 7;
-                   if not process_ea(oper[opidx]^,ea_data,rfield) then
+                   if not process_ea(oper[opidx]^,ea_data,rfield, uselargeoffset) then
                      Message(asmw_e_invalid_effective_address);
 
                    pb:=@bytes[0];
@@ -4564,6 +4611,12 @@ implementation
       RegXMMSizeMask: int64;
       RegYMMSizeMask: int64;
       RegZMMSizeMask: int64;
+
+      RegMMXConstSizeMask: int64;
+      RegXMMConstSizeMask: int64;
+      RegYMMConstSizeMask: int64;
+      RegZMMConstSizeMask: int64;
+
       RegBCSTSizeMask: int64;
       RegBCSTXMMSizeMask: int64;
       RegBCSTYMMSizeMask: int64;
@@ -4609,6 +4662,12 @@ implementation
           RegXMMSizeMask := 0;
           RegYMMSizeMask := 0;
           RegZMMSizeMask := 0;
+
+          RegMMXConstSizeMask := 0;
+          RegXMMConstSizeMask := 0;
+          RegYMMConstSizeMask := 0;
+          RegZMMConstSizeMask := 0;
+
           RegBCSTSizeMask:= 0;
           RegBCSTXMMSizeMask := 0;
           RegBCSTYMMSizeMask := 0;
@@ -4616,10 +4675,12 @@ implementation
 
 
           //TG TODO delete
-          if AsmOp = A_VPERMD then
+          if AsmOp = A_VPSRLD then
           begin
-            RegMMXSizeMask := 0;
+            RegZMMSizeMask := RegZMMSizeMask;
           end;
+
+
 
           while (insentry^.opcode=AsmOp) do
           begin
@@ -4747,6 +4808,12 @@ implementation
                           else InternalError(777208);
                   end;
 
+                  if asmop = a_vgatherdps then
+                  begin
+                    actVMemTypes := actVMemTypes;
+                  end;
+
+
                   case actRegTypes of
                     OT_XMMREG: case MRefInfo of
                                  msiXMem32,
@@ -4790,7 +4857,7 @@ implementation
                     begin
                       InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiVMemMultiple;
                     end
-                    else InternalError(777212);
+                    else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> msiVMemMultiple then InternalError(777212);
                   end;
 
                 end;
@@ -4883,15 +4950,24 @@ implementation
                          end
                          else
                          case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_REG_EXTRA_MASK) of
-                           OT_MMXREG: RegMMXSizeMask := RegMMXSizeMask or actMemSize;
-                           OT_XMMREG: RegXMMSizeMask := RegXMMSizeMask or actMemSize;
-                           OT_YMMREG: RegYMMSizeMask := RegYMMSizeMask or actMemSize;
-                           OT_ZMMREG: RegZMMSizeMask := RegZMMSizeMask or actMemSize;
+                           OT_MMXREG: if actConstCount > 0 then RegMMXConstSizeMask := RegMMXConstSizeMask or actMemSize
+                                       else RegMMXSizeMask := RegMMXSizeMask or actMemSize;
+                           OT_XMMREG: if actConstCount > 0 then RegXMMConstSizeMask := RegXMMConstSizeMask or actMemSize
+                                       else RegXMMSizeMask := RegXMMSizeMask or actMemSize;
+                           OT_YMMREG: if actConstCount > 0 then RegYMMConstSizeMask := RegYMMConstSizeMask or actMemSize
+                                       else RegYMMSizeMask := RegYMMSizeMask or actMemSize;
+                           OT_ZMMREG: if actConstCount > 0 then RegZMMConstSizeMask := RegZMMConstSizeMask or actMemSize
+                                       else RegZMMSizeMask := RegZMMSizeMask or actMemSize;
                                  else begin
                                         RegMMXSizeMask := not(0);
                                         RegXMMSizeMask := not(0);
                                         RegYMMSizeMask := not(0);
                                         RegZMMSizeMask := not(0);
+
+                                        RegMMXConstSizeMask := not(0);
+                                        RegXMMConstSizeMask := not(0);
+                                        RegYMMConstSizeMask := not(0);
+                                        RegZMMConstSizeMask := not(0);
                                       end;
                          end;
                        end
@@ -4905,6 +4981,32 @@ implementation
 
             inc(insentry);
           end;
+
+          //TG TODO delete
+          if AsmOp = A_VCMPSS then
+          begin
+            RegZMMSizeMask := RegZMMSizeMask;
+          end;
+
+          if InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX then
+          begin
+            case RegBCSTSizeMask of
+                      0: ; // ignore;
+              OT_BITSB32: begin
+                            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST32;
+                            InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 4;
+                          end;
+              OT_BITSB64: begin
+                            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST64;
+                            InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 2;
+                          end;
+                    else begin
+                           //TG TODO - mixed broadcast
+                           InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST := msbMultiple;
+                         end;;
+            end;
+          end;
+
 
           if (InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize in MemRefMultiples) and
              (InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX)then
@@ -4929,12 +5031,12 @@ implementation
                 end;
               end;
             end
-            else if RegMMXSizeMask <> 0 then
+            else if (RegMMXSizeMask or RegMMXConstSizeMask) <> 0 then
             begin
-              if (RegMMXSizeMask = OT_BITS64)  and
-                 (RegXMMSizeMask = OT_BITS128) and
-                 (RegYMMSizeMask = 0)          and
-                 (RegZMMSizeMask = 0) then
+              if ((RegMMXSizeMask or RegMMXConstSizeMask) = OT_BITS64)  and
+                 ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS128) and
+                 ((RegYMMSizeMask or RegYMMConstSizeMask) = 0)          and
+                 ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
               begin
                 InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
               end
@@ -4945,70 +5047,116 @@ implementation
                  RegMMXSizeMask := RegMMXSizeMask;
               end;
             end
-            else if ((RegXMMSizeMask = OT_BITS128) or (RegXMMSizeMask = 0)) and
-                    ((RegYMMSizeMask = OT_BITS256) or (RegYMMSizeMask = 0)) and
-                    ((RegZMMSizeMask = OT_BITS512) or (RegZMMSizeMask = 0)) and
-                    ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) <> 0) then
+            else if (((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS128) or ((RegXMMSizeMask or RegXMMConstSizeMask) = 0)) and
+                    (((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256) or ((RegYMMSizeMask or RegYMMConstSizeMask) = 0)) and
+                    (((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS512) or ((RegZMMSizeMask or RegZMMConstSizeMask) = 0)) and
+                    (((RegXMMSizeMask or RegXMMConstSizeMask or
+                       RegYMMSizeMask or RegYMMConstSizeMask or
+                       RegZMMSizeMask or RegZMMConstSizeMask)) <> 0) then
             begin
               InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
-
-              case RegBCSTSizeMask of
-                        0: ; // ignore;
-                OT_BITSB32: begin
-                              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST32;
-                              InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 4;
-                            end;
-                OT_BITSB64: begin
-                              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST64;
-                              InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 2;
-                            end;
-                      else begin
-                             //TG TODO - mixed broadcast
-                             InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
-                           end;;
-              end;
             end
-            else if (RegXMMSizeMask = OT_BITS16) and
-                    (RegYMMSizeMask = OT_BITS32) then
+            //else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
+            //        (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) then
+            //begin
+            //  if (RegZMMSizeMask or RegZMMConstSizeMask = 0) then
+            //  begin
+            //    InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
+            //  end
+            //  else
+            //  begin
+            //    //TG TODO delete
+            //    RegZMMSizeMask := RegZMMSizeMask;
+            //  end;
+            //end
+            else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
+                    (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) and
+                    (RegZMMSizeMask or RegZMMConstSizeMask = 0) then
             begin
-              if (RegZMMSizeMask = 0) then
-              begin
-                InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
-              end
-              else
-              begin
-                //TG TODO delete
-                RegZMMSizeMask := RegZMMSizeMask;
-              end;
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
             end
-            else if (RegXMMSizeMask = OT_BITS32) and
-                    (RegYMMSizeMask = OT_BITS64) then
+            else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
+                    (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) and
+                    (RegZMMSizeMask or RegZMMConstSizeMask = OT_BITS64) then
             begin
-              if (RegZMMSizeMask = 0) then
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32z64;
+            end
+            else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS32) and
+                    ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS64) then
+            begin
+              if ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
               begin
                 InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64;
               end
+              else if ((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS128) then
+              begin
+                InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64z128;
+              end
               else
               begin
                 //TG TODO delete
                 RegZMMSizeMask := RegZMMSizeMask;
               end;
             end
-            else if (RegXMMSizeMask = OT_BITS64) and
-                    ((RegYMMSizeMask = OT_BITS128) or
-                     (RegYMMSizeMask = OT_BITS256)) then
+            //else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64) and
+            //        (
+            //         ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) or
+            //         ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256)) then
+            //begin
+            //  if ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
+            //  begin
+            //    case RegYMMSizeMask or RegYMMConstSizeMask of
+            //      OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
+            //      OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
+            //    end;
+            //  end
+            //
+            //
+            //  else
+            //  begin
+            //    //TG TODO delete
+            //    RegZMMSizeMask := RegZMMSizeMask;
+            //  end;
+            //end
+            else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                    ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) and
+                    ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
             begin
-              if (RegZMMSizeMask = 0) then
-              begin
-                case RegYMMSizeMask of
-                  OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
-                  OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
-                end;
-              end
-              else
-              begin
-                //TG TODO delete
-                RegZMMSizeMask := RegZMMSizeMask;
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
+            end
+            else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                    ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) and
+                    ((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS256) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128z256;
+            end
+            else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                    ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256) and
+                    ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
+            end
+            else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
+                    ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256) and
+                    ((RegZMMSizeMask or RegZMMConstSizeMask) = OT_BITS512) then
+            begin
+              InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256z512;
+            end
+            else if ((RegXMMConstSizeMask = 0) or (RegXMMConstSizeMask = OT_BITS128))     and
+                    ((RegYMMConstSizeMask = 0) or (RegYMMConstSizeMask = OT_BITS256))     and
+                    ((RegZMMConstSizeMask = 0) or (RegZMMConstSizeMask = OT_BITS512))     and
+                    ((RegXMMConstSizeMask or RegYMMConstSizeMask or RegZMMConstSizeMask) <> 0) and
+                    (
+                     ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) = OT_BITS128) or
+                     ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) = OT_BITS256) or
+                     ((RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask) = OT_BITS512)
+                    ) then
+            begin
+              case RegXMMSizeMask or RegYMMSizeMask or RegZMMSizeMask of
+                OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegConst128;
+                OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegConst256;
+                OT_BITS512: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegConst512;
+                       else InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMultiple;
               end;
             end
             else
@@ -5021,7 +5169,11 @@ implementation
                      (AsmOp = A_VCVTPD2PS) or
                      (AsmOp = A_VCVTSI2SD) or
                      (AsmOp = A_VCVTSI2SS) or
-                     (AsmOp = A_VCVTTPD2DQ)
+                     (AsmOp = A_VCVTTPD2DQ) or
+
+                     // TODO check
+                     (AsmOp = A_VCMPSS)
+
 
                     ) then
 
