@@ -12086,14 +12086,14 @@
     opcode  : A_VMOVQ;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmreg,ot_none,ot_none);
-    code    : #232#234#241#242#248#1#214#65;
+    code    : #219#232#234#242#248#1#126#72;
     flags   : [if_avx,if_sandybridge]
   ),
   (
     opcode  : A_VMOVQ;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmreg,ot_none,ot_none);
-    code    : #219#232#234#242#248#1#126#72;
+    code    : #232#234#241#242#248#1#214#65;
     flags   : [if_avx,if_sandybridge]
   ),
   (
