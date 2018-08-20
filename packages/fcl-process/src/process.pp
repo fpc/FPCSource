@@ -40,6 +40,13 @@ Type
 
   TProcessOptions = set of TProcessOption;
   TStartupOptions = set of TStartupOption;
+  TRunCommandEventCode = (RunCommandIdle,RunCommandReadOutput,RunCommandFinished,RunCommandException);
+  TOnRunCommandEvent = procedure(Sender,Context : TObject;Status:TRunCommandEventCode;const Message:string) of object;
+  EProcess = Class(Exception);
+
+  {$ifdef UNIX}
+  TProcessForkEvent = procedure(Sender : TObject) of object;
+  {$endif UNIX}
 
 {$macro on}
 {define processunicodestring}
