@@ -354,6 +354,7 @@ procedure Tx86Instruction.AddReferenceSizes;
   operand is a register }
 var
   operand2,i,j,k : longint;
+  t: topsize;
   s : tasmsymbol;
   so : aint;
   ExistsMemRefNoSize: boolean;
@@ -524,6 +525,10 @@ begin
                   else
                     memopsize := operands[i].opr.varsize * 8;
             end;
+
+            //TG TODO delete
+            t := tx86operand(operands[i]).opsize;
+
 
             if memopsize = 0 then memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
 

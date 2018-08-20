@@ -51,6 +51,8 @@ Unit Rax86int;
 
       );
 
+
+
     type
        { input flags for BuildConstSymbolExpression }
        tconstsymbolexpressioninputflag = (
@@ -150,6 +152,8 @@ Unit Rax86int;
        lastdirective  = AS_END;
        firstoperator  = AS_BYTE;
        lastoperator   = AS___GOTPCREL;
+
+       OPEXT_STARTASMTOKEN: set of tasmtoken = [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE,AS_LOPER];
 
        _asmdirectives : array[firstdirective..lastdirective] of tasmkeyword =
        ('ALIGN','DB','DW','DD','DQ','PUBLIC','END');
@@ -463,7 +467,8 @@ Unit Rax86int;
                        c:=current_scanner.asmgetchar;
                      end;
                   end;
-                 if prevasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE,AS_LOPER] then
+                 //if prevasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE,AS_LOPER] then
+                  if prevasmtoken in OPEXT_STARTASMTOKEN then
                   begin
                     if (prevasmtoken = AS_LOPER) and (c = '-') then
                      begin
@@ -536,6 +541,9 @@ Unit Rax86int;
                      begin
                        if c = '{' then current_scanner.inc_comment_level;
                        current_scanner.skipcomment(false); // is comment
+                       actasmpattern := '';
+                       actasmtoken := AS_NONE;
+                       exit;
                      end;
                   end;
                  if is_asmdirective(actasmpattern) then
@@ -2000,7 +2008,8 @@ Unit Rax86int;
                 Consume(AS_REGISTER, true);
 
                 //TG TODO check
-                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
+                //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
+                while actasmtoken in OPEXT_STARTASMTOKEN do
                 begin
                   consume_voperand_ext(oper);
                 end;
@@ -2171,7 +2180,8 @@ Unit Rax86int;
 
                 Consume(AS_RBRACKET, true);
                 //TG TODO check
-                while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST, AS_LOPSAE, AS_LOPER] do
+                //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST, AS_LOPSAE, AS_LOPER] do
+                while actasmtoken in OPEXT_STARTASMTOKEN do
                 begin
                   consume_voperand_ext(oper);
                 end;
@@ -2530,7 +2540,8 @@ Unit Rax86int;
                        Consume(AS_ID, true);
 
                        //TG TODO check
-                       while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST] do
+                       //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK,AS_LOPBCST,AS_LOPSAE] do
+                       while actasmtoken in OPEXT_STARTASMTOKEN do
                        begin
                          consume_voperand_ext(oper);
                        end;
@@ -2600,7 +2611,8 @@ Unit Rax86int;
                 //TG TODO check
                 if (getregtype(tempreg) in [R_MMREGISTER, R_ADDRESSREGISTER]) then
                  begin
-                  while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
+                  //while actasmtoken in [AS_LOPMASK,AS_LOPZEROMASK, AS_LOPSAE, AS_LOPER] do
+                   while actasmtoken in OPEXT_STARTASMTOKEN do
                   begin
                     consume_voperand_ext(oper);
                   end;
