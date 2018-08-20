@@ -4618,8 +4618,8 @@ mem64,xmmreg                              \350\352\361\362\370\1\xD6\101        
 rm64,xmmreg                               \350\352\361\362\363\370\1\x7E\101        AVX,SANDYBRIDGE,X86_64
 xmmreg,mem64                              \333\350\352\362\370\1\x7E\110            AVX,SANDYBRIDGE
 xmmreg,rm64                               \350\352\361\362\363\370\1\x6E\110        AVX,SANDYBRIDGE,X86_64
-xmmreg,xmmreg                             \350\352\361\362\370\1\xD6\101            AVX,SANDYBRIDGE
 xmmreg,xmmreg                             \333\350\352\362\370\1\x7E\110            AVX,SANDYBRIDGE
+xmmreg,xmmreg                             \350\352\361\362\370\1\xD6\101            AVX,SANDYBRIDGE
 
 
 [VMOVSD]
