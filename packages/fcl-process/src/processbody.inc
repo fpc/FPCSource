@@ -40,13 +40,6 @@ Type
    TProcessStringList = TStringList;
    {$endif}
 
-  {$ifdef UNIX}
-  TProcessForkEvent = procedure(Sender : TObject) of object;
-  {$endif UNIX}
-
-  TRunCommandEventCode = (RunCommandIdle,RunCommandFinished,RunCommandException);
-  TOnRunCommandEvent = procedure(Sender : TObject;Status:TRunCommandEventCode;const Message:string) of object;
-
   { TProcess }
 
   TProcessnamemacro = Class (TComponent)
@@ -103,7 +96,7 @@ Type
     procedure SetEnvironment(const Value: TProcessStrings);
     Procedure ConvertCommandLine;
     function  PeekExitStatus: Boolean;
-    Procedure IntOnIdleSleep(Sender : TObject;Status:TRunCommandEventCode;const Message:String);
+    Procedure IntOnIdleSleep(Sender,Context : TObject;Status:TRunCommandEventCode;const Message:String);
   Protected
     FRunning : Boolean;
     FExitCode : Cardinal;
@@ -174,7 +167,6 @@ Type
   end;
 
   TProcessClass = Class of TProcessnamemacro;
-  EProcess = Class(Exception);
 
 Procedure CommandToList(S : TProcessString; List : TProcessStrings);
 
@@ -532,7 +524,7 @@ begin
   end;
 end;
 
-procedure TProcessnamemacro.IntOnIdleSleep(Sender : TObject;status:TRunCommandEventCode;const message:string);
+procedure TProcessnamemacro.IntOnIdleSleep(Sender,Context : TObject;status:TRunCommandEventCode;const message:string);
 begin
   if status=RunCommandIdle then
     sleep(FRunCommandSleepTime);
@@ -571,7 +563,7 @@ begin
             gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
  
         if not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
-          FOnRunCommandEvent(self,RunCommandIdle,'');
+          FOnRunCommandEvent(self,Nil,RunCommandIdle,'');
       end;
     // Get left output after end of execution
     ReadInputStream(output,BytesRead,OutputLength,OutputString,250);
@@ -582,7 +574,7 @@ begin
     anexitstatus:=exitstatus;
     result:=0; // we came to here, document that.
     if Assigned(FOnRunCommandEvent) then          // allow external apps to react to that and finish GUI
-      FOnRunCommandEvent(self,RunCommandFinished,'');
+      FOnRunCommandEvent(self,Nil,RunCommandFinished,'');
 
     except
       on e : Exception do
@@ -591,7 +583,7 @@ begin
            setlength(outputstring,BytesRead);
            setlength(stderrstring,StderrBytesRead);
            if Assigned(FOnRunCommandEvent) then
-             FOnRunCommandEvent(self,RunCommandException,e.Message);
+             FOnRunCommandEvent(self,Nil,RunCommandException,e.Message);
          end;
      end;
 end;

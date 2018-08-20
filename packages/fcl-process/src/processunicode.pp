@@ -29,10 +29,17 @@ Type
   TProcessPriority = process.TProcessPriority;
   TProcessOptions = process.TProcessOptions;
   TStartupOptions = process.TStartupOptions;
+  {$ifdef UNIX}
+  TProcessForkEvent = Process.TProcessForkEvent;
+  {$endif UNIX}
+
+  TRunCommandEventCode = Process.TRunCommandEventCode;
+  TOnRunCommandEvent = Process.TOnRunCommandEvent;
+  EProcess = Process.EProcess;
 
 {$macro on}
 {$define processunicodestring}
-{$define TProcessnamemacro:=TProcessUnicode}
+{$define TProcessnamemacro:=TProcess}
 
 {$i processbody.inc}
 end.
