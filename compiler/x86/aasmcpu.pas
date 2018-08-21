@@ -3622,6 +3622,12 @@ implementation
           end;
         until false;
 
+        {$ifndef x86_64}
+          EVEXv := 1;
+          EVEXx := 1;
+          EVEXr := 1;
+        {$endif}
+
         if needed_VEX or needed_EVEX then
         begin
           if (opmode > ops) or
@@ -3633,7 +3639,9 @@ implementation
           begin
             VEXvvvv  := VEXvvvv or ($0F shl 3); // set VEXvvvv bits (bits 6-3) to 1
             EVEXvvvv := $0F;
-            if not(needed_vsib) then EVEXv    := 1;
+            {$ifdef x86_64}
+              if not(needed_vsib) then EVEXv    := 1;
+            {$endif x86_64}
           end
           else if oper[opmode]^.typ = top_reg then
           begin
@@ -3647,6 +3655,7 @@ implementation
               if getsupreg(oper[opmode]^.reg) and $10 = 0 then EVEXv := 1;  //TG TODO check
             {$else}
               VEXvvvv := VEXvvvv or (1 shl 6);
+              EVEXvvvv := EVEXvvvv or (1 shl 3);
             {$endif x86_64}
           end
           else Internalerror(777101);
@@ -3722,6 +3731,8 @@ implementation
             bytes[1] := ((EVEXmm   and $03) shl 0)  or
                       {$ifdef x86_64}
                         ((not(rex) and $05) shl 5)  or
+                      {$else}
+                        (($05) shl 5)               or
                       {$endif x86_64}
                         ((EVEXr    and $01) shl 4)  or
                         ((EVEXx    and $01) shl 6);
