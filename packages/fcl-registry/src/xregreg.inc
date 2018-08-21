@@ -183,7 +183,7 @@ end;
 
 function TRegistry.GetKey(const Key: string): HKEY;
 begin
-  Result := FCurrentKey;
+  Result := 0;
 end;
 
 function TRegistry.GetKeyInfo(Out Value: TRegKeyInfo): Boolean;
