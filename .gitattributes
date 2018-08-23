@@ -9594,7 +9594,6 @@ rtl/linux/mipsel/stat.inc svneol=native#text/plain
 rtl/linux/mipsel/syscall.inc svneol=native#text/plain
 rtl/linux/mipsel/syscallh.inc svneol=native#text/plain
 rtl/linux/mipsel/sysnr.inc svneol=native#text/plain
-rtl/linux/oldlinux.pp svneol=native#text/plain
 rtl/linux/osdefs.inc svneol=native#text/plain
 rtl/linux/osmacro.inc svneol=native#text/plain
 rtl/linux/ossysc.inc svneol=native#text/plain
