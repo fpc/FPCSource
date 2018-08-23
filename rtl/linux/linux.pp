@@ -27,6 +27,7 @@ interface
 uses
   BaseUnix, unixtype;
 
+{$i sysnr.inc}
 type
   TSysInfo = record
     uptime: clong;                     //* Seconds since boot */
