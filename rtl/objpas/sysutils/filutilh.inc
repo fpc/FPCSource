@@ -24,6 +24,7 @@ Type
   // Some operating systems need extra find data.
 {$if defined(Win32) or defined(WinCE) or defined(Win64)}
     {$define SEARCHREC_USEFINDDATA}
+    {$define SYMLINKREC_USEFINDDATA}
     TFindData = TWin32FindDataW;
 {$endif}
 {$ifdef netware_clib}

@@ -609,15 +609,33 @@ end;
 { TUnicodeSymLinkRec }
 
 function TUnicodeSymLinkRec.GetTimeStamp: TDateTime;
+{$if defined(win32) or defined(win64) or defined(wince)}
+var
+  st: TSystemTime;
+{$endif}
 begin
+{$if defined(win32) or defined(win64) or defined(wince)}
+  FileTimeToSystemTime(FindData.ftLastWriteTime, st);
+  Result := SystemTimeToDateTime(st);
+{$else}
   Result := 0;
+{$endif}
 end;
 
 { TRawbyteSymLinkRec }
 
 function TRawbyteSymLinkRec.GetTimeStamp: TDateTime;
+{$if defined(win32) or defined(win64) or defined(wince)}
+var
+  st: TSystemTime;
+{$endif}
 begin
+{$if defined(win32) or defined(win64) or defined(wince)}
+  FileTimeToSystemTime(FindData.ftLastWriteTime, st);
+  Result := SystemTimeToDateTime(st);
+{$else}
   Result := 0;
+{$endif}
 end;
 
 
