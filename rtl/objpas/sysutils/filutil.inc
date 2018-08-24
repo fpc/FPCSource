@@ -46,15 +46,15 @@ begin
 end;
 
 
-Function FileExists (Const FileName : UnicodeString) : Boolean;
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
 begin
-  Result:=FileExists(ToSingleByteFileSystemEncodedFileName(FileName));
+  Result:=FileExists(ToSingleByteFileSystemEncodedFileName(FileName), FollowLink);
 end;
 
 
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 begin
-  Result:=DirectoryExists(ToSingleByteFileSystemEncodedFileName(Directory));
+  Result:=DirectoryExists(ToSingleByteFileSystemEncodedFileName(Directory), FollowLink);
 end;
 
 
@@ -243,15 +243,15 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 begin
-  Result:=FileExists(UnicodeString(FileName));
+  Result:=FileExists(UnicodeString(FileName), FollowLink);
 end;
 
 
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 begin
-  Result:=DirectoryExists(UnicodeString(Directory));
+  Result:=DirectoryExists(UnicodeString(Directory), FollowLink);
 end;
 
 

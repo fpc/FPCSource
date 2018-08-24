@@ -661,7 +661,7 @@ begin
 end;
 
 
-function FileExists (const FileName: RawByteString): boolean;
+function FileExists (const FileName: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin
@@ -1050,7 +1050,7 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: RawByteString): boolean;
+function DirectoryExists (const Directory: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin

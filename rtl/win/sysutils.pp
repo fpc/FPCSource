@@ -407,7 +407,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : UnicodeString) : Boolean;
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   Attr:Dword;
 begin
@@ -420,7 +420,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   Attr:Dword;
 begin

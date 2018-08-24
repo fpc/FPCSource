@@ -609,7 +609,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
   SystemFileName: RawByteString;
 begin
@@ -619,7 +619,7 @@ begin
   FileExists:=fpAccess(pointer(SystemFileName),F_OK)=0;
 end;
 
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 Var
   Info : Stat;
   SystemFileName: RawByteString;

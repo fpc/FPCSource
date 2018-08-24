@@ -396,7 +396,7 @@ begin
 end;
 
 
-function FileExists (const FileName : RawByteString) : Boolean;
+function FileExists (const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
   tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
@@ -702,7 +702,7 @@ begin
   DiskFree := DiskFree(DeviceList[Drive]);
 end;
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 var
   tmpLock: BPTR;
   FIB    : PFileInfoBlock;

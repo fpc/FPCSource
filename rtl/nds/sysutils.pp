@@ -179,7 +179,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
   SystemFileName: RawByteString;
 begin
@@ -248,7 +248,7 @@ Begin
 End;
 
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 begin
   result := false;
 end;

@@ -210,7 +210,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 
   (*
 Var Info : Stat;
@@ -223,7 +223,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 
   (*
 Var Info : Stat;

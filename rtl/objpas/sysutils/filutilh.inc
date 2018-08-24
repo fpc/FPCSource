@@ -135,8 +135,8 @@ Function FileCreate (Const FileName : UnicodeString; ShareMode : Integer; Rights
 {$IFNDEF FPUNONE}
 Function FileAge (Const FileName : UnicodeString): Longint;
 {$ENDIF}
-Function FileExists (Const FileName : UnicodeString) : Boolean;
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean = True) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean = True) : Boolean;
 Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
 Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
@@ -155,8 +155,8 @@ Function FileOpen (Const FileName : RawByteString; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString) : THandle;
 Function FileCreate (Const FileName : RawByteString; Rights : Integer) : THandle;
 Function FileCreate (Const FileName : RawByteString; ShareMode : Integer; Rights : Integer) : THandle;
-Function FileExists (Const FileName : RawByteString) : Boolean;
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean = True) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink: Boolean = True) : Boolean;
 Function FileSetDate (Const FileName : RawByteString;Age : Longint) : Longint;
 Function FileGetAttr (Const FileName : RawByteString) : Longint;
 Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;

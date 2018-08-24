@@ -216,7 +216,7 @@ begin
 end;
 
 
-function FileExists (const FileName : RawByteString) : Boolean;
+function FileExists (const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
   Attr: longint;
 begin
@@ -372,7 +372,7 @@ begin
   DiskFree:=di.b_free * di.b_secsiz * di.b_clsiz;
 end;
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 var
   Attr: longint;
 begin

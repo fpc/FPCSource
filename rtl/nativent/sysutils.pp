@@ -320,7 +320,7 @@ begin
 end;
 
 
-function FileExists(const FileName: UnicodeString): Boolean;
+function FileExists(const FileName: UnicodeString; FollowLink : Boolean): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -341,7 +341,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory : UnicodeString) : Boolean;
+function DirectoryExists(const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
