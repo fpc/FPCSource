@@ -320,6 +320,12 @@ begin
 end;
 
 
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
 function FileExists(const FileName: UnicodeString; FollowLink : Boolean): Boolean;
 var
   ntstr: UNICODE_STRING;

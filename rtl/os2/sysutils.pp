@@ -228,6 +228,12 @@ begin
 end;
 
 
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
 function FileExists (const FileName: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
@@ -348,6 +354,7 @@ begin
   if RC <> 0 then
    OSErrorWatch (RC);
 end;
+
 
 function FileGetDate (Handle: THandle): longint;
 var

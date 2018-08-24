@@ -125,6 +125,21 @@ begin
 end;
 
 
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+var
+  sr: TRawbyteSymLinkRec;
+begin
+  Result := FileGetSymLinkTarget(ToSingleByteFileSystemEncodedFileName(FileName), sr);
+  if Result then
+    begin
+      SymLinkRec.TargetName := UnicodeString(sr.TargetName);
+{$ifdef SYMLINKREC_USEFINDDATA}
+      SymLinkRec.FindData := sr.FindData;
+{$endif}
+    end;
+end;
+
+
 Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
 begin
   Result:=UnicodeString(FileSearch(ToSingleByteFileSystemEncodedFileName(Name),
@@ -320,6 +335,21 @@ begin
 end;
 
 
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+var
+  sr: TUnicodeSymLinkRec;
+begin
+  Result := FileGetSymLinkTarget(UnicodeString(FileName), sr);
+  if Result then
+    begin
+      SymLinkRec.TargetName := ToSingleByteFileSystemEncodedFileName(sr.TargetName);
+{$ifdef SYMLINKREC_USEFINDDATA}
+      SymLinkRec.FindData := sr.FindData;
+{$endif}
+    end;
+end;
+
+
 Function FileSearch (Const Name, DirList : UnicodeString; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : UnicodeString;
 Var
   I : longint;
@@ -403,6 +433,26 @@ end;
 {$endif}
 
 
+function FileGetSymLinkTarget(const FileName: UnicodeString; out TargetName: UnicodeString): Boolean;
+var
+  sr: TUnicodeSymLinkRec;
+begin
+  Result := FileGetSymLinkTarget(FileName, sr);
+  if Result then
+    TargetName := sr.TargetName;
+end;
+
+
+function FileGetSymLinkTarget(const FileName: RawByteString; out TargetName: RawByteString): Boolean;
+var
+  sr: TRawbyteSymLinkRec;
+begin
+  Result := FileGetSymLinkTarget(FileName, sr);
+  if Result then
+    TargetName := sr.TargetName;
+end;
+
+
 Function GetFileHandle(var f : File):THandle;
 begin
   Result:=filerec(f).handle;
@@ -437,7 +487,7 @@ type
   {$ifdef unix}
     Mode : TMode;
   {$endif unix}
-  {$ifdef USEFINDDATA}
+  {$ifdef SEARCHREC_USEFINDDATA}
     FindData : TFindData;
   {$endif}
   end;
@@ -453,7 +503,7 @@ Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt
 Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint; forward;
 {$endif SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 
-procedure InternalFindClose(var Handle: {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif}{$ifdef USEFINDDATA};var FindData: TFindData{$endif}); forward;
+procedure InternalFindClose(var Handle: {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif}{$ifdef SEARCHREC_USEFINDDATA};var FindData: TFindData{$endif}); forward;
 
 
 {$ifndef SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
@@ -533,13 +583,13 @@ end;
 
 Procedure FindClose(Var f: TRawByteSearchRec);
 begin
-  InternalFindClose(f.FindHandle{$ifdef USEFINDDATA},f.FindData{$endif});
+  InternalFindClose(f.FindHandle{$ifdef SEARCHREC_USEFINDDATA},f.FindData{$endif});
 end;
 
 
 Procedure FindClose(Var f: TUnicodeSearchRec);
 begin
-  InternalFindClose(f.FindHandle{$ifdef USEFINDDATA},f.FindData{$endif});
+  InternalFindClose(f.FindHandle{$ifdef SEARCHREC_USEFINDDATA},f.FindData{$endif});
 end;
 
 { TUnicodeSearchRec }
@@ -554,6 +604,20 @@ end;
 function TRawbyteSearchRec.GetTimeStamp: TDateTime;
 begin
   Result := FileDateToDateTime(Time);
+end;
+
+{ TUnicodeSymLinkRec }
+
+function TUnicodeSymLinkRec.GetTimeStamp: TDateTime;
+begin
+  Result := 0;
+end;
+
+{ TRawbyteSymLinkRec }
+
+function TRawbyteSymLinkRec.GetTimeStamp: TDateTime;
+begin
+  Result := 0;
 end;
 
 

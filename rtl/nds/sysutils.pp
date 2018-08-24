@@ -179,6 +179,12 @@ begin
 end;
 
 
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
 Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
   SystemFileName: RawByteString;

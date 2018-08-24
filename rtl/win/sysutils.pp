@@ -407,6 +407,12 @@ begin
 end;
 
 
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
 Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   Attr:Dword;
