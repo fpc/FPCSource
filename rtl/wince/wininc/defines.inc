@@ -1618,6 +1618,9 @@
 
     { was #define dname def_expr }
      INVALID_HANDLE_VALUE = HANDLE(-1);
+     INVALID_FILE_SIZE    = DWORD(-1);
+     INVALID_SET_FILE_POINTER = DWORD(-1);
+     INVALID_FILE_ATTRIBUTES  = DWORD(-1);
 
   { GetStockObject  }
 
