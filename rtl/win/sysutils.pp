@@ -488,28 +488,68 @@ begin
 end;
 
 
-Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
-var
-  Attr:Dword;
-begin
+function FileOrDirExists(const FileOrDirName: UnicodeString; CheckDir: Boolean; FollowLink: Boolean): Boolean;
+const
+  CDirAttributes: array[Boolean] of DWORD = (0, FILE_ATTRIBUTE_DIRECTORY);
 
-  Attr:=GetFileAttributesW(PWideChar(FileName));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
-  else
-    Result:=False;
+  function FoundByEnum: Boolean;
+  var
+    FindData: TWin32FindDataW;
+    Handle: THandle;
+  begin
+    { FindFirstFileEx is faster than FindFirstFile }
+    Handle := FindFirstFileExW(PUnicodeChar(FileOrDirName), FindExInfoBasic, @FindData,
+                FindExSearchNameMatch, Nil, 0);
+    Result := Handle <> INVALID_HANDLE_VALUE;
+    if Result then begin
+      Windows.FindClose(Handle);
+      Result := (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+    end;
+  end;
+
+  function LinkFileExists: Boolean;
+  var
+    LinkTargetName: UnicodeString;
+  begin
+    Result := FileGetSymLinkTarget(FileOrDirName, LinkTargetName) and
+                FileOrDirExists(LinkTargetName, CheckDir, False);
+  end;
+
+const
+  CNotExistsErrors = [
+    ERROR_FILE_NOT_FOUND,
+    ERROR_PATH_NOT_FOUND,
+    ERROR_INVALID_NAME, // protects from names in the form of masks like '*'
+    ERROR_INVALID_DRIVE,
+    ERROR_NOT_READY,
+    ERROR_INVALID_PARAMETER,
+    ERROR_BAD_PATHNAME,
+    ERROR_BAD_NETPATH,
+    ERROR_BAD_NET_NAME
+  ];
+var
+  Attr : DWord;
+begin
+  Attr := GetFileAttributesW(PUnicodeChar(FileOrDirName));
+  if Attr = INVALID_FILE_ATTRIBUTES then
+    Result := not (GetLastError in CNotExistsErrors) and FoundByEnum
+  else begin
+    Result := (Attr and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+    if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then
+      Result := LinkFileExists;
+  end;
+end;
+
+
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
+begin
+  Result := FileOrDirExists(FileName, False, FollowLink);
 end;
 
 
 Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
-var
-  Attr:Dword;
 begin
-  Attr:=GetFileAttributesW(PWideChar(Directory));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
-  else
-    Result:=False;
+  Result := FileOrDirExists(Directory, True, FollowLink);
 end;
 
 Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
