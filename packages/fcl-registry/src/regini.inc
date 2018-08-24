@@ -14,6 +14,8 @@ begin
   fFileName := FN;
   if fFileName<>'' then begin
     fPath := fFileName + '\';
+    if fPath[1]='\' then
+      System.Delete(fPath,1,1);
     OpenKey(fFileName, aaccess <> KEY_READ);
   end
   else

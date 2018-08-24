@@ -568,6 +568,7 @@ Type
 
   PShortString        = ^ShortString;
   PAnsiString         = ^AnsiString;
+  PRawByteString      = ^RawByteString;
 
 {$ifndef FPUNONE}
   PDate               = ^TDateTime;
