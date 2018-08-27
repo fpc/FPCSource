@@ -6915,4 +6915,57 @@ kreg,kreg,kreg                            \362\363\364\370\1\x47\75\120         
 kreg,kreg,kreg                            \362\364\370\1\x47\75\120                 AVX512
 
 
+;*******************************************************************************
+;***********************  AVX 512  *********************************************
+;*******************************************************************************
+
+
+[VEXTRACTF32X4]
+(Ch_All)
+mem128_m,ymmreg,imm8                      \350\361\364\372\1\x19\101\26             AVX512
+mem128_m,zmmreg,imm8                      \350\351\361\372\1\x19\101\26             AVX512
+xmmreg_mz,ymmreg,imm8                     \350\361\364\372\1\x19\101\26             AVX512
+xmmreg_mz,zmmreg,imm8                     \350\351\361\372\1\x19\101\26             AVX512
+
+[VEXTRACTF32X8]
+(Ch_All)
+mem256_m,zmmreg,imm8                      \350\351\361\372\1\x1B\101\26             AVX512
+ymmreg_mz,zmmreg,imm8                     \350\351\361\372\1\x1B\101\26             AVX512
+
+[VEXTRACTF64X2]
+(Ch_All)
+mem128_m,ymmreg,imm8                      \350\352\361\364\372\1\x19\101\26         AVX512
+mem128_m,zmmreg,imm8                      \350\351\352\361\372\1\x19\101\26         AVX512
+xmmreg_mz,ymmreg,imm8                     \350\352\361\364\372\1\x19\101\26         AVX512
+xmmreg_mz,zmmreg,imm8                     \350\351\352\361\372\1\x19\101\26         AVX512
+
+[VEXTRACTF64X4]
+(Ch_All)
+mem256_m,zmmreg,imm8                      \350\351\352\361\372\1\x1B\101\26         AVX512
+ymmreg_mz,zmmreg,imm8                     \350\351\352\361\372\1\x1B\101\26         AVX512
+
+[VEXTRACTI32X4]
+(Ch_All)
+mem128_m,ymmreg,imm8                      \350\361\364\372\1\x39\101\26             AVX512
+mem128_m,zmmreg,imm8                      \350\351\361\372\1\x39\101\26             AVX512
+xmmreg_mz,ymmreg,imm8                     \350\361\364\372\1\x39\101\26             AVX512
+xmmreg_mz,zmmreg,imm8                     \350\351\361\372\1\x39\101\26             AVX512
+
+[VEXTRACTI32X8]
+(Ch_All)
+mem256_m,zmmreg,imm8                      \350\351\361\372\1\x3B\101\26             AVX512
+ymmreg_mz,zmmreg,imm8                     \350\351\361\372\1\x3B\101\26             AVX512
+
+[VEXTRACTI64X2]
+(Ch_All)
+mem128_m,ymmreg,imm8                      \350\352\361\364\372\1\x39\101\26         AVX512
+mem128_m,zmmreg,imm8                      \350\351\352\361\372\1\x39\101\26         AVX512
+xmmreg_mz,ymmreg,imm8                     \350\352\361\364\372\1\x39\101\26         AVX512
+xmmreg_mz,zmmreg,imm8                     \350\351\352\361\372\1\x39\101\26         AVX512
+
+[VEXTRACTI64X4]
+(Ch_All)
+mem256_m,zmmreg,imm8                      \350\351\352\361\372\1\x3B\101\26         AVX512
+ymmreg_mz,zmmreg,imm8                     \350\351\352\361\372\1\x3B\101\26         AVX512
+
 

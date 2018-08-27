@@ -1161,5 +1161,13 @@
 'kxorb',
 'kxord',
 'kxorq',
-'kxorw'
+'kxorw',
+'vextractf32x4',
+'vextractf32x8',
+'vextractf64x2',
+'vextractf64x4',
+'vextracti32x4',
+'vextracti32x8',
+'vextracti64x2',
+'vextracti64x4'
 );
