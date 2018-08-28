@@ -25,6 +25,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="\home\torsten\tmp\asmtest.lpr -Fu\home\torsten\avx512\rtl\units\i386-linux\"/>
       </local>
     </RunParams>
     <Units Count="2">
