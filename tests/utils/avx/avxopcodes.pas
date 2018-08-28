@@ -2325,6 +2325,39 @@ begin
   FOpCodeList.Add('kxord,1,1,0,KREG,KREG,KREG,');
   FOpCodeList.Add('kxorq,1,1,0,KREG,KREG,KREG,');
   FOpCodeList.Add('kxorw,1,1,0,KREG,KREG,KREG,');
+
+
+  FOpCodeList.Add('vextractf32X4,1,1,1,MEM128_M,YMMREG,IMM8,');
+  FOpCodeList.Add('vextractf32X4,1,1,1,MEM128_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextractf32X4,1,1,1,XMMREG_MZ,YMMREG,IMM8,');
+  FOpCodeList.Add('vextractf32X4,1,1,1,XMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextractf32X8,1,1,1,MEM256_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextractf32X8,1,1,1,YMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextractf64X2,1,1,1,MEM128_M,YMMREG,IMM8,');
+  FOpCodeList.Add('vextractf64X2,1,1,1,MEM128_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextractf64X2,1,1,1,XMMREG_MZ,YMMREG,IMM8,');
+  FOpCodeList.Add('vextractf64X2,1,1,1,XMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextractf64X4,1,1,1,MEM256_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextractf64X4,1,1,1,YMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextracti32X4,1,1,1,MEM128_M,YMMREG,IMM8,');
+  FOpCodeList.Add('vextracti32X4,1,1,1,MEM128_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextracti32X4,1,1,1,XMMREG_MZ,YMMREG,IMM8,');
+  FOpCodeList.Add('vextracti32X4,1,1,1,XMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextracti32X8,1,1,1,MEM256_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextracti32X8,1,1,1,YMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextracti64X2,1,1,1,MEM128_M,YMMREG,IMM8,');
+  FOpCodeList.Add('vextracti64X2,1,1,1,MEM128_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextracti64X2,1,1,1,XMMREG_MZ,YMMREG,IMM8,');
+  FOpCodeList.Add('vextracti64X2,1,1,1,XMMREG_MZ,ZMMREG,IMM8,');
+
+  FOpCodeList.Add('vextracti64X4,1,1,1,MEM256_M,ZMMREG,IMM8,');
+  FOpCodeList.Add('vextracti64X4,1,1,1,YMMREG_MZ,ZMMREG,IMM8,');
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64, aAVX512, aSAE: boolean; aDestPath, aFileExt: String;
