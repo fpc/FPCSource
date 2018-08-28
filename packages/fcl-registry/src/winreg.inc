@@ -58,7 +58,7 @@ begin
                               0,
                               '',
                               REG_OPTION_NON_VOLATILE,
-                              KEY_ALL_ACCESS,
+                              FACCESS,
                               SecurityAttributes,
                               Handle,
                               @Disposition);

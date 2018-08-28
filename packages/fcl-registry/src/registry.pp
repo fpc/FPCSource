@@ -331,7 +331,7 @@ Var
 
 begin
   Result := GetData(Name, @Buffer, BufSize, RegDataType);
-  If (RegDataType<>rdBinary) Then
+  If not (RegDataType in [rdBinary, rdUnknown]) Then
     Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
 end;
 

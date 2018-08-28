@@ -833,7 +833,7 @@ begin
     ZData.Free;
     if not img.UsePalette and assigned(FPalette) then
       begin
-      FPalette.Free;
+      FreeAndNil(FPalette);
       end;
   end;
 end;
