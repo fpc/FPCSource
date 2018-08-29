@@ -26,8 +26,9 @@ Resourcestring
   SErrCannotCreatePipes = 'Failed to create pipes';
 
 Const
+  // unused as of yet, I assume these are nice levels ?
   PriorityConstants : Array [TProcessPriority] of Integer =
-                      (20,20,0,-20);
+                      (-10,19,0,-20,5,-5);  // was (20,20,0,-20) before introduction of last two levels.
 
 Const
   GeometryOption : String = '-geometry';

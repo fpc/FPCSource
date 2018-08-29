@@ -36,11 +36,14 @@ Type
   TStartupOption = (suoUseShowWindow,suoUseSize,suoUsePosition,
                     suoUseCountChars,suoUseFillAttribute);
 
-  TProcessPriority = (ppHigh,ppIdle,ppNormal,ppRealTime);
+  // only win32/64 and wince uses this. wince doesn't have the constants in the headers for the latter two.
+  // unix defines them (as nice levels?), but doesn't use them.
+  TProcessPriority = (ppHigh,ppIdle,ppNormal,ppRealTime{$ifndef wince},ppBelowNormal,ppAboveNormal{$endif});
 
   TProcessOptions = set of TProcessOption;
   TStartupOptions = set of TStartupOption;
-  TRunCommandEventCode = (RunCommandIdle,RunCommandReadOutput,RunCommandFinished,RunCommandException);
+  TRunCommandEventCode = (RunCommandIdle,RunCommandReadOutputString,RunCommandReadOutputStream,RunCommandFinished,RunCommandException);
+  TRunCommandEventCodeSet = set of TRunCommandEventCode;
   TOnRunCommandEvent = procedure(Sender,Context : TObject;Status:TRunCommandEventCode;const Message:string) of object;
   EProcess = Class(Exception);
 
