@@ -1335,11 +1335,20 @@ implementation
         srsym: tsym;
         srsymtable: tsymtable;
         i: longint;
+        name : TIDString;
       begin
-        if searchsym_type(copy(internaltypeprefixName[prefix],2,length(internaltypeprefixName[prefix])),srsym,srsymtable) then
+        name:=copy(internaltypeprefixName[prefix],2,length(internaltypeprefixName[prefix]));
+        if searchsym_type(name,srsym,srsymtable) then
           begin
             result:=trecorddef(ttypesym(srsym).typedef);
             exit
+          end;
+        { also always search in the current module (symtables are popped for
+          RTTI related code already) }
+        if searchsym_in_module(pointer(current_module),name,srsym,srsymtable) then
+          begin
+            result:=trecorddef(ttypesym(srsym).typedef);
+            exit;
           end;
         fieldlist:=tfplist.create;
         for i:=low(fields) to high(fields) do
@@ -1367,6 +1376,14 @@ implementation
             recdef:=trecorddef(ttypesym(srsym).typedef);
             arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
             exit
+          end;
+        { also always search in the current module (symtables are popped for
+          RTTI related code already) }
+        if searchsym_in_module(pointer(current_module),copy(name,2,length(name)),srsym,srsymtable) then
+          begin
+            recdef:=trecorddef(ttypesym(srsym).typedef);
+            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
+            exit;
           end;
         recdef:=crecorddef.create_global_internal(name,packrecords,
           targetinfos[target_info.system]^.alignment.recordalignmin,
