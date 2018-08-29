@@ -349,27 +349,64 @@ implementation
       var
         locs : trttiparalocs;
         i : longint;
+        pool : THashSet;
+        entry : PHashSetItem;
+        loclab : TAsmLabel;
+        loctcb : ttai_typedconstbuilder;
+        datadef : tdef;
       begin
         locs:=paramanager.cgparalocs_to_rttiparalocs(para^.location);
         if length(locs)>high(byte) then
           internalerror(2017010601);
-        tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
-        tcb.emit_ord_const(length(locs),u8inttype);
-        for i:=low(locs) to high(locs) do
+
+        if length(locs)=0 then
           begin
-            tcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+            { *shrugs* }
+            tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype);
+            exit;
+          end;
+
+        { do we have such a paraloc already in the pool? }
+        pool:=current_asmdata.ConstPools[sp_paraloc];
+
+        entry:=pool.FindOrAdd(@locs[0],length(locs)*sizeof(trttiparaloc));
+
+        if not assigned(entry^.Data) then
+          begin
+            current_asmdata.getglobaldatalabel(loclab);
+
+            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+
+            loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin,
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
-            tcb.emit_ord_const(locs[i].loctype,u8inttype);
-            tcb.emit_ord_const(locs[i].regsub,u8inttype);
-            tcb.emit_ord_const(locs[i].regindex,u16inttype);
-            { the corresponding type for aint is alusinttype }
-            tcb.emit_ord_const(locs[i].offset,alusinttype);
-            tcb.end_anonymous_record;
-          end;
-        tcb.end_anonymous_record;
+            loctcb.emit_ord_const(length(locs),u8inttype);
+            for i:=low(locs) to high(locs) do
+              begin
+                loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
+                  targetinfos[target_info.system]^.alignment.recordalignmin,
+                  targetinfos[target_info.system]^.alignment.maxCrecordalign);
+                loctcb.emit_ord_const(locs[i].loctype,u8inttype);
+                loctcb.emit_ord_const(locs[i].regsub,u8inttype);
+                loctcb.emit_ord_const(locs[i].regindex,u16inttype);
+                { the corresponding type for aint is alusinttype }
+                loctcb.emit_ord_const(locs[i].offset,alusinttype);
+                loctcb.end_anonymous_record;
+              end;
+            datadef:=loctcb.end_anonymous_record;
+
+            current_asmdata.asmlists[al_typedconsts].concatList(
+              loctcb.get_final_asmlist(loclab,datadef,sec_rodata_norel,loclab.name,const_align(sizeof(pint)))
+            );
+
+            loctcb.free;
+
+            entry^.data:=loclab;
+          end
+        else
+          loclab:=TAsmLabel(entry^.Data);
+
+        tcb.emit_tai(Tai_const.Create_sym(loclab),voidpointertype);
       end;
 
 
