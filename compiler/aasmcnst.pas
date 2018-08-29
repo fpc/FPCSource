@@ -365,6 +365,9 @@ type
      { emit an ordinal constant }
      procedure emit_ord_const(value: int64; def: tdef);
 
+     { emit a reference to a pooled shortstring constant }
+     procedure emit_pooled_shortstring_const_ref(const str:shortstring);
+
      { begin a potential aggregate type. Must be called for any type
        that consists of multiple tai constant data entries, or that
        represents an aggregate at the Pascal level (a record, a non-dynamic
@@ -1843,6 +1846,56 @@ implementation
          else
            internalerror(2014100501);
        end;
+     end;
+
+
+   procedure ttai_typedconstbuilder.emit_pooled_shortstring_const_ref(const str:shortstring);
+     var
+       pool : thashset;
+       entry : phashsetitem;
+       strlab : tasmlabel;
+       l : longint;
+       pc : pansichar;
+       datadef : tdef;
+       strtcb : ttai_typedconstbuilder;
+     begin
+       pool:=current_asmdata.ConstPools[sp_shortstr];
+
+       entry:=pool.FindOrAdd(@str[1],length(str));
+
+       { :-(, we must generate a new entry }
+       if not assigned(entry^.Data) then
+         begin
+           current_asmdata.getglobaldatalabel(strlab);
+
+           { include length and terminating zero for quick conversion to pchar }
+           l:=length(str);
+           getmem(pc,l+2);
+           move(str[1],pc[1],l);
+           pc[0]:=chr(l);
+           pc[l+1]:=#0;
+
+           datadef:=carraydef.getreusable(cansichartype,l+2);
+
+           { we start a new constbuilder as we don't know whether we're called
+             from inside an internal constbuilder }
+           strtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+
+           strtcb.maybe_begin_aggregate(datadef);
+           strtcb.emit_tai(Tai_string.Create_pchar(pc,l+2),datadef);
+           strtcb.maybe_end_aggregate(datadef);
+
+           current_asmdata.asmlists[al_typedconsts].concatList(
+             strtcb.get_final_asmlist(strlab,datadef,sec_rodata_norel,strlab.name,const_align(sizeof(pint)))
+           );
+           strtcb.free;
+
+           entry^.Data:=strlab;
+         end
+       else
+         strlab:=tasmlabel(entry^.Data);
+
+       emit_tai(tai_const.Create_sym(strlab),charpointertype);
      end;
 
 
