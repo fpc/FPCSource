@@ -354,15 +354,17 @@ unit TypInfo;
         function GetResultLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PIntfMethodEntry; inline;
+        function GetName: ShortString; inline;
       public
         ResultType: PPTypeInfo;
         CC: TCallConv;
         Kind: TMethodKind;
         ParamCount: Word;
         StackSize: SizeInt;
-        Name: ShortString;
+        NamePtr: PShortString;
         { Params: array[0..ParamCount - 1] of TVmtMethodParam }
         { ResultLocs: TParameterLocations (if ResultType != Nil) }
+        property Name: ShortString read GetName;
         property Param[Index: Word]: PVmtMethodParam read GetParam;
         property ResultLocs: PParameterLocations read GetResultLocs;
         property Tail: Pointer read GetTail;
@@ -2990,7 +2992,7 @@ begin
     Result := Nil
   else
     begin
-      Result := PVmtMethodParam(aligntoptr(PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name)));
+      Result := PVmtMethodParam(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr)));
       while Index > 0 do
         begin
           Result := Result^.Next;
@@ -3004,7 +3006,7 @@ begin
   if not Assigned(ResultType) then
     Result := Nil
   else if ParamCount = 0 then
-    Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + SizeOf(Name[0]) + Length(Name)))
+    Result := PParameterLocations(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr)))
   else
     Result := PParameterLocations(aligntoptr(Param[ParamCount - 1]^.Tail));
 end;
@@ -3019,7 +3021,7 @@ begin
       Result := PByte(@retloc^.Count) + SizeOf(retloc^.Count) + SizeOf(TParameterLocation) * retloc^.Count;
     end
   else if ParamCount = 0 then
-    Result := PByte(@Name[0]) + Length(Name) + SizeOf(Byte)
+    Result := PByte(@NamePtr) + SizeOf(NamePtr)
   else
     Result := Param[ParamCount - 1]^.Tail;
 end;
@@ -3027,6 +3029,11 @@ end;
 function TIntfMethodEntry.GetNext: PIntfMethodEntry;
 begin
   Result := PIntfMethodEntry(aligntoptr(Tail));
+end;
+
+function TIntfMethodEntry.GetName: ShortString;
+begin
+  Result := NamePtr^;
 end;
 
 { TIntfMethodTable }

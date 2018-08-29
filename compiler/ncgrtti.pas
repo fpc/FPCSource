@@ -230,7 +230,7 @@ implementation
                       write_methodkind(tcb,def);
                       tcb.emit_ord_const(def.paras.count,u16inttype);
                       tcb.emit_ord_const(def.callerargareasize,ptrsinttype);
-                      tcb.emit_shortstring_const(sym.realname);
+                      tcb.emit_pooled_shortstring_const_ref(sym.realname);
 
                       for k:=0 to def.paras.count-1 do
                         begin
