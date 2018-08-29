@@ -92,24 +92,24 @@ type
     Copy: TRTTIRecCopyOp;
   end;
 
-{$ifndef VER3_0}
-{$push}
+  TRTTIRecordOpOffsetEntry =
+{$ifdef USE_PACKED}
+  packed
+{$endif USE_PACKED}
+  record
+    ManagmentOperator: CodePointer;
+    FieldOffset: SizeUInt;
+  end;
 
-{ better alignment for TRecordInfoInit }
-{ keep in sync with ncgrtti.TRTTIWriter.write_record_init_flag() and typinfo.pp }
-{ ToDo: different values for 8/16-bit platforms? }
-{$minenumsize 4}
-{$packset 4}
-
-  TRecordInfoInitFlag = (
-    riifNonTrivialChild,
-    { only relevant for classes }
-    riifParentHasNonTrivialChild
-  );
-  TRecordInfoInitFlags = set of TRecordInfoInitFlag;
-
-{$pop}
-{$endif}
+  TRTTIRecordOpOffsetTable =
+{$ifdef USE_PACKED}
+  packed
+{$endif USE_PACKED}
+  record
+    Count: LongWord;
+    Entries: array[0..0] of TRTTIRecordOpOffsetEntry;
+  end;
+  PRTTIRecordOpOffsetTable = ^TRTTIRecordOpOffsetTable;
 
   TRecordInfoInit=
 {$ifdef USE_PACKED}
@@ -119,7 +119,7 @@ type
     Terminator: Pointer;
     Size: Longint;
 {$ifndef VER3_0}
-    Flags: TRecordInfoInitFlags;
+    InitRecordOpTable: PRTTIRecordOpOffsetTable;
     RecordOp: PRTTIRecordOpVMT;
 {$endif VER3_0}
     Count: Longint;
@@ -148,7 +148,7 @@ type
 
 
 {$ifndef VER3_0}
-function RecordRTTIInitFlags(ti: Pointer): TRecordInfoInitFlags; forward;
+function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable; forward;
 {$endif VER3_0}
 
 {$ifdef VER3_0}

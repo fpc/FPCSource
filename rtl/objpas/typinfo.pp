@@ -410,25 +410,24 @@ unit TypInfo;
         Entries: array[0..0] of TVmtMethodEntry;
       end;
 
+      TRecOpOffsetEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        ManagementOperator: CodePointer;
+        FieldOffset: SizeUInt;
+      end;
 
-{$ifndef VER3_0}
-{$push}
-
-{ better alignment for TRecordInfoInit }
-{ keep in sync with ncgrtti.TRTTIWriter.write_record_init_flag() and rttidecl.inc }
-{ ToDo: different values for 8/16-bit platforms? }
-{$minenumsize 4}
-{$packset 4}
-
-      TRecordInfoInitFlag = (
-        riifNonTrivialChild,
-        { only relevant for classes }
-        riifParentHasNonTrivialChild
-      );
-      TRecordInfoInitFlags = set of TRecordInfoInitFlag;
-
-{$pop}
-{$endif}
+      TRecOpOffsetTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: LongWord;
+        Entries: array[0..0] of TRecOpOffsetEntry;
+      end;
+      PRecOpOffsetTable = ^TRecOpOffsetTable;
 
       PRecInitData = ^TRecInitData;
       TRecInitData =
@@ -439,7 +438,7 @@ unit TypInfo;
         Terminator: Pointer;
         Size: Integer;
 {$ifndef VER3_0}
-        Flags: TRecordInfoInitFlags;
+        InitOffsetOp: PRecOpOffsetTable;
         ManagementOp: Pointer;
 {$endif}
         ManagedFieldCount: Integer;

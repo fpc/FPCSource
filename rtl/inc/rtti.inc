@@ -138,10 +138,10 @@ end;
 
 
 {$ifndef VER3_0}
-function RecordRTTIInitFlags(ti: Pointer): TRecordInfoInitFlags;
+function RTTIRecordMopInitTable(ti: Pointer): PRTTIRecordOpOffsetTable;
 begin
   ti:=aligntoqword(ti+2+PByte(ti)[1]);
-  Result:=PRecordInfoInit(ti)^.Flags;
+  Result:=PRecordInfoInit(ti)^.InitRecordOpTable;
 end;
 {$endif VER3_0}
 

@@ -382,8 +382,9 @@
 {$ifndef VER3_0}
         var
            vmt  : PVmt;
-           temp : pointer;
-           flags : TRecordInfoInitFlags;
+           inittable : pointer;
+           mopinittable : PRTTIRecordOpOffsetTable;
+           i : longint;
 {$endif VER3_0}
         begin
            { the size is saved at offset 0 }
@@ -397,23 +398,22 @@
 {$ifndef VER3_0}
            { for management operators like initialize call int_initialize }
            vmt := PVmt(self);
-           while vmt<>nil do
+           if assigned(vmt) then
              begin
-               Temp:= vmt^.vInitTable;
-               if assigned(Temp) then
+               inittable:=vmt^.vInitTable;
+               if assigned(inittable) then
                  begin
-                   flags:=RecordRTTIInitFlags(Temp);
-                   if riifNonTrivialChild in flags then
-                     { The RTTI format matches one for records, except the type
-                       is tkClass. Since RecordRTTI does not check the type,
-                       calling it yields the desired result. }
-                     RecordRTTI(Instance,Temp,@int_initialize);
-                   { no need to continue complex initializing up the inheritance
-                     tree if none of the parents require it anyway }
-                   if not (riifParentHasNonTrivialChild in flags) then
-                     break;
+                   mopinittable:=RTTIRecordMopInitTable(inittable);
+                   if assigned(mopinittable) then
+                     begin
+                       {$push}
+                       { ensure that no range check errors pop up with the [0..0] array }
+                       {$R-}
+                       for i:=0 to mopinittable^.Count-1 do
+                         TRTTIRecVarOp(mopinittable^.Entries[i].ManagmentOperator)(PByte(Instance)+mopinittable^.Entries[i].FieldOffset);
+                       {$pop}
+                     end;
                  end;
-               vmt:= vmt^.vParent;
              end;
 {$endif VER3_0}
 
