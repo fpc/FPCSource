@@ -25,7 +25,8 @@ Resourcestring
 Const
   PriorityConstants : Array [TProcessPriority] of Cardinal =
                       (HIGH_PRIORITY_CLASS,IDLE_PRIORITY_CLASS,
-                       NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS);
+                       NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS,
+                       BELOW_NORMAL_PRIORITY_CLASS,ABOVE_NORMAL_PRIORITY_CLASS);
 
 procedure TProcessnamemacro.CloseProcessHandles;
 begin
