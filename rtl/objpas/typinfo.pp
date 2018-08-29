@@ -331,11 +331,13 @@ unit TypInfo;
         function GetParaLocs: PParameterLocations; inline;
         function GetTail: Pointer; inline;
         function GetNext: PVmtMethodParam; inline;
+        function GetName: ShortString; inline;
       public
         ParamType: PPTypeInfo;
         Flags: TParamFlags;
-        Name: ShortString;
+        NamePtr: PShortString;
         { ParaLocs: TParameterLocations; }
+        property Name: ShortString read GetName;
         property ParaLocs: PParameterLocations read GetParaLocs;
         property Tail: Pointer read GetTail;
         property Next: PVmtMethodParam read GetNext;
@@ -2962,7 +2964,7 @@ end;
 
 function TVmtMethodParam.GetParaLocs: PParameterLocations;
 begin
-  Result := PParameterLocations(aligntoptr(PByte(@Name[0]) + Length(Name) + Sizeof(Name[0])));
+  Result := PParameterLocations(aligntoptr(PByte(@NamePtr) + SizeOf(NamePtr)));
 end;
 
 function TVmtMethodParam.GetTail: Pointer;
@@ -2973,6 +2975,11 @@ end;
 function TVmtMethodParam.GetNext: PVmtMethodParam;
 begin
   Result := PVmtMethodParam(aligntoptr(Tail));
+end;
+
+function TVmtMethodParam.GetName: ShortString;
+begin
+  Result := NamePtr^;
 end;
 
 { TIntfMethodEntry }

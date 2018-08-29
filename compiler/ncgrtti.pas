@@ -245,7 +245,8 @@ implementation
                           else
                             write_rtti_reference(tcb,para.vardef,fullrtti);
                           write_param_flag(tcb,para);
-                          tcb.emit_shortstring_const(para.realname);
+
+                          tcb.emit_pooled_shortstring_const_ref(para.realname);
 
                           write_paralocs(tcb,@para.paraloc[callerside]);
 
@@ -1904,7 +1905,6 @@ implementation
         if def.owner.moduleid<>current_module.moduleid then
           current_module.add_extern_asmsym(s,AB_EXTERNAL,AT_DATA);
       end;
-
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
       var
