@@ -1179,9 +1179,10 @@ implementation
         mopofs : pmanagementoperator_offset_entry;
         i : longint;
       begin
+        if refcount>1 then
+          exit;
 {$ifdef llvm}
-        if refcount=1 then
-          fllvmst.free;
+        fllvmst.free;
 {$endif llvm}
         for mop in tmanagementoperator do
           begin
@@ -2713,6 +2714,8 @@ implementation
 
     destructor twithsymtable.destroy;
       begin
+        if refcount>1 then
+          exit;
         withrefnode.free;
         { Disable SymList because we don't Own it }
         SymList:=nil;

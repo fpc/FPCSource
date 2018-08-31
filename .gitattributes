@@ -11596,6 +11596,7 @@ tests/tbs/tb0646a.pp svneol=native#text/pascal
 tests/tbs/tb0646b.pp svneol=native#text/pascal
 tests/tbs/tb0648.pp svneol=native#text/pascal
 tests/tbs/tb0649.pp -text svneol=native#text/pascal
+tests/tbs/tb0650.pp svneol=native#text/pascal
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/tb610.pp svneol=native#text/pascal
 tests/tbs/tb613.pp svneol=native#text/plain
