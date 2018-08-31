@@ -2242,6 +2242,10 @@ implementation
              if df_specialization in old_current_procinfo.procdef.defoptions then
                begin
                  include(pd.defoptions,df_specialization);
+                 { the procdefs encountered here are nested procdefs of which
+                   their complete definition also resides inside the current token
+                   stream, thus access to their genericdef is not required }
+                 {$ifdef genericdef_for_nested}
                  { find the corresponding routine in the generic routine }
                  if not assigned(old_current_procinfo.procdef.genericdef) then
                    internalerror(2016121701);
@@ -2265,6 +2269,7 @@ implementation
                    end;
                  if not assigned(pd.genericdef) then
                    internalerror(2016121703);
+                 {$endif}
                end;
            end;
 
