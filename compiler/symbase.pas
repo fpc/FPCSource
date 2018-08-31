@@ -104,6 +104,7 @@ interface
           sealed : boolean;
           symtabletype  : TSymtabletype;
           constructor Create(const s:string);
+          { attention: only execute the a child's destructor if refcount is 1! }
           destructor  destroy;override;
           procedure freeinstance;override;
           function  getcopy:TSymtable;
