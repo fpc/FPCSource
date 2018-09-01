@@ -65,7 +65,7 @@ _start:
         add  a4, a2, a4
 
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argc)
-	sd	a1,%pcrel_lo(1b)(x8)
+	sw	a1,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argv)
 	sd	a2,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_envp)
@@ -118,7 +118,7 @@ __data_start:
         .comm __stkptr,8
 
         .comm operatingsystem_parameter_envp,8
-        .comm operatingsystem_parameter_argc,8
+        .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,8
 
         .section ".comment"

@@ -34,7 +34,7 @@ _start:
 
 	/* Save argc, argv, envp, and initial stack pointer */
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argc)
-	sd	x5,%pcrel_lo(1b)(x8)
+	sw	x5,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argv)
 	sd	x6,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_envp)
@@ -79,7 +79,7 @@ __data_start:
 	.comm __stkptr,8
 
 	.comm operatingsystem_parameter_envp,8
-	.comm operatingsystem_parameter_argc,8
+	.comm operatingsystem_parameter_argc,4
 	.comm operatingsystem_parameter_argv,8
 
 	.section .note.GNU-stack,"",%progbits

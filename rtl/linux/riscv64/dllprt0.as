@@ -28,7 +28,7 @@ FPC_SHARED_LIB_START:
 
         /* a0 contains argc, a1 contains argv and a2 contains envp */
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argc)
-	sd	a0,%pcrel_lo(1b)(x8)
+	sw	a0,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_argv)
 	sd	a1,%pcrel_lo(1b)(x8)
 1:auipc	x8,%pcrel_hi(operatingsystem_parameter_envp)
@@ -60,15 +60,15 @@ _haltproc:
 .data
 
         .type operatingsystem_parameters,object
-        .size operatingsystem_parameters,24
+        .size operatingsystem_parameters, 24
 operatingsystem_parameters:
-        .skip 3*8
-        .global operatingsystem_parameter_envp
+        .skip 3 * 8
         .global operatingsystem_parameter_argc
         .global operatingsystem_parameter_argv
-        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
-        .set operatingsystem_parameter_argc,operatingsystem_parameters+8
-        .set operatingsystem_parameter_argv,operatingsystem_parameters+16
+        .global operatingsystem_parameter_envp
+        .set operatingsystem_parameter_argc, operatingsystem_parameters+0
+        .set operatingsystem_parameter_argv, operatingsystem_parameters+8
+        .set operatingsystem_parameter_envp, operatingsystem_parameters+16
 
 .bss
 
