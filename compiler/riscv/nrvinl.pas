@@ -30,6 +30,9 @@ interface
        node,ninl,ncginl;
 
     type
+
+       { trvinlinenode }
+
        trvinlinenode = class(tcginlinenode)
           { first pass override
             so that the code generator will actually generate
@@ -38,12 +41,16 @@ interface
           function first_sqrt_real: tnode; override;
           function first_abs_real: tnode; override;
           function first_sqr_real: tnode; override;
+          function first_round_real: tnode; override;
+          function first_trunc_real: tnode; override;
 
           function first_fma: tnode; override;
 
           procedure second_sqrt_real; override;
           procedure second_abs_real; override;
           procedure second_sqr_real; override;
+          procedure second_round_real; override;
+          procedure second_trunc_real; override;
 
           procedure second_fma; override;
        protected
@@ -101,6 +108,31 @@ implementation
          else
            result:=inherited first_sqr_real;
        end;
+
+
+     function trvinlinenode.first_round_real: tnode;
+       begin
+         if (current_settings.fputype >= fpu_fd) then
+           begin
+             expectloc:=LOC_FPUREGISTER;
+             first_round_real := nil;
+           end
+         else
+           result:=inherited first_round_real;
+       end;
+
+
+     function trvinlinenode.first_trunc_real: tnode;
+       begin
+         if (current_settings.fputype >= fpu_fd) then
+           begin
+             expectloc:=LOC_FPUREGISTER;
+             first_trunc_real := nil;
+           end
+         else
+           result:=inherited first_trunc_real;
+       end;
+
 
      function trvinlinenode.first_fma: tnode;
        begin
@@ -167,6 +199,62 @@ implementation
          else
            op := A_FMUL_D;
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
+         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+       end;
+
+
+     procedure trvinlinenode.second_round_real;
+       var
+         op: TAsmOp;
+       begin
+         secondpass(left);
+         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         { convert to signed integer rounding towards zero (there's no "round to
+           integer using current rounding mode") }
+
+{$ifdef RISCV32}
+         if (left.location.size = OS_F32) then
+           op := A_FCVT_W_S
+         else
+           op := A_FCVT_W_D;
+{$else}
+         if (left.location.size = OS_F32) then
+           op := A_FCVT_L_S
+         else
+           op := A_FCVT_L_D;
+{$endif}
+
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+         cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
+       end;
+
+
+     procedure trvinlinenode.second_trunc_real;
+       var
+         op: TAsmOp;
+       begin
+         secondpass(left);
+         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         { convert to signed integer rounding towards zero (there's no "round to
+           integer using current rounding mode") }
+
+{$ifdef RISCV32}
+         if (left.location.size = OS_F32) then
+           op := A_FCVT_W_S
+         else
+           op := A_FCVT_W_D;
+{$else}
+         if (left.location.size = OS_F32) then
+           op := A_FCVT_L_S
+         else
+           op := A_FCVT_L_D;
+{$endif}
+
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_roundingmode(op,location.register,left.location.register,RM_RTZ));
          cg.g_check_for_fpu_exception(current_asmdata.CurrAsmList);
        end;
 

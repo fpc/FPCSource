@@ -174,7 +174,9 @@ unit agrvgas;
             if ffO in o.fenceflags then getopstr:=getopstr+'o';
             if ffR in o.fenceflags then getopstr:=getopstr+'r';
             if ffW in o.fenceflags then getopstr:=getopstr+'w';
-          end
+          end;
+        top_roundingmode:
+          getopstr:=roundingmode2str[o.roundingmode];
         else
           internalerror(2002070604);
       end;
