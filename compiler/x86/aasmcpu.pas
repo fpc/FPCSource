@@ -2661,7 +2661,7 @@ implementation
               ((br<>NR_EBP) and (o=0) and (sym=nil)) then
             md:=0
            else
-            if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset))) then
+            if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset) or (o = 0))) then
              md:=1
             else
              md:=2;
@@ -2763,7 +2763,7 @@ implementation
               exit;
             if (base<>6) and (o=0) and (sym=nil) then
               md:=0
-            else if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset))) then
+            else if ((o>=-128) and (o<=127) and (sym=nil) and (not(uselargeoffset) or (o = 0))) then
               md:=1
             else
               md:=2;
@@ -2812,6 +2812,8 @@ implementation
         codes : pchar;
         c     : byte;
         len     : shortint;
+        len_ea_data: shortint;
+        len_ea_data_evex: shortint;
         ea_data : ea;
         exists_evex: boolean;
         exists_vex: boolean;
@@ -2831,6 +2833,9 @@ implementation
 
 
         len:=0;
+        len_ea_data := 0;
+        len_ea_data_evex:= 0;
+
         codes:=@p^.code[0];
         exists_vex := false;
         exists_vex_extension := false;
@@ -2994,10 +2999,15 @@ implementation
                   end;
 
 {$endif x86_64}
-                if not process_ea(oper[(c shr 3) and 7]^, ea_data, 0, exists_evex) then
-                  Message(asmw_e_invalid_effective_address)
-                else
+                if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, true) then
+                 len_ea_data_evex := ea_data.size;
+                if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, false) then
+                 begin
+                  len_ea_data := ea_data.size;
                   inc(len,ea_data.size);
+                end
+                 else Message(asmw_e_invalid_effective_address);
+
 {$ifdef x86_64}
                 rex:=rex or ea_data.rex;
 {$endif x86_64}
@@ -3078,6 +3088,9 @@ implementation
           if CheckUseEVEX then
           begin
             inc(len, 4);
+
+            if len_ea_data <> len_ea_data_evex then
+             inc(len, len_ea_data_evex - len_ea_data);
           end
           else
           begin
@@ -3102,6 +3115,9 @@ implementation
           if exists_prefix_66 then dec(len);
           if exists_prefix_F2 then dec(len);
           if exists_prefix_F3 then dec(len);
+
+          if len_ea_data <> len_ea_data_evex then
+           inc(len, len_ea_data_evex - len_ea_data);
         end
         else
         begin
@@ -3390,8 +3406,7 @@ implementation
         EVEXb   : byte;
         EVEXmm  : byte;
 
-        uselargeoffset: boolean;
-
+//TG delete
         pins: tinsentry;
         t: toptype;
       begin
@@ -3402,9 +3417,6 @@ implementation
 
         if objdata.currobjsec.size<>longword(insoffset) then
         begin
-          //TG TODO delete
-          Message1(asmw_e_invalid_opcode_and_operands,GetString);
-
           internalerror(200130121);
         end;
 
@@ -3804,7 +3816,6 @@ implementation
 
         { load data to write }
         codes:=insentry^.code;
-        uselargeoffset := false; // AVX512
         repeat
           c:=ord(codes^);
           inc(codes);
@@ -4167,9 +4178,7 @@ implementation
                 else
                   Internalerror(2014032001);
               end;
-            &350: uselargeoffset := true;
-            &351,
-            &352: ; // EVEX flags =>> nothing todo
+            &350..&352: ; // EVEX flags =>> nothing todo
             &370..&372: ; // VEX flags =>> nothing todo
             &37:
               begin
@@ -4202,8 +4211,10 @@ implementation
                    else
                     rfield:=c and 7;
                    opidx:=(c shr 3) and 7;
-                   if not process_ea(oper[opidx]^,ea_data,rfield, uselargeoffset) then
-                     Message(asmw_e_invalid_effective_address);
+
+                   if not process_ea(oper[opidx]^,ea_data,rfield, needed_EVEX) then
+                    Message(asmw_e_invalid_effective_address);
+
 
                    pb:=@bytes[0];
                    pb^:=ea_data.modrm;
@@ -4662,13 +4673,6 @@ implementation
           RegBCSTZMMSizeMask := 0;
 
 
-          //TG TODO delete
-          if AsmOp = A_VPSRLD then
-          begin
-            RegZMMSizeMask := RegZMMSizeMask;
-          end;
-
-
 
           while (insentry^.opcode=AsmOp) do
           begin
@@ -4795,12 +4799,6 @@ implementation
                     OT_ZMEM64: MRefInfo := msiZMem64;
                           else InternalError(777208);
                   end;
-
-                  if asmop = a_vgatherdps then
-                  begin
-                    actVMemTypes := actVMemTypes;
-                  end;
-
 
                   case actRegTypes of
                     OT_XMMREG: case MRefInfo of
@@ -4969,13 +4967,6 @@ implementation
 
             inc(insentry);
           end;
-
-          //TG TODO delete
-          if AsmOp = A_VCMPSS then
-          begin
-            RegZMMSizeMask := RegZMMSizeMask;
-          end;
-
           if InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX then
           begin
             case RegBCSTSizeMask of
@@ -5044,19 +5035,6 @@ implementation
             begin
               InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
             end
-            //else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
-            //        (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) then
-            //begin
-            //  if (RegZMMSizeMask or RegZMMConstSizeMask = 0) then
-            //  begin
-            //    InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
-            //  end
-            //  else
-            //  begin
-            //    //TG TODO delete
-            //    RegZMMSizeMask := RegZMMSizeMask;
-            //  end;
-            //end
             else if (RegXMMSizeMask or RegXMMConstSizeMask = OT_BITS16) and
                     (RegYMMSizeMask or RegYMMConstSizeMask = OT_BITS32) and
                     (RegZMMSizeMask or RegZMMConstSizeMask = 0) then
@@ -5086,26 +5064,6 @@ implementation
                 RegZMMSizeMask := RegZMMSizeMask;
               end;
             end
-            //else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64) and
-            //        (
-            //         ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) or
-            //         ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS256)) then
-            //begin
-            //  if ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
-            //  begin
-            //    case RegYMMSizeMask or RegYMMConstSizeMask of
-            //      OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
-            //      OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
-            //    end;
-            //  end
-            //
-            //
-            //  else
-            //  begin
-            //    //TG TODO delete
-            //    RegZMMSizeMask := RegZMMSizeMask;
-            //  end;
-            //end
             else if ((RegXMMSizeMask or RegXMMConstSizeMask) = OT_BITS64)  and
                     ((RegYMMSizeMask or RegYMMConstSizeMask) = OT_BITS128) and
                     ((RegZMMSizeMask or RegZMMConstSizeMask) = 0) then
@@ -5168,49 +5126,6 @@ implementation
               InternalError(777205);
             end;
 
-            //begin
-
-              //case RegXMMSizeMask of
-                //OT_BITS16: case RegYMMSizeMask of
-                //             OT_BITS32: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx16y32;
-                //          end;
-                // OT_BITS32: case RegYMMSizeMask of
-                //              OT_BITS64: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx32y64;
-                //           end;
-                // OT_BITS64: case RegYMMSizeMask of
-                //              OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
-                //              OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y256;
-                //            end;
-                //OT_BITS128: begin
-                //              if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiVMemMultiple then
-                //              begin
-                //                // vector-memory-operand AVX2 (e.g. VGATHER..)
-                //                case RegYMMSizeMask of
-                //                  OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiVMemRegSize;
-                //                end;
-                //              end
-                //              else if RegMMXSizeMask = 0 then
-                //              begin
-                //                case RegYMMSizeMask of
-                //                  OT_BITS128: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegx64y128;
-                //                  OT_BITS256: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
-                //                end;
-                //              end
-                //              else if RegYMMSizeMask = 0 then
-                //              begin
-                //                case RegMMXSizeMask of
-                //                  OT_BITS64: InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := msiMemRegSize;
-                //                end;
-                //              end
-                //              else InternalError(777205);
-                //            end;
-
-                  // TG TODO
-
-              //end;
-
-
-            //end;
           end;
         end;
       end;
