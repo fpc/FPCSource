@@ -292,6 +292,8 @@ implementation
         singleprec , inv: boolean;
       begin
         pass_left_and_right;
+        if (nf_swapped in flags) then
+          swapleftright;
 
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
@@ -374,11 +376,6 @@ implementation
           else
             internalerror(200403182);
         end;
-
-        // get the operands in the correct order, there are no special cases
-        // here, everything is register-based
-        if (nf_swapped in flags) and (not cmpop) then
-          swapleftright;
 
         // put both operands in a register
         hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
