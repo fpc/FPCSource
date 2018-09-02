@@ -856,6 +856,34 @@ implementation
               sp:='';
           end;
 
+        function check_generic_parameters(def:tstoreddef):boolean;
+          var
+            i : longint;
+            decltype,
+            impltype : ttypesym;
+            implname : tsymstr;
+          begin
+            result:=true;
+            if not assigned(def.genericparas) then
+              internalerror(2018090102);
+            if not assigned(genericparams) then
+              internalerror(2018090103);
+            if def.genericparas.count<>genericparams.count then
+              internalerror(2018090104);
+            for i:=0 to def.genericparas.count-1 do
+              begin
+                decltype:=ttypesym(def.genericparas[i]);
+                impltype:=ttypesym(genericparams[i]);
+                implname:=upper(genericparams.nameofindex(i));
+                if decltype.name<>implname then
+                  begin
+                    messagepos1(impltype.fileinfo,sym_e_generic_type_param_mismatch,impltype.realname);
+                    messagepos1(decltype.fileinfo,sym_e_generic_type_param_decl,decltype.realname);
+                    result:=false;
+                  end;
+              end;
+          end;
+
       begin
         sp:='';
         orgsp:='';
@@ -951,6 +979,17 @@ implementation
                  if not assigned(astruct) and not assigned(srsym) then
                    srsym:=search_object_name(sp,true);
                  current_filepos:=oldfilepos;
+
+                 { we need to check whether the names of the generic parameter
+                   types match with the one in the declaration of a class/record,
+                   but we need to do this before consume_proc_name frees the
+                   type parameters of the class part }
+                 if (srsym.typ=typesym) and
+                     (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) and
+                     tstoreddef(ttypesym(srsym).typedef).is_generic and
+                     assigned(genericparams) then
+                   { this is recoverable, so no further action necessary }
+                   check_generic_parameters(tstoreddef(ttypesym(srsym).typedef));
 
                  { consume proc name }
                  procstartfilepos:=current_tokenpos;
