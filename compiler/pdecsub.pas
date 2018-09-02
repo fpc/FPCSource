@@ -3540,6 +3540,29 @@ const
     function proc_add_definition(var currpd:tprocdef):boolean;
 
 
+      function check_generic_parameters(fwpd,currpd:tprocdef):boolean;
+        var
+          i : longint;
+          fwtype,
+          currtype : ttypesym;
+        begin
+          result:=true;
+          if fwpd.genericparas.count<>currpd.genericparas.count then
+            internalerror(2018090101);
+          for i:=0 to fwpd.genericparas.count-1 do
+            begin
+              fwtype:=ttypesym(fwpd.genericparas[i]);
+              currtype:=ttypesym(currpd.genericparas[i]);
+              if fwtype.name<>currtype.name then
+                begin
+                  messagepos1(currtype.fileinfo,sym_e_generic_type_param_mismatch,currtype.realname);
+                  messagepos1(fwtype.fileinfo,sym_e_generic_type_param_decl,fwtype.realname);
+                  result:=false;
+                end;
+            end;
+        end;
+
+
       function equal_generic_procdefs(fwpd,currpd:tprocdef):boolean;
         var
           i : longint;
@@ -3844,6 +3867,13 @@ const
                         inc(fwidx);
                       until false;
                     end;
+                   { check that the type parameter names for generic methods match;
+                     we check this here and not in equal_generic_procdefs as the defs
+                     might still be different due to their parameters, so we'd generate
+                     errors without any need }
+                   if currpd.is_generic and fwpd.is_generic then
+                     { an error here is recoverable, so we simply continue }
+                     check_generic_parameters(fwpd,currpd);
                    { Everything is checked, now we can update the forward declaration
                      with the new data from the implementation }
                    fwpd.forwarddef:=currpd.forwarddef;
