@@ -76,8 +76,10 @@ begin
   SetLength(elements, td^.TotalFieldCount);
   for i := 0 to td^.TotalFieldCount - 1 do begin
     { ToDo: what about fields that are larger that what we have currently? }
-    if field^.FldOffset < curoffset then
+    if field^.FldOffset < curoffset then begin
+      Inc(field);
       Continue;
+    end;
     remoffset := field^.FldOffset - curoffset;
     { insert padding elements }
     while remoffset >= SizeOf(QWord) do begin
