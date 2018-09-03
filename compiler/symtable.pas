@@ -110,6 +110,7 @@ interface
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
           recordalignmin,            { local equivalents of global settings, so that records can }
           maxCrecordalign: shortint; { be created with custom settings internally }
+          has_fields_with_mop : tmanagementoperators; { whether any of the fields has the need for a management operator (or one of the field's fields) }
           constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
           destructor destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
@@ -1204,6 +1205,7 @@ implementation
         recordalignmin:=shortint(ppufile.getbyte);
         if (usefieldalignment=C_alignment) then
           fieldalignment:=shortint(ppufile.getbyte);
+        ppufile.getsmallset(has_fields_with_mop);
         inherited ppuload(ppufile);
       end;
 
@@ -1221,6 +1223,10 @@ implementation
          ppufile.putbyte(byte(recordalignmin));
          if (usefieldalignment=C_alignment) then
            ppufile.putbyte(byte(fieldalignment));
+         { it's not really a "symtableoption", but loading this from the record
+           def requires storing the set in the recorddef at least between
+           ppuload and deref/derefimpl }
+         ppufile.putsmallset(has_fields_with_mop);
          ppufile.writeentry(ibrecsymtableoptions);
 
          inherited ppuwrite(ppufile);
@@ -1284,6 +1290,11 @@ implementation
         sym.visibility:=vis;
         { this symbol can't be loaded to a register }
         sym.varregable:=vr_none;
+        { management operators }
+        if sym.vardef.typ in [recorddef,objectdef] then
+          has_fields_with_mop:=has_fields_with_mop + tabstractrecordsymtable(tabstractrecorddef(sym.vardef).symtable).has_fields_with_mop;
+        if sym.vardef.typ=recorddef then
+          has_fields_with_mop:=has_fields_with_mop + trecordsymtable(trecorddef(sym.vardef).symtable).managementoperators;
         { Calculate field offset }
         l:=sym.getsize;
         vardef:=sym.vardef;
@@ -1683,6 +1694,9 @@ implementation
         if not assigned(list) then
           internalerror(2018082301);
         if mop=mop_none then
+          exit;
+        if not (mop in has_fields_with_mop) then
+          { none of the fields or one of the field's fields has the requested operator }
           exit;
         if not assigned(mop_list[mop]) then
           begin
